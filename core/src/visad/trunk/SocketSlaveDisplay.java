@@ -205,7 +205,7 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
     return port;
   }
 
-  /** send the latest image from the display to the given output stream */
+  /** send the latest display image to the given client */
   private void updateClient(int i) {
     DataOutputStream out = (DataOutputStream) clientOutputs.elementAt(i);
     if (pix != null) {
@@ -229,9 +229,27 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
     else if (DEBUG) System.err.println("Null pixels!");
   }
 
+  /** send a message to the given client */
+  private void updateClient(int i, String message) {
+    DataOutputStream out = (DataOutputStream) clientOutputs.elementAt(i);
+    try {
+      // send message to the output stream
+      out.writeInt(-1); // special code of width -1 indicates message
+      out.writeInt(message.length());
+      out.writeChars(message);
+    }
+    catch (SocketException exc) {
+      // there is a problem with this socket, so kill it
+      killSocket(i);
+    }
+    catch (IOException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
+  }
+
   /** display automatically calls sendImage when its content changes */
-  public void sendImage(int[] pixels, int width, int height, int type)
-    throws RemoteException
+  public synchronized void sendImage(int[] pixels, int width, int height,
+    int type) throws RemoteException
   {
     // Note: The pixels array is RLE-encoded. The client applet decodes it.
 
@@ -243,6 +261,13 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
     // update all clients with the new image
     synchronized (clientSockets) {
       for (int i=0; i<clientSockets.size(); i++) updateClient(i);
+    }
+  }
+
+  /** Send the given message to this slave display */
+  public synchronized void sendMessage(String message) throws RemoteException {
+    synchronized (clientSockets) {
+      for (int i=0; i<clientSockets.size(); i++) updateClient(i, message);
     }
   }
 

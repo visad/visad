@@ -35,30 +35,27 @@ import java.util.StringTokenizer;
  */
 public class GMCWidget extends Widget implements ActionListener, ItemListener {
 
-  private static final String SCALE_ENABLED = "s";
-  private static final String POINT_MODE = "p";
-  private static final String TEXTURE_MAPPING = "t";
-  private static final String LINE_WIDTH = "lw";
-  private static final String POINT_SIZE = "ps";
-
   Checkbox scale;
   Checkbox point;
   Checkbox texture;
   TextField lineWidth;
   TextField pointSize;
 
-  boolean gmcScaleEnabled = false;
-  boolean gmcPointMode = false;
-  boolean gmcTextureMapping = false;
-  float gmcLineWidth = 1.0f;
-  float gmcPointSize = 1.0f;
+  boolean gmcScaleEnable;
+  boolean gmcPointMode;
+  boolean gmcTextureEnable;
+  float gmcLineWidth;
+  float gmcPointSize;
+  int gmcTransparencyMode;
+  int gmcProjectionPolicy;
+  int gmcPolygonMode;
+  boolean gmcMissingTransparent;
+  int gmcCurvedSize;
 
   /**
-   * Constructs a new GMCWidget from the given WidgetEvent information.
+   * Constructs a new GMCWidget.
    */
-  public GMCWidget(WidgetEvent e) {
-    super(e);
-
+  public GMCWidget() {
     // set background to white
     setBackground(Color.white);
 
@@ -67,14 +64,11 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
     setLayout(gridbag);
 
     // construct GUI components
-    scale = new Checkbox("Enable scale", gmcScaleEnabled);
+    scale = new Checkbox("Enable scale", gmcScaleEnable);
     point = new Checkbox("Point mode", gmcPointMode);
-    texture = new Checkbox("Texture mapping", gmcTextureMapping);
+    texture = new Checkbox("Texture mapping", gmcTextureEnable);
     lineWidth = new TextField("" + gmcLineWidth);
     pointSize = new TextField("" + gmcPointSize);
-
-    // get widget values from event
-    updateWidget(e);
 
     // add listeners
     scale.addItemListener(this);
@@ -94,27 +88,10 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
   }
 
   /**
-   * Programmatically sets the scale enabled checkbox.
+   * Gets the value of the line width text field.
    */
-  public void setScaleEnabled(boolean se) {
-    gmcScaleEnabled = se;
-    scale.setState(se);
-  }
-
-  /**
-   * Programmatically sets the point mode checkbox.
-   */
-  public void setPointMode(boolean pm) {
-    gmcPointMode = pm;
-    point.setState(pm);
-  }
-
-  /**
-   * Programmatically sets the texture mapping checkbox.
-   */
-  public void setTextureMapping(boolean tm) {
-    gmcTextureMapping = tm;
-    texture.setState(tm);
+  public float getLineWidth() {
+    return gmcLineWidth;
   }
 
   /**
@@ -126,6 +103,13 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
   }
 
   /**
+   * Gets the value of the point size text field.
+   */
+  public float getPointSize() {
+    return gmcPointSize;
+  }
+  
+  /**
    * Programmatically sets the point size text field.
    */
   public void setPointSize(float ps) {
@@ -134,39 +118,175 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
   }
 
   /**
-   * Updates widget based on information from the given WidgetEvent.
+   * Gets the value of the point mode checkbox;
    */
-  public void updateWidget(WidgetEvent e) {
-    if (e == null) return;
-    int id = e.getId();
-    if (id == WidgetEvent.CREATED) {
-      String save = e.getValue();
-      StringTokenizer st = new StringTokenizer(save, "\n");
-      setScaleEnabled(Convert.getBoolean(st.nextToken()));
-      setPointMode(Convert.getBoolean(st.nextToken()));
-      setTextureMapping(Convert.getBoolean(st.nextToken()));
-      setLineWidth((float) Convert.getDouble(st.nextToken()));
-      setPointSize((float) Convert.getDouble(st.nextToken()));
+  public boolean getPointMode() {
+    return gmcPointMode;
+  }
+  
+  /**
+   * Programmatically sets the point mode checkbox.
+   */
+  public void setPointMode(boolean pm) {
+    gmcPointMode = pm;
+    point.setState(pm);
+  }
+
+  /**
+   * Gets the value of the texture enable checkbox.
+   */
+  public boolean getTextureEnable() {
+    return gmcTextureEnable;
+  }
+  
+  /**
+   * Programmatically sets the texture mapping checkbox.
+   */
+  public void setTextureEnable(boolean tm) {
+    gmcTextureEnable = tm;
+    texture.setState(tm);
+  }
+
+  /**
+   * Gets the value of the scale enable checkbox.
+   */
+  public boolean getScaleEnable() {
+    return gmcScaleEnable;
+  }
+  
+  /**
+   * Programmatically sets the scale enabled checkbox.
+   */
+  public void setScaleEnable(boolean se) {
+    gmcScaleEnable = se;
+    scale.setState(se);
+  }
+
+  /**
+   * Gets the transparency mode.
+   */
+  public int getTransparencyMode() {
+    return gmcTransparencyMode;
+  }
+
+  /**
+   * Sets the transparency mode.
+   */
+  public void setTransparencyMode(int tm) {
+    gmcTransparencyMode = tm;
+  }
+
+  /**
+   * Gets the projection policy.
+   */
+  public int getProjectionPolicy() {
+    return gmcProjectionPolicy;
+  }
+
+  /**
+   * Sets the projection policy.
+   */
+  public void setProjectionPolicy(int pp) {
+    gmcProjectionPolicy = pp;
+  }
+
+  /**
+   * Gets the polygon mode.
+   */
+  public int getPolygonMode() {
+    return gmcPolygonMode;
+  }
+
+  /**
+   * Sets the polygon mode.
+   */
+  public void setPolygonMode(int pm) {
+    gmcPolygonMode = pm;
+  }
+
+  /**
+   * Gets whether missing values are transparent.
+   */
+  public boolean getMissingTransparent() {
+    return gmcMissingTransparent;
+  }
+
+  /**
+   * Sets whether missing values are transparent.
+   */
+  public void setMissingTransparent(boolean mt) {
+    gmcMissingTransparent = mt;
+  }
+
+  /**
+   * Gets the curved size.
+   */
+  public int getCurvedSize() {
+    return gmcCurvedSize;
+  }
+
+  /**
+   * Sets the curved size.
+   */
+  public void setCurvedSize(int cs) {
+    gmcCurvedSize = cs;
+  }
+
+  /**
+   * Gets a string representing this widget's current state.
+   */
+  public String getSaveString() {
+    return "" +
+      getLineWidth() + ' ' +
+      getPointSize() + ' ' +
+      getPointMode() + ' ' +
+      getTextureEnable() + ' ' +
+      getScaleEnable() + ' ' +
+      getTransparencyMode() + ' ' +
+      getProjectionPolicy() + ' ' +
+      getPolygonMode() + ' ' +
+      getMissingTransparent() + ' ' +
+      getCurvedSize();
+  }
+
+  /**
+   * Reconstructs this widget's state using the specified save string.
+   */
+  public void setSaveString(String save) {
+    if (save == null) {
+      if (DEBUG) System.err.println("Invalid save string");
+      return;
     }
-    else if (id == WidgetEvent.UPDATED) {
-      String field = e.getField();
-      String value = e.getValue();
-      if (field.equals(SCALE_ENABLED)) {
-        setScaleEnabled(Convert.getBoolean(value));
-      }
-      else if (field.equals(POINT_MODE)) {
-        setPointMode(Convert.getBoolean(value));
-      }
-      else if (field.equals(TEXTURE_MAPPING)) {
-        setTextureMapping(Convert.getBoolean(value));
-      }
-      else if (field.equals(LINE_WIDTH)) {
-        setLineWidth((float) Convert.getDouble(value));
-      }
-      else { // field.equals(POINT_SIZE)
-        setPointSize((float) Convert.getDouble(value));
-      }
+    StringTokenizer st = new StringTokenizer(save);
+    int numTokens = st.countTokens();
+    if (numTokens < 10) {
+      System.out.println("Invalid save string");
+      return;
     }
+
+    // determine graphics mode settings
+    float lw = Convert.getFloat(st.nextToken());
+    float ps = Convert.getFloat(st.nextToken());
+    boolean pm = Convert.getBoolean(st.nextToken());
+    boolean te = Convert.getBoolean(st.nextToken());
+    boolean se = Convert.getBoolean(st.nextToken());
+    int tm = Convert.getInt(st.nextToken());
+    int pp = Convert.getInt(st.nextToken());
+    int pm2 = Convert.getInt(st.nextToken());
+    boolean mt = Convert.getBoolean(st.nextToken());
+    int cs = Convert.getInt(st.nextToken());
+
+    // reset graphics mode settings
+    setLineWidth(lw);
+    setPointSize(ps);
+    setPointMode(pm);
+    setTextureEnable(te);
+    setScaleEnable(se);
+    setTransparencyMode(tm);
+    setProjectionPolicy(pp);
+    setPolygonMode(pm2);
+    setMissingTransparent(mt);
+    setCurvedSize(cs);
   }
 
   /**
@@ -186,8 +306,7 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
       if (lw == lw) {
         gmcLineWidth = lw;
         scale.requestFocus();
-        notifyListeners(new WidgetEvent(
-          this, WidgetEvent.UPDATED, LINE_WIDTH, "" + lw));
+        notifyListeners(new WidgetEvent(this));
       }
     }
     else if (source == pointSize) {
@@ -201,8 +320,7 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
       if (ps == ps) {
         gmcPointSize = ps;
         scale.requestFocus();
-        notifyListeners(
-          new WidgetEvent(this, WidgetEvent.UPDATED, POINT_SIZE, "" + ps));
+        notifyListeners(new WidgetEvent(this));
       }
     }
   }
@@ -211,21 +329,14 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
    * Handles Checkbox changes.
    */
   public void itemStateChanged(ItemEvent e) {
-    Object o = e.getItemSelectable();
-    boolean on = (e.getStateChange() == ItemEvent.SELECTED);
-    String f;
-    if (o == scale) f = SCALE_ENABLED;
-    else if (o == point) f = POINT_MODE;
-    else f = TEXTURE_MAPPING; // o == texture
-    String v = on ? TRUE : FALSE;
-    notifyListeners(new WidgetEvent(this, WidgetEvent.UPDATED, f, v));
+    notifyListeners(new WidgetEvent(this));
   }
 
   /**
    * Tests GMCWidget.
    */
   public static void main(String[] args) {
-    new GMCWidget(null).testWidget();
+    new GMCWidget().testWidget();
   }
 
 }

@@ -457,7 +457,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   }
 
 
-  // CTR 21 Sep 1999 - begin code for slaved displays
+  // CTR - begin code for slaved displays
 
   private Vector Slaves = new Vector();
 
@@ -493,21 +493,41 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     // encode pixels with RLE
     int[] encoded = Convert.encodeRLE(pixels);
 
-    // send encoded pixels to each slave
-    for (int i=0; i<Slaves.size(); i++) {
-      RemoteSlaveDisplay d = (RemoteSlaveDisplay) Slaves.elementAt(i);
-      try {
-        d.sendImage(encoded, width, height, type);
+    synchronized (Slaves) {
+      // send encoded pixels to each slave
+      for (int i=0; i<Slaves.size(); i++) {
+        RemoteSlaveDisplay d = (RemoteSlaveDisplay) Slaves.elementAt(i);
+        try {
+          d.sendImage(encoded, width, height, type);
+        }
+        catch (java.rmi.ConnectException exc) {
+          // remote slave client has died; remove it from list
+          Slaves.remove(i--);
+        }
+        catch (RemoteException exc) { }
       }
-      catch (java.rmi.ConnectException exc) {
-        // remote slave client has died; remove it from list
-        Slaves.remove(i--);
-      }
-      catch (RemoteException e) { }
     }
   }
 
-  // CTR 21 Sep 1999 - end code for slaved displays
+  /** updates all linked slave display with the given message */
+  public void updateSlaves(String message) {
+    synchronized (Slaves) {
+      // send message to each slave
+      for (int i=0; i<Slaves.size(); i++) {
+        RemoteSlaveDisplay d = (RemoteSlaveDisplay) Slaves.elementAt(i);
+        try {
+          d.sendMessage(message);
+        }
+        catch (java.rmi.ConnectException exc) {
+          // remote slave client has died; remove it from list
+          Slaves.remove(i--);
+        }
+        catch (RemoteException exc) { }
+      }
+    }
+  }
+
+  // CTR - end code for slaved displays
 
 
   /** link ref to this Display; this method may only be invoked

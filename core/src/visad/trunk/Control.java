@@ -204,6 +204,13 @@ if (tickFlag) {
     return display;
   }
 
+  /** get a string that can be used to reconstruct this control later */
+  public abstract String getSaveString();
+
+  /** reconstruct this control using the specified save string */
+  public abstract void setSaveString(String save)
+    throws VisADException, RemoteException;
+
   /** copy the state of a remote control to this control */
   public abstract void syncControl(Control rmt)
     throws VisADException;
@@ -242,44 +249,4 @@ if (tickFlag) {
     return cn.substring(pt) + "@" + Index + "#" + Instance;
   }
 
-  /** used by setSaveString of various controls */
-  public static boolean toBoolean(String s) throws VisADException {
-    if (s == null) throw new VisADException("String is null");
-    return s.equalsIgnoreCase("true") || s.equalsIgnoreCase("T");
-  }
-
-  /** used by setSaveString of various controls */
-  public static int toInt(String s) throws VisADException {
-    if (s == null) throw new VisADException("String is null");
-    try {
-      return Integer.parseInt(s);
-    }
-    catch (NumberFormatException exc) {
-      throw new VisADException(s + " is not a valid integer");
-    }
-  }
-
-  /** used by setSaveString of various controls */
-  public static float toFloat(String s) throws VisADException {
-    if (s == null) throw new VisADException("String is null");
-    if (s.equalsIgnoreCase("NaN")) return Float.NaN;
-    try {
-      return Float.parseFloat(s);
-    }
-    catch (NumberFormatException exc) {
-      throw new VisADException(s + " is not a valid floating-point number");
-    }
-  }
-
-  /** used by setSaveString of various controls */
-  public static double toDouble(String s) throws VisADException {
-    if (s == null) throw new VisADException("String is null");
-    if (s.equalsIgnoreCase("NaN")) return Double.NaN;
-    try {
-      return Double.parseDouble(s);
-    }
-    catch (NumberFormatException exc) {
-      throw new VisADException(s + " is not a valid floating-point number");
-    }
-  }
 }

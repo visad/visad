@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad.java2d;
 
 import visad.*;
+import visad.browser.Convert;
 
 import java.rmi.*;
 
@@ -75,7 +76,7 @@ public class ValueControlJ2D extends AVControlJ2D
     throws VisADException, RemoteException
   {
     if (save == null) throw new VisADException("Invalid save string");
-    setValue(Control.toDouble(save.trim()));
+    setValue(Convert.getDouble(save.trim()));
   }
 
   /** copy the state of a remote control to this control */

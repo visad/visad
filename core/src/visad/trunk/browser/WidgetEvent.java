@@ -36,124 +36,28 @@ import java.awt.Event;
 public class WidgetEvent extends Event {
 
   /**
-   * The "widget created" event occurs when a new widget has been created.
-   */
-  public static final int CREATED = 1;
-
-  /**
-   * The "widget destroyed" event occurs when a widget is no longer needed
-   * and gets destroyed.
-   */
-  public static final int DESTROYED = 2;
-
-  /**
-   * The "widget updated" event is a general-purpose event indicating that
-   * some kind of change has occurred to one of the widget's values.
-   * The exact nature of the change is dependent on the widget type,
-   * and can be determined from the getField() and getValue() methods.
-   */
-  public static final int UPDATED = 3;
-
-  /**
    * Source of event.
    */
   private Widget widget;
 
   /**
-   * Type of event.
-   */
-  private int id = 0;
-
-  /**
-   * Field name used by UPDATED event.
-   */
-  private String field;
-
-  /**
-   * Value used by CREATED and UPDATED events.
-   */
-  private String value;
-
-  /**
-   * Whether WidgetEvent came from remote source.
-   */
-  private boolean remote_source; 
-
-  /**
-   * Constructs a WidgetEvent object of the given type with the
-   * specified new value v for field f.
+   * Constructs a new WidgetEvent object.
    *
    * @param w  widget that sends the event
-   * @param id_d  type of WidgetEvent that is sent
-   * @param f  the name of the field that has changed
-   * @param v  the new value of the field that has changed
    */
-  public WidgetEvent(Widget w, int id_d, String f, String v) {
-    this(w, id_d, f, v, false);
-  }
-
-  /**
-   * Constructs a WidgetEvent object of the given type with the
-   * specified value v for field f, and remote flag indicating
-   * whether the event came from a remote source.
-   *
-   * @param w  widget that sends the event
-   * @param id_d  type of WidgetEvent that is sent
-   * @param f  the name of the field that has changed
-   * @param v  the new value of the field that has changed
-   * @param remote  true if this WidgetEvent came from a remote source
-   */
-  public WidgetEvent(Widget w, int id_d, String f, String v, boolean remote) {
+  public WidgetEvent(Widget w) {
     // don't pass widget as the source, since source is transient inside Event
     super(null, 0, null);
     widget = w;
-    id = id_d;
-    field = f;
-    value = v;
-    remote_source = remote;
   }
 
   /**
-   * Get the ID type of this event.
+   * Gets the Widget that sent this WidgetEvent.
    *
-   * @return WidgetEvent type. Valid types are:
-   *         <UL>
-   *         <LI>WidgetEvent.CREATED
-   *         <LI>WidgetEvent.DESTROYED
-   *         <LI>WidgetEvent.UPDATED
-   *         </UL>
+   * @return Widget object source.
    */
-  public int getId() {
-    return id;
-  }
-
-  /**
-   * Get the widget field name. Only valid for UPDATED events.
-   *
-   * @return name of the widget field that has changed.
-   */
-  public String getField() {
-    return field;
-  }
-
-  /**
-   * Get the widget field's new value. For CREATED events, returns a string
-   * with information needed to contruct the widget's initial state.
-   * Not valid for DESTROYED events.
-   *
-   * @return new value of the widget field that has changed.
-   */
-  public String getValue() {
-    return value;
-  }
-
-  /**
-   * Get whether the event came from a remote source.
-   *
-   * @return true if remote, false if local.
-   */
-  public boolean isRemote() {
-    return remote_source;
+  public Widget getWidget() {
+    return widget;
   }
 
 }

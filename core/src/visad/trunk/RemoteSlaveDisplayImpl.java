@@ -31,14 +31,15 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Vector;
+import java.util.*;
 import javax.swing.*;
 import visad.browser.Convert;
 
 /** RemoteSlaveDisplayImpl is an implementation of a slaved display that
-    receives its images from a RemoteDisplay.<P> */
+    receives its images from a RemoteDisplay (via RMI). */
 public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
-       implements RemoteSlaveDisplay, MouseListener, MouseMotionListener {
+  implements RemoteSlaveDisplay, MouseListener, MouseMotionListener
+{
 
   private RemoteDisplay display;
   private BufferedImage image;
@@ -46,8 +47,9 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
   private Vector listen = new Vector();
 
   /** Construct a new slaved display linked to the given RemoteDisplay */
-  public RemoteSlaveDisplayImpl(RemoteDisplay d) throws VisADException,
-                                                        RemoteException {
+  public RemoteSlaveDisplayImpl(RemoteDisplay d)
+    throws VisADException, RemoteException
+  {
     display = d;
     if (display != null) {
       display.addSlave(this);
@@ -145,6 +147,24 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
     }
   }
 
+  /** Send the given message to this slave display */
+  public void sendMessage(String message) throws RemoteException {
+    // The message should be of the form:
+    //   class\nnumber\nstate
+    // where class is the class name of the control that has changed,
+    // number is the index into that class name's control list,
+    // and state is the save string corresponding to the control's new state.
+    StringTokenizer st = new StringTokenizer(message, "\n");
+    Class c = null;
+    try {
+      c = Class.forName(st.nextToken());
+    }
+    catch (ClassNotFoundException exc) { }
+    int index = Convert.getInt(st.nextToken());
+    String save = st.nextToken();
+    // CTR: ignore message to RMI-based slave display clients for now
+  }
+
   public void mouseClicked(MouseEvent e) {
     // This event currently generates a "type not recognized" error
     // sendMouseEvent(e);
@@ -164,7 +184,8 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
     // notify display listeners
     int x = e.getX();
     int y = e.getY();
-    DisplayEvent de1 = new DisplayEvent(display, DisplayEvent.MOUSE_PRESSED, x, y);
+    DisplayEvent de1 =
+      new DisplayEvent(display, DisplayEvent.MOUSE_PRESSED, x, y);
     DisplayEvent de2 = null;
     if (SwingUtilities.isLeftMouseButton(e)) {
       de2 = new DisplayEvent(display, DisplayEvent.MOUSE_PRESSED_LEFT, x, y);
@@ -198,13 +219,15 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
     // notify display listeners
     int x = e.getX();
     int y = e.getY();
-    DisplayEvent de1 = new DisplayEvent(display, DisplayEvent.MOUSE_RELEASED, x, y);
+    DisplayEvent de1 =
+      new DisplayEvent(display, DisplayEvent.MOUSE_RELEASED, x, y);
     DisplayEvent de2 = null;
     if (SwingUtilities.isLeftMouseButton(e)) {
       de2 = new DisplayEvent(display, DisplayEvent.MOUSE_RELEASED_LEFT, x, y);
     }
     else if (SwingUtilities.isMiddleMouseButton(e)) {
-      de2 = new DisplayEvent(display, DisplayEvent.MOUSE_RELEASED_CENTER, x, y);
+      de2 =
+        new DisplayEvent(display, DisplayEvent.MOUSE_RELEASED_CENTER, x, y);
     }
     else if (SwingUtilities.isRightMouseButton(e)) {
       de2 = new DisplayEvent(display, DisplayEvent.MOUSE_RELEASED_RIGHT, x, y);
@@ -245,4 +268,3 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
   }
 
 }
-

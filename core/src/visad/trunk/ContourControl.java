@@ -29,6 +29,7 @@ package visad;
 import java.rmi.*;
 import java.util.StringTokenizer;
 
+import visad.browser.Convert;
 import visad.util.Util;
 
 /**
@@ -286,13 +287,13 @@ public class ContourControl extends Control {
     fvalues[4] = base;
   }
 
-  /** get a String that can be used to reconstruct this ContourControl later */
+  /** get a string that can be used to reconstruct this control later */
   public String getSaveString() {
     return mainContours + " " + labels + " " + surfaceValue + " " +
       contourInterval + " " + lowLimit + " " + hiLimit + " " + base;
   }
 
-  /** reconstruct this ContourControl using the specified save string */
+  /** reconstruct this control using the specified save string */
   public void setSaveString(String save)
     throws VisADException, RemoteException
   {
@@ -301,8 +302,8 @@ public class ContourControl extends Control {
     if (st.countTokens() < 7) throw new VisADException("Invalid save string");
     boolean[] b = new boolean[2];
     float[] f = new float[5];
-    for (int i=0; i<2; i++) b[i] = toBoolean(st.nextToken());
-    for (int i=0; i<5; i++) f[i] = toFloat(st.nextToken());
+    for (int i=0; i<2; i++) b[i] = Convert.getBoolean(st.nextToken());
+    for (int i=0; i<5; i++) f[i] = Convert.getFloat(st.nextToken());
     setMainContours(b, f, false);
   }
 

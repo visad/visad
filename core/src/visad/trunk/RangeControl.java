@@ -29,6 +29,7 @@ package visad;
 import java.rmi.*;
 import java.util.StringTokenizer;
 
+import visad.browser.Convert;
 import visad.util.Util;
 
 /**
@@ -82,12 +83,12 @@ public class RangeControl extends Control {
     return range;
   }
 
-  /** get a String that can be used to reconstruct this RangeControl later */
+  /** get a string that can be used to reconstruct this control later */
   public String getSaveString() {
     return RangeLow + " " + RangeHi;
   }
 
-  /** reconstruct this RangeControl using the specified save string */
+  /** reconstruct this control using the specified save string */
   public void setSaveString(String save)
     throws VisADException, RemoteException
   {
@@ -95,7 +96,7 @@ public class RangeControl extends Control {
     StringTokenizer st = new StringTokenizer(save);
     if (st.countTokens() < 2) throw new VisADException("Invalid save string");
     float[] r = new float[2];
-    for (int i=0; i<2; i++) r[i] = toFloat(st.nextToken());
+    for (int i=0; i<2; i++) r[i] = Convert.getFloat(st.nextToken());
     initializeRange(r);
   }
 

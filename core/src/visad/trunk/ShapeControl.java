@@ -196,6 +196,19 @@ public class ShapeControl extends Control {
     return true;
   }
 
+  /** get a string that can be used to reconstruct this control later */
+  public String getSaveString() {
+    return null;
+  }
+
+  /** reconstruct this control using the specified save string */
+  public void setSaveString(String save)
+    throws VisADException, RemoteException
+  {
+    throw new UnimplementedException(
+      "Cannot setSaveString on this type of control");
+  }
+
   /** copy the state of a remote control to this control */
   public void syncControl(Control rmt)
     throws VisADException

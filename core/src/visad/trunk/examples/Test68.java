@@ -20,18 +20,19 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
+import java.awt.event.*;
 import java.io.IOException;
-
 import java.rmi.RemoteException;
 
+import javax.swing.*;
+
 import visad.*;
-
 import visad.java2d.DisplayImplJ2D;
-
 import visad.java3d.DisplayImplJ3D;
+import visad.util.GMCWidget;
 
 public class Test68
-  extends UISkeleton
+  extends TestSkeleton
 {
   private int port = 0;
 
@@ -87,6 +88,8 @@ public class Test68
     return dpys;
   }
 
+  GraphicsModeControl gmc;
+
   void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
@@ -105,6 +108,8 @@ public class Test68
       display1.addMap(new ConstantMap(0.0, Display.Red));
       display1.addMap(new ConstantMap(1.0, Display.Green));
       display1.addMap(new ConstantMap(0.0, Display.Blue));
+
+      gmc = display1.getGraphicsModeControl();
 
       DataReferenceImpl ref_histogram1;
       ref_histogram1 = new DataReferenceImpl("ref_histogram1");
@@ -127,10 +132,10 @@ public class Test68
       display1.addMap(new ConstantMap(0.5, Display.Blue));
       display1.addMap(new ConstantMap(0.5, Display.Red));
 
-      GraphicsModeControl mode = display1.getGraphicsModeControl();
-      mode.setPointSize(2.0f);
-      mode.setPointMode(false);
-      mode.setMissingTransparent(true);
+      gmc = display1.getGraphicsModeControl();
+      gmc.setPointSize(2.0f);
+      gmc.setPointMode(false);
+      gmc.setMissingTransparent(true);
 
       DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
       ref_imaget1.setData(imaget1);
@@ -153,7 +158,7 @@ public class Test68
     if (serv != null) {
       System.out.println("SocketSlaveDisplay created.\n" +
         "To connect a client from within a web browser,\n" +
-        "use the VisADApplet applet found in visad/examples.\n" +
+        "use the VisADApplet applet found in visad/browser.\n" +
         "Note that an applet cannot communicate with a server\n" +
         "via the network unless both applet and server\n" +
         "originate from the same machine.  In the future,\n" +
@@ -162,7 +167,24 @@ public class Test68
     }
   }
 
-  String getFrameTitle() { return "Socket slave display server"; }
+  void setupUI(LocalDisplay[] dpys) throws VisADException, RemoteException {
+    JFrame frame = new JFrame("Socket slave display server");
+    frame.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {
+        System.exit(0);
+      }
+    });
+    JPanel pane = new JPanel();
+    pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
+    frame.setContentPane(pane);
+    pane.add(dpys[0].getComponent());
+
+    // add a graphics mode control widget to the GUI
+    pane.add(new GMCWidget(gmc));
+
+    frame.pack();
+    frame.show();
+  }
 
   public String toString() { return " [-2d] port: SocketSlaveDisplay"; }
 

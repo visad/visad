@@ -32,6 +32,7 @@ import java.awt.event.*;
 import java.awt.image.MemoryImageSource;
 import java.io.*;
 import java.net.*;
+import java.util.StringTokenizer;
 
 /**
  * An applet for connecting to a VisAD display available through a
@@ -42,6 +43,11 @@ import java.net.*;
 public class VisADApplet extends Applet
   implements ActionListener, MouseListener, MouseMotionListener
 {
+
+  /**
+   * Debugging flag.
+   */
+  private static final boolean DEBUG = false;
 
   /**
    * The default host name for the SocketSlaveDisplay server.
@@ -152,7 +158,7 @@ public class VisADApplet extends Applet
         else {
           // not connected; paint directions on how to connect
           g.setColor(Color.black);
-          g.drawString("VisADApplet v1.0", 80, 20);
+          g.drawString("VisADApplet", 80, 20);
           g.drawString("To connect to a VisAD display available", 10, 50);
           g.drawString("through a SocketSlaveDisplay server, type", 10, 70);
           g.drawString("the IP address of the server into the IP", 10, 90);
@@ -302,24 +308,86 @@ public class VisADApplet extends Applet
             // read the latest display image
             int w = in.readInt();
             if (w == 0) continue;
-            int h = in.readInt();
-            int len = in.readInt();
-            byte[] pixels = new byte[len];
-            int p = 0;
-            while (p < len) p += in.read(pixels, p, len - p);
-            int[] pix = Convert.bytesToInt(pixels);
+            if (w == -1) {
+              // server is sending a message
+              int len = in.readInt();
+              char[] c = new char[len];
+              for (int i=0; i<len; i++) c[i] = in.readChar();
+              String message = new String(c);
 
-            // decode pixels from RLE
-            int[] decoded = Convert.decodeRLE(pix);
+              // apply changes to relevant widget
 
-            // reconstruct the image locally
-            image = createImage(new MemoryImageSource(w, h, decoded, 0, w));
+              // Parse message, which should be of the form:
+              //   class\nnumber\nstate
+              // where class is the class name of the control that has
+              // changed, number is the index into that class name's
+              // control list, and state is the save string
+              // corresponding to the control's new state.
+              StringTokenizer st = new StringTokenizer(message, "\n");
+              String controlClass = st.nextToken();
+              int index = Convert.getInt(st.nextToken());
+              String msg = st.nextToken();
 
-            // redraw the applet's display canvas
-            Graphics g = canvas.getGraphics();
-            if (g != null) {
-              g.drawImage(image, 0, 0, applet);
-              g.dispose();
+              // parse class name
+              int dotIndex = controlClass.lastIndexOf(".");
+              int ctrlIndex = controlClass.lastIndexOf("Control");
+              String widgetClass = "visad.browser" +
+                controlClass.substring(dotIndex, ctrlIndex) + "Widget";
+
+              /* CTR: applet ignores messages now, but not for much longer
+              // attempt to instantiate widget of proper type
+              Widget widget = null;
+              try {
+                widget = (Widget) Class.forName(widgetClass).newInstance();
+              }
+              catch (ClassNotFoundException exc) {
+                if (DEBUG) {
+                  System.err.println("Warning: received event from control " +
+                    "of type " + controlClass + " but no widget " +
+                    "of type " + widgetClass + " exists.");
+                }
+              }
+              catch (InstantiationException exc) {
+                if (DEBUG) {
+                  System.err.println("Warning: received event from control " +
+                    "of type " + controlClass + " but could not instantiate " +
+                    "widget of type " + widgetClass + ".");
+                }
+              }
+              catch (IllegalAccessException exc) {
+                if (DEBUG) {
+                  System.err.println("Warning: received event from control " +
+                    "of type " + controlClass + " but cannot access " +
+                    "constructor for widget of type " + widgetClass + ".");
+                }
+              }
+
+              if (widget != null) {
+                System.err.println("Successfully created a widget of type " + widgetClass + " in response to event from control of type " + controlClass);
+              }
+              */
+            }
+            else {
+              // server is sending an image
+              int h = in.readInt();
+              int len = in.readInt();
+              byte[] pixels = new byte[len];
+              int p = 0;
+              while (p < len) p += in.read(pixels, p, len - p);
+              int[] pix = Convert.bytesToInt(pixels);
+
+              // decode pixels from RLE
+              int[] decoded = Convert.decodeRLE(pix);
+
+              // reconstruct the image locally
+              image = createImage(new MemoryImageSource(w, h, decoded, 0, w));
+
+              // redraw the applet's display canvas
+              Graphics g = canvas.getGraphics();
+              if (g != null) {
+                g.drawImage(image, 0, 0, applet);
+                g.dispose();
+              }
             }
           }
         }

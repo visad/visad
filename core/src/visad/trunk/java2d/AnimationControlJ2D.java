@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad.java2d;
 
 import visad.*;
+import visad.browser.Convert;
 import visad.util.Delay;
 
 import java.rmi.*;
@@ -456,10 +457,10 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
     if (numTokens < 4) throw new VisADException("Invalid save string");
 
     // get animation settings
-    boolean on = Control.toBoolean(st.nextToken());
-    boolean dir = Control.toBoolean(st.nextToken());
-    int cur = Control.toInt(st.nextToken());
-    int numSteps = Control.toInt(st.nextToken());
+    boolean on = Convert.getBoolean(st.nextToken());
+    boolean dir = Convert.getBoolean(st.nextToken());
+    int cur = Convert.getInt(st.nextToken());
+    int numSteps = Convert.getInt(st.nextToken());
     if (numSteps <= 0) {
       throw new VisADException("Number of steps is not positive");
     }
@@ -468,7 +469,7 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
     }
     int[] steps = new int[numSteps];
     for (int i=0; i<numSteps; i++) {
-      steps[i] = Control.toInt(st.nextToken());
+      steps[i] = Convert.getInt(st.nextToken());
       if (steps[i] <= 0) {
         throw new VisADException("Step #" + (i + 1) + "is not positive");
       }

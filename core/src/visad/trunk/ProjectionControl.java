@@ -29,6 +29,7 @@ package visad;
 import java.rmi.*;
 import java.util.StringTokenizer;
 
+import visad.browser.Convert;
 import visad.util.Util;
 
 /**
@@ -73,8 +74,7 @@ public abstract class ProjectionControl extends Control {
     System.arraycopy(m, 0, matrix, 0, matrix.length);
   }
 
-  /** get a String that can be used to reconstruct this
-      ProjectionControl later */
+  /** get a string that can be used to reconstruct this control later */
   public String getSaveString() {
     final int len = matrix.length;
 
@@ -111,7 +111,7 @@ public abstract class ProjectionControl extends Control {
     return sb.toString();
   }
 
-  /** reconstruct this ProjectionControl using the specified save string */
+  /** reconstruct this control using the specified save string */
   public void setSaveString(String save)
     throws VisADException, RemoteException
   {
@@ -124,21 +124,21 @@ public abstract class ProjectionControl extends Control {
     // determine matrix size
     int size = -1;
     if (numTokens == 3) {
-      int len = toInt(st.nextToken());
+      int len = Convert.getInt(st.nextToken());
       if (len < 1) {
         throw new VisADException("First matrix dimension is not positive");
       }
       if (!st.nextToken().equalsIgnoreCase("x")) {
         throw new VisADException("Invalid save string");
       }
-      int len0 = toInt(st.nextToken());
+      int len0 = Convert.getInt(st.nextToken());
       if (len0 < 1) {
         throw new VisADException("Second matrix dimension is not positive");
       }
       size = len * len0;
     }
     else if (numTokens == 1) {
-      size = toInt(st.nextToken());
+      size = Convert.getInt(st.nextToken());
       if (size < 1) {
         throw new VisADException("Matrix size is not positive");
       }
@@ -152,7 +152,7 @@ public abstract class ProjectionControl extends Control {
       throw new VisADException("Not enough matrix entries");
     }
     double[] m = new double[size];
-    for (int i=0; i<size; i++) m[i] = toDouble(st.nextToken());
+    for (int i=0; i<size; i++) m[i] = Convert.getDouble(st.nextToken());
     setMatrix(m);
   }
 

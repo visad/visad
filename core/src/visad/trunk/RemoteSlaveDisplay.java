@@ -31,15 +31,15 @@ import java.rmi.*;
 
 /** RemoteSlaveDisplay is the interface for &quot;slave&quot; displays
     that receive their images from another source, instead of doing the
-    rendering themselves.<P> */
+    rendering themselves. */
 public interface RemoteSlaveDisplay extends Remote {
 
   /** Update this slave display with the given RLE-encoded image pixels */
   void sendImage(int[] pixels, int width, int height, int type)
-       throws RemoteException;
+    throws RemoteException;
 
-  /** */
-  //void sendEvent(
+  /** Send the given message to this slave display */
+  void sendMessage(String message) throws RemoteException;
 
 }
 

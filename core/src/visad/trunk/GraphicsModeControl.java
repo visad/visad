@@ -29,6 +29,8 @@ package visad;
 import java.rmi.*;
 import java.util.StringTokenizer;
 
+import visad.browser.Convert;
+
 /**
    GraphicsModeControl is the VisAD interface class for controlling various
    mode settings for rendering.<P>
@@ -112,8 +114,7 @@ public abstract class GraphicsModeControl extends Control
 
   public abstract int getCurvedSize();
 
-  /** get a String that can be used to reconstruct this
-      GraphicsModeControl later */
+  /** get a string that can be used to reconstruct this control later */
   public String getSaveString() {
     return "" +
       getLineWidth() + ' ' +
@@ -128,7 +129,7 @@ public abstract class GraphicsModeControl extends Control
       getCurvedSize();
   }
 
-  /** reconstruct this GraphicsModeControl using the specified save string */
+  /** reconstruct this control using the specified save string */
   public void setSaveString(String save)
     throws VisADException, RemoteException
   {
@@ -138,16 +139,16 @@ public abstract class GraphicsModeControl extends Control
     if (numTokens < 10) throw new VisADException("Invalid save string");
 
     // determine graphics mode settings
-    float lw = toFloat(st.nextToken());
-    float ps = toFloat(st.nextToken());
-    boolean pm = toBoolean(st.nextToken());
-    boolean te = toBoolean(st.nextToken());
-    boolean se = toBoolean(st.nextToken());
-    int tm = toInt(st.nextToken());
-    int pp = toInt(st.nextToken());
-    int pm2 = toInt(st.nextToken());
-    boolean mt = toBoolean(st.nextToken());
-    int cs = toInt(st.nextToken());
+    float lw = Convert.getFloat(st.nextToken());
+    float ps = Convert.getFloat(st.nextToken());
+    boolean pm = Convert.getBoolean(st.nextToken());
+    boolean te = Convert.getBoolean(st.nextToken());
+    boolean se = Convert.getBoolean(st.nextToken());
+    int tm = Convert.getInt(st.nextToken());
+    int pp = Convert.getInt(st.nextToken());
+    int pm2 = Convert.getInt(st.nextToken());
+    boolean mt = Convert.getBoolean(st.nextToken());
+    int cs = Convert.getInt(st.nextToken());
 
     // reset graphics mode settings
     setLineWidth(lw);

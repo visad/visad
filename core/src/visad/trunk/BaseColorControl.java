@@ -29,6 +29,7 @@ package visad;
 import java.rmi.*;
 import java.util.StringTokenizer;
 
+import visad.browser.Convert;
 import visad.util.Util;
 
 /**
@@ -410,7 +411,7 @@ public class BaseColorControl
   }
 
   /**
-   * Reconstruct this object using the specified save string.
+   * Reconstruct this control using the specified save string.
    *
    * @param save The save string.
    *
@@ -426,14 +427,14 @@ public class BaseColorControl
     if (numTokens < 3) throw new VisADException("Invalid save string");
 
     // get table size
-    int len = toInt(st.nextToken());
+    int len = Convert.getInt(st.nextToken());
     if (len < 1) {
       throw new VisADException("First dimension is not positive");
     }
     if (!st.nextToken().equalsIgnoreCase("x")) {
       throw new VisADException("Invalid save string");
     }
-    int len0 = toInt(st.nextToken());
+    int len0 = Convert.getInt(st.nextToken());
     if (len0 < 1) {
       throw new VisADException("Second dimension is not positive");
     }
@@ -444,7 +445,7 @@ public class BaseColorControl
     // get table entries
     float[][] t = new float[len][len0];
     for (int j=0; j<len0; j++) {
-      for (int i=0; i<len; i++) t[i][j] = toFloat(st.nextToken());
+      for (int i=0; i<len; i++) t[i][j] = Convert.getFloat(st.nextToken());
     }
     setTable(t);
   }

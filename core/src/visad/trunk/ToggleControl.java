@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad;
 
 import java.rmi.*;
+import visad.browser.Convert;
 
 /**
    ToggleControl is the VisAD class for toggling other Control-s
@@ -70,6 +71,19 @@ public class ToggleControl extends Control {
     }
 
     return true;
+  }
+
+  /** get a string that can be used to reconstruct this control later */
+  public String getSaveString() {
+    return "" + on;
+  }
+
+  /** reconstruct this control using the specified save string */
+  public void setSaveString(String save)
+    throws VisADException, RemoteException
+  {
+    if (save == null) throw new VisADException("Invalid save string");
+    setOn(Convert.getBoolean(save));
   }
 
   /** copy the state of a remote control to this control */

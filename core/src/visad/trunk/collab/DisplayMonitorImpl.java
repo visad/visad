@@ -26,6 +26,7 @@ import java.rmi.RemoteException;
 
 import java.util.ArrayList;
 import java.util.ListIterator;
+import java.util.Vector;
 
 import visad.AnimationControl;
 import visad.Control;
@@ -192,6 +193,25 @@ e.printStackTrace();
    */
   public void controlChanged(ControlEvent evt)
   {
+    // CTR - notify display slaves of control changes
+    if (myDisplay.hasSlaves()) {
+      // construct properly formatted control change string
+      Control control = evt.getControl();
+      String msg = control.getSaveString();
+      Class c = control.getClass();
+      Vector v = myDisplay.getControls(c);
+      int index = -1;
+      for (int i=0; i<v.size(); i++) {
+        Control ctrl = (Control) v.elementAt(i);
+        if (control == ctrl) {
+          index = i;
+          break;
+        }
+      }
+      String message = c.getName() + "\n" + index + "\n" + msg;
+      myDisplay.updateSlaves(message);
+    }
+
     // don't bother if nobody's listening
     if (!hasListeners()) {
       return;

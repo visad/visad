@@ -36,6 +36,11 @@ import java.util.Vector;
 public abstract class Widget extends Panel {
 
   /**
+   * Debugging flag.
+   */
+  protected static final boolean DEBUG = false;
+
+  /**
    * Coded string value for true.
    */
   protected static final String TRUE = "T";
@@ -49,11 +54,6 @@ public abstract class Widget extends Panel {
    * Vector of widget listeners.
    */
   private Vector listeners = new Vector();
-
-  /**
-   * Constructs a new Widget.
-   */
-  public Widget(WidgetEvent e) { }
 
   /**
    * Adds a component to the applet with the specified constraints.
@@ -121,8 +121,13 @@ public abstract class Widget extends Panel {
   }
 
   /**
-   * Update widget based on information from the given WidgetEvent.
+   * Gets a string representing this widget's current state.
    */
-  public abstract void updateWidget(WidgetEvent e);
+  public abstract String getSaveString();
+
+  /**
+   * Reconstructs this widget's state using the specified save string.
+   */
+  public abstract void setSaveString(String save);
 
 }

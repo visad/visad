@@ -175,11 +175,40 @@ public class Convert {
   }
 
   /**
+   * Extracts a float from a string.
+   */
+  public static float getFloat(String s) {
+    float f = Float.NaN;
+    if (s != null) {
+      try {
+        f = Float.parseFloat(s);
+      }
+      catch (NumberFormatException exc) { }
+    }
+    return f;
+  }
+  
+  /**
    * Extracts a boolean from a string.
    */
   public static boolean getBoolean(String s) {
+    if (s == null) return false;
     char c = s.trim().charAt(0);
     return c == 'T' || c == 't';
+  }
+
+  /**
+   * Extracts an integer from a string.
+   */
+  public static int getInt(String s) {
+    int i = 0;
+    if (s != null) {
+      try {
+        i = Integer.parseInt(s);
+      }
+      catch (NumberFormatException exc) { }
+    }
+    return i;
   }
 
 }

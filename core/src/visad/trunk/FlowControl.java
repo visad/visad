@@ -27,7 +27,9 @@ MA 02111-1307, USA
 package visad;
 
 import java.rmi.*;
+import java.util.StringTokenizer;
 
+import visad.browser.Convert;
 import visad.util.Util;
 
 /**
@@ -106,6 +108,25 @@ public abstract class FlowControl extends Control {
    */
   public int getBarbOrientation() {
     return barbOrientation;
+  }
+
+  /** get a string that can be used to reconstruct this control later */
+  public String getSaveString() {
+    return "" + flowScale + " " + barbOrientation;
+  }
+
+  /** reconstruct this control using the specified save string */
+  public void setSaveString(String save)
+    throws VisADException, RemoteException
+  {
+    if (save == null) throw new VisADException("Invalid save string");
+    StringTokenizer st = new StringTokenizer(save);
+    if (st.countTokens() < 2) throw new VisADException("Invalid save string");
+    float scale = Convert.getFloat(st.nextToken());
+    int orientation = Convert.getInt(st.nextToken());
+    flowScale = scale;
+    barbOrientation = orientation;
+    changeControl(true);
   }
 
   /** copy the state of a remote control to this control */

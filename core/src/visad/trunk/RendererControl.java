@@ -182,6 +182,19 @@ public class RendererControl
     return true;
   }
 
+  /** get a string that can be used to reconstruct this control later */
+  public String getSaveString() {
+    return null;
+  }
+
+  /** reconstruct this control using the specified save string */
+  public void setSaveString(String save)
+    throws VisADException, RemoteException
+  {
+    throw new UnimplementedException(
+      "Cannot setSaveString on this type of control");
+  }
+
   /**
    * Copy the state of the specified control.
    * @param ctl <CODE>Control</CODE> to copy.
