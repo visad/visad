@@ -1413,7 +1413,7 @@ if (initialize) {
       display.enableAction();
       try {
         synchronized (this) {
-          wait();
+          this.wait();
         }
       }
       catch(InterruptedException e) {
@@ -1434,7 +1434,7 @@ if (initialize) {
         }
         else if (count == 0) {
           synchronized (this) {
-            notify();
+            this.notify();
           }
           count--;
         }
