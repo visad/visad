@@ -969,8 +969,11 @@ public class DataUtility {
     boolean keepDupl)
   {
     if (mathType instanceof RealType) {
-      if (v.contains(mathType)) i[0]++;
-      if (keepDupl) v.add(mathType);
+      if (v.contains(mathType)) {
+        if (keepDupl) v.add(mathType);
+        i[0]++;
+      }
+      else v.add(mathType);
     }
   }
 
