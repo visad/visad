@@ -136,26 +136,16 @@ public class ObjectCache
     hash.put(obj.getClass(), qm);
   }
 
-  /**
-   * Removes all objects of a given generation.
-   *
-   * @param generation The generation to purge.
-   */
-  private synchronized void purge(int generation)
+/*
+  public void dump()
   {
-    ListIterator iter = cache.listIterator();
+    java.util.ListIterator iter = cache.listIterator();
+    System.err.println(name + " CACHE DUMP:");
     while (iter.hasNext()) {
-      QueueMember member = (QueueMember )iter.next();
-      if (member.generation == generation) {
-        Class mClass = member.object.getClass();
-        if (member == hash.get(mClass)) {
-          hash.remove(mClass);
-        }
-
-        iter.remove();
-      }
+      System.err.println("\t" + ((QueueMember )iter.next()).object);
     }
   }
+*/
 
   /**
    * Returns <CODE>true</CODE> if this object is in the cache.
@@ -185,27 +175,25 @@ public class ObjectCache
   }
 
   /**
-   * Sets the generation number for this cache.
+   * Removes all objects of a given generation.
    *
-   * @param generation The new generation number.
+   * @param generation The generation to purge.
    */
-  private void setGeneration(int generation) { cacheGeneration = generation; }
-
-  /**
-   * Gets the cache size.
-   */
-  private int size() { return cache.size(); }
-
-/*
-  public void dump()
+  private synchronized void purge(int generation)
   {
-    java.util.ListIterator iter = cache.listIterator();
-    System.err.println(name + " CACHE DUMP:");
+    ListIterator iter = cache.listIterator();
     while (iter.hasNext()) {
-      System.err.println("\t" + ((QueueMember )iter.next()).object);
+      QueueMember member = (QueueMember )iter.next();
+      if (member.generation == generation) {
+        Class mClass = member.object.getClass();
+        if (member == hash.get(mClass)) {
+          hash.remove(mClass);
+        }
+
+        iter.remove();
+      }
     }
   }
-*/
 
   /**
    * Code used by the reaper thread to periodically wake up and purge
@@ -231,4 +219,16 @@ public class ObjectCache
       reaperGeneration = nextGeneration;
     }
   }
+
+  /**
+   * Sets the generation number for this cache.
+   *
+   * @param generation The new generation number.
+   */
+  private void setGeneration(int generation) { cacheGeneration = generation; }
+
+  /**
+   * Gets the cache size.
+   */
+  private int size() { return cache.size(); }
 }
