@@ -70,35 +70,46 @@ import visad.data.FileFlatField;
     public MathType getVisADMathType() throws VisADException 
     {
       FileData f_data = null;
-      MathType[] M_type =  new MathType[ getSize() ];
+      MathType M_type = null;
+      MathType[] M_type_s =  new MathType[ getSize() ];
 
       for ( int ii = 0; ii < getSize(); ii++ ) {
         f_data = getElement(ii);
 
-        M_type[ii] = f_data.getVisADMathType();
+        M_type_s[ii] = f_data.getVisADMathType();
       }
-       
-      TupleType T_type = new TupleType( M_type );
+      if ( M_type_s.length > 1 ) { 
+        M_type = new TupleType( M_type_s );
+      }
+      else {
+        M_type = M_type_s[0];
+      }
 
-      return T_type;
+      return M_type;
     }
 
     public DataImpl getVisADDataObject() throws VisADException, RemoteException 
     {
        FileData f_data = null;
-       DataImpl[] data = new DataImpl[ getSize() ];
+       DataImpl[] data_s = new DataImpl[ getSize() ];
+       DataImpl data = null;
        IndexSet i_set = null;
 
        for ( int ii = 0; ii < getSize(); ii++ ) {
          f_data = getElement(ii);
-         data[ii] = f_data.getAdaptedVisADDataObject( i_set );
+         data_s[ii] = f_data.getAdaptedVisADDataObject( i_set );
        }
 
-       TupleType T_type = (TupleType) getVisADMathType();
+       MathType M_type = getVisADMathType();
+  
+       if ( M_type instanceof TupleType ) {
+         data = new Tuple( (TupleType)M_type, data_s, false );
+       }
+       else {
+         data = data_s[0];
+       }
 
-       Tuple tuple = new Tuple( T_type, data, false );
-
-       return tuple;
+       return data;
     }
 
     public String toString() 

@@ -45,6 +45,7 @@ public class HdfeosDefault extends Hdfeos {
 
     DataImpl data = null;
 
+    System.out.println("HdfeosDefault.open "+file_path);
     HdfeosFile file = new HdfeosFile( file_path );
 
     data = getDataObject( file );
@@ -119,8 +120,13 @@ public class HdfeosDefault extends Hdfeos {
       }
     }
 
-     TupleType t_type = new TupleType( types );
-     return (MathType) t_type;
+    if ( types.length > 1 ) {
+      M_type = new TupleType( types );
+    }
+    else {
+      M_type = types[0];
+    }
+    return M_type;
   }
 
   DataImpl getDataObject( HdfeosFile file ) 
@@ -170,11 +176,15 @@ public class HdfeosDefault extends Hdfeos {
         datas[ii] = data;
       }
     }
-
-    TupleType t_type = new TupleType( types );
-    Tuple tuple = new Tuple( t_type, datas, false );
-
-    return (DataImpl) tuple;
+  
+    if ( types.length > 1 ) {
+      TupleType t_type = new TupleType( types );
+      Tuple tuple = new Tuple( t_type, datas, false );
+      return (DataImpl) tuple;
+    }
+    else {
+      return datas[0];
+    }
   }
 
    FileDataSet getGridData( EosGrid Grid ) 

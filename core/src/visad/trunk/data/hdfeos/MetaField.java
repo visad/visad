@@ -167,6 +167,8 @@ class MetaField extends FileData  {
   { 
 
       int n_next = link.getNextSize();
+      MathType R_type = null;
+      MathType[] M_type_s = null;
 
       if ( n_next == 0 ) 
       {
@@ -177,15 +179,20 @@ class MetaField extends FileData  {
       else 
       { 
         MathType D_type = link.getBranch().getVisADMathType();
-        MathType[] T_type = new MathType[ n_next ];
+        M_type_s = new MathType[ n_next ];
 
         for ( int ii = 0; ii < n_next; ii++ ) 
         {
-          T_type[ii] = getVisADMathType( link.getNext(ii) );
+          M_type_s[ii] = getVisADMathType( link.getNext(ii) );
         }
 
-        MathType R_type = new TupleType( T_type );
-  
+        if ( M_type_s.length > 1 ) {
+          R_type = new TupleType( M_type_s );
+        }
+        else {
+          R_type = M_type_s[0];
+        }
+          
         MathType F_type = (MathType) new FunctionType( D_type, R_type ); 
    
         return F_type;
@@ -228,10 +235,11 @@ class MetaField extends FileData  {
        size = domainSet.getLength();
        F_type = (FunctionType) M_type;
        R_type = (TupleType)F_type.getRange();
+       Data range_data = null;
 
        FieldImpl F_func = new FieldImpl( (FunctionType)M_type, domainSet ); 
 
-       DataImpl[] range = new DataImpl[ n_next ];
+       DataImpl[] range_s = new DataImpl[ n_next ];
 
        for ( int ii = 0; ii < size; ii++ ) 
        {
@@ -241,13 +249,17 @@ class MetaField extends FileData  {
 
          for ( int jj = 0; jj < n_next; jj++ ) 
          {
-           range[jj] = getVisADDataObject( idx, R_type.getComponent(jj),
+           range_s[jj] = getVisADDataObject( idx, R_type.getComponent(jj),
                                              link.getNext(jj) );
          }
 
-         Tuple r_tuple = new Tuple( R_type, range, false );
- 
-         F_func.setSample( ii, r_tuple, false );
+         if ( range_s.length > 1 ) {
+            range_data = new Tuple( R_type, range_s, false );
+         }
+         else {
+            range_data = range_s[0];
+         }
+         F_func.setSample( ii, range_data, false );
        }
 
          return (DataImpl) F_func;

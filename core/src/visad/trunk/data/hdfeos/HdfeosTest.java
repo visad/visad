@@ -41,6 +41,7 @@ public class HdfeosTest
   //String filename = "/home/rink/HDF-EOS/data/MOD07.V2.hdf";
   //String filename = "/home/rink/HDF-EOS/data/NISE_SSMIF11_19911227.HDFEOS";
     String filename = "/home/rink/HDF-EOS/data/DAS.flk.asm.tsyn2d_mis_x.AM100.1997082900.1997082921";
+  //String filename = "/home/rink/HDF-EOS/data/ast1b.eos";
 
       double[][] values;
       Data F_data;
@@ -51,6 +52,7 @@ public class HdfeosTest
 
       MathType M_type = data.getType();
       System.out.println( M_type.toString() );
+      System.out.println( M_type.prettyString() );
 
       String range_name = "t10m";
 
