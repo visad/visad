@@ -3,13 +3,14 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNestedFunction.java,v 1.2 1998-04-02 20:49:44 visad Exp $
+ * $Id: NcNestedFunction.java,v 1.3 1998-04-03 20:35:18 visad Exp $
  */
 
 package visad.data.netcdf.in;
 
 import java.io.IOException;
 import visad.CoordinateSystem;
+import visad.Data;
 import visad.DataImpl;
 import visad.FieldImpl;
 import visad.FlatField;
@@ -19,6 +20,9 @@ import visad.Set;
 import visad.UnimplementedException;
 import visad.Unit;
 import visad.VisADException;
+import visad.data.CacheStrategy;
+import visad.data.FileAccessor;
+import visad.data.FileFlatField;
 import visad.data.netcdf.UnsupportedOperationException;
 
 
@@ -33,22 +37,22 @@ NcNestedFunction
     /**
      * The VisAD FunctionType of the inner function.
      */
-    private final FunctionType	innerType;
+    private /*final*/ FunctionType	innerType;
 
     /**
      * The domain set of the inner function.
      */
-    private final Set		innerDomainSet;
+    private /*final*/ Set		innerDomainSet;
 
     /**
      * The range sets of the inner function.
      */
-    private final Set[]		innerRangeSets;
+    private /*final*/ Set[]		innerRangeSets;
 
     /**
      * The units of the range of the inner function.
      */
-    private final Unit[]	innerRangeUnits;
+    private /*final*/ Unit[]		innerRangeUnits;
 
 
     /**
@@ -138,7 +142,7 @@ NcNestedFunction
 	    = new FieldImpl((FunctionType)mathType, 
 		getDomainSet(domainDims, ((FunctionType)mathType).getDomain()));
 
-	field.setSamples(getRangeFlatFields(), /*copy=*/false);
+	field.setSamples(getRangeData(), /*copy=*/false);
 
 	return field;
     }
@@ -158,8 +162,13 @@ NcNestedFunction
     getProxy()
 	throws IOException, VisADException
     {
-	// TODO: implement NcNestedFunction.getProxy()
-	throw new UnsupportedOperationException();
+	FieldImpl	field
+	    = new FieldImpl((FunctionType)mathType, 
+		getDomainSet(domainDims, ((FunctionType)mathType).getDomain()));
+
+	field.setSamples(getRangeProxies(), /*copy=*/false);
+
+	return field;
     }
 
 
@@ -174,7 +183,7 @@ NcNestedFunction
      *			Data access I/O failure.
      */
     protected FlatField[]
-    getRangeFlatFields()
+    getRangeData()
 	throws VisADException, IOException
     {
 	int		npts = domainDims[0].getLength();
@@ -182,6 +191,31 @@ NcNestedFunction
 
 	for (int ipt = 0; ipt < npts; ++ipt)
 	    values[ipt] = getFlatField(ipt);
+
+	return values;
+    }
+
+
+    /**
+     * Return proxies for the range values of this function.
+     *
+     * @return		The FlatField proxies constituting the range of the 
+     *			function.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
+     */
+    protected FlatField[]
+    getRangeProxies()
+	throws VisADException, IOException
+    {
+	int		npts = domainDims[0].getLength();
+	FlatField[]	values = new FlatField[npts];
+
+	for (int ipt = 0; ipt < npts; ++ipt)
+	    values[ipt] = getFlatFieldProxy(ipt);
 
 	return values;
     }
@@ -229,6 +263,38 @@ NcNestedFunction
 
 
     /**
+     * Return a proxy for the inner function at the given, outermost 
+     * dimension index.
+     *
+     * @param ipt	The index of the outermost dimension.
+     * @return		The VisAD FlatField at <code>ipt</code>.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
+     */
+    FlatField
+    getFlatFieldProxy(int ipt)
+	throws IOException, VisADException
+    {
+	FlatField	field;
+
+	if (hasTextualComponent)
+	{
+	    // TODO: support text in Fields
+	    field = null;
+	}
+	else
+	{
+	    field = new FileFlatField(new Accessor(ipt), new CacheStrategy());
+	}
+
+	return field;
+    }
+
+
+    /**
      * Return the range values of the inner function as doubles.
      *
      * @param ipt	The index of the outermost dimension.
@@ -247,5 +313,75 @@ NcNestedFunction
 	    values[ivar] = vars[ivar].getDoubleValues(ipt);
 
 	return values;
+    }
+
+
+    /**
+     * FileAccessor for the FlatField range values of nested, adapted,
+     * netCDF functions.
+     */
+    protected class
+    Accessor
+	extends	FileAccessor
+    {
+	/**
+	 * The range index of the FlatField.
+	 */
+	protected final int	rangeIndex;
+
+
+	/**
+	 * Construct from a range index.
+	 */
+	Accessor(int rangeIndex)
+	{
+	    this.rangeIndex = rangeIndex;
+	}
+
+
+	public void
+	writeFile(int[] fileLocations, Data range)
+	    throws UnsupportedOperationException
+	{
+	    throw new UnsupportedOperationException();
+	}
+
+
+	public double[][]
+	readFlatField(FlatField template, int[] fileLocation)
+	    throws UnsupportedOperationException
+	{
+	    throw new UnsupportedOperationException();
+	}
+
+
+	public void
+	writeFlatField(double[][] values, FlatField template, 
+			int[] fileLocation)
+	    throws UnsupportedOperationException
+	{
+	    throw new UnsupportedOperationException();
+	}
+
+
+	public FlatField
+	getFlatField()
+	    throws VisADException
+	{
+	    try
+	    {
+		return NcNestedFunction.this.getFlatField(rangeIndex);
+	    }
+	    catch (Exception e)
+	    {
+		throw new VisADException(e.getMessage());
+	    }
+	}
+
+	public FunctionType
+	getFunctionType()
+	{
+	    return innerType;
+	}
     }
 }

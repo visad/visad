@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Plain.java,v 1.10 1998-03-26 21:25:16 visad Exp $
+ * $Id: Plain.java,v 1.11 1998-04-03 20:35:15 visad Exp $
  */
 
 package visad.data.netcdf;
@@ -143,6 +143,29 @@ Plain
 
 
     /**
+     * Open an existing netCDF file and return a proxy for a VisAD data object.
+     *
+     * @param path	Pathname of the existing netCDF file.
+     * @return		A VisAD object corresponding to the netCDF dataset.
+     * @exception BadFormException
+     *			The netCDF variable cannot be adapted to a VisAD API.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
+     */
+    public DataImpl
+    openProxy(String path)
+	throws BadFormException, IOException, VisADException
+    {
+	NetcdfFile	file = new NetcdfFile(path, /*readonly=*/true);
+
+	return new NetcdfAdapter(file).getProxy();
+    }
+
+
+    /**
      * Open a URL.
      *
      * @param url	The URL of the netCDF dataset.
@@ -209,7 +232,7 @@ Plain
 
 	System.out.println("Opening netCDF dataset \"" + inPath + "\"");
 
-	Data	data = plain.open(inPath);
+	Data	data = plain.openProxy(inPath);
 
 	// System.out.println("Data:\n" + data.longString());
 	System.out.println("data.getType().toString():\n" +

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcDim.java,v 1.4 1998-03-31 20:35:38 visad Exp $
+ * $Id: NcDim.java,v 1.5 1998-04-03 20:35:18 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -11,7 +11,10 @@ package visad.data.netcdf.in;
 import ucar.netcdf.Dimension;
 import ucar.netcdf.Netcdf;
 import ucar.netcdf.Variable;
+import visad.FloatSet;
 import visad.RealType;
+import visad.Set;
+import visad.Unit;
 import visad.VisADException;
 
 
@@ -74,7 +77,14 @@ NcDim
 	RealType	mathType = RealType.getRealTypeByName(getName());
 
 	if (mathType == null)
-	    mathType = new RealType(getName(), null, null);
+	{
+	    mathType = new RealType(getName());
+
+	    // TODO: add coordinate system
+	    Set	set = new FloatSet(mathType);
+
+	    mathType.setDefaultSet(set);
+	}
 	
 	return mathType;
     }

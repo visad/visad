@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnsupportedOperationException.java,v 1.3 1998-03-12 22:03:18 steve Exp $
+ * $Id: UnsupportedOperationException.java,v 1.4 1998-04-03 20:35:17 visad Exp $
  */
 
 package visad.data.netcdf;
@@ -13,7 +13,7 @@ package visad.data.netcdf;
  * The UnsupportedOperationException provides a way to flag methods that
  * are not implemented.
  */
-class
+public class
 UnsupportedOperationException
     extends NoSuchMethodError
 {

@@ -3,20 +3,20 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcRegFunction.java,v 1.2 1998-04-02 20:49:45 visad Exp $
+ * $Id: NcRegFunction.java,v 1.3 1998-04-03 20:35:19 visad Exp $
  */
 
 package visad.data.netcdf.in;
 
 import java.io.IOException;
 import visad.CoordinateSystem;
+import visad.Data;
 import visad.DataImpl;
 import visad.FieldImpl;
 import visad.FlatField;
 import visad.FunctionType;
 import visad.GriddedSet;
 import visad.IntegerNDSet;
-import visad.IntegerSet;
 import visad.Linear1DSet;
 import visad.Linear2DSet;
 import visad.Linear3DSet;
@@ -31,8 +31,10 @@ import visad.TupleType;
 import visad.UnimplementedException;
 import visad.Unit;
 import visad.VisADException;
-import visad.data.FileFlatField;
 import visad.data.CacheStrategy;
+import visad.data.FileAccessor;
+import visad.data.FileFlatField;
+import visad.data.netcdf.UnsupportedOperationException;
 
 
 /**
@@ -117,7 +119,7 @@ NcRegFunction
     getProxy()
 	throws IOException, VisADException
     {
-	return new FileFlatField(new Accessor(this), (CacheStrategy)null);
+	return new FileFlatField(new Accessor(), new CacheStrategy());
     }
 
 
@@ -142,5 +144,59 @@ NcRegFunction
 	    values[ivar] = vars[ivar].getDoubleValues();
 
 	return values;
+    }
+
+
+    /**
+     * FileAccessor for regular, adapted, netCDF functions.
+     */
+    protected class
+    Accessor
+	extends	FileAccessor
+    {
+	public void
+	writeFile(int[] fileLocations, Data range)
+	    throws UnsupportedOperationException
+	{
+	    throw new UnsupportedOperationException();
+	}
+
+
+	public double[][]
+	readFlatField(FlatField template, int[] fileLocation)
+	    throws UnsupportedOperationException
+	{
+	    throw new UnsupportedOperationException();
+	}
+
+
+	public void
+	writeFlatField(double[][] values, FlatField template, 
+			int[] fileLocation)
+	    throws UnsupportedOperationException
+	{
+	    throw new UnsupportedOperationException();
+	}
+
+
+	public FlatField
+	getFlatField()
+	    throws VisADException
+	{
+	    try
+	    {
+		return (FlatField)getData();
+	    }
+	    catch (Exception e)
+	    {
+		throw new VisADException(e.getMessage());
+	    }
+	}
+
+	public FunctionType
+	getFunctionType()
+	{
+	    return (FunctionType)getMathType();
+	}
     }
 }

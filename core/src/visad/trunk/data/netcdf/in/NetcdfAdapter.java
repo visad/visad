@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.7 1998-04-02 20:49:48 visad Exp $
+ * $Id: NetcdfAdapter.java,v 1.8 1998-04-03 20:35:20 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -256,6 +256,24 @@ NetcdfAdapter
 
 
     /**
+     * Return a proxy for the outermost, VisAD data object.
+     *
+     * @return		The top-level, VisAD data object in the netCDF dataset.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
+     */
+    public DataImpl
+    getProxy()
+	throws IOException, VisADException
+    {
+	return ncData.getProxy();
+    }
+
+
+    /**
      * Return a proxy for the VisAD data object corresponding to the given
      * MathType.
      *
@@ -302,11 +320,11 @@ NetcdfAdapter
 	    NetcdfFile		file = new NetcdfFile(pathnames[i], 
 				    /*readonly=*/true);
 	    NetcdfAdapter	adapter = new NetcdfAdapter(file);
-	    DataImpl		data = adapter.getData();
+	    DataImpl		data = adapter.getProxy();
 
-	    //System.out.println("data.getType().toString():\n" +
-		//data.getType());
-	    System.out.println("data.toString():\n" + data);
+	    System.out.println("data.getType().toString():\n" +
+		data.getType());
+	    //System.out.println("data.toString():\n" + data);
 	}
     }
 }
