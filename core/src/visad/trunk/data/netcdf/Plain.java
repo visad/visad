@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Plain.java,v 1.20 2001-05-16 20:38:21 steve Exp $
+ * $Id: Plain.java,v 1.21 2001-08-28 17:07:45 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -12,6 +12,10 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.TreeSet;
+import ucar.netcdf.Netcdf;
 import ucar.netcdf.NetcdfFile;
 import ucar.netcdf.Schema;
 import ucar.netcdf.Variable;
@@ -131,7 +135,7 @@ Plain
 
     /**
      * Open an existing netCDF file and return a VisAD data object.  This method
-     * uses the method <code>NetcdfAdapter.getData()</code> to instantiate the
+     * uses the method {@link NetcdfAdapter#getData()} to instantiate the
      * VisAD data object.  The user should look at that method for information
      * on import strategies and customization.
      *
@@ -194,7 +198,23 @@ Plain
     open (URL url)
 	throws IOException, VisADException
     {
-	return new NetcdfAdapter(new NetcdfFile(url), quantityDB).getData();
+	Set names = new TreeSet();
+	String query = url.getQuery();
+	if (query != null)
+	{
+	    for (StringTokenizer st = new StringTokenizer(query, ",");
+		st.hasMoreTokens(); )
+	    {
+		names.add(st.nextToken());
+	    }
+	}
+	Netcdf netcdf = new NetcdfFile(url);
+	return
+	    new NetcdfAdapter(
+		names.size() == 0
+		    ? netcdf
+		    : new VariableFilter(netcdf, names),
+		quantityDB).getData();
     }
 
 
@@ -260,9 +280,9 @@ Plain
 	    data = plain.open(inPath);
 	}
 
-	System.out.println("Data:\n" + data);
-	// System.out.println("data.getType().toString():\n" +
-	    // data.getType());
+	// System.out.println("Data:\n" + data);
+	System.out.println("data.getType().toString():\n" +
+	    data.getType());
 
 	System.out.println("Writing netCDF dataset \"" + outPath + "\"");
 
