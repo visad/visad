@@ -416,10 +416,10 @@ public class ShadowTupleType extends ShadowType {
       for (int i=0; i<valueArrayLength; i++) {
         if (display_values[i] != null) {
           int displayScalarIndex = valueToScalar[i];
-          ScalarType real = display.getScalar(displayScalarIndex);
+          ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
+          ScalarType real = map.getScalar();
           DisplayRealType dreal = display.getDisplayScalar(displayScalarIndex);
           if (dreal.equals(Display.Text) && real instanceof RealType) {
-            ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
             text_control = (TextControl) map.getControl();
             NumberFormat format = text_control.getNumberFormat();
             if (format == null) {
