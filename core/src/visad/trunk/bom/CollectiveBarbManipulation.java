@@ -1484,13 +1484,16 @@ public class CollectiveBarbManipulation extends Object
     // create an array of NSTAS by NSTAS winds
     FieldImpl field = new FieldImpl(stations_type, stn_set);
     FieldImpl field2 = new FieldImpl(stations_type, stn_set);
+    FieldImpl field3 = new FieldImpl(stations_type, stn_set);
     int m = 0;
     for (int i=0; i<NSTAS; i++) {
       for (int j=0; j<NSTAS; j++) {
         FlatField ff = new FlatField(station_type, time_set);
         FlatField ff2 = new FlatField(station_type, time_set2);
+        FlatField ff3 = new FlatField(station_type, time_set2);
         double[][] values = new double[6][NTIMES];
         double[][] values2 = new double[6][NTIMES];
+        double[][] values3 = new double[6][NTIMES];
         for (int k=0; k<NTIMES; k++) {
           double u = 2.0 * i / (NSTAS - 1.0) - 1.0;
           double v = 2.0 * j / (NSTAS - 1.0) - 1.0;
@@ -1515,14 +1518,28 @@ public class CollectiveBarbManipulation extends Object
           values2[3][k] = fs;
           values2[4][k] = u;
           values2[5][k] = v;
+
+          values3[0][k] = 10.0 * u + 2.5; 
+          values3[1][k] = 10.0 * v - 40.0 - 2.5;
+          values3[2][k] = fd;
+          values3[3][k] = fs;
+          values3[4][k] = u;
+          values3[5][k] = v;
         }
         ff.setSamples(values);
         field.setSample(m, ff);
         ff2.setSamples(values2);
         field2.setSample(m, ff2);
+        ff3.setSamples(values3);
+        field3.setSample(m, ff3);
         m++;
       }
     }
+
+    DataReferenceImpl barb_ref = new DataReferenceImpl("barb");
+    barb_ref.setData(field3);
+    BarbRendererJ3D barb_renderer = new BarbRendererJ3D();
+    display1.addReferences(barb_renderer, barb_ref);
 
     ConstantMap[] cmaps = {
       new ConstantMap(1.0, Display.Red),
