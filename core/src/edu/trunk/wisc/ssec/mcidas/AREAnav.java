@@ -553,4 +553,15 @@ public abstract class AREAnav
         return false;
     }
   }
+
+  /**
+   * Return a <code>String</code> representation of this nav module
+   * @return wordy string.
+   */
+  public String toString() {
+    String className = getClass().getName();
+    int lastDot = className.lastIndexOf('.');
+    className = className.substring(lastDot+1);
+    return className.substring(0,className.indexOf("nav"));
+  }
 }
