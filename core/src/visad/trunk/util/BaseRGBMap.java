@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: BaseRGBMap.java,v 1.3 1999-10-13 21:43:56 dglo Exp $
+@(#) $Id: BaseRGBMap.java,v 1.4 1999-10-15 17:23:22 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -35,7 +35,7 @@ import java.awt.*;
  * mouse button to alternate between the color curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.3 $, $Date: 1999-10-13 21:43:56 $
+ * @version $Revision: 1.4 $, $Date: 1999-10-15 17:23:22 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -93,7 +93,7 @@ public class BaseRGBMap
     this.resolution = resolution;
     this.hasAlpha = hasAlpha;
 
-    buildCursors();
+    // buildCursors();
 
     val = new float[resolution][hasAlpha ? 4 : 3];
     initColormap();
@@ -105,7 +105,7 @@ public class BaseRGBMap
   public BaseRGBMap(float[][] vals, boolean hasAlpha) {
     this.hasAlpha = hasAlpha;
 
-    buildCursors();
+    // buildCursors();
 
     setValues(vals, false);
 
@@ -415,7 +415,9 @@ public class BaseRGBMap
       return;
     }
     state = (state + 1) % (hasAlpha ? 4 : 3);
-    setCursor(cursor[state]);
+    if (cursor != null) {
+      setCursor(cursor[state]);
+    }
   }
 
   /** Updates the internal array and sends notification to the
