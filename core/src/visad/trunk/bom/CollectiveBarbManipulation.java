@@ -370,6 +370,7 @@ public class CollectiveBarbManipulation extends Object
     }
 
     setupData(); // new data
+    if (display1 != null) setupStations(); // new data  WLH 6 May 2001
 
     // better have CellImpl in place before addControlListener // NEW
     stepper_ref = new DataReferenceImpl("stepper");
@@ -410,7 +411,7 @@ public class CollectiveBarbManipulation extends Object
       ((BarbRenderer) barb_renderer).setKnotsConvert(knots);
       display1.addReferences(barb_renderer, stations_ref, constantMaps());
 
-      setupStations(); // new data
+      // setupStations(); // new data  WLH 6 May 2001
 
       if (need_monitor) {
         wind_monitor = new WindMonitor();
