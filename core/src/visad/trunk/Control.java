@@ -48,7 +48,7 @@ public abstract class Control extends Object
   private int Index;
 
   /** Vector of ControlListeners */
-  transient Vector ListenerVector = new Vector();
+  private transient Vector ListenerVector = new Vector();
 
   public Control(DisplayImpl d) {
     OldTick = Long.MIN_VALUE;

@@ -80,6 +80,9 @@ public class ScalarMap extends Object implements java.io.Serializable {
   private boolean scale_flag = false;
   private float[] scale_color = {1.0f, 1.0f, 1.0f};
 
+  /** Vector of ScalarMapListeners */
+  private transient Vector ListenerVector = new Vector();
+
   public ScalarMap(RealType scalar, DisplayRealType display_scalar)
          throws VisADException {
     if (scalar == null && !(this instanceof ConstantMap)) {
@@ -307,6 +310,17 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
         dataRange[1] = Double.NaN;
       }
     }
+    if (shadow != null && dataRange[0] == dataRange[0] &&
+        dataRange[1] == dataRange[1] && ListenerVector != null) {
+      synchronized (ListenerVector) {
+        Enumeration listeners = ListenerVector.elements();
+        while (listeners.hasMoreElements()) {
+          ScalarMapListener listener =
+            (ScalarMapListener) listeners.nextElement();
+          listener.mapChanged(new ScalarMapEvent(this));
+        }
+      }
+    }
 /*
 System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
                    " to " + dataRange[1] + " scale: " + scale + " " + offset);
@@ -354,6 +368,16 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
           scale_flag = true;
         }
       }
+    }
+  }
+
+  public void addScalarMapListener(ScalarMapListener listener) {
+    ListenerVector.addElement(listener);
+  }
+ 
+  public void removeScalarMapListener(ScalarMapListener listener) {
+    if (listener != null) {
+      ListenerVector.removeElement(listener);
     }
   }
 

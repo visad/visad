@@ -100,6 +100,13 @@ public class MouseHelper {
         break;
       case MouseEvent.MOUSE_PRESSED:
         if (mouseEntered) {
+          try {
+            display.notifyListeners(DisplayEvent.MOUSE_PRESSED);
+          }
+          catch (VisADException e) {
+          }
+          catch (RemoteException e) {
+          }
           int m = ((InputEvent) event).getModifiers();
           int m1 = m & InputEvent.BUTTON1_MASK;
           int m2 = m & InputEvent.BUTTON2_MASK;

@@ -87,6 +87,9 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   /** mapping from ValueArray to MapVector */
   private int[] valueToMap;
 
+  /** Vector of DisplayListeners */
+  private transient Vector ListenerVector = new Vector();
+
 
   /** constructor with non-DefaultDisplayRenderer */
   public DisplayImpl(String name, DisplayRenderer renderer)
@@ -100,6 +103,42 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     displayRenderer.setDisplay(this);
     // initialize ScalarMap's, ShadowDisplayReal's and Control's
     clearMaps();
+  }
+
+  /** RemoteDisplayImpl to this for use with
+      Remote DisplayListeners */
+  private RemoteDisplayImpl rd = null;
+
+  public void notifyListeners(int id)
+         throws VisADException, RemoteException {
+    if (ListenerVector != null) {
+      synchronized (ListenerVector) {
+        Enumeration listeners = ListenerVector.elements();
+        while (listeners.hasMoreElements()) {
+          DisplayListener listener =
+            (DisplayListener) listeners.nextElement();
+          if (listener instanceof Remote) {
+            if (rd == null) {
+              rd = new RemoteDisplayImpl(this);
+            }
+            listener.displayChanged(new DisplayEvent(rd, id));
+          }
+          else {
+            listener.displayChanged(new DisplayEvent(this, id));
+          }
+        }
+      }
+    }
+  }
+
+  public void addDisplayListener(DisplayListener listener) {
+    ListenerVector.addElement(listener);
+  }
+ 
+  public void removeDisplayListener(DisplayListener listener) {
+    if (listener != null) {
+      ListenerVector.removeElement(listener);
+    }
   }
 
   public Component getComponent() {
