@@ -623,6 +623,8 @@ compile: clean
 	cd ..
 	cd $(RMIC_DIR)
 	$(RMIC) $(RMIC_FILES)
+	cd $(RMIC_COLLAB_DIR)
+	$(RMIC) $(RMIC_COLLAB_FILES)
 
 debug:
 	@nmake /nologo -f Makefile.WinNT compile \
