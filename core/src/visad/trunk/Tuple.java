@@ -85,6 +85,11 @@ public class Tuple extends DataImpl {
     this(buildTupleType(datums), datums, true);
   }
 
+  public static Tuple makeTuple(Data[] datums)
+         throws VisADException, RemoteException {
+    return new Tuple(datums);
+  }
+
   /** check a TupleType for an array of Data */
   static boolean checkTupleType(TupleType type, Data[] datums)
          throws VisADException, RemoteException {
