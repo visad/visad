@@ -105,7 +105,7 @@ public class Test55
       rem_data_refs[2] = new RemoteDataReferenceImpl(data_refs[2]);
 
       RemoteServerImpl obj = new RemoteServerImpl(rem_data_refs);
-      Naming.rebind("//:/RemoteServerTest", obj);
+      Naming.rebind("///RemoteServerTest", obj);
 
       System.out.println("RemoteServer bound in registry");
     }

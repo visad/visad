@@ -79,7 +79,7 @@ public class Test15
       System.out.println("  to " + domain);
 
       if (domain == null) {
-        domain = "//:/RemoteServerTest";
+        domain = "///RemoteServerTest";
       }
       else {
         domain = "//" + domain + "/RemoteServerTest";

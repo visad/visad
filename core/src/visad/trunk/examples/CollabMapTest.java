@@ -33,6 +33,7 @@ import javax.swing.*;
 import visad.*;
 import visad.data.*;
 import visad.java3d.DisplayImplJ3D;
+import visad.util.ClientServer;
 
 /** A simple test for collaborative ScalarMap editing */
 public class CollabMapTest extends JFrame implements ActionListener {
@@ -129,7 +130,7 @@ public class CollabMapTest extends JFrame implements ActionListener {
       // set up server
       RemoteServerImpl rs = new RemoteServerImpl();
       try {
-        Naming.rebind("//:/CollabMapTest", rs);
+        Naming.rebind("///CollabMapTest", rs);
       }
       catch (ConnectException exc) {
         System.err.println("Please run rmiregistry first.");

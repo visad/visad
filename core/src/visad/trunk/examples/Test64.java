@@ -81,7 +81,7 @@ public class Test64
       System.out.print("Connecting to ");
       if (domain == null) {
         System.out.print("localhost...");
-        domain = "//:/RemoteSlaveDisplayTest";
+        domain = "///RemoteSlaveDisplayTest";
       }
       else {
         System.out.print(domain + "...");

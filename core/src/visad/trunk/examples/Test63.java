@@ -123,7 +123,7 @@ public class Test63
     // create RemoteServer
     try {
       RemoteServerImpl server = new RemoteServerImpl(rdi);
-      Naming.rebind("//:/RemoteSlaveDisplayTest", server);
+      Naming.rebind("///RemoteSlaveDisplayTest", server);
       System.out.println("RemoteServer bound in registry");
     }
     catch (Exception e) {
