@@ -157,7 +157,7 @@ public class Contour2D {
     int numc = (int) (nhi - nlo) + 1;
     if (numc < 1) return levs;
     if (numc > 4000) {
-      throw new VisADException("Contour interval too small");
+      throw new VisADException("Contour interval " + interval + " too small for range " + low + "," + high );
     }
 
     try {
