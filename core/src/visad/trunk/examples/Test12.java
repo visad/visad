@@ -32,7 +32,6 @@ import visad.java3d.DisplayImplJ3D;
 public class Test12
   extends UISkeleton
 {
-  ScalarMap color1map = null;
   boolean dynamic = false;
 
   public Test12() { }
@@ -75,8 +74,7 @@ public class Test12
     dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
     dpys[0].addMap(new ScalarMap(vis_radiance, Display.ZAxis));
 
-    color1map = new ScalarMap(ir_radiance, Display.RGB);
-    dpys[0].addMap(color1map);
+    dpys[0].addMap(new ScalarMap(ir_radiance, Display.RGB));
 
     GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
     mode.setTextureEnable(false);
@@ -92,9 +90,10 @@ public class Test12
     super.setupUI(dpys);
 
     if (dynamic) {
-      ColorControl control = (ColorControl) color1map.getControl();
+      ScalarMap colorMap = (ScalarMap )dpys[0].getMapVector().lastElement();
+      ColorControl control = (ColorControl) colorMap.getControl();
       boolean forever = true;
-      int size = 512;
+      final int SIZE_INCREMENT = 256;
       while (forever) {
         try {
           Thread.sleep(5000);
@@ -102,6 +101,7 @@ public class Test12
         catch (InterruptedException e) {
         }
         System.out.println("\ndelay\n");
+        int size = control.getNumberOfColors() + SIZE_INCREMENT;
         float[][] table = new float[3][size];
         float scale = 1.0f / (size - 1.0f);
         for (int i=0; i<size; i++) {
@@ -109,7 +109,6 @@ public class Test12
           table[1][i] = scale * i;
           table[2][i] = scale * i;
         }
-        size *= 2;
         control.setTable(table);
       }
     }
@@ -120,8 +119,8 @@ public class Test12
   Component getSpecialComponent(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    ScalarMap color1map = (ScalarMap )dpys[0].getMapVector().lastElement();
-    return new LabeledColorWidget(color1map);
+    ScalarMap colorMap = (ScalarMap )dpys[0].getMapVector().lastElement();
+    return new LabeledColorWidget(colorMap);
   }
 
   public String toString() { return ": 2-D surface and ColorWidget"; }
