@@ -26,6 +26,7 @@ MA 02111-1307, USA
 
 package visad;
 
+import java.text.*;
 import java.util.*;
 import java.rmi.*;
 
@@ -417,7 +418,13 @@ public class ShadowTupleType extends ShadowType {
           if (dreal.equals(Display.Text) && real instanceof RealType) {
             ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
             text_control = (TextControl) map.getControl();
-            text_value = PlotText.shortString(display_values[i][0]);
+            NumberFormat format = text_control.getNumberFormat();
+            if (format == null) {
+              text_value = PlotText.shortString(display_values[i][0]);
+            }
+            else {
+              text_value = format.format(display_values[i][0]);
+            }
             break;
           }
         }

@@ -21,6 +21,7 @@ MA 02111-1307, USA
 */
 
 import java.rmi.RemoteException;
+import java.text.*;
 
 import visad.*;
 
@@ -84,6 +85,7 @@ public class Test70
     TextControl tcontrol = (TextControl) tmap.getControl();
     tcontrol.setSphere(sphere);
     tcontrol.setCenter(true);
+    tcontrol.setNumberFormat(new DecimalFormat());
     if (sphere) {
       dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
       dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.Longitude));

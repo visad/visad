@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad;
 
 import java.awt.Font;
+import java.text.*;
 import java.rmi.*;
 
 import visad.util.Util;
@@ -45,6 +46,8 @@ public class TextControl extends Control {
   // WLH 31 May 2000
   // draw on sphere surface
   private boolean sphere = false;
+
+  private NumberFormat format = null;
 
   public TextControl(DisplayImpl d) {
     super(d);
@@ -100,6 +103,18 @@ public class TextControl extends Control {
     return sphere;
   }
 
+  // WLH 16 June 2000
+  public void setNumberFormat(NumberFormat f)
+         throws VisADException, RemoteException {
+    format = f;
+    changeControl(true);
+  }
+
+  // WLH 16 June 2000
+  public NumberFormat getNumberFormat() {
+    return format;
+  }
+
   private boolean fontEquals(Font newFont)
   {
     if (font == null) {
@@ -109,6 +124,22 @@ public class TextControl extends Control {
     } else if (newFont == null) {
       return false;
     } else if (!font.equals(newFont)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  // WLH 16 June 2000
+  private boolean formatEquals(NumberFormat newFormat)
+  {
+    if (format == null) {
+      if (newFormat != null) {
+        return false;
+      }
+    } else if (newFormat == null) {
+      return false;
+    } else if (!format.equals(newFormat)) {
       return false;
     }
 
@@ -154,6 +185,12 @@ public class TextControl extends Control {
       sphere = tc.sphere;
     }
 
+    // WLH 16 June 2000
+    if (!formatEquals(tc.format)) {
+      changed = true;
+      format = tc.format;
+    }
+
     if (changed) {
       try {
         changeControl(true);
@@ -182,6 +219,11 @@ public class TextControl extends Control {
 
     // WLH 31 May 2000
     if (sphere != tc.sphere) {
+      return false;
+    }
+
+    // WLH 16 June 2000
+    if (!formatEquals(tc.format)) {
       return false;
     }
 

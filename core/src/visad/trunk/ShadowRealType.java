@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad;
 
 import java.util.*;
+import java.text.*;
 import java.rmi.*;
 
 /**
@@ -103,8 +104,14 @@ public class ShadowRealType extends ShadowScalarType {
         ScalarMap map = (ScalarMap) maps.nextElement();
         DisplayRealType dreal = map.getDisplayScalar();
         if (dreal.equals(Display.Text)) {
-          text_value = PlotText.shortString(value[0][0]);
           text_control = (TextControl) map.getControl();
+          NumberFormat format = text_control.getNumberFormat();
+          if (format == null) {
+            text_value = PlotText.shortString(value[0][0]);
+          }
+          else {
+            text_value = format.format(value[0][0]);
+          }
           break;
         }
       }

@@ -128,6 +128,7 @@ bytes = 20M + 43.2M = 63.2M
 package visad;
 
 import java.util.*;
+import java.text.*;
 import java.rmi.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
@@ -1483,15 +1484,29 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
             if (dreal.equals(Display.Text) && real instanceof RealType) {
               text_control = (TextControl) map.getControl();
               text_values = new String[domain_length];
+              NumberFormat format = text_control.getNumberFormat();
               if (display_values[i].length == 1) {
-                String text = PlotText.shortString(display_values[i][0]);
+                String text = null;
+                if (format == null) {
+                  text = PlotText.shortString(display_values[i][0]);
+                }
+                else {
+                  text = format.format(display_values[i][0]);
+                }
                 for (int j=0; j<domain_length; j++) {
                   text_values[j] = text;
                 }
               }
               else {
-                for (int j=0; j<domain_length; j++) {
-                  text_values[j] = PlotText.shortString(display_values[i][j]);
+                if (format == null) {
+                  for (int j=0; j<domain_length; j++) {
+                    text_values[j] = PlotText.shortString(display_values[i][j]);
+                  }
+                }
+                else {
+                  for (int j=0; j<domain_length; j++) {
+                    text_values[j] = format.format(display_values[i][j]);
+                  }
                 }
               }
               break;
