@@ -194,6 +194,7 @@ public class DefaultNodeRendererAgent extends NodeAgent {
         else if (first instanceof String) {
           String sfirst = (String) first;
           if (sfirst.equals("transform")) {
+            display.disableAction();
             int m = vmessage.size();
             Vector map_vector = display.getMapVector();
             if (map_vector.size() != (m - 1)) {
@@ -223,6 +224,7 @@ public class DefaultNodeRendererAgent extends NodeAgent {
             }
             nr.enableTransform();
             display.reDisplayAll();
+            display.enableAction();
             // NodeRendererJ3D.doTransform() calls
             // sendToClient(branch) for this, so no reponse
             response = "none";
