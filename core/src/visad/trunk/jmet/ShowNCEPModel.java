@@ -158,13 +158,13 @@ public class ShowNCEPModel
       }
 
       if (killMe) {
-        System.out.println("Usage: ShowNCEPModel [-c|-s] #");
+        System.out.println("Usage: ShowNCEPModel [-c|-s] # [fileName]");
         System.exit(1);
       }
     }
 
     try {
-      new ShowNCEPModel(num, srvr, clnt);
+      new ShowNCEPModel(num, srvr, clnt, fileName);
     } catch (Exception e) {
       e.printStackTrace(System.out);
       System.exit(1);
@@ -174,10 +174,23 @@ public class ShowNCEPModel
   public ShowNCEPModel(int numPanels)
     throws RemoteException, VisADException
   {
-    this(numPanels, false, false);
+    this(numPanels, false, false, null);
   }
 
   public ShowNCEPModel(int numPanels, boolean srvr, boolean clnt)
+    throws RemoteException, VisADException
+  {
+    this(numPanels, srvr, clnt, null);
+  }
+
+  public ShowNCEPModel (int numPanels, String fileName)
+    throws RemoteException, VisADException
+  {
+    this(numPanels, false, false, fileName);
+  }
+
+  public ShowNCEPModel(int numPanels, boolean srvr, boolean clnt,
+                       String fileName)
     throws RemoteException, VisADException
   {
     super("Show NCEP Model Data");
@@ -219,6 +232,11 @@ public class ShowNCEPModel
     }
 
     buildUI();
+
+    if (fileName != null) {
+      try { setLooping(false); } catch (Throwable t) { }
+      getNewFile(".", fileName);
+    }
   }
 
   private DisplayImpl buildData(int numPanels)
@@ -477,7 +495,13 @@ public class ShowNCEPModel
       try {
         setLooping(false);
       } catch (Exception mfs) {mfs.printStackTrace(); System.exit(1); }
-      getNewFile();
+
+      FileDialog fileBox = new FileDialog(this);
+      fileBox.setDirectory(directory);
+      fileBox.setMode(FileDialog.LOAD);
+      fileBox.setVisible(true);
+
+      getNewFile(fileBox.getDirectory(), fileBox.getFile());
 
     } else if (cmd.equals("menuQuit") ) {
       System.exit(0);
@@ -572,21 +596,12 @@ public class ShowNCEPModel
 
   }
 
-  void getNewFile() {
+  void getNewFile(String directory, String filename) {
 
-    isLooping = false;
-
-    FileDialog fileBox = new FileDialog(this);
-    fileBox.setDirectory(directory);
-    fileBox.setMode(FileDialog.LOAD);
-    fileBox.setVisible(true);
+    if (filename == null || directory == null) return;
 
     try {
 
-      String filename = fileBox.getFile();
-      if (filename == null) return;
-      directory = fileBox.getDirectory();
-      if (directory == null) return;
       File file = new File(directory, filename);
 
       // remove the DataReference for new files...
