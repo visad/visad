@@ -43,13 +43,14 @@ public class CBMKeyboardBehaviorJ3D extends KeyboardBehaviorJ3D {
   public static final int ROTATE_Z_POS = 7;
 */
 
-  private static final int MAX_FUNCTIONS = 5;
+  private static final int MAX_FUNCTIONS = 6;
 
   public static final int PLUS_ANGLE = 0; // ->
   public static final int MINUS_ANGLE = 1; // <-
   public static final int PLUS_SPEED = 2; // up
   public static final int MINUS_SPEED = 3; // down
-  public static final int NEXT_WIND = 4; // tab
+  public static final int NEXT_WIND = 4; // page down
+  public static final int PREVIOUS_WIND = 5; // page up
 
   private CollectiveBarbManipulation cbm = null;
 
@@ -61,7 +62,8 @@ public class CBMKeyboardBehaviorJ3D extends KeyboardBehaviorJ3D {
     mapKeyToFunction(MINUS_ANGLE, KeyEvent.VK_LEFT, NO_MASK);
     mapKeyToFunction(PLUS_SPEED, KeyEvent.VK_UP, NO_MASK);
     mapKeyToFunction(MINUS_SPEED, KeyEvent.VK_DOWN, NO_MASK);
-    mapKeyToFunction(NEXT_WIND, KeyEvent.VK_TAB, NO_MASK);
+    mapKeyToFunction(NEXT_WIND, KeyEvent.VK_PAGE_DOWN, NO_MASK);
+    mapKeyToFunction(PREVIOUS_WIND, KeyEvent.VK_PAGE_UP, NO_MASK);
   }
 
   public void setWhichCBM(CollectiveBarbManipulation c) throws VisADException {
@@ -78,20 +80,33 @@ public class CBMKeyboardBehaviorJ3D extends KeyboardBehaviorJ3D {
 
 System.out.println("execFunction " + function);
 
-    switch (function) {
-
-      case PLUS_ANGLE:
-        break;
-      case MINUS_ANGLE:
-        break;
-      case PLUS_SPEED:
-        break;
-      case MINUS_SPEED:
-        break;
-      case NEXT_WIND:
-        break;
-      default:
-        break;
+    try {
+      switch (function) {
+        case PLUS_ANGLE:
+          cbm.plusAngle();
+          break;
+        case MINUS_ANGLE:
+          cbm.minusAngle();
+          break;
+        case PLUS_SPEED:
+          cbm.plusSpeed();
+          break;
+        case MINUS_SPEED:
+          cbm.minusSpeed();
+          break;
+        case NEXT_WIND:
+          cbm.nextWind();
+          break;
+        case PREVIOUS_WIND:
+          cbm.previousWind();
+          break;
+        default:
+          break;
+      }
+    }
+    catch (VisADException e) {
+    }
+    catch (RemoteException e) {
     }
   }
 }

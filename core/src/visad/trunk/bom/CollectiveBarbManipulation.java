@@ -579,10 +579,10 @@ public class CollectiveBarbManipulation extends Object
       station_refs[i].setData(tuples[i][0]);
       which_times[i] = -1;
       if (barbs) {
-        barb_manipulation_renderers[i] = new CBarbManipulationRendererJ3D(this);
+        barb_manipulation_renderers[i] = new CBarbManipulationRendererJ3D(this, i);
       }
       else {
-        barb_manipulation_renderers[i] = new CSwellManipulationRendererJ3D(this);
+        barb_manipulation_renderers[i] = new CSwellManipulationRendererJ3D(this, i);
       }
       ((BarbRenderer) barb_manipulation_renderers[i]).setKnotsConvert(knots);
       display1.addReferences(barb_manipulation_renderers[i], station_refs[i],
@@ -1291,6 +1291,72 @@ public class CollectiveBarbManipulation extends Object
     }
   }
 
+  int current_index = 0;
+
+  void plusAngle() throws VisADException, RemoteException {
+    synchronized (data_lock) {
+      int time_index = which_times[current_index];
+      Tuple wind = tuples[current_index][time_index];
+      double azimuth = azimuths[current_index][time_index];
+      double radial = radials[current_index][time_index];
+      azimuth += 10;
+      if (azimuth > 360.0) azimuth -= 360.0;
+      Tuple new_wind = modifyWind(wind, azimuth, radial);
+      wind_stations[current_index].setSample(time_index, new_wind);
+      tuples[current_index][time_index] = new_wind;
+    }
+  }
+
+  void minusAngle() throws VisADException, RemoteException {
+    synchronized (data_lock) {
+      int time_index = which_times[current_index];
+      Tuple wind = tuples[current_index][time_index];
+      double azimuth = azimuths[current_index][time_index];
+      double radial = radials[current_index][time_index];
+      azimuth -= 10;
+      if (azimuth < 0.0) azimuth += 360.0;
+      Tuple new_wind = modifyWind(wind, azimuth, radial);
+      wind_stations[current_index].setSample(time_index, new_wind);
+      tuples[current_index][time_index] = new_wind;
+    }
+  }
+
+  void plusSpeed() throws VisADException, RemoteException {
+    synchronized (data_lock) {
+      int time_index = which_times[current_index];
+      Tuple wind = tuples[current_index][time_index];
+      double azimuth = azimuths[current_index][time_index];
+      double radial = radials[current_index][time_index];
+      radial += 5;
+      Tuple new_wind = modifyWind(wind, azimuth, radial);
+      wind_stations[current_index].setSample(time_index, new_wind);
+      tuples[current_index][time_index] = new_wind;
+    }
+  }
+
+  void minusSpeed() throws VisADException, RemoteException {
+    synchronized (data_lock) {
+      int time_index = which_times[current_index];
+      Tuple wind = tuples[current_index][time_index];
+      double azimuth = azimuths[current_index][time_index];
+      double radial = radials[current_index][time_index];
+      radial -= 5;
+      if (radial < 0.0) radial = 0.0;
+      Tuple new_wind = modifyWind(wind, azimuth, radial);
+      wind_stations[current_index].setSample(time_index, new_wind);
+      tuples[current_index][time_index] = new_wind;
+    }
+  }
+
+  void nextWind() {
+    int n = nindex;
+    current_index = (current_index < 0) ? 0 : (current_index + 1) % n;
+  }
+
+  void previousWind() {
+    int n = nindex;
+    current_index = (current_index < 0) ? n-1 : (current_index + (n-1)) % n;
+  }
 
   private static final int NSTAS = 5; // actually NSTAS * NSTAS
   private static final int NTIMES = 10;
@@ -1590,6 +1656,7 @@ public class CollectiveBarbManipulation extends Object
   }
 }
 
+/** a help class for the GUI in CollectiveBarbManipulation.main() */
 class EndManipCBM implements ActionListener {
   CollectiveBarbManipulation cbm;
   CollectiveBarbManipulation cbm2;
@@ -1693,10 +1760,12 @@ class EndManipCBM implements ActionListener {
 class CBarbManipulationRendererJ3D extends BarbManipulationRendererJ3D {
 
   CollectiveBarbManipulation cbm;
+  int index;
 
-  CBarbManipulationRendererJ3D(CollectiveBarbManipulation c) {
+  CBarbManipulationRendererJ3D(CollectiveBarbManipulation c, int i) {
     super();
     cbm = c;
+    index = i;
   }
 
   /** mouse button released, ending direct manipulation */
@@ -1714,10 +1783,12 @@ class CBarbManipulationRendererJ3D extends BarbManipulationRendererJ3D {
 class CSwellManipulationRendererJ3D extends SwellManipulationRendererJ3D {
 
   CollectiveBarbManipulation cbm;
+  int index;
 
-  CSwellManipulationRendererJ3D(CollectiveBarbManipulation c) {
+  CSwellManipulationRendererJ3D(CollectiveBarbManipulation c, int i) {
     super();
     cbm = c;
+    index = i;
   }
 
   /** mouse button released, ending direct manipulation */
@@ -1731,52 +1802,4 @@ class CSwellManipulationRendererJ3D extends SwellManipulationRendererJ3D {
     super.drag_direct(ray, first, mouseModifiers);
   }
 }
-
-/*
-
-> 2) Keyboard Input:
-> ------------------
-> Keyboard commands are needed as alternatives to mouse-driven commands.
-> I know this has already been done in the generic sense, but we also
-> want the possibility of keyboard adjustment of CBM for example (with sensible
-> increments per keyboard stroke, eg 10deg rotation clockwise per keystroke right
-> arrow mayble, and 5 knots change per + keystroke; allow for user to "tab" their
-> way between different wind barbs).
->
-> Ref: Survey #22
-
-This will require a new extension of DisplayRendererJ3D which
-BOM applications will need to use in DisplayImplJ3D constructors.
-I estimate 1.5 weeks to write this and apply it to
-CollectiveBarbManipulation. The "tab" logic may be a bit complex.
-
-[****
-extend KeyboardBehaviorJ3D with corresponding extensions
-of DisplayRendererJ3D and RendererJ3D
-
-1.5 weeks for CollectiveBarbManipulation
-****]
-
-MouseHelper.java invokes:
-  DisplayRenderer.findDirect()
-  DataRenderer.drag_direct()
-  DataRenderer.release_direct()
-
-DisplayRendererJ3D.java:
-  public void addKeyboardBehavior(KeyboardBehaviorJ3D behavior)
-
-
-KeyboardBehaviorJ3D.java:
-
-
-from HSVDisplay.java:
-    DisplayRendererJ3D dr = (DisplayRendererJ3D) display1.getDisplayRenderer();
-    KeyboardBehaviorJ3D kbd = new KeyboardBehaviorJ3D(dr);
-    dr.addKeyboardBehavior(kbd);
-
-visad/bom/CBMKeyboardBehaviorJ3D.java
-
-
-
-*/
 
