@@ -154,10 +154,18 @@ public abstract class DisplayRendererJ3D
     return vpTrans;
   }
 
+  /**
+   * Get the canvas for this renderer
+   * @return  <CODE>VisADCanvasJ3D</CODE> that this renderer uses.
+   */
   public VisADCanvasJ3D getCanvas() {
     return canvas;
   }
 
+  /**
+   * Capture the display rendition as an image.
+   * @param  image of the display.
+   */
   public BufferedImage getImage() {
     BufferedImage image = null;
     while (image == null) {
@@ -307,6 +315,10 @@ public abstract class DisplayRendererJ3D
     return box_on;
   }
 
+  /**
+   * Toggle the cursor in the display
+   * @param  on   true to display the cursor, false to hide it.
+   */
   public void setCursorOn(boolean on) {
     cursorOn = on;
     if (on) {
@@ -319,6 +331,10 @@ public abstract class DisplayRendererJ3D
     }
   }
 
+  /**
+   * Set the flag for direct manipulation
+   * @param  on  true for enabling direct manipulation, false to disable
+   */
   public void setDirectOn(boolean on) {
     directOn = on;
     if (!on) {
@@ -486,6 +502,11 @@ public abstract class DisplayRendererJ3D
     return root;
   }
 
+  /**
+   * Get the <CODE>MouseBehavior</CODE> associated with this renderer.
+   * @return  the <CODE>MouseBehavior</CODE> used by this renderer to handle
+   *          mouse events.
+   */
   public MouseBehavior getMouseBehavior() {
     return mouse;
   }
@@ -509,6 +530,10 @@ public abstract class DisplayRendererJ3D
     directs.removeElement(renderer);
   }
 
+  /** 
+   * Get the cusor location.
+   * @return  cursor location as an array of x, y, and z values
+   */
   public double[] getCursor() {
     double[] cursor = new double[3];
     cursor[0] = cursorX;
@@ -578,6 +603,12 @@ public abstract class DisplayRendererJ3D
     }
   }
 
+  /**
+   * Set the cursor location
+   * @param  x  x location
+   * @param  y  y location
+   * @param  z  z location
+   */
   public void setCursorLoc(float x, float y, float z) {
     Transform3D t = new Transform3D();
     t.setTranslation(new Vector3f(x, y, z));
@@ -733,6 +764,14 @@ public abstract class DisplayRendererJ3D
     }
   }
 
+  /**
+   * Find the <CODE>DataRenderer</CODE> that is closest to the ray and
+   * uses the specified mouse modifiers for direct manipulation.
+   * @param  ray  position to check
+   * @param  mouseModifiers  modifiers for mouse clicks
+   * @return  closest DataRenderer that uses the specified mouse click
+   *          modifiers for direct manipulation or null if there is none.
+   */
   // public DirectManipulationRendererJ3D findDirect(PickRay ray) {
   public DataRenderer findDirect(VisADRay ray, int mouseModifiers) {
     DirectManipulationRendererJ3D renderer = null;
@@ -756,10 +795,19 @@ public abstract class DisplayRendererJ3D
     }
   }
 
+  /**
+   * Check to see if there are any <CODE>DirectManipulationRenderer</CODE>s
+   * in this display.
+   * @return  true if there are any
+   */
   public boolean anyDirects() {
     return !directs.isEmpty();
   }
 
+  /**
+   * Set the scales on.
+   * @param  on   turn on if true, otherwise turn them off
+   */
   public void setScaleOn(boolean on) {
     if (on) {
       scale_switch.setWhichChild(1); // on
@@ -769,6 +817,14 @@ public abstract class DisplayRendererJ3D
     }
   }
 
+  /**
+   * Set the scale for the appropriate axis.
+   * @param  axis  axis for this scale
+   * @param  axis_ordinal  position along the axis
+   * @param  array   <CODE>VisADLineArray</CODE> representing the scale plot
+   * @param  scale_color   array (dim 3) representing the red, green and blue
+   *                       color values.
+   */
   public void setScale(int axis, int axis_ordinal,
               VisADLineArray array, float[] scale_color)
          throws VisADException {
@@ -803,6 +859,9 @@ public abstract class DisplayRendererJ3D
     }
   }
 
+  /**
+   * Remove all the scales.
+   */
   public void clearScales() {
     if (scale_on != null) {
       synchronized (scale_on) {
@@ -828,6 +887,10 @@ public abstract class DisplayRendererJ3D
     }
   }
 
+  /**
+   * Make the appropriate J3D control for the given <CODE>ScalarMap</CODE>
+   * @return  new control
+   */
   public Control makeControl(ScalarMap map) {
     DisplayRealType type = map.getDisplayScalar();
     DisplayImplJ3D display = (DisplayImplJ3D) getDisplay();
@@ -895,10 +958,21 @@ public abstract class DisplayRendererJ3D
     }
   }
 
+  /**
+   * Create the default <CODE>DataRenderer</CODE> for this type of 
+   * <CODE>DisplayRenderer</CODE>
+   * @return  new default renderer
+   */
   public DataRenderer makeDefaultRenderer() {
     return new DefaultRendererJ3D();
   }
 
+  /**
+   * Check if the <CODE>DataRenderer</CODE> in question is legal for this
+   * <CODE>DisplayRenderer</CODE>
+   * @param renderer  <CODE>DataRenderer</CODE> to check
+   * @return  true if renderer is a subclass of <CODE>RendererJ3D</CODE>
+   */
   public boolean legalDataRenderer(DataRenderer renderer) {
     return (renderer instanceof RendererJ3D);
   }
@@ -908,6 +982,11 @@ public abstract class DisplayRendererJ3D
     clearScene(renderer);
   }
 
+  /**
+   * Add a <CODE>KeyboardBehavior</CODE> for keyboard control of rotation,
+   * translation and zoom.  
+   * @param  behavior  keyboard behavior to add
+   */
   public void addKeyboardBehavior(KeyboardBehaviorJ3D behavior)
   {
     BranchGroup bg = new BranchGroup();

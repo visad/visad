@@ -59,7 +59,32 @@ public class KeyboardBehaviorJ3D extends Behavior {
     /**
      * Construct a new keyboard behavior for the DisplayRenderer.  You
      * need to add the behavior to the DisplayRenderer if you want to 
-     * use it.
+     * use it.  Default key assignments use the arrow keys to simulate
+     * the default VisAD mouse behavior.<P>
+     * Rotation (3D renderer only):
+     * <UL>
+     * <LI>Arrow keys - rotate up, down, left, right
+     * </UL>
+     * Zoom:
+     * <UL>
+     * <LI>Shift + Up arrow - zoom in
+     * <LI>Shift + Down arrow - zoom out
+     * </UL>
+     * Rotate:
+     * <UL>
+     * <LI>Shift + Left arrow - rotate left around axis perpendicular to screen
+     * <LI>Shift + Right arrow - rotate right around axis perpendicular 
+     *                           to screen
+     * </UL>
+     * Translate:
+     * <UL>
+     * <LI>Ctrl + Arrow keys - translate up, down, left, right
+     * </UL>
+     * Reset:
+     * <UL>
+     * <LI>R key - reset to original projection
+     * </UL>
+     * <P>
      * @see  DisplayRendererJ3D#addKeyboardBehavior(KeyboardBehaviorJ3D behavior)
      * @param  r  DisplayRenderer to use.
      */
