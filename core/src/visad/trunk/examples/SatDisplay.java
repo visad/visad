@@ -46,16 +46,24 @@ import visad.data.mcidas.AreaAdapter;
 import visad.data.mcidas.BaseMapAdapter;
 import visad.java3d.DisplayImplJ3D;
 import visad.java3d.TwoDDisplayRendererJ3D;
+import visad.java3d.DefaultRendererJ3D;
+import visad.DisplayListener;
+import visad.DisplayEvent;
+import visad.VisADException;
+import java.rmi.RemoteException;
 
 /**
  * Example class to display a satellite image in VisAD.
  *
  * @author  Don Murray - Unidata
  */
-public class SatDisplay
+public class SatDisplay implements DisplayListener
 {
 
     private DisplayImpl display;
+
+    private DefaultRendererJ3D drmap;
+    private DefaultRendererJ3D drimage;
 
     /**
      * Construct a satellite display using the specified McIDAS map file,
@@ -161,8 +169,14 @@ public class SatDisplay
 
             // add the data references to the display
             display.disableAction();
-            display.addReference(imageRef,null);
-            display.addReference(maplinesRef, maplinesConstantMap);
+            drmap = new DefaultRendererJ3D();
+            drimage = new DefaultRendererJ3D();
+            drmap.toggle(false);
+            drimage.toggle(false);
+            display.addDisplayListener(this);
+    
+            display.addReferences(drmap, maplinesRef, maplinesConstantMap);
+            display.addReferences(drimage, imageRef,null);
             display.enableAction();
         }
         catch (Exception ne)
@@ -170,6 +184,14 @@ public class SatDisplay
             ne.printStackTrace(); System.exit(1);
         }
 
+    }
+
+    public void displayChanged(DisplayEvent e)
+         throws VisADException, RemoteException {
+      if (e.getId() == DisplayEvent.TRANSFORM_DONE) {
+        drmap.toggle(true);
+        drimage.toggle(true);
+      }
     }
 
     /**
