@@ -1957,13 +1957,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
       if (f != null) f.setSelected(false);
     }
     DisplayCells[x][y].setSelected(true);
-    CurX = x;
-    CurY = y;
 
-    // update spreadsheet info
-    refreshFormulaBar();
-    refreshMenuCommands();
-    refreshDisplayMenuItems();
+    if (x != CurX || y != CurY) {
+      // update spreadsheet info
+      CurX = x;
+      CurY = y;
+      refreshFormulaBar();
+      refreshMenuCommands();
+      refreshDisplayMenuItems();
+    }
   }
 
   /** Handles key presses */
