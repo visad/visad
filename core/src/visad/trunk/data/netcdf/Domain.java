@@ -198,7 +198,7 @@ Domain
 	     */
 
 	    int[]	lengths = new int[rank];
-	    double[][]	values = new double[rank][];
+	    float[][]	values = new float[rank][];
 	    int		ntotal = 1;
 
 	    for (int idim = 0; idim < rank; ++idim)
@@ -211,17 +211,17 @@ Domain
 	    {
 		NcDim		dim = dims[visadIdim(idim)];
 		NcVar		var = dim.getCoordinateVariable();
-		double[]	vals;
+		float[]		vals;
 
-		values[idim] = new double[ntotal];
+		values[idim] = new float[ntotal];
 
 		if (var != null)
-		    vals = (double[])var.getValues();
+		    vals = (float[])var.getValues();
 		else
 		{
 		    int	npts = lengths[idim];
 
-		    vals = new double[npts];
+		    vals = new float[npts];
 
 		    for (int ipt = 0; ipt < npts; ++ipt)
 			vals[ipt] = ipt;
