@@ -39,9 +39,37 @@ public class ReflectedUniverse {
   /** Hashtable containing all variables present in the universe. */
   private Hashtable variables = new Hashtable();
 
-  public ReflectedUniverse() { }
+  /**
+   * Returns whether the given object is compatible with the
+   * specified class for the purposes of reflection.
+   */
+  protected boolean isInstance(Class c, Object o) {
+    return (c.isInstance(o) ||
+      (c == byte.class && o instanceof Byte) ||
+      (c == short.class && o instanceof Short) ||
+      (c == int.class && o instanceof Integer) ||
+      (c == long.class && o instanceof Long) ||
+      (c == float.class && o instanceof Float) ||
+      (c == double.class && o instanceof Double) ||
+      (c == boolean.class && o instanceof Boolean) ||
+      (c == char.class && o instanceof Character));
+  }
 
-  /** Executes a command in the universe. */
+  /**
+   * Executes a command in the universe. The following syntaxes are valid:
+   * <li>import fully.qualified.package.ClassName
+   * <li>var = new ClassName(param1, ..., paramN)
+   * <li>var.method(param1, ..., paramN)
+   * <li>var2 = var1.method(param1, ..., paramN)
+   * <li>ClassName.method(param1, ..., paramN)
+   * <p>
+   * Important guidelines:
+   * <li>Any referenced class must be imported first using "import".
+   * <li>Variables can be exported from the universe with getVar().
+   * <li>Variables can be imported to the universe with setVar().
+   * <li>Each parameter must be either a variable in the universe
+   *     or a static or instance field (i.e., no nested methods).
+   */
   public Object exec(String command) throws VisADException {
     command = command.trim();
     if (command.startsWith("import ")) {
@@ -111,7 +139,7 @@ public class ReflectedUniverse {
         if (params.length == args.length) {
           boolean match = true;
           for (int j=0; j<params.length; j++) {
-            if (!params[j].isInstance(args[j])) {
+            if (!isInstance(params[j], args[j])) {
               match = false;
               break;
             }
@@ -156,7 +184,7 @@ public class ReflectedUniverse {
           if (params.length == args.length) {
             boolean match = true;
             for (int j=0; j<params.length; j++) {
-              if (!params[j].isInstance(args[j])) {
+              if (!isInstance(params[j], args[j])) {
                 match = false;
                 break;
               }
