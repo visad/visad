@@ -107,6 +107,7 @@ public class RealType extends ScalarType {
    * the RealType does <em>not</em> refer to an interval.
    * @param name                The name for the RealType.
    * @throws VisADException     Couldn't create necessary VisAD object.
+   * @deprecated Use {@link #getRealType(String)}
    */
   public RealType(String name) throws VisADException {
     this(name, 0);
@@ -120,6 +121,7 @@ public class RealType extends ScalarType {
    * @param name                The name for the RealType.
    * @param attrMask            The attribute mask. 0 or INTERVAL.
    * @throws VisADException     Couldn't create necessary VisAD object.
+   * @deprecated Use {@link #getRealType(String, int)}
    */
   public RealType(String name, int attrMask) throws VisADException {
     this(name, null, null, attrMask);
@@ -136,6 +138,7 @@ public class RealType extends ScalarType {
    *                            Used when this type is a FunctionType domain.
    *                            May be <code>null</code>.
    * @throws VisADException     Couldn't create necessary VisAD object.
+   * @deprecated Use {@link #getRealType(String, Unit, Set)}
    */
   public RealType(String name, Unit u, Set set) throws VisADException {
     this(name, u, set, 0);
@@ -149,6 +152,7 @@ public class RealType extends ScalarType {
    * @param u                   The default unit for the RealType.  May be
    *                            <code>null</code>.  
    * @throws VisADException     Couldn't create necessary VisAD object.
+   * @deprecated Use {@link #getRealType(String, Unit)}
    */
   public RealType(String name, Unit u) throws VisADException {
     this(name, u, null, 0);
@@ -170,6 +174,7 @@ public class RealType extends ScalarType {
    *                            May be <code>null</code>.
    * @param attrMask            The attribute mask. 0 or INTERVAL.
    * @throws VisADException     Couldn't create necessary VisAD object.
+   * @deprecated Use {@link #getRealType(String, Unit, Set, int)}
    */
   public RealType(String name, Unit u, Set set, int attrMask)
     throws VisADException
@@ -203,6 +208,21 @@ public class RealType extends ScalarType {
     DefaultUnit =
       u != null && isSet(attrMask, INTERVAL) ? u.getAbsoluteUnit() : u;
     DefaultSet = null;
+    DefaultSetEverAccessed = false;
+    this.attrMask = attrMask;
+  }
+
+  /** trusted constructor for initializers */
+  protected RealType(String name, Unit u, Set s, int attrMask, boolean b)
+    throws SetException
+  {
+    super(name, b);
+    if (s != null && s.getDimension() != 1) {
+      throw new SetException("RealType: default set dimension != 1");
+    }
+    DefaultUnit =
+      u != null && isSet(attrMask, INTERVAL) ? u.getAbsoluteUnit() : u;
+    DefaultSet = s;
     DefaultSetEverAccessed = false;
     this.attrMask = attrMask;
   }
@@ -1023,8 +1043,8 @@ public class RealType extends ScalarType {
    *                                arguments or <code>null</code>.
    * @throws NullPointerException   if the name is <code>null</code>.
    */
-  public static final RealType getRealType(
-    String name, Unit u, Set set, int attrMask)
+  public static final RealType getRealType(String name, Unit u, Set set,
+                                           int attrMask)
   {
     if (name == null)
       throw new NullPointerException();
