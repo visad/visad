@@ -298,7 +298,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
           if (ix < len-1) {
             try {
               cols = Integer.parseInt(argv[ix]);
-              rows = Integer.parseInt(argv[ix+1]);
+              rows = Integer.parseInt(argv[ix + 1]);
               ix++;
               if (rows < 1 || cols < 1 || cols > Letters.length()) {
                 success = false;
@@ -309,7 +309,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
             }
             if (!success) {
               System.out.println("Invalid number of columns and rows: " +
-                                 argv[ix] + " x " + argv[ix+1]);
+                                 argv[ix] + " x " + argv[ix + 1]);
               System.out.println(usage);
               System.exit(2);
             }
@@ -1440,13 +1440,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
       sb.append(NumVisY);
       sb.append('\n');
       sb.append("columns =");
-      for (int j=0; j<NumVisY; j++) {
+      for (int j=0; j<NumVisX; j++) {
         sb.append(' ');
         sb.append(HorizLabel[j].getSize().width);
       }
       sb.append('\n');
       sb.append("rows =");
-      for (int i=0; i<NumVisX; i++) {
+      for (int i=0; i<NumVisY; i++) {
         sb.append(' ');
         sb.append(VertLabel[i].getSize().height);
       }
@@ -1628,21 +1628,20 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   /** add a column to the spreadsheet */
-  void addColumn() {
+  synchronized void addColumn() {
     JLabel l = (JLabel) HorizLabel[NumVisX - 1].getComponent(0);
     int maxVisX = Letters.indexOf(l.getText()) + 1;
     if (maxVisX < Letters.length()) {
       // re-layout horizontal spreadsheet labels
-      int nvx = HorizLabel.length;
-      JPanel[] newLabels = new JPanel[nvx+1];
-      for (int i=0; i<nvx; i++) newLabels[i] = HorizLabel[i];
-      newLabels[nvx] = new JPanel();
-      newLabels[nvx].setBorder(new LineBorder(Color.black, 1));
-      newLabels[nvx].setLayout(new BorderLayout());
-      newLabels[nvx].setPreferredSize(
+      JPanel[] newLabels = new JPanel[NumVisX + 1];
+      for (int i=0; i<NumVisX; i++) newLabels[i] = HorizLabel[i];
+      newLabels[NumVisX] = new JPanel();
+      newLabels[NumVisX].setBorder(new LineBorder(Color.black, 1));
+      newLabels[NumVisX].setLayout(new BorderLayout());
+      newLabels[NumVisX].setPreferredSize(
         new Dimension(DEFAULT_VIS_WIDTH, LABEL_HEIGHT));
       String s = String.valueOf(Letters.charAt(maxVisX));
-      newLabels[nvx].add("Center", new JLabel(s, SwingConstants.CENTER));
+      newLabels[NumVisX].add("Center", new JLabel(s, SwingConstants.CENTER));
 
       if (IsRemote) {
         // let the server handle the actual cell layout
@@ -1707,22 +1706,21 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   /** add a row to the spreadsheet */
-  void addRow() {
+  synchronized void addRow() {
     JLabel l = (JLabel) VertLabel[NumVisY - 1].getComponent(0);
     int maxVisY = Integer.parseInt(l.getText());
 
     // re-layout vertical spreadsheet labels
-    int nvy = VertLabel.length;
-    JPanel[] newLabels = new JPanel[nvy+1];
-    JComponent[] newDrag = new JComponent[nvy+1];
-    for (int i=0; i<nvy; i++) newLabels[i] = VertLabel[i];
-    newLabels[nvy] = new JPanel();
-    newLabels[nvy].setBorder(new LineBorder(Color.black, 1));
-    newLabels[nvy].setLayout(new BorderLayout());
-    newLabels[nvy].setPreferredSize(
+    JPanel[] newLabels = new JPanel[NumVisY + 1];
+    JComponent[] newDrag = new JComponent[NumVisY + 1];
+    for (int i=0; i<NumVisY; i++) newLabels[i] = VertLabel[i];
+    newLabels[NumVisY] = new JPanel();
+    newLabels[NumVisY].setBorder(new LineBorder(Color.black, 1));
+    newLabels[NumVisY].setLayout(new BorderLayout());
+    newLabels[NumVisY].setPreferredSize(
       new Dimension(LABEL_WIDTH, DEFAULT_VIS_HEIGHT));
     String s = String.valueOf(maxVisY + 1);
-    newLabels[nvy].add("Center", new JLabel(s, SwingConstants.CENTER));
+    newLabels[NumVisY].add("Center", new JLabel(s, SwingConstants.CENTER));
 
     if (IsRemote) {
       // let server handle the actual cell layout
@@ -1785,11 +1783,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   /** deletes a column from the spreadsheet */
-  boolean deleteColumn() {
-    int nvx = HorizLabel.length;
+  synchronized boolean deleteColumn() {
 
     // make sure at least one column will be left
-    if (nvx == 1) {
+    if (NumVisX == 1) {
       displayErrorMessage("This is the last column!",
         "Cannot delete column");
       return false;
@@ -1805,9 +1802,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
 
     // re-layout horizontal spreadsheet labels
-    JPanel[] newLabels = new JPanel[nvx-1];
+    JPanel[] newLabels = new JPanel[NumVisX - 1];
     for (int i=0; i<CurX; i++) newLabels[i] = HorizLabel[i];
-    for (int i=CurX+1; i<nvx; i++) newLabels[i-1] = HorizLabel[i];
+    for (int i=CurX+1; i<NumVisX; i++) newLabels[i - 1] = HorizLabel[i];
 
     if (IsRemote) {
       // let server handle the actual cell layout
@@ -1816,16 +1813,16 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     else {
       // re-layout horizontal label separators
-      JComponent[] newDrag = new JComponent[NumVisX-1];
+      JComponent[] newDrag = new JComponent[NumVisX - 1];
       for (int i=0; i<NumVisX-1; i++) newDrag[i] = HorizDrag[i];
       HorizPanel.removeAll();
 
       // re-layout spreadsheet cells
-      FancySSCell[][] fcells = new FancySSCell[NumVisX-1][NumVisY];
+      FancySSCell[][] fcells = new FancySSCell[NumVisX - 1][NumVisY];
       DisplayPanel.removeAll();
       for (int j=0; j<NumVisY; j++) {
         for (int i=0; i<CurX; i++) fcells[i][j] = DisplayCells[i][j];
-        for (int i=CurX+1; i<NumVisX; i++) fcells[i-1][j] = DisplayCells[i][j];
+        for (int i=CurX+1; i<NumVisX; i++) fcells[i - 1][j] = DisplayCells[i][j];
         try {
           DisplayCells[CurX][j].destroyCell();
         }
@@ -1838,18 +1835,16 @@ public class SpreadSheet extends JFrame implements ActionListener,
         DisplayCells[CurX][j] = null;
       }
       NumVisX--;
-      if (CurX > NumVisX-1) CurX = NumVisX - 1;
+      if (CurX > NumVisX - 1) CurX = NumVisX - 1;
       reconstructHoriz(newLabels, newDrag, fcells);
     }
     return true;
   }
 
   /** delete a row from the spreadsheet */
-  boolean deleteRow() {
-    int nvy = VertLabel.length;
-
+  synchronized boolean deleteRow() {
     // make sure at least one row will be left
-    if (nvy == 1) {
+    if (NumVisY == 1) {
       displayErrorMessage("This is the last row!", "Cannot delete row");
       return false;
     }
@@ -1865,9 +1860,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
 
     // re-layout vertical spreadsheet labels
-    JPanel[] newLabels = new JPanel[nvy-1];
+    JPanel[] newLabels = new JPanel[NumVisY - 1];
     for (int i=0; i<CurY; i++) newLabels[i] = VertLabel[i];
-    for (int i=CurY+1; i<nvy; i++) newLabels[i-1] = VertLabel[i];
+    for (int i=CurY+1; i<NumVisY; i++) newLabels[i - 1] = VertLabel[i];
 
     if (IsRemote) {
       // let server handle the actual cell layout
@@ -1876,8 +1871,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     else {
       // re-layout horizontal label separators
-      JComponent[] newDrag = new JComponent[NumVisY-1];
-      for (int i=0; i<NumVisY-1; i++) newDrag[i] = VertDrag[i];
+      JComponent[] newDrag = new JComponent[NumVisY];
+      for (int i=0; i<NumVisY; i++) newDrag[i] = VertDrag[i];
       VertPanel.removeAll();
 
       // re-layout spreadsheet cells
@@ -1885,7 +1880,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       DisplayPanel.removeAll();
       for (int i=0; i<NumVisX; i++) {
         for (int j=0; j<CurY; j++) fcells[i][j] = DisplayCells[i][j];
-        for (int j=CurY+1; j<NumVisY; j++) fcells[i][j-1] = DisplayCells[i][j];
+        for (int j=CurY+1; j<NumVisY; j++) fcells[i][j - 1] = DisplayCells[i][j];
         try {
           DisplayCells[i][CurY].destroyCell();
         }
