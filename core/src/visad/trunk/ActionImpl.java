@@ -97,7 +97,7 @@ public abstract class ActionImpl extends Object
     return i;
   }
 
-  public void setTicks() {
+  private void setTicks() {
     synchronized (LinkVector) {
       Enumeration links = LinkVector.elements();
       while (links.hasMoreElements()) {
@@ -107,7 +107,7 @@ public abstract class ActionImpl extends Object
     }
   }
 
-  public boolean checkTicks() {
+  private boolean checkTicks() {
     boolean doIt = false;
     synchronized (LinkVector) {
       Enumeration links = LinkVector.elements();
@@ -119,7 +119,7 @@ public abstract class ActionImpl extends Object
     return doIt;
   }
 
-  public void resetTicks() {
+  private void resetTicks() {
     synchronized (LinkVector) {
       Enumeration links = LinkVector.elements();
       while (links.hasMoreElements()) {
