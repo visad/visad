@@ -25,6 +25,7 @@ package visad.data.dods;
 import dods.dap.*;
 import java.rmi.RemoteException;
 import visad.*;
+import visad.data.in.ArithProg;
 
 /**
  * Provides support for adapting a DODS {@link Float64PrimitiveVector} to the
@@ -97,17 +98,30 @@ public class Float64VectorAdapter
      *				compatible with the metadata of the primitive
      *				vector used in construting this instance.
      * @return			A VisAD GriddedSet corresponding to the input.
-     *				The class of the object is {@link
-     *				visad.Gridded1DDoubleSet}.
+     *				The (super)class of the object is {@link
+     *				visad.Gridded1DSet}.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
     public GriddedSet griddedSet(PrimitiveVector vector)
 	throws VisADException, RemoteException
     {
+	double[]	vals = getDoubles(vector, true);
+	ArithProg	ap = new ArithProg();
+	ap.accumulate(vals);
 	return
-	    Gridded1DDoubleSet.create(
-		getMathType(), getDoubles(vector, true), null, null, null);
+	    ap.isConsistent()
+		/*
+		 * NOTE: A Linear1DSet is quite capable of representing double
+		 * values.
+		 */
+		? (Gridded1DSet)new Linear1DSet(
+		    getMathType(),
+		    ap.getFirst(),
+		    ap.getLast(),
+		    (int)ap.getNumber())
+		: Gridded1DDoubleSet.create(
+		    getMathType(), vals, null, null, null);
     }
 
     /**

@@ -26,6 +26,7 @@ import dods.dap.*;
 import java.rmi.RemoteException;
 import visad.*;
 import visad.data.BadFormException;
+import visad.data.in.ArithProg;
 
 /**
  * Provides support for adapting DODS floating-point vectors to the VisAD
@@ -94,7 +95,7 @@ public abstract class FloatVectorAdapter
      *				compatible with the metadata of the primitive
      *				vector used in construting this instance.
      * @return			A VisAD GriddedSet corresponding to the
-     *				input.	The class of the object is {@link
+     *				input.	The (super)class of the object is {@link
      *				visad.Gridded1DSet}.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
@@ -102,9 +103,17 @@ public abstract class FloatVectorAdapter
     public GriddedSet griddedSet(PrimitiveVector vector)
 	throws VisADException, RemoteException
     {
+	float[]		vals = getFloats(vector, true);
+	ArithProg	ap = new ArithProg();
+	ap.accumulate(vals);
 	return
-	    Gridded1DSet.create(
-		getMathType(), getFloats(vector, true), null, null, null);
+	    ap.isConsistent()
+		? (Gridded1DSet)new Linear1DSet(
+		    getMathType(),
+		    ap.getFirst(),
+		    ap.getLast(),
+		    (int)ap.getNumber())
+		: Gridded1DSet.create(getMathType(), vals, null, null, null);
     }
 
     /**
