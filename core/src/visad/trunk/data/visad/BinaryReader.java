@@ -91,7 +91,7 @@ public class BinaryReader
     this.cSysCache = new BinaryObjectCache();
     this.typeCache = new BinaryObjectCache();
 
-    int version = readMagic(file);
+    final int version = readMagic(file);
     if (version < 1) {
       throw new IOException("File is not in VisAD binary format");
     }
@@ -107,10 +107,10 @@ public class BinaryReader
     throws IOException
   {
     // read the index number for this CoordinateSystem
-    int index = file.readInt();
+    final int index = file.readInt();
 if(DEBUG_CSYS)System.err.println("cchCS: index (" + index + ")");
 
-    byte cSysSerial = file.readByte();
+    final byte cSysSerial = file.readByte();
     if (cSysSerial != FLD_COORDSYS_SERIAL) {
       throw new IOException("Corrupted file (no CoordinateSystem serial marker)");
     }
@@ -119,7 +119,7 @@ if(DEBUG_CSYS)System.err.println("cchCS: FLD_COORDSYS_SERIAL (" + FLD_COORDSYS_S
     // read the CoordinateSystem data
     CoordinateSystem cs = (CoordinateSystem )readSerializedObject();
 
-    byte endByte = file.readByte();
+    final byte endByte = file.readByte();
 if(DEBUG_CSYS)System.err.println("cchCS: read " + (endByte == FLD_END ? "FLD_END" : Integer.toString(endByte) + " (wanted FLD_END)"));
     if (endByte != FLD_END) {
       throw new IOException("Corrupted file (no CoordinateSystem end-marker)");
@@ -132,26 +132,26 @@ if(DEBUG_CSYS)System.err.println("cchCS: read " + (endByte == FLD_END ? "FLD_END
     throws IOException, VisADException
   {
     // read the index number for this ErrorEstimate
-    int index = file.readInt();
+    final int index = file.readInt();
 if(DEBUG_ERRE)System.err.println("cchErrEst: index (" + index + ")");
 
     // read the ErrorEstimate data
-    double errValue = file.readDouble();
+    final double errValue = file.readDouble();
 if(DEBUG_ERRE)System.err.println("cchErrEst: errValue (" + errValue + ")");
-    double mean = file.readDouble();
+    final double mean = file.readDouble();
 if(DEBUG_ERRE)System.err.println("cchErrEst: mean (" + mean + ")");
-    long number = file.readLong();
+    final long number = file.readLong();
 if(DEBUG_ERRE)System.err.println("cchErrEst: number (" + number + ")");
 
     Unit u = null;
 
     boolean reading = true;
     while (reading) {
-      byte directive = file.readByte();
+      final byte directive = file.readByte();
 
       switch (directive) {
       case FLD_INDEX_UNIT:
-        int uIndex = file.readInt();
+        final int uIndex = file.readInt();
 if(DEBUG_ERRE&&DEBUG_UNIT)System.err.println("cchErrEst: unit index ("+uIndex+")");
         u = (Unit )unitCache.get(uIndex);
 if(DEBUG_ERRE&&!DEBUG_UNIT)System.err.println("cchErrEst: unit index ("+uIndex+"="+u+")");
@@ -174,10 +174,10 @@ if(DEBUG_ERRE)System.err.println("cchErrEst: FLD_END ("+FLD_END+")");
     throws IOException, VisADException
   {
     // read the index number for this MathType
-    int index = file.readInt();
+    final int index = file.readInt();
 if(DEBUG_MATH)System.err.println("cchTy: index (" + index + ")");
 
-    byte mathType = file.readByte();
+    final byte mathType = file.readByte();
     switch (mathType) {
     case MATH_FUNCTION:
 if(DEBUG_MATH)System.err.println("rdMthTy: MATH_FUNCTION (" + MATH_FUNCTION + ")");
@@ -209,7 +209,7 @@ if(DEBUG_MATH)System.err.println("rdMthTy: MATH_TUPLE (" + MATH_TUPLE + ")");
     throws IOException, VisADException
   {
     // read the index number for this Unit
-    int index = file.readInt();
+    final int index = file.readInt();
 if(DEBUG_UNIT)System.err.println("cchU: index (" + index + ")");
 
     // read the Unit identifier
@@ -220,7 +220,7 @@ if(DEBUG_UNIT&&!DEBUG_STR)System.err.println("cchU: id (" + idStr + ")");
     String defStr = readString();
 if(DEBUG_UNIT&&!DEBUG_STR)System.err.println("cchU: definition (" + defStr + ")");
 
-    byte endByte = file.readByte();
+    final byte endByte = file.readByte();
 if(DEBUG_UNIT)System.err.println("cchU: read " + (endByte == FLD_END ? "FLD_END" : Integer.toString(endByte) + " (wanted FLD_END)"));
     if (endByte != FLD_END) {
       throw new IOException("Corrupted file (no Unit end-marker)");
@@ -260,7 +260,7 @@ if(DEBUG_UNIT)System.err.println("cchU: read " + (endByte == FLD_END ? "FLD_END"
     throws IOException, VisADException
   {
     while (true) {
-      byte directive = file.readByte();
+      final byte directive = file.readByte();
 
       switch (directive) {
       case OBJ_COORDSYS:
@@ -317,7 +317,7 @@ if(DEBUG_CSYS)System.err.println("rdCSysS: len ("+len+")");
 
     CoordinateSystem[] cSys = new CoordinateSystem[len];
     for (int i = 0; i < len; i++) {
-      int uIndex = file.readInt();
+      final int uIndex = file.readInt();
 if(DEBUG_CSYS)System.err.println("rdCSysS: cSys index ("+uIndex+")");
       cSys[i] = (CoordinateSystem )cSysCache.get(uIndex);
 if(DEBUG_CSYS)System.err.println("rdCSysS: === #"+i+": "+cSys[i]+")");
@@ -459,7 +459,7 @@ if(DEBUG_DATA)System.err.println("rdDataRA: len (" + len + ")");
 
     boolean reading = true;
     while (reading) {
-      byte directive;
+      final byte directive;
       try {
         directive = file.readByte();
       } catch (EOFException eofe) {
@@ -554,7 +554,7 @@ if(DEBUG_ERRE)System.err.println("rdErrEstS: len (" + len + ")");
 
     ErrorEstimate[] errs = new ErrorEstimate[len];
     for (int i = 0; i < len; i++) {
-      int index = file.readInt();
+      final int index = file.readInt();
 if(DEBUG_ERRE)System.err.println("rdErrEstS:    #"+i+" index ("+index+")");
 
       if (index < 0) {
@@ -571,7 +571,7 @@ if(DEBUG_ERRE)System.err.println("rdErrEstS:    === #"+i+" ErrorEstimate ("+errs
   public FieldImpl readFieldImpl()
     throws IOException, VisADException
   {
-    int typeIndex = file.readInt();
+    final int typeIndex = file.readInt();
 if(DEBUG_DATA&&DEBUG_MATH)System.err.println("rdFldI: type index (" + typeIndex + ")");
     FunctionType ft = (FunctionType )typeCache.get(typeIndex);
 if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdFldI: type index (" + typeIndex + "=" + ft + ")");
@@ -581,7 +581,7 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdFldI: type index (" + typeIndex
 
     boolean reading = true;
     while (reading) {
-      byte directive;
+      final byte directive;
       try {
         directive = file.readByte();
       } catch (EOFException eofe) {
@@ -626,7 +626,7 @@ if(DEBUG_DATA)System.err.println("rdFldI: FLD_END (" + FLD_END + ")");
   public FlatField readFlatField()
     throws IOException, VisADException
   {
-    int typeIndex = file.readInt();
+    final int typeIndex = file.readInt();
 if(DEBUG_DATA&&DEBUG_MATH)System.err.println("rdFlFld: type index (" + typeIndex + ")");
     FunctionType ft = (FunctionType )typeCache.get(typeIndex);
 if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdFlFld: type index (" + typeIndex + "=" + ft + ")");
@@ -640,7 +640,7 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdFlFld: type index (" + typeInde
 
     boolean reading = true;
     while (reading) {
-      byte directive;
+      final byte directive;
       try {
         directive = file.readByte();
       } catch (EOFException eofe) {
@@ -658,7 +658,7 @@ if(DEBUG_DATA)System.err.println("rdFlFld: FLD_DATA_SAMPLES (" + FLD_DATA_SAMPLE
         break;
       case FLD_INDEX_COORDSYS:
 if(DEBUG_DATA)System.err.println("rdFlFld: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
-        int index = file.readInt();
+        final int index = file.readInt();
 if(DEBUG_DATA&&DEBUG_CSYS)System.err.println("rdFlFld: cSys index (" + index + ")");
         cs = (CoordinateSystem )cSysCache.get(index);
 if(DEBUG_DATA&&!DEBUG_CSYS)System.err.println("rdFlFld: cSys index (" + index + "=" + cs + ")");
@@ -745,18 +745,16 @@ if(DEBUG_DATA_DETAIL)System.err.println("rdFltMtx: #" + i + "," + j +" (" + matr
   private FunctionType readFunctionType(int index)
     throws IOException, VisADException
   {
-    int typeIndex;
-
-    typeIndex = file.readInt();
-if(DEBUG_MATH)System.err.println("rdFuTy: domain index (" + typeIndex + ")");
-    MathType domain = (MathType )typeCache.get(typeIndex);
+    final int domainIndex = file.readInt();
+if(DEBUG_MATH)System.err.println("rdFuTy: domain index (" + domainIndex + ")");
+    MathType domain = (MathType )typeCache.get(domainIndex);
 if(DEBUG_MATH)System.err.println("rdFuTy: === read domain " + domain);
-    typeIndex = file.readInt();
-if(DEBUG_MATH)System.err.println("rdFuTy: domain index (" + typeIndex + ")");
-    MathType range = (MathType )typeCache.get(typeIndex);
+    final int rangeIndex = file.readInt();
+if(DEBUG_MATH)System.err.println("rdFuTy: range index (" + rangeIndex + ")");
+    MathType range = (MathType )typeCache.get(rangeIndex);
 if(DEBUG_MATH)System.err.println("rdFuTy: === read range " + domain);
 
-    byte endByte = file.readByte();
+    final byte endByte = file.readByte();
 if(DEBUG_MATH)System.err.println("rdFuTy: read " + (endByte == FLD_END ? "FLD_END" : Integer.toString(endByte) + " (wanted FLD_END)"));
     if (endByte != FLD_END) {
       throw new IOException("Corrupted file (no TupleType end-marker)");
@@ -772,7 +770,7 @@ if(DEBUG_MATH)System.err.println("rdFuTy: read " + (endByte == FLD_END ? "FLD_EN
   public GriddedSet readGriddedDoubleSet(byte dataType)
     throws IOException, VisADException
   {
-    int typeIndex = file.readInt();
+    final int typeIndex = file.readInt();
 if(DEBUG_DATA&&DEBUG_MATH)System.err.println("rdGrDblSet: type index (" + typeIndex + ")");
     SetType st = (SetType )typeCache.get(typeIndex);
 if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdGrDblSet: type index (" + typeIndex + "=" + st + ")");
@@ -785,7 +783,7 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdGrDblSet: type index (" + typeI
 
     boolean reading = true;
     while (reading) {
-      byte directive;
+      final byte directive;
       try {
         directive = file.readByte();
       } catch (EOFException eofe) {
@@ -803,7 +801,7 @@ if(DEBUG_DATA)System.err.println("rdGrDblSet: FLD_LENGTHS (" + FLD_LENGTHS + ")"
         break;
       case FLD_INDEX_COORDSYS:
 if(DEBUG_DATA)System.err.println("rdGrDblSet: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
-        int index = file.readInt();
+        final int index = file.readInt();
 if(DEBUG_DATA&&DEBUG_CSYS)System.err.println("rdGrDblSet: cSys index (" + index + ")");
         cs = (CoordinateSystem )cSysCache.get(index);
 if(DEBUG_DATA&&!DEBUG_CSYS)System.err.println("rdGrDblSet: cSys index (" + index + "=" + cs + ")");
@@ -833,7 +831,7 @@ if(DEBUG_DATA)System.err.println("rdGrDblSet: FLD_END (" + FLD_END + ")");
       throw new IOException("No lengths found for GriddedDoubleSet");
     }
 
-    final int dim;
+    int dim;
     switch (dataType) {
     case DATA_GRIDDED_1D_DOUBLE_SET:
       dim = 1;
@@ -885,7 +883,7 @@ if(DEBUG_DATA)System.err.println("rdGrDblSet: FLD_END (" + FLD_END + ")");
   public GriddedSet readGriddedSet(byte dataType)
     throws IOException, VisADException
   {
-    int typeIndex = file.readInt();
+    final int typeIndex = file.readInt();
 if(DEBUG_DATA&&DEBUG_MATH)System.err.println("rdGrSet: type index (" + typeIndex + ")");
     SetType st = (SetType )typeCache.get(typeIndex);
 if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdGrSet: type index (" + typeIndex + "=" + st + ")");
@@ -898,7 +896,7 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdGrSet: type index (" + typeInde
 
     boolean reading = true;
     while (reading) {
-      byte directive;
+      final byte directive;
       try {
         directive = file.readByte();
       } catch (EOFException eofe) {
@@ -916,7 +914,7 @@ if(DEBUG_DATA)System.err.println("rdGrSet: FLD_LENGTHS (" + FLD_LENGTHS + ")");
         break;
       case FLD_INDEX_COORDSYS:
 if(DEBUG_DATA)System.err.println("rdGrSet: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
-        int index = file.readInt();
+        final int index = file.readInt();
 if(DEBUG_DATA&&DEBUG_CSYS)System.err.println("rdGrSet: cSys index (" + index + ")");
         cs = (CoordinateSystem )cSysCache.get(index);
 if(DEBUG_DATA&&!DEBUG_CSYS)System.err.println("rdGrSet: cSys index (" + index + "=" + cs + ")");
@@ -946,7 +944,7 @@ if(DEBUG_DATA)System.err.println("rdGrSet: FLD_END (" + FLD_END + ")");
       throw new IOException("No lengths found for GriddedSet");
     }
 
-    final int dim;
+    int dim;
     switch (dataType) {
     case DATA_GRIDDED_1D_SET:
       dim = 1;
@@ -1043,7 +1041,7 @@ if(DEBUG_DATA_DETAIL)System.err.println("rdIntMtx: #" + i + "," + j +" (" + matr
   public GriddedSet readIntegerSet(byte dataType)
     throws IOException, VisADException
   {
-    int typeIndex = file.readInt();
+    final int typeIndex = file.readInt();
 if(DEBUG_DATA&&DEBUG_MATH)System.err.println("rdIntSet: type index (" + typeIndex + ")");
     SetType st = (SetType )typeCache.get(typeIndex);
 if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdIntSet: type index (" + typeIndex + "=" + st + ")");
@@ -1056,7 +1054,7 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdIntSet: type index (" + typeInd
 
     boolean reading = true;
     while (reading) {
-      byte directive;
+      final byte directive;
       try {
         directive = file.readByte();
       } catch (EOFException eofe) {
@@ -1074,7 +1072,7 @@ if(DEBUG_DATA)System.err.println("rdIntSet: FLD_INTEGER_SETS (" + FLD_INTEGER_SE
         break;
       case FLD_INDEX_COORDSYS:
 if(DEBUG_DATA)System.err.println("rdIntSet: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
-        int index = file.readInt();
+        final int index = file.readInt();
 if(DEBUG_DATA&&DEBUG_CSYS)System.err.println("rdIntSet: cSys index (" + index + ")");
         cs = (CoordinateSystem )cSysCache.get(index);
 if(DEBUG_DATA&&!DEBUG_CSYS)System.err.println("rdIntSet: cSys index (" + index + "=" + cs + ")");
@@ -1175,7 +1173,7 @@ if(DEBUG_DATA)System.err.println("rdI1DSetS: len (" + len + ")");
   public IrregularSet readIrregularSet(byte dataType)
     throws IOException, VisADException
   {
-    int typeIndex = file.readInt();
+    final int typeIndex = file.readInt();
 if(DEBUG_DATA&&DEBUG_MATH)System.err.println("rdIrrSet: type index (" + typeIndex + ")");
     SetType st = (SetType )typeCache.get(typeIndex);
 if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdIrrSet: type index (" + typeIndex + "=" + st + ")");
@@ -1188,7 +1186,7 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdIrrSet: type index (" + typeInd
 
     boolean reading = true;
     while (reading) {
-      byte directive;
+      final byte directive;
       try {
         directive = file.readByte();
       } catch (EOFException eofe) {
@@ -1202,7 +1200,7 @@ if(DEBUG_DATA)System.err.println("rdIrrSet: FLD_FLOAT_SAMPLES (" + FLD_FLOAT_SAM
         break;
       case FLD_INDEX_COORDSYS:
 if(DEBUG_DATA)System.err.println("rdIrrSet: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
-        int index = file.readInt();
+        final int index = file.readInt();
 if(DEBUG_DATA&&DEBUG_CSYS)System.err.println("rdIrrSet: cSys index (" + index + ")");
         cs = (CoordinateSystem )cSysCache.get(index);
 if(DEBUG_DATA&&!DEBUG_CSYS)System.err.println("rdIrrSet: cSys index (" + index + "=" + cs + ")");
@@ -1237,7 +1235,7 @@ if(DEBUG_DATA)System.err.println("rdIrrSet: FLD_END (" + FLD_END + ")");
       throw new IOException("No SetType found for IrregularSet");
     }
 
-    final int dim;
+    int dim;
     switch (dataType) {
     case DATA_IRREGULAR_1D_SET:
       dim = 1;
@@ -1281,7 +1279,7 @@ if(DEBUG_DATA)System.err.println("rdIrrSet: FLD_END (" + FLD_END + ")");
   public GriddedSet readLinearSet(byte dataType)
     throws IOException, VisADException
   {
-    int typeIndex = file.readInt();
+    final int typeIndex = file.readInt();
 if(DEBUG_DATA&&DEBUG_MATH)System.err.println("rdLinSet: type index (" + typeIndex + ")");
     SetType st = (SetType )typeCache.get(typeIndex);
 if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdLinSet: type index (" + typeIndex + "=" + st + ")");
@@ -1296,7 +1294,7 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdLinSet: type index (" + typeInd
 
     boolean reading = true;
     while (reading) {
-      byte directive;
+      final byte directive;
       try {
         directive = file.readByte();
       } catch (EOFException eofe) {
@@ -1322,7 +1320,7 @@ if(DEBUG_DATA)System.err.println("rdLinSet: FLD_LINEAR_SETS (" + FLD_LINEAR_SETS
         break;
       case FLD_INDEX_COORDSYS:
 if(DEBUG_DATA)System.err.println("rdLinSet: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
-        int index = file.readInt();
+        final int index = file.readInt();
 if(DEBUG_DATA&&DEBUG_CSYS)System.err.println("rdLinSet: cSys index (" + index + ")");
         cs = (CoordinateSystem )cSysCache.get(index);
 if(DEBUG_DATA&&!DEBUG_CSYS)System.err.println("rdLinSet: cSys index (" + index + "=" + cs + ")");
@@ -1456,7 +1454,7 @@ if(DEBUG_DATA)System.err.println("rdLinSet: FLD_END (" + FLD_END + ")");
   private List1DSet readList1DSet()
     throws IOException, VisADException
   {
-    int typeIndex = file.readInt();
+    final int typeIndex = file.readInt();
 if(DEBUG_DATA&&DEBUG_MATH)System.err.println("rdL1DSet: type index (" + typeIndex + ")");
     MathType mt = (MathType )typeCache.get(typeIndex);
 if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdL1DSet: type index (" + typeIndex + "=" + mt + ")");
@@ -1467,7 +1465,7 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdL1DSet: type index (" + typeInd
 
     boolean reading = true;
     while (reading) {
-      byte directive;
+      final byte directive;
       try {
         directive = file.readByte();
       } catch (EOFException eofe) {
@@ -1481,7 +1479,7 @@ if(DEBUG_DATA)System.err.println("rdL1DSet: FLD_FLOAT_LIST (" + FLD_FLOAT_LIST +
         break;
       case FLD_INDEX_COORDSYS:
 if(DEBUG_DATA)System.err.println("rdL1DSet: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
-        int index = file.readInt();
+        final int index = file.readInt();
 if(DEBUG_DATA&&DEBUG_CSYS)System.err.println("rdL1DSet: cSys index (" + index + ")");
         cs = (CoordinateSystem )cSysCache.get(index);
 if(DEBUG_DATA&&!DEBUG_CSYS)System.err.println("rdL1DSet: cSys index (" + index + "=" + cs + ")");
@@ -1543,7 +1541,7 @@ if(DEBUG_DATA)System.err.println("rdL1DSet: FLD_END (" + FLD_END + ")");
 
     MathType[] list = new MathType[dim];
     for (int i = 0; i < dim; i++) {
-      int typeIndex = file.readInt();
+      final int typeIndex = file.readInt();
 if(DEBUG_DATA&&DEBUG_MATH)System.err.println("rdMTyS: type #" + i + " index (" + typeIndex + ")");
       list[i] = (MathType )typeCache.get(typeIndex);
 if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdMTyS: type #" + i + " index (" + typeIndex + "=" + list[i] + ")");
@@ -1555,7 +1553,7 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdMTyS: type #" + i + " index (" 
   private ProductSet readProductSet()
     throws IOException, VisADException
   {
-    int typeIndex = file.readInt();
+    final int typeIndex = file.readInt();
 if(DEBUG_DATA&&DEBUG_MATH)System.err.println("rdPrSet: type index (" + typeIndex + ")");
     SetType st = (SetType )typeCache.get(typeIndex);
 if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdPrSet: type index (" + typeIndex + "=" + st + ")");
@@ -1567,7 +1565,7 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdPrSet: type index (" + typeInde
 
     boolean reading = true;
     while (reading) {
-      byte directive;
+      final byte directive;
       try {
         directive = file.readByte();
       } catch (EOFException eofe) {
@@ -1581,7 +1579,7 @@ if(DEBUG_DATA)System.err.println("rdPrSet: FLD_SET_SAMPLES (" + FLD_SET_SAMPLES 
         break;
       case FLD_INDEX_COORDSYS:
 if(DEBUG_DATA)System.err.println("rdPrSet: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
-        int index = file.readInt();
+        final int index = file.readInt();
 if(DEBUG_DATA&&DEBUG_CSYS)System.err.println("rdPrSet: cSys index (" + index + ")");
         cs = (CoordinateSystem )cSysCache.get(index);
 if(DEBUG_DATA&&!DEBUG_CSYS)System.err.println("rdPrSet: cSys index (" + index + "=" + cs + ")");
@@ -1629,7 +1627,7 @@ if(DEBUG_MATH&&!DEBUG_STR)System.err.println("rdQuant: unitSpec (" + unitSpec + 
 
     boolean reading = true;
     while (reading) {
-      byte directive;
+      final byte directive;
       try {
         directive = file.readByte();
       } catch (EOFException eofe) {
@@ -1680,13 +1678,13 @@ if(DEBUG_MATH)System.err.println("rdQuant: FLD_END (" + FLD_END + ")");
   private Real readReal()
     throws IOException, VisADException
   {
-    int typeIndex = file.readInt();
+    final int typeIndex = file.readInt();
 if(DEBUG_DATA&&DEBUG_MATH)System.err.println("rdRl: type index (" + typeIndex + ")");
     RealType rt = (RealType )typeCache.get(typeIndex);
 if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdRl: type index (" + typeIndex + "=" + rt + ")");
 
     // read the value
-    double value = file.readDouble();
+    final double value = file.readDouble();
 if(DEBUG_DATA)System.err.println("rdRl: value (" + value + ")");
 
     Unit u = null;
@@ -1694,28 +1692,27 @@ if(DEBUG_DATA)System.err.println("rdRl: value (" + value + ")");
 
     boolean reading = true;
     while (reading) {
-      byte directive;
+      final byte directive;
       try {
         directive = file.readByte();
       } catch (EOFException eofe) {
         return null;
       }
 
-      int index;
       switch (directive) {
       case FLD_INDEX_UNIT:
 if(DEBUG_DATA)System.err.println("rdRl: FLD_INDEX_UNIT (" + FLD_INDEX_UNIT + ")");
-        index = file.readInt();
-if(DEBUG_DATA&&DEBUG_UNIT)System.err.println("rdRl: unit index (" + index + ")");
-        u = (Unit )unitCache.get(index);
-if(DEBUG_DATA&&!DEBUG_UNIT)System.err.println("rdRl: unit index (" + index + "=" + u + ")");
+        final int uIndex = file.readInt();
+if(DEBUG_DATA&&DEBUG_UNIT)System.err.println("rdRl: unit index (" + uIndex + ")");
+        u = (Unit )unitCache.get(uIndex);
+if(DEBUG_DATA&&!DEBUG_UNIT)System.err.println("rdRl: unit index (" + uIndex + "=" + u + ")");
         break;
       case FLD_INDEX_ERROR:
 if(DEBUG_DATA)System.err.println("rdRl: FLD_INDEX_ERROR (" + FLD_INDEX_ERROR + ")");
-        index = file.readInt();
-if(DEBUG_DATA&&DEBUG_ERRE)System.err.println("rdRl: error index (" + index + ")");
-        error = (ErrorEstimate )errorCache.get(index);
-if(DEBUG_DATA&&!DEBUG_ERRE)System.err.println("rdRl: error index (" + index + "=" + error + ")");
+        final int eIndex = file.readInt();
+if(DEBUG_DATA&&DEBUG_ERRE)System.err.println("rdRl: error index (" + eIndex + ")");
+        error = (ErrorEstimate )errorCache.get(eIndex);
+if(DEBUG_DATA&&!DEBUG_ERRE)System.err.println("rdRl: error index (" + eIndex + "=" + error + ")");
         break;
       case FLD_END:
 if(DEBUG_DATA)System.err.println("rdRl: FLD_END (" + FLD_END + ")");
@@ -1751,7 +1748,7 @@ if(DEBUG_DATA_DETAIL)System.err.println("rdRlRA: #" + i +" (" + array[i] + ")");
   private RealTuple readRealTuple()
     throws IOException, VisADException
   {
-    int typeIndex = file.readInt();
+    final int typeIndex = file.readInt();
 if(DEBUG_DATA&&DEBUG_MATH)System.err.println("rdRlTpl: type index (" + typeIndex + ")");
     RealTupleType rtt = (RealTupleType )typeCache.get(typeIndex);
 if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdRlTpl: type index (" + typeIndex + "=" + rtt + ")");
@@ -1762,7 +1759,7 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdRlTpl: type index (" + typeInde
 
     boolean reading = true;
     while (reading) {
-      byte directive;
+      final byte directive;
       try {
         directive = file.readByte();
       } catch (EOFException eofe) {
@@ -1772,7 +1769,7 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdRlTpl: type index (" + typeInde
       switch (directive) {
       case FLD_INDEX_COORDSYS:
 if(DEBUG_DATA)System.err.println("rdRlTpl: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
-        int index = file.readInt();
+        final int index = file.readInt();
 if(DEBUG_DATA&&DEBUG_CSYS)System.err.println("rdRlTpl: cSys index (" + index + ")");
         cs = (CoordinateSystem )cSysCache.get(index);
 if(DEBUG_DATA&&!DEBUG_CSYS)System.err.println("rdRlTpl: cSys index (" + index + "=" + cs + ")");
@@ -1817,7 +1814,7 @@ if(DEBUG_DATA)System.err.println("rdRlTpl: FLD_END (" + FLD_END + ")");
   private RealTupleType readRealTupleType(int index)
     throws IOException, VisADException
   {
-    int dim = file.readInt();
+    final int dim = file.readInt();
 if(DEBUG_MATH)System.err.println("rdRlTuTy: dim (" + dim + ")");
     MathType[] mtList = readMathTypes(dim);
 
@@ -1831,7 +1828,7 @@ if(DEBUG_MATH)System.err.println("rdRlTuTy: dim (" + dim + ")");
 
     boolean reading = true;
     while (reading) {
-      byte directive;
+      final byte directive;
       try {
         directive = file.readByte();
       } catch (EOFException eofe) {
@@ -1841,7 +1838,7 @@ if(DEBUG_MATH)System.err.println("rdRlTuTy: dim (" + dim + ")");
       switch (directive) {
       case FLD_INDEX_COORDSYS:
 if(DEBUG_MATH)System.err.println("rdRlTuTy: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
-        int csIndex = file.readInt();
+        final int csIndex = file.readInt();
 if(DEBUG_MATH&&DEBUG_CSYS)System.err.println("rdRlTuTy: cSys index (" + csIndex + ")");
         cs = (CoordinateSystem )cSysCache.get(csIndex);
 if(DEBUG_MATH&&!DEBUG_CSYS)System.err.println("rdRlTuTy: cSys index (" + csIndex + "=" + cs + ")");
@@ -1890,7 +1887,7 @@ if(DEBUG_MATH&&!DEBUG_STR)System.err.println("rdRlTy: name (" + name + ")");
 
     boolean reading = true;
     while (reading) {
-      byte directive;
+      final byte directive;
       try {
         directive = file.readByte();
       } catch (EOFException eofe) {
@@ -1900,7 +1897,7 @@ if(DEBUG_MATH&&!DEBUG_STR)System.err.println("rdRlTy: name (" + name + ")");
       switch (directive) {
       case FLD_INDEX_UNIT:
 if(DEBUG_MATH)System.err.println("rdRlTy: FLD_INDEX_UNIT (" + FLD_INDEX_UNIT + ")");
-        int uIndex = file.readInt();
+        final int uIndex = file.readInt();
 if(DEBUG_MATH&&DEBUG_UNIT)System.err.println("rdRlTy: unit index (" + index + ")");
         u = (Unit )unitCache.get(uIndex);
 if(DEBUG_MATH&&!DEBUG_UNIT)System.err.println("rdRlTy: unit index (" + index + "=" + u + ")");
@@ -1949,7 +1946,7 @@ if(DEBUG_DATA)System.err.println("rdSplSetS: len (" + len + ")");
   private Object readSerializedObject()
     throws IOException
   {
-    int len = file.readInt();
+    final int len = file.readInt();
     if (len <= 0) {
       throw new IOException("Corrupted file (bad serialized object length)");
     }
@@ -1979,7 +1976,7 @@ if(DEBUG_DATA)System.err.println("rdSplSetS: len (" + len + ")");
   private Set readSet()
     throws IOException, VisADException
   {
-    byte serByte = file.readByte();
+    final byte serByte = file.readByte();
 if(DEBUG_DATA)System.err.println("rdSet: read " + (serByte == OBJ_MATH_SERIAL ? "OBJ_MATH_SERIAL" : Integer.toString(serByte) + " (wanted OBJ_MATH_SERIAL)"));
     if (serByte != OBJ_MATH_SERIAL) {
       throw new VisADException("Invalid Set delimiter " + serByte);
@@ -2003,12 +2000,12 @@ if(DEBUG_DATA)System.err.println("rdSetRA: len (" + len + ")");
   private SetType readSetType(int index)
     throws IOException, VisADException
   {
-    int dIndex = file.readInt();
+    final int dIndex = file.readInt();
 if(DEBUG_MATH&&DEBUG_MATH)System.err.println("rdSetTy: domain index (" + dIndex + ")");
     MathType dom = (MathType )typeCache.get(dIndex);
 if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdSetTy: domain index (" + dIndex + "=" + dom + ")");
 
-    byte endByte = file.readByte();
+    final byte endByte = file.readByte();
 if(DEBUG_MATH)System.err.println("rdSetTy: read " + (endByte == FLD_END ? "FLD_END" : Integer.toString(endByte) + " (wanted FLD_END)"));
     if (endByte != FLD_END) {
       throw new IOException("Corrupted file (no SetType end-marker)");
@@ -2024,7 +2021,7 @@ if(DEBUG_MATH)System.err.println("rdSetTy: read " + (endByte == FLD_END ? "FLD_E
   private SimpleSet readSimpleSet(byte dataType)
     throws IOException, VisADException
   {
-    int typeIndex = file.readInt();
+    final int typeIndex = file.readInt();
 if(DEBUG_DATA&&DEBUG_MATH)System.err.println("rdSimSet: type index (" + typeIndex + ")");
     SetType st = (SetType )typeCache.get(typeIndex);
 if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdSimSet: type index (" + typeIndex + "=" + st + ")");
@@ -2034,7 +2031,7 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdSimSet: type index (" + typeInd
 
     boolean reading = true;
     while (reading) {
-      byte directive;
+      final byte directive;
       try {
         directive = file.readByte();
       } catch (EOFException eofe) {
@@ -2044,7 +2041,7 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdSimSet: type index (" + typeInd
       switch (directive) {
       case FLD_INDEX_COORDSYS:
 if(DEBUG_DATA)System.err.println("rdSimSet: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
-        int index = file.readInt();
+        final int index = file.readInt();
 if(DEBUG_DATA&&DEBUG_CSYS)System.err.println("rdSimSet: cSys index (" + index + ")");
         cs = (CoordinateSystem )cSysCache.get(index);
 if(DEBUG_DATA&&!DEBUG_CSYS)System.err.println("rdSimSet: cSys index (" + index + "=" + cs + ")");
@@ -2088,7 +2085,7 @@ if(DEBUG_DATA)System.err.println("rdSimSet: FLD_END (" + FLD_END + ")");
 
     boolean reading = true;
     while (reading) {
-      byte directive;
+      final byte directive;
       try {
         directive = file.readByte();
       } catch (EOFException eofe) {
@@ -2101,7 +2098,7 @@ if(DEBUG_DATA)System.err.println("rdSimSet: FLD_END (" + FLD_END + ")");
         break;
       case FLD_INDEX_COORDSYS:
 if(DEBUG_DATA)System.err.println("rdSglSet: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
-        int index = file.readInt();
+        final int index = file.readInt();
 if(DEBUG_DATA&&DEBUG_CSYS)System.err.println("rdSglSet: cSys index (" + index + ")");
         cs = (CoordinateSystem )cSysCache.get(index);
 if(DEBUG_DATA&&!DEBUG_CSYS)System.err.println("rdSglSet: cSys index (" + index + "=" + cs + ")");
@@ -2143,7 +2140,7 @@ if(DEBUG_STR)System.err.println("rdStr: len (" + len + ")");
     }
 
     char[] buf = new char[len];
-    for (int i = 0; i < buf.length; i++) {
+    for (int i = 0; i < len; i++) {
       buf[i] = file.readChar();
     }
 if(DEBUG_STR)System.err.println("rdStr: str (" + buf + ")");
@@ -2154,7 +2151,7 @@ if(DEBUG_STR)System.err.println("rdStr: str (" + buf + ")");
   private Text readText()
     throws IOException, VisADException
   {
-    int typeIndex = file.readInt();
+    final int typeIndex = file.readInt();
 if(DEBUG_DATA&&DEBUG_MATH)System.err.println("rdTxt: type index (" + typeIndex + ")");
     TextType tt = (TextType )typeCache.get(typeIndex);
 if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdTxt: type index (" + typeIndex + "=" + tt + ")");
@@ -2163,7 +2160,7 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdTxt: type index (" + typeIndex 
     String value = readString();
 if(DEBUG_DATA&&!DEBUG_STR)System.err.println("rdTxt: value (" + value + ")");
 
-    byte endByte = file.readByte();
+    final byte endByte = file.readByte();
 if(DEBUG_DATA)System.err.println("rdTxt: read " + (endByte == FLD_END ? "FLD_END" : Integer.toString(endByte) + " (wanted FLD_END)"));
     if (endByte != FLD_END) {
       throw new IOException("Corrupted file (no Text end-marker)");
@@ -2179,7 +2176,7 @@ if(DEBUG_DATA)System.err.println("rdTxt: read " + (endByte == FLD_END ? "FLD_END
     String name = readString();
 if(DEBUG_MATH&&!DEBUG_STR)System.err.println("rdTxTy: name (" + name + ")");
 
-    byte endByte = file.readByte();
+    final byte endByte = file.readByte();
 if(DEBUG_MATH)System.err.println("rdTxTy: read " + (endByte == FLD_END ? "FLD_END" : Integer.toString(endByte) + " (wanted FLD_END)"));
     if (endByte != FLD_END) {
       throw new IOException("Corrupted file (no TextType end-marker)");
@@ -2195,7 +2192,7 @@ if(DEBUG_MATH)System.err.println("rdTxTy: read " + (endByte == FLD_END ? "FLD_EN
   private Tuple readTuple()
     throws IOException, VisADException
   {
-    int typeIndex = file.readInt();
+    final int typeIndex = file.readInt();
 if(DEBUG_DATA&&DEBUG_MATH)System.err.println("rdTpl: type index (" + typeIndex + ")");
     TupleType tt = (TupleType )typeCache.get(typeIndex);
 if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdTpl: type index (" + typeIndex + "=" + tt + ")");
@@ -2204,7 +2201,7 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdTpl: type index (" + typeIndex 
 
     boolean reading = true;
     while (reading) {
-      byte directive;
+      final byte directive;
       try {
         directive = file.readByte();
       } catch (EOFException eofe) {
@@ -2231,11 +2228,11 @@ if(DEBUG_DATA)System.err.println("rdTpl: FLD_END (" + FLD_END + ")");
   private TupleType readTupleType(int index)
     throws IOException, VisADException
   {
-    int dim = file.readInt();
+    final int dim = file.readInt();
 if(DEBUG_MATH)System.err.println("rdTuTy: dim (" + dim + ")");
     MathType[] list = readMathTypes(dim);
 
-    byte endByte = file.readByte();
+    final byte endByte = file.readByte();
 if(DEBUG_MATH)System.err.println("rdTuTy: read " + (endByte == FLD_END ? "FLD_END" : Integer.toString(endByte) + " (wanted FLD_END)"));
     if (endByte != FLD_END) {
       throw new IOException("Corrupted file (no TupleType end-marker)");
@@ -2251,7 +2248,7 @@ if(DEBUG_MATH)System.err.println("rdTuTy: read " + (endByte == FLD_END ? "FLD_EN
   private UnionSet readUnionSet()
     throws IOException, VisADException
   {
-    int typeIndex = file.readInt();
+    final int typeIndex = file.readInt();
 if(DEBUG_DATA&&DEBUG_MATH)System.err.println("rdUSet: type index (" + typeIndex + ")");
     SetType st = (SetType )typeCache.get(typeIndex);
 if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdUSet: type index (" + typeIndex + "=" + st + ")");
@@ -2260,7 +2257,7 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdUSet: type index (" + typeIndex
 
     boolean reading = true;
     while (reading) {
-      byte directive;
+      final byte directive;
       try {
         directive = file.readByte();
       } catch (EOFException eofe) {
@@ -2304,7 +2301,7 @@ if(DEBUG_UNIT)System.err.println("rdUnits: len (" + len + ")");
 
     Unit[] units = new Unit[len];
     for (int i = 0; i < len; i++) {
-      int index = file.readInt();
+      final int index = file.readInt();
 if(DEBUG_UNIT)System.err.println("rdUnits:    #"+i+" index ("+index+")");
 
       if (index < 0) {
