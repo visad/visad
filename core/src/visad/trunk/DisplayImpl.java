@@ -108,7 +108,11 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     component = c;
   }
 
-  public abstract DataRenderer makeDefaultRenderer();
+  public void addReference(DataReference ref)
+         throws VisADException, RemoteException {
+    throw new DisplayException("DisplayImpl.addReference: ConstantMap[]" +
+                               " argument required");
+  }
 
   /** create link to DataReference with DefaultRenderer;
       must be local DataReferenceImpl */
@@ -121,7 +125,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     if (findReference(ref) != null) {
       throw new TypeException("DisplayImpl.addReference: link already exists");
     }
-    DataRenderer renderer = makeDefaultRenderer();
+    DataRenderer renderer = displayRenderer.makeDefaultRenderer();
     DataDisplayLink[] links =
       {new DataDisplayLink(ref, this, this, constant_maps, renderer)};
     addLink(links[0]);
@@ -139,7 +143,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       throw new TypeException("DisplayImpl.adaptedAddReference: " +
                               "link already exists");
     }
-    DataRenderer renderer = makeDefaultRenderer();
+    DataRenderer renderer = displayRenderer.makeDefaultRenderer();
     DataDisplayLink[] links =
       {new DataDisplayLink(ref, this, display, constant_maps, renderer)};
     addLink(links[0]);

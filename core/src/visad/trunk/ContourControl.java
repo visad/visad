@@ -52,33 +52,33 @@ public class ContourControl extends Control {
 
   public ContourControl(DisplayImpl d) {
     super(d);
-    mainContours = true;
-    labels = true;
-    surfaceValue = 0.0f;
-    contourInterval = 0.0f;
-    lowLimit = 0.0f;
-    hiLimit = 0.0f;
-    base = 0.0f;
+    mainContours = false;
+    labels = false;
+    surfaceValue = Float.NaN;
+    contourInterval = Float.NaN;
+    lowLimit = Float.NaN;
+    hiLimit = Float.NaN;
+    base = Float.NaN;
  
     horizontalContourSlice = false;
     verticalContourSlice = false;
  
-    horizontalSliceLow = 0.0f;
-    horizontalSliceHi = 0.0f;
-    horizontalSliceStep = 1.0f;
-    verticalSliceLow = 0.0f;
-    verticalSliceHi = 0.0f;
-    verticalSliceStep = 1.0f;
+    horizontalSliceLow = Float.NaN;
+    horizontalSliceHi = Float.NaN;
+    horizontalSliceStep = Float.NaN;
+    verticalSliceLow = Float.NaN;
+    verticalSliceHi = Float.NaN;
+    verticalSliceStep = Float.NaN;
   }
  
-  public void setMainContours(boolean[] bvalues, float[] fvalues)
+  void setMainContours(boolean[] bvalues, float[] fvalues)
          throws VisADException {
     setMainContours(bvalues, fvalues, false);
   }
 
   /** noChange = true to not trigger changeControl, used by
       ScalarMap.setRange */
-  public void setMainContours(boolean[] bvalues, float[] fvalues, boolean noChange)
+  void setMainContours(boolean[] bvalues, float[] fvalues, boolean noChange)
        throws VisADException {
     if (fvalues == null || fvalues.length != 5 ||
         bvalues == null || bvalues.length != 2) {
@@ -87,16 +87,35 @@ public class ContourControl extends Control {
     }
     mainContours = bvalues[0];
     labels = bvalues[1];
-    surfaceValue = fvalues[0];
-    contourInterval = fvalues[1];
-    lowLimit = fvalues[2];
-    hiLimit = fvalues[3];
-    base = fvalues[4];
+    if (surfaceValue != surfaceValue) surfaceValue = fvalues[0];
+    if (contourInterval != contourInterval) contourInterval = fvalues[1];
+    if (lowLimit != lowLimit) lowLimit = fvalues[2];
+    if (hiLimit != hiLimit) hiLimit = fvalues[3];
+    if (base != base) base = fvalues[4];
     if (!noChange) changeControl();
   }
 
   public void setSurfaceValue(float value) {
     surfaceValue = value;
+    changeControl();
+  }
+
+  public void setContourInterval(float interval, float low,
+                                 float hi, float ba) {
+    contourInterval = interval;
+    lowLimit = low;
+    hiLimit = hi;
+    base = ba;
+    changeControl();
+  }
+
+  public void enableLabels(boolean on) {
+    labels = on;
+    changeControl();
+  }
+
+  public void enableContours(boolean on) {
+    mainContours = on;
     changeControl();
   }
 

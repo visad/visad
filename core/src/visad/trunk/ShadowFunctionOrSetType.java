@@ -96,6 +96,10 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
     return anyFlow;
   }
 
+  public boolean getAnyShape() {
+    return anyShape;
+  }
+
   public boolean getFlat() {
     return Flat;
   }
@@ -202,6 +206,7 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
       }
       anyContour = checkContour(local_display_indices);
       anyFlow = checkFlow(local_display_indices);
+      anyShape = checkShape(local_display_indices);
 
       LevelOfDifficulty =
         testIndices(local_indices, local_display_indices, levelOfDifficulty);

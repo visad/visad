@@ -66,7 +66,7 @@ public class DisplayImplJ3D extends DisplayImpl {
   private Flow2Control flow2 = null;
 */
 
-  /** constructor with DefaultDisplayRenderer */
+  /** constructor with DefaultDisplayRendererJ3D */
   public DisplayImplJ3D(String name)
          throws VisADException, RemoteException {
     this(name, new DefaultDisplayRendererJ3D(), JPANEL_JAVA3D);
@@ -117,10 +117,6 @@ public class DisplayImplJ3D extends DisplayImpl {
 
   public GraphicsModeControl getGraphicsModeControl() {
     return mode;
-  }
-
-  public DataRenderer makeDefaultRenderer() {
-    return new DefaultRendererJ3D();
   }
 
   public GeometryArray makeGeometry(VisADGeometryArray vga)

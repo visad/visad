@@ -59,8 +59,6 @@ public abstract class FlowControl extends Control {
  
   public void setFlowScale(float scale) {
     flowScale = scale;
-System.out.println("setFlowScale: flowScale = " + flowScale +
-                   "  FlowControl = " + this);
     changeControl();
   }
 

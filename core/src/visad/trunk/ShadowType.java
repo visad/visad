@@ -101,6 +101,7 @@ public abstract class ShadowType extends Object
   /** flags for any IsoContour or Flow at terminal nodes */
   boolean anyContour;
   boolean anyFlow;
+  boolean anyShape;
 
 
   /** used by getComponents to record RealTupleTypes
@@ -452,6 +453,16 @@ public abstract class ShadowType extends Object
       DisplayTupleType tuple = real.getTuple();
       if (Display.DisplayFlow1Tuple.equals(tuple)) return true;  // Flow1
       if (Display.DisplayFlow2Tuple.equals(tuple)) return true;  // Flow2
+    }
+    return false;
+  }
+
+  /** test for any Shape in display_indices */
+  boolean checkShape(int[] display_indices) throws RemoteException {
+    for (int i=0; i<display_indices.length; i++) {
+      if (display_indices[i] == 0) continue;
+      DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
+      if (real.equals(Display.Shape)) return true;
     }
     return false;
   }

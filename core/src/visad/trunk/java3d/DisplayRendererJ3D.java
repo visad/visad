@@ -125,14 +125,16 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     }
     else {
       cursor_switch.setWhichChild(0); // set cursor off // J3D
-      cursorStringVector.removeAllElements();
+      setCursorStringVector(null);
+      // cursorStringVector.removeAllElements();
     }
   }
 
   public void setDirectOn(boolean on) {
     directOn = on;
     if (!on) {
-      cursorStringVector.removeAllElements();
+      setCursorStringVector(null);
+      // cursorStringVector.removeAllElements();
     }
   }
 
@@ -313,8 +315,9 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
       double[] start = {-1.30, 1.30, 1.0};
       double[] base = {0.1, 0.0, 0.0};
       double[] up = {0.0, 0.1, 0.0};
-      synchronized (cursorStringVector) {
-        Enumeration strings = cursorStringVector.elements();
+      // synchronized (cursorStringVector) {
+        // Enumeration strings = cursorStringVector.elements();
+        Enumeration strings = getCursorStringVector().elements();
         while(strings.hasMoreElements()) {
           String string = (String) strings.nextElement();
           try {
@@ -327,7 +330,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
           catch (VisADException e) {
           }
         }
-      }
+      // }
     }
     double[] start = {-1.30, -1.35, 1.0};
     double[] base = {0.05, 0.0, 0.0};
@@ -429,9 +432,16 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
       if (control != null) return control;
       else return new Flow2Control(display);
     }
+    else if (type.equals(Display.Shape)) {
+      return new ShapeControl(display);
+    }
     else {
       return null;
     }
+  }
+
+  public DataRenderer makeDefaultRenderer() {
+    return new DefaultRendererJ3D();
   }
 
 }

@@ -172,7 +172,7 @@ public class DisplayRealType extends RealType {
     return DefaultValue;
   }
 
-  boolean getRange(double[] range_values) {
+  public boolean getRange(double[] range_values) {
     if (range) {
       range_values[0] = LowValue;
       range_values[1] = HiValue;

@@ -125,48 +125,6 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
                           "must be ShadowFunctionType or ShadowSetType");
     }
 
-/** kludge to avoid UnmarshalException
-    Set domain_set = new Integer2DSet(((FunctionType) data.getType()).getDomain(),
-                                      4, 4);
-From uwvax!uwm.edu!vixen.cso.uiuc.edu!howland.erols.net!newsfeed.internetmci.com!193.
-174.75.126!news-was.dfn.de!news-fra1.dfn.de!news-ber1.dfn.de!news-lei1.dfn.de!news-nu
-e1.dfn.de!uni-erlangen.de!lrz-muenchen.de!not-for-mail Sun Nov 30 11:10:19 CST 1997
-Article: 111408 of comp.lang.java.programmer
-Path: uwvax!uwm.edu!vixen.cso.uiuc.edu!howland.erols.net!newsfeed.internetmci.com!193
-.174.75.126!news-was.dfn.de!news-fra1.dfn.de!news-ber1.dfn.de!news-lei1.dfn.de!news-n
-ue1.dfn.de!uni-erlangen.de!lrz-muenchen.de!not-for-mail
-From: "Rainer Frömming" <froemmin@informatik.tu-muenchen.de>
-Newsgroups: comp.lang.java.programmer
-Subject: RMI Unmarshaling Exception
-Date: Thu, 27 Nov 1997 17:45:19 +0100
-Organization: [posted via] Leibniz-Rechenzentrum, Muenchen (Germany)
-Lines: 20
-Distribution: world
-Message-ID: <65k7u3$h66$1@sparcserver.lrz-muenchen.de>
-NNTP-Posting-Host: dial024.lrz-muenchen.de
-X-Newsreader: Microsoft Outlook Express 4.71.1712.3
-X-MimeOLE: Produced By Microsoft MimeOLE V4.71.1712.3
- 
-Hi,
- 
-I am using RMI-Calls and I get an unmarshaling Eception if the
-Return-Parameters get to big.
- 
-Eg. I return a 200kb String and the program crashes.
-If the string is about 20kb it works...   Is there a workaround for this?
- 
-I need this, because I want to transfer VRML-Files to add them to a Scene
-via createVrmlFromString().
-Is it possible to use createVrmlFromUrl for -adding- Vrml_objects to a
-scene, or does it create a new scene ?
- 
- 
-Please Help,
- 
-Ray
-
-*/
-
     float[][] domain_values = null;
     Unit[] domain_units = ((RealTupleType) Domain.getType()).getDefaultUnits();
     int domain_length = domain_set.getLength();
@@ -375,6 +333,13 @@ Ray
         ((ShadowFunctionOrSetType) adaptedShadowType).getAnyContour();
       boolean anyFlow =
         ((ShadowFunctionOrSetType) adaptedShadowType).getAnyFlow();
+      boolean anyShape =
+        ((ShadowFunctionOrSetType) adaptedShadowType).getAnyShape();
+
+      if (anyShape) {
+        throw new UnimplementedException("ShadowFunctionOrSetTypeJ3D.doTransform" +
+                                         "Shape not yet supported");
+      }
 
       // MEM
       Set spatial_set = 

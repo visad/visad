@@ -168,7 +168,9 @@ public class FlatField extends FieldImpl {
       for (int i=0; i<TupleDimension; i++) {
         RangeSet[i] = ((RealType) FlatRange.getComponent(i)).getDefaultSet();
         if (RangeSet[i] == null) {
-          RangeSet[i] = new DoubleSet(new SetType(FlatRange.getComponent(i)));
+          RangeSet[i] = new FloatSet(new SetType(FlatRange.getComponent(i)));
+          // WLH 1 Feb 98
+          // RangeSet[i] = new DoubleSet(new SetType(FlatRange.getComponent(i)));
         }
       }
     }

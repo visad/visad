@@ -40,6 +40,12 @@ public class RemoteDisplayImpl extends RemoteActionImpl
     super(d);
   }
 
+  public void addReference(DataReference ref)
+         throws VisADException, RemoteException {
+    throw new DisplayException("RemoteDisplayImpl.addReference: " +
+                               "ConstantMap[] argument required");
+  }
+
   /** create link to DataReference;
       must be RemoteDataReference */
   public void addReference(DataReference ref,

@@ -52,7 +52,7 @@ public abstract class DisplayRenderer extends Object {
 // make this less public
 //
   /** vector of Strings describing cursor location */
-  public Vector cursorStringVector = new Vector();
+  private Vector cursorStringVector = new Vector();
 
   public DisplayRenderer () {
   }
@@ -75,15 +75,23 @@ public abstract class DisplayRenderer extends Object {
 
   public abstract Control makeControl(DisplayRealType type);
 
+  public abstract DataRenderer makeDefaultRenderer();
+
   public abstract double[] getCursor();
+
+  public Vector getCursorStringVector() {
+    return (Vector) cursorStringVector.clone();
+  }
 
   /** copy Strings in vect to cursorStringVector */
   public void setCursorStringVector(Vector vect) {
     synchronized (cursorStringVector) {
       cursorStringVector.removeAllElements();
-      Enumeration strings = vect.elements();
-      while(strings.hasMoreElements()) {
-        cursorStringVector.addElement(strings.nextElement());
+      if (vect != null) {
+        Enumeration strings = vect.elements();
+        while(strings.hasMoreElements()) {
+          cursorStringVector.addElement(strings.nextElement());
+        }
       }
     }
   }
