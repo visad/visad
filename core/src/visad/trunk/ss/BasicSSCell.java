@@ -48,7 +48,7 @@ import visad.java3d.*;
 public class BasicSSCell extends JPanel {
 
   /** used for debugging */
-  public static boolean DEBUG = false;
+  public static boolean DEBUG = true;
 
 
   /** constant for use with Dim variable */
@@ -98,6 +98,9 @@ public class BasicSSCell extends JPanel {
 
   /** whether the cell's file is considered &quot;remote data&quot; */
   boolean FileIsRemote = false;
+
+  /** whether the remote data change detection cell has been set up yet */
+  boolean setupComplete = false;
 
   /** RMI address from where data was imported, if any */
   String RMIAddress = null;
@@ -194,17 +197,13 @@ public class BasicSSCell extends JPanel {
       RemoteErrors = rs.getDataReference(name + "_Errors");
 
       setDimClone();
+      //setupRemoteDataChangeCell();
 
       VDisplay.addDisplayListener(new DisplayListener() {
         public void displayChanged(DisplayEvent e) {
           int id = e.getId();
-          if (id == DisplayEvent.TRANSFORM_DONE) {
-            setVDPanel(true);
-            /* CTR: TEMP: this is really wrong, but it sorta works...
-               what I really need is a DisplayEvent that means the
-               Data has changed... that wouldn't be called if just
-               the point size changes or something */
-            notifyListeners(SSCellChangeEvent.DATA_CHANGE);
+          if (id == DisplayEvent.TRANSFORM_DONE && !setupComplete) {
+            setupRemoteDataChangeCell();
           }
           /* CTR: add the following line after dglo's changes are committed
           else if (id == DisplayEvent.MAPS_CLEARED) setVDPanel(false);
@@ -473,6 +472,60 @@ public class BasicSSCell extends JPanel {
     setPreferredSize(new Dimension(0, 0));
     setBackground(Color.black);
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+  }
+
+  private void setupRemoteDataChangeCell() {
+    // attempt to obtain DataReference from cloned display
+    DataReference dr = null;
+    Vector v = null;
+    try {
+      v = RemoteVDisplay.getReferenceLinks();
+    }
+    catch (VisADException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
+    /* CTR: Alternate call might be:
+    Vector v = VDisplay.getLinks();
+    */
+    if (v != null && v.size() > 0) {
+      /* CTR: Alternate calls might be:
+      DataDisplayLink ddl = (DataDisplayLink) v.elementAt(0);
+      dr = (DataReference) ddl.getThingReference();
+      */
+      RemoteReferenceLink rrl = (RemoteReferenceLink) v.elementAt(0);
+      try {
+        dr = (DataReference) rrl.getReference();
+      }
+      catch (VisADException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
+      catch (RemoteException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
+    }
+    if (dr != null) {
+      // if successful, use cell to listen for data changes
+      CellImpl lrdccell = new CellImpl() {
+        public void doAction() {
+          // data has changed; notify listeners
+          notifyListeners(SSCellChangeEvent.DATA_CHANGE);
+        }
+      };
+      try {
+        RemoteCellImpl rrdccell = new RemoteCellImpl(lrdccell);
+        rrdccell.addReference(dr);
+        setupComplete = true;
+      }
+      catch (VisADException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
+      catch (RemoteException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
+    }
   }
 
   private void synchFilename() {

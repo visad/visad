@@ -121,28 +121,14 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   /** re-auto-detect mappings when this cell's data changes */
   public void ssCellChanged(SSCellChangeEvent e) {
     if (e.getChangeType() == SSCellChangeEvent.DATA_CHANGE) {
-      if (!IsRemote) {
-        // attempt to auto-detect mappings for new data
-        Data value = null;
-        try {
-          value = (Data) fm.getThing(Name);
-        }
-        catch (ClassCastException exc) { }
-        catch (VisADException exc) { }
-        try {
-          if (value != null) autoDetectMappings();
-        }
-        catch (VisADException exc) { }
-        catch (RemoteException exc) { }
-      }
-
       // refresh border color
       setHighlighted(Selected);
 
-      // reconstruct controls for cloned display
       if (IsRemote) {
+        // reconstruct controls for cloned display
         try {
           constructWidgetFrame(getMaps());
+          if (AutoShowControls) showWidgetFrame();
         }
         catch (VisADException exc) {
           if (DEBUG) exc.printStackTrace();
@@ -151,6 +137,29 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
           if (DEBUG) exc.printStackTrace();
         }
       }
+      else {
+        // attempt to auto-detect mappings for new data
+        Data value = null;
+        try {
+          value = (Data) fm.getThing(Name);
+        }
+        catch (ClassCastException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+        catch (VisADException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+        try {
+          if (value != null) autoDetectMappings();
+        }
+        catch (VisADException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+      }
+
     }
   }
 
