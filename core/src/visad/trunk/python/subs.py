@@ -374,15 +374,18 @@ class myFrame:
     self.frame.dispose()
 
   def __init__(self, display, width, height, title, bottom, top):
-    from javax.swing import JFrame
+    from javax.swing import JFrame, JPanel
     self.display = display
     self.frame = JFrame(title, windowClosing=self.desty)
     self.pane = self.frame.getContentPane()
     self.pane.add("Center",self.display.getComponent())
     if bottom != None: 
-      self.pane.add("South", bottom)
+      self.pb = JPanel()
+      self.pb.add(bottom)
+      self.pane.add("South", self.pb)
     if top != None: 
-      self.pane.add("North", top)
+      self.pt = Jpanel()
+      self.pane.add("North", self.pt)
     self.frame.pack()
     self.frame.show()
     self.frame.setSize(width, height)
