@@ -851,13 +851,13 @@ compile: clean
 	$(JC) $(JFLAGS) ..\ucar\multiarray\*.java
 	$(JC) $(JFLAGS) ..\ucar\netcdf\*.java
 	$(JC) $(JFLAGS) ..\ucar\tests\*.java
-	$(JC) $(JFLAGS) ..\dods\dap\*.java \
-	$(JC) $(JFLAGS) ..\dods\dap\Server\*.java \
-	$(JC) $(JFLAGS) ..\dods\dap\functions\*.java \
-	$(JC) $(JFLAGS) ..\dods\dap\parser\*.java \
-	$(JC) $(JFLAGS) ..\dods\dap\test\*.java \
-	$(JC) $(JFLAGS) ..\dods\util\*.java \
-	$(JC) $(JFLAGS) ..\dods\util\gui\*.java \
+	$(JC) $(JFLAGS) ..\dods\dap\*.java
+	$(JC) $(JFLAGS) ..\dods\dap\Server\*.java
+	$(JC) $(JFLAGS) ..\dods\dap\functions\*.java
+	$(JC) $(JFLAGS) ..\dods\dap\parser\*.java
+	$(JC) $(JFLAGS) ..\dods\dap\test\*.java
+	$(JC) $(JFLAGS) ..\dods\util\*.java
+	$(JC) $(JFLAGS) ..\dods\util\gui\*.java
 	$(JC) $(JFLAGS) data\in\*.java
 	$(JC) $(JFLAGS) data\dods\*.java
 	$(JC) $(JFLAGS) data\netcdf\units\*.java

@@ -37,6 +37,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import javax.swing.*;
 import java.util.Vector;
+import java.util.Enumeration;
 import java.rmi.*;
 import java.io.Serializable;
 
@@ -161,23 +162,95 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
 
   public SceneGraphObject convertSceneGraph(VisADSceneGraphObject scene)
          throws VisADException {
-    if (scene instanceof VisADSwitch) {
-      VisADSwitch swit = (VisADSwitch) scene;
-      Set set = swit.getSet();
-      int n = swit.numChildren();
-
-    }
-    else if (scene instanceof VisADGroup) {
+    if (scene instanceof VisADGroup) {
       VisADGroup group = (VisADGroup) scene;
       BranchGroup branch = new BranchGroup();
       branch.setCapability(BranchGroup.ALLOW_DETACH);
       branch.setCapability(Group.ALLOW_CHILDREN_READ);
       branch.setCapability(Group.ALLOW_CHILDREN_WRITE);
       branch.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+      Set set = null;
+      Switch swit = null;
+      if (scene instanceof VisADSwitch) {
+        set = ((VisADSwitch) scene).getSet();
+        // set != null for Animation
+        // set == null for volume rendering
+        int n = ((VisADSwitch) scene).numChildren();
+        swit = new Switch();
+        branch.addChild(swit);
+      }
+      else {
+        branch = new BranchGroup();
+      }
+
+      if (swit != null) {
+        if (set != null) {
+          // Switch for Animation or SelectValue
+          RealType real = (RealType)
+            ((SetType) set.getType()).getDomain().getComponent(0);
+          AVControl control = null;
+          Vector mapVector = display.getMapVector();
+          Enumeration maps = mapVector.elements();
+          while (maps.hasMoreElements()) {
+            ScalarMap map = (ScalarMap )maps.nextElement();
+            if (real.equals(map.getScalar())) {
+              DisplayRealType dreal = map.getDisplayScalar();
+              if (dreal.equals(Display.Animation) ||
+                  dreal.equals(Display.SelectValue)) {
+                control = (AVControl) map.getControl();
+                break;
+              }
+            } // end if (values != null && && real.equals(map.getScalar()))
+          }
+          if (control == null) {
+            throw new ClusterException("AVControl is null");
+          }
+          // from ShadowFunctionOrSetTypeJ3D.addSwitch()
+          ((AVControlJ3D) control).addPair(swit, set, this);
+          ((AVControlJ3D) control).init();
+        }
+        else { // if (set == null)
+          // Switch for volume rendering
+          if (group.numChildren() != 3) {
+            throw new ClusterException("VisADSwitch for volume render " +
+                                       "must have 3 children");
+          }
+          VisADGroup branchX =
+            (VisADGroup) ((VisADSwitch) scene).getChild(0);
+          VisADGroup branchY =
+            (VisADGroup) ((VisADSwitch) scene).getChild(1);
+          VisADGroup branchZ =
+            (VisADGroup) ((VisADSwitch) scene).getChild(2);
+          int nX = branchX.numChildren();
+          VisADAppearance[] appearanceX = new VisADAppearance[nX];
+          for (int i=0; i<nX; i++) {
+            appearanceX[i] = (VisADAppearance) branchX.getChild(i);
+          }
+          int nY = branchY.numChildren();
+          VisADAppearance[] appearanceY = new VisADAppearance[nY];
+          for (int i=0; i<nY; i++) {
+            appearanceY[i] = (VisADAppearance) branchY.getChild(i);
+          }
+          int nZ = branchZ.numChildren();
+          VisADAppearance[] appearanceZ = new VisADAppearance[nZ];
+          for (int i=0; i<nZ; i++) {
+            appearanceZ[i] = (VisADAppearance) branchZ.getChild(i);
+          }
+
+
+
+        }
+      } // end if (swit != null)
+
       int n = group.numChildren();
       for (int i=0; i<n; i++) {
         VisADSceneGraphObject vsgo = group.getChild(i);
-        branch.addChild((Node) convertSceneGraph(vsgo));
+        if (swit != null) {
+          swit.addChild((Node) convertSceneGraph(vsgo));
+        }
+        else {
+          branch.addChild((Node) convertSceneGraph(vsgo));
+        }
       }
       ShadowTypeJ3D.ensureNotEmpty(branch, display);
       return branch;
@@ -209,6 +282,9 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
 */
       }
       if (image != null) {
+        // need to do Texture stuff
+
+
       }
       else {
         TransparencyAttributes c_alpha = null;

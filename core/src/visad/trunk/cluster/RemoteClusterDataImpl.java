@@ -124,7 +124,10 @@ every object in data tree on client connects to objects
 in data trees on nodes
 
 may use DisplayImplJ3D on nodes for graphics, with api = TRANSFORM_ONLY
-and DisplayRenderer = NodeDisplayRendererJ3D; doesn't render
+  and DisplayRenderer = NodeDisplayRendererJ3D (extends
+  TransformOnlyDisplayRendererJ3D) doesn't render to screen
+uses special DisplayImplJ3D constructor signature (conflict?)
+  for cluster - modified version of collaborative Display
 
 NodeRendererJ3D extends DefaultRendererJ3D, with
 ShadowNode*TypeJ3D - addToGroup() etc to leave as Serializable
