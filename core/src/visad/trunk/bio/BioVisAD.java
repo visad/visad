@@ -201,6 +201,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
       previewPane.setLayout(new BoxLayout(previewPane, BoxLayout.X_AXIS));
       previewPane.add(previous.getComponent());
       previewPane.add(next.getComponent());
+      previewPane.setVisible(false);
     }
     else {
       display2 = (DisplayImpl) new DisplayImplJ2D("display2");

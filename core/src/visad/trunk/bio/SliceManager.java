@@ -306,7 +306,10 @@ public class SliceManager
       doRefresh = false;
     }
     if (doRefresh) refresh(false, true);
-    else updateAnimationControls();
+    else {
+      updateList();
+      updateAnimationControls();
+    }
   }
 
   /** Sets the currently displayed image slice. */
@@ -992,9 +995,7 @@ public class SliceManager
         catch (VisADException exc) { exc.printStackTrace(); }
         catch (RemoteException exc) { exc.printStackTrace(); }
       }
-      MeasureList list = bio.mm.lists[index];
-      bio.mm.pool2.set(list);
-      if (bio.mm.pool3 != null) bio.mm.pool3.set(list);
+      updateList();
       updateAnimationControls();
     }
 
@@ -1062,6 +1063,13 @@ public class SliceManager
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
     bio.setWaitCursor(false);
+  }
+
+  /** Updates measurement pools with new measurement list. */
+  private void updateList() {
+    MeasureList list = bio.mm.lists[index];
+    bio.mm.pool2.set(list);
+    if (bio.mm.pool3 != null) bio.mm.pool3.set(list);
   }
 
 }
