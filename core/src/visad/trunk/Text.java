@@ -98,7 +98,7 @@ public class Text extends Scalar {
 
   public String longString(String pre) {
     return pre + "Text: Value = " + Value +
-           "  (TypeName = " + ((RealType) Type).getName() + ")\n";
+           "  (TypeName = " + ((TextType) Type).getName() + ")\n";
   }
 
   /**
