@@ -3,7 +3,7 @@ Graph.py provides a collection of methods for making quick-plots of a
 data object in a variety of ways.
 
 """
-try:
+try:  # try/except done to remove these lines from documentation
   from org.python.core import PyTuple, PyList
   from visad import RealType, RealTupleType, FunctionType, FieldImpl, ScalarMap, Display
   from visad.util import AnimationWidget
@@ -160,9 +160,12 @@ def mapimage(imagedata, mapfile="outlsupw", panel=None, colortable=None, width=4
   
 #----------------------------------------------------------------------------
 # use GetAreaGUI to repeatedly show an image
+try:  # try/except done only to supress documentation
+  def __showaddeimage(event):
+    mapimage(load(event.getActionCommand()),__mapname)
 
-def __showaddeimage(event):
-  mapimage(load(event.getActionCommand()),__mapname)
+except:
+  pass
 
 def addeimage(mapname='outlsupu'):
   """
