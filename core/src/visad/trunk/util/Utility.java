@@ -23,9 +23,23 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad;
+package visad.util;
 
 import java.rmi.RemoteException;
+import visad.Data;
+import visad.Field;
+import visad.FunctionType;
+import visad.MathType;
+import visad.Real;
+import visad.RealTuple;
+import visad.RealTupleType;
+import visad.RealType;
+import visad.ScalarType;
+import visad.SetType;
+import visad.Tuple;
+import visad.TupleType;
+import visad.TypeException;
+import visad.VisADException;
 
 /**
  * Provides support for VisAD utility functions.
