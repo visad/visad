@@ -133,7 +133,9 @@ public class AnimationControlJ3D extends AVControlJ3D
     else {
       current = 0;
     }
-    changeControl(true);
+    // WLH 5 May 2000
+    // changeControl(true);
+    changeControl(false);
   }
 
   /** set the current step by the value of the RealType
@@ -147,7 +149,9 @@ public class AnimationControlJ3D extends AVControlJ3D
     else {
       current = 0;
     }
-    changeControl(true);
+    // WLH 5 May 2000
+    // changeControl(true);
+    changeControl(false);
   }
 
   /**
@@ -253,7 +257,9 @@ public class AnimationControlJ3D extends AVControlJ3D
       current = animationSet.clipCurrent(current);
       init();
     }
-    changeControl(true);
+    // WLH 5 May 2000
+    // changeControl(true);
+    changeControl(false);
   }
 
   public void init() throws VisADException {

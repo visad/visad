@@ -180,6 +180,7 @@ boolean check = Links[i].checkTicks();
 System.out.println("DataRenderer.prepareAction: check = " + check + " feasible = " +
                    feasible[i] + " go = " + go + "  " +
                    Links[i].getThingReference().getName());
+DisplayImpl.printStack("prepareAction");
 */
         // data has changed - need to re-display
         changed[i] = true;

@@ -265,6 +265,7 @@ public abstract class ActionImpl
   }
 
   void notifyAction() {
+// DisplayImpl.printStack("notifyAction");
     requeue = true;
     if (pool == null) {
       startThreadPool();
