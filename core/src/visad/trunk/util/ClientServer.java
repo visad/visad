@@ -129,16 +129,9 @@ public class ClientServer
       throw new VisADException("Couldn't create " + className);
     }
 
-    Class[] params = new Class[1];
-    try {
-      params[0] = Class.forName("visad.RemoteDisplay");
-    } catch (ClassNotFoundException e) {
-      throw new VisADException("Yikes! Couldn't find visad.RemoteDisplay!");
-    }
-
     java.lang.reflect.Constructor cons;
     try {
-      cons = dpyClass.getConstructor(params);
+      cons = dpyClass.getConstructor(new Class[] { RemoteDisplay.class });
     } catch (NoSuchMethodException e) {
       throw new VisADException(className + " has no RemoteDisplay" +
                                " constructor");
