@@ -152,31 +152,6 @@ public class SimpleColorMapWidget
     add(label);
   }
 
-  private Dimension maxSize = null;
-
-  /**
-   * Get maximum size of this widget.
-   *
-   * @return The maximum size stored in a <CODE>Dimension</CODE> object.
-   */
-  public Dimension getMaximumSize()
-  {
-    if (maxSize != null) {
-      return maxSize;
-    }
-    return super.getMaximumSize();
-  }
-
-  /**
-   * Set maximum size of this widget.
-   *
-   * @param size Maximum size.
-   */
-  public void setMaximumSize(Dimension size)
-  {
-    maxSize = size;
-  }
-
   /**
    * Internal convenience routine used to update the slider.
    *
