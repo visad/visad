@@ -15,6 +15,7 @@ import visad.java2d.DirectManipulationRendererJ2D;
 import visad.util.VisADSlider;
 import visad.util.LabeledColorWidget;
 import visad.data.netcdf.Plain;
+import visad.data.mcidas.BaseMapAdapter;
 import java.rmi.RemoteException;
 import java.io.IOException;
 import java.awt.*;
@@ -34,6 +35,8 @@ public class PCS {
   int nbands;
   // number of principal components
   int npcs;
+  // number of channels
+  int nchannels;
   // number of levels
   int nlevels;
 
@@ -121,6 +124,15 @@ public class PCS {
   FunctionType temp_profile;
   FunctionType wv_profile;
 
+  // precomputed helper values for slider_cell
+  float[][][] eigen_values;
+  float[][] mean_values;
+  Gridded1DSet pressureSet;
+  FlatField ll_field;
+  FlatField[] tp;
+  FlatField[] wvp;
+
+
   // type 'java visad.paoloa.PCS file.nc' to run this application
   public static void main(String args[])
          throws VisADException, RemoteException, IOException {
@@ -178,9 +190,9 @@ public class PCS {
     longitude = (RealType) latlon.getComponent(1);
     levels = (RealType)
       ((RealTupleType) tr2.getDomain()).getComponent(0);
-    RealTupleType twv = (RealTupleType) tr2.getRange();
-    temperature = (RealType) twv.getComponent(0);
-    watervapor = (RealType) twv.getComponent(1);
+    RealTupleType tuplewv = (RealTupleType) tr2.getRange();
+    temperature = (RealType) tuplewv.getComponent(0);
+    watervapor = (RealType) tuplewv.getComponent(1);
 
     RealTupleType ed = (RealTupleType) eigen_type.getDomain();
     numpcs = (RealType) ed.getComponent(0);
@@ -219,6 +231,11 @@ public class PCS {
     nbands = band_set.getLength();
     int[] lens = eigen_set.getLengths();
     npcs = lens[0];
+    nchannels = lens[1];
+    if (nchannels != 3 * nbands) {
+      throw new VisADException("nchannels " + nchannels + " != 3 * " +
+                               nbands + " nbands");
+    }
     nlevels = levels_set.getLength();
 
     // System.out.println(ntimes + " " + nbands + " " + npcs + " " + nlevels);
@@ -243,16 +260,6 @@ public class PCS {
     time_ref =  new DataReferenceImpl("time_ref");
     num_eigen_ref =  new DataReferenceImpl("num_eigen_ref");
 
-    ConstantMap[] yellow = {new ConstantMap(0.0, Display.Blue)};
-    ConstantMap[] cyan = {new ConstantMap(0.0, Display.Red)};
-    ConstantMap[] red = {new ConstantMap(0.0, Display.Blue),
-                         new ConstantMap(0.0, Display.Green)};
-    ConstantMap[] green = {new ConstantMap(0.0, Display.Blue),
-                           new ConstantMap(0.0, Display.Red)};
-    ConstantMap[] point = {new ConstantMap(0.0, Display.Blue),
-                           new ConstantMap(2.0, Display.PointSize)};
-    ConstantMap[] select = {new ConstantMap(0.0, Display.Blue),
-                            new ConstantMap(5.0, Display.PointSize)};
 
     DisplayImpl displayb1 =
       new DisplayImplJ3D("displayb1", new TwoDDisplayRendererJ3D());
@@ -260,6 +267,8 @@ public class PCS {
     displayb1.addMap(new ScalarMap(band1, Display.YAxis));
     GraphicsModeControl modeb1 = displayb1.getGraphicsModeControl();
     modeb1.setScaleEnable(true);
+    ConstantMap[] yellow = {new ConstantMap(0.0, Display.Blue)};
+    ConstantMap[] cyan = {new ConstantMap(0.0, Display.Red)};
     displayb1.addReference(b1_ref, yellow);
     displayb1.addReference(b1r_ref, cyan);
 
@@ -269,6 +278,8 @@ public class PCS {
     displayb2.addMap(new ScalarMap(band2, Display.YAxis));
     GraphicsModeControl modeb2 = displayb2.getGraphicsModeControl();
     modeb2.setScaleEnable(true);
+    yellow = new ConstantMap[] {new ConstantMap(0.0, Display.Blue)};
+    cyan = new ConstantMap[] {new ConstantMap(0.0, Display.Red)};
     displayb2.addReference(b2_ref, yellow);
     displayb2.addReference(b2r_ref, cyan);
 
@@ -278,6 +289,8 @@ public class PCS {
     displayb3.addMap(new ScalarMap(band3, Display.YAxis));
     GraphicsModeControl modeb3 = displayb3.getGraphicsModeControl();
     modeb3.setScaleEnable(true);
+    yellow = new ConstantMap[] {new ConstantMap(0.0, Display.Blue)};
+    cyan = new ConstantMap[] {new ConstantMap(0.0, Display.Red)};
     displayb3.addReference(b3_ref, yellow);
     displayb3.addReference(b3r_ref, cyan);
 
@@ -287,6 +300,8 @@ public class PCS {
     displayn1.addMap(new ScalarMap(noise_band1, Display.YAxis));
     GraphicsModeControl moden1 = displayn1.getGraphicsModeControl();
     moden1.setScaleEnable(true);
+    yellow = new ConstantMap[] {new ConstantMap(0.0, Display.Blue)};
+    cyan = new ConstantMap[] {new ConstantMap(0.0, Display.Red)};
     displayn1.addReference(n1_ref, yellow);
     displayn1.addReference(n1r_ref, cyan);
 
@@ -296,6 +311,8 @@ public class PCS {
     displayn2.addMap(new ScalarMap(noise_band2, Display.YAxis));
     GraphicsModeControl moden2 = displayn2.getGraphicsModeControl();
     moden2.setScaleEnable(true);
+    yellow = new ConstantMap[] {new ConstantMap(0.0, Display.Blue)};
+    cyan = new ConstantMap[] {new ConstantMap(0.0, Display.Red)};
     displayn2.addReference(n2_ref, yellow);
     displayn2.addReference(n2r_ref, cyan);
 
@@ -305,6 +322,8 @@ public class PCS {
     displayn3.addMap(new ScalarMap(noise_band3, Display.YAxis));
     GraphicsModeControl moden3 = displayn3.getGraphicsModeControl();
     moden3.setScaleEnable(true);
+    yellow = new ConstantMap[] {new ConstantMap(0.0, Display.Blue)};
+    cyan = new ConstantMap[] {new ConstantMap(0.0, Display.Red)};
     displayn3.addReference(n3_ref, yellow);
     displayn3.addReference(n3r_ref, cyan);
 
@@ -314,6 +333,10 @@ public class PCS {
     displayll.addMap(new ScalarMap(latitude, Display.YAxis));
     GraphicsModeControl modell = displayll.getGraphicsModeControl();
     modell.setScaleEnable(true);
+    ConstantMap[] point = {new ConstantMap(0.0, Display.Blue),
+                           new ConstantMap(2.0, Display.PointSize)};
+    ConstantMap[] select = {new ConstantMap(0.0, Display.Blue),
+                            new ConstantMap(5.0, Display.PointSize)};
     displayll.addReference(ll_ref, point);
     displayll.addReference(select_ll_ref, select);
     displayll.addReference(map_ref);
@@ -325,6 +348,10 @@ public class PCS {
     displayprof.addMap(new ScalarMap(pressure, Display.YAxis));
     GraphicsModeControl modeprof = displayprof.getGraphicsModeControl();
     modeprof.setScaleEnable(true);
+    ConstantMap[] red = {new ConstantMap(0.0, Display.Blue),
+                         new ConstantMap(0.0, Display.Green)};
+    ConstantMap[] green = {new ConstantMap(0.0, Display.Blue),
+                           new ConstantMap(0.0, Display.Red)};
     displayprof.addReference(wv_ref, green);
     displayprof.addReference(temp_ref, red);
 
@@ -389,6 +416,74 @@ public class PCS {
     bottom.add(displayn3.getComponent());
     bottom.add(displayprof.getComponent());
 
+    // precompute some values
+    // compute mean_values
+    float[][] values = means.getFloats(false);
+    mean_values = new float[3][nbands];
+    mean_values[0] = values[3];
+    mean_values[1] = values[4];
+    mean_values[2] = values[5];
+    // compute eigen_values
+    values = eigen_vectors.getFloats(false);
+    eigen_values = new float[3][npcs][nbands];
+    for (int k=0; k<3; k++) {
+      int kb = k * nbands;
+      for (int j=0; j<npcs; j++) {
+        int m = j + npcs * kb;
+        for (int i=0; i<nbands; i++) {
+          // eigen_values[k][j][i] = values[0][j + npcs * (i + kb)];
+          eigen_values[k][j][i] = values[0][m];
+          m += npcs;
+        }
+      }
+    }
+    // compute pressureSet
+    values = pressures.getFloats(false);
+    Gridded1DSet pressureSet = new Gridded1DSet(pressure, values, nlevels);
+    // compute ll_field
+    float latmin = Float.MAX_VALUE;
+    float latmax = Float.MIN_VALUE;
+    float lonmin = Float.MAX_VALUE;
+    float lonmax = Float.MIN_VALUE;
+    float del_lat = 1.0f;
+    float del_lon = 1.0f;
+    float[][] lls = new float[2][ntimes];
+    for (int i=0; i<ntimes; i++) {
+      Tuple tup = (Tuple) time_series.getSample(i);
+      FlatField ll = (FlatField) tup.getComponent(1);
+      values = ll.getFloats(false);
+      lls[0][i] = -values[0][0];
+      lls[1][i] = -values[1][0];
+      if (lls[0][i] < latmin) latmin = lls[0][i];
+      if (lls[0][i] > latmax) latmax = lls[0][i];
+      if (lls[1][i] < lonmin) lonmin = lls[1][i];
+      if (lls[1][i] > lonmax) lonmax = lls[1][i];
+    }
+    ll_field = new FlatField(latlon_func, new Integer1DSet(time, ntimes));
+    ll_field.setSamples(lls);
+    ll_ref.setData(ll_field);
+    BaseMapAdapter baseMap = new BaseMapAdapter("OUTLUSAM");
+    baseMap.setLatLonLimits(latmin-del_lat, latmax+del_lat,
+                            lonmin-del_lon, lonmax+del_lon);
+    DataImpl map = baseMap.getData();
+    map_ref.setData(map);
+
+    // compute tp and wvp
+    tp = new FlatField[ntimes];
+    wvp = new FlatField[ntimes];
+    for (int i=0; i<ntimes; i++) {
+      Tuple tup = (Tuple) time_series.getSample(i);
+      FlatField twv = (FlatField) tup.getComponent(2);
+      values = twv.getFloats(false);
+      float[][] t_values = {values[0]};
+      tp[i] = new FlatField(temp_profile, pressureSet);
+      tp[i].setSamples(t_values, false);
+      float[][] wv_values = {values[1]};
+      wvp[i] = new FlatField(wv_profile, pressureSet);
+      wvp[i].setSamples(wv_values, false);
+    }
+
+
     // CellImpl to change displays when user moves sliders
     CellImpl slider_cell = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
@@ -400,8 +495,11 @@ public class PCS {
           return;
         }
         Tuple tup = (Tuple) time_series.getSample(t);
+        FlatField bn = (FlatField) tup.getComponent(0);
 
 
+        temp_ref.setData(tp[t]);
+        wv_ref.setData(wvp[t]);
       }
     };
     // link sliders to slider_cell
