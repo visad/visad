@@ -262,6 +262,11 @@ public class Util
     while (enum.hasMoreElements()) {
       JarEntry entry = (JarEntry )enum.nextElement();
 
+      // skip manifest files
+      if (JarFile.MANIFEST_NAME.startsWith(entry.getName())) {
+        continue;
+      }
+
       File newFile = new File(target, entry.getName());
       newFile.mkdirs();
 
