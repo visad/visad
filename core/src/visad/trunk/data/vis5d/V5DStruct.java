@@ -522,6 +522,10 @@ public class V5DStruct {
       }
 
       map_proj[0] = v.Projection;
+
+      for (int kk = 0; kk < MAXPROJARGS; kk++) {
+        projargs[kk] = v.ProjArgs[kk];
+      }
     }
     else {
       // v == null

@@ -53,11 +53,11 @@ import java.awt.event.*;
 public class Vis5DForm extends Form implements FormFileInformer {
 
   /** from vis5d-4.3/src/v5d.h */
-  private final int MAXVARS = 30;
-  private final int MAXTIMES = 400;
-  private final int MAXROWS = 300;
-  private final int MAXCOLUMNS = 300;
-  private final int MAXLEVELS = 100;
+  private final int MAXVARS     = 30;
+  private final int MAXTIMES    = 400;
+  private final int MAXROWS     = 300;
+  private final int MAXCOLUMNS  = 300;
+  private final int MAXLEVELS   = 100;
   private final int MAXPROJARGS = 100;
   private final int MAXVERTARGS = MAXLEVELS+1;
 
@@ -68,12 +68,6 @@ public class Vis5DForm extends Form implements FormFileInformer {
 
   public Vis5DForm() {
     super("Vis5DForm" + num++);
-/*
-    if (!loaded) {
-      System.loadLibrary("vis5d");
-      loaded = true;
-    }
-*/
   }
 
   public boolean isThisType(String name) {
@@ -114,15 +108,17 @@ public class Vis5DForm extends Form implements FormFileInformer {
     if (id == null) {
       throw new BadFormException("Vis5DForm.open: null name String");
     }
+
     byte[] name = id.getBytes();
     int[] sizes = new int[5];
     int[] map_proj = new int[1];
     byte[] varnames = new byte[10 * MAXVARS];
     byte[] varunits = new byte[20 * MAXVARS];
     int[]  vert_sys = new int[1];
-    float[]  vert_args = new float[MAXVERTARGS];
+    float[]  vertargs = new float[MAXVERTARGS];
     float[] times = new float[MAXTIMES];
     float[] projargs = new float[MAXPROJARGS];
+
     vv = V5DStruct.v5d_open(name,
                             name.length,
                             sizes,
@@ -131,12 +127,12 @@ public class Vis5DForm extends Form implements FormFileInformer {
                             map_proj,
                             projargs,
                             vert_sys,
-                            vert_args,
+                            vertargs,
                             times);
     if (sizes[0] < 1) {
       throw new BadFormException("Vis5DForm.open: bad file");
     }
-    System.out.println("map_proj: "+map_proj[0]);
+
     int nr = sizes[0];
     int nc = sizes[1];
     int nl = sizes[2];
@@ -147,10 +143,12 @@ public class Vis5DForm extends Form implements FormFileInformer {
      */
     RealType time = RealType.Time;
 
+
     RealType row = RealType.getRealType("row");
     RealType col = RealType.getRealType("col");
     RealType lev = RealType.getRealType("lev");
     vars = new RealType[nvars];
+
     for (int i=0; i<nvars; i++) {
       int k = 10 * i;
       int k2 = 20 * i;
@@ -170,13 +168,44 @@ public class Vis5DForm extends Form implements FormFileInformer {
       }
       vars[i] = RealType.getRealType(new String(varnames, k, m - k), unit);
     }
+
+    double[][] proj_args =
+      Set.floatToDouble(new float[][] {projargs});
+    double[][] vert_args =
+      Set.floatToDouble(new float[][] {vertargs});
+
+    CoordinateSystem coord_sys =
+      new Vis5DCoordinateSystem(map_proj[0], proj_args[0], nr, nc);
+
     RealTupleType domain;
+    Vis5DVertCoordinateSystem vert_coord_sys = null;
+
     if (nl > 1) {
-      domain = new RealTupleType(row, col, lev);
+      vert_coord_sys =
+        Vis5DVertCoordinateSystem.makeVis5DVertCoordinateSystem(
+          vert_sys[0], nl, vert_args[0]);
+
+      RealType height =
+        (RealType)
+          vert_coord_sys.vert_type;
+
+      coord_sys =
+        new CartesianProductCoordinateSystem(
+          new CoordinateSystem[]
+            {coord_sys,
+             new IdentityCoordinateSystem(vert_coord_sys.getReference())} );
+
+      System.out.println(coord_sys.getReference());
+
+      domain =
+        new RealTupleType(
+          new RealType[] {row, col, height}, coord_sys, null);
+      System.out.println(domain);
     }
     else {
-      domain = new RealTupleType(row, col);
+      domain = new RealTupleType(new RealType[] {row, col}, coord_sys, null);
     }
+
     RealTupleType range = new RealTupleType(vars);
     RealTupleType time_domain = new RealTupleType(time);
     grid_type = new FunctionType(domain, range);
@@ -187,10 +216,12 @@ public class Vis5DForm extends Form implements FormFileInformer {
     for (int i=0; i<ntimes; i++)  {
       timeses[0][i] = times[i];
     }
+
     /*- TDR
     Gridded1DSet time_set =
       new Gridded1DSet(time, timeses, ntimes);
      */
+
     Unit v5d_time_unit = new OffsetUnit(
                              visad.data.units.UnitParser.encodeTimestamp(
                                 1900, 1, 1, 0, 0, 0, 0), SI.second);
@@ -198,14 +229,20 @@ public class Vis5DForm extends Form implements FormFileInformer {
       new Gridded1DSet(time, timeses, ntimes,
                        null, new Unit[] {v5d_time_unit}, null);
 
-    System.out.println("VerticalSystem: "+vert_sys[0]);
-    for ( int kk=0; kk<nl; kk++)System.out.println(vert_args[kk]);
-    if (nl > 1) {
-      space_set = new Integer3DSet(nr, nc, nl);
+    if (nl > 1)
+    {
+      RealTupleType row_col = new RealTupleType(new RealType[] {row, col});
+      SampledSet row_col_set = new Integer2DSet(row_col, nr, nc);
+      SampledSet vert_set = vert_coord_sys.getVerticalSet();
+
+      space_set = new ProductSet(domain,
+        new SampledSet[] {row_col_set, vert_set});
     }
-    else {
+    else 
+    {
       space_set = new Integer2DSet(nr, nc);
     }
+
     FieldImpl v5d = new FieldImpl(v5d_type, time_set);
     grid_size = nr * nc * nl;
 
@@ -331,6 +368,8 @@ public class Vis5DForm extends Form implements FormFileInformer {
     big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     frame.getContentPane().add(big_panel);
 
+ // frame.setVisible(true);
+
     // create left hand side JPanel for sliders and text
     JPanel left = new JPanel(); // FlowLayout and double buffer
     left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
@@ -394,6 +433,8 @@ public class Vis5DForm extends Form implements FormFileInformer {
     // get grid type
     FunctionType grid_type = (FunctionType) vis5d_type.getRange();
     RealTupleType domain = grid_type.getDomain();
+    RealTupleType reference = (domain.getCoordinateSystem()).getReference();
+    domain = reference;
     // map grid coordinates to display coordinates
     display.addMap(new ScalarMap((RealType) domain.getComponent(0),
                                  Display.XAxis));

@@ -27,6 +27,8 @@ MA 02111-1307, USA
 package visad.data.vis5d;
 
 import visad.*;
+import visad.data.units.Parser;
+import visad.data.units.ParseException;
 
 /**
    Vis5DCoordinateSystem is the VisAD class for coordinate
@@ -35,14 +37,15 @@ import visad.*;
 
 public class Vis5DCoordinateSystem extends CoordinateSystem
 {
-  private static final int  PROJ_GENERIC      =  0;
-  private static final int  PROJ_LINEAR       =  1;
-  private static final int  PROJ_CYLINDRICAL  = 20;
-  private static final int  PROJ_SPHERICAL    = 21;
-  private static final int  PROJ_LAMBERT      =  2;
-  private static final int  PROJ_STEREO       =  3;
-  private static final int  PROJ_ROTATED      =  4;
-  private static final double  RADIUS     = 6371.23; /* KM */
+  private static final int  PROJ_GENERIC      =   0;
+  private static final int  PROJ_LINEAR       =   1;
+  private static final int  PROJ_CYLINDRICAL  =  20;
+  private static final int  PROJ_SPHERICAL    =  21;
+  private static final int  PROJ_LAMBERT      =   2;
+  private static final int  PROJ_STEREO       =   3;
+  private static final int  PROJ_ROTATED      =   4;
+
+  private static final double  RADIUS = 6371.23;  /* KM */
 
   private int    Projection;
   int     REVERSE_POLES = 1;
@@ -75,19 +78,17 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
   private static Unit[] coordinate_system_units =
     {null, null};
 
-  public Vis5DCoordinateSystem(RealTupleType Reference,
-                               int Projection,
+  public Vis5DCoordinateSystem(int Projection,
                                double[] projargs,
-                               double Nr, 
+                               double Nr,
                                double Nc)
        throws VisADException
   {
-    super( RealTupleType.SpatialEarth2DTuple, coordinate_system_units );
+    super( RealTupleType.LatitudeLongitudeTuple, coordinate_system_units );
 
     this.Projection = Projection;
     this.Nr = Nr;
     this.Nc = Nc;
-
     switch ( Projection )
     {
       case PROJ_GENERIC:
@@ -349,7 +350,7 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
               }
               else {
                 rlat = (90.0 - Hemisphere * lat) * Data.DEGREES_TO_RADIANS * 0.5;
-                r = ConeFactor * Math.pow( Math.tan(rlat), Cone );
+                r = ConeFactor * Math.pow(Math.tan(rlat), Cone);
               }
               rowcol[0][kk] = PoleRow + r * Math.cos(rlon);
               rowcol[1][kk] = PoleCol - r * Math.sin(rlon);
@@ -462,6 +463,182 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
   }
 
   public boolean equals(Object cs) 
+  {
+    return (cs instanceof Vis5DCoordinateSystem);
+  }
+
+  public static void main(String args[]) throws VisADException 
+  {
+
+  }
+}
+
+class Vis5DVertCoordinateSystem extends CoordinateSystem
+{
+  private static final int EQUAL_SPACE    = 0;
+  private static final int UNEQUAL_SPACE  = 1;
+
+  private final int vert_sys;
+  private int n_levels;
+  private double[] vert_args;
+  private SampledSet vertSet;
+  RealType vert_type;
+  Unit  vert_unit = null;
+  
+  private static Unit[] coordinate_system_units =
+    {null};
+
+  public static Vis5DVertCoordinateSystem
+         makeVis5DVertCoordinateSystem( int vert_sys,
+                                        int n_levels,
+                                        double[] vert_args )
+         throws VisADException
+  {
+    Vis5DVertCoordinateSystem cs = null;
+    RealTupleType reference = null;
+    Unit u = null;
+
+    switch(vert_sys)
+    {
+      case (0):
+        reference = 
+          new RealTupleType(RealType.getRealType("Height_2"));
+        cs =
+          new
+          Vis5DVertCoordinateSystem(reference, EQUAL_SPACE, n_levels, vert_args);
+        break;
+      case (1):
+        try {
+          u = Parser.parse("km");
+        }
+        catch (ParseException e) {
+        }
+        reference = 
+          new RealTupleType(RealType.getRealType("Height_2", u));
+        cs =
+          new
+          Vis5DVertCoordinateSystem(reference, EQUAL_SPACE, n_levels, vert_args);
+        break;
+      case (2):
+        try {
+          u = Parser.parse("km");
+        }
+        catch (ParseException e) {
+        }
+        reference = 
+          new RealTupleType(RealType.getRealType("Height_2", u));
+        cs =
+          new
+          Vis5DVertCoordinateSystem(reference, UNEQUAL_SPACE, n_levels, vert_args);
+        break;
+      case (3):
+        try {
+          u = Parser.parse("mb");
+        }
+        catch (ParseException e) {
+        }
+        reference = 
+          new RealTupleType(RealType.getRealType("Height_2", u));
+        cs =
+          new
+          Vis5DVertCoordinateSystem(reference, UNEQUAL_SPACE, n_levels, vert_args);
+        break;
+      default:
+        throw new VisADException("vert_sys unknown");
+    }
+    return cs;
+  }
+
+  public Vis5DVertCoordinateSystem(RealTupleType Reference,
+                                   int vert_sys,
+                                   int n_levels,
+                                   double[] vert_args)
+         throws VisADException
+  {
+    super( Reference, coordinate_system_units );
+
+    this.vert_sys = vert_sys;
+    this.vert_args = vert_args;
+    this.n_levels = n_levels;
+
+    switch ( vert_sys )
+    {
+      case (0):
+        vert_type = RealType.getRealType("Height");
+        break;
+      case (1):
+      case (2):
+        try {
+          vert_unit = Parser.parse("km");
+        }
+        catch (ParseException e) {
+        }
+        vert_type = RealType.getRealType("Height", vert_unit);
+        break;
+      case (3):
+        try {
+          vert_unit = Parser.parse("mb");
+        }
+        catch (ParseException e) {
+        }
+        vert_type = RealType.getRealType("Height", vert_unit);
+        break;
+      default:
+        throw new VisADException("vert_sys unknown");
+    }
+
+    switch ( vert_sys )
+    {
+      case EQUAL_SPACE:
+        double first = vert_args[0];
+        double last = first + vert_args[1]*(n_levels-1);
+        vertSet = new Linear1DSet(getReference(), first, last, n_levels);
+      case UNEQUAL_SPACE:
+        double[][] values = new double[1][n_levels];
+        System.arraycopy(vert_args, 0, values[0], 0, n_levels);
+        vertSet = 
+          new Gridded1DSet(getReference(), Set.doubleToFloat(values), n_levels);
+        break;
+      default:
+         throw new VisADException("vert_sys unknown");
+    }
+  }
+
+  public double[][] toReference(double[][] cs_tuple)
+         throws VisADException
+  {
+    int[] indexes = new int[cs_tuple[0].length];
+
+    for (int kk = 0; kk < indexes.length; kk++) {
+      indexes[kk] = (int) cs_tuple[0][kk];
+    }
+
+    float[][] ref_tuple =
+      vertSet.indexToValue(indexes);
+
+    return Set.floatToDouble(ref_tuple);
+  }
+
+  public double[][] fromReference(double[][] ref_tuple)
+         throws VisADException
+  {
+    int[] indexes =
+      vertSet.valueToIndex(Set.doubleToFloat(ref_tuple));
+
+    double[][] cs_tuple = new double[1][indexes.length];
+
+    for (int kk = 0; kk < indexes.length; kk++) {
+      cs_tuple[0][kk] = (double) indexes[kk];
+    }
+
+    return cs_tuple;
+  }
+
+  public SampledSet getVerticalSet() {
+    return vertSet;
+  }
+
+  public boolean equals(Object cs)
   {
     return (cs instanceof Vis5DCoordinateSystem);
   }
