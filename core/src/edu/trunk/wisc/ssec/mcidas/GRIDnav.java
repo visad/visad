@@ -113,12 +113,10 @@ public class GRIDnav
     throws McIDASException
   {
       navType = directory.getNavType()%10;
-      System.out.println("navType = " + navType);
       wierd = (directory.getNavType()/10 == 1);
       int[] navBlock = directory.getNavBlock();
       xnr = directory.getRows();
       xnc = directory.getColumns();
-      System.out.println(xnr + " rows by " + xnc + " columns");
       xnrow = xnr;
       xncol = xnc;
       switch(navType)
@@ -238,20 +236,17 @@ public class GRIDnav
       // adjust row/col based on startRow/startCol
       xrow = xrow + (startRow - 1);
       double xcol = rowcol[indexCol][i] - (startColumn - 1);
-      //System.out.println("(row,col) = (" + xrow + "," + xcol +")");
 
       if (xrow > xnrow || xrow < 1.0 ||
           xcol > xncol || xcol < 1.0) {
         xlat = Double.NaN;
         xlon = Double.NaN;
-        System.out.println("set latlon["+i+"] to NaN");
       } else {
         switch (navType)
         {
           case PSEUDO_MERCATOR:
           case PSEUDO_MERCATOR_GENERAL:
             if (wierd) {
-              System.out.println("weird grid");
               double x = xrow;
               xcol = xrow;
               xrow = xnr - x + 1.0;
@@ -309,7 +304,6 @@ public class GRIDnav
       }
       latlon[indexLat][i] = xlat;
       latlon[indexLon][i] = -xlon; // convert to east positive
-      //System.out.println("(lat,lon) = (" + xlat + "," + -xlon +")");
     }
     return latlon;
   }
