@@ -827,7 +827,8 @@ visad.cluster.RemoteClusterDataImpl \
 visad.cluster.RemoteNodeDataImpl \
 visad.cluster.RemoteNodeFieldImpl \
 visad.cluster.RemoteNodePartitionedFieldImpl \
-visad.cluster.RemoteNodeTupleImpl
+visad.cluster.RemoteNodeTupleImpl \
+visad.cluster.RemoteProxyAgentImpl
 
 recompile: \
 *.class \
