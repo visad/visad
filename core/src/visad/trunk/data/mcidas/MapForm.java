@@ -31,28 +31,10 @@ import visad.java3d.*;
 import visad.data.*;
 import visad.util.*;
 import java.io.IOException;
-import java.io.FileInputStream;
-import java.io.BufferedInputStream;
-import java.io.ObjectInputStream;
-import java.io.OptionalDataException;
-import java.io.FileOutputStream;
-import java.io.File;
-import java.io.BufferedOutputStream;
-import java.io.ObjectOutputStream;
-import java.io.InputStream;
 import java.rmi.RemoteException;
 import java.net.URL;
 import visad.data.DefaultFamily;
 
-// JFC packages
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.text.*;
-import javax.swing.border.*;
-
-// AWT packages
-import java.awt.*;
-import java.awt.event.*;
 
 /**
    MapForm is the Map data format adapter for
@@ -60,41 +42,70 @@ import java.awt.event.*;
 */
 public class MapForm extends Form implements FormFileInformer {
 
-  private BaseMapAdapter ba;
-
+  /** counter @serialized*/
   private static int num = 0;
 
+  /**
+   * Construct a Form for reading in McIDAS map files
+   */
   public MapForm() {
     super("MapForm" + num++);
   }
 
+  /**
+   * Determines if this is a McIDAS map file from the name
+   * @param  name  name of the file
+   * @return  true if it matches the pattern for McIDAS map files (OUTL*)
+   */
   public boolean isThisType(String name) {
     return name.startsWith("OUTL");
   }
 
+  /**
+   * Determines if this is a McIDAS map file from the starting block
+   * @param  block  block of data to check
+   * @return  false  - there is no identifying block in a McIDAS map file
+   */
   public boolean isThisType(byte[] block) {
     return false;
   }
 
+  /**
+   * Get a list of default suffixes for McIDAS map files
+   * @return  valid list of suffixes
+   */
   public String[] getDefaultSuffixes() {
     String[] suff = { " " };
     return suff;
   }
 
+  /**
+   * Save a VisAD data object in this form
+   * @throws  UnimplementedException  - can't be done yet.
+   */
   public synchronized void save(String id, Data data, boolean replace)
          throws BadFormException, IOException, RemoteException, VisADException {
     throw new UnimplementedException("Can't yet save McIDAS map files");
   }
 
+  /**
+   * Add data to an existing data object
+   * @throws BadFormException
+   */
   public synchronized void add(String id, Data data, boolean replace)
          throws BadFormException {
     throw new BadFormException("MapForm.add");
   }
 
+  /**
+   * Open the file specified by the string
+   * @param  id   string representing the path to the file
+   * @return a Data object representing the map lines. 
+   */
   public synchronized DataImpl open(String id)
          throws BadFormException, IOException, VisADException {
     try {
-      ba = new BaseMapAdapter(id);
+      BaseMapAdapter ba = new BaseMapAdapter(id);
       return ba.getData();
 
     } catch (IOException e) {
@@ -102,15 +113,22 @@ public class MapForm extends Form implements FormFileInformer {
     }
   }
 
+  /**
+   * Open the file specified by the URL
+   * @param  id   URL of the remote map file
+   * @return a Data object representing the map lines. 
+   */
   public synchronized DataImpl open(URL url)
          throws BadFormException, VisADException, IOException {
-    ba = new BaseMapAdapter(url.toString());
+    BaseMapAdapter ba = new BaseMapAdapter(url);
     return ba.getData();
   }
 
+  /**
+   * Return the data forms that are compatible with a data object
+   * @return null
+   */
   public synchronized FormNode getForms(Data data) {
     return null;
   }
-
 }
-
