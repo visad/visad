@@ -49,14 +49,22 @@ DateTime
     extends     Real
 {
 
+    /**
+     * Default Time Format Pattern (yyyy-MM-dd HH:mm:ss)
+     */
+    public static final String DEFAULT_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+
+    /**
+     * Default Time Zone (GMT)
+     */
+    public static final TimeZone DEFAULT_TIMEZONE = TimeZone.getTimeZone("GMT");
+
     // Time related variables
-    private static final double secondsPerDay = (double) (24 * 60 * 60);
-    private static final String isoTimeFmtPattern = "yyyy-MM-dd HH:mm:ss'Z'";
-    private static String formatPattern = isoTimeFmtPattern;
-    private static final TimeZone defaultTimeZone = TimeZone.getTimeZone("GMT");
-    private static TimeZone timeZone = defaultTimeZone;
+    private static String formatPattern = DEFAULT_TIME_FORMAT;
+    private static TimeZone timeZone = DEFAULT_TIMEZONE;
     private final GregorianCalendar utcCalendar =
-                          new GregorianCalendar(defaultTimeZone);
+                          new GregorianCalendar(DEFAULT_TIMEZONE);
+    private static final double secondsPerDay = (double) (24 * 60 * 60);
 
     /**
      * Construct a DateTime object and initialize it using a VisAD Real.
@@ -71,7 +79,7 @@ DateTime
             throws VisADException
     {
         super( RealType.Time,
-	       real.getValue(CommonUnit.secondsSinceTheEpoch),
+               real.getValue(CommonUnit.secondsSinceTheEpoch),
                CommonUnit.secondsSinceTheEpoch);
 
         // set up in terms of java date
@@ -191,7 +199,7 @@ DateTime
     {
         GregorianCalendar cal = new GregorianCalendar();
         cal.clear();
-        cal.setTimeZone(defaultTimeZone);        // use GMT as default
+        cal.setTimeZone(DEFAULT_TIMEZONE);        // use GMT as default
         if (year == 0) year = -1;                // set to 1 BC
         cal.set(Calendar.ERA, year < 0
                                 ? GregorianCalendar.BC
@@ -242,13 +250,18 @@ DateTime
      */
     public String toString()
     {
-        return formattedString(
-            (!formatPattern.equals(isoTimeFmtPattern))
-                ? formatPattern
-                : (utcCalendar.get(Calendar.ERA) == GregorianCalendar.BC)
-                    ? isoTimeFmtPattern + " 'BCE'"
-                    : isoTimeFmtPattern
-            , timeZone);
+        String pat = formatPattern;
+        if (formatPattern.equals(DEFAULT_TIME_FORMAT)) {
+            if (timeZone.equals(DEFAULT_TIMEZONE)) {
+                pat = DEFAULT_TIME_FORMAT+"'Z'";
+            } else {
+                pat = pat + " z";
+            }
+            if (utcCalendar.get(Calendar.ERA) == GregorianCalendar.BC) {
+                pat = pat + " 'BCE'";
+            }
+        }
+        return formattedString(pat, timeZone);
     }
 
     /**
@@ -297,7 +310,7 @@ DateTime
                   (utcCalendar.get(Calendar.ERA) == GregorianCalendar.BC)
                             ? "yyyy-MM-dd 'BCE'"
                             : "yyyy-MM-dd";
-        return formattedString(pattern, defaultTimeZone);
+        return formattedString(pattern, DEFAULT_TIMEZONE);
     }
 
     /**
@@ -308,7 +321,7 @@ DateTime
      */
     public String timeString()
     {
-        return formattedString("HH:mm:ss'Z'", defaultTimeZone);
+        return formattedString("HH:mm:ss'Z'", DEFAULT_TIMEZONE);
     }
 
     /**
@@ -372,8 +385,8 @@ DateTime
      */
     public static void resetFormat()
     {
-        formatPattern = isoTimeFmtPattern;
-        timeZone = defaultTimeZone;
+        formatPattern = DEFAULT_TIME_FORMAT;
+        timeZone = DEFAULT_TIMEZONE;
     }
 
     /**
@@ -387,7 +400,7 @@ DateTime
     public static DateTime createDateTime(String dateString)
         throws VisADException
     {
-        return createDateTime(dateString, formatPattern, defaultTimeZone);
+        return createDateTime(dateString, formatPattern, DEFAULT_TIMEZONE);
     }
 
     /**
@@ -401,7 +414,7 @@ DateTime
     public static DateTime createDateTime(String dateString, String format)
         throws VisADException
     {
-        return createDateTime(dateString, format, defaultTimeZone);
+        return createDateTime(dateString, format, DEFAULT_TIMEZONE);
     }
 
     /**
@@ -415,7 +428,7 @@ DateTime
      */
     public static DateTime createDateTime(String dateString, 
                                         String format, 
-					TimeZone timezone)
+                                        TimeZone timezone)
         throws VisADException
     {
         Date d;
@@ -423,11 +436,11 @@ DateTime
           SimpleDateFormat sdf = new SimpleDateFormat();
           sdf.setTimeZone(timezone);
           sdf.applyPattern(format);
-	  d = sdf.parse(dateString);
-	} catch (ParseException pe) {
-	    throw new VisADException("invalid date string: " + dateString);
-	}
-	return new DateTime(d);
+          d = sdf.parse(dateString);
+        } catch (ParseException pe) {
+            throw new VisADException("invalid date string: " + dateString);
+        }
+        return new DateTime(d);
     }
 
     /**
