@@ -22,6 +22,8 @@ MA 02111-1307, USA
 
 package visad.util;
 
+import java.lang.reflect.InvocationTargetException;
+
 import java.rmi.ConnectException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
@@ -148,6 +150,15 @@ public class ClientServer
     cargs[0] = rmtDpy;
     try {
       dpy = (DisplayImpl )cons.newInstance(cargs);
+    } catch (InvocationTargetException ite) {
+      Throwable t = ite.getTargetException();
+      if (t instanceof VisADException) {
+        throw (VisADException )t;
+      } else {
+        throw new VisADException("Couldn't create local shadow for " +
+                                 rmtDpy + ": " + t.getClass().getName() +
+                                 ": " + t.getMessage());
+      }
     } catch (Exception e) {
       throw new VisADException("Couldn't create local shadow for " +
                                rmtDpy + ": " + e.getClass().getName() +
