@@ -37,6 +37,16 @@ public class LatLonTuple extends RealTuple
     private Real lat;
     private Real lon;
 
+    /**
+     * Construct a LatLonTuple from double values of latitude and
+     * longitude.
+     *
+     * @param  lat  latitude (degrees North positive)
+     * @param  lon  longitude (degrees East positive)
+     *
+     * @throws  VisADException   couldn't create the necessary VisAD object
+     * @throws  RemoteException  couldn't create the necessary remote object
+     */
     public LatLonTuple(double lat, double lon)
         throws VisADException, RemoteException
     {
@@ -44,13 +54,25 @@ public class LatLonTuple extends RealTuple
              new Real(RealType.Longitude, lon));
     }
 
+    /**
+     * Construct a LatLonTuple from Reals representing the latitude and
+     * longitude.
+     *
+     * @param  lat  Real representing latitude 
+     *              (must have MathType RealType.Latitude)
+     * @param  lon  Real representing longitude 
+     *              (must have MathType RealType.Longitude)
+     *
+     * @throws  VisADException   couldn't create the necessary VisAD object
+     * @throws  RemoteException  couldn't create the necessary remote object
+     */
     public LatLonTuple(Real lat, Real lon)
         throws VisADException, RemoteException
     {
         super ( RealTupleType.LatitudeLongitudeTuple,
-              new Real[] {lat, lon}, (CoordinateSystem) null);
-        this.lat =  (Real) getComponent(0);
-        this.lon =  (Real) getComponent(1);
+              new Real[] { lat, lon}, (CoordinateSystem) null);
+        this.lat = lat;
+        this.lon = lon;
     }
 
     /**
@@ -74,7 +96,7 @@ public class LatLonTuple extends RealTuple
     }
 
 
-    /*  Uncomment to test
+    /* uncomment to test 
     public static void main(String[] args)
         throws VisADException, RemoteException
     {
