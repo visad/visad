@@ -701,7 +701,8 @@ public class AddeURLConnection extends URLConnection
 
         } else if (testString.startsWith("par")) {
           buf.append(" ");
-          buf.append(testString);
+          buf.append("parm=");
+          buf.append(testString.substring(testString.indexOf("=") + 1));
 
         } else if (testString.startsWith("day")) {
           buf.append(" ");
