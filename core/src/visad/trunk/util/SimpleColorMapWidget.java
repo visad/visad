@@ -1,12 +1,12 @@
 /*
 
-@(#) $Id: SimpleColorMapWidget.java,v 1.5 1998-07-29 21:28:18 curtis Exp $
+@(#) $Id: SimpleColorMapWidget.java,v 1.6 1998-07-30 20:30:04 curtis Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
 Copyright (C) 1998 Nick Rasmussen
-VisAD is Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden and Tom
-Rink.
+VisAD is Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
+Rink and Dave Glowacki.
  
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -40,47 +40,49 @@ import java.awt.swing.*;
  * RGB tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.5 $, $Date: 1998-07-29 21:28:18 $
+ * @version $Revision: 1.6 $, $Date: 1998-07-30 20:30:04 $
  * @since Visad Utility Library v0.7.1
  */
+public class LabeledRGBWidget extends Panel implements ActionListener,
+                                                       ScalarMapListener {
 
-public class LabeledRGBWidget extends Panel implements ScalarMapListener {
+  private ArrowSlider slider;
 
-	private ArrowSlider slider;
-	
-	private ColorWidget widget;
-	
-	private SliderLabel label;
+  private ColorWidget widget;
 
-        /* CTR: 29 Jul 1998
-	public LabeledRGBWidget() {
-		this(new ColorWidget(), new ArrowSlider());
-	}
-	
-	public LabeledRGBWidget(String name, float min, float max) {
-		this(new ColorWidget(), new ArrowSlider(min, max, (min + max) / 2, name));
-	}
-	
-	public LabeledRGBWidget(String name, float min, float max, float[][] table) {
-		this(new ColorWidget(new RGBMap(table)), new ArrowSlider(min, max, (min + max) / 2, name));
-	}
-	
-	public LabeledRGBWidget(ColorWidget c, Slider s) {
-		this(c, s, new SliderLabel(s));
-	}
-	
-	public LabeledRGBWidget(ColorWidget c, Slider s, SliderLabel l) {
-	
-		widget = c;
-		slider = s;
-		label = l;
+  private SliderLabel label;
 
-		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		add(widget);
-		add(slider);
-		add(label);
-	}
-        */
+  private float[][] orig_table;
+
+  /* CTR: 29 Jul 1998
+  public LabeledRGBWidget() {
+    this(new ColorWidget(), new ArrowSlider());
+  }
+
+  public LabeledRGBWidget(String name, float min, float max) {
+    this(new ColorWidget(), new ArrowSlider(min, max, (min + max) / 2, name));
+  }
+
+  public LabeledRGBWidget(String name, float min, float max, float[][] table) {
+    this(new ColorWidget(new RGBMap(table)), new ArrowSlider(min, max, (min + max) / 2, name));
+  }
+
+  public LabeledRGBWidget(ColorWidget c, Slider s) {
+    this(c, s, new SliderLabel(s));
+  }
+
+  public LabeledRGBWidget(ColorWidget c, Slider s, SliderLabel l) {
+
+    widget = c;
+    slider = s;
+    label = l;
+
+    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+    add(widget);
+    add(slider);
+    add(label);
+  }
+  */
 
   ColorControl colorcontrol;
 
@@ -112,7 +114,7 @@ public class LabeledRGBWidget extends Panel implements ScalarMapListener {
   }
 
   private LabeledRGBWidget(ScalarMap smap, double[] range, float[][] in_table)
-                                     throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
 
     /* CTR: 29 Jul 1998: consolidated constructor code */
 
@@ -137,11 +139,25 @@ public class LabeledRGBWidget extends Panel implements ScalarMapListener {
     widget = c;
     slider = s;
     label = l;
+    Button reset = new Button("Reset") {
+      public Dimension getMinimumSize() {
+        return new Dimension(0, 18);
+      }
+      public Dimension getPreferredSize() {
+        return new Dimension(0, 18);
+      }
+      public Dimension getMaximumSize() {
+        return new Dimension(Integer.MAX_VALUE, 18);
+      }
+    };
+    reset.setActionCommand("reset");
+    reset.addActionListener(this);
 
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     add(widget);
     add(slider);
     add(label);
+    add(reset);
 
     /* CTR: 29 Jul 1998: end of consolidated code */
 
@@ -177,8 +193,12 @@ public class LabeledRGBWidget extends Panel implements ScalarMapListener {
         table[2][i] = t[2];
       }
       colorcontrol.setTable(table);
+      orig_table = copy_table(table);
     }
-    else colorcontrol.setTable(in_table);
+    else {
+      colorcontrol.setTable(in_table);
+      orig_table = copy_table(in_table);
+    }
 
     widget.addColorChangeListener(new ColorChangeListener() {
       public void colorChanged(ColorChangeEvent e) {
@@ -202,7 +222,6 @@ public class LabeledRGBWidget extends Panel implements ScalarMapListener {
 
   }
 
-  /* CTR: 29 Jul 1998: added mapChanged method */
   /** ScalarMapListener method used with delayed auto-scaling. */
   public void mapChanged(ScalarMapEvent e) {
     ScalarMap s = e.getScalarMap();
@@ -210,9 +229,37 @@ public class LabeledRGBWidget extends Panel implements ScalarMapListener {
     double val = slider.getValue();
     if (val <= range[0] || val >= range[1]) {
       val = (range[0]+range[1])/2;
-      
     }
     slider.setBounds((float) range[0], (float) range[1], (float) val);
+  }
+
+  /** ActionListener method used with resetting color table. */
+  public void actionPerformed(ActionEvent e) {
+    if (e.getActionCommand().equals("reset")) {
+      // reset color table to original values
+      try {
+        float[][] table = copy_table(orig_table);
+        colorcontrol.setTable(table);
+        ((RGBMap) widget.getColorMap()).setValues(table_reorg(table));
+      }
+      catch (VisADException exc) { }
+      catch (RemoteException exc) { }
+    }
+  }
+
+  private static float[][] copy_table(float[][] table) {
+    if (table == null || table[0] == null) return null;
+    int len = table[0].length;
+    float[][] new_table = new float[3][len];
+    try {
+      for (int i=0; i<3; i++) {
+        System.arraycopy(table[i], 0, new_table[i], 0, len);
+      }
+      return new_table;
+    }
+    catch (ArrayIndexOutOfBoundsException e) {
+      return null;
+    }
   }
 
   private static float[][] table_reorg(float[][] table) {
@@ -236,30 +283,30 @@ public class LabeledRGBWidget extends Panel implements ScalarMapListener {
     double[] range = {(double) min, (double) max};
     return range;
   }
-		
-        /** Returns the ColorMap that the color wdget is curently pointing to */
-        public ColorWidget getColorWidget() {
-                return widget;
-        }
-	
-	/** for debugging purposes */
-        /* CTR: 29 Jul 1998
-	public static void main(String[] argc) {
-	
-		LabeledRGBWidget l = new LabeledRGBWidget("label", 0, 1);
-		
-		Frame f = new Frame("Visad Widget Test");
-		f.addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent e) {System.exit(0);}
-		});
-		
-		f.add(l);
-		
-		f.setSize(f.getPreferredSize());
-		f.setVisible(true);
-		
-	}
-        */
-	
+    
+  /** Returns the ColorMap that the color widget is currently pointing to */
+  public ColorWidget getColorWidget() {
+    return widget;
+  }
+  
+  /* CTR: 29 Jul 1998
+  / * * for debugging purposes * /
+  public static void main(String[] argc) {
+
+    LabeledRGBWidget l = new LabeledRGBWidget("label", 0, 1);
+
+    Frame f = new Frame("Visad Widget Test");
+    f.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {System.exit(0);}
+    });
+
+    f.add(l);
+
+    f.setSize(f.getPreferredSize());
+    f.setVisible(true);
+
+  }
+  */
+  
 }
 

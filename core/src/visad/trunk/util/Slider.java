@@ -1,12 +1,12 @@
 /*
 
-@(#) $Id: Slider.java,v 1.2 1998-02-20 16:55:30 billh Exp $
+@(#) $Id: Slider.java,v 1.3 1998-07-30 20:30:05 curtis Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
 Copyright (C) 1998 Nick Rasmussen
-VisAD is Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden and Tom
-Rink.
+VisAD is Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
+Rink and Dave Glowacki.
  
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ import java.util.Vector;
  * orientation will be assumed by several other classes
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.2 $, $Date: 1998-02-20 16:55:30 $
+ * @version $Revision: 1.3 $, $Date: 1998-07-30 20:30:05 $
  * @since Visad Utility Library v0.7.1
  */
  

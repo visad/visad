@@ -1,12 +1,12 @@
 /*
 
-@(#) $Id: RGBAMap.java,v 1.2 1998-06-24 14:14:28 billh Exp $
+@(#) $Id: RGBAMap.java,v 1.3 1998-07-30 20:30:04 curtis Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
 Copyright (C) 1998 Nick Rasmussen
-VisAD is Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden and Tom
-Rink.
+VisAD is Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
+Rink and Dave Glowacki.
  
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,20 +29,20 @@ import java.awt.event.*;
 import java.awt.*;
 
 /** 
- * A simple RGB colormap with no interpolation between the internally
+ * A simple RGBA colormap with no interpolation between the internally
  * stored values.  Click and drag with the left mouse button to draw
  * the color curves. Click with the right mouse button to alternate
- * between the red, green and blue curves.
+ * between the red, green, blue, and alpha curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.2 $, $Date: 1998-06-24 14:14:28 $
+ * @version $Revision: 1.3 $, $Date: 1998-07-30 20:30:04 $
  * @since Visad Utility Library, 0.5
  */
 
 public class RGBAMap extends ColorMap 
 	implements MouseListener, MouseMotionListener {
 
-	/** The array of RGB tuples */
+	/** The array of RGBA tuples */
 	private float[][] val;
 
 	/** The left modified value */
@@ -67,7 +67,7 @@ public class RGBAMap extends ColorMap
 	/** The resolution of the map */
 	private int resolution;
 
-	/** Construct an RGBMap with the default resolution of 256 */
+	/** Construct an RGBAMap with the default resolution of 256 */
 	public RGBAMap() {
 		this(256);
 	}
@@ -86,6 +86,19 @@ public class RGBAMap extends ColorMap
 	}
 	
 	public RGBAMap(float[][] vals) {
+	  setValues(vals, false);
+	  addMouseListener(this);
+	  addMouseMotionListener(this);
+	  //this.addColorChangeListener(this);
+	}
+
+	/** Sets the values of the internal array after the RGBAMap
+	    has been created. */
+        public void setValues(float[][] vals) {
+		setValues(vals, true);
+	}
+
+	private void setValues(float[][] vals, boolean notify) {
                 if (vals == null) {
                   this.resolution = 256;
                   val = new float[this.resolution][4];
@@ -101,11 +114,10 @@ public class RGBAMap extends ColorMap
 			  val[i][3] = vals[i][3];
 		  }
 		}
-		addMouseListener(this);
-		addMouseMotionListener(this);
-		//this.addColorChangeListener(this);
-	}
-	
+		if (notify) notifyListeners(0, this.resolution-1);
+		//if (redraw) paint(this.getGraphics());  // update screen; big hammer
+        }
+
 	/** Returns the resolution of the map */
 	public int getMapResolution() {
 		return resolution;
@@ -182,7 +194,7 @@ update(getGraphics());
 	 */
 	protected void notifyListeners(int left, int right) {
 		
-		// !!!fix this to reflect a more acurate region of affectation		
+		// !!!fix this to reflect a more accurate region of affectation		
 		if (left != 0) {
 			left--;
 		}
@@ -257,7 +269,7 @@ update(getGraphics());
 		if ((e.getModifiers() & e.BUTTON1_MASK) == 0 && e.getModifiers() != 0) {
 			return;
 		}
-		
+
 		int index = 0;
 		int width = getBounds().width;
 		int height = getBounds().height;
@@ -282,12 +294,12 @@ update(getGraphics());
 
 		oldX = x;
 		oldY = y;
-		
+
 		notifyListeners(index, index);
 
-		
+
 	}
-	
+
 	/** Listens for releases of the right mouse button, and changes the active color */
 	public void mouseReleased(MouseEvent e) {
 		//System.out.println(e.paramString());
@@ -503,8 +515,8 @@ update(getGraphics());
 			val[i][ALPHA] = 1.0f;
 		}
 	}
-	
-	
+
+
 	/** Initializes the colormap to be linear in hue */
 	private void initColormapHSV() {
 		float s = 1;
