@@ -62,56 +62,32 @@ import visad.data.Form;
 import visad.data.FormNode;
 import visad.data.FormFileInformer;
 
-
-abstract class BaseCache
-{
-  private static ArrayList allCache = new ArrayList();
-
-  BaseCache() { allCache.add(this); }
-
-  static void clearAll()
-  {
-    final int len = allCache.size();
-    for (int i = 0; i < len; i++) {
-      ((BaseCache )allCache.get(i)).clearValue();
-    }
-  }
-
-  abstract void clearValue();
-}
-
 class DoubleCache
-  extends BaseCache
 {
   private double value;
 
   DoubleCache() { this(Double.NaN); }
   DoubleCache(double v) { value = v; }
-  void clearValue() { value = Double.NaN; }
   double getValue() { return value; }
   void setValue(double v) { value = v; }
 }
 
 class FloatCache
-  extends BaseCache
 {
   private float value;
 
   FloatCache() { this(Float.NaN); }
   FloatCache(float v) { value = v; }
-  void clearValue() { value = Float.NaN; }
   float getValue() { return value; }
   void setValue(float v) { value = v; }
 }
 
 class IntCache
-  extends BaseCache
 {
   private int value;
 
   IntCache() { this(-1); }
   IntCache(int v) { value = v; }
-  void clearValue() { value = -1; }
   int getValue() { return value; }
   void setValue(int v) { value = v; }
 }
@@ -514,25 +490,14 @@ class Event
   }
 }
 
-/**
-   F2000Form is the VisAD data format adapter for
-   F2000 files for Amanda events.<P>
-*/
-public class F2000Form
-  extends Form
-  implements FormFileInformer
+class AmandaFile
 {
-  private static final float CUBE = 0.05f;
-
-  private static int num = 0;
-
   private static boolean typesCreated = false;
   private static RealType xType, yType, zType;
   private static RealType amplitudeType;
   private static RealType letType;
   private static RealType eventIndexType;
   private static RealType moduleIndexType;
-
   private static FunctionType eventsFunctionType;
   private static FunctionType moduleFunctionType;
 
@@ -543,256 +508,20 @@ public class F2000Form
   private double zmin = Double.MAX_VALUE;
   private double zmax = Double.MIN_VALUE;
 
+  private ModuleList modules = new ModuleList();
+  private ArrayList events = new ArrayList();
+
   private HashMap lastCache = new HashMap();
 
-  public F2000Form()
+  AmandaFile(InputStream is)
+    throws BadFormException, VisADException
   {
-    super("F2000Form#" + num++);
+    this(new BufferedReader(new InputStreamReader(is)));
   }
 
-  public synchronized void add(String id, Data data, boolean replace)
-    throws BadFormException
+  AmandaFile(BufferedReader br)
+    throws BadFormException, VisADException
   {
-    throw new BadFormException("F2000Form.add");
-  }
-
-  private final Tuple buildData(ArrayList events, ModuleList modules)
-    throws VisADException
-  {
-    // Field of Tuples of track and hit Fields
-    final int nevents = events.size();
-    Integer1DSet eventsSet =
-      new Integer1DSet(eventIndexType, (nevents == 0 ? 1 : nevents));
-    FieldImpl eventsField =
-      new FieldImpl(eventsFunctionType, eventsSet);
-    if (nevents > 0) {
-      Tuple[] eventTuples = new Tuple[nevents];
-      for (int e = 0; e < nevents; e++) {
-        eventTuples[e] = ((Event )events.get(e)).makeData();
-      }
-      try {
-        eventsField.setSamples(eventTuples, false);
-      } catch (RemoteException re) {
-        re.printStackTrace();
-      }
-    }
-    // return eventsField;
-
-    final int nmodules = modules.size();
-    Integer1DSet moduleSet = new Integer1DSet(moduleIndexType, nmodules);
-    FlatField moduleField =
-      new FlatField(moduleFunctionType, moduleSet);
-    float[][] msamples = new float[3][nmodules];
-    for (int i = 0; i < nmodules; i++) {
-      Module mod = modules.get(i);
-      msamples[0][i] = mod.getX();
-      msamples[1][i] = mod.getY();
-      msamples[2][i] = mod.getZ();
-    }
-    try {
-      moduleField.setSamples(msamples);
-    } catch (RemoteException re) {
-      re.printStackTrace();
-      return null;
-    }
-
-    Tuple t;
-    try {
-      t = new Tuple(new Data[] {eventsField, moduleField});
-    } catch (RemoteException re) {
-      re.printStackTrace();
-      t = null;
-    }
-
-    return t;
-  }
-
-  private void createTypes()
-    throws VisADException
-  {
-    if (typesCreated) {
-      return;
-    }
-
-    // right handed coordinate system
-    xType = RealType.XAxis; // positive eastward (along 0 longitude?)
-    yType = RealType.YAxis; // positive along -90 longitude (?)
-    zType = RealType.ZAxis; // positive up
-    // zenith = 0.0f toward -z (this is the "latitude")
-    // azimuth = 0.0f toward +x (this is the "longitude")
-    RealType timeType = RealType.Time;
-    RealType trackIndexType = RealType.getRealType("track_index");
-    RealType energyType = RealType.getRealType("energy"); // track energy
-    RealType hitIndexType = RealType.getRealType("hit_index");
-    amplitudeType = RealType.getRealType("amplitude"); // hit amplitude
-    RealType totType = RealType.getRealType("tot"); // hit time-over-threshold
-    letType = RealType.getRealType("let"); // hit leading-edge-time
-    eventIndexType = RealType.getRealType("event_index");
-    moduleIndexType = RealType.getRealType("module_index");
-
-    RealTupleType xyzType = new RealTupleType(xType, yType, zType);
-    RealTupleType trackRange = new RealTupleType(timeType, energyType);
-    FunctionType trackFunctionType = new FunctionType(xyzType, trackRange);
-    RealType[] hitReals =
-      {xType, yType, zType, amplitudeType, letType, totType};
-    RealTupleType hitType = new RealTupleType(hitReals);
-    FunctionType tracksFunctionType =
-      new FunctionType(trackIndexType, trackFunctionType);
-    FunctionType hitsFunctionType = 
-      new FunctionType(hitIndexType, hitType);
-
-    TupleType eventsFunctionRange = new TupleType(new MathType[]
-      {tracksFunctionType, hitsFunctionType});
-    eventsFunctionType =
-      new FunctionType(eventIndexType, eventsFunctionRange);
-
-    moduleFunctionType =
-      new FunctionType(moduleIndexType, xyzType);
-
-    BaseTrack.initTypes(xyzType, trackFunctionType);
-    Hit.initTypes(hitType);
-    Event.initTypes(trackIndexType, hitIndexType,
-                    tracksFunctionType, hitsFunctionType);
-
-    typesCreated = true;
-  }
-
-  public static final RealType getAmplitude() { return amplitudeType; }
-
-  public static final VisADQuadArray[] getCubeArray()
-  {
-    VisADQuadArray cube = new VisADQuadArray();
-    cube.coordinates = new float[]
-      {CUBE,  CUBE, -CUBE,     CUBE, -CUBE, -CUBE,
-       CUBE, -CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
-       -CUBE, -CUBE, -CUBE,    -CUBE,  CUBE, -CUBE,
-       -CUBE,  CUBE, -CUBE,     CUBE,  CUBE, -CUBE,
-
-       CUBE,  CUBE,  CUBE,     CUBE, -CUBE,  CUBE,
-       CUBE, -CUBE,  CUBE,    -CUBE, -CUBE,  CUBE,
-       -CUBE, -CUBE,  CUBE,    -CUBE,  CUBE,  CUBE,
-       -CUBE,  CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
-
-       CUBE,  CUBE,  CUBE,     CUBE,  CUBE, -CUBE,
-       CUBE,  CUBE, -CUBE,     CUBE, -CUBE, -CUBE,
-       CUBE, -CUBE, -CUBE,     CUBE, -CUBE,  CUBE,
-       CUBE, -CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
-
-       -CUBE,  CUBE,  CUBE,    -CUBE,  CUBE, -CUBE,
-       -CUBE,  CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
-       -CUBE, -CUBE, -CUBE,    -CUBE, -CUBE,  CUBE,
-       -CUBE, -CUBE,  CUBE,    -CUBE,  CUBE,  CUBE,
-
-       CUBE,  CUBE,  CUBE,     CUBE,  CUBE, -CUBE,
-       CUBE,  CUBE, -CUBE,    -CUBE,  CUBE, -CUBE,
-       -CUBE,  CUBE, -CUBE,    -CUBE,  CUBE,  CUBE,
-       -CUBE,  CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
-
-       CUBE, -CUBE,  CUBE,     CUBE, -CUBE, -CUBE,
-       CUBE, -CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
-       -CUBE, -CUBE, -CUBE,    -CUBE, -CUBE,  CUBE,
-       -CUBE, -CUBE,  CUBE,     CUBE, -CUBE,  CUBE};
-
-    cube.vertexCount = cube.coordinates.length / 3;
-    cube.normals = new float[144];
-    cube.normals = new float[144];
-    for (int i=0; i<24; i+=3) {
-      cube.normals[i]     =  0.0f;
-      cube.normals[i+1]   =  0.0f;
-      cube.normals[i+2]   = -1.0f;
-
-      cube.normals[i+24]  =  0.0f;
-      cube.normals[i+25]  =  0.0f;
-      cube.normals[i+26]  =  1.0f;
-
-      cube.normals[i+48]  =  1.0f;
-      cube.normals[i+49]  =  0.0f;
-      cube.normals[i+50]  =  0.0f;
-
-      cube.normals[i+72]  = -1.0f;
-      cube.normals[i+73]  =  0.0f;
-      cube.normals[i+74]  =  0.0f;
-
-      cube.normals[i+96]  =  0.0f;
-      cube.normals[i+97]  =  1.0f;
-      cube.normals[i+98]  =  0.0f;
-
-      cube.normals[i+120] =  0.0f;
-      cube.normals[i+121] = -1.0f;
-      cube.normals[i+122] =  0.0f;
-    }
-
-    return new VisADQuadArray[] {cube};
-  }
-
-  public String[] getDefaultSuffixes()
-  {
-    String[] suff = { "r" };
-    return suff;
-  }
-
-  public static final RealType getEventIndex() { return eventIndexType; }
-
-  public synchronized FormNode getForms(Data data)
-  {
-    return null;
-  }
-
-  public static final RealType getLet() { return letType; }
-  public static final RealType getTrackIndex() { return Event.getTrackIndexType(); }
-
-  public static final RealType getX() { return xType; }
-  public final double getXMax() { return xmax; }
-  public final double getXMin() { return xmin; }
-
-  public static final RealType getY() { return yType; }
-  public final double getYMax() { return ymax; }
-  public final double getYMin() { return ymin; }
-
-  public static final RealType getZ() { return zType; }
-  public final double getZMax() { return zmax; }
-  public final double getZMin() { return zmin; }
-
-  public boolean isThisType(String name)
-  {
-    return name.endsWith(".r");
-  }
-
-  public boolean isThisType(byte[] block)
-  {
-    return false;
-  }
-
-  private String nextLine(BufferedReader rdr)
-    throws IOException
-  {
-    String line = rdr.readLine();
-    if (line != null) {
-      line = line.trim().toLowerCase();
-    }
-
-    return line;
-  }
-
-  public synchronized DataImpl open(String id)
-    throws BadFormException, IOException, VisADException
-  {
-    FileInputStream fileStream = new FileInputStream(id);
-    return open(fileStream);
-  }
-
-  public synchronized DataImpl open(URL url)
-    throws BadFormException, VisADException, IOException
-  {
-    InputStream inputStream = url.openStream();
-    return open(inputStream);
-  }
-
-  private synchronized DataImpl open(InputStream is)
-    throws BadFormException, VisADException, IOException
-  {
-    BufferedReader br = new BufferedReader(new InputStreamReader(is));
-
     // read V record
     String firstLine;
     try {
@@ -809,11 +538,6 @@ public class F2000Form
     }
 
     createTypes();
-
-    BaseCache.clearAll();
-
-    ModuleList modules = new ModuleList();
-    ArrayList events = new ArrayList();
 
     Event currentEvent = null;
 
@@ -922,7 +646,7 @@ public class F2000Form
       }
 
       if (keyword.equals("ht")) {
-        Hit hit = readHit(line, tok, modules);
+        Hit hit = readHit(line, tok);
         if (hit != null) {
           if (currentEvent == null) {
             System.err.println("Found HIT " + hit +
@@ -947,9 +671,143 @@ public class F2000Form
       }
     }
 
-    try { br.close(); } catch (IOException ioe) { }
+    // remove cached values since they're no longer needed
+    lastCache.clear();
+  }
 
-    return buildData(events, modules);
+  private void createTypes()
+    throws VisADException
+  {
+    if (typesCreated) {
+      return;
+    }
+
+    // right handed coordinate system
+    xType = RealType.XAxis; // positive eastward (along 0 longitude?)
+    yType = RealType.YAxis; // positive along -90 longitude (?)
+    zType = RealType.ZAxis; // positive up
+    // zenith = 0.0f toward -z (this is the "latitude")
+    // azimuth = 0.0f toward +x (this is the "longitude")
+    RealType timeType = RealType.Time;
+    RealType trackIndexType = RealType.getRealType("track_index");
+    RealType energyType = RealType.getRealType("energy"); // track energy
+    RealType hitIndexType = RealType.getRealType("hit_index");
+    amplitudeType = RealType.getRealType("amplitude"); // hit amplitude
+    RealType totType = RealType.getRealType("tot"); // hit time-over-threshold
+    letType = RealType.getRealType("let"); // hit leading-edge-time
+    eventIndexType = RealType.getRealType("event_index");
+    moduleIndexType = RealType.getRealType("module_index");
+
+    RealTupleType xyzType = new RealTupleType(xType, yType, zType);
+    RealTupleType trackRange = new RealTupleType(timeType, energyType);
+    FunctionType trackFunctionType = new FunctionType(xyzType, trackRange);
+    RealType[] hitReals =
+      {xType, yType, zType, amplitudeType, letType, totType};
+    RealTupleType hitType = new RealTupleType(hitReals);
+    FunctionType tracksFunctionType =
+      new FunctionType(trackIndexType, trackFunctionType);
+    FunctionType hitsFunctionType = 
+      new FunctionType(hitIndexType, hitType);
+
+    TupleType eventsFunctionRange = new TupleType(new MathType[]
+      {tracksFunctionType, hitsFunctionType});
+    eventsFunctionType =
+      new FunctionType(eventIndexType, eventsFunctionRange);
+
+    moduleFunctionType =
+      new FunctionType(moduleIndexType, xyzType);
+
+    BaseTrack.initTypes(xyzType, trackFunctionType);
+    Hit.initTypes(hitType);
+    Event.initTypes(trackIndexType, hitIndexType,
+                    tracksFunctionType, hitsFunctionType);
+
+    typesCreated = true;
+  }
+
+  public static final RealType getAmplitudeType() { return amplitudeType; }
+
+  public static final RealType getEventIndexType() { return eventIndexType; }
+
+  public synchronized FormNode getForms(Data data)
+  {
+    return null;
+  }
+
+  public static final RealType getLeadEdgeTimeType() { return letType; }
+
+  public final double getXMax() { return xmax; }
+  public final double getXMin() { return xmin; }
+  public static final RealType getXType() { return xType; }
+
+  public final double getYMax() { return ymax; }
+  public final double getYMin() { return ymin; }
+  public static final RealType getYType() { return yType; }
+
+  public final double getZMax() { return zmax; }
+  public final double getZMin() { return zmin; }
+  public static final RealType getZType() { return zType; }
+
+  public final Tuple makeData()
+    throws VisADException
+  {
+    // Field of Tuples of track and hit Fields
+    final int nevents = events.size();
+    Integer1DSet eventsSet =
+      new Integer1DSet(eventIndexType, (nevents == 0 ? 1 : nevents));
+    FieldImpl eventsField =
+      new FieldImpl(eventsFunctionType, eventsSet);
+    if (nevents > 0) {
+      Tuple[] eventTuples = new Tuple[nevents];
+      for (int e = 0; e < nevents; e++) {
+        eventTuples[e] = ((Event )events.get(e)).makeData();
+      }
+      try {
+        eventsField.setSamples(eventTuples, false);
+      } catch (RemoteException re) {
+        re.printStackTrace();
+      }
+    }
+    // return eventsField;
+
+    final int nmodules = modules.size();
+    Integer1DSet moduleSet = new Integer1DSet(moduleIndexType, nmodules);
+    FlatField moduleField =
+      new FlatField(moduleFunctionType, moduleSet);
+    float[][] msamples = new float[3][nmodules];
+    for (int i = 0; i < nmodules; i++) {
+      Module mod = modules.get(i);
+      msamples[0][i] = mod.getX();
+      msamples[1][i] = mod.getY();
+      msamples[2][i] = mod.getZ();
+    }
+    try {
+      moduleField.setSamples(msamples);
+    } catch (RemoteException re) {
+      re.printStackTrace();
+      return null;
+    }
+
+    Tuple t;
+    try {
+      t = new Tuple(new Data[] {eventsField, moduleField});
+    } catch (RemoteException re) {
+      re.printStackTrace();
+      t = null;
+    }
+
+    return t;
+  }
+
+  private String nextLine(BufferedReader rdr)
+    throws IOException
+  {
+    String line = rdr.readLine();
+    if (line != null) {
+      line = line.trim().toLowerCase();
+    }
+
+    return line;
   }
 
   private int parseChannel(String tokenName, String token)
@@ -1124,8 +982,7 @@ public class F2000Form
                         energy, time);
   }
 
-  private final Hit readHit(String line, StringTokenizer tok,
-                            ModuleList modules)
+  private final Hit readHit(String line, StringTokenizer tok)
     throws VisADException
   {
     String chanStr = tok.nextToken();
@@ -1224,12 +1081,6 @@ public class F2000Form
                        energy, time);
   }
 
-  public synchronized void save(String id, Data data, boolean replace)
-    throws BadFormException, IOException, RemoteException, VisADException
-  {
-    throw new BadFormException("F2000Form.save");
-  }
-
   private final Event startEvent(String line, StringTokenizer tok)
     throws BadFormException
   {
@@ -1250,5 +1101,164 @@ public class F2000Form
     }
 
     return new Event(evtNum, runNum, year, day, time, timeShift);
+  }
+}
+
+/**
+   F2000Form is the VisAD data format adapter for
+   F2000 files for Amanda events.<P>
+*/
+public class F2000Form
+  extends Form
+  implements FormFileInformer
+{
+  private static final float CUBE = 0.05f;
+
+  private static int num = 0;
+
+  private AmandaFile file = null;
+
+  public F2000Form()
+  {
+    super("F2000Form#" + num++);
+  }
+
+  public synchronized void add(String id, Data data, boolean replace)
+    throws BadFormException
+  {
+    throw new BadFormException("F2000Form.add");
+  }
+
+  public final RealType getAmplitude() { return AmandaFile.getAmplitudeType(); }
+
+  public static final VisADQuadArray[] getCubeArray()
+  {
+    VisADQuadArray cube = new VisADQuadArray();
+    cube.coordinates = new float[]
+      {CUBE,  CUBE, -CUBE,     CUBE, -CUBE, -CUBE,
+       CUBE, -CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
+       -CUBE, -CUBE, -CUBE,    -CUBE,  CUBE, -CUBE,
+       -CUBE,  CUBE, -CUBE,     CUBE,  CUBE, -CUBE,
+
+       CUBE,  CUBE,  CUBE,     CUBE, -CUBE,  CUBE,
+       CUBE, -CUBE,  CUBE,    -CUBE, -CUBE,  CUBE,
+       -CUBE, -CUBE,  CUBE,    -CUBE,  CUBE,  CUBE,
+       -CUBE,  CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
+
+       CUBE,  CUBE,  CUBE,     CUBE,  CUBE, -CUBE,
+       CUBE,  CUBE, -CUBE,     CUBE, -CUBE, -CUBE,
+       CUBE, -CUBE, -CUBE,     CUBE, -CUBE,  CUBE,
+       CUBE, -CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
+
+       -CUBE,  CUBE,  CUBE,    -CUBE,  CUBE, -CUBE,
+       -CUBE,  CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
+       -CUBE, -CUBE, -CUBE,    -CUBE, -CUBE,  CUBE,
+       -CUBE, -CUBE,  CUBE,    -CUBE,  CUBE,  CUBE,
+
+       CUBE,  CUBE,  CUBE,     CUBE,  CUBE, -CUBE,
+       CUBE,  CUBE, -CUBE,    -CUBE,  CUBE, -CUBE,
+       -CUBE,  CUBE, -CUBE,    -CUBE,  CUBE,  CUBE,
+       -CUBE,  CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
+
+       CUBE, -CUBE,  CUBE,     CUBE, -CUBE, -CUBE,
+       CUBE, -CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
+       -CUBE, -CUBE, -CUBE,    -CUBE, -CUBE,  CUBE,
+       -CUBE, -CUBE,  CUBE,     CUBE, -CUBE,  CUBE};
+
+    cube.vertexCount = cube.coordinates.length / 3;
+    cube.normals = new float[144];
+    cube.normals = new float[144];
+    for (int i=0; i<24; i+=3) {
+      cube.normals[i]     =  0.0f;
+      cube.normals[i+1]   =  0.0f;
+      cube.normals[i+2]   = -1.0f;
+
+      cube.normals[i+24]  =  0.0f;
+      cube.normals[i+25]  =  0.0f;
+      cube.normals[i+26]  =  1.0f;
+
+      cube.normals[i+48]  =  1.0f;
+      cube.normals[i+49]  =  0.0f;
+      cube.normals[i+50]  =  0.0f;
+
+      cube.normals[i+72]  = -1.0f;
+      cube.normals[i+73]  =  0.0f;
+      cube.normals[i+74]  =  0.0f;
+
+      cube.normals[i+96]  =  0.0f;
+      cube.normals[i+97]  =  1.0f;
+      cube.normals[i+98]  =  0.0f;
+
+      cube.normals[i+120] =  0.0f;
+      cube.normals[i+121] = -1.0f;
+      cube.normals[i+122] =  0.0f;
+    }
+
+    return new VisADQuadArray[] {cube};
+  }
+
+  public String[] getDefaultSuffixes()
+  {
+    String[] suff = { "r" };
+    return suff;
+  }
+
+  public static final RealType getEventIndex() { return AmandaFile.getEventIndexType(); }
+
+  public synchronized FormNode getForms(Data data)
+  {
+    return null;
+  }
+
+  public static final RealType getLet() { return AmandaFile.getLeadEdgeTimeType(); }
+  public static final RealType getTrackIndex() { return Event.getTrackIndexType(); }
+
+  public static final RealType getX() { return AmandaFile.getXType(); }
+  public final double getXMax() { return file.getXMax(); }
+  public final double getXMin() { return file.getXMin(); }
+
+  public static final RealType getY() { return AmandaFile.getYType(); }
+  public final double getYMax() { return file.getYMax(); }
+  public final double getYMin() { return file.getYMin(); }
+
+  public static final RealType getZ() { return AmandaFile.getZType(); }
+  public final double getZMax() { return file.getZMax(); }
+  public final double getZMin() { return file.getZMin(); }
+
+  public boolean isThisType(String name)
+  {
+    return name.endsWith(".r");
+  }
+
+  public boolean isThisType(byte[] block)
+  {
+    return false;
+  }
+
+  public synchronized DataImpl open(String id)
+    throws BadFormException, IOException, VisADException
+  {
+    FileInputStream fileStream = new FileInputStream(id);
+    return open(fileStream);
+  }
+
+  public synchronized DataImpl open(URL url)
+    throws BadFormException, VisADException, IOException
+  {
+    InputStream inputStream = url.openStream();
+    return open(inputStream);
+  }
+
+  private synchronized DataImpl open(InputStream is)
+    throws BadFormException, VisADException, IOException
+  {
+    file = new AmandaFile(is);
+    return file.makeData();
+  }
+
+  public synchronized void save(String id, Data data, boolean replace)
+    throws BadFormException, IOException, RemoteException, VisADException
+  {
+    throw new BadFormException("F2000Form.save");
   }
 }
