@@ -37,13 +37,11 @@ public class AreaFileException extends McIDASException {
 
   /**
    * Constructs an AreaFileException with no specified detail message.
-   * @deprecated  use McIDASException instead
    */
   public AreaFileException() {super(); }
 
   /**
    * Constructs an AreaFileException with the specified detail message.
-   * @deprecated  use McIDASException instead
    *
    * @param  s  the detail message.
    */
