@@ -85,6 +85,16 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
     }
   }
 
+  static float rotateOneLongitude(float lon, float base) {
+    if (lon == lon) {
+      float x = (lon - base) % 360.0f;
+      return (x + ((x < 0.0f) ? (360.0f + base) : base));
+    }
+    else {
+      return lon;
+    }
+  }
+
   void rotateLongitudes(float[] lons, float base, int axis,
                         ScalarMap map) {
     // so rotate longitudes to base
@@ -124,6 +134,7 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
         double[] map_range = map.getRange();
         float map_min = (float) map_range[0];
         float map_max = (float) map_range[1];
+// System.out.println("map_min = " + map_min + " map_max = " + map_max);
         // get Longitude values
         int axis = dreal.getTupleIndex();
 
@@ -142,28 +153,55 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
         float lon_max = -Float.MAX_VALUE;
         for (int i=0; i<vertexCount; i++) {
           if (lons[i] == lons[i]) {
+// System.out.println("lons[" + i + "] = " + lons[i]);
             if (lons[i] < lon_min) lon_min = lons[i];
             if (lons[i] > lon_max) lon_max = lons[i];
           }
         }
+// System.out.println("lon_min = " + lon_min + " lon_max = " + lon_max);
         if (lon_min == Float.MAX_VALUE) return lons;
+        boolean any_rotate = false;
         if (map_min == map_min && map_max == map_max) {
           float map_delta = 0.1f * (map_max - map_min);
+// System.out.println("map_delta = " + map_delta);
           if ( ((map_min + map_delta) < lon_min &&
                 (map_max + map_delta) < lon_max) ||
                (lon_min < (map_min - map_delta) &&
                 lon_max < (map_max - map_delta)) ) {
-            // actual longitudes are shifted significantly from map,
-            // so rotate longitudes to base at map_min
-            rotateLongitudes(lons, map_min, axis, map);
-          }
-          else if ((lon_min + 360.0f) < lon_max) {
-            rotateLongitudes(lons, lon_min, axis, map);
+
+            float new_lon_min = rotateOneLongitude(lon_min, map_min);
+            float new_lon_max = rotateOneLongitude(lon_max, map_min);
+            float dist_min =
+              (lon_min < map_min) ? (map_min - lon_min) :
+              (map_max < lon_min) ? (lon_min - map_max) : 0.0f;
+            float new_dist_min =
+              (new_lon_min < map_min) ? (map_min - new_lon_min) :
+              (map_max < new_lon_min) ? (new_lon_min - map_max) : 0.0f;
+            float dist_max =
+              (lon_max < map_min) ? (map_min - lon_max) :
+              (map_max < lon_max) ? (lon_max - map_max) : 0.0f;
+            float new_dist_max =
+              (new_lon_max < map_min) ? (map_min - new_lon_max) :
+              (map_max < new_lon_max) ? (new_lon_max - map_max) : 0.0f;
+            if ((new_dist_min + new_dist_max) < (dist_min + dist_max)) {
+
+              // actual longitudes are shifted significantly from map,
+              // so rotate longitudes to base at map_min
+// System.out.println("rotateLongitudes to map_min " + map_min);
+              any_rotate = true;
+              rotateLongitudes(lons, map_min, axis, map);
+            }
           }
         }
-        else if ((lon_min + 360.0f) < lon_max) {
+        if (!any_rotate && (lon_min + 360.0f) < lon_max) {
+// System.out.println("rotateLongitudes to lon_min " + lon_min);
           rotateLongitudes(lons, lon_min, axis, map);
         }
+/*
+for (int i=0; i<vertexCount; i++) {
+  System.out.println("return lons[" + i + "] = " + lons[i]);
+}
+*/
         return lons;
       }
     }

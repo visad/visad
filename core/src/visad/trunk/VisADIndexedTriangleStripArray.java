@@ -90,6 +90,8 @@ public class VisADIndexedTriangleStripArray extends VisADGeometryArray {
     return array;
   }
 
+  private static final int MUL = 6;
+
   public VisADGeometryArray adjustLongitude(DataRenderer renderer)
          throws VisADException {
     float[] lons = getLongitudes(renderer);
@@ -131,29 +133,29 @@ public class VisADIndexedTriangleStripArray extends VisADGeometryArray {
 
     VisADIndexedTriangleStripArray array = new VisADIndexedTriangleStripArray();
     // worst case makes 3 times as many triangles
-    float[] coords = new float[3 * coordinates.length];
+    float[] coords = new float[MUL * coordinates.length];
     System.arraycopy(coordinates, 0, coords, 0, coordinates.length);
     float[] nos = null;
     if (normals != null) {
-      nos = new float[3 * normals.length];
+      nos = new float[MUL * normals.length];
       System.arraycopy(normals, 0, nos, 0, normals.length);
     }
     int color_length = 0;
     byte[] cols = null;
     if (colors != null) {
       color_length = 3;
-      cols = new byte[3 * colors.length];
+      cols = new byte[MUL * colors.length];
       if (colors.length != coordinates.length) color_length = 4;
       System.arraycopy(colors, 0, cols, 0, colors.length);
     }
     float[] texs = null;
     if (texCoords != null) {
-      texs = new float[3 * texCoords.length];
+      texs = new float[MUL * texCoords.length];
       System.arraycopy(texCoords, 0, texs, 0, texCoords.length);
     }
     int coord_index = coordinates.length / 3; // index to add next point
     // worst case makes 3 times as many indices
-    int[] inds = new int[3 * indices.length];
+    int[] inds = new int[MUL * indices.length];
     int ind_index = 0; // index to add next indices entry
     // worst case makes as many strips as there were points
     int[] svcs = new int[coordinates.length];
