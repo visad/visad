@@ -907,5 +907,12 @@ public abstract class DisplayRendererJ3D
   {
     clearScene(renderer);
   }
+
+  public void addKeyboardBehavior(KeyboardBehaviorJ3D behavior)
+  {
+    BranchGroup bg = new BranchGroup();
+    bg.addChild(behavior);
+    trans.addChild(bg);
+  }
 }
 
