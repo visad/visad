@@ -53,6 +53,9 @@ Unpacking VisAD will create the following sub-directories:
   visad/paoloa			// GoesCollaboration application
   visad/aune			// ShallowFluid application
   visad/benjamin		// Galaxy application
+  visad/rabin                   // Rainfall estimation spread sheet
+  visad/bom                     // wind barb rendering for ABOM
+  visad/jmet                    // JMet - Java Meteorology package
   visad/examples		// small application examples
   nom/tam/fits			// Java FITS file binding
   nom/tam/util			// Java FITS file binding

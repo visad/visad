@@ -207,38 +207,7 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
   }
 
   public void addPoint(float[] x) throws VisADException {
-/* may need to do this for performance
-    int count = x.length / 3;
-    VisADGeometryArray array = null;
-    if (count == 1) {
-      array = new VisADPointArray();
-    }
-    else if (count == 2) {
-      array = new VisADLineArray();
-    }
-    else {
-      return;
-    }
-    array.coordinates = x;
-    array.vertexCount = count;
-    VisADAppearance appearance = new VisADAppearance();
-    DataDisplayLink link = getLinks()[0];
-    float[] default_values = link.getDefaultValues();
-    DisplayImpl display = getDisplay();
-    appearance.pointSize =
-      default_values[display.getDisplayScalarIndex(Display.PointSize)];
-    appearance.lineWidth = 
-      default_values[display.getDisplayScalarIndex(Display.LineWidth)];
-    appearance.red = 1.0f;
-    appearance.green = 1.0f;
-    appearance.blue = 1.0f;
-    appearance.array = array;
-    //
-    VisADGroup extra_branch = getExtraBranch();
-    //
-    // want replace rather than add
-    extra_branch.addChild(appearance);
-*/
+    // may need to do this for performance
   }
 
   public synchronized void setBarbSpatialValues(float[] mbarb, int which) {
@@ -504,59 +473,76 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
   /** test BarbManipulationRendererJ2D */
   public static void main(String args[])
          throws VisADException, RemoteException {
+    // construct RealTypes for wind record components
     RealType lat = RealType.Latitude;
     RealType lon = RealType.Longitude;
-    RealType flowx = new RealType("flowx");
-    RealType flowy = new RealType("flowy");
+    RealType windx = new RealType("windx");
+    RealType windy = new RealType("windy");
     RealType red = new RealType("red");
     RealType green = new RealType("green");
 
     // EarthVectorType extends RealTupleType and says that its
     // components are vectors in m/s with components parallel
     // to Longitude (positive east) and Latitude (positive north)
-    EarthVectorType flowxy = new EarthVectorType(flowx, flowy);
+    EarthVectorType windxy = new EarthVectorType(windx, windy);
 
+    // construct Java2D display and mappings that govern
+    // how wind records are displayed
     DisplayImpl display = new DisplayImplJ2D("display1");
     ScalarMap lonmap = new ScalarMap(lon, Display.XAxis);
     display.addMap(lonmap);
     ScalarMap latmap = new ScalarMap(lat, Display.YAxis);
     display.addMap(latmap);
-    ScalarMap flowx_map = new ScalarMap(flowx, Display.Flow1X);
-    display.addMap(flowx_map);
-    flowx_map.setRange(-1.0, 1.0);
-    ScalarMap flowy_map = new ScalarMap(flowy, Display.Flow1Y);
-    display.addMap(flowy_map);
-    flowy_map.setRange(-1.0, 1.0);
-    FlowControl flow_control = (FlowControl) flowy_map.getControl();
-    flow_control.setFlowScale(0.15f);
+    ScalarMap windx_map = new ScalarMap(windx, Display.Flow1X);
+    display.addMap(windx_map);
+    windx_map.setRange(-1.0, 1.0); // do this for barb rendering
+    ScalarMap windy_map = new ScalarMap(windy, Display.Flow1Y);
+    display.addMap(windy_map);
+    windy_map.setRange(-1.0, 1.0); // do this for barb rendering
+    FlowControl flow_control = (FlowControl) windy_map.getControl();
+    flow_control.setFlowScale(0.15f); // this controls size of barbs
     display.addMap(new ScalarMap(red, Display.Red));
     display.addMap(new ScalarMap(green, Display.Green));
     display.addMap(new ConstantMap(1.0, Display.Blue));
 
+    DataReferenceImpl[] refs = new DataReferenceImpl[N * N];
+    int k = 0;
     // create an array of N by N winds
     for (int i=0; i<N; i++) {
       for (int j=0; j<N; j++) {
         double u = 2.0 * i / (N - 1.0) - 1.0;
         double v = 2.0 * j / (N - 1.0) - 1.0;
 
-        // each wind record is a Tuple (lon, lat, (flowx, flowy), red, green)
+        // each wind record is a Tuple (lon, lat, (windx, windy), red, green)
         // set colors by wind components, just for grins
         Tuple tuple = new Tuple(new Data[]
           {new Real(lon, 10.0 * u), new Real(lat, 10.0 * v - 40.0),
-           new RealTuple(flowxy, new double[] {30.0 * u, 30.0 * v}),
+           new RealTuple(windxy, new double[] {30.0 * u, 30.0 * v}),
            new Real(red, u), new Real(green, v)});
 
         // construct reference for wind record
-        DataReferenceImpl ref = new DataReferenceImpl("ref");
-        ref.setData(tuple);
+        refs[k] = new DataReferenceImpl("ref_" + k);
+        refs[k].setData(tuple);
 
         // link wind record to display via BarbManipulationRendererJ2D
         // so user can change barb by dragging it
         // drag with right mouse button and shift to change direction
         // drag with right mouse button and no shift to change speed
-        display.addReferences(new BarbManipulationRendererJ2D(), ref);
+        display.addReferences(new BarbManipulationRendererJ2D(), refs[k]);
+
+        // link wind record to a CellImpl that will listen for changes
+        // and print them
+        WindGetter cell = new WindGetter(refs[k]);
+        cell.addReference(refs[k]);
+
+        k++;
       }
     }
+
+    // instead of linking the wind record "DataReferenceImpl refs" to
+    // the WindGetters, you can have some user interface event (e.g.,
+    // the user clicks on "DONE") trigger code that does a getData() on
+    // all the refs and stores the records in a file.
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test BarbManipulationRendererJ2D");
@@ -578,5 +564,25 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
     frame.setSize(500, 500);
     frame.setVisible(true);
   }
+}
+
+class WindGetter extends CellImpl {
+  DataReferenceImpl ref;
+
+  public WindGetter(DataReferenceImpl r) {
+    ref = r;
+  }
+
+  public void doAction() throws VisADException, RemoteException {
+    Tuple tuple = (Tuple) ref.getData();
+    float lon = (float) ((Real) tuple.getComponent(0)).getValue();
+    float lat = (float) ((Real) tuple.getComponent(1)).getValue();
+    RealTuple wind = (RealTuple) tuple.getComponent(2);
+    float windx = (float) ((Real) wind.getComponent(0)).getValue();
+    float windy = (float) ((Real) wind.getComponent(1)).getValue();
+    System.out.println("wind = (" + windx + ", " + windy + ") at (" +
+                       + lat + ", " + lon +")");
+  }
+
 }
 
