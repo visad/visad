@@ -212,14 +212,6 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
       tuplecs = tuple.getCoordinateSystem();
     }
 
-/* WLH 11 June 2000
-    boolean twod = getDisplayRenderer().getMode2D();
-    if (tuple != null && !twod) {
-      whyNotDirect = badCoordSysManifoldDim;
-      return;
-    }
-*/
-
     directManifoldDimension = 2;
     setIsDirectManipulation(true);
   }
@@ -317,8 +309,9 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
 
   public synchronized void drag_direct(VisADRay ray, boolean first,
                                        int mouseModifiers) {
-    // System.out.println("drag_direct " + first + " " + type);
-    if (spatialValues == null || ref == null || shadow == null) return;
+    // System.out.println("drag_direct " + first + " " + ref + " " + shadow);
+    // if (spatialValues == null || ref == null || shadow == null) return;
+    if (ref == null || shadow == null) return;
 
     if (first) {
       stop = false;
@@ -376,6 +369,7 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
                                            data.getCoordinateSystem(),
                                            data.getSetUnits(), null);
             newData = new UnionSet(type, new_sets);
+// System.out.println("drag_direct new");
           }
           else {
             SampledSet[] new_sets = new SampledSet[n+1];
@@ -436,6 +430,7 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
                                      data.getCoordinateSystem(),
                                      data.getSetUnits(), null);
           newData = new UnionSet(type, sets);
+// System.out.println("drag_direct len = " + len + " which_set = " + which_set);
         }
         else { // !first
           if (which_set < 0) return; // shouldn't happen

@@ -103,6 +103,7 @@ public class CollectiveBarbManipulation extends Object
   private int last_sta = -1;
   private int last_time = -1;
   private int last_display = -1;
+  private boolean last_curve = true;
 
   private float[][] azimuths;
   private float[][] radials;
@@ -115,6 +116,8 @@ public class CollectiveBarbManipulation extends Object
   private DataRenderer[] barb_manipulation_renderers2 = null;
   private BarbMonitor2[] barb_monitors2 = null;
 
+  private Object data_lock = new Object();
+
   private boolean ended = false; // manipulation ended
 
   /**
@@ -123,9 +126,10 @@ public class CollectiveBarbManipulation extends Object
      where tuple is flat
        [e.g., (Latitude, Longitude, (flow_dir, flow_speed))]
      and must include RealTypes Latitude and Longitude plus
-     RealTypes mapped to Flow1Azimuth and Flow1Radial in the
-     DisplayImplJ3Ds d1 and d2 (unless they are not null);
-     d1 must have Time mapped to Animation, and d2 may not;
+     RealTypes mapped to Flow1Azimuth and Flow1Radial, or to
+     Flow2Azimuth and Flow2Radial, in the DisplayImplJ3Ds d1
+     and d2 (unless they are not null);
+     d1 must have Time mapped to Animation, and d2 must not;
 
      abs indicates absolute or relative value adjustment
      id and od are inner and outer distances in meters
@@ -216,12 +220,6 @@ public class CollectiveBarbManipulation extends Object
         lon_index = i;
       }
     }
-
-/* not needed
-    RealType[] real_types2 = new RealType[tuple_dim + 1];
-    System.arraycopy(real_types, 0, real_types2, 0, tuple_dim);
-    real_types2[tuple_dim] = RealType.Time;
-*/
 
     if (lat_index < 0 || lon_index < 0) {
       throw new CollectiveBarbException("wind data must include Latitude " +
@@ -315,6 +313,8 @@ public class CollectiveBarbManipulation extends Object
 
     azimuth_index = -1;
     radial_index = -1;
+    int azimuth12 = -1;
+    int radial12 = -2;
     if (display1 != null) {
       Vector scalar_map_vector = display1.getMapVector();
       for (int i=0; i<tuple_dim; i++) {
@@ -326,22 +326,35 @@ public class CollectiveBarbManipulation extends Object
             DisplayRealType dreal = map.getDisplayScalar();
             if (Display.Flow1Azimuth.equals(dreal)) {
               azimuth_index = i;
+              azimuth12 = 1;
+            }
+            else if (Display.Flow2Azimuth.equals(dreal)) {
+              azimuth_index = i;
+              azimuth12 = 2;
             }
             else if (Display.Flow1Radial.equals(dreal)) {
               radial_index = i;
+              radial12 = 1;
+            }
+            else if (Display.Flow2Radial.equals(dreal)) {
+              radial_index = i;
+              radial12 = 2;
             }
           }
         }
       } // for (int i=0; i<n; i++) {
-      if (azimuth_index < 0 || radial_index < 0) {
+      if (azimuth_index < 0 || radial_index < 0 || azimuth12 != radial12) {
         throw new CollectiveBarbException("wind data must include two " +
-                 "RealTypes mapped to Flow1Azimuth and Flow1Radial in " +
+                 "RealTypes mapped to Flow1Azimuth and Flow1Radial, or to " +
+                 "Flow2Azimuth and Flow2Radial, in " +
                  "display1 " + azimuth_index + " " + radial_index);
       }
     }
 
     azimuth_index2 = -1;
     radial_index2 = -1;
+    azimuth12 = -1;
+    radial12 = -2;
     if (display2 != null) {
       Vector scalar_map_vector = display2.getMapVector();
       for (int i=0; i<tuple_dim; i++) {
@@ -353,16 +366,27 @@ public class CollectiveBarbManipulation extends Object
             DisplayRealType dreal = map.getDisplayScalar();
             if (Display.Flow1Azimuth.equals(dreal)) {
               azimuth_index2 = i;
+              azimuth12 = 1;
+            }
+            else if (Display.Flow2Azimuth.equals(dreal)) {
+              azimuth_index2 = i;
+              azimuth12 = 2;
             }
             else if (Display.Flow1Radial.equals(dreal)) {
               radial_index2 = i;
+              radial12 = 1;
+            }
+            else if (Display.Flow2Radial.equals(dreal)) {
+              radial_index2 = i;
+              radial12 = 2;
             }
           }
         }
       } // for (int i=0; i<n; i++) {
-      if (azimuth_index2 < 0 || radial_index2 < 0) {
+      if (azimuth_index2 < 0 || radial_index2 < 0 || azimuth12 != radial12) {
         throw new CollectiveBarbException("wind data must include two " +
-                 "RealTypes mapped to Flow1Azimuth and Flow1Radial in " +
+                 "RealTypes mapped to Flow1Azimuth and Flow1Radial, or to " +
+                 "Flow2Azimuth and Flow2Radial, in " +
                  "display2 " + azimuth_index2 + " " + radial_index2);
       }
       if (display1 != null) {
@@ -498,58 +522,60 @@ public class CollectiveBarbManipulation extends Object
       in display2 */
   public void setStation(int sta)
          throws VisADException, RemoteException {
-    if (display2 == null) {
-      throw new CollectiveBarbException("display2 cannot be null");
-    }
-    if (sta < 0 || sta >= nindex) {
-      throw new CollectiveBarbException("bad station index " + sta);
-    }
-    station = sta;
-
-    if (time_refs != null && time_refs.length != ntimes[station]) {
-      int n = time_refs.length;
-      for (int i=0; i<n; i++) {
-        display2.removeReference(time_refs[i]);
-        barb_monitors2[i].removeReference(time_refs[i]);
-        barb_monitors2[i].stop();
+    synchronized (data_lock) {
+      if (display2 == null) {
+        throw new CollectiveBarbException("display2 cannot be null");
       }
-      time_refs = null;
-    }
-
-    if (time_refs == null) {
-      int n = ntimes[station];
-      time_refs = new DataReferenceImpl[n];
-      barb_manipulation_renderers2 = new DataRenderer[n];
-      barb_monitors2 = new BarbMonitor2[n];
-      for (int i=0; i<n; i++) {
-        time_refs[i] = new DataReferenceImpl("time_ref" + i);
-        time_refs[i].setData(tuples2[station][i]);
-        if (ended) {
-          if (barbs) {
-            barb_manipulation_renderers2[i] = new BarbRendererJ3D();
+      if (sta < 0 || sta >= nindex) {
+        throw new CollectiveBarbException("bad station index " + sta);
+      }
+      station = sta;
+  
+      if (time_refs != null && time_refs.length != ntimes[station]) {
+        int n = time_refs.length;
+        for (int i=0; i<n; i++) {
+          display2.removeReference(time_refs[i]);
+          barb_monitors2[i].removeReference(time_refs[i]);
+          barb_monitors2[i].stop();
+        }
+        time_refs = null;
+      }
+  
+      if (time_refs == null) {
+        int n = ntimes[station];
+        time_refs = new DataReferenceImpl[n];
+        barb_manipulation_renderers2 = new DataRenderer[n];
+        barb_monitors2 = new BarbMonitor2[n];
+        for (int i=0; i<n; i++) {
+          time_refs[i] = new DataReferenceImpl("time_ref" + i);
+          time_refs[i].setData(tuples2[station][i]);
+          if (ended) {
+            if (barbs) {
+              barb_manipulation_renderers2[i] = new BarbRendererJ3D();
+            }
+            else {
+              barb_manipulation_renderers2[i] = new SwellRendererJ3D();
+            }
           }
           else {
-            barb_manipulation_renderers2[i] = new SwellRendererJ3D();
+            if (barbs) {
+              barb_manipulation_renderers2[i] = new BarbManipulationRendererJ3D();
+            }
+            else {
+              barb_manipulation_renderers2[i] = new SwellManipulationRendererJ3D();
+            }
           }
+          display2.addReferences(barb_manipulation_renderers2[i], time_refs[i],
+                                 constantMaps());
+          barb_monitors2[i] = new BarbMonitor2(time_refs[i], i);
+          barb_monitors2[i].addReference(time_refs[i]);
         }
-        else {
-          if (barbs) {
-            barb_manipulation_renderers2[i] = new BarbManipulationRendererJ3D();
-          }
-          else {
-            barb_manipulation_renderers2[i] = new SwellManipulationRendererJ3D();
-          }
-        }
-        display2.addReferences(barb_manipulation_renderers2[i], time_refs[i],
-                               constantMaps());
-        barb_monitors2[i] = new BarbMonitor2(time_refs[i], i);
-        barb_monitors2[i].addReference(time_refs[i]);
       }
-    }
-    else {
-      int n = ntimes[station];
-      for (int i=0; i<n; i++) {
-        time_refs[i].setData(tuples2[station][i]);
+      else {
+        int n = ntimes[station];
+        for (int i=0; i<n; i++) {
+          time_refs[i].setData(tuples2[station][i]);
+        }
       }
     }
   }
@@ -568,62 +594,66 @@ public class CollectiveBarbManipulation extends Object
       returns the final wind field */
   public FieldImpl endManipulation()
          throws VisADException, RemoteException {
-    ended = true;
-    if (display1 != null) {
-      for (int i=0; i<nindex; i++) {
-        display1.removeReference(station_refs[i]);
-        barb_monitors[i].removeReference(station_refs[i]);
-        barb_monitors[i].stop();
+    synchronized (data_lock) {
+      ended = true;
+      if (display1 != null) {
+        for (int i=0; i<nindex; i++) {
+          display1.removeReference(station_refs[i]);
+          barb_monitors[i].removeReference(station_refs[i]);
+          barb_monitors[i].stop();
+        }
+        if (barbs) {
+          barb_renderer = new BarbRendererJ3D();
+        }
+        else {
+          barb_renderer = new SwellRendererJ3D();
+        }
+        display1.addReferences(barb_renderer, stations_ref, constantMaps());
       }
-      if (barbs) {
-        barb_renderer = new BarbRendererJ3D();
+      if (display2 != null && time_refs != null) {
+        int n = time_refs.length;
+        for (int i=0; i<n; i++) {
+          display2.removeReference(time_refs[i]);
+          barb_monitors2[i].removeReference(time_refs[i]);
+          barb_monitors2[i].stop();
+        }
+        time_refs = null;
+        setStation(station);
       }
-      else {
-        barb_renderer = new SwellRendererJ3D();
-      }
-      display1.addReferences(barb_renderer, stations_ref, constantMaps());
+      return wind_field;
     }
-    if (display2 != null && time_refs != null) {
-      int n = time_refs.length;
-      for (int i=0; i<n; i++) {
-        display2.removeReference(time_refs[i]);
-        barb_monitors2[i].removeReference(time_refs[i]);
-        barb_monitors2[i].stop();
-      }
-      time_refs = null;
-      setStation(station);
-    }
-    return wind_field;
   }
 
   private boolean first = true;
 
   public void controlChanged(ControlEvent e)
          throws VisADException, RemoteException {
-    which_time = -1;
-    if (barb_manipulation_renderers == null) return;
-    for (int i=0; i<nindex; i++) {
-      which_times[i] = -1;
-      if (barb_manipulation_renderers[i] == null) return;
-      barb_manipulation_renderers[i].stop_direct();
-    }
-
-    int current = control.getCurrent();
-    if (current < 0) return;
-    which_time = current;
-
-    for (int i=0; i<nindex; i++) {
-      int index = global_to_station[i][current];
-      if (index < tuples[i].length) {
-        station_refs[i].setData(tuples[i][index]);
-        which_times[i] = index;
+    synchronized (data_lock) {
+      which_time = -1;
+      if (barb_manipulation_renderers == null) return;
+      for (int i=0; i<nindex; i++) {
+        which_times[i] = -1;
+        if (barb_manipulation_renderers[i] == null) return;
+        barb_manipulation_renderers[i].stop_direct();
       }
-      // System.out.println("station " + i + " ref " + index);
-    } // end for (int i=0; i<nindex; i++)
-
-    if (first) {
-      first = false;
-      display1.removeReference(stations_ref);
+  
+      int current = control.getCurrent();
+      if (current < 0) return;
+      which_time = current;
+  
+      for (int i=0; i<nindex; i++) {
+        int index = global_to_station[i][current];
+        if (index < tuples[i].length) {
+          station_refs[i].setData(tuples[i][index]);
+          which_times[i] = index;
+        }
+        // System.out.println("station " + i + " ref " + index);
+      } // end for (int i=0; i<nindex; i++)
+  
+      if (first) {
+        first = false;
+        display1.removeReference(stations_ref);
+      }
     }
   }
 
@@ -632,40 +662,42 @@ public class CollectiveBarbManipulation extends Object
 
   class WindMonitor extends CellImpl {
     public void doAction() throws VisADException, RemoteException {
-      if (nindex != wind_field.getLength()) {
-        throw new CollectiveBarbException("number of stations changed");
-      }
-      for (int i=0; i<nindex; i++) {
-        FlatField ff = (FlatField) wind_field.getSample(i);
-        if (ntimes[i] != ff.getLength()) {
-          throw new CollectiveBarbException("number of times changed");
+      synchronized (data_lock) {
+        if (nindex != wind_field.getLength()) {
+          throw new CollectiveBarbException("number of stations changed");
         }
-        Enumeration e = ff.domainEnumeration();
-        for (int j=0; j<ntimes[i]; j++) {
-          Tuple tuple = (Tuple) ff.getSample(j);
-          Real[] reals = tuple.getRealComponents();
-          float new_azimuth = (float) reals[azimuth_index].getValue();
-          float new_radial = (float) reals[radial_index].getValue();
-          if (!visad.util.Util.isApproximatelyEqual(new_azimuth,
-                     azimuths[i][j], DEGREE_EPS) ||
-              !visad.util.Util.isApproximatelyEqual(new_radial,
-                     radials[i][j], MPS_EPS)) {
-            azimuths[i][j] = new_azimuth;
-            radials[i][j] = new_radial;
-            tuples[i][j] = tuple;
-            if (station_refs != null && j == which_times[i]) {
-              station_refs[i].setData(tuples[i][j]);
-            }
-
-            int n = tuple.getDimension();
-            Data[] components = new Data[n + 1];
-            for (int k=0; k<n; k++) {
-              components[k] = tuple.getComponent(k);
-            }
-            components[n] = ((RealTuple) e.nextElement()).getComponent(0);
-            tuples2[i][j] = new Tuple(components);
-            if (time_refs != null && i == station) {
-              time_refs[j].setData(tuples2[i][j]);
+        for (int i=0; i<nindex; i++) {
+          FlatField ff = (FlatField) wind_field.getSample(i);
+          if (ntimes[i] != ff.getLength()) {
+            throw new CollectiveBarbException("number of times changed");
+          }
+          Enumeration e = ff.domainEnumeration();
+          for (int j=0; j<ntimes[i]; j++) {
+            Tuple tuple = (Tuple) ff.getSample(j);
+            Real[] reals = tuple.getRealComponents();
+            float new_azimuth = (float) reals[azimuth_index].getValue();
+            float new_radial = (float) reals[radial_index].getValue();
+            if (!visad.util.Util.isApproximatelyEqual(new_azimuth,
+                       azimuths[i][j], DEGREE_EPS) ||
+                !visad.util.Util.isApproximatelyEqual(new_radial,
+                       radials[i][j], MPS_EPS)) {
+              azimuths[i][j] = new_azimuth;
+              radials[i][j] = new_radial;
+              tuples[i][j] = tuple;
+              if (station_refs != null && j == which_times[i]) {
+                station_refs[i].setData(tuples[i][j]);
+              }
+  
+              int n = tuple.getDimension();
+              Data[] components = new Data[n + 1];
+              for (int k=0; k<n; k++) {
+                components[k] = tuple.getComponent(k);
+              }
+              components[n] = ((RealTuple) e.nextElement()).getComponent(0);
+              tuples2[i][j] = new Tuple(components);
+              if (time_refs != null && i == station) {
+                time_refs[j].setData(tuples2[i][j]);
+              }
             }
           }
         }
@@ -673,8 +705,8 @@ public class CollectiveBarbManipulation extends Object
     }
   }
 
-  Tuple modifyWind(Tuple old_wind, double azimuth, double radial)
-        throws VisADException, RemoteException {
+  private Tuple modifyWind(Tuple old_wind, double azimuth, double radial)
+          throws VisADException, RemoteException {
     Tuple wind = null;
     Real[] reals = null;
     if (old_wind instanceof RealTuple) {
@@ -728,9 +760,9 @@ public class CollectiveBarbManipulation extends Object
     return wind;
   }
 
-  void collectiveAdjust(int sta_index, int time_index,
-                        DataReferenceImpl ref, int display_index)
-       throws VisADException, RemoteException {
+  private void collectiveAdjust(int sta_index, int time_index,
+                               DataReferenceImpl ref, int display_index)
+          throws VisADException, RemoteException {
 
     Tuple new_wind = (Tuple) ref.getData();
     Real[] reals = new_wind.getRealComponents();
@@ -743,11 +775,13 @@ public class CollectiveBarbManipulation extends Object
         visad.util.Util.isApproximatelyEqual(new_radial,
                radials[sta_index][time_index], MPS_EPS)) return;
 
+    boolean curve = (curve_ref != null);
     if (last_sta != sta_index || last_time != time_index ||
-        last_display != display_index) {
+        last_display != display_index || last_curve != curve) {
       last_sta = sta_index;
       last_time = time_index;
       last_display = display_index;
+      last_curve = curve;
       for (int i=0; i<nindex; i++) {
         for (int j=0; j<ntimes[i]; j++) {
           old_azimuths[i][j] = azimuths[i][j];
@@ -857,9 +891,11 @@ public class CollectiveBarbManipulation extends Object
     }
   
     public void doAction() throws VisADException, RemoteException {
-      int time_index = which_times[sta_index];
-      if (time_index < 0) return;
-      collectiveAdjust(sta_index, time_index, ref, 1);
+      synchronized (data_lock) {
+        int time_index = which_times[sta_index];
+        if (time_index < 0) return;
+        collectiveAdjust(sta_index, time_index, ref, 1);
+      }
     }
   }
 
@@ -873,9 +909,11 @@ public class CollectiveBarbManipulation extends Object
     }
   
     public void doAction() throws VisADException, RemoteException {
-      int sta_index = station;
-      if (sta_index < 0) return;
-      collectiveAdjust(sta_index, time_index, ref, 2);
+      synchronized (data_lock) {
+        int sta_index = station;
+        if (sta_index < 0) return;
+        collectiveAdjust(sta_index, time_index, ref, 2);
+      }
     }
   }
 
@@ -1010,7 +1048,7 @@ public class CollectiveBarbManipulation extends Object
 
     // construct invisible starter set
     Gridded2DSet set1 =
-      new Gridded2DSet(earth, new float[][] {{0.0f, 0.0f}, {0.0f, 0.0f}}, 2);
+      new Gridded2DSet(earth, new float[][] {{0.0f}, {0.0f}}, 1);
     Gridded2DSet[] sets = {set1};
     UnionSet set = new UnionSet(earth, sets);
 
@@ -1019,8 +1057,6 @@ public class CollectiveBarbManipulation extends Object
     int mask = InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK;
     display1.addReferences(new CurveManipulationRendererJ3D(mask, mask, true),
                            set_ref);
-
-    cbm.setCollectiveCurve(false, set_ref, 0.0f, 1000.0f);
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test CollectiveBarbManipulation");
@@ -1142,7 +1178,7 @@ class EndManipCBM implements ActionListener {
         }
         else {
           new_sets = new SampledSet[] {new Gridded2DSet(set.getType(),
-                           new float[][] {{0.0f, 0.0f}, {0.0f, 0.0f}}, 2)};
+                                new float[][] {{0.0f}, {0.0f}}, 1)};
         }
         set_ref.setData(new UnionSet(set.getType(), new_sets));
         cbm.setCollectiveParameters(false, 0.0f, 1000000.0f, 0.0f, 1000.0f);
