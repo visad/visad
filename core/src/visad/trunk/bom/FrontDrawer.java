@@ -122,11 +122,15 @@ public class FrontDrawer extends Object implements ControlListener {
   private float[] repeat_green = null;
   private float[] repeat_blue = null;
 
+  // length of first segment in graphics coordinates
+  private float fsegment_length;
   // length of each repeating segment in graphics coordinates
-  private float segment_length;
+  private float rsegment_length;
 
-  // number of intervals in curve for each segment
-  private int profile_length = -1;
+  // number of intervals in curve for first segment
+  private int fprofile_length = -1;
+  // number of intervals in curve for each repeating segment
+  private int rprofile_length = -1;
 
   // size of filter window for smoothing curve
   private int filter_window = 1;
@@ -157,8 +161,9 @@ public class FrontDrawer extends Object implements ControlListener {
   public static final int THICKNESS_RIDGE = 18;
   public static final int LOWER_THERMAL_TROUGH = 19;
   public static final int UPPER_THERMAL_TROUGH = 20;
+  public static final int UNEVEN_LOW_LEVEL_JET = 21;
 
-  private static final float[] segmentarray = {
+  private static final float[] rsegmentarray = {
     0.2f,
     0.2f,
     0.2f,
@@ -179,7 +184,33 @@ public class FrontDrawer extends Object implements ControlListener {
     0.15f, // ISOTHERMS = 17
     0.1f, // THICKNESS_RIDGE = 18
     0.05f, // LOWER_THERMAL_TROUGH = 19
-    0.1f // UPPER_THERMAL_TROUGH = 20
+    0.1f, // UPPER_THERMAL_TROUGH = 20
+    0.1f // UNEVEN_LOW_LEVEL_JET = 21
+  };
+
+  private static final float[] fsegmentarray = {
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.05f, // TROUGH = 9
+    0.1f, // RIDGE = 10
+    0.05f, // MOISTURE = 11
+    0.2f, // LOW_LEVEL_JET = 12
+    0.2f, // UPPER_LEVEL_JET = 13
+    0.1f, // DRY_LINE = 14
+    0.05f, // TOTAL_TOTALS = 15
+    0.1f, // LIFTED_INDEX = 16
+    0.15f, // ISOTHERMS = 17
+    0.1f, // THICKNESS_RIDGE = 18
+    0.05f, // LOWER_THERMAL_TROUGH = 19
+    0.1f, // UPPER_THERMAL_TROUGH = 20
+    0.2f // UNEVEN_LOW_LEVEL_JET = 21
   };
 
   private static final float[][][][] rshapesarray = {
@@ -340,6 +371,12 @@ public class FrontDrawer extends Object implements ControlListener {
     {{{0.0f, 0.04f, 0.02f},
       {0.0f, 0.0f, 0.04f}}},
 
+    // UNEVEN_LOW_LEVEL_JET = 21
+    {{{0.0f, 0.05f, 0.1f,
+       0.1f, 0.05f, 0.0f},
+      {0.0f, 0.0f, 0.0f,
+       0.01f, 0.01f, 0.01f}}},
+
   };
 
   private static final float[][] rredarray = {
@@ -363,7 +400,8 @@ public class FrontDrawer extends Object implements ControlListener {
     {1.0f},
     {1.0f},
     {1.0f},
-    {1.0f}
+    {1.0f},
+    {0.5f}
   };
 
   private static final float[][] rgreenarray = {
@@ -387,7 +425,8 @@ public class FrontDrawer extends Object implements ControlListener {
     {1.0f},
     {1.0f},
     {1.0f},
-    {1.0f}
+    {1.0f},
+    {0.5f}
   };
 
   private static final float[][] rbluearray = {
@@ -408,6 +447,7 @@ public class FrontDrawer extends Object implements ControlListener {
     {0.0f, 0.0f}, // DRY_LINE = 14
     {1.0f},
     {1.0f, 1.0f}, // LIFTED_INDEX = 16
+    {1.0f},
     {1.0f},
     {1.0f},
     {1.0f},
@@ -446,7 +486,14 @@ public class FrontDrawer extends Object implements ControlListener {
     null,
     null,
     null,
-    null
+    null,
+
+    // UNEVEN_LOW_LEVEL_JET = 21
+    {{{0.0f, 0.07f, 0.075f, 0.01f, 0.05f, 0.1f, 0.15f, 0.2f,
+       0.2f, 0.15f, 0.1f, 0.05f, 0.01f, 0.075f, 0.07f, 0.0f},
+      {0.0f, -0.07f, -0.065f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+       0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.075f, 0.08f, 0.01f}}}
+
   };
 
   private static final float[][] fredarray = {
@@ -470,7 +517,8 @@ public class FrontDrawer extends Object implements ControlListener {
     null,
     null,
     null,
-    null
+    null,
+    {0.5f}
   };
 
   private static final float[][] fgreenarray = {
@@ -494,7 +542,8 @@ public class FrontDrawer extends Object implements ControlListener {
     null,
     null,
     null,
-    null
+    null,
+    {0.5f}
   };
        
   private static final float[][] fbluearray = {
@@ -518,7 +567,8 @@ public class FrontDrawer extends Object implements ControlListener {
     null,
     null,
     null,
-    null
+    null,
+    {1.0f}
   };
 
   /** manipulable front with predefined pattern front_kind and
@@ -528,7 +578,7 @@ public class FrontDrawer extends Object implements ControlListener {
                      float[] fred, float[] fgreen, float[] fblue,
                      float[] rred, float[] rgreen, float[] rblue)
          throws VisADException, RemoteException {
-    this(fs, cs, d, fw, segmentarray[front_kind],
+    this(fs, cs, d, fw, fsegmentarray[front_kind], rsegmentarray[front_kind],
          fshapesarray[front_kind], fred, fgreen, fblue,
          rshapesarray[front_kind], rred, rgreen, rblue);
   }
@@ -538,7 +588,7 @@ public class FrontDrawer extends Object implements ControlListener {
   public FrontDrawer(FieldImpl fs, float[][][] cs,
                      DisplayImplJ3D d, int fw, int front_kind)
          throws VisADException, RemoteException {
-    this(fs, cs, d, fw, segmentarray[front_kind],
+    this(fs, cs, d, fw, fsegmentarray[front_kind], rsegmentarray[front_kind],
          fshapesarray[front_kind], fredarray[front_kind],
          fgreenarray[front_kind], fbluearray[front_kind],
          rshapesarray[front_kind], rredarray[front_kind],
@@ -552,7 +602,7 @@ public class FrontDrawer extends Object implements ControlListener {
            ((Latitude, Longitude) -> (front_red, front_green, front_blue))))
      cs is null or contains a time array of curves for fs
      fw is the filter window size for smoothing the curve
-     segment is length in graphics coordinates of entire profile
+     segment is length in graphics coordinates of first and repeating profiles
      fshapes is dimensioned [nfshapes][2][points_per_shape]
      fred, fgreen and fblue are dimensioned [nfshapes]
      rshapes is dimensioned [nrshapes][2][points_per_shape]
@@ -562,6 +612,33 @@ public class FrontDrawer extends Object implements ControlListener {
   public FrontDrawer(FieldImpl fs, float[][][] cs,
                      DisplayImplJ3D d,
                      int fw, float segment,
+                     float[][][] fshapes,
+                     float[] fred, float[] fgreen, float[] fblue,
+                     float[][][] rshapes,
+                     float[] rred, float[] rgreen, float[] rblue)
+         throws VisADException, RemoteException {
+    this(fs, cs, d, fw, segment, segment, fshapes, fred, fgreen, fblue,
+         rshapes, rred, rgreen, rblue);
+  }
+
+
+  /**
+     fs is null or has MathType
+       (RealType.Time -> (front_index ->
+           ((Latitude, Longitude) -> (front_red, front_green, front_blue))))
+     cs is null or contains a time array of curves for fs
+     fw is the filter window size for smoothing the curve
+     fsegment is length in graphics coordinates of first profile
+     rsegment is length in graphics coordinates of repeating profile
+     fshapes is dimensioned [nfshapes][2][points_per_shape]
+     fred, fgreen and fblue are dimensioned [nfshapes]
+     rshapes is dimensioned [nrshapes][2][points_per_shape]
+     rred, rgreen and rblue are dimensioned [nrshapes]
+     fshapes[*][0][*] and rshapes[*][0][*] generally in range 0.0f to segment
+  */
+  public FrontDrawer(FieldImpl fs, float[][][] cs,
+                     DisplayImplJ3D d,
+                     int fw, float fsegment, float rsegment,
                      float[][][] fshapes,
                      float[] fred, float[] fgreen, float[] fblue,
                      float[][][] rshapes,
@@ -612,7 +689,8 @@ public class FrontDrawer extends Object implements ControlListener {
 
     display = d;
     filter_window = fw;
-    segment_length = segment;
+    fsegment_length = fsegment;
+    rsegment_length = rsegment;
 
     if (rshapes == null) {
       throw new VisADException("bad rshapes");
@@ -644,7 +722,7 @@ public class FrontDrawer extends Object implements ControlListener {
       System.arraycopy(rshapes[i][0], 0, repeat_shapes[i][0], 0, n);
       System.arraycopy(rshapes[i][1], 0, repeat_shapes[i][1], 0, n);
     }
-    profile_length = rlen;
+    rprofile_length = rlen;
     repeat_red = new float[nrshapes];
     repeat_green = new float[nrshapes];
     repeat_blue = new float[nrshapes];
@@ -689,7 +767,7 @@ public class FrontDrawer extends Object implements ControlListener {
         System.arraycopy(fshapes[i][0], 0, first_shapes[i][0], 0, n);
         System.arraycopy(fshapes[i][1], 0, first_shapes[i][1], 0, n);
       }
-      if (profile_length < flen) profile_length = flen;
+      fprofile_length = flen;
       first_red = new float[nfshapes];
       first_green = new float[nfshapes];
       first_blue = new float[nfshapes];
@@ -697,7 +775,8 @@ public class FrontDrawer extends Object implements ControlListener {
       System.arraycopy(fgreen, 0, first_green, 0, nfshapes);
       System.arraycopy(fblue, 0, first_blue, 0, nfshapes);
     }
-    if (profile_length < 5) profile_length = 5;
+    if (rprofile_length < 5) rprofile_length = 5;
+    if (fprofile_length < 5) fprofile_length = 5;
 
     pcontrol = display.getProjectionControl();
     pcl = new ProjectionControlListener();
@@ -984,7 +1063,7 @@ public class FrontDrawer extends Object implements ControlListener {
   private FieldImpl robustCurveToFront(float[][] curve, boolean flip)
           throws RemoteException {
     // resample curve uniformly along length
-    float increment = segment_length / (profile_length * zoom);
+    float increment = rsegment_length / (rprofile_length * zoom);
     float[][] old_curve = resample_curve(curve, increment);
 
     int fw = filter_window;
@@ -1086,9 +1165,10 @@ public class FrontDrawer extends Object implements ControlListener {
     float delta = curve_length / (len - 1);
     // curve[findex] where
     // float findex = ibase + mul * repeat_shapes[shape][0][j]
-    float mul = profile_length * zoom / segment_length;
+    float mul = rprofile_length * zoom / rsegment_length;
     // curve_perp[][findex] * ratio * repeat_shapes[shape][1][j]
     float ratio = delta * mul;
+
 
     // compute unit perpendiculars to curve
     float[][] curve_perp = new float[2][len];
@@ -1111,11 +1191,22 @@ public class FrontDrawer extends Object implements ControlListener {
     // build Vector of FlatFields for each shape of each segment
     Vector inner_field_vector = new Vector();
     for (int segment=0; true; segment++) {
+
+      // curve[findex] where
+      // float findex = ibase + mul * repeat_shapes[shape][0][j]
+      float segment_length = (segment == 0) ? fsegment_length : rsegment_length;
+      int profile_length = (segment == 0) ? fprofile_length : rprofile_length;
+      mul = profile_length * zoom / segment_length;
+      // curve_perp[][findex] * ratio * repeat_shapes[shape][1][j]
+      // float ratio = delta * mul;
+
+
       // figure out if clipping is needed for this segment
       // only happens for last segment
       boolean clip = false;
       float xclip = 0.0f;
-      int ibase = segment * profile_length;
+      // int ibase = segment * profile_length;
+      int ibase = (segment == 0) ? 0 : fprofile_length + (segment - 1) * rprofile_length;
       int iend = ibase + profile_length;
       if (ibase > len - 1) break;
       if (iend > len - 1) {
@@ -1212,7 +1303,7 @@ public class FrontDrawer extends Object implements ControlListener {
         field.setSamples(values, false);
         inner_field_vector.addElement(field);
 // some crazy bug - see Gridded3DSet.makeNormals()
-      }
+      } // end for (int shape=0; shape<nshapes; shape++)
     } // end for (int segment=0; true; segment++)
 
     int nfields = inner_field_vector.size();
