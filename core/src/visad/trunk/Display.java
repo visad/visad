@@ -155,12 +155,19 @@ public interface Display extends Action {
   public final static DisplayRealType ZAxisOffset =
     new DisplayRealType("ZAxisOffset", false, -1.0, 1.0, 0.0, null, true);
 
+  /** point size and line width - ConstantMap only */
+  public final static DisplayRealType LineWidth =
+    new DisplayRealType("LineWidth", true, 1.0, true);
+  public final static DisplayRealType PointSize =
+    new DisplayRealType("PointSize", true, 1.0, true);
+
   /** array of system intrinsic display scalars */
   final static DisplayRealType[] DisplayRealArray =
     {XAxis, YAxis, ZAxis, Latitude, Longitude, Radius, List, Red, Green, Blue,
      RGB, RGBA, Hue, Saturation, Value, HSV, Cyan, Magenta, Yellow, CMY, Alpha,
      Animation, SelectValue, SelectRange, IsoContour, Flow1X, Flow1Y, Flow1Z,
-     Flow2X, Flow2Y, Flow2Z, Shape, XAxisOffset, YAxisOffset, ZAxisOffset};
+     Flow2X, Flow2Y, Flow2Z, Shape, XAxisOffset, YAxisOffset, ZAxisOffset,
+     LineWidth, PointSize};
 
 
   /** system intrinsic DisplayTupleType objects */

@@ -34,7 +34,8 @@ import java.rmi.*;
    A GraphicsModeControl is not linked to any DisplayRealType or
    ScalarMap.  It is linked to a DisplayImpl.<P>
 */
-public abstract class GraphicsModeControl extends Control {
+public abstract class GraphicsModeControl extends Control
+       implements Cloneable {
 
   public GraphicsModeControl(DisplayImpl d) {
     super(d);
@@ -76,6 +77,9 @@ public abstract class GraphicsModeControl extends Control {
          throws VisADException, RemoteException;
 
   public abstract int getProjectionPolicy();
+
+  /** a method to copy any data object */
+  public abstract Object clone();
 
 }
 

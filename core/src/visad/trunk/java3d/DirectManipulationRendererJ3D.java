@@ -75,9 +75,24 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     array.vertexCount = count;
     DisplayImplJ3D display = (DisplayImplJ3D) getDisplay();
     GeometryArray geometry = display.makeGeometry(array);
+
+    DataDisplayLink link = getLinks()[0];
+    float[] default_values = link.getDefaultValues();
+    GraphicsModeControl mode = (GraphicsModeControl)
+      display.getGraphicsModeControl().clone();
+    float pointSize = 
+      default_values[display.getDisplayScalarIndex(Display.PointSize)];
+    float lineWidth =
+      default_values[display.getDisplayScalarIndex(Display.LineWidth)];
+    try {
+      mode.setPointSize(pointSize);
+      mode.setLineWidth(lineWidth);
+    }
+    catch (RemoteException e) {
+    }
     Appearance appearance =
-      ShadowTypeJ3D.makeAppearance(display.getGraphicsModeControl(),
-                                   null, null, geometry);
+      ShadowTypeJ3D.makeAppearance(mode, null, null, geometry);
+
     Shape3D shape = new Shape3D(geometry, appearance);
     BranchGroup group = new BranchGroup();
     group.addChild(shape);

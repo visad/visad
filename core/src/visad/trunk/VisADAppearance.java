@@ -38,6 +38,8 @@ public class VisADAppearance extends VisADSceneGraphObject {
   public boolean color_flag = false;
   public float red, green, blue;
   public float alpha;
+  public float lineWidth = 1.0f;
+  public float pointSize = 1.0f;
 
   public VisADAppearance() {
   }

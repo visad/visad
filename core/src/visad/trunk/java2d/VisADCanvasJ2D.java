@@ -394,10 +394,15 @@ so:
         if (array instanceof VisADPointArray ||
             array instanceof VisADLineArray ||
             array instanceof VisADLineStripArray) {
+/* WLH 21 Aug 98
           GraphicsModeControl mode = display.getGraphicsModeControl();
           double dsize = (array instanceof VisADPointArray) ?
                            mode.getPointSize() :
                            mode.getLineWidth();
+*/
+          double dsize = (array instanceof VisADPointArray) ?
+                           appearance.pointSize :
+                           appearance.lineWidth;
           if (dsize < 1.05) dsize = 1.05; // hack for Java2D problem
           double[] pts = {0.0, 0.0, 0.0, dsize, dsize, 0.0};
           double[] newpts = new double[6];

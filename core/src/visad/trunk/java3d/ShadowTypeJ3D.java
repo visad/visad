@@ -298,7 +298,15 @@ public abstract class ShadowTypeJ3D extends ShadowType {
                               DataRenderer renderer)
           throws VisADException, RemoteException {
  
-    GraphicsModeControl mode = display.getGraphicsModeControl();
+    GraphicsModeControl mode = (GraphicsModeControl)
+      display.getGraphicsModeControl().clone();
+    float pointSize = 
+      default_values[display.getDisplayScalarIndex(Display.PointSize)];
+    mode.setPointSize(pointSize);
+    float lineWidth =
+      default_values[display.getDisplayScalarIndex(Display.LineWidth)];
+    mode.setLineWidth(lineWidth);
+
  
     float[][] flow1_values = new float[3][];
     float[][] flow2_values = new float[3][];

@@ -129,9 +129,22 @@ public class DataDisplayLink extends ReferenceActionLink {
     // lowest priority: DisplayRealType.DefaultValue
     int n = ((DisplayImpl) local_action).getDisplayScalarCount();
     defaultValues = new float[n];
+    GraphicsModeControl mode =
+      ((DisplayImpl) local_action).getGraphicsModeControl();
     for (int i=0; i<n; i++) {
+      DisplayRealType dreal =
+        (DisplayRealType) ((DisplayImpl) local_action).getDisplayScalar(i);
+      defaultValues[i] = (float) dreal.getDefaultValue();
+      if (Display.PointSize.equals(dreal)) {
+        defaultValues[i] = mode.getPointSize();
+      }
+      else if (Display.LineWidth.equals(dreal)) {
+        defaultValues[i] = mode.getLineWidth();
+      }
+/* WLH 21 Aug 98
       defaultValues[i] = (float) (((DisplayRealType)
         ((DisplayImpl) local_action).getDisplayScalar(i)).getDefaultValue());
+*/
     }
     // middle priority: DisplayImpl.ConstantMapVector
     Vector temp =

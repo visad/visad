@@ -72,6 +72,18 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
     array.coordinates = x;
     array.vertexCount = count;
     VisADAppearance appearance = new VisADAppearance();
+    DataDisplayLink link = getLinks()[0];
+    float[] default_values = link.getDefaultValues();
+    DisplayImpl display = getDisplay();
+    appearance.pointSize =
+      default_values[display.getDisplayScalarIndex(Display.PointSize)];
+    appearance.lineWidth = 
+      default_values[display.getDisplayScalarIndex(Display.LineWidth)];
+/* WLH 21 Aug 98
+    GraphicsModeControl mode = getDisplay().getGraphicsModeControl();
+    appearance.pointSize = mode.getPointSize();
+    appearance.lineWidth = mode.getLineWidth();
+*/
     appearance.red = 1.0f;
     appearance.green = 1.0f;
     appearance.blue = 1.0f;
@@ -117,7 +129,7 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
     else {
       // no preProcess or postProcess for direct manipulation */
       shadow.doTransform(branch, data, valueArray,
-                       link.getDefaultValues(), this);
+                         link.getDefaultValues(), this);
     }
     return branch;
   }

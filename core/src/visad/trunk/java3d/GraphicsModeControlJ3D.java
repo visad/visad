@@ -181,5 +181,18 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     return projectionPolicy;
   }
 
+  public Object clone() {
+    GraphicsModeControlJ3D mode =
+      new GraphicsModeControlJ3D(getDisplay());
+    mode.lineWidth = lineWidth;
+    mode.pointSize = pointSize;
+    mode.pointMode = pointMode;
+    mode.textureEnable = textureEnable;
+    mode.scaleEnable = scaleEnable;
+    mode.transparencyMode = transparencyMode;
+    mode.projectionPolicy = projectionPolicy;
+    return mode;
+  }
+
 }
 

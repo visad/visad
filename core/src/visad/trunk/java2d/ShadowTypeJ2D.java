@@ -184,8 +184,8 @@ public abstract class ShadowTypeJ2D extends ShadowType {
                       float[] constant_color,
                       VisADGeometryArray array) {
     VisADAppearance appearance = new VisADAppearance();
-
-// LineWidth and PointSize not needed - in GraphicsModeControl
+    appearance.pointSize = mode.getPointSize();
+    appearance.lineWidth = mode.getLineWidth();
 
     appearance.alpha = constant_alpha; // may be Float.NaN
     if (constant_color != null && constant_color.length == 3) {
@@ -269,7 +269,14 @@ public abstract class ShadowTypeJ2D extends ShadowType {
                               DataRenderer renderer)
           throws VisADException, RemoteException {
  
-    GraphicsModeControl mode = display.getGraphicsModeControl();
+    GraphicsModeControl mode = (GraphicsModeControl)
+      display.getGraphicsModeControl().clone();
+    float pointSize = 
+      default_values[display.getDisplayScalarIndex(Display.PointSize)];
+    mode.setPointSize(pointSize);
+    float lineWidth =
+      default_values[display.getDisplayScalarIndex(Display.LineWidth)];
+    mode.setLineWidth(lineWidth);
  
     float[][] flow1_values = new float[3][];
     float[][] flow2_values = new float[3][];

@@ -456,33 +456,37 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
           go = renderer.checkAction(go);
         }
       }
-      renderers = temp.elements();
-      boolean badScale = false;
-      while (renderers.hasMoreElements()) {
-        DataRenderer renderer = (DataRenderer) renderers.nextElement();
-        shadow = renderer.prepareAction(go, initialize, shadow);
-        badScale |= renderer.getBadScale();
-      }
-      initialize = badScale;
-      if (always_initialize) initialize = true;
-  
-      if (shadow != null) {
-        // apply RealType ranges and animationSampling
-        maps = tmap.elements();
-        while(maps.hasMoreElements()) {
-          ScalarMap map = ((ScalarMap) maps.nextElement());
-          map.setRange(shadow);
+
+      if (!initialize || go) {
+        renderers = temp.elements();
+        boolean badScale = false;
+        while (renderers.hasMoreElements()) {
+          DataRenderer renderer = (DataRenderer) renderers.nextElement();
+          shadow = renderer.prepareAction(go, initialize, shadow);
+          badScale |= renderer.getBadScale();
+        }
+        initialize = badScale;
+        if (always_initialize) initialize = true;
+    
+        if (shadow != null) {
+          // apply RealType ranges and animationSampling
+          maps = tmap.elements();
+          while(maps.hasMoreElements()) {
+            ScalarMap map = ((ScalarMap) maps.nextElement());
+            map.setRange(shadow);
+          }
+        }
+    
+        ScalarMap.equalizeFlow(tmap, Display.DisplayFlow1Tuple);
+        ScalarMap.equalizeFlow(tmap, Display.DisplayFlow2Tuple);
+    
+        renderers = temp.elements();
+        while (renderers.hasMoreElements()) {
+          DataRenderer renderer = (DataRenderer) renderers.nextElement();
+          renderer.doAction();
         }
       }
-  
-      ScalarMap.equalizeFlow(tmap, Display.DisplayFlow1Tuple);
-      ScalarMap.equalizeFlow(tmap, Display.DisplayFlow2Tuple);
-  
-      renderers = temp.elements();
-      while (renderers.hasMoreElements()) {
-        DataRenderer renderer = (DataRenderer) renderers.nextElement();
-        renderer.doAction();
-      }
+
       // clear tickFlag-s in Control-s
       maps = tmap.elements();
       while(maps.hasMoreElements()) {
@@ -562,9 +566,15 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
         throw new DisplayException("DisplayImpl.addMap: RendererVector " +
                                    "must be empty");
       }
-      if (!displayRenderer.legalDisplayScalar(map.getDisplayScalar())) {
+      DisplayRealType type = map.getDisplayScalar();
+      if (!displayRenderer.legalDisplayScalar(type)) {
         throw new BadMappingException("DisplayImpl.addMap: " +
               map.getDisplayScalar() + " illegal for this DisplayRenderer");
+      }
+      if ((Display.LineWidth.equals(type) || Display.PointSize.equals(type))
+          && !(map instanceof ConstantMap)) {
+        throw new BadMappingException("DisplayImpl.addMap: " +
+              map.getDisplayScalar() + " for ConstantMap only");
       }
       map.setDisplay(this);
   

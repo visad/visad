@@ -595,7 +595,15 @@ System.out.println("doTerminal: isTerminal = " + adaptedShadowType.getIsTerminal
         throw new DisplayException("terminal but not Flat");
       }
 
-      GraphicsModeControl mode = display.getGraphicsModeControl();
+      GraphicsModeControl mode = (GraphicsModeControl)
+        display.getGraphicsModeControl().clone();
+      float pointSize = 
+        default_values[display.getDisplayScalarIndex(Display.PointSize)];
+      mode.setPointSize(pointSize);
+      float lineWidth =
+        default_values[display.getDisplayScalarIndex(Display.LineWidth)];
+      mode.setLineWidth(lineWidth);
+
       boolean pointMode = mode.getPointMode();
 
       float[][] flow1_values = new float[3][];

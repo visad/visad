@@ -163,5 +163,9 @@ System.out.println(getClass().getName() + "  check  tickFlag = " + tickFlag +
     return Index;
   }
 
+  public DisplayImpl getDisplay() {
+    return display;
+  }
+
 }
 
