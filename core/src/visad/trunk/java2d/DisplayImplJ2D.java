@@ -177,7 +177,7 @@ public class DisplayImplJ2D extends DisplayImpl {
          throws VisADException, RemoteException {
     super(rmtDpy, renderer);
 
-    initialize(renderer, JPANEL, 300, 300);
+    initialize(JPANEL, 300, 300);
 
     syncRemoteData(rmtDpy);
   }
@@ -231,11 +231,10 @@ public class DisplayImplJ2D extends DisplayImpl {
          throws VisADException, RemoteException {
     super(name, renderer);
 
-    initialize(renderer, api, width, height);
+    initialize(api, width, height);
   }
 
-  private void initialize(DisplayRendererJ2D renderer, int api,
-			  int width, int height)
+  private void initialize(int api, int width, int height)
 	throws VisADException
   {
     // a GraphicsModeControl always exists
@@ -251,6 +250,7 @@ public class DisplayImplJ2D extends DisplayImpl {
     }
     else if (api == OFFSCREEN) {
       Component component = null;
+      DisplayRendererJ2D renderer = (DisplayRendererJ2D )getDisplayRenderer();
       VisADCanvasJ2D canvas = new VisADCanvasJ2D(renderer, width, height);
       VisADGroup scene = renderer.createSceneGraph(canvas);
     }
