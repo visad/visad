@@ -830,6 +830,15 @@ public class Real extends Scalar {
       ((Real)kelvin.add(fahrenheit.negate())).toValueString());
     System.out.println("32 fahrenheit + -(300 kelvin) = " +
       ((Real)fahrenheit.add(kelvin.negate())).toValueString());
+
+    System.out.println("");
+
+    Unit	foot = new ScaledUnit(3.048, SI.meter);
+    Unit	yard = new ScaledUnit(3, (ScaledUnit)foot);
+    System.out.println("log(1 yard / 3 feet) = " +
+      ((Real)new Real(new RealType("OneYard", SI.meter, null), 1, yard)
+	.divide(new Real(new RealType("ThreeFeet", SI.meter, null), 3, foot))
+	.log()).toValueString());
   }
 
 /* Here's the output:
