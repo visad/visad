@@ -127,7 +127,10 @@ public class SliceManager
   /** High-resolution field for current timestep. */
   private FieldImpl field;
 
-  /** Collapsed high-resolution field, used with arbitrary slicing. */
+  /** Low-resolution field for all timesteps. */
+  private FieldImpl lowresField;
+
+  /** Collapsed field for current timestep, used with arbitrary slicing. */
   private FieldImpl collapsedField;
 
   /** List of range component mappings for 2-D display. */
@@ -496,7 +499,7 @@ public class SliceManager
             new RealType[] {(RealType) range};
 
           // convert thumbnails into animation stacks
-          FieldImpl lowresField = null;
+          lowresField = null;
           if (doThumbs) {
             FunctionType slice_function =
               new FunctionType(slice_type, image_function);
@@ -812,21 +815,29 @@ public class SliceManager
       catch (RemoteException exc) { exc.printStackTrace(); }
     }
 
-    // switch resolution
-    if (lowres) {
-      if (hasThumbs) {
-        lowresRenderer2.toggle(true);
-        if (bio.display3 != null) lowresRenderer3.toggle(true);
-      }
+    // switch resolution in 2-D display
+    if (planeSelect) {
+      collapsedField = null;
+      updateSlice();
+    }
+    else if (lowres) {
+      if (hasThumbs) lowresRenderer2.toggle(true);
       renderer2.toggle(false);
-      if (bio.display3 != null) renderer3.toggle(false);
     }
     else {
       renderer2.toggle(true);
-      if (bio.display3 != null) renderer3.toggle(true);
-      if (hasThumbs) {
-        lowresRenderer2.toggle(false);
-        if (bio.display3 != null) lowresRenderer3.toggle(false);
+      if (hasThumbs) lowresRenderer2.toggle(false);
+    }
+
+    // switch resolution in 3-D display
+    if (bio.display3 != null) {
+      if (lowres) {
+        if (hasThumbs) lowresRenderer3.toggle(true);
+        renderer3.toggle(false);
+      }
+      else {
+        renderer3.toggle(true);
+        if (hasThumbs) lowresRenderer3.toggle(false);
       }
     }
   }
@@ -845,11 +856,12 @@ public class SliceManager
   private void updateSlice() {
     try {
       if (collapsedField == null) {
-        collapsedField = (FieldImpl) field.domainMultiply();
+        FieldImpl f = lowres ?
+          (FieldImpl) lowresField.getSample(index) : field;
+        collapsedField = (FieldImpl) f.domainMultiply();
       }
-      Field d = ps.extractSlice(collapsedField,
-        sliceRes_x, sliceRes_y, res_x, res_y);
-      planeRef.setData(d);
+      planeRef.setData(ps.extractSlice(collapsedField,
+        sliceRes_x, sliceRes_y, res_x, res_y));
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
