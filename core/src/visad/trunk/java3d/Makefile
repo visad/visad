@@ -8,11 +8,11 @@ all::
 
 # this should point to the directory holding the TrackD header file
 #
-# TRACKD_INCDIR = .
+# TRACKD_INCDIR=.
 
 # this should point to the TrackD library
 #
-# TRACKD_LIBDIR=/home3/billh/trackd/trackdAPI/lib
+# TRACKD_LIBDIR=.
 
 # this should point to the GCC standard library directory
 #
