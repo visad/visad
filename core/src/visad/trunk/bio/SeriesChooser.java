@@ -54,6 +54,9 @@ public class SeriesChooser extends JPanel implements ActionListener {
   /** Text field containing file extension. */
   private JComboBox type;
 
+  /** Ok button. */
+  private JButton ok;
+
   /** Creates a file series chooser dialog. */
   public SeriesChooser() {
     // create panels
@@ -94,7 +97,7 @@ public class SeriesChooser extends JPanel implements ActionListener {
 
     // create buttons
     JButton select = new JButton("Choose file");
-    JButton ok = new JButton("Ok");
+    ok = new JButton("Ok");
     JButton cancel = new JButton("Cancel");
     select.setMnemonic('f');
     ok.setMnemonic('o');
@@ -134,8 +137,13 @@ public class SeriesChooser extends JPanel implements ActionListener {
   /** Displays a dialog using this series chooser. */
   public int showDialog(Frame parent) {
     dialog = new JDialog(parent, "Open file series", true);
+    dialog.getRootPane().setDefaultButton(ok);
+    prefix.setText("");
+    count.setText("");
+    type.setSelectedItem(types[0]);
     dialog.setContentPane(this);
     dialog.pack();
+    Util.centerWindow(dialog);
     dialog.setVisible(true);
     return rval;
   }

@@ -163,7 +163,7 @@ public class MeasureLine {
     d.addReference(ref_line);
   }
 
-  /** Sets the line's color for the given display to the specified values. */
+  /** Sets the line's color. */
   public void setColor(Color color) {
     if (display == null) return;
     Vector v = display.getControls(ColorControl.class);
@@ -190,6 +190,11 @@ public class MeasureLine {
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
+  }
+
+  /** Sets the line's group. */
+  public void setGroup(LineGroup group) {
+    if (m != null) m.setGroup(group);
   }
 
   /** Hides the endpoints of this line. */

@@ -40,11 +40,12 @@ public class Measurement {
   Color color = Color.white;
 
   /** Group of the measurement. */
-  private LineGroup group;
+  LineGroup group;
 
   /** Constructs a measurement. */
-  public Measurement(RealTuple[] values, LineGroup group) {
+  public Measurement(RealTuple[] values, Color color, LineGroup group) {
     this.values = values;
+    this.color = color;
     this.group = group;
   }
 

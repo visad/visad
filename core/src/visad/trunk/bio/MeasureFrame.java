@@ -52,10 +52,10 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
    * File chooser for loading and saving data.
    * Static so that the directory is remembered between each load command.
    */
-  private static final JFileChooser fileBox = Util.getVisADFileChooser();
+  private JFileChooser fileBox = Util.getVisADFileChooser();
 
   /** Series chooser for loading a series of data files. */
-  private static final SeriesChooser seriesBox = new SeriesChooser();
+  private SeriesChooser seriesBox = new SeriesChooser();
 
   static {
     MathType.addTimeAlias("index");
@@ -290,6 +290,7 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
         System.exit(0);
       }
     });
+    Util.centerWindow(mf);
     mf.show();
   }
 

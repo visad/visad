@@ -26,8 +26,6 @@ MA 02111-1307, USA
 
 package visad.bio;
 
-import java.awt.Color;
-
 /** LineGroup represents a possible grouping for measurement lines. */
 public class LineGroup {
 
@@ -37,26 +35,22 @@ public class LineGroup {
   /** Description of the group. */
   private String description;
 
-  /** Default color of lines in the group. */
-  private Color color;
-
   /** Constructs a pool of lines. */
-  public LineGroup(String name, Color color) {
+  public LineGroup(String name) {
     this.name = name;
-    this.color = color;
     description = "";
   }
 
   /** Sets the group's description. */
   public void setDescription(String desc) { description = desc; }
 
+  /** Gets the group's string representation (name). */
+  public String toString() { return name; }
+
   /** Gets the group's name. */
   public String getName() { return name; }
 
   /** Gets the group's description. */
   public String getDescription() { return description; }
-
-  /** Gets the group's default line color. */
-  public Color getDefaultColor() { return color; }
 
 }

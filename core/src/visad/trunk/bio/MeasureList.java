@@ -35,10 +35,10 @@ import visad.*;
 public class MeasureList {
 
   /** Minimum number of lines in the line pool. */
-  public static final int MIN_POOL_SIZE = 10;
+  static final int MIN_POOL_SIZE = 10;
 
   /** Default group. */
-  private static LineGroup defaultGroup = new LineGroup("None", Color.white);
+  static final LineGroup DEFAULT_GROUP = new LineGroup("None");
 
   /** List of measurements. */
   private Vector measureList;
@@ -98,7 +98,12 @@ public class MeasureList {
 
   /** Adds a measurement line or point to the measurement list. */
   public void addMeasurement(boolean point) {
-    Measurement m = new Measurement(point ? ptVals : lnVals, defaultGroup);
+    addMeasurement(point, Color.white, DEFAULT_GROUP);
+  }
+
+  /** Adds a measurement line or point to the measurement list. */
+  public void addMeasurement(boolean point, Color color, LineGroup group) {
+    Measurement m = new Measurement(point ? ptVals : lnVals, color, group);
     measureList.add(m);
     pool.add(m);
   }
