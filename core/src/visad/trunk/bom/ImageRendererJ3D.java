@@ -90,9 +90,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
   }
 
   public boolean getAndClearReUseFrames() {
-    boolean r = reUseFrames;
-    reUseFrames = false;
-    return r;
+    return reUseFrames;
   }
 
   public BranchGroup doTransform() throws VisADException, RemoteException { 
@@ -131,6 +129,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
         sequence = false;
       }
       else {
+        reUseFrames = false;
         throw new BadMappingException("must be image or image sequence");
       }
       link.start_time = System.currentTimeMillis();
@@ -139,6 +138,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
                        link.getDefaultValues(), this);
     }
     link.clearData();
+    reUseFrames = false;
     return branch;
   }
 
