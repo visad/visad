@@ -149,12 +149,12 @@ public class FrontDrawer extends Object {
     0.2f,
     0.2f,
     0.2f,
-    0.2f,
-    0.2f,
-    0.2f,
-    0.2f,
-    0.2f,
-    0.2f,
+    0.05f, // TROUGH = 9
+    0.1f, // RIDGE = 10
+    0.05f, // MOISTURE = 11
+    0.2f, // LOW_LEVEL_JET = 12
+    0.2f, // UPPER_LEVEL_JET = 13
+    0.1f, // DRY_LINE = 14
     0.2f,
     0.2f,
     0.2f,
@@ -164,31 +164,136 @@ public class FrontDrawer extends Object {
   };
 
   private static final float[][][][] rshapesarray = {
-    // COLD_FRONT
+
+    // COLD_FRONT =0
     {{{0.0f, 0.025f, 0.05f, 0.1f, 0.15f, 0.2f,
        0.2f, 0.15f, 0.1f, 0.05f, 0.025f, 0.0f},
       {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
        0.01f, 0.01f, 0.01f, 0.01f, 0.04f, 0.01f}}},
-    // WARM_FRONT
+
+    // WARM_FRONT = 1
     {{{0.0f, 0.035f, 0.07f, 0.1f, 0.15f, 0.2f,
        0.2f, 0.15f, 0.1f, 0.07f, 0.0525f, 0.035f, 0.0175f, 0.0f},
       {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-       0.01f, 0.01f, 0.01f, 0.01f, 0.03f, 0.04f, 0.03f, 0.01f}}},
-    // OCCLUDED_FRONT
+       0.01f, 0.01f, 0.01f, 0.01f, 0.03f, 0.037f, 0.03f, 0.01f}}},
+
+    // OCCLUDED_FRONT = 2
     {{{0.0f, 0.025f, 0.05f, 0.07f, 0.105f, 0.14f, 0.17f, 0.2f,
        0.2f, 0.17f, 0.14f, 0.1225f, 0.105f, 0.0875f, 0.07f, 0.05f, 0.025f, 0.0f},
       {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-       0.01f, 0.01f, 0.01f, 0.03f, 0.04f, 0.03f, 0.01f, 0.01f, 0.04f, 0.01f}}},
-    // STATIONARY_FRONT
+       0.01f, 0.01f, 0.01f, 0.03f, 0.037f, 0.03f, 0.01f, 0.01f, 0.04f, 0.01f}}},
+
+    // STATIONARY_FRONT = 3
     {{{0.0f, 0.025f, 0.05f, 0.07f, 0.0875f, 0.105f, 0.1225f, 0.14f, 0.17f, 0.2f,
        0.2f, 0.17f, 0.14f, 0.105f, 0.07f, 0.05f, 0.025f, 0.0f},
-      {0.0f, 0.0f, 0.0f, 0.0f, -0.02f, -0.03f, -0.02f, 0.0f, 0.0f, 0.0f,
+      {0.0f, 0.0f, 0.0f, 0.0f, -0.02f, -0.027f, -0.02f, 0.0f, 0.0f, 0.0f,
        0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.04f, 0.01f}}},
-    // CONVERGENCE
+
+    // CONVERGENCE = 4
     {{{0.0f, 0.03f, 0.035f, 0.01f, 0.05f, 0.1f, 0.15f, 0.2f,
        0.2f, 0.15f, 0.11f, 0.135f, 0.13f, 0.1f, 0.05f, 0.0f},
       {0.01f, 0.04f, 0.035f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f,
        0.0f, 0.0f, 0.0f, -0.025f, -0.03f, 0.0f, 0.0f, 0.0f}}},
+
+    // FRONTOGENESIS = 5
+    {{{0.0f, 0.035f, 0.07f, 0.1f, 0.15f,
+       0.15f, 0.1f, 0.0875f, 0.075f, 0.0625f, 0.05f, 0.0f},
+      {0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+       0.01f, 0.01f, 0.025f, 0.035f, 0.025f, 0.01f, 0.01f}},
+     {{0.16f, 0.19f,
+       0.19f, 0.16f},
+      {-0.005f, -0.005f,
+       0.015f, 0.015f}}},
+
+    // FRONTOLYSIS = 6
+    {{{0.0f, 0.035f, 0.07f, 0.1f, 0.15f,
+       0.15f, 0.1f, 0.0875f, 0.075f, 0.0625f, 0.05f, 0.0f},
+      {0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+       0.01f, 0.01f, 0.025f, 0.035f, 0.025f, 0.01f, 0.01f}},
+     {{0.16f, 0.17f, 0.17f, 0.18f, 0.18f, 0.19f,
+       0.19f, 0.18f, 0.18f, 0.17f, 0.17f, 0.16f},
+      {0.0f, 0.0f, -0.01f, -0.01f, 0.0f, 0.0f,
+       0.01f, 0.01f, 0.02f, 0.02f, 0.01f, 0.01f}}},
+
+    // UPPER_COLD_FRONT = 7
+    {{{0.0f, 0.05f, 0.1f, 0.15f, 0.2f,
+       0.2f, 0.15f, 0.1f, 0.05f, 0.0f},
+      {0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+       0.01f, 0.01f, 0.01f, 0.01f, 0.01f}},
+     {{0.0f, 0.03f, 0.06f,
+       0.05f, 0.03f, 0.01f},
+      {0.01f, 0.04f, 0.01f,
+       0.01f, 0.03f, 0.01f}}},
+
+    // UPPER_WARM_FRONT = 8
+    {{{0.0f, 0.05f, 0.1f, 0.15f, 0.2f,
+       0.2f, 0.15f, 0.1f, 0.05f, 0.0f},
+      {0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+       0.01f, 0.01f, 0.01f, 0.01f, 0.01f}},
+     {{0.0f, 0.015f, 0.03f, 0.045f, 0.06f,
+       0.05f, 0.04f, 0.03f, 0.02f, 0.01f},
+      {0.01f, 0.03f, 0.037f, 0.03f, 0.01f,
+       0.01f, 0.023f, 0.027f, 0.023f, 0.01f}}},
+
+    // TROUGH = 9
+    {{{0.0f, 0.035f,
+       0.035f, 0.0f},
+      {0.0f, 0.0f,
+       0.01f, 0.01f}}},
+
+    // RIDGE = 10
+    {{{0.0f, 0.05f, 0.1f,
+       0.1f, 0.05f, 0.0f},
+      {0.04f, -0.06f, 0.04f,
+       0.06f, -0.04f, 0.06f}}},
+
+    // MOISTURE = 11
+    {{{0.0f, 0.0f, 0.01f, 0.01f, 0.05f,
+       0.05f, 0.0f},
+      {0.01f, 0.05f, 0.05f, 0.01f, 0.01f,
+       0.0f, 0.0f}}},
+
+    // LOW_LEVEL_JET = 12
+    {{{0.0f, 0.05f, 0.1f, 0.15f, 0.2f,
+       0.2f, 0.15f, 0.1f, 0.05f, 0.0f},
+      {0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+       0.01f, 0.01f, 0.01f, 0.01f, 0.01f}}},
+
+    // UPPER_LEVEL_JET = 13
+    {{{0.0f, 0.05f, 0.1f, 0.15f, 0.2f,
+       0.2f, 0.15f, 0.1f, 0.05f, 0.0f},
+      {-0.01f, -0.01f, -0.01f, -0.01f, -0.01f,
+       0.02f, 0.02f, 0.02f, 0.02f, 0.02f}}},
+
+    // DRY_LINE = 14
+    {{{0.0f, 0.05f,
+       0.05f, 0.0f},
+      {0.0f, 0.0f,
+       0.01f, 0.01f}},
+
+     {{0.06f, 0.09f,
+       0.09f, 0.06f},
+      {-0.005f, -0.005f,
+       0.015f, 0.015f}}},
+
+    // TOTAL_TOTALS = 15
+
+
+    // LIFTED_INDEX = 16
+
+
+    // ISOTHERMS = 17
+
+
+    // THICKNESS_RIDGE = 18
+
+
+    // LOWER_THERMAL_TROUGH = 19
+
+
+    // UPPER_THERMAL_TROUGH = 20
+
+
 
   };
 
@@ -198,16 +303,16 @@ public class FrontDrawer extends Object {
     {1.0f},
     {1.0f},
     {1.0f},
+    {1.0f, 1.0f},
+    {1.0f, 1.0f},
+    {1.0f, 1.0f},
+    {1.0f, 1.0f},
     {1.0f},
     {1.0f},
     {1.0f},
     {1.0f},
     {1.0f},
-    {1.0f},
-    {1.0f},
-    {1.0f},
-    {1.0f},
-    {1.0f},
+    {1.0f, 1.0f}, // DRY_LINE = 14
     {1.0f},
     {1.0f},
     {1.0f},
@@ -222,16 +327,16 @@ public class FrontDrawer extends Object {
     {1.0f},
     {1.0f},
     {1.0f},
+    {1.0f, 1.0f},
+    {1.0f, 1.0f},
+    {1.0f, 1.0f},
+    {1.0f, 1.0f},
     {1.0f},
     {1.0f},
     {1.0f},
     {1.0f},
     {1.0f},
-    {1.0f},
-    {1.0f},
-    {1.0f},
-    {1.0f},
-    {1.0f},
+    {1.0f, 1.0f}, // DRY_LINE = 14
     {1.0f},
     {1.0f},
     {1.0f},
@@ -246,16 +351,16 @@ public class FrontDrawer extends Object {
     {1.0f},
     {1.0f},
     {1.0f},
+    {1.0f, 1.0f},
+    {1.0f, 1.0f},
+    {1.0f, 1.0f},
+    {1.0f, 1.0f},
     {1.0f},
     {1.0f},
     {1.0f},
     {1.0f},
     {1.0f},
-    {1.0f},
-    {1.0f},
-    {1.0f},
-    {1.0f},
-    {1.0f},
+    {1.0f, 1.0f}, // DRY_LINE = 14
     {1.0f},
     {1.0f},
     {1.0f},
@@ -277,8 +382,19 @@ public class FrontDrawer extends Object {
     null,
     null,
     null,
-    null,
-    null,
+
+    // LOW_LEVEL_JET = 12
+    {{{0.0f, 0.07f, 0.075f, 0.01f, 0.05f, 0.1f, 0.15f, 0.2f,
+       0.2f, 0.15f, 0.1f, 0.05f, 0.01f, 0.075f, 0.07f, 0.0f},
+      {0.0f, -0.07f, -0.065f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+       0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.075f, 0.08f, 0.01f}}},
+
+    // UPPER_LEVEL_JET = 13
+    {{{0.0f, 0.06f, 0.077f, 0.04f, 0.05f, 0.1f, 0.15f, 0.2f,
+       0.2f, 0.15f, 0.1f, 0.05f, 0.04f, 0.077f, 0.06f, 0.0f},
+      {-0.001f, -0.06f, -0.04f, -0.01f, -0.01f, -0.01f, -0.01f, -0.01f,
+       0.02f, 0.02f, 0.02f, 0.02f, 0.02f, 0.05f, 0.07f, 0.02f}}},
+
     null,
     null,
     null,
@@ -300,8 +416,8 @@ public class FrontDrawer extends Object {
     null,
     null,
     null,
-    null,
-    null,
+    {1.0f},
+    {1.0f},
     null,
     null,
     null,
@@ -323,8 +439,8 @@ public class FrontDrawer extends Object {
     null,
     null,
     null,
-    null,
-    null,
+    {1.0f},
+    {1.0f},
     null,
     null,
     null,
@@ -346,8 +462,8 @@ public class FrontDrawer extends Object {
     null,
     null,
     null,
-    null,
-    null,
+    {1.0f},
+    {1.0f},
     null,
     null,
     null,
@@ -444,7 +560,7 @@ public class FrontDrawer extends Object {
     if (rred == null || rred.length != nrshapes ||
         rgreen == null || rgreen.length != nrshapes || 
         rblue == null || rblue.length != nrshapes) {
-      throw new VisADException("bad fcolors");
+      throw new VisADException("bad rcolors");
     }
     repeat_tris = new int[nrshapes][][];
     for (int i=0; i<nrshapes; i++) {
