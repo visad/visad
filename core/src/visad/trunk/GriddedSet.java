@@ -802,7 +802,8 @@ public class GriddedSet extends SampledSet {
 
   public boolean equals(Object set) {
     if (!(set instanceof GriddedSet) || set == null ||
-        set instanceof LinearSet) return false;
+        set instanceof LinearSet ||
+        set instanceof Gridded1DDoubleSet) return false;
     if (this == set) return true;
     if (testNotEqualsCache((Set) set)) return false;
     if (testEqualsCache((Set) set)) return true;
