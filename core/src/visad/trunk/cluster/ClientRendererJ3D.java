@@ -168,19 +168,76 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
 
     }
     else if (scene instanceof VisADGroup) {
-
-      // see ShadowTypeJ3D.ensureNotEmpty(Group)
+      VisADGroup group = (VisADGroup) scene;
+      BranchGroup branch = new BranchGroup();
+      branch.setCapability(BranchGroup.ALLOW_DETACH);
+      branch.setCapability(Group.ALLOW_CHILDREN_READ);
+      branch.setCapability(Group.ALLOW_CHILDREN_WRITE);
+      branch.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+      int n = group.numChildren();
+      for (int i=0; i<n; i++) {
+        VisADSceneGraphObject vsgo = group.getChild(i);
+        branch.addChild((Node) convertSceneGraph(vsgo));
+      }
+      ShadowTypeJ3D.ensureNotEmpty(branch, display);
+      return branch;
     }
-    else { // scene instanceof VisADAppearance
+    else if (scene instanceof VisADAppearance) {
       VisADAppearance appearance = (VisADAppearance) scene;
+      GraphicsModeControl mode = display.getGraphicsModeControl();
       VisADGeometryArray vga = appearance.array;
       GeometryArray array = ((DisplayImplJ3D) display).makeGeometry(vga);
       if (array == null) return null;
-      BufferedImage image = (BufferedImage) appearance.image;
+      BufferedImage image = null;
+      if (appearance.image_pixels != null) {
+        image = new BufferedImage(appearance.image_width, appearance.image_height,
+                                  appearance.image_type);
+        image.setRGB(0, 0, appearance.image_width, appearance.image_height,
+                     appearance.image_pixels, 0, appearance.image_width);
+/* OR:
+        ColorModel colorModel = ColorModel.getRGBdefault();
+        WritableRaster raster =
+          colorModel.createCompatibleWritableRaster(appearance.image_width, 
+                                                    appearance.image_height);
+        DataBuffer db = raster.getDataBuffer();
+        if (!(db instanceof DataBufferInt)) {
+          throw new UnimplementedException("getRGBdefault isn't DataBufferInt");
+        }
+        image = new BufferedImage(colorModel, raster, false, null);
+        int[] intData = ((DataBufferInt)db).getData();
+        System.arraycopy(appearance.image_pixels, 0, intData, 0, intData.length);
+*/
+      }
       if (image != null) {
       }
       else {
+        TransparencyAttributes c_alpha = null;
+        if (appearance.alpha == 1.0f) {
+          // constant opaque alpha = NONE
+          c_alpha = new TransparencyAttributes(TransparencyAttributes.NONE, 0.0f);
+        }
+        else if (appearance.alpha == appearance.alpha) {
+          c_alpha = new TransparencyAttributes(mode.getTransparencyMode(),
+                                               appearance.alpha);
+        }
+        else {
+          c_alpha = new TransparencyAttributes(mode.getTransparencyMode(), 0.0f);
+        }
+        ColoringAttributes c_color = null;
+        if (appearance.red == appearance.red &&
+            appearance.green == appearance.green &&
+            appearance.blue == appearance.blue) {
+          c_color = new ColoringAttributes();
+          c_color.setColor(appearance.red, appearance.green, appearance.blue);
+        }
+        Appearance appearance_j3d =
+          ShadowTypeJ3D.makeAppearance(mode, c_alpha, c_color, array, false);
+        Shape3D shape = new Shape3D(array, appearance_j3d);
+        return shape;
       }
+    }
+    else {
+      throw new VisADException("unknown scene " + scene);
     }
 return null;
   }

@@ -370,6 +370,10 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   /** this is a work-around for the NullPointerException at
       javax.media.j3d.Shape3DRetained.setLive(Shape3DRetained.java:448) */
   public void ensureNotEmpty(Object obj) {
+    ensureNotEmpty(obj, display);
+  }
+
+  public static void ensureNotEmpty(Object obj, DisplayImpl display) {
     if (!(obj instanceof Group)) return;
     Group group = (Group) obj;
     if (group.numChildren() > 0) return;
