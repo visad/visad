@@ -427,13 +427,12 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 2:" +
                        ((FunctionType) getType()).getReal() &&   // ??
                        Domain.getDimension() == 3 &&
                        Domain.getAllSpatial() &&
-                       checkSpatialColorAlphaRange(Domain.getDisplayIndices()) &&
+                       !Domain.getMultipleDisplayScalar() &&
                        !Domain.getSpatialReference() &&
                        Display.DisplaySpatialCartesianTuple.equals(
                                Domain.getDisplaySpatialTuple() ) &&
                        checkContourColorAlphaRange(Range.getDisplayIndices()) &&
-                       checkContour(Range.getDisplayIndices()) &&
-                       display.getGraphicsModeControl().getTextureEnable();
+                       checkContour(Range.getDisplayIndices());
 
 /*
 System.out.println("checkIndices.isTextureMap = " + isTextureMap + " " +
@@ -682,7 +681,8 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
     boolean range3D = isTexture3D && anyRange(Domain.getDisplayIndices());
 
     boolean isLinearContour3D = getIsLinearContour3D() &&
-                                domain_set instanceof Linear3DSet;
+                                domain_set instanceof Linear3DSet &&
+                                shadow_api.allowLinearContourEnable();
 
 /*
 System.out.println("doTransform.isTextureMap = " + isTextureMap + " " +

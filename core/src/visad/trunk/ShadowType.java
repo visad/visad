@@ -637,7 +637,8 @@ public abstract class ShadowType extends Object
 
   /** test for display_indices in (Spatial, SpatialOffset, Color,
       Alpha, Range, Unmapped) */
-  boolean checkSpatialOffsetColorAlphaRange(int[] display_indices) throws RemoteException {
+  boolean checkSpatialOffsetColorAlphaRange(int[] display_indices)
+          throws RemoteException {
     for (int i=0; i<display_indices.length; i++) {
       if (display_indices[i] == 0) continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
@@ -667,7 +668,8 @@ public abstract class ShadowType extends Object
 
   /** test for display_indices in (Spatial, Color,
       Alpha, Range, Unmapped) */
-  boolean checkSpatialColorAlphaRange(int[] display_indices) throws RemoteException {
+  boolean checkSpatialColorAlphaRange(int[] display_indices)
+          throws RemoteException {
     for (int i=0; i<display_indices.length; i++) {
       if (display_indices[i] == 0) continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
@@ -3114,18 +3116,31 @@ System.out.println("range = " + range[0] + " " + range[1] +
          throws VisADException {
     boolean anyContourCreated = false;
 
+    boolean isLinearContour3D = getIsLinearContour3D() &&
+                                spatial_set instanceof Linear3DSet;
     ScalarMap[] spatial_maps = {null, null, null};
-    for (int i=0; i<valueArrayLength; i++) {
-      int displayScalarIndex = valueToScalar[i];
-      DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
-      if (real.equals(Display.XAxis)) {
-        spatial_maps[0] = (ScalarMap) MapVector.elementAt(valueToMap[i]);
-      }
-      else if (real.equals(Display.YAxis)) {
-        spatial_maps[1] = (ScalarMap) MapVector.elementAt(valueToMap[i]);
-      }
-      else if (real.equals(Display.ZAxis)) {
-        spatial_maps[2] = (ScalarMap) MapVector.elementAt(valueToMap[i]);
+    int[] permute = {-1, -1, -1};
+    if (isLinearContour3D) {
+      RealType[] reals =
+        ((SetType) spatial_set.getType()).getDomain().getRealComponents();
+      for (int i=0; i<valueArrayLength; i++) {
+        ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
+        ScalarType sc = map.getScalar();
+        RealType real = (sc instanceof RealType) ? (RealType) sc : null;
+        DisplayRealType dreal = map.getDisplayScalar();
+        DisplayTupleType tuple = dreal.getTuple();
+
+        if (tuple != null &&
+            tuple.equals(Display.DisplaySpatialCartesianTuple)) {
+          int tuple_index = dreal.getTupleIndex();
+          for (int j=0; j<reals.length; j++) {
+            if (real.equals(reals[j])) {
+              permute[j] = tuple_index;
+              spatial_maps[j] = map;
+              break;
+            }
+          }
+        }
       }
     }
 
@@ -3166,11 +3181,10 @@ System.out.println("range = " + range[0] + " " + range[1] +
               if (spatial_set != null) {
                 // System.out.println("makeIsoSurface at " + fvalues[0]);
 // System.out.println("start makeIsoSurface " + (System.currentTimeMillis() - Link.start_time));
-                boolean isLinearContour3D = getIsLinearContour3D() &&
-                                            spatial_set instanceof Linear3DSet;
                 if (isLinearContour3D) {
-                  array = ((Linear3DSet) spatial_set).makeLinearIsoSurface(fvalues[0],
-                              display_values[i], color_values, indexed, spatial_maps);
+                  array =
+                    ((Linear3DSet) spatial_set).makeLinearIsoSurface(fvalues[0],
+                        display_values[i], color_values, indexed, spatial_maps, permute);
                 }
                 else {
                   array = spatial_set.makeIsoSurface(fvalues[0],
@@ -3368,6 +3382,10 @@ System.out.println("range = " + range[0] + " " + range[1] +
   }
 
   public boolean allowConstantColorSurfaces() {
+    return true;
+  }
+
+  public boolean allowLinearContourEnable() {
     return true;
   }
 

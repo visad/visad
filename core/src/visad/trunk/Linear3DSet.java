@@ -281,13 +281,14 @@ public class Linear3DSet extends Gridded3DSet
   }
 
   /* almost identical with Gridded3DSet.makeIsoSurface, except:
-     1. spatial_maps argument
+     1. spatial_maps and permute arguments
      2. compute 'float[] sos' array
      3. call linear_isosurf rather than isosurf, with added sos argument
+     4. permute VX, VY and VZ
   */
   public VisADGeometryArray makeLinearIsoSurface(float isolevel,
          float[] fieldValues, byte[][] color_values, boolean indexed,
-         ScalarMap[] spatial_maps)
+         ScalarMap[] spatial_maps, int[] permute)
          throws VisADException {
     boolean debug = false;
 
@@ -351,29 +352,26 @@ public class Linear3DSet extends Gridded3DSet
 
     // get scales and offsets from linear grid coordinates to graphics coordinates
     float[] sos = new float[6];
-    Linear1DSet xset = getX();
-    double first = xset.getFirst();
-    double step = xset.getStep();
+    Unit[] set_units = getSetUnits();
+    RealTupleType domain_type = ((SetType) getType()).getDomain();
+    Unit[] def_units = domain_type.getDefaultUnits();
+    Linear1DSet[] sets = {getX(), getY(), getZ()};
     double[] so = new double[2];
     double[] data = new double[2];
     double[] display = new double[2];
-    spatial_maps[0].getScale(so, data, display);
-    sos[0] = (float) (so[1] + so[0] * first); // overall X offset
-    sos[1] = (float) (so[0] * step);          // overall X scale
-
-    Linear1DSet yset = getY();
-    first = yset.getFirst();
-    step = yset.getStep();
-    spatial_maps[1].getScale(so, data, display);
-    sos[2] = (float) (so[1] + so[0] * first); // overall Y offset
-    sos[3] = (float) (so[0] * step);          // overall Y scale
-
-    Linear1DSet zset = getZ();
-    first = zset.getFirst();
-    step = zset.getStep();
-    spatial_maps[2].getScale(so, data, display);
-    sos[4] = (float) (so[1] + so[0] * first); // overall Z offset
-    sos[5] = (float) (so[0] * step);          // overall Z scale
+    for (i=0; i<3; i++) {
+      double first = sets[i].getFirst();
+      double step = sets[i].getStep();
+      if (set_units[i] != null && !set_units[i].equals(def_units[i])) {
+        double uo = set_units[i].toThat(0.0, def_units[i]);
+        double us = set_units[i].toThat(1.0, def_units[i]) - uo;
+        first = uo + us * first;
+        step = us * step;
+      }
+      spatial_maps[i].getScale(so, data, display);
+      sos[2 * i + 0] = (float) (so[1] + so[0] * first); // overall X offset
+      sos[2 * i + 1] = (float) (so[0] * step);          // overall X scale
+    }
 
     nvertex = linear_isosurf( isolevel, ptFLAG, nvertex_estimate, npolygons,
                               ptGRID, xdim, ydim, zdim, VX, VY, VZ,
@@ -394,9 +392,9 @@ for (int j=0; j<nvertex; j++) {
 */
     float[][] fieldVertices = new float[3][nvertex];
     // NOTE - NO X & Y swap
-    System.arraycopy(VX[0], 0, fieldVertices[0], 0, nvertex);
-    System.arraycopy(VY[0], 0, fieldVertices[1], 0, nvertex);
-    System.arraycopy(VZ[0], 0, fieldVertices[2], 0, nvertex);
+    System.arraycopy(VX[0], 0, fieldVertices[permute[0]], 0, nvertex);
+    System.arraycopy(VY[0], 0, fieldVertices[permute[1]], 0, nvertex);
+    System.arraycopy(VZ[0], 0, fieldVertices[permute[2]], 0, nvertex);
     // take the garbage out
     VX = null;
     VY = null;
