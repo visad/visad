@@ -32,6 +32,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
+import visad.DataReference;
 import visad.DisplayImpl;
 import visad.LocalDisplay;
 import visad.RemoteDisplay;
@@ -167,6 +168,13 @@ public class ClientServer
   public static LocalDisplay getClientDisplay(RemoteServer client, int index)
     throws RemoteException, VisADException
   {
+    return getClientDisplay(client, index, null);
+  }
+
+  public static LocalDisplay getClientDisplay(RemoteServer client, int index,
+                                              DataReference[] refs)
+    throws RemoteException, VisADException
+  {
     // fail if there's no remote server
     if (client == null) {
       return null;
@@ -209,10 +217,22 @@ public class ClientServer
       return null;
     }
 
-    return wrapRemoteDisplay(rmtDpy);
+    LocalDisplay dpy = wrapRemoteDisplay(rmtDpy);
+    if (dpy != null && refs != null) {
+      dpy.replaceReferences(rmtDpy, null, refs, null);
+    }
+
+    return dpy;
   }
 
   public static LocalDisplay[] getClientDisplays(RemoteServer client)
+    throws RemoteException, VisADException
+  {
+    return getClientDisplays(client, null);
+  }
+
+  public static LocalDisplay[] getClientDisplays(RemoteServer client,
+                                                 DataReference[] refs)
     throws RemoteException, VisADException
   {
     // fail if there's no remote server
@@ -258,6 +278,9 @@ public class ClientServer
     LocalDisplay[] dpys = new LocalDisplay[rmtDpys.length];
     for (int i = 0; i < dpys.length; i++) {
       dpys[i] = wrapRemoteDisplay(rmtDpys[i]);
+      if (dpys[i] != null && refs != null) {
+        dpys[i].replaceReferences(rmtDpys[i], null, refs, null);
+      }
     }
 
     return dpys;
