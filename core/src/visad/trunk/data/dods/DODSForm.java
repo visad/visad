@@ -174,6 +174,10 @@ public class DODSForm
 	{
 	    throw new VisADException(header + e + contactMessage);
 	}
+	finally
+	{
+	    consolidator.clear();
+	}
 	return data;
     }
 

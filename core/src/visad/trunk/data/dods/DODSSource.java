@@ -23,12 +23,14 @@ MA 02111-1307, USA
 package visad.data.dods;
 
 import dods.dap.*;
-import java.net.URL;
+import dods.dap.parser.ParseException;
+import java.io.*;
+import java.net.*;
 import java.rmi.RemoteException;
 import java.util.Enumeration;
+import visad.*;
 import visad.data.BadFormException;
 import visad.data.in.*;
-import visad.*;
 
 /**
  * Provides support for generating a stream of VisAD data objects from a DODS
@@ -72,13 +74,15 @@ public class DODSSource
      *
      * @param spec		The URL string specification of the DODS dataset
      *				The path component should have a ".dods" suffix.
-     * @return			<code>true</code> if and only if the specified
-     *				DODS dataset was successfully converted into
-     *				a VisAD data object.
+     * @return			The VisAD data object corresponding the DODS
+     *				dataset specification.
+     * @throws BadFormException	The DODS dataset is corrupt.
+     * @throws VisADException	VisAD failure.
+     * @throws RemoteException	Java RMI failure.
      */
-    public boolean open(String spec)
+    public void open(String spec)
+	throws BadFormException, RemoteException, VisADException
     {
-	boolean	success;
 	System.gc();
 	try
 	{
@@ -106,16 +110,32 @@ public class DODSSource
 	    DAS		das = dConnect.getDAS();
 	    handleGlobalAttributes(das);
 	    handleVariables(dConnect.getData(null), das);
-	    success = true;
 	}
-	catch (Exception e)
+	catch (MalformedURLException e)
 	{
-	    System.err.println(
-		getClass().getName() + ".open(String): " +
-		"Unable to open dataset \"" + spec + "\": " + e);
-	    success = false;
+	    throw new BadFormException(
+		getClass().getName() + ".open(String): " + e);
 	}
-	return success;
+	catch (FileNotFoundException e)
+	{
+	    throw new BadFormException(
+		getClass().getName() + ".open(String): " + e);
+	}
+	catch (ParseException e)
+	{
+	    throw new BadFormException(
+		getClass().getName() + ".open(String): " + e);
+	}
+	catch (DODSException e)
+	{
+	    throw new BadFormException(
+		getClass().getName() + ".open(String): " + e);
+	}
+	catch (IOException e)
+	{
+	    throw new BadFormException(
+		getClass().getName() + ".open(String): " + e);
+	}
     }
 
     /**
