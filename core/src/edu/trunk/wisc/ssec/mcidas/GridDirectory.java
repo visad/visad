@@ -172,8 +172,18 @@ public class GridDirectory
     /**
      * Get the raw directory block
      * @return  array of the raw parameters in int form
+     * @deprecated  use getDirectoryBlock
      */
     public int[] getDirBlock()
+    {
+        return getDirectoryBlock();
+    }
+
+    /**
+     * Get the raw directory block
+     * @return  array of the raw parameters in int form
+     */
+    public int[] getDirectoryBlock()
     {
         return dir;
     }
@@ -310,7 +320,7 @@ public class GridDirectory
       if (gridNav == null) {
         // make the nav module
         try {
-          gridNav = new GRIDnav(getDirBlock());
+          gridNav = new GRIDnav(getDirectoryBlock());
         } catch (McIDASException excp) {
           gridNav = null;
         }
@@ -336,6 +346,18 @@ public class GridDirectory
     public int getNavType()
     {
         return navBlock[0];
+    }
+
+    /**
+     * Check the equality of the object in question with this.
+     * @param o object in question
+     */
+    public boolean equals(Object o) {
+       if (!(o instanceof GridDirectory)) return false;
+       GridDirectory that = (GridDirectory) o;
+       return (this == that ||
+              java.util.Arrays.equals(
+                   getDirectoryBlock(), that.getDirectoryBlock()));
     }
 
     /**

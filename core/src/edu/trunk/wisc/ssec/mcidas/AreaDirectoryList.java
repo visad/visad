@@ -88,7 +88,6 @@ public class AreaDirectoryList
   private int[] elements;         // array of elements
   private ArrayList dirs;         // list of directories
   private int numDirs = 0;        // number of directories
-  private AreaDirectory ad;       // directory objects
   
   /**
    * creates an AreaDirectory object that allows reading
@@ -134,41 +133,6 @@ public class AreaDirectoryList
     readDirectory();
   }
  
-  /**
-   * creates an AreaDirectory object that allows reading
-   * of the directory of McIDAS 'area' file format image data from an applet
-   *
-   * @param filename the disk filename (incl path) to read from
-   * @param parent the parent applet 
-   *
-   * @exception AreaFileException if file cannot be opened
-   *
-  public AreaDirectoryList(String filename, Applet parent) 
-    throws AreaFileException 
-  {
-    URL url;
-    try 
-    {
-      url = new URL(parent.getDocumentBase(), filename);
-    } 
-    catch (MalformedURLException e) 
-    {
-      throw new AreaFileException("Error opening URL for AreaFile:"+e);
-    }
-
-    try 
-    { 
-      inputStream = 
-        new DataInputStream(
-          new BufferedInputStream(url.openStream()));
-    }
-    catch (IOException e) 
-    {
-      throw new AreaFileException("Error opening AreaFile:"+e);
-    }
-    readDirectory();
-  }
-   */
 
   /**
    * creates an AreaDirectory object that allows reading
@@ -528,7 +492,6 @@ public class AreaDirectoryList
     System.out.println(adl.toString());
 
     // print out test of getSortedDirs()
-    /*
     AreaDirectory[][] ada = adl.getSortedDirs();
     for (int i=0; i<ada.length; i++) {
       Date dd = ada[i][0].getNominalTime();
@@ -542,6 +505,5 @@ public class AreaDirectoryList
       }
       System.out.println(" ");
     }
-    */
   }
 }

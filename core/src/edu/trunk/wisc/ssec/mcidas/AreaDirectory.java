@@ -484,6 +484,19 @@ public class AreaDirectory
   }
 
   /**
+   * Check the equality of the object in question with this.
+   * @param o object in question
+   */
+  public boolean equals(Object o) {
+     if (!(o instanceof AreaDirectory)) return false;
+     AreaDirectory that = (AreaDirectory) o;
+     return (this == that ||
+            java.util.Arrays.equals(
+                 getDirectoryBlock(), that.getDirectoryBlock()));
+  }
+
+
+  /**
    * Prints out a formatted listing of the directory info
    */
   public String toString()
