@@ -37,9 +37,9 @@ import visad.VisADException;
 import visad.util.ThreadPool;
 
 /**
- * <CODE>DisplaySyncImpl</CODE> is the <CODE>Display</CODE> synchronization
+ * <TT>DisplaySyncImpl</TT> is the <TT>Display</TT> synchronization
  * implementation.<P>
- * <CODE>DisplaySyncImpl</CODE> is not <CODE>Serializable</CODE>
+ * <TT>DisplaySyncImpl</TT> is not <TT>Serializable</TT>
  * and should not be copied between JVMs.
  */
 public class DisplaySyncImpl
@@ -50,20 +50,20 @@ public class DisplaySyncImpl
    */
   private String Name;
   /**
-   * The <CODE>Display</CODE> being synchronized.
+   * The <TT>Display</TT> being synchronized.
    */
   private transient DisplayImpl myDisplay;
   /**
-   * The <CODE>DisplayMonitor</CODE> object associated with the
-   * <CODE>Display</CODE>.
+   * The <TT>DisplayMonitor</TT> object associated with the
+   * <TT>Display</TT>.
    */
   private transient DisplayMonitor monitor;
 
   /**
    * Creates a synchronization coordinator for the specified
-   * <CODE>Display</CODE>.
+   * <TT>Display</TT>.
    *
-   * @param dpy The <CODE>Display</CODE> to be synchronized.
+   * @param dpy The <TT>Display</TT> to be synchronized.
    */
   public DisplaySyncImpl(DisplayImpl dpy)
   {
@@ -73,10 +73,10 @@ public class DisplaySyncImpl
   }
 
   /**
-   * Finds the first map associated with this <CODE>Display</CODE>
-   * which matches the specified <CODE>ScalarMap</CODE>.
+   * Finds the first map associated with this <TT>Display</TT>
+   * which matches the specified <TT>ScalarMap</TT>.
    *
-   * @param map The <CODE>ScalarMap</CODE> to find.
+   * @param map The <TT>ScalarMap</TT> to find.
    */
   private ScalarMap findMap(ScalarMap map)
   {
@@ -105,7 +105,7 @@ public class DisplaySyncImpl
   }
 
   /**
-   * Adds the specified data reference to this <CODE>Display</CODE>.
+   * Adds the specified data reference to this <TT>Display</TT>.
    *
    * @param link The link to the remote data reference.
    *
@@ -180,26 +180,26 @@ public class DisplaySyncImpl
   }
 
   /**
-   * Handles remote <CODE>Display</CODE> changes, causing
-   * the local <CODE>Display</CODE> to be changed to match.
+   * Handles remote <TT>Display</TT> changes, causing
+   * the local <TT>Display</TT> to be changed to match.
    *
    * @param e The event to be processed.
    *
    * @exception RemoteException If there was an RMI-related problem.
    * @exception RemoteVisADException If there was an internal problem.
    */
-  public void stateChanged(MonitorEvent e)
+  public void stateChanged(MonitorEvent evt)
     throws RemoteException, RemoteVisADException
   {
     Control lclCtl, rmtCtl;
 
-    monitor.addRemoteMonitorEvent(e);
-    switch (e.getType()) {
+    monitor.addRemoteMonitorEvent(evt);
+    switch (evt.getType()) {
     case MonitorEvent.MAP_ADDED:
       // forward to any listeners
-      monitor.notifyListeners(e);
+      monitor.notifyListeners(evt);
 
-      ScalarMap map = ((MapMonitorEvent )e).getMap();
+      ScalarMap map = ((MapMonitorEvent )evt).getMap();
       try {
         myDisplay.addMap(map);
       } catch (VisADException ve) {
@@ -209,9 +209,9 @@ public class DisplaySyncImpl
       break;
     case MonitorEvent.MAP_CHANGED:
       // forward to any listeners
-      monitor.notifyListeners(e);
+      monitor.notifyListeners(evt);
 
-      ScalarMap rmtMap = ((MapMonitorEvent )e).getMap();
+      ScalarMap rmtMap = ((MapMonitorEvent )evt).getMap();
       ScalarMap lclMap = findMap(rmtMap);
       if (lclMap == null) {
         throw new RemoteVisADException("ScalarMap " + rmtMap + " not found");
@@ -219,7 +219,7 @@ public class DisplaySyncImpl
       throw new RemoteVisADException("MAP_CHANGED operation unimplemented");
     case MonitorEvent.MAPS_CLEARED:
       // forward to any listeners
-      monitor.notifyListeners(e);
+      monitor.notifyListeners(evt);
 
       try {
         myDisplay.removeAllReferences();
@@ -233,9 +233,9 @@ public class DisplaySyncImpl
       break;
     case MonitorEvent.REFERENCE_ADDED:
       // forward to any listeners
-      monitor.notifyListeners(e);
+      monitor.notifyListeners(evt);
 
-      RemoteReferenceLink ref = ((ReferenceMonitorEvent )e).getLink();
+      RemoteReferenceLink ref = ((ReferenceMonitorEvent )evt).getLink();
       try {
         addLink(ref);
       } catch (VisADException ve) {
@@ -248,7 +248,7 @@ public class DisplaySyncImpl
     case MonitorEvent.CONTROL_INIT_REQUESTED:
       // !!! DON'T FORWARD INIT EVENTS TO LISTENERS !!!
 
-      rmtCtl = ((ControlMonitorEvent )e).getControl();
+      rmtCtl = ((ControlMonitorEvent )evt).getControl();
       lclCtl = myDisplay.getControl(rmtCtl.getClass(),
                                     rmtCtl.getInstanceNumber());
       if (lclCtl == null) {
@@ -267,17 +267,17 @@ public class DisplaySyncImpl
       }
       break;
     case MonitorEvent.CONTROL_CHANGED:
-      rmtCtl = ((ControlMonitorEvent )e).getControl();
+      rmtCtl = ((ControlMonitorEvent )evt).getControl();
       lclCtl = myDisplay.getControl(rmtCtl.getClass(),
                                     rmtCtl.getInstanceNumber());
 
       // skip this if we have change events to deliver for this control
-      if (monitor.hasEventQueued(e.getOriginator(), lclCtl)) {
+      if (monitor.hasEventQueued(evt.getOriginator(), lclCtl)) {
         break;
       }
 
       // forward to any listeners
-      monitor.notifyListeners(e);
+      monitor.notifyListeners(evt);
 
       if (lclCtl == null) {
         // didn't find control ... maybe it doesn't exist yet?
@@ -293,12 +293,12 @@ public class DisplaySyncImpl
       }
       break;
     default:
-      throw new RemoteVisADException("Event " + e + " not handled");
+      throw new RemoteVisADException("Event " + evt + " not handled");
     }
   }
 
   /**
-   * Returns the name of this <CODE>DisplaySync</CODE>
+   * Returns the name of this <TT>DisplaySync</TT>
    */
   public String toString()
   {

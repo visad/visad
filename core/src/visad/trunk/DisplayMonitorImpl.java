@@ -36,9 +36,9 @@ import visad.util.ObjectCache;
 import visad.util.ThreadPool;
 
 /**
- * <CODE>DisplayMonitorImpl</CODE> is the <CODE>Display</CODE> monitor
+ * <TT>DisplayMonitorImpl</TT> is the <TT>Display</TT> monitor
  * implementation.<P>
- * <CODE>DisplayMonitorImpl</CODE> is not <CODE>Serializable</CODE> and
+ * <TT>DisplayMonitorImpl</TT> is not <TT>Serializable</TT> and
  * should not be copied between JVMs.<P>
  */
 public class DisplayMonitorImpl
@@ -47,10 +47,10 @@ public class DisplayMonitorImpl
   private int nextListenerID = 0;
 
   /**
-   * Creates a new wrapper for a <CODE>DisplayMonitorListener</CODE>
+   * Creates a new wrapper for a <TT>DisplayMonitorListener</TT>
    * which is mapped to a unique ID.
    *
-   * @param listener The <CODE>DisplayMonitorListener</CODE> to wrap.
+   * @param listener The <TT>DisplayMonitorListener</TT> to wrap.
    */
   private synchronized Listener
     getNextListener(DisplayMonitorListener listener)
@@ -110,8 +110,8 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * <CODE>EventComparator</CODE> is used to sort the event table just
-   * before delivering it to a remote <CODE>DisplayMonitorListener</CODE>.
+   * <TT>EventComparator</TT> is used to sort the event table just
+   * before delivering it to a remote <TT>DisplayMonitorListener</TT>.
    */
   class EventComparator
     implements Comparator
@@ -119,9 +119,9 @@ public class DisplayMonitorImpl
     private Hashtable table;
 
     /**
-     * Creates a new comparison class for the given <CODE>Hashtable</CODE>
+     * Creates a new comparison class for the given <TT>Hashtable</TT>
      *
-     * @param tbl The <CODE>Hashtable</CODE> to use for comparisons.
+     * @param tbl The <TT>Hashtable</TT> to use for comparisons.
      */
     EventComparator(Hashtable tbl)
     {
@@ -141,8 +141,8 @@ public class DisplayMonitorImpl
     }
 
     /**
-     * Returns <CODE>true</CODE> if the specified object is
-     * an <CODE>EventComparator</CODE>.
+     * Returns <TT>true</TT> if the specified object is
+     * an <TT>EventComparator</TT>.
      *
      * @param obj The object to examine.
      */
@@ -183,8 +183,8 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * <CODE>Listener</CODE> is an encapsulation of all the data related to
-   * delivering events to a single <CODE>DIsplayMonitorListener</CODE>.
+   * <TT>Listener</TT> is an encapsulation of all the data related to
+   * delivering events to a single <TT>DIsplayMonitorListener</TT>.
    */
   class Listener
     implements Runnable
@@ -199,7 +199,7 @@ public class DisplayMonitorImpl
     private Hashtable diverted = null;
 
     /**
-     * Creates a new <CODE>Listener</CODE> with the specified ID.
+     * Creates a new <TT>Listener</TT> with the specified ID.
      *
      * @param l The listener to which events will be sent.
      * @param n The unique identifier for this listener.
@@ -235,7 +235,7 @@ public class DisplayMonitorImpl
     /**
      * Adds the event to the specified table.
      *
-     * @param tbl The <CODE>Hashtable</CODE> to which the event will be added.
+     * @param tbl The <TT>Hashtable</TT> to which the event will be added.
      * @param evt The event to add.
      */
     private void addEventToTable(Hashtable tbl, ControlMonitorEvent evt)
@@ -246,7 +246,7 @@ public class DisplayMonitorImpl
     /**
      * Adds the event to the specified table.
      *
-     * @param tbl The <CODE>Hashtable</CODE> to which the event will be added.
+     * @param tbl The <TT>Hashtable</TT> to which the event will be added.
      * @param evt The event to add.
      */
     private void addEventToTable(Hashtable tbl, MapMonitorEvent evt)
@@ -267,7 +267,7 @@ public class DisplayMonitorImpl
     /**
      * Adds the event to the specified table.
      *
-     * @param tbl The <CODE>Hashtable</CODE> to which the event will be added.
+     * @param tbl The <TT>Hashtable</TT> to which the event will be added.
      * @param evt The event to add.
      */
     private void addEventToTable(Hashtable tbl, ReferenceMonitorEvent evt)
@@ -276,12 +276,12 @@ public class DisplayMonitorImpl
     }
 
     /**
-     * Adds a generic <CODE>MonitorEvent</CODE> to the specified table.
+     * Adds a generic <TT>MonitorEvent</TT> to the specified table.
      * (This method simply forwards the event to the
-     * <CODE>addEventToTable</CODE> method for this specific
-     * <CODE>MonitorEvent</CODE> type.)
+     * <TT>addEventToTable</TT> method for this specific
+     * <TT>MonitorEvent</TT> type.)
      *
-     * @param tbl The <CODE>Hashtable</CODE> to which the event will be added.
+     * @param tbl The <TT>Hashtable</TT> to which the event will be added.
      * @param evt The event to add.
      */
     private void addEventToTable(Hashtable tbl, MonitorEvent evt)
@@ -326,22 +326,22 @@ public class DisplayMonitorImpl
     }
 
     /**
-     * Gets the unique identifier for this <CODE>Listener</CODE>.
+     * Gets the unique identifier for this <TT>Listener</TT>.
      */
     public int getID() { return id; }
 
     /**
-     * Gets the actual <CODE>DisplayMonitorListener</CODE> for this
-     * <CODE>Listener</CODE>.
+     * Gets the actual <TT>DisplayMonitorListener</TT> for this
+     * <TT>Listener</TT>.
      */
     public DisplayMonitorListener getListener() { return listener; }
 
     /**
-     * Returns <CODE>true</CODE> if there wass already a
-     * <CODE>MonitorEvent</CODE> queued for the specified
-     * <CODE>Control</CODE>.
+     * Returns <TT>true</TT> if there wass already a
+     * <TT>MonitorEvent</TT> queued for the specified
+     * <TT>Control</TT>.
      *
-     * @param ctl The <CODE>Control</CODE>.
+     * @param ctl The <TT>Control</TT>.
      */
     public boolean hasControlEventQueued(Control ctl)
     {
@@ -357,7 +357,7 @@ public class DisplayMonitorImpl
     }
 
     /**
-     * Returns <CODE>true</CODE> if there were diverted events
+     * Returns <TT>true</TT> if there were diverted events
      *  to be delivered
      */
     private boolean undivertEvents()
@@ -376,7 +376,7 @@ public class DisplayMonitorImpl
     }
 
     /**
-     * Returns <CODE>true</CODE> if this Listener is dead.
+     * Returns <TT>true</TT> if this Listener is dead.
      */
     public boolean isDead() { return dead; }
 
@@ -466,13 +466,13 @@ public class DisplayMonitorImpl
   private String Name;
 
   /**
-   * The <CODE>Display</CODE> being monitored.
+   * The <TT>Display</TT> being monitored.
    */
   private transient DisplayImpl myDisplay;
 
   /**
    * The list of objects interested in changes to the monitored
-   * <CODE>Display</CODE>.
+   * <TT>Display</TT>.
    */
   private transient Vector ListenerVector = new Vector();
 
@@ -483,13 +483,13 @@ public class DisplayMonitorImpl
   private transient ObjectCache objCache;
 
   /**
-   * Creates a monitor for the specified <CODE>Display</CODE>.
+   * Creates a monitor for the specified <TT>Display</TT>.
    *
-   * @param dpy The <CODE>Display</CODE> to monitor.
+   * @param dpy The <TT>Display</TT> to monitor.
    *
-   * @exception VisADException If the <CODE>Display</CODE> encountered
+   * @exception VisADException If the <TT>Display</TT> encountered
    * 				problems adding this new object as a
-   * 				<CODE>DisplayListener</CODE>.
+   * 				<TT>DisplayListener</TT>.
    */
   public DisplayMonitorImpl(DisplayImpl dpy)
     throws VisADException
@@ -502,13 +502,13 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Adds the specified listener to receive <CODE>MonitorEvent</CODE>s
-   * when the monitored <CODE>Display</CODE>'s state changes.
+   * Adds the specified listener to receive <TT>MonitorEvent</TT>s
+   * when the monitored <TT>Display</TT>'s state changes.
    *
    * @param listener The listener to add.
    * @param id The unique listener identifier.
    *
-   * @exception VisADException If the listener <CODE>Vector</CODE>
+   * @exception VisADException If the listener <TT>Vector</TT>
    * 				is uninitialized.
    */
   public void addListener(DisplayMonitorListener listener, int id)
@@ -545,9 +545,9 @@ public class DisplayMonitorImpl
 
   /**
    * Negotiates a listener identifier which is unique for both this
-   * <CODE>DisplayMonitor</CODE> and the remote <CODE>DisplayMonitor</CODE>.
+   * <TT>DisplayMonitor</TT> and the remote <TT>DisplayMonitor</TT>.
    *
-   * @param rdm The remote <CODE>DisplayMonitor</CODE> to negotiate with.
+   * @param rdm The remote <TT>DisplayMonitor</TT> to negotiate with.
    *
    * @exception RemoteException If there was an RMI-related problem.
    * @exception RemoteVisADException If negotiations failed to converge
@@ -579,13 +579,13 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Initializes links so that <CODE>MonitorEvent</CODE>s will be
-   * exchanged with the specified remote <CODE>Display</CODE>.
+   * Initializes links so that <TT>MonitorEvent</TT>s will be
+   * exchanged with the specified remote <TT>Display</TT>.
    *
-   * @param rd The remote <CODE>Display</CODE> to synchronize.
+   * @param rd The remote <TT>Display</TT> to synchronize.
    *
    * @exception RemoteException If there was an RMI-related problem.
-   * @exception RemoteVisADException If the inter-<CODE>Display</CODE>
+   * @exception RemoteVisADException If the inter-<TT>Display</TT>
    * 					links could not be made.
    */
   public void addRemoteListener(RemoteDisplay rd)
@@ -618,7 +618,7 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Stops forwarding <CODE>MonitorEvent</CODE>s to the specified listener.
+   * Stops forwarding <TT>MonitorEvent</TT>s to the specified listener.
    *
    * @param l Listener to remove.
    */
@@ -637,7 +637,7 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Returns <CODE>true</CODE> if there are listeners for this display.
+   * Returns <TT>true</TT> if there are listeners for this display.
    */
   public boolean hasListeners()
   {
@@ -645,8 +645,8 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Forwards the <CODE>MonitorEvent</CODE> to all the listeners
-   * associated with this <CODE>DisplayMonitor</CODE>.
+   * Forwards the <TT>MonitorEvent</TT> to all the listeners
+   * associated with this <TT>DisplayMonitor</TT>.
    *
    * @param evt The event to forward.
    */
@@ -673,7 +673,7 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Caches this (remotely-originated) <CODE>MonitorEvent</CODE>
+   * Caches this (remotely-originated) <TT>MonitorEvent</TT>
    * for future reference.
    *
    * @param evt The event to cache.
@@ -684,12 +684,12 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Returns <CODE>true</CODE> if there is a <CODE>MonitorEvent</CODE>
-   * for the specified <CODE>Control</CODE> waiting to be delivered to the
+   * Returns <TT>true</TT> if there is a <TT>MonitorEvent</TT>
+   * for the specified <TT>Control</TT> waiting to be delivered to the
    * listener with the specified id.
    *
    * @param listenerID The identifier for the listener.
-   * @param ctl The <CODE>Control</CODE> being found.
+   * @param ctl The <TT>Control</TT> being found.
    */
   public boolean hasEventQueued(int listenerID, Control ctl)
   {
@@ -707,48 +707,48 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Handles <CODE>Control</CODE> changes.<BR><BR>
-   * If the <CODE>ControlEvent</CODE> is not ignored, a
-   * <CODE>ControlMonitorEvent</CODE> will be sent to all listeners.
+   * Handles <TT>Control</TT> changes.<BR><BR>
+   * If the <TT>ControlEvent</TT> is not ignored, a
+   * <TT>ControlMonitorEvent</TT> will be sent to all listeners.
    *
-   * @param e The details of the <CODE>Control</CODE> change.
+   * @param e The details of the <TT>Control</TT> change.
    */
-  public void controlChanged(ControlEvent e)
+  public void controlChanged(ControlEvent evt)
   {
     // don't bother if nobody's listening
     if (!hasListeners()) {
       return;
     }
 
-    if (e.getControl() instanceof AnimationControl) {
+    if (evt.getControl() instanceof AnimationControl) {
       // ignore all animation-related events
       return;
     }
 
     try {
       notifyListeners(new ControlMonitorEvent(MonitorEvent.CONTROL_CHANGED,
-                                           (Control )e.getControl().clone()));
+                                           (Control )evt.getControl().clone()));
     } catch (VisADException ve) {
     }
   }
 
   /**
    * Handles notification of objects being added to or removed from
-   * the <CODE>Display</CODE>.<BR><BR>
-   * If the <CODE>DisplayEvent</CODE> is not ignored, a
-   * <CODE>MapMonitorEvent</CODE> or <CODE>ReferenceMonitorEvent</CODE>
+   * the <TT>Display</TT>.<BR><BR>
+   * If the <TT>DisplayEvent</TT> is not ignored, a
+   * <TT>MapMonitorEvent</TT> or <TT>ReferenceMonitorEvent</TT>
    * will be sent to all listeners.
    *
-   * @param e The details of the <CODE>Display</CODE> change.
+   * @param e The details of the <TT>Display</TT> change.
    */
-  public void displayChanged(DisplayEvent e)
+  public void displayChanged(DisplayEvent evt)
   {
     // don't bother if nobody's listening
     if (!hasListeners()) {
       return;
     }
 
-    switch (e.getId()) {
+    switch (evt.getId()) {
     case DisplayEvent.MOUSE_PRESSED:
     case DisplayEvent.TRANSFORM_DONE:
     case DisplayEvent.FRAME_DONE:
@@ -761,7 +761,7 @@ public class DisplayMonitorImpl
     case DisplayEvent.MOUSE_RELEASED_RIGHT:
       break;
     case DisplayEvent.MAP_ADDED:
-      ScalarMap map = ((DisplayMapEvent )e).getMap();
+      ScalarMap map = ((DisplayMapEvent )evt).getMap();
 
       try {
         notifyListeners(new MapMonitorEvent(MonitorEvent.MAP_ADDED,
@@ -776,14 +776,14 @@ public class DisplayMonitorImpl
       }
       break;
     case DisplayEvent.REFERENCE_ADDED:
-      DisplayReferenceEvent dre = (DisplayReferenceEvent )e;
+      DisplayReferenceEvent dre = (DisplayReferenceEvent )evt;
 
       DataDisplayLink link = dre.getDataDisplayLink();
       try {
         RemoteReferenceLinkImpl rrl = new RemoteReferenceLinkImpl(link);
-        ReferenceMonitorEvent evt;
-        evt = new ReferenceMonitorEvent(MonitorEvent.REFERENCE_ADDED, rrl);
-        notifyListeners(evt);
+        ReferenceMonitorEvent refEvt;
+        refEvt = new ReferenceMonitorEvent(MonitorEvent.REFERENCE_ADDED, rrl);
+        notifyListeners(refEvt);
       } catch (VisADException ve) {
       } catch (RemoteException ve) {
       }
@@ -791,8 +791,8 @@ public class DisplayMonitorImpl
 
     default:
       System.err.println("DisplayMonitorImpl.displayChange: " + Name +
-                         " got " + e.getClass().getName() + " " + e +
-                         "=>" + e.getDisplay());
+                         " got " + evt.getClass().getName() + " " + evt +
+                         "=>" + evt.getDisplay());
       System.exit(1);
       break;
     }
@@ -800,10 +800,10 @@ public class DisplayMonitorImpl
 
   /**
    * Handles ScalarMap data changes.<BR><BR>
-   * If the <CODE>ScalarMapEvent</CODE> is not ignored, a
-   * <CODE>MapMonitorEvent</CODE> will be sent to all listeners.
+   * If the <TT>ScalarMapEvent</TT> is not ignored, a
+   * <TT>MapMonitorEvent</TT> will be sent to all listeners.
    *
-   * @param e The details of the <CODE>ScalarMap</CODE> change.
+   * @param e The details of the <TT>ScalarMap</TT> change.
    */
   public void mapChanged(ScalarMapEvent evt)
   {
@@ -829,7 +829,7 @@ public class DisplayMonitorImpl
    * Handles ScalarMap control changes.<BR>
    * <FONT SIZE="-1">This is just a stub which ignores the event.</FONT>
    *
-   * @param e The details of the <CODE>ScalarMap</CODE> change.
+   * @param e The details of the <TT>ScalarMap</TT> change.
    */
   public void controlChanged(ScalarMapControlEvent evt)
   {
@@ -850,7 +850,7 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Returns the name of this <CODE>DisplayMonitor</CODE>.
+   * Returns the name of this <TT>DisplayMonitor</TT>.
    */
   public String toString()
   {
