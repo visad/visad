@@ -66,20 +66,37 @@ public interface Function extends Data {
   public abstract Field resample(Set set, int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /** return the derivative of this Function with respect to d_partial;
+      propogate errors accoridng to error_mode */
+  public abstract Function derivative( RealType d_partial, int error_mode )
+         throws VisADException, RemoteException;
+ 
+  /** return the derivative of this Function with respect to d_partial;
+      set result MathType to derivType; propogate errors accoridng to
+      error_mode */
+  public abstract Function derivative( RealType d_partial, MathType derivType,
+                                       int error_mode)
+         throws VisADException, RemoteException;
+
+  /** return the tuple of derivatives of this Function with respect to
+      all RealType components of its domain RealTuple;
+      propogate errors accoridng to error_mode */
+  public abstract Data derivative( int error_mode )
+         throws VisADException, RemoteException;
+
+  /** return the tuple of derivatives of this Function with respect to
+      all RealType components of its domain RealTuple;
+      set result MathTypes of tuple components to derivType_s;
+      propogate errors accoridng to error_mode */
+  public abstract Data derivative( MathType[] derivType_s, int error_mode )
+         throws VisADException, RemoteException;
+
+  /** return the tuple of derivatives of this Function with respect to
+      the RealTypes in d_partial_s; set result MathTypes of tuple
+      components to derivType_s; propogate errors accoridng to error_mode */
   public abstract Data derivative( RealTuple location, RealType[] d_partial_s,
                                    MathType[] derivType_s, int error_mode )
          throws VisADException, RemoteException;
 
-  public abstract Data derivative( int error_mode )
-         throws VisADException, RemoteException;
-
-  public abstract Data derivative( MathType[] derivType_s, int error_mode )
-         throws VisADException, RemoteException;
-
-  public abstract Function derivative( RealType d_partial, int error_mode )
-         throws VisADException, RemoteException;
-
-  public abstract Function derivative( RealType d_partial, MathType derivType, int error_mode)
-         throws VisADException, RemoteException;
 }
 
