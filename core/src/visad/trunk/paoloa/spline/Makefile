@@ -39,8 +39,8 @@ FFLAGS = $(SHFFLAGS)
 # and 'recl=76' in re_read_1.f, which are in bytes on Solaris (but
 # were in words on Irix 5 for VisAD 1.1)
 #
-FORTRANS = gcvspl.o visad_tpspline.o
-SOURCE = gcvspl.f visad_tpspline.f
+FORTRANS = gcvspl.o tpspline.o
+SOURCE = gcvspl.f tpspline.f
 #INCLUDE = 
  
 
