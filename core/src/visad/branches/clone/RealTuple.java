@@ -62,14 +62,14 @@ public class RealTuple
       type.getCoordinateSystem.getReference() */
   public RealTuple(RealTupleType type, Real[] reals, CoordinateSystem coord_sys)
          throws VisADException, RemoteException {
-    super(type, reals);
+    super(type, reals, false);  // copy == false because Reals are immutable
     init_coord_sys(coord_sys);
   }
 
   /** construct a RealTuple according to an array of Real objects */
   public RealTuple(Real[] reals)
          throws VisADException, RemoteException {
-    super(reals);
+    super(reals, false);  // copy == false because Reals are immutable
     init_coord_sys(null);
   }
 
