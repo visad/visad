@@ -58,7 +58,19 @@ public class AreaAdapter {
     * @exception VisADException if an unexpected problem occurs.
     */
   public AreaAdapter(String imageSource) throws IOException, VisADException {
-    this(imageSource, 0, 0, 0, 0, 0);
+    this(imageSource, true);
+  }
+
+  /** Create a VisAD FlatField from a local McIDAS AREA file or a URL.
+    * @param imageSource name of local file or a URL to locate file.
+    * @param pack      pack data if possible.  If calibration is BRIT, 
+    *                  images are packed into bytes
+    * @exception IOException if there was a problem reading the file.
+    * @exception VisADException if an unexpected problem occurs.
+    */
+  public AreaAdapter(String imageSource, boolean pack) 
+      throws IOException, VisADException {
+    this(imageSource, 0, 0, 0, 0, 0, pack);
   }
 
   /** Create a VisAD FlatField from a local McIDAS AREA file using
@@ -96,9 +108,33 @@ public class AreaAdapter {
                      int numLines, 
                      int numEles, 
                      int band ) throws IOException, VisADException {
+    this(imageSource, startLine, startEle, numLines, numEles, band, true);
+  }
+
+  /** Create a VisAD FlatField from a local McIDAS AREA subsected
+    * according to the parameters
+    * @param imageSource name of local file or a URL to locate file.
+    * @param startLine starting line from the file (AREA coordinates)
+    * @param startEle  starting element from the file (AREA coordinates)
+    * @param numLines  number of lines to read
+    * @param numEles   number of elements to read
+    * @param band      band number to get
+    * @param pack      pack data if possible.  If calibration is BRIT, 
+    *                  images are packed into bytes
+    *                      
+    * @exception IOException if there was a problem reading the file.
+    * @exception VisADException if an unexpected problem occurs.
+    */
+  public AreaAdapter(String imageSource, 
+                     int startLine, 
+                     int startEle, 
+                     int numLines, 
+                     int numEles, 
+                     int band,
+                     boolean pack) throws IOException, VisADException {
     try {
       AreaFile af = new AreaFile(imageSource);
-      buildFlatField(af, startLine, startEle, numLines, numEles, band);
+      buildFlatField(af, startLine, startEle, numLines, numEles, band, pack);
     } catch (McIDASException afe) {
          throw new VisADException("Problem with McIDAS AREA file: " + afe);
     }
@@ -114,7 +150,8 @@ public class AreaAdapter {
                               int startEle, 
                               int numLines,
                               int numEles, 
-                              int band) throws VisADException {
+                              int band,
+                              boolean pack) throws VisADException {
 
     int[] nav=null;
     int[] aux = null;
@@ -227,7 +264,8 @@ public class AreaAdapter {
     // from 0-255 to 0-254 so we can have 255 left over for missing
     // values.
     Set[] rangeSets = null;
-    if (calType.equalsIgnoreCase("BRIT")) {
+    pack = pack && calType.equalsIgnoreCase("BRIT");
+    if (pack) {
       rangeSets = new Set[numBands];
       for (int i = 0; i < numBands; i++) {
             rangeSets[i] = new Integer1DSet(bands[i], 255);
@@ -246,6 +284,18 @@ public class AreaAdapter {
                           rangeSets,
                           rangeUnits);
 
+    // scine we are returning a SingleBandedImage in the getData 
+    // and getImage calls anyway, we might as well create the
+    // SingleBandedImage here.  We haven't setSamples so this shouldn't
+    // be expensive.
+    if (radiance.getDimension() == 1) {
+      field = 
+        (cs == null)
+          ?  new SingleBandedImageImpl(field, getNominalTime(), "McIDAS Image")
+          :  new NavigatedImage(field, getNominalTime(), "McIDAS Image");
+    }
+
+
     // get the data
     int[][][] int_samples;
     try {
@@ -260,7 +310,8 @@ public class AreaAdapter {
     try {
       float[][] samples = new float[numBands][nEles*nLines];
 
-      if (areaDirectory.getCalibrationType().equalsIgnoreCase("BRIT")) {
+      //if (areaDirectory.getCalibrationType().equalsIgnoreCase("BRIT")) {
+      if (pack) {
 
         for (int b=0; b<numBands; b++) {
           for (int i=0; i<nLines; i++) {
@@ -288,7 +339,7 @@ public class AreaAdapter {
           }
         }
       }
-      field.setSamples( samples, false);
+      field.setSamples(samples, false);
 
     } catch (RemoteException e) {
         throw new VisADException("Couldn't finish image initialization");
@@ -343,12 +394,14 @@ public class AreaAdapter {
    * @return image as a FlatField
    */
   public FlatField getData() {
+    /*
     if (field.getRangeDimension() == 1) {
        try {
            return (FlatField) getImage();
        } catch (VisADException ve) { ve.printStackTrace();}
     } 
-    return field;
+    */
+    return (FlatField) field;
   }
 
   /**
@@ -390,35 +443,30 @@ public class AreaAdapter {
    *          If there is navigation associated with the image, the returned
    *          image is a NavigatedImage.
    */
-  public SingleBandedImage getImage()
-      throws VisADException
-  {
-    FlatField firstBand;
-    if (field.getRangeDimension() > 1)
-    {
-      try
-      {
-        firstBand = ((FlatField) field.extract(0));
-      }
-      catch (RemoteException excp)
-      {
+  public SingleBandedImage getImage() throws VisADException {
+
+    SingleBandedImage firstBand;
+    if (field.getRangeDimension() > 1) {
+      try {
+        firstBand = 
+          (cs == null)
+            ? (SingleBandedImage)
+              new SingleBandedImageImpl(((FlatField) field.extract(0)),
+                                         getNominalTime(),
+                                         "McIDAS Image", false)
+            : (SingleBandedImage)
+              new NavigatedImage(((FlatField) field.extract(0)),
+                                  getNominalTime(),
+                                  "McIDAS Image", false);
+      } catch (RemoteException excp) {
         throw new VisADException("AreaAdapter.getImage(): RemoteException");
       }
+
+    } else {
+      firstBand = (SingleBandedImage) field;
     }
-    else
-    {
-      firstBand = field;
-    }
-    return
-      cs == null
-        ? (SingleBandedImage)
-           new SingleBandedImageImpl(firstBand,
-                                     getNominalTime(),
-                                     "McIDAS Image")
-        : (SingleBandedImage)
-           new NavigatedImage(firstBand,
-                              getNominalTime(),
-                              "McIDAS Image");
+    return firstBand;
+
   }
 
 }
