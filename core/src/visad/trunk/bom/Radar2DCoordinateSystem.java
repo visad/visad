@@ -42,12 +42,83 @@ public class Radar2DCoordinateSystem extends CoordinateSystem {
   private float radlow, radres, azlow, azres;
   private double coscentlat, lonscale, latscale;
 
-  /** construct a CoordinateSystem for (range, azimuth)
-      relative to an Earth (Latitude, Longitude) Reference;
-      this constructor supplies units =
-      {CommonUnit.meter, CommonUnit.degree}
-      to the super constructor, in order to ensure Unit
-      compatibility with its use of trigonometric functions */
+  /** 
+   * construct a CoordinateSystem for (range, azimuth)
+   * relative to an Earth (Latitude, Longitude) Reference;
+   * this constructor supplies units = {CommonUnit.meter, CommonUnit.degree}
+   * to the super constructor, in order to ensure Unit
+   * compatibility with its use of trigonometric functions.  Values
+   * of range and azimuth are in terms of absolute values of range and azimuth 
+   * away from the center point where range is in meters and azimuth = 0 at 
+   * north.
+   * 
+   * @param  clat        latitude of center point
+   * @param  clon        longitude of center point
+   * 
+   * @throws  VisADException   necessary VisAD object couldn't be created.
+   */
+  public Radar2DCoordinateSystem(float clat, float clon)
+    throws VisADException {
+       this(RealTupleType.LatitudeLongitudeTuple, clat, clon,
+            0.0f, 1.0f, 0.0f, 1.0f);
+  }
+
+  /** 
+   * construct a CoordinateSystem for (range, azimuth)
+   * relative to an Earth (Latitude, Longitude) Reference;
+   * this constructor supplies units = {CommonUnit.meter, CommonUnit.degree}
+   * to the super constructor, in order to ensure Unit
+   * compatibility with its use of trigonometric functions.  Values
+   * of range and azimuth are in terms of multiples of range and azimuth 
+   * resolutions away from the low value (radl, azl). The absolute
+   * range is (radl + range_value * radr) and the absolute azimuth
+   * is (azl + azimuth_value * azr) with azimuth = 0 at north.  This
+   * allows the use of Integer2DSets for the values assuming linear
+   * spacing of range and azimuth.
+   * 
+   * @param  clat        latitude of center point
+   * @param  clon        longitude of center point
+   * @param  radl        distance from center point for first possible echo 
+   *                     (meters)
+   * @param  radr        distance between subsequent radials (meters)
+   * @param  azl         starting azimuth (degrees)
+   * @param  azr         resolution of degrees between azimuths. 
+   * 
+   * @throws  VisADException   necessary VisAD object couldn't be created.
+   */
+  public Radar2DCoordinateSystem(float clat, float clon,
+                               float radl, float radr, float azl, float azr)
+    throws VisADException {
+       this(RealTupleType.LatitudeLongitudeTuple, clat, clon,
+            radl, radr, azl, azr);
+  }
+
+
+  /** 
+   * construct a CoordinateSystem for (range, azimuth)
+   * relative to an Earth (Latitude, Longitude) Reference;
+   * this constructor supplies units = {CommonUnit.meter, CommonUnit.degree}
+   * to the super constructor, in order to ensure Unit
+   * compatibility with its use of trigonometric functions.  Values
+   * of range and azimuth are in terms of multiples of range and azimuth 
+   * resolutions away from the low value (radl, azl). The absolute
+   * range is (radl + range_value * radr) and the absolute azimuth
+   * is (azl + azimuth_value * azr) with azimuth = 0 at north.  This
+   * allows the use of Integer2DSets for the values assuming linear
+   * spacing of range and azimuth.
+   * 
+   * @param  reference   reference RealTupleType 
+   *                     (should be RealTupleType.LatitudeLongitudeTuple)
+   * @param  clat        latitude of center point
+   * @param  clon        longitude of center point
+   * @param  radl        distance from center point for first possible echo 
+   *                     (meters)
+   * @param  radr        distance between subsequent radials (meters)
+   * @param  azl         starting azimuth (degrees)
+   * @param  azr         resolution of degrees between azimuths.
+   * 
+   * @throws  VisADException   necessary VisAD object couldn't be created.
+   */
   public Radar2DCoordinateSystem(RealTupleType reference, float clat, float clon,
                                float radl, float radr, float azl, float azr)
          throws VisADException {
@@ -64,6 +135,16 @@ public class Radar2DCoordinateSystem extends CoordinateSystem {
 // System.out.println("lonscale = " + lonscale + " latscale = " + latscale);
   }
 
+  /**
+   * Convert from range/azimuth to latitude/longitude.
+   * Values input are in terms of multiples of the value resolution
+   * from the low value (ex: low + value * resolution).  
+   *
+   * @param  tuples  range/azimuth values
+   * @return  lat/lon values
+   *
+   * @throws VisADException  tuples is null or wrong dimension
+   */
   public double[][] toReference(double[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 2) {
       throw new CoordinateSystemException("Radar2DCoordinateSystem." +
@@ -96,6 +177,16 @@ System.out.println(tuples[0][i] + " " + tuples[1][i] + " -> " +
     return value;
   }
 
+  /**
+   * Convert from latitude/longitude to range/azimuth.
+   * Returned values are in terms of multiples of the value resolution
+   * from the low value (ex: low + value * resolution).  
+   *
+   * @param  tuples  lat/lon values
+   * @return  range/azimuth values
+   *
+   * @throws VisADException  tuples is null or wrong dimension
+   */
   public double[][] fromReference(double[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 2) {
       throw new CoordinateSystemException("Radar2DCoordinateSystem." +
@@ -115,6 +206,16 @@ System.out.println(tuples[0][i] + " " + tuples[1][i] + " -> " +
     return value;
   }
 
+  /**
+   * Convert from range/azimuth to latitude/longitude.
+   * Values input are in terms of multiples of the value resolution
+   * from the low value (ex: low + value * resolution).  
+   *
+   * @param  tuples  range/azimuth values
+   * @return  lat/lon values
+   *
+   * @throws VisADException  tuples is null or wrong dimension
+   */
   public float[][] toReference(float[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 2) {
       throw new CoordinateSystemException("Radar2DCoordinateSystem." +
@@ -141,6 +242,16 @@ System.out.println(tuples[0][i] + " " + tuples[1][i] + " -> " +
     return value;
   }
 
+  /**
+   * Convert from latitude/longitude to range/azimuth.
+   * Returned values are in terms of multiples of the value resolution
+   * from the low value (ex: low + value * resolution).  
+   *
+   * @param  tuples  lat/lon values
+   * @return  range/azimuth values
+   *
+   * @throws VisADException  tuples is null or wrong dimension
+   */
   public float[][] fromReference(float[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 2) {
       throw new CoordinateSystemException("Radar2DCoordinateSystem." +
@@ -161,9 +272,43 @@ System.out.println(tuples[0][i] + " " + tuples[1][i] + " -> " +
     return value;
   }
 
+  /**
+   * Check to see if this is a Radar2DCoordinateSystem
+   *
+   * @param cs  object to compare
+   * @return true if cs is an instance of Radar2DCoordinateSystem
+   */
   public boolean equals(Object cs) {
     return (cs instanceof Radar2DCoordinateSystem);
   }
 
-}
+  /**
+   * Return the azimuth parameters
+   *
+   * @return  array[] (len == 2) where array[0] = azl, array[1] = azr
+   */
+  public float[] getAzimuthParameters()
+  {
+      return new float[] {azlow, azres};
+  }
 
+  /**
+   * Return the range parameters
+   *
+   * @return  array[] (len == 2) where array[0] = radl, array[1] = radr
+   */
+  public float[] getRangeParameters()
+  {
+      return new float[] {radlow, radres};
+  }
+
+  /**
+   * Get center point in lat/lon
+   *
+   * @return latlon array  where array[0] = lat, array[1] = lon
+   */
+  public float[] getCenterPoint()
+  {
+      return new float[] {centlat, centlon};
+  }
+}

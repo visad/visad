@@ -30,9 +30,9 @@ import visad.*;
 
 /**
    Radar3DCoordinateSystem is the VisAD CoordinateSystem class
-   for radar (range, azimuth, elevation) with an Earth
+   for radar (range, azimuth, elevation_angle) with an Earth
    (Latitude, Longitude, Altitude) Reference, and with
-   azimuth and elevation in degrees, and range in meters.<P>
+   azimuth and elevation angle in degrees, and range in meters.<P>
 */
 public class Radar3DCoordinateSystem extends CoordinateSystem {
 
@@ -42,26 +42,151 @@ public class Radar3DCoordinateSystem extends CoordinateSystem {
   private static Unit[] coordinate_system_units =
     {CommonUnit.meter, CommonUnit.degree, CommonUnit.degree};
 
-  // WLH 7 April 2000
-  private float centalt = 0.0f;
-
-  private float centlat, centlon;
+  private float centlat, centlon, centalt;
   private float radlow, radres, azlow, azres, elevlow, elevres;
   private double coscentlat, lonscale, latscale;
 
-  /** construct a CoordinateSystem for (range, azimuth, elevation)
-      relative to an Earth (Latitude, Longitude, Altitude) Reference;
-      this constructor supplies units =
-      {CommonUnit.meter, CommonUnit.degree, CommonUnit.degree}
-      to the super constructor, in order to ensure Unit
-      compatibility with its use of trigonometric functions */
+  /** 
+   * construct a CoordinateSystem for (range, azimuth, elevation_angle)
+   * relative to an Earth (Latitude, Longitude, Altitude) Reference;
+   * this constructor supplies units = 
+   * {CommonUnit.meter, CommonUnit.degree, CommonUnit.degree}
+   * to the super constructor, in order to ensure Unit
+   * compatibility with its use of trigonometric functions.  Values
+   * of range, azimuth, and elevation angle are in terms of absolute values of 
+   * range, azimuth and elevation angle (tilt) from the center point where 
+   * range is in meters, azimuth = 0 at north and elevation angle is in 
+   * degrees.
+   * 
+   * @param  clat        latitude of center point
+   * @param  clon        longitude of center point
+   * @param  calt        altitude (meters) of center point
+   * 
+   * @throws  VisADException   necessary VisAD object couldn't be created.
+   */
+  public Radar3DCoordinateSystem(float clat, float clon, float calt)
+         throws VisADException {
+    this(new RealTupleType(
+             RealType.Latitude, RealType.Longitude, RealType.Altitude),
+         clat, clon, calt, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
+  }
+
+  /** 
+   * construct a CoordinateSystem for (range, azimuth, elevation_angle)
+   * relative to an Earth (Latitude, Longitude, Altitude) Reference;
+   * this constructor supplies units = 
+   * {CommonUnit.meter, CommonUnit.degree, CommonUnit.degree}
+   * to the super constructor, in order to ensure Unit
+   * compatibility with its use of trigonometric functions.  Values
+   * of range, azimuth and elevation angle are in terms of multiples of range, 
+   * azimuth and elevation angle resolutions away from the low values 
+   * (radl, azl, elevl). The absolute range is (radl + range_value * radr) 
+   * the absolute azimuth is (azl + azimuth_value * azr) with azimuth = 0 at 
+   * north and the absolute elevation angle is 
+   * (elevl + elevation_angle_value * elevr).  This allows the use of 
+   * Integer3DSets for the values assuming linear spacing of range, azimuth 
+   * and elevation angle.
+   * 
+   * @param  clat        latitude of center point
+   * @param  clon        longitude of center point
+   * @param  radl        distance from center point for first possible echo 
+   *                     (meters)
+   * @param  radr        distance between subsequent range increments (meters)
+   * @param  azl         starting azimuth (degrees)
+   * @param  azr         resolution of degrees between azimuths.
+   * @param  elevl       starting elevation angle (tilt) (degrees)
+   * @param  elevr       resolution of degrees between elevation angles.
+   * 
+   * @throws  VisADException   necessary VisAD object couldn't be created.
+   */
+  public Radar3DCoordinateSystem(float clat, float clon, float calt,
+                                 float radl, float radr, float azl, float azr,
+                                 float elevl, float elevr)
+         throws VisADException {
+    this(new RealTupleType(
+             RealType.Latitude, RealType.Longitude, RealType.Altitude),
+         clat, clon, calt, radl, radr, azl, azr, elevl, elevr);
+  }
+
+  /** 
+   * construct a CoordinateSystem for (range, azimuth, elevation_angle)
+   * relative to an Earth (Latitude, Longitude, Altitude) Reference;
+   * this constructor supplies units = 
+   * {CommonUnit.meter, CommonUnit.degree, CommonUnit.degree}
+   * to the super constructor, in order to ensure Unit
+   * compatibility with its use of trigonometric functions.  Values
+   * of range, azimuth and elevation angle are in terms of multiples of range, 
+   * azimuth and elevation angle resolutions away from the low values 
+   * (radl, azl, elevl). The absolute range is (radl + range_value * radr) 
+   * the absolute azimuth is (azl + azimuth_value * azr) with azimuth = 0 at 
+   * north and the absolute elevation angle is 
+   * (elevl + elevation_angle_value*elevr). This allows the use of 
+   * Integer3DSets for the values assuming linear spacing of range, azimuth 
+   * and elevation angle.
+   * 
+   * @deprecated use constructors with station altitude to get a true
+   *             altitude above sea level.
+   * @param  reference   reference RealTupleType 
+   *                     (should be Latitude, Longitude, Altitude)
+   * @param  clat        latitude of center point
+   * @param  clon        longitude of center point
+   * @param  radl        distance from center point for first possible echo 
+   *                     (meters)
+   * @param  radr        distance between subsequent range values (meters)
+   * @param  azl         starting azimuth (degrees)
+   * @param  azr         resolution of degrees between azimuths.
+   * @param  elevl       starting elevation angle (tilt) (degrees)
+   * @param  elevr       resolution of degrees between elevation angles.
+   * 
+   * @throws  VisADException   necessary VisAD object couldn't be created.
+   */
   public Radar3DCoordinateSystem(RealTupleType reference, float clat, float clon,
+                                 float radl, float radr, float azl, float azr,
+                                 float elevl, float elevr)
+         throws VisADException {
+    this(reference, clat, clon, 0.0f, radl, radr, azl, azr, elevl, elevr);
+  }
+
+  /** 
+   * construct a CoordinateSystem for (range, azimuth, elevation_angle)
+   * relative to an Earth (Latitude, Longitude, Altitude) Reference;
+   * this constructor supplies units = 
+   * {CommonUnit.meter, CommonUnit.degree, CommonUnit.degree}
+   * to the super constructor, in order to ensure Unit
+   * compatibility with its use of trigonometric functions.  Values
+   * of range, azimuth and elevation angle are in terms of multiples of range, 
+   * azimuth and elevation angle resolutions away from the low values 
+   * (radl, azl, elevl). The absolute range is (radl + range_value * radr) 
+   * the absolute azimuth is (azl + azimuth_value * azr) with azimuth = 0 at 
+   * north and the absolute elevation angle is 
+   * (elevl + elevation_angle_value*elevr). This allows the use of 
+   * Integer3DSets for the values assuming linear spacing of range, azimuth 
+   * and elevation angle.
+   * 
+   * @param  reference   reference RealTupleType 
+   *                     (should be Latitude, Longitude, Altitude)
+   * @param  clat        latitude of center point
+   * @param  clon        longitude of center point
+   * @param  calt        altitude (meters) of center point
+   * @param  radl        distance from center point for first possible echo 
+   *                     (meters)
+   * @param  radr        distance between subsequent range values (meters)
+   * @param  azl         starting azimuth (degrees)
+   * @param  azr         resolution of degrees between azimuths.
+   * @param  elevl       starting elevation angle (tilt) (degrees)
+   * @param  elevr       resolution of degrees between elevation angles.
+   * 
+   * @throws  VisADException   necessary VisAD object couldn't be created.
+   */
+  public Radar3DCoordinateSystem(RealTupleType reference, 
+                                 float clat, float clon, float calt,
                                  float radl, float radr, float azl, float azr,
                                  float elevl, float elevr)
          throws VisADException {
     super(reference, coordinate_system_units);
     centlat = clat;
     centlon = clon;
+    centalt = calt;
     radlow = radl;
     radres = radr;
     azlow = azl;
@@ -74,6 +199,18 @@ public class Radar3DCoordinateSystem extends CoordinateSystem {
 // System.out.println("lonscale = " + lonscale + " latscale = " + latscale);
   }
 
+  /**
+   * Convert from range/azimuth/elevation to latitude/longitude/altitude.
+   * Values input are in terms of multiples of the value resolution
+   * from the low value (ex: low + value * resolution).  Returned Altitude 
+   * is in meters above the station elevation if this was constructed 
+   * without the calt parameter.
+   *
+   * @param  tuples  range/azimuth/elevation values
+   * @return  lat/lon/altitude values
+   *
+   * @throws VisADException  tuples is null or wrong dimension
+   */
   public double[][] toReference(double[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 3) {
       throw new CoordinateSystemException("Radar3DCoordinateSystem." +
@@ -140,6 +277,16 @@ public class Radar3DCoordinateSystem extends CoordinateSystem {
     return value;
   }
 
+  /**
+   * Convert from latitude/longitude/altitude to range/azimuth/elevation.
+   * Values returned are in terms of multiples of the value resolution
+   * from the low value (ex: low + value * resolution)
+   *
+   * @param  tuples  lat/lon/altitude values
+   * @return  range/azimuth/elevation values
+   *
+   * @throws VisADException  tuples is null or wrong dimension
+   */
   public double[][] fromReference(double[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 3) {
       throw new CoordinateSystemException("Radar3DCoordinateSystem." +
@@ -189,9 +336,22 @@ public class Radar3DCoordinateSystem extends CoordinateSystem {
       value[2][i] = (elev - elevlow) / elevres;
       if (value[1][i] < 0.0) value[1][i] += 360.0;
     }
+
     return value;
   }
 
+  /**
+   * Convert from range/azimuth/elevation to latitude/longitude/altitude.
+   * Values input are in terms of multiples of the value resolution
+   * from the low value (ex: low + value * resolution).  Returned Altitude 
+   * is in meters above the station elevation if this was constructed
+   * without the calt parameter.
+   *
+   * @param  tuples  range/azimuth/elevation values
+   * @return  lat/lon/altitude values
+   *
+   * @throws VisADException  tuples is null or wrong dimension
+   */
   public float[][] toReference(float[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 3) {
       throw new CoordinateSystemException("Radar3DCoordinateSystem." +
@@ -258,6 +418,16 @@ public class Radar3DCoordinateSystem extends CoordinateSystem {
     return value;
   }
 
+  /**
+   * Convert from latitude/longitude/altitude to range/azimuth/elevation.
+   * Values returned are in terms of multiples of the value resolution
+   * from the low value (ex: low + value * resolution)
+   *
+   * @param  tuples  lat/lon/altitude values
+   * @return  range/azimuth/elevation values
+   *
+   * @throws VisADException  tuples is null or wrong dimension
+   */
   public float[][] fromReference(float[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 3) {
       throw new CoordinateSystemException("Radar3DCoordinateSystem." +
@@ -310,9 +480,54 @@ public class Radar3DCoordinateSystem extends CoordinateSystem {
     return value;
   }
 
+  /**
+   * Check to see if this is a Radar3DCoordinateSystem
+   *
+   * @param cs  object to compare
+   * @return true if cs is an instance of Radar3DCoordinateSystem
+   */
   public boolean equals(Object cs) {
     return (cs instanceof Radar3DCoordinateSystem);
   }
 
-}
+  /**
+   * Return the elevation angle parameters
+   *
+   * @return  array[] (len == 2) where array[0] = elevl, array[1] = elevr
+   */
+  public float[] getElevationParameters()
+  {
+      return new float[] {elevlow, elevres};
+  }
 
+  /**
+   * Return the azimuth parameters
+   *
+   * @return  array[] (len == 2) where array[0] = azl, array[1] = azr
+   */
+  public float[] getAzimuthParameters()
+  {
+      return new float[] {azlow, azres};
+  }
+
+  /**
+   * Return the range parameters
+   *
+   * @return  array[] (len == 2) where array[0] = radl, array[1] = radr
+   */
+  public float[] getRangeParameters()
+  {
+      return new float[] {radlow, radres};
+  }
+
+  /**
+   * Get center point in lat/lon/alt
+   *
+   * @return latlon array  where array[0] = lat, array[1] = lon, array[2] = alt
+   */
+  public float[] getCenterPoint()
+  {
+      return new float[] {centlat, centlon, centalt};
+  }
+
+}
