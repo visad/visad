@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: ArithProg.java,v 1.8.2.3 2001-11-06 15:56:54 steve Exp $
+$Id: ArithProg.java,v 1.8.2.4 2001-11-06 17:37:41 steve Exp $
 */
 
 package visad.data.in;
@@ -35,17 +35,18 @@ import visad.VisADException;
  */
 public class ArithProg
 {
-    private long		n;
-    private double		first = Double.NaN;
-    private double		last = Double.NaN;
-    private double              sumDel = Double.NaN;
-    private double              meanDel = Double.NaN;
-    private boolean		isConsistent = true;
-    private final double	fEps = 5e-5f;	// 5 * C FLT_EPS
-    private final double	dEps = 5e-9;	// 5 * C DBL_EPS
+    protected long		n;
+    protected double		first = Double.NaN;
+    protected double		last = Double.NaN;
+    protected double            meanDel = Double.NaN;
+    protected boolean		isConsistent = true;
+    protected final double	fEps = 5e-5f;	// 5 * C FLT_EPS
+    protected final double	dEps = 5e-9;	// 5 * C DBL_EPS
+    private final double[]      dValues = new double[1];
+    private final float[]       fValues = new float[1];
 
     /**
-     * Accumulates a set of values.  Indicate whether or not the values are
+     * Accumulates a set of floats.  Indicates whether or not the sequence is
      * consistent with the arithmetic progression so far.
      *
      * @param values		The values to accumulate.
@@ -62,20 +63,36 @@ public class ArithProg
      * @postcondition		A subsequent getLast() will return the
      *				value argument if the function returns true.
      */
-    public final boolean accumulate(float[] values)
+    public synchronized boolean accumulate(float[] values)
 	throws VisADException
     {
 	if (!isConsistent())
 	    throw new VisADException(
 		getClass().getName() + ".accumulate(float[]): " +
 		"Sequence isn't an arithmetic progression");
-	for (int i = 0; i < values.length && isConsistent; ++i)
-	    accum(values[i], fEps);
+	for (int i = 0; i < values.length; i++)
+	{
+	    double value = values[i];
+	    if (n == 0)
+	    {
+		first = value;
+	    }
+	    else if (n == 1)
+	    {
+		meanDel = value - first;
+	    }
+	    else if (isConsistent)
+	    {
+		accum(value, fEps);
+	    }
+	    last = value;
+	    n++;
+	}
 	return isConsistent;
     }
 
     /**
-     * Accumulates a set of values.  Indicate whether or not the values are
+     * Accumulates a set of doubles.  Indicates whether or not the sequence is
      * consistent with the arithmetic progression so far.
      *
      * @param values		The values to accumulate.
@@ -92,16 +109,48 @@ public class ArithProg
      * @postcondition		A subsequent getLast() will return the
      *				value argument if the function returns true.
      */
-    public final boolean accumulate(double[] values)
+    public synchronized boolean accumulate(double[] values)
 	throws VisADException
     {
 	if (!isConsistent())
 	    throw new VisADException(
 		getClass().getName() + ".accumulate(double[]): " +
 		"Sequence isn't an arithmetic progression");
-	for (int i = 0; i < values.length && isConsistent; ++i)
-	    accum(values[i], dEps);
+	for (int i = 0; i < values.length; i++)
+	{
+	    double value = values[i];
+	    if (n == 0)
+	    {
+		first = value;
+	    }
+	    else if (n == 1)
+	    {
+		meanDel = value - first;
+	    }
+	    else if (isConsistent)
+	    {
+		accum(value, dEps);
+	    }
+	    last = value;
+	    n++;
+	}
 	return isConsistent;
+    }
+
+    private void accum(double value, double eps)
+    {
+	double uncLast = last*eps;
+	double uncValue = value*eps;
+	double var = uncLast*uncLast + uncValue*uncValue;
+	double err = value - (last + meanDel);
+	if (err*err > var)
+	{
+	    isConsistent = false;
+	}
+	else
+	{
+	    meanDel = (value - first) / n;
+	}
     }
 
     /**
@@ -121,14 +170,15 @@ public class ArithProg
      * @postcondition		A subsequent getLast() will return the
      *				value argument if the function returns true.
      */
-    public final boolean accumulate(float value)
+    public final synchronized boolean accumulate(float value)
 	throws VisADException
     {
 	if (!isConsistent())
 	    throw new VisADException(
 		getClass().getName() + ".accumulate(double): " +
 		"Sequence isn't an arithmetic progression");
-	return accum(value, fEps);
+        fValues[0] = value;
+	return accumulate(fValues);
     }
 
     /**
@@ -148,63 +198,15 @@ public class ArithProg
      * @postcondition		A subsequent getLast() will return the
      *				value argument if the function returns true.
      */
-    public final boolean accumulate(double value)
+    public final synchronized boolean accumulate(double value)
 	throws VisADException
     {
 	if (!isConsistent())
 	    throw new VisADException(
 		getClass().getName() + ".accumulate(double): " +
 		"Sequence isn't an arithmetic progression");
-	return accum(value, dEps);
-    }
-
-    /**
-     * Accumulates a value.  Indicate whether or not the value is
-     * consistent with the arithmetic progression so far.
-     *
-     * @param value		The value to accumulate.
-     * @param eps    		The relative comparison resolution.
-     * @return			False if the difference between any current
-     *				and previous value normalized by the current
-     *				increment differs from unity by more than the
-     *				nearness threshold; otherwise, true.
-     * @precondition		isConsistent() is true.
-     * @postcondition		A subsequent getNumber() will return
-     *				<code>values.length</code> more than previously
-     *				if the function returns true.
-     * @postcondition		A subsequent getLast() will return the
-     *				value argument if the function
-     *				returns true.
-     */
-    protected synchronized final boolean accum(double value, double eps)
-    {
-	if (n == 0)
-	{
-	    first = value;
-	}
-	else if (n == 1)
-	{
-	    meanDel = sumDel = delta(last, value);
-	}
-	else if (isConsistent)
-	{
-	    double uncLast = last*eps;
-	    double uncValue = value*eps;
-	    double var = uncLast*uncLast + uncValue*uncValue;
-	    double err = delta(last + meanDel, value);
-	    if (err*err > var)
-	    {
-		isConsistent = false;
-	    }
-	    else
-	    {
-		sumDel += delta(last, value);
-		meanDel = sumDel / n;
-	    }
-	}
-	last = value;
-	n++;
-	return isConsistent;
+        dValues[0] = value;
+	return accumulate(dValues);
     }
 
     /**
@@ -290,16 +292,20 @@ public class ArithProg
 	return meanDel;
     }
 
-    /**
-     * Returns the difference between two values.  This is a template method.
-     *
-     * @param value1		The first value.
-     * @param value2		The second value.
-     * @return			The increment from the first value to the
-     *				second value.
-     */
-    protected double delta(double value1, double value2)
+    public static void main(String[] args)
+        throws Exception
     {
-	return value2 - value1;
+	double[] lats = {
+	    39.2, 39.21, 39.22, 39.23, 39.24, 39.25, 39.26, 39.27, 39.28, 39.29,
+	    39.3, 39.31, 39.32, 39.33, 39.34, 39.35, 39.36, 39.37, 39.38, 39.39,
+	    39.4, 39.41, 39.42, 39.43, 39.44, 39.45, 39.46, 39.47, 39.48, 39.49,
+	    39.5, 39.51, 39.52, 39.53, 39.54, 39.55, 39.56, 39.57, 39.58, 39.59,
+	    39.6, 39.61, 39.62, 39.63, 39.64, 39.65, 39.66, 39.67, 39.68, 39.69,
+	    39.7, 39.71, 39.72, 39.73, 39.74, 39.75, 39.76, 39.77, 39.78, 39.79,
+	    39.8, 39.81, 39.82, 39.83, 39.84, 39.85, 39.86, 39.87, 39.88, 39.89,
+	    39.9, 39.91, 39.92, 39.93, 39.94, 39.95, 39.96, 39.97, 39.98, 39.99,
+	    40 };
+	ArithProg ap = new ArithProg();
+	ap.accumulate(lats);
     }
 }
