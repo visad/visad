@@ -20,24 +20,15 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-import java.rmi.Naming;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 
 import visad.DisplayImpl;
 import visad.LocalDisplay;
-import visad.RemoteDisplay;
 import visad.RemoteDisplayImpl;
 import visad.RemoteServer;
 import visad.RemoteServerImpl;
 import visad.VisADException;
-
-import visad.java2d.DisplayImplJ2D;
-
-import visad.java3d.DisplayImplJ3D;
 
 import visad.util.ClientServer;
 
