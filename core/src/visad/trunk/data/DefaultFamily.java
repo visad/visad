@@ -78,11 +78,6 @@ public class DefaultFamily
   private static boolean listInitialized = false;
 
   /**
-   * 'adde' URL needs special handler loaded
-   */
-  private static boolean addeHandlerLoaded = false;
-
-  /**
    * Build a list of all known file adapter Forms
    */
   private static void buildList()
@@ -245,25 +240,6 @@ public class DefaultFamily
     for (int i = 0; i < list.length && list[i] != null; i++) {
       forms.addElement(list[i]);
     }
-  }
-
-  /**
-    * Open a local data object using the first appropriate Form.
-    */
-  public DataImpl open(String id)
-	throws BadFormException, VisADException
-  {
-    // if this is an 'adde:' URL...
-    if (id != null && id.length() >= 5 &&
-        id.substring(0, 5).equalsIgnoreCase("adde:"))
-    {
-      // if 'adde:' handler isn't loaded, try to load it
-      if (!addeHandlerLoaded) {
-        addeHandlerLoaded = edu.wisc.ssec.mcidas.AreaFile.isURLHandlerLoaded();
-      }
-    }
-
-    return super.open(id);
   }
 
   /**
