@@ -1279,6 +1279,73 @@ public abstract class JPythonMethods {
     return new int[] {values_len, min, max};
   }
 
+
+  /**
+   * get the number of domain components of the Data object
+   * 
+   * @param   Data            VisAD Data object
+   * @return the number of domain components
+
+   * @throws  VisADException  unable to construct field
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
+  public static int domainDimension (Data data) 
+                  throws VisADException, RemoteException {
+    return (int) ((RealTupleType)
+        ((FunctionType)data.getType()).getDomain()).getDimension();
+  }
+  /**
+   * get the number of range components of the Data object
+   * 
+   * @param   Data            VisAD Data object
+   * @return the number of range components
+
+   * @throws  VisADException  unable to construct field
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
+  public static int rangeDimension (Data data) 
+                  throws VisADException, RemoteException {
+    return (int) ((RealTupleType)
+        ((FunctionType)data.getType()).getRange()).getDimension();
+  }
+
+  /**
+   * get the name of the given component of the domain RealType.
+   * 
+   * @param   Data            VisAD Data object
+   * @param   comp            the domain component index (0...)
+   * 
+   * @return the name of the RealType
+   *
+   * @throws  VisADException  unable to construct field
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
+  public static String domainType (Data data,int comp) 
+                   throws VisADException, RemoteException {
+    return (String) ((RealTupleType)
+        ((FunctionType)data.getType()).getDomain()).
+                            getComponent(comp).toString();
+  }
+
+  /**
+   * get the name of the given component of the range RealType.
+   * 
+   * @param   Data            VisAD Data object
+   * @param   comp            the component index (0...)
+   * 
+   * @return the name of the RealType
+   *
+   * @throws  VisADException  unable to construct field
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
+  public static String rangeType (Data data,int comp) 
+                   throws VisADException, RemoteException {
+    return (String) ((RealTupleType)
+        ((FunctionType)data.getType()).getRange()).
+                            getComponent(comp).toString();
+  }
+
+
 /* NOT DONE
   public static Set linear(MathType type, double first, double last, int length)
          throws VisADException, RemoteException {
