@@ -629,6 +629,7 @@ class AmandaFile
     createTypes();
 
     Event currentEvent = null;
+    boolean inSlowEvent = false;
 
     while (true) {
       String line;
@@ -654,8 +655,7 @@ class AmandaFile
 
       if (keyword.equals("array")) {
         if (modules.isInitialized()) {
-          System.err.println("Warning: Multiple ARRAY lines found," +
-                             " some EM data will be lost");
+          System.err.println("Warning: Multiple ARRAY lines found");
         }
 
         int nmodules = readArrayLine(line, tok);
@@ -692,6 +692,12 @@ class AmandaFile
 
       if (keyword.equals("es")) {
         // ignore ES events for now
+        if (inSlowEvent) {
+          System.err.println("Warning: Missing EE for slow event");
+        }
+
+        inSlowEvent = true;
+
         continue;
       }
 
@@ -750,7 +756,11 @@ class AmandaFile
 
       if (keyword.equals("ee")) {
         if (currentEvent == null) {
-          System.err.println("Found EE outside event");
+          if (inSlowEvent) {
+            inSlowEvent = false;
+          } else {
+            System.err.println("Found EE outside event");
+          }
         } else {
           events.add(currentEvent);
           currentEvent = null;
@@ -1089,7 +1099,7 @@ class AmandaFile
     Module mod = modules.find(number);
     if (mod == null) {
       System.err.println("Warning: Module not found for HIT line \"" +
-                         line + "\"");
+                         line + "\"; hit ignored");
       return null;
     }
 
