@@ -606,16 +606,27 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 /* WLH 22 Aug 2001
     initialize = true;
 */
-    initialize = false;
+    initialize = computeInitialize();
+
+// printStack("addReference");
+    notifyAction();
+  }
+
+  /** decide whether an autoscale is needed */
+  private boolean computeInitialize() {
+    boolean init = false;
     Vector tmap = (Vector) MapVector.clone();
     Enumeration maps = tmap.elements();
     while (maps.hasMoreElements()) {
       ScalarMap map = (ScalarMap) maps.nextElement();
-      initialize |= map.doInitialize();
+      init |= map.doInitialize();
     }
-
-// printStack("addReference");
-    notifyAction();
+    AnimationControl control =
+      (AnimationControl) getControl(AnimationControl.class);
+    if (control != null) {
+      init |= (control.getSet() == null);
+    }
+    return init;
   }
 
   /** method for use by RemoteActionImpl.addReference that adapts this
@@ -638,13 +649,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 /* WLH 22 Aug 2001
     initialize = true;
 */  
-    initialize = false;
-    Vector tmap = (Vector) MapVector.clone();
-    Enumeration maps = tmap.elements();
-    while (maps.hasMoreElements()) {
-      ScalarMap map = (ScalarMap) maps.nextElement();
-      initialize |= map.doInitialize();
-    }
+    initialize = computeInitialize();
 
 // printStack("adaptedAddReference");
     notifyAction();
@@ -738,13 +743,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 /* WLH 22 Aug 2001
     initialize = true;
 */  
-    initialize = false;
-    Vector tmap = (Vector) MapVector.clone();
-    Enumeration maps = tmap.elements();
-    while (maps.hasMoreElements()) {
-      ScalarMap map = (ScalarMap) maps.nextElement();
-      initialize |= map.doInitialize();
-    }
+    initialize = computeInitialize();
 
 // printStack("addReferences");
     notifyAction();
@@ -804,13 +803,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 /* WLH 22 Aug 2001
     initialize = true;
 */  
-    initialize = false;
-    Vector tmap = (Vector) MapVector.clone();
-    Enumeration maps = tmap.elements();
-    while (maps.hasMoreElements()) {
-      ScalarMap map = (ScalarMap) maps.nextElement();
-      initialize |= map.doInitialize();
-    }
+    initialize = computeInitialize();
 
 // printStack("adaptedAddReferences");
     notifyAction();
