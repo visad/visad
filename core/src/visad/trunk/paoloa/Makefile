@@ -88,6 +88,7 @@ clean:
 	$(RM) libGoesCollaboration.so
 	$(RM) GoesCollaboration*.class
 	$(RM) Nasti*.class
+	$(RM) PCS*.class
 
 ############################################################################
 # Packaging rules
