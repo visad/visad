@@ -119,6 +119,9 @@ public abstract class AREAnav
         navigation */
     public static final int LAMB =  0x4C414D42;
 
+    /** Code value in AREA files used to designate Lat/Lon */
+    public static final int LALO = 0x4C414C4F;
+
     /** Code value for specifying Latitude/Longitude transformations */
     public static final int LL = 123;
 
@@ -333,7 +336,7 @@ public abstract class AREAnav
            newvals[indexLine][i] = 
                startImageLine + (resLine * (line - startLine)) / magLine;
                newvals[indexEle][i] = 
-               startImageElement + (resElement * (linele[indexEle][i] - 
+               startImageElement + (resElement * (linele[indexEle][i] -
                startElement))/magElement;
         }
         return newvals;
@@ -352,13 +355,13 @@ public abstract class AREAnav
         for (int i = 0; i < linele[0].length; i++)
         {
            newvals[indexLine][i] = startLine + 
-               ( magLine * (linele[indexLine][i] - 
+               ( magLine * (linele[indexLine][i] -
                  startImageLine)) / resLine;
            // account for flipped coordinates
            if (isLineFlipped) newvals[indexLine][i] = 
                         lineOffset - newvals[indexLine][i];
            newvals[indexEle][i] = startElement + 
-                ( magElement * (linele[indexEle][i] - 
+                ( magElement * (linele[indexEle][i] -
                   startImageElement)) / resElement;
         }
         return newvals;
@@ -370,6 +373,11 @@ public abstract class AREAnav
    * @return corresponding navigation routine.
    */
   public static AREAnav makeAreaNav(int[] navBlock) throws McIDASException {
+     return (makeAreaNav(navBlock, null) ); 
+  }
+
+  public static AREAnav makeAreaNav(int[] navBlock, int[] auxBlock) 
+                       throws McIDASException {
     AREAnav anav = null;
     try
     {
@@ -406,6 +414,9 @@ public abstract class AREAnav
                 break;
             case TANC:
                 anav = new TANCnav(navBlock);
+                break;
+            case LALO:
+                anav = new LALOnav(navBlock, auxBlock);
                 break;
             default:
                 throw new McIDASException(

@@ -249,37 +249,42 @@ public class GetAreaFile implements ActionListener {
       return;
     }
     int[] dir;
-    try { dir=af.getDir();
-    } catch (AreaFileException e){
-      if (verbose) System.out.println("Getting dir:"+e);
+
+    dir=af.getDir();
+    if (dir == null) {
+      System.out.println("No AREA file directory!");
       return;
     }
-    if (verbose) System.out.println("Length of directory = "+dir.length);
+    if (verbose) {
+      System.out.println("Length of directory = "+dir.length);
 
-    for (int i=0; i<dir.length; i++) {
-     if (verbose) System.out.println(" index "+i+" = "+dir[i]);
+      for (int i=0; i<dir.length; i++) {
+       System.out.println(" index "+i+" = "+dir[i]);
+      }
     }
 
     int[] nav=null;
-    try { nav=af.getNav();
-          if (verbose) System.out.println("Length of nav block = "+nav.length);
-    } catch (AreaFileException e){
-      if (verbose) System.out.println("Getting nav:"+e);
-      return;
+    nav=af.getNav();
+    if (nav == null) {
+      System.out.println("No navigation block!");
+    } else {
+      if (verbose) System.out.println("Length of nav block = "+nav.length);
     }
 
     int[] cal=null;
-    try { cal=af.getCal();
-          if (verbose) System.out.println("Length of cal block = "+cal.length);
-    } catch (AreaFileException e){
-      if (verbose) System.out.println("Getting cal:"+e);
+    cal=af.getCal();
+    if (cal == null) {
+      System.out.println("No calibration block!");
+    } else {
+      if (verbose) System.out.println("Length of cal block = "+cal.length);
     }
 
     int[] aux=null;
-    try { aux=af.getAux();
-          if (verbose) System.out.println("Length of aux block = "+aux.length);
-    } catch (AreaFileException e){
-      if (verbose) System.out.println("Getting aux:"+e);
+    aux=af.getAux();
+    if (aux == null) {
+      System.out.println("No aux block");
+    } else {
+      if (verbose) System.out.println("Length of aux block = "+aux.length);
     }
 
     int NL=dir[8];

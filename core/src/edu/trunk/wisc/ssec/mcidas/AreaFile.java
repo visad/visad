@@ -34,6 +34,7 @@ import java.net.URLConnection;
 import java.awt.event.*;
 import java.awt.Frame;
 import edu.wisc.ssec.mcidas.adde.GetAreaGUI;
+import java.util.Properties;
 
 /** 
  * AreaFile interface with McIDAS 'area' file format image data.
@@ -139,8 +140,12 @@ public class AreaFile {
               newProperty = "edu.wisc.ssec.mcidas";
           else if (handlers.indexOf("edu.wisc.ssec.mcidas") < 0)
               newProperty = "edu.wisc.ssec.mcidas | " + handlers;
-          if (newProperty != null)  // was set above
+          if (newProperty != null) { // was set above
+              //Properties sysP = System.getProperties();
+              //sysP.put("java.protocol.handler.pkgs", newProperty);
+              //System.setProperties(sysP);
               System.setProperty("java.protocol.handler.pkgs", newProperty);
+              }
           handlerLoaded = true;
       }
       catch (Exception e)
@@ -170,12 +175,12 @@ public class AreaFile {
   private long newPosition;
   private int numBands;
   int[] dir;
-  int[] nav;
-  int[] cal;
-  int[] aux;
+  int[] nav = null;
+  int[] cal = null;
+  int[] aux = null;
   int[][][] data;
   private AreaDirectory areaDirectory;
-  private String imageSource;
+  private String imageSource = null;
   private AREAnav areaNav;
   
   /**
@@ -242,6 +247,7 @@ public class AreaFile {
   public AreaFile(String filename, Applet parent) throws AreaFileException {
 
     URL url;
+    imageSource = filename;
     try {
       url = new URL(parent.getDocumentBase(), filename);
     } catch (MalformedURLException e) {
@@ -273,6 +279,7 @@ public class AreaFile {
 
   public AreaFile(URL url) throws AreaFileException {
 
+    imageSource = url.toString();
     try { 
       af = new DataInputStream(new BufferedInputStream(url.openStream()));
     } catch (IOException e) {
@@ -454,21 +461,24 @@ public class AreaFile {
     return;
   }
 
+  /**
+   * returns the string of the image source location
+   *
+   * @return name of image source
+   *
+   */
+   public String getImageSource() {
+     return imageSource;
+   }
+
   /** 
    * Returns the directory block
    *
    * @return an integer array containing the area directory
    *
-   * @exception AreaFileException if there was a problem
-   *                              reading the directory
    *
    */
-  public int[] getDir() throws AreaFileException 
-  {
-    if (status <= 0) 
-    {
-      throw new AreaFileException("Error reading AreaFile directory");
-    }
+  public int[] getDir() {
     return dir;
   }
 
@@ -478,16 +488,9 @@ public class AreaFile {
    *
    * @return AreaDirectory
    *
-   * @exception AreaFileException if there was a problem
-   *                              reading the directory
    *
    */
-  public AreaDirectory getAreaDirectory() throws AreaFileException 
-  {
-    if (status <= 0) 
-    {
-      throw new AreaFileException("Error reading AreaFile directory");
-    }
+  public AreaDirectory getAreaDirectory() {
     return areaDirectory;
   }
 
@@ -497,20 +500,13 @@ public class AreaFile {
    *
    * @return an integer array containing the nav block data
    *
-   * @exception AreaFileException if there is a problem
-   *                              reading the navigation
    *
    */
 
-  public int[] getNav() throws AreaFileException {
-
-
-    if (status <= 0) {
-      throw new AreaFileException("Error reading AreaFile navigation");
-    }
+  public int[] getNav() {
 
     if (navLoc <= 0 || navLoc == McIDASUtil.MCMISSING) {
-      throw new AreaFileException("Error reading AreaFile navigation");
+      nav = null;
     } 
 
     return nav;
@@ -527,7 +523,7 @@ public class AreaFile {
     if (areaNav == null) {
       // make the nav module
       try {
-        areaNav = AREAnav.makeAreaNav(getNav());
+        areaNav = AREAnav.makeAreaNav(getNav(), getAux());
       } catch (McIDASException excp) {
         areaNav = null;
       }
@@ -540,20 +536,14 @@ public class AreaFile {
    *
    * @return an integer array containing the nav block data
    *
-   * @exception AreaFileException if there is a problem
-   *                              reading the calibration
    *
    */
 
-  public int[] getCal() throws AreaFileException {
+  public int[] getCal() {
 
-
-    if (status <= 0) {
-      throw new AreaFileException("Error reading AreaFile calibration");
-    }
 
     if (calLoc <= 0 || calLoc == McIDASUtil.MCMISSING) {
-      throw new AreaFileException("Error reading AreaFile calibration");
+      cal = null;
     } 
 
     return cal;
@@ -566,20 +556,13 @@ public class AreaFile {
    *
    * @return an integer array containing the aux block data
    *
-   * @exception AreaFileException if there is a problem
-   *                              reading the aux block
    *
    */
 
-  public int[] getAux() throws AreaFileException {
-
-
-    if (status <= 0) {
-      throw new AreaFileException("Error reading AreaFile aux block");
-    }
+  public int[] getAux() {
 
     if (auxLoc <= 0 || auxLoc == McIDASUtil.MCMISSING) {
-      throw new AreaFileException("Error reading AreaFile AUX block");
+      aux = null;
     } 
 
     return aux;
