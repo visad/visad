@@ -133,7 +133,7 @@ def lineplot(data, panel=None, color=None, width=400, height=400, title="Line Pl
   subs.setAspectRatio(disp, float(width)/float(height))
   subs.showDisplay(disp,width,height,title,None,None,panel)
   
-  return
+  return disp
 
 #----------------------------------------------------------------------------
 # a contour plot of a 2D field
