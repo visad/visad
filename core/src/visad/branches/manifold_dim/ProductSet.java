@@ -96,6 +96,7 @@ public class ProductSet extends SampledSet {
     if (sets.length < 2) {
       throw new SetException("ProductSet: must be at least 2 sets");
     }
+    int manifold_dim = 0;
     int dim = 0;
     for (int i=0; i<sets.length; i++) {
       if (units != null) {
@@ -116,9 +117,10 @@ public class ProductSet extends SampledSet {
           }
         }
       }
-      dim += sets[i].getManifoldDimension();
+      dim += sets[i].getDimension();
+      manifold_dim += sets[i].getManifoldDimension();
     }
-    return dim;
+    return manifold_dim;
   }
 
   /** construct a ProductSet with an array of SampledSets */
