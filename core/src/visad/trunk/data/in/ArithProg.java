@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: ArithProg.java,v 1.5 2001-05-01 20:33:38 dglo Exp $
+$Id: ArithProg.java,v 1.6 2001-11-05 21:43:44 steve Exp $
 */
 
 package visad.data.in;
@@ -193,9 +193,9 @@ public class ArithProg
 	    double	delta = delta(last, value);
 	    double	eps =
 		commDiff == 0
-		    ? delta
-		    : 1.0 - delta / commDiff;
-	    if (Math.abs(eps) <= epsilon)
+		    ? Math.abs(delta)
+		    : 1.0 - Math.abs(delta / commDiff);
+	    if (eps <= epsilon)
 	    {
 		sumDelta += delta;
 		commDiff = sumDelta / n;
