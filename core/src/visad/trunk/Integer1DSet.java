@@ -32,6 +32,10 @@ package visad;
 public class Integer1DSet extends Linear1DSet
        implements IntegerSet {
 
+  public Integer1DSet(int length) throws VisADException {
+    this(RealType.Generic, length, null, null, null);
+  }
+
   public Integer1DSet(MathType type, int length) throws VisADException {
     this(type, length, null, null, null);
   }
