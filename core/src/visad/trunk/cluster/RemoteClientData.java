@@ -33,7 +33,7 @@ import java.rmi.*;
    RemoteClientData is the interface for cluster client
    VisAD data objects.<P>
 */
-public interface RemoteClientData extends RemoteData {
+public interface RemoteClientData extends RemoteClusterData {
 
 }
 

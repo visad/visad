@@ -33,7 +33,8 @@ import java.rmi.server.UnicastRemoteObject;
 /**
    RemoteThingImpl is the VisAD remote adapter for ThingImpl.<P>
 */
-public abstract class RemoteThingImpl extends UnicastRemoteObject
+// public abstract class RemoteThingImpl extends UnicastRemoteObject
+public class RemoteThingImpl extends UnicastRemoteObject
        implements RemoteThing {
 
   /** 'this' is the Remote adaptor for AdaptedThing (which is local);

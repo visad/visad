@@ -33,7 +33,8 @@ import java.rmi.*;
    ThingImpl is the abstract superclass of the VisAD objects that send
    ThingChangedEvents to Actions.<p>
 */
-public abstract class ThingImpl
+// public abstract class ThingImpl  WLH 8 July 2000
+public class ThingImpl
        implements Thing, java.io.Serializable {
 
   class RemotePair {

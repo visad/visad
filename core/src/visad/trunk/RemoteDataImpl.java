@@ -98,8 +98,9 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
     return AdaptedData.binary(data, op, new_type, sampling_mode, error_mode);
   }
 
-  /** a list of binary operations using default modes for
-      sampling and error estimation */
+/* WLH 8 July 2000
+  // a list of binary operations using default modes for
+  // sampling and error estimation
   public Data add(Data data) throws VisADException, RemoteException {
     if (AdaptedData == null) {
       throw new RemoteVisADException("RemoteDataImpl.add " +
@@ -180,8 +181,8 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
     return AdaptedData.remainder(data);
   }
 
-  /** a list of binary operations supporting non-default modes for
-      sampling and error estimation */
+  // a list of binary operations supporting non-default modes for
+  // sampling and error estimation
   public Data add(Data data, int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
@@ -271,6 +272,101 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
     }
     return AdaptedData.remainder(data, sampling_mode, error_mode);
   }
+*/
+
+/* WLH 8 July 2000 */
+  public Data add(Data data) throws VisADException, RemoteException {
+    return binary(data, ADD, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data subtract(Data data) throws VisADException, RemoteException {
+    return binary(data, SUBTRACT, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data multiply(Data data) throws VisADException, RemoteException {
+    return binary(data, MULTIPLY, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data divide(Data data) throws VisADException, RemoteException {
+    return binary(data, DIVIDE, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data pow(Data data) throws VisADException, RemoteException {
+    return binary(data, POW, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data max(Data data) throws VisADException, RemoteException {
+    return binary(data, MAX, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data min(Data data) throws VisADException, RemoteException {
+    return binary(data, MIN, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data atan2(Data data) throws VisADException, RemoteException {
+    return binary(data, ATAN2, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data atan2Degrees(Data data) throws VisADException, RemoteException {
+    return binary(data, ATAN2_DEGREES, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data remainder(Data data) throws VisADException, RemoteException {
+    return binary(data, REMAINDER, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  // a list of binary operations supporting non-default modes for
+  // sampling and error estimation
+  public Data add(Data data, int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return binary(data, ADD, sampling_mode, error_mode);
+  }
+
+  public Data subtract(Data data, int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return binary(data, SUBTRACT, sampling_mode, error_mode);
+  }
+
+  public Data multiply(Data data, int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return binary(data, MULTIPLY, sampling_mode, error_mode);
+  }
+
+  public Data divide(Data data, int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return binary(data, DIVIDE, sampling_mode, error_mode);
+  }
+
+  public Data pow(Data data, int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return binary(data, POW, sampling_mode, error_mode);
+  }
+
+  public Data max(Data data, int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return binary(data, MAX, sampling_mode, error_mode);
+  }
+
+  public Data min(Data data, int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return binary(data, MIN, sampling_mode, error_mode);
+  }
+
+  public Data atan2(Data data, int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return binary(data, ATAN2, sampling_mode, error_mode);
+  }
+
+  public Data atan2Degrees(Data data, int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return binary(data, ATAN2_DEGREES, sampling_mode, error_mode);
+  }
+
+  public Data remainder(Data data, int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return binary(data, REMAINDER, sampling_mode, error_mode);
+  }
+/* end WLH 8 July 2000 */
 
   /** unary operations adapted to AdaptedData */
   public Data unary(int op, int sampling_mode, int error_mode)
@@ -293,7 +389,8 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
     return AdaptedData.unary(op, new_type, sampling_mode, error_mode);
   }
 
-  /* WLH 5 Sept 98 */
+/* WLH 8 July 2000
+  // WLH 5 Sept 98
   public Data changeMathType(MathType new_type)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
@@ -303,8 +400,8 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
     return AdaptedData.changeMathType(new_type);
   }
 
-  /** a list of unary operations using default modes for
-      sampling and error estimation */
+  // a list of unary operations using default modes for
+  // sampling and error estimation
   public Data abs() throws VisADException, RemoteException {
     if (AdaptedData == null) {
       throw new RemoteVisADException("RemoteDataImpl.abs " +
@@ -473,8 +570,8 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
     return AdaptedData.negate();
   }
 
-  /** a list of unary operations supporting non-default modes for
-      sampling and error estimation */
+  // a list of unary operations supporting non-default modes for
+  // sampling and error estimation
   public Data abs(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
@@ -663,6 +760,206 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
     }
     return AdaptedData.negate(sampling_mode, error_mode);
   }
+*/
+/* WLH 8 July 2000 */
+  public Data changeMathType(MathType new_type)
+         throws VisADException, RemoteException {
+    return unary(NOP, new_type, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  // a list of unary operations using default modes for
+  // sampling and error estimation
+  public Data abs() throws VisADException, RemoteException {
+    return unary(ABS, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data acos() throws VisADException, RemoteException {
+    return unary(ACOS, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data acosDegrees() throws VisADException, RemoteException {
+    return unary(ACOS_DEGREES, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data asin() throws VisADException, RemoteException {
+    return unary(ASIN, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data asinDegrees() throws VisADException, RemoteException {
+    return unary(ASIN_DEGREES, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data atan() throws VisADException, RemoteException {
+    return unary(ATAN, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data atanDegrees() throws VisADException, RemoteException {
+    return unary(ATAN_DEGREES, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data ceil() throws VisADException, RemoteException {
+    return unary(CEIL, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data cos() throws VisADException, RemoteException {
+    return unary(COS, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data cosDegrees() throws VisADException, RemoteException {
+    return unary(COS_DEGREES, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data exp() throws VisADException, RemoteException {
+    return unary(EXP, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data floor() throws VisADException, RemoteException {
+    return unary(FLOOR, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data log() throws VisADException, RemoteException {
+    return unary(LOG, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data rint() throws VisADException, RemoteException {
+    return unary(RINT, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data round() throws VisADException, RemoteException {
+    return unary(ROUND, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data sin() throws VisADException, RemoteException {
+    return unary(SIN, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data sinDegrees() throws VisADException, RemoteException {
+    return unary(SIN_DEGREES, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data sqrt() throws VisADException, RemoteException {
+    return unary(SQRT, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data tan() throws VisADException, RemoteException {
+    return unary(TAN, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data tanDegrees() throws VisADException, RemoteException {
+    return unary(TAN_DEGREES, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  public Data negate() throws VisADException, RemoteException {
+    return unary(NEGATE, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  // a list of unary operations supporting non-default modes for
+  // sampling and error estimation
+  public Data abs(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(ABS, sampling_mode, error_mode);
+  }
+
+  public Data acos(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(ACOS, sampling_mode, error_mode);
+  }
+
+  public Data acosDegrees(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(ACOS_DEGREES, sampling_mode, error_mode);
+  }
+
+  public Data asin(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(ASIN, sampling_mode, error_mode);
+  }
+
+  public Data asinDegrees(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(ASIN_DEGREES, sampling_mode, error_mode);
+  }
+
+  public Data atan(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(ATAN, sampling_mode, error_mode);
+  }
+
+  public Data atanDegrees(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(ATAN_DEGREES, sampling_mode, error_mode);
+  }
+
+  public Data ceil(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(CEIL, sampling_mode, error_mode);
+  }
+
+  public Data cos(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(COS, sampling_mode, error_mode);
+  }
+
+  public Data cosDegrees(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(COS_DEGREES, sampling_mode, error_mode);
+  }
+
+  public Data exp(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(EXP, sampling_mode, error_mode);
+  }
+
+  public Data floor(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(FLOOR, sampling_mode, error_mode);
+  }
+
+  public Data log(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(LOG, sampling_mode, error_mode);
+  }
+
+  public Data rint(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(RINT, sampling_mode, error_mode);
+  }
+
+  public Data round(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(ROUND, sampling_mode, error_mode);
+  }
+
+  public Data sin(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(SIN, sampling_mode, error_mode);
+  }
+
+  public Data sinDegrees(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(SIN_DEGREES, sampling_mode, error_mode);
+  }
+
+  public Data sqrt(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(SQRT, sampling_mode, error_mode);
+  }
+
+  public Data tan(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(TAN, sampling_mode, error_mode);
+  }
+
+  public Data tanDegrees(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(TAN_DEGREES, sampling_mode, error_mode);
+  }
+
+  public Data negate(int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return unary(NEGATE, sampling_mode, error_mode);
+  }
+/* END WLH 8 July 2000 */
 
   public double[][] computeRanges(RealType[] reals)
          throws VisADException, RemoteException {

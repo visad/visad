@@ -1,5 +1,5 @@
 //
-// RemoteSwitch.java
+// RemoteClusterData.java
 //
 
 /*
@@ -30,18 +30,18 @@ import visad.*;
 import java.rmi.*;
 
 /**
-   RemoteSwitch is the interface for cluster client and node
-   swicthes for communicating across the cluster.<P>
+   RemoteClusterData is the interface for cluster client
+   and node Data.<P>
 */
-public interface RemoteSwitch extends Remote {
+public interface RemoteClusterData extends RemoteData {
 
-  public abstract RemoteSwitch getSwitch(RealTuple domain)
+  public abstract RemoteClusterData getClusterData(RealTuple domain)
          throws RemoteException, VisADException;
 
-  public abstract void setupSwitch(Set ps, RemoteSwitch[] table)
+  public abstract void setupClusterData(Set ps, RemoteClusterData[] table)
          throws RemoteException, VisADException;
 
-  public abstract boolean switchEquals(RemoteSwitch sw)
+  public abstract boolean clusterDataEquals(RemoteClusterData cd)
          throws RemoteException, VisADException;
 
 }
