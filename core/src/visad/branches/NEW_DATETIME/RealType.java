@@ -64,9 +64,13 @@ public class RealType extends ScalarType {
   public final static RealType Radius =
     new RealType("Radius", null, true);
 
-  /** Temporal coordinate with temporal origin 1970-01-01 00:00:00Z */
+  /** Temporal-interval coordinate */
   public final static RealType Time =
-    new RealType("Time", CommonUnit.secondsSinceTheEpoch, true);
+    new RealType("Time", CommonUnit.second, true);
+
+  /** Timestamp coordinate */
+  public final static RealType DateTime =
+    new RealType("DateTime", CommonUnit.secondsSinceTheEpoch, true);
 
   /** generic RealType */
   public final static RealType Generic =

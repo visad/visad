@@ -165,7 +165,7 @@ System.out.println(getClass().getName() + "  check  tickFlag = " + tickFlag +
               int current) throws VisADException {
     Unit[] units = set.getSetUnits();
     String s = real.getName() + " = " + 
-      new Real(real, value, units == null ? null : units[0]).toString();
+      new Real(real, value, units == null ? null : units[0]).toValueString();
     String t = Integer.toString(current+1) + " of " +
                Integer.toString(set.getLength());
     getDisplayRenderer().setAnimationString(new String[] {s, t});

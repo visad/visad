@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: BaseUnit.java,v 1.5.2.1 1999-05-11 17:02:36 steve Exp $
+ * $Id: BaseUnit.java,v 1.5.2.2 1999-05-12 14:46:12 steve Exp $
  */
 
 package visad;
@@ -112,7 +112,8 @@ public final class BaseUnit
      *				is the same as before.
      * @promise			The new quantity and unit has been added to the
      *				database.
-     * @exception UnitException	Attempt to redefine the base unit 
+     * @throws UnitException	Name, abbreviation, or quantity name is <code>
+     *				null</code> or attempt to redefine the base unit
      *				associated with <code>quantityName</code>.
      */
     public static BaseUnit addBaseUnit(String quantityName, String unitName)
@@ -136,7 +137,8 @@ public final class BaseUnit
      *				is the same as before.
      * @promise			The new quantity and unit has been added to the
      *				database.
-     * @exception UnitException	Attempt to redefine the base unit 
+     * @throws UnitException	Name, abbreviation, or quantity name is <code>
+     *				null</code> or attempt to redefine the base unit
      *				associated with <code>quantityName</code>.
      */
     public static synchronized BaseUnit addBaseUnit(String quantityName,
@@ -515,10 +517,16 @@ public final class BaseUnit
      * @param unitName		Name of the unit (e.g. "meter").
      * @param abbreviation	The abbreviation for the unit (e.g. "m").
      * @param quantityName	Name of the quantity (e.g. "Length").
+     * @throws UnitException	Name, abbreviation, or quantity name is <code>
+     *				null</code>.
      */
     private BaseUnit(String unitName, String abbreviation, String quantityName)
+	throws UnitException
     {
 	super(abbreviation);
+	if (unitName == null || abbreviation == null || quantityName == null)
+	  throw new UnitException(
+	    "Base unit name, abbreviation, or quantity name is null");
 	this.unitName = unitName;
 	this.quantityName = quantityName;
 	baseUnits.addElement(this);

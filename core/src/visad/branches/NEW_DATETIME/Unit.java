@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.9.2.1 1999-05-11 17:02:44 steve Exp $
+ * $Id: Unit.java,v 1.9.2.2 1999-05-12 14:46:15 steve Exp $
  */
 
 package visad;
@@ -219,7 +219,8 @@ public abstract class Unit
      * Clones this unit, changing the identifier.
      * @param identifier	The name or abbreviation for the cloned unit.
      *				May be <code>null</code> or empty.
-     * @throws UnitException	The unit may not be cloned.
+     * @throws UnitException	The unit may not be cloned.  This will only
+     *				occur if <code>getIdentifier()!=null</code>.
      */
     public abstract Unit clone(String identifier) throws UnitException;
 

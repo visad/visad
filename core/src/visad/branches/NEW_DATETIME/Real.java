@@ -555,7 +555,7 @@ public class Real extends Scalar {
       }
       else {
         return
-	  Type.equals(RealType.Time)
+	  Type.equals(RealType.DateTime)
 	    ? new DateTime(this).toString()
 	    : Double.toString(Value);
       }
@@ -572,15 +572,33 @@ public class Real extends Scalar {
    *				portion of this Real.
    */
   public String toValueString() {
-    Unit u = unit != null ? unit : ((RealType)getType()).getDefaultUnit();
-    return Float.toString((float)Value) + (u == null ? "" : " " + u);
+    String	result;
+    try {
+      if (Double.isNaN(Value)) {
+        result = "missing";
+      }
+      else {
+	  if (Type.equals(RealType.DateTime)) {
+	    result = new DateTime(this).toValueString();
+	  }
+	  else {
+	    Unit u =
+	      unit != null ? unit : ((RealType)getType()).getDefaultUnit();
+	    result = Float.toString((float)Value) + (u == null ? "" : " " + u);
+	  }
+      }
+    }
+    catch (VisADException e) {
+      result = e.toString();
+    }
+    return result;
   }
 
   public String longString(String pre) throws VisADException {
     if (Double.isNaN(Value)) {
       return pre + "missing\n";
     }
-    else if (Type.equals(RealType.Time)) {
+    else if (Type.equals(RealType.DateTime)) {
       return pre + "Real.Time: Value = " +
              new DateTime(this).toString() + "\n";
     }
