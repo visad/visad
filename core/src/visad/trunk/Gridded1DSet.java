@@ -35,6 +35,9 @@ public class Gridded1DSet extends GriddedSet {
   int LengthX;
   float LowX, HiX;
 
+  /** whether this Gridded1DSet is ascending or descending */
+  boolean Neg = true;
+
   public Gridded1DSet(MathType type, float[][] samples, int lengthX)
          throws VisADException {
     this(type, samples, lengthX, null, null, null);
@@ -58,8 +61,8 @@ public class Gridded1DSet extends GriddedSet {
 
     if (Samples != null && Lengths[0] > 1) {
       // samples consistency test
-      boolean Pos = (Samples[0][LengthX-1] <= Samples[0][0]);
-      if (Pos) {
+      Neg = (Samples[0][LengthX-1] <= Samples[0][0]);
+      if (Neg) {
         for (int i=1; i<LengthX; i++) {
           if (Samples[0][i] > Samples[0][i-1]) {
             throw new SetException(
@@ -67,7 +70,7 @@ public class Gridded1DSet extends GriddedSet {
           }
         }
       }
-      else { // !Pos
+      else { // !Neg
         for (int i=1; i<LengthX; i++) {
           if (Samples[0][i] < Samples[0][i-1]) {
             throw new SetException(
@@ -203,11 +206,22 @@ public class Gridded1DSet extends GriddedSet {
           grid[0][i] = gridguess;
           break;
         }
-        else if (  ( (Samples[0][ig] <= value[0][i])
+        // bounds for test if value[0][i] is between two grid points
+        float bound1 = Samples[0][ig];
+        float bound2 = Samples[0][ig+1];
+        /* CTR: 8 Oct 1998
+        if (  ( (Samples[0][ig] <= value[0][i])
                   && (value[0][i] <= Samples[0][ig+1]) )
                 || ( (ig == 0) && (value[0][i] <= Samples[0][1]) )
                 || ( (ig == LengthX-2)
                   && (value[0][i] >= Samples[0][ig]) )  ) {
+        */
+        // test if value[0][i] is between grid points ig and ig+1
+        if ( ((value[0][i] - bound1) * (value[0][i] - bound2) < 0) ||
+             (ig == 0 && (Neg ? value[0][i] >= bound2
+                              : value[0][i] <= bound2)) ||
+             (ig == LengthX - 2 && (Neg ? value[0][i] <= bound1
+                                        : value[0][i] >= bound2)) ) {
           // Solve with Newton's Method
           float solv = gridguess - ((fg-value[0][i])
                        /(Samples[0][ig+1]-Samples[0][ig]));
@@ -217,9 +231,9 @@ public class Gridded1DSet extends GriddedSet {
           grid[0][i] = solv;
           break;
         }
-        else if (fg < value[0][i]) lower = gridguess;
-        else if (fg > value[0][i]) upper = gridguess;
-        gridguess = (upper+lower)/2;
+        else if (Neg ? fg > value[0][i] : fg < value[0][i]) lower = gridguess;
+        else if (Neg ? fg < value[0][i] : fg > value[0][i]) upper = gridguess;
+        gridguess = (upper + lower)/2;
       }
     }
     return grid;
@@ -381,26 +395,26 @@ Lengths = 20 wedge =
 . . .
 
 Samples (20):
-#0:     -40.548489
-#1:     -39.462049
+#0:     -40.54849
+#1:     -39.462048
 . . .
-#18:    26.026153
-#19:    38.301201
- 
+#18:    26.026154
+#19:    38.3012
+
 gridToValue test:
-(-0.4)  -->  -40.983065
-(0.5)   -->  -40.005269
+(-0.4)  -->  -40.983063
+(0.5)   -->  -40.00527
 . . .
 (18.5)  -->  32.163677
-(19.4)  -->  43.21122
- 
+(19.4)  -->  43.211212
+
 valueToGrid test:
--40.983065      -->  (-0.4)
--40.005269      -->  (0.5)
+-40.983063      -->  (-0.4)
+-40.00527       -->  (0.499998)
 . . .
 32.163677       -->  (18.5)
-43.21122        -->  (19.4)
- 
+43.211212       -->  (19.4)
+
 iris 26% 
 
 */

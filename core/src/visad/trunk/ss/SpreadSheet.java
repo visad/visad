@@ -74,6 +74,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
   // spreadsheet letter order
   static final String Letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+  // label constants
+  static final int LABEL_WIDTH = 30;
+  static final int LABEL_HEIGHT = 20;
+
   // spreadsheet file dialog
   FileDialog SSFileDialog = null;
 
@@ -424,10 +428,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
                          importIcon.getIconHeight()+4);
     formulaImport.setPreferredSize(size);
     formulaPanel.add(formulaImport);
-
-    // label constants
-    final int LABEL_WIDTH = 30;
-    final int LABEL_HEIGHT = 20;
 
     // set up horizontal spreadsheet cell labels
     JPanel horizShell = new JPanel();
