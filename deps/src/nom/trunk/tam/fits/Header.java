@@ -899,7 +899,7 @@ public class Header extends Object {
     {
         String sval = ""+val;
         replaceCard(key, sval, comment);
-    };
+    }
 
     /** Add or replace a key with the given string value and comment.
       * @param key     The header key.
