@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: SimpleColorMapWidget.java,v 1.20 1999-09-10 18:38:13 dglo Exp $
+@(#) $Id: LabeledColorWidget.java,v 1.1 1999-09-10 18:38:13 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -40,7 +40,7 @@ import javax.swing.*;
  * RGB/RGBA tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.20 $
+ * @version $Revision: 1.1 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledColorWidget
