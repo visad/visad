@@ -37,12 +37,12 @@ public interface TupleIface extends Data {
   Real[] getRealComponents() throws VisADException, RemoteException;
 
   /** return number of components */
-  int getDimension();
+  int getDimension() throws RemoteException;
 
   /** return component for i between 0 and getDimension() - 1 */
   Data getComponent(int i) throws VisADException, RemoteException;
 
-  boolean isMissing();
+  boolean isMissing() throws RemoteException;
 
   Data binary(Data data, int op, MathType new_type,
                      int sampling_mode, int error_mode)
@@ -60,25 +60,8 @@ public interface TupleIface extends Data {
   Data adjustSamplingError(Data error, int error_mode)
          throws VisADException, RemoteException;
 
-  Object clone();
-
   String longString(String pre)
          throws VisADException, RemoteException;
-
-  /**
-   * Indicates if this Tuple is identical to another object.
-   * @param obj		The other object.
-   * @return		<code>true</code> if and only if the other object is
-   *			a Tuple and both Tuple-s have identical component
-   *			sequences.
-   */
-  boolean equals(Object obj);
-
-  /**
-   * Returns the hash code of this object.
-   * @return		The hash code of this object.
-   */
-  int hashCode();
 
 }
 

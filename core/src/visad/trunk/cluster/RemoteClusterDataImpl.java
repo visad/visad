@@ -249,7 +249,7 @@ public class RemoteClusterDataImpl extends RemoteDataImpl
   }
 
   public boolean clusterDataEquals(RemoteClusterData cd)
-         throws RemoteException, VisADException {
+         throws RemoteException {
     return (cd == me); // seems to work - but does it really?
   }
 

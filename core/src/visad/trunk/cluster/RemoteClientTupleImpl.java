@@ -80,7 +80,7 @@ public class RemoteClientTupleImpl extends RemoteClientDataImpl
     return adaptedTuple.getRealComponents();
   }
 
-  public int getDimension() {
+  public int getDimension() throws RemoteException {
     return adaptedTuple.getDimension();
   }
 
@@ -88,7 +88,7 @@ public class RemoteClientTupleImpl extends RemoteClientDataImpl
     return adaptedTuple.getComponent(i);
   }
 
-  public boolean isMissing() {
+  public boolean isMissing() throws RemoteException {
     return adaptedTuple.isMissing();
   }
 
@@ -112,10 +112,6 @@ public class RemoteClientTupleImpl extends RemoteClientDataImpl
   public Data adjustSamplingError(Data error, int error_mode)
          throws VisADException, RemoteException {
     return adaptedTuple.adjustSamplingError(error, error_mode);
-  }
-
-  public Object clone() {
-    throw new VisADError("RemoteClientTupleImpl.clone not implemented");
   }
 
 }
