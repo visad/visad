@@ -451,14 +451,22 @@ public class BaseColorControl
   }
 
   /**
-   * Return a list of colors for the specified values.
+   * Return a list of colors for specified values.
    *
-   * @param values The values to look up.
-   *
-   * @return The list of colors.
-   *
-   * @exception RemoteException If there was an RMI-related problem.
-   * @exception VisADException If the function encountered a problem.
+   * @param values		The values to look up.  It is expected that
+   *				they nominally lie in the range of 0 through 1.
+   *				Values outside this range will be assigned the
+   *				color of the nearest end.  NaN values will be
+   *				assigned NaN colors.
+   * @return			The list of colors.  Element <code>[i][j]</code>
+   *				is the value of the <code>i</code>-th color
+   *				component for <code>values[j]</code>, where
+   *				<code>i</code> is {@link #RED}, {@link #GREEN},
+   *				{@link #BLUE}, or {@link #ALPHA}.  A component
+   *				value is in the range from 0 through 1, or is
+   *				NaN.
+   * @throws RemoteException	If there was an RMI-related problem.
+   * @throws VisADException	If the function encountered a problem.
    */
   public float[][] lookupValues(float[] values)
     throws RemoteException, VisADException
