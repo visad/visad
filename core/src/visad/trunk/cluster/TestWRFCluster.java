@@ -49,6 +49,22 @@ import java.io.IOException;
    java visad.cluster.TestWRFCluster 3 /home3/billh/wrf/wrfout_01_000000_0002
    java visad.cluster.TestWRFCluster 4 /home3/billh/wrf/wrfout_01_000000_0003
    java visad.cluster.TestWRFCluster 0
+Or:
+ On doll:
+   xhost +hyde
+   xhost +demedici
+ On demedici:
+   rmiregistry &
+   export DISPLAY=doll:0
+   java -cp visad.jar visad.cluster.TestWRFCluster 1 wrfout_01_000000_0000
+   java -cp visad.jar visad.cluster.TestWRFCluster 2 wrfout_01_000000_0001
+ On hyde:
+   rmiregistry &
+   setenv DISPLAY doll:0
+   java -cp visad.jar visad.cluster.TestWRFCluster 3 wrfout_01_000000_0002
+   java -cp visad.jar visad.cluster.TestWRFCluster 4 wrfout_01_000000_0003
+ On doll:
+   java -cp visad.jar visad.cluster.TestWRFCluster 0
 </PRE>
 */
 public class TestWRFCluster extends FancySSCell implements ActionListener {
@@ -465,6 +481,17 @@ System.out.println("kk = " + kk);
       // node1.ncar.ucar.edu, node2.ncar.ucar.edu, node3.ncar.ucar.edu
       // and node1.ncar.ucar.edu (or whatever).
       String url = "///TestWRFCluster" + k;
+
+/*
+      // to test with demedici and hyde as servers
+      if (k == 0 || k == 1) {
+        url = "//demedici/TestWRFCluster" + k;
+      }
+      else {
+        url = "//hyde/TestWRFCluster" + k;
+      }
+*/
+
       try {
         node_wrfs[k] = (RemoteNodeField) Naming.lookup(url);
       }
