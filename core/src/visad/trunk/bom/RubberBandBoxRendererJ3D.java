@@ -312,6 +312,8 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
 
   private static final int EDGE = 20;
 
+  private static final float EPS = 0.005f;
+
   public synchronized void drag_direct(VisADRay ray, boolean first,
                                        int mouseModifiers) {
     if (ref == null) return;
@@ -363,22 +365,26 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
       vect.addElement(y.getName() + " = " + valueString);
       getDisplayRenderer().setCursorStringVector(vect);
 
-      float other_offset = 0.0f;
-      if (tuple == null) {
-        other_offset = (direction[otherindex] < 0.0) ? 0.005f : -0.005f;
-      }
-      else if (Display.DisplaySpatialSphericalTuple.equals(tuple)) {
-        if (otherindex == 0) {
-          other_offset = (direction[2] < 0.0) ? 0.1f : -0.1f;
-        }
-        else if (otherindex == 1) {
-          other_offset = (direction[1] < 0.0) ? 0.1f : -0.1f;
-        }
-        else if (otherindex == 2) other_offset = 0.005f;
-      }
+      float[][] xxp = {{xx[0][0]}, {xx[1][0]}, {xx[2][0]}};
+      xxp[otherindex][0] += EPS;
+      if (tuplecs != null) xxp = tuplecs.toReference(xxp);
+      float[][] xxm = {{xx[0][0]}, {xx[1][0]}, {xx[2][0]}};
+      xxm[otherindex][0] -= EPS;
+      if (tuplecs != null) xxm = tuplecs.toReference(xxm);
+      double dot = (xxp[0][0] - xxm[0][0]) * direction[0] +
+                   (xxp[1][0] - xxm[1][0]) * direction[1] +
+                   (xxp[2][0] - xxm[2][0]) * direction[2];
+      float abs = (float)
+        Math.sqrt((xxp[0][0] - xxm[0][0]) * (xxp[0][0] - xxm[0][0]) +
+                 (xxp[1][0] - xxm[1][0]) * (xxp[1][0] - xxm[1][0]) +
+                 (xxp[2][0] - xxm[2][0]) * (xxp[2][0] - xxm[2][0]));
+      float other_offset = EPS * (2.0f * EPS / abs);
+      if (dot >= 0.0) other_offset = -other_offset;
 
-      last_x = new float[][] {{clast_x[0][0]}, {clast_x[1][0]}, {clast_x[2][0]}};
-      if (Display.DisplaySpatialSphericalTuple.equals(tuple) && otherindex != 1) {
+      last_x =
+        new float[][] {{clast_x[0][0]}, {clast_x[1][0]}, {clast_x[2][0]}};
+      if (Display.DisplaySpatialSphericalTuple.equals(tuple) &&
+          otherindex != 1) {
         if (last_x[1][0] < first_x[1][0] && cum_lon > 0.0f) {
           last_x[1][0] += 360.0;
         }
