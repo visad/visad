@@ -2104,7 +2104,13 @@ public class AddeURLConnection extends URLConnection
 
     private URL normalizeURL(URL url) {
 
-      String x = URLDecoder.decode(url.toString());
+      String x;
+      try {
+        x = URLDecoder.decode(url.toString());
+      }
+      catch (java.lang.Exception e) {
+        throw new RuntimeException(e.toString());
+      }
       // common case no replacement
       boolean ok = true;
       for (int i=0; i<replaceString.length; i++) {
