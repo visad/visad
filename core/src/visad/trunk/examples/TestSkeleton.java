@@ -17,6 +17,9 @@ public abstract class TestSkeleton
 {
   boolean startServer = false;
   String hostName = null;
+  RemoteServer client = null;
+
+  private static final int maximumWaitTime = 60;
 
   public TestSkeleton() { }
 
@@ -150,33 +153,53 @@ public abstract class TestSkeleton
     }
   }
 
-  void getClientDataReferences(RemoteServer client)
+  void getClientDataReferences()
 	throws RemoteException
   {
   }
 
-  RemoteDisplay[] getClientDisplays(RemoteServer client)
+  RemoteDisplay[] getClientDisplays()
 	throws VisADException, RemoteException
   {
     int loops = 0;
     RemoteDisplay[] rmtDpy = null;
-    while (rmtDpy == null && loops < 30) {
-      try {
-        rmtDpy = client.getDisplays();
-      } catch (java.rmi.ConnectException ce) {
+    while (rmtDpy == null && loops < maximumWaitTime) {
 
+      // try to reconnect to the server after the first loop
+      if (loops > 0) {
+        try {
+          String domain = "//" + hostName + "/" + getClass().getName();
+          client = (RemoteServer )Naming.lookup(domain);
+        } catch (Exception e) {
+          throw new VisADException ("Cannot connect to server on \"" +
+                                    hostName + "\"");
+        }
+      }
+
+      // try to get displays from remote server
+      try {
+        if (client != null) {
+          rmtDpy = client.getDisplays();
+        }
+      } catch (java.rmi.ConnectException ce) {
+        rmtDpy = null;
+      }
+
+      // if we didn't get any displays, print a message and wait a bit
+      if (rmtDpy == null) {
         if (loops == 0) {
           System.err.print("Client waiting for server ");
         } else {
           System.err.print(".");
         }
-        loops++;
 
         try { sleep(1000); } catch (InterruptedException ie) { }
+
+        loops++;
       }
     }
 
-    if (loops == 30) {
+    if (loops == maximumWaitTime) {
       System.err.println(" giving up!");
       System.exit(1);
     } else if (loops > 0) {
@@ -189,16 +212,7 @@ public abstract class TestSkeleton
   DisplayImpl[] setupClientData()
 	throws VisADException, RemoteException
   {
-    RemoteServer client;
-    try {
-      String domain = "//" + hostName + "/" + getClass().getName();
-      client = (RemoteServer )Naming.lookup(domain);
-    } catch (Exception e) {
-      throw new VisADException ("Cannot connect to server on \"" +
-				hostName + "\"");
-    }
-
-    RemoteDisplay[] rmtDpy = getClientDisplays(client);
+    RemoteDisplay[] rmtDpy = getClientDisplays();
     if (rmtDpy == null) {
       throw new VisADException("No RemoteDisplays found!");
     }
@@ -214,7 +228,7 @@ public abstract class TestSkeleton
     }
 
     // add any data references to server
-    getClientDataReferences(client);
+    getClientDataReferences();
 
     return dpys;
   }
