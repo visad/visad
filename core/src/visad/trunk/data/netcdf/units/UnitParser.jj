@@ -1,0 +1,329 @@
+options
+{
+    STATIC = false;
+    DEBUG_PARSER = false;
+    DEBUG_TOKEN_MANAGER = false;
+}
+
+PARSER_BEGIN(UnitParser)
+
+    package visad.data.netcdf.units;
+
+    import java.io.ByteArrayInputStream;
+    import java.io.InputStreamReader;
+    import java.io.LineNumberReader;
+    import visad.ScaledUnit;
+    import visad.Unit;
+    import visad.UnitException;
+
+    public class UnitParser
+    {
+	/**
+	 * The units database:
+	 */
+	protected static UnitsDB	unitsDB = null;
+
+	static
+	{
+	    try
+	    {
+		unitsDB = DefaultUnitsDB.instance();
+	    }
+	    catch(UnitException e)
+	    {
+	    }
+	}
+
+
+	/**
+	 * Test this class.
+	 */
+	public static void main(String[] args)
+	    throws Exception
+	{
+	    UnitParser		parser = new UnitParser(System.in);
+	    LineNumberReader	lineInput = new LineNumberReader(
+				    new InputStreamReader(System.in));
+
+	    for (;;)
+	    {
+		System.out.print("Enter a unit specification or ^D to quit: ");
+
+		String	spec = lineInput.readLine();
+		if (spec == null)
+		    break;
+
+		spec = spec.trim();
+
+		if (spec.length() > 0)
+		{
+		    parser.ReInit(new ByteArrayInputStream(spec.getBytes()));
+
+		    try
+		    {
+			System.out.println(parser.unitSpec());
+		    }
+		    catch (ParseException e)
+		    {
+			System.out.println(e.getMessage());
+		    }
+		}
+	    }
+	}
+    }
+
+PARSER_END(UnitParser)
+
+SKIP :
+{
+	" "
+    |   "*"
+    |   "."
+    |   "\t"
+    |   "\n"
+    |   "\r"
+}
+
+TOKEN :
+{
+	< #SIGN:	["+","-"] >
+    |	< #DIGIT:	["0"-"9"] >
+    |	< #INT:		(<DIGIT>)+ >
+    |   < #EXP:		["e","E"](<INTEGER>) >
+    |   < #DECIMAL:	((<INTEGER>)?"."<INT>|<INTEGER>"."(<INT>)?) >
+    |	< INTEGER:	(<SIGN>)?<INT> >
+    |   < REAL:		<DECIMAL>(<EXP>)?|<INTEGER><EXP> >
+    |   < #SINCE:	["S","s"]["I","i"]["N","n"]["C","c"]["E","e"] >
+    |   < #FROM:	["F","f"]["R","r"]["O","o"]["M","m"] >
+    |   < SHIFT:	("@" | <SINCE> | <FROM>) >
+    |   < DIVIDE:	( "/" | ["P","p"]["E","e"]["R","r"] ) >
+    |	< #LETTER:	["a"-"z","A"-"Z","_"] >
+    |   < NAME:		"%" | (<LETTER>)+ ((<INT>) (<LETTER>)+)* >
+}
+
+/*
+    |   < YEAR:		<INTEGER> >
+    |   < MONTH:	("0")?(["1"-"9"]|"1"["0"-"2"]) >
+    |   < DAY:		("0")?(["1"-"9"]|["1"-"2"]["0"-"9"]|"3""0"|"3""1") >
+    |   < HOUR:		(["0"-"1"])?(["0"-"9"]|"2"["0"-"3"]) >
+    |   < MINUTE:	(["0"-"5"])?["0"-"9"] >
+    |   < SECOND:	(<MINUTE>|"6""0")("."(["0"-"9"])*)? >
+*/
+
+
+void unitSpecList() :
+{
+    String      prompt = 
+    "Please type in a unit specification followed by a \";\" or ^D to quit:";
+    Unit        unit;
+}
+{
+        {
+            System.out.println("");
+            System.out.println(prompt);
+        }
+    ( unit=unitSpec() ";"
+        {
+            System.out.println(unit.toString());
+            System.out.println("");
+            System.out.println(prompt);
+        }
+    )*
+    <EOF>
+}
+
+
+
+Unit unitSpec() :
+{
+    Unit	unit = null;
+    double	amount = 1;
+    double	origin = 0;
+}
+{
+    [ amount=numericalTerm() ]
+    [ unit=unitExpression() ]
+    [ origin=shiftExpression() ]
+    {
+	try
+	{
+	    unit = unit == null
+			? new ScaledUnit(amount)
+			: unit.scale(amount);
+	    if (origin != 0)
+		unit = unit.shift(origin);
+	    return unit;
+	}
+	catch (UnitException e)
+	{
+	    throw new ParseException("Invalid unit specification: " + 
+		e.getMessage());
+	}
+    }
+}
+
+
+Unit unitExpression() :
+{
+    Unit	unit1, unit2;
+}
+{
+    unit1=powerExpression()
+    (
+	unit2=powerExpression()
+	{
+	    try
+	    {
+		unit1 = unit1.multiply(unit2);
+	    }
+	    catch (UnitException e)
+	    {
+		throw new ParseException("Couldn't multiply units");
+	    }
+	}
+	| <DIVIDE> unit2=powerExpression()
+	{
+	    try
+	    {
+		unit1 = unit1.divide(unit2);
+	    }
+	    catch (UnitException e)
+	    {
+		throw new ParseException("Couldn't divide units");
+	    }
+	}
+    )*
+
+    {
+	return unit1;
+    }
+}
+
+
+Unit powerExpression() :
+{
+    Unit	unit;
+    Token	t;
+}
+{
+    unit=factorExpression()
+    [	["^"] t=<INTEGER>
+	{
+	    try
+	    {
+		unit = unit.pow(Integer.parseInt(t.image));
+	    }
+	    catch (UnitException e)
+	    {
+		throw new ParseException("Couldn't raise unit to a power");
+	    }
+	}
+    ]
+
+    {
+	return unit;
+    }
+}
+
+
+Unit factorExpression() :
+{
+    Unit	unit;
+}
+{
+    ( unit=quantityExpression() | "(" unit=unitSpec() ")" )
+
+    {
+	return unit;
+    }
+}
+
+
+double numericalTerm() :
+{
+    double	value1, value2;
+}
+{
+    value1=numberExpression()
+    (
+	value2=numberExpression()
+	{
+	    value1 *= value2;
+	}
+	| <DIVIDE> value2=numberExpression()
+	{
+	    value1 /= value2;
+	}
+    )*
+    {
+	return value1;
+    }
+}
+
+
+double numberExpression() :
+{
+    double	value;
+    Token	t;
+}
+{
+    (
+	t=<INTEGER>
+	{
+	    value = Integer.parseInt(t.image);
+	}
+	| t=<REAL>
+	{
+	    // Double.parseDouble() *should* exist but doesn't (sigh).
+	    value = new Double(t.image).doubleValue();
+	}
+    )
+
+    {
+	return value;
+    }
+}
+
+Unit quantityExpression() :
+{
+    Token	t;
+    Unit	unit;
+}
+{
+    t=<NAME>
+    {
+	unit = unitsDB.get(t.image);
+	if (unit == null)
+	{
+	    throw new ParseException("Couldn't find unit \"" + t.image + "\"");
+	}
+	return unit;
+    }
+}
+
+
+double shiftExpression() :
+{
+    double	origin;
+}
+{
+    <SHIFT> origin=valueExpression()
+    {
+	return origin;
+    }
+}
+
+
+double valueExpression() :
+{
+    double	value;
+}
+{
+    (
+	value=numericalTerm()
+	| "(" value=valueExpression() ")"
+    )
+    {
+	return value;
+    }
+}
