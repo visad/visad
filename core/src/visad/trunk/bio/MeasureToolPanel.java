@@ -82,6 +82,9 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
   /** Flag marking whether to ignore group list changes. */
   private boolean ignoreGroup = false;
 
+  /** Flag marking whether set standard checkbox can be enabled. */
+  private boolean stdEnabled = true;
+
 
   // -- FILE IO FUNCTIONS --
   
@@ -474,12 +477,18 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     clearAll.setEnabled(enabled);
   }
 
+  /** Enables or disables the "set standard" checkbox. */
+  public void setStandardEnabled(boolean enabled) {
+    stdEnabled = enabled;
+    setStandard.setEnabled(thing != null && enabled);
+  }
+
   /** Selects the given measurement object. */
   public void select(MeasureThing thing) {
     this.thing = thing;
     boolean enabled = thing != null;
     boolean line = enabled && thing.getLength() == 2;
-    setStandard.setEnabled(enabled);
+    setStandard.setEnabled(enabled && stdEnabled);
     removeThing.setEnabled(enabled);
     colorLabel.setEnabled(enabled && line);
     colorList.setEnabled(enabled && line);

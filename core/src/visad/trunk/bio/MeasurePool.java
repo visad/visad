@@ -151,14 +151,14 @@ public class MeasurePool implements DisplayListener {
 
     // register new leases
     expand(m.length, true);
-    for (int i=0; i<m.length; i++) new MeasureThing(this, m[i]);
+    for (int i=0; i<m.length; i++) new MeasureThing(bio, this, m[i]);
     refresh();
   }
 
   /** Adds a measurement pool object to match the given measurement. */
   public void add(Measurement m) {
     expand(1, true);
-    new MeasureThing(this, m);
+    new MeasureThing(bio, this, m);
   }
 
   /** Sets the current image slice value. */
@@ -429,10 +429,43 @@ public class MeasurePool implements DisplayListener {
     things.remove(thing);
   }
 
+  /** Updates various aspects of the GUI when a measurement object changes. */
+  private void updateStuff(MeasureThing thing) {
+    if (thing == null) return;
+    RealTuple[] values = thing.getMeasurement().getValues();
+    boolean same = true;
+    boolean match = false;
+    double value = 0;
+    try {
+      for (int i=0; i<values.length; i++) {
+        Real[] reals = values[i].getRealComponents();
+        double v = reals[reals.length - 1].getValue();
+        if (v == slice) match = true;
+        if (i != 0 && v != value) same = false;
+        value = v;
+      }
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+    if (!match) select(null);
+    bio.toolMeasure.setStandardEnabled(same);
+  }
+
+  /**
+   * Called to indicate that the given measurement object's values
+   * have changed.
+   */
+  void valuesChanged(MeasureThing thing) {
+    MeasureThing sel = box.getSelection();
+    if (thing != box.getSelection()) return;
+    updateStuff(thing);
+  }
+
   /** Deselects any selected measurements. */
   void select(MeasureThing thing) {
     bio.toolMeasure.select(thing);
     box.select(thing);
+    updateStuff(thing);
   }
 
   /** Converts the given pixel coordinates to domain coordinates. */

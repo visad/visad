@@ -40,7 +40,10 @@ public class MeasureThing {
 
   // -- FIELDS --
 
-  /** Associated display. */
+  /** BioVisAD frame. */
+  private BioVisAD bio;
+
+  /** Associated pool of measurements. */
   private MeasurePool pool;
 
   /** Associated measurement. */
@@ -53,13 +56,14 @@ public class MeasureThing {
   private CellImpl cell;
 
   /** Flag marking whether to ignore next cell update. */
-  private boolean ignoreNext = true;
+  private boolean ignoreNext;
 
 
   // -- CONSTRUCTOR --
 
   /** Constructs a MeasureThing. */
-  public MeasureThing(MeasurePool pool, Measurement mm) {
+  public MeasureThing(BioVisAD biovis, MeasurePool pool, Measurement mm) {
+    this.bio = biovis;
     this.pool = pool;
     this.m = mm;
     pts = pool.lease(this);
@@ -67,39 +71,53 @@ public class MeasureThing {
 
     // cell for updating Measurement whenever endpoints change
     final MeasureThing thing = this;
+    final MeasurePool mpool = pool;
     final int dim = pool.getDimension();
+    final int slices = bio.getNumberOfSlices();
+    ignoreNext = true;
     cell = new CellImpl() {
       public void doAction() {
-        if (ignoreNext) {
-          ignoreNext = false;
-          return;
-        }
-        RealTuple[] values = getValues();
-        for (int i=0; i<values.length; i++) if (values[i] == null) return;
-        MeasureThing t;
-        if (dim == 2) {
-          values = BioVisAD.copy(values);
-          t = thing;
-        }
+        if (ignoreNext) ignoreNext = false;
         else {
-          // snap measurement endpoints to nearest slice plane
-          try {
-            for (int i=0; i<values.length; i++) {
-              Real[] reals = values[i].getRealComponents();
-              for (int j=0; j<reals.length-1; j++) {
-                reals[j] = (Real) reals[j].clone();
-              }
-              Real r = reals[reals.length - 1];
-              reals[reals.length - 1] = new Real((RealType) r.getType(),
-                Math.round(r.getValue()), r.getUnit(), r.getError());
-              values[i] = new RealTuple(reals);
-            }
+          RealTuple[] values = getValues();
+          for (int i=0; i<values.length; i++) if (values[i] == null) return;
+          MeasureThing t;
+          if (dim == 2) {
+            values = BioVisAD.copy(values);
+            t = thing;
           }
-          catch (VisADException exc) { exc.printStackTrace(); }
-          catch (RemoteException exc) { exc.printStackTrace(); }
-          t = null;
+          else {
+            // snap measurement endpoints to nearest slice plane
+            try {
+              for (int i=0; i<values.length; i++) {
+                Real[] reals = values[i].getRealComponents();
+                for (int j=0; j<reals.length-1; j++) {
+                  reals[j] = (Real) reals[j].clone();
+                }
+                Real r = reals[reals.length - 1];
+                double value;
+                if (m.stdId >= 0) {
+                  RealTuple[] mvals = m.getValues();
+                  Real[] mreals = mvals[i].getRealComponents();
+                  value = mreals[reals.length - 1].getValue();
+                }
+                else {
+                  value = Math.round(r.getValue());
+                  if (value < 0) value = 0;
+                  if (value >= slices) value = slices - 1;
+                }
+                reals[reals.length - 1] = new Real((RealType) r.getType(),
+                  value, r.getUnit(), r.getError());
+                values[i] = new RealTuple(reals);
+              }
+            }
+            catch (VisADException exc) { exc.printStackTrace(); }
+            catch (RemoteException exc) { exc.printStackTrace(); }
+            t = null;
+          }
+          m.setValues(values, t);
         }
-        m.setValues(values, t);
+        mpool.valuesChanged(thing);
       }
     };
     cell.disableAction();

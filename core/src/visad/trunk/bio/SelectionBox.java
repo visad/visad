@@ -236,4 +236,7 @@ public class SelectionBox {
     }
   }
 
+  /** Gets the currently selected measurement object. */
+  public MeasureThing getSelection() { return thing; }
+
 }
