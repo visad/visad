@@ -1008,6 +1008,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
       if (ans != JOptionPane.YES_OPTION) return false;
     }
 
+    // hide control widgets
+    DisplayCells[CurX][CurY].hideWidgetFrame();
+
     // clear all cells (in smart order to prevent errors)
     boolean[][] b = new boolean[NumVisX][NumVisY];
     for (int j=0; j<NumVisY; j++) {

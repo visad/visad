@@ -326,46 +326,57 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     else return false;
   }
 
+  /** used by addMapDialog */
+  private boolean mapDialogUp = false;
+
   /** let the user create ScalarMaps from the current SSPanel's Data
       to its Display */
   public void addMapDialog() {
-    // check whether this cell has data
-    Data data = getData();
-    if (data == null) {
-      JOptionPane.showMessageDialog(Parent, "This cell has no data",
-        "FancySSCell error", JOptionPane.ERROR_MESSAGE);
-      return;
-    }
+    if (mapDialogUp) return;
+    mapDialogUp = true;
 
-    // get mappings from mapping dialog
-    MappingDialog mapDialog = new MappingDialog(Parent, data, getMaps(),
-                              Dim != JAVA2D_2D || AutoSwitch,
-                              Dim == JAVA3D_3D || AutoSwitch);
-    mapDialog.pack();
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    Dimension mds = mapDialog.getSize();
-    mapDialog.setLocation(screenSize.width/2 - mds.width/2,
-                          screenSize.height/2 - mds.height/2);
-    mapDialog.setVisible(true);
-
-    // make sure user did not cancel the operation
-    if (!mapDialog.Confirm) return;
-
-    // set up new mappings
     try {
-      setMapsAuto(mapDialog.ScalarMaps);
+      // check whether this cell has data
+      Data data = getData();
+      if (data == null) {
+        JOptionPane.showMessageDialog(Parent, "This cell has no data",
+          "FancySSCell error", JOptionPane.ERROR_MESSAGE);
+        return;
+      }
+
+      // get mappings from mapping dialog
+      MappingDialog mapDialog = new MappingDialog(Parent, data, getMaps(),
+                                Dim != JAVA2D_2D || AutoSwitch,
+                                Dim == JAVA3D_3D || AutoSwitch);
+      mapDialog.pack();
+      Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+      Dimension mds = mapDialog.getSize();
+      mapDialog.setLocation(screenSize.width/2 - mds.width/2,
+                            screenSize.height/2 - mds.height/2);
+      mapDialog.setVisible(true);
+
+      // make sure user did not cancel the operation
+      if (!mapDialog.Confirm) return;
+
+      // set up new mappings
+      try {
+        setMapsAuto(mapDialog.ScalarMaps);
+      }
+      catch (VisADException exc) {
+        if (DEBUG) exc.printStackTrace();
+        JOptionPane.showMessageDialog(Parent,
+          "This combination of mappings is not valid: " + exc.getMessage(),
+          "Cannot assign mappings", JOptionPane.ERROR_MESSAGE);
+      }
+      catch (RemoteException exc) {
+        if (DEBUG) exc.printStackTrace();
+        JOptionPane.showMessageDialog(Parent,
+          "This combination of mappings is not valid: " + exc.getMessage(),
+          "Cannot assign mappings", JOptionPane.ERROR_MESSAGE);
+      }
     }
-    catch (VisADException exc) {
-      if (DEBUG) exc.printStackTrace();
-      JOptionPane.showMessageDialog(Parent,
-        "This combination of mappings is not valid: " + exc.getMessage(),
-        "Cannot assign mappings", JOptionPane.ERROR_MESSAGE);
-    }
-    catch (RemoteException exc) {
-      if (DEBUG) exc.printStackTrace();
-      JOptionPane.showMessageDialog(Parent,
-        "This combination of mappings is not valid: " + exc.getMessage(),
-        "Cannot assign mappings", JOptionPane.ERROR_MESSAGE);
+    finally {
+      mapDialogUp = false;
     }
   }
 
