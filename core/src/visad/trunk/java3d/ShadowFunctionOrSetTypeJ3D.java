@@ -382,8 +382,11 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       makeAppearance(mode, c_alpha, null, geometry, false);
     // create TextureAttributes
     TextureAttributes texture_attributes = new TextureAttributes();
-    // texture_attributes.setTextureMode(TextureAttributes.REPLACE);
-    texture_attributes.setTextureMode(TextureAttributes.MODULATE);
+
+    // WLH 20 June 2001
+    texture_attributes.setTextureMode(TextureAttributes.REPLACE);
+    // texture_attributes.setTextureMode(TextureAttributes.MODULATE);
+
     texture_attributes.setPerspectiveCorrectionMode(
                           TextureAttributes.NICEST);
     appearance.setTextureAttributes(texture_attributes);

@@ -79,7 +79,8 @@ public class Test51
     dpys[0].addMap(new ScalarMap(vis_radiance, Display.ZAxis));
 
     GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
-    mode.setTextureEnable(false);
+    // mode.setTextureEnable(false);
+    mode.setTextureEnable(true);
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);

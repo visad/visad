@@ -184,7 +184,10 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
       last_i = 0; // start i for each vertex strip
       for (int i_svc=0; i_svc<stripVertexCounts.length; i_svc++) {
         for (int i=last_i; i<last_i+stripVertexCounts[i_svc]-1; i++) {
-          test[i] = test[i] || (lengths[i] > limit_length);
+
+// WLH 20 June 2001
+          // test[i] = test[i] || (lengths[i] > limit_length);
+
           if (test[i]) any_split = true;
         } // end for (int i=last_i; i<last_i+stripVertexCounts[i_svc]*3; i+=3)
         last_i += stripVertexCounts[i_svc];
