@@ -35,7 +35,7 @@ import java.rmi.*;
 */
 public interface RemoteNodeData extends RemoteClusterData {
 
-  public RemoteAgentContact sendAgent(ClusterAgent agent)
+  public RemoteAgentContact sendAgent(NodeAgent agent)
          throws RemoteException;
 
 }

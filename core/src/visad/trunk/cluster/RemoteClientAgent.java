@@ -1,5 +1,5 @@
 //
-// RemoteAgentContact.java
+// RemoteClientAgent.java
 //
 
 /*
@@ -30,10 +30,10 @@ import visad.*;
 import java.rmi.*;
 
 /**
-   RemoteAgentContact is the interface for RemoteClientAgent
-   to communicate to NodeAgent.<P>
+   RemoteClientAgent is the interface for agents on the client,
+   which typically send NodeAgents to each node.<P>
 */
-public interface RemoteAgentContact extends Remote {
+public interface RemoteClientAgent extends Remote {
 
 }
 

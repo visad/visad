@@ -31,8 +31,8 @@ import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 
 /**
-   RemoteAgentContactImpl is the class used by ClusterAgents
-   on nodes to communicate back to the client.<P>
+   RemoteAgentContactImpl is the class for RemoteClientAgent 
+   to communicate to NodeAgent.<P> 
 */
 public class RemoteAgentContactImpl extends UnicastRemoteObject
        implements RemoteAgentContact {

@@ -44,7 +44,7 @@ public class RemoteNodeDataImpl extends RemoteClusterDataImpl
   public RemoteNodeDataImpl() throws RemoteException {
   }
 
-  public RemoteAgentContact sendAgent(ClusterAgent agent)
+  public RemoteAgentContact sendAgent(NodeAgent agent)
          throws RemoteException {
     agents.addElement(agent);
     return agent.getRemoteAgentContact();

@@ -1,5 +1,5 @@
 //
-// ClusterAgent.java
+// NodeAgent.java
 //
 
 /*
@@ -30,21 +30,21 @@ import visad.*;
 import java.rmi.*;
 
 /**
-   ClusterAgent is the agent sent from client to nodes.<P>
+   NodeAgent is the agent sent from client to nodes.<P>
 */
-public abstract class ClusterAgent extends Object
+public abstract class NodeAgent extends Object
        implements java.io.Serializable, Runnable {
 
   /** source of agent */
-  private RemoteClientData source = null;
+  private RemoteClientAgent source = null;
 
   /** RemoteAgentContact for communicating back to client */
   RemoteAgentContactImpl contact = null;
 
-  /** ClusterAgent is Serializable, mark as transient */
+  /** NodeAgent is Serializable, mark as transient */
   private transient Thread agentThread;
 
-  public ClusterAgent(RemoteClientData s) {
+  public NodeAgent(RemoteClientAgent s) {
     source = s;
   }
 

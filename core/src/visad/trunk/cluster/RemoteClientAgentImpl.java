@@ -1,5 +1,5 @@
 //
-// RemoteAgentContact.java
+// RemoteClientAgentImpl.java
 //
 
 /*
@@ -28,12 +28,17 @@ package visad.cluster;
 
 import visad.*;
 import java.rmi.*;
+import java.rmi.server.UnicastRemoteObject;
 
 /**
-   RemoteAgentContact is the interface for RemoteClientAgent
-   to communicate to NodeAgent.<P>
+   RemoteClientAgentImpl is the class for agents on the client, 
+   which typically send NodeAgents to each node.<P> 
 */
-public interface RemoteAgentContact extends Remote {
+public class RemoteClientAgentImpl extends UnicastRemoteObject
+       implements RemoteClientAgent {
+
+  public RemoteClientAgentImpl() throws RemoteException {
+  }
 
 }
 

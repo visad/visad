@@ -75,10 +75,10 @@ a non-partitioned Data object is local on the client
 a partitioned Data object is a RemoteClientDataImpl on the
 cient connected to RemodeNodeDataImpl's on the nodes
 
-ClusterAgent, Serializable class sent from client to each node
+NodeAgent, Serializable class sent from client to each node
 gets a Thread on arrival at node, return value from send of
-ClusterAgent is RemoteAgentContact (and Impl)
-values from ClusterAgent back declared Serializable
+NodeAgent is RemoteAgentContact (and Impl)
+values from NodeAgent back declared Serializable
 
 see page 60 of Java Enterprise in a Nutshell
 no easy way to load RMI classes - security issues
