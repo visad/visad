@@ -72,6 +72,12 @@ public class FunctionType extends MathType {
       range may be any MathType */
   public FunctionType(MathType domain, MathType range) throws VisADException {
     super();
+    if (domain == null) {
+      throw new TypeException("domain is null");
+    }
+    if (range == null) {
+      throw new TypeException("range is null");
+    }
     if (!(domain instanceof RealTupleType || domain instanceof RealType)) {
       throw new TypeException("FunctionType: domain must be RealTupleType" +
                               " or RealType");
