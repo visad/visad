@@ -33,6 +33,7 @@ import javax.swing.*;
 import visad.*;
 import visad.data.*;
 import visad.java3d.DisplayImplJ3D;
+import visad.ss.MappingDialog;
 
 /** A simple test for collaborative ScalarMap editing */
 public class CollabMapTest extends JFrame implements ActionListener {
@@ -55,14 +56,19 @@ public class CollabMapTest extends JFrame implements ActionListener {
     JPanel buttons = new JPanel();
     buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
     JButton detect = new JButton("Detect maps");
+    JButton edit = new JButton("Edit maps");
     JButton clear = new JButton("Clear maps");
     detect.addActionListener(this);
     detect.setActionCommand("detect");
     detect.setEnabled(enableButtons);
+    edit.addActionListener(this);
+    edit.setActionCommand("edit");
+    edit.setEnabled(enableButtons);
     clear.addActionListener(this);
     clear.setActionCommand("clear");
     clear.setEnabled(enableButtons);
     buttons.add(detect);
+    buttons.add(edit);
     buttons.add(clear);
     pane.add(buttons);
     addWindowListener(new WindowAdapter() {
@@ -175,17 +181,39 @@ public class CollabMapTest extends JFrame implements ActionListener {
     }
   }
 
+  /** sets the display to use the given mappings */
+  private void setMaps(ScalarMap[] maps)
+    throws VisADException, RemoteException
+  {
+    disp.removeReference(ref);
+    disp.clearMaps();
+    for (int i=0; i<maps.length; i++) disp.addMap(maps[i]);
+    disp.addReference(ref);
+  }
+
   /** handles button clicks */
   public synchronized void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
     if (cmd.equals("detect")) {
       // detect maps
       try {
-        ScalarMap[] maps = ref.getData().getType().guessMaps(true);
-        disp.removeReference(ref);
-        disp.clearMaps();
-        for (int i=0; i<maps.length; i++) disp.addMap(maps[i]);
-        disp.addReference(ref);
+        setMaps(ref.getData().getType().guessMaps(true));
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
+    }
+    else if (cmd.equals("edit")) {
+      // edit maps
+      try {
+        Vector mapVector = disp.getMapVector();
+        int len = mapVector.size();
+        ScalarMap[] maps = (len > 0 ? new ScalarMap[len] : null);
+        for (int i=0; i<len; i++) maps[i] = (ScalarMap) mapVector.elementAt(i);
+        MappingDialog dialog =
+          new MappingDialog(this, ref.getData(), maps, true, true);
+        dialog.display();
+        if (!dialog.Confirm) return;
+        setMaps(dialog.ScalarMaps);
       }
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }

@@ -660,6 +660,16 @@ public class MappingDialog extends JDialog
     rsPanel.add(CurrentMapsView);
   }
 
+  /** display the dialog in the center of the screen */
+  public void display() {
+    pack();
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    Dimension thisSize = getSize();
+    setLocation(screenSize.width/2 - thisSize.width/2,
+                screenSize.height/2 - thisSize.height/2);
+    setVisible(true);
+  }
+
   /** parse an array of prettyStrings to find out some information
       and eliminate duplicate RealTypes */
   private int[] extraPretty(String[] pStr, Vector[] v, int[] duplCount) {

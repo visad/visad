@@ -360,12 +360,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
       MappingDialog mapDialog = new MappingDialog(Parent, data, getMaps(),
                                 Dim != JAVA2D_2D || AutoSwitch,
                                 Dim == JAVA3D_3D || AutoSwitch);
-      mapDialog.pack();
-      Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-      Dimension mds = mapDialog.getSize();
-      mapDialog.setLocation(screenSize.width/2 - mds.width/2,
-                            screenSize.height/2 - mds.height/2);
-      mapDialog.setVisible(true);
+      mapDialog.display();
 
       // make sure user did not cancel the operation
       if (!mapDialog.Confirm) return;
