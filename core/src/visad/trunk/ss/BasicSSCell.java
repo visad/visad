@@ -2011,7 +2011,7 @@ public class BasicSSCell extends JPanel
    * Gets a string for reconstructing ScalarMap range
    * and Control information.
    */
-  protected String getPartialSaveString() {
+  public String getPartialSaveString() {
     StringBuffer sb = new StringBuffer();
     Vector mapVector = null;
     if (hasMappings()) {
@@ -2132,7 +2132,7 @@ public class BasicSSCell extends JPanel
   /**
    * Reconstructs parts of this cell using the specified save string.
    */
-  protected void setPartialSaveString(String save, boolean preserveMaps)
+  public void setPartialSaveString(String save, boolean preserveMaps)
     throws VisADException, RemoteException
   {
     // make sure cell is not remote
