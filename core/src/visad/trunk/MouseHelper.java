@@ -68,22 +68,13 @@ public class MouseHelper
 
   /** mouse in window */
   private boolean mouseEntered;
-  /** left, middle or right mouse button pressed in window */
-  private boolean mousePressed1, mousePressed2, mousePressed3;
-  /** pairs of mouse buttons pressed in window */
-  private boolean mouseCombo1, mouseCombo2, mouseCombo3;
-  /** combinations of Mouse Buttons and keys pressed;
-      z -- SHIFT, t -- CONTROL */
-  private boolean z1Pressed, t1Pressed, z2Pressed, t2Pressed;
   /** ((InputEvent) event).getModifiers() when mouse pressed */
   private int mouseModifiers;
 
   /** flag for 2-D mode */
   private boolean mode2D;
 
-
-
-// variables for new table-driven mapping from mouse buttons and
+// start of variables for table-driven mapping from mouse buttons and
 //     keys to functons
 
   // index values for functions
@@ -120,10 +111,8 @@ public class MouseHelper
      {{CURSOR_TRANSLATE, CURSOR_ZOOM}, {CURSOR_ROTATE, NONE}},
      {{DIRECT, DIRECT}, {DIRECT, DIRECT}}};
 
-// end of variables for new table-driven mapping from mouse buttons
+// end of variables for table-driven mapping from mouse buttons
 //     and keys to functons
-
-
 
   public MouseHelper(DisplayRenderer r, MouseBehavior b) {
     behavior = b;
@@ -536,6 +525,11 @@ public class MouseHelper
 
     if (old_function[DIRECT] && !function[DIRECT]) {
       display_renderer.setDirectOn(false);
+      if (direct_renderer != null) {
+        direct_renderer.release_direct();
+        direct_renderer = null;
+      }
+
     }
 
     // enable functions
@@ -697,6 +691,11 @@ public class MouseHelper
       for (int j=0; j<2; j++) {
         if (map[i][j] == null || map[i][j].length != 2) {
           throw new DisplayException("bad map array");
+        }
+        for (int k=0; k<2; k++) {
+          if (map[i][j][k] < 0 || map[i][j][k] > MouseHelper.DIRECT) {
+            throw new DisplayException("bad map array value" + map[i][j][k]);
+          }
         }
       }
     }
