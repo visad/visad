@@ -106,17 +106,20 @@ public class ProductSet extends SampledSet {
       if (units != null) {
         int n = sets[i].getDimension();
         if ((dim + n) > units.length) {
-          throw new SetException("ProductSet: Units do not match!");
+          throw new SetException("ProductSet: Sets exceed ManifoldDimension " +
+                                 units.length);
         }
         Unit[] su = sets[i].getSetUnits();
         if (su == null) {
-          throw new SetException("ProductSet: Units do not match!");
+          throw new SetException("ProductSet: Set#" + i + " is null");
         }
         for (int j=0; j<n; j++) {
           if (units[dim+j] != null || su[j] != null) {
             if (units[dim+j] == null || su[j] == null ||
                 !units[dim+j].equals(su[j])) {
-              throw new SetException("ProductSet: Units do not match!");
+              throw new SetException("ProductSet: Expected set " + i +
+                                     ", element " + j + " units to be " +
+                                     units[dim+j] + " not " + su[j]);
             }
           }
         }
