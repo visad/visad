@@ -359,7 +359,7 @@ public class FileFlatField extends FlatField {
   }
 
   public Data unary( int op, int sampling_mode, int error_mode )
-         throws VisADException
+         throws VisADException, RemoteException
   {
     synchronized (adaptedFlatFields)
     {
