@@ -98,7 +98,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   /** Vector of DisplayListeners */
   private transient Vector ListenerVector = new Vector();
 
-  private Vector mapslock = new Vector();
+  private Object mapslock = new Object();
 
   // WLH 16 March 99
   private MouseBehavior mouse = null;
