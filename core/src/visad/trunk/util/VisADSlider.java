@@ -87,7 +87,7 @@ public class VisADSlider extends JPanel {
     slider = new JSlider(JSlider.HORIZONTAL, low, hi, start);
     double val = scale * slider.getValue();
     head = "         ";
-    slider_label = new JLabel(name + " = " + shortString(val) + head);
+    slider_label = new JLabel(name + " = " + PlotText.shortString(val) + head);
  
     listener = new SliderListener();
     slider.addChangeListener(listener);
@@ -110,34 +110,6 @@ public class VisADSlider extends JPanel {
     }
   }
 
-  /** make a short string for value for use in slider label */
-  public static String shortString(double val) {
-    String s = null;
-    int is = (val < 0.0) ? -1 : 1;
-    val = Math.abs(val);
-    int i = (int) (1000 * val);
-    int i1000 = i / 1000;
-    int i1 = i - 1000 * i1000;
-    String s1000 = (is > 0) ? Integer.toString(i1000) :
-                              "-" + Integer.toString(i1000);
-    if (i1 == 0) {
-      s = s1000;
-    }
-    else {
-      String s1 = Integer.toString(i1);
-      if (s1.length() == 3) {
-        s = s1000 + "." + s1;
-      }
-      else if (s1.length() == 2) {
-        s = s1000 + ".0" + s1;
-      }
-      else {
-        s = s1000 + ".00" + s1;
-      }
-    }
-    return s;
-  }
- 
   /** slider state changes trigger changes to Real data object
       via DataReference */
   private class SliderListener implements ChangeListener {
@@ -157,7 +129,7 @@ public class VisADSlider extends JPanel {
             double val = scale * ival;
             ref.setData(new Real(type, val));
             head = "";
-            slider_label.setText(name + " = " + shortString(val));
+            slider_label.setText(name + " = " + PlotText.shortString(val));
           }
           catch (VisADException ex) {
           }
@@ -194,7 +166,7 @@ if (first > 0) {
 else {
   first++;
 }
-        slider_label.setText(name + " = " + shortString(val) + head);
+        slider_label.setText(name + " = " + PlotText.shortString(val) + head);
       }
     }
   }
