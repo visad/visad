@@ -34,6 +34,7 @@ import nom.tam.fits.ImageHDU;
 import nom.tam.fits.PrimaryHDU;
 
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
@@ -539,6 +540,11 @@ public class FitsAdapter
   public void save(String name, Data data, boolean replace)
 	throws IOException, RemoteException, VisADException
   {
+    File file = new File(name);
+    if (file.exists()) {
+      throw new IllegalArgumentException("File \"" + name + "\" exists");
+    }
+
     FitsTourGuide guide;
 
     // make sure this object can be saved as a FITS file
