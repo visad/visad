@@ -1337,8 +1337,14 @@ System.out.println("inverse values = " + values[0] + " " + old_values[0] + " " +
       return axisScale;
   }
 
-// WLH 24 Nov 2000
-// won't work for spherical, polar, cylindrical coordinates ****
+  /**
+   * set aspect ratio of XAxis, YAxis & ZAxis in ScalarMaps rather
+   * than matrix (i.e., don't distort text fonts);
+   * won't work for spherical, polar, cylindrical coordinates
+   * @param aspect ratios; 3 elements for Java3D, 2 for Java2D
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   void setAspectCartesian(double[] aspect)
        throws VisADException, RemoteException {
     double asp = Double.NaN;

@@ -50,12 +50,12 @@ public class DisplayEvent extends VisADEvent {
    */
   public final static int MOUSE_PRESSED = 1;
 
-  /* WLH 28 Oct 98 */
-  /** The "transform done" event. */
+  /** The "transform done" event. This even occurs when a DisplayImpl
+      finishes transforming Data into depictions. */
   public final static int TRANSFORM_DONE = 2;
 
-  /* WLH 15 March 99 */
-  /** The "frame done" event. */
+  /** The "frame done" event. This even occurs when Data depictions
+      have been rendered to the screen by the graphics API. */
   public final static int FRAME_DONE = 3;
 
   /**
@@ -64,7 +64,6 @@ public class DisplayEvent extends VisADEvent {
    */
   public final static int MOUSE_PRESSED_CENTER = 4;
 
-  /* WLH 19 Jul 1999 */
   /**
    * The "left mouse button pressed" event.  This event occurs when
    * the left mouse button is pressed inside the display.
@@ -77,7 +76,6 @@ public class DisplayEvent extends VisADEvent {
    */
   public final static int MOUSE_PRESSED_RIGHT = 6;
 
-  /* DRM 17 Sep 1999 */
   /**
    * The "mouse released" event.  This event occurs when any
    * of the mouse buttons is released after one of the MOUSE_PRESSED
@@ -304,6 +302,11 @@ public class DisplayEvent extends VisADEvent {
     this(d, id_d, e, LOCAL_SOURCE);
   }
 
+  /**
+   * get the AWT (including Swing) Component of a Display
+   * @param d the Display
+   * @return the Component of d (may be null
+   */
   protected static Component getDisplayComponent(Display d) {
     if (!(d instanceof DisplayImpl)) return DUMMY;
     DisplayImpl di = (DisplayImpl) d;
@@ -360,17 +363,19 @@ public class DisplayEvent extends VisADEvent {
   }
 
   /**
-   * Return a new DisplayEvent which is a copy of this event,
-   * but which uses the specified source display
+   * @return a new DisplayEvent which is a copy of this event,
+   *         but which uses the specified source display
    */
   public DisplayEvent cloneButDisplay(Display dpy)
   {
     return new DisplayEvent(dpy, id, input_event, getRemoteId());
   }
 
-  /** get the DisplayImpl that sent this DisplayEvent (or
-      a RemoteDisplay reference to it if the Display was on
-      a different JVM) */
+  /**
+   * @return the DisplayImpl that sent this DisplayEvent (or
+   *         a RemoteDisplay reference to it if the Display was
+   *         on a different JVM)
+   */
   public Display getDisplay() {
     return display;
   }

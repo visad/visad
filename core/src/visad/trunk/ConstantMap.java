@@ -201,6 +201,9 @@ public class ConstantMap extends ScalarMap {
 
   /**
    * do nothing over-ride of ScalarMap method
+   * @param aspect ratios; 3 elements for Java3D, 2 for Java2D
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
    */
   void setAspectCartesian(double[] aspect)
        throws VisADException, RemoteException {

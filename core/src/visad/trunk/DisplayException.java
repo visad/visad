@@ -31,7 +31,15 @@ package visad;
 */
 public class DisplayException extends VisADException {
 
+  /**
+   * construct a DisplayException with null message String
+   */
   public DisplayException() { super(); }
+
+  /** 
+   * construct a DisplayException with given message String
+   * @param s message String
+   */
   public DisplayException(String s) { super(s); }
 
 }

@@ -283,6 +283,12 @@ public class DisplayImplJ2D extends DisplayImpl {
     return mode;
   }
 
+  /**
+   * Return the API used for this display
+   *
+   * @return  the mode being used (UNKNOWN, JPANEL, OFFSCREEN)
+   * @throws  VisADException
+   */
   public int getAPI()
 	throws VisADException
   {

@@ -29,6 +29,7 @@ import java.util.ArrayList;
 
 import javax.swing.Timer;
 
+/** Manage busy/idle handlers for a Display */
 public class DisplayActivity
 {
   private static final int DEFAULT_IDLE_MILLISECONDS = 250;
@@ -102,12 +103,15 @@ public class DisplayActivity
 
   /**
    * Add a new activity handler.
+   * @param ah ActivityHandler to add
+   * @throws VisADException no handler list
    */
   public void addHandler(ActivityHandler ah)
     throws VisADException
   {
     if (handlerList == null) {
-      throw new VisADException("No handler list found; was this object serialized?");
+      throw new VisADException("No handler list found; " +
+                               "was this object serialized?");
     }
 
     if (!busyTimer.isRunning()) {
@@ -119,12 +123,15 @@ public class DisplayActivity
 
   /**
    * Remove an activity handler.
+   * @param ah ActivityHandler to remove
+   * @throws VisADException no handler list
    */
   public void removeHandler(ActivityHandler ah)
     throws VisADException
   {
     if (handlerList == null) {
-      throw new VisADException("No handler list found; was this object serialized?");
+      throw new VisADException("No handler list found; " +
+                               "was this object serialized?");
     }
 
     handlerList.remove(ah);

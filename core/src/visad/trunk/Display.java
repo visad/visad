@@ -37,183 +37,261 @@ import java.rmi.*;
 <OL>
 
 <LI>Display data according to a set of mappings from RealType's
-    (e.g., Latitude, Time, Pressure) to DisplayRealType's (e.g.,
+    (e.g., Latitude, Time, Pressure) to DisplayRealTypes (e.g.,
     XAxis, RGB, Animation).<P>
 
-<LI>Allow user extensions, to define new DisplayRealType's,
-    new DisplayRealTuple's (and hence new display
-    CoordinateSsystem's), and new rendering algorithms.<P>
+<LI>Allow user extensions, to define new DisplayRealTypes,
+    new DisplayTupleTypes (and hence new display
+    CoordinateSystems), and new rendering algorithms.<P>
 
-<LI>Support direct manipulation through 3-D user interface
-    widgets embedded in 3-D data displays.<P>
+<LI>Support direct manipulation, where users modify Data
+    values by re-drawing their depictions.<P>
 
 </OL>
 */
 public interface Display extends Action {
 
-  /** system intrinsic DisplayRealType objects */
-  /** spatial display scalars */
+  // system intrinsic DisplayRealType objects
+
+  /** display spatial Cartesian X axis coordinate */
   DisplayRealType XAxis =
     new DisplayRealType("XAxis", true, -1.0, 1.0, 0.0, true);
+
+  /** display spatial Cartesian Y axis coordinate */
   DisplayRealType YAxis =
     new DisplayRealType("YAxis", true, -1.0, 1.0, 0.0, true);
+
+  /** display spatial Cartesian Z axis coordinate */
   DisplayRealType ZAxis =
     new DisplayRealType("ZAxis", true, -1.0, 1.0, 0.0, true);
 
+
+  /** display spatial spherical Latitude coordinate */
   DisplayRealType Latitude =
     new DisplayRealType("Latitude", true, -90.0, 90.0, 0.0,
                         CommonUnit.degree, true);
+
+  /** display spatial spherical Longitude coordinate */
   DisplayRealType Longitude =
     new DisplayRealType("Longitude", true, 0.0, 360.0, 0.0,
                         CommonUnit.degree, true);
+
+  /** display spatial spherical Radius coordinate */
   DisplayRealType Radius =
     new DisplayRealType("Radius", true, 0.01, 2.0, 1.0, true);
 
-  /** Cylindrical radius scalar */
+
+  /** display spatial cylindrical radius coordinate */
   DisplayRealType CylRadius =
     new DisplayRealType("CylRadius", true, 0.01, 2.0, 1.0, true);
-  /** Cylindrical azimuth scalar */
+
+  /** display spatial cylindrical azimuth coordinate */
   DisplayRealType CylAzimuth =
     new DisplayRealType("CylAzimuth", true, 0.0, 360.0, 0.0,
                         CommonUnit.degree, true);
-  /** Cylindrical ZAxis scalar */
+
+  /** display spatial cylindrical Z axis coordinate */
   DisplayRealType CylZAxis =
     new DisplayRealType("CylZAxis", true, -1.0, 1.0, 0.0, true);
 
-  /** list display scalar (default domain of DisplayField) */
+
+  /** display spatial offset Cartesian X axis coordinate */
+  DisplayRealType XAxisOffset =
+    new DisplayRealType("XAxisOffset", false, -1.0, 1.0, 0.0, null, true);
+
+  /** display spatial offset Cartesian Y axis coordinate */
+  DisplayRealType YAxisOffset =
+    new DisplayRealType("YAxisOffset", false, -1.0, 1.0, 0.0, null, true);
+
+  /** display spatial offset Cartesian Z axis coordinate */
+  DisplayRealType ZAxisOffset =
+    new DisplayRealType("ZAxisOffset", false, -1.0, 1.0, 0.0, null, true);
+
+
+  /** list display scalar (not used) */
   DisplayRealType List =
     new DisplayRealType("List", false, 0.0, true);
 
-  /** color display scalars */
+  /** display color red coordinate (in RGB) */
   DisplayRealType Red =
     new DisplayRealType("Red", false, 0.0, 1.0, 1.0, null, true);
+
+  /** display color green coordinate (in RGB) */
   DisplayRealType Green =
     new DisplayRealType("Green", false, 0.0, 1.0, 1.0, null, true);
+
+  /** display color blue coordinate (in RGB) */
   DisplayRealType Blue =
     new DisplayRealType("Blue", false, 0.0, 1.0, 1.0, null, true);
 
+
+  /** display color RGB lookup table index */
   DisplayRealType RGB =
     new DisplayRealType("RGB", false, 0.0, 1.0, 0.0, true);
 
+
+  /** display color RGBA lookup table index */
   DisplayRealType RGBA =
     new DisplayRealType("RGBA", false, 0.0, 1.0, 0.0, true);
 
+
+  /** display color hue coordinate (in HSV) */
   DisplayRealType Hue =
     new DisplayRealType("Hue", false, 0.0, 360.0, 0.0,
                        CommonUnit.degree, true);
+
+  /** display color saturation coordinate (in HSV) */
   DisplayRealType Saturation =
     new DisplayRealType("Saturation", false, 0.0, 1.0, 0.0, null, true);
+
+  /** display color value coordinate (in HSV) */
   DisplayRealType Value =
     new DisplayRealType("Value", false, 0.0, 1.0, 1.0, null, true);
 
+
+  /** display color HSV lookup table index */
   DisplayRealType HSV =
     new DisplayRealType("HSV", false, 0.0, 1.0, 0.0, true);
 
+
+  /** display color cyan coordinate (in CMY) */
   DisplayRealType Cyan =
     new DisplayRealType("Cyan", false, 0.0, 1.0, 1.0, null, true);
+
+  /** display color magenta coordinate (in CMY) */
   DisplayRealType Magenta =
     new DisplayRealType("Magenta", false, 0.0, 1.0, 1.0, null, true);
+
+  /** display color yellow coordinate (in CMY) */
   DisplayRealType Yellow =
     new DisplayRealType("Yellow", false, 0.0, 1.0, 1.0, null, true);
 
+
+  /** display color CMY lookup table index */
   DisplayRealType CMY =
     new DisplayRealType("CMY", false, 0.0, 1.0, 0.0, true);
 
-  /** Alpha is transparency */
+
+  /** display alpha (transparency) */
   DisplayRealType Alpha =
     new DisplayRealType("Alpha", false, 0.0, 1.0, 1.0, null, true);
 
-  /** animation display scalar */
+
+  /** display animation */
   DisplayRealType Animation =
     new DisplayRealType("Animation", true, 0.0, true);
+
 
   /** display scalar for selecting by a single value */
   DisplayRealType SelectValue =
     new DisplayRealType("SelectValue", false, 0.0, true);
 
+
   /** display scalar for selecting by a range of values */
   DisplayRealType SelectRange =
     new DisplayRealType("SelectRange", false, 0.0, true);
 
-  /** iso-contour display scalar */
+
+  /** display iso-contour */
   DisplayRealType IsoContour =
     new DisplayRealType("IsoContour", false, 0.0, true);
 
-  /** three flow display scalars */
+
+  /** display flow set 1 Cartesian X axis coordinate */
   DisplayRealType Flow1X =
     new DisplayRealType("Flow1X", true, -1.0, 1.0, 0.0,
                         CommonUnit.meterPerSecond, true);
+
+  /** display flow set 1 Cartesian Y axis coordinate */
   DisplayRealType Flow1Y =
     new DisplayRealType("Flow1Y", true, -1.0, 1.0, 0.0,
                         CommonUnit.meterPerSecond, true);
+
+  /** display flow set 1 Cartesian Z axis coordinate */
   DisplayRealType Flow1Z =
     new DisplayRealType("Flow1Z", true, -1.0, 1.0, 0.0,
                         CommonUnit.meterPerSecond, true);
 
+
+  /** display flow set 1 spherical elevation coordinate */
   DisplayRealType Flow1Elevation =
     new DisplayRealType("Flow1Elevation", true, -90.0, 90.0, 0.0,
                         CommonUnit.degree, true);
+
+  /** display flow set 1 spherical azimuth coordinate */
   DisplayRealType Flow1Azimuth =
     new DisplayRealType("Flow1Azimuth", true, 0.0, 360.0, 0.0,
                         CommonUnit.degree, true);
+
+  /** display flow set 1 spherical radial coordinate */
   DisplayRealType Flow1Radial =
     new DisplayRealType("Flow1Radial", true, 0.0, 1.0, 0.0,
                         CommonUnit.meterPerSecond, true);
 
-  /** second set of three flow display scalars */
+
+  /** display flow set 2 Cartesian X axis coordinate */
   DisplayRealType Flow2X =
     new DisplayRealType("Flow2X", true, -1.0, 1.0, 0.0,
                         CommonUnit.meterPerSecond, true);
+
+  /** display flow set 2 Cartesian Y axis coordinate */
   DisplayRealType Flow2Y =
     new DisplayRealType("Flow2Y", true, -1.0, 1.0, 0.0,
                         CommonUnit.meterPerSecond, true);
+
+  /** display flow set 2 Cartesian Z axis coordinate */
   DisplayRealType Flow2Z =
     new DisplayRealType("Flow2Z", true, -1.0, 1.0, 0.0,
                         CommonUnit.meterPerSecond, true);
 
+
+  /** display flow set 2 spherical elevation coordinate */
   DisplayRealType Flow2Elevation =
     new DisplayRealType("Flow2Elevation", true, -90.0, 90.0, 0.0,
                         CommonUnit.degree, true);
+
+  /** display flow set 2 spherical azimuth coordinate */
   DisplayRealType Flow2Azimuth =
     new DisplayRealType("Flow2Azimuth", true, 0.0, 360.0, 0.0,
                         CommonUnit.degree, true);
+
+  /** display flow set 2 spherical radial coordinate */
   DisplayRealType Flow2Radial =
     new DisplayRealType("Flow2Radial", true, 0.0, 1.0, 0.0,
                         CommonUnit.meterPerSecond, true);
 
-  /** spatial offset display scalars */
-  DisplayRealType XAxisOffset =
-    new DisplayRealType("XAxisOffset", false, -1.0, 1.0, 0.0, null, true);
-  DisplayRealType YAxisOffset =
-    new DisplayRealType("YAxisOffset", false, -1.0, 1.0, 0.0, null, true);
-  DisplayRealType ZAxisOffset =
-    new DisplayRealType("ZAxisOffset", false, -1.0, 1.0, 0.0, null, true);
 
-  /** shape display scalar
-      WLH - this should be a DisplayEnumeratedType */
+  /** index into a set of display shapes */
   DisplayRealType Shape =
     new DisplayRealType("Shape", false, 0.0, true);
 
-  /** scale for Shape */
+  /** scale for display shapes */
   DisplayRealType ShapeScale =
     new DisplayRealType("ShapeScale", true, 0.01, 1.0, 1.0, true);
 
-  /** text display scalar
-      WLH - this should be a DisplayTextType */
+
+  /** display scalar for text */
   DisplayRealType Text =
     new DisplayRealType("Text", true, true);
 
-  /** point size, line width and line style - ConstantMap only */
+
+  /** line width - ConstantMap only */
   DisplayRealType LineWidth =
     new DisplayRealType("LineWidth", true, 1.0, true);
+
+  /** point size - ConstantMap only */
   DisplayRealType PointSize =
     new DisplayRealType("PointSize", true, 1.0, true);
+
+  /** line style - ConstantMap only */
   DisplayRealType LineStyle =
     new DisplayRealType("LineStyle", true, 1.0, true);
+
+  /** texture enable - ConstantMap only */
   DisplayRealType TextureEnable =
     new DisplayRealType("TextureEnable", true, -1.0, true);
 
-  /** array of system intrinsic display scalars */
+  /** array of system intrinsic DisplayRealTypes */
   DisplayRealType[] DisplayRealArray =
     {XAxis, YAxis, ZAxis, Latitude, Longitude, Radius, List, Red, Green, Blue,
      RGB, RGBA, Hue, Saturation, Value, HSV, Cyan, Magenta, Yellow, CMY, Alpha,
@@ -223,126 +301,199 @@ public interface Display extends Action {
      Flow1Elevation, Flow1Azimuth, Flow1Radial,
      Flow2Elevation, Flow2Azimuth, Flow2Radial, LineStyle, TextureEnable};
 
-  /** system intrinsic DisplayTupleType objects */
-  /** system intrinsic DisplayTupleType for 3D Cartesian Spatial Coordinates */
+  // system intrinsic DisplayTupleType objects
+
+  /** array of 3D Cartesian spatial coordinates */
   DisplayRealType[] components3c =
           {Display.XAxis, Display.YAxis, Display.ZAxis};
+
+  /** system intrinsic DisplayTupleType for 3D Cartesian
+      spatial coordinates */
   DisplayTupleType DisplaySpatialCartesianTuple =
     new DisplayTupleType(components3c, true);
 
-  /** system intrinsic DisplayTupleType for 3D Spherical Spatial Coordinates,
-      this defines a CoordinateSystem with Reference
-      DisplaySpatialCartesianTuple */
+
+  /** CoordinateSystem for DisplaySpatialSphericalTuple, with
+      reference DisplaySpatialCartesianTuple */
   CoordinateSystem DisplaySphericalCoordSys =
     new SphericalCoordinateSystem(DisplaySpatialCartesianTuple, true);
+
+  /** array of 3D spherical spatial coordinates */
   DisplayRealType[] components3s =
           {Latitude, Longitude, Radius};
+
+  /** system intrinsic DisplayTupleType for 3D spherical
+      spatial coordinates */
   DisplayTupleType DisplaySpatialSphericalTuple =
     new DisplayTupleType(components3s, DisplaySphericalCoordSys, true);
 
-  /**
-   * defines a CoordinateSystem with Reference DisplaySpatialCartesianTuple
-   */
+
+  /** CoordinateSystem for DisplaySpatialCylindricalTuple, with
+      reference DisplaySpatialCartesianTuple */
   CoordinateSystem DisplayCylindricalCoordSys =
     new CylindricalCoordinateSystem(DisplaySpatialCartesianTuple, true);
-  /**
-   * DisplayRealType array of CylRadius, CylAzimuth, CylZAxis
-   * for Cylindrical Coordinates
-   */
+
+  /** array of 3D cylindrical Coordinates */
   DisplayRealType[] componentscyl =
           {CylRadius, CylAzimuth, CylZAxis};
-  /**
-   * System intrinsic DisplayTupleType for Cylindrical Coordinates
-   */
+
+  /** system intrinsic DisplayTupleType for 3D cylindrical
+      spatial coordinates */
   DisplayTupleType DisplaySpatialCylindricalTuple =
     new DisplayTupleType(componentscyl, DisplayCylindricalCoordSys, true);
 
-  /** system intrinsic DisplayTupleType for RGB Color Coordinates */
-  DisplayRealType[] componentsrgb =
-          {Red, Green, Blue};
+
+  /** array of 3D RGB coordinates */
+  DisplayRealType[] componentsrgb = {Red, Green, Blue};
+
+  /** system intrinsic DisplayTupleType for RGB color coordinates */
   DisplayTupleType DisplayRGBTuple =
     new DisplayTupleType(componentsrgb, true);
 
-  /** system intrinsic DisplayTupleType for HSV Color Coordinates */
+
+  /** CoordinateSystem for DisplayHSVTuple, with reference
+      DisplayRGBTuple */
   CoordinateSystem DisplayHSVCoordSys =
     new HSVCoordinateSystem(DisplayRGBTuple, true);
-  DisplayRealType[] componentshsv =
-          {Hue, Saturation, Value};
+
+  /** array of 3D HSV coordinates */
+  DisplayRealType[] componentshsv = {Hue, Saturation, Value};
+
+  /** system intrinsic DisplayTupleType for HSV color coordinates */
   DisplayTupleType DisplayHSVTuple =
     new DisplayTupleType(componentshsv, DisplayHSVCoordSys, true);
 
-  /** system intrinsic DisplayTupleType for CMY Color Coordinates */
+
+  /** CoordinateSystem for DisplayCMYTuple, with reference
+      DisplayRGBTuple */
   CoordinateSystem DisplayCMYCoordSys =
     new CMYCoordinateSystem(DisplayRGBTuple, true);
+
+  /** array of 3D CMY coordinates */
   DisplayRealType[] componentscmy =
           {Cyan, Magenta, Yellow};
+
+  /** system intrinsic DisplayTupleType for CMY color coordinates */
   DisplayTupleType DisplayCMYTuple =
     new DisplayTupleType(componentscmy, DisplayCMYCoordSys, true);
 
-  /** system intrinsic DisplayTupleType for first set of Flow components */
-  DisplayRealType[] componentsflow1 =
-          {Flow1X, Flow1Y, Flow1Z};
+  /** array of 3D Cartesian flow set 1 coordinates */
+  DisplayRealType[] componentsflow1 = {Flow1X, Flow1Y, Flow1Z};
+
+  /** system intrinsic DisplayTupleType for 3D Cartesian
+      flow set 1 coordinates */
   DisplayTupleType DisplayFlow1Tuple =
     new DisplayTupleType(componentsflow1, true);
 
-  /** system intrinsic DisplayTupleType for second set of Flow components */
-  DisplayRealType[] componentsflow2 =
-          {Flow2X, Flow2Y, Flow2Z};
+  /** array of 3D Cartesian flow set 2 coordinates */
+  DisplayRealType[] componentsflow2 = {Flow2X, Flow2Y, Flow2Z};
+
+  /** system intrinsic DisplayTupleType for 3D Cartesian
+      flow set 2 coordinates */
   DisplayTupleType DisplayFlow2Tuple =
     new DisplayTupleType(componentsflow2, true);
 
-  /** system intrinsic DisplayTupleType for first set of 3D Spherical
-      Flow Coordinates, this defines a CoordinateSystem with Reference
+
+  /** CoordinateSystem for DisplayFlow1SphericalTuple, with reference
       DisplayFlow1Tuple */
   CoordinateSystem DisplayFlow1SphericalCoordSys =
     new FlowSphericalCoordinateSystem(DisplayFlow1Tuple, true);
+
+  /** array of 3D spherical flow set 1 coordinates */
   DisplayRealType[] componentsflow1s =
           {Flow1Elevation, Flow1Azimuth, Flow1Radial};
-  DisplayTupleType DisplayFlow1SphericalTuple =
-    new DisplayTupleType(componentsflow1s, DisplayFlow1SphericalCoordSys, true);
 
-  /** system intrinsic DisplayTupleType for second set of 3D Spherical
-      Flow Coordinates, this defines a CoordinateSystem with Reference
+  /** system intrinsic DisplayTupleType for 3D spherical
+      flow set 1 coordinates */
+  DisplayTupleType DisplayFlow1SphericalTuple =
+    new DisplayTupleType(componentsflow1s, DisplayFlow1SphericalCoordSys,
+                         true);
+
+
+  /** CoordinateSystem for DisplayFlow2SphericalTuple, with reference
       DisplayFlow2Tuple */
   CoordinateSystem DisplayFlow2SphericalCoordSys =
     new FlowSphericalCoordinateSystem(DisplayFlow2Tuple, true);
+
+  /** array of 3D spherical flow set 2 coordinates */
   DisplayRealType[] componentsflow2s =
           {Flow2Elevation, Flow2Azimuth, Flow2Radial};
-  DisplayTupleType DisplayFlow2SphericalTuple =
-    new DisplayTupleType(componentsflow2s, DisplayFlow2SphericalCoordSys, true);
 
-  /** system intrinsic DisplayTupleType for Spatial Offset Coordinates */
+  /** system intrinsic DisplayTupleType for 3D spherical
+      flow set 2 coordinates */
+  DisplayTupleType DisplayFlow2SphericalTuple =
+    new DisplayTupleType(componentsflow2s, DisplayFlow2SphericalCoordSys,
+                         true);
+
+
+  /** array of 3D Cartesian spatial offset coordinates */
   DisplayRealType[] componentsso =
           {XAxisOffset, YAxisOffset, ZAxisOffset};
+
+  /** system intrinsic DisplayTupleType for 3D Cartesian
+      spatial offset coordinates */
   DisplayTupleType DisplaySpatialOffsetTuple =
     new DisplayTupleType(componentsso, true);
 
 
-  /** create link to DataReference;
-      invokes ref.addThingChangedListener(ThingChangedListener l, long id) */
+  /**
+   * create link to DataReference, with ConstantMaps;
+   * invokes ref.addThingChangedListener(ThingChangedListener l, long id)
+   * @param ref DataReference to link to
+   * @param constant_maps array of ConstantMaps applied to linked Data
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   void addReference(DataReference ref,
          ConstantMap[] constant_maps) throws VisADException, RemoteException;
 
-  /** create link to DataReference;
-      invokes ref.addThingChangedListener(ThingChangedListener l, long id) */
+  /** 
+   * create link to DataReference, with ConstantMaps and DataRenderer;
+   * invokes ref.addThingChangedListener(ThingChangedListener l, long id) 
+   * @param renderer DataRenderer used to depict linked Data
+   * @param ref DataReference to link to
+   * @param constant_maps array of ConstantMaps applied to this Data
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   void addReferences(DataRenderer renderer, DataReference ref,
                             ConstantMap[] constant_maps)
          throws VisADException, RemoteException;
 
-  /** link map to this Display */
+  /**
+   * link a ScalarMap (may be a ConstantMap) to this Display
+   * @param map ScalarMap to link
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   void addMap(ScalarMap map)
          throws VisADException, RemoteException;
 
-  /** remove map from this Display */
+  /** 
+   * remove a ScalarMap (may be a ConstantMap) from this Display 
+   * @param map ScalarMap to remove
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   void removeMap(ScalarMap map)
          throws VisADException, RemoteException;
 
-  /** clear set of ScalarMap-s associated with this display */
+  /** 
+   * remove all ScalarMaps (and ConstantMaps) from this Display
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   void clearMaps() throws VisADException, RemoteException;
 
-  /** destroy this display */
+  /**
+   * destroy this display: break all links, stop Threads and
+   * clear references for garbage collection
+   */
   void destroy() throws VisADException, RemoteException;
 
+  /**
+   * @return Vector of linked ConstantMaps
+   */
   Vector getConstantMapVector()
          throws VisADException, RemoteException;
 
@@ -350,22 +501,42 @@ public interface Display extends Action {
    * Send a message to all </tt>MessageListener</tt>s.
    *
    * @param msg Message being sent.
+   * @throws RemoteException an RMI error occurred
    */
   void sendMessage(MessageEvent msg)
     throws RemoteException;
 
-  /** links a slave display to this display */
+  /**
+   * link a slave display to this display
+   * @param display RemoteSlaveDisplay to link
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   void addSlave(RemoteSlaveDisplay display)
         throws VisADException, RemoteException;
 
-  /** removes a link between a slave display and this display */
+  /** 
+   * remove a slave display from this display
+   * @param display RemoteSlaveDisplay to remove
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   void removeSlave(RemoteSlaveDisplay display)
         throws VisADException, RemoteException;
 
-  /** removes all links between slave displays and this display */
+  /** 
+   * remove all slave displays from this display
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   void removeAllSlaves() throws VisADException, RemoteException;
 
-  /** whether there are any slave displays linked to this display */
+  /**
+   * @return true if this display has any slave displays
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   boolean hasSlaves() throws VisADException, RemoteException;
 
 }
+

@@ -434,7 +434,8 @@ public class DisplayImplJ3D extends DisplayImpl {
   /**
    * Return the API used for this display
    *
-   * @return  the mode being used (UNKNOWN, JPANEL, APPLETFRAME, TRANSFORM_ONLY)
+   * @return  the mode being used (UNKNOWN, JPANEL, APPLETFRAME,
+   *                               OFFSCREEN, TRANSFORM_ONLY)
    * @throws  VisADException
    */
   public int getAPI()

@@ -258,7 +258,10 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     }
   }
 
-  // suck in any remote ConstantMaps
+  /**
+   * copy ConstantMaps from RemoteDisplay to this
+   * @param rmtDpy RemoteDisplay to get ConstantMaps from
+   */
   void copyConstantMaps(RemoteDisplay rmtDpy)
   {
     Vector c;
@@ -286,7 +289,10 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     }
   }
 
-  // suck in remote GraphicsModeControl settings
+  /**
+   * copy GraphicsModeControl settings from RemoteDisplay to this
+   * @param rmtDpy RemoteDisplay to get GraphicsModeControl settings from
+   */
   void copyGraphicsModeControl(RemoteDisplay rmtDpy)
   {
     GraphicsModeControl rc;
@@ -305,7 +311,13 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
   }
 
-  // suck in any remote DataReferences
+  /**
+   * copy DataReferences from RemoteDisplay to this
+   * @param rmtDpy RemoteDisplay to get DataReferences from
+   * @param localRefs array of DataReferences: don't get any
+   *                  DataReference from rmtDpy that has the same
+   *                  name as a DataReference in localRefs
+   */
   private void copyRefLinks(RemoteDisplay rmtDpy, DataReference[] localRefs)
   {
     Vector ml;
@@ -431,7 +443,10 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     }
   }
 
-  // suck in any remote data associated with this Display
+  /**
+   * copy Data from RemoteDisplay to this
+   * @param rmtDpy RemoteDisplay to get Data from
+   */
   protected void syncRemoteData(RemoteDisplay rmtDpy)
     throws VisADException, RemoteException
   {
@@ -466,10 +481,20 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     }
   }
 
-  /** RemoteDisplayImpl to this for use with
-      Remote DisplayListeners */
+  /** RemoteDisplayImpl to this for use with remote DisplayListeners */
   private RemoteDisplayImpl rd = null;
 
+  /**
+   * Notify this instance's {@link DisplayListener}s.
+   *
+   * @param  id  type of DisplayEvent that is to be sent
+   * @param  x  the horizontal x coordinate for the mouse location in
+   *            the display component
+   * @param  y  the vertical y coordinate for the mouse location in
+   *            the display component
+   * @throws VisADException     if a VisAD failure occurs.
+   * @throws RemoteException    if a Java RMI failure occurs.
+   */
   public void notifyListeners(int id, int x, int y)
          throws VisADException, RemoteException {
     notifyListeners(new DisplayEvent(this, id, x, y));
@@ -506,39 +531,61 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     }
   }
 
-  /** add a DisplayListener */
+  /**
+   * add a DisplayListener
+   * @param listener DisplayListener to add
+   */
   public void addDisplayListener(DisplayListener listener) {
     ListenerVector.addElement(listener);
   }
 
-  /** remove a DisplayListener */
+  /**
+   * remove a DisplayListener
+   * @param listener DisplayListener to remove
+   */
   public void removeDisplayListener(DisplayListener listener) {
     ListenerVector.removeElement(listener);
   }
 
-  /** return the java.awt.Component (e.g., JPanel or AppletPanel)
-      this DisplayImpl uses; returns null for an offscreen DisplayImpl */
+  /**
+   * @return the java.awt.Component (e.g., JPanel or AppletPanel)
+   *         this DisplayImpl uses; returns null for an offscreen
+   *         DisplayImpl
+   */
   public Component getComponent() {
     return component;
   }
 
+  /**
+   * set the java.awt.Component this DisplayImpl uses
+   * @param c Component to set
+   */
   public void setComponent(Component c) {
     component = c;
   }
 
-  /** re-apply auto-scaling of ScalarMap ranges next time
-      Display is triggered */
+  /**
+   * request auto-scaling of ScalarMap ranges the next time
+   * Data are transformed into scene graph elements
+   */
   public void reAutoScale() {
     initialize = true;
 // printStack("reAutoScale");
   }
 
-  /** if auto is true, re-apply auto-scaling of ScalarMap ranges
-      every time Display is triggered */
+  /**
+   * if auto is true, re-apply auto-scaling of ScalarMap ranges
+   * every time Display is triggered
+   * @param a flag indicating whether to always re-apply auto-scaling
+   */
   public void setAlwaysAutoScale(boolean a) {
     always_initialize = a;
   }
 
+  /**
+   * request all linked Data to be re-transformed into scene graph
+   * elements
+   */
   public void reDisplayAll() {
     redisplay_all = true;
 // printStack("reDisplayAll");
@@ -551,27 +598,41 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   /** Internal list of slaves linked to this display. */
   private Vector Slaves = new Vector();
 
-  /** links a slave display to this display */
+  /**
+   * link a slave display to this
+   * @param display RemoteSlaveDisplay to link
+   */
   public void addSlave(RemoteSlaveDisplay display) {
     if (!Slaves.contains(display)) Slaves.add(display);
   }
 
-  /** removes a link between a slave display and this display */
+  /**
+   * remove a link between a slave display and this
+   * @param display RemoteSlaveDisplay to remove
+   */
   public void removeSlave(RemoteSlaveDisplay display) {
     if (Slaves.contains(display)) Slaves.remove(display);
   }
 
-  /** removes all links between slave displays and this display */
+  /**
+   * remove all links to slave displays
+   */
   public void removeAllSlaves() {
     Slaves.removeAllElements();
   }
 
-  /** whether there are any slave displays linked to this display */
+  /**
+   * @return flag indicating whether there are any slave displays
+   *         linked to this display
+   */
   public boolean hasSlaves() {
     return !Slaves.isEmpty();
   }
 
-  /** updates all linked slave displays with the given image */
+  /**
+   * update all linked slave displays with the given image
+   * @param img BufferedImage to send to all linked slave displays
+   */
   public void updateSlaves(BufferedImage img) {
     // extract pixels from image
     int width = img.getWidth();
@@ -599,7 +660,10 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     }
   }
 
-  /** updates all linked slave display with the given message */
+  /**
+   * update all linked slave display with the given message
+   * @param message String to send to all linked slave displays
+   */
   public void updateSlaves(String message) {
     synchronized (Slaves) {
       // send message to each slave
@@ -730,8 +794,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   }
 
   /**
-   * Gets whether a DisplayEvent of a given type is
-   * reported when it occurs in this display.
+   * @param id DisplayEvent type
+   * @return flag indicating whether a DisplayEvent of a given
+   *         type is eported when it occurs in this display.
    */
   public boolean isEventEnabled(int id) {
 
@@ -838,9 +903,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * Link a reference to this Display.
    * <tt>ref</tt> must be a local
    * {@link visad.DataReferenceImpl DataReferenceImpl}.
-   * This method may only be invoked after all links to
-   * {@link visad.ScalarMap ScalarMaps}
-   * have been made.
    * The {@link visad.ConstantMap ConstantMap} array applies only
    * to the rendering reference.
    *
@@ -922,8 +984,24 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     return init;
   }
 
-  /** method for use by RemoteActionImpl.addReference that adapts this
-      ActionImpl */
+  /**
+   * Link a RemoteDataReference to this Display.
+   * The {@link visad.ConstantMap ConstantMap} array applies only
+   * to the rendering reference.
+   * For use by addReference() method of RemoteDisplay that adapts this.
+   *
+   * @param ref remote data reference
+   * @param display RemoteDisplay adapting this
+   * @param constant_maps array of {@link visad.ConstantMap ConstantMaps}
+   *                      associated with the data reference
+   *
+   * @exception VisADException if there was a problem with one or more
+   *                           parameters.
+   * @exception RemoteException if there was a problem adding the
+   *                            data reference to the remote display.
+   *
+   * @see <a href="http://www.ssec.wisc.edu/~billh/guide.html#6.1">Section 6.1 of the Developer's Guide</a>
+   */
   void adaptedAddReference(RemoteDataReference ref, RemoteDisplay display,
        ConstantMap[] constant_maps) throws VisADException, RemoteException {
     if (findReference(ref) != null) {
@@ -950,9 +1028,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * Link a reference to this Display using a non-default renderer.
    * <tt>ref</tt> must be a local
    * {@link visad.DataReferenceImpl DataReferenceImpl}.
-   * This method may only be invoked after all links to
-   * {@link visad.ScalarMap ScalarMaps}
-   * have been made.
    * This is a method of {@link visad.DisplayImpl DisplayImpl} and
    * {@link visad.RemoteDisplayImpl RemoteDisplayImpl} rather
    * than {@link visad.Display Display}
@@ -999,9 +1074,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * Link a reference to this Display using a non-default renderer.
    * <tt>ref</tt> must be a local
    * {@link visad.DataReferenceImpl DataReferenceImpl}.
-   * This method may only be invoked after all links to
-   * {@link visad.ScalarMap ScalarMaps}
-   * have been made.
    * This is a method of {@link visad.DisplayImpl DisplayImpl} and
    * {@link visad.RemoteDisplayImpl RemoteDisplayImpl} rather
    * than {@link visad.Display Display}
@@ -1055,9 +1127,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * Link references to this display using a non-default renderer.
    * <tt>refs</tt> must be local
    * {@link visad.DataReferenceImpl DataReferenceImpls}.
-   * This method may only be invoked after all links to
-   * {@link visad.ScalarMap ScalarMaps}
-   * have been made.
    * This is a method of {@link visad.DisplayImpl DisplayImpl} and
    * {@link visad.RemoteDisplayImpl RemoteDisplayImpl} rather
    * than {@link visad.Display Display}
@@ -1102,8 +1171,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * Link references to this display using the non-default renderer.
    * <tt>refs</tt> must be local
    * {@link visad.DataReferenceImpl DataReferenceImpls}.
-   * This method may only be invoked after all links to ScalarMaps
-   * have been made.
    * The <tt>maps[i]</tt> array applies only to rendering <tt>refs[i]</tt>.
    * This is a method of {@link visad.DisplayImpl DisplayImpl} and
    * {@link visad.RemoteDisplayImpl RemoteDisplayImpl} rather
@@ -1131,8 +1198,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * Link references to this display using the non-default renderer.
    * <tt>refs</tt> must be local
    * {@link visad.DataReferenceImpl DataReferenceImpls}.
-   * This method may only be invoked after all links to ScalarMaps
-   * have been made.
    * The <tt>maps[i]</tt> array applies only to rendering <tt>refs[i]</tt>.
    * This is a method of {@link visad.DisplayImpl DisplayImpl} and
    * {@link visad.RemoteDisplayImpl RemoteDisplayImpl} rather
@@ -1231,8 +1296,27 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     copyRefLinks(rDpy, refs);
   }
 
-  /** method for use by RemoteActionImpl.addReferences that adapts this
-      ActionImpl; this allows a mix of local and remote refs */
+  /**
+   * Link references to this display using the non-default renderer.
+   * <tt>refs</tt> may be a mix of local
+   * {@link visad.DataReferenceImpl DataReferenceImpls} and
+   * {@link visad.RemoteDataReference RemoteDataReferences}.
+   * The <tt>maps[i]</tt> array applies only to rendering <tt>refs[i]</tt>.
+   * For use by addReferences() method of RemoteDisplay that adapts this.
+   *
+   * @param renderer logic to render this data
+   * @param refs array of data references
+   * @param display RemoteDisplay adapting this
+   * @param constant_maps array of {@link visad.ConstantMap ConstantMaps}
+   *                      associated with data references.
+   *
+   * @exception VisADException if there was a problem with one or more
+   *                           parameters
+   * @exception RemoteException if there was a problem adding the
+   *                            data references to the remote display.
+   *
+   * @see <a href="http://www.ssec.wisc.edu/~billh/guide.html#6.1">Section 6.1 of the Developer's Guide</a>
+   */
   void adaptedAddReferences(DataRenderer renderer, DataReference[] refs,
        RemoteDisplay display, ConstantMap[][] constant_maps)
        throws VisADException, RemoteException {
@@ -1289,9 +1373,14 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     notifyAction();
   }
 
-  /** remove link to ref; must be local DataReferenceImpl; if ref was
-      added as part of a DataReference  array passed to addReferences,
-      remove links to all of them */
+  /**
+   * remove link to ref, which must be a local DataReferenceImpl;
+   * if ref was added as part of a DataReference  array passed to
+   * addReferences(), remove links to all of them
+   * @param ref ThingReference to remove
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public void removeReference(ThingReference ref)
          throws VisADException, RemoteException {
     if (!(ref instanceof DataReferenceImpl)) {
@@ -1301,6 +1390,12 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     adaptedDisplayRemoveReference((DataReference) ref);
   }
 
+  /**
+   * remove DataDisplayLinks from this DisplayImpl
+   * @param links array of DataDisplayLinks to remove
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   void removeLinks(DataDisplayLink[] links)
     throws RemoteException, VisADException
   {
@@ -1314,11 +1409,16 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     super.removeLinks(links);
   }
 
-  /** remove link to a DataReference;
-      method for use by RemoteActionImpl.removeReference that adapts this
-      ActionImpl;
-      because DataReference array input to adaptedAddReferences may be a
-      mix of local and remote, we tolerate either here */
+  /**
+   * remove link to a DataReference;
+   * uses by removeReference() method of RemoteActionImpl that
+   * adapts this ActionImpl;
+   * because DataReference array input to adaptedAddReferences
+   * may be a mix of local and remote, we tolerate either here
+   * @param ref DataReference to remove
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   void adaptedDisplayRemoveReference(DataReference ref)
        throws VisADException, RemoteException {
     if (displayRenderer == null) return;
@@ -1336,7 +1436,11 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     removeLinks(links);
   }
 
-  /** remove all DataReference links */
+  /**
+   * remove all links to DataReferences
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public void removeAllReferences()
          throws VisADException, RemoteException {
 
@@ -1360,20 +1464,32 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     }
   }
 
-  /** return a Vector containing all DataReferences */
-  /** used by Control-s to notify this DisplayImpl that
-      they have changed */
+  /**
+   * trigger possible re-transform of linked Data
+   * used by Controls to notify this DisplayImpl that they
+   * have changed
+   */
   public void controlChanged() {
     notifyAction();
   }
 
-  /** DisplayImpl always runs doAction to find out if there is
-      work to do */
+  /**
+   * over-ride ActionImpl.checkTicks() to always return true,
+   * since DisplayImpl always runs doAction to find out if any
+   * linked Data needs to be re-transformed
+   * @return true
+   */
   public boolean checkTicks() {
     return true;
   }
 
-  /** destroy this display */
+  /**
+   * destroy this display: clear all references to objects
+   * (so they can be garbage collected), stop all Threads
+   * and remove all links
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public void destroy() throws VisADException, RemoteException {
     VisADException thrownVE = null;
     RemoteException thrownRE = null;
@@ -1446,8 +1562,13 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     widgetPanel = null;
   }
 
-  /** a Display is runnable;
-      doAction is invoked by any event that requires a re-transform */
+  /**
+   * Check if any Data need re-transform, and if so, do it.
+   * Check if auto-scaling is needed for any ScalarMaps, and
+   * if so, do it. This method does the real work of DisplayImpl.
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public void doAction() throws VisADException, RemoteException {
     if (displayRenderer == null) return;
     if (mapslock == null) return;
@@ -1610,10 +1731,14 @@ System.out.println("initialize = " + initialize + " go = " + go +
     } // end synchronized (mapslock)
   }
 
-  /** return the default DisplayRenderer for this DisplayImpl */
+  /**
+   * @return the default DisplayRenderer for this DisplayImpl
+   */
   protected abstract DisplayRenderer getDefaultDisplayRenderer();
 
-  /** return the DisplayRenderer associated with this DisplayImpl */
+  /**
+   * @return the DisplayRenderer associated with this DisplayImpl
+   */
   public DisplayRenderer getDisplayRenderer() {
     return displayRenderer;
   }
@@ -1628,14 +1753,28 @@ System.out.println("initialize = " + initialize + " go = " + go +
     return (Vector) RendererVector.clone();
   }
 
+  /**
+   * @return the number of DisplayRealTypes in ScalarMaps
+   *         linked to this DisplayImpl
+   */
   public int getDisplayScalarCount() {
     return DisplayRealTypeVector.size();
   }
 
+  /**
+   * get the DisplayRealType with the given index
+   * @param index index into Vector of DisplayRealTypes
+   * @return the indexed DisplayRealType
+   */
   public DisplayRealType getDisplayScalar(int index) {
     return (DisplayRealType) DisplayRealTypeVector.elementAt(index);
   }
 
+  /**
+   * get the index for the given DisplayRealType
+   * @param dreal DisplayRealType to search for
+   * @return the index of dreal in Vector of DisplayRealTypes
+   */
   public int getDisplayScalarIndex(DisplayRealType dreal) {
     int dindex;
     synchronized (DisplayRealTypeVector) {
@@ -1664,27 +1803,51 @@ System.out.println("initialize = " + initialize + " go = " + go +
     return dindex;
   }
 
+  /**
+   * @return the number of ScalarTypes in ScalarMaps
+   *         linked to this DisplayImpl
+   */
   public int getScalarCount() {
     return RealTypeVector.size();
   }
 
+  /**
+   * get the ScalarType with the given index
+   * @param index index into Vector of ScalarTypes
+   * @return the indexed ScalarType
+   */
   public ScalarType getScalar(int index) {
     return (ScalarType) RealTypeVector.elementAt(index);
   }
 
+  /**
+   * get the index for the given ScalarType
+   * @param real ScalarType to search for
+   * @return the index of real in Vector of ScalarTypes
+   * @throws RemoteException an RMI error occurred
+   */
   public int getScalarIndex(ScalarType real) throws RemoteException {
     return RealTypeVector.indexOf(real);
   }
 
-  /** add a ScalarMap to this Display */
+  /**
+   * add a ScalarMap to this Display, assuming a local source
+   * @param map ScalarMap to add
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public void addMap(ScalarMap map)
          throws VisADException, RemoteException {
     addMap(map, VisADEvent.LOCAL_SOURCE);
   }
 
-  /** add a ScalarMap to this Display
-      remoteId is remote source for collab, or VisADEvent.LOCAL_SOURCE
-  */
+  /**
+   * add a ScalarMap to this Display
+   * @param map ScalarMap to add
+   * @param remoteId remote source for collab, or VisADEvent.LOCAL_SOURCE
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public void addMap(ScalarMap map, int remoteId)
          throws VisADException, RemoteException {
     if (displayRenderer == null) return;
@@ -1789,15 +1952,24 @@ System.out.println("initialize = " + initialize + " go = " + go +
     }
   }
 
-  /** remove a ScalarMap from this Display */
+  /**
+   * remove a ScalarMap from this Display, assuming a local source
+   * @param map ScalarMap to remove
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */ 
   public void removeMap(ScalarMap map)
          throws VisADException, RemoteException {
     removeMap(map, VisADEvent.LOCAL_SOURCE);
   }
 
-  /** remove a ScalarMap from this Display
-      remoteId is remote source for collab, or VisADEvent.LOCAL_SOURCE
-  */
+  /**
+   * remove a ScalarMap from this Display
+   * @param map ScalarMap to add
+   * @param remoteId remote source for collab, or VisADEvent.LOCAL_SOURCE
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */ 
   public void removeMap(ScalarMap map, int remoteId)
          throws VisADException, RemoteException {
     if (displayRenderer == null) return;
@@ -1895,6 +2067,10 @@ System.out.println("initialize = " + initialize + " go = " + go +
     } // end synchronized (mapslock)
   }
 
+  /**
+   * add a ScalarType from a ScalarMap from this Display
+   * @param map ScalarMap whose ScalarType to add
+   */
   void addDisplayScalar(ScalarMap map) {
     int index;
 
@@ -1926,9 +2102,11 @@ System.out.println("initialize = " + initialize + " go = " + go +
     map.setDisplayScalarIndex(index);
   }
 
-  /** clear set of ScalarMap-s associated with this display;
-      can only be invoked when no DataReference-s are
-      linked to this Display */
+  /**
+   * remove all ScalarMaps linked this display;
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public void clearMaps() throws VisADException, RemoteException {
     if (displayRenderer == null) return;
     synchronized (mapslock) {
@@ -1998,10 +2176,17 @@ System.out.println("initialize = " + initialize + " go = " + go +
     notifyListeners(new DisplayEvent(this, DisplayEvent.MAPS_CLEARED));
   }
 
+  /**
+   * @return clone of Vector of ScalarMaps linked to this DisplayImpl
+   *         (doesn't include ConstantMaps)
+   */
   public Vector getMapVector() {
     return (Vector) MapVector.clone();
   }
 
+  /**
+   * @return clone of Vector of ConstantMaps linked to this DisplayImpl
+   */
   public Vector getConstantMapVector() {
     return (Vector) ConstantMapVector.clone();
   }
@@ -2040,8 +2225,10 @@ System.out.println("initialize = " + initialize + " go = " + go +
    * this only works with an exact copy of the RemoteDisplay used to
    * create the collaboration link.
    *
+   * @param rmtDpy the specified remote display.
    * @return <tt>DisplayMonitor.UNKNOWN_LISTENER_ID</tt> if not found;
    *         otherwise, returns the ID.
+   * @throws RemoteException an RMI error occurred
    */
   public int getConnectionID(RemoteDisplay rmtDpy)
     throws RemoteException
@@ -2050,6 +2237,10 @@ System.out.println("initialize = " + initialize + " go = " + go +
     return displayMonitor.getConnectionID(rmtDpy);
   }
 
+  /**
+   * add a Control to this DisplayImpl
+   * @param control Control to add
+   */
   public void addControl(Control control) {
     if (displayRenderer == null) return;
     if (control != null && !ControlVector.contains(control)) {
@@ -2060,16 +2251,31 @@ System.out.println("initialize = " + initialize + " go = " + go +
     }
   }
 
-  /** only called for Control objects associated with 'single'
-      DisplayRealType-s */
+  /**
+   * get a linked Control with the given Class;
+   * only called for Control objects associated with 'single'
+   * DisplayRealTypes
+   * @param c sub-Class of Control to search for
+   * @return linked Control with Class c, or null
+   */
   public Control getControl(Class c) { return getControl(c, 0); }
 
-  /** find specified occurance for Control object of the specified class */
+  /**
+   * get ordinal instance of linked Control object of the
+   * specified class
+   * @param c sub-Class of Control to search for
+   * @param inst ordinal instance number
+   * @return linked Control with Class c, or null
+   */
   public Control getControl(Class c, int inst) {
     return getControls(c, null, inst);
   }
 
-  /** find all Control objects of the specified class */
+  /**
+   * get all linked Control objects of the specified Class
+   * @param c sub-Class of Control to search for
+   * @return Vector of linked Controls with Class c
+   */
   public Vector getControls(Class c) {
     Vector v = new Vector();
     getControls(c, v, -1);
@@ -2119,15 +2325,18 @@ System.out.println("initialize = " + initialize + " go = " + go +
     return null;
   }
 
-  /** return the total number of controls used by this display */
+  /**
+   * @return the total number of controls used by this display
+   */
   public int getNumberOfControls() { return ControlVector.size(); }
 
-  /** @deprecated - DisplayImpl shouldn't expose itself at this level. */
+  /**
+   * @return clone of Vector of Controls linked to this DisplayImpl
+   * @deprecated - DisplayImpl shouldn't expose itself at this level
+   */
   public Vector getControlVector() {
     return (Vector) ControlVector.clone();
   }
-
-  // CTR 4 October 1999 - begin code for this Display's Control widgets
 
   /** whether the Control widget panel needs to be reconstructed */
   private boolean needWidgetRefresh = true;
@@ -2135,8 +2344,11 @@ System.out.println("initialize = " + initialize + " go = " + go +
   /** this Display's associated panel of Control widgets */
   private JPanel widgetPanel = null;
 
-  /** get a GUI component containing this Display's Control widgets,
-      creating the widgets as necessary */
+  /**
+   * get a GUI component containing this Display's Control widgets;
+   * create the widgets as necessary
+   * @return Container of widget panel
+   */
   public Container getWidgetPanel() {
     if (displayRenderer == null) return null;
     if (needWidgetRefresh) {
@@ -2218,35 +2430,52 @@ System.out.println("initialize = " + initialize + " go = " + go +
     widgetPanel.add(c);
   }
 
-  // CTR 4 October 1999 - end code for this Display's Control widgets
-
-
+  /**
+   * @return length of valueArray passed to ShadowType.doTransform()
+   */
   public int getValueArrayLength() {
     return valueArrayLength;
   }
 
+  /**
+   * @return int[] array mapping from valueArray indices to
+   *         ScalarType Vector indices
+   */
   public int[] getValueToScalar() {
     return valueToScalar;
   }
 
+  /**
+   * @return int[] array mapping from valueArray indices to
+   *         ScalarMap Vector indices
+   */
   public int[] getValueToMap() {
     return valueToMap;
   }
 
-  /** return the ProjectionControl associated with this DisplayImpl */
+  /**
+   * @return the ProjectionControl associated with this DisplayImpl
+   */
   public abstract ProjectionControl getProjectionControl();
 
-  /** return the GraphicsModeControl associated with this DisplayImpl */
+  /**
+   * @return the GraphicsModeControl associated with this DisplayImpl
+   */
   public abstract GraphicsModeControl getGraphicsModeControl();
 
-  /** wait for millis milliseconds
-   *  @deprecated Use <CODE>new visad.util.Delay(millis)</CODE> instead.
+  /**
+   * wait for millis milliseconds
+   * @param millis number of milliseconds to wait
+   * @deprecated Use <CODE>new visad.util.Delay(millis)</CODE> instead.
    */
   public static void delay(int millis) {
     new visad.util.Delay(millis);
   }
 
-  /** print a stack dump */
+  /**
+   * print a stack dump with the given message
+   * @param message String to print with stack dump
+   */
   public static void printStack(String message) {
     try {
       throw new DisplayException("printStack: " + message);
@@ -2256,8 +2485,13 @@ System.out.println("initialize = " + initialize + " go = " + go +
     }
   }
 
-  /** given their complexity, its reasonable that DisplayImpl
-      objects are only equal to themselves */
+  /**
+   * test for equality between this and the given Object
+   * given their complexity, its reasonable that DisplayImpl
+   * objects are only equal to themselves
+   * @param obj Object to test for equality with this
+   * @return flag indicating whether this is equal to obj
+   */
   public boolean equals(Object obj) {
     return (obj == this);
   }
@@ -2274,6 +2508,13 @@ System.out.println("initialize = " + initialize + " go = " + go +
     return (Vector )RendererVector.clone();
   }
 
+  /**
+   * Return the API used for this display
+   *
+   * @return  the mode being used (UNKNOWN, JPANEL, APPLETFRAME,
+   *                               OFFSCREEN, TRANSFORM_ONLY)
+   * @throws  VisADException
+   */
   public int getAPI()
 	throws VisADException
   {
@@ -2281,7 +2522,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
   }
 
   /**
-   * Returns the <CODE>DisplayMonitor</CODE> associated with this
+   * @return the <CODE>DisplayMonitor</CODE> associated with this
    * <CODE>Display</CODE>.
    */
   public DisplayMonitor getDisplayMonitor()
@@ -2290,7 +2531,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
   }
 
   /**
-   * Returns the <CODE>DisplaySync</CODE> associated with this
+   * @return the <CODE>DisplaySync</CODE> associated with this
    * <CODE>Display</CODE>.
    */
   public DisplaySync getDisplaySync()
@@ -2298,15 +2539,31 @@ System.out.println("initialize = " + initialize + " go = " + go +
     return displaySync;
   }
 
+  /**
+   * set given MouseBehavior
+   * @param m MouseBehavior to set
+   */
   public void setMouseBehavior(MouseBehavior m) {
     mouse = m;
   }
 
-  // CTR 18 Oct 1999
+  /**
+   * @return the MouseBehavior used for this Display
+   */
   public MouseBehavior getMouseBehavior() {
     return mouse;
   }
 
+  /**
+   * make projection matrix from given arguments
+   * @param rotx rotation about x axis
+   * @param roty rotation about y axis
+   * @param rotz rotation about z axis
+   * @param scale linear scale factor
+   * @param transx translation along x axis
+   * @param transy translation along y axis
+   * @param transz translation along z axis
+   */
   public double[] make_matrix(double rotx, double roty, double rotz,
          double scale, double transx, double transy, double transz) {
     if (mouse != null) {
@@ -2317,6 +2574,12 @@ System.out.println("initialize = " + initialize + " go = " + go +
     }
   }
 
+  /**
+   * multiply matrices
+   * @param a first operand matrix
+   * @param b second operand matrix
+   * @return product matrix
+   */
   public double[] multiply_matrix(double[] a, double[] b) {
     if (mouse != null && a != null && b != null) {
       return mouse.multiply_matrix(a, b);
@@ -2326,13 +2589,22 @@ System.out.println("initialize = " + initialize + " go = " + go +
     }
   }
 
-  /** return a captured image of the display */
+  /**
+   * get a BufferedImage of this Display, without synchronizing
+   * (assume the application has made sure Data have been
+   * transformed and rendered)
+   * @return a captured image of this Display
+   */
   public BufferedImage getImage() {
     return getImage(false);
   }
 
-  /** return a captured image of the display;
-      synchronize if sync */
+  /** 
+   * get a BufferedImage of this Display
+   * @param sync if true, ensure that all linked Data have been
+   *        transformed and rendered
+   * @return a captured image of this Display 
+   */
   public BufferedImage getImage(boolean sync) {
     if (displayRenderer == null) return null;
     Thread thread = Thread.currentThread();
@@ -2346,10 +2618,18 @@ System.out.println("initialize = " + initialize + " go = " + go +
     return displayRenderer.getImage();
   }
 
+  /**
+   * @return a String representation of this Display
+   */
   public String toString() {
     return toString("");
   }
 
+  /**
+   * @param pre String added to start of each line
+   * @return a String representation of this Display
+   *         indented by pre (a string of blanks)
+   */
   public String toString(String pre) {
     String s = pre + "Display\n";
     Enumeration maps = MapVector.elements();
@@ -2365,11 +2645,17 @@ System.out.println("initialize = " + initialize + " go = " + go +
     return s;
   }
 
+  /** Class used to ensure that all linked Data have been
+      transformed and rendered, used by getImage() */
   public class Syncher extends Object implements DisplayListener {
 
     private ProjectionControl control;
     int count;
 
+    /**
+     * construct a Syncher for the given DisplayImpl
+     * @param display DisplayImpl for this Syncher
+     */
     Syncher(DisplayImpl display) {
       try {
         synchronized (this) {
@@ -2387,6 +2673,10 @@ System.out.println("initialize = " + initialize + " go = " + go +
       display.removeDisplayListener(this);
     }
 
+    /**
+     * process DisplayEvent
+     * @param e DisplayEvent to process
+     */
     public void displayChanged(DisplayEvent e)
            throws VisADException, RemoteException {
       if (e.getId() == DisplayEvent.TRANSFORM_DONE) {
@@ -2451,6 +2741,10 @@ System.out.println("initialize = " + initialize + " go = " + go +
     return printer;
   }
 
+  /**
+   * handle DisconnectException for the given ReferenceActionLink
+   * @param raLink ReferenceActionLink with DisconnectException
+   */
   void handleRunDisconnectException(ReferenceActionLink raLink)
   {
     if (!(raLink instanceof DataDisplayLink)) {
@@ -2462,6 +2756,8 @@ System.out.println("initialize = " + initialize + " go = " + go +
 
   /**
    * Notify this Display that a connection to a remote server has failed
+   * @param renderer DataRenderer with failure
+   * @param link DataDisplayLink with failure
    */
   public void connectionFailed(DataRenderer renderer, DataDisplayLink link)
   {
@@ -2626,8 +2922,14 @@ System.out.println("initialize = " + initialize + " go = " + go +
     }
   }
 
-
-// WLH 24 Nov 2000
+  /**
+   * set aspect ratio of XAxis, YAxis & ZAxis in ScalarMaps rather
+   * than matrix (i.e., don't distort text fonts); called by
+   * ProjectionControl.setAspectCartesian()
+   * @param aspect ratios; 3 elements for Java3D, 2 for Java2D
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   void setAspectCartesian(double[] aspect)
        throws VisADException, RemoteException {
     if (displayRenderer == null) return;
