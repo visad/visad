@@ -317,10 +317,14 @@ public class AreaDirectoryList
                   band = Integer.parseInt(st.nextToken().trim());
                   st.nextToken();  // skip = sign
                   calname = st.nextToken();
+                  caldesc = calname;
                   if (st.hasMoreTokens()) {
-                    caldesc = st.nextToken();
-                  } else {
-                    caldesc = calname;
+                    StringBuffer buf = new StringBuffer();
+                    while (st.hasMoreTokens()) {
+                       buf.append(st.nextToken());
+                       buf.append(" ");
+                    }
+                    caldesc = buf.toString().trim();
                   }
                   for (int k=0; k<numBands; k++) {
                     if (band == bands[k]) {
