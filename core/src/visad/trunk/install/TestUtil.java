@@ -3,8 +3,8 @@ import java.io.File;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 
+import visad.install.ProgressMonitor;
 import visad.install.Util;
 
 import visad.util.CmdlineConsumer;
@@ -21,14 +21,14 @@ public class TestUtil
   public class MakeCopy
     extends Thread
   {
-    private JProgressBar bar;
+    private ProgressMonitor mon;
     private File fromFile, toFile;
     private String suffix;
     private boolean result;
 
-    MakeCopy(JProgressBar bar, File fromFile, File toFile, String suffix)
+    MakeCopy(ProgressMonitor mon, File fromFile, File toFile, String suffix)
     {
-      this.bar = bar;
+      this.mon = mon;
       this.fromFile = fromFile;
       this.toFile = toFile;
       this.suffix = suffix;
@@ -38,9 +38,9 @@ public class TestUtil
     public void run()
     {
       if (fromFile.isDirectory()) {
-        result = Util.copyDirectory(bar, fromFile, toFile, suffix);
+        result = Util.copyDirectory(mon, fromFile, toFile, suffix);
       } else {
-        result = Util.copyFile(bar, fromFile, toFile, suffix);
+        result = Util.copyFile(mon, fromFile, toFile, suffix);
       }
       System.err.println("Result was " + result);
     }
@@ -56,18 +56,18 @@ public class TestUtil
       System.exit(1);
     }
 
-    JProgressBar bar = null;
+    ProgressMonitor mon = null;
     if (trackProgress) {
       JFrame win = new JFrame("Frame-o-licious");
 
-      bar = new JProgressBar();
+      mon = new ProgressMonitor();
       win.getContentPane().add(buildProgress("Copying " + fromFile + " to " +
-                                             toFile, bar));
+                                             toFile, mon));
       win.pack();
       win.setVisible(true);
     }
 
-    MakeCopy cp = new MakeCopy(bar, fromFile, toFile, suffix);
+    MakeCopy cp = new MakeCopy(mon, fromFile, toFile, suffix);
     cp.start();
     while (cp.isAlive()) {
       try {
@@ -87,14 +87,14 @@ public class TestUtil
     System.exit(0);
   }
 
-  private JPanel buildProgress(String label, JProgressBar bar)
+  private JPanel buildProgress(String label, ProgressMonitor mon)
   {
     JPanel panel = new JPanel();
 
     panel.setLayout(new java.awt.BorderLayout());
 
     panel.add("North", new JLabel(label));
-    panel.add("South", bar);
+    panel.add("South", mon);
 
     return panel;
   }
