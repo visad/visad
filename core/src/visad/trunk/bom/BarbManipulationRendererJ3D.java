@@ -491,7 +491,10 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
 
       float x_speed =
         (float) Math.sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2]);
+/* WLH 16 April 2002 - from Ken
       if (x_speed < 0.000001f) x_speed = 0.000001f;
+*/
+      if (x_speed < 0.01f) x_speed = 0.01f;
       if (first || refirst) {
         display_speed = x_speed;
       }
