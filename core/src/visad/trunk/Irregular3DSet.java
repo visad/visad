@@ -1958,6 +1958,66 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
     int nvertex = Delan.Vertices.length;
     if (npolygons < 1 || nvertex < 3) return null;
 
+    int[][] Tri = Delan.Tri;
+    int[][] Walk = Delan.Walk;
+    int dim = Tri[0].length - 1;
+    int[][] tri = new int[npolygons][];
+    int[] poly_stack = new int[npolygons];
+    int[] walk_stack = new int[npolygons];
+    int sp; // stack pointer
+    for (int ii=0; ii<npolygons; ii++) {
+      if (tri[ii] == null) {
+        tri[ii] = new int[3];
+        tri[ii][0] = Delan.Tri[ii][0];
+        tri[ii][1] = Delan.Tri[ii][1];
+        tri[ii][2] = Delan.Tri[ii][2];
+        sp = 0;
+        walk_stack[sp] = 0;
+        poly_stack[sp] = ii;
+        while (true) {
+          int i = poly_stack[sp];
+          int w = walk_stack[sp];
+          int j = Walk[i][w];
+          if (j >= 0 && tri[j] == null) {
+            int v1 = Tri[i][w];
+            int v2 = Tri[i][(w + 1) % 3];
+            int i1 = -1;
+            int i2 = -1;
+            for (int k=0; k<3; k++) {
+              if (Tri[j][i] == v1) i1 = k;
+              if (Tri[j][i] == v2) i2 = k;
+            }
+            tri[j] = new int[3];
+            tri[j][0] = Tri[j][0];
+            if (((i1 + 1) % 3) == i2) {
+              tri[j][1] = Tri[j][2];
+              tri[j][2] = Tri[j][1];
+            }
+            else { // ((i2 + 1) % 3) == i1)
+              tri[j][1] = Tri[j][1];
+              tri[j][2] = Tri[j][2];
+            }
+            sp++;
+            walk_stack[sp] = 0;
+            poly_stack[sp] = j;
+          }
+          else { // (j < 0 || tri[j] != null)
+            while (true) {
+              walk_stack[sp]++;
+              if (walk_stack[sp] < 2) {
+                break;
+              }
+              else {
+                sp--;
+                if (sp < 0) break;
+              }
+            } // end while (true)
+          } // end if (j < 0 || tri[j] != null)
+          if (sp < 0) break;
+        } // end while (true)
+      } // end if (tri[ii] == null) 
+    } // end for (int ii=0; ii<npolygons; ii++)
+
     float[][] samples = getSamples(false);
     float[] NxA = new float[npolygons];
     float[] NxB = new float[npolygons];
@@ -1974,7 +2034,8 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
 
     make_normals(samples[0], samples[1], samples[2],
                  NX, NY, NZ, nvertex, npolygons, Pnx, Pny, Pnz,
-                 NxA, NxB, NyA, NyB, NzA, NzB, Delan.Vertices, Delan.Tri);
+                 NxA, NxB, NyA, NyB, NzA, NzB, Delan.Vertices, tri);
+                 // NxA, NxB, NyA, NyB, NzA, NzB, Delan.Vertices, Delan.Tri);
 
     // take the garbage out
     NxA = NxB = NyA = NyB = NzA = NzB = Pnx = Pny = Pnz = null;
