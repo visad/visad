@@ -2184,7 +2184,7 @@ if (size < 0.2) {
             VisADQuadArray qarrayZrev = reverse(qarrayZ);
 
             BufferedImage[] images =
-              createImages(data_width, data_height, data_depth,
+              createImages(2, data_width, data_height, data_depth,
                            texture_width, texture_height, texture_depth,
                            color_values);
             shadow_api.texture3DToGroup(group, qarrayX, qarrayY, qarrayZ,
@@ -2660,9 +2660,49 @@ if (size < 0.2) {
     return image;
   }
 
-  public BufferedImage[] createImages(int data_width, int data_height,
-                  int data_depth, int texture_width, int texture_height,
-                  int texture_depth, byte[][] color_values) {
+  public BufferedImage[] createImages(int axis, int data_width_in,
+           int data_height_in, int data_depth_in, int texture_width_in,
+           int texture_height_in, int texture_depth_in, byte[][] color_values) {
+    int data_width, data_height, data_depth;
+    int texture_width, texture_height, texture_depth;
+    int kwidth, kheight, kdepth;
+    if (axis == 2) {
+      kwidth = 1;
+      kheight = data_width_in;
+      kdepth = data_width_in * data_height_in;
+      data_width = data_width_in;
+      data_height = data_height_in;
+      data_depth = data_depth_in;
+      texture_width = texture_width_in;
+      texture_height = texture_height_in;
+      texture_depth = texture_depth_in;
+
+    }
+    else if (axis == 1) {
+      kwidth = 1;
+      kdepth = data_width_in;
+      kheight = data_width_in * data_height_in;
+      data_width = data_width_in;
+      data_depth = data_height_in;
+      data_height = data_depth_in;
+      texture_width = texture_width_in;
+      texture_depth = texture_height_in;
+      texture_height = texture_depth_in;
+    }
+    else if (axis == 0) {
+      kdepth = 1;
+      kwidth = data_width_in;
+      kheight = data_width_in * data_height_in;
+      data_depth = data_width_in;
+      data_width = data_height_in;
+      data_height = data_depth_in;
+      texture_depth = texture_width_in;
+      texture_width = texture_height_in;
+      texture_height = texture_depth_in;
+    }
+    else {
+      return null;
+    }
     BufferedImage[] images = new BufferedImage[texture_depth];
     for (int d=0; d<data_depth; d++) {
       if (color_values.length > 3) {
@@ -2671,10 +2711,12 @@ if (size < 0.2) {
           colorModel.createCompatibleWritableRaster(texture_width, texture_height);
         images[d] = new BufferedImage(colorModel, raster, false, null);
         int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
-        int k = d * data_width * data_height;
+        // int k = d * data_width * data_height;
+        int kk = d * kdepth;
         int m = 0;
         int r, g, b, a;
         for (int j=0; j<data_height; j++) {
+          int k = kk + j * kheight;
           for (int i=0; i<data_width; i++) {
             r = (color_values[0][k] < 0) ? color_values[0][k] + 256 :
                                            color_values[0][k];
@@ -2685,7 +2727,8 @@ if (size < 0.2) {
             a = (color_values[3][k] < 0) ? color_values[3][k] + 256 :
                                            color_values[3][k];
             intData[m++] = ((a << 24) | (r << 16) | (g << 8) | b);
-            k++;
+            // k++;
+            k += kwidth;
           }
           for (int i=data_width; i<texture_width; i++) {
             intData[m++] = 0;
@@ -2703,10 +2746,12 @@ if (size < 0.2) {
           colorModel.createCompatibleWritableRaster(texture_width, texture_height);
         images[d] = new BufferedImage(colorModel, raster, false, null);
         int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
-        int k = d * data_width * data_height;
+        // int k = d * data_width * data_height;
+        int kk = d * kdepth;
         int m = 0;
         int r, g, b, a;
         for (int j=0; j<data_height; j++) {
+          int k = kk + j * kheight;
           for (int i=0; i<data_width; i++) {
             r = (color_values[0][k] < 0) ? color_values[0][k] + 256 :
                                            color_values[0][k];
@@ -2716,7 +2761,8 @@ if (size < 0.2) {
                                            color_values[2][k];
             a = 255;
             intData[m++] = ((a << 24) | (r << 16) | (g << 8) | b);
-            k++;
+            // k++;
+            k += kwidth;
           }
           for (int i=data_width; i<texture_width; i++) {
             intData[m++] = 0;

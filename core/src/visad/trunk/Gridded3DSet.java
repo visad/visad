@@ -440,6 +440,15 @@ public class Gridded3DSet extends GriddedSet {
             + (1+igy-gy)*(Samples[j][s[1][0]]-Samples[j][s[1][1]]);
         }
       }
+/*
+for (int j=0; j<3; j++) {
+  if (value[j][i] != value[j][i]) {
+    System.out.println("gridToValue2D: bad Samples j = " + j + " gx, gy = " + gx +
+                       " " + gy + " " + s[0][0] + " " + s[0][1] +
+                       " " + s[1][0] + " " + s[1][1]);
+  }
+}
+*/
     }
     return value;
   }

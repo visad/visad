@@ -187,7 +187,6 @@ public class Contour2D extends Applet implements MouseListener {
                       byte[][] auxValues, byte[][] auxLevels1,
                       byte[][] auxLevels2, byte[][] auxLevels3, boolean[] swap )
                           throws VisADException {
-
 /*
 System.out.println("interval = " + values[0] + " lowlimit = " + lowlimit +
                    " highlimit = " + highlimit + " base = " + base);
@@ -202,6 +201,7 @@ boolean anynotmissing = false;
     int numc, il;
     int lr, lc, lc2, lrr, lr2, lcc;
     float xd, yd ,xx, yy;
+    float xdd, ydd;
 //  float clow, chi;
     float gg;
     int maxsize = maxv1+maxv2;
@@ -268,9 +268,11 @@ boolean anynotmissing = false;
     nrm = nr-1;
     ncm = nc-1;
   
-    xd = ((nr-1)-0.0f)/(nr-1.0f); // = 1.0
-    yd = ((nc-1)-0.0f)/(nc-1.0f); // = 1.0
-  
+    xdd = ((nr-1)-0.0f)/(nr-1.0f); // = 1.0
+    ydd = ((nc-1)-0.0f)/(nc-1.0f); // = 1.0
+    xd = xdd - 0.000001f;
+    yd = ydd - 0.000001f;
+
     /*
      * set up mark array
      * mark= 0 if avail for label center,
@@ -318,7 +320,7 @@ boolean anynotmissing = false;
 
     // compute contours
     for (ir=0; ir<nrm; ir++) {
-      xx = xd*ir+0.0f; // = ir
+      xx = xdd*ir+0.0f; // = ir
       for (ic=0; ic<ncm; ic++) {
         float ga, gb, gc, gd;
         float gv, gn, gx;
@@ -327,12 +329,20 @@ boolean anynotmissing = false;
         // save index of first vertex in this grid box
         ipnt[nump++] = numv;
 
-        yy = yd*ic+0.0f; // = ic
+        yy = ydd*ic+0.0f; // = ic
 /*
 ga = ( g[ (ic) * nr + (ir) ] );
 gb = ( g[ (ic) * nr + (ir+1) ] );
 gc = ( g[ (ic+1) * nr + (ir) ] );
 gd = ( g[ (ic+1) * nr + (ir+1) ] );
+boolean miss = false;
+if (ga != ga || gb != gb || gc != gc || gd != gd) {
+  miss = true;
+  System.out.println("ic, ir = " + ic + "  " + ir + " gabcd = " +
+                     ga + " " + gb + " " + gc + " " + gd);
+}
+*/
+/*
 if (ga != ga || gb != gb || gc != gc || gd != gd) {
   if (!anymissing) {
     anymissing = true;
@@ -521,10 +531,10 @@ if (!any && numc > 0) {
               }
             }
 
-            xk = xd*kr+0.0f;
-            yk = yd*kc+0.0f;
-            xm = xd*(mr+1.0f)+0.0f;
-            ym = yd*(mc+1.0f)+0.0f;
+            xk = xdd*kr+0.0f;
+            yk = ydd*kc+0.0f;
+            xm = xdd*(mr+1.0f)+0.0f;
+            ym = ydd*(mc+1.0f)+0.0f;
             value = gg;
 
             if (numv4[0]+100 >= maxv4) {
@@ -950,7 +960,13 @@ if (!any && numc > 0) {
             vx[numv-1] = (vxa+3.0f*vxb) * 0.25f;
             vy[numv-1] = (vya+3.0f*vyb) * 0.25f;
           }
-
+/*
+if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
+    (20.0 <= vy[numv-1] && vy[numv-1] < 22.0)) {
+  System.out.println("vy = " + vy[numv-1] + " " + vy[numv-2] +
+                     " ic, ir = " + ic + " " + ir);
+}
+*/
         }  // for il       -- NOTE:  gg incremented in for statement
       }  // for ic
     }  // for ir

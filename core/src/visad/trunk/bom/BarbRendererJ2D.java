@@ -107,7 +107,7 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
     EarthVectorType flowxy = new EarthVectorType(flowx, flowy);
     TupleType range = null;
     if (args.length > 1) {
-      System.out.println("polar");
+      System.out.println("polar winds");
       RealType flow_degree = new RealType("flow_degree",
                             CommonUnit.degree, null);
       RealType flow_speed = new RealType("flow_speed",
@@ -118,7 +118,7 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
       range = new TupleType(new MathType[] {lon, lat, flowds, red, green});
     }
     else {
-      System.out.println("Cartesian");
+      System.out.println("Cartesian winds");
       range = new TupleType(new MathType[] {lon, lat, flowxy, red, green});
     }
     FunctionType flow_field = new FunctionType(index, range);

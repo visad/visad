@@ -73,16 +73,6 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
          throws VisADException {
     if (flow_values[0] == null) return null;
  
-    boolean south = true; // that's where the BOM is
-    Enumeration maps = display.getMapVector().elements();
-    while (maps.hasMoreElements()) {
-      ScalarMap map = (ScalarMap) maps.nextElement();
-      if (map.getScalar().equals(RealType.Latitude)) {
-        double[] range = map.getRange();
-        if ((range[0] + range[1]) > 0.0) south = false;
-      }
-    }
-
     int len = spatial_values[0].length;
     int flen = flow_values[0].length;
     int rlen = 0; // number of non-missing values
@@ -95,6 +85,17 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
       }
     }
     if (rlen == 0) return null;
+
+    // WLH 3 June 99
+    boolean[] south = new boolean[len];
+    float[][] earth_locs = renderer.spatialToEarth(spatial_values);
+    if (earth_locs != null) {
+      for (int i=0; i<len; i++) south[i] = (earth_locs[0][i] < 0.0f);
+    }
+    else {
+      // if no latitude information is available, assume south
+      for (int i=0; i<len; i++) south[i] = true; // where BOM is
+    }
 
     // use default flowScale = 0.02f here, since flowScale for barbs is
     // just for barb size
@@ -184,7 +185,7 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
         int oldnv = numv[0];
         int oldnt = numt[0];
         float mbarb[] =
-          makeBarb(south, spatial_values[0][j], spatial_values[1][j],
+          makeBarb(south[j], spatial_values[0][j], spatial_values[1][j],
                    scale, pt_size, f0, f1, vx, vy, numv, tx, ty, numt);
         if (direct) {
           ((BarbManipulationRendererJ2D) renderer).
