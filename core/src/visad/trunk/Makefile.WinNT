@@ -47,8 +47,10 @@ JFLAGS = -J-mx32m
 
 RMIC = rmic
 RMIC_DIR = .
-# if you are using JDK 1.3 beta, uncomment the following line
+RMIC_COLLAB_DIR = collab
+# if you are using JDK 1.3 beta, uncomment the following two lines
 #RMIC_DIR = ..
+#RMIC_COLLAB_DIR = .
 
 .java.class:
 	$(JC) $(JFLAGS) $<
@@ -572,7 +574,7 @@ georef\*.class
 	cd ..
 	cd $(RMIC_DIR)
 	$(RMIC) $(RMIC_FILES)
-	cd collab
+	cd $(RMIC_COLLAB_DIR)
 	$(RMIC) $(RMIC_COLLAB_FILES)
 
 compile: clean
