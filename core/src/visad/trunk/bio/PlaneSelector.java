@@ -211,12 +211,9 @@ public class PlaneSelector {
     fout.println(PLANE_HEADER);
     for (int i=2; i<refs.length; i++) {
       RealTuple tuple = (RealTuple) refs[i].getData();
-      Real[] r = tuple == null ?
-        new Real[] {null, null, null} : tuple.getRealComponents();
-      for (int j=0; j<3; j++) {
-        double value = r[j] == null ? Double.NaN : r[j].getValue();
-        fout.println(value);
-      }
+      double[] vals = tuple == null ?
+        new double[] {Double.NaN, Double.NaN, Double.NaN} : tuple.getValues();
+      for (int j=0; j<3; j++) fout.println(vals[j]);
     }
   }
 

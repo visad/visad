@@ -122,7 +122,7 @@ public class StateManager {
     restoring = false;
   }
 
-  /** Saves the current state to the temp file. */
+  /** Saves the current state to the given state file. */
   public void saveState(File stateFile) {
     try {
       PrintWriter fout = new PrintWriter(new FileWriter(stateFile));

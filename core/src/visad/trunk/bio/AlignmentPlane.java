@@ -192,39 +192,16 @@ public class AlignmentPlane extends PlaneSelector {
   protected boolean computePlane(RealTuple[] tuple)
     throws VisADException, RemoteException
   {
-    // snap values to nearest slice if necessary
-    if (snap) {
-      int numSlices = bio.sm.getNumberOfSlices();
-      int len = tuple.length;
-      for (int i=0; i<len; i++) {
-        double[] values = tuple[i].getValues();
-        double vz = values[2];
-        double nz = Math.round(vz);
-        if (nz < 0) nz = 0;
-        if (nz >= numSlices) nz = numSlices - 1;
-        if (vz != nz) {
-          setData(i, new double[] {values[0], values[1], nz});
-          return false;
-        }
-      }
-    }
     return super.computePlane(tuple);
   }
 
   /** Refreshes the plane data from its endpoint locations. */
   protected boolean refresh() {
-    if (bio.state == null || bio.state.restoring) return true;
+    if (bio == null || bio.state == null || bio.state.restoring) return true;
     for (int i=0; i<3; i++) {
       RealTuple tuple = (RealTuple) refs[i + 2].getData();
       if (tuple == null) continue;
-      try {
-        Real[] r = tuple.getRealComponents();
-        double[] vals = new double[3];
-        for (int j=0; j<3; j++) vals[j] = r[j].getValue();
-        setPos(i, vals);
-      }
-      catch (VisADException exc) { exc.printStackTrace(); }
-      catch (RemoteException exc) { exc.printStackTrace(); }
+      setPos(i, tuple.getValues());
     }
 
     double[] p1 = pos[index][0], p2 = pos[index][1], p3 = pos[index][2];

@@ -71,7 +71,7 @@ public class AlignToolPanel extends ToolPanel {
   /** Mode for applying alignment plane settings. */
   private JRadioButton apply;
 
-  /** Checkbox for snapping alignment plane endpoints to nearest slice. */
+  /** Checkbox for snapping alignment plane to nearest slice. */
   private JCheckBox snap;
 
   /** Legend labels. */
@@ -228,7 +228,7 @@ public class AlignToolPanel extends ToolPanel {
     controls.add(pad(p));
 
     // snap to slices checkbox
-    snap = new JCheckBox("Snap endpoints to nearest slice");
+    snap = new JCheckBox("Snap alignment triangle to nearest slice");
     snap.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         boolean b = snap.isSelected();
@@ -236,8 +236,8 @@ public class AlignToolPanel extends ToolPanel {
       }
     });
     snap.setMnemonic('p');
-    snap.setToolTipText("Prevents triangle endpoints " +
-      "from lying between slices.");
+    snap.setToolTipText("Keeps all endpoints of the " +
+      "alignment triangle on a single slice");
     snap.setEnabled(false);
     controls.add(pad(snap));
 
@@ -381,10 +381,27 @@ public class AlignToolPanel extends ToolPanel {
     double mh = bio.sm.res_y * my;
 
     // update micron info
-    if (microns) useMicrons.setValues("" + mw, "" + mh);
-    else useMicrons.setValues("", "");
-    sliceDistance.setText(microns ? "" + sd : "");
-    useMicrons.setSelected(microns);
+    String s;
+    if (microns) {
+      String sw = "" + mw;
+      String sh = "" + mh;
+      if (!useMicrons.getFirstValue().equals(sw) &&
+        !useMicrons.getSecondValue().equals(sh))
+      {
+        useMicrons.setValues(sw, sh);
+      }
+      s = "" + sd;
+    }
+    else {
+      if (!useMicrons.getFirstValue().equals("") &&
+        !useMicrons.getSecondValue().equals(""))
+      {
+        useMicrons.setValues("", "");
+      }
+      s = "";
+    }
+    if (!sliceDistance.getText().equals(s)) sliceDistance.setText(s);
+    if (microns != useMicrons.isSelected()) useMicrons.setSelected(microns);
   }
 
   /** Sets the slice distance to match the specified one. */

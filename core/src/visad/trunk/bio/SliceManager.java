@@ -43,6 +43,9 @@ public class SliceManager implements ControlListener,
   /** Header for slice manager data in state file. */
   private static final String SM_HEADER = "# Slice manager";
 
+  /** Header for color data in state file. */
+  private static final String COLOR_HEADER = "# Color information";
+
 
   // -- DATA TYPE CONSTANTS --
 
@@ -488,7 +491,8 @@ public class SliceManager implements ControlListener,
       if (initialize) init(files, 0);
       else if (filesAsSlices) {
         // update field to match timeField slice
-        field.setSample(0, (FlatField) timeField.getSample(index), false);
+        field.setSample(0,
+          (FlatField) timeField.getSample(index, false), false);
       }
       else {
         purgeData(true);
@@ -626,6 +630,25 @@ public class SliceManager implements ControlListener,
     fout.println(thumbSize[1]);
     fout.println(sliceRes_x);
     fout.println(sliceRes_y);
+    fout.println(COLOR_HEADER);
+    if (widgets != null) {
+      boolean threeD = bio.display3 != null;
+      fout.println(threeD);
+      for (int i=0; i<widgets.length; i++) {
+        // 2-D color table
+        BaseColorControl cc2 = (BaseColorControl) rmaps2[i].getControl();
+        String save = cc2.getSaveString();
+        fout.println(save.length());
+        fout.println(save);
+        // 3-D color table
+        if (threeD) {
+          BaseColorControl cc3 = (BaseColorControl) rmaps3[i].getControl();
+          save = cc3.getSaveString();
+          fout.println(save.length());
+          fout.println(save);
+        }
+      }
+    }
     if (arb != null) arb.saveState(fout);
     if (align != null) align.saveState(fout);
   }
@@ -659,6 +682,34 @@ public class SliceManager implements ControlListener,
       // dataset is different; load it
       setThumbnails(thumbs, thumbX, thumbY);
       setSeries(files, fas);
+    }
+    if (!fin.readLine().trim().equals(COLOR_HEADER)) {
+      throw new VisADException("SliceManager: incorrect state format");
+    }
+    if (widgets != null) {
+      boolean threeD = fin.readLine().trim().equals("true");
+      for (int i=0; i<widgets.length; i++) {
+        BaseColorControl cc2 = (BaseColorControl) rmaps2[i].getControl();
+        // 2-D table
+        int slen = Integer.parseInt(fin.readLine().trim());
+        char[] c = new char[slen];
+        fin.read(c, 0, slen);
+        fin.readLine();
+        String save = new String(c);
+        if (!cc2.getSaveString().equals(save)) cc2.setSaveString(save);
+        // 3-D table
+        if (threeD) {
+          slen = Integer.parseInt(fin.readLine().trim());
+          c = new char[slen];
+          fin.read(c, 0, slen);
+          fin.readLine();
+          save = new String(c);
+          if (bio.display3 != null) {
+            BaseColorControl cc3 = (BaseColorControl) rmaps3[i].getControl();
+            if (!cc3.getSaveString().equals(save)) cc3.setSaveString(save);
+          }
+        }
+      }
     }
     if (arb != null) arb.restoreState(fin);
     if (align != null) align.restoreState(fin);
