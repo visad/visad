@@ -85,7 +85,13 @@ public class ScalarMap extends Object implements java.io.Serializable {
 
   public ScalarMap(ScalarType scalar, DisplayRealType display_scalar)
          throws VisADException {
-    if (scalar == null && !(this instanceof ConstantMap)) {
+    this(scalar, display_scalar, true);
+  }
+
+  ScalarMap(ScalarType scalar, DisplayRealType display_scalar,
+            boolean needNonNullScalar)
+         throws VisADException {
+    if (scalar == null && needNonNullScalar) {
       throw new DisplayException("ScalarMap: scalar is null");
     }
     if (display_scalar == null) {
@@ -240,7 +246,6 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
       throw new DisplayException("ScalarMap.setControl: not part of " +
                                  "any Display");
     }
-    if (this instanceof ConstantMap) return;
     control = display.getDisplayRenderer().makeControl(this);
     display.addControl(control);
   }

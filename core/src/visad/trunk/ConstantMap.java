@@ -25,6 +25,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.rmi.*;
+
 /**
    mapping from constant to DisplayRealType
 */
@@ -35,7 +37,7 @@ public class ConstantMap extends ScalarMap {
 
   public ConstantMap(double constant, DisplayRealType display_scalar)
                      throws VisADException {
-    super(null, display_scalar); // no Scalar for ConstantMap
+    super(null, display_scalar, false); // no Scalar for ConstantMap
     if (Double.isNaN(constant) || Double.isInfinite(constant)) {
       throw new DisplayException("ConstantMap: constant is missing (NaN) " +
                                  "or infinity");
@@ -57,6 +59,10 @@ public class ConstantMap extends ScalarMap {
   public ConstantMap(Real constant, DisplayRealType display_scalar)
                      throws VisADException {
     this(constant.getValue(), display_scalar);
+  }
+
+  void setControl() throws VisADException, RemoteException {
+    return;
   }
 
   public double getConstant() {
