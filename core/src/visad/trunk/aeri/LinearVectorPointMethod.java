@@ -12,6 +12,7 @@ public class LinearVectorPointMethod
   double scale_1;
   double scale_2;
   double scale_3;
+  double[][] centroid_ll;
 
   public LinearVectorPointMethod(double[][] lonlat_s)
          throws VisADException
@@ -30,7 +31,7 @@ public class LinearVectorPointMethod
     double[][] del_xy = new double[2][lonlat_s[0].length];
     double[] centroid_xy = triangleCentroid(verts_xy);
 
-    double[][] centroid_ll = cs.toReference(new double[][] 
+    centroid_ll = cs.toReference(new double[][] 
                                                 { {centroid_xy[0]}, {centroid_xy[1]} });
     System.out.println("centroid lon: "+centroid_ll[0][0]*Data.RADIANS_TO_DEGREES);
     System.out.println("centroid lat: "+centroid_ll[1][0]*Data.RADIANS_TO_DEGREES);
@@ -104,6 +105,11 @@ public class LinearVectorPointMethod
     }
   }
 
+  public double[][] getCentroid() 
+  {
+    return centroid_ll;
+  }
+    
   public double[] getKinematics( double[][] uv_wind )
          throws VisADException
   {
@@ -135,31 +141,32 @@ public class LinearVectorPointMethod
          throws VisADException
   {
     double[][] lonlat_s = new double[2][3];
-    lonlat_s[0][0] = -97.4825*Data.DEGREES_TO_RADIANS;
-    lonlat_s[1][0] =   36.6911*Data.DEGREES_TO_RADIANS;
+    lonlat_s[0][0] = -97.485*Data.DEGREES_TO_RADIANS;
+    lonlat_s[1][0] =   36.605*Data.DEGREES_TO_RADIANS;
 
-    lonlat_s[0][1] = -99.2175*Data.DEGREES_TO_RADIANS;
-    lonlat_s[1][1] =   36.07195*Data.DEGREES_TO_RADIANS;
+    lonlat_s[0][1] = -99.204*Data.DEGREES_TO_RADIANS;
+    lonlat_s[1][1] =   36.072*Data.DEGREES_TO_RADIANS;
 
-    lonlat_s[0][2] =  -97.51862*Data.DEGREES_TO_RADIANS;
-    lonlat_s[1][2] =   34.9797*Data.DEGREES_TO_RADIANS;
+    lonlat_s[0][2] =  -97.522*Data.DEGREES_TO_RADIANS;
+    lonlat_s[1][2] =   34.984*Data.DEGREES_TO_RADIANS;
 
     LinearVectorPointMethod lvpm = new LinearVectorPointMethod(lonlat_s);
 
     double[][] uv_wind = new double[2][3];
 
-    uv_wind[0][0] = 0.919;
-    uv_wind[1][0] = 6.536;
-    uv_wind[0][1] = -1.382;
-    uv_wind[1][1] = 2.493;
-    uv_wind[0][2] = 4.588;
-    uv_wind[1][2] = 2.338;
+    uv_wind[0][0] = 6.5;
+    uv_wind[1][0] = 19.8;
+    uv_wind[0][1] = 11.0;
+    uv_wind[1][1] = 9.2;
+    uv_wind[0][2] = 8.2;
+    uv_wind[1][2] = 11.7;
 
     double[] div_vort = lvpm.getKinematics(uv_wind);
 
     for ( int ii = 0; ii < div_vort.length; ii++ ) {
       System.out.println(div_vort[ii]);
     }
+    System.out.println(+(5.0*Double.NaN));
   }
 
   private static double[] triangleCentroid(double[][] verts)
