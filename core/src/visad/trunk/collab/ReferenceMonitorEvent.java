@@ -74,6 +74,9 @@ public class ReferenceMonitorEvent
     if (type != REFERENCE_ADDED && type != REFERENCE_REMOVED) {
       throw new VisADException("Bad type for ReferenceMonitorEvent");
     }
+    if (link == null) {
+      throw new VisADException("Null link for ReferenceMonitorEvent");
+    }
     this.link = link;
   }
 
