@@ -27,6 +27,8 @@ MA 02111-1307, USA
 
 /* Cluster Design Ideas
 
+change to test CVS
+
 Everything is via RMI - no 'local' Impl
 
 a Data object is partitioned if any Field in it has a
