@@ -824,7 +824,11 @@ public class AddeURLConnection extends URLConnection
             {
                 tempString = 
                     testString.substring(testString.indexOf("=") + 1);
-                if (tempString.indexOf(" ") > 0)  // is linele, not just lin
+                if (tempString.trim().equalsIgnoreCase("all")) {
+                   numlinString = "99999";
+                   numeleString = "99999";
+                } 
+                else if (tempString.indexOf(" ") > 0) //is linele, not just lin
                 {
                     StringTokenizer tok = new StringTokenizer(tempString);
                     if (tok.countTokens() < 2) break;
