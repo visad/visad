@@ -5,6 +5,7 @@
 package visad.bom;
 
 import visad.*;
+import visad.util.Util;
 import java.rmi.RemoteException;
 
 public class TCData {
@@ -89,7 +90,7 @@ public class TCData {
       rtFixStyle = new RealType("FixStyle", null, null);
       RealTupleType fixTuple = new RealTupleType(new RealType[]
        {rtFixID, rtLat, rtLon, rtError, rtFixStyle});
-      FunctionType fixFunction = new FunctionType(rtTime, fixTuple);
+      fixFunction = new FunctionType(rtTime, fixTuple);
   
       // Intensity
       rtIntensityID = new RealType("IntensityID", null, null);
@@ -99,7 +100,7 @@ public class TCData {
       rtCategory = new RealType("Category", null, null);
       RealTupleType intensityTuple = new RealTupleType(new RealType[]
         {rtIntensityID, rtWindMean, rtWindGust, rtCentralPressure, rtCategory});
-      FunctionType intensityFunction = new FunctionType(rtTime, intensityTuple);
+      intensityFunction = new FunctionType(rtTime, intensityTuple);
   
       // Size
       rtSizeID = new RealType("SizeID", null, null);
@@ -111,7 +112,7 @@ public class TCData {
       RealTupleType sizeTuple = new RealTupleType(new RealType[]
         {rtSizeID, rtGaleRadius, rtStormRadius, rtHurricaneRadius,
          rtRadiusOfMaximumWinds, rtSizeStyle});
-      FunctionType sizeFunction = new FunctionType(rtTime, sizeTuple);
+      sizeFunction = new FunctionType(rtTime, sizeTuple);
   
       // Steering
       rtSteeringID = new RealType("SteeringID", null, null);
@@ -119,28 +120,28 @@ public class TCData {
       rtSteeringStyle = new RealType("SteeringStyle", null, null);
       RealTupleType steeringTuple = new RealTupleType(new RealType[]
         {rtSteeringID, rtSteeringDirection, rtSteeringStyle});
-      FunctionType steeringFunction = new FunctionType(rtTime, steeringTuple);
+      steeringFunction = new FunctionType(rtTime, steeringTuple);
   
       // Track
       rtTrackID = new RealType("TrackID", null, null);
-      TextType ttTrackType = new TextType("TrackType");
-      TextType ttTrackName = new TextType("TrackName");
+      ttTrackType = new TextType("TrackType");
+      ttTrackName = new TextType("TrackName");
       rtBaseDateTime = new RealType("BaseDateTime", null, null);
       rtCreateDateTime = new RealType("CreateDateTime", null, null);
-      TextType ttDisplayType = new TextType("DisplayType");
-      TupleType ttTrack = new TupleType(new MathType[]
+      ttDisplayType = new TextType("DisplayType");
+      ttTrack = new TupleType(new MathType[]
         {ttTrackType, ttTrackName, rtBaseDateTime, rtCreateDateTime,
          ttDisplayType, fixFunction, intensityFunction, sizeFunction,
          steeringFunction});
-      FunctionType  ftId2Track = new FunctionType(rtTrackID, ttTrack);
+      ftId2Track = new FunctionType(rtTrackID, ttTrack);
   
       // Disturbance
       rtDisturbanceID = new RealType("DisturbanceID", null, null);
-      TextType ttCountry = new TextType("Country");
-      TextType ttState = new TextType("State");
+      ttCountry = new TextType("Country");
+      ttState = new TextType("State");
+      ttHistoricalName = new TextType("HistoricalName");
       rtYear = new RealType("Year", null, null);
       rtNumber = new RealType("Number", null, null);
-      TextType ttHistoricalName = new TextType("HistoricalName");
       rtOpenDate = new RealType("OpenDate", null, null);
       rtCloseDate = new RealType("CloseDate", null, null);
       rtArchiveMode = new RealType("ArchiveMode", null, null);
@@ -155,6 +156,10 @@ public class TCData {
     }
   }
 
+  public FieldImpl getData() {
+    return data;
+  }
+
   public MathType getType() {
     return mtTC;
   }
@@ -162,22 +167,102 @@ public class TCData {
   public synchronized void addFix(int disturbanceID, int trackID, double time,
                                   RealTuple fix)
          throws VisADException, RemoteException {
+    addToTrack(disturbanceID, trackID, time, 5, fixFunction, fix);
   }
 
   public synchronized void addIntensity(int disturbanceID, int trackID, double time,
                                         RealTuple intensity)
          throws VisADException, RemoteException {
+    addToTrack(disturbanceID, trackID, time, 6, intensityFunction, intensity);
   }
 
   public synchronized void addSize(int disturbanceID, int trackID, double time,
                                    RealTuple size)
          throws VisADException, RemoteException {
+    addToTrack(disturbanceID, trackID, time, 7, sizeFunction, size);
   }
 
   public synchronized void addSteering(int disturbanceID, int trackID, double time,
                                        RealTuple steering)
          throws VisADException, RemoteException {
+    addToTrack(disturbanceID, trackID, time, 8, steeringFunction, steering);
   }
+
+  private void addToTrack(int disturbanceID, int trackID, double time,
+                          int tuple_index, FunctionType function_type,
+                          RealTuple rt)
+         throws VisADException, RemoteException {
+
+    Tuple disturbance = getDisturbance(disturbanceID);
+    if (disturbance == null) {
+      throw new VisADException("invalid disturbanceID");
+    }
+    Tuple track = getTrack(trackID, disturbance);
+    if (track == null) {
+      throw new VisADException("invalid trackID");
+    }
+    FlatField field = (FlatField) track.getComponent(tuple_index);
+    Gridded1DDoubleSet set = (Gridded1DDoubleSet) field.getDomainSet();
+    double[][] times = set.getDoubles(false);
+    int length = set.getLength();
+    double[][] new_times = new double[1][length + 1];
+    float[][] values = field.getFloats(false);
+    int dim = values.length;
+    float[][] new_values = new float[dim][length + 1];
+    int k = 0;
+    int m = -1;
+    for (int i=0; i<length+1; i++) {
+      if (Util.isApproximatelyEqual(time, times[0][k])) {
+        throw new VisADException("time " + time + " already used");
+      }
+      else if (m < 0 && time < times[0][k]) {
+        new_times[0][i] = time;
+        // mark as missing until new_field.setSample(m, rt) call
+        for (int j=0; j<dim; j++) new_values[j][i] = Float.NaN;
+        m = i;
+      }
+      else {
+        new_times[0][i] = times[0][k];
+        for (int j=0; j<dim; j++) new_values[j][i] = values[j][k];
+        k++;
+      }
+    }
+    Gridded1DDoubleSet new_set = 
+      new Gridded1DDoubleSet(rtTime, new_times, length + 1);
+    FlatField new_field = new FlatField(function_type, new_set);
+    new_field.setSamples(new_values, false);
+    new_field.setSample(m, rt);
+
+    Data[] comps = new Data[]
+      {track.getComponent(0),
+       track.getComponent(1),
+       track.getComponent(2),
+       track.getComponent(3),
+       track.getComponent(4),
+       track.getComponent(5),
+       track.getComponent(6),
+       track.getComponent(7),
+       track.getComponent(8)};
+    comps[tuple_index] = new_field;
+    Tuple new_track = new Tuple(new Data[]
+      {comps[0], comps[1], comps[2], comps[3], comps[4], comps[5],
+       comps[6], comps[7], comps[8]});
+    setTrack(trackID, new_track, disturbance);
+    setDisturbance(disturbanceID, disturbance);
+  }
+
+  public static FieldImpl makeTrackField(int trackID, Tuple track)
+         throws VisADException, RemoteException {
+
+    float fid = (float) trackID;
+
+    Gridded1DSet set =
+      new Gridded1DSet(rtTrackID, new float[][] {{fid}}, 1);
+    FieldImpl field = new FieldImpl(ftId2Track, set);
+    field.setSample(0, track);
+    return field;
+  }
+
 
   public synchronized void addTrack(int disturbanceID, int trackID, Tuple track)
          throws VisADException, RemoteException {
@@ -185,12 +270,74 @@ public class TCData {
     if (disturbance == null) {
       throw new VisADException("invalid disturbanceID");
     }
+
     FieldImpl field = (FieldImpl) disturbance.getComponent(9);
 
+    // desired field has MathType ftId2Track;
+    // now we want to add a particular track to this field
+    // in an analagous manner to adding a disturbance (ie the addDisturbance method)
 
+    /* wlh comments:
     // not necessary since field is mutable
     // so merge find* methods into get* methods and eliminate set* methods ****
     // setDisturbance(disturbanceID, disturbance);
+    */
+
+    float fid = (float) trackID;
+    FieldImpl new_field = null;
+    if (field == null) {
+      Gridded1DSet set =
+        new Gridded1DSet(rtTrackID, new float[][] {{fid}}, 1);
+      new_field = new FieldImpl(ftId2Track, set);
+      new_field.setSample(0, track);
+    }
+    else {
+      Gridded1DSet set = (Gridded1DSet) field.getDomainSet();
+      float[][] ids = set.getSamples(false);
+      int length = set.getLength();
+      float[][] new_ids = new float[1][length + 1];
+      int k = 0;
+      int m = -1;
+      for (int i=0; i<length+1; i++) {
+        if (fid == ids[0][k]) {
+          throw new VisADException("trackID " + trackID +
+                                   " already used");
+        }
+        else if (m < 0 && fid < ids[0][k]) {
+          new_ids[0][i] = fid;
+          m = i;
+        }
+        else {
+          new_ids[0][i] = ids[0][k];
+          k++;
+        }
+      }
+      Gridded1DSet new_set =
+        new Gridded1DSet(rtTrackID, new_ids, length + 1);
+      new_field = new FieldImpl(ftId2Track, new_set);
+      k = 0;
+      for (int i=0; i<length+1; i++) {
+        if (i == m) {
+          new_field.setSample(i, track, false);
+        }
+        else {
+          new_field.setSample(i, field.getSample(k), false);
+          k++;
+        }
+      }
+    }
+    Tuple new_disturbance = new Tuple(new Data[]
+      {disturbance.getComponent(0),
+       disturbance.getComponent(1),
+       disturbance.getComponent(2),
+       disturbance.getComponent(3),
+       disturbance.getComponent(4),
+       disturbance.getComponent(5),
+       disturbance.getComponent(6),
+       disturbance.getComponent(7),
+       disturbance.getComponent(8),
+       new_field});
+    setDisturbance(disturbanceID, new_disturbance);
   }
 
   public synchronized void addDisturbance(int disturbanceID, Tuple disturbance)
@@ -242,18 +389,18 @@ public class TCData {
 
   private Tuple getDisturbance(int disturbanceID)
           throws VisADException, RemoteException {
-    int index = findDistrubance(disturbanceID);
+    int index = findDisturbance(disturbanceID);
     if (index < 0) return null;
     else return (Tuple) data.getSample(index);
   }
 
   private void setDisturbance(int disturbanceID, Tuple disturbance)
           throws VisADException, RemoteException {
-    int index = findDistrubance(disturbanceID);
+    int index = findDisturbance(disturbanceID);
     if (index >= 0) data.setSample(index, disturbance);
   }
 
-  private int findDistrubance(int disturbanceID) 
+  private int findDisturbance(int disturbanceID) 
           throws VisADException, RemoteException {
     if (data == null) {
       return -1;
@@ -365,6 +512,15 @@ public class TCData {
     return field;
   }
 
+  /**
+   * create a bunch of "intensities" which are measurements of 
+   * the intensity of a Tropical Cyclone at particular times
+   *
+   * input: arrays of times, ids, wind_means...
+   * output: a field of mathType intensityFunction, which is represented by:
+   *         (time -> intensityTuple)
+   */
+
   public static FlatField makeIntensities(double[] times, int[] ids,
               float[] wind_means, float[] wind_gusts, float[] central_pressures,
               int[] categories)
@@ -469,14 +625,15 @@ public class TCData {
     return field;
   }
 
-  public void main(String[] args)
-         throws VisADException {
+  public static void main(String[] args)
+         throws VisADException, RemoteException {
     MathType mtTC;
     TCData data = new TCData();
 
     mtTC = data.getType();
 
     System.out.println("MathType:\n" + mtTC);
+
 /*
 doll% java visad.bom.TCData
 MathType:
