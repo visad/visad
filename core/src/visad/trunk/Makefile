@@ -318,6 +318,8 @@ DOC_PACKAGES = \
 		ucar.netcdf \
 		ucar.tests \
 		dods.dap \
+		dods.dap.parser \
+		dods.dap.Server \
 		dods.util \
 		gnu.regexp \
 		visad.data \
