@@ -96,6 +96,10 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
   /**
    * Abreviated Factory method for creating the proper gridded set
    * (Gridded1DSet, Gridded2DSet, etc.).
+   *
+   * @param lengths              The dimensionality of the manifold.  <code>
+   *                             lengths[i}</code> contains the number of points
+   *                             in the manifold for dimension <code>i</code>.
    */
   public static GriddedSet create(MathType type, float[][] samples,
                                   int[] lengths) throws VisADException {
@@ -105,6 +109,10 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
   /**
    * General Factory method for creating the proper gridded set
    * (Gridded1DSet, Gridded2DSet, etc.).
+   *
+   * @param lengths              The dimensionality of the manifold.  <code>
+   *                             lengths[i}</code> contains the number of points
+   *                             in the manifold for dimension <code>i</code>.
    */
   public static GriddedSet create(MathType type, float[][] samples,
                                   int[] lengths, CoordinateSystem coord_sys,
