@@ -62,17 +62,6 @@ public interface DisplayMonitor
     throws RemoteException, RemoteVisADException;
 
   /**
-   * Caches this (remotely-originated) <CODE>MonitorEvent</CODE>
-   * for future reference.
-   *
-   * @param evt The event to cache.
-   *
-   * @exception RemoteException If there was an RMI-related problem.
-   */
-  void addRemoteMonitorEvent(MonitorEvent evt)
-    throws RemoteException;
-
-  /**
    * Returns a suggestion for a unique listener identifier which is
    * equal to or greater than the supplied ID.
    *
