@@ -560,7 +560,10 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
 
           // WLH 31 Aug 2000
           Real r = reals[j];
-          Unit overrideUnit = directMap[i].getOverrideUnit();
+          Unit overrideUnit = null;
+          if (directMap[i] != null) {
+            overrideUnit = directMap[i].getOverrideUnit();
+          }
           Unit rtunit = rtype.getDefaultUnit();
           // units not part of Time string
           if (overrideUnit != null && !overrideUnit.equals(rtunit) &&
