@@ -2400,6 +2400,9 @@ public class BasicSSCell extends JPanel implements MouseListener {
   public void saveData(File f, Form form)
     throws BadFormException, IOException, VisADException, RemoteException
   {
+    if (IsSlave) {
+      throw new VisADException("Cannot saveData on a slaved cell");
+    }
     Data d = getData();
     if (f == null || d == null) return;
     Saving++;
@@ -2412,7 +2415,10 @@ public class BasicSSCell extends JPanel implements MouseListener {
   }
 
   /** capture image and save to a given file name, in JPEG format */
-  public void captureImage(File f) throws IOException {
+  public void captureImage(File f) throws VisADException, IOException {
+    if (IsSlave) {
+      throw new VisADException("Cannot captureImage on a slaved cell");
+    }
     BufferedImage image = VDisplay.getImage();
     try {
       JPEGEncodeParam param = JPEGCodec.getDefaultJPEGEncodeParam(image);

@@ -565,6 +565,12 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
         try {
           cell.captureImage(f);
         }
+        catch (VisADException exc) {
+          if (DEBUG) exc.printStackTrace();
+          msg = msg + "An error occurred: " + exc.getMessage();
+          JOptionPane.showMessageDialog(Parent, msg, "Error saving data",
+            JOptionPane.ERROR_MESSAGE);
+        }
         catch (IOException exc) {
           if (DEBUG) exc.printStackTrace();
           msg = msg + "An I/O error occurred: " + exc.getMessage();

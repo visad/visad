@@ -2397,7 +2397,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         FileSave1.setEnabled(b);
         FileSave2.setEnabled(b);
         FileSave3.setEnabled(b && CanDoHDF5);
-        FileSnap.setEnabled(b && CanDoJPEG);
+        FileSnap.setEnabled(b && !IsSlave && CanDoJPEG);
         EditClear.setEnabled(b);
         CellPrint.setEnabled(b);
         CellEdit.setEnabled(b);
