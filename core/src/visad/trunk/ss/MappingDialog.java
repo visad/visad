@@ -698,13 +698,13 @@ public class MappingDialog extends JDialog
     MathList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     JScrollPane mathListView = new JScrollPane(MathList) {
       public Dimension getMinimumSize() {
-        return new Dimension(0, 40 * MapHeight - 15);
+        return new Dimension(0, 40 * MapHeight + 64);
       }
       public Dimension getPreferredSize() {
-        return new Dimension(200, 40 * MapHeight - 15);
+        return new Dimension(200, 40 * MapHeight + 64);
       }
       public Dimension getMaximumSize() {
-        return new Dimension(Integer.MAX_VALUE, 40 * MapHeight - 15);
+        return new Dimension(Integer.MAX_VALUE, 40 * MapHeight + 64);
       }
     };
     JLabel l2 = new JLabel("Map from:");
@@ -858,15 +858,15 @@ public class MappingDialog extends JDialog
     CurrentMaps.addListSelectionListener(this);
     CurrentMapsView = new JScrollPane(CurrentMaps) {
       public Dimension getMinimumSize() {
-        return new Dimension(0, 40 * MapHeight - 15);
+        return new Dimension(0, 40 * MapHeight + 64);
       }
 
       public Dimension getPreferredSize() {
-        return new Dimension(200, 40 * MapHeight - 15);
+        return new Dimension(200, 40 * MapHeight + 64);
       }
 
       public Dimension getMaximumSize() {
-        return new Dimension(Integer.MAX_VALUE, 40 * MapHeight - 15);
+        return new Dimension(Integer.MAX_VALUE, 40 * MapHeight + 64);
       }
     };
     JLabel l4 = new JLabel("Current maps:");
