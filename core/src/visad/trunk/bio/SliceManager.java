@@ -1050,9 +1050,6 @@ public class SliceManager
     // adjust display aspect ratio
     bio.setAspect(res_x, res_y, Double.NaN);
 
-    // set up color table characteristics
-    //bio.toolColor.doColorTable();
-
     // set up display listener for 3-D display
     if (bio.display3 != null) bio.display3.addDisplayListener(this);
   }
@@ -1135,7 +1132,7 @@ public class SliceManager
   }
 
   /** Updates the animation controls. */
-  private void updateAnimationControls() {
+  void updateAnimationControls() {
     try {
       if (anim_control2 != null) anim_control2.setCurrent(index);
       if (anim_control3 != null) anim_control3.setCurrent(index);

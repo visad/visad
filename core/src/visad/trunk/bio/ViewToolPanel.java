@@ -285,8 +285,6 @@ public class ViewToolPanel extends ToolPanel {
     doVolume.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         boolean b = doVolume.isSelected();
-        volumeValue.setEnabled(b);
-        volumeRes.setEnabled(b);
         bio.setVolume(b);
       }
     });
@@ -297,8 +295,6 @@ public class ViewToolPanel extends ToolPanel {
     int detail = VisBio.RESOLUTION_DETAIL;
     int normal = detail / 2;
     volumeValue = new JLabel("");
-    Dimension d = doVolume.getPreferredSize();
-    //volumeValue.setPreferredSize(new Dimension(detail - d.width, d.height));
     volumeValue.setEnabled(false);
     p.add(volumeValue);
     controls.add(pad(p));
@@ -323,9 +319,6 @@ public class ViewToolPanel extends ToolPanel {
     doSlice.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         boolean b = doSlice.isSelected();
-        sliceValue.setEnabled(b);
-        sliceRes.setEnabled(b);
-        sliceContinuous.setEnabled(b);
         bio.sm.setPlaneSelect(b);
         bio.vert.setEnabled(!b);
         bio.toolMeasure.setEnabled(!b);
@@ -337,8 +330,6 @@ public class ViewToolPanel extends ToolPanel {
 
     // current slice value
     sliceValue = new JLabel("");
-    d = doSlice.getPreferredSize();
-    //sliceValue.setPreferredSize(new Dimension(detail - d.width, d.height));
     sliceValue.setEnabled(false);
     p.add(sliceValue);
     controls.add(pad(p));
@@ -400,9 +391,14 @@ public class ViewToolPanel extends ToolPanel {
     hiRes.setEnabled(b);
     autoSwitch.setEnabled(b);
     anim.setEnabled(b);
-    b = enabled && bio.sm.getNumberOfSlices() > 1;
-    doVolume.setEnabled(b && bio.display3 != null);
-    doSlice.setEnabled(b && bio.display3 != null);
+    b = enabled && bio.sm.getNumberOfSlices() > 1 && bio.display3 != null;
+    doVolume.setEnabled(b);
+    volumeValue.setEnabled(b);
+    volumeRes.setEnabled(b);
+    doSlice.setEnabled(b);
+    sliceValue.setEnabled(b);
+    sliceRes.setEnabled(b);
+    sliceContinuous.setEnabled(b);
   }
 
   /** Switches between lo-res and hi-res mode. */

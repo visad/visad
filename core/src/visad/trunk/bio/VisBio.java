@@ -292,6 +292,7 @@ public class VisBio extends GUIFrame implements ChangeListener {
   /** Toggles the visibility of the preview displays. */
   public void setPreview(boolean preview) {
     if (previewPane == null) return;
+    if (preview) sm.updateAnimationControls();
     previewPane.setVisible(preview);
   }
 
