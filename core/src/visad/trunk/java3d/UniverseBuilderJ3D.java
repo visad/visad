@@ -80,7 +80,7 @@ public class UniverseBuilderJ3D extends Object {
       // according to Kelvin Chung, 26 Apr 2000, this should work
       // but it throws a NullPointerException
       // view.attachViewPlatform(null);
-      vpRoot.detach();
+      universe.removeAllLocales();
     }
 
 }
