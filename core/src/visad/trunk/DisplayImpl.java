@@ -1175,24 +1175,59 @@ if (initialize) {
 
   /** only called for Control objects associated with 'single'
       DisplayRealType-s */
-  public Control getControl(Class c) {
+  public Control getControl(Class c) { return getControl(c, 0); }
+
+  /** find specified occurance for Control object of the specified class */
+  public Control getControl(Class c, int inst) {
+    return getControls(c, null, inst);
+  }
+
+  /** find all Control objects of the specified class */
+  public Vector getControls(Class c) {
+    Vector v = new Vector();
+    getControls(c, v, -1);
+    return v;
+  }
+
+  /**
+   * Internal method which does the bulk of the work for both
+   * <CODE>getControl()</CODE> and <CODE>getControls()</CODE>.
+   * If <CODE>v</CODE> is non-null, adds all <CODE>Control</CODE>s
+   *  of the specified <CODE>Class</CODE> to that <CODE>Vector</CODE>.
+   * Otherwise, returns <CODE>inst</CODE> instance of the
+   *  <CODE>Control</CODE> matching the specified <CODE>Class</CODE>,
+   *  or <CODE>null</CODE> if no <CODE>Control</CODE> matching the
+   *  criteria is found.
+   */
+  private Control getControls(Class ctlClass, Vector v, int inst)
+  {
+    if (ctlClass == null) {
+      return null;
+    }
+
     synchronized (ControlVector) {
-      Enumeration controls = ControlVector.elements();
-      while(controls.hasMoreElements()) {
-        Control control = (Control) controls.nextElement();
-/* WLH 19 March 99
-        if (c.equals(control.getClass())) return control;
-*/
-        if (c.isInstance(control)) return control;
+      Enumeration enum = ControlVector.elements();
+      while(enum.hasMoreElements()) {
+        Control c = (Control )enum.nextElement();
+        if (ctlClass.isInstance(c)) {
+          if (v != null) {
+            v.addElement(c);
+          } else if (c.getInstanceNumber() == inst) {
+            return c;
+          }
+        }
       }
     }
     return null;
   }
 
+  /** return the total number of controls used by this display */
+  public int getNumberOfControls() { return ControlVector.size(); }
+
+  /** @deprecated - DisplayImpl shouldn't expose itself at this level. */
   public Vector getControlVector() {
     return (Vector) ControlVector.clone();
   }
-
 
   /* CTR 4 October 1999 - begin code for this Display's Control widgets */
 
