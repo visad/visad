@@ -37,10 +37,6 @@ import java.rmi.*;
 */
 public class DefaultRendererJ2D extends RendererJ2D {
 
-  // System.currentTimeMillis() when doTransform started
-  long start_time;
-  boolean time_flag;
-
   DataDisplayLink link;
 
   /** this is the default DataRenderer used by the addReference method
@@ -78,8 +74,8 @@ public class DefaultRendererJ2D extends RendererJ2D {
         new DisplayException("Data is null: DefaultRendererJ2D.doTransform"));
     }
     else {
-      start_time = System.currentTimeMillis();
-      time_flag = false;
+      link.start_time = System.currentTimeMillis();
+      link.time_flag = false;
       type.preProcess();
       boolean post_process =
         type.doTransform(branch, data, valueArray,
@@ -93,6 +89,10 @@ public class DefaultRendererJ2D extends RendererJ2D {
   void addSwitch(DisplayRendererJ2D displayRenderer, VisADGroup branch)
        throws VisADException {
     displayRenderer.addSceneGraphComponent(branch);
+  }
+
+  public DataDisplayLink getLink() {
+    return link;
   }
 
 }

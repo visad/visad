@@ -27,6 +27,7 @@ package visad;
 
 import java.util.*;
 import java.rmi.*;
+import java.awt.image.BufferedImage;
 
 /**
    The ShadowType hierarchy shadows the MathType hierarchy,
@@ -2132,6 +2133,72 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
     } // end for (int i=0; i<valueArrayLength; i++)
     if (range_select[0] != null && !anySelect) range_select[0] = null;
     return range_select;
+  }
+
+  public int textureWidth(int data_width) {
+    return data_width;
+  }
+
+  public int textureHeight(int data_height) {
+    return data_height;
+  }
+
+  public void adjustZ(float[] coordinates) {
+  }
+
+  public void setTexCoords(float[] texCoords, float ratiow, float ratioh) {
+  }
+
+  public Vector getTextMaps(int i, int[] textIndices) {
+    return new Vector();
+  }
+
+  public boolean addToGroup(Object group, VisADGeometryArray array,
+                            GraphicsModeControl mode,
+                            float constant_alpha, float[] constant_color)
+         throws VisADException {
+    return false;
+  }
+
+  public void textureToGroup(Object group, VisADGeometryArray array,
+                            BufferedImage image, GraphicsModeControl mode,
+                            float constant_alpha, float[] constant_color,
+                            int texture_width, int texture_height)
+         throws VisADException {
+  }
+
+  public Object makeSwitch() {
+    return null;
+  }
+
+  public Object makeBranch() {
+    return null;
+  }
+
+  public void addToSwitch(Object swit, Object branch)
+         throws VisADException {
+  }
+
+  public void addSwitch(Object group, Object swit, Control control,
+                        Set domain_set, DataRenderer renderer)
+         throws VisADException {
+  }
+
+  public boolean recurseRange(Object group, Data data, float[] value_array,
+                             float[] default_values, DataRenderer renderer)
+         throws VisADException, RemoteException {
+    return false;
+  }
+
+  public TextControl getParentTextControl() {
+    return null;
+  }
+
+  public String getParentText() {
+    return null;
+  }
+
+  public void setText(String text, TextControl control) {
   }
 
   public String toString() {

@@ -23,6 +23,22 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
+/*
+ 
+VisAD display logic efficiencies:
+
+1. Special cases of MathTypes, ScalarMaps and Sets
+   for more efficient memory use
+
+2. Unify java2d and java3d logic
+
+3. Make scene graph 'live' during build
+
+4. Attach 'ShadowData' tree of scene graph nodes to DataDisplayLink,
+   use it to replace scene graph components during replace
+ 
+*/
+
 package visad.java3d;
 
 import visad.*;
@@ -49,6 +65,10 @@ public class DisplayImplJ3D extends DisplayImpl {
 
   /** distance behind for surfaces in 2-D mode */
   public static final float BACK2D = -2.0f;
+
+  /** a Java3D constant */
+  public static final int PARALLEL_PROJECTION =
+    javax.media.j3d.View.PARALLEL_PROJECTION;
 
   /** legal values for api */
   public static final int UNKNOWN = 0;

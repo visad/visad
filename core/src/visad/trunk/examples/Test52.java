@@ -89,7 +89,7 @@ public class Test52
 
   public String toString()
   {
-    return ": test image capture from offscreen in Java2D";
+    return ": image capture from offscreen in Java2D";
   }
 
   public static void main(String args[])

@@ -312,6 +312,14 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
     return true;
   }
 
+  /** used for transform time-out hack */
+  public DataDisplayLink getLink() {
+    return null;
+  }
+
+  public boolean isLegalTextureMap() {
+    return true;
+  }
 
   /* *************************** */
   /*  direct manipulation stuff  */

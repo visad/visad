@@ -55,7 +55,7 @@ public class Test27
     mode.setPointSize(5.0f);
     mode.setPointMode(false);
 
-    mode.setProjectionPolicy(javax.media.j3d.View.PARALLEL_PROJECTION);
+    mode.setProjectionPolicy(DisplayImplJ3D.PARALLEL_PROJECTION);
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);

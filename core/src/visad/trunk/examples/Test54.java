@@ -94,7 +94,7 @@ public class Test54
 
   String getFrameTitle() { return "background color in Java3D"; }
 
-  public String toString() { return ": test background color in Java3D"; }
+  public String toString() { return ": background color in Java3D"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

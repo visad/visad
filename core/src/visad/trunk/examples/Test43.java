@@ -140,7 +140,7 @@ public class Test43
 
   public String toString()
   {
-    return ": Function.derivative test with Linear2DSet in Java2D";
+    return ": Function.derivative with Linear2DSet in Java2D";
   }
 
   public static void main(String args[])

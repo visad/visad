@@ -45,7 +45,7 @@ public class Test49
     return dpys;
   }
 
-  public String toString() { return ": test 1-D line and ConstantMap colors"; }
+  public String toString() { return ": 1-D line and ConstantMap colors"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

@@ -41,7 +41,6 @@ import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
  
-import javax.media.j3d.*;
 /**
    HSVDisplay is an application for interactively exploring
    the relation between the HSV and RGB color coordiantes.<P>

@@ -60,6 +60,10 @@ public class DataDisplayLink extends ReferenceActionLink {
       Control changes */
   boolean[] isTransform;
 
+  /** transform time-out hack */
+  public long start_time; // System.currentTimeMillis() when doTransform started
+  public boolean time_flag;
+
   public DataDisplayLink(DataReference ref, DisplayImpl local_d, Display d,
                   ConstantMap[] constant_maps, DataRenderer rend, long jd)
                   throws VisADException, RemoteException {

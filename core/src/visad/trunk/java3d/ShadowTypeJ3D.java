@@ -78,7 +78,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     return adaptedShadowType.getComponents(type, doRef);
   }
 
-  String getParentText() {
+  public String getParentText() {
     if (Parent != null && Parent.inheritedText != null &&
         Parent.inheritedTextControl != null) {
       return Parent.inheritedText;
@@ -88,7 +88,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     }
   }
  
-  TextControl getParentTextControl() {
+  public TextControl getParentTextControl() {
     if (Parent != null && Parent.inheritedText != null &&
         Parent.inheritedTextControl != null) {
       return Parent.inheritedTextControl;
@@ -98,7 +98,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     }
   }
  
-  void setText(String text, TextControl control) {
+  public void setText(String text, TextControl control) {
     inheritedText = text;
     inheritedTextControl = control;
   }

@@ -98,7 +98,7 @@ public class Test51
     }
   }
 
-  public String toString() { return ": test image capture in Java3D"; }
+  public String toString() { return ": image capture in Java3D"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

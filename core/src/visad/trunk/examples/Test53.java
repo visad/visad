@@ -101,7 +101,7 @@ public class Test53
 
   String getFrameTitle() { return "background color in Java2D"; }
 
-  public String toString() { return ": test background color in Java2D"; }
+  public String toString() { return ": background color in Java2D"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

@@ -159,5 +159,9 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
     displayRenderer.addDirectManipulationSceneGraphComponent(branch, this);
   }
 
+  public boolean isLegalTextureMap() {
+    return false;
+  }
+
 }
 
