@@ -494,20 +494,18 @@ event_switch:
             }
             else if (t1Pressed) {
               // current_x, current_y -> translate
-              if (mode2D) {
-                double transx = xmul * (start_x - current_x);
-                double transy = ymul * (start_y - current_y);
-                t1 = behavior.make_translate(-transx, -transy);
-              }
-              else {
-                double transx =
-                  (start_x - current_x) * -2.0 / (double) d.width;
-                double transy =
-                  (start_y - current_y) * 2.0 / (double) d.width;
-                  // WLH 8 Aug 2000
-                  // (start_y - current_y) * 2.0 / (double) d.height;
-                t1 = behavior.make_translate(transx, transy);
-              }
+              double transx = xmul * (start_x - current_x);
+              double transy = ymul * (start_y - current_y);
+              t1 = behavior.make_translate(-transx, -transy);
+/* WLH 9 Aug 2000
+              double transx =
+                (start_x - current_x) * -2.0 / (double) d.width;
+              double transy =
+                (start_y - current_y) * 2.0 / (double) d.width;
+                // WLH 8 Aug 2000
+                // (start_y - current_y) * 2.0 / (double) d.height;
+              t1 = behavior.make_translate(transx, transy);
+*/
             }
             else {
               if (!mode2D) {
