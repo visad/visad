@@ -101,6 +101,9 @@ public class VisADSlider extends JPanel implements ChangeListener,
   /** <CODE>true</CODE> if the widget will auto-scale */
   private boolean autoScale;
 
+  /** <CODE>true</CODE> if the slider ticks should be integers */
+  private boolean integralValues;
+
   /** JSlider values range between low and hi (with initial value
       st) and are multiplied by scale to create Real values
       of RealType rt referenced by ref */
@@ -110,23 +113,38 @@ public class VisADSlider extends JPanel implements ChangeListener,
     this(ref, null, (float) (lo * scale), (float) (hi * scale),
                     (float) (st * scale), hi - lo,
                     (ref == null || ref.getData() instanceof Real) ? null : rt,
-                    n);
+                    n, false);
   }
 
   /** construct a VisADSlider from a ScalarMap that maps to
-      Display.SelectValue, with auto-scaling minimum and maximum bounds */
+   *  Display.SelectValue, with auto-scaling minimum and maximum bounds
+   *  and non-integral values.
+   */
   public VisADSlider(ScalarMap smap) throws VisADException, RemoteException {
     // CASE ONE
-    this(null, smap, Float.NaN, Float.NaN, Float.NaN, D_TICKS, null, null);
+    this(null, smap, Float.NaN, Float.NaN, Float.NaN, D_TICKS, null, null,
+         false);
   }
 
   /** construct a VisADSlider from a ScalarMap that maps to
-      Display.SelectValue, with minimum and maximum bounds min and max,
-      and no auto-scaling */
+   *  Display.SelectValue, with auto-scaling minimum and maximum bounds
+   *  and integer values.
+   */
+  public VisADSlider(ScalarMap smap, boolean integralTicks)
+                     throws VisADException, RemoteException {
+    // CASE ONE
+    this(null, smap, Float.NaN, Float.NaN, Float.NaN, D_TICKS, null, null,
+         integralTicks);
+  }
+
+  /** construct a VisADSlider from a ScalarMap that maps to
+   *  Display.SelectValue, with minimum and maximum bounds min and max,
+   *  no auto-scaling, and non-integer values.
+   */
   public VisADSlider(ScalarMap smap, float min, float max)
                      throws VisADException, RemoteException {
     // CASE TWO
-    this(null, smap, min, max, Float.NaN, D_TICKS, null, null);
+    this(null, smap, min, max, Float.NaN, D_TICKS, null, null, false);
   }
 
   /** construct a VisADSlider by creating a Real and linking it to r,
@@ -136,7 +154,7 @@ public class VisADSlider extends JPanel implements ChangeListener,
                      RealType rt, String n) throws VisADException,
                                                    RemoteException {
     // CASE THREE
-    this(ref, null, min, max, start, D_TICKS, rt, n);
+    this(ref, null, min, max, start, D_TICKS, rt, n, false);
   }
 
   /** construct a VisADSlider from an existing Real pointed to by r,
@@ -144,13 +162,16 @@ public class VisADSlider extends JPanel implements ChangeListener,
   public VisADSlider(DataReference ref, float min, float max)
                      throws VisADException, RemoteException {
     // CASE FOUR
-    this(ref, null, min, max, Float.NaN, D_TICKS, null, null);
+    this(ref, null, min, max, Float.NaN, D_TICKS, null, null, false);
   }
 
   /** complete constructor */
   private VisADSlider(DataReference ref, ScalarMap smap, float min, float max,
-                      float start, int sliderTicks, RealType rt, String n)
+                      float start, int sliderTicks, RealType rt, String n,
+                      boolean integralValues)
                       throws VisADException, RemoteException {
+    this.integralValues = integralValues;
+
     // set up some UI components
     setAlignmentX(LEFT_ALIGNMENT);   // VisADSliders default to LEFT_ALIGNMENT
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -174,13 +195,11 @@ public class VisADSlider extends JPanel implements ChangeListener,
         throw new VisADException("VisADSlider: must specify either a " +
                                  "DataReference or a ScalarMap!");
       }
-      DisplayRealType drt = smap.getDisplayScalar();
-      if (drt != Display.SelectValue) {
+      if (smap.getDisplayScalar() != Display.SelectValue) {
         throw new VisADException("VisADSlider: ScalarMap must be to " +
                                  "Display.SelectValue!");
       }
-      ScalarType st = smap.getScalar();
-      if (!(st instanceof RealType)) {
+      if (!(smap.getScalar() instanceof RealType)) {
         throw new VisADException("VisADSlider: ScalarMap must be from " +
                                  "a RealType!");
       }
@@ -192,7 +211,6 @@ public class VisADSlider extends JPanel implements ChangeListener,
                                  "to a Display");
       }
       sRef = null;
-      // sName = st.getName();
       sName = smap.getScalarName();
       start = (float) control.getValue();
 
@@ -200,6 +218,15 @@ public class VisADSlider extends JPanel implements ChangeListener,
         // do not use auto-scaling (CASE TWO)
         sMinimum = min;
         sMaximum = max;
+
+        if (integralValues) {
+          int tmp = (int )(sMaximum - sMinimum);
+          if (tmp != sTicks) {
+            sTicks = tmp;
+            slider.setMaximum(sTicks);
+          }
+        }
+
         sCurrent = start;
         initLabel();
         smap.setRange(min, max);
@@ -322,6 +349,10 @@ public class VisADSlider extends JPanel implements ChangeListener,
     try {
       double val = slider.getValue();
       double cur = (sMaximum - sMinimum) * (val / sTicks) + sMinimum;
+      if (integralValues) {
+        cur = Math.floor(cur + 0.5);
+      }
+
       if (!Util.isApproximatelyEqual(sCurrent, cur)) {
         if (smapControl) control.setValue(cur);
         else if (sRef != null) {
@@ -351,6 +382,15 @@ public class VisADSlider extends JPanel implements ChangeListener,
     double[] range = map.getRange();
     sMinimum = (float) range[0];
     sMaximum = (float) range[1];
+
+    if (integralValues) {
+      int tmp = (int )(sMaximum - sMinimum);
+      if (tmp != sTicks) {
+        sTicks = tmp;
+        slider.setMaximum(sTicks);
+      }
+    }
+
     sCurrent = (float) control.getValue();
     if (sCurrent < sMinimum || sCurrent > sMaximum) {
       sCurrent = (sMinimum + sMaximum) / 2;
@@ -388,6 +428,10 @@ public class VisADSlider extends JPanel implements ChangeListener,
 
   /** Update the slider's value */
   private synchronized void updateSlider(double value) {
+    if (integralValues) {
+      value = Math.floor(value + 0.5);
+    }
+
     int ival = (int) (sTicks * ((value - sMinimum) / (sMaximum - sMinimum)));
     if (Math.abs(slider.getValue() - ival) > 1) {
       slider.removeChangeListener(this);
