@@ -75,18 +75,12 @@ public class Test37
     RealType[] types2 = {vis_radiance, ir_radiance};
     RealTupleType radiance = new RealTupleType(types2);
     FunctionType image_tuple = new FunctionType(earth_location, radiance);
-    RealType[] typesxx = {RealType.Longitude, RealType.Latitude};
+    RealType[] typesxx = {RealType.Longitude, RealType.Latitude, RealType.Altitude};
     RealTupleType earth_locationxx = new RealTupleType(typesxx);
     FunctionType image_tuplexx = new FunctionType(earth_locationxx, radiance);
 
     int size = 64;
     FlatField imaget1;
-    if (!reverse) {
-      imaget1 = FlatField.makeField(image_tuple, size, false);
-    }
-    else {
-      imaget1 = FlatField.makeField(image_tuplexx, size, false);
-    }
 
     double first = 0.0;
     double last = size - 1.0;
@@ -106,12 +100,19 @@ public class Test37
           2f*((float)Math.sin(2*ang*ii)) + 2f*((float)Math.sin(2*ang*jj));
       }
     }
-    Gridded3DSet d_set =
-      new Gridded3DSet(RealTupleType.SpatialCartesian3DTuple, locs, nr, nc);
-    imaget1 = new FlatField(image_tuple, d_set);
-    FlatField.fillField(imaget1, step, half);
 
-
+    if (!reverse) {
+      Gridded3DSet d_set =
+        new Gridded3DSet(earth_location, locs, nr, nc);
+       imaget1 = new FlatField(image_tuple, d_set);
+       FlatField.fillField(imaget1, step, half);
+    }
+    else {
+      Gridded3DSet d_set =
+        new Gridded3DSet(earth_locationxx, locs, nr, nc);
+      imaget1 = new FlatField(image_tuplexx, d_set);
+      FlatField.fillField(imaget1, step, half);
+    }
 
     dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
     dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
@@ -162,7 +163,6 @@ public class Test37
     jframe2.setContentPane(big_panel);
     jframe2.pack();
     jframe2.setVisible(true);
-
   }
 
   public String toString()
