@@ -290,47 +290,56 @@ public class AddeURLConnection extends URLConnection
     byte [] svc = null;
     if (request.startsWith("imagedir"))
     {
-        svc = (new String("adir")).getBytes();
+        //svc = (new String("adir")).getBytes();
+        svc = "adir".getBytes();
         reqType = ADIR;
     }
     else if (request.startsWith("datasetinfo"))
     {
-        svc = (new String("lwpr")).getBytes();
+        //svc = (new String("lwpr")).getBytes();
+        svc = "lwpr".getBytes();
         reqType = LWPR;
     }
     else if (request.startsWith("text"))
     {
-        svc = (new String("txtg")).getBytes();
+        //svc = (new String("txtg")).getBytes();
+        svc = "txtg".getBytes();
         reqType = TXTG;
     }
     else if (request.startsWith("wxtext"))
     {
-        svc = (new String("wtxg")).getBytes();
+        //svc = (new String("wtxg")).getBytes();
+        svc = "wtxg".getBytes();
         reqType = WTXG;
     }
     else if (request.startsWith("obtext"))
     {
-        svc = (new String("obtg")).getBytes();
+        //svc = (new String("obtg")).getBytes();
+        svc = "obtg".getBytes();
         reqType = OBTG;
     }
     else if (request.startsWith("image"))
     {
-        svc = (new String("aget")).getBytes();
+        //svc = (new String("aget")).getBytes();
+        svc = "aget".getBytes();
         reqType = AGET;
     }
     else if (request.startsWith("griddir"))
     {
-        svc = (new String("gdir")).getBytes();
+        //svc = (new String("gdir")).getBytes();
+        svc = "gdir".getBytes();
         reqType = GDIR;
     }
     else if (request.startsWith("grid"))
     {
-        svc = (new String("gget")).getBytes();
+        //svc = (new String("gget")).getBytes();
+        svc = "gget".getBytes();
         reqType = GGET;
     }
     else if (request.startsWith("point"))
     {
-        svc = (new String("mdks")).getBytes();
+        //svc = (new String("mdks")).getBytes();
+        svc = "mdks".getBytes();
         reqType = MDKS;
     }
     else
@@ -1097,8 +1106,8 @@ public class AddeURLConnection extends URLConnection
       if (subsetString != null) buf.append(subsetString);
 
       // create command string
-      String posParams = new String (
-         groupString + " " + descrString + " " + sizeString + " " );
+      String posParams = //new String (
+         groupString + " " + descrString + " " + sizeString + " " ;//);
 
       try {
         buf.insert(0,posParams);
@@ -1231,8 +1240,8 @@ public class AddeURLConnection extends URLConnection
 
         // now create command string
         String posParams = 
-            new String(
-                groupString + " " + descrString + " " + posString + " ");
+            //new String(
+                groupString + " " + descrString + " " + posString + " ";//);
         try
         {
             buf.insert(0, posParams);
@@ -1429,7 +1438,8 @@ public class AddeURLConnection extends URLConnection
         buf.append(traceString);
         // now create command string
         String posParams = 
-            new String(groupString + " ");
+            //new String(groupString + " ");
+                         groupString + " ";
         try
         {
             buf.insert(0, posParams);
@@ -1507,13 +1517,13 @@ public class AddeURLConnection extends URLConnection
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("co"))       // id keyword
+            if (testString.startsWith("co"))       // co keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("reg"))       // id keyword
+            if (testString.startsWith("reg"))       // reg keyword
             {
                 buf.append(" ");
                 buf.append(testString);
@@ -1560,7 +1570,8 @@ public class AddeURLConnection extends URLConnection
         buf.append(traceString);
         // now create command string
         String posParams = 
-            new String(groupString + " " + descrString + " " + idreqString);
+            //new String(groupString + " " + descrString + " " + idreqString);
+                       groupString + " " + descrString + " " + idreqString;
         try
         {
             buf.insert(0, posParams);
@@ -1769,15 +1780,32 @@ public class AddeURLConnection extends URLConnection
         } 
 
         // now create command string
+        /*
         StringBuffer posParams = 
             new StringBuffer(
                  groupString + " " + descrString + " " + parmString + " " + selectString + " " + posString + " " + traceString + " " + maxString);
+        */
+        StringBuffer posParams = new StringBuffer();
+        posParams.append(groupString);
+        posParams.append(" ");
+        posParams.append(descrString);
+        posParams.append(" ");
+        posParams.append(parmString);
+        posParams.append(" ");
+        posParams.append(selectString);
+        posParams.append(" ");
+        posParams.append(posString);
+        posParams.append(" ");
+        posParams.append(traceString);
+        posParams.append(" ");
+        posParams.append(maxString);
+
         if (debug) System.out.println("String passed to server = " + posParams);
 
         // stuff it in at the beginning
         try
         {
-            buf.insert(0, posParams);
+            buf.insert(0, posParams.toString());
             if (debug) System.out.println("buf = " + buf);
         }
         catch (StringIndexOutOfBoundsException e)
@@ -1948,7 +1976,8 @@ public class AddeURLConnection extends URLConnection
        }
        else
        {
-           retVal = new String(s + " " + s);
+           //retVal = new String(s + " " + s);
+           retVal = s + " " + s;
        }
        return retVal;
     }
