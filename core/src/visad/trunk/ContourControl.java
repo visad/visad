@@ -217,7 +217,8 @@ public class ContourControl extends Control {
     if (levs == null) return;
     levels = new float[levs.length];
     float min = Float.MAX_VALUE;
-    float max = Float.MIN_VALUE;
+    // float max = Float.MIN_VALUE;
+    float max = -Float.MAX_VALUE;
     for (int i=0; i<levs.length; i++) {
       if (levs[i] < min) min = levs[i];
       if (levs[i] > max) max = levs[i];

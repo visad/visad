@@ -356,10 +356,10 @@ public class Aeri
   }
 
   double lon_min = Double.MAX_VALUE;
-  double lon_max = Double.MIN_VALUE;
+  double lon_max = -Double.MAX_VALUE;
   double lat_min = Double.MAX_VALUE;
-  double lat_max = Double.MIN_VALUE;
-  double hgt_max = Double.MIN_VALUE;
+  double lat_max = -Double.MAX_VALUE;
+  double hgt_max = -Double.MAX_VALUE;
 
   DataImpl makePoles()
            throws VisADException, RemoteException
@@ -370,7 +370,7 @@ public class Aeri
 
     for ( int kk = 0; kk < n_stations; kk++ ) {
       boolean any = false;
-      float hgt = Float.MIN_VALUE;
+      float hgt = -Float.MAX_VALUE;
       FieldImpl station = (FieldImpl) stations_field.getSample(kk);
       if (station == null) continue;
       int len = station.getLength();

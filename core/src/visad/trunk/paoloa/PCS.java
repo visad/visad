@@ -700,9 +700,9 @@ public class PCS
     Gridded1DSet pressureSet = new Gridded1DSet(pressure, values, nlevels);
     // compute ll_field and ll_select
     float latmin = Float.MAX_VALUE;
-    float latmax = Float.MIN_VALUE;
+    float latmax = -Float.MAX_VALUE;
     float lonmin = Float.MAX_VALUE;
-    float lonmax = Float.MIN_VALUE;
+    float lonmax = -Float.MAX_VALUE;
     float del_lat = 1.0f;
     float del_lon = 1.0f;
     lls = new float[2][ntimes];

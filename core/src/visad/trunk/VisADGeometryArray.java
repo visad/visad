@@ -138,7 +138,8 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
         lons = map.inverseScaleValues(lons);
         // get range of Longitude values
         float lon_min = Float.MAX_VALUE;
-        float lon_max = Float.MIN_VALUE;
+        // float lon_max = Float.MIN_VALUE;
+        float lon_max = -Float.MAX_VALUE;
         for (int i=0; i<vertexCount; i++) {
           if (lons[i] == lons[i]) {
             if (lons[i] < lon_min) lon_min = lons[i];
@@ -187,7 +188,8 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
     coords[0] = Float.NaN;
     coords[1] = Float.NaN;
     float lon_min = Float.MAX_VALUE;
-    float lon_max = Float.MIN_VALUE;
+    // float lon_max = Float.MIN_VALUE;
+    float lon_max = -Float.MAX_VALUE;
     for (int i=0; i<vertexCount; i++) {
       if (lons[i] == lons[i]) {
         if (lons[i] < lon_min) lon_min = lons[i];

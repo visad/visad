@@ -513,7 +513,9 @@ public class NetcdfGrids {
         for (int p=0; p<num_levels; p++) {
           index[levelDim] = p;
           range[p][0] = Double.MAX_VALUE;
-          range[p][1] = Double.MIN_VALUE;
+          // WLH 2 May 2000
+          // range[p][1] = Double.MIN_VALUE;
+          range[p][1] = -Double.MAX_VALUE;
 
           FieldImpl withTime = new FieldImpl(withTime_type, time_set);
 
@@ -548,7 +550,10 @@ public class NetcdfGrids {
 
       } else if (recordDim != -1) {
           range[0][0] = Double.MAX_VALUE;
-          range[0][1] = Double.MIN_VALUE;
+          // WLH 2 May 2000
+          // range[0][1] = Double.MIN_VALUE;
+          range[0][1] = -Double.MAX_VALUE;
+
           FieldImpl withTime = new FieldImpl(withTime_type, time_set);
 
           for (int t=0; t<num_records; t++) {

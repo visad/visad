@@ -170,7 +170,9 @@ public abstract class ConvertArray
   {
     // is it an array of real numbers?
     if (!integral) {
-      if (min >= Float.MIN_VALUE && max <= Float.MAX_VALUE) {
+      // WLH 2 May 2000
+      // if (min >= Float.MIN_VALUE && max <= Float.MAX_VALUE) {
+      if (min >= -Float.MAX_VALUE && max <= Float.MAX_VALUE) {
 	return FLOAT_ARRAY;
       }
 

@@ -356,7 +356,8 @@ public abstract class Set extends DataImpl {
       double[][] set_values = set.getDoubles();
       double set_val = set_values[0][0];
       double min = Double.MAX_VALUE;
-      double max = Double.MIN_VALUE;
+      // double max = Double.MIN_VALUE;
+      double max = -Double.MAX_VALUE;
       for (int i=0; i<length; i++) {
         if (values[0][i] > max) max = values[0][i];
         if (values[0][i] < min) min = values[0][i];
