@@ -31,8 +31,8 @@ import java.awt.image.MemoryImageSource;
 import java.io.*;
 import java.net.*;
 
-/** An applet for connecting to a VisAD display available through
-    a SocketServer. The applet functions completely independently
+/** An applet for connecting to a VisAD display available through a
+    SocketSlaveDisplay server. The applet functions completely independently
     of VisAD, using only JDK 1.1 code, so that it can be imbedded
     within a web page for use in a web browser. */
 public class VisADApplet extends Applet
@@ -171,10 +171,11 @@ public class VisADApplet extends Applet
           g.setColor(Color.black);
           g.drawString("VisADApplet v1.0", 80, 20);
           g.drawString("To connect to a VisAD display available", 10, 50);
-          g.drawString("through a SocketServer, type the IP address", 10, 70);
-          g.drawString("of the server into the IP address field", 10, 90);
-          g.drawString("and type the port of the server into the", 10, 110);
-          g.drawString("port field, then press the Connect button.", 10, 130);
+          g.drawString("through a SocketSlaveDisplay server, type", 10, 70);
+          g.drawString("the IP address of the server into the IP", 10, 90);
+          g.drawString("address field and type the port of the", 10, 110);
+          g.drawString("server into the port field, then press", 10, 130);
+          g.drawString("the Connect button.", 10, 150);
         }
       }
     };
@@ -348,11 +349,13 @@ public class VisADApplet extends Applet
   }
 
   public void mouseEntered(MouseEvent e) {
-    sendEvent(e);
+    // No need to send this event currently
+    // sendEvent(e);
   }
 
   public void mouseExited(MouseEvent e) {
-    sendEvent(e);
+    // No need to send this event currently
+    // sendEvent(e);
   }
 
   public void mousePressed(MouseEvent e) {

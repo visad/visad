@@ -95,6 +95,10 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   /** set to re-display all linked Data */
   private boolean redisplay_all = false;
 
+  /** set whenever display changes (FRAME_DONE event occurs) */
+  protected boolean dirty = true;
+
+
   /** length of ValueArray of distinct DisplayRealType values;
       one per Single DisplayRealType that occurs in a ScalarMap,
       plus one per ScalarMap per non-Single DisplayRealType;
@@ -393,6 +397,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
   public void notifyListeners(DisplayEvent evt)
          throws VisADException, RemoteException {
+    // CTR 23 May 2000 - set the dirty bit when FRAME_DONE received
+    if (evt.getId() == DisplayEvent.FRAME_DONE) dirty = true;
+
     if (ListenerVector != null) {
       synchronized (ListenerVector) {
         Enumeration listeners = ListenerVector.elements();
@@ -454,7 +461,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   }
 
 
-  /* CTR 21 Sep 1999 - begin code for slaved displays */
+  // CTR 21 Sep 1999 - begin code for slaved displays
 
   private Vector Slaves = new Vector();
 
@@ -475,7 +482,13 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
   /** whether there are any slave displays linked to this display */
   public boolean hasSlaves() {
-    return (!Slaves.isEmpty());
+    return !Slaves.isEmpty();
+  }
+
+  /** whether the slave displays need an image update */
+  public boolean slaveUpdateNeeded() {
+    if (true) return false;
+    return dirty && hasSlaves();
   }
 
   /** updates all linked slave displays with the given image */
@@ -498,9 +511,12 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       }
       catch (RemoteException e) { }
     }
+
+    // clear dirty bit
+    dirty = false;
   }
 
-  /* CTR 21 Sep 1999 - end code for slaved displays */
+  // CTR 21 Sep 1999 - end code for slaved displays
 
 
   /** link ref to this Display; this method may only be invoked
@@ -1284,7 +1300,7 @@ if (initialize) {
     return (Vector) ControlVector.clone();
   }
 
-  /* CTR 4 October 1999 - begin code for this Display's Control widgets */
+  // CTR 4 October 1999 - begin code for this Display's Control widgets
 
   /** whether the Control widget panel needs to be reconstructed */
   private boolean needWidgetRefresh = true;
@@ -1395,7 +1411,7 @@ if (initialize) {
     widgetPanel.add(c);
   }
 
-  /* CTR 4 October 1999 - end code for this Display's Control widgets */
+  // CTR 4 October 1999 - end code for this Display's Control widgets
 
 
   public int getValueArrayLength() {

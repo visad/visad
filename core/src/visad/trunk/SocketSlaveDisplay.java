@@ -1,5 +1,5 @@
 //
-// SocketServer.java
+// SocketSlaveDisplay.java
 //
 
 /*
@@ -35,13 +35,12 @@ import java.rmi.RemoteException;
 import java.util.Vector;
 import visad.util.Util;
 
-/** SocketServer wraps around a VisAD display, providing support for
-    stand-alone remote displays (i.e., not dependent on the VisAD packages)
+/** A SocketSlaveDisplay server wraps around a VisAD display, providing support
+    for stand-alone remote displays (i.e., not dependent on the VisAD packages)
     that communicate with the server using sockets. For an example, see
-    examples/Test68.java together with the
-    <a href="http://www.ssec.wisc.edu/~curtis/visad-applet.html">
-    stand-alone VisADApplet</a> usable from within a web browser. */
-public class SocketServer implements RemoteSlaveDisplay {
+    examples/Test68.java together with the stand-alone VisAD applet at
+    examples/VisADApplet.java, usable from witin a web browser. */
+public class SocketSlaveDisplay implements RemoteSlaveDisplay {
 
   /** debugging flag */
   private static final boolean DEBUG = false;
@@ -88,9 +87,6 @@ public class SocketServer implements RemoteSlaveDisplay {
   /** whether the server is still alive */
   private boolean alive = true;
 
-  /** whether the display update was triggered by a getImage() call */
-  private boolean trigger = false;
-
   /** contains the code for monitoring incoming clients */
   private Runnable connect = new Runnable() {
     public void run() {
@@ -125,6 +121,7 @@ public class SocketServer implements RemoteSlaveDisplay {
   private Runnable comm = new Runnable() {
     public void run() {
       while (alive) {
+        boolean silence = true;
         synchronized (clientSockets) {
           for (int i=0; i<clientInputs.size(); i++) {
             DataInputStream in = (DataInputStream) clientInputs.elementAt(i);
@@ -132,6 +129,7 @@ public class SocketServer implements RemoteSlaveDisplay {
             // check for client requests in the form of MouseEvent data
             try {
               if (in.available() > 0) {
+                silence = false;
                 // receive the MouseEvent data
                 int id = in.readInt();
                 long when = in.readLong();
@@ -165,6 +163,8 @@ public class SocketServer implements RemoteSlaveDisplay {
               if (DEBUG) exc.printStackTrace();
             }
           }
+        }
+        if (silence) {
           try {
             Thread.sleep(500);
           }
@@ -174,14 +174,14 @@ public class SocketServer implements RemoteSlaveDisplay {
     }
   };
 
-  /** construct a SocketServer for the given VisAD display */
-  public SocketServer(DisplayImpl d) throws IOException {
+  /** construct a SocketSlaveDisplay for the given VisAD display */
+  public SocketSlaveDisplay(DisplayImpl d) throws IOException {
     this(d, DEFAULT_PORT);
   }
 
-  /** construct a SocketServer for the given VisAD display,
+  /** construct a SocketSlaveDisplay for the given VisAD display,
       and communicate with clients using the given port */
-  public SocketServer(DisplayImpl d, int port) throws IOException {
+  public SocketSlaveDisplay(DisplayImpl d, int port) throws IOException {
     display = d;
     this.port = port;
 
@@ -200,7 +200,7 @@ public class SocketServer implements RemoteSlaveDisplay {
     display.addSlave(this);
   }
 
-  /** get the socket port used by this SocketServer */
+  /** get the socket port used by this SocketSlaveDisplay */
   public int getPort() {
     return port;
   }

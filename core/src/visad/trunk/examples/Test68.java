@@ -91,33 +91,33 @@ public class Test68
     ref_imaget1.setData(imaget1);
     dpys[0].addReference(ref_imaget1, null);
 
-    // create the SocketServer for automatic handling of socket clients
-    SocketServer serv = null;
+    // create the SocketSlaveDisplay for automatic handling of socket clients
+    SocketSlaveDisplay serv = null;
     try {
       DisplayImpl display = (DisplayImpl) dpys[0];
       if (port > 0) {
-        serv = new SocketServer(display, port);
+        serv = new SocketSlaveDisplay(display, port);
       } else {
-        serv = new SocketServer(display);
+        serv = new SocketSlaveDisplay(display);
       }
     }
     catch (IOException exc) {
-      System.err.println("Unable to create the SocketServer:");
+      System.err.println("Unable to create the SocketSlaveDisplay:");
       exc.printStackTrace();
     }
     if (serv != null) {
-      System.out.println("SocketServer created.\n" +
+      System.out.println("SocketSlaveDisplay created.\n" +
         "To connect a client from within a web browser,\n" +
         "use the VisADApplet applet found in visad/examples.\n" +
         "Note that an applet cannot communicate with a server\n" +
         "via the network unless both applet and server\n" +
         "originate from the same machine.  In the future,\n" +
-        "VisAD's SocketServer will support communication\n" +
+        "VisAD's SocketSlaveDisplay will support communication\n" +
         "through a proxy server.");
     }
   }
 
-  public String toString() { return " port: SocketServer"; }
+  public String toString() { return " port: SocketSlaveDisplay"; }
 
   public static void main(String[] args)
     throws RemoteException, VisADException

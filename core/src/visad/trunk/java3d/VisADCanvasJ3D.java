@@ -65,7 +65,7 @@ public class VisADCanvasJ3D extends Canvas3D {
   }
 
   public void postSwap() {
-    if (captureFlag || display.hasSlaves()) {
+    if (captureFlag || display.slaveUpdateNeeded()) {
       // WLH 18 March 99 - SRP suggests that in some implementations
       // this may need to be in postRender (invoked before buffer swap)
       captureFlag = false;
@@ -92,7 +92,7 @@ public class VisADCanvasJ3D extends Canvas3D {
       displayRenderer.notifyCapture();
 
       // CTR 21 Sep 99 - send BufferedImage to any attached slaved displays
-      if (display.hasSlaves()) display.updateSlaves(captureImage);
+      if (display.slaveUpdateNeeded()) display.updateSlaves(captureImage);
     }
     // WLH 15 March 99
     try {
