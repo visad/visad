@@ -351,7 +351,7 @@ public class Vis5DCoordinateSystem extends MapProjection
           //-latlon[0][kk] = NorthBound - rowcol[0][kk]
              latlon[0][kk] = NorthBound - (Nr-1-rowcol[0][kk])
                      * (NorthBound-SouthBound) / (double) (Nr-1);
-             latlon[1][kk] = WestBound - rowcol[0][kk]
+             latlon[1][kk] = WestBound - rowcol[1][kk]
                      * (WestBound-EastBound) / (double) (Nc-1);
            }
            pandg_back(latlon, CentralLat, CentralLon, Rotation);
