@@ -290,6 +290,38 @@ public abstract class ShadowTypeJ2D extends ShadowType {
                        swap, constant_alpha, constant_color, shadow_api);
   }
 
+  public void addLabelsToGroup(Object group, VisADGeometryArray[][] arrays,
+                               GraphicsModeControl mode, ContourControl control,
+                               ProjectionControl p_cntrl, int[] cnt_a,
+                               float constant_alpha, float[] constant_color,
+                               float[][][] f_array)
+         throws VisADException 
+  {
+    VisADGeometryArray[] lbl_arrays = new VisADGeometryArray[2];
+    VisADGeometryArray[] seg_arrays = new VisADGeometryArray[4];
+
+    int n_labels = arrays[2].length/2;
+
+    for ( int ii = 0; ii < n_labels; ii++ )
+    {
+      lbl_arrays[0] = arrays[2][ii*2];
+      lbl_arrays[1] = arrays[2][ii*2+1];
+      seg_arrays[0] = arrays[3][ii*4];
+      seg_arrays[1] = arrays[3][ii*4+1];
+      seg_arrays[2] = arrays[3][ii*4+2];
+      seg_arrays[3] = arrays[3][ii*4+3];
+
+      addToGroup(group, lbl_arrays[0], mode,
+                 constant_alpha, constant_color);
+
+      addToGroup(group, seg_arrays[0], mode,
+                 constant_alpha, constant_color);
+
+      addToGroup(group, seg_arrays[2], mode,
+                 constant_alpha, constant_color);
+    }
+  }
+
   public VisADGeometryArray makeText(String[] text_values,
                 TextControl text_control, float[][] spatial_values,
                 byte[][] color_values, boolean[][] range_select)

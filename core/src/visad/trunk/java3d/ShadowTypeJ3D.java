@@ -53,6 +53,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   ShadowType adaptedShadowType;
 
+  ProjectionControlListener projListener = null;
+
   public ShadowTypeJ3D(MathType type, DataDisplayLink link,
                        ShadowType parent)
          throws VisADException, RemoteException {
@@ -331,6 +333,86 @@ public abstract class ShadowTypeJ3D extends ShadowType {
                        swap, constant_alpha, constant_color, shadow_api);
   }
 
+
+  public void addLabelsToGroup(Object group, VisADGeometryArray[][] arrays,
+                               GraphicsModeControl mode, ContourControl control,
+                               ProjectionControl p_cntrl, int[] cnt_a,
+                               float constant_alpha, float[] constant_color,
+                               float[][][] f_array)
+         throws VisADException {
+
+    int cnt = cnt_a[0];
+
+    if (cnt == 0) {
+      projListener = new ProjectionControlListener(p_cntrl, control);
+    }
+
+    VisADGeometryArray[] lbl_arrays = new VisADGeometryArray[2];
+    VisADGeometryArray[] seg_arrays = new VisADGeometryArray[4];
+
+    int n_labels = arrays[2].length/2;
+    projListener.LT_array[cnt] = new LabelTransform[3][n_labels];
+
+    for ( int ii = 0; ii < n_labels; ii++ )
+    {
+      lbl_arrays[0] = arrays[2][ii*2];
+      lbl_arrays[1] = arrays[2][ii*2+1];
+      seg_arrays[0] = arrays[3][ii*4];
+      seg_arrays[1] = arrays[3][ii*4+1];
+      seg_arrays[2] = arrays[3][ii*4+2];
+      seg_arrays[3] = arrays[3][ii*4+3];
+
+      TransformGroup lbl_trans_group  = new TransformGroup();
+      TransformGroup segL_trans_group = new TransformGroup();
+      TransformGroup segR_trans_group = new TransformGroup();
+      lbl_trans_group.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+      lbl_trans_group.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+      lbl_trans_group.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
+      segL_trans_group.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+      segL_trans_group.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+      segL_trans_group.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
+      segR_trans_group.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+      segR_trans_group.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+      segR_trans_group.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
+
+      if (control.getAutoSizeLabels())
+      {
+        LabelTransform lbl_trans =
+          new LabelTransform(lbl_trans_group, p_cntrl,
+            lbl_arrays, f_array[0][ii], 0);
+               projListener.LT_array[cnt][0][ii] = lbl_trans;
+
+        lbl_trans =
+          new LabelTransform(segL_trans_group, p_cntrl,
+            new VisADGeometryArray[] {seg_arrays[0], seg_arrays[1]},
+              new float[] {f_array[0][ii][0], f_array[0][ii][1]}, 1);
+                projListener.LT_array[cnt][1][ii] = lbl_trans;
+
+        lbl_trans =
+          new LabelTransform(segR_trans_group, p_cntrl,
+            new VisADGeometryArray[] {seg_arrays[2], seg_arrays[3]},
+              new float[] {f_array[0][ii][2], f_array[0][ii][3]}, 1);
+                projListener.LT_array[cnt][2][ii] = lbl_trans;
+       }
+
+       ((Group)group).addChild(lbl_trans_group);
+       ((Group)group).addChild(segL_trans_group);
+       ((Group)group).addChild(segR_trans_group);
+
+       addToGroup(lbl_trans_group, lbl_arrays[0], mode,
+                  constant_alpha, constant_color);
+
+       addToGroup(segL_trans_group, seg_arrays[0], mode,
+                  constant_alpha, constant_color);
+
+       addToGroup(segR_trans_group, seg_arrays[2], mode,
+                  constant_alpha, constant_color);
+    }
+    cnt++;
+    projListener.cnt = cnt;
+    cnt_a[0] = cnt;
+  }
+
   public VisADGeometryArray makeText(String[] text_values,
                 TextControl text_control, float[][] spatial_values,
                 byte[][] color_values, boolean[][] range_select)
@@ -578,3 +660,152 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
 }
 
+class ProjectionControlListener implements ControlListener
+{
+  LabelTransform[][][] LT_array = null;
+  ProjectionControl p_cntrl = null;
+  ContourControl c_cntrl = null;
+  double last_scale;
+  double first_scale;
+  int cnt = 0;
+  double last_time;
+
+
+  ProjectionControlListener(ProjectionControl p_cntrl, ContourControl c_cntrl)
+  {
+    this.p_cntrl = p_cntrl;
+    this.c_cntrl = c_cntrl;
+    double[] matrix  = p_cntrl.getMatrix();
+    double[] rot_a   = new double[3];
+    double[] trans_a = new double[3];
+    double[] scale_a = new double[1];
+    MouseBehaviorJ3D.unmake_matrix(rot_a, scale_a, trans_a, matrix);
+    last_scale  = scale_a[0];
+    first_scale = last_scale;
+    LT_array = new LabelTransform[1000][][];
+    last_time = System.currentTimeMillis();
+    p_cntrl.addControlListener(this);
+    c_cntrl.addProjectionControlListener(this, p_cntrl);
+  }
+  public synchronized void controlChanged(ControlEvent e)
+         throws VisADException, RemoteException
+  {
+    double[] matrix  = p_cntrl.getMatrix();
+    double[] rot_a   = new double[3];
+    double[] trans_a = new double[3];
+    double[] scale_a = new double[1];
+
+    MouseBehaviorJ3D.unmake_matrix(rot_a, scale_a, trans_a, matrix);
+
+    //- identify scale change events.
+    if (!visad.util.Util.isApproximatelyEqual(scale_a[0], last_scale))
+    {
+    double current_time = System.currentTimeMillis();
+    if (scale_a[0]/last_scale > 1.15 ||
+        scale_a[0]/last_scale < 1/1.15)
+    {
+      if (current_time - last_time < 3000)
+      {
+        if (LT_array != null) {
+          for (int ii = 0; ii < cnt; ii++) {
+            for (int kk = 0; kk < LT_array[ii][0].length; kk++) {
+              LT_array[ii][0][kk].controlChanged(first_scale, scale_a);
+              LT_array[ii][1][kk].controlChanged(first_scale, scale_a);
+              LT_array[ii][2][kk].controlChanged(first_scale, scale_a);
+            }
+          }
+        }
+      }
+      else {
+        if (LT_array != null) {
+          for (int ii = 0; ii < cnt; ii++) {
+            for (int kk = 0; kk < LT_array[ii][0].length; kk++) {
+              LT_array[ii][0][kk].controlChanged(first_scale, scale_a);
+              LT_array[ii][1][kk].controlChanged(first_scale, scale_a);
+              LT_array[ii][2][kk].controlChanged(first_scale, scale_a);
+            }
+          }
+        }
+        c_cntrl.reLabel();
+      }
+      last_scale = scale_a[0];
+    }
+    last_time = current_time;
+    }
+  }
+}
+
+class LabelTransform
+{
+  TransformGroup trans;
+  Transform3D t3d;
+  ProjectionControl proj;
+  VisADGeometryArray label_array;
+  VisADGeometryArray anchr_array;
+  double[] matrix;
+  double last_scale;
+  double first_scale;
+  float[] vertex;
+  float[] anchr_vertex;
+  double[] rot_a;
+  double[] trans_a;
+  double[] scale_a;
+  int flag;
+  float[] f_array;
+
+  LabelTransform(TransformGroup trans,
+                 ProjectionControl proj,
+                 VisADGeometryArray[] label_array, float[] f_array, int flag)
+  {
+    this.trans        = trans;
+    this.proj         = proj;
+    this.label_array  = label_array[0];
+    this.anchr_array  = label_array[1];
+    this.flag         = flag;
+    this.f_array      = f_array;
+
+    t3d     = new Transform3D();
+    matrix  = proj.getMatrix();
+    rot_a   = new double[3];
+    trans_a = new double[3];
+    scale_a = new double[1];
+    MouseBehaviorJ3D.unmake_matrix(rot_a, scale_a, trans_a, matrix);
+    last_scale  = scale_a[0];
+    first_scale = last_scale;
+
+    vertex          = this.label_array.coordinates;
+    anchr_vertex    = this.anchr_array.coordinates;
+    int vertexCount = this.label_array.vertexCount;
+  }
+
+
+
+  public void controlChanged(double first_scale, double[] scale_a)
+  {
+    trans.getTransform(t3d);
+
+    double factor = 0;
+    float f_scale = 0;
+
+    if (flag == 0) { //-- label
+      double k = first_scale;  //- final scale
+      factor   = k/scale_a[0];
+      f_scale  = (float) ((scale_a[0] - k)/scale_a[0]);
+    }
+    else {           //-- expanding line segments
+      double k = (f_array[0]/(f_array[1]-f_array[0]))*
+        (f_array[1]/f_array[0] - first_scale/scale_a[0])*scale_a[0];
+      factor   = k/scale_a[0];
+      f_scale  = (float) ((scale_a[0] - k)/scale_a[0]);
+    }
+
+    Vector3f trans_vec =
+      new Vector3f(f_scale*anchr_vertex[0],
+                   f_scale*anchr_vertex[1],
+                   f_scale*anchr_vertex[2]);
+
+    t3d.set((float)factor, trans_vec);
+
+    trans.setTransform(t3d);
+  }
+}
