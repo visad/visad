@@ -1130,11 +1130,19 @@ public class FlatField extends FieldImpl {
     return getValues(true);
   }
 
-  /** get this FlatField's range values in their default range
-      Units (as defined by the range of the FlatField's
-      FunctionType); the return array is dimensioned
-      double[number_of_range_components][number_of_range_samples];
-      return a copy if copy == true */
+  /**
+   * Returns the range values in their default units.
+   *
+   * @param copy		Whether or not the returned array might be the
+   *				actual range array.  If <code>true</code>, then
+   *				the returned array will not be the actual range
+   *				array.
+   * @return			The range values in their default units
+   *				as determined by the {@link MathType} of
+   *				the range.  Element <code>[i][j]</code> is
+   *				the <code>j</code>th sample value of the
+   *				<code>i</code>th component of the range.
+   */
   public double[][] getValues(boolean copy) throws VisADException {
     double[][] values = unpackValues(copy);
     Unit[] units_out =
