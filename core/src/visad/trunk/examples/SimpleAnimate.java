@@ -60,7 +60,7 @@ public class SimpleAnimate {
       String s = "To run this example, the images.nc file must be "
         +"present in\nyour visad/examples directory."
         +"You can obtain this file from:\n"
-        +"  ftp://www.ssec.wisc.edu/pub/visad-2.0/images.nc.Z";
+        +"  ftp://ftp.ssec.wisc.edu/pub/visad-2.0/images.nc.Z";
       System.out.println(s);
       System.exit(0);
     }

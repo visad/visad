@@ -181,8 +181,8 @@ public class SatDisplay
      */
     public static void main (String[] args) {
 
-        String mapFile = "ftp://www.ssec.wisc.edu/pub/visad-2.0/OUTLSUPW";
-        String imageSource = "ftp://www.ssec.wisc.edu/pub/visad-2.0/AREA2001";
+        String mapFile = "ftp://ftp.ssec.wisc.edu/pub/visad-2.0/OUTLSUPW";
+        String imageSource = "ftp://ftp.ssec.wisc.edu/pub/visad-2.0/AREA2001";
         boolean use3D = true;
         boolean remap = false;
 
