@@ -310,10 +310,10 @@ boolean anynotmissing = false;
 
     xdd = ((nr-1)-0.0f)/(nr-1.0f); // = 1.0
     ydd = ((nc-1)-0.0f)/(nc-1.0f); // = 1.0
-    /*-TDR xd = xdd - 0.0001f;
-           yd = ydd - 0.0001f;  gap too big */
-    xd = xdd - 0.000001f;
-    yd = ydd - 0.000001f;
+    /**-TDR xd = xdd - 0.0001f;
+           yd = ydd - 0.0001f;  gap too big **/
+    xd = xdd - 0.000005f;
+    yd = ydd - 0.000005f;
 
     /*
      * set up mark array
@@ -1335,13 +1335,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
           right   = false;
           float[] x_avg = new float[2];
           float[] y_avg = new float[2];
-          boolean dbug = false;
  
-          if (nc == 22 && nr == 17) {
-            dbug = true;
-          }
-          
-
           if (numc > 1)
           { //-- first/next ctr line midpoints
             int idx  = v_idx;
@@ -1544,7 +1538,6 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
               getBoxSide(vx, vy, xx, xd, yy, yd, v_idx_last, dir, last_o, b_arg);
               last_side_s[0] = b_arg[0];
               last_side_s[1] = b_arg[1];
-
 
               if (side_s[0] == last_side_s[0]) {
                 flip = false;
@@ -1766,44 +1759,6 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
 
   private static void getBoxSide(float[] vx, float[] vy,
                                  float xx, float xd, float yy, float yd,
-                                 int v_idx, byte o_flag, byte[] side)
-  {
-    /*
-    if (vy[v_idx] == yy)          side[0]  = 0; // a-b
-    if (vy[v_idx] == (yy + yd))   side[0]  = 2; // c-d
-    if (vx[v_idx] == xx)          side[0]  = 3; // a-c
-    if (vx[v_idx] == (xx + xd))   side[0]  = 1; // b-d
-    */
-
-    switch (o_flag) {
-      case 1:
-        side[0] = 3;
-        if (vy[v_idx] == yy) side[0] = 0;
-        break;
-      case 2:
-        side[0] = 1;
-        if (vy[v_idx] == yy) side[0] = 0;
-        break;
-      case 4:
-        side[0] = 3;
-        if (vy[v_idx] == (yy + yd)) side[0] = 2;
-        break;
-      case 7:
-        side[0] = 1;
-        if (vy[v_idx] == (yy + yd)) side[0] = 2;
-        break;
-      case 3:
-        side[0] = 1;
-        if (vx[v_idx] == xx) side[0] = 3;
-        break;
-      case 5:
-        side[0] = 0;
-        if (vy[v_idx] == (yy + yd)) side[0] = 2;
-        break;
-    } 
-  }
-  private static void getBoxSide(float[] vx, float[] vy,
-                                 float xx, float xd, float yy, float yd,
                                  int v_idx, int dir, byte o_flag, byte[] side)
   {
     /*
@@ -1812,31 +1767,6 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     if (vx[v_idx] == xx)          side[0]  = 3; // a-c
     if (vx[v_idx] == (xx + xd))   side[0]  = 1; // b-d
     */
-
-    if (o_flag==1 || o_flag==2 || o_flag==4 || o_flag==7) {
-      if ((vx[v_idx] == vx[v_idx+dir*1]) &&
-          (vy[v_idx] == vy[v_idx+dir*1])) {
-      //if (Util.isApproximatelyEqual(vx[v_idx], vx[v_idx+dir*1]) &&
-      //    Util.isApproximatelyEqual(vy[v_idx], vy[v_idx+dir*1])) {
-        if (o_flag==1) {
-          side[0] = 0;
-          side[1] = 3;
-        }
-        if (o_flag==2) {
-          side[0] = 1;
-          side[1] = 0;
-        }
-        if (o_flag==4) {
-          side[0] = 3;
-          side[1] = 2;
-        }
-        if (o_flag==7) {
-          side[0] = 1;
-          side[1] = 2;
-        }
-        return;
-      }
-    }
 
     for (int kk = 0; kk < 2; kk++) {
       int ii = v_idx + kk*dir;
