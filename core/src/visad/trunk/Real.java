@@ -49,7 +49,7 @@ public class Real extends Scalar {
    *				<code>type.isInterval()</code> returns true,
    *				then the unit will actually be
    *				<code>u.getAbsoluteUnit()</code>.
-   a @param error		Error estimate of the Real.  May be 
+   * @param error		Error estimate of the Real.  May be 
    *				<code>null</code>.
    * @throws VisADException	Couldn't create necessary VisAD object.
    */
@@ -627,7 +627,7 @@ public class Real extends Scalar {
    *                            Real, respectively.  If the values of the Real-s
    *                            in the default unit are equal, then the <code>
    *                            ErrorEstimate.compareTo()</code> method is used
-   *                            to break a tie.
+   *                            to break the tie.
    */
   public int compareTo(Object object)
   {

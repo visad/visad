@@ -52,15 +52,6 @@ DateTime
                           new GregorianCalendar(TimeZone.getTimeZone("GMT"));
     private static final String isoTimeFmtPattern = "yyyy-MM-dd HH:mm:ss'Z'";
 
-/*
-    // Initialize the unit used to be seconds since 1970-01-01 00:00:00Z
-    private static final Unit secondsSinceTheEpoch =
-        new OffsetUnit(
-            visad.data.netcdf.units.UnitParser.encodeTimestamp(
-                1970, 1, 1, 0, 0, 0, 0),
-            SI.second);
-*/
-
     /**
      * Construct a DateTime object and initialize it using a VisAD Real.
      * Unless the units of the Real specify otherwise, the Real's value
@@ -79,9 +70,6 @@ DateTime
 	super( RealType.Time,
 	       real.isMissing()
 		   ? Double.NaN
-/*
-		   : real.getValue(CommonUnit.secondsSinceTheEpoch),
-*/
 		   : real.getUnit() instanceof OffsetUnit
 		       ? real.getValue(CommonUnit.secondsSinceTheEpoch)
 		       : real.getValue(SI.second),
@@ -259,7 +247,7 @@ DateTime
     }
 
     /**
-     * Gets a string that represents the just the value portion of this
+     * Gets a string that represents just the value portion of this
      * DateTime -- but with full semantics.
      *
      * @return	String representing the date/time in the form 
@@ -325,7 +313,7 @@ DateTime
      */
     public int compareTo(Object oo)
     {
-        return compareTo( (DateTime) oo );
+        return super.compareTo( (DateTime) oo );
     }
 
     /** 
