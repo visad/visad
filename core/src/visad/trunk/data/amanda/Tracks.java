@@ -48,7 +48,7 @@ public class Tracks
 
   public Tracks() { }
 
-  public final void add(BaseTrack track) { super.add(track); }
+  public final void add(BaseTrack track) { super.addUnique(track); }
 
   public final void computeSamples(float[] timeSteps)
   {
