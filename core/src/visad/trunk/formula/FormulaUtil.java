@@ -570,7 +570,10 @@ public class FormulaUtil {
     else {
       // object method
       if (num > 0) obj = o[0];
-      else obj = null;
+      else {
+        // invalid object method
+        return null;
+      }
       if (num > 1) {
         if (a < 0) {
           args = new Object[num-1];
