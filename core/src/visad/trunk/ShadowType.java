@@ -3543,12 +3543,43 @@ try {
               if (array_s != null) {
               if (!fill) {
                 for (int j=0; j<2; j++) {
-                  if (array_s[j][0] != null) {
+                  if (array_s[j][0] != null) { //- lines, fill-lines
                     try {
                       array_s[j][0] = ((VisADLineArray)array_s[j][0]).adjustLongitude(renderer);
                       array_s[j][0] = ((VisADLineArray)array_s[j][0]).adjustSeam(renderer);
                     }
                     catch (Exception e) {
+                      e.printStackTrace();
+                    }
+                  }
+                }
+                if (array_s[2] != null) {
+                  for (int k=0; k<(array_s[2].length)/2; k++) { //-labels, label anchor points
+                    try {
+                      array_s[2][k*2] = array_s[2][k*2].adjustLongitude(renderer);
+                      array_s[2][k*2] = array_s[2][k*2].adjustSeam(renderer);
+                      array_s[2][k*2+1] = array_s[2][k*2+1].adjustLongitude(renderer);
+                      array_s[2][k*2+1] = array_s[2][k*2+1].adjustSeam(renderer);
+                    }
+                    catch (Exception e) {
+                      e.printStackTrace();
+                    }
+                  }
+                }
+                if (array_s[3] != null) {
+                  for (int k=0; k<(array_s[3].length)/4; k++) { //- left/right expanding segments
+                    try {
+                      array_s[3][k*4] = array_s[3][k*4].adjustLongitude(renderer);
+                      array_s[3][k*4] = array_s[3][k*4].adjustSeam(renderer);
+                      array_s[3][k*4+1] = array_s[3][k*4+1].adjustLongitude(renderer);
+                      array_s[3][k*4+1] = array_s[3][k*4+1].adjustSeam(renderer);
+                      array_s[3][k*4+2] = array_s[3][k*4+2].adjustLongitude(renderer);
+                      array_s[3][k*4+2] = array_s[3][k*4+2].adjustSeam(renderer);
+                      array_s[3][k*4+3] = array_s[3][k*4+3].adjustLongitude(renderer);
+                      array_s[3][k*4+3] = array_s[3][k*4+3].adjustSeam(renderer);
+                    }
+                    catch (Exception e) {
+                      e.printStackTrace();
                     }
                   }
                 }
