@@ -1592,7 +1592,9 @@ static int read_v5d_header( v5dstruct *v )
    }
    else {
       /* unknown file type */
+/* WLH 8 Aug 98 for VisAD
       printf("Error: not a v5d file\n");
+*/
       return 0;
    }
 
