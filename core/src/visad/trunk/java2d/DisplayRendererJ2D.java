@@ -370,8 +370,6 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     canvas.renderTrigger();
   }
 
-  abstract float[] getCursorColor();
-
   public boolean anyCursorStringVector() {
     if (cursorOn) return true;
 

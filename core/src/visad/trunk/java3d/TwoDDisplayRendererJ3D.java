@@ -79,10 +79,10 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
     cursor_color.setColor(r, g, b);
   }
 
-  Color3f getCursorColor() {
+  public float[] getCursorColor() {
     Color3f c3 = new Color3f();
     cursor_color.getColor(c3);
-    return c3;
+    return new float[] { c3.x, c3.y, c3.z };
   }
 
   /**

@@ -447,8 +447,6 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     }
   }
 
-  abstract Color3f getCursorColor();
-
   /**
    * Whenever <CODE>cursorOn</CODE> or <CODE>directOn</CODE> is true,
    * display Strings in cursorStringVector.
@@ -457,9 +455,8 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
   public void drawCursorStringVector(VisADCanvasJ3D canvas) {
     GraphicsContext3D graphics = canvas.getGraphicsContext3D();
     Appearance appearance = new Appearance();
-    Color3f c3 = getCursorColor();
     ColoringAttributes color = new ColoringAttributes();
-    color.setColor(c3);
+    color.setColor(new Color3f(getCursorColor()));
     appearance.setColoringAttributes(color);
     graphics.setAppearance(appearance);
 

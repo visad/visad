@@ -165,6 +165,8 @@ public abstract class DisplayRenderer extends Object {
 
   public abstract void setCursorColor(float r, float g, float b);
 
+  public abstract float[] getCursorColor();
+
   /**
    * Factory for constructing a subclass of <CODE>Control</CODE>
    * appropriate for the graphics API and for this

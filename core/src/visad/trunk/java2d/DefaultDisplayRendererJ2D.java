@@ -98,7 +98,7 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
     render_trigger();
   }
 
-  float[] getCursorColor() {
+  public float[] getCursorColor() {
     float[] c3 = new float[3];
     c3[0] = cursor.red;
     c3[1] = cursor.green;
