@@ -514,8 +514,12 @@ public class AreaFile {
   }
 
   /**
-   * Get the navigation 
+   * Get the navigation, and pre-set it
+   * for the ImageStart and Res (from Directory block), and
+   * the file start (0,0), and Mag (1,1).
+   *
    * @return  AREAnav for this image  (may be null)
+
    */
   public AREAnav getNavigation()
       throws AreaFileException
@@ -524,6 +528,11 @@ public class AreaFile {
       // make the nav module
       try {
         areaNav = AREAnav.makeAreaNav(getNav(), getAux());
+        areaNav.setImageStart(dir[AD_STLINE], dir[AD_STELEM]);
+        areaNav.setRes(dir[AD_LINERES], dir[AD_ELEMRES]);
+        areaNav.setStart(0,0);
+        areaNav.setMag(1,1);
+
       } catch (McIDASException excp) {
         areaNav = null;
       }
