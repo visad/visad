@@ -509,9 +509,13 @@ public class FieldImpl extends FunctionImpl implements Field {
   }
 
   /**
-   * Get the range value at the index-th sample
+   * <p>Get the range value at the index-th sample.  The actual range value
+   * is returned -- not a copy.</p>
+   *
+   * </p>This implementation uses {@link getSample(int, boolean)}.</p>
    *
    * @param index index of requested range sample
+   * @return 
    */
   public Data getSample(int index)
          throws VisADException, RemoteException {
@@ -519,7 +523,9 @@ public class FieldImpl extends FunctionImpl implements Field {
   }
 
   /**
-   * Get the metadata for the range value at the index-th sample
+   * Get the metadata for the range value at the index-th sample.  If the range
+   * value is also requested, then the actual range value is returned -- not a
+   * copy.</p>
    *
    * @param index index of requested range sample
    * @param metadataOnly <tt>true</tt> if only the metadata is needed,
