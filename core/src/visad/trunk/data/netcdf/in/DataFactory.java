@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DataFactory.java,v 1.2 2000-06-08 19:13:43 steve Exp $
+ * $Id: DataFactory.java,v 1.3 2001-01-08 17:10:20 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -23,6 +23,11 @@ DataFactory
 {
     private static DataFactory	instance;
 
+    static
+    {
+	instance = new DataFactory();
+    }
+
 
     protected DataFactory()
     {}
@@ -35,14 +40,6 @@ DataFactory
      */
     public static DataFactory instance()
     {
-	if (instance == null)
-	{
-	    synchronized(DataFactory.class)
-	    {
-		if (instance == null)
-		    instance = new DataFactory();
-	    }
-	}
 	return instance;
     }
 
@@ -189,7 +186,8 @@ DataFactory
 	    for (int i = 0; i < sampleCount; ++i)
 	    {
 		context.setSubContext(i);
-		field.setSample(i, rangeTuple.getData(context), /*copy=*/false);
+		field.setSample(
+		    i, newData(context, rangeTuple), /*copy=*/false);
 	    }
 	}
 	return field;
