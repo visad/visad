@@ -473,12 +473,13 @@ public class UnionSet extends SampledSet {
 
   /** return basic lines in array[0], fill-ins in array[1]
       and labels in array[2] */
-  public VisADGeometryArray[] makeIsoLines(float[] intervals,
+  public VisADGeometryArray[][] makeIsoLines(float[] intervals,
                   float low, float hi, float base,
                   float[] fieldValues, byte[][] color_values,
                   boolean[] swap, boolean dash,
-                  boolean fill, ScalarMap[] smap)
-         throws VisADException {
+                  boolean fill, ScalarMap[] smap,
+                  double scale_ratio, double label_size,
+                  float[][][] f_array) throws VisADException {
     if (DomainDimension != 3) {
       throw new DisplayException("UnionSet.makeIsoLines: " +
                                  "DomainDimension must be 3, not " +
@@ -496,7 +497,7 @@ public class UnionSet extends SampledSet {
                              " color_values dimension should be " +
                              DomainDimension + ", not " + dim);
     }
-    VisADLineArray[][] arrays = new VisADLineArray[n][];
+    VisADLineArray[][][] arrays = new VisADLineArray[n][][];
     int kbase = 0;
     for (int i=0; i<n; i++) {
       int len = Sets[i].Length;
@@ -507,17 +508,32 @@ public class UnionSet extends SampledSet {
       }
       for (int k=0; k<len; k++) f[k] = fieldValues[kbase + k];
       arrays[i] =
-        (VisADLineArray[]) Sets[i].makeIsoLines(intervals, low, hi, base,
-                                                f, c, swap, dash, fill, smap);
+        (VisADLineArray[][]) Sets[i].makeIsoLines(intervals, low, hi, base,
+                                                  f, c, swap, dash, fill, smap,
+                                                  scale_ratio, label_size, f_array);
       kbase += len;
     }
-    VisADLineArray[] arrays2 = new VisADLineArray[3];
-    for (int j=0; j<3; j++) {
+    VisADLineArray[][] arrays2 = new VisADLineArray[4][];
+    for (int j=0; j<2; j++) { //- merge lines/fill
+      arrays2[j] = new VisADLineArray[1];
       VisADLineArray[] arrays3 = new VisADLineArray[n];
       for (int i=0; i<n; i++) {
-        arrays3[i] = arrays[i][j];
+        arrays3[i] = arrays[i][j][0];
       }
-      arrays2[j] = VisADLineArray.merge(arrays3);
+      arrays2[j][0] = VisADLineArray.merge(arrays3);
+    }
+    for (int j=2; j<4; j++) { //- don't merge labels
+      int cnt = 0;
+      for (int i=0; i<n; i++) {
+        cnt += arrays[i][j].length;
+      }
+      arrays2[j] = new VisADLineArray[cnt];
+      cnt = 0;
+      for (int i=0; i<n; i++) {
+        for (int j2=0; j2<n; j2++) {
+          arrays2[j][cnt++] = arrays[i][j][j2];
+        }
+      }
     }
     return arrays2;
   }

@@ -1631,19 +1631,24 @@ for (int j=0; j<3; j++) {
     return grid;
   }
 
-  /** return basic lines in array[0], fill-ins in array[1]
-      and labels in array[2] */
-  public VisADGeometryArray[] makeIsoLines(float[] intervals,
+  public VisADGeometryArray[][] makeIsoLines(float[] intervals,
                   float lowlimit, float highlimit, float base,
                   float[] fieldValues, byte[][] color_values,
                   boolean[] swap, boolean dash,
-                  boolean fill, ScalarMap[] smap) throws VisADException {
+                  boolean fill, ScalarMap[] smap, double scale_ratio,
+                  double label_size, float[][][] f_array)
+         throws VisADException {
+
+    int Length = getLength();
+    int ManifoldDimension = getManifoldDimension();
+    int[] Lengths = getLengths();
+    int LengthX = Lengths[0];
+    int LengthY = Lengths[1];
+
     if (ManifoldDimension != 2) {
       throw new DisplayException("Gridded3DSet.makeIsoLines: " +
                                  "ManifoldDimension must be 2");
     }
-
-    if (intervals == null) return null;
 
     int nr = LengthX;
     int nc = LengthY;
@@ -1676,15 +1681,18 @@ for color_length = 3 this is 148 * Length
       color_levels2 = new byte[color_length][maxv2];
       color_levels3 = new byte[color_length][maxv3];
     }
-
     float[][] vx1 = new float[1][maxv1];
     float[][] vy1 = new float[1][maxv1];
+    float[][] vz1 = new float[1][maxv1];
     float[][] vx2 = new float[1][maxv2];
     float[][] vy2 = new float[1][maxv2];
+    float[][] vz2 = new float[1][maxv2];
     float[][] vx3 = new float[1][maxv3];
     float[][] vy3 = new float[1][maxv3];
+    float[][] vz3 = new float[1][maxv3];
     float[][] vx4 = new float[1][maxv4];
     float[][] vy4 = new float[1][maxv4];
+    float[][] vz4 = new float[1][maxv4];
     int[] numv1 = new int[1];
     int[] numv2 = new int[1];
     int[] numv3 = new int[1];
@@ -1695,6 +1703,7 @@ for color_length = 3 this is 148 * Length
     byte[][]  tri_color      = new byte[color_length][];
     float[][][] grd_normals  = null;
     byte[][] interval_colors = new byte[color_length][intervals.length];
+
 
     if (fill) { //- compute normals at grid points
       float[][] samples = getSamples(false);
@@ -1772,27 +1781,34 @@ for color_length = 3 this is 148 * Length
       }
     }
 
+    float[][][][] lbl_vv     = new float[4][][][];
+    byte[][][][]  lbl_cc     = new byte[4][][][];
+    float[][][]   lbl_loc    = new float[3][][];
+  
     Contour2D.contour( g, nr, nc, intervals, lowlimit, highlimit, base, dash,
-                      vx1, vy1,  maxv1, numv1, vx2, vy2,  maxv2, numv2,
-                      vx3, vy3,  maxv3, numv3, vx4, vy4,  maxv4, numv4,
+                      vx1, vy1, vz1, maxv1, numv1, vx2, vy2, vz2, maxv2, numv2,
+                      vx3, vy3, vz3, maxv3, numv3, vx4, vy4, vz4, maxv4, numv4,
                       color_values, color_levels1, color_levels2,
                       color_levels3, swap,
-                      fill, tri, tri_color, grd_normals, tri_normals, 
-                      interval_colors);
+                      fill, tri, tri_color, grd_normals, tri_normals,
+                      interval_colors, lbl_vv, lbl_cc, lbl_loc, scale_ratio, label_size,
+                      this);
 
     if (fill) {
-      VisADGeometryArray[] tri_array = new VisADGeometryArray[1];
-      tri_array[0] = new VisADTriangleArray();
-      tri_array[0].normals = tri_normals[0];
-      setGeometryArray(tri_array[0], gridToValue(tri), 3, tri_color);
+      VisADGeometryArray[][] tri_array = new VisADGeometryArray[2][];
+      tri_array[0] = new VisADGeometryArray[1];
+      tri_array[0][0] = new VisADTriangleArray();
+      tri_array[0][0].normals = tri_normals[0];
+      setGeometryArray(tri_array[0][0], gridToValue(tri), 3, tri_color);
       return tri_array;
     }
-
-    float[][] grid1 = new float[2][numv1[0]];
+    float[][] grid1 = new float[3][numv1[0]];
     System.arraycopy(vx1[0], 0, grid1[0], 0, numv1[0]);
     vx1 = null;
     System.arraycopy(vy1[0], 0, grid1[1], 0, numv1[0]);
     vy1 = null;
+    System.arraycopy(vz1[0], 0, grid1[2], 0, numv1[0]);
+    vz1 = null;
 
     if (color_length > 0) {
       byte[][] a = new byte[color_length][numv1[0]];
@@ -1802,11 +1818,13 @@ for color_length = 3 this is 148 * Length
       color_levels1 = a;
     }
 
-    float[][] grid2 = new float[2][numv2[0]];
+    float[][] grid2 = new float[3][numv2[0]];
     System.arraycopy(vx2[0], 0, grid2[0], 0, numv2[0]);
     vx2 = null;
     System.arraycopy(vy2[0], 0, grid2[1], 0, numv2[0]);
     vy2 = null;
+    System.arraycopy(vz2[0], 0, grid2[2], 0, numv2[0]);
+    vz2 = null;
 
     if (color_length > 0) {
       byte[][] a = new byte[color_length][numv2[0]];
@@ -1816,61 +1834,189 @@ for color_length = 3 this is 148 * Length
       color_levels2 = a;
     }
 
-    // temporary label orientation hack
-    // TO_DO - eventually return all 4 label orientations
-    // and have ProjectionControl switch among them
-    boolean backwards = false;
-    boolean upsidedown = true;
-    float[] vx = null;
-    float[] vy = null;
-    if (backwards) {
-      vy = vy4[0];
-    }
-    else {
-      vy = vy3[0];
-    }
-    vy3 = null;
-    vy4 = null;
-    if (upsidedown) {
-      vx = vx4[0];
-    }
-    else {
-      vx = vx3[0];
-    }
-    vx3 = null;
-    vx4 = null;
+    int n_labels = lbl_loc[0].length;
 
-    float[][] grid_label = new float[2][numv3[0]];
-    System.arraycopy(vx, 0, grid_label[0], 0, numv3[0]);
-    System.arraycopy(vy, 0, grid_label[1], 0, numv3[0]);
+    f_array[0] = new float[n_labels][4];
 
-    // WLH 5 Nov 98
-    vx = null;
-    vy = null;
+    VisADLineArray[][] arrays = new VisADLineArray[4][];
+    arrays[0] = new VisADLineArray[1];
+    arrays[1] = new VisADLineArray[1];
 
-    if (color_length > 0) {
-      byte[][] a = new byte[color_length][numv3[0]];
-      for (int i=0; i<color_length; i++) {
-        System.arraycopy(color_levels3[i], 0, a[i], 0, numv3[0]);
-      }
-      color_levels3 = a;
-    }
-
-    VisADLineArray[] arrays = new VisADLineArray[3];
-    arrays[0] = new VisADLineArray();
-    setGeometryArray(arrays[0], gridToValue(grid1), 3, color_levels1);
+    arrays[0][0] = new VisADLineArray();
+    setGeometryArray(arrays[0][0], grid1, 3, color_levels1);
     grid1 = null;
 
-    arrays[1] = new VisADLineArray();
-    setGeometryArray(arrays[1], gridToValue(grid2), 3, color_levels2);
+    arrays[1][0] = new VisADLineArray();
+    setGeometryArray(arrays[1][0], grid2, 3, color_levels2);
     grid2 = null;
 
-    arrays[2] = new VisADLineArray();
-    setGeometryArray(arrays[2], gridToValue(grid_label), 3, color_levels3);
-    grid_label = null;
+    arrays[2] = new VisADLineArray[n_labels*2];
+    arrays[3] = new VisADLineArray[n_labels*4];
+    for (int kk = 0; kk < n_labels; kk++) {
+
+      f_array[0][kk][0] = lbl_loc[0][kk][3];
+      f_array[0][kk][1] = lbl_loc[0][kk][4];
+      f_array[0][kk][2] = lbl_loc[0][kk][5];
+      f_array[0][kk][3] = lbl_loc[0][kk][6];
+
+      // temporary label orientation hack
+      // TO_DO - eventually return all 4 label orientations
+      // and have ProjectionControl switch among them
+      boolean backwards  = true;
+      boolean upsidedown = false;
+      float[] vx = null;
+      float[] vy = null;
+      if (backwards) {
+        //vy = vy4[0];
+        vy = lbl_vv[1][kk][1];
+      }
+      else {
+        //vy = vy3[0];
+        vy = lbl_vv[0][kk][1];
+      }
+      vy3 = null;
+      vy4 = null;
+      if (upsidedown) {
+        //vx = vx4[0];
+        vx = lbl_vv[1][kk][0];
+      }
+      else {
+        //vx = vx3[0];
+        vx = lbl_vv[0][kk][0];
+      }
+      //vx3 = null;
+      //vx4 = null;
+      int num = vx.length;
+
+      float[][] grid_label = new float[3][num];
+      System.arraycopy(vx, 0, grid_label[0], 0, num);
+      System.arraycopy(vy, 0, grid_label[1], 0, num);
+      System.arraycopy(lbl_vv[0][kk][2], 0, grid_label[2], 0, num);
+
+      // WLH 5 Nov 98
+      vx = null;
+      vy = null;
+
+      byte[][] segL_color = new byte[color_length][2];
+      byte[][] segR_color = new byte[color_length][2];
+      if (color_length > 0) {
+        byte[][] a = new byte[color_length][num];
+        for (int i=0; i<color_length; i++) {
+          System.arraycopy(lbl_cc[0][kk][i], 0, a[i], 0, num);
+          System.arraycopy(lbl_cc[2][kk][i], 0, segL_color[i], 0, 2);
+          System.arraycopy(lbl_cc[3][kk][i], 0, segR_color[i], 0, 2);
+        }
+        color_levels3 = a;
+      }
+
+      arrays[2][kk*2] = new VisADLineArray();
+      arrays[2][kk*2+1] = new VisADLineArray();
+      setGeometryArray(arrays[2][kk*2], grid_label, 3, color_levels3);
+      grid_label = null;
+
+      float[][] loc = new float[3][1];
+      loc[0][0] = lbl_loc[0][kk][0];
+      loc[1][0] = lbl_loc[0][kk][1];
+      loc[2][0] = lbl_loc[0][kk][2];
+      setGeometryArray(arrays[2][kk*2+1], loc, 3, null);
+
+      arrays[3][kk*4] = new VisADLineArray();
+      arrays[3][kk*4+1] = new VisADLineArray();
+      arrays[3][kk*4+2] = new VisADLineArray();
+      arrays[3][kk*4+3] = new VisADLineArray();
+
+      float[][] segL = new float[3][2];
+      segL[0][0]     = lbl_vv[2][kk][0][0];
+      segL[1][0]     = lbl_vv[2][kk][1][0];
+      segL[2][0]     = lbl_vv[2][kk][2][0];
+      segL[0][1]     = lbl_vv[2][kk][0][1];
+      segL[1][1]     = lbl_vv[2][kk][1][1];
+      segL[2][1]     = lbl_vv[2][kk][2][1];
+      setGeometryArray(arrays[3][kk*4], segL, 3, segL_color);
+
+      loc[0][0]      = lbl_loc[1][kk][0];
+      loc[1][0]      = lbl_loc[1][kk][1];
+      loc[2][0]      = lbl_loc[1][kk][2];
+      setGeometryArray(arrays[3][kk*4+1], loc, 3, null);
+
+      float[][] segR = new float[3][2];
+      segR[0][0]     = lbl_vv[3][kk][0][0];
+      segR[1][0]     = lbl_vv[3][kk][1][0];
+      segR[2][0]     = lbl_vv[3][kk][2][0];
+      segR[0][1]     = lbl_vv[3][kk][0][1];
+      segR[1][1]     = lbl_vv[3][kk][1][1];
+      segR[2][1]     = lbl_vv[3][kk][2][1];
+      setGeometryArray(arrays[3][kk*4+2], segR, 3, segR_color);
+
+
+      loc[0][0]      = lbl_loc[2][kk][0];
+      loc[1][0]      = lbl_loc[2][kk][1];
+      loc[2][0]      = lbl_loc[2][kk][2];
+      setGeometryArray(arrays[3][kk*4+3], loc, 3, null);
+    }
 
     return arrays;
   }
+
+  public float[][] getNormals(float[][] grid)
+         throws VisADException
+  {
+    int[] Lengths = getLengths();
+    int LengthX = Lengths[0];
+    int LengthY = Lengths[1];
+
+    float[][] samples = getSamples(false);
+    float[][] grd_normals = new float[3][grid[0].length];
+    // calculate normals
+    int k3 = 0;
+    int ki, kj;
+    for (int tt=0; tt<grid[0].length; tt++) {
+       k3 = ((int)grid[1][tt])*LengthX + (int)grid[0][tt];
+
+       int i = k3/LengthX;
+       int j = k3 - i*LengthX;
+       float c0 = samples[0][k3];
+       float c1 = samples[1][k3];
+       float c2 = samples[2][k3];
+       float n0 = 0.0f;
+       float n1 = 0.0f;
+       float n2 = 0.0f;
+       float n, m, m0, m1, m2;
+       for (int ip = -1; ip<=1; ip += 2) {
+         for (int jp = -1; jp<=1; jp += 2) {
+           int ii = i + ip;
+           int jj = j + jp;
+           if (0 <= ii && ii < LengthY && 0 <= jj && jj < LengthX) {
+             ki = k3 + ip * LengthX;
+             kj = k3 + jp;
+             m0 = (samples[2][kj] - c2) * (samples[1][ki] - c1) -
+                  (samples[1][kj] - c1) * (samples[2][ki] - c2);
+             m1 = (samples[0][kj] - c0) * (samples[2][ki] - c2) -
+                  (samples[2][kj] - c2) * (samples[0][ki] - c0);
+             m2 = (samples[1][kj] - c1) * (samples[0][ki] - c0) -
+                  (samples[0][kj] - c0) * (samples[1][ki] - c1);
+             m = (float) Math.sqrt(m0 * m0 + m1 * m1 + m2 * m2);
+             if (ip == jp) {
+               n0 += m0 / m;
+               n1 += m1 / m;
+               n2 += m2 / m;
+             }
+             else {
+               n0 -= m0 / m;
+               n1 -= m1 / m;
+               n2 -= m2 / m;
+             }
+           }
+         }
+       }
+       n = (float) Math.sqrt(n0 * n0 + n1 * n1 + n2 * n2);
+       grd_normals[0][tt] = n0 / n;
+       grd_normals[1][tt] = n1 / n;
+       grd_normals[2][tt] = n2 / n;
+      }
+    return grd_normals;
+  }
+
 
   /** constants for isosurface, etc */
   static final int BIG_NEG = (int) -2e+9;

@@ -28,6 +28,8 @@ package visad;
 
 import java.rmi.*;
 import java.util.StringTokenizer;
+import java.awt.event.*;
+import java.util.Vector;
 
 import visad.browser.Convert;
 import visad.util.Util;
@@ -69,6 +71,14 @@ public class ContourControl extends Control {
 
   boolean contourFill;
 
+  private static double init_scale = Double.NaN;
+  private boolean autoSizeLabels = true;
+  private double labelSizeFactor = 1;
+  private ZoomDoneListener zoom;
+  private ProjectionControl pcntrl;
+  private ControlListener projListener;
+  private double ratio = 1.20;
+
   /**
    * Construct a new ContourControl for the display
    * @param d    Display to associate with this
@@ -94,6 +104,18 @@ public class ContourControl extends Control {
     verticalSliceStep = Float.NaN;
 
     contourFill = false;
+
+    pcntrl = d.getProjectionControl();
+    double[] matrix          = pcntrl.getMatrix();
+    double[] rot             = new double[3];
+    double[] trans           = new double[3];
+    double[] scale           = new double[1];
+    MouseBehavior mouse      = d.getMouseBehavior();
+    mouse.instance_unmake_matrix(rot, scale, trans, matrix);
+    if (!(init_scale==init_scale)) init_scale = scale[0];
+
+    zoom = new ZoomDoneListener(this, pcntrl, mouse, init_scale);
+    d.addDisplayListener(zoom);
   }
 
   void setMainContours(boolean[] bvalues, float[] fvalues)
@@ -459,6 +481,33 @@ public class ContourControl extends Control {
     return contourFill;
   }
 
+  public static double getInitScale() {
+    return init_scale;
+  }
+
+  public void setAutoScaleLabels(boolean flag)
+         throws VisADException, RemoteException {
+    synchronized(this) {
+      autoSizeLabels = flag;
+    }
+  }
+
+  public boolean getAutoSizeLabels() {
+    return autoSizeLabels;
+  }
+
+  public void setLabelSize(double factor)
+         throws VisADException, RemoteException {
+    synchronized(this) {
+      labelSizeFactor *= factor;
+    }
+    changeControl(true);
+  }
+
+  public double getLabelSize() {
+    return labelSizeFactor;
+  }
+
   /** get a string that can be used to reconstruct this control later */
   public synchronized String getSaveString() {
     return mainContours + " " + labels + " " + surfaceValue + " " +
@@ -477,6 +526,12 @@ public class ContourControl extends Control {
     for (int i=0; i<2; i++) b[i] = Convert.getBoolean(st.nextToken());
     for (int i=0; i<5; i++) f[i] = Convert.getFloat(st.nextToken());
     setMainContours(b, f, false, true);
+  }
+
+  public void addProjectionControlListener(ControlListener cl, ProjectionControl pcntrl)
+  {
+    pcntrl.removeControlListener(projListener);
+    projListener = cl;
   }
 
   /** copy the state of a remote control to this control */
@@ -604,6 +659,16 @@ public class ContourControl extends Control {
           changed = true;
           contourFill = cc.contourFill;
         }
+
+        if (autoSizeLabels != cc.autoSizeLabels) {
+          changed = true;
+          autoSizeLabels = cc.autoSizeLabels;
+        }
+
+        if (labelSizeFactor != cc.labelSizeFactor) {
+          changed = true;
+          labelSizeFactor = cc.labelSizeFactor;
+        }
       }
     }
 
@@ -716,6 +781,13 @@ public class ContourControl extends Control {
         if (contourFill != cc.contourFill) {
           return false;
         }
+
+        if (autoSizeLabels != cc.autoSizeLabels) {
+          return false;
+        }
+        if (!Util.isApproximatelyEqual(labelSizeFactor, cc.labelSizeFactor)) {
+          return false;
+        }
       }
     }
 
@@ -730,5 +802,63 @@ public class ContourControl extends Control {
     }
 
     return cc;
+  }
+
+  public void reLabel() 
+         throws VisADException, RemoteException {   
+    zoom.reLabel(ratio);
+  }
+
+  class ZoomDoneListener implements DisplayListener
+  {
+    ContourControl    c_cntrl;
+    ProjectionControl p_cntrl;
+    MouseBehavior     mouse;
+    double            last_scale;
+
+    ZoomDoneListener(ContourControl c_cntrl, ProjectionControl p_cntrl,
+                      MouseBehavior mouse, double scale) {
+      this.c_cntrl = c_cntrl;
+      this.p_cntrl = p_cntrl;
+      this.mouse   = mouse;
+      last_scale   = scale;
+    }
+
+    public void displayChanged(DisplayEvent de)
+           throws VisADException, RemoteException
+    {
+      /**
+      if (de.getId() == DisplayEvent.KEY_RELEASED) {
+        InputEvent ie = de.getInputEvent();
+        if (ie != null) {
+          int mod = ie.getModifiers();
+          int key = ((KeyEvent)ie).getKeyCode();
+          if (key == KeyEvent.VK_SHIFT)  {
+            reLabel(ratio);
+          }
+        }
+      }
+      **/
+      if (de.getId() == DisplayEvent.MOUSE_RELEASED_LEFT ||
+          de.getId() == DisplayEvent.MOUSE_RELEASED_RIGHT) {
+        reLabel(ratio);
+      }
+    }
+     
+    public void reLabel(double ratio) 
+           throws VisADException, RemoteException {
+      if (!c_cntrl.contourFilled() && autoSizeLabels) {
+        double[] matrix        = p_cntrl.getMatrix();
+        double[] rot           = new double[3];
+        double[] trans         = new double[3];
+        double[] scale         = new double[1];
+        mouse.instance_unmake_matrix(rot, scale, trans, matrix);
+        if (scale[0]/last_scale > ratio ||
+            scale[0]/last_scale < 1/ratio) { //- re-label
+          c_cntrl.changeControl(true);
+          last_scale = scale[0];
+        }
+      }
+    }
   }
 }

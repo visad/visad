@@ -577,11 +577,13 @@ public class Irregular3DSet extends IrregularSet {
 
   /** return basic lines in array[0], fill-ins in array[1]
       and labels in array[2] */
-  public VisADGeometryArray[] makeIsoLines(float[] intervals,
+  public VisADGeometryArray[][] makeIsoLines(float[] intervals,
                   float lowlimit, float highlimit, float base,
                   float[] fieldValues, byte[][] color_values,
                   boolean[] swap, boolean dash,
-                  boolean fill, ScalarMap[] smap) throws VisADException {
+                  boolean fill, ScalarMap[] smap,
+                  double scale_ratio, double label_size,
+                  float[][][] f_array) throws VisADException {
     if (ManifoldDimension != 2) {
       throw new DisplayException("Irregular3DSet.makeIsoLines: " +
                                  "ManifoldDimension must be 2, not " +
@@ -847,8 +849,8 @@ public class Irregular3DSet extends IrregularSet {
 
     } // end for (int jj=0; jj<npolygons; jj++)
 
-    VisADLineArray[] arrays = new VisADLineArray[3];
-    arrays[0] = new VisADLineArray();
+    VisADLineArray[][] arrays = new VisADLineArray[3][1];
+    arrays[0][0] = new VisADLineArray();
     float[][] coordinates = new float[3][numv];
     System.arraycopy(vx, 0, coordinates[0], 0, numv);
     System.arraycopy(vy, 0, coordinates[1], 0, numv);
@@ -874,9 +876,9 @@ public class Irregular3DSet extends IrregularSet {
 */
       color_levels = null;
     }
-    setGeometryArray(arrays[0], coordinates, 3, colors);
-    arrays[1] = null;
-    arrays[2] = null;
+    setGeometryArray(arrays[0][0], coordinates, 3, colors);
+    arrays[1][0] = null;
+    arrays[2][0] = null;
     return arrays;
   }
 

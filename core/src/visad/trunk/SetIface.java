@@ -179,7 +179,7 @@ public interface SetIface
   VisADGeometryArray makePointGeometry(byte[][] color_values)
     throws VisADException;
 
-  VisADGeometryArray[] makeIsoLines(
+  VisADGeometryArray[][] makeIsoLines(
       float[] intervals,
       float lowlimit,
       float highlimit,
@@ -189,7 +189,10 @@ public interface SetIface
       boolean[] swap,
       boolean dash,
       boolean fill,
-      ScalarMap[] smap)
+      ScalarMap[] smap,
+      double scale_ratio,
+      double label_size,
+      float[][][] f_array)
     throws VisADException;
 
   VisADGeometryArray makeIsoSurface(

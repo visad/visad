@@ -460,11 +460,13 @@ public abstract class Set extends DataImpl implements SetIface {
 
   /** return basic lines in array[0], fill-ins in array[1]
       and labels in array[2] */
-  public VisADGeometryArray[] makeIsoLines(float[] intervals,
+  public VisADGeometryArray[][] makeIsoLines(float[] intervals,
                   float lowlimit, float highlimit, float base,
                   float[] fieldValues, byte[][] color_values,
-                  boolean[] swap, boolean dash, 
-                  boolean fill, ScalarMap[] smap) throws VisADException {
+                  boolean[] swap, boolean dash,
+                  boolean fill, ScalarMap[] smap,
+                  double scale_ratio, double label_size,
+                  float[][][] f_array) throws VisADException {
     throw new SetException("Set.makeIsoLines: not valid for this Set");
   }
 

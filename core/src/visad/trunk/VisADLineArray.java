@@ -89,13 +89,10 @@ public class VisADLineArray extends VisADGeometryArray {
       this default implementation does nothing */
   public VisADGeometryArray adjustSeam(DataRenderer renderer)
          throws VisADException {
-// System.out.println("VisADLineArray.adjustSeam");
     CoordinateSystem coord_sys = renderer.getDisplayCoordinateSystem();
-    // DRM 19 March 2002
-    //if (coord_sys == null || coord_sys instanceof SphericalCoordinateSystem) {
-    //  return this;
-    //}
-    if (coord_sys == null || coord_sys instanceof SphericalCoordinateSystem ||
+    if (coord_sys == null || 
+        coord_sys instanceof SphericalCoordinateSystem ||
+        coord_sys instanceof CylindricalCoordinateSystem ||
         coordinates == null) {
       return this;
     }
@@ -172,6 +169,7 @@ if ((0.01f < abratio) != (0.01f < acratio)) {
 System.out.println("test[" + i + "] " + abratio + " " + acratio);
 }
 */
+
       if (test[i]) any_split = true;
     } // end for (int i=0; i<len; i+=2)
 
@@ -207,15 +205,15 @@ System.out.println("test[" + i + "] " + abratio + " " + acratio);
     var_length = (float)
       Math.sqrt((var_length - mean_length * mean_length) / num_length);
     float limit_length = mean_length + LIMIT * var_length;
-/*
+/**TDR, TEST0 causing most of the problems...come back to this.
 System.out.println("limit_length = " + limit_length + " " + max_length + " " +
                    mean_length + " " + var_length + " " + num_length);
-*/
     if (max_length >= limit_length) {
       for (int i=0; i<len; i+=2) {
         test[i] = test[i] || (lengths[i] > limit_length);
       }
     }
+**/
 
     cs = null;
     rs = null;
@@ -272,7 +270,7 @@ System.out.println("limit_length = " + limit_length + " " + max_length + " " +
       j += 2 * color_length;
     }
 
-// System.out.println("VisADLineArray.adjustSeam any_split = " + any_split);
+   //System.out.println("VisADLineArray.adjustSeam any_split = " + any_split);
 
     if (!any_split) {
       return this;

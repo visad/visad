@@ -131,6 +131,11 @@ public abstract class ShadowType extends Object
   float   stepFactor2;
   //---------------------
 
+  /** makeContour, manifoldDimension == 2 */
+  int[] cnt = {0};
+  ProjectionControl p_cntrl = null;
+  ContourControl    c_cntrl = null;
+  //-------------------------------------
 
   /** used by getComponents to record RealTupleTypes
       with coordinate transforms */
@@ -156,6 +161,7 @@ public abstract class ShadowType extends Object
     MultipleSpatialDisplayScalar = false;
     MultipleDisplayScalar = false;
     MappedDisplayScalar = false;
+    p_cntrl = display.getProjectionControl();
   }
 
   public DataDisplayLink getLink() {
@@ -3403,6 +3409,14 @@ System.out.println("range = " + range[0] + " " + range[1] +
     // WLH 4 May 2001
     DataRenderer renderer = getLink().getRenderer();
 
+    double[] matrix          = p_cntrl.getMatrix();
+    double[] rot_a           = new double[3];
+    double[] trans_a         = new double[3];
+    double[] scale_a         = new double[1];
+    MouseBehavior mouse      = display.getMouseBehavior();
+    mouse.instance_unmake_matrix(rot_a, scale_a, trans_a, matrix);
+    double scale             = scale_a[0];
+
 /*
 try {
   System.out.println("makeContour " + getLink().getThingReference().getName());
@@ -3449,9 +3463,14 @@ try {
         VisADGeometryArray array = null;
         ContourControl control = (ContourControl)
           ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
+        c_cntrl = control;
         boolean[] bvalues = new boolean[2];
         float[] fvalues = new float[5];
         control.getMainContours(bvalues, fvalues);
+        double init_scale  = ContourControl.getInitScale();
+        double scale_ratio = scale/init_scale;
+        double label_size  = control.getLabelSize();
+        if (!control.getAutoSizeLabels()) scale_ratio = 1;
         if (bvalues[0]) {
           if (range_select[0] != null) {
             int len = range_select[0].length;
@@ -3508,8 +3527,9 @@ try {
             if (spatial_set != null) {
 
               float[] lowhibase = new float[3];
-              boolean[] dashes = {false};
+              boolean[] dashes  = {false};
               float[] levs = control.getLevels(lowhibase, dashes);
+
               boolean fill = control.contourFilled();
               ScalarMap[] smap = new ScalarMap[1];
               if (fill) {
@@ -3517,36 +3537,32 @@ try {
                 for (int kk = 0; kk < MapVector.size(); kk++) {
                   ScalarMap sm = (ScalarMap)MapVector.elementAt(kk);
                   if (sm != null) {
-                    if ( sm.getScalar().equals(sc) && 
-                        (sm.getDisplayScalar().equals(Display.RGB) ||
-                         sm.getDisplayScalar().equals(Display.RGBA))) {
+                    if (((sm.getScalar()).equals(sc)) &&
+                        ((sm.getDisplayScalar()).equals(Display.RGB)) ||
+                         (sm.getDisplayScalar()).equals(Display.RGBA)) {
                       smap[0] = sm;
                     }
                   }
                 }
                 if (smap[0] == null) {
-                  throw new BadMappingException("must also map "+sc+" to RGB for" +
-                      " IsoContour color-fill");
+                  throw new DisplayException("IsoContour color-fill is enabled, so "+
+                      sc+" must also be mapped to Display.RGB");
                 }
               }
-              arrays =
+              float[][][] f_array = new float[1][][];
+              VisADGeometryArray[][] array_s =
                 spatial_set.makeIsoLines(levs, lowhibase[0], lowhibase[1],
                                          lowhibase[2], display_values[i],
-                                         color_values, swap, dashes[0], 
-                                         fill, smap);
-/*
-System.out.println("makeIsoLines " + lowhibase[0] + " " + lowhibase[1] + " " +
-                   lowhibase[2] + " " + fill);
-*/
-              // WLH 4 May 2001
-              if (arrays != null) {
-                for (int j=0; j<arrays.length; j++) {
-                  if (arrays[j] != null) {
+                                         color_values, swap, dashes[0],
+                                         fill, smap, scale_ratio, label_size, f_array);
+
+              if (fill) array_s[0][0] = array_s[0][0].adjustSeam(renderer);
+              if (array_s != null && !fill) {
+                for (int j=0; j<2; j++) {
+                  if (array_s[j][0] != null) {
                     try {
-                      arrays[j] = arrays[j].adjustLongitude(renderer);
-// System.out.println("adjustLongitude " + j + " done");
-                      arrays[j] = arrays[j].adjustSeam(renderer);
-// System.out.println("adjustSeam " + j + " done");
+                      array_s[j][0] = ((VisADLineArray)array_s[j][0]).adjustLongitude(renderer);
+                      array_s[j][0] = ((VisADLineArray)array_s[j][0]).adjustSeam(renderer);
                     }
                     catch (Exception e) {
                     }
@@ -3554,52 +3570,40 @@ System.out.println("makeIsoLines " + lowhibase[0] + " " + lowhibase[1] + " " +
                 }
               }
 
-              if (fill) {
-                shadow_api.addToGroup(group, arrays[0], mode,
+              array = array_s[0][0];
+
+              if (array_s != null && array_s.length > 0 && array != null &&
+                  array.vertexCount > 0)
+              {
+                shadow_api.addToGroup(group, array, mode,
                                       constant_alpha, constant_color);
-                arrays[0] = null;
-              }
-              else {
-
-// System.out.println("makeIsoLines");
-              if (arrays != null && arrays.length > 0 && arrays[0] != null &&
-                  arrays[0].vertexCount > 0) {
-                shadow_api.addToGroup(group, arrays[0], mode,
-                                      constant_alpha, constant_color);
-                arrays[0] = null;
-                if (bvalues[1] && arrays[2] != null) {
-
-// System.out.println("makeIsoLines with labels arrays[2].vertexCount = " +
-//              arrays[2].vertexCount);
-
+                if (!fill) {
+                array     = null;
+                array_s[0] = null;
+                if (bvalues[1] && array_s[2] != null)
+                {
                   // draw labels
-                  array = arrays[2];
-                  //  FREE
-                  arrays = null;
+                  shadow_api.addLabelsToGroup(group, array_s, mode, control,
+                                              p_cntrl, cnt, constant_alpha,
+                                              constant_color, f_array);
+                  array_s[2] = null;
                 }
-                else if ((!bvalues[1]) && arrays[1] != null) {
-
-// System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
-//              arrays[1].vertexCount);
-
+                else if ((!bvalues[1]) && array_s[1] != null)
+                {
                   // fill in contour lines in place of labels
-                  array = arrays[1];
-                  //  FREE
-                  arrays = null;
-                }
-                else {
-                  array = null;
-                }
-                if (array != null) {
+                  array = array_s[1][0];
                   shadow_api.addToGroup(group, array, mode,
                                         constant_alpha, constant_color);
+                  //  FREE
                   array = null;
                 }
+                }
+                array_s[1] = null;
+                array_s = null;
               }
-
-              }// end if fill
             } // end if (spatial_set != null)
             anyContourCreated = true;
+            //projListener.cnt = cnt;
           } // end if (spatialManifoldDimension == 2)
         } // end if (bvalues[0])
       } // end if (real.equals(Display.IsoContour) && not inherited)
@@ -3607,6 +3611,84 @@ System.out.println("makeIsoLines " + lowhibase[0] + " " + lowhibase[1] + " " +
 
     return anyContourCreated;
   }
+/***
+class ProjectionControlListener implements ControlListener
+{
+  LabelTransform[][][] LT_array = null;
+  ProjectionControl p_cntrl = null;
+  ContourControl c_cntrl = null;
+  double last_scale;
+  double first_scale;
+  int cnt = 0;
+  double last_time;
+
+
+  ProjectionControlListener(ProjectionControl p_cntrl, ContourControl c_cntrl)
+  {
+    this.p_cntrl = p_cntrl;
+    this.c_cntrl = c_cntrl;
+    double[] matrix  = p_cntrl.getMatrix();
+    double[] rot_a   = new double[3];
+    double[] trans_a = new double[3];
+    double[] scale_a = new double[1];
+    MouseBehaviorJ3D.unmake_matrix(rot_a, scale_a, trans_a, matrix);
+    last_scale  = scale_a[0];
+    first_scale = last_scale;
+    LT_array = new LabelTransform[1000][][];
+    last_time = System.currentTimeMillis();
+    p_cntrl.addControlListener(this);
+    c_cntrl.addProjectionControlListener(this, p_cntrl);
+  }
+  public synchronized void controlChanged(ControlEvent e)
+         throws VisADException, RemoteException
+  {
+    double[] matrix  = p_cntrl.getMatrix();
+    double[] rot_a   = new double[3];
+    double[] trans_a = new double[3];
+    double[] scale_a = new double[1];
+
+    MouseBehaviorJ3D.unmake_matrix(rot_a, scale_a, trans_a, matrix);
+
+    //- identify scale change events.
+    if (!visad.util.Util.isApproximatelyEqual(scale_a[0], last_scale))
+    {
+    double current_time = System.currentTimeMillis();
+    if (scale_a[0]/last_scale > 1.15 ||
+        scale_a[0]/last_scale < 1/1.15)
+    {
+      if (current_time - last_time < 3000)
+      {
+        if (LT_array != null) {
+          for (int ii = 0; ii < cnt; ii++) {
+            for (int kk = 0; kk < LT_array[ii][0].length; kk++) {
+              LT_array[ii][0][kk].controlChanged(first_scale, scale_a);
+              LT_array[ii][1][kk].controlChanged(first_scale, scale_a);
+              LT_array[ii][2][kk].controlChanged(first_scale, scale_a);
+            }
+          }
+        }
+      }
+      else {
+        if (LT_array != null) {
+          for (int ii = 0; ii < cnt; ii++) {
+            for (int kk = 0; kk < LT_array[ii][0].length; kk++) {
+              LT_array[ii][0][kk].controlChanged(first_scale, scale_a);
+              LT_array[ii][1][kk].controlChanged(first_scale, scale_a);
+              LT_array[ii][2][kk].controlChanged(first_scale, scale_a);
+            }
+          }
+        }
+        c_cntrl.reLabel();
+      }
+      last_scale = scale_a[0];
+    }
+    last_time = current_time;
+    }
+  }
+
+}
+***/
+
 
   public int textureWidth(int data_width) {
     return data_width;
@@ -3645,6 +3727,14 @@ System.out.println("makeIsoLines " + lowhibase[0] + " " + lowhibase[1] + " " +
                             float constant_alpha, float[] constant_color)
          throws VisADException {
     return false;
+  }
+
+  public void addLabelsToGroup(Object group, VisADGeometryArray[][] arrays,
+                               GraphicsModeControl mode, ContourControl control,
+                               ProjectionControl p_cntrl, int[] cnt,
+                               float constant_alpha, float[] contstant_color,
+                               float[][][] f_array)
+         throws VisADException {
   }
 
   public boolean addTextToGroup(Object group, VisADGeometryArray array,
@@ -3754,4 +3844,78 @@ System.out.println("makeIsoLines " + lowhibase[0] + " " + lowhibase[1] + " " +
   }
 
 }
+/***
+class LabelTransform
+{
+  TransformGroup trans;
+  Transform3D t3d;
+  ProjectionControl proj;
+  VisADGeometryArray label_array;
+  VisADGeometryArray anchr_array;
+  double[] matrix;
+  double last_scale;
+  double first_scale;
+  float[] vertex;
+  float[] anchr_vertex;
+  double[] rot_a;
+  double[] trans_a;
+  double[] scale_a;
+  int flag;
+  float[] f_array;
 
+  LabelTransform(TransformGroup trans,
+                 ProjectionControl proj,
+                 VisADGeometryArray[] label_array, float[] f_array, int flag)
+  {
+    this.trans        = trans;
+    this.proj         = proj;
+    this.label_array  = label_array[0];
+    this.anchr_array  = label_array[1];
+    this.flag         = flag;
+    this.f_array      = f_array;
+
+    t3d     = new Transform3D();
+    matrix  = proj.getMatrix();
+    rot_a   = new double[3];
+    trans_a = new double[3];
+    scale_a = new double[1];
+    MouseBehaviorJ3D.unmake_matrix(rot_a, scale_a, trans_a, matrix);
+    last_scale  = scale_a[0];
+    first_scale = last_scale;
+
+    vertex          = this.label_array.coordinates;
+    anchr_vertex    = this.anchr_array.coordinates;
+    int vertexCount = this.label_array.vertexCount;
+  }
+
+
+  public void controlChanged(double first_scale, double[] scale_a)
+  {
+    trans.getTransform(t3d);
+
+    double factor = 0;
+    float f_scale = 0;
+
+    if (flag == 0) { //-- label
+      double k = first_scale;  //- final scale
+      factor   = k/scale_a[0];
+      f_scale  = (float) ((scale_a[0] - k)/scale_a[0]);
+    }
+    else {           //-- expanding line segments
+      double k = (f_array[0]/(f_array[1]-f_array[0]))*
+        (f_array[1]/f_array[0] - first_scale/scale_a[0])*scale_a[0];
+      factor   = k/scale_a[0];
+      f_scale  = (float) ((scale_a[0] - k)/scale_a[0]);
+    }
+
+    Vector3f trans_vec =
+      new Vector3f(f_scale*anchr_vertex[0],
+                   f_scale*anchr_vertex[1],
+                   f_scale*anchr_vertex[2]);
+
+    t3d.set((float)factor, trans_vec);
+
+    trans.setTransform(t3d);
+  }
+}
+***/

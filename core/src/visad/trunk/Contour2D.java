@@ -34,7 +34,7 @@ import visad.util.Util;
 /**
    Contour2D is a class equipped with a 2-D contouring function.<P>
 */
-public class Contour2D extends Applet implements MouseListener {
+public class Contour2D {
 
   // Applet variables
   protected Contour2D con;
@@ -79,15 +79,17 @@ public class Contour2D extends Applet implements MouseListener {
    */
   public static void contour( float g[], int nr, int nc, float interval,
                       float lowlimit, float highlimit, float base,
-                      float vx1[][], float vy1[][],  int maxv1, int[] numv1,
-                      float vx2[][], float vy2[][],  int maxv2, int[] numv2,
-                      float vx3[][], float vy3[][],  int maxv3, int[] numv3,
-                      float vx4[][], float vy4[][],  int maxv4, int[] numv4,
+                      float vx1[][], float vy1[][], float[][] vz1, int maxv1, int[] numv1,
+                      float vx2[][], float vy2[][], float[][] vz2, int maxv2, int[] numv2,
+                      float vx3[][], float vy3[][], float[][] vz3, int maxv3, int[] numv3,
+                      float vx4[][], float vy4[][], float[][] vz4, int maxv4, int[] numv4,
                       byte[][] auxValues, byte[][] auxLevels1,
                       byte[][] auxLevels2, byte[][] auxLevels3, boolean[] swap,
                       boolean fill, float[][] tri, byte[][] tri_color,
                       float[][][] grd_normals, float[][] tri_normals,
-                      byte[][] interval_colors)
+                      byte[][] interval_colors, float[][][][] lbl_vv, byte[][][][] lbl_cc,
+                      float[][][] lbl_loc, double scale_ratio, double label_size,
+                      Gridded3DSet spatial_set)
                           throws VisADException
   {
     boolean[] dashes = {false};
@@ -97,15 +99,16 @@ public class Contour2D extends Applet implements MouseListener {
 
     contour( g, nr, nc, intervals,
              lowlimit, highlimit, base, dash,
-             vx1, vy1,  maxv1, numv1,
-             vx2, vy2,  maxv2, numv2,
-             vx3, vy3,  maxv3, numv3,
-             vx4, vy4,  maxv4, numv4,
+             vx1, vy1, vz1, maxv1, numv1,
+             vx2, vy2, vz2, maxv2, numv2,
+             vx3, vy3, vz3, maxv3, numv3,
+             vx4, vy4, vz4, maxv4, numv4,
              auxValues, auxLevels1,
              auxLevels2, auxLevels3, swap,
              fill, tri, tri_color,
              grd_normals, tri_normals,
-             interval_colors);
+             interval_colors, lbl_vv, lbl_cc, lbl_loc, scale_ratio, label_size,
+             spatial_set);
   }
 
   /**
@@ -125,7 +128,7 @@ public class Contour2D extends Applet implements MouseListener {
    * @param ba                  The base contour value.  The returned values
    *                            will be integer multiples of the interval
    *                            away from this this value. Must not be NaN.
-   * @param dash                Whether or not contour lines less than the base
+   * dash                       Whether or not contour lines less than the base
    *                            should be drawn as dashed lines.  This is a
    *                            computed and returned value.
    * @throws VisADException     The contour interval is zero or too small.
@@ -153,7 +156,7 @@ public class Contour2D extends Applet implements MouseListener {
     // how many contour lines are needed.
     int numc = (int) (nhi - nlo) + 1;
     if (numc < 1) return levs;
-    if (numc > 1000) {
+    if (numc > 4000) {
       throw new VisADException("Contour interval too small");
     }
 
@@ -206,15 +209,17 @@ public class Contour2D extends Applet implements MouseListener {
    */
   public static void contour( float g[], int nr, int nc, float[] values,
                       float lowlimit, float highlimit, float base, boolean dash,
-                      float vx1[][], float vy1[][],  int maxv1, int[] numv1,
-                      float vx2[][], float vy2[][],  int maxv2, int[] numv2,
-                      float vx3[][], float vy3[][],  int maxv3, int[] numv3,
-                      float vx4[][], float vy4[][],  int maxv4, int[] numv4,
+                      float vx1[][], float vy1[][], float[][] vz1, int maxv1, int[] numv1,
+                      float vx2[][], float vy2[][], float[][] vz2, int maxv2, int[] numv2,
+                      float vx3[][], float vy3[][], float[][] vz3, int maxv3, int[] numv3,
+                      float vx4[][], float vy4[][], float[][] vz4, int maxv4, int[] numv4,
                       byte[][] auxValues, byte[][] auxLevels1,
                       byte[][] auxLevels2, byte[][] auxLevels3, boolean[] swap,
                       boolean fill, float[][] tri, byte[][] tri_color,
                       float[][][] grd_normals, float[][] tri_normals,
-                      byte[][] interval_colors)
+                      byte[][] interval_colors, float[][][][] lbl_vv, byte[][][][] lbl_cc,
+                      float[][][] lbl_loc, double scale_ratio, double label_size,
+                      Gridded3DSet spatial_set)
                           throws VisADException {
 /*
 System.out.println("interval = " + values[0] + " lowlimit = " + lowlimit +
@@ -224,7 +229,7 @@ boolean anymissing = false;
 boolean anynotmissing = false;
 */
 
-// System.out.println("contour: swap = " + swap[0] + " " + swap[1] + " " + swap[2]);
+//System.out.println("contour: swap = " + swap[0] + " " + swap[1] + " " + swap[2]);
 
     dash = (fill == true) ? false : dash;
     PlotDigits plot = new PlotDigits();
@@ -366,6 +371,9 @@ boolean anynotmissing = false;
     byte[][][] o_flags   = new byte[nrm][ncm][];
     short[][]  n_lines   = new short[nrm][ncm];
     short[][]  ctrLow    = new short[nrm][ncm];
+   
+    ContourStripSet ctrSet =
+      new ContourStripSet(nrm, myvals, swap, scale_ratio, label_size, nr, nc, spatial_set);
 
     // compute contours
     for (ir=0; ir<nrm; ir++) {
@@ -1092,9 +1100,18 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                      " ic, ir = " + ic + " " + ir);
 }
 */
+          if (ii == 6) { //- add last two pairs
+            ctrSet.add(vx, vy, numv-4, numv-3, low+il);
+            ctrSet.add(vx, vy, numv-2, numv-1, low+il);
+          }
+          else {
+            ctrSet.add(vx, vy, numv-2, numv-1, low+il);
+          }
+
         }  // for il       -- NOTE:  gg incremented in for statement
       }  // for ic
     }  // for ir
+
 
 /**-------------------  Color Fill -------------------------*/
     if (fill) {
@@ -1104,87 +1121,45 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     }
 
 
-    ipnt[nump] = numv;
+//---TDR, build Contour Strips
 
-    // copy vertices from vx, vy arrays to either v1 or v2 arrays
-    ip = 0;
-    for (ir=0;ir<nrm && ip<ipnt.length-1;ir++) {
-      for (ic=0;ic<ncm && ip<ipnt.length-1;ic++) {
-        int start, len;
-        start = ipnt[ip];
-        len = ipnt[ip+1] - start;
-        if (len>0) {
-          if (( mark[ (ic) * nr + (ir) ] )==2) {
+    float[][][] vvv          = new float[2][][];
+    byte[][][] new_colors    = new byte[2][][];
+    ctrSet.getLineColorArrays(vx, vy, auxLevels, vvv, new_colors, lbl_vv, lbl_cc, lbl_loc);
 
-            if (numv2[0]+len >= maxv2) {
-              // allocate more space
-              maxv2 = 2 * (numv2[0]+len);
-              float[][] tx = new float[][] {vx2[0]};
-              float[][] ty = new float[][] {vy2[0]};
-              vx2[0] = new float[maxv2];
-              vy2[0] = new float[maxv2];
-              System.arraycopy(tx[0], 0, vx2[0], 0, numv2[0]);
-              System.arraycopy(ty[0], 0, vy2[0], 0, numv2[0]);
-              if (naux > 0) {
-                for (int i=0; i<naux; i++) {
-                  byte[] ta = auxLevels2[i];
-                  auxLevels2[i] = new byte[maxv2];
-                  System.arraycopy(ta, 0, auxLevels2[i], 0, numv2[0]);
-                }
-              }
-            }
 
-            for (il=0;il<len;il++) {
-              vx2[0][numv2[0]+il] = vx[start+il];
-              vy2[0][numv2[0]+il] = vy[start+il];
-            }
-            if (naux > 0) {
-              for (int i=0; i<naux; i++) {
-                for (il=0;il<len;il++) {
-                  auxLevels2[i][numv2[0]+il] = auxLevels[i][start+il];
-                }
-              }
-            }
-            numv2[0] += len;
-          }
-          else {
+    vx1[0] = vvv[0][0];
+    vy1[0] = vvv[0][1];
+    vz1[0] = vvv[0][2];
+    vx2[0] = vvv[1][0];
+    vy2[0] = vvv[1][1];
+    vz2[0] = vvv[1][2];
+    vx3[0] = lbl_vv[0][0][0];
+    vy3[0] = lbl_vv[0][0][1];
+    vz3[0] = lbl_vv[0][0][2];
+    vx4[0] = lbl_vv[1][0][0];
+    vy4[0] = lbl_vv[1][0][1];
+    vz4[0] = lbl_vv[1][0][2];
 
-            if (numv1[0]+len >= maxv1) {
-              // allocate more space
-              maxv1 = 2 * (numv1[0]+len);
-              float[][] tx = new float[][] {vx1[0]};
-              float[][] ty = new float[][] {vy1[0]};
-              vx1[0] = new float[maxv1];
-              vy1[0] = new float[maxv1];
-              System.arraycopy(tx[0], 0, vx1[0], 0, numv1[0]);
-              System.arraycopy(ty[0], 0, vy1[0], 0, numv1[0]);
-              if (naux > 0) {
-                for (int i=0; i<naux; i++) {
-                  byte[] ta = auxLevels1[i];
-                  auxLevels1[i] = new byte[maxv1];
-                  System.arraycopy(ta, 0, auxLevels1[i], 0, numv1[0]);
-                }
-              }
-            }
+    numv1[0] = vvv[0][0].length;
+    numv2[0] = vvv[1][0].length;
+    numv3[0] = lbl_vv[0][0][0].length;
+    numv4[0] = lbl_vv[1][0][0].length;
 
-            for (il=0; il<len; il++) {
-              vx1[0][numv1[0]+il] = vx[start+il];
-              vy1[0][numv1[0]+il] = vy[start+il];
-            }
-            if (naux > 0) {
-              for (int i=0; i<naux; i++) {
-                for (il=0;il<len;il++) {
-                  auxLevels1[i][numv1[0]+il] = auxLevels[i][start+il];
-                }
-              }
-            }
-            numv1[0] += len;
-          }
+    int clr_dim = auxValues.length;
 
-        }
-        ip++;
-      }
-    }
+    auxLevels1[0] = new_colors[0][0];
+    auxLevels1[1] = new_colors[0][1];
+    auxLevels1[2] = new_colors[0][2];
+    if (clr_dim == 4) auxLevels1[3] = new_colors[0][3];
+    auxLevels2[0] = new_colors[1][0];
+    auxLevels2[1] = new_colors[1][1];
+    auxLevels2[2] = new_colors[1][2];
+    if (clr_dim == 4) auxLevels2[3] = new_colors[1][3];
+    auxLevels3[0] = lbl_cc[0][0][0];
+    auxLevels3[1] = lbl_cc[0][0][1];
+    auxLevels3[2] = lbl_cc[0][0][2];
+    if (clr_dim == 4) auxLevels3[3] = lbl_cc[0][0][3];
   }
 
   public static void fillGridBox(float[] g, short[][] n_lines,
@@ -2734,7 +2709,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
 
   // APPLET SECTION
 
-  /* run 'appletviewer contour.html' to test the Contour2D class. */
+  /*** run 'appletviewer contour.html' to test the Contour2D class.
   public void init() {
     this.addMouseListener(this);
     con = new Contour2D();
@@ -2791,6 +2766,12 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     float[][][] grd_normals = new float[3][][];
     float[][] tri_normals = new float[1][];
     byte[][] interval_colors = new byte[3][];
+    float[][][][] lbl_vv     = new float[4][][][];
+    byte[][][][] lbl_cc     = new byte[4][][][];
+    float[][][]  lbl_loc    = new float[3][][];
+    double       scale_ratio = 1;
+    double       label_size  = 1;
+    Gridded3DSet gset = null;
     try {
       boolean[] swap = {false, false, false};
       float[] intervals = {.25f, .5f, 1.0f, 2.0f, 2.5f, 5.f, 10.f};
@@ -2801,7 +2782,8 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                   con.vx3, con.vy3, mxv3, con.num3,
                   con.vx4, con.vy4, mxv4, con.num4,
                   null, null, null, null, swap, false, tri, tri_color,
-                  grd_normals, tri_normals, interval_colors);
+                  grd_normals, tri_normals, interval_colors, 
+                  lbl_vv, lbl_cc, lbl_loc, scale_ratio, label_size, gset);
     }
     catch (VisADException VE) {
       System.out.println("Contour2D.init: "+VE);
@@ -2893,6 +2875,881 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
       } // end switch
     }
   }
+  ****/
 
 } // end class
 
+class ContourStripSet {
+
+  int     mxsize;
+  float[] levels;
+  int     n_levs;
+  int     nr;
+  int     nc;
+  Gridded3DSet spatial_set;
+
+  java.util.Vector[] vecArray;
+  java.util.Vector vec;
+
+  PlotDigits[] plot_s;
+  float[][] plot_min_max;
+  boolean[] swap;
+
+  ContourStripSet(int size, float[] levels, boolean[] swap, 
+                  double scale_ratio, double label_size, int nr, int nc,
+                  Gridded3DSet spatial_set) 
+    throws VisADException {
+
+    this.mxsize  = 20*size;
+    this.levels  = levels;
+    n_levs       = levels.length;
+    vecArray     = new java.util.Vector[n_levs];
+    plot_s       = new PlotDigits[n_levs];
+    plot_min_max = new float[n_levs][2];
+    float fac    = (float) ((0.15*(1.0/scale_ratio))*label_size);
+    this.nr      = nr;
+    this.nc      = nc;
+    this.swap    = swap;
+    this.spatial_set = spatial_set;
+
+    for (int kk = 0; kk < n_levs; kk++) {
+      vecArray[kk]    = new java.util.Vector();
+      PlotDigits plot = new PlotDigits();
+      plot.Number     = levels[kk];
+      plot.plotdigits(levels[kk], 0f, 0f, fac*1, fac*1, 400,
+                      new boolean[] {false, false, false});
+
+      float[][] tmp = new float[2][];
+      tmp[0] = plot.Vx;
+      tmp[1] = plot.Vy;
+      plot.Vx = tmp[1];
+      plot.Vy = tmp[0];
+      tmp[0] = plot.VxB;
+      tmp[1] = plot.VyB;
+      plot.VxB = tmp[1];
+      plot.VyB = tmp[0];
+ 
+      float vx_min  =  Float.MAX_VALUE;
+      float vy_min  =  Float.MAX_VALUE;
+      float vx_max  = -Float.MAX_VALUE;
+      float vy_max  = -Float.MAX_VALUE;
+      float vxB_min =  Float.MAX_VALUE;
+      float vyB_min =  Float.MAX_VALUE;
+      float vxB_max = -Float.MAX_VALUE;
+      float vyB_max = -Float.MAX_VALUE;
+      for ( int ii = 0; ii < plot.NumVerts; ii++) {
+        if (plot.Vx[ii]  < vx_min) vx_min = plot.Vx[ii];
+        if (plot.Vy[ii]  < vy_min) vy_min = plot.Vy[ii];
+        if (plot.Vx[ii]  > vx_max) vx_max = plot.Vx[ii];
+        if (plot.Vy[ii]  > vy_max) vy_max = plot.Vy[ii];
+        if (plot.VxB[ii] < vxB_min) vxB_min = plot.VxB[ii];
+        if (plot.VyB[ii] < vyB_min) vyB_min = plot.VyB[ii];
+        if (plot.VxB[ii] > vxB_max) vxB_max = plot.VxB[ii];
+        if (plot.VyB[ii] > vyB_max) vyB_max = plot.VyB[ii];
+      }
+      float t_x  = (vx_max-vx_min)/2   + vx_min;
+      float t_y  = (vy_max-vy_min)/2   + vy_min;
+      float t_xB = (vxB_max-vxB_min)/2 + vxB_min;
+      float t_yB = (vyB_max-vyB_min)/2 + vyB_min;
+
+      for (int ii = 0; ii < plot.NumVerts; ii++) {
+        plot.Vx[ii]  -= t_x;
+        plot.Vy[ii]  -= t_y;
+        plot.VxB[ii] -= t_xB;
+        plot.VyB[ii] -= t_yB;
+      }
+      plot_s[kk] = plot;
+      if (swap[0] == false) {
+        plot_min_max[kk][0] = vy_min;
+        plot_min_max[kk][1] = vy_max;
+      }
+      else {
+        plot_min_max[kk][0] = vx_min;
+        plot_min_max[kk][1] = vx_max;
+      }
+        plot_min_max[kk][0] = vx_min;
+        plot_min_max[kk][1] = vx_max;
+    }
+  }
+
+  void add(float[] vx, float[] vy, int idx0, int idx1, float level) {
+    int lev_idx = 0;
+    for (int kk = 0; kk < n_levs; kk++) {
+      if (level == levels[kk]) lev_idx = kk;
+    }
+    add(vx, vy, idx0, idx1, lev_idx);
+  }
+
+  void add(float[] vx, float[] vy, int idx0, int idx1, int lev_idx)
+  {
+    vec = vecArray[lev_idx];
+    int n_strip = vec.size();
+
+    if (n_strip == 0) {
+      ContourStrip c_strp =
+        new ContourStrip(mxsize, lev_idx, idx0, idx1, plot_s[lev_idx], this);
+      vec.addElement(c_strp);
+    }
+    else {
+      int[] found_array = new int[2];
+      int found = 0;
+      for (int kk = 0; kk < n_strip; kk++) {
+        ContourStrip c_strp  = (ContourStrip)vec.elementAt(kk);
+        if (c_strp.addPair(vx, vy, idx0, idx1)) {
+          found_array[found] = kk;
+          found++;
+        }
+      }
+      if (found==2) {
+        ContourStrip c_strpA = (ContourStrip)vec.elementAt(found_array[0]);
+        ContourStrip c_strpB = (ContourStrip)vec.elementAt(found_array[1]);
+        ContourStrip c_strp  = c_strpA.merge(c_strpB);
+
+        vec.addElement(c_strp);
+        vec.removeElement(c_strpA);
+        vec.removeElement(c_strpB);
+      }
+      else if (found == 0) {
+        ContourStrip c_strp =
+          new ContourStrip(mxsize, lev_idx, idx0, idx1, plot_s[lev_idx], this);
+        vec.addElement(c_strp);
+      }
+    }
+  }
+
+  void getLineColorArrays(float[] vx, float[] vy, byte[][] colors, int lev_idx,
+                          float[][][] out_vv, byte[][][] out_bb,
+                          float[][][][] out_vvL, byte[][][][] out_bbL, float[][][] out_loc)
+  {
+    int n_strips = vecArray[lev_idx].size();
+
+    float[][][][] la    = new float[n_strips][2][][];
+    byte[][][][]  ca    = new byte[n_strips][2][][];
+    float[][][][][] laL = new float[n_strips][4][][][];
+    byte[][][][][]  caL = new byte[n_strips][4][][][];
+    float[][][][]  locL = new float[n_strips][3][][];
+
+    for (int kk=0; kk<n_strips; kk++) {
+      ContourStrip cs = (ContourStrip)vecArray[lev_idx].elementAt(kk);
+      cs.getLabeledLineColorArray(vx, vy, colors, la[kk], ca[kk], laL[kk], caL[kk], locL[kk]);
+    }
+
+    //-- contour/contour label gap line arrays
+    for (int tt = 0; tt < 2; tt++) {
+      int len = 0;
+      for (int mm = 0; mm < n_strips; mm++) {
+        if (la[mm][tt] != null) {
+          len += la[mm][tt][0].length;
+        }
+      }
+      out_vv[tt] = new float[3][len];
+      int cnt = 0;
+      for (int mm = 0; mm < n_strips; mm++) {
+        if (la[mm][tt] != null) {
+          System.arraycopy(la[mm][tt][0], 0, out_vv[tt][0], cnt, la[mm][tt][0].length);
+          System.arraycopy(la[mm][tt][1], 0, out_vv[tt][1], cnt, la[mm][tt][1].length);
+          System.arraycopy(la[mm][tt][2], 0, out_vv[tt][2], cnt, la[mm][tt][1].length);
+          cnt += la[mm][tt][0].length;
+        }
+      }
+
+      len = 0;
+      for (int mm = 0; mm < n_strips; mm++) {
+        if (ca[mm][tt] != null) {
+          len += ca[mm][tt][0].length;
+        }
+      }
+      int clr_dim = colors.length;
+      out_bb[tt]  = new byte[clr_dim][len];
+      cnt = 0;
+      for (int mm = 0; mm < n_strips; mm++) {
+        if (ca[mm][tt] != null) {
+          for (int cc = 0; cc < clr_dim; cc++) {
+            System.arraycopy(ca[mm][tt][cc], 0, out_bb[tt][cc], cnt, ca[mm][tt][cc].length);
+          }
+          cnt += ca[mm][tt][0].length;
+        }
+      }
+    }
+
+    //-- label, vx3/vx4, line arrays
+    int n_lbl = 0;
+    for (int mm = 0; mm < n_strips; mm++) {
+      if (laL[mm][0] != null) {
+        n_lbl += laL[mm][0].length;
+      }
+    }
+    out_vvL[0] = new float[n_lbl][][];
+    out_vvL[1] = new float[n_lbl][][];
+    out_vvL[2] = new float[n_lbl][][];
+    out_vvL[3] = new float[n_lbl][][];
+    out_bbL[0] = new byte[n_lbl][][];
+    out_bbL[1] = new byte[n_lbl][][];
+    out_bbL[2] = new byte[n_lbl][][];
+    out_bbL[3] = new byte[n_lbl][][];
+    out_loc[0] = new float[n_lbl][];
+    out_loc[1] = new float[n_lbl][];
+    out_loc[2] = new float[n_lbl][];
+
+    for (int tt = 0; tt < 4; tt++) {
+      n_lbl = 0;
+      for (int kk = 0; kk < n_strips; kk++) {
+        if (laL[kk][tt] != null) {
+          for (int mm = 0; mm < laL[kk][tt].length; mm++ ) {
+            out_vvL[tt][n_lbl] = laL[kk][tt][mm];
+            out_bbL[tt][n_lbl] = caL[kk][tt][mm];
+            n_lbl++;
+          }
+        }
+      }
+    }
+    for (int tt = 0; tt < 3; tt++) {
+    n_lbl = 0;
+    for (int kk = 0; kk < n_strips; kk++) {
+      if (locL[kk][0] != null) {
+        for (int mm = 0; mm < locL[kk][tt].length; mm++) {
+          out_loc[tt][n_lbl] = locL[kk][tt][mm];
+          n_lbl++;
+        }
+      }
+    }
+    }
+  }
+
+  void getLineColorArrays(float[] vx, float[] vy, byte[][] colors,
+                          float[][][] out_vv, byte[][][] out_bb,
+                          float[][][][] out_vvL, byte[][][][] out_bbL, float[][][] out_loc) {
+
+    float[][][][] tmp    = new float[n_levs][2][][];
+    byte[][][][] btmp    = new byte[n_levs][2][][];
+    float[][][][][] tmpL = new float[n_levs][4][][][];
+    byte[][][][][] btmpL = new byte[n_levs][4][][][];
+    float[][][][] tmpLoc = new float[n_levs][3][][];
+
+    int n_lbl = 0;
+    for (int kk=0; kk<n_levs; kk++) {
+      getLineColorArrays(vx, vy, colors, kk, tmp[kk], btmp[kk], tmpL[kk], btmpL[kk], tmpLoc[kk]);
+      n_lbl += tmpL[kk][0].length;
+    }
+      
+    for (int tt = 0; tt < 2; tt++)
+    {
+      int len = 0;
+      for (int kk=0; kk<n_levs; kk++) {
+        len += tmp[kk][tt][0].length;
+      }
+      out_vv[tt] = new float[3][len];
+      int cnt = 0;
+      for (int kk = 0; kk < n_levs; kk++) {
+        System.arraycopy(tmp[kk][tt][0], 0, out_vv[tt][0], cnt, tmp[kk][tt][0].length);
+        System.arraycopy(tmp[kk][tt][1], 0, out_vv[tt][1], cnt, tmp[kk][tt][0].length);
+        System.arraycopy(tmp[kk][tt][2], 0, out_vv[tt][2], cnt, tmp[kk][tt][0].length);
+        cnt += tmp[kk][tt][0].length;
+      }
+
+      len = 0;
+      for (int kk=0; kk<n_levs; kk++) {
+        len += btmp[kk][tt][0].length;
+      }
+      int clr_dim = colors.length;
+      out_bb[tt]  = new byte[clr_dim][len];
+      cnt = 0;
+      for (int kk = 0; kk < n_levs; kk++) {
+        for (int cc = 0; cc < clr_dim; cc++) {
+          System.arraycopy(btmp[kk][tt][cc], 0, out_bb[tt][cc], cnt, btmp[kk][tt][cc].length);
+        }
+        cnt += btmp[kk][tt][0].length;
+      }
+    }
+
+    for (int tt = 0; tt < 4; tt++) 
+    {
+      out_vvL[tt] = new float[n_lbl][][]; 
+      int cnt = 0;
+      for (int kk = 0; kk<n_levs; kk++) {
+        for ( int ll = 0; ll < tmpL[kk][tt].length; ll++) {
+          out_vvL[tt][cnt] = tmpL[kk][tt][ll];
+          cnt++;
+        }
+      }
+      out_bbL[tt] = new byte[n_lbl][][];
+      cnt = 0;
+      for (int kk = 0; kk<n_levs; kk++) {
+        for ( int ll = 0; ll < tmpL[kk][tt].length; ll++) {
+          out_bbL[tt][cnt] = btmpL[kk][tt][ll];
+          cnt++;
+        }
+      }
+    }
+
+    for (int tt = 0; tt < 3; tt++)
+    {
+      out_loc[tt] = new float[n_lbl][];
+      int cnt = 0;
+      for (int kk = 0; kk <n_levs; kk++) {
+        if (tmpLoc[kk][tt] != null) {
+          for (int ll = 0; ll < tmpLoc[kk][tt].length; ll++) {
+            out_loc[tt][cnt] = tmpLoc[kk][tt][ll];
+            cnt++;
+          }
+        }
+      }
+    }
+  }
+}
+
+class ContourStrip {
+
+  int[] idx_array;
+  int     low_idx;
+  int      hi_idx;
+  int     lev_idx;
+
+  PlotDigits plot;
+  ContourStripSet css;
+  float lbl_half;
+
+  ContourStrip(int mxsize, int lev_idx, int idx0, int idx1, PlotDigits plot,
+               ContourStripSet css) {
+    idx_array    = new int[mxsize];
+    this.lev_idx = lev_idx;
+    this.plot    = plot;
+
+    low_idx = mxsize/2;
+    hi_idx  = low_idx + 1;
+    idx_array[low_idx] = idx0;
+    idx_array[hi_idx]  = idx1;
+    this.css = css;
+    this.lbl_half = (css.plot_min_max[lev_idx][1] - css.plot_min_max[lev_idx][0])/2;
+    this.lbl_half += this.lbl_half*0.30;
+  }
+
+  ContourStrip(int mxsize, int[] idx_array, int lev_idx, PlotDigits plot,
+               ContourStripSet css) {
+    this.lev_idx   = lev_idx;
+    this.idx_array = new int[mxsize];
+    this.plot      = plot;
+    low_idx = mxsize/2 - (idx_array.length)/2;
+    hi_idx  = (low_idx + idx_array.length)-1;
+    System.arraycopy(idx_array, 0, this.idx_array, low_idx, idx_array.length);
+    this.css = css;
+    this.lbl_half = (css.plot_min_max[lev_idx][1] - css.plot_min_max[lev_idx][0])/2;
+    this.lbl_half +=  this.lbl_half*0.30;
+  }
+
+  boolean addPair(float[] vx, float[] vy, int idx0, int idx1) {
+
+   float vx0  = vx[idx0];
+   float vy0  = vy[idx0];
+   float vx1  = vx[idx1];
+   float vy1  = vy[idx1];
+
+
+   float vx_s = vx[idx_array[low_idx]];
+   float vy_s = vy[idx_array[low_idx]];
+   float dist = (vx0-vx_s)*(vx0-vx_s)+(vy0-vy_s)*(vy0-vy_s);
+
+   if (dist <= 0.00001) {
+     low_idx -= 1;
+     idx_array[low_idx] = idx0;
+     low_idx -= 1;
+     idx_array[low_idx] = idx1;
+     return true;
+   }
+   dist = (vx1-vx_s)*(vx1-vx_s)+(vy1-vy_s)*(vy1-vy_s);
+   if (dist <= 0.00001) {
+     low_idx -= 1;
+     idx_array[low_idx] = idx1;
+     low_idx -= 1;
+     idx_array[low_idx] = idx0;
+     return true;
+   }
+
+   vx_s = vx[idx_array[hi_idx]];
+   vy_s = vy[idx_array[hi_idx]];
+   dist = (vx0-vx_s)*(vx0-vx_s)+(vy0-vy_s)*(vy0-vy_s);
+   if (dist <= 0.00001) {
+     hi_idx += 1;
+     idx_array[hi_idx] = idx0;
+     hi_idx += 1;
+     idx_array[hi_idx] = idx1;
+     return true;
+   }
+   dist = (vx1-vx_s)*(vx1-vx_s)+(vy1-vy_s)*(vy1-vy_s);
+   if (dist <= 0.00001) {
+     hi_idx += 1;
+     idx_array[hi_idx] = idx1;
+     hi_idx += 1;
+     idx_array[hi_idx] = idx0;
+     return true;
+   }
+   return false;
+  }
+
+  void getLabeledLineColorArray(float[] vx, float[] vy, byte[][] colors,
+                                float[][][] out_vv, byte[][][] out_colors,
+                                float[][][][] out_vvL, byte[][][][] out_colorsL,
+                                float[][][]  lbl_loc)
+  {
+    float[][] vv = null;
+    float[][] vv_grid = getLineArray(vx, vy);
+
+    try {
+      vv = css.spatial_set.gridToValue(vv_grid);
+    }
+    catch (VisADException e) {
+      System.out.println(e.getMessage());
+    }
+
+    byte[][]  bb      = getColorArray(colors);
+    int clr_dim       = colors.length;
+    int n_lbl         = 1;
+
+    out_vvL[0]        = null;
+    out_colorsL[0]    = null;
+    out_vvL[1]        = null;
+    out_colorsL[1]    = null;
+    lbl_loc[0]        = null;
+
+    out_vvL[2]        = null;
+    out_colorsL[2]    = null;
+    out_vvL[3]        = null;
+    out_colorsL[3]    = null;
+    lbl_loc[1]        = null;
+    lbl_loc[2]        = null;
+
+    out_vv[0]         = vv;
+    out_colors[0]     = bb;
+    out_vv[1]         = null;
+    out_colors[1]     = null;
+
+    if (vv[0].length > 20 && ((lev_idx & 1) == 1))
+    {
+      int loc         = (vv[0].length)/2;
+      int start_break = 0;
+      int stop_break  = 0;
+      int n_pairs_b   = 1;
+      int n_pairs_f   = 1;
+      boolean found   = false;
+      float ctr_dist;
+      int pos = loc;
+      while(!found) {
+        pos -= 2;
+        if (pos < 0 || pos > (vv[0].length-1)) return;
+        float dx = vv[0][pos] - vv[0][loc];
+        float dy = vv[1][pos] - vv[1][loc];
+        float dz = vv[2][pos] - vv[2][loc];
+        ctr_dist = (float)Math.sqrt((double)(dx*dx + dy*dy + dz*dz));
+        if (ctr_dist > (float)Math.abs((double)lbl_half)) {
+          found = true;
+        }
+        else {
+          n_pairs_b++;
+        }
+      }
+
+      pos = loc;
+      found = false;
+      while(!found) {
+        pos += 2;
+        if (pos < 0 || pos > (vv[0].length-1)) return;
+        float dx = vv[0][pos] - vv[0][loc];
+        float dy = vv[1][pos] - vv[1][loc];
+        float dz = vv[2][pos] - vv[2][loc];
+        ctr_dist = (float)Math.sqrt((double)(dx*dx + dy*dy + dz*dz));
+        if (ctr_dist > (float)Math.abs((double)lbl_half)) {
+          found = true;
+        }
+        else {
+          n_pairs_f++;
+        }
+      }
+
+      int n_skip    = (n_pairs_b+n_pairs_f)*2;
+      if ((loc & 1) == 1) { //- odd
+        start_break = loc - (1+(n_pairs_b-1)*2);
+        stop_break  = loc + (2+(n_pairs_f-1)*2);
+      }
+      else { //-even
+        start_break = loc - (2+(n_pairs_b-1)*2);
+        stop_break  = loc + (1+(n_pairs_f-1)*2);
+      }
+
+      float[] vx_tmp    = new float[plot.NumVerts];
+      float[] vy_tmp    = new float[plot.NumVerts];
+      byte[][] lbl_clr  = new byte[clr_dim][plot.NumVerts];
+      System.arraycopy(plot.Vx, 0, vx_tmp, 0, plot.NumVerts);
+      System.arraycopy(plot.Vy, 0, vy_tmp, 0, plot.NumVerts);
+      float[] vxB_tmp   = new float[plot.NumVerts];
+      float[] vyB_tmp   = new float[plot.NumVerts];
+      System.arraycopy(plot.VxB, 0, vxB_tmp, 0, plot.NumVerts);
+      System.arraycopy(plot.VyB, 0, vyB_tmp, 0, plot.NumVerts);
+
+      boolean rotate = true;
+      float[][] lbl_dcoords = null;
+      if (rotate)
+      {
+        float[][] norm = null;
+        Gridded3DSet cg3d = (Gridded3DSet) css.spatial_set;
+        try {
+          norm = cg3d.getNormals(new float[][] {{vv_grid[0][loc]}, {vv_grid[1][loc]}});
+        }
+        catch (VisADException e) {
+          System.out.println(e.getMessage());
+        }
+
+        if (norm[2][0] < 0) {
+          norm[0][0] = -norm[0][0];
+          norm[1][0] = -norm[1][0];
+          norm[2][0] = -norm[2][0];
+        }
+
+        float del_x;
+        float del_y;
+        float del_z;
+        del_z   = vv[2][stop_break] - vv[2][start_break];
+        del_y   = vv[1][stop_break] - vv[1][start_break];
+        del_x   = vv[0][stop_break] - vv[0][start_break];
+        float mag     = (float) Math.sqrt(del_y*del_y + del_x*del_x + del_z*del_z);
+        float[] ctr_u = new float[] {del_x/mag, del_y/mag, del_z/mag};
+        if (ctr_u[0] < 0) {
+          ctr_u[0] = -ctr_u[0];
+          ctr_u[1] = -ctr_u[1];
+          ctr_u[2] = -ctr_u[2];
+        }
+
+        float[] norm_x_ctr = new float[] {
+            norm[1][0]*ctr_u[2]-norm[2][0]*ctr_u[1],
+          -(norm[0][0]*ctr_u[2]-norm[2][0]*ctr_u[0]),
+            norm[0][0]*ctr_u[1]-norm[1][0]*ctr_u[0]};
+
+        mag = (float) Math.sqrt(norm_x_ctr[0]*norm_x_ctr[0] +
+                                norm_x_ctr[1]*norm_x_ctr[1] +
+                                norm_x_ctr[2]*norm_x_ctr[2]);
+
+        norm_x_ctr[0] = norm_x_ctr[0]/mag;
+        norm_x_ctr[1] = norm_x_ctr[1]/mag;
+        norm_x_ctr[2] = norm_x_ctr[2]/mag;
+
+        if (ctr_u[0] < 0) {
+          ctr_u[0] = -ctr_u[0];
+          ctr_u[1] = -ctr_u[1];
+          ctr_u[2] = -ctr_u[2];
+        }
+
+        if (norm_x_ctr[2] < 0 ) {
+          norm_x_ctr[0] = -norm_x_ctr[0];
+          norm_x_ctr[1] = -norm_x_ctr[1];
+          norm_x_ctr[2] = -norm_x_ctr[2];
+        }
+
+        lbl_dcoords = new float[3][plot.NumVerts];
+        for (int kk = 0; kk < plot.NumVerts; kk++) {
+          lbl_dcoords[0][kk] = vx_tmp[kk]*ctr_u[0] + vyB_tmp[kk]*norm_x_ctr[0]; 
+          lbl_dcoords[1][kk] = vx_tmp[kk]*ctr_u[1] + vyB_tmp[kk]*norm_x_ctr[1];
+          lbl_dcoords[2][kk] = vx_tmp[kk]*ctr_u[2] + vyB_tmp[kk]*norm_x_ctr[2];
+        }
+        for (int kk = 0; kk < plot.NumVerts; kk++) {
+          lbl_dcoords[0][kk] += vv[0][loc];
+          lbl_dcoords[1][kk] += vv[1][loc];
+          lbl_dcoords[2][kk] += vv[2][loc];
+        }
+
+      }
+
+      //-- translate to label plot location --------------
+      for (int kk = 0; kk < plot.NumVerts; kk++) {
+        vx_tmp[kk]      += vv[0][loc];
+        vy_tmp[kk]      += vv[1][loc];
+        vxB_tmp[kk]     += vv[0][loc];
+        vyB_tmp[kk]     += vv[1][loc];
+        lbl_clr[0][kk]   = bb[0][loc];
+        lbl_clr[1][kk]   = bb[1][loc];
+        lbl_clr[2][kk]   = bb[2][loc];
+      }
+
+      out_vvL[0]       = new float[n_lbl][][];
+      out_colorsL[0]   = new byte[n_lbl][][];
+      out_vvL[1]       = new float[n_lbl][][];
+      out_colorsL[1]   = new byte[n_lbl][][];
+      lbl_loc[0]       = new float[n_lbl][7];
+      lbl_loc[0][0][0] = vv[0][loc];
+      lbl_loc[0][0][1] = vv[1][loc];
+      lbl_loc[0][0][2] = vv[2][loc];
+      out_vv[0]        = new float[3][vv[0].length - n_skip];
+      out_colors[0]    = new byte[clr_dim][bb[0].length - n_skip];
+      out_vv[1]        = new float[3][n_skip];
+      out_colors[1]    = new byte[clr_dim][n_skip];
+
+      int s_pos        = 0;
+      int d_pos        = 0;
+      int cnt          = start_break;
+
+      System.arraycopy(vv[0], s_pos, out_vv[0][0], d_pos, cnt);
+      System.arraycopy(vv[1], s_pos, out_vv[0][1], d_pos, cnt);
+      System.arraycopy(vv[2], s_pos, out_vv[0][2], d_pos, cnt);
+      for (int cc=0; cc<clr_dim; cc++) {
+        System.arraycopy(bb[cc], s_pos, out_colors[0][cc], d_pos, cnt);
+      }
+
+      s_pos         = start_break;
+      d_pos         = 0;
+      cnt           = n_skip;
+
+      System.arraycopy(vv[0], s_pos, out_vv[1][0], d_pos, cnt);
+      System.arraycopy(vv[1], s_pos, out_vv[1][1], d_pos, cnt);
+      System.arraycopy(vv[2], s_pos, out_vv[1][2], d_pos, cnt);
+      for (int cc=0; cc<clr_dim; cc++) {
+        System.arraycopy(bb[cc], s_pos, out_colors[1][cc], d_pos, cnt);
+      }
+
+      s_pos         = stop_break+1;
+      d_pos         = start_break;
+      cnt           = vv[0].length - s_pos;
+      
+      System.arraycopy(vv[0], s_pos, out_vv[0][0], d_pos, cnt);
+      System.arraycopy(vv[1], s_pos, out_vv[0][1], d_pos, cnt);
+      System.arraycopy(vv[2], s_pos, out_vv[0][2], d_pos, cnt);
+      for (int cc=0; cc<clr_dim; cc++) {
+        System.arraycopy(bb[cc], s_pos, out_colors[0][cc], d_pos, cnt);
+      }
+     
+
+      //--- expanding/contracting left-right segments
+
+      out_vvL[2]     = new float[n_lbl][3][2];
+      out_colorsL[2] = new byte[n_lbl][clr_dim][2];
+      out_vvL[3]     = new float[n_lbl][3][2];
+      out_colorsL[3] = new byte[n_lbl][clr_dim][2];
+      lbl_loc[1]     = new float[n_lbl][3];
+      lbl_loc[2]     = new float[n_lbl][3];
+      //- left
+      s_pos = start_break;
+      d_pos = 0;
+      cnt   = 2;
+      lbl_loc[1][0][0] = vv[0][s_pos];
+      lbl_loc[1][0][1] = vv[1][s_pos];
+      lbl_loc[1][0][2] = vv[2][s_pos];
+
+      //- unit left
+      float dx = vv[0][loc] - vv[0][s_pos];
+      float dy = vv[1][loc] - vv[1][s_pos];
+      float dz = vv[2][loc] - vv[2][s_pos];
+      float dd = (float)Math.sqrt((double)(dx*dx + dy*dy + dz*dz));
+      dx = dx/dd;
+      dy = dy/dd;
+      dz = dz/dd;
+      float mm = dd - (float)Math.abs((double)lbl_half);
+      dx *= mm;
+      dy *= mm;
+      dz *= mm;
+      out_vvL[2][0][0][0] = vv[0][s_pos];
+      out_vvL[2][0][1][0] = vv[1][s_pos];
+      out_vvL[2][0][2][0] = vv[2][s_pos];
+      out_vvL[2][0][0][1] = vv[0][s_pos] + dx;
+      out_vvL[2][0][1][1] = vv[1][s_pos] + dy;
+      out_vvL[2][0][2][1] = vv[2][s_pos] + dz;
+      lbl_loc[0][0][3]    = lbl_half;
+      lbl_loc[0][0][4]    = dd;
+      for (int cc = 0; cc < clr_dim; cc++) {
+        System.arraycopy(bb[cc], s_pos, out_colorsL[2][0][cc], d_pos, cnt);
+      }
+
+      //- right
+      s_pos = stop_break - 1;
+      d_pos = 0;
+      cnt   = 2;
+      lbl_loc[2][0][0] = vv[0][stop_break];
+      lbl_loc[2][0][1] = vv[1][stop_break];
+      lbl_loc[2][0][2] = vv[2][stop_break];
+
+      //- unit right
+      dx = vv[0][loc] - vv[0][stop_break];
+      dy = vv[1][loc] - vv[1][stop_break];
+      dz = vv[2][loc] - vv[2][stop_break];
+      dd = (float)Math.sqrt((double)(dx*dx + dy*dy + dz*dz));
+      dx = dx/dd;
+      dy = dy/dd;
+      dz = dz/dd;
+      mm = dd - (float)Math.abs((double)lbl_half);
+      dx *= mm;
+      dy *= mm;
+      dz *= mm;
+      out_vvL[3][0][0][0] = vv[0][stop_break];
+      out_vvL[3][0][1][0] = vv[1][stop_break];
+      out_vvL[3][0][2][0] = vv[2][stop_break];
+      out_vvL[3][0][0][1] = vv[0][stop_break] + dx;
+      out_vvL[3][0][1][1] = vv[1][stop_break] + dy;
+      out_vvL[3][0][2][1] = vv[2][stop_break] + dz;
+      lbl_loc[0][0][5]    = lbl_half;
+      lbl_loc[0][0][6]    = dd;
+      for (int cc = 0; cc < clr_dim; cc++) {
+        System.arraycopy(bb[cc], s_pos, out_colorsL[3][0][cc], d_pos, cnt);
+      }
+      //----- end expanding/contracting line segments
+
+
+      //--- label vertices
+      out_vvL[0][0]     = new float[3][];
+      //-out_vvL[0][0][0]  = vx_tmp;
+      out_vvL[0][0][0]  = lbl_dcoords[0];
+      out_vvL[0][0][1]  = vy_tmp;
+      out_colorsL[0][0] = lbl_clr;
+      out_vvL[1][0]     = new float[3][];
+      out_vvL[1][0][0]  = vxB_tmp;
+      //-out_vvL[1][0][1]  = vyB_tmp;
+      out_vvL[1][0][1]  = lbl_dcoords[1];
+      out_colorsL[1][0] = lbl_clr;
+      /*
+      out_vvL[0][0][2]  = new float[vx_tmp.length];
+      out_vvL[1][0][2]  = new float[vxB_tmp.length];
+      for (int k = 0; k < vx_tmp.length; k++) out_vvL[0][0][2][k] = vv[2][loc]; 
+      for (int k = 0; k < vxB_tmp.length; k++) out_vvL[1][0][2][k] = vv[2][loc]; 
+      */
+      out_vvL[0][0][2] = lbl_dcoords[2];
+      out_vvL[1][0][2] = lbl_dcoords[2];
+    }
+    else { //- no label
+      out_vv[0]       = vv;
+      out_colors[0]   = bb;
+      out_vv[1]       = null;
+      out_colors[1]   = null;
+      return;
+    }
+  }
+
+  float[][] getLineArray(float[] vx, float[] vy) {
+    float[] vvx = new float[(hi_idx-low_idx)+1];
+    float[] vvy = new float[vvx.length];
+
+    int ii = 0;
+    for (int kk = low_idx; kk <= hi_idx; kk++) {
+      vvx[ii] = vx[idx_array[kk]];
+      vvy[ii] = vy[idx_array[kk]];
+      ii++;
+    }
+    return new float[][] {vvx, vvy};
+  }
+
+  byte[][] getColorArray(byte[][] colors) {
+    int clr_dim = colors.length;
+    int clr_len = (hi_idx-low_idx)+1;
+    byte[][] new_colors = new byte[clr_dim][clr_len];
+
+    int ii = 0;
+    for (int kk = low_idx; kk <= hi_idx; kk++) {
+      for (int cc = 0; cc < clr_dim; cc++) {
+        new_colors[cc][ii] = colors[cc][idx_array[kk]];
+      }
+      ii++;
+    }
+    return new_colors;
+  }
+
+  ContourStrip merge(ContourStrip c_strp)
+  {
+    if (this.lev_idx != c_strp.lev_idx) {
+      System.out.println("Contour2D.ContourStrip.merge: !BIG ATTENTION!");
+    }
+
+    int new_length;
+    int[] new_idx_array = null;
+    int[] thisLo = new int[2];
+    int[] thisHi = new int[2];
+    int[] thatLo = new int[2];
+    int[] thatHi = new int[2];
+    
+
+    thisLo[0] = idx_array[low_idx];
+    thisLo[1] = idx_array[low_idx+1];
+    thisHi[0] = idx_array[hi_idx];
+    thisHi[1] = idx_array[hi_idx-1];
+    thatLo[0] = c_strp.idx_array[c_strp.low_idx];
+    thatLo[1] = c_strp.idx_array[c_strp.low_idx+1];
+    thatHi[0] = c_strp.idx_array[c_strp.hi_idx];
+    thatHi[1] = c_strp.idx_array[c_strp.hi_idx-1];
+
+    if (((thisLo[0] == thatLo[0])||(thisLo[0] == thatLo[1]))||
+        ((thisLo[1] == thatLo[0])||(thisLo[1] == thatLo[1])))
+    {
+      new_length = (hi_idx-low_idx)+1 +
+                   (c_strp.hi_idx-c_strp.low_idx)+1;
+      new_length -= 2;
+      new_idx_array = new int[new_length];
+
+      int ii = 0;
+      for (int kk = hi_idx; kk >= low_idx; kk--) {
+        new_idx_array[ii] = idx_array[kk];
+        ii++;
+      }
+      for (int kk = c_strp.low_idx+2; kk <= c_strp.hi_idx; kk++) {
+        new_idx_array[ii] = c_strp.idx_array[kk];
+        ii++;
+      }
+    }
+    else if (((thisLo[0] == thatHi[0])||(thisLo[0] == thatHi[1]))||
+             ((thisLo[1] == thatHi[0])||(thisLo[1] == thatHi[1]))) 
+    {
+      new_length = (hi_idx-low_idx)+1 +
+                   (c_strp.hi_idx-c_strp.low_idx)+1;
+      new_length -= 2;
+      new_idx_array = new int[new_length];
+
+      int ii = 0;
+      for (int kk = hi_idx; kk >= low_idx; kk--) {
+        new_idx_array[ii] = idx_array[kk];
+        ii++;
+      }
+      for (int kk = c_strp.hi_idx-2; kk >= c_strp.low_idx; kk--) {
+        new_idx_array[ii] = c_strp.idx_array[kk];
+        ii++;
+      }
+    }
+    else if (((thisHi[0] == thatHi[0])||(thisHi[0] == thatHi[1]))||
+             ((thisHi[1] == thatHi[0])||(thisHi[1] == thatHi[1])))
+    {
+      new_length = (hi_idx-low_idx)+1 +
+                   (c_strp.hi_idx-c_strp.low_idx)+1;
+      new_length -= 2;
+      new_idx_array = new int[new_length];
+     
+      int ii = 0;
+      for (int kk = low_idx; kk <= hi_idx; kk++) {
+        new_idx_array[ii] = idx_array[kk];
+        ii++;
+      }
+      for (int kk = c_strp.hi_idx-2; kk >= c_strp.low_idx; kk--) {
+        new_idx_array[ii] = c_strp.idx_array[kk];
+        ii++;
+      }
+    }
+    else if (((thisHi[0] == thatLo[0])||(thisHi[0] == thatLo[1]))||
+             ((thisHi[1] == thatLo[0])||(thisHi[1] == thatLo[1])))
+    {
+      new_length = (hi_idx-low_idx)+1 +
+                   (c_strp.hi_idx-c_strp.low_idx)+1;
+      new_length -= 2;
+      new_idx_array = new int[new_length];
+
+      int ii = 0;
+      for (int kk = low_idx; kk <= hi_idx; kk++) {
+        new_idx_array[ii] = idx_array[kk];
+        ii++;
+      }
+      for (int kk = c_strp.low_idx+2; kk <= c_strp.hi_idx; kk++) {
+        new_idx_array[ii] = c_strp.idx_array[kk];
+        ii++;
+      }
+    }
+    else {
+      return null;
+    }
+
+    return new ContourStrip(1500, new_idx_array, lev_idx, plot, css);
+  }
+  
+  public String toString() {
+    return "("+idx_array[low_idx]+","+idx_array[low_idx+1]+"), ("+
+                                  idx_array[hi_idx]+","+idx_array[hi_idx-1]+")";
+  }
+}
