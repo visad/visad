@@ -1,5 +1,9 @@
 package visad.data.in;
 
+import java.rmi.RemoteException;
+import visad.data.BadFormException;
+import visad.VisADException;
+
 /**
  * Supports sources of VisAD data objects.
  *
@@ -22,9 +26,12 @@ abstract public class DataSource
      * Opens an existing dataset.
      *
      * @param spec		The specification of the existing dataset.
-     * @return			<code>true</code> if and only if the specified
-     *				dataset was successfully converted into a
-     *				VisAD data object.
+     * @return			The VisAD data object corresponding to the
+     *				specified dataset.
+     * @throws BadFormException	The DODS dataset is corrupt.
+     * @throws VisADException	VisAD failure.
+     * @throws RemoteException	Java RMI failure.
      */
-    public abstract boolean open(String spec);
+    public abstract void open(String spec)
+	throws BadFormException, RemoteException, VisADException;
 }
