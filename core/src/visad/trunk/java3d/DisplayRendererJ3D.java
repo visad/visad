@@ -1000,7 +1000,7 @@ if (image == null) System.out.println("image is null");
       }
     }
 
-    if (scale_switch.getWhichChild() == 1) {
+    if (scale_switch != null && scale_switch.getWhichChild() == 1) {
       Dimension d = canvas.getSize();
       int w = d.width;
       int h = d.height;
