@@ -224,11 +224,36 @@ public abstract class TestSkeleton
 
     DisplayImpl[] dpys = new DisplayImpl[rmtDpy.length];
     for (int i = 0; i < dpys.length; i++) {
-      String dpyClass = rmtDpy[i].getDisplayClassName();
-      if (dpyClass.endsWith(".DisplayImplJ3D")) {
-	dpys[i] = new DisplayImplJ3D(rmtDpy[i]);
-      } else {
-	dpys[i] = new DisplayImplJ2D(rmtDpy[i]);
+      String className = rmtDpy[i].getDisplayClassName();
+      Class dpyClass;
+      try {
+        dpyClass = Class.forName(className);
+      } catch (ClassNotFoundException e) {
+        throw new VisADException("Couldn't create " + className);
+      }
+
+      Class[] params = new Class[1];
+      try {
+        params[0] = Class.forName("visad.RemoteDisplay");
+      } catch (ClassNotFoundException e) {
+        throw new VisADException("Yikes! Couldn't find visad.RemoteDisplay!");
+      }
+
+      java.lang.reflect.Constructor cons;
+      try {
+        cons = dpyClass.getConstructor(params);
+      } catch (NoSuchMethodException e) {
+        throw new VisADException(className + " has no RemoteDisplay" +
+                                 " constructor");
+      }
+
+      Object[] cargs = new Object[1];
+      cargs[0] = rmtDpy[i];
+      try {
+        dpys[i] = (DisplayImpl )cons.newInstance(cargs);
+      } catch (Exception e) {
+        throw new VisADException("Couldn't create local shadow for " +
+                                 rmtDpy[i]);
       }
     }
 
