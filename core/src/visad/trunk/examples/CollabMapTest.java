@@ -47,7 +47,7 @@ public class CollabMapTest extends JFrame implements ActionListener {
   private DisplayImpl disp;
 
   /** builds the GUI */
-  private void constructGUI(String arg) {
+  private void constructGUI(String arg, boolean enableButtons) {
     JPanel pane = new JPanel();
     setContentPane(pane);
     pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
@@ -58,8 +58,10 @@ public class CollabMapTest extends JFrame implements ActionListener {
     JButton clear = new JButton("Clear maps");
     detect.addActionListener(this);
     detect.setActionCommand("detect");
+    detect.setEnabled(enableButtons);
     clear.addActionListener(this);
     clear.setActionCommand("clear");
+    clear.setEnabled(enableButtons);
     buttons.add(detect);
     buttons.add(clear);
     pane.add(buttons);
@@ -141,7 +143,7 @@ public class CollabMapTest extends JFrame implements ActionListener {
       rs.addDisplay(remote);
 
       // construct GUI
-      constructGUI(arg);
+      constructGUI(arg, true);
     }
     else {
       // set up server
@@ -169,7 +171,7 @@ public class CollabMapTest extends JFrame implements ActionListener {
       DataReference ref = (DataReference) link.getThingReference();
 
       // construct GUI
-      constructGUI(arg);
+      constructGUI(arg, false);
     }
   }
 
