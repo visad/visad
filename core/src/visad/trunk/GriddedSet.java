@@ -325,6 +325,10 @@ public class GriddedSet extends SampledSet {
       }
       else {
         l[ManifoldDimension-1] = (int) (grid[ManifoldDimension-1][i] + 0.5);
+        // WLH 23 Dec 99
+        if (l[ManifoldDimension-1] == Lengths[ManifoldDimension-1]) {
+          l[ManifoldDimension-1]--;
+        }
         c[ManifoldDimension-1] = grid[ManifoldDimension-1][i] -
                                  ((float) l[ManifoldDimension-1]);
         if (!((l[ManifoldDimension-1] == 0 && c[ManifoldDimension-1] <= 0.0) ||
@@ -341,6 +345,7 @@ public class GriddedSet extends SampledSet {
         }
         else {
           l[j] = (int) (grid[j][i] + 0.5);
+          if (l[j] == Lengths[j]) l[j]--; // WLH 23 Dec 99
           c[j] = grid[j][i] - ((float) l[j]);
           if (!((l[j] == 0 && c[j] <= 0.0) ||
                 (l[j] == Lengths[j] - 1 && c[j] >= 0.0))) {
