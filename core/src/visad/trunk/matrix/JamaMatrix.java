@@ -63,7 +63,31 @@ public class JamaMatrix extends FlatField {
     }
   }
 
-  private static final Class classMatrix = constructMatrixClass();
+  private static final Class[] classes = constructClasses();
+
+  private static Class[] constructClasses() {
+    Class[] cs = new Class[6];
+    try {
+      cs[0] = Class.forName("Jama.Matrix");
+      cs[1] = Class.forName("Jama.CholeskyDecomposition");
+      cs[2] = Class.forName("Jama.EigenvalueDecomposition");
+      cs[3] = Class.forName("Jama.LUDecomposition");
+      cs[4] = Class.forName("Jama.QRDecomposition");
+      cs[5] = Class.forName("Jama.SingularValueDecomposition");
+    }
+    catch (ClassNotFoundException e) {
+      throw new RuntimeException("you need to install Jama from " +
+                                 "http://math.nist.gov/javanumerics/jama/");
+    }
+    return cs;
+  }
+
+  private static final Class classMatrix = classes[0];
+  private static final Class classCholeskyDecomposition = classes[1];
+  private static final Class classEigenvalueDecomposition = classes[2];
+  private static final Class classLUDecomposition = classes[3];
+  private static final Class classQRDecomposition = classes[4];
+  private static final Class classSingularValueDecomposition = classes[5];
 
   private static Class constructMatrixClass() {
     try {
@@ -88,9 +112,7 @@ public class JamaMatrix extends FlatField {
     try {
       Class[] param = new Class[] {};
       ms[0] = classMatrix.getMethod("getColumnDimension", param);
-      param = new Class[] {};
       ms[1] = classMatrix.getMethod("getRowDimension", param);
-      param = new Class[] {};
       ms[2] = classMatrix.getMethod("getArray", param);
       param = new Class[] {int.class, int.class};
       ms[3] = classMatrix.getMethod("get", param);
@@ -223,6 +245,7 @@ public class JamaMatrix extends FlatField {
       cs[1] = classMatrix.getConstructor(param);
     }
     catch (NoSuchMethodException e) {
+      e.printStackTrace();
     }
     return cs;
   }
@@ -417,6 +440,17 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
     setMatrix(matrix);
   }
 
+  // place for JamaCholeskyDecomposition, etc to store their
+  // CholeskyDecomposition during construction
+  private Object stash = null;
+
+  void setStash(Object s) {
+    stash = s;
+  }
+
+  Object getStash() {
+    return stash;
+  }
 
   // New methods
 
