@@ -100,11 +100,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     addLine = new JButton("New line");
     addLine.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        int index = horiz.getValue() - 1;
-        int slice = vert.getValue() - 1;
-        MeasureMatrix mm = horiz.getMatrix();
-        MeasureList list = mm.getMeasureList(index, slice);
-        list.addMeasurement();
+        getList().addMeasurement();
       }
     });
     addLine.setEnabled(false);
@@ -114,11 +110,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     addMarker = new JButton("New marker");
     addMarker.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        int index = horiz.getValue() - 1;
-        int slice = vert.getValue() - 1;
-        MeasureMatrix mm = horiz.getMatrix();
-        MeasureList list = mm.getMeasureList(index, slice);
-        list.addMeasurement(true);
+        getList().addMeasurement(true);
       }
     });
     addMarker.setEnabled(false);
@@ -144,7 +136,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     removeLine = new JButton("Remove line");
     removeLine.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        /* CTR: TODO */ System.out.println("remove line");
+        getList().removeMeasurement(line.getMeasurement());
       }
     });
     removeLine.setEnabled(false);
@@ -257,6 +249,14 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     colorList.setEnabled(enabled);
     descriptionLabel.setEnabled(enabled);
     descriptionBox.setEnabled(enabled);
+  }
+
+  /** Gets the current measurement list from the slider widgets. */
+  private MeasureList getList() {
+    int index = horiz.getValue() - 1;
+    int slice = vert.getValue() - 1;
+    MeasureMatrix mm = horiz.getMatrix();
+    return mm.getMeasureList(index, slice);
   }
 
   /** Pads a component or group of components with horizontal space. */

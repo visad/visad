@@ -31,14 +31,11 @@ import java.rmi.RemoteException;
 import java.util.Vector;
 import visad.*;
 
-/** LinePool maintains a collection of MeasureLine objects. */
+/** LinePool maintains a pool of lines and points in the given display. */
 public class LinePool implements DisplayListener {
 
   /** Maximum pixel distance for picking. */
   private static final int PICKING_THRESHOLD = 10;
-
-  /** Internal list of MeasureLine objects. */
-  private Vector lines;
 
   /** Associated VisAD display. */
   private DisplayImpl display;
@@ -49,23 +46,34 @@ public class LinePool implements DisplayListener {
   /** Associated selection box. */
   private SelectionBox box;
 
-  /** Number of lines in a block. */
+  /** Number of lines/points in a block. */
   private int blockSize;
 
-  /** Total number of lines. */
+  /** Total number of lines/points. */
   private int size;
 
+  /** Internal list of MeasureLine objects. */
+  private Vector lines;
+
   /** Number of lines allocated. */
-  private int used;
+  private int lnUsed;
+
+  /** Internal list of MeasurePoint objects. */
+  private Vector points;
+
+  /** Number of points allocated. */
+  private int ptUsed;
 
   /** Constructs a pool of lines. */
   public LinePool(DisplayImpl display, MeasureToolbar toolbar, int blockSize) {
     lines = new Vector();
+    points = new Vector();
     this.display = display;
     this.toolbar = toolbar;
     this.blockSize = blockSize;
     size = 0;
-    used = 0;
+    lnUsed = 0;
+    ptUsed = 0;
     display.addDisplayListener(this);
     try {
       box = new SelectionBox();
@@ -76,42 +84,48 @@ public class LinePool implements DisplayListener {
   }
 
   /** Ensures the line pool is at least the given size. */
-  public void expand(int numLines) {
-    if (size == 0) {
+  public void expand(int size) {
+    if (this.size == 0) {
       System.out.println("LinePool.expand: warning: " +
         "Cannot expand from zero without domain type");
       return;
     }
     MeasureLine line = (MeasureLine) lines.elementAt(0);
     RealTupleType domain = line.getDomain();
-    expand(numLines, domain);
+    expand(size, domain);
   }
 
   /** Ensures the line pool is at least the given size. */
-  public void expand(int numLines, RealTupleType domain) {
-    if (numLines <= size) return;
-    int n = numLines - size;
+  public void expand(int size, RealTupleType domain) {
+    if (size <= this.size) return;
+    int n = size - this.size;
     if (n % blockSize > 0) n += blockSize - n % blockSize;
     MeasureLine[] l = new MeasureLine[n];
+    MeasurePoint[] p = new MeasurePoint[n];
     try {
       for (int i=0; i<n; i++) {
         l[i] = new MeasureLine();
         l[i].setType(domain);
         l[i].hide();
         lines.add(l[i]);
+        p[i] = new MeasurePoint();
+        p[i].setType(domain);
+        p[i].hide();
+        points.add(p[i]);
       }
       synchronized (this) {
         display.disableAction();
-        for (int i=0; i<l.length; i++) {
+        for (int i=0; i<n; i++) {
           try {
             l[i].addToDisplay(display);
+            p[i].addToDisplay(display);
           }
           catch (VisADException exc) { exc.printStackTrace(); }
           catch (RemoteException exc) { exc.printStackTrace(); }
         }
         display.enableAction();
       }
-      size += l.length;
+      this.size += n;
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
@@ -121,31 +135,55 @@ public class LinePool implements DisplayListener {
    * Sets the endpoint values for all lines in the
    * line pool to match the given measurements.
    */
-  public void setLines(Measurement[] m) {
-    int numLines = m.length;
+  public void set(Measurement[] m) {
+    int size = m.length;
 
     // set each reference accordingly
-    expand(numLines);
-    for (int i=0; i<numLines; i++) {
-      MeasureLine line = (MeasureLine) lines.elementAt(i);
-      line.setMeasurement(m[i]);
+    expand(size);
+    for (int i=0; i<size; i++) {
+      lnUsed = 0;
+      ptUsed = 0;
+      if (m[i].isPoint()) {
+        // measurement is a point
+        MeasurePoint point = (MeasurePoint) points.elementAt(ptUsed++);
+        point.setMeasurement(m[i]);
+      }
+      else {
+        // measurement is a line
+        MeasureLine line = (MeasureLine) lines.elementAt(lnUsed++);
+        line.setMeasurement(m[i]);
+      }
     }
 
-    // hide extra references
-    for (int i=numLines; i<size; i++) {
+    // hide extra lines
+    for (int i=lnUsed; i<this.size; i++) {
       MeasureLine line = (MeasureLine) lines.elementAt(i);
       line.hide();
     }
 
-    used = numLines;
+    // hide extra points
+    for (int i=ptUsed; i<this.size; i++) {
+      MeasurePoint point = (MeasurePoint) points.elementAt(i);
+      point.hide();
+    }
   }
 
   /** Sets a line in the line pool to match the given measurement. */
-  public void addLine(Measurement m) {
-    expand(used + 1);
-    MeasureLine line = (MeasureLine) lines.elementAt(used);
-    line.setMeasurement(m);
-    used++;
+  public void add(Measurement m) {
+    if (m.isPoint()) {
+      // measurement is a point
+      expand(ptUsed + 1);
+      MeasurePoint point = (MeasurePoint) points.elementAt(ptUsed);
+      point.setMeasurement(m);
+      ptUsed++;
+    }
+    else {
+      // measurement is a line
+      expand(lnUsed + 1);
+      MeasureLine line = (MeasureLine) lines.elementAt(lnUsed);
+      line.setMeasurement(m);
+      lnUsed++;
+    }
   }
 
   private int cursor_x, cursor_y;
@@ -160,8 +198,10 @@ public class LinePool implements DisplayListener {
       cursor_y = y;
     }
     else if (id == DisplayEvent.MOUSE_RELEASED_LEFT &&
-      x == cursor_x && y == cursor_y && used > 0)
+      x == cursor_x && y == cursor_y && ptUsed > 0)
     {
+      // CTR: TODO: detect mouse clicks on points as well
+
       // get domain coordinates of mouse click
       double[] coords = cursorToDomain(pixelToCursor(x, y));
 
@@ -177,7 +217,7 @@ public class LinePool implements DisplayListener {
       int index = -1;
       double mindist = Double.MAX_VALUE;
       MouseBehavior mb = display.getMouseBehavior();
-      for (int i=0; i<used; i++) {
+      for (int i=0; i<ptUsed; i++) {
         MeasureLine line = (MeasureLine) lines.elementAt(i);
         double[][] vals = line.getMeasurement().doubleValues();
         int dim = vals.length;

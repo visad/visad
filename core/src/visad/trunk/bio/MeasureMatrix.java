@@ -90,7 +90,7 @@ public class MeasureMatrix {
   /** Sets the line pool to match the given matrix entry. */
   public void setEntry(int index, int slice) {
     MeasureList ml = matrix[index][slice];
-    pool.setLines(ml.getMeasurements());
+    pool.set(ml.getMeasurements());
   }
 
   /** Gets the measurement list for the given slice of the specified index. */

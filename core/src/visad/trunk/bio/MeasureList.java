@@ -100,7 +100,13 @@ public class MeasureList {
   public void addMeasurement(boolean point) {
     Measurement m = new Measurement(point ? ptVals : lnVals, defaultGroup);
     measureList.add(m);
-    pool.addLine(m);
+    pool.add(m);
+  }
+
+  /** Removes a measurement line or point from the measurement list. */
+  public void removeMeasurement(Measurement m) {
+    measureList.remove(m);
+    pool.set(getMeasurements());
   }
 
   /** Gets the list of measurements in array form. */
