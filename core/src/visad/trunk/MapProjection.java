@@ -3,30 +3,15 @@ package visad;
 import visad.*;
 
 /**
- * Abstract class for coordinate systems that support (lat,lon) to (x,y)
- * with a reference coordinate system of (lat, lon).
+ * Abstract class for coordinate systems that support (lat,lon) <-> (x,y)
+ * with a reference coordinate system of (lat, lon) or (lon, lat).
  *
  * @author Don Murray
  */
 public abstract class MapProjection extends CoordinateSystem
 {
-
-    /**
-     * Default Constructor with reference of RealType.Latitude, 
-     * RealType.Longitude
-     *
-     * @exception  VisADException   couldn't create the necessary VisAD object
-    public MapProjection()
-        throws VisADException
-    {
-        this(
-            new RealTupleType(
-                RealType.Latitude, 
-                RealType.Longitude),
-            new Unit[] {null, null});
-    }
-     */
-
+    private final int latIndex;
+    private final int lonIndex;
 
     /**
      * Constructs from the type of the reference coordinate system and 
@@ -43,13 +28,26 @@ public abstract class MapProjection extends CoordinateSystem
      *                   Numeric values in this coordinate system shall be 
      *                   in units of units unless specified otherwise. 
      *                   May be null or an array of null-s.
-     * @exception VisADException  Couldn't create necessary VisAD object.
+     * @exception VisADException  Couldn't create necessary VisAD object or
+     *                            reference does not contain RealType.Latitude
+     *                            and/or RealType.Longitude or the reference
+     *                            dimension is greater than 2.
      */
     public MapProjection(RealTupleType reference, Unit[] units)
         throws VisADException
     {
         super(reference, units);
-
+        if (reference.getDimension() > 2)
+            throw new CoordinateSystemException(
+                "MapProjection: reference dimension is > 2");
+        latIndex = reference.getIndex(RealType.Latitude);
+        if (latIndex == -1 )
+            throw new CoordinateSystemException(
+                "MapProjection: reference does not contain RealType.Latitude");
+        lonIndex = reference.getIndex(RealType.Longitude);
+        if (lonIndex == -1 )
+            throw new CoordinateSystemException(
+                "MapProjection: reference does not contain RealType.Longitude");
     }
 
     /**
@@ -65,4 +63,24 @@ public abstract class MapProjection extends CoordinateSystem
      *
      */
     public abstract java.awt.geom.Rectangle2D getDefaultMapArea();
+
+    /**
+     * Get the index of RealType.Latitude in the reference RealTupleType.
+     *
+     * @return  index of RealType.Latitude in the reference
+     */
+    public int getLatitudeIndex()
+    {
+        return latIndex;
+    }
+
+    /**
+     * Get the index of RealType.Longitude in the reference RealTupleType.
+     *
+     * @return  index of RealType.Longitude in the reference
+     */
+    public int getLongitudeIndex()
+    {
+        return lonIndex;
+    }
 }
