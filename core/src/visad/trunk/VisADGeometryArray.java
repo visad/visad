@@ -56,6 +56,14 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
     texCoords = null;
   }
 
+  /** default case: do nothing */
+  public VisADGeometryArray adjustSeam(DataRenderer renderer)
+         throws VisADException {
+    CoordinateSystem coord = renderer.getDisplayCoordinateSystem();
+    if (coord == null) return this;
+    return this;
+  }
+
   /** default case: rotate if necessary, then return points */
   public VisADGeometryArray adjustLongitude(DataRenderer renderer)
          throws VisADException {

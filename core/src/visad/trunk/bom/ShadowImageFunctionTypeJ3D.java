@@ -631,17 +631,17 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         }
 
         if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
+// inside 'if (anyFlow) {}' in ShadowType.assembleSpatial()
           renderer.setEarthSpatialDisplay(null, spatial_tuple, display,
                    spatial_value_indices, default_values, null);
         }
         else {
           CoordinateSystem coord = spatial_tuple.getCoordinateSystem();
+          spatial_values = coord.toReference(spatial_values);
+          // float[][] new_spatial_values = coord.toReference(spatial_values);
+          // for (int i=0; i<3; i++) spatial_values[i] = new_spatial_values[i];
 
-          // WLH 2 March 2000
-          // spatial_values = coord.toReference(spatial_values);
-          float[][] new_spatial_values = coord.toReference(spatial_values);
-          for (int i=0; i<3; i++) spatial_values[i] = new_spatial_values[i];
-
+// inside 'if (anyFlow) {}' in ShadowType.assembleSpatial()
           renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
                    spatial_value_indices, default_values, null);
         }
@@ -737,6 +737,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
         // do surgery along any longitude split (e.g., date line) in texture
         tarray = (VisADTriangleStripArray) tarray.adjustLongitude(renderer);
+        tarray = (VisADTriangleStripArray) tarray.adjustSeam(renderer);
 
 // System.out.println("start createImage " + (System.currentTimeMillis() - link.start_time));
  

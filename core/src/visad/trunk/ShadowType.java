@@ -1471,19 +1471,24 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
 
     // adjust Flow values for coordinate transform
     if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
-      if (anyFlow) {
+      // if (anyFlow) {    WLH 4 March 2000
         renderer.setEarthSpatialDisplay(null, spatial_tuple, display,
                  spatial_value_indices, default_values, ranges);
-      }
+      // }    WLH 4 March 2000
     }
     else {
       // transform tuple_values to DisplaySpatialCartesianTuple
       CoordinateSystem coord = spatial_tuple.getCoordinateSystem();
 
       float[][][] vector_ends = new float[2][][];
+
+      // WLH 4 March 2000
+      renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
+               spatial_value_indices, default_values, ranges);
       if (anyFlow) {
-        renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
-                 spatial_value_indices, default_values, ranges);
+        // WLH 4 March 2000
+        // renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
+        //          spatial_value_indices, default_values, ranges);
 
         // compute and transform 'end points' of flow vectors
         for (int k=0; k<2; k++) {

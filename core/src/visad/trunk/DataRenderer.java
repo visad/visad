@@ -1022,6 +1022,11 @@ if (map.badRange()) {
     return ranges;
   }
 
+  // WLH 4 March 2000
+  public CoordinateSystem getDisplayCoordinateSystem() {
+    return display_coordinate_system ;
+  }
+
   // information from assembleSpatial
   public void setEarthSpatialDisplay(CoordinateSystem coord,
            DisplayTupleType t, DisplayImpl display, int[] indices,

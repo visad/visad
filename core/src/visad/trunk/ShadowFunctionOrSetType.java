@@ -2186,6 +2186,7 @@ if (size < 0.2) {
             }
 
             tarray = (VisADTriangleStripArray) tarray.adjustLongitude(renderer);
+            tarray = (VisADTriangleStripArray) tarray.adjustSeam(renderer);
 
             BufferedImage image =
               createImage(data_width, data_height, texture_width,
@@ -2359,6 +2360,7 @@ if (size < 0.2) {
             if (!spatial_all_select) array = array.removeMissing();
 
             array = array.adjustLongitude(renderer);
+            array = array.adjustSeam(renderer);
 
             // System.out.println("make1DGeometry");
           }
@@ -2377,6 +2379,7 @@ if (size < 0.2) {
             if (!spatial_all_select) array = array.removeMissing();
 
             array = array.adjustLongitude(renderer);
+            array = array.adjustSeam(renderer);
 
             // System.out.println("make2DGeometry  vertexCount = " +
             //                    array.vertexCount);
