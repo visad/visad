@@ -951,7 +951,8 @@ public class TextAdapter {
     }
 
     for (int i = 0; i < len; i++) {
-      if (Character.isISOControl(s.charAt(i))) {
+      final char ch = s.charAt(i);
+      if (Character.isISOControl(ch) && !Character.isWhitespace(ch)) {
         // we might want to special-case formfeed/linefeed/newline here...
         return false;
       }
