@@ -343,8 +343,12 @@ public abstract class Set extends DataImpl {
     int set_length = set.getLength();
     boolean[] set_indices = new boolean[set_length];
     for (int i=0; i<set_length; i++) set_indices[i] = true;
-    for (int i=0; i<length; i++) {
-      if (test_indices[i] > -1) set_indices[test_indices[i]] = false;
+    try {
+      for (int i=0; i<length; i++) {
+        if (test_indices[i] > -1) set_indices[test_indices[i]] = false;
+      }
+    } catch (ArrayIndexOutOfBoundsException aioobe) {
+      throw new VisADException("Cannot merge sets");
     }
     // now set_indices = true for indices of set not covered by this
     int num_new = 0;
