@@ -365,9 +365,8 @@ public class AnimationWidget
    * ControlListener method used for programmatically moving JSlider
    */
   public void controlChanged(ControlEvent e) {
-    if (control != null) {
-      TimeSlider.setValue(control.getCurrent()+1);  /* DRM 1999-05-19 */
-    }
+    getControlSettings(control);
+    fixControlUI();
   }
 
   /**
