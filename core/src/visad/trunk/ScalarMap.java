@@ -481,7 +481,10 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     }
   }
 
+/* WLH 26 July 99
   private static final double SCALE = 0.07;
+*/
+  private static final double SCALE = 0.06;
   private static final double OFFSET = 1.05;
 
   private void makeScale()
@@ -603,12 +606,25 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     // draw RealType name
     arrays[1] = PlotText.render_label(Scalar.getName(), startlabel,
                                       base, up, true);
+/* WLH 26 July 99
     // draw number at bottom tick mark
     arrays[2] = PlotText.render_label(PlotText.shortString(botval), startbot,
                                       base, up, true);
     // draw number at top tick mark
     arrays[3] = PlotText.render_label(PlotText.shortString(topval), starttop,
                                       base, up, true);
+*/
+    String botstr = PlotText.shortString(botval);
+    String topstr = PlotText.shortString(topval);
+    if (RealType.Time.equals(Scalar)) {
+      RealType rtype = (RealType) Scalar;
+      botstr = new Real(rtype, botval).toValueString();
+      topstr = new Real(rtype, topval).toValueString();
+    }
+    // draw number at bottom tick mark
+    arrays[2] = PlotText.render_label(botstr, startbot, base, up, true);
+    // draw number at top tick mark
+    arrays[3] = PlotText.render_label(topstr, starttop, base, up, true);
 
     VisADLineArray array = VisADLineArray.merge(arrays);
     displayRenderer.setScale(axis, axis_ordinal, array, scale_color);

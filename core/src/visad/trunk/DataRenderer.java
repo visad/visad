@@ -1552,8 +1552,13 @@ System.out.println("checkClose: distance = " + distance);
             newData = new Real(rtype, (double) d[0], rtype.getDefaultUnit(), null);
             // create location string
             Vector vect = new Vector();
+/* WLH 26 July 99
             float g = d[0];
             vect.addElement(rtype.getName() + " = " + g);
+*/
+            String valueString = new Real(rtype, d[0]).toValueString();
+            vect.addElement(rtype.getName() + " = " + valueString);
+
             getDisplayRenderer().setCursorStringVector(vect);
             break;
           }
@@ -1574,8 +1579,13 @@ System.out.println("checkClose: distance = " + distance);
             RealType rtype = (RealType) c.getType();
             reals[j] = new Real(rtype, (double) d[0], rtype.getDefaultUnit(), null);
             // create location string
+/* WLH 26 July 99
             float g = d[0];
             vect.addElement(rtype.getName() + " = " + g);
+*/
+            String valueString = new Real(rtype, d[0]).toValueString();
+            vect.addElement(rtype.getName() + " = " + valueString);
+
           }
         }
         getDisplayRenderer().setCursorStringVector(vect);
@@ -1647,9 +1657,14 @@ System.out.println("checkClose: distance = " + distance);
             f[0] = x[i];
             d = getDirectMap(i).inverseScaleValues(f);
             // create location string
-            g = (float) d[0];
             rtype = (RealType) getDirectMap(i).getScalar();
+/* WLH 26 July 99
+            g = (float) d[0];
             vect.addElement(rtype.getName() + " = " + g);
+*/
+            String valueString = new Real(rtype, d[0]).toValueString();
+            vect.addElement(rtype.getName() + " = " + valueString);
+
             thisD[j] = d[0];
             directComponent[j] = true;
           }

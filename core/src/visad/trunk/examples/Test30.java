@@ -84,6 +84,9 @@ public class Test30
     display1.addMap(new ConstantMap(0.5, Display.Blue));
     display1.addMap(new ScalarMap(RealType.Time, Display.ZAxis));
 
+    GraphicsModeControl mode = display1.getGraphicsModeControl();
+    mode.setScaleEnable(true);
+
     DataReference ref_image_sequence = new DataReferenceImpl("ref_big_tuple");
     ref_image_sequence.setData(image_sequence);
     display1.addReference(ref_image_sequence, null);
@@ -94,7 +97,7 @@ public class Test30
     return dpys;
   }
 
-  public String toString() { return ": time stack"; }
+  public String toString() { return ": time stack and time axis label"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException
