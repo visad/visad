@@ -261,21 +261,38 @@ public class RealType extends ScalarType {
 
   /** any two RealType-s are equal except Name */
   public boolean equalsExceptName(MathType type) {
+    if (type instanceof RealTupleType) {
+      try {
+        return (((RealTupleType) type).getDimension() == 1 &&
+                ((RealTupleType) type).getComponent(0) instanceof RealType);
+      }
+      catch (VisADException e) {
+        return false;
+      }
+    }
     return (type instanceof RealType);
   }
 
   /*- TDR May 1998  */
   public boolean equalsExceptNameButUnits(MathType type) {
+    try {
+      if (type instanceof RealTupleType &&
+          ((RealTupleType) type).getDimension() == 1 &&
+          ((RealTupleType) type).getComponent(0) instanceof RealType) {
+          RealType rt = (RealType) ((RealTupleType) type).getComponent(0);
+        return Unit.canConvert( this.getDefaultUnit(),
+                                ((RealType)rt).getDefaultUnit() );
+      }
+    }
+    catch (VisADException e) {
+      return false;
+    }
     if (!(type instanceof RealType)) {
       return false;
     }
-    else if (!Unit.canConvert( this.getDefaultUnit(),
-      ((RealType)type).getDefaultUnit()) )
-    {
-      return false;
-    }
     else {
-      return true;
+      return Unit.canConvert( this.getDefaultUnit(),
+                              ((RealType)type).getDefaultUnit() );
     }
   }
 

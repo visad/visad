@@ -3228,11 +3228,8 @@ public class FlatField extends FieldImpl {
     // WLH 20 July 2000
     float[][] values = null;
     if (sampling_errors || (10 * length > getLength())) {
-System.out.println("start unpackValues");
-      // WLH 20 July 2000
       values = unpackFloats(false);
       // values = Set.doubleToFloat(unpackValues());
-System.out.println("end unpackValues");
     }
 
     double[][] new_values = new double[TupleDimension][length];

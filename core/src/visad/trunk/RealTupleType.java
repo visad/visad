@@ -429,6 +429,46 @@ public class RealTupleType extends TupleType {
     return DefaultSet;
   }
 
+  public boolean equalsExceptName(MathType type) {
+    int n = getDimension();
+    try {
+      if (type instanceof RealType) {
+        return (n == 1 && getComponent(0) instanceof RealType);
+      }
+      if (!(type instanceof RealTupleType)) return false;
+      if (n != ((TupleType) type).getDimension()) return false;
+      boolean flag = true;
+      for (int i=0; i<n; i++) {
+        flag = flag && getComponent(i).equalsExceptName(
+                              ((TupleType) type).getComponent(i) );
+      }
+      return flag;
+    }
+    catch (VisADException e) {
+      return false;
+    }
+  }
+
+  public boolean equalsExceptNameButUnits(MathType type) {
+    int n = getDimension();
+    try {
+      if (type instanceof RealType) {
+        return type.equalsExceptNameButUnits(this);
+      }
+      if (!(type instanceof RealTupleType)) return false;
+      if (n != ((RealTupleType) type).getDimension()) return false;
+      boolean flag = true;
+      for (int i=0; i<n; i++) {
+        flag = flag && getComponent(i).equalsExceptNameButUnits(
+                              ((RealTupleType) type).getComponent(i) );
+      }
+      return flag;
+    }
+    catch (VisADException e) {
+      return false;
+    }
+  }
+
   public String prettyString(int indent) {
     try {
       if (getDimension() == 1) {
