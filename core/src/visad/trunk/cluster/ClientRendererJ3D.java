@@ -35,17 +35,28 @@ or
 
   UserRendererJ3D     <--> ProxyRendererJ3D     <--> nodes
   RemoteUserAgentImpl <--> RemoteProxyAgentImpl
+  RemoteUserAgent     <--> RemoteProxyAgent
 
 no Java3D on nodes or ProxyRendererJ3D
   but ProxyRendererJ3D extends DefaultRendererJ3D and that
   imports Java3D
 RemoteClientDataImpl on Client or Proxy, not on User
 
-ProxyDisplayImplJ3D extends DisplayImplJ3D
-  its doAction() only notifies RemoteUserAgentImpl to
-  trigger DisplayImplJ3D.doAction() on User
+ProxyDisplayRendererJ3D extends TransformOnlyDisplayRendererJ3D
+  like NodeDisplayRendererJ3D
+UserDisplayRendererJ3D extends DefaultDisplayRendererJ3D
+  like ClientDisplayRendererJ3D
 
-UserDummyData
+ProxyDisplayImplJ3D extends DisplayImplJ3D
+  super("display", new ProxyDisplayRendererJ3D(),
+        DisplayImplJ3D.TRANSFORM_ONLY);
+  its doAction() does nothing
+
+UserDummyDataImpl extends DataImpl
+  getType() from adaptedRemoteClientDataImpl
+  RemoteCellImpl triggered by adaptedRemoteClientDataImpl
+      calls notifyReferences()
+
 
 */
 
