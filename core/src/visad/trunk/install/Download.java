@@ -3,7 +3,6 @@ package visad.install;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
@@ -84,7 +83,7 @@ public class Download
     try {
       FileOutputStream fOut = new FileOutputStream(target);
       out = new BufferedOutputStream(fOut);
-    } catch (FileNotFoundException fnfe) {
+    } catch (IOException ioe) {
       System.err.println("Couldn't write \"" + target + "\"");
       return;
     }
