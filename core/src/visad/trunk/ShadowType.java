@@ -2274,7 +2274,8 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
   public VisADGeometryArray[] makeStreamline(int which, float[][] flow_values,
                 float flowScale, float[][] spatial_values, Set spatial_set,
                 int spatialManifoldDimension,
-                byte[][] color_values, boolean[][] range_select)
+                byte[][] color_values, boolean[][] range_select,
+                int valueArrayLength, int[] valueToMap, Vector MapVector)
          throws VisADException {
 
     if (flow_values[0] == null) return null;
@@ -2285,12 +2286,64 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
 
     if (!(spatial_set instanceof Gridded3DSet)) return null;
 
+    //-- TDR, only 2 possibilities: (0,1),(0,2),(1,2) because streamline
+    //   algorithm, adapted from Vis5D,  only works with 2 flow components. 2004-01-14
+    FunctionType ftype = (FunctionType)Type;
+    RealTupleType rtt  = ftype.getFlatRange();
+    RealType[] range_reals = rtt.getRealComponents();
+
+    int flow_dim0     = -1;
+    int flow_dim1     = -1;
+    int cnt_flow_maps = 0;
+    for (int k=0; k<range_reals.length; k++) {
+    for (int i=0; i<valueArrayLength; i++) {
+      ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
+      DisplayRealType dreal = map.getDisplayScalar();
+      ScalarType scalar = map.getScalar();
+      if (!scalar.equals(range_reals[k])) continue;
+      if ((dreal.equals(Display.Flow1X))||(dreal.equals(Display.Flow2X))||(dreal.equals(Display.Flow1Elevation))||
+          (dreal.equals(Display.Flow2Elevation))) {
+        if (flow_dim0 == -1) {
+          flow_dim0 = 0;
+        }
+        else {
+          flow_dim0 = 0;
+          flow_dim1 = 1;
+        }
+        cnt_flow_maps++;
+      }
+      if ((dreal.equals(Display.Flow1Y))||(dreal.equals(Display.Flow2Y))||(dreal.equals(Display.Flow1Azimuth))||
+          (dreal.equals(Display.Flow2Azimuth))) {
+        if (flow_dim0 == -1) {
+          flow_dim0 = 1;
+        }
+        else {
+          flow_dim1 = 1;
+        }
+        cnt_flow_maps++;
+      }
+      if ((dreal.equals(Display.Flow1Z))||(dreal.equals(Display.Flow2Z))||(dreal.equals(Display.Flow1Radial))||
+          (dreal.equals(Display.Flow2Radial))) {
+        flow_dim1 = 2;
+        cnt_flow_maps++;
+      }
+    }
+    }
+
+    if (cnt_flow_maps > 2) {
+      throw new BadMappingException("only one or two ScalarMaps to Flow per data allowed if streamlines enabled");
+    }
+    //- 2004-01-14  ------------------------------------------------------
+
+
     if (range_select[0] != null) {
       if ((range_select[0].length == 1) && (!range_select[0][0])) return null;
       for (int ii = 0; ii < range_select[0].length; ii++) {
         if (!range_select[0][ii]) {
           flow_values[0][ii] = Float.NaN;
           flow_values[1][ii] = Float.NaN;
+          //-TDR, 2004-01-15
+          flow_values[2][ii] = Float.NaN;
         }
       }
     }
@@ -2327,9 +2380,9 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
       nr = ((Gridded3DSet)spatial_set).LengthY;
 
       Gridded2DSet gset = new Gridded2DSet(RealTupleType.Generic2D,
-        new float[][] {spatial_values[0], spatial_values[1]}, nc, nr);
+        new float[][] {spatial_values[flow_dim0], spatial_values[flow_dim1]}, nc, nr);
 
-      Stream2D.stream(flow_values[0], flow_values[1], nr, nc,
+      Stream2D.stream(flow_values[flow_dim0], flow_values[flow_dim1], nr, nc,
                       density, stepFactor, arrowScale, vr, vc,
                       n_verts, numl, gset);
     }
@@ -2351,12 +2404,22 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
       float[][] spatial_set_vals =
        ((Gridded3DSet)spatial_set).gridToValue(grid);
 
-      byte[][] intrp_color_values = new byte[3][n_verts[0][kk]];
-      int[] indices = grid_set.valueToIndex(grid);
-      for ( int cc = 0; cc < n_verts[0][kk]; cc++ ) {
-        intrp_color_values[0][cc] = color_values[0][indices[cc]];
-        intrp_color_values[1][cc] = color_values[1][indices[cc]];
-        intrp_color_values[2][cc] = color_values[2][indices[cc]];
+      byte[][] intrp_color_values = null;
+      if (color_values != null) {
+        intrp_color_values = new byte[3][n_verts[0][kk]];
+        int[] indices = grid_set.valueToIndex(grid);
+        for ( int cc = 0; cc < n_verts[0][kk]; cc++ ) {
+          if ( indices[cc] >= 0) {
+            intrp_color_values[0][cc] = color_values[0][indices[cc]];
+            intrp_color_values[1][cc] = color_values[1][indices[cc]];
+            intrp_color_values[2][cc] = color_values[2][indices[cc]];
+          }
+          else {
+            intrp_color_values[0][cc] = (byte)255;
+            intrp_color_values[1][cc] = 0;
+            intrp_color_values[2][cc] = 0;
+          }
+        }
       }
 
       ((Gridded3DSet)spatial_set).setGeometryArray(arrays[kk],

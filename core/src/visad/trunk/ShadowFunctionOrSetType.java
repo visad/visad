@@ -2031,8 +2031,8 @@ if (range_select[0] != null) {
 
           arrays = shadow_api.makeStreamline(0, flow1_values, flowScale[0],
                         spatial_values, spatial_set, spatialManifoldDimension,
-                        color_values, range_select);
-
+                        color_values, range_select,  valueArrayLength,
+                        valueToMap, MapVector);
           if (arrays != null) {
             for (int i=0; i<arrays.length; i++) {
               if (arrays[i] != null) {
@@ -2061,7 +2061,8 @@ if (range_select[0] != null) {
 
           arrays = shadow_api.makeStreamline(1, flow2_values, flowScale[1],
                           spatial_values, spatial_set, spatialManifoldDimension,
-                          color_values, range_select);
+                          color_values, range_select, valueArrayLength,
+                        valueToMap, MapVector);
           if (arrays != null) {
             for (int i=0; i<arrays.length; i++) {
               if (arrays[i] != null) {
