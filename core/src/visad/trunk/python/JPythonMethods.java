@@ -99,6 +99,9 @@ public abstract class JPythonMethods {
       for (int i=0; i<maps.length; i++) {
         if (maps[i].getDisplayScalar().equals(Display.ZAxis) ||
             maps[i].getDisplayScalar().equals(Display.Latitude) ||
+            maps[i].getDisplayScalar().equals(Display.Flow1Z) ||
+            maps[i].getDisplayScalar().equals(Display.Flow2Z) ||
+            maps[i].getDisplayScalar().equals(Display.ZAxisOffset) ||
             maps[i].getDisplayScalar().equals(Display.Alpha)) d3d = true;
       }
       display = d3d ? new DisplayImplJ3D(ID) :
