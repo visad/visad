@@ -520,8 +520,8 @@ public abstract class Unit
     {
       if (identifier != null && identifier.length() > 0)
       {
-        identifier = identifier.replace(' ', '_');      // ensure no whitespace
         /*
+        identifier = identifier.replace(' ', '_');      // ensure no whitespace
         synchronized(identifierMap)
         {
           Unit  previous = (Unit)identifierMap.get(identifier);
