@@ -698,7 +698,12 @@ public class F2000Form
     } else if (token.equals("nan")) {
       value = Double.NaN;
     } else if (token.equals("*")) {
-      value = ((DoubleCache )lastCache.get(tokenName)).getValue();
+      DoubleCache cval = (DoubleCache )lastCache.get(tokenName);
+      if (cval == null) {
+        value = Double.NaN;
+      } else {
+        value = cval.getValue();
+      }
     } else {
       value = Double.parseDouble(token);
     }
@@ -729,7 +734,12 @@ public class F2000Form
     } else if (token.equals("nan")) {
       value = Float.NaN;
     } else if (token.equals("*")) {
-      value = ((FloatCache )lastCache.get(tokenName)).getValue();
+      FloatCache cval = (FloatCache )lastCache.get(tokenName);
+      if (cval == null) {
+        value = Float.NaN;
+      } else {
+        value = cval.getValue();
+      }
     } else {
       value = Float.parseFloat(token);
     }
@@ -760,7 +770,12 @@ public class F2000Form
     } else if (token.equals("nan")) {
       value = -1;
     } else if (token.equals("*")) {
-      value = ((IntCache )lastCache.get(tokenName)).getValue();
+      IntCache cval = (IntCache )lastCache.get(tokenName);
+      if (cval == null) {
+        value = -1;
+      } else {
+        value = cval.getValue();
+      }
     } else {
       value = Integer.parseInt(token);
     }
@@ -844,6 +859,15 @@ public class F2000Form
     // convert module index (1-based) to array index (0-based)
     number--;
 
+    // if module doesn't exist, ignore this hit
+    if (om[number] == null) {
+      System.err.println("Warning: Module not found for HIT line \"" +
+                         line + "\"");
+      return null;
+    }
+
+    Module mod = om[number];
+
     float amplitude, leadEdgeTime, timeOverThreshold;
     try {
       amplitude = parseFloat("htAmp", tok.nextToken());
@@ -859,23 +883,16 @@ public class F2000Form
                                  e.getMessage());
     }
 
-    RealTuple rt;
-    if (om[number] == null) {
-      System.err.println("Warning: Module not found for HIT line \"" +
-                         line + "\"");
-      rt = null;
-    } else {
-      double[] values = {om[number].getX(), om[number].getY(),
-                         om[number].getZ(),
-                         amplitude, leadEdgeTime, timeOverThreshold};
+    double[] values = {mod.getX(), mod.getY(), mod.getZ(),
+                       amplitude, leadEdgeTime, timeOverThreshold};
 
-      // construct Tuple for hit
-      try {
-        rt = new RealTuple(hitType, values);
-      } catch (RemoteException re) {
-        re.printStackTrace();
-        rt = null;
-      }
+    // construct Tuple for hit
+    RealTuple rt;
+    try {
+      rt = new RealTuple(hitType, values);
+    } catch (RemoteException re) {
+      re.printStackTrace();
+      rt = null;
     }
 
     return rt;
