@@ -164,6 +164,15 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   public void setMaps(ScalarMap[] maps) throws VisADException,
                                                RemoteException {
     super.setMaps(maps);
+
+    // set up widget frame
+    constructWidgetFrame(maps);
+    if (AutoShowControls) showWidgetFrame();
+  }
+
+  /** construct the controls widget frame */
+  private void constructWidgetFrame(ScalarMap[] maps) throws VisADException,
+                                                             RemoteException {
     synchronized (WidgetFrame) {
       clearWidgetFrame();
       if (maps == null) return;
@@ -206,14 +215,11 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
           addToFrame(aw, true);
         }
       }
-
-      // show widget frame
       WidgetFrame.pack();
-      if (AutoShowControls) showWidgetFrame();
     }
   }
 
-  /** used by setMaps() method */
+  /** add a component to the widget frame */
   private void addToFrame(Component c, boolean divide) {
     JPanel pane = (JPanel) WidgetFrame.getContentPane();
     if (divide) pane.add(new Divider());
@@ -222,6 +228,15 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
 
   /** show the widgets for altering controls (if there are any) */
   public void showWidgetFrame() {
+    if (IsRemote) {
+      // temporary hack until auto-detection of
+      // remote data changes is implemented
+      try {
+        constructWidgetFrame(getMaps());
+      }
+      catch (VisADException exc) { }
+      catch (RemoteException exc) { }
+    }
     JPanel pane = (JPanel) WidgetFrame.getContentPane();
     if (pane.getComponentCount() > 0) WidgetFrame.setVisible(true);
   }
@@ -347,14 +362,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     }
 
     // get mappings from mapping dialog
-    ScalarMap[] maps = null;
-    if (VDisplay != null) {
-      Vector mapVector = VDisplay.getMapVector();
-      int len = mapVector.size();
-      maps = (len > 0 ? new ScalarMap[len] : null);
-      for (int i=0; i<len; i++) maps[i] = (ScalarMap) mapVector.elementAt(i);
-    }
-    MappingDialog mapDialog = new MappingDialog(Parent, data, maps,
+    MappingDialog mapDialog = new MappingDialog(Parent, data, getMaps(),
                               Dim != JAVA2D_2D || AutoSwitch,
                               Dim == JAVA3D_3D || AutoSwitch);
     mapDialog.pack();

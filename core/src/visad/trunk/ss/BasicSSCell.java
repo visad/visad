@@ -976,6 +976,18 @@ public class BasicSSCell extends JPanel {
     if (rexc != null) throw rexc;
   }
 
+  /** return array of this cell's mappings */
+  public ScalarMap[] getMaps() {
+    ScalarMap[] maps = null;
+    if (VDisplay != null) {
+      Vector mapVector = VDisplay.getMapVector();
+      int len = mapVector.size();
+      maps = (len > 0 ? new ScalarMap[len] : null);
+      for (int i=0; i<len; i++) maps[i] = (ScalarMap) mapVector.elementAt(i);
+    }
+    return maps;
+  }
+
   /** whether other cells are dependent on this one */
   public boolean othersDepend() {
     // NOTE: Cloned cells currently cannot detect whether or not
