@@ -33,7 +33,7 @@ import java.util.Arrays;
 import javax.swing.*;
 import javax.swing.event.*;
 import visad.*;
-import visad.browser.Divider;
+import visad.browser.*;
 import visad.util.*;
 
 /**
@@ -46,6 +46,7 @@ public class ColorToolPanel extends ToolPanel
 
   // -- CONSTANTS --
 
+  /** Maximum alpha exponent. */
   private static final int MAX_POWER = 8;
 
 
@@ -68,21 +69,6 @@ public class ColorToolPanel extends ToolPanel
 
   /** Label for current contrast value. */
   private JLabel contrastValue;
-
-  /** Option for dynamic color scaling. */
-  private JRadioButton dynamic;
-
-  /** Option for fixed color scaling. */
-  private JRadioButton fixed;
-
-  /** Text field for low color scale value. */
-  private JTextField loVal;
-
-  /** Label for fixed color scale. */
-  private JLabel toLabel;
-
-  /** Text field for high color scale value. */
-  private JTextField hiVal;
 
   /** Option for RGB color model. */
   private JRadioButton rgb;
@@ -114,6 +100,21 @@ public class ColorToolPanel extends ToolPanel
   /** Combo box for choosing color widgets. */
   private JComboBox selector;
 
+  /** Panel for fixed color scaling options. */
+  private JPanel fixedPanel;
+
+  /** Option for fixed color scaling. */
+  private JCheckBox fixed;
+
+  /** Text field for low color scale value. */
+  private JTextField loVal;
+
+  /** Label for fixed color scale. */
+  private JLabel toLabel;
+
+  /** Text field for high color scale value. */
+  private JTextField hiVal;
+
 
   // -- OTHER FIELDS --
 
@@ -122,6 +123,9 @@ public class ColorToolPanel extends ToolPanel
 
   /** Should changes to the color components be ignored? */
   private boolean ignore = false;
+
+  /** Should changes to the color range be ignored? */
+  private boolean ignoreColorRange = false;
 
 
   // -- CONSTRUCTOR --
@@ -196,67 +200,6 @@ public class ColorToolPanel extends ToolPanel
     contrastValue.setToolTipText("Current contrast value");
     p.add(contrastValue);
     controls.add(pad(p));
-    cc++;
-
-    // spacing
-    controls.add(Box.createVerticalStrut(5));
-    cc++;
-
-    // dynamic color scaling option
-    ButtonGroup colorScaleGroup = new ButtonGroup();
-    dynamic = new JRadioButton("Dynamic color scaling");
-    dynamic.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        loVal.setEnabled(false);
-        toLabel.setEnabled(false);
-        hiVal.setEnabled(false);
-        updateColorRange();
-      }
-    });
-    dynamic.setMnemonic('d');
-    dynamic.setToolTipText("Scales color range according to the data");
-    colorScaleGroup.add(dynamic);
-    // CTR - TODO - dynamic color scaling support
-    dynamic.setEnabled(false);
-    controls.add(pad(dynamic, false, true));
-    cc++;
-
-    // fixed color scaling option
-    p = new JPanel();
-    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    fixed = new JRadioButton("Fixed color range: ", true);
-    fixed.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        loVal.setEnabled(true);
-        toLabel.setEnabled(true);
-        hiVal.setEnabled(true);
-        updateColorRange();
-      }
-    });
-    fixed.setMnemonic('f');
-    fixed.setToolTipText("Fixes color range between the given values");
-    colorScaleGroup.add(fixed);
-    p.add(fixed);
-
-    // low color scale value text field
-    loVal = new JTextField("0");
-    adjustTextField(loVal);
-    loVal.getDocument().addDocumentListener(this);
-    loVal.setToolTipText("Minimum color range value");
-    p.add(loVal);
-
-    // color scale label
-    toLabel = new JLabel(" to ");
-    toLabel.setForeground(Color.black);
-    p.add(toLabel);
-
-    // high color scale value text field
-    hiVal = new JTextField("255");
-    adjustTextField(hiVal);
-    hiVal.getDocument().addDocumentListener(this);
-    hiVal.setToolTipText("Maximum color range value");
-    p.add(hiVal);
-    controls.add(pad(p, false, true));
     cc++;
 
     // spacing
@@ -409,9 +352,17 @@ public class ColorToolPanel extends ToolPanel
     selector = new JComboBox();
     selector.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        int ndx = selector.getSelectedIndex() + cc;
+        int ndx = selector.getSelectedIndex();
         for (int i=cc; i<controls.getComponentCount(); i++) {
-          controls.getComponent(i).setVisible(i == ndx);
+          controls.getComponent(i).setVisible(i == ndx + cc);
+        }
+        if (ndx >= 0) {
+          ignoreColorRange = true;
+          fixed.setSelected(bio.sm.isFixedColorRange(ndx));
+          double[] d = bio.sm.getColorRange(ndx);
+          loVal.setText("" + d[0]);
+          hiVal.setText("" + d[1]);
+          ignoreColorRange = false;
         }
       }
     });
@@ -421,8 +372,55 @@ public class ColorToolPanel extends ToolPanel
     controls.add(pad(p));
     cc++;
 
+    // spacing
+    controls.add(Box.createVerticalStrut(5));
+    cc++;
+
+    // fixed color scaling option
+    fixedPanel = new JPanel();
+    fixedPanel.setLayout(new BoxLayout(fixedPanel, BoxLayout.X_AXIS));
+    fixedPanel.setVisible(false);
+    fixed = new JCheckBox("Fixed color range: ", true);
+    fixed.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        boolean b = fixed.isSelected();
+        loVal.setEnabled(b);
+        toLabel.setEnabled(b);
+        hiVal.setEnabled(b);
+        updateColorRange();
+      }
+    });
+    fixed.setMnemonic('f');
+    fixed.setToolTipText("Fixes color range between the given values");
+    fixedPanel.add(fixed);
+
+    // low color scale value text field
+    loVal = new JTextField("0");
+    adjustTextField(loVal);
+    loVal.getDocument().addDocumentListener(this);
+    loVal.setToolTipText("Minimum color range value");
+    fixedPanel.add(loVal);
+
+    // color scale label
+    toLabel = new JLabel(" to ");
+    toLabel.setForeground(Color.black);
+    fixedPanel.add(toLabel);
+
+    // high color scale value text field
+    hiVal = new JTextField("255");
+    adjustTextField(hiVal);
+    hiVal.getDocument().addDocumentListener(this);
+    hiVal.setToolTipText("Maximum color range value");
+    fixedPanel.add(hiVal);
+    controls.add(pad(fixedPanel, false, true));
+    cc++;
+
+    // spacing
+    controls.add(Box.createVerticalStrut(5));
+    cc++;
+
     // placeholder for the color tables to be added later
-    controls.add(Box.createVerticalStrut(275));
+    controls.add(Box.createRigidArea(new Dimension(310, 290)));
   }
 
 
@@ -441,7 +439,6 @@ public class ColorToolPanel extends ToolPanel
     brightness.setEnabled(enabled);
     contrastLabel.setEnabled(enabled);
     contrast.setEnabled(enabled);
-    //dynamic.setEnabled(enabled);
     fixed.setEnabled(enabled);
     loVal.setEnabled(enabled);
     toLabel.setEnabled(enabled);
@@ -450,6 +447,7 @@ public class ColorToolPanel extends ToolPanel
 
   /** Adds a widget to the tool panel. */
   public void addWidget(String s, JComponent c) {
+    fixedPanel.setVisible(true);
     selector.addItem(s);
     c.setVisible(selector.getItemCount() == 1);
     controls.add(c);
@@ -460,6 +458,7 @@ public class ColorToolPanel extends ToolPanel
     selector.removeAllItems();
     int size = controls.getComponentCount();
     for (int i=controls.getComponentCount(); i>cc; i--) controls.remove(cc);
+    fixedPanel.setVisible(false);
   }
 
 
@@ -561,6 +560,22 @@ public class ColorToolPanel extends ToolPanel
     bio.sm.syncColors();
   }
 
+  /** Updates color range components to match current range values. */
+  void updateColorRangeFields() {
+    final int ndx = selector.getSelectedIndex();
+    if (ndx >= 0) {
+      Util.invoke(false, new Runnable() {
+        public void run() {
+          ignoreColorRange = true;
+          double[] d = bio.sm.getColorRange(ndx);
+          loVal.setText(Convert.shortString(d[0]));
+          hiVal.setText(Convert.shortString(d[1]));
+          ignoreColorRange = false;
+        }
+      });
+    }
+  }
+
 
   // -- HELPER METHODS --
 
@@ -572,9 +587,11 @@ public class ColorToolPanel extends ToolPanel
     field.setPreferredSize(psize);
   }
 
-  /** Refreshes the color range mappings. */
+  /** Refreshes the color range values. */
   private void updateColorRange() {
-    boolean dyn = dynamic.isSelected();
+    if (ignoreColorRange) return;
+    int ndx = selector.getSelectedIndex();
+    boolean dyn = !fixed.isSelected();
     double lo = Double.NaN;
     double hi = Double.NaN;
     try {
@@ -582,7 +599,7 @@ public class ColorToolPanel extends ToolPanel
       hi = Double.parseDouble(hiVal.getText());
     }
     catch (NumberFormatException exc) { }
-    bio.sm.setColorRange(dyn, lo, hi);
+    if (lo < hi) bio.sm.setColorRange(ndx, dyn, lo, hi);
   }
 
 }

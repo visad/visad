@@ -650,6 +650,13 @@ public class MeasureToolPanel extends ToolPanel {
     updateMeasureInfo();
   }
 
+  /** Updates the "snap to slices" checkbox. */
+  void updateSnapToSlice() {
+    boolean b = bio.sm.align.getMode() == AlignmentPlane.OFF_MODE;
+    if (!b) snap.setSelected(false);
+    snap.setEnabled(b);
+  }
+
 
   // -- HELPER METHODS --
 

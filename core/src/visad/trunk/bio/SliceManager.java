@@ -34,8 +34,8 @@ import visad.*;
 import visad.util.*;
 
 /** SliceManager is the class encapsulating VisBio's slice logic. */
-public class SliceManager
-  implements ControlListener, DisplayListener, PlaneListener
+public class SliceManager implements ControlListener,
+  DisplayListener, PlaneListener, ScalarMapListener
 {
 
   // -- CONSTANTS --
@@ -457,6 +457,14 @@ public class SliceManager
     if (continuous) updateSlice();
   }
 
+  /** ScalarMapListener method used for detecting map data changes. */
+  public void mapChanged(ScalarMapEvent evt) {
+    bio.toolColor.updateColorRangeFields();
+  }
+
+  /** ScalarMapListener method used for detecting map control changes. */
+  public void controlChanged(ScalarMapControlEvent evt) { }
+
   /** Dumps current dataset and takes out the garbage, to conserve memory. */
   void purgeData(boolean refs) throws VisADException, RemoteException {
     if (refs) {
@@ -507,21 +515,40 @@ public class SliceManager
   }
 
   /** Sets the color range to match the specified configuration. */
-  void setColorRange(boolean dynamic, double lo, double hi) {
+  void setColorRange(int i, boolean dynamic, double lo, double hi) {
     if (rtypes == null) return;
+    if (dynamic) {
+      if (rmaps2[i].isAutoScale()) return;
+    }
+    else {
+      double[] d = rmaps2[i].getRange();
+      if (d[0] == lo && d[1] == hi) return;
+    }
     try {
-      for (int i=0; i<rtypes.length; i++) {
-        if (dynamic) rmaps2[i].resetAutoScale();
-        else rmaps2[i].setRange(lo, hi);
-        if (bio.display3 != null) {
-          if (dynamic) rmaps3[i].resetAutoScale();
-          else rmaps3[i].setRange(lo, hi);
+      if (dynamic) {
+        rmaps2[i].resetAutoScale();
+        bio.display2.reAutoScale();
+        rmaps2[i].incTick();
+      }
+      else rmaps2[i].setRange(lo, hi);
+      if (bio.display3 != null) {
+        if (dynamic) {
+          rmaps3[i].resetAutoScale();
+          bio.display3.reAutoScale();
+          rmaps3[i].incTick();
         }
+        else rmaps3[i].setRange(lo, hi);
       }
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
   }
+
+  /** Gets whether the color range is fixed for the given range component. */
+  boolean isFixedColorRange(int i) { return !rmaps2[i].isAutoScale(); }
+
+  /** Gets the color range for the given range component. */
+  double[] getColorRange(int i) { return rmaps2[i].getRange(); }
 
   /** Sets the color controls to match the current widget color tables. */
   void syncColors() {
@@ -882,7 +909,7 @@ public class SliceManager
     rmaps2 = new ScalarMap[rtypes.length];
     for (int i=0; i<rtypes.length; i++) {
       rmaps2[i] = new ScalarMap(rtypes[i], Display.RGB);
-      // CTR - TODO - color range options configuration
+      rmaps2[i].addScalarMapListener(this);
       rmaps2[i].setRange(0, 255);
       bio.display2.addMap(rmaps2[i]);
     }
@@ -988,7 +1015,6 @@ public class SliceManager
       rmaps3 = new ScalarMap[rtypes.length];
       for (int i=0; i<rtypes.length; i++) {
         rmaps3[i] = new ScalarMap(rtypes[i], Display.RGBA);
-        // CTR - TODO - color range options configuration
         rmaps3[i].setRange(0, 255);
         bio.display3.addMap(rmaps3[i]);
         widgets[i] = new LabeledColorWidget(

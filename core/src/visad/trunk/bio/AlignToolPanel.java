@@ -165,6 +165,7 @@ public class AlignToolPanel extends ToolPanel {
           else if (apply.isSelected()) mode = AlignmentPlane.APPLY_MODE;
         }
         bio.sm.align.setMode(mode);
+        bio.toolMeasure.updateSnapToSlice();
       }
     });
     drift.setMnemonic('d');
