@@ -446,7 +446,8 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
       c_color = new ColoringAttributes();
       c_color.setColor(appearance.red, appearance.green, appearance.blue);
     }
-    return ShadowTypeJ3D.makeAppearance(mode, c_alpha, null, array, false);
+    return ShadowTypeJ3D.staticMakeAppearance(mode, c_alpha, null,
+                                              array, false);
   }
 
   private Appearance makeAppearance(VisADAppearance appearance,
@@ -470,7 +471,8 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
       c_color = new ColoringAttributes();
       c_color.setColor(appearance.red, appearance.green, appearance.blue);
     }
-    return ShadowTypeJ3D.makeAppearance(mode, c_alpha, c_color, array, false);
+    return ShadowTypeJ3D.staticMakeAppearance(mode, c_alpha, c_color,
+                                              array, false);
   }
 
   public DataShadow computeRanges(Data data, ShadowType type, DataShadow shadow) 
