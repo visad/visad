@@ -33,6 +33,8 @@ default:
 .java.class:
 	javac $<
 
+JAVAC = javac
+JFLAGS = -J-mx32m
 RM = rm -f
 FITS = ../nom/tam
 
@@ -281,55 +283,55 @@ save:
 
 
 clear:
-	${RM} *.java
-	${RM} java3d/*.java java2d/*.java util/*.java data/*.java
-	${RM} data/netcdf/*.java data/netcdf/units/*.java
-	${RM} data/netcdf/in/*.java data/netcdf/out/*.java
-	${RM} data/fits/*.java
-	${RM} $(FITS)/fits/*.java $(FITS)/util/*.java $(FITS)/test/*.java
-	${RM} data/hdfeos/*.java data/hdfeos/hdfeosc/*.java
-	${RM} data/vis5d/*.java data/gif/*.java
-	${RM} paoloa/*.java aune/*.java examples/*.java
+	$(RM) *.java
+	$(RM) java3d/*.java java2d/*.java util/*.java data/*.java
+	$(RM) data/netcdf/*.java data/netcdf/units/*.java
+	$(RM) data/netcdf/in/*.java data/netcdf/out/*.java
+	$(RM) data/fits/*.java
+	$(RM) $(FITS)/fits/*.java $(FITS)/util/*.java $(FITS)/test/*.java
+	$(RM) data/hdfeos/*.java data/hdfeos/hdfeosc/*.java
+	$(RM) data/vis5d/*.java data/gif/*.java
+	$(RM) paoloa/*.java aune/*.java examples/*.java
 
 
 compile: clean
-	javac -J-mx32m *.java
+	$(JAVAC) $(JFLAGS) *.java
 	rmic visad.RemoteCellImpl visad.RemoteActionImpl \
 		visad.RemoteDisplayImpl visad.RemoteThingReferenceImpl \
 		visad.RemoteDataReferenceImpl visad.RemoteThingImpl \
 		visad.RemoteDataImpl visad.RemoteFunctionImpl \
 		visad.RemoteFieldImpl visad.RemoteServerImpl
-	javac java3d/*.java
-	javac util/*.java
+	$(JAVAC) $(JFLAGS) java3d/*.java
+	$(JAVAC) $(JFLAGS) util/*.java
 	-(cd .. && jar xvf ucar.jar)
-	javac data/*.java
-	javac data/netcdf/units/*.java
-	javac data/netcdf/in/*.java
-	javac data/netcdf/out/*.java
-	javac data/netcdf/*.java
-	-javac $(FITS)/util/*.java
-	-javac $(FITS)/fits/*.java
-	-javac $(FITS)/test/*.java
-	javac data/fits/*.java
-	javac data/vis5d/*.java
-	javac data/gif/*.java
-	javac data/hdfeos/hdfeosc/*.java
-	javac data/hdfeos/*.java
-	-javac paoloa/*.java
-	-javac aune/*.java
-	-(cd examples && javac *.java)
-#	javac java2d/*.java
+	$(JAVAC) $(JFLAGS) data/*.java
+	$(JAVAC) $(JFLAGS) data/netcdf/units/*.java
+	$(JAVAC) $(JFLAGS) data/netcdf/in/*.java
+	$(JAVAC) $(JFLAGS) data/netcdf/out/*.java
+	$(JAVAC) $(JFLAGS) data/netcdf/*.java
+	-$(JAVAC) $(JFLAGS) $(FITS)/util/*.java
+	-$(JAVAC) $(JFLAGS) $(FITS)/fits/*.java
+	-$(JAVAC) $(JFLAGS) $(FITS)/test/*.java
+	$(JAVAC) $(JFLAGS) data/fits/*.java
+	$(JAVAC) $(JFLAGS) data/vis5d/*.java
+	$(JAVAC) $(JFLAGS) data/gif/*.java
+	$(JAVAC) $(JFLAGS) data/hdfeos/hdfeosc/*.java
+	$(JAVAC) $(JFLAGS) data/hdfeos/*.java
+	-$(JAVAC) $(JFLAGS) paoloa/*.java
+	-$(JAVAC) $(JFLAGS) aune/*.java
+	-(cd examples && $(JAVAC) $(JFLAGS) *.java)
+#	$(JAVAC) $(JFLAGS) java2d/*.java
 
 clean:
-	${RM} *.class
-	${RM} java3d/*.class java2d/*.class util/*.class data/*.class
-	${RM} data/netcdf/*.class data/netcdf/units/*.class
-	${RM} data/netcdf/in/*.class data/netcdf/out/*.class
-	${RM} data/fits/*.class
-	${RM} $(FITS)/fits/*.class $(FITS)/util/*.class $(FITS)/test/*.class
-	${RM} data/hdfeos/*.class data/hdfeos/hdfeosc/*.class
-	${RM} data/vis5d/*.class data/gif/*.class
-	${RM} paoloa/*.class aune/*.class examples/*.class
+	$(RM) *.class
+	$(RM) java3d/*.class java2d/*.class util/*.class data/*.class
+	$(RM) data/netcdf/*.class data/netcdf/units/*.class
+	$(RM) data/netcdf/in/*.class data/netcdf/out/*.class
+	$(RM) data/fits/*.class
+	$(RM) $(FITS)/fits/*.class $(FITS)/util/*.class $(FITS)/test/*.class
+	$(RM) data/hdfeos/*.class data/hdfeos/hdfeosc/*.class
+	$(RM) data/vis5d/*.class data/gif/*.class
+	$(RM) paoloa/*.class aune/*.class examples/*.class
 
 
 

@@ -36,10 +36,12 @@ default:
 .java.class:
 	javac $<
 
+JAVAC = javac
+JFLAGS = -J-mx32m
 DEL = del
 FITS = ..\nom\tam
 
-TAR_FILES = \
+JAR_FILES = \
 visad\README \
 visad\DEDICATION \
 visad\NOTICE \
@@ -51,6 +53,7 @@ visad\rmic_script \
 visad\*.java \
 visad\examples\*.java \
 visad\java3d\*.java \
+visad\java2d\*.java \
 visad\util\*.java \
 visad\data\*.java \
 visad\data\netcdf\*.java \
@@ -98,7 +101,7 @@ jar:
 	date /t > DATE
 	time /t >> DATE
 	cd ..
-	jar cvf visad_src-2.0.jar $(TAR_FILES)
+	jar cvf visad_src-2.0.jar $(JAR_FILES)
 	move visad_src-2.0.jar visad
 	cd visad
 	copy visad_src-2.0.jar visadsrc.jar
@@ -118,6 +121,7 @@ visad\rmic_script \
 visad\*.java \
 visad\examples\*.java \
 visad\java3d\*.java \
+visad\java2d\*.java \
 visad\util\*.java \
 visad\data\*.java \
 visad\data\netcdf\*.java \
@@ -169,6 +173,8 @@ save:
 		$(DEL) $(BACKUP)\visad\examples\*.java
 	if exist $(BACKUP)\visad\java3d\*.java                     \
 		$(DEL) $(BACKUP)\visad\java3d\*.java
+        if exist $(BACKUP)\visad\java2d\*.java                     \
+                $(DEL) $(BACKUP)\visad\java2d\*.java
 	if exist $(BACKUP)\visad\util\*.java                       \
 		$(DEL) $(BACKUP)\visad\util\*.java
 	if exist $(BACKUP)\visad\data\*.java                       \
@@ -210,6 +216,7 @@ CLASS_FILES = \
 DATE \
 visad\*.class \
 visad\java3d\*.class \
+visad\java2d\*.class \
 visad\util\*.class \
 visad\data\*.class \
 visad\data\netcdf\*.class \
@@ -238,6 +245,7 @@ classes:
 clear:
 	if exist *.java $(DEL) *.java
 	if exist java3d\*.java $(DEL) java3d\*.java
+        if exist java2d\*.java $(DEL) java2d\*.java
 	if exist util\*.java $(DEL) util\*.java
 	if exist data\*.java $(DEL) data\*.java
 	if exist data\netcdf\*.java $(DEL) data\netcdf\*.java
@@ -269,31 +277,33 @@ visad.RemoteFieldImpl \
 visad.RemoteServerImpl
 
 compile: clean
-	javac -J-mx32m *.java
+	$(JAVAC) $(JFLAGS) *.java
 	rmic $(RMIC)
-	javac java3d\*.java
-	javac util\*.java
+	$(JAVAC) $(JFLAGS) java3d\*.java
+	$(JAVAC) $(JFLAGS) util\*.java
 	-(cd .. && jar xvf ucar.jar)
-	javac data\*.java
-	javac data\netcdf\units\*.java
-	javac data\netcdf\in\*.java
-	javac data\netcdf\out\*.java
-	javac data\netcdf\*.java
-	-javac $(FITS)\util\*.java
-	-javac $(FITS)\fits\*.java
-	-javac $(FITS)\test\*.java
-	javac data\fits\*.java
-	javac data\vis5d\*.java
-	javac data\gif\*.java
-	javac data\hdfeos\hdfeosc\*.java
-	javac data\hdfeos\*.java
-	-javac paoloa\*.java
-	-javac aune\*.java
-	-(cd examples && javac *.java)
+	$(JAVAC) $(JFLAGS) data\*.java
+	$(JAVAC) $(JFLAGS) data\netcdf\units\*.java
+	$(JAVAC) $(JFLAGS) data\netcdf\in\*.java
+	$(JAVAC) $(JFLAGS) data\netcdf\out\*.java
+	$(JAVAC) $(JFLAGS) data\netcdf\*.java
+	-$(JAVAC) $(JFLAGS) $(FITS)\util\*.java
+	-$(JAVAC) $(JFLAGS) $(FITS)\fits\*.java
+	-$(JAVAC) $(JFLAGS) $(FITS)\test\*.java
+	$(JAVAC) $(JFLAGS) data\fits\*.java
+	$(JAVAC) $(JFLAGS) data\vis5d\*.java
+	$(JAVAC) $(JFLAGS) data\gif\*.java
+	$(JAVAC) $(JFLAGS) data\hdfeos\hdfeosc\*.java
+	$(JAVAC) $(JFLAGS) data\hdfeos\*.java
+	-$(JAVAC) $(JFLAGS) paoloa\*.java
+	-$(JAVAC) $(JFLAGS) aune\*.java
+	-(cd examples && $(JAVAC) $(JFLAGS) *.java)
+#       $(JAVAC) $(JFLAGS) java2d\*.java
 
 clean:
 	if exist *.class $(DEL) *.class
 	if exist java3d\*.class $(DEL) java3d\*.class
+        if exist java2d\*.class $(DEL) java2d\*.class
 	if exist util\*.class $(DEL) util\*.class
 	if exist data\*.class $(DEL) data\*.class
 	if exist data\netcdf\*.class $(DEL) data\netcdf\*.class
