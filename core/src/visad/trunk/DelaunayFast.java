@@ -547,7 +547,7 @@ public class DelaunayFast extends Delaunay {
     }
 
     // call more generic method for constructing Walk and Edges arrays
-    super.finish_triang(samples);
+    finish_triang(samples);
   }
 
 }

@@ -68,6 +68,8 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
       Flat = (Range instanceof ShadowRealType) ||
              (Range instanceof ShadowTupleType &&
               ((ShadowTupleType) Range).isFlat());
+      MultipleSpatialDisplayScalar = Domain.getMultipleSpatialDisplayScalar() ||
+                                     Range.getMultipleSpatialDisplayScalar();
       MultipleDisplayScalar = Domain.getMultipleDisplayScalar() ||
                               Range.getMultipleDisplayScalar();
       MappedDisplayScalar = Domain.getMappedDisplayScalar() ||

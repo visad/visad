@@ -1233,7 +1233,7 @@ public class DelaunayClarkson extends Delaunay {
     a3s = null;
 
     // call more generic method for constructing Walk and Edges arrays
-    super.finish_triang(samples);
+    finish_triang(samples);
   }
 
 }

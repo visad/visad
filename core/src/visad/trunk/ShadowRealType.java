@@ -68,6 +68,7 @@ public class ShadowRealType extends ShadowType {
     for (int k=0; k<3; k++) DisplaySpatialTupleIndex[k] = -1;
     DisplaySpatialTupleIndexIndex = 0;
 
+    int spatial_count = 0;
     Index = -1;
     SelectedMapVector = new Vector();
     Enumeration maps = display.getMapVector().elements();
@@ -97,6 +98,7 @@ public class ShadowRealType extends ShadowType {
           }
         }
         if (tuple != null) {
+          spatial_count++;
           if (DisplaySpatialTuple != null) {
             if (!tuple.equals(DisplaySpatialTuple)) {
               // this mapped to multiple spatial DisplayTupleType-s
@@ -114,6 +116,7 @@ public class ShadowRealType extends ShadowType {
         }
       } // end if (map.Scalar.equals(Type)) {
     } // end while(maps.hasMoreElements()) {
+    MultipleSpatialDisplayScalar = (spatial_count > 1);
     MultipleDisplayScalar = (SelectedMapVector.size() > 1);
     MappedDisplayScalar = (SelectedMapVector.size() > 0);
   }

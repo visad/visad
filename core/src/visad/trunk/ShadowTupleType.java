@@ -53,10 +53,13 @@ public class ShadowTupleType extends ShadowType {
     int n = tupleComponents.length;
     Flat = true;
     ShadowType[] components = new ShadowType[n];
+    MultipleSpatialDisplayScalar = false;
     MultipleDisplayScalar = false;
     // compute Flat, DisplayIndices and ValueIndices
     for (int i=0; i<n; i++) {
       ShadowType shadow = tupleComponents[i];
+      MultipleSpatialDisplayScalar |=
+        tupleComponents[i].getMultipleSpatialDisplayScalar();
       MultipleDisplayScalar |= tupleComponents[i].getMultipleDisplayScalar();
       boolean mappedComponent = tupleComponents[i].getMappedDisplayScalar();
       MappedDisplayScalar |= mappedComponent;

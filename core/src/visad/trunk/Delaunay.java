@@ -68,7 +68,8 @@ public abstract class Delaunay implements java.io.Serializable {
       to the Delaunay abstract class to use in order to construct the
       fastest triangulation, and calls that extension, returning the
       finished triangulation.  The exact parameter is an indication of
-      whether the exact Delaunay triangulation is required. */
+      whether the exact Delaunay triangulation is required.  The
+      method chooses from among the Fast, Clarkson, and Watson methods. */
   public static Delaunay factory(float[][] samples, boolean exact)
                                                   throws VisADException {
 
@@ -81,9 +82,8 @@ public abstract class Delaunay implements java.io.Serializable {
              clumped values, be sure to scale them up before calling the
              factory method. */
 
-    /* Note: The factory method should be modified and/or extended if
-             a new Delaunay extension is created, so that the algorithm
-             takes that new extension into account. */
+    /* Note: The factory method will not take new Delaunay extensions into
+             account unless it is extended as well. */
 
     int choice;
     int FAST = 0;
@@ -133,6 +133,160 @@ public abstract class Delaunay implements java.io.Serializable {
     }
 
     return null;
+  }
+
+  /** scale alters the values of the samples by multiplying them by
+      the mult factor; copy specifies whether scale should modify
+      the actual samples or a copy of them. */
+  public static float[][] scale(float[][] samples, float mult,
+                                boolean copy) throws VisADException {
+    int dim = samples.length;
+    int nrs = samples[0].length;
+    for (int i=1; i<dim; i++) {
+      if (samples[i].length < nrs) nrs = samples[i].length;
+    }
+
+    // make a copy if needed
+    float[][] samp;
+    if (copy) {
+      samp = new float[dim][nrs];
+      for (int i=0; i<dim; i++) {
+        System.arraycopy(samples, 0, samp, 0, nrs);
+      }
+    }
+    else {
+      samp = samples;
+    }
+
+    // scale points
+    for (int i=0; i<dim; i++) {
+      for (int j=0; j<nrs; j++) {
+        samp[i][j] *= mult;
+      }
+    }
+
+    return samp;
+  }
+
+  /** perturb alters the values of the samples by up to epsilon in
+      either direction, to eliminate triangulation problems such as
+      co-linear points; copy specifies whether perturb should modify
+      the actual samples or a copy of them. */
+  public static float[][] perturb(float[][] samples, float epsilon,
+                                  boolean copy) throws VisADException {
+    int dim = samples.length;
+    int nrs = samples[0].length;
+    for (int i=1; i<dim; i++) {
+      if (samples[i].length < nrs) nrs = samples[i].length;
+    }
+
+    // make a copy if needed
+    float[][] samp;
+    if (copy) {
+      samp = new float[dim][nrs];
+      for (int i=0; i<dim; i++) {
+        System.arraycopy(samples, 0, samp, 0, nrs);
+      }
+    }
+    else {
+      samp = samples;
+    }
+
+    // perturb points
+    for (int i=0; i<dim; i++) {
+      for (int j=0; j<nrs; j++) {
+        samp[i][j] += (float)(2*epsilon*(Math.random()-0.5));
+      }
+    }
+
+    return samp;
+  }
+
+  /** test checks a triangulation in various ways to make sure it
+      is constructed correctly; test returns false if there are
+      any problems with the triangulation. */
+  public boolean test(float[][] samples) throws VisADException {
+
+    int dim = samples.length;
+    int dim1 = dim+1;
+    int ntris = Tri.length;
+    int nrs = samples[0].length;
+    for (int i=1; i<dim; i++) {
+      nrs = Math.min(nrs, samples[i].length);
+    }
+
+    // verify triangulation dimension
+    for (int i=0; i<ntris; i++) {
+      if (Tri[i].length < dim1) return false;
+    }
+
+    // verify no illegal triangle vertices
+    for (int i=0; i<ntris; i++) {
+      for (int j=0; j<dim1; j++) {
+        if (Tri[i][j] < 0 || Tri[i][j] >= nrs) return false;
+      }
+    }
+
+    // verify that all points are in at least one triangle
+    int[] nverts = new int[nrs];
+    for (int i=0; i<nrs; i++) nverts[i] = 0;
+    for (int i=0; i<ntris; i++) {
+      for (int j=0; j<dim1; j++) nverts[Tri[i][j]]++;
+    }
+    for (int i=0; i<nrs; i++) {
+      if (nverts[i] == 0) return false;
+    }
+
+    // test for duplicate triangles
+    for (int i=0; i<ntris; i++) {
+      for (int j=i+1; j<ntris; j++) {
+        boolean[] m = new boolean[dim1];
+        for (int mi=0; mi<dim1; mi++) m[mi] = false;
+        for (int k=0; k<dim1; k++) {
+          for (int l=0; l<dim1; l++) {
+            if (Tri[i][k] == Tri[j][l] && !m[l]) {
+              m[l] = true;
+            }
+          }
+        }
+        boolean mtot = true;
+        for (int k=0; k<dim1; k++) {
+          if (!m[k]) mtot = false;
+        }
+        if (mtot) return false;
+      }
+    }
+
+    // test for errors in Walk array
+    for (int i=0; i<ntris; i++) {
+      for (int j=0; j<dim1; j++) {
+        if (Walk[i][j] != -1) {
+          boolean found = false;
+          for (int k=0; k<dim1; k++) {
+            if (Walk[Walk[i][j]][k] == i) found = true;
+          }
+          if (!found) return false;
+
+          // make sure two walk'ed triangles share dim vertices
+          int sb = 0;
+          for (int k=0; k<dim1; k++) {
+            for (int l=0; l<dim1; l++) {
+              if (Tri[i][k] == Tri[Walk[i][j]][l]) sb++;
+            }
+          }
+          if (sb != dim) return false;
+        }
+      }
+    }
+
+    // Note: Another test that could be performed is one that
+    //       makes sure, given a triangle T, all points in the
+    //       triangulation that are not part of T are located
+    //       outside the bounds of T.  This test would verify
+    //       that there are no overlapping triangles.
+
+    // all tests passed
+    return true;
   }
 
   /** finish_triang calculates a triangulation's helper arrays, Walk and Edges,

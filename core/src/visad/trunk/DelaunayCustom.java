@@ -29,7 +29,10 @@ package visad;
    DelaunayCustom is a set of constructors to create an instance
    of Delaunay by passing in a pre-computed triangulation.
    DelaunayCustom is useful for creating instances of Delaunay
-   that can be passed into IrregularSet.<P>
+   that can be passed into IrregularSet.  If you want
+   to perform consistency checks on your triangulation, call
+   Delaunay.test() on your DelaunayCustom object after it is
+   constructed.<P>
 */
 public class DelaunayCustom extends Delaunay {
 
@@ -53,89 +56,42 @@ public class DelaunayCustom extends Delaunay {
       throw new VisADException("DelaunayCustom: "
                               +"Tri array must be specified!");
     }
-    if (samples != null) {
-      // consistency checks can be performed
-      int dim = samples.length;
-      int dim1 = dim+1;
-      int ntris = tri.length;
-      int nrs = samples[0].length;
-      for (int i=1; i<dim; i++) {
-        nrs = Math.min(nrs, samples[i].length);
-      }
-
-      // verify triangulation dimension
-      for (int i=0; i<ntris; i++) {
-        if (tri[i].length < dim1) {
-          throw new VisADException("DelaunayCustom: triangulation dimension "
-                                  +"and sampling dimension do not match!");
-        }
-      }
-
-      // verify no illegal triangle vertices
-      for (int i=0; i<ntris; i++) {
-        for (int j=0; j<dim1; j++) {
-          if (tri[i][j] < 0 || tri[i][j] >= nrs) throw new VisADException(
-                      "DelaunayCustom: illegal tri vertex ("+i+", "+j+")");
-        }
-      }
-
-      // verify that all pointris are in at least one triangle
-      int[] nverts = new int[nrs];
-      for (int i=0; i<nrs; i++) nverts[i] = 0;
-      for (int i=0; i<ntris; i++) {
-        for (int j=0; j<dim1; j++) nverts[tri[i][j]]++;
-      }
-      for (int i=0; i<nrs; i++) {
-        if (nverts[i] == 0) throw new VisADException("DelaunayCustom: "
-                      +"sample #"+i+" is not contained in triangulation!");
-      }
-
-      // DO THIS: need a triangle consistency check here (overlapping tris)
-
-      // copy data into Delaunay arrays
-      if (copy) {
-        Tri = new int[ntris][dim1];
-        for (int i=0; i<ntris; i++) System.arraycopy(tri[i], 0,
-                                                     Tri[i], 0, dim1);
-        if (vertices != null) {
-          Vertices = new int[nrs][];
-          for (int i=0; i<nrs; i++) {
-            Vertices[i] = new int[vertices[i].length];
-            System.arraycopy(vertices[i], 0,
-                             Vertices[i], 0, vertices[i].length);
-          }
-        }
-        if (walk != null) {
-          Walk = new int[ntris][dim1];
-          for (int i=0; i<ntris; i++) System.arraycopy(walk[i], 0,
-                                                       Walk[i], 0, dim1);
-        }
-        if (edges != null) {
-          Edges = new int[ntris][3*dim-1];
-          for (int i=0; i<ntris; i++) System.arraycopy(edges[i], 0,
-                                                       Edges[i], 0, 3*dim-1);
-        }
-      }
+    if (samples == null && vertices == null) {
+      throw new VisADException("DelaunayCustom: Cannot construct "
+                              +"Vertices without samples!");
     }
-    else {
-      // no samples array was passed in;  just copy data to a new instance
-      if (copy) {
-        Tri = new int[tri.length][];
-        for (int i=0; i<tri.length; i++) {
-          Tri[i] = new int[tri[i].length];
-          System.arraycopy(tri[i], 0, Tri[i], 0, tri[i].length);
-        }
+    if (samples == null && walk == null) {
+      throw new VisADException("DelaunayCustom: Cannot construct "
+                              +"Walk without samples!");
+    }
+    if (samples == null && edges == null) {
+      throw new VisADException("DelaunayCustom: Cannot construct "
+                              +"Edges without samples!");
+    }
+
+    // copy data into Delaunay arrays
+    if (copy) {
+      Tri = new int[tri.length][];
+      for (int i=0; i<tri.length; i++) {
+        Tri[i] = new int[tri[i].length];
+        System.arraycopy(tri[i], 0, Tri[i], 0, tri[i].length);
+      }
+      if (vertices != null) {
         Vertices = new int[vertices.length][];
         for (int i=0; i<vertices.length; i++) {
           Vertices[i] = new int[vertices[i].length];
           System.arraycopy(vertices[i], 0,
                            Vertices[i], 0, vertices[i].length);
         }
+      }
+      if (walk != null) {
         Walk = new int[walk.length][];
         for (int i=0; i<walk.length; i++) {
           Walk[i] = new int[walk[i].length];
           System.arraycopy(walk[i], 0, Walk[i], 0, walk[i].length);
         }
+      }
+      if (edges != null) {
         Edges = new int[edges.length][];
         for (int i=0; i<edges.length; i++) {
           Edges[i] = new int[edges[i].length];
@@ -143,7 +99,7 @@ public class DelaunayCustom extends Delaunay {
         }
       }
     }
-    if (!copy) {
+    else {
       Tri = tri;
       Vertices = vertices;
       Walk = walk;
@@ -152,7 +108,7 @@ public class DelaunayCustom extends Delaunay {
     NumEdges = num_edges;
 
     // call more generic method for constructing any remaining null arrays
-    super.finish_triang(samples);
+    finish_triang(samples);
   }
 
 }

@@ -59,6 +59,9 @@ public abstract class ShadowType extends Object
   /** ValueIndices is like DisplayIndices, but distinguishes
       different ScalarMap-s of non-Single DisplayRealTypes */
   int[] ValueIndices;
+  /** MultipleSpatialDisplayScalar is true if any RealType component is
+      mapped to multiple spatial DisplayRealType-s */
+  boolean MultipleSpatialDisplayScalar;
   /** MultipleDisplayScalar is true if any RealType component is mapped
       to multiple DisplayRealType-s, or if any RealTupleType component
       and its Reference are both mapped */
@@ -123,6 +126,7 @@ public abstract class ShadowType extends Object
     isTerminal = false;
     isTextureMap = false;
     LevelOfDifficulty = NOTHING_MAPPED;
+    MultipleSpatialDisplayScalar = false;
     MultipleDisplayScalar = false;
     MappedDisplayScalar = false;
   }
@@ -630,6 +634,10 @@ public abstract class ShadowType extends Object
 
   public boolean getMultipleDisplayScalar() {
     return MultipleDisplayScalar;
+  }
+
+  public boolean getMultipleSpatialDisplayScalar() {
+    return MultipleSpatialDisplayScalar;
   }
 
   public boolean getMappedDisplayScalar() {

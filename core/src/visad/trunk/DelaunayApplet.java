@@ -132,6 +132,16 @@ public class DelaunayApplet extends Applet {
   }
 
   public void paint(Graphics gr) {
+    if (label.equals("triangles")) {
+      for (int i=0; i<apTri.length; i++) {
+        int t0 = apTri[i][0];
+        int t1 = apTri[i][1];
+        int t2 = apTri[i][2];
+        int avgX = (int) ((apSamples[0][t0] + apSamples[0][t1] + apSamples[0][t2])/3);
+        int avgY = (int) ((apSamples[1][t0] + apSamples[1][t1] + apSamples[1][t2])/3);
+        gr.drawString(String.valueOf(i), avgX-4, avgY);
+      }
+    }
     if (label.equals("numbers")) {
       for (int i=0; i<apSamples[0].length; i++) {
         gr.drawString(String.valueOf(i), (int) apSamples[0][i],

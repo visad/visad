@@ -314,7 +314,7 @@ Loop1:
     }
 
     // call more generic method for constructing Walk and Edges arrays
-    super.finish_triang(samples);
+    finish_triang(samples);
   }
 
 /*

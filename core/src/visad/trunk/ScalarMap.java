@@ -452,8 +452,11 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       double val = j * tens;
       double a = (val - min) / (max - min);
       for (int i=0; i<3; i++) {
-        coordinates[k + i] = (float) ((1.0 - a) * startn[i] + a * startp[i]);
-        coordinates[k + 3 + i] = (float) (coordinates[k + i] - 0.5 * up[i]);
+        if ((k + 3 + i) < coordinates.length) {
+          // guard against error that cannot happen, but was seen?
+          coordinates[k + i] = (float) ((1.0 - a) * startn[i] + a * startp[i]);
+          coordinates[k + 3 + i] = (float) (coordinates[k + i] - 0.5 * up[i]);
+        }
       }
       k += 6;
     }
