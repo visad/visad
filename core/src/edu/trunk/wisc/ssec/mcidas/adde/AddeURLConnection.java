@@ -37,6 +37,8 @@ import java.net.UnknownHostException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.StringTokenizer;
+import java.util.zip.GZIPInputStream;
+import HTTPClient.UncompressInputStream;
 
 /**
  * This class extends URLConnection, providing the guts of the
@@ -75,6 +77,10 @@ import java.util.StringTokenizer;
  *                               trace file (imagedata, imagedirectory)
  *   version=                  ADDE version number, currently 1 except for
  *                             griddata requests
+ *   debug=                    set to true to watch the printlns stream by
+ *   compress=                 set to true if you want to use compressed
+ *                             transfers.  You need to have the VisAD package
+ *                             if you want to support this.
  *
  * -------for images:
  *
@@ -168,6 +174,9 @@ public class AddeURLConnection extends URLConnection
   private final static int ERRMSG_SIZE = 72;
   private final static int ERRMSG_OFFS = 8;
   private final static int PORT = 500;
+  private final static int COMPRESS_PORT = 503;
+  private final static int GZIP_PORT= 112;
+  private final static int VERSION_1 = 1;
 
   // ADDE server requests
   /** AGET request type */
@@ -203,7 +212,8 @@ public class AddeURLConnection extends URLConnection
   private byte[] binaryData = null;   // byte array to hold extra binary data
   private int reqType = AGET;
   private boolean debug = false;
-  private int portToUse;   // DRM 03-Mar-2001
+  private int portToUse = PORT;   // DRM 03-Mar-2001
+  private int compressionType = PORT; 
 
   /**
    *
@@ -217,7 +227,6 @@ public class AddeURLConnection extends URLConnection
   {
     super(url);
     this.url = url;
-    portToUse = (url.getPort() == -1) ? PORT : url.getPort(); // DRM 03-Mar-2001
   } 
 
   /**
@@ -235,30 +244,16 @@ public class AddeURLConnection extends URLConnection
     throws IOException, AddeURLException
   {
 
-    Socket t;
-    try {
-      t = new Socket(url.getHost(), portToUse);   // DRM 03-Mar-2001
-    } catch (UnknownHostException e) {
-      throw new AddeURLException(e.toString());
-    }
-    is = t.getInputStream();
-    dis = new DataInputStream(is);
-    dos = new DataOutputStream ( t.getOutputStream() );
-
-    // now formulate and send an ADDE request
-
-    // see if we can use the URL passed in
-    
-    if (debug) System.out.println("host from URL: " + url.getHost());
-    if (debug) System.out.println("file from URL: " + url.getFile());
-    
-
+    // First, see if we can use the URL passed in
     // verify the service is one we can handle 
     // get rid of leading /
     // keep original to preserve case for user= clause
     String requestOriginal = url.getFile().substring(1);
     String request = requestOriginal.toLowerCase();
     debug = debug || request.indexOf("debug=true") >= 0;
+
+    if (debug) System.out.println("host from URL: " + url.getHost());
+    if (debug) System.out.println("file from URL: " + url.getFile());
 
     if (!request.startsWith("image") && 
         (!request.startsWith("datasetinfo")) &&
@@ -271,157 +266,67 @@ public class AddeURLConnection extends URLConnection
         throw new AddeURLException("Request for unknown data");
     }
 
-    // send version number - ADDE seems to be stuck at 1
-    int version = 1;
-    dos.writeInt(version);
-
-    // send IP address of server
-    // we know the server IP address is good cause we used it above
-    byte [] ipa = new byte[4];
-    InetAddress ia = InetAddress.getByName(url.getHost());
-    ipa = ia.getAddress();
-    dos.write(ipa, 0, ipa.length);
-
-    // send ADDE port number
-    dos.writeInt(portToUse);   // DRM 03-Mar-2001
-
     // service - for area files, it's either AGET (Area GET) or 
     // ADIR (AREA directory)
     byte [] svc = null;
     if (request.startsWith("imagedir"))
     {
-        //svc = (new String("adir")).getBytes();
         svc = "adir".getBytes();
         reqType = ADIR;
     }
     else if (request.startsWith("datasetinfo"))
     {
-        //svc = (new String("lwpr")).getBytes();
         svc = "lwpr".getBytes();
         reqType = LWPR;
     }
     else if (request.startsWith("text"))
     {
-        //svc = (new String("txtg")).getBytes();
         svc = "txtg".getBytes();
         reqType = TXTG;
     }
     else if (request.startsWith("wxtext"))
     {
-        //svc = (new String("wtxg")).getBytes();
         svc = "wtxg".getBytes();
         reqType = WTXG;
     }
     else if (request.startsWith("obtext"))
     {
-        //svc = (new String("obtg")).getBytes();
         svc = "obtg".getBytes();
         reqType = OBTG;
     }
     else if (request.startsWith("image"))
     {
-        //svc = (new String("aget")).getBytes();
         svc = "aget".getBytes();
         reqType = AGET;
     }
     else if (request.startsWith("griddir"))
     {
-        //svc = (new String("gdir")).getBytes();
         svc = "gdir".getBytes();
         reqType = GDIR;
     }
     else if (request.startsWith("grid"))
     {
-        //svc = (new String("gget")).getBytes();
         svc = "gget".getBytes();
         reqType = GGET;
     }
     else if (request.startsWith("point"))
     {
-        //svc = (new String("mdks")).getBytes();
         svc = "mdks".getBytes();
         reqType = MDKS;
     }
     else
     {
-      throw new AddeURLException("Invalid ADDE service="+svc.toString() );
+      throw new AddeURLException(
+          "Invalid or unsupported ADDE service= "+svc.toString() );
     }
-    if (debug) System.out.println("Service = " + svc.toString());
-
-    dos.write(svc, 0, svc.length);
-
-    // now build and send request block, repeat some stuff
-    // server IP address, port
-    dos.write(ipa, 0, ipa.length);
-    dos.writeInt(portToUse);   // DRM 03-Mar-2001
-
-    // client IP address
-    InetAddress lh = InetAddress.getLocalHost();
-    ipa = lh.getAddress();
-    dos.write(ipa, 0, ipa.length);
-
+    if (debug) System.out.println("Service = " + new String(svc));
 
     // prep for real thing - get cmd from file part of URL
     int test = request.indexOf("?");
     String uCmd = (test >=0) ? request.substring(test+1) : request;
     if (debug) System.out.println("uCmd="+uCmd);
 
-    int startIdx;
-    int endIdx;
-
-    // user initials - pass on what client supplied in user= keyword
-    byte [] usr; 
-    String userStr;
-    startIdx = request.indexOf("user=");
-    if (startIdx > 0) {
-      endIdx = request.indexOf('&', startIdx);
-      if (endIdx == -1)   // last on line
-         endIdx = request.length();
-      // use original to preserve case
-      userStr = requestOriginal.substring(startIdx + 5, endIdx);
-    } else {
-      userStr = "XXXX";
-    }
-    usr = userStr.getBytes();
-
-    // gotta send 4 user bytes, ADDE protocol expects it
-    if (usr.length <= 4) {
-      dos.write(usr, 0, usr.length);
-      for (int i = 0; i < 4 - usr.length; i++) {
-        dos.writeByte(' ');
-      }
-    } else {
-      // if id entered was > 4 chars, complain
-      throw new AddeURLException("Invalid user id: " + userStr);
-    }
-
-    // project number - we won't validate, but make sure it's there
-    startIdx = uCmd.indexOf("proj=");
-    String projStr;
-    int proj;
-    if (startIdx > 0) {
-      endIdx = uCmd.indexOf('&', startIdx);
-      if (endIdx == -1)   // last on line
-         endIdx = uCmd.length();
-      projStr = uCmd.substring(startIdx + 5, endIdx);
-    } else {
-      projStr = "0";
-    }
-    try {
-      proj = Integer.parseInt(projStr);
-    } catch (NumberFormatException e) {
-      throw new AddeURLException("Invalid project number: " + projStr);
-    }
-    dos.writeInt(proj);
-
-    // password chars - not used either
-    byte [] pwd = new byte[12];
-    dos.write(pwd, 0, pwd.length);
-
-    // service - resend svc array 
-    dos.write(svc, 0, svc.length);
-
-    // build and output the command string
+    // build the command string
     StringBuffer sb = new StringBuffer();
     switch (reqType)
     {
@@ -464,6 +369,150 @@ public class AddeURLConnection extends URLConnection
     if (debug) System.out.println(cmd);
     byte [] ob = cmd.getBytes();
 
+    // get some other stuff
+    int startIdx;
+    int endIdx;
+
+    // user initials - pass on what client supplied in user= keyword
+    byte [] usr; 
+    String userStr;
+    startIdx = request.indexOf("user=");
+    if (startIdx > 0) {
+      endIdx = request.indexOf('&', startIdx);
+      if (endIdx == -1)   // last on line
+         endIdx = request.length();
+      // use original to preserve case
+      userStr = requestOriginal.substring(startIdx + 5, endIdx);
+    } else {
+      userStr = "XXXX";
+    }
+    usr = userStr.getBytes();
+
+    // project number - we won't validate, but make sure it's there
+    startIdx = uCmd.indexOf("proj=");
+    String projStr;
+    int proj;
+    if (startIdx > 0) {
+      endIdx = uCmd.indexOf('&', startIdx);
+      if (endIdx == -1)   // last on line
+         endIdx = uCmd.length();
+      projStr = uCmd.substring(startIdx + 5, endIdx);
+    } else {
+      projStr = "0";
+    }
+    try {
+      proj = Integer.parseInt(projStr);
+    } catch (NumberFormatException e) {
+      throw new AddeURLException("Invalid project number: " + projStr);
+    }
+
+    // compression 
+    startIdx = uCmd.indexOf("compress=");
+    String compType = "";
+    if (startIdx > 0) {
+      endIdx = uCmd.indexOf('&', startIdx);
+      if (endIdx == -1)   // last on line
+         endIdx = uCmd.length();
+      compType = uCmd.substring(startIdx + 9, endIdx);
+    } 
+    if (compType.equalsIgnoreCase("gzip")) {
+
+      compressionType = GZIP_PORT;
+
+    } else if (compType.equalsIgnoreCase("compress") ||
+               compType.equalsIgnoreCase("true")) {
+
+      // check to see if we can do uncompression
+      try {
+          Class c = Class.forName("HTTPClient.UncompressInputStream");
+          compressionType = COMPRESS_PORT;
+      } catch (ClassNotFoundException cnfe) {
+          System.err.println(
+            "Uncompression code not found, turning compression off");
+      }
+
+    } 
+
+// end of request decoding
+//-------------------------------------------------------------------------
+// now write this all to the port
+
+    // first figure out which port to connect on.  This can either be
+    // one specified by the user.  The default is to use the port
+    // specified by the type of compression (or none) determined above.
+
+    portToUse = (url.getPort() == -1) 
+                   ? compressionType : url.getPort(); // DRM 03-Mar-2001
+
+    Socket t;
+    try {
+      t = new Socket(url.getHost(), portToUse);   // DRM 03-Mar-2001
+    } catch (UnknownHostException e) {
+      throw new AddeURLException(e.toString());
+    }
+
+    dos = new DataOutputStream ( t.getOutputStream() );
+
+    /*
+     Now start pumping data to the server.  The sequence is:
+
+        -  ADDE version (1 for now)
+        -  Server IP and Port number  (latter used to determine compression)
+        -  Service Type (AGET, ADIR, etc)
+        -  Server IP and Port number (again)
+        -  Client address
+        -  User, project, password
+        -  Service Type (again)
+        -  Actual request
+
+     */
+
+    // send version number - ADDE seems to be stuck at 1
+    dos.writeInt(VERSION_1);
+
+    // send IP address of server
+    // we know the server IP address is good cause we used it above
+    byte [] ipa = new byte[4];
+    InetAddress ia = InetAddress.getByName(url.getHost());
+    ipa = ia.getAddress();
+    dos.write(ipa, 0, ipa.length);
+
+    // send ADDE port number which server uses to determine compression
+    dos.writeInt(compressionType);
+
+    // send the service type
+    dos.write(svc, 0, svc.length);
+
+    // now build and send request block, repeat some stuff
+    // server IP address, port
+    dos.write(ipa, 0, ipa.length);
+    dos.writeInt(compressionType);   // DRM 03-Mar-2001
+
+    // client IP address
+    InetAddress lh = InetAddress.getLocalHost();
+    ipa = lh.getAddress();
+    dos.write(ipa, 0, ipa.length);
+
+    // gotta send 4 user bytes, ADDE protocol expects it
+    if (usr.length <= 4) {
+      dos.write(usr, 0, usr.length);
+      for (int i = 0; i < 4 - usr.length; i++) {
+        dos.writeByte(' ');
+      }
+    } else {
+      // if id entered was > 4 chars, complain
+      throw new AddeURLException("Invalid user id: " + userStr);
+    }
+
+    dos.writeInt(proj);
+
+    // password chars - not used either
+    byte [] pwd = new byte[12];
+    dos.write(pwd, 0, pwd.length);
+
+    // service - resend svc array 
+    dos.write(svc, 0, svc.length);
+
     // Write out the data.  There are 2 cases:
     //
     //  1) ob.length <= 120 
@@ -494,6 +543,17 @@ public class AddeURLConnection extends URLConnection
 
     if (numBinaryBytes > 0) dos.write(binaryData, 0, numBinaryBytes);
 
+    is = (compressionType == GZIP_PORT) 
+        ? new GZIPInputStream(t.getInputStream())
+        : (compressionType == COMPRESS_PORT)
+            ? new UncompressInputStream(t.getInputStream())
+            : t.getInputStream();
+    dis = new DataInputStream(is);
+    if (debug && (compressionType != PORT) ) {
+        System.out.println("Compression is turned ON using " +
+                            ((compressionType == GZIP_PORT)?"GZIP":"compress"));
+    }
+
     // get response from server, byte count coming back
     numBytes = dis.readInt();
     if (debug) System.out.println("server is sending: " + numBytes + " bytes");
@@ -505,7 +565,6 @@ public class AddeURLConnection extends URLConnection
       String errMsg = new String(trailer, ERRMSG_OFFS, ERRMSG_SIZE);
       throw new AddeURLException(errMsg);
     }
-
 
     // if we made it to here, we're getting data
     connected = true;
