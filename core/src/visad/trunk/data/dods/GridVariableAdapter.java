@@ -24,6 +24,7 @@ package visad.data.dods;
 
 import dods.dap.*;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import visad.*;
 import visad.data.*;
 import visad.data.in.*;
@@ -178,67 +179,73 @@ public class GridVariableAdapter
 	    }
 	    else
 	    {
-		SampledSet[]	domainSets = new SampledSet[rank];
+		Gridded1DSet[]	domainSets = new Gridded1DSet[rank];
 		/*
 		 * NOTE: "domainAdapters" is in VisAD order (innermost first).
 		 */
-		boolean	isLinear = true;
 		for (int i = 0; i < rank; ++i)
-		{
-		    domainSets[i] = (SampledSet)
+		    domainSets[i] = (Gridded1DSet)
 			domainAdapters[i].data(
 			    (DArray)grid.getVar(rank-i), copy);
-		    isLinear &= domainSets[i] instanceof Linear1DSet;
-		}
-		if (!isLinear)
+		/*
+		 * Consolidate contiguous sequences of LinearSet-s into 
+		 * Gridded*DSet-s.
+		 */
+		ArrayList	griddedSets = new ArrayList(rank);
+		for (int start = 0; start < rank; )
 		{
-		    domain = new ProductSet(funcType.getDomain(), domainSets);
-		}
-		else
-		{
-		    Linear1DSet[]	linearSets = new Linear1DSet[rank];
-		    for (int i = 0; i < rank; ++i)
-			linearSets[i] = (Linear1DSet)domainSets[i];
-		    if (rank == 2)
+		    if (!(domainSets[start] instanceof LinearSet))
 		    {
-			RealTupleType	rtt =
-			    ((SetType)linearSets[0].getType()).getDomain();
-			if (!(rtt.equals(latLonType) || rtt.equals(lonLatType)))
-			{
-			    domain = new Linear2DSet(linearSets);
-			}
-			else
-			{
-			    Linear1DSet	set0 = linearSets[0];
-			    Linear1DSet	set1 = linearSets[1];
-			    domain =
-				new LinearLatLonSet(
-				    rtt,
-				    set0.getFirst(),
-				    set0.getLast(),
-				    set0.getLength(),
-				    set1.getFirst(),
-				    set1.getLast(),
-				    set1.getLength());
-			}
-		    }
-		    else if (rank == 3)
-		    {
-			domain = new Linear3DSet(linearSets);
+			griddedSets.add(domainSets[start++]);
 		    }
 		    else
 		    {
-			RealType[]	realTypes = new RealType[rank];
-			for (int i = 0; i < rank; ++i)
+			int	stop;
+			for (stop = start + 1;
+			    stop < rank &&
+				domainSets[stop] instanceof LinearSet;
+			    ++stop);
+			int	n = stop - start;
+			if (n == 1)
 			{
-			    realTypes[i] = (RealType)
-				((SetType)linearSets[i].getType()).getDomain()
-				.getComponent(0);
+			    griddedSets.add(domainSets[start]);
 			}
-			domain =
-			    new LinearNDSet(
-				new RealTupleType(realTypes), linearSets);
+			else
+			{
+			    RealType[]	rTypes = new RealType[n];
+			    double[]	firsts = new double[n];
+			    double[]	lasts = new double[n];
+			    int[]	lengths = new int[n];
+			    for (int i = 0; i < n; ++i)
+			    {
+				Linear1DSet	lin1D = (Linear1DSet)
+				    domainSets[start+i];
+				rTypes[i] = (RealType)
+				    ((SetType)lin1D.getType())
+				    .getDomain().getComponent(0);
+				firsts[i] = lin1D.getFirst();
+				lasts[i] = lin1D.getLast();
+				lengths[i] = lin1D.getLength();
+			    }
+			    griddedSets.add(
+				LinearNDSet.create(
+				    new RealTupleType(rTypes),
+				    firsts, lasts, lengths));
+			}
+			start = stop;
 		    }
+		}
+		if (griddedSets.size() == 1)
+		{
+		    domain = (GriddedSet)griddedSets.get(0);
+		}
+		else
+		{
+		    domain =
+			new ProductSet(
+			    funcType.getDomain(),
+			    (GriddedSet[])griddedSets.toArray(
+				new GriddedSet[0]));
 		}
 	    }
 	    DArray	array = (DArray)grid.getVar(0);
