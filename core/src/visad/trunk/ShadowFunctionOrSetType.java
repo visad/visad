@@ -1878,6 +1878,13 @@ if (range_select[0] != null) {
                 if (range_select[0] != null) {
                   int len = range_select[0].length;
                   if (len == 1 || display_values[i].length == 1) break;
+
+                  // WLH 30 July 99
+                  int dlen = display_values[i].length;
+                  float[] temp = display_values[i];
+                  display_values[i] = new float[dlen];
+                  System.arraycopy(temp, 0, display_values[i], 0, dlen);
+
                   for (int j=0; j<len; j++) {
                     if (!range_select[0][j]) {
                       display_values[i][j] = Float.NaN;

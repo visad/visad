@@ -2626,6 +2626,8 @@ System.out.println("color_values: nummissing = " + nummissing);
           RangeControl control = (RangeControl)
             ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
           float[] range = control.getRange();
+          // System.out.println("range = " + range[0] + " " + range[1]);
+
           if (values.length == 1) {
             if (values[0] < range[0] || range[1] < values[0]) {
               for (int j=0; j<domain_length; j++) {
@@ -2639,6 +2641,10 @@ System.out.println("color_values: nummissing = " + nummissing);
               if (values[j] < range[0] || range[1] < values[j]) {
                 range_select[0][j] = false;
                 anySelect = true;
+/*
+System.out.println("range = " + range[0] + " " + range[1] +
+                   " values[" + j + "] = " + values[j]);
+*/
               }
             }
           }
