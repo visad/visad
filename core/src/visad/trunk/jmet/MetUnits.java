@@ -26,6 +26,10 @@ import visad.*;
 import visad.data.netcdf.*;
 import visad.data.netcdf.units.*;
 
+/** define a few atmospheric science club names and variations
+*
+* create the proper mb/hPa Units
+*/
 public class MetUnits {
 
   public MetUnits () throws Exception {
@@ -38,6 +42,13 @@ public class MetUnits {
     du.putSymbol("mb", hpa);
   }
 
+  /** create a 'proper' unit symbol from a common one
+  *
+  * @parameter s is the String of the original unit name
+  *
+  * @return possibly converted String to standard name
+  *
+  */
   public String makeSymbol(String s) {
     String in = s.trim();
     String out = in;
@@ -55,7 +66,7 @@ public class MetUnits {
     if (in.equalsIgnoreCase("yd")) out = "yd";
     if (in.equalsIgnoreCase("ft")) out = "ft";
     if (in.equalsIgnoreCase("f")) out = "degF";
-    if (in.equalsIgnoreCase("c")) out = "defC";
+    if (in.equalsIgnoreCase("c")) out = "degC";
     if (in.equalsIgnoreCase("k")) out = "K";
     if (in.equalsIgnoreCase("inhg")) out = "inhg";
     if (in.equalsIgnoreCase("kt")) out = "kt";
