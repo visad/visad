@@ -24,7 +24,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
 package visad.data.mcidas;
-package visad.data.mcidas;
 
 import edu.wisc.ssec.mcidas.*;
 
