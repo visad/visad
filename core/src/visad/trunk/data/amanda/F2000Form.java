@@ -1185,8 +1185,12 @@ class AmandaFile
       year = parseInt("emYear", tok.nextToken());
       day = parseInt("emDay", tok.nextToken());
       time = parseDouble("emTime", tok.nextToken());
-      // time shift in nsec of all times in event
-      timeShift = parseDouble("emTimeShift", tok.nextToken()) * 0.000000001;
+      if (!tok.hasMoreTokens()) {
+        timeShift = Double.NaN;
+      } else {
+        // time shift in nsec of all times in event
+        timeShift = parseDouble("emTimeShift", tok.nextToken()) * 0.000000001;
+      }
     } catch(NumberFormatException e) {
       throw new BadFormException("Bad EM line \"" + line + "\": " +
                                  e.getMessage());
