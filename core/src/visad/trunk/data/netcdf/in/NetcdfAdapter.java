@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.10 1998-08-10 16:53:32 visad Exp $
+ * $Id: NetcdfAdapter.java,v 1.11 1998-08-12 19:20:47 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -356,8 +356,8 @@ NetcdfAdapter
 
 	    // System.out.println("data.getType().toString():\n" +
 		// data.getType());
-	    System.out.println("Domain set:\n" + 
-		((FieldImpl)data).getDomainSet());
+	    // System.out.println("Domain set:\n" + 
+		// ((FieldImpl)data).getDomainSet());
 	    System.out.println("Data:\n" + data);
 	}
     }
