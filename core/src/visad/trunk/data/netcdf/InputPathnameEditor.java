@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: InputPathnameEditor.java,v 1.1 1998-06-24 19:58:20 visad Exp $
+ * $Id: InputPathnameEditor.java,v 1.2 1998-06-26 18:36:19 visad Exp $
  */
 
 package visad.data.netcdf;
@@ -20,6 +20,7 @@ import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyEditorSupport;
+import java.beans.PropertyEditor;
 
 
 /**
@@ -27,49 +28,17 @@ import java.beans.PropertyEditorSupport;
  */
 public abstract class
 InputPathnameEditor
-    extends	PropertyEditorSupport
+    extends	Panel
+    implements	PropertyEditor
 {
-    /**
-     * The parent Frame of the FileDialog.
-     */
-    private Frame		frame;
-
-    /**
-     * The file dialog widget.
-     */
-    private NonWindowFileDialog	fileDialog;
-
-
-    /**
-     * Supports reporting of changes to the pathname by the custom editor.
-     */
-    protected class
-    PathnameChangeListener
-	implements	PropertyChangeListener
-    {
-	public void
-	propertyChange(PropertyChangeEvent e)
-	{
-	    firePropertyChange();
-	}
-    }
-
+    private FileDialog	fileDialog;
 
     /**
      * Construct.
      */
     public
-    InputPathnameEditor(String title, String initialPathname)
+    InputPathnameEditor(String initialPathname)
     {
-	frame = new Frame(title);
-	fileDialog = new NonWindowFileDialog(frame, title);
-
-	/*
-	 * The setDirectory() is not needed, except for a bug under Solaris...
-	 */
-	fileDialog.setFile(initialPathname);
-	fileDialog.addPropertyChangeListener("file", 
-	    new PathnameChangeListener());
     }
 
 
@@ -138,7 +107,7 @@ InputPathnameEditor
     public Component
     getCustomEditor()
     {
-	return fileDialog;
+	return this;
     }
 
 
@@ -175,7 +144,7 @@ InputPathnameEditor
 	protected
 	NonWindowFileDialog(Frame parent, String title)
 	{
-	    fileDialog = new FileDialog(frame, title);
+	    fileDialog = new FileDialog(parent, title);
 
 	    /*
 	     * The setDirectory() is not needed, except for a bug under Solaris.
