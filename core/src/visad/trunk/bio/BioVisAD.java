@@ -113,6 +113,15 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   private JMenuItem exportTIFF, exportQT;
 
 
+  // -- COLOR SETTINGS --
+
+  /** Brightness and contrast of images. */
+  private int brightness, contrast;
+
+  /** Red, green and blue components of images. */
+  private RealType red, green, blue;
+
+
   // -- OTHER FIELDS --
 
   /** Prefix of current data series. */
@@ -219,6 +228,18 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     ColorControl[] cc2 = sm.getColorControls2D();
     if (cc2 == null) return;
     ColorControl[] cc3 = sm.getColorControls3D();
+
+    // verify that image color information has changed
+    if (this.brightness == brightness && this.contrast == contrast &&
+      this.red == red && this.green == green && this.blue == blue)
+    {
+      return;
+    }
+    this.brightness = brightness;
+    this.contrast = contrast;
+    this.red = red;
+    this.green = green;
+    this.blue = blue;
 
     // compute center and slope from brightness and contrast
     double mid = COLOR_DETAIL / 2.0;
