@@ -36,7 +36,23 @@ import java.util.Map;
 import visad.util.WeakMapValue;
 
 /**
- * ScalarType is the superclass of the VisAD hierarchy of scalar data types.
+ * <p>ScalarType is the superclass of the VisAD hierarchy of scalar data types.
+ * </p>
+ *
+ * <p>Every ScalarType may be the child of another, parent ScalarType of
+ * which it is a subtype.  For example, a ScalarType named "AirTemperature"
+ * would, presumably, have a ScalarType named "Temperature" as its parent.
+ * Thus, every ScalarType is a node in a graph-theoretic tree that is rooted
+ * at a most general ScalarType (one that has no parent ScalarType) and extends
+ * towards more-and-more specific subtypes of the root ScalarType.
+ * <dt>ScalarType tree</dt>
+ *   <dd>A graph-theoretic tree of related ScalarType-s.</dd>
+ * <dt>root ScalarType</dt>
+ *   <dd>The ScalarType at the root of a ScalarType tree.</dd>
+ * <dt>Level</dt>
+ *   <dd>The distance from the root ScalarType in edges (root ScalarType-s are 
+ *   at level 0).</dd>
+ * </p>
  */
 public abstract class ScalarType extends MathType implements Comparable {
 
@@ -45,10 +61,16 @@ public abstract class ScalarType extends MathType implements Comparable {
   String Name;
 
   /**
-   * The immediate supertype.  May be <code>null</code>.
+   * The parent ScalarType.  Will be <code>null</code> for root ScalarType-s.
    * @serial
    */
-  private final ScalarType supertype;
+  private final ScalarType    parent;
+
+  /**
+   * The level of this instance.
+   * @serial
+   */
+  private final transient int level;
 
   /**
    * Hashtable of scalar names used to make sure scalar names are unique
@@ -80,18 +102,22 @@ public abstract class ScalarType extends MathType implements Comparable {
   }
 
   /*
-   * Constructs from a name and an immediate supertype.
+   * Constructs from a name and a parent {@link ScalarType}.  If the parent
+   * {@link ScalarType} is <code>null</code>, then the instance will be a root
+   * ScalarType.
    *
    * @param name                  The name for the instance.
-   * @param supertype             The supertype instance or <code>null</code>.
+   * @param parent                The parent {@link ScalarType} or
+   *                              <code>null</code>.
    * @throws TypeException        if the name is invalid for a {@link 
    *                              ScalarType}.
    * @see #validateName(String)
    */
-  protected ScalarType(String name, ScalarType supertype) throws TypeException {
+  protected ScalarType(String name, ScalarType parent) throws TypeException {
     super();
     Name = name;
-    this.supertype = supertype;
+    this.parent = parent;
+    this.level = parent == null ? 0 : parent.level + 1;
     synchronized(getClass()) {
 	checkQueue();
 	validateName(name, "name");
@@ -109,7 +135,8 @@ public abstract class ScalarType extends MathType implements Comparable {
   ScalarType(String name, boolean b) {
     super(b);
     Name = name;
-    supertype = null;
+    parent = null;
+    level = 0;
     synchronized(getClass()) {
 	checkQueue();
 	ScalarHash.put(name, new WeakMapValue(Name, this, queue));
@@ -117,48 +144,49 @@ public abstract class ScalarType extends MathType implements Comparable {
   }
 
   /**
-   * Returns the supertype {@link ScalarType} or <code>null</code> if this 
-   * instance has no supertype.
+   * Returns the parent {@link ScalarType} or <code>null</code> if this 
+   * instance is a root ScalarType.
    *
-   * @return                    The supertype instance or <code>null</code>.
+   * @return                    The parent ScalarType or <code>null</code>.
    */
-  public final ScalarType getSupertype() {
-    return supertype;
+  public final ScalarType getParent() {
+    return parent;
   }
 
   /**
-   * Returns the archtype {@link ScalarType} (the ultimate supertype) or
-   * <code>null</code> if this instance has no archtype.  The supertype of an
-   * archtype is <code>null</code>.
+   * Returns the root ScalarType of the ScalarType tree in which this instance 
+   * is embedded.
    *
-   * @return                    The archtype instance or <code>null</code>.
+   * @return                    The root ScalarType of this instances's {@link
+   *				ScalarType} tree.
    */
-  public final ScalarType getArchtype() {
+  public final ScalarType getRootScalarType() {
     ScalarType type;
-    for (type = this; type.supertype != null; type = type.supertype) {}
+    for (type = this; type.parent != null; type = type.parent) {}
     return type;
   }
 
   /**
-   * Returns the nearest {@link ScalarType} common to the supertype chains of
-   * this instance and another instance or <code>null</code> if there is no
-   * common supertype.
+   * Returns the ScalarType furthest from the root ScalarType that is in the
+   * path from this instance to its root ScalarType and also in the path from
+   * another instance to that instance's root ScalarType.  If no such ScalarType
+   * exists, then <code>null</code> is returned.  Note that this instance or the
+   * other instance may be returned.
    *
    * @param that                  The other instance or <code>null</code>.
-   * @return                      The nearest, common supertype or <code>null
+   * @return                      The closest common ScalarType or <code>null
    *                              <code>.
    */
-  public final ScalarType getCommonType(ScalarType that) {
+  public final ScalarType getCommonScalarType(ScalarType that) {
     ScalarType type;
-    for (type = that; type != null && !isTypeOf(type); type = type.supertype) {}
+    for (type = that; type != null && !isTypeOf(type); type = type.parent) {}
     return type;
   }
 
   /**
    * Indicates if this instance is a type of another instance.  This is true if
-   * this instance is the other instance or if the other instance is a supertype
-   * of this instance (i.e. if the other instance is this instance's supertype,
-   * or its supertype's supertype, etc.).
+   * this instance is the other instance or if the other instance is an ancestor
+   * of this instance.
    *
    * @param that                  The other instance or <code>null</code>.
    * @return			  true if and only if this instance is a type of
@@ -167,10 +195,21 @@ public abstract class ScalarType extends MathType implements Comparable {
   public final boolean isTypeOf(ScalarType that) {
     if (that == null)
       return false;
-    for (ScalarType type = this; type != null; type = type.supertype)
+    for (ScalarType type = this; type != null; type = type.parent)
       if (type == that)
         return true;
     return false;
+  }
+
+  /**
+   * Returns this instance's level.  The level of a ScalarType is the distance
+   * from the ScalarType to the ScalarType's root ScalarType, measured in edges.
+   * Root ScalarType-s are at level 0.
+   *
+   * @return                      The level of this instance.
+   */
+  public final int getLevel() {
+    return level;
   }
 
   /**
