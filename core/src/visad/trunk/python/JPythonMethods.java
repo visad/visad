@@ -377,13 +377,14 @@ public abstract class JPythonMethods {
 
   /**
    * return pointwise absolute value of data
+   * name changed 1/11/02 to avoid conflicts with Jython built-in
    *
    * @param   data            VisAD data object
    *
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
-  public static Data abs(Data data) throws VisADException, RemoteException {
+  public static Data abs_data (Data data) throws VisADException, RemoteException {
     return data.abs();
   }
 
@@ -629,6 +630,7 @@ public abstract class JPythonMethods {
 
   /**
    * return pointwise maximum value of data1 and data2
+   * name changed 1/11/02 to avoid conflicts with Jython built-in
    *
    * @param   data1           VisAD data object
    * @param   data2           VisAD data object
@@ -636,13 +638,14 @@ public abstract class JPythonMethods {
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
-  public static Data max(Data data1, Data data2)
+  public static Data max_data(Data data1, Data data2)
          throws VisADException, RemoteException {
     return data1.max(data2);
   }
 
   /**
    * return pointwise minimum value of data1 and data2 
+   * name changed 1/11/02 to avoid conflicts with Jython built-in
    *
    * @param   data1           VisAD data object
    * @param   data2           VisAD data object
@@ -650,7 +653,7 @@ public abstract class JPythonMethods {
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
-  public static Data min(Data data1, Data data2)
+  public static Data min_data(Data data1, Data data2)
          throws VisADException, RemoteException {
     return data1.min(data2);
   }
@@ -688,7 +691,8 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise maximum value of data1 and data2 
+   * return pointwise aximum value of data1 and data2 
+   * name changed 1/11/02 to avoid conflicts with Jython built-in
    *
    * @param   data1           VisAD data object
    * @param   data2           double value
@@ -696,13 +700,14 @@ public abstract class JPythonMethods {
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
-  public static Data max(Data data1, double data2) 
+  public static Data max_data(Data data1, double data2) 
          throws VisADException, RemoteException {
     return data1.max(new Real(data2));
   }
 
   /**
    * return pointwise minimum value of data1 and data2 
+   * name changed 1/11/02 to avoid conflicts with Jython built-in
    *
    * @param   data1           VisAD data object
    * @param   data2           double value
@@ -710,7 +715,7 @@ public abstract class JPythonMethods {
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
-  public static Data min(Data data1, double data2) 
+  public static Data min_data(Data data1, double data2) 
          throws VisADException, RemoteException {
     return data1.min(new Real(data2));
   }
@@ -749,6 +754,7 @@ public abstract class JPythonMethods {
 
   /**
    * return pointwise maximum value of data1 and data2
+   * name changed 1/11/02 to avoid conflicts with Jython built-in
    *
    * @param   data1           double value
    * @param   data2           VisAD data object
@@ -756,13 +762,14 @@ public abstract class JPythonMethods {
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
-  public static Data max(double data1, Data data2) 
+  public static Data max_data(double data1, Data data2) 
          throws VisADException, RemoteException {
     return new Real(data1).max(data2);
   }
 
   /**
    * return pointwise minimum value of data1 and data2
+   * name changed 1/11/02 to avoid conflicts with Jython built-in
    *
    * @param   data1           double value
    * @param   data2           VisAD data object
@@ -770,7 +777,7 @@ public abstract class JPythonMethods {
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
-  public static Data min(double data1, Data data2) 
+  public static Data min_data(double data1, Data data2) 
          throws VisADException, RemoteException {
     return new Real(data1).min(data2);
   }
@@ -1571,6 +1578,17 @@ public abstract class JPythonMethods {
   }
 
 
+  /** get the domain Type for the FunctionType
+  *
+  * @param type is the FunctionType
+  *
+  * @return the domain type
+  */
+  public static RealTupleType getDomainType(FunctionType type)
+                  throws VisADException, RemoteException {
+     return (type.getDomain());
+  }
+
   /** get the range Type for the field
   *
   * @param data is the field to get the range Type for
@@ -1586,6 +1604,17 @@ public abstract class JPythonMethods {
                   throws VisADException, RemoteException {
     return (MathType) ((FunctionType)data.getType()).getRange();
   
+  }
+
+  /** get the range Type for the FunctionType
+  *
+  * @param type is the FunctionType
+  *
+  * @return the range Type
+  */
+  public static MathType getRangeType(FunctionType type)
+                  throws VisADException, RemoteException {
+     return (type.getRange());
   }
 
   /**
