@@ -303,9 +303,21 @@ public class TrackManipulation extends Object {
       }
     }
 
-    // add sequence of ellipses to storm track geometry
+    // draw first ellipse
     float xcenter = x;
     float ycenter = y;
+    for (int i=0; i<NE; i++) {
+      vx[nv] = x_ellipse[i];
+      vy[nv] = y_ellipse[i];
+      vz[nv] = z;
+      nv++;
+      vx[nv] = x_ellipse[i+1];
+      vy[nv] = y_ellipse[i+1];
+      vz[nv] = z;
+      nv++;
+    }
+
+    // add sequence of ellipses to storm track geometry
     for (int i=0; i<nsteps; i++) {
       xcenter += xstep;
       ycenter += ystep;
