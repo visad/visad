@@ -153,6 +153,36 @@ public class DisplayMonitorImpl
   }
 
   /**
+   * Used as key for ControlEvents in listener queue
+   */
+  class ControlEventKey
+  {
+    private Class cclass;
+    private int instance;
+
+    ControlEventKey(Control ctl)
+    {
+      cclass = ctl.getClass();
+      instance = ctl.getInstanceNumber();
+    }
+
+    public boolean equals(ControlEventKey key)
+    {
+      return instance == key.instance && cclass.equals(key.cclass);
+    }
+
+    public boolean equals(Object obj)
+    {
+      if (!(obj instanceof ControlEventKey)) {
+        return false;
+      }
+      return equals((ControlEventKey )obj);
+    }
+
+    public String toString() { return cclass.getName() + "#" + instance; }
+  }
+
+  /**
    * <CODE>Listener</CODE> is an encapsulation of all the data related to
    * delivering events to a single <CODE>DIsplayMonitorListener</CODE>.
    */
@@ -210,7 +240,7 @@ public class DisplayMonitorImpl
      */
     private void addEventToTable(Hashtable tbl, ControlMonitorEvent evt)
     {
-      tbl.put(evt.getControl().getClass(), evt);
+      tbl.put(new ControlEventKey(evt.getControl()), evt);
     }
 
     /**
@@ -315,7 +345,7 @@ public class DisplayMonitorImpl
      */
     public boolean hasControlEventQueued(Control ctl)
     {
-      Object key = ctl.getClass();
+      Object key = new ControlEventKey(ctl);
       if (table != null && table.containsKey(key)) {
         return true;
       }
@@ -620,15 +650,22 @@ public class DisplayMonitorImpl
    */
   public void notifyListeners(MonitorEvent evt)
   {
-    if (evt != null && !objCache.isCached(evt)) {
-      ListIterator iter = ListenerVector.listIterator();
-      while (iter.hasNext()) {
-        Listener li = (Listener )iter.next();
-        if (li.isDead()) {
-          iter.remove();
-        } else {
-          li.addEvent(evt);
-        }
+    if (evt == null) {
+      return;
+    }
+
+    boolean cached = objCache.isCached(evt);
+    if (cached) {
+      return;
+    }
+
+    ListIterator iter = ListenerVector.listIterator();
+    while (iter.hasNext()) {
+      Listener li = (Listener )iter.next();
+      if (li.isDead()) {
+        iter.remove();
+      } else {
+        li.addEvent(evt);
       }
     }
   }
