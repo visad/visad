@@ -406,6 +406,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     MathType RangeType = ((FunctionType) Type).getRange();
 
     synchronized (RangeLock) {
+      MissingFlag = false;
       Data[]Range = getRange ();
       if (RangeType instanceof RealType) {
         for (int i=0; i<len; i++) {
