@@ -2303,8 +2303,6 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
     float stepFactor = 2;
 
     int[] numl = new int[1];
-    int max_lines = 500;
-    int maxv      = 500;
 
     int[][] n_verts = new int[1][];
     float[][][] vr  = new float[1][][];
@@ -2329,7 +2327,7 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
 
       Stream2D.stream(flow_values[0], flow_values[1], nr, nc,
                       density, stepFactor, arrowScale, vr, vc,
-                      max_lines, maxv, n_verts, numl, gset);
+                      n_verts, numl, gset);
     }
     else
     {
