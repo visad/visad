@@ -33,6 +33,8 @@ public interface RemoteServerTest extends Remote {
  
   public abstract RemoteDataReference getDataReference(int i)
          throws RemoteException;
+
+  public abstract void setTestCase(int i) throws RemoteException;
  
 }
 

@@ -370,8 +370,8 @@ public class MouseBehavior extends Behavior { // J3D
      translation.  This function uses the fast matrix post-concatenation
      techniques from Graphics Gems.
   **********************************************************************/
-  Transform3D make_matrix(double rotx, double roty, double rotz, double scale,
-                          double transx, double transy, double transz) {
+  static Transform3D make_matrix(double rotx, double roty, double rotz, double scale,
+                                 double transx, double transy, double transz) {
     double sx, sy, sz, cx, cy, cz, t;
     int i, j, k;
     double deg2rad = 1.0 / 57.2957;

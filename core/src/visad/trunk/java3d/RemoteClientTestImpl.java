@@ -36,15 +36,20 @@ import java.rmi.server.UnicastRemoteObject;
 BE SURE TO FIRST RUN:  rmic_script
 IN BOTH visad and visad/java3d
 
-on demedici, in ~/java/visad/java3d:
+on the server:
  
   rmiregistry &
 
   java visad.java3d.RemoteServerTestImpl
  
-on demedici, in ~/java/visad/java3d:
+on the client:
  
-  java visad.java3d.RemoteClientTestImpl
+  java visad.java3d.RemoteClientTestImpl server.domain.url
+
+
+for demedici:
+
+  java visad.java3d.RemoteClientTestImpl demedici.ssec.wisc.edu
 
 */
 public class RemoteClientTestImpl extends UnicastRemoteObject
@@ -57,73 +62,139 @@ public class RemoteClientTestImpl extends UnicastRemoteObject
  
   public static void main(String args[]) {
 
+    if (args.length < 2) {
+    }
+    String domain = null;
+    int test_case = -1;
+    if (args.length > 1) {
+      domain = args[0];
+      try {
+        test_case = Integer.parseInt(args[1]);
+      }
+      catch(NumberFormatException e) {
+        test_case = -1;
+      }
+    }
+
+    if (test_case < 0) {
+      System.out.println("to run RMI tests run\n");
+      System.out.println("  java visad.java3d.RemoteClientTestImpl " +
+                         "server.domain.url N, where N =\n");
+      System.out.println("  0: RemoteField.setSamples with local and remote " +
+                         "Data in Data[] argument");
+      System.out.println("  1: RemoteDisplay");
+      System.out.println("  2: collaborative direct manipulation");
+      System.exit(0);
+    }
+
     try {
 
       System.out.println("RemoteClientTestImpl.main: begin remote activity");
+      System.out.println("  to " + domain);
 
       RemoteServerTest remote_obj = (RemoteServerTest)
-        Naming.lookup("//demedici.ssec.wisc.edu/RemoteServerTest");
- 
+        Naming.lookup("//" + domain + "/RemoteServerTest");
+
+      System.out.println("connected");
+
       RemoteDataReference histogram_ref = remote_obj.getDataReference(0);
       RemoteDataReference real_ref = remote_obj.getDataReference(1);
       RemoteDataReference image_ref = remote_obj.getDataReference(2);
       RemoteDataReference temp_ref = remote_obj.getDataReference(3);
       RemoteDataReference image_sequence_ref = remote_obj.getDataReference(4);
+
+      System.out.println("call setTestCase");
+
+      remote_obj.setTestCase(test_case);
+
+      switch(test_case) {
+        default:
+
+          System.out.println("bad test_case value");
+          break;
+
+        case 0:
+
+          System.out.println(test_case + ": test RemoteField.setSamples");
+
+          Data real = real_ref.getData();
+          Data histogram = histogram_ref.getData();
+          Data image = image_ref.getData();
+          Data temp = temp_ref.getData();
+          Field image_sequence = (Field) image_sequence_ref.getData();
+
+          System.out.println("real type = " + real.getType());
+          System.out.println("histogram type = " + histogram.getType());
+          System.out.println("image type = " + image.getType());
+          System.out.println("temp type = " + temp.getType());
+          System.out.println("image_sequence type = " + image_sequence.getType());
+    
+          Data[] data = new Data[2];
+          data[0] = image;
+          data[1] = temp;
+          image_sequence.setSamples(data, false);
+    
+          FieldImpl local_image_sequence = (FieldImpl) image_sequence.local();
+          System.out.println(local_image_sequence);
+
+          break;
+   
+        case 1:
+
+          System.out.println(test_case + ": test RemoteDisplay");
+
+          FunctionType ftype = (FunctionType) image_ref.getData().getType();
+          RealTupleType dtype = ftype.getDomain();
+          RealTupleType rtype = (RealTupleType) ftype.getRange();
+
+          DisplayImpl display =
+            new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
+          display.addMap(new ScalarMap((RealType) dtype.getComponent(0),
+                                       Display.XAxis));
+          display.addMap(new ScalarMap((RealType) dtype.getComponent(1),
+                                       Display.YAxis));
+          display.addMap(new ScalarMap((RealType) rtype.getComponent(0),
+                                       Display.ZAxis));
+          display.addMap(new ScalarMap((RealType) rtype.getComponent(1),
+                                       Display.RGB));
+          System.out.println(display);
+    
+          RemoteDisplay remote_display = new RemoteDisplayImpl(display);
+      
+          remote_display.addReference(image_ref, null);
+
+          while (true) {
+            delay(5000);
+            System.out.println("\ndelay\n");
+          }
+
+        case 2:
  
-      Data real = real_ref.getData();
-      Data histogram = histogram_ref.getData();
-      Data image = image_ref.getData();
-      Data temp = temp_ref.getData();
-      Field image_sequence = (Field) image_sequence_ref.getData();
+          System.out.println(test_case + ": test collaborative direct manipulation");
+ 
+          ftype = (FunctionType) histogram_ref.getData().getType();
+          dtype = ftype.getDomain();
+          RealType r2type = (RealType) ftype.getRange();
+ 
+          display = new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
+          display.addMap(new ScalarMap((RealType) dtype.getComponent(0),
+                                       Display.XAxis));
+          display.addMap(new ScalarMap(r2type, Display.YAxis));
+          System.out.println(display);
+ 
+          DataReference[] refs1 = {histogram_ref};
+          RemoteDisplayImpl remote_display2 = new RemoteDisplayImpl(display);
+          remote_display2.addReferences(new DirectManipulationRendererJ3D(),
+                                        refs1, null);
+ 
+          while (true) {
+            delay(5000);
+            System.out.println("\ndelay\n");
+          }
 
-      System.out.println("real type = " + real.getType());
-      System.out.println("histogram type = " + histogram.getType());
-      System.out.println("image type = " + image.getType());
-      System.out.println("temp type = " + temp.getType());
-      System.out.println("image_sequence type = " + image_sequence.getType());
+      } // end switch(test_case)
 
-      Data[] data = new Data[2];
-      data[0] = image;
-      data[1] = temp;
-      image_sequence.setSamples(data, false);
-
-      FieldImpl local_image_sequence = (FieldImpl) image_sequence.local();
-      System.out.println(local_image_sequence);
-
-/*
-      DisplayImpl display =
-        new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME_JAVA3D);
-      display.addMap(new ScalarMap(RealType.Latitude, Display.XAxis));
-      display.addMap(new ScalarMap(RealType.Longitude, Display.YAxis));
-      display.addMap(new ScalarMap(ir_radiance, Display.ZAxis));
-      display.addMap(new ScalarMap(vis_radiance, Display.RGB));
-      display.addMap(new ConstantMap(0.5, Display.Alpha));
-      System.out.println(display);
-
-
-      RemoteDisplay remote_display = new RemoteDisplayImpl(display);
-  
-      remote_display.addReference(remote_ref, null);
-*/
-
-      delay(1000);
-      System.out.println("\ndelay\n");
-   
-      real_ref.incTick();
-
-      delay(1000);
-      System.out.println("\ndelay\n");
-   
-      real_ref.incTick();
-   
-      delay(1000);
-   
-/*
-      remote_display.removeReference(remote_ref);
-      display.stop();
-*/
-
-    }
+    } // end try
     catch (Exception e) {
       System.out.println("RemoteClientTestImpl exception: " + e.getMessage());
       e.printStackTrace(System.out);
@@ -147,62 +218,6 @@ public class RemoteClientTestImpl extends UnicastRemoteObject
   }
 
 /* here's the output:
-
-on the server (Irix):
-
-iris 139% rmiregistry &
-[1] 21564
-iris 140% java visad.RemoteServerTestImpl
-RemoteServerTest bound in registry
-getDataReference called (Irix)
-iris 141% 
-
-on the client (Solaris):
-
-demedici% java visad.RemoteClientTestImpl
-FunctionType (Real): (Latitude, Longitude) -> (vis_radiance, ir_radiance)
-FlatField  missing
- 
-Display
-    ScalarMap: Latitude -> DisplayXAxis
-    ScalarMap: Longitude -> DisplayYAxis
-    ScalarMap: ir_radiance -> DisplayZAxis
-    ScalarMap: vis_radiance -> DisplayRGB
-    ConstantMap: 0.5 -> DisplayAlpha
- 
-RemoteClientTestImpl.main: begin remote activity
-LevelOfDifficulty = 5 Type = (vis_radiance, ir_radiance)
- LevelOfDifficulty = 4 isDirectManipulation = true
- 
-delay
- 
-RemoteClientTestImpl.main: remote_ref.incTick done
-LevelOfDifficulty = 5 Type = (vis_radiance, ir_radiance)
- LevelOfDifficulty = 4 isDirectManipulation = true
- 
-delay
- 
-LevelOfDifficulty = 5 Type = (vis_radiance, ir_radiance)
- LevelOfDifficulty = 4 isDirectManipulation = true
-demedici% 
-
-
-reconstruction of events:
-
-c RemoteClientTestImpl.main
-s   RemoteServerTestImpl.getDataReference
-s   DataReferenceImpl.getName
-s   RemoteDataReferenceImpl.setData
-s     DataReferenceImpl.adaptedSetData
-c       RemoteDataImpl.addReference
-c         DataImpl.adaptedAddReference
-s       DataReferenceImpl.incTick
-c         RemoteDataImpl.getType
-c           DataImpl.getType
- . . .
-c   new RemoteDisplayImpl(display)
-c   RemoteDisplayImpl.addReference
- . . .
 
 */
 

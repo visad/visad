@@ -165,6 +165,17 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     trans.setCapability(Group.ALLOW_CHILDREN_WRITE);
     trans.setCapability(Group.ALLOW_CHILDREN_EXTEND);
     root.addChild(trans);
+
+    // initialize scale
+    double scale = 0.5;
+    ProjectionControl proj = display.getProjectionControl();
+    Transform3D tstart = new Transform3D(proj.getMatrix());
+    Transform3D t1 =
+      MouseBehavior.make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0);
+    t1.mul(tstart);
+    double[] matrix = new double[16];
+    t1.get(matrix);
+    proj.setMatrix(matrix);
  
     // create the BranchGroup that is the parent of direct
     // manipulation Data object BranchGroup objects
@@ -311,30 +322,45 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     appearance.setColoringAttributes(color);
     graphics.setAppearance(appearance);
 
+    Point3d position1 = new Point3d();
+    Point3d position2 = new Point3d();
+    Point3d position3 = new Point3d();
+    canvas.getPixelLocationInImagePlate(1, 10, position1);
+    canvas.getPixelLocationInImagePlate(10, 10, position2);
+    canvas.getPixelLocationInImagePlate(1, 1, position3);
+    Transform3D t = new Transform3D();
+    canvas.getImagePlateToVworld(t);
+    t.transform(position1);
+    t.transform(position2);
+    t.transform(position3);
+
+    double[] start = {(double) position1.x,
+                      (double) position1.y,
+                      (double) position1.z};
+    double[] base =  {(double) (position2.x - position1.x),
+                      (double) (position2.y - position1.y),
+                      (double) (position2.z - position1.z)};
+    double[] up =    {(double) (position3.x - position1.x),
+                      (double) (position3.y - position1.y),
+                      (double) (position3.z - position1.z)};
     if (cursorOn || directOn) {
-      double[] start = {-1.30, 1.30, 1.0};
-      double[] base = {0.1, 0.0, 0.0};
-      double[] up = {0.0, 0.1, 0.0};
-      // synchronized (cursorStringVector) {
-        // Enumeration strings = cursorStringVector.elements();
-        Enumeration strings = getCursorStringVector().elements();
-        while(strings.hasMoreElements()) {
-          String string = (String) strings.nextElement();
-          try {
-            VisADLineArray array =
-              PlotText.render_label(string, start, base, up, false,
-                                    GeometryArray.COORDINATES);
-            graphics.draw(((DisplayImplJ3D) display).makeGeometry(array));
-            start[1] -= 0.12;
-          }
-          catch (VisADException e) {
-          }
+      Enumeration strings = getCursorStringVector().elements();
+      while(strings.hasMoreElements()) {
+        String string = (String) strings.nextElement();
+        try {
+          VisADLineArray array =
+            PlotText.render_label(string, start, base, up, false,
+                                  GeometryArray.COORDINATES);
+          graphics.draw(((DisplayImplJ3D) display).makeGeometry(array));
+          start[1] -= 1.2 * up[1];
         }
-      // }
+        catch (VisADException e) {
+        }
+      }
     }
-    double[] start = {-1.30, -1.35, 1.0};
-    double[] base = {0.05, 0.0, 0.0};
-    double[] up = {0.0, 0.05, 0.0};
+    double[] startl = {(double) position3.x,
+                       (double) -position3.y,
+                       (double) position3.z};
     Vector rendererVector = display.getRendererVector();
     Enumeration renderers = rendererVector.elements();
     while (renderers.hasMoreElements()) {
@@ -345,10 +371,10 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
         String string = (String) exceptions.nextElement();
         try {
           VisADLineArray array =
-            PlotText.render_label(string, start, base, up, false,
+            PlotText.render_label(string, startl, base, up, false,
                                   GeometryArray.COORDINATES);
           graphics.draw(((DisplayImplJ3D) display).makeGeometry(array));
-          start[1] += 0.06;
+          startl[1] += 1.2 * up[1];
         }
         catch (VisADException e) {
         }

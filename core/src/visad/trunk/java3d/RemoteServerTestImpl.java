@@ -34,10 +34,12 @@ public class RemoteServerTestImpl extends UnicastRemoteObject
        implements RemoteServerTest
 {
   private RemoteDataReferenceImpl[] refs;
+  private int test_case;
  
   public RemoteServerTestImpl(RemoteDataReferenceImpl[] r) throws RemoteException {
     super();
     refs = r;
+    test_case = -1;
   }
  
   public RemoteDataReference getDataReference(int i) throws RemoteException {
@@ -47,6 +49,10 @@ public class RemoteServerTestImpl extends UnicastRemoteObject
     else return null;
   }
  
+  public void setTestCase(int i) throws RemoteException {
+    test_case = i;
+  }
+
   public static void main(String args[]) {
 
     DataReferenceImpl[] data_refs;
@@ -120,8 +126,32 @@ public class RemoteServerTestImpl extends UnicastRemoteObject
       rem_data_refs[4].setData(rem_image_sequence);
 
       RemoteServerTestImpl obj = new RemoteServerTestImpl(rem_data_refs);
-      Naming.rebind("//demedici.ssec.wisc.edu/RemoteServerTest", obj);
+      Naming.rebind("//:/RemoteServerTest", obj);
       System.out.println("RemoteServerTest bound in registry");
+
+      while (obj.test_case < 0) {
+        RemoteClientTestImpl.delay(500);
+      }
+      System.out.println("obj.test_case = " + obj.test_case);
+      switch(obj.test_case) {
+        default:
+          break;
+        case 0:
+          break;
+        case 1:
+          break;
+        case 2:
+          DisplayImpl display =
+            new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
+          display.addMap(new ScalarMap(ir_radiance, Display.XAxis));
+          display.addMap(new ScalarMap(count, Display.YAxis));
+          System.out.println(display);
+ 
+          DataReference[] refs1 = {data_refs[0]};
+          display.addReferences(new DirectManipulationRendererJ3D(), refs1, null);
+
+          break;
+      }
     }
     catch (Exception e) {
       System.out.println("RemoteServerTestImpl err: " + e.getMessage());

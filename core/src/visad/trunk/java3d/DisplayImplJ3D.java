@@ -382,6 +382,7 @@ public class DisplayImplJ3D extends DisplayImpl {
         System.out.println("  10: netCDF adapter");
         System.out.println("  11: CoordinateSystem and Unit");
         System.out.println("  12: 2-D surface and ColorWidget");
+        System.out.println("  13: Exception display");
  
         return;
 
@@ -825,7 +826,40 @@ public class DisplayImplJ3D extends DisplayImpl {
  
         break;
 
-    }
+      case 13:
+ 
+        System.out.println(test_case + ": test Exception display");
+        size = 64;
+        histogram1 = FlatField.makeField(ir_histogram, size, false);
+        direct = new Real(ir_radiance, 2.0);
+        Real[] realsx3 = {new Real(count, 1.0), new Real(ir_radiance, 2.0),
+                          new Real(vis_radiance, 1.0)};
+        direct_tuple = new RealTuple(realsx3);
+    
+        // these ScalarMap should generate 3 Exceptions
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+        display1.addMap(new ScalarMap(vis_radiance, Display.XAxis));
+        display1.addMap(new ScalarMap(ir_radiance, Display.RGB));
+        display1.addMap(new ScalarMap(count, Display.Animation));
+    
+        ref_direct = new DataReferenceImpl("ref_direct");
+        ref_direct.setData(direct);
+        DataReference[] refsx1 = {ref_direct};
+        display1.addReferences(new DirectManipulationRendererJ3D(), refsx1, null);
+     
+        ref_direct_tuple = new DataReferenceImpl("ref_direct_tuple");
+        ref_direct_tuple.setData(direct_tuple);
+        DataReference[] refsx2 = {ref_direct_tuple};
+        display1.addReferences(new DirectManipulationRendererJ3D(), refsx2, null);
+     
+        ref_histogram1 = new DataReferenceImpl("ref_histogram1");
+        ref_histogram1.setData(histogram1);
+        DataReference[] refsx3 = {ref_histogram1};
+        display1.addReferences(new DirectManipulationRendererJ3D(), refsx3, null);
+
+        break;
+
+    } // end switch(test_case)
 
     while (true) {
       delay(5000);
