@@ -66,6 +66,8 @@ public class PickManipulationRendererJ3D extends DirectManipulationRendererJ3D {
   private transient DataReference ref = null;
 
   private float[][] spatialValues = null;
+  /** index into spatialValues found by checkClose */
+  private int closeIndex = -1;
 
   private int directManifoldDimension = -1;
 
@@ -148,6 +150,7 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
       float d = (float) Math.sqrt(x * x + y * y + z * z);
       if (d < distance) {
         distance = d;
+        closeIndex = i;
       }
 /*
 System.out.println("spatialValues["+i+"] = " + spatialValues[0][i] + " " +
@@ -158,6 +161,10 @@ spatialValues[1][i] + " " + spatialValues[2][i] + " d = " + d);
 System.out.println("checkClose: distance = " + distance);
 */
     return distance;
+  }
+
+  public int getCloseIndex() {
+    return closeIndex;
   }
 
   public synchronized void drag_direct(VisADRay ray, boolean first,
