@@ -9,15 +9,10 @@ n=16
 ftype = makeType(" (time -> ( (x, y, z) -> value) )")
 
 # make the (1,...,n) sampling for the time domain
-#   this needs the domain type of the sequence
-fdom = makeDomain(getDomainType(ftype), 1, n, n)
-
-# get the type of the grid (i.e., the "range" of the sequence)
-gtype = getRangeType(ftype)
+fdom = makeDomain("time", 1, n, n)
 
 # make the (1,...,n) x (1,...,n) x (1,...,n) sampling for the grid domain
-#   this needs the domain type of the grid
-gdom = makeDomain(getDomainType(gtype), 1, n, n,  1, n, n,  1, n, n)
+gdom = makeDomain("(x, y, z)", 1, n, n,  1, n, n,  1, n, n)
 
 # create the time sequence data object (a VisAD FieldImpl)
 seq = FieldImpl(ftype, fdom)
@@ -36,21 +31,8 @@ for i in range(0, n):
         # compute the grid value at (x, y, z)
         v.append( math.sin(i*x*y*z*0.0174533/n) )
 
-  # create a grid data object (a VisAD FlatField)
-  ff = FlatField(gtype, gdom)
-
-  # put the array of grid values inside another array
-  #   if there were multiple values at a grid point, then
-  #   we would append a "v" array for each value to "vals"
-  vals = []
-  vals.append(v)
-
-  # put the float array into the grid data object
-  ff.setSamples(vals)
-
-  # put the grid data object as the i-th sample of the time sequence
-  seq.setSample(i, ff)
+  # create a grid field as the i-th sample of the time sequence
+  seq.setSample(i, field(gdom, "value", v) )
 
 # plot the time sequence of grids
 plot(seq)
-
