@@ -193,11 +193,26 @@ public class VisADCanvasJ3D extends Canvas3D {
       if (display.hasSlaves()) display.updateSlaves(captureImage);
     }
     // WLH 15 March 99
-    try {
-      display.notifyListeners(DisplayEvent.FRAME_DONE, 0, 0);
+    if (offscreen) {
+      Runnable notify = new Runnable() {
+        public void run() {
+          try {
+            display.notifyListeners(DisplayEvent.FRAME_DONE, 0, 0);
+          }
+          catch (VisADException e) {}
+          catch (RemoteException e) {}
+        }
+      };
+      Thread t = new Thread(notify);
+      t.start();
     }
-    catch (VisADException e) {}
-    catch (RemoteException e) {}
+    else {
+      try {
+        display.notifyListeners(DisplayEvent.FRAME_DONE, 0, 0);
+      }
+      catch (VisADException e) {}
+      catch (RemoteException e) {}
+    }
   }
 
   public Dimension getPreferredSize() {
@@ -261,18 +276,10 @@ public class VisADCanvasJ3D extends Canvas3D {
   }
 
   public void stop() {
-    try {
-      stopRenderer();
-    }
-    catch (IllegalStateException e) {
-    }
-    removeNotify();
+    stopRenderer();
     display = null;
     displayRenderer = null;
-    if (component == null) {
-      display.destroyUniverse();
-    }
-    else if (component instanceof DisplayPanelJ3D) {
+    if (component instanceof DisplayPanelJ3D) {
       ((DisplayPanelJ3D) component).destroy();
     }
     else if (component instanceof DisplayAppletJ3D) {
