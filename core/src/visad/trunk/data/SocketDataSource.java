@@ -36,7 +36,7 @@ import visad.*;
  * data changes, the source presumably sends the change through the linked
  * socket, and the DataReference is set to point at the new data.
  */
-public abstract class SocketDataSource extends LinkedDataSource {
+public class SocketDataSource extends LinkedDataSource {
 
   /**
    * The socket connection for this SocketDataSource.
