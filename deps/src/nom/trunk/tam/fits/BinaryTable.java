@@ -449,11 +449,7 @@ public class BinaryTable extends Data {
        * @param j The Java index (first=0) of the column to check.
        */
      protected boolean validColumn(int j) {
-         if (getNcol() > 0 && j >= 0 && j <getNrow()) {
-             return true;
-         } else {
-             return false;
-         }
+         return (j >= 0 && j < getNcol());
      }
 
      /** Replace a single element within the table.
