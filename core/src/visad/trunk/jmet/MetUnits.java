@@ -36,18 +36,18 @@ import visad.data.units.*;
  */
 public class MetUnits {
 
-  /**
-   * Construct an instance of this class and add some common pressure
-   * units to the default database.
-   */
-  public MetUnits () throws VisADException {
-    UnitsDB du = DefaultUnitsDB.instance();
-    Unit hpa = du.get("hPa");
-    hpa = hpa.clone("hPa");
-    du.putSymbol("HPA", hpa);
-    du.putSymbol("hPa", hpa);
-    du.putSymbol("MB", hpa);
-    du.putSymbol("mb", hpa);
+  static {
+    try {
+        UnitsDB du = DefaultUnitsDB.instance();
+        Unit hpa = du.get("hPa");
+        hpa = hpa.clone("hPa");
+        du.putSymbol("HPA", hpa);
+        du.putSymbol("hPa", hpa);
+        du.putSymbol("MB", hpa);
+        du.putSymbol("mb", hpa);
+    } catch (Exception e) {
+        System.err.println("Unable to update UnitsDB");
+    }
   }
 
  /** 
@@ -59,7 +59,7 @@ public class MetUnits {
   * @return commonSymbol converted to "proper" symbol or commonSymbol if 
   *         unknown
   */
-  public String makeSymbol(String commonSymbol) {
+  public static String makeSymbol(String commonSymbol) {
     String in = commonSymbol.trim();
     String out = in;
     if      (in.equalsIgnoreCase("m"))    { out = "m"; }
