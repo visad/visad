@@ -223,19 +223,10 @@ public class AxisScale implements java.io.Serializable
       axisOrdinal = displayRenderer.getAxisOrdinal(myAxis);
     }
     dataRange = scalarMap.getRange();
-    Vector lineArrayVector = new Vector(4);
-    Vector labelArrayVector = new Vector();
     boolean twoD = displayRenderer.getMode2D();
   
   // now create scale along axis at axisOrdinal position in array
   // twoD may help define orientation
-  
-    // compute graphics positions
-    // these are {x, y, z} vectors
-    double[] base = null; // vector from one character to another
-    double[] up = null; // vector from bottom of character to top
-    double[] startn = null; // -1.0 position along axis
-    double[] startp = null; // +1.0 position along axis
   
 // WLH 24 Nov 2000
     ProjectionControl pcontrol = display.getProjectionControl();
@@ -249,6 +240,10 @@ public class AxisScale implements java.io.Serializable
     double XMIN = -aspect[0];
     double YMIN = -aspect[1];
     double ZMIN = -aspect[2];
+
+    double XMAX = -XMIN;
+    double YMAX = -YMIN;
+    double ZMAX = -ZMIN;
 
     // set scale according to labelSize
     double SCALE =  labelSize/200.;
@@ -289,8 +284,8 @@ public class AxisScale implements java.io.Serializable
 
     // position of baseline for this scale
     double line = 4.0 * myPosition * SCALE;  // DRM 17-APR-2001
-  
-    /*  Remove 16-APR-2001 
+
+    /*  Remove 16-APR-2001
     double ONE = 1.0;
     if (dataRange[0] > dataRange[1]) ONE = -1.0; // inverted range
     int position = axisOrdinal;
@@ -300,7 +295,33 @@ public class AxisScale implements java.io.Serializable
     }
     double line = 2.0 * position * SCALE;
     */
+
+
+    return makeScale(twoD, XMIN, YMIN, ZMIN, XMAX, YMAX, ZMAX,
+                     SCALE, OFFSET, line);
+  }
+
+  /** inner logic of makeScale with no references to display, displayRenderer
+      or scalarMap, allwoing more flexible placement of scales */
+  public boolean makeScale(boolean twoD, double XMIN, double YMIN, double ZMIN,
+                           double XMAX, double YMAX, double ZMAX,
+                           double SCALE, double OFFSET, double line)
+         throws VisADException {
+
+// start new method here
+// no references to display, scalarMap, or displayRenderer past this point
+
+
+    // compute graphics positions
+    // these are {x, y, z} vectors
+    double[] base = null; // vector from one character to another
+    double[] up = null; // vector from bottom of character to top
+    double[] startn = null; // -1.0 position along axis
+    double[] startp = null; // +1.0 position along axis
   
+    Vector lineArrayVector = new Vector(4);
+    Vector labelArrayVector = new Vector();
+
     double ONE = 1.0;
     if (dataRange[0] > dataRange[1]) ONE = -1.0; // inverted range
 
@@ -313,7 +334,7 @@ public class AxisScale implements java.io.Serializable
       {
         base = new double[] {SCALE, 0.0, 0.0};
         up = new double[] {0.0, SCALE, SCALE};
-        startp = new double[] {-ONE * XMIN,
+        startp = new double[] {ONE * XMAX,
                                YMIN - ((OFFSET - 1.0) + line),
                                ZMIN - ((OFFSET - 1.0) + line)};
         startn = new double[] {ONE * XMIN,
@@ -324,11 +345,11 @@ public class AxisScale implements java.io.Serializable
       {
         base = new double[] {-SCALE, 0.0, 0.0};
         up = new double[] {0.0, -SCALE, SCALE};
-        startp = new double[] {-ONE * XMIN,
-                               -YMIN + ((OFFSET - 1.0) + line),
+        startp = new double[] {ONE * XMAX,
+                               YMAX + ((OFFSET - 1.0) + line),
                                ZMIN - ((OFFSET - 1.0) + line)};
         startn = new double[] {ONE * XMIN,
-                               -YMIN + ((OFFSET - 1.0) + line),
+                               YMAX + ((OFFSET - 1.0) + line),
                                ZMIN - ((OFFSET - 1.0) + line)};
       }
     }
@@ -337,7 +358,7 @@ public class AxisScale implements java.io.Serializable
         base = new double[] {0.0, -SCALE, 0.0};
         up = new double[] {SCALE, 0.0, SCALE};
         startp = new double[] {XMIN - ((OFFSET - 1.0) + line),
-                               -ONE * YMIN,
+                               ONE * YMAX,
                                ZMIN - ((OFFSET - 1.0) + line)};
         startn = new double[] {XMIN - ((OFFSET - 1.0) + line),
                                ONE * YMIN,
@@ -346,10 +367,10 @@ public class AxisScale implements java.io.Serializable
       else {
         base = new double[] {0.0, SCALE, 0.0};
         up = new double[] {-SCALE, 0.0, SCALE};
-        startp = new double[] {-XMIN + ((OFFSET - 1.0) + line),
-                               -ONE * YMIN,
+        startp = new double[] {XMAX + ((OFFSET - 1.0) + line),
+                               ONE * YMAX,
                                ZMIN - ((OFFSET - 1.0) + line)};
-        startn = new double[] {-XMIN + ((OFFSET - 1.0) + line),
+        startn = new double[] {XMAX + ((OFFSET - 1.0) + line),
                                ONE * YMIN,
                                ZMIN - ((OFFSET - 1.0) + line)};
       }
@@ -362,7 +383,7 @@ public class AxisScale implements java.io.Serializable
         up = new double[] {SCALE, SCALE, 0.0};
         startp = new double[] {XMIN - ((OFFSET - 1.0) + line),
                                YMIN - ((OFFSET - 1.0) + line),
-                               -ONE * ZMIN};
+                               ONE * ZMAX};
         startn = new double[] {XMIN - ((OFFSET - 1.0) + line),
                                YMIN - ((OFFSET - 1.0) + line),
                                ONE * ZMIN};
@@ -371,10 +392,10 @@ public class AxisScale implements java.io.Serializable
       {
         base = new double[] {0.0, 0.0, SCALE};
         up = new double[] {-SCALE, SCALE, 0.0};
-        startp = new double[] {-XMIN + ((OFFSET - 1.0) + line),
+        startp = new double[] {XMAX + ((OFFSET - 1.0) + line),
                                YMIN - ((OFFSET - 1.0) + line),
-                               -ONE * ZMIN};
-        startn = new double[] {-XMIN + ((OFFSET - 1.0) + line),
+                               ONE * ZMAX};
+        startn = new double[] {XMAX + ((OFFSET - 1.0) + line),
                                YMIN - ((OFFSET - 1.0) + line),
                                ONE * ZMIN};
       }
