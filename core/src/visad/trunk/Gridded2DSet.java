@@ -501,10 +501,10 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
             lowertri = true;
           }
         }
-        if ( (grid[0][i] >= LengthX-0.5) || (grid[1][i] >= LengthY-0.5)
-          || (grid[0][i] <= -0.5) || (grid[1][i] <= -0.5) ) {
-          grid[0][i] = grid[1][i] = Float.NaN;
-        }
+      }
+      if ( (grid[0][i] >= LengthX-0.5) || (grid[1][i] >= LengthY-0.5)
+        || (grid[0][i] <= -0.5) || (grid[1][i] <= -0.5) ) {
+        grid[0][i] = grid[1][i] = Float.NaN;
       }
     }
     return grid;
