@@ -423,6 +423,7 @@ public class NCEPPanel extends JPanel implements
         if (ref != null) try {
           ref.setData(null);
           valueMap.setRange(range[levelValue][0], range[levelValue][1]);
+
           setContInterval(range[levelValue]);
           field.setSample(0, tup[levelValue]);
           ref.setData(field);
@@ -443,12 +444,13 @@ public class NCEPPanel extends JPanel implements
 
     cbeg = Math.floor(range[0]/cint)*cint;
     try {
+      // System.out.println("range="+range[0]+" to "+range[1]+"  cbeg="+cbeg);
       ci.setContourInterval((float)cint, 
                   (float)range[0], (float)range[1], (float)cbeg );
 
       intervalText.setText(cint+" ");
 
-    } catch (Exception sci) {;}
+    } catch (Exception sci) {sci.printStackTrace();}
     return ;
   }
 
