@@ -365,8 +365,27 @@ public class AnimationWidget
    * ControlListener method used for programmatically moving JSlider
    */
   public void controlChanged(ControlEvent e) {
-    getControlSettings(control);
-    fixControlUI();
+    if (control != null) {
+      boolean newDir = control.getDirection();
+      if (newDir != aDir) {
+        aDir = newDir;
+        fixDirUI();
+      }
+
+      boolean newAnim = control.getOn();
+      if (newAnim != aAnim) {
+        aAnim = newAnim;
+        fixAnimUI();
+      }
+
+      int newMs = (int )control.getStep();
+      if (newMs != aMs) {
+        aMs = newMs;
+        fixSpeedUI();
+      }
+
+      fixSliderUI();
+    }
   }
 
   /**
