@@ -2392,6 +2392,9 @@ if (initialize) {
     displayActivity.addHandler(ah);
   }
 
+  /**
+   * Indicate to activity monitor that the Display is busy.
+   */
   public void updateBusyStatus()
   {
     if (displayActivity != null) {
