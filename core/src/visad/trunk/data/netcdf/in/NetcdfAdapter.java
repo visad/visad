@@ -3,11 +3,13 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.23 2001-01-08 17:11:36 steve Exp $
+ * $Id: NetcdfAdapter.java,v 1.24 2001-05-16 20:36:46 steve Exp $
  */
 
 package visad.data.netcdf.in;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import ucar.netcdf.Netcdf;
@@ -260,8 +262,16 @@ NetcdfAdapter
 
 	for (int i = 0; i < pathnames.length; ++i)
 	{
-	    NetcdfFile		file = new NetcdfFile(pathnames[i],
-				    /*readonly=*/true);
+	    NetcdfFile	file;
+	    try
+	    {
+		URL	url = new URL(pathnames[i]);
+		file = new NetcdfFile(url);
+	    }
+	    catch (MalformedURLException e)
+	    {
+		file = new NetcdfFile(pathnames[i], /*readonly=*/true);
+	    }
 	    NetcdfAdapter	adapter =
 		new NetcdfAdapter(file, QuantityDBManager.instance());
 	    DataImpl		data = adapter.getData();
