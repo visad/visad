@@ -42,41 +42,73 @@ final class Factor
     /**
      * The power of the base unit.
      */
-    final int		power;
+    final int           power;
 
     /**
      * The base unit.
      */
-    final BaseUnit	baseUnit;
+    final BaseUnit      baseUnit;
 
+    private boolean hashCodeSet = false;
+    private int hashCode = 0;
 
     /**
      * Construct a factor from a base unit and a power.
      *
-     * @param baseUnit	The base unit.
-     * @param power	The power to raise the base unit by.
+     * @param baseUnit  The base unit.
+     * @param power     The power to raise the base unit by.
      */
     Factor(BaseUnit baseUnit, int power)
     {
-	this.power = power;
-	this.baseUnit = baseUnit;
+        this.power = power;
+        this.baseUnit = baseUnit;
     }
 
     /**
      * Return a string representation of this factor.
      *
-     * @return	A string representation of this factor (e.g. "m-2").
+     * @return  A string representation of this factor (e.g. "m-2").
      */
     public String toString()
     {
-	return power == 1
-		? baseUnit.toString()
-		: baseUnit.toString() + power;
+        return power == 1
+                ? baseUnit.toString()
+                : baseUnit.toString() + power;
     }
 
   public boolean equals(Factor factor) {
     return baseUnit.equals(factor.baseUnit) &&
            (power == factor.power);
+  }
+
+  /**
+   * Indicates whether or not this instance is equal to an object.
+   *
+   * @param that               The object in question.
+   * @return                  <code>true</code> if and only if this instance
+   *                          equals the unit.
+   */
+  public boolean equals (Object that) {
+    if (!(that instanceof Factor)) {
+      return false;
+    }
+    return equals ((Factor)that);
+  }
+
+  /**
+   * Returns the hash code of this instance. {@link Object#hashCode()} should be
+   * overridden whenever {@link Object#equals(Object)} is.
+   * @return                    The hash code of this instance (includes the
+   *                            values).
+   */
+  public int hashCode()
+  {
+    if (!hashCodeSet)
+    {
+      hashCode ^= baseUnit.hashCode() ^ new Double(power).hashCode();
+      hashCodeSet = true;
+    }
+    return hashCode;
   }
 
 }

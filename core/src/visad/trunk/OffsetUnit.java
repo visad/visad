@@ -412,14 +412,14 @@ public final class OffsetUnit
         throws UnitException
     {
         double[]        newValues;
-	if (equals(that)) {
-	    newValues = (double[])values.clone();
-	}
-	else {
-	  newValues = that.toThat(values, scaledUnit);
-	  for (int i = 0; i < newValues.length; ++i)
-	      newValues[i] -= offset;
-	}
+        if (equals(that)) {
+            newValues = (double[])values.clone();
+        }
+        else {
+          newValues = that.toThat(values, scaledUnit);
+          for (int i = 0; i < newValues.length; ++i)
+              newValues[i] -= offset;
+        }
         return newValues;
     }
 
@@ -437,14 +437,14 @@ public final class OffsetUnit
         throws UnitException
     {
         float[]        newValues;
-	if (equals(that)) {
-	    newValues = (float[])values.clone();
-	}
-	else {
-	  newValues = that.toThat(values, scaledUnit);
-	  for (int i = 0; i < newValues.length; ++i)
-	      newValues[i] -= offset;
-	}
+        if (equals(that)) {
+            newValues = (float[])values.clone();
+        }
+        else {
+          newValues = that.toThat(values, scaledUnit);
+          for (int i = 0; i < newValues.length; ++i)
+              newValues[i] -= offset;
+        }
         return newValues;
     }
 
@@ -462,12 +462,12 @@ public final class OffsetUnit
         throws UnitException
     {
         double[]        newValues = (double[])values.clone();
-	if (!equals(that)) {
-	  for (int i = 0; i < newValues.length; ++i)
-	      newValues[i] += offset;
-	  newValues = that.toThis(newValues, scaledUnit);
-	}
-	return newValues;
+        if (!equals(that)) {
+          for (int i = 0; i < newValues.length; ++i)
+              newValues[i] += offset;
+          newValues = that.toThis(newValues, scaledUnit);
+        }
+        return newValues;
     }
 
     /**
@@ -484,12 +484,12 @@ public final class OffsetUnit
         throws UnitException
     {
         float[]        newValues = (float[])values.clone();
-	if (!equals(that)) {
-	  for (int i = 0; i < newValues.length; ++i)
-	      newValues[i] += offset;
-	  newValues = that.toThis(newValues, scaledUnit);
-	}
-	return newValues;
+        if (!equals(that)) {
+          for (int i = 0; i < newValues.length; ++i)
+              newValues[i] += offset;
+          newValues = that.toThis(newValues, scaledUnit);
+        }
+        return newValues;
     }
 
     /**
@@ -584,6 +584,22 @@ public final class OffsetUnit
     return (unit instanceof OffsetUnit) &&
            scaledUnit.equals(((OffsetUnit) unit).scaledUnit) &&
            (offset == ((OffsetUnit) unit).offset);
+  }
+
+  /**
+   * Returns the hash code of this instance. {@link Object#hashCode()} should be
+   * overridden whenever {@link Object#equals(Object)} is.
+   * @return                    The hash code of this instance (includes the
+   *                            values).
+   */
+  public int hashCode()
+  {
+    if (!hashCodeSet)
+    {
+      hashCode ^= scaledUnit.hashCode() ^ new Double(offset).hashCode();
+      hashCodeSet = true;
+    }
+    return hashCode;
   }
 }
 

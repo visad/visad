@@ -62,10 +62,10 @@ public class PromiscuousUnit extends Unit {
   /**
    * Clones this unit, changing the identifier.  This method always throws
    * an exception because promiscuous units may not be cloned.
-   * @param identifier		The name or abbreviation for the cloned unit.
-   *				May be <code>null</code> or empty.
-   * @throws UnitException	Promiscuous units may not be cloned.  Always
-   *				thrown.
+   * @param identifier          The name or abbreviation for the cloned unit.
+   *                            May be <code>null</code> or empty.
+   * @throws UnitException      Promiscuous units may not be cloned.  Always
+   *                            thrown.
    */
   protected Unit protectedClone(String identifier)
     throws UnitException
@@ -76,8 +76,8 @@ public class PromiscuousUnit extends Unit {
   /**
    * Returns the definition of this unit.  For promiscuous units, this is the
    * same as the identifier.
-   * @return		The definition of this unit.  Won't be <code>null
-   *			</code> but may be empty.
+   * @return            The definition of this unit.  Won't be <code>null
+   *                    </code> but may be empty.
    */
   public String getDefinition()
   {
@@ -101,7 +101,7 @@ public class PromiscuousUnit extends Unit {
   }
 
   public Unit divide(Unit that)
-	throws UnitException {
+        throws UnitException {
     return CommonUnit.dimensionless.divide(that);
   }
 
@@ -135,8 +135,8 @@ public class PromiscuousUnit extends Unit {
    * Indicate whether this unit is convertible with another unit.  A
    * PromiscuousUnit is always convertible with another unit.
    *
-   * @param unit	The other unit.
-   * @return		True, always.
+   * @param unit        The other unit.
+   * @return            True, always.
    */
   public boolean isConvertible(Unit unit)
   {
@@ -147,5 +147,19 @@ public class PromiscuousUnit extends Unit {
     return (unit instanceof PromiscuousUnit);
   }
 
+  /**
+   * Returns the hash code of this instance. {@link Object#hashCode()} should be
+   * overridden whenever {@link Object#equals(Object)} is.
+   * @return                    The hash code of this instance (includes the
+   *                            values).
+   */
+  public int hashCode()
+  {
+    if (!hashCodeSet)
+    {
+      hashCode ^= System.identityHashCode(promiscuous);
+      hashCodeSet = true;
+    }
+    return hashCode;
+  }
 }
-

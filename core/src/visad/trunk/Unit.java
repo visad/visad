@@ -44,19 +44,26 @@ public abstract class Unit
    * The identifier (name or abbreviation) for this unit.
    * @serial
    */
-  private final String		identifier;
+  private final String          identifier;
 
   /**
    * The identifier -> unit map.
    */
-  private static final Map	identifierMap = new WeakHashMap();
+  private static final Map      identifierMap = new WeakHashMap();
+
+  /**
+   * Flag for hashCode
+   */
+  transient boolean hashCodeSet = false;
+  transient int hashCode = 0;
 
 /*
    added by Bill Hibbard for VisAD
 */
 
+
   /**
-   * Converts a tuple of double value arrays.
+   * <p>Converts a tuple of double value arrays.</p>
    *
    * <p>This implementation uses {@link #toThis(double[], unit) to convert the
    * individual arrays.</p>
@@ -71,8 +78,11 @@ public abstract class Unit
    * @param units_out          The units of the output numeric values.
    *                           <code>units_out[i]</code> is the unit for the
    *                           <code>i</code>th conponent.
-   * @return                   The converted values in a new array. 
-   *                           RETURN_VALUE<code>[i][j]</code> is the converted
+   * @return                   If the input array of units equals the output 
+   *                           array then this just returns the value argument.
+   *                           Otherwise, returns the the converted values 
+   *                           in a new array where RETURN_VALUE
+   *                           <code>[i][j]</code> is the converted
    *                           value of <code>value[i][j]</code>.
    * @throws UnitException     If an ouput unit is <code>null</code> 
    *                           and the corresponding input unit is neither 
@@ -82,20 +92,31 @@ public abstract class Unit
    * @throws VisADException    if a VisAD failure occurs.
    */
   public static double[][] convertTuple(double[][] value, Unit[] units_in,
-         Unit[] units_out) throws UnitException, VisADException {
-    double[][] new_value = new double[value.length][];
-    for (int i=0; i<value.length; i++) {
-      if (units_out[i] == null) {
-        if (units_in[i] != null && !(units_in[i] instanceof PromiscuousUnit)) {
-          throw new UnitException("Unit.convertTuple: illegal Unit conversion");
-        }
-        new_value[i] = value[i];
+                                       Unit[] units_out) throws UnitException, VisADException {
+
+      //If the input array equals the output array then simply return the value array
+      if (java.util.Arrays.equals (units_in, units_out)) {
+          return value;
       }
-      else {
-        new_value[i] = units_out[i].toThis(value[i], units_in[i]);
+      double[][] new_value = new double[value.length][];
+      for (int i=0; i<value.length; i++) {
+          if (units_out[i] == null) {
+              if (units_in[i] != null && !(units_in[i] instanceof PromiscuousUnit)) {
+                  throw new UnitException("Unit.convertTuple: illegal Unit conversion");
+              }
+              new_value[i] = value[i];
+          }
+          else {
+              //If they are equal just do an assignment
+              if (units_out[i].equals (units_in[i])) {
+                  new_value[i] = value[i];
+              } else {
+                  //else do the conversion
+                  new_value[i] = units_out[i].toThis(value[i], units_in[i]);
+              }
+          }
       }
-    }
-    return new_value;
+      return new_value;
   }
 
   /**
@@ -114,8 +135,11 @@ public abstract class Unit
    * @param units_out          The units of the output numeric values.
    *                           <code>units_out[i]</code> is the unit for the
    *                           <code>i</code>th conponent.
-   * @return                   The converted values in a new array. 
-   *                           RETURN_VALUE<code>[i][j]</code> is the converted
+   * @return                   If the input array of units equals the output 
+   *                           array then this just returns the value argument.
+   *                           Otherwise, returns the the converted values 
+   *                           in a new array where RETURN_VALUE
+   *                           <code>[i][j]</code> is the converted
    *                           value of <code>value[i][j]</code>.
    * @throws UnitException     If an ouput unit is <code>null</code> 
    *                           and the corresponding input unit is neither 
@@ -125,20 +149,31 @@ public abstract class Unit
    * @throws VisADException    if a VisAD failure occurs.
    */
   public static float[][] convertTuple(float[][] value, Unit[] units_in,
-         Unit[] units_out) throws UnitException, VisADException {
-    float[][] new_value = new float[value.length][];
-    for (int i=0; i<value.length; i++) {
-      if (units_out[i] == null) {
-        if (units_in[i] != null && !(units_in[i] instanceof PromiscuousUnit)) {
-          throw new UnitException("Unit.convertTuple: illegal Unit conversion");
-        }
-        new_value[i] = value[i];
+                                       Unit[] units_out) throws UnitException, VisADException {
+
+      //If the input array equals the output array then simply return the value array
+      if (java.util.Arrays.equals (units_in, units_out)) {
+          return value;
       }
-      else {
-        new_value[i] = units_out[i].toThis(value[i], units_in[i]);
+      float[][] new_value = new float[value.length][];
+      for (int i=0; i<value.length; i++) {
+          if (units_out[i] == null) {
+              if (units_in[i] != null && !(units_in[i] instanceof PromiscuousUnit)) {
+                  throw new UnitException("Unit.convertTuple: illegal Unit conversion");
+              }
+              new_value[i] = value[i];
+          }
+          else {
+              //If they are equal just do an assignment
+              if (units_out[i].equals (units_in[i])) {
+                  new_value[i] = value[i];
+              } else {
+                  //else do the conversion
+                  new_value[i] = units_out[i].toThis(value[i], units_in[i]);
+              }
+          }
       }
-    }
-    return new_value;
+      return new_value;
   }
 
   /**
@@ -169,9 +204,9 @@ public abstract class Unit
    * is convertible with unit B if and only if unit B is convertible with unit
    * A; hence, calling-order is irrelevant.
    *
-   * @param unit	The other unit.
-   * @return		True if and only if this unit is convertible with the
-   *			other unit.
+   * @param unit        The other unit.
+   * @return            True if and only if this unit is convertible with the
+   *                    other unit.
    */
   public abstract boolean isConvertible(Unit unit);
 
@@ -216,6 +251,25 @@ public abstract class Unit
   public static Unit[] copyUnitsArray(Unit[] units) {
     return units == null ? null : (Unit[])units.clone();
   }
+
+  /**
+   * Indicates whether or not this instance is equal to an object.
+   *
+   * @param that               The object in question.
+   * @return                  <code>true</code> if and only if this instance
+   *                          equals the unit.
+   */
+  public boolean equals (Object that) {
+    if (!(that instanceof Unit)) {
+      return false;
+    }
+    return equals ((Unit)that);
+  }
+
+  /**
+   * Abstract method for computing hashcode
+   */
+  public abstract int hashCode();
 
   /**
    * Indicates whether or not this instance is equal to a unit.
@@ -348,18 +402,18 @@ public abstract class Unit
 
     /**
      * Constructs from an identifier.
-     * @param identifier	Name or abbreviation for the unit.  May be
-     *				<code>null</code> or empty.
+     * @param identifier        Name or abbreviation for the unit.  May be
+     *                          <code>null</code> or empty.
      */
     protected Unit(String identifier)
     {
       try
       {
-	identifier = adjustCheckAndCache(identifier);
+        identifier = adjustCheckAndCache(identifier);
       }
       catch (UnitExistsException e)
       {
-	System.err.println("WARNING: " + e);
+        System.err.println("WARNING: " + e);
       }
       this.identifier = identifier;
     }
@@ -367,14 +421,14 @@ public abstract class Unit
     /**
      * Adjusts, checks, and caches a unit identifier and its unit.
      *
-     * @param identifier	Name or abbreviation for the unit.  May be
-     *				<code>null</code> or empty.
+     * @param identifier        Name or abbreviation for the unit.  May be
+     *                          <code>null</code> or empty.
      * @return                  The identifier adjusted as necessary in order
      *                          to be valid (e.g. whitespace replacement).
      * @throws UnitExistsException
-     *				A different unit with the same, non-null and
-     *				non-empty identifier already exists.  The
-     *				identifier and unit are not cached.
+     *                          A different unit with the same, non-null and
+     *                          non-empty identifier already exists.  The
+     *                          identifier and unit are not cached.
      */
     protected final String
     adjustCheckAndCache(String identifier)
@@ -382,16 +436,16 @@ public abstract class Unit
     {
       if (identifier != null && identifier.length() > 0)
       {
-	identifier = identifier.replace(' ', '_');	// ensure no whitespace
-	/*
-	synchronized(identifierMap)
-	{
-	  Unit	previous = (Unit)identifierMap.get(identifier);
-	  if (previous != null)
-	    throw new UnitExistsException(identifier);
-	  identifierMap.put(identifier, this);
-	}
-	*/
+        identifier = identifier.replace(' ', '_');      // ensure no whitespace
+        /*
+        synchronized(identifierMap)
+        {
+          Unit  previous = (Unit)identifierMap.get(identifier);
+          if (previous != null)
+            throw new UnitExistsException(identifier);
+          identifierMap.put(identifier, this);
+        }
+        */
       }
       return identifier;
     }
@@ -412,12 +466,12 @@ public abstract class Unit
      * <p>This implementation uses the {@link #protectedClone(String)} 
      * method.</p>
      *
-     * @param identifier	The name or abbreviation for the cloned unit.
-     *				May be <code>null</code> or empty.
+     * @param identifier        The name or abbreviation for the cloned unit.
+     *                          May be <code>null</code> or empty.
      * @return                  A unit equal to this instance but with the given
      *                          identifier (adjusted if necessary).
-     * @throws UnitException	The unit may not be cloned.  This will only
-     *				occur if <code>getIdentifier()!=null</code>.
+     * @throws UnitException    The unit may not be cloned.  This will only
+     *                          occur if <code>getIdentifier()!=null</code>.
      * @see #adjustCheckAndCache(String)
      */
     public Unit clone(String identifier)
@@ -429,14 +483,14 @@ public abstract class Unit
     /**
      * Clones this unit, changing the identifier.
      *
-     * @param identifier	The name or abbreviation for the cloned unit.
-     *				May be <code>null</code> or empty.  It shall
-     *				have already passed the
-     *				{@link #adjustCheckAndCache()} method.
+     * @param identifier        The name or abbreviation for the cloned unit.
+     *                          May be <code>null</code> or empty.  It shall
+     *                          have already passed the
+     *                          {@link #adjustCheckAndCache()} method.
      * @return                  A unit equal to this instance but with the given
      *                          identifier.
-     * @throws UnitException	if the unit may not be cloned.  This will only
-     *				occur if <code>getIdentifier()!=null</code>.
+     * @throws UnitException    if the unit may not be cloned.  This will only
+     *                          occur if <code>getIdentifier()!=null</code>.
      */
     protected abstract Unit protectedClone(String identifier)
       throws UnitException;
@@ -444,178 +498,178 @@ public abstract class Unit
     /**
      * Raise this unit to a power.
      *
-     * @param power	The power to raise this unit by.
-     * @return		The resulting unit.
-     * @require		The unit is not an offset unit.
-     * @promise		The unit has not been modified.
-     * @exception	UnitException	It's meaningless to raise this unit
-     *					by a power.
+     * @param power     The power to raise this unit by.
+     * @return          The resulting unit.
+     * @require         The unit is not an offset unit.
+     * @promise         The unit has not been modified.
+     * @exception       UnitException   It's meaningless to raise this unit
+     *                                  by a power.
      */
     public abstract Unit pow(int power)
-	throws UnitException;
+        throws UnitException;
 
     /**
      * Returns the N-th root of this unit.
      *
-     * @param root	The root to take (e.g. 2 means square root).  Must not
-     *			be zero.
-     * @return		The unit corresponding to the <code>root</code>-th root
-     *			of this unit.
-     * @require		The unit is not an offset unit.
-     * @promise		The unit has not been modified.
-     * @exception	UnitException	It's meaningless to raise this unit
-     *					by a power.
+     * @param root      The root to take (e.g. 2 means square root).  Must not
+     *                  be zero.
+     * @return          The unit corresponding to the <code>root</code>-th root
+     *                  of this unit.
+     * @require         The unit is not an offset unit.
+     * @promise         The unit has not been modified.
+     * @exception       UnitException   It's meaningless to raise this unit
+     *                                  by a power.
      * @throws IllegalArgumentException
-     *			The root value is zero or the resulting unit would have
-     *			a non-integral unit dimension.
+     *                  The root value is zero or the resulting unit would have
+     *                  a non-integral unit dimension.
      */
     public abstract Unit root(int root)
-	throws IllegalArgumentException, UnitException;
+        throws IllegalArgumentException, UnitException;
 
     /**
      * Returns the square-root of this unit.  This method is identical to {@link
      * #root(int root)} with a value of <code>2</code>.
      *
-     * @return		The unit corresponding to the square-root of this unit.
-     * @promise		This unit has not been modified.
+     * @return          The unit corresponding to the square-root of this unit.
+     * @promise         This unit has not been modified.
      * @throws IllegalArgumentException
-     *			The resulting unit would have a non-integral unit
-     *			dimension.
+     *                  The resulting unit would have a non-integral unit
+     *                  dimension.
      * @throws UnitException
-     *			It is meaningless to take a root of this unit.
+     *                  It is meaningless to take a root of this unit.
      */
     public Unit sqrt()
       throws IllegalArgumentException, UnitException
     {
-	return root(2);
+        return root(2);
     }
 
     /**
      * Raise a unit to a power.
      *
-     * @param power	The power to raise this unit by.  If this unit is
-     *			not dimensionless, then the value must be integral.
-     * @return		The unit resulting from raising this unit to
-     *			<code>power</code>.
-     * @throws UnitException	It's meaningless to raise this unit by a power.
+     * @param power     The power to raise this unit by.  If this unit is
+     *                  not dimensionless, then the value must be integral.
+     * @return          The unit resulting from raising this unit to
+     *                  <code>power</code>.
+     * @throws UnitException    It's meaningless to raise this unit by a power.
      * @throws IllegalArgumentException
-     *			This unit is not dimensionless and <code>power</code>
-     *			has a non-integral value.
-     * @promise		The unit has not been modified.
+     *                  This unit is not dimensionless and <code>power</code>
+     *                  has a non-integral value.
+     * @promise         The unit has not been modified.
      */
     public abstract Unit pow(double power)
-	throws UnitException, IllegalArgumentException;
+        throws UnitException, IllegalArgumentException;
 
     /**
      * Scale this unit by an amount.
      *
-     * @param amount	The amount by which to scale this unit.  E.g.
-     *			Unit yard = meter.scale(0.9144);
+     * @param amount    The amount by which to scale this unit.  E.g.
+     *                  Unit yard = meter.scale(0.9144);
      * @return          A unit equal to this instance scaled by the given
      *                  amount.
-     * @exception	UnitException	This unit cannot be scaled.
+     * @exception       UnitException   This unit cannot be scaled.
      */
     public Unit scale(double amount)
-	throws UnitException
+        throws UnitException
     {
-	if (this instanceof BaseUnit)
-	    return new ScaledUnit(amount, (BaseUnit)this);
-	if (this instanceof DerivedUnit)
-	    return new ScaledUnit(amount, (DerivedUnit)this);
-	if (this instanceof ScaledUnit)
-	    return new ScaledUnit(amount, (ScaledUnit)this);
-	if (this instanceof OffsetUnit)
-	    return new OffsetUnit(((OffsetUnit)this).offset/amount,
-		new ScaledUnit(amount, ((OffsetUnit)this).scaledUnit));
+        if (this instanceof BaseUnit)
+            return new ScaledUnit(amount, (BaseUnit)this);
+        if (this instanceof DerivedUnit)
+            return new ScaledUnit(amount, (DerivedUnit)this);
+        if (this instanceof ScaledUnit)
+            return new ScaledUnit(amount, (ScaledUnit)this);
+        if (this instanceof OffsetUnit)
+            return new OffsetUnit(((OffsetUnit)this).offset/amount,
+                new ScaledUnit(amount, ((OffsetUnit)this).scaledUnit));
 
-	throw new UnitException("Unknown unit subclass: " + this);
+        throw new UnitException("Unknown unit subclass: " + this);
     }
 
     /**
      * Shift this unit by an amount.
      *
-     * @param offset	The amount by which to shift this unit.  E.g.
-     *			Unit celsius = kelvin.shift(273.15);
+     * @param offset    The amount by which to shift this unit.  E.g.
+     *                  Unit celsius = kelvin.shift(273.15);
      * @return          A unit equal to this instance with the origin shifted
      *                  by the given amount.
-     * @exception	UnitException	The unit subclass is unknown.
+     * @exception       UnitException   The unit subclass is unknown.
      */
     public Unit shift(double offset)
-	throws UnitException
+        throws UnitException
     {
-	Unit	unit;
-	if (this instanceof BaseUnit)
-	    unit = new OffsetUnit(offset, (BaseUnit)this);
-	else if (this instanceof DerivedUnit)
-	    unit = new OffsetUnit(offset, (DerivedUnit)this);
-	else if (this instanceof ScaledUnit)
-	    unit = new OffsetUnit(offset, (ScaledUnit)this);
-	else if (this instanceof OffsetUnit)
-	    unit = new OffsetUnit(offset, (OffsetUnit)this);
-	else
-	{
-	    throw new UnitException(
-		"Unit.shift(): Unknown unit subclass: " + this);
-	}
-	return unit;
+        Unit    unit;
+        if (this instanceof BaseUnit)
+            unit = new OffsetUnit(offset, (BaseUnit)this);
+        else if (this instanceof DerivedUnit)
+            unit = new OffsetUnit(offset, (DerivedUnit)this);
+        else if (this instanceof ScaledUnit)
+            unit = new OffsetUnit(offset, (ScaledUnit)this);
+        else if (this instanceof OffsetUnit)
+            unit = new OffsetUnit(offset, (OffsetUnit)this);
+        else
+        {
+            throw new UnitException(
+                "Unit.shift(): Unknown unit subclass: " + this);
+        }
+        return unit;
     }
 
     /**
      * Multiply this unit by another unit.
      *
-     * @param that		The given unit to multiply this unit by.
-     * @return			The resulting unit.
-     * @throws UnitException	It's meaningless to multiply these units.
+     * @param that              The given unit to multiply this unit by.
+     * @return                  The resulting unit.
+     * @throws UnitException    It's meaningless to multiply these units.
      */
     public abstract Unit multiply(Unit that)
-	throws UnitException;
+        throws UnitException;
 
     /**
      * Divide this unit by another unit.
      *
-     * @param that		The unit to divide into this unit.
-     * @return			The quotient of the two units.
-     * @promise			Neither unit has been modified.
-     * @throws UnitException	It's meaningless to divide these units.
+     * @param that              The unit to divide into this unit.
+     * @return                  The quotient of the two units.
+     * @promise                 Neither unit has been modified.
+     * @throws UnitException    It's meaningless to divide these units.
      */
     public abstract Unit divide(Unit that)
-	throws UnitException;
+        throws UnitException;
 
     /**
      * Divide this unit into another unit.
      *
-     * @param that		The unit to be divided by this unit.
-     * @return			The quotient of the two units.
-     * @throws UnitException	It's meaningless to divide these units.
+     * @param that              The unit to be divided by this unit.
+     * @return                  The quotient of the two units.
+     * @throws UnitException    It's meaningless to divide these units.
      */
     protected abstract Unit divideInto(Unit that)
-	throws UnitException;
+        throws UnitException;
 
     /**
      * Convert a value to this unit from another unit.
      *
-     * @param value	The value in units of the other unit.
-     * @param that	The other unit.
-     * @return		The value converted from the other unit to this unit.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	UnitException	The units are not convertible.
+     * @param value     The value in units of the other unit.
+     * @param that      The other unit.
+     * @return          The value converted from the other unit to this unit.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @exception       UnitException   The units are not convertible.
      */
     public double toThis(double value, Unit that)
-	throws UnitException
+        throws UnitException
     {
-	return toThis(new double[] {value}, that)[0];
+        return toThis(new double[] {value}, that)[0];
     }
 
     /**
      * Convert values to this unit from another unit.
      *
-     * @param values	Values in units of the other unit.
-     * @param that	The other unit.
-     * @return		Values in this unit.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	UnitException	The units are not convertible.
+     * @param values    Values in units of the other unit.
+     * @param that      The other unit.
+     * @return          Values in this unit.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @exception       UnitException   The units are not convertible.
      */
     public abstract double[] toThis(double[] values, Unit that)
            throws UnitException;
@@ -623,12 +677,12 @@ public abstract class Unit
     /**
      * Convert values to this unit from another unit.
      *
-     * @param values	Values in units of the other unit.
-     * @param that	The other unit.
-     * @return		Values in this unit.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	UnitException	The units are not convertible.
+     * @param values    Values in units of the other unit.
+     * @param that      The other unit.
+     * @return          Values in this unit.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @exception       UnitException   The units are not convertible.
      */
     public abstract float[] toThis(float[] values, Unit that)
            throws UnitException;
@@ -636,28 +690,28 @@ public abstract class Unit
     /**
      * Convert a value from this unit to another unit.
      *
-     * @param value	The value in this unit.
-     * @param that	The other unit.
-     * @return		The value in units of the other unit.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	UnitException	The units are not convertible.
+     * @param value     The value in this unit.
+     * @param that      The other unit.
+     * @return          The value in units of the other unit.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @exception       UnitException   The units are not convertible.
      */
     public double toThat(double value, Unit that)
-	throws UnitException
+        throws UnitException
     {
-	return toThat(new double[] {value}, that)[0];
+        return toThat(new double[] {value}, that)[0];
     }
 
     /**
      * Convert values from this unit to another unit.
      *
-     * @param values	The values in this unit.
-     * @param that	The other unit.
-     * @return		Values converted to the other unit from this unit.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	UnitException	The units are not convertible.
+     * @param values    The values in this unit.
+     * @param that      The other unit.
+     * @return          Values converted to the other unit from this unit.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @exception       UnitException   The units are not convertible.
      */
     public abstract double[] toThat(double[] values, Unit that)
            throws UnitException;
@@ -665,12 +719,12 @@ public abstract class Unit
     /**
      * Convert values from this unit to another unit.
      *
-     * @param values	The values in this unit.
-     * @param that	The other unit.
-     * @return		Values converted to the other unit from this unit.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	UnitException	The units are not convertible.
+     * @param values    The values in this unit.
+     * @param that      The other unit.
+     * @return          Values converted to the other unit from this unit.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @exception       UnitException   The units are not convertible.
      */
     public abstract float[] toThat(float[] values, Unit that)
            throws UnitException;
@@ -678,22 +732,22 @@ public abstract class Unit
     /**
      * Returns a string representation of this unit.
      *
-     * @return		The string representation of this unit.  Won't be
-     *			<code>null</code> but may be empty.
+     * @return          The string representation of this unit.  Won't be
+     *                  <code>null</code> but may be empty.
      */
     public final String toString()
     {
-      String	s = getIdentifier();
+      String    s = getIdentifier();
       if (s == null)
-	s = getDefinition();
+        s = getDefinition();
       return s;
     }
 
     /**
      * Returns the identifier (name or abbreviation) of this unit.
      *
-     * @return		The identifier of this unit.  May be <code>null</code>
-     *			but won't be empty.
+     * @return          The identifier of this unit.  May be <code>null</code>
+     *                  but won't be empty.
      */
     public final String getIdentifier()
     {
@@ -703,8 +757,8 @@ public abstract class Unit
     /**
      * Returns the definition of this unit.
      *
-     * @return		The definition of this unit.  Won't be <code>null
-     *			</code> but may be empty.
+     * @return          The definition of this unit.  Won't be <code>null
+     *                  </code> but may be empty.
      */
     public abstract String getDefinition();
 
@@ -716,7 +770,7 @@ public abstract class Unit
      * example, the absolute unit corresponding to degrees celsius is degrees
      * kelvin -- and calling this method on a degrees celsius unit obtains a
      * degrees kelvin unit.
-     * @return		The absolute unit corresponding to this unit.
+     * @return          The absolute unit corresponding to this unit.
      */
     public Unit
     getAbsoluteUnit()

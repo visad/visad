@@ -37,42 +37,42 @@ import java.io.Serializable;
  * incorporated into VisAD.
  */
 public final class ScaledUnit
-    extends	Unit
-    implements	Serializable
+    extends     Unit
+    implements  Serializable
 {
     /**
      * The amount of the associated derived unit.
      */
-    final double	amount;
+    final double        amount;
 
     /**
      * The associated derived unit.
      */
-    final DerivedUnit	derivedUnit;
+    final DerivedUnit   derivedUnit;
 
 
     /**
      * Construct a dimensionless scaled unit.  The identifier will be empty.
      *
-     * @param amount	The given amount of this unit.
+     * @param amount    The given amount of this unit.
      */
     public ScaledUnit(double amount)
     {
-	this(amount, "");
+        this(amount, "");
     }
 
     /**
      * Construct a dimensionless scaled unit with an identifier.
      *
-     * @param amount		The given amount of this unit.
-     * @param identifier	Name or abbreviation for the unit.  May be
-     *				<code>null</code> or empty.
+     * @param amount            The given amount of this unit.
+     * @param identifier        Name or abbreviation for the unit.  May be
+     *                          <code>null</code> or empty.
      */
     public ScaledUnit(double amount, String identifier)
     {
-	super(identifier);
-	this.amount = amount;
-	derivedUnit = new DerivedUnit();
+        super(identifier);
+        this.amount = amount;
+        derivedUnit = new DerivedUnit();
     }
 
     /**
@@ -80,14 +80,14 @@ public final class ScaledUnit
      * that of the base unit if the amount is 1; otherwise, the identifier
      * will be <code>null</code>.
      *
-     * @param amount	The given amount of the base unit (e.g. 0.9144 to
-     *			create a yard unit if <code>unit</code> represents a
-     *			meter).
-     * @param that	The given base unit.
+     * @param amount    The given amount of the base unit (e.g. 0.9144 to
+     *                  create a yard unit if <code>unit</code> represents a
+     *                  meter).
+     * @param that      The given base unit.
      */
     public ScaledUnit(double amount, BaseUnit that)
     {
-	this(amount, that, amount == 1 ? that.getIdentifier() : null);
+        this(amount, that, amount == 1 ? that.getIdentifier() : null);
     }
 
     /**
@@ -96,15 +96,15 @@ public final class ScaledUnit
      * @param amount            The given amount of the base unit (e.g. 0.9144
      *                          to create a yard unit if <code>unit</code>
      *                          represents a meter).
-     * @param that		The given base unit.
-     * @param identifier	Name or abbreviation for the unit.  May be
-     *				<code>null</code> or empty.
+     * @param that              The given base unit.
+     * @param identifier        Name or abbreviation for the unit.  May be
+     *                          <code>null</code> or empty.
      */
     public ScaledUnit(double amount, BaseUnit that, String identifier)
     {
-	super(identifier);
-	this.amount = amount;
-	derivedUnit = new DerivedUnit(that);
+        super(identifier);
+        this.amount = amount;
+        derivedUnit = new DerivedUnit(that);
     }
 
     /**
@@ -112,14 +112,14 @@ public final class ScaledUnit
      * that of the derived unit if the amount is 1; otherwise, the identifier
      * will be <code>null</code>.
      *
-     * @param amount	The given amount of the derived unit (e.g. 0.44704 to
-     *			create a mile/hour unit if <code>unit</code> represents
-     *			a meter/second.
-     * @param that	The given derived unit.
+     * @param amount    The given amount of the derived unit (e.g. 0.44704 to
+     *                  create a mile/hour unit if <code>unit</code> represents
+     *                  a meter/second.
+     * @param that      The given derived unit.
      */
     public ScaledUnit(double amount, DerivedUnit that)
     {
-	this(amount, that, amount == 1 ? that.getIdentifier() : null);
+        this(amount, that, amount == 1 ? that.getIdentifier() : null);
     }
 
     /**
@@ -128,15 +128,15 @@ public final class ScaledUnit
      * @param amount            The given amount of the derived unit
      *                          (e.g. 0.44704 to create a mile/hour unit if
      *                          <code>unit</code> represents a meter/second.
-     * @param that		The given derived unit.
-     * @param identifier	Name or abbreviation for the unit.  May be
-     *				<code>null</code> or empty.
+     * @param that              The given derived unit.
+     * @param identifier        Name or abbreviation for the unit.  May be
+     *                          <code>null</code> or empty.
      */
     public ScaledUnit(double amount, DerivedUnit that, String identifier)
     {
-	super(identifier);
-	this.amount = amount;
-	derivedUnit = that;
+        super(identifier);
+        this.amount = amount;
+        derivedUnit = that;
     }
 
     /**
@@ -144,15 +144,15 @@ public final class ScaledUnit
      * of the scaled unit if both amounts are 1; otherwise, the identifier will
      * be <code>null</code>.
      *
-     * @param amount	The given amount of the scaled unit (e.g. 3.0 to
-     *			create a yard unit if <code>unit</code> represents
-     *			a foot.
-     * @param unit	The given scaled unit.
+     * @param amount    The given amount of the scaled unit (e.g. 3.0 to
+     *                  create a yard unit if <code>unit</code> represents
+     *                  a foot.
+     * @param unit      The given scaled unit.
      */
     public ScaledUnit(double amount, ScaledUnit unit)
     {
-	this(amount, unit,
-	  amount == 1 && unit.amount == 1 ? unit.getIdentifier() : null);
+        this(amount, unit,
+          amount == 1 && unit.amount == 1 ? unit.getIdentifier() : null);
     }
 
     /**
@@ -161,15 +161,15 @@ public final class ScaledUnit
      * @param amount            The given amount of the scaled unit (e.g. 3.0
      *                          to create a yard unit if <code>unit</code>
      *                          represents a foot.
-     * @param that		The given scaled unit.
-     * @param identifier	Name or abbreviation for the unit.  May be
-     *				<code>null</code> or empty.
+     * @param that              The given scaled unit.
+     * @param identifier        Name or abbreviation for the unit.  May be
+     *                          <code>null</code> or empty.
      */
     public ScaledUnit(double amount, ScaledUnit that, String identifier)
     {
-	super(identifier);
-	this.amount = amount*that.amount;
-	derivedUnit = that.derivedUnit;
+        super(identifier);
+        this.amount = amount*that.amount;
+        derivedUnit = that.derivedUnit;
     }
 
     /**
@@ -177,27 +177,27 @@ public final class ScaledUnit
      * of the input unit if both amounts are 1; otherwise, the identifier will
      * be <code>null</code>.
      *
-     * @param amount	The given amount of the scaled unit (e.g. 3.0 to
-     *			create a yard unit if <code>unit</code> represents
-     *			a foot.
-     * @param unit	The given unit.
+     * @param amount    The given amount of the scaled unit (e.g. 3.0 to
+     *                  create a yard unit if <code>unit</code> represents
+     *                  a foot.
+     * @param unit      The given unit.
      * @return          A corresponding scaled unit.
-     * @throws UnitException	Can't create Scaled Unit from <code>unit</code>.
+     * @throws UnitException    Can't create Scaled Unit from <code>unit</code>.
      */
     public static ScaledUnit
     create(double amount, Unit unit)
        throws UnitException
     {
-	ScaledUnit	result;
-	if (unit instanceof BaseUnit)
-	  result = new ScaledUnit(amount, (BaseUnit)unit);
-	else if (unit instanceof DerivedUnit)
-	  result = new ScaledUnit(amount, (DerivedUnit)unit);
-	else if (unit instanceof ScaledUnit)
-	  result = new ScaledUnit(amount, (ScaledUnit)unit);
-	else
-	  throw new UnitException("Can't create Scaled Unit from " + unit);
-	return result;
+        ScaledUnit      result;
+        if (unit instanceof BaseUnit)
+          result = new ScaledUnit(amount, (BaseUnit)unit);
+        else if (unit instanceof DerivedUnit)
+          result = new ScaledUnit(amount, (DerivedUnit)unit);
+        else if (unit instanceof ScaledUnit)
+          result = new ScaledUnit(amount, (ScaledUnit)unit);
+        else
+          throw new UnitException("Can't create Scaled Unit from " + unit);
+        return result;
     }
 
     /**
@@ -215,107 +215,107 @@ public final class ScaledUnit
     /**
      * Clones this unit, changing the identifier.
      *
-     * @param identifier	The name or abbreviation for the cloned unit.
-     *				May be <code>null</code> or empty.
+     * @param identifier        The name or abbreviation for the cloned unit.
+     *                          May be <code>null</code> or empty.
      * @return                  A unit equal to this instance but with the given
      *                          identifier.
      */
     protected Unit protectedClone(String identifier)
     {
-	return new ScaledUnit(amount, derivedUnit, identifier);
+        return new ScaledUnit(amount, derivedUnit, identifier);
     }
 
     /**
      * Raises this unit to a power.
      *
-     * @param power	The power to raise this unit by.
-     * @return		The unit resulting from raising this unit to
-     *			<code>power</code>.
-     * @promise		This unit has not been modified.
+     * @param power     The power to raise this unit by.
+     * @return          The unit resulting from raising this unit to
+     *                  <code>power</code>.
+     * @promise         This unit has not been modified.
      */
     public Unit pow(int power)
     {
-	return new ScaledUnit(Math.pow(amount, power),
-			      (DerivedUnit)derivedUnit.pow(power));
+        return new ScaledUnit(Math.pow(amount, power),
+                              (DerivedUnit)derivedUnit.pow(power));
     }
 
     /**
      * Returns the N-th root of this unit.
      *
-     * @param root	The root to take (e.g. 2 means square root).  May not
-     *			be zero.
-     * @return		The unit corresponding to the <code>root</code>-th root
-     *			of this unit.
+     * @param root      The root to take (e.g. 2 means square root).  May not
+     *                  be zero.
+     * @return          The unit corresponding to the <code>root</code>-th root
+     *                  of this unit.
      * @throws IllegalArgumentException
-     *			The root value is zero or the resulting unit would have
-     *			a non-integral unit dimension.
-     * @promise		This unit has not been modified.
+     *                  The root value is zero or the resulting unit would have
+     *                  a non-integral unit dimension.
+     * @promise         This unit has not been modified.
      */
     public Unit root(int root)
-	throws IllegalArgumentException
+        throws IllegalArgumentException
     {
-	return new ScaledUnit(Math.pow(amount, 1./root),
-			      (DerivedUnit)derivedUnit.root(root));
+        return new ScaledUnit(Math.pow(amount, 1./root),
+                              (DerivedUnit)derivedUnit.root(root));
     }
 
     /**
      * Raises this unit to a power.
      *
-     * @param power	The power to raise this unit by.  If this unit is
-     *			not dimensionless, then the value must be integral.
-     * @return		The unit resulting from raising this unit to
-     *			<code>power</code>.
+     * @param power     The power to raise this unit by.  If this unit is
+     *                  not dimensionless, then the value must be integral.
+     * @return          The unit resulting from raising this unit to
+     *                  <code>power</code>.
      * @throws IllegalArgumentException
-     *			This unit is not dimensionless and <code>power</code>
-     *			has a non-integral value.
-     * @promise		The unit has not been modified.
+     *                  This unit is not dimensionless and <code>power</code>
+     *                  has a non-integral value.
+     * @promise         The unit has not been modified.
      */
     public Unit pow(double power)
-	throws IllegalArgumentException
+        throws IllegalArgumentException
     {
-	return new ScaledUnit(Math.pow(amount, power),
-			      (DerivedUnit)derivedUnit.pow(power));
+        return new ScaledUnit(Math.pow(amount, power),
+                              (DerivedUnit)derivedUnit.pow(power));
     }
 
     /**
      * Returns the definition of this unit.
      *
      * @return          The definition of this unit (e.g. "0.9144 m" for a
-     *			yard).
+     *                  yard).
      */
     public String getDefinition()
     {
-	String	definition;
-	if (derivedUnit == null)
-	{
-	    /* Probably exception thrown during construction */
-	    definition = "<unconstructed ScaledUnit>";
-	}
-	else
-	{
-	    String	derivedString = derivedUnit.toString();
-	    definition =
-		amount == 1
-		    ? derivedString
-		    : derivedString.length() == 0
-			? Double.toString(amount)
-			: Double.toString(amount) + " " + derivedString;
-	}
-	return definition;
+        String  definition;
+        if (derivedUnit == null)
+        {
+            /* Probably exception thrown during construction */
+            definition = "<unconstructed ScaledUnit>";
+        }
+        else
+        {
+            String      derivedString = derivedUnit.toString();
+            definition =
+                amount == 1
+                    ? derivedString
+                    : derivedString.length() == 0
+                        ? Double.toString(amount)
+                        : Double.toString(amount) + " " + derivedString;
+        }
+        return definition;
     }
 
     /**
      * Multiplies this unit by another unit.
      *
-     * @param that	The unit with which to multiply this unit.
-     * @return		The product of the two units.
-     * @promise		Neither unit has been modified.
-     * @throws UnitException	Meaningless operation.
+     * @param that      The unit with which to multiply this unit.
+     * @return          The product of the two units.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    Meaningless operation.
      */
     public Unit multiply(Unit that)
-	throws UnitException
+        throws UnitException
     {
-	return create(amount, derivedUnit.multiply(that));
+        return create(amount, derivedUnit.multiply(that));
     }
 
     /**
@@ -323,13 +323,13 @@ public final class ScaledUnit
      *
      * @param that      The unit to divide into this unit.
      * @return          The quotient of the two units.
-     * @promise		Neither unit has been modified.
-     * @throws UnitException	Meaningless operation.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    Meaningless operation.
      */
     public Unit divide(Unit that)
-	throws UnitException
+        throws UnitException
     {
-	return create(amount, derivedUnit.divide(that));
+        return create(amount, derivedUnit.divide(that));
     }
 
     /**
@@ -337,49 +337,49 @@ public final class ScaledUnit
      *
      * @param that      The unit to be divided by this unit.
      * @return          The quotient of the two units.
-     * @promise		Neither unit has been modified.
-     * @throws UnitException	Meaningless operation.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    Meaningless operation.
      */
     protected Unit divideInto(Unit that)
-	throws UnitException
+        throws UnitException
     {
-	return create(1./amount, derivedUnit.divideInto(that));
+        return create(1./amount, derivedUnit.divideInto(that));
     }
 
     /**
      * Convert values to this unit from another unit.
      *
-     * @param values	The values to be converted.
+     * @param values    The values to be converted.
      * @param that      The unit of <code>values</code>.
      * @return          The converted values in units of this unit.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @throws UnitException	The units are not convertible.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
      */
     public double[] toThis(double[] values, Unit that)
-	throws UnitException
+        throws UnitException
     {
         double[] newValues;
         if (equals(that)) {
             newValues = (double[])values.clone();
         }
         else {
-	    newValues = that.toThat(values, derivedUnit);
-	    for (int i = 0; i < newValues.length; ++i)
-	        newValues[i] /= amount;
+            newValues = that.toThat(values, derivedUnit);
+            for (int i = 0; i < newValues.length; ++i)
+                newValues[i] /= amount;
         }
-	return newValues;
+        return newValues;
     }
 
     /**
      * Convert values to this unit from another unit.
      *
-     * @param values	The values to be converted.
+     * @param values    The values to be converted.
      * @param that      The unit of <code>values</code>.
      * @return          The converted values in units of this unit.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @throws UnitException	The units are not convertible.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
      */
     public float[] toThis(float[] values, Unit that)
         throws UnitException
@@ -389,31 +389,9 @@ public final class ScaledUnit
             newValues = (float[])values.clone();
         }
         else {
-	    newValues = that.toThat(values, derivedUnit);
-	    for (int i = 0; i < newValues.length; ++i)
-	        newValues[i] /= amount;
-        }
-	return newValues;
-    }
-
-    /**
-     * Convert values from this unit to another unit.
-     *
-     * @param values	The values to be converted in units of this unit.
-     * @param that      The unit to which to convert the values.
-     * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @throws UnitException	The units are not convertible.
-     */
-    public double[] toThat(double values[], Unit that)
-	throws UnitException
-    {
-        double[] newValues = (double[])values.clone();
-        if (!equals(that)) {
-	    for (int i = 0; i < newValues.length; ++i)
-	        newValues[i] *= amount;
-	    newValues = that.toThis(newValues, derivedUnit);
+            newValues = that.toThat(values, derivedUnit);
+            for (int i = 0; i < newValues.length; ++i)
+                newValues[i] /= amount;
         }
         return newValues;
     }
@@ -421,21 +399,43 @@ public final class ScaledUnit
     /**
      * Convert values from this unit to another unit.
      *
-     * @param values	The values to be converted in units of this unit.
+     * @param values    The values to be converted in units of this unit.
      * @param that      The unit to which to convert the values.
      * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @throws UnitException	The units are not convertible.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
+     */
+    public double[] toThat(double values[], Unit that)
+        throws UnitException
+    {
+        double[] newValues = (double[])values.clone();
+        if (!equals(that)) {
+            for (int i = 0; i < newValues.length; ++i)
+                newValues[i] *= amount;
+            newValues = that.toThis(newValues, derivedUnit);
+        }
+        return newValues;
+    }
+
+    /**
+     * Convert values from this unit to another unit.
+     *
+     * @param values    The values to be converted in units of this unit.
+     * @param that      The unit to which to convert the values.
+     * @return          The converted values.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
      */
     public float[] toThat(float values[], Unit that)
         throws UnitException
     {
         float[] newValues = (float[])values.clone();
         if (!equals(that)) {
-	    for (int i = 0; i < newValues.length; ++i)
-	        newValues[i] *= amount;
-	    newValues = that.toThis(newValues, derivedUnit);
+            for (int i = 0; i < newValues.length; ++i)
+                newValues[i] *= amount;
+            newValues = that.toThis(newValues, derivedUnit);
         }
         return newValues;
     }
@@ -447,9 +447,9 @@ public final class ScaledUnit
      * is convertible with unit B if and only if unit B is convertible with unit
      * A; hence, calling-order is irrelevant.
      *
-     * @param unit	The other unit.
-     * @return		True if and only if this unit is convertible with the
-     *			other unit.
+     * @param unit      The other unit.
+     * @return          True if and only if this unit is convertible with the
+     *                  other unit.
      */
     public boolean isConvertible(Unit unit)
     {
@@ -459,72 +459,72 @@ public final class ScaledUnit
     /**
      * Test this class.
      *
-     * @param args		Arguments (ignored).
-     * @exception UnitException	A problem occurred.
+     * @param args              Arguments (ignored).
+     * @exception UnitException A problem occurred.
      */
     public static void main(String[] args)
-	throws UnitException
+        throws UnitException
     {
-	BaseUnit	meter = BaseUnit.addBaseUnit("Length", "meter");
-	BaseUnit	second = BaseUnit.addBaseUnit("Time", "second");
-	DerivedUnit	meterPerSec = new DerivedUnit(
-			    new BaseUnit[] {meter, second}, new int[] {1, -1});
-	Unit		milePerHour = new ScaledUnit(0.44704, meterPerSec);
-	Unit		milePerHour2 = milePerHour.pow(2);
+        BaseUnit        meter = BaseUnit.addBaseUnit("Length", "meter");
+        BaseUnit        second = BaseUnit.addBaseUnit("Time", "second");
+        DerivedUnit     meterPerSec = new DerivedUnit(
+                            new BaseUnit[] {meter, second}, new int[] {1, -1});
+        Unit            milePerHour = new ScaledUnit(0.44704, meterPerSec);
+        Unit            milePerHour2 = milePerHour.pow(2);
 
-	BaseUnit	kg = BaseUnit.addBaseUnit("Mass", "kilogram");
-	DerivedUnit	kgPerSec = new DerivedUnit(new BaseUnit[] {kg, second},
-					           new int[] {1, -1});
-	Unit		poundPerSec = new ScaledUnit(0.453592, kgPerSec);
+        BaseUnit        kg = BaseUnit.addBaseUnit("Mass", "kilogram");
+        DerivedUnit     kgPerSec = new DerivedUnit(new BaseUnit[] {kg, second},
+                                                   new int[] {1, -1});
+        Unit            poundPerSec = new ScaledUnit(0.453592, kgPerSec);
 
-	System.out.println("milePerHour=\"" + milePerHour + "\"");
-	System.out.println("milePerHour.pow(2)=\"" + milePerHour.pow(2) + "\"");
-	System.out.println("milePerHour2.root(2)=\"" + milePerHour2.root(2) +
-	  "\"");
+        System.out.println("milePerHour=\"" + milePerHour + "\"");
+        System.out.println("milePerHour.pow(2)=\"" + milePerHour.pow(2) + "\"");
+        System.out.println("milePerHour2.root(2)=\"" + milePerHour2.root(2) +
+          "\"");
 
-	System.out.println("poundPerSec=\"" + poundPerSec + "\"");
+        System.out.println("poundPerSec=\"" + poundPerSec + "\"");
 
-	System.out.println("milePerHour*poundPerSec=\"" +
-	    milePerHour.multiply(poundPerSec) + "\"");
-	System.out.println("poundPerSec*milePerHour=\"" +
-	    poundPerSec.multiply(milePerHour) + "\"");
+        System.out.println("milePerHour*poundPerSec=\"" +
+            milePerHour.multiply(poundPerSec) + "\"");
+        System.out.println("poundPerSec*milePerHour=\"" +
+            poundPerSec.multiply(milePerHour) + "\"");
 
-	System.out.println("milePerHour/poundPerSec=\"" +
-	    milePerHour.divide(poundPerSec) + "\"");
-	System.out.println("poundPerSec/milePerHour=\"" +
-	    poundPerSec.divide(milePerHour) + "\"");
+        System.out.println("milePerHour/poundPerSec=\"" +
+            milePerHour.divide(poundPerSec) + "\"");
+        System.out.println("poundPerSec/milePerHour=\"" +
+            poundPerSec.divide(milePerHour) + "\"");
 
-	System.out.println("milePerHour.toThis(1,meterPerSec)=" +
-	    milePerHour.toThis(1,meterPerSec));
+        System.out.println("milePerHour.toThis(1,meterPerSec)=" +
+            milePerHour.toThis(1,meterPerSec));
 
-	System.out.println("milePerHour.toThat(1,meterPerSec)=" +
-	    milePerHour.toThat(1,meterPerSec));
+        System.out.println("milePerHour.toThat(1,meterPerSec)=" +
+            milePerHour.toThat(1,meterPerSec));
 
-	double[] values;
+        double[] values;
 
-	values = milePerHour.toThis(new double[] {1,2},meterPerSec);
-	System.out.println("milePerHour.toThis({1,2},meterPerSec)=" +
-	    values[0] + "," + values[1]);
+        values = milePerHour.toThis(new double[] {1,2},meterPerSec);
+        System.out.println("milePerHour.toThis({1,2},meterPerSec)=" +
+            values[0] + "," + values[1]);
 
-	values = milePerHour.toThat(new double[] {1,2},meterPerSec);
-	System.out.println("milePerHour.toThat({1,2},meterPerSec)=" +
-	    values[0] + "," + values[1]);
+        values = milePerHour.toThat(new double[] {1,2},meterPerSec);
+        System.out.println("milePerHour.toThat({1,2},meterPerSec)=" +
+            values[0] + "," + values[1]);
 
-	System.out.println(
-	    "new ScaledUnit(0.5).isConvertible(new ScaledUnit(2.0)) = " +
-	     new ScaledUnit(0.5).isConvertible(new ScaledUnit(2.0)));
+        System.out.println(
+            "new ScaledUnit(0.5).isConvertible(new ScaledUnit(2.0)) = " +
+             new ScaledUnit(0.5).isConvertible(new ScaledUnit(2.0)));
 
-	System.out.println("Checking exceptions:");
-	try
-	{
-	    milePerHour.toThis(5,poundPerSec);
-	    System.err.println("ERROR: poundPerSec -> milePerHour");
-	    System.exit(1);
-	}
-	catch (UnitException e)
-	{
-	    System.out.println(e.getMessage());
-	}
+        System.out.println("Checking exceptions:");
+        try
+        {
+            milePerHour.toThis(5,poundPerSec);
+            System.err.println("ERROR: poundPerSec -> milePerHour");
+            System.exit(1);
+        }
+        catch (UnitException e)
+        {
+            System.out.println(e.getMessage());
+        }
     }
 
   /**
@@ -551,6 +551,22 @@ public final class ScaledUnit
 
     return derivedUnit.equals(((ScaledUnit) unit).derivedUnit) &&
            amount == ((ScaledUnit) unit).amount;
+  }
+
+  /**
+   * Returns the hash code of this instance. {@link Object#hashCode()} should be
+   * overridden whenever {@link Object#equals(Object)} is.
+   * @return                    The hash code of this instance (includes the
+   *                            values).
+   */
+  public int hashCode()
+  {
+    if (!hashCodeSet)
+    {
+      hashCode ^= derivedUnit.hashCode() ^ new Double(amount).hashCode();
+      hashCodeSet = true;
+    }
+    return hashCode;
   }
 
 }
