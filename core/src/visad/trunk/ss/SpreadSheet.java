@@ -3821,6 +3821,16 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
       exc.printStackTrace();
     }
     catch (InvocationTargetException exc) {
+      if (exc.getTargetException() instanceof java.rmi.StubNotFoundException) {
+        System.err.println(
+          "Your VisAD installation has not properly executed the RMIC\n" +
+          "compiler on the appropriate source files. Please re-run\n" +
+          "\"make compile\" in the VisAD directory. If you are using\n" +
+          "Makefile.WinNT and running JDK 1.2, please double-check that\n" +
+          "you have uncommented the RMIC-related environment variables,\n" +
+          "or else the RMIC-related classes will be placed in the wrong\n" +
+          "directories. A full stack dump follows:\n");
+      }
       exc.getTargetException().printStackTrace();
     }
     if (!(cell instanceof FancySSCell)) {
