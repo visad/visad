@@ -639,11 +639,7 @@ public class AddeURLConnection extends URLConnection
                             latString = tempString;
                         else
                         {
-                            if (tempString.indexOf("-") >= 0) // (comes in as -)
-                                lonString = tempString.substring(
-                                    tempString.indexOf("-") + 1);
-                            else
-                                lonString = "-" + tempString;
+			    lonString = negateLongitude(tempString);
                             lonFlag = true;
                         }
                     }
@@ -974,8 +970,10 @@ public class AddeURLConnection extends URLConnection
 
         } else if (testString.startsWith("lon")) {
           lonString = 
+            adjustLongitudes(
               ensureTwoValues(
-                  testString.substring(testString.indexOf("=") + 1));
+                  testString.substring(testString.indexOf("=") + 1)));
+      
 
         } else if (testString.startsWith("row")) {
           rowString = 
@@ -1622,5 +1620,22 @@ public class AddeURLConnection extends URLConnection
            retVal = new String(s + " " + s);
        }
        return retVal;
+    }
+
+    /* Adjust the longitude from East Postitive to west positive */
+    private String adjustLongitudes(String input)
+    {
+       input = input.trim();
+       String lon1 = negateLongitude(input.substring(0, input.trim().indexOf(" ")).trim());
+       String lon2 = negateLongitude(input.substring(input.trim().indexOf(" ")).trim());
+       return (lon2 + " " + lon1);
+    }
+
+    private String negateLongitude(String eastLong)
+    {
+      if (eastLong.indexOf("-") >= 0) // (comes in as -)
+        return eastLong.substring(eastLong.indexOf("-") + 1);
+      else
+        return "-" + eastLong;
     }
 }
