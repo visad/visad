@@ -52,21 +52,24 @@ public class Test00
   {
     GraphicsModeControl mode;
 
-    final RealType ir_radiance =
-      new RealType("ir_radiance", CommonUnit.degree);
+    final RealType abstract_ir_radiance = new RealType("abstract_ir_radiance", CommonUnit.degree);
+    final RealType specific_ir_radiance =
+      RealType.getRealType("specific_ir_radiance", null, null, abstract_ir_radiance);
     final RealType count = new RealType("count", CommonUnit.second);
-    FunctionType ir_histogram = new FunctionType(ir_radiance, count);
-    final RealType vis_radiance = new RealType("vis_radiance", null, null);
+    FunctionType ir_histogram = new FunctionType(specific_ir_radiance, count);
+    final RealType abstract_vis_radiance = new RealType("abstract_vis_radiance", null, null);
+    final RealType specific_vis_radiance =
+	RealType.getRealType("specific_vis_radiance", null, null, abstract_vis_radiance);
 
     int size = 64;
     FlatField histogram1 = FlatField.makeField(ir_histogram, size, false);
-    Real direct = new Real(ir_radiance, 2.0);
-    Real[] reals3 = {new Real(count, 1.0), new Real(ir_radiance, 2.0),
-                     new Real(vis_radiance, 1.0)};
+    Real direct = new Real(specific_ir_radiance, 2.0);
+    Real[] reals3 = {new Real(count, 1.0), new Real(specific_ir_radiance, 2.0),
+                     new Real(specific_vis_radiance, 1.0)};
     RealTuple direct_tuple = new RealTuple(reals3);
 
-    dpys[0].addMap(new ScalarMap(vis_radiance, Display.ZAxis));
-    ScalarMap irmap = new ScalarMap(ir_radiance, Display.XAxis);
+    dpys[0].addMap(new ScalarMap(abstract_vis_radiance, Display.ZAxis));
+    ScalarMap irmap = new ScalarMap(abstract_ir_radiance, Display.XAxis);
     dpys[0].addMap(irmap);
     irmap.setOverrideUnit(CommonUnit.radian);
     dpys[0].addMap(new ScalarMap(count, Display.YAxis));
@@ -93,8 +96,8 @@ public class Test00
     DataReference[] refs3 = {ref_histogram1};
     dpys[0].addReferences(new DirectManipulationRendererJ3D(), refs3, null);
 
-    dpys[1].addMap(new ScalarMap(vis_radiance, Display.ZAxis));
-    dpys[1].addMap(new ScalarMap(ir_radiance, Display.XAxis));
+    dpys[1].addMap(new ScalarMap(abstract_vis_radiance, Display.ZAxis));
+    dpys[1].addMap(new ScalarMap(abstract_ir_radiance, Display.XAxis));
     dpys[1].addMap(new ScalarMap(count, Display.YAxis));
     dpys[1].addMap(new ScalarMap(count, Display.Green));
     final DisplayRenderer dr0 = dpys[0].getDisplayRenderer();
@@ -113,11 +116,11 @@ public class Test00
 
     CellImpl cell = new CellImpl() {
       public void doAction() throws RemoteException, VisADException {
-        double vir = dr1.getDirectAxisValue(ir_radiance);
-        double vvis = dr1.getDirectAxisValue(vis_radiance);
+        double vir = dr1.getDirectAxisValue(abstract_ir_radiance);
+        double vvis = dr1.getDirectAxisValue(abstract_vis_radiance);
         double vc = dr1.getDirectAxisValue(count);
-        System.out.println("ir_radiance = " + vir + " count = " + vc +
-                           " vis_radiance = " + vvis);
+        System.out.println("specific_ir_radiance = " + vir + " count = " + vc +
+                           " specific_vis_radiance = " + vvis);
 
         java.util.Vector csv = dr1.getCursorStringVectorUnconditional();
         for (int i=0; i<csv.size(); i++) {
