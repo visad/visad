@@ -348,6 +348,8 @@ System.out.println("spatial_locs = " + spatial_locs[0][0] + " " +
                    spatial_locs[1][1]);
 */
         float[][] earth_locs = spatialToEarth(spatial_locs);
+        // WLH - 18 Aug 99
+        if (earth_locs == null) return;
 /*
 System.out.println("earth_locs = " + earth_locs[0][0] + " " +
                    earth_locs[0][1] + " " + earth_locs[1][0] + " " +
@@ -538,7 +540,7 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
 
         // link wind record to a CellImpl that will listen for changes
         // and print them
-        WindGetter cell = new WindGetter(refs[k]);
+        WindGetterJ2D cell = new WindGetterJ2D(refs[k]);
         cell.addReference(refs[k]);
 
         k++;
@@ -546,7 +548,7 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
     }
 
     // instead of linking the wind record "DataReferenceImpl refs" to
-    // the WindGetters, you can have some user interface event (e.g.,
+    // the WindGetterJ2Ds, you can have some user interface event (e.g.,
     // the user clicks on "DONE") trigger code that does a getData() on
     // all the refs and stores the records in a file.
 
@@ -572,10 +574,10 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
   }
 }
 
-class WindGetter extends CellImpl {
+class WindGetterJ2D extends CellImpl {
   DataReferenceImpl ref;
 
-  public WindGetter(DataReferenceImpl r) {
+  public WindGetterJ2D(DataReferenceImpl r) {
     ref = r;
   }
 

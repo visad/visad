@@ -377,7 +377,9 @@ public abstract class ShadowTypeJ3D extends ShadowType {
                                              constant_alpha);
       }
       else {
-        c_alpha = new TransparencyAttributes(mode.getTransparencyMode(), 1.0f);
+        // WLH - 18 Aug 99 - how could this have gone undetected for so long?
+        // c_alpha = new TransparencyAttributes(mode.getTransparencyMode(), 1.0f);
+        c_alpha = new TransparencyAttributes(mode.getTransparencyMode(), 0.0f);
       }
       ColoringAttributes c_color = null;
       if (constant_color != null && constant_color.length == 3) {
