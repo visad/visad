@@ -1253,7 +1253,7 @@ public class SliceManager
           GriddedSet flat_set = (GriddedSet) flat.getDomainSet();
           nf.setSample(i, flat.resample(
             new Integer2DSet(flat_set.getType(), res_x, res_y),
-            Data.WEIGHTED_AVERAGE, Data.NO_ERRORS));
+            Data.WEIGHTED_AVERAGE, Data.NO_ERRORS), false);
         }
         sliceField = (FlatField) nf.domainMultiply();
       }
