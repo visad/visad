@@ -51,7 +51,7 @@ public class PlotText extends Object {
 
   /* vector characters  -- (100 + x) value indicates beginning of segment */
   /* characters are ordered by ASCII collating sequence, starting at 0x20 */
-  static float[][] chars = {
+  static float[][] charCodes = {
       
 	{100f,0f}, // sp
 	{101f,8f,1f,3f,3f,3f,3f,8f,1f,8f,101f,1f,1f,0f,3f,0f,3f,1f,1f,1f}, // !
@@ -69,7 +69,7 @@ public class PlotText extends Object {
 	{100f,4f,5f,4f}, // -
 	{102f,0f,3f,0f,3f,1f,2f,1f,2f,0f}, // .
 	{100f,0f,5f,8f}, // /
-	{101f,8f,0f,7f,0f,1f,1f,0f,4f,0f,5f,1f,5f,7f,4f,8f,1f,8f}, // 0
+	{102f,8f,0f,6f,0f,2f,2f,0f,3f,0f,5f,2f,5f,6f,3f,8f,2f,8f}, // 0
 	{101f,7f,2.5f,8f,2.5f,0f,1f,0f,4f,0f}, // 1
 	{100f,7f,1f,8f,4f,8f,5f,7f,5f,5f,0f,0f,5f,0f}, // 2
 	{100f,7f,1f,8f,4f,8f,5f,7f,5f,5f,4f,4f,3f,4f,4f,4f,5f,3f,5f,1f,4f,0f,1f,0f,0f,1f}, // 3
@@ -84,7 +84,7 @@ public class PlotText extends Object {
 	{105f,7f,0f,4f,5f,1f}, // <
 	{100f,5f,5f,5f,100f,3f,5f,3f}, // =
 	{100f,7f,5f,4f,0f,1f}, // >
-	{100f,7f,1f,8f,4f,8f,5f,7f,5f,5f,4f,4f,2.5f,4f,2.5f,3f,102.5f,1f,2.5f,0f}, // ?
+	{100f,7f,1f,8f,4f,8f,5f,7f,5f,5f,4f,4f,2.5f,4f,2.5f,2f,102.5f,1f,2.5f,0f}, // ?
 	{104f,0f,1f,0f,0f,1f,0f,7f,1f,8f,4f,8f,5f,7f,5f,3f,4f,1.5f,3f,2f,1.5f,4f,1.5f,5f,2.5f,6f,4f,5f,3f,2f},   // @
 	{100f,0f,0f,7f,1f,8f,4f,8f,5f,7f,5f,0f,5f,4f,0f,4f}, // A
 	{100f,8f,0f,0f,4f,0f,5f,1f,5f,3f,4f,4f,5f,5f,5f,7f,4f,8f,0f,8f,0f,4f,4f,4f}, // B
@@ -128,16 +128,17 @@ public class PlotText extends Object {
 	{100f,8f,0f,0f,0f,3f,3f,5f,4f,5f,5f,4f,5f,0f}, // h
 	{103f,4f,3f,0f,4f,0f,1f,0f,103f,6.5f,3f,5.5f}, // i
 	{104f,4f,4f,-3f,3f,-4f,1f,-4f,0f,-3f,0f,-1f,1f,0f,104f,6.5f,4f,5.5f}, // j
-	{101f,8f,1f,0f,1f,3f,4f,5f,1f,3f,4f,0f}, // k
-	{103f,8f,3f,0f}, // l
+	{101f,8f,1f,0f,101f,3f,5f,5f,101f,3f,5f,0f}, // k
+	{102f,8f,3f,8f,3f,0f}, // l
 	{100f,0f,0f,5f,0f,4f,1f,5f,4f,5f,5f,4f,5f,0f,102.5f,5f,2.5f,2.0f}, // m
 	{100f,0f,0f,5f,0f,4f,1f,5f,4f,5f,5f,3f,5f,0f}, // n
 	{101f,0f,0f,1f,0f,4f,1f,5f,4f,5f,5f,4f,5f,1f,4f,0f,1f,0f}, // o
 	{100f,-4f,0f,1f,1f,0f,4f,0f,5f,1f,5f,4f,4f,5f,3f,5f,0f,3f,0f,1f,0f,5f}, // p
 	{105f,-4f,5f,1f,4f,0f,1f,0f,0f,1f,0f,4f,1f,5f,3f,5f,5f,3f,5f,1f,5f,5f}, // q
 	{100f,5f,0f,0f,0f,3f,3f,5f,4f,5f,5f,4f}, // r
-	{105f,4f,4f,5f,3f,5f,1f,3.5f,3f,3f,4f,3f,5f,1f,4f,0f,3f,0f,1f,1f}, // s 
-	{102.5f,8f,2.5f,0f,101f,5f,4f,5f}, // t
+	{105f,4f,3f,5f,2f,5f,0f,4f,0f,3f,5f,2f,5f,1f,3f,0f,2f,0f,0f,1f}, // s
+	// {105f,4f,4f,5f,3f,5f,1f,3.5f,3f,3f,4f,3f,5f,1f,4f,0f,3f,0f,1f,1f}, // s 
+	{102.5f,8f,2.5f,0f,100.5f,5f,4.5f,5f}, // t
 	{100f,5f,0f,1f,1f,0f,3f,0f,5f,3f,5f,5f,5f,0f}, // u
 	{100f,5f,0f,3f,2.5f,0f,5f,3f,5f,5f}, // v
 	{100f,5f,0f,0f,2.5f,3f,5f,0f,5f,5f}, // w
@@ -249,7 +250,7 @@ public class PlotText extends Object {
       k = str.charAt(i) - 32;
       if (k < 0 || k > 127) continue; // invalid - just skip
       
-      int verts = chars[k].length/2;
+      int verts = charCodes[k].length/2;
 
       /* make the vertex array for this character */
       /* points with x>9 are 'start new segment' flag */
@@ -263,7 +264,7 @@ public class PlotText extends Object {
         if (j == (verts - 1) ) dup_point = false; // don't dupe last point
 
         double x, y;
-        x = (double) chars[k][temp_index]*.1;
+        x = (double) charCodes[k][temp_index]*.1;
         if (x > 9.0) {
           if (j != 0) plot_index -= 3; // reset pointer to remove last point
           x = x - 10.0;
@@ -271,7 +272,7 @@ public class PlotText extends Object {
         }
 
         temp_index++;
-        y = (double) chars[k][temp_index]*.1;
+        y = (double) charCodes[k][temp_index]*.1;
         temp_index++;
 
         plot[plot_index] = (float) (cx + x * base[0] + y * up[0]);
