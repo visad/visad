@@ -73,38 +73,6 @@ public class DisplaySyncImpl
   }
 
   /**
-   * Finds the first <CODE>Control</CODE> associated with this
-   * <CODE>Display</CODE>.
-   *
-   * @param ctl The <CODE>Control</CODE> to find.
-   *
-   * @exception VisADException If multiple <CODE>Control</CODE>s of the
-   * 				same class type are found.
-   */
-  private Control findControl(Control ctl)
-    throws VisADException
-  {
-    Class ctlClass = ctl.getClass();
-
-    Control found = null;
-
-    ListIterator iter = myDisplay.getControlVector().listIterator();
-    while (iter.hasNext()) {
-      Control c = (Control )iter.next();
-      if (c.getClass().equals(ctlClass)) {
-        if (found != null) {
-          throw new VisADException("Multiple " + ctlClass.getName() +
-                                   " controls found");
-        }
-
-        found = c;
-      }
-    }
-
-    return found;
-  }
-
-  /**
    * Finds the first map associated with this <CODE>Display</CODE>
    * which matches the specified <CODE>ScalarMap</CODE>.
    *
@@ -281,14 +249,8 @@ public class DisplaySyncImpl
       // !!! DON'T FORWARD INIT EVENTS TO LISTENERS !!!
 
       rmtCtl = ((ControlMonitorEvent )e).getControl();
-      try {
-        lclCtl = findControl(rmtCtl);
-      } catch (VisADException ve) {
-        throw new RemoteVisADException("Control " + rmtCtl +
-                                       " not found by " + Name + ": " +
-                                       ve.getMessage());
-      }
-
+      lclCtl = myDisplay.getControl(rmtCtl.getClass(),
+                                    rmtCtl.getInstanceNumber());
       if (lclCtl == null) {
         // didn't find control ... maybe it doesn't exist yet?
         break;
@@ -306,13 +268,8 @@ public class DisplaySyncImpl
       break;
     case MonitorEvent.CONTROL_CHANGED:
       rmtCtl = ((ControlMonitorEvent )e).getControl();
-      try {
-        lclCtl = findControl(rmtCtl);
-      } catch (VisADException ve) {
-        throw new RemoteVisADException("Control " + rmtCtl +
-                                       " not found by " + Name + ": " +
-                                       ve.getMessage());
-      }
+      lclCtl = myDisplay.getControl(rmtCtl.getClass(),
+                                    rmtCtl.getInstanceNumber());
 
       // skip this if we have change events to deliver for this control
       if (monitor.hasEventQueued(e.getOriginator(), lclCtl)) {
