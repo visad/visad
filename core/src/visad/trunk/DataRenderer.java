@@ -886,7 +886,7 @@ if (map.badRange()) {
 
     int lat_index_local = -1;
     int lon_index_local = -1;
-    other_index = -1;
+    int other_index_local = -1;
     int n = 0;
     int m = 0;
     if (d_i != null) {
@@ -926,8 +926,8 @@ if (map.badRange()) {
       lat_lon_spatial = false;
       lat_lon_dimension = n;
       if (n == 3) {
-        other_index = 3 - (lat_index_local + lon_index_local);
-        if (Unit.canConvert(d_u_i[other_index], CommonUnit.meter)) {
+        other_index_local = 3 - (lat_index_local + lon_index_local);
+        if (Unit.canConvert(d_u_i[other_index_local], CommonUnit.meter)) {
           other_meters = true;
         }
       }
@@ -935,6 +935,7 @@ if (map.badRange()) {
     else { // if( !(lat & lon in di, di dimension = 2 or 3) )
       lat_index_local = -1;
       lon_index_local = -1;
+      other_index_local = -1;
       if (d_o != null) {
         m = d_o.getDimension();
         for (int i=0; i<m; i++) {
@@ -976,8 +977,8 @@ if (map.badRange()) {
       lat_lon_spatial = false;
       lat_lon_dimension = m;
       if (m == 3) {
-        other_index = 3 - (lat_index_local + lon_index_local);
-        if (Unit.canConvert(d_u_i[other_index], CommonUnit.meter)) {
+        other_index_local = 3 - (lat_index_local + lon_index_local);
+        if (Unit.canConvert(d_u_i[other_index_local], CommonUnit.meter)) {
           other_meters = true;
         }
       }
@@ -991,6 +992,7 @@ if (map.badRange()) {
     data_coord_in = d_c_i; // may be one per point
     lat_index = lat_index_local;
     lon_index = lon_index_local;
+    other_index = other_index_local;
     return;
   }
 
