@@ -15,7 +15,7 @@ import visad.data.BadFormException;
  */
 class
 CoordVar
-    extends Var
+    extends ExportVar
 {
     /**
      * The linear, sampling domain set.

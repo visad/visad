@@ -37,7 +37,7 @@ NcNestedFunction
      *						object.
      * @exception IOException			I/O error.
      */
-    NcNestedFunction(NcVar[] vars)
+    NcNestedFunction(ImportVar[] vars)
 	throws UnimplementedException, VisADException, IOException
     {
 	initialize(new NcDim[] {vars[0].getDimensions()[0]}, vars);

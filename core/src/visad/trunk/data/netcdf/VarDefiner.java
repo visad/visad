@@ -1,6 +1,7 @@
 package visad.data.netcdf;
 
 
+import java.rmi.RemoteException;
 import ucar.multiarray.Accessor;
 import ucar.netcdf.Dimension;
 import ucar.netcdf.ProtoVariable;
@@ -66,7 +67,8 @@ VarDefiner
      */
     public boolean
     visit(FlatField field)
-	throws BadFormException, UnimplementedException, VisADException
+	throws BadFormException, UnimplementedException, VisADException,
+	    RemoteException
     {
 	Set	set = field.getDomainSet();
 
@@ -201,7 +203,8 @@ VarDefiner
 		{
 		    RealVar	var = new RealVar(
 			((RealType)rangeType).getName(),
-			dims, rangeUnits[0][0], field);
+			dims, rangeUnits[0][0], field, 
+			((RealType)rangeType).getDefaultSet());
 
 		    adapter.add(var);
 		}

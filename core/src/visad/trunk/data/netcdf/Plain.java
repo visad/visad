@@ -145,7 +145,7 @@ Plain
 	String	outPath = "plain.nc";
 
 	if (args.length == 0)
-	    inPath = "big.nc";
+	    inPath = "test.nc";
 	else
 	    inPath = args[0];
 

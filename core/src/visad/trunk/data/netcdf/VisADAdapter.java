@@ -39,7 +39,7 @@ VisADAdapter
      * Add a netCDF variable (called by VarDefiner).
      */
     void
-    add(Var var)
+    add(ExportVar var)
 	throws BadFormException
     {
 	try

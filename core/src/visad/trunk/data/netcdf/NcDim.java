@@ -20,6 +20,7 @@ NcDim
      */
     static NcDim
     create(Dimension dim, Netcdf netcdf)
+	throws VisADException
     {
 	Variable	var = netcdf.get(dim.getName());
 
@@ -109,7 +110,7 @@ NcDim
     /**
      * Return the co-ordinate variable associated with this dimension.
      */
-    NcVar
+    ImportVar
     getCoordVar()
     {
 	return null;
@@ -127,7 +128,7 @@ NcCoordDim
     /**
      * The associated coordinate variable.
      */
-    protected final NcVar	coordVar;
+    protected final ImportVar	coordVar;
 
 
     /**
@@ -139,9 +140,10 @@ NcCoordDim
      */
     protected
     NcCoordDim(Dimension dim, Netcdf netcdf)
+	throws VisADException
     {
 	super(dim);
-	coordVar = NcVar.create(netcdf.get(dim.getName()), netcdf);
+	coordVar = ImportVar.create(netcdf.get(dim.getName()), netcdf);
     }
 
 
@@ -158,7 +160,7 @@ NcCoordDim
     /**
      * Return the co-ordinate variable associated with this dimension.
      */
-    NcVar
+    ImportVar
     getCoordVar()
     {
 	return coordVar;

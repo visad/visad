@@ -2,6 +2,7 @@ package visad.data.netcdf;
 
 
 import java.io.IOException;
+import visad.CoordinateSystem;
 import visad.DataImpl;
 import visad.FieldImpl;
 import visad.FlatField;
@@ -19,6 +20,7 @@ import visad.RealTupleType;
 import visad.RealType;
 import visad.Set;
 import visad.UnimplementedException;
+import visad.Unit;
 import visad.VisADException;
 
 
@@ -32,12 +34,12 @@ NcFunction
     /**
      * The netCDF dimensions of the function domain IN VisAD ORDER:
      */
-    protected /*final*/ NcDim[]	dims;
+    protected /*final*/ NcDim[]		dims;
 
     /**
      * The netCDF variables of the function range:
      */
-    protected /*final*/ NcVar[]	vars;
+    protected /*final*/ ImportVar[]	vars;
 
 
     /**
@@ -58,7 +60,7 @@ NcFunction
      *						VisAD object.
      * @exception IOException			I/O error.
      */
-    NcFunction(NcVar[] vars)
+    NcFunction(ImportVar[] vars)
 	throws UnimplementedException, VisADException, IOException
     {
 	initialize(vars[0].getDimensions(), vars);
@@ -75,7 +77,7 @@ NcFunction
      * @exception IOException			I/O error.
      */
     protected void
-    initialize(NcDim[] varDims, NcVar[] vars)
+    initialize(NcDim[] varDims, ImportVar[] vars)
 	throws UnimplementedException, VisADException, IOException
     {
 	this.vars = vars;
@@ -163,8 +165,10 @@ NcFunction
     getData()
 	throws IOException, VisADException
     {
+	// TODO: Support units
 	FlatField	field =
-	    new FlatField((FunctionType)mathType, getDomainSet());
+	    new FlatField((FunctionType)mathType, getDomainSet(),
+		(CoordinateSystem)null, getRangeSets(), (Unit[])null);
 
 	field.setSamples(getRangeValues());
 
@@ -181,7 +185,7 @@ NcFunction
     {
 	Set		domainSet;
 	int		rank = dims.length;
-	NcVar[]		coordVars = new NcVar[rank];
+	ImportVar[]	coordVars = new ImportVar[rank];
 	boolean		noCoordVars = true;
 	boolean	 	allCoordVarsAreArithProgs = true;
 	ArithProg[]	aps = new ArithProg[rank];
@@ -269,7 +273,7 @@ NcFunction
      *			a LinearSet.
      */
     protected LinearSet
-    getLinearSet(ArithProg[] aps, NcVar[] coordVars)
+    getLinearSet(ArithProg[] aps, ImportVar[] coordVars)
 	throws VisADException
     {
 	int		rank = dims.length;
@@ -312,7 +316,7 @@ NcFunction
      * @precondition	The domain-set of this function is a GriddedSet.
      */
     protected GriddedSet
-    getGriddedSet(NcVar[] coordVars)
+    getGriddedSet(ImportVar[] coordVars)
 	throws VisADException, IOException
     {
 	int		rank = dims.length;
@@ -355,6 +359,17 @@ NcFunction
 
 
     /**
+     * Return the range Sets of this function.
+     */
+    protected Set[]
+    getRangeSets()
+    {
+	// TODO: implement
+	return null;
+    }
+
+
+    /**
      * Return the range values of this function as doubles.
      */
     protected double[][]
@@ -390,7 +405,7 @@ NcInnerFunction
      *						VisAD object.
      * @exception IOException			I/O error.
      */
-    NcInnerFunction(NcVar[] vars)
+    NcInnerFunction(ImportVar[] vars)
 	throws UnimplementedException, VisADException, IOException
     {
 	NcDim[]	varDims = vars[0].getDimensions();

@@ -40,7 +40,7 @@ Domain
     /**
      * The netCDF variables of the domain:
      */
-    protected final NcVar[]	vars;
+    protected final ImportVar[]	vars;
 
     /**
      * The VisAD sampled set of the domain:
@@ -56,7 +56,7 @@ Domain
      * @exception VisADException	Couldn't create necessary VisAD object.
      * @exception IOException		I/O error.
      */
-    Domain(NcVar[] vars)
+    Domain(ImportVar[] vars)
 	throws UnimplementedException, VisADException, IOException
     {
 	if (vars.length == 0)
@@ -109,7 +109,7 @@ Domain
     /**
      * Return the variables associated with this domain.
      */
-    NcVar[]
+    ImportVar[]
     getVariables()
     {
 	return vars;

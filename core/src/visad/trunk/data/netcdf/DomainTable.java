@@ -42,7 +42,7 @@ DomainTable
      * @exception VisADException	Couldn't create necessary VisAD object.
      */
     void
-    put(NcVar var)
+    put(ImportVar var)
 	throws BadFormException, VisADException
     {
 	// System.out.println(this.getClass().getName() + 
@@ -226,7 +226,7 @@ DomainTable
 	/**
 	 * Construct.
 	 */
-	Entry(NcVar var)
+	Entry(ImportVar var)
 	    throws BadFormException, VisADException
 	{
 	    NcDim[]	dims = var.getDimensions();
@@ -254,7 +254,7 @@ DomainTable
 	 * Add a variable to the list of variables in this entry.
 	 */
 	void
-	add(NcVar var)
+	add(ImportVar var)
 	{
 	    if (!vars.contains(var))
 		vars.addElement(var);
@@ -264,10 +264,10 @@ DomainTable
 	/**
 	 * Return the variables in the domain.
 	 */
-	NcVar[]
+	ImportVar[]
 	getVariables()
 	{
-	    NcVar[]	vec = new NcVar[vars.size()];
+	    ImportVar[]	vec = new ImportVar[vars.size()];
 
 	    vars.copyInto(vec);
 
@@ -303,8 +303,8 @@ DomainTable
 	// TODO
 	/*
 	NcDim[]		dims = {new NcDim("dim0", 4), new NcDim("dim1", 5)};
-	NcVar		var0 = new NcFloat("var0", dims);
-	NcVar		var1 = new NcFloat("var1", dims);
+	ImportVar	var0 = new NcFloat("var0", dims);
+	ImportVar	var1 = new NcFloat("var1", dims);
 
 	DomainTable	domTable = new DomainTable(7);
 

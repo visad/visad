@@ -14,10 +14,6 @@ import visad.FieldImpl;
 import visad.MathType;
 import visad.VisADException;
 import visad.data.BadFormException;
-import visad.data.netcdf.NcFunction;
-import visad.data.netcdf.NcNestedFunction;
-import visad.data.netcdf.NcDim;
-import visad.data.netcdf.NcVar;
 
 
 /**
@@ -68,7 +64,7 @@ NetcdfAdapter
 	VariableIterator	varIter = netcdf.iterator();
 	while (varIter.hasNext())
 	{
-	    NcVar	var = NcVar.create(varIter.next(), netcdf);
+	    ImportVar	var = ImportVar.create(varIter.next(), netcdf);
 
 	    // TODO: support scalars
 	    if (!var.isText() && !var.isCoordinateVariable() &&
