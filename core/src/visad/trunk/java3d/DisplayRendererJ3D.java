@@ -115,8 +115,6 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
   private BranchGroup scale_on = null, scale_off = null;
   /** on / off state of cursor in GraphicsModeControl */
 
-  /** distance threshhold for successful pick */
-  private static final float PICK_THRESHHOLD = 0.05f;
   /** Vector of DirectManipulationRenderers */
   private Vector directs = new Vector();
 
@@ -734,7 +732,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
         renderer = r;
       }
     }
-    if (distance < PICK_THRESHHOLD) {
+    if (distance < getPickThreshhold()) {
       return renderer;
     }
     else {

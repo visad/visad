@@ -72,10 +72,21 @@ public abstract class DisplayRenderer
   /** Set to true if the cursor location Strings should be displayed. */
   private boolean cursor_string = true;
 
+  /** threshhold for direct manipulation picking */
+  private float pickThreshhold = 0.05f;
+
   /**
    * Construct a new <CODE>DisplayRenderer</CODE>.
    */
   public DisplayRenderer () {
+  }
+
+  public float getPickThreshhold() {
+    return pickThreshhold;
+  }
+
+  public void setPickThreshhold(float pt) {
+    pickThreshhold = pt;
   }
 
   /**

@@ -102,8 +102,6 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
   private VisADGroup scale_on = null, scale_off = null;
   /** on / off state of cursor in GraphicsModeControl */
 
-  /** distance threshhold for successful pick */
-  private static final float PICK_THRESHHOLD = 0.05f;
   /** Vector of DirectManipulationRenderers */
   private Vector directs = new Vector();
 
@@ -638,7 +636,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
         renderer = r;
       }
     }
-    if (distance < PICK_THRESHHOLD) {
+    if (distance < getPickThreshhold()) {
       return renderer;
     }
     else {
