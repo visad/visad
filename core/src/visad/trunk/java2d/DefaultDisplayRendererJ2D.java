@@ -87,6 +87,36 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
   }
 
   /**
+   * Internal method used to initialize newly created
+   * <CODE>RendererControl</CODE> with current renderer settings
+   * before it is actually connected to the renderer.  This
+   * means that changes will not generate <CODE>MonitorEvent</CODE>s.
+   */
+  public void initControl(RendererControl ctl)
+  {
+    // initialize box colors
+    if (box != null) {
+      try {
+        ctl.setBoxColor(box.red, box.green, box.blue);
+      } catch (Throwable t) {
+        // ignore any initialization problems
+      }
+    }
+
+    // initialize cursor colors
+    if (cursor != null) {
+      try {
+        ctl.setBoxColor(cursor.red, cursor.green, cursor.blue);
+      } catch (Throwable t) {
+        // ignore any initialization problems
+      }
+    }
+
+    // make any changes to the superclass values
+    super.initControl(ctl);
+  }
+
+  /**
    * Utility routine which updates a <CODE>VisADAppearance</CODE> object
    * to use the colors specified in the <CODE>float[3]</CODE> array.
    * @param appear Currently used colors.
@@ -95,6 +125,10 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
    */
   private final boolean updateColors(VisADAppearance appear, float[] colors)
   {
+    if (appear == null) {
+      return false;
+    }
+
     boolean fixed = false;
     for (int i = 0; i < 3; i++) {
 
@@ -173,9 +207,10 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
     box_array.vertexCount = 8;
 
     box = new VisADAppearance();
-    box.red = 1.0f;
-    box.green = 1.0f;
-    box.blue = 1.0f;
+    float[] ctlBox = getRendererControl().getBoxColor();
+    box.red = ctlBox[0];
+    box.green = ctlBox[1];
+    box.blue = ctlBox[2];
     box.color_flag = true;
     box.array = box_array;
     // add box to root
@@ -191,9 +226,10 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
     cursor_array.vertexCount = 4;
 
     cursor = new VisADAppearance();
-    cursor.red = 1.0f;
-    cursor.green = 1.0f;
-    cursor.blue = 1.0f;
+    float[] ctlCursor = getRendererControl().getCursorColor();
+    cursor.red = ctlCursor[0];
+    cursor.green = ctlCursor[1];
+    cursor.blue = ctlCursor[2];
     cursor.color_flag = true;
     cursor.array = cursor_array;
     // add cursor to cursor_on branch

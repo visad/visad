@@ -94,6 +94,7 @@ public abstract class DisplayRenderer
     // reinitialize rendererControl
     if (rendererControl == null) {
       rendererControl = new RendererControl(display);
+      initControl(rendererControl);
     } else {
       RendererControl rc = new RendererControl(display);
       rc.syncControl(rendererControl);
@@ -102,6 +103,14 @@ public abstract class DisplayRenderer
     rendererControl.addControlListener(this);
     display.addControl(rendererControl);
   }
+
+  /**
+   * Internal method used to initialize newly created
+   * <CODE>RendererControl</CODE> with current renderer settings
+   * before it is actually connected to the renderer.  This
+   * means that changes will not generate <CODE>MonitorEvent</CODE>s.
+   */
+  public abstract void initControl(RendererControl ctl);
 
   /**
    * Get the <CODE>Display</CODE> associated with this renderer.

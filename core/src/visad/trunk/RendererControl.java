@@ -37,7 +37,7 @@ public class RendererControl
 {
   private transient DisplayRenderer renderer = null;
 
-  private float[] backgroundColor = new float[] { 1.0f, 1.0f, 1.0f};
+  private float[] backgroundColor = new float[] { 0.0f, 0.0f, 0.0f};
   private float[] boxColor = new float[] { 1.0f, 1.0f, 1.0f};
   private float[] cursorColor = new float[] { 1.0f, 1.0f, 1.0f};
 
