@@ -62,8 +62,14 @@ public class AlignToolPanel extends ToolPanel {
   /** Toggle for drift correction. */
   private JCheckBox drift;
 
-  /** Toggle for drift correction shape lockdown. */
-  private JCheckBox lock;
+  /** Free alignment plane movement mode. */
+  private JRadioButton shape;
+
+  /** Constrained alignment plane movement mode. */
+  private JRadioButton orient;
+
+  /** Mode for applying alignment plane settings. */
+  private JRadioButton apply;
 
   /** Legend labels. */
   private JLabel legend, redLabel, yellowLabel, blueLabel;
@@ -89,6 +95,7 @@ public class AlignToolPanel extends ToolPanel {
         bio.toolMeasure.updateFileButtons();
       }
     });
+    useMicrons.setMnemonic('m');
     useMicrons.setToolTipText("Computes distances in terms of microns",
       "Width of each image in microns",
       "Height of each image in microns");
@@ -100,6 +107,10 @@ public class AlignToolPanel extends ToolPanel {
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     sliceDistLabel = new JLabel("Microns between slices: ");
     sliceDistLabel.setForeground(Color.black);
+    sliceDistLabel.setDisplayedMnemonic('b');
+    String sliceDistToolTip =
+      "Specifies the distance between image slices, in microns";
+    sliceDistLabel.setToolTipText(sliceDistToolTip);
     sliceDistLabel.setEnabled(false);
     p.add(sliceDistLabel);
 
@@ -117,8 +128,8 @@ public class AlignToolPanel extends ToolPanel {
         bio.toolMeasure.updateFileButtons();
       }
     });
-    sliceDistance.setToolTipText("Specifies the " +
-      "distance between image slices, in microns");
+    sliceDistLabel.setLabelFor(sliceDistance);
+    sliceDistance.setToolTipText(sliceDistToolTip);
     sliceDistance.setEnabled(false);
     p.add(sliceDistance);
     controls.add(pad(p));
@@ -128,6 +139,7 @@ public class AlignToolPanel extends ToolPanel {
     zAspect.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) { updateAspect(true); }
     });
+    zAspect.setMnemonic('z');
     zAspect.setToolTipText("Adjusts slice spacing to match " +
       "distance between slices");
     zAspect.setEnabled(false);
@@ -143,23 +155,67 @@ public class AlignToolPanel extends ToolPanel {
     drift.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         boolean doDrift = drift.isSelected();
-        bio.sm.align.toggle(doDrift);
+        shape.setEnabled(doDrift);
+        orient.setEnabled(doDrift);
+        apply.setEnabled(doDrift);
       }
     });
-    drift.setToolTipText("Toggles image stack alignment mode");
+    drift.setMnemonic('d');
+    drift.setToolTipText("Toggles image stack alignment functions");
     drift.setEnabled(false);
     controls.add(pad(drift));
 
-    // drift correction shape lockdown checkbox
-    lock = new JCheckBox("Lock size and shape", false);
-    lock.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
-        boolean doLock = lock.isSelected();
-        bio.sm.align.setLocked(doLock);
+    // adjust shape radio button
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    JPanel p2 = new JPanel();
+    p2.setLayout(new BoxLayout(p2, BoxLayout.Y_AXIS));
+    ButtonGroup alignGroup = new ButtonGroup();
+    shape = new JRadioButton("Adjust size and shape", true);
+    shape.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        bio.sm.align.toggle(true);
+        bio.sm.align.setLocked(false);
       }
     });
-    lock.setEnabled(false);
-    controls.add(pad(lock));
+    shape.setMnemonic('s');
+    shape.setToolTipText("Allows free placement of alignment plane");
+    alignGroup.add(shape);
+    shape.setAlignmentX(JRadioButton.LEFT_ALIGNMENT);
+    shape.setEnabled(false);
+    p2.add(shape);
+
+    // adjust orientation radio button
+    orient = new JRadioButton("Adjust orientation", false);
+    orient.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        bio.sm.align.toggle(true);
+        bio.sm.align.setLocked(true);
+      }
+    });
+    orient.setMnemonic('o');
+    orient.setToolTipText(
+      "Allows reorienting of plane's location, but not its shape");
+    alignGroup.add(orient);
+    orient.setAlignmentX(JRadioButton.LEFT_ALIGNMENT);
+    orient.setEnabled(false);
+    p2.add(orient);
+
+    // apply alignment radio button
+    apply = new JRadioButton("Apply alignment to data", false);
+    apply.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        bio.sm.align.toggle(false);
+      }
+    });
+    apply.setMnemonic('a');
+    apply.setToolTipText("Hides the plane and applies alignment settings");
+    alignGroup.add(apply);
+    apply.setAlignmentX(JRadioButton.LEFT_ALIGNMENT);
+    apply.setEnabled(false);
+    p2.add(apply);
+    p.add(p2);
+    controls.add(pad(p));
 
     // spacing
     controls.add(Box.createVerticalStrut(5));
@@ -167,18 +223,21 @@ public class AlignToolPanel extends ToolPanel {
     // drift correction legend - header label
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    JPanel p2 = new JPanel();
+    p2 = new JPanel();
     p2.setLayout(new BoxLayout(p2, BoxLayout.Y_AXIS));
-    legend = new JLabel("When locked:");
+    legend = new JLabel("When in orientation adjustment mode:");
     legend.setForeground(Color.black);
     legend.setAlignmentX(JLabel.LEFT_ALIGNMENT);
     legend.setEnabled(false);
     p2.add(legend);
     Dimension square = new Dimension(12, 12);
 
-    // drift correction legend - red color block
+    // drift correction legend - space before red block
     JPanel p3 = new JPanel();
     p3.setLayout(new BoxLayout(p3, BoxLayout.X_AXIS));
+    p3.add(Box.createHorizontalStrut(10));
+
+    // drift correction legend - red color block
     redBar = new ColorBar(1, 0, 0);
     redBar.setPreferredSize(square);
     redBar.setMaximumSize(square);
@@ -194,9 +253,12 @@ public class AlignToolPanel extends ToolPanel {
     p3.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     p2.add(p3);
 
-    // drift correction legend - yellow color block
+    // drift correction legend - space before yellow block
     p3 = new JPanel();
     p3.setLayout(new BoxLayout(p3, BoxLayout.X_AXIS));
+    p3.add(Box.createHorizontalStrut(10));
+
+    // drift correction legend - yellow color block
     yellowBar = new ColorBar(1, 1, 0);
     yellowBar.setPreferredSize(square);
     yellowBar.setMaximumSize(square);
@@ -212,9 +274,12 @@ public class AlignToolPanel extends ToolPanel {
     p3.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     p2.add(p3);
 
-    // drift correction legend - blue color block
+    // drift correction legend - space before yellow block
     p3 = new JPanel();
     p3.setLayout(new BoxLayout(p3, BoxLayout.X_AXIS));
+    p3.add(Box.createHorizontalStrut(10));
+
+    // drift correction legend - blue color block
     blueBar = new ColorBar(0, 0, 1);
     blueBar.setPreferredSize(square);
     blueBar.setMaximumSize(square);
@@ -253,7 +318,6 @@ public class AlignToolPanel extends ToolPanel {
       zAspect.setEnabled(false);
     }
     drift.setEnabled(enabled);
-    lock.setEnabled(enabled);
     legend.setEnabled(enabled);
     redBar.setEnabled(enabled);
     redLabel.setEnabled(enabled);
