@@ -3,6 +3,7 @@
 #      ftp://ftp.microsoft.com/Softlib/MSLFILES/nmake15.exe)
 # To compile VisAD using this Makefile, type:
 #      nmake -f Makefile.WinNT compile
+# To compile VisAD in a Unix-based system, use Makefile instead.
 
 # VisAD system for interactive analysis and visualization of numerical
 # data.  Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
@@ -39,6 +40,11 @@ default:
 
 JC = javac
 JFLAGS = -J-mx32m
+
+# to always use IBM's 'jikes' compiler, uncomment the following two lines
+#JC = jikes
+#JFLAGS =
+
 RMIC = rmic
 
 .java.class:
@@ -521,3 +527,7 @@ docs:
 	if not exist $(DOCS_DIR) mkdir $(DOCS_DIR)
 	$(DOC) $(DOCFLAGS) $(VISAD_PACKAGES)
 
+jikes_compile:
+	@nmake /nologo -f Makefile.WinNT compile \
+	"JC = jikes" \
+        "JFLAGS = "
