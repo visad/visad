@@ -70,9 +70,6 @@ public class SimpleColorMapWidget
 
     // set min/max bounds for slider
     updateSlider(min, max);
-
-    // set up color table
-    ((BaseRGBMap )colorWidget.getColorMap()).setValues(table);
   }
 
   private Dimension maxSize = null;
