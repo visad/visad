@@ -342,9 +342,18 @@ public class DisplaySyncImpl
   public void stateChanged(MonitorEvent evt)
     throws RemoteException, RemoteVisADException
   {
-    if (evt.getType() == MonitorEvent.MAPS_CLEARED) {
+    switch (evt.getType()) {
+    case MonitorEvent.MAPS_CLEARED:
       synchronized (mapClearSync) {
         mapClearCount++;
+      }
+      break;
+    case MonitorEvent.CONTROL_CHANGED:
+      if (monitor.hasEventQueued(evt.getOriginator(),
+                                 ((ControlMonitorEvent )evt).getControl()))
+      {
+        // drop this event since we're about to override it
+        return;
       }
     }
 
