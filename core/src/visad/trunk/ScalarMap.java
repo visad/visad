@@ -49,7 +49,7 @@ public class ScalarMap extends Object implements java.io.Serializable {
   int ValueIndex;
 
   // control associated with DisplayScalar, or null
-  private Control control;
+  private transient Control control;
   // unique Display this ScalarMap is part of
   private transient DisplayImpl display;
 
