@@ -26,7 +26,7 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.util.*;
+import java.util.Hashtable;
 
 /**
    ScalarType is the superclass of the VisAD hierarchy of scalar data types.<P>
@@ -39,7 +39,7 @@ public abstract class ScalarType extends MathType {
 
   // Vector of scalar names used to make sure scalar names are unique
   // (within local VM)
-  private static Vector ScalarVector = new Vector();
+  private static Hashtable ScalarHash = new Hashtable();
 
   /** all scalar types have a name */
   public ScalarType(String name) throws VisADException {
@@ -54,33 +54,22 @@ public abstract class ScalarType extends MathType {
       throw new TypeException("ScalarType: name cannot contain " +
                               "space . ( or ) " + name);
     }
-    Enumeration scalars = ScalarVector.elements();
-    while (scalars.hasMoreElements()) {
-      ScalarType scalar = (ScalarType) scalars.nextElement();
-      if (scalar.getName().equals(name)) {
-        throw new TypeException("ScalarType: name already used");
-      }
+    if (ScalarHash.containsKey(name)) {
+      throw new TypeException("ScalarType: name already used");
     }
     Name = name;
-    ScalarVector.addElement(this);
+    ScalarHash.put(name, this);
   }
 
   /** trusted constructor for initializers */
   ScalarType(String name, boolean b) {
     super(b);
     Name = name;
-    ScalarVector.addElement(this);
+    ScalarHash.put(name, this);
   }
 
   public static ScalarType getScalarTypeByName(String name) {
-    Enumeration scalars = ScalarVector.elements();
-    while (scalars.hasMoreElements()) {
-      ScalarType scalar = (ScalarType) scalars.nextElement();
-      if (name.equals(scalar.Name)) {
-        return scalar;
-      }
-    }
-    return null;
+    return (ScalarType )ScalarHash.get(name);
   }
 
   public String getName() {
