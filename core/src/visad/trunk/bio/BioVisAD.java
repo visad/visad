@@ -352,10 +352,12 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
     // compute center and slope from brightness and contrast
     double mid = COLOR_DETAIL / 2.0;
-    double center = (double) brightness / COLOR_DETAIL;
     double slope;
     if (contrast <= mid) slope = contrast / mid;
     else slope = mid / (COLOR_DETAIL - contrast);
+    if (slope == Double.POSITIVE_INFINITY) slope = Double.MAX_VALUE;
+    double mag = slope + 1;
+    double center = mag * brightness / COLOR_DETAIL - 0.5 * (mag - 1);
 
     // compute color channel table values from center and slope
     float[] vals = new float[COLOR_DETAIL];
@@ -365,9 +367,15 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
       gvals = new float[COLOR_DETAIL];
       bvals = new float[COLOR_DETAIL];
       for (int i=0; i<COLOR_DETAIL; i++) {
-        rvals[i] = (float) (0.5 * slope * (rainbow[0][i] - 1.0) + center);
-        gvals[i] = (float) (0.5 * slope * (rainbow[1][i] - 1.0) + center);
-        bvals[i] = (float) (0.5 * slope * (rainbow[2][i] - 1.0) + center);
+        rvals[i] = (float) (slope * (rainbow[0][i] - 0.5) + center);
+        gvals[i] = (float) (slope * (rainbow[1][i] - 0.5) + center);
+        bvals[i] = (float) (slope * (rainbow[2][i] - 0.5) + center);
+        if (rvals[i] > 1) rvals[i] = 1;
+        if (rvals[i] < 0) rvals[i] = 0;
+        if (gvals[i] > 1) gvals[i] = 1;
+        if (gvals[i] < 0) gvals[i] = 0;
+        if (bvals[i] > 1) bvals[i] = 1;
+        if (bvals[i] < 0) bvals[i] = 0;
       }
     }
     else {

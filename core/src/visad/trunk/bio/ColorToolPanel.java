@@ -204,6 +204,19 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     controls.add(pad(colorize));
     cc++;
 
+    // divider between display functions and resolution functions
+    controls.add(Box.createVerticalStrut(10));
+    controls.add(new Divider());
+    controls.add(Box.createVerticalStrut(10));
+    cc += 3;
+
+    // color widget selector label
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    JLabel selLabel = new JLabel("Color table: ");
+    selLabel.setForeground(Color.black);
+    p.add(selLabel);
+
     // color widget selector
     selector = new JComboBox();
     selector.addActionListener(new ActionListener() {
@@ -214,7 +227,8 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
         }
       }
     });
-    controls.add(pad(selector));
+    p.add(selector);
+    controls.add(pad(p));
     cc++;
   }
 
