@@ -181,14 +181,18 @@ public class DateTime extends Object implements java.io.Serializable {
     return
            paddedIntString(DayOfMonth, 2, " ") + " " +
            month_names[Month-1] + " " +
+           paddedIntString(Year, 4, "0");
+/* WLH 30 April 99
            paddedIntString(Year, 4, "0") +
            " (" + day_names[DayOfWeek-1] + ")";
+*/
   }
 
   public String timeString() {
     return paddedIntString(Hour, 2, "0") + ":" +
            paddedIntString(Minute, 2, "0") + ":" +
-           paddedIntString(Second, 2, "0") + " GMT";
+           paddedIntString(Second, 2, "0");
+           // paddedIntString(Second, 2, "0") + " GMT"; WLH 30 April 99
   }
 
   static String paddedIntString(int val, int len, String pad) {

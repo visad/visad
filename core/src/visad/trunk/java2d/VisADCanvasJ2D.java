@@ -339,8 +339,9 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
             g2.setTransform(new AffineTransform());
             int nchars = animation_string[0].length();
             if (nchars < 12) nchars = 12;
-            float x = w - 9 * nchars;
-            float y = 10;
+            // float x = w - 9 * nchars; WLH 30 April 99
+            float x = w - 7 * nchars; 
+            float y = h - 12;
             g2.drawString(animation_string[0], x, y);
             g2.drawString(animation_string[1], x, y+10);
           }
