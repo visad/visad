@@ -1203,12 +1203,12 @@ time_offset looks like seconds since 0Z
        //-System.out.println("kk: "+kk+"  "+kinematics[4]);
         }
         else {
-        /**
+        /*
           System.out.println("tt: "+tt);
           System.out.println("len0: "+len0);
           System.out.println("len1: "+len1);
           System.out.println("len2: "+len2);
-         **/
+         */
         }
       }
 
