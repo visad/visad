@@ -80,7 +80,7 @@ public class Test65
     cc.setSurfaceValue(2.5f);
   }
 
-  String getFrameTitle() { return "VisAD widget test"; }
+  String getFrameTitle() { return "VisAD widget panel test"; }
 
   Component getSpecialComponent(LocalDisplay[] dpys)
     throws RemoteException, VisADException
@@ -88,7 +88,7 @@ public class Test65
     return dpys[0].getWidgetPanel();
   }
 
-  public String toString() { return ": test VisAD widgets"; }
+  public String toString() { return ": test VisAD widget panel"; }
 
   public static void main(String[] args)
     throws RemoteException, VisADException
