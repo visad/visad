@@ -107,7 +107,7 @@ public class MappingDialog extends JDialog implements ActionListener,
   static boolean Inited = false;
 
   /** For synchronization */
-  private Vector Lock = new Vector();
+  private Object Lock = new Object();
 
   /** Pre-load the display.gif file, so it's ready when
       mapping dialog is requested */
