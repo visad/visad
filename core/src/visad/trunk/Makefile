@@ -255,6 +255,7 @@ SAVE_FILES = \
 	visad/bio/*.java				\
 	visad/bio/*.html				\
 	visad/bio/*.gif					\
+	visad/bio/*.jpg					\
 	visad/paoloa/README.paoloa			\
 	visad/paoloa/Makefile				\
 	visad/paoloa/*.java				\
@@ -391,6 +392,7 @@ CLASS_FILES=	\
 	`echo $(ALL_PACKAGES)' ' | sed -e 's/\./\//g' -e 's/ /\/\*\.class /g'` \
 	visad/bio/*.html \
 	visad/bio/*.gif \
+	visad/bio/*.jpg \
 	visad/ss/*.gif \
 	visad/util/*.jhf
 
@@ -398,6 +400,7 @@ JAVA_FILES=	\
 	`echo $(ALL_PACKAGES)' ' | sed -e 's/\./\//g' -e 's/ /\/\*\.java /g'` \
 	visad/bio/*.html \
 	visad/bio/*.gif \
+	visad/bio/*.jpg \
 	visad/ss/*.gif \
 	visad/util/*.jhf
 

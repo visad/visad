@@ -137,6 +137,7 @@ visad\benjamin\*.table \
 visad\bio\*.java \
 visad\bio\*.html \
 visad\bio\*.gif \
+visad\bio\*.jpg \
 visad\bom\*.java \
 visad\browser\*.java \
 visad\browser\*.html \
@@ -352,6 +353,7 @@ visad\jmet\*.java \
 visad\bio\*.java \
 visad\bio\*.html \
 visad\bio\*.gif \
+visad\bio\*.jpg \
 visad\paoloa\README.paoloa \
 visad\paoloa\Makefile \
 visad\paoloa\*.java \
@@ -514,6 +516,8 @@ save:
 		$(DEL) $(BACKUP)\visad\bio\*.html
 	if exist $(BACKUP)\visad\bio\*.gif \
 		$(DEL) $(BACKUP)\visad\bio\*.gif
+	if exist $(BACKUP)\visad\bio\*.jpg \
+		$(DEL) $(BACKUP)\visad\bio\*.jpg
 	if exist $(BACKUP)\visad\paoloa\*.java \
 		$(DEL) $(BACKUP)\visad\paoloa\*.java
 	if exist $(BACKUP)\visad\paoloa\spline\*.java \
@@ -618,6 +622,7 @@ visad\jmet\*.class \
 visad\bio\*.class \
 visad\bio\*.html \
 visad\bio\*.gif \
+visad\bio\*.jpg \
 visad\paoloa\*.class \
 visad\paoloa\spline\*.class \
 visad\aune\*.class \

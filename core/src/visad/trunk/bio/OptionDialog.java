@@ -220,7 +220,8 @@ public class OptionDialog extends JPanel implements ActionListener {
     }
     else {
       JOptionPane.showMessageDialog(this,
-        "QTJava.zip not found. QuickTime support will remain disabled.",
+        "QTJava.zip not found. Make sure you have QuickTime installed. " +
+        "See Help, QuickTime for more information.",
         "VisBio", JOptionPane.INFORMATION_MESSAGE);
       enableQT.setSelected(false);
     }
