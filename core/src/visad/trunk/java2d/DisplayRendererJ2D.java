@@ -122,12 +122,14 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
       cursor_switch.setWhichChild(0); // set cursor off
       setCursorStringVector(null);
     }
+    render_trigger();
   }
 
   public void setDirectOn(boolean on) {
     directOn = on;
     if (!on) {
       setCursorStringVector(null);
+      render_trigger();
     }
   }
 
@@ -160,7 +162,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     ProjectionControl proj = getDisplay().getProjectionControl();
     AffineTransform tstart = new AffineTransform(proj.getMatrix());
     // flip y
-    AffineTransform t1 = new AffineTransform(1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+    AffineTransform t1 = new AffineTransform(1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
 /* WLH 29 June 98
     double scale = 0.5;
     AffineTransform t1 = new AffineTransform(
@@ -272,6 +274,42 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     if (cursorOn) {
       setCursorStringVector();
     }
+    else {
+      render_trigger();
+    }
+  }
+
+  public void render_trigger() {
+    canvas.renderTrigger();
+  }
+
+  public boolean anyCursorStringVector() {
+    if (cursorOn) return true;
+
+    Enumeration renderers = directs.elements();
+    while (renderers.hasMoreElements()) {
+      DirectManipulationRendererJ2D r =
+        (DirectManipulationRendererJ2D) renderers.nextElement();
+      VisADGroup extra_branch = r.getExtraBranch();
+      if (extra_branch != null) return true;
+    }
+
+    if (cursorOn || directOn) {
+      if (!getCursorStringVector().isEmpty()) return true;
+    }
+
+    Vector rendererVector = getDisplay().getRendererVector();
+    renderers = rendererVector.elements();
+    while (renderers.hasMoreElements()) {
+      DataRenderer renderer = (DataRenderer) renderers.nextElement();
+      if (!renderer.getExceptionVector().isEmpty()) return true;
+    }
+
+    if (getWaitFlag()) return true;
+
+    if (getAnimationString() != null) return true;
+
+    return false;
   }
 
   /** whenever cursorOn or directOn is true, display

@@ -189,6 +189,7 @@ public abstract class ShadowTypeJ2D extends ShadowType {
 
     appearance.alpha = constant_alpha; // may be Float.NaN
     if (constant_color != null && constant_color.length == 3) {
+      appearance.color_flag = true;
       appearance.red = constant_color[0];
       appearance.green = constant_color[1];
       appearance.blue = constant_color[2];

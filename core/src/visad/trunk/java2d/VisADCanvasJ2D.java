@@ -58,6 +58,7 @@ public class VisADCanvasJ2D extends Canvas
   private int width, height; // size of images
   private int length; // length of images & valid_images
   private AffineTransform tgeometry; // transform for current display
+  private Image aux_image;
 
   MouseHelper helper;
 
@@ -72,6 +73,7 @@ public class VisADCanvasJ2D extends Canvas
     width = getSize().width;
     height = getSize().height;
     images = new BufferedImage[] {(BufferedImage) createImage(width, height)};
+    aux_image = createImage(width, height);
     valid_images = new boolean[] {false};
     tgeometry = null;
 
@@ -127,6 +129,7 @@ public class VisADCanvasJ2D extends Canvas
         images[i] = (BufferedImage) createImage(width, height);
         valid_images[i] = false;
       }
+      aux_image = createImage(width, height);
       // tgeometry = null;
     }
     renderTrigger();
@@ -220,13 +223,15 @@ System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
           tgeometry = new AffineTransform();
           tgeometry.setToTranslation(0.5 * w, 0.5 * h);
           AffineTransform s1 = new AffineTransform();
-          s1.setToScale(0.25 * w, 0.25 * h);
+          s1.setToScale(0.33 * w, 0.33 * h);
           tgeometry.concatenate(s1);
           tgeometry.concatenate(trans);
           tsave = new AffineTransform(tgeometry);
           g2.setTransform(tgeometry);
         }
         try {
+          // g2.setRenderingHints(Graphics2D.RENDERING, Graphics2D.RENDER_QUALITY);
+          g2.setRenderingHints(Graphics2D.ANTIALIASING, Graphics2D.ANTIALIAS_ON);
           if (animate_control != null) animate_control.init();
           render(g2, root);
         }
@@ -239,9 +244,14 @@ System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
           }
         }
       } // end if (!valid)
-      g.drawImage(image, 0, 0, this);
-      if (tsave != null) {
-        displayRenderer.drawCursorStringVector(g, tsave, w, h);
+      if (tsave == null || !displayRenderer.anyCursorStringVector()) {
+        g.drawImage(image, 0, 0, this);
+      }
+      else {
+        Graphics ga = aux_image.getGraphics();
+        ga.drawImage(image, 0, 0, this);
+        displayRenderer.drawCursorStringVector(ga, tsave, w, h);
+        g.drawImage(aux_image, 0, 0, this);
       }
     } // end if (image != null)
   }

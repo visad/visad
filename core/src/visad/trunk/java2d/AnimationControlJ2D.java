@@ -98,6 +98,10 @@ public class AnimationControlJ2D extends AVControlJ2D
     }
   }
 
+  public int getCurrent() {
+    return current;
+  }
+
   public void setCurrent(int c)
          throws VisADException, RemoteException {
     if (animationSet != null) {
@@ -126,10 +130,6 @@ public class AnimationControlJ2D extends AVControlJ2D
       current = 0;
     }
     changeControl(true);
-  }
-
-  public int getCurrent() {
-    return current;
   }
 
   public void setDirection(boolean dir)

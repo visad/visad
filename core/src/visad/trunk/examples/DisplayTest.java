@@ -162,6 +162,7 @@ public class DisplayTest extends Object {
         System.out.println("  32 file_name: FITS adapter");
         System.out.println("  33: ColorWidget with non-default table");
         System.out.println("  34: direct manipulation in Java2D");
+        System.out.println("  35: direct manipulation linking Java2D and Java3D");
 
         return;
 
@@ -176,9 +177,9 @@ public class DisplayTest extends Object {
         RealTuple direct_tuple = new RealTuple(reals3);
     
         display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
-        display1.addMap(new ScalarMap(vis_radiance, Display.XAxis));
-        display1.addMap(new ScalarMap(ir_radiance, Display.YAxis));
-        display1.addMap(new ScalarMap(count, Display.ZAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
+        display1.addMap(new ScalarMap(ir_radiance, Display.XAxis));
+        display1.addMap(new ScalarMap(count, Display.YAxis));
         display1.addMap(new ScalarMap(count, Display.Green));
     
         GraphicsModeControl mode = display1.getGraphicsModeControl();
@@ -203,9 +204,9 @@ public class DisplayTest extends Object {
 
         DisplayImpl display2 =
           new DisplayImplJ3D("display2", DisplayImplJ3D.APPLETFRAME);
-        display2.addMap(new ScalarMap(vis_radiance, Display.XAxis));
-        display2.addMap(new ScalarMap(ir_radiance, Display.YAxis));
-        display2.addMap(new ScalarMap(count, Display.ZAxis));
+        display2.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
+        display2.addMap(new ScalarMap(ir_radiance, Display.XAxis));
+        display2.addMap(new ScalarMap(count, Display.YAxis));
         display2.addMap(new ScalarMap(count, Display.Green));
      
         GraphicsModeControl mode2 = display2.getGraphicsModeControl();
@@ -1530,6 +1531,73 @@ public class DisplayTest extends Object {
         frame1.setVisible(true);
 
         Frame frame2 = new Frame("Java2D display 2");
+        frame2.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+        frame2.add(display2.getComponent());
+        frame2.setSize(256, 256);
+        frame2.setVisible(true);
+
+        break;
+
+      case 35:
+
+        System.out.println(test_case + ": test direct manipulation linking " +
+                           "Java2D and Java3D");
+        size = 64;
+        histogram1 = FlatField.makeField(ir_histogram, size, false);
+        direct = new Real(ir_radiance, 2.0);
+        reals3 = new Real[] {new Real(count, 1.0), new Real(ir_radiance, 2.0),
+                             new Real(vis_radiance, 1.0)};
+        direct_tuple = new RealTuple(reals3);
+    
+        display1 = new DisplayImplJ3D("display1");
+        display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
+        display1.addMap(new ScalarMap(ir_radiance, Display.XAxis));
+        display1.addMap(new ScalarMap(count, Display.YAxis));
+        display1.addMap(new ScalarMap(count, Display.Green));
+    
+        mode = display1.getGraphicsModeControl();
+        mode.setPointSize(5.0f);
+        mode.setPointMode(false);
+
+        ref_direct = new DataReferenceImpl("ref_direct");
+        ref_direct.setData(direct);
+        refs1 = new DataReferenceImpl[] {ref_direct};
+        display1.addReferences(new DirectManipulationRendererJ3D(), refs1, null);
+     
+        ref_direct_tuple = new DataReferenceImpl("ref_direct_tuple");
+        ref_direct_tuple.setData(direct_tuple);
+        refs2 = new DataReference[] {ref_direct_tuple};
+        display1.addReferences(new DirectManipulationRendererJ3D(), refs2, null);
+     
+        ref_histogram1 = new DataReferenceImpl("ref_histogram1");
+        ref_histogram1.setData(histogram1);
+        refs3 = new DataReference[] {ref_histogram1};
+        display1.addReferences(new DirectManipulationRendererJ3D(), refs3, null);
+
+        display2 = new DisplayImplJ2D("display2");
+        display2.addMap(new ScalarMap(ir_radiance, Display.XAxis));
+        display2.addMap(new ScalarMap(count, Display.YAxis));
+        display2.addMap(new ScalarMap(count, Display.Green));
+     
+        mode2 = display2.getGraphicsModeControl();
+        mode2.setPointSize(5.0f);
+        mode2.setPointMode(false);
+     
+        display2.addReferences(new DirectManipulationRendererJ2D(), refs1, null);
+        display2.addReferences(new DirectManipulationRendererJ2D(), refs2, null);
+        display2.addReferences(new DirectManipulationRendererJ2D(), refs3, null);
+
+        frame1 = new Frame("Java3D display 1");
+        frame1.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+        frame1.add(display1.getComponent());
+        frame1.setSize(256, 256);
+        frame1.setVisible(true);
+
+        frame2 = new Frame("Java2D display 2");
         frame2.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });

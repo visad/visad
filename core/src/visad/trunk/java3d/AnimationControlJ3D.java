@@ -99,6 +99,10 @@ public class AnimationControlJ3D extends AVControlJ3D
     }
   }
 
+  public int getCurrent() {
+    return current;
+  }
+
   public void setCurrent(int c)
          throws VisADException, RemoteException {
     if (animationSet != null) {
