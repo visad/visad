@@ -60,7 +60,7 @@ public class FieldImpl extends FunctionImpl implements Field {
 
 
     //This is used to synchronize access to the Range (which might be null)
-  private Object RangeLock = new Object ();
+  private VisADRay RangeLock = new VisADRay();
 
   private boolean MissingFlag;
 
