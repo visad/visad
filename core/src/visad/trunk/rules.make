@@ -43,17 +43,22 @@ subdir_target:
 	@echo ""
 
 .SUFFIXES:
-.SUFFIXES:	.debug .test .class .java .jj
+.SUFFIXES:	.debug .test .class .html .java .jj
 
 .jj.java:
 	$(JAVACC) $<
+# The following overwrites the high-level .html files -- so it's commented-
+# out.
+#.java.html:
+#	$(JAVADOC) -J-mx64m -notree -noindex -d $(DOCDIR) $(PACKAGE_PREFIX)$*
 .java.class:
 	$(JAVAC) $<
 .class.test:
-	$(JAVA) $(PACKAGE).$*
+	@cmd="$(JAVA) $(PACKAGE_PREFIX)$*"; echo $$cmd; $$cmd
 .class.debug:
-	$(JDB) $(PACKAGE).$*
+	@cmd="$(JDB) -classpath $$CLASSPATH $(PACKAGE_PREFIX)$*"; echo $$cmd; \
+	$$cmd
 
-# The following entry may be used as a dependency in order to force
-# execution of the associated rule.
+# The following entry may be used to force execution of a rule by placing
+# it in the rule's dependency list:
 FORCE:

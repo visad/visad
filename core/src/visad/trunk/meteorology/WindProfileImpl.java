@@ -3,13 +3,14 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: WindProfileImpl.java,v 1.1 1998-11-03 22:27:37 steve Exp $
+ * $Id: WindProfileImpl.java,v 1.2 1998-11-16 18:23:50 steve Exp $
  */
 
 package visad.meteorology;
 
 import java.rmi.RemoteException;
 import visad.FlatField;
+import visad.Integer1DSet;
 import visad.RealTupleType;
 import visad.RealType;
 import visad.Set;
@@ -33,6 +34,19 @@ WindProfileImpl
      * The range type.
      */
     private static final RealTupleType	rangeType = WIND_TYPE;
+
+
+    /**
+     * Constructs an empty wind profile from nothing.  The data will be missing.
+     *
+     * @throws VisADException		Couldn't create necessary VisAD object.
+     */
+    public
+    WindProfileImpl()
+	throws VisADException, IllegalArgumentException
+    {
+	this(new Integer1DSet(DOMAIN_TYPE, 2), CommonUnits.KNOT);
+    }
 
 
     /**

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: RSatCoordinateSystem.java,v 1.1 1998-10-21 15:27:58 steve Exp $
+ * $Id: RSatCoordinateSystem.java,v 1.2 1998-11-16 18:23:48 steve Exp $
  */
 
 package visad.meteorology;
@@ -15,6 +15,7 @@ import visad.ScaledUnit;
 import visad.Unit;
 import visad.UnitException;
 import visad.VisADException;
+import visad.data.netcdf.Quantity;
 import visad.data.netcdf.units.Parser;
 import visad.data.netcdf.units.ParseException;
 
@@ -34,8 +35,8 @@ RSatCoordinateSystem
     /**
      * The default unit of saturation mixing-ratio.
      */
-    public static ScaledUnit			DEFAULT_RSAT_UNIT =
-	new ScaledUnit(0.001);			// g/kg
+    public static Quantity			DEFAULT_RSAT_QUANTITY =
+	CommonTypes.R_SAT;
 
     /**
      * The associated Skew-T coordinate system.

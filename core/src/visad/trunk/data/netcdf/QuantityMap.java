@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: QuantityMap.java,v 1.1 1998-08-13 16:53:25 visad Exp $
+ * $Id: QuantityMap.java,v 1.2 1998-11-16 18:23:40 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -21,7 +21,7 @@ import visad.VisADException;
 
 /**
  * Provides for a static stack of quantity databases, which map between
- * physical quantities and VisAD Quantitys.
+ * physical quantities and VisAD Quantity-s.
  *
  * @author Steven R. Emmerson
  */

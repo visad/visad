@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: AbstractSounding.java,v 1.2 1998-11-03 22:27:33 steve Exp $
+ * $Id: AbstractSounding.java,v 1.3 1998-11-16 18:23:47 steve Exp $
  */
 
 package visad.meteorology;
@@ -19,6 +19,7 @@ import visad.Set;
 import visad.TupleType;
 import visad.Unit;
 import visad.VisADException;
+import visad.data.netcdf.Quantity;
 
 
 /**
@@ -35,23 +36,44 @@ AbstractSounding
     /**
      * The math type of the domain.
      */
-    public static final RealType	domainType = CommonTypes.PRESSURE;
+    public static final Quantity	DOMAIN_TYPE = CommonTypes.PRESSURE;
 
     /**
      * The math type of the temperature variable.
      */
-    public static final RealType	TEMPERATURE_TYPE =
+    public static final Quantity	TEMPERATURE_TYPE =
 	CommonTypes.TEMPERATURE;
 
     /**
      * The math type of the dew-point variable.
      */
-    public static final RealType	DEW_POINT_TYPE = CommonTypes.DEW_POINT;
+    public static final Quantity	DEW_POINT_TYPE = CommonTypes.DEW_POINT;
+
+    /**
+     * The math type of the U-component of the wind.
+     */
+    public static final Quantity	U_TYPE = CommonTypes.U;
+
+    /**
+     * The math type of the V-component of the wind.
+     */
+    public static final Quantity	V_TYPE = CommonTypes.V;
+
+    /**
+     * The math type of a U/V wind variable.
+     */
+    public static final RealTupleType	UV_WIND_TYPE = CommonTypes.UV_WIND;
+
+    /**
+     * The math type of a speed/direction wind variable.
+     */
+    public static final RealTupleType	POLAR_WIND_TYPE =
+	CommonTypes.POLAR_WIND;
 
     /**
      * The math type of the wind variable.
      */
-    public static final RealTupleType	WIND_TYPE = CommonTypes.WIND;
+    public static final RealTupleType	WIND_TYPE = UV_WIND_TYPE;
 
     /**
      * The types of the (non-flat) range components.
@@ -89,7 +111,7 @@ AbstractSounding
 	throws VisADException
     {
 	super(
-	    new FunctionType(domainType, rangeType),
+	    new FunctionType(DOMAIN_TYPE, rangeType),
 	    domainSet,
 	    (CoordinateSystem)null,
 	    (Set[])null,
@@ -113,10 +135,10 @@ AbstractSounding
     /**
      * Gets the type of the domain.
      */
-    public RealType
+    public Quantity
     getDomainType()
     {
-	return domainType;
+	return DOMAIN_TYPE;
     }
 
 

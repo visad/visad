@@ -3,11 +3,12 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTDisplayRenderer.java,v 1.5 1998-10-28 17:16:49 steve Exp $
+ * $Id: SkewTDisplayRenderer.java,v 1.6 1998-11-16 18:23:49 steve Exp $
  */
 
 package visad.meteorology;
 
+import java.text.DecimalFormat;
 import java.util.Vector;
 import visad.CoordinateSystem;
 import visad.DisplayRealType;
@@ -17,6 +18,7 @@ import visad.SI;
 import visad.Unit;
 import visad.VisADException;
 import visad.java2d.DefaultDisplayRendererJ2D;
+import visad.data.netcdf.Quantity;
 
 
 /**
@@ -37,6 +39,16 @@ public class
 SkewTDisplayRenderer
     extends	DefaultDisplayRendererJ2D                                               
 {
+    /*
+     * The unit of pressure string.
+     */
+    private final String			pressureUnitString;
+
+    /*
+     * The unit of temperature string.
+     */
+    private final String			temperatureUnitString;
+
     /*
      * Coordinates:
      */
@@ -62,7 +74,7 @@ SkewTDisplayRenderer
     /**
      * (pressure, temperature, zAxis) vector space.
      */
-    public final DisplayTupleType		displaySkewTTuple;
+    public final DisplayTupleType               displaySkewTTuple;
     /**
      * (thetaPressure, theta, thetaZAxis) vector space.
      */
@@ -105,6 +117,27 @@ SkewTDisplayRenderer
      */
     public final SoundingCoordinateSystem	dewPointSoundingCoordSys;
 
+    /**
+     * The format for the readouts.
+     */
+    private final DecimalFormat			format =
+	new DecimalFormat("0.0");
+
+    /**
+     * The pressure format.
+     */
+    private final DecimalFormat			pressureFormat = format;
+
+    /**
+     * The temperature format.
+     */
+    private final DecimalFormat			temperatureFormat = format;
+
+    /**
+     * The saturation mixing-ratio format.
+     */
+    private final DecimalFormat			rSatFormat = format;
+
 
     /**
      * Constructs from nothing.
@@ -117,10 +150,10 @@ SkewTDisplayRenderer
 	     SkewTCoordinateSystem.DEFAULT_MAX_X,
 	     SkewTCoordinateSystem.DEFAULT_MIN_Y,
 	     SkewTCoordinateSystem.DEFAULT_MAX_Y,
-	     SkewTCoordinateSystem.DEFAULT_PRESSURE_UNIT,
+	     SkewTCoordinateSystem.DEFAULT_PRESSURE_QUANTITY,
 	     SkewTCoordinateSystem.DEFAULT_MIN_P,
 	     SkewTCoordinateSystem.DEFAULT_MAX_P,
-	     SkewTCoordinateSystem.DEFAULT_TEMPERATURE_UNIT,
+	     SkewTCoordinateSystem.DEFAULT_TEMPERATURE_QUANTITY,
 	     SkewTCoordinateSystem.DEFAULT_MIN_T,
 	     SkewTCoordinateSystem.DEFAULT_MAX_T,
 	     SkewTCoordinateSystem.DEFAULT_TANGENT);
@@ -134,10 +167,10 @@ SkewTDisplayRenderer
      * @param maxX		The maximum display X coordinate.
      * @param minY		The minimum display Y coordinate.
      * @param maxY		The maximum display Y coordinate.
-     * @param pressureUnit	The unit of pressure.
+     * @param pressureQuantity	The quantity of pressure.
      * @param minP		The minimum pressure coordinate.
      * @param maxP		The maximum pressure coordinate.
-     * @param temperatureUnit	The unit of temperature.
+     * @param temperatureQuantity	The quantity of temperature.
      * @param minT		The minimum temperature coordinate.
      * @param maxT		The maximum temperature coordinate.
      * @param tangent		The tangent of the isotherms in display space.
@@ -145,23 +178,27 @@ SkewTDisplayRenderer
      */
     public
     SkewTDisplayRenderer(float minX, float maxX, float minY, float maxY,
-	    Unit pressureUnit, float minP, float maxP,
-	    Unit temperatureUnit, float minT, float maxT, float tangent)
+	    Quantity pressureQuantity, float minP, float maxP,
+	    Quantity temperatureQuantity, float minT, float maxT, float tangent)
 	throws VisADException
     {
+	pressureUnitString = pressureQuantity.getDefaultUnitString();
+	temperatureUnitString = temperatureQuantity.getDefaultUnitString();
+
 	/*
 	 * Define (pressure, temperature) vector space.
 	 */
 	skewTCoordSys = new SkewTCoordinateSystem(minX, maxX, minY, maxY,
-	    pressureUnit, minP, maxP, temperatureUnit, minT, maxT, tangent);
-	pressure = new DisplayRealType("Pressure", false, 
+	    pressureQuantity.getDefaultUnit(), minP, maxP, 
+	    temperatureQuantity.getDefaultUnit(), minT, maxT, tangent);
+	pressure = new DisplayRealType("SkewTPressure", false, 
 	    skewTCoordSys.minP, skewTCoordSys.maxP, 0.0, 
 	    skewTCoordSys.getPressureUnit());
-	temperature = new DisplayRealType("Temperature", false,
+	temperature = new DisplayRealType("SkewTTemperature", false,
 	    skewTCoordSys.minT, 
 	    skewTCoordSys.maxT, 0.0,
 	    skewTCoordSys.getTemperatureUnit());
-	zAxis = new DisplayRealType("SkewTZAxis", false,
+	zAxis = new DisplayRealType("SkewTSkewTZAxis", false,
 	    -1.0, 1.0, 0.0, null);
 	displaySkewTTuple = new DisplayTupleType(
 	    new DisplayRealType[] {pressure, temperature, zAxis},
@@ -171,16 +208,16 @@ SkewTDisplayRenderer
 	 * Define (pressure, potential temperature) vector space.
 	 */
 	thetaCoordSys = new ThetaCoordinateSystem(skewTCoordSys);
-	thetaPressure = new DisplayRealType("Theta_Pressure",
+	thetaPressure = new DisplayRealType("SkewTTheta_Pressure",
 	    false, 
 	    0.0, Double.POSITIVE_INFINITY, 0.0, 
 	    thetaCoordSys.getPressureUnit());
-	theta = new DisplayRealType("Potential_Temperature",
+	theta = new DisplayRealType("SkewTPotential_Temperature",
 	    false,
 	    thetaCoordSys.getTemperatureUnit().toThis(0., SI.kelvin),
 		Double.POSITIVE_INFINITY, 0.0, 
 	    thetaCoordSys.getTemperatureUnit());
-	thetaZAxis = new DisplayRealType("Theta_ZAxis", false,
+	thetaZAxis = new DisplayRealType("SkewTTheta_ZAxis", false,
 	    -1.0, 1.0, 0.0, null);
 	displayThetaTuple = new DisplayTupleType(
 	    new DisplayRealType[] {thetaPressure, theta, thetaZAxis},
@@ -191,17 +228,17 @@ SkewTDisplayRenderer
 	 * vector space.
 	 */
 	thetaESCoordSys = new ThetaESCoordinateSystem(thetaCoordSys);
-	thetaESPressure = new DisplayRealType("ThetaES_Pressure",
+	thetaESPressure = new DisplayRealType("SkewTThetaES_Pressure",
 	    false, 
 	    0.0, Double.POSITIVE_INFINITY, 0.0, 
 	    thetaESCoordSys.getPressureUnit());
 	thetaES = new DisplayRealType(
-	    "Saturation_Equivalent_Potential_Temperature",
+	    "SkewTSaturation_Equivalent_Potential_Temperature",
 	    false,
 	    thetaESCoordSys.getTemperatureUnit().toThis(0., SI.kelvin),
 		Double.POSITIVE_INFINITY, 0.0, 
 	    thetaESCoordSys.getTemperatureUnit());
-	thetaESZAxis = new DisplayRealType("ThetaES_ZAxis", false,
+	thetaESZAxis = new DisplayRealType("SkewTThetaES_ZAxis", false,
 	    -1.0, 1.0, 0.0, null);
 	displayThetaESTuple = new DisplayTupleType(
 	    new DisplayRealType[] {thetaESPressure, thetaES, thetaESZAxis},
@@ -211,17 +248,17 @@ SkewTDisplayRenderer
 	 * Define (pressure, saturation mixing ratio) vector space.
 	 */
 	rSatCoordSys = new RSatCoordinateSystem(skewTCoordSys, 
-	    RSatCoordinateSystem.DEFAULT_RSAT_UNIT);
-	rSatPressure = new DisplayRealType("Rsat_Pressure",
+	    RSatCoordinateSystem.DEFAULT_RSAT_QUANTITY.getDefaultUnit());
+	rSatPressure = new DisplayRealType("SkewTRsat_Pressure",
 	    false, 
 	    0.0, Double.POSITIVE_INFINITY, 0.0, 
 	    rSatCoordSys.getPressureUnit());
 	rSat = new DisplayRealType(
-	    "Saturation_Mixing_Ratio",
+	    "SkewTSaturation_Mixing_Ratio",
 	    false,
 	    0.0, Double.POSITIVE_INFINITY, 0.0, 
 	    rSatCoordSys.getRSatUnit());
-	rSatZAxis = new DisplayRealType("Rsat_ZAxis", false,
+	rSatZAxis = new DisplayRealType("SkewTRsat_ZAxis", false,
 	    -1.0, 1.0, 0.0, null);
 	displayRSatTuple = new DisplayTupleType(
 	    new DisplayRealType[] {rSatPressure, rSat, rSatZAxis},
@@ -270,18 +307,18 @@ SkewTDisplayRenderer
     /**
      * Gets the cursor coordinates.
      *
-     * @return			Cursor coordinates in display space.
+     * @return                  Cursor coordinates in display space.
      *
-     * @param cursor		The location of the cursor in display
-     *				coordinates.
+     * @param cursor            The location of the cursor in display
+     *                          coordinates.
      */
     protected final double[][]
     getCursorCoords(double[] cursor)
     {
-	return new double[][] {
-	    new double[] {cursor[0]}, 
-	    new double[] {cursor[1]}, 
-	    new double[] {cursor[2]}};
+        return new double[][] {
+            new double[] {cursor[0]}, 
+            new double[] {cursor[1]}, 
+            new double[] {cursor[2]}};
     }
 
 
@@ -294,43 +331,65 @@ SkewTDisplayRenderer
     {
 	try
 	{
+	    /*
+	     * NB: getCursorCoords(cursor) is repeatedly called because the
+	     * coordinate system transformations overwrite their input 
+	     * argument.
+	     */
+
 	    Vector	strings = new Vector(5+2);
 	    double[]	cursor = getCursor();
-	    double[][]	coords =
+	    double[][]	skewTCoords =
 		skewTCoordSys.fromReference(getCursorCoords(cursor));
 
-	    strings.add("Pressure = " + coords[0][0] +
-		" (" + skewTCoordSys.getPressureUnit() + ")");
+	    strings.add("Pressure: " + 
+		pressureFormat.format(skewTCoords[0][0]) + " " +
+		pressureUnitString);
 
-	    strings.add("Temperature = " + coords[1][0] +
-		" (" + skewTCoordSys.getTemperatureUnit() + ")");
+	    strings.add("Temperature: " + 
+		temperatureFormat.format(skewTCoords[1][0]) +
+		" " + temperatureUnitString);
 
-	    strings.add("Theta = " +
-		thetaCoordSys.fromReference(getCursorCoords(cursor))[1][0] +
-		" (" + thetaCoordSys.getTemperatureUnit() + ")");
+	    strings.add("Theta: " +
+		temperatureFormat.format(
+		    thetaCoordSys.fromReference(
+			getCursorCoords(cursor))[1][0]) +
+		" " + temperatureUnitString);
 
-	    strings.add("ThetaES = " +
-		thetaESCoordSys.fromReference(getCursorCoords(cursor))[1][0] +
-		" (" + thetaESCoordSys.getTemperatureUnit() + ")");
+	    strings.add("ThetaES: " +
+		temperatureFormat.format(
+		    thetaESCoordSys.fromReference(
+			getCursorCoords(cursor))[1][0]) +
+		" " + temperatureUnitString);
 
-	    strings.add("Rsat = " +
-		rSatCoordSys.fromReference(getCursorCoords(cursor))[1][0] +
-		" (" + rSatCoordSys.getRSatUnit() + ")");
+	    strings.add("Rsat: " +
+		rSatFormat.format(
+		    rSatCoordSys.fromReference(getCursorCoords(cursor))[1][0]) +
+		" " +
+		rSatCoordSys.DEFAULT_RSAT_QUANTITY.getDefaultUnitString());
 
-	    strings.add("Sounding Temperature = " +
-		temperatureSoundingCoordSys.fromReference(
-		    getCursorCoords(cursor))[1][0] +
-		" (" + temperatureSoundingCoordSys.getRangeUnit() + ")");
+	    strings.add("Sounding Temperature: " +
+		temperatureFormat.format(
+		    temperatureSoundingCoordSys.fromReference(
+			getCursorCoords(cursor))[1][0]) + " " +
+		    temperatureUnitString);
 
-	    strings.add("Sounding Dew Point = " +
-		dewPointSoundingCoordSys.fromReference(
-		    getCursorCoords(cursor))[1][0] +
-		" (" + dewPointSoundingCoordSys.getRangeUnit() + ")");
+	    strings.add("Sounding Dew Point: " +
+		temperatureFormat.format(
+		    dewPointSoundingCoordSys.fromReference(
+			getCursorCoords(cursor))[1][0]) + " " +
+		    temperatureUnitString);
 
 	    setCursorStringVector(strings);
 	}
 	catch (VisADException e)
-	{}
+	{
+	    /*
+	    String	reason = e.getMessage();
+	    System.err.println("Error setting cursor-readout strings" +
+		(reason == null ? "" : (": " + reason)));
+	    */
+	}
     }
 
 

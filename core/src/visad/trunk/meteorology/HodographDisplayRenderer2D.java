@@ -2,6 +2,7 @@
 
 package visad.meteorology;
 
+import java.util.Vector;
 import visad.CoordinateSystem;
 import visad.Display;
 import visad.DisplayRealType;
@@ -21,81 +22,64 @@ HodographDisplayRenderer2D
     /**
      * The default unit of speed.
      */
-    public static final Unit		DEFAULT_SPEED_UNIT = 
-	CommonTypes.SPEED.getDefaultUnit();
+    public static final Unit			DEFAULT_SPEED_UNIT = 
+	CommonUnits.KNOT;
 
     /**
      * The default maximum speed.
      */
-    public static final float		DEFAULT_MAX_SPEED;
-
-
-    static
-    {
-	float	defaultMaxSpeed = 0;
-
-	try
-	{
-	    defaultMaxSpeed =
-		(float)DEFAULT_SPEED_UNIT.toThis(100, CommonUnits.KNOT);
-	}
-	catch (UnitException e)
-	{
-	    String	reason = e.getMessage();
-
-	    System.err.println(
-		"Couldn't initialize class HodographDisplayRenderer2D" +
-		(reason == null ? "" : (": " + reason)));
-	}
-
-	DEFAULT_MAX_SPEED = defaultMaxSpeed;
-    }
+    public static final float			DEFAULT_MAX_SPEED = 50;
 
     /**
      * The U-component of velocity.
      */
-    public static final DisplayRealType	U;
+    public static final DisplayRealType		U;
 
     /**
      * The V-component of velocity.
      */
-    public static final DisplayRealType	V;
+    public static final DisplayRealType		V;
 
     /**
      * The display Z axis (dummy -- but necessary).
      */
-    private static final DisplayRealType
-					Z;
+    public static final DisplayRealType		Z;
+
+    /**
+     * The hodograph coordinate-system transform.
+     */
+    private static final HodographCoordSys	COORD_SYS;
 
     /**
      * The hodograph vector space.
      */
-    private final DisplayTupleType	HODOGRAPH_SPACE;
-
-    /**
-     * The hodograph coodinate-system transform.
-     */
-    private final HodographCoordSys	HODOGRAPH_COORDSYS;
+    private static final DisplayTupleType	DISPLAY_TUPLE_TYPE;
 
 
     static
     {
-	DisplayRealType	u = null;
-	DisplayRealType	v = null;
-	DisplayRealType	z = null;
+	DisplayRealType		u = null;
+	DisplayRealType		v = null;
+	DisplayRealType		z = null;
+	HodographCoordSys	coordSys = null;
+	DisplayTupleType	displayTupleType = null;
 
 	try
 	{
-	    u = new DisplayRealType("Hodograph2DU", false, 
-		0.0, DEFAULT_SPEED_UNIT);
-	    v = new DisplayRealType("Hodograph2DV", false, 
-		0.0, DEFAULT_SPEED_UNIT);
-	    z = new DisplayRealType("Hodograph2DZ", false, 0.0, null);
+	    u = new DisplayRealType("Hodograph2D_U", false, 0.0,
+		DEFAULT_SPEED_UNIT);
+	    v = new DisplayRealType("Hodograph2D_V", false, 0.0,
+		DEFAULT_SPEED_UNIT);
+	    z = new DisplayRealType("Hodograph2D_Z", false, 0.0, null);
+	    coordSys =
+		new HodographCoordSys(DEFAULT_MAX_SPEED, DEFAULT_SPEED_UNIT);
+	    displayTupleType = new DisplayTupleType(
+		new DisplayRealType[] {u, v, z},
+		coordSys);
 	}
 	catch (Exception e)
 	{
 	    String	reason = e.getMessage();
-
 	    System.err.println(
 		"Couldn't initialize HodographDisplayRenderer2D class" +
 		(reason == null ? "" : ": " + reason));
@@ -105,39 +89,77 @@ HodographDisplayRenderer2D
 	U = u;
 	V = v;
 	Z = z;
-    }
-
-
-    /*
-     * Constructs from a maximum speed and unit.
-     *
-     * @param maxSpeed		The maximum speed to display.  Will be mapped
-     *				to a display radis of 1.
-     * @param speedUnit		The unit of speed.
-     * @throws VisADException	Couldn't create necessary VisAD object.
-     */
-    public
-    HodographDisplayRenderer2D(double maxSpeed, Unit speedUnit)
-	throws VisADException
-    {
-	HODOGRAPH_COORDSYS = new HodographCoordSys(maxSpeed, speedUnit);
-	HODOGRAPH_SPACE = new DisplayTupleType(
-	    new DisplayRealType[] {U, V, Z},
-	    HODOGRAPH_COORDSYS);
+	COORD_SYS = coordSys;
+	DISPLAY_TUPLE_TYPE = displayTupleType;
     }
 
 
     /**
-     * Constructs from nothing.  Will use DEFAULT_MAX_SPEED, and
-     * DEFAULT_SPEED_UNIT.
-     *
-     * @throws VisADException	Couldn't create necessary VisAD object.
+     * Constructs from nothing.
      */
     public
     HodographDisplayRenderer2D()
 	throws VisADException
     {
-	this(DEFAULT_MAX_SPEED, DEFAULT_SPEED_UNIT);
+    }
+
+
+    /**
+     * Indicates whether or not the given display real type is legal
+     * for this display renderer.
+     *
+     * @param type	The display real type to be vetted.
+     * @return		<code>true</code> if and only if <code>type</code>
+     *			is a legal display real type for this display
+     * 			renderer.
+     */
+    public boolean
+    legalDisplayScalar(DisplayRealType type)
+    {
+	return type.equals(U) ||
+	    type.equals(V) ||
+	    type.equals(Z) ||
+	    super.legalDisplayScalar(type);
+    }
+
+
+    /**
+     * Gets the cursor coordinates.
+     *
+     * @return			Cursor coordinates in display space.
+     *
+     * @param cursor		The location of the cursor in display
+     *				coordinates.
+     */
+    protected static final double[][]
+    getCursorCoords(double[] cursor)
+    {
+	return new double[][] {
+	    new double[] {cursor[0]}, 
+	    new double[] {cursor[1]}, 
+	    new double[] {cursor[2]}};
+    }
+
+
+    /**
+     * Sets strings in the vector that describes the current location of the
+     * cursor.
+     */
+    public void
+    setCursorStringVector()
+    {
+	Vector		strings = new Vector(2);
+	double[]	cursor = getCursor();
+	double[][]	coords =
+	    COORD_SYS.fromReference(getCursorCoords(cursor));
+
+	strings.add("U = " + coords[0][0] +
+	    " (" + WindProfileImpl.U_TYPE.getDefaultUnitString() + ")");
+
+	strings.add("V = " + coords[1][0] +
+	    " (" + WindProfileImpl.V_TYPE.getDefaultUnitString() + ")");
+
+	setCursorStringVector(strings);
     }
 
 
@@ -145,7 +167,7 @@ HodographDisplayRenderer2D
      * Provides support for converting between hodograph coordinates
      * and display coordinates.
      */
-    public class
+    public static class
     HodographCoordSys
 	extends	CoordinateSystem
     {
@@ -270,7 +292,6 @@ HodographDisplayRenderer2D
 	    else
 	    {
 		HodographCoordSys	that = (HodographCoordSys)object;
-
 		equals = maxSpeed == that.maxSpeed;
 	    }
 

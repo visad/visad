@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Quantity.java,v 1.2 1998-08-12 18:38:42 visad Exp $
+ * $Id: Quantity.java,v 1.3 1998-11-16 18:23:40 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -42,7 +42,7 @@ public class Quantity
 
 
   /**
-   * Construct from a name, a unit specification, and a sample set.
+   * Constructs from a name, a unit specification, and a sample set.
    *
    * @param name		The name of the quantity (e.g. "length").
    * @param unitSpec		The preferred display unit for the quantity
@@ -65,7 +65,7 @@ public class Quantity
 
 
   /**
-   * Construct from a name and a unit specification.
+   * Constructs from a name and a unit specification.
    *
    * @param name		The name of the quantity (e.g. "length").
    * @param unitSpec		The preferred display unit for the quantity
@@ -88,9 +88,34 @@ public class Quantity
 
 
   /**
+   * Constructs from a VisAD RealType.  This should only be used by classes
+   * like StandardQuantityDB.
+   *
+   * @param realType		A VisAD realType.
+   * @throws VisADException	Can't create necessary VisAD object.
+   */
+  public Quantity(RealType realType)
+    throws VisADException
+  {
+    /*
+     * The following will create a duplicate RealType.
+     */
+    // TODO: eliminate use of trusted constructor (e.g. by merging
+    // Quantity and RealType).
+    super(realType.getName(), realType.getDefaultUnit(), true);
+
+    Unit	unit = realType.getDefaultUnit();
+    this.unitSpec = unit == null
+	? null
+	: unit.toString();
+  }
+
+
+  /**
    * Return the preferred display unit of this quantity as a string.
    *
-   * @return	The preferred display unit of this quantity.
+   * @return		The preferred display unit of this quantity or
+   *			<code>null</code> if no such unit.
    */
   public String getDefaultUnitString() {
     return unitSpec;

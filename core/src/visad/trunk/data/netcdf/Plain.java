@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Plain.java,v 1.13 1998-08-31 11:20:33 billh Exp $
+ * $Id: Plain.java,v 1.14 1998-11-16 18:23:39 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -34,12 +34,33 @@ Plain
     extends NetCDF
 {
     /**
-     * Construct a default, netCDF data form.
+     * The quantity database to use for mapping netCDF variables to 
+     * VisAD Quantity-s.
+     */
+    private final QuantityDB	quantityDB;
+
+
+    /**
+     * Constructs a default, netCDF data form.
+     *
+     * @throws VisADException	Couldn't create necessary VisAD object
      */
     public
     Plain()
+	throws VisADException
+    {
+	this(StandardQuantityDB.instance());
+    }
+
+
+    /**
+     * Constructs a netCDF data form that uses the given quantity database.
+     */
+    public
+    Plain(QuantityDB db)
     {
 	super("Plain");
+	quantityDB = db;
     }
 
 
@@ -129,7 +150,7 @@ Plain
 
 	try
 	{
-	    data = new NetcdfAdapter(file).getData();
+	    data = new NetcdfAdapter(file, quantityDB).getData();
 	}
 	finally
 	{
@@ -159,7 +180,7 @@ Plain
     {
 	NetcdfFile	file = new NetcdfFile(path, /*readonly=*/true);
 
-	return new NetcdfAdapter(file).getProxy();
+	return new NetcdfAdapter(file, quantityDB).getProxy();
     }
 
 

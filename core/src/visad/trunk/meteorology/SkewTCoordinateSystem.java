@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTCoordinateSystem.java,v 1.5 1998-10-21 15:27:58 steve Exp $
+ * $Id: SkewTCoordinateSystem.java,v 1.6 1998-11-16 18:23:48 steve Exp $
  */
 
 package visad.meteorology;
@@ -14,6 +14,7 @@ import visad.Display;
 import visad.Unit;
 import visad.UnitException;
 import visad.VisADException;
+import visad.data.netcdf.Quantity;
 
 
 /**
@@ -35,17 +36,17 @@ SkewTCoordinateSystem
     /*
      * Default parameter values.
      */
-    public static final float	DEFAULT_MIN_X =   -1.0f;
-    public static final float	DEFAULT_MAX_X =    1.0f;
-    public static final float	DEFAULT_MIN_Y =   -1.0f;
-    public static final float	DEFAULT_MAX_Y =    1.0f;
-    public static final float	DEFAULT_MIN_P =  100.0f;
-    public static final float	DEFAULT_MAX_P = 1050.0f;
-    public static final float	DEFAULT_MIN_T = -122.5f;
-    public static final float	DEFAULT_MAX_T =   52.0f;
-    public static final float	DEFAULT_TANGENT =  1.2f;
-    public static final Unit	DEFAULT_PRESSURE_UNIT;
-    public static final Unit	DEFAULT_TEMPERATURE_UNIT;
+    public static final float		DEFAULT_MIN_X =   -1.0f;
+    public static final float		DEFAULT_MAX_X =    1.0f;
+    public static final float		DEFAULT_MIN_Y =   -1.0f;
+    public static final float		DEFAULT_MAX_Y =    1.0f;
+    public static final float		DEFAULT_MIN_P =  100.0f;
+    public static final float		DEFAULT_MAX_P = 1050.0f;
+    public static final float		DEFAULT_MIN_T = -122.5f;
+    public static final float		DEFAULT_MAX_T =   52.0f;
+    public static final float		DEFAULT_TANGENT =  1.2f;
+    public static final Quantity	DEFAULT_PRESSURE_QUANTITY;
+    public static final Quantity	DEFAULT_TEMPERATURE_QUANTITY;
 
     /*
      * Actual parameter values.
@@ -72,8 +73,8 @@ SkewTCoordinateSystem
 
     static
     {
-	DEFAULT_PRESSURE_UNIT = CommonUnits.MILLIBAR;;
-	DEFAULT_TEMPERATURE_UNIT = CommonUnits.CELSIUS;
+	DEFAULT_PRESSURE_QUANTITY = CommonTypes.PRESSURE;;
+	DEFAULT_TEMPERATURE_QUANTITY = CommonTypes.TEMPERATURE;
     }
 
 
@@ -88,8 +89,10 @@ SkewTCoordinateSystem
 	throws VisADException
     {
 	this(DEFAULT_MIN_X, DEFAULT_MAX_X, DEFAULT_MIN_Y, DEFAULT_MAX_Y,
-	     DEFAULT_PRESSURE_UNIT, DEFAULT_MIN_P, DEFAULT_MAX_P,
-	     DEFAULT_TEMPERATURE_UNIT, DEFAULT_MIN_T, DEFAULT_MAX_T, 
+	     DEFAULT_PRESSURE_QUANTITY.getDefaultUnit(),
+	     DEFAULT_MIN_P, DEFAULT_MAX_P,
+	     DEFAULT_TEMPERATURE_QUANTITY.getDefaultUnit(),
+	     DEFAULT_MIN_T, DEFAULT_MAX_T, 
 	     DEFAULT_TANGENT);
     }
 
@@ -165,8 +168,10 @@ SkewTCoordinateSystem
 	yPerLogP = (float)(deltaY / (Math.log(maxP) - logMinP));
 	xPerT = deltaX / (maxT - minTAtMaxP);
 
-	if (!Unit.canConvert(pressureUnit, DEFAULT_PRESSURE_UNIT) ||
-	    !Unit.canConvert(temperatureUnit, DEFAULT_TEMPERATURE_UNIT))
+	if (!Unit.canConvert(
+		pressureUnit, DEFAULT_PRESSURE_QUANTITY.getDefaultUnit()) ||
+	    !Unit.canConvert(
+		temperatureUnit, DEFAULT_TEMPERATURE_QUANTITY.getDefaultUnit()))
 	{
 	    throw new UnitException("Improper unit argument(s)");
 	}

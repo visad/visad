@@ -3262,6 +3262,11 @@ for (i=0; i<length; i++) {
     }
   }
 
+  /**
+   * Gets the number of components in the "flat" range.
+   *
+   * @return			The number of components in the "flat" range.
+   */
   public int getRangeDimension() {
      return TupleDimension;
   }

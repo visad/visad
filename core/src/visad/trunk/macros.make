@@ -3,16 +3,21 @@ ROOTDIR		= /home/steve/java/visad
 # for testing only
 FTPDIR		= /home/steve/java/visad/ftp
 
+MAKEFILE	= upcMakefile
+MAKE		= make -f $(MAKEFILE)
+
 DOCDIR		= $(ROOTDIR)/doc
 CLASSDIR	= $(ROOTDIR)/classes
 JARDIR		= $(ROOTDIR)/classes
 SRCDIR		= $(ROOTDIR)/visad
+NETCDF_JAR	= /upc/share/classes/ucar19980123.jar
 
 PACKAGE_PREFIX	= $(PACKAGE).
 
 JAVACC		= javacc	# javacc is available from 
 #				# <http://www.suntest.com/JavaCC/>
 JAVAC		= javac -g -J-Xmx32m
+#JAVAC		= javac -g -J-Xmx32m -d $(CLASSDIR)
 JAVA		= java -Xmx128m
 JAVADOC		= javadoc
 POLARDOC	= polardoc	# the most-excellent polardoc is available from 
@@ -20,10 +25,15 @@ POLARDOC	= polardoc	# the most-excellent polardoc is available from
 JDB		= jdb
 JAR		= jar
 
-TOP_JAVADOCS	= $(DOCDIR)/AllNames.html \
-		  $(DOCDIR)/Package-$(PACKAGE).html \
-		  $(DOCDIR)/Packages.html \
-		  $(DOCDIR)/tree.html
+TOP_JAVADOCS	= $(DOCDIR)/index.html \
+		  $(DOCDIR)/overview-summary.html \
+		  $(DOCDIR)/overview-tree.html \
+		  $(DOCDIR)/deprecated-list.html \
+		  $(DOCDIR)/serialized-form.html \
+		  $(DOCDIR)/overview-frame.html \
+		  $(DOCDIR)/allclasses-frame.html \
+		  $(DOCDIR)/help-doc.html \
+		  $(DOCDIR)/index-all.html
 SUBDIR_TARGETS	= dummy_subdir_targets
 
-PACKAGE		= `pwd | sed 's|$(ROOTDIR)||;s|^/||;s|/|.|g'`
+PACKAGE		= `pwd | sed 's|'$(SRCDIR)'|visad|;s|^/||;s|/|.|g'`

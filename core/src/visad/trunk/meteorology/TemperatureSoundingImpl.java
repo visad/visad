@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: TemperatureSoundingImpl.java,v 1.1 1998-11-03 22:27:36 steve Exp $
+ * $Id: TemperatureSoundingImpl.java,v 1.2 1998-11-16 18:23:50 steve Exp $
  */
 
 package visad.meteorology;
@@ -44,7 +44,7 @@ TemperatureSoundingImpl
     TemperatureSoundingImpl()
 	throws VisADException, IllegalArgumentException
     {
-	this(new Integer1DSet(domainType, 2), rangeType.getDefaultUnit());
+	this(new Integer1DSet(DOMAIN_TYPE, 2), rangeType.getDefaultUnit());
     }
 
 

@@ -1,0 +1,17 @@
+SUBPACKAGE	= data
+
+include ../macros.make
+
+SUBDIR_TARGETS	= netcdf/default netcdf/classes netcdf/all netcdf/clean \
+		  netcdf/jar
+#fits
+#gif
+#hdfeos
+#vis5d
+
+default:	netcdf/default
+all:		netcdf/all
+jar:		netcdf/jar
+clean:		netcdf/clean
+
+include ../rules.make

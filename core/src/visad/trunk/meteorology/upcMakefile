@@ -1,0 +1,5 @@
+SUBPACKAGE	= meteorology
+
+include ../macros.make
+
+include ../rules.make

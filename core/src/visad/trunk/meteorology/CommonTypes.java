@@ -2,14 +2,15 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: CommonTypes.java,v 1.3 1998-11-03 22:27:33 steve Exp $
+ * $Id: CommonTypes.java,v 1.4 1998-11-16 18:23:47 steve Exp $
  */
 
 package visad.meteorology;
 
-import visad.RealTupleType;
-import visad.RealType;
 import visad.CommonUnit;
+import visad.RealTupleType;
+import visad.data.netcdf.Quantity;
+import visad.data.netcdf.QuantityDB;
 
 
 /**
@@ -18,51 +19,62 @@ import visad.CommonUnit;
 public class
 CommonTypes
 {
-    public static final RealType	PRESSURE;
-    public static final RealType	TEMPERATURE;
-    public static final RealType	DEW_POINT;
-    public static final RealType	THETA;
-    public static final RealType	THETA_ES;
-    public static final RealType	R_SAT;
-    public static final RealType	SPEED;
-    public static final RealType	DIRECTION;
-    public static final RealType	U;
-    public static final RealType	V;
+    public static final Quantity	PRESSURE;
+    public static final Quantity	TEMPERATURE;
+    public static final Quantity	DEW_POINT;
+    public static final Quantity	THETA;
+    public static final Quantity	THETA_ES;
+    public static final Quantity	R_SAT;
+    public static final Quantity	SPEED;
+    public static final Quantity	DIRECTION;
+    public static final Quantity	U;
+    public static final Quantity	V;
+    public static final Quantity	W;
+    public static final RealTupleType	UV_WIND;
+    public static final RealTupleType	UVW_WIND;
+    public static final RealTupleType	POLAR_WIND;
     public static final RealTupleType	WIND;
 
     static
     {
-	RealType	pressure = null;
-	RealType	temp = null;
-	RealType	dewPoint = null;
-	RealType	theta = null;
-	RealType	thetaES = null;
-	RealType	rSat = null;
-	RealType	speed = null;
-	RealType	direction = null;
-	RealType	u = null;
-	RealType	v = null;
-	RealTupleType	wind = null;
+	Quantity	pressure = null;
+	Quantity	temp = null;
+	Quantity	dewPoint = null;
+	Quantity	theta = null;
+	Quantity	thetaES = null;
+	Quantity	rSat = null;
+	Quantity	speed = null;
+	Quantity	direction = null;
+	Quantity	u = null;
+	Quantity	v = null;
+	Quantity	w = null;
+	RealTupleType	uvWind = null;
+	RealTupleType	uvwWind = null;
+	RealTupleType	polarWind = null;
 
 	try
 	{
-	    pressure = new RealType("Pressure", CommonUnits.MILLIBAR, null);
-	    temp = new RealType("Temperature", CommonUnits.CELSIUS, null);
-	    dewPoint = new RealType("Dew_Point", CommonUnits.CELSIUS, null);
-	    theta = new RealType("Theta", CommonUnits.CELSIUS, null);
-	    thetaES = new RealType("ThetaES", CommonUnits.CELSIUS, null);
-	    rSat = new RealType("Rsat", CommonUnits.G_PER_KG, null);
-	    speed = new RealType("Speed", CommonUnits.KNOT, null);
-	    direction = new RealType("Direction", CommonUnit.degree, null);
-	    u = new RealType("U", CommonUnits.KNOT, null);
-	    v = new RealType("V", CommonUnits.KNOT, null);
-	    wind = new RealTupleType(u, v);
+	    QuantityDB	db = MetQuantityDB.instance();
+	    pressure = db.getFirst("Pressure");;
+	    temp = db.getFirst("Temperature");
+	    dewPoint = db.getFirst("DewPoint");
+	    theta = db.getFirst("Theta");
+	    thetaES = db.getFirst("ThetaES");
+	    rSat = db.getFirst("Rsat");
+	    speed = db.getFirst("Speed");
+	    direction = db.getFirst("Direction");
+	    u = db.getFirst("U");
+	    v = db.getFirst("V");
+	    w = db.getFirst("W");
+	    uvWind = new RealTupleType(u, v);
+	    uvwWind = new RealTupleType(u, v, w);
+	    polarWind = new RealTupleType(speed, direction);
 	}
 	catch (Exception e)
 	{
 	    String	reason = e.getMessage();
 
-	    System.err.println("Couldn't initialize CommonTypes class" +
+	    System.err.println("Couldn't initialize class CommonTypes" +
 		(reason == null ? "" : ": " + reason));
 	    e.printStackTrace();
 	}
@@ -77,6 +89,10 @@ CommonTypes
 	DIRECTION = direction;
 	U = u;
 	V = v;
-	WIND = wind;
+	W = w;
+	UV_WIND = uvWind;
+	UVW_WIND = uvwWind;
+	POLAR_WIND = polarWind;
+	WIND = UV_WIND;
     }
 }

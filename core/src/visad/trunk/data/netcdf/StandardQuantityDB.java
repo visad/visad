@@ -6,12 +6,13 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: StandardQuantityDB.java,v 1.2 1998-08-12 18:42:48 visad Exp $
+ * $Id: StandardQuantityDB.java,v 1.3 1998-11-16 18:23:41 steve Exp $
  */
 
 package visad.data.netcdf;
 
 import java.io.Serializable;
+import visad.RealType;
 import visad.SI;
 import visad.VisADException;
 import visad.data.netcdf.units.ParseException;
@@ -25,7 +26,7 @@ import visad.data.netcdf.units.ParseException;
  */
 public final class
 StandardQuantityDB
-  extends	QuantityDB
+  extends	QuantityDBImpl
   implements	Serializable
 {
   /**
@@ -37,7 +38,7 @@ StandardQuantityDB
   /**
    * Return an instance of this class.
    *
-   * @exception VisADException	Couldn't create necessary VisAD object.
+   * @throws VisADException	Couldn't create necessary VisAD object.
    */
   public static synchronized StandardQuantityDB
   instance()
@@ -51,7 +52,7 @@ StandardQuantityDB
 
 
   /**
-   * Constucts, given nothing.  Protected to ensure use of the instance()
+   * Constucts from nothing.  Protected to ensure use of the instance()
    * method.
    *
    * @param otherDB		The quantity database for the get...()
@@ -65,40 +66,37 @@ StandardQuantityDB
     throws VisADException
   {
     String	name;
+    Quantity	quantity;
 
     try {
       /*
-       * From the SI class:
+       * From the VisAD RealType class:
        */
-      super.add(SI.ampere.quantityName(), "ampere");
-      super.add(SI.candela.quantityName(), "candela");
-      super.add(SI.kelvin.quantityName(), "kelvin");
-      super.add(SI.kilogram.quantityName(), "kilogram");
-      super.add(SI.meter.quantityName(), "meter");
-      super.add(SI.second.quantityName(), "second");
-      super.add(SI.mole.quantityName(), "mole");
-      super.add(SI.radian.quantityName(), "radian");
+      add(RealType.Generic);
+      add(RealType.Latitude);
+      add(RealType.Longitude);
+      add(RealType.Radius);
+      add(RealType.Time);
+      add(RealType.XAxis);
+      add(RealType.YAxis);
+      add(RealType.ZAxis);
 
       /*
-       * Fundamental dimensions:
+       * From the SI class:
        */
-      super.add("electric current", "ampere");
-      super.add("luminous intensity", "candela");
-
-      super.add("temperature", "kelvin");
-      super.add("thermodynamic temperature", "kelvin");
-
-      super.add("mass", "kilogram");
-      super.add("length", "meter");
-      super.add("time", "second");
-      super.add("amount of substance", "mole");
+      super.add(SI.ampere.quantityName(), "A");
+      super.add(SI.candela.quantityName(), "cd");
+      super.add(SI.kelvin.quantityName(), "K");
+      super.add(SI.kilogram.quantityName(), "kg");
+      super.add(SI.meter.quantityName(), "m");
+      super.add(SI.second.quantityName(), "s");
+      super.add(SI.mole.quantityName(), "mol");
+      super.add(SI.radian.quantityName(), "radian");
 
       /*
        * Quasi-fundamental dimensions:
        */
-      super.add("plane angle", "radian");
-      super.add("angle", "radian");
-      super.add("solid angle", "sr");
+      super.add("SolidAngle", "sr");
 
       /*
        * Derived dimensions.  The categories are somewhat arbitrary.
@@ -107,130 +105,134 @@ StandardQuantityDB
       /*
        * Simple stuff:
        */
-      super.add("volume", "m^3");
-      super.add("volume fraction", "m^3/m^3");
-      super.add("volume flow", "m^3/s");
-      super.add("flow", "m^3/s");
-      super.add("acceleration", "m/s^2");
-      super.add("area", "m^2");
-      super.add("frequency", "hz");
-      super.add("wave number", "m^-1");
-      super.add("speed", "m/s");
-      super.add("velocity", "m/s");
-      super.add("angular velocity", "radian/s");
-      super.add("angular acceleration", "radian/s^2");
+      super.add("Volume", "m^3");
+      super.add("VolumeFraction", "m^3/m^3");
+      quantity = new Quantity("Flow", "m^3/s");
+      super.add("VolumeFlow", quantity);
+      super.add("Flow", quantity);
+      super.add("Acceleration", "m/s^2");
+      super.add("Area", "m^2");
+      super.add("Frequency", "hz");
+      super.add("WaveNumber", "m^-1");
+      super.add("Speed", "m/s");
+      super.add("Velocity", "m/s");
+      super.add("AngularVelocity", "radian/s");
+      super.add("AngularAcceleration", "radian/s^2");
 
       /*
        * Mass:
        */
-      super.add("mass per area", "kg/m^2");
-      super.add("mass per length", "kg/m");
-      super.add("mass fraction", "kg/kg");
-      super.add("mass flux", "kg/s");
-      super.add("mass flow", "kg/s");
-      super.add("flow", "kg/s");
-      super.add("mass density", "kg/m^3");
-      super.add("density", "kg/m^3");
-      super.add("specific volume", "m^3/kg");
+      super.add("MassPerArea", "kg/m^2");
+      super.add("MassPerLength", "kg/m");
+      super.add("MassFraction", "kg/kg");
+      quantity = new Quantity("Flow", "kg/s");
+      super.add("MassFlux", quantity);
+      super.add("MassFlow", quantity);
+      super.add("Flow", quantity);
+      quantity = new Quantity("Density", "kg/m^3");
+      super.add("MassDensity", quantity);
+      super.add("Density", quantity);
+      super.add("SpecificVolume", "m^3/kg");
 
       /*
        * Force:
        */
-      super.add("force", "N");
-      super.add("moment of force", "N m");
-      super.add("surface tension", "N/m");
-      super.add("force per length", "N/m");
-      super.add("torque", "N m");
-      super.add("torque per length", "N");
-      super.add("pressure", "Pa");
-      super.add("stress", "Pa");
+      super.add("Force", "N");
+      super.add("MomentOfForce", "N m");
+      super.add("SurfaceTension", "N/m");
+      super.add("ForcePerLength", "N/m");
+      super.add("Torque", "N m");
+      super.add("TorquePerlength", "N");
+      super.add("Pressure", "Pa");
+      super.add("Stress", "Pa");
 
       /*
        * Viscosity:
        */
-      super.add("dynamic viscosity", "Pa s");
-      super.add("kinematic viscosity", "m^2/s");
+      super.add("DynamicViscosity", "Pa s");
+      super.add("KinematicViscosity", "m^2/s");
 
       /*
        * Energy:
        */
-      super.add("energy", "J");
-      super.add("work", "J");
-      super.add("quantity of heat", "J");
-      super.add("power", "W");
-      super.add("energy per area time", "J/(m^2 s)");
-      super.add("available energy", "J/kg");
-      super.add("specific energy", "J/kg");
-      super.add("available energy", "J/m^3");
-      super.add("energy density", "J/m^3");
+      super.add("Energy", "J");
+      super.add("Work", "J");
+      super.add("QuantityOfHeat", "J");
+      super.add("Power", "W");
+      super.add("EnergyPerareaTime", "J/(m^2 s)");
+      super.add("AvailableEnergy", "J/kg");
+      super.add("SpecificEnergy", "J/kg");
+      super.add("AvailableEnergy", "J/m^3");
+      super.add("EnergyDensity", "J/m^3");
 
       /*
        * Heat and temperature:
        */
-      super.add("thermal conductivity", "W/(m K)");
-      super.add("thermal diffusivity", "m^2/s");
-      super.add("thermal insulance", "(m^3 K)/W");
-      super.add("thermal resistance", "K/W");
-      super.add("thermal resistivity", "(m K)/W");
-      super.add("coefficient of heat transfer", "W/(m^2 K)");
-      super.add("density of heat", "J/m^2");
-      super.add("density of heat flow rate", "W/m^2");
-      super.add("heat flux density", "W/m^2");
-      super.add("heat capacity", "J/K");
-      super.add("entropy", "J/K");
-      super.add("heat flow rate", "W");
-      super.add("specific heat capcity", "J/(kg K)");
-      super.add("specific heat", "J/(kg K)");
-      super.add("specific entropy", "J/(kg K)");
+      super.add("ThermalConductivity", "W/(m K)");
+      super.add("ThermalDiffusivity", "m^2/s");
+      super.add("ThermalInsulance", "(m^3 K)/W");
+      super.add("ThermalResistance", "K/W");
+      super.add("ThermalResistivity", "(m K)/W");
+      super.add("CoefficientOfHeatTransfer", "W/(m^2 K)");
+      super.add("DensityOfHeat", "J/m^2");
+      super.add("DensityOfHeatFlowRate", "W/m^2");
+      super.add("HeatFluxDensity", "W/m^2");
+      super.add("HeatCapacity", "J/K");
+      super.add("Entropy", "J/K");
+      super.add("HeatFlowRate", "W");
+      super.add("SpecificHeatCapcity", "J/(kg K)");
+      super.add("SpecificHeat", "J/(kg K)");
+      super.add("SpecificEntropy", "J/(kg K)");
 
       /**
        * Electricity and magnetism:
        */
-      super.add("capacitance", "F");
-      super.add("permittivity", "F/m");
-      super.add("permeability", "H/m");
-      super.add("electric charge", "C");
-      super.add("electric charge density", "C/m^3");
-      super.add("electric flux density", "C/m^2");
-      super.add("electric resistance", "ohm");
-      super.add("electric conductance", "ohm");
-      super.add("electric potential difference", "V");
-      super.add("electromotive force", "V");
-      super.add("EMF", "V");
-      super.add("current density", "A/m^2");
-      super.add("inductance", "H");
-      super.add("magnetic flux", "Wb");
-      super.add("magnetic flux density", "T");
-      super.add("magnetic field strength", "A/m");
-      super.add("electric field strength", "V/m");
+      super.add("Capacitance", "F");
+      super.add("Permittivity", "F/m");
+      super.add("Permeability", "H/m");
+      super.add("ElectricCharge", "C");
+      super.add("ElectricChargeDensity", "C/m^3");
+      super.add("ElectricFluxDensity", "C/m^2");
+      super.add("ElectricResistance", "ohm");
+      super.add("ElectricConductance", "ohm");
+      quantity = new Quantity("EMF", "V");
+      super.add("ElectricPotentialDifference", quantity);
+      super.add("ElectromotiveForce", quantity);
+      super.add("EMF", quantity);
+      super.add("CurrentDensity", "A/m^2");
+      super.add("Inductance", "H");
+      super.add("MagneticFlux", "Wb");
+      super.add("MagneticFlux density", "T");
+      super.add("MagneticField strength", "A/m");
+      super.add("ElectricField strength", "V/m");
 
       /*
        * Photometry:
        */
-      super.add("illuminance", "lx");
-      super.add("irradiance", "W/m^2");
-      super.add("radiance", "W/(m^2 sr)");
-      super.add("luminance", "cd/m^2");
-      super.add("luminous flux", "lm");
-      super.add("radiant flux", "W");
-      super.add("radiant intensity", "W/sr");
+      super.add("Illuminance", "lx");
+      super.add("Irradiance", "W/m^2");
+      super.add("Radiance", "W/(m^2 sr)");
+      super.add("Luminance", "cd/m^2");
+      super.add("LuminousFlux", "lm");
+      super.add("RadiantFlux", "W");
+      super.add("RadiantIntensity", "W/sr");
 
       /*
        * Amount of substance:
        */
-      super.add("amount-of-substance fraction", "mol/mol");
-      super.add("molar volume", "m^3/mol");
-      super.add("molar mass", "kg/mol");
-      super.add("amount-of-substance concentration", "mol/m^3");
-      super.add("molality", "mol/kg");
-      super.add("molar energy", "J/mol");
-      super.add("molar entropy", "J/(mol K)");
-      super.add("molar heat capacity", "J/(mol K)");
+      super.add("AmountOfSubstanceFraction", "mol/mol");
+      super.add("MolarVolume", "m^3/mol");
+      super.add("MolarMass", "kg/mol");
+      super.add("AmountOfSubstanceConcentration", "mol/m^3");
+      super.add("Molality", "mol/kg");
+      super.add("MolarEnergy", "J/mol");
+      super.add("MolarEntropy", "J/(mol K)");
+      super.add("MolarHeatCapacity", "J/(mol K)");
 
       /*
        * Flow permeability:
        */
-      name = "permeability";
+      name = "Permeability";
       super.add(name, "m^2");
       super.add(name, "kg/(Pa s m^2)");
       super.add(name, "kg/(Pa s m)");
@@ -239,16 +241,16 @@ StandardQuantityDB
       /*
        * Radioactivity & radiation:
        */
-      super.add("absorbed dose", "Gy");
-      super.add("absorbed dose rate", "Gy/s");
-      super.add("dose equivalent", "Sv");
-      super.add("activity", "Bq");
-      super.add("exposure", "C/kg");	// x & gamma rays
+      super.add("AbsorbedDose", "Gy");
+      super.add("AbsorbedDoseRate", "Gy/s");
+      super.add("DoseEquivalent", "Sv");
+      super.add("Activity", "Bq");
+      super.add("Exposure", "C/kg");	// x & gamma rays
 
       /*
        * Fuel consumption:
        */
-      name = "fuel consumption";
+      name = "FuelConsumption";
       super.add(name, "m^3/J");
       super.add(name, "m/m^3");
       super.add(name, "kg/J");
@@ -256,15 +258,17 @@ StandardQuantityDB
       /*
        * Geophysical sciences:
        */
-      super.add("geodetic latitude", "degrees_north");
-      super.add("geodetic longitude", "degrees_east");
-      super.add("latitude", "degrees_north");
-      super.add("longitude", "degrees_east");
-      super.add("lat", "degrees_north");
-      super.add("lon", "degrees_east");
-      super.add("elevation", "m");
-      super.add("altitude", "m");
-      super.add("depth", "m");
+      quantity = get("Latitude", "degree");	// from RealType.Latitude
+      super.add("GeodeticLatitude", quantity);
+      super.add("lat", quantity);
+      quantity = get("Longitude", "degree");
+      super.add("GeodeticLongitude", quantity);	// from RealType.Longitude
+      super.add("Longitude", quantity);
+      super.add("lon", quantity);
+      quantity = new Quantity("Altitude", "m");
+      super.add("Elevation", quantity);
+      super.add("Altitude", quantity);
+      super.add("Depth", "m");
 
     } catch (ParseException e) {	// shouldn't happen
       throw new VisADException(e.getMessage());
@@ -291,6 +295,19 @@ StandardQuantityDB
 
 
   /**
+   * Add a quantity to the database given a VisAD RealType.
+   *
+   * @param realType		The VisAD RealType to be added.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   */
+  protected void add(RealType realType)
+    throws VisADException
+  {
+    super.add(realType.getName(), new Quantity(realType));
+  }
+
+
+  /**
    * Tests this class.
    */
   public static void
@@ -299,6 +316,6 @@ StandardQuantityDB
   {
     StandardQuantityDB	db = StandardQuantityDB.instance();
 
-    System.out.println("latitude={" + db.get("latitude", SI.radian) + "}");
+    System.out.println("LaTiTuDe=<" + db.get("LaTiTuDe", SI.radian) + ">");
   }
 }

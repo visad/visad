@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTDisplay.java,v 1.13 1998-11-03 22:27:35 steve Exp $
+ * $Id: SkewTDisplay.java,v 1.14 1998-11-16 18:23:49 steve Exp $
  */
 
 package visad.meteorology;
@@ -693,7 +693,7 @@ SkewTDisplay
 	    */
 
 	    field = (FlatField)plain.open("sounding.nc");
-	    sounding = new SoundingImpl(field, 0, 1, -1, -1);
+	    sounding = new SoundingImpl(field, 0, 1, 3, 2);
 	    display.setSounding(sounding);
 	    // java.lang.Thread.sleep(5000);
 	}

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Util.java,v 1.2 1998-09-30 14:27:41 steve Exp $
+ * $Id: Util.java,v 1.3 1998-11-16 18:23:43 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -39,6 +39,7 @@ import visad.TextType;
 import visad.Unit;
 import visad.VisADException;
 import visad.data.netcdf.Quantity;
+import visad.data.netcdf.QuantityDB;
 import visad.data.netcdf.units.ParseException;
 import visad.data.netcdf.units.Parser;
 
@@ -51,66 +52,76 @@ public class
 Util
 {
     /**
+     * The quantity database to use to map netCDF variables to VisAD
+     * Quantity-s.
+     */
+    private final NetcdfQuantityDB	quantityDB;
+
+    /**
      * A counter for creating new names.
      */
-    private static int		nameCount = 0;
+    private static int			nameCount = 0;
 
     /**
      * The netCDF dataset.
      */
-    private final Netcdf	netcdf;
+    private final Netcdf		netcdf;
 
     /**
      * A cache of netCDF variables and their units.
      */
-    private final Map		unitMap = 
+    private final Map			unitMap = 
 	Collections.synchronizedMap(new WeakHashMap());
 
     /**
      * A cache of netCDF dimensions and their VisAD domain types.
      */
-    private final Map		realTypeMap = 
+    private final Map			realTypeMap = 
 	Collections.synchronizedMap(new WeakHashMap());
 
     /**
      * A cache of netCDF dimensions and their VisAD domain sets.
      */
-    private final Map		domainSetMap = 
+    private final Map			domainSetMap = 
 	Collections.synchronizedMap(new WeakHashMap());
 
     /**
      * A cache of netCDF datasets and their Util instances.
      */
-    private static Map		utilMap = 
+    private static Map			utilMap = 
 	Collections.synchronizedMap(new WeakHashMap());
 
     /**
      * The quantity of time.
      */
-    private static Quantity	time = NetcdfQuantityDB.get("time", SI.second);
+    private final Quantity		time;
 
     /**
      * The quantity of longitude.
      */
-    private static Quantity	longitude =
-	NetcdfQuantityDB.get("longitude", SI.radian);
+    private Quantity			longitude;
 
     /**
      * The quantity of latitude.
      */
-    private static Quantity	latitude =
-	NetcdfQuantityDB.get("latitud", SI.radian);
+    private Quantity			latitude;
 
 
     /**
-     * Constructs from a netCDF dataset.
+     * Constructs from a netCDF dataset and a quantity database.
      *
      * @param netcdf		The netCDF dataset.
+     * @param quantityDB	The quantity database to use to map netCDF
+     *				variables to VisAD Quantity-s.
      */
     private
-    Util(Netcdf netcdf)
+    Util(Netcdf netcdf, QuantityDB quantityDB)
     {
 	this.netcdf = netcdf;
+	this.quantityDB = new NetcdfQuantityDB(quantityDB);
+	time = quantityDB.get("time", SI.second);
+	longitude = quantityDB.get("longitude", SI.radian);
+	latitude = quantityDB.get("latitude", SI.radian);
     }
 
 
@@ -118,9 +129,11 @@ Util
      * Factory method for creating a new instance.
      *
      * @param netcdf		The netCDF dataset.
+     * @param quantityDB	The quantity database to use to map netCDF
+     *				variables to VisAD Quantity-s.
      */
     public static Util
-    newUtil(Netcdf netcdf)
+    newUtil(Netcdf netcdf, QuantityDB quantityDB)
     {
 	/*
 	 * The order of get() and containsKey() are reversed because the map
@@ -130,7 +143,7 @@ Util
 
 	if (!utilMap.containsKey(netcdf))
 	{
-	    util = new Util(netcdf);
+	    util = new Util(netcdf, quantityDB);
 	    utilMap.put(netcdf, util);
 	}
 
@@ -200,9 +213,10 @@ Util
 	if (!realTypeMap.containsKey(var))
 	{
 	    String	name = var.getName();
+	    String	longName = getLongName(var);
 	    Unit	varUnit = justGetUnit(var);
 
-	    type = NetcdfQuantityDB.getBest(getLongName(var), name, varUnit);
+	    type = quantityDB.getBest(longName, name, varUnit);
 
 	    if (type == null)
 	    {
@@ -779,7 +793,7 @@ Util
      * @return			LinearSet of the domain of the function.
      * @throws VisADException	Couldn't create a necessary VisAD object.
      */
-    private static LinearSet
+    private LinearSet
     getLinearSet(Gridded1DSet[] sets, MathType type)
 	throws VisADException
     {

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultView.java,v 1.2 1998-09-30 14:27:41 steve Exp $
+ * $Id: DefaultView.java,v 1.3 1998-11-16 18:23:42 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -24,6 +24,7 @@ import visad.SimpleSet;
 import visad.Unit;
 import visad.VisADException;
 import visad.data.BadFormException;
+import visad.data.netcdf.QuantityDB;
 
 
 /**
@@ -41,15 +42,17 @@ DefaultView
 
 
     /**
-     * Constructs from a netCDF dataset.
+     * Constructs from a netCDF dataset and a quantity database.
      *
      * @param netcdf		The netCDF dataset.
+     * @param quantityDB	The quantity database to use to map netCDF
+     *				variables to VisAD Quantity-s.
      */
     public
-    DefaultView(Netcdf netcdf)
+    DefaultView(Netcdf netcdf, QuantityDB quantityDB)
     {
 	super(netcdf);
-	util = Util.newUtil(netcdf);
+	util = Util.newUtil(netcdf, quantityDB);
     }
 
 

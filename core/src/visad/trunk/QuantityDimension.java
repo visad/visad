@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: QuantityDimension.java,v 1.1 1998-06-17 14:32:40 steve Exp $
+ * $Id: QuantityDimension.java,v 1.2 1998-11-16 18:23:37 steve Exp $
  */
 
 package visad;
@@ -36,7 +36,7 @@ public final class QuantityDimension
 
 
   /**
-   * Construct from nothing (i.e. constract a dimensionless quantity).
+   * Constructs from nothing (i.e. constructs a dimensionless quantity).
    */
   public QuantityDimension()
   {
@@ -45,7 +45,7 @@ public final class QuantityDimension
 
 
   /**
-   * Construct from another dimension of a quantity.
+   * Constructs from another dimension of a quantity.
    */
   public QuantityDimension(QuantityDimension that)
   {
@@ -56,7 +56,7 @@ public final class QuantityDimension
 
 
   /**
-   * Construct from an existing Unit.
+   * Constructs from an existing Unit.
    */
   public QuantityDimension(Unit unit)
     throws UnitException

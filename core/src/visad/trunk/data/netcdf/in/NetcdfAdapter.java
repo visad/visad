@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.14 1998-09-23 18:18:49 steve Exp $
+ * $Id: NetcdfAdapter.java,v 1.15 1998-11-16 18:23:42 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -16,6 +16,9 @@ import visad.DataImpl;
 import visad.FieldImpl;
 import visad.VisADException;
 import visad.data.BadFormException;
+import visad.data.netcdf.QuantityDB;
+import visad.data.netcdf.QuantityDBImpl;
+import visad.data.netcdf.StandardQuantityDB;
 
 
 /**
@@ -40,6 +43,8 @@ NetcdfAdapter
      * Constructs from a netCDF dataset.
      *
      * @param netcdf		The netCDF dataset to be adapted.
+     * @param quantityDB	A quantity database to be used to map netCDF
+     *				variables to VisAD Quantity-s.
      * @throws VisADException	Problem in core VisAD.  Probably some VisAD
      *				object couldn't be created.
      * @throws RemoteException	Remote data access failure.
@@ -47,10 +52,10 @@ NetcdfAdapter
      * @throws BadFormException	Non-conforming netCDF dataset.
      */
     public
-    NetcdfAdapter(Netcdf netcdf)
+    NetcdfAdapter(Netcdf netcdf, QuantityDB quantityDB)
 	throws VisADException, RemoteException, IOException, BadFormException
     {
-	this(new DefaultView(netcdf), new DefaultConsolidator());
+	this(new DefaultView(netcdf, quantityDB), new DefaultConsolidator());
     }
 
 
@@ -161,7 +166,8 @@ NetcdfAdapter
 	{
 	    NetcdfFile		file = new NetcdfFile(pathnames[i], 
 				    /*readonly=*/true);
-	    NetcdfAdapter	adapter = new NetcdfAdapter(file);
+	    NetcdfAdapter	adapter =
+		new NetcdfAdapter(file, StandardQuantityDB.instance());
 	    // Data		data = adapter.getProxy();
 	    DataImpl		data = adapter.getData();
 

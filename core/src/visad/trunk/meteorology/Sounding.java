@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Sounding.java,v 1.4 1998-11-03 22:27:35 steve Exp $
+ * $Id: Sounding.java,v 1.5 1998-11-16 18:23:49 steve Exp $
  */
 
 package visad.meteorology;
@@ -13,10 +13,10 @@ import visad.CoordinateSystem;
 import visad.FlatField;
 import visad.FunctionType;
 import visad.MathType;
-import visad.RealType;
 import visad.Set;
 import visad.Unit;
 import visad.VisADException;
+import visad.data.netcdf.Quantity;
 
 
 /**
@@ -30,7 +30,7 @@ Sounding
     /**
      * Gets the type of the domain variable.
      */
-    public RealType
+    public Quantity
     getDomainType();
 
 

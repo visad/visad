@@ -3,23 +3,26 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: MetQuantityDB.java,v 1.1 1998-08-12 17:17:20 visad Exp $
+ * $Id: MetQuantityDB.java,v 1.2 1998-11-16 18:23:48 steve Exp $
  */
 
 package visad.meteorology;
 
 import visad.VisADException;
+import visad.data.netcdf.Quantity;
 import visad.data.netcdf.QuantityDB;
-import visad.data.netcdf.QuantityMap;
+import visad.data.netcdf.QuantityDBImpl;
+import visad.data.netcdf.QuantityDBList;
+import visad.data.netcdf.StandardQuantityDB;
 import visad.data.netcdf.units.ParseException;
 
 
 /**
- * Provides for the mapping of meteorological quantities to VisAD Quantities.
+ * Provides support for mapping meteorological quantities to VisAD Quantities.
  */
 public class
 MetQuantityDB
-    extends	QuantityDB
+    extends	QuantityDBList
 {
     /**
      * The singleton instance.
@@ -33,11 +36,23 @@ MetQuantityDB
     private MetQuantityDB()
 	throws VisADException
     {
+	QuantityDBImpl	metQuantityDB = new QuantityDBImpl();
+
 	try
 	{
-	    add("pressure", "millibars");
-	    add("pressure reduced to MSL", "millibars");
-	    add("temperature", "celsius");
+	    Quantity	quantity = new Quantity("Pressure", "millibar");
+	    metQuantityDB.add("Pressure", quantity);
+	    metQuantityDB.add("PressureReducedToMSL", quantity);
+	    metQuantityDB.add("Temperature", "degC");
+	    metQuantityDB.add("DewPoint", "degC");
+	    metQuantityDB.add("Theta", "degC");
+	    metQuantityDB.add("ThetaES", "degC");
+	    metQuantityDB.add("Rsat", "grams/kilogram");
+	    metQuantityDB.add("Speed", "kt");
+	    metQuantityDB.add("Direction", "degrees_true");
+	    metQuantityDB.add("U", "kt");
+	    metQuantityDB.add("V", "kt");
+	    metQuantityDB.add("W", "kt");
 
 	}
 	catch (ParseException e)
@@ -48,6 +63,9 @@ MetQuantityDB
 	     */
 	    throw new VisADException(e.getMessage());
 	}
+
+	append(metQuantityDB);
+	append(StandardQuantityDB.instance());
     }
 
 
@@ -72,8 +90,32 @@ MetQuantityDB
     main(String[] args)
 	throws	Exception
     {
-	QuantityMap.push(MetQuantityDB.instance());
-	System.out.println("pressure unit = " + 
-	    QuantityMap.getFirst("pressure").getDefaultUnit());
+	MetQuantityDB	metQuantityDB = MetQuantityDB.instance();
+	QuantityDB	standardQuantityDB = StandardQuantityDB.instance();
+
+	System.out.println(
+    "standardQuantityDB.getFirst(\"pressure\").getDefaultUnitString()=\"" +
+	    standardQuantityDB.getFirst(
+		"pressure").getDefaultUnitString() + "\"");
+	System.out.println(
+    "metQuantityDB.getFirst(\"pressure\").getDefaultUnitString()=\"" +
+	    metQuantityDB.getFirst(
+		"pressure").getDefaultUnitString() + "\"");
+	System.out.println(
+    "metQuantityDB.getFirst(\"U\").getDefaultUnitString()=\"" +
+	    metQuantityDB.getFirst(
+		"U").getDefaultUnitString() + "\"");
+	System.out.println(
+    "metQuantityDB.getFirst(\"V\").getDefaultUnitString()=\"" +
+	    metQuantityDB.getFirst(
+		"V").getDefaultUnitString() + "\"");
+	System.out.println(
+    "metQuantityDB.getFirst(\"Speed\").getDefaultUnitString()=\"" +
+	    metQuantityDB.getFirst(
+		"Speed").getDefaultUnitString() + "\"");
+	System.out.println(
+    "metQuantityDB.getFirst(\"Direction\").getDefaultUnitString()=\"" +
+	    metQuantityDB.getFirst(
+		"Direction").getDefaultUnitString() + "\"");
     }
 }

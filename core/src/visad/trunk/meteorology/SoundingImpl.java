@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SoundingImpl.java,v 1.2 1998-11-03 22:27:36 steve Exp $
+ * $Id: SoundingImpl.java,v 1.3 1998-11-16 18:23:50 steve Exp $
  */
 
 package visad.meteorology;
@@ -15,6 +15,7 @@ import visad.Integer1DSet;
 import visad.MathType;
 import visad.RealTupleType;
 import visad.RealType;
+import visad.SI;
 import visad.ScalarType;
 import visad.Set;
 import visad.Tuple;
@@ -27,7 +28,7 @@ import visad.VisADException;
 /**
  * Provides support for atmospheric soundings.
  *
- * Instances are mutable.
+ * Instances are modifiable.
  *
  * @author Steven R. Emmerson
  */
@@ -35,6 +36,39 @@ public class
 SoundingImpl
     extends	AbstractSounding
 {
+    /**
+     * Whether or not to convert the wind.
+     */
+    private /*final*/ boolean	convertWind;
+
+    /**
+     * The canonical type of the range of this field.
+     */
+    private static final TupleType	canonicalRangeType;
+
+
+    static
+    {
+	TupleType	crt = null;
+	try
+	{
+	    crt = new TupleType(
+		    new MathType[] {
+			TEMPERATURE_TYPE,
+			DEW_POINT_TYPE,
+			UV_WIND_TYPE});
+	}
+	catch (Exception e)
+	{
+	    String	reason = e.getMessage();
+	    System.err.println("Couldn't initialize class SoundingImpl" +
+		(reason == null ? "" : (": " + reason)));
+	    e.printStackTrace();
+	}
+	canonicalRangeType = crt;
+    }
+
+
     /**
      * Constructs from nothing.
      *
@@ -47,74 +81,434 @@ SoundingImpl
 	throws VisADException
     {
 	super(
-	    new TupleType(
-		new MathType[] {
-		    TEMPERATURE_TYPE,
-		    DEW_POINT_TYPE,
-		    WIND_TYPE}),
-	    new Integer1DSet(domainType, 2),
+	    canonicalRangeType,
+	    new Integer1DSet(DOMAIN_TYPE, 2),
 	    new Unit[] {
 		TEMPERATURE_TYPE.getDefaultUnit(),
 		DEW_POINT_TYPE.getDefaultUnit(),
-		WIND_TYPE.getDefaultUnits()[0],
-		WIND_TYPE.getDefaultUnits()[1]});
+		UV_WIND_TYPE.getDefaultUnits()[0],
+		UV_WIND_TYPE.getDefaultUnits()[1]});
+
+	    convertWind = false;
     }
 
 
     /**
-     * Constructs from a FlatField and component indexes.
+     * Constructs from a FlatField and component indexes.  The range
+     * of the FlatField shall be RealType or RealTupleType.
      *
      * @param field			A sounding FlatField.  Domain must
      *					be 1-D pressure.
      * @param temperatureIndex		The index of the temperature
      *					range-component or <code>-1</code>.
-     * @param dewPointIndex		The index of the dew-point range-
+     * @param humidityIndex		The index of the dew-point range-
      *					component or <code>-1</code>.
-     * @param uIndex			The index of the U-component of the
-     *					wind or <code>-1</code>.
-     * @param vIndex			The index of the V-component of the
-     *					wind or <code>-1</code>.
+     * @param USpdIndex			The index of the U-component of the
+     *					wind, the speed of the wind, or
+     *					<code>-1</code>.
+     * @param VDirIndex			The index of the V-component of the
+     *					wind, the direction of the wind, or
+     *					<code>-1</code>.
      * @throws VisADException		Couldn't create necessary VisAD object.
      * @throws RemoteException		Remote data access failure.
      * @throws IllegalArgumentException	<code>field == null</code>.
      */
     public
-    SoundingImpl(FlatField field, int temperatureIndex, int dewPointIndex,
-	    int uIndex, int vIndex)
+    SoundingImpl(FlatField field, int temperatureIndex, int humidityIndex,
+	    int USpdIndex, int VDirIndex)
 	throws	VisADException, RemoteException
     {
 	super(
 	    getRangeType(
 		field,
-		new int[][] {
-		    new int[] {temperatureIndex},
-		    new int[] {dewPointIndex},
-		    new int[] {uIndex, vIndex}},
-		new MathType[] {
-		    TEMPERATURE_TYPE,
-		    DEW_POINT_TYPE,
-		    WIND_TYPE}),
+		temperatureIndex,
+		humidityIndex,
+		USpdIndex,
+		VDirIndex),
 	    field.getDomainSet(),
 	    getRangeUnits(
 		field,
-		new int[] {temperatureIndex, dewPointIndex, uIndex, vIndex}));
+		temperatureIndex,
+		humidityIndex,
+		USpdIndex,
+		VDirIndex));
 
-	int[]		indexes =
-	    new int[] {temperatureIndex, dewPointIndex, uIndex, vIndex};
+	convertWind = !isValidIndex(USpdIndex) || !isValidIndex(VDirIndex)
+	    ? false
+	    : POLAR_WIND_TYPE.equalsExceptNameButUnits(
+		getWindType(
+		    getRangeTupleType(field),
+		    USpdIndex,
+		    VDirIndex));
+
 	double[][]	values = new double[getRangeDimension()][];
 
-	int	count = 0;
-	for (int i = 0; i < indexes.length; ++i)
+	int	i = 0;				// flattened new-range index
+	if (isValidIndex(temperatureIndex))
+	    values[i++] = getTemperatureValues(field, temperatureIndex);
+	if (isValidIndex(humidityIndex))
+	    values[i++] =
+		getDewPointValues(field, humidityIndex, temperatureIndex);
+	if (areValidIndexes(USpdIndex, VDirIndex))
 	{
-	    int	index = indexes[i];
-	    if (index != -1)
-	    {
-		values[count] = field.extract(index).getValues()[0];
-		count++;
-	    }
+	    System.arraycopy(
+		getWindValues(field, USpdIndex, VDirIndex), 0, values, i, 2);
+	    // i += 2;
 	}
 
 	setSamples(values, /*copy=*/false);
+    }
+
+
+    /**
+     * Gets the type of the FlatField range formed from the
+     * specified range components of another FlatField.
+     *
+     * @param field			The FlatField containing the range
+     *					components to be extracted.
+     * @param temperatureIndex		The index of the temperature
+     *					range-component or <code>-1</code>.
+     * @param humidityIndex		The index of the dew-point range-
+     *					component or <code>-1</code>.
+     * @param USpdIndex			The index of the U-component of the
+     *					wind, the speed of the wind, or
+     *					<code>-1</code>.
+     * @param VDirIndex			The index of the V-component of the
+     *					wind, the direction of the wind, or
+     *					<code>-1</code>.
+     * @throws TypeException		A range-component is incompatible.
+     * @throws VisADException		Couldn't create necessary VisAD object.
+     * @throws RemoteException		Remote data access failure.
+     * @throws IllegalArgumentException	<code>field == null</code>.
+     */
+    protected static MathType
+    getRangeType(FlatField field, int temperatureIndex, int humidityIndex,
+		int USpdIndex, int VDirIndex)
+	throws TypeException, VisADException, RemoteException
+    {
+	if (field == null)
+	    throw new IllegalArgumentException("Null field");
+
+	boolean	validTemperature = isValidIndex(temperatureIndex);
+	boolean	validDewPoint = isValidIndex(humidityIndex);
+	boolean	validWind = areValidIndexes(USpdIndex, VDirIndex);
+
+	/*
+	 * Vet the soon-to-be-extracted components.
+	 */
+	int		count = 0;
+	TupleType	rangeTupleType = getRangeTupleType(field);
+	if (validTemperature)
+	{
+	    if (!TEMPERATURE_TYPE.equalsExceptNameButUnits(
+		getTemperatureType(rangeTupleType, temperatureIndex)))
+	    {
+		throw new TypeException(
+		    "Incompatible \"temperature\" component");
+	    }
+	    count++;
+	}
+	if (validDewPoint)
+	{
+	    if (!DEW_POINT_TYPE.equalsExceptNameButUnits(
+		getDewPointType(
+		    rangeTupleType, humidityIndex, temperatureIndex)))
+	    {
+		throw new TypeException("Incompatible \"dew-point\" component");
+	    }
+	    count++;
+	}
+	if (validWind)
+	{
+	    RealTupleType	windType =
+		getWindType(rangeTupleType, USpdIndex, VDirIndex);
+	    if (!UV_WIND_TYPE.equalsExceptNameButUnits(windType) &&
+		!POLAR_WIND_TYPE.equalsExceptNameButUnits(windType))
+	    {
+		throw new TypeException("Incompatible \"wind\" component");
+	    }
+	    count++;
+	}
+
+	MathType[]	rangeTypes = new MathType[count];
+
+	int	i = 0;				// new-range component index
+	if (validTemperature)
+	    rangeTypes[i++] = TEMPERATURE_TYPE;
+	if (validDewPoint)
+	    rangeTypes[i++] = DEW_POINT_TYPE;
+	if (validWind)
+	    rangeTypes[i++] = UV_WIND_TYPE;
+
+	return getSimplestForm(rangeTypes);
+    }
+
+
+    /**
+     * Gets the type of the temperature range component.
+     *
+     * @param tupleType		The field range to examine.
+     * @param index		The index of the temperature component in
+     *				<code>field </code>.
+     * @throws TypeException	The components are incompatible with the
+     *				expected type.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    protected static RealType
+    getTemperatureType(TupleType tupleType, int index)
+	throws VisADException, TypeException
+    {
+	return (RealType)tupleType.getComponent(index);
+    }
+
+
+    /**
+     * Gets the type of the dew-point range component.
+     *
+     * @param tupleType		The field range to examine.
+     * @param humidityIndex	The index of the humidity component in
+     *				<code>field </code>.
+     * @param temperatureIndex	The index of the temperature component in
+     *				<code>field </code>.
+     * @throws TypeException	The components are incompatible with the
+     *				expected type.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    protected static RealType
+    getDewPointType(TupleType tupleType, int humidityIndex,
+	    int temperatureIndex)
+	throws VisADException, TypeException
+    {
+	return (RealType)tupleType.getComponent(humidityIndex);
+    }
+
+
+    /**
+     * Gets the type of the wind range component.
+     *
+     * @param tupleType		The field range to examine.
+     * @param USpdIndex		The index of the U-component or 
+     *				the speed-compnent in <code>field </code>.
+     * @param USpdIndex		The index of the V-component or 
+     *				the direction-compnent in <code>field </code>.
+     * @throws TypeException	The components are incompatible with the
+     *				expected type.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    protected static RealTupleType
+    getWindType(TupleType tupleType, int USpdIndex, int VDirIndex)
+	throws VisADException, TypeException
+    {
+	return new RealTupleType(
+	    (RealType)tupleType.getComponent(USpdIndex),
+	    (RealType)tupleType.getComponent(VDirIndex));
+    }
+
+
+    /**
+     * Get the units of the range components of a FlatField whose range
+     * consists of the specified range components extracted from another
+     * FlatField.
+     *
+     * @param field			The FlatField containing the range
+     *					components to be extracted.  Its domain
+     *					must be compatible with <code>domainType
+     *					</code>.
+     * @param temperatureIndex		The index of the temperature
+     *					range-component or <code>-1</code>.
+     * @param humidityIndex		The index of the dew-point range-
+     *					component or <code>-1</code>.
+     * @param USpdIndex			The index of the U-component of the
+     *					wind, the speed of the wind, or
+     *					<code>-1</code>.
+     * @param VDirIndex			The index of the V-component of the
+     *					wind, the direction of the wind, or
+     *					<code>-1</code>.
+     * @throws VisADException		Couldn't create necessary VisAD object.
+     * @throws RemoteException		Remote data access failure.
+     * @throws IllegalArgumentException	<code>field == null || domainType == 
+     *					null || indexes == null ||
+     *					rangeTypes == null || indexes.length !=
+     *					rangeTypes.length </code>.
+     */
+    protected static Unit[]
+    getRangeUnits(FlatField field, int temperatureIndex, int humidityIndex,
+	    int USpdIndex, int VDirIndex)
+	throws TypeException, VisADException, RemoteException
+    {
+	if (field == null)
+	    throw new IllegalArgumentException("Null field");
+
+	int	count =
+	    (isValidIndex(temperatureIndex) ? 1 : 0) +
+	    (isValidIndex(humidityIndex) ? 1 : 0) +
+	    (areValidIndexes(USpdIndex, VDirIndex) ? 2 : 0);
+
+	Unit[]	units = new Unit[count];
+	Unit[]	fieldRangeUnits = field.getDefaultRangeUnits();
+
+	int	i = 0;				// flattened, new-range index
+	if (isValidIndex(temperatureIndex))
+	    units[i++] =
+		getTemperatureUnit(fieldRangeUnits, temperatureIndex);
+	if (isValidIndex(humidityIndex))
+	    units[i++] = getDewPointUnit(
+		fieldRangeUnits, humidityIndex, temperatureIndex);
+	if (areValidIndexes(USpdIndex, VDirIndex))
+	{
+	    Unit[]	windUnits =
+		getWindUnits(fieldRangeUnits, USpdIndex, VDirIndex);
+	    units[i++] = windUnits[0];		// U
+	    units[i++] = windUnits[0];		// USpdIndex in any case
+	}
+
+	return units;
+    }
+
+
+    /**
+     * Gets the unit of the temperature range component.
+     *
+     * @param rangeUnits	The units of the flattened field range.
+     * @param index		The index of the temperature component in
+     *				<code>rangeUnits</code>.
+     */
+    protected static Unit
+    getTemperatureUnit(Unit[] rangeUnits, int index)
+    {
+	return rangeUnits[index];
+    }
+
+
+    /**
+     * Gets the unit of the dew-point range component.
+     *
+     * @param rangeUnits	The units of the flattened field range.
+     * @param index		The index of the dew-point component in
+     *				<code>rangeUnits</code>.
+     */
+    protected static Unit
+    getDewPointUnit(Unit[] rangeUnits, int humidityIndex, int temperatureIndex)
+    {
+	return rangeUnits[humidityIndex];
+    }
+
+
+    /**
+     * Gets the units of the wind range component.
+     *
+     * @param rangeUnits	The units of the flattened field range.
+     * @param USpdIndex		The index of the U-component of the
+     *				wind or the speed of the wind.
+     * @param VDirIndex		The index of the V-component of the
+     *				wind or the direction of the wind.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    protected static Unit[]
+    getWindUnits(Unit[] rangeUnits, int USpdIndex, int VDirIndex)
+	throws VisADException
+    {
+	Unit	USpdUnit = rangeUnits[USpdIndex];
+	Unit	VDirUnit = rangeUnits[VDirIndex];
+
+	return new Unit[] {USpdUnit, VDirUnit};
+    }
+
+
+    /**
+     * Gets the temperature values from a FlatField.
+     *
+     * @param field		The field to extract the values from.
+     * @param index		The index of the temperature component in
+     *				<code>field </code>.
+     * @return			The temperature values from the <code>index
+     *				</code> component of the range of <code>field
+     *				</code> in that component's default units.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws RemoteException	Java RMI failure.
+     */
+    protected double[]
+    getTemperatureValues(FlatField field, int index)
+	throws VisADException, RemoteException
+    {
+	return field.extract(index).getValues()[0];
+    }
+
+
+    /**
+     * Gets the dew-point values from a FlatField.
+     *
+     * @param field		The field to extract the values from.
+     * @param humidityIndex	The index of the dew-point component in
+     *				<code>field </code>.
+     * @param temperatureIndex	The index of the temperature component in
+     *				<code>field </code>.
+     * @return			The dew-point values from the <code>index
+     *				</code> component of the range of <code>field
+     *				</code> in that component's default units.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws RemoteException	Java RMI failure.
+     */
+    protected double[]
+    getDewPointValues(FlatField field, int humidityIndex, int temperatureIndex)
+	throws VisADException, RemoteException
+    {
+	return field.extract(humidityIndex).getValues()[0];
+    }
+
+
+    /**
+     * Gets the wind values from a FlatField.
+     *
+     * @param field		The field to extract the values from.
+     * @param USpdIndex		The index of the U-component of the
+     *				wind or the speed of the wind.
+     * @param VDirIndex		The index of the V-component of the
+     *				wind or the direction of the wind.
+     * @return			The U/V wind values from the <code>USpdIndex
+     *				</code> and <code>VDirIndex</code> components
+     *				of the range of <code>field</code>.  If the
+     *				wind in the range is U/V, then the units are
+     *				the default units of the components; otherwise,
+     *				the units are the default unit of the speed
+     *				component.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws RemoteException	Java RMI failure.
+     */
+    protected double[][]
+    getWindValues(FlatField field, int USpdIndex, int VDirIndex)
+	throws RemoteException, VisADException
+    {
+	double[][]	wind = new double[][] {
+	    field.extract(USpdIndex).getValues()[0],
+	    field.extract(VDirIndex).getValues()[0]};
+
+	if (convertWind)
+	{
+	    double[]	dirs = wind[1];
+	    Unit	dirUnit = getWindUnits(
+		field.getDefaultRangeUnits(), USpdIndex, VDirIndex)[1];
+	    dirs = SI.radian.toThis(dirs, dirUnit);
+	    double[]	us = wind[0];
+	    double[]	vs = wind[1];
+
+	    for (int i = 0; i < dirs.length; ++i)
+	    {
+		/*
+		 * In the following code
+		 *	1.  Negating the speed converts the direction from 
+		 *	    upwind to downwind; and
+		 * 	2.  Transposing sin() and cos() converts the direction
+		 *	    from meteorological to mathematical.
+		 */
+		double	dir = dirs[i];
+		double	speed = -us[i];
+		us[i] = speed*Math.sin(dir);
+		vs[i] = speed*Math.cos(dir);
+	    }
+	}
+
+	return wind;
     }
 
 
@@ -219,98 +613,6 @@ SoundingImpl
 
 
     /**
-     * Gets the type of the FlatField range formed from the
-     * specified range components of another FlatField.
-     *
-     * @param field			The FlatField containing the range
-     *					components to be extracted.
-     * @param indexes			Indexes of the range components in
-     *					<code>field</code> to extract.  A
-     *					value of <code>-1</code> is ignored.
-     * @param rangeTypes		The types for the extracted range
-     *					components.  <code>rangeTypes[i]</code>
-     *					must be compatible with the <code>
-     *					indexes[i]</code>-th range components of
-     *					<code>field</code> if <code>
-     *					indexes[i][0] != -1</code>.
-     * @throws TypeException		A range-component is incompatible.
-     * @throws VisADException		Couldn't create necessary VisAD object.
-     * @throws RemoteException		Remote data access failure.
-     * @throws IllegalArgumentException	<code>field == null ||
-     *					indexes == null ||
-     *					rangeTypes == null || indexes.length !=
-     *					rangeTypes.length </code>.
-     */
-    protected static MathType
-    getRangeType(FlatField field, int[][] indexes, MathType[] rangeTypes)
-	throws TypeException, VisADException, RemoteException
-    {
-	if (field == null || indexes == null || rangeTypes == null)
-	    throw new IllegalArgumentException("Null argument");
-
-	if (indexes.length != rangeTypes.length)
-	    throw new IllegalArgumentException("Array length mismatch");
-
-	FunctionType	fieldType = (FunctionType)field.getType();
-
-	int	newRangeComponentCount = 0;
-	for (int i = 0; i < indexes.length; ++i)
-	    if (indexes[i][0] != -1)
-		newRangeComponentCount++;
-
-	TupleType	fieldRangeTuple = makeTupleType(fieldType.getRange());
-
-	MathType[]	newRangeTypes = new MathType[newRangeComponentCount];
-	for (int i = 0; i < indexes.length; ++i)
-	{
-	    int[]	ints = indexes[i];
-	    if (ints[0] != -1)
-		newRangeTypes[i] = getComponentType(field, ints, rangeTypes[i]);
-	}
-
-	return getSimplestForm(newRangeTypes);
-    }
-
-
-    /**
-     * Gets the type of the given components of a given field.
-     *
-     * @param field		The field to examine.
-     * @param indexes		The indexes of the components in <code>field
-     *				</code>.
-     * @param expectedType	The expected type.
-     * @throws IllegalArgumentException
-     *				<code>field == null || indexes == null ||
-     *				expectedType == null</code>.
-     * @throws TypeException	The components are incompatible with the
-     *				expected type.
-     * @throws VisADException	Couldn't create necessary VisAD object.
-     */
-    protected static MathType
-    getComponentType(FlatField field, int[] indexes, MathType expectedType)
-	throws VisADException, TypeException
-    {
-	if (field == null || indexes == null || expectedType == null)
-	    throw new IllegalArgumentException("Null argument");
-
-	TupleType	rangeTupleType =
-	    makeTupleType(((FunctionType)field.getType()).getRange());
-	RealType[]	componentTypes = new RealType[indexes.length];
-
-	for (int i = 0; i < indexes.length; ++i)
-	    componentTypes[i] = (RealType)rangeTupleType.getComponent(i);
-
-	MathType	newComponentType =
-	    getSimplestForm(new RealTupleType(componentTypes));
-
-	if (!expectedType.equalsExceptNameButUnits(newComponentType))
-	    throw new TypeException("Unexpected incompatible component");
-
-	return expectedType;
-    }
-
-
-    /**
      * Gets the simplest form of a MathType.
      *
      * @param mathType		A MathType.
@@ -377,62 +679,6 @@ SoundingImpl
 	}
 
 	return simplestForm;
-    }
-
-
-    /**
-     * Get the units of the range components of a FlatField whose range
-     * consists of the specified range components extracted from another
-     * FlatField.
-     *
-     * @param field			The FlatField containing the range
-     *					components to be extracted.  Its domain
-     *					must be compatible with <code>domainType
-     *					</code>.
-     * @param indexes			Indexes of the range components in
-     *					<code>field</code> to extract.  A
-     *					value of <code>-1</code> is ignored.
-     * @throws VisADException		Couldn't create necessary VisAD object.
-     * @throws RemoteException		Remote data access failure.
-     * @throws IllegalArgumentException	<code>field == null || domainType == 
-     *					null || indexes == null ||
-     *					rangeTypes == null || indexes.length !=
-     *					rangeTypes.length </code>.
-     */
-    protected static Unit[]
-    getRangeUnits(FlatField field, int[] indexes)
-	throws TypeException, VisADException, RemoteException
-    {
-	if (field == null || indexes == null)
-	    throw new IllegalArgumentException("Null argument");
-
-	TupleType	fieldRangeTuple =
-	    makeTupleType(((FunctionType)field.getType()).getRange());
-
-	int	count = 0;
-	for (int i = 0; i < indexes.length; ++i)
-	{
-	    int	index = indexes[i];
-	    if (index != -1)
-		count += getComponentCount(fieldRangeTuple.getComponent(index));
-	}
-
-	Unit[]	units = new Unit[count];
-	int	k = 0;			// flattened-range component index
-	for (int i = 0; i < indexes.length; ++i)
-	{
-	    int	index = indexes[i];
-	    if (index != -1)
-	    {
-		Unit[]	defaultUnits = 
-		    getDefaultUnits(fieldRangeTuple.getComponent(indexes[i]));
-		System.arraycopy(
-		    defaultUnits, 0, units, k, defaultUnits.length);
-		k += defaultUnits.length;
-	    }
-	}
-
-	return units;
     }
 
 
@@ -614,9 +860,31 @@ SoundingImpl
     getWindProfile()
 	throws VisADException, RemoteException
     {
-	int	index = findComponent(WIND_TYPE);
+	int	index = findComponent(UV_WIND_TYPE);
 	return index == -1
 		? null
 		: new WindProfileImpl(this, index);
+    }
+
+
+    protected static boolean
+    isValidIndex(int index)
+    {
+	return index != -1;
+    }
+
+
+    protected static boolean
+    areValidIndexes(int index1, int index2)
+    {
+	return isValidIndex(index1) && isValidIndex(index2);
+    }
+
+
+    protected static TupleType
+    getRangeTupleType(FlatField field)
+	throws VisADException
+    {
+	return makeTupleType(((FunctionType)field.getType()).getRange());
     }
 }

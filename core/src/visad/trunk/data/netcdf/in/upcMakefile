@@ -5,7 +5,7 @@ include ../../../macros.make
 
 include ../../../rules.make
 
-test:	\
+TESTS	= \
 	scalar.test \
 	sounding.test \
 	time.test \
@@ -13,20 +13,24 @@ test:	\
 	pmsl.test \
 	big.test \
 	lwc3rms.test \
-	98092911_perl_sao.test \
 	b2rlc.test \
 	rueden.test \
 	images.test \
 	2332_2365.test
 
+DEBUGS	= $(TESTS:.test=.debug)
+
+test:	$(TESTS)
+
 .SUFFIXES:	.save .run .nc
-.nc.run:	FORCE
-	CLASSPATH=$(ROOTDIR):$$CLASSPATH $(JAVA) $(PACKAGE).NetcdfAdapter $<
+.nc.run:
+	CLASSPATH=$(ROOTDIR):$$CLASSPATH $(JAVA) \
+	    $(PACKAGE_PREFIX)NetcdfAdapter $<
 
 .nc.debug:
 	$(JDB) -classpath $$CLASSPATH $(PACKAGE_PREFIX)NetcdfAdapter $<
 
-.nc.save:
+.nc.save:	FORCE
 	$(MAKE) -s $*.run >$@ 2>&1
 
 .nc.test:
@@ -45,3 +49,6 @@ NcNestedData.class:	NcData.java
 NcNestedData.class:	NcNestedField.java
 
 NcScalar.class:		NcData.java
+
+$(TESTS):	NetcdfAdapter.class
+$(DEBUGS):	NetcdfAdapter.class

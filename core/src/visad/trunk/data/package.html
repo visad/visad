@@ -22,6 +22,12 @@
 
 Provides for importing data to and exporting data from VisAD.
 
+The VisAD data backend subsystem is implemented as a heirarchy of <I>data
+forms</I>.&nbsp; A data form is the form in which the data is contained.&nbsp;
+I could be, for example, a netCDF or HDF-EOS dataset, or a FITS file.&nbsp;
+It could also be local or remote.&nbsp; The term <I>form</I> is used rather
+than <I>format</I> to encompase both data access methodologies (e.g. the
+netCDF API) and the more traditional data file formats.
 
 <h2>Related Documentation</h2>
 

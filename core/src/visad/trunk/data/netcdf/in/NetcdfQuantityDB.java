@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfQuantityDB.java,v 1.5 1998-09-23 18:18:50 steve Exp $
+ * $Id: NetcdfQuantityDB.java,v 1.6 1998-11-16 18:23:42 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -11,18 +11,29 @@ package visad.data.netcdf.in;
 import ucar.netcdf.Netcdf;
 import ucar.netcdf.Variable;
 import visad.data.netcdf.Quantity;
-import visad.data.netcdf.QuantityMap;
+import visad.data.netcdf.QuantityDB;
+import visad.data.netcdf.QuantityDBList;
 import visad.Unit;
 import visad.VisADException;
 
 
 /**
- * This class maps netCDF variables and dimensions to VisAD quantities.
+ * Provides support for mapping netCDF elements to VisAD quantities.
  */
 public class
 NetcdfQuantityDB
-    extends	QuantityMap
+    extends	QuantityDBList
 {
+    /**
+     * Constructs from another quantity database.
+     */
+    public
+    NetcdfQuantityDB(QuantityDB db)
+    {
+	super(db);
+    }
+
+	
     /**
      * Return the VisAD quantity corresponding to the best combination of
      * long name, name, and unit.
@@ -34,7 +45,7 @@ NetcdfQuantityDB
      * @return		The corresponding, unique, VisAD quantity or 
      *			<code>null</code> if no such quantity exists.
      */
-    public static Quantity
+    public Quantity
     getBest(String longName, String name, Unit unit)
     {
 	Quantity	quantity = longName == null
