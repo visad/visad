@@ -10,13 +10,19 @@ import java.util.ArrayList;
 import javax.swing.JOptionPane;
 import javax.swing.JWindow;
 
+import visad.util.CmdlineGenericConsumer;
+import visad.util.CmdlineParser;
+
 public class Main
+  extends CmdlineGenericConsumer
 {
   private static final String CLASSPATH_PROPERTY = "java.class.path";
   private static final String PATH_PROPERTY = "visad.install.path";
 
   private static final String VISAD_JAR_URL =
     "ftp://ftp.ssec.wisc.edu/pub/visad-2.0/visad.jar";
+
+  private boolean debug;
 
   private URL jarURL;
   private ChooserList chooser;
@@ -31,6 +37,12 @@ public class Main
 
   public Main(String[] args)
   {
+    CmdlineParser cmdline = new CmdlineParser(this);
+    if (!cmdline.processArgs(args)) {
+      System.exit(1);
+      return;
+    }
+
     SplashScreen ss = new SplashScreen("visad-splash.jpg");
     ss.setVisible(true);
 
@@ -43,14 +55,18 @@ public class Main
       return;
     }
 
-    dumpInitialState();
+    if (debug) {
+      dumpInitialState();
+    }
 
     useSuppliedJava = downloadLatestJar = false;
     jvmToUse = javaInstallDir = jarInstallDir = null;
 
     queryUser();
 
-    dumpInstallState();
+    if (debug) {
+      dumpInstallState();
+    }
 
     install();
   }
@@ -76,6 +92,16 @@ public class Main
         list.remove(i);
       }
     }
+  }
+
+  public int checkOption(String mainName, char ch, String arg)
+  {
+    if (ch == 'x') {
+      debug = true;
+      return 1;
+    }
+
+    return 0;
   }
 
   private final static File chooseDirectory(ChooserList chooser,
@@ -323,6 +349,11 @@ public class Main
     return true;
   }
 
+  public void initializeArgs()
+  {
+    debug = false;
+  }
+
   /**
    * Install VisAD.
    */
@@ -366,6 +397,11 @@ public class Main
         }
       }
     }
+  }
+
+  public String optionUsage()
+  {
+    return super.optionUsage() + " [-x(debug)]";
   }
 
   /**
