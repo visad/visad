@@ -29,7 +29,12 @@ import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 import javax.swing.filechooser.FileFilter;
 import ncsa.hdf.hdf5lib.H5;
-
+import com.sun.image.codec.jpeg.*;
+import visad.DisplayImpl;
+import java.io.File;
+import java.io.IOException;
+import java.io.FileOutputStream;
+import java.awt.image.BufferedImage;
 /**
  * A hodge-podge of general utility methods.
  */
@@ -300,5 +305,39 @@ public class Util
     }
     catch (ClassNotFoundException exc) { }
     return c;
+  }
+
+  /**
+   * Capture a DisplayImpl into a JPEG file
+   *
+   * @param display the DisplayImpl to capture
+   * @param filename the name of the file to write into
+   *
+   */
+  public static void captureDisplay(DisplayImpl display, String filename) 
+                             throws IOException {
+
+    final DisplayImpl disp = display;
+    final File fn = new File(filename);
+
+    Runnable savedisp = new Runnable() { 
+        
+      public void run() {
+        BufferedImage image = disp.getImage();
+        try {
+          JPEGEncodeParam param = JPEGCodec.getDefaultJPEGEncodeParam(image);
+          param.setQuality(1.0f, true);
+          FileOutputStream fout = new FileOutputStream(fn);
+          JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(fout);
+          encoder.encode(image, param);
+          fout.close();
+        }
+        catch (Exception err) {
+          System.err.println("Error whilst saving JPEG: "+err);
+        }
+      }
+    };
+    Thread t = new Thread(savedisp);
+    t.start();
   }
 }
