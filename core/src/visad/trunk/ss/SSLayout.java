@@ -56,15 +56,19 @@ public class SSLayout implements LayoutManager {
   /** space between rows */
   private int RowSpace;
 
+  /** whether this layout manager should use added "label logic" */
+  private boolean Labels;
+
   /** constructor */
   public SSLayout(int ncol, int nrow, int mwidth, int mheight,
-                  int wspace, int hspace) {
+                  int wspace, int hspace, boolean labels) {
     NumCols = ncol;
     NumRows = nrow;
     MinColW = mwidth;
     MinRowH = mheight;
     ColSpace = wspace;
     RowSpace = hspace;
+    Labels = labels;
   }
 
   /** heart of the layout manager--does all the work */
@@ -80,33 +84,43 @@ public class SSLayout implements LayoutManager {
     }
 
     // get preferred widths and total width
-    double[] pw = new double[NumCols];
+    int[] pw = new int[NumCols];
     double totalW = 0.0;
+    int unusedW = 0;
     for (int i=0; i<NumCols; i++) {
-      pw[i] = (double) c[i].getPreferredSize().width;
-      totalW += pw[i];
+      pw[i] = c[i].getPreferredSize().width;
+      if (i % 2 == 0 || !Labels) totalW += pw[i];
+      else unusedW += pw[i];
     }
 
     // compute real widths
     int[] rw = new int[NumCols];
     for (int i=0; i<NumCols; i++) {
-      rw[i] = (int) (pw[i]/totalW*curW);
-      if (rw[i] < MinColW) rw[i] = MinColW;
+      if (i % 2 == 0 || !Labels) {
+        rw[i] = (int) (pw[i] / totalW * (curW - unusedW));
+        if (rw[i] < MinColW) rw[i] = MinColW;
+      }
+      else rw[i] = pw[i];
     }
 
     // get preferred heights and total height
-    double[] ph = new double[NumRows];
+    int[] ph = new int[NumRows];
     double totalH = 0.0;
+    int unusedH = 0;
     for (int i=0; i<NumRows; i++) {
-      ph[i] = (double) c[NumCols*i].getPreferredSize().height;
-      totalH += ph[i];
+      ph[i] = c[NumCols*i].getPreferredSize().height;
+      if (i % 2 == 0 || !Labels) totalH += ph[i];
+      else unusedH += ph[i];
     }
 
     // compute real heights
     int[] rh = new int[NumRows];
     for (int i=0; i<NumRows; i++) {
-      rh[i] = (int) (ph[i]/totalH*curH);
-      if (rh[i] < MinRowH) rh[i] = MinRowH;
+      if (i % 2 == 0 || !Labels) {
+        rh[i] = (int) (ph[i] / totalH * (curH - unusedH));
+        if (rh[i] < MinRowH) rh[i] = MinRowH;
+      }
+      else rh[i] = ph[i];
     }
 
     // set widths and heights of all components
@@ -125,8 +139,32 @@ public class SSLayout implements LayoutManager {
 
   /** returns minimum layout size */
   public Dimension minimumLayoutSize(Container parent) {
-    return new Dimension(NumCols * (MinColW + ColSpace) - ColSpace,
-                         NumRows * (MinRowH + RowSpace) - RowSpace);
+    if (Labels) {
+      // get array of components
+      Component[] c = parent.getComponents();
+      if (c.length != NumCols*NumRows) {
+        throw new Error("wrong number of components!");
+      }
+
+      // get total minimum width
+      int minW = -ColSpace;
+      for (int i=0; i<NumCols; i++) {
+        minW += ColSpace;
+        int mw = c[i].getMinimumSize().width;
+        minW += (mw < MinColW && i % 2 == 0) ? MinColW : mw;
+      }
+
+      // get total minimum height
+      int minH = -RowSpace;
+      for (int i=0; i<NumRows; i++) {
+        minH += RowSpace;
+        int mh = c[NumCols*i].getMinimumSize().height;
+        minH += (mh < MinRowH && i % 2 == 0) ? MinRowH : mh;
+      }
+      return new Dimension(minW, minH);
+    }
+    else return new Dimension(NumCols * (MinColW + ColSpace) - ColSpace,
+                              NumRows * (MinRowH + RowSpace) - RowSpace);
   }
 
   /** returns preferred layout size */
@@ -139,13 +177,13 @@ public class SSLayout implements LayoutManager {
     // get preferred total width
     int totalW = -ColSpace;
     for (int i=0; i<NumCols; i++) {
-      totalW += c[i].getPreferredSize().width; // + ColSpace;
+      totalW += c[i].getPreferredSize().width + ColSpace;
     }
 
     // get preferred total height
-    int totalH = 0; // -RowSpace;
+    int totalH = -RowSpace;
     for (int i=0; i<NumRows; i++) {
-      totalH += c[NumCols*i].getPreferredSize().height; // + RowSpace;
+      totalH += c[NumCols*i].getPreferredSize().height + RowSpace;
     }
 
     // preferred size should be at least minimum size
@@ -172,7 +210,7 @@ public class SSLayout implements LayoutManager {
     });
     JPanel p = new JPanel();
     f.setContentPane(p);
-    p.setLayout(new SSLayout(3, 4, 200, 50, 5, 15));
+    p.setLayout(new SSLayout(3, 4, 200, 50, 5, 15, false));
     p.add(new JButton("Button01"));
     p.add(new JButton("Button02"));
     p.add(new JButton("Button03"));

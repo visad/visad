@@ -118,7 +118,7 @@ public class BasicSSCell extends JPanel {
   boolean HasMappings = false;
 
   /** Specifies whether formula errors are reported in a dialog box */
-  boolean ShowFormulaErrors = false;
+  boolean ShowFormulaErrors = true;
 
   /** Constructs a new BasicSSCell with the given name */
   public BasicSSCell(String name) throws VisADException, RemoteException {

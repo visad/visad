@@ -1,6 +1,6 @@
  
                    VisAD SpreadSheet User Interface README file
-                                  26 August 1998
+                                10 September 1998
                                         
                                 Table of Contents
 
@@ -121,10 +121,12 @@ evaluation on a stack.  It is used by FormulaCell.
 2. Features of the SpreadSheet User Interface
 
 2.1 Basic Commands
-    The spreadsheet cell with the blue border is the current, highlighted
+    The spreadsheet cell with the yellow border is the current, highlighted
 cell.  Any operation you perform (such as importing a data set), will affect
 the highlighted cell.  To change which cell is highlighted, click inside the
-desired cell with a mouse button, or press the arrow keys.
+desired cell with a mouse button, or press the arrow keys.  You can also
+resize the spreadsheet cells, to allow some cells to be larger than others,
+by dragging the yellow block between cell labels.
 
 2.2 Menu Commands
 
@@ -323,8 +325,7 @@ with a detailed description of how to recreate the problem.
 
 4. Future Plans
     Here's what's coming in the future:
-      1) Spreadsheet column and row addition and deletion, and resizable
-         columns and rows
+      1) Spreadsheet column and row addition and deletion
       2) Multiple data per cell
       3) Direct manipulation support
       4) Distributed Cells, Data, etc. (such as data import from http address)

@@ -546,11 +546,6 @@ public class FancySSCell extends BasicSSCell {
     t.start();
   }
 
-  /** Sets the minimum size of the FancySSCell */
-  public void setMinSize(Dimension size) {
-    if (size != null) setPreferredSize(size);
-  }
-
   /** A thin, horizontal divider */
   private class Divider extends JComponent {
 
