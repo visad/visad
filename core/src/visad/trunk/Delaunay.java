@@ -227,7 +227,13 @@ public abstract class Delaunay implements java.io.Serializable {
                 for (int k=0; k<3; k++) {
                   if (Walk[othtri][k] == i) cside = k;
                 }
-                Edges[othtri][cside] = NumEdges;
+                if (cside != -1) {
+                  Edges[othtri][cside] = NumEdges;
+                }
+                else {
+                  throw new SetException("Delaunay.finish_triang: " +
+                                         "error in triangulation!");
+                }
               }
               Edges[i][j] = NumEdges++;
             }
