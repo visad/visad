@@ -28,6 +28,7 @@ package visad.browser;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Vector;
 
 /**
  * A simple slider widget.
@@ -196,7 +197,57 @@ public class Slider extends Component
     if (grip < 0) grip = 0;
     if (grip > width - GRIP_WIDTH) grip = width - GRIP_WIDTH;
     value = gripToValue(grip);
+    notifyListeners();
     repaint();
+  }
+
+  /**
+   * Vector of listeners for slider changes.
+   */
+  private Vector listeners = new Vector();
+
+  /**
+   * Command string for slider change notification.
+   */
+  private String command = null;
+
+  /**
+   * Adds a listener to be notified of slider changes.
+   */
+  public void addActionListener(ActionListener l) {
+    synchronized (listeners) {
+      listeners.addElement(l);
+    }
+  }
+
+  /**
+   * Removes a listener to be notified of slider changes.
+   */
+  public void removeActionListener(ActionListener l) {
+    synchronized (listeners) {
+      listeners.removeElement(l);
+    }
+  }
+
+  /**
+   * Sets command string for slider change notification.
+   */
+  public void setActionCommand(String cmd) {
+    command = cmd;
+  }
+
+  /**
+   * Notifies listeners of slider change.
+   */
+  public void notifyListeners() {
+    ActionEvent e =
+      new ActionEvent(this, ActionEvent.ACTION_PERFORMED, command);
+    synchronized (listeners) {
+      for (int i=0; i<listeners.size(); i++) {
+        ActionListener l = (ActionListener) listeners.elementAt(i);
+        l.actionPerformed(e);
+      }
+    }
   }
 
   /**

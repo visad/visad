@@ -33,7 +33,7 @@ import java.net.*;
 import java.io.*;
 import java.rmi.RemoteException;
 import java.util.*;
-import visad.browser.Convert;
+import visad.browser.*;
 
 /** A SocketSlaveDisplay server wraps around a VisAD display, providing support
     for stand-alone remote displays (i.e., not dependent on the VisAD packages)
@@ -145,7 +145,7 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
               // receive the client data
               int eventType = in.readInt();
 
-              if (eventType == 0) { // 0 = refresh
+              if (eventType == VisADApplet.REFRESH) {
                 // send latest display image to the client
                 updateClient(socket, in, out);
 
@@ -167,8 +167,21 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
                     updateClient(message, socket, in, out);
                   }
                 }
+
+                // send latest ScalarMap states to the client
+                Vector maps = display.getMapVector();
+                for (int j=0; j<maps.size(); j++) {
+                  ScalarMap map = (ScalarMap) maps.elementAt(j);
+                  ScalarType scalar = map.getScalar();
+                  DisplayRealType displayScalar = map.getDisplayScalar();
+                  double[] range = map.getRange();
+                  String message = "visad.ScalarMap\n" +
+                    scalar.getName() + " " + displayScalar.getName() + " " +
+                    range[0] + " " + range[1];
+                  updateClient(message, socket, in, out);
+                }
               }
-              else if (eventType == 1) { // 1 = MouseEvent
+              else if (eventType == VisADApplet.MOUSE_EVENT) {
                 int id = in.readInt();
                 long when = in.readLong();
                 int mods = in.readInt();
@@ -185,7 +198,7 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
                 MouseHelper mh = mb.getMouseHelper();
                 mh.processEvent(me, VisADEvent.UNKNOWN_REMOTE_SOURCE);
               }
-              else if (eventType == 2) { // 2 = message
+              else if (eventType == VisADApplet.MESSAGE) {
                 int len = in.readInt();
                 char[] c = new char[len];
                 for (int j=0; j<len; j++) c[j] = in.readChar();

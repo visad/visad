@@ -60,6 +60,21 @@ public class VisADApplet extends Applet
   private static final int DEFAULT_PORT = 4567;
 
   /**
+   * Code for refresh action.
+   */
+  public static final int REFRESH = 0;
+
+  /**
+   * Code for mouse event action.
+   */
+  public static final int MOUSE_EVENT = 1;
+
+  /**
+   * Code for message action.
+   */
+  public static final int MESSAGE = 2;
+
+  /**
    * Whether the applet client is connected to a server.
    */
   private boolean connected = false;
@@ -132,7 +147,7 @@ public class VisADApplet extends Applet
   /**
    * Hashtable for storing widgets.
    */
-  private Hashtable widgets = new Hashtable();
+  private Hashtable hashtable = new Hashtable();
 
   /**
    * Adds a component to the applet with the specified constraints.
@@ -157,7 +172,7 @@ public class VisADApplet extends Applet
    */
   private void addWidget(Widget widget, String hash) {
     // add widget to hashtable
-    widgets.put(hash, widget);
+    hashtable.put(hash, widget);
 
     // add widget to control panel
     if (constraints.gridy > 0) {
@@ -178,7 +193,7 @@ public class VisADApplet extends Applet
    */
   private synchronized void removeAllWidgets() {
     // clear hashtable
-    widgets = new Hashtable();
+    hashtable = new Hashtable();
 
     // clear control panel
     constraints.gridy = 0;
@@ -275,7 +290,7 @@ public class VisADApplet extends Applet
   private void requestRefresh() {
     if (out != null) {
       try {
-        out.writeInt(0); // 0 = refresh
+        out.writeInt(REFRESH);
       }
       catch (SocketException exc) {
         // problem communicating with the server; it has probably disconnected
@@ -301,7 +316,7 @@ public class VisADApplet extends Applet
     boolean popup = e.isPopupTrigger();
     if (out != null) {
       try {
-        out.writeInt(1); // 1 = MouseEvent
+        out.writeInt(MOUSE_EVENT);
         out.writeInt(id);
         out.writeLong(when);
         out.writeInt(mods);
@@ -327,7 +342,7 @@ public class VisADApplet extends Applet
   private void sendMessage(String message) {
     if (out != null) {
       try {
-        out.writeInt(2); // 2 = message
+        out.writeInt(MESSAGE);
         out.writeInt(message.length());
         out.writeChars(message);
       }
@@ -421,67 +436,107 @@ public class VisADApplet extends Applet
               for (int i=0; i<len; i++) c[i] = in.readChar();
               String message = new String(c);
 
-              // apply changes to relevant widget
+              // detect message type
+              if (message.startsWith("visad.ScalarMap\n")) {
+                // message is a scalar map update
 
-              // Parse message, which should be of the form:
-              //   class\nnumber\nstate
-              // where class is the class name of the control that has
-              // changed, number is the index into that class name's
-              // control list, and state is the save string
-              // corresponding to the control's new state.
-              StringTokenizer st = new StringTokenizer(message, "\n");
-              String controlClass = st.nextToken();
-              int index = Convert.getInt(st.nextToken());
-              String save = st.nextToken();
+                // Parse message
+                StringTokenizer st = new StringTokenizer(message);
+                st.nextToken(); // skip scalar map id token
+                String scalar = st.nextToken();
+                String displayScalar = st.nextToken();
+                float min = Convert.getFloat(st.nextToken());
+                float max = Convert.getFloat(st.nextToken());
 
-              // parse class name
-              int dotIndex = controlClass.lastIndexOf(".");
-              int ctrlIndex = controlClass.lastIndexOf("Control");
-              String widgetName =
-                controlClass.substring(dotIndex + 1, ctrlIndex);
-
-              // handle special cases
-              if (widgetName.equals("GraphicsMode")) widgetName = "GMC";
-
-              // construct widget class name and hash table key
-              String widgetClass = "visad.browser." + widgetName + "Widget";
-              String widgetHash = widgetName + index;
-
-              // get widget from hashtable
-              Widget widget = (Widget) widgets.get(widgetHash);
-              if (widget == null) {
-                // widget not found; instantiate widget of the proper type
-                try {
-                  widget = (Widget) Class.forName(widgetClass).newInstance();
-                  widget.addWidgetListener(applet);
-                }
-                catch (ClassNotFoundException exc) {
-                  if (DEBUG) {
-                    // widget class does not exist
-                    System.err.println("Warning: ignoring status of " +
-                      "unknown " + widgetName + " widget.");
+                // update hashtable
+                String mapHash = scalar + " " + displayScalar;
+                String dsHash = "." + displayScalar;
+                Integer index = (Integer) hashtable.get(mapHash);
+                if (index == null) {
+                  // new scalar map
+                  Integer count = (Integer) hashtable.get(dsHash);
+                  if (count == null) {
+                    // new display scalar
+                    count = new Integer(0);
                   }
+                  index = count;
+                  hashtable.put(mapHash, index);
+                  hashtable.put(dsHash, new Integer(count.intValue() + 1));
                 }
-                catch (InstantiationException exc) {
-                  if (DEBUG) {
-                    // widget class cannot be instantiated
-                    System.err.println("Warning: ignoring status of " +
-                      "invalid " + widgetName + "widget.");
-                  }
+
+                // Handle supported display scalar types
+                if (displayScalar.equals("DisplayIsoContour")) {
+                  // iso-contour map; update associated ContourWidget
+                  String widgetHash = "Contour" + index.intValue();
+                  ContourWidget widget =
+                    (ContourWidget) hashtable.get(widgetHash);
+                  widget.setName(scalar);
+                  widget.setRange(min, max);
                 }
-                catch (IllegalAccessException exc) {
-                  if (DEBUG) {
-                    // widget class constructor cannot be accessed
-                    System.err.println("Warning: ignoring status of " +
-                      "restricted " + widgetName + "widget.");
-                  }
-                }
-                if (widget != null) addWidget(widget, widgetHash);
               }
+              else {
+                // message is a control update
 
-              if (widget != null) {
-                // set widget's state to match save string from message
-                widget.setSaveString(save);
+                // Parse message, which should be of the form:
+                //   class\nnumber\nstate
+                // where class is the class name of the control that has
+                // changed, number is the index into that class name's
+                // control list, and state is the save string
+                // corresponding to the control's new state.
+                StringTokenizer st = new StringTokenizer(message, "\n");
+                String controlClass = st.nextToken();
+                int index = Convert.getInt(st.nextToken());
+                String save = st.nextToken();
+
+                // parse class name
+                int dotIndex = controlClass.lastIndexOf(".");
+                int ctrlIndex = controlClass.lastIndexOf("Control");
+                String widgetName =
+                  controlClass.substring(dotIndex + 1, ctrlIndex);
+
+                // handle special cases
+                if (widgetName.equals("GraphicsMode")) widgetName = "GMC";
+
+                // construct widget class name and hash table key
+                String widgetClass = "visad.browser." + widgetName + "Widget";
+                String widgetHash = widgetName + index;
+
+                // get widget from hashtable
+                Widget widget = (Widget) hashtable.get(widgetHash);
+                if (widget == null) {
+                  // widget not found; instantiate widget of the proper type
+                  try {
+                    widget = (Widget) Class.forName(widgetClass).newInstance();
+                    widget.addWidgetListener(applet);
+                  }
+                  catch (ClassNotFoundException exc) {
+                    if (DEBUG) {
+                      // widget class does not exist
+                      System.err.println("Warning: ignoring status of " +
+                        "unknown " + widgetName + " widget.");
+                    }
+                  }
+                  catch (InstantiationException exc) {
+                    if (DEBUG) {
+                      // widget class cannot be instantiated
+                      System.err.println("Warning: ignoring status of " +
+                        "invalid " + widgetName + "widget.");
+                    }
+                  }
+                  catch (IllegalAccessException exc) {
+                    if (DEBUG) {
+                      // widget class constructor cannot be accessed
+                      System.err.println("Warning: ignoring status of " +
+                        "restricted " + widgetName + "widget.");
+                    }
+                  }
+                  if (widget != null) addWidget(widget, widgetHash);
+                }
+
+                if (widget != null) {
+                  // set widget's state to match save string from message
+                  widget.setSaveString(save);
+                }
               }
             }
             else {
@@ -571,7 +626,7 @@ public class VisADApplet extends Applet
     int index = -1;
     Widget w;
     do {
-      w = (Widget) widgets.get(controlName + i);
+      w = (Widget) hashtable.get(controlName + i);
       if (w == widget) {
         index = i;
         break;

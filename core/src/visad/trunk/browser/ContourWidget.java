@@ -44,6 +44,9 @@ public class ContourWidget extends Widget implements ActionListener, ItemListene
   Slider surface;
   ContourRangeSlider contourRange;
 
+  private String cwName;
+  private double cwMinValue;
+  private double cwMaxValue;
   private boolean cwMainContours;
   private boolean cwLabels;
   private float cwSurfaceValue;
@@ -66,8 +69,8 @@ public class ContourWidget extends Widget implements ActionListener, ItemListene
     dashed = new Checkbox("dashed lines below base", cwContourInterval < 0);
     interval = new TextField(Convert.shortString(Math.abs(cwContourInterval)));
     base = new TextField(Convert.shortString(cwBase));
-    surfaceLabel = new Label(RangeSlider.DEFAULT_NAME + " = ---");
-    surface = new Slider();
+    surfaceLabel = new Label(RangeSlider.DEFAULT_NAME + " = 0");
+    surface = new Slider(0, 0, 1);
     contourRange = new ContourRangeSlider(0, 1, this);
 
     // add listeners
@@ -76,6 +79,8 @@ public class ContourWidget extends Widget implements ActionListener, ItemListene
     dashed.addItemListener(this);
     interval.addActionListener(this);
     base.addActionListener(this);
+    surface.addActionListener(this);
+    //CTR: TODO: contourRange.addActionListener(this);
 
     // lay out Components
     addComponent(contours, gridbag, 1, 0, 1, 1, 0.0, 0.0);
@@ -87,7 +92,47 @@ public class ContourWidget extends Widget implements ActionListener, ItemListene
     addComponent(base, gridbag, 3, 2, 1, 1, 1.0, 0.0);
     addComponent(surfaceLabel, gridbag, 0, 3, 4, 1, 1.0, 0.0);
     addComponent(surface, gridbag, 0, 4, 4, 1, 1.0, 0.0);
-    //CTR: TODO: addComponent(contourRange, gridbag, 0, 5, 4, 1, 1.0, 1.0);
+    addComponent(contourRange, gridbag, 0, 5, 4, 1, 1.0, 1.0);
+  }
+
+  /**
+   * Gets the name of the variable.
+   */
+  public String getName() {
+    return cwName;
+  }
+
+  /**
+   * Sets the name of the variable.
+   */
+  public void setName(String name) {
+    cwName = name;
+    contourRange.setName(name);
+    refreshSurfaceLabel();
+  }
+
+  /**
+   * Gets the minimum contouring value.
+   */
+  public double getMinValue() {
+    return cwMinValue;
+  }
+
+  /**
+   * Gets the maximum contouring value.
+   */
+  public double getMaxValue() {
+    return cwMaxValue;
+  }
+
+  /**
+   * Sets the minimum and maximum contouring values.
+   */
+  public void setRange(float min, float max) {
+    cwMinValue = min;
+    cwMaxValue = max;
+    surface.setBounds(min, max);
+    contourRange.setBounds(min, max);
   }
 
   /**
@@ -133,6 +178,7 @@ public class ContourWidget extends Widget implements ActionListener, ItemListene
   public void setSurfaceValue(float sv) {
     cwSurfaceValue = sv;
     surface.setValue(sv);
+    refreshSurfaceLabel();
   }
 
   /**
@@ -230,12 +276,21 @@ public class ContourWidget extends Widget implements ActionListener, ItemListene
   }
 
   /**
+   * Refreshes the surface label text.
+   */
+  private void refreshSurfaceLabel() {
+    surfaceLabel.setText((cwName == null ? RangeSlider.DEFAULT_NAME : cwName) +
+      " = " + (Float.isNaN(cwSurfaceValue) ?
+      "---" : Convert.shortString(cwSurfaceValue)));
+  }
+
+  /**
    * Handles TextField changes.
    */
   public void actionPerformed(ActionEvent e) {
-    String cmd = e.getActionCommand();
     Object source = e.getSource();
     if (source == interval) {
+      // interval changed
       float iv = Float.NaN;
       try {
         iv = Float.valueOf(interval.getText()).floatValue();
@@ -251,6 +306,7 @@ public class ContourWidget extends Widget implements ActionListener, ItemListene
       }
     }
     else if (source == base) {
+      // base value changed
       float bs = Float.NaN;
       try {
         bs = Float.valueOf(base.getText()).floatValue();
@@ -263,6 +319,12 @@ public class ContourWidget extends Widget implements ActionListener, ItemListene
         contours.requestFocus();
         notifyListeners(new WidgetEvent(this));
       }
+    }
+    else if (source == surface) {
+      // surface slider value changed
+      float sv = surface.getValue();
+      setSurfaceValue(sv);
+      notifyListeners(new WidgetEvent(this));
     }
   }
 
@@ -307,7 +369,7 @@ public class ContourWidget extends Widget implements ActionListener, ItemListene
      * Tells parent when the values have changed.
      */
     public void valuesUpdated() {
-      //CTR: TODO: widget.setLimits(minValue, maxValue);
+      widget.setLimits(minValue, maxValue);
     }
 
   }
