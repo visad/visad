@@ -131,6 +131,9 @@ public abstract class BaseColorControl extends Control {
     changeControl(true);
   }
 
+  /** return the color lookup Function */
+  public Function getFunction() { return function; }
+
   /** define the color lookup by an array of floats which must
       have the form float[components][table_length]; values should be in
       the range (0.0, 1.0) */
