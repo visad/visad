@@ -43,7 +43,7 @@ JFLAGS = -J-mx32m
 
 # to always use IBM's 'jikes' compiler, uncomment the following two lines
 #JC = jikes
-#JFLAGS =
+#JFLAGS = +P
 
 RMIC=rmic
 
@@ -411,7 +411,8 @@ clean:
 	-(cd examples && $(RM) *.class)
 
 recompile:
-	@for i in $(VISAD_PACKAGES) visad.examples; do			\
+	@root=`cd .. && pwd`;						\
+	for i in $(VISAD_PACKAGES) visad.examples; do			\
 	  case $$i in							\
 	  visad)							\
 	    dir=.							\
@@ -456,7 +457,8 @@ recompile:
 		       compile=true;					\
 		     fi;						\
 		     if $$compile; then					\
-		       (echo "${RMIC} $$i.$$b" && ${RMIC} $$i.$$b || true); \
+		       (echo "${RMIC} -d $$root $$i.$$b" &&		\
+			${RMIC} -d $$root $$i.$$b || true);		\
 		     fi;						\
 		     ;;							\
 		   esac;						\
