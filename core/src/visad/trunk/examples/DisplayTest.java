@@ -2304,8 +2304,8 @@ public class DisplayTest extends Object {
 
         VisADLineArray cross = new VisADLineArray();
         cross.coordinates = new float[]
-          {0.1f,  0.1f, 0.0f,    -0.1f, -0.1f, 0.0f,
-           0.1f, -0.1f, 0.0f,    -0.1f,  0.1f, 0.0f};
+          {0.2f,  0.2f, 0.0f,    -0.2f, -0.2f, 0.0f,
+           0.2f, -0.2f, 0.0f,    -0.2f,  0.2f, 0.0f};
         cross.vertexCount = cross.coordinates.length / 3;
 
         VisADLineArray box = new VisADLineArray();
@@ -2345,6 +2345,13 @@ public class DisplayTest extends Object {
         ShapeControl shape_control = (ShapeControl) shape_map.getControl();
         shape_control.setShapeSet(count_set);
         shape_control.setShapes(shapes);
+
+        VisADGeometryArray[] shapes2 = {square, tri, box, cross};
+        ScalarMap shape_map2 = new ScalarMap(count, Display.Shape);
+        display1.addMap(shape_map2);
+        ShapeControl shape_control2 = (ShapeControl) shape_map2.getControl();
+        shape_control2.setShapeSet(count_set);
+        shape_control2.setShapes(shapes2);
 
         ref_histogram1 = new DataReferenceImpl("ref_histogram1");
         ref_histogram1.setData(histogram1);

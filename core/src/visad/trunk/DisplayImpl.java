@@ -632,11 +632,13 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
           Enumeration maps = MapVector.elements();
           while(maps.hasMoreElements()) {
             ScalarMap map2 = (ScalarMap) maps.nextElement();
+/* WLH 30 Oct 98
             if (real.equals(map2.getScalar()) &&
                 dreal.equals(map2.getDisplayScalar())) {
               throw new BadMappingException("Display.addMap: two ScalarMaps " +
                                      "with the same RealType & DisplayRealType");
             }
+*/
             if (dreal.equals(Display.Animation) &&
                 map2.getDisplayScalar().equals(Display.Animation)) {
               throw new BadMappingException("Display.addMap: two RealTypes " +
