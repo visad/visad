@@ -41,6 +41,8 @@ public abstract class AVControlJ3D extends Control implements AVControl {
 
   transient Vector switches = new Vector();
 
+  private int interval = -1;
+
   public AVControlJ3D(DisplayImplJ3D d) {
     super(d);
   }
@@ -55,6 +57,36 @@ public abstract class AVControlJ3D extends Control implements AVControl {
   }
 
   public abstract void init() throws VisADException;
+
+  /**
+   * Sets the time between two steps in the animation set. This value
+   * is then used to determine the range of acceptable samples to view
+   * out of each of the renderers associated with the AV_Control
+   *
+   * @param interval the time interval in minutes between steps in the
+   * animation set
+   */
+  public void setInterval(int interval)
+  {
+    this.interval = interval;
+  }
+
+  /**
+   * Method that returns an index in the set that is between the
+   * lower and upper bounds
+   */
+  private int getIndexForRange(Set set, double lower, double upper)
+    throws VisADException
+  {
+    double [][] values = set.getDoubles(false);
+
+    for(int i=0; i<values[0].length; i++) {
+      if(values[0][i] >= lower && values[0][i] < upper) {
+        return i;
+      }
+    }
+    return -1;
+  }
 
   public void selectSwitches(double value, Set animation_set)
        throws VisADException {
@@ -98,12 +130,24 @@ values[0][0]);
       }
       // compute set index from converted value
       int [] indices;
-      if (set.getLength() == 1) {
-        indices = new int[] {0};
+
+      // from Luke Matthews of BOM
+      if(interval == -1) {
+        //default behaviour
+        if (set.getLength() == 1) {
+          indices = new int[] {0};
+        }
+        else {
+          indices = set.doubleToIndex(values);
+        }
       }
       else {
-        indices = set.doubleToIndex(values);
+        double resInSecs = (double)interval*60;
+        double lower = values[0][0] - (resInSecs/2.0);
+        double upper = values[0][0] + (resInSecs/2.0);
+        indices = new int[] {getIndexForRange(set, lower, upper)};
       }
+
 // System.out.println("indices = " + indices[0] + " value = " + value);
 // System.out.println("numChildren = " + ss.swit.numChildren());
       if (0 <= indices[0] && indices[0] < ss.swit.numChildren()) {
