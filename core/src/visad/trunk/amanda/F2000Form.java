@@ -176,14 +176,14 @@ public class F2000Form extends Form implements FormFileInformer {
     try {
 
       // read V record
-      String[] tokens = getNext(br);
+      String[] tokens = getNext(br, false);
       if (!tokens[0].equals("v")) {
         throw new BadFormException("first line must start with v\n" + line);
       }
 
       // read ARRAY record
       while (true) {
-        tokens = getNext(br);
+        tokens = getNext(br, false);
         if (tokens[0].equals("array")) {
           try {
             detector = tokens[1];
@@ -219,9 +219,7 @@ System.out.println("array " + detector + " " + longitude + " " + latitude + " " 
 
       // read OM records
       while (true) {
-        br.mark(1024); // mark br position in order to be able to
-                       // backspace
-        tokens = getNext(br);
+        tokens = getNext(br, true); // mark to allow backspace
         // first ES or EM marks end of OMs
         if (tokens[0].equals("es") || tokens[0].equals("em")) {
           br.reset(); // backspace
@@ -275,7 +273,7 @@ System.out.println("nmodule = " + nmodule + " " + nxmiss + " " +
 
       // read ES and EM events
       while (true) {
-        tokens = getNext(br);
+        tokens = getNext(br, false);
         if (tokens[0].equals("es")) {
           // ignore ES events for now
 System.out.println("es IGNORE \n" + line);
@@ -301,7 +299,7 @@ System.out.println(line);
 
           // read TR and HT records
           while (true) {
-            tokens = getNext(br);
+            tokens = getNext(br, false);
 
             if (tokens[0].equals("tr")) {
 // TR nr parent type xstart ystart zstart zenith azimuth length energy time
@@ -520,8 +518,13 @@ System.out.println("IOException " + e.getMessage());
 
   private String line = null;
 
-  private String[] getNext(BufferedReader br) throws IOException {
+  private String[] getNext(BufferedReader br, boolean mark)
+          throws IOException {
     while (true) {
+      if (mark) {
+        // mark br position in order to be able to backspace
+        br.mark(1024);
+      }
       line = br.readLine();
       if (line == null) throw new IOException("EOF");
       if (line.length() == 0) continue;
