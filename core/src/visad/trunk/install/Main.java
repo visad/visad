@@ -582,9 +582,6 @@ public class Main
 
     // find all visad jar files
     jarList = classpath.findMatch(JAR_NAME);
-    if (jarList == null) {
-      jarList = classpath.find(JAR_NAME);
-    }
     if (jarList != null) {
       loseDuplicates(jarList);
       installerJar = extractInstallerFile(distDir, jarList);
