@@ -1,5 +1,5 @@
 /*
-@(#) $Id: ColorWidget.java,v 1.10 1999-12-07 19:41:54 dglo Exp $
+@(#) $Id: ColorWidget.java,v 1.11 2000-02-18 20:44:02 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -26,17 +26,23 @@ package visad.util;
 
 import java.awt.*;
 import java.awt.event.*;
+
 import java.applet.*;
+
+import java.rmi.RemoteException;
+
 import java.util.Vector;
 
 import javax.swing.*;
+
+import visad.VisADException;
 
 /**
  * A color widget that allows users to interactively map numeric data to
  * RGBA tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.10 $, $Date: 1999-12-07 19:41:54 $
+ * @version $Revision: 1.11 $, $Date: 2000-02-18 20:44:02 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -54,7 +60,9 @@ public class ColorWidget extends Applet implements ColorChangeListener {
         /* / * * The Event Queue for mouse events */
 
 	/** Construct a color widget with a ColorPreview and the default ColorMap */
-	public ColorWidget() {
+	public ColorWidget()
+          throws RemoteException, VisADException
+	{
 		this(true);
 	}
 
@@ -62,7 +70,9 @@ public class ColorWidget extends Applet implements ColorChangeListener {
 	 * @param preview indicates wether or not the preview bar at the
 	 * bottom of the widget should be present
 	 */
-	public ColorWidget(boolean preview) {
+	public ColorWidget(boolean preview)
+          throws RemoteException, VisADException
+	{
 		this(new RGBMap(), preview);
 	}
 
@@ -79,9 +89,11 @@ public class ColorWidget extends Applet implements ColorChangeListener {
 	 * bottom of the widget should be present
 	 */
 	public ColorWidget(ColorMap map, boolean preview) {
+		this.map = map;
+
 		previewVisible = preview;
 		if (preview) {
-			colorPreview = new ColorPreview(this);
+			colorPreview = new ColorPreview(map);
 		}
 		//setLayout(new WidgetLayout(this));
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -89,7 +101,9 @@ public class ColorWidget extends Applet implements ColorChangeListener {
 	}
 
 	/** main method for standalone testing */
-	public static void main(String[] argv) {
+	public static void main(String[] argv)
+          throws RemoteException, VisADException
+	{
 
 		Frame frame = new Frame("VisAD Color Widget");
 		frame.addWindowListener(new WindowAdapter() {
@@ -150,7 +164,7 @@ public class ColorWidget extends Applet implements ColorChangeListener {
 		add(map);
 		if (previewVisible) {
 			if (colorPreview == null) {
-				colorPreview = new ColorPreview(this);
+				colorPreview = new ColorPreview(map);
 			}
 			add(colorPreview);
 		}

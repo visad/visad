@@ -239,7 +239,11 @@ public class LabeledColorWidget
   {
     if (evt.getActionCommand().equals("reset")) {
       // reset color table to original values
-      wrappedWidget.setTable(original);
+      try {
+        wrappedWidget.setTable(original);
+      } catch (RemoteException re) {
+      } catch (VisADException ve) {
+      }
     } else if (evt.getActionCommand().equals("grey")) {
       // reset color table to grey wedge
       if (grey == null) {
@@ -258,7 +262,11 @@ public class LabeledColorWidget
       }
 
       if (grey != null) {
-        wrappedWidget.setTable(grey);
+        try {
+          wrappedWidget.setTable(grey);
+        } catch (RemoteException re) {
+        } catch (VisADException ve) {
+        }
       }
     }
   }
@@ -281,16 +289,6 @@ public class LabeledColorWidget
   public void setMaximumSize(Dimension size)
   {
     wrappedWidget.setMaximumSize(size);
-  }
-
-  /**
-   * Stub routine which calls <CODE>ColorMapWidget.getColorWidget()</CODE>.
-   *
-   * @return The <CODE>ColorWidget</CODE>.
-   */
-  public ColorWidget getColorWidget()
-  {
-    return wrappedWidget.getColorWidget();
   }
 
   public static void main(String[] args)

@@ -247,7 +247,11 @@ public class ChosenColorWidget
     if (evt.getActionCommand().equals("comboBoxChanged")) {
       ComboItem item = (ComboItem )choice.getSelectedItem();
       // reset color table to chosen values
-      wrappedWidget.setTable(item.table);
+      try {
+        wrappedWidget.setTable(item.table);
+      } catch (RemoteException re) {
+      } catch (VisADException ve) {
+      }
     }
   }
 

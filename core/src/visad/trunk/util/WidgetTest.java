@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: WidgetTest.java,v 1.7 1998-12-02 12:04:40 billh Exp $
+@(#) $Id: WidgetTest.java,v 1.8 2000-02-18 20:44:04 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -37,14 +37,14 @@ import javax.swing.*;
  * RGB tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision 1.2 $, $Date: 1998-12-02 12:04:40 $
+ * @version $Revision 1.2 $, $Date: 2000-02-18 20:44:04 $
  * @since Visad Utility Library v0.7.1
  */
 
-public class WidgetTest extends Applet  {
+public class WidgetTest extends Applet {
 	
 	/** for debugging purposes */
-	public static void main(String[] argc) {
+	public static void main(String[] argc) throws Exception {
 	
 		Slider slider = new BarSlider();
 		//Slider slider = new ArrowSlider();

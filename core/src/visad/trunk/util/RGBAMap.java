@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: RGBAMap.java,v 1.10 1999-08-24 23:09:21 dglo Exp $
+@(#) $Id: RGBAMap.java,v 1.11 2000-02-18 20:44:03 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -25,6 +25,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.util;
 
+import java.rmi.RemoteException;
+
+import visad.VisADException;
+
 /**
  * A simple RGBA colormap with no interpolation between the internally
  * stored values.  Click and drag with the left mouse button to draw
@@ -32,7 +36,7 @@ package visad.util;
  * alternate between the red, green, blue and alpha curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.10 $, $Date: 1999-08-24 23:09:21 $
+ * @version $Revision: 1.11 $, $Date: 2000-02-18 20:44:03 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -40,7 +44,9 @@ public class RGBAMap
   extends BaseRGBMap
 {
   /** Construct an RGBAMap with the default resolution of 256 */
-  public RGBAMap() {
+  public RGBAMap()
+    throws RemoteException, VisADException
+  {
     super(true);
   }
 
@@ -48,11 +54,15 @@ public class RGBAMap
    * floats
    * @param resolution the length of the array
    */
-  public RGBAMap(int resolution) {
+  public RGBAMap(int resolution)
+    throws RemoteException, VisADException
+  {
     super(resolution, true);
   }
 
-  public RGBAMap(float[][] vals) {
-    super (vals, true);
+  public RGBAMap(float[][] vals)
+    throws RemoteException, VisADException
+  {
+    super(vals != null ? vals : defaultTable(DEFAULT_RESOLUTION, true));
   }
 }

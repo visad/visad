@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ColorPreview.java,v 1.7 1998-12-02 15:46:24 billh Exp $
+@(#) $Id: ColorPreview.java,v 1.8 2000-02-18 20:44:02 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -31,32 +31,54 @@ import java.awt.*;
  * A small preview bar generated for a color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.7 $, $Date: 1998-12-02 15:46:24 $
+ * @version $Revision: 1.8 $, $Date: 2000-02-18 20:44:02 $
  * @since Visad Utility Library, 0.5
  */
 
 public class ColorPreview extends Panel implements ColorChangeListener {
 
 	/** The ColorWidget that this is attached to */
-	private ColorWidget widget;
+	private ColorMap map;
 	
 	/** The height of the ColorPreview */
 	private int height;
 
-	/** Constructs a ColorPreview that Listens to the specified widget and has 
-	 * the default height 
+	/**
+         * Constructs a ColorPreview that Listens to the specified
+         * widget and has the default height
+         *
+         * @deprecated Specify the ColorMap instead.
 	 */
 	ColorPreview(ColorWidget widget) {
 		this(widget, 15);
 	}
 
-	/** Constructs a ColorPreview that listens to the specified ColorWidget 
-	 * and has the specified height
+	/**
+         * Constructs a ColorPreview that listens to the specified
+         * ColorWidget and has the specified height
+         *
+         * @deprecated Specify the ColorMap instead.
 	 */
 	public ColorPreview(ColorWidget widget, int height) {
-		this.widget = widget;
+		this(widget.getColorMap(), height);
+        }
+
+	/**
+         * Constructs a ColorPreview that Listens to the specified
+         * ColorMap and has the default height
+	 */
+	ColorPreview(ColorMap map) {
+		this(map, 15);
+	}
+
+	/**
+         * Constructs a ColorPreview that listens to the specified
+         * ColorMap and has the specified height
+	 */
+	public ColorPreview(ColorMap map, int height) {
+		this.map = map;
 		this.height = height;
-		widget.addColorChangeListener(this);
+		map.addColorChangeListener(this);
 	}
 
 	/** Overridden to maintain the preview at the specified height */
@@ -112,7 +134,7 @@ public class ColorPreview extends Panel implements ColorChangeListener {
 
 		for (int i = leftIndex; i <= rightIndex; i++) {
 			float percent = (float) i / (float) getBounds().width;
-			g.setColor(widget.getColorMap().getColor(percent));
+			g.setColor(map.getColor(percent));
 			g.drawLine(i,0,i,getBounds().height - 1);
 		}
 	}
@@ -139,7 +161,14 @@ public class ColorPreview extends Panel implements ColorChangeListener {
 	 * height
 	 */
 	public Dimension getPreferredSize() {
-		Dimension d = widget.getColorMap().getPreferredSize();
+		Dimension d = map.getPreferredSize();
 		return new Dimension(d.width, height);
+	}
+
+	public void setMap(ColorMap newMap)
+	{
+	  map.removeColorChangeListener(this);
+	  newMap.addColorChangeListener(this);
+	  map = newMap;
 	}
 }

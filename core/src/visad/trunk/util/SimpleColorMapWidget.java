@@ -26,8 +26,13 @@ package visad.util;
 import java.awt.Dimension;
 import java.awt.Panel;
 
+import java.rmi.RemoteException;
+
 import javax.swing.BoxLayout;
 
+import visad.BaseColorControl;
+import visad.Control;
+import visad.DisplayException;
 import visad.VisADException;
 
 /**
@@ -37,8 +42,9 @@ import visad.VisADException;
 public class SimpleColorMapWidget
   extends Panel
 {
+  BaseRGBMap baseMap;
+  ColorPreview preview;
   ArrowSlider slider;
-  ColorWidget colorWidget;
 
   private SliderLabel label;
 
@@ -56,35 +62,94 @@ public class SimpleColorMapWidget
    * @param in_table Initial table of color values.
    * @param min Minimum value for slider.
    * @param max Maximum value for slider.
+   *
+   * @deprecated Use SimpleColorMapWidget(String, BaseColorControl, float, float)
    */
   public SimpleColorMapWidget(String name, float[][] in_table,
                               float min, float max)
-    throws VisADException
+    throws RemoteException, VisADException
   {
-    float[][] table = table_reorg(in_table);
-
-    if (table == null) {
-      colorWidget = new ColorWidget();
-    } else if (table[0] == null || table[0].length < 3 ||
-               table[0].length > 4)
+    float[][] table;
+    if (in_table != null && in_table[0] != null &&
+        in_table.length >= 3 && in_table.length <= 4 &&
+        in_table[0].length > 4)
     {
-      throw new VisADException("Bad initial table");
+      table = table_reorg(in_table);
     } else {
-      BaseRGBMap baseMap = new BaseRGBMap(table, table[0].length > 3);
-      colorWidget = new ColorWidget(baseMap);
+      table = in_table;
     }
 
+    if (table != null && (table[0] == null || table[0].length < 3 ||
+                                 table[0].length > 4))
+    {
+      throw new VisADException("Bad initial table");
+    }
+
+    if (table == null) {
+      baseMap = new BaseRGBMap(false);
+    } else {
+      baseMap = new BaseRGBMap(table);
+    }
+
+    finishInit(name, min, max);
+  }
+
+  /**
+   * Construct a <CODE>SimpleColorMapWidget</CODE>.
+   *
+   * The initial color table (if non-null)
+   * should be a <CODE>float[resolution][dimension]</CODE>, where
+   * <CODE>dimension</CODE> is either
+   * <CODE>3</CODE> for <CODE>Display.RGB</CODE> or
+   * <CODE>4</CODE> for <CODE>Display.RGB</CODE>) with values
+   * between <CODE>0.0f</CODE> and <CODE>1.0f</CODE>.
+   *
+   * @param name Name used for slider label.
+   * @param ctl Control to which this widget is attached.
+   * @param min Minimum value for slider.
+   * @param max Maximum value for slider.
+   */
+  public SimpleColorMapWidget(String name, Control ctl,
+                              float min, float max)
+    throws RemoteException, VisADException
+  {
+    if (ctl == null) {
+      throw new DisplayException(getClass().getName() + ": Null control");
+    }
+
+    if (!(ctl instanceof BaseColorControl)) {
+      throw new DisplayException(getClass().getName() + ": Control must " +
+                                 "be BaseColorControl, not " +
+                                 ctl.getClass().getName());
+    }
+
+    baseMap = new BaseRGBMap((BaseColorControl )ctl);
+
+    finishInit(name, min, max);
+  }
+
+  private void finishInit(String name, float min, float max)
+  {
     // set up user interface
+    preview = new ColorPreview(baseMap);
     slider = new ArrowSlider(min, max, (min + max) / 2, name);
     label = new SliderLabel(slider);
 
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-    add(colorWidget);
-    add(slider);
-    add(label);
 
     // set min/max bounds for slider
     updateSlider(min, max);
+
+    rebuildGUI();
+  }
+
+  void rebuildGUI()
+  {
+    removeAll();
+    add(baseMap);
+    add(preview);
+    add(slider);
+    add(label);
   }
 
   private Dimension maxSize = null;
@@ -133,9 +198,10 @@ public class SimpleColorMapWidget
    * @param table New color values.
    */
   public void setTable(float[][] table)
+    throws RemoteException, VisADException
   {
     float[][] newTable = copy_table(table);
-    ((BaseRGBMap )colorWidget.getColorMap()).setValues(table_reorg(newTable));
+    baseMap.setValues(newTable);
   }
 
   /**
@@ -199,17 +265,8 @@ public class SimpleColorMapWidget
     return out;
   }
 
-  /**
-   * Returns the <CODE>ColorWidget</CODE> used by this widget.
-   *
-   * @return The <CODE>ColorWidget</CODE>.
-   */
-  public ColorWidget getColorWidget()
-  {
-    return colorWidget;
-  }
-
   public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     try {
       javax.swing.JFrame f;
@@ -221,7 +278,7 @@ public class SimpleColorMapWidget
             System.exit(0);
           }
         });
-      simple = new SimpleColorMapWidget("Foo", null, 0.0f, 1.0f);
+      simple = new SimpleColorMapWidget("Foo", (float [][])null, 0.0f, 1.0f);
       f.getContentPane().add(simple);
       f.pack();
       f.setVisible(true);

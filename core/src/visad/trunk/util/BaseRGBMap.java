@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: BaseRGBMap.java,v 1.10 2000-02-04 20:34:57 dglo Exp $
+@(#) $Id: BaseRGBMap.java,v 1.11 2000-02-18 20:44:01 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -28,6 +28,13 @@ package visad.util;
 import java.awt.event.*;
 import java.awt.*;
 
+import java.rmi.RemoteException;
+
+import visad.BaseColorControl;
+import visad.ControlEvent;
+import visad.ControlListener;
+import visad.VisADException;
+
 /**
  * An extensible RGB colormap with no interpolation between the
  * internally stored values.  Click and drag with the left mouse
@@ -35,22 +42,23 @@ import java.awt.*;
  * mouse button to alternate between the color curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.10 $, $Date: 2000-02-04 20:34:57 $
+ * @version $Revision: 1.11 $, $Date: 2000-02-18 20:44:01 $
  * @since Visad Utility Library, 0.5
  */
 
 public class BaseRGBMap
   extends ColorMap
-  implements MouseListener, MouseMotionListener
+  implements ControlListener, MouseListener, MouseMotionListener
 {
   /** change this to <TT>true</TT> to use color cursors */
   public static boolean USE_COLOR_CURSORS = false;
 
   /** default resolution */
-  public static final int DEFAULT_RESOLUTION = 256;
+  public static final int DEFAULT_RESOLUTION =
+    BaseColorControl.DEFAULT_NUMBER_OF_COLORS;
 
-  /** The array of color tuples */
-  private float[][] val;
+  /** The color control */
+  private BaseColorControl ctl;
 
   /** The left modified value */
   private int valLeft;
@@ -60,17 +68,14 @@ public class BaseRGBMap
   /** A lock to synchronize against when modifying the modified area */
   private Object mutex = new Object();
 
-  /** A lock to synchronize against when modifying val or resolution */
-  private Object mutex_val = new Object();
-
   /** The index of the color red */
-  private static final int RED = 0;
+  private static final int RED = BaseColorControl.RED;
   /** The index of the color green */
-  private static final int GREEN = 1;
+  private static final int GREEN = BaseColorControl.GREEN;
   /** The index of the color blue */
-  private static final int BLUE = 2;
+  private static final int BLUE = BaseColorControl.BLUE;
   /** The index of the alpha channel */
-  private static final int ALPHA = 3;
+  private static final int ALPHA = BaseColorControl.ALPHA;
   /** The current color for the mouse to draw on */
   private int state = RED;
 
@@ -89,8 +94,10 @@ public class BaseRGBMap
    * @param hasAlpha set to <TT>true</TT> is this map has
    *                 an alpha component
    */
-  public BaseRGBMap(boolean hasAlpha) {
-    this(DEFAULT_RESOLUTION, hasAlpha);
+  public BaseRGBMap(boolean hasAlpha)
+    throws RemoteException, VisADException
+  {
+    this(defaultTable(DEFAULT_RESOLUTION, hasAlpha));
   }
 
   /**
@@ -100,17 +107,10 @@ public class BaseRGBMap
    * @param hasAlpha set to <TT>true</TT> is this map has
    *                 an alpha component
    */
-  public BaseRGBMap(int resolution, boolean hasAlpha) {
-    this.resolution = resolution;
-    this.hasAlpha = hasAlpha;
-
-    if (USE_COLOR_CURSORS) buildCursors();
-
-    val = new float[resolution][hasAlpha ? 4 : 3];
-    initColormap();
-
-    addMouseListener(this);
-    addMouseMotionListener(this);
+  public BaseRGBMap(int resolution, boolean hasAlpha)
+    throws RemoteException, VisADException
+  {
+    this(defaultTable(resolution, hasAlpha));
   }
 
   /**
@@ -119,16 +119,68 @@ public class BaseRGBMap
    * @param vals the tuples used to initialize the colormap
    * @param hasAlpha <TT>true</TT> if the colormap should
    *                 have an ALPHA component.
+   *
+   * @deprecated <TT>hasAlpha</TT> isn't really necessary.
    */
-  public BaseRGBMap(float[][] vals, boolean hasAlpha) {
-    this.hasAlpha = hasAlpha;
+  public BaseRGBMap(float[][] vals, boolean hasAlpha)
+    throws RemoteException, VisADException
+  {
+    this(vals != null ? vals : defaultTable(DEFAULT_RESOLUTION, hasAlpha));
+  }
+
+  /**
+   * Construct a colormap initialized with the supplied tuples
+   *
+   * @param vals the tuples used to initialize the colormap
+   */
+  public BaseRGBMap(float[][] vals)
+    throws RemoteException, VisADException
+  {
+    if (vals == null) {
+      vals = defaultTable(DEFAULT_RESOLUTION, true);
+    }
+
+    setValues(vals);
 
     if (USE_COLOR_CURSORS) buildCursors();
 
-    setValues(vals, false);
+    addMouseListener(this);
+    addMouseMotionListener(this);
+    ctl.addControlListener(this);
+  }
+
+  /**
+   * Construct a colormap from the specified control.
+   *
+   * @param ctl control to use as data source
+   */
+  public BaseRGBMap(BaseColorControl ctl)
+  {
+    this.ctl = ctl;
+
+    hasAlpha = (ctl.getNumberOfComponents() == 4);
+    resolution = ctl.getNumberOfColors();
+
+    if (USE_COLOR_CURSORS) buildCursors();
 
     addMouseListener(this);
     addMouseMotionListener(this);
+    ctl.addControlListener(this);
+  }
+
+  /**
+   * Build a table with the given number of components and colors
+   *
+   * @param resolution Number of colors.
+   * @param hasAlpha <TT>true</TT> if this colormap has an alpha component.
+   *
+   * @return The new table.
+   */
+  static float[][] defaultTable(int resolution, boolean hasAlpha)
+  {
+    final int components = hasAlpha ? 4 : 3;
+    float[][] tbl = new float[components][resolution];
+    return BaseColorControl.initTableVis5D(tbl);
   }
 
   /**
@@ -216,70 +268,53 @@ public class BaseRGBMap
    * Sets the values of the internal array after the map
    * has been created.
    *
-   * @param newVal the color tuples used to initialize the map.
-   */
-  public void setValues(float[][] newVal) {
-    setValues(newVal, true);
-  }
-
-  /**
-   * Sets the values of the internal array after the map
-   * has been created.
+   * The table should be <TT>float[resolution][dimension]</TT>
+   * where <TT>dimension</TT> is either 3 (for an RGB table)
+   * or 4 (if the table also has an alpha component) and
+   * <TT>resolution</TT> is the number of colors in the table.
    *
    * @param newVal the color tuples used to initialize the map.
-   * @param notify <TT>true</TT> if listeners are notified of
-   *               the change.  This should only be <TT>false<TT>
-   *               when called from the constructor.
    */
-  private void setValues(float[][] newVal, boolean notify) {
-    int newResolution;
-    synchronized (mutex_val) {
-      if (newVal == null) {
-        resolution = DEFAULT_RESOLUTION;
-        val = new float[resolution][hasAlpha ? 4 : 3];
-        initColormap();
-        newResolution = 0;
-      } else if (newVal.length > 4 && newVal[0].length >= 3 &&
-                 newVal[0].length <= 4)
-      {
-        final boolean newHasAlpha = newVal[0].length > 3;
-        resolution = newVal.length;
-        val = new float[resolution][hasAlpha ? 4 : 3];
-        for (int i = 0; i < resolution; i++) {
-          val[i][0] = newVal[i][0];
-          val[i][1] = newVal[i][1];
-          val[i][2] = newVal[i][2];
-          if (hasAlpha) {
-            if (newHasAlpha) {
-              val[i][3] = newVal[i][3];
-            } else {
-              val[i][3] = 0.0f;
-            }
-          }
-        }
-        newResolution = resolution-1;
-      } else {
-        // table is inverted
-        final boolean newHasAlpha = newVal.length > 3;
-        resolution = newVal[0].length;
-        val = new float[resolution][hasAlpha ? 4 : 3];
-        for (int i = 0; i < resolution; i++) {
-          val[i][0] = newVal[0][i];
-          val[i][1] = newVal[1][i];
-          val[i][2] = newVal[2][i];
-          if (hasAlpha) {
-            if (newHasAlpha) {
-              val[i][3] = newVal[3][i];
-            } else {
-              val[i][3] = 0.0f;
-            }
-          }
-        }
-        newResolution = resolution-1;
-      }
+  public void setValues(float[][] newVal)
+    throws RemoteException, VisADException
+  {
+    if (newVal == null) {
+      throw new VisADException("Can't set table to null");
     }
 
-    if (notify) notifyListeners(0, newResolution);
+    if (newVal.length >= 3 && newVal.length <= 4 && newVal[0].length > 4) {
+      hasAlpha = newVal.length > 3;
+      resolution = newVal[0].length;
+    } else if (newVal[0].length >= 3 && newVal[0].length <= 4 &&
+               newVal.length > 4)
+    {
+      // table is inverted
+
+      hasAlpha = newVal[0].length > 3;
+      resolution = newVal.length;
+
+      float[][] tmpVal = new float[hasAlpha ? 4 : 3][resolution];
+      for (int i = 0; i < resolution; i++) {
+        tmpVal[0][i] = newVal[i][0];
+        tmpVal[1][i] = newVal[i][1];
+        tmpVal[2][i] = newVal[i][2];
+        if (hasAlpha) {
+          tmpVal[3][i] = newVal[i][3];
+        }
+      }
+      newVal = tmpVal;
+    } else {
+      throw new VisADException("Cannot set table with dimensions [" +
+                               newVal.length + "][" + newVal[0].length + "]");
+    }
+
+    if (ctl == null) {
+      ctl = new BaseColorControl(null, hasAlpha ? 4 : 3);
+    }
+
+    ctl.setTable(newVal);
+
+    sendUpdate(0, resolution-1);
   }
 
   /**
@@ -297,7 +332,7 @@ public class BaseRGBMap
    * @return either 3 or 4
    */
   public int getMapDimension() {
-    return hasAlpha ? 4: 3;
+    return ctl.getNumberOfComponents();
   }
 
   /**
@@ -306,73 +341,69 @@ public class BaseRGBMap
    * @return a copy of the color map
    */
   public float[][] getColorMap() {
-
-    synchronized (mutex_val) {
-      float[][] ret = new float[resolution][hasAlpha ? 4 : 3];
-
-      for (int i = 0; i < resolution; i++) {
-        ret[i][0] = val[i][0];
-        ret[i][1] = val[i][1];
-        ret[i][2] = val[i][2];
-        if (hasAlpha) {
-          ret[i][3] = val[i][3];
-        }
-      }
-
-      return ret;
-    }
+    return ctl.getTable();
   }
 
   /**
    * Returns the tuple at a floating point value val
+   *
+   * <B>WARNING</B>: This is a <I>really</I> slow way to
+   * get a color, so don't use it inside a loop.
    *
    * @param value the location to return.
    *
    * @return The 3 or 4 element array.
    */
   public float[] getTuple(float value) {
-    synchronized (mutex_val) {
-      float arrayIndex = value * (resolution - 1);
-      int index = (int )Math.floor(arrayIndex);
-      float partial = arrayIndex - index;
-      boolean isPartial = (partial != 0);
+    float arrayIndex = value * (resolution - 1);
+    int index = (int )Math.floor(arrayIndex);
+    float partial = arrayIndex - index;
+    boolean isPartial = (partial != 0);
 
-      if (index >= resolution || index < 0 ||
-          (index == (resolution - 1) && isPartial))
-      {
-        if (hasAlpha) {
-          return new float[] {0,0,0,0};
-        } else {
-          return new float[] {0,0,0};
-        }
-      }
-
-      float red, green, blue, alpha = 0.0F;
-      if (isPartial) {
-        red = val[index][RED] * (1 - partial) +
-          val[index+1][RED] * partial;
-        green = val[index][GREEN] * (1 - partial) +
-          val[index+1][GREEN] * partial;
-        blue = val[index][BLUE] * (1 - partial) +
-          val[index+1][BLUE] * partial;
-        if (hasAlpha) {
-          alpha = val[index][ALPHA] * (1 - partial) +
-            val[index+1][ALPHA] * partial;
-        }
-      } else {
-        red = val[index][RED];
-        green = val[index][GREEN];
-        blue = val[index][BLUE];
-        if (hasAlpha) {
-          alpha = val[index][ALPHA];
-        }
-      }
-
+    if (index >= resolution || index < 0 ||
+        (index == (resolution - 1) && isPartial))
+    {
       if (hasAlpha) {
-        return new float[] {red, green, blue, alpha};
+        return new float[] {0,0,0,0};
       } else {
-        return new float[] {red, green, blue};
+        return new float[] {0,0,0};
       }
+    }
+
+    float[][] colors;
+    try {
+      colors = ctl.lookupRange(index, isPartial ? index+1 : index);
+    } catch (Exception e) {
+      System.err.println("Error in " + getClass().getName() + ": " +
+                         e.getClass().getName() + ": " + e.getMessage());
+      return null;
+    }
+
+    float red, green, blue, alpha = 0.0F;
+    if (isPartial) {
+      red = colors[RED][0] * (1 - partial) +
+        colors[RED][1] * partial;
+      green = colors[GREEN][0] * (1 - partial) +
+        colors[GREEN][1] * partial;
+      blue = colors[BLUE][0] * (1 - partial) +
+        colors[BLUE][1] * partial;
+      if (hasAlpha) {
+        alpha = colors[ALPHA][0] * (1 - partial) +
+          colors[ALPHA][1] * partial;
+      }
+    } else {
+      red = colors[RED][0];
+      green = colors[GREEN][0];
+      blue = colors[BLUE][0];
+      if (hasAlpha) {
+        alpha = colors[ALPHA][0];
+      }
+    }
+
+    if (hasAlpha) {
+      return new float[] {red, green, blue, alpha};
+    } else {
+      return new float[] {red, green, blue};
     }
   }
 
@@ -385,6 +416,15 @@ public class BaseRGBMap
    */
   protected void sendUpdate(int left, int right) {
 
+    notifyListeners(new ColorChangeEvent(this, left, right));
+
+    if (left != 0) {
+      left--;
+    }
+    if (right != resolution - 1) {
+      right++;
+    }
+
     synchronized (mutex) {
       if (left < valLeft)
         valLeft = left;
@@ -395,30 +435,6 @@ public class BaseRGBMap
     // redraw
     validate();
     repaint();
-  }
-
-  /**
-   * Used internally to post areas to update to the objects listening
-   * to the map
-   *
-   * @param left the left edge of the changed area
-   * @param right the right edge of the changed area
-   */
-  protected void notifyListeners(int left, int right) {
-
-    // !!!fix this to reflect a more accurate region of affectation
-    if (left != 0) {
-      left--;
-    }
-    if (right != resolution - 1) {
-      right++;
-    }
-
-    float start = (float )left / (float )(resolution - 1);
-    float end = (float )right + 1 / (float )(resolution - 1);
-    sendUpdate(left, right);
-    super.notifyListeners(new ColorChangeEvent(this, start, end));
-
   }
 
   /** Implementation of the abstract function in ColorMap
@@ -471,8 +487,7 @@ public class BaseRGBMap
   private Object mouseMutex = new Object();
 
   /**
-   * Updates the internal array and sends notification to the
-   * ColorChangeListeners that are listening to this map
+   * Updates the associated Control
    *
    * @param evt the mouse press event
    */
@@ -497,17 +512,32 @@ public class BaseRGBMap
     else if (y >= height)
       y = height - 1;
 
-    int pos;
-    synchronized (mutex_val) {
-      float step = (float )(resolution - 1) / (float )width;
-      pos = (int )Math.floor(x * step + 0.5);
-      val[pos][state] = 1 - (float )y / (float )height;
+    float step = (float )(resolution - 1) / (float )width;
+    int pos = (int )Math.floor((float )x * step + 0.5);
+
+    float[][] colors;
+    try {
+      colors = ctl.lookupRange(pos, pos);
+    } catch (Exception e) {
+      System.err.println("Error in " + getClass().getName() + ": " +
+                         e.getClass().getName() + ": " + e.getMessage());
+      return;
+    }
+
+    colors[state][0] = 1 - (float )y / (float )height;
+
+    try {
+      ctl.setRange(pos, pos, colors);
+    } catch (Exception e) {
+      System.err.println("Error in " + getClass().getName() + ": " +
+                         e.getClass().getName() + ": " + e.getMessage());
+      return;
     }
 
     oldX = x;
     oldY = y;
 
-    notifyListeners(pos, pos);
+    sendUpdate(pos, pos);
   }
 
   /**
@@ -527,8 +557,7 @@ public class BaseRGBMap
   }
 
   /**
-   * Updates the internal array and sends notification to the
-   * ColorChangeListeners that are listening to this map
+   * Updates the associated Control
    *
    * @param evt the drag event
    */
@@ -576,36 +605,48 @@ public class BaseRGBMap
     else if (oldy >= height)
       oldy = height - 1;
 
-
     int notelow = -1;
     int notehi = -1;
-    synchronized (mutex_val) {
+
     float step = (float )(resolution - 1) / (float )width;
 
     int oldPos = (int )Math.floor((float )oldx * step + 0.5);
     int newPos = (int )Math.floor((float )x * step + 0.5);
 
-    float oldVal = 1 - (float )oldy / (float )(height - 1);
-    float newVal = 1 - (float )y / (float )(height - 1);
+    float oldVal = 1 - (float )oldy / (float )height;
+    float newVal = 1 - (float )y / (float )height;
+
+    final int start, finish;
+    if (newPos > oldPos) {
+      start = oldPos;
+      finish = newPos;
+    } else {
+      start = newPos;
+      finish = oldPos;
+    }
+
+    float[][] colors;
+    try {
+      colors = ctl.lookupRange(start, finish);
+    } catch (Exception e) {
+      System.err.println("Error in " + getClass().getName() + ": " +
+                         e.getClass().getName() + ": " + e.getMessage());
+      return;
+    }
 
     if (x == oldx) {
-      val[newPos][state] = newVal;
+      colors[state][0] = newVal;
       notelow = notehi = newPos;
     } else {
 
-      final int start, finish;
       final float loVal, hiVal;
       final int adj;
 
       if (newPos > oldPos) {
-        start = oldPos;
-        finish = newPos;
         loVal = newVal;
         hiVal = oldVal;
         adj = 1;
       } else {
-        start = newPos;
-        finish = oldPos;
         loVal = oldVal;
         hiVal = newVal;
         adj = 0;
@@ -615,16 +656,23 @@ public class BaseRGBMap
       for (int i = adj; i < total + adj; i++) {
         float v = ((hiVal * (float )(total - i) + loVal * (float )i) /
                    (float )total);
-        val[i + start][state] = v;
+        colors[state][i] = v;
       }
 
       notelow = start + adj;
       notehi = finish + (1 - adj);
     }
+
+    try {
+      ctl.setRange(start, finish, colors);
+    } catch (Exception e) {
+      System.err.println("Error in " + getClass().getName() + ": " +
+                         e.getClass().getName() + ": " + e.getMessage());
+      return;
     }
 
     if (notelow > -1 && notehi > -1)
-      notifyListeners(notelow, notehi);
+      sendUpdate(notelow, notehi);
   }
 
   /**
@@ -664,109 +712,118 @@ public class BaseRGBMap
    */
   public void update(Graphics g) {
 
-    synchronized (mutex_val) {
+    final int maxRight = resolution - 1;
 
-      final int maxRight = resolution - 1;
+    int left = 0;
+    int right = maxRight;
 
-      int left = 0;
-      int right = maxRight;
-
-      synchronized (mutex) {
-        if (valLeft > valRight) {
-          return;
-        }
-
-        left = valLeft;
-        right = valRight;
-
-        valLeft = maxRight;
-        valRight = 0;
+    synchronized (mutex) {
+      if (valLeft > valRight) {
+        return;
       }
 
-      final int numColors = val.length - 1;
+      left = valLeft;
+      right = valRight;
 
-      if (left < 0) {
-        left = 0;
-      } else if (left > numColors) {
-        left = numColors;
-      }
-      if (right < 0) {
-        right = 0;
-      } else if (right > numColors) {
-        right = numColors;
-      }
+      valLeft = maxRight;
+      valRight = 0;
+    }
 
-      if (left > 0) {
-        left--;
-      }
-      if (right < maxRight) {
-        right++;
-      }
+    final int numColors = ctl.getNumberOfColors() - 1;
 
-      final int maxWidth = getBounds().width - 1;
-      final int maxHeight = getBounds().height - 1;
+    if (left < 0) {
+      left = 0;
+    } else if (left > numColors) {
+      left = numColors;
+    }
+    if (right < 0) {
+      right = 0;
+    } else if (right > numColors) {
+      right = numColors;
+    }
 
-      int leftPixel = (left * maxWidth) / maxRight;
-      int rightPixel = (right * maxWidth) / maxRight;
+    if (left > 0) {
+      left--;
+    }
+    if (right < maxRight) {
+      right++;
+    }
 
-      g.setColor(Color.black);
-      g.fillRect(leftPixel,0,rightPixel - leftPixel + 1, maxHeight + 1);
+    final int maxWidth = getBounds().width - 1;
+    final int maxHeight = getBounds().height - 1;
 
-      if (left > 0) {
-        left--;
-      }
-      if (right < maxRight) {
-        right++;
-      }
+    int leftPixel = (left * maxWidth) / maxRight;
+    int rightPixel = (right * maxWidth) / maxRight;
 
-      leftPixel = (left * maxWidth) / maxRight;
-      rightPixel = (right * maxWidth) / maxRight;
+    g.setColor(Color.black);
+    g.fillRect(leftPixel,0,rightPixel - leftPixel + 1, maxHeight + 1);
 
-      int prevEnd = leftPixel;
+    if (left > 0) {
+      left--;
+    }
+    if (right < maxRight) {
+      right++;
+    }
 
-      int prevRed = (int )Math.floor((1 - val[left][RED]) * maxHeight);
-      int prevGreen = (int )Math.floor((1 - val[left][GREEN]) * maxHeight);
-      int prevBlue = (int )Math.floor((1 - val[left][BLUE]) * maxHeight);
-      int prevAlpha;
+    leftPixel = (left * maxWidth) / maxRight;
+    rightPixel = (right * maxWidth) / maxRight;
+
+    float[][] colors;
+    try {
+      colors = ctl.lookupRange(left, right < maxRight ? right + 1 : maxRight);
+    } catch (Exception e) {
+      e.printStackTrace();
+      colors = null;
+    }
+
+    if (colors == null) {
+      return;
+    }
+
+    int prevEnd = leftPixel;
+
+    int prevRed = (int )Math.floor((1 - colors[RED][0]) * maxHeight);
+    int prevGreen = (int )Math.floor((1 - colors[GREEN][0]) * maxHeight);
+    int prevBlue = (int )Math.floor((1 - colors[BLUE][0]) * maxHeight);
+    int prevAlpha;
+    if (hasAlpha) {
+      prevAlpha = (int )Math.floor((1 - colors[ALPHA][0]) * maxHeight);
+    } else {
+      prevAlpha = 0;
+    }
+
+    int alpha = 0;
+    for (int i = 1; i < colors[0].length; i++) {
+      int lineEnd = ((left + i) * maxWidth) / maxRight;
+
+      int red = (int )Math.floor((1 - colors[RED][i]) * maxHeight);
+      int green = (int )Math.floor((1 - colors[GREEN][i]) * maxHeight);
+      int blue = (int )Math.floor((1 - colors[BLUE][i]) * maxHeight);
       if (hasAlpha) {
-        prevAlpha = (int )Math.floor((1 - val[left][ALPHA]) * maxHeight);
-      } else {
-        prevAlpha = 0;
+        alpha = (int )Math.floor((1 - colors[ALPHA][i]) * maxHeight);
       }
 
-      int alpha = 0;
-      for (int i = left + 1; i <= right; i++) {
-        int lineEnd = (i * maxWidth) / maxRight;
+      g.setColor(Color.red);
+      g.drawLine(prevEnd, prevRed, lineEnd, red);
 
-        int red = (int )Math.floor((1 - val[i][RED]) * maxHeight);
-        int green = (int )Math.floor((1 - val[i][GREEN]) * maxHeight);
-        int blue = (int )Math.floor((1 - val[i][BLUE]) * maxHeight);
-        if (hasAlpha) {
-          alpha = (int )Math.floor((1 - val[i][ALPHA]) * maxHeight);
-        }
+      g.setColor(Color.green);
+      g.drawLine(prevEnd, prevGreen, lineEnd, green);
 
-        g.setColor(Color.red);
-        g.drawLine(prevEnd, prevRed, lineEnd, red);
+      g.setColor(bluish);
+      g.drawLine(prevEnd, prevBlue, lineEnd, blue);
 
-        g.setColor(Color.green);
-        g.drawLine(prevEnd, prevGreen, lineEnd, green);
+      if (hasAlpha) {
+        g.setColor(Color.gray);
+        g.drawLine(prevEnd, prevAlpha, lineEnd, alpha);
+      }
 
-        g.setColor(bluish);
-        g.drawLine(prevEnd, prevBlue, lineEnd, blue);
+      prevEnd = lineEnd;
 
-        if (hasAlpha) {
-          g.setColor(Color.gray);
-          g.drawLine(prevEnd, prevAlpha, lineEnd, alpha);
-        }
-
-        prevEnd = lineEnd;
-
-        prevRed = red;
-        prevGreen = green;
-        prevBlue = blue;
-        if (hasAlpha) {
-          prevAlpha = alpha;
-        }
+      prevRed = red;
+      prevGreen = green;
+      prevBlue = blue;
+      if (hasAlpha) {
+        prevAlpha = alpha;
       }
     }
   }
@@ -782,107 +839,15 @@ public class BaseRGBMap
   }
 
   /**
-   * Initializes the colormap to default values
+   * If the color data in the <CODE>Control</CODE> associated with this
+   * widget's <CODE>Control</CODE> has changed, update the data in
+   * the <CODE>ColorMap</CODE>.
+   *
+   * @param evt Data from the changed <CODE>Control</CODE>.
    */
-  private void initColormap() {
-    initColormapVis5D();
-  }
-
-  /**
-   * Initializes the colormap to the Vis5D sine waves.
-   */
-  private void initColormapVis5D() {
-    synchronized (mutex_val) {
-
-      float curve = 1.4f;
-      float bias = 1.0f;
-      float rfact = 0.5f * bias;
-
-      for (int i = 0; i < resolution; i++) {
-
-        /* compute s in [0,1] */
-        float s = (float )i / (float )(resolution-1);
-
-        float t = curve * (s - rfact);   /* t in [curve*-0.5,curve*0.5) */
-        val[i][RED] = (float )(0.5 + 0.5 * Math.atan( 7.0*t ) / 1.57);
-        val[i][GREEN] = (float )(0.5 + 0.5 * (2 * Math.exp(-7*t*t) - 1));
-        val[i][BLUE] = (float )(0.5 + 0.5 * Math.atan( -7.0*t ) / 1.57);
-        if (hasAlpha) {
-          val[i][ALPHA] = 1.0f;
-        }
-      }
-    }
-  }
-
-
-  /**
-   * Initializes the colormap to be linear in hue
-   */
-  private synchronized void initColormapHSV() {
-    float s = 1;
-    float v = 1;
-
-    synchronized (mutex_val) {
-
-      for (int i = 0; i < resolution; i++) {
-
-        float h = i * 6 / (float )(resolution - 1);
-
-        int hFloor = (int )Math.floor(h);
-        float hPart = h - hFloor;
-
-        // if hFloor is even
-        if ((hFloor & 1) == 0) {
-          hPart = 1 - hPart;
-        }
-
-        float m = v * (1 - s);
-        float n = v * (1 - s*hPart);
-
-        float r = 0;
-        float g = 0;
-        float b = 0;
-        switch (hFloor) {
-        case 6:
-        case 0:
-          r = v;
-          g = n;
-          b = m;
-          break;
-        case 1:
-          r = n;
-          g = v;
-          b = m;
-          break;
-        case 2:
-          r = m;
-          g = v;
-          b = n;
-          break;
-        case 3:
-          r = m;
-          g = n;
-          b = v;
-          break;
-        case 4:
-          r = n;
-          g = m;
-          b = v;
-          break;
-        case 5:
-          r = v;
-          g = m;
-          b = n;
-          break;
-        }
-
-        val[i][RED] = r;
-        val[i][GREEN] = g;
-        val[i][BLUE] = b;
-        if (hasAlpha) {
-          val[i][ALPHA] = 1.0f;
-        }
-      }
-    }
+  public void controlChanged(ControlEvent evt)
+    throws RemoteException, VisADException
+  {
+    sendUpdate(0, getMapResolution()-1);
   }
 }

@@ -50,13 +50,12 @@ import visad.VisADException;
  */
 public class ColorMapWidget
   extends SimpleColorMapWidget
-  implements ActionListener, ColorChangeListener, ControlListener,
-             ScalarMapListener
+  implements ActionListener, ControlListener, ScalarMapListener
 {
   private Panel buttonPanel = null;
   private float[][] undoTable = null;
 
-  BaseColorControl control;
+  BaseColorControl control, realControl;
 
   /**
    * Construct a <CODE>LabeledColorWidget</CODE> linked to the
@@ -208,7 +207,7 @@ public class ColorMapWidget
                         boolean immediate)
     throws VisADException, RemoteException
   {
-    super(smap.getScalar().getName(), table,
+    super(smap.getScalar().getName(), smap.getControl(),
           (float )smap.getRange()[0], (float )smap.getRange()[1] + 1.0f);
 
     // make sure we're using a valid scalarmap
@@ -219,27 +218,35 @@ public class ColorMapWidget
     }
 
     // save the control
-    control = (BaseColorControl )ctl;
+    if (immediate) {
+      control = (BaseColorControl )ctl;
+      realControl = null;
+    } else {
+      realControl = (BaseColorControl )ctl;
+      control = new BaseColorControl(realControl.getDisplay(),
+                                     realControl.getNumberOfComponents());
+      control.syncControl(realControl);
+
+      // use the shadow control, not the real control
+      baseMap = new BaseRGBMap(control);
+      preview.setMap(baseMap);
+      rebuildGUI();
+    }
 
     // set up color table
-    if (table == null) {
-      float[][] t = table_reorg(control.getTable());
-      ColorMap colorMap = new BaseRGBMap(t, t[0].length > 3);
-      colorWidget.setColorMap(colorMap);
-    } else {
+    if (table != null) {
       control.setTable(table);
     }
 
-    // if not in immediate mode, build "Do It" and "Undo" buttons
+    // if not in immediate mode, build "Apply" and "Undo" buttons
     if (!immediate) {
       buttonPanel = buildButtons();
       add(buttonPanel);
     }
 
     // listen for changes
-    control.addControlListener(this);
-    if (immediate) {
-      colorWidget.addColorChangeListener(this);
+    if (realControl != null) {
+      realControl.addControlListener(this);
     }
     if (update) {
       smap.addScalarMapListener(this);
@@ -285,125 +292,24 @@ public class ColorMapWidget
   public void actionPerformed(ActionEvent evt)
   {
     if (evt.getActionCommand().equals("apply")) {
-      undoTable = control.getTable();
-      updateControlFromColorMap();
+      undoTable = realControl.getTable();
+      try {
+        realControl.syncControl(control);
+      } catch (VisADException ve) {
+      }
     } else if (evt.getActionCommand().equals("undo")) {
       try {
-        control.setTable(undoTable);
+        realControl.setTable(undoTable);
       } catch (VisADException ve) {
       } catch (RemoteException re) {
       }
     }
   }
 
-  /**
-   * Forward changes from the <CODE>ColorWidget</CODE> to the
-   * <CODE>Control</CODE> associated with this widget's
-   * <CODE>ScalarMap</CODE>.
-   *
-   * @param evt Data from the changed <CODE>ColorWidget</CODE>.
-   */
-  public void colorChanged(ColorChangeEvent evt)
-  {
-    updateControlFromColorMap();
-  }
-
-  /**
-   * Update the <CODE>Control</CODE> associated with this widget's
-   * <CODE>ScalarMap</CODE> with the data from this widget's
-   * <CODE>ColorWidget</CODE>.
-   */
-  private void updateControlFromColorMap()
-  {
-    // get the colormap
-    ColorMap map_e = colorWidget.getColorMap();
-    if (map_e == null) {
-      return;
-    }
-
-    // stash some map-related constants
-    final int dim = map_e.getMapDimension();
-    final int res = map_e.getMapResolution();
-    final float scale = 1.0f / (res - 1.0f);
-
-    // construct a new table from the map data
-    float[][] table_e = new float[dim][res];
-    for (int i=0; i<res; i++) {
-      float[] t = map_e.getTuple(scale * i);
-      table_e[0][i] = t[0];
-      table_e[1][i] = t[1];
-      table_e[2][i] = t[2];
-      if (dim > 3) {
-        table_e[3][i] = t[3];
-      }
-    }
-
-    // save the new table to the Control
-    try {
-      control.setTable(table_e);
-    } catch (VisADException ve) {
-    } catch (RemoteException re) {
-    }
-  }
-
-  /**
-   * If the color data in the <CODE>Control</CODE> associated with this
-   * widget's <CODE>ScalarMap</CODE> has changed, update the data in
-   * the <CODE>ColorMap</CODE> associated with this widget's
-   * <CODE>ColorWidget</CODE>.
-   *
-   * @param evt Data from the changed <CODE>Control</CODE>.
-   */
   public void controlChanged(ControlEvent evt)
+    throws RemoteException, VisADException
   {
-    // get the colormap
-    ColorMap map_e = colorWidget.getColorMap();
-    if (map_e == null) {
-      return;
-    }
-
-    // stash some map-related constants
-    final int dim = map_e.getMapDimension();
-    final int res = map_e.getMapResolution();
-    final float scale = 1.0f / (res - 1.0f);
-
-    // grab the Control's table
-    float[][] table = control.getTable();
-
-    boolean identical = true;
-    if (table == null || table.length != dim) {
-      // table is fundamentally different
-      identical = false;
-    } else {
-      for (int i = 0; i < dim; i++) {
-        if (table[i].length != res) {
-          // table resolution changed
-          identical = false;
-          break;
-        }
-      }
-
-      // if the basic table shape is unchanged...
-      if (identical) {
-        for (int i=0; i<res; i++) {
-          float[] t = map_e.getTuple(scale * i);
-          if (Math.abs(table[0][i] - t[0]) > 0.0001 ||
-              Math.abs(table[1][i] - t[1]) > 0.0001 ||
-              Math.abs(table[2][i] - t[2]) > 0.0001 ||
-              (dim > 3 && Math.abs(table[3][i] - t[3]) > 0.0001))
-          {
-            // table data changed
-            identical = false;
-            break;
-          }
-        }
-      }
-    }
-
-    // if the table has changed...
-    if (!identical) {
-      ((BaseRGBMap )map_e).setValues(table_reorg(table));
-    }
+    control.syncControl(realControl);
   }
 
   /**
@@ -428,15 +334,20 @@ public class ColorMapWidget
     if (id == ScalarMapEvent.CONTROL_REMOVED ||
         id == ScalarMapEvent.CONTROL_REPLACED)
     {
-      evt.getControl().removeControlListener(this);
+      if (realControl != null) {
+        evt.getControl().removeControlListener(this);
+      }
     }
 
     if (id == ScalarMapEvent.CONTROL_REPLACED ||
         id == ScalarMapEvent.CONTROL_ADDED)
     {
-      control = (BaseColorControl )(evt.getScalarMap().getControl());
-      controlChanged(new ControlEvent(control));
-      control.addControlListener(this);
+      BaseColorControl ctl;
+      ctl = (BaseColorControl )(evt.getScalarMap().getControl());
+      if (realControl != null) {
+        realControl = ctl;
+        realControl.addControlListener(this);
+      }
     }
   }
 
