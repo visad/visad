@@ -56,7 +56,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
       or PolygonAttributes.POLYGON_POINT */
   private int polygonMode;
 
-  private boolean missingTransparent = false;
+  private boolean missingTransparent = true;
   private int curvedSize = 10;
 
   public GraphicsModeControlJ3D(DisplayImpl d) {

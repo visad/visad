@@ -52,7 +52,18 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
   MouseHelper helper = null;
 
   private Thread wandThread;
+
+  // use vpTrans for head motion from tracker,
+  // and for left-button wand motion
   private TransformGroup vpTrans;
+
+  private float[] head_position = new float[3];
+  private float[] wand_position = new float[3];
+  private float[] wand_vector = new float[3];
+  // integral of wand_vector during left == true
+  private float[] travel_position = new float[3];
+  // wand button states
+  private boolean left, center, right;
 
   private TrackdJNI hack;
 
@@ -86,8 +97,25 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
     wandThread = null;
   }
 
+  private static int DELAY = 50; // ms
   private static int NSENSORS = 4;
-  private static int NBUTTONS = 4;
+  private static int NBUTTONS = 3;
+
+  // sensor numbers
+  private static int HEAD = 0;
+  private static int WAND = 1;
+
+  // button numbers
+  private static int LEFT = 0;
+  private static int CENTER = 1;
+  private static int RIGHT = 2;
+
+  // angle numbers
+  private static int ELEVATION = 0;
+  private static int AZIMUTH = 1;
+  private static int ROLL = 2;
+
+  private float TRAVEL_SPEED = 0.3f; // graphics distance (feet?) per second
 
   public void run() {
     Thread me = Thread.currentThread();
@@ -97,14 +125,79 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
     float[] sensor_matrices = new float[NSENSORS * 4 * 4];
     int[] number_of_buttons = new int[1];
     int[] button_states = new int[NBUTTONS];
+    int nprint = 1000 / DELAY;
+    travel_position[0] = 0.0f;
+    travel_position[1] = 0.0f;
+    travel_position[2] = 0.0f;
     while (wandThread == me) {
+      try {
+        synchronized (this) {
+          wait(DELAY);
+        }
+      }
+      catch(InterruptedException e) {
+        // control doesn't normally come here
+      }
       number_of_sensors[0] = NSENSORS;
       number_of_buttons[0] = NBUTTONS;
       hack.getTrackd(number_of_sensors, sensor_positions, sensor_angles,
                      sensor_matrices, number_of_buttons, button_states);
+      nprint--;
+      if (nprint <= 0) {
+        nprint = 1000 / DELAY;
+        for (int i=0; i<number_of_sensors[0]; i++) {
+          int i3 = i * 3;
+          System.out.println("sensor " + i + " " + sensor_positions[i3] + " " +
+                             sensor_positions[i3 + 1] + " " +
+                             sensor_positions[i3 + 2] + " " +
+                             sensor_angles[i3] + " " + sensor_angles[i3 + 1] + " " +
+                             sensor_angles[i3 + 2]);
+        }
+        System.out.println(number_of_buttons[0] + " buttons: " + button_states[0] +
+                           " " + button_states[1] + " " + button_states[2]);
+      }
+      left = (button_states[LEFT] != 0);
+      center = (button_states[CENTER] != 0);
+      right = (button_states[RIGHT] != 0);
+      head_position[0] = sensor_positions[3 * HEAD];
+      head_position[1] = sensor_positions[3 * HEAD + 1];
+      head_position[2] = sensor_positions[3 * HEAD + 2];
+      wand_position[0] = sensor_positions[3 * WAND];
+      wand_position[1] = sensor_positions[3 * WAND + 1];
+      wand_position[2] = sensor_positions[3 * WAND + 2];
+
+      float elevation = sensor_angles[3 * WAND + ELEVATION];
+      float azimuth = sensor_angles[3 * WAND + AZIMUTH];
+      float roll = sensor_angles[3 * WAND + ROLL];
+
+      // QUESTION? angles all 0.0 == wand pointed forward QUESTION?
+      float x = 0.0f;
+      float y = 0.0f;
+      float z = -1.0f;
+
+      // QUESTION? is order of rotation x, y, z QUESTION?
+      // rotate around x
+      float xx = x;
+      float yy = (float) (Math.cos(elevation) * y - Math.sin(elevation) * z);
+      float zz = (float) (Math.sin(elevation) * y + Math.cos(elevation) * z);
+      // rotate around y
+      x = (float) (Math.cos(azimuth) * zz + Math.sin(azimuth) * xx);
+      y = yy;
+      z = (float) (Math.cos(azimuth) * zz - Math.sin(azimuth) * xx);
+      // rotate around z
+      wand_vector[0] = (float) (Math.cos(elevation) * x - Math.sin(elevation) * y);
+      wand_vector[1] = (float) (Math.sin(elevation) * x + Math.cos(elevation) * y);
+      wand_vector[2] = z;
+
+      if (left) {
+        float increment = TRAVEL_SPEED * DELAY / 1000.0f;
+        travel_position[0] += increment * wand_vector[0];
+        travel_position[1] += increment * wand_vector[1];
+        travel_position[2] += increment * wand_vector[2];
+      }
 
 
-    }
+    } // end while (wandThread == me)
   }
 
   public VisADRay findRay(int screen_x, int screen_y) {

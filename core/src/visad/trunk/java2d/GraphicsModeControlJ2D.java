@@ -49,7 +49,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
   private int projectionPolicy = 0;
   private int polygonMode = 0;
 
-  private boolean missingTransparent = false;
+  private boolean missingTransparent = true;
   private int curvedSize = 10;
 
   public GraphicsModeControlJ2D(DisplayImpl d) {

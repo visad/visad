@@ -2045,13 +2045,40 @@ if (range_select[0] != null) {
                 }
               }
 */
-
-              for (int i=0; i<len; i++) {
-                if (!range_select[0][i]) {
-                  // make missing pixel black
-                  color_values[0][i] = 0;
-                  color_values[1][i] = 0;
-                  color_values[2][i] = 0;
+              // WLH 27 March 2000
+              float alpha =
+                default_values[display.getDisplayScalarIndex(Display.Alpha)];
+// System.out.println("alpha = " + alpha);
+              if (constant_alpha == constant_alpha) {
+                alpha = 1.0f - constant_alpha;
+// System.out.println("constant_alpha = " + alpha);
+              }
+              if (color_values.length < 4) {
+                byte[][] c = new byte[4][];
+                c[0] = color_values[0];
+                c[1] = color_values[1];
+                c[2] = color_values[2];
+                c[3] = new byte[len];
+                for (int i=0; i<len; i++) c[3][i] = floatToByte(alpha);
+                constant_alpha = Float.NaN;
+                color_values = c;
+              }
+              if (mode.getMissingTransparent()) {
+                for (int i=0; i<len; i++) {
+                  if (!range_select[0][i]) {
+                    // make missing pixel invisible (transparent)
+                    color_values[3][i] = 0;
+                  }
+                }
+              }
+              else {
+                for (int i=0; i<len; i++) {
+                  if (!range_select[0][i]) {
+                    // make missing pixel black
+                    color_values[0][i] = 0;
+                    color_values[1][i] = 0;
+                    color_values[2][i] = 0;
+                  }
                 }
               }
             } // end if (range_select[0] != null)
@@ -2076,9 +2103,31 @@ if (range_select[0] != null) {
           } // end if (isTextureMap)
           else if (curvedTexture) {
 // System.out.println("start texture " + (System.currentTimeMillis() - link.start_time));
+            if (color_values == null) { // never true?
+              // must be color_values array for texture mapping
+              color_values = new byte[3][domain_length];
+              for (int i=0; i<domain_length; i++) {
+                color_values[0][i] = floatToByte(constant_color[0]);
+                color_values[1][i] = floatToByte(constant_color[1]);
+                color_values[2][i] = floatToByte(constant_color[2]);
+              }
+            }
+
             if (range_select[0] != null) {
-              spatial_set.cram_missing(range_select[0]);
-              spatial_all_select = false;
+              // WLH 27 March 2000
+              if (mode.getMissingTransparent()) {
+                spatial_set.cram_missing(range_select[0]);
+                spatial_all_select = false;
+              }
+              else {
+                for (int i=0; i<domain_length; i++) {
+                  if (!range_select[0][i]) {
+                    color_values[0][i] = 0;
+                    color_values[1][i] = 0;
+                    color_values[2][i] = 0;
+                  }
+                }
+              }
 /* WLH 6 May 99
               color_values =
                 selectToColor(range_select, color_values, constant_color,
@@ -2371,8 +2420,29 @@ WLH 15 March 2000 */
           }
           else if (spatialManifoldDimension == 1) {
             if (range_select[0] != null) {
-              spatial_set.cram_missing(range_select[0]);
-              spatial_all_select = false;
+              // WLH 27 March 2000
+              if (mode.getMissingTransparent()) {
+                spatial_set.cram_missing(range_select[0]);
+                spatial_all_select = false;
+              }
+              else {
+                if (color_values == null) {
+                  color_values = new byte[4][domain_length];
+                  for (int i=0; i<domain_length; i++) {
+                    color_values[0][i] = floatToByte(constant_color[0]);
+                    color_values[1][i] = floatToByte(constant_color[1]);
+                    color_values[2][i] = floatToByte(constant_color[2]);
+                  }
+                }
+                for (int i=0; i<domain_length; i++) {
+                  if (!range_select[0][i]) {
+                    color_values[0][i] = 0;
+                    color_values[1][i] = 0;
+                    color_values[2][i] = 0;
+                  }
+                }
+              }
+
 /* WLH 6 May 99
               color_values =
                 selectToColor(range_select, color_values, constant_color,
@@ -2390,8 +2460,29 @@ WLH 15 March 2000 */
           }
           else if (spatialManifoldDimension == 2) {
             if (range_select[0] != null) {
-              spatial_set.cram_missing(range_select[0]);
-              spatial_all_select = false;
+              // WLH 27 March 2000
+              if (mode.getMissingTransparent()) {
+                spatial_set.cram_missing(range_select[0]);
+                spatial_all_select = false;
+              }
+              else { 
+                if (color_values == null) {
+                  color_values = new byte[4][domain_length];
+                  for (int i=0; i<domain_length; i++) {
+                    color_values[0][i] = floatToByte(constant_color[0]);
+                    color_values[1][i] = floatToByte(constant_color[1]);
+                    color_values[2][i] = floatToByte(constant_color[2]);
+                  }
+                }
+                for (int i=0; i<domain_length; i++) {
+                  if (!range_select[0][i]) {
+                    color_values[0][i] = 0;
+                    color_values[1][i] = 0;
+                    color_values[2][i] = 0;
+                  }
+                }
+              }
+
 /* WLH 6 May 99
               color_values =
                 selectToColor(range_select, color_values, constant_color,

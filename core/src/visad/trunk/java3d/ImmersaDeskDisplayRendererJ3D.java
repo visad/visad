@@ -39,11 +39,11 @@ import java.util.*;
 
 /*
 WandBehaviorJ3D extends MouseBehaviorJ3D:
-  how does it get wake up?
+  how does it get wake up? must poll trackd
 
   draw ray from wand for direct manipulation (right button)
   also to drive cursor location from wand (center button)
-  rotation, scale, translate (left button)?
+  translate (left button)
 
 connect head tracker to DisplayRendererJ3D.vpTrans
 */
@@ -58,26 +58,23 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
   private ColoringAttributes box_color = null;
   private ColoringAttributes cursor_color = null;
 
+  /** ray information */
+  private LineArray ray_geometry = null;
+  private ColoringAttributes ray_color = null;
+  private Switch ray_switch = null;
+  private BranchGroup ray_on = null, ray_off = null;
+
   private WandBehaviorJ3D wand = null; // for wand interactions
 
   /**
-   * This is the default <CODE>DisplayRenderer</CODE> used by the
-   * <CODE>DisplayImplJ3D</CODE> constructor.
+   * This is the ImmersaDesk <CODE>DisplayRenderer</CODE>
+   * for <CODE>DisplayImplJ3D</CODE>.
    * It draws a 3-D cube around the scene.<P>
-   * The left mouse button controls the projection as follows:
-   * <UL>
-   *  <LI>mouse drag rotates in 3-D
-   *  <LI>mouse drag with Shift down zooms the scene
-   *  <LI>mouse drag with Ctrl translates the scene sideways
-   * </UL>
-   * The center mouse button activates and controls the
-   * 3-D cursor as follows:
-   * <UL>
-   *  <LI>mouse drag translates the cursor sideways
-   *  <LI>mouse drag with Shift translates the cursor in and out
-   *  <LI>mouse drag with Ctrl rotates scene in 3-D with cursor on
-   * </UL>
-   * The right mouse button is used for direct manipulation by clicking on
+   * The left wand button controls the projection by
+   * translating in direction wand is pointing
+   * The center wand button activates and controls the
+   * 3-D cursor by translating the cursor with wand
+   * The right wand button is used for direct manipulation by clicking on
    * the depiction of a <CODE>Data</CODE> object and dragging or re-drawing
    * it.<P>
    * Cursor and direct manipulation locations are displayed in RealType
@@ -140,6 +137,30 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
     Shape3D cursor = new Shape3D(cursor_geometry, cursor_appearance);
     cursor_on.addChild(cursor);
 
+    // create the ray
+    ray_switch = new Switch();
+    ray_switch.setCapability(Switch.ALLOW_SWITCH_READ);
+    ray_switch.setCapability(Switch.ALLOW_SWITCH_WRITE);
+    trans.addChild(ray_switch);
+    ray_on = new BranchGroup();
+    ray_on.setCapability(Group.ALLOW_CHILDREN_READ);
+    ray_on.setCapability(Group.ALLOW_CHILDREN_WRITE);
+    ray_off = new BranchGroup();
+    ray_switch.addChild(ray_off);
+    ray_switch.addChild(ray_on);
+    ray_switch.setWhichChild(2); // initially on
+    ray_geometry = new LineArray(2, LineArray.COORDINATES);
+    ray_geometry.setCoordinates(0, ray_verts);
+    ray_geometry.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
+    ray_geometry.setCapability(GeometryArray.ALLOW_COORDINATE_WRITE);
+    Appearance ray_appearance = new Appearance();
+    ray_color.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
+    ray_color.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
+    ray_color.setColor(1.0f, 1.0f, 1.0f); // white ray
+    ray_appearance.setColoringAttributes(ray_color);
+    Shape3D ray = new Shape3D(ray_geometry, ray_appearance);
+    ray_on.addChild(ray);
+
     // create ambient light, directly under root (not transformed)
 /* WLH 27 Jan 98
     Color3f color = new Color3f(0.4f, 0.4f, 0.4f);
@@ -189,6 +210,10 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
           0.0f,  0.0f,  0.1f,                        0.0f,  0.0f, -0.1f,
           0.0f,  0.1f,  0.0f,                        0.0f, -0.1f,  0.0f,
           0.1f,  0.0f,  0.0f,                       -0.1f,  0.0f,  0.0f
+  };
+
+  private static final float[] ray_verts = {
+          0.0f,  0.0f,  0.0f,                        0.0f,  0.0f, -10.0f
   };
 
 }

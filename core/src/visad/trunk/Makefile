@@ -157,7 +157,10 @@ TAR_FILES = \
 	visad/rmic_script				\
 	visad/*.java					\
 	visad/examples/*.java				\
+	visad/java3d/Makefile				\
 	visad/java3d/*.java				\
+	visad/java3d/*.c				\
+	visad/java3d/*.h				\
 	visad/java2d/*.java				\
 	visad/util/*.java				\
 	visad/formula/*.java				\
