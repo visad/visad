@@ -28,6 +28,13 @@ default:
 	@echo "	make classes		to make jar and tar files containing classes"
 	@echo "	make clear		to clear source files"
 
+.SUFFIXES : .java .class
+
+.java.class:
+	javac $<
+
+RM = rm -f
+FITS = ../nom/tam
 
 TAR_FILES = \
 	visad/README					\
@@ -269,36 +276,54 @@ save:
 
 
 clear:
-	/bin/rm -f *.java java3d/*.java util/*.java data/*.java data/netcdf/*.java data/netcdf/units/*.java data/netcdf/in/*.java data/netcdf/out/*.java data/fits/*.java ../nom/tam/fits/*.java ../nom/tam/util/*.java ../nom/tam/test/*.java data/hdfeos/*.java data/hdfeos/hdfeosc/*.java data/vis5d/*.java data/gif/*.java paoloa/*.java aune/*.java examples/*.java ; \
+	${RM} *.java
+	${RM} java3d/*.java util/*.java data/*.java
+	${RM} data/netcdf/*.java data/netcdf/units/*.java
+	${RM} data/netcdf/in/*.java data/netcdf/out/*.java
+	${RM} data/fits/*.java
+	${RM} $(FITS)/fits/*.java $(FITS)/util/*.java $(FITS)/test/*.java
+	${RM} data/hdfeos/*.java data/hdfeos/hdfeosc/*.java
+	${RM} data/vis5d/*.java data/gif/*.java
+	${RM} paoloa/*.java aune/*.java examples/*.java
 
 
-.SUFFIXES : .java .class
+compile: clean
+	javac -J-mx32m *.java
+	rmic visad.RemoteCellImpl visad.RemoteActionImpl \
+		visad.RemoteDisplayImpl visad.RemoteThingReferenceImpl \
+		visad.RemoteDataReferenceImpl visad.RemoteThingImpl \
+		visad.RemoteDataImpl visad.RemoteFunctionImpl \
+		visad.RemoteFieldImpl visad.RemoteServerImpl
+	javac java3d/*.java
+	javac util/*.java
+	javac data/*.java
+	-(cd .. && jar xvf ucar.jar)
+	javac data/netcdf/units/*.java
+	javac data/netcdf/in/*.java
+	javac data/netcdf/out/*.java
+	javac data/netcdf/*.java
+	-javac $(FITS)/util/*.java
+	-javac $(FITS)/fits/*.java
+	javac data/fits/*.java
+	javac data/vis5d/*.java
+	javac data/gif/*.java
+	javac data/hdfeos/hdfeosc/*.java
+	javac data/hdfeos/*.java
+	-javac paoloa/*.java
+	-javac aune/*.java
+	-(cd examples && javac *.java)
 
-.java.class:
-	javac $<
+clean:
+	${RM} *.class
+	${RM} java3d/*.class util/*.class data/*.class
+	${RM} data/netcdf/*.class data/netcdf/units/*.class
+	${RM} data/netcdf/in/*.class data/netcdf/out/*.class
+	${RM} data/fits/*.class
+	${RM} $(FITS)/fits/*.class $(FITS)/util/*.class $(FITS)/test/*.class
+	${RM} data/hdfeos/*.class data/hdfeos/hdfeosc/*.class
+	${RM} data/vis5d/*.class data/gif/*.class
+	${RM} paoloa/*.class aune/*.class examples/*.class
 
-compile:
-	/bin/rm -f *.class java3d/*.class util/*.class data/*.class data/netcdf/*.class data/netcdf/units/*.class data/netcdf/in/*.class data/netcdf/out/*.class data/fits/*.class ../nom/tam/fits/*.class ../nom/tam/util/*.class ../nom/tam/test/*.class data/hdfeos/*.class data/hdfeos/hdfeosc/*.class data/vis5d/*.class data/gif/*.class paoloa/*.class aune/*.class examples/*.class ; \
-	javac -J-mx32m *.java ; \
-	rmic visad.RemoteCellImpl visad.RemoteActionImpl visad.RemoteDisplayImpl visad.RemoteThingReferenceImpl visad.RemoteDataReferenceImpl visad.RemoteThingImpl visad.RemoteDataImpl visad.RemoteFunctionImpl visad.RemoteFieldImpl visad.RemoteServerImpl ; \
-	javac java3d/*.java ; \
-	javac util/*.java ; \
-	javac data/*.java ; \
-	cd .. ; \
-	jar xvf ucar.jar ; \
-	cd visad ; \
-	javac data/netcdf/units/*.java data/netcdf/in/*.java data/netcdf/out/*.java data/netcdf/*.java ; \
-	javac ../nom/tam/util/*.java ; \
-	javac ../nom/tam/fits/*.java ; \
-	javac ../nom/tam/test/*.java ; \
-	javac data/fits/*.java ; \
-	javac data/vis5d/*.java ; \
-	javac data/gif/*.java ; \
-	javac data/hdfeos/hdfeosc/*.java data/hdfeos/*.java ; \
-	javac paoloa/*.java ; \
-	javac aune/*.java ; \
-	cd examples ; \
-	javac *.java
 
 
 
@@ -332,5 +357,3 @@ javaone:
 	cp ../visad.jar . ; \
 	cp ../../.cshrc dot_cshrc ; \
 	jar cvf ssecj1.jar $(JAVAONE_FILES)
-
-
