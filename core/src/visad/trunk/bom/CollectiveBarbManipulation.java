@@ -45,8 +45,7 @@ import java.rmi.*;
    CollectiveBarbManipulation is the VisAD class for
    manipulation of collections of wind barbs
 */
-public class CollectiveBarbManipulation extends Object
-  implements ControlListener {
+public class CollectiveBarbManipulation extends Object {
 
   private FunctionType wind_field_type = null;
   private TupleType wind_type = null;
@@ -81,7 +80,8 @@ public class CollectiveBarbManipulation extends Object
 
   private WindMonitor wind_monitor = null;
 
-  private AnimationControl control = null;
+  private AnimationControl acontrol = null;
+  private ProjectionControl pcontrol = null;
 
   private DisplayImplJ3D display1;
   private DisplayImplJ3D display2;
@@ -378,8 +378,8 @@ public class CollectiveBarbManipulation extends Object
     stepper.addReference(stepper_ref);
 
     if (display1 != null) {
-      control = (AnimationControl) display1.getControl(AnimationControl.class);
-      if (control == null) {
+      acontrol = (AnimationControl) display1.getControl(AnimationControl.class);
+      if (acontrol == null) {
         throw new CollectiveBarbException("display must include " +
                        "ScalarMap to Animation");
       }
@@ -388,7 +388,7 @@ public class CollectiveBarbManipulation extends Object
       for (int i=0; i<tmap.size(); i++) {
         ScalarMap map = (ScalarMap) tmap.elementAt(i);
         Control c = map.getControl();
-        if (control.equals(c)) {
+        if (acontrol.equals(c)) {
           if (!RealType.Time.equals(map.getScalar())) {
             throw new CollectiveBarbException("must be Time mapped to " +
                                               "Animation " + map.getScalar());
@@ -398,7 +398,13 @@ public class CollectiveBarbManipulation extends Object
 
       // use a ControlListener on Display.Animation to fake
       // animation of manipulable barbs
-      control.addControlListener(this);
+      AnimationControlListener acl = new AnimationControlListener();
+      acontrol.addControlListener(acl);
+
+      pcontrol = display1.getProjectionControl();
+      DiscoverableZoomProjectionControlListener pcl =
+        new DiscoverableZoomProjectionControlListener();
+      pcontrol.addControlListener(pcl);
 
       stations_ref = new DataReferenceImpl("stations_ref");
       stations_ref.setData(wind_field);
@@ -418,7 +424,7 @@ public class CollectiveBarbManipulation extends Object
         wind_monitor.addReference(stations_ref);
       }
   
-      control.setCurrent(0);
+      acontrol.setCurrent(0);
     } // end if (display1 != null)
 
     if (display2 != null) {
@@ -845,27 +851,29 @@ System.out.println("setupStations: removeReference");
     }
   }
 
-  private boolean first = true;
-  private boolean first_real = true;
+  private boolean afirst = true;
+  private boolean afirst_real = true;
 
   // for AnimationControl steps
-  public void controlChanged(ControlEvent e)
-         throws VisADException, RemoteException { // NEW
-    if (first) {
-      first = false;
+  class AnimationControlListener implements ControlListener {
+    public void controlChanged(ControlEvent e)
+           throws VisADException, RemoteException {
+      if (afirst) {
+        afirst = false;
+      }
+      if (stepper_ref != null) stepper_ref.setData(null);
     }
-    if (stepper_ref != null) stepper_ref.setData(null);
   }
 
   class Stepper extends CellImpl { // NEW
 int old_current = -1;
     public void doAction() throws VisADException, RemoteException {
-      if (first || control == null) return;
+      if (afirst || acontrol == null) return;
 // System.out.println("Stepper");
       synchronized (data_lock) {
         which_time = -1;
 
-        int current = control.getCurrent();
+        int current = acontrol.getCurrent();
         if (current < 0) return;
         which_time = current;
 
@@ -881,7 +889,7 @@ if (barb_manipulation_renderers[i] != null) {
         }
 }
 /*
-        int current = control.getCurrent();
+        int current = acontrol.getCurrent();
         if (current < 0) return;
         which_time = current;
 */
@@ -899,8 +907,8 @@ if (station_refs[i] != null) {
 }
 old_current = current;
  
-        if (first_real) {
-          first_real = false;
+        if (afirst_real) {
+          afirst_real = false;
           display1.removeReference(stations_ref);
         }
       }
