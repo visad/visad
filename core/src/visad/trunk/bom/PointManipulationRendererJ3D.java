@@ -59,6 +59,8 @@ public class PointManipulationRendererJ3D extends DirectManipulationRendererJ3D 
       on right mouse button press;
       it uses xarg and yarg to determine spatial ScalarMaps */
   public PointManipulationRendererJ3D (RealType xarg, RealType yarg) {
+    // Don't match any modifier combinations (mmm = 0)
+    // Don't test for any - ie: accept (and steal) all combinations (mmv = 0)
     this(xarg, yarg, 0, 0);
   }
 
@@ -66,7 +68,10 @@ public class PointManipulationRendererJ3D extends DirectManipulationRendererJ3D 
       mmm and mmv determine whehter SHIFT or CTRL keys are required -
       this is needed since this is a greedy DirectManipulationRenderer
       that will grab any right mouse click (that intersects its 2-D
-      sub-manifold) */
+      sub-manifold)
+      @arg mmm - "Mouse Modifier Mask", matches the modifiers we want plus all that we don't want
+      @arg mmv - "Mouse Modifier Value", equals the subset of mask that we want to match
+ */
   public PointManipulationRendererJ3D (RealType xarg, RealType yarg, int mmm, int mmv) {
     super();
     x = xarg;
@@ -251,7 +256,9 @@ public class PointManipulationRendererJ3D extends DirectManipulationRendererJ3D 
     // do nothing
   }
 
-  /** check if ray intersects sub-manifold */
+  /** check if ray intersects sub-manifold
+      @return float, 0 - hit, Float.MAX_VALUE - no hit
+  */
   public synchronized float checkClose(double[] origin, double[] direction) {
     int mouseModifiers = getLastMouseModifiers();
     if ((mouseModifiers & mouseModifiersMask) != mouseModifiersValue) {
