@@ -145,6 +145,13 @@ public class BarbManipulationRendererJ3D extends DirectManipulationRendererJ3D
 
   private boolean stop = false;
 
+  /** pick error offset, communicated from checkClose() to drag_direct() */
+  private float offsetx = 0.0f, offsety = 0.0f, offsetz = 0.0f;
+  /** count down to decay offset to 0.0 */
+  private int offset_count = 0;
+  /** initial offset_count */
+  private static final int OFFSET_COUNT_INIT = 30;
+
   public String getWhyNotDirect() {
     return whyNotDirect;
   }
@@ -292,6 +299,11 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
     x = x - dot * d_x;
     y = y - dot * d_y;
     z = z - dot * d_z;
+
+    offsetx = x;
+    offsety = y;
+    offsetz = z;
+
     return (float) Math.sqrt(x * x + y * y + z * z); // distance
   }
 
@@ -328,6 +340,19 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
     float d_x = (float) ray.vector[0];
     float d_y = (float) ray.vector[1];
     float d_z = (float) ray.vector[2];
+
+    if (first) {
+      offset_count = OFFSET_COUNT_INIT;
+    }
+    else {
+      if (offset_count > 0) offset_count--;
+    }
+    if (offset_count > 0) {
+      float mult = ((float) offset_count) / ((float) OFFSET_COUNT_INIT);
+      o_x += mult * offsetx;
+      o_y += mult * offsety;
+      o_z += mult * offsetz;
+    }
 
     if (first || refirst) {
       point_x = barbValues[2];

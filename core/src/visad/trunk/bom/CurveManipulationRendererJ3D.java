@@ -135,8 +135,14 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
   private final static String badCoordSysManifoldDim =
     "directManifoldDimension must be 2 with spatial CoordinateSystem";
 
-
   private boolean stop = false;
+
+  /** pick error offset, communicated from checkClose() to drag_direct() */
+  private float offsetx = 0.0f, offsety = 0.0f, offsetz = 0.0f;
+  /** count down to decay offset to 0.0 */
+  private int offset_count = 0;
+  /** initial offset_count */
+  private static final int OFFSET_COUNT_INIT = 30;
 
   public void checkDirect() throws VisADException, RemoteException {
     setIsDirectManipulation(false);
@@ -279,6 +285,11 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
         if (d < distance) {
           distance = d;
           closeIndex = i;
+
+          offsetx = x;
+          offsety = y;
+          offsetz = z;
+
         }
   
       }
@@ -286,6 +297,11 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
         return distance;
       }
     } // end if (spatialValues != null)
+
+    offsetx = 0.0f;
+    offsety = 0.0f;
+    offsetz = 0.0f;
+
     closeIndex = -1;
     try {
       float r = findRayManifoldIntersection(true, origin, direction, tuple,
@@ -327,8 +343,22 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
       if (stop) return;
     }
 
-    double[] origin = ray.position;
+    // double[] origin = ray.position;
+    double[] origin = {ray.position[0], ray.position[1], ray.position[2]};
     double[] direction = ray.vector;
+
+    if (first) {
+      offset_count = OFFSET_COUNT_INIT;
+    }
+    else {
+      if (offset_count > 0) offset_count--;
+    }
+    if (offset_count > 0) {
+      float mult = ((float) offset_count) / ((float) OFFSET_COUNT_INIT);
+      origin[0] += mult * offsetx;
+      origin[1] += mult * offsety;
+      origin[2] += mult * offsetz;
+    }
 
     try {
       float r = findRayManifoldIntersection(true, origin, direction, tuple,
