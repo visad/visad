@@ -89,7 +89,7 @@ public class Test21
 	throws VisADException, RemoteException
   {
     ScalarMap range1map = (ScalarMap )dpys[0].getMapVector().lastElement();
-    return new SelectRangeWidget(range1map, 0.0f, 64.0f);
+    return new SelectRangeWidget(range1map);
   }
 
   public String toString() { return ": SelectRange and SelectRangeWidget"; }
