@@ -36,6 +36,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
+import java.util.Iterator;
 import java.util.Vector;
 
 import javax.swing.BoxLayout;
@@ -61,14 +62,23 @@ public class DisplaySwitch
   extends Thread
 {
   private DisplayImpl display = null;
-  private DataReferenceImpl dpyRef = null;
+  private DataReferenceImpl[] dpyRefs = null;
+  private Data alphaData0 = null;
+  private Data betaData0 = null;
+  private Data betaData1 = null;
+  private ConstantMap[] betaConstMaps = null;
+
   private JPanel dpyPanel = null;
-  private JButton change = null;
+  private JButton switchDim = null;
+  private JButton switchData = null;
 
   private boolean startServer = false;
   private String hostName = null;
 
   private static final int maximumWaitTime = 60;
+
+  private boolean dpy3D = false;
+  private boolean dpyBeta = false;
 
   public DisplaySwitch(String[] args)
     throws RemoteException, VisADException
@@ -381,91 +391,241 @@ public class DisplaySwitch
     return display;
   }
 
-  void setupServerData(LocalDisplay dpy)
+  private RealType getRealType(String name)
+    throws VisADException
+  {
+    RealType rt;
+    try {
+      rt = new RealType(name);
+    } catch (TypeException te) {
+      rt = RealType.getRealTypeByName(name);
+    }
+    return rt;
+  }
+
+  private static ScalarMap findMap(LocalDisplay dpy, RealType displayScalar)
+  {
+    if (displayScalar == null) {
+      return null;
+    }
+
+    Iterator maps;
+
+    try {
+      maps = dpy.getMapVector().iterator();
+    } catch (Exception e) {
+      maps = null;
+    }
+
+    if (maps != null) {
+      while (maps.hasNext()) {
+        ScalarMap smap = (ScalarMap )maps.next();
+        if (displayScalar.equals(smap.getDisplayScalar())) {
+          return smap;
+        }
+      }
+    }
+
+    try {
+      maps = dpy.getConstantMapVector().iterator();
+    } catch (Exception e) {
+      maps = null;
+    }
+
+    if (maps != null) {
+      while (maps.hasNext()) {
+        ConstantMap cmap = (ConstantMap )maps.next();
+        if (displayScalar.equals(cmap.getDisplayScalar())) {
+          return cmap;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private void buildMaps(LocalDisplay dpy)
     throws RemoteException, VisADException
   {
-    RealType[] time = {RealType.Time};
+    RealType dom0 = getRealType("dom0");
+    RealType dom1 = getRealType("dom1");
+
+    dpy.addMap(new ScalarMap(RealType.Latitude, Display.XAxis));
+    dpy.addMap(new ScalarMap(RealType.Longitude, Display.YAxis));
+
+    dpy.addMap(new ScalarMap(dom1, Display.Green));
+    dpy.addMap(new ConstantMap(0.5, Display.Blue));
+    dpy.addMap(new ConstantMap(0.5, Display.Red));
+    dpy.addMap(new ScalarMap(dom0, Display.IsoContour));
+    dpy.addMap(new ScalarMap(dom1, Display.SelectRange));
+    dpy.addMap(new ScalarMap(dom1, Display.RGBA));
+    dpy.addMap(new ScalarMap(RealType.Time, Display.Animation));
+  }
+
+  private DataImpl buildAlphaRefZero()
+    throws RemoteException, VisADException
+  {
+    RealType dom0 = getRealType("dom0");
+    RealType dom1 = getRealType("dom1");
+
     RealType[] types = {RealType.Latitude, RealType.Longitude};
-    RealTupleType earth_location = new RealTupleType(types);
-    RealType vis_radiance = new RealType("vis_radiance", null, null);
-    RealType ir_radiance = new RealType("ir_radiance", null, null);
-    RealType[] types2 = {vis_radiance, ir_radiance};
-    RealTupleType radiance = new RealTupleType(types2);
-    FunctionType image_tuple = new FunctionType(earth_location, radiance);
-    RealType[] types4 = {ir_radiance, vis_radiance};
-    RealTupleType ecnaidar = new RealTupleType(types4);
-    FunctionType image_bumble = new FunctionType(earth_location, ecnaidar);
-    RealTupleType time_type = new RealTupleType(time);
-    FunctionType time_images = new FunctionType(time_type, image_tuple);
-    FunctionType time_bee = new FunctionType(time_type, image_bumble);
+    RealTupleType earthLocation = new RealTupleType(types);
+
+    RealType[] viTypes = {dom0, dom1};
+    RealTupleType viTT = new RealTupleType(viTypes);
+    FunctionType viFunc = new FunctionType(earthLocation, viTT);
+
+    RealType[] ivTypes = {dom1, dom0};
+    RealTupleType ivTT = new RealTupleType(ivTypes);
+    FunctionType ivFunc = new FunctionType(earthLocation, ivTT);
+
+    RealType[] time = {RealType.Time};
+    RealTupleType timeType = new RealTupleType(time);
+    FunctionType timeVI = new FunctionType(timeType, viFunc);
+    FunctionType timeIV = new FunctionType(timeType, ivFunc);
 
     int size = 64;
-    FlatField imaget1 = FlatField.makeField(image_tuple, size, false);
-    FlatField wasp = FlatField.makeField(image_bumble, size, false);
+    int ntimes = 4;
 
-    int ntimes1 = 4;
-    int ntimes2 = 6;
-
-    // different time extents test
     // 2 May 99, 15:51:00
     double start = new DateTime(1999, 122, 57060).getValue();
-    Set time_set =
-      new Linear1DSet(time_type, start, start + 3000.0, ntimes1);
+    Set timeSet = new Linear1DSet(timeType, start, start + 3000.0, ntimes);
     double[][] times =
       {{start, start + 600.0, start + 1200.0,
         start + 1800.0, start + 2400.0, start + 3000.0}};
-    Set time_hornet = new Gridded1DDoubleSet(time_type, times, 6);
+    Set timeGrid = new Gridded1DDoubleSet(timeType, times, times[0].length);
 
-    FieldImpl image_sequence = new FieldImpl(time_images, time_set);
-    FieldImpl image_stinger = new FieldImpl(time_bee, time_hornet);
-    FlatField temp = imaget1;
-    FlatField tempw = wasp;
-    Real[] reals = {new Real(vis_radiance, (float) size / 4.0f),
-                    new Real(ir_radiance, (float) size / 8.0f)};
+    FieldImpl setSequence = new FieldImpl(timeVI, timeSet);
+    FieldImpl gridSequence = new FieldImpl(timeIV, timeGrid);
+    FlatField flatVI = FlatField.makeField(viFunc, size, false);
+    FlatField flatIV = FlatField.makeField(ivFunc, size, false);
+    Real[] reals = {new Real(dom0, (float) size / 4.0f),
+                    new Real(dom1, (float) size / 8.0f)};
     RealTuple val = new RealTuple(reals);
-    for (int i=0; i<ntimes1; i++) {
-      image_sequence.setSample(i, temp);
-      temp = (FlatField) temp.add(val);
+    for (int i=0; i<ntimes; i++) {
+      setSequence.setSample(i, flatVI);
+      flatVI = (FlatField) flatVI.add(val);
     }
-    for (int i=0; i<ntimes2; i++) {
-      image_stinger.setSample(i, tempw);
-      tempw = (FlatField) tempw.add(val);
+    for (int i=0; i<times[0].length; i++) {
+      gridSequence.setSample(i, flatIV);
+      flatIV = (FlatField) flatIV.add(val);
     }
-    FieldImpl[] images = {image_sequence, image_stinger};
-    Tuple big_tuple = new Tuple(images);
-
-    dpy.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
-    dpy.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
-    dpy.addMap(new ScalarMap(ir_radiance, Display.Green));
-    dpy.addMap(new ConstantMap(0.5, Display.Blue));
-    dpy.addMap(new ConstantMap(0.5, Display.Red));
-    dpy.addMap(new ScalarMap(vis_radiance, Display.IsoContour));
-    dpy.addMap(new ScalarMap(ir_radiance, Display.SelectRange));
-    dpy.addMap(new ScalarMap(ir_radiance, Display.RGBA));
-    ScalarMap map1animation;
-    map1animation = new ScalarMap(RealType.Time, Display.Animation);
-    dpy.addMap(map1animation);
-
-    dpyRef = new DataReferenceImpl("dpyRef");
-    dpyRef.setData(big_tuple);
-    dpy.addReference(dpyRef, null);
+    FieldImpl[] images = {setSequence, gridSequence};
+    return new Tuple(images);
   }
 
-  void switchDisplay()
+  void setupAlphaRefs(LocalDisplay dpy)
+    throws RemoteException, VisADException
+  {
+    if (alphaData0 == null) {
+      alphaData0 = buildAlphaRefZero();
+    }
+
+    dpyRefs = new DataReferenceImpl[1];
+
+    dpyRefs[0] = new DataReferenceImpl("dpyRef0");
+    dpyRefs[0].setData(alphaData0);
+    dpy.addReference(dpyRefs[0], null);
+  }
+
+  private DataImpl buildBetaRefZero()
+    throws RemoteException, VisADException
+  {
+    RealType dom0 = getRealType("dom0");
+    RealType dom1 = getRealType("dom1");
+
+    int isize = 16;
+
+    RealTupleType revLocation;
+    revLocation = new RealTupleType(RealType.Longitude, RealType.Latitude);
+
+    RealTupleType domTypes = new RealTupleType(dom0, dom1);
+
+    FunctionType func = new FunctionType(revLocation, domTypes);
+
+    FlatField flat = FlatField.makeField(func, isize, false);
+
+    double[][] vals = new double[2][isize * isize];
+    for (int i=0; i<isize; i++) {
+      for (int j=0; j<isize; j++) {
+        vals[0][j + isize * i] = (i + 1) * (j + 1);
+        vals[1][j + isize * i] = ((double )i * 1.2) * ((double )j / 1.2);
+      }
+    }
+
+    return flat;
+  }
+
+  private DataImpl buildBetaRefOne()
+    throws RemoteException, VisADException
+  {
+    RealType dom0 = getRealType("dom0");
+    RealType dom1 = getRealType("dom1");
+
+    int isize = 16;
+
+    RealTupleType earthLocation;
+    earthLocation = new RealTupleType(RealType.Latitude, RealType.Longitude);
+
+    RealTupleType domTypes = new RealTupleType(dom0, dom1);
+
+    FunctionType func = new FunctionType(earthLocation, domTypes);
+
+    FlatField flat = FlatField.makeField(func, isize, false);
+
+    double[][] vals = new double[2][isize * isize];
+    for (int i=0; i<isize; i++) {
+      for (int j=0; j<isize; j++) {
+        vals[0][j + isize * i] = (i + 1) * (j + 1);
+        vals[1][j + isize * i] = ((double )i * 1.2) * ((double )j / 1.2);
+      }
+    }
+
+    flat.setSamples(vals, false);
+    return flat;
+  }
+
+  void setupBetaRefs(LocalDisplay dpy)
+    throws RemoteException, VisADException
+  {
+    if (betaData0 == null) {
+      betaData0 = buildBetaRefZero();
+    }
+    if (betaData1 == null) {
+      betaData1 = buildBetaRefOne();
+    }
+    if (betaConstMaps == null) {
+      betaConstMaps = new ConstantMap[3];
+      betaConstMaps[0] = new ConstantMap(1.0, Display.Blue);
+      betaConstMaps[1] = new ConstantMap(1.0, Display.Red);
+      betaConstMaps[2] = new ConstantMap(0.0, Display.Green);
+    }
+
+    dpyRefs = new DataReferenceImpl[2];
+
+    dpyRefs[0] = new DataReferenceImpl("dpyRef0");
+    dpyRefs[0].setData(betaData0);
+    dpy.addReference(dpyRefs[0], null);
+
+
+    dpyRefs[1] = new DataReferenceImpl("dpyRef1");
+    dpyRefs[1].setData(betaData1);
+    dpy.addReference(dpyRefs[1], betaConstMaps);
+  }
+
+  void setupServerData(LocalDisplay dpy)
+    throws RemoteException, VisADException
+  {
+    buildMaps(dpy);
+
+    setupAlphaRefs(dpy);
+  }
+
+  void switchDisplay(boolean rerollData)
   {
     // make sure we know which display we're switching
     if (display == null) {
       System.err.println("No display found!");
-      return;
-    }
-
-    // make sure we know what kind of display we're switching to
-    boolean threeD = false;
-    if (display instanceof DisplayImplJ2D) {
-      threeD = true;
-    } else if (!(display instanceof DisplayImplJ3D)) {
-      System.err.println("Unknown dimension for " +
-                         display.getClass().getName());
       return;
     }
 
@@ -481,7 +641,7 @@ public class DisplaySwitch
     // try to create a new display in a different dimension
     DisplayImpl newDpy;
     try {
-      if (threeD) {
+      if (dpy3D) {
         newDpy = new DisplayImplJ3D(name, api);
       } else {
         newDpy = new DisplayImplJ2D(name, api);
@@ -534,33 +694,81 @@ e.printStackTrace();
         }
       }
     }
-    try {
-      newDpy.addReference(dpyRef, null);
-    } catch (Exception e) {
-      System.err.println("Couldn't re-add " + dpyRef + ": " +
-                         e.getClass().getName() + ": " + e.getMessage());
-    }
-
-    if (threeD) {
-      change.setText("Change to 2D");
+    if (dpyRefs == null || rerollData) {
+      if (dpyBeta) {
+        try {
+          setupBetaRefs(newDpy);
+        } catch (Exception e) {
+          System.err.println("Couldn't re-init beta refs: " +
+                             e.getClass().getName() + ": " + e.getMessage());
+e.printStackTrace();
+        }
+      } else {
+        try {
+          setupAlphaRefs(newDpy);
+        } catch (Exception e) {
+          System.err.println("Couldn't re-init alpha refs: " +
+                             e.getClass().getName() + ": " + e.getMessage());
+e.printStackTrace();
+        }
+      }
     } else {
-      change.setText("Change to 3D");
+      for (int i = 0; i < dpyRefs.length; i++) {
+        try {
+          newDpy.addReference(dpyRefs[i], null);
+        } catch (Exception e) {
+          System.err.println("Couldn't re-add " + dpyRefs[i] + ": " +
+                             e.getClass().getName() + ": " + e.getMessage());
+e.printStackTrace();
+        }
+      }
     }
 
     display = newDpy;
     dpyPanel.add(display.getComponent());
   }
 
+  private Component buildSwitchButtons()
+  {
+    JPanel buttons = new JPanel();
+    buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
+
+    switchDim = new JButton("Change to 3D");
+    switchDim.addActionListener(new ActionListener()
+      {
+        public void actionPerformed(ActionEvent e)
+        {
+          dpy3D = !dpy3D;
+          switchDisplay(false);
+          if (dpy3D) {
+            switchDim.setText("Change to 2D");
+          } else {
+            switchDim.setText("Change to 3D");
+          }
+        }
+      });
+    buttons.add(switchDim);
+
+    switchData = new JButton("Change Data");
+    switchData.addActionListener(new ActionListener()
+      {
+        public void actionPerformed(ActionEvent e)
+        {
+          dpyBeta = !dpyBeta;
+          switchDisplay(true);
+        }
+      });
+    buttons.add(switchData);
+
+    return buttons;
+  }
+
   Component getSpecialComponent(LocalDisplay dpy)
     throws RemoteException, VisADException
   {
     Vector v = dpy.getMapVector();
-    int vSize = v.size();
 
-    ScalarMap animMap = (ScalarMap )v.elementAt(vSize - 1);
-    ScalarMap rgbaMap = (ScalarMap )v.elementAt(vSize - 2);
-    ScalarMap selectMap = (ScalarMap )v.elementAt(vSize - 3);
-    ScalarMap contourMap = (ScalarMap )v.elementAt(vSize - 4);
+    ScalarMap rgbaMap = findMap(dpy, Display.RGBA);
 
     JPanel widgets = new JPanel();
     widgets.setLayout(new BoxLayout(widgets, BoxLayout.Y_AXIS));
@@ -570,24 +778,16 @@ e.printStackTrace();
 
     widgets.add(dpyPanel);
 
-    widgets.add(new AnimationWidget(animMap, 500));
-    widgets.add(new ContourWidget(contourMap));
+    widgets.add(new AnimationWidget(findMap(dpy, Display.Animation), 500));
+    widgets.add(new ContourWidget(findMap(dpy, Display.IsoContour)));
     widgets.add(new GMCWidget(dpy.getGraphicsModeControl()));
     widgets.add(new LabeledColorWidget(rgbaMap));
     widgets.add(new ProjWidget(dpy.getProjectionControl()));
     widgets.add(new RangeWidget(rgbaMap));
-    widgets.add(new SelectRangeWidget(selectMap));
+    widgets.add(new SelectRangeWidget(findMap(dpy, Display.SelectRange)));
 
     if (isServer() || isStandalone()) {
-      change = new JButton("Change to 3D");
-      change.addActionListener(new ActionListener()
-        {
-          public void actionPerformed(ActionEvent e)
-          {
-            switchDisplay();
-          }
-        });
-      widgets.add(change);
+      widgets.add(buildSwitchButtons());
     }
 
     return widgets;
