@@ -494,12 +494,12 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     }
   }
 
-  /** save to a file selected by the user, in netCDF or serialized format */
-  public void saveDataDialog(Form saveForm) {
+  /** pops up a dialog box for user to select file where data will be saved */
+  private File getSaveFile() {
     if (!hasData()) {
       JOptionPane.showMessageDialog(Parent, "This cell is empty.",
         "Nothing to save", JOptionPane.ERROR_MESSAGE);
-      return;
+      return null;
     }
 
     // get file name from file dialog
@@ -509,21 +509,28 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
 
     // make sure file is valid
     String file = FileBox.getFile();
-    if (file == null) return;
+    if (file == null) return null;
     String directory = FileBox.getDirectory();
-    if (directory == null) return;
+    if (directory == null) return null;
     File f = new File(directory, file);
+    return f;
+  }
+
+  /** save to a file selected by the user, using the given data form */
+  public void saveDataDialog(Form saveForm) {
+    // get file where data should be saved
+    final File f = getSaveFile();
+    if (f == null) return;
 
     // start new thread to save the file
-    final File fn = f;
     final BasicSSCell cell = this;
     final Form form = saveForm;
     Runnable saveFile = new Runnable() {
       public void run() {
-        String msg = "Could not save the dataset \"" + fn.getName() +
-                     "\" as a " + form.getName() + " file";
+        String msg = "Could not save the dataset \"" + f.getName() +
+                     "\" as a " + form.getName() + " file. ";
         try {
-          cell.saveData(fn, form);
+          cell.saveData(f, form);
         }
         catch (BadFormException exc) {
           if (DEBUG) exc.printStackTrace();
@@ -552,6 +559,33 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
       }
     };
     Thread t = new Thread(saveFile);
+    t.start();
+  }
+
+  /** capture image and save to a file selected by the user, in JPEG format */
+  public void captureDialog() {
+    // get file where captured image should be saved
+    final File f = getSaveFile();
+    if (f == null) return;
+
+    // start new thread to capture image and save it to the file
+    final BasicSSCell cell = this;
+    Runnable captureImage = new Runnable() {
+      public void run() {
+        String msg = "Could not save image snapshot to file \"" + f.getName() +
+          "\" in JPEG format. ";
+        try {
+          cell.captureImage(f);
+        }
+        catch (IOException exc) {
+          if (DEBUG) exc.printStackTrace();
+          msg = msg + "An I/O error occurred: " + exc.getMessage();
+          JOptionPane.showMessageDialog(Parent, msg, "Error saving data",
+            JOptionPane.ERROR_MESSAGE);
+        }
+      }
+    };
+    Thread t = new Thread(captureImage);
     t.start();
   }
 

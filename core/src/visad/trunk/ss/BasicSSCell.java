@@ -26,7 +26,9 @@ MA 02111-1307, USA
 
 package visad.ss;
 
+import com.sun.image.codec.jpeg.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.*;
 import java.rmi.*;
@@ -2287,6 +2289,22 @@ public class BasicSSCell extends JPanel {
     }
     finally {
       Saving--;
+    }
+  }
+
+  /** capture image and save to a given file name, in JPEG format */
+  public void captureImage(File f) throws IOException {
+    BufferedImage image = VDisplay.getImage();
+    try {
+      JPEGEncodeParam param = JPEGCodec.getDefaultJPEGEncodeParam(image);
+      param.setQuality(1.0f, true);
+      FileOutputStream fout = new FileOutputStream(f);
+      JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(fout);
+      encoder.encode(image, param);
+      fout.close(); 
+    }
+    catch (NoClassDefFoundError err) {
+      if (DEBUG) System.err.println("Warning: JPEG codec not found");
     }
   }
 

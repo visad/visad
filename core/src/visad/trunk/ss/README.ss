@@ -1,5 +1,5 @@
                     VisAD SpreadSheet User Interface README file
-                                11 February 2000
+                                   26 May 2000
  
                                 Table of Contents
 
@@ -173,9 +173,10 @@ Here are the commands from the File menu:
 Import data - Brings up a dialog box that allows the user to select a file for
 the SpreadSheet to import to the current cell.  Currently, VisAD supports the
 following file types:
-    GIF, JPEG, netCDF, HDF-EOS, FITS, Vis5D, McIDAS area, and serialized data.
+    GIF, JPEG, PNG, netCDF, HDF5, HDF-EOS, FITS,
+    Vis5D, McIDAS area, and serialized data.
 -------------------------------------------------------------------------------
-Note: You must have the HDF-EOS and Vis5D file adapter native C code compiled
+Note: You must have the HDF-EOS and HDF5 file adapter native C code compiled
       in order to import data sets of those types.  See the SpreadSheet web
       page for information on how to compile this native code.
 -------------------------------------------------------------------------------
@@ -195,6 +196,19 @@ WARNING: Exporting a cell as serialized data is a handy and portable way to
          properly.  For long term storage of your data, use the "Export data to
          netCDF" command.
 -------------------------------------------------------------------------------
+
+Export data to HDF5 - Exports the current cell to a file in HDF5 format.
+A dialog box will appear to let you select the name and location of the HDF5
+file.  If the file exists, it will be overwritten.
+-------------------------------------------------------------------------------
+Note: You must have the HDF5 file adapter native C code compiled in order to
+export data sets of this type.  See the SpreadSheet web page for information on
+how to compile this native code.
+-------------------------------------------------------------------------------
+
+Take JPEG snapshot - Takes a snapshot of the current cell and saves it to a
+file in JPEG format.  A dialog box will appear to let you select the name and
+location of the JPEG file.  If the file exists, it will be overwritten.
 
 Exit - Quits the VisAD SpreadSheet User Interface.
 
@@ -332,9 +346,9 @@ The formula toolbar is used for entering file names, URLs, RMI addresses,
 and formulas for the current cell.  If you enter the name of a file in the
 formula text box, the SpreadSheet will attempt to import the data from that
 file.  If you enter a URL, the SpreadSheet will try to download and import the
-data from that URL (however, VisAD only supports loading GIF and JPEG files
-from URLs right now).  If you enter an RMI address, the SpreadSheet will try to
-import the data from that RMI address (see section 2.4).  If you enter a
+data from that URL (however, VisAD only supports loading GIF, JPEG and PNG
+files from URLs right now).  If you enter an RMI address, the SpreadSheet will
+try to import the data from that RMI address (see section 2.4).  If you enter a
 formula, it will attempt to parse and evaluate that formula.  If a formula
 entered is invalid for some reason, the answer cannot be computed, or the file,
 URL, or RMI address entered does not exist, the cell will have an explanation
