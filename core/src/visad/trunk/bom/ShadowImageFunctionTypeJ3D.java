@@ -400,7 +400,8 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       boolean isTextureMap = adaptedShadowType.getIsTextureMap() &&
                              (domain_set instanceof Linear2DSet ||
                               (domain_set instanceof LinearNDSet &&
-                               domain_set.getDimension() == 2));
+                               domain_set.getDimension() == 2)) &&
+                             (domain_set.getManifoldDimension() == 2);
 
       int curved_size = display.getGraphicsModeControl().getCurvedSize();
       boolean curvedTexture = adaptedShadowType.getCurvedTexture() &&
@@ -408,7 +409,8 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                               curved_size > 0 &&
                               (domain_set instanceof Gridded2DSet ||
                                (domain_set instanceof GriddedSet &&
-                                domain_set.getDimension() == 2));
+                                domain_set.getDimension() == 2)) &&
+                              (domain_set.getManifoldDimension() == 2);
 
       float[] coordinates = null;
       float[] texCoords = null;
