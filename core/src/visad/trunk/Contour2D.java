@@ -1127,39 +1127,43 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     byte[][][] new_colors    = new byte[2][][];
     ctrSet.getLineColorArrays(vx, vy, auxLevels, vvv, new_colors, lbl_vv, lbl_cc, lbl_loc);
 
-
-    vx1[0] = vvv[0][0];
-    vy1[0] = vvv[0][1];
-    vz1[0] = vvv[0][2];
-    vx2[0] = vvv[1][0];
-    vy2[0] = vvv[1][1];
-    vz2[0] = vvv[1][2];
-    vx3[0] = lbl_vv[0][0][0];
-    vy3[0] = lbl_vv[0][0][1];
-    vz3[0] = lbl_vv[0][0][2];
-    vx4[0] = lbl_vv[1][0][0];
-    vy4[0] = lbl_vv[1][0][1];
-    vz4[0] = lbl_vv[1][0][2];
-
+    vx1[0]   = vvv[0][0];
+    vy1[0]   = vvv[0][1];
+    vz1[0]   = vvv[0][2];
+    vx2[0]   = vvv[1][0];
+    vy2[0]   = vvv[1][1];
+    vz2[0]   = vvv[1][2];
     numv1[0] = vvv[0][0].length;
     numv2[0] = vvv[1][0].length;
-    numv3[0] = lbl_vv[0][0][0].length;
-    numv4[0] = lbl_vv[1][0][0].length;
+
+    int n_lbls = lbl_vv[0].length;
+    if (n_lbls > 0) {
+      vx3[0]   = lbl_vv[0][0][0];
+      vy3[0]   = lbl_vv[0][0][1];
+      vz3[0]   = lbl_vv[0][0][2];
+      vx4[0]   = lbl_vv[1][0][0];
+      vy4[0]   = lbl_vv[1][0][1];
+      vz4[0]   = lbl_vv[1][0][2];
+      numv3[0] = lbl_vv[0][0][0].length;
+      numv4[0] = lbl_vv[1][0][0].length;
+    }
 
     if (auxLevels != null) {
-    int clr_dim = auxValues.length;
-    auxLevels1[0] = new_colors[0][0];
-    auxLevels1[1] = new_colors[0][1];
-    auxLevels1[2] = new_colors[0][2];
-    if (clr_dim == 4) auxLevels1[3] = new_colors[0][3];
-    auxLevels2[0] = new_colors[1][0];
-    auxLevels2[1] = new_colors[1][1];
-    auxLevels2[2] = new_colors[1][2];
-    if (clr_dim == 4) auxLevels2[3] = new_colors[1][3];
-    auxLevels3[0] = lbl_cc[0][0][0];
-    auxLevels3[1] = lbl_cc[0][0][1];
-    auxLevels3[2] = lbl_cc[0][0][2];
-    if (clr_dim == 4) auxLevels3[3] = lbl_cc[0][0][3];
+      int clr_dim = auxValues.length;
+      auxLevels1[0] = new_colors[0][0];
+      auxLevels1[1] = new_colors[0][1];
+      auxLevels1[2] = new_colors[0][2];
+      if (clr_dim == 4) auxLevels1[3] = new_colors[0][3];
+      auxLevels2[0] = new_colors[1][0];
+      auxLevels2[1] = new_colors[1][1];
+      auxLevels2[2] = new_colors[1][2];
+      if (clr_dim == 4) auxLevels2[3] = new_colors[1][3];
+      if (n_lbls > 0) {
+        auxLevels3[0] = lbl_cc[0][0][0];
+        auxLevels3[1] = lbl_cc[0][0][1];
+        auxLevels3[2] = lbl_cc[0][0][2];
+        if (clr_dim == 4) auxLevels3[3] = lbl_cc[0][0][3];
+      }
     }
   }
 
