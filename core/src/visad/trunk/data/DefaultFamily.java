@@ -235,12 +235,24 @@ public class DefaultFamily
     */
   public DefaultFamily(String name)
   {
+    this(name, false);
+  }
+
+  /**
+    * Construct a family of the supported VisAD datatype Forms, with a
+    * netCDF form that converts char to Text if netcdfText flag is set.
+    */
+  public DefaultFamily(String name, boolean netcdfText) {
     super(name);
 
     synchronized (list) {
       if (!listInitialized) {
 	buildList();
       }
+    }
+
+    if (netcdfText) {
+      forms.addElement(new Plain(true));
     }
 
     for (int i = 0; i < list.length && list[i] != null; i++) {

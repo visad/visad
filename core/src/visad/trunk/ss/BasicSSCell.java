@@ -987,7 +987,7 @@ public class BasicSSCell extends JPanel
       boolean success = true;
       try {
         // load file or URL
-        DefaultFamily loader = new DefaultFamily("loader");
+        DefaultFamily loader = new DefaultFamily("loader", true);
         data = loader.open(source);
 
         // check if source is a local file
