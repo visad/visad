@@ -1,4 +1,4 @@
-// $Id: HTTPRandomAccessFile.java,v 1.1 2001-05-16 20:31:16 steve Exp $
+// $Id: HTTPRandomAccessFile.java,v 1.2 2001-05-17 15:14:05 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -54,7 +54,7 @@ public class HTTPRandomAccessFile extends RandomAccessFile {
     super( bufferSize);
     file = null;
 
-    path = url.getPath();
+    path = url.getFile();	// not "getPath()" to accomodate JDK 1.2
     conn = new HTTPConnection(url);
     try {
       HTTPResponse test = conn.Head(path);
