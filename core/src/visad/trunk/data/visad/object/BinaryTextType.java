@@ -54,10 +54,11 @@ if(DEBUG_RD_MATH&&!DEBUG_RD_STR)System.err.println("rdTxTy: name (" + name + ")"
     DataInput file = reader.getInput();
 
     final byte endByte = file.readByte();
-if(DEBUG_RD_MATH)System.err.println("rdTxTy: read " + (endByte == FLD_END ? "FLD_END" : Integer.toString(endByte) + " (wanted FLD_END)"));
     if (endByte != FLD_END) {
+if(DEBUG_RD_MATH)System.err.println("rdTxTy: read " + endByte + " (wanted FLD_END)");
       throw new IOException("Corrupted file (no TextType end-marker)");
     }
+if(DEBUG_RD_MATH)System.err.println("rdTxTy: FLD_END (" + endByte + ")");
 
     TextType tt = TextType.getTextType(name);
 

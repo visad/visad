@@ -100,10 +100,11 @@ if(DEBUG_RD_UNIT&&!DEBUG_RD_STR)System.err.println("cchU: identifier (" + idStr 
 if(DEBUG_RD_UNIT&&!DEBUG_RD_STR)System.err.println("cchU: definition (" + defStr + ")");
 
     final byte endByte = file.readByte();
-if(DEBUG_RD_UNIT)System.err.println("cchU: read " + (endByte == FLD_END ? "FLD_END" : Integer.toString(endByte) + " (wanted FLD_END)"));
     if (endByte != FLD_END) {
+if(DEBUG_RD_MATH)System.err.println("cchU: read " + endByte + " (wanted FLD_END)");
       throw new IOException("Corrupted file (no Unit end-marker)");
     }
+if(DEBUG_RD_MATH)System.err.println("cchU: FLD_END (" + endByte + ")");
 
     Unit u;
     if (defStr.equals("promiscuous")) {

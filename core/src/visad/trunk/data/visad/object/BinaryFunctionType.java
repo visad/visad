@@ -55,10 +55,11 @@ if(DEBUG_RD_MATH)System.err.println("rdFuTy: range index (" + rangeIndex + ")");
 if(DEBUG_RD_MATH)System.err.println("rdFuTy: === read range " + range);
 
     final byte endByte = file.readByte();
-if(DEBUG_RD_MATH)System.err.println("rdFuTy: read " + (endByte == FLD_END ? "FLD_END" : Integer.toString(endByte) + " (wanted FLD_END)"));
     if (endByte != FLD_END) {
+if(DEBUG_RD_MATH)System.err.println("rdFuTy: read " + endByte + " (wanted FLD_END)");
       throw new IOException("Corrupted file (no TupleType end-marker)");
     }
+if(DEBUG_RD_MATH)System.err.println("rdFuTy: FLD_END (" + endByte + ")");
 
     FunctionType ft = new FunctionType(domain, range);
 

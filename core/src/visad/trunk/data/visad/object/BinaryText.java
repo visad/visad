@@ -60,10 +60,11 @@ if(DEBUG_RD_DATA&&!DEBUG_RD_MATH)System.err.println("rdTxt: type index (" + type
 if(DEBUG_RD_DATA&&!DEBUG_RD_STR)System.err.println("rdTxt: value (" + value + ")");
 
     final byte endByte = file.readByte();
-if(DEBUG_RD_DATA)System.err.println("rdTxt: read " + (endByte == FLD_END ? "FLD_END" : Integer.toString(endByte) + " (wanted FLD_END)"));
     if (endByte != FLD_END) {
+if(DEBUG_RD_MATH)System.err.println("rdTxt: read " + endByte + " (wanted FLD_END)");
       throw new IOException("Corrupted file (no Text end-marker)");
     }
+if(DEBUG_RD_MATH)System.err.println("rdTxt: FLD_END (" + endByte + ")");
 
     return new Text(tt, value);
   }

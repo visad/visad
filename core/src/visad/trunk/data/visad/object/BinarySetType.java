@@ -54,10 +54,11 @@ if(DEBUG_RD_MATH&&DEBUG_RD_MATH)System.err.println("rdSetTy: domain index (" + d
 if(DEBUG_RD_DATA&&!DEBUG_RD_MATH)System.err.println("rdSetTy: domain index (" + dIndex + "=" + dom + ")");
 
     final byte endByte = file.readByte();
-if(DEBUG_RD_MATH)System.err.println("rdSetTy: read " + (endByte == FLD_END ? "FLD_END" : Integer.toString(endByte) + " (wanted FLD_END)"));
     if (endByte != FLD_END) {
+if(DEBUG_RD_MATH)System.err.println("rdSetTy: read " + endByte + " (wanted FLD_END)");
       throw new IOException("Corrupted file (no SetType end-marker)");
     }
+if(DEBUG_RD_MATH)System.err.println("rdSetTy: FLD_END (" + endByte + ")");
 
     SetType st = new SetType(dom);
 

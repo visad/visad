@@ -56,10 +56,11 @@ public class BinaryTupleType
     DataInput file = reader.getInput();
 
     final byte endByte = file.readByte();
-if(DEBUG_RD_MATH)System.err.println("rdTuTy: read " + (endByte == FLD_END ? "FLD_END" : Integer.toString(endByte) + " (wanted FLD_END)"));
     if (endByte != FLD_END) {
+if(DEBUG_RD_MATH)System.err.println("rdTuTy: read " + endByte + " (wanted FLD_END)");
       throw new IOException("Corrupted file (no TupleType end-marker)");
     }
+if(DEBUG_RD_MATH)System.err.println("rdTuTy: FLD_END (" + endByte + ")");
 
     TupleType tt = new TupleType(list);
 
