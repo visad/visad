@@ -1707,7 +1707,9 @@ System.out.println(" ");
           int k1 = m;
           int k2 = m;
           int k3 = m;
-          // repeat color 4 times
+          int k4 = m;
+          int k5 = m;
+          // repeat color 6 times
           colors[m++] = color_values[0][j];
           colors[m++] = color_values[1][j];
           colors[m++] = color_values[2][j];
@@ -1720,6 +1722,12 @@ System.out.println(" ");
           colors[m++] = colors[k3++];
           colors[m++] = colors[k3++];
           colors[m++] = colors[k3++];
+          colors[m++] = colors[k4++];
+          colors[m++] = colors[k4++];
+          colors[m++] = colors[k4++];
+          colors[m++] = colors[k5++];
+          colors[m++] = colors[k5++];
+          colors[m++] = colors[k5++];
         }
       }
       array.colors = colors;

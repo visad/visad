@@ -193,7 +193,7 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
         double v = 2.0 * j / (N - 1.0) - 1.0;
         RealTuple tuple = new RealTuple(new Real[]
           {new Real(x, u), new Real(y, v),
-           new Real(flowx, 70.0 * u), new Real(flowy, 70.0 * v),
+           new Real(flowx, 30.0 * u), new Real(flowy, 30.0 * v),
            new Real(red, 1.0), new Real(green, 1.0), new Real(blue, 0.0)});
     
         DataReferenceImpl ref = new DataReferenceImpl("ref");

@@ -81,7 +81,8 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
 
   static final int N = 5;
 
-  /** test BarbRendererJ2D */
+  /** run 'java visad.bom.BarbRendererJ2D' to test with Cartesian winds
+      run 'java visad.bom.BarbRendererJ2D x' to test with polar winds */
   public static void main(String args[])
          throws VisADException, RemoteException {
     RealType x = new RealType("x");
@@ -93,21 +94,23 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
     RealType red = new RealType("red");
     RealType green = new RealType("green");
     RealType index = new RealType("index");
-/*
     RealTupleType flowxy = new RealTupleType(flowx, flowy);
-    RealType flow_degree = new RealType("flow_degree",
-                          CommonUnit.degree, null);
-    RealType flow_speed = new RealType("flow_speed",
-                          CommonUnit.meterPerSecond, null);
-    RealTupleType flowds =
-      new RealTupleType(new RealType[] {flow_degree, flow_speed},
-      new WindPolarCoordinateSystem(flowxy), null);
-    TupleType range = new TupleType(new MathType[]
-          {x, y, flowds, red, green});
-    FunctionType flow_field = new FunctionType(index, range);
-*/
-    RealTupleType range = new RealTupleType(new RealType[]
-          {x, y, flowx, flowy, red, green});
+    TupleType range = null;
+    if (args.length > 0) {
+System.out.println("polar");
+      RealType flow_degree = new RealType("flow_degree",
+                            CommonUnit.degree, null);
+      RealType flow_speed = new RealType("flow_speed",
+                            CommonUnit.meterPerSecond, null);
+      RealTupleType flowds =
+        new RealTupleType(new RealType[] {flow_degree, flow_speed},
+        new WindPolarCoordinateSystem(flowxy), null);
+      range = new TupleType(new MathType[] {x, y, flowds, red, green});
+    }
+    else {
+System.out.println("Cartesian");
+      range = new RealTupleType(new RealType[] {x, y, flowx, flowy, red, green});
+    }
     FunctionType flow_field = new FunctionType(index, range);
 
     DisplayImpl display = new DisplayImplJ2D("display1");
@@ -140,13 +143,15 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
         values[1][m] = v;
         double fx = 30.0 * u;
         double fy = 30.0 * v;
-/*
-        values[2][m] = Math.sqrt(fx * fx + fy * fy);
-        values[3][m] =
-          Data.RADIANS_TO_DEGREES * Math.atan2(fx, fy);
-*/
-        values[2][m] = fx;
-        values[3][m] = fy;
+        if (args.length > 0) {
+          values[2][m] =
+            Data.RADIANS_TO_DEGREES * Math.atan2(fx, fy);
+          values[3][m] = Math.sqrt(fx * fx + fy * fy);
+        }
+        else {
+          values[2][m] = fx;
+          values[3][m] = fy;
+        }
         values[4][m] = u;
         values[5][m] = v;
         m++;
