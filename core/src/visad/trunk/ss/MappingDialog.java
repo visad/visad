@@ -48,8 +48,9 @@ public class MappingDialog extends JDialog implements ActionListener,
   // These components affect each other
   JComponent MathCanvas;
   JScrollPane MathCanvasView;
-  JComponent CoordCanvas;
+  JComponent CoordCanvas = null;
   JScrollPane CoordCanvasView;
+  boolean CoordRefs;
   JList MathList;
   JComponent DisplayCanvas;
   DefaultListModel CurMaps;
@@ -272,6 +273,9 @@ public class MappingDialog extends JDialog implements ActionListener,
     // alphabetize Scalars list
     sort(0, Scalars.length-1);
 
+    // mark whether there are CoordinateSystem references
+    CoordRefs = (mtype[1].length > 1);
+
     // set up "MathType" label
     JLabel l0 = new JLabel("MathType:");
     l0.setAlignmentX(JLabel.CENTER_ALIGNMENT);
@@ -284,9 +288,11 @@ public class MappingDialog extends JDialog implements ActionListener,
     contentPane.add(Box.createRigidArea(new Dimension(0, 5)));
 
     // set up "CoordinateSystem references" label
-    JLabel l1 = new JLabel("CoordinateSystem references:");
-    l1.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-    contentPane.add(l1);
+    if (CoordRefs) {
+      JLabel l1 = new JLabel("CoordinateSystem references:");
+      l1.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+      contentPane.add(l1);
+    }
 
     // set up second top panel
     JPanel topPanel2 = new JPanel();
@@ -364,64 +370,67 @@ public class MappingDialog extends JDialog implements ActionListener,
     lowerPanel.add(Box.createRigidArea(new Dimension(5, 0)));
     lowerPanel.add(flsPanel);
 
-    // draw the "pretty-print" CoordinateSystem references to an Image (slow!)
-    final Image csImg = parent.createImage(StrWidth[1], StrHeight[1]);
-    g = csImg.getGraphics();
-    g.setFont(Mono);
-    g.setColor(Color.black);
-    for (int i=0; i<mtype[1].length; i++) {
-      g.drawString(mtype[1][i], 5, (ScH+2)*(i+1));
-    }
-    g.dispose();
+    // only do CoordSys stuff if there are CoordinateSystem references
+    if (CoordRefs) {
+      // draw the "pretty-print" CoordinateSystem references to an Image (slow!)
+      final Image csImg = parent.createImage(StrWidth[1], StrHeight[1]);
+      g = csImg.getGraphics();
+      g.setFont(Mono);
+      g.setColor(Color.black);
+      for (int i=0; i<mtype[1].length; i++) {
+        g.drawString(mtype[1][i], 5, (ScH+2)*(i+1));
+      }
+      g.dispose();
 
-    // set up CoordinateSystem references canvas
-    CoordCanvas = new JComponent() {
-      public void paint(Graphics g2) {
-        // draw "pretty-print" CoordinateSystem reference list using its Image
-        g2.drawImage(csImg, 0, 0, this);
-        int ind = MathList.getSelectedIndex();
-        if (ind >= 0 && ScB[ind] == 1) {
-          g2.setFont(Mono);
-          String s = (String) Scalars[ind];
-          for (int i=0; i<ScX[ind].length; i++) {
-            int x = ScX[ind][i]+5;
-            int y = (ScH+2)*ScY[ind][i];
-            g2.setColor(Color.blue);
-            g2.fillRect(x, y+6, ScW[ind], ScH);
-            g2.setColor(Color.white);
-            g2.drawString(s, x, y+ScH+2);
+      // set up CoordinateSystem references canvas
+      CoordCanvas = new JComponent() {
+        public void paint(Graphics g2) {
+          // draw "pretty-print" CoordinateSystem reference list using its Image
+          g2.drawImage(csImg, 0, 0, this);
+          int ind = MathList.getSelectedIndex();
+          if (ind >= 0 && ScB[ind] == 1) {
+            g2.setFont(Mono);
+            String s = (String) Scalars[ind];
+            for (int i=0; i<ScX[ind].length; i++) {
+              int x = ScX[ind][i]+5;
+              int y = (ScH+2)*ScY[ind][i];
+              g2.setColor(Color.blue);
+              g2.fillRect(x, y+6, ScW[ind], ScH);
+              g2.setColor(Color.white);
+              g2.drawString(s, x, y+ScH+2);
+            }
           }
         }
-      }
-    };
-    CoordCanvas.setMinimumSize(new Dimension(StrWidth[1], StrHeight[1]));
-    CoordCanvas.setPreferredSize(new Dimension(StrWidth[1], StrHeight[1]));
-    CoordCanvas.addMouseListener(this);
-    CoordCanvas.setBackground(Color.white);
+      };
+      CoordCanvas.setMinimumSize(new Dimension(StrWidth[1], StrHeight[1]));
+      CoordCanvas.setPreferredSize(new Dimension(StrWidth[1], StrHeight[1]));
+      CoordCanvas.addMouseListener(this);
+      CoordCanvas.setBackground(Color.white);
 
-    // set up CoordCanvas's ScrollPane
-    CoordCanvasView = new JScrollPane(CoordCanvas);
-    CoordCanvasView.setMinimumSize(new Dimension(0, 0));
-    CoordCanvasView.setPreferredSize(new Dimension(0, StrHeight[1]));
-    int prefCCHeight = StrHeight[1] + 10;
-    if (prefCCHeight < 70) prefCCHeight = 70;
-    int maxCCHeight = Toolkit.getDefaultToolkit().getScreenSize().height / 2;
-    if (prefCCHeight > maxCCHeight) prefCCHeight = maxCCHeight;
-    CoordCanvasView.setPreferredSize(new Dimension(0, prefCCHeight));
-    CoordCanvasView.setBackground(Color.white);
-    horiz = CoordCanvasView.getHorizontalScrollBar();
-    verti = CoordCanvasView.getVerticalScrollBar();
-    horiz.setBlockIncrement(5*ScH+10);
-    horiz.setUnitIncrement(ScH+2);
-    verti.setBlockIncrement(5*ScH+10);
-    verti.setUnitIncrement(ScH+2);
-    topPanel2.add(Box.createRigidArea(new Dimension(5, 0)));
-    JPanel whitePanel2 = new JPanel();
-    whitePanel2.setBackground(Color.white);
-    whitePanel2.setLayout(new BoxLayout(whitePanel2, BoxLayout.X_AXIS));
-    whitePanel2.add(CoordCanvasView);
-    topPanel2.add(whitePanel2);
-    topPanel2.add(Box.createRigidArea(new Dimension(5, 0)));
+      // set up CoordCanvas's ScrollPane
+      CoordCanvasView = new JScrollPane(CoordCanvas);
+      CoordCanvasView.setMinimumSize(new Dimension(0, 0));
+      CoordCanvasView.setPreferredSize(new Dimension(0, StrHeight[1]));
+      int prefCCHeight = StrHeight[1] + 10;
+      if (prefCCHeight < 70) prefCCHeight = 70;
+      int maxCCHeight = Toolkit.getDefaultToolkit().getScreenSize().height / 2;
+      if (prefCCHeight > maxCCHeight) prefCCHeight = maxCCHeight;
+      CoordCanvasView.setPreferredSize(new Dimension(0, prefCCHeight));
+      CoordCanvasView.setBackground(Color.white);
+      horiz = CoordCanvasView.getHorizontalScrollBar();
+      verti = CoordCanvasView.getVerticalScrollBar();
+      horiz.setBlockIncrement(5*ScH+10);
+      horiz.setUnitIncrement(ScH+2);
+      verti.setBlockIncrement(5*ScH+10);
+      verti.setUnitIncrement(ScH+2);
+      topPanel2.add(Box.createRigidArea(new Dimension(5, 0)));
+      JPanel whitePanel2 = new JPanel();
+      whitePanel2.setBackground(Color.white);
+      whitePanel2.setLayout(new BoxLayout(whitePanel2, BoxLayout.X_AXIS));
+      whitePanel2.add(CoordCanvasView);
+      topPanel2.add(whitePanel2);
+      topPanel2.add(Box.createRigidArea(new Dimension(5, 0)));
+    }
 
     // set up left-side panel
     JPanel lsPanel = new JPanel();
@@ -948,7 +957,7 @@ public class MappingDialog extends JDialog implements ActionListener,
           if (ScB[i] == 0) MathCanvas.scrollRectToVisible(r);
           else if (ScB[i] == 1) CoordCanvas.scrollRectToVisible(r);
           MathCanvas.repaint();
-          CoordCanvas.repaint();
+          if (CoordRefs) CoordCanvas.repaint();
         }
       }
     }
