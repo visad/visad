@@ -245,102 +245,28 @@ public class MouseHelper
 
       if (event_id == MouseEvent.MOUSE_PRESSED) {
         display.updateBusyStatus();
-        try {
-          DisplayEvent e = new DisplayEvent(display,
-            DisplayEvent.MOUSE_PRESSED, mouse_event, remoteId);
-          display.notifyListeners(e);
-        }
-        catch (VisADException e) {
-        }
-        catch (RemoteException e) {
-        }
         if (m1 != 0) {
           actual_button[LEFT] = true;
-          try {
-            DisplayEvent e = new DisplayEvent(display,
-              DisplayEvent.MOUSE_PRESSED_LEFT, mouse_event, remoteId);
-            display.notifyListeners(e);
-          }
-          catch (VisADException e) {
-          }
-          catch (RemoteException e) {
-          }
         }
         if (m2 != 0) {
           actual_button[CENTER] = true;
-          try {
-            DisplayEvent e = new DisplayEvent(display,
-              DisplayEvent.MOUSE_PRESSED_CENTER, mouse_event, remoteId);
-            display.notifyListeners(e);
-          }
-          catch (VisADException e) {
-          }
-          catch (RemoteException e) {
-          }
         }
         if (m3 != 0) {
           actual_button[RIGHT] = true;
-          try {
-            DisplayEvent e = new DisplayEvent(display,
-              DisplayEvent.MOUSE_PRESSED_RIGHT, mouse_event, remoteId);
-            display.notifyListeners(e);
-          }
-          catch (VisADException e) {
-          }
-          catch (RemoteException e) {
-          }
         }
-
         mouseModifiers = m;
       }
       else { // event_id == MouseEvent.MOUSE_RELEASED
         display.updateBusyStatus();
-        try {
-          DisplayEvent e = new DisplayEvent(display,
-            DisplayEvent.MOUSE_RELEASED, mouse_event, remoteId);
-          display.notifyListeners(e);
-        }
-        catch (VisADException e) {
-        }
-        catch (RemoteException e) {
-        }
         if (m1 != 0) {
           actual_button[LEFT] = false;
-          try {
-            DisplayEvent e = new DisplayEvent(display,
-              DisplayEvent.MOUSE_RELEASED_LEFT, mouse_event, remoteId);
-            display.notifyListeners(e);
-          }
-          catch (VisADException e) {
-          }
-          catch (RemoteException e) {
-          }
         }
         if (m2 != 0) {
           actual_button[CENTER] = false;
-          try {
-            DisplayEvent e = new DisplayEvent(display,
-              DisplayEvent.MOUSE_RELEASED_CENTER, mouse_event, remoteId);
-            display.notifyListeners(e);
-          }
-          catch (VisADException e) {
-          }
-          catch (RemoteException e) {
-          }
         }
         if (m3 != 0) {
           actual_button[RIGHT] = false;
-          try {
-            DisplayEvent e = new DisplayEvent(display,
-              DisplayEvent.MOUSE_RELEASED_RIGHT, mouse_event, remoteId);
-            display.notifyListeners(e);
-          }
-          catch (VisADException e) {
-          }
-          catch (RemoteException e) {
-          }
         }
-
         mouseModifiers = 0;
       }
 
@@ -377,18 +303,96 @@ public class MouseHelper
 
       enableFunctions((MouseEvent) event);
 
+      if (event_id == MouseEvent.MOUSE_PRESSED) {
+        try {
+          DisplayEvent e = new DisplayEvent(display,
+            DisplayEvent.MOUSE_PRESSED, mouse_event, remoteId);
+          display.notifyListeners(e);
+        }
+        catch (VisADException e) {
+        }
+        catch (RemoteException e) {
+        }
+        if (m1 != 0) {
+          try {
+            DisplayEvent e = new DisplayEvent(display,
+              DisplayEvent.MOUSE_PRESSED_LEFT, mouse_event, remoteId);
+            display.notifyListeners(e);
+          }
+          catch (VisADException e) {
+          }
+          catch (RemoteException e) {
+          }
+        }
+        if (m2 != 0) {
+          try {
+            DisplayEvent e = new DisplayEvent(display,
+              DisplayEvent.MOUSE_PRESSED_CENTER, mouse_event, remoteId);
+            display.notifyListeners(e);
+          }
+          catch (VisADException e) {
+          }
+          catch (RemoteException e) {
+          }
+        }
+        if (m3 != 0) {
+          try {
+            DisplayEvent e = new DisplayEvent(display,
+              DisplayEvent.MOUSE_PRESSED_RIGHT, mouse_event, remoteId);
+            display.notifyListeners(e);
+          }
+          catch (VisADException e) {
+          }
+          catch (RemoteException e) {
+          }
+        }
+      }
+      else { // event_id == MouseEvent.MOUSE_RELEASED
+        try {
+          DisplayEvent e = new DisplayEvent(display,
+            DisplayEvent.MOUSE_RELEASED, mouse_event, remoteId);
+          display.notifyListeners(e);
+        }
+        catch (VisADException e) {
+        }
+        catch (RemoteException e) {
+        }
+        if (m1 != 0) {
+          try {
+            DisplayEvent e = new DisplayEvent(display,
+              DisplayEvent.MOUSE_RELEASED_LEFT, mouse_event, remoteId);
+            display.notifyListeners(e);
+          }
+          catch (VisADException e) {
+          }
+          catch (RemoteException e) {
+          }
+        }
+        if (m2 != 0) {
+          try {
+            DisplayEvent e = new DisplayEvent(display,
+              DisplayEvent.MOUSE_RELEASED_CENTER, mouse_event, remoteId);
+            display.notifyListeners(e);
+          }
+          catch (VisADException e) {
+          }
+          catch (RemoteException e) {
+          }
+        }
+        if (m3 != 0) {
+          try {
+            DisplayEvent e = new DisplayEvent(display,
+              DisplayEvent.MOUSE_RELEASED_RIGHT, mouse_event, remoteId);
+            display.notifyListeners(e);
+          }
+          catch (VisADException e) {
+          }
+          catch (RemoteException e) {
+          }
+        }
+      }
     }
     else if (event_id == MouseEvent.MOUSE_DRAGGED) {
-      try {
-        DisplayEvent e = new DisplayEvent(display,
-          DisplayEvent.MOUSE_DRAGGED, mouse_event, remoteId);
-        display.notifyListeners(e);
-      }
-      catch (VisADException e) {
-      }
-      catch (RemoteException e) {
-      }
-
       boolean cursor = function[CURSOR_TRANSLATE] ||
                        function[CURSOR_ZOOM] ||
                        function[CURSOR_ROTATE];
@@ -497,6 +501,15 @@ public class MouseHelper
         }
 
 
+      }
+      try {
+        DisplayEvent e = new DisplayEvent(display,
+          DisplayEvent.MOUSE_DRAGGED, mouse_event, remoteId);
+        display.notifyListeners(e);
+      }
+      catch (VisADException e) {
+      }
+      catch (RemoteException e) {
       }
     }
 
