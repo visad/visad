@@ -699,9 +699,9 @@ public class RealType extends ScalarType {
    * Returns a RealType corresponding to a name.  If a RealType with the given
    * name doesn't exist, then it's created (with default unit, representational
    * set, and attribute mask) and returned; otherwise, the previously existing
-   * RealType is returned if it corresponds to the input arguments (the unit,
-   * representational set, and attribute mask are ignored in the comparison);
-   * otherwise <code>null</code> is returned.
+   * RealType is returned if it is compatible with the input arguments (the
+   * unit, representational set, and attribute mask are ignored in the
+   * comparison); otherwise <code>null</code> is returned.
    *
    * @param name                    The name for the RealType.
    * @return                        A RealType corresponding to the input
@@ -739,9 +739,11 @@ public class RealType extends ScalarType {
    * Returns a RealType corresponding to a name and unit.  If a RealType
    * with the given name doesn't exist, then it's created (with default
    * representational set and attribute mask) and returned; otherwise, the
-   * previously existing RealType is returned if it corresponds to the input
+   * previously existing RealType is returned if it is compatible with the input
    * arguments (the representational set and attribute mask are ignored in the
-   * comparison); otherwise <code>null</code> is returned.
+   * comparison); otherwise <code>null</code> is returned.  Note that the unit
+   * of the returned RealType will be convertible with the unit argument but
+   * might not equal it.
    *
    * @param name                    The name for the RealType.
    * @param unit                    The unit for the RealType.
@@ -765,7 +767,7 @@ public class RealType extends ScalarType {
        * Ensure that the previously-created instance conforms to the input
        * arguments.
        */
-      if (u == null ? rt.DefaultUnit != null : !u.equals(rt.DefaultUnit))
+      if (u == null ? rt.DefaultUnit != null : !u.isConvertible(rt.DefaultUnit))
         rt = null;
     }
     else
@@ -787,11 +789,13 @@ public class RealType extends ScalarType {
 
   /**
    * Returns a RealType corresponding to a name and attribute mask.  If a
-   * RealType with the given name doesn't exist, then it's created (with default
-   * unit and representational set) and returned; otherwise, the previously
-   * existing RealType is returned if it corresponds to the input arguments (the
-   * unit and representational set are ignored in the comparison); otherwise
-   * <code>null</code> is returned.
+   * RealType with the given name doesn't exist, then it's created (with
+   * default unit and representational set) and returned; otherwise, the
+   * previously existing RealType is returned if it is compatible with the
+   * input arguments (the unit and representational set are ignored in the
+   * comparison); otherwise <code>null</code> is returned.  Note that the unit
+   * of the returned RealType will be convertible with the unit argument but
+   * might not equal it.
    *
    * @param name                    The name for the RealType.
    * @param attrMask                The attribute mask for the RealType.
@@ -836,12 +840,13 @@ public class RealType extends ScalarType {
   }
 
   /**
-   * Returns a RealType corresponding to a name, unit, and representational
-   * set.  If a RealType with the given name doesn't exist, then it's created
-   * (with a default attribute mask) and returned; otherwise, the previously
-   * existing RealType is returned if it corresponds to the input arguments (the
+   * Returns a RealType corresponding to a name, unit, and representational set.
+   * If a RealType with the given name doesn't exist, then it's created (with a
+   * default attribute mask) and returned; otherwise, the previously existing
+   * RealType is returned if it is compatible with the input arguments (the
    * attribute mask is ignored in the comparison); otherwise <code>null</code>
-   * is returned.
+   * is returned.  Note that the unit of the returned RealType will be
+   * convertible with the unit argument but might not equal it.
    *
    * @param name                    The name for the RealType.
    * @param unit                    The unit for the RealType.
@@ -866,7 +871,9 @@ public class RealType extends ScalarType {
        * Ensure that the previously-created instance conforms to the input
        * arguments.
        */
-      if ((u == null ? rt.DefaultUnit != null : !u.equals(rt.DefaultUnit)) ||
+      if ((u == null
+            ? rt.DefaultUnit != null 
+            : !u.isConvertible(rt.DefaultUnit)) ||
           (set == null ? rt.DefaultSet != null : !set.equals(rt.DefaultSet)))
       {
         rt = null;
@@ -893,9 +900,10 @@ public class RealType extends ScalarType {
    * Returns a RealType corresponding to a name, unit, and attribute mask.  If
    * a RealType with the given name doesn't exist, then it's created (with a
    * default representational set) and returned; otherwise, the previously
-   * existing RealType is returned if it corresponds to the input arguments
+   * existing RealType is returned if it is compatible with the input arguments
    * (the representational set is ignored in the comparison); otherwise
-   * <code>null</code> is returned.
+   * <code>null</code> is returned.  Note that the unit of the returned RealType
+   * will be convertible with the unit argument but might not equal it.
    *
    * @param name                    The name for the RealType.
    * @param unit                    The unit for the RealType.
@@ -920,7 +928,9 @@ public class RealType extends ScalarType {
        * Ensure that the previously-created instance conforms to the input
        * arguments.
        */
-      if ((u == null ? rt.DefaultUnit != null : !u.equals(rt.DefaultUnit)) ||
+      if ((u == null ?
+            rt.DefaultUnit != null 
+            : !u.isConvertible(rt.DefaultUnit)) ||
           rt.attrMask != attrMask)
       {
         rt = null;
@@ -945,10 +955,11 @@ public class RealType extends ScalarType {
 
   /**
    * Returns a RealType corresponding to a name, unit, representational set,
-   * and attribute mask.  If a RealType with the given name doesn't exist,
-   * then it's created and returned; otherwise, the previously existing
-   * RealType is returned if it corresponds to the input arguments; otherwise
-   * <code>null</code> is returned.
+   * and attribute mask.  If a RealType with the given name doesn't exist, then
+   * it's created and returned; otherwise, the previously existing RealType
+   * is returned if it is compatible with the input arguments; otherwise
+   * <code>null</code> is returned.  Note that the unit of the returned RealType
+   * will be convertible with the unit argument but might not equal it.
    *
    * @param name                    The name for the RealType.
    * @param unit                    The unit for the RealType.
@@ -975,7 +986,9 @@ public class RealType extends ScalarType {
        * Ensure that the previously-created instance conforms to the input
        * arguments.
        */
-      if ((u == null ? rt.DefaultUnit != null : !u.equals(rt.DefaultUnit)) ||
+      if ((u == null ?
+            rt.DefaultUnit != null 
+            : !u.isConvertible(rt.DefaultUnit)) ||
           (set == null ? rt.DefaultSet != null : !set.equals(rt.DefaultSet)) ||
           rt.attrMask != attrMask)
       {
