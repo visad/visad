@@ -28,6 +28,7 @@ package visad.java3d;
 import visad.*;
 
 import javax.media.j3d.*;
+import javax.vecmath.*;
 
 import java.util.Vector;
 import java.util.Enumeration;
@@ -861,9 +862,21 @@ END MISSING TEST */
           // MEM
           if (isTextureMap) {
             if (color_values == null) {
+              color_values = new float[3][domain_length];
+              Color3f color = new Color3f();
+              constant_color.getColor(color);
+              for (int i=0; i<domain_length; i++) {
+                color_values[0][i] = color.x;
+                color_values[1][i] = color.y;
+                color_values[2][i] = color.z;
+              }
+            }
+/* WLH 9 July 98
+            if (color_values == null) {
               throw new DisplayException("ShadowFunctionOrSetTypeJ3D." +
                                ".doTransform: no color or alpha values");
             }
+*/
             if (range_select[0] != null && range_select[0].length > 1) {
               int len = range_select[0].length;
               float alpha =
