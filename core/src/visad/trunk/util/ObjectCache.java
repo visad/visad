@@ -1,0 +1,213 @@
+/*
+VisAD system for interactive analysis and visualization of numerical
+data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
+Tommy Jasmin.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Library General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Library General Public License for more details.
+
+You should have received a copy of the GNU Library General Public
+License along with this library; if not, write to the Free
+Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+MA 02111-1307, USA
+*/
+
+package visad.util;
+
+import java.util.ListIterator;
+import java.util.Vector;
+
+/**
+ * A write-only cache of objects which are slowly purged over time.
+ */
+public class ObjectCache
+  implements Runnable
+{
+  /**
+   * Each generation lives for <CODE>delay*numGenerations</CODE>
+   * milliseconds.
+   */
+  private static final int delay = 5000;
+  /**
+   * The number of generations each object remains in the cache.
+   */
+  private static final int numGenerations = 6;
+  /**
+   * The thread which purges objects from all of the caches.
+   */
+  private static final transient Thread reaper;
+  /**
+   * The list of caches.
+   */
+  private static final transient Vector reaperList = new Vector();
+  /**
+   * The current maximum generation.
+   */
+  private static int reaperGeneration = 0;
+
+  /**
+   * The name of this cache.
+   */
+  private transient String name = null;
+  /**
+   * The list of objects in this cache.
+   */
+  private transient Vector cache = new Vector();
+  /**
+   * The current generation number for objects added to the cache.
+   */
+  private transient int cacheGeneration;
+
+  static {
+    // start up reaper thread when cache is loaded
+    reaper = new Thread(new ObjectCache(null));
+    reaper.start();
+  }
+
+  /**
+   * Wrapper for an object in the cache.
+   */
+  class QueueMember {
+    int generation;
+    Object object;
+
+    /**
+     * Creates a wrapper which binds an object with its generation.
+     */
+    public QueueMember(int gen, Object obj)
+    {
+      generation = gen;
+      object = obj;
+    }
+
+    /**
+     * Returns the string representation of the wrapped object.
+     */
+    public String toString()
+    {
+      return object.toString();
+    }
+  }
+
+  /**
+   * Creates an object cache.
+   *
+   * @param name The name of the new cache.
+   */
+  public ObjectCache(String name)
+  {
+    this.name = name;
+    reaperList.addElement(this);
+    setGeneration(reaperGeneration);
+  }
+
+  /**
+   * Adds an object to the cache.
+   *
+   * @param obj The object to add.
+   */
+  public synchronized void add(Object obj)
+  {
+    cache.add(new QueueMember(cacheGeneration, obj));
+  }
+
+  /**
+   * Removes all objects of a given generation.
+   *
+   * @param generation The generation to purge.
+   */
+  private synchronized void purge(int generation)
+  {
+    ListIterator iter = cache.listIterator();
+    while (iter.hasNext()) {
+      QueueMember member = (QueueMember )iter.next();
+      if (member.generation == generation) {
+        iter.remove();
+      }
+    }
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if this object is in the cache.
+   *
+   * @param obj The object to find
+   */
+  public synchronized boolean isCached(Object obj)
+  {
+    // don't even bother if they passed in a null object
+    if (obj == null) {
+      return true;
+    }
+
+    ListIterator iter = cache.listIterator();
+    while (iter.hasNext()) {
+      Object q = ((QueueMember )iter.next()).object;
+
+      // if the objects are equal...
+      if (obj.equals(q)) {
+
+        // we've seen this object already
+        return true;
+      }
+    }
+
+    // didn't match any cached objects
+    return false;
+  }
+
+  /**
+   * Sets the generation number for this cache.
+   *
+   * @param generation The new generation number.
+   */
+  private void setGeneration(int generation) { cacheGeneration = generation; }
+
+  /**
+   * Gets the cache size.
+   */
+  private int size() { return cache.size(); }
+
+/*
+  public void dump()
+  {
+    java.util.ListIterator iter = cache.listIterator();
+    System.err.println(name + " CACHE DUMP:");
+    while (iter.hasNext()) {
+      System.err.println("\t" + ((QueueMember )iter.next()).object);
+    }
+  }
+*/
+
+  /**
+   * Code used by the reaper thread to periodically wake up and purge
+   * the next generation of objects.
+   */
+  public void run()
+  {
+    while (true) {
+      try {
+        synchronized (this) {
+          wait(delay);
+        }
+      } catch (InterruptedException e) {
+      }
+
+      int nextGeneration = reaperGeneration + 1;
+      int purgeGeneration = reaperGeneration - numGenerations;
+      for (int i = reaperList.size() - 1; i >= 0; i--) {
+        ObjectCache cache = (ObjectCache )reaperList.elementAt(i);
+        cache.setGeneration(nextGeneration);
+        cache.purge(purgeGeneration);
+      }
+      reaperGeneration = nextGeneration;
+    }
+  }
+}
