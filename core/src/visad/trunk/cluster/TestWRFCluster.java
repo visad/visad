@@ -43,6 +43,12 @@ import java.io.IOException;
 
 /**
    TestWRFCluster is the class for testing the visad.cluster package.<P>
+   java visad.cluster.TestWRFCluster 1 /home3/billh/wrf/wrfout_01_000000_0000
+   java visad.cluster.TestWRFCluster 2 /home3/billh/wrf/wrfout_01_000000_0001
+   java visad.cluster.TestWRFCluster 3 /home3/billh/wrf/wrfout_01_000000_0002
+   java visad.cluster.TestWRFCluster 4 /home3/billh/wrf/wrfout_01_000000_0003
+   java visad.cluster.TestWRFCluster 0
+
 */
 public class TestWRFCluster extends FancySSCell implements ActionListener {
 
