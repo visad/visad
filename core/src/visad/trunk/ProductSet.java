@@ -81,10 +81,12 @@ public class ProductSet extends SampledSet {
     for (int i=0; i<sets.length; i++) {
       float[] low = sets[i].getLow();
       float[] hi = sets[i].getHi();
-      for (int j=0; j<sets[i].getDimension(); j++) {
+      int set_dim = sets[i].getDimension();
+      for (int j=0; j<set_dim; j++) {
         Low[base + j] = low[j];
         Hi[base + j] = hi[j];
       }
+      base += set_dim;
     }
   }
 
