@@ -263,6 +263,13 @@ public class DisplayEvent extends VisADEvent {
     this(d, id_d, e, LOCAL_SOURCE);
   }
 
+  protected static Component getDisplayComponent(Display d) {
+    if (!(d instanceof DisplayImpl)) return DUMMY;
+    DisplayImpl di = (DisplayImpl) d;
+    Component c = di.getComponent();
+    return c == null ? DUMMY : c;
+  }
+
   /**
    * Constructs a DisplayEvent object with the specified source display,
    * type of event, mouse positions where event occurred, and
@@ -277,8 +284,7 @@ public class DisplayEvent extends VisADEvent {
    * @param  remoteId  ID of remote source
    */
   public DisplayEvent(Display d, int id_d, int x, int y, int remoteId) {
-    this(d, id_d, new MouseEvent(d instanceof DisplayImpl ?
-      ((DisplayImpl) d).getComponent() : DUMMY, 0,
+    this(d, id_d, new MouseEvent(getDisplayComponent(d), 0,
       System.currentTimeMillis(), 0, x, y, 1, false), remoteId);
   }
 
