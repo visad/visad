@@ -63,7 +63,7 @@ public class AlignmentPlane extends PlaneSelector {
   protected boolean locked;
 
   /** Fixed distances between endpoints. */
-  protected double dist12, dist13, dist23, dist14, dist34;
+  protected double dist12, dist13, dist23, dist34, d_dist;
 
 
   // -- CONSTRUCTOR --
@@ -123,6 +123,7 @@ public class AlignmentPlane extends PlaneSelector {
       }
     }
   }
+  boolean temp = false; /* TEMP */
 
 
   // -- HELPER METHODS --
@@ -175,24 +176,45 @@ public class AlignmentPlane extends PlaneSelector {
       if (!Util.isApproximatelyEqual(dist13, d13) ||
         !Util.isApproximatelyEqual(dist23, d23))
       {
-        // compute normal to plane
+        if (temp) { /* TEMP */
+        // n = normal to plane
         double[] n = new double[3];
-        double l = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-        for (int i=0; i<3; i++) n[i] = v[i] / l;
+        double l = Math.sqrt(u[0] * u[0] + u[1] * u[1] + u[2] * u[2]);
+        for (int i=0; i<3; i++) n[i] = u[i] / l;
         double d = n[0] * p3[0] + n[1] * p3[1] + n[2] * p3[2];
 
+        // p4 = desired p3's projection onto p2-p1 line
+        double[] p4 = new double[3];
+        for (int i=0; i<3; i++) p4[i] = p1[i] + d_dist * u[i];
+
+        // q = p3 - (n.p3 - n.p4) * n
+        double n_p3 = n[0] * p3[0] + n[1] * p3[1] + n[2] * p3[2];
+        double n_p4 = n[0] * p4[0] + n[1] * p4[1] + n[2] * p4[2];
+        double c = n_p3 - n_p4;
+        double[] q = new double[3];
+        for (int i=0; i<3; i++) q[i] = p3[i] - c * n[i];
+
+        // trim q to proper length
+        double d34 = BioUtil.getDistance(q, p4, m);
+        double lamda = dist34 / d34;
+        double[] p = new double[3];
+        for (int i=0; i<3; i++) p[i] = p4[i] + lamda * (q[i] - p4[i]);
+
+        setData(2, p[0], p[1], p[2]);
+        temp = false; /* TEMP */
         return false;
+      } /* TEMP */
       }
+      temp= true; /* TEMP */
     }
     else {
       dist12 = d12;
       dist13 = d13;
       dist23 = d23;
-      double lamda = (u[0] * v[0] + u[1] * v[1] + u[2] * v[2]) /
+      d_dist = (u[0] * v[0] + u[1] * v[1] + u[2] * v[2]) /
         (u[0] * u[0] + u[1] * u[1] + u[2] * u[2]);
       double[] p4 = new double[3];
-      for (int i=0; i<3; i++) p4[i] = p1[i] + lamda * u[i];
-      dist14 = BioUtil.getDistance(p1, p4, m);
+      for (int i=0; i<3; i++) p4[i] = p1[i] + d_dist * u[i];
       dist34 = BioUtil.getDistance(p3, p4, m);
 
       // CTR - START HERE

@@ -44,7 +44,7 @@ public class ColorBar extends JComponent {
 
   /** Paints the color bar. */
   public void paint(Graphics g) {
-    g.setColor(color);
+    g.setColor(isEnabled() ? color : Color.gray);
     Dimension size = getSize();
     g.fillRect(0, 0, size.width, size.height);
   }

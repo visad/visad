@@ -65,6 +65,12 @@ public class AlignToolPanel extends ToolPanel {
   /** Toggle for drift correction shape lockdown. */
   private JCheckBox lock;
 
+  /** Legend labels. */
+  private JLabel legend, redLabel, yellowLabel, blueLabel;
+
+  /** Legend color blocks. */
+  private ColorBar redBar, yellowBar, blueBar;
+
 
   // -- CONSTRUCTOR --
 
@@ -154,6 +160,77 @@ public class AlignToolPanel extends ToolPanel {
     });
     lock.setEnabled(false);
     controls.add(pad(lock));
+
+    // spacing
+    controls.add(Box.createVerticalStrut(5));
+
+    // drift correction legend - header label
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    JPanel p2 = new JPanel();
+    p2.setLayout(new BoxLayout(p2, BoxLayout.Y_AXIS));
+    legend = new JLabel("When locked:");
+    legend.setForeground(Color.black);
+    legend.setAlignmentX(JLabel.LEFT_ALIGNMENT);
+    legend.setEnabled(false);
+    p2.add(legend);
+    Dimension square = new Dimension(12, 12);
+
+    // drift correction legend - red color block
+    JPanel p3 = new JPanel();
+    p3.setLayout(new BoxLayout(p3, BoxLayout.X_AXIS));
+    redBar = new ColorBar(1, 0, 0);
+    redBar.setPreferredSize(square);
+    redBar.setMaximumSize(square);
+    redBar.setEnabled(false);
+    p3.add(redBar);
+    p3.add(Box.createHorizontalStrut(3));
+
+    // drift correction legend - red color label
+    redLabel = new JLabel("Adjust red point first");
+    redLabel.setForeground(Color.black);
+    redLabel.setEnabled(false);
+    p3.add(redLabel);
+    p3.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    p2.add(p3);
+
+    // drift correction legend - yellow color block
+    p3 = new JPanel();
+    p3.setLayout(new BoxLayout(p3, BoxLayout.X_AXIS));
+    yellowBar = new ColorBar(1, 1, 0);
+    yellowBar.setPreferredSize(square);
+    yellowBar.setMaximumSize(square);
+    yellowBar.setEnabled(false);
+    p3.add(yellowBar);
+    p3.add(Box.createHorizontalStrut(3));
+
+    // drift correction legend - yellow color label
+    yellowLabel = new JLabel("Adjust yellow point next");
+    yellowLabel.setForeground(Color.black);
+    yellowLabel.setEnabled(false);
+    p3.add(yellowLabel);
+    p3.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    p2.add(p3);
+
+    // drift correction legend - blue color block
+    p3 = new JPanel();
+    p3.setLayout(new BoxLayout(p3, BoxLayout.X_AXIS));
+    blueBar = new ColorBar(0, 0, 1);
+    blueBar.setPreferredSize(square);
+    blueBar.setMaximumSize(square);
+    blueBar.setEnabled(false);
+    p3.add(blueBar);
+    p3.add(Box.createHorizontalStrut(3));
+
+    // drift correction legend - blue color label
+    blueLabel = new JLabel("Adjust blue point last");
+    blueLabel.setForeground(Color.black);
+    blueLabel.setEnabled(false);
+    p3.add(blueLabel);
+    p3.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    p2.add(p3);
+    p.add(p2);
+    controls.add(pad(p));
   }
 
 
@@ -168,17 +245,22 @@ public class AlignToolPanel extends ToolPanel {
       useMicrons.setEnabled(true);
       zAspect.setEnabled(true);
       bio.toolMeasure.updateFileButtons();
-      drift.setEnabled(true);
-      lock.setEnabled(true);
     }
     else {
       useMicrons.setEnabled(false);
       sliceDistLabel.setEnabled(false);
       sliceDistance.setEnabled(false);
       zAspect.setEnabled(false);
-      drift.setEnabled(false);
-      lock.setEnabled(false);
     }
+    drift.setEnabled(enabled);
+    lock.setEnabled(enabled);
+    legend.setEnabled(enabled);
+    redBar.setEnabled(enabled);
+    redLabel.setEnabled(enabled);
+    yellowBar.setEnabled(enabled);
+    yellowLabel.setEnabled(enabled);
+    blueBar.setEnabled(enabled);
+    blueLabel.setEnabled(enabled);
   }
 
   /** Gets whether microns should be used instead of pixels. */
