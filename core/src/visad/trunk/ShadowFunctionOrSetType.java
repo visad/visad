@@ -1671,7 +1671,6 @@ System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
       mode.setLineStyle(lineStyle, true);
 
       boolean pointMode = mode.getPointMode();
-      byte missing_transparent = (byte) (mode.getMissingTransparent() ? 0 : -1);
 
 // if (link != null) System.out.println("start assembleColor " + (System.currentTimeMillis() - link.start_time));
 
@@ -2217,12 +2216,6 @@ makeGeometry 350, 171
                   }
                 }
               }
-/* WLH 6 May 99
-              color_values =
-                selectToColor(range_select, color_values, constant_color,
-                              constant_alpha, missing_transparent);
-              constant_alpha = Float.NaN;
-*/
             }
 
             // get domain_set sizes
@@ -2562,12 +2555,6 @@ WLH 15 March 2000 */
                 }
               }
 
-/* WLH 6 May 99
-              color_values =
-                selectToColor(range_select, color_values, constant_color,
-                              constant_alpha, missing_transparent);
-              constant_alpha = Float.NaN;
-*/
             }
             array = spatial_set.make1DGeometry(color_values);
             if (array != null) {
@@ -2602,12 +2589,6 @@ WLH 15 March 2000 */
                 }
               }
 
-/* WLH 6 May 99
-              color_values =
-                selectToColor(range_select, color_values, constant_color,
-                              constant_alpha, missing_transparent);
-              constant_alpha = Float.NaN;
-*/
             }
             array = spatial_set.make2DGeometry(color_values, indexed);
             if (array != null) {
@@ -2985,58 +2966,6 @@ WLH 15 March 2000 */
                                        "not terminal");
 */
     } // end if (!isTerminal)
-  }
-
-  public byte[][] selectToColor(boolean[][] range_select,
-                  byte[][] color_values, float[] constant_color,
-                  float constant_alpha, byte missing_transparent) {
-    int len = range_select[0].length;
-    byte[][] cv = new byte[4][];
-    if (color_values != null) {
-      for (int i=0; i<color_values.length; i++) {
-        cv[i] = color_values[i];
-      }
-    }
-    color_values = cv;
-    for (int i=0; i<4; i++) {
-      byte miss = (i < 3) ? 0 : missing_transparent;
-      if (color_values == null || color_values[i] == null) {
-        color_values[i] = new byte[len];
-        if (i < 3 && constant_color != null) {
-          byte c = floatToByte(constant_color[i]);
-          for (int j=0; j<len; j++) {
-            color_values[i][j] = range_select[0][j] ? c : miss;
-          }
-        }
-        else if (i == 3 && constant_alpha == constant_alpha) {
-          if (constant_alpha < 0.99f) miss = 0;
-          byte c = floatToByte(constant_alpha);
-          for (int j=0; j<len; j++) {
-            color_values[i][j] = range_select[0][j] ? c : miss;
-          }
-        }
-        else {
-          for (int j=0; j<len; j++) {
-            color_values[i][j] = range_select[0][j] ? (byte) -1 : miss;
-          }
-        }
-      }
-      else if (color_values[i].length == 1) {
-        byte c = color_values[i][0];
-        if (i == 3 && c != -1) miss = 0;
-        color_values[i] = new byte[len];
-        for (int j=0; j<len; j++) {
-          color_values[i][j] = range_select[0][j] ? c : miss;
-        }
-      }
-      else {
-        if (i == 3) miss = 0;
-        for (int j=0; j<len; j++) {
-          if (!range_select[0][j]) color_values[i][j] = miss;
-        }
-      }
-    }
-    return color_values;
   }
 
   public BufferedImage createImage(int data_width, int data_height,
