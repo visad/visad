@@ -39,6 +39,18 @@ public class LatLonTuple extends RealTuple
     private Real lon;
 
     /**
+     * Construct a LatLonTuple with missing values
+     *
+     * @throws  VisADException   couldn't create the necessary VisAD object
+     * @throws  RemoteException  couldn't create the necessary remote object
+     */
+    public LatLonTuple()
+        throws VisADException, RemoteException
+    {
+        this(Double.NaN, Double.NaN);
+    }
+
+    /**
      * Construct a LatLonTuple from double values of latitude and
      * longitude.
      *

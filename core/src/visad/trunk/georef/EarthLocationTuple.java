@@ -46,6 +46,18 @@ public class EarthLocationTuple extends RealTuple
     Real alt;
 
     /**
+     * Construct an EarthLocationTuple with missing values
+     *
+     * @throws  VisADException   unable to create necessary VisAD object
+     * @throws  RemoteException  unable to create necessary remote object
+     */
+    public EarthLocationTuple()
+        throws VisADException, RemoteException
+    {
+        this(Double.NaN, Double.NaN, Double.NaN);
+    }
+
+    /**
      * Construct an EarthLocationTuple from Reals of lat, lon, alt
      *
      * @param  lat   Real representing the latitude
