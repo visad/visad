@@ -1,5 +1,5 @@
                     VisAD SpreadSheet User Interface README file
-                                   12 June 2000
+                                   22 June 2000
  
                                 Table of Contents
 
@@ -572,15 +572,19 @@ using the "-help" command line option.
 
 The following bugs have been discovered and have not yet been fixed:
 
-1) The SpreadSheet may not import certain data sets correctly, due to
+1) On certain machine configurations, the SpreadSheet may sometimes lock up
+   on startup due to a MediaTracker bug (#4332685). Try running the SpreadSheet
+   with a different number of rows and columns on startup.
+
+2) The SpreadSheet may not import certain data sets correctly, due to
    incomplete implementations in VisAD file adapter forms.
 
-2) When importing certain netCDF data sets, a series of errors beginning with
+3) When importing certain netCDF data sets, a series of errors beginning with
    "Couldn't decode attribute" may be displayed.  These are warnings the netCDF
    loader prints about unit types.  The SpreadSheet will still import the
    netCDF data set correctly (i.e., these warnings can be safely ignored).
 
-3) With JDK 1.2 under Windows, the first time a data set is imported, an error
+4) With JDK 1.2 under Windows, the first time a data set is imported, an error
    beginning with "A nonfatal internal JIT (3.00.078(x)) error 'regvar' has
    occurred" is displayed.  This error occurs whenever a VisAD application
    makes use of the visad.data.DefaultFamily.open() method, and is a problem
@@ -589,10 +593,6 @@ The following bugs have been discovered and have not yet been fixed:
 
    This error no longer appears in JDK 1.3, since the JVM no longer uses the
    Symantec JIT compiler, but instead uses Sun's Hotspot compiler.
-
-4) On certain machine configurations, the SpreadSheet may sometimes lock up
-   on startup. Try using a different number of rows and columns if you
-   experience this problem.
 
 5) On certain Solaris configurations, key event processing has some glitches.
    For example, the arrow keys may not work at times.  If keys seem to have
