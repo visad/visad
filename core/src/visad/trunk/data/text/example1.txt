@@ -1,9 +1,9 @@
 # In this example, a 2-D grid of values is specified. The domain
 # components use well-known types (Latitude, Longitude) which can
 # be used in conjuction with basemaps, for example.  Note also
-# that the "value" is given a unit of degree Celcius.
-(Longitude,Latitude)->(value)
-Longitude(-130:-40),  Latitude(20:60), skip, value[unit=degC miss=99]
+# that the "tvalue" is given a unit of degree Celcius.
+(Longitude,Latitude)->(tvalue)
+Longitude(-130:-40),  Latitude(20:60), skip, tvalue[unit=degC miss=99]
 0   0   17   34   50   64   76   86   93   98   99 
 1   17   34   50   64   76   86   93   98   99   98 
 2   34   50   64   76   86   93   98   99   98   93 
