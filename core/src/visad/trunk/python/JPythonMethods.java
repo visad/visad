@@ -1483,11 +1483,18 @@ public abstract class JPythonMethods {
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
+  public static int getDomainDimension(Data data)
+                  throws VisADException, RemoteException {
+     return (domainDimension(data));
+  }
+
   public static int domainDimension (Data data) 
                   throws VisADException, RemoteException {
     return (int) ((RealTupleType)
         ((FunctionType)data.getType()).getDomain()).getDimension();
   }
+
+
   /**
    * get the number of range components of the Data object
    * 
@@ -1497,6 +1504,11 @@ public abstract class JPythonMethods {
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
+  public static int getRangeDimension(Data data)
+                  throws VisADException, RemoteException {
+     return (rangeDimension(data));
+  }
+
   public static int rangeDimension (Data data) 
                   throws VisADException, RemoteException {
     int nr = 1;
@@ -1506,17 +1518,24 @@ public abstract class JPythonMethods {
     return nr;
   }
 
+
   /** get the domain Type for the field
   *
   * @param data is the field to get the domain Type for
   *
   * @return the domain
   */
+  public static RealTupleType getDomainType(Data data)
+                  throws VisADException, RemoteException {
+     return (domainType(data));
+  }
+
   public static RealTupleType domainType(Data data) 
                   throws VisADException, RemoteException {
     return (RealTupleType) ((FunctionType)data.getType()).getDomain();
   
   }
+
 
   /** get the range Type for the field
   *
@@ -1524,6 +1543,11 @@ public abstract class JPythonMethods {
   *
   * @return the range
   */
+  public static MathType getRangeType(Data data)
+                  throws VisADException, RemoteException {
+     return (rangeType(data));
+  }
+
   public static MathType rangeType(Data data) 
                   throws VisADException, RemoteException {
     return (MathType) ((FunctionType)data.getType()).getRange();
@@ -1721,6 +1745,16 @@ public abstract class JPythonMethods {
                                   first2, last2, length2,
                                   first3, last3, length3);
   }
+  /** return the sampling set for the domain of the Data object
+  *
+  * @param data is the VisAD data object
+  *
+  * @return the sampling Set
+  */
+  public static Set getDomainSet(Data data) 
+             throws VisADException, RemoteException {
+    return (Set) ((Field)data).getDomainSet();
+  }
 
   public static Set getDomain(Data data) 
              throws VisADException, RemoteException {
@@ -1874,14 +1908,30 @@ public abstract class JPythonMethods {
     return MathType.stringToType(s);
   }
 
-  /** get the RealType corresponding to the name; if
+  /** make or get the RealType corresponding to the name; if
   * none exists, make one and return it.
   *
   * @param name is the name of the RealType type.
   *
   */
+  public static RealType makeRealType(String name) {
+    return (visad.RealType.getRealType(name));
+  }
+
   public static RealType getRealType(String name) {
     return (visad.RealType.getRealType(name));
+  }
+
+  /** make or get the RealType corresponding to the name; if
+  * none exists, make one and return it.
+  *
+  * @param name is the name of the RealType type.
+  * @param unit is the new Unit to associate with this (must
+  * be compatible with any existing Unit)
+  *
+  */
+  public static RealType makeRealType(String name, Unit u) {
+    return (visad.RealType.getRealType(name, u));
   }
 
   public static RealType getRealType(String name, Unit u) {
