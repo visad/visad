@@ -103,6 +103,30 @@ public class DisplayEvent extends Event {
    */
   public final static int MOUSE_RELEASED_RIGHT = 10;
 
+  /** 
+   * The "map added" event.  This event occurs when 
+   * a ScalarMap is added to the display.
+   */
+  public final static int MAP_ADDED = 11;
+
+  /** 
+   * The "maps cleared" event.  This event occurs when 
+   * all ScalarMaps are removed from the display.
+   */
+  public final static int MAPS_CLEARED = 12;
+
+  /** 
+   * The "reference added" event.  This event occurs when 
+   * a DataReference is added to the display.
+   */
+  public final static int REFERENCE_ADDED = 13;
+
+  /** 
+   * The "reference removed" event.  This event occurs when 
+   * a DataReference is removed from the display.
+   */
+  public final static int REFERENCE_REMOVED = 14;
+
   private int id = 0;
 
   private int mouse_x = 0, mouse_y = 0; // MouseEvent position
@@ -166,6 +190,10 @@ public class DisplayEvent extends Event {
    *          <LI>DisplayEvent.MOUSE_RELEASED_LEFT
    *          <LI>DisplayEvent.MOUSE_RELEASED_CENTER
    *          <LI>DisplayEvent.MOUSE_RELEASED_RIGHT
+   *          <LI>DisplayEvent.MAP_ADDED
+   *          <LI>DisplayEvent.MAPS_CLEARED
+   *          <LI>DisplayEvent.REFERENCE_ADDED
+   *          <LI>DisplayEvent.REFERENCE_REMOVED
    *          </UL>
    */
   public int getId() {
