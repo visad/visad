@@ -129,7 +129,7 @@ public class NuView
     ScalarMap colorMap = new ScalarMap(Hit.leadingEdgeTimeType, Display.RGB);
     display.addMap(colorMap);
 
-    // invert color table so colors match is expected
+    // invert color table so colors match what is expected
     BaseColorControl colorCtl = (BaseColorControl )colorMap.getControl();
     final int numColors = colorCtl.getNumberOfColors();
     final int numComps = colorCtl.getNumberOfComponents();
