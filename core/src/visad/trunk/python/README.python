@@ -8,7 +8,7 @@ The visad.python package defines a Python-based language for using
 VisAD.  The classes in this package are:
 
   JPythonEditor - an editor for VisAD Python scripts that can be
-                  incorporated in applications programs
+                  incorporated in application programs
   JPythonFrame - a program and GUI for editing and running
                  VisAD Python scripts
   JPythonMethods - a set of functions for accessing VisAD that can
@@ -63,6 +63,14 @@ If you think you'll be using a lot of memory, run:
 
 or something similar (the -mx256m means use 256 MB of memory).
 
+Note that VisAD's JPythonEditor puts an implicit line:
+
+  from visad.python.JPythonMethods import *
+
+at the start of every VisAD Python script.  This is invisible if
+you are using the JPythonEditor (e.g., by running JPythonFrame)
+but allows you to run your scripts from any JPython interpreter.
+
 
 4. The VisAD Python Language
 
@@ -107,6 +115,9 @@ you can compute the total of pixel values in area1 by:
   for i = range(area.length):
 	sum = sum + area[i]
 
+Note that range(area.length) is standard Python and means
+that i takes the values 0, 1, 2, ..., area.length - 1.
+
 
 4.2 VisAD data objects
 
@@ -121,7 +132,10 @@ A second key idea in VisAD is that metadata are integrated into
 data operations.  As for example the McIDAS areas were implicitly
 georeferenced when we computed their difference.  VisAD metadata
 include MathTypes, units, coordinate systems, sampling geometry
-and topology, missing data indicators and error estimates.
+and topology, missing data indicators and error estimates.  Unit
+conversions, coordinate transforms, resampling, and propagation
+of missing data and error estimates are implicit in data
+operations.
 
 Here are a few example of VisAD data objects and their MathTypes.
 A pixel radiance might have MathType:
@@ -136,10 +150,10 @@ An earth location may have MathType:
 
   (latitude, longitude)
 
-In VisAD this is called a Tuple.  Tuple components can be any VisAD
-data objects.  If they are all reals, then the tuple is called a
+In VisAD this is called a Tuple.  Tuple components can be any
+VisAD data objects.  If they are all reals, then the Tuple is a
 RealTuple.  Note that latitude and longitude may have degrees or
-readians as units.
+radians as units.
 
 The coordinates of a pixel in an image may be a RealTuple with
 MathType:
@@ -162,13 +176,13 @@ area file by a statement like:
 
   area1 = load("AREA0001")
 
-Note that Fields can be mappings from any RealTuple to any MatType
+Note that Fields can be mappings from any RealTuple to any MathType
 at all.  For example, a time sequence of images may have MathType:
 
   (time -> ((line, element) -> band1))
 
-Here time may have units of seconds since 0Z, 1 Jan 1970, and the
-field defines images at a finite number of time samples.
+Here time may have units of "seconds since 0Z, 1 Jan 1970", and
+the field defines images at a finite number of time samples.
 
 VisAD includes one other type of data, Sets.  These are finite
 sets of points in some real vector space defined by a RealTuple.
@@ -184,7 +198,7 @@ outline file by a statement like:
 Sets are also included as metadata in Fields, to define the
 locations of samples.
 
-The power of VisAD data objects come because you can combine Real,
+The power of VisAD data objects comes because you can combine Real,
 Text, Tuple, Field and Set objects in any complex way you like.
 You can learn more about VisAD data objects in the Tutorials and
 Developer's Guide available on the VisAD web page.
@@ -192,12 +206,12 @@ Developer's Guide available on the VisAD web page.
 
 4.3 More about accessing VisAD data from Python scripts
 
-Given a Tuple data object, you can find out how many compinents it
+Given a Tuple data object, you can find out how many components it
 has by:
 
   number_of_components = tuple_data.length
 
-and you can get the components by:
+and you can access the components by:
 
   component_0 = tuple_data[0]
   component_1 = tuple_data[1]
@@ -213,9 +227,6 @@ and you can get the samples by:
 
   for i in range(number_of_samples):
 	sample = field_data[i]
-
-Note that range(number_of_samples) is standard Python and means
-that i takes the values 0, 1, 2, ..., number_of_samples - 1.
 
 You can also get the Set of sample locations of the Field by:
 
@@ -246,8 +257,8 @@ In general, your scripts will run much faster if you can avoid
 explicitly looping over all the points in a Set or Field, but
 rather do it implicitly.
 
-Note also that "area[i] = ..." indicates you can set values in
-Fields by index.
+Note also "area[i] = ..." indicates that you can set values in
+Fields by index.  But you cannot set Tuple components this way.
 
 Just for kicks, you could compute image radiances along a map
 outline by:
@@ -262,12 +273,13 @@ outline by:
 
 This is a list of functions specially designed for accessing VisAD
 from Python scripts.  For a more complete description, see
-visad.python.JPythonMethods in the VisAD JavaDoc, available on-line at:
+visad.python.JPythonMethods in the VisAD JavaDoc, available
+on-line at:
 
   http://www.ssec.wisc.edu/~dglo/visad/
 
 Note that any VisAD class or method is accessible from Python scripts,
-so you are not restricted to just these.
+so you are not restricted to just these functions.
 
 
 5.1 File loading function
@@ -282,7 +294,7 @@ installed, as described on the VisAD web page), Vis5D, FITS, GIF
 and JPEG.  Some users have written VisAD adapters for other formats
 such as Shape and ARCGRID ASCII files.
 
-The load function will determine the type of the named file and
+The load function will determine the format of the named file and
 read it approproiately.
 
 
@@ -297,7 +309,7 @@ read it approproiately.
 Controls for how data are plotted are brought up in a GUI.  The
 plot function includes implicit georeferencing, for example to
 overlay a McIDAS area with a map outline.  We are currently
-adding imporovements to the ViaAD Python plot function, which
+adding improvements to the ViaAD Python plot function, which
 should be available soon.
 
 
@@ -360,6 +372,11 @@ can be combined with any other data.
 Literal constants can be used with binary operators, as long as
 they do not occur first for infix operators.  That is, "data + 1"
 is legal but "1 + data" is not.
+
+The forward trig functions (e.g., sin but not asin) assume their
+default units of either radians (e.g., sin) or degrees (e.g.,
+sinDegrees) only if data values do not have units convertable to
+radians.  If they do then data units are used.
 
 
 5.4 Fourier transform functions
