@@ -635,12 +635,9 @@ MA 02111-1307, USA
                             new StringTokenizer(t.image, ":");
                         int     sign = t.image.startsWith("-") ? -1 : 1;
 
-                        String zoneHrString = zoneSpec.nextToken();
-                        zoneHrString =
-                          zoneHrString.startsWith("+")
-                             ? zoneHrString.substring(1)
-                             : zoneHrString;
-                        zoneHour = Integer.parseInt(zoneHrString);
+                        // must use parseFloat in case we have "+00" which
+                        // causes parseInt to bomb
+                        zoneHour = (int) Float.parseFloat(zoneSpec.nextToken());
                         zoneMinute = Integer.parseInt(zoneSpec.nextToken());
 
                         zone = zoneHour*60 + zoneMinute*sign;
@@ -748,18 +745,18 @@ MA 02111-1307, USA
     return false;
   }
 
-  final private boolean jj_3R_15() {
-    if (jj_scan_token(NAME)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
   final private boolean jj_3R_5() {
     if (jj_scan_token(25)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
     if (jj_3R_3()) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
     if (jj_scan_token(26)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
+  final private boolean jj_3R_15() {
+    if (jj_scan_token(NAME)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
     return false;
   }
