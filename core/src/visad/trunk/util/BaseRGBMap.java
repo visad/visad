@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: BaseRGBMap.java,v 1.14 2000-03-08 18:52:41 dglo Exp $
+@(#) $Id: BaseRGBMap.java,v 1.15 2000-03-13 20:14:46 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -50,7 +50,7 @@ import visad.VisADException;
  * mouse button to alternate between the color curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.14 $, $Date: 2000-03-08 18:52:41 $
+ * @version $Revision: 1.15 $, $Date: 2000-03-13 20:14:46 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -140,6 +140,7 @@ public class BaseRGBMap
    * Construct a colormap initialized with the supplied tuples
    *
    * @param vals the tuples used to initialize the colormap
+   *             See setValues() for constraints on the <TT>vals</TT> array.
    */
   public BaseRGBMap(float[][] vals)
     throws RemoteException, VisADException
@@ -279,7 +280,8 @@ public class BaseRGBMap
    * The table should be <TT>float[resolution][dimension]</TT>
    * where <TT>dimension</TT> is either 3 (for an RGB table)
    * or 4 (if the table also has an alpha component) and
-   * <TT>resolution</TT> is the number of colors in the table.
+   * <TT>resolution</TT> is the number of colors in the table,
+   * which must be greater than 4.
    *
    * @param newVal the color tuples used to initialize the map.
    */
@@ -303,11 +305,11 @@ public class BaseRGBMap
 
       float[][] tmpVal = new float[hasAlpha ? 4 : 3][resolution];
       for (int i = 0; i < resolution; i++) {
-        tmpVal[0][i] = newVal[i][0];
-        tmpVal[1][i] = newVal[i][1];
-        tmpVal[2][i] = newVal[i][2];
+        tmpVal[RED][i] = newVal[i][RED];
+        tmpVal[GREEN][i] = newVal[i][GREEN];
+        tmpVal[BLUE][i] = newVal[i][BLUE];
         if (hasAlpha) {
-          tmpVal[3][i] = newVal[i][3];
+          tmpVal[ALPHA][i] = newVal[i][ALPHA];
         }
       }
       newVal = tmpVal;
@@ -416,6 +418,28 @@ public class BaseRGBMap
   }
 
   /**
+   * Implementation of the abstract function in ColorMap
+   *
+   * <B>WARNING</B>: This is a <I>really</I> slow way to
+   * get a color, so don't use it inside a loop.
+   *
+   * @param value a floating point number between 0 and 1
+   * @return an RGB tuple of floating point numbers in the
+   * range 0 to 1
+   */
+  public float[] getRGBTuple(float value) {
+    float[] t = getTuple(value);
+    if (t.length > 3) {
+      float[] f = new float[3];
+      f[RED] = t[RED];
+      f[GREEN] = t[GREEN];
+      f[BLUE] = t[BLUE];
+      t = f;
+    }
+    return t;
+  }
+
+  /**
    * Redraw the between the <TT>left</TT> and
    * <TT>right</TT> colors
    *
@@ -443,23 +467,6 @@ public class BaseRGBMap
     // redraw
     validate();
     repaint();
-  }
-
-  /** Implementation of the abstract function in ColorMap
-   * @param value a floating point number between 0 and 1
-   * @return an RGB tuple of floating point numbers in the
-   * range 0 to 1
-   */
-  public float[] getRGBTuple(float value) {
-    float[] t = getTuple(value);
-    if (t.length > 3) {
-      float[] f = new float[3];
-      f[0] = t[0];
-      f[1] = t[1];
-      f[2] = t[2];
-      t = f;
-    }
-    return t;
   }
 
   /**
