@@ -303,8 +303,6 @@ public class SelectRangeWidget extends Canvas implements MouseListener,
     }
     String minS = ""+Math.round(minPercent*(maxVal-minVal)+100*minVal);
     String maxS = ""+Math.round(maxPercent*(maxVal-minVal)+100*minVal);
-    System.out.println("Minval: "+minVal+" Maxval: "+maxVal); /* CTR: TEMP */
-    System.out.println("Min: "+minS+" Max: "+maxS); /* CTR: TEMP */
     if (minS.charAt(0) != '0') {
       if (minS.endsWith("00")) minS = minS.substring(0, minS.length()-2);
       else {
@@ -324,7 +322,6 @@ public class SelectRangeWidget extends Canvas implements MouseListener,
       }
     }
     String curStr = "("+minS+", "+maxS+")";
-    System.out.println(curStr); /* CTR: TEMP */
     if (!curStr.equals(lastCurStr) || lastW != w) {
       g.setColor(Color.black);
       int sw = fm.stringWidth(lastCurStr);
