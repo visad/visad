@@ -36,24 +36,12 @@ public class ToggleControl extends Control {
   private boolean on;
   private Control parent;
 
-  static final ToggleControl prototype = new ToggleControl();
-
   public ToggleControl(DisplayImpl d, Control p) {
     super(d);
     parent = p;
     on = true;
   }
  
-  ToggleControl() {
-    this(null, null);
-  }
-
-  /** should never be called */
-  public Control cloneButContents(DisplayImpl d)
-         throws VisADException, RemoteException {
-    throw new DisplayException("ToggleControl.cloneButContents");
-  }
-
   public boolean getOn() {
     return on;
   }

@@ -25,21 +25,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  
 package visad;
  
-import javax.media.j3d.*;
-import java.vecmath.*;
-
 /**
    VisADLineArray stands in for j3d.LineArray
    and is Serializable.<P>
 */
 public class VisADLineArray extends VisADGeometryArray {
-
-  public GeometryArray makeGeometry() throws VisADException {
-    if (vertexCount == 0) return null;
-    LineArray array = new LineArray(vertexCount, vertexFormat);
-    basicGeometry(array);
-    return array;
-  }
 
 }
 

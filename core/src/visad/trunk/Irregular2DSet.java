@@ -35,27 +35,30 @@ public class Irregular2DSet extends IrregularSet {
 
   private float LowX, HiX, LowY, HiY;
 
+  /** shortcut constructor */
   public Irregular2DSet(MathType type, float[][] samples)
          throws VisADException {
-    this(type, samples, null, null, null);
+    this(type, samples, null, null, null, null, true);
   }
 
+  /** complete constructor */
   public Irregular2DSet(MathType type, float[][] samples,
-                      CoordinateSystem coord_sys, Unit[] units,
-                      ErrorEstimate[] errors) throws VisADException {
-    this(type, samples, coord_sys, units, errors, true);
+                        CoordinateSystem coord_sys, Unit[] units,
+                        ErrorEstimate[] errors, Delaunay delan)
+                                          throws VisADException {
+    this(type, samples, coord_sys, units, errors, delan, true);
   }
 
   Irregular2DSet(MathType type, float[][] samples,
-                      CoordinateSystem coord_sys, Unit[] units,
-                      ErrorEstimate[] errors, boolean copy)
-         throws VisADException {
-    super(type, samples, samples.length, coord_sys, units, errors, copy);
+                 CoordinateSystem coord_sys, Unit[] units,
+                 ErrorEstimate[] errors, Delaunay delan,
+                 boolean copy) throws VisADException {
+    super(type, samples, samples.length, coord_sys,
+          units, errors, delan, copy);
     if (samples.length != 2) {
       throw new SetException("Irregular2DSet: ManifoldDimension " +
                              "must be 2 for this constructor");
     }
-    Delan = new Delaunay(Samples);
     LowX = Low[0];
     HiX = Hi[0];
     LowY = Low[1];
@@ -64,15 +67,18 @@ public class Irregular2DSet extends IrregularSet {
     newToOld = null;
   }
 
-  /** construct Irregular2DSet using Delaunay from existing  
-      Irregular2DSet */ 
+  /* shortcut constructor for constructing Irregular2DSet
+     using Delaunay from existing Irregular2DSet */ 
+/* CTR: 1-12-98
   public Irregular2DSet(MathType type, float[][] samples,
                  Irregular2DSet delaunay_set) throws VisADException {
     this(type, samples, delaunay_set, null, null, null, true);
   }
+*/
  
-  /** construct Irregular2DSet using Delaunay from existing 
-      Irregular2DSet */
+  /* complete constructor for constructing Irregular2DSet
+     using Delaunay from existing Irregular2DSet */
+/* CTR: 1-12-98
   public Irregular2DSet(MathType type, float[][] samples,
                         Irregular2DSet delaunay_set,
                         CoordinateSystem coord_sys, Unit[] units,
@@ -103,16 +109,17 @@ public class Irregular2DSet extends IrregularSet {
     oldToNew = null;
     newToOld = null;
   }
+*/
 
-  /** construct Irregular2DSet using sort from existing
-      Irregular1DSet */
+  /** shortcut constructor for constructing Irregular2DSet
+      using sort from existing Irregular1DSet */
   public Irregular2DSet(MathType type, float[][] samples,
                int[] new2old, int[] old2new) throws VisADException {
     this(type, samples, new2old, old2new, null, null, null, true);
   }
  
-  /** construct Irregular2DSet using sort from existing
-      Irregular1DSet */
+  /** complete constructor for constructing Irregular2DSet
+      using sort from existing Irregular1DSet */
   public Irregular2DSet(MathType type, float[][] samples,
                         int[] new2old, int[] old2new,
                         CoordinateSystem coord_sys, Unit[] units,
@@ -125,7 +132,7 @@ public class Irregular2DSet extends IrregularSet {
                  CoordinateSystem coord_sys, Unit[] units,
                  ErrorEstimate[] errors, boolean copy)
                  throws VisADException {
-    super(type, samples, 1, coord_sys, units, errors, copy);
+    super(type, samples, 1, coord_sys, units, errors, null, copy);
     if (Length != new2old.length || Length != old2new.length) {
       throw new SetException("Irregular2DSet: sort length not match");
     }
@@ -147,8 +154,8 @@ public class Irregular2DSet extends IrregularSet {
                                   null, null, null, false);
       }
       else {
-        return new Irregular3DSet(type, samples, this,
-                                  null, null, null, false);
+        return new Irregular3DSet(type, samples, null, null, null,
+                                  Delan, false);
       }
     }
     else if (samples.length == 2) {
@@ -157,8 +164,8 @@ public class Irregular2DSet extends IrregularSet {
                                   null, null, null, false);
       }
       else {
-        return new Irregular2DSet(type, samples, this,
-                                  null, null, null, false);
+        return new Irregular2DSet(type, samples, null, null, null,
+                                  this.Delan, false);
       }
     }
     else {
@@ -181,9 +188,9 @@ public class Irregular2DSet extends IrregularSet {
     return value;
   }
 
-  /* a private method used by valueToIndex and valueToInterp,
-     valueToTri returns an array of containing triangles given
-     an array of points in R^DomainDimension */
+  /** a private method used by valueToIndex and valueToInterp,
+      valueToTri returns an array of containing triangles given
+      an array of points in R^DomainDimension */
   private int[] valueToTri(float[][] value) throws VisADException {
     if (ManifoldDimension != 2) {
       throw new SetException("Irregular2DSet.valueToTri: " +
@@ -360,8 +367,8 @@ public class Irregular2DSet extends IrregularSet {
                               DomainCoordinateSystem, SetUnits, SetErrors);
       }
       else {
-        return new Irregular2DSet(Type, Samples,
-                              DomainCoordinateSystem, SetUnits, SetErrors);
+        return new Irregular2DSet(Type, Samples, DomainCoordinateSystem,
+                                  SetUnits, SetErrors, Delan);
       }
     }
     catch (VisADException e) {
@@ -375,8 +382,8 @@ public class Irregular2DSet extends IrregularSet {
                             DomainCoordinateSystem, SetUnits, SetErrors);
     }
     else {
-      return new Irregular2DSet(type, Samples,
-                            DomainCoordinateSystem, SetUnits, SetErrors);
+      return new Irregular2DSet(type, Samples, DomainCoordinateSystem,
+                                SetUnits, SetErrors, Delan);
     }
   }
 

@@ -114,9 +114,9 @@ public class RealType extends ScalarType {
     return (RealType) real;
   }
 
-  ShadowType buildShadowType(DataDisplayLink link, ShadowType parent)
+  public ShadowType buildShadowType(DataDisplayLink link, ShadowType parent)
              throws VisADException, RemoteException {
-    return new ShadowRealType(this, link, parent);
+    return link.getRenderer().makeShadowRealType(this, link, parent);
   }
 
   public String toString() {

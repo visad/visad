@@ -46,14 +46,21 @@ public abstract class FlowControl extends Control {
 
   public FlowControl(DisplayImpl d) {
     super(d);
+    flowScale = 0.02f;
+    HorizontalVectorSlice = false;
+    VerticalVectorSlice = false;
+    HorizontalStreamSlice = false;
+    VerticalStreamSlice = false;
+    TrajectorySet = null;
+ 
+    HorizontalVectorSliceHeight = 0.0;
+    HorizontalStreamSliceHeight = 0.0;
   }
  
-  FlowControl() {
-    this(null);
-  }
-
   public void setFlowScale(float scale) {
     flowScale = scale;
+System.out.println("setFlowScale: flowScale = " + flowScale +
+                   "  FlowControl = " + this);
     changeControl();
   }
 

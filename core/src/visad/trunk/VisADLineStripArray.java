@@ -25,23 +25,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  
 package visad;
  
-import javax.media.j3d.*;
-import java.vecmath.*;
-
 /**
    VisADLineStripArray stands in for j3d.LineStripArray
    and is Serializable.<P>
 */
 public class VisADLineStripArray extends VisADGeometryArray {
-  int[] stripVertexCounts;
-
-  public GeometryArray makeGeometry() throws VisADException {
-    if (vertexCount == 0) return null;
-    LineStripArray array =
-      new LineStripArray(vertexCount, vertexFormat, stripVertexCounts);
-    basicGeometry(array);
-    return array;
-  }
+  public int[] stripVertexCounts;
 
 }
 

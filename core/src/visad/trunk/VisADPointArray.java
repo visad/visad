@@ -25,21 +25,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  
 package visad;
  
-import javax.media.j3d.*;
-import java.vecmath.*;
-
 /**
    VisADPointArray stands in for j3d.PointArray
    and is Serializable.<P>
 */
 public class VisADPointArray extends VisADGeometryArray {
-
-  public GeometryArray makeGeometry() throws VisADException {
-    if (vertexCount == 0) return null;
-    PointArray array = new PointArray(vertexCount, vertexFormat);
-    basicGeometry(array);
-    return array;
-  }
 
 }
 

@@ -43,8 +43,6 @@ public class ColorControl extends Control {
 
   private final static int DEFAULT_TABLE_LENGTH = 256;
 
-  static final ColorControl prototype = new ColorControl();
-
   public ColorControl(DisplayImpl d) {
     super(d);
     tableLength = DEFAULT_TABLE_LENGTH;
@@ -61,10 +59,6 @@ public class ColorControl extends Control {
     table[2][DEFAULT_TABLE_LENGTH] = table[2][DEFAULT_TABLE_LENGTH - 1];
   }
  
-  ColorControl() {
-    this(null);
-  }
-
   public synchronized void setFunction(Function func)
          throws VisADException, RemoteException {
     if (func == null ||
@@ -130,10 +124,6 @@ public class ColorControl extends Control {
       colors = Set.doubleToFloat(field.getValues());
     }
     return colors;
-  }
-
-  public Control cloneButContents(DisplayImpl d) throws RemoteException {
-    return new ColorControl(d);
   }
 
 }

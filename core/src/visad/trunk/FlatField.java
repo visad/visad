@@ -146,10 +146,10 @@ public class FlatField extends FieldImpl {
   }
 
   /* this is the most general FlatField constructor */
-  private FlatField(FunctionType type, Set domain_set,
-                    CoordinateSystem range_coord_sys,
-                    CoordinateSystem[] range_coord_syses,
-                    Set[] range_sets, Unit[] units)
+  public FlatField(FunctionType type, Set domain_set,
+                   CoordinateSystem range_coord_sys,
+                   CoordinateSystem[] range_coord_syses,
+                   Set[] range_sets, Unit[] units)
           throws VisADException {
     super(type, domain_set);
     if (!type.getFlat()) {
@@ -751,7 +751,8 @@ public class FlatField extends FieldImpl {
         reals[j] = new Real((RealType) type, range[j][0],
                             RangeUnits[j], RangeErrors[j]);
       }
-      return new RealTuple(reals, RangeCoordinateSystem);
+      return new RealTuple((RealTupleType) RangeType, reals,
+                           RangeCoordinateSystem);
     }
     else { // RangeType is a Flat TupleType
       int n = ((TupleType) RangeType).getDimension();
@@ -773,7 +774,8 @@ public class FlatField extends FieldImpl {
                                 RangeUnits[j], RangeErrors[j]);
             j++;
           }
-          datums[i] = new RealTuple(reals, RangeCoordinateSystems[i]);
+          datums[i] = new RealTuple((RealTupleType) type, reals,
+                                    RangeCoordinateSystems[i]);
         }
       }
       return new Tuple(datums);
@@ -2481,7 +2483,7 @@ for (i=0; i<length; i++) {
   }
 
   /** construct a FlatField of given type; used for testing */
-  static FlatField makeField(FunctionType type, int length)
+  public static FlatField makeField(FunctionType type, int length)
          throws VisADException, RemoteException {
     double first = 0.0;
     double last = length - 1.0;
@@ -2581,7 +2583,7 @@ for (i=0; i<length; i++) {
 
   /** construct a FlatField with a 2-D domain and a 1-D range;
       used for testing */
-  static FlatField makeField1(FunctionType type,
+  public static FlatField makeField1(FunctionType type,
                               double first1, double last1, int length1,
                               double first2, double last2, int length2)
           throws VisADException, RemoteException {
@@ -2608,7 +2610,7 @@ for (i=0; i<length; i++) {
 
   /** construct a FlatField with a 2-D domain and a 2-D range;
       used for testing */
-  static FlatField makeField2(FunctionType type,
+  public static FlatField makeField2(FunctionType type,
                               double first1, double last1, int length1,
                               double first2, double last2, int length2)
           throws VisADException, RemoteException {

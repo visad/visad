@@ -54,22 +54,16 @@ public class RealTuple extends Tuple {
   }
 
   /** construct a RealTuple according to an array of Real objects */
-  public RealTuple(Real[] reals, CoordinateSystem coord_sys)
-         throws VisADException, RemoteException {
-    super(reals);
-    init_coord_sys(coord_sys);
-  }
-
-  /** construct a RealTuple according to an array of Real objects */
   public RealTuple(Real[] reals)
          throws VisADException, RemoteException {
-    this(reals, null);
+    super(reals);
+    init_coord_sys(null);
   }
 
   /** construct a RealTuple according to a RealTupleType and a double array */
   public RealTuple(RealTupleType type, double[] values)
          throws VisADException, RemoteException {
-    this(buildRealArray(type, values), null);
+    this(type, buildRealArray(type, values), null);
   }
 
   /** initialize TupleCoordinateSystem and TupleUnits */
@@ -161,7 +155,7 @@ public class RealTuple extends Tuple {
         reals[j] =
           (Real) tupleComponents[j].binary(real, op, sampling_mode, error_mode);
       }
-      return new RealTuple(reals, TupleCoordinateSystem);
+      return new RealTuple((RealTupleType) Type, reals, TupleCoordinateSystem);
     }
     else if (data instanceof Tuple) { 
       throw new TypeException("RealTuple.binary: types don't match");
@@ -175,7 +169,7 @@ public class RealTuple extends Tuple {
         reals[j] = (Real) tupleComponents[j].binary(data, op, sampling_mode,
                                                     error_mode);
       }
-      return new RealTuple(reals, TupleCoordinateSystem);
+      return new RealTuple((RealTupleType) Type, reals, TupleCoordinateSystem);
     }
     else if (data instanceof Text) {
       throw new TypeException("RealTuple.binary: types don't match");
@@ -195,7 +189,7 @@ public class RealTuple extends Tuple {
     for (int j=0; j<tupleComponents.length; j++) {
       reals[j] = (Real) tupleComponents[j].unary(op, sampling_mode, error_mode);
     }
-    return new RealTuple(reals, TupleCoordinateSystem);
+    return new RealTuple((RealTupleType) Type, reals, TupleCoordinateSystem);
   }
 
   public DataShadow computeRanges(ShadowType type, DataShadow shadow)
@@ -220,7 +214,8 @@ public class RealTuple extends Tuple {
   public Object clone() {
     RealTuple tuple;
     try {
-      tuple = new RealTuple((Real[]) tupleComponents, TupleCoordinateSystem);
+      tuple = new RealTuple((RealTupleType) Type, (Real[]) tupleComponents,
+                            TupleCoordinateSystem);
     }
     catch (VisADException e) {
       throw new VisADError("RealTuple.clone: VisADException occurred");

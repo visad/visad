@@ -43,6 +43,12 @@ public class Tuple extends DataImpl {
   /** construct a Tuple object from a type and an array of Data objects */
   public Tuple(TupleType type, Data[] datums)
          throws VisADException, RemoteException {
+    this(type, datums, true);
+  }
+
+  /** construct a Tuple object from a type and an array of Data objects */
+  public Tuple(TupleType type, Data[] datums, boolean copy)
+         throws VisADException, RemoteException {
     super(type);
     if (!checkTupleType(type, datums)) {
       throw new TypeException("Tuple: type does not match data");
@@ -50,7 +56,12 @@ public class Tuple extends DataImpl {
     int n = datums.length;
     tupleComponents = new Data[n];
     for (int i=0; i<n; i++) {
-      tupleComponents[i] = (Data) datums[i].dataClone();
+      if (copy) {
+        tupleComponents[i] = (Data) datums[i].dataClone();
+      }
+      else {
+        tupleComponents[i] = datums[i];
+      }
       if (tupleComponents[i] instanceof DataImpl) {
         ((DataImpl) tupleComponents[i]).setParent(this);
       }
@@ -58,17 +69,15 @@ public class Tuple extends DataImpl {
   }
 
   /** construct a Tuple object from an array of Data objects */
+  public Tuple(Data[] datums, boolean copy)
+         throws VisADException, RemoteException {
+    this(buildTupleType(datums), datums, copy);
+  }
+
+  /** construct a Tuple object from an array of Data objects */
   public Tuple(Data[] datums)
          throws VisADException, RemoteException {
-    super(buildTupleType(datums));
-    int n = datums.length;
-    tupleComponents = new Data[n];
-    for (int i=0; i<n; i++) {
-      tupleComponents[i] = (Data) datums[i].dataClone();
-      if (tupleComponents[i] instanceof DataImpl) {
-        ((DataImpl) tupleComponents[i]).setParent(this);
-      }
-    }
+    this(buildTupleType(datums), datums, true);
   }
 
   /** check a TupleType for an array of Data */

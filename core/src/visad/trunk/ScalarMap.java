@@ -134,9 +134,8 @@ public class ScalarMap extends Object implements java.io.Serializable {
                                  "any Display");
     }
     if (this instanceof ConstantMap) return;
-    Control proto = DisplayScalar.getControl();
-    if (proto == null) return;
-    control = proto.copy(this);
+    control = display.getDisplayRenderer().makeControl(DisplayScalar);
+    display.addControl(control);
   }
 
   public boolean getScale(double[] so, double[] data, double[] display) {

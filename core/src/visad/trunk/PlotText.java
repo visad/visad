@@ -25,8 +25,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
-import javax.media.j3d.*;
-
 /**
    PlotText calculates an array of points to be plotted to
    the screen as vector pairs, given a String and location,
@@ -129,8 +127,8 @@ public class PlotText extends Object {
              line - line number (0 = first line)
              c - color
   */
-  static VisADLineArray render_label(int axis, double pos, String str,
-                           int line, long c) {
+  public static VisADLineArray render_label(int axis, double pos, String str,
+                                            int line, long c, int COORDINATES) {
     double XMIN = -1.0;
     double YMIN = -1.0;
     double ZMIN = -1.0;
@@ -165,13 +163,13 @@ public class PlotText extends Object {
       start[1] = YMIN * (1.1 + 0.07*line);
       start[2] = pos;
     }
-    return render_label(str, start, base, up, true);
+    return render_label(str, start, base, up, true, COORDINATES);
   }
 
   /** plot str in 3-D, at start, x along base and y along up,
       center str at start if center is true */
-  static VisADLineArray render_label(String str, double[] start,
-         double[] base, double[] up, boolean center) {
+  public static VisADLineArray render_label(String str, double[] start,
+         double[] base, double[] up, boolean center, int COORDINATES) {
     double[] temp;
     double cx, cy, cz;
     double startx = 0.0;
@@ -323,7 +321,7 @@ public class PlotText extends Object {
     System.arraycopy(plot, 0, coordinates, 0, plot_index);
     array.coordinates = coordinates;
     array.vertexCount = plot_index / 3;
-    array.vertexFormat = GeometryArray.COORDINATES;
+    array.vertexFormat = COORDINATES;
     return array;
   }
 

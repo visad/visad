@@ -25,9 +25,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
-import javax.media.j3d.*;
-import java.vecmath.*;
-
 /**
    Irregular3DSet represents a finite set of samples of R^3.<P>
 
@@ -38,27 +35,35 @@ public class Irregular3DSet extends IrregularSet {
 
   private float LowX, HiX, LowY, HiY, LowZ, HiZ;
 
+  /** shortcut constructor */
   public Irregular3DSet(MathType type, float[][] samples)
                       throws VisADException {
-    this(type, samples, null, null, null);
+    this(type, samples, null, null, null, null, true);
   }
 
+  /** complete constructor */
   public Irregular3DSet(MathType type, float[][] samples,
                       CoordinateSystem coord_sys, Unit[] units,
-                      ErrorEstimate[] errors) throws VisADException {
-    this(type, samples, coord_sys, units, errors, true);
+                      ErrorEstimate[] errors, Delaunay delan)
+                                         throws VisADException {
+    this(type, samples, coord_sys, units, errors, delan, true);
   }
 
   Irregular3DSet(MathType type, float[][] samples,
                  CoordinateSystem coord_sys, Unit[] units,
-                 ErrorEstimate[] errors, boolean copy)
-         throws VisADException {
-    super(type, samples, samples.length, coord_sys, units, errors, copy);
+                 ErrorEstimate[] errors, Delaunay delan,
+		 boolean copy) throws VisADException {
+    /* ManifoldDimension might not be equal to samples.length
+       if a 2D triangulation has been specified */
+    super(type, samples, (delan == null) ? samples.length
+                                         : delan.Tri[0].length-1,
+          coord_sys, units, errors, delan, copy);
+/* CTR: 1-12-98
     if (samples.length != 3) {
       throw new SetException("Irregular3DSet: ManifoldDimension " +
                              "must be 3 for this constructor");
     }
-    Delan = new Delaunay(Samples);
+*/
     LowX = Low[0];
     HiX = Hi[0];
     LowY = Low[1];
@@ -71,13 +76,16 @@ public class Irregular3DSet extends IrregularSet {
 
   /** construct Irregular3DSet using Delaunay from existing 
       IrregularSet (must have ManifoldDimension = 2 or 3) */
+/* CTR: 1-12-98
   public Irregular3DSet(MathType type, float[][] samples,
                  IrregularSet delaunay_set) throws VisADException {
     this(type, samples, delaunay_set, null, null, null, true);
   }
+*/
  
   /** construct Irregular3DSet using Delaunay from existing
       IrregularSet (must have ManifoldDimension = 2 or 3) */
+/* CTR: 1-12-98
   public Irregular3DSet(MathType type, float[][] samples,
                         IrregularSet delaunay_set,
                         CoordinateSystem coord_sys, Unit[] units,
@@ -110,6 +118,7 @@ public class Irregular3DSet extends IrregularSet {
     oldToNew = null;
     newToOld = null;
   }
+*/
 
   /** construct Irregular3DSet using sort from existing
       Irregular1DSet */
@@ -132,7 +141,7 @@ public class Irregular3DSet extends IrregularSet {
                  CoordinateSystem coord_sys, Unit[] units,
                  ErrorEstimate[] errors, boolean copy)
                  throws VisADException {
-    super(type, samples, 1, coord_sys, units, errors, copy);
+    super(type, samples, 1, coord_sys, units, errors, null, copy);
     if (Length != new2old.length || Length != old2new.length) {
       throw new SetException("Irregular3DSet: sort length not match");
     }
@@ -156,8 +165,8 @@ public class Irregular3DSet extends IrregularSet {
                                   null, null, null, false);
       }
       else {
-        return new Irregular3DSet(type, samples, this,
-                                  null, null, null, false);
+        return new Irregular3DSet(type, samples, null, null, null,
+	                          Delan, false);
       }
     }
     else {
@@ -410,7 +419,7 @@ public class Irregular3DSet extends IrregularSet {
   }
 
   public VisADGeometryArray makeIsoSurface(float isolevel,
-                            float[] fieldValues, float[][] color_values)
+         float[] fieldValues, float[][] color_values)
          throws VisADException {
 /* WLH 1 Nov 97
   public void main_isosurf(float isolevel, float[] fieldValues,
@@ -490,7 +499,7 @@ public class Irregular3DSet extends IrregularSet {
     fieldVertices = null;
     color_levels = null;
  
-    array.vertexFormat |= GeometryArray.NORMALS;
+    // array.vertexFormat |= NORMALS;
     array.normals = normals;
 
     return array;
@@ -1775,7 +1784,7 @@ public class Irregular3DSet extends IrregularSet {
     VisADIndexedTriangleStripArray array =
       new VisADIndexedTriangleStripArray();
  
-    array.vertexFormat |= GeometryArray.NORMALS;
+    // array.vertexFormat |= NORMALS;
     array.normals = normals;
     // take the garbage out
     normals = null;
@@ -1810,8 +1819,8 @@ public class Irregular3DSet extends IrregularSet {
                               DomainCoordinateSystem, SetUnits, SetErrors);
       }
       else {
-        return new Irregular3DSet(Type, Samples,
-                              DomainCoordinateSystem, SetUnits, SetErrors);
+        return new Irregular3DSet(Type, Samples, DomainCoordinateSystem,
+                                  SetUnits, SetErrors, Delan);
       }
     }
     catch (VisADException e) {
@@ -1825,8 +1834,8 @@ public class Irregular3DSet extends IrregularSet {
                             DomainCoordinateSystem, SetUnits, SetErrors);
     }
     else {
-      return new Irregular3DSet(type, Samples,
-                            DomainCoordinateSystem, SetUnits, SetErrors);
+      return new Irregular3DSet(type, Samples, DomainCoordinateSystem,
+                                SetUnits, SetErrors, Delan);
     }
   }
 

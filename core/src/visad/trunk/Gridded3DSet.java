@@ -25,9 +25,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
-import javax.media.j3d.*;
-import java.vecmath.*;
-
 import java.io.*;
 
 /**
@@ -1884,7 +1881,7 @@ public class Gridded3DSet extends GriddedSet {
 
 
   public VisADGeometryArray makeIsoSurface(float isolevel,
-                            float[] fieldValues, float[][] color_values)
+                float[] fieldValues, float[][] color_values)
          throws VisADException {
     boolean debug = false;
 
@@ -2031,7 +2028,7 @@ public class Gridded3DSet extends GriddedSet {
     fieldVertices = null;
     color_levels = null;
 
-    array.vertexFormat |= GeometryArray.NORMALS;
+    // array.vertexFormat |= NORMALS;
     array.normals = normals;
 
     if (debug) {
@@ -3451,7 +3448,7 @@ public class Gridded3DSet extends GriddedSet {
         k += 3;
       } // end for (int j=0; j<LengthX; j++)
     } // end for (int i=0; i<LengthY; i++)
-    array.vertexFormat |= GeometryArray.NORMALS;
+    // array.vertexFormat |= NORMALS;
     array.normals = normals;
     return array;
   }

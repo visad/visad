@@ -50,16 +50,26 @@ public class ContourControl extends Control {
   private float verticalSliceHi;
   private float verticalSliceStep;
 
-  static final ContourControl prototype = new ContourControl();
-
   public ContourControl(DisplayImpl d) {
     super(d);
+    mainContours = true;
+    surfaceValue = 0.0f;
+    contourInterval = 0.0f;
+    lowLimit = 0.0f;
+    hiLimit = 0.0f;
+    base = 0.0f;
+ 
+    horizontalContourSlice = false;
+    verticalContourSlice = false;
+ 
+    horizontalSliceLow = 0.0f;
+    horizontalSliceHi = 0.0f;
+    horizontalSliceStep = 1.0f;
+    verticalSliceLow = 0.0f;
+    verticalSliceHi = 0.0f;
+    verticalSliceStep = 1.0f;
   }
  
-  ContourControl() {
-    this(null);
-  }
-
   public void setMainContours(boolean[] bvalues, float[] fvalues)
          throws VisADException {
     setMainContours(bvalues, fvalues, false);

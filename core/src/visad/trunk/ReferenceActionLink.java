@@ -29,7 +29,7 @@ package visad;
    ReferenceActionLink objects are used by Action objects to
    define their connections with DataReference objects.<P>
 */
-class ReferenceActionLink extends Object {
+public class ReferenceActionLink extends Object {
 
   DataReference ref;
   ActionImpl local_action;
@@ -48,7 +48,7 @@ class ReferenceActionLink extends Object {
       true when ref is waiting for an acknowledgement */
   boolean Ball;
 
-  ReferenceActionLink(DataReference r, ActionImpl local_a, Action a)
+  public ReferenceActionLink(DataReference r, ActionImpl local_a, Action a)
                       throws VisADException {
     if (r == null || a == null) {
       throw new ReferenceException("ReferenceActionLink: DataReference and " +
@@ -60,15 +60,15 @@ class ReferenceActionLink extends Object {
     Ball = true;
   }
 
-  DataReference getDataReference() {
+  public DataReference getDataReference() {
     return ref;
   }
 
-  ActionImpl getLocalAction() {
+  public ActionImpl getLocalAction() {
     return local_action;
   }
 
-  Action getAction() {
+  public Action getAction() {
     return action;
   }
 

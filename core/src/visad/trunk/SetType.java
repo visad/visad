@@ -70,9 +70,9 @@ public class SetType extends MathType {
     return Domain;
   }
 
-  ShadowType buildShadowType(DataDisplayLink link, ShadowType parent)
+  public ShadowType buildShadowType(DataDisplayLink link, ShadowType parent)
              throws VisADException, RemoteException {
-    return new ShadowSetType(this, link, parent);
+    return link.getRenderer().makeShadowSetType(this, link, parent);
   }
 
 }

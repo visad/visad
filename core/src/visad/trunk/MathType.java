@@ -98,7 +98,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
 
   public abstract Data missingData() throws VisADException;
 
-  abstract ShadowType buildShadowType(DataDisplayLink link, ShadowType parent)
+  public abstract ShadowType buildShadowType(DataDisplayLink link, ShadowType parent)
            throws VisADException, RemoteException;
 
   public abstract String toString();

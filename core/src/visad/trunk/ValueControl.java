@@ -26,41 +26,16 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad;
 
 /**
-   ValueControl is the VisAD class for controlling SelectValue display scalars.<P>
+   ValueControl is the VisAD interface for controlling SelectValue
+   display scalars.<P>
 */
-public class ValueControl extends AVControl {
+public interface ValueControl extends AVControl {
 
-  private double Value;
+  public void setValue(double value) throws VisADException;
 
-  static final ValueControl prototype = new ValueControl();
+  public void init() throws VisADException;
 
-  public ValueControl(DisplayImpl d) {
-    super(d);
-  }
- 
-  ValueControl() {
-    this(null);
-  }
-
-  public void setValue(double value) throws VisADException {
-    Value = value;
-    selectSwitches(Value);
-    changeControl();
-  }
-
-  void init() throws VisADException {
-    selectSwitches(Value);
-  }
-
-  public double getValue() {
-    return Value;
-  }
-
-  public Control cloneButContents(DisplayImpl d) {
-    ValueControl control = new ValueControl(d);
-    control.Value = 0.0;
-    return control;
-  }
+  public double getValue();
 
 }
 

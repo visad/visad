@@ -36,6 +36,11 @@ public class Linear1DSet extends Gridded1DSet
 
   private double First, Last, Step, Invstep;
 
+  public Linear1DSet(double first, double last, int length)
+         throws VisADException {
+    this(RealType.Generic, first, last, length, null, null, null);
+  }
+
   public Linear1DSet(MathType type, double first, double last, int length)
          throws VisADException {
     this(type, first, last, length, null, null, null);
@@ -155,7 +160,7 @@ public class Linear1DSet extends Gridded1DSet
     return false;
   }
 
-  float[][] getSamples(boolean copy) throws VisADException {
+  public float[][] getSamples(boolean copy) throws VisADException {
     int n = getLength();
     int[] indices = new int[n];
     // do NOT call getWedge

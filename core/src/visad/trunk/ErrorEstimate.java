@@ -43,7 +43,7 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
   private static final double DERIVATIVE_HI_LIMIT = 1.0 / DERIVATIVE_LOW_LIMIT;
 
   /** simple constructor */
-  ErrorEstimate(double error, double mean, long number, Unit u) {
+  public ErrorEstimate(double error, double mean, long number, Unit u) {
     unit = u;
     if (Double.isNaN(error) || Double.isNaN(mean) || number <= 0) {
       Error = Double.NaN;

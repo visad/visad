@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.4 1998-01-01 21:17:36 billh Exp $
+ * $Id: Unit.java,v 1.5 1998-01-28 10:44:52 billh Exp $
  */
 
 package visad;
@@ -22,7 +22,7 @@ import java.io.Serializable;
  * incorporated into VisAD.
  */
 public abstract class Unit
-    implements Serializable
+       implements Serializable
 {
 
 /*
@@ -112,7 +112,10 @@ public abstract class Unit
   }
  
   public boolean equals(Unit unit) {
-    /** this must change, to account for Unit-s from other JVMs */
+    //
+    // TO_DO
+    // this must change, to account for Unit-s from other JVMs
+    //
     return this == unit;
   }
  

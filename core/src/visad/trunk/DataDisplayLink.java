@@ -32,34 +32,36 @@ import java.rmi.*;
    DataDisplayLink objects define connections between DataReference
    objects and Display objects.<P>
 */
-class DataDisplayLink extends ReferenceActionLink {
+public class DataDisplayLink extends ReferenceActionLink {
 
+  /** ShadowType created for data */
   private ShadowType shadow;
 
-  // used by prepareData
+  /** used by prepareData */
   private Data data;
 
-  // ConstantMap-s specific to this Data
+  /** ConstantMap-s specific to this Data */
   private Vector ConstantMapVector = new Vector();
 
-  // Renderer associated with this Data
-  // (may be multiple Data per Renderer)
-  private Renderer renderer;
+  /** DataRenderer associated with this Data
+      (may be multiple Data per DataRenderer) */
+  private DataRenderer renderer;
 
-  // Vector of ScalarMap-s applying to this Data
+  /** Vector of ScalarMap-s applying to this Data */
   private Vector SelectedMapVector = new Vector();
-
-  // default values for DisplayIndices, determined by:
-  // 1. this.ConstantMapVector
-  // 2. Display.ConstantMapVector
-  // 3. DisplayRealType.DefaultValue
+ 
+  /** default values for DisplayIndices, determined by:
+      1. this.ConstantMapVector
+      2. Display.ConstantMapVector
+      3. DisplayRealType.DefaultValue */
   private float[] defaultValues;
 
-  // flag per Control
+  /** flag per Control to indicate need for transform when
+      Control changes */
   boolean[] isTransform;
 
-  DataDisplayLink(DataReference ref, DisplayImpl local_d, Display d,
-                  ConstantMap[] constant_maps, Renderer rend)
+  public DataDisplayLink(DataReference ref, DisplayImpl local_d, Display d,
+                  ConstantMap[] constant_maps, DataRenderer rend)
                   throws VisADException, RemoteException {
     super(ref, local_d, d);
     renderer = rend;
@@ -81,23 +83,19 @@ class DataDisplayLink extends ReferenceActionLink {
     }
   }
 
-  DisplayImpl getDisplay() {
+  public DisplayImpl getDisplay() {
     return (DisplayImpl) local_action;
   }
 
-  Renderer getRenderer() {
+  public DataRenderer getRenderer() {
     return renderer;
   }
 
-  Vector getSelectedMapVector() {
+  public Vector getSelectedMapVector() {
     return SelectedMapVector;
   }
 
-  ShadowType getShadow() {
-    return shadow;
-  }
-
-  void addSelectedMapVector(ScalarMap map) {
+  public void addSelectedMapVector(ScalarMap map) {
     // 'synchronized' unnecessary
     // (since prepareData is a single Thread, but ...)
     synchronized (SelectedMapVector) {
@@ -109,7 +107,7 @@ class DataDisplayLink extends ReferenceActionLink {
 
   /** Prepare to render data (include feasibility check);
       return false if infeasible */
-  boolean prepareData() throws VisADException, RemoteException {
+  public boolean prepareData() throws VisADException, RemoteException {
     int[] indices;
     int[] display_indices;
     int[] value_indices;
@@ -117,7 +115,7 @@ class DataDisplayLink extends ReferenceActionLink {
     data = ref.getData();
     MathType type = data.getType();
     SelectedMapVector.removeAllElements();
-
+ 
     // calculate default values for DisplayRealType-s
     // lowest priority: DisplayRealType.DefaultValue
     int n = ((DisplayImpl) local_action).getDisplayScalarCount();
@@ -139,9 +137,11 @@ class DataDisplayLink extends ReferenceActionLink {
       ConstantMap map = (ConstantMap) maps.nextElement();
       defaultValues[map.getDisplayScalarIndex()] = (float) map.getConstant();
     }
-
+ 
     try {
+      renderer.clearExceptions();
       shadow = type.buildShadowType(this, null);
+      ShadowType adaptedShadow = shadow.getAdaptedShadowType();
       indices = ShadowType.zeroIndices(
                   ((DisplayImpl) local_action).getScalarCount());
       display_indices = ShadowType.zeroIndices(
@@ -153,29 +153,31 @@ class DataDisplayLink extends ReferenceActionLink {
       for (int i=0; i<controls.size(); i++) isTransform[i] = false;
       levelOfDifficulty =
         shadow.checkIndices(indices, display_indices, value_indices,
-                            isTransform, ShadowType.NOTHING_MAPPED);
+                              isTransform, ShadowType.NOTHING_MAPPED);
       if (levelOfDifficulty == ShadowType.LEGAL) {
         // every Control isTransform for merely LEGAL
         // (i.e., the 'dots') rendering
         for (int i=0; i<controls.size(); i++) isTransform[i] = true;
       }
-      shadow.checkDirect(data);
-      // System.out.println(shadow);
+      renderer.checkDirect();
     }
     catch (BadMappingException e) {
-      ((DisplayImpl) local_action).addException(e.getMessage());
+      renderer.addException(e.getMessage());
       return false;
     }
     catch (UnimplementedException e) {
-      ((DisplayImpl) local_action).addException(e.getMessage());
+      renderer.addException(e.getMessage());
       return false;
     }
-    // can now render data based on shadow.LevelOfDifficulty and
-    // shadow.isDirectManipulation
+    // can now render data
     return true;
   }
 
-  Data getData() {
+  public ShadowType getShadow() {
+    return shadow;
+  }
+
+  public Data getData() {
     return data;
   }
 

@@ -827,7 +827,7 @@ public class FieldImpl extends FunctionImpl implements Field {
    Here's how to use this:
 
    for (Enumeration e = field.domainEnumeration() ; e.hasMoreElements(); ) {
-     Data domain_sample = e.nextElement();
+     RealTuple domain_sample = (RealTuple) e.nextElement();
      Data range = field.evaluate(domain_sample);
    }
 </PRE>

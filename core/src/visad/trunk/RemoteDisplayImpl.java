@@ -36,7 +36,7 @@ public class RemoteDisplayImpl extends RemoteActionImpl
        implements RemoteDisplay {
   // and RemoteActionImpl extends UnicastRemoteObject
 
-  RemoteDisplayImpl(DisplayImpl d) throws RemoteException {
+  public RemoteDisplayImpl(DisplayImpl d) throws RemoteException {
     super(d);
   }
 
@@ -62,7 +62,7 @@ public class RemoteDisplayImpl extends RemoteActionImpl
       cannot be called through RemoteDisplay interface, since
       renderer implements neither Remote nor Serializable;
       must be called remotely */
-  public void addReferences(Renderer renderer, DataReference[] refs,
+  public void addReferences(DataRenderer renderer, DataReference[] refs,
          ConstantMap[][] constant_maps) throws VisADException, RemoteException {
     if (AdaptedAction == null) {
       throw new RemoteVisADException("RemoteDisplayImpl.addReferences: " +

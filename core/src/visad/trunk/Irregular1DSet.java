@@ -52,7 +52,8 @@ public class Irregular1DSet extends IrregularSet {
                  CoordinateSystem coord_sys, Unit[] units,
                  ErrorEstimate[] errors, boolean copy)
          throws VisADException {
-    super(type, samples, samples.length, coord_sys, units, errors, copy);
+    super(type, samples, samples.length, coord_sys,
+          units, errors, null, copy);
     LowX = Low[0];
     HiX = Hi[0];
 
@@ -89,7 +90,9 @@ public class Irregular1DSet extends IrregularSet {
   /** convert an array of 1-D indices to an array of values in R^DomainDimension */
   public float[][] indexToValue(int[] index) throws VisADException {
     int[] newIndex = new int[index.length];
-    for (int i=0; i<index.length; i++) newIndex[i] = oldToNew[index[i]];
+    for (int i=0; i<index.length; i++) {
+      newIndex[i] = (index[i] == -1) ? -1 : oldToNew[index[i]];
+    }
     float[][] value = SortedSet.indexToValue(newIndex);
     return value;
   }
@@ -98,7 +101,9 @@ public class Irregular1DSet extends IrregularSet {
   public int[] valueToIndex(float[][] value) throws VisADException {
     int[] index = SortedSet.valueToIndex(value);
     int[] newIndex = new int[index.length];
-    for (int i=0; i<index.length; i++) newIndex[i] = newToOld[index[i]];
+    for (int i=0; i<index.length; i++) {
+      newIndex[i] = (index[i] == -1) ? -1 : newToOld[index[i]];
+    }
     return newIndex;
   }
 

@@ -197,7 +197,7 @@ public abstract class Set extends DataImpl {
     return wedge;
   }
 
-  float[][] getSamples(boolean copy) throws VisADException {
+  public float[][] getSamples(boolean copy) throws VisADException {
     int n = getLength();
     int[] indices = new int[n];
     // do NOT call getWedge
@@ -321,7 +321,7 @@ public abstract class Set extends DataImpl {
   }
 
   public VisADGeometryArray makeIsoSurface(float isolevel,
-                            float[] fieldValues, float[][] color_values)
+         float[] fieldValues, float[][] color_values)
          throws VisADException {
     throw new SetException("Set.makeIsoSurface: not valid for this Set");
   }

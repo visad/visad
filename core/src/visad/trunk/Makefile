@@ -35,6 +35,7 @@ TAR_FILES = \
 	visad/rmic_script				\
 	visad/docs/DESIGN5				\
 	visad/*.java					\
+	visad/java3d/*.java				\
 	visad/data/*.java				\
 	visad/data/netcdf/*.java			\
 	visad/data/netcdf/plain/*.java			\
@@ -61,6 +62,7 @@ jar:
 
 save:
 	cp *.java backup
+	cp java3d/*.java backup/java3d
 	cp data/*.java backup/data
 	cp data/netcdf/*.java backup/data/netcdf
 	cp data/netcdf/plain/*.java backup/data/netcdf/plain
@@ -86,5 +88,5 @@ save:
 	javac $<
 
 compile:
-	javac *.java data/netcdf/*.java data/netcdf/plain/*.java
+	javac *.java java3d/*.java
 

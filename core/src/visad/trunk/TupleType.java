@@ -185,9 +185,9 @@ public class TupleType extends MathType {
     return new Tuple(this);
   }
 
-  ShadowType buildShadowType(DataDisplayLink link, ShadowType parent)
+  public ShadowType buildShadowType(DataDisplayLink link, ShadowType parent)
              throws VisADException, RemoteException {
-    return new ShadowTupleType(this, link, parent);
+    return link.getRenderer().makeShadowTupleType(this, link, parent);
   }
 
 }

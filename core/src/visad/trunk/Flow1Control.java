@@ -30,29 +30,8 @@ package visad;
 */
 public class Flow1Control extends FlowControl {
 
-  static final Flow1Control prototype = new Flow1Control();
-
   public Flow1Control(DisplayImpl d) {
     super(d);
-  }
- 
-  Flow1Control() {
-    this(null);
-  }
-
-  public Control cloneButContents(DisplayImpl d) {
-    Flow1Control control = new Flow1Control(d);
-    control.flowScale = 0.02f;
-    control.HorizontalVectorSlice = false;
-    control.VerticalVectorSlice = false;
-    control.HorizontalStreamSlice = false;
-    control.VerticalStreamSlice = false;
-    control.TrajectorySet = null;
-
-    control.HorizontalVectorSliceHeight = 0.0;
-    control.HorizontalStreamSliceHeight = 0.0;
-
-    return control;
   }
 
 }

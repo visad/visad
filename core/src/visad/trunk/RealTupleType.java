@@ -61,20 +61,15 @@ public class RealTupleType extends TupleType {
   public static final RealTupleType Time1DTuple =
     new RealTupleType(components1t, true);
 
-/* DO NOT define circular and spherical tuples as system intrinsics;
-   leave it to the user to decide if these are Reference-s or are
-   relative to the Cartesian RealTupleType-s
+  private static RealType[] components2g =
+    {RealType.Generic, RealType.Generic};
+  public final static RealTupleType Generic2D =
+    new RealTupleType(components2g, true);
 
-  private static RealType[] components2s =
-    {RealType.Latitude, RealType.Longitude};
-  public static final RealTupleType SpatialLatLonTuple =
-    new RealTupleType(components2s, true);
-
-  private static RealType[] components3s =
-    {RealType.Latitude, RealType.Longitude, RealType.Radius};
-  public static final RealTupleType SpatialSphericalTuple =
-    new RealTupleType(components3s, true);
-*/
+  private static RealType[] components3g = 
+    {RealType.Generic, RealType.Generic, RealType.Generic};
+  public final static RealTupleType Generic3D =
+    new RealTupleType(components3g, true);
 
   public RealTupleType(RealType[] types) throws VisADException {
     this(types, null, null);
@@ -235,9 +230,9 @@ public class RealTupleType extends TupleType {
     return new RealTuple(this);
   }
 
-  ShadowType buildShadowType(DataDisplayLink link, ShadowType parent)
+  public ShadowType buildShadowType(DataDisplayLink link, ShadowType parent)
              throws VisADException, RemoteException {
-    return new ShadowRealTupleType(this, link, parent);
+    return link.getRenderer().makeShadowRealTupleType(this, link, parent);
   }
 
 }

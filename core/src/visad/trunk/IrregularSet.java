@@ -36,7 +36,7 @@ package visad;
 */
 public class IrregularSet extends SampledSet {
 
-  Delaunay Delan;
+  Delaunay Delan = null;
 
   /** oldToNew and newToOld used when ManifoldDimension = 1
       but DomainDimension > 1 */
@@ -48,34 +48,61 @@ public class IrregularSet extends SampledSet {
   /** construct an IrregularSet */
   public IrregularSet(MathType type, float[][] samples)
          throws VisADException {
-    this(type, samples, samples.length, null, null, null);
+    this(type, samples, samples.length, null, null, null, null, true);
   }
 
   /** construct an IrregularSet with non-default CoordinateSystem */
   public IrregularSet(MathType type, float[][] samples,
                       CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors) throws VisADException {
-    this(type, samples, samples.length, coord_sys, units, errors);
+    this (type, samples, samples.length, coord_sys,
+          units, errors, null, true);
   }
 
-  /** construct an IrregularSet with ManifoldDimension != DomainDimension
-      and with non-default CoordinateSystem */
+  /** construct an IrregularSet with non-default Delaunay */
+  public IrregularSet(MathType type, float[][] samples, Delaunay delan)
+         throws VisADException {
+    this(type, samples, samples.length, null, null, null, delan, true);
+  }
+
+  /** construct an IrregularSet with non-default
+      CoordinateSystem and non-default Delaunay */
+  public IrregularSet(MathType type, float[][] samples,
+                      CoordinateSystem coord_sys, Unit[] units,
+                      ErrorEstimate[] errors, Delaunay delan)
+         throws VisADException {
+    this(type, samples, samples.length, coord_sys,
+         units, errors, delan, true);
+  }
+
+  /** construct an IrregularSet with ManifoldDimension != DomainDimension,
+      with non-default CoordinateSystem, and with non-default Delaunay */
   public IrregularSet(MathType type, float[][] samples,
                       int manifold_dimension, CoordinateSystem coord_sys,
-                      Unit[] units, ErrorEstimate[] errors)
+                      Unit[] units, ErrorEstimate[] errors, Delaunay delan)
          throws VisADException {
-    this(type, samples, manifold_dimension, coord_sys, units, errors, true);
+    this(type, samples, manifold_dimension, coord_sys,
+         units, errors, delan, true);
   }
 
   IrregularSet(MathType type, float[][] samples,
                int manifold_dimension, CoordinateSystem coord_sys,
-               Unit[] units, ErrorEstimate[] errors, boolean copy)
-         throws VisADException {
+               Unit[] units, ErrorEstimate[] errors, Delaunay delan,
+               boolean copy) throws VisADException {
     super(type, manifold_dimension, coord_sys, units, errors);
     if (samples == null ) {
       throw new SetException("IrregularSet: samples cannot be null");
     }
     init_samples(samples, copy);
+
+    // initialize Delaunay triangulation structure
+    if (ManifoldDimension > 1) {
+      if (delan != null) {
+        if (copy) Delan = (Delaunay) delan.clone();
+        else Delan = delan;
+      }
+      else Delan = Delaunay.factory(samples, false);
+    }
   }
 
   /** convert an array of 1-D indices to an array of values in R^DomainDimension */
@@ -142,7 +169,7 @@ public class IrregularSet extends SampledSet {
   public Object clone() {
     try {
       return new IrregularSet(Type, Samples, DomainCoordinateSystem,
-                            SetUnits, SetErrors);
+                            SetUnits, SetErrors, Delan);
     }
     catch (VisADException e) {
       throw new VisADError("IrregularSet.clone: " + e.toString());
@@ -151,7 +178,7 @@ public class IrregularSet extends SampledSet {
 
   public Object cloneButType(MathType type) throws VisADException {
     return new IrregularSet(type, Samples, DomainCoordinateSystem,
-                          SetUnits, SetErrors);
+                          SetUnits, SetErrors, Delan);
   }
 
   public String longString(String pre) throws VisADException {

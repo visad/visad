@@ -33,16 +33,12 @@ public class RangeControl extends Control {
   private float RangeLow;
   private float RangeHi;
 
-  static final RangeControl prototype = new RangeControl();
-
   public RangeControl(DisplayImpl d) {
     super(d);
+    RangeLow = 0.0f;
+    RangeHi = 0.0f;
   }
  
-  RangeControl() {
-    this(null);
-  }
-
   public void setRange(float[] range) {
     RangeLow = range[0];
     RangeHi = range[1];
@@ -54,14 +50,6 @@ public class RangeControl extends Control {
     range[0] = RangeLow;
     range[1] = RangeHi;
     return range;
-  }
-
-  public Control cloneButContents(DisplayImpl d) {
-    RangeControl control = new RangeControl(d);
-    control.RangeLow = 0.0f;
-    control.RangeHi = 0.0f;
-
-    return control;
   }
 
 }

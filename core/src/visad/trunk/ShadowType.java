@@ -25,9 +25,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
-import javax.media.j3d.*;
-import java.vecmath.*;
-
 import java.util.*;
 import java.rmi.*;
 
@@ -39,11 +36,11 @@ public abstract class ShadowType extends Object
        implements java.io.Serializable {
 
   /** possible values for LevelOfDifficulty */
-  static final int NOTHING_MAPPED = 5;
-  static final int SIMPLE_TUPLE = 4;
-  static final int SIMPLE_FIELD = 3;
-  static final int NESTED = 2;
-  static final int LEGAL = 1;
+  public static final int NOTHING_MAPPED = 5;
+  public static final int SIMPLE_TUPLE = 4;
+  public static final int SIMPLE_FIELD = 3;
+  public static final int NESTED = 2;
+  public static final int LEGAL = 1;
 
   /** basic information about this ShadowType */
   MathType Type; // MathType being shadowed
@@ -73,39 +70,6 @@ public abstract class ShadowType extends Object
   /** information calculated by checkIndices & testIndices */
   boolean isTerminal;
   int LevelOfDifficulty;
-
-  /** information calculated by checkDirect */
-  /** whether DirectManipulationRenderer is valid for this ShadowType */
-  boolean isDirectManipulation;
-  /** explanation for invalid use of DirectManipulationRenderer */
-  String whyNotDirect = null;
-  /** mapping from spatial axes to tuple component */
-  int[] axisToComponent = {-1, -1, -1};
-  /** mapping from spatial axes to ScalarMaps */
-  ScalarMap[] directMap = {null, null, null};
-  /** spatial axis for Function domain */
-  int domainAxis = -1;
-  /** dimension of direct manipulation
-      (including any Function domain) */
-  int directManifoldDimension = 0;
-
-  /** possible values for whyNotDirect */
-  final static String notRealFunction = "FunctionType must be Real";
-  final static String notSimpleField = "not simple field";
-  final static String notSimpleTuple = "not simple tuple";
-  final static String multipleMapping = "RealType with multiple mappings";
-  final static String nonCartesian =
-    "mapping to non-Cartesian spatial display tuple";
-  final static String viaReference = "spatial mapping through Reference";
-  final static String domainDimension = "domain dimension must be 1";
-  final static String domainNotSpatial = "domain must be mapped to spatial";
-  final static String rangeType = "range must be RealType or RealTupleType";
-  final static String rangeNotSpatial = "range must be mapped to spatial";
-  final static String domainSet = "domain Set must be Gridded1DSet";
-/* WLH 25 Dec 97
-  final static String dataMissing = "data missing";
-*/
-
 
   /** Dtype and Rtype used only with ShadowSetType and
       Flat ShadowFunctionType */
@@ -145,7 +109,42 @@ public abstract class ShadowType extends Object
   ShadowRealTupleType[] componentWithRef;
   int[] componentIndex;
 
-  ShadowRealType[] getComponents(ShadowType type, boolean doRef)
+  public ShadowType(MathType type, DataDisplayLink link, ShadowType parent)
+         throws VisADException, RemoteException {
+    Type = type;
+    Link = link;
+    display = link.getDisplay();
+    Parent = parent;
+    data = link.getData();
+    DisplayIndices = zeroIndices(display.getDisplayScalarCount());
+    ValueIndices = zeroIndices(display.getValueArrayLength());
+    isTerminal = false;
+    LevelOfDifficulty = NOTHING_MAPPED;
+    MultipleDisplayScalar = false;
+    MappedDisplayScalar = false;
+  }
+
+  public int getLevelOfDifficulty() {
+    return LevelOfDifficulty;
+  }
+
+  public boolean getIsTerminal() {
+    return isTerminal;
+  }
+
+  public int[] getRefToComponent() {
+    return refToComponent;
+  }
+
+  public ShadowRealTupleType[] getComponentWithRef() {
+    return componentWithRef;
+  }
+
+  public int[] getComponentIndex() {
+    return componentIndex;
+  }
+
+  public ShadowRealType[] getComponents(ShadowType type, boolean doRef)
           throws VisADException {
     if (type == null) return null;
     if (doRef) {
@@ -239,29 +238,12 @@ public abstract class ShadowType extends Object
     return reals;
   }
 
-
-  ShadowType(MathType type, DataDisplayLink link, ShadowType parent)
-             throws VisADException, RemoteException {
-    Type = type;
-    Link = link;
-    display = link.getDisplay();
-    Parent = parent;
-    data = link.getData();
-    DisplayIndices = zeroIndices(display.getDisplayScalarCount());
-    ValueIndices = zeroIndices(display.getValueArrayLength());
-    isTerminal = false;
-    LevelOfDifficulty = NOTHING_MAPPED;
-    isDirectManipulation = false;
-    MultipleDisplayScalar = false;
-    MappedDisplayScalar = false;
-  }
-
-  ShadowType getParent() {
-    return Parent;
-  }
-
-  Data getData() {
+  public Data getData() {
     return data;
+  }
+
+  public ShadowType getAdaptedShadowType() {
+    return this;
   }
 
   /** create a zero'd array of indices (for each RealType or each DisplayRealType) */
@@ -564,39 +546,11 @@ public abstract class ShadowType extends Object
       numbers of occurrences of RealTypes and DisplayRealTypes;
       isTransform flags for (Animation, Range, Value) re-transform;
       levelOfDifficulty passed down and up call chain */
-  int checkIndices(int[] indices, int[] display_indices, int[] value_indices,
-                   boolean[] isTransform, int levelOfDifficulty)
+  public int checkIndices(int[] indices, int[] display_indices,
+             int[] value_indices, boolean[] isTransform, int levelOfDifficulty)
       throws VisADException, RemoteException {
     LevelOfDifficulty = testIndices(indices, display_indices, levelOfDifficulty);
     return LevelOfDifficulty;
-  }
-
-  /** default for other than ShadowRealType, ShadowRealTupleType
-      and ShadowFunctionType */
-  void checkDirect(Data data) throws VisADException, RemoteException {
-    isDirectManipulation = false;
-  }
-
-  /** set domainAxis and axisToComponent (domain = false) or
-      directMap (domain = true) from real; called by checkDirect */
-  int setDirectMap(ShadowRealType real, int component, boolean domain) {
-    Enumeration maps = real.getSelectedMapVector().elements();
-    while(maps.hasMoreElements()) {
-      ScalarMap map = (ScalarMap) maps.nextElement();
-      DisplayRealType dreal = map.getDisplayScalar();
-      if (Display.DisplaySpatialCartesianTuple.equals(dreal.getTuple())) {
-        int index = dreal.getTupleIndex();
-        if (domain) {
-          domainAxis = index;
-        }
-        else {
-          axisToComponent[index] = component;
-        }
-        directMap[index] = map;
-        return 1;
-      }
-    }
-    return 0;
   }
 
   public DisplayImpl getDisplay() {
@@ -627,30 +581,6 @@ public abstract class ShadowType extends Object
     return ii;
   }
 
-  public int getDirectManifoldDimension() {
-    return directManifoldDimension;
-  }
-
-  public boolean getIsDirectManipulation() {
-    return isDirectManipulation;
-  }
-
-  public String getWhyNotDirect() {
-    return whyNotDirect;
-  }
-
-  public int getAxisToComponent(int i) {
-    return axisToComponent[i];
-  }
-
-  public ScalarMap getDirectMap(int i) {
-    return directMap[i];
-  }
-
-  public int getDomainAxis() {
-    return domainAxis;
-  }
-
   /** return true if DisplayIndices include multiple
       Animation, SelectValue and SelectRange */
   boolean testTransform() {
@@ -673,29 +603,9 @@ public abstract class ShadowType extends Object
   void markTransform(boolean[] isTransform) {
   }
 
-  /** clear AccumulationVector */
-  public void preProcess() throws VisADException {
-  }
 
-  /** transform data into a Java3D scene graph;
-      add generated scene graph components as children of group;
-      value_array are inherited valueArray values;
-      default_values are defaults for each display.DisplayRealTypeVector;
-      return true if need post-process;
-      this is default (for ShadowTextType) */
-  public boolean doTransform(Group group, Data data, float[] value_array,
-                             float[] default_values, Renderer renderer)
-          throws VisADException, RemoteException {
-    return false;
-  }
-
-  /** render accumulated Vector of value_array-s to
-      and add to group; then clear AccumulationVector */
-  public void postProcess(Group group) throws VisADException {
-  }
-
-
-  /* helpers for doTransform */
+  /** helpers for doTransform; they are in ShadowType
+      because they are independent of graphics library */
 
   /** map values into display_values according to ScalarMap-s in reals */
   public static void mapValues(float[][] display_values, double[][] values,
@@ -747,48 +657,6 @@ public abstract class ShadowType extends Object
     // MEM
     SampledSet.setGeometryArray(array, spatial_values, 3, color_values);
     return array;
-  }
-
-  /** construct an Appearance object */
-  public static Appearance makeAppearance(GraphicsModeControl mode,
-                      TransparencyAttributes constant_alpha,
-                      ColoringAttributes constant_color,
-                      GeometryArray geometry) {
-    Appearance appearance = new Appearance();
-
-    LineAttributes line = new LineAttributes();
-    line.setLineWidth(mode.getLineWidth());
-    appearance.setLineAttributes(line);
-
-    PointAttributes point = new PointAttributes();
-    point.setPointSize(mode.getPointSize());
-    appearance.setPointAttributes(point);
-
-    PolygonAttributes polygon = new PolygonAttributes();
-    polygon.setCullFace(PolygonAttributes.CULL_NONE);
-    appearance.setPolygonAttributes(polygon);
-
-    if (constant_alpha != null) {
-      appearance.setTransparencyAttributes(constant_alpha);
-    }
-    if (constant_color != null) {
-      appearance.setColoringAttributes(constant_color);
-    }
-    // only do Material if geometry is 2-D (not 0-D points or 1-D lines)
-    if (!(geometry instanceof LineArray ||
-          geometry instanceof PointArray ||
-          geometry instanceof IndexedLineArray ||
-          geometry instanceof IndexedPointArray ||
-          geometry instanceof IndexedLineStripArray ||
-          geometry instanceof LineStripArray)) {
-      Material material = new Material();
-      material.setSpecularColor(0.0f, 0.0f, 0.0f);
-      // no lighting in 2-D mode
-      if (!mode.getMode2D()) material.setLightingEnable(true);
-      appearance.setMaterial(material);
-    }
-
-    return appearance;
   }
 
   /** collect and transform spatial DisplayRealType values from display_values;
@@ -872,15 +740,18 @@ public abstract class ShadowType extends Object
         switch (spatialDimension) {
           case 1:
             domain_set =
-              new Irregular1DSet(tuple_type, samples, null, null, null, false);
+              new Irregular1DSet(tuple_type, samples, null,
+                                 null, null, false);
             break;
           case 2:
             domain_set =
-              new Irregular2DSet(tuple_type, samples, null, null, null, false);
+              new Irregular2DSet(tuple_type, samples, null,
+                                 null, null, null, false);
             break;
           case 3:
             domain_set =
-              new Irregular3DSet(tuple_type, samples, null, null, null, false);
+              new Irregular3DSet(tuple_type, samples, null,
+                                 null, null, null, false);
             break;
         }
         // System.out.println("IrregularSet done");
@@ -1185,7 +1056,6 @@ public abstract class ShadowType extends Object
             FlowControl control = (FlowControl)
               ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
             flowScale[k] = control.getFlowScale();
-
             int flow_index = real.getTupleIndex();
             ff_values[k][flow_index] = display_values[i];
             flen[k] = Math.max(flen[k], display_values[i].length);
@@ -1339,7 +1209,7 @@ public abstract class ShadowType extends Object
       }
     }
     array.coordinates = coordinates;
-    array.vertexFormat = GeometryArray.COORDINATES;
+    // array.vertexFormat = COORDINATES;
 
     if (color_values != null) {
       float[] colors = new float[12 * rlen];
@@ -1367,7 +1237,7 @@ public abstract class ShadowType extends Object
         }
       }
       array.colors = colors;
-      array.vertexFormat |= GeometryArray.COLOR_3;
+      // array.vertexFormat |= COLOR_3;
     }
     return array;
   }
@@ -1730,123 +1600,8 @@ public abstract class ShadowType extends Object
     return range_select;
   }
 
-  boolean terminalTupleOrReal(Group group, float[][] display_values,
-                              int valueArrayLength, int[] valueToScalar,
-                              DisplayImpl display, float[] default_values,
-                              int[] inherited_values, Renderer renderer)
-          throws VisADException, RemoteException {
- 
-    GraphicsModeControl mode = display.getGraphicsModeControl();
- 
-    float[][] flow1_values = new float[3][];
-    float[][] flow2_values = new float[3][];
-    float[] flowScale = new float[2];
-    float[][] range_select = new float[1][];
-    assembleFlow(flow1_values, flow2_values, flowScale,
-                 display_values, valueArrayLength, valueToScalar,
-                 display, default_values, range_select);
- 
-    if (range_select[0] != null && range_select[0][0] != range_select[0][0]) {
-      // data not selected
-      return false;
-    }
-
-    int[] spatialDimensions = new int[2];
-    float[][] spatial_values = new float[3][];
-    assembleSpatial(spatial_values, display_values, valueArrayLength,
-                    valueToScalar, display, default_values,
-                    inherited_values, null, false, false,
-                    spatialDimensions, range_select,
-                    flow1_values, flow2_values, flowScale);
-
-    if (range_select[0] != null && range_select[0][0] != range_select[0][0]) {
-      // data not selected
-      return false;
-    }
- 
-    float[][] color_values =
-      assembleColor(display_values, valueArrayLength, valueToScalar,
-                    display, default_values, range_select);
- 
-    if (range_select[0] != null && range_select[0][0] != range_select[0][0]) {
-      // data not selected
-      return false;
-    }
- 
-    if (LevelOfDifficulty == SIMPLE_TUPLE) {
-      // only manage Spatial, Color and Alpha here
-      // i.e., the 'dots'
- 
-      if (color_values[0][0] != color_values[0][0] ||
-          color_values[1][0] != color_values[1][0] ||
-          color_values[2][0] != color_values[2][0]) {
-        // System.out.println("single missing alpha");
-        // a single missing color value, so render nothing
-        return false;
-      }
-      // put single color in appearance
-      ColoringAttributes constant_color = new ColoringAttributes();
-      constant_color.setColor(color_values[0][0], color_values[1][0],
-                              color_values[2][0]);
-
-      VisADGeometryArray array;
-      GeometryArray geometry;
-      Appearance appearance;
-      Shape3D shape;
-
-      boolean anyFlowCreated = false;
-      // try Flow1
-      array = makeFlow(flow1_values, flowScale[0], spatial_values,
-                       color_values, range_select);
-      if (array != null) {
-        geometry = array.makeGeometry();
-        appearance = makeAppearance(mode, null, constant_color, geometry);
-        shape = new Shape3D(geometry, appearance);
-        group.addChild(shape);
-        anyFlowCreated = true;
-      }
-      // try Flow2
-      array = makeFlow(flow2_values, flowScale[1], spatial_values,
-                       color_values, range_select);
-      if (array != null) {
-        geometry = array.makeGeometry();
-        appearance = makeAppearance(mode, null, constant_color, geometry);
-        shape = new Shape3D(geometry, appearance);
-        group.addChild(shape);
-        anyFlowCreated = true;
-      }
-
-      if (!anyFlowCreated) {
-        array = makePointGeometry(spatial_values, null);
-        geometry = array.makeGeometry();
-        appearance = makeAppearance(mode, null, constant_color, geometry);
-        shape = new Shape3D(geometry, appearance);
-        group.addChild(shape);
-        if (renderer instanceof DirectManipulationRenderer) {
-          ((DirectManipulationRenderer) renderer).setSpatialValues(spatial_values);
-        }
-      }
-      return false;
-    }
-    else { // if (!(LevelOfDifficulty == SIMPLE_TUPLE))
-      // must be LevelOfDifficulty == LEGAL
-      // add values to value_array according to SelectedMapVector-s
-      // of RealType-s in components (including Reference)
-      //
-      // accumulate Vector of value_array-s at this ShadowType,
- 
-      // to be rendered in a post-process to scanning data
-/*
-      return true;
-*/
-      throw new UnimplementedException("ShadowType.terminalTupleOrReal: " +
-                                       "terminal LEGAL");
-    }
-  }
-
   public String toString() {
-    return " LevelOfDifficulty = " + LevelOfDifficulty +
-           " isDirectManipulation = " + isDirectManipulation;
+    return " LevelOfDifficulty = " + LevelOfDifficulty;
   }
 
 }

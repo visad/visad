@@ -179,9 +179,10 @@ public class FunctionType extends MathType {
     return new FieldImpl(this, new SingletonSet((RealTuple) Domain.missingData()));
   }
 
-  ShadowType buildShadowType(DataDisplayLink link, ShadowType parent)
+  public ShadowType buildShadowType(DataDisplayLink link, ShadowType parent)
              throws VisADException, RemoteException {
-    return new ShadowFunctionType(this, link, parent);
+    return (ShadowType)
+      link.getRenderer().makeShadowFunctionType(this, link, parent);
   }
 
 }

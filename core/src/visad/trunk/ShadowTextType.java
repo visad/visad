@@ -34,7 +34,7 @@ import java.rmi.*;
 */
 public class ShadowTextType extends ShadowType {
 
-  ShadowTextType(MathType t, DataDisplayLink link, ShadowType parent)
+  public ShadowTextType(MathType t, DataDisplayLink link, ShadowType parent)
                  throws VisADException, RemoteException {
     super(t, link, parent);
   }

@@ -44,6 +44,8 @@ public abstract class ActionImpl extends Object
   /** ActionImpl is not Serializable, but mark as transient anyway */
   private transient Thread actionThread;
 
+  private boolean alive = true;
+
   /** Vector of ReferenceActionLink-s;
       ActionImpl is not Serializable, but mark as transient anyway */
   transient Vector LinkVector = new Vector();
@@ -55,8 +57,8 @@ public abstract class ActionImpl extends Object
   }
 
   public void stop() {
-    if (actionThread != null) actionThread.stop();
     actionThread = null;
+    alive = false;
     if (LinkVector == null) return;
     synchronized (LinkVector) {
       Enumeration links = LinkVector.elements();
@@ -124,7 +126,7 @@ if (Name != null && Name.equals("shalstep_cell")) {
 
   public void run() {
     boolean dontSleep;
-    while (true) {
+    while (alive) {
       try {
         dontSleep = false;
         setTicks();

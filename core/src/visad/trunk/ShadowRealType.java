@@ -25,9 +25,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
-import javax.media.j3d.*;
-import java.vecmath.*;
-
 import java.util.*;
 import java.rmi.*;
 
@@ -59,12 +56,10 @@ public class ShadowRealType extends ShadowType {
   private int[] DisplaySpatialTupleIndex;
   private int DisplaySpatialTupleIndexIndex;
 
-  private Vector AccumulationVector = new Vector();
-
   /** value_indices from parent */
   private int[] inherited_values;
 
-  ShadowRealType(MathType type, DataDisplayLink link, ShadowType parent)
+  public ShadowRealType(MathType type, DataDisplayLink link, ShadowType parent)
       throws VisADException, RemoteException {
     super(type, link, parent);
 
@@ -105,7 +100,7 @@ public class ShadowRealType extends ShadowType {
           if (DisplaySpatialTuple != null) {
             if (!tuple.equals(DisplaySpatialTuple)) {
               // this mapped to multiple spatial DisplayTupleType-s
-              DisplayRealType real = (DisplayRealType) Type;
+              RealType real = (RealType) Type;
               throw new BadMappingException("ShadowRealType: " + real.getName() +
                          " mapped to multiple spatial DisplayTupleType-s");
             }
@@ -132,8 +127,8 @@ public class ShadowRealType extends ShadowType {
 
   /** increment indices for ShadowRealType
       and then test as possible terminal node */
-  int checkIndices(int[] indices, int[] display_indices, int[] value_indices,
-                   boolean[] isTransform, int levelOfDifficulty)
+  public int checkIndices(int[] indices, int[] display_indices,
+             int[] value_indices, boolean[] isTransform, int levelOfDifficulty)
       throws VisADException, RemoteException {
     // add indices & display_indices from RealType
     int[] local_indices = copyIndices(indices);
@@ -173,33 +168,8 @@ public class ShadowRealType extends ShadowType {
     return LevelOfDifficulty;
   }
 
-  void checkDirect(Data data) throws VisADException, RemoteException {
-    if (LevelOfDifficulty != SIMPLE_TUPLE) {
-      whyNotDirect = notSimpleTuple;
-      return;
-    }
-    else if (MultipleDisplayScalar) {
-      whyNotDirect = multipleMapping;
-      return;
-    }
-    else if(!Display.DisplaySpatialCartesianTuple.equals(DisplaySpatialTuple)) {
-      whyNotDirect = nonCartesian;
-      return;
-    }
-/* WLH 25 Dec 97
-    else if(data.isMissing()) {
-      whyNotDirect = dataMissing;
-      return;
-    }
-*/
-    isDirectManipulation = true;
-
-    domainAxis = -1;
-    for (int i=0; i<3; i++) {
-      axisToComponent[i] = -1;
-      directMap[i] = null;
-    }
-    directManifoldDimension = setDirectMap(this, 0, false);
+  public int[] getInheritedValues() {
+    return inherited_values;
   }
 
   public boolean getMappedDisplayScalar() {
@@ -218,7 +188,7 @@ public class ShadowRealType extends ShadowType {
     return Index;
   }
 
-  Vector getSelectedMapVector() {
+  public Vector getSelectedMapVector() {
     return SelectedMapVector;
   }
 
@@ -237,101 +207,6 @@ public class ShadowRealType extends ShadowType {
         }
       }
     }
-  }
-
-  /** clear AccumulationVector */
-  public void preProcess() throws VisADException {
-    AccumulationVector.removeAllElements();
-  }
-
-  /** transform data into a Java3D scene graph;
-      return true if need post-process */
-  public boolean doTransform(Group group, Data data, float[] value_array,
-                             float[] default_values, Renderer renderer)
-         throws VisADException, RemoteException {
-
-    if (data.isMissing()) return false;
-
-    if (!(data instanceof Real)) {
-      throw new DisplayException("ShadowrealType.doTransform: " +
-                                 "data must be Real");
-    }
- 
-    // get some precomputed values useful for transform
-    // length of ValueArray
-    int valueArrayLength = display.getValueArrayLength();
-    // mapping from ValueArray to DisplayScalar
-    int[] valueToScalar = display.getValueToScalar();
-    // mapping from ValueArray to MapVector
-    int[] valueToMap = display.getValueToMap();
-    Vector MapVector = display.getMapVector();
- 
-    // array to hold values for various mappings
-    float[][] display_values = new float[valueArrayLength][];
- 
-    // get values inherited from parent;
-    // assume these do not include SelectRange, SelectValue
-    // or Animation values - see temporary hack in
-    // Renderer.isTransformControl
-    for (int i=0; i<valueArrayLength; i++) {
-      if (inherited_values[i] > 0) {
-        display_values[i] = new float[1];
-        display_values[i][0] = value_array[i];
-      }
-    }
- 
-    Real real = (Real) data;
-
-    RealType rtype = (RealType) getType();
-    RealType[] realComponents = {rtype};
-    double[][] value = new double[1][1];
-    value[0][0] = real.getValue(rtype.getDefaultUnit());
-    ShadowRealType[] RealComponents = {this};
-    mapValues(display_values, value, RealComponents);
-
-    float[][] range_select =
-      assembleSelect(display_values, 1, valueArrayLength,
-                     valueToScalar, display);
- 
-    if (range_select[0] != null && range_select[0][0] != range_select[0][0]) {
-      // data not selected
-      return false;
-    }
-
-    // add values to value_array according to SelectedMapVector
-    if (isTerminal) {
-      // cannot be any Reference when RealType is terminal
-      return terminalTupleOrReal(group, display_values, valueArrayLength,
-                                 valueToScalar, display, default_values,
-                                 inherited_values, renderer);
-    }
-    else {
-      // nothing to render at a non-terminal RealType
-    }
-    return false;
-  }
-
-  /** render accumulated Vector of value_array-s to
-      and add to group; then clear AccumulationVector */
-  public void postProcess(Group group) throws VisADException {
-    if (isTerminal) {
-      if (LevelOfDifficulty == LEGAL) {
-/*
-        Group data_group = null;
-        // transform AccumulationVector
-        group.addChild(data_group);
-*/
-        throw new UnimplementedException("ShadowRealType.postProcess: " +
-                                         "terminal LEGAL");
-      }
-      else {
-        // nothing to do
-      }
-    }
-    else {
-      // nothing to do
-    }
-    AccumulationVector.removeAllElements();
   }
 
 }

@@ -64,9 +64,9 @@ public class ShadowRealTupleType extends ShadowTupleType {
       DisplayRealType.DefaultValue */
   private int[] permutation;
  
-  ShadowRealTupleType(MathType t, DataDisplayLink link, ShadowType parent)
-      throws VisADException, RemoteException {
-    super(t, link, parent);
+  public ShadowRealTupleType(MathType t, DataDisplayLink link, ShadowType parent,
+                             ShadowType[] tcs) throws VisADException, RemoteException {
+    super(t, link, parent, tcs);
 
     // check if tupleComponents are mapped to components of
     // Display.DisplaySpatialCartesianTuple, or to components
@@ -119,7 +119,8 @@ public class ShadowRealTupleType extends ShadowTupleType {
     if (((RealTupleType) Type).getCoordinateSystem() != null) {
       RealTupleType ref =
         ((RealTupleType) Type).getCoordinateSystem().getReference();
-      Reference = (ShadowRealTupleType) ref.buildShadowType(Link, this);
+      Reference = (ShadowRealTupleType)
+        ref.buildShadowType(Link, this).getAdaptedShadowType();
       DisplayTupleType tuple = Reference.getDisplaySpatialTuple();
       // note mappings of CoordinateSystem.Reference count
       DisplayIndices = addIndices(DisplayIndices, Reference.getDisplayIndices());
@@ -149,49 +150,6 @@ public class ShadowRealTupleType extends ShadowTupleType {
     }
     else { // ((RealTupleType) Type).DefaultCoordinateSystem == null
       Reference = null;
-    }
-  }
-
-  //
-  // TO_DO
-  // allow for any Flat ShadowTupleType
-  //
-  //
-  void checkDirect(Data data) throws VisADException, RemoteException {
-    if (LevelOfDifficulty != SIMPLE_TUPLE) {
-      whyNotDirect = notSimpleTuple;
-      return;
-    }
-    else if (MultipleDisplayScalar) {
-      whyNotDirect = multipleMapping;
-      return;
-    }
-    else if (!Display.DisplaySpatialCartesianTuple.equals(DisplaySpatialTuple)) {
-      whyNotDirect = nonCartesian;
-      return; 
-    }
-    else if (spatialReference) {
-      whyNotDirect = viaReference;
-      return; 
-    }
-/* WLH 25 Dec 97
-    else if (data.isMissing()) {
-      whyNotDirect = dataMissing;
-      return; 
-    }
-*/
-    isDirectManipulation = true;
-
-    domainAxis = -1;
-    for (int i=0; i<3; i++) { 
-      axisToComponent[i] = -1;
-      directMap[i] = null;
-    }
-
-    directManifoldDimension = 0;
-    for (int i=0; i<getDimension(); i++) {
-      directManifoldDimension +=
-        setDirectMap((ShadowRealType) getComponent(i), i, false);
     }
   }
 

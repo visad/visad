@@ -38,8 +38,21 @@ public class Linear3DSet extends Gridded3DSet
 
   Linear1DSet X, Y, Z;
 
+  public Linear3DSet(Linear1DSet[] sets) throws VisADException {
+    this(RealTupleType.Generic3D, sets, null, null, null);
+  }
+
   public Linear3DSet(MathType type, Linear1DSet[] sets) throws VisADException {
     this(type, sets, null, null, null);
+  }
+
+  public Linear3DSet(double first1, double last1, int length1,
+                     double first2, double last2, int length2,
+                     double first3, double last3, int length3)
+         throws VisADException {
+    this(RealTupleType.Generic3D, LinearNDSet.get_linear1d_array(
+           RealTupleType.Generic3D, first1, last1, length1,
+           first2, last2, length2, first3, last3, length3), null, null, null);
   }
 
   public Linear3DSet(MathType type, double first1, double last1, int length1,
@@ -204,7 +217,7 @@ public class Linear3DSet extends Gridded3DSet
     return false;
   }
 
-  float[][] getSamples(boolean copy) throws VisADException {
+  public float[][] getSamples(boolean copy) throws VisADException {
     int n = getLength();
     int[] indices = new int[n];
     // do NOT call getWedge

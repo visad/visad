@@ -41,7 +41,6 @@ public class DisplayRealType extends RealType {
   private DisplayTupleType tuple; // tuple to which DisplayRealType belongs, or null
   private int tupleIndex;         // index within tuple
   private boolean Single;   // true if only one instance allowed in a display type
-  private Control control;  // prototype of appropriate Control subclass, or null
 
   private boolean System;   // true if this is a system intrinsic
 
@@ -55,23 +54,22 @@ public class DisplayRealType extends RealType {
 
   /** trusted constructor for intrinsic DisplayRealType's created by system
       without range or Unit */
-  DisplayRealType(String name, boolean single, double def,
-                  Control cont, boolean b) {
+  DisplayRealType(String name, boolean single, double def, boolean b) {
     this(name, single, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY,
-         def, cont, null, b);
+         def, null, b);
   }
 
   /** trusted constructor for intrinsic DisplayRealType's created by system
       without Unit */
   DisplayRealType(String name, boolean single, double low, double hi,
-                  double def, Control cont, boolean b) {
-    this(name, single, low, hi, def, cont, null, b);
+                  double def, boolean b) {
+    this(name, single, low, hi, def, null, b);
   }
 
   /** trusted constructor for intrinsic DisplayRealType's created by system
       with Unit */
   DisplayRealType(String name, boolean single, double low, double hi,
-                  double def, Control cont, Unit unit, boolean b) {
+                  double def, Unit unit, boolean b) {
     super("Display" + name, unit, b);
     System = true;
     Single = single;
@@ -80,7 +78,6 @@ public class DisplayRealType extends RealType {
     range = !(Double.isInfinite(low) || Double.isNaN(low) ||
               Double.isInfinite(hi) || Double.isNaN(hi));
     DefaultValue = def;
-    control = cont;
     tuple = null;
     tupleIndex = -1;
     synchronized (DisplayRealTypeVector) {
@@ -92,7 +89,7 @@ public class DisplayRealType extends RealType {
 
   /** public constructor for user-defined DisplayRealType's */
   public DisplayRealType(String name, boolean single, double low, double hi,
-                         double def, Control cont, Unit unit)
+                         double def, Unit unit)
          throws VisADException {
     super("Display" + name, unit, null);
     System = false; 
@@ -102,7 +99,6 @@ public class DisplayRealType extends RealType {
     range = !(Double.isInfinite(low) || Double.isNaN(low) ||
               Double.isInfinite(hi) || Double.isNaN(hi));
     DefaultValue = def;
-    control = cont;
     tuple = null;
     tupleIndex = -1;
     synchronized (DisplayRealTypeVector) {
@@ -116,10 +112,10 @@ public class DisplayRealType extends RealType {
   }
 
   /** public constructor for user-defined DisplayRealType's */
-  public DisplayRealType(String name, boolean single, double def, Control cont,
+  public DisplayRealType(String name, boolean single, double def,
                          Unit unit) throws VisADException {
     this(name, single, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY,
-         def, cont, unit);
+         def, unit);
   }
 
   private static DisplayRealType getDisplayRealTypeByName(String name) {
@@ -155,10 +151,6 @@ public class DisplayRealType extends RealType {
     return Count;
   }
 
-  public Control getControl() {
-    return control;
-  }
-
   public DisplayTupleType getTuple() {
     return tuple;
   }
@@ -187,12 +179,6 @@ public class DisplayRealType extends RealType {
     }
     return range;
   }
-
-  /* WLH  controls are NOT part of UI
-          value mappings are part of ScalarMaps */
-
-  /* WLH  toCartesian, fromCartesian, toRGB, fromRGB depend on
-          DefaultValue-s which are instance variables of DisplayRealType-s */
 
 }
 

@@ -25,9 +25,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
-import javax.media.j3d.*;
-import java.vecmath.*;
-
 /**
    SampledSet is the abstract superclass of GriddedSets, PolyCells and MultiCells.
    SampledSet objects are immutable.<P>
@@ -128,11 +125,11 @@ public abstract class SampledSet extends SimpleSet {
     return (Samples == null);
   }
 
-  float[][] getSamples() throws VisADException {
+  public float[][] getSamples() throws VisADException {
     return getSamples(true);
   }
 
-  float[][] getSamples(boolean copy) throws VisADException {
+  public float[][] getSamples(boolean copy) throws VisADException {
     if (copy) {
       // MEM
       float[][] samples = new float[DomainDimension][Length];
@@ -272,7 +269,7 @@ public abstract class SampledSet extends SimpleSet {
       coordinates[j++] = samples[2][i];
     }
     array.coordinates = coordinates;
-    array.vertexFormat |= GeometryArray.COORDINATES;
+    // array.vertexFormat |= COORDINATES;
     if (color_values != null) {
       color_length = Math.min(color_length, color_values.length);
       // MEM
@@ -287,7 +284,7 @@ public abstract class SampledSet extends SimpleSet {
         }
 System.out.println("COLOR_4 " + color_values[3][0] + " " + color_values[3][1] +
                           " " + color_values[3][2] + " " + color_values[3][3]);
-        array.vertexFormat |= GeometryArray.COLOR_4;
+        // array.vertexFormat |= COLOR_4;
       }
       else if (color_length == 3) {
         for (int i=0; i<len; i++) {
@@ -295,7 +292,7 @@ System.out.println("COLOR_4 " + color_values[3][0] + " " + color_values[3][1] +
           colors[j++] = color_values[1][i];
           colors[j++] = color_values[2][i];
         }
-        array.vertexFormat |= GeometryArray.COLOR_3;
+        // array.vertexFormat |= COLOR_3;
       }
       else {
         throw new SetException("SampledSet.setGeometryArray: " +

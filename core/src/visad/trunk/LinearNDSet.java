@@ -205,7 +205,7 @@ public class LinearNDSet extends GriddedSet
     return false;
   }
 
-  float[][] getSamples(boolean copy) throws VisADException {
+  public float[][] getSamples(boolean copy) throws VisADException {
     int n = getLength();
     int[] indices = new int[n];
     // do NOT call getWedge

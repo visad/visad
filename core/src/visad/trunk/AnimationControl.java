@@ -28,170 +28,40 @@ package visad;
 import java.rmi.*;
 
 /**
-   AnimationControl is the VisAD class for controlling Animation display scalars.<P>
-
-   WLH - manipulate a list of Switch nodes in scene graph.<P>
+   AnimationControl is the VisAD interface for controlling Animation
+   display scalars.<P>
 */
-public class AnimationControl extends AVControl
-       implements Runnable {
+public interface AnimationControl extends AVControl {
 
-  private int current;
-  private boolean direction; // true = forward
-  private long step; // time in milleseconds between animation steps
-  private AnimationSetControl animationSet;
-  private ToggleControl animate;
-
-  /** AnimationControl is Serializable, mark as transient */
-  private transient Thread animationThread;
-
-  static final AnimationControl prototype = new AnimationControl();
-
-  public AnimationControl(DisplayImpl d) {
-    super(d);
-    if (d != null) {
-      animationThread = new Thread(this);
-      animationThread.start();
-    }
-  }
-
-  AnimationControl() {
-    this(null);
-  }
-
-  public void stop() {
-    if (animationThread != null) {
-      animationThread.stop();
-    }
-    animationThread = null;
-  }
+  public void stop();
  
-  public void run() {
-    while (true) {
-      try {
-        if (animate.getOn()) {
-          takeStep();
-        }
-      }
-      catch(VisADException v) {
-        v.printStackTrace();
-        throw new VisADError("AnimationControl.run: " + v.toString());
-      }
-/*
-      catch(RemoteException v) {
-        v.printStackTrace();
-        throw new VisADError("AnimationControl.run: " + v.toString());
-      }
-*/
-      try {
-        synchronized (this) {
-          wait(step);
-        }
-      }
-      catch(InterruptedException e) {
-        // control doesn't normally come here
-      }
-    }
-  }
+  public void run();
 
-  public void setCurrent(int c) throws VisADException {
-    current = c;
-    changeControl();
-    if (animationSet != null) {
-      init();
-    }
-  }
+  public void setCurrent(int c) throws VisADException;
  
-  public void setDirection(boolean dir) {
-    direction = dir;
-    changeControl();
-  }
+  public void setDirection(boolean dir);
 
-  public void setStep(int st) throws VisADException {
-    if (st < 0) {
-      throw new DisplayException("AnimationControl.setStep: step must be > 0");
-    }
-    step = st;
-    changeControl();
-  }
+  public void setStep(int st) throws VisADException;
 
-  public void takeStep() throws VisADException {
-    if (direction) current++;
-    else current--;
-    if (animationSet != null) {
-      current = animationSet.clipCurrent(current);
-      init();
-    }
-    changeControl();
-  }
+  public void takeStep() throws VisADException;
 
-  void init() throws VisADException {
-    if (animationSet != null) {
-      selectSwitches((double) animationSet.getValue(current));
-    }
-  }
+  public void init() throws VisADException;
 
-  public Set getSet() {
-    if (animationSet != null) {
-      return animationSet.getSet();
-    }
-    else {
-      return null;
-    }
-  }
+  public Set getSet();
 
-  public void setSet(Set s) throws VisADException {
-    setSet(s, false);
-  }
+  public void setSet(Set s) throws VisADException;
  
   /** noChange = true to not trigger changeControl, used by
       ScalarMap.setRange */
-  void setSet(Set s, boolean noChange) throws VisADException {
-    if (animationSet != null) {
-      animationSet.setSet(s, noChange);
-    }
-  }
+  public void setSet(Set s, boolean noChange) throws VisADException;
 
-  public boolean getOn() {
-    if (animate != null) {
-      return animate.getOn();
-    }
-    else {
-      return false;
-    }
-  }
+  public boolean getOn();
 
-  public void setOn(boolean o) {
-    if (animate != null) {
-      animate.setOn(o);
-    }
-  }
+  public void setOn(boolean o);
 
-  public void toggle() {
-    if (animate != null) {
-      animate.setOn(!animate.getOn());
-    }
-  }
+  public void toggle();
 
-  public Control cloneButContents(DisplayImpl d) {
-    AnimationControl control = new AnimationControl(d);
-    control.current = 0;
-    control.direction = true;
-    control.step = 100;
-    control.animationSet = new AnimationSetControl(d, this);
-    d.addControl(control.animationSet);
-    control.animate = new ToggleControl(d, this);
-    d.addControl(control.animate);
-    return control;
-  }
-
-  boolean subTicks(Renderer r, DataDisplayLink link) {
-    if (animationSet != null) {
-      return animationSet.checkTicks(r, link) || animate.checkTicks(r, link);
-    }
-    else {
-      return false;
-    }
-  }
+  public boolean subTicks(DataRenderer r, DataDisplayLink link);
 
 }
 

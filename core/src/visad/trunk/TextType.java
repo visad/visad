@@ -59,9 +59,9 @@ public class TextType extends ScalarType {
     return new Text(this);
   }
 
-  ShadowType buildShadowType(DataDisplayLink link, ShadowType parent)
+  public ShadowType buildShadowType(DataDisplayLink link, ShadowType parent)
              throws VisADException, RemoteException {
-    return new ShadowTextType(this, link, parent);
+    return link.getRenderer().makeShadowTextType(this, link, parent);
   }
 
 }

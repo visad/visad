@@ -51,8 +51,20 @@ public class Linear2DSet extends Gridded2DSet
 
   Linear1DSet X, Y;
 
+  public Linear2DSet(Linear1DSet[] sets) throws VisADException {
+    this (RealTupleType.Generic2D, sets, null, null, null);
+  }
+
   public Linear2DSet(MathType type, Linear1DSet[] sets) throws VisADException {
     this (type, sets, null, null, null);
+  }
+
+  public Linear2DSet(double first1, double last1, int length1,
+                     double first2, double last2, int length2)
+         throws VisADException {
+    this(RealTupleType.Generic2D, LinearNDSet.get_linear1d_array(
+           RealTupleType.Generic2D, first1, last1, length1,
+           first2, last2, length2), null, null, null);
   }
 
   public Linear2DSet(MathType type, double first1, double last1, int length1,
@@ -188,7 +200,7 @@ public class Linear2DSet extends Gridded2DSet
     return false;
   }
 
-  float[][] getSamples(boolean copy) throws VisADException {
+  public float[][] getSamples(boolean copy) throws VisADException {
     int n = getLength();
     int[] indices = new int[n];
     // do NOT call getWedge

@@ -94,12 +94,12 @@ public interface Field extends Function {
          throws VisADException, RemoteException;
 
   /** get range CoordinateSystem for 'RealTuple' range;
-      second index may enumerate samples, if they differ */
+      index may enumerate samples, if they differ */
   public abstract CoordinateSystem[] getRangeCoordinateSystem()
          throws VisADException, RemoteException;
 
   /** get range CoordinateSystem for 'RealTuple' components;
-      second index may enumerate samples, if they differ */
+      index may enumerate samples, if they differ */
   public abstract CoordinateSystem[] getRangeCoordinateSystem(int component)
          throws VisADException, RemoteException;
 
@@ -113,7 +113,7 @@ public interface Field extends Function {
    Here's how to use this:
 
    for (Enumeration e = field.domainEnumeration() ; e.hasMoreElements(); ) {
-     Data domain_sample = e.nextElement();
+     RealTuple domain_sample = (RealTuple) e.nextElement();
      Data range = field.evaluate(domain_sample);
    }
 </PRE>

@@ -28,22 +28,6 @@ package visad;
 import java.util.*;
 import java.rmi.*;
 
-/*
-  Control-s may be linked to direct manipulation
-    Behavior.initialize()
-    Behavior.setSchedulingBounds(Bounds region)
-    Behavior.processStimulus(Enumeration criteria)
-      change values of appropriate Control
-        by invoking appropriate change...  method
-        invoke Control.incTick()
-    Behavior.wakeupOn(WakeupCondition criteria)
-      WakeupOnAWTEvent
-      WakeupOnElapsedTime
-
-  Renderer.doAction assumes that ProjectionControl and
-  AnimationControl do not trigger Renderer.doTransform
-*/
-
 /**
    Control is the VisAD superclass for controls for display scalars.<P>
 */
@@ -63,16 +47,16 @@ public abstract class Control extends Object
   /** index of this in display.ControlVector */
   private int Index;
 
-  public Control() {
-    this(null);
-  }
-
   public Control(DisplayImpl d) {
     OldTick = Long.MIN_VALUE;
     NewTick = Long.MIN_VALUE + 1;
     tickFlag = false;
     display = d;
     if (display != null) displayRenderer = display.getDisplayRenderer();
+  }
+
+  public DisplayRenderer getDisplayRenderer() {
+    return displayRenderer;
   }
 
   /** invoked every time values of this Control change;
@@ -98,13 +82,13 @@ public abstract class Control extends Object
   }
 
   /** return true if Control changed and requires re-Transform */
-  public synchronized boolean checkTicks(Renderer r, DataDisplayLink link) {
+  public synchronized boolean checkTicks(DataRenderer r, DataDisplayLink link) {
     return (tickFlag && r.isTransformControl(this, link)) || subTicks(r, link);
   }
 
   /** run checkTicks on any sub-Controls;
       this default for no sub-Controls */
-  boolean subTicks(Renderer r, DataDisplayLink link) {
+  public boolean subTicks(DataRenderer r, DataDisplayLink link) {
     return false;
   }
  
@@ -116,6 +100,7 @@ public abstract class Control extends Object
   /** create a 'new' control for map in display;
       called by ScalarMap.setControl;
       never gets called for ToggleControl, AnimationSetControl */
+/*
   public Control copy(ScalarMap m)
          throws VisADException, RemoteException {
     DisplayImpl d = m.getDisplay();
@@ -134,6 +119,7 @@ public abstract class Control extends Object
       return control;
     }
   }
+*/
 
   void setIndex(int index) {
     Index = index;
@@ -142,9 +128,6 @@ public abstract class Control extends Object
   int getIndex() {
     return Index;
   }
-
-  public abstract Control cloneButContents(DisplayImpl d)
-         throws VisADException, RemoteException;
 
 }
 

@@ -36,44 +36,36 @@ public class AnimationSetControl extends Control {
   private Set set;
   private AnimationControl parent;
 
-  static final AnimationSetControl prototype = new AnimationSetControl();
-
   public AnimationSetControl(DisplayImpl d, AnimationControl p) {
     super(d);
     parent = p;
     set = null;
   }
  
-  AnimationSetControl() {
-    this(null, null);
-  }
-
-  /** should never be called */
-  public Control cloneButContents(DisplayImpl d)
-         throws VisADException, RemoteException {
-    throw new DisplayException("AnimationSetControl.cloneButContents");
-  }
-
   public Set getSet() {
     return set;
   }
 
-  int clipCurrent(int current) throws VisADException {
-    int set_length = set.getLength();
-    if (current < 0) {
-      current = set_length;
-    }
-    else if (current >= set_length) {
+  public int clipCurrent(int current) throws VisADException {
+    if (set == null || current >= set.getLength()) {
       current = 0;
+    }
+    else if (current < 0) {
+      current = set.getLength();
     }
     return current;
   }
 
-  float getValue(int current) throws VisADException {
+  public float getValue(int current) throws VisADException {
     int[] indices = new int[1];
     indices[0] = clipCurrent(current);
-    float[][] values = set.indexToValue(indices);
-    return values[0][0];
+    if (set == null) {
+      return Float.NaN;
+    }
+    else {
+      float[][] values = set.indexToValue(indices);
+      return values[0][0];
+    }
   }
 
   public void setSet(Set s) throws VisADException {
@@ -82,7 +74,7 @@ public class AnimationSetControl extends Control {
 
   /** noChange = true to not trigger changeControl, used by
       ScalarMap.setRange */
-  void setSet(Set s, boolean noChange) throws VisADException {
+  public void setSet(Set s, boolean noChange) throws VisADException {
     set = s;
     if (parent != null) {
       parent.setCurrent(0);

@@ -52,28 +52,24 @@ public interface Display extends Action {
   /** system intrinsic DisplayRealType objects */
   /** spatial display scalars */
   public final static DisplayRealType XAxis =
-    new DisplayRealType("XAxis", true, -1.0, 1.0, 0.0,
-                        ProjectionControl.prototype, true);
+    new DisplayRealType("XAxis", true, -1.0, 1.0, 0.0, true);
   public final static DisplayRealType YAxis =
-    new DisplayRealType("YAxis", true, -1.0, 1.0, 0.0,
-                        ProjectionControl.prototype, true);
+    new DisplayRealType("YAxis", true, -1.0, 1.0, 0.0, true);
   public final static DisplayRealType ZAxis =
-    new DisplayRealType("ZAxis", true, -1.0, 1.0, 0.0,
-                        ProjectionControl.prototype, true);
+    new DisplayRealType("ZAxis", true, -1.0, 1.0, 0.0, true);
 
   public final static DisplayRealType Latitude =
     new DisplayRealType("Latitude", true, -90.0, 90.0, 0.0,
-                        ProjectionControl.prototype, CommonUnit.degree, true);
+                        CommonUnit.degree, true);
   public final static DisplayRealType Longitude =
     new DisplayRealType("Longitude", true, 0.0, 360.0, 0.0,
-                        ProjectionControl.prototype, CommonUnit.degree, true);
+                        CommonUnit.degree, true);
   public final static DisplayRealType Radius =
-    new DisplayRealType("Radius", true, 0.0, 2.0, 1.0,
-                        ProjectionControl.prototype, true);
+    new DisplayRealType("Radius", true, 0.0, 2.0, 1.0, true);
 
   /** list display scalar (default domain of DisplayField) */
   public final static DisplayRealType List =
-    new DisplayRealType("List", false, 0.0, null, true);
+    new DisplayRealType("List", false, 0.0, true);
 
   /** color display scalars */
   public final static DisplayRealType Red =
@@ -84,11 +80,10 @@ public interface Display extends Action {
     new DisplayRealType("Blue", false, 0.0, 1.0, 1.0, null, true);
 
   public final static DisplayRealType RGB =
-    new DisplayRealType("RGB", false, 0.0, 1.0, 0.0,
-                        ColorControl.prototype, true);
+    new DisplayRealType("RGB", false, 0.0, 1.0, 0.0, true);
 
   public final static DisplayRealType Hue =
-    new DisplayRealType("Hue", false, 0.0, 360.0, 0.0, null,
+    new DisplayRealType("Hue", false, 0.0, 360.0, 0.0,
                        CommonUnit.degree, true);
   public final static DisplayRealType Saturation =
     new DisplayRealType("Saturation", false, 0.0, 1.0, 0.0, null, true);
@@ -96,8 +91,7 @@ public interface Display extends Action {
     new DisplayRealType("Value", false, 0.0, 1.0, 1.0, null, true);
 
   public final static DisplayRealType HSV =
-    new DisplayRealType("HSV", false, 0.0, 1.0, 0.0,
-                        ColorControl.prototype, true);
+    new DisplayRealType("HSV", false, 0.0, 1.0, 0.0, true);
 
   public final static DisplayRealType Cyan =
     new DisplayRealType("Cyan", false, 0.0, 1.0, 1.0, null, true);
@@ -107,8 +101,7 @@ public interface Display extends Action {
     new DisplayRealType("Yellow", false, 0.0, 1.0, 1.0, null, true);
 
   public final static DisplayRealType CMY =
-    new DisplayRealType("CMY", false, 0.0, 1.0, 0.0,
-                        ColorControl.prototype, true);
+    new DisplayRealType("CMY", false, 0.0, 1.0, 0.0, true);
 
   /** Alpha is transparency */
   public final static DisplayRealType Alpha =
@@ -116,50 +109,40 @@ public interface Display extends Action {
 
   /** animation display scalar */
   public final static DisplayRealType Animation =
-    new DisplayRealType("Animation", true, 0.0, AnimationControl.prototype, true);
-/* WLH 29 Nov 97
-    new DisplayRealType("Animation", true, 0.0, 1.0, 0.0,
-                        AnimationControl.prototype, true);
-*/
+    new DisplayRealType("Animation", true, 0.0, true);
 
   /** display scalar for selecting by a single value */
   public final static DisplayRealType SelectValue =
-    new DisplayRealType("SelectValue", false, 0.0, ValueControl.prototype, true);
+    new DisplayRealType("SelectValue", false, 0.0, true);
 
   /** display scalar for selecting by a range of values */
   public final static DisplayRealType SelectRange =
-    new DisplayRealType("SelectRange", false, 0.0, RangeControl.prototype, true);
+    new DisplayRealType("SelectRange", false, 0.0, true);
 
   /** iso-contour display scalar */
   public final static DisplayRealType IsoContour =
-    new DisplayRealType("IsoContour", false, 0.0, ContourControl.prototype, true);
+    new DisplayRealType("IsoContour", false, 0.0, true);
 
   /** three flow display scalars */
   public final static DisplayRealType Flow1X =
-    new DisplayRealType("Flow1X", true, -1.0, 1.0, 0.0,
-                        Flow1Control.prototype, true);
+    new DisplayRealType("Flow1X", true, -1.0, 1.0, 0.0, true);
   public final static DisplayRealType Flow1Y =
-    new DisplayRealType("Flow1Y", true, -1.0, 1.0, 0.0,
-                        Flow1Control.prototype, true);
+    new DisplayRealType("Flow1Y", true, -1.0, 1.0, 0.0, true);
   public final static DisplayRealType Flow1Z =
-    new DisplayRealType("Flow1Z", true, -1.0, 1.0, 0.0,
-                        Flow1Control.prototype, true);
+    new DisplayRealType("Flow1Z", true, -1.0, 1.0, 0.0, true);
 
   /** second set of three flow display scalars */
   public final static DisplayRealType Flow2X =
-    new DisplayRealType("Flow2X", true, -1.0, 1.0, 0.0,
-                        Flow2Control.prototype, true);
+    new DisplayRealType("Flow2X", true, -1.0, 1.0, 0.0, true);
   public final static DisplayRealType Flow2Y =
-    new DisplayRealType("Flow2Y", true, -1.0, 1.0, 0.0,
-                        Flow2Control.prototype, true);
+    new DisplayRealType("Flow2Y", true, -1.0, 1.0, 0.0, true);
   public final static DisplayRealType Flow2Z =
-    new DisplayRealType("Flow2Z", true, -1.0, 1.0, 0.0,
-                        Flow2Control.prototype, true);
+    new DisplayRealType("Flow2Z", true, -1.0, 1.0, 0.0, true);
 
   /** shape display scalar
       WLH - this should be a DisplayEnumeratedType */
   public final static DisplayRealType Shape =
-    new DisplayRealType("Shape", false, 0.0, null, true);
+    new DisplayRealType("Shape", false, 0.0, true);
 
   /** spatial offset display scalars */
   public final static DisplayRealType XAxisOffset =

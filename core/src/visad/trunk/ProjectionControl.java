@@ -25,47 +25,15 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
-import javax.media.j3d.*;
-import java.vecmath.*;
-
 /**
-   ProjectionControl is the VisAD class for controlling the Projection
-   from 3-D to 2-D.  It manipulates a TransformGroup node in the
-   scene graph.<P>
+   ProjectionControl is the VisAD interface for controlling the Projection
+   from 3-D to 2-D.<P>
 */
-public class ProjectionControl extends Control {
+public interface ProjectionControl {
 
-  private transient Transform3D Matrix;
-  private double[] matrix;
+  public double[] getMatrix();
 
-  static final ProjectionControl prototype = new ProjectionControl();
-
-  public ProjectionControl(DisplayImpl d) {
-    super(d);
-    Matrix = new Transform3D(); 
-    matrix = new double[16];
-    Matrix.get(matrix);
-  }
- 
-  ProjectionControl() {
-    this(null);
-  }
-
-  public double[] getMatrix() {
-    return matrix;
-  }
-
-  public void setMatrix(double[] m) {
-    System.arraycopy(m, 0, matrix, 0, 16);
-    Matrix = new Transform3D(matrix);
-    displayRenderer.setTransform3D(Matrix);
-    changeControl();
-  }
-
-  public Control cloneButContents(DisplayImpl d) {
-    ProjectionControl control = new ProjectionControl(d);
-    return control;
-  }
+  public void setMatrix(double[] m);
 
 }
 
