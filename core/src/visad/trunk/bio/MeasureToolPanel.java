@@ -574,9 +574,10 @@ public class MeasureToolPanel extends ToolPanel {
         String vy = Convert.shortString(my * line.ep1.y);
         String v2x = Convert.shortString(mx * line.ep2.x);
         String v2y = Convert.shortString(my * line.ep2.y);
-        String d = Convert.shortString(
-          BioUtil.getDistance(line.ep1.x, line.ep1.y, line.ep1.z,
-          line.ep2.x, line.ep2.y, line.ep2.z, mx, my, sd));
+        double[] p = {line.ep1.x, line.ep1.y, line.ep1.z};
+        double[] q = {line.ep2.x, line.ep2.y, line.ep2.z};
+        double[] m = {mx, my, sd};
+        String d = Convert.shortString(BioUtil.getDistance(p, q, m));
         coord = "(" + vx + ", " + vy + ")-(" + v2x + ", " + v2y + ")";
         dist = "distance = " + d + " " + unit;
       }

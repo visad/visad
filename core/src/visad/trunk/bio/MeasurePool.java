@@ -46,9 +46,6 @@ public class MeasurePool implements DisplayListener {
   /** Number of extra points to add when number of points is expanded. */
   private static final int BUFFER_SIZE = 15;
 
-  /** Maximum pixel distance for picking. */
-  private static final int PICKING_THRESHOLD = 10;
-
   /** Maximum number of measurement pools. */
   static final int MAX_POOLS = 2;
 
@@ -581,7 +578,8 @@ public class MeasurePool implements DisplayListener {
 
         // compute maximum distance threshold
         double[] e1 = BioUtil.pixelToDomain(display, 0, 0);
-        double[] e2 = BioUtil.pixelToDomain(display, PICKING_THRESHOLD, 0);
+        double[] e2 = BioUtil.pixelToDomain(display,
+          VisBio.PICKING_THRESHOLD, 0);
         double threshold = e2[0] - e1[0];
 
         // find closest measurement
@@ -596,8 +594,9 @@ public class MeasurePool implements DisplayListener {
           if (line.ep1.z != slice && line.ep2.z != slice) continue;
 
           // compute distance
-          double dist = BioUtil.getDistance(line.ep1.x, line.ep1.y,
-            line.ep2.x, line.ep2.y, coords[0], coords[1]);
+          double[] a = {line.ep1.x, line.ep1.y};
+          double[] b = {line.ep2.x, line.ep2.y};
+          double dist = BioUtil.getDistance(a, b, coords, true);
           if (dist < mindist) {
             mindist = dist;
             index = i;

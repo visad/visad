@@ -438,9 +438,13 @@ public class MeasureDataFile {
       }
 
       // compute distance
-      this.dist = len == 2 ?
-        BioUtil.getDistance(values[0][0], values[1][0], values[2][0],
-        values[0][1], values[1][1], values[2][1], mx, my, sd) : -1;
+      if (len == 2) {
+        double[] p = {values[0][0], values[1][0], values[2][0]};
+        double[] q = {values[0][1], values[1][1], values[2][1]};
+        double[] m = {mx, my, sd};
+        this.dist = BioUtil.getDistance(p, q, m);
+      }
+      else this.dist = -1;
 
       // convert measurement to microns
       for (int j=0; j<len; j++) {

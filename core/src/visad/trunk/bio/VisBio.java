@@ -62,6 +62,9 @@ public class VisBio extends GUIFrame implements ChangeListener {
   /** Flag for enabling or disabling Java3D, for debugging. */
   private static final boolean ALLOW_3D = true;
 
+  /** Maximum pixel distance for picking. */
+  static final int PICKING_THRESHOLD = 10;
+
   /** Amount of detail for color. */
   static final int COLOR_DETAIL = 256;
 

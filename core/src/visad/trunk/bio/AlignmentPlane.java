@@ -64,6 +64,7 @@ public class AlignmentPlane extends PlaneSelector implements DisplayListener {
     maxIndex = 10;
     locked = new boolean[maxIndex][3];
     pos = new double[maxIndex][3][3];
+    display.addDisplayListener(this);
   }
 
 
@@ -116,11 +117,37 @@ public class AlignmentPlane extends PlaneSelector implements DisplayListener {
       m_ctrl = ctrl;
     }
     else if (id == DisplayEvent.MOUSE_RELEASED && x == mx && y == my) {
-      // CTR - TODO - lock or unlock picked point
-      /*
-      use 3-D ray, pick between pos[index][0], pos[index][1], and pos[index][2]
-      toggle locked[index][0], locked[index][1] or locked[index][2];
-      */
+      // compute picked point
+      DisplayImpl d = (DisplayImpl) e.getDisplay();
+      MouseBehavior mb = d.getDisplayRenderer().getMouseBehavior();
+      VisADRay ray = mb.findRay(x, y);
+      double[] a = ray.position;
+      int len = a.length;
+      double[] b = new double[len];
+      for (int i=0; i<len; i++) b[i] = a[i] + ray.vector[i];
+      double ndx = -1;
+      double mindist = Double.POSITIVE_INFINITY;
+      //System.out.println("Mouse=(" + a[0] + ", " + a[1] + ", " + a[2] + ") - (" + b[0] + ", " + b[1] + ", " + b[2] + ")"); /* TEMP */
+      for (int j=0; j<3; j++) {
+        double[] v = pos[index][j];
+        double dist = BioUtil.getDistance(a, b, v, false);
+        //System.out.println("Checking #" + j + ": (" + v[0] + ", " + v[1] + ", " + v[2] + ") - dist=" + dist); /* TEMP */
+        if (dist < mindist) {
+          ndx = j;
+          mindist = dist;
+        }
+      }
+
+      // compute maximum distance threshold
+      double[] e1 = BioUtil.pixelToDomain(display, 0, 0);
+      double[] e2 = BioUtil.pixelToDomain(display,
+        VisBio.PICKING_THRESHOLD, 0);
+      double threshold = e2[0] - e1[0];
+
+      if (mindist <= threshold) {
+        // lock or unlock picked point
+        //System.out.println("Picked: " + ndx); /* TEMP */
+      }
     }
   }
 

@@ -89,76 +89,77 @@ public class BioUtil {
   }
 
   /**
-   * Computes the minimum distance between the point (vx, vy)
-   * and the line (ax, ay)-(bx, by).
+   * Computes the minimum distance between the point v and the line a-b.
    *
-   * @param ax X-coordinate of the line's first endpoint
-   * @param ay Y-coordinate of the line's first endpoint
-   * @param bx X-coordinate of the line's second endpoint
-   * @param by Y-coordinate of the line's second endpoint
-   * @param vx X-coordinate of the standalone endpoint
-   * @param vy Y-coordinate of the standalone endpoint
+   * @param a Coordinates of the line's first endpoint
+   * @param b Coordinates of the line's second endpoint
+   * @param v Coordinates of the standalone endpoint
+   * @param segment Whether distance computation should be
+   *                constrained to the given line segment
    */
-  public static double getDistance(double ax, double ay,
-    double bx, double by, double vx, double vy)
+  public static double getDistance(double[] a, double[] b, double[] v,
+    boolean segment)
   {
+    int len = a.length;
+     
     // vectors
-    double abx = ax - bx;
-    double aby = ay - by;
-    double vax = vx - ax;
-    double vay = vy - ay;
+    double[] ab = new double[len];
+    double[] va = new double[len];
+    for (int i=0; i<len; i++) {
+      ab[i] = a[i] - b[i];
+      va[i] = v[i] - a[i];
+    }
 
     // project v onto (a, b)
-    double c = (vax * abx + vay * aby) / (abx * abx + aby * aby);
-    double px = c * abx + ax;
-    double py = c * aby + ay;
+    double numer = 0;
+    double denom = 0;
+    for (int i=0; i<len; i++) {
+      numer += va[i] * ab[i];
+      denom += ab[i] * ab[i];
+    }
+    double c = numer / denom;
+    double[] p = new double[len];
+    for (int i=0; i<len; i++) p[i] = c * ab[i] + a[i];
 
     // determine which point (a, b or p) to use in distance computation
     int flag = 0;
-    if (px > ax && px > bx) flag = ax > bx ? 1 : 2;
-    else if (px < ax && px < bx) flag = ax < bx ? 1 : 2;
-    else if (py > ay && py > by) flag = ay > by ? 1 : 2;
-    else if (py < ay && py < by) flag = ay < by ? 1 : 2;
-
-    double x, y;
-    if (flag == 0) { // use p
-      x = px - vx;
-      y = py - vy;
-    }
-    else if (flag == 1) { // use a
-      x = ax - vx;
-      y = ay - vy;
-    }
-    else { // flag == 2, use b
-      x = bx - vx;
-      y = by - vy;
+    if (segment) {
+      for (int i=0; i<len; i++) {
+        if (p[i] > a[i] && p[i] > b[i]) flag = a[i] > b[i] ? 1 : 2;
+        else if (p[i] < a[i] && p[i] < b[i]) flag = a[i] < b[i] ? 1 : 2;
+        else continue;
+        break;
+      }
     }
 
-    return Math.sqrt(x * x + y * y);
+    double sum = 0;
+    for (int i=0; i<len; i++) {
+      double q;
+      if (flag == 0) q = p[i] - v[i]; // use p
+      else if (flag == 1) q = a[i] - v[i]; // use a
+      else q = b[i] - v[i]; // flag == 2, use b
+      sum += q * q;
+    }
+
+    return Math.sqrt(sum);
   }
 
   /**
-   * Gets the distance between the specified endpoints, using
-   * the given conversion values between pixels and microns,
-   * and distance between measurement slices.
+   * Gets the distance between the endpoints p and q, using
+   * the given conversion values between pixels and microns.
    *
-   * @param x1 X-coordinate of the first endpoint
-   * @param y1 Y-coordinate of the first endpoint
-   * @param z1 Z-coordinate of the first endpoint
-   * @param x2 X-coordinate of the second endpoint
-   * @param y2 Y-coordinate of the second endpoint
-   * @param z2 Z-coordinate of the second endpoint
-   * @param mx Microns per pixel along X-axis
-   * @param my Microns per pixel along Y-axis
-   * @param sd Micron distance between Z-slices
+   * @param p Coordinates of the first endpoint
+   * @param q Coordinates of the second endpoint
+   * @param m Conversion values between microns and pixels
    */
-  public static double getDistance(double x1, double y1, double z1,
-    double x2, double y2, double z2, double mx, double my, double sd)
-  {
-    double distx = mx * (x2 - x1);
-    double disty = my * (y2 - y1);
-    double distz = sd * (z2 - z1);
-    return Math.sqrt(distx * distx + disty * disty + distz * distz);
+  public static double getDistance(double[] p, double[] q, double[] m) {
+    int len = p.length;
+    double sum = 0;
+    for (int i=0; i<len; i++) {
+      double dist = m[i] * (q[i] - p[i]);
+      sum += dist * dist;
+    }
+    return Math.sqrt(sum);
   }
 
   /**
@@ -384,6 +385,76 @@ public class BioUtil {
       }
     }
     return true;
+  }
+
+  /**
+   * Projects all the points in (x, y, z) onto the line defined by (p1, p2).
+   * The points that bound the line segment are stored in (min, max).
+   * The projection of the pth point is stored in proj.
+   */
+  public static void project(float[] x, float[] y, float[] z,
+    float p1x, float p1y, float p1z, float p2x, float p2y, float p2z,
+    int p, float[] min, float[] max, float[] proj)
+  {
+    int numpts = x.length - 1;
+    float x21 = p2x - p1x;
+    float y21 = p2y - p1y;
+    float z21 = p2z - p1z;
+    float maxdist = x21 * x21 + y21 * y21 + z21 * z21;
+    min[0] = p1x;
+    min[1] = p1y;
+    min[2] = p1z;
+    max[0] = p2x;
+    max[1] = p2y;
+    max[2] = p2z;
+
+    // project all hull points onto line
+    for (int p3=0; p3<numpts; p3++) {
+      float x31 = x[p3] - p1x;
+      float y31 = y[p3] - p1y;
+      float z31 = z[p3] - p1z;
+      float u = (x31 * x21 + y31 * y21 + z31 * z21) /
+        (x21 * x21 + y21 * y21 + z21 * z21);
+      float px = p1x + u * x21;
+      float py = p1y + u * y21;
+      float pz = p1z + u * z21;
+      if (p3 == p) {
+        proj[0] = px;
+        proj[1] = py;
+        proj[2] = pz;
+      }
+
+      float pminx = px - min[0];
+      float pminy = py - min[1];
+      float pminz = pz - min[2];
+      float pdistmin = pminx * pminx + pminy * pminy + pminz * pminz;
+      float pmaxx = px - max[0];
+      float pmaxy = py - max[1];
+      float pmaxz = pz - max[2];
+      float pdistmax = pmaxx * pmaxx + pmaxy * pmaxy + pmaxz * pmaxz;
+
+      if (pdistmin > maxdist || pdistmax > maxdist) {
+        if (pdistmin > pdistmax) {
+          maxdist = pdistmin;
+          max[0] = px;
+          max[1] = py;
+          max[2] = pz;
+        }
+        else {
+          maxdist = pdistmax;
+          min[0] = px;
+          min[1] = py;
+          min[2] = pz;
+        }
+      }
+    }
+  }
+
+  /** Computes the fourth corner of a rectangle, given the first three. */
+  public static float[] corner(float[] c1, float[] c2, float[] c3) {
+    float[] c4 = new float[c1.length];
+    for (int i=0; i<c1.length; i++) c4[i] = c3[i] + c2[i] - c1[i];
+    return c4;
   }
 
 }
