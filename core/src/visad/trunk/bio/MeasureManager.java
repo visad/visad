@@ -154,9 +154,12 @@ public class MeasureManager {
     try {
       MeasureDataFile mdf = new MeasureDataFile(bio, f);
       if (bio.toolMeasure.getUseMicrons()) {
-        double mpp = bio.toolMeasure.getMicronsPerPixel();
+        double mw = bio.toolMeasure.getMicronWidth();
+        double mh = bio.toolMeasure.getMicronHeight();
+        double mx = mw / bio.sm.res_x;
+        double my = mh / bio.sm.res_y;
         double sd = bio.toolMeasure.getSliceDistance();
-        mdf.write(mpp, sd);
+        mdf.write(mx, my, sd);
       }
       else mdf.write();
     }

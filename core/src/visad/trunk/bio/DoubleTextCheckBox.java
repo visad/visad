@@ -28,14 +28,19 @@ package visad.bio;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Vector;
 import javax.swing.*;
+import javax.swing.event.*;
 import visad.util.Util;
 
 /** A checkbox with two text fields. */
-public class DoubleTextCheckBox extends JPanel implements ItemListener {
+public class DoubleTextCheckBox extends JPanel
+  implements DocumentListener, ItemListener
+{
 
   // -- FIELDS --
 
+  private Vector listeners;
   private JCheckBox box;
   private JLabel label;
   private JTextField field1, field2;
@@ -48,6 +53,7 @@ public class DoubleTextCheckBox extends JPanel implements ItemListener {
     String value1, String value2, boolean checked)
   {
     super();
+    listeners = new Vector();
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
     box = new JCheckBox(label1, checked);
     box.addItemListener(this);
@@ -55,6 +61,8 @@ public class DoubleTextCheckBox extends JPanel implements ItemListener {
     label.setForeground(Color.black);
     field1 = new JTextField(value1);
     field2 = new JTextField(value2);
+    field1.getDocument().addDocumentListener(this);
+    field2.getDocument().addDocumentListener(this);
     Util.adjustTextField(field1);
     Util.adjustTextField(field2);
     updateGUI();
@@ -89,16 +97,44 @@ public class DoubleTextCheckBox extends JPanel implements ItemListener {
   /** Gets the value of the second text field. */
   public String getSecondValue() { return field2.getText(); }
 
+  /** Sets whether the checkbox is selected. */
+  public void setSelected(boolean selected) { box.setSelected(selected); }
+
   /** Sets the values of the text fields. */
   public void setValues(String text1, String text2) {
     field1.setText(text1);
     field2.setText(text2);
   }
 
+  /** Adds an item listener to the check box. */
+  public void addActionListener(ActionListener l) { listeners.add(l); }
+
+  /** Removes an item listener from the check box. */
+  public void removeActionListener(ActionListener l) { listeners.remove(l); }
+
 
   // -- INTERNAL API METHODS --
 
   /** ItemListener method triggered when check box state changes. */
-  public void itemStateChanged(ItemEvent e) { updateGUI(); }
+  public void itemStateChanged(ItemEvent e) {
+    updateGUI();
+    notifyListeners();
+  }
+
+  public void changedUpdate(DocumentEvent e) { notifyListeners(); }
+  public void insertUpdate(DocumentEvent e) { notifyListeners(); }
+  public void removeUpdate(DocumentEvent e) { notifyListeners(); }
+
+
+  // -- HELPER METHODS --
+
+  private void notifyListeners() {
+    ActionEvent e = new ActionEvent(this, 0, "");
+    int size = listeners.size();
+    for (int i=0; i<size; i++) {
+      ActionListener l = (ActionListener) listeners.elementAt(i);
+      l.actionPerformed(e);
+    }
+  }
 
 }

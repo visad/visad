@@ -278,6 +278,22 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     catch (RemoteException exc) { exc.printStackTrace(); }
   }
 
+  /** Adjusts the aspect ratio of the displays. */
+  public void setAspect(double x, double y, double z) {
+    double d = x > y ? x : y;
+    double xasp = x / d;
+    double yasp = y / d;
+    double zasp = z == z ? z / d : 1.0;
+    ProjectionControl pc2 = display2.getProjectionControl();
+    ProjectionControl pc3 = display3.getProjectionControl();
+    try {
+      pc2.setAspect(new double[] {xasp, yasp, zasp});
+      pc3.setAspect(new double[] {xasp, yasp, zasp});
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+  }
+
   /** Updates image color table to match the given values. */
   public void setImageColors(int brightness, int contrast,
     RealType red, RealType green, RealType blue)

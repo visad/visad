@@ -33,6 +33,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import visad.*;
 import visad.browser.*;
+import visad.util.Util;
 
 /**
  * MeasureToolPanel is the tool panel for
@@ -97,15 +98,9 @@ public class MeasureToolPanel extends ToolPanel {
 
   /**
    * Check box for indicating file should be saved or restored
-   * using a micron-pixel conversion.
+   * using a micron-pixel conversion of the given width and height.
    */
-  private JCheckBox useMicrons;
-
-  /** Label for microns per pixel. */
-  private JLabel mPixLabel;
-
-  /** Text field for specifying microns per pixel. */
-  private JTextField micronsPerPixel;
+  private DoubleTextCheckBox useMicrons;
 
   /** Label for distance between slices. */
   private JLabel sliceDistLabel;
@@ -200,32 +195,14 @@ public class MeasureToolPanel extends ToolPanel {
     controls.add(pad(p));
 
     // microns vs pixels checkbox
-    useMicrons = new JCheckBox("Use microns instead of pixels", false);
+    useMicrons = new DoubleTextCheckBox(
+      "Use microns instead of pixels", "by", "", "", false);
     final MeasureToolPanel tool = this;
-    useMicrons.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) { tool.updateFileButtons(); }
+    useMicrons.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) { tool.updateFileButtons(); }
     });
     useMicrons.setEnabled(false);
     controls.add(pad(useMicrons));
-
-    // microns per pixel label
-    p = new JPanel();
-    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    mPixLabel = new JLabel("Microns per pixel: ");
-    mPixLabel.setForeground(Color.black);
-    mPixLabel.setEnabled(false);
-    p.add(mPixLabel);
-
-    // microns per pixel text box
-    micronsPerPixel = new JTextField();
-    micronsPerPixel.getDocument().addDocumentListener(new DocumentListener() {
-      public void changedUpdate(DocumentEvent e) { tool.updateFileButtons(); }
-      public void insertUpdate(DocumentEvent e) { tool.updateFileButtons(); }
-      public void removeUpdate(DocumentEvent e) { tool.updateFileButtons(); }
-    });
-    micronsPerPixel.setEnabled(false);
-    p.add(micronsPerPixel);
-    controls.add(pad(p));
 
     // slice distance label
     p = new JPanel();
@@ -237,6 +214,7 @@ public class MeasureToolPanel extends ToolPanel {
 
     // distance between slices text box
     sliceDistance = new JTextField();
+    Util.adjustTextField(sliceDistance);
     sliceDistance.getDocument().addDocumentListener(new DocumentListener() {
       public void changedUpdate(DocumentEvent e) { tool.updateFileButtons(); }
       public void insertUpdate(DocumentEvent e) { tool.updateFileButtons(); }
@@ -494,8 +472,6 @@ public class MeasureToolPanel extends ToolPanel {
       measureLabel.setEnabled(false);
       saveLines.setEnabled(false);
       restoreLines.setEnabled(false);
-      mPixLabel.setEnabled(false);
-      micronsPerPixel.setEnabled(false);
       sliceDistLabel.setEnabled(false);
       sliceDistance.setEnabled(false);
     }
@@ -550,31 +526,35 @@ public class MeasureToolPanel extends ToolPanel {
   /** Gets whether microns should be used instead of pixels. */
   public boolean getUseMicrons() { return useMicrons.isSelected(); }
 
-  /** Gets the micron distance between pixels entered by the user. */
-  public double getMicronsPerPixel() {
-    double d;
-    try { d = Double.parseDouble(micronsPerPixel.getText()); }
-    catch (NumberFormatException exc) { d = Double.NaN; }
-    if (d <= 0) d = Double.NaN;
-    return d;
+  /** Gets the image width in microns entered by the user. */
+  public double getMicronWidth() {
+    double d = Convert.getDouble(useMicrons.getFirstValue());
+    return d <= 0 ? Double.NaN : d;
+  }
+
+  /** Gets the image height in microns entered by the user. */
+  public double getMicronHeight() {
+    double d = Convert.getDouble(useMicrons.getSecondValue());
+    return d <= 0 ? Double.NaN : d;
   }
 
   /** Gets the micron distance between slices entered by the user. */
   public double getSliceDistance() {
-    double d;
-    try { d = Double.parseDouble(sliceDistance.getText()); }
-    catch (NumberFormatException exc) { d = Double.NaN; }
-    if (d <= 0) d = Double.NaN;
-    return d;
+    double d = Convert.getDouble(sliceDistance.getText());
+    return d <= 0 ? Double.NaN : d;
   }
 
 
   // -- INTERNAL API METHODS --
 
   /** Updates GUI to match internal information. */
-  void updateInfo(boolean microns, double mpp, double sd) {
+  void updateInfo(boolean microns, double mx, double my, double sd) {
+    double mw = bio.sm.res_x * mx;
+    double mh = bio.sm.res_y * my;
+
     // update micron info
-    micronsPerPixel.setText(microns ? "" + mpp : "");
+    if (microns) useMicrons.setValues("" + mw, "" + mh);
+    else useMicrons.setValues("", "");
     sliceDistance.setText(microns ? "" + sd : "");
     useMicrons.setSelected(microns);
 
@@ -586,23 +566,31 @@ public class MeasureToolPanel extends ToolPanel {
     descriptionBox.setText("");
   }
 
+  /** Sets the slice distance to match the specified one. */
+  void setSliceDistance(double sd) {
+    String dist = "" + sd;
+    if (dist.equals(sliceDistance.getText())) return;
+    sliceDistance.setText(dist);
+  }
+
 
   // -- HELPER METHODS --
 
   /** Updates the micron-related GUI components. */
   private void updateFileButtons() {
     boolean microns = useMicrons.isSelected();
-    mPixLabel.setEnabled(microns);
-    micronsPerPixel.setEnabled(microns);
+    useMicrons.setEnabled(microns);
     sliceDistLabel.setEnabled(microns);
     sliceDistance.setEnabled(microns);
     boolean b;
     if (microns) {
-      double mpp = getMicronsPerPixel();
+      double mw = getMicronWidth();
+      double mh = getMicronHeight();
       double sd = getSliceDistance();
-      b = mpp == mpp && sd == sd;
+      b = mw == mw && mh == mh && sd == sd;
     }
     else b = true;
+    bio.toolView.updateAspect(!microns);
     saveLines.setEnabled(b);
     updateMeasureInfo();
   }
@@ -615,20 +603,20 @@ public class MeasureToolPanel extends ToolPanel {
       Measurement m = thing.getMeasurement();
       double[][] vals = m.doubleValues();
       boolean use = useMicrons.isSelected();
-      double mpp = getMicronsPerPixel();
+      double mw = getMicronWidth();
+      double mh = getMicronHeight();
+      double mx = mw / bio.sm.res_x;
+      double my = mw / bio.sm.res_y;
       double sd = getSliceDistance();
-      boolean microns = use && mpp == mpp && sd == sd;
-      if (!microns) {
-        mpp = 1;
-        sd = 1;
-      }
-      String vx = Convert.shortString(mpp * vals[0][0]);
-      String vy = Convert.shortString(mpp * vals[1][0]);
+      boolean microns = use && mx == mx && my == my && sd == sd;
+      if (!microns) mx = my = sd = 1;
+      String vx = Convert.shortString(mx * vals[0][0]);
+      String vy = Convert.shortString(my * vals[1][0]);
       String unit = microns ? "µ" : "pix";
       if (thing.getLength() == 2) {
-        String v2x = Convert.shortString(mpp * vals[0][1]);
-        String v2y = Convert.shortString(mpp * vals[1][1]);
-        String d = Convert.shortString(m.getDistance(mpp, sd));
+        String v2x = Convert.shortString(mx * vals[0][1]);
+        String v2y = Convert.shortString(my * vals[1][1]);
+        String d = Convert.shortString(m.getDistance(mx, my, sd));
         coord = "(" + vx + ", " + vy + ")-(" + v2x + ", " + v2y + ")";
         dist = "distance = " + d + " " + unit;
       }

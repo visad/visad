@@ -81,23 +81,22 @@ public class MeasureDataFile {
   // -- API METHODS --
 
   /** Writes the specified measurement lists to the data file. */
-  public void write() throws IOException { write(Double.NaN, Double.NaN); }
+  public void write() throws IOException {
+    write(Double.NaN, Double.NaN, Double.NaN);
+  }
 
   /**
    * Writes the specified measurement lists to the data file,
-   * using the given conversion value between pixels and microns,
+   * using the given conversion values between pixels and microns,
    * and distance between measurement slices.
    */
-  public void write(double mpp, double sd) throws IOException {
+  public void write(double mx, double my, double sd) throws IOException {
     int numIndices = bio.mm.lists.length;
     int numSlices = bio.sm.getNumberOfSlices();
     int numStd = MeasureToolPanel.maxId;
     MData[][][] stdData = new MData[numStd][numIndices][numSlices];
-    boolean microns = mpp == mpp && sd == sd;
-    if (!microns) {
-      mpp = 1;
-      sd = 1;
-    }
+    boolean microns = mx == mx && my == my && sd == sd;
+    if (!microns) mx = my = sd = 1;
     Vector v = new Vector();
 
     // compile measurement data
@@ -121,7 +120,8 @@ public class MeasureDataFile {
         int r = color.getRed();
         int g = color.getGreen();
         int b = color.getBlue();
-        MData data = new MData(index, stdId, groupId, mpp, sd, vals, r, g, b);
+        MData data = new MData(index, stdId, groupId,
+          mx, my, sd, vals, r, g, b);
         if (data.stdId >= 0) {
           // add to standard measurement list
           stdData[data.stdId][index][data.slice] = data;
@@ -135,7 +135,7 @@ public class MeasureDataFile {
     fout.println(BEGIN_LABEL);
     fout.println();
     fout.println(UNIT_LABEL +
-      (microns ? "microns (" + mpp + ", " + sd + ")" : "pixels"));
+      (microns ? "microns (" + mx + ", " + my + ", " + sd + ")" : "pixels"));
     fout.println();
     fout.println();
 
@@ -221,7 +221,8 @@ public class MeasureDataFile {
 
   /** Reads data from the data file into an array of measurement lists. */
   public void read() throws IOException, VisADException {
-    double mpp = 1, sd = 1;
+    double mpp = Double.NaN;
+    double mx = 1, my = 1, sd = 1;
     boolean microns = false;
     BufferedReader fin = new BufferedReader(new FileReader(file));
     String line = "";
@@ -229,12 +230,22 @@ public class MeasureDataFile {
     // read in unit data
     while (!line.startsWith(UNIT_LABEL)) line = fin.readLine().trim();
     if (line.indexOf("microns") > 0) {
-      int left = line.indexOf("(");
-      int comma = line.indexOf(",");
-      int right = line.indexOf(")");
-      mpp = Double.parseDouble(line.substring(left + 1, comma).trim());
-      sd = Double.parseDouble(line.substring(comma + 1, right).trim());
       microns = true;
+      int left = line.indexOf("(");
+      int right = line.indexOf(")");
+      StringTokenizer st =
+        new StringTokenizer(line.substring(left + 1, right), ",");
+      int count = st.countTokens();
+      if (count == 2) {
+        mpp = Double.parseDouble(st.nextToken().trim());
+        sd = Double.parseDouble(st.nextToken().trim());
+      }
+      else if (count == 3) {
+        mx = Double.parseDouble(st.nextToken().trim());
+        my = Double.parseDouble(st.nextToken().trim());
+        sd = Double.parseDouble(st.nextToken().trim());
+      }
+      else microns = false;
     }
 
     // read in group data
@@ -276,7 +287,7 @@ public class MeasureDataFile {
       {
         continue;
       }
-      v.add(new MData(line, dim, len, mpp, sd));
+      v.add(new MData(line, dim, len, mx, my, sd));
     }
     fin.close();
 
@@ -331,7 +342,7 @@ public class MeasureDataFile {
     }
 
     // refresh GUI components
-    bio.toolMeasure.updateInfo(microns, mpp, sd);
+    bio.toolMeasure.updateInfo(microns, mx, my, sd);
   }
 
 
@@ -365,7 +376,9 @@ public class MeasureDataFile {
     public double dist;
 
     /** Constructor from line of text. */
-    public MData(String line, int dim, int len, double mpp, double sd) {
+    public MData(String line, int dim, int len,
+      double mx, double my, double sd)
+    {
       int ndx = dim - 1;
       StringTokenizer st = new StringTokenizer(line, "\t");
       index = Integer.parseInt(st.nextToken());
@@ -380,14 +393,15 @@ public class MeasureDataFile {
         for (int j=0; j<len; j++) {
           values[i][j] = Double.parseDouble(st.nextToken());
           // convert values from microns to pixels
-          if (i < ndx) values[i][j] /= mpp;
+          if (i == 0) values[i][j] /= mx;
+          else if (i == 1) values[i][j] /= my;
         }
       }
     }
 
     /** Line constructor. */
-    public MData(int index, int stdId, int groupId, double mpp, double sd,
-      double[][] values, int r, int g, int b)
+    public MData(int index, int stdId, int groupId, double mx,
+      double my, double sd, double[][] values, int r, int g, int b)
     {
       this.index = index;
       this.stdId = stdId;
@@ -410,11 +424,12 @@ public class MeasureDataFile {
       }
 
       // compute distance
-      this.dist = len == 2 ? Measurement.getDistance(values, mpp, sd) : -1;
+      this.dist = len == 2 ? Measurement.getDistance(values, mx, my, sd) : -1;
 
       // convert measurement to microns
-      for (int i=0; i<ndx; i++) {
-        for (int j=0; j<len; j++) values[i][j] *= mpp;
+      for (int j=0; j<len; j++) {
+        values[0][j] *= mx;
+        values[1][j] *= my;
       }
     }
 

@@ -787,19 +787,19 @@ public class SliceManager
     }
 
     // set up 2-D data references
-    DisplayRenderer dr = bio.display2.getDisplayRenderer();
+    DisplayRenderer dr2 = bio.display2.getDisplayRenderer();
     boolean on = renderer2 == null ? true : renderer2.getEnabled();
-    renderer2 = dr.makeDefaultRenderer();
+    renderer2 = dr2.makeDefaultRenderer();
     renderer2.toggle(on);
     bio.display2.addReferences(renderer2, ref2);
     on = planeRenderer2 == null ? false : planeRenderer2.getEnabled();
-    planeRenderer2 = dr.makeDefaultRenderer();
+    planeRenderer2 = dr2.makeDefaultRenderer();
     planeRenderer2.suppressExceptions(true);
     planeRenderer2.toggle(on);
     bio.display2.addReferences(planeRenderer2, planeRef);
     if (hasThumbs) {
       on = lowresRenderer2 == null ? false : lowresRenderer2.getEnabled();
-      lowresRenderer2 = dr.makeDefaultRenderer();
+      lowresRenderer2 = dr2.makeDefaultRenderer();
       lowresRenderer2.toggle(on);
       bio.display2.addReferences(lowresRenderer2, lowresRef2);
     }
@@ -814,6 +814,7 @@ public class SliceManager
     ScalarMap r_map3 = null;
     ScalarMap g_map3 = null;
     ScalarMap b_map3 = null;
+    DisplayRenderer dr3 = null;
     if (bio.display3 != null) {
       x_map3 = new ScalarMap(dtypes[0], Display.XAxis);
       y_map3 = new ScalarMap(dtypes[1], Display.YAxis);
@@ -840,13 +841,14 @@ public class SliceManager
       }
 
       // set up 3-D data references
+      dr3 = bio.display3.getDisplayRenderer();
       on = renderer3 == null ? true : renderer3.getEnabled();
       renderer3 = bio.display3.getDisplayRenderer().makeDefaultRenderer();
       renderer3.toggle(on);
       bio.display3.addReferences(renderer3, ref3);
       if (hasThumbs) {
         on = lowresRenderer3 == null ? false : lowresRenderer3.getEnabled();
-        lowresRenderer3 = dr.makeDefaultRenderer();
+        lowresRenderer3 = dr3.makeDefaultRenderer();
         lowresRenderer3.toggle(on);
         bio.display3.addReferences(lowresRenderer3, lowresRef3);
       }
@@ -926,6 +928,9 @@ public class SliceManager
         min_x, min_y, min_z, max_x, max_y, max_z);
     }
 
+    // adjust display aspect ratio
+    bio.setAspect(res_x, res_y, Double.NaN);
+
     // set up display listeners
     bio.display2.addDisplayListener(this);
     bio.display3.addDisplayListener(this);
@@ -934,8 +939,9 @@ public class SliceManager
     bio.toolView.doColorTable();
 
     // update arbitrary slice range with a reasonable default setting
-    bio.toolView.setSliceRange(
-      (int) (max_x - min_x + 1), (int) (max_y - min_y + 1));
+    double range_x = max_x - min_x;
+    double range_y = max_y - min_y;
+    bio.toolView.setSliceRange((int) range_x + 1, (int) range_y + 1);
   }
 
   /** Refreshes the current image slice shown onscreen. */

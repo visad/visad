@@ -119,15 +119,15 @@ public class Measurement {
   public RealTuple[] getValues() { return values; }
 
   /** Gets the current distance between the endpoints. */
-  public double getDistance() { return getDistance(1, 1); }
+  public double getDistance() { return getDistance(1, 1, 1); }
 
   /**
-   * Gets the current distance between the endpoints,
-   * using the given conversion value between pixels and microns,
+   * Gets the current distance between the endpoints, using
+   * the given conversion values between pixels and microns,
    * and distance between measurement slices.
    */
-  public double getDistance(double mpp, double sd) {
-    return getDistance(doubleValues(), mpp, sd);
+  public double getDistance(double mx, double my, double sd) {
+    return getDistance(doubleValues(), mx, my, sd);
   }
 
   /** Gets the current endpoint values as an array of doubles. */
@@ -205,18 +205,18 @@ public class Measurement {
   }
 
   /**
-   * Gets the distance between the specified endpoints,
-   * using the given conversion value between pixels and microns,
+   * Gets the distance between the specified endpoints, using
+   * the given conversion values between pixels and microns,
    * and distance between measurement slices.
    */
-  static double getDistance(double[][] values, double mpp, double sd) {
-    double sum = 0;
-    for (int i=0; i<values.length; i++) {
-      double distance =
-        (i == values.length - 1 ? sd : mpp) * (values[i][1] - values[i][0]);
-      sum += distance * distance;
-    }
-    return Math.sqrt(sum);
+  static double getDistance(double[][] values,
+    double mx, double my, double sd)
+  {
+    if (values.length != 3) return Double.NaN;
+    double distx = mx * (values[0][1] - values[0][0]);
+    double disty = my * (values[1][1] - values[1][0]);
+    double distz = sd * (values[2][1] - values[2][0]);
+    return Math.sqrt(distx * distx + disty * disty + distz * distz);
   }
 
 }

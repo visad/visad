@@ -33,6 +33,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import visad.*;
 import visad.browser.Divider;
+import visad.util.Util;
 
 /**
  * ViewToolPanel is the tool panel for
@@ -60,7 +61,7 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
 
   /** Button for zooming out. */
   private JButton zoomOut2;
-  
+
   /** Toggle for 3-D display mode. */
   private JCheckBox threeD;
 
@@ -72,7 +73,10 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
 
   /** Button for zooming out. */
   private JButton zoomOut3;
-  
+
+  /** Toggle for using micron information to compute Z aspect ratio. */
+  private JCheckBox zAspect;
+
   /** Toggle for lo-res image display. */
   private JToggleButton loRes;
 
@@ -215,6 +219,17 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
     zoomOut3.setEnabled(okay3d);
     p.add(zoomOut3);
     controls.add(pad(p));
+
+    // spacing
+    controls.add(Box.createVerticalStrut(5));
+
+    // Z-aspect toggle
+    zAspect = new JCheckBox("Use micron information for Z-scale", true);
+    zAspect.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) { updateAspect(true); }
+    });
+    zAspect.setEnabled(false);
+    controls.add(pad(zAspect));
 
     // divider between display functions and resolution functions
     controls.add(Box.createVerticalStrut(10));
@@ -406,6 +421,8 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
         catch (NumberFormatException exc) { }
       }
     };
+    Util.adjustTextField(sliceResX);
+    Util.adjustTextField(sliceResY);
     sliceResX.getDocument().addDocumentListener(doc);
     sliceResY.getDocument().addDocumentListener(doc);
     sliceResLabel1.setForeground(Color.black);
@@ -427,6 +444,7 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
   /** Enables or disables this tool panel. */
   public void setEnabled(boolean enabled) {
     boolean b = enabled && bio.sm.hasThumbnails();
+    zAspect.setEnabled(enabled);
     loRes.setEnabled(b);
     hiRes.setEnabled(b);
     autoSwitch.setEnabled(b);
@@ -498,6 +516,22 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
     blue.setSelectedItem(b);
     ignore = false;
     doColorTable();
+  }
+
+  /** Updates the Z-aspect and micron information. */
+  void updateAspect(boolean force) {
+    boolean doAspect = zAspect.isEnabled() && zAspect.isSelected();
+    if (!doAspect && !force) return;
+
+    boolean microns = bio.toolMeasure.getUseMicrons();
+    double mw = bio.toolMeasure.getMicronWidth();
+    double mh = bio.toolMeasure.getMicronHeight();
+    double sd = bio.toolMeasure.getSliceDistance();
+    if (doAspect && microns && mw == mw && mh == mh && sd == sd) {
+      int slices = bio.sm.getNumberOfSlices();
+      bio.setAspect(mw, mh, slices * sd);
+    }
+    else if (force) bio.setAspect(bio.sm.res_x, bio.sm.res_y, Double.NaN);
   }
 
 }
