@@ -2679,6 +2679,13 @@ public class FieldImpl extends FunctionImpl implements Field {
   }
 
   /**
+   * A wrapper around {@link #getLength() getLength} for JPython.
+   */
+  public int __len__() throws VisADException, RemoteException {
+    return getLength();
+  }
+
+  /**
    * A wrapper around {@link #getSample(int) getSample} for JPython.
    */
   public Data __getitem__(int index) throws VisADException, RemoteException {
