@@ -70,8 +70,8 @@ public class LinearNDSet extends GriddedSet
    */
   public LinearNDSet(MathType type, double[] firsts, double[] lasts, int[] lengths)
          throws VisADException {
-    this(type, get_linear1d_array(type, firsts, lasts, lengths), null,
-         null, null);
+    this(type, get_linear1d_array(type, firsts, lasts, lengths, null),
+         null, null, null);
   }
 
   /** 
@@ -132,8 +132,8 @@ public class LinearNDSet extends GriddedSet
                      CoordinateSystem coord_sys, Unit[] units,
                      ErrorEstimate[] errors,
                      boolean cache) throws VisADException {
-    this(type, get_linear1d_array(type, firsts, lasts, lengths), coord_sys,
-         units, errors, cache);
+    this(type, get_linear1d_array(type, firsts, lasts, lengths, units),
+         coord_sys, units, errors, cache);
   }
 
   /** 
@@ -177,16 +177,17 @@ public class LinearNDSet extends GriddedSet
    *                   {@link #getSamples()}.
    * @throws VisADException problem creating VisAD objects.
    */
-  public LinearNDSet(MathType type, Linear1DSet[] l, CoordinateSystem coord_sys,
+  public LinearNDSet(MathType type, Linear1DSet[] l,
+                   CoordinateSystem coord_sys,
                    Unit[] units, ErrorEstimate[] errors,
                    boolean cache) throws VisADException {
-    super(type, null, get_lengths(l), coord_sys, units, errors);
+    super(type, null, get_lengths(l), coord_sys,
+          LinearNDSet.units_array_linear1d(l, units), errors);
     if (DomainDimension != ManifoldDimension) {
       throw new SetException("LinearNDSet: DomainDimension != ManifoldDimension");
     }
-    L = new Linear1DSet[DomainDimension];
+    L = LinearNDSet.linear1d_array_units(l, units);
     for (int j=0; j<DomainDimension; j++) {
-      L[j] = l[j];
       Low[j] = L[j].getLowX();
       Hi[j] = L[j].getHiX();
       if (SetErrors[j] != null ) {
@@ -238,8 +239,59 @@ public class LinearNDSet extends GriddedSet
     }
   }
 
+  static Linear1DSet[] linear1d_array_units(Linear1DSet[] sets,
+                    Unit[] units) throws VisADException {
+    if (units == null) return sets;
+    int n = sets.length;
+    if (units.length != n) {
+      throw new SetException("units and sets lengths don't match");
+    }
+    Linear1DSet[] ss = new Linear1DSet[n];
+    for (int i=0; i<n; i++) {
+      Unit[] su = sets[i].getSetUnits();
+      if (units[i] == null || units[i].equals(su[0])) {
+        ss[i] = sets[i];
+      }
+      else {
+        CoordinateSystem cs = sets[i].getCoordinateSystem();
+        double first = sets[i].getFirst();
+        double last = sets[i].getLast();
+        if (su[0] != null) {
+          first = units[i].toThis(first, su[0]);
+          last = units[i].toThis(last, su[0]);
+        }
+        su = new Unit[] {units[i]};
+        ss[i] = new Linear1DSet(sets[i].getType(), first, last,
+                                sets[i].getLength(),
+                                sets[i].getCoordinateSystem(), su,
+                                sets[i].getSetErrors());
+      }
+    }
+    return ss;
+  }
+
+  static Unit[] units_array_linear1d(Linear1DSet[] sets,
+                    Unit[] units) throws VisADException {
+    int n = sets.length;
+    Unit[] newu = new Unit[n];
+    if (units != null && units.length != n) {
+      throw new SetException("units and sets lengths don't match");
+    }
+    for (int i=0; i<n; i++) {
+      if (units != null && units[i] != null) {
+        newu[i] = units[i];
+      }
+      else {
+        Unit[] su = sets[i].getSetUnits();
+        if (su != null) newu[i] = su[0];
+      }
+    }
+    return newu;
+  }
+
   static Linear1DSet[] get_linear1d_array(MathType type, double[] firsts,
-                    double[] lasts, int[] lengths) throws VisADException {
+                    double[] lasts, int[] lengths, Unit[] units)
+         throws VisADException {
     // used by LinearNDSet and IntegerNDSet constructors
     type = Set.adjustType(type);
     int len = lengths.length;
@@ -251,30 +303,33 @@ public class LinearNDSet extends GriddedSet
       RealType[] types =
         {(RealType) ((SetType) type).getDomain().getComponent(j)};
       SetType set_type = new SetType(new RealTupleType(types));
-      l[j] = new Linear1DSet(set_type, firsts[j], lasts[j], lengths[j]);
+      Unit[] us = {null};
+      if (units != null && units.length > j) us[0] = units[j];
+      l[j] = new Linear1DSet(set_type, firsts[j], lasts[j], lengths[j],
+                             null, us, null);
     }
     return l;
   }
 
   static Linear1DSet[] get_linear1d_array(MathType type,
-                                          double first1, double last1, int length1,
-                                          double first2, double last2, int length2)
+                 double first1, double last1, int length1,
+                 double first2, double last2, int length2, Unit[] units)
                        throws VisADException {
     double[] firsts = {first1, first2};
     double[] lasts = {last1, last2};
     int[] lengths = {length1, length2};
-    return get_linear1d_array(type, firsts, lasts, lengths);
+    return get_linear1d_array(type, firsts, lasts, lengths, units);
   }
 
   static Linear1DSet[] get_linear1d_array(MathType type,
-                                          double first1, double last1, int length1,
-                                          double first2, double last2, int length2,
-                                          double first3, double last3, int length3)
+                 double first1, double last1, int length1,
+                 double first2, double last2, int length2,
+                 double first3, double last3, int length3, Unit[] units)
                        throws VisADException {
     double[] firsts = {first1, first2, first3};
     double[] lasts = {last1, last2, last3};
     int[] lengths = {length1, length2, length3};
-    return get_linear1d_array(type, firsts, lasts, lengths);
+    return get_linear1d_array(type, firsts, lasts, lengths, units);
   }
 
   /** convert an array of 1-D indices to an array of values in R^DomainDimension */

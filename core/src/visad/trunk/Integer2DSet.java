@@ -45,14 +45,14 @@ public class Integer2DSet extends Linear2DSet
   public Integer2DSet(int length1, int length2)
          throws VisADException {
     this(RealTupleType.Generic2D,
-         get_integer1d_array(RealTupleType.Generic2D, length1, length2),
+         get_integer1d_array(RealTupleType.Generic2D, length1, length2, null),
          null, null, null);
   }
 
   public Integer2DSet(MathType type, int length1, int length2)
          throws VisADException {
-    this(type, get_integer1d_array(type, length1, length2), null,
-         null, null);
+    this(type, get_integer1d_array(type, length1, length2, null),
+         null, null, null);
   }
 
   public Integer2DSet(MathType type, Integer1DSet[] sets,
@@ -68,24 +68,28 @@ public class Integer2DSet extends Linear2DSet
   public Integer2DSet(MathType type, int length1, int length2,
                       CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors) throws VisADException {
-    this(type, get_integer1d_array(type, length1, length2), coord_sys,
-         units, errors);
+    this(type, get_integer1d_array(type, length1, length2, units),
+         coord_sys, units, errors);
   }
 
   private static Integer1DSet[] get_integer1d_array(MathType type,
-                            int length1, int length2) throws VisADException {
+                            int length1, int length2, Unit[] units)
+          throws VisADException {
     type = Set.adjustType(type);
     Integer1DSet[] sets = new Integer1DSet[2];
     RealType[] types = new RealType[1];
     SetType set_type;
+    Unit[] us = {null};
 
     types[0] = (RealType) ((SetType) type).getDomain().getComponent(0);
     set_type = new SetType(new RealTupleType(types));
-    sets[0] = new Integer1DSet(set_type, length1);
+    if (units != null && units.length > 0) us[0] = units[0];
+    sets[0] = new Integer1DSet(set_type, length1, null, us, null);
 
     types[0] = (RealType) ((SetType) type).getDomain().getComponent(1);
     set_type = new SetType(new RealTupleType(types));
-    sets[1] = new Integer1DSet(set_type, length2);
+    if (units != null && units.length > 1) us[0] = units[1];
+    sets[1] = new Integer1DSet(set_type, length2, null, us, null);
 
     return sets;
   }

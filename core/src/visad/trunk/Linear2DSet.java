@@ -89,9 +89,11 @@ public class Linear2DSet extends Gridded2DSet
   public Linear2DSet(double first1, double last1, int length1,
                      double first2, double last2, int length2)
          throws VisADException {
-    this(RealTupleType.Generic2D, LinearNDSet.get_linear1d_array(
-           RealTupleType.Generic2D, first1, last1, length1,
-           first2, last2, length2), null, null, null);
+    this(RealTupleType.Generic2D,
+         LinearNDSet.get_linear1d_array(RealTupleType.Generic2D,
+                                        first1, last1, length1,
+                                        first2, last2, length2, null),
+         null, null, null);
   }
 
   /** 
@@ -110,7 +112,8 @@ public class Linear2DSet extends Gridded2DSet
                                     double first2, double last2, int length2)
          throws VisADException {
     this(type, LinearNDSet.get_linear1d_array(type, first1, last1, length1,
-         first2, last2, length2), null, null, null);
+                                              first2, last2, length2, null),
+         null, null, null);
   }
 
   /** 
@@ -170,8 +173,10 @@ public class Linear2DSet extends Gridded2DSet
                      CoordinateSystem coord_sys, Unit[] units,
                      ErrorEstimate[] errors, 
                      boolean cache) throws VisADException {
-    this(type, LinearNDSet.get_linear1d_array(type, first1, last1, length1,
-         first2, last2, length2), coord_sys, units, errors, cache);
+    this(type,
+         LinearNDSet.get_linear1d_array(type, first1, last1, length1,
+                                        first2, last2, length2, units),
+         coord_sys, units, errors, cache);
   }
 
   /**
@@ -220,7 +225,7 @@ public class Linear2DSet extends Gridded2DSet
                      CoordinateSystem coord_sys, Unit[] units,
                      ErrorEstimate[] errors, boolean cache) throws VisADException {
     super(type, (float[][]) null, sets[0].getLength(), sets[1].getLength(),
-          coord_sys, units, errors);
+          coord_sys, LinearNDSet.units_array_linear1d(sets, units), errors);
     if (DomainDimension != 2) {
       throw new SetException("Linear2DSet: DomainDimension must be 2, not " +
                              DomainDimension);
@@ -229,8 +234,9 @@ public class Linear2DSet extends Gridded2DSet
       throw new SetException("Linear2DSet: ManifoldDimension must be 2" +
                              ", not " + sets.length);
     }
-    X = sets[0];
-    Y = sets[1];
+    Linear1DSet[] ss = LinearNDSet.linear1d_array_units(sets, units);
+    X = ss[0];
+    Y = ss[1];
     LengthX = X.getLength();
     LengthY = Y.getLength();
     Length = LengthX * LengthY;

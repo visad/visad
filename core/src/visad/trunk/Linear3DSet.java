@@ -80,9 +80,12 @@ public class Linear3DSet extends Gridded3DSet
                      double first2, double last2, int length2,
                      double first3, double last3, int length3)
          throws VisADException {
-    this(RealTupleType.Generic3D, LinearNDSet.get_linear1d_array(
-           RealTupleType.Generic3D, first1, last1, length1,
-           first2, last2, length2, first3, last3, length3), null, null, null);
+    this(RealTupleType.Generic3D,
+         LinearNDSet.get_linear1d_array(RealTupleType.Generic3D,
+                                        first1, last1, length1,
+                                        first2, last2, length2,
+                                        first3, last3, length3, null),
+         null, null, null);
   }
 
   /** 
@@ -105,7 +108,9 @@ public class Linear3DSet extends Gridded3DSet
                                     double first3, double last3, int length3)
          throws VisADException {
     this(type, LinearNDSet.get_linear1d_array(type, first1, last1, length1,
-         first2, last2, length2, first3, last3, length3), null, null, null);
+                                              first2, last2, length2,
+                                              first3, last3, length3, null),
+         null, null, null);
   }
 
   /** 
@@ -172,8 +177,9 @@ public class Linear3DSet extends Gridded3DSet
                      Unit[] units, ErrorEstimate[] errors,
                      boolean cache) throws VisADException {
     this(type, LinearNDSet.get_linear1d_array(type, first1, last1, length1,
-         first2, last2, length2, first3, last3, length3), coord_sys,
-         units, errors, cache);
+                                              first2, last2, length2,
+                                              first3, last3, length3, units),
+         coord_sys, units, errors, cache);
   }
 
   /**
@@ -222,7 +228,8 @@ public class Linear3DSet extends Gridded3DSet
                      CoordinateSystem coord_sys, Unit[] units,
                      ErrorEstimate[] errors, boolean cache) throws VisADException {
     super(type, (float[][]) null, sets[0].getLength(), sets[1].getLength(),
-          sets[2].getLength(), coord_sys, units, errors);
+          sets[2].getLength(), coord_sys,
+          LinearNDSet.units_array_linear1d(sets, units), errors);
     if (DomainDimension != 3) {
       throw new SetException("Linear3DSet: DomainDimension must be 3, not " +
                              DomainDimension);
@@ -231,9 +238,10 @@ public class Linear3DSet extends Gridded3DSet
       throw new SetException("Linear3DSet: ManifoldDimension must be 3, not " +
                              sets.length);
     }
-    X = sets[0];
-    Y = sets[1];
-    Z = sets[2];
+    Linear1DSet[] ss = LinearNDSet.linear1d_array_units(sets, units);
+    X = ss[0];
+    Y = ss[1];
+    Z = ss[2];
     LengthX = X.getLength();
     LengthY = Y.getLength();
     LengthZ = Z.getLength();

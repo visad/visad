@@ -45,13 +45,14 @@ public class Integer3DSet extends Linear3DSet
   public Integer3DSet(int length1, int length2, int length3)
          throws VisADException {
     this(RealTupleType.Generic3D,
-         get_integer1d_array(RealTupleType.Generic3D, length1, length2, length3),
+         get_integer1d_array(RealTupleType.Generic3D, length1, length2,
+                             length3, null),
          null, null, null);
   }
 
   public Integer3DSet(MathType type, int length1, int length2, int length3)
          throws VisADException {
-    this(type, get_integer1d_array(type, length1, length2, length3),
+    this(type, get_integer1d_array(type, length1, length2, length3, null),
          null, null, null);
   }
 
@@ -68,28 +69,33 @@ public class Integer3DSet extends Linear3DSet
   public Integer3DSet(MathType type, int length1, int length2, int length3,
                       CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors) throws VisADException {
-    this(type, get_integer1d_array(type, length1, length2, length3),
+    this(type, get_integer1d_array(type, length1, length2, length3, units),
          coord_sys, units, errors);
   }
 
-  private static Integer1DSet[] get_integer1d_array(MathType type, int length1,
-                           int length2, int length3) throws VisADException {
+  private static Integer1DSet[] get_integer1d_array(MathType type,
+             int length1, int length2, int length3, Unit[] units)
+          throws VisADException {
     type = Set.adjustType(type);
     Integer1DSet[] sets = new Integer1DSet[3];
     RealType[] types = new RealType[1];
     SetType set_type;
+    Unit[] us = {null};
 
     types[0] = (RealType) ((SetType) type).getDomain().getComponent(0);
     set_type = new SetType(new RealTupleType(types));
-    sets[0] = new Integer1DSet(set_type, length1);
+    if (units != null && units.length > 0) us[0] = units[0];
+    sets[0] = new Integer1DSet(set_type, length1, null, us, null);
 
     types[0] = (RealType) ((SetType) type).getDomain().getComponent(1);
     set_type = new SetType(new RealTupleType(types));
-    sets[1] = new Integer1DSet(set_type, length2);
+    if (units != null && units.length > 1) us[0] = units[1];
+    sets[1] = new Integer1DSet(set_type, length2, null, us, null);
 
     types[0] = (RealType) ((SetType) type).getDomain().getComponent(2);
     set_type = new SetType(new RealTupleType(types));
-    sets[2] = new Integer1DSet(set_type, length3);
+    if (units != null && units.length > 2) us[0] = units[2];
+    sets[2] = new Integer1DSet(set_type, length3, null, us, null);
 
     return sets;
   }

@@ -51,7 +51,9 @@ public class IntegerNDSet extends LinearNDSet
                     CoordinateSystem coord_sys, Unit[] units,
                     ErrorEstimate[] errors) throws VisADException {
     super(type, LinearNDSet.get_linear1d_array(type, get_firsts(lengths),
-          get_lasts(lengths), lengths), coord_sys, units, errors);
+                                               get_lasts(lengths), lengths,
+                                               units),
+          coord_sys, units, errors);
   }
 
   public IntegerNDSet(MathType type, Integer1DSet[] sets) throws VisADException {
