@@ -28,21 +28,24 @@ package visad.python;
 
 import java.awt.Dimension;
 import java.awt.event.*;
-import java.rmi.RemoteException;
-import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+import javax.swing.*;
 
 import visad.*;
 import visad.math.*;
 import visad.matrix.*;
 import visad.data.*;
-import visad.ss.FancySSCell;
+import visad.ss.*;
 
 /**
  * A collection of methods for working with VisAD, callable from the
  * JPython editor.
  */
 public abstract class JPythonMethods {
+
+  private static final String DEFAULT_NAME = "JPython";
 
   private static final String ID = JPythonMethods.class.getName();
 
@@ -56,6 +59,8 @@ public abstract class JPythonMethods {
   }
 
 
+  private static Hashtable frames = new Hashtable();
+
   /**
    * Displays the given data onscreen.
    *
@@ -67,11 +72,56 @@ public abstract class JPythonMethods {
   public static void plot(DataImpl data)
     throws VisADException, RemoteException
   {
-    plot(data, 1.0, 1.0, 1.0);
+    plot(null, data, false, 1.0, 1.0, 1.0);
   }
 
-  private static FancySSCell display = null;
-  private static JFrame displayFrame = null;
+  /**
+   * Displays the given data onscreen,
+   * displaying the edit mappings dialog if specified.
+   *
+   * @param   data            VisAD data object to plot
+   * @param   editMaps        whether to initially display edit mappings dialog
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
+  public static void plot(DataImpl data, boolean editMaps)
+    throws VisADException, RemoteException
+  {
+    plot(null, data, editMaps, 1.0, 1.0, 1.0);
+  }
+  
+  /**
+   * Displays the given data onscreen.
+   *
+   * @param   name            name of display in which to plot data
+   * @param   data            VisAD data object to plot
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
+  public static void plot(String name, DataImpl data)
+    throws VisADException, RemoteException
+  {
+    plot(name, data, false, 1.0, 1.0, 1.0);
+  }
+
+  /**
+   * Displays the given data onscreen in a display with the given name,
+   * displaying the edit mappings dialog if specified.
+   *
+   * @param   name            name of display in which to plot data
+   * @param   data            VisAD data object to plot
+   * @param   editMaps        whether to initially display edit mappings dialog
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
+  public static void plot(String name, DataImpl data, boolean editMaps)
+    throws VisADException, RemoteException
+  {
+    plot(name, data, editMaps, 1.0, 1.0, 1.0);
+  }
 
   /**
    * Displays the given data onscreen, using given color default.
@@ -89,14 +139,42 @@ public abstract class JPythonMethods {
   public static void plot(DataImpl data, double red, double green, double blue)
     throws VisADException, RemoteException
   {
+    plot(null, data, false, red, green, blue);
+  }
+
+  /**
+   * Displays the given data onscreen in a display with the given name, using
+   * the given color default and displaying the edit mappings dialog if
+   * specified.
+   *
+   * @param   name            name of display in which to plot data
+   * @param   data            VisAD data object to plot
+   * @param   editMaps        whether to initially display edit mappings dialog
+   * @param   red             red component of default color to use if there
+   *                          are no color mappings from data's RealTypes;
+   *                          color component values between 0.0 and 1.0
+   * @param   green           green component of default color
+   * @param   blue            blue component of default color
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
+  public static void plot(String name, DataImpl data,
+    boolean editMaps, double red, double green, double blue)
+    throws VisADException, RemoteException
+  {
     if (data == null) throw new VisADException("Data cannot be null");
+    if (name == null) name = DEFAULT_NAME;
+    BasicSSCell display = BasicSSCell.getSSCellByName(name);
+    JFrame frame;
     if (display == null) {
-      display = new FancySSCell("J");
+      display = new FancySSCell(name);
       display.setPreferredSize(new Dimension(256, 256));
-      displayFrame = new JFrame("VisAD Display Plot");
+      frame = new JFrame("VisAD Display Plot (" + name + ")");
+      frames.put(name, frame);
       JPanel pane = new JPanel();
       pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
-      displayFrame.setContentPane(pane);
+      frame.setContentPane(pane);
       pane.add(display);
 
       // add buttons to cell layout
@@ -107,23 +185,27 @@ public abstract class JPythonMethods {
       buttons.add(maps);
       buttons.add(clear);
       pane.add(buttons);
+      final FancySSCell fdisp = (FancySSCell) display;
       maps.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          display.addMapDialog();
+          fdisp.addMapDialog();
         }
       });
       clear.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           try {
-            display.smartClear();
+            fdisp.smartClear();
           }
           catch (VisADException exc) { }
           catch (RemoteException exc) { }
         }
       });
-      displayFrame.pack();
-      displayFrame.setVisible(true);
+      frame.pack();
     }
+    else {
+      frame = (JFrame) frames.get(name);
+    }
+    frame.setVisible(true);
 
     ConstantMap[] cmaps = {
       new ConstantMap(red, Display.Red),
@@ -141,11 +223,27 @@ public abstract class JPythonMethods {
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
   public static void clearplot() throws VisADException, RemoteException {
+  }
+
+  /**
+   * clear the onscreen data display with the given name
+   *
+   * @param   name            name of the display to clear
+   *
+   * @throws  VisADException  part of data and display APIs, shouldn't occur
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
+  public static void clearplot(String name)
+    throws VisADException, RemoteException
+  {
+    if (name == null) name = DEFAULT_NAME;
+    BasicSSCell display = BasicSSCell.getSSCellByName(name);
     if (display != null) {
+      JFrame frame = (JFrame) frames.get(name);
       display.clearCell();
-      displayFrame.setVisible(false);
-      displayFrame.dispose();
-      displayFrame = null;
+      frame.setVisible(false);
+      frame.dispose();
+      frame = null;
       display.destroyCell();
       display = null;
     }
