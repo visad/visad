@@ -367,15 +367,6 @@ public class FileFlatField extends FlatField {
     }
   }
 
-  public Field combine( Field[] fields)
-         throws VisADException, RemoteException
-  {
-    synchronized (adaptedFlatFields)
-    {
-      return getadaptedFlatField().combine( fields );
-    }
-  }
-
   public Field extract( int component )
          throws VisADException, RemoteException
   {

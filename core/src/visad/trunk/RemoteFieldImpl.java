@@ -109,15 +109,6 @@ public class RemoteFieldImpl extends RemoteFunctionImpl
     ((FieldImpl) AdaptedData).setSample(index, range);
   }
 
-  public Field combine(Field[] fields)
-         throws VisADException, RemoteException {
-    if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteFieldImpl.combine: " +
-                                     "AdaptedData is null");
-    }
-    return ((FieldImpl) AdaptedData).combine(fields);
-  }
-
   public Field extract(int component)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {

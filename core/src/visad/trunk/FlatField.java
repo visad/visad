@@ -2001,15 +2001,6 @@ public class FlatField extends FieldImpl {
     return new_field;
   }
 
-  /** combine an array of FlatFields;
-      they must have the same Domain type;
-      this takes the place of 'insert' in the C-based VisAD */
-  /**
-  public Field combine(FlatField[] fields) throws VisADException {
-    throw new UnimplementedException("FlatField.combine");
-  }
-   **/
-
   /** extract field from this[].component;
       this is OK, when we get around to it */
   public Field extract(int component) 
