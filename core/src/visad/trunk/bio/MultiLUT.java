@@ -48,7 +48,10 @@ public class MultiLUT extends Object implements ActionListener {
   private float[][] data_values = null;
   private float[][] values = null;
 
+  private float[][] wedge_samples = null;
+
   private FlatField data = null;
+  private FlatField wedge = null;
 
   private DataReferenceImpl[] value_refs = null;
   private DataReferenceImpl[] hue_refs = null;
@@ -90,6 +93,12 @@ public class MultiLUT extends Object implements ActionListener {
       FieldImpl field = (FieldImpl) tuple.getComponent(0);
       FlatField ff = (FlatField) field.getSample(0);
       set = ff.getDomainSet();
+/*
+System.out.println("set = " + set);
+set = Linear2DSet: Length = 393216
+  Dimension 1: Length = 768 Range = 0.0 to 767.0
+  Dimension 2: Length = 512 Range = 0.0 to 511.0
+*/
       if (i == 0) {
         FunctionType func = (FunctionType) ff.getType();
         domain = func.getDomain();
@@ -121,6 +130,13 @@ public class MultiLUT extends Object implements ActionListener {
     DataReferenceImpl ref1 = new DataReferenceImpl("ref1");
     ref1.setData(data);
 
+    Linear2DSet wedge_set =
+      new Linear2DSet(domain, 0.0, 767.0, 768, 550.0, 570.0, 21);
+    wedge = new FlatField(new_func, wedge_set);
+    wedge_samples = new float[2][768 * 21];
+    DataReferenceImpl wedge_ref = new DataReferenceImpl("wedge_ref");
+    wedge_ref.setData(wedge);
+
     final DataReferenceImpl xref = new DataReferenceImpl("xref");
 
     // System.out.println("data type: " + new_func);
@@ -131,17 +147,24 @@ public class MultiLUT extends Object implements ActionListener {
     display1.addMap(xmap);
     ScalarMap ymap = new ScalarMap(line, Display.YAxis);
     display1.addMap(ymap);
+    ymap.setRange(0.0, 511.0);
     vmap = new ScalarMap(value, Display.Value);
     display1.addMap(vmap);
     hmap = new ScalarMap(hue, Display.Hue);
     display1.addMap(hmap);
     display1.addMap(new ConstantMap(1.0, Display.Saturation));
 
+    display1.getGraphicsModeControl().setScaleEnable(true);
+
     display1.addReference(ref1);
 
     DefaultRendererJ3D renderer = new DefaultRendererJ3D();
     display1.addReferences(renderer, xref);
     renderer.suppressExceptions(true);
+
+    DefaultRendererJ3D wedge_renderer = new DefaultRendererJ3D();
+    display1.addReferences(wedge_renderer, wedge_ref);
+    wedge_renderer.suppressExceptions(true);
 
     line_ref = new DataReferenceImpl("line");
     Gridded2DSet dummy_set = new Gridded2DSet(domain, null, 1);
@@ -163,7 +186,12 @@ public class MultiLUT extends Object implements ActionListener {
     display2.addMap(ymap2);
     ScalarMap zmap2 = new ScalarMap(point, Display.ZAxis);
     display2.addMap(zmap2);
-    display2.addReference(ref2);
+
+    display2.getGraphicsModeControl().setScaleEnable(true);
+
+    DefaultRendererJ3D renderer2 = new DefaultRendererJ3D();
+    display2.addReferences(renderer2, ref2);
+    renderer2.suppressExceptions(true);
 
     final RealTupleType fdomain = domain;
     CellImpl cell = new CellImpl() {
@@ -172,8 +200,8 @@ public class MultiLUT extends Object implements ActionListener {
         if (set == null) return;
         float[][] samples = set.getSamples();
         if (samples == null) return;
-        System.out.println("box (" + samples[0][0] + ", " + samples[1][0] +
-                           ") to (" + samples[0][1] + ", " + samples[1][1] + ")");
+        // System.out.println("box (" + samples[0][0] + ", " + samples[1][0] +
+        //                    ") to (" + samples[0][1] + ", " + samples[1][1] + ")");
         float x1 = samples[0][0];
         float y1 = samples[1][0];
         float x2 = samples[0][1];
@@ -209,12 +237,10 @@ public class MultiLUT extends Object implements ActionListener {
     };
     cell.addReference(line_ref);
 
-    DataReferenceImpl go_ref = new DataReferenceImpl("go");
     VisADSlider[] value_sliders = new VisADSlider[NFILES];
     VisADSlider[] hue_sliders = new VisADSlider[NFILES];
     value_refs = new DataReferenceImpl[NFILES];
     hue_refs = new DataReferenceImpl[NFILES];
-
 
     JFrame frame = new JFrame("VisAD MultiLUT");
     frame.addWindowListener(new WindowAdapter() {
@@ -318,11 +344,32 @@ public class MultiLUT extends Object implements ActionListener {
         if (h < hmin) hmin = h;
         if (h > hmax) hmax = h;
       }
+      int k = 0;
+      for (int j=0; j<21; j++) {
+        for (int i=0; i<768; i++) {
+          wedge_samples[0][k] = vmax;
+          wedge_samples[1][k] = hmin + (((float) i) / 767.0f) * (hmax - hmin);
+          k++;
+        }
+      }
+
       display1.disableAction();
       vmap.setRange(vmin, vmax);
       hmap.setRange(hmin, hmax);
       data.setSamples(data_values, false);
+      wedge.setSamples(wedge_samples, false);
       display1.enableAction();
+
+/* NEEDED:
+
+display vmin and vmax
+text labels at each end of wedge for hmin and hmax
+
+put JButton under VisADSliders rather than on right JPanel
+another JButton to force all hue sliders to 0.0
+
+*/
+
     }
     catch (VisADException ex) {
       System.out.println( ex.getMessage() );
