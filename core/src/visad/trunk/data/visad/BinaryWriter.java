@@ -88,6 +88,11 @@ public class BinaryWriter
     file = null;
   }
 
+  private int computeDoubleArrayBytes(double[] array)
+  {
+    return (array == null ? 0 : 4 + (array.length * 8));
+  }
+
   private int computeDoubleMatrixBytes(double[][] matrix)
   {
     if (matrix == null) {
@@ -100,6 +105,11 @@ public class BinaryWriter
     }
 
     return len;
+  }
+
+  private int computeFloatArrayBytes(float[] array)
+  {
+    return (array == null ? 0 : 4 + (array.length * 4));
   }
 
   private int computeFloatMatrixBytes(float[][] matrix)
@@ -116,7 +126,12 @@ public class BinaryWriter
     return len;
   }
 
-  private int computeIntegerMatrixBytes(double[][] matrix)
+  private int computeIntegerArrayBytes(int[] array)
+  {
+    return (array == null ? 0 : 4 + (array.length * 4));
+  }
+
+  private int computeIntegerMatrixBytes(int[][] matrix)
   {
     if (matrix == null) {
       return 4;
@@ -128,21 +143,6 @@ public class BinaryWriter
     }
 
     return len;
-  }
-
-  private int computeDoubleArrayBytes(double[] array)
-  {
-    return (array == null ? 0 : 4 + (array.length * 8));
-  }
-
-  private int computeFloatArrayBytes(float[] array)
-  {
-    return (array == null ? 0 : 4 + (array.length * 4));
-  }
-
-  private int computeIntegerArrayBytes(int[] array)
-  {
-    return (array == null ? 0 : 4 + (array.length * 4));
   }
 
   private int computeStringBytes(String str)
