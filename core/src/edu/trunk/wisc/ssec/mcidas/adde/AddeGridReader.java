@@ -293,9 +293,9 @@ public class AddeGridReader {
     {
         String request = 
             (args.length == 0)
-//                ? "adde://sweetpea.ssec.wisc.edu/grid?group=ABOM&descr=GRIDS&pos=302&num=4&parm=T&lev=500&proj=6999&user=tomw&"
+                ? "adde://sweetpea.ssec.wisc.edu/grid?group=ABOM&descr=GRIDS&pos=302&num=40&lev=500&proj=6999&user=tomw&"
 //                ? "adde://sweetpea.ssec.wisc.edu/grid?group=ABOM&descr=GRIDS&pos=302&num=2&proj=6999&user=tomw&"
-                ? "adde://noaaport.ssec.wisc.edu/grid?group=NGM&descr=12&num=12&proj=6999&user=tomw&"
+//                ? "adde://noaaport.ssec.wisc.edu/grid?group=NGM&descr=12&num=12&proj=6999&user=tomw&"
 //                  ? "adde://noaaport.ssec.wisc.edu/griddirectory?group=NGM&descr=12&num=15&proj=6999&user=tomw&"
 //                  ? "adde://adde.unidata.ucar.edu/griddirectory?group=rtgrids&descr=ngm&num=all&proj=6999&user=tomw&"
                   : args[0];
@@ -312,17 +312,6 @@ public class AddeGridReader {
           System.out.println(mg.toString());
         }
         */
-
-        /*
-        //Unit hpa = Parser.parse("hPa");
-
-        UnitsDB du = DefaultUnitsDB.instance();
-        Unit hpa = du.get("hPa");
-        hpa = hpa.clone("hPa");
-        du.putSymbol("HPA", hpa);
-        du.putSymbol("hPa", hpa);
-        */
-        MetUnits.make();
 
         ArrayList v = d.getGridData(request);
         ArrayList vd = d.getGridHeaders();
