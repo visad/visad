@@ -54,6 +54,10 @@ public class TextControl extends Control {
   // Rotation, in degrees, clockwise along positive x axis
   private double rotation = 0.0;
 
+  // WLH 6 Aug 2001
+  private boolean autoSize = false;
+  private ProjectionControlListener pcl = null;
+
   /**
    * Class to represent the different types of justification
    * Use a class so the user can't just pass in an arbitrary integer
@@ -84,6 +88,37 @@ public class TextControl extends Control {
 
   public TextControl(DisplayImpl d) {
     super(d);
+  }
+
+  public void setAutoSize(boolean auto)
+         throws VisADException {
+    if (auto == autoSize) return;
+    DisplayImpl display = getDisplay();
+    DisplayRenderer dr = display.getDisplayRenderer();
+    MouseBehavior mouse = dr.getMouseBehavior();
+    ProjectionControl pc = display.getProjectionControl();
+    if (auto) {
+      pcl = new ProjectionControlListener(mouse, this, pc);
+      pc.addControlListener(pcl);
+    }
+    else {
+      pc.removeControlListener(pcl);
+    }
+    autoSize = auto;
+    try {
+      changeControl(true);
+    }
+    catch (RemoteException e) {
+    }
+  }
+
+  public void nullControl() {
+    try {
+      setAutoSize(false);
+    }
+    catch (VisADException e) {
+    }
+    super.nullControl();
   }
 
   /** set the Font; in the initial release this has no effect */
@@ -308,6 +343,12 @@ public class TextControl extends Control {
       rotation = tc.rotation;
     }
 
+    // WLH 6 Aug 2001
+    if (autoSize != tc.autoSize) {
+      // changed = true;
+      setAutoSize(tc.autoSize);
+    }
+
     if (changed) {
       try {
         changeControl(true);
@@ -355,7 +396,55 @@ public class TextControl extends Control {
       return false;
     }
 
+    // WLH 6 Aug 2001
+    if (autoSize != tc.autoSize) {
+      return false;
+    }
+
     return true;
   }
+
+  private boolean pfirst = true;
+
+  class ProjectionControlListener implements ControlListener {
+    private MouseBehavior mouse;
+    private ProjectionControl pcontrol;
+    private TextControl text_control;
+    private double base_scale = 1.0;
+    private float last_cscale = 1.0f;
+    private double base_size = 1.0;
+
+    ProjectionControlListener(MouseBehavior m, TextControl t,
+                              ProjectionControl p) {
+      mouse = m;
+      text_control = t;
+      pcontrol = p;
+    }
+
+    public void controlChanged(ControlEvent e)
+           throws VisADException, RemoteException {
+      double[] matrix = pcontrol.getMatrix();
+      double[] rot = new double[3];
+      double[] scale = new double[1];
+      double[] trans = new double[3];
+      mouse.instance_unmake_matrix(rot, scale, trans, matrix);
+
+      if (pfirst) {
+        pfirst = false;
+        base_scale = scale[0];
+        last_cscale = 1.0f;
+        base_size = text_control.getSize();
+      }
+      else {
+        float cscale = (float) (base_scale / scale[0]);
+        float ratio = cscale / last_cscale;
+        if (ratio < 0.95f || 1.05f < ratio) {
+          last_cscale = cscale;
+          text_control.setSize(base_size * cscale);
+        }
+      }
+    }
+  }
+
 }
 

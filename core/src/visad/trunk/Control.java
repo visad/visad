@@ -99,6 +99,12 @@ public abstract class Control extends Object
     }
   }
 
+  // WLH 6 Aug 2001
+  /** end this control */
+  public void nullControl() {
+    ListenerVector.removeAllElements();
+  }
+
   /** invoke incTick every time Control changes */
   public long incTick() {
     NewTick += 1;

@@ -96,6 +96,7 @@ public class Test45
     else {
       dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
       dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+      tcontrol.setAutoSize(true);
     }
     dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.Green));
     dpys[0].addMap(new ConstantMap(0.5, Display.Blue));

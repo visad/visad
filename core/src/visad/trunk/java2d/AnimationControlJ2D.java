@@ -94,6 +94,11 @@ public class AnimationControlJ2D extends AVControlJ2D
     }
   }
 
+  public void nullControl() {
+    stop();
+    super.nullControl();
+  }
+
   public void stop() {
     animationThread = null;
   }

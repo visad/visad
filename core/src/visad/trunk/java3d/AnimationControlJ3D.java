@@ -91,6 +91,11 @@ public class AnimationControlJ3D extends AVControlJ3D
     this(null, null);
   }
 
+  public void nullControl() {
+    stop();
+    super.nullControl();
+  }
+
   public void stop() {
     animationThread = null;
   }

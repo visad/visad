@@ -105,6 +105,7 @@ public class Test44
         text_control.setSize(0.75);
         text_control.setJustification(TextControl.Justification.RIGHT);
         text_control.setRotation(10.0);
+        text_control.setAutoSize(true);
         foundCtrl = true;
       }
     }
