@@ -202,26 +202,37 @@ public class DisplaySyncImpl
     throws RemoteException, RemoteVisADException
   {
     Control lclCtl, rmtCtl;
+    ScalarMap lclMap, rmtMap;
 
     switch (evt.getType()) {
     case MonitorEvent.MAP_ADDED:
-      // forward to any listeners
-      monitor.notifyListeners(evt);
 
-      ScalarMap map = ((MapMonitorEvent )evt).getMap();
-      try {
-        myDisplay.addMap(map);
-      } catch (VisADException ve) {
-        ve.printStackTrace();
-        throw new RemoteVisADException("Map " + map + " not added: " + ve);
+      rmtMap = ((MapMonitorEvent )evt).getMap();
+
+      // if we haven't already added this map...
+      if (findMap(rmtMap) == null) {
+        if (!myDisplay.getRendererVector().isEmpty()) {
+          System.err.println("Late addMap: " + rmtMap);
+        } else {
+          // forward to any listeners
+          monitor.notifyListeners(evt);
+
+          try {
+            myDisplay.addMap(rmtMap);
+          } catch (VisADException ve) {
+            ve.printStackTrace();
+            throw new RemoteVisADException("Map " + rmtMap + " not added: " +
+                                           ve);
+          }
+        }
       }
       break;
     case MonitorEvent.MAP_CHANGED:
       // forward to any listeners
       monitor.notifyListeners(evt);
 
-      ScalarMap rmtMap = ((MapMonitorEvent )evt).getMap();
-      ScalarMap lclMap = findMap(rmtMap);
+      rmtMap = ((MapMonitorEvent )evt).getMap();
+      lclMap = findMap(rmtMap);
       if (lclMap == null) {
         throw new RemoteVisADException("ScalarMap " + rmtMap + " not found");
       }
