@@ -458,12 +458,23 @@ public class RealType extends ScalarType {
 	  else if (CommonUnit.promiscuous.equals(thisUnit)) {
             newType = type;
 	  }
-	  else if (thisUnit != null && unit != null) {
-            if (!thisUnit.isConvertible(unit)) {
-              throw new UnitException();
+	  else {
+            if (thisUnit == null || unit == null) {
+	      newUnit = null;
+	      if (thisUnit == null && unit == null) {
+		newName = Name;
+	      }
+	      else {
+		newName = getUniqueGenericName(names, newUnit);
+	      }
             }
-            newUnit = thisUnit;
-            newName = Name;
+            else {
+              if (!thisUnit.isConvertible(unit)) {
+                throw new UnitException();
+              }
+              newUnit = thisUnit;
+              newName = Name;
+            }
             newType = getRealType(newName, newUnit, newAttrMask);
 	    if (newType == null) {
 	      /*
@@ -474,7 +485,7 @@ public class RealType extends ScalarType {
 	      newType = getRealType(newName(newUnit), newUnit, newAttrMask);
 	    }
  	  }
-         break;
+          break;
 
         case Data.MULTIPLY:
           if (CommonUnit.promiscuous.equals(unit) ||
