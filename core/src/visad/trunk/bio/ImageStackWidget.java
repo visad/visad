@@ -35,7 +35,10 @@ public class ImageStackWidget extends BioStepWidget {
   // -- CONSTRUCTOR --
 
   /** Constructs a new ImageStackWidget. */
-  public ImageStackWidget(BioVisAD biovis) { super(biovis, false); }
+  public ImageStackWidget(BioVisAD biovis) {
+    super(biovis, false);
+    step.setSnapToTicks(true);
+  }
 
 
   // -- API METHODS --
