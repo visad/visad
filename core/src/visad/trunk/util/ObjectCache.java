@@ -75,7 +75,7 @@ public class ObjectCache
   /**
    * Wrapper for an object in the cache.
    */
-  class QueueMember {
+  private class QueueMember {
     int generation;
     Object object;
 
