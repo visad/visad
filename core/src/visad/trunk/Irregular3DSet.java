@@ -438,9 +438,6 @@ public class Irregular3DSet extends IrregularSet {
 
     // estimate number of vertices
     int maxv = 2 * 2 * Length;
-/* WLH 14 Aug 98
-    if (maxv < 10000) maxv = 10000;
-*/
 
     int color_length = (color_values != null) ? color_values.length : 0;
     float[][] color_levels = null;
@@ -514,9 +511,6 @@ public class Irregular3DSet extends IrregularSet {
       float gg = clow;
 
       for (int il=0; il<numc; il++, gg += interval) {
-/* WLH 14 Aug 98
-      for (int il=0; il<numc && numv+8<maxv; il++, gg += interval) {
-*/
         if (numv+8 >= maxv) {
           // allocate more space
           maxv = 2 * maxv;

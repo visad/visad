@@ -1373,11 +1373,8 @@ public class Gridded3DSet extends GriddedSet {
     float[] g = fieldValues;
 
     // these are just estimates
-/* WLH 14 Aug 98
-    int est = 4 * Length;
-    if (est < 10000) est = 10000;
-*/
-    int est = Length;
+    int est = 2 * Length;
+    if (est < 1000) est = 1000;
     int maxv2 = est;
     int maxv1 = 2 * 2 * maxv2;
     // maxv3 and maxv4 should be equal
@@ -1938,21 +1935,23 @@ public class Gridded3DSet extends GriddedSet {
     ix = 9 * (nvertex_estimate + 50);
     iy = 7 * npolygons;
 
-    float[] VX = new float[nvertex_estimate];
-    float[] VY = new float[nvertex_estimate];
-    float[] VZ = new float[nvertex_estimate];
+    float[][] VX = new float[1][nvertex_estimate];
+    float[][] VY = new float[1][nvertex_estimate];
+    float[][] VZ = new float[1][nvertex_estimate];
 
     float[][] color_temps = null;
     if (color_values != null) {
-      color_temps = new float[color_values.length][nvertex_estimate];
+      color_temps = new float[color_values.length][];
     }
 
     int[] Pol_f_Vert = new int[ix];
     int[] Vert_f_Pol = new int[iy];
+    int[][] arg_Pol_f_Vert = new int[][] {Pol_f_Vert};
 
     nvertex = isosurf( isolevel, ptFLAG, nvertex_estimate, npolygons,
                        ptGRID, xdim, ydim, zdim, VX, VY, VZ,
-                       color_values, color_temps, Pol_f_Vert, Vert_f_Pol );
+                       color_values, color_temps, arg_Pol_f_Vert, Vert_f_Pol );
+    Pol_f_Vert = arg_Pol_f_Vert[0];
 
     if (nvertex == 0) return null;
 
@@ -1961,14 +1960,15 @@ public class Gridded3DSet extends GriddedSet {
     ptAUX = null;
 /*
 for (int j=0; j<nvertex; j++) {
-  System.out.println("iso vertex[" + j + "] " + VX[j] + " " + VY[j] + " " + VZ[j]);
+  System.out.println("iso vertex[" + j + "] " + VX[0][j] + " " + VY[0][j] +
+                     " " + VZ[0][j]);
 }
 */
     float[][] fieldVertices = new float[3][nvertex];
     // NOTE - NO X & Y swap
-    System.arraycopy(VX, 0, fieldVertices[0], 0, nvertex);
-    System.arraycopy(VY, 0, fieldVertices[1], 0, nvertex);
-    System.arraycopy(VZ, 0, fieldVertices[2], 0, nvertex);
+    System.arraycopy(VX[0], 0, fieldVertices[0], 0, nvertex);
+    System.arraycopy(VY[0], 0, fieldVertices[1], 0, nvertex);
+    System.arraycopy(VZ[0], 0, fieldVertices[2], 0, nvertex);
     // take the garbage out
     VX = null;
     VY = null;
@@ -2241,9 +2241,9 @@ for (int j=0; j<nvertex; j++) {
 
   private int isosurf( float isovalue, int[] ptFLAG, int nvertex_estimate,
                        int npolygons, float[] ptGRID, int xdim, int ydim,
-                       int zdim, float[] VX, float[] VY, float[] VZ,
+                       int zdim, float[][] VX, float[][] VY, float[][] VZ,
                        float[][] auxValues, float[][] auxLevels,
-                       int[] Pol_f_Vert, int[] Vert_f_Pol )
+                       int[][] Pol_f_Vert, int[] Vert_f_Pol )
           throws VisADException {
 
     int  ix, iy, iz, caseA, above, bellow, front, rear, mm, nn;
@@ -2301,11 +2301,11 @@ for (int j=0; j<nvertex; j++) {
     iy = 7 * npolygons;
     ii = ix + iy;
 */
-    for (jj=0; jj<Pol_f_Vert.length; jj++) {
-      Pol_f_Vert[jj] = BIG_NEG;
+    for (jj=0; jj<Pol_f_Vert[0].length; jj++) {
+      Pol_f_Vert[0][jj] = BIG_NEG;
     }
-    for (jj=8; jj<Pol_f_Vert.length; jj+=9) {
-      Pol_f_Vert[jj] = 0;
+    for (jj=8; jj<Pol_f_Vert[0].length; jj+=9) {
+      Pol_f_Vert[0][jj] = 0;
     }
     for (jj=0; jj<Vert_f_Pol.length; jj++) {
       Vert_f_Pol[jj] = BIG_NEG;
@@ -2338,10 +2338,38 @@ for (int j=0; j<nvertex; j++) {
 
                 for ( iy = 0; iy < ydim - 1; iy++ ) {
                     if ( (ptFLAG[ncube] != 0 & ptFLAG[ncube] != 0xFF) ) {
+
                         if (nvet + 12 > nvertex_estimate) {
-                            throw new DisplayException(
-                                           "isosurf: nvet + 12 > nvertex_estimate");
+                          // allocate more space
+                          nvertex_estimate = 2 * (nvet + 12);
+                          if (naux > 0) {
+                            for (int i=0; i<naux; i++) {
+                              float[] t = tempaux[i];
+                              tempaux[i] = new float[nvertex_estimate];
+                              System.arraycopy(t, 0, tempaux[i], 0, nvet);
+                            }
+                          }
+                          float[] t = VX[0];
+                          VX[0] = new float[nvertex_estimate];
+                          System.arraycopy(t, 0, VX[0], 0, t.length);
+                          t = VY[0];
+                          VY[0] = new float[nvertex_estimate];
+                          System.arraycopy(t, 0, VY[0], 0, t.length);
+                          t = VZ[0];
+                          VZ[0] = new float[nvertex_estimate];
+                          System.arraycopy(t, 0, VZ[0], 0, t.length);
+                          int big_ix = 9 * (nvertex_estimate + 50);
+                          int[] it = Pol_f_Vert[0];
+                          Pol_f_Vert[0] = new int[big_ix];
+                          for (jj=0; jj<Pol_f_Vert[0].length; jj++) {
+                            Pol_f_Vert[0][jj] = BIG_NEG;
+                          }
+                          for (jj=8; jj<Pol_f_Vert[0].length; jj+=9) {
+                            Pol_f_Vert[0][jj] = 0;
+                          }
+                          System.arraycopy(it, 0, Pol_f_Vert[0], 0, it.length);
                         }
+
                         if ( (ptFLAG[ncube] < MAX_FLAG_NUM) ) {
                         /*  fill_Vert_f_Pol(ncube); */
 
@@ -2388,14 +2416,14 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
              nodeDiff = vnode1 - vnode0;
              cp = ( ( isovalue - vnode0 ) / nodeDiff ) + ix;
-             VX[nvet] = cp;
-             VY[nvet] = iy;
-             VZ[nvet] = iz;
+             VX[0][nvet] = cp;
+             VY[0][nvet] = iy;
+             VZ[0][nvet] = iz;
 */
              cp = ( ( isovalue - vnode0 ) / ( vnode1 - vnode0 ) );
-             VX[nvet] = (float) cp * samples[0][pt + ydim] + (1.0f-cp) * samples[0][pt];
-             VY[nvet] = (float) cp * samples[1][pt + ydim] + (1.0f-cp) * samples[1][pt];
-             VZ[nvet] = (float) cp * samples[2][pt + ydim] + (1.0f-cp) * samples[2][pt];
+             VX[0][nvet] = (float) cp * samples[0][pt + ydim] + (1.0f-cp) * samples[0][pt];
+             VY[0][nvet] = (float) cp * samples[1][pt + ydim] + (1.0f-cp) * samples[1][pt];
+             VZ[0][nvet] = (float) cp * samples[2][pt + ydim] + (1.0f-cp) * samples[2][pt];
 
              for (int j=0; j<naux; j++) {
                tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim] +
@@ -2414,14 +2442,14 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
              nodeDiff = vnode2 - vnode0;
              cp = ( ( isovalue - vnode0 ) / nodeDiff ) + iy;
-             VX[nvet] = ix;
-             VY[nvet] = cp;
-             VZ[nvet] = iz;
+             VX[0][nvet] = ix;
+             VY[0][nvet] = cp;
+             VZ[0][nvet] = iz;
 */
              cp = ( ( isovalue - vnode0 ) / ( vnode2 - vnode0 ) );
-             VX[nvet] = (float) cp * samples[0][pt + 1] + (1.0f-cp) * samples[0][pt];
-             VY[nvet] = (float) cp * samples[1][pt + 1] + (1.0f-cp) * samples[1][pt];
-             VZ[nvet] = (float) cp * samples[2][pt + 1] + (1.0f-cp) * samples[2][pt];
+             VX[0][nvet] = (float) cp * samples[0][pt + 1] + (1.0f-cp) * samples[0][pt];
+             VY[0][nvet] = (float) cp * samples[1][pt + 1] + (1.0f-cp) * samples[1][pt];
+             VZ[0][nvet] = (float) cp * samples[2][pt + 1] + (1.0f-cp) * samples[2][pt];
 
              for (int j=0; j<naux; j++) {
                tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1] +
@@ -2440,16 +2468,16 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
              nodeDiff = vnode4 - vnode0;
              cp = ( ( isovalue - vnode0 ) / nodeDiff ) + iz;
-             VX[nvet] = ix;
-             VY[nvet] = iy;
-             VZ[nvet] = cp;
+             VX[0][nvet] = ix;
+             VY[0][nvet] = iy;
+             VZ[0][nvet] = cp;
 */
              cp = ( ( isovalue - vnode0 ) / ( vnode4 - vnode0 ) );
-             VX[nvet] = (float) cp * samples[0][pt + xdim_x_ydim] +
+             VX[0][nvet] = (float) cp * samples[0][pt + xdim_x_ydim] +
                         (1.0f-cp) * samples[0][pt];
-             VY[nvet] = (float) cp * samples[1][pt + xdim_x_ydim] +
+             VY[0][nvet] = (float) cp * samples[1][pt + xdim_x_ydim] +
                         (1.0f-cp) * samples[1][pt];
-             VZ[nvet] = (float) cp * samples[2][pt + xdim_x_ydim] +
+             VZ[0][nvet] = (float) cp * samples[2][pt + xdim_x_ydim] +
                         (1.0f-cp) * samples[2][pt];
 
              for (int j=0; j<naux; j++) {
@@ -2469,16 +2497,16 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
              nodeDiff = vnode3 - vnode1;
              cp = ( ( isovalue - vnode1 ) / nodeDiff ) + iy;
-             VX[nvet] = ix+1;
-             VY[nvet] = cp;
-             VZ[nvet] = iz;
+             VX[0][nvet] = ix+1;
+             VY[0][nvet] = cp;
+             VZ[0][nvet] = iz;
 */
              cp = ( ( isovalue - vnode1 ) / ( vnode3 - vnode1 ) );
-             VX[nvet] = (float) cp * samples[0][pt + ydim + 1] +
+             VX[0][nvet] = (float) cp * samples[0][pt + ydim + 1] +
                         (1.0f-cp) * samples[0][pt + ydim];
-             VY[nvet] = (float) cp * samples[1][pt + ydim + 1] +
+             VY[0][nvet] = (float) cp * samples[1][pt + ydim + 1] +
                         (1.0f-cp) * samples[1][pt + ydim];
-             VZ[nvet] = (float) cp * samples[2][pt + ydim + 1] +
+             VZ[0][nvet] = (float) cp * samples[2][pt + ydim + 1] +
                         (1.0f-cp) * samples[2][pt + ydim];
 
              for (int j=0; j<naux; j++) {
@@ -2499,16 +2527,16 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
              nodeDiff = vnode5 - vnode1;
              cp = ( ( isovalue - vnode1 ) / nodeDiff ) + iz;
-             VX[nvet] = ix+1;
-             VY[nvet] = iy;
-             VZ[nvet] = cp;
+             VX[0][nvet] = ix+1;
+             VY[0][nvet] = iy;
+             VZ[0][nvet] = cp;
 */
              cp = ( ( isovalue - vnode1 ) / ( vnode5 - vnode1 ) );
-             VX[nvet] = (float) cp * samples[0][pt + ydim + xdim_x_ydim] +
+             VX[0][nvet] = (float) cp * samples[0][pt + ydim + xdim_x_ydim] +
                         (1.0f-cp) * samples[0][pt + ydim];
-             VY[nvet] = (float) cp * samples[1][pt + ydim + xdim_x_ydim] +
+             VY[0][nvet] = (float) cp * samples[1][pt + ydim + xdim_x_ydim] +
                         (1.0f-cp) * samples[1][pt + ydim];
-             VZ[nvet] = (float) cp * samples[2][pt + ydim + xdim_x_ydim] +
+             VZ[0][nvet] = (float) cp * samples[2][pt + ydim + xdim_x_ydim] +
                         (1.0f-cp) * samples[2][pt + ydim];
 
              for (int j=0; j<naux; j++) {
@@ -2529,16 +2557,16 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
              nodeDiff = vnode3 - vnode2;
              cp = ( ( isovalue - vnode2 ) / nodeDiff ) + ix;
-             VX[nvet] = cp;
-             VY[nvet] = iy+1;
-             VZ[nvet] = iz;
+             VX[0][nvet] = cp;
+             VY[0][nvet] = iy+1;
+             VZ[0][nvet] = iz;
 */
              cp = ( ( isovalue - vnode2 ) / ( vnode3 - vnode2 ) );
-             VX[nvet] = (float) cp * samples[0][pt + ydim + 1] +
+             VX[0][nvet] = (float) cp * samples[0][pt + ydim + 1] +
                         (1.0f-cp) * samples[0][pt + 1];
-             VY[nvet] = (float) cp * samples[1][pt + ydim + 1] +
+             VY[0][nvet] = (float) cp * samples[1][pt + ydim + 1] +
                         (1.0f-cp) * samples[1][pt + 1];
-             VZ[nvet] = (float) cp * samples[2][pt + ydim + 1] +
+             VZ[0][nvet] = (float) cp * samples[2][pt + ydim + 1] +
                         (1.0f-cp) * samples[2][pt + 1];
 
              for (int j=0; j<naux; j++) {
@@ -2559,16 +2587,16 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
              nodeDiff = vnode6 - vnode2;
              cp = ( ( isovalue - vnode2 ) / nodeDiff ) + iz;
-             VX[nvet] = ix;
-             VY[nvet] = iy+1;
-             VZ[nvet] = cp;
+             VX[0][nvet] = ix;
+             VY[0][nvet] = iy+1;
+             VZ[0][nvet] = cp;
 */
              cp = ( ( isovalue - vnode2 ) / ( vnode6 - vnode2 ) );
-             VX[nvet] = (float) cp * samples[0][pt + 1 + xdim_x_ydim] +
+             VX[0][nvet] = (float) cp * samples[0][pt + 1 + xdim_x_ydim] +
                         (1.0f-cp) * samples[0][pt + 1];
-             VY[nvet] = (float) cp * samples[1][pt + 1 + xdim_x_ydim] +
+             VY[0][nvet] = (float) cp * samples[1][pt + 1 + xdim_x_ydim] +
                         (1.0f-cp) * samples[1][pt + 1];
-             VZ[nvet] = (float) cp * samples[2][pt + 1 + xdim_x_ydim] +
+             VZ[0][nvet] = (float) cp * samples[2][pt + 1 + xdim_x_ydim] +
                         (1.0f-cp) * samples[2][pt + 1];
 
              for (int j=0; j<naux; j++) {
@@ -2585,16 +2613,16 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
          nodeDiff = vnode7 - vnode3;
          cp = ( ( isovalue - vnode3 ) / nodeDiff ) + iz;
-         VX[nvet] = ix+1;
-         VY[nvet] = iy+1;
-         VZ[nvet] = cp;
+         VX[0][nvet] = ix+1;
+         VY[0][nvet] = iy+1;
+         VZ[0][nvet] = cp;
 */
          cp = ( ( isovalue - vnode3 ) / ( vnode7 - vnode3 ) );
-         VX[nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
+         VX[0][nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
                     (1.0f-cp) * samples[0][pt + ydim + 1];
-         VY[nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
+         VY[0][nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
                     (1.0f-cp) * samples[1][pt + ydim + 1];
-         VZ[nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
+         VZ[0][nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
                     (1.0f-cp) * samples[2][pt + ydim + 1];
 
          for (int j=0; j<naux; j++) {
@@ -2614,16 +2642,16 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
              nodeDiff = vnode5 - vnode4;
              cp = ( ( isovalue - vnode4 ) / nodeDiff ) + ix;
-             VX[nvet] = cp;
-             VY[nvet] = iy;
-             VZ[nvet] = iz+1;
+             VX[0][nvet] = cp;
+             VY[0][nvet] = iy;
+             VZ[0][nvet] = iz+1;
 */
              cp = ( ( isovalue - vnode4 ) / ( vnode5 - vnode4 ) );
-             VX[nvet] = (float) cp * samples[0][pt + ydim + xdim_x_ydim] +
+             VX[0][nvet] = (float) cp * samples[0][pt + ydim + xdim_x_ydim] +
                         (1.0f-cp) * samples[0][pt + xdim_x_ydim];
-             VY[nvet] = (float) cp * samples[1][pt + ydim + xdim_x_ydim] +
+             VY[0][nvet] = (float) cp * samples[1][pt + ydim + xdim_x_ydim] +
                         (1.0f-cp) * samples[1][pt + xdim_x_ydim];
-             VZ[nvet] = (float) cp * samples[2][pt + ydim + xdim_x_ydim] +
+             VZ[0][nvet] = (float) cp * samples[2][pt + ydim + xdim_x_ydim] +
                         (1.0f-cp) * samples[2][pt + xdim_x_ydim];
 
              for (int j=0; j<naux; j++) {
@@ -2644,16 +2672,16 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
              nodeDiff = vnode6 - vnode4;
              cp = ( ( isovalue - vnode4 ) / nodeDiff ) + iy;
-             VX[nvet] = ix;
-             VY[nvet] = cp;
-             VZ[nvet] = iz+1;
+             VX[0][nvet] = ix;
+             VY[0][nvet] = cp;
+             VZ[0][nvet] = iz+1;
 */
              cp = ( ( isovalue - vnode4 ) / ( vnode6 - vnode4 ) );
-             VX[nvet] = (float) cp * samples[0][pt + 1 + xdim_x_ydim] +
+             VX[0][nvet] = (float) cp * samples[0][pt + 1 + xdim_x_ydim] +
                         (1.0f-cp) * samples[0][pt + xdim_x_ydim];
-             VY[nvet] = (float) cp * samples[1][pt + 1 + xdim_x_ydim] +
+             VY[0][nvet] = (float) cp * samples[1][pt + 1 + xdim_x_ydim] +
                         (1.0f-cp) * samples[1][pt + xdim_x_ydim];
-             VZ[nvet] = (float) cp * samples[2][pt + 1 + xdim_x_ydim] +
+             VZ[0][nvet] = (float) cp * samples[2][pt + 1 + xdim_x_ydim] +
                         (1.0f-cp) * samples[2][pt + xdim_x_ydim];
 
              for (int j=0; j<naux; j++) {
@@ -2670,16 +2698,16 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
          nodeDiff = vnode7 - vnode5;
          cp = ( ( isovalue - vnode5 ) / nodeDiff ) + iy;
-         VX[nvet] = ix+1;
-         VY[nvet] = cp;
-         VZ[nvet] = iz+1;
+         VX[0][nvet] = ix+1;
+         VY[0][nvet] = cp;
+         VZ[0][nvet] = iz+1;
 */
          cp = ( ( isovalue - vnode5 ) / ( vnode7 - vnode5 ) );
-         VX[nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
+         VX[0][nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
                     (1.0f-cp) * samples[0][pt + ydim + xdim_x_ydim];
-         VY[nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
+         VY[0][nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
                     (1.0f-cp) * samples[1][pt + ydim + xdim_x_ydim];
-         VZ[nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
+         VZ[0][nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
                     (1.0f-cp) * samples[2][pt + ydim + xdim_x_ydim];
 
          for (int j=0; j<naux; j++) {
@@ -2695,16 +2723,16 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
          nodeDiff = vnode7 - vnode6;
          cp = ( ( isovalue - vnode6 ) / nodeDiff ) + ix;
-         VX[nvet] = cp;
-         VY[nvet] = iy+1;
-         VZ[nvet] = iz+1;
+         VX[0][nvet] = cp;
+         VY[0][nvet] = iy+1;
+         VZ[0][nvet] = iz+1;
 */
          cp = ( ( isovalue - vnode6 ) / ( vnode7 - vnode6 ) );
-         VX[nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
+         VX[0][nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
                     (1.0f-cp) * samples[0][pt + 1 + xdim_x_ydim];
-         VY[nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
+         VY[0][nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
                     (1.0f-cp) * samples[1][pt + 1 + xdim_x_ydim];
-         VZ[nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
+         VZ[0][nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
                     (1.0f-cp) * samples[2][pt + 1 + xdim_x_ydim];
 
          for (int j=0; j<naux; j++) {
@@ -2725,10 +2753,10 @@ for (int j=0; j<nvertex; j++) {
                                   mm = pvp+(kk&MASK);
                                   for (jj=pvp; jj<mm; jj++) {
                                       Vert_f_Pol [jj] = ve = calc_edge[Vert_f_Pol [jj]];
-                            //        Pol_f_Vert[ve*9 + (Pol_f_Vert[ve*9 + 8])++]  = cpl;
-                                      temp = Pol_f_Vert[ve*9 + 8];
-                                      Pol_f_Vert[ve*9 + temp] = cpl;
-                                      Pol_f_Vert[ve*9 + 8] = temp + 1;
+                            //        Pol_f_Vert[0][ve*9 + (Pol_f_Vert[0][ve*9 + 8])++]  = cpl;
+                                      temp = Pol_f_Vert[0][ve*9 + 8];
+                                      Pol_f_Vert[0][ve*9 + temp] = cpl;
+                                      Pol_f_Vert[0][ve*9 + 8] = temp + 1;
                                   }
                                   kk >>= 4;    pvp += 7;    cpl++;
                              }
@@ -2750,16 +2778,16 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
               nodeDiff = vnode3 - vnode1;
               cp = ( ( isovalue - vnode1 ) / nodeDiff ) + iy;
-              VX[nvet] = ix+1;
-              VY[nvet] = cp;
-              VZ[nvet] = iz;
+              VX[0][nvet] = ix+1;
+              VY[0][nvet] = cp;
+              VZ[0][nvet] = iz;
 */
               cp = ( ( isovalue - vnode1 ) / ( vnode3 - vnode1 ) );
-              VX[nvet] = (float) cp * Samples[0][pt + ydim + 1] +
+              VX[0][nvet] = (float) cp * Samples[0][pt + ydim + 1] +
                          (1.0f-cp) * Samples[0][pt + ydim];
-              VY[nvet] = (float) cp * Samples[1][pt + ydim + 1] +
+              VY[0][nvet] = (float) cp * Samples[1][pt + ydim + 1] +
                          (1.0f-cp) * Samples[1][pt + ydim];
-              VZ[nvet] = (float) cp * Samples[2][pt + ydim + 1] +
+              VZ[0][nvet] = (float) cp * Samples[2][pt + ydim + 1] +
                          (1.0f-cp) * Samples[2][pt + ydim];
 
               for (int j=0; j<naux; j++) {
@@ -2782,16 +2810,16 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
               nodeDiff = vnode5 - vnode1;
               cp = ( ( isovalue - vnode1 ) / nodeDiff ) + iz;
-              VX[nvet] = ix+1;
-              VY[nvet] = iy;
-              VZ[nvet] = cp;
+              VX[0][nvet] = ix+1;
+              VY[0][nvet] = iy;
+              VZ[0][nvet] = cp;
 */
               cp = ( ( isovalue - vnode1 ) / ( vnode5 - vnode1 ) );
-              VX[nvet] = (float) cp * samples[0][pt + ydim + xdim_x_ydim] +
+              VX[0][nvet] = (float) cp * samples[0][pt + ydim + xdim_x_ydim] +
                          (1.0f-cp) * samples[0][pt + ydim];
-              VY[nvet] = (float) cp * samples[1][pt + ydim + xdim_x_ydim] +
+              VY[0][nvet] = (float) cp * samples[1][pt + ydim + xdim_x_ydim] +
                          (1.0f-cp) * samples[1][pt + ydim];
-              VZ[nvet] = (float) cp * samples[2][pt + ydim + xdim_x_ydim] +
+              VZ[0][nvet] = (float) cp * samples[2][pt + ydim + xdim_x_ydim] +
                          (1.0f-cp) * samples[2][pt + ydim];
 
               for (int j=0; j<naux; j++) {
@@ -2814,16 +2842,16 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
               nodeDiff = vnode3 - vnode2;
               cp = ( ( isovalue - vnode2 ) / nodeDiff ) + ix;
-              VX[nvet] = cp;
-              VY[nvet] = iy+1;
-              VZ[nvet] = iz;
+              VX[0][nvet] = cp;
+              VY[0][nvet] = iy+1;
+              VZ[0][nvet] = iz;
 */
               cp = ( ( isovalue - vnode2 ) / ( vnode3 - vnode2 ) );
-              VX[nvet] = (float) cp * samples[0][pt + ydim + 1] +
+              VX[0][nvet] = (float) cp * samples[0][pt + ydim + 1] +
                          (1.0f-cp) * samples[0][pt + 1];
-              VY[nvet] = (float) cp * samples[1][pt + ydim + 1] +
+              VY[0][nvet] = (float) cp * samples[1][pt + ydim + 1] +
                          (1.0f-cp) * samples[1][pt + 1];
-              VZ[nvet] = (float) cp * samples[2][pt + ydim + 1] +
+              VZ[0][nvet] = (float) cp * samples[2][pt + ydim + 1] +
                          (1.0f-cp) * samples[2][pt + 1];
 
               for (int j=0; j<naux; j++) {
@@ -2846,16 +2874,16 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
               nodeDiff = vnode6 - vnode2;
               cp = ( ( isovalue - vnode2 ) / nodeDiff ) + iz;
-              VX[nvet] = ix;
-              VY[nvet] = iy+1;
-              VZ[nvet] = cp;
+              VX[0][nvet] = ix;
+              VY[0][nvet] = iy+1;
+              VZ[0][nvet] = cp;
 */
               cp = ( ( isovalue - vnode2 ) / ( vnode6 - vnode2 ) );
-              VX[nvet] = (float) cp * samples[0][pt + 1 + xdim_x_ydim] +
+              VX[0][nvet] = (float) cp * samples[0][pt + 1 + xdim_x_ydim] +
                          (1.0f-cp) * samples[0][pt + 1];
-              VY[nvet] = (float) cp * samples[1][pt + 1 + xdim_x_ydim] +
+              VY[0][nvet] = (float) cp * samples[1][pt + 1 + xdim_x_ydim] +
                          (1.0f-cp) * samples[1][pt + 1];
-              VZ[nvet] = (float) cp * samples[2][pt + 1 + xdim_x_ydim] +
+              VZ[0][nvet] = (float) cp * samples[2][pt + 1 + xdim_x_ydim] +
                          (1.0f-cp) * samples[2][pt + 1];
 
               for (int j=0; j<naux; j++) {
@@ -2878,16 +2906,16 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
               nodeDiff = vnode7 - vnode3;
               cp = ( ( isovalue - vnode3 ) / nodeDiff ) + iz;
-              VX[nvet] = ix+1;
-              VY[nvet] = iy+1;
-              VZ[nvet] = cp;
+              VX[0][nvet] = ix+1;
+              VY[0][nvet] = iy+1;
+              VZ[0][nvet] = cp;
 */
               cp = ( ( isovalue - vnode3 ) / ( vnode7 - vnode3 ) );
-              VX[nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
+              VX[0][nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
                          (1.0f-cp) * samples[0][pt + ydim + 1];
-              VY[nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
+              VY[0][nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
                          (1.0f-cp) * samples[1][pt + ydim + 1];
-              VZ[nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
+              VZ[0][nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
                          (1.0f-cp) * samples[2][pt + ydim + 1];
 
               for (int j=0; j<naux; j++) {
@@ -2910,16 +2938,16 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
               nodeDiff = vnode5 - vnode4;
               cp = ( ( isovalue - vnode4 ) / nodeDiff ) + ix;
-              VX[nvet] = cp;
-              VY[nvet] = iy;
-              VZ[nvet] = iz+1;
+              VX[0][nvet] = cp;
+              VY[0][nvet] = iy;
+              VZ[0][nvet] = iz+1;
 */
               cp = ( ( isovalue - vnode4 ) / ( vnode5 - vnode4 ) );
-              VX[nvet] = (float) cp * samples[0][pt + ydim + xdim_x_ydim] +
+              VX[0][nvet] = (float) cp * samples[0][pt + ydim + xdim_x_ydim] +
                          (1.0f-cp) * samples[0][pt + xdim_x_ydim];
-              VY[nvet] = (float) cp * samples[1][pt + ydim + xdim_x_ydim] +
+              VY[0][nvet] = (float) cp * samples[1][pt + ydim + xdim_x_ydim] +
                          (1.0f-cp) * samples[1][pt + xdim_x_ydim];
-              VZ[nvet] = (float) cp * samples[2][pt + ydim + xdim_x_ydim] +
+              VZ[0][nvet] = (float) cp * samples[2][pt + ydim + xdim_x_ydim] +
                          (1.0f-cp) * samples[2][pt + xdim_x_ydim];
 
               for (int j=0; j<naux; j++) {
@@ -2942,16 +2970,16 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
               nodeDiff = vnode6 - vnode4;
               cp = ( ( isovalue - vnode4 ) / nodeDiff ) + iy;
-              VX[nvet] = ix;
-              VY[nvet] = cp;
-              VZ[nvet] = iz+1;
+              VX[0][nvet] = ix;
+              VY[0][nvet] = cp;
+              VZ[0][nvet] = iz+1;
 */
               cp = ( ( isovalue - vnode4 ) / ( vnode6 - vnode4 ) );
-              VX[nvet] = (float) cp * samples[0][pt + 1 + xdim_x_ydim] +
+              VX[0][nvet] = (float) cp * samples[0][pt + 1 + xdim_x_ydim] +
                          (1.0f-cp) * samples[0][pt + xdim_x_ydim];
-              VY[nvet] = (float) cp * samples[1][pt + 1 + xdim_x_ydim] +
+              VY[0][nvet] = (float) cp * samples[1][pt + 1 + xdim_x_ydim] +
                          (1.0f-cp) * samples[1][pt + xdim_x_ydim];
-              VZ[nvet] = (float) cp * samples[2][pt + 1 + xdim_x_ydim] +
+              VZ[0][nvet] = (float) cp * samples[2][pt + 1 + xdim_x_ydim] +
                          (1.0f-cp) * samples[2][pt + xdim_x_ydim];
 
               for (int j=0; j<naux; j++) {
@@ -2974,16 +3002,16 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
               nodeDiff = vnode7 - vnode5;
               cp = ( ( isovalue - vnode5 ) / nodeDiff ) + iy;
-              VX[nvet] = ix+1;
-              VY[nvet] = cp;
-              VZ[nvet] = iz+1;
+              VX[0][nvet] = ix+1;
+              VY[0][nvet] = cp;
+              VZ[0][nvet] = iz+1;
 */
               cp = ( ( isovalue - vnode5 ) / ( vnode7 - vnode5 ) );
-              VX[nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
+              VX[0][nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
                          (1.0f-cp) * samples[0][pt + ydim + xdim_x_ydim];
-              VY[nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
+              VY[0][nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
                          (1.0f-cp) * samples[1][pt + ydim + xdim_x_ydim];
-              VZ[nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
+              VZ[0][nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
                          (1.0f-cp) * samples[2][pt + ydim + xdim_x_ydim];
 
               for (int j=0; j<naux; j++) {
@@ -3006,16 +3034,16 @@ for (int j=0; j<nvertex; j++) {
 /* WLH 26 Oct 97
               nodeDiff = vnode7 - vnode6;
               cp = ( ( isovalue - vnode6 ) / nodeDiff ) + ix;
-              VX[nvet] = cp;
-              VY[nvet] = iy+1;
-              VZ[nvet] = iz+1;
+              VX[0][nvet] = cp;
+              VY[0][nvet] = iy+1;
+              VZ[0][nvet] = iz+1;
 */
               cp = ( ( isovalue - vnode6 ) / ( vnode7 - vnode6 ) );
-              VX[nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
+              VX[0][nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
                          (1.0f-cp) * samples[0][pt + 1 + xdim_x_ydim];
-              VY[nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
+              VY[0][nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
                          (1.0f-cp) * samples[1][pt + 1 + xdim_x_ydim];
-              VZ[nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
+              VZ[0][nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
                          (1.0f-cp) * samples[2][pt + 1 + xdim_x_ydim];
 
               for (int j=0; j<naux; j++) {

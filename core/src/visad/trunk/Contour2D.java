@@ -123,11 +123,6 @@ public class Contour2D extends Applet implements MouseListener {
     numv3[0] = 0;
     numv4[0] = 0;
 
-/* WLH 14 Aug 98
-    // deduct 100 vertices from maxv3/maxv4 now to save a later computation
-    maxv3 -= 100;
-    maxv4 -= 100;
-*/
 
     // check for bad contour interval
     if (interval==0.0) {
@@ -194,11 +189,6 @@ public class Contour2D extends Applet implements MouseListener {
     numv = nump = 0;
 
     // compute contours
-/* WLH 14 Aug 98
-    for (ir=0; ir<nrm && numv<maxsize-8 && nump<2*maxsize; ir++) {
-      xx = xd*ir+0.0f; // = ir
-      for (ic=0; ic<ncm && numv<maxsize-8 && nump<2*maxsize; ic++) {
-*/
     for (ir=0; ir<nrm; ir++) {
       xx = xd*ir+0.0f; // = ir
       for (ic=0; ic<ncm; ic++) {
@@ -277,9 +267,6 @@ public class Contour2D extends Applet implements MouseListener {
         // gg is current contour line value
         gg = clow;
 
-/* WLH 14 Aug 98
-        for (il=0; il<numc && numv+8<maxsize; il++, gg += interval) {
-*/
         for (il=0; il<numc; il++, gg += interval) {
 
           if (numv+8 >= maxsize || nump+4 >= 2*maxsize) {
