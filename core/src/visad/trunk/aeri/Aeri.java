@@ -161,12 +161,12 @@ public class Aeri
     FunctionType f_type0 = (FunctionType) ((FunctionType)file_type).getRange();
     time = (RealType) ((RealTupleType)f_type0.getDomain()).getComponent(0);
     FunctionType f_type1 = (FunctionType) f_type0.getRange();
-    RealTupleType rtt = (RealTupleType) f_type1.getDomain();
-    longitude = (RealType) rtt.getComponent(0);
-    latitude = (RealType) rtt.getComponent(1);
-    altitude = (RealType) rtt.getComponent(2);
+    spatial_domain = (RealTupleType) f_type1.getDomain();
+    longitude = (RealType) spatial_domain.getComponent(0);
+    latitude = (RealType) spatial_domain.getComponent(1);
+    altitude = (RealType) spatial_domain.getComponent(2);
 
-    rtt = (RealTupleType) f_type1.getRange();
+    RealTupleType rtt = (RealTupleType) f_type1.getRange();
     temp = (RealType) rtt.getComponent(0);
     dwpt = (RealType) rtt.getComponent(1);
     wvmr = (RealType) rtt.getComponent(2);
@@ -186,6 +186,12 @@ public class Aeri
     {
       baseMap.setEastPositive(false);
     }
+
+    //- make barber poles for each station
+    //
+    DataImpl poles = makePoles();
+    DataReference poles_ref = new DataReferenceImpl("poles");
+    poles_ref.setData(poles);
 
     DisplayImpl display = new DisplayImplJ3D("aeri", DisplayImplJ3D.APPLETFRAME);
     GraphicsModeControl mode = display.getGraphicsModeControl();
@@ -220,8 +226,37 @@ public class Aeri
       new ConstantMap(-.99, Display.ZAxis)
     };
 
+    display.addReference(poles_ref);
     display.addReference(advect_ref);
     display.addReference(map_ref, map_constMap);
+  }
+
+  DataImpl makePoles()
+           throws VisADException, RemoteException
+  {
+    SampledSet[] set_s = new SampledSet[n_stations];
+    float[][] locs = new float[3][2];
+
+    for ( int kk = 0; kk < n_stations; kk++ ) 
+    {
+      Set set = 
+        ((FieldImpl)((FieldImpl)stations_field.getSample(kk)).getSample(20)).getDomainSet();
+      float[][] samples = set.getSamples(false);
+      float[] lo = ((SampledSet)set).getLow();
+      float[] hi = ((SampledSet)set).getHi();
+      
+      locs[0][0] = samples[0][0];
+      locs[1][0] = samples[1][0];
+      locs[2][0] = lo[2];
+      
+      locs[0][1] = samples[0][0];
+      locs[1][1] = samples[1][0];
+      locs[2][1] = hi[2];
+
+      set_s[kk] = new Gridded3DSet(spatial_domain, locs, 2, null, null, null);
+    }
+
+    return new UnionSet(spatial_domain, set_s);
   }
 
   public void mapChanged(ScalarMapEvent e)
