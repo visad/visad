@@ -254,6 +254,9 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     ScalarIndex = -1;
     DisplayScalarIndex = -1;
     scale_flag = back_scale_flag;
+
+    // WLH 15 Aug 2000
+    axis_ordinal = -1;
   }
 
   /** set the DisplayImpl this ScalarMap is linked to */
