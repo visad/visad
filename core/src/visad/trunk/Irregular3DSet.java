@@ -2283,7 +2283,8 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
         /* end  find_unselected_pol(cpol); */
 
         if (cpol < 0) break;
-/*      update_polygon            */
+/*      ypdate_polygon            */
+// System.out.println("1 vet_pol[" + cpol + "] = false");
         vet_pol[cpol] = false;
 /* end     update_polygon            */
 
@@ -2354,6 +2355,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
 /* WLH 25 Oct 97
                 Tri_Stripe[iST++] = Vert_f_Pol[NTAB[idx]+off];
 */
+// System.out.println("1 Tri_Stripe[" + iST + "] from poly " + cpol);
                 Tri_Stripe[iST++] = polyToVert[cpol][NTAB[idx]];
             }
             else f_line_conection = true; /* WLH 3-9-95 added */
@@ -2361,6 +2363,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
 /* WLH 25 Oct 97
                 Tri_Stripe[iST++] = Vert_f_Pol[NTAB[idx++]+off];
 */
+// System.out.println("2 Tri_Stripe[" + iST + "] from poly " + cpol);
                 Tri_Stripe[iST++] = polyToVert[cpol][NTAB[idx++]];
               }
             continue;
@@ -2375,6 +2378,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
 /* WLH 25 Oct 97
                 Tri_Stripe[iST++] = Vert_f_Pol[ITAB[idx-1]+off];
 */
+// System.out.println("3 Tri_Stripe[" + iST + "] from poly " + cpol);
                 Tri_Stripe[iST++] = polyToVert[cpol][ITAB[idx-1]];
                 f_line_conection = false;
             }
@@ -2382,6 +2386,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
 /* WLH 25 Oct 97
                 Tri_Stripe[iST++] = Vert_f_Pol[ITAB[--idx]+off];
 */
+// System.out.println("4 Tri_Stripe[" + iST + "] from poly " + cpol);
                 Tri_Stripe[iST++] = polyToVert[cpol][ITAB[--idx]];
             }
 
@@ -2395,6 +2400,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
 /* WLH 25 Oct 97
                 Tri_Stripe[iST++] = Vert_f_Pol[NTAB[idx-1]+off];
 */
+// System.out.println("5 Tri_Stripe[" + iST + "] from poly " + cpol);
                 Tri_Stripe[iST++] = polyToVert[cpol][NTAB[idx-1]];
                 f_line_conection = false;
             }
@@ -2402,6 +2408,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
 /* WLH 25 Oct 97
                 Tri_Stripe[iST++] = Vert_f_Pol[NTAB[--idx]+off];
 */
+// System.out.println("6 Tri_Stripe[" + iST + "] from poly " + cpol);
                 Tri_Stripe[iST++] = polyToVert[cpol][NTAB[--idx]];
             }
 
@@ -2423,6 +2430,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
 
 
 /*          update_polygon(cpol)                  */
+// System.out.println("2 vet_pol[" + cpol + "] = false");
             vet_pol[cpol] = false;
 /* WLH 25 Oct 97
             for (ivA=0; ivA<Nvt && Vert_f_Pol[ivA+off]!=vA; ivA++);
@@ -2438,6 +2446,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
 /* WLH 25 Oct 97
                         Tri_Stripe[iST++] = Vert_f_Pol[NTAB[idx++]+off];
 */
+// System.out.println("7 Tri_Stripe[" + iST + "] from poly " + cpol);
                         Tri_Stripe[iST++] = polyToVert[cpol][NTAB[idx++]];
                     }
                  }
@@ -2449,6 +2458,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
 /* WLH 25 Oct 97
                         Tri_Stripe[iST++] = Vert_f_Pol[ITAB[idx++]+off];
 */
+// System.out.println("8 Tri_Stripe[" + iST + "] from poly " + cpol);
                         Tri_Stripe[iST++] = polyToVert[cpol][ITAB[idx++]];
                     }
                  }
@@ -2547,6 +2557,12 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
                     break;
                 }
                 else {
+// System.out.println("9 Tri_Stripe[" + iST + "] where cpol = " + cpol);
+                    // WLH 5 May 2004 - fix bug vintage 1990 or 91
+                    if (iST > 0) {
+                      Tri_Stripe[iST] = Tri_Stripe[iST-1];
+                      iST++;
+                    }
                     Tri_Stripe[iST++] = vA;
                     i = vA;
                     vA = vB;
@@ -2736,6 +2752,11 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
         array.coordinates[i] = samples[0][j];
         array.coordinates[i+1] = samples[1][j];
         array.coordinates[i+2] = samples[2][j];
+/*
+System.out.println("strip[" + k + "] = (" + array.coordinates[i] + ", " +
+                   array.coordinates[i+1] + ", " +
+                   array.coordinates[i+2] + ")");
+*/
         k++;
       }
       samples = null;
