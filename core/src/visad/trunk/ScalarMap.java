@@ -288,13 +288,17 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     }
 
     control = display.getDisplayRenderer().makeControl(this);
-    display.addControl(control);
+    if (control != null) {
+      display.addControl(control);
 
-    if (evtCtl == null) {
-      evtCtl = control;
+      if (evtCtl == null) {
+        evtCtl = control;
+      }
     }
 
-    notifyCtlListeners(new ScalarMapControlEvent(this, evtID, evtCtl));
+    if (control != null || evtCtl != null) {
+      notifyCtlListeners(new ScalarMapControlEvent(this, evtID, evtCtl));
+    }
   }
 
   /** return value is true if data (RealType) values are linearly
