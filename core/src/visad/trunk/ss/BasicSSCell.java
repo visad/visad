@@ -79,14 +79,17 @@ public class BasicSSCell extends JPanel {
   /** formula manager for this BasicSSCell */
   protected FormulaManager fm;
 
-  /** associated VisAD DisplayPanel */
-  protected JPanel VDPanel;
+  /** associated VisAD Display component */
+  protected Component VDPanel;
 
   /** associated VisAD Display */
   protected DisplayImpl VDisplay;
 
   /** associated VisAD RemoteDisplay */
   protected RemoteDisplay RemoteVDisplay = null;
+
+  /** associated VisAD RemoteSlaveDisplay, if any */
+  protected RemoteSlaveDisplayImpl RemoteVSlave = null;
 
   /** associated VisAD RemoteServer */
   protected RemoteServer RemoteVServer = null;
@@ -130,6 +133,9 @@ public class BasicSSCell extends JPanel {
   /** whether this display is remote */
   protected boolean IsRemote;
 
+  /** whether this display is slaved */
+  protected boolean IsSlave;
+
   /** ID number for this collaborative SpreadSheet */
   protected int CollabID = 0;
 
@@ -171,7 +177,7 @@ public class BasicSSCell extends JPanel {
 
   /** construct a new BasicSSCell with the given name */
   public BasicSSCell(String name) throws VisADException, RemoteException {
-    this(name, null, null, null);
+    this(name, null, null, false, null);
   }
 
   /** construct a new BasicSSCell with the given name and non-default
@@ -179,7 +185,7 @@ public class BasicSSCell extends JPanel {
   public BasicSSCell(String name, FormulaManager fman)
     throws VisADException, RemoteException
   {
-    this(name, fman, null, null);
+    this(name, fman, null, false, null);
   }
 
   /** construct a new BasicSSCell with the given name, that gets its
@@ -188,7 +194,7 @@ public class BasicSSCell extends JPanel {
   public BasicSSCell(String name, RemoteServer rs)
     throws VisADException, RemoteException
   {
-    this(name, null, rs, null);
+    this(name, null, rs, false, null);
   }
 
   /** construct a new BasicSSCell with the given name and save string, used to
@@ -196,13 +202,21 @@ public class BasicSSCell extends JPanel {
   public BasicSSCell(String name, String save)
     throws VisADException, RemoteException
   {
-    this(name, null, null, save);
+    this(name, null, null, false, save);
   }
 
   /** construct a new BasicSSCell with the given name, formula manager, and
       remote server */
   public BasicSSCell(String name, FormulaManager fman, RemoteServer rs,
     String save) throws VisADException, RemoteException
+  {
+    this(name, fman, rs, false, save);
+  }
+
+  /** construct a new, possibly slaved, BasicSSCell with the given name,
+      formula manager, and remote server */
+  public BasicSSCell(String name, FormulaManager fman, RemoteServer rs,
+    boolean slave, String save) throws VisADException, RemoteException
   {
     // set name
     if (name == null) {
@@ -249,7 +263,7 @@ public class BasicSSCell extends JPanel {
       RemoteErrors = rs.getDataReference(name + "_Errors");
       RemoteMaps = rs.getDataReference(name + "_Maps");
       RemoteLoadedData = rs.getDataReference(name + "_Loaded");
-
+      IsSlave = slave;
       setDimClone();
 
       addDisplayListener(new DisplayListener() {
@@ -584,7 +598,7 @@ public class BasicSSCell extends JPanel {
     if (save != null) setSaveString(save);
 
     // finish GUI setup
-    VDPanel = (JPanel) VDisplay.getComponent();
+    initVDPanel();
     setPreferredSize(new Dimension(0, 0));
     setBackground(Color.black);
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -1785,7 +1799,7 @@ public class BasicSSCell extends JPanel {
       if (display) {
         setVDPanel(false);
         constructDisplay();
-        VDPanel = (JPanel) VDisplay.getComponent();
+        initVDPanel();
         setVDPanel(true);
       }
       HasMappings = false;
@@ -1868,7 +1882,7 @@ public class BasicSSCell extends JPanel {
   }
 
   private void setDimension(int dim) throws VisADException, RemoteException {
-    if (Dim == dim) return;
+    if (IsSlave || Dim == dim) return;
     Dim = dim;
 
     if (!IsRemote) {
@@ -1927,7 +1941,7 @@ public class BasicSSCell extends JPanel {
         }
 
         // reinitialize display
-        VDPanel = (JPanel) VDisplay.getComponent();
+        initVDPanel();
         if (hasData()) setVDPanel(true);
 
         // put listeners back
@@ -1966,6 +1980,12 @@ public class BasicSSCell extends JPanel {
 
       // get updated display from server
       RemoteVDisplay = RemoteVServer.getDisplay(Name);
+
+      // update remote slave display
+      if (IsSlave) {
+        if (RemoteVSlave != null) RemoteVSlave.unlink();
+        RemoteVSlave = new RemoteSlaveDisplayImpl(RemoteVDisplay);
+      }
 
       // autodetect new dimension
       String s = RemoteVDisplay.getDisplayRendererClassName();
@@ -2011,7 +2031,7 @@ public class BasicSSCell extends JPanel {
       }
 
       // reinitialize display
-      VDPanel = (JPanel) VDisplay.getComponent();
+      initVDPanel();
       if (success && hasData()) setVDPanel(true);
 
       // put listeners back
@@ -2374,9 +2394,29 @@ public class BasicSSCell extends JPanel {
     fm.createVar(name, tr);
   }
 
+  /** initializes the cell's display panel */
+  private void initVDPanel() {
+    if (IsSlave) VDPanel = RemoteVSlave.getComponent();
+    else VDPanel = VDisplay.getComponent();
+  }
+
   /** reconstruct this cell's display; called when dimension changes */
   public boolean constructDisplay() {
     boolean success = true;
+    if (IsSlave) {
+      try {
+        VDisplay = new DisplayImplJ2D("DUMMY");
+      }
+      catch (VisADException exc) {
+        if (DEBUG) exc.printStackTrace();
+        success = false;
+      }
+      catch (RemoteException exc) {
+        if (DEBUG) exc.printStackTrace();
+        success = false;
+      }
+      return success;
+    }
     if (!CanDo3D && Dim != JAVA2D_2D) {
       // dimension requires Java3D, but Java3D is disabled for this JVM
       success = false;

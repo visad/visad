@@ -64,6 +64,11 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
     component.addMouseMotionListener(this);
   }
 
+  /** Removes the link from this slaved display to its remote display */
+  public void unlink() throws VisADException, RemoteException {
+    display.removeSlave(this);
+  }
+
   /** Get this slave display's component, for adding to a user interface */
   public JComponent getComponent() {
     return component;

@@ -106,7 +106,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
   protected RemoteServerImpl rsi = null;
 
   /** whether spreadsheet is a clone of another spreadsheet */
-  protected boolean IsRemote;
+  protected boolean IsRemote = false;
+
+  /** whether spreadsheet is a slaved clone of another spreadsheet */
+  protected boolean IsSlave = false;
 
   /** row and column information needed for spreadsheet cloning */
   protected RemoteDataReference RemoteColRow;
@@ -125,9 +128,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** whether spreadsheet's cells automatically show controls */
   protected boolean AutoShowControls = true;
 
-
-  /** Panel that contains everything that should get printed */
-  protected JPanel PrintPanel;
 
   /** panel that contains actual VisAD displays */
   protected Panel DisplayPanel;
@@ -259,7 +259,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
   public static void main(String[] argv) {
     String usage = '\n' +
       "Usage: java [-mx###m] visad.ss.SpreadSheet [cols rows] [-no3d]\n" +
-      "       [-server server_name] [-client rmi_address] [-debug]\n\n" +
+      "       [-server server_name] [-client rmi_address]\n" +
+      "       [-slave rmi_address] [-debug]\n\n" +
       "### = Maximum megabytes of memory to use\n" +
       "cols = Number of columns in this SpreadSheet\n" +
       "rows = Number of rows in this SpreadSheet\n" +
@@ -268,6 +269,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
       "                      server named server_name\n" +
       "-client rmi_address = Initialize this SpreadSheet as a clone\n" +
       "                      of the SpreadSheet at rmi_address\n" +
+      "-slave rmi_address = Initialize this SpreadSheet as a slaved\n" +
+      "                     clone of the SpreadSheet at rmi_address\n" +
       "-debug = Print stack traces for all errors\n";
     int cols = 2;
     int rows = 2;
@@ -296,17 +299,21 @@ public class SpreadSheet extends JFrame implements ActionListener,
               System.exit(4);
             }
           }
-          else if (argv[ix].equals("-client")) {
+          else if (argv[ix].equals("-client") || argv[ix].equals("-slave")) {
             if (servname != null) {
               System.out.println("A spreadsheet cannot be both a server " +
                 "and a clone!");
               System.out.println(usage);
               System.exit(3);
             }
-            else if (ix < len - 1) clonename = argv[++ix];
+            else if (ix < len - 1) {
+              clonename = argv[ix + 1];
+              if (argv[ix].equals("-slave")) clonename = "slave:" + clonename;
+              ix++;
+            }
             else {
               System.out.println("You must specify a server after " +
-                "the '-client' flag!");
+                "the '" + argv[ix] + "' flag!");
               System.out.println(usage);
               System.exit(5);
             }
@@ -407,6 +414,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
       // determine information needed for spreadsheet cloning
       boolean success = true;
 
+      // detect whether this clone is actually a slaved clone
+      boolean slave = false;
+      if (clone.startsWith("slave:")) {
+        slave = true;
+        clone = clone.substring(6);
+      }
+
       // support ':' as separator in addition to '/'
       char[] c = clone.toCharArray();
       for (int i=0; i<c.length; i++) if (c[i] == ':') c[i] = '/';
@@ -472,9 +486,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
         }
       }
 
-      if (success) bTitle = bTitle + " [collaborative mode: " + clone + ']';
+      if (success) {
+        bTitle = bTitle + " [" + (slave ? "slaved" : "collaborative") +
+          " mode: " + clone + ']';
+        IsRemote = true;
+        IsSlave = slave;
+      }
       else rs = null;
-      IsRemote = success;
     }
 
     // set up the content pane
@@ -737,19 +755,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
     addToolbarButton("import.gif", "Import data",
       "fileOpen", true, formulaPanel);
 
-    // set up display panel below all the toolbars
-    PrintPanel = new JPanel();
-    PrintPanel.setBackground(Color.white);
-    PrintPanel.setLayout(new BoxLayout(PrintPanel, BoxLayout.Y_AXIS));
-    pane.add(PrintPanel);
-    pane.add(Box.createRigidArea(new Dimension(0, 6)));
-
     // set up horizontal spreadsheet cell labels
     JPanel horizShell = new JPanel();
     horizShell.setBackground(Color.white);
     horizShell.setLayout(new BoxLayout(horizShell, BoxLayout.X_AXIS));
     horizShell.add(Box.createRigidArea(new Dimension(LABEL_WIDTH+6, 0)));
-    PrintPanel.add(horizShell);
+    pane.add(horizShell);
 
     HorizPanel = new JPanel() {
       public Dimension getPreferredSize() {
@@ -789,7 +800,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
     JPanel mainPanel = new JPanel();
     mainPanel.setBackground(Color.white);
     mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.X_AXIS));
-    PrintPanel.add(mainPanel);
+    pane.add(mainPanel);
+    pane.add(Box.createRigidArea(new Dimension(0, 6)));
 
     // set up vertical spreadsheet cell labels
     JPanel vertShell = new JPanel();
@@ -1855,16 +1867,18 @@ public class SpreadSheet extends JFrame implements ActionListener,
           try {
             String name = String.valueOf(Letters.charAt(maxVisX)) +
               String.valueOf(j + 1);
-            fcells[NumVisX][j] = new FancySSCell(name, fm, this);
-            fcells[NumVisX][j].addSSCellChangeListener(this);
-            fcells[NumVisX][j].addMouseListener(this);
-            fcells[NumVisX][j].setAutoSwitch(AutoSwitch);
-            fcells[NumVisX][j].setAutoDetect(AutoDetect);
-            fcells[NumVisX][j].setAutoShowControls(AutoShowControls);
-            fcells[NumVisX][j].setDimension(!CanDo3D, !CanDo3D);
-            fcells[NumVisX][j].addDisplayListener(this);
-            fcells[NumVisX][j].setPreferredSize(
+            FancySSCell f =
+              new FancySSCell(name, fm, null, IsSlave, null, this);
+            f.addSSCellChangeListener(this);
+            f.addMouseListener(this);
+            f.setAutoSwitch(AutoSwitch);
+            f.setAutoDetect(AutoDetect);
+            f.setAutoShowControls(AutoShowControls);
+            f.setDimension(!CanDo3D, !CanDo3D);
+            f.addDisplayListener(this);
+            f.setPreferredSize(
               new Dimension(DEFAULT_VIS_WIDTH, DEFAULT_VIS_HEIGHT));
+            fcells[NumVisX][j] = f;
             if (rsi != null) {
               // add new cell to server
               fcells[NumVisX][j].addToRemoteServer(rsi);
@@ -1935,16 +1949,18 @@ public class SpreadSheet extends JFrame implements ActionListener,
         try {
           String name = String.valueOf(Letters.charAt(i)) +
             String.valueOf(maxVisY + 1);
-          fcells[i][NumVisY] = new FancySSCell(name, fm, this);
-          fcells[i][NumVisY].addSSCellChangeListener(this);
-          fcells[i][NumVisY].addMouseListener(this);
-          fcells[i][NumVisY].setAutoSwitch(AutoSwitch);
-          fcells[i][NumVisY].setAutoDetect(AutoDetect);
-          fcells[i][NumVisY].setAutoShowControls(AutoShowControls);
-          fcells[i][NumVisY].setDimension(!CanDo3D, !CanDo3D);
-          fcells[i][NumVisY].addDisplayListener(this);
-          fcells[i][NumVisY].setPreferredSize(
+          FancySSCell f =
+            new FancySSCell(name, fm, null, IsSlave, null, this);
+          f.addSSCellChangeListener(this);
+          f.addMouseListener(this);
+          f.setAutoSwitch(AutoSwitch);
+          f.setAutoDetect(AutoDetect);
+          f.setAutoShowControls(AutoShowControls);
+          f.setDimension(!CanDo3D, !CanDo3D);
+          f.addDisplayListener(this);
+          f.setPreferredSize(
             new Dimension(DEFAULT_VIS_WIDTH, DEFAULT_VIS_HEIGHT));
+          fcells[i][NumVisY] = f;
           if (rsi != null) {
             // add new cell to server
             fcells[i][NumVisY].addToRemoteServer(rsi);
@@ -2453,7 +2469,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
           try {
             FancySSCell f = (FancySSCell) BasicSSCell.getSSCellByName(l[i][j]);
             if (f == null) {
-              f = new FancySSCell(l[i][j], fm, rs, null, this);
+              f = new FancySSCell(l[i][j], fm, rs, IsSlave, null, this);
               f.addSSCellChangeListener(this);
               f.addMouseListener(this);
               f.setAutoSwitch(AutoSwitch);

@@ -83,14 +83,14 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
 
   /** construct a new FancySSCell with the given name */
   public FancySSCell(String name) throws VisADException, RemoteException {
-    this(name, null, null, null, null);
+    this(name, null, null, false, null, null);
   }
 
   /** construct a new FancySSCell with the given name and parent Frame */
   public FancySSCell(String name, Frame parent)
     throws VisADException, RemoteException
   {
-    this(name, null, null, null, parent);
+    this(name, null, null, false, null, parent);
   }
 
   /** construct a new FancySSCell with the given name, formula manager,
@@ -98,7 +98,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   public FancySSCell(String name, FormulaManager fman, Frame parent)
     throws VisADException, RemoteException
   {
-    this(name, fman, null, null, parent);
+    this(name, fman, null, false, null, parent);
   }
 
   /** construct a new FancySSCell with the given name, remote server,
@@ -106,7 +106,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   public FancySSCell(String name, RemoteServer rs, Frame parent)
     throws VisADException, RemoteException
   {
-    this(name, null, rs, null, parent);
+    this(name, null, rs, false, null, parent);
   }
 
   /** construct a new FancySSCell with the given name, save string, and
@@ -114,7 +114,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   public FancySSCell(String name, String save, Frame parent)
     throws VisADException, RemoteException
   {
-    this(name, null, null, save, parent);
+    this(name, null, null, false, save, parent);
   }
 
   /** construct a new FancySSCell with the given name, formula manager,
@@ -122,7 +122,16 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   public FancySSCell(String name, FormulaManager fman, RemoteServer rs,
     String save, Frame parent) throws VisADException, RemoteException
   {
-    super(name, fman, rs, save);
+    this(name, fman, rs, false, save, parent);
+  }
+
+  /** construct a new, possibly slaved, FancySSCell with the given name,
+      formula manager, remote server, save string, and parent Frame */
+  public FancySSCell(String name, FormulaManager fman, RemoteServer rs,
+    boolean slave, String save, Frame parent) throws VisADException,
+    RemoteException
+  {
+    super(name, fman, rs, slave, save);
     Parent = parent;
     setHighlighted(false);
     addSSCellChangeListener(this);
