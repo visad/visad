@@ -174,8 +174,8 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
    *                             dimension
    * @throws VisADException      problem creating the set
    */
-  private static GriddedSet create(MathType type, float[][] samples,
-                           int[] lengths, CoordinateSystem coord_sys,
+    public static GriddedSet create(MathType type, float[][] samples,
+                                   int[] lengths, CoordinateSystem coord_sys,
                            Unit[] units, ErrorEstimate[] errors,
                            boolean copy, boolean test)
           throws VisADException {
