@@ -84,7 +84,8 @@ public class DataDisplayLink extends ReferenceActionLink {
         }
 
         // WLH 10 Aug 2001
-        if (constant_maps[i].getDisplay() != null) {
+        if (constant_maps[i].getDisplay() != null &&
+            !ConstantMap.getAllowMultipleUseKludge()) {
           throw new DisplayException(constant_maps[i] + " already has a display");
         }
 

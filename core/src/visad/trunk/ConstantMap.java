@@ -38,6 +38,10 @@ public class ConstantMap extends ScalarMap {
   // no Scalar, control or function for ConstantMap
   private double Constant;
 
+  // WLH 24 Aug 2001
+  // flag to allow multiple use of a ConstantMap
+  private static boolean allowMultipleUseKludge = false;
+
   /** construct a ConstantMap with a double constant;
       display_scalar may not be Animation, SelectValue, SelectRange
       or IsoContour */
@@ -71,6 +75,16 @@ public class ConstantMap extends ScalarMap {
   public ConstantMap(Real constant, DisplayRealType display_scalar)
                      throws VisADException {
     this(constant.getValue(), display_scalar);
+  }
+
+  // WLH 24 Aug 2001
+  public static void setAllowMultipleUseKludge(boolean k) {
+    allowMultipleUseKludge = k;
+  }
+
+  // WLH 24 Aug 2001
+  public static boolean getAllowMultipleUseKludge() {
+    return allowMultipleUseKludge;
   }
 
   void setControl() throws VisADException, RemoteException {
