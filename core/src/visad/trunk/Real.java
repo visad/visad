@@ -573,6 +573,11 @@ public class Real extends Scalar {
                     new ErrorEstimate(Value, e, unit));
   }
 
+  /** clone this, but with a new value */
+  public Real cloneButValue(double value) throws VisADException {
+    return new Real((RealType) Type, value, unit, Error);
+  }
+
   /** clone this, but with a new Unit */
   public Real cloneButUnit(Unit u) throws VisADException {
     return new Real((RealType) Type, Value, u, Error);

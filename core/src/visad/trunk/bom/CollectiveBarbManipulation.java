@@ -78,14 +78,14 @@ public class CollectiveBarbManipulation extends Object
   private double inner_time;
   private double outer_time;
 
-  int azimuth_index;
-  int radial_index;
-  int lat_index;
-  int lon_index;
+  private int azimuth_index;
+  private int radial_index;
+  private int lat_index;
+  private int lon_index;
 
-  int last_sta = -1;
-  int last_time = -1;
-  Tuple[][] old_tuples;
+  private int last_sta = -1;
+  private int last_time = -1;
+  // private Tuple[][] old_tuples;
 
   private float[][] azimuths;
   private float[][] radials;
@@ -117,12 +117,12 @@ public class CollectiveBarbManipulation extends Object
     inner_time = it;
     outer_time = ot;
     if (inner_time < 0.0 ||
-        outer_time < inner_time + 0.001) {
+        outer_time < inner_time) {
       throw new CollectiveBarbException("outer_time must be " +
                                    "greater than inner_time");
     }
     if (inner_distance < 0.0 ||
-        outer_distance < inner_distance + 0.001) {
+        outer_distance < inner_distance) {
       throw new CollectiveBarbException("outer_distance must be " +
                                    "greater than distance_time");
     }
@@ -160,29 +160,6 @@ public class CollectiveBarbManipulation extends Object
         throw new CollectiveBarbException("wind_field bad MathType: " +
                       wind_type + " must be flat");
       }
-
-      nindex = wind_field.getLength();
-      ntimes = new int[nindex];
-      tuples = new Tuple[nindex][];
-      old_tuples = new Tuple[nindex][];
-      which_times = new int[nindex];
-      wind_stations = new FlatField[nindex];
-      time_sets = new Set[nindex];
-      for (int i=0; i<nindex; i++) {
-        wind_stations[i] = (FlatField) wind_field.getSample(i);
-        ntimes[i] = wind_stations[i].getLength();
-        time_sets[i] = wind_stations[i].getDomainSet();
-        tuples[i] = new Tuple[ntimes[i]];
-        old_tuples[i] = new Tuple[ntimes[i]];
-        for (int j=0; j<ntimes[i]; j++) {
-          tuples[i][j] = (Tuple) wind_stations[i].getSample(j);
-          Real[] reals = tuples[i][j].getRealComponents();
-          azimuths[i][j] = (float) reals[azimuth_index].getValue();
-          radials[i][j] = (float) reals[radial_index].getValue();
-          old_azimuths[i][j] = azimuths[i][j];
-          old_radials[i][j] = radials[i][j];
-        }
-      }
     }
     catch (ClassCastException e) {
       throw new CollectiveBarbException("wind_field bad MathType: " +
@@ -195,9 +172,9 @@ public class CollectiveBarbManipulation extends Object
     lon_index = -1;
     Vector scalar_map_vector = display.getMapVector();
     int tuple_dim = wind_type.getDimension();
-    RealType[] reals = wind_type.getRealComponents();
+    RealType[] real_types = wind_type.getRealComponents();
     for (int i=0; i<tuple_dim; i++) {
-      RealType real = reals[i];
+      RealType real = real_types[i];
       if (RealType.Latitude.equals(real)) {
         lat_index = i;
       }
@@ -226,6 +203,43 @@ public class CollectiveBarbManipulation extends Object
                "and Longitude and two RealTypes mapped to Flow1Azimuth " +
                "and Flow1Radial " + lat_index + " " + lon_index +
                " " + azimuth_index + " " + radial_index);
+    }
+
+    try {
+      nindex = wind_field.getLength();
+      ntimes = new int[nindex];
+      tuples = new Tuple[nindex][];
+      // old_tuples = new Tuple[nindex][];
+      which_times = new int[nindex];
+      wind_stations = new FlatField[nindex];
+      time_sets = new Set[nindex];
+      azimuths = new float[nindex][];
+      radials = new float[nindex][];
+      old_azimuths = new float[nindex][];
+      old_radials = new float[nindex][];
+      for (int i=0; i<nindex; i++) {
+        wind_stations[i] = (FlatField) wind_field.getSample(i);
+        ntimes[i] = wind_stations[i].getLength();
+        time_sets[i] = wind_stations[i].getDomainSet();
+        tuples[i] = new Tuple[ntimes[i]];
+        // old_tuples[i] = new Tuple[ntimes[i]];
+        azimuths[i] = new float[ntimes[i]];
+        radials[i] = new float[ntimes[i]];
+        old_azimuths[i] = new float[ntimes[i]];
+        old_radials[i] = new float[ntimes[i]];
+        for (int j=0; j<ntimes[i]; j++) {
+          tuples[i][j] = (Tuple) wind_stations[i].getSample(j);
+          Real[] reals = tuples[i][j].getRealComponents();
+          azimuths[i][j] = (float) reals[azimuth_index].getValue();
+          radials[i][j] = (float) reals[radial_index].getValue();
+          old_azimuths[i][j] = azimuths[i][j];
+          old_radials[i][j] = radials[i][j];
+        }
+      }
+    }
+    catch (ClassCastException e) {
+      throw new CollectiveBarbException("wind_field bad MathType: " +
+                     wind_field_type);
     }
 
     lats = new float[nindex];
@@ -342,7 +356,7 @@ public class CollectiveBarbManipulation extends Object
     }
   
     private final static float DEGREE_EPS = 0.1f;
-    private final static float MPS_EPS = 0.1f;
+    private final static float MPS_EPS = 0.01f;
 
     public void doAction() throws VisADException, RemoteException {
       int time_index = which_times[sta_index];
@@ -364,7 +378,7 @@ public class CollectiveBarbManipulation extends Object
         last_time = time_index;
         for (int i=0; i<nindex; i++) {
           for (int j=0; j<ntimes[i]; j++) {
-            old_tuples[i][j] = tuples[i][j];
+            // old_tuples[i][j] = tuples[i][j];
             old_azimuths[i][j] = azimuths[i][j];
             old_radials[i][j] = radials[i][j];
           }
@@ -375,7 +389,7 @@ public class CollectiveBarbManipulation extends Object
       float diff_radial = new_radial - old_radials[sta_index][time_index];
 
       float lat = lats[sta_index];
-      float lon = lats[sta_index];
+      float lon = lons[sta_index];
       int global_time_index = station_to_global[sta_index][time_index];
       double time = times[global_time_index];
       for (int i=0; i<nindex; i++) {
@@ -386,23 +400,95 @@ public class CollectiveBarbManipulation extends Object
         double dist = ShadowType.METERS_PER_DEGREE *
           Math.sqrt(lon_diff * lon_diff + lat_diff * lat_diff);
         if (dist > outer_distance) continue;
-        double dist_mult = (dist < inner_distance) ? 1.0 :
+        double dist_mult = (dist <= inner_distance) ? 1.0 :
           (outer_distance - dist) / (outer_distance - inner_distance);
         for (int j=0; j<ntimes[i]; j++) {
           int ix = station_to_global[i][j];
           double time_diff = Math.abs(time - times[ix]);
           if (time_diff > outer_time) continue;
-          double time_mult = (time_diff < inner_time) ? 1.0 :
+          double time_mult = (time_diff <= inner_time) ? 1.0 :
             (outer_time - time_diff) / (outer_time - inner_time);
           double mult = dist_mult * time_mult;
+/*
+System.out.println("this " + sta_index + " " + time_index + " that " +
+                   i + " " + j + " mult " + mult);
+*/
+          double azimuth_diff = 0.0;
+          double radial_diff = 0.0;
 
+          if (absolute) {
+            azimuth_diff = new_azimuth - old_azimuths[i][j];
+            radial_diff = new_radial - old_radials[i][j];
+          }
+          else {
+            azimuth_diff = new_azimuth - old_azimuths[sta_index][time_index];
+            radial_diff = new_radial - old_radials[sta_index][time_index];
+          }
+          if (azimuth_diff < -180.0) azimuth_diff += 360.0;
+          if (azimuth_diff > 180.0) azimuth_diff -= 360.0;
+          double azimuth = old_azimuths[i][j] + mult * (azimuth_diff);
+          double radial = old_radials[i][j] + mult * (radial_diff);
+          if (radial < 0.0) radial = 0.0;
 
+          Tuple old_wind = tuples[i][j];
+          if (old_wind instanceof RealTuple) {
+            reals = old_wind.getRealComponents();
+            reals[azimuth_index] = reals[azimuth_index].cloneButValue(azimuth);
+            reals[radial_index] = reals[radial_index].cloneButValue(radial);
+            wind = new RealTuple((RealTupleType) old_wind.getType(), reals,
+                             ((RealTuple) old_wind).getCoordinateSystem());
+          }
+          else { // old_wind instanceof Tuple
+            int n = old_wind.getDimension();
+            int k = 0;
+            Data[] components = new Data[n];
+            for (int c=0; c<n; c++) {
+              components[c] = old_wind.getComponent(c);
+              if (components[c] instanceof Real) {
+                if (k == azimuth_index) {
+                  components[c] =
+                    ((Real) components[c]).cloneButValue(azimuth);
+                }
+                if (k == radial_index) {
+                  components[c] =
+                    ((Real) components[c]).cloneButValue(radial);
+                }
+                k++;
+              }
+              else { // (components[c] instanceof RealTuple)
+                int m = ((RealTuple) components[c]).getDimension();
+                if ((k <= azimuth_index && azimuth_index < k+m) ||
+                    (k <= radial_index && radial_index < k+m)) {
+                  reals = ((RealTuple) components[c]).getRealComponents();
+                  if (k <= azimuth_index && azimuth_index < k+m) {
+                    reals[azimuth_index - k] =
+                      reals[azimuth_index - k].cloneButValue(azimuth);
+                  }
+                  if (k <= radial_index && radial_index < k+m) {
+                    reals[radial_index - k] =
+                      reals[radial_index - k].cloneButValue(radial);
+                  }
+                  components[c] =
+                    new RealTuple((RealTupleType) components[c].getType(),
+                                  reals,
+                         ((RealTuple) components[c]).getCoordinateSystem());
+                }
+                k += m;
+              } // end if (components[c] instanceof RealTuple)
+            } // end for (int c=0; c<n; c++)
+            wind = new Tuple((TupleType) old_wind.getType(), components,
+                             false);
+          } // end if (old_wind instanceof Tuple)
+
+          wind_stations[i].setSample(j, wind);
+          tuples[i][j] = wind;
+          if (i != sta_index && j == which_times[i]) {
+            station_refs[i].setData(tuples[i][j]);
+          }
+          azimuths[i][j] = (float) azimuth;
+          radials[i][j] = (float) radial;
         } // end for (int j=0; j<ntimes[i]; j++)
       } // end for (int i=0; i<nindex; i++)
-
-
-      wind_stations[sta_index].setSample(time_index, wind);
-      tuples[sta_index][time_index] = wind;
     }
   }
 
@@ -532,7 +618,7 @@ public class CollectiveBarbManipulation extends Object
     frame.setVisible(true);
     CollectiveBarbManipulation cbm =
       new CollectiveBarbManipulation(field, display, false,
-                                     0.0f, 1.0f, 0.0f, 1.0f);
+                                     0.0f, 1000000.0f, 0.0f, 1000.0f);
   }
 }
 
