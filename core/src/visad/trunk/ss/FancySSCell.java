@@ -319,19 +319,6 @@ public class FancySSCell extends BasicSSCell {
     catch (RemoteException exc) { }
   }
 
-  /** Imports a data object from a given file name, in a separate thread */
-  public void loadDataFile(File f) {
-    String filename = f.getPath();
-    URL u;
-    try {
-      u = new URL(filename);
-    }
-    catch (MalformedURLException exc) {
-      u = FancySSCell.class.getResource(filename);
-    }
-    loadDataURL(u);
-  }
-
   /** Imports a data object from a given URL, in a separate thread */
   public void loadDataURL(URL u) {
     final URL url = u;
@@ -388,7 +375,15 @@ public class FancySSCell extends BasicSSCell {
     }
 
     // load file
-    loadDataFile(f);
+    String filename = "file:/" + f.getPath();
+    URL u;
+    try {
+      u = new URL(filename);
+    }
+    catch (MalformedURLException exc) {
+      return;
+    }
+    loadDataURL(u);
   }
 
   /** Saves to a file selected by the user, in netCDF format */
