@@ -54,7 +54,8 @@ abstract class FileData
      {
         return getVisADDataObject( i_set );
      }
-     else if ( this instanceof MetaFlatFieldSimple ) 
+     else if ( (this instanceof MetaFlatFieldSimple)|| 
+               (this instanceof MetaFlatFieldTuple)   ) 
      {
         HdfeosAccessor accessor = new HdfeosAccessor( this, i_set );
         

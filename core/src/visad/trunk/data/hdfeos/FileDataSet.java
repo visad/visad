@@ -108,7 +108,6 @@ import visad.data.FileFlatField;
        else {
          data = data_s[0];
        }
-
        return data;
     }
 

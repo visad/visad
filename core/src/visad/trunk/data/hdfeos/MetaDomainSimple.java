@@ -37,7 +37,7 @@ import visad.VisADException;
 import visad.RealTupleType;
 
 
-  class MetaDomainSimple {
+ class MetaDomainSimple extends MetaDomain {
 
     private EosStruct struct;
 
@@ -64,7 +64,7 @@ import visad.RealTupleType;
        dimSet.add( dim );
     }
 
-    Set getVisADSet( IndexSet i_set ) throws VisADException 
+    public Set getVisADSet( IndexSet i_set ) throws VisADException 
     {
 
       Set VisADset = null;

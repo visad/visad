@@ -217,16 +217,14 @@ class MetaField extends FileData  {
   static DataImpl getVisADDataObject( IndexSet i_set, MathType M_type, MetaField link )
         throws VisADException, RemoteException
   {
-
      int size;
      int n_next = link.getNextSize();
      FunctionType F_type;
-     TupleType R_type;
+     MathType R_type;
 
      if ( n_next == 0 ) 
      {
        DataImpl datum = link.getLeaf().getAdaptedVisADDataObject( i_set );
-
        return datum;
      }
      else 
@@ -234,7 +232,7 @@ class MetaField extends FileData  {
        Set domainSet = link.getVisADSet();
        size = domainSet.getLength();
        F_type = (FunctionType) M_type;
-       R_type = (TupleType)F_type.getRange();
+       R_type = F_type.getRange();
        Data range_data = null;
 
        FieldImpl F_func = new FieldImpl( (FunctionType)M_type, domainSet ); 
@@ -247,14 +245,21 @@ class MetaField extends FileData  {
 
          IndexSet idx = new IndexSet( n_dim, ii, i_set );
 
-         for ( int jj = 0; jj < n_next; jj++ ) 
+         if ( n_next > 1 ) 
          {
-           range_s[jj] = getVisADDataObject( idx, R_type.getComponent(jj),
-                                             link.getNext(jj) );
+           for ( int jj = 0; jj < n_next; jj++ ) 
+           {
+             range_s[jj] = getVisADDataObject( idx, ((TupleType)R_type).getComponent(jj),
+                                               link.getNext(jj) );
+           }
+         }
+         else 
+         {
+           range_s[0] = getVisADDataObject( idx, R_type, link.getNext(0) );
          }
 
          if ( range_s.length > 1 ) {
-            range_data = new Tuple( R_type, range_s, false );
+            range_data = new Tuple( (TupleType)R_type, range_s, false );
          }
          else {
             range_data = range_s[0];
@@ -264,7 +269,6 @@ class MetaField extends FileData  {
 
          return (DataImpl) F_func;
      }
-
   }
 
 }

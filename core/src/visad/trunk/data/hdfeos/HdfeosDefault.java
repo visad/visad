@@ -31,21 +31,20 @@ import visad.UnimplementedException;
 import java.rmi.*;
 import java.net.URL;
 
-public class HdfeosDefault extends Hdfeos {
-
+public class HdfeosDefault extends Hdfeos 
+{
 
   public HdfeosDefault() 
   {
      super("Default");
   }
      
-  public synchronized DataImpl open( String file_path ) 
+  public DataImpl open( String file_path ) 
          throws VisADException, RemoteException 
   {
 
     DataImpl data = null;
 
-    // System.out.println("HdfeosDefault.open "+file_path);
     HdfeosFile file = new HdfeosFile( file_path );
 
     data = getDataObject( file );
@@ -54,25 +53,25 @@ public class HdfeosDefault extends Hdfeos {
 
   }
 
-  public synchronized DataImpl open( URL url ) 
+  public DataImpl open( URL url ) 
          throws VisADException 
   {
     throw new UnimplementedException( "HdfeosDefault.open( URL url )" );
   }
 
-  public synchronized void add( String id, Data data, boolean replace ) 
+  public void add( String id, Data data, boolean replace ) 
               throws BadFormException
   {
     throw new BadFormException( "HdfeosDefault.add" );
   }
 
-  public synchronized void save( String id, Data data, boolean replace )
+  public void save( String id, Data data, boolean replace )
          throws BadFormException, RemoteException, VisADException 
   {
     throw new UnimplementedException( "HdfeosDefault.save" );
   }
 
-  public synchronized FormNode getForms( Data data ) 
+  public FormNode getForms( Data data ) 
   {
     return this;
   }
@@ -119,13 +118,13 @@ public class HdfeosDefault extends Hdfeos {
         types[ii] = M_type; 
       }
     }
-
     if ( types.length > 1 ) {
       M_type = new TupleType( types );
     }
     else {
       M_type = types[0];
     }
+
     return M_type;
   }
 
@@ -176,7 +175,7 @@ public class HdfeosDefault extends Hdfeos {
         datas[ii] = data;
       }
     }
-  
+
     if ( types.length > 1 ) {
       TupleType t_type = new TupleType( types );
       Tuple tuple = new Tuple( t_type, datas, false );
@@ -193,8 +192,8 @@ public class HdfeosDefault extends Hdfeos {
 
     Shape S_obj;
     DimensionSet D_set;
-    DimensionSet F_dims;
     DimensionSet G_dims;
+    DimensionSet D_dims;
     NamedDimension dim;
     MetaDomainGen m_domain;
     MetaDomainSimple m_domainS = null;
@@ -227,8 +226,8 @@ public class HdfeosDefault extends Hdfeos {
          continue;
       }
 
-      F_dims = new DimensionSet();
       G_dims = new DimensionSet();
+      D_dims = new DimensionSet();
 
       for ( idx = 0; idx < D_size; idx++ )    // separate dimensions first 
       {
@@ -240,7 +239,7 @@ public class HdfeosDefault extends Hdfeos {
         }
         else 
         {
-          F_dims.add( dim );
+          D_dims.add( dim );
         }
       }
 
@@ -254,83 +253,50 @@ public class HdfeosDefault extends Hdfeos {
       }
 
       VariableSet range_var = S_obj.getVariables();
-      MetaFlatField m_FField = new MetaFlatField( Grid, FF_domain, range_var );
+      MetaFlatFieldTuple m_FField = new MetaFlatFieldTuple( Grid, FF_domain, range_var );
 
-      if ( F_dims.getSize() == 0 ) {
-
+      if ( D_dims.getSize() == 0 ) 
+      {
          file_data.add( (FileData) m_FField );
       }
-      else {
-
-      for (  idx = 0; idx < F_dims.getSize(); idx++ ) {  // examine non-geo dimensions
-
-        dim = F_dims.getElement( idx );
-
-        Shape c_var = DV_shapeSet.getCoordVar( dim );
-
-        if ( c_var != null ) {
-
-           int n_vars = c_var.getNumberOfVars();
-
-           if ( n_vars == 1 ) {   // coordinate Variable, factorable dimension
-
-             VariableSet Vset = c_var.getVariables();
-             m_domain = new MetaDomainGen( Grid );
-             m_domain.addDim( dim );
-             m_domain.addVar( Vset.getElement( 0 ) );
-             allm_domain.addElement( m_domain );
-           }
-           else {
-
-              // not yet implemented
-           }
-        }
-        else {   // no coordinate Variable present
-
-          m_domainS = new MetaDomainSimple( Grid );
-          m_domainS.addDim( dim );
-         // allm_domain.addElement( m_domain );
-        }
-
+      else 
+      {
+         S_link = makeMetaField( Grid, DV_shapeSet, D_dims, (FileData)m_FField );
+         file_data.add( (FileData) S_link );
       }
-
-
-//- make metaFunction objects - - - - - - - - - -
-
-      Vector t_vector = new Vector();
-      t_vector.addElement( m_domainS );
-
-      Enumeration enum = t_vector.elements();
-
-      S_link = MetaField.getLink( enum, m_FField );
-
-      file_data.add( (FileData) S_link );
-
-      }
-
 
     } // end outer for loop
 
     return file_data;
   }
 
-  FileDataSet getSwathData( EosSwath Swath ) throws HdfeosException {
+  FileDataSet getSwathData( EosSwath Swath ) 
+              throws HdfeosException 
+  {
  
     Shape S_obj;
     DimensionSet D_set;
-    DimensionSet F_dims;
+    DimensionSet F_dims = null;
     DimensionSet G_dims;
+    DimensionSet Geo_set;
+    DimensionSet D_dims;
     Variable Latitude = null;
     Variable Longitude = null;
     Variable Time = null;
+    Variable var;
+    VariableSet range_var;
+    VariableSet v_set;
     NamedDimension dim;
-    MetaDomainGen m_domain;
+    MetaDomain m_domain;
     MetaDomainSimple m_domainS = null;
-    MetaDomainGen FF_domain = null;
+    MetaDomain FF_domain = null;
+    MetaDomain Geo_domain = null;
+    MetaFlatField m_FField;
     MetaField S_link = null;
     Vector allm_domain = new Vector();
     int D_size;
-    int idx;
+    int op;
+    int g_rank;
     Enumeration e;
 
     ShapeSet DV_shapeSet = Swath.getDV_shapeSet();
@@ -343,14 +309,20 @@ public class HdfeosDefault extends Hdfeos {
     for ( e = GV_shapeSet.getEnum(); e.hasMoreElements(); )
     {
       S_obj = (Shape)e.nextElement();
-      VariableSet v_set = S_obj.getVariables();
+      v_set = S_obj.getVariables();
 
-      Latitude = v_set.getByName( "Latitude" );
-      Latitude = v_set.getByName( "latitude" );
-      Longitude = v_set.getByName( "Longitude" );
-      Longitude = v_set.getByName( "longitude" );
-      Time = v_set.getByName( "Time" );
-      Time = v_set.getByName( "time" );
+      var = v_set.getByName( "Latitude" );
+      if ( var != null ) {
+        Latitude = var;
+      }
+      var = v_set.getByName( "Longitude" );
+      if ( var != null ) {
+        Longitude = var;
+      }
+      var = v_set.getByName( "Time" );
+      if ( Time != null ) {
+        Time = var;
+      }
     }
 
     if (( Latitude == null ) || ( Longitude == null ))
@@ -358,17 +330,79 @@ public class HdfeosDefault extends Hdfeos {
        throw new HdfeosException(
        " expecting Latitude and Longitude geolocation Variables ");
     }
+    Geo_set = Longitude.getDimSet();
+
+    if ( (Latitude.getDimSet()).sameSetSameOrder( Geo_set ) )
+    {
+       g_rank = Latitude.getDimSet().getSize();
+
+       if ( g_rank == 1 )
+       {
+          v_set = new VariableSet();
+
+          if ( Time != null ) {
+            if ( Time.getDimSet().getSize() != 1 )
+            {
+              throw new HdfeosException(" Time should have rank one if Lat/Lon do also ");
+            }
+            v_set.add( Time );
+          }
+
+          v_set.add( Latitude );
+          v_set.add( Longitude ); 
+          MetaDomainSimple FF_domain2 = new MetaDomainSimple( Swath );
+          FF_domain2.addDim( Geo_set.getElement(0) );
+          MetaFlatFieldTuple obj = new MetaFlatFieldTuple( Swath, FF_domain2 , v_set );
+
+          file_data.add( (FileData) obj );
+       }
+       else if ( g_rank == 2 )
+       {  
+          Geo_domain = new MetaDomainGen( Swath );
+          ((MetaDomainGen)Geo_domain).addDim( Geo_set.getElement(0) );
+          ((MetaDomainGen)Geo_domain).addDim( Geo_set.getElement(1) );
+          ((MetaDomainGen)Geo_domain).addVar( Latitude );
+          ((MetaDomainGen)Geo_domain).addVar( Longitude );
+       }
+       else if ( g_rank == 3 )
+       {
+          Geo_domain = new MetaDomainGen( Swath );
+          ((MetaDomainGen)Geo_domain).addDim( Geo_set.getElement(1) );
+          ((MetaDomainGen)Geo_domain).addDim( Geo_set.getElement(2) );
+          ((MetaDomainGen)Geo_domain).addVar( Latitude );
+          ((MetaDomainGen)Geo_domain).addVar( Longitude );
+          F_dims = new DimensionSet();
+          F_dims.add( Geo_set.getElement(0) );
+       }
+       else if ( g_rank > 3 )
+       {
+          throw new HdfeosException(
+                   " Lat/Lon variables have rank > 3 " );
+       }
+    }
+    else
+    {
+      throw new HdfeosException(
+          " expecting Latitude and Longitude to have the same dimensionSet ");
+    }
 
     for ( Enumeration e_out = DV_shapeSet.getEnum(); e_out.hasMoreElements(); ) 
     {
       S_obj = (Shape)e_out.nextElement();     // this particular data Variable group
+      System.out.println( S_obj.toString());
 
       D_set = S_obj.getShape();     // dimension set of this Variable group
 
       D_size = D_set.getSize();     // # of dimensions in the set
 
-      F_dims = new DimensionSet();
+      if ( D_size == 1 )    // Treat this as a coordinate variable - metadata
+      {
+         continue;
+      }
+
       G_dims = new DimensionSet();
+      D_dims = new DimensionSet();
+      range_var = S_obj.getVariables();
 
       for ( int ii = 0; ii < D_size; ii++ )        // separate dimensions ( geo, non-geo )
       {
@@ -384,101 +418,175 @@ public class HdfeosDefault extends Hdfeos {
         }
         else 
         {
-          F_dims.add( dim );
+          D_dims.add( dim );
         }
       }
 
 //- examine geo-dimension sets for this Variable group - - - - - - - - - - -
       int g_size = G_dims.getSize();
 
+      /*
+          FF_domain = makeDomain( Swath, DV_shapeSet, D_set );
+          m_FField = new MetaFlatField( Swath, FF_domain, range_var );
+          file_data.add( (FileData) m_FField );
+       */
+
       if ( g_size == 0 ) 
       {
-        throw new HdfeosException(" no geo dimensions found in file " );
+        FF_domain = makeDomain( Swath, DV_shapeSet, D_dims );
+        m_FField = new MetaFlatField( Swath, FF_domain, range_var );
+        file_data.add( (FileData) m_FField );
       }
       else if ( g_size == 1 )
       {
-        throw new HdfeosException(
-           " presently, default form cannot intrepret a single geodimension" );
+        if ( Geo_set.sameSetSameOrder(G_dims) )
+        {
+          m_domain = makeDomain( Swath, DV_shapeSet, D_dims );
+          m_FField = new MetaFlatField( Swath, m_domain, range_var);
+          S_link = makeMetaField( Swath, DV_shapeSet, G_dims, m_FField );
+          file_data.add( (FileData) S_link );
+        }
+        else
+        {
+          m_domain = makeDomain( Swath, DV_shapeSet, D_set );
+          m_FField = new MetaFlatField( Swath, m_domain, range_var );
+          file_data.add( (FileData) m_FField );
+        }
       }
       else if ( g_size == 2 )
       {
-        FF_domain = new MetaDomainGen( Swath );
-        FF_domain.addDim( G_dims.getElement(0) );
-        FF_domain.addDim( G_dims.getElement(1) );
-        FF_domain.addVar( Latitude );
-        FF_domain.addVar( Longitude );
+        if ( Geo_set.sameSetSameOrder(G_dims) )
+        {
+          F_dims = D_dims;
+          m_FField = new MetaFlatField( Swath, Geo_domain, range_var );
+          if ( F_dims.getSize() == 0 )
+          {
+            file_data.add( (FileData) m_FField );
+          }
+          else         //- create functions of flatfield objects defined above
+          {
+            S_link = makeMetaField( Swath, DV_shapeSet, F_dims, (FileData)m_FField );
+            file_data.add( (FileData) S_link );
+          }
+        }
+        else
+        {
+          FF_domain = makeDomain( Swath, DV_shapeSet, D_set );
+          m_FField = new MetaFlatField( Swath, FF_domain, range_var);
+          file_data.add( (FileData) m_FField );
+        }
       }
       else if ( g_size == 3 ) 
       {
-        throw new HdfeosException(
-           " three geo-dims not yet implemented" );
+        if ( Geo_set.sameSetSameOrder(G_dims) )
+        {
+          for ( int ii = 0; ii < D_dims.getSize(); ii++ ) {
+            F_dims.add( D_dims.getElement(ii) );
+          }
+          m_FField = new MetaFlatField( Swath, Geo_domain, range_var );
+          S_link = makeMetaField( Swath, DV_shapeSet, F_dims, (FileData)m_FField );
+          file_data.add( (FileData) S_link );
+        }
+        else
+        {
+          FF_domain = makeDomain( Swath, DV_shapeSet, D_set );
+          m_FField = new MetaFlatField( Swath, FF_domain, range_var);
+          file_data.add( (FileData) m_FField );
+        }
       }
       else if ( g_size > 3 )
       {
         throw new HdfeosException(
-           " > three geo-dims not yet implemented" );
-      }
-
-
-      VariableSet range_var = S_obj.getVariables();
-
-      MetaFlatField m_FField = new MetaFlatField( Swath, FF_domain, range_var );
-
-
-      if ( F_dims.getSize() == 0 ) 
-      {
-         file_data.add( (FileData) m_FField );
-      }
-      else         //- create functions of flatfield objects defined above
-      {
-        for (  idx = 0; idx < F_dims.getSize(); idx++ ) {    // loop through non-geo dimensions
-
-          dim = F_dims.getElement( idx );
-
-          Shape c_var = DV_shapeSet.getCoordVar( dim );
-
-          if ( c_var != null ) {
-
-             int n_vars = c_var.getNumberOfVars();
-
-             if ( n_vars == 1 ) {   // coordinate Variable, factorable dimension
-
-               VariableSet Vset = c_var.getVariables();
-               m_domain = new MetaDomainGen( Swath );
-               m_domain.addDim( dim );
-               m_domain.addVar( Vset.getElement( 0 ) );
-               allm_domain.addElement( m_domain );
-             }
-             else {
-
-                // not yet implemented
-             }
-          }
-          else {   // no coordinate Variable present
-
-            m_domainS = new MetaDomainSimple( Swath );
-            m_domainS.addDim( dim );
-           // allm_domain.addElement( m_domain );
-          }
-         }
-
-//- make metaFunction objects - - - - - - - - - -
-
-        Vector t_vector = new Vector();
-        t_vector.addElement( m_domainS );
-
-        Enumeration enum = t_vector.elements();
-
-        S_link = MetaField.getLink( enum, m_FField );
-
-        file_data.add( (FileData) S_link );
-
+           "more than three geo-dims not yet implemented" );
       }
 
     } // end outer for loop
 
-
     return file_data;
+  }
+
+  MetaField makeMetaField( EosStruct struct, ShapeSet DV_shapeSet, 
+                           DimensionSet F_dims, FileData F_field  )
+            throws HdfeosException
+  {
+
+     MetaDomain m_domain = null;
+     Vector all = new Vector();
+     MetaField m_field = null;
+
+     for ( int ii = 0; ii < F_dims.getSize(); ii++ ) 
+     {
+        NamedDimension dim = F_dims.getElement( ii );
+        Shape c_var = DV_shapeSet.getCoordVar( dim );
+
+        if ( c_var != null ) 
+        {
+           int n_vars = c_var.getNumberOfVars();
+           if ( n_vars == 1 )
+           {
+              VariableSet Vset = c_var.getVariables();
+              m_domain = new MetaDomainGen( struct );
+              ((MetaDomainGen)m_domain).addDim( dim );
+              ((MetaDomainGen)m_domain).addVar( Vset.getElement( 0 ) );
+              all.addElement( m_domain );
+           }
+           else
+           {
+              throw new HdfeosException(
+                        "more than one coord var for this dimension");
+           }
+        }
+        else  // no coordinate Variable present
+        {
+           m_domain = new MetaDomainSimple( struct );
+           ((MetaDomainSimple)m_domain).addDim( dim );
+           all.addElement( m_domain );
+        }
+     }
+
+     Enumeration enum = all.elements();
+
+     m_field = MetaField.getLink( enum, F_field );
+
+     all = null;
+     return m_field;
+  }
+
+  MetaDomain makeDomain( EosStruct struct, ShapeSet DV_shapeSet, DimensionSet D_set )
+             throws HdfeosException
+  {
+
+    MetaDomain m_domain = new MetaDomainGen( struct );
+
+    for ( int ii = 0; ii < D_set.getSize(); ii++ )
+    {
+      NamedDimension dim = D_set.getElement(ii);
+
+        Shape c_var = DV_shapeSet.getCoordVar( dim );
+
+        if ( c_var != null )
+        {
+           int n_vars = c_var.getNumberOfVars();
+           if ( n_vars == 1 )
+           {
+              VariableSet Vset = c_var.getVariables();
+              ((MetaDomainGen)m_domain).addDim( dim );
+              ((MetaDomainGen)m_domain).addVar( Vset.getElement( 0 ) );
+           }
+           else
+           {
+              throw new HdfeosException(
+                        "more than one coord var for this dimension:"+dim.toString() );
+           }
+        }
+        else  // no coordinate Variable present
+        {
+           ((MetaDomainGen)m_domain).addDim( dim );
+           ((MetaDomainGen)m_domain).addVar( null );
+        }
+    }
+
+    return m_domain;
   }
 
 }  // end class

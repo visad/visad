@@ -108,46 +108,37 @@ class MetaFlatFieldTuple extends FileData  {
     int stat;
     int samples = 1;
 
-    if ( i_set != null ) {
-
-      for ( ii = 0; ii < i_set.getSize(); ii++ ) {
-
+    if ( i_set != null ) 
+    {
+      for ( ii = 0; ii < i_set.getSize(); ii++ ) 
+      {
         n_dim = i_set.getDim(ii);
-
-        if ( d_set.isMemberOf( n_dim ) ) {
-          
+        if ( d_set.isMemberOf( n_dim ) ) 
+        {
           start[ii] = i_set.getIndex( n_dim );
           edge[ii] = 1;
         }
-        else {
-
-           throw new HdfeosException(" named dimension incompatible " );
+        else 
+        {
+          throw new HdfeosException(" named dimension incompatible " );
         }
       }
-
     }
 
     for ( ii = 0; ii < v_rank; ii++ ) {
-
       samples = samples*edge[ii];
-      System.out.println( "start: "+start[ii]);
-      System.out.println( "edge: "+edge[ii]);
-      System.out.println( "stride: "+stride[ii]);
     }
-
 
     float[][] data = new float[ n_fields ][ samples ];
  
-
-    for ( ii = 0; ii < n_fields; ii++ ) {
-
+    for ( ii = 0; ii < n_fields; ii++ ) 
+    {
       struct.readData( F_name[ii], start, stride, edge, num_type[ii], data[ii] );
     }
 
     F_field.setSamples( data );
 
     return (DataImpl)F_field; 
-
   }
 
   public MathType getVisADMathType() throws VisADException 
@@ -198,5 +189,4 @@ class MetaFlatFieldTuple extends FileData  {
       return  (MathType)F_type;
      }
   }
-
 }

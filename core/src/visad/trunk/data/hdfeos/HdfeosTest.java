@@ -52,10 +52,20 @@ public class HdfeosTest
 
       MathType M_type = data.getType();
       System.out.println( M_type.toString() );
+      System.out.println("  ");
       System.out.println( M_type.prettyString() );
 
       String range_name = "t10m";
 
+    //Data range_0 = ((FieldImpl)data).getSample(0);
+      Field range_0 = (Field) ((FieldImpl)data).getSample(0);
+      System.out.println( (range_0.getType()).toString());
+    //values = ((FileFlatField)range_0).getValues();
+      values = (range_0).getValues();
+      for ( int ii = 0; ii < 50; ii++ ) {
+        System.out.println( values[5][ii] );
+      }
+    /**
       F_data = extractFunction( data, range_name );
 
       Data FF_data = extractFlatField( (FieldImpl)F_data, range_name, 0 );
@@ -71,6 +81,7 @@ public class HdfeosTest
         }
         System.out.println( set.toString() );
       }
+     **/
 
       HdfeosFile.close();
 
@@ -83,6 +94,7 @@ public class HdfeosTest
     Data r_data = null; 
     Data dat;
     MathType M_type;
+    RealType r_type;
 
     if ( data instanceof Tuple ) 
     {
@@ -94,7 +106,7 @@ public class HdfeosTest
       }
       return r_data;
     }
-    else if ( data instanceof FileFlatField )
+    else if ( data instanceof FlatField )
     {
        M_type = ((FunctionType)(data.getType())).getRange();
        if ( M_type instanceof RealType )
@@ -107,11 +119,21 @@ public class HdfeosTest
        } 
        else if ( M_type instanceof RealTupleType )
        {
-         throw new VisADException(" unimplemented ");
-       }
-       else 
-       {
-         throw new VisADException(" unimplemented " );
+         int ii;
+         int comp = 0;
+         boolean found = false;
+         for ( ii = 0; ii <  ((RealTupleType)M_type).getDimension(); ii++ )
+         {
+           r_type = (RealType) ((RealTupleType)M_type).getComponent(ii);
+           if ( r_type.getName().equals( range_name ) ) 
+           {
+             comp = ii;
+             found = true;
+           }
+         }
+         if ( found ) {
+           r_data = ((FlatField)data).extract(comp);
+         }
        }
     }
     else if ( data instanceof FieldImpl )
@@ -121,10 +143,6 @@ public class HdfeosTest
         {
           r_data = data;
         }
-    }
-    else 
-    {
-      throw new VisADException("Confused");
     }
     return r_data;
   }
