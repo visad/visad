@@ -758,6 +758,10 @@ public final class DerivedUnit
     public double[] toThis(double[] values, Unit that)
         throws UnitException
     {
+        if (that instanceof PromiscuousUnit) {
+            double[] newValues = (double[])values.clone();
+            return newValues;
+        }
         return
             that instanceof DerivedUnit
                 ? toThis(values, (DerivedUnit)that)
@@ -777,6 +781,10 @@ public final class DerivedUnit
     public float[] toThis(float[] values, Unit that)
         throws UnitException
     {
+        if (that instanceof PromiscuousUnit) { 
+            float[] newValues = (float[])values.clone();
+            return newValues;
+        }
         return
             that instanceof DerivedUnit
                 ? toThis(values, (DerivedUnit)that)
@@ -868,6 +876,10 @@ public final class DerivedUnit
     public double[] toThat(double values[], Unit that)
         throws UnitException
     {
+        if (that instanceof PromiscuousUnit) { 
+            double[] newValues = (double[])values.clone();
+            return newValues;
+        }
         return
             that instanceof DerivedUnit
                 ? toThat(values, (DerivedUnit)that)
@@ -887,6 +899,10 @@ public final class DerivedUnit
     public float[] toThat(float values[], Unit that)
         throws UnitException
     {
+        if (that instanceof PromiscuousUnit) { 
+            float[] newValues = (float[])values.clone();
+            return newValues;
+        }
         return
             that instanceof DerivedUnit
                 ? toThat(values, (DerivedUnit)that)

@@ -412,7 +412,7 @@ public final class OffsetUnit
         throws UnitException
     {
         double[]        newValues;
-        if (equals(that)) {
+        if (equals(that) || that instanceof PromiscuousUnit) {
             newValues = (double[])values.clone();
         }
         else {
@@ -437,7 +437,7 @@ public final class OffsetUnit
         throws UnitException
     {
         float[]        newValues;
-        if (equals(that)) {
+        if (equals(that) || that instanceof PromiscuousUnit) {
             newValues = (float[])values.clone();
         }
         else {
@@ -462,7 +462,7 @@ public final class OffsetUnit
         throws UnitException
     {
         double[]        newValues = (double[])values.clone();
-        if (!equals(that)) {
+        if (!(equals(that) || that instanceof PromiscuousUnit)) {
           for (int i = 0; i < newValues.length; ++i)
               newValues[i] += offset;
           newValues = that.toThis(newValues, scaledUnit);
@@ -484,7 +484,7 @@ public final class OffsetUnit
         throws UnitException
     {
         float[]        newValues = (float[])values.clone();
-        if (!equals(that)) {
+        if (!(equals(that) || that instanceof PromiscuousUnit)) {
           for (int i = 0; i < newValues.length; ++i)
               newValues[i] += offset;
           newValues = that.toThis(newValues, scaledUnit);
