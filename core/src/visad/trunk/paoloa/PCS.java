@@ -13,6 +13,7 @@ import visad.java3d.TwoDDisplayRendererJ3D;
 import visad.java2d.DisplayImplJ2D;
 import visad.java2d.DirectManipulationRendererJ2D;
 import visad.util.VisADSlider;
+import visad.util.RangeSlider;
 import visad.util.LabeledColorWidget;
 import visad.data.netcdf.Plain;
 import visad.data.mcidas.BaseMapAdapter;
@@ -126,7 +127,6 @@ public class PCS {
 
   // precomputed helper values for slider_cell
   float[][][] eigen_values;
-  float[][] eigen_mags;
   float[][] mean_values;
   Gridded1DSet pressureSet;
   FlatField ll_field;
@@ -265,7 +265,8 @@ public class PCS {
 
     DisplayImpl displayb1 =
       new DisplayImplJ3D("displayb1", new TwoDDisplayRendererJ3D());
-    displayb1.addMap(new ScalarMap(band, Display.XAxis));
+    final ScalarMap bmapb1 = new ScalarMap(band, Display.XAxis);
+    displayb1.addMap(bmapb1);
     displayb1.addMap(new ScalarMap(band1, Display.YAxis));
     GraphicsModeControl modeb1 = displayb1.getGraphicsModeControl();
     modeb1.setScaleEnable(true);
@@ -276,7 +277,8 @@ public class PCS {
 
     DisplayImpl displayb2 =
       new DisplayImplJ3D("displayb2", new TwoDDisplayRendererJ3D());
-    displayb2.addMap(new ScalarMap(band, Display.XAxis));
+    final ScalarMap bmapb2 = new ScalarMap(band, Display.XAxis);
+    displayb2.addMap(bmapb2);
     displayb2.addMap(new ScalarMap(band2, Display.YAxis));
     GraphicsModeControl modeb2 = displayb2.getGraphicsModeControl();
     modeb2.setScaleEnable(true);
@@ -287,7 +289,8 @@ public class PCS {
 
     DisplayImpl displayb3 =
       new DisplayImplJ3D("displayb3", new TwoDDisplayRendererJ3D());
-    displayb3.addMap(new ScalarMap(band, Display.XAxis));
+    final ScalarMap bmapb3 = new ScalarMap(band, Display.XAxis);
+    displayb3.addMap(bmapb3);
     displayb3.addMap(new ScalarMap(band3, Display.YAxis));
     GraphicsModeControl modeb3 = displayb3.getGraphicsModeControl();
     modeb3.setScaleEnable(true);
@@ -298,7 +301,8 @@ public class PCS {
 
     DisplayImpl displayn1 =
       new DisplayImplJ3D("displayn1", new TwoDDisplayRendererJ3D());
-    displayn1.addMap(new ScalarMap(band, Display.XAxis));
+    final ScalarMap bmapn1 = new ScalarMap(band, Display.XAxis);
+    displayn1.addMap(bmapn1);
     displayn1.addMap(new ScalarMap(noise_band1, Display.YAxis));
     GraphicsModeControl moden1 = displayn1.getGraphicsModeControl();
     moden1.setScaleEnable(true);
@@ -309,7 +313,8 @@ public class PCS {
 
     DisplayImpl displayn2 =
       new DisplayImplJ3D("displayn2", new TwoDDisplayRendererJ3D());
-    displayn2.addMap(new ScalarMap(band, Display.XAxis));
+    final ScalarMap bmapn2 = new ScalarMap(band, Display.XAxis);
+    displayn2.addMap(bmapn2);
     displayn2.addMap(new ScalarMap(noise_band2, Display.YAxis));
     GraphicsModeControl moden2 = displayn2.getGraphicsModeControl();
     moden2.setScaleEnable(true);
@@ -320,7 +325,8 @@ public class PCS {
 
     DisplayImpl displayn3 =
       new DisplayImplJ3D("displayn3", new TwoDDisplayRendererJ3D());
-    displayn3.addMap(new ScalarMap(band, Display.XAxis));
+    final ScalarMap bmapn3 = new ScalarMap(band, Display.XAxis);
+    displayn3.addMap(bmapn3);
     displayn3.addMap(new ScalarMap(noise_band3, Display.YAxis));
     GraphicsModeControl moden3 = displayn3.getGraphicsModeControl();
     moden3.setScaleEnable(true);
@@ -394,8 +400,26 @@ public class PCS {
     // sliders.add(new JLabel("  "));
     sliders.add(new VisADSlider("neigen", 0, npcs, 0, 1.0,
                                  num_eigen_ref,  numpcs));
+    RangeSlider rs = new RangeSlider("band range", 0.0f, (float) nbands) {
+      public void valuesUpdated() {
+        float[] minmax = getMinMaxValues();
+        float min = minmax[0];
+        float max = minmax[1];
+        try {
+          bmapb1.setRange(min, max);
+          bmapb2.setRange(min, max);
+          bmapb3.setRange(min, max);
+          bmapn1.setRange(min, max);
+          bmapn2.setRange(min, max);
+          bmapn3.setRange(min, max);
+        }
+        catch (VisADException exc) { }
+        catch (RemoteException exc ) { }
+      }
+    };
+    sliders.add(rs);
 
-    // create sliders JPanel
+    // create top display JPanel
     JPanel top = new JPanel();
     top.setName("PCS Sliders");
     top.setFont(new Font("Dialog", Font.PLAIN, 12));
@@ -403,12 +427,28 @@ public class PCS {
     top.setAlignmentY(JPanel.TOP_ALIGNMENT);
     top.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     big_panel.add(top);
-    top.add(displayb1.getComponent());
-    top.add(displayb2.getComponent());
-    top.add(displayb3.getComponent());
-    top.add(displayll.getComponent());
 
-    // create sliders JPanel
+    // get Display panels
+    JPanel panel1 = (JPanel) displayb1.getComponent();
+    JPanel panel2 = (JPanel) displayb2.getComponent();
+    JPanel panel3 = (JPanel) displayb3.getComponent();
+    JPanel panel4 = (JPanel) displayll.getComponent();
+
+    // make borders for Displays and embed in display_panel JPanel
+    Border etchedBorder5 =
+      new CompoundBorder(new EtchedBorder(),
+                         new EmptyBorder(5, 5, 5, 5));
+    panel1.setBorder(etchedBorder5);
+    panel2.setBorder(etchedBorder5);
+    panel3.setBorder(etchedBorder5);
+    panel4.setBorder(etchedBorder5);
+
+    top.add(panel1);
+    top.add(panel2);
+    top.add(panel3);
+    top.add(panel4);
+
+    // create bottom display JPanel
     JPanel bottom = new JPanel();
     bottom.setName("PCS Sliders");
     bottom.setFont(new Font("Dialog", Font.PLAIN, 12));
@@ -416,10 +456,22 @@ public class PCS {
     bottom.setAlignmentY(JPanel.TOP_ALIGNMENT);
     bottom.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     big_panel.add(bottom);
-    bottom.add(displayn1.getComponent());
-    bottom.add(displayn2.getComponent());
-    bottom.add(displayn3.getComponent());
-    bottom.add(displayprof.getComponent());
+
+    JPanel panel5 = (JPanel) displayn1.getComponent();
+    JPanel panel6 = (JPanel) displayn2.getComponent();
+    JPanel panel7 = (JPanel) displayn3.getComponent();
+    JPanel panel8 = (JPanel) displayprof.getComponent();
+
+    // make borders for Displays and embed in display_panel JPanel
+    panel5.setBorder(etchedBorder5);
+    panel6.setBorder(etchedBorder5);
+    panel7.setBorder(etchedBorder5);
+    panel8.setBorder(etchedBorder5);
+
+    bottom.add(panel5);
+    bottom.add(panel6);
+    bottom.add(panel7);
+    bottom.add(panel8);
 
     // precompute some values
     // compute mean_values
@@ -431,7 +483,6 @@ public class PCS {
     // compute eigen_values
     values = eigen_vectors.getFloats(false);
     eigen_values = new float[3][npcs][nbands];
-    eigen_mags = new float[3][npcs];
     for (int k=0; k<3; k++) {
       int kb = k * nbands;
       for (int j=0; j<npcs; j++) {
@@ -443,8 +494,11 @@ public class PCS {
           m += npcs;
           mag += eigen_values[k][j][i] * eigen_values[k][j][i];
         }
+        float invmag = (float) (1.0 / Math.sqrt(mag));
+        for (int i=0; i<nbands; i++) {
+          eigen_values[k][j][i] *= invmag;
+        }
         // System.out.println("mag eigen[" + k + "][" + j + "] = " + mag);
-        eigen_mags[k][j] = (float) Math.sqrt(mag);
       }
     }
 /*
@@ -464,59 +518,49 @@ public class PCS {
     }
 */
 /*
-prod eigen[0][0] * eigen[0][0] = 0.3927127128278888
+prod eigen[0][0] * eigen[0][0] = 0.9999999560595673
  
-prod eigen[0][1] * eigen[0][0] = 0.046502664672846805
-prod eigen[0][1] * eigen[0][1] = 0.13929564212833562
+prod eigen[0][1] * eigen[0][0] = 0.19882527929023297
+prod eigen[0][1] * eigen[0][1] = 1.0000000626459866
  
-prod eigen[0][2] * eigen[0][0] = 8.471525264610591E-4
-prod eigen[0][2] * eigen[0][1] = -0.007017152542599714
-prod eigen[0][2] * eigen[0][2] = 0.3791186445107675
+prod eigen[0][2] * eigen[0][0] = 0.0021955152578811976
+prod eigen[0][2] * eigen[0][1] = -0.030535468893837958
+prod eigen[0][2] * eigen[0][2] = 1.000000052295805
  
-prod eigen[0][3] * eigen[0][0] = -0.05942929745970174
-prod eigen[0][3] * eigen[0][1] = 0.09623972822503282
-prod eigen[0][3] * eigen[0][2] = 0.018622585404625802
-prod eigen[0][3] * eigen[0][3] = 0.22188370825622428
+prod eigen[0][3] * eigen[0][0] = -0.20132624975516422
+prod eigen[0][3] * eigen[0][1] = 0.5474228612534144
+prod eigen[0][3] * eigen[0][2] = 0.064208084475597
+prod eigen[0][3] * eigen[0][3] = 1.0000000120401011
  
-prod eigen[0][4] * eigen[0][0] = 0.062092655729202306
-prod eigen[0][4] * eigen[0][1] = 0.07900949019188452
-prod eigen[0][4] * eigen[0][2] = -0.010294666320233903
-prod eigen[0][4] * eigen[0][3] = -0.04979079395437114
-prod eigen[0][4] * eigen[0][4] = 0.37299805189663104
+prod eigen[0][4] * eigen[0][0] = 0.16223683932582844
+prod eigen[0][4] * eigen[0][1] = 0.3466228910989315
+prod eigen[0][4] * eigen[0][2] = -0.027376087387581016
+prod eigen[0][4] * eigen[0][3] = -0.17307449659401453
+prod eigen[0][4] * eigen[0][4] = 1.0000000577602433
  
-prod eigen[0][5] * eigen[0][0] = 0.0803897273440839
-prod eigen[0][5] * eigen[0][1] = -0.018783214214082022
-prod eigen[0][5] * eigen[0][2] = 0.1004138049628791
-prod eigen[0][5] * eigen[0][3] = -0.05983648844837186
-prod eigen[0][5] * eigen[0][4] = -0.10526212742651353
-prod eigen[0][5] * eigen[0][5] = 0.20662060311035807
+prod eigen[0][5] * eigen[0][0] = 0.28221250142280496
+prod eigen[0][5] * eigen[0][1] = -0.11071700812757967
+prod eigen[0][5] * eigen[0][2] = 0.3587724183558443
+prod eigen[0][5] * eigen[0][3] = -0.27945801810879445
+prod eigen[0][5] * eigen[0][4] = -0.37916833070957523
+prod eigen[0][5] * eigen[0][5] = 0.9999999806760207
  
-prod eigen[0][6] * eigen[0][0] = 0.016786827642334856
-prod eigen[0][6] * eigen[0][1] = -0.043491916254701835
-prod eigen[0][6] * eigen[0][2] = 0.03371628361720802
-prod eigen[0][6] * eigen[0][3] = 0.06179943025961167
-prod eigen[0][6] * eigen[0][4] = -0.19640585599544558
-prod eigen[0][6] * eigen[0][5] = 0.023829713935333174
-prod eigen[0][6] * eigen[0][6] = 0.48228903710801685
+prod eigen[0][6] * eigen[0][0] = 0.03857246844661688
+prod eigen[0][6] * eigen[0][1] = -0.1677977306336942
+prod eigen[0][6] * eigen[0][2] = 0.0788494048715016
+prod eigen[0][6] * eigen[0][3] = 0.1889157010351341
+prod eigen[0][6] * eigen[0][4] = -0.4630708597875781
+prod eigen[0][6] * eigen[0][5] = 0.0754880668845388
+prod eigen[0][6] * eigen[0][6] = 0.9999999547743312
  
-prod eigen[0][7] * eigen[0][0] = 0.18066514195135053
-prod eigen[0][7] * eigen[0][1] = 0.06622231007214197
-prod eigen[0][7] * eigen[0][2] = -0.06523913142047277
-prod eigen[0][7] * eigen[0][3] = 0.07455097875344957
-prod eigen[0][7] * eigen[0][4] = -0.06012227921048208
-prod eigen[0][7] * eigen[0][5] = 0.04336063668323664
-prod eigen[0][7] * eigen[0][6] = 0.2775049062494389
-prod eigen[0][7] * eigen[0][7] = 0.49982027209381596
- 
-prod eigen[0][8] * eigen[0][0] = -0.10791195443054136
-prod eigen[0][8] * eigen[0][1] = -0.040771661349454646
-prod eigen[0][8] * eigen[0][2] = -0.06078896198145345
-prod eigen[0][8] * eigen[0][3] = -0.0453104544980516
-prod eigen[0][8] * eigen[0][4] = -0.009595986045525251
-prod eigen[0][8] * eigen[0][5] = -0.0960424067838872
-prod eigen[0][8] * eigen[0][6] = -0.003850559658600261
-prod eigen[0][8] * eigen[0][7] = 0.07232794834273548
-prod eigen[0][8] * eigen[0][8] = 0.394083296731774
+prod eigen[0][7] * eigen[0][0] = 0.4077837791738421
+prod eigen[0][7] * eigen[0][1] = 0.25097394743932
+prod eigen[0][7] * eigen[0][2] = -0.14986964546002923
+prod eigen[0][7] * eigen[0][3] = 0.22386371621167456
+prod eigen[0][7] * eigen[0][4] = -0.13924359809601583
+prod eigen[0][7] * eigen[0][5] = 0.13492794341728143
+prod eigen[0][7] * eigen[0][6] = 0.5652102443367826
+prod eigen[0][7] * eigen[0][7] = 1.000000008945133
 . . .
 */
 
@@ -584,7 +628,7 @@ prod eigen[0][8] * eigen[0][8] = 0.394083296731774
         int t = (int) ((Real) time_ref.getData()).getValue() - 1;
         int ne = (int) ((Real) num_eigen_ref.getData()).getValue();
         if (t < 0 || ntimes <= t || ne < 0 || npcs < ne) {
-          System.out.println("time " + t + " or number of eigen vectors " +
+          System.out.println("time " + t + " or neigens " +
                              ne + " out of bounds");
           return;
         }
@@ -605,8 +649,8 @@ prod eigen[0][8] * eigen[0][8] = 0.394083296731774
               bcoef += pc[i] * (b[i] - bm[i]);
               ncoef += pc[i] * n[i];
             }
-            bcoefs[k][j] = (float) (bcoef / eigen_mags[k][j]);
-            ncoefs[k][j] = (float) (ncoef / eigen_mags[k][j]);
+            bcoefs[k][j] = (float) bcoef;
+            ncoefs[k][j] = (float) ncoef;
           }
         }
         float[][] rvalues = new float[6][nbands];
