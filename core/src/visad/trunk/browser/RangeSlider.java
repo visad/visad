@@ -584,8 +584,18 @@ public class RangeSlider extends Component
       g.fillRect(lastW - 4 - sw, FONT_TOP_Y, sw, FONT_HEIGHT);
       lastMaxLimit = maxLimit;
     }
-    String minS = Convert.shortString(minValue);
-    String maxS = Convert.shortString(maxValue);
+
+    // err on the side of wider bounds
+    String minS, maxS;
+    if (minValue < maxValue) { 
+      minS = Convert.shortString(minValue, Convert.ROUND_DOWN);
+      maxS = Convert.shortString(maxValue, Convert.ROUND_UP);
+    }
+    else {
+      minS = Convert.shortString(minValue, Convert.ROUND_UP);
+      maxS = Convert.shortString(maxValue, Convert.ROUND_DOWN);
+    }
+
     String curStr = name + " = (" + minS + ", " + maxS + ")";
     if (!curStr.equals(lastCurStr) || lastW != w) {
       g.setColor(Color.black);
@@ -594,8 +604,19 @@ public class RangeSlider extends Component
       lastCurStr = curStr;
     }
     g.setColor(Color.white);
-    g.drawString(Convert.shortString(minLimit), 1, FONT_BOTTOM_Y);
-    String maxStr = Convert.shortString(maxLimit);
+
+    // err on the side of wider bounds
+    String minStr, maxStr;
+    if (minLimit < maxLimit) {
+      minStr = Convert.shortString(minLimit, Convert.ROUND_DOWN);
+      maxStr = Convert.shortString(maxLimit, Convert.ROUND_UP);
+    }
+    else {
+      minStr = Convert.shortString(minLimit, Convert.ROUND_DOWN);
+      maxStr = Convert.shortString(maxLimit, Convert.ROUND_UP);
+    }
+
+    g.drawString(minStr, 1, FONT_BOTTOM_Y);
     g.drawString(maxStr, w - 4 - fm.stringWidth(maxStr), FONT_BOTTOM_Y);
     g.drawString(curStr, (w - fm.stringWidth(curStr)) / 2, FONT_BOTTOM_Y);
   }
