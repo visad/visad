@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTDisplay.java,v 1.7 1998-08-24 13:02:54 billh Exp $
+ * $Id: SkewTDisplay.java,v 1.8 1998-08-24 15:04:39 steve Exp $
  */
 
 package visad.meteorology;
@@ -35,6 +35,7 @@ import visad.Unit;
 import visad.VisADException;
 import visad.data.netcdf.Plain;
 import visad.data.netcdf.QuantityMap;
+import visad.data.netcdf.units.ParseException;
 import visad.java2d.DisplayImplJ2D;
 
 
@@ -50,62 +51,77 @@ SkewTDisplay
     /**
      * The VisAD display.
      */
-    private final DisplayImplJ2D	display;
+    private final DisplayImplJ2D		display;
 
     /**
      * The sounding property.
      */
-    private Sounding			sounding;
+    private Sounding				sounding;
 
     /**
      * The sounding data-reference.
      */
-    private final DataReference		soundingRef;
+    private final DataReference			soundingRef;
 
     /**
      * Whether or not the display has been configured.
      */
-    private boolean			displayInitialized;
+    private boolean				displayInitialized;
 
     /**
      * Supports property changes.
      */
-    private final PropertyChangeSupport	changes;
+    private final PropertyChangeSupport		changes;
 
     /**
      * The Skew T, log p coordinate system.
      */
-    private final SkewTCoordinateSystem	skewTCoordSys;
+    private final SkewTCoordinateSystem		skewTCoordSys;
 
     /**
      * The potential temperature coordinate system.
      */
-    private final PotentialTemperatureCoordSys	potentialTemperatureCoordSys;
+    private final ThetaCoordinateSystem		thetaCoordSys;
+
+    /**
+     * The saturation equivalent potential temperature coordinate system.
+     */
+    private final ThetaESCoordinateSystem	thetaESCoordSys;
 
     /**
      * The interval between isotherms.
      */
-    private final float			deltaTemperature = 10f;
+    private final float				deltaTemperature = 10f;
 
     /**
      * The interval between potential isotherms.
      */
-    private final float			deltaPotentialTemperature = 10f;
+    private final float				deltaTheta = 10f;
 
     /**
      * The base isotherm.
      */
-    private final float			baseIsotherm = 0f;
+    private final float				baseIsotherm = 0f;
 
     /**
      * The DisplayRenderer.
      */
-    private final SkewTDisplayRenderer	displayRenderer;
+    private final SkewTDisplayRenderer		displayRenderer;
 
     /**
      * The color of the temperature sounding.
      */
-    private DisplayRealType		temperatureColor = Display.Red;
+    private ConstantMap[]			temperatureColor;
+
+    /**
+     * The width of the temperature sounding.
+     */
+    private double				temperatureWidth = 3.0;
+
+    /**
+     * The color of the saturation equivalent potential temperature isopleths.
+     */
+    private ConstantMap[]			thetaESColor;
 
 
     /**
@@ -113,7 +129,7 @@ SkewTDisplay
      */
     public
     SkewTDisplay()
-	throws	VisADException, RemoteException
+	throws	VisADException, RemoteException, ParseException
     {
 	displayRenderer = new SkewTDisplayRenderer();
 
@@ -124,8 +140,8 @@ SkewTDisplay
 	display = new DisplayImplJ2D("Skew T, Log P Diagram",
 				     displayRenderer);
 	skewTCoordSys = displayRenderer.skewTCoordSys;
-	potentialTemperatureCoordSys =
-	    displayRenderer.potentialTemperatureCoordSys;
+	thetaCoordSys = displayRenderer.thetaCoordSys;
+	thetaESCoordSys = displayRenderer.thetaESCoordSys;
 
 	JFrame jframe = new JFrame("Skew-T Chart");
 	jframe.addWindowListener(new WindowAdapter() {
@@ -134,6 +150,18 @@ SkewTDisplay
 	jframe.getContentPane().add(display.getComponent());
 	jframe.setSize(256, 256);
 	jframe.setVisible(true);
+
+	temperatureColor = new ConstantMap[] {
+	    new ConstantMap(1., Display.Red),
+	    new ConstantMap(0., Display.Blue),
+	    new ConstantMap(0., Display.Green)
+	};
+
+	thetaESColor = new ConstantMap[] {
+	    new ConstantMap(0., Display.Red),
+	    new ConstantMap(0., Display.Blue),
+	    new ConstantMap(1., Display.Green)
+	};
     }
 
 
@@ -194,8 +222,7 @@ SkewTDisplay
 	    Unit	temperatureUnit = skewTCoordSys.getTemperatureUnit();
 	    control.setContourInterval(deltaTemperature,
 		(float)temperatureUnit.toThis(0.f, SI.kelvin),
-		(float)temperatureUnit.toThis(500f, SI.kelvin),
-		0f);
+		Float.POSITIVE_INFINITY, 0f);
 
 	    /*
 	     * Establish value readouts for the non-sounding temperature
@@ -203,7 +230,11 @@ SkewTDisplay
 	     */
 	    RealType	type = new RealType("potential_temperature");
 	    ScalarMap	fieldTemperatureMap = new ScalarMap(type, 
-		displayRenderer.potentialTemperature);
+		displayRenderer.theta);
+	    display.addMap(fieldTemperatureMap);
+
+	    type = new RealType("saturation_equivalent_potential_temperature");
+	    fieldTemperatureMap = new ScalarMap(type, displayRenderer.thetaES);
 	    display.addMap(fieldTemperatureMap);
 
 	    /*
@@ -212,29 +243,22 @@ SkewTDisplay
 	    DataReferenceImpl	temperatureRef = 
 		createTemperatureField("temperature", isothermType,
 		    skewTCoordSys.viewport, 2, 2, skewTCoordSys);
-	    DataReferenceImpl	potentialTemperatureRef =
+	    DataReferenceImpl	thetaRef =
 		createTemperatureField("potential_temperature", isothermType,
-		    potentialTemperatureCoordSys.viewport, 10, 10, 
-		    potentialTemperatureCoordSys);
-	    /*
-	    DataReferenceImpl	equivalentPotentialTemperatureRef = 
-		createTemperatureField("equivalent_potential_temperature",
-		    isothermType,
-		    equivalentPotentialTemperatureCoordSys.viewport, 10, 10, 
-		    equivalentPotentialTemperatureCoordSys);
-	    */
+		    thetaCoordSys.viewport, 10, 10, thetaCoordSys);
+	    DataReferenceImpl	thetaESRef = createTemperatureField(
+		"saturation_equivalent_potential_temperature", isothermType,
+		thetaESCoordSys.viewport, 20, 20, thetaESCoordSys);
 
 	    /*
 	     * Add the temperature fields to the display.
 	     */
-	    display.addReference(soundingRef, 
-		new ConstantMap[] {new ConstantMap(1.0, Display.Red),
-                                   new ConstantMap(0.0, Display.Green),
-                                   new ConstantMap(0.0, Display.Blue)});
+	    display.addReference(thetaESRef, thetaESColor);
+	    display.addReference(thetaRef);
 	    display.addReference(temperatureRef);
-	    display.addReference(potentialTemperatureRef,
-                new ConstantMap[] {new ConstantMap(3.0, Display.LineWidth)});
-	    // display.addReference(equivalentPotentialTemperatureRef);
+	    display.addReference(soundingRef, new ConstantMap[] {
+		temperatureColor[0], temperatureColor[1], temperatureColor[2],
+		new ConstantMap (temperatureWidth, Display.LineWidth)});
 
 	    displayInitialized = true;
 	}
@@ -242,7 +266,9 @@ SkewTDisplay
 
 
     /**
-     * Creates a particular temperature field.
+     * Creates a particular temperature field.  Maps display points to
+     * coordinate system points and stores the temperature values in the
+     * field's range.
      *
      * @param name		The name of the parameter (e.g. 
      *				"potential_temperature") for the purpose of
