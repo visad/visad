@@ -182,7 +182,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     if (policy == View.PARALLEL_PROJECTION ||
         policy == View.PERSPECTIVE_PROJECTION) {
 /* WLH 21 Sept 98 PARALLEL_PROJECTION is broken (again) */
-      // if (policy == View.PARALLEL_PROJECTION) return;
+      if (policy == View.PARALLEL_PROJECTION) return;
       projectionPolicy = policy;
       DisplayRendererJ3D displayRenderer =
         (DisplayRendererJ3D) getDisplayRenderer();
