@@ -383,15 +383,15 @@ if(DEBUG_WR_DATA)System.err.println("wrIntSet: OBJ_DATA (" + OBJ_DATA + ")");
 if(DEBUG_WR_DATA)System.err.println("wrIntSet: objLen (" + objLen + ")");
     file.writeInt(objLen);
 if(DEBUG_WR_DATA)System.err.println("wrIntSet: " +
-                                 (dataType == DATA_INTEGER_1D_SET ?
-                                  "DATA_INTEGER_1D_SET" :
-                                  (dataType == DATA_INTEGER_2D_SET ?
-                                   "DATA_INTEGER_2D_SET" :
-                                   (dataType == DATA_INTEGER_3D_SET ?
-                                    "DATA_INTEGER_3D_SET" :
-                                    (dataType == DATA_INTEGER_ND_SET ?
-                                     "DATA_INTEGER_ND_SET" : "DATA_???")))) +
-                                 "(" + dataType + ")");
+                                    (dataType == DATA_INTEGER_1D_SET ?
+                                     "DATA_INTEGER_1D_SET" :
+                                     (dataType == DATA_INTEGER_2D_SET ?
+                                      "DATA_INTEGER_2D_SET" :
+                                      (dataType == DATA_INTEGER_3D_SET ?
+                                       "DATA_INTEGER_3D_SET" :
+                                       (dataType == DATA_INTEGER_ND_SET ?
+                                        "DATA_INTEGER_ND_SET" : "DATA_???")))) +
+                                    "(" + dataType + ")");
     file.writeByte(dataType);
 
 if(DEBUG_WR_DATA)System.err.println("wrIntSet: type index (" + typeIndex + ")");

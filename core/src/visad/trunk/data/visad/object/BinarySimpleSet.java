@@ -168,7 +168,12 @@ if(DEBUG_WR_DATA)System.err.println("wrSimSet: OBJ_DATA (" + OBJ_DATA + ")");
     file.writeByte(OBJ_DATA);
 if(DEBUG_WR_DATA)System.err.println("wrSimSet: objLen (" + objLen + ")");
     file.writeInt(objLen);
-if(DEBUG_WR_DATA)System.err.println("wrSimSet: dataType (" + dataType + ")");
+if(DEBUG_WR_DATA)System.err.println("wrSimSet: " +
+                                    (dataType == DATA_DOUBLE_SET ?
+                                     "DATA_DOUBLE_SET" :
+                                     (dataType == DATA_FLOAT_SET ?
+                                      "DATA_FLOAT_SET" : "DATA_???")) +
+                                    "(" + dataType + ")");
     file.writeByte(dataType);
 
 if(DEBUG_WR_DATA)System.err.println("wrSimSet: type index (" + typeIndex + ")");
