@@ -1,6 +1,7 @@
 package visad.data;
 
 
+import java.rmi.RemoteException;
 import visad.Data;
 import visad.FlatField;
 import visad.Tuple;
@@ -185,7 +186,8 @@ FlatFieldNode
      */
     public DataVisitor
     accept(DataVisitor visitor)
-	throws UnimplementedException, BadFormException, VisADException
+	throws UnimplementedException, BadFormException, VisADException,
+	    RemoteException
     {
 	visitor.visit(field);
 
