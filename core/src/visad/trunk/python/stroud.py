@@ -4,29 +4,39 @@ from visad.util import Delay
 from subs import *
 import math
 
+# make the type (i.e., schema) for the shape
 type = makeType("(x, y, z)");
 
+# initialize the location of the shape
 loc = [0, 2, 0]
-up = [0, 1, 0]
-face = [0, 0, 1]
-right = [1, 0, 0]
-arm = 0
-leg = 0
 
+# initialize the "up" direction for the shape
+up = [0, 1, 0]
+
+# initialize the direction for the shape is facing
+face = [0, 0, 1]
+
+# initialize the direction to the shape's right
+right = [1, 0, 0]
+
+# initialize the arm angle for the shape
+arm = 0
+
+# define a function for normalizing a vector
 def normalize(a):
   norm = math.sqrt(a[0]*a[0]+a[1]*a[1]+a[2]*a[2])
   a[0] = a[0] / norm
   a[1] = a[1] / norm
   a[2] = a[2] / norm
 
+# define a function for a cross product of vectors
 def cross(a, b):
   return [a[1]*b[2]-a[2]*b[1],
           a[2]*b[0]-a[0]*b[2],
           a[0]*b[1]-a[1]*b[0]]
 
-def scaled_add(a, b, s):
-  return [a[0]+s*b[0], a[1]+s*b[1], a[2]+s*b[2]]
-
+# define a function for rotating vector "a" around
+#   vector "b" by amount "s"
 def rotate(a, b, s):
   r = cross(a, b)
   normalize(r)
@@ -35,6 +45,8 @@ def rotate(a, b, s):
   a[2] = a[2] + s * r[2]
   normalize(a)
 
+# define a function for creating a simple human shape
+#   as a VisAD UnionSet data object
 def makeBody():
   c = cross(up, face)
   right[0] = c[0]
@@ -70,18 +82,29 @@ def makeBody():
   set = UnionSet(type, sets)
   return set
 
+# create the initial shape
 set = makeBody()
+
+# connect the shape to a VisAD DataReference
 ref = DataReferenceImpl("set")
 ref.setData(set)
 
+# make the display mapings for the shape
 maps = makeMaps(type[0], "x", type[1], "y", type[2], "z")
 maps[0].setRange(-8, 8)
 maps[1].setRange(-8, 8)
 maps[2].setRange(-8, 8)
+
+# make a VisAD display with those mappings
 display = makeDisplay3D(maps)
+
+# connect the DataReference to the display
 display.addReference(ref)
+
+# show the display on the screen
 showDisplay(display)
 
+# initialize some vectors use for rotating the shape
 rot = [0.2, -0.6, 0.7]
 normalize(rot)
 rot2 = [-0.5, 0.3, 0.4]
@@ -92,22 +115,31 @@ arminc = 0
 while 1:
   rotate(rot2, rot, 0.043)
 
+  # rotate the shape "up" direction
   rotate(up, rot2, 0.1)
-
   rotate(funny, rot, 0.08)
 
+  # compute new "face" direction
   face = cross(up, funny)
   normalize(face)
 
+  # compute new location of shape
   rotate(loc, face, 0.9)
   loc[0] = 4*loc[0]
   loc[1] = 4*loc[1]
   loc[2] = 4*loc[2]
 
+  # compute new arm angle
   arm = 1.0 * math.sin(arminc)
   arminc = arminc + 0.4
 
+  # make the new shape
   set = makeBody()
+
+  # set the new shape in the DataReference connected
+  #   to the display
   ref.setData(set)
+
+  # wait 50 milleseconds
   Delay(50)
 
