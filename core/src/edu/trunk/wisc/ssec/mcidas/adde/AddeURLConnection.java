@@ -55,6 +55,10 @@ import java.util.StringTokenizer;
  *   imagedata - request for data in AreaFile format (AGET)
  *   imagedirectory - request for image directory information (ADIR)
  *   datasetinfo - request for data set information (LWPR)
+ *   griddirectory - request for grid directory information (GDIR)
+ *   griddata - request for grid data (GGET)
+ *
+ * -------for images:
  *
  * there can be any valid combination of the following supported keywords
  * (valid request types in parentheses):
@@ -86,18 +90,34 @@ import java.util.StringTokenizer;
  *          (imagedata, imagedirectory)
  *   version - ADDE version number, currently 1 (all)
  *
+ * ------ for grids:
+ *
+ *   group - ADDE group name   
+ *   descr - ADDE descriptor name   
+ *   param - parameter code 
+ *   time - time in hhmmss format
+ *   day - day (yyddd)
+ *   lev - level (value or SFC, MSL or TRO)
+ *   ftime - forecast hour (hhmmss format)
+ *   fday - forecast day (yyddd)
+ *   vt - list of valid hour offsets (nn)
+ *   pos - dataset position number (deprecate ASAP)
+ *   num - maximum number to return (nn)
+ *   trace - setting non zero tells server to write debug trace file
+ *
  * the following keywords are required:
  *
  *   group - all requests
  *   descr - imagedata and imagedirectory requests
  *
- * an example URL might look like:
+ * an example URL for images might look like:
  *   adde://viper/imagedata?group=gvar&band=1&user=tjj&proj=6999&version=1
  *   
  * </pre>
  *
  * @author Tommy Jasmin, University of Wisconsin, SSEC
  * @author Don Murray, UCAR/Unidata
+ * @author Tom Whittaker, SSEC/CIMSS
  */
 
 public class AddeURLConnection extends URLConnection 
@@ -121,6 +141,9 @@ public class AddeURLConnection extends URLConnection
   private final static int AGET = 0;
   private final static int ADIR = 1;
   private final static int LWPR = 2;
+  private final static int GDIR = 3;
+  private final static int GGET = 4;
+
 
   // ADDE data types
   private final static int IMAGE = 100;
@@ -181,7 +204,9 @@ public class AddeURLConnection extends URLConnection
     // verify the service requested is for image, not grid or md data
     // get rid of leading /
     String request = url.getFile().toLowerCase().substring(1);
-    if (!request.startsWith("image") && (!request.startsWith("datasetinfo")) )
+    if (!request.startsWith("image") && 
+        (!request.startsWith("datasetinfo")) &&
+        (!request.startsWith("grid"))    )
     {
         throw new AddeURLException("Request for non-image data");
     }
@@ -202,7 +227,7 @@ public class AddeURLConnection extends URLConnection
 
     // service - for area files, it's either AGET (Area GET) or 
     // ADIR (AREA directory)
-    byte [] svc;
+    byte [] svc = null;
     int reqType;
     if (request.startsWith("imagedir"))
     {
@@ -214,10 +239,24 @@ public class AddeURLConnection extends URLConnection
         svc = (new String("lwpr")).getBytes();
         reqType = LWPR;
     }
-    else 
+    else if (request.startsWith("image"))
     {
         svc = (new String("aget")).getBytes();
         reqType = AGET;
+    }
+    else if (request.startsWith("griddirectory"))
+    {
+        svc = (new String("gdir")).getBytes();
+        reqType = GDIR;
+    }
+    else if (request.startsWith("grid"))
+    {
+        svc = (new String("gget")).getBytes();
+        reqType = GGET;
+    }
+    else
+    {
+      throw new AddeURLException("Invalid ADDE service="+svc.toString() );
     }
 
     dos.write(svc, 0, svc.length);
@@ -300,6 +339,12 @@ public class AddeURLConnection extends URLConnection
             break;
         case LWPR:
             sb = decodeLWPRString(uCmd);
+            break;
+        case GDIR:
+            sb = decodeGDIRString(uCmd);
+            break;
+        case GGET:
+            sb = decodeGDIRString(uCmd);
             break;
     }
 
@@ -596,6 +641,117 @@ public class AddeURLConnection extends URLConnection
         }
         return buf;
     }
+
+    /**
+     * Decode the ADDE request for grid directory information.
+     *
+     * <pre>
+     * there can be any valid combination of the following supported keywords:
+     *   group - ADDE group name   
+     *   descr - ADDE descriptor name   
+     *   param - parameter
+     *   time - time
+     *   day - day
+     *   lev - level
+     *   ftime - forecast hour
+     *   fday - forecast day
+     *   vt - list of valid hour offsets
+     *   pos - dataset position number (deprecate ASAP)
+     *   num - maximum number to return
+     *   trace - setting non zero tells server to write debug trace file
+     *
+     * the following keywords are required:
+     *
+     *   group, band, user, proj, version
+     *
+     * an example URL might look like:
+     *   adde://noaaport/griddirectory?group=ngm&num=10
+     *   
+     * </pre>
+     */
+    private StringBuffer decodeGDIRString(String uCmd) {
+      StringBuffer buf = new StringBuffer();
+      String testString, tempString;
+      String groupString = null;
+      String descrString = "all";
+      String sizeString = " 900000 ";
+      String traceString = "trace=0";
+      String numString = "num=1";
+
+      StringTokenizer cmdTokens = new StringTokenizer(uCmd, "&");
+      while (cmdTokens.hasMoreTokens()) {
+        testString = cmdTokens.nextToken();
+
+        // group, descr and pos are mandatory
+        if (testString.startsWith("grou")) {
+            groupString = 
+                testString.substring(testString.indexOf("=") + 1);
+
+        } else if (testString.startsWith("des")) {
+            descrString = 
+                testString.substring(testString.indexOf("=") + 1);
+
+        // now get the rest of the keywords (but filter out non-needed)
+        } else if (testString.startsWith("pos")) {
+          buf.append(" ");
+          buf.append(testString);
+
+        } else if (testString.startsWith("num")) {
+            numString = testString;
+
+        } else if (testString.startsWith("par")) {
+          buf.append(" ");
+          buf.append(testString);
+
+        } else if (testString.startsWith("day")) {
+          buf.append(" ");
+          buf.append(testString);
+
+        } else if (testString.startsWith("time")) {
+          buf.append(" ");
+          buf.append(testString);
+
+        } else if (testString.startsWith("lev")) {
+          buf.append(" ");
+          buf.append(testString);
+
+        } else if (testString.startsWith("fday")) {
+          buf.append(" ");
+          buf.append(testString);
+
+        } else if (testString.startsWith("ftime")) {
+          buf.append(" ");
+          buf.append(testString);
+
+        } else if (testString.startsWith("vt")) {
+          buf.append(" ");
+          buf.append(testString);
+
+        } else {
+          System.out.println("Unknown token = "+testString);
+        } 
+      }
+      buf.append(" ");
+      buf.append(numString);
+      buf.append(" ");
+      buf.append(traceString);
+      buf.append(" version=A ");
+
+      // create command string
+      String posParams = new String (
+         groupString + " " + descrString + " " + sizeString + " " );
+
+      try {
+        buf.insert(0,posParams);
+      } catch (StringIndexOutOfBoundsException e) {
+        System.out.println(e);
+        buf = new StringBuffer("");
+      }
+
+      return buf;
+
+    }
+
 
     /**
      * Decode the ADDE request for image directory information.
