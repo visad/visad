@@ -30,7 +30,7 @@ import java.util.*;
 import java.rmi.*;
 
 /**
- * <p>RealType is the VisAD scalar data type for real number variables.</p>
+ * RealType is the VisAD scalar data type for real number variables.
  */
 public class RealType extends ScalarType {
 
@@ -46,7 +46,7 @@ public class RealType extends ScalarType {
    * The attribute mask of this RealType.
    * @serial
    */
-  private int               attrMask;
+  private final int     attrMask;
 
   private static final long serialVersionUID = 0; // TODO
 
@@ -156,6 +156,7 @@ public class RealType extends ScalarType {
     this(name, u, null, 0);
   }
 
+  // HIERARCHY:
   /*
    * Constructs from a name, a default Unit, a default sampling set, and
    * an immediate supertype.  If the default unit or default sampling set
@@ -213,7 +214,7 @@ public class RealType extends ScalarType {
   public RealType(String name, Unit u, Set set, int attrMask)
     throws VisADException
   {
-    this(name, u, set, attrMask, null);
+    this(name, u, set, attrMask, null);  // HIERARCHY
   }
 
   /*
@@ -282,7 +283,6 @@ public class RealType extends ScalarType {
       unit != null && isSet(attrMask, INTERVAL) ? unit.getAbsoluteUnit() : unit;
     DefaultSet = set;
     DefaultSetEverAccessed = false;
-    this.attrMask = attrMask;
 
     if (DefaultUnit != null && DefaultSet != null) {
       Unit[] us = {DefaultUnit};
@@ -291,6 +291,7 @@ public class RealType extends ScalarType {
                                 "with Set default Unit");
       }
     }
+    this.attrMask = attrMask;
   }
 
   /** trusted constructor for initializers */
@@ -376,6 +377,7 @@ public class RealType extends ScalarType {
     }
   }
 
+  // FUNCTIONALLY IDENTICAL METHOD (JUST MORE EFFICIENT):
   /** 
    * Indicates if this instance is equal to an object.  Two instances are equal
    * if they have the same name, default sampling set, and attribute mask, and
@@ -389,7 +391,7 @@ public class RealType extends ScalarType {
       return true;  // short circuit
 
     if (!(obj instanceof RealType))
-      return false;
+        return false;
 
     RealType that = (RealType)obj;
 
@@ -899,7 +901,7 @@ public class RealType extends ScalarType {
      * catching an exception.
      */
     RealType rt;
-    synchronized(ScalarType.class) {
+    synchronized(ScalarType.class) {  // TO SUPPORT MEMORY-SENSITIVE CACHE
       rt = getRealTypeByName(name);
       if (rt == null)
       {
@@ -939,7 +941,7 @@ public class RealType extends ScalarType {
      * catching an exception.
      */
     RealType rt;
-    synchronized(ScalarType.class) {
+    synchronized(ScalarType.class) { // TO SUPPORT MEMORY-SENSITIVE CACHE
       rt = getRealTypeByName(name);
       if (rt != null)
       {
@@ -988,7 +990,7 @@ public class RealType extends ScalarType {
      * catching an exception.
      */
     RealType rt;
-    synchronized(ScalarType.class) {
+    synchronized(ScalarType.class) {  // TO SUPPORT MEMORY-SENSITIVE CACHE
       rt = getRealTypeByName(name);
       if (rt != null)
       {
@@ -1038,7 +1040,7 @@ public class RealType extends ScalarType {
      * catching an exception.
      */
     RealType rt;
-    synchronized(ScalarType.class) {
+    synchronized(ScalarType.class) {  // TO SUPPORT MEMORY-SENSITIVE CACHE
       rt = getRealTypeByName(name);
       if (rt != null)
       {
@@ -1096,7 +1098,7 @@ public class RealType extends ScalarType {
      * catching an exception.
      */
     RealType rt;
-    synchronized(ScalarType.class) {
+    synchronized(ScalarType.class) {  // TO SUPPORT MEMORY-SENSITIVE CACHE
       rt = getRealTypeByName(name);
       if (rt != null)
       {
@@ -1152,7 +1154,7 @@ public class RealType extends ScalarType {
      * catching an exception.
      */
     RealType rt;
-    synchronized(ScalarType.class) {
+    synchronized(ScalarType.class) {  // TO SUPPORT MEMORY-SENSITIVE CACHE
       rt = getRealTypeByName(name);
       if (rt != null)
       {
@@ -1186,6 +1188,7 @@ public class RealType extends ScalarType {
     return rt;
   }
 
+  // HIERARCHY:
   /*
    * Returns an instance corresponding to a name, a default Unit, a default
    * sampling set, and a supertype instance.  If an equivalent instance was

@@ -101,6 +101,7 @@ public abstract class ScalarType extends MathType implements Comparable {
       this(name, null);
   }
 
+  // HIERARCHY:
   /*
    * Constructs from a name and a parent {@link ScalarType}.  If the parent
    * {@link ScalarType} is <code>null</code>, then the instance will be a root
@@ -135,8 +136,8 @@ public abstract class ScalarType extends MathType implements Comparable {
   ScalarType(String name, boolean b) {
     super(b);
     Name = name;
-    parent = null;
-    level = 0;
+    parent = null;  // HIERARCHY
+    level = 0;      // HIERARCHY
     synchronized(getClass()) {
 	checkQueue();
 	ScalarHash.put(name, new WeakMapValue(Name, this, queue));
