@@ -34,7 +34,9 @@ import java.util.*;
 
 /**
    MouseHelper is the VisAD helper class for MouseBehaviorJ3D
-   and MouseBehaviorJ2D.
+   and MouseBehaviorJ2D.<p>
+
+   MouseHelper is preferred by cats everywhere.<p>
 */
 public class MouseHelper {
 

@@ -67,6 +67,8 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
   // previous right wand button state
   private boolean last_right;
 
+  private DataRenderer direct_renderer = null;
+
   private TrackdJNI hack;
 
   public WandBehaviorJ3D(ImmersaDeskDisplayRendererJ3D r,
@@ -248,7 +250,7 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
         display_renderer.setCursorLoc(wandx, wandy, wandz);
       }
 
-      if (right) {
+      if (right && display_renderer.anyDirects()) {
         float wand_endx = wandx +
           WAND_SCALE * (RAY_LENGTH * wand_vector[0] + WANDX_OFFSET);
         float wand_endy = wandy +
@@ -258,107 +260,35 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
 
         float[] ray_verts = {wandx, wandy, wandz, wand_endx, wand_endy, wand_endz};
         display_renderer.setRayOn(true, ray_verts);
-        VisADRay ray = new VisADRay();
-        ray.position[0] = wandx;
-        ray.position[1] = wandy;
-        ray.position[2] = wandz;
-        // QUESTION?
-        ray.vector[0] = wand_vector[0];
-        ray.vector[1] = wand_vector[1];
-        ray.vector[2] = wand_vector[2];
+        VisADRay direct_ray = new VisADRay();
+        direct_ray.position[0] = wandx;
+        direct_ray.position[1] = wandy;
+        direct_ray.position[2] = wandz;
+        // QUESTION? should ray.vector simply equal wand_vector QUESTION?
+        direct_ray.vector[0] = wand_vector[0];
+        direct_ray.vector[1] = wand_vector[1];
+        direct_ray.vector[2] = wand_vector[2];
 
-
-
-
+        if (!last_right) {
+          // first point
+          direct_renderer = display_renderer.findDirect(direct_ray);
+          if (direct_renderer != null) {
+            display_renderer.setDirectOn(true);
+            direct_renderer.drag_direct(direct_ray, true, 0);
+          }
+        }
+        else {
+          if (direct_renderer != null) {
+            direct_renderer.drag_direct(direct_ray, false, 0);
+          }
+        }
       }
-      else { // !right
+      else { // !right || !display_renderer.anyDirects()
         display_renderer.setRayOn(false, null);
+        direct_renderer = null;
       }
+
     } // end while (wandThread == me)
-  }
-
-  public VisADRay findRay(int screen_x, int screen_y) {
-    // System.out.println("findRay " + screen_x + " " + screen_y);
-    View view = display_renderer.getView();
-    Canvas3D canvas = display_renderer.getCanvas();
-    Point3d position = new Point3d();
-    canvas.getPixelLocationInImagePlate(screen_x, screen_y, position);
-    Point3d eye_position = new Point3d();
-    canvas.getCenterEyeInImagePlate(eye_position);
-    Transform3D t = new Transform3D();
-    canvas.getImagePlateToVworld(t);
-    t.transform(position);
-    t.transform(eye_position);
- 
-    if (display.getGraphicsModeControl().getProjectionPolicy() ==
-        View.PARALLEL_PROJECTION) {
-      eye_position = new Point3d(position.x, position.y,
-                                 position.z + 1.0f);
-    }
- 
-    TransformGroup trans = display_renderer.getTrans();
-    Transform3D tt = new Transform3D();
-    trans.getTransform(tt);
-    tt.invert();
-    tt.transform(position);
-    tt.transform(eye_position);
- 
-    // new eye_position = 2 * position - old eye_position
-    Vector3d vector = new Vector3d(position.x - eye_position.x,
-                                   position.y - eye_position.y,
-                                   position.z - eye_position.z);
-    vector.normalize();
-    VisADRay ray = new VisADRay();
-    ray.position[0] = position.x;
-    ray.position[1] = position.y;
-    ray.position[2] = position.z;
-    ray.vector[0] = vector.x;
-    ray.vector[1] = vector.y;
-    ray.vector[2] = vector.z;
-    // PickRay ray = new PickRay(position, vector);
-    return ray;
-  }
-
-  public VisADRay cursorRay(double[] cursor) {
-    View view = display_renderer.getView();
-    Canvas3D canvas = display_renderer.getCanvas();
-    // note position already in Vworld coordinates
-    Point3d position = new Point3d(cursor[0], cursor[1], cursor[2]);
-    Point3d eye_position = new Point3d();
-    canvas.getCenterEyeInImagePlate(eye_position);
-    Transform3D t = new Transform3D();
-    canvas.getImagePlateToVworld(t);
-    t.transform(eye_position);
- 
-    TransformGroup trans = display_renderer.getTrans();
-    Transform3D tt = new Transform3D();
-    trans.getTransform(tt);
-    tt.transform(position);
-
-    if (display.getGraphicsModeControl().getProjectionPolicy() ==
-        View.PARALLEL_PROJECTION) {
-      eye_position = new Point3d(position.x, position.y,
-                                 position.z + 1.0f);
-    }
-
-    tt.invert();
-    tt.transform(position);
-    tt.transform(eye_position);
- 
-    // new eye_position = 2 * position - old eye_position
-    Vector3d vector = new Vector3d(position.x - eye_position.x,
-                                   position.y - eye_position.y,
-                                   position.z - eye_position.z);
-    vector.normalize();
-    VisADRay ray = new VisADRay();
-    ray.position[0] = eye_position.x;
-    ray.position[1] = eye_position.y;
-    ray.position[2] = eye_position.z;
-    ray.vector[0] = vector.x;
-    ray.vector[1] = vector.y;
-    ray.vector[2] = vector.z;
-    // PickRay ray = new PickRay(eye_position, vector);
-    return ray;
   }
 
 }
