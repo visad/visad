@@ -162,10 +162,8 @@ public abstract class Set extends DataImpl implements SetIface {
       }
     }
     if(!Unit.canConvertArray(SetUnits, DomainType.getDefaultUnits())) {
-      throw new UnitException("Set: Units " + SetUnits +
-                              " must be convertable with DomainType" +
-                              " default Units " +
-                              DomainType.getDefaultUnits());
+      throw new UnitException(
+          "Set: Actual units not convertable with DomainType default units ");
     }
     if (SetUnits == null) SetUnits = new Unit[DomainDimension];
 
