@@ -2901,9 +2901,12 @@ if(DEBUG_MATH)System.err.println("wrTuTy: FLD_END (" + FLD_END + ")");
 
     // don't bother saving this Unit if there's no definition
     String uDef = u.getDefinition().trim();
+/* WLH 12 Jan 2001
+    // empty string indicates unity dimensionless Unit, OK
     if (uDef.length() == 0) {
       throw new VisADException("Unwriteable Unit \"" + u + "\"");
     }
+*/
 
     String uId = u.getIdentifier();
 
