@@ -100,6 +100,9 @@ public class Test61
     ScalarMap map1color = new ScalarMap(wr, Display.RGBA);
     dpys[0].addMap(map1color);
 
+    ColorAlphaControl control = (ColorAlphaControl) map1color.getControl();
+    control.setTable(buildTable(control.getTable()));
+
     DataReferenceImpl ref_grid3d = new DataReferenceImpl("ref_grid3d");
     ref_grid3d.setData(grid3d);
     dpys[0].addReference(ref_grid3d, null);
@@ -111,10 +114,6 @@ public class Test61
     throws RemoteException, VisADException
   {
     ScalarMap map1color = (ScalarMap )dpys[0].getMapVector().lastElement();
-
-    ColorAlphaControl control = (ColorAlphaControl) map1color.getControl();
-    control.setTable(buildTable(control.getTable()));
-
     return new LabeledColorWidget(map1color);
   }
 

@@ -81,6 +81,8 @@ public class Test33
     ScalarMap color1map = new ScalarMap(ir_radiance, Display.RGB);
     dpys[0].addMap(color1map);
 
+    ((BaseColorControl )(color1map.getControl())).setTable(buildTable());
+
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
     dpys[0].addReference(ref_imaget1, null);
@@ -92,8 +94,7 @@ public class Test33
     throws RemoteException, VisADException
   {
     ScalarMap color1map = (ScalarMap )dpys[0].getMapVector().lastElement();
-
-    return new LabeledColorWidget(color1map, buildTable());
+    return new LabeledColorWidget(color1map);
   }
 
   public String toString() { return ": ColorWidget with non-default table"; }
