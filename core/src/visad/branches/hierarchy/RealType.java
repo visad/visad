@@ -30,8 +30,8 @@ import java.util.*;
 import java.rmi.*;
 
 /**
-   RealType is the VisAD scalar data type for real number variables.<P>
-*/
+ * <p>RealType is the VisAD scalar data type for real number variables.</p>
+ */
 public class RealType extends ScalarType {
 
   private Unit DefaultUnit; // default Unit of RealType
@@ -1240,12 +1240,12 @@ public class RealType extends ScalarType {
       else if (!(Unit.canConvert(rt.DefaultUnit, unit) &&
   	        (set == null
 	          ? rt.DefaultSet == null : set.equals(rt.DefaultSet)) &&
-	        (supertype != null && supertype.equals(rt.getSupertype())))) {
+	        (supertype != null && supertype.equals(rt.getParent())))) {
 
 	throw new IllegalArgumentException(
           "name=\"" + name + "\", rt.DefaultUnit=" + rt.DefaultUnit +
           ", set=" + set + ", rt.DefaultSet=" + rt.DefaultSet + 
-          ", rt.supertype=" + rt.getSupertype() + ", supertype=" + supertype);
+          ", rt.supertype=" + rt.getParent() + ", supertype=" + supertype);
       }
     }
     return rt;
