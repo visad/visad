@@ -1027,7 +1027,10 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     else {
 // double[] old_values = values;
       // WLH 31 Aug 2000
-      if (overrideUnit != null) {
+      //if (overrideUnit != null) {
+      // DRM 11 Jun 2003
+      if (overrideUnit != null &&
+          !overrideUnit.equals(((RealType) Scalar).getDefaultUnit())) {
         try {
           values =
             overrideUnit.toThis(values, ((RealType) Scalar).getDefaultUnit());
@@ -1079,7 +1082,10 @@ if (overrideUnit != null) {
     else {
 // float[] old_values = values;
       // WLH 31 Aug 2000
-      if (overrideUnit != null) {
+      //if (overrideUnit != null) {
+      // DRM 11 Jun 2003
+      if (overrideUnit != null &&
+          !overrideUnit.equals(((RealType) Scalar).getDefaultUnit())) {
         try {
           values =
             overrideUnit.toThis(values, ((RealType) Scalar).getDefaultUnit());
