@@ -403,6 +403,16 @@ public class AddeTextReader {
     return buf.toString();
   }
 
+  public Vector getLinesOfText() {
+    Vector v = new Vector();
+    if (getStatusCode() <= 0) {
+        v.add(getStatus());
+    } else {
+        v.addAll(linesOfText);
+    }
+    return v;
+  }
+
   /** test by running 'java edu.wisc.ssec.mcidas.adde.AddeTextReader' */
   public static void main (String[] args)
       throws Exception
