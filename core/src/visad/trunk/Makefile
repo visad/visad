@@ -157,10 +157,10 @@ SAVE_FILES = \
 	visad/rmic_script				\
 	visad/*.java					\
 	visad/examples/*.java				\
-	visad/examples/*.html				\
 	visad/java3d/*.java				\
 	visad/java2d/*.java				\
 	visad/browser/*.java				\
+	visad/browser/*.html				\
 	visad/util/*.java				\
 	visad/matrix/*.java				\
 	visad/formula/*.java				\
