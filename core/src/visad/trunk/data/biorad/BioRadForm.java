@@ -906,7 +906,7 @@ public class BioRadForm extends Form
     float[][] samples = new float[1][image_len];
     if (byte_format) {
       // jump to proper image number
-      in.seek(block_number * image_len + 70);
+      in.seek(block_number * image_len + 76);
 
       // read in image_len bytes
       byte[] buf = new byte[image_len];
@@ -920,7 +920,7 @@ public class BioRadForm extends Form
     }
     else {
       // jump to proper image number
-      in.seek(block_number * 2 * image_len + 70);
+      in.seek(block_number * 2 * image_len + 76);
 
       // read in 2 * image_len bytes
       final int data_len = 2 * image_len;
