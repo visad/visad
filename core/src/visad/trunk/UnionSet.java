@@ -290,6 +290,7 @@ public class UnionSet extends SampledSet {
   }
 
   public Set makeSpatial(SetType type, float[][] samples) throws VisADException {
+System.out.println("start makeSpatial");
     int n = Sets.length;
     int dim = samples.length;
 /* WLH 28 Aug 98
@@ -308,7 +309,9 @@ public class UnionSet extends SampledSet {
       sets[i] = (SampledSet) Sets[i].makeSpatial(type, s);
       base += len;
     }
-    return new UnionSet((SetType) sets[0].getType(), sets);
+    UnionSet set = new UnionSet((SetType) sets[0].getType(), sets);
+System.out.println("end makeSpatial");
+    return set;
   }
 
   public void cram_missing(boolean[] range_select) {
@@ -400,6 +403,7 @@ public class UnionSet extends SampledSet {
   /** create a 1-D GeometryArray from this Set and color_values */
   public VisADGeometryArray make1DGeometry(byte[][] color_values)
          throws VisADException {
+System.out.println("start make1DGeometry");
     if (DomainDimension != 3) {
       throw new SetException("UnionSet.make1DGeometry: " +
                               "DomainDimension must be 3");
@@ -434,7 +438,10 @@ public class UnionSet extends SampledSet {
       }
       base += len;
     }
-    return VisADLineStripArray.merge(arrays);
+System.out.println("start merge");
+    VisADLineStripArray array = VisADLineStripArray.merge(arrays);
+System.out.println("end make1DGeometry");
+    return array;
   }
 
   /** return basic lines in array[0], fill-ins in array[1]
@@ -554,6 +561,35 @@ public class UnionSet extends SampledSet {
     int nsets = Sets.length;
     int npts = index.length;
     float[][] value = new float[DomainDimension][npts];
+    if (npts == getLength()) {
+      boolean ramp = true;
+      for (int i=0; i<npts; i++) {
+        if (index[i] != i) {
+          ramp = false;
+          break;
+        }
+      }
+      if (ramp) {
+        int k = 0;
+        for (int j=0; j<nsets; j++) {
+          int sub_length = Sets[j].getLength();
+          int[] sub_inds = new int[sub_length];
+          for (int i=0; i<sub_length; i++) sub_inds[i] = i;
+          float[][] sub_vals = Sets[j].indexToValue(sub_inds);
+          for (int m=0; m<DomainDimension; m++) {
+            System.arraycopy(sub_vals[m], 0, value[m], k, sub_length);
+/*
+            for (int i=0; i<sub_length; i++) {
+              value[m][k+i] = sub_vals[m][i];
+            }
+*/
+          }
+          k += sub_length;
+        }
+        return value;
+      } // end if (ramp)
+    } // end if (npts == getLength())
+
     int[][] subindex = new int[nsets][];
 
     // classify each index point into its proper subset
@@ -563,9 +599,6 @@ public class UnionSet extends SampledSet {
     for (int j=0; j<npts; j++) {
       int q = 0;
       int curind = index[j];
-/* WLH 28 Aug 98
-      while (q < nsets && index[j] > Sets[q].Length) {
-*/
       while (q < nsets && curind >= Sets[q].Length) {
         curind -= Sets[q++].Length;
 /*
@@ -608,9 +641,6 @@ System.out.println("index[" + j + "] = " + index[j] +
     for (int i=0; i<nsets; i++) ind_lens[i] = 0;
     for (int j=0; j<npts; j++) {
       for (int k=0; k<DomainDimension; k++) {
-/* WLH 28 Aug 98
-        value[k][j] = subvals[set_num[j]][k][ind_lens[set_num[j]]++];
-*/
         value[k][j] = subvals[set_num[j]][k][ind_lens[set_num[j]]];
 /*
 System.out.println("set_num[" + j + "] = " + set_num[j] +
