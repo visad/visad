@@ -1264,6 +1264,9 @@ public class AddeURLConnection extends URLConnection
                     if (tempString.equals("all")) {  // put in numeric
                       posString =  "1095519264";
 
+                    } else if (tempString.equals("x")) {
+                      posString = tempString;
+
                     } else {
                       int posval = Integer.parseInt(stp.nextToken().trim());
                       if (posval < 0) {  // if value < 0 insert 0 as ending
