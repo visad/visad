@@ -54,7 +54,7 @@ import visad.VisADException;
 public class DisplayMonitorImpl
   implements DisplayMonitor
 {
-  private int nextListenerID = 0;
+  private int nextListenerID = 1;
 
   /**
    * The name of this display monitor.
@@ -171,8 +171,8 @@ e.printStackTrace();
         ListIterator iter = listeners.listIterator();
         while (iter.hasNext()) {
           MonitorSyncer li = (MonitorSyncer )iter.next();
-          if (li.getID() == id) {
-            id = nextListenerID++;
+          if (id == 0 || li.getID() == id) {
+            id = getNextListenerID();
             failed = true;
             break;
           }
@@ -366,6 +366,17 @@ e.printStackTrace();
     }
   }
 
+  private int getNextListenerID()
+  {
+    synchronized (listeners) {
+      if (nextListenerID == 0) {
+        // zero is magic; don't let anyone have that ID
+        nextListenerID++;
+      }
+      return nextListenerID++;
+    }
+  }
+
   /**
    * Returns <TT>true</TT> if there is a <TT>MonitorEvent</TT>
    * for the specified <TT>Control</TT> waiting to be delivered to
@@ -483,10 +494,7 @@ e.printStackTrace();
     // maximum number of rounds of ID negotiation
     final int MAX_ROUNDS = 20;
 
-    int rmtID;
-    synchronized (listeners) {
-      rmtID = nextListenerID++;
-    }
+    int rmtID = getNextListenerID();
 
     int id;
     int round = 0;
