@@ -56,6 +56,52 @@ public class Test32
     return 1;
   }
 
+  String extraKeywordUsage() { return super.extraKeywordUsage() + " file"; }
+
+  private DataReferenceImpl loadFile()
+    throws RemoteException, VisADException
+  {
+    if (fileName == null) {
+      return null;
+    }
+
+    FitsForm fits = new FitsForm();
+    Data data;
+    try {
+      data = fits.open(fileName);
+    } catch (VisADException ve) {
+      System.err.println("Couldn't load \"" + fileName + "\"");
+      ve.printStackTrace();
+      System.exit(1);
+      return null;
+    }
+
+    if (!(data instanceof FieldImpl)) {
+      System.err.println("File \"" + fileName + "\" resolves to " +
+                         data.getClass().getName() + ", not " +
+                         FieldImpl.class.getName());
+      System.exit(1);
+      return null;
+    }
+
+    //System.out.println("data type = " + data.getType());
+
+    DataReferenceImpl ref = new DataReferenceImpl("fits");
+    ref.setData(data);
+    return ref;
+  }
+
+  DataReference[] getClientDataReferences()
+    throws RemoteException, VisADException
+  {
+    DataReference ref = loadFile();
+    if (ref == null) {
+      return null;
+    }
+
+    return new DataReference[] { ref };
+  }
+
   DisplayImpl[] setupServerDisplays()
     throws RemoteException, VisADException
   {
@@ -67,14 +113,13 @@ public class Test32
   void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    if (fileName == null) {
+    DataReference ref = loadFile();
+    if (ref == null) {
       System.err.println("Must specify FITS file name");
       return;
     }
 
-    FitsForm fits = new FitsForm();
-    FlatField fits_data = (FlatField) fits.open(fileName);
-    // System.out.println("fits_data type = " + fits_data.getType());
+    FieldImpl fits_data = (FieldImpl )ref.getData();
 
     // compute ScalarMaps from type components
     FunctionType ftype = (FunctionType) fits_data.getType();
@@ -108,9 +153,7 @@ public class Test32
     dpys[0].addMap(new ConstantMap(0.5, Display.Red));
     dpys[0].addMap(new ConstantMap(0.0, Display.Blue));
 
-    DataReferenceImpl ref_fits = new DataReferenceImpl("ref_fits");
-    ref_fits.setData(fits_data);
-    dpys[0].addReference(ref_fits, null);
+    dpys[0].addReference(ref, null);
   }
 
   public String toString() { return " file_name: FITS adapter"; }

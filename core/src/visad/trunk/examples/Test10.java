@@ -56,6 +56,43 @@ public class Test10
     return 1;
   }
 
+  String extraKeywordUsage() { return super.extraKeywordUsage() + " file"; }
+
+  private DataReferenceImpl loadFile()
+    throws RemoteException, VisADException
+  {
+    if (fileName == null) {
+      return null;
+    }
+
+    FieldImpl data;
+    try {
+      data = (FieldImpl )new Plain().open(fileName);
+    } catch (IOException e) {
+      System.err.println("Couldn't open \"" + fileName + "\": " +
+                         e.getMessage());
+      System.exit(1);
+      return null;
+    }
+    //System.out.println("data type = " + data.getType());
+
+    DataReferenceImpl ref = new DataReferenceImpl("netcdf");
+    ref.setData(data);
+
+    return ref;
+  }
+
+  DataReference[] getClientDataReferences()
+    throws RemoteException, VisADException
+  {
+    DataReference ref = loadFile();
+    if (ref == null) {
+      return null;
+    }
+
+    return new DataReference[] { ref };
+  }
+
   DisplayImpl[] setupServerDisplays()
     throws RemoteException, VisADException
   {
@@ -70,25 +107,14 @@ public class Test10
     Unit super_degree = CommonUnit.degree.scale(2.5);
     RealType lon = new RealType("lon", super_degree, null);
 
-    if (fileName == null) {
+    DataReference ref = loadFile();
+    if (ref == null) {
       System.err.println("must specify netCDF file name");
       System.exit(1);
       return;
     }
-    // "pmsl.nc"
 
-    Plain plain = new Plain();
-    FlatField netcdf_data;
-    try {
-      netcdf_data = (FlatField) plain.open(fileName);
-    } catch (IOException e) {
-      System.err.println("Couldn't open \"" + fileName + "\": " +
-                         e.getMessage());
-      System.exit(1);
-      return;
-    }
-    // System.out.println("netcdf_data type = " + netcdf_data.getType());
-    // prints: FunctionType (Real): (lon, lat) -> P_msl
+    FieldImpl netcdf_data = (FieldImpl )ref.getData();
 
     // compute ScalarMaps from type components
     FunctionType ftype = (FunctionType) netcdf_data.getType();
@@ -125,14 +151,15 @@ public class Test10
     dpys[0].addMap(new ConstantMap(0.5, Display.Red));
     dpys[0].addMap(new ConstantMap(0.0, Display.Blue));
 
-    DataReferenceImpl ref_netcdf = new DataReferenceImpl("ref_netcdf");
-    ref_netcdf.setData(netcdf_data);
-    dpys[0].addReference(ref_netcdf, null);
+    dpys[0].addReference(ref, null);
 
-    System.out.println("now save and re-read data");
+
+    System.out.println("now saving data as 'save.nc' and re-reading");
+
+    Plain plain = new Plain();
     try {
       plain.save("save.nc", netcdf_data, true);
-      netcdf_data = (FlatField) plain.open("save.nc");
+      netcdf_data = (FieldImpl )plain.open("save.nc");
     } catch (IOException e) {
       System.err.println("Couldn't open \"save.nc\": " + e.getMessage());
       System.exit(1);

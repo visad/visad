@@ -55,6 +55,24 @@ public class Test09
     return 1;
   }
 
+  String extraKeywordUsage() { return super.extraKeywordUsage() + " file"; }
+
+  private DataReferenceImpl loadFile()
+    throws RemoteException, VisADException
+  {
+    if (fileName == null) {
+      return null;
+    }
+
+    GIFForm gif_form = new GIFForm();
+    FlatField img = (FlatField) gif_form.open(fileName);
+
+    DataReferenceImpl ref = new DataReferenceImpl("image");
+    ref.setData(img);
+
+    return ref;
+  }
+
   DisplayImpl[] setupServerDisplays()
     throws RemoteException, VisADException
   {
@@ -66,17 +84,17 @@ public class Test09
   void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    if (fileName == null) {
+    DataReference ref = loadFile();
+    if (ref == null) {
       System.err.println("must specify GIF or JPEG file name");
       System.exit(1);
       return;
     }
 
-    GIFForm gif_form = new GIFForm();
-    FlatField imaget1 = (FlatField) gif_form.open(fileName);
+    FlatField img = (FlatField )ref.getData();
 
     // compute ScalarMaps from type components
-    FunctionType ftype = (FunctionType) imaget1.getType();
+    FunctionType ftype = (FunctionType) img.getType();
     RealTupleType dtype = ftype.getDomain();
     RealTupleType rtype9 = (RealTupleType) ftype.getRange();
     dpys[0].addMap(new ScalarMap((RealType) dtype.getComponent(0),
@@ -90,9 +108,7 @@ public class Test09
     dpys[0].addMap(new ScalarMap((RealType) rtype9.getComponent(2),
                                    Display.Blue));
 
-    DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
-    ref_imaget1.setData(imaget1);
-    dpys[0].addReference(ref_imaget1, null);
+    dpys[0].addReference(ref, null);
   }
 
   String getFrameTitle() { return "GIF / JPEG in Java2D"; }
