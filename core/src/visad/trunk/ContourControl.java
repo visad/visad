@@ -74,7 +74,7 @@ public class ContourControl extends Control {
   private static double init_scale = 0.51;
   private boolean autoSizeLabels = false;
   private double labelSizeFactor = 1;
-  private ZoomDoneListener zoom;
+  private transient ZoomDoneListener zoom;
   private ProjectionControl pcntrl;
   private ControlListener projListener;
   private double ratio = 1.20;
@@ -111,8 +111,10 @@ public class ContourControl extends Control {
     double[] trans           = new double[3];
     double[] scale           = new double[1];
     MouseBehavior mouse      = d.getMouseBehavior();
-    mouse.instance_unmake_matrix(rot, scale, trans, matrix);
-    if (!(init_scale==init_scale)) init_scale = scale[0];
+    if (mouse != null) {
+      mouse.instance_unmake_matrix(rot, scale, trans, matrix);
+      if (!(init_scale==init_scale)) init_scale = scale[0];
+    }
 
     zoom = new ZoomDoneListener(this, pcntrl, mouse, init_scale);
     d.addDisplayListener(zoom);

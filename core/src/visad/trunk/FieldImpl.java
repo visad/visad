@@ -204,8 +204,6 @@ public class FieldImpl extends FunctionImpl implements Field {
       MissingFlag = false;
       MathType t = ((FunctionType) Type).getRange();
       for (int i=0; i<Length; i++) {
-        // WLH 9 Dec 99
-        // if (range != null && !t.equalsExceptName(range[i].getType())) {
         if (range[i] != null) {
           if (!t.equals(range[i].getType())) {
             throw new TypeException("FieldImpl.setSamples: sample#" + i +
@@ -673,23 +671,27 @@ public class FieldImpl extends FunctionImpl implements Field {
     if (DomainSet == null) {
       throw new FieldException("FieldImpl.setSample: DomainSet undefined");
     }
-    // WLH 9 Dec 99
-    // if (!((FunctionType) Type).getRange().equalsExceptName(range.getType())) {
-    if (!((FunctionType) Type).getRange().equals(range.getType())) {
+    if (range != null &&
+        !((FunctionType) Type).getRange().equals(range.getType())) {
       throw new TypeException("FieldImpl.setSample: bad range type");
     }
     if (index >= 0 && index < Length) {
       Data[]Range = getRange ();
       synchronized (RangeLock) {
         MissingFlag = false;
-        if (copy) {
-          Range[index] = (Data) range.dataClone();
+        if (range != null) {
+          if (copy) {
+            Range[index] = (Data) range.dataClone();
+          }
+          else {
+            Range[index] = range;
+          }
+          if (Range[index] instanceof DataImpl) {
+            ((DataImpl) Range[index]).setParent(this);
+          }
         }
         else {
-          Range[index] = range;
-        }
-        if (Range[index] instanceof DataImpl) {
-          ((DataImpl) Range[index]).setParent(this);
+          Range[index] = null;
         }
       }
     }

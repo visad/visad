@@ -3395,12 +3395,15 @@ System.out.println("range = " + range[0] + " " + range[1] +
     DataRenderer renderer = getLink().getRenderer();
 
     double[] matrix          = p_cntrl.getMatrix();
-    double[] rot_a           = new double[3];
-    double[] trans_a         = new double[3];
-    double[] scale_a         = new double[1];
+    double scale             = Double.NaN;
     MouseBehavior mouse      = display.getMouseBehavior();
-    mouse.instance_unmake_matrix(rot_a, scale_a, trans_a, matrix);
-    double scale             = scale_a[0];
+    if (mouse != null) {
+      double[] rot_a           = new double[3];
+      double[] trans_a         = new double[3];
+      double[] scale_a         = new double[1];
+      mouse.instance_unmake_matrix(rot_a, scale_a, trans_a, matrix);
+      scale = scale_a[0];
+    }
 
 /*
 try {
@@ -3453,6 +3456,7 @@ try {
         float[] fvalues = new float[5];
         control.getMainContours(bvalues, fvalues);
         double init_scale  = ContourControl.getInitScale();
+        if (scale != scale) scale = init_scale;
         double scale_ratio = scale/init_scale;
         double label_size  = control.getLabelSize();
         if (bvalues[0]) {
