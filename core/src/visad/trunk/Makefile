@@ -120,7 +120,7 @@ NCSA = ../ncsa/hdf/hdf5lib
 
 # to always use IBM's 'jikes' compiler, uncomment the following two lines
 #JC = jikes
-#JFLAGS = +P
+#JFLAGS = +P -deprecation
 
 # to always use the Nexus RMI compiler, uncomment the next line
 #RMIC=nexusrmic
@@ -589,9 +589,6 @@ recompile:
 		   *Remote*Impl)					\
 		     set `ls -t $$b.class $${b}_Stub.class 2>/dev/null || true` X; \
 		     if [ $${b}_Stub.class != $$1 ]; then		\
-		       compile=true;					\
-		     fi;						\
-		     if $$compile; then					\
 		       (echo "${RMIC} -d $$root $$i.$$b" &&		\
 			${RMIC} -d $$root $$i.$$b || true);		\
 		     fi;						\

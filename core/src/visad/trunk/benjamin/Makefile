@@ -1,5 +1,47 @@
-# makefile for visad/benjamin/Galaxy
-#  (hydrostatic equilibrium galaxy)
+# default target is "all" -- DO NOT CHANGE THIS!!!!
+#
+all::
+
+############################################################################
+# Library-specific definitions
+############################################################################
+
+# base name for shared library
+#
+SLIB = Galaxy
+
+# these Fortran functions compile correctly under sparc Solaris
+# 2.5.1
+#
+OBJS = mw.o species_rd.o errmsg.o tcdensity.o dmdsm.o util.o \
+	profile.o galtosol.o
+
+# name of the generated JNI header file
+#
+JNI_HEADERS = visad_benjamin_Galaxy.h
+
+# rule to build the generated JNI header file from the appropriate class
+#
+visad_benjamin_Galaxy.h: Galaxy.class
+	$(JH) -jni visad.benjamin.Galaxy
+
+# object file which depends on the generated JNI file
+#
+GalaxyImp.o: visad_benjamin_Galaxy.h
+
+# special header/library files needed by this package
+#
+PKGINCS =
+PKGLIBS =
+
+# set LINK_F77 to 'true' if any Fortran .o files are
+# to be included in the shared library
+#
+LINK_F77 = true
+
+############################################################################
+# Build tool definitions
+############################################################################
 
 # JAVADIR should be the top-level JDK1.2 directory
 # JAVAARCH should be the local machine architecture
@@ -22,11 +64,6 @@ JH = ${JAVADIR}/bin/javah
 #
 SHCFLAGS =
 SHFFLAGS =
-
-# this is the list of Fortran libraries referenced
-# by objects in the shared library
-#
-SHFLIBS = -lM77 -lF77 -lsunmath -lm -lc
 
 # SHLD is the shared library loader
 # SHLDFLAGS are the flags needed to tell SHLD to build a shared library
@@ -58,38 +95,114 @@ RM = rm -f
 .java.class:
 	$(JC) $(JFLAGS) $<
 
-default: Galaxy.class libGalaxy.so
+default: all
 
-# these Fortran functions compile correctly under sparc Solaris
-# 2.5.1
-#
-# if you port them you may need to change 'recl=352' in so_read_1.f
-# and 'recl=76' in re_read_1.f, which are in bytes on Solaris (but
-# were in words on Irix 5 for VisAD 1.1)
-#
-OBJS = mw.o species_rd.o errmsg.o tcdensity.o dmdsm.o util.o profile.o galtosol.o
-SOURCE = mw.f species_rd.f errmsg.f tcdensity.f dmdsm.f util.f profile.f galtosol.f
-INCLUDE = dimen.h const.h atomic.h galstruct.h
+all::
+	@for j in *.java; do						\
+	  b=`basename $$j .java`;					\
+	  c=$$b.class;							\
+	  compile=false;						\
+	  if [ ! -f $$c ]; then						\
+	    compile=true;						\
+	  else								\
+	    set `ls -td $$j $$c` X;					\
+	    if [ $$c != $$1 ]; then					\
+	      compile=true;						\
+	    fi;								\
+	  fi;								\
+	  if $$compile; then						\
+	    (echo "$(JC) $(JFLAGS) $$j" &&				\
+	     $(JC) $(JFLAGS) $$j || true);				\
+	  fi;								\
+	  case "$$b" in							\
+	  *Remote*Impl)							\
+	    set `ls -t $$b.class $${b}_Stub.class 2>/dev/null || true` X; \
+	    if [ $${b}_Stub.class != $$1 ]; then			\
+	      (echo "${RMIC} -d $$root $$i.$$b" &&			\
+	       ${RMIC} -d $$root $$i.$$b || true);			\
+	    fi;								\
+	    ;;								\
+	  esac;								\
+	done
 
-libGalaxy.so: GalaxyImp.o $(OBJS)
-	${SHFLD} ${SHFLDFLAGS} \
-		-o libGalaxy.so GalaxyImp.o \
-		$(OBJS) ${SHFLIBS}
+all::
+	@UNAME=`uname -s`; \
+	case "$$UNAME" in \
+	IRIX*) arch=irix;; \
+	SunOS*) arch=solaris;; \
+	Linux*) archlinux;; \
+	*) echo "Unknown system type $$UNAME"; exit 1;; \
+	esac; \
+	make \
+		JAVADIR="$(JAVADIR)" \
+		JC="$(JC)" \
+		JFLAGS="$(JFLAGS)" \
+		$$arch
 
-GalaxyImp.o: visad_benjamin_Galaxy.h
+.c.o:
+	$(CC) $(SHOPT) -c $*.c $(JAVAINCS) $(PKGINCS)
 
-visad_benjamin_Galaxy.h: Galaxy.class
-	$(JH) -jni visad.benjamin.Galaxy
+shared_library:: lib$(SLIB).so
 
-Galaxy.class: Galaxy.java
-	$(JC) $(JFLAGS) Galaxy.java
-
-$(OBJS): $(INCLUDE) $(SOURCE)
-	$(FC) -c $(FFLAGS) $*.f
+lib$(SLIB).so: $(OBJS)
+	@if [ -z "$(LINK_F77)" ]; then \
+	  echo $(SHLD) $(SHLDFLAGS) $(OBJS) $(PKGLIBS) $(SYSLIBS) \
+		-o lib$(SLIB).so; \
+	  $(SHLD) $(SHLDFLAGS) $(OBJS) $(PKGLIBS) $(SYSLIBS) \
+		-o lib$(SLIB).so; \
+	else \
+	  echo $(SHFLD) $(SHFLDFLAGS) $(OBJS) $(PKGLIBS) $(SYSLIBS) \
+		-o lib$(SLIB).so; \
+	  $(SHFLD) $(SHFLDFLAGS) $(OBJS) $(PKGLIBS) $(SYSLIBS) \
+		-o lib$(SLIB).so; \
+	fi
 
 clean:
-	$(RM) visad_benjamin_Galaxy.h
-	$(RM) GalaxyImp.o ${OBJS}
-	$(RM) libGalaxy.so
-	$(RM) Galaxy*.class
+	rm -f lib$(SLIB).so
+	rm -f so_locations
+	$(RM) $(OBJS)
+	$(RM) $(JNI_HEADERS)
+	$(RM) *.class
 	$(RM) *~
+
+solaris: required_macros
+	@make \
+		JAVAARCH=solaris \
+		SHLD="$(CC)" \
+		SHLDFLAGS="-G -z defs" \
+		SHFLD="$(FC)" \
+		SHFLDFLAGS="-G -Qoption ld -z,defs" \
+		SYSLIBS="-lM77 -lF77 -lsunmath -lnsl -lm -lc" \
+		JAVADIR="$(JAVADIR)" \
+		JC="$(JC)" \
+		JFLAGS="$(JFLAGS)" \
+		shared_library
+
+irix: required_macros
+	@make \
+		JAVAARCH=irix \
+		SHLD="$(CC)" \
+		SHLDFLAGS="-shared -Wl,-x" \
+		SHFLD="$(FC)" \
+		SHFLDFLAGS="" \
+		SYSLIBS="-lm" \
+		JAVADIR="$(JAVADIR)" \
+		JC="$(JC)" \
+		JFLAGS="$(JFLAGS)" \
+		shared_library
+
+linux: required_macros
+	@make \
+		JAVAARCH=linux \
+		SHCFLAGS="-fPIC -DPIC" \
+		SHLD="cc" \
+		SHLDFLAGS="-shared" \
+		SHFLD="$(FC)" \
+		SHFLDFLAGS="-shared" \
+		SYSLIBS="-lm" \
+		JAVADIR="$(JAVADIR)" \
+		JC="$(JC)" \
+		JFLAGS="$(JFLAGS)" \
+		shared_library
+
+required_macros::

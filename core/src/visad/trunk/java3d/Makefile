@@ -1,4 +1,59 @@
-# makefile for visad/paoloa/GoesCollaboration
+# default target is "all" -- DO NOT CHANGE THIS!!!!
+#
+all::
+
+############################################################################
+# Library-specific definitions
+############################################################################
+
+# this should point to the directory holding the TrackD header file
+#
+# TRACKD_INC = /path/to/trackd/incs
+
+# this should point to the TrackD library
+#
+# TRACKD_LIB = -lc
+
+# base name for shared library
+#
+SLIB = TrackdAPI
+
+# object files to include in the shared library
+#
+OBJS = TrackdAPI.o
+
+# name of the generated JNI header file
+#
+JNI_HEADERS = visad_java3d_TrackdJNI.h
+
+# rule to build the generated JNI header file from the appropriate class
+#
+visad_java3d_TrackdJNI.h: TrackdJNI.class
+	$(JH) -jni visad.java3d.TrackdJNI
+
+# object file which depends on the generated JNI file
+#
+TrackdAPI.o: visad_java3d_TrackdJNI.h
+
+# rule to stop Makefile if information is missing
+#
+required_macros::
+	@if [ -z "$(TRACKD_INC)" ]; then echo "TRACKD_INC is undefined"; exit 1; fi
+	@if [ -z "$(TRACKD_LIB)" ]; then echo "TRACKD_LIB is undefined"; exit 1; fi
+
+# special header/library files needed by this package
+#
+PKGINCS = -I$(TRACKD_INC)
+PKGLIBS = $(TRACKD_LIB)
+
+# set LINK_F77 to 'true' if any Fortran .o files are
+# to be included in the shared library
+#
+LINK_F77 =
+
+############################################################################
+# Build tool definitions
+############################################################################
 
 # JAVADIR should be the top-level JDK1.2 directory
 # JAVAARCH should be the local machine architecture
@@ -21,11 +76,6 @@ JH = ${JAVADIR}/bin/javah
 #
 SHCFLAGS =
 SHFFLAGS =
-
-# this is the list of Fortran libraries referenced
-# by objects in the shared library
-#
-SHFLIBS = -lM77 -lF77 -lsunmath -lm -lc
 
 # SHLD is the shared library loader
 # SHLDFLAGS are the flags needed to tell SHLD to build a shared library
@@ -57,33 +107,114 @@ RM = rm -f
 .java.class:
 	$(JC) $(JFLAGS) $<
 
-default: DisplayImplJ3D.class TwoDDisplayRendererJ3D.class \
-	ImmersaDeskDisplayRendererJ3D.class VisADBranchGroup.class \
-	libTrackdAPI.so
+default: all
 
-# these Fortran functions compile correctly under sparc Solaris
-# 2.5.1
-#
-# if you port them you may need to change 'recl=352' in so_read_1.f
-# and 'recl=76' in re_read_1.f, which are in bytes on Solaris (but
-# were in words on Irix 5 for VisAD 1.1)
-#
-OBJS = 
+all::
+	@for j in *.java; do						\
+	  b=`basename $$j .java`;					\
+	  c=$$b.class;							\
+	  compile=false;						\
+	  if [ ! -f $$c ]; then						\
+	    compile=true;						\
+	  else								\
+	    set `ls -td $$j $$c` X;					\
+	    if [ $$c != $$1 ]; then					\
+	      compile=true;						\
+	    fi;								\
+	  fi;								\
+	  if $$compile; then						\
+	    (echo "$(JC) $(JFLAGS) $$j" &&				\
+	     $(JC) $(JFLAGS) $$j || true);				\
+	  fi;								\
+	  case "$$b" in							\
+	  *Remote*Impl)							\
+	    set `ls -t $$b.class $${b}_Stub.class 2>/dev/null || true` X; \
+	    if [ $${b}_Stub.class != $$1 ]; then			\
+	      (echo "${RMIC} -d $$root $$i.$$b" &&			\
+	       ${RMIC} -d $$root $$i.$$b || true);			\
+	    fi;								\
+	    ;;								\
+	  esac;								\
+	done
 
-libTrackdAPI.so: TrackdAPI.o $(OBJS)
-	${SHFLD} ${SHFLDFLAGS} \
-		-o libTrackdAPI.so TrackdAPI.o \
-		$(OBJS) ${SHFLIBS}
+all::
+	@UNAME=`uname -s`; \
+	case "$$UNAME" in \
+	IRIX*) arch=irix;; \
+	SunOS*) arch=solaris;; \
+	Linux*) archlinux;; \
+	*) echo "Unknown system type $$UNAME"; exit 1;; \
+	esac; \
+	make \
+		JAVADIR="$(JAVADIR)" \
+		JC="$(JC)" \
+		JFLAGS="$(JFLAGS)" \
+		$$arch
 
-TrackdAPI.o: visad_java3d_TrackdJNI.h
+.c.o:
+	$(CC) $(SHOPT) -c $*.c $(JAVAINCS) $(PKGINCS)
 
-visad_java3d_TrackdJNI.h: TrackdJNI.class
-	$(JH) -jni visad.java3d.TrackdJNI
+shared_library:: lib$(SLIB).so
+
+lib$(SLIB).so: $(OBJS)
+	@if [ -z "$(LINK_F77)" ]; then \
+	  echo $(SHLD) $(SHLDFLAGS) $(OBJS) $(PKGLIBS) $(SYSLIBS) \
+		-o lib$(SLIB).so; \
+	  $(SHLD) $(SHLDFLAGS) $(OBJS) $(PKGLIBS) $(SYSLIBS) \
+		-o lib$(SLIB).so; \
+	else \
+	  echo $(SHFLD) $(SHFLDFLAGS) $(OBJS) $(PKGLIBS) $(SYSLIBS) \
+		-o lib$(SLIB).so; \
+	  $(SHFLD) $(SHFLDFLAGS) $(OBJS) $(PKGLIBS) $(SYSLIBS) \
+		-o lib$(SLIB).so; \
+	fi
 
 clean:
-	$(RM) visad_java3d_TrackdJNI.h
-	$(RM) TrackdAPI.o ${OBJS}
-	$(RM) libTrackdAPI.so
+	rm -f lib$(SLIB).so
+	rm -f so_locations
+	$(RM) $(OBJS)
+	$(RM) $(JNI_HEADERS)
 	$(RM) *.class
 	$(RM) *~
 
+solaris: required_macros
+	@make \
+		JAVAARCH=solaris \
+		SHLD="$(CC)" \
+		SHLDFLAGS="-G -z defs" \
+		SHFLD="$(FC)" \
+		SHFLDFLAGS="-G -Qoption ld -z,defs" \
+		SYSLIBS="-lM77 -lF77 -lsunmath -lnsl -lm -lc" \
+		JAVADIR="$(JAVADIR)" \
+		JC="$(JC)" \
+		JFLAGS="$(JFLAGS)" \
+		shared_library
+
+irix: required_macros
+	@make \
+		JAVAARCH=irix \
+		SHLD="$(CC)" \
+		SHLDFLAGS="-shared -Wl,-x" \
+		SHFLD="$(FC)" \
+		SHFLDFLAGS="" \
+		SYSLIBS="-lm" \
+		JAVADIR="$(JAVADIR)" \
+		JC="$(JC)" \
+		JFLAGS="$(JFLAGS)" \
+		shared_library
+
+linux: required_macros
+	@make \
+		JAVAARCH=linux \
+		SHCFLAGS="-fPIC -DPIC" \
+		SHLD="cc" \
+		SHLDFLAGS="-shared" \
+		SHFLD="$(FC)" \
+		SHFLDFLAGS="-shared" \
+		SYSLIBS="-lm" \
+		JAVADIR="$(JAVADIR)" \
+		JC="$(JC)" \
+		JFLAGS="$(JFLAGS)" \
+		shared_library
+
+required_macros::

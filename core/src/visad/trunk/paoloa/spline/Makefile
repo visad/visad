@@ -1,4 +1,95 @@
-# makefile for visad/paoloa/spline
+# default target is "all" -- DO NOT CHANGE THIS!!!!
+#
+all::
+
+############################################################################
+# Library-specific definitions
+############################################################################
+
+# base name for shared libraries
+#
+SLIB = Spline
+SLIB2 = Splint2D
+
+# object files to include in the shared library
+#
+OBJS = gcvspl.o SplineImp.o
+OBJS2 = tpspline.o Spline2DImp.o
+
+# name of the generated JNI header files
+#
+JNI_HEADERS = visad_paoloa_spline_Spline.h visad_paoloa_spline_Spline2D.h
+
+# rule to build the generated JNI header files from the appropriate classes
+#
+visad_paoloa_spline_Spline.h: Spline.class
+	$(JH) -jni visad.paoloa.spline.Spline
+visad_paoloa_spline_Spline2D.h: Spline2D.class
+	$(JH) -jni visad.paoloa.spline.Spline2D
+
+# object files which depend on the generated JNI files
+#
+SplineImp.o: visad_paoloa_spline_Spline.h
+Spline2DImp.o: visad_paoloa_spline_Spline2D.h
+
+# special header/library files needed by this package
+#
+PKGINCS =
+PKGLIBS =
+
+# set LINK_F77 to 'true' if any Fortran .o files are
+# to be included in the shared library
+#
+LINK_F77 = true
+
+############################################################################
+# Packaging rules
+############################################################################
+
+TAR_NO_DATA_FILES = \
+	visad/paoloa/README.paoloa			\
+	visad/paoloa/DATE				\
+	visad/paoloa/Makefile				\
+	visad/paoloa/*.java				\
+	visad/paoloa/*.f				\
+	visad/paoloa/*.c				\
+	visad/paoloa/*.h
+
+tar_no_data:
+	date > DATE ; \
+	cd ../.. ; \
+	tar -cvf visad.paoloa.no_data.tar $(TAR_NO_DATA_FILES) ; \
+	compress visad.paoloa.no_data.tar ; \
+	mv visad.paoloa.no_data.tar.Z visad
+
+jar_no_data:
+	date > DATE ; \
+	cd ../.. ; \
+	jar cvf visad.paoloa.no_data.jar $(TAR_NO_DATA_FILES) ; \
+	mv visad.paoloa.no_data.jar visad
+
+TAR_FILES = \
+	$(TAR_NO_DATA_FILES)				\
+	visad/paoloa/goesrtcf				\
+	visad/paoloa/data_obs_1.dat			\
+	visad/paoloa/data_sou_1.dat
+
+tar:
+	date > DATE ; \
+	cd ../.. ; \
+	tar -cvf visad.paoloa.tar $(TAR_FILES) ; \
+	compress visad.paoloa.tar ; \
+	mv visad.paoloa.tar.Z visad
+
+jar:
+	date > DATE ; \
+	cd ../.. ; \
+	jar cvf visad.paoloa.jar $(TAR_FILES) ; \
+	mv visad.paoloa.jar visad
+
+############################################################################
+# Build tool definitions
+############################################################################
 
 # JAVADIR should be the top-level JDK1.2 directory
 # JAVAARCH should be the local machine architecture
@@ -21,11 +112,6 @@ JH = ${JAVADIR}/bin/javah
 #
 SHCFLAGS =
 SHFFLAGS =
-
-# this is the list of Fortran libraries referenced
-# by objects in the shared library
-#
-SHFLIBS = -lM77 -lF77 -lsunmath -lm -lc
 
 # SHLD is the shared library loader
 # SHLDFLAGS are the flags needed to tell SHLD to build a shared library
@@ -57,35 +143,129 @@ RM = rm -f
 .java.class:
 	$(JC) $(JFLAGS) $<
 
-default: Spline.class Spline2D.class libSpline.so libSpline2D.so
+default: all
 
-libSpline.so: SplineImp.o gcvspl.o
-	${SHLD} ${SHLDFLAGS} -o libSpline.so SplineImp.o \
-		gcvspl.o ${SHFLIBS}
+all::
+	@for j in *.java; do						\
+	  b=`basename $$j .java`;					\
+	  c=$$b.class;							\
+	  compile=false;						\
+	  if [ ! -f $$c ]; then						\
+	    compile=true;						\
+	  else								\
+	    set `ls -td $$j $$c` X;					\
+	    if [ $$c != $$1 ]; then					\
+	      compile=true;						\
+	    fi;								\
+	  fi;								\
+	  if $$compile; then						\
+	    (echo "$(JC) $(JFLAGS) $$j" &&				\
+	     $(JC) $(JFLAGS) $$j || true);				\
+	  fi;								\
+	  case "$$b" in							\
+	  *Remote*Impl)							\
+	    set `ls -t $$b.class $${b}_Stub.class 2>/dev/null || true` X; \
+	    if [ $${b}_Stub.class != $$1 ]; then			\
+	      (echo "${RMIC} -d $$root $$i.$$b" &&			\
+	       ${RMIC} -d $$root $$i.$$b || true);			\
+	    fi;								\
+	    ;;								\
+	  esac;								\
+	done
 
-SplineImp.o: visad_paoloa_spline_Spline.h
+all::
+	@UNAME=`uname -s`; \
+	case "$$UNAME" in \
+	IRIX*) arch=irix;; \
+	SunOS*) arch=solaris;; \
+	Linux*) archlinux;; \
+	*) echo "Unknown system type $$UNAME"; exit 1;; \
+	esac; \
+	make \
+		JAVADIR="$(JAVADIR)" \
+		JC="$(JC)" \
+		JFLAGS="$(JFLAGS)" \
+		$$arch
 
-visad_paoloa_spline_Spline.h: Spline.class
-	$(JH) -jni visad.paoloa.spline.Spline
-	touch visad_paoloa_spline_Spline.h
+.c.o:
+	$(CC) $(SHOPT) -c $*.c $(JAVAINCS) $(PKGINCS)
 
-Spline.class: Spline.java
-	$(JC) $(JFLAGS) Spline.java
+shared_library:: lib$(SLIB).so
 
-libSpline2D.so: Spline2DImp.o tpspline.o
-	${SHLD} ${SHLDFLAGS} -o libSpline2D.so Spline2DImp.o \
-		tpspline.o ${SHFLIBS}
+lib$(SLIB).so: $(OBJS)
+	@if [ -z "$(LINK_F77)" ]; then \
+	  echo $(SHLD) $(SHLDFLAGS) $(OBJS) $(PKGLIBS) $(SYSLIBS) \
+		-o lib$(SLIB).so; \
+	  $(SHLD) $(SHLDFLAGS) $(OBJS) $(PKGLIBS) $(SYSLIBS) \
+		-o lib$(SLIB).so; \
+	else \
+	  echo $(SHFLD) $(SHFLDFLAGS) $(OBJS) $(PKGLIBS) $(SYSLIBS) \
+		-o lib$(SLIB).so; \
+	  $(SHFLD) $(SHFLDFLAGS) $(OBJS) $(PKGLIBS) $(SYSLIBS) \
+		-o lib$(SLIB).so; \
+	fi
 
-Spline2DImp.o: visad_paoloa_spline_Spline2D.h
+shared_library:: lib$(SLIB2).so
 
-visad_paoloa_spline_Spline2D.h: Spline2D.class
-	$(JH) -jni visad.paoloa.spline.Spline2D
-	touch visad_paoloa_spline_Spline2D.h
-
-Spline2D.class: Spline2D.java
-	$(JC) $(JFLAGS) Spline2D.java
+lib$(SLIB2).so: $(OBJS2)
+	@if [ -z "$(LINK_F77)" ]; then \
+	  echo $(SHLD) $(SHLDFLAGS) $(OBJS2) $(PKGLIBS) $(SYSLIBS) \
+		-o lib$(SLIB2).so; \
+	  $(SHLD) $(SHLDFLAGS) $(OBJS2) $(PKGLIBS) $(SYSLIBS) \
+		-o lib$(SLIB2).so; \
+	else \
+	  echo $(SHFLD) $(SHFLDFLAGS) $(OBJS2) $(PKGLIBS) $(SYSLIBS) \
+		-o lib$(SLIB2).so; \
+	  $(SHFLD) $(SHFLDFLAGS) $(OBJS2) $(PKGLIBS) $(SYSLIBS) \
+		-o lib$(SLIB2).so; \
+	fi
 
 clean:
-	$(RM) visad_paoloa_spline_Spline.h
-	$(RM) visad_paoloa_spline_Spline2D.h
-	$(RM) *.o *.so *.class *~
+	rm -f lib$(SLIB).so lib$(SLIB2).so
+	rm -f so_locations
+	$(RM) $(OBJS) $(OBJS2)
+	$(RM) $(JNI_HEADERS)
+	$(RM) *.class
+	$(RM) *~
+
+solaris: required_macros
+	@make \
+		JAVAARCH=solaris \
+		SHLD="$(CC)" \
+		SHLDFLAGS="-G -z defs" \
+		SHFLD="$(FC)" \
+		SHFLDFLAGS="-G -Qoption ld -z,defs" \
+		SYSLIBS="-lM77 -lF77 -lsunmath -lnsl -lm -lc" \
+		JAVADIR="$(JAVADIR)" \
+		JC="$(JC)" \
+		JFLAGS="$(JFLAGS)" \
+		shared_library
+
+irix: required_macros
+	@make \
+		JAVAARCH=irix \
+		SHLD="$(CC)" \
+		SHLDFLAGS="-shared -Wl,-x" \
+		SHFLD="$(FC)" \
+		SHFLDFLAGS="" \
+		SYSLIBS="-lm" \
+		JAVADIR="$(JAVADIR)" \
+		JC="$(JC)" \
+		JFLAGS="$(JFLAGS)" \
+		shared_library
+
+linux: required_macros
+	@make \
+		JAVAARCH=linux \
+		SHCFLAGS="-fPIC -DPIC" \
+		SHLD="cc" \
+		SHLDFLAGS="-shared" \
+		SHFLD="$(FC)" \
+		SHFLDFLAGS="-shared" \
+		SYSLIBS="-lm" \
+		JAVADIR="$(JAVADIR)" \
+		JC="$(JC)" \
+		JFLAGS="$(JFLAGS)" \
+		shared_library
+
+required_macros::

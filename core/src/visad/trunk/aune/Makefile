@@ -1,4 +1,75 @@
-# makefile for visad/aune/ShallowFluid
+# default target is "all" -- DO NOT CHANGE THIS!!!!
+#
+all::
+
+############################################################################
+# Library-specific definitions
+############################################################################
+
+# base name for shared library
+#
+SLIB = ShallowFluid
+
+# these Fortran functions compile correctly under sparc Solaris
+# 2.5.1
+#
+OBJS = asfilt.o cyclic.o makdat.o shalstep.o x1der4.o chanel.o \
+	init.o re_read_1.o switch.o citcis.o kdiff.o rflctn.o tanflt.o \
+	ShallowFluidImp.o
+
+# name of the generated JNI header file
+#
+JNI_HEADERS = visad_aune_ShallowFluid.h
+
+# rule to build the generated JNI header file from the appropriate class
+#
+visad_aune_ShallowFluid.h: ShallowFluid.class
+	$(JH) -jni visad.aune.ShallowFluid
+
+# object file which depends on the generated JNI file
+#
+ShallowFluidImp.o: visad_aune_ShallowFluid.h
+
+# special header/library files needed by this package
+#
+PKGINCS =
+PKGLIBS =
+
+# set LINK_F77 to 'true' if any Fortran .o files are
+# to be included in the shared library
+#
+LINK_F77 = true
+
+############################################################################
+# Packaging rules
+############################################################################
+
+TAR_FILES = \
+	visad/aune/README.aune				\
+	visad/aune/DATE					\
+	visad/aune/Makefile				\
+	visad/aune/shsize.fcm				\
+	visad/aune/*.java				\
+	visad/aune/*.f					\
+	visad/aune/*.c					\
+	visad/aune/*.h
+
+tar:
+	date > DATE ; \
+	cd ../.. ; \
+	tar -cvf visad.aune.tar $(TAR_FILES) ; \
+	compress visad.aune.tar ; \
+	mv visad.aune.tar.Z visad
+
+jar:
+	date > DATE ; \
+	cd ../.. ; \
+	jar cvf visad.aune.jar $(TAR_FILES) ; \
+	mv visad.aune.jar visad
+
+############################################################################
+# Build tool definitions
+############################################################################
 
 # JAVADIR should be the top-level JDK1.2 directory
 # JAVAARCH should be the local machine architecture
@@ -21,11 +92,6 @@ JH = ${JAVADIR}/bin/javah
 #
 SHCFLAGS =
 SHFFLAGS =
-
-# this is the list of Fortran libraries referenced
-# by objects in the shared library
-#
-SHFLIBS = -lM77 -lF77 -lsunmath -lm -lc
 
 # SHLD is the shared library loader
 # SHLDFLAGS are the flags needed to tell SHLD to build a shared library
@@ -57,56 +123,114 @@ RM = rm -f
 .java.class:
 	$(JC) $(JFLAGS) $<
 
-default: ShallowFluid.class libShallowFluid.so
+default: all
 
-# these Fortran functions compile correctly under sparc Solaris
-# 2.5.1
-#
-OBJS = asfilt.o cyclic.o makdat.o shalstep.o x1der4.o chanel.o \
-	init.o re_read_1.o switch.o citcis.o kdiff.o rflctn.o tanflt.o
+all::
+	@for j in *.java; do						\
+	  b=`basename $$j .java`;					\
+	  c=$$b.class;							\
+	  compile=false;						\
+	  if [ ! -f $$c ]; then						\
+	    compile=true;						\
+	  else								\
+	    set `ls -td $$j $$c` X;					\
+	    if [ $$c != $$1 ]; then					\
+	      compile=true;						\
+	    fi;								\
+	  fi;								\
+	  if $$compile; then						\
+	    (echo "$(JC) $(JFLAGS) $$j" &&				\
+	     $(JC) $(JFLAGS) $$j || true);				\
+	  fi;								\
+	  case "$$b" in							\
+	  *Remote*Impl)							\
+	    set `ls -t $$b.class $${b}_Stub.class 2>/dev/null || true` X; \
+	    if [ $${b}_Stub.class != $$1 ]; then			\
+	      (echo "${RMIC} -d $$root $$i.$$b" &&			\
+	       ${RMIC} -d $$root $$i.$$b || true);			\
+	    fi;								\
+	    ;;								\
+	  esac;								\
+	done
 
-libShallowFluid.so: ShallowFluidImp.o $(OBJS)
-	${SHFLD} ${SHFLDFLAGS} \
-		-o libShallowFluid.so ShallowFluidImp.o \
-		$(OBJS) ${SHFLIBS}
+all::
+	@UNAME=`uname -s`; \
+	case "$$UNAME" in \
+	IRIX*) arch=irix;; \
+	SunOS*) arch=solaris;; \
+	Linux*) archlinux;; \
+	*) echo "Unknown system type $$UNAME"; exit 1;; \
+	esac; \
+	make \
+		JAVADIR="$(JAVADIR)" \
+		JC="$(JC)" \
+		JFLAGS="$(JFLAGS)" \
+		$$arch
 
-ShallowFluidImp.o: visad_aune_ShallowFluid.h
+.c.o:
+	$(CC) $(SHOPT) -c $*.c $(JAVAINCS) $(PKGINCS)
 
-visad_aune_ShallowFluid.h: ShallowFluid.class
-	$(JH) -jni visad.aune.ShallowFluid
+shared_library:: lib$(SLIB).so
 
-ShallowFluid.class: ShallowFluid.java
+lib$(SLIB).so: $(OBJS)
+	@if [ -z "$(LINK_F77)" ]; then \
+	  echo $(SHLD) $(SHLDFLAGS) $(OBJS) $(PKGLIBS) $(SYSLIBS) \
+		-o lib$(SLIB).so; \
+	  $(SHLD) $(SHLDFLAGS) $(OBJS) $(PKGLIBS) $(SYSLIBS) \
+		-o lib$(SLIB).so; \
+	else \
+	  echo $(SHFLD) $(SHFLDFLAGS) $(OBJS) $(PKGLIBS) $(SYSLIBS) \
+		-o lib$(SLIB).so; \
+	  $(SHFLD) $(SHFLDFLAGS) $(OBJS) $(PKGLIBS) $(SYSLIBS) \
+		-o lib$(SLIB).so; \
+	fi
 
 clean:
-	$(RM) visad_aune_ShallowFluid.h
-	$(RM) ShallowFluidImp.o ${OBJS}
-	$(RM) libShallowFluid.so
-	$(RM) ShallowFluid*.class
+	rm -f lib$(SLIB).so
+	rm -f so_locations
+	$(RM) $(OBJS)
+	$(RM) $(JNI_HEADERS)
+	$(RM) *.class
 	$(RM) *~
 
-############################################################################
-# Packaging rules
-############################################################################
+solaris: required_macros
+	@make \
+		JAVAARCH=solaris \
+		SHLD="$(CC)" \
+		SHLDFLAGS="-G -z defs" \
+		SHFLD="$(FC)" \
+		SHFLDFLAGS="-G -Qoption ld -z,defs" \
+		SYSLIBS="-lM77 -lF77 -lsunmath -lnsl -lm -lc" \
+		JAVADIR="$(JAVADIR)" \
+		JC="$(JC)" \
+		JFLAGS="$(JFLAGS)" \
+		shared_library
 
-TAR_FILES = \
-	visad/aune/README.aune				\
-	visad/aune/DATE					\
-	visad/aune/Makefile				\
-	visad/aune/shsize.fcm				\
-	visad/aune/*.java				\
-	visad/aune/*.f					\
-	visad/aune/*.c					\
-	visad/aune/*.h
+irix: required_macros
+	@make \
+		JAVAARCH=irix \
+		SHLD="$(CC)" \
+		SHLDFLAGS="-shared -Wl,-x" \
+		SHFLD="$(FC)" \
+		SHFLDFLAGS="" \
+		SYSLIBS="-lm" \
+		JAVADIR="$(JAVADIR)" \
+		JC="$(JC)" \
+		JFLAGS="$(JFLAGS)" \
+		shared_library
 
-tar:
-	date > DATE ; \
-	cd ../.. ; \
-	tar -cvf visad.aune.tar $(TAR_FILES) ; \
-	compress visad.aune.tar ; \
-	mv visad.aune.tar.Z visad
+linux: required_macros
+	@make \
+		JAVAARCH=linux \
+		SHCFLAGS="-fPIC -DPIC" \
+		SHLD="cc" \
+		SHLDFLAGS="-shared" \
+		SHFLD="$(FC)" \
+		SHFLDFLAGS="-shared" \
+		SYSLIBS="-lm" \
+		JAVADIR="$(JAVADIR)" \
+		JC="$(JC)" \
+		JFLAGS="$(JFLAGS)" \
+		shared_library
 
-jar:
-	date > DATE ; \
-	cd ../.. ; \
-	jar cvf visad.aune.jar $(TAR_FILES) ; \
-	mv visad.aune.jar visad
+required_macros::
