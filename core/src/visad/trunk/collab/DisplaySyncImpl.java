@@ -46,6 +46,9 @@ public class DisplaySyncImpl
   private DisplayMonitor monitor;
   private DisplayImpl myDisplay;
 
+  private Object mapClearSync = new Object();
+  private int mapClearCount = 0;
+
   public DisplaySyncImpl(DisplayImpl dpy)
     throws RemoteException
   {
@@ -323,9 +326,28 @@ public class DisplaySyncImpl
 
   EventTable getNewEventTable() { return new MonitorEventTable(Name); }
 
+  public boolean isLocalClear()
+  {
+    boolean result = true;
+    synchronized (mapClearSync) {
+      if (mapClearCount > 0) {
+        mapClearCount--;
+        result = false;
+      }
+    }
+
+    return result;
+  }
+
   public void stateChanged(MonitorEvent evt)
     throws RemoteException, RemoteVisADException
   {
+    if (evt.getType() == MonitorEvent.MAPS_CLEARED) {
+      synchronized (mapClearSync) {
+        mapClearCount++;
+      }
+    }
+
     addEvent(evt);
   }
 }

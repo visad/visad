@@ -242,6 +242,13 @@ public class DisplayMonitorImpl
       break;
     case DisplayEvent.MAPS_CLEARED:
       try {
+        if (!sync.isLocalClear()) {
+          break;
+        }
+      } catch (RemoteException re) {
+      }
+
+      try {
         mapEvt = new MapMonitorEvent(MonitorEvent.MAPS_CLEARED, null);
       } catch (VisADException ve) {
         ve.printStackTrace();

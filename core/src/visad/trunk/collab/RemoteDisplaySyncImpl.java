@@ -53,6 +53,12 @@ public class RemoteDisplaySyncImpl
     AdaptedSync = dpySync;
   }
 
+  public boolean isLocalClear()
+    throws RemoteException
+  {
+    throw new RemoteException("Illegal");
+  }
+
   /**
    * Forwards the event to the adapted remote <CODE>DisplaySync</CODE>
    * object.
