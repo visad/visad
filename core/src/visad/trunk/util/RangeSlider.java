@@ -57,16 +57,16 @@ public class RangeSlider extends JComponent implements MouseListener,
   public static final int FONT_BOTTOM_Y = FONT_TOP_Y + FONT_HEIGHT - 2;
 
   /** percent through scale of min gripper */
-  float minPercent = 0;
+  float minValue = 0;
 
   /** percent through scale of max gripper */
-  float maxPercent = 100;
+  float maxValue = 100;
 
   /** minimum slider value */
-  float minVal;
+  float minLimit;
 
   /** maximum slider value */
-  float maxVal;
+  float maxLimit;
 
   /** location of min gripper */
   private int minGrip = GRIP_WIDTH; 
@@ -92,6 +92,11 @@ public class RangeSlider extends JComponent implements MouseListener,
   /** variable name for values */
   private String name;
 
+  /** label state variables */
+  private float lastMinLimit = 0.0f;
+  private float lastMaxLimit = 0.0f;
+  private String lastCurStr = "";
+
   /** obtains the name of the specified ScalarMap */
   static String nameOf(ScalarMap smap) {
     String n = "value = ";
@@ -106,15 +111,15 @@ public class RangeSlider extends JComponent implements MouseListener,
   public RangeSlider(String n, float min, float max) {
     addMouseListener(this);
     addMouseMotionListener(this);
-    minVal = min;
-    maxVal = max;
+    minLimit = min;
+    maxLimit = max;
     name = n;
   }
 
   /** sets the slider's bounds to the specified values */
   public void setBounds(float min, float max) {
-    minVal = min;
-    maxVal = max;
+    minLimit = min;
+    maxLimit = max;
     minGrip = GRIP_WIDTH;
     maxGrip = getSize().width-GRIP_WIDTH;
     minSlide = false;
@@ -122,7 +127,36 @@ public class RangeSlider extends JComponent implements MouseListener,
     lSlideMoved = true;
     rSlideMoved = true;
     textChanged = true;
-    percPaint();
+
+    int w = getSize().width;
+    minValue = gripToValue(minGrip, w);
+    maxValue = gripToValue(maxGrip, w);
+
+    valuesUpdated();
+    repaint();
+  }
+
+  public void setValues(float lo, float hi)
+  {
+    int w = getSize().width;
+    int g;
+
+    minValue = lo;
+    g = minGrip;
+    minGrip = valueToGrip(minValue, w);
+    if (g != minGrip) {
+      lSlideMoved = true;
+    }
+
+    maxValue = hi;
+    g = maxGrip;
+    maxGrip = valueToGrip(maxValue, w);
+    if (g != maxGrip) {
+      rSlideMoved = true;
+    }
+
+    textChanged = true;
+    repaint();
   }
 
   /** redraw slider if widget width changes */
@@ -130,7 +164,8 @@ public class RangeSlider extends JComponent implements MouseListener,
     int lastW = getSize().width;
     super.reshape(x, y, w, h);
     if (lastW != w) {
-      updateGripsFromPercents();
+      minGrip = valueToGrip(minValue, w);
+      maxGrip = valueToGrip(maxValue, w);
       drawLabels(getGraphics(), lastW);
     }
   }
@@ -174,9 +209,11 @@ public class RangeSlider extends JComponent implements MouseListener,
       } else {
         minGrip = x;
       }
+      minValue = gripToValue(minGrip, w);
       minSlide = true;
       lSlideMoved = true;
-      percPaint();
+      valuesUpdated();
+      repaint();
     } else if (containedIn(x, y, maxGrip+1-GRIP_WIDTH, GRIP_TOP_Y-3,
                            w-maxGrip+GRIP_WIDTH,
                            GRIP_TOP_Y+SLIDER_LINE_HEIGHT-1))
@@ -187,9 +224,11 @@ public class RangeSlider extends JComponent implements MouseListener,
       } else {
         maxGrip = x;
       }
+      maxValue = gripToValue(maxGrip, w);
       maxSlide = true;
       rSlideMoved = true;
-      percPaint();
+      valuesUpdated();
+      repaint();
     }
   }
 
@@ -222,10 +261,13 @@ public class RangeSlider extends JComponent implements MouseListener,
       else if (maxGrip+change > w-GRIP_WIDTH) change = w-GRIP_WIDTH-maxGrip;
       if (change != 0) {
         minGrip += change;
+        minValue = gripToValue(minGrip, w);
         maxGrip += change;
+        maxValue = gripToValue(maxGrip, w);
         lSlideMoved = true;
         rSlideMoved = true;
-        percPaint();
+        valuesUpdated();
+        repaint();
       }
     }
     
@@ -234,8 +276,10 @@ public class RangeSlider extends JComponent implements MouseListener,
       if (x < GRIP_WIDTH) minGrip = GRIP_WIDTH;
       else if (x >= maxGrip) minGrip = maxGrip-1;
       else minGrip = x;
+      minValue = gripToValue(minGrip, w);
       lSlideMoved = true;
-      percPaint();
+      valuesUpdated();
+      repaint();
     }
 
     // move max gripper if it is held
@@ -243,8 +287,10 @@ public class RangeSlider extends JComponent implements MouseListener,
       if (x > w-GRIP_WIDTH) maxGrip = w-GRIP_WIDTH;
       else if (x <= minGrip) maxGrip = minGrip+1;
       else maxGrip = x;
+      maxValue = gripToValue(maxGrip, w);
       rSlideMoved = true;
-      percPaint();
+      valuesUpdated();
+      repaint();
     }
 
     oldX = x;
@@ -268,14 +314,34 @@ public class RangeSlider extends JComponent implements MouseListener,
     return new Dimension(Integer.MAX_VALUE, SLIDER_PREF_HEIGHT);
   }
 
-  /** recomputes percent variables then repaints */
-  void percPaint() {
-    int w = getSize().width;
-    minPercent = ((100*((float) (minGrip-GRIP_WIDTH)))/
-                  ((float) (w-(GRIP_WIDTH*2))));
-    maxPercent = ((100*((float) (maxGrip-GRIP_WIDTH)))/
-                  ((float) (w-(GRIP_WIDTH*2))));
-    repaint();
+  private float gripToValue(int pos, int width)
+  {
+    return (((maxLimit - minLimit) * ((float )(pos - GRIP_WIDTH))) / 
+            (float )(width - (GRIP_WIDTH*2))) + minLimit;
+  }
+
+  private int valueToGrip(float value, int width)
+  {
+    float rfloat = (((value - (float )minLimit) *
+                     (float )(width - (GRIP_WIDTH*2))) /
+                    (maxLimit - minLimit));
+
+    // round away from zero
+    if (rfloat < 0.0f) {
+      rfloat -= 0.5f;
+    } else {
+      rfloat += 0.5f;
+    }
+
+    return (int )rfloat + GRIP_WIDTH;
+  }
+
+  /** called whenever the min or max value is updated.
+   *  This method does nothing and is meant to be overridden
+   *  by classes which extend this class.
+   */
+  void valuesUpdated()
+  {
   }
 
   /** draws the slider from scratch */
@@ -348,57 +414,26 @@ public class RangeSlider extends JComponent implements MouseListener,
     textChanged = false;
   }
 
-  /** use current 'minPercent' and 'maxPercent' values to compute
-   *  'minGrip' and 'maxGrip' values
-   */
-  void updateGripsFromPercents()
-  {
-    final float realWidth = (float )(getSize().width -
-                                     ((float )GRIP_WIDTH * 2));
-
-    int minNew = (int )((0.01f * minPercent * realWidth + 0.5f) +
-                        (float )GRIP_WIDTH);
-    if (minGrip != minNew) {
-      lSlideMoved = true;
-      textChanged = true;
-      minGrip = minNew;
-    }
-
-    int maxNew = (int )((0.01f * maxPercent * realWidth + 0.5f) +
-                        (float )GRIP_WIDTH);
-    if (maxGrip != maxNew) {
-      rSlideMoved = true;
-      textChanged = true;
-      maxGrip = maxNew;
-    }
-  }
-
-  private float lastMin = 0.0f;
-  private float lastMax = 0.0f;
-  private String lastCurStr = "";
-
   /** updates the labels at the bottom of the widget */
   private void drawLabels(Graphics g, int lastW) {
     int w = getSize().width;
     FontMetrics fm = g.getFontMetrics();
-    if (lastMin != minVal || lastW != w) {
+    if (lastMinLimit != minLimit || lastW != w) {
       // minimum bound text string
       g.setColor(Color.black);
-      int sw = fm.stringWidth(""+lastMin);
+      int sw = fm.stringWidth(""+lastMinLimit);
       g.fillRect(1, FONT_TOP_Y, sw, FONT_HEIGHT);
-      lastMin = minVal;
+      lastMinLimit = minLimit;
     }
-    if (lastMax != maxVal || lastW != w) {
+    if (lastMaxLimit != maxLimit || lastW != w) {
       // maximum bound text string
       g.setColor(Color.black);
-      int sw = fm.stringWidth(""+lastMax);
+      int sw = fm.stringWidth(""+lastMaxLimit);
       g.fillRect(lastW - 4 - sw, FONT_TOP_Y, sw, FONT_HEIGHT);
-      lastMax = maxVal;
+      lastMaxLimit = maxLimit;
     }
-    String minS = PlotText.shortString(((minPercent * (maxVal - minVal)) /
-                                        100) + minVal);
-    String maxS = PlotText.shortString(((maxPercent * (maxVal - minVal)) /
-                                        100) + minVal);
+    String minS = PlotText.shortString(minValue);
+    String maxS = PlotText.shortString(maxValue);
     String curStr = name + "(" + minS + ", " + maxS + ")";
     if (!curStr.equals(lastCurStr) || lastW != w) {
       g.setColor(Color.black);
@@ -407,8 +442,8 @@ public class RangeSlider extends JComponent implements MouseListener,
       lastCurStr = curStr;
     }
     g.setColor(Color.white);
-    g.drawString(PlotText.shortString(minVal), 1, FONT_BOTTOM_Y);
-    String maxStr = PlotText.shortString(maxVal);
+    g.drawString(PlotText.shortString(minLimit), 1, FONT_BOTTOM_Y);
+    String maxStr = PlotText.shortString(maxLimit);
     g.drawString(maxStr, w - 4 - fm.stringWidth(maxStr), FONT_BOTTOM_Y);
     g.drawString(curStr, (w - fm.stringWidth(curStr))/2, FONT_BOTTOM_Y);
   }
@@ -425,6 +460,10 @@ public class RangeSlider extends JComponent implements MouseListener,
     f.getContentPane().add(rs);
     f.pack();
     f.setVisible(true);
+
+    // sleep 5 seconds and then dynamically set the values
+    try{Thread.sleep(5000);}catch(InterruptedException ie){}
+    rs.setValues(22.2222f, 76.5432f);
   }
 
 }

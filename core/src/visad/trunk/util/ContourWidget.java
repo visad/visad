@@ -415,7 +415,7 @@ public class ContourWidget extends JPanel implements ActionListener,
       cLo = fvals[2];
       cHi = fvals[3];
       updateWidgetRange();
-      ContourRange.setLimits(cLo, cHi);
+      ContourRange.setValues(cLo, cHi);
     }
   }
 
@@ -454,35 +454,13 @@ public class ContourWidget extends JPanel implements ActionListener,
       catch (RemoteException exc) { }
     }
 
-    /** convert range percentage to actual iso-contour value */
-    private float percentToLimit(float pct)
-    {
-      return (pct * (maxVal - minVal) / 100.0f) + minVal;
-    }
-
-    /** convert iso-contour value to range percentage */
-    private float limitToPercent(float lim)
-    {
-      return ((lim - minVal) * 100.0f) / (maxVal - minVal);
-    }
-
-    /** Recomputes percent variables, updates control, then paints. */
-    void percPaint() {
-      super.percPaint();
+    /** tell parent when the value changes */
+    void valuesUpdated() {
       try {
-        pappy.setMinMax(percentToLimit(minPercent), percentToLimit(maxPercent));
+        pappy.setMinMax(minValue, maxValue);
       }
       catch (VisADException exc) { }
       catch (RemoteException exc) { }
-    }
-
-    /** set range limits and repaint */
-    void setLimits(float lo, float hi)
-    {
-      minPercent = limitToPercent(lo);
-      maxPercent = limitToPercent(hi);
-      updateGripsFromPercents();
-      percPaint();
     }
 
   }

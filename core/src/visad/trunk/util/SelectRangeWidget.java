@@ -109,14 +109,10 @@ public class SelectRangeWidget extends RangeSlider
     catch (RemoteException exc) { }
   }
 
-  /** Recomputes percent variables, updates control, then paints. */
-  void percPaint() {
-    super.percPaint();
+  /** tell parent when the value changes */
+  void valuesUpdated() {
     try {
-      rangeControl.setRange(new float[] {
-        0.01f*minPercent*(maxVal-minVal)+minVal,
-        0.01f*maxPercent*(maxVal-minVal)+minVal
-      });
+      rangeControl.setRange(new float[] {minValue, maxValue});
     }
     catch (VisADException exc) { }
     catch (RemoteException exc ) { }
