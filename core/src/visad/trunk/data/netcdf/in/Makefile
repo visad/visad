@@ -1,4 +1,5 @@
 SUBPACKAGE	= in
+GARBAGE		= *.cdl
 
 include ../../../macros.make
 
@@ -7,7 +8,7 @@ include ../../../rules.make
 test:	\
 	scalar.test \
 	sounding.test \
-	time.test
+	time.test \
 	small.test \
 	pmsl.test \
 	big.test \
@@ -22,14 +23,13 @@ test:	\
 	CLASSPATH=$(ROOTDIR):$$CLASSPATH $(JAVA) $(PACKAGE).NetcdfAdapter $<
 
 .nc.debug:
-	$(JDB) -classpath $(ROOTDIR):$(NETCDF_JAR) \
-	    $(PACKAGE_PREFIX)NetcdfAdapter $<
+	$(JDB) -classpath $$CLASSPATH $(PACKAGE_PREFIX)NetcdfAdapter $<
 
 .nc.save:
-	$(MAKE) -s $*.run >$@
+	$(MAKE) -s $*.run >$@ 2>&1
 
 .nc.test:
-	$(MAKE) -s $*.run | diff -cw $*.save -
+	$(MAKE) -s $*.run 2>&1 | diff -cw $*.save -
 
 
 NcFlatRange.class:	NcRange.java
