@@ -37,6 +37,7 @@ import visad.data.tiff.TiffForm;
 import visad.data.hdfeos.HdfeosAdaptedForm;
 import visad.data.netcdf.Plain;
 import visad.data.vis5d.Vis5DForm;
+import visad.data.vis5d.Vis5DAdaptedForm;
 import visad.data.visad.VisADForm;
 import visad.data.mcidas.AreaForm;
 import visad.data.mcidas.MapForm;
@@ -120,6 +121,11 @@ public class DefaultFamily
     }
     try {
       list[i] = new Vis5DForm();
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
+      list[i] = new Vis5DAdaptedForm();
       i++;
     } catch (Throwable t) {
     }
