@@ -139,11 +139,25 @@ public abstract class TestSkeleton
 
   /**
    * A short string included in the usage message to indicate
-   * valid keywords.  An example might be <tt>"[username] [password]"</tt>.
+   * valid keywords.<br>
+   * <br>
+   * An example might be <tt>"[username] [password]"</tt>.
    *
    * @return A <em>very</em> terse description string.
    */
   String extraKeywordUsage() { return ""; }
+
+  /**
+   * Validate arguments after argument parsing has finished.<br>
+   * <br>
+   * This is useful for verifying that all required keywords and
+   * options have been specified, that options don't conflict
+   * with one another, etc.
+   *
+   * @return <tt>true</tt> if everything is correct, <tt>false</tt>
+   *         if there is a problem.
+   */
+  boolean finalizeArgs(String progName) { return true; }
 
   boolean processArgs(String[] args)
   {
@@ -233,6 +247,10 @@ public abstract class TestSkeleton
           usage = true;
         }
       }
+    }
+
+    if (!usage) {
+      usage = !finalizeArgs(progName);
     }
 
     if (usage) {
