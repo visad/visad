@@ -53,16 +53,7 @@ public abstract class BaseColorControl extends Control {
     this.components = components;
     tableLength = DEFAULT_TABLE_LENGTH;
     table = new float[components][tableLength + 1];
-    float scale = (float) (1.0f / (float) (DEFAULT_TABLE_LENGTH - 1));
-    // default table is a grey wedge
-    for (int i=0; i<DEFAULT_TABLE_LENGTH; i++) {
-      table[0][i] = scale * i;
-      table[1][i] = scale * i;
-      table[2][i] = scale * i;
-      if (components > 3) {
-        table[3][i] = scale * i;
-      }
-    }
+    initTableVis5D(table, components);
     table[0][DEFAULT_TABLE_LENGTH] = table[0][DEFAULT_TABLE_LENGTH - 1];
     table[1][DEFAULT_TABLE_LENGTH] = table[1][DEFAULT_TABLE_LENGTH - 1];
     table[2][DEFAULT_TABLE_LENGTH] = table[2][DEFAULT_TABLE_LENGTH - 1];
@@ -71,6 +62,45 @@ public abstract class BaseColorControl extends Control {
     }
   }
  
+  // initialize table to a grey wedge
+  private static void initTableGreyWedge(float[][] table, int components)
+  {
+    float scale = (float) (1.0f / (float) (DEFAULT_TABLE_LENGTH - 1));
+    for (int i=0; i<DEFAULT_TABLE_LENGTH; i++) {
+      table[0][i] = scale * i;
+      table[1][i] = scale * i;
+      table[2][i] = scale * i;
+      if (components > 3) {
+        table[3][i] = scale * i;
+      }
+    }
+  }
+
+  // initialize table to the Vis5D colormap
+  private static void initTableVis5D(float[][] table, int components)
+  {
+    float curve = 1.4f;
+    float bias = 1.0f;
+    float rfact = 0.5f * bias;
+
+    for (int i=0; i<DEFAULT_TABLE_LENGTH; i++) {
+
+      /* compute s in [0,1] */
+      float s = (float) i / (float) (DEFAULT_TABLE_LENGTH-1);
+      float t = curve * (s - rfact);   /* t in [curve*-0.5,curve*0.5) */
+
+      table[0][i] = (float) (0.5 + 0.5 * Math.atan( 7.0*t ) / 1.57);
+      table[1][i] = (float) (0.5 + 0.5 * (2 * Math.exp(-7*t*t) - 1));
+      table[2][i] = (float) (0.5 + 0.5 * Math.atan( -7.0*t ) / 1.57);
+      if (components > 3) {
+        table[3][i] = 1.0f;
+      }
+    }
+  }
+
+  /** Get the number of components of the range */
+  public int getNumberOfComponents() { return components; }
+
   /** define the color lookup by a Function, whose MathType must
       have a 1-D domain and an N-D RealTupleType range; the domain
       and range Reals must vary over the range (0.0, 1.0) */
@@ -202,6 +232,4 @@ public abstract class BaseColorControl extends Control {
     }
     return colors;
   }
-
 }
-
