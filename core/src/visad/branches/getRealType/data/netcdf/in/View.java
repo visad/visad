@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: View.java,v 1.2.4.3 2001-10-19 17:07:36 steve Exp $
+ * $Id: View.java,v 1.2.4.4 2001-10-19 21:08:51 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -53,7 +53,7 @@ import visad.VisADException;
  * A convention-dependent view of a netCDF dataset.
  *
  * @author Steven R. Emmerson
- * @version $Revision: 1.2.4.3 $ $Date: 2001-10-19 17:07:36 $
+ * @version $Revision: 1.2.4.4 $ $Date: 2001-10-19 21:08:51 $
  */
 public abstract class View
 {
@@ -391,8 +391,7 @@ public abstract class View
             if (type != null)
             {
                 Unit unit = getUnitFromAttribute(var);
-                if (unit != null &&
-                    !Unit.canConvert(unit, type.getDefaultUnit()))
+                if (!Unit.canConvert(unit, type.getDefaultUnit()))
                 {
                     String  newName = newName(var);
                     System.err.println(
@@ -447,7 +446,7 @@ public abstract class View
         RealType type = quantityDB.get(name);
         if (type != null)
         {
-            if (unit != null && !unit.isConvertible(type.getDefaultUnit()))
+            if (!unit.isConvertible(type.getDefaultUnit()))
                 type = newQuantity(var, unit, type.getDefaultUnit());
         }
         else
