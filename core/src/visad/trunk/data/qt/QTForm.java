@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad.data.qt;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
 import java.rmi.RemoteException;
@@ -40,7 +41,7 @@ import quicktime.QTSession;
 import quicktime.app.display.QTCanvas;
 import quicktime.app.image.ImageDataSequence;
 import quicktime.app.image.ImageUtil;
-import quicktime.app.image.Paintable;
+import quicktime.app.image.JImagePainter;
 import quicktime.app.image.QTImageDrawer;
 import quicktime.app.image.QTImageProducer;
 import quicktime.app.image.Redrawable;
@@ -107,6 +108,15 @@ public class QTForm extends Form implements FormFileInformer, StdQTConstants {
     return s;
   }
 
+  private void setCurrentFrame(int frame, BufferedImage buffer, FlatField[] fields) {
+    Image img = DataUtility.extractImage(fields[frame], true);
+    if (img != null) {
+      Graphics g = buffer.getGraphics();
+      g.drawImage(img, 0, 0, null);
+      g.dispose();
+    }
+  }
+
   /** Saves a VisAD Data object to a QuickTime movie at the given location. */
   public void save(String id, Data data, boolean replace)
     throws BadFormException, IOException, RemoteException, VisADException
@@ -128,7 +138,8 @@ public class QTForm extends Form implements FormFileInformer, StdQTConstants {
       JPanel pane = new JPanel();
       frame.setContentPane(pane);
       pane.add("Center", canv);
-      FieldPainter ip = new FieldPainter(fields);
+      BufferedImage buffer = new BufferedImage(kWidth, kHeight, BufferedImage.TYPE_INT_RGB);
+      JImagePainter ip = new JImagePainter(buffer);
       QTImageDrawer qid = new QTImageDrawer(ip, new Dimension(kWidth, kHeight), Redrawable.kMultiFrame);
       qid.setRedrawing(true);
       canv.setClient(qid, true);
@@ -169,14 +180,14 @@ public class QTForm extends Form implements FormFileInformer, StdQTConstants {
       ImageDescription desc = seq.getDescription();
 
       // redraw first...
-      ip.setCurrentFrame(1);
+      setCurrentFrame(0, buffer, fields);
       qid.redraw(null);
 
       qid.setGWorld(gw);
       qid.setDisplayBounds(rect);
 
-      for (int curSample=1; curSample<=numFrames; curSample++) {
-        ip.setCurrentFrame(curSample);
+      for (int curSample=0; curSample<numFrames; curSample++) {
+        setCurrentFrame(curSample, buffer, fields);
         qid.redraw(null);
         CompressedFrameInfo info = seq.compressFrame(gw, rect, codecFlagUpdatePrevious, compressedImage);
         boolean isKeyFrame = info.getSimilarity() == 0;
@@ -191,7 +202,6 @@ public class QTForm extends Form implements FormFileInformer, StdQTConstants {
 
       // redraw after finishing...
       qid.setGWorld(canv.getPort());
-      ip.setCurrentFrame(numFrames);
       qid.redraw(null);
 //--end addVideoSample--
       vidMedia.endEdits();
@@ -348,35 +358,6 @@ public class QTForm extends Form implements FormFileInformer, StdQTConstants {
       QTForm form = new QTForm();
       form.save(args[1], data, true);
       System.out.println("[done]");
-    }
-  }
-
-  /** A paintable QuickTime object for drawing FlatFields. */
-  class FieldPainter implements Paintable {
-    private FlatField[] fields;
-    private int frame = 0;
-    private Rectangle[] ret = new Rectangle[1];
-  
-    public FieldPainter(FlatField[] fields) { this.fields = fields; }
-  
-    public int getNumberOfFrames() { return fields.length; }
-  
-    public void setCurrentFrame(int frame) {
-      if (frame < 1) frame = 1;
-      if (frame > fields.length) frame = fields.length;
-      this.frame = frame - 1;
-    }
-  
-    public int getCurrentFrame() { return frame + 1; }
-  
-    public void newSizeNotified(QTImageDrawer drawer, Dimension d) {
-      ret[0] = new Rectangle(d.width, d.height);
-    }
-  
-    public Rectangle[] paint(Graphics g) {
-      Image img = DataUtility.extractImage(fields[frame]);
-      if (img != null) g.drawImage(img, 0, 0, null);
-      return ret;
     }
   }
 

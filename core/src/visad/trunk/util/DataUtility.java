@@ -226,9 +226,9 @@ public class DataUtility {
 
   /**
    * Converts a flat field of the form <tt>((x, y) -&gt; (r, g, b))</tt>
-   * to an AWT Image.
+   * to an AWT Image. If reverse flag is set, image will be upside-down.
    */
-  public static Image extractImage(FlatField field) {
+  public static Image extractImage(FlatField field, boolean reverse) {
     try {
       Gridded2DSet set = (Gridded2DSet) field.getDomainSet();
       int[] wh = set.getLengths();
@@ -237,17 +237,21 @@ public class DataUtility {
       double[][] samples = field.getValues();
       int[] pixels = new int[samples[0].length];
       if (samples.length == 3) {
-        for (int i=0; i<samples[0].length; i++) {
+        int len = samples[0].length;
+        for (int i=0; i<len; i++) {
           int r = (int) samples[0][i] & 0x000000ff;
           int g = (int) samples[1][i] & 0x000000ff;
           int b = (int) samples[2][i] & 0x000000ff;
-          pixels[i] = r << 16 | g << 8 | b;
+          int index = reverse ? len - i - 1 : i;
+          pixels[index] = r << 16 | g << 8 | b;
         }
       }
       else if (samples.length == 1) {
-        for (int i=0; i<samples[0].length; i++) {
+        int len = samples[0].length;
+        for (int i=0; i<len; i++) {
           int v = (int) samples[0][i] & 0x000000ff;
-          pixels[i] = v << 16 | v << 8 | v;
+          int index = reverse ? len - i - 1 : i;
+          pixels[index] = v << 16 | v << 8 | v;
         }
       }
       return new ColorProcessor(w, h, pixels).createImage();
