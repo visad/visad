@@ -155,6 +155,9 @@ public class DataUtility {
   public static FlatField makeField(Image image)
     throws IOException, VisADException
   {
+    if (image == null) {
+      throw new VisADException("image cannot be null");
+    }
     ImageHelper ih = new ImageHelper();
 
     // determine image height and width

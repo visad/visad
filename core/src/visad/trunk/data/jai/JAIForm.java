@@ -164,6 +164,9 @@ public class JAIForm extends Form implements FormFileInformer {
   private DataImpl open(BufferedImage image)
     throws BadFormException, IOException, VisADException
   {
+    if (image == null) {
+      throw new BadFormException("JAI could not read the file as an image");
+    }
     return DataUtility.makeField(image);
   }
 
