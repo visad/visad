@@ -227,6 +227,11 @@ public abstract class CoordinateSystem extends Object
       for (int i=0; i<n; i++) units_out[i] = units[i];
     }
 
+    // WLH 28 March 2000
+    // ensure coord_out and coord_in include any RealTupleType defaults
+    if (coord_out == null) coord_out = out.getCoordinateSystem();
+    if (coord_in == null) coord_in = in.getCoordinateSystem();
+
     if (out.equals(in)) {
       if (coord_in == null && coord_out == null) return value;
       if (coord_in == null || coord_out == null) {
@@ -248,9 +253,6 @@ public abstract class CoordinateSystem extends Object
     }
     else { // !out.equals(in)
       RealTupleType ref_out = out;
-      if (coord_out == null) {
-        coord_out = out.getCoordinateSystem();
-      }
       if (coord_out != null) {
         ref_out = coord_out.getReference();
         // WLH - this check for testing only - may eliminate later
@@ -262,9 +264,6 @@ public abstract class CoordinateSystem extends Object
       }
 
       RealTupleType ref_in = in;
-      if (coord_in == null) {
-        coord_in = in.getCoordinateSystem();
-      }
       if (coord_in != null) {
         ref_in = coord_in.getReference();
         // WLH - this check for testing only - may eliminate later

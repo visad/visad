@@ -111,6 +111,15 @@ public abstract class FunctionImpl extends DataImpl implements Function {
     return field.getSample(0);
   }
 
+  /** return a Field of Function values at the samples in set
+      using default sampling_mode (WEIGHTED_AVERAGE) and
+      error_mode (NO_ERROS);
+      this combines unit conversions, coordinate transforms,
+      resampling and interpolation */
+  public Field resample(Set set) throws VisADException, RemoteException {
+    return resample(set, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS);
+  }
+
   /** resample range values of this Function to domain samples in set;
       return a Field (i.e., a finite sampling of a Function) */
   public abstract Field resample(Set set, int sampling_mode, int error_mode)

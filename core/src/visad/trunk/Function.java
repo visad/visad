@@ -68,6 +68,13 @@ public interface Function extends Data {
   Data evaluate(RealTuple domain, int sampling_mode,
          int error_mode) throws VisADException, RemoteException;
 
+  /** return a Field of Function values at the samples in set
+      using default sampling_mode (WEIGHTED_AVERAGE) and
+      error_mode (NO_ERRORS);
+      this combines unit conversions, coordinate transforms,
+      resampling and interpolation */
+  Field resample(Set set) throws VisADException, RemoteException;
+
   /** return a Field of Function values at the samples in set;
       this combines unit conversions, coordinate transforms,
       resampling and interpolation */
