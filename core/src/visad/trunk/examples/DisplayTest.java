@@ -175,8 +175,8 @@ public class DisplayTest extends Object {
         Real[] reals3 = {new Real(count, 1.0), new Real(ir_radiance, 2.0),
                          new Real(vis_radiance, 1.0)};
         RealTuple direct_tuple = new RealTuple(reals3);
-    
-        display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
+
+        display1 = new DisplayImplJ3D("display1");
         display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
         display1.addMap(new ScalarMap(ir_radiance, Display.XAxis));
         display1.addMap(new ScalarMap(count, Display.YAxis));
@@ -202,8 +202,7 @@ public class DisplayTest extends Object {
         DataReference[] refs3 = {ref_histogram1};
         display1.addReferences(new DirectManipulationRendererJ3D(), refs3, null);
 
-        DisplayImpl display2 =
-          new DisplayImplJ3D("display2", DisplayImplJ3D.APPLETFRAME);
+        DisplayImpl display2 = new DisplayImplJ3D("display2");
         display2.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
         display2.addMap(new ScalarMap(ir_radiance, Display.XAxis));
         display2.addMap(new ScalarMap(count, Display.YAxis));
@@ -216,6 +215,22 @@ public class DisplayTest extends Object {
         display2.addReferences(new DirectManipulationRendererJ3D(), refs1, null);
         display2.addReferences(new DirectManipulationRendererJ3D(), refs2, null);
         display2.addReferences(new DirectManipulationRendererJ3D(), refs3, null);
+
+        JFrame jframe = new JFrame("Java3D direct manipulation");
+        jframe.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+ 
+        JPanel big_panel = new JPanel();
+        big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.X_AXIS));
+        big_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+        big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+        big_panel.add(display1.getComponent());
+        big_panel.add(display2.getComponent());
+        jframe.getContentPane().add(big_panel);
+        jframe.setSize(512, 256);
+        jframe.setVisible(true);
+
         break;
 
       case 1:
@@ -987,12 +1002,12 @@ public class DisplayTest extends Object {
           new VisADSlider("value hi", 0, 64, 64, 1.0, value_hi_ref,
                           RealType.Generic);
 
-        JFrame jframe = new JFrame("VisAD select slider");
+        jframe = new JFrame("VisAD select slider");
         jframe.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
 
-        JPanel big_panel = new JPanel();
+        big_panel = new JPanel();
         big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.Y_AXIS));
         big_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
         big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
@@ -1522,21 +1537,20 @@ public class DisplayTest extends Object {
         display2.addReferences(new DirectManipulationRendererJ2D(), refs2, null);
         display2.addReferences(new DirectManipulationRendererJ2D(), refs3, null);
 
-        Frame frame1 = new Frame("Java2D display 1");
-        frame1.addWindowListener(new WindowAdapter() {
+        jframe = new JFrame("Java2D direct manipulation");
+        jframe.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
-        frame1.add(display1.getComponent());
-        frame1.setSize(256, 256);
-        frame1.setVisible(true);
-
-        Frame frame2 = new Frame("Java2D display 2");
-        frame2.addWindowListener(new WindowAdapter() {
-          public void windowClosing(WindowEvent e) {System.exit(0);}
-        });
-        frame2.add(display2.getComponent());
-        frame2.setSize(256, 256);
-        frame2.setVisible(true);
+ 
+        big_panel = new JPanel();
+        big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.X_AXIS));
+        big_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+        big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+        big_panel.add(display1.getComponent());
+        big_panel.add(display2.getComponent());
+        jframe.getContentPane().add(big_panel);
+        jframe.setSize(512, 256);
+        jframe.setVisible(true);
 
         break;
 
@@ -1589,21 +1603,20 @@ public class DisplayTest extends Object {
         display2.addReferences(new DirectManipulationRendererJ2D(), refs2, null);
         display2.addReferences(new DirectManipulationRendererJ2D(), refs3, null);
 
-        frame1 = new Frame("Java3D display 1");
-        frame1.addWindowListener(new WindowAdapter() {
+        jframe = new JFrame("Java3D -- Java2D direct manipulation");
+        jframe.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
-        frame1.add(display1.getComponent());
-        frame1.setSize(256, 256);
-        frame1.setVisible(true);
-
-        frame2 = new Frame("Java2D display 2");
-        frame2.addWindowListener(new WindowAdapter() {
-          public void windowClosing(WindowEvent e) {System.exit(0);}
-        });
-        frame2.add(display2.getComponent());
-        frame2.setSize(256, 256);
-        frame2.setVisible(true);
+ 
+        big_panel = new JPanel();
+        big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.X_AXIS));
+        big_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+        big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+        big_panel.add(display1.getComponent());
+        big_panel.add(display2.getComponent());
+        jframe.getContentPane().add(big_panel);
+        jframe.setSize(512, 256);
+        jframe.setVisible(true);
 
         break;
 
