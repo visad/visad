@@ -4,15 +4,14 @@ include ../../macros.make
 
 GARBAGE		= plain.nc
 SUBDIR_TARGETS	= in/default in/classes in/all in/clean \
-		  out/default out/classes out/all out/clean \
-		  units/default units/classes units/all units/clean
-JAR_CLASSES	= *.class in/*.class out/*.class units/*.class
+		  out/default out/classes out/all out/clean
+JAR_CLASSES	= *.class in/*.class out/*.class
 JARFILE		= visad.data.netcdf.jar
 
-default:	in/default out/default units/default
-all:		in/all out/all units/all
-jar:		in/classes out/classes units/classes
-clean:		in/clean out/clean units/clean
+default:	in/default out/default
+all:		in/all out/all
+jar:		in/classes out/classes
+clean:		in/clean out/clean
 
 test:		small.test big.test pmsl.test #time.test
 
