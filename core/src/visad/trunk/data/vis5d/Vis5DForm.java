@@ -59,6 +59,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
   private final int MAXCOLUMNS = 300;
   private final int MAXLEVELS = 100;
   private final int MAXPROJARGS = 100;
+  private final int MAXVERTARGS = MAXLEVELS+1;
 
   private static int num = 0;
 
@@ -118,6 +119,8 @@ public class Vis5DForm extends Form implements FormFileInformer {
     int[] map_proj = new int[1];
     byte[] varnames = new byte[10 * MAXVARS];
     byte[] varunits = new byte[20 * MAXVARS];
+    int[]  vert_sys = new int[1];
+    float[]  vert_args = new float[MAXVERTARGS];
     float[] times = new float[MAXTIMES];
     float[] projargs = new float[MAXPROJARGS];
     vv = V5DStruct.v5d_open(name,
@@ -127,10 +130,13 @@ public class Vis5DForm extends Form implements FormFileInformer {
                             varunits,
                             map_proj,
                             projargs,
+                            vert_sys,
+                            vert_args,
                             times);
     if (sizes[0] < 1) {
       throw new BadFormException("Vis5DForm.open: bad file");
     }
+    System.out.println("map_proj: "+map_proj[0]);
     int nr = sizes[0];
     int nc = sizes[1];
     int nl = sizes[2];
@@ -192,6 +198,8 @@ public class Vis5DForm extends Form implements FormFileInformer {
       new Gridded1DSet(time, timeses, ntimes,
                        null, new Unit[] {v5d_time_unit}, null);
 
+    System.out.println("VerticalSystem: "+vert_sys[0]);
+    for ( int kk=0; kk<nl; kk++)System.out.println(vert_args[kk]);
     if (nl > 1) {
       space_set = new Integer3DSet(nr, nc, nl);
     }
@@ -279,7 +287,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
     if (args == null || args.length < 1) {
       System.out.println("run 'java visad.data.vis5d.Vis5DForm file.v5d'");
     }
-    Vis5DForm form = new Vis5DForm();
+    Vis5DForm form = new Vis5DAdaptedForm();
     FieldImpl vis5d = null;
     try {
       vis5d = (FieldImpl) form.open(args[0]);

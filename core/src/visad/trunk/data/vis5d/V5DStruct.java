@@ -446,7 +446,8 @@ public class V5DStruct {
 
   /** Open a Vis5D file */
   public static V5DStruct v5d_open(byte[] name, int name_length, int[] sizes,
-    byte[] varnames, byte[] varunits, int[] map_proj, float[] projargs, float[] times)
+    byte[] varnames, byte[] varunits, int[] map_proj, float[] projargs, 
+    int[] vert_sys, float[] vert_args, float[] times)
     throws IOException, BadFormException
   {
     int i, j, k;
@@ -499,6 +500,11 @@ public class V5DStruct {
             break;
           }
         }
+      }
+
+      vert_sys[0] = v.VerticalSystem;
+      for ( int kk = 0; kk < maxNl; kk++) {
+        vert_args[kk] = v.VertArgs[kk];
       }
 
       // compute times
