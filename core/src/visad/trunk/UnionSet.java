@@ -311,6 +311,26 @@ public class UnionSet extends SampledSet {
     return new UnionSet((SetType) sets[0].getType(), sets);
   }
 
+  public void cram_missing(boolean[] range_select) {
+    int rl = range_select.length;
+    int n = Sets.length;
+    int k = 0;
+    for (int i=0; i<n; i++) {
+      int len = 0;
+      try {
+        len = Sets[i].getLength();
+      }
+      catch (VisADException e) {
+        return;
+      }
+      if ((k + len) > rl) return;
+      boolean[] ri = new boolean[len];
+      System.arraycopy(range_select, k, ri, 0, len);
+      Sets[i].cram_missing(ri);
+      k += len;
+    }
+  }
+
   /** create a 2-D GeometryArray from this Set and color_values */
   public VisADGeometryArray make2DGeometry(byte[][] color_values,
          boolean indexed) throws VisADException {
