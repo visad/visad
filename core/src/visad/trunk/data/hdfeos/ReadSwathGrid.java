@@ -55,15 +55,9 @@ public class ReadSwathGrid
 
       if ( num_type == FLOAT ) 
       {
-         System.out.println("f_name: "+f_name);
-         System.out.println("start_len"+start.length);
-         System.out.println( start[0]+" "+start[1]+" "+start[2]);
-         System.out.println("edge_len"+edge.length);
-         System.out.println( edge[0]+" "+edge[1]+" "+edge[2]);
          if ( struct instanceof EosGrid ) 
          {
            status = Library.Lib.GDreadfield( struct_id, f_name, start, stride, edge, f_data );
-           System.out.println("read status: "+status);
          }
          else if ( struct instanceof EosSwath )
          {

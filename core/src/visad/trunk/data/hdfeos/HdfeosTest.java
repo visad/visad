@@ -84,7 +84,6 @@ public class HdfeosTest
 
     if ( data instanceof Tuple ) 
     {
-      System.out.println("Tuple");
       for ( int ii = 0; ii < ((Tuple)data).getDimension(); ii++ )
       { 
         t_data = ((Tuple)data).getComponent( ii );
@@ -115,7 +114,6 @@ public class HdfeosTest
     }
     else if ( data instanceof FieldImpl )
     {
-        System.out.println("FieldImpl");
         M_type = ((FunctionType)(data.getType())).getRange();
         if ( isNameNested( M_type, range_name ) )
         {

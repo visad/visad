@@ -31,6 +31,8 @@ import visad.MathType;
 import visad.RealType;
 import visad.GriddedSet;
 import visad.Gridded1DSet;
+import visad.SampledSet;
+import visad.ProductSet;
 import visad.TypeException;
 import visad.VisADException;
 import visad.RealTupleType;
@@ -57,8 +59,8 @@ import visad.RealTupleType;
 
     private MathType M_type = null;
 
-    public MetaDomainGen( EosStruct struct ) {
-
+    public MetaDomainGen( EosStruct struct ) 
+    {
       super();
 
       this.struct = struct;
@@ -66,26 +68,29 @@ import visad.RealTupleType;
       varSet = new VariableSet();
     }
 
-    public DimensionSet getDimSet() {
-  
+    public DimensionSet getDimSet() 
+    {
       return dimSet;
     }
  
-    public VariableSet getVarSet() {
-     return varSet;
+    public VariableSet getVarSet() 
+    {
+      return varSet;
     }
 
-    public void addDim( NamedDimension dim ) {
- 
+    public void addDim( NamedDimension dim ) 
+    { 
        dimSet.add( dim );
     }
 
-    public void addVar( Variable var ) {
- 
+    public void addVar( Variable var ) 
+    {
        varSet.add( var );
     }
 
-    public Set getVisADSet( IndexSet i_set ) throws VisADException {
+    public Set getVisADSet( IndexSet i_set ) 
+           throws VisADException 
+    {
 
       Set VisADset = null;
       Variable var;
@@ -110,15 +115,19 @@ import visad.RealTupleType;
       double[] d_data;
       int[] i_data;
       MathType M_type = null;
+      int[] start1 = new int[1];
+      int[] edge1 = new int[1];
+      int[] stride1 = new int[1];
+      float[][] f_samples = null;
+
        
-
-      if ( this.M_type == null ) {
-
+      if ( this.M_type == null ) 
+      {
         this.M_type = getVisADMathType();
         M_type = this.M_type;
       }
-      else {
-
+      else 
+      {
         M_type = this.M_type;
       }
 
@@ -183,9 +192,6 @@ import visad.RealTupleType;
 
           R_name = (varSet.getElement(0)).getName();
           num_type = varSet.getElement(0).getNumberType();
-          int[] start1 = new int[1];
-          int[] edge1 = new int[1];
-          int[] stride1 = new int[1];
 
           start1[0] = 0;
           stride1[0] = 1;
@@ -261,14 +267,32 @@ import visad.RealTupleType;
 
          case FACTORED:
 
-/**- make GriddedSet, ignore space waste for now - - - - - - - - - */
+           SampledSet[] sets = new SampledSet[ n_domVars ];
 
+           for ( ii = 0; ii < n_domVars; ii++ )
+           {
+             R_name = (varSet.getElement(ii)).getName();
+             num_type = varSet.getElement(ii).getNumberType();
 
+             start1[0] = 0;
+             stride1[0] = 1;
+             edge1[0] = lengths[ii];
 
+             f_samples = new float[ 1 ][ lengths[ii] ];
+
+             struct.readData( R_name, start1, stride1, edge1, num_type, f_samples[0] );
+
+             R_types[ii] = new RealType( R_name, null, null );
+             sets[ii] = (SampledSet) new Gridded1DSet( R_types[ii], f_samples, lengths[0] );
+            }
+
+            VisADset = new ProductSet( M_type, sets );
 
          case HYBRID:
+            throw new HdfeosException("case: HYBRID, unimplemented");
 
          case UNDEF:
+            throw new HdfeosException("unrecognized domain");
 
 
       }  // end switch

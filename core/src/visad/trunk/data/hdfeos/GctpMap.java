@@ -85,10 +85,6 @@ public class GctpMap
 
     GctpFunction.sphdz( sphrcode, projparms, r_major, r_minor, radius );
 
-    System.out.println( "projcode= "+projcode);
-    System.out.println( "sphrcode= "+sphrcode);
-    System.out.println( "radius= "+radius[0]);
-
     switch  ( projcode ) { 
 
       case GctpFunction.LAMAZ:

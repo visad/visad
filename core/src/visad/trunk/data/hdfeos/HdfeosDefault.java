@@ -34,8 +34,8 @@ import java.net.URL;
 public class HdfeosDefault extends Hdfeos {
 
 
-  public HdfeosDefault() {
-
+  public HdfeosDefault() 
+  {
      super("Default");
   }
      
@@ -220,16 +220,16 @@ public class HdfeosDefault extends Hdfeos {
       F_dims = new DimensionSet();
       G_dims = new DimensionSet();
 
-      for ( idx = 0; idx < D_size; idx++ ) {   // separate dimensions first
-
+      for ( idx = 0; idx < D_size; idx++ )    // separate dimensions first 
+      {
         dim = D_set.getElement( idx );
 
-        if( ((dim.getName()).equals("XDim")) || ((dim.getName()).equals("YDim")) ) {
-
+        if( ((dim.getName()).equals("XDim")) || ((dim.getName()).equals("YDim")) ) 
+        {
           G_dims.add( dim );
         }
-        else {
-
+        else 
+        {
           F_dims.add( dim );
         }
       }
@@ -243,12 +243,7 @@ public class HdfeosDefault extends Hdfeos {
         FF_domain = new MetaDomainMap( Grid, gridMap );
       }
 
-      System.out.println( "< < < < < < < < < < < < < < < < < < < ");
-      System.out.println( F_dims.toString() );
-      System.out.println( G_dims.toString() );
-
       VariableSet range_var = S_obj.getVariables();
-      System.out.println( range_var.toString() );
       MetaFlatField m_FField = new MetaFlatField( Grid, FF_domain, range_var );
 
       if ( F_dims.getSize() == 0 ) {
@@ -301,10 +296,6 @@ public class HdfeosDefault extends Hdfeos {
 
       file_data.add( (FileData) S_link );
 
-           /**
-               topNode = FunctionLink.mergeLink( topNode, S_link );
-
-            **/
       }
 
 
@@ -321,6 +312,7 @@ public class HdfeosDefault extends Hdfeos {
     DimensionSet G_dims;
     Variable Latitude = null;
     Variable Longitude = null;
+    Variable Time = null;
     NamedDimension dim;
     MetaDomainGen m_domain;
     MetaDomainSimple m_domainS = null;
@@ -344,13 +336,17 @@ public class HdfeosDefault extends Hdfeos {
       VariableSet v_set = S_obj.getVariables();
 
       Latitude = v_set.getByName( "Latitude" );
+      Latitude = v_set.getByName( "latitude" );
       Longitude = v_set.getByName( "Longitude" );
+      Longitude = v_set.getByName( "longitude" );
+      Time = v_set.getByName( "Time" );
+      Time = v_set.getByName( "time" );
     }
 
     if (( Latitude == null ) || ( Longitude == null ))
     {
        throw new HdfeosException(
-       " expecting Latitude and Longitude geo Variables ");
+       " expecting Latitude and Longitude geolocation Variables ");
     }
 
     for ( Enumeration e_out = DV_shapeSet.getEnum(); e_out.hasMoreElements(); ) 

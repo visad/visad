@@ -75,10 +75,9 @@ public class EosGrid extends EosStruct {
 
         n_dims = Library.Lib.GDinqdims( grid_id, stringSize[0], dimensionList, lengths );
 
-
         if ( n_dims <= 0 ) 
         {
-           System.out.println(" error: no dimensions ");
+           throw new HdfeosException("GDinqdims status: "+n_dims);
         }
 
         StringTokenizer listElements = 
@@ -137,10 +136,11 @@ public class EosGrid extends EosStruct {
         
         int stat = Library.Lib.GDprojinfo( grid_id, projcode, zonecode, sphrcode, projparm );  
 
-          if ( stat < 0 ) {
-             System.out.println(" problem: GDprojinfo ");
-          }
-          else {
+        if ( stat < 0 ) 
+        {
+            throw new HdfeosException(" GDprojinfo, status: "+stat);
+        }
+        else {
              System.out.println(" projcode: "+projcode[0]);
              System.out.println(" zonecode: "+zonecode[0]);
              System.out.println(" sphrcode: "+sphrcode[0]);
@@ -148,7 +148,7 @@ public class EosGrid extends EosStruct {
              for ( int ii = 0; ii < 16; ii++ ) {
                System.out.println(" projparm["+ii+"]: "+projparm[ii] );
              }
-          }
+        }
  
             int[] xdimsize = new int[1];
             int[] ydimsize = new int[1];
@@ -157,13 +157,14 @@ public class EosGrid extends EosStruct {
 
          stat = Library.Lib.GDgridinfo( grid_id, xdimsize, ydimsize, uprLeft, lwrRight );
 
-           if ( stat < 0 ) {
-              System.out.println(" problem: GDgridinfo ");
-           }
-           else {
+         if ( stat < 0 ) 
+         {
+             throw new HdfeosException(" GDgridinfo, status: "+stat);
+         }
+         else {
               System.out.println(" uprLeft: "+uprLeft[0]+"  "+uprLeft[1]);
               System.out.println(" lwrRight: "+lwrRight[0]+"  "+lwrRight[1]);
-           }
+         }
 
          gridMap = new GctpMap( projcode[0], zonecode[0], sphrcode[0],
                                 xdimsize[0], ydimsize[0], projparm, uprLeft, lwrRight ); 

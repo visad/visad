@@ -83,12 +83,12 @@ import visad.RealTupleType;
       int op;
       int n_dims;
        
-      if ( this.M_type != null ) {
-     
+      if ( this.M_type != null ) 
+      {
         M_type = this.M_type;
       }
-      else {
-
+      else 
+      {
         M_type = getVisADMathType();
         this.M_type = M_type;
       }
@@ -106,7 +106,9 @@ import visad.RealTupleType;
       return VisADset;
     }
 
-    public MathType getVisADMathType() throws VisADException {
+    public MathType getVisADMathType() 
+           throws VisADException 
+    {
 
       MathType M_type = null;
       RealType R_type = null;
@@ -143,7 +145,14 @@ import visad.RealTupleType;
           R_types[ii] = R_type;
         }
      
-        M_type = (MathType) new RealTupleType( R_types );
+        if ( rank == 1 ) 
+        {
+          M_type = (MathType) R_types[0];
+        }
+        else if ( rank > 1 )
+        {
+          M_type = (MathType) new RealTupleType( R_types );
+        }
         this.M_type = M_type;
       }
         return M_type;
