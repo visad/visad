@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfQuantityDB.java,v 1.9 2000-04-26 15:45:19 dglo Exp $
+ * $Id: NetcdfQuantityDB.java,v 1.10 2000-06-05 18:47:30 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -23,6 +23,8 @@ import visad.data.netcdf.units.ParseException;
  * Provides support for mapping netCDF elements to VisAD quantities by
  * decorating a existing quantity database with methods specifically
  * appropriate to netCDF variables.
+ *
+ * @author Steven R. Emmerson
  */
 public class
 NetcdfQuantityDB
@@ -44,6 +46,23 @@ NetcdfQuantityDB
     }
 
 
+    /**
+     * Adds a given Quantity to the database under a given name.
+     *
+     * @param name		The name under which the quantity is to be
+     *				added.  May be an alias.
+     * @param quantity		The quantity to be added.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    public void
+    add(String name, Quantity quantity)
+	throws VisADException
+    {
+	db.add(name, quantity);
+    }
+	    
+
+	
     /**
      * Return the VisAD quantity corresponding to the best combination of
      * long name and name.
@@ -84,33 +103,6 @@ NetcdfQuantityDB
     quantityIterator()
     {
 	return db.quantityIterator();
-    }
-
-
-    /**
-     * Adds the given quantities and aliases to the database.
-     *
-     * @param definitions	New quantities and their definitions.
-     *				<code>definitions[2*i]</code> contains the
-     *				name (e.g. "speed") of the quantity whose
-     *				preferred unit specification (e.g. "m/s") is
-     *				in <code>definitions[2*i+1]</code>.
-     * @param aliases		Aliases for quantities.  <code>aliases[2*i]
-     *				</code> contains the alias for the quantity
-     *				named in <code>aliases[2*i+1]</code>.
-     * @return			The database resulting from the addition.  May
-     *				or may not be the original object.
-     * @throws ParseException	A unit specification couldn't be parsed.
-     * @throws TypeException	An incompatible version of the quantity already
-     *				exists.
-     * @throws VisADException	Couldn't create necessary VisAD object.
-     */
-    public QuantityDB
-    add(String[] definitions, String[] aliases)
-	throws ParseException, TypeException, VisADException
-    {
-	db = db.add(definitions, aliases);
-	return this;
     }
 
 
