@@ -4,6 +4,8 @@ import visad.*;
 import visad.matrix.*;
 import visad.data.hdfeos.PolarStereographic;
 
+import java.lang.reflect.*;
+
 public class LinearVectorPointMethod
 {
   JamaMatrix jm_A;
@@ -87,8 +89,16 @@ public class LinearVectorPointMethod
     X_values[5][4] = -del_xy[1][2]/scale_c_squared;
     X_values[5][5] = del_xy[0][2]/scale_c_squared;
 
-    jm_A = new JamaMatrix(X_values);
-    jm_A = jm_A.transpose();
+    try {
+      jm_A = new JamaMatrix(X_values);
+      jm_A = jm_A.transpose();
+    }
+    catch (IllegalAccessException e) {
+    }
+    catch (InstantiationException e) {
+    }
+    catch (InvocationTargetException e) {
+    }
   }
 
   public double[][] getKinematics( double[][] uv_wind )
@@ -103,9 +113,18 @@ public class LinearVectorPointMethod
     values[0][4] = uv_wind[0][2]/scale_3;
     values[0][5] = uv_wind[1][2]/scale_3;
 
-    JamaMatrix jm_b = new JamaMatrix(values);
+    JamaMatrix x = null;
+    try {
+      JamaMatrix jm_b = new JamaMatrix(values);
+      x = jm_A.solve(jm_b.transpose());
+    }
+    catch (IllegalAccessException e) {
+    }
+    catch (InstantiationException e) {
+    }
+    catch (InvocationTargetException e) {
+    }
 
-    JamaMatrix x = jm_A.solve(jm_b.transpose());
     return x.getValues();
   }
 
