@@ -46,6 +46,9 @@ public abstract class MeasureThing {
   /** Associated measurement. */
   protected Measurement m;
 
+  /** Cell that ties endpoint values to measurement values. */
+  protected CellImpl cell;
+
   /** Domain type. */
   protected RealTupleType dtype;
 
@@ -62,17 +65,25 @@ public abstract class MeasureThing {
   protected int dim;
 
   /** Constructs a MeasureThing. */
-  public MeasureThing(int len, int dim)
+  public MeasureThing(int length, int dimension)
     throws VisADException, RemoteException
   {
-    this.len = len;
-    this.dim = dim;
+    this.len = length;
+    this.dim = dimension;
     refs = new DataReferenceImpl[len];
     values = new RealTuple[len];
+    cell = new CellImpl() {
+      public void doAction() {
+        for (int i=0; i<len; i++) values[i] = (RealTuple) refs[i].getData();
+        if (m != null) m.values = values;
+      }
+    };
+    cell.disableAction();
     for (int i=0; i<len; i++) {
       refs[i] = new DataReferenceImpl("p" + i);
-      values[i] = null;
+      cell.addReference(refs[i]);
     }
+    cell.enableAction();
   }
 
   /**

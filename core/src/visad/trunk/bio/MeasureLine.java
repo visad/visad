@@ -50,20 +50,19 @@ public class MeasureLine extends MeasureThing {
   private DataReferenceImpl ref_line;
 
   /** Cell that ties line to endpoints. */
-  private CellImpl cell;
+  private CellImpl lineCell;
 
   /** Constructs a measurement object to match the given field. */
   public MeasureLine() throws VisADException, RemoteException {
     super(2, 2);
     ref_line = new DataReferenceImpl("line");
 
-    cell = new CellImpl() {
+    lineCell = new CellImpl() {
       public void doAction() {
         if (dtype == null) return;
         float[][] vals = null;
         RealTuple p1 = (RealTuple) refs[0].getData();
         RealTuple p2 = (RealTuple) refs[1].getData();
-        if (m != null) m.values = new RealTuple[] {p1, p2};
         if (p1 == null || p2 == null) return;
 
         // extract samples
@@ -100,8 +99,8 @@ public class MeasureLine extends MeasureThing {
         catch (RemoteException exc) { exc.printStackTrace(); }
       }
     };
-    cell.addReference(refs[0]);
-    cell.addReference(refs[1]);
+    lineCell.addReference(refs[0]);
+    lineCell.addReference(refs[1]);
 
     id = maxId++;
     lines.add(this);
@@ -170,6 +169,12 @@ public class MeasureLine extends MeasureThing {
   public void setMeasurement(Measurement m) {
     super.setMeasurement(m);
     if (m != null) setColor(m.color);
+  }
+
+  protected void setValues(RealTuple[] v, boolean getTypes) {
+    lineCell.disableAction();
+    super.setValues(v, getTypes);
+    lineCell.enableAction();
   }
 
 }

@@ -86,7 +86,7 @@ public class LinePool implements DisplayListener {
   /** Ensures the line pool is at least the given size. */
   public void expand(int size) {
     if (this.size == 0) {
-      System.out.println("LinePool.expand: warning: " +
+      System.err.println("LinePool.expand: warning: " +
         "Cannot expand from zero without domain type");
       return;
     }
@@ -140,9 +140,9 @@ public class LinePool implements DisplayListener {
 
     // set each reference accordingly
     expand(size);
+    lnUsed = 0;
+    ptUsed = 0;
     for (int i=0; i<size; i++) {
-      lnUsed = 0;
-      ptUsed = 0;
       if (m[i].isPoint()) {
         // measurement is a point
         MeasurePoint point = (MeasurePoint) points.elementAt(ptUsed++);
@@ -155,16 +155,16 @@ public class LinePool implements DisplayListener {
       }
     }
 
-    // hide extra lines
-    for (int i=lnUsed; i<this.size; i++) {
-      MeasureLine line = (MeasureLine) lines.elementAt(i);
-      line.hide();
-    }
-
     // hide extra points
     for (int i=ptUsed; i<this.size; i++) {
       MeasurePoint point = (MeasurePoint) points.elementAt(i);
       point.hide();
+    }
+
+    // hide extra lines
+    for (int i=lnUsed; i<this.size; i++) {
+      MeasureLine line = (MeasureLine) lines.elementAt(i);
+      line.hide();
     }
   }
 
@@ -200,8 +200,6 @@ public class LinePool implements DisplayListener {
     else if (id == DisplayEvent.MOUSE_RELEASED_LEFT &&
       x == cursor_x && y == cursor_y && (ptUsed > 0 || lnUsed > 0))
     {
-      // CTR: TODO: detect mouse clicks on points as well
-
       // get domain coordinates of mouse click
       double[] coords = cursorToDomain(pixelToCursor(x, y));
 

@@ -283,8 +283,11 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     colorList.setRenderer(new ColorRenderer());
     colorList.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
-        int index = colorList.getSelectedIndex();
-        ((MeasureLine) thing).setColor(COLORS[index]);
+        if (thing instanceof MeasureLine) {
+          MeasureLine line = (MeasureLine) thing;
+          int index = colorList.getSelectedIndex();
+          line.setColor(COLORS[index]);
+        }
       }
     });
     colorList.setEnabled(false);
