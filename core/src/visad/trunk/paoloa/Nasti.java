@@ -165,7 +165,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     }
 
     // get spectrum and types
-    spectrum_index = 0;
+    spectrum_index = nasti_range_type.getDimension() - 1;
     FunctionType spectrum_type =
       (FunctionType) nasti_range_type.getComponent(spectrum_index);
     wnum1 = (RealType) ((RealTupleType) spectrum_type.getDomain()).getComponent(0);
