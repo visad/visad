@@ -112,7 +112,7 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
   }
 
   public DataShadow prepareAction(boolean go, boolean initialize,
-                                  DataShadow shadow)
+                                  boolean force_prepare, DataShadow shadow)
          throws VisADException, RemoteException {
 
     DataDisplayLink[] Links = getLinks();
@@ -147,7 +147,7 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
                           display.getName(), time_out);
 
     // now do usual prepareAction()
-    return super.prepareAction(go, initialize, shadow);
+    return super.prepareAction(go, initialize, force_prepare, shadow);
   }
 
   /** create a scene graph for Data in links[0] */

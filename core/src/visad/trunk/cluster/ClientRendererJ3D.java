@@ -78,7 +78,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
   }
 
   public DataShadow prepareAction(boolean go, boolean initialize,
-                                  DataShadow shadow)
+                                  boolean force_prepare, DataShadow shadow)
          throws VisADException, RemoteException {
 
     Data old_data = data;
@@ -158,7 +158,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
 
 
     // now do usual prepareAction()
-    return super.prepareAction(go, initialize, shadow);
+    return super.prepareAction(go, initialize, force_prepare, shadow);
   }
 
   /** create a scene graph for Data in links[0] */
