@@ -942,6 +942,18 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
   }
 
   /**
+   * Compares this ScalarMap with another ScalarMap.
+   * @param o		The other ScalarMap.
+   * @return            A value that is negative, zero, or positive depending on
+   *                    whether this ScalarMap is considered less than, equal
+   *                    to, or greater than the other ScalarMap, respectively.
+   */
+  public int compareTo(Object o)
+  {
+    return -((ScalarMap)o).compareTo(this);
+  }
+
+  /**
    * Compares this ScalarMap with another ScalarMap.  The ScalarType-s are
    * first compared; if they compare equal, then the DisplayRealType-s are
    * compared.
@@ -950,9 +962,8 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
    *                    whether this ScalarMap is considered less than, equal
    *                    to, or greater than the other ScalarMap, respectively.
    */
-  public int compareTo(Object o)
+  protected int compareTo(ScalarMap that)
   {
-    ScalarMap	that = (ScalarMap)o;
     int		comp = getScalar().compareTo(that.getScalar());
     if (comp == 0)
       comp = getDisplayScalar().compareTo(that.getDisplayScalar());
