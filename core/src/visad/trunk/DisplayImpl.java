@@ -153,102 +153,193 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   // suck in any remote ScalarMaps
   void copyScalarMaps(RemoteDisplay rmtDpy)
   {
+    Vector m;
     try {
-      Vector m = rmtDpy.getMapVector();
-      Enumeration me = m.elements();
-      while (me.hasMoreElements()) {
-	ScalarMap sm = (ScalarMap )me.nextElement();
-	addMap(sm);
-      }
-    } catch (UnmarshalException ue) {
-      System.err.println("Couldn't copy one or more remote ScalarMaps");
+      m = rmtDpy.getMapVector();
     } catch (Exception e) {
+      System.err.println("Couldn't copy ScalarMaps");
+      return;
+    }
+
+    Enumeration me = m.elements();
+    while (me.hasMoreElements()) {
+      ScalarMap sm = (ScalarMap )me.nextElement();
+      try {
+        addMap(sm);
+      } catch (DisplayException de) {
+        try {
+          addMap(new ScalarMap(sm.getScalar(), sm.getDisplayScalar()));
+        } catch (Exception e) {
+          System.err.println("Couldn't copy remote ScalarMap " + sm);
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
   }
 
   // suck in any remote ConstantMaps
   void copyConstantMaps(RemoteDisplay rmtDpy)
   {
+    Vector c;
     try {
-      Vector c = rmtDpy.getConstantMapVector();
-      Enumeration ce = c.elements();
-      while (ce.hasMoreElements()) {
-	ConstantMap cm = (ConstantMap )ce.nextElement();
-	addMap(cm);
-      }
-    } catch (UnmarshalException ue) {
-      System.err.println("Couldn't copy one or more remote ConstantMaps");
+      c = rmtDpy.getConstantMapVector();
     } catch (Exception e) {
+      System.err.println("Couldn't copy ConstantMaps");
+      return;
+    }
+
+    Enumeration ce = c.elements();
+    while (ce.hasMoreElements()) {
+      ConstantMap cm = (ConstantMap )ce.nextElement();
+      try {
+        addMap(cm);
+      } catch (DisplayException de) {
+        try {
+          addMap(new ConstantMap(cm.getConstant(), cm.getDisplayScalar()));
+        } catch (Exception e) {
+          System.err.println("Couldn't copy remote ConstantMap " + cm);
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
   }
 
   // suck in remote GraphicsModeControl settings
   void copyGraphicsModeControl(RemoteDisplay rmtDpy)
   {
+    RemoteGraphicsModeControl rc;
     try {
-      RemoteGraphicsModeControl rc = rmtDpy.getGraphicsModeControl();
-      GraphicsModeControl gmc = getGraphicsModeControl();
-
-      gmc.setLineWidth(rc.getLineWidth());
-      gmc.setPointSize(rc.getPointSize());
-      gmc.setPointMode(rc.getPointMode());
-      gmc.setTextureEnable(rc.getTextureEnable());
-      gmc.setScaleEnable(rc.getScaleEnable());
-      gmc.setTransparencyMode(rc.getTransparencyMode());
-      gmc.setProjectionPolicy(rc.getProjectionPolicy());
+      rc = rmtDpy.getGraphicsModeControl();
     } catch (UnmarshalException ue) {
       System.err.println("Couldn't copy remote GraphicsModeControl");
+      return;
     } catch (Exception e) {
+      e.printStackTrace();
+      return;
+    }
+
+    GraphicsModeControl gmc = getGraphicsModeControl();
+
+    try {
+      gmc.setLineWidth(rc.getLineWidth());
+    } catch (Exception e) {
+      System.err.println("Couldn't copy remote GraphicsModeControl line width");
+    }
+    try {
+      gmc.setPointSize(rc.getPointSize());
+    } catch (Exception e) {
+      System.err.println("Couldn't copy remote GraphicsModeControl point size");
+    }
+    try {
+      gmc.setPointMode(rc.getPointMode());
+    } catch (Exception e) {
+      System.err.println("Couldn't copy remote GraphicsModeControl point mode");
+    }
+    try {
+      gmc.setTextureEnable(rc.getTextureEnable());
+    } catch (Exception e) {
+      System.err.println("Couldn't copy remote GraphicsModeControl texture enable");
+    }
+    try {
+      gmc.setScaleEnable(rc.getScaleEnable());
+    } catch (Exception e) {
+      System.err.println("Couldn't copy remote GraphicsModeControl scale enable");
+    }
+    try {
+      gmc.setTransparencyMode(rc.getTransparencyMode());
+    } catch (Exception e) {
+      System.err.println("Couldn't copy remote GraphicsModeControl transparency mode");
+    }
+    try {
+      gmc.setProjectionPolicy(rc.getProjectionPolicy());
+    } catch (Exception e) {
+      System.err.println("Couldn't copy remote GraphicsModeControl projection policy");
     }
   }
 
   // suck in any remote DataReferences
   void copyRefLinks(RemoteDisplay rmtDpy)
   {
+    Vector ml;
     try {
-      Vector ml = rmtDpy.getReferenceLinks();
-      Enumeration mle = ml.elements();
-      if (mle.hasMoreElements()) {
-
-	DataRenderer dr = displayRenderer.makeDefaultRenderer();
-	String defaultClass = dr.getClass().getName();
-
-	while (mle.hasMoreElements()) {
-	  RemoteReferenceLink link = (RemoteReferenceLink )mle.nextElement();
-
-	  // build array of ConstantMap values
-	  ConstantMap[] cm = null;
-	  Vector v = link.getConstantMapVector();
-	  int len = v.size();
-	  if (len > 0) {
-	    cm = new ConstantMap[len];
-	    for (int i = 0; i < len; i++) {
-	      cm[i] = (ConstantMap )v.elementAt(i);
-	    }
-	  }
-
-	  // get reference to Data object
-	  RemoteDataReference ref = link.getReference();
-
-	  // get DataRenderer class name
-	  String newClass = link.getRendererClassName();
-
-	  // build RemoteDisplayImpl to which reference is attached
-	  RemoteDisplayImpl rd = new RemoteDisplayImpl(this);
-
-	  // if this reference uses the default renderer...
-	  if (newClass.equals(defaultClass)) {
-	    rd.addReference(ref, cm);
-	  } else {
-	    Object obj = Class.forName(newClass).newInstance();
-	    DataRenderer renderer = (DataRenderer )obj;
-	    rd.addReferences(renderer, ref, cm);
-	  }
-	}
-      }
+      ml = rmtDpy.getReferenceLinks();
     } catch (UnmarshalException ue) {
-      System.err.println("Couldn't copy one or more remote DataReferences");
+      System.err.println("Couldn't copy remote DataReferences");
+      return;
     } catch (Exception e) {
+      e.printStackTrace();
+      return;
+    }
+
+    Enumeration mle = ml.elements();
+    if (mle.hasMoreElements()) {
+
+      DataRenderer dr = displayRenderer.makeDefaultRenderer();
+      String defaultClass = dr.getClass().getName();
+
+      while (mle.hasMoreElements()) {
+        RemoteReferenceLink link = (RemoteReferenceLink )mle.nextElement();
+
+        // build array of ConstantMap values
+        ConstantMap[] cm = null;
+        try {
+          Vector v = link.getConstantMapVector();
+          int len = v.size();
+          if (len > 0) {
+            cm = new ConstantMap[len];
+            for (int i = 0; i < len; i++) {
+              cm[i] = (ConstantMap )v.elementAt(i);
+            }
+          }
+        } catch (Exception e) {
+          System.err.println("Couldn't copy ConstantMaps" +
+                             " for remote DataReference");
+        }
+
+        // get reference to Data object
+        RemoteDataReference ref;
+        try {
+          ref = link.getReference();
+        } catch (Exception e) {
+          System.err.println("Couldn't copy remote DataReference");
+          ref = null;
+        }
+
+        if (ref != null) {
+
+          // get proper DataRenderer
+          DataRenderer renderer;
+          try {
+            String newClass = link.getRendererClassName();
+            if (newClass == defaultClass) {
+              renderer = null;
+            } else {
+              Object obj = Class.forName(newClass).newInstance();
+              renderer = (DataRenderer )obj;
+            }
+          } catch (Exception e) {
+            System.err.println("Couldn't copy remote DataRenderer name" +
+                               "; using " + defaultClass);
+            renderer = null;
+          }
+
+          // build RemoteDisplayImpl to which reference is attached
+          try {
+            RemoteDisplayImpl rd = new RemoteDisplayImpl(this);
+
+            // if this reference uses the default renderer...
+            if (renderer == null) {
+              rd.addReference(ref, cm);
+            } else {
+              rd.addReferences(renderer, ref, cm);
+            }
+          } catch (Exception e) {
+            System.err.println("Couldn't add remote DataReference " + ref);
+          }
+        }
+      }
     }
   }
 
