@@ -412,10 +412,10 @@ public class ExportDialog extends JPanel
             }
             data = BioUtil.makeStack(images);
             if (colors) {
-              // CTR - TODO - apply color settings to export
+              //
             }
             if (align) {
-              // CTR - TODO - apply alignment settings to export
+              //
             }
 
             // save image stack data to file

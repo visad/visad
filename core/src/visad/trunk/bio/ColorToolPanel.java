@@ -567,6 +567,7 @@ public class ColorToolPanel extends ToolPanel
       Util.invoke(false, new Runnable() {
         public void run() {
           ignoreColorRange = true;
+          fixed.setSelected(bio.sm.isFixedColorRange(ndx));
           double[] d = bio.sm.getColorRange(ndx);
           loVal.setText(Convert.shortString(d[0]));
           hiVal.setText(Convert.shortString(d[1]));

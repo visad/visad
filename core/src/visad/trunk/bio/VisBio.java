@@ -26,7 +26,7 @@ MA 02111-1307, USA
 
 package visad.bio;
 
-import ij.ImagePlus;
+import ij.*;
 import ij.io.FileSaver;
 import java.awt.*;
 import java.awt.event.*;
@@ -247,9 +247,10 @@ public class VisBio extends GUIFrame implements ChangeListener {
     addMenuItem("File", "Restore state...", "fileRestore", 'r');
     addMenuItem("File", "Save state...", "fileSave", 's');
     addMenuSeparator("File");
-    addMenuItem("File", "Take snapshot...", "fileSnap", 's');
+    addMenuItem("File", "Take snapshot...", "fileSnap", 't');
+    addMenuItem("File", "Send snapshot to ImageJ", "fileImageJ", 'n');
     addMenuSeparator("File");
-    addMenuItem("File", "Options...", "fileOptions", 't');
+    addMenuItem("File", "Options...", "fileOptions", 'p');
     addMenuSeparator("File");
     addMenuItem("File", "Exit", "fileExit", 'x');
     fileExport.setEnabled(false);
@@ -608,6 +609,33 @@ public class VisBio extends GUIFrame implements ChangeListener {
     state.saveState();
   }
 
+  /** Gets a snapshot of the current displays. */
+  public Image getSnapshot() {
+    boolean has2 = display2.getComponent().isVisible();
+    boolean has3 = display3 != null && display3.getComponent().isVisible();
+    BufferedImage image2 = has2 ? display2.getImage() : null;
+    BufferedImage image3 = has3 ? display3.getImage() : null;
+    int w2 = 0, h2 = 0, w3 = 0, h3 = 0;
+    int type = BufferedImage.TYPE_INT_RGB;
+    if (!has2 && !has3) w2 = h2 = 1;
+    if (has2) {
+      w2 = image2.getWidth();
+      h2 = image2.getHeight();
+      type = image2.getType();
+    }
+    if (has3) {
+      w3 = image3.getWidth();
+      h3 = image3.getHeight();
+      type = image3.getType();
+    }
+    BufferedImage img = new BufferedImage(w2 > w3 ? w2 : w3, h2 + h3, type);
+    Graphics g = img.createGraphics();
+    if (has2) g.drawImage(image2, 0, 0, null);
+    if (has3) g.drawImage(image3, 0, h2, null);
+    g.dispose();
+    return img;
+  }
+
 
   // -- MENU COMMANDS --
 
@@ -674,7 +702,6 @@ public class VisBio extends GUIFrame implements ChangeListener {
   public void fileSnap() {
     int rval = snapBox.showSaveDialog(this);
     if (rval != JFileChooser.APPROVE_OPTION) return;
-
     setWaitCursor(true);
 
     // determine file type
@@ -693,46 +720,32 @@ public class VisBio extends GUIFrame implements ChangeListener {
       return;
     }
 
-    // construct output image
-    final boolean has2 = display2.getComponent().isVisible();
-    final boolean has3 = display3 != null &&
-      display3.getComponent().isVisible();
-    if (!has2 && !has3) {
-      setWaitCursor(false);
-      JOptionPane.showMessageDialog(this, "No displays are visible.",
-        "Cannot export snapshot", JOptionPane.ERROR_MESSAGE);
-      return;
-    }
-
     Thread t = new Thread(new Runnable() {
       public void run() {
-        BufferedImage image2 = has2 ? display2.getImage() : null;
-        BufferedImage image3 = has3 ? display3.getImage() : null;
-        int w2 = 0, h2 = 0, w3 = 0, h3 = 0;
-        int type = BufferedImage.TYPE_INT_RGB;
-        if (has2) {
-          w2 = image2.getWidth();
-          h2 = image2.getHeight();
-          type = image2.getType();
-        }
-        if (has3) {
-          w3 = image3.getWidth();
-          h3 = image3.getHeight();
-          type = image3.getType();
-        }
-        BufferedImage img = new BufferedImage(
-          w2 > w3 ? w2 : w3, h2 + h3, type);
-        Graphics g = img.createGraphics();
-        if (has2) g.drawImage(image2, 0, 0, null);
-        if (has3) g.drawImage(image3, 0, h2, null);
-        g.dispose();
-
-        // save image to disk
-        FileSaver saver = new FileSaver(new ImagePlus("null", img));
+        FileSaver saver = new FileSaver(new ImagePlus("null", getSnapshot()));
         if (tiff) saver.saveAsTiff(file);
         else if (jpeg) saver.saveAsJpeg(file);
         else if (raw) saver.saveAsRaw(file);
+        setWaitCursor(false);
+      }
+    });
+    t.start();
+  }
 
+  /** Sends a snapshot of the displays to ImageJ. */
+  public void fileImageJ() {
+    setWaitCursor(true);
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        ImageJ ij = IJ.getInstance();
+        if (ij == null || (ij != null && !ij.isShowing())) {
+          File dir = new File(System.getProperty("user.dir"));
+          File new_dir = new File(dir.getParentFile().getParentFile(), "ij");
+          System.setProperty("user.dir", new_dir.getPath());
+          new ImageJ(null);
+          System.setProperty("user.dir", dir.getPath());
+        }
+        new ImagePlus("VisBio snapshot", getSnapshot()).show();
         setWaitCursor(false);
       }
     });

@@ -635,6 +635,11 @@ public class SliceManager implements ControlListener,
       boolean threeD = bio.display3 != null;
       fout.println(threeD);
       for (int i=0; i<widgets.length; i++) {
+        // range
+        double[] range = rmaps2[i].getRange();
+        fout.println(rmaps2[i].isAutoScale());
+        fout.println(range[0]);
+        fout.println(range[1]);
         // 2-D color table
         BaseColorControl cc2 = (BaseColorControl) rmaps2[i].getControl();
         String save = cc2.getSaveString();
@@ -689,8 +694,14 @@ public class SliceManager implements ControlListener,
     if (widgets != null) {
       boolean threeD = fin.readLine().trim().equals("true");
       for (int i=0; i<widgets.length; i++) {
-        BaseColorControl cc2 = (BaseColorControl) rmaps2[i].getControl();
+        // range
+        boolean autoScale = fin.readLine().trim().equals("true");
+        double lo = Double.parseDouble(fin.readLine().trim());
+        double hi = Double.parseDouble(fin.readLine().trim());
+        setColorRange(i, autoScale, lo, hi);
+        if (i == 0) bio.toolColor.updateColorRangeFields();
         // 2-D table
+        BaseColorControl cc2 = (BaseColorControl) rmaps2[i].getControl();
         int slen = Integer.parseInt(fin.readLine().trim());
         char[] c = new char[slen];
         fin.read(c, 0, slen);
