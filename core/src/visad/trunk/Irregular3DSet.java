@@ -558,7 +558,7 @@ public class Irregular3DSet extends IrregularSet {
       throw new SetException("Irregular3DSet.valueToInterp:"
                             +" lengths don't match");
     }
-    System.out.println("value: "+value[0][0]+", "+value[1][0]+", "+value[2][0]);
+    // System.out.println("value: "+value[0][0]+", "+value[1][0]+", "+value[2][0]);
     int[] tri = valueToTri(value);
     for (int i=0; i<tri.length; i++) {
       if (tri[i] < 0) {
