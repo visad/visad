@@ -112,6 +112,11 @@ public class MetUnits {
     else if (in.equalsIgnoreCase("kgkg")) { out = "kg/kg"; }
     else if (in.equalsIgnoreCase("psps")) { out = "s^-1"; }
     else if (in.equalsIgnoreCase("kps"))  { out = "K/s"; }
+    else if (in.equalsIgnoreCase("k ft")) { out ="k ft"; }
+    else if (in.equalsIgnoreCase("1/sr"))  { out = "sr-1"; }
+    else if (in.equalsIgnoreCase("mw**"))  { out = "mW/m^2/sr/cm-1"; }
+    else if (in.equalsIgnoreCase("wm**"))  { out = "W/m^2/sr/micron"; }
+    else if (in.equalsIgnoreCase("wp**"))  { out = "W/m^2/sr"; }
 
     return out;
   }
