@@ -1315,6 +1315,10 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       if (flen[0] > 0) fillOut(flow1_values, len);
       if (flen[1] > 0) fillOut(flow2_values, len);
 
+//
+// need to account for spatial setRange scaling in flow
+//
+
       // compute and transform 'end points' of flow vectors
       float[][][] vector_ends = new float[2][][];
       for (int k=0; k<2; k++) {
