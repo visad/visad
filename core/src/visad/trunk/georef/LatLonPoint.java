@@ -39,14 +39,14 @@ public interface LatLonPoint extends Data
      *
      * @return  Real representing the latitude
      */
-    public Real getLatitude();
+    Real getLatitude();
 
     /**
      * Get the longitude of this point
      *
      * @return  Real representing the longitude
      */
-    public Real getLongitude();
+    Real getLongitude();
 
     /**
      * See if this LatLonPoint is equal to the object in question.
@@ -55,5 +55,5 @@ public interface LatLonPoint extends Data
      *
      * @param  obj  object in question
      */
-    public boolean equals(Object obj);
+    boolean equals(Object obj);
 }

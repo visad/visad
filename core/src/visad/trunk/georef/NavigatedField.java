@@ -40,5 +40,5 @@ public interface NavigatedField extends Field
      *
      * @return NavigatedCoordinateSystem for the domain of this field.
      */
-    public NavigatedCoordinateSystem getNavigation();
+    NavigatedCoordinateSystem getNavigation();
 }

@@ -43,12 +43,12 @@ public interface NamedLocation extends EarthLocation
      *
      * @return  Text whose getValue() method returns the identifier
      */
-    public Text getIdentifier();
+    Text getIdentifier();
 
     /**
      * Get the lat/lon/altitude as an EarthLocation.
      *
      * @return  EarthLocation for this object
      */
-    public EarthLocation getEarthLocation();
+    EarthLocation getEarthLocation();
 }

@@ -39,12 +39,12 @@ public interface EarthLocation extends LatLonPoint
      *
      * @return  Real representing the latitude
      */
-    public Real getAltitude();
+    Real getAltitude();
 
     /**
      * Get the latitude/longitude of this point as a LatLonPoint
      *
      * @return  LatLonPoint representing the latitude/longitude
      */
-    public LatLonPoint getLatLonPoint();
+    LatLonPoint getLatLonPoint();
 }
