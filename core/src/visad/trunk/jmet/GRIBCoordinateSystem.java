@@ -36,30 +36,59 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
   private double spacing;
   private boolean isLambert=false;
   private boolean isLatLon=false;
+  private boolean isPolarStereo=false;
   private double La1, Lo1, LoMax, Di, Dj;
   private double aspectRatio = 1.0;
+  //private double earth = 6367470.0;
   private double[] range;
 
   /**
-   * Constructor for a Lambert conformal (GRIB type code = 3) with
+   * Constructor for a Polar Stereographic (GRIB type code = 5) with
    * RealTupleType.LatitudeLongitudeTuple as a reference.
    *
    * @param  gridTypeCode    GRIB-1 grid type
-   * @param  La1             latitude of first grid point
-   * @param  Lo1             longitude of first grid point
-   * @param  DxDy            ?
-   * @param  Latin1          first intersecting latitude
-   * @param  Latin2          second intersecting latitude
-   * @param  lov             orientation of the grid
+   * @param  La1             latitude of first grid point (degrees)
+   * @param  Lo1             longitude of first grid point (degrees)
+   * @param  DxDy            spacing between grid points at 60N
+   * @param  lov             orientation of the grid (degrees)
    *
    * @exception VisADException  couldn't create the necessary VisAD object
    */
-  public GRIBCoordinateSystem(int gridTypeCode,
-    double La1, double Lo1, double DxDy,
-    double Latin1, double Latin2, double Lov)
+  public GRIBCoordinateSystem(int gridTypeCode, 
+    double La1, double Lo1, double DxDy, double lov)
                    throws VisADException {
-    this(RealTupleType.LatitudeLongitudeTuple, gridTypeCode,
-         La1, Lo1, DxDy, Latin1, Latin2, Lov);
+    this(RealTupleType.LatitudeLongitudeTuple, gridTypeCode, 
+         La1, Lo1, DxDy, lov);
+  }
+
+  /**
+   * Constructor for a Polar Stereographic (GRIB type code = 5) with
+   * RealTupleType.LatitudeLongitudeTuple as a reference.
+   *
+   * @param  ref             reference RealTupleType (should be lat/lon)
+   * @param  gridTypeCode    GRIB-1 grid type
+   * @param  La1             latitude of first grid point (degrees)
+   * @param  Lo1             longitude of first grid point (degrees)
+   * @param  DxDy            spacing between grid points at 60N
+   * @param  lov             orientation of the grid (degrees)
+   *
+   * @exception VisADException  couldn't create the necessary VisAD object
+   */
+  public GRIBCoordinateSystem(RealTupleType ref, int gridTypeCode,
+    double La1, double Lo1, double DxDy, double lov)
+                   throws VisADException {
+
+    super(ref, coordinate_system_units);
+
+    if (gridTypeCode == 5) {
+      doPolarStereo(ref, 2, 2, La1, Lo1, DxDy, lov); 
+    } else {
+
+        System.out.println("GRIB Grid type not Polar Stereographic = "+
+                                            gridTypeCode);
+        throw new VisADException
+               ("Invalid grid type for PolarStereographic = "+gridTypeCode);
+    }
   }
 
   /**
@@ -67,12 +96,12 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
    *
    * @param  ref             reference RealTupleType (should be lat/lon)
    * @param  gridTypeCode    GRIB-1 grid type
-   * @param  La1             latitude of first grid point
-   * @param  Lo1             longitude of first grid point
+   * @param  La1             latitude of first grid point (degrees)
+   * @param  Lo1             longitude of first grid point (degrees)
    * @param  DxDy            ?
-   * @param  Latin1          first intersecting latitude
-   * @param  Latin2          second intersecting latitude
-   * @param  lov             orientation of the grid
+   * @param  Latin1          first intersecting latitude (degrees)
+   * @param  Latin2          second intersecting latitude (degrees)
+   * @param  lov             orientation of the grid (degrees)
    *
    * @exception VisADException  couldn't create the necessary VisAD object
    */
@@ -81,16 +110,30 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
     double Latin1, double Latin2, double Lov)
                    throws VisADException {
 
-    super(ref, coordinate_system_units);
+    this(ref, gridTypeCode, 2, 2,
+         La1, Lo1, DxDy, Latin1, Latin2, Lov);
+  }
 
-    if (gridTypeCode == 3) {
-      doLambert(ref, La1, Lo1, DxDy, Latin1, Latin2, Lov);
-
-      } else {
-        System.out.println("GRIB Grid type not Lambert = "+gridTypeCode);
-        throw new VisADException
-               ("Invalid grid type for Lambert = "+gridTypeCode);
-      }
+  /**
+   * Constructor for a Lambert conformal (GRIB type code = 3) with
+   * RealTupleType.LatitudeLongitudeTuple as a reference.
+   *
+   * @param  gridTypeCode    GRIB-1 grid type
+   * @param  La1             latitude of first grid point (degrees)
+   * @param  Lo1             longitude of first grid point (degrees)
+   * @param  DxDy            ?
+   * @param  Latin1          first intersecting latitude (degrees)
+   * @param  Latin2          second intersecting latitude (degrees)
+   * @param  lov             orientation of the grid (degrees)
+   *
+   * @exception VisADException  couldn't create the necessary VisAD object
+   */
+  public GRIBCoordinateSystem(int gridTypeCode,
+    double La1, double Lo1, double DxDy,
+    double Latin1, double Latin2, double Lov)
+                   throws VisADException {
+    this(RealTupleType.LatitudeLongitudeTuple, gridTypeCode, 2, 2,
+         La1, Lo1, DxDy, Latin1, Latin2, Lov);
   }
 
   /**
@@ -100,18 +143,19 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
    * @param  gridTypeNumber  GRIB-1 grid type
    * @param  Ni              number of points along a latitude circle
    * @param  Nj              number of points along a longitude circle
-   * @param  La1             latitude of first grid point
-   * @param  Lo1             longitude of first grid point
-   * @param  La1             latitude of last grid point
-   * @param  Lo1             longitude of last grid point
-   * @param  Di              longitudinal direction increment
-   * @param  Dj              latitudinal direction increment
+   * @param  La1             latitude of first grid point (degrees)
+   * @param  Lo1             longitude of first grid point (degrees)
+   * @param  La1             latitude of last grid point (degrees)
+   * @param  Lo1             longitude of last grid point (degrees)
+   * @param  Di              longitudinal direction increment (degrees)
+   * @param  Dj              latitudinal direction increment (degrees)
    *
    * @exception VisADException  couldn't create the necessary VisAD object
    */
   public GRIBCoordinateSystem(int gridTypeCode,
     int Ni, int Nj, double La1, double Lo1, double La2, double Lo2,
     double Di, double Dj) throws VisADException {
+
     this(RealTupleType.LatitudeLongitudeTuple, gridTypeCode,
          Ni, Nj, La1, Lo1, La2, Lo2,  Di, Dj);
   }
@@ -124,12 +168,12 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
    * @param  gridTypeNumber  GRIB-1 grid type
    * @param  Ni              number of points along a latitude circle
    * @param  Nj              number of points along a longitude circle
-   * @param  La1             latitude of first grid point
-   * @param  Lo1             longitude of first grid point
-   * @param  La1             latitude of last grid point
-   * @param  Lo1             longitude of last grid point
-   * @param  Di              longitudinal direction increment
-   * @param  Dj              latitudinal direction increment
+   * @param  La1             latitude of first grid point (degrees)
+   * @param  Lo1             longitude of first grid point (degrees)
+   * @param  La1             latitude of last grid point (degrees)
+   * @param  Lo1             longitude of last grid point (degrees)
+   * @param  Di              longitudinal direction increment (degrees)
+   * @param  Dj              latitudinal direction increment (degrees)
    *
    * @exception VisADException  couldn't create the necessary VisAD object
    */
@@ -176,43 +220,30 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
     super(ref, coordinate_system_units);
     range = new double[4];
 
-    if (gridNumber == 211) {
+    if (gridNumber == 201) {
+      doPolarStereo(ref, 65,65,-20.826, -150.0, 381.0, -105.0);
 
-      doLambert(ref, 12.190, -133.459, 81.2705, 25.0, 25.0, -95.0);
-      //range = new Rectangle2D.Double(0.0, 0.0, 93., 65.);
-      range[0] = 0.0;
-      range[1] = 0.0;
-      range[2] = 93.0;
-      range[3] = 65.0;
+    } else if (gridNumber == 202) {
+      doPolarStereo(ref, 65,43, 7.838, -141.028, 190.5, -105.0);
+
+
+    } else if (gridNumber == 203) {
+      doPolarStereo(ref, 45,39, 19.132, -185.837, 190.5, -150.0);
+
+    } else if (gridNumber == 211) {
+      doLambert(ref, 93, 65, 12.190, -133.459, 81.2705, 25.0, 25.0, -95.0);
 
     } else if (gridNumber == 212) {
-
-      doLambert(ref, 12.190, -133.459, 40.63525, 25.0, 25.0, -95.0);
-      //range = new Rectangle2D.Double(0.0, 0.0, 185., 129.);
-      range[0] = 0.0;
-      range[1] = 0.0;
-      range[2] = 185.0;
-      range[3] = 129.0;
+      doLambert(ref, 185, 129, 12.190, -133.459, 40.63525, 25.0, 25.0, -95.0);
 
     } else if (gridNumber == 215) {
-
-      doLambert(ref, 12.190, -133.459, 20.317625, 25.0, 25.0, -95.0);
-      //range = new Rectangle2D.Double(0.0, 0.0, 369., 257.);
-      range[0] = 0.0;
-      range[1] = 0.0;
-      range[2] = 369.0;
-      range[3] = 257.0;
+      doLambert(ref, 369, 257, 12.190, -133.459, 20.317625, 25.0, 25.0, -95.0);
 
     } else if (gridNumber == 236) {
-
-      doLambert(ref, 16.281, 233.862, 40.635, 25.0, 25.0, 265.0);
-      //range = new Rectangle2D.Double(0.0, 0.0, 151., 113.);
-      range[0] = 0.0;
-      range[1] = 0.0;
-      range[2] = 151.0;
-      range[3] = 113.0;
+      doLambert(ref, 151, 113, 16.281, 233.862, 40.635, 25.0, 25.0, 265.0);
 
     } else {
+
         System.out.println("GRIB Grid type unknown = "+gridNumber);
         throw new VisADException("Unknown grid number = "+gridNumber);
     }
@@ -235,21 +266,38 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
      range = new double[4];
      range[0] = 0.0;
      range[1] = 0.0;
-     range[2] = (double)Ni;
-     range[3] = (double)Nj;
-
-     //System.out.println("la1, lo1, ,LoMax, di, dj ="+La1+" "+Lo1+" "+LoMax+" "+ Di+" "+Dj);
-
+     range[2] = (double)(Ni-1);
+     range[3] = (double)(Nj-1);
   }
 
-  private void doLambert( RealTupleType ref, double La1, double Lo1,
-      double DxDy, double Latin1, double Latin2, double Lov) throws
-      VisADException {
+  private void doPolarStereo( RealTupleType ref, int Nx, int Ny, 
+      double La1, double Lo1, double DxDy, double Lov) throws VisADException {
+
+    isPolarStereo = true;
+    spacing = DxDy * 1000.0;
+    aspectRatio = 1.0;
+    range[0] = 0.0;
+    range[1] = 0.0;
+    range[2] = (double)(Nx-1);
+    range[3] = (double)(Ny-1);
+
+    c = PolarStereographic.makePolarStereographic( ref,
+         La1*Data.DEGREES_TO_RADIANS, Lo1*Data.DEGREES_TO_RADIANS,
+         Lov*Data.DEGREES_TO_RADIANS);
+  }    
+
+  private void doLambert( RealTupleType ref, int Nx, int Ny, double La1, 
+     double Lo1, double DxDy, double Latin1, double Latin2, double Lov) 
+              throws VisADException {
 
     isLambert = true;
     spacing = DxDy*1000.0;
     double earth = 6371230.0;
     aspectRatio = 1.0;
+    range[0] = 0.0;
+    range[1] = 0.0;
+    range[2] = (double)(Nx-1);
+    range[3] = (double)(Ny-1);
 
     c = new LambertConformalConic(ref,
       earth, earth,
@@ -288,7 +336,7 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
              "toReference: tuples wrong dimension");
     }
 
-    if (isLambert) {
+    if (isLambert || isPolarStereo) {
       for (int i=0; i<tuples[0].length; i++) {
         tuples[0][i] = tuples[0][i]*spacing;
         tuples[1][i] = tuples[1][i]*spacing;
@@ -335,7 +383,7 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
              "toReference: tuples wrong dimension");
     }
 
-    if (isLambert) {
+    if (isLambert || isPolarStereo) {
 
       for (int i=0; i<tuples[0].length; i++) {
         double t = tuples[0][i]*Data.DEGREES_TO_RADIANS;
@@ -372,7 +420,7 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
 
   }
 
-  /** determine if the CoordSys in question is an GRIBCoordinateSystem
+  /** determine if the Coordinate System in question is an GRIBCoordinateSystem
   *
   */
   public boolean equals(Object cs) {
@@ -386,12 +434,16 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
     return new Rectangle2D.Double(range[0], range[1], range[2], range[3]); 
   }
 
+  /** return the ratio of the grid spacing between rows and columns
+  */
   public double getAspectRatio() {
     return aspectRatio;
   }
 
+  /** find out if the specified grid number (GRIB code) is known
+  */
   public static boolean isGridNumberKnown(int gridNumber) {
-    final int[] knownGrids = {211,212,215,236};
+    final int[] knownGrids = {201,202,203,211,212,215,236};
     for (int i=0; i<knownGrids.length; i++) {
       if (knownGrids[i] == gridNumber) return (true);
     }
@@ -402,42 +454,78 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
 
   public static void main(String args[] ) {
     try {
-    RealTupleType ref = new RealTupleType
-         (RealType.Latitude, RealType.Longitude);
+      RealTupleType ref = new RealTupleType
+           (RealType.Latitude, RealType.Longitude);
 
-    GRIBCoordinateSystem nc = new GRIBCoordinateSystem(211);
-    System.out.println("isSerializable? "+
-                visad.util.DataUtility.isSerializable(nc,true));
+      GRIBCoordinateSystem nc = new GRIBCoordinateSystem(211);
+      System.out.println("isSerializable? "+
+                  visad.util.DataUtility.isSerializable(nc,true));
 
-    double[][] latlon = new double[2][1];
-    double[][] xy = new double[2][1];
+      double[][] latlon = new double[2][1];
+      double[][] xy = new double[2][1];
 
-    xy[0][0] = 53.;
-    xy[1][0] = 25.;
+      xy[0][0] = 92.;
+      xy[1][0] = 64.;
 
-    latlon = nc.toReference(xy);
-    System.out.println(" (53,25) lat="+latlon[0][0]+" lon="+latlon[1][0]);
+      latlon = nc.toReference(xy);
+      System.out.println(" (93,65) lat="+latlon[0][0]+" lon="+latlon[1][0]);
 
-    // first, the (1,1) point...
-    latlon[0][0] = 12.190;        // lat
-    latlon[1][0] = -133.459;      // lon
+      // first, the (1,1) point...
+      latlon[0][0] = 12.190;        // lat
+      latlon[1][0] = -133.459;      // lon
 
-    xy = nc.fromReference(latlon);
-    System.out.println(" at (1,1) x="+xy[0][0]+" y="+xy[1][0]);
-    //now the upper right..
-    latlon[0][0] = 57.290;       // lat
-    latlon[1][0] = -49.385;      // lon
+      xy = nc.fromReference(latlon);
+      System.out.println(" at (1,1) x="+xy[0][0]+" y="+xy[1][0]);
+      //now the upper right..
+      latlon[0][0] = 57.290;       // lat
+      latlon[1][0] = -49.385;      // lon
 
-    xy = nc.fromReference(latlon);
-    System.out.println(" max row/col x="+xy[0][0]+" y="+xy[1][0]);
+      xy = nc.fromReference(latlon);
+      System.out.println(" max row/col x="+xy[0][0]+" y="+xy[1][0]);
 
-    //now the given point at 35n, 95w
+      //now the given point at 35n, 95w
 
-    latlon[0][0] = 35.;        // lat
-    latlon[1][0] = -95.;       // lon
+      latlon[0][0] = 35.;        // lat
+      latlon[1][0] = -95.;       // lon
 
-    xy = nc.fromReference(latlon);
-    System.out.println(" at 35N/95W x="+xy[0][0]+" y="+xy[1][0]);
+      xy = nc.fromReference(latlon);
+      System.out.println(" at 35N/95W x="+xy[0][0]+" y="+xy[1][0]);
+
+
+      nc = new GRIBCoordinateSystem(202);
+      System.out.println("PolarStereo.......isSerializable? "+
+                  visad.util.DataUtility.isSerializable(nc,true));
+
+      latlon = new double[2][1];
+      xy = new double[2][1];
+
+      xy[0][0] = 64.;
+      xy[1][0] = 42.;
+
+      latlon = nc.toReference(xy);
+      System.out.println(" (65,42) lat="+latlon[0][0]+" lon="+latlon[1][0]);
+
+      // first, the (1,1) point...
+      latlon[0][0] = 7.838;        // lat
+      latlon[1][0] = -1141.028;      // lon
+
+      xy = nc.fromReference(latlon);
+      System.out.println(" at (1,1) x="+xy[0][0]+" y="+xy[1][0]);
+
+      //now the upper right..
+      latlon[0][0] = 35.617;       // lat
+      latlon[1][0] = -18.576;      // lon
+
+      xy = nc.fromReference(latlon);
+      System.out.println(" max row/col x="+xy[0][0]+" y="+xy[1][0]);
+
+      //now the given point at 35n, 95w
+
+      latlon[0][0] = 35.;        // lat
+      latlon[1][0] = -95.;       // lon
+
+      xy = nc.fromReference(latlon);
+      System.out.println(" at 35N/95W x="+xy[0][0]+" y="+xy[1][0]);
     } catch (Exception e) {e.printStackTrace();}
 
   }
