@@ -398,7 +398,7 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 2:" +
                        !display.getGraphicsModeControl().getPointMode();
 
         curvedTexture = getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD &&
-                        Domain.getDimension() == 2 &&
+                        // Domain.getDimension() == 2 &&   WLH 22 Aug 2002 Lak's bug
                         Domain.getAllSpatial() &&
                         checkSpatialOffsetColorAlphaRange(Domain.getDisplayIndices()) &&
                         checkSpatialOffsetColorAlphaRange(Range.getDisplayIndices()) &&
@@ -679,9 +679,12 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
                             default_values[alpha_index] > 0.99 &&
                             renderer.isLegalTextureMap() &&
                             domain_set.getManifoldDimension() == 2 &&
+                            domain_set instanceof GriddedSet; // WLH 22 Aug 2002 Lak's bug
+/* // WLH 22 Aug 2002 Lak's bug
                             (domain_set instanceof Gridded2DSet ||
                              (domain_set instanceof GriddedSet &&
                               domain_set.getDimension() == 2));
+*/
     boolean domainOnlySpatial =
       Domain.getAllSpatial() && !Domain.getMultipleDisplayScalar();
 
