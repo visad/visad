@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.9 1998-06-17 20:30:40 visad Exp $
+ * $Id: NetcdfAdapter.java,v 1.10 1998-08-10 16:53:32 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -300,6 +300,36 @@ NetcdfAdapter
 
 
     /**
+     * Return the netCDF dataset.
+     */
+    protected Netcdf
+    getNetcdf()
+    {
+	return netcdf;
+    }
+
+
+    /**
+     * Return the netCDF data objects in the netCDF datset.
+     */
+    protected Map
+    getMap()
+    {
+	return map;
+    }
+
+
+    /**
+     * Return the outermost, netCDF data object.
+     */
+    protected NcData
+    getNcData()
+    {
+	return ncData;
+    }
+
+
+    /**
      * Test this class.
      *
      * @param args		File pathnames.
@@ -330,35 +360,5 @@ NetcdfAdapter
 		((FieldImpl)data).getDomainSet());
 	    System.out.println("Data:\n" + data);
 	}
-    }
-
-
-    /**
-     * Return the netCDF dataset.
-     */
-    protected Netcdf
-    getNetcdf()
-    {
-	return netcdf;
-    }
-
-
-    /**
-     * Return the netCDF data objects in the netCDF datset.
-     */
-    protected Map
-    getMap()
-    {
-	return map;
-    }
-
-
-    /**
-     * Return the outermost, netCDF data object.
-     */
-    protected NcData
-    getNcData()
-    {
-	return ncData;
     }
 }
