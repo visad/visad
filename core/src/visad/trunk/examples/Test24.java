@@ -20,9 +20,14 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
+import java.awt.Component;
+
 import java.rmi.RemoteException;
 
 import visad.*;
+
+import visad.util.ColorMapWidget;
+import visad.util.LabeledColorWidget;
 
 import visad.java3d.DisplayImplJ3D;
 
@@ -67,6 +72,23 @@ public class Test24
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
     dpys[0].addReference(ref_imaget1, null);
+  }
+
+  void setupUI(LocalDisplay[] dpys)
+    throws RemoteException, VisADException
+  {
+    super.setupUI(dpys);
+    ScalarMap colorMap = (ScalarMap )dpys[0].getMapVector().lastElement();
+    ColorControl control = (ColorControl) colorMap.getControl();
+    int size = 256;
+    float[][] table = new float[3][size];
+    final float scale = 1.0f / (size - 1.0f);
+    for (int i=0; i<size; i++) {
+      table[0][i] = 360.0f * scale * i;
+      table[1][i] = scale * i;
+      table[2][i] = scale * i;
+    }
+    control.setTable(table);
   }
 
   public String toString() { return ": HSV"; }
