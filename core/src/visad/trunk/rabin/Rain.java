@@ -41,7 +41,8 @@ public class Rain implements ActionListener, ControlListener {
       this Rain is a client if client_server != null */
   RemoteServer client_server = null;
 
-  static boolean twod = false;
+  /** whether to use Java2D or Java3D */
+  boolean twod = false;
 
   static final int N_COLUMNS = 3;
   static final int N_ROWS = 4;
@@ -58,29 +59,31 @@ public class Rain implements ActionListener, ControlListener {
   static final boolean[][] display_done =
     new boolean[N_ROWS][N_COLUMNS];
 
-  static String[][] cell_names =
+  static final String[][] cell_names =
     {{"A1", "B1", "C1"}, {"A2", "B2", "C2"},
      {"A3", "B3", "C3"}, {"A4", "B4", "C4"}};
 
-  static String[][] cell_formulas =
-    {{"", "A1[0]",
-      "(10^(B1(0)/10)/300)^(1/1.4)"},
-     {"(10^(B1(1)/10)/300)^(1/1.4)",
-      "(10^(B1(2)/10)/300)^(1/1.4)",
-      "(10^(B1(3)/10)/300)^(1/1.4)"},
-     {"(10^(B1(4)/10)/300)^(1/1.4)",
-      "(10^(B1(5)/10)/300)^(1/1.4)",
-      "(10*C1+10*A2+10*B2+10*C2+10*A3+3*B3)/53"},
-     {"B1(6)", "B1(7)", "B1(8)"}};
+  static final String[][] cell_formulas =
+    {{"", "getSample(A1, 0)", // CTR: B1 will be "A1[0]"
+      "(10^(extract(B1, 0)/10)/num300) ^ (1/num1_4)"},
+     {"(10^(extract(B1, 1)/10)/num300) ^ (1/num1_4)",
+      "(10^(extract(B1, 2)/10)/num300) ^ (1/num1_4)",
+      "(10^(extract(B1, 3)/10)/num300) ^ (1/num1_4)"},
+     {"(10^(extract(B1, 4)/10)/num300) ^ (1/num1_4)",
+      "(10^(extract(B1, 5)/10)/num300) ^ (1/num1_4)",
+      "(10*C1 + 10*A2 + 10*B2 + 10*C2 + 10*A3 + 3*B3)/53"},
+     {"extract(B1, 6)", "extract(B1, 7)", "extract(B1, 8)"}};
 
-  static JLabel[][] cell_fields = new JLabel[N_ROWS][N_COLUMNS];
+  JLabel[][] cell_fields = new JLabel[N_ROWS][N_COLUMNS];
 
+/* CTR: 20 Apr 1999
   static final Real ten = new Real(10.0);
   static final Real one = new Real(1.0);
   static final Real three = new Real(3.0);
   static final Real fifty_three = new Real(53.0);
+*/
 
-  /** the width and height of the UI frame */
+  /** width and height of the UI frame */
   static final int WIDTH = 1100;
   static final int HEIGHT = 900;
 
@@ -88,36 +91,39 @@ public class Rain implements ActionListener, ControlListener {
   static final double MAX = 300.0;
   static final double MAXC4 = 10.0;
 
-  /** remoted DataReferences */
-  static DataReference ref300 = null;
-  static DataReference ref1_4 = null;
-  static DataReference refMAX = null;
-  static DataReference ref_cursor = null;
-  static DataReference ref_vis5d = null;
-  static DataReference ref_projection = null;
-  static DataReference ref_colorC1 = null;
-  static DataReference ref_colorC4 = null;
-
-  static LabeledRGBWidget color_widgetC1 = null;
-  static LabeledRGBWidget color_widgetC4 = null;
-  static ColorControl color_controlC1 = null;
-  static ColorControl color_controlC4 = null;
-  static ColorControl[][] color_controls = new ColorControl[N_ROWS][N_COLUMNS];
-  static ProjectionControl[][] projection_controls =
-    new ProjectionControl[N_ROWS][N_COLUMNS];
-  static ScalarMap color_mapC1 = null;
-  static ScalarMap color_mapC4 = null;
-  static ScalarMap[][] color_maps = new ScalarMap[N_ROWS][N_COLUMNS];
-
-  static boolean in_proj = false;
-
-  static RealTupleType cursor_type = null;
-
   static final int DELAY = 300;
 
-  static Rain rain = null;
+  /** remoted DataReferences */
+  DataReference ref300 = null;
+  DataReference ref1_4 = null;
+  DataReference refMAX = null;
+  DataReference ref_cursor = null;
+  DataReference ref_vis5d = null;
+  DataReference ref_projection = null;
+  DataReference ref_colorC1 = null;
+  DataReference ref_colorC4 = null;
+  DataReference[][] cell_text = new DataReference[N_ROWS][N_COLUMNS];
 
-  private FormulaManager f_manager = null;
+  /** widgets and controls */
+  VisADSlider slider300;
+  LabeledRGBWidget color_widgetC1 = null;
+  LabeledRGBWidget color_widgetC4 = null;
+  ColorControl color_controlC1 = null;
+  ColorControl color_controlC4 = null;
+  ColorControl[][] color_controls = new ColorControl[N_ROWS][N_COLUMNS];
+  ProjectionControl[][] projection_controls =
+    new ProjectionControl[N_ROWS][N_COLUMNS];
+  ScalarMap color_mapC1 = null;
+  ScalarMap color_mapC4 = null;
+  ScalarMap[][] color_maps = new ScalarMap[N_ROWS][N_COLUMNS];
+
+  /** cursor */
+  RealTupleType cursor_type = null;
+
+
+  /** formula-related objects */
+  FormulaManager f_manager = null;
+  JTextField[][] jtfield = new JTextField[N_ROWS][N_COLUMNS];
 
   // type 'java Rain' to run this application
   public static void main(String args[])
@@ -127,7 +133,7 @@ public class Rain implements ActionListener, ControlListener {
       System.out.println("    'java visad.rabin.Rain file.nc'\n or");
       System.out.println("    'java visad.rabin.Rain server.ip.name'\n or");
     }
-    rain = new Rain(args);
+    Rain rain = new Rain(args);
 
     rain.makeRain();
   }
@@ -182,12 +188,17 @@ public class Rain implements ActionListener, ControlListener {
       ref_projection = new DataReferenceImpl("projection");
       ref_colorC1 = new DataReferenceImpl("colorC1");
       ref_colorC4 = new DataReferenceImpl("colorC4");
+      for (int i=0; i<N_ROWS; i++) {
+        for (int j=0; j<N_COLUMNS; j++) {
+          cell_text[i][j] = new DataReferenceImpl("text_" + i + "_" + j);
+        }
+      }
 
       ref_vis5d.setData(vis5d);
       if (server_server != null) {
         // set RemoteDataReferenceImpls in RemoteServer
         RemoteDataReferenceImpl[] refs =
-          new RemoteDataReferenceImpl[8];
+          new RemoteDataReferenceImpl[8 + N_ROWS*N_COLUMNS];
         refs[0] =
           new RemoteDataReferenceImpl((DataReferenceImpl) ref300);
         refs[1] =
@@ -204,6 +215,12 @@ public class Rain implements ActionListener, ControlListener {
           new RemoteDataReferenceImpl((DataReferenceImpl) ref_colorC1);
         refs[7] =
           new RemoteDataReferenceImpl((DataReferenceImpl) ref_colorC4);
+        for (int i=0; i<N_ROWS; i++) {
+          for (int j=0; j<N_COLUMNS; j++) {
+            refs[8 + N_COLUMNS*i + j] =
+              new RemoteDataReferenceImpl((DataReferenceImpl) cell_text[i][j]);
+          }
+        }
         server_server.setDataReferences(refs);
       }
     }
@@ -245,6 +262,11 @@ public class Rain implements ActionListener, ControlListener {
       ref_projection = refs[5];
       ref_colorC1 = refs[6];
       ref_colorC4 = refs[7];
+      for (int i=0; i<N_ROWS; i++) {
+        for (int j=0; j<N_COLUMNS; j++) {
+          cell_text[i][j] = refs[8 + N_COLUMNS*i + j];
+        }
+      }
     }
   }
 
@@ -295,6 +317,8 @@ public class Rain implements ActionListener, ControlListener {
 
     // create formula manager object with standard options
     f_manager = FormulaUtil.createStandardManager();
+    f_manager.createVar("num300", ref300);
+    f_manager.createVar("num1_4", ref1_4);
 
     //
     // construct JFC user interface
@@ -382,23 +406,25 @@ public class Rain implements ActionListener, ControlListener {
 
         // add cell to FormulaManager database
         f_manager.createVar(cell_names[i][j], cell_refs[i][j]);
+        f_manager.setTextRef(cell_names[i][j], cell_text[i][j]);
 
         // construct cell's formula text field
         JPanel fpanel = new JPanel();
         fpanel.setLayout(new BoxLayout(fpanel, BoxLayout.X_AXIS));
-        JTextField formula_field = new JTextField();
-        Dimension psize = formula_field.getPreferredSize();
-        Dimension msize = formula_field.getMaximumSize();
+        jtfield[i][j] = new JTextField(cell_formulas[i][j]);
+        Dimension psize = jtfield[i][j].getPreferredSize();
+        Dimension msize = jtfield[i][j].getMaximumSize();
         msize.height = psize.height;
-        formula_field.setMaximumSize(msize);
-        formula_field.addActionListener(this);
-        formula_field.setActionCommand("fc_" + cell_names[i][j]);
+        jtfield[i][j].setMaximumSize(msize);
+        jtfield[i][j].addActionListener(this);
+        jtfield[i][j].setActionCommand("fc_" + cell_names[i][j]);
         fpanel.add(new JLabel(cell_names[i][j] + ": "));
-        fpanel.add(formula_field);
+        fpanel.add(jtfield[i][j]);
         cell_panels[i][j].add(fpanel);
 
         // construct cell's display
         JPanel d_panel = (JPanel) displays[i][j].getComponent();
+        d_panel.setAlignmentX(JPanel.CENTER_ALIGNMENT);
         Border etchedBorder5 =
           new CompoundBorder(new EtchedBorder(),
                              new EmptyBorder(5, 5, 5, 5));
@@ -408,9 +434,9 @@ public class Rain implements ActionListener, ControlListener {
         // construct cell's current value label
         cell_fields[i][j] = new JLabel("---");
         cell_fields[i][j].setAlignmentX(JLabel.CENTER_ALIGNMENT);
-        cell_fields[i][j].setMinimumSize(formula_field.getMinimumSize());
-        cell_fields[i][j].setPreferredSize(formula_field.getPreferredSize());
-        cell_fields[i][j].setMaximumSize(formula_field.getMaximumSize());
+        cell_fields[i][j].setMinimumSize(jtfield[i][j].getMinimumSize());
+        cell_fields[i][j].setPreferredSize(jtfield[i][j].getPreferredSize());
+        cell_fields[i][j].setMaximumSize(jtfield[i][j].getMaximumSize());
         cell_panels[i][j].add(cell_fields[i][j]);
 
       } // end for (int j=0; j<N_ROWS; j++)
@@ -418,8 +444,8 @@ public class Rain implements ActionListener, ControlListener {
 
     // DisplayImpl.delay(DELAY);
 
-    VisADSlider slider300 = new VisADSlider("num300", 0, 600, 300, 1.0,
-                                            ref300, RealType.Generic);
+    slider300 = new VisADSlider("num300", 0, 600, 300, 1.0,
+                                ref300, RealType.Generic);
     VisADSlider slider1_4 = new VisADSlider("num1_4", 0, 280, 140, 0.01,
                                             ref1_4, RealType.Generic);
     VisADSlider sliderMAX = new VisADSlider("colorMAX", 0, 1000, ((int) MAX),
@@ -432,25 +458,18 @@ public class Rain implements ActionListener, ControlListener {
     left_panel.add(sliderMAX);
     left_panel.add(new JLabel("  "));
 
-/* CTR: 14 Apr 1999: Work in progress
-    // set up cells' data
+    // set up cells' formulas
     for (int i=0; i<N_ROWS; i++) {
       for (int j=0; j<N_COLUMNS; j++) {
-        if (N_ROWS == 0 && N_COLUMNS == 0) {
-          // cell A1
-          cell_refs[0][0].setData(vis5d);
-        }
-        else {
-          // other cells
+        if (i != 0 || j != 0) {
           f_manager.assignFormula(cell_names[i][j], cell_formulas[i][j]);
         }
       }
     }
 
     // set up cells' displays
-*/
 
-    // cell A1
+    // set up cell A1
     displays[0][0].addMap(new ScalarMap(range_types[0], Display.Red));
     displays[0][0].addMap(new ScalarMap(range_types[1], Display.Green));
     displays[0][0].addMap(new ScalarMap(range_types[2], Display.Blue));
@@ -461,6 +480,7 @@ public class Rain implements ActionListener, ControlListener {
     // DisplayImpl.delay(DELAY);
 
     // cell B1
+/* CTR: 20 Apr 1999
     cells[0][1] = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         Field field = (Field) cell_refs[0][0].getData();
@@ -470,6 +490,7 @@ public class Rain implements ActionListener, ControlListener {
       }
     };
     cells[0][1].addReference(cell_refs[0][0]);
+*/
 
     displays[0][1].addMap(new ScalarMap(range_types[0], Display.Red));
     displays[0][1].addMap(new ScalarMap(range_types[1], Display.Green));
@@ -480,6 +501,7 @@ public class Rain implements ActionListener, ControlListener {
     // DisplayImpl.delay(DELAY);
 
     // cell C1
+/* CTR: 20 Apr 1999
     cells[0][2] = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         FlatField field = baseCell(cell_refs[0][1], 0);
@@ -499,10 +521,12 @@ public class Rain implements ActionListener, ControlListener {
       cells[0][2].addReference(ref300);
       cells[0][2].addReference(ref1_4);
     }
+*/
 
     color_mapC1 = new ScalarMap(rangeC1, Display.RGB);
     displays[0][2].addMap(color_mapC1);
-    color_widgetC1 = new LabeledRGBWidget(color_mapC1, (float) MIN, (float) MAX);
+    color_widgetC1 = new LabeledRGBWidget(color_mapC1, (float) MIN,
+                                                       (float) MAX);
     Dimension d = new Dimension(500, 170);
     color_widgetC1.setMaximumSize(d);
     color_mapC1.setRange(MIN, MAX);
@@ -574,6 +598,7 @@ public class Rain implements ActionListener, ControlListener {
     // DisplayImpl.delay(DELAY);
 
     // cell A2
+/* CTR: 20 Apr 1999
     cells[1][0] = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         FlatField field = baseCell(cell_refs[0][1], 1);
@@ -592,11 +617,13 @@ public class Rain implements ActionListener, ControlListener {
       cells[1][0].addReference(ref300);
       cells[1][0].addReference(ref1_4);
     }
+*/
     finishDisplay(client_server, (RealType) range.getComponent(1), 1, 0);
 
     // DisplayImpl.delay(DELAY);
 
     // cell B2
+/* CTR: 20 Apr 1999
     cells[1][1] = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         FlatField field = baseCell(cell_refs[0][1], 2);
@@ -615,11 +642,13 @@ public class Rain implements ActionListener, ControlListener {
       cells[1][1].addReference(ref300);
       cells[1][1].addReference(ref1_4);
     }
+*/
     finishDisplay(client_server, (RealType) range.getComponent(2), 1, 1);
 
     // DisplayImpl.delay(DELAY);
 
     // cell C2
+/* CTR: 20 Apr 1999
     cells[1][2] = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         FlatField field = baseCell(cell_refs[0][1], 3);
@@ -638,11 +667,13 @@ public class Rain implements ActionListener, ControlListener {
       cells[1][2].addReference(ref300);
       cells[1][2].addReference(ref1_4);
     }
+*/
     finishDisplay(client_server, (RealType) range.getComponent(3), 1, 2);
 
     // DisplayImpl.delay(DELAY);
 
     // cell A3
+/* CTR: 20 Apr 1999
     cells[2][0] = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         FlatField field = baseCell(cell_refs[0][1], 4);
@@ -661,11 +692,13 @@ public class Rain implements ActionListener, ControlListener {
       cells[2][0].addReference(ref300);
       cells[2][0].addReference(ref1_4);
     }
+*/
     finishDisplay(client_server, (RealType) range.getComponent(4), 2, 0);
 
     // DisplayImpl.delay(DELAY);
 
     // cell B3
+/* CTR: 20 Apr 1999
     cells[2][1] = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         FlatField field = baseCell(cell_refs[0][1], 5);
@@ -684,11 +717,13 @@ public class Rain implements ActionListener, ControlListener {
       cells[2][1].addReference(ref300);
       cells[2][1].addReference(ref1_4);
     }
+*/
     finishDisplay(client_server, (RealType) range.getComponent(5), 2, 1);
 
     // DisplayImpl.delay(DELAY);
 
     // cell C3
+/* CTR: 20 Apr 1999
     cells[2][2] = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         FlatField fieldC1 = (FlatField) cell_refs[0][2].getData();
@@ -718,11 +753,13 @@ public class Rain implements ActionListener, ControlListener {
     cells[2][2].addReference(cell_refs[1][2]);
     cells[2][2].addReference(cell_refs[2][0]);
     cells[2][2].addReference(cell_refs[2][1]);
+*/
     finishDisplay(client_server, rangeC1, 2, 2);
 
     // DisplayImpl.delay(DELAY);
 
     // cell A4
+/* CTR: 20 Apr 1999
     cells[3][0] = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         FlatField field = (FlatField) cell_refs[0][1].getData();
@@ -733,11 +770,13 @@ public class Rain implements ActionListener, ControlListener {
       }
     };
     cells[3][0].addReference(cell_refs[0][1]);
+*/
     finishDisplay(client_server, (RealType) range.getComponent(6), 3, 0);
 
     // DisplayImpl.delay(DELAY);
 
     // cell B4
+/* CTR: 20 Apr 1999
     cells[3][1] = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         FlatField field = (FlatField) cell_refs[0][1].getData();
@@ -748,6 +787,7 @@ public class Rain implements ActionListener, ControlListener {
       }
     };
     cells[3][1].addReference(cell_refs[0][1]);
+*/
     finishDisplay(client_server, (RealType) range.getComponent(7), 3, 1);
 
     GraphicsModeControl mode = displays[3][1].getGraphicsModeControl();
@@ -758,6 +798,7 @@ public class Rain implements ActionListener, ControlListener {
     // DisplayImpl.delay(DELAY);
 
     // cell C4
+/* CTR: 20 Apr 1999
     cells[3][2] = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         FlatField field = (FlatField) cell_refs[0][1].getData();
@@ -768,10 +809,12 @@ public class Rain implements ActionListener, ControlListener {
       }
     };
     cells[3][2].addReference(cell_refs[0][1]);
+*/
 
     color_mapC4 = new ScalarMap(rangeC4, Display.RGB);
     displays[3][2].addMap(color_mapC4);
-    color_widgetC4 = new LabeledRGBWidget(color_mapC4, (float) MIN, (float) MAXC4);
+    color_widgetC4 = new LabeledRGBWidget(color_mapC4, (float) MIN,
+                                                       (float) MAXC4);
     Dimension dC4 = new Dimension(500, 170);
     color_widgetC4.setMaximumSize(dC4);
     color_mapC4.setRange(MIN, MAXC4);
@@ -839,6 +882,49 @@ public class Rain implements ActionListener, ControlListener {
 
     // DisplayImpl.delay(DELAY);
 
+    // cell for updating formula text fields when formulas change
+    CellImpl cell_formulas = new CellImpl() {
+      public void doAction() {
+        for (int i=0; i<N_ROWS; i++) {
+          for (int j=0; j<N_COLUMNS; j++) {
+            try {
+              Text t = (Text) cell_text[i][j].getThing();
+              if (t != null) {
+                String s = t.getValue();
+                if (s == null) s = "";
+                if (!s.equals(jtfield[i][j].getText())) {
+                  final JTextField jtf = jtfield[i][j];
+                  final String str = s;
+                  SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                      jtf.setText(str);
+                    }
+                  });
+                }
+              }
+            }
+            catch (VisADException exc) { }
+            catch (RemoteException exc) { }
+          }
+        }
+      }
+    };
+    if (client_server != null) {
+      RemoteCellImpl remote_cell = new RemoteCellImpl(cell_formulas);
+      for (int i=0; i<N_ROWS; i++) {
+        for (int j=0; j<N_COLUMNS; j++) {
+          remote_cell.addReference(cell_text[i][j]);
+        }
+      }
+    }
+    else {
+      for (int i=0; i<N_ROWS; i++) {
+        for (int j=0; j<N_COLUMNS; j++) {
+          cell_formulas.addReference(cell_text[i][j]);
+        }
+      }
+    }
+
     CellImpl cellMAX = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         double max = ((Real) refMAX.getData()).getValue();
@@ -893,6 +979,7 @@ public class Rain implements ActionListener, ControlListener {
     frame.setVisible(true);
   }
 
+/* CTR: 20 Apr 1999
   public static FlatField baseCell(DataReference ref, int component)
          throws VisADException, RemoteException {
     FlatField field = (FlatField) ref.getData();
@@ -905,8 +992,9 @@ public class Rain implements ActionListener, ControlListener {
     }
     return field;
   }
+*/
 
-  public static void finishDisplay(RemoteServer cs, RealType rt, int i, int j)
+  public void finishDisplay(RemoteServer cs, RealType rt, int i, int j)
          throws VisADException, RemoteException {
     color_maps[i][j] = new ScalarMap(rt, Display.RGB);
     displays[i][j].addMap(color_maps[i][j]);
@@ -938,21 +1026,19 @@ public class Rain implements ActionListener, ControlListener {
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
     if (cmd.startsWith("fc_")) {
+      slider300.requestFocus();
       JTextField f_field = (JTextField) e.getSource();
       String formula = f_field.getText();
       String cell_name = cmd.substring(3, cmd.length());
-      System.out.println("Formula changed in cell " + cell_name);
       try {
         f_manager.assignFormula(cell_name, formula);
       }
-      catch (FormulaException exc) {
-        /* CTR: TEMP */ exc.printStackTrace(System.out);
-      }
-      catch (VisADException exc) {
-        /* CTR: TEMP */ exc.printStackTrace(System.out);
-      }
+      catch (FormulaException exc) { }
+      catch (VisADException exc) { }
     }
   }
+
+  boolean in_proj = false;
 
   /** Handle changes to controls */
   public void controlChanged(ControlEvent e)
