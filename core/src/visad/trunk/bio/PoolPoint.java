@@ -56,6 +56,7 @@ public class PoolPoint {
       renderer = display instanceof DisplayImplJ3D ?
         (DataRenderer) new DirectManipulationRendererJ3D() :
         (DataRenderer) new DirectManipulationRendererJ2D();
+      renderer.setPickCrawlToCursor(false);
       renderer.suppressExceptions(true);
       renderer.toggle(false);
     }
