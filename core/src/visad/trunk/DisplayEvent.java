@@ -56,7 +56,6 @@ public class DisplayEvent extends Event {
 
   private Display display; // source of event
 
-/* WLH 30 Aug 99
   public DisplayEvent(Display d, int id_d) {
     // don't pass display as the source, since source
     // is transient inside Event
@@ -64,7 +63,6 @@ public class DisplayEvent extends Event {
     display = d;
     id = id_d;
   }
-*/
 
   public DisplayEvent(Display d, int id_d, int x, int y) {
     // don't pass display as the source, since source
