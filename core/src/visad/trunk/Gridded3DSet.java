@@ -374,18 +374,24 @@ public class Gridded3DSet extends GriddedSet {
       g0 = grid0[i];
       g1 = grid1[i];
       g2 = grid2[i];
-/* WLH 24 Oct 97
-      index[i] = (Float.isNaN(g0)
-               || Float.isNaN(g1)
-               || Float.isNaN(g2)) ? -1 :
-*/
       // test for missing
-/* WLH 2 April 99
-      index[i] = (g0 != g0 || g1 != g1 || g2 != g2) ? 1 :
-*/
+/* WLH 22 May 2002
       index[i] = (g0 != g0 || g1 != g1 || g2 != g2) ? -1 :
                  ((int) (g0 + 0.5)) + LengthX*( ((int) (g1 + 0.5)) +
                   LengthY*((int) (g2 + 0.5)));
+*/
+      if (g0 != g0 || g1 != g1 || g2 != g2) {
+        index[i] = -1;
+      }
+      else {
+        int i0 = (int) (g0 + 0.5f);
+        int i1 = (int) (g1 + 0.5f);
+        int i2 = (int) (g2 + 0.5f);
+        if (i0 == LengthX) i0--;
+        if (i1 == LengthY) i1--;
+        if (i2 == LengthZ) i2--;
+        index[i] = i0 + LengthX * (i1 + LengthY * i2);
+      }
     }
     return index;
   }

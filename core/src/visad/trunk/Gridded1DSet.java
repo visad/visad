@@ -290,7 +290,8 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
     float g;
     for (int i=0; i<length; i++) {
       g = grid0[i];
-      index[i] = Float.isNaN(g) ? -1 : ((int) (g + 0.5));
+      index[i] = Float.isNaN(g) ? -1 : ((int) (g + 0.5f));
+      if (index[i] == LengthX) index[i]--; // WLH 22 May 2002
     }
     return index;
   }

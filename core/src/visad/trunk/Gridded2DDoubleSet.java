@@ -327,12 +327,21 @@ public class Gridded2DDoubleSet extends Gridded2DSet
     for (int i=0; i<length; i++) {
       g0 = grid0[i];
       g1 = grid1[i];
-/* WLH 24 Oct 97
-      index[i] = (Double.isNaN(g0) || Double.isNaN(g1)) ? -1 :
-*/
       // test for missing
+/* WLH 22 May 2002
       index[i] = (g0 != g0 || g1 != g1) ? -1 :
                  ((int) (g0 + 0.5)) + LengthX * ((int) (g1 + 0.5));
+*/
+      if (g0 != g0 || g1 != g1) {
+        index[i] = -1;
+      }
+      else {
+        int i0 = (int) (g0 + 0.5);
+        int i1 = (int) (g1 + 0.5);
+        if (i0 == LengthX) i0--;
+        if (i1 == LengthY) i1--;
+        index[i] = i0 + LengthX * i1;
+      }
     }
     return index;
   }
