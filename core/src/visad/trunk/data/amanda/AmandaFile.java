@@ -320,57 +320,82 @@ public class AmandaFile
   public final double getZMin() { return zmin; }
 
   public final FieldImpl makeEventData()
-    throws RemoteException, VisADException
   {
-    FunctionType eventFunctionType =
-      new FunctionType(Event.indexType, Event.tupleType);
+    final int num = events.size();
+    Integer1DSet set;
+    try {
+      set = new Integer1DSet(Event.indexType, (num == 0 ? 1 : num));
+    } catch (VisADException ve) {
+      ve.printStackTrace();
+      return null;
+    }
 
-    final int nevents = events.size();
-    Integer1DSet eventsSet =
-      new Integer1DSet(Event.indexType, (nevents == 0 ? 1 : nevents));
-    FieldImpl eventsField =
-      new FieldImpl(eventFunctionType, eventsSet);
-    if (nevents > 0) {
-      Tuple[] eventTuples = new Tuple[nevents];
-      for (int e = 0; e < nevents; e++) {
-        eventTuples[e] = ((Event )events.get(e)).makeData();
+    FunctionType funcType;
+    FieldImpl fld;
+    try {
+      funcType = new FunctionType(Event.indexType, Event.tupleType);
+      fld = new FieldImpl(funcType, set);
+    } catch (VisADException ve) {
+      ve.printStackTrace();
+      return null;
+    }
+
+    if (num > 0) {
+      Data[] samples = new Data[num];
+      for (int e = 0; e < num; e++) {
+        samples[e] = ((Event )events.get(e)).makeData();
       }
       try {
-        eventsField.setSamples(eventTuples, false);
+        fld.setSamples(samples, false);
       } catch (RemoteException re) {
         re.printStackTrace();
+      } catch (VisADException ve) {
+        ve.printStackTrace();
       }
     }
 
-    return eventsField;
+    return fld;
   }
 
   public final FlatField makeModuleData()
     throws RemoteException, VisADException
   {
-    FunctionType moduleFunctionType =
-      new FunctionType(moduleIndexType, xyzType);
-
     // Field of modules
-    final int nmodules = modules.size();
-    Integer1DSet moduleSet = new Integer1DSet(moduleIndexType, nmodules);
-    FlatField moduleField =
-      new FlatField(moduleFunctionType, moduleSet);
-    float[][] msamples = new float[3][nmodules];
-    for (int i = 0; i < nmodules; i++) {
-      Module mod = modules.get(i);
-      msamples[0][i] = mod.getX();
-      msamples[1][i] = mod.getY();
-      msamples[2][i] = mod.getZ();
-    }
+    final int num = modules.size();
+    Integer1DSet set;
     try {
-      moduleField.setSamples(msamples);
-    } catch (RemoteException re) {
-      re.printStackTrace();
+      set = new Integer1DSet(moduleIndexType, num);
+    } catch (VisADException ve) {
+      ve.printStackTrace();
       return null;
     }
 
-    return moduleField;
+    FunctionType funcType;
+    FlatField fld;
+    try {
+      funcType = new FunctionType(moduleIndexType, xyzType);
+      fld = new FlatField(funcType, set);
+    } catch (VisADException ve) {
+      ve.printStackTrace();
+      return null;
+    }
+
+    if (num > 0) {
+      float[][] samples = new float[3][num];
+      for (int i = 0; i < num; i++) {
+        Module mod = modules.get(i);
+        samples[0][i] = mod.getX();
+        samples[1][i] = mod.getY();
+        samples[2][i] = mod.getZ();
+      }
+      try {
+        fld.setSamples(samples);
+      } catch (RemoteException re) {
+        re.printStackTrace();
+      }
+    }
+
+    return fld;
   }
 
   private String nextLine(BufferedReader rdr)
