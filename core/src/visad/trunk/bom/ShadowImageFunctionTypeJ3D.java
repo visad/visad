@@ -154,25 +154,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         rsets = ((FlatField) data). getRangeSets();
       }
       int[] color_ints = new int[domain_length];
-      if (bytes != null && bytes[0] != null && table != null &&
-          rsets != null && rsets[0] != null &&
-          rsets[0] instanceof Linear1DSet) {
-        // fast since FlatField with bytes and range set is Linear1DSet
-        // get "scale and offset" for Linear1DSet
-        double first = ((Linear1DSet) rsets[0]).getFirst();
-        double step = ((Linear1DSet) rsets[0]).getStep();
-        // get scale and offset for ScalarMap
-        double[] so = new double[2];
-        double[] da = new double[2];
-        double[] di = new double[2];
-        cmap.getScale(so, da, di);
-        double scale = so[0];
-        double offset = so[1];
-        // get scale for color table
-        double table_scale = (double) table[0].length;
-        // combine scales and offsets for Set, ScalarMap and color table
-        float mult = (float) (table_scale * scale * step);
-        float add = (float) (table_scale * (offset + scale * first));
+      if (table != null) {
         // combine color table RGB components into ints
         int[] itable = new int[table[0].length];
         int r, g, b, a = 255;
@@ -186,22 +168,63 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
           itable[j] = ((a << 24) | (r << 16) | (g << 8) | b);
         }
-        // now do fast lookup from byte values to color ints
         int tblEnd = table[0].length - 1;
-        byte[] bytes0 = bytes[0];
-        for (int i=0; i<domain_length; i++) {
-          int index = ((int) bytes0[i]) - MISSING1 - 1;
-          if (index < 0) {
-            color_ints[i] = 0; // missing
+        // get scale for color table
+        double table_scale = (double) table[0].length;
+
+        if (bytes != null && bytes[0] != null && rsets != null &&
+            rsets[0] != null && rsets[0] instanceof Linear1DSet) {
+          // fast since FlatField with bytes and range set is Linear1DSet
+          // get "scale and offset" for Linear1DSet
+          double first = ((Linear1DSet) rsets[0]).getFirst();
+          double step = ((Linear1DSet) rsets[0]).getStep();
+          // get scale and offset for ScalarMap
+          double[] so = new double[2];
+          double[] da = new double[2];
+          double[] di = new double[2];
+          cmap.getScale(so, da, di);
+          double scale = so[0];
+          double offset = so[1];
+          // combine scales and offsets for Set, ScalarMap and color table
+          float mult = (float) (table_scale * scale * step);
+          float add = (float) (table_scale * (offset + scale * first));
+          // now do fast lookup from byte values to color ints
+          byte[] bytes0 = bytes[0];
+          for (int i=0; i<domain_length; i++) {
+            int index = ((int) bytes0[i]) - MISSING1 - 1;
+            if (index < 0) {
+              color_ints[i] = 0; // missing
+            }
+            else {
+              int j = (int) (add + mult * index);
+              // clip to table
+              color_ints[i] =
+                (j < 0) ? itable[0] : ((j > tblEnd) ? itable[tblEnd] : itable[j]);
+            }
           }
-          else {
-            int j = (int) (add + mult * index);
-            // clip to table
-            color_ints[i] =
-              (j < 0) ? itable[0] : ((j > tblEnd) ? itable[tblEnd] : itable[j]);
-          }
+          bytes = null; // take out the garbage
         }
-        bytes = null; // take out the garbage
+        else {
+          // medium speed way to build texture colors
+          bytes = null; // take out the garbage
+          float[][] values = ((Field) data).getFloats();
+          values[0] = cmap.scaleValues(values[0]);
+
+          // now do fast lookup from byte values to color ints
+          float[] values0 = values[0];
+          for (int i=0; i<domain_length; i++) {
+            if (values0[i] != values0[i]) {
+              color_ints[i] = 0; // missing
+            }
+            else {
+              int j = (int) (table_scale * values0[i]);
+              // clip to table
+              color_ints[i] =
+                (j < 0) ? itable[0] : ((j > tblEnd) ? itable[tblEnd] : itable[j]);
+            }
+          }
+          values = null; // take out the garbage
+        }
       }
       else {
         // slower, more general way to build texture colors

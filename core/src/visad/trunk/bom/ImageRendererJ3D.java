@@ -84,20 +84,6 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
   }
 
   public BranchGroup doTransform() throws VisADException, RemoteException { 
-    DataDisplayLink link = getLinks()[0];
-    MathType mtype = link.getType();
-    if (image_sequence_type.equalsExceptName(mtype) || 
-        image_sequence_type2.equalsExceptName(mtype)) { 
-      sequence = true;
-    }
-    else if (image_type.equalsExceptName(mtype) ||
-             image_type2.equalsExceptName(mtype)) {
-      sequence = false;
-    }
-    else {
-      throw new BadMappingException("must be image or image sequence");
-    }
-
     BranchGroup branch = getBranch();
     if (branch == null) {
       branch = new BranchGroup();
@@ -106,7 +92,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
       branch.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
     }
-    link = getLinks()[0];
+    DataDisplayLink link = getLinks()[0];
     ShadowTypeJ3D type = (ShadowTypeJ3D) link.getShadow();
  
     // initialize valueArray to missing
@@ -123,6 +109,18 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
         new DisplayException("Data is null: DefaultRendererJ3D.doTransform"));
     }
     else {
+      MathType mtype = link.getType();
+      if (image_sequence_type.equalsExceptName(mtype) ||
+          image_sequence_type2.equalsExceptName(mtype)) {
+        sequence = true;
+      }
+      else if (image_type.equalsExceptName(mtype) ||
+               image_type2.equalsExceptName(mtype)) {
+        sequence = false;
+      }
+      else {
+        throw new BadMappingException("must be image or image sequence");
+      }
       link.start_time = System.currentTimeMillis();
       link.time_flag = false;
       type.doTransform(branch, data, valueArray,
