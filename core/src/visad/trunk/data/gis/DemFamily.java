@@ -36,7 +36,7 @@ import visad.Data;
 
 import visad.DataImpl;
 
-import visad.VisADException;
+import visad.*;
 
 import visad.data.*;
 
@@ -45,14 +45,15 @@ import java.net.URL;
 
 /**
  * A container for all the supported DEM types.  Currently, USGS
- * DEM formats are supported.
+ * DEM and Arc ASCIIGRID formats are supported.
  * To read a <tt>Data</tt> object from a file or URL:<br>
  * <pre>
  *    Data data = new DemFamily("dems").open(string);
  * </pre>
  * @see  visad.data.gis.UsgsDemForm;
+ * @see  visad.data.gis.ArcAsciiGridForm;
  * @author Don Murray
- * @version $Revision: 1.1 $ $Date: 2003-09-03 15:35:25 $
+ * @version $Revision: 1.2 $ $Date: 2003-09-10 22:51:30 $
  */
 public class DemFamily extends FunctionFormFamily implements FormFileInformer{
 
@@ -62,6 +63,7 @@ public class DemFamily extends FunctionFormFamily implements FormFileInformer{
    */
   private static FormNode[] list            = new FormNode[10];
   private static boolean    listInitialized = false;
+  private static MathType dataType = null;
 
   /**
    * Build a list of all known file adapter Forms
@@ -72,6 +74,11 @@ public class DemFamily extends FunctionFormFamily implements FormFileInformer{
 
     try {
       list[i] = new UsgsDemForm();
+
+      i++;
+    } catch (Throwable t) {}
+    try {
+      list[i] = new ArcAsciiGridForm(dataType);
 
       i++;
     } catch (Throwable t) {}
@@ -124,7 +131,7 @@ public class DemFamily extends FunctionFormFamily implements FormFileInformer{
    * @return  true if it matches the pattern for USGS DEM files
    */
   public boolean isThisType(String name) {
-    return (name.endsWith(".dem"));
+    return false;
   }
 
   /**
@@ -141,7 +148,7 @@ public class DemFamily extends FunctionFormFamily implements FormFileInformer{
    * @return  valid list of suffixes
    */
   public String[] getDefaultSuffixes() {
-    String[] suff = { ".dem" };
+    String[] suff = { ".dem", ".asc" };
     return suff;
   }
 
@@ -151,8 +158,17 @@ public class DemFamily extends FunctionFormFamily implements FormFileInformer{
    * @param  name   name of the family
    */
   public DemFamily(String name) {
+    this(name, null);
+  }
+
+  /**
+   * Construct a family of the supported map datatype Forms
+   * @param  name   name of the family
+   */
+  public DemFamily(String name, MathType dataFormat) {
 
     super(name);
+    if (dataFormat != null) dataType = dataFormat;
 
     synchronized (list) {
       if (!listInitialized) {
