@@ -16,7 +16,6 @@ try: # try/except for pydoc
   from types import StringType
   from visad.ss import BasicSSCell
   from visad.java2d import DisplayImplJ2D, DisplayRendererJ2D
-  from visad.bom import RubberBandBoxRendererJ3D
   from java.lang import Double
 
   # define private fields for certains types and scalar mappings
@@ -31,6 +30,7 @@ except:
 __ok3d = 1
 try:
   from visad.java3d import DisplayImplJ3D, TwoDDisplayRendererJ3D, DisplayRendererJ3D,MouseBehaviorJ3D
+  from visad.bom import RubberBandBoxRendererJ3D
 except:
   __ok3d = 0
 
@@ -217,17 +217,20 @@ def setBoxSize(display, percent=.70, clip=1, showBox=1, snap=0):
   pc.setMatrix(__pcMatrix)
   dr = display.getDisplayRenderer();
 
-  if clip & __ok3d:
+  if __ok3d:
     try:
        if isinstance(dr, DisplayRendererJ3D):
-         dr.setClip(0, 1,  1.,  0.0,  0.0, -1.);
-         dr.setClip(1, 1, -1.,  0.0,  0.0, -1.);
-         dr.setClip(2, 1,  0.0,  1.,  0.0, -1.);
-         dr.setClip(3, 1,  0.0, -1.,  0.0, -1.);
+         dr.setClip(0, clip,  1.,  0.0,  0.0, -1.);
+         dr.setClip(1, clip, -1.,  0.0,  0.0, -1.);
+         dr.setClip(2, clip,  0.0,  1.,  0.0, -1.);
+         dr.setClip(3, clip,  0.0, -1.,  0.0, -1.);
          #dr.setClip(4, 1,  0.0,  0.0,  1., -1.);
          #dr.setClip(5, 1,  0.0,  0.0, -1., -1.);
        elif isinstance(dr, DisplayRendererJ2D):
-         dr.setClip(-1., 1., -1., 1.)
+         if clip: 
+           dr.setClip(-1., 1., -1., 1.)
+         else:
+           dr.unsetClip()
     except:
        pass
 
@@ -638,6 +641,10 @@ class myFrame:
       self.frame.show()
 
 
+def addTitle(string, center=1, font="timesrb", size=None, offset=.1):
+  ts = textShape(string,center,font,start=[1.,2.+offset,0], size=size)
+  addShape(ts, autoScale=0)
+
 def textShape(string, center=0, font="futural",
                  start=[0.,0.,0.], base=[.1,0.,0.], up=[0.,.1,0.],
                  size=None ):
@@ -893,6 +900,7 @@ class RubberBandZoomer:
 
       def doAction(self):
 
+        print 'doAction called'
         # get the 'box' coordinates of the RB box
         set = self.ref.getData()
         samples = set.getSamples()
