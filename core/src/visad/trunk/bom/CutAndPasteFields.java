@@ -79,6 +79,14 @@ public class CutAndPasteFields extends Object implements ActionListener {
 
   Set tset = null; // t domain Set
   Set xyset = null; // (x, y) domain Set
+  int nx, ny; // dimensions of xyset
+  int rx, ry; // dimensions of cut rectangle
+
+  float[][] cut = null;
+  float[][] replaced = null;
+  FlatField replacedff = null;
+  int replacedixlow, replacedixhi;
+  int replacediylow, replacediyhi;
 
   AnimationControl acontrol = null;
 
@@ -87,6 +95,7 @@ public class CutAndPasteFields extends Object implements ActionListener {
   ScalarMap ymap = null;
 
   private double xlow, xhi, ylow, yhi; // rect boundaries
+  private int ixlow, ixhi, iylow, iyhi; // x and y indices
 
   private CellImpl cell_rbb = null;
   private CellImpl cell_xlyl = null;
@@ -115,7 +124,7 @@ public class CutAndPasteFields extends Object implements ActionListener {
      conditions:
      1. x and y mapped to XAxis, YAxis, ZAxis
      2. (x, y) domain LinearSet
-     3. if Time, it is mapped to Animation
+     3. if (t -> ...), then t is mapped to Animation
   */
   public CutAndPasteFields(Field gs, DisplayImplJ3D d)
          throws VisADException, RemoteException {
@@ -165,6 +174,8 @@ public class CutAndPasteFields extends Object implements ActionListener {
     if (!(xyset instanceof LinearSet)) {
       throw new VisADException("grid set must be LinearSet");
     }
+    nx = ((LinearSet) xyset).getLinear1DComponent(0).getLength();
+    ny = ((LinearSet) xyset).getLinear1DComponent(1).getLength();
 
     if (range instanceof RealType) {
       rangedim = 1;
@@ -320,11 +331,31 @@ public class CutAndPasteFields extends Object implements ActionListener {
         if (set == null) return;
         float[][] samples = set.getSamples();
         if (samples == null) return;
-        cell_rbb.removeReference(ref_rbb);
+
         xlow = samples[0][0];
         ylow = samples[1][0];
         xhi = samples[0][1];
         yhi = samples[1][1];
+
+        if (xlow > xhi) {
+          double t = xlow;
+          xlow = xhi;
+          xhi = t;
+        }
+        if (ylow > yhi) {
+          double t = ylow;
+          ylow = yhi;
+          yhi = t;
+        }
+
+        if (!getIndices(true)) {
+          System.out.println("bad box");
+          return;
+        }
+        getRect();
+        replacedff = null;
+ 
+        cell_rbb.removeReference(ref_rbb);
         drag();
         cell_xlyl.addReference(ref_xlyl);
         cell_xlyh.addReference(ref_xlyh);
@@ -341,28 +372,134 @@ public class CutAndPasteFields extends Object implements ActionListener {
         display.enableAction();
       }
     };
-
-
   }
 
-  private float[][] getRect() throws VisADException, RemoteException {
+  private boolean getIndices(boolean rubber) throws VisADException {
+    float[][] samples = {{(float) xlow, (float) xhi},
+                         {(float) ylow, (float) yhi}};
+    int[] indices = xyset.valueToIndex(samples);
+    int indexlow = indices[0];
+    int indexhi = indices[1];
+    if (indexlow < 0 || indexhi < 0) return false;
+
+    if (rubber) {
+      samples = xyset.indexToValue(indices);
+      xlow = samples[0][0];
+      ylow = samples[1][0];
+      xhi = samples[0][1];
+      yhi = samples[1][1];
+    }
+
+    if (indexlow > indexhi) {
+      int t= indexlow;
+      indexlow = indexhi;
+      indexhi = t;
+    }
+
+    // i = ix + nx * iy
+    iylow = indexlow / nx;
+    ixlow = indexlow % nx;
+    iyhi = indexhi / nx;
+    ixhi = indexhi % nx;
+    if (ixlow > ixhi) {
+      int t= ixlow;
+      ixlow = ixhi;
+      ixhi = t;
+    }
+    if (iylow > iyhi) {
+      int t= iylow;
+      iylow = iyhi;
+      iyhi = t;
+    }
+
+    if (rubber) {
+      rx = (ixhi - ixlow) + 1;
+      ry = (iyhi - iylow) + 1;
+    }
+    else {
+      int tx = (ixhi - ixlow) + 1;
+      int ty = (iyhi - iylow) + 1;
+      if (rx != tx) {
+        if ((ixlow + rx - 1) < nx) ixhi = ixlow + rx - 1;
+        else ixlow = ixhi - (rx - 1);
+      }
+      if (ry != ty) {
+        if ((iylow + ry - 1) < ny) iyhi = iylow + ry - 1;
+        else iylow = iyhi - (ry - 1);
+      }
+    }
+
+    return true;
+  }
+
+  private void getRect() throws VisADException, RemoteException {
     FlatField ff = null;
     if (t != null) {
       int index = getAnimationIndex();
-      if (index < 0 || index >= nts) return null;
+      if (index < 0 || index >= nts) return;
       ff = (FlatField) grids.getSample(index);
     }
     else {
       ff = (FlatField) grids;
     }
-    return null;
+    float[][] samples = ff.getFloats(false);
+    cut = new float[rangedim][rx * ry];
+    for (int ix=ixlow; ix<=ixhi; ix++) {
+      for (int iy=iylow; iy<=iyhi; iy++) {
+        int i = ix + nx * iy;
+        int j = (ix - ixlow) + rx * (iy - iylow);
+        for (int k=0; k<rangedim; k++) cut[k][j] = samples[k][i];
+      }
+    }
   }
 
-  private float[][] replaceRect() throws VisADException, RemoteException {
-    int index = getAnimationIndex();
-    if (index < 0) return null;
+  private void replaceRect() throws VisADException, RemoteException {
+    int index = 0;
+    if (t != null) {
+      index = getAnimationIndex();
+      if (index < 0 || index >= nts) return;
+    }
 
-    return null;
+    if (!getIndices(false)) {
+      System.out.println("bad box");
+      return;
+    }
+
+    if (replacedff != null) {
+      float[][] samples = replacedff.getFloats(false);
+      for (int ix=replacedixlow; ix<=replacedixhi; ix++) {
+        for (int iy=replacediylow; iy<=replacediyhi; iy++) {
+          int i = ix + nx * iy;
+          int j = (ix - replacedixlow) + rx * (iy - replacediylow);
+          for (int k=0; k<rangedim; k++) samples[k][i] = replaced[k][j];
+        }
+      }
+      replacedff.setSamples(samples, false);
+    }
+
+    FlatField ff = null;
+    if (t != null) {
+      ff = (FlatField) grids.getSample(index);
+    }
+    else {
+      ff = (FlatField) grids;
+    }
+    float[][] samples = ff.getFloats(false);
+    replaced = new float[rangedim][rx * ry];
+    for (int ix=ixlow; ix<=ixhi; ix++) {
+      for (int iy=iylow; iy<=iyhi; iy++) {
+        int i = ix + nx * iy;
+        int j = (ix - ixlow) + rx * (iy - iylow);
+        for (int k=0; k<rangedim; k++) replaced[k][j] = samples[k][i];
+        for (int k=0; k<rangedim; k++) samples[k][i] = cut[k][j];
+      }
+    }
+    ff.setSamples(samples, false);
+    replacedff = ff;
+    replacedixlow = ixlow;
+    replacedixhi = ixhi;
+    replacediylow = iylow;
+    replacediyhi = iyhi;
   }
 
   private int getAnimationIndex() throws VisADException {
@@ -395,11 +532,8 @@ public class CutAndPasteFields extends Object implements ActionListener {
 
   // BoxDragRendererJ3D button release
   public void drag_release() {
-/*
     try {
-
-// need to cut and paste grid, and save replaced section
-
+      replaceRect();
     }
     catch (VisADException e) {
       if (debug) System.out.println("release fail: " + e.toString());
@@ -407,7 +541,6 @@ public class CutAndPasteFields extends Object implements ActionListener {
     catch (RemoteException e) {
       if (debug) System.out.println("release fail: " + e.toString());
     }
-*/
   }
 
   public void stop() throws VisADException, RemoteException {
@@ -438,7 +571,7 @@ public class CutAndPasteFields extends Object implements ActionListener {
   }
 
 
-  private static final int NSTAS = 32; // actually NSTAS * NSTAS
+  private static final int NSTAS = 64; // actually NSTAS * NSTAS
   private static final int NTIMES = 10;
 
   public static void main(String args[])
