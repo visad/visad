@@ -110,24 +110,22 @@ public class Download
     File target;
     if (baseName.length() == 0) {
       baseName = "file";
-      target = null;
-    } else {
-      target = new File(saveDir, baseName);
-      if (target.exists()) {
-        target = null;
-      }
     }
+    target = new File(saveDir, baseName);
 
-    // if no filename was specified,
-    //  or if a file by that name already exists,
-    //   build a usable name
-    if (target == null) {
+    // if a file by that name already exists,
+    //  build a usable name
+    if (target.exists()) {
 
       int idx = 0;
       while (true) {
         File tmpFile = new File(saveDir, baseName + "." + idx);
         if (!tmpFile.exists()) {
-          target = tmpFile;
+          if (!target.renameTo(tmpFile)) {
+            System.err.println("Couldn't rename \"" + target + "\" to \"" +
+                               tmpFile + "\"");
+            target.delete();
+          }
           break;
         }
         idx++;
