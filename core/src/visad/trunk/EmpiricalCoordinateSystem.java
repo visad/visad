@@ -26,6 +26,8 @@ MA 02111-1307, USA
 
 package visad;
 
+import java.rmi.RemoteException;
+
 /**
  * Provides support for empirically-defined CordinateSystem-s.  This is useful
  * for data-dependent coordinate transformations that must be determined
@@ -115,7 +117,7 @@ EmpiricalCoordinateSystem
   }
 
   /**
-   * Constructs an EmpiricalCoordinateSystem from a FlatField.  The
+   * Constructs an EmpiricalCoordinateSystem from a Field.  The
    * <code>toReference()</code> method of the resulting CoordinateSystem will
    * transform numeric values in actual units of the domain of the field to
    * numeric values in default units of the range of the field.  Similarly,
@@ -130,10 +132,11 @@ EmpiricalCoordinateSystem
    *                            GriddedSet.
    * @throws SetException	The field's domain set isn't a GriddedSet.
    * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws RemoteException	Java RMI failure.
    */
   public static EmpiricalCoordinateSystem
-  create(FlatField field)
-    throws SetException, VisADException
+  create(Field field)
+    throws SetException, VisADException, RemoteException
   {
     Set		domainSet = field.getDomainSet();
     float[][]	samples = field.getFloats(false);	// in default units
@@ -149,6 +152,46 @@ EmpiricalCoordinateSystem
 	  (CoordinateSystem)null,
 	  (Unit[])null,
 	  (ErrorEstimate[])null));
+  }
+
+  /**
+   * Constructs an EmpiricalCoordinateSystem from a Field.  The
+   * <code>toReference()</code> method of the resulting CoordinateSystem will
+   * transform numeric values in actual units of the range of the field to
+   * numeric values in default units of the domain of the field.  Similarly,
+   * the <code>fromReference()</code> method will transform numeric values in
+   * default units of the domain of the field to numeric values in the actual
+   * units of the range of the field.  The coordinate system transformation
+   * created by this method is the inverse of that created by {@link
+   * #create(Field)}.
+   *
+   * @param field               The FlatField comprising a coordinate system
+   *                            transformation from the range to the domain.
+   *                            The rank of the domain and range shall be the
+   *                            same.  The domain set of the field shall be a
+   *                            GriddedSet.
+   * @throws SetException	The field's domain set isn't a GriddedSet.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws RemoteException	Java RMI failure.
+   */
+  public static EmpiricalCoordinateSystem
+  inverseCreate(Field field)
+    throws SetException, VisADException, RemoteException
+  {
+    Set		domainSet = field.getDomainSet();
+    float[][]	samples = field.getFloats(false);	// in default units
+    if (!(domainSet instanceof GriddedSet))
+      throw new SetException("Domain set must be GriddedSet");
+    return
+      new EmpiricalCoordinateSystem(
+	GriddedSet.create(
+	  ((FunctionType)field.getType()).getFlatRange(),
+	  samples,
+	  new int[] {samples[0].length},
+	  (CoordinateSystem)null,
+	  (Unit[])null,
+	  (ErrorEstimate[])null),
+	(GriddedSet)domainSet);
   }
 
   /**
