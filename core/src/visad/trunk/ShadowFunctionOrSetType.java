@@ -134,6 +134,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
 import java.awt.image.DataBufferInt;
+import java.awt.image.DataBuffer;
 
 /**
    The ShadowFunctionOrSetType class is an abstract parent for
@@ -2927,7 +2928,18 @@ WLH 15 March 2000 */
       WritableRaster raster =
         colorModel.createCompatibleWritableRaster(texture_width, texture_height);
       image = new BufferedImage(colorModel, raster, false, null);
-      int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
+
+      // WLH 1 Nov 2000
+      int[] intData = null;
+      DataBuffer db = raster.getDataBuffer();
+      if (!(db instanceof DataBufferInt)) {
+        intData = new int[texture_width * texture_height];
+      }
+      else {
+        intData = ((DataBufferInt) db).getData();
+      }
+      // int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
+
       int k = 0;
       int m = 0;
       int r, g, b, a;
@@ -2953,13 +2965,32 @@ WLH 15 March 2000 */
           intData[m++] = 0;
         }
       }
+
+      // WLH 1 Nov 2000
+      if (!(db instanceof DataBufferInt)) {
+        for (int i=0; i<intData.length; i++) {
+          db.setElem(i, intData[i]);
+        }
+      }
+
     }
     else { // (color_values.length == 3)
       ColorModel colorModel = ColorModel.getRGBdefault();
       WritableRaster raster =
         colorModel.createCompatibleWritableRaster(texture_width, texture_height);
       image = new BufferedImage(colorModel, raster, false, null);
-      int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
+
+      // WLH 1 Nov 2000
+      int[] intData = null;
+      DataBuffer db = raster.getDataBuffer();
+      if (!(db instanceof DataBufferInt)) {
+        intData = new int[texture_width * texture_height];
+      }
+      else {
+        intData = ((DataBufferInt) db).getData();
+      }
+      // int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
+
       int k = 0;
       int m = 0;
       int r, g, b, a;
@@ -2984,6 +3015,14 @@ WLH 15 March 2000 */
           intData[m++] = 0;
         }
       }
+
+      // WLH 1 Nov 2000
+      if (!(db instanceof DataBufferInt)) {
+        for (int i=0; i<intData.length; i++) {
+          db.setElem(i, intData[i]);
+        }
+      }
+
     } // end if (color_values.length == 3)
     return image;
   }
@@ -3048,7 +3087,18 @@ WLH 15 March 2000 */
           images[d] = new BufferedImage(colorModel, raster, false, null);
         }
 */
-        int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
+
+        // WLH 1 Nov 2000
+        int[] intData = null;
+        DataBuffer db = raster.getDataBuffer();
+        if (!(db instanceof DataBufferInt)) {
+          intData = new int[texture_width * texture_height];
+        }
+        else {
+          intData = ((DataBufferInt) db).getData();
+        }
+        // int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
+
         // int k = d * data_width * data_height;
         int kk = d * kdepth;
         int m = 0;
@@ -3077,6 +3127,14 @@ WLH 15 March 2000 */
             intData[m++] = 0;
           }
         }
+
+        // WLH 1 Nov 2000
+        if (!(db instanceof DataBufferInt)) {
+          for (int i=0; i<intData.length; i++) {
+            db.setElem(i, intData[i]);
+          }
+        }
+
       }
       else { // (color_values.length == 3)
         ColorModel colorModel = ColorModel.getRGBdefault();
@@ -3092,7 +3150,18 @@ WLH 15 March 2000 */
           images[d] = new BufferedImage(colorModel, raster, false, null);
         }
 */
-        int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
+
+        // WLH 1 Nov 2000
+        int[] intData = null;
+        DataBuffer db = raster.getDataBuffer();
+        if (!(db instanceof DataBufferInt)) {
+          intData = new int[texture_width * texture_height];
+        }
+        else {
+          intData = ((DataBufferInt) db).getData();
+        }
+        // int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
+
         // int k = d * data_width * data_height;
         int kk = d * kdepth;
         int m = 0;
@@ -3120,6 +3189,14 @@ WLH 15 March 2000 */
             intData[m++] = 0;
           }
         }
+
+        // WLH 1 Nov 2000
+        if (!(db instanceof DataBufferInt)) {
+          for (int i=0; i<intData.length; i++) {
+            db.setElem(i, intData[i]);
+          }
+        }
+
       } // end if (color_values.length == 3)
     } // end for (int d=0; d<data_depth; d++)
     for (int d=data_depth; d<texture_depth; d++) {
@@ -3127,10 +3204,29 @@ WLH 15 March 2000 */
       WritableRaster raster =
         colorModel.createCompatibleWritableRaster(texture_width, texture_height);
       images[d] = new BufferedImage(colorModel, raster, false, null);
-      int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
+
+      // WLH 1 Nov 2000
+      int[] intData = null;
+      DataBuffer db = raster.getDataBuffer();
+      if (!(db instanceof DataBufferInt)) {
+        intData = new int[texture_width * texture_height];
+      }
+      else {
+        intData = ((DataBufferInt) db).getData();
+      }
+      // int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
+
       for (int i=0; i<texture_width*texture_height; i++) {
         intData[i] = 0;
       }
+
+      // WLH 1 Nov 2000
+      if (!(db instanceof DataBufferInt)) {
+        for (int i=0; i<intData.length; i++) {
+          db.setElem(i, intData[i]);
+        }
+      }
+
     }
     return images;
   }
