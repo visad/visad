@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: BaseRGBMap.java,v 1.6 1999-11-17 21:44:53 dglo Exp $
+@(#) $Id: BaseRGBMap.java,v 1.7 1999-12-01 17:35:10 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -35,7 +35,7 @@ import java.awt.*;
  * mouse button to alternate between the color curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.6 $, $Date: 1999-11-17 21:44:53 $
+ * @version $Revision: 1.7 $, $Date: 1999-12-01 17:35:10 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -180,35 +180,49 @@ public class BaseRGBMap
 
   /** Sets the values of the internal array after the map
       has been created. */
-  public void setValues(float[][] vals) {
-    setValues(vals, true);
+  public void setValues(float[][] newVal) {
+    setValues(newVal, true);
   }
 
-  private void setValues(float[][] vals, boolean notify) {
-    int note = 0;
+  private void setValues(float[][] newVal, boolean notify) {
+    int newResolution;
     synchronized (mutex_val) {
-      if (vals == null) {
-        this.resolution = 256;
-        val = new float[this.resolution][hasAlpha ? 4 : 3];
-        this.initColormap();
-      }
-      else {
-        this.resolution = vals.length;
-        val = new float[this.resolution][hasAlpha ? 4 : 3];
-        for (int i = 0; i < this.resolution; i++) {
-          val[i][0] = vals[i][0];
-          val[i][1] = vals[i][1];
-          val[i][2] = vals[i][2];
+      if (newVal == null) {
+        resolution = 256;
+        val = new float[resolution][hasAlpha ? 4 : 3];
+        initColormap();
+        newResolution = 0;
+      } else if (newVal.length > 4 && newVal[0].length >= 3 &&
+                 newVal[0].length <= 4)
+      {
+        resolution = newVal.length;
+        val = new float[resolution][hasAlpha ? 4 : 3];
+        for (int i = 0; i < resolution; i++) {
+          val[i][0] = newVal[i][0];
+          val[i][1] = newVal[i][1];
+          val[i][2] = newVal[i][2];
           if (hasAlpha) {
-            val[i][3] = vals[i][3];
+            val[i][3] = newVal[i][3];
           }
         }
+        newResolution = resolution-1;
+      } else {
+        // table is inverted
+        resolution = newVal[0].length;
+        val = new float[resolution][hasAlpha ? 4 : 3];
+        for (int i = 0; i < resolution; i++) {
+          val[i][0] = newVal[0][i];
+          val[i][1] = newVal[1][i];
+          val[i][2] = newVal[2][i];
+          if (hasAlpha) {
+            val[i][3] = newVal[3][i];
+          }
+        }
+        newResolution = resolution-1;
       }
-      note = this.resolution-1;
     }
 
-    // if (notify) notifyListeners(0, this.resolution-1);
-    if (notify) notifyListeners(0, note);
+    if (notify) notifyListeners(0, newResolution);
   }
 
   /** Returns the resolution of the map */
