@@ -173,10 +173,10 @@ Here are the commands from the File menu:
 Import data - Brings up a dialog box that allows the user to select a file for
 the SpreadSheet to import to the current cell.  Currently, VisAD supports the
 following file types:
-    GIF, JPEG, PNG, netCDF, HDF5, HDF-EOS, FITS,
+    GIF, JPEG, PNG, netCDF, HDF-5, HDF-EOS, FITS,
     Vis5D, McIDAS area, and serialized data.
 -------------------------------------------------------------------------------
-Note: You must have the HDF-EOS and HDF5 file adapter native C code compiled
+Note: You must have the HDF-EOS and HDF-5 file adapter native C code compiled
       in order to import data sets of those types.  See the SpreadSheet web
       page for information on how to compile this native code.
 -------------------------------------------------------------------------------
@@ -197,11 +197,11 @@ WARNING: Exporting a cell as serialized data is a handy and portable way to
          netCDF" command.
 -------------------------------------------------------------------------------
 
-Export data to HDF5 - Exports the current cell to a file in HDF5 format.
-A dialog box will appear to let you select the name and location of the HDF5
+Export data to HDF5 - Exports the current cell to a file in HDF-5 format.
+A dialog box will appear to let you select the name and location of the HDF-5
 file.  If the file exists, it will be overwritten.
 -------------------------------------------------------------------------------
-Note: You must have the HDF5 file adapter native C code compiled in order to
+Note: You must have the HDF-5 file adapter native C code compiled in order to
 export data sets of this type.  See the SpreadSheet web page for information on
 how to compile this native code.
 -------------------------------------------------------------------------------

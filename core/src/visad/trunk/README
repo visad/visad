@@ -150,7 +150,7 @@ compiler):
   visad.RemoteThingReferenceImpl
 
 
-4. Building Native Code for the HDF-EOS File Adapter
+4. Building Native Code for the HDF-EOS and HDF-5 File Adapters
 
 Although VisAD is a pure Java system, it does require native
 code interfaces in its adapters for HDF-EOS and HDF-5 file
@@ -261,7 +261,7 @@ Once you've got visad.jar simply add:
 
 to your CLASSPATH.  Then you can compile and run applications
 that import the VisAD classes.  However, if your application
-uses the HDF-EOS or Vis5D file format adapters, then you will
+uses the HDF-EOS or HDF-5 file format adapters, then you will
 need to compile the native code as described in Section 4 of
 this README file.  The visad.jar file includes the classes from
 these packages:
