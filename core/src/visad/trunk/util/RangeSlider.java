@@ -135,6 +135,12 @@ public class RangeSlider extends JComponent implements MouseListener,
     }
   }
 
+  /** return true if (px,py) is inside (x,y,w,h) */
+  private boolean containedIn(int px, int py, int x, int y, int w, int h)
+  {
+    return new Rectangle(x, y, w, h).contains(px, py);
+  }
+
   /** MouseListener method for moving slider */
   public void mousePressed(MouseEvent e) {
     int w = getSize().width;
@@ -142,33 +148,36 @@ public class RangeSlider extends JComponent implements MouseListener,
     int y = e.getY();
     oldX = x;
 
-    Rectangle min = new Rectangle(minGrip-(GRIP_WIDTH-1), GRIP_TOP_Y,
-                                  GRIP_WIDTH, GRIP_HEIGHT);
-    Rectangle max = new Rectangle(maxGrip, GRIP_TOP_Y,
-                                  GRIP_WIDTH, GRIP_HEIGHT);
-    Rectangle between = new Rectangle(minGrip, GRIP_TOP_Y-3,
-                                      maxGrip-minGrip,
-                                      GRIP_TOP_Y+SLIDER_LINE_HEIGHT-1);
-    Rectangle left = new Rectangle(GRIP_WIDTH, GRIP_TOP_Y-3,
-                                   minGrip-(GRIP_WIDTH*2),
-                                   GRIP_TOP_Y+SLIDER_LINE_HEIGHT-1);
-    Rectangle right = new Rectangle(maxGrip+1-GRIP_WIDTH, GRIP_TOP_Y-3,
-                                    w-maxGrip-(GRIP_WIDTH*2),
-                                    GRIP_TOP_Y+SLIDER_LINE_HEIGHT-1);
-
-    if (min.contains(x, y)) minSlide = true;
-    else if (max.contains(x, y)) maxSlide = true;
-    else if (between.contains(x, y)) {
+    if (containedIn(x, y, minGrip-(GRIP_WIDTH-1), GRIP_TOP_Y,
+                    GRIP_WIDTH, GRIP_HEIGHT))
+    {
+      // mouse pressed in left grip
+      minSlide = true;
+    } else if (containedIn(x, y, maxGrip, GRIP_TOP_Y,
+                           GRIP_WIDTH, GRIP_HEIGHT))
+    {
+      // mouse pressed in right grip
+      maxSlide = true;
+    } else if (containedIn(x, y, minGrip, GRIP_TOP_Y-3,
+                           maxGrip-minGrip, GRIP_TOP_Y+SLIDER_LINE_HEIGHT-1))
+    {
+      // mouse pressed in pink rectangle
       minSlide = true;
       maxSlide = true;
-    }
-    else if (left.contains(x, y)) {
+    } else if (containedIn(x, y, GRIP_WIDTH, GRIP_TOP_Y-3,
+                           minGrip-(GRIP_WIDTH*2),
+                           GRIP_TOP_Y+SLIDER_LINE_HEIGHT-1))
+    {
+      // mouse pressed to left of grips
       minGrip = x;
       minSlide = true;
       lSlideMoved = true;
       percPaint();
-    }
-    else if (right.contains(x, y)) {
+    } else if (containedIn(x, y, maxGrip+1-GRIP_WIDTH, GRIP_TOP_Y-3,
+                           w-maxGrip-(GRIP_WIDTH*2),
+                           GRIP_TOP_Y+SLIDER_LINE_HEIGHT-1))
+    {
+      // mouse pressed to right of grips
       maxGrip = x;
       maxSlide = true;
       rSlideMoved = true;
