@@ -69,9 +69,12 @@ public class DisplayTest {
         System.err.println("Bad DisplayTest \"" + caseNum + "\"");
         caseNum = -1;
       }
+
+      if (caseNum != -1) {
+        skel = getTestClass(caseNum);
+      }
     }
 
-    skel = getTestClass(caseNum);
     if (skel != null) {
       String[] nargs = new String[args.length - 1];
       for (int i = 1; i < args.length; i++) {
