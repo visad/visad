@@ -53,13 +53,6 @@ public class BinaryWriter
   extends BaseDataProcessor
   implements BinaryFile, DataWriter
 {
-  private static final boolean DEBUG_CSYS = false;
-  private static final boolean DEBUG_DATA = false;
-  private static final boolean DEBUG_DATA_DETAIL = false;
-  private static final boolean DEBUG_ERRE = false;
-  private static final boolean DEBUG_MATH = false;
-  private static final boolean DEBUG_UNIT = false;
-
   private boolean initialized;
   private DataOutputStream file;
 
