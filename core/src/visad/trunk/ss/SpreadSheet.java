@@ -2521,10 +2521,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
     TupleIface t = null;
     TupleIface tc = null;
     RealTuple tr = null;
+    int collen = 0;
+    int rowlen = 0;
     try {
       t = (TupleIface) RemoteColRow.getData();
       tc = (TupleIface) t.getComponent(1);
       tr = (RealTuple) t.getComponent(2);
+      if (tc == null || tr == null) return null;
+      collen = tc.getDimension();
+      rowlen = tr.getDimension();
     }
     catch (NullPointerException exc) {
       if (BasicSSCell.DEBUG) exc.printStackTrace();
@@ -2535,9 +2540,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
     catch (RemoteException exc) {
       if (BasicSSCell.DEBUG) exc.printStackTrace();
     }
-    if (tc == null || tr == null) return null;
-    int collen = tc.getDimension();
-    int rowlen = tr.getDimension();
     if (rowlen < 1 || collen < 1) return null;
     String[] colNames = new String[collen];
     int[] rowNames = new int[rowlen];
