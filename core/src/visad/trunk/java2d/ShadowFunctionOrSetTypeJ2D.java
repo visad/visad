@@ -831,9 +831,19 @@ END MISSING TEST */
           // MEM
           if (isTextureMap) {
             if (color_values == null) {
+              color_values = new float[3][domain_length];
+              for (int i=0; i<domain_length; i++) {
+                color_values[0][i] = constant_color[0];
+                color_values[1][i] = constant_color[1];
+                color_values[2][i] = constant_color[2];
+              }
+            }
+/* WLH 9 July 98
+            if (color_values == null) {
               throw new DisplayException("ShadowFunctionOrSetTypeJ2D." +
                                ".doTransform: no color or alpha values");
             }
+*/
             if (range_select[0] != null && range_select[0].length > 1) {
               int len = range_select[0].length;
 /*
