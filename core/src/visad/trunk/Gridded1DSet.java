@@ -39,28 +39,35 @@ public class Gridded1DSet extends GriddedSet {
   /** Whether this set is ascending or descending */
   boolean Ascending;
 
-  /** a 1-D sequence with no regular interval with null errors,
-      CoordinateSystem and Units are defaults from type */
+  /**
+   * Constructs a 1-D sorted sequence with no regular interval.  The 
+   * coordinate system and units are the default from the set type.  The error
+   * estimate is null.
+   *
+   * @param type		The type of the set.  The underlying tuple
+   *				must only have one component.
+   * @param samples             The values in the set.
+   *                            <code>samples[0][i]</code> is the value of
+   *                            the ith sample point.  Must be sorted (either
+   *                            increasing or decreasing).  May be
+   *                            <code>null</code>.
+   * @param lengthX		The number of samples.
+   */
   public Gridded1DSet(MathType type, float[][] samples, int lengthX)
          throws VisADException {
     this(type, samples, lengthX, null, null, null);
   }
 
-  public Gridded1DSet(MathType type, float[][] samples, int lengthX,
-                      CoordinateSystem coord_sys, Unit[] units,
-                      ErrorEstimate[] errors) throws VisADException {
-    this(type, samples, lengthX, coord_sys, units, errors, true);
-  }
-
   /**
    * Constructs a 1-D sorted sequence with no regular interval.
    *
-   * @param type		The type of the set.  The underlying tuples
+   * @param type		The type of the set.  The underlying tuple
    *				must only have one component.
    * @param samples             The values in the set.
    *                            <code>samples[0][i]</code> is the value of
    *                            the ith sample point.  Must be sorted (either
-   *                            increasing or decreasing).
+   *                            increasing or decreasing).  May be
+   *                            <code>null</code>.
    * @param lengthX		The number of samples.
    * @param coord_sys           The coordinate system for this, particular, set.
    *                            Must be compatible with the default coordinate
@@ -72,6 +79,35 @@ public class Gridded1DSet extends GriddedSet {
    * @param errors		The error estimates of the tuple components.
    *				Only <code>errors[0]</code> is meaningful.  May
    *				be <code>null</code>.
+   */
+  public Gridded1DSet(MathType type, float[][] samples, int lengthX,
+                      CoordinateSystem coord_sys, Unit[] units,
+                      ErrorEstimate[] errors) throws VisADException {
+    this(type, samples, lengthX, coord_sys, units, errors, true);
+  }
+
+  /**
+   * Constructs a 1-D sorted sequence with no regular interval.
+   *
+   * @param type		The type of the set.  The underlying tuple
+   *				must only have one component.
+   * @param samples             The values in the set.
+   *                            <code>samples[0][i]</code> is the value of
+   *                            the ith sample point.  Must be sorted (either
+   *                            increasing or decreasing).  May be
+   *                            <code>null</code>.
+   * @param lengthX		The number of samples.
+   * @param coord_sys           The coordinate system for this, particular, set.
+   *                            Must be compatible with the default coordinate
+   *                            system.  May be <code>null</code>.
+   * @param units               The units for the tuple components.  Only
+   *                            <code>units[0]</code> is meaningfull.  Must
+   *                            be compatible with the default unit.  May be
+   *                            <code>null</code>.
+   * @param errors		The error estimates of the tuple components.
+   *				Only <code>errors[0]</code> is meaningful.  May
+   *				be <code>null</code>.
+   * @param copy		Whether or not to copy the values array.
    */
   Gridded1DSet(MathType type, float[][] samples, int lengthX,
                CoordinateSystem coord_sys, Unit[] units,
