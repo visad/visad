@@ -151,10 +151,12 @@ public class McIDASGridDirectory extends visad.jmet.MetGridDirectory {
          //System.out.println("lat/lon = "+la1+"  "+lo1+"  incs = "+di+"  "+dj);
          coordSystem = new GRIBCoordinateSystem(ref,0,columns,rows,
               la1, lo1, la2, lo2, di, dj);
+       /*
        } else if (gridType == 2 || gridType == 6) {
          int projNum = xcdBlock[2];
          //System.out.println("GRIB projection = " + projNum);
          coordSystem = new GRIBCoordinateSystem(ref,projNum);
+       */
        } else {
          coordSystem = new GRIBCoordinateSystem(ref,0);
        }
