@@ -26,6 +26,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad.ss;
 
 import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.rmi.RemoteException;
 import java.util.StringTokenizer;
 import javax.swing.*;
@@ -56,9 +58,9 @@ public class FormulaCell implements FormulaListener {
     String[] functions = {"abs", "acos", "acosDegrees", "asin", "asinDegrees",
                           "atan", "atan2", "atanDegrees", "atan2Degrees",
                           "ceil", "combine", "cos", "cosDegrees", "derive",
-                          "exp", "extract", "floor", "log", "max", "min",
-                          "negate", "rint", "round", "sin", "sinDegrees",
-                          "sqrt", "tan", "tanDegrees"};
+                          "exp", "extract", "floor", "link", "log", "max",
+                          "min", "negate", "rint", "round", "sin",
+                          "sinDegrees", "sqrt", "tan", "tanDegrees"};
     String[] funcMethods = {"visad.Data.abs()", "visad.Data.acos()",
                             "visad.Data.acosDegrees()", "visad.Data.asin()",
                             "visad.Data.asinDegrees()", "visad.Data.atan()",
@@ -73,7 +75,10 @@ public class FormulaCell implements FormulaListener {
                             "visad.Data.exp()",
                             "visad.ss.FormulaCell.extract(visad.Field," +
                                                          "visad.Real)",
-                            "visad.Data.floor()", "visad.Data.log()",
+                            "visad.Data.floor()",
+                            "visad.ss.FormulaCell.link(" +
+                            "java.lang.reflect.Method, java.lang.Object[])",
+                            "visad.Data.log()",
                             "visad.Data.max(visad.Data)",
                             "visad.Data.min(visad.Data)",
                             "visad.Data.negate()", "visad.Data.rint()",
@@ -155,6 +160,19 @@ public class FormulaCell implements FormulaListener {
     return d;
   }
 
+  /** evaluates the link function */
+  public static Data link(Method m, Object[] o) {
+    Data ans = null;
+    try {
+      ans = (Data) FormulaVar.invokeMethod(m, o);
+    }
+    catch (ClassCastException exc) { }
+    catch (IllegalAccessException exc) { }
+    catch (IllegalArgumentException exc) { }
+    catch (InvocationTargetException exc) { }
+    return ans;
+  }
+
   /** evaluates implicit function syntax; e.g., A1(5) */
   public static Data implicit(Function f, Real r) {
     Data value = null;
@@ -176,8 +194,11 @@ public class FormulaCell implements FormulaListener {
                        : new Real(FormulaCell.CONSTANT, d.doubleValue());
   }
 
-  /** does some pre-computation processing to the formula */
-  private static String preProcess(String f) {
+  /** number of link variables that have been created */
+  private static int linkNum = 0;
+
+  /** does some pre-computation parsing to the formula */
+  private static String preParse(String f) {
     // convert to lower case and remove spaces
     StringTokenizer t = new StringTokenizer(f, " ", false);
     String s = "";
@@ -185,26 +206,102 @@ public class FormulaCell implements FormulaListener {
     if (s.equals("")) return s;
     String l = s.toLowerCase();
 
-    // convert d(x)/d(y) notation to standard derive(x, y) notation
+    // scan entire string
     int len = l.length();
-    int i1 = l.indexOf("d(", 0);
-    if (i1 < 0) return s;
-    if (i1 > 0) {
-      while (l.charAt(i1-1) >= 'a' && l.charAt(i1-1) <= 'z') {
-        i1 = l.indexOf("d(", i1+1);
-        if (i1 < 0) return s;
+    boolean letter = false;
+    String ns = "";
+    for (int i=0; i<len; i++) {
+      if (!letter && i < len - 1 && l.substring(i, i+2).equals("d(")) {
+        // convert d(x)/d(y) notation to standard derive(x, y) notation
+        i += 2;
+        int s1 = i;
+        for (int paren=1; paren>0; i++) {
+          // check for correct syntax
+          if (i >= len) return s;
+          char c = l.charAt(i);
+          if (c == '(') paren++;
+          if (c == ')') paren--;
+        }
+        int e1 = i-1;
+        // check for correct syntax
+        if (i > len - 3 || !l.substring(i, i+3).equals("/d(")) return s;
+        i += 3;
+        int s2 = i;
+        for (int paren=1; paren>0; i++) {
+          // check for correct syntax
+          if (i >= len) return s;
+          char c = l.charAt(i);
+          if (c == '(') paren++;
+          if (c == ')') paren--;
+        }
+        int e2 = i-1;
+        ns = ns + "derive(" + s.substring(s1, e1) +
+                        "," + s.substring(s2, e2) + ")";
+        i--;
       }
+      else if (!letter && i < len - 4 && l.substring(i, i+5).equals("link(")) {
+        // evaluate link(code) notation and replace with link variable
+        i += 5;
+        int s1 = i;
+        try {
+          while (l.charAt(i) != '(') i++;
+        }
+        catch (ArrayIndexOutOfBoundsException exc) {
+          // incorrect syntax
+          return s;
+        }
+        i++;
+        int e1 = i-1;
+        int s2 = i;
+        for (int paren=2; paren>1; i++) {
+          // check for correct syntax
+          if (i >= len) return s;
+          char c = l.charAt(i);
+          if (c == '(') paren++;
+          if (c == ')') paren--;
+        }
+        int e2 = i-1;
+        // check for correct syntax
+        if (i >= len || l.charAt(i) != ')') return s;
+        String[] strs = new String[1];
+        strs[0] = s.substring(s1, e1) + "(";
+
+        // parse method's arguments; determine if they are Data or RealType
+        String sub = s.substring(s2, e2);
+        System.out.println("sub = " + sub);
+        StringTokenizer st = new StringTokenizer(sub, ",", false);
+        boolean first = true;
+        while (st.hasMoreTokens()) {
+          String token = st.nextToken();
+          if (first) first = false;
+          else strs[0] = strs[0] + ",";
+          RealType rt = RealType.getRealTypeByName(token);
+          strs[0] = strs[0] + (rt == null ? "visad.Data" : "visad.RealType");
+        }
+        strs[0] = strs[0] + ")";
+
+        // obtain Method object and store it in a link variable
+        Method[] meths = FormulaManager.stringsToMethods(strs);
+        String link = "link" + (++linkNum);
+        // make sure linked method actually exists
+        if (meths[0] == null) return s;
+        try {
+          fm.setValue(link, meths[0]);
+        }
+        catch (FormulaException exc) {
+          // error setting the link variable
+          return s;
+        }
+        ns = ns + "link(" + link + "," + s.substring(s2, e2) + ")";
+      }
+      else {
+        // append character to new string
+        ns = ns + s.charAt(i);
+      }
+      char c = (i < len) ? l.charAt(i) : '\0';
+      letter = (c >= 'a' && c <= 'z');
     }
-    int i2 = l.indexOf(")/d(", i1);
-    if (i2 < 0) return s;
-    try {
-      String x = s.substring(0, i1) + "derive(" + s.substring(i1+2, i2) +
-                 ", " + s.substring(i2+4, len);
-      return preProcess(x);
-    }
-    catch (Exception exc) {
-      return s;
-    }
+    return ns;
   }
 
   /** constructor */
@@ -215,7 +312,7 @@ public class FormulaCell implements FormulaListener {
     formula = f;
     ShowErrors = verbose;
     fm.addVarChangeListener(SSCell.Name, this);
-    fm.assignFormula(SSCell.Name, preProcess(formula));
+    fm.assignFormula(SSCell.Name, preParse(formula));
   }
 
   /** perform necessary clean-up before ceasing use of this FormulaCell */

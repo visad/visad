@@ -1,5 +1,5 @@
                    VisAD Spread Sheet User Interface README file
-                                 22 January 1999
+                                 27 January 1999
  
                                 Table of Contents
 
@@ -26,6 +26,9 @@
     2.3.2 Formula Toolbar
       2.3.2.1 Description
       2.3.2.2 How To Enter Formulas
+      2.3.2.3 Formula Syntax
+      2.3.2.4 Linking to External Java Code
+      2.3.2.5 Examples of Valid Formulas
   2.4 Undocumented Features
 3. Known Bugs
 4. Future Plans
@@ -72,7 +75,6 @@ at http://www.ssec.wisc.edu/~billh/visad.html
     The following source files are part of the visad.ss package:
       - BasicSSCell.java
       - FancySSCell.java
-      - Formula.java
       - FormulaCell.java
       - MappingDialog.java
       - SpreadSheet.java
@@ -287,8 +289,16 @@ successfully and mappings can be set up.
 column is 'A', the second is 'B', and so on), and each row is a number (the
 first row is '1', the second is '2', and so on).  So, the cell on the top-left
 is A1, the cell on A1's right is B1, and the cell directly below A1 is A2, etc.
+    Type your formula in the formula text field.  Once you've typed in a
+formula, press Enter or click the green check box button to the left of the
+formula entry text box to apply the formula.  The red X button will cancel your
+entry, restoring the formula to its previous state.  The open folder button to
+the right of the formula entry text box is a shortcut to the File menu's Import
+Data menu item.
 
-Any of the following can be used in formula construction:
+2.3.2.3 Formula Syntax
+    Formulas are case sensitive, except for cell names.  Any of the following
+can be used in formula construction:
 
 1) Formulas can use any of the basic operators:
        + add,  - subtract,  * multiply,  / divide,  % remainder,  ^ power
@@ -331,34 +341,55 @@ Any of the following can be used in formula construction:
    This syntax calls Tuple's getComponent() method.
 
 9) You can extract part of a field with the syntax:
-       extract(DATA, N)
+      extract(DATA, N)
    where DATA is a Field and N is a literal integer.
    This syntax calls Field's extract() method.
 
 10) You can combine multiple fields with the syntax:
-       combine(DATA1, DATA2, ..., DATAN);
+       combine(DATA1, DATA2, ..., DATAN)
     where DATA1 through DATAN are Fields.
     This syntax calls FieldImpl's combine() method.
 
-11) Formulas are case sensitive, except for cell names.
+2.3.2.4 Linking to External Java Code
+    You can link to an external Java method with the syntax:
+        link(package.Class.Method(DATA1, DATA2, ..., DATAN))
+where package.Class.Method is the fully qualified method name and DATA1
+through DATAN are each Data objects or RealType objects.
 
-Some examples of valid formulas for cell A1 are:
+Keep the following points in mind when writing an external Java method
+that you wish to link to the Spread Sheet:
+
+1) The signature of the linked method must be public and must return a Data
+   object.  In addition, the class to which the method belongs must be public.
+   The method must have only Data and RealType parameters.
+2) If the method is an object method, then DATA1 is used as the object.  If
+   the method is a static method, all arguments are simply used as the
+   parameters of the method.
+3) The method can contain one array argument (Data[] or RealType[]).  In this
+   way, a linked method can support a variable number of arguments.  For
+   example, a method with the signature "public static Data max(Data[] d)"
+   that is part of a class called Util could be linked into a Spread Sheet cell
+   with any number of arguments; e.g.,
+      link(Util.max(A1, A2))
+      link(Util.max(A2, C3, B1, A1))
+   would both be correct references to the max method.
+
+2.3.2.5 Examples of Valid Formulas
+
+Here are some examples of valid formulas for cell A1:
     sqrt(A2 + B2^5 - min(B1, -C1))
     d(A2 + B2)/d(ImageElement)
     A2(A3)
     C2.6
     (B1 * C1)(A3).1
-
-Once you've typed in a formula, press Enter or click the green check box button
-to the left of the formula entry text box to apply the formula.  The red X
-button will cancel your entry, restoring the formula to its previous state.
-The open folder button to the right of the formula entry text box is a shortcut
-to the File menu's Import Data menu item.
+    C2 - 5*link(com.happyjava.vis.Linked.crunch(A6, C3, B5))
 
 2.4 Undocumented Features
     Obviously, if they're undocumented, you won't find them in this README!
-    However, creating the javadoc for the visad.ss package should help in
-    deciphering it, since the source is heavily commented.
+However, creating the javadoc for the visad.ss package should help in
+deciphering it, since the source is heavily commented.  You may also wish to
+create the javadoc for the visad.formula package, since it is heavily used
+by the Spread Sheet.
 
 3. Known Bugs
     The following bugs have been discovered and have not yet been fixed:
@@ -383,14 +414,13 @@ with a detailed description of how to recreate the problem.
 
 4. Future Plans
     Here's what's coming in the future:
-      1) Spreadsheet column and row addition and deletion
-      2) Multiple data per cell
-      3) Direct manipulation support
-      4) Distributed Cells, Data, etc.
-      5) Remote Spread Sheet cloning with collaboration
-      6) Dynamic linkage of Java code into formulas
-      7) Misc. user interface enhancements
-      8) And of course, bug fixes
+      1) Remote Spread Sheet cell cloning with collaboration
+      2) Spreadsheet column and row addition and deletion
+      3) Multiple data per cell
+      4) Direct manipulation support
+      5) Distributed Cells, Data, etc.
+      6) Misc. user interface enhancements
+      7) And of course, bug fixes
 
     If you have any suggestions for features that you would find useful,
 please send e-mail to curtis@ssec.wisc.edu describing the feature.

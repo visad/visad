@@ -29,7 +29,7 @@ import java.lang.reflect.*;
 import java.util.*;
 
 /** represents a variable */
-class FormulaVar {
+public class FormulaVar {
 
   /** for testing purposes */
   private static boolean DEBUG = false;
