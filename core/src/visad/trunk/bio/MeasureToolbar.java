@@ -300,6 +300,8 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     // description box
     descriptionBox = new JTextArea();
     descriptionBox.setRows(4);
+    descriptionBox.setLineWrap(true);
+    descriptionBox.setWrapStyleWord(true);
     descriptionBox.getDocument().addDocumentListener(new DocumentListener() {
       public void changedUpdate(DocumentEvent e) { update(e); }
       public void insertUpdate(DocumentEvent e) { update(e); }
