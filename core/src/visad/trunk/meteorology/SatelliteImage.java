@@ -94,4 +94,15 @@ public class SatelliteImage extends SingleBandedImageImpl
         return sensorName;
     }
         
+    /** return new SatelliteImage with value 'op this' */
+    public Data unary(int op, MathType new_type, 
+                      int sampling_mode, int error_mode)
+                  throws VisADException 
+    {
+        return 
+            new SatelliteImage(
+                (FlatField)
+                    super.unary(op, new_type, sampling_mode, error_mode),
+                getStartTime(), getDescription(), sensorName);
+    }
 }

@@ -34,14 +34,12 @@ public class ImageSequenceImpl extends FieldImpl
         for (int i = 0; i < images.length; i++)
         {
             RealTuple timeTuple = 
-                new RealTuple(new Real[] {images[i].getImageStartTime()});
+                new RealTuple(new Real[] {images[i].getStartTime()});
             FunctionType imageRange = (FunctionType) images[i].getType();
             SingleBandedImage image = 
                 (imageRange.equals(rangeType))
                     ? images[i]
-                    : (SingleBandedImage) 
-                        ((FieldImpl)
-                            images[i]).changeMathType(rangeType);
+                    : (SingleBandedImage) images[i].changeMathType(rangeType);
             setSample(timeTuple, image);
         }
     }
@@ -70,7 +68,7 @@ public class ImageSequenceImpl extends FieldImpl
         DateTime[] startTimes = new DateTime[images.length];
         for (int i = 0; i < images.length; i++)
         {
-            startTimes[i] = images[i].getImageStartTime();
+            startTimes[i] = images[i].getStartTime();
         }
         
         return 
@@ -138,7 +136,7 @@ public class ImageSequenceImpl extends FieldImpl
              DataUtility.ensureRealTupleType(RealType.Time)) &&
              type.getRange() instanceof FunctionType &&
              ((RealTupleType) ((FunctionType) 
-                 type.getRange()).getRange()).getDimension() == 1)
+                 type.getRange()).getFlatRange()).getDimension() == 1)
             return type;
         else
            throw new VisADException(

@@ -113,7 +113,7 @@ public class SingleBandedImageImpl
      * Get the start time of the image.
      * @return  DateTime representing the start time of the image.
      */
-    public DateTime getImageStartTime()
+    public DateTime getStartTime()
     {
         return startTime;
     }
@@ -202,6 +202,18 @@ public class SingleBandedImageImpl
     {
         super.setSamples(range, errors, copy);
         setMaxMinValues();
+    }
+
+    /** return new SingleBandedImageImpl with value 'op this' */
+    public Data unary(int op, MathType new_type, 
+                      int sampling_mode, int error_mode)
+                  throws VisADException 
+    {
+        return 
+            new SingleBandedImageImpl(
+                (FlatField) 
+                    super.unary(op, new_type, sampling_mode, error_mode),
+                startTime, description);
     }
 
     private void setMaxMinValues()

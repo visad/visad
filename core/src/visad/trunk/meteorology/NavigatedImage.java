@@ -137,4 +137,16 @@ public class NavigatedImage
     {
         return true;
     }
+
+    /** return new NavigatedImage with value 'op this' */
+    public Data unary(int op, MathType new_type, 
+                      int sampling_mode, int error_mode)
+                  throws VisADException 
+    {
+        return 
+            new NavigatedImage(
+                (FlatField) 
+                    super.unary(op, new_type, sampling_mode, error_mode),
+                getStartTime(), getDescription());
+    }
 }

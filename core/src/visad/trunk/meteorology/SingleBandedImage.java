@@ -39,7 +39,7 @@ public interface SingleBandedImage extends Field
      * Get the start time of the image.
      * @return  DateTime representing the start time of the image.
      */
-    public DateTime getImageStartTime();
+    public DateTime getStartTime();
 
     /**
      * Return a descriptive string for this image.
