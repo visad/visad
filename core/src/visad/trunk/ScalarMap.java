@@ -611,8 +611,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
   private static final double SCALE = 0.06;
   private static final double OFFSET = 1.05;
 
-  private void makeScale()
-          throws VisADException {
+  public void makeScale() throws VisADException {
     DisplayRenderer displayRenderer = null;
     if (display == null) return;
     displayRenderer = display.getDisplayRenderer();
@@ -781,7 +780,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     scale_color[2] = color[2];
   }
 
-  boolean badRange() {
+  public boolean badRange() {
     return (isScaled && (scale != scale || offset != offset));
   }
 
