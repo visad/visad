@@ -154,7 +154,8 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
         }
       }
       // switch to Java3D mode if needed
-      setDimension(need == 1, need == 0);
+      if (need == 2) setDimension(false, false);
+      else if (need == 1 && Dim != JAVA3D_3D) setDimension(true, false);
     }
     setMaps(maps);
   }
@@ -198,7 +199,6 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
         }
         else if (drt.equals(Display.IsoContour)) {
           ContourWidget cw = new ContourWidget(maps[i]);
-          WidgetFrame.getContentPane().add(cw);
           addToFrame(cw, true);
         }
         else if (drt.equals(Display.Animation)) {
