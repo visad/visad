@@ -124,13 +124,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
     NumVisDisplays = NumVisX*NumVisY;
     MappingDialog.initDialog();
     addKeyListener(this);
-    addWindowListener((WindowListener)
-      new WindowAdapter() {
-        public void windowClosing(WindowEvent e) {
-          quitProgram();
-        }
+    addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {
+        quitProgram();
       }
-    );
+    });
     setBackground(Color.white);
 
     // set up the content pane
@@ -397,7 +395,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       HorizLabel[i] = new JPanel();
       HorizLabel[i].setBorder(new LineBorder(Color.black, 1));
       HorizLabel[i].setLayout(new BorderLayout());
-      HorizLabel[i].setMinimumSize(new Dimension(MIN_VIS_WIDTH, 0));
+      HorizLabel[i].setPreferredSize(new Dimension(MIN_VIS_WIDTH, 0));
       HorizLabel[i].add("Center", new JLabel(curLet, SwingConstants.CENTER));
       horizPanel.add(HorizLabel[i]);
       if (i < NumVisX-1) {
@@ -507,8 +505,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
     // set up display panel
     DisplayPanel = new Panel();
     DisplayPanel.setBackground(Color.darkGray);
-    DisplayPanel.setLayout(new BoxLayout(DisplayPanel, BoxLayout.X_AXIS));
-    DisplayPanel.setLayout(new GridLayout(NumVisY, NumVisX, 5, 5));
+    DisplayPanel.setLayout(new SSLayout(NumVisX, NumVisY, MIN_VIS_WIDTH,
+                                        MIN_VIS_HEIGHT, 5, 5));
     scpane.add(DisplayPanel);
 
     // set up display panel's individual VisAD displays
