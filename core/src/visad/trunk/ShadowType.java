@@ -2833,6 +2833,119 @@ System.out.println("range = " + range[0] + " " + range[1] +
     }
   }
 
+  public boolean makeContour(int valueArrayLength, int[] valueToScalar,
+                       float[][] display_values, int[] inherited_values,
+                       Vector MapVector, int[] valueToMap, int domain_length,
+                       boolean[][] range_select, int spatialManifoldDimension,
+                       Set spatial_set, byte[][] color_values, boolean indexed,
+                       Object group, GraphicsModeControl mode, boolean[] swap,
+                       float constant_alpha, float[] constant_color,
+                       ShadowType shadow_api)
+         throws VisADException {
+    boolean anyContourCreated = false;
+
+    VisADGeometryArray[] arrays = null;
+    for (int i=0; i<valueArrayLength; i++) {
+      int displayScalarIndex = valueToScalar[i];
+      DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
+      if (real.equals(Display.IsoContour) &&
+          display_values[i] != null &&
+          display_values[i].length == domain_length &&
+          inherited_values[i] == 0) {
+        // non-inherited IsoContour, so generate contours
+        VisADGeometryArray array = null;
+        ContourControl control = (ContourControl)
+          ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
+        boolean[] bvalues = new boolean[2];
+        float[] fvalues = new float[5];
+        control.getMainContours(bvalues, fvalues);
+        if (bvalues[0]) {
+          if (range_select[0] != null) {
+            int len = range_select[0].length;
+            if (len == 1 || display_values[i].length == 1) break;
+
+            // WLH 30 July 99
+            int dlen = display_values[i].length;
+            float[] temp = display_values[i];
+            display_values[i] = new float[dlen];
+            System.arraycopy(temp, 0, display_values[i], 0, dlen);
+
+            for (int j=0; j<len; j++) {
+              if (!range_select[0][j]) {
+                display_values[i][j] = Float.NaN;
+              }
+            }
+          }
+          if (spatialManifoldDimension == 3) {
+            if (fvalues[0] == fvalues[0]) {
+              if (spatial_set != null) {
+                // System.out.println("makeIsoSurface at " + fvalues[0]);
+                array = spatial_set.makeIsoSurface(fvalues[0],
+                            display_values[i], color_values, indexed);
+                // System.out.println("makeIsoSurface " + array.vertexCount);
+                shadow_api.addToGroup(group, array, mode,
+                                      constant_alpha, constant_color);
+                array = null;
+              }
+            }
+            anyContourCreated = true;
+          }
+          else if (spatialManifoldDimension == 2) {
+            if (spatial_set != null) {
+
+              float[] lowhibase = new float[3];
+              boolean[] dashes = {false};
+              float[] levs = control.getLevels(lowhibase, dashes);
+              arrays =
+                spatial_set.makeIsoLines(levs, lowhibase[0], lowhibase[1],
+                                         lowhibase[2], display_values[i],
+                                         color_values, swap, dashes[0]);
+
+// System.out.println("makeIsoLines");
+              if (arrays != null && arrays.length > 0 && arrays[0] != null &&
+                  arrays[0].vertexCount > 0) {
+                shadow_api.addToGroup(group, arrays[0], mode,
+                                      constant_alpha, constant_color);
+                arrays[0] = null;
+                if (bvalues[1] && arrays[2] != null) {
+
+// System.out.println("makeIsoLines with labels arrays[2].vertexCount = " +
+//              arrays[2].vertexCount);
+
+                  // draw labels
+                  array = arrays[2];
+                  //  FREE
+                  arrays = null;
+                }
+                else if ((!bvalues[1]) && arrays[1] != null) {
+
+// System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
+//              arrays[1].vertexCount);
+
+                  // fill in contour lines in place of labels
+                  array = arrays[1];
+                  //  FREE
+                  arrays = null;
+                }
+                else {
+                  array = null;
+                }
+                if (array != null) {
+                  shadow_api.addToGroup(group, array, mode,
+                                        constant_alpha, constant_color);
+                  array = null;
+                }
+              }
+            } // end if (spatial_set != null)
+            anyContourCreated = true;
+          } // end if (spatialManifoldDimension == 2)
+        } // end if (bvalues[0])
+      } // end if (real.equals(Display.IsoContour) && not inherited)
+    } // end for (int i=0; i<valueArrayLength; i++)
+
+    return anyContourCreated;
+  }
+
   public int textureWidth(int data_width) {
     return data_width;
   }

@@ -1896,6 +1896,14 @@ if (range_select[0] != null) {
 
         boolean anyContourCreated = false;
         if (anyContour) {
+
+          anyContourCreated =
+            shadow_api.makeContour(valueArrayLength, valueToScalar,
+                       display_values, inherited_values, MapVector, valueToMap,
+                       domain_length, range_select, spatialManifoldDimension,
+                       spatial_set, color_values, indexed, group, mode,
+                       swap, constant_alpha, constant_color, shadow_api);
+/* WLH 16 March 2000
           for (int i=0; i<valueArrayLength; i++) {
             int displayScalarIndex = valueToScalar[i];
             DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
@@ -1944,12 +1952,6 @@ if (range_select[0] != null) {
                 else if (spatialManifoldDimension == 2) {
                   if (spatial_set != null) {
 
-/* WLH 21 May 99
-                    arrays =
-                      spatial_set.makeIsoLines(fvalues[1], fvalues[2], fvalues[3],
-                                               fvalues[4], display_values[i],
-                                               color_values, swap);
-*/
                     float[] lowhibase = new float[3];
                     boolean[] dashes = {false};
                     float[] levs = control.getLevels(lowhibase, dashes);
@@ -1965,20 +1967,20 @@ if (range_select[0] != null) {
                                             constant_alpha, constant_color);
                       arrays[0] = null;
                       if (bvalues[1] && arrays[2] != null) {
-/*
-System.out.println("makeIsoLines with labels arrays[2].vertexCount = " +
-                   arrays[2].vertexCount);
-*/
+
+// System.out.println("makeIsoLines with labels arrays[2].vertexCount = " +
+//                    arrays[2].vertexCount);
+
                         // draw labels
                         array = arrays[2];
                         //  FREE
                         arrays = null;
                       }
                       else if ((!bvalues[1]) && arrays[1] != null) {
-/*
-System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
-                   arrays[1].vertexCount);
-*/
+
+// System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
+//                    arrays[1].vertexCount);
+
                         // fill in contour lines in place of labels
                         array = arrays[1];
                         //  FREE
@@ -1995,10 +1997,11 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
                     }
                   } // end if (spatial_set != null)
                   anyContourCreated = true;
-                } // end if (spatialManifoldDimension == 3 or 2)
+                } // end if (spatialManifoldDimension == 2)
               } // end if (bvalues[0])
             } // end if (real.equals(Display.IsoContour) && not inherited)
           } // end for (int i=0; i<valueArrayLength; i++)
+*/
         } // end if (anyContour)
 
         if (!anyContourCreated && !anyFlowCreated &&

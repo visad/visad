@@ -293,6 +293,22 @@ public abstract class ShadowTypeJ3D extends ShadowType {
            spatial_values, color_values, range_select);
   }
 
+  public boolean makeContour(int valueArrayLength, int[] valueToScalar,
+                       float[][] display_values, int[] inherited_values,
+                       Vector MapVector, int[] valueToMap, int domain_length,
+                       boolean[][] range_select, int spatialManifoldDimension,
+                       Set spatial_set, byte[][] color_values, boolean indexed,
+                       Object group, GraphicsModeControl mode, boolean[] swap,
+                       float constant_alpha, float[] constant_color,
+                       ShadowType shadow_api)
+         throws VisADException {
+    return adaptedShadowType.makeContour(valueArrayLength, valueToScalar,
+                       display_values, inherited_values, MapVector, valueToMap,
+                       domain_length, range_select, spatialManifoldDimension,
+                       spatial_set, color_values, indexed, group, mode,
+                       swap, constant_alpha, constant_color, shadow_api);
+  }
+
   public VisADGeometryArray makeText(String[] text_values,
                 TextControl text_control, float[][] spatial_values,
                 byte[][] color_values, boolean[][] range_select)
