@@ -365,7 +365,7 @@ public class QTForm extends Form
   {
     if (!id.equals(current_id)) initFile(id);
 
-    if (block_number < 0 || block_number > numImages) {
+    if (block_number < 0 || block_number >= numImages) {
       throw new BadFormException("Invalid image number: " + block_number);
     }
 
