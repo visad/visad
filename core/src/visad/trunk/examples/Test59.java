@@ -56,7 +56,7 @@ public class Test59
     display1.addMap(new ConstantMap(0.5, Display.Blue));
     display1.addMap(new ConstantMap(0.5, Display.Red));
     ScalarMap map1contour;
-    map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
+    map1contour = new ScalarMap(ir_radiance, Display.IsoContour);
     display1.addMap(map1contour);
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
