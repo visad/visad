@@ -98,16 +98,16 @@ public class AnimationSetControl extends Control {
 
   /** copy the state of a remote control to this control */
   public void syncControl(Control rmt)
-    throws RemoteException, VisADException
+    throws VisADException
   {
     if (rmt == null) {
-      throw new RemoteException("Cannot synchronize " + getClass().getName() +
-                                " with null Control object");
+      throw new VisADException("Cannot synchronize " + getClass().getName() +
+                               " with null Control object");
     }
 
     if (!(rmt instanceof AnimationSetControl)) {
-      throw new RemoteException("Cannot synchronize " + getClass().getName() +
-                                " with " + rmt.getClass().getName());
+      throw new VisADException("Cannot synchronize " + getClass().getName() +
+                               " with " + rmt.getClass().getName());
     }
 
     AnimationSetControl asc = (AnimationSetControl )rmt;
@@ -125,7 +125,11 @@ public class AnimationSetControl extends Control {
     }
 
     if (changeSet) {
-      setSet(asc.set);
+      try {
+        setSet(asc.set);
+      } catch (RemoteException re) {
+        throw new VisADException("Could not set Set: " + re.getMessage());
+      }
     }
   }
 

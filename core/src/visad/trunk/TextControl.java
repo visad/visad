@@ -99,16 +99,16 @@ public class TextControl extends Control {
 
   /** copy the state of a remote control to this control */
   public void syncControl(Control rmt)
-    throws RemoteException, VisADException
+    throws VisADException
   {
     if (rmt == null) {
-      throw new RemoteException("Cannot synchronize " + getClass().getName() +
-                                " with null Control object");
+      throw new VisADException("Cannot synchronize " + getClass().getName() +
+                               " with null Control object");
     }
 
     if (!(rmt instanceof TextControl)) {
-      throw new RemoteException("Cannot synchronize " + getClass().getName() +
-                                " with " + rmt.getClass().getName());
+      throw new VisADException("Cannot synchronize " + getClass().getName() +
+                               " with " + rmt.getClass().getName());
     }
 
     TextControl tc = (TextControl )rmt;
@@ -131,7 +131,12 @@ public class TextControl extends Control {
     }
 
     if (changed) {
-      changeControl(true);
+      try {
+        changeControl(true);
+      } catch (RemoteException re) {
+        throw new VisADException("Could not indicate that control" +
+                                 " changed: " + re.getMessage());
+      }
     }
   }
 

@@ -148,22 +148,26 @@ public abstract class ProjectionControl extends Control {
 
   /** copy the state of a remote control to this control */
   public void syncControl(Control rmt)
-        throws RemoteException, VisADException
+        throws VisADException
   {
     if (rmt == null) {
-      throw new RemoteException("Cannot synchronize " + getClass().getName() +
-                                " with null Control object");
+      throw new VisADException("Cannot synchronize " + getClass().getName() +
+                               " with null Control object");
     }
 
     if (!(rmt instanceof ProjectionControl)) {
-      throw new RemoteException("Cannot synchronize " + getClass().getName() +
-                                " with " + rmt.getClass().getName());
+      throw new VisADException("Cannot synchronize " + getClass().getName() +
+                               " with " + rmt.getClass().getName());
     }
 
     ProjectionControl pc = (ProjectionControl )rmt;
 
     if (!matrixEquals(pc.matrix)) {
-      setMatrix(pc.matrix);
+      try {
+        setMatrix(pc.matrix);
+      } catch (RemoteException re) {
+        throw new VisADException("Could not set matrix: " + re.getMessage());
+      }
     }
   }
 

@@ -61,16 +61,16 @@ public class ValueControlJ3D extends AVControlJ3D
 
   /** copy the state of a remote control to this control */
   public void syncControl(Control rmt)
-        throws RemoteException, VisADException
+        throws VisADException
   {
     if (rmt == null) {
-      throw new RemoteException("Cannot synchronize " + getClass().getName() +
-                                " with null Control object");
+      throw new VisADException("Cannot synchronize " + getClass().getName() +
+                               " with null Control object");
     }
 
     if (!(rmt instanceof ValueControl)) {
-      throw new RemoteException("Cannot synchronize " + getClass().getName() +
-                                " with " + rmt.getClass().getName());
+      throw new VisADException("Cannot synchronize " + getClass().getName() +
+                               " with " + rmt.getClass().getName());
     }
 
     ValueControl vc = (ValueControl )rmt;
@@ -80,7 +80,11 @@ public class ValueControlJ3D extends AVControlJ3D
     double v = getValue();
     double rv = vc.getValue();
     if (Math.abs(v - rv) > 0.001) {
-      setValue(rv);
+      try {
+        setValue(rv);
+      } catch (RemoteException re) {
+        throw new VisADException("Could not set value: " + re.getMessage());
+      }
     }
   }
 

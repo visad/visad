@@ -401,16 +401,16 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
 
   /** copy the state of a remote control to this control */
   public void syncControl(Control rmt)
-    throws RemoteException, VisADException
+    throws VisADException
   {
     if (rmt == null) {
-      throw new RemoteException("Cannot synchronize " + getClass().getName() +
-                                " with null Control object");
+      throw new VisADException("Cannot synchronize " + getClass().getName() +
+                               " with null Control object");
     }
 
     if (!(rmt instanceof AnimationControlJ2D)) {
-      throw new RemoteException("Cannot synchronize " + getClass().getName() +
-                                " with " + rmt.getClass().getName());
+      throw new VisADException("Cannot synchronize " + getClass().getName() +
+                               " with " + rmt.getClass().getName());
     }
 
     AnimationControlJ2D ac = (AnimationControlJ2D )rmt;
@@ -445,7 +445,12 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
     }
 
     if (changed) {
-      changeControl(true);
+      try {
+        changeControl(true);
+      } catch (RemoteException re) {
+        throw new VisADException("Could not indicate that control" +
+                                 " changed: " + re.getMessage());
+      }
     }
   }
 

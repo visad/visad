@@ -288,16 +288,16 @@ public abstract class BaseColorControl extends Control {
 
   /** copy the state of a remote control to this control */
   public void syncControl(Control rmt)
-    throws RemoteException, VisADException
+    throws VisADException
   {
     if (rmt == null) {
-      throw new RemoteException("Cannot synchronize " + getClass().getName() +
-                                " with null Control object");
+      throw new VisADException("Cannot synchronize " + getClass().getName() +
+                               " with null Control object");
     }
 
     if (!(rmt instanceof BaseColorControl)) {
-      throw new RemoteException("Cannot synchronize " + getClass().getName() +
-                                " with " + rmt.getClass().getName());
+      throw new VisADException("Cannot synchronize " + getClass().getName() +
+                               " with " + rmt.getClass().getName());
     }
 
     BaseColorControl bcc = (BaseColorControl )rmt;
@@ -310,8 +310,8 @@ public abstract class BaseColorControl extends Control {
     if (tableChanged) {
       if (bcc.table == null) {
         if (functionChanged ? bcc.function == null : function == null) {
-          throw new RemoteException("BaseColorControl has null Table," +
-                                    " but no Function");
+          throw new VisADException("BaseColorControl has null Table," +
+                                   " but no Function");
         }
 
         table = null;
@@ -321,19 +321,29 @@ public abstract class BaseColorControl extends Control {
           tableLength = table[0].length - 1;
           function = null;
         }
-        changeControl(true);
+        try {
+          changeControl(true);
+        } catch (RemoteException re) {
+          throw new VisADException("Could not indicate that control" +
+                                   " changed: " + re.getMessage());
+        }
       }
     }
     if (functionChanged) {
       if (bcc.function == null) {
         if (table == null) {
-          throw new RemoteException("ColorControl has null Function," +
-                                    " but no Table");
+          throw new VisADException("ColorControl has null Function," +
+                                   " but no Table");
         }
 
         function = null;
       } else {
-        setFunction(bcc.function);
+        try {
+          setFunction(bcc.function);
+        } catch (RemoteException re) {
+          throw new VisADException("Could not set function: " +
+                                   re.getMessage());
+        }
       }
     }
   }
