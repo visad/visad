@@ -26,9 +26,6 @@ MA 02111-1307, USA
 
 package visad.data.tiff;
 
-import ij.*;
-import ij.io.*;
-import ij.process.*;
 import java.awt.Image;
 import java.awt.image.*;
 import java.io.*;
@@ -56,8 +53,11 @@ import visad.util.*;
  * <td>read only (with JAI)</td>
  * </tr></table><p>
  *
- * Note that features marked with &quot;(with JAI)&quot; require the
- * Java Advanced Imaging (JAI) package, available at Sun's
+ * This form requires ImageJ, avialable from the
+ * <a href="http://rsb.info.nih.gov/ij/download.html">ImageJ</a> web site.
+ *
+ * Note that features marked with &quot;(with JAI)&quot; also require
+ * the Java Advanced Imaging (JAI) package, available at Sun's
  * <a href="http://java.sun.com/products/java-media/jai/index.html">
  * Java Advanced Imaging</a> web site.
  *
@@ -77,6 +77,10 @@ public class TiffForm extends Form
   /** Legal TIFF suffixes. */
   private static final String[] suffixes = { "tif", "tiff" };
 
+  /** Message produced when attempting to use ImageJ without it installed. */
+  private static final String NO_IJ = "This feature requires ImageJ, " +
+    "avialable online at http://rsb.info.nih.gov/ij/download.html";
+
   /** Message produced when attempting to use JAI without it installed. */
   private static final String NO_JAI = "This feature requires JAI, " +
     "available from Sun at http://java.sun.com/products/java-media/jai/";
@@ -86,6 +90,9 @@ public class TiffForm extends Form
 
   /** Reflection tool for JAI calls. */
   private ReflectedUniverse r;
+
+  /** Flag indicating ImageJ is not installed. */
+  private boolean noImageJ = false;
 
   /** Flag indicating JAI is not installed. */
   private boolean noJai = false;
@@ -108,9 +115,23 @@ public class TiffForm extends Form
   /** Constructs a new TIFF file form. */
   public TiffForm() {
     super("TiffForm" + num++);
+    r = new ReflectedUniverse();
 
+    // ImageJ imports
     try {
-      r = new ReflectedUniverse();
+      r.exec("import ij.ImagePlus");
+      r.exec("import ij.ImageStack");
+      r.exec("import ij.io.FileInfo");
+      r.exec("import ij.io.FileSaver");
+      r.exec("import ij.io.Opener");
+      r.exec("import ij.io.TiffDecoder");
+      r.exec("import ij.process.ColorProcessor");
+      r.exec("import ij.process.ImageProcessor");
+    }
+    catch (VisADException exc) { noImageJ = true; }
+
+    // JAI imports
+    try {
       r.exec("import com.sun.media.jai.codec.ImageDecodeParam");
       r.exec("import com.sun.media.jai.codec.ImageDecoder");
       r.exec("import com.sun.media.jai.codec.ImageCodec");
@@ -153,36 +174,41 @@ public class TiffForm extends Form
   public void save(String id, Data data, boolean replace)
     throws BadFormException, IOException, RemoteException, VisADException
   {
+    if (noImageJ) throw new BadFormException(NO_IJ);
+
     percent = 0;
     FlatField[] fields = DataUtility.getImageFields(data);
     if (fields == null) {
       throw new BadFormException(
         "Data type must be image or time sequence of images");
     }
+    r.setVar("id", id);
     if (fields.length > 1) {
       // save as multi-page TIFF
-      int len = fields.length;
-      ImageProcessor[] ips = new ImageProcessor[len];
-      ImageStack is = null;
-      for (int i=0; i<len; i++) {
-        ips[i] = extractImage(fields[i]);
+      Object is = null;
+      for (int i=0; i<fields.length; i++) {
+        r.setVar("ips", extractImage(fields[i]));
         if (is == null) {
-          is = new ImageStack(ips[0].getWidth(),
-            ips[0].getHeight(), ips[0].getColorModel());
+          r.exec("w = ips.getWidth()");
+          r.exec("h = ips.getHeight()");
+          r.exec("cm = ips.getColorMode()");
+          r.exec("is = new ImageStack(w, h, cm)");
+          is = r.getVar("is");
         }
-        is.addSlice("" + i, ips[i]);
-        percent = (double) (i + 1) / len;
+        r.setVar("si", "" + i);
+        r.exec("is.addSlice(si, ips)");
+        percent = (double) (i + 1) / fields.length;
       }
-      ImagePlus image = new ImagePlus(id, is);
-      FileSaver sav = new FileSaver(image);
-      sav.saveAsTiffStack(id);
+      r.exec("image = new ImagePlus(id, is)");
+      r.exec("sav = new FileSaver(image)");
+      r.exec("sav.saveAsTiffStack(id)");
     }
     else {
       // save as single image TIFF
-      ImageProcessor ip = extractImage(fields[0]);
-      ImagePlus image = new ImagePlus(id, ip);
-      FileSaver sav = new FileSaver(image);
-      sav.saveAsTiff(id);
+      r.setVar("ip", extractImage(fields[0]));
+      r.exec("image = new ImagePlus(id, ip)");
+      r.exec("sav = new FileSaver(image)");
+      r.exec("sav.saveAsTiff(id)");
     }
 
     percent = -1;
@@ -263,15 +289,20 @@ public class TiffForm extends Form
     Image img = null;
 
     if (canUseImageJ) {
-      ImagePlus image = new Opener().openImage(id);
-      ImageStack stack = image.getStack();
-      ImageProcessor ip = stack.getProcessor(block_number + 1);
-      img = ip.createImage();
+      if (noImageJ) throw new BadFormException(NO_IJ);
+      r.exec("opener = new Opener()");
+      r.setVar("id", id);
+      r.exec("image = opener.openImage(id)");
+      r.exec("stack = image.getStack()");
+      r.setVar("bn1", block_number + 1);
+      r.exec("ip = stack.getProcessor(bn1)");
+      r.exec("img = ip.createImage()");
+      img = (Image) r.getVar("img");
     }
     else {
       if (noJai) throw new BadFormException(NO_JAI);
       try {
-        r.setVar("i", new Integer(block_number));
+        r.setVar("i", block_number);
         RenderedImage ri =
           (RenderedImage) r.exec("id.decodeAsRenderedImage(i)");
         WritableRaster wr = ri.copyData(null);
@@ -304,11 +335,9 @@ public class TiffForm extends Form
 
   /**
    * Converts a FlatField of the form <tt>((x, y) -&gt; (r, g, b))</tt>
-   * to an ImageJ ImageProcessor.
+   * to an ImageJ ImageProcessor object.
    */
-  public static ImageProcessor extractImage(FlatField field)
-    throws VisADException
-  {
+  private Object extractImage(FlatField field) throws VisADException {
     Gridded2DSet set = (Gridded2DSet) field.getDomainSet();
     int[] wh = set.getLengths();
     int w = wh[0];
@@ -329,37 +358,39 @@ public class TiffForm extends Form
         pixels[i] = v << 16 | v << 8 | v;
       }
     }
-    ColorProcessor cp = new ColorProcessor(w, h, pixels);
-    return cp;
+    r.setVar("w", w);
+    r.setVar("h", h);
+    r.setVar("pixels", pixels);
+    r.exec("cp = new ColorProcessor(w, h, pixels)");
+    return r.getVar("cp");
   }
 
   private void initFile(String id)
     throws BadFormException, IOException, VisADException
   {
+    if (noImageJ) throw new BadFormException(NO_IJ);
+
     // close any currently open files
     close();
 
     // determine whether ImageJ can handle the file
-    TiffDecoder tdec = new TiffDecoder("", id);
+    r.setVar("id", id);
+    r.setVar("empty", "");
+    r.exec("tdec = new TiffDecoder(empty, id)");
     canUseImageJ = true;
     try {
-      FileInfo[] info = tdec.getTiffInfo();
+      r.exec("info = tdec.getTiffInfo()");
     }
-    catch (IOException exc) {
-      String msg = exc.getMessage();
-      if (msg.startsWith("Unsupported BitsPerSample")
-        || msg.startsWith("Unsupported SamplesPerPixel")
-        || msg.startsWith("ImageJ cannot open compressed TIFF files"))
-      {
-        canUseImageJ = false;
-      }
-      else throw exc;
+    catch (VisADException exc) {
+      canUseImageJ = false;
     }
 
     // determine number of images in TIFF file
     if (canUseImageJ) {
-      ImagePlus image = new Opener().openImage(id);
-      numImages = image.getStackSize();
+      r.exec("opener = new Opener()");
+      r.exec("image = opener.openImage(id)");
+      r.exec("numImages = image.getStackSize()");
+      numImages = ((Integer) r.getVar("numImages")).intValue();
     }
     else {
       if (noJai) throw new BadFormException(NO_JAI);
@@ -367,8 +398,7 @@ public class TiffForm extends Form
         r.setVar("tiff", "tiff");
         r.setVar("file", new File(id));
         r.exec("id = ImageCodec.createImageDecoder(tiff, file, null)");
-        Object ni = r.exec("id.getNumPages()");
-        numImages = ((Integer) ni).intValue();
+        numImages = ((Integer) r.exec("id.getNumPages()")).intValue();
       }
       catch (VisADException exc) {
         throw new BadFormException(exc.getMessage());
