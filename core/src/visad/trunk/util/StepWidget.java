@@ -154,6 +154,12 @@ public class StepWidget extends JPanel
   /** Gets the maximum value of the widget. */
   public int getMaximum() { return max; }
 
+  /** Sets the current value of the widget. */
+  public void setValue(int cur) {
+    this.cur = cur;
+    step.setValue(cur);
+  }
+
   /** Enables or disables the widget. */
   public void setEnabled(boolean enabled) {
     step.setEnabled(enabled);
@@ -172,7 +178,8 @@ public class StepWidget extends JPanel
     step.setValue(cur);
 
     int maj;
-    if (max < 20) maj = max / 4;
+    if (max < 4) maj = 1;
+    else if (max < 20) maj = max / 4;
     else if (max < 30) maj = max / 6;
     else maj = max / 8;
 
