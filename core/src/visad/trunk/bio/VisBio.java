@@ -201,6 +201,7 @@ public class VisBio extends GUIFrame implements ChangeListener {
     addMenuItem("File", "Exit", "fileExit", 'x');
     fileExport.setEnabled(false);
     addMenuItem("Help", "Overview", "helpOverview", 'o');
+    addMenuItem("Help", "QuickTime", "helpQuickTime", 'q');
     addMenuItem("Help", "About", "helpAbout", 'a');
 
     // lay out components
@@ -586,20 +587,14 @@ public class VisBio extends GUIFrame implements ChangeListener {
     System.exit(0);
   }
 
-  /** Brings up a window detailing basic program usage. */
-  public void helpOverview() {
-    final JFrame frame = this;
-    Util.invoke(false, new Runnable() {
-      public void run() { help.showWindow(frame); }
-    });
-  }
+  /** Brings up the help window on the Overview tab. */
+  public void helpOverview() { doHelp(0); }
 
-  public void helpAbout() {
-    final JFrame frame = this;
-    Util.invoke(false, new Runnable() {
-      public void run() { help.showWindow(frame, 1); }
-    });
-  }
+  /** Brings up the help window on the QuickTime tab. */
+  public void helpQuickTime() { doHelp(1); }
+
+  /** Brings up the help window on the About tab. */
+  public void helpAbout() { doHelp(2); }
 
 
   // -- INTERNAL API METHODS --
@@ -647,6 +642,18 @@ public class VisBio extends GUIFrame implements ChangeListener {
     RealType blue = b.equals("null") ? null : RealType.getRealType(b);
     sm.restoreState(fin);
     toolColor.setColors(bright, cont, model, comp, red, green, blue);
+  }
+
+
+  // -- HELPER METHODS --
+
+  /** Brings up a window detailing basic program usage. */
+  private void doHelp(int tab) {
+    final JFrame frame = this;
+    final int ftab = tab;
+    Util.invoke(false, new Runnable() {
+      public void run() { help.showWindow(frame, ftab); }
+    });
   }
 
 

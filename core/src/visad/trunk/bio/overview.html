@@ -10,29 +10,34 @@ across time). It's more fun than a backpack full of angry weasels.
 <p>
 <font size="+1"><b>How to import a dataset</b></font>
 <p>
-The first step is to load your dataset into VisBio. From the file menu, choose
+The first step is to load your dataset into VisBio. From the File menu, choose
 Open. A dialog box will appear:
 <p>
 <center><img src="import-dialog.gif"></center>
 <p>
-The most straightforward way to get a time series into VisBio is to number your
+The most straightforward way to get a time series into VisBio is to number the
 data files across time. For example, the sample <i>C. elegans</i> dataset
 available on the VisBio web site is a collection of 13 files labeled SDUB1.PIC
 through SDUB13.PIC. For this dataset, you'd fill in "C:\data\SDUB" for the file
-prefix (where "C:\data" is the location of the dataset), "1" for Start, "13"
-for End, and "PIC" for Extension.
+prefix (where "C:\data" is the location of the dataset), "1" for start, "13"
+for end, and "PIC" for extension.
 <p>
-You can fill in the fields manually, or you can let VisBio fill in the fields
-automatically by clicking the "Choose file" button and selecting one timestep
-in your dataset. So, you could select any one of the SDUB files using the file
-chooser, and VisBio would automatically detect that there are 13 timesteps in
-the series.
+If desired, you can have VisBio fill in the fields automatically by clicking
+the "Choose file" button and selecting one timestep of the dataset. So, you
+could select any one of the SDUB files using the file chooser, and VisBio would
+automatically detect that there are 13 timesteps in the series.
+<p>
+Lastly, if you have a series of images that you wish to import as a single
+stack of slices rather than an animation across time, choose to "treat each
+file as a slice" instead of as a timestep. Note that VisBio does not currently
+support treating each file as a slice if each file contains more than one
+image.
 <p>
 <font size="+1"><b>How animation works in VisBio</b></font>
 <p>
 To save memory, VisBio only keeps one timestep of the dataset in memory at a
 time, thus allowing visualization of huge datasets quickly. Unfortunately, when
-you switch timesteps, VisBio would need to load the new timestep into memory
+switching timesteps, VisBio would need to load the new timestep into memory
 from disk, which takes time and slows down animation.
 <p>
 To sidestep this problem, VisBio reads in all timesteps one at a time when
@@ -54,15 +59,54 @@ use and realtime animation--at the expense of a longer initial loading time.
 You can specify the thumbnail resolution by altering the values next to the
 "Create low-resolution thumbnails" checkbox when first importing a dataset
 (the default is 64 x 64 pixels). Making these numbers smaller will result in
-the low-resolution mode looking blockier but taking less memory, whereas
-larger numbers will require more memory to store the thumbnails but look
-crisper while animating.
+lo-res mode looking blockier but taking less memory, whereas larger numbers
+will require more memory to store the thumbnails but look crisper while
+animating.
 <p>
 You can also choose to disable low-resolution support completely by unchecking
 the checkbox. When thumbnails are disabled, the dataset will load more quickly
 (VisBio only needs to load the current timestep instead of loading them all
 and profiling them), but animation will be disabled as well, and switching
 timesteps will be slow since the new timestep must be loaded from disk.
+<p>
+<font size="+1"><b>Exporting a dataset</b></font>
+<p>
+VisBio contains powerful features for exporting data to different formats.
+To export the current dataset, choose "Export" from the File menu.
+A dialog box will appear:
+<p>
+<center><img src="export-dialog.gif"></center>
+<p>
+Choose the output format of the data (Bio-Rad PIC, TIFF, or QuickTime), enter
+the desired filename prefix, and pick a data orientation--treating each file
+as a timestep results in each file containing all slices from a given timestep,
+whereas treating each file as a slice results in each file containing all
+timesteps from a given slice.
+<br>
+<hr>
+Note: If "QuickTime movie" is grayed out, you'll need to install QuickTime for
+Java on your machine. See the "QuickTime" tab for more information.
+<hr>
+<br>
+If you have made color or alignment adjustments, you can preserve them in the
+exported data by checking "Save color adjustments" or "Save alignment,"
+respectively. [coming soon]
+<p>
+You can also choose to limit which slices and timesteps get exported using the
+"Save current" and "Only export" checkboxes. In particular, if you have
+computed an arbitrary slice (using the "Arbitrary data slice" checkbox in the
+View controls), you can export it by checking "Save current slice only."
+<p>
+Lastly, you can change the export resolution using the "Use alternate
+resolution" checkbox. The dataset's slices will be resampled to match the
+specified resolution.
+<p>
+<font size="+1"><b>Taking a snapshot</b></font>
+<p>
+You can take a "snapshot" of the displays currently onscreen, saving it to a
+file that matches the current appearance of the displays exactly. To take a
+snapshot, choose "Take snapshot" from the File menu. You can save the snapshot
+as TIFF, RAW or JPEG.
 <p>
 </body>
 </html>

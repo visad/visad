@@ -104,8 +104,10 @@ public class ExportDialog extends JPanel
     cancel.addActionListener(this);
 
     // options
-    doColors = new JCheckBox("Save color adjustments", true);
-    doAlign = new JCheckBox("Save alignment", true);
+    doColors = new JCheckBox("Save color adjustments");
+    doColors.setEnabled(false);
+    doAlign = new JCheckBox("Save alignment");
+    doAlign.setEnabled(false);
     timeOnly = new JCheckBox("Save current timestep only");
     timeOnly.setActionCommand("timeOnly");
     timeOnly.addActionListener(this);
