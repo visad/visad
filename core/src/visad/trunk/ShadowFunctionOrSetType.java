@@ -2161,6 +2161,16 @@ makeGeometry 350, 171
 
             int nwidth = 2 + (data_width - 1) / curved_size;
             int nheight = 2 + (data_height - 1) / curved_size;
+
+            // WLH 14 Aug 2001
+            if (range_select[0] != null && !domainOnlySpatial) {
+              // System.out.println("force curved_size = 1");
+              curved_size = 1;
+              nwidth = data_width;
+              nheight = data_height;
+            }
+// System.out.println("curved_size = " + curved_size);
+
             int nn = nwidth * nheight;
             coordinates = new float[3 * nn];
             int k = 0;
