@@ -67,24 +67,62 @@ public class DisplayImplJ3D extends DisplayImpl {
   /** distance behind for surfaces in 2-D mode */
   public static final float BACK2D = -2.0f;
 
-  /** Java3D constants */
+  /** 
+   * Use a parallel projection view
+   * @see GraphicsModeControlJ3D#setProjectionPolicy
+   */
   public static final int PARALLEL_PROJECTION =
     javax.media.j3d.View.PARALLEL_PROJECTION;
+
+  /** 
+   * Use a perspective projection view. This is the default.
+   * @see GraphicsModeControlJ3D#setProjectionPolicy
+   */
+  public static final int PERSPECTIVE_PROJECTION =
+    javax.media.j3d.View.PERSPECTIVE_PROJECTION;
+
+  /** Render polygonal primitives by filling the interior of the polygon 
+      @see GraphicsModeControlJ3D#setPolygonMode */
   public static final int POLYGON_FILL =
     javax.media.j3d.PolygonAttributes.POLYGON_FILL;
+
+  /** 
+   * Render polygonal primitives as lines drawn between consecutive vertices 
+   * of the polygon. 
+   * @see GraphicsModeControlJ3D#setPolygonMode 
+   */
   public static final int POLYGON_LINE =
     javax.media.j3d.PolygonAttributes.POLYGON_LINE;
+
+  /** 
+   * Render polygonal primitives as points drawn at the vertices of 
+   * the polygon. 
+   * @see GraphicsModeControlJ3D#setPolygonMode 
+   */
   public static final int POLYGON_POINT =
     javax.media.j3d.PolygonAttributes.POLYGON_POINT;
+
+  /** 
+   * Use the nicest available method for transparency.
+   * @see GraphicsModeControlJ3D#setTransparencyMode 
+   */
   public static final int NICEST =
     javax.media.j3d.TransparencyAttributes.NICEST;
+
+  /** 
+   * Use the fastest available method for transparency.
+   * @see GraphicsModeControlJ3D#setTransparencyMode 
+   */
   public static final int FASTEST =
     javax.media.j3d.TransparencyAttributes.FASTEST;
 
-  /** legal values for api */
+  /** Field for specifying unknown API type */
   public static final int UNKNOWN = 0;
+  /** Field for specifying that the DisplayImpl be created in a JPanel */
   public static final int JPANEL = 1;
+  /** Field for specifying that the DisplayImpl be created in an Applet */
   public static final int APPLETFRAME = 2;
+
   /** this is used for APPLETFRAME */
   private DisplayAppletJ3D applet = null;
 
@@ -229,22 +267,46 @@ public class DisplayImplJ3D extends DisplayImpl {
     addControl(mode);
   }
 
+  /** return a DefaultDisplayRendererJ3D */
   protected DisplayRenderer getDefaultDisplayRenderer() {
     return new DefaultDisplayRendererJ3D();
   }
 
+  /**
+   * Get the projection control associated with this display
+   * @see ProjectionControlJ3D
+   *
+   * @return  this display's projection control
+   */
   public ProjectionControl getProjectionControl() {
     return projection;
   }
 
+  /**
+   * Get the graphics mode control associated with this display
+   * @see GraphicsModeControlJ3D
+   *
+   * @return  this display's graphics mode control
+   */
   public GraphicsModeControl getGraphicsModeControl() {
     return mode;
   }
 
+  /**
+   * Return the applet associated with this display
+   *
+   * @return the applet or null if API != APPLETFRAME
+   */
   public DisplayAppletJ3D getApplet() {
     return applet;
   }
 
+  /**
+   * Return the API used for this display
+   *
+   * @return  the mode being used (UNKNOWN, JPANEL, APPLETFRAME)
+   * @throws  VisADException
+   */
   public int getAPI()
 	throws VisADException
   {
