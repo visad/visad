@@ -626,7 +626,8 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           }
         }
         float[][] spline_domain = domain_set.indexToValue(indices);
-        spline_domain = Unit.convertTuple(spline_domain, dataUnits, domain_units);
+        spline_domain = 
+            Unit.convertTuple(spline_domain, dataUnits, domain_units, false);
 
         // transform for any CoordinateSystem in data (Field) Domain
         ShadowRealTupleType domain_reference = Domain.getReference();
