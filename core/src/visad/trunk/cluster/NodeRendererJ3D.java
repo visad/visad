@@ -92,6 +92,13 @@ public class NodeRendererJ3D extends DefaultRendererJ3D {
     return new ShadowNodeTupleTypeJ3D(type, link, parent);
   }
 
+  public DataShadow prepareAction(boolean go, boolean initialize,
+                                  DataShadow shadow)
+         throws VisADException, RemoteException {
+    // don't autoscale: initialize = false
+    return super.prepareAction(go, false, shadow);
+  }
+
   /** create a VisADGroup scene graph for Data in links[0] */
   public BranchGroup doTransform() throws VisADException, RemoteException {
     VisADGroup branch = new VisADGroup();

@@ -220,6 +220,8 @@ DisplayImpl.printStack("prepareAction");
             throw re;
           }
 
+          shadow = computeRanges(data, type, shadow);
+/* WLH 8 Dec 2000
           if (shadow == null) {
             shadow =
               data.computeRanges(type, display.getScalarCount());
@@ -227,6 +229,7 @@ DisplayImpl.printStack("prepareAction");
           else {
             shadow = data.computeRanges(type, shadow);
           }
+*/
         }
       } // end if (Links[i].checkTicks() || !feasible[i] || go)
 
