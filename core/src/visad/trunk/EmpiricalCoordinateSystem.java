@@ -29,12 +29,12 @@ package visad;
 /**
  * Provides support for empirically-defined CordinateSystem-s.  This is useful
  * for data-dependent coordinate transformations that must be determined
- * empirically rather than analytically (e.g. pressure <-> height).<p>
+ * empirically rather than analytically (e.g. pressure <-> height).</p>
  *
- * Coordinates in this system are termed "world" coordinates and coordinates in
- * the reference coordinate system are termed "reference" coordinates.<p>
+ * <p>Coordinates in this system are termed "world" coordinates and coordinates
+ * in the reference coordinate system are termed "reference" coordinates.</p>
  *
- * Instances of this class are immutable.<p>
+ * <p>Instances of this class are immutable.
  *
  * @author Steven R. Emmerson
  */
@@ -75,12 +75,48 @@ EmpiricalCoordinateSystem
     throws VisADException
   {
     super(((SetType)reference.getType()).getDomain(), world.getSetUnits());
-    worldCS = new GridCoordinateSystem(world);
-    referenceCS = new GridCoordinateSystem(reference);
+    worldCS = new GridCoordinateSystem(ensureNoCoordinateSystem(world));
+    referenceCS = new GridCoordinateSystem(ensureNoCoordinateSystem(reference));
   }
 
   /**
-   * Factory method for constructing from a FlatField.
+   * Ensures that a GriddedSet doesn't have a default CoordinateSystem.
+   *
+   * @param griddedSet		The GriddedSet to not have a CoordinateSystem.
+   * @return                    The GriddedSet without a CoordinateSystem.
+   *                            May be the original GriddedSet.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   */
+  protected static GriddedSet
+  ensureNoCoordinateSystem(GriddedSet griddedSet)
+    throws VisADException
+  {
+    if (griddedSet.getCoordinateSystem() != null)
+    {
+      /*
+       * The GriddedSet has a CoordinateSystem.  Clone the GriddedSet without
+       * the CoordinateSystem.
+       */
+      SetType		setType = (SetType)griddedSet.getType();
+      RealTupleType	realTupleType = setType.getDomain();
+      if (realTupleType.getCoordinateSystem() != null)
+	setType =
+	  new SetType(new RealTupleType(realTupleType.getRealComponents()));
+      griddedSet =
+	GriddedSet.create(
+	  setType,
+	  griddedSet.getSamples(),
+	  griddedSet.getLengths(),
+	  (CoordinateSystem)null,
+	  griddedSet.getSetUnits(),
+	  griddedSet.getSetErrors());
+    }
+    return griddedSet;
+  }
+
+  /**
+   * Constructs an EmpiricalCoordinateSystem from a FlatField.
+   *
    * @param field               The FlatField comprising a coordinate system
    *                            transformation from the domain to the range.
    *                            The <code>toReference()</code> method of the
@@ -101,27 +137,22 @@ EmpiricalCoordinateSystem
   create(FlatField field)
     throws VisADException
   {
-    float[][]	samples = field.getFloats(false);	// default units
-    int[]	lengths = new int[samples.length];
-    for (int i = lengths.length; --i >= 0; )
-      lengths[i] = samples[i].length;
-    Set		domainSet = field.getDomainSet();
+    float[][]		samples = field.getFloats(false);// in default units
+    Set			domainSet = field.getDomainSet();
     if (!(domainSet instanceof GriddedSet))
-      throw new SetException(
-	EmpiricalCoordinateSystem.class.getName() + ".create(FlatField): " +
-	"Domain set must be GriddedSet");
-    Unit[][]	rangeUnits = field.getRangeUnits();
-    Unit[]	rangeSetUnits = new Unit[rangeUnits.length];
+      throw new SetException("Domain set must be GriddedSet");
+    Unit[][]		rangeUnits = field.getRangeUnits();
+    Unit[]		rangeSetUnits = new Unit[rangeUnits.length];
     for (int i = rangeUnits.length; --i >= 0; )
       rangeSetUnits[i] = rangeUnits[i][0];
     return
       new EmpiricalCoordinateSystem(
 	(GriddedSet)domainSet,
 	GriddedSet.create(
-	  ((FunctionType)field.getType()).getRange(),
+	  ((FunctionType)field.getType()).getFlatRange(),
 	  Unit.convertTuple(
 	    samples, field.getDefaultRangeUnits(), rangeSetUnits),
-	  lengths,
+	  new int[] {samples[0].length},
 	  (CoordinateSystem)null,
 	  rangeSetUnits,
 	  (ErrorEstimate[])null));
