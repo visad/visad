@@ -315,7 +315,7 @@ public class SliceManager implements ControlListener, PlaneListener {
     /*
     try {
       FieldImpl f = (FieldImpl) field.domainMultiply();
-      Data d = ps.extractSlice(f, res_x, res_y); }
+      Data d = ps.extractSlice(f, res_x, res_y);
       planeRef.setData(d);
     }
     catch (VisADException exc) { exc.printStackTrace(); }
