@@ -1,8 +1,7 @@
 from visad.python.JPythonMethods import *
 data = load("b2rlc.nc")
 data2 = data[2][0]
-num = data2.getDimension()
-spectrum = data2[num-1]
+spectrum = data2[data2.length-1]
 
 print spectrum.getType()
 

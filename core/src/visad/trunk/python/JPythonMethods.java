@@ -377,5 +377,11 @@ public abstract class JPythonMethods {
     return Histogram.makeHistogram(field, set);
   }
 
+  public static Set linear(MathType type, double first, double last, int length)
+         throws VisADException, RemoteException {
+
+
+  }
+
 }
 
