@@ -550,7 +550,6 @@ public class SliceManager implements ControlListener {
     renderer2.toggle(on);
     bio.display2.addReferences(renderer2, ref);
     if (hasThumbs) {
-      // bio.display2.enableAction(); // CTR - TEMP HACK
       on = lowresRenderer2 == null ? false : lowresRenderer2.getEnabled();
       lowresRenderer2 = dr.makeDefaultRenderer();
       lowresRenderer2.toggle(on);
@@ -595,7 +594,6 @@ public class SliceManager implements ControlListener {
       renderer3.toggle(on);
       bio.display3.addReferences(renderer3, ref);
       if (hasThumbs) {
-        // bio.display3.enableAction(); // CTR - TEMP HACK
         on = lowresRenderer3 == null ? false : lowresRenderer3.getEnabled();
         lowresRenderer3 = dr.makeDefaultRenderer();
         lowresRenderer3.toggle(on);
@@ -631,11 +629,6 @@ public class SliceManager implements ControlListener {
     float max_z = slices - 1;
     slice_map2.setRange(min_z, max_z);
 
-    // animation range
-    float min_anim = 0;
-    float max_anim = timesteps - 1;
-    // anim_map2.setRange(min_anim, max_anim); // WLH
-
     // color ranges
     r_map2.setRange(0, 255);
     g_map2.setRange(0, 255);
@@ -650,9 +643,6 @@ public class SliceManager implements ControlListener {
       // z-axis range
       z_map3a.setRange(min_z, max_z);
       z_map3b.setRange(min_z, max_z);
-
-      // animation range
-      // anim_map3.setRange(min_anim, max_anim); // WLH
 
       // color ranges
       r_map3.setRange(0, 255);
@@ -705,10 +695,6 @@ public class SliceManager implements ControlListener {
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }
     }
-
-System.out.println("anim_control2 = " + anim_control2);
-if (anim_control3 != null) System.out.println("anim_control3 = " + anim_control3);
-System.out.println("value_control2 = " + value_control2);
 
     // switch resolution
     if (lowres) {

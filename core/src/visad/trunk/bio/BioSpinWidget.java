@@ -49,6 +49,7 @@ public class BioSpinWidget extends JPanel implements MouseListener {
   private int min, max, value;
   private boolean upPressed, downPressed;
   private int pressTime;
+  private long lastPress;
 
 
   // -- CONSTRUCTOR --
@@ -139,6 +140,9 @@ public class BioSpinWidget extends JPanel implements MouseListener {
       if (value < min) value = min;
     }
     else return;
+    updateWidget();
+    lastPress = System.currentTimeMillis();
+    pressTime = 0;
     startSpinThread();
   }
 
@@ -175,10 +179,9 @@ public class BioSpinWidget extends JPanel implements MouseListener {
   private void startSpinThread() {
     Thread t = new Thread(new Runnable() {
       public void run() {
-        updateWidget();
         try { Thread.sleep(500); }
         catch (InterruptedException exc) { }
-        while (true) {
+        while (lastPress + 500 <= System.currentTimeMillis()) {
           if (upPressed) {
             value++;
             if (value > max) value = max;
@@ -195,7 +198,6 @@ public class BioSpinWidget extends JPanel implements MouseListener {
           try { Thread.sleep(waitTime); }
           catch (InterruptedException exc) { }
         }
-        pressTime = 0;
       }
     });
     t.start();

@@ -130,7 +130,6 @@ public class BioAnimWidget extends JPanel implements ControlListener {
   /** Refreshes the GUI to match the linked animation control. */
   private void updateWidget() {
     go.setText(control.getOn() ? "Stop" : "Animate");
-    spin.setValue((int) (1000.0 / control.getStep()));
   }
 
 }
