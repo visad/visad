@@ -35,13 +35,29 @@ public class SingletonSet extends SampledSet {
 
   private RealTuple data;
 
-  /** construct a SingletonSet with the single sample given by a RealTuple */
+  /**  
+   * Construct a SingletonSet with the single sample given by a RealTuple 
+   *
+   * @param d  sample as a RealTuple
+   * @throws  VisADException  Couldn't create the necessary VisAD object
+   * @throws  RemoteException  Couldn't create the necessary remote object
+   */
   public SingletonSet(RealTuple d) throws VisADException, RemoteException {
     this(d, d.getType(), null, d.getTupleUnits(), null);
   }
 
-  /** construct a SingletonSet with the single sample given by a RealTuple,
-      and a non-default CoordinateSystem */
+  /**  
+   * Construct a SingletonSet with the single sample given by a RealTuple,
+   * and a non-default CoordinateSystem, Units and ErrorEstimates.
+   *
+   * @param d  sample as a RealTuple
+   * @param coord_sys  CoordinateSystem
+   * @param units   Units
+   * @param errors  ErrorEstimate
+   *
+   * @throws  VisADException  Couldn't create the necessary VisAD object
+   * @throws  RemoteException  Couldn't create the necessary remote object
+   */
   public SingletonSet(RealTuple d, CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors)
          throws VisADException, RemoteException {
@@ -72,28 +88,50 @@ public class SingletonSet extends SampledSet {
     }
   }
 
+  /**
+   * Check if the samples are missing.
+   *
+   * @return false by definition, a SingletonSet never has missing samples
+   *               since it is initialized with a RealTuple..
+   */
   public boolean isMissing() {
     return false;
   }
 
-  /** convert an array of 1-D indices to an array of values in R^DomainDimension */
+  /** 
+   * convert an array of 1-D indices to an array of values in R^DomainDimension 
+   *
+   * @return float array of values
+   * @throws VisADException  couldn't create the necessary VisAD object
+   */
   public float[][] indexToValue(int[] index)
          throws VisADException {
+    return Set.doubleToFloat(indexToDouble(index));
+  }
+
+  /** 
+   * convert an array of 1-D indices to an array of doubles in R^DomainDimension
+   *
+   * @return double array of values
+   * @throws VisADException  couldn't create the necessary VisAD object
+   */
+  public double[][] indexToDouble(int[] index)
+         throws VisADException {
     int length = index.length;
-    float[][] value = new float[DomainDimension][length];
-    float[] v = new float[DomainDimension];
+    double[][] value = new double[DomainDimension][length];
+    double[] v = new double[DomainDimension];
     for (int k=0; k<DomainDimension; k++) {
       try {
-        v[k] = (float) (((Real) data.getComponent(k)).getValue());
+        v[k] = ((Real) data.getComponent(k)).getValue();
       }
       catch (RemoteException e) {
-        v[k] = Float.NaN;
+        v[k] = Double.NaN;
       }
     }
     for (int i=0; i<length; i++) {
       if (index[i] < 0 || index[i] >= Length) {
         for (int k=0; k<DomainDimension; k++) {
-          value[k][i] = Float.NaN;
+          value[k][i] = Double.NaN;
         }
       }
       else {
@@ -105,8 +143,23 @@ public class SingletonSet extends SampledSet {
     return value;
   }
 
-  /** convert an array of values in R^DomainDimension to an array of 1-D indices */
+  /** 
+   * convert an array of values in R^DomainDimension to an array of 1-D indices
+   *
+   * @return indices 
+   * @throws VisADException  couldn't create the necessary VisAD object
+   */
   public int[] valueToIndex(float[][] value) throws VisADException {
+    return doubleToIndex(Set.floatToDouble(value));
+  }
+
+  /** 
+   * convert an array of doubles in R^DomainDimension to an array of 1-D indices
+   *
+   * @return indices 
+   * @throws VisADException  couldn't create the necessary VisAD object
+   */
+  public int[] doubleToIndex(double[][] value) throws VisADException {
     if (value.length != DomainDimension) {
       throw new SetException("SingletonSet.valueToIndex: bad dimension");
     }
@@ -139,32 +192,69 @@ public class SingletonSet extends SampledSet {
     }
   }
 
+  /** for each of an array of values in R^DomainDimension, compute an array
+      of 1-D indices and an array of weights, to be used for interpolation;
+      indices[i] and weights[i] are null if i-th value is outside grid
+      (i.e., if no interpolation is possible) */
+  public void doubleToInterp(double[][] value, int[][] indices,
+                            double weights[][]) throws VisADException {
+    if (value.length != DomainDimension) {
+      throw new SetException("SingletonSet.doubleToInterp: bad dimension");
+    }
+    int length = value[0].length; // number of values
+    if (indices.length != length || weights.length != length) {
+      throw new SetException("SingletonSet.doubleToInterp: lengths don't match");
+    }
+    for (int i=0; i<length; i++) {
+      indices[i] = new int[1];
+      weights[i] = new double[1];
+      indices[i][0] = 0;
+      weights[i][0] = 1.0;
+    }
+  }
+
+  /**
+   * Get the values from the RealTuple as an array of doubles
+   * @return samples as doubles.
+   * @throws VisADException  couldn't create the necessary VisAD object
+   */
+  public double[][] getDoubles(boolean copy) throws VisADException {
+    int n = getLength();
+    int[] indices = new int[n];
+    for (int i=0; i<n; i++) indices[i] = i;
+    return indexToDouble(indices);
+  }
+
+  /**
+   * Get the RealTuple that this SingletonSet was initialized with.
+   *
+   * @return  RealTuple
+   */
   public RealTuple getData() {
     return data;
   }
 
+  /**
+   * See if this SingletonSet is equal to the Object in question.  They
+   * are equal if they are the same object and have the same Units, 
+   * CoordinateSystem, dimension and their getData() returns are the equal.
+   *
+   * @return  true if equal, otherwise false
+   */
   public boolean equals(Object set) {
     if (!(set instanceof SingletonSet) || set == null) return false;
     if (this == set) return true;
     if (!equalUnitAndCS((Set) set)) return false;
-    try {
-      if (DomainDimension != ((SingletonSet) set).getDimension()) return false;
-      for (int i=0; i<DomainDimension; i++) {
-        if (((Real) data.getComponent(i)).getValue() !=
-            ((Real) ((SingletonSet) set).getData().getComponent(i)).getValue()) {
-          return false;
-        }
-      }
-      return true;
-    }
-    catch (VisADException e) {
-      return false;
-    }
-    catch (RemoteException e) {
-      return false;
-    }
+    if (DomainDimension != ((SingletonSet) set).getDimension()) return false;
+    if ( !data.equals( ((SingletonSet) set).getData()) ) return false;
+    return true;
   }
 
+  /**
+   * Clone this SingletonSet.
+   *
+   * @return  clone of this set
+   */
   public Object clone() {
     try {
       return new SingletonSet(data, DomainCoordinateSystem,
@@ -178,6 +268,14 @@ public class SingletonSet extends SampledSet {
     }
   }
 
+  /**
+   * Clone this SingletonSet, but change the MathType
+   *
+   * @param  type  new MathType
+   * 
+   * @return  clone of this set with new MathType
+   * @throws VisADException  couldn't create the new SingletonSet
+   */
   public Object cloneButType(MathType type) throws VisADException {
     try {
       return new SingletonSet(data, type, DomainCoordinateSystem,
@@ -188,6 +286,13 @@ public class SingletonSet extends SampledSet {
     }
   }
 
+  /**
+   * Create string representation of this Set with a given prefix
+   *
+   * @param  pre   Prefix for the string.
+   * @return  String of the form pre + "SingletonSet: " + getData().toString()
+   * @throws VisADException  couldn't create the longString
+   */
   public String longString(String pre) throws VisADException {
     return pre + "SingletonSet: " + data;
   }
