@@ -1,4 +1,4 @@
-// $Id: NetcdfService.java,v 1.1.1.3 2000-08-28 21:54:46 dglo Exp $
+// $Id: NetcdfService.java,v 1.2 2001-05-16 20:31:18 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -28,8 +28,8 @@ import java.rmi.Remote;
  * by name. It is a placeholder for a more elaborate
  * directory service, hopefully to be provided later on.
  *
- * @author $Author: dglo $
- * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:54:46 $
+ * @author $Author: steve $
+ * @version $Revision: 1.2 $ $Date: 2001-05-16 20:31:18 $
  */
 
 public interface

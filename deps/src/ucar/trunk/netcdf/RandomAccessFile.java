@@ -1,29 +1,29 @@
-// $Id: RandomAccessFile.java,v 1.1.1.4 2000-08-28 21:54:46 dglo Exp $
+// $Id: RandomAccessFile.java,v 1.2 2001-05-16 20:31:19 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
  * support@unidata.ucar.edu.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation; either version 2.1 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this library; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 /*
  * RandomAccessFile.java.  By Russ Rew, based on
  * BufferedRandomAccessFile by Alex McManus, based on Sun's source code
  * for java.io.RandomAccessFile.  For Alex McManus version from which
  * this derives, see his <a href="http://www.aber.ac.uk/~agm/Java.html">
- * Freeware Java Classes</a>.  
+ * Freeware Java Classes</a>.
  */
 
 package ucar.netcdf;
@@ -41,7 +41,7 @@ import java.io.UTFDataFormatException;
 import java.util.Random; // used in test method
 import java.util.Date;
 
-/** 
+/**
  * A buffered drop-in replacement for java.io.RandomAccessFile.
  * Instances of this class realise substantial speed increases over
  * java.io.RandomAccessFile through the use of buffering. This is a
@@ -53,7 +53,7 @@ import java.util.Date;
  *
  * @author Alex McManus
  * @author Russ Rew
- * @version $Id: RandomAccessFile.java,v 1.1.1.4 2000-08-28 21:54:46 dglo Exp $
+ * @version $Id: RandomAccessFile.java,v 1.2 2001-05-16 20:31:19 steve Exp $
  * @see DataInput
  * @see DataOutput
  * @see java.io.RandomAccessFile */
@@ -107,6 +107,17 @@ implements DataInput, DataOutput {
    /** True if the data in the buffer has been modified. */
    boolean bufferModified = false;
 
+     // subclasses only
+   protected RandomAccessFile(int bufferSize) {
+    // Initialise the buffer
+    bufferStart = 0;
+    dataEnd = 0;
+    dataSize = 0;
+    filePosition = 0;
+    buffer = new byte[bufferSize];
+    endOfFile = false;
+  }
+
    /**
     * Create a new buffered random-access file with a default buffer size.
     * Note that the mode CREATE implies WRITE.
@@ -131,13 +142,13 @@ implements DataInput, DataOutput {
    }
 
     /**
-     * Creates a random access file stream to read from, and optionally 
+     * Creates a random access file stream to read from, and optionally
      * to write to, a file with the specified name.
      * <p>
-     * The mode argument must either be equal to <code>"r"</code> or 
-     * <code>"rw"</code>, indicating that the file is to be opened for 
+     * The mode argument must either be equal to <code>"r"</code> or
+     * <code>"rw"</code>, indicating that the file is to be opened for
      * input only or for both input and output, respectively.  If the
-     * mode is <code>"rw"</code> and the 
+     * mode is <code>"rw"</code> and the
      * file does not exist, then an attempt is made to create it.
      *
      * @param      name   the system-dependent filename.
@@ -158,25 +169,25 @@ implements DataInput, DataOutput {
      */
    public RandomAccessFile( String filename, String modeString )
        throws IOException {
-              
-       this( filename, 
-	     modeString.equals("r")? READ :
-	     (modeString.equals("rw")? WRITE | READ : 0),
-	     defaultBufferSize );
+
+       this( filename,
+             modeString.equals("r")? READ :
+             (modeString.equals("rw")? WRITE | READ : 0),
+             defaultBufferSize );
    }
-    
+
     /**
-     * Creates a random access file stream to read from, and optionally 
-     * to write to, the file specified by the <code>File</code> argument. 
-     * A new {@link FileDescriptor} object is created to represent 
-     * this file connection. 
+     * Creates a random access file stream to read from, and optionally
+     * to write to, the file specified by the <code>File</code> argument.
+     * A new {@link FileDescriptor} object is created to represent
+     * this file connection.
      * <p>
-     * The mode argument must either be equal to <code>"r"</code> or 
-     * <code>"rw"</code>, indicating that the file is to be opened for 
-     * input only or for both input and output, respectively. The 
-     * write methods on this object will always throw an 
-     * <code>IOException</code> if the file is opened with a mode of 
-     * <code>"r"</code>. If the mode is <code>"rw"</code> and the 
+     * The mode argument must either be equal to <code>"r"</code> or
+     * <code>"rw"</code>, indicating that the file is to be opened for
+     * input only or for both input and output, respectively. The
+     * write methods on this object will always throw an
+     * <code>IOException</code> if the file is opened with a mode of
+     * <code>"r"</code>. If the mode is <code>"rw"</code> and the
      * file does not exist, then an attempt is made to create it.
      *
      * @param      file   the file object.
@@ -196,9 +207,9 @@ implements DataInput, DataOutput {
      * @see        java.lang.SecurityManager#checkRead(java.lang.String)
      */
     public RandomAccessFile(File file, String modeString) throws IOException {
-	this(file.getPath(), modeString);
+        this(file.getPath(), modeString);
     }
-   
+
    /**
     * Create a new buffered random-access file with a specified buffer
     * size. Note that the mode CREATE implies WRITE, and the READ is
@@ -229,11 +240,11 @@ implements DataInput, DataOutput {
       if( (this.mode & CREATE) > 0 )
          this.mode |= WRITE;
 
-      // To match java.io.RandomAccessFile semantics, if we want to write 
+      // To match java.io.RandomAccessFile semantics, if we want to write
       // a nonexistant file, create it first (even if CREATE not set)
       File checkfile = new File( filename );
       if((this.mode & WRITE) > 0 && !checkfile.exists( ) ) {
-	  mode |= CREATE;
+          mode |= CREATE;
       }
 
       // If a new file is to be created, delete any existing file with the same name.
@@ -286,8 +297,7 @@ implements DataInput, DataOutput {
     * @param pos  the offset (in bytes) from the start of the file.
     * @exception IOException  if an I/O error occurrs.
     */
-   public final void seek( long pos ) 
-   throws IOException {
+   public void seek( long pos ) throws IOException {
 
       // If the seek is into the buffer, just update the file pointer.
       if( pos >= bufferStart && pos < dataEnd ) {
@@ -296,17 +306,14 @@ implements DataInput, DataOutput {
       }
 
       // If the current buffer is modified, write it to disk.
-      if( bufferModified ) {
+      if( bufferModified )
          flush( );
-      }
 
-      // Move to the position on the disk.
-      file.seek( pos );
-      filePosition = file.getFilePointer( );
-      bufferStart = filePosition;
+      // need new buffer
+      bufferStart = pos;
+      filePosition = pos;
 
-      // Fill the buffer from the disk.
-      dataSize = file.read( buffer );
+      dataSize = read_( pos, buffer, 0, buffer.length);
       if( dataSize < 0 ) {
          dataSize = 0;
          endOfFile = true;
@@ -325,8 +332,7 @@ implements DataInput, DataOutput {
     * @return the offset from the start of the file in bytes.
     * @exception IOException  if an I/O error occurrs.
     */
-   public final long getFilePointer()
-   throws IOException {
+   public long getFilePointer() throws IOException {
       return filePosition;
    }
 
@@ -337,8 +343,7 @@ implements DataInput, DataOutput {
     * @return the length of the file in bytes.
     * @exception IOException  if an I/O error occurrs.
     */
-   public long length( )
-   throws IOException {
+   public long length( ) throws IOException {
       long fileLength = file.length( );
       if( fileLength < dataEnd )
          return dataEnd;
@@ -346,15 +351,15 @@ implements DataInput, DataOutput {
          return fileLength;
    }
 
-    /** 
+    /**
      * Returns the opaque file descriptor object associated with this file.
      *
      * @return the file descriptor object associated with this file.
      * @exception IOException if an I/O error occurs.
      */
-    public final FileDescriptor getFD()
-	throws IOException {
-	return file.getFD();
+    public FileDescriptor getFD()
+        throws IOException {
+        return file.getFD();
     }
 
    /**
@@ -381,7 +386,7 @@ implements DataInput, DataOutput {
     *         reached.
     * @exception IOException  if an I/O error occurrs.
     */
-   public final int read() 
+   public final int read()
    throws IOException {
 
       // If the file position is within the data, return the byte...
@@ -410,8 +415,7 @@ implements DataInput, DataOutput {
     *         more data due to the end of the file being reached.
     * @exception IOException  if an I/O error occurrs.
     */
-   private int readBytes( byte b[], int off, int len )
-   throws IOException {
+   private int readBytes( byte b[], int off, int len ) throws IOException {
 
       // Check for end of file.
       if( endOfFile )
@@ -438,8 +442,7 @@ implements DataInput, DataOutput {
          // If the amount remaining is more than a buffer's length, read it
          // directly from the file.
          if( extraCopy > buffer.length ) {
-            file.seek( filePosition );
-            extraCopy = file.read( b, off + copyLength, len - copyLength );
+            extraCopy = read_( filePosition, b, off + copyLength, len - copyLength );
 
          // ...or read a new buffer full, and copy as much as possible...
          } else {
@@ -464,6 +467,16 @@ implements DataInput, DataOutput {
       return copyLength;
    }
 
+   // read directly, without going through the buffer
+   protected int read_( long pos, byte[] b, int offset, int len) throws IOException {
+
+     file.seek( pos );
+     int n = file.read( b, offset, len );
+
+     //System.out.println(" want = "+len+" at "+pos+"; got = "+n);
+     return n;
+  }
+
    /**
     * Read up to <code>len</code> bytes into an array, at a specified
     * offset. This will block until at least one byte has been read.
@@ -475,8 +488,7 @@ implements DataInput, DataOutput {
     *         more data due to the end of the file being reached.
     * @exception IOException  if an I/O error occurrs.
     */
-   public int read( byte b[], int off, int len )
-   throws IOException {
+   public int read( byte b[], int off, int len ) throws IOException {
       return readBytes( b, off, len );
    }
 
@@ -489,16 +501,15 @@ implements DataInput, DataOutput {
     *         more data due to the end of the file being reached.
     * @exception IOException  if an I/O error occurrs.
     */
-   public int read( byte b[] )
-   throws IOException {
+   public int read( byte b[] ) throws IOException {
       return readBytes( b, 0, b.length );
    }
 
    /**
-    * Reads <code>b.length</code> bytes from this file into the byte 
-    * array. This method reads repeatedly from the file until all the 
-    * bytes are read. This method blocks until all the bytes are read, 
-    * the end of the stream is detected, or an exception is thrown. 
+    * Reads <code>b.length</code> bytes from this file into the byte
+    * array. This method reads repeatedly from the file until all the
+    * bytes are read. This method blocks until all the bytes are read,
+    * the end of the stream is detected, or an exception is thrown.
     *
     * @param b  the buffer into which the data is read.
     * @exception EOFException  if this file reaches the end before reading
@@ -511,10 +522,10 @@ implements DataInput, DataOutput {
    }
 
    /**
-    * Reads exactly <code>len</code> bytes from this file into the byte 
-    * array. This method reads repeatedly from the file until all the 
-    * bytes are read. This method blocks until all the bytes are read, 
-    * the end of the stream is detected, or an exception is thrown. 
+    * Reads exactly <code>len</code> bytes from this file into the byte
+    * array. This method reads repeatedly from the file until all the
+    * bytes are read. This method blocks until all the bytes are read,
+    * the end of the stream is detected, or an exception is thrown.
     *
     * @param      b     the buffer into which the data is read.
     * @param      off   the start offset of the data.
@@ -535,9 +546,9 @@ implements DataInput, DataOutput {
    }
 
    /**
-    * Skips exactly <code>n</code> bytes of input. 
-    * This method blocks until all the bytes are skipped, the end of 
-    * the stream is detected, or an exception is thrown. 
+    * Skips exactly <code>n</code> bytes of input.
+    * This method blocks until all the bytes are skipped, the end of
+    * the stream is detected, or an exception is thrown.
     *
     * @param      n   the number of bytes to be skipped.
     * @return the number of bytes skipped, which is always <code>n</code>.
@@ -584,7 +595,7 @@ implements DataInput, DataOutput {
 
       // ...or (assuming that seek will not allow the file pointer
       // to move beyond the end of the file) get the correct block of
-      // data... 
+      // data...
       } else {
 
          // If there is room in the buffer, expand it...
@@ -638,8 +649,8 @@ implements DataInput, DataOutput {
          // the new buffer.
          if( copyLength < len ) {
             seek( filePosition );
-            System.arraycopy( b, off + copyLength, buffer, 
-                              (int)(filePosition - bufferStart), 
+            System.arraycopy( b, off + copyLength, buffer,
+                              (int)(filePosition - bufferStart),
                               len - copyLength );
             bufferModified = true;
             long myDataEnd = filePosition + (len - copyLength);
@@ -660,21 +671,21 @@ implements DataInput, DataOutput {
          filePosition += len;
       }
    }
-   
+
    /**
-    * Writes <code>b.length</code> bytes from the specified byte array 
-    * starting at offset <code>off</code> to this file. 
+    * Writes <code>b.length</code> bytes from the specified byte array
+    * starting at offset <code>off</code> to this file.
     *
     * @param b   the data.
     * @exception IOException  if an I/O error occurs.
     */
    public void write(byte b[]) throws IOException {
-      writeBytes(b, 0, b.length); 
+      writeBytes(b, 0, b.length);
    }
 
    /**
-    * Writes <code>len</code> bytes from the specified byte array 
-    * starting at offset <code>off</code> to this file. 
+    * Writes <code>len</code> bytes from the specified byte array
+    * starting at offset <code>off</code> to this file.
     *
     * @param b    the data.
     * @param off  the start offset in the data.
@@ -690,11 +701,11 @@ implements DataInput, DataOutput {
    //
 
    /**
-    * Reads a <code>boolean</code> from this file. This method reads a 
-    * single byte from the file. A value of <code>0</code> represents 
-    * <code>false</code>. Any other value represents <code>true</code>. 
-    * This method blocks until the byte is read, the end of the stream 
-    * is detected, or an exception is thrown. 
+    * Reads a <code>boolean</code> from this file. This method reads a
+    * single byte from the file. A value of <code>0</code> represents
+    * <code>false</code>. Any other value represents <code>true</code>.
+    * This method blocks until the byte is read, the end of the stream
+    * is detected, or an exception is thrown.
     *
     * @return     the <code>boolean</code> value read.
     * @exception  EOFException  if this file has reached the end.
@@ -708,16 +719,16 @@ implements DataInput, DataOutput {
    }
 
    /**
-    * Reads a signed 8-bit value from this file. This method reads a 
-    * byte from the file. If the byte read is <code>b</code>, where 
-    * <code>0&nbsp;&lt;=&nbsp;b&nbsp;&lt;=&nbsp;255</code>, 
+    * Reads a signed 8-bit value from this file. This method reads a
+    * byte from the file. If the byte read is <code>b</code>, where
+    * <code>0&nbsp;&lt;=&nbsp;b&nbsp;&lt;=&nbsp;255</code>,
     * then the result is:
     * <ul><code>
     *     (byte)(b)
     *</code></ul>
     * <p>
-    * This method blocks until the byte is read, the end of the stream 
-    * is detected, or an exception is thrown. 
+    * This method blocks until the byte is read, the end of the stream
+    * is detected, or an exception is thrown.
     *
     * @return     the next byte of this file as a signed 8-bit
     *             <code>byte</code>.
@@ -732,11 +743,11 @@ implements DataInput, DataOutput {
    }
 
    /**
-    * Reads an unsigned 8-bit number from this file. This method reads 
-    * a byte from this file and returns that byte. 
+    * Reads an unsigned 8-bit number from this file. This method reads
+    * a byte from this file and returns that byte.
     * <p>
-    * This method blocks until the byte is read, the end of the stream 
-    * is detected, or an exception is thrown. 
+    * This method blocks until the byte is read, the end of the stream
+    * is detected, or an exception is thrown.
     *
     * @return     the next byte of this file, interpreted as an unsigned
     *             8-bit number.
@@ -751,17 +762,17 @@ implements DataInput, DataOutput {
    }
 
    /**
-    * Reads a signed 16-bit number from this file. The method reads 2 
-    * bytes from this file. If the two bytes read, in order, are 
-    * <code>b1</code> and <code>b2</code>, where each of the two values is 
-    * between <code>0</code> and <code>255</code>, inclusive, then the 
+    * Reads a signed 16-bit number from this file. The method reads 2
+    * bytes from this file. If the two bytes read, in order, are
+    * <code>b1</code> and <code>b2</code>, where each of the two values is
+    * between <code>0</code> and <code>255</code>, inclusive, then the
     * result is equal to:
     * <ul><code>
     *     (short)((b1 &lt;&lt; 8) | b2)
     * </code></ul>
     * <p>
-    * This method blocks until the two bytes are read, the end of the 
-    * stream is detected, or an exception is thrown. 
+    * This method blocks until the two bytes are read, the end of the
+    * stream is detected, or an exception is thrown.
     *
     * @return     the next two bytes of this file, interpreted as a signed
     *             16-bit number.
@@ -778,17 +789,17 @@ implements DataInput, DataOutput {
    }
 
    /**
-    * Reads an unsigned 16-bit number from this file. This method reads 
-    * two bytes from the file. If the bytes read, in order, are 
-    * <code>b1</code> and <code>b2</code>, where 
-    * <code>0&nbsp;&lt;=&nbsp;b1, b2&nbsp;&lt;=&nbsp;255</code>, 
+    * Reads an unsigned 16-bit number from this file. This method reads
+    * two bytes from the file. If the bytes read, in order, are
+    * <code>b1</code> and <code>b2</code>, where
+    * <code>0&nbsp;&lt;=&nbsp;b1, b2&nbsp;&lt;=&nbsp;255</code>,
     * then the result is equal to:
     * <ul><code>
     *     (b1 &lt;&lt; 8) | b2
     * </code></ul>
     * <p>
-    * This method blocks until the two bytes are read, the end of the 
-    * stream is detected, or an exception is thrown. 
+    * This method blocks until the two bytes are read, the end of the
+    * stream is detected, or an exception is thrown.
     *
     * @return     the next two bytes of this file, interpreted as an unsigned
     *             16-bit integer.
@@ -806,16 +817,16 @@ implements DataInput, DataOutput {
 
    /**
     * Reads a Unicode character from this file. This method reads two
-    * bytes from the file. If the bytes read, in order, are 
-    * <code>b1</code> and <code>b2</code>, where 
-    * <code>0&nbsp;&lt;=&nbsp;b1,&nbsp;b2&nbsp;&lt;=&nbsp;255</code>, 
+    * bytes from the file. If the bytes read, in order, are
+    * <code>b1</code> and <code>b2</code>, where
+    * <code>0&nbsp;&lt;=&nbsp;b1,&nbsp;b2&nbsp;&lt;=&nbsp;255</code>,
     * then the result is equal to:
     * <ul><code>
     *     (char)((b1 &lt;&lt; 8) | b2)
     * </code></ul>
     * <p>
-    * This method blocks until the two bytes are read, the end of the 
-    * stream is detected, or an exception is thrown. 
+    * This method blocks until the two bytes are read, the end of the
+    * stream is detected, or an exception is thrown.
     *
     * @return     the next two bytes of this file as a Unicode character.
     * @exception  EOFException  if this file reaches the end before reading
@@ -831,17 +842,17 @@ implements DataInput, DataOutput {
    }
 
    /**
-    * Reads a signed 32-bit integer from this file. This method reads 4 
+    * Reads a signed 32-bit integer from this file. This method reads 4
     * bytes from the file. If the bytes read, in order, are <code>b1</code>,
-    * <code>b2</code>, <code>b3</code>, and <code>b4</code>, where 
-    * <code>0&nbsp;&lt;=&nbsp;b1, b2, b3, b4&nbsp;&lt;=&nbsp;255</code>, 
+    * <code>b2</code>, <code>b3</code>, and <code>b4</code>, where
+    * <code>0&nbsp;&lt;=&nbsp;b1, b2, b3, b4&nbsp;&lt;=&nbsp;255</code>,
     * then the result is equal to:
     * <ul><code>
     *     (b1 &lt;&lt; 24) | (b2 &lt;&lt; 16) + (b3 &lt;&lt; 8) + b4
     * </code></ul>
     * <p>
-    * This method blocks until the four bytes are read, the end of the 
-    * stream is detected, or an exception is thrown. 
+    * This method blocks until the four bytes are read, the end of the
+    * stream is detected, or an exception is thrown.
     *
     * @return     the next four bytes of this file, interpreted as an
     *             <code>int</code>.
@@ -861,9 +872,9 @@ implements DataInput, DataOutput {
 
    /**
     * Reads a signed 64-bit integer from this file. This method reads eight
-    * bytes from the file. If the bytes read, in order, are 
-    * <code>b1</code>, <code>b2</code>, <code>b3</code>, 
-    * <code>b4</code>, <code>b5</code>, <code>b6</code>, 
+    * bytes from the file. If the bytes read, in order, are
+    * <code>b1</code>, <code>b2</code>, <code>b3</code>,
+    * <code>b4</code>, <code>b5</code>, <code>b6</code>,
     * <code>b7</code>, and <code>b8,</code> where:
     * <ul><code>
     *     0 &lt;= b1, b2, b3, b4, b5, b6, b7, b8 &lt;=255,
@@ -877,8 +888,8 @@ implements DataInput, DataOutput {
     *     + ((long)b7 &lt;&lt; 8) + b8
     * </pre></blockquote>
     * <p>
-    * This method blocks until the eight bytes are read, the end of the 
-    * stream is detected, or an exception is thrown. 
+    * This method blocks until the eight bytes are read, the end of the
+    * stream is detected, or an exception is thrown.
     *
     * @return     the next eight bytes of this file, interpreted as a
     *             <code>long</code>.
@@ -891,14 +902,14 @@ implements DataInput, DataOutput {
    }
 
    /**
-    * Reads a <code>float</code> from this file. This method reads an 
-    * <code>int</code> value as if by the <code>readInt</code> method 
-    * and then converts that <code>int</code> to a <code>float</code> 
-    * using the <code>intBitsToFloat</code> method in class 
-    * <code>Float</code>. 
+    * Reads a <code>float</code> from this file. This method reads an
+    * <code>int</code> value as if by the <code>readInt</code> method
+    * and then converts that <code>int</code> to a <code>float</code>
+    * using the <code>intBitsToFloat</code> method in class
+    * <code>Float</code>.
     * <p>
-    * This method blocks until the four bytes are read, the end of the 
-    * stream is detected, or an exception is thrown. 
+    * This method blocks until the four bytes are read, the end of the
+    * stream is detected, or an exception is thrown.
     *
     * @return     the next four bytes of this file, interpreted as a
     *             <code>float</code>.
@@ -913,14 +924,14 @@ implements DataInput, DataOutput {
    }
 
    /**
-    * Reads a <code>double</code> from this file. This method reads a 
-    * <code>long</code> value as if by the <code>readLong</code> method 
-    * and then converts that <code>long</code> to a <code>double</code> 
-    * using the <code>longBitsToDouble</code> method in 
+    * Reads a <code>double</code> from this file. This method reads a
+    * <code>long</code> value as if by the <code>readLong</code> method
+    * and then converts that <code>long</code> to a <code>double</code>
+    * using the <code>longBitsToDouble</code> method in
     * class <code>Double</code>.
     * <p>
-    * This method blocks until the eight bytes are read, the end of the 
-    * stream is detected, or an exception is thrown. 
+    * This method blocks until the eight bytes are read, the end of the
+    * stream is detected, or an exception is thrown.
     *
     * @return     the next eight bytes of this file, interpreted as a
     *             <code>double</code>.
@@ -935,18 +946,18 @@ implements DataInput, DataOutput {
    }
 
    /**
-    * Reads the next line of text from this file. This method 
-    * successively reads bytes from the file until it reaches the end of 
-    * a line of text. 
+    * Reads the next line of text from this file. This method
+    * successively reads bytes from the file until it reaches the end of
+    * a line of text.
     * <p>
-    * A line of text is terminated by a carriage-return character 
-    * (<code>'&#92;r'</code>), a newline character (<code>'&#92;n'</code>), a 
-    * carriage-return character immediately followed by a newline 
-    * character, or the end of the input stream. The line-terminating 
-    * character(s), if any, are included as part of the string returned. 
+    * A line of text is terminated by a carriage-return character
+    * (<code>'&#92;r'</code>), a newline character (<code>'&#92;n'</code>), a
+    * carriage-return character immediately followed by a newline
+    * character, or the end of the input stream. The line-terminating
+    * character(s), if any, are included as part of the string returned.
     * <p>
-    * This method blocks until a newline character is read, a carriage 
-    * return and the byte following it are read (to see if it is a 
+    * This method blocks until a newline character is read, a carriage
+    * return and the byte following it are read (to see if it is a
     * newline), the end of the stream is detected, or an exception is thrown.
     *
     * @return     the next line of text from this file.
@@ -966,24 +977,24 @@ implements DataInput, DataOutput {
    }
 
    /**
-    * Reads in a string from this file. The string has been encoded 
-    * using a modified UTF-8 format. 
+    * Reads in a string from this file. The string has been encoded
+    * using a modified UTF-8 format.
     * <p>
-    * The first two bytes are read as if by 
-    * <code>readUnsignedShort</code>. This value gives the number of 
+    * The first two bytes are read as if by
+    * <code>readUnsignedShort</code>. This value gives the number of
     * following bytes that are in the encoded string, not
-    * the length of the resulting string. The following bytes are then 
-    * interpreted as bytes encoding characters in the UTF-8 format 
-    * and are converted into characters. 
+    * the length of the resulting string. The following bytes are then
+    * interpreted as bytes encoding characters in the UTF-8 format
+    * and are converted into characters.
     * <p>
-    * This method blocks until all the bytes are read, the end of the 
-    * stream is detected, or an exception is thrown. 
+    * This method blocks until all the bytes are read, the end of the
+    * stream is detected, or an exception is thrown.
     *
     * @return     a Unicode string.
     * @exception  EOFException            if this file reaches the end before
     *               reading all the bytes.
     * @exception  IOException             if an I/O error occurs.
-    * @exception  UTFDataFormatException  if the bytes do not represent 
+    * @exception  UTFDataFormatException  if the bytes do not represent
     *               valid UTF-8 encoding of a Unicode string.
     * @see        java.io.RandomAccessFile#readUnsignedShort()
     */
@@ -996,9 +1007,9 @@ implements DataInput, DataOutput {
    //
 
    /**
-    * Writes a <code>boolean</code> to the file as a 1-byte value. The 
-    * value <code>true</code> is written out as the value 
-    * <code>(byte)1</code>; the value <code>false</code> is written out 
+    * Writes a <code>boolean</code> to the file as a 1-byte value. The
+    * value <code>true</code> is written out as the value
+    * <code>(byte)1</code>; the value <code>false</code> is written out
     * as the value <code>(byte)0</code>.
     *
     * @param      v   a <code>boolean</code> value to be written.
@@ -1009,7 +1020,7 @@ implements DataInput, DataOutput {
    }
 
    /**
-    * Writes a <code>byte</code> to the file as a 1-byte value. 
+    * Writes a <code>byte</code> to the file as a 1-byte value.
     *
     * @param      v   a <code>byte</code> value to be written.
     * @exception  IOException  if an I/O error occurs.
@@ -1072,10 +1083,10 @@ implements DataInput, DataOutput {
    }
 
    /**
-    * Converts the float argument to an <code>int</code> using the 
-    * <code>floatToIntBits</code> method in class <code>Float</code>, 
-    * and then writes that <code>int</code> value to the file as a 
-    * 4-byte quantity, high byte first. 
+    * Converts the float argument to an <code>int</code> using the
+    * <code>floatToIntBits</code> method in class <code>Float</code>,
+    * and then writes that <code>int</code> value to the file as a
+    * 4-byte quantity, high byte first.
     *
     * @param      v   a <code>float</code> value to be written.
     * @exception  IOException  if an I/O error occurs.
@@ -1086,10 +1097,10 @@ implements DataInput, DataOutput {
    }
 
    /**
-    * Converts the double argument to a <code>long</code> using the 
-    * <code>doubleToLongBits</code> method in class <code>Double</code>, 
-    * and then writes that <code>long</code> value to the file as an 
-    * 8-byte quantity, high byte first. 
+    * Converts the double argument to a <code>long</code> using the
+    * <code>doubleToLongBits</code> method in class <code>Double</code>,
+    * and then writes that <code>long</code> value to the file as an
+    * 8-byte quantity, high byte first.
     *
     * @param      v   a <code>double</code> value to be written.
     * @exception  IOException  if an I/O error occurs.
@@ -1100,9 +1111,9 @@ implements DataInput, DataOutput {
    }
 
    /**
-    * Writes the string to the file as a sequence of bytes. Each 
-    * character in the string is written out, in sequence, by discarding 
-    * its high eight bits. 
+    * Writes the string to the file as a sequence of bytes. Each
+    * character in the string is written out, in sequence, by discarding
+    * its high eight bits.
     *
     * @param      s   a string of bytes to be written.
     * @exception  IOException  if an I/O error occurs.
@@ -1115,9 +1126,9 @@ implements DataInput, DataOutput {
    }
 
    /**
-    * Writes the character array to the file as a sequence of bytes. Each 
-    * character in the string is written out, in sequence, by discarding 
-    * its high eight bits. 
+    * Writes the character array to the file as a sequence of bytes. Each
+    * character in the string is written out, in sequence, by discarding
+    * its high eight bits.
     *
     * @param b    a character array of bytes to be written.
     * @param off  the index of the first character to write.
@@ -1131,9 +1142,9 @@ implements DataInput, DataOutput {
    }
 
    /**
-    * Writes a string to the file as a sequence of characters. Each 
-    * character is written to the data output stream as if by the 
-    * <code>writeChar</code> method. 
+    * Writes a string to the file as a sequence of characters. Each
+    * character is written to the data output stream as if by the
+    * <code>writeChar</code> method.
     *
     * @param      s   a <code>String</code> value to be written.
     * @exception  IOException  if an I/O error occurs.
@@ -1149,15 +1160,15 @@ implements DataInput, DataOutput {
    }
 
    /**
-    * Writes a string to the file using UTF-8 encoding in a 
-    * machine-independent manner. 
+    * Writes a string to the file using UTF-8 encoding in a
+    * machine-independent manner.
     * <p>
-    * First, two bytes are written to the file as if by the 
-    * <code>writeShort</code> method giving the number of bytes to 
-    * follow. This value is the number of bytes actually written out, 
-    * not the length of the string. Following the length, each character 
-    * of the string is output, in sequence, using the UTF-8 encoding 
-    * for each character. 
+    * First, two bytes are written to the file as if by the
+    * <code>writeShort</code> method giving the number of bytes to
+    * follow. This value is the number of bytes actually written out,
+    * not the length of the string. Following the length, each character
+    * of the string is output, in sequence, using the UTF-8 encoding
+    * for each character.
     *
     * @param      str   a string to be written.
     * @exception  IOException  if an I/O error occurs.
@@ -1177,7 +1188,7 @@ implements DataInput, DataOutput {
          }
       }
       if (utflen > 65535)
-         throw new UTFDataFormatException();		  
+         throw new UTFDataFormatException();
 
       write((utflen >>> 8) & 0xFF);
       write((utflen >>> 0) & 0xFF);
@@ -1234,7 +1245,7 @@ implements DataInput, DataOutput {
       try {
 
          // Create a test file.
-         RandomAccessFile outFile = new RandomAccessFile( filename, 
+         RandomAccessFile outFile = new RandomAccessFile( filename,
             RandomAccessFile.WRITE |
             RandomAccessFile.CREATE, bufferSize );
          try {
@@ -1247,7 +1258,7 @@ implements DataInput, DataOutput {
          } finally {
             outFile.close( );
          }
-         
+
          // Check that the file length is correct.
          if( (new File( filename )).length( ) == newFileSize )
             System.out.println( ". File size correct (" + newFileSize + ")." );
@@ -1256,10 +1267,10 @@ implements DataInput, DataOutput {
                                 ", but is " + (new File( filename )).length( ) + ")." );
 
          // Read the file, verify and modify its contents.
-         RandomAccessFile inoutFile = new RandomAccessFile( filename, 
+         RandomAccessFile inoutFile = new RandomAccessFile( filename,
             RandomAccessFile.READ |
             RandomAccessFile.WRITE, bufferSize );
-            
+
          boolean verified = true;
          int byteNo = 0;
          try {
@@ -1309,7 +1320,7 @@ implements DataInput, DataOutput {
             System.out.println( "X Read/Write verification failed" );
 
          // Read the file and verify contents.
-         RandomAccessFile inFile = new RandomAccessFile( filename, 
+         RandomAccessFile inFile = new RandomAccessFile( filename,
             RandomAccessFile.READ, bufferSize );
 
          verified = true;
@@ -1389,7 +1400,7 @@ implements DataInput, DataOutput {
             outFile.write( data, i, blockSize );
             i += blockSize;
          }
-         
+
          outFile.close( );
 
          // Check that the file length is correct.
@@ -1412,7 +1423,7 @@ implements DataInput, DataOutput {
             int index = Math.abs( random.nextInt( ) ) % (data.length - block.length);
             inFile.seek( index );
             inFile.read( block );
-            
+
             // Verify the block of data.
             for( int j = 0; j < block.length; j++ ) {
                if( block[j] != data[index + j] ) {
@@ -1436,7 +1447,7 @@ implements DataInput, DataOutput {
             int index = Math.abs( random.nextInt( ) ) % (data.length - block.length);
             inFile.seek( index );
             inFile.read( block );
-            
+
             // Verify the block of data.
             for( int j = 0; j < block.length; j++ ) {
                if( block[j] != data[j + index] )
@@ -1454,10 +1465,10 @@ implements DataInput, DataOutput {
       } catch( Exception e ) {
          e.printStackTrace( );
       }
-      
+
    }
 
-   /** 
+   /**
     * Benchmark the performance of the new RandomAccessFile
     * class. Its speed is compared to that of a
     * java.io.RandomAccessFile, based on reading and writing a test
@@ -1471,9 +1482,9 @@ implements DataInput, DataOutput {
       // Start the clock, and open a file for reading and a file for writing.
       long time = (new Date( )).getTime( );
       try {
-         RandomAccessFile inFile = new RandomAccessFile( filename, 
+         RandomAccessFile inFile = new RandomAccessFile( filename,
             RandomAccessFile.READ, bufferSize );
-         RandomAccessFile outFile = new RandomAccessFile( "temp.data", 
+         RandomAccessFile outFile = new RandomAccessFile( "temp.data",
             RandomAccessFile.WRITE |
             RandomAccessFile.CREATE, bufferSize );
 
@@ -1483,7 +1494,7 @@ implements DataInput, DataOutput {
             while( true ) {
                outFile.writeByte( inFile.readByte( ) );
             }
-         
+
          } catch( EOFException e ) {
          } catch( IOException e ) {
             e.printStackTrace( );
@@ -1491,7 +1502,7 @@ implements DataInput, DataOutput {
             inFile.close( );
             outFile.close( );
          }
-         System.out.println( ". RandomAccessFile elapsed time=" + 
+         System.out.println( ". RandomAccessFile elapsed time=" +
                              ((new Date( )).getTime( ) - time) );
 
          // Restart the clock, and open RandomAccessFiles for reading and writing.
@@ -1505,7 +1516,7 @@ implements DataInput, DataOutput {
             while( true ) {
                outFile2.writeByte( inFile2.readByte( ) );
             }
-         
+
          } catch( EOFException e ) {
          } catch( IOException e ) {
             e.printStackTrace( );

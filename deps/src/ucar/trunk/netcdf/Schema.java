@@ -1,22 +1,22 @@
-// $Id: Schema.java,v 1.2 2000-08-30 18:56:19 dglo Exp $
+// $Id: Schema.java,v 1.3 2001-05-16 20:31:21 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
  * support@unidata.ucar.edu.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation; either version 2.1 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this library; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 package ucar.netcdf;
 import java.io.Serializable;
@@ -38,8 +38,8 @@ import java.io.Serializable;
  * @see Netcdf
  * @see java.util.Collection
  *
- * @author $Author: dglo $
- * @version $Revision: 1.2 $ $Date: 2000-08-30 18:56:19 $
+ * @author $Author: steve $
+ * @version $Revision: 1.3 $ $Date: 2001-05-16 20:31:21 $
  */
 
 public class Schema implements java.io.Serializable {
@@ -141,7 +141,7 @@ public class Schema implements java.io.Serializable {
     iterator() {
 	return new ProtoVariableIterator() {
 		final java.util.Enumeration ee = variables.elements();
-		
+
     		public boolean hasNext() {
 			return ee.hasMoreElements();
     		}
@@ -175,7 +175,7 @@ public class Schema implements java.io.Serializable {
     get(String name) {
 	return (ProtoVariable) variables.get(name);
     }
-    
+
     /**
      * Tests if the ProtoVariable identified by <code>name</code>
      * is in this set.
@@ -198,7 +198,7 @@ public class Schema implements java.io.Serializable {
     contains(Object oo) {
 	return variables.contains(oo);
     }
-  
+
     /**
      * Ensures that this set contains the specified ProtoVariable.
      * If a different ProtoVariable with the same name, was in the set,
@@ -222,7 +222,7 @@ public class Schema implements java.io.Serializable {
 	return hit;
     }
 
-    
+
     /**
      * Delete the ProtoVariable specified by name from this set.
      *
@@ -283,7 +283,7 @@ public class Schema implements java.io.Serializable {
 /* Begin VSMixIn */
 
     /**
-     * Returns the set of dimensions associated with this, 
+     * Returns the set of dimensions associated with this,
      * the union of those used by each of the variables.
      *
      * @return DimensionSet containing dimensions used
@@ -295,9 +295,9 @@ public class Schema implements java.io.Serializable {
     }
 
     /**
-     * Returns the set of attributes associated with this, 
+     * Returns the set of attributes associated with this,
      * also know as the "global" attributes.
-     * 
+     *
      * @return AttributeSet. May be empty. Won't be null.
      */
     public AttributeSet
@@ -374,7 +374,7 @@ public class Schema implements java.io.Serializable {
     /**
      * @serial
      */
-    private final AttributeDictionary attributes; 
+    private final AttributeDictionary attributes;
     /**
      * @serial
      */

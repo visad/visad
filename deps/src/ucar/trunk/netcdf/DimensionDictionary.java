@@ -1,4 +1,4 @@
-// $Id: DimensionDictionary.java,v 1.1.1.3 2000-08-28 21:54:45 dglo Exp $
+// $Id: DimensionDictionary.java,v 1.2 2001-05-16 20:31:15 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -23,7 +23,7 @@ import java.io.Serializable;
 
 /**
  * DimensionDictionary is package private implementation of DimensionSet.
- * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:54:45 $
+ * @version $Revision: 1.2 $ $Date: 2001-05-16 20:31:15 $
  */
 
 class

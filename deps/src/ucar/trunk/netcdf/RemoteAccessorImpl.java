@@ -1,4 +1,4 @@
-// $Id: RemoteAccessorImpl.java,v 1.1.1.4 2000-08-28 21:54:47 dglo Exp $
+// $Id: RemoteAccessorImpl.java,v 1.2 2001-05-16 20:31:20 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -35,8 +35,8 @@ import java.rmi.server.LogStream;
  * pattern. Accessor methods are forwarded to the adaptee and
  * adaptee exceptions are wrapped in java.rmi.ServerException.
  * 
- * @author $Author: dglo $
- * @version $Revision: 1.1.1.4 $ $Date: 2000-08-28 21:54:47 $
+ * @author $Author: steve $
+ * @version $Revision: 1.2 $ $Date: 2001-05-16 20:31:20 $
  */
 
 public class
