@@ -24,6 +24,9 @@ import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+
 import visad.DisplayImpl;
 import visad.RemoteDisplay;
 import visad.RemoteDisplayImpl;
@@ -295,13 +298,28 @@ public abstract class TestSkeleton
   {
     // create new server
     RemoteServerImpl server;
-    try {
-      server = new RemoteServerImpl();
-      String domain = "//:/" + getClass().getName();
-      Naming.rebind(domain, server);
-    } catch (Exception e) {
-      throw new VisADException("Cannot set up server" + 
-			       " (rmiregistry may not be running)");
+    boolean registryStarted = false;
+    while (true) {
+      boolean success = true;
+      try {
+        server = new RemoteServerImpl();
+        String domain = "//:/" + getClass().getName();
+        Naming.rebind(domain, server);
+        break;
+      } catch (java.rmi.ConnectException ce) {
+        if (!registryStarted) {
+          LocateRegistry.createRegistry(Registry.REGISTRY_PORT);
+          registryStarted = true;
+        } else {
+          success = false;
+        }
+      } catch (Exception e) {
+        success = false;
+      }
+      if (!success) {
+        throw new VisADException("Cannot set up server" + 
+                                 " (rmiregistry may not be running)");
+      }
     }
 
     // add all displays to server
