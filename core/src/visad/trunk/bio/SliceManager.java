@@ -440,8 +440,8 @@ public class SliceManager
   /** DisplayListener method used for detecting mouse activity. */
   public void displayChanged(DisplayEvent e) {
     if (e.getId() != DisplayEvent.MOUSE_RELEASED_RIGHT) return;
-    bio.state.saveState(planeSelect && planeChanged);
     if (e.getDisplay() != bio.display3) return;
+    bio.state.saveState(planeSelect && planeChanged);
     if (planeSelect && planeChanged && !continuous) updateSlice();
     planeChanged = false;
   }

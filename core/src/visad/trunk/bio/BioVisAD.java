@@ -68,6 +68,9 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   /** Starting contrast value. */
   static final int NORMAL_CONTRAST = COLOR_DETAIL / 2;
 
+  /** Default measurement group. */
+  static MeasureGroup noneGroup;
+
 
   // -- DISPLAYS --
 
@@ -191,6 +194,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     mm = new MeasureManager(this);
     sm = new SliceManager(this);
     state = new StateManager(this);
+    if (noneGroup == null) noneGroup = new MeasureGroup(this, "NONE");
 
     // vertical slider
     vert = new ImageStackWidget(this);

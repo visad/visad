@@ -275,7 +275,7 @@ public class ExportDialog extends JPanel
     if (ans != JOptionPane.YES_OPTION) return;
 
     // export data series
-    // CTR - TODO
+    // CTR - TODO - export data series
   }
 
 

@@ -301,10 +301,15 @@ public class MeasureDataFile {
       int id = Integer.parseInt(st.nextToken());
       String name = st.nextToken();
       String desc = st.hasMoreTokens() ? st.nextToken() : "";
-      MeasureGroup group = new MeasureGroup(bio, name);
-      group.setDescription(desc);
-      group.setId(id);
-      if (id >= bio.mm.maxId) bio.mm.maxId = id + 1;
+      if (id == BioVisAD.noneGroup.getId()) {
+        bio.mm.groups.add(BioVisAD.noneGroup);
+      }
+      else {
+        MeasureGroup group = new MeasureGroup(bio, name);
+        group.setDescription(desc);
+        group.setId(id);
+        if (id >= bio.mm.maxId) bio.mm.maxId = id + 1;
+      }
     }
 
     // clear old measurements

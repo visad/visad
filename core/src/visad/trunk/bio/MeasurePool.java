@@ -30,6 +30,7 @@ import java.awt.*;
 import java.awt.event.InputEvent;
 import java.rmi.RemoteException;
 import java.util.*;
+import javax.swing.JOptionPane;
 import visad.*;
 import visad.bom.RubberBandBoxRendererJ3D;
 import visad.java3d.DisplayImplJ3D;
@@ -93,6 +94,7 @@ public class MeasurePool implements DisplayListener {
    */
   private CellImpl lineCell;
 
+  /** Cell for handling rubber band box selections. */
   private CellImpl boxCell;
 
 
@@ -233,6 +235,7 @@ public class MeasurePool implements DisplayListener {
         if (boxRenderer == null) return;
         GriddedSet set = (GriddedSet) rubberBand.getData();
         float[][] samples = null;
+        boolean stdPts = false;
         try { samples = set.getSamples(); }
         catch (VisADException exc) { exc.printStackTrace(); }
         if (samples == null) return;
@@ -241,35 +244,116 @@ public class MeasurePool implements DisplayListener {
         double x2 = (double) samples[0][1];
         double y2 = (double) samples[1][1];
 
-        Vector lines = list.getLines();
-        int lsize = lines.size();
-        for (int i=0; i<lsize; i++) {
-          MeasureLine line = (MeasureLine) lines.elementAt(i);
+        if (bio.toolMeasure.getMerge()) {
+          // merge all endpoints lying within rectangle bounds
+          double sum_x = 0, sum_y = 0;
+          Vector mpts = new Vector();
+          Vector points = list.getPoints();
+          int psize = points.size();
+          for (int i=0; i<psize; i++) {
+            MeasurePoint point = (MeasurePoint) points.elementAt(i);
 
-          // skip lines not on this slice
-          if (line.ep1.z != slice && line.ep2.z != slice) continue;
+            // skip points that are not on this slice
+            if (point.z != slice) continue;
 
-          // check for intersection
-          if (BioUtil.intersects(x1, y1, x2, y2,
-            line.ep1.x, line.ep1.y, line.ep2.x, line.ep2.y))
-          {
-            select(line);
+            // check for standard point
+            if (point.stdId >= 0) {
+              stdPts = true;
+              continue;
+            }
+
+            // check for containment
+            if (BioUtil.contains(x1, y1, x2, y2, point.x, point.y)) {
+              sum_x += point.x;
+              sum_y += point.y;
+              mpts.add(point);
+            }
           }
-        }
-        Vector points = list.getPoints();
-        int psize = points.size();
-        for (int i=0; i<psize; i++) {
-          MeasurePoint point = (MeasurePoint) points.elementAt(i);
 
-          // skip points that are part of a line, or not on this slice
-          if (!point.lines.isEmpty() || point.z != slice) continue;
-
-          // check for containment
-          if (BioUtil.contains(x1, y1, x2, y2, point.x, point.y)) {
-            select(point);
+          // warn user if standard points are involved
+          if (stdPts) {
+            JOptionPane.showMessageDialog(bio, "Some points within the " +
+              "merge box are standard, and will not be merged", "Warning",
+              JOptionPane.WARNING_MESSAGE);
           }
+
+          int num_pts = mpts.size();
+          if (num_pts == 0) {
+            bio.toolMeasure.setMerge(false);
+            return;
+          }
+
+          MeasurePoint first = (MeasurePoint) mpts.firstElement();
+          MeasurePoint merged = new MeasurePoint(sum_x / num_pts,
+            sum_y / num_pts, first.z, first.color, first.group);
+
+          // replace line endpoints with merged point
+          for (int i=0; i<num_pts; i++) {
+            MeasurePoint point = (MeasurePoint) mpts.elementAt(i);
+
+            // point is a marker; remove from measurement list
+            if (point.lines.isEmpty()) {
+              list.removeMarker(point, false);
+              continue;
+            }
+
+            // point is endpoint for one or more lines
+            int j = 0;
+            while (j < point.lines.size()) {
+              MeasureLine line = (MeasureLine) point.lines.elementAt(j);
+              if (line.ep1 == point || line.ep2 == point) {
+                list.removeLine(line, false);
+                if (line.ep1 == point) line.ep1 = merged;
+                if (line.ep2 == point) line.ep2 = merged;
+                if (line.ep1 != line.ep2) {
+                  line.ep1.lines.add(line);
+                  line.ep2.lines.add(line);
+                  list.addLine(line, false);
+                }
+              }
+              else j++;
+            }
+          }
+
+          if (merged.lines.isEmpty()) {
+            // add merged point back as a marker
+            list.addMarker(merged, false);
+          }
+          refresh(true);
+          bio.toolMeasure.setMerge(false);
         }
-        refresh(true);
+        else {
+          // select all measurements lying within rectangle bounds
+          Vector lines = list.getLines();
+          int lsize = lines.size();
+          for (int i=0; i<lsize; i++) {
+            MeasureLine line = (MeasureLine) lines.elementAt(i);
+
+            // skip lines not on this slice
+            if (line.ep1.z != slice && line.ep2.z != slice) continue;
+
+            // check for intersection
+            if (BioUtil.intersects(x1, y1, x2, y2,
+              line.ep1.x, line.ep1.y, line.ep2.x, line.ep2.y))
+            {
+              select(line);
+            }
+          }
+          Vector points = list.getPoints();
+          int psize = points.size();
+          for (int i=0; i<psize; i++) {
+            MeasurePoint point = (MeasurePoint) points.elementAt(i);
+
+            // skip points that are part of a line, or not on this slice
+            if (!point.lines.isEmpty() || point.z != slice) continue;
+
+            // check for containment
+            if (BioUtil.contains(x1, y1, x2, y2, point.x, point.y)) {
+              select(point);
+            }
+          }
+          refresh(true);
+        }
       }
     };
     try { boxCell.addReference(rubberBand); }

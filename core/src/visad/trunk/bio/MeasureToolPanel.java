@@ -130,6 +130,9 @@ public class MeasureToolPanel extends ToolPanel {
   /** Button for distributing measurement object through all focal planes. */
   private JCheckBox setStandard;
 
+  /** Button for toggling whether SHIFT + right click does a merge. */
+  private JToggleButton merge;
+
   /** Button for removing objects. */
   private JButton removeSelected;
 
@@ -267,6 +270,14 @@ public class MeasureToolPanel extends ToolPanel {
     p.add(clearAll);
     controls.add(pad(p));
 
+    // spacing
+    controls.add(Box.createVerticalStrut(15));
+
+    // merge button
+    merge = new JToggleButton("Merge");
+    merge.setEnabled(false);
+    controls.add(pad(merge));
+
     // divider between global functions and measurement-specific functions
     controls.add(Box.createVerticalStrut(10));
     controls.add(new Divider());
@@ -328,7 +339,7 @@ public class MeasureToolPanel extends ToolPanel {
     p.add(setStandard);
     p.add(Box.createHorizontalStrut(5));
 
-    // remove thing button
+    // remove button
     removeSelected = new JButton("Remove");
     removeSelected.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -387,7 +398,7 @@ public class MeasureToolPanel extends ToolPanel {
 
     // group list
     groupList = new JComboBox();
-    groupList.addItem(new MeasureGroup(bio, "NONE"));
+    groupList.addItem(bio.noneGroup);
     groupList.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         MeasureGroup group = (MeasureGroup) groupList.getSelectedItem();
@@ -476,6 +487,7 @@ public class MeasureToolPanel extends ToolPanel {
     addLine.setEnabled(enabled);
     addMarker.setEnabled(enabled);
     clearAll.setEnabled(enabled);
+    merge.setEnabled(enabled);
   }
 
   /** Enables or disables the "set standard" checkbox. */
@@ -497,9 +509,11 @@ public class MeasureToolPanel extends ToolPanel {
     descriptionLabel.setEnabled(enabled);
     descriptionBox.setEnabled(enabled);
     if (enabled) {
-      ignoreNextStandard = true;
       boolean std = bio.mm.pool2.isSelectionStandard();
-      if (setStandard.isSelected() != std) setStandard.setSelected(std);
+      if (setStandard.isSelected() != std) {
+        ignoreNextStandard = true;
+        setStandard.setSelected(std);
+      }
       Color c = bio.mm.pool2.getSelectionColor();
       if (colorList.getSelectedItem() != c) colorList.setSelectedItem(c);
       MeasureGroup g = bio.mm.pool2.getSelectionGroup();
@@ -572,6 +586,14 @@ public class MeasureToolPanel extends ToolPanel {
     if (dist.equals(sliceDistance.getText())) return;
     sliceDistance.setText(dist);
   }
+
+  /** Sets the merge toggle button's status. */
+  void setMerge(boolean merge) {
+    if (merge != this.merge.isSelected()) this.merge.setSelected(merge);
+  }
+
+  /** Gets the merge toggle button's status. */
+  boolean getMerge() { return merge.isSelected(); }
 
 
   // -- HELPER METHODS --

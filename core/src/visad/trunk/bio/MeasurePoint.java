@@ -51,7 +51,7 @@ public class MeasurePoint extends MeasureThing {
 
   /** Constructs an endpoint with the given coordinates. */
   public MeasurePoint(double x, double y, double z) {
-    this(x, y, z, Color.white, null);
+    this(x, y, z, Color.white, BioVisAD.noneGroup);
   }
 
   /**
@@ -78,6 +78,8 @@ public class MeasurePoint extends MeasureThing {
     x = point.x;
     y = point.y;
     this.z = z;
+    color = point.color;
+    group = point.group;
     lines = new Vector();
     pt = new PoolPoint[MeasurePool.MAX_POOLS];
     stdId = point.stdId;
