@@ -260,6 +260,13 @@ public abstract class BaseColorControl
   public int getNumberOfComponents() { return components; }
 
   /**
+   * Get the number of colors in the table.
+   *
+   * @return The number of colors in the colormap.
+   */
+  public int getNumberOfColors() { return tableLength; }
+
+  /**
    * Define the color lookup by a <CODE>Function</CODE>, whose
    * <CODE>MathType</CODE> must have a 1-D domain and an N-D
    * <CODE>RealTupleType</CODE> range; the domain and range
@@ -514,6 +521,89 @@ public abstract class BaseColorControl
       }
     }
     return colors;
+  }
+
+  /**
+   * Return a list of colors for the specified range.
+   */
+  public float[][] lookupRange(int left, int right)
+    throws VisADException, RemoteException
+  {
+    if (left < 0 || right >= tableLength || left > right) {
+      throw new VisADException("Bad left/right value");
+    }
+
+    final int tblEnd = tableLength - 1;
+    final int valLen = (right - left) + 1;
+
+    float[][] colors = null;
+    synchronized (lock) {
+      if (table != null) {
+        colors = new float[components][valLen];
+        for (int i=0; i<valLen; i++) {
+          colors[RED][i] = table[RED][i+left];
+          colors[GREEN][i] = table[GREEN][i+left];
+          colors[BLUE][i] = table[BLUE][i+left];
+          if (components > ALPHA) {
+            colors[ALPHA][i] = table[ALPHA][i+left];
+          }
+        }
+      } else if (function != null) {
+        Linear1DSet set = new Linear1DSet(functionDomainType, (double )left,
+                                          (double )right, valLen,
+                                          functionCoordinateSystem,
+                                          functionUnits, null);
+        Field field =
+          function.resample(set, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
+        colors = Set.doubleToFloat(field.getValues());
+      }
+    }
+    return colors;
+  }
+
+  /**
+   * Set the specified range to the specified colors.
+   */
+  public void setRange(int left, int right, float[][] colors)
+    throws VisADException, RemoteException
+  {
+    if (left < 0 || right >= tableLength || left > right) {
+      throw new VisADException("Bad left/right value");
+    }
+
+    if (colors == null || colors.length != components ||
+        colors[RED] == null || colors[GREEN] == null ||
+        colors[BLUE] == null ||
+        (colors.length > ALPHA && colors[ALPHA] == null))
+    {
+      throw new VisADException("Bad range table!");
+    }
+
+    if (table == null) {
+      throw new VisADException("Cannot set values for function!");
+    }
+
+    final int valLen = (right - left) + 1;
+
+    if (colors[RED].length != valLen || colors[GREEN].length != valLen ||
+        colors[BLUE].length != valLen ||
+        (colors.length > ALPHA && colors[ALPHA].length != valLen))
+    {
+      throw new VisADException("Array does not contain " + valLen +
+                               " colors!");
+    }
+
+    synchronized (lock) {
+      for (int i=0; i<valLen; i++) {
+        table[RED][i+left] = colors[RED][i];
+        table[GREEN][i+left] = colors[GREEN][i];
+        table[BLUE][i+left] = colors[BLUE][i];
+        if (components > ALPHA) {
+          table[ALPHA][i+left] = colors[ALPHA][i];
+        }
+      }
+    }
+    changeControl(true);
   }
 
   /**
