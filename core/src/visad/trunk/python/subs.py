@@ -3,7 +3,13 @@ from visad import ScalarMap, Display, DataReferenceImpl,RealTupleType,\
 from types import StringType
 from visad.ss import BasicSSCell
 from visad.java2d import DisplayImplJ2D
-from visad.java3d import DisplayImplJ3D
+
+# try to get 3D
+ok3d = 1
+try:
+  from visad.java3d import DisplayImplJ3D, TwoDDisplayRendererJ3D
+except:
+  ok3d = 0
 
 # create (and return) a VisAD DisplayImplJ3D and add the ScalarMaps, if any
 # the VisAD box is resized to about 95% of the window
@@ -21,10 +27,30 @@ def makeDisplay2D(maps):
   if maps != None:  addMaps(disp, maps)
   return disp
 
-# create (and return) a VisAD DisplayImplJ2D and add the ScalarMaps, if any
+# create (and return) a VisAD DisplayImpl and add the ScalarMaps, if any
 # the VisAD box is resized to about 95% of the window
 def makeDisplay(maps):
-  return  makeDisplay2D(maps)
+  is3d = 0
+  if maps == None:
+    is3d = 1
+  else:
+    for m in maps:
+      if m.getDisplayScalar().toString() == "DisplayZAxis": is3d = 1
+
+  if is3d == 1 and ok3d == 1:
+    disp = makeDisplay3D(maps)
+  else:
+    if ok3d:
+      tdr = TwoDDisplayRendererJ3D() 
+      disp = DisplayImplJ3D("Jython3D",tdr)
+      print "Using 3D"
+      maximizeBox(disp)
+      addMaps(disp, maps)
+    else:
+      disp =  makeDisplay2D(maps)
+  
+  return disp
+
 
 # add a Data object to a Display, and return a reference to the Data
 def addData(name, data, disp):
