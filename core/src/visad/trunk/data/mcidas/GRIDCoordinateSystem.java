@@ -80,6 +80,12 @@ public class GRIDCoordinateSystem
     }
   }
 
+  /**
+   * Converts grid xy (col,row) to latitude/longitude
+   * @param rowcol  array containing the col/row pairs
+   * @return array containing the corresponding lat/lon pairs
+   * @throws  VisADException if input is invalid or there is no nav module
+   */
   public double[][] toReference(double[][] rowcol) 
         throws VisADException {
     if (rowcol == null || rowcol.length != 2) {
@@ -92,6 +98,12 @@ public class GRIDCoordinateSystem
     return gnav.toLatLon(rowcol);
   }
 
+  /**
+   * Converts lat/lon to grid xy (col,row)
+   * @param  latlon  array containing the corresponding lat/lon pairs
+   * @return array containing the col/row pairs
+   * @throws  VisADException if input is invalid or there is no nav module
+   */
   public double[][] fromReference(double[][] latlon) 
         throws VisADException {
     if (latlon == null || latlon.length != 2) {
