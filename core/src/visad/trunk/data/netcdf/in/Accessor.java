@@ -3,15 +3,17 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Accessor.java,v 1.3 1998-09-11 15:00:50 steve Exp $
+ * $Id: Accessor.java,v 1.4 1998-09-15 21:55:25 steve Exp $
  */
 
 package visad.data.netcdf.in;
 
+import java.io.IOException;
 import visad.Data;
 import visad.FlatField;
 import visad.FunctionType;
 import visad.VisADException;
+import visad.data.BadRepositoryException;
 import visad.data.FileAccessor;
 
 
@@ -79,8 +81,15 @@ Accessor
 
     public FunctionType
     getFunctionType()
-	throws VisADException
+	throws VisADException, BadRepositoryException
     {
-	return var.getFunctionType();
+	try
+	{
+	    return var.getFunctionType();
+	}
+	catch (IOException e)
+	{
+	    throw new BadRepositoryException(e.getMessage());
+	}
     }
 }

@@ -3,14 +3,21 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcDomain.java,v 1.2 1998-09-14 13:51:36 billh Exp $
+ * $Id: NcDomain.java,v 1.3 1998-09-15 21:55:27 steve Exp $
  */
 
 package visad.data.netcdf.in;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
+import visad.Gridded1DSet;
 import visad.GriddedSet;
+import visad.Integer1DSet;
 import visad.IntegerNDSet;
+import visad.IntegerSet;
+import visad.Linear1DSet;
 import visad.LinearLatLonSet;
 import visad.LinearNDSet;
 import visad.LinearSet;
@@ -24,43 +31,33 @@ import visad.VisADException;
 
 /**
  * Provides support for the domain of a VisAD Field.
+ *
+ * Instances are non-modifiable.
  */
 public class
 NcDomain
 {
     /**
-     * The netCDF dimensions constituting this domain (in netCDF order)
+     * The netCDF dimensions constituting this domain (in VisAD order)
      */
     private final NcDim[]	dims;
-
 
     /**
      * The VisAD MathType of the domain.
      */
     private final MathType	type;
 
-    /* WLH 13 Sept 98 */
-    private NcVar our_var = null;
-    private boolean outer = false;
+    /**
+     * The sampling set of this domain.
+     */
+    private GriddedSet		set = null;
 
-    /* WLH 13 Sept 98 */
-    protected NcDomain(NcVar var, NcDim[] dims) throws VisADException {
-      this(dims);
-      our_var = var;
-    }
+    /**
+     * A cache of NcDomains.
+     */
+    private static final Map	cache = 
+	Collections.synchronizedMap(new WeakHashMap());
 
-    /* WLH 13 Sept 98 */
-    protected NcDomain(NcVar var, NcDim[] dims, boolean b) throws VisADException {
-      this(dims);
-      our_var = var;
-      outer = true;
-    }
-
-    /* WLH 13 Sept 98 */
-    protected NcDomain(NcVar var, NcDim dim) throws VisADException {
-      this(dim);
-      our_var = var;
-    }
 
     /**
      * Constructs from an adapted netCDF dimension.
@@ -68,7 +65,7 @@ NcDomain
      * @param dim		The adapted netCDF dimension.
      * @throws VisADException	Couldn't create necessary VisAD object.
      */
-    protected
+    private
     NcDomain(NcDim dim)
 	throws VisADException
     {
@@ -79,58 +76,114 @@ NcDomain
     /**
      * Constructs from an array of adapted netCDF dimensions.
      *
-     * @param dims		The array of adapted netCDF dimensions.
+     * @param dims		The array of adapted netCDF dimensions in
+     *				netCDF order.
      * @throws VisADException	Couldn't create necessary VisAD object.
      */
-    protected
+    private
     NcDomain(NcDim[] dims)
 	throws VisADException
     {
-	int		rank = dims.length;
+	int	rank = dims.length;
 
 	if (rank == 0)
 	{
 	    type = null;		// means scalar domain
 	}
-	else if (rank == 1)
-	{
-	    type = dims[0].getMathType();
-	}
 	else
 	{
-	    dims = reverse(dims);	// convert to VisAD order
+	    if (rank == 1)
+	    {
+		type = dims[0].getMathType();
+	    }
+	    else
+	    {
+		/*
+		 * Convert the order of the dimensions from netCDF to VisAD.
+		 */
+		{
+		    int j = rank;
+		    int	mid = rank/2;
 
-	    // TODO: support coordinate sytem?
-	    type = new RealTupleType(computeRealTypes(dims));
+		    for (int i = 0; i < mid; ++i)
+		    {
+			NcDim	tmp = dims[i];
+
+			dims[i] = dims[--j];
+			dims[j] = tmp;
+		    }
+		}
+
+		// TODO: support coordinate sytem?
+		type = new RealTupleType(computeRealTypes(dims));
+	    }
 	}
 
 	this.dims = dims;
+
+	/*
+	 * The sampling set isn't set because that is a potentially expensive
+	 * operation.  See <code>getSet()</code> below.
+	 */
     }
 
 
     /**
-     * Reverses the order of netCDF dimensions.
+     * Factory method for constructing the appropriate NcDomain from a
+     * single adapted, netCDF dimension.
      *
-     * @param dims	The array of netCDF dimensions to be reversed.
-     * @return		The netCDF dimensions in reverse order.
+     * @param dim		The adapted netCDF dimension.
+     * @return			The NcDomain corresponding to <code>dim</code>.
+     * @throws VisADException	Couldn't create necessary VisAD object.
      */
-    protected static NcDim[]
-    reverse(NcDim[] dims)
+    public static NcDomain
+    newNcDomain(NcDim dim)
+	throws VisADException
     {
-	int	rank = dims.length;
-	NcDim[]	newDims = new NcDim[rank];
+	return newNcDomain(new NcDim[] {dim});
+    }
 
-	for (int idim = 0; idim < rank; ++idim)
-	    newDims[idim] = dims[rank-1-idim];
 
-	return newDims;
+    /**
+     * Factory method for constructing the appropriate NcDomain.
+     *
+     * @param dims		The array of adapted netCDF dimensions in
+     *				netCDF order.
+     * @return			The NcDomain corresponding to <code>dims</code>;
+     *				or <code>null</code> for scalar domains.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    public static NcDomain
+    newNcDomain(NcDim[] dims)
+	throws VisADException
+    {
+	NcDomain	domain;
+
+	if (dims.length == 0)
+	{
+	    domain = null;
+	}
+	else
+	{
+	    Key		key = new Key(dims);
+
+	    domain = (NcDomain)cache.get(key);
+
+	    if (domain == null)
+	    {
+		domain = new NcDomain(dims);
+		cache.put(key, domain);
+	    }
+	}
+
+	return domain;
     }
 
 
     /**
      * Computes the VisAD MathTypes of netCDF dimensions.
      *
-     * @param dims		The netCDF dimensions.
+     * @param dims		The netCDF dimensions in VisAD order.
      * @return			An array of the VisAD RealTypes of the 
      *				dimensions.
      * @throws VisADException	Couldn't create necessary VisAD object.
@@ -190,8 +243,9 @@ NcDomain
     /**
      * Gets the outer domain of this domain.
      *
-     * @precondition	<code>getRank() >= 1</code>
-     * @return		The outer domain of this domain.
+     * @precondition		<code>getRank() >= 1</code>
+     * @return			The outer domain of this domain.
+     * @throws NestedException	<code>getRank() < 1</code>
      */
     public NcDomain
     getOuterDomain()
@@ -200,14 +254,15 @@ NcDomain
 	if (getRank() < 1)
 	    throw new NestedException("Can't get outer domain of scalar");
 
-	return new NcDomain(new NcDim[] {dims[0]});
+	return newNcDomain(new NcDim[] {dims[dims.length-1]});
     }
 
 
     /**
      * Gets the VisAD Set of this domain.
      *
-     * @precondition		<code>getRank() >= 1</code>
+     * @return			The VisAD Set of this domain or 
+     *				<code>null</code> for scalar domains.
      * @throws IOException	I/O failure.
      * @throws VisADException	Couldn't create necessary VisAD object.
      */
@@ -215,36 +270,17 @@ NcDomain
     getSet()
 	throws IOException, VisADException
     {
-	if (getRank() < 1)
-	    throw new NestedException("Can't get sampling set of scalar");
+	if (set == null)
+	    if (dims.length >= 1)
+		set = computeDomainSet(dims, type);
 
-      /* WLH 13 Sept 98 */
-      if (our_var == null) {
-        return computeDomainSet(dims, type);
-      }
-      else {
-        if (outer) {
-          if (our_var.outerDomainSet == null) {
-            our_var.outerDomainSet = computeDomainSet(dims, type);
-          }
-          return our_var.outerDomainSet;
-        }
-        else {
-          if (our_var.computedDomainSet == null) {
-            our_var.computedDomainSet = computeDomainSet(dims, type);
-          }
-          return our_var.computedDomainSet;
-        }
-      }
-
-/* WLH 13 Sept 98
-	return computeDomainSet(dims, type);
-*/
+	return set;
     }
 
 
     /**
-     * Computes the domain-set of the given, netCDF dimensions.
+     * Computes the domain-set of the given, netCDF dimensions.  Potentially
+     * expensive.
      *
      * @param dims		The netCDF dimensions of the domain in VisAD
      *				order.
@@ -254,174 +290,127 @@ NcDomain
      *				object couldn't be created.
      * @exception IOException	Data access I/O failure.
      */
-    protected static Set
+    private static GriddedSet
     computeDomainSet(NcDim[] dims, MathType domain)
 	throws IOException, VisADException
     {
-	Set		domainSet;
-	int		rank = dims.length;
-	NcVar[]		coordVars = new NcVar[rank];
-	boolean		noCoordVars = true;
-	boolean	 	allCoordVarsAreArithProgs = true;
-	ArithProg[]	aps = new ArithProg[rank];
+	GriddedSet	set;
+	Gridded1DSet[]	sets = new Gridded1DSet[dims.length];
 
-	/*
-	 * Because the domain-set can be any one of several subtypes, 
-	 * first determine the appropriate subtype.
-	 */
-	for (int idim = 0; idim < rank; ++idim)
+	for (int i = 0; i < dims.length; ++i)
+	    sets[i] = dims[i].getSet();
+
+	boolean	allInteger1DSets = true;
+
+	for (int i = 0; allInteger1DSets && i < dims.length; ++i)
+	    allInteger1DSets = sets[i] instanceof Integer1DSet;
+
+	if (allInteger1DSets)
 	{
-	    coordVars[idim] = dims[idim].getCoordVar();
+	    set = (GriddedSet)computeIntegerSet(sets, domain);
+	}
+	else
+	{
+	    boolean	allLinear1DSets = true;
 
-	    if (coordVars[idim] != null)
+	    for (int i = 0; allLinear1DSets && i < dims.length; ++i)
+		allLinear1DSets = sets[i] instanceof Linear1DSet;
+
+	    if (allLinear1DSets)
 	    {
-		noCoordVars = false;
-
-		if (allCoordVarsAreArithProgs)
-		{
-		    if (coordVars[idim].isLongitude())
-			aps[idim] = new LonArithProg();
-		    else
-			aps[idim] = new ArithProg();
-
-		    if (!aps[idim].accumulate(coordVars[idim].getFloats()))
-			allCoordVarsAreArithProgs = false;
-		}
+		set = (GriddedSet)computeLinearSet(sets, domain);
+	    }
+	    else
+	    {
+		set = computeGriddedSet(sets, domain);
 	    }
 	}
 
-	if (noCoordVars)
-	{
-	    /*
-	     * This domain has no co-ordinate variables.
-	     */
-	    domainSet = computeIntegerSet(dims, domain);
-	}
-	else
-	if (allCoordVarsAreArithProgs)
-	{
-	    /*
-	     * This domain has co-ordinate variables -- all of which are
-	     * arithmetic progressions.
-	     */
-	    domainSet = (Set)computeLinearSet(dims, aps, coordVars, domain);
-	}
-	else
-	{
-	    /*
-	     * This domain has at least one co-ordinate variable which is 
-	     * not an arithmetic progression.  This is the general case.
-	     */
-	    domainSet = computeGriddedSet(dims, coordVars, domain);
-	}
-
-	return domainSet;
+	return set;
     }
 
 
     /**
-     * Computes the IntegerSet of the given, netCDF dimensions and domain.
+     * Computes the IntegerSet of combined Integer1DSet-s and domain type.
      *
-     * @param dims		The netCDF dimensions of the domain in VisAD 
-     *				order.
+     * @param sets		The Integer1DSet-s of the domain.
      * @param domain		The MathType of the domain.
      * @return			The IntegerSet of the domain of the function.
      * @throws VisADException	Couldn't create a necessary VisAD object.
      */
     protected static GriddedSet
-    computeIntegerSet(NcDim[] dims, MathType domain)
+    computeIntegerSet(Gridded1DSet[] sets, MathType type)
 	throws VisADException
     {
-	int	rank = dims.length;
+	int	rank = sets.length;
 	int[]	lengths = new int[rank];
-	Unit[]	domainUnits = new Unit[rank];
 
 	for (int idim = 0; idim < rank; ++idim)
-	{
-	    lengths[idim] = dims[idim].getLength();
-	    domainUnits[idim] = dims[idim].getUnit();
-	}
+	    lengths[idim] = ((Integer1DSet)sets[idim]).getLength(0);
 
 	// TODO: add CoordinateSystem argument
-	return IntegerNDSet.create(domain, lengths, /*(CoordinateSystem)*/null,
-		domainUnits, /*(ErrorEstimate[])*/null);
+	return IntegerNDSet.create(type, lengths, /*(CoordinateSystem)*/null,
+		/*(Unit[])*/null, /*(ErrorEstimate[])*/null);
     }
 
 
     /**
-     * Computes the LinearSet of the given dimensions, arithmetic progressions
-     * and coordinate variables.
+     * Computes the LinearSet of combined Linear1DSet-s and domain type.
      *
-     * @param dims		The netCDF dimensions of the domain in VisAD 
-     *				order.
-     * @param aps		The arithmetic progressions associated with 
-     *				<code>dims</code>.
-     * @param coordVars		Coordinate variables associated with 
-     *				<code>dims</code>.  If(<code>coordVars[i] ==
-     *				null</code> then <code>dim[i]</code> 
-     *				doesn't have a coordinate variable.
-     * @param domainType	The VisAD math type of the domain set.  
+     * @param dims		The Linear1DSet-s of the domain.
+     * @param type		The VisAD math type of the domain set.  
      *				NB: The units of the dimensions needn't be the
-     *				same as the units in <code>domain</code>.
+     *				same as the units in <code>type</code>.
      * @return			The LinearSet of the domain of the function.
      * @throws VisADException	Couldn't create a necessary VisAD object.
      */
     protected static LinearSet
-    computeLinearSet(NcDim[] dims, ArithProg[] aps, NcVar[] coordVars, 
-	    MathType domainType)
+    computeLinearSet(Gridded1DSet[] sets, MathType type)
 	throws VisADException
     {
-	LinearSet	set;
-	int		rank = dims.length;
+	LinearSet	set = null;
+	int		rank = sets.length;
 	double[]	firsts = new double[rank];
 	double[]	lasts = new double[rank];
 	int[]		lengths = new int[rank];
+	Unit[]		units = new Unit[rank];
 
 	for (int idim = 0; idim < rank; ++idim)
 	{
-	    if (coordVars[idim] == null)
-	    {
-		/*
-		 * The dimension doesn't have a co-ordinate variable.
-		 */
-		firsts[idim] = 0;
-		lengths[idim] = dims[idim].getLength();
-		lasts[idim] = lengths[idim] - 1;
-	    }
-	    else
-	    {
-		/*
-		 * The dimension has a co-ordinate variable.
-		 */
-		firsts[idim] = aps[idim].getFirst();
-		lasts[idim] = aps[idim].getLast();
-		lengths[idim] = aps[idim].getNumber();
-	    }
+	    Linear1DSet	linear1DSet = (Linear1DSet)sets[idim];
+
+	    firsts[idim] = linear1DSet.getFirst();
+	    lengths[idim] = linear1DSet.getLength(0);
+	    lasts[idim] = linear1DSet.getLast();
+	    units[idim] = linear1DSet.getSetUnits()[0];
 	}
 
-	Unit[]	domainUnits = new Unit[rank];
-
-	for (int idim = 0; idim < rank; ++idim)
-	    domainUnits[idim] = dims[idim].getUnit();
 
 	// TODO: add CoordinateSystem argument
-	if (rank == 2 &&
-	      ((dims[0].isLatitude() && dims[1].isLongitude()) ||
-	       (dims[1].isLatitude() && dims[0].isLongitude())))
+	if (rank == 2)
 	{
-	    set = new LinearLatLonSet(domainType,
+	    RealType[]	types = ((RealTupleType)type).getRealComponents();
+
+	    if ((types[0].equalsExceptNameButUnits(RealType.Longitude) &&
+		 types[1].equalsExceptNameButUnits(RealType.Latitude)) ||
+	        (types[1].equalsExceptNameButUnits(RealType.Longitude) &&
+		 types[0].equalsExceptNameButUnits(RealType.Latitude)))
+	    {
+		set = new LinearLatLonSet(type,
 					firsts[0], lasts[0], lengths[0],
 					firsts[1], lasts[1], lengths[1],
 					/*(CoordinateSystem)*/null,
-					domainUnits,
+					units,
 					/*(ErrorEstimate[])*/null);
+	    }
 	}
-	else
+
+	if (set == null)
 	{
-	    set = LinearNDSet.create(domainType,
+	    set = LinearNDSet.create(type,
 				      firsts, lasts, lengths,
 				      /*(CoordinateSystem)*/null,
-				      domainUnits,
+				      units,
 				      /*(ErrorEstimate[])*/null);
 	}
 
@@ -430,34 +419,28 @@ NcDomain
 
 
     /**
-     * Computes the GriddedSet of the given dimensions and coordinate
-     * variables.
+     * Computes the GriddedSet of combined Gridded1DSet-s and domain type.
      *
-     * @param dims		The netCDF dimensions of the domain in VisAD 
-     *				order.
-     * @param coordVars		Coordinate variables associated with 
-     *				<code>dims</code>.  If(<code>coordVars[i] ==
-     *				null</code> then <code>dim[i]</code> doesn't
-     *				have a coordinate variable.
-     * @param domain		The VisAD math type of the domain set.  NB: The
+     * @param sets		The Gridded1DSet-s of the domain.
+     * @param type		The VisAD math type of the domain set.  NB: The
      *				units of the dimensions needn't be the same as 
-     *				the units in <code>domain</code>.
+     *				the units in <code>type</code>.
      * @return			The GriddedSet of the domain of the function.
      * @throws IOException	Data access I/O failure.
      * @throws VisADException	Couldn't create a necessary VisAD object.
      */
     protected static GriddedSet
-    computeGriddedSet(NcDim[] dims, NcVar[] coordVars, MathType domain)
+    computeGriddedSet(Gridded1DSet[] sets, MathType type)
 	throws VisADException, IOException
     {
-	int		rank = dims.length;
+	int		rank = sets.length;
 	int[]		lengths = new int[rank];
 	float[][]	values = new float[rank][];
 	int		ntotal = 1;
 
 	for (int idim = 0; idim < rank; ++idim)
 	{
-	    lengths[idim] = dims[idim].getLength();
+	    lengths[idim] = sets[idim].getLength(0);
 	    ntotal *= lengths[idim];
 	}
 
@@ -466,21 +449,10 @@ NcDomain
 
 	for (int idim = 0; idim < rank; ++idim)
 	{
-	    float[]	vals;
+	    float[]	vals = sets[idim].getSamples(false)[0];
 
 	    values[idim] = new float[ntotal];
 
-	    if (coordVars[idim] != null)
-		vals = coordVars[idim].getFloats();
-	    else
-	    {
-		int	npts = lengths[idim];
-
-		vals = new float[npts];
-
-		for (int ipt = 0; ipt < npts; ++ipt)
-		    vals[ipt] = ipt;
-	    }
 /* WLH 4 Aug 98
 	    for (int pos = 0; pos < ntotal/vals.length; pos += vals.length)
 		System.arraycopy(vals, 0, values[idim], pos, vals.length);
@@ -497,14 +469,72 @@ NcDomain
             laststep = step;
 	}
 
-	Unit[]	domainUnits = new Unit[rank];
+	Unit[]	units = new Unit[rank];
 
 	for (int idim = 0; idim < rank; ++idim)
-	    domainUnits[idim] = dims[idim].getUnit();
+	    units[idim] = sets[idim].getSetUnits()[0];
 
 	// TODO: add CoordinateSystem argument
-	return GriddedSet.create(domain, values, lengths,
-		 /*(CoordinateSystem)*/null, domainUnits,
-		 /*(ErrorEstimate[])*/null);
+	return GriddedSet.create(type, values, lengths,
+		 /*(CoordinateSystem)*/null, units, /*(ErrorEstimate[])*/null);
+    }
+
+
+    /**
+     * Supports the key field of the domain cache.
+     */
+    protected static class
+    Key
+    {
+	protected NcDim[]	dims;
+
+	/*
+	 * @param dims		The netCDF dimensions in netCDF order.
+	 */
+	protected
+	Key(NcDim[] dims)
+	{
+	    this.dims = dims;
+	}
+
+	public int
+	hashCode()
+	{
+	    int	hash = 0;
+
+	    for (int i = 0; i < dims.length; ++i)
+		hash ^= dims[i].hashCode();
+
+	    return hash;
+	}
+
+	public boolean
+	equals(Object obj)
+	{
+	    boolean	equals;
+
+	    if (this == obj)
+	    {
+		equals = true;
+	    }
+	    else
+	    {
+		Key	that = (Key)obj;
+
+		if (dims.length != that.dims.length)
+		{
+		    equals = false;
+		}
+		else
+		{
+		    equals = true;
+
+		    for (int i = 0; equals && i < dims.length; ++i)
+			equals = dims[i].equals(that.dims[i]);
+		}
+	    }
+
+	    return equals;
+	}
     }
 }

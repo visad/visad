@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNestedField.java,v 1.4 1998-09-15 19:41:52 billh Exp $
+ * $Id: NcNestedField.java,v 1.5 1998-09-15 21:55:30 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -49,14 +49,7 @@ NcNestedField
     NcNestedField(NcVar var)
 	throws VisADException, IOException
     {
-      /* WLH 13 Sept 98 */
-/* WLH 15 Sept 98
-      super(new NcDomain(var, var.getDimension(0)));
-*/
-
-/* WLH 13 Sept 98
-*/
-        super(new NcDomain(var.getDimensions()));
+        super(NcDomain.newNcDomain(var.getDimension(0)));
 
 	if (var.getRank() == 0)
 	    throw new VisADException("Variable is scalar");
@@ -109,10 +102,11 @@ NcNestedField
      *				if and only if RETURN_VALUE constains both
      *				this data object and <code>data</code>.
      * @throw VisADException	Couldn't create necessary VisAD object.
+     * @throws IOException	Data access I/O failure.
      */
     public NcData
     tryCombine(NcNestedField field)
-	throws VisADException
+	throws VisADException, IOException
     {
 	clearWasCombined();
 

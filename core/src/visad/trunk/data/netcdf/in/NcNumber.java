@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNumber.java,v 1.10 1998-09-15 19:41:53 billh Exp $
+ * $Id: NcNumber.java,v 1.11 1998-09-15 21:55:31 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -13,6 +13,7 @@ import ucar.multiarray.IndexIterator;
 import ucar.multiarray.MultiArray;
 import ucar.multiarray.MultiArrayImpl;
 import ucar.netcdf.DimensionIterator;
+import ucar.netcdf.DimensionSet;
 import ucar.netcdf.Netcdf;
 import ucar.netcdf.Variable;
 import visad.CoordinateSystem;
@@ -80,15 +81,29 @@ NcNumber
      */
     static final Unit		offsetTime = new OffsetUnit(0.0, SI.second);
 
+    /**
+     * The "inner" variable (i.e. minus the outermost dimension).
+     */
+    private final InnerVar	innerVar;
+
+    /**
+     * The VisAD rank of this variable.  The VisAD rank of a numeric variable
+     * is the same as its netCDF rank.
+     */
+    private final int		rank;
+
 
     /**
      * Constructs from another NcNumber.  Protected to ensure use by 
      * trusted subclasses only.
      *
      * @param ncVar		The adapted, netCDF variable.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws IOException	Data access I/O failure.
      */
     protected
     NcNumber(NcNumber ncVar)
+	throws VisADException, IOException
     {
 	super(ncVar);
 
@@ -98,6 +113,8 @@ NcNumber
 	this.isLatitude = ncVar.isLatitude;
 	this.isLongitude = ncVar.isLongitude;
 	this.isTime = ncVar.isTime;
+	this.innerVar = ncVar.innerVar;
+	this.rank = ncVar.rank;
     }
 
 
@@ -114,16 +131,45 @@ NcNumber
      *				VisAD object couldn't be created.
      */
     NcNumber(Variable var, Netcdf netcdf, RealType type)
-	throws BadFormException, VisADException
+	throws BadFormException, VisADException, IOException
     {
 	super(var, netcdf, type);
 
 	set = getRangeSet(type);
-	isCoordVar = isCoordVar(var);
+	isCoordVar = isCoordVar(var, netcdf);
 	isLatitude = type.equals(QuantityMap.get("latitude", SI.radian));
 	isLongitude = type.equals(QuantityMap.get("longitude", SI.radian));
 	isTime = isTime(type.getDefaultUnit());
 	vetter = new Vetter(var);
+	rank = var.getRank();
+	innerVar = newInnerVar();
+    }
+
+
+    /**
+     * Gets the VisAD rank of this variable.  The VisAD rank of a numeric
+     * variable is the same as its netCDF rank.
+     */
+    public int
+    getRank()
+    {
+	return rank;
+    }
+
+
+    /**
+     * Gets the length of the outermost dimension.
+     *
+     * @precondition		<code>getRank() >= 1</code>
+     * @return			The length of the outermost dimension.
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD
+     *				object couldn't be created.
+     */
+    public int
+    getOutermostLength()
+	throws VisADException
+    {
+	return innerVar.getOutermostLength();
     }
 
 
@@ -171,26 +217,17 @@ NcNumber
 
 
     /**
-     * Indicates whether or not the variable is a co-ordinate variable.
+     * Indicates whether or not a variable is a co-ordinate variable.
      *
      * @param var		The netCDF variable.
      * @return			<code>true</code> if and only if the variable
      *				is a netCDF coordinate variable.
      */
     private static boolean
-    isCoordVar(Variable var)
+    isCoordVar(Variable var, Netcdf netcdf)
     {
-	if (var.getRank() == 1)
-	{
-	    String		varName = var.getName();
-	    DimensionIterator	dimIter = var.getDimensionIterator();
-
-	    while (dimIter.hasNext())
-		if (dimIter.next().getName().equals(varName))
-		    return true;
-	}
-
-	return false;
+	return var.getRank() == 1 &&
+	    netcdf.getDimensions().contains(var.getName());
     }
 
 
@@ -293,18 +330,6 @@ NcNumber
 
 
     /**
-     * Gets the rank of this variable.
-     *
-     * @return	The rank (i.e. number of netCDF dimensions) of the variable.
-     */
-    int
-    getRank()
-    {
-	return getVar().getRank();
-    }
-
-
-    /**
      * Gets the values of this variable as a packed array of floats.
      *
      * @return			The values of the variable.
@@ -324,6 +349,7 @@ NcNumber
 	float[]		values = new float[npts];
 
         /* WLH 14 Sept 98 */
+	/*
         int [] origin = new int[var.getRank()];
         for (int i=0; i<origin.length; i++) origin[i] = 0;
         Class component_type = var.getComponentType();
@@ -336,12 +362,15 @@ NcNumber
           for (int i=0; i<dvals.length; i++) values[i] = (float) dvals[i];
         }
         else {
+	*/
           IndexIterator	iter = new IndexIterator(lengths);
           for (int i = 0; i < npts; ++i) {
             values[i] = var.getFloat(iter.value());
             iter.incr();
           }
+	/*
         }
+	*/
 
 	vetter.vet(values);
 
@@ -393,7 +422,7 @@ NcNumber
      * @param ipt		The position in the outermost dimension.
      * @precondition		<code>getRank() >= 1</code>
      * @precondition		<code>ipt >= 0 &&
-     *				ipt < getDimension(0).getLength()</code>
+     *				ipt < getOutermostLength()</code>
      * @return			The values of the variable at the given 
      *				position.
      * @throws VisADException	Couldn't create necessary VisAD data object.
@@ -403,12 +432,6 @@ NcNumber
     getDoubles(int ipt)
 	throws IOException, VisADException
     {
-	if (getRank() < 1)
-	    throw new VisADException("Variable is scalar");
-
-	if (ipt < 0 || ipt >= getDimension(0).getLength())
-	    throw new VisADException("Index out of bounds");
-
 	int[]		lengths = getLengths();
 	int[]		maxIOLengths = getMaxIOLengths(lengths);
 	IndexIterator	iter = new IndexIterator(lengths);
@@ -664,14 +687,7 @@ NcNumber
     getData()
 	throws IOException, VisADException
     {
-      /* WLH 13 Sept 98 */
-/* WLH 15 Sept 98
-      return getData(new NcDomain(this, getDimensions()), getDoubles());
-*/
-
-/* WLH 13 Sept 98
-*/
-	return getData(new NcDomain(getDimensions()), getDoubles());
+	return getData(NcDomain.newNcDomain(getDimensions()), getDoubles());
     }
 
 
@@ -715,28 +731,48 @@ NcNumber
 
 
     /**
+     * Creates a 1-component, VisAD FlatField corresponding to a given 
+     * FunctionType, domain Set, Unit, and values.
+     *
+     * @param FunctionType	The VisAD MathType for the FlatField.
+     * @param domainSet		The domain set for the FlatField.
+     * @param unit		The unit for the range values.
+     * @param values		The values of the range of the FlatField.
+     * @return			The corresponding VisAD FlatField.
+     * @throws VisADException	Couldn't create necessary VisAD data object.
+     * @throws IOException	I/O error.
+     */
+    protected static DataImpl
+    getData(FunctionType funcType, Set domainSet, Unit unit, double[] values)
+	throws IOException, VisADException
+    {
+	FlatField	field = new FlatField(funcType,
+		domainSet, (CoordinateSystem)null, /*(Set[])*/null,
+		new Unit[] {unit});
+
+	field.setSamples(new double[][] {values}, /*copy=*/false);
+
+	return field;
+    }
+
+
+    /**
      * Gets the VisAD FunctionType of this variable.
      *
      * @precondition		<code>getRank() >= 1</code>
      * @return			The VisAD FunctionType of this variable.
      * @throws VisADException	Couldn't create necessary VisAD data object.
+     * @throws IOException	Data access I/O failure.
      */
     public FunctionType
     getFunctionType()
-	throws VisADException
+	throws VisADException, IOException
     {
-	if (getRank() < 1)
+	if (rank < 1)
 	    throw new VisADException("Scalar " + getName() + 
 		" can't be a function");
 
-        /* WLH 13 Sept 98 */
-/* WLH 15 Sept 98
-        NcDomain domain = new NcDomain(this, getDimensions());
-*/
-
-/* WLH 13 Sept 98
-*/
-	NcDomain	domain = new NcDomain(getDimensions());
+	NcDomain	domain = NcDomain.newNcDomain(getDimensions());
 
 	return new FunctionType(domain.getType(), (RealType)getMathType());
     }
@@ -754,7 +790,7 @@ NcNumber
     getProxy()
 	throws VisADException, IOException
     {
-	return getRank() == 0
+	return rank == 0
 		? getData()	// scalars don't deserve a proxy
 		: new FileFlatField(new Accessor(this), new CacheStrategy());
     }
@@ -793,7 +829,7 @@ NcNumber
      * @param index		The position in the outermost dimension.
      * @precondition		<code>getRank() >= 1</code>
      * @precondition		<code>ipt >= 0 &&
-     *				ipt < getDimension(0).getLength()</code>
+     *				ipt < getOutermostLength()</code>
      * @return			A proxy for the VisAD data object corresponding
      *				to this variable at a point in the outermost
      *				dimension.
@@ -805,8 +841,11 @@ NcNumber
     getProxy(int index)
 	throws IOException, VisADException
     {
-	if (getRank() < 1)
+	if (rank < 1)
 	    throw new VisADException("Variable is scalar");
+
+	if (index < 0 || index >= getOutermostLength())
+	    throw new VisADException("Index out of bounds");
 
 	return new FileFlatField(new Accessor(this), new CacheStrategy());
     }
@@ -819,7 +858,7 @@ NcNumber
      * @param ipt		The position in the outermost dimension.
      * @precondition		<code>getRank() >= 1</code>
      * @precondition		<code>ipt >= 0 &&
-     *				ipt < getDimension(0).getLength()</code>
+     *				ipt < getOutermostLength()</code>
      * @return			The values of the variable at the given 
      *				position.
      * @throws VisADException	Couldn't create necessary VisAD data object
@@ -830,23 +869,7 @@ NcNumber
     getData(int ipt)
 	throws IOException, VisADException
     {
-	if (getRank() < 1)
-	    throw new VisADException("Variable is scalar");
-
-	if (ipt < 0 || ipt >= getDimension(0).getLength())
-	    throw new VisADException("Index out of bounds");
-
-	NcDim[]		dims = new NcDim[getRank()-1];
-
-	System.arraycopy(getDimensions(), 1, dims, 0, dims.length);
-
-        /* WLH 13 Sept 98 */
-/* WLH 15 Sept 98
-        return getData(new NcDomain(this, dims, true), getDoubles(ipt));
-*/
-/* WLH 13 Sept 98
-*/
-	return getData(new NcDomain(dims), getDoubles(ipt));
+	return innerVar.getData(ipt);
     }
 
 
@@ -858,31 +881,13 @@ NcNumber
      *				variable.
      * @throws VisADException	Couldn't create necessary VisAD data object
      *				or variable is scalar.
+     * @throws IOException	Data access I/O failure.
      */
     public MathType
     getInnerMathType()
-	throws VisADException
+	throws VisADException, IOException
     {
-	if (getRank() < 1)
-	    throw new VisADException("Variable is scalar");
-
-	NcDim[]		innerDims = getInnerDimensions();
-	MathType	varType = getMathType();
-	MathType	innerType;
-
-	if (innerDims.length == 0)
-	{
-	    innerType = varType;
-	}
-	else
-	{
-	    NcDomain	innerDomain = new NcDomain(innerDims);
-
-	    innerType =
-		new FunctionType(innerDomain.getType(), varType);
-	}
-
-	return innerType;
+	return innerVar.getInnerMathType();
     }
 
 
@@ -894,19 +899,196 @@ NcNumber
      *				netCDF order).
      * @throws VisADException	Couldn't create necessary VisAD data object
      *				or variable is scalar.
+     * @throws IOException	Data access I/O failure.
      */
-    public NcDim[]
+    protected NcDim[]
     getInnerDimensions()
-	throws VisADException
+	throws VisADException, IOException
     {
-	if (getRank() < 1)
+	if (rank < 1)
 	    throw new VisADException("Variable is scalar");
 
-	NcDim[]	innerDims = new NcDim[getRank()-1];
+	NcDim[]	innerDims = new NcDim[rank-1];
 
 	System.arraycopy(getDimensions(), 1, innerDims, 0, 
 	    innerDims.length);
 
 	return innerDims;
+    }
+
+
+    /**
+     * Factory method for creating the appropriate inner variable.
+     */
+    protected InnerVar
+    newInnerVar()
+	throws VisADException, IOException
+    {
+	return getRank() == 0
+		? (InnerVar)new InnerInvalid()
+		: getRank() == 1
+		    ? (InnerVar)new InnerScalar()
+		    : (InnerVar)new InnerField();
+    }
+
+
+    /**
+     * Supports the view of this variable as an "inner" variable, i.e.
+     * one that excludes the outermost dimension.
+     */
+    protected abstract class
+    InnerVar
+    {
+	protected abstract MathType
+	getInnerMathType()
+	    throws VisADException, IOException;
+
+	protected abstract int
+	getOutermostLength()
+	    throws VisADException;
+
+	protected abstract DataImpl
+	getData(int ipt)
+	    throws VisADException, IOException;
+    }
+
+
+    /**
+     * Supports an invalid inner variable.
+     */
+    protected class
+    InnerInvalid
+	extends	InnerVar
+    {
+	protected MathType
+	getInnerMathType()
+	    throws VisADException
+	{
+	    throw new VisADException("Variable is scalar");
+	}
+
+	protected int
+	getOutermostLength()
+	    throws VisADException
+	{
+	    throw new VisADException("Variable is scalar");
+	}
+
+	protected DataImpl
+	getData(int ipt)
+	    throws VisADException, IOException
+	{
+	    throw new VisADException("Variable is scalar");
+	}
+    }
+
+
+    /**
+     * Supports the view of this variable as an "inner" scalar.
+     */
+    protected class
+    InnerScalar
+	extends	InnerVar
+    {
+	private final int	outermostLength;
+
+	/**
+	 * Constructs from the enclosing variable.
+	 */
+	protected
+	InnerScalar()
+	    throws VisADException, IOException
+	{
+	    outermostLength = getDimension(0).getLength();
+	}
+
+	protected MathType
+	getInnerMathType()
+	    throws VisADException
+	{
+	    return getMathType();
+	}
+
+	protected int
+	getOutermostLength()
+	    throws VisADException
+	{
+	    return outermostLength;
+	}
+
+	protected DataImpl
+	getData(int ipt)
+	    throws VisADException, IOException
+	{
+	    if (ipt < 0 || ipt >= outermostLength)
+		throw new VisADException("Index out of bounds");
+
+	    return new Real((RealType)getMathType(), getDoubles(ipt)[0],
+			    getUnit());
+	}
+    }
+
+
+    /**
+     * Supports the view of this variable as an "inner" field.
+     */
+    protected class
+    InnerField
+	extends	InnerVar
+    {
+	private final int		outermostLength;
+	private final FunctionType	type;
+	private final Set		domainSet;
+	private MathType		innerMathType = null;
+
+	/**
+	 * Constructs from the enclosing variable.
+	 */
+	protected
+	InnerField()
+	    throws VisADException, IOException
+	{
+	    NcDomain	domain = NcDomain.newNcDomain(getInnerDimensions());
+
+	    domainSet = domain.getSet();
+	    type = new FunctionType(domain.getType(), getMathType());
+	    outermostLength = getDimension(0).getLength();
+	}
+
+
+	protected MathType
+	getInnerMathType()
+	    throws VisADException, IOException
+	{
+	    if (innerMathType == null)
+	    {
+		NcDim[]		innerDims = getInnerDimensions();
+		MathType	varType = getMathType();
+		NcDomain	innerDomain = NcDomain.newNcDomain(innerDims);
+
+		innerMathType =
+		    new FunctionType(innerDomain.getType(), varType);
+	    }
+
+	    return innerMathType;
+	}
+
+	protected int
+	getOutermostLength()
+	    throws VisADException
+	{
+	    return outermostLength;
+	}
+
+	protected DataImpl
+	getData(int ipt)
+	    throws VisADException, IOException
+	{
+	    if (ipt < 0 || ipt >= outermostLength)
+		throw new VisADException("Index out of bounds");
+
+	    double[]	values = getDoubles(ipt);
+	    return NcNumber.getData(type, domainSet, getUnit(), values);
+	}
     }
 }

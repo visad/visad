@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcFlatRange.java,v 1.2 1998-09-11 16:33:49 steve Exp $
+ * $Id: NcFlatRange.java,v 1.3 1998-09-15 21:55:29 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -31,10 +31,11 @@ NcFlatRange
      *
      * @param var		The adapted, netCDF variable.
      * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws IOException	Data access I/O failure.
      */
     public
     NcFlatRange(NcVar var)
-	throws VisADException
+	throws VisADException, IOException
     {
 	add(var);
     }

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNestedRange.java,v 1.2 1998-09-11 16:33:50 steve Exp $
+ * $Id: NcNestedRange.java,v 1.3 1998-09-15 21:55:30 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -47,10 +47,11 @@ NcNestedRange
      *
      * @param range		The other range.
      * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws IOException	Data access I/O failure.
      */
     public
     NcNestedRange(NcRange range)
-	throws VisADException
+	throws VisADException, IOException
     {
 	add(range);
     }
@@ -62,10 +63,11 @@ NcNestedRange
      * @param var		The adapted, netCDF variable to be examined.
      * @return			The VisAD MathType of <code>var</code>.
      * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws IOException	Data access I/O failure.
      */
     protected MathType
     getMathType(NcVar var)
-	throws VisADException
+	throws VisADException, IOException
     {
 	return ((NcNumber)var).getInnerMathType();
     }

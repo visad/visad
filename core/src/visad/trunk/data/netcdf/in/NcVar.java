@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcVar.java,v 1.8 1998-09-14 13:51:39 billh Exp $
+ * $Id: NcVar.java,v 1.9 1998-09-15 21:55:35 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -57,6 +57,11 @@ NcVar
     private final Variable	var;
 
     /**
+     * The adapted, VisAD dimensions of the variable in netCDF order.
+     */
+    private final NcDim[]	dims;
+
+    /**
      * The units of the netCDF variable.
      */
     private final Unit		unit;
@@ -73,40 +78,51 @@ NcVar
 	Collections.synchronizedMap(new WeakHashMap());
 
     /**
-     * A cache of netCDF variables their long names.
+     * A cache of netCDF variables and their long names.
      */
     private static final Map	longNameMap = 
 	Collections.synchronizedMap(new WeakHashMap());
 
-    /* WLH 13 Sept 98 */
-    Set computedDomainSet = null;
-    Set outerDomainSet = null;
+    /**
+     * A cache of NcVars.
+     */
+    private static final Map	cache = 
+	Collections.synchronizedMap(new WeakHashMap());
+
 
     /**
      * Constructs from another NcVar.  Protected to ensure use by
      * trusted subclasses only.
      *
-     * @param ncVar	The other NcVar.
+     * @param ncVar		The other NcVar.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws VisADException	Data access I/O failure.
      */
     protected
     NcVar(NcVar ncVar)
+	throws VisADException, IOException
     {
 	netcdf = ncVar.netcdf;
 	var = ncVar.var;
 	unit = ncVar.unit;
 	mathType = ncVar.mathType;
+	dims = ncVar.dims;
     }
 
 
     /**
      * Constructs from a netCDF variable, netCDF dataset, and VisAD MathType.
      *
-     * @param var	The netCDF variable to be adapted.
-     * @param netcdf	The netCDF dataset that contains <code>var</code>.
-     * @param type	The VisAD MathType for this variable.
+     * @param var		The netCDF variable to be adapted.
+     * @param netcdf		The netCDF dataset that contains
+     *				<code>var</code>.
+     * @param type		The VisAD MathType for this variable.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws IOException	Data access I/O failure.
      */
     protected
     NcVar(Variable var, Netcdf netcdf, ScalarType type)
+	throws VisADException, IOException
     {
 	mathType = type;
 	this.var = var;
@@ -138,6 +154,65 @@ NcVar
 	}
 
 	unit = tmpUnit;
+
+	/*
+	 * Cache the adapted, netCDF dimensions in netCDF order.  This must
+	 * be done carefully in order to avoid a circular dependency between
+	 * NcVar and NcCoordDim.
+	 */
+	DimensionIterator	iter = var.getDimensionIterator();
+
+	dims = new NcDim[var.getRank()];
+	for (int i = 0; i < dims.length; ++i)
+	    dims[i] = NcDim.newNcDim(iter.next(), netcdf, this);
+    }
+
+
+    /**
+     * Factory method for creating an instance of the correct subtype.
+     *
+     * @param var		The netCDF variable to be adapted.
+     * @param netcdf		The netCDF dataset that contains 
+     *				<code>var</code>.
+     * @return			The NcVar for <code>var</code>.
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD
+     *				object couldn't be created.
+     */
+    public static NcVar
+    newNcVar(Variable var, Netcdf netcdf)
+	throws VisADException, IOException
+    {
+	Key	key = new Key(var, netcdf);
+	NcVar	ncVar = (NcVar)cache.get(key);
+
+	if (ncVar == null)
+	{
+	    Class	type = var.getComponentType();
+
+	    if (NcText.isRepresentable(var))
+		ncVar = new NcText(var, netcdf);
+	    else
+	    if (NcByte.isRepresentable(var))
+		ncVar = new NcByte(var, netcdf);
+	    else
+	    if (NcShort.isRepresentable(var))
+		ncVar = new NcShort(var, netcdf);
+	    else
+	    if (NcInt.isRepresentable(var))
+		ncVar = new NcInt(var, netcdf);
+	    else
+	    if (NcFloat.isRepresentable(var))
+		ncVar = new NcFloat(var, netcdf);
+	    else
+	    if (NcDouble.isRepresentable(var))
+		ncVar = new NcDouble(var, netcdf);
+	    else
+		throw new UnsupportedOperationException("Unknown netCDF type");
+
+	    cache.put(key, ncVar);
+	}
+
+	return ncVar;
     }
 
 
@@ -196,47 +271,6 @@ NcVar
 	}
 
 	return unit;
-    }
-
-
-    /**
-     * Factory method for creating an instance of the correct subtype.
-     *
-     * @param var		The netCDF variable to be adapted.
-     * @param netcdf		The netCDF dataset that contains 
-     *				<code>var</code>.
-     * @return			The NcVar for <code>var</code>.
-     * @throws VisADException	Problem in core VisAD.  Probably some VisAD
-     *				object couldn't be created.
-     */
-    static NcVar
-    newNcVar(Variable var, Netcdf netcdf)
-	throws VisADException
-    {
-	Class	type = var.getComponentType();
-	NcVar	ncVar;
-
-	if (NcText.isRepresentable(var))
-	    ncVar = new NcText(var, netcdf);
-	else
-	if (NcByte.isRepresentable(var))
-	    ncVar = new NcByte(var, netcdf);
-	else
-	if (NcShort.isRepresentable(var))
-	    ncVar = new NcShort(var, netcdf);
-	else
-	if (NcInt.isRepresentable(var))
-	    ncVar = new NcInt(var, netcdf);
-	else
-	if (NcFloat.isRepresentable(var))
-	    ncVar = new NcFloat(var, netcdf);
-	else
-	if (NcDouble.isRepresentable(var))
-	    ncVar = new NcDouble(var, netcdf);
-	else
-	    throw new UnsupportedOperationException("Unknown netCDF type");
-
-	return ncVar;
     }
 
 
@@ -422,56 +456,46 @@ NcVar
 
 
     /**
-     * Returns a dimension of this variable.
+     * Returns a VisAD dimension of this variable.  NB: Won't return
+     * innermost dimension of textual variables.
      *
      * @param			The index of the dimension.  Assumes netCDF
      *				order.
      * @precondition		<code>index >= 0 && index < getRank()</code>
      * @return			The requested dimension.
      * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws VisADException	Data access I/O failure.
      */
     NcDim
     getDimension(int index)
-	throws VisADException
+	throws VisADException, IOException
     {
 	if (index < 0 || index >= getRank())
 	    throw new VisADException("Index out of bounds");
 
-	DimensionIterator	iter = var.getDimensionIterator();
-
-	for (int i = 0; i < index; ++i)
-	    iter.next();
-
-	return NcDim.create(iter.next(), netcdf);
+	return dims[index];
     }
 
 
     /**
-     * Returns the dimensions of this variable (in netCDF order).
+     * Gets the VisAD dimensions of this variable (in netCDF order).
      *
-     * @return			The dimensions of the variable in netCDF order.
+     * @return			The VisAD dimensions of the variable in
+     *				netCDF order.
      * @postcondition		<code>getRank() == 
      *				</code>RETURN_VALUE</code>.length</code>.
      * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws VisADException	Data access I/O failure.
      */
     NcDim[]
     getDimensions()
-	throws VisADException
+	throws VisADException, IOException
     {
-	/*
-	 * The following algorithm handles both numeric and textual 
-	 * netCDF variables because, for a text variable, it stops before
-	 * getting the innermost dimension.
-	 */
+	NcDim[]	result = new NcDim[getRank()];
 
-	int			rank = getRank();
-	NcDim[]			dims = new NcDim[rank];
-	DimensionIterator	iter = var.getDimensionIterator();
+	System.arraycopy(dims, 0, result, 0, result.length);
 
-	for (int i = 0; i < rank; ++i)
-	    dims[i] = NcDim.create(iter.next(), netcdf);
-
-	return dims;
+	return result;
     }
 
 
@@ -730,36 +754,37 @@ NcVar
     /**
      * Return the values of this variable as a packed array of floats.
      *
-     * @return			The variable's values.
-     * @throws IOException	I/O error.
+     * @return                  The variable's values.
+     * @throws IOException      I/O error.
      */
     abstract float[]
     getFloats()
-	throws IOException;
+        throws IOException;
 
 
     /**
      * Return the values of this variable as a packed array of doubles.
      *
-     * @return			The variable's values.
-     * @throws IOException	I/O error.
+     * @return                  The variable's values.
+     * @throws IOException      I/O error.
      */
     public abstract double[]
     getDoubles()
-	throws IOException, VisADException;
+        throws IOException, VisADException;
 
 
     /**
      * Return the values of this variable -- at a given point of the outermost
      * dimension -- as a packed array of doubles.
      *
-     * @precondition		<code>getRank() >= 1</code>
-     * @return			The variable's values.
-     * @throws IOException	I/O error.
+     * @precondition            <code>getRank() >= 1</code>
+     * @return                  The variable's values.
+     * @throws IOException      I/O error.
      */
     abstract double[]
     getDoubles(int ipt)
-	throws IOException, VisADException;
+        throws IOException, VisADException;
+
 
 
     /**
@@ -812,6 +837,50 @@ NcVar
 	    this.longName = longName;
 	}
     }
+
+
+    /**
+     * Supports the key field of the variable cache.
+     */
+    protected static class
+    Key
+    {
+	private Netcdf		netcdf;
+	private Variable	var;
+
+	protected
+	Key(Variable var, Netcdf netcdf)
+	{
+	    this.var = var;
+	    this.netcdf = netcdf;
+	}
+
+	public int
+	hashCode()
+	{
+	    return var.getName().hashCode() ^ netcdf.hashCode();
+	}
+
+	public boolean
+	equals(Object obj)
+	{
+	    boolean	equals;
+
+	    if (this == obj)
+	    {
+		equals = true;
+	    }
+	    else
+	    {
+		Key	that = (Key)obj;
+
+		equals = var.getName().equals(that.var.getName()) &&
+			netcdf == that.netcdf;
+	    }
+
+	    return equals;
+	}
+    }
 }
 
 
@@ -836,7 +905,7 @@ NcInteger
      *				object couldn't be created.
      */
     NcInteger(Variable var, Netcdf netcdf, RealType type)
-	throws BadFormException, VisADException
+	throws BadFormException, VisADException, IOException
     {
 	super(var, netcdf, type);
     }
@@ -913,7 +982,7 @@ NcByte
      *				object couldn't be created.
      */
     NcByte(Variable var, Netcdf netcdf)
-	throws VisADException
+	throws VisADException, IOException
     {
 	super(var, netcdf, getRealType(var));
 
@@ -989,7 +1058,7 @@ NcShort
      *				object couldn't be created.
      */
     NcShort(Variable var, Netcdf netcdf)
-	throws VisADException
+	throws VisADException, IOException
     {
 	super(var, netcdf, getRealType(var));
 
@@ -1065,7 +1134,7 @@ NcInt
      *				object couldn't be created.
      */
     NcInt(Variable var, Netcdf netcdf)
-	throws VisADException
+	throws VisADException, IOException
     {
 	super(var, netcdf, getRealType(var));
 
@@ -1142,7 +1211,7 @@ NcReal
      *				object couldn't be created.
      */
     NcReal(Variable var, Netcdf netcdf, RealType type)
-	throws BadFormException, VisADException
+	throws BadFormException, VisADException, IOException
     {
 	super(var, netcdf, type);
     }
@@ -1191,7 +1260,7 @@ NcFloat
      *				object couldn't be created.
      */
     NcFloat(Variable var, Netcdf netcdf)
-	throws VisADException
+	throws VisADException, IOException
     {
 	super(var, netcdf, getRealType(var));
 
@@ -1268,7 +1337,7 @@ NcDouble
      *				object couldn't be created.
      */
     NcDouble(Variable var, Netcdf netcdf)
-	throws VisADException
+	throws VisADException, IOException
     {
 	super(var, netcdf, getRealType(var));
 

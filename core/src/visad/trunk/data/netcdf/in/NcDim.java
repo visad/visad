@@ -3,16 +3,24 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcDim.java,v 1.7 1998-09-11 15:00:52 steve Exp $
+ * $Id: NcDim.java,v 1.8 1998-09-15 21:55:26 steve Exp $
  */
 
 package visad.data.netcdf.in;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
 import ucar.netcdf.Dimension;
 import ucar.netcdf.Netcdf;
 import ucar.netcdf.Variable;
 import visad.FloatSet;
+import visad.Gridded1DSet;
+import visad.Integer1DSet;
+import visad.Linear1DSet;
 import visad.RealType;
+import visad.GriddedSet;
 import visad.Set;
 import visad.Unit;
 import visad.VisADException;
@@ -25,49 +33,34 @@ import visad.VisADException;
 class
 NcDim
     extends	Dimension
-    implements	Comparable
 {
+    // PLACEHOLDER
     /**
      * The minimum dimension for the <code>compareTo()</code> method.
      */
     public static final NcDim	MIN = new NcDim("");
 
+    // PLACEHOLDER
     /**
      * The maximum dimension for the <code>compareTo()</code> method.
      */
     public static final NcDim	MAX = new NcDim("\uffff\uffff");
+
+    /**
+     * A cache of NcDims.
+     */
+    private static final Map	cache = 
+	Collections.synchronizedMap(new WeakHashMap());
 
 
     /**
      * Constructs from a name.  Used to initialize <code>MIN</code> and
      * <code>MAX</code>.
      */
-    protected
+    private
     NcDim(String name)
     {
 	super(name, 1);
-    }
-
-
-    /**
-     * Factory method for constructing the right type of dimension decorator.
-     *
-     * @param dim		The netCDF dimension to be decorated.
-     * @param netcdf		The netCDF dataset that contains
-     *				<code>dim</code>.
-     * @throws VisADException	Problem in core VisAD.  Probably some VisAD
-     *				object couldn't be created.
-     */
-    static NcDim
-    create(Dimension dim, Netcdf netcdf)
-	throws VisADException
-    {
-	Variable	var = netcdf.get(dim.getName());
-
-	return (var == null || var.getRank() != 1 ||
-		var.getComponentType().equals(Character.TYPE))
-		    ? new NcDim(dim)
-		    : new NcCoordDim(dim, netcdf);
     }
 
 
@@ -81,6 +74,70 @@ NcDim
     NcDim(Dimension dim)
     {
 	super(dim.getName(), dim.getLength());
+    }
+
+
+    /**
+     * Factory method for constructing the right type of dimension decorator.
+     *
+     * @param dim		The netCDF dimension to be decorated.
+     * @param netcdf		The netCDF dataset that contains
+     *				<code>dim</code>.
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD
+     *				object couldn't be created.
+     * @throws IOException	Data access I/O failure.
+     */
+    public static NcDim
+    newNcDim(Dimension dim, Netcdf netcdf)
+	throws VisADException, IOException
+    {
+	return newNcDim(dim, netcdf, null);
+    }
+
+
+    /**
+     * Factory method for constructing the right type of dimension decorator.
+     *
+     * @param dim		The netCDF dimension to be decorated.
+     * @param netcdf		The netCDF dataset that contains
+     *				<code>dim</code>.
+     * @param ncVar		The adapted, netCDF variable that *might* be
+     *				the coordinate variable of this dimension.
+     *				This avoids a circular dependency between
+     *				NcVar and NcCoordDim.
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD
+     *				object couldn't be created.
+     * @throws IOException	Data access I/O failure.
+     */
+    protected static NcDim
+    newNcDim(Dimension dim, Netcdf netcdf, NcVar ncVar)
+	throws VisADException, IOException
+    {
+	Key	key = new Key(dim, netcdf);
+	NcDim	ncDim = (NcDim)cache.get(key);
+
+	if (ncDim == null)
+	{
+	    String	name = dim.getName();
+
+	    if (ncVar == null || !name.equals(ncVar.getName()))
+	    {
+		Variable	var = netcdf.get(name);
+
+		ncVar = var == null
+			    ? null
+			    : NcVar.newNcVar(var, netcdf);
+	    }
+
+	    ncDim = (ncVar == null || ncVar.getRank() != 1 ||
+		    ncVar.isText())
+			? new NcDim(dim)
+			: new NcCoordDim(dim, ncVar);
+
+	    cache.put(key, ncDim);
+	}
+
+	return ncDim;
     }
 
 
@@ -122,11 +179,13 @@ NcDim
     boolean
     equals(NcDim that)
     {
+	// PLACEHOLDER
 	return compareTo(that) == 0;
     }
 
 
     /**
+     // PLACEHOLDER
      * Compare this dimension to another.
      *
      * @param other	The other, decorated, netCDF dimension.
@@ -138,8 +197,11 @@ NcDim
     compareTo(Object other)
     {
 	NcDim	that = (NcDim)other;
+	int	result = getName().compareTo(that.getName());
 
-	return getName().compareTo(that.getName());
+	return result != 0
+		? result
+		: getLength() - that.getLength();
     }
 
 
@@ -251,6 +313,65 @@ NcDim
     {
 	return null;
     }
+
+
+    /**
+     * Gets the VisAD GriddedSet associated with this dimension.
+     *
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws IOException	Data access I/O failure.
+     */
+    public Gridded1DSet
+    getSet()
+	throws VisADException, IOException
+    {
+	// TODO: add CoordinateSystem argument
+	return new Integer1DSet(getMathType(), getLength());
+    }
+
+
+    /**
+     * Supports the key field of the dimension cache.
+     */
+    protected static class
+    Key
+    {
+	private Dimension	dim;
+	private Netcdf		netcdf;
+
+	protected
+	Key(Dimension dim, Netcdf netcdf)
+	{
+	    this.dim = dim;
+	    this.netcdf = netcdf;
+	}
+
+	public int
+	hashCode()
+	{
+	    return dim.getName().hashCode() ^ netcdf.hashCode();
+	}
+
+	public boolean
+	equals(Object obj)
+	{
+	    boolean	equals;
+
+	    if (this == obj)
+	    {
+		equals = true;
+	    }
+	    else
+	    {
+		Key	that = (Key)obj;
+
+		equals = dim.getName().equals(that.dim.getName()) &&
+			netcdf == that.netcdf;
+	    }
+
+	    return equals;
+	}
+    }
 }
 
 
@@ -263,9 +384,14 @@ NcCoordDim
     extends	NcDim
 {
     /**
-     * The associated co-ordinate variable.
+     * The associated, VisAD/netCDF coordinate variable.
      */
-    protected final NcVar	coordVar;
+    private final NcVar		coordVar;
+
+    /**
+     * The associated, VisAD GriddedSet.
+     */
+    private Gridded1DSet	set;
 
 
     /**
@@ -274,17 +400,31 @@ NcCoordDim
      *
      * @param dim		The netCDF dimension that has a co-ordinate
      *				variable.
-     * @param netcdf		The netCDF dataset that contains
-     *				<code>dim</code>.
+     * @param var		The adapted, netCDF variable that is
+     *				the coordinate variable for <code>dim</code>.
+     *				This avoids a circular dependency between
+     *				NcVar and NcCoordDim.
      * @throws VisADException	Problem in core VisAD.  Probably some VisAD
      *				object couldn't be created.
+     * @throws IOException	Data access I/O failure.
      */
     protected
-    NcCoordDim(Dimension dim, Netcdf netcdf)
-	throws VisADException
+    NcCoordDim(Dimension dim, NcVar coordVar)
+	throws VisADException, IOException
     {
 	super(dim);
-	coordVar = NcVar.newNcVar(netcdf.get(dim.getName()), netcdf);
+
+	this.coordVar = coordVar;
+    }
+
+
+    /**
+     * Gets the coordinate variable associated with this dimension.
+     */
+    public NcVar
+    getCoordVar()
+    {
+	return coordVar;
     }
 
 
@@ -332,26 +472,11 @@ NcCoordDim
      * MathType of the associated co-ordinate variable.
      *
      * @return			The VisAD MathType for the dimension.
-     * @throws VisADException	Problem in core VisAD.  Probably some VisAD
-     *				object couldn't be created.
      */
     RealType
     getMathType()
-	throws VisADException
     {
 	return (RealType)coordVar.getMathType();
-    }
-
-
-    /**
-     * Return the co-ordinate variable associated with this dimension.
-     *
-     * @return	The co-ordinate variable associated with the dimension.
-     */
-    NcVar
-    getCoordVar()
-    {
-	return coordVar;
     }
 
 
@@ -365,7 +490,7 @@ NcCoordDim
     public String
     getLongName()
     {
-	return getCoordVar().getLongName();
+	return coordVar.getLongName();
     }
 
 
@@ -379,6 +504,73 @@ NcCoordDim
     public Unit
     getUnit()
     {
-	return getCoordVar().getUnit();
+	return coordVar.getUnit();
+    }
+
+
+    /**
+     * Gets the VisAD GriddedSet associated with this dimension.
+     *
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws IOException	Data access I/O failure.
+     */
+    public Gridded1DSet
+    getSet()
+	throws VisADException, IOException
+    {
+	if (set == null)
+	    set = computeSet();
+
+	return set;
+    }
+
+
+    /**
+     * Computes the VisAD GriddedSet associated with this dimension.
+     * Potentially expensive.
+     *
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws IOException	Data access I/O failure.
+     */
+    public Gridded1DSet
+    computeSet()
+	throws IOException, VisADException
+    {
+	Gridded1DSet	set;
+	ArithProg	ap = isLongitude()
+				? new LonArithProg()
+				: new ArithProg();
+
+	if (ap.accumulate(coordVar.getFloats()))
+	{
+	    /*
+	     * The coordinate-variable is an arithmetic progression.
+	     */
+	    // TODO: add CoordinateSystem argument
+	    set = new Linear1DSet(
+		    getMathType(), 
+		    ap.getFirst(),
+		    ap.getLast(),
+		    ap.getNumber(),
+		    /*(CoordinateSystem)*/null,
+		    new Unit[] {getUnit()},
+		    /*(ErrorEstimate[])*/null);
+	}
+	else
+	{
+	    /*
+	     * The coordinate-variable is not an arithmetic progression.
+	     */
+	    // TODO: add CoordinateSystem argument
+	    set = new Gridded1DSet(
+			getMathType(),
+			new float[][] {coordVar.getFloats()},
+			getLength(),
+			/*(CoordinateSystem)*/null,
+			new Unit[] {getUnit()},
+			/*(ErrorEstimate[])*/null);
+	}
+
+	return set;
     }
 }

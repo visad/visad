@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcRange.java,v 1.2 1998-09-11 16:33:51 steve Exp $
+ * $Id: NcRange.java,v 1.3 1998-09-15 21:55:32 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -43,10 +43,11 @@ NcRange
      * @postcondition		<code>size() == </code>(PRE)<code>size()
      *				+ 1</code>
      * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws IOException	Data access I/O failure.
      */
     public void
     add(NcVar var)
-	throws VisADException
+	throws VisADException, IOException
     {
 	vars.add(var);
 	computeMathType();
@@ -60,10 +61,11 @@ NcRange
      * @postcondition		<code>size() == </code>(PRE)<code>size() +
      *				range.size()</code>
      * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws IOException	Data access I/O failure.
      */
     public void
     add(NcRange range)
-	throws VisADException
+	throws VisADException, IOException
     {
 	vars.addAll(range.vars);
 	computeMathType();
@@ -103,10 +105,13 @@ NcRange
 
     /**
      * Computes and sets the VisAD MathType of the range.
+     *
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws IOException	Data access I/O failure.
      */
     protected void
     computeMathType()
-	throws VisADException
+	throws VisADException, IOException
     {
 	MathType[]	types = new MathType[size()];
 
@@ -123,10 +128,11 @@ NcRange
      * @param var		The adapted, netCDF variable to be examined.
      * @return			The VisAD MathType of <code>var</code>.
      * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws IOException	Data access I/O failure.
      */
     protected abstract MathType
     getMathType(NcVar var)
-	throws VisADException;
+	throws VisADException, IOException;
 
 
     /**

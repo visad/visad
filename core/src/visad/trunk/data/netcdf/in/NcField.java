@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcField.java,v 1.2 1998-09-11 16:33:49 steve Exp $
+ * $Id: NcField.java,v 1.3 1998-09-15 21:55:28 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -140,4 +140,21 @@ NcField
      */
     public abstract NcRange
     getRange();
+
+
+    /**
+     * Gets a string representation of this field.
+     */
+    public String
+    toString()
+    {
+	try
+	{
+	    return getMathType().toString();
+	}
+	catch (VisADException e)
+	{
+	    return e.getMessage();
+	}
+    }
 }

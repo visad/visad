@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcFlatField.java,v 1.4 1998-09-15 19:41:51 billh Exp $
+ * $Id: NcFlatField.java,v 1.5 1998-09-15 21:55:28 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -49,14 +49,7 @@ NcFlatField
     NcFlatField(NcVar var)
 	throws VisADException, IOException
     {
-      /* WLH 13 Sept 98 */
-/* WLH 15 Sept 98
-      super(new NcDomain(var, var.getDimension(0)));
-*/
- 
-/* WLH 13 Sept 98
-*/
-	super(new NcDomain(var.getDimensions()));
+	super(NcDomain.newNcDomain(var.getDimensions()));
 
 	if (var.getRank() == 0)
 	    throw new VisADException("Variable is scalar");
@@ -74,10 +67,11 @@ NcFlatField
      *				if and only if RETURN_VALUE constains both
      *				this data object and <code>data</code>.
      * @throws VisADException	Couldn't create necessary VisAD data object.
+     * @throws IOException	Data access I/O failure.
      */
     public NcData
     tryCombine(NcFlatField flatField)
-	throws VisADException
+	throws VisADException, IOException
     {
 	clearWasCombined();
 

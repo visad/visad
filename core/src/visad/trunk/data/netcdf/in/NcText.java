@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcText.java,v 1.7 1998-09-15 19:41:53 billh Exp $
+ * $Id: NcText.java,v 1.8 1998-09-15 21:55:33 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -62,9 +62,10 @@ NcText
      * @precondition		<code>isRepresentable(var).
      * @throws VisADException	Problem in core VisAD.  Probably some VisAD 
      *				object couldn't be created.
+     * @throws IOException	Data access I/O failure.
      */
     NcText(Variable var, Netcdf netcdf)
-	throws VisADException
+	throws VisADException, IOException
     {
 	super(var, netcdf, new TextType(var.getName()));
 
@@ -139,10 +140,13 @@ NcText
     /**
      * Gets the netCDF dimensions of this variable.  NB: The innermost
      * dimension is omitted.
+     *
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws IOException	Data access I/O failure.
      */
     NcDim[]
     getDimensions()
-	throws VisADException
+	throws VisADException, IOException
     {
 	NcDim[]		dims = new NcDim[visadRank];
 
@@ -167,24 +171,24 @@ NcText
     /**
      * Return the values of this variable as a packed array of floats.
      *
-     * @throws IOException		I/O error always.
+     * @throws IOException              I/O error always.
      */
     float[]
     getFloats()
     {
-	throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException();
     }
 
 
     /**
      * Return the values of this variable as a packed array of doubles.
      *
-     * @throws IOException		I/O error always.
+     * @throws IOException              I/O error always.
      */
     public double[]
     getDoubles()
     {
-	throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException();
     }
 
 
@@ -192,12 +196,12 @@ NcText
      * Return the values of this variable -- at a given point of the outermost
      * dimension -- as a packed array of doubles.
      *
-     * @throws IOException		I/O error always.
+     * @throws IOException              I/O error always.
      */
     double[]
     getDoubles(int ipt)
     {
-	throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException();
     }
 
 
@@ -288,15 +292,7 @@ NcText
 	}
 	else
 	{
-          /* WLH 13 Sept 98 */
-/* WLH 15 Sept 98
-          NcDomain domain = new NcDomain(this, getDimensions());
-*/
-
-/* WLH 13 Sept 98
-*/
-	    NcDomain		domain = new NcDomain(getDimensions());
-
+	    NcDomain		domain = NcDomain.newNcDomain(getDimensions());
 	    FunctionType	funcType =
 		new FunctionType(domain.getType(), getMathType());
 	    FieldImpl		field =
