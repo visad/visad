@@ -188,7 +188,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   static Appearance makeAppearance(GraphicsModeControl mode,
                       TransparencyAttributes constant_alpha,
                       ColoringAttributes constant_color,
-                      GeometryArray geometry) { // J3D
+                      GeometryArray geometry) {
     Appearance appearance = new Appearance();
 
     LineAttributes line = new LineAttributes();

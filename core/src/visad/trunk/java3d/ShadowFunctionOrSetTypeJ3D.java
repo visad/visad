@@ -180,12 +180,11 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       c_color = new ColoringAttributes();
       c_color.setColor(constant_color[0], constant_color[1], constant_color[2]);
     }
-    Appearance appearance =
-      makeAppearance(mode, c_alpha, c_color, geometry);
-    // Appearance appearance = makeAppearance(mode, null, null, geometry);
+    Appearance appearance = makeAppearance(mode, null, null, geometry);
     // create TextureAttributes
     TextureAttributes texture_attributes = new TextureAttributes();
-    texture_attributes.setTextureMode(TextureAttributes.REPLACE);
+    // texture_attributes.setTextureMode(TextureAttributes.REPLACE);
+    texture_attributes.setTextureMode(TextureAttributes.MODULATE);
     texture_attributes.setPerspectiveCorrectionMode(
                           TextureAttributes.NICEST);
     appearance.setTextureAttributes(texture_attributes);
