@@ -49,8 +49,6 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
   ImmersaDeskDisplayRendererJ3D display_renderer;
   DisplayImpl display;
 
-  MouseHelper helper = null;
-
   private Thread wandThread;
 
   // use vpTrans for head motion from tracker,
@@ -75,17 +73,12 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
                          int tracker_shmkey, int controller_shmkey)
          throws VisADException {
     super();
-    helper = new MouseHelper(r, this);
     display_renderer = r;
     display = display_renderer.getDisplay();
 
     hack = new TrackdJNI(tracker_shmkey, controller_shmkey);
 
     last_right = false;
-  }
-
-  public MouseHelper getMouseHelper() {
-    return helper;
   }
 
   /* override MouseBehaviorJ3D.initialize() to do start Thread */

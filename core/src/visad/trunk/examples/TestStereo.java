@@ -101,7 +101,7 @@ public class TestStereo
     dpys[0].addReference(ref_imaget1, null);
   }
 
-  public String toString() { return ": scatter diagram"; }
+  public String toString() { return ": stereo scatter diagram"; }
 
   public static void main(String[] args)
     throws RemoteException, VisADException
