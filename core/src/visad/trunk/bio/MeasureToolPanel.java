@@ -83,18 +83,6 @@ public class MeasureToolPanel extends ToolPanel {
   private boolean stdEnabled = true;
 
 
-  // -- FILE IO FUNCTIONS --
-
-  /** Label for measurement-related controls. */
-  private JLabel measureLabel;
-
-  /** Button for saving measurements to a file. */
-  private JButton saveLines;
-
-  /** Button for restoring measurements from a file. */
-  private JButton restoreLines;
-
-
   // -- GLOBAL FUNCTIONS --
 
   /** Button for adding lines. */
@@ -155,44 +143,8 @@ public class MeasureToolPanel extends ToolPanel {
   public MeasureToolPanel(VisBio biovis) {
     super(biovis);
 
-    // measurements label
-    measureLabel = new JLabel("Measurements:");
-    measureLabel.setForeground(Color.black);
-    measureLabel.setEnabled(false);
-    controls.add(pad(measureLabel));
-    controls.add(Box.createVerticalStrut(5));
-
-    // save measurements button
-    JPanel p = new JPanel();
-    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    saveLines = new JButton("Save");
-    saveLines.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        bio.mm.saveMeasurements();
-      }
-    });
-    saveLines.setToolTipText("Saves measurements to a text file");
-    saveLines.setEnabled(false);
-    p.add(saveLines);
-    p.add(Box.createHorizontalStrut(5));
-
-    // restore measurements button
-    restoreLines = new JButton("Restore");
-    restoreLines.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        bio.mm.restoreMeasurements();
-      }
-    });
-    restoreLines.setToolTipText("Restores measurements from a text file");
-    restoreLines.setEnabled(false);
-    p.add(restoreLines);
-    controls.add(pad(p));
-
-    // spacing
-    controls.add(Box.createVerticalStrut(15));
-
     // add line button
-    p = new JPanel();
+    JPanel p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     addLine = new JButton("New line");
     addLine.addActionListener(new ActionListener() {
@@ -466,16 +418,6 @@ public class MeasureToolPanel extends ToolPanel {
 
   /** Enables or disables this tool panel. */
   public void setEnabled(boolean enabled) {
-    if (enabled) {
-      measureLabel.setEnabled(true);
-      restoreLines.setEnabled(true);
-      updateFileButtons();
-    }
-    else {
-      measureLabel.setEnabled(false);
-      saveLines.setEnabled(false);
-      restoreLines.setEnabled(false);
-    }
     addLine.setEnabled(enabled);
     addMarker.setEnabled(enabled);
     merge.setEnabled(enabled);
@@ -565,7 +507,6 @@ public class MeasureToolPanel extends ToolPanel {
     }
     else b = true;
     bio.toolAlign.updateAspect(!microns);
-    saveLines.setEnabled(b);
     updateMeasureInfo();
   }
 

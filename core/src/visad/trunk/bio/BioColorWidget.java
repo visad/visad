@@ -76,6 +76,7 @@ public class BioColorWidget extends JPanel {
     color.setForeground(Color.black);
     scalars = new JComboBox();
     scalars.addItem("None");
+    color.setLabelFor(scalars);
 
     // lay out components
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -128,8 +129,14 @@ public class BioColorWidget extends JPanel {
     scalars.setEnabled(enabled);
   }
 
+  /** Sets the mnemonic for this widget. */
+  public void setMnemonic(char c) { color.setDisplayedMnemonic(c); }
+
   /** Sets the tool tip for this widget. */
-  public void setToolTipText(String text) { scalars.setToolTipText(text); }
+  public void setToolTipText(String text) {
+    color.setToolTipText(text);
+    scalars.setToolTipText(text);
+  }
 
   /** Chooses most desirable range type for this widget's color. */
   public void guessType() {

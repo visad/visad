@@ -43,7 +43,6 @@ public class AlignmentPlane extends PlaneSelector {
   /** VisBio frame. */
   protected VisBio bio;
 
-  /** Flags for whether each endpoint is locked at each timestep. */
   protected boolean[][] locked;
 
   /** Position of plane selector for each timestep. */

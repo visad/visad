@@ -60,8 +60,6 @@ public class OptionDialog extends JPanel implements ActionListener {
   // -- GUI COMPONENTS --
 
   private JCheckBox enableQT;
-  private JRadioButton dynamic, fixed;
-  private JTextField loVal, hiVal;
   private JButton ok, cancel;
 
 
@@ -76,24 +74,6 @@ public class OptionDialog extends JPanel implements ActionListener {
     enableQT.setMnemonic('q');
     enableQT.setActionCommand("enableQT");
     enableQT.addActionListener(this);
-    dynamic = new JRadioButton("Dynamic color scaling");
-    dynamic.setMnemonic('d');
-    dynamic.setActionCommand("dynamic");
-    dynamic.addActionListener(this);
-    dynamic.setEnabled(false); // CTR - TODO - color range options
-    fixed = new JRadioButton("Fixed color range: ", true);
-    fixed.setMnemonic('f');
-    fixed.setActionCommand("fixed");
-    fixed.addActionListener(this);
-    fixed.setEnabled(false); // CTR - TODO - color range options
-    loVal = new JTextField("0");
-    adjustTextField(loVal);
-    loVal.setEnabled(false); // CTR - TODO - color range options
-    JLabel toLabel = new JLabel(" to ");
-    toLabel.setEnabled(false);
-    hiVal = new JTextField("255");
-    adjustTextField(hiVal);
-    hiVal.setEnabled(false); // CTR - TODO - color range options
     ok = new JButton("Ok");
     ok.setMnemonic('o');
     ok.setActionCommand("ok");
@@ -103,23 +83,9 @@ public class OptionDialog extends JPanel implements ActionListener {
     cancel.setActionCommand("cancel");
     cancel.addActionListener(this);
 
-    // group radio buttons
-    ButtonGroup group = new ButtonGroup();
-    group.add(dynamic);
-    group.add(fixed);
-
     // lay out options
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     add(ToolPanel.pad(enableQT, false, true));
-    add(new Divider());
-    add(ToolPanel.pad(dynamic, false, true));
-    JPanel p = new JPanel();
-    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    p.add(fixed);
-    p.add(loVal);
-    p.add(toLabel);
-    p.add(hiVal);
-    add(ToolPanel.pad(p, false, true));
 
     // lay out buttons
     JPanel bottom = new JPanel();
@@ -331,14 +297,6 @@ public class OptionDialog extends JPanel implements ActionListener {
       if (f != null) return f;
     }
     return null;
-  }
-
-  /** Adjusts dimensional layout preferences of a text field. */
-  private void adjustTextField(JTextField field) {
-    Util.adjustTextField(field);
-    Dimension psize = field.getPreferredSize();
-    if (psize.width < 40) psize.width = 40;
-    field.setPreferredSize(psize);
   }
 
 }

@@ -67,6 +67,18 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
   /** Label for current contrast value. */
   private JLabel contrastValue;
 
+  /** Option for dynamic color scaling. */
+  private JRadioButton dynamic;
+
+  /** Option for fixed color scaling. */
+  private JRadioButton fixed;
+
+  /** Text field for low color scale value. */
+  private JTextField loVal;
+
+  /** Text field for high color scale value. */
+  private JTextField hiVal;
+
   /** Option for RGB color model. */
   private JRadioButton rgb;
 
@@ -119,6 +131,9 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     brightnessLabel = new JLabel("Brightness: ");
     brightnessLabel.setForeground(Color.black);
     brightnessLabel.setAlignmentY(JLabel.TOP_ALIGNMENT);
+    brightnessLabel.setDisplayedMnemonic('b');
+    String brightnessToolTip = "Adjusts the brightness of the displays";
+    brightnessLabel.setToolTipText(brightnessToolTip);
     p.add(brightnessLabel);
 
     // brightness slider
@@ -128,7 +143,8 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
       public void stateChanged(ChangeEvent e) { doColorTable(); }
     });
     brightness.setAlignmentY(JSlider.TOP_ALIGNMENT);
-    brightness.setToolTipText("Adjusts the brightness of the displays");
+    brightnessLabel.setLabelFor(brightness);
+    brightness.setToolTipText(brightnessToolTip);
     p.add(brightness);
 
     // current brightness value
@@ -137,7 +153,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
       new JLabel("." + VisBio.COLOR_DETAIL).getPreferredSize();
     brightnessValue.setPreferredSize(labelSize);
     brightnessValue.setAlignmentY(JLabel.TOP_ALIGNMENT);
-    brightnessValue.setToolTipText("The current brightness value");
+    brightnessValue.setToolTipText("Current brightness value");
     p.add(brightnessValue);
     controls.add(pad(p));
     cc++;
@@ -149,6 +165,9 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     contrastLabel.setForeground(Color.black);
     contrastLabel.setPreferredSize(brightnessLabel.getPreferredSize());
     contrastLabel.setAlignmentY(JLabel.TOP_ALIGNMENT);
+    contrastLabel.setDisplayedMnemonic('c');
+    String contrastToolTip = "Adjusts the contrast of the displays";
+    contrastLabel.setToolTipText(contrastToolTip);
     p.add(contrastLabel);
 
     // contrast slider
@@ -161,17 +180,65 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     contrast.setMajorTickSpacing(VisBio.COLOR_DETAIL / 4);
     contrast.setMinorTickSpacing(VisBio.COLOR_DETAIL / 16);
     contrast.setPaintTicks(true);
-    contrast.setToolTipText("Adjusts the contrast of the displays");
+    contrastLabel.setLabelFor(contrast);
+    contrast.setToolTipText(contrastToolTip);
     p.add(contrast);
 
     // current contrast value
     contrastValue = new JLabel("" + VisBio.NORMAL_CONTRAST);
     contrastValue.setPreferredSize(labelSize);
     contrastValue.setAlignmentY(JLabel.TOP_ALIGNMENT);
-    contrastValue.setToolTipText("The current contrast value");
+    contrastValue.setToolTipText("Current contrast value");
     p.add(contrastValue);
     controls.add(pad(p));
     cc++;
+
+    // spacing
+    controls.add(Box.createVerticalStrut(5));
+    cc++;
+
+    // CTR - TODO - color range options
+
+    // dynamic color scaling option
+    ButtonGroup colorScaleGroup = new ButtonGroup();
+    dynamic = new JRadioButton("Dynamic color scaling");
+    dynamic.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        loVal.setEnabled(false);
+        hiVal.setEnabled(false);
+      }
+    });
+    dynamic.setMnemonic('d');
+    dynamic.setToolTipText("Scales color range according to the data");
+    colorScaleGroup.add(dynamic);
+    dynamic.setEnabled(false);
+
+    // fixed color scaling option
+    fixed = new JRadioButton("Fixed color range: ", true);
+    fixed.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        loVal.setEnabled(true);
+        hiVal.setEnabled(true);
+      }
+    });
+    fixed.setMnemonic('f');
+    fixed.setToolTipText("Fixes color range between the given values");
+    colorScaleGroup.add(fixed);
+    fixed.setEnabled(false);
+
+    // low color scale value text field
+    loVal = new JTextField("0");
+    adjustTextField(loVal);
+    loVal.setEnabled(false);
+
+    // color scale label
+    JLabel toLabel = new JLabel(" to ");
+    toLabel.setEnabled(false);
+
+    // high color scale value text field
+    hiVal = new JTextField("255");
+    adjustTextField(hiVal);
+    hiVal.setEnabled(false);
 
     // spacing
     controls.add(Box.createVerticalStrut(5));
@@ -195,6 +262,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
         doColorTable();
       }
     });
+    rgb.setMnemonic('r');
     rgb.setToolTipText("Switches to a Red-Green-Blue color model");
     group.add(rgb);
     p.add(rgb);
@@ -209,6 +277,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
         doColorTable();
       }
     });
+    hsv.setMnemonic('s');
     hsv.setToolTipText("Switches to a Hue-Saturation-Value color model");
     group.add(hsv);
     p.add(hsv);
@@ -224,22 +293,22 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     red = new BioColorWidget(bio, 0);
     red.addItemListener(this);
-    red.setToolTipText("Range mapping to the " +
-      "first color component (Red/Hue)");
+    red.setMnemonic('e');
+    red.setToolTipText("Range mapping to Red/Hue color component");
     p.add(red);
 
     // green/saturation color map widget
     green = new BioColorWidget(bio, 1);
     green.addItemListener(this);
-    green.setToolTipText("Range mapping to the " +
-      "second color component (Green/Saturation)");
+    green.setMnemonic('n');
+    green.setToolTipText("Range mapping to Green/Saturation color component");
     p.add(green);
 
     // blue/value color map widget
     blue = new BioColorWidget(bio, 2);
     blue.addItemListener(this);
-    blue.setToolTipText("Range mapping to the " +
-      "third color component (Blue/Value)");
+    blue.setMnemonic('u');
+    blue.setToolTipText("Range mapping to Blue/Value color component");
     p.add(blue);
     controls.add(pad(p));
     cc++;
@@ -255,6 +324,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
         doColorTable();
       }
     });
+    composite.setMnemonic('i');
     composite.setToolTipText("Combines range values " +
       "into a composite color table");
     controls.add(pad(composite));
@@ -267,6 +337,9 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     alphaLabel.setForeground(Color.black);
     alphaLabel.setAlignmentY(JLabel.TOP_ALIGNMENT);
     alphaLabel.setPreferredSize(brightnessLabel.getPreferredSize());
+    alphaLabel.setDisplayedMnemonic('a');
+    String alphaToolTip = "Adjusts transparency when rendering as a volume";
+    alphaLabel.setToolTipText(alphaToolTip);
     alphaLabel.setEnabled(false);
     p.add(alphaLabel);
 
@@ -279,7 +352,8 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     alpha.setMajorTickSpacing(VisBio.COLOR_DETAIL / 4);
     alpha.setMinorTickSpacing(VisBio.COLOR_DETAIL / 16);
     alpha.setPaintTicks(true);
-    alpha.setToolTipText("Adjusts transparency when rendering as a volume");
+    alphaLabel.setLabelFor(alpha);
+    alpha.setToolTipText(alphaToolTip);
     alpha.setEnabled(false);
     p.add(alpha);
 
@@ -303,6 +377,9 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     JLabel selLabel = new JLabel("Color table: ");
+    selLabel.setDisplayedMnemonic('t');
+    String selToolTip = "List of color tables for color components";
+    selLabel.setToolTipText(selToolTip);
     selLabel.setForeground(Color.black);
     p.add(selLabel);
 
@@ -317,7 +394,8 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
         }
       }
     });
-    selector.setToolTipText("List of color tables for color components");
+    selLabel.setLabelFor(selector);
+    selector.setToolTipText(selToolTip);
     p.add(selector);
     controls.add(pad(p));
     cc++;
@@ -438,6 +516,17 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     ignore = false;
     doColorTable();
     bio.sm.syncColors();
+  }
+
+
+  // -- HELPER METHODS --
+
+  /** Adjusts dimensional layout preferences of a text field. */
+  private void adjustTextField(JTextField field) {
+    Util.adjustTextField(field);
+    Dimension psize = field.getPreferredSize();
+    if (psize.width < 40) psize.width = 40;
+    field.setPreferredSize(psize);
   }
 
 }

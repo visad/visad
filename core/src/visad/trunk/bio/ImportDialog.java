@@ -50,6 +50,9 @@ public class ImportDialog extends JPanel implements ActionListener {
   /** Series chooser. */
   private SeriesChooser chooser;
 
+  /** Choose file dialog box. */
+  private JFileChooser fileBox;
+
   /** Thumbnail widget. */
   private DoubleTextCheckBox thumbs;
 
@@ -147,9 +150,11 @@ public class ImportDialog extends JPanel implements ActionListener {
   public void actionPerformed(ActionEvent e) {
     String command = e.getActionCommand();
     if (command.equals("select")) {
-      JFileChooser fileBox = new JFileChooser();
-      SeriesFileFilter filter = new SeriesFileFilter();
-      fileBox.setFileFilter(filter);
+      if (fileBox == null) {
+        fileBox = new JFileChooser();
+        SeriesFileFilter filter = new SeriesFileFilter();
+        fileBox.setFileFilter(filter);
+      }
       int returnVal = fileBox.showOpenDialog(this);
       if (returnVal != JFileChooser.APPROVE_OPTION) return;
       File file = fileBox.getSelectedFile();

@@ -38,9 +38,6 @@ import javax.swing.*;
 import javax.swing.event.*;
 import visad.*;
 import visad.data.*;
-import visad.data.biorad.BioRadForm;
-import visad.data.qt.QTForm;
-import visad.data.tiff.TiffForm;
 import visad.java2d.DisplayImplJ2D;
 import visad.java3d.*;
 import visad.util.*;
@@ -198,9 +195,14 @@ public class VisBio extends GUIFrame implements ChangeListener {
     help = new BioHelpWindow();
 
     // menu bar
-    addMenuItem("File", "Open...", "fileOpen", 'o');
-    fileExport = addMenuItem("File", "Export...", "fileExport", 'e');
+    addMenuItem("File", "Import data...", "fileImport", 'i');
+    fileExport = addMenuItem("File", "Export data...", "fileExport", 'e');
+    addMenuSeparator("File");
+    addMenuItem("File", "Restore state...", "fileRestore", 'r');
+    addMenuItem("File", "Save state...", "fileSave", 's');
+    addMenuSeparator("File");
     addMenuItem("File", "Take snapshot...", "fileSnap", 's');
+    addMenuSeparator("File");
     addMenuItem("File", "Options...", "fileOptions", 't');
     addMenuSeparator("File");
     addMenuItem("File", "Exit", "fileExit", 'x');
@@ -276,19 +278,19 @@ public class VisBio extends GUIFrame implements ChangeListener {
 
     // viewing tool panel
     toolView = new ViewToolPanel(this);
-    tabs.addTab("View", toolView);
+    tabs.addTab("View", null, toolView, "Controls for the displays");
 
     // color tool panel
     toolColor = new ColorToolPanel(this);
-    tabs.addTab("Color", toolColor);
+    tabs.addTab("Color", null, toolColor, "Controls for manipulating color");
 
     // alignment tool panel
     toolAlign = new AlignToolPanel(this);
-    tabs.addTab("Align", toolAlign);
+    tabs.addTab("Align", null, toolAlign, "Controls for orienting data");
 
     // measurement tool panel
     toolMeasure = new MeasureToolPanel(this);
-    tabs.addTab("Measure", toolMeasure);
+    tabs.addTab("Measure", null, toolMeasure, "Controls for measuring data");
   }
 
 
@@ -474,7 +476,7 @@ public class VisBio extends GUIFrame implements ChangeListener {
   // -- MENU COMMANDS --
 
   /** Loads a data series specified by the user. */
-  public void fileOpen() {
+  public void fileImport() {
     final JFrame frame = this;
     Util.invoke(false, new Runnable() {
       public void run() {
@@ -487,9 +489,8 @@ public class VisBio extends GUIFrame implements ChangeListener {
         sm.setThumbnails(importer.getThumbs(),
           importer.getThumbResX(), importer.getThumbResY());
         if (f == null || f.length < 1) {
-          JOptionPane.showMessageDialog(frame,
-            "Invalid series", "Cannot load series",
-            JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(frame, "Invalid series",
+            "Cannot load series", JOptionPane.ERROR_MESSAGE);
           return;
         }
         sm.setSeries(f, importer.getFilesAsSlices());
@@ -507,6 +508,16 @@ public class VisBio extends GUIFrame implements ChangeListener {
         exporter.export();
       }
     });
+  }
+
+  /** Restores the current state from a text file specified by the user. */
+  public void fileRestore() {
+    // CTR - TODO - fileRestore
+  }
+
+  /** Saves the current state to a text file specified by the user. */
+  public void fileSave() {
+    // CTR - TODO - fileSave
   }
 
   /** Saves a snapshot of the displays to a file specified by the user. */
