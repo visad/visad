@@ -91,7 +91,7 @@ public class PointDataAdapter
         if (numObs == 0)
             throw new VisADException("No data available");
 
-        RealType domainType = new RealType("index");
+        RealType domainType = RealType.getRealType("index");
         Integer1DSet domain = new Integer1DSet(domainType, numObs);
         
         // now make range (Tuple) type
@@ -144,7 +144,8 @@ public class PointDataAdapter
         // now, fill in the data
         for (int i = 0; i < numObs; i++)
         {
-            Scalar[] scalars = new Scalar[numParams];
+            Scalar[] scalars = (noText == true) ? new Real[numParams]
+	                                        : new Scalar[numParams];
             for (int j = 0; j < numParams; j++)
             {
                 try
@@ -170,7 +171,9 @@ public class PointDataAdapter
             }
             try
             {
-                field.setSample(i, new Tuple(scalars));
+                field.setSample(i, (noText == true)
+		                       ? new RealTuple((Real[]) scalars)
+				       : new Tuple(scalars));
             }
             catch (java.rmi.RemoteException e) {;}
         }
