@@ -284,10 +284,7 @@ public class FlexibleTrackManipulation extends Object
       float diff_lat = new_lat - old_lats[time_index];
       float diff_lon = new_lon - old_lons[time_index];
 
-      lats[time_index] = new_lat;
-      lons[time_index] = new_lon;
-
-      for (int j=time_index+1; j<ntimes; j++) {
+      for (int j=time_index; j<ntimes; j++) {
 
         double lat = old_lats[j] + diff_lat;
         double lon = old_lons[j] + diff_lon;
@@ -345,6 +342,7 @@ public class FlexibleTrackManipulation extends Object
         lats[j] = (float) lat;
         lons[j] = (float) lon;
         tuples[j] = storm;
+        storm_track.setSample(j, storm);
         if (control == null) {
           track_refs[j].setData(tuples[j]);
         }
@@ -412,7 +410,7 @@ public class FlexibleTrackManipulation extends Object
       amap = new ScalarMap(time, Display.Animation);
       display.addMap(amap);
       AnimationControl acontrol = (AnimationControl) amap.getControl();
-      acontrol.setStep(2000);
+      acontrol.setStep(500);
     }
 
     FlatField ff = new FlatField(track_type, time_set);
