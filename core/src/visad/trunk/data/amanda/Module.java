@@ -46,10 +46,6 @@ public class Module
 
   public int compareTo(Object obj)
   {
-    if (obj == null) {
-      return 1;
-    }
-
     if (!(obj instanceof Module)) {
       return getClass().toString().compareTo(obj.getClass().toString());
     }
