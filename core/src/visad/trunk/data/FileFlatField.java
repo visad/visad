@@ -246,7 +246,12 @@ public class FileFlatField extends FlatField {
 
     synchronized (adaptedFlatFields)
     {
-      return getadaptedFlatField().getSample(index);
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        throw new VisADException("Cannot get cached FlatField");
+      }
+
+      return fld.getSample(index);
     }
   }
 
@@ -256,10 +261,15 @@ public class FileFlatField extends FlatField {
       return 0;
     }
 
-     synchronized (adaptedFlatFields)
-     {
-       return getadaptedFlatField().getLength();
-     }
+    synchronized (adaptedFlatFields)
+    {
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        return 0;
+      }
+
+      return fld.getLength();
+    }
   }
 
   public Unit[] getDomainUnits()
@@ -268,10 +278,15 @@ public class FileFlatField extends FlatField {
       return null;
     }
 
-     synchronized (adaptedFlatFields)
-     {
-       return getadaptedFlatField().getDomainUnits();
-     }
+    synchronized (adaptedFlatFields)
+    {
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        return null;
+      }
+
+      return fld.getDomainUnits();
+    }
   }
 
   public CoordinateSystem getDomainCoordinateSystem()
@@ -280,10 +295,15 @@ public class FileFlatField extends FlatField {
       return null;
     }
 
-     synchronized (adaptedFlatFields)
-     {
-       return getadaptedFlatField().getDomainCoordinateSystem();
-     }
+    synchronized (adaptedFlatFields)
+    {
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        return null;
+      }
+
+      return fld.getDomainCoordinateSystem();
+    }
   }
 
   public CoordinateSystem[] getRangeCoordinateSystem()
@@ -293,10 +313,15 @@ public class FileFlatField extends FlatField {
       return null;
     }
 
-     synchronized (adaptedFlatFields)
-     {
-       return getadaptedFlatField().getRangeCoordinateSystem();
-     }
+    synchronized (adaptedFlatFields)
+    {
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        return null;
+      }
+
+      return fld.getRangeCoordinateSystem();
+    }
   }
 
   public CoordinateSystem[] getRangeCoordinateSystem( int component )
@@ -306,10 +331,15 @@ public class FileFlatField extends FlatField {
       return null;
     }
 
-     synchronized (adaptedFlatFields)
-     {
-       return getadaptedFlatField().getRangeCoordinateSystem( component );
-     }
+    synchronized (adaptedFlatFields)
+    {
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        return null;
+      }
+
+      return fld.getRangeCoordinateSystem( component );
+    }
   }
 
   public Unit[][] getRangeUnits()
@@ -318,10 +348,15 @@ public class FileFlatField extends FlatField {
       return null;
     }
 
-     synchronized (adaptedFlatFields)
-     {
-       return getadaptedFlatField().getRangeUnits();
-     }
+    synchronized (adaptedFlatFields)
+    {
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        return null;
+      }
+
+      return fld.getRangeUnits();
+    }
   }
 
   public Unit[] getDefaultRangeUnits()
@@ -330,10 +365,15 @@ public class FileFlatField extends FlatField {
       return null;
     }
 
-     synchronized (adaptedFlatFields)
-     {
-       return getadaptedFlatField().getDefaultRangeUnits();
-     }
+    synchronized (adaptedFlatFields)
+    {
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        return null;
+      }
+
+      return fld.getDefaultRangeUnits();
+    }
   }
 
   public double[][] getValues()
@@ -345,7 +385,12 @@ public class FileFlatField extends FlatField {
 
     synchronized (adaptedFlatFields)
     {
-      return getadaptedFlatField().getValues();
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        return null;
+      }
+
+      return fld.getValues();
     }
   }
 
@@ -358,7 +403,12 @@ public class FileFlatField extends FlatField {
 
     synchronized (adaptedFlatFields)
     {
-      return getadaptedFlatField().getValues(index);
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        return null;
+      }
+
+      return fld.getValues(index);
     }
   }
 
@@ -371,7 +421,12 @@ public class FileFlatField extends FlatField {
 
     synchronized (adaptedFlatFields)
     {
-      return getadaptedFlatField().getFloats(copy);
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        return null;
+      }
+
+      return fld.getFloats(copy);
     }
   }
 
@@ -383,7 +438,12 @@ public class FileFlatField extends FlatField {
 
     synchronized ( adaptedFlatFields )
     {
-      return getadaptedFlatField().getDomainSet();
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        return null;
+      }
+
+      return fld.getDomainSet();
     }
   }
 
@@ -396,7 +456,12 @@ public class FileFlatField extends FlatField {
     }
 
     synchronized (adaptedFlatFields) {
-      getadaptedFlatField().setSample(index, range);
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        throw new VisADException("Cannot get cached FlatField");
+      }
+
+      fld.setSample(index, range);
       adaptedFlatFieldDirty[adaptedFlatFieldIndex] = true;
     }
   }
@@ -410,7 +475,12 @@ public class FileFlatField extends FlatField {
 
     synchronized (adaptedFlatFields)
     {
-      getadaptedFlatField().setSample( domain, range );
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        throw new VisADException("Cannot get cached FlatField");
+      }
+
+      fld.setSample( domain, range );
       adaptedFlatFieldDirty[adaptedFlatFieldIndex] = true;
     }
   }
@@ -424,7 +494,12 @@ public class FileFlatField extends FlatField {
 
     synchronized (adaptedFlatFields)
     {
-      getadaptedFlatField().setSample( index, range, copy );
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        throw new VisADException("Cannot get cached FlatField");
+      }
+
+      fld.setSample( index, range, copy );
       adaptedFlatFieldDirty[adaptedFlatFieldIndex] = true;
     }
   }
@@ -437,7 +512,12 @@ public class FileFlatField extends FlatField {
 
     synchronized (adaptedFlatFields)
     {
-      return getadaptedFlatField().isMissing();
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        return true;
+      }
+
+      return fld.isMissing();
     }
   }
 
@@ -450,7 +530,12 @@ public class FileFlatField extends FlatField {
 
     synchronized (adaptedFlatFields)
     {
-      return getadaptedFlatField().binary( data, op, sampling_mode, error_mode);
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        throw new VisADException("Cannot get cached FlatField");
+      }
+
+      return fld.binary( data, op, sampling_mode, error_mode);
     }
   }
 
@@ -463,14 +548,31 @@ public class FileFlatField extends FlatField {
 
     synchronized (adaptedFlatFields)
     {
-      return getadaptedFlatField().unary( op, sampling_mode, error_mode );
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        throw new VisADException("Cannot get cached FlatField");
+      }
+
+      return fld.unary( op, sampling_mode, error_mode );
     }
   }
 
   /** unpack an array of doubles from field sample values according to the
       RangeSet-s; returns a copy */
   public double[][] unpackValues() throws VisADException {
-    return getadaptedFlatField().unpackValues();
+    if (adaptedFlatFields == null) {
+      throw new VisADException("Cannot access serialized FileFlatField");
+    }
+
+    synchronized (adaptedFlatFields)
+    {
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        return null;
+      }
+
+      return fld.unpackValues();
+    }
   }
 
   public Field extract( int component )
@@ -482,7 +584,12 @@ public class FileFlatField extends FlatField {
 
     synchronized (adaptedFlatFields)
     {
-      return getadaptedFlatField().extract( component );
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        throw new VisADException("Cannot get cached FlatField");
+      }
+
+      return fld.extract( component );
     }
   }
 
@@ -495,7 +602,12 @@ public class FileFlatField extends FlatField {
 
     synchronized (adaptedFlatFields)
     {
-      return getadaptedFlatField().domainFactor( factor );
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        throw new VisADException("Cannot get cached FlatField");
+      }
+
+      return fld.domainFactor( factor );
     }
   }
 
@@ -508,7 +620,12 @@ public class FileFlatField extends FlatField {
 
     synchronized (adaptedFlatFields)
     {
-      return getadaptedFlatField().resample( set, sampling_mode, error_mode );
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        throw new VisADException("Cannot get cached FlatField");
+      }
+
+      return fld.resample( set, sampling_mode, error_mode );
     }
   }
 
@@ -521,7 +638,12 @@ public class FileFlatField extends FlatField {
 
     synchronized (adaptedFlatFields)
     {
-      return getadaptedFlatField().computeRanges( type, shadow );
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        throw new VisADException("Cannot get cached FlatField");
+      }
+
+      return fld.computeRanges( type, shadow );
     }
   }
 
@@ -532,10 +654,15 @@ public class FileFlatField extends FlatField {
       throw new VisADException("Cannot access serialized FileFlatField");
     }
 
-     synchronized (adaptedFlatFields)
-     {
-       return getadaptedFlatField().adjustSamplingError( error, error_mode );
-     }
+    synchronized (adaptedFlatFields)
+    {
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        throw new VisADException("Cannot get cached FlatField");
+      }
+
+      return getadaptedFlatField().adjustSamplingError( error, error_mode );
+    }
   }
 
   public boolean isFlatField()
@@ -551,7 +678,12 @@ public class FileFlatField extends FlatField {
 
     synchronized (adaptedFlatFields )
     {
-      return getadaptedFlatField().clone();
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        return null;
+      }
+
+      return fld.clone();
     }
   }
 
@@ -563,7 +695,12 @@ public class FileFlatField extends FlatField {
 
     synchronized (adaptedFlatFields)
     {
-      return getadaptedFlatField().toString();
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        return "Cannot get cached FlatField";
+      }
+
+      return fld.toString();
     }
   }
 
@@ -575,8 +712,13 @@ public class FileFlatField extends FlatField {
 
     synchronized (adaptedFlatFields)
     {
+      FlatField fld = getadaptedFlatField();
+      if (fld == null) {
+        return pre + "Cannot get cached FlatField";
+      }
+
       try {
-	return getadaptedFlatField().longString(pre);
+	return fld.longString(pre);
       } catch (VisADException e) {
 	return pre + e.getMessage();
       }
