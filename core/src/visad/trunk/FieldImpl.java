@@ -1179,7 +1179,7 @@ public class FieldImpl extends FunctionImpl implements Field {
 
         //-  get range values for each field, and combine into one array  -*
 
-        values = f_field.getValues();
+        values = f_field.getValues(false);
         for ( jj = 0; jj < values.length; jj++ )
         {
           System.arraycopy( values[jj], 0, new_values[cnt_b++], 0, n_samples_0 );
@@ -1201,7 +1201,7 @@ public class FieldImpl extends FunctionImpl implements Field {
 
       //- set range values for new flatfield  -*
 
-      ((FlatField)new_field).setSamples( new_values );
+      ((FlatField)new_field).setSamples( new_values, false );
     }
     else  //- not all FlatField(s)  -*
     {
@@ -1797,7 +1797,7 @@ public class FieldImpl extends FunctionImpl implements Field {
 
     if ( isFlatField() )
     {
-      old_range_values = getValues();
+      old_range_values = getValues(false);
       int tup_dim = old_range_values.length;
       new_range_values = new double[tup_dim][work.length];
 
@@ -1812,7 +1812,7 @@ public class FieldImpl extends FunctionImpl implements Field {
             new_range_values[kk][jj] = old_range_values[kk][ index ];
           }
         }
-        ((FlatField)new_field).setSamples( new_range_values );
+        ((FlatField)new_field).setSamples( new_range_values, false );
         new_range_data[ii] = new_field;
       }
     }
@@ -2235,7 +2235,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       cnt = 0;
       double[][] sub_range;
       for ( int ii = 0; ii < new_range.length; ii++ ) {
-        sub_range = ((FieldImpl) new_range[ii]).getValues();
+        sub_range = ((FieldImpl) new_range[ii]).getValues(false);
         int len = sub_range[0].length;
         for ( int jj = 0; jj < tup_dim; jj++ ) {
           System.arraycopy(sub_range[jj], 0, new_values[jj], cnt, len);
