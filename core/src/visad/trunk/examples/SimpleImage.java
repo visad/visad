@@ -75,30 +75,30 @@ public class SimpleImage {
     // create JFrame (i.e., a window) for display and slider
     // (cobbled from the DisplayTest examples)
 
-      JFrame frame = new JFrame("Simple VisAD Application");
+    JFrame frame = new JFrame("Simple VisAD Application");
 
-      frame.addWindowListener(new WindowAdapter() {
-        public void windowClosing(WindowEvent e) {System.exit(0);}
-      });
+    frame.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {System.exit(0);}
+    });
 
-      // create JPanel in JFrame
-      JPanel panel = new JPanel();
-      panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-      panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
-      panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    // create JPanel in JFrame
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
-      frame.getContentPane().add(panel);
+    frame.getContentPane().add(panel);
 
-      panel.add(di.getComponent());
+    panel.add(di.getComponent());
 
-      // add a button for printing the screen
-      JButton butt = new JButton("Print me");
-      butt.addActionListener(new visad.util.PrintActionListener(di));
-      panel.add(butt);
+    // add a button for printing the screen
+    JButton butt = new JButton("Print me");
+    butt.addActionListener(new visad.util.PrintActionListener(di));
+    panel.add(butt);
 
-      // set size of JFrame and make it visible
-      frame.setSize(500, 400);
-      frame.setVisible(true);
+    // set size of JFrame and make it visible
+    frame.setSize(500, 400);
+    frame.setVisible(true);
   }
 
 }
