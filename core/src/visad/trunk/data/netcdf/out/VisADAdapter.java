@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VisADAdapter.java,v 1.4 2000-02-01 21:59:20 steve Exp $
+ * $Id: VisADAdapter.java,v 1.5 2000-04-26 15:45:26 dglo Exp $
  */
 
 package visad.data.netcdf.out;
@@ -96,7 +96,7 @@ VisADAdapter
 	    RemoteException, IOException
     {
 	/*
-	 * Watch the ordering in the following because the first match 
+	 * Watch the ordering in the following because the first match
 	 * will be used.
 	 */
 	if (data instanceof Text)
@@ -112,7 +112,7 @@ VisADAdapter
 	    visit((Field)data, outerAccessor);
 	else
 	    throw new UnimplementedException(
-		"VisAD data type not yet supported: " + 
+		"VisAD data type not yet supported: " +
 		data.getClass().getName());
     }
 
@@ -138,7 +138,7 @@ VisADAdapter
          * the maximum length.
 	 */
 	int	charLen = 0;
-	for (IndexIterator index = 
+	for (IndexIterator index =
 		new IndexIterator(outerAccessor.getLengths());
 	     index.notDone();
 	     index.incr())
@@ -153,7 +153,7 @@ VisADAdapter
 	 * Define the new character dimension.
 	 */
 	String		dimName = ((ScalarType)text.getType()).getName() +
-	    "_len"; 
+	    "_len";
 	Dimension	charDim = new Dimension(dimName, charLen);
 	putDimension(charDim);
 
@@ -275,7 +275,7 @@ VisADAdapter
 	}
 
 	/*
-	 * Continue the definition process on the inner, VisAD data 
+	 * Continue the definition process on the inner, VisAD data
 	 * objects by visiting the first sample.  The dimension array
 	 * is converted to netCDF order (outermost dimension first).
 	 */
@@ -287,7 +287,7 @@ VisADAdapter
 
 
     /**
-     * Define the netCDF dimensions of a VisAD LinearSet, including any 
+     * Define the netCDF dimensions of a VisAD LinearSet, including any
      * necessary coordinate variables..
      *
      * @param set	The VisAD GriddedSet to be examined, WHERE
@@ -311,7 +311,7 @@ VisADAdapter
 	    Linear1DSet	linear1DSet =
 		((LinearSet)set).getLinear1DComponent(idim);
 	    int		length = linear1DSet.getLength(0);
-	    String	name = 
+	    String	name =
 		((RealType)domainType.getComponent(idim)).getName();
 
 	    dims[idim] = new Dimension(name, length);
@@ -320,7 +320,7 @@ VisADAdapter
 		linear1DSet.getStep() != 1.0)
 	    {
 		/*
-		 * The domain sampling has associated coordinate 
+		 * The domain sampling has associated coordinate
 		 * values; therefore, we define a corresponding
 		 * netCDF coordinate-variable.
 		 */
@@ -369,7 +369,7 @@ VisADAdapter
      *
      * @param set	The set to have a netCDF dimension defined for it.
      *			Precondition: <code>set.getDimension() == 1</code>.
-     * @return		The netCDF dimension corresponding to the 1-D 
+     * @return		The netCDF dimension corresponding to the 1-D
      *			SampledSet.
      * @exception VisADException	Problem in core VisAD.
      * @exception BadFormException	<code>set</code> cannot be represented
@@ -380,7 +380,7 @@ VisADAdapter
 	throws VisADException, BadFormException
     {
 	RealTupleType	domainType = ((SetType)set.getType()).getDomain();
-	String		name = 
+	String		name =
 	    ((RealType)domainType.getComponent(0)).getName();
 	Dimension	dim = new Dimension(name, set.getLength());
 	Unit[]		units = set.getSetUnits();
@@ -403,13 +403,13 @@ VisADAdapter
 
     /**
      * Define the netCDF dimension of a multi-dimensional SampledSet.
-     * This will be an "index" dimension with associated netCDF variables 
+     * This will be an "index" dimension with associated netCDF variables
      * that represent the independent coordinates of the domain set.
      *
-     * @param set	The VisAD SampledSet to be examined and have 
+     * @param set	The VisAD SampledSet to be examined and have
      *			a corresponding netCDF "index" dimension created
      *			together with netCDF variables for the independent
-     *			variables.  Precondition: <code>set.getDimension() 
+     *			variables.  Precondition: <code>set.getDimension()
      *			> 1</code>.
      * @return		The netCDF dimension corresponding to the
      *			SampledSet.
@@ -490,7 +490,7 @@ VisADAdapter
 
 	for (int i = 0; i < inDims.length; ++i)
 	    outDims[i] = inDims[inDims.length - 1 - i];
-    
+
 	return outDims;
     }
 

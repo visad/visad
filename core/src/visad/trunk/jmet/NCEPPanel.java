@@ -5,19 +5,19 @@
 /*
 
 The software in this file is Copyright(C) 1999 by Tom Whittaker.
-It is designed to be used with the VisAD system for interactive 
-analysis and visualization of numerical data.  
- 
+It is designed to be used with the VisAD system for interactive
+analysis and visualization of numerical data.
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 1, or (at your option)
 any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License in file NOTICE for more details.
- 
+
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -30,7 +30,7 @@ import edu.wisc.ssec.mcidas.*;
 import visad.java3d.*;
 
 import visad.*;
-import visad.util.*;  
+import visad.util.*;
 import visad.Set;
 import visad.Real;
 import visad.VisADException;
@@ -41,9 +41,9 @@ import java.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.border.*; 
-import javax.swing.filechooser.*; 
-import javax.swing.filechooser.FileFilter; 
+import javax.swing.border.*;
+import javax.swing.filechooser.*;
+import javax.swing.filechooser.FileFilter;
 
 
 import java.io.*;
@@ -57,7 +57,7 @@ import visad.data.mcidas.*;
 import visad.jmet.*;
 
 
-public class NCEPPanel extends JPanel implements 
+public class NCEPPanel extends JPanel implements
         ActionListener, ChangeListener {
     static int instance = 0;
     private int myInstance;
@@ -94,7 +94,7 @@ public class NCEPPanel extends JPanel implements
     private double[][] range;
     private double cbeg;
 
-       
+
   public static void main(String args[]) {
 
     JFrame f = new JFrame();
@@ -115,11 +115,11 @@ public class NCEPPanel extends JPanel implements
     Vector v = ng.get4dVariables();
     ss.setParams(v);
     */
-   
+
   }
 
   /** set up a panel
-  * 
+  *
   * @param isAloft is false if this is the surface level, true otherwise
   * @param di is the associated DisplayImpl
   * @param statLabel is the status label from the Frame
@@ -127,7 +127,7 @@ public class NCEPPanel extends JPanel implements
   * @param title is the, well, title
   *
   */
-  public NCEPPanel 
+  public NCEPPanel
      (boolean isAloft, DisplayImpl di, JLabel statLabel, JTabbedPane tabby, String title) {
 
     super();
@@ -301,7 +301,7 @@ public class NCEPPanel extends JPanel implements
     for (int m=0; m<paramInfo.size(); m=m+3) {
       String miName = (String) paramInfo.elementAt(m+1);
       paramBox.addItem(miName);
-    } 
+    }
     revalidate();
   }
 
@@ -325,7 +325,7 @@ public class NCEPPanel extends JPanel implements
             statLabel.setText("Done reading data...");
 
             di.disableAction();
-            FunctionType type = 
+            FunctionType type =
                     new FunctionType(enable, tup[levelValue].getType());
             Integer1DSet set = new Integer1DSet(enable, 2);
             field = new FieldImpl(type, set);
@@ -336,13 +336,13 @@ public class NCEPPanel extends JPanel implements
 
             valueMap.setRange(range[levelValue][0], range[levelValue][1]);
             if (isAloft) {
-              intervalUnits.setText( 
+              intervalUnits.setText(
                    (String) paramInfo.elementAt( (ndx-1)*3 +2) );
               setContInterval(range[levelValue]);
             }
 
             ref.setData(field);
-            di.addReference(ref); 
+            di.addReference(ref);
             di.enableAction();
             statLabel.setText("Rendering display...please wait!");
             if (tabby != null) {
@@ -451,7 +451,7 @@ public class NCEPPanel extends JPanel implements
     cbeg = Math.floor(range[0]/cint)*cint;
     try {
       // System.out.println("range="+range[0]+" to "+range[1]+"  cbeg="+cbeg);
-      ci.setContourInterval((float)cint, 
+      ci.setContourInterval((float)cint,
                   (float)range[0], (float)range[1], (float)cbeg );
 
       intervalText.setText(cint+" ");

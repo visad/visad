@@ -1,6 +1,6 @@
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -55,7 +55,7 @@ import visad.java3d.TwoDDisplayRendererJ3D;
  *
  * @author  Don Murray - Unidata
  */
-public class SatDisplay 
+public class SatDisplay
 {
 
     private DisplayImpl display;
@@ -71,26 +71,26 @@ public class SatDisplay
      * @param  remap        remap the image into a domain over North America
      */
     public SatDisplay(String mapFile, String imageSource,
-                      boolean display3D, boolean remap) 
+                      boolean display3D, boolean remap)
     {
-        try 
+        try
         {
             //  Read in the map file
             BaseMapAdapter baseMapAdapter;
             if (mapFile.indexOf("://") > 0)   // URL specified
             {
                baseMapAdapter = new BaseMapAdapter(new URL(mapFile) );
-            } 
+            }
             else   // local disk file
             {
                baseMapAdapter = new BaseMapAdapter(mapFile);
             }
 
             // Create the display and set up the scalar maps to map
-            // data to the display 
+            // data to the display
             ScalarMap latMap;     // latitude  -> YAxis
             ScalarMap lonMap;     // longitude -> XAxis
-            if (display3D) 
+            if (display3D)
             {
                 display = new DisplayImplJ3D("display");
                 latMap = new ScalarMap(RealType.Latitude, Display.Latitude);
@@ -109,17 +109,17 @@ public class SatDisplay
             // set the display to a global scale
             latMap.setRange(-90.0, 90.0);
             lonMap.setRange(-180.0, 180.0);
-  
+
             // create a reference for the map line
             DataReference maplinesRef = new DataReferenceImpl("MapLines");
             maplinesRef.setData(baseMapAdapter.getData());
-        
+
             // set the attributes of the map lines (color, location)
             ConstantMap[] maplinesConstantMap = new ConstantMap[4];
             maplinesConstantMap[0] = new ConstantMap(0., Display.Blue);
             maplinesConstantMap[1] = new ConstantMap(1., Display.Red);
             maplinesConstantMap[2] = new ConstantMap(0., Display.Green);
-            maplinesConstantMap[3] = 
+            maplinesConstantMap[3] =
                 new ConstantMap(1.001, Display.Radius); // just above the image
 
             // read in the image
@@ -127,30 +127,30 @@ public class SatDisplay
             FlatField image = areaAdapter.getData();
 
             // Extract the metadata from the image
-            FunctionType imageFunctionType = 
+            FunctionType imageFunctionType =
                 (FunctionType) image.getType();
             RealTupleType imageDomainType = imageFunctionType.getDomain();
-            RealTupleType imageRangeType = 
+            RealTupleType imageRangeType =
                 (RealTupleType) imageFunctionType.getRange();
 
             // remap and resample the image
-            if (remap) 
+            if (remap)
             {
                 int SIZE = 256;
                 RealTupleType latlonType =
-                  ((CoordinateSystem) 
+                  ((CoordinateSystem)
                       imageDomainType.getCoordinateSystem()).getReference();
-                Linear2DSet remapDomainSet = 
+                Linear2DSet remapDomainSet =
                     new Linear2DSet(
                         latlonType, -4.0, 70.0, SIZE, -150.0, 5.0, SIZE);
-                image = 
+                image =
                     (FlatField) image.resample(
                         remapDomainSet, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
             }
 
             // select which band to show...
-            ScalarMap rgbMap = 
-                new ScalarMap( 
+            ScalarMap rgbMap =
+                new ScalarMap(
                     (RealType) imageRangeType.getComponent(0), Display.RGB);
             display.addMap(rgbMap);
 
@@ -167,10 +167,10 @@ public class SatDisplay
             display.addReference(imageRef,null);
             display.addReference(maplinesRef, maplinesConstantMap);
             display.enableAction();
-        } 
-        catch (Exception ne) 
+        }
+        catch (Exception ne)
         {
-            ne.printStackTrace(); System.exit(1); 
+            ne.printStackTrace(); System.exit(1);
         }
 
     }
@@ -205,7 +205,7 @@ public class SatDisplay
            remap = (args[1].indexOf("2") >= 0) ? false : true;
         }
 
-        SatDisplay satDisplay = 
+        SatDisplay satDisplay =
             new SatDisplay(mapFile, imageSource, use3D, remap);
         frame.getContentPane().add(satDisplay.display.getComponent());
         frame.setSize(500, 500);

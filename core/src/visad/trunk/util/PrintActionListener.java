@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -45,7 +45,7 @@ import javax.swing.*;
 *</pre>
 *
 */
-public class PrintActionListener 
+public class PrintActionListener
      implements ActionListener {
 
   DisplayImpl display = null;
@@ -63,7 +63,7 @@ public class PrintActionListener
 
   /** set whether the PrintDialog should be used or not
   *
-  * @param value set to 'true' to use PrintDialog or to 
+  * @param value set to 'true' to use PrintDialog or to
   *  'false' to supress the dialog and just print.  The
   *  default is 'true'.
   *
@@ -102,7 +102,7 @@ public class PrintActionListener
      return display;
  }
 
- /** 
+ /**
   *cause the printout of the DisplayImpl; if the dialog is
   * enabled, it will pop up to solicit information from the
   * user.  If the dialog is disabled, just print...
@@ -111,7 +111,7 @@ public class PrintActionListener
   *
   */
   public void actionPerformed(ActionEvent e) {
-   
+
     Thread t = new Thread() {
       public void run() {
 

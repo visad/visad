@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -59,11 +59,11 @@ public class GctpMap
     this.lwrRight = lwrRight;
   }
 
-  public CoordinateSystem getVisADCoordinateSystem() 
-         throws VisADException 
+  public CoordinateSystem getVisADCoordinateSystem()
+         throws VisADException
   {
     CoordinateSystem coord_sys = null;
-    RealTupleType Reference;  
+    RealTupleType Reference;
 
     double[] r_major = new double[1];
     double[] r_minor = new double[1];
@@ -84,8 +84,8 @@ public class GctpMap
 
     GctpFunction.sphdz( sphrcode, projparms, r_major, r_minor, radius );
 
-    switch  ( projcode ) 
-    { 
+    switch  ( projcode )
+    {
       case GctpFunction.LAMAZ:
         stat = GctpFunction.paksz( projparms[4], center_lon );
         if ( stat != 0 ) {
@@ -96,11 +96,11 @@ public class GctpMap
            // error?
         }
 
-        coord_sys = new LambertAzimuthalEqualArea( Reference, 
-                                                   radius[0], 
+        coord_sys = new LambertAzimuthalEqualArea( Reference,
+                                                   radius[0],
                                                    center_lon[0],
-                                                   center_lat[0], 
-                                                   false_easting, 
+                                                   center_lat[0],
+                                                   false_easting,
                                                    false_northing );
         break;
       case GctpFunction.PS:
@@ -114,12 +114,12 @@ public class GctpMap
           // error
         }
 
-        coord_sys = new PolarStereographic( Reference, 
+        coord_sys = new PolarStereographic( Reference,
                                             r_major[0],
                                             r_minor[0],
                                             center_lon[0],
                                             lat_1[0],
-                                            false_easting, 
+                                            false_easting,
                                             false_northing );
         break;
       case GctpFunction.LAMCC:
@@ -155,7 +155,7 @@ public class GctpMap
     return setUnits;
   }
 
-  public Set getVisADSet( MathType map ) 
+  public Set getVisADSet( MathType map )
          throws VisADException
   {
     int length1 = xdimsize;

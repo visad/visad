@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -83,7 +83,7 @@ public class FormulaManager {
                         String[] unaryOps, int[] unaryPrec,
                         String[] unaryMethods, String[] functions,
                         String[] funcMethods, int implicitPrec,
-                        String[] implicitMethods, String preParseMethod) 
+                        String[] implicitMethods, String preParseMethod)
                         throws FormulaException {
     bOps = binOps;
     bPrec = binPrec;

@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -35,14 +35,14 @@ import visad.RealTupleType;
 import visad.VisADException;
 import visad.Unit;
 
-public class HdfeosDomainMap extends HdfeosDomain 
+public class HdfeosDomainMap extends HdfeosDomain
 {
   private GctpMap gridMap;
   private Set set = null;
 
-  public HdfeosDomainMap( EosStruct struct, 
+  public HdfeosDomainMap( EosStruct struct,
                           DimensionSet dimSet,
-                          GctpMap gridMap  ) 
+                          GctpMap gridMap  )
          throws VisADException
   {
     super(struct, dimSet, gridMap.getVisADCoordinateSystem(),
@@ -50,8 +50,8 @@ public class HdfeosDomainMap extends HdfeosDomain
     this.gridMap = gridMap;
   }
 
-  public Set getData( ) 
-         throws VisADException 
+  public Set getData( )
+         throws VisADException
   {
     set = gridMap.getVisADSet(mathtype);
     return set;
@@ -60,7 +60,7 @@ public class HdfeosDomainMap extends HdfeosDomain
   public Set getData( int[] indexes )
          throws VisADException
   {
-    if ( set == null ) 
+    if ( set == null )
     {
       set = gridMap.getVisADSet(mathtype);
     }

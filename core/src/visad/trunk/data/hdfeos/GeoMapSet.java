@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -30,60 +30,60 @@ import java.lang.*;
 import java.util.*;
 
 
-public class GeoMapSet 
+public class GeoMapSet
 {
   Vector mapSet;
-  
-  public GeoMapSet() 
+
+  public GeoMapSet()
   {
-    mapSet = new Vector(); 
+    mapSet = new Vector();
   }
 
-  public void add( GeoMap obj ) 
+  public void add( GeoMap obj )
   {
     mapSet.addElement( obj );
   }
 
-  public int getSize() 
+  public int getSize()
   {
     int size = mapSet.size();
     return size;
   }
 
-  public GeoMap getElement( int ii )  
+  public GeoMap getElement( int ii )
   {
-    if ( mapSet.size() == 0 ) 
+    if ( mapSet.size() == 0 )
     {
       return null;
     }
-    else 
+    else
     {
       GeoMap obj = (GeoMap) mapSet.elementAt(ii);
       return obj;
     }
   }
 
-  public GeoMap getGeoMap( NamedDimension obj ) 
+  public GeoMap getGeoMap( NamedDimension obj )
   {
     String name = obj.getName();
     return getGeoMap( name );
   }
 
-  public GeoMap getGeoMap( String name ) 
+  public GeoMap getGeoMap( String name )
   {
     int size = this.getSize();
 
-    if ( size == 0 ) 
+    if ( size == 0 )
     {
       return null;
     }
-    else 
+    else
     {
-      for ( int ii = 0; ii < size; ii++ ) 
+      for ( int ii = 0; ii < size; ii++ )
       {
          GeoMap obj = (GeoMap) mapSet.elementAt(ii);
 
-         if(( obj.toDim.equals( name ) ) || ( obj.fromDim.equals( name ) )) 
+         if(( obj.toDim.equals( name ) ) || ( obj.fromDim.equals( name ) ))
          {
            return obj;
          }

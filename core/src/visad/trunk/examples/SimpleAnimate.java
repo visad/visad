@@ -1,6 +1,6 @@
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -107,17 +107,17 @@ public class SimpleAnimate {
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
- 
+
     // create JPanel in JFrame
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
     panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     frame.getContentPane().add(panel);
- 
+
     // add display to JPanel
     panel.add(display.getComponent());
- 
+
     // set size of JFrame and make it visible
     frame.setSize(500, 500);
     frame.setVisible(true);

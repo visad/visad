@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -70,31 +70,31 @@ public abstract class RendererJ2D extends DataRenderer {
          throws VisADException, RemoteException {
     return new ShadowFunctionTypeJ2D(type, link, parent);
   }
- 
+
   public ShadowType makeShadowRealTupleType(
          RealTupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
     return new ShadowRealTupleTypeJ2D(type, link, parent);
   }
- 
+
   public ShadowType makeShadowRealType(
          RealType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
     return new ShadowRealTypeJ2D(type, link, parent);
   }
- 
+
   public ShadowType makeShadowSetType(
          SetType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
     return new ShadowSetTypeJ2D(type, link, parent);
   }
- 
+
   public ShadowType makeShadowTextType(
          TextType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
     return new ShadowTextTypeJ2D(type, link, parent);
   }
- 
+
   public ShadowType makeShadowTupleType(
          TupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
@@ -121,7 +121,7 @@ public abstract class RendererJ2D extends DataRenderer {
       }
       catch (OutOfMemoryError e) {
         // System.out.println("OutOfMemoryError, try again ...");
-        try {   
+        try {
           if (swParent.numChildren() > 0) {
             swParent.removeChild(0);
           }
@@ -132,19 +132,19 @@ public abstract class RendererJ2D extends DataRenderer {
         }
         catch (BadMappingException ee) {
           addException(ee);
-          branch = null; 
-        }       
+          branch = null;
+        }
         catch (UnimplementedException ee) {
           addException(ee);
-          branch = null; 
-        }       
+          branch = null;
+        }
         catch (RemoteException ee) {
           addException(ee);
-          branch = null; 
-        }       
+          branch = null;
+        }
         catch (DisplayInterruptException ee) {
-          branch = null; 
-        }       
+          branch = null;
+        }
       }
       catch (BadMappingException e) {
         addException(e);

@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -27,14 +27,14 @@ MA 02111-1307, USA
 package visad.data.hdfeos;
 
 
-public class NamedDimension  
+public class NamedDimension
 {
   private String  name;
   private int  length;
   private GeoMap g_map;
   private boolean unLimitFlag = false;
 
-  NamedDimension( int struct_id, String name, int length, GeoMap g_map ) 
+  NamedDimension( int struct_id, String name, int length, GeoMap g_map )
   {
     this.name = name;
     if ( length == 0 ) {
@@ -44,24 +44,24 @@ public class NamedDimension
     this.g_map = g_map;
   }
 
-  public String getName() 
+  public String getName()
   {
     return this.name;
   }
 
-  public boolean equals( NamedDimension obj ) 
+  public boolean equals( NamedDimension obj )
   {
-    if( this.name.equals( obj.getName() )) 
+    if( this.name.equals( obj.getName() ))
     {
       return true;
     }
-    else 
+    else
     {
       return false;
     }
   }
 
-  public void setLength( int len ) 
+  public void setLength( int len )
   {
     length = len;
     return;
@@ -72,12 +72,12 @@ public class NamedDimension
     return length;
   }
 
-  public GeoMap getGeoMap() 
+  public GeoMap getGeoMap()
   {
     return g_map;
   }
 
-  public boolean isGeoMapDefined() 
+  public boolean isGeoMapDefined()
   {
     if ( g_map == null ) {
       return false;
@@ -87,12 +87,12 @@ public class NamedDimension
     }
   }
 
-  public boolean isUnlimited() 
+  public boolean isUnlimited()
   {
     return this.unLimitFlag;
   }
 
-  public String toString() 
+  public String toString()
   {
     String str = "dimension: "+name+"\n"+
                  "   length: "+length+"\n";

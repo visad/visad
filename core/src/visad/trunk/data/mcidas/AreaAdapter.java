@@ -5,19 +5,19 @@
 /*
 
 The software in this file is Copyright(C) 1998 by Tom Whittaker.
-It is designed to be used with the VisAD system for interactive 
-analysis and visualization of numerical data.  
- 
+It is designed to be used with the VisAD system for interactive
+analysis and visualization of numerical data.
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 1, or (at your option)
 any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License in file NOTICE for more details.
- 
+
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -77,7 +77,7 @@ public class AreaAdapter {
       nav = af.getNav();
     } catch (Exception rmd) {
         throw new VisADException(
-            "Problem getting Area file directory or navigation"); 
+            "Problem getting Area file directory or navigation");
     }
 
     // extract the size of each dimension from the directory
@@ -129,8 +129,8 @@ public class AreaAdapter {
     try
     {
         cs = new AREACoordinateSystem(
-                RealTupleType.LatitudeLongitudeTuple, 
-                areaDirectory.getDirectoryBlock(), 
+                RealTupleType.LatitudeLongitudeTuple,
+                areaDirectory.getDirectoryBlock(),
                 nav);
     }
     catch (VisADException e)
@@ -140,7 +140,7 @@ public class AreaAdapter {
       cs = null;
     }
 
-    RealTupleType image_domain = 
+    RealTupleType image_domain =
                 new RealTupleType(domain_components, cs, null);
 
     //  Image numbering is usually the first line is at the "top"
@@ -164,9 +164,9 @@ public class AreaAdapter {
         for (int i = 0; i < numBands; i++)
             rangeSets[i] = new Integer1DSet(bands[i], 255);
         field = new FlatField(image_type,
-                              domain_set, 
-                              (CoordinateSystem[]) null, 
-                              rangeSets, 
+                              domain_set,
+                              (CoordinateSystem[]) null,
+                              rangeSets,
                               (Unit[]) null);
     }
     else
@@ -180,7 +180,7 @@ public class AreaAdapter {
     } catch (McIDASException samp) {
         throw new VisADException("Problem reading AREA file: "+samp);
     }
-      
+
     // for each band, create a sample array for the FlatField
 
     try {
@@ -190,7 +190,7 @@ public class AreaAdapter {
         for (int i=0; i<numLines; i++) {
           for (int j=0; j<numEles; j++) {
 
-            samples[b][j + (numEles * i) ] = 
+            samples[b][j + (numEles * i) ] =
                (areaDirectory.getCalibrationType().equalsIgnoreCase("BRIT") &&
                 int_samples[b][i][j] == 255)
                    ? 254.0f                   // push 255 into 254 for BRIT
@@ -211,7 +211,7 @@ public class AreaAdapter {
   /**
     * get the dimensions of the image
     *
-    * @return dim[0]=number of bands, dim[1] = number of elements, 
+    * @return dim[0]=number of bands, dim[1] = number of elements,
     *   dim[2] = number of lines
    */
   public int[] getDimensions() {
@@ -235,7 +235,7 @@ public class AreaAdapter {
    * Return a FlatField representing the image.  The field will look
    * like the following:<P>
    * <UL>
-   * <LI>Domain - Linear2DSet of (ImageLine, ImageElement) with 
+   * <LI>Domain - Linear2DSet of (ImageLine, ImageElement) with
    *              AREACoordinateSystem to Lat/Lon (may be null).
    * <LI>Range - One or more bands.  If calibration type is BRIT,
    *             Integer1DSets are used as the range sets with length 255.
@@ -253,28 +253,28 @@ public class AreaAdapter {
    * may or may not be the start of the image scan.  Values are derived from
    * the 4th and 5th words in the AREA file directory.
    * @see <a href="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
-   * McIDAS Programmer's Manual</a> 
+   * McIDAS Programmer's Manual</a>
    * @see #getImageStartTime()
    *
    * @ returns  nominal image time
    */
-  public DateTime getNominalTime() 
-      throws VisADException 
+  public DateTime getNominalTime()
+      throws VisADException
   {
       return new DateTime(areaDirectory.getNominalTime());
   }
 
   /**
-   * Retrieves the time of the start of the image scan as a VisAD DateTime.  
+   * Retrieves the time of the start of the image scan as a VisAD DateTime.
    * Values are derived from the 46th and 47th words in the AREA file directory.
    * @see <a href="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
-   * McIDAS Programmer's Manual</a> 
+   * McIDAS Programmer's Manual</a>
    * @see #getNominalTime()
    *
    * @ returns  time of the start of the image scan
    */
-  public DateTime getImageStartTime() 
-      throws VisADException 
+  public DateTime getImageStartTime()
+      throws VisADException
   {
       return new DateTime(areaDirectory.getStartTime());
   }

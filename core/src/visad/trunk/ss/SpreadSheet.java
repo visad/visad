@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -959,7 +959,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         lColRow = new DataReferenceImpl("ColRow");
         RemoteColRow = new RemoteDataReferenceImpl(lColRow);
         rsi.addDataReference((RemoteDataReferenceImpl) RemoteColRow);
-        
+
       }
       catch (VisADException exc) {
         if (BasicSSCell.DEBUG) exc.printStackTrace();
@@ -1783,7 +1783,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     printJob.setPrintable(p);
     if (printJob.printDialog()) {
       try {
-        printJob.print();  
+        printJob.print();
       }
       catch (Exception exc) {
         if (BasicSSCell.DEBUG) exc.printStackTrace();
@@ -1805,7 +1805,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   private static double[] matrix2D =
     {0.65, 0, 0, 0, 0, 0.65, 0, 0, 0, 0, 0.65, 0, 0, 0, 0, 1};
 
-  private static double[] matrixJ2D = 
+  private static double[] matrixJ2D =
     {1, 0, 0, -1, 0, 0};
 
 
@@ -2074,7 +2074,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       displayErrorMessage("This is the last row", null, "Cannot delete row");
       return false;
     }
-    
+
     // make sure no cells are dependent on rows about to be deleted
     for (int i=0; i<NumVisX; i++) {
       if (DisplayCells[i][CurY].othersDepend()) {

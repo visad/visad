@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -69,7 +69,7 @@ public class HdfeosField extends HdfeosData
     return new_field;
   }
 
-  public DataImpl getData( int[] indexes ) 
+  public DataImpl getData( int[] indexes )
          throws VisADException, RemoteException
   {
     Set domain = (Set) this.domain.getData(indexes);
@@ -77,7 +77,7 @@ public class HdfeosField extends HdfeosData
     int n_indexes = indexes.length;
     int[] new_indexes = new int[n_indexes + 1];
     System.arraycopy(indexes, 0, new_indexes, 0, n_indexes);
-    
+
     FieldImpl new_field = new FieldImpl(mathtype, domain);
     for ( int ii = 0; ii < length; ii++ ) {
       new_indexes[n_indexes] = ii;

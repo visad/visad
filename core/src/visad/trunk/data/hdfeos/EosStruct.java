@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -28,7 +28,7 @@ package visad.data.hdfeos;
 
 import visad.data.hdfeos.hdfeosc.HdfeosLib;
 
-public abstract class EosStruct 
+public abstract class EosStruct
 {
   static String G_TYPE = "Geolocation Fields";
   static String D_TYPE = "Data Fields";

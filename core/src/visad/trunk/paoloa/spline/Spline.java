@@ -50,7 +50,7 @@ public class Spline {
   double[][] f_range = new double[1][];
   double[][] g_range = new double[1][];
   double[] spline_range;
-  double[] values = new double[2]; 
+  double[] values = new double[2];
   double val;
   double[] wkvalue = new double[1];
   double noise_fac;
@@ -70,14 +70,14 @@ public class Spline {
   ConstantMap[][] cmaps;
 
   public static void main(String args[])
-         throws VisADException, RemoteException, IOException 
+         throws VisADException, RemoteException, IOException
   {
     System.loadLibrary("Spline");
     Spline spline = new Spline("file");
   }
 
   public Spline(String filename)
-         throws VisADException, RemoteException, IOException 
+         throws VisADException, RemoteException, IOException
   {
 
     rlambda_ref = new DataReferenceImpl("rlambda_ref");
@@ -100,7 +100,7 @@ public class Spline {
     reals = new Real[ n_samples ];
     cmaps = new ConstantMap[ n_samples ][];
     double x_c = 0.0;
-    noise_fac = 0.1; 
+    noise_fac = 0.1;
     last_noise_fac = noise_fac;
     int iset = 0;
     double gset = 0;
@@ -129,7 +129,7 @@ public class Spline {
     }
 
     for ( int ii = 0; ii < n_samples; ii++ )
-    { 
+    {
       domain_values[ii] = (float) ii;
       values[0] = (double) domain_values[ii];
       values[1] = (double) range_values[ii];
@@ -142,7 +142,7 @@ public class Spline {
 
     float[][] samples = new float[1][n_samples];
     samples[0] = domain_values;
-    domainSet = new Gridded1DSet( RealType.XAxis, samples, n_samples ); 
+    domainSet = new Gridded1DSet( RealType.XAxis, samples, n_samples );
     f_type = new FunctionType( RealType.XAxis, RealType.YAxis );
     spline_field = new FlatField( f_type, domainSet );
     //rlambda_field = new FlatField( f_type, domainSet );
@@ -150,7 +150,7 @@ public class Spline {
     rlambda_field = new FlatField( f_type, dset );
     gcv_field = new FlatField( f_type, domainSet );
     true_field = new FlatField( f_type, domainSet );
-    double[][] d_array = new double[1][]; 
+    double[][] d_array = new double[1][];
     d_array[0] = true_values;
     true_field.setSamples(d_array);
     JFrame frame = new JFrame("Spline VisAD Application");
@@ -174,7 +174,7 @@ public class Spline {
     frame.setSize(900, 900);
     frame.setVisible(true);
   }
-  
+
 
   class SplinePanel extends JPanel
         implements ActionListener
@@ -184,12 +184,12 @@ public class Spline {
       new CompoundBorder(new EtchedBorder(),
                          new EmptyBorder(5, 5, 5, 5));
 
-    SplinePanel() throws VisADException, RemoteException 
+    SplinePanel() throws VisADException, RemoteException
     {
       setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
       setAlignmentY(JPanel.TOP_ALIGNMENT);
       setAlignmentX(JPanel.LEFT_ALIGNMENT);
- 
+
        // create left hand side JPanel for sliders and text
        JPanel left = new JPanel(); // FlowLayout and double buffer
        left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
@@ -273,7 +273,7 @@ public class Spline {
        left.add(new JLabel("The noise slider changes the value of sigma"));
        left.add(new JLabel("  "));
 
-       VisADSlider noise_slider = 
+       VisADSlider noise_slider =
          new VisADSlider(noise_ref, 0f, .5f, .1f, RealType.Generic, "noise");
        left.add(noise_slider);
 
@@ -281,7 +281,7 @@ public class Spline {
        left.add(new JLabel("Manual tuning of the smoothing parameter"));
        left.add(new JLabel("  "));
 
-       VisADSlider lambda_slider = 
+       VisADSlider lambda_slider =
          new VisADSlider(lambda_ref, -10f, 0f, .5f, RealType.Generic, "lambda");
        left.add(lambda_slider);
 
@@ -297,7 +297,7 @@ public class Spline {
        left.add(new JLabel("Red Dot: value of lambda selected by GCV"));
        left.add(new JLabel("  "));
 
-       // create right hand side JPanel for display 
+       // create right hand side JPanel for display
        JPanel right = new JPanel(); // FlowLayout and double buffer
        right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
        right.setAlignmentY(JPanel.TOP_ALIGNMENT);
@@ -382,41 +382,41 @@ public class Spline {
       panel_b.add(panel_d);
 
       panel_b.setBorder(etchedBorder5);
-  
+
       right.add( panel_b );
-      
+
       ConstantMap[] blue =
       {
         new ConstantMap(0.0, Display.Red),
         new ConstantMap(0.0, Display.Green),
-        new ConstantMap(1.0, Display.Blue), 
+        new ConstantMap(1.0, Display.Blue),
       };
       ConstantMap[] rred =
       {
         new ConstantMap(1.0, Display.Red),
         new ConstantMap(0.0, Display.Green),
-        new ConstantMap(0.0, Display.Blue), 
-        new ConstantMap(4.0, Display.PointSize), 
+        new ConstantMap(0.0, Display.Blue),
+        new ConstantMap(4.0, Display.PointSize),
       };
       ConstantMap[] rgreen =
       {
         new ConstantMap(0.0, Display.Red),
         new ConstantMap(1.0, Display.Green),
-        new ConstantMap(0.0, Display.Blue), 
+        new ConstantMap(0.0, Display.Blue),
       };
       ConstantMap[] green =
       {
         new ConstantMap(0.0, Display.Red),
         new ConstantMap(1.0, Display.Green),
-        new ConstantMap(0.0, Display.Blue), 
+        new ConstantMap(0.0, Display.Blue),
       };
 
       ConstantMap[] cmaps = new ConstantMap[5];
       cmaps[0] = new ConstantMap(1.0, Display.Red);
       cmaps[1] = new ConstantMap(0.0, Display.Green);
-      cmaps[2] = new ConstantMap(0.0, Display.Blue); 
+      cmaps[2] = new ConstantMap(0.0, Display.Blue);
       cmaps[3] = new ConstantMap(3.0, Display.PointSize);
-   
+
 
       ScalarMap map_x = new ScalarMap( RealType.XAxis, Display.XAxis);
       // map_x.setRange( 0., 50.);
@@ -452,7 +452,7 @@ public class Spline {
       }
 
 
- 
+
       ScalarMap map_rx = new ScalarMap( RealType.XAxis, Display.XAxis);
       map_rx.setRange( -10.0, 0.0);
       ScalarMap map_ry = new ScalarMap(RealType.YAxis , Display.YAxis);
@@ -522,7 +522,7 @@ public class Spline {
           mode = 1;
           getspline_c( range_values, spline_range, val, mode, wkvalue);
           f_range[0] = spline_range;
-          spline_field.setSamples( f_range ); 
+          spline_field.setSamples( f_range );
 
 
           mode = 2;
@@ -530,7 +530,7 @@ public class Spline {
           System.out.print(wkvalue[0] + "\n");
           f_range[0] = spline_range;
           gcv_field.setSamples( f_range );
-          wk_value=wkvalue[0]; 
+          wk_value=wkvalue[0];
           wk_ref.setData(new Real(RealType.XAxis, wkvalue[0]));
 
 
@@ -856,7 +856,7 @@ public class Spline {
           mode = 2;
           getspline_c( range_values, spline_range, val, mode, wkvalue);
           System.out.print(wkvalue[0] + "\n");
-          wk_value=wkvalue[0]; 
+          wk_value=wkvalue[0];
           wk_ref.setData(new Real(RealType.XAxis, wk_value));
           f_range[0] = spline_range;
           gcv_field.setSamples( f_range );
@@ -901,7 +901,7 @@ public class Spline {
           mode = 2;
           getspline_c( range_values, spline_range, val, mode, wkvalue);
           System.out.print(wkvalue[0] + "\n");
-          wk_value=wkvalue[0]; 
+          wk_value=wkvalue[0];
           wk_ref.setData(new Real(RealType.XAxis, wk_value));
           f_range[0] = spline_range;
           gcv_field.setSamples( f_range );

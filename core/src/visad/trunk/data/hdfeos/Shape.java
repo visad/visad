@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -28,12 +28,12 @@ package visad.data.hdfeos;
 
 import java.util.*;
 
-public class Shape 
+public class Shape
 {
   private DimensionSet  dimSet;
   private VariableSet  varSet;
 
-  public Shape( Variable var  ) 
+  public Shape( Variable var  )
   {
     varSet = new VariableSet();
     varSet.add( var );
@@ -41,32 +41,32 @@ public class Shape
     dimSet = var.getDimSet();
   }
 
-  public void addVariable( Variable var ) 
+  public void addVariable( Variable var )
   {
     varSet.add( var );
   }
 
-  public DimensionSet getShape() 
+  public DimensionSet getShape()
   {
     return dimSet;
   }
 
-  public VariableSet getVariables() 
+  public VariableSet getVariables()
   {
     return varSet;
   }
 
-  public int getNumberOfVars() 
+  public int getNumberOfVars()
   {
     return varSet.getSize();
   }
 
-  public Variable getVariable( int index ) 
+  public Variable getVariable( int index )
   {
     return varSet.getElement( index );
   }
 
-  public boolean memberOf( Variable var ) 
+  public boolean memberOf( Variable var )
   {
     DimensionSet d_set = var.getDimSet();
 
@@ -74,7 +74,7 @@ public class Shape
     {
       return true;
     }
-    else 
+    else
     {
       return false;
     }
@@ -82,26 +82,26 @@ public class Shape
 
   public Variable isCoordVar( int index )
   {
-    if ( dimSet.getSize() == 1 ) 
+    if ( dimSet.getSize() == 1 )
     {
       return varSet.isCoordVar( index );
     }
-    else 
+    else
     {
       return null;
     }
   }
 
-  public String toString() 
+  public String toString()
   {
     String str = dimSet.toString()+"  Variables: \n";
 
-    for( int ii = 0; ii < varSet.getSize(); ii++ ) 
+    for( int ii = 0; ii < varSet.getSize(); ii++ )
     {
       str = str + "       "+(varSet.getElement(ii)).getName() + "\n";
     }
       str = str + "- - - - - - - - - - - - - - - - - - - \n";
-       
+
     return str;
   }
 }

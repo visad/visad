@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -25,7 +25,7 @@ MA 02111-1307, USA
 */
 
 package visad.java2d;
- 
+
 import visad.*;
 
 import java.util.*;
@@ -63,7 +63,7 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
   public DirectManipulationRendererJ2D () {
     super();
   }
- 
+
   public void setLinks(DataDisplayLink[] links, DisplayImpl d)
        throws VisADException {
     if (links == null || links.length != 1) {
@@ -97,7 +97,7 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
     DisplayImpl display = getDisplay();
     appearance.pointSize =
       default_values[display.getDisplayScalarIndex(Display.PointSize)];
-    appearance.lineWidth = 
+    appearance.lineWidth =
       default_values[display.getDisplayScalarIndex(Display.LineWidth)];
 /* WLH 21 Aug 98
     GraphicsModeControl mode = getDisplay().getGraphicsModeControl();
@@ -120,24 +120,24 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
          throws VisADException, RemoteException {
     branch = new VisADGroup();
     extra_branch = new VisADGroup();
- 
+
     DataDisplayLink link = getLinks()[0];
     // values needed by drag_direct, which cannot throw Exceptions
     ShadowTypeJ2D shadow = (ShadowTypeJ2D) link.getShadow();
- 
+
     // check type and maps for valid direct manipulation
     if (!getIsDirectManipulation()) {
       throw new BadDirectManipulationException(getWhyNotDirect() +
         ": DirectManipulationRendererJ2D.doTransform");
     }
- 
+
     // initialize valueArray to missing
     int valueArrayLength = getDisplay().getValueArrayLength();
     float[] valueArray = new float[valueArrayLength];
     for (int i=0; i<valueArrayLength; i++) {
       valueArray[i] = Float.NaN;
     }
- 
+
     Data data = link.getData();
     if (data == null) {
       branch = null;
@@ -153,7 +153,7 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
     }
     return branch;
   }
- 
+
   void addSwitch(DisplayRendererJ2D displayRenderer, VisADGroup branch)
        throws VisADException {
     displayRenderer.addDirectManipulationSceneGraphComponent(branch, this);

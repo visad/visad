@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -245,7 +245,7 @@ else            /* isph >= 0 */
 
   major[0] = r_major;
   minor[0] = r_minor;
-  radius[0] = r_radius; 
+  radius[0] = r_radius;
 
 return(0);
 }
@@ -365,9 +365,9 @@ return(0);
   ------------------------------------------*/
 public static int sign( double x
                                   )
-{ 
+{
   if (x < 0.0 ) {
-    return(-1); 
+    return(-1);
   }
   else {
     return(1);
@@ -379,7 +379,7 @@ public static int sign( double x
   -----------------------------------------------------------------------*/
 
 public static double[] adjust_lon( double[] x     // array of angles in radians
-                                              ) 
+                                              )
 {
 
 long temp;
@@ -461,21 +461,21 @@ long count = 0;
 return(x);
 }
 
-public static void sincos( double[] val, 
-                           double[] sin_val, 
-                           double[] cos_val 
+public static void sincos( double[] val,
+                           double[] sin_val,
+                           double[] cos_val
                                              )
-{ 
+{
 
   int length = val.length;
 
-  for ( int ii = 0; ii < length; ii++ ) 
+  for ( int ii = 0; ii < length; ii++ )
   {
-    sin_val[ii] = Math.sin(val[ii]); 
-    cos_val[ii] = Math.cos(val[ii]); 
+    sin_val[ii] = Math.sin(val[ii]);
+    cos_val[ii] = Math.cos(val[ii]);
   }
 
-  return; 
+  return;
 }
 
 public static void sincos( double val,
@@ -554,7 +554,7 @@ public static double tsfnz( double eccent,     // Eccentricity of the spheroid
 {
   double con;
   double com;
- 
+
   con = eccent * sinphi;
   com = .5 * eccent;
   con = Math.pow(((1.0 - con) / (1.0 + con)),com);

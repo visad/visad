@@ -47,7 +47,7 @@ public class Spline2D {
   double[] noise;
   double[][] f_range = new double[1][];
   double[] spline_range;
-  double[] values = new double[3]; 
+  double[] values = new double[3];
   double val;
   double noise_fac;
   double last_noise_fac;
@@ -66,14 +66,14 @@ public class Spline2D {
   ConstantMap[][] cmaps;
 
   public static void main(String args[])
-         throws VisADException, RemoteException, IOException 
+         throws VisADException, RemoteException, IOException
   {
     System.loadLibrary("Spline2D");
     Spline2D spline = new Spline2D("file");
   }
 
   public Spline2D(String filename)
-         throws VisADException, RemoteException, IOException 
+         throws VisADException, RemoteException, IOException
   {
 
     lambda_ref = new DataReferenceImpl("lambda_ref");
@@ -103,7 +103,7 @@ public class Spline2D {
     cmaps = new ConstantMap[ n_samples ][];
     double x_c = 0.0;
     double y_c = 0.0;
-    noise_fac = 0.1; 
+    noise_fac = 0.1;
     last_noise_fac = noise_fac;
     // Paolo
     pp = 0;
@@ -121,7 +121,7 @@ public class Spline2D {
        }
        x_c += .1;
     }
-    for ( int ii = 0; ii < n_samples; ii++ ) { 
+    for ( int ii = 0; ii < n_samples; ii++ ) {
       domain_valuesx[ii] = (float) (ii % dim1);
       domain_valuesy[ii] = (float) (ii / dim1);
       values[0] = (double) domain_valuesx[ii];
@@ -139,15 +139,15 @@ public class Spline2D {
     samples[1] = domain_valuesy;
     RealTupleType domain_tuple =
       new RealTupleType(RealType.XAxis, RealType.YAxis);
-    domainSet = new Gridded2DSet( domain_tuple, samples, dim1, dim2 ); 
+    domainSet = new Gridded2DSet( domain_tuple, samples, dim1, dim2 );
     f_type = new FunctionType( domain_tuple, RealType.ZAxis );
     spline_field = new FlatField( f_type, domainSet );
     gcv_field = new FlatField( f_type, domainSet );
     true_field = new FlatField( f_type, domainSet );
-    double[][] d_array = new double[1][]; 
+    double[][] d_array = new double[1][];
     d_array[0] = true_values;
     true_field.setSamples(d_array);
-    
+
     JFrame frame = new JFrame("Spline2D VisAD Application");
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
@@ -176,7 +176,7 @@ public class Spline2D {
       new CompoundBorder(new EtchedBorder(),
                          new EmptyBorder(5, 5, 5, 5));
 
-    SplinePanel() throws VisADException, RemoteException 
+    SplinePanel() throws VisADException, RemoteException
     {
       setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
       setAlignmentY(JPanel.TOP_ALIGNMENT);
@@ -206,11 +206,11 @@ public class Spline2D {
       panel_c.setAlignmentY(JPanel.TOP_ALIGNMENT);
       panel_c.setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
-      VisADSlider noise_slider = 
+      VisADSlider noise_slider =
         new VisADSlider(noise_ref, 0f, 1f, .1f, RealType.Generic, "noise");
       panel_c.add(noise_slider);
 
-      VisADSlider lambda_slider = 
+      VisADSlider lambda_slider =
         new VisADSlider(lambda_ref, -10f, 0f, .5f, RealType.Generic, "lambda");
       panel_c.add(lambda_slider);
       panel_b.add( panel_c );
@@ -238,28 +238,28 @@ public class Spline2D {
       panel_b.add(panel_d);
 
       panel_b.setBorder(etchedBorder5);
-  
+
       add( panel_b );
-      
+
       ConstantMap[] blue =
       {
         new ConstantMap(0.0, Display.Red),
         new ConstantMap(0.0, Display.Green),
-        new ConstantMap(1.0, Display.Blue), 
+        new ConstantMap(1.0, Display.Blue),
       };
       ConstantMap[] green =
       {
         new ConstantMap(0.0, Display.Red),
         new ConstantMap(1.0, Display.Green),
-        new ConstantMap(0.0, Display.Blue), 
+        new ConstantMap(0.0, Display.Blue),
       };
 
       ConstantMap[] cmaps = new ConstantMap[6];
       cmaps[0] = new ConstantMap(1.0, Display.Red);
       cmaps[1] = new ConstantMap(0.0, Display.Green);
-      cmaps[2] = new ConstantMap(0.0, Display.Blue); 
+      cmaps[2] = new ConstantMap(0.0, Display.Blue);
       cmaps[3] = new ConstantMap(3.0, Display.PointSize);
-   
+
 
 
       ScalarMap map_x = new ScalarMap( RealType.XAxis, Display.XAxis);
@@ -395,7 +395,7 @@ public class Spline2D {
     }
 
   } // end class SplinePanel
-  
+
   // public native void getspline_c( double[] y, double[] y_s0, double val, int mode );
   public native void tpspline_c( double[] x_array, double[] y_array,
                                        double[] s_array, double[] ytrue,

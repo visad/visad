@@ -1,4 +1,4 @@
-      subroutine tpspline(x_arr,y_arr,s_arr,ytrue,y,dimen) 
+      subroutine tpspline(x_arr,y_arr,s_arr,ytrue,y,dimen)
 c
 c  Purpose: Test the gcvpack driver dtpss.f with VisAD
 c
@@ -58,7 +58,7 @@ c
      * lamlim,dout,iout,coef,svals,tbl,maxtbl,auxtbl,work,lwa,iwork,
      * liwa,job,info)
       if (info .ne. 0) write(*,*) 'dtpss info',info
-      do 35 i=1,nobs 
+      do 35 i=1,nobs
 C          write(*,*) 'y(',i,') = ',y(i)
    35 continue
       call dpred(des2,maxobs,nobs,dim,m,des,maxobs,iout(4),s2,maxobs,
@@ -80,7 +80,7 @@ c      write(*,*) '      npar             ',iout(2)
 c      write(*,*) '      nnull            ',iout(3)
 c      write(*,*) '      nuobs            ',iout(4)
 c      write(*,*) 'auxtbl'
-c      do 40 i = 1,3 
+c      do 40 i = 1,3
 c           write(*,*) (auxtbl(i,j),j=1,3)
 c   40 continue
 
@@ -88,7 +88,7 @@ c      write(*,*) 'Coefficient estimates',(coef(i),i=1,iout(2))
 c      write(*,*) 'Singular values'
 c      write(*,'(1p,7g11.3)') (svals(i), i = 1, iout(1))
       R=0.0d0
-      do 50 i=1,nobs 
+      do 50 i=1,nobs
           R=R+dble((ytrue(i)-y(i))**2)
           pderr = pred(i)-y(i)
           write(*,*) pred(i)
@@ -170,14 +170,14 @@ c -----------------------------------------------------------
      * adiag(nobs),lamlim(2),dout(5),coef(*),svals(*),
      * tbl(ldtbl,3),auxtbl(3,3),work(lwa)
 c
-c Purpose: determine the generalized cross validation estimate of the 
+c Purpose: determine the generalized cross validation estimate of the
 c 	smoothing parameter and fit model parameters for a thin plate
 c 	smoothing spline.
 c
 c On Entry:
 c   des(lddes,dim) 	design for the variables to be splined
 c   lddes		leading dimension of des as declared in calling
-c   			program 
+c   			program
 c   nobs		number of observations
 c   dim			number of columns in des
 c   m			order of the derivatives in the penalty
@@ -185,23 +185,23 @@ c   s(lds,ncov) 	design for the covariates. The covariates
 c			must duplicate the replication structure of des.
 c			See dptpss to handle covariates which do not.
 c   lds			leading dimension of s as declared in calling
-c   			program 
-c   ncov		number of covariates 
+c   			program
+c   ncov		number of covariates
 c   y(nobs)		response vector
-c   ntbl		number of evenly spaced values for 
-c			log10(nobs*lambda) to be used in the initial 
-c			grid search for lambda hat 
-c			if ntbl = 0 only a golden ratio search will be 
+c   ntbl		number of evenly spaced values for
+c			log10(nobs*lambda) to be used in the initial
+c			grid search for lambda hat
+c			if ntbl = 0 only a golden ratio search will be
 c			done and tbl is not referenced, if ntbl > 0
 c			there will be ntbl rows returned in tbl
-c   adiag(nobs)	 	"true" y values on entry if predictive mse is 
+c   adiag(nobs)	 	"true" y values on entry if predictive mse is
 c			requested
 c   lamlim(2)		limits on lambda hat search (in log10(nobs*
-c			lambda)	scale) if user input limits are 
+c			lambda)	scale) if user input limits are
 c			requested if lamlim(1) = lamlim(2) then lamhat
 c			is set to (10**lamlim(1))/nobs
-c   ldtbl		leading dimension of tbl as declared in the 
-c			calling program	
+c   ldtbl		leading dimension of tbl as declared in the
+c			calling program
 c   job			integer with decimal expansion abdc
 c			if a is nonzero then predictive mse is computed
 c			   using adiag as true y
@@ -217,10 +217,10 @@ c			there are replicates otherwise not changed
 c   s(lds,ncov)		unique rows of s sorted to correspond to des
 c   y(nobs)		predicted values
 c   adiag(nobs)		diagonal elements of the hat matrix if requested
-c   lamlim(2)		limits on lambda hat search 
+c   lamlim(2)		limits on lambda hat search
 c			(in log10(nobs*lambda) scale)
 c   dout(5)		contains:
-c  			1  lamhat   generalized cross validation 
+c  			1  lamhat   generalized cross validation
 c				    estimate of the smoothing parameter
 c			2  penlty   smoothing penalty
 c			3  rss	    residual sum of squares
@@ -229,28 +229,28 @@ c   			5  ssqrep   sum of squares for replication
 c   iout(4)		contains:
 c			1  npsing   number of positive singular
 c				    values (npsing = nuobs - ncts).
-c				    if info indicates nonzero info in 
-c				    dsvdc then npsing contains info as 
+c				    if info indicates nonzero info in
+c				    dsvdc then npsing contains info as
 c				    it was returned from dsvdc.
 c			2  npar	    number of parameters
 c				    (npar = nuobs + ncts)
-c			3  ncts     dimension of the polynomial space 
-c				    plus ncov	
+c			3  ncts     dimension of the polynomial space
+c				    plus ncov
 c				    ((m+dim-1 choose dim) + ncov)
 c			4  nuobs    number of unique rows in des
 c   coef(npar)		coefficient estimates [beta':alpha':delta']'
 c			coef must have a dimension of at least nuobs+
 c			ncts
 c   svals(npar-nnull)	singular values of the matrix j2 if info = 0
-c			if info indicates nonzero info from dsvdc then 
+c			if info indicates nonzero info from dsvdc then
 c			svals is as it was returned from dsvdc.
 c   tbl(ldtbl,3)	column	contains
-c			  1 	grid of log10(nobs*lambda) 
+c			  1 	grid of log10(nobs*lambda)
 c			  2  	V(lambda)
 c			  3     R(lambda) if requested
 c   auxtbl(3,3)		auxiliary table
 c			1st row contains:
-c			    log10(nobs*lamhat), V(lamhat) and  
+c			    log10(nobs*lamhat), V(lamhat) and
 c			    R(lamhat) if requested
 c			    where lamhat is the gcv estimate of lambda
 c			2nd row contains:
@@ -263,12 +263,12 @@ c			 -1 : log10(nobs*lamhat) <= lamlim(1)
 c			      (not fatal)
 c			 -2 : log10(nobs*lamhat) >= lamlim(2)
 c			      (not fatal)
-c			  1 : dimension error 	
-c			  2 : error in dreps, covariates do not 
+c			  1 : dimension error
+c			  2 : error in dreps, covariates do not
 c			      duplicate the replication structure of des
 c			  3 : lwa (length of work) is too small
 c			  4 : liwa (length of iwork) is too small
-c			  10 < info < 20 : 10 + nonzero info returned 
+c			  10 < info < 20 : 10 + nonzero info returned
 c					   from dsetup
 c			  100< info <200 : 100 + nonzero info returned
 c					   from dsgdc1
@@ -277,26 +277,26 @@ c					   from dgcv1
 c
 c Work Arrays:
 c   work(lwa)		double precision work vector
-c   lwa			length of work as declared in the calling 
-c			program 
+c   lwa			length of work as declared in the calling
+c			program
 c			Must be at least nuobs(2+ncts+nuobs)+nobs
 c   iwork(liwa)		integer work vector
-c   liwa		length of iwork as declared in the calling 
+c   liwa		length of iwork as declared in the calling
 c			program
 c			Must be at least 2*nobs + nuobs - ncts
 c
 c Subprograms Called Directly:
-c       Gcvpack - dreps duni dsuy dsetup dsgdc1 dgcv1 
+c       Gcvpack - dreps duni dsuy dsetup dsgdc1 dgcv1
 c       Other   - dprmut mkpoly
 c
 c Subprograms Called Indirectly:
-c	Gcvpack - dcfcr1 drsap dvlop dsvtc dpdcr dpmse 
+c	Gcvpack - dcfcr1 drsap dvlop dsvtc dpdcr dpmse
 c		  dvmin dvl dmaket dmakek ddiag
 c	Linpack - dchdc dqrdc dqrsl dtrsl dsvdc
 c	Blas    - ddot dcopy dgemv
-c	Other 	- dprmut dset dftkf fact mkpoly 
+c	Other 	- dprmut dset dftkf fact mkpoly
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       integer ncts,jrep,jadiag,p1,p1p1,p2,p2p1,p3,p3p1,ip1,ip1p1,ip2,
      * ip2p1,nuobs,p4,p4p1,j,i,lwa2,wsize,q1,q1p1,npsing,
@@ -313,7 +313,7 @@ c
       jobgcv = job/10
 c			check dimensions
       if((nobs .le. 0) .or. (m .le. 0) .or. (dim .le. 0) .or.
-     * (ntbl .lt. 0) .or. (ntbl .gt. ldtbl) .or. 
+     * (ntbl .lt. 0) .or. (ntbl .gt. ldtbl) .or.
      * (2*m-dim .le. 0)) then
          info = 1
          return
@@ -321,7 +321,7 @@ c			check dimensions
 c			set up pointers for iwork vector
 c  			first nobs positions of iwork contain order
       ip1 = nobs
-c			next nobs positions of iwork contain xrep    
+c			next nobs positions of iwork contain xrep
       ip1p1 = ip1 + 1
       ip2 = ip1 + nobs
 c			rest of iwork is a integer work vector
@@ -364,7 +364,7 @@ c		ku	 runs from p2p1 to p3,   p3 = p2 + nuobs**2
 c		fgaux    runs from p3p1 to p4,   p4 = p3 + ncts
 c		the rest of work is a work vector
 
-c  			after the call to dsetup 
+c  			after the call to dsetup
 c		f2'k f2  runs from q1p1 to p3, q1 = p2 + nuobs*ncts+ncts
 c
       p1 = nuobs
@@ -387,7 +387,7 @@ c			set up structures needed for dsgdc1 and dgcv1
          return
       endif
 
-c			decompose f2' k f2 
+c			decompose f2' k f2
       npsing = nuobs - ncts
       call dsgdc1(work(q1p1),nuobs,npsing,svals,iwork(ip2p1),
      * work(p4p1),lwa2,info)
@@ -410,14 +410,14 @@ c			compute lambda hat and other parameters
          info = info + 200
          return
       endif
-c			if there are replicates then rescale the coef. 
+c			if there are replicates then rescale the coef.
 c			vector,	the predicted values, and diagonal of A
       if (nuobs .ne. nobs) then
          do 10 i = 1,nuobs
             coef(ncts+i) = coef(ncts+i) * work(i)
    10    continue
          j = nuobs
-         do 20 i = nobs,1,-1 
+         do 20 i = nobs,1,-1
             y(i)=y(j)/work(j)
             if (jadiag .ne. 0) then
                adiag(i) = adiag(j)/work(j)**2
@@ -485,7 +485,7 @@ c
 
 c -----------------------------------------------------------
       subroutine dpred(pdes,ldpdes,npred,dim,m,desb,lddesb,ndesb,ps,
-     * ldps,ncov1,ncov2,coef,npar,pred,work,lwa,iwork,info) 
+     * ldps,ncov1,ncov2,coef,npar,pred,work,lwa,iwork,info)
       integer ldpdes,npred,dim,m,lddesb,ndesb,ldps,ncov1,ncov2,npar,lwa,
      * iwork(dim),info
       double precision pdes(ldpdes,dim),desb(lddesb,dim),ps(ldps,*),
@@ -495,23 +495,23 @@ c   Purpose: determine predicted values at the locations in pdes and ps
 c
 c  On Entry:
 c   pdes(ldpdes,dim) 	prediction design for splined variables
-c   ldpdes		leading dimension of pdes as declared in the 
-c			calling	program 
+c   ldpdes		leading dimension of pdes as declared in the
+c			calling	program
 c   npred		number of rows in pdes
 c   desb(lddesb,dim) 	locations for the basis functions
-c			(returned from dtpss and dptpss in the 
+c			(returned from dtpss and dptpss in the
 c			variable des)
 c   lddesb		leading dimension of desb as declared in the
-c			calling	program 
+c			calling	program
 c   ndesb		number of rows in desb
 c   dim			number of columns in desb
 c   m			order of the derivatives in the penalty
 c   ps(ldps,ncov1+ncov2) prediction covariates corresponding to pdes
 c   ldps		leading dimension of ps as declared in the
-c			calling	program 
-c   ncov1		number of covariates which duplicate the 
+c			calling	program
+c   ncov1		number of covariates which duplicate the
 c			replication structure of pdes
-c   ncov2		number of covariates which do not duplicate the 
+c   ncov2		number of covariates which do not duplicate the
 c			replication structure of pdes
 c   coef(npar)		coefficient estimates  [delta':xi']'
 c   npar		ndesb + (m+dim-1 choose dim) + ncov1 + ncov2
@@ -524,7 +524,7 @@ c			  1 : dimension error
 c			  2 : error in npar,ncov1,ncov2,m or dim
 c			  3 : lwa too small
 c			  4 : error in dmaket
-c			
+c
 c
 c Working Storage:
 c   work(lwa)		double precision work vector
@@ -541,14 +541,14 @@ c Subprograms Called Indirectly:
 c    Blas    - dcopy
 c    Other   - fact mkpoly
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       double precision dummy
       integer nct,p1,p1p1,npoly
-      integer mkpoly 
+      integer mkpoly
 c
-      nct = mkpoly(m,dim) 
-      if ((ndesb .le. 0) .or. (nct .le. 0) .or. (m .le. 0) .or. 
+      nct = mkpoly(m,dim)
+      if ((ndesb .le. 0) .or. (nct .le. 0) .or. (m .le. 0) .or.
      * (dim .le. 0) .or. 2*m - dim .le. 0) then
 	 info = 1
 	 return
@@ -597,17 +597,17 @@ c	and c1.
 c
 c On Entry:
 c   des(lddes,dim) 	design for the variables to be splined
-c			should be entered in lexicographical order 
+c			should be entered in lexicographical order
 c			(smallest to largest) if possible for efficient
 c			computing
 c   lddes		leading dimension of des as declared in the
-c   			calling program 
+c   			calling program
 c   nobs		number of observations
 c   dim			number of columns in des
 c   s(lds,ncov1+ncov2) 	design for the covariates
 c   lds			leading dimension of s as declared in the
-c   			calling program 
-c   ncov1		number of covariates which duplicate the 
+c   			calling program
+c   ncov1		number of covariates which duplicate the
 c			replication structure of des
 c   ncov2		number of covariates which do not duplicate
 c			replication structure of des
@@ -618,8 +618,8 @@ c On Exit:
 c   des(lddes,dim) 	des sorted lexicographically
 c   s(lds,ncov1+ncov2) 	s, sorted to correspond to des
 c   c1(nuobs)		if job is nonzero then c1(i) the square root of
-c			the number of replicates of the ith sorted 
-c			design point 
+c			the number of replicates of the ith sorted
+c			design point
 c   order(nobs)		order of the sorted des
 c   nuobs		number of unique rows in des
 c   xrep(nobs)		xrep(i) = 1 if the ith sorted design point is a
@@ -629,7 +629,7 @@ c			   0 : successful completion
 c			   1 : ncov1 is incorrect
 c
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       integer sw,oldsw,itemp,i,j,k,cont,dfrep
       double precision temp,diff,one,machpr,denom,wmin,wmax
@@ -646,12 +646,12 @@ c
  	  xrep(i) = 0
    20 continue
       if (job .ne. 0) call dset(nobs,0.0d0,c1,1)
-c			sort des and s 
+c			sort des and s
       sw = nobs - 1
-   30 if (sw .le. 0) goto 90 
+   30 if (sw .le. 0) goto 90
           oldsw = sw
           sw = 0
-          do 80 i = 1,oldsw 
+          do 80 i = 1,oldsw
 	      cont = 1
 	      k = 1
    40         if (cont .eq. 0) goto 70
@@ -687,7 +687,7 @@ c		      switch the order of i and i+1
                   else if (k .eq. dim + ncov1) then
 		      xrep(i + 1) = 1
 		      cont = 0
-                  else 
+                  else
 	    	      k = k + 1
                   endif
               goto 40
@@ -706,7 +706,7 @@ c			compute range of design
   110     continue
 	  denom = denom + (wmax-wmin)**2
   120 continue
-	    
+
 c			check for design points too close together
       do 140 i=1,nobs-1
 	  if (xrep(i+1) .eq. 0) then
@@ -715,7 +715,7 @@ c			check for design points too close together
 	        diff = diff + (des(i,j)-des(i+1,j))**2
   130	     continue
 	     if (abs(diff)/denom .lt. 100*machpr) xrep(i+1)=1
-	  endif 
+	  endif
   140 continue
 c			compute dfrep and c1
       dfrep = 0
@@ -730,7 +730,7 @@ c			compute dfrep and c1
       do 160 i = 1,nuobs
 	  c1(i) = sqrt(c1(i))
   160 continue
-      return 
+      return
       end
 
 
@@ -746,26 +746,26 @@ c Purpose: set up [tu:su1] as f g and ku as f'c1 ku c1'f.
 c
 c On Entry:
 c   des(lddes,dim)  	variables to be splined (unique rows)
-c   lddes		leading dimension of des as declared in the 
-c			calling	program 
+c   lddes		leading dimension of des as declared in the
+c			calling	program
 c   su1(ldsu1,ncov1)	covariates (unique rows)
 c   ldsu1		leading dimension of su1 as declared in the
-c			calling	program 
+c			calling	program
 c   dim 		dimension of the variables to be splined
 c   m			order of the derivatives in the penalty
 c   ncov1		number of covariates
 c   nuobs		number of unique rows in des
 c   c1(nuobs)		c1(i) contains the square root of the number of
 c			replicates of the ith sorted design point
-c   ldtu		leading dimension of tusu1 as declared in the 
-c			calling	program 
-c   ldku		leading dimension of ku as declared in the 
-c			calling program 
+c   ldtu		leading dimension of tusu1 as declared in the
+c			calling	program
+c   ldku		leading dimension of ku as declared in the
+c			calling program
 c
 c On Exit:
 c   tusu1(ldtu,ncts1)	the qr decomposition of [tu:su1]
 c   ncts1		number of columns in [tu:su1] = npoly + ncov1
-c   fgaux(ncts1)	the auxiliary info on the qr decomposition of 
+c   fgaux(ncts1)	the auxiliary info on the qr decomposition of
 c			[tu:su1]
 c   ku(p,p)  		f'ku f
 c   info		error indicator
@@ -786,7 +786,7 @@ c	Blas    - dcopy
 c	Gcvpack - dqrsl
 c	Other   - fact mkpoly
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       integer npoly,i,j
       integer mkpoly
@@ -802,7 +802,7 @@ c			make [tu:su1] and ku
       endif
       call dmakek(m,nuobs,dim,des,lddes,nuobs,des,lddes,ku,ldku)
       if (c1(1) .ne. 0) then
-         do 30 i = 1,nuobs 
+         do 30 i = 1,nuobs
             do 10 j = 1,npoly+ncov1
                tusu1(i,j) = tusu1(i,j) * c1(i)
    10       continue
@@ -840,10 +840,10 @@ c
 c  On Exit:
 c   mkploy		(m + dim - 1) choose dim
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       integer i,j,k,k1,kcoef,n
-c 			compute binomial coefficient 
+c 			compute binomial coefficient
 c			m + dim - 1 choose dim
       n = m + dim - 1
       k1 = dim
@@ -885,7 +885,7 @@ c			replicates of the ith sorted design point
 c   order(nobs)		order of sorted des
 c   xrep(nobs)		xrep(i) = 1 if the ith sorted design point is a
 c			replicate, 0 if not
-c   job 		job is nonzero if B1'ytrue should be calculated 
+c   job 		job is nonzero if B1'ytrue should be calculated
 c			job = 0 otherwise
 c
 c On Exit:
@@ -893,7 +893,7 @@ c   y(nuobs)  		B1'y
 c   ytrue(nuobs)	B1'ytrue if job is nonzero
 c   ssqrep		sum of squares for replication
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       integer first,i,j
       double precision accum
@@ -943,7 +943,7 @@ c			compute B1'y and B1'ytrue
    40 continue
       y(j) = y(j) / c1(j)
       if (job .ne. 0) ytrue(j) = ytrue(j) / c1(j)
-      return 
+      return
       end
 
 
@@ -953,18 +953,18 @@ c -----------------------------------------------------------
       double precision des(lddes,dim),desb(lddesb,dim),kk(ldkk,nb)
 c
 c Purpose: create the k matrix.
-c   
+c
 c On Entry:
 c   m			order of the derivatives in the penalty
 c   n			number of rows in des
-c   dim			dimension of the space to be splined 
-c   des(lddes,dim)	variables to be splined		
-c   lddes		leading dimension of des as declared in the 
+c   dim			dimension of the space to be splined
+c   des(lddes,dim)	variables to be splined
+c   lddes		leading dimension of des as declared in the
 c			calling	program
-c   nb			number of rows in desb 
-c   desb(lddesb,dim)	positions of unique design points or basis 
+c   nb			number of rows in desb
+c   desb(lddesb,dim)	positions of unique design points or basis
 c			functions
-c   lddesb		leading dimension of desb as declared in the 
+c   lddesb		leading dimension of desb as declared in the
 c			calling	program
 c   ldkk		leading dimension of kk as declared in the
 c			calling	program
@@ -974,7 +974,7 @@ c
 c Subprograms Called:
 c	Other   - fact
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       integer i,j,k,fact
       double precision tauij,expo,theta,t,pi
@@ -989,8 +989,8 @@ c 			exponent for tauij
 c			1+dim odd
          theta = 1.0 / (0.5 * t * fact (m-dim/2))
          if ((2*m+dim) .eq. 4*((2*m+dim)/4)) theta = -theta
-         do 30 i=1,n 
-            do 20 j=1,nb 
+         do 30 i=1,n
+            do 20 j=1,nb
                tauij = 0
                do 10 k=1,dim
                   tauij = tauij + (des(i,k)-desb(j,k))**2
@@ -1013,8 +1013,8 @@ c			compute gamma(dim/2 - m)
    40    continue
 	 theta = theta / t
 
-         do 70 i=1,n 
-            do 60 j=1,nb 
+         do 70 i=1,n
+            do 60 j=1,nb
                tauij = 0
                do 50 k=1,dim
                   tauij = tauij + (des(i,k)-desb(j,k))**2
@@ -1034,29 +1034,29 @@ c -----------------------------------------------------------
       subroutine dsgdc1(f2kf2,ldfkf,p,svals,iwork,work,lwa,info)
       integer ldfkf,p,iwork(p),lwa,info
       double precision f2kf2(ldfkf,p),svals(*),work(lwa)
-c 
-c Purpose: form the singular value decomposition of the Cholesky factor 
+c
+c Purpose: form the singular value decomposition of the Cholesky factor
 c 	of f2'k f2.
 c
 c On Entry:
 c   f2kf2(ldfkf,p)	f2'k f2
-c   ldfkf		leading dimension of f2'k f2 as declared in the 
-c			calling	program 
+c   ldfkf		leading dimension of f2'k f2 as declared in the
+c			calling	program
 c   p			number of rows and columns in f2'k f2
 c
 c On Exit:
-c   f2kf2(p,p)  	overwritten with singular value decomposition 
+c   f2kf2(p,p)  	overwritten with singular value decomposition
 c 			of Cholesky factor of f2'k f2
-c   svals(p) 		the singular values of the Cholesky factor of 
+c   svals(p) 		the singular values of the Cholesky factor of
 c			f2'k f2 if info = 0.
-c			if info = 3 then svals is as it was returned 
+c			if info = 3 then svals is as it was returned
 c			from dsvdc.
 c   info 	   	error indicator
 c			  0 : successful completion
 c			  1 : lwa too small
-c			  2 : f2'k f2 is not of full rank 
+c			  2 : f2'k f2 is not of full rank
 c			  3 : error in dsvdc
-c   p			if info = 3 p contains info as it was returned 
+c   p			if info = 3 p contains info as it was returned
 c			from dsvdc (otherwise unchanged)
 c
 c Work Arrays:
@@ -1071,7 +1071,7 @@ c	Linpack - dchdc dsvdc
 c	Blas    - dcopy
 c	Other   - dset dprmut
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       integer i,j,pp1,locinf,k
       double precision dummy,one,machpr
@@ -1094,16 +1094,16 @@ c			Cholesky decomposition of f2'k f2
          iwork(j) = 0
    20 continue
       call dchdc (f2kf2,ldfkf,p,work,iwork,1,locinf)
-      do 30 i=1,locinf 
+      do 30 i=1,locinf
          if ((f2kf2(i,i)/f2kf2(1,1))**2 .gt. machpr) k = i
    30 continue
       if (k .lt. p) then
 	 info = 2
 	 return
       endif
-c    		copy f2kf2' into f2kf2 
+c    		copy f2kf2' into f2kf2
 c    		svd of f2 k f2' = udv' return only u
-      do 40 j = 1,p 
+      do 40 j = 1,p
          call dcopy(1+p-j,f2kf2(j,j),ldfkf,f2kf2(j,j),1)
          call dset(j-1,0.0d0,f2kf2(1,j),1)
    40 continue
@@ -1131,18 +1131,18 @@ c
 c On Entry:
 c   x(ldx,ncx)		a matrix to be reduced to unique rows
 c   ldx			leading dimension of x as declared in the
-c			calling	program 
+c			calling	program
 c   nobs		number of observations
 c   ncx			number of columns in x
-c   xrep(nobs)		xrep(i) contains 1 if ith row of x is a 
+c   xrep(nobs)		xrep(i) contains 1 if ith row of x is a
 c			replicate row, 0 if not
-c   ldxu		leading dimension of xu as declared in the 
-c			calling	program 
+c   ldxu		leading dimension of xu as declared in the
+c			calling	program
 c On Exit:
 c   xu(ldxu,ncx) 	unique rows of x
 c			may be identified with x in the calling sequence
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       integer i,j,k
 c
@@ -1155,7 +1155,7 @@ c
    10         continue
  	  endif
    20 continue
-      return 
+      return
       end
 
 
@@ -1172,14 +1172,14 @@ c   m			order of the derivatives in the penalty
 c   n			number of rows in des
 c   dim			number of columns in des
 c   des(lddes,dim)	variables to be splined
-c   lddes		leading dimension of des as declared in the 
+c   lddes		leading dimension of des as declared in the
 c			calling program
-c   s1(lds1,ncov1)	covariates which duplicate the replication 
+c   s1(lds1,ncov1)	covariates which duplicate the replication
 c			structure of des
-c   lds1		leading dimension of s1 as declared in the 
+c   lds1		leading dimension of s1 as declared in the
 c			calling program
 c   ncov1		number of columns in s1
-c   ldt			leading dimension of t as declared in the 
+c   ldt			leading dimension of t as declared in the
 c			calling program
 c
 c On Exit:
@@ -1195,7 +1195,7 @@ c Subprograms Called Directly:
 c	Blas  - dcopy
 c	Other - mkpoly
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       integer i,j,k,tt,nt,bptr,eptr
       integer mkpoly
@@ -1205,7 +1205,7 @@ c
       call dset(n,1.0d0,t(1,1),1)
       nt = 1
       if (npoly .gt. 1) then
-          do 10 j=1,dim 
+          do 10 j=1,dim
              nt = j + 1
              wptr(j) = nt
              call dcopy(n,des(1,j),1,t(1,nt),1)
@@ -1221,12 +1221,12 @@ c	       level of cross products, hence the end of the
 c	       previous level which is used for the next.
 c	       wptr(j) is at the start of xj * (previous level)
 c
-          do 50 k=2,m-1 
-             do 40 j=1,dim 
+          do 50 k=2,m-1
+             do 40 j=1,dim
                 bptr = wptr(j)
                 wptr(j) = nt + 1
                 eptr = wptr(1) - 1
-                do 30 tt=bptr,eptr 
+                do 30 tt=bptr,eptr
                    nt = nt + 1
                    do 20 i=1,n
                       t(i,nt) = des(i,j) * t(i,tt)
@@ -1251,7 +1251,7 @@ c -----------------------------------------------------------
       integer npar,jpvt(npar),job
       double precision x(npar)
 c
-c Purpose: permute the elements of the array x according to the index 
+c Purpose: permute the elements of the array x according to the index
 c	vector jpvt (either forward or backward permutation).
 c
 c On Entry:
@@ -1259,16 +1259,16 @@ c   x(npar)		array to be permuted
 c   npar		size of x (and jpvt)
 c   jpvt		indices of the permutation
 c   job			indicator of forward or backward permutation
-c			if job = 0 forward permutation  
+c			if job = 0 forward permutation
 c				x(jpvt(i)) moved to x(i)
-c			if job is nonzero backward permutation 
+c			if job is nonzero backward permutation
 c				x(i) moved to x(jpvt(i))
 c On Exit:
 c   x(npar)		array with permuted entries
 c
 c   Written:	Yin Ling	U. of Maryland, August,1978
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       integer i,j,k
       double precision t
@@ -1281,7 +1281,7 @@ c
    10 continue
       if (job .eq. 0) then
 c		forward permutation
-         do 30 i = 1,npar 
+         do 30 i = 1,npar
             if (jpvt(i) .gt. 0) then
                goto 30
             endif
@@ -1303,7 +1303,7 @@ c           endwhile
       endif
       if (job .ne. 0 ) then
 c			backward permutation
-         do 50 i = 1,npar 
+         do 50 i = 1,npar
             if (jpvt(i) .gt. 0) then
                goto 50
             endif
@@ -1596,39 +1596,39 @@ c -----------------------------------------------------------
      * fgaux(ncts1),svals(*),adiag(nuobs),lamlim(2),ssqrep,dout(4),
      * coef(*),tbl(ldtbl,3),auxtbl(3,3),work(lwa)
 c
-c Purpose: determine the generalized cross validation estimate of the 
+c Purpose: determine the generalized cross validation estimate of the
 c	smoothing parameter and fit model parameters for a semi-norm
 c	thin plate spline model.
 c
 c On Entry:
 c   fkf(ldfkf,nuobs) 	intermediate results as created by dsgdc1
-c   ldfkf		leading dimension of fkf as declared in the 
+c   ldfkf		leading dimension of fkf as declared in the
 c			calling program
-c   y(nuobs)		B1'y 
+c   y(nuobs)		B1'y
 c   nuobs		number of rows in fg
 c   nobs		number of observations
-c   fg(ldfg,ncts1)	qr decomposition of [t:s1]	
+c   fg(ldfg,ncts1)	qr decomposition of [t:s1]
 c   ldfg		leading dimension of fg as
 c			declared in the calling program
-c   ncts1		number of columns in [t:s1]	
-c   fgaux(ncts1)	auxiliary information on the decomposition of 
+c   ncts1		number of columns in [t:s1]
+c   fgaux(ncts1)	auxiliary information on the decomposition of
 c			[t:s1]
 c   svals(nuobs-ncts1) 	positive singular values of the Cholesky factor
 c			of f2'k f2
 c   adiag(nuobs)	B1'(true y) if predictive mse is requested
 c   lamlim(2)		limits on lambda hat search (in log10(nobs*
-c			lambda) scale) if user input limits are 
+c			lambda) scale) if user input limits are
 c			requested. if lamlim(1) = lamlim(2) then lamhat
 c			is set to (10**lamlim(1))/nobs
 c   ssqrep		sum of squares for replication
-c   ntbl		number of evenly spaced values for 
-c			log10(nobs*lambda) to be used in the initial 
+c   ntbl		number of evenly spaced values for
+c			log10(nobs*lambda) to be used in the initial
 c			grid search for lambda hat
-c			if ntbl = 0 only a golden ratio search will be 
+c			if ntbl = 0 only a golden ratio search will be
 c			done and tbl is not referenced, if ntbl > 0
 c			there will be ntbl rows returned in tbl
-c   ldtbl		leading dimension of tbl as declared in the 
-c			calling program	
+c   ldtbl		leading dimension of tbl as declared in the
+c			calling program
 c   job			integer with decimal expansion abc
 c			if a is nonzero then predictive mse is computed
 c			   using adiag as true y
@@ -1640,22 +1640,22 @@ c
 c On Exit:
 c   y(nuobs)		B1'(predicted values)
 c   adiag(nuobs)	diagonal elements of the hat matrix if requested
-c   lamlim(2)		limits on lambda hat search 
+c   lamlim(2)		limits on lambda hat search
 c			(in log10(nobs*lambda) scale)
 c   dout(4)		contains:
-c  			1  lamhat   generalized cross validation 
+c  			1  lamhat   generalized cross validation
 c				    estimate of the smoothing parameter
 c			2  penlty   smoothing penalty
 c			3  rss	    residual sum of squares
 c			4  tr(I-A)  trace of I - A
 c   coef(nuobs+ncts1) 	estimated coefficients
 c   tbl(ldtbl,3)	column	contains
-c			  1 	grid of log10(nobs*lambda) 
+c			  1 	grid of log10(nobs*lambda)
 c			  2  	V(lambda)
 c			  3     R(lambda) if requested
 c   auxtbl(3,3)		auxiliary table
 c			1st row contains:
-c			    log10(nobs*lamhat), V(lamhat) and  
+c			    log10(nobs*lamhat), V(lamhat) and
 c			    R(lamhat) if requested
 c			    where lamhat is the gcv estimate of lambda
 c			2nd row contains:
@@ -1664,7 +1664,7 @@ c			3rd row contains:
 c			    0, V(infinity) and R(infinity) if requested
 c   info		error indicator
 c			  0 : successful completion
-c			 -1 : log10(nobs*lamhat) <= lamlim(1) 
+c			 -1 : log10(nobs*lamhat) <= lamlim(1)
 c			      (not fatal)
 c			 -2 : log10(nobs*lamhat) >= lamlim(2)
 c			      (not fatal)
@@ -1672,14 +1672,14 @@ c			  1 : dimension error
 c			  2 : error in ntbl
 c			  3 : lwa (length of work) is too small
 c			  4 : lamlim(1) > lamlim(2)
-c			 10 < info < 20 : 10 + nonzero info returned 
+c			 10 < info < 20 : 10 + nonzero info returned
 c					  from dvlop
 c			 20 < info < 30 : 20 + nonzero info returned
 c					  from dcfcr1
 c
 c Working Storage:
 c   work(lwa) 		double precision work vector
-c   lwa			length of work as declared in the calling 
+c   lwa			length of work as declared in the calling
 c			program
 c			must be at least nuobs-ncts1+nobs
 c
@@ -1691,7 +1691,7 @@ c	Gcvlib  - dvl vmin
 c	Linpack - dqrsl dtrsl
 c	Blas    - ddot dcopy dgemv
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       double precision addend,nlamht,ssqw2
       integer npsing,i,jpmse,jlaml,jadiag,nmnct,nctp1,sinfo
@@ -1771,48 +1771,48 @@ c -----------------------------------------------------------
       double precision z(npsing),svals(npsing),inadd,ssqw2,lamlim(2),
      * nlamht,tbl(ldtbl,3),auxtbl(3,3),dout(2)
 c
-c Purpose: determine the optimal lambda for the generalized cross 
-c	validation function given singular values and the data vector 
+c Purpose: determine the optimal lambda for the generalized cross
+c	validation function given singular values and the data vector
 c	in canonical coordinates.
 c
 c On Entry:
 c   z(npsing)		data vector in canonical coordinates
-c   svals(npsing)	singular values 
+c   svals(npsing)	singular values
 c   nobs		number of observations
 c   nnull		dimension of the null space of sigma
-c   npsing		number of positive elements of svals 
+c   npsing		number of positive elements of svals
 c   inadd		constant term in expression for V
 c   ssqw2		squared length of w2
 c   lamlim(2)		limits on lambda hat search (in log10(nobs*
-c			lambda) scale) if user input limits are 
+c			lambda) scale) if user input limits are
 c			requested. if lamlim(1) = lamlim(2) then nlamht
 c			is set to 10**lamlim(1)
-c   ntbl		number of evenly spaced values for 
-c			log10(nobs*lambda) to be used in the initial 
+c   ntbl		number of evenly spaced values for
+c			log10(nobs*lambda) to be used in the initial
 c			grid search for lambda hat
-c			if ntbl = 0 only a golden ratio search will be 
+c			if ntbl = 0 only a golden ratio search will be
 c			done and tbl is not referenced, if ntbl > 0
 c			there will be ntbl rows returned in tbl
-c   ldtbl		leading dimension of tbl as declared in the 
-c			calling program	
-c   job      		if job is nonzero then user input limits on 
+c   ldtbl		leading dimension of tbl as declared in the
+c			calling program
+c   job      		if job is nonzero then user input limits on
 c			lambda hat search are used
 c
 c On Exit:
-c   lamlim(2)		limits on lambda hat search 
+c   lamlim(2)		limits on lambda hat search
 c			(in log10(nobs*lambda) scale)
-c   nlamht		nobs*(lambda hat) where lambda hat is the gcv 
+c   nlamht		nobs*(lambda hat) where lambda hat is the gcv
 c			estimate of lambda
 c   tbl(ldtbl,3)	column	contains
-c			  1 	grid of log10(nobs*lambda) 
+c			  1 	grid of log10(nobs*lambda)
 c			  2  	V(lambda)
 c   auxtbl(3,3)		auxiliary table
 c			1st row contains:
 c			    log10(nobs*lambda hat), V(lambda hat)
 c			2nd row contains:
-c			    0, V(0) 
+c			    0, V(0)
 c			3rd row contains:
-c			    0, V(infinity) 
+c			    0, V(infinity)
 c   dout(2)		contains:
 c			1  rss
 c			2  tr(I-A)
@@ -1825,12 +1825,12 @@ c			  2 : npsing is incorrect
 c			  3 : lamlim(1) > lamlim(2)
 c
 c Subprograms Called Directly:
-c	Gcvpack - dvmin 
+c	Gcvpack - dvmin
 c
 c Subprograms Called Indirectly:
 c	Gcvpack - dvl
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       integer i,k
       double precision vlamht,w
@@ -1918,16 +1918,16 @@ c
 c On Entry:
 c   fg(ldfg,nnull)	information on the Householder transformations
 c			that define f and g
-c   ldfg		leading dimension of fg as declared in the 
+c   ldfg		leading dimension of fg as declared in the
 c			calling	program
 c   nobs		number of rows in f
 c   nnull		number of columns in g
 c   fgaux(nnull)	auxiliary information on the fg Householder
 c			transformations
-c   svals(npsing)	singular values 
-c   npsing		number of positive singular values 
+c   svals(npsing)	singular values
+c   npsing		number of positive singular values
 c   u(ldu,npsing)	left singular vectors corresponding to svals
-c   ldu	    		leading dimension of u as declared in the 
+c   ldu	    		leading dimension of u as declared in the
 c			calling	program
 c   nlamht		nobs*lambda hat
 c
@@ -1938,11 +1938,11 @@ c Work Arrays:
 c   work(nobs+npsing)	double precision work vector
 c
 c Subprograms Called Directly:
-c	Linpack - dqrsl 
+c	Linpack - dqrsl
 c	Blas    - ddot dgemv
 c	Other   - dset
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       integer i,j,hp1,locinf,nmh,np1
       double precision dummy(1)
@@ -1952,10 +1952,10 @@ c
       hp1 = nnull + 1
       nmh = nobs - nnull
 c			form adiag
-      do 20 i = 1,nobs 
+      do 20 i = 1,nobs
          call dset(nobs,0.0d0,work,1)
          work(i)=1.0d0
-         call dqrsl(fg,ldfg,nobs,nnull,fgaux,work,dummy,work,dummy, 
+         call dqrsl(fg,ldfg,nobs,nnull,fgaux,work,dummy,work,dummy,
      *    dummy,dummy,01000,locinf)
          adiag(i)=ddot(nnull,work,1,work,1)
 	 call dgemv('T',nmh,npsing,1.0d0,u,ldu,work(hp1),1,0.0d0,
@@ -1977,20 +1977,20 @@ c -----------------------------------------------------------
      * z(nobs),ssqw2,addend,work(npsing)
 c
 c Purpose: apply Householder transformations to a response vector and
-c	collect its inner product with u and the addend which are used 
+c	collect its inner product with u and the addend which are used
 c	to define the generalized cross validation function with a
 c	semi-norm.
 c
 c On Entry:
-c   fg(ldfg,nnull)	information on the Householder transformations 
+c   fg(ldfg,nnull)	information on the Householder transformations
 c			that define f and g
-c   ldfg		leading dimension of fg as declared in the 
+c   ldfg		leading dimension of fg as declared in the
 c			calling program
 c   nobs		number of rows in fg
 c   nnull		number of columns in fg
-c   fgaux(nnull)	auxiliary information on the fg	Householder 
+c   fgaux(nnull)	auxiliary information on the fg	Householder
 c			transformations
-c   u(ldu,npsing)		left singular vectors 
+c   u(ldu,npsing)		left singular vectors
 c   ldu			leading dimension of u as declared in the
 c			calling program
 c   nmh	     		number of rows in u. nmh = nobs - nnull
@@ -1998,7 +1998,7 @@ c   npsing		number of columns in u (maximum of npar - nnull)
 c   z(nobs)		response vector
 c
 c On Exit:
-c   z(nobs)		the first nnull positions contain w1 and the 
+c   z(nobs)		the first nnull positions contain w1 and the
 c			next npsing positions contain u'w2
 c   ssqw2		the squared length of w2
 c   addend		the squared length of z minus the squared length
@@ -2008,10 +2008,10 @@ c Work Arrays:
 c   work(npsing) 	double precision work vector
 c
 c Subprograms Called Directly:
-c      Linpack - dqrsl 
+c      Linpack - dqrsl
 c      Blas    - ddot dcopy dgemv
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       integer locinf,hp1
       double precision dummy(1)
@@ -2044,14 +2044,14 @@ c
 c On Entry:
 c   fg(ldfg,ncg)	qr decomposition of [t:s1]
 c   ldfg		leading dimension of fg as declared in the
-c   			calling program 
+c   			calling program
 c   nrf 		number of rows in f
 c   ncg			number of columns in g
 c   fgaux(ncg)		auxiliary information on the qr decomposition
 c			of [t:s1]
 c   kk(ldkk,nrf) 	k
 c   ldkk		leading dimension of kk as declared in the
-c   			calling program 
+c   			calling program
 c
 c On Exit:
 c   kk(ldkk,nrf)  	f'k f
@@ -2063,19 +2063,19 @@ c Subprograms Called Directly:
 c	Linpack - dqrsl
 c	Blas    - dcopy
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       double precision dummy
       integer i,locinf
 c	  		calculate k f, store in kk
-      do 10 i=1,nrf 
+      do 10 i=1,nrf
          call dcopy(nrf,kk(i,1),ldkk,work,1)
          call dqrsl(fg,ldfg,nrf,ncg,fgaux,work,dummy,work,dummy,dummy,
      *    dummy,01000,locinf)
          call dcopy(nrf,work,1,kk(i,1),ldkk)
    10 continue
 c	  		calculate f'k f
-      do 20 i=1,nrf 
+      do 20 i=1,nrf
          call dqrsl(fg,ldfg,nrf,ncg,fgaux,kk(1,i),dummy,kk(1,i),dummy,
      *    dummy,dummy,01000,locinf)
    20 continue
@@ -2091,39 +2091,39 @@ c -----------------------------------------------------------
      * u(ldu,npsing),w1(nnull),z(npsing),adiag(nuobs),tbl(ldtbl,3),
      * auxtbl(3,3),work(npsing)
 c
-c Purpose: determine the predictive mean squared error for each lambda 
+c Purpose: determine the predictive mean squared error for each lambda
 c	value in tbl.
 c
 c On Entry:
-c   fg(ldfg,nnull)	information on the Householder transformations 
+c   fg(ldfg,nnull)	information on the Householder transformations
 c			that define f and g
 c   ldfg		leading dimension of fg as declared
 c			in the calling program
 c   nuobs		number of rows in f
 c   nnull		number of columns in g
-c   fgaux(nnull)	auxiliary information on the fg Householder 
-c			transformations 
-c   svals(npsing)	singular values 
+c   fgaux(nnull)	auxiliary information on the fg Householder
+c			transformations
+c   svals(npsing)	singular values
 c   npsing		number of singular values
 c   u(ldu,npsing)	left singular vectors corresponding to svals
-c   ldu			leading dimension of u as declared in the 
+c   ldu			leading dimension of u as declared in the
 c			calling program
 c   w1(nnull)		leading part of rotated response vector
 c   z(npsing)		u'w2
 c   ntbl		number of rows in tbl
-c   adiag(nuobs)	"true" y values 
+c   adiag(nuobs)	"true" y values
 c   tbl(ldtbl,3)	column	contains
-c			  1 	grid of log10(nobs*lambda) 
-c   ldtbl		leading dimension of tbl as declared in the 
-c			calling program	
+c			  1 	grid of log10(nobs*lambda)
+c   ldtbl		leading dimension of tbl as declared in the
+c			calling program
 c   auxtbl(3,3)		auxiliary table
 c			auxtbl(1,1) contains log10(nobs*lamhat) where
 c			lamhat is the gcv estimate of lambda
 c
 c On Exit:
 c   tbl(ldtbl,3)	column	contains
-c			  1 	grid of log10(nobs*lambda) 
-c			  3     R(lambda) 
+c			  1 	grid of log10(nobs*lambda)
+c			  3     R(lambda)
 c   auxtbl(3,3)		auxiliary table
 c			3rd column contains:
 c			    [R(lamhat) , R(0), R(infinity)]'
@@ -2132,10 +2132,10 @@ c Work Arrays:
 c   work(npsing)	double precision work vector
 c
 c Subprograms Called Directly:
-c      Linpack - dqrsl 
+c      Linpack - dqrsl
 c      Blas    - ddot dgemv
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       integer i,nmh,k,locinf
       double precision dummy,nlam,wrk1,addtru,wrk
@@ -2143,10 +2143,10 @@ c
 c
       nmh = nuobs - nnull
       addtru = 0.0d0
-      call dqrsl(fg,ldfg,nuobs,nnull,fgaux,adiag,dummy,adiag,dummy, 
+      call dqrsl(fg,ldfg,nuobs,nnull,fgaux,adiag,dummy,adiag,dummy,
      * dummy,dummy,01000,locinf)
-c			the first nnull positions of adiag now contain 
-c			w1 true the last nuobs-nnull positions contain 
+c			the first nnull positions of adiag now contain
+c			w1 true the last nuobs-nnull positions contain
 c			w2 true
       do 10 i = 1,nnull
          addtru=addtru + (w1(i)-adiag(i))**2
@@ -2160,10 +2160,10 @@ c			||w2 true||**2 - ||z true||**2
 c			work contains z true
 c
 c			compute predictive mse for each lambda in tbl
-      do 30 k = 1,ntbl 
+      do 30 k = 1,ntbl
          nlam = 10**tbl(k,1)
          wrk=0.0d0
-         do 20 i=1,npsing 
+         do 20 i=1,npsing
             wrk1=(svals(i)**2)/(svals(i)**2+nlam)
             wrk = wrk + (work(i)-z(i)*wrk1)**2
    20    continue
@@ -2172,14 +2172,14 @@ c			compute predictive mse for each lambda in tbl
 c			add pred. mse for lambda hat to auxtbl
       wrk=0.0d0
       nlam=10**auxtbl(1,1)
-      do 40 i=1,npsing 
+      do 40 i=1,npsing
          wrk1=(svals(i)**2)/(svals(i)**2+nlam)
          wrk = wrk + (work(i)-z(i)*wrk1)**2
    40 continue
       auxtbl(1,3)=(addtru+wrk)/nobs
 c			add pmse for lambda = 0
       wrk=0.0d0
-      do 50 i=1,npsing 
+      do 50 i=1,npsing
          wrk = wrk + (work(i)-z(i))**2
    50 continue
       auxtbl(2,3)=(addtru+wrk)/nobs
@@ -2194,7 +2194,7 @@ c -----------------------------------------------------------
       integer n,incx
       double precision da,dx(*)
 c
-c Purpose : set vector dx to constant da. Unrolled loops are used for 
+c Purpose : set vector dx to constant da. Unrolled loops are used for
 c	increment equal to one.
 c
 c On Entry:
@@ -2205,7 +2205,7 @@ c
 c On Exit:
 c   dx(n)		vector with all n entries set to da
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       integer i,m,mp1,nincx
 c
@@ -2752,7 +2752,7 @@ c                   the first min(n,p) entries of s contain the
 c                   singular values of x arranged in descending
 c                   order of magnitude.
 c
-c         e         double precision(p), 
+c         e         double precision(p),
 c                   e ordinarily contains zeros.  however see the
 c                   discussion of info for exceptions.
 c
@@ -3175,29 +3175,29 @@ c           ...exit
 
 
 c -----------------------------------------------------------
-      subroutine dpdcr(fg,ldfg,nobs,nnull,fgaux,svals,npsing,u,ldu, 
+      subroutine dpdcr(fg,ldfg,nobs,nnull,fgaux,svals,npsing,u,ldu,
      * nlamht,w1,g,pred,work)
       integer ldfg,nobs,nnull,npsing,ldu
       double precision fg(ldfg,nnull),fgaux(nnull),svals(npsing),
      * u(ldu,npsing),nlamht,w1(nnull),g(npsing),pred(nobs),
      * work(*)
 c
-c Purpose: determine the predicted responses for a given value of 
+c Purpose: determine the predicted responses for a given value of
 c	nobs*lamhat and vectors g and w1.
 c
 c On Entry:
 c   fg(ldfg,nnull)	information on the Householder transformations
 c			that define f and g
-c   ldfg		leading dimension of fg as declared in the 
+c   ldfg		leading dimension of fg as declared in the
 c			calling	program
 c   nobs		number of rows in f
 c   nnull		number of columns in g
 c   fgaux(nnull)	auxiliary information on the fg Householder
 c			transformations
-c   svals(npsing)	singular values 
-c   npsing		number of positive singular values 
+c   svals(npsing)	singular values
+c   npsing		number of positive singular values
 c   u(ldu,npsing)	left singular vectors corresponding to svals
-c   ldu	    		leading dimension of u as declared in the 
+c   ldu	    		leading dimension of u as declared in the
 c			calling	program
 c   nlamht		nobs*lambda hat
 c   w1(nnull)		leading part of rotated response vector
@@ -3210,10 +3210,10 @@ c Work Arrays:
 c   work(nobs+npsing)	double precision work vector
 c
 c Subprograms Called Directly:
-c	Linpack - dqrsl 
+c	Linpack - dqrsl
 c	Blas    - dcopy dgemv
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       integer i,locinf,nmh,np1
       double precision dummy(1)
@@ -3238,7 +3238,7 @@ c			form the response vector
 c -----------------------------------------------------------
       integer function fact(i)
       integer i
-c 
+c
 c Purpose: quick factorial function for the bspline routine
 c	returns zero for negative i.
 c
@@ -3247,7 +3247,7 @@ c   i			a non-negative integer
 c On Exit:
 c   fact		i factorial
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       integer j
       fact = 0
@@ -3274,13 +3274,13 @@ c
 c On Entry:
 c   fg(ldfg,ncts1)	information on the Householder transformations
 c   			that define f and g
-c   ldfg		leading dimension of fg as declared in the 
+c   ldfg		leading dimension of fg as declared in the
 c			calling	program
 c   ncts1		number of columns in g
 c   fgaux(ncts1)	auxiliary information on the fg Householder
 c			transformations
 c   u(ldu,npsing)	left singular vectors corresponding to svals
-c   ldu	    		leading dimension of u as declared in the 
+c   ldu	    		leading dimension of u as declared in the
 c			calling	program
 c   f1kf2(ldfkf,nuobs-ncts1) f1 k f2
 c   ldfkf		leading dimension of f1kf2 as declared
@@ -3304,10 +3304,10 @@ c Work Arrays:
 c   work(nuobs-ncts1)  	double precision work vector
 c
 c   Subprograms Used:
-c      Linpack - dqrsl dtrsl 
+c      Linpack - dqrsl dtrsl
 c      Blas    - ddot dcopy dgemv
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       integer i,j,nmnct,nctp1,locinf
       double precision dummy,machpr,one,rcond
@@ -3328,7 +3328,7 @@ c			form g and penalty
    20 continue
       penlty = ddot(npsing,z,1,z,1)
 c			z now contains g
-c			compute xi 
+c			compute xi
       do 30 i = 1,npsing
          coef(i) = z(i)/svals(i)
    30 continue
@@ -4004,7 +4004,7 @@ c -----------------------------------------------------------
       double precision lower,upper,svals(npsing),z(npsing),
      * tbl(ldtbl,3),vlamht
 c
-c Purpose: evaluate V(lambda) for a grid of ln(nobs*lambda) values 
+c Purpose: evaluate V(lambda) for a grid of ln(nobs*lambda) values
 c	between	lower and upper, store these in the array tbl, and find
 c	minimizer of v.
 c
@@ -4013,21 +4013,21 @@ c   lower		lower bound of interval (in nobs*ln(lambda)
 c			scale) over which V(lambda) is to be minimized
 c   upper		upper bound of interval (in nobs*ln(lambda)
 c			scale) over which V(lambda) is to be minimized
-c   svals(npsing)	singular values 
+c   svals(npsing)	singular values
 c   z(npsing)		data vector in canonical coordinates
-c   npsing		number of positive elements of svals 
-c   ntbl		number of evenly spaced values for 
-c			ln(nobs*lambda)	to be used in the initial grid 
+c   npsing		number of positive elements of svals
+c   ntbl		number of evenly spaced values for
+c			ln(nobs*lambda)	to be used in the initial grid
 c			search for lambda hat
-c			if ntbl = 0 only a golden ratio search will be 
+c			if ntbl = 0 only a golden ratio search will be
 c			done and tbl is not referenced, if ntbl > 0
 c			there will be ntbl rows returned in tbl
-c   ldtbl		leading dimension of tbl as declared in the 
-c			calling program	
-c   
+c   ldtbl		leading dimension of tbl as declared in the
+c			calling program
+c
 c On Exit:
 c   tbl(ldtbl,3)	column	contains
-c			  1 	grid of ln(nobs*lambda) 
+c			  1 	grid of ln(nobs*lambda)
 c			  2  	V(lambda)
 c   vlamht		V(lambda hat)
 c   dvmin		ln(nobs*lambda hat)
@@ -4039,7 +4039,7 @@ c
 c Subprograms Called Directly:
 c	Gcvpack - dvl
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
 
       double precision a,b,c,d,vc,vd,del,k1,k2,x,v
@@ -4075,11 +4075,11 @@ c			do grid search
 	       jmin = j
 	       v = tbl(j,2)
 	    endif
-   20    continue	      
+   20    continue
 	 a=tbl(jmin,1)-del
 	 b=tbl(jmin,1)+del
       end if
-c			do golden ratio search			
+c			do golden ratio search
       k1=(3.0d0-dsqrt(5.0d0))/2.0d0
       k2=(dsqrt(5.0d0)-1)/2.0d0
       c = a + k1*(b - a)
@@ -4397,14 +4397,14 @@ c
 c On Entry:
 c   lgnlam		log10(nobs*lambda) where lambda is the value of
 c			lambda for which V is evaluated
-c   svals(npsing)	singular values 
+c   svals(npsing)	singular values
 c   z(npsing)		data vector in canonical coordinates
-c   npsing		number of positive svals 
+c   npsing		number of positive svals
 c
 c On Exit:
 c   dvl			V(lambda)
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.3 2000-04-26 15:46:27 dglo Exp $
 c
       integer j
       double precision nlam,numrtr,denom,factor
@@ -4412,13 +4412,13 @@ c
       common / gcvcom / addend,rss,tria,n,h
       integer n,h
       double precision rss,tria,addend
-c     			see dvlop for definition of common block 
+c     			see dvlop for definition of common block
 c			variables
 c
       nlam = 10**lgnlam
       numrtr = addend
       denom = dble(n - h - npsing)
-      do 10 j = 1,npsing 
+      do 10 j = 1,npsing
          factor = 1.0d0/(1.0d0 + (svals(j)**2)/nlam)
          numrtr = numrtr + (factor*z(j))**2
          denom = denom + factor

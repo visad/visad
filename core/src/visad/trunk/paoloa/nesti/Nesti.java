@@ -185,7 +185,7 @@ public class Nesti {
   DataReference field_tt_rRef;
   DataReference field_wv_rRef;
   DataReference field_oz_rRef;
-  
+
   int n_refs = 33;  //- # of above ---
 
 
@@ -207,7 +207,7 @@ public class Nesti {
   // type 'java Nesti' to run this application
   public static void main(String args[])
          throws VisADException, RemoteException, IOException {
-    
+
     Nesti nesti = new Nesti(args);
 
     if (nesti.client_server != null) {
@@ -417,7 +417,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
 
 //*----------
     p_flg = 1;
-    readProf_c(type, p_flg, tskin, psfc, lsfc, azen, p, 
+    readProf_c(type, p_flg, tskin, psfc, lsfc, azen, p,
                tt_raob[0], wv_raob[0], oz_raob[0] );
 
     pressure = new RealType("pressure_1", null, null);
@@ -502,7 +502,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     int n_wnum1 = 2199;
     int n_wnum2 = 3858;
     int n_wnum3 = 3070;
-    int n_wnum_obs = 8504; 
+    int n_wnum_obs = 8504;
     float[][] samples_1 = new float[1][n_wnum];
     float[][] ranges_1 = new float[1][n_wnum];
     float[][] samples_2 = new float[1][n_wnum];
@@ -516,8 +516,8 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     float band1_hi = 1299.9677f;
     float band2_lo = 1300.2206f;
     float band2_hi = 1999.7985f;
-    float band3_lo = 2000.1323f; 
-    float band3_hi = 2699.9512f; 
+    float band3_lo = 2000.1323f;
+    float band3_hi = 2699.9512f;
     boolean band1 = false;
     boolean band2 = false;
     boolean band3 = false;
@@ -528,7 +528,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     cnt_1 = 0;
     cnt_2 = 0;
     cnt_3 = 0;
-    for ( int k = 0; k < 3; k++ ) 
+    for ( int k = 0; k < 3; k++ )
     {
       nasti = nasti_a[k];
       Field spectrum0 =
@@ -544,9 +544,9 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       if ((band2_lo >= lo[0])&&(band2_hi <= hi[0])) band2 = true;
       if ((band3_lo >= lo[0])&&(band3_hi <= hi[0])) band3 = true;
 
-      if ( band1 ) 
+      if ( band1 )
       {
-        for ( int ii = 0; ii < spectrum_samples[0].length; ii++ ) 
+        for ( int ii = 0; ii < spectrum_samples[0].length; ii++ )
         {
           if (( spectrum_samples[0][ii] >= band1_lo ) &&
               ( spectrum_samples[0][ii] <= band1_hi))
@@ -558,9 +558,9 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         }
         band1 = false;
       }
-      else if ( band2 ) 
+      else if ( band2 )
       {
-        for ( int ii = 0; ii < spectrum_samples[0].length; ii++ ) 
+        for ( int ii = 0; ii < spectrum_samples[0].length; ii++ )
         {
           if (( spectrum_samples[0][ii] >= band2_lo ) &&
               ( spectrum_samples[0][ii] <= band2_hi ))
@@ -574,7 +574,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       }
       else if ( band3 )
       {
-        for ( int ii = 0; ii < spectrum_samples[0].length; ii++ ) 
+        for ( int ii = 0; ii < spectrum_samples[0].length; ii++ )
         {
           if (( spectrum_samples[0][ii] >= band3_lo ) &&
               ( spectrum_samples[0][ii] <= band3_hi ))
@@ -585,7 +585,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
           }
         }
         band3 = false;
-      } 
+      }
 
       System.arraycopy( samples_1[0], 0, new_spectrum[0], 0, cnt_1);
       System.arraycopy( samples_2[0], 0, new_spectrum[0], cnt_1, cnt_2);
@@ -594,7 +594,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       System.arraycopy( ranges_2[0], 0, new_range[0], cnt_1, cnt_2);
       System.arraycopy( ranges_3[0], 0, new_range[0], (cnt_1+cnt_2), cnt_3);
     }
-      spectrum_set = new Gridded1DSet(spectrum_set.getType(), 
+      spectrum_set = new Gridded1DSet(spectrum_set.getType(),
                          new_spectrum, n_wnum_obs );
       FlatField f_field = new FlatField( spectrum_type, spectrum_set );
       f_field.setSamples( new_range );
@@ -674,7 +674,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
 
       public void doAction() throws VisADException, RemoteException
       {
-        if (! first ) 
+        if (! first )
         {
           field_tt = (FlatField) field_ttRef.getData();
           field_wv = (FlatField) field_wvRef.getData();
@@ -723,8 +723,8 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       double[][] wv_values_0;
       double[][] oz_values_0;
       boolean first = true;
-      int opt; 
-      int opt2; 
+      int opt;
+      int opt2;
       int opt3;
       float[][] rr_f_a;
       float[] dum = new float[50];
@@ -732,7 +732,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       float[][] wv = new float[1][40];
       public void doAction() throws VisADException, RemoteException
       {
-        if (! first ) 
+        if (! first )
         {
           float gamt = (float) (((Real)(gamt_ref.getData())).getValue());
           float gamw = (float) (((Real)(gamw_ref.getData())).getValue());
@@ -747,15 +747,15 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
           tt_values_0 = ((FlatField)field_ttRef.getData()).getValues();
           wv_values_0 = ((FlatField)field_wvRef.getData()).getValues();
           oz_values_0 = ((FlatField)field_ozRef.getData()).getValues();
-          
-          for ( int ii = 0; ii < 40; ii++ ) 
+
+          for ( int ii = 0; ii < 40; ii++ )
           {
             tair[ii] = (float) tt_values_0[0][ii];
             tair[ii+40] = (float) wv_values_0[0][ii];
             tair[ii+2*40] = (float) oz_values_0[0][ii];
           }
           tair[40+2*40] = tskin[0];
- 
+
           opt = 1;
           if ( opt == -1 ) {
             double[][] rr_a = new double[1][];
@@ -801,7 +801,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     CellImpl do_image_cell = new CellImpl() {
       double[][] radiances;
       boolean first = true;
-      public void doAction() throws VisADException, RemoteException 
+      public void doAction() throws VisADException, RemoteException
       {
         if (! first ) {
         double radiance;
@@ -870,7 +870,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
                          scatter_tuple);
             FlatField scatter_field = new FlatField(f_type, scatter_domain);
             scatter_field.setSamples(new_range);
-           
+
             spectrum_ref_s.setData(scatter_field);
 
             field_rrRef.setData( obs_spectrum.subtract(
@@ -896,10 +896,10 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     CellImpl reset_cell = new CellImpl() {
       boolean first = true;
       FlatField field_tt, field_wv, field_oz;
-      public void doAction() 
+      public void doAction()
       {
         if (! first) {
-        try 
+        try
         {
           field_tt = new FlatField(press_tt, p_domain);
           field_wv = new FlatField(press_wv, p_domain);
@@ -907,7 +907,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
           field_tt.setSamples(tt_values);
           field_wv.setSamples(wv_values);
           field_oz.setSamples(oz_values);
-          
+
           field_ttRef.setData(field_tt);
           field_wvRef.setData(field_wv);
           field_ozRef.setData(field_oz);
@@ -939,14 +939,14 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         try
         {
           opt = (int) (((Real)(rtvl_diff_ref.getData())).getValue());
-          if ( opt == 1 ) 
+          if ( opt == 1 )
           {
             for ( int ii = 0; ii < 40; ii++) {
               tt[0][ii] = tt_rtvl[0][ii];
               wv[0][ii] = wv_rtvl[0][ii];
             }
           }
-          else 
+          else
           {
             for ( int ii = 0; ii < 40; ii++ ) {
               tt[0][ii] = tt_rtvl[0][ii] - tt_raob[0][ii];
@@ -1136,7 +1136,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
 
     // true to zoom whum1 range in spectrum display
     boolean wzoom;
-   
+
     // flag to skip one red_cursor_cell event
     boolean skip_red = false;
 
@@ -1183,25 +1183,25 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
       JPanel l_panel = new JPanel();
-      l_panel.setLayout(new BoxLayout(l_panel, BoxLayout.Y_AXIS)); 
+      l_panel.setLayout(new BoxLayout(l_panel, BoxLayout.Y_AXIS));
       l_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
       l_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
       add(l_panel);
 
       JPanel c_panel = new JPanel();
-      c_panel.setLayout(new BoxLayout(c_panel, BoxLayout.Y_AXIS)); 
+      c_panel.setLayout(new BoxLayout(c_panel, BoxLayout.Y_AXIS));
       c_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
       c_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
       add(c_panel);
 
       JPanel r_panel = new JPanel();
-      r_panel.setLayout(new BoxLayout(r_panel, BoxLayout.Y_AXIS)); 
+      r_panel.setLayout(new BoxLayout(r_panel, BoxLayout.Y_AXIS));
       r_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
       r_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
       add(r_panel);
 
       JPanel s_panel = new JPanel();
-      s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.Y_AXIS)); 
+      s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.Y_AXIS));
    //-s_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
       s_panel.setAlignmentX(JPanel.CENTER_ALIGNMENT);
       s_panel.setBorder(etchedBorder5);
@@ -1347,7 +1347,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         img_display.addReference(image_ref);
         img_display.addReference(white_cursor_ref, wmaps);
       }
- 
+
       s_panel = new JPanel();
       s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.X_AXIS));
    //-s_panel.setMaximumSize(new Dimension(750,125));
@@ -1438,8 +1438,8 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
                              new ConstantMap(4.0, Display.PointSize)};
 
       if (client) {
-        RemoteDisplayImpl remote_spectrumDisplay = 
-          new RemoteDisplayImpl(spectrumDisplay); 
+        RemoteDisplayImpl remote_spectrumDisplay =
+          new RemoteDisplayImpl(spectrumDisplay);
      //-remote_spectrumDisplay.addReference(spectrum_ref);
         remote_spectrumDisplay.addReference(spectrum_ref_s);
         remote_spectrumDisplay.addReference(red_bar_ref, bmaps);
@@ -1513,7 +1513,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       mode2.setScaleEnable(true);
 
       if (client) {
-        RemoteDisplayImpl remote_spectrum_diff_display = 
+        RemoteDisplayImpl remote_spectrum_diff_display =
               new RemoteDisplayImpl(spectrum_diff_display);
         remote_spectrum_diff_display.addReference(field_rrRef);
       }
@@ -1712,7 +1712,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       rtvl_display.setAlwaysAutoScale(true);
 
       if (client) {
-        RemoteDisplayImpl remote_rtvl_display = 
+        RemoteDisplayImpl remote_rtvl_display =
           new RemoteDisplayImpl(rtvl_display);
         remote_rtvl_display.addReference( rtvl_ttRef, red );
         remote_rtvl_display.addReference( rtvl_wvRef, green );
@@ -1750,7 +1750,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       diff_button.setActionCommand("diff");
       s_panel.add(diff_button);
 
-   if (!client) 
+   if (!client)
    {
       // CellImpl to change wave number when user moves red_cursor
       CellImpl red_cursor_cell = new CellImpl() {
@@ -2210,7 +2210,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
           real_x = (cur[0] - scale_s[0][1])/scale_s[0][0];
           real_y = (cur[1] - scale_s[1][1])/scale_s[1][0];
           try {
-            w_tuple = 
+            w_tuple =
               new RealTuple(new Real[] {new Real(image_element, real_x),
                                         new Real(image_line, real_y)});
             white_cursor_ref.setData( w_tuple );
@@ -2288,14 +2288,14 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     }
   } //- end class ChannelImage
 
-  private native void readProf_c( int i, int i2, float[] a, float[] b, int[] c, float[] d, 
+  private native void readProf_c( int i, int i2, float[] a, float[] b, int[] c, float[] d,
                                   float[] p, float[] t, float[] wv, float[] o );
 
   private native void nastirte_c( float a, float b, int c, float d,
-                                    float[] p, float[] t, float[] wv, float[] o, 
+                                    float[] p, float[] t, float[] wv, float[] o,
                                     int[] u, double[] vn, double[] tb, double[] rr );
 
-  private native void nasti_retrvl_c( int opt, int opt2, int rec, 
+  private native void nasti_retrvl_c( int opt, int opt2, int rec,
                                       float gamt, float gamw, float gamts, float emis,
                                       float[] tair, float[] rr, float[] pout );
 }//- end: Nesti

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DependentRealVar.java,v 1.3 1998-08-04 19:14:00 visad Exp $
+ * $Id: DependentRealVar.java,v 1.4 2000-04-26 15:45:24 dglo Exp $
  */
 
 package visad.data.netcdf.out;
@@ -51,9 +51,9 @@ DependentRealVar
     DependentRealVar(Real real, VisADAccessor accessor)
 	throws VisADException, BadFormException
     {
-	super(((ScalarType)real.getType()).getName(), 
+	super(((ScalarType)real.getType()).getName(),
 	    getJavaClass(((RealType)real.getType()).getDefaultSet()),
-	    accessor.getDimensions(), 
+	    accessor.getDimensions(),
 	    myAttributes(real),
 	    accessor);
 
@@ -121,7 +121,7 @@ DependentRealVar
 	    return Double.TYPE;
 	if (set instanceof FloatSet)
 	    return Float.TYPE;
-	
+
 	int	nelts = set.getLength();
 
 	return nelts >= 65536
@@ -136,7 +136,7 @@ DependentRealVar
      * Return the fill-value object for a numeric netCDF variable of the
      * given type.
      *
-     * @param type	netCDF type (e.g. <code>Character.TYPE</code>, 
+     * @param type	netCDF type (e.g. <code>Character.TYPE</code>,
      *			<code>Float.TYPE</code>).
      * @return		The default fill-value object for the given netCDF
      *			type.

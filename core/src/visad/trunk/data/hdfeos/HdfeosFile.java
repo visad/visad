@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -24,13 +24,13 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-package visad.data.hdfeos; 
+package visad.data.hdfeos;
 
 import java.util.*;
 import java.lang.*;
 import visad.data.hdfeos.hdfeosc.HdfeosLib;
 
-public class HdfeosFile 
+public class HdfeosFile
 {
   private String filename;
   private int  file_id;
@@ -41,7 +41,7 @@ public class HdfeosFile
 
   static Vector openedFiles = new Vector();          // all opened file objects
 
-  HdfeosFile( String filename ) 
+  HdfeosFile( String filename )
             throws HdfeosException
   {
     this.filename = filename;
@@ -62,8 +62,8 @@ public class HdfeosFile
       int[] hdf_id = new int[1];
       byte[] access = new byte[1];
 
-      int stat = HdfeosLib.EHchkfid( file_id, struct_name, hdf_id, sd_id, access); 
-      if ( stat < 0 ) 
+      int stat = HdfeosLib.EHchkfid( file_id, struct_name, hdf_id, sd_id, access);
+      if ( stat < 0 )
       {
         throw new HdfeosException("---cannot obtain sdInterfaceId---" );
       }
@@ -76,12 +76,12 @@ public class HdfeosFile
         Structs.addElement( (EosStruct)obj );
         n_structs++;
       }
-    } 
+    }
 
     String[] grid_list = {"empty"};
     int n_grids = HdfeosLib.GDinqgrid( filename, grid_list );
 
-    if ( n_grids > 0 ) 
+    if ( n_grids > 0 )
     {
       file_id = HdfeosLib.GDopen( filename, HdfeosLib.DFACC_READ );
       if ( file_id < 0 ) {
@@ -89,8 +89,8 @@ public class HdfeosFile
       }
 
       StringTokenizer grids = new StringTokenizer( grid_list[0], ",", false );
- 
-      while ( grids.hasMoreElements() ) 
+
+      while ( grids.hasMoreElements() )
       {
         String grid = (String) grids.nextElement();
         EosGrid g_obj = new EosGrid( file_id, sd_id[0], grid );
@@ -110,12 +110,12 @@ public class HdfeosFile
     }
   }
 
-  public int getNumberOfStructs() 
+  public int getNumberOfStructs()
   {
-    return n_structs; 
+    return n_structs;
   }
 
-  public EosStruct getStruct( int ii ) 
+  public EosStruct getStruct( int ii )
   {
     return (EosStruct) Structs.elementAt(ii);
   }
@@ -125,8 +125,8 @@ public class HdfeosFile
     return filename;
   }
 
-  public void close()  
-        throws HdfeosException 
+  public void close()
+        throws HdfeosException
   {
     int status = HdfeosLib.EHclose( file_id );
     if ( status < 0 ) {
@@ -135,10 +135,10 @@ public class HdfeosFile
     }
   }
 
-  public static void closeAll() 
-         throws HdfeosException 
+  public static void closeAll()
+         throws HdfeosException
   {
-    for ( Enumeration e = openedFiles.elements(); e.hasMoreElements(); ) 
+    for ( Enumeration e = openedFiles.elements(); e.hasMoreElements(); )
     {
       ((HdfeosFile)e.nextElement()).close();
     }

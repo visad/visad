@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -28,33 +28,33 @@ package visad.data.hdfeos;
 
 import java.util.*;
 
-public class VariableSet 
+public class VariableSet
 {
   Vector varSet;
   private boolean finished = false;
 
-  VariableSet() 
+  VariableSet()
   {
     varSet = new Vector();
   }
 
-  public void add( Variable var ) 
+  public void add( Variable var )
   {
     varSet.addElement( var );
   }
 
-  public void setToFinished() 
+  public void setToFinished()
   {
     finished = true;
   }
 
-  public int getSize() 
+  public int getSize()
   {
-    int size = varSet.size(); 
+    int size = varSet.size();
     return size;
   }
 
-  public Variable getElement( int ii ) 
+  public Variable getElement( int ii )
   {
     Variable obj = (Variable)varSet.elementAt( ii );
     return obj;
@@ -69,11 +69,11 @@ public class VariableSet
     return vars;
   }
 
-  public Variable getByName( String varName ) 
+  public Variable getByName( String varName )
   {
     int size = this.getSize();
 
-    for ( int ii = 0; ii < size; ii++ ) 
+    for ( int ii = 0; ii < size; ii++ )
     {
       Variable obj = (Variable) varSet.elementAt(ii);
 
@@ -90,14 +90,14 @@ public class VariableSet
   {
     VariableSet v_set = new VariableSet();
 
-    for ( int ii = 0; ii < this.getSize(); ii++ ) 
+    for ( int ii = 0; ii < this.getSize(); ii++ )
     {
-      if( ((this.getElement(ii)).getDimSet()).sameSetSameOrder( d_set ) ) 
+      if( ((this.getElement(ii)).getDimSet()).sameSetSameOrder( d_set ) )
       {
         v_set.add( this.getElement(ii) );
       }
     }
-       
+
     if ( v_set.getSize() == 0 ) {
       return null;
     }
@@ -117,7 +117,7 @@ public class VariableSet
     }
   }
 
-  public boolean isEmpty() 
+  public boolean isEmpty()
   {
     return varSet.isEmpty();
   }
@@ -128,7 +128,7 @@ public class VariableSet
     return e;
   }
 
-  public String toString() 
+  public String toString()
   {
     String str = "VariableSet: \n";
 

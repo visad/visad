@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -25,7 +25,7 @@ MA 02111-1307, USA
 */
 
 package visad.java3d;
- 
+
 import visad.*;
 
 import javax.media.j3d.*;
@@ -57,7 +57,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
   public DirectManipulationRendererJ3D () {
     super();
   }
- 
+
   public void setLinks(DataDisplayLink[] links, DisplayImpl d)
        throws VisADException {
     if (links == null || links.length != 1) {
@@ -92,7 +92,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     float[] default_values = link.getDefaultValues();
     GraphicsModeControl mode = (GraphicsModeControl)
       display.getGraphicsModeControl().clone();
-    float pointSize = 
+    float pointSize =
       default_values[display.getDisplayScalarIndex(Display.PointSize)];
     float lineWidth =
       default_values[display.getDisplayScalarIndex(Display.LineWidth)];
@@ -116,24 +116,24 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     branch.setCapability(Group.ALLOW_CHILDREN_READ);
     branch.setCapability(Group.ALLOW_CHILDREN_WRITE);
     branch.setCapability(Group.ALLOW_CHILDREN_EXTEND);
- 
+
     DataDisplayLink link = getLinks()[0];
     // values needed by drag_direct, which cannot throw Exceptions
     ShadowTypeJ3D shadow = (ShadowTypeJ3D) link.getShadow();
- 
+
     // check type and maps for valid direct manipulation
     if (!getIsDirectManipulation()) {
       throw new BadDirectManipulationException(getWhyNotDirect() +
         ": DirectManipulationRendererJ3D.doTransform");
     }
- 
+
     // initialize valueArray to missing
     int valueArrayLength = getDisplay().getValueArrayLength();
     float[] valueArray = new float[valueArrayLength];
     for (int i=0; i<valueArrayLength; i++) {
       valueArray[i] = Float.NaN;
     }
- 
+
     Data data = link.getData();
     if (data == null) {
       branch = null;
@@ -148,7 +148,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     }
     return branch;
   }
- 
+
   void addSwitch(DisplayRendererJ3D displayRenderer, BranchGroup branch) {
     displayRenderer.addDirectManipulationSceneGraphComponent(branch, this);
   }

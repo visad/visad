@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DataAccessor.java,v 1.2 1998-06-17 20:32:38 visad Exp $
+ * $Id: DataAccessor.java,v 1.3 2000-04-26 15:45:24 dglo Exp $
  */
 
 
@@ -56,7 +56,7 @@ abstract class DataAccessor implements VisADAccessor
     /**
      * Construct from an outer VisADAccessor and netCDF Dimensions.
      *
-     * @param localDims		The netCDF dimensions of the VisAD data 
+     * @param localDims		The netCDF dimensions of the VisAD data
      *				object being adapted (in netCDF API order).
      * @param outerAccessor	The DataAccessor of the enclosing VisAD data
      *				object (may not be <code>null</code>).
@@ -86,7 +86,7 @@ abstract class DataAccessor implements VisADAccessor
      * Return the netCDF dimensions at the level of the data object.
      * Include all dimensions in more outer data objects.
      *
-     * @return	The array of netCDF Dimensions of the VisAD data object 
+     * @return	The array of netCDF Dimensions of the VisAD data object
      *		being adapted.  Includes the dimensions of all enclosing
      *		VisAD data objects.
      * @postcondition	<code>getDimensions().length == getRank()</code>.
@@ -107,7 +107,7 @@ abstract class DataAccessor implements VisADAccessor
      *		being adapted.  Includes the dimensions of all enclosing
      *		VisAD data objects.
      * @postcondition	<code>getLengths().length == getRank()</code>.
-     * @postcondition	<code>getLengths()[i] == 
+     * @postcondition	<code>getLengths()[i] ==
      *			getDimensions()[i].getLength()</code>.
      */
     public int[] getLengths() {

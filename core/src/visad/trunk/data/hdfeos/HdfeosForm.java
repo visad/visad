@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -26,19 +26,19 @@ MA 02111-1307, USA
 
 package visad.data.hdfeos;
 
-import java.util.Vector; 
-import java.util.Enumeration; 
+import java.util.Vector;
+import java.util.Enumeration;
 import visad.*;
 import visad.data.*;
 import visad.UnimplementedException;
 import java.rmi.*;
 import java.net.URL;
 
-public class HdfeosForm extends Hdfeos 
+public class HdfeosForm extends Hdfeos
 {
   static CacheStrategy c_strategy = new CacheStrategy();
 
-  public HdfeosForm() 
+  public HdfeosForm()
   {
     super("Default");
   }
@@ -48,8 +48,8 @@ public class HdfeosForm extends Hdfeos
     super( formName );
   }
 
-  public DataImpl open( String file_path ) 
-         throws VisADException, RemoteException 
+  public DataImpl open( String file_path )
+         throws VisADException, RemoteException
   {
     DataImpl data = null;
 
@@ -60,30 +60,30 @@ public class HdfeosForm extends Hdfeos
     return data;
   }
 
-  public DataImpl open( URL url ) 
-         throws VisADException 
+  public DataImpl open( URL url )
+         throws VisADException
   {
     throw new UnimplementedException( "HdfeosForm.open( URL url )" );
   }
 
-  public void add( String id, Data data, boolean replace ) 
+  public void add( String id, Data data, boolean replace )
               throws BadFormException
   {
     throw new BadFormException( "HdfeosForm.add" );
   }
 
   public void save( String id, Data data, boolean replace )
-         throws BadFormException, RemoteException, VisADException 
+         throws BadFormException, RemoteException, VisADException
   {
     throw new UnimplementedException( "HdfeosForm.save" );
   }
 
-  public FormNode getForms( Data data ) 
+  public FormNode getForms( Data data )
   {
     return this;
   }
 
-  MathType getMathType( HdfeosFile file ) 
+  MathType getMathType( HdfeosFile file )
            throws VisADException, RemoteException
   {
     MathType M_type = null;
@@ -96,8 +96,8 @@ public class HdfeosForm extends Hdfeos
     }
 
     MathType[] types = new MathType[ n_structs ];
- 
-    for ( int ii = 0; ii < n_structs; ii++ ) 
+
+    for ( int ii = 0; ii < n_structs; ii++ )
     {
       EosStruct obj = file.getStruct(ii);
 
@@ -114,13 +114,13 @@ public class HdfeosForm extends Hdfeos
       {
         M_type = data.getType();
       }
-      catch ( VisADException e ) 
+      catch ( VisADException e )
       {
         System.out.println( e.getMessage() );
       }
-      finally 
+      finally
       {
-        types[ii] = M_type; 
+        types[ii] = M_type;
       }
     }
 
@@ -128,21 +128,21 @@ public class HdfeosForm extends Hdfeos
     return (MathType) t_type;
   }
 
-  DataImpl getFileData( HdfeosFile file ) 
-           throws VisADException, RemoteException 
+  DataImpl getFileData( HdfeosFile file )
+           throws VisADException, RemoteException
   {
     DataImpl data = null;
     HdfeosData f_data = null;
 
     int n_structs = file.getNumberOfStructs();
-    if ( n_structs == 0 ) 
+    if ( n_structs == 0 )
     {
       throw new HdfeosException("no EOS data structures in file: "+file.getFileName());
     }
 
     HdfeosData[] datas = new HdfeosData[ n_structs ];
- 
-    for ( int ii = 0; ii < n_structs; ii++ ) 
+
+    for ( int ii = 0; ii < n_structs; ii++ )
     {
       EosStruct obj = file.getStruct(ii);
 
@@ -166,17 +166,17 @@ public class HdfeosForm extends Hdfeos
     DataImpl fileData = null;
     int n_structs = h_datas.length;
 
-    if ( n_structs == 1 ) 
+    if ( n_structs == 1 )
     {
       return getVisADDataObject( h_datas[0] );
     }
-    else 
+    else
     {
       boolean types_equal = true;
       MathType first_type;
       MathType[] types = new MathType[ n_structs ];
       DataImpl[] datas = new DataImpl[ n_structs ];
-    
+
       datas[0] = getVisADDataObject( h_datas[0] );
       types[0] = datas[0].getType();
       first_type = types[0];
@@ -188,18 +188,18 @@ public class HdfeosForm extends Hdfeos
         }
       }
 
-      if ( types_equal ) 
+      if ( types_equal )
       {
         RealType struct_id = new RealType("struct_id", null, null);
         Integer1DSet domain = new Integer1DSet(struct_id, n_structs);
-        FieldImpl field = new FieldImpl(new FunctionType((MathType) struct_id, 
+        FieldImpl field = new FieldImpl(new FunctionType((MathType) struct_id,
                                                        first_type), domain);
         for ( int ii = 0; ii < n_structs; ii++ ) {
           field.setSample(ii, datas[ii]);
         }
         fileData = field;
       }
-      else 
+      else
       {
         TupleType t_type = new TupleType( types );
         fileData = new Tuple( t_type, datas, false );
@@ -215,8 +215,8 @@ public class HdfeosForm extends Hdfeos
     return h_data.getData();
   }
 
-  HdfeosData getGridData( EosGrid grid ) 
-             throws HdfeosException, 
+  HdfeosData getGridData( EosGrid grid )
+             throws HdfeosException,
                     VisADException,
                     RemoteException
   {
@@ -238,7 +238,7 @@ public class HdfeosForm extends Hdfeos
 
     VariableSet vars_1D = DV_shapeSet.get1DVariables();
 
-    for ( Enumeration e_out = DV_shapeSet.getEnum(); e_out.hasMoreElements(); ) 
+    for ( Enumeration e_out = DV_shapeSet.getEnum(); e_out.hasMoreElements(); )
     {
       s_obj = (Shape)e_out.nextElement();     // this particular data Variable group
 
@@ -251,40 +251,40 @@ public class HdfeosForm extends Hdfeos
       G_dims = new DimensionSet();
       D_dims = new DimensionSet();
 
-      for ( int ii = 0; ii < d_size; ii++ ) //-- separate dimensions first 
+      for ( int ii = 0; ii < d_size; ii++ ) //-- separate dimensions first
       {
         dim = D_set.getElement(ii);
 
-        if( ((dim.getName()).equals("XDim")) || 
-            ((dim.getName()).equals("YDim")) ) 
+        if( ((dim.getName()).equals("XDim")) ||
+            ((dim.getName()).equals("YDim")) )
         {
           G_dims.add( dim );
         }
-        else 
+        else
         {
           D_dims.add( dim );
         }
       }
 
-      if ( G_dims.getSize() != 2 ) 
+      if ( G_dims.getSize() != 2 )
       {
         domain = new HdfeosDomain( grid, D_set );
         f_field = new HdfeosFlatField( domain, range_var );
         datas.addElement(f_field);
         continue;
       }
-      else 
+      else
       {
         geo_domain = new HdfeosDomainMap(grid, G_dims, gridMap);
       }
 
       f_field = new HdfeosFlatField( geo_domain, range_var );
 
-      if ( D_dims.getSize() == 0 ) 
+      if ( D_dims.getSize() == 0 )
       {
         datas.addElement(f_field);
       }
-      else 
+      else
       {
         field = makeField( grid, D_dims, f_field );
         datas.addElement(field);
@@ -307,10 +307,10 @@ public class HdfeosForm extends Hdfeos
     }
   }
 
-  HdfeosData getSwathData( EosSwath swath ) 
+  HdfeosData getSwathData( EosSwath swath )
              throws VisADException,
                     RemoteException,
-                    HdfeosException 
+                    HdfeosException
   {
     Shape s_obj;
     DimensionSet D_set;
@@ -363,7 +363,7 @@ public class HdfeosForm extends Hdfeos
     {
       geo_domain = null;
     }
-    else 
+    else
     {
       Variable[] g_vars = { Longitude, Latitude };
       Geo_set = Longitude.getDimSet();
@@ -379,7 +379,7 @@ public class HdfeosForm extends Hdfeos
           datas.addElement(f_field);
         }
         else if ( g_rank == 2 )
-        {  
+        {
           geo_domain = new HdfeosDomain(swath, g_vars, Geo_set.getElements());
         }
         else if ( g_rank > 2 )
@@ -402,14 +402,14 @@ public class HdfeosForm extends Hdfeos
         datas.addElement(f_field);
       }
     }
-    if ( Time != null ) 
+    if ( Time != null )
     {
       domain = new HdfeosDomain(swath, Time.getDimSet());
       f_field = new HdfeosFlatField( domain, Time );
       datas.addElement(f_field);
     }
 
-    for ( Enumeration e_out = DV_shapeSet.getEnum(); e_out.hasMoreElements(); ) 
+    for ( Enumeration e_out = DV_shapeSet.getEnum(); e_out.hasMoreElements(); )
     {
       s_obj = (Shape)e_out.nextElement();     // this particular data Variable group
       D_set = s_obj.getShape();     // dimension set of this Variable group
@@ -418,10 +418,10 @@ public class HdfeosForm extends Hdfeos
 
       range_var = s_obj.getVariables();
 
-      if ( geo_domain == null ) 
-      { 
+      if ( geo_domain == null )
+      {
         domain = new HdfeosDomain( swath, D_set );
-        f_field = new HdfeosFlatField( domain, range_var ); 
+        f_field = new HdfeosFlatField( domain, range_var );
         datas.addElement(f_field);
         continue;
       }
@@ -433,11 +433,11 @@ public class HdfeosForm extends Hdfeos
       {
         dim = D_set.getElement( ii );
 
-        if ((dim.isGeoMapDefined())||(GV_shapeSet.isMemberOf(dim))) 
+        if ((dim.isGeoMapDefined())||(GV_shapeSet.isMemberOf(dim)))
         {
           G_dims.add( dim );
         }
-        else 
+        else
         {
           D_dims.add( dim );
         }
@@ -446,7 +446,7 @@ public class HdfeosForm extends Hdfeos
 //- examine geo-dimension sets for this Variable group - - - - - - - - - - -
       int g_size = G_dims.getSize();
 
-      if ( g_size == 0 || g_size == 1 ) 
+      if ( g_size == 0 || g_size == 1 )
       {
         domain = new HdfeosDomain(swath, D_set);
         f_field = new HdfeosFlatField(domain, range_var);
@@ -506,8 +506,8 @@ public class HdfeosForm extends Hdfeos
     }
   }
 
-  HdfeosField makeField( EosStruct struct, 
-                         DimensionSet F_dims, 
+  HdfeosField makeField( EosStruct struct,
+                         DimensionSet F_dims,
                          HdfeosData t_data )
               throws VisADException,
                      RemoteException,
@@ -516,7 +516,7 @@ public class HdfeosForm extends Hdfeos
     HdfeosData range = t_data;
     HdfeosDomain domain = null;
     HdfeosField field = null;
-    for ( int ii = (F_dims.getSize() - 1); ii >= 0; ii-- ) 
+    for ( int ii = (F_dims.getSize() - 1); ii >= 0; ii-- )
     {
       domain = new HdfeosDomain( struct, F_dims.getElement(ii));
       field = new HdfeosField( domain, range );

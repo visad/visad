@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultView.java,v 1.3 1998-11-16 18:23:42 steve Exp $
+ * $Id: DefaultView.java,v 1.4 2000-04-26 15:45:17 dglo Exp $
  */
 
 package visad.data.netcdf.in;
@@ -376,7 +376,7 @@ DefaultView
                      * time dimension through construction of a Field of
                      * Fields.
 		     */
-		    FunctionType	innerFieldType = 
+		    FunctionType	innerFieldType =
 			new FunctionType(getInnerDomainType(var),
 					 getRangeType(var));
 		    VirtualField	innerField =

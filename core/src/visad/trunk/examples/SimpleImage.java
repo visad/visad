@@ -34,7 +34,7 @@ import javax.swing.*;
 import java.util.*;
 import java.io.*;
 
-/* Simple image display example.  Define a function that maps from 
+/* Simple image display example.  Define a function that maps from
  * (line,element) to a brightness value.  Create a FlatField that
  * realizes this mapping for a domain of (300,300).  Fill the FlatField
  * with values in the range (0-255).
@@ -65,7 +65,7 @@ public class SimpleImage {
 
     // make up some data (line,element) => brightness values; dimensioned
     // values[number_of_range_components][number_of_samples_in_domain_set]
-    
+
     double[][] values = new double[1][300*300];
     for (int i=0; i<300; i++) {
       for (int j=0; j<300; j++) {

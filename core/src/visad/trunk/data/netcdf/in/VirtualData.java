@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VirtualData.java,v 1.1 1998-09-23 17:31:37 steve Exp $
+ * $Id: VirtualData.java,v 1.2 2000-04-26 15:45:20 dglo Exp $
  */
 
 package visad.data.netcdf.in;
@@ -29,13 +29,13 @@ VirtualData
     public abstract MathType
     getType()
 	throws VisADException;
-	
+
 
     /**
      * Gets the VisAD data object corresponding to this top-level, virtual,
      * data object.
      *
-     * @return			The VisAD data object corresponding to this 
+     * @return			The VisAD data object corresponding to this
      *				top-level, virtual, data object.
      * @throws VisADException	Couldn't create necessary VisAD object.
      * throws RemoteException	Remote access failure.
@@ -78,7 +78,7 @@ VirtualData
      *
      * @param context		The context in which the data is to be
      *				gotten.
-     * @return			The VisAD data object corresponding to this 
+     * @return			The VisAD data object corresponding to this
      *				virtual, data object.
      * @throws VisADException	Couldn't create necessary VisAD object.
      * throws RemoteException	Remote access failure.

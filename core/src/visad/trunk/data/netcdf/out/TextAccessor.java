@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: TextAccessor.java,v 1.2 1998-06-17 20:32:43 visad Exp $
+ * $Id: TextAccessor.java,v 1.3 2000-04-26 15:45:26 dglo Exp $
  */
 
 package visad.data.netcdf.out;
@@ -14,7 +14,7 @@ import visad.Text;
 
 
 /**
- * The TextAccessor class accesses character data in a VisAD Text that's 
+ * The TextAccessor class accesses character data in a VisAD Text that's
  * being adapted to a netCDF API.  It's useful for exporting data to a netCDF
  * dataset.
  */
@@ -47,12 +47,12 @@ TextAccessor
      * Return a datum given the split, netCDF indexes.
      *
      * @return		The datum at the position given by
-     *			<code>localIndexes</code> and 
+     *			<code>localIndexes</code> and
      *			<code>outerIndexes</code>.
      * @exception IOException
      *			Data access I/O failure.
      * @exception StringIndexOutOfBoundsException
-     *			The character position given by 
+     *			The character position given by
      *			<code>localIndexes</code> was out-of-bounds.
      */
     protected Object

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfQuantityDB.java,v 1.8 1999-01-21 17:44:45 steve Exp $
+ * $Id: NetcdfQuantityDB.java,v 1.9 2000-04-26 15:45:19 dglo Exp $
  */
 
 package visad.data.netcdf.in;
@@ -43,15 +43,15 @@ NetcdfQuantityDB
 	this.db = db;
     }
 
-	
+
     /**
      * Return the VisAD quantity corresponding to the best combination of
      * long name and name.
      *
-     * @param longName	The long name of the quantity.  May be 
+     * @param longName	The long name of the quantity.  May be
      *			<code>null</code>.
      * @param name	The name of the quantity.
-     * @return		The corresponding, unique, VisAD quantity or 
+     * @return		The corresponding, unique, VisAD quantity or
      *			<code>null</code> if no such quantity exists.
      */
     public Quantity
@@ -119,7 +119,7 @@ NetcdfQuantityDB
      * convertible with a given unit.
      *
      * @param unit	The unit of the quantity.
-     * @return		The quantities in the database whose unit is 
+     * @return		The quantities in the database whose unit is
      *			convertible with <code>unit</code>.
      */
     public Quantity[]
@@ -130,12 +130,12 @@ NetcdfQuantityDB
 
 
     /**
-     * Returns the quantity in the database whose name matches a 
+     * Returns the quantity in the database whose name matches a
      * given name.
      *
      * @param name	The name of the quantity.
      * @return		The quantity in the loal database that matches
-     *			<code>name</code>.  Note that 
+     *			<code>name</code>.  Note that
      *			RETURN_VALUE<code>.getName().equals(name)</code> can
      *			be <code>false due to aliasing.
      */

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -25,9 +25,9 @@ MA 02111-1307, USA
 */
 
 package visad.java2d;
- 
+
 import visad.*;
- 
+
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
@@ -121,7 +121,7 @@ public class MouseBehaviorJ2D implements MouseBehavior {
     double deg2rad = 1.0 / 57.2957;
     double[] matrix = new double[6];
     double[][] mat = new double[4][4];
-  
+
     /* Get sin and cosine values */
     sx = Math.sin(rotx * deg2rad);
     cx = Math.cos(rotx * deg2rad);
@@ -129,41 +129,41 @@ public class MouseBehaviorJ2D implements MouseBehavior {
     cy = Math.cos(roty * deg2rad);
     sz = Math.sin(rotz * deg2rad);
     cz = Math.cos(rotz * deg2rad);
-  
+
     /* Start with identity matrix */
     mat[0][0] = 1.0;  mat[0][1] = 0.0;  mat[0][2] = 0.0;  mat[0][3] = 0.0;
     mat[1][0] = 0.0;  mat[1][1] = 1.0;  mat[1][2] = 0.0;  mat[1][3] = 0.0;
     mat[2][0] = 0.0;  mat[2][1] = 0.0;  mat[2][2] = 1.0;  mat[2][3] = 0.0;
     mat[3][0] = 0.0;  mat[3][1] = 0.0;  mat[3][2] = 0.0;  mat[3][3] = 1.0;
-  
+
     /* Z Rotation */
     for (i=0;i<4;i++) {
       t = mat[i][0];
       mat[i][0] = t*cz - mat[i][1]*sz;
       mat[i][1] = t*sz + mat[i][1]*cz;
     }
- 
+
     /* X rotation */
     for (i=0;i<4;i++) {
       t = mat[i][1];
       mat[i][1] = t*cx - mat[i][2]*sx;
       mat[i][2] = t*sx + mat[i][2]*cx;
     }
- 
+
     /* Y Rotation */
     for (i=0;i<4;i++) {
       t = mat[i][0];
       mat[i][0] = mat[i][2]*sy + t*cy;
       mat[i][2] = mat[i][2]*cy - t*sy;
     }
- 
+
     /* Scale */
     for (i=0;i<3;i++) {
       mat[i][0] *= scale;
       mat[i][1] *= scale;
       mat[i][2] *= scale;
     }
- 
+
     /* Translation */
     mat[0][3] = transx;
     mat[1][3] = transy;

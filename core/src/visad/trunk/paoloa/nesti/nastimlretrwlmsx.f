@@ -1,15 +1,15 @@
       subroutine nastimlretrwlmsx(opt,ireal,kr,gamt,gamw,gamts,emis,
      $                            tair, rrfwd, pout)
 C***********************************************************************
-C July 22, 1998:  Include shortwave; also bais correction 
+C July 22, 1998:  Include shortwave; also bais correction
 C***********************************************************************
 C April 29, 1998: Apply to real data retrieval
 C***********************************************************************
 C Feb.09, Routine Generated for NASTI Retrieval Simulation Studies
 C***********************************************************************
 	parameter (mm=4196)
-	parameter    (nl=40,leng=3*nl+1,lenp=nl*3+25) 
-        parameter    (nch1=2199,nch2=3858,nch3=3070) 
+	parameter    (nl=40,leng=3*nl+1,lenp=nl*3+25)
+        parameter    (nch1=2199,nch2=3858,nch3=3070)
         PARAMETER ( NB=3, NCONS=3)
         parameter    (nnew=nch1+nch2+nch3)
 	parameter     (nchb1=112,nchb2=101)
@@ -22,7 +22,7 @@ c	parameter    (nselrec=26)
 	parameter    (nselrec=2)
 	dimension idxrec(nselrec)
 C *****
-        dimension nb1idx(188),nb1iox(18),nb2idx(287)            
+        dimension nb1idx(188),nb1iox(18),nb2idx(287)
         DIMENSION freqx(nnew),buf(nb,mm)
         DIMENSION KDO(NCONS),nbuse(nb),rrmin(nb)
 	REAL*8 vn,dwn(nb),freq(nb,maxcha),vxnast
@@ -68,7 +68,7 @@ c----------------------
 	character*84 modrmsbiasf1,modrmsbiasf2,modrmsbiasf3
 	character*84 twcoeff,inevf
         common/taudwo/taud(nl),tauw(nl),tauo(nl)
-        data xnos/0.1,0.15,0.15/                                         
+        data xnos/0.1,0.15,0.15/
 	data init/0/
 	data tbref/250.0/,ebig/0.0/,rmax/0.99/,rmin/0.05/
 	data innt/14,15,16/,inns/17,18,19/,inmod/3,4,5/
@@ -127,7 +127,7 @@ C Optimal CHANNELS
      $   1260,1266,1275,1292,1319,1327,1350,1361,1381,1400,
      $   1419,1477,1498,1520,1530,1540,1550,1560/
        data nb1iox/1636,1642,1651,1661,1677,1693,1702,1711,1718,1725,
-     $   1745,1755,1761,1767,1774,1780,1785,1792/               
+     $   1745,1755,1761,1767,1774,1780,1785,1792/
        data nb2idx/228,232,234,240,244,249,252,257,260,265,
      $   270,278,283,286,290,295,299,302,307,310,
      $   314,318,324,331,338,347,351,360,363,367,
@@ -156,9 +156,9 @@ C Optimal CHANNELS
      $   1801,1814,1825,1829,1834,1839,1842,1846,1849,1853,
      $   1861,1871,1874,1878,1882,1895,1908,1935,1940,1965,
      $   1984,2010,2057,2082,2095,2128,2156,2176,2212,2222,
-     $   2262,2280,2306,2326,2352,2362,2377/                    
+     $   2262,2280,2306,2326,2352,2362,2377/
 C *********************************************************************
-C **** Select from real data spectral 
+C **** Select from real data spectral
 	data b1idx/377,382,386,393,397,400,407,418,422,430,
      &             437,446,452,458,465,471,478,484,490,497,
      &             509,513,519,525,532,535,541,546,550,556,
@@ -192,10 +192,10 @@ C -----------------------------
 C	NAMELIST
 C --------------------------
         namelist /nlnastimlretrwlmsx/  trufile, rtvfile,
-     $     inbrt1, inbrt2, inbrt3, nosb1f, nosb2f, nosb3f, 
-     $     modrmsbiasf1,modrmsbiasf2,modrmsbiasf3,twcoeff,inevf, 
-     $     kobs,nstart,nend,nprt,inos,irtv,isw,ibias,ireal,iges, 
-     $     facnos, gamt, gamw, gamts, 
+     $     inbrt1, inbrt2, inbrt3, nosb1f, nosb2f, nosb3f,
+     $     modrmsbiasf1,modrmsbiasf2,modrmsbiasf3,twcoeff,inevf,
+     $     kobs,nstart,nend,nprt,inos,irtv,isw,ibias,ireal,iges,
+     $     facnos, gamt, gamw, gamts,
      $     emis, ref, cossun
 c***********************************************************************
 C *** Initialization !
@@ -224,7 +224,7 @@ C ***********************************************************************
 	enddo
 C **********************************************************************
 	do n=1,nnew
-	irx(n)=2*n+4453897 
+	irx(n)=2*n+4453897
 	enddo
 c***********************************************************************
 c * Assume a/c pressure is 50 mb
@@ -288,7 +288,7 @@ C *******************
 	freq(n,k)=vxnast(n,k)
 	dwn(n)=freq(n,2)-freq(n,1)
 c 	WRITE(*,'(''BAND ; CHAN & FREQ :'',2i9,f10.3)')
-c     $    N,K,FREQ(N,k)                      
+c     $    N,K,FREQ(N,k)
 	enddo
 	enddo
 C ***
@@ -331,7 +331,7 @@ C *****
        ENDDO
       ENDDO
 C **** Optimal Channels
-C Band 1 CO2 
+C Band 1 CO2
 c	do i=1,nchb1
 c         k=b1idx(i)
 c         kuse(k)=1
@@ -364,7 +364,7 @@ C**************************************************
       if(nx.ne.nnew) then
       write(*,'('' nx & nnew :'',2i6)') nx,nnew
       stop
-      endif 
+      endif
 C * GET TRACE GASES' PROFILE
       call tragac(6,trtv,h2ortv,o3rtv,n2ortv,cortv,ch4rtv)
 	do l=1,nl
@@ -388,7 +388,7 @@ C **** Using model noise !!!
         lenyy=nch(n)*4
         open(inmod(n),file=modrmsbiasf(n),recl=lenyy,access='direct',
      $    status='old')
-        enddo                                               
+        enddo
 	endif
 C *** For simulations !!!
 	if(ireal.eq.0) then
@@ -396,20 +396,20 @@ C *** For simulations !!!
         lenyy=nch(n)*4
         open(inss(n),file=inbrts(n),recl=lenyy,access='direct',
      $    status='old')
-        enddo                                               
+        enddo
 	endif
 ccc
         do n=1,nb
         lenyy=mm*4
-C *** Open the noise file 
+C *** Open the noise file
 	if(inos.eq.1) then
         open(inns(n),file=innos(n),recl=lenyy,access='direct',
      $    status='old')
 	endif
-C *** Open the observation file 
+C *** Open the observation file
         open(innt(n),file=inbrt(n),recl=lenyy,access='direct',
      $    status='old')
-        enddo                                               
+        enddo
 cccc
         nx=0
         do n=1,nb
@@ -426,7 +426,7 @@ cccc
         write(*,'('' number of tem. & water vapor eigenvectors used :'',
      $  2i4)') nt,nw
         write(*,'('' Total channel Input='',i6)') ksum
-        write(*,'('' facnos ; gamt;gamw;gamts:'',f7.2,3f9.4)') 
+        write(*,'('' facnos ; gamt;gamw;gamts:'',f7.2,3f9.4)')
      $	facnos,gamt,gamw,gamts
 C ** Basis functions
 	call tigrf(phssm,nl,leng,nt,nw,nz,ntot)
@@ -448,7 +448,7 @@ ccc ----- ADD ML
 	enddo
 ccc -----
 c        write(*,'('' gamma :'',10e8.2)') gamval
-c * open input true  profile 
+c * open input true  profile
 	lenr=lenp*4
 	open(ltru,file=trufile,access='direct',status='old',
      $      recl=lenr)
@@ -475,7 +475,7 @@ C **** Get the noise spectral
           do n=1,nb
            read(inns(n),rec=1) (buf(n,k),k=1,mm)
 	  enddo
-          call getnosb123(buf,radnos,mm,maxcha,nb) 
+          call getnosb123(buf,radnos,mm,maxcha,nb)
 	endif
 C     					            ------------------
 C                                                    Loop over profiles
@@ -495,7 +495,7 @@ ccc read in observation Radiances
            read(innt(n),rec=kr) (buf(n,k),k=1,mm)
 	  enddo
         else
-          cnt = 0 
+          cnt = 0
           do n=1,nb
            do k=1,mm
              if (k.LE.nch(n)) then
@@ -561,24 +561,24 @@ c
 		kry(l+nl)=kry(l+nl)+1
 		kry(l+2*nl)=kry(l+2*nl)+1
 		enddo
-		kry(leng)=kry(leng)+1	
+		kry(leng)=kry(leng)+1
 	write(*,'('' Lsfc:'',i5)')lsfc
 C ****
-          call getb123(buf,brtbuf,mm,maxcha,nb) 
+          call getb123(buf,brtbuf,mm,maxcha,nb)
 	  call nasticldchk(brtbuf,nb,maxcha,tb12,tb11,cflag)
 C *** For simulation !!!
 	if(ireal.eq.0) then
 	psurf=1000.0
-	lsfc=nl 
+	lsfc=nl
 	azen=0.0
-	acp=50.0	
+	acp=50.0
           do n=1,nb
            read(inss(n),rec=1) (brtbuf(n,k),k=1,nch(n))
 	  enddo
 	cflag=0.0
 	endif
 C ****
-C **** Fix to clear 
+C **** Fix to clear
 	write(*,'('' cflag:'',f10.3)')cflag
 C **** Do all retrievals !!!!
 c	if(cflag.ne.0.0) go to 3000
@@ -752,7 +752,7 @@ c		call deltau(tau,dtau,nl)
 	   do l=1,nl
 c	    twf(l)=dbdt(l)*dtau(l)
 	    twf(l)=dbdt(l)*tauw(l)*dtau(l)
-	    enddo	
+	    enddo
 c * w.f. of Water Vapor
 	 do l=1,nl
 	   qwf(l)=0.0
@@ -788,7 +788,7 @@ c * w.f. of Ozone
 	owf(l)=owf(l)*datauw(l)
 	enddo
 	owf(1)=0.0
-c * w.f. of surface temperature 
+c * w.f. of surface temperature
 	tswf=tau(lsfc)*dbdt(lsfc)
 
 		do l=1,nl
@@ -820,7 +820,7 @@ c	enddo
 	     ksum1=0
 	     ksum2=0
 	     do 2600 k=1,nnew
-	      del(k) = tbbo(k) - tbbc(k) 
+	      del(k) = tbbo(k) - tbbc(k)
 C **** Put more constrains
 c	      if(mpass.eq.0) then
 c	        if(abs(del(k)).ge.7.0) kuse(k)=0
@@ -830,7 +830,7 @@ C ***
 c	      endif
 c	write(*,'('' N, TBBO, TBBC, DELTA TB:'',i5,3f10.3)')
 c     &   k,tbbo(k),tbbc(k),del(k)
-c*** 
+c***
 	       if(k.le.nch1) then
 	       ksum1=ksum1+kuse(k)
 	       dtbrms10 = dtbrms10+del(k)*del(k)*float(kuse(k))
@@ -838,7 +838,7 @@ c***
 	       ksum2=ksum2+kuse(k)
 	       dtbrms20 = dtbrms20+del(k)*del(k)*float(kuse(k))
 	       endif
-               deltb(k)=del(k) * esr(k) * float(kuse(k)) 
+               deltb(k)=del(k) * esr(k) * float(kuse(k))
 		do l=1,ntot
 		awf(k,l)=awf(k,l) * esr(k) * float(kuse(k))
 		enddo
@@ -857,11 +857,11 @@ C *** March 09, 1998, Jun Li
 	       write(*,'('' Number of Channel used='',i6)') ksum
 c	       write(*,'('' DTBRMS10 & 20='',2f10.3)') dtbrms10,dtbrms20
 	       write(*,'('' DTBRMS0 ='',f10.3)') dtbrms0
-	         dtbrmsg=dtbrms0 
-	         dtbrmsg1=dtbrms10 
-	         dtbrmsg2=dtbrms20 
+	         dtbrmsg=dtbrms0
+	         dtbrmsg1=dtbrms10
+	         dtbrmsg2=dtbrms20
 	     endif
-c * compute solution matrix 
+c * compute solution matrix
 	call RTVSOL(awf,gamval,gamf,xtx,xiv,xit,ntot,nnew)
 c * compute retrieval delt & delw & deltsfc
 	 do i=1,ntot
@@ -881,7 +881,7 @@ C ---------- Add ML
 	enddo
 C ----------
 	deof=0.0
-		do l=1,ntot  
+		do l=1,ntot
 	deof=deof+(coef1(l)-coef0(l))*(coef1(l)-coef0(l))
 	enddo
 	deof=sqrt(deof)
@@ -917,7 +917,7 @@ c	do L=1,9
 c	prtvf(L+nl)=0.003
 c	enddo
 C ****
-         do l=1,nl  
+         do l=1,nl
           trtv(l)=prtvf(l)
           h2ortv(l)=prtvf(l+nl)
           o3rtv(l)=prtvf(l+2*nl)
@@ -946,7 +946,7 @@ C ********
 	    ksum2=0
             do k=1,nnew
              delx=tbbo(k) - tbbc(k)
-	    	if(k.le.nch1) then 
+	    	if(k.le.nch1) then
 	     ksum1=ksum1+kuse(k)
 	     dtbrms11 = dtbrms11 + delx * delx * float(kuse(k))
 	        else
@@ -973,7 +973,7 @@ C ********
 	do j=1,leng
 	prtvf(j)=prtvfm(j)
 	enddo
-        do l=1,nl  
+        do l=1,nl
           trtv(l)=prtvf(l)
           h2ortv(l)=prtvf(l+nl)
           o3rtv(l)=prtvf(l+2*nl)
@@ -981,14 +981,14 @@ C ********
          tsurfrtv=prtvf(leng)
 	do l=1,ntot
 	coef1(l)=coef0(l)
-	enddo	
+	enddo
 	dtbrms1=dtbrms0
 c	if(ifail.ge.3.or.mpass.gt.iterat) go to 26000
 	if(ifail.ge.10.or.mpass.gt.iterat) go to 26000
 	else
 c*** ah 10/1/97
 	ifail=0
-c*** 
+c***
 	write(*,'('' CONVERGES !!!'')')
 	mpass=mpass+1
 	gamf=0.5*gamf
@@ -1008,11 +1008,11 @@ c     $  deof0,deof
 c	ifail=0
 	deof0=deof
 c	write(*,'('' coef : '')')
-c	write(*,'(1x, 5e14.2)') coef1 
+c	write(*,'(1x, 5e14.2)') coef1
 C ************* Output prtvf for the current iteration here !!!
 C *************
 	go to 10000
-26000	write(*,'('' EXIT AT MPASS & IFAIL=:'', 2i4)') mpass,ifail 
+26000	write(*,'('' EXIT AT MPASS & IFAIL=:'', 2i4)') mpass,ifail
 C ********
 6666	continue
 C ********
@@ -1046,7 +1046,7 @@ c		enddo
 	  dtbrms=dtbrms1
             dtbdif=dtbrms-dtbrmsg
 777      continue
-        write(*,'('' rmse of dtbg ; dtbr & dif: '',3f9.2)') 
+        write(*,'('' rmse of dtbg ; dtbr & dif: '',3f9.2)')
      $  dtbrmsg,dtbrms,dtbdif
         rmsedtbg=rmsedtbg+dtbrmsg
         rmsedtbr=rmsedtbr+dtbrms
@@ -1104,7 +1104,7 @@ ccc*****
                  rmse2(l) = rmse2(l) + dt2 * dt2
                  rmse1(lx) = rmse1(lx) + dw1 * dw1
                  rmse2(lx) = rmse2(lx) + dw2 * dw2
-		 write(*,'(1x,f8.2,6f11.3)') 
+		 write(*,'(1x,f8.2,6f11.3)')
      $		 pobs(l),tair(l),dt1,dt2,tair(lx),dw1,dw2
 		enddo
 C	--------------------------------------------------
@@ -1112,7 +1112,7 @@ C	August 29, 1998: print out the comparison with raob !!!
 C	--------------------------------------------------
 		if(kr.eq.nprt) then
 		do l=1,nl
-		 write(*,'(1x,f8.2,6f11.3)') 
+		 write(*,'(1x,f8.2,6f11.3)')
      $		 pobs(l),tair(l),prtv0(l),prtvf(l),tdair(l),
      $           tdges(l),tdrtv(l)
 		enddo
@@ -1127,7 +1127,7 @@ c		 dt1p=100.0*dt1/tair(l)
 c		 dt2p=100.0*dt2/tair(l)
 c                 rmse1p(l) = rmse1p(l) + dt1p * dt1p
 c                 rmse2p(l) = rmse2p(l) + dt2p * dt2p
-c		 write(*,'(1x,f8.2,4f10.2)') 
+c		 write(*,'(1x,f8.2,4f10.2)')
 c     $		 pobs(l-nl),tair(l),dt1,dt2
 c		enddo
 c	write(*,'('' Press     O-Raob    1st-guess  Final-rtv  '')')
@@ -1136,7 +1136,7 @@ c                 dt1 = tair(l) - prtv0(l)
 c                 dt2 = tair(l) - prtvf(l)
 c                 rmse1(l) = rmse1(l) + dt1 * dt1
 c                 rmse2(l) = rmse2(l) + dt2 * dt2
-c		 write(*,'(1x,f8.2,4f10.2)') 
+c		 write(*,'(1x,f8.2,4f10.2)')
 c     $		 pobs(l-2*nl),tair(l),dt1,dt2
 c		enddo
 	dts1 = tair(3*nl+1) - prtv0(leng)
@@ -1145,13 +1145,13 @@ c		enddo
 	rmse2(leng) = rmse2(leng) + dts2 * dts2
 	write(*,'('' Tskin-Raob  1st-guess & Final-rtv :'',3f8.3)')
      $     tair(3*nl+1), dts1, dts2
-	
+
 c				  ----------------------------
 c				       write  rtv profile
 c				  ----------------------------
 C **** Put some information for DISPLAY
 C * View angle
-	pout(126)=viewang	
+	pout(126)=viewang
 C * Cloud check
 	pout(127)=cflag
 C * Surface pressure
@@ -1159,22 +1159,22 @@ C * Surface pressure
 C * Surface level
 	pout(129)=lsfc
 C * Latitude
-	pout(133)=buf(1,51)	
+	pout(133)=buf(1,51)
 C * Longitude
-	pout(134)=buf(1,52)	
+	pout(134)=buf(1,52)
 C * Time
-	pout(135)=buf(1,24)	
+	pout(135)=buf(1,24)
 C * Year
-	pout(136)=buf(1,17)	
+	pout(136)=buf(1,17)
 C * Month
-	pout(137)=buf(1,18)	
+	pout(137)=buf(1,18)
 C * Day
-	pout(138)=buf(1,19)	
+	pout(138)=buf(1,19)
 C * Pressure (replace ozone with pressure !!!)
 	do L=1,nl
 	pout(2*nl+L)=pobs(L)
 	enddo
-Cpaolo the recordlenght is 145 
+Cpaolo the recordlenght is 145
 Cpaolo	     write(lrtv,rec=kr) pout
 C ****
  2900 continue
@@ -1235,7 +1235,7 @@ c           write(*,'(1x,f8.1,2x,f7.3,2x,f7.3)')
 c     $     pobs(l),rmse1(lx),rmse2(lx)
 c        enddo
         write(*,'('' tsurfc : '',2f8.3)') rmse1(leng),rmse2(leng)
-        write(*,'('' Below 1 mb : '')') 
+        write(*,'('' Below 1 mb : '')')
         write(*,'('' rmse1mt & rmse2mt : '',2f8.3)') rmse1mx,rmse2mx
         write(*,'('' rmse1mw & rmse2mw : '',2f8.4)') rmse1mw,rmse2mw
         write(*,'('' rmse1mo & rmse2mo : '',2f8.4)') rmse1mo,rmse2mo
@@ -1253,7 +1253,7 @@ cc***
 	close(inmod(nbb))
 	endif
 	enddo
-        return	
+        return
         end
 c
 C
@@ -1321,27 +1321,27 @@ c	DTAU(1)=0.5*(TAU(1)-TAU(2))
 	DTAU(NL)=0.5*(TAU(NL-1)-TAU(NL))
 	RETURN
 	END
-c***	 
+c***
 	SUBROUTINE RTVSOL(WF,GAM,GAMF,ATA,ANV,AIT,MLYR,NW)
 C *   M.I.F. or M.L.H. SOLUTION
 C     MLYR = NO. OF LEVELS OF RETRIEVAL
-C     NW = NO. OF CHANNELS USED 
-C	IMPLICIT REAL*8 (A-H,O-Z)  
+C     NW = NO. OF CHANNELS USED
+C	IMPLICIT REAL*8 (A-H,O-Z)
         REAL*8 SUM
-	REAL*4 WF(NW,MLYR),GAM(MLYR,MLYR),AIT(MLYR,NW)  
+	REAL*4 WF(NW,MLYR),GAM(MLYR,MLYR),AIT(MLYR,NW)
 	REAL*8 ATA(MLYR,MLYR),ANV(MLYR,MLYR)
 
 	DO 110 J=1,MLYR
 	DO 110 I=1,J
-	SUM=0.0D0 
+	SUM=0.0D0
 	DO 100 K=1,NW
   100 SUM=SUM+DBLE(WF(K,J)*WF(K,I))
-       ATA(I,J)=SUM 
-       ATA(J,I)=SUM 
-  110 CONTINUE 
+       ATA(I,J)=SUM
+       ATA(J,I)=SUM
+  110 CONTINUE
 C
 c	 DO 115 J=1,MLYR
-c  115  ATA(J,J)=ATA(J,J)+DBLE(GAM(J))   
+c  115  ATA(J,J)=ATA(J,J)+DBLE(GAM(J))
 C --------------
 	do i=1,mlyr
 	do j=1,mlyr
@@ -1359,7 +1359,7 @@ C    **********INVERSE* A TRANSPOSE
 250	CONTINUE
 	AIT(I,J)=SNGL(SUM)
 200	CONTINUE
-	RETURN 
+	RETURN
 	END
 CCCCCC
 	SUBROUTINE GETWQ(WQ,TEM,TAUT,NL,LSTA,DBDT,TSWQ)
@@ -1435,7 +1435,7 @@ c
 	close(iuw)
 	close(iuz)
 	return
-	end			
+	end
 c
 	real*8 function vxnast(iban,ipnt)
 c * NAST-I: wavenumber for given band and point
@@ -1751,7 +1751,7 @@ c ... version of 19.09.96
 
 c  PURPOSE:
 
-c    Routine to calculate the predictors for the dry (temperature), 
+c    Routine to calculate the predictors for the dry (temperature),
 c      wet and ozone components of a fast transmittance model for a
 c      scanning satellite based instrument.
 
@@ -1822,13 +1822,13 @@ c      Layer L-1 => Atmosphere between LEVELs L-1 & L
 c    Layer Numbering pt. B
 c    ---------------------
 c      For the HIS instrument, Layer 1 is at the top of the atmosphere
-c        and Layer L-1 is at the surface.    
+c        and Layer L-1 is at the surface.
 
 c    Layer Numbering pt. C
 c    ---------------------
 c      In this routine the number of *LAYERS* is passed in the argument
 c        list, _not_ the number of LEVELS.  This was done to improve
-c        the readability of this code, i.e. loop from 1->L(ayers) 
+c        the readability of this code, i.e. loop from 1->L(ayers)
 c        rather than from 1->L(evels)-1.
 
 c=======================================================================
@@ -1896,7 +1896,7 @@ c     ....Water vapour
      +          pw_wet_ratio(max_layers)    ! Pressure weighted
 
 c     ....Ozone
-      real*4    ozo_ratio(max_layers), 
+      real*4    ozo_ratio(max_layers),
      +          pw_ozo_ratio(max_layers),   ! Pressure weighted
      +          pow_t_ratio(max_layers)     ! Pressure/ozone weighted
 
@@ -1911,7 +1911,7 @@ c------------------------------------------------------------------------
       if( n_layers .gt. max_layers )then
         write(*,'(/10x,''*** calpir : n_layers > max_layers'')')
         stop
-      end if 
+      end if
 
 c------------------------------------------------------------------------
 c         -- Check that numbers of predictors is consistent --
@@ -1924,7 +1924,7 @@ c     ---------------------------------
       if( n_dry_pred .ne. max_dry_pred )then
         write(*,'(/10x,''*** calpir : invalid n_dry_pred'')')
         stop
-      end if 
+      end if
 
 c     ----------------------------
 c     # of water vapour predictors
@@ -1933,7 +1933,7 @@ c     ----------------------------
       if( n_wet_pred .ne. max_wet_pred )then
         write(*,'(/10x,''*** calpir : invalid n_wet_pred'')')
         stop
-      end if 
+      end if
 
 c     ---------------------
 c     # of ozone predictors
@@ -1942,7 +1942,7 @@ c     ---------------------
       if( n_ozo_pred .ne. max_ozo_pred )then
         write(*,'(/10x,''*** calpir : invalid n_ozo_pred'')')
         stop
-      end if 
+      end if
 
 c     --------------------------------------
 c     # of water vapour continuum predictors
@@ -1951,7 +1951,7 @@ c     --------------------------------------
       if( n_con_pred .ne. max_con_pred )then
         write(*,'(/10x,''*** calpir : invalid n_con_pred'')')
         stop
-      end if 
+      end if
 
 c------------------------------------------------------------------------
 c         -- Calculate ratios, offsets, etc, for top layer --
@@ -1977,7 +1977,7 @@ c     Amount variables
 c     ----------------
 
 c     ....Water vapour
- 
+
       wet_ratio(1)    = amt_wet(1) / amt_wet_ref(1)
       pw_wet(1)       = p_dp(1) * amt_wet(1)
       pw_wet_ref(1)   = p_dp(1) * amt_wet_ref(1)
@@ -2019,7 +2019,7 @@ c       ..Water vapour
         wet_ratio(l)  = amt_wet(l) / amt_wet_ref(l)
         pw_wet(l)     = pw_wet(l-1) + ( p_dp(l) * amt_wet(l) )
         pw_wet_ref(l) = pw_wet_ref(l-1) + ( p_dp(l) * amt_wet_ref(l) )
-        
+
 c       ..Ozone
 
         ozo_ratio(l)    = amt_ozo(l) / amt_ozo_ref(l)
@@ -2040,7 +2040,7 @@ c------------------------------------------------------------------------
         pw_wet_ratio(l) = pw_wet(l) / pw_wet_ref(l)
         pw_ozo_ratio(l) = pw_ozo_ratio(l) / p_norm(l)
         pow_t_ratio(l)  = pow_t_ratio(l) / p_norm(l)
- 
+
       end do
 
 c------------------------------------------------------------------------
@@ -2060,7 +2060,7 @@ c       ----------------------
         pred_dry(5,l) = t_ratio(l)
         pred_dry(6,l) = t_ratio(l) * t_ratio(l)
         pred_dry(7,l) = sec_theta(l) * pw_t_ratio(l)
-        pred_dry(8,l) = pred_dry(7,l) / t_ratio(l) 
+        pred_dry(8,l) = pred_dry(7,l) / t_ratio(l)
 
 c       -----------------------
 c       Water vapour predictors
@@ -2099,13 +2099,13 @@ c       Water vapour continuum predictors
 c       ---------------------------------
 
         pred_con(1,l) = sec_theta(l) * wet_ratio(l) /
-     *	 	    ( t_ratio(l) * t_ratio(l) )  
+     *	 	    ( t_ratio(l) * t_ratio(l) )
         pred_con(2,l) = pred_con(1,l) * pred_con(1,l) / sec_theta(l)
-        pred_con(3,l) = sec_theta(l) * wet_ratio(l) / t_ratio(l) 
+        pred_con(3,l) = sec_theta(l) * wet_ratio(l) / t_ratio(l)
         pred_con(4,l) = pred_con(3,l) * wet_ratio(l)
 
       end do
-         
+
       return
       end
 ccccccccc
@@ -2202,7 +2202,7 @@ c-----------------------------------------------------------------------
 
 c -- Arrays
 
-      real*4    p(*), t(*), w(*), o(*), 
+      real*4    p(*), t(*), w(*), o(*),
      +          p_avg(*), t_avg(*), w_amt(*), o_amt(*)
 
 c -- Scalars
@@ -2236,7 +2236,7 @@ c -- Parameters
 
       real*4    R_gas, R_air
       parameter ( R_gas = 8.3143,           ! Ideal gas constant (J/mole/K)
-     +            R_air = 0.9975*R_gas )    ! Gas constant for air (worst case) 
+     +            R_air = 0.9975*R_gas )    ! Gas constant for air (worst case)
 
 c -- Scalars
 
@@ -2331,7 +2331,7 @@ c       -------
      +         g_sfc*( 1.0 - ( (r_avg*r_avg)/(r_hgt*r_hgt) ) )
 
       end do
- 
+
 c-----------------------------------------------------------------------
 c                        -- LAYER quantities --
 c-----------------------------------------------------------------------
@@ -2363,10 +2363,10 @@ c       -------------------------------------------------------
 c       ---------------------------------------
 c       Assign current layer boundary densities
 c       ---------------------------------------
- 
+
         rho1 = rho_air(l)
         rho2 = rho_air(l-i_dir)
- 
+
 c       ---------
 c       Average c
 c       ---------
@@ -2377,7 +2377,7 @@ c       ---------
 c       Average t
 c       ---------
 
-        t_avg(l_indx) = 
+        t_avg(l_indx) =
      +          ( (rho1*t(l)) + (rho2*t(l-i_dir)) ) / ( rho1 + rho2 )
 
 c       ---------
@@ -2411,7 +2411,7 @@ c       ...Calculate z_avg
         z_avg = z(l) + ( 0.5*dz )
 
 c       ...Calculate new g_avg
-        r_hgt = r_avg + z_avg 
+        r_hgt = r_avg + z_avg
         g_avg = g_sfc - g_sfc*( 1.0 - ( (r_avg*r_avg)/(r_hgt*r_hgt) ) )
 
 c       ...Calculate new dz
@@ -2438,7 +2438,7 @@ c       ---------------------------------
 
         o_avg =  ( (rho1*o1) + (rho2*o2) ) / ( rho1+rho2 )
 
-        o_amt(l_indx) = 
+        o_amt(l_indx) =
      +       rho_ref * o_avg * dz * p_avg(l_indx) / t_avg(l_indx)
 
       end do
@@ -2503,7 +2503,7 @@ c-----------------------------------------------------------------------
 
 c -- Arrays
 
-      real*4    p(*), t(*), w(*), 
+      real*4    p(*), t(*), w(*),
      +          z(*)
 
 c -- Scalars
@@ -2519,7 +2519,7 @@ c-----------------------------------------------------------------------
 c -- Parameters
 
       real*4    rog, fac
-      parameter ( rog = 29.2898, 
+      parameter ( rog = 29.2898,
      +            fac = 0.5 * rog )
 
 c -- Scalars
@@ -2586,9 +2586,9 @@ c       ----------------------------------------------------
         if( p(l) .ge. 300.0 )
      +    v_upper = v_upper * ( 1.0 + ( 0.00061 * w(l) ) )
 
-c       ----------------------------------------------------- 
+c       -----------------------------------------------------
 c       Calculate exponential pressure height for upper layer
-c       ----------------------------------------------------- 
+c       -----------------------------------------------------
 
         algp_upper = alog( p(l) )
 
@@ -3003,7 +3003,7 @@ c * 895 1/cm - 905 1/cm (1142-1184)
           do k=1142,1184
              kc=kc+1
              tbw=tbw+brt(1,k)
-          enddo 
+          enddo
           tbw=tbw/float(kc)
 c * 12 microns Brightness Temp. (Averaged)
 c * 828 1/cm - 838 1/cm (864-905)
@@ -3012,7 +3012,7 @@ c * 828 1/cm - 838 1/cm (864-905)
           do k=864,905
              kc=kc+1
              tb12=tb12+brt(1,k)
-          enddo 
+          enddo
           tb12=tb12/float(kc)
 c * 11 microns Brightness Temp. (Averaged)
 c * 904 1/cm - 914 1/cm (1179-1220)
@@ -3021,7 +3021,7 @@ c * 904 1/cm - 914 1/cm (1179-1220)
           do k=1179,1220
              kc=kc+1
              tb11=tb11+brt(1,k)
-          enddo 
+          enddo
           tb11=tb11/float(kc)
 c * 10 microns Brightness Temp. (Averaged)
 c * 995 1/cm - 1005 1/cm (1557-1598)
@@ -3030,9 +3030,9 @@ c * 995 1/cm - 1005 1/cm (1557-1598)
           do k=1557,1598
              kc=kc+1
              tb10=tb10+brt(1,k)
-          enddo 
+          enddo
           tb10=tb10/float(kc)
-c * Cloud detection 
+c * Cloud detection
 c * (0-clear ; 1-water cloud ; 2-ice cloud ; 3-Mixed cloud ; 4-opaque cloud)
         tb11m10=abs(tb11-tb10)
         tb12m11=abs(tb12-tb11)
@@ -3147,7 +3147,7 @@ c      WRITE(*,'('' FINISHING LOOP 250 !'')')
       RETURN
       END
 C **************************
-        subroutine getb123(buf,btc,mm,nchm,nb) 
+        subroutine getb123(buf,btc,mm,nchm,nb)
 C * April 06, read nasti real data, then reformat to FW format
         parameter (maxcha=4096,nhw=100)
 	parameter (nch1=2199,nch2=3858,nch3=3070)
@@ -3171,10 +3171,10 @@ c
       	ENDDO
 c
 	do n=1,nb    !  BAND LOOP !!!
-	   do L=nhw+1,mm    
+	   do L=nhw+1,mm
 	    LX=L-nhw
 	    brt(n,LX)=buf(n,L)
-	   enddo  
+	   enddo
 	do k=1,nch(n)
 	kx=k+noff(n)
 	btc(n,k)=0.0
@@ -3186,7 +3186,7 @@ c
 	endif
 	enddo
 	enddo 	  !  BAND LOOP END !!!
-C 
+C
 	return
         end
 c
@@ -3297,23 +3297,23 @@ c * convert from 100's of feet to meters
 
 191	write(*,192) ios,cfile
 192	format('OPEN error IOSTAT =',i8,' FILE = ',a12)
-	return1 
+	return1
 193	write(*,194) ios,cfile,irec
 194	format('READ error IOSTAT =',i8,' FILE = ',a12,
      *       ' REC# = ',i4)
-	return2 
+	return2
 	end
 C *********
-	function pfromz(zsfc)  
+	function pfromz(zsfc)
 c * Estimate surface pressure from elevation,
 c	based on standard atmosphere.
 c .... version of 13.04.98
 
-	t = 288. - .0065*zsfc  
+	t = 288. - .0065*zsfc
 	p = 1013.25 * (t/288.) ** 5.2549964
 	pfromz = p
 
-	return 
+	return
 	end
 C *************
       function lbit(j,array)
@@ -3353,13 +3353,13 @@ c * nty : Tem (40) ; H2O (40) ; O3 (40) ; Tskin (1)
         dimension coeftw(ntwx,ntwy)
         dimension xtw(ntwx),ytw(ntwy)
         dimension y(leng),ytwb(ntwy)
-        dimension nbeg(2),nend(2),bt(nuse)                          
+        dimension nbeg(2),nend(2),bt(nuse)
         dimension cc(nxx),vcv(nuse,nxx)
 	real*8 work(nuse)
 	integer*4 b1idx(nchb1),b2idx(nchb2),nchb(2)
 	data iuctw/11/
 	data iev/10/
-c        data nbeg/209,416/,nend/1868,1868/                                   
+c        data nbeg/209,416/,nend/1868,1868/
 C * April 28, 1998
         data nbeg/458,1038/,nend/1868,1453/
 
@@ -3415,7 +3415,7 @@ cccc
         enddo
 c * Make sure the sum of (Vec)*(Vec)Transport are all ones
 c        write(*,'('' SUM of E-V='',f10.3)')sum
-        enddo                                                       
+        enddo
 cccc
 	write(*,'('' Begin to read coef. of T and YTB !!!'')')
 	do i=1,ntwx
@@ -3436,8 +3436,8 @@ cccc
 	   do n=1,2
 c           do k=nbeg(n),nend(n)
            do kj=1,nchb(n)
-	    if(n.eq.1)k=b1idx(kj) 
-	    if(n.eq.2)k=b2idx(kj) 
+	    if(n.eq.1)k=b1idx(kj)
+	    if(n.eq.2)k=b2idx(kj)
             kx=kx+1
             bt(kx)=brt(n,k)
            enddo
@@ -3445,7 +3445,7 @@ c           do k=nbeg(n),nend(n)
         if(nuse.ne.kx) then
           write(*,'('' I/O problem ; nuse;kx='',2i8)') nuse,kx
           stop
-        endif                                                              
+        endif
 c *********
 C * Transform Tbs to Eigen-Vector domain
         do i=1,nxx
@@ -3458,7 +3458,7 @@ C * Transform Tbs to Eigen-Vector domain
 c * Surface pressure (mb)
         xtw(nxx+1) = psurf
 c * Local zenith angle (degree)
-        xtw(nxx+2)=100.0 /cos(zena*0.01745329)  
+        xtw(nxx+2)=100.0 /cos(zena*0.01745329)
 C *********
 	do i=1,ntwy
 	sum=0.0
@@ -3470,11 +3470,11 @@ C *********
         y(i)=exp(y(i))
         endif
 	enddo
-c 
+c
 	return
         end
 c
-        subroutine getnosb123(buf,btc,mm,nchm,nb) 
+        subroutine getnosb123(buf,btc,mm,nchm,nb)
 C * April 06, read nasti real data, then reformat to FW format
         parameter (maxcha=4096,nhw=100)
 	parameter (nch1=2199,nch2=3858,nch3=3070)
@@ -3502,10 +3502,10 @@ c
       	ENDDO
 c
 	do n=1,nb    !  BAND LOOP !!!
-	   do L=nhw+1,mm    
+	   do L=nhw+1,mm
 	    LX=L-nhw
 	    brt(n,LX)=buf(n,L)
-	   enddo  
+	   enddo
 	do k=1,nch(n)
 	kx=k+noff(n)
 	btc(n,k)=0.0
@@ -3517,7 +3517,7 @@ c
 	endif
 	enddo
 	enddo 	  !  BAND LOOP END !!!
-C 
+C
 	return
         end
 C ***
@@ -3534,7 +3534,7 @@ C $$ CHOP=VAS,UTILITY
       CHOP=Y
       RETURN
       END
-C ***                                                      
+C ***
       FUNCTION WSAT(P,T)
 C $ FUNCTION WSAT(P,T)                   (BTR)
 C $ GET MIXING RATIO, GIVEN P, T (ASSUME DEWPOINT DEPRESSION = 0)
@@ -3545,7 +3545,7 @@ C $$ WSAT = VAS,COMPUTATION
       WSAT=WS
       RETURN
       END
-C ******************                      
+C ******************
       SUBROUTINE WMIX(P,T,DD,W,NL)
 C $ GET MIXING RATIO, GIVEN P, T, TD
 C $ P = (R) INPUT  PRESSURE
@@ -3569,33 +3569,33 @@ CCCC3 ES=SATVAP(TD)
    10 CONTINUE
       RETURN
       END
-C                                                                           
-      FUNCTION SVPICE(TEMP)                                                   
-C     SATURATION VAPOR PRESSURE OVER ICE                                      
-C **** TEMP MUST BE IN DEGREES KELVIN                                         
-      REAL*8 T,A0,A1,A2,A3,A4,A5                                              
-      DATA A0/.7859063157D0/,A1/.3579242320D-1/,A2/-.1292820828D-3/,          
-     *     A3/.5937519208D-6/,A4/.4482949133D-9/,A5/.2176664827D-10/          
-      T=TEMP-273.16                                                           
-      E=A0+T*(A1+T*(A2+T*(A3+T*(A4+T*A5))))                                   
-      SVPICE=10.**E                                                           
-      RETURN                                                                  
-      END                                                                     
+C
+      FUNCTION SVPICE(TEMP)
+C     SATURATION VAPOR PRESSURE OVER ICE
+C **** TEMP MUST BE IN DEGREES KELVIN
+      REAL*8 T,A0,A1,A2,A3,A4,A5
+      DATA A0/.7859063157D0/,A1/.3579242320D-1/,A2/-.1292820828D-3/,
+     *     A3/.5937519208D-6/,A4/.4482949133D-9/,A5/.2176664827D-10/
+      T=TEMP-273.16
+      E=A0+T*(A1+T*(A2+T*(A3+T*(A4+T*A5))))
+      SVPICE=10.**E
+      RETURN
+      END
 C ***
-      FUNCTION SVPWAT(TEMP)                                                   
-C     SATURATION VAPOR PRESSURE OVER WATER                                    
-C **** TEMP MUST BE IN DEGREES KELVIN                                         
-      REAL*8 B,S,T,A0,A1,A2,A3,A4,A5,A6,A7,A8,A9                              
-      DATA A0/.999996876D0/,A1/-.9082695004D-2/,A2/.7873616869D-4/,           
-     *  A3/-.6111795727D-6/,A4/.4388418740D-8/,A5/-.2988388486D-10/,          
-     *  A6/.2187442495D-12/,A7/-.1789232111D-14/,A8/.1111201803D-16/,         
-     *  A9/-.3099457145D-19/,B/.61078D+1/                                     
-      T=TEMP-273.16                                                           
-      S=A0+T*(A1+T*(A2+T*(A3+T*(A4+T*(A5+T*(A6+T*(A7+T*(A8+T*A9))))))))       
-      S=B/S**8                                                                
-      SVPWAT=S                                                                
-      RETURN                                                                  
-      END                                                                     
+      FUNCTION SVPWAT(TEMP)
+C     SATURATION VAPOR PRESSURE OVER WATER
+C **** TEMP MUST BE IN DEGREES KELVIN
+      REAL*8 B,S,T,A0,A1,A2,A3,A4,A5,A6,A7,A8,A9
+      DATA A0/.999996876D0/,A1/-.9082695004D-2/,A2/.7873616869D-4/,
+     *  A3/-.6111795727D-6/,A4/.4388418740D-8/,A5/-.2988388486D-10/,
+     *  A6/.2187442495D-12/,A7/-.1789232111D-14/,A8/.1111201803D-16/,
+     *  A9/-.3099457145D-19/,B/.61078D+1/
+      T=TEMP-273.16
+      S=A0+T*(A1+T*(A2+T*(A3+T*(A4+T*(A5+T*(A6+T*(A7+T*(A8+T*A9))))))))
+      S=B/S**8
+      SVPWAT=S
+      RETURN
+      END
 C ***********************************************
         FUNCTION ANOISE(IX,SD,XM)
 C
@@ -3674,13 +3674,13 @@ c * nty : Tem (40) ; H2O (40) ; O3 (40) ; Tskin (1)
         dimension coeftw(ntwx,ntwy)
         dimension xtw(ntwx),ytw(ntwy)
         dimension y(leng),ytwb(ntwy)
-        dimension nbeg(2),nend(2),bt(nuse)                          
+        dimension nbeg(2),nend(2),bt(nuse)
         dimension cc(nxx),vcv(nuse,nxx)
 	real*8 work(nuse)
 	integer*4 b1idx(nchb1),b2idx(nchb2),nchb(2)
 	data iuctw/11/
 	data iev/10/
-c        data nbeg/209,416/,nend/1868,1868/                                   
+c        data nbeg/209,416/,nend/1868,1868/
 C * April 28, 1998
         data nbeg/458,1038/,nend/1868,1453/
 
@@ -3736,7 +3736,7 @@ cccc
         enddo
 c * Make sure the sum of (Vec)*(Vec)Transport are all ones
 c        write(*,'('' SUM of E-V='',f10.3)')sum
-        enddo                                                       
+        enddo
 cccc
 	write(*,'('' Begin to read coef. of T and YTB !!!'')')
 	do i=1,ntwx
@@ -3759,8 +3759,8 @@ C **** B1 only; August 09, 1998
 		if(n.eq.2) go to 2400
 c           do k=nbeg(n),nend(n)
            do kj=1,nchb(n)
-	    if(n.eq.1)k=b1idx(kj) 
-	    if(n.eq.2)k=b2idx(kj) 
+	    if(n.eq.1)k=b1idx(kj)
+	    if(n.eq.2)k=b2idx(kj)
             kx=kx+1
             bt(kx)=brt(n,k)
            enddo
@@ -3768,7 +3768,7 @@ c           do k=nbeg(n),nend(n)
         if(nuse.ne.kx) then
           write(*,'('' I/O problem ; nuse;kx='',2i8)') nuse,kx
           stop
-        endif                                                              
+        endif
 c *********
 C * Transform Tbs to Eigen-Vector domain
         do i=1,nxx
@@ -3781,7 +3781,7 @@ C * Transform Tbs to Eigen-Vector domain
 c * Surface pressure (mb)
         xtw(nxx+1) = psurf
 c * Local zenith angle (degree)
-        xtw(nxx+2)=100.0 /cos(zena*0.01745329)  
+        xtw(nxx+2)=100.0 /cos(zena*0.01745329)
 C *********
 	do i=1,ntwy
 	sum=0.0
@@ -3793,7 +3793,7 @@ C *********
         y(i)=exp(y(i))
         endif
 	enddo
-c 
+c
 	return
         end
 C
@@ -3814,7 +3814,7 @@ C $$ DEWPT=VAS,COMPUTATION
       DEWPT=TD
       RETURN
       END
-C              
+C
       FUNCTION TEMSAT(PRESS)
 C $ TEMSAT(PRESS)  (N)
 C $ GET KELVIN TEMPERATURE AT SPECIFIED SATURATION VAPOR PRESSURE (MB)

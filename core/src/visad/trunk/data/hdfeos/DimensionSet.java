@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -29,12 +29,12 @@ package visad.data.hdfeos;
 import java.util.*;
 import java.lang.*;
 
-public class DimensionSet 
+public class DimensionSet
 {
   private Vector dimSet;
   private boolean finished = false;
 
-  DimensionSet() 
+  DimensionSet()
   {
     dimSet = new Vector();
   }
@@ -49,28 +49,28 @@ public class DimensionSet
 
   public void add( NamedDimension obj )
   {
-    if (! finished ) 
+    if (! finished )
     {
       dimSet.addElement( obj );
     }
-    else 
+    else
     {
       /* throw Exception: obj finished  */
     }
   }
 
-  public void setToFinished() 
+  public void setToFinished()
   {
     finished = true;
   }
 
-  public int getSize() 
+  public int getSize()
   {
     int size = dimSet.size();
     return size;
   }
 
-  public NamedDimension getElement( int ii ) 
+  public NamedDimension getElement( int ii )
   {
     NamedDimension obj = (NamedDimension)dimSet.elementAt( ii );
 
@@ -96,7 +96,7 @@ public class DimensionSet
     return -1;
   }
 
-  public boolean sameSetSameOrder( DimensionSet  dimSet )  
+  public boolean sameSetSameOrder( DimensionSet  dimSet )
   {
     int size = this.getSize();
 
@@ -104,7 +104,7 @@ public class DimensionSet
       return false;
     }
 
-    for ( int ii = 0; ii < size; ii++ ) 
+    for ( int ii = 0; ii < size; ii++ )
     {
       if ( ! (this.getElement(ii).equals( dimSet.getElement(ii)))  ) {
         return false;
@@ -113,7 +113,7 @@ public class DimensionSet
      return true;
   }
 
-  public boolean subsetOfThis( DimensionSet dimSet ) 
+  public boolean subsetOfThis( DimensionSet dimSet )
   {
      int size = this.getSize();
      int size_arg = dimSet.getSize();
@@ -124,18 +124,18 @@ public class DimensionSet
      else {
 
        for ( int ii = 0; ii < size_arg; ii++ )  {
-   
+
          NamedDimension obj = (NamedDimension)dimSet.getElement( ii );
          boolean equal = false;
 
          for ( int jj = 0; jj < size; jj++ )  {
 
             if( obj.equals( (NamedDimension)this.getElement( jj ) )) {
-            
+
                 equal = true;
             }
          }
-        
+
          if ( !equal ) {
             return false;
          }
@@ -146,9 +146,9 @@ public class DimensionSet
     return true;
   }
 
-  public NamedDimension getByName( String dimName ) 
+  public NamedDimension getByName( String dimName )
   {
-    for ( int ii = 0; ii < this.getSize(); ii++ ) 
+    for ( int ii = 0; ii < this.getSize(); ii++ )
     {
       NamedDimension obj = (NamedDimension)this.getElement(ii);
 
@@ -161,7 +161,7 @@ public class DimensionSet
     return null;
   }
 
-  public boolean isMemberOf( NamedDimension dim ) 
+  public boolean isMemberOf( NamedDimension dim )
   {
     String in_name = dim.getName();
 
@@ -178,14 +178,14 @@ public class DimensionSet
     return false;
   }
 
-  public String toString() 
+  public String toString()
   {
      String str = "DimensionSet: \n";
-                
-     for ( int ii = 0; ii < this.getSize(); ii++ ) 
+
+     for ( int ii = 0; ii < this.getSize(); ii++ )
      {
         str = str + "   "+((this.getElement(ii)).toString())+"\n";
-     } 
+     }
      return str;
   }
 }

@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: QuantityDB.java,v 1.6 1999-01-20 18:05:38 steve Exp $
+ * $Id: QuantityDB.java,v 1.7 2000-04-26 15:45:14 dglo Exp $
  */
 
 package visad.data.netcdf;
@@ -27,12 +27,12 @@ public abstract class
 QuantityDB
 {
     /**
-     * Returns the quantity in the database whose name matches a 
+     * Returns the quantity in the database whose name matches a
      * given name.
      *
      * @param name	The name of the quantity.
      * @return		The quantity in the loal database that matches
-     *			<code>name</code>.  Note that 
+     *			<code>name</code>.  Note that
      *			RETURN_VALUE<code>.getName().equals(name)</code> can
      *			be <code>false due to aliasing.
      */
@@ -45,7 +45,7 @@ QuantityDB
      * convertible with a given unit.
      *
      * @param unit	The unit of the quantity.
-     * @return		The quantities in the database whose unit is 
+     * @return		The quantities in the database whose unit is
      *			convertible with <code>unit</code>.
      */
     public abstract Quantity[]

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: CoordVar.java,v 1.2 1998-06-17 20:32:37 visad Exp $
+ * $Id: CoordVar.java,v 1.3 2000-04-26 15:45:24 dglo Exp $
  */
 
 
@@ -52,7 +52,7 @@ class CoordVar extends ExportVar
      *
      * @param unit	The coordinate variable unit to be made into a
      *			netCDF attribute or <code>null</code>.
-     * @return		The array of netCDF attributes for the coordinate 
+     * @return		The array of netCDF attributes for the coordinate
      *			variable.
      */
     protected static Attribute[] myAttributes(Unit unit) {

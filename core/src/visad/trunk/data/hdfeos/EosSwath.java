@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -32,12 +32,12 @@ import visad.*;
 import java.rmi.*;
 import visad.data.hdfeos.hdfeosc.HdfeosLib;
 
-public class EosSwath extends EosStruct 
+public class EosSwath extends EosStruct
 {
   int swath_id;
   int sd_id;
   private String swath_name;
- 
+
   GeoMapSet  G_Set;
   DimensionSet  D_Set;
   VariableSet  DV_Set;
@@ -45,8 +45,8 @@ public class EosSwath extends EosStruct
      ShapeSet  DV_shapeSet;
      ShapeSet  GV_shapeSet;
 
-  EosSwath ( int file_id, int sd_id, String name ) 
-           throws HdfeosException 
+  EosSwath ( int file_id, int sd_id, String name )
+           throws HdfeosException
   {
      super();
      swath_name = name;
@@ -54,7 +54,7 @@ public class EosSwath extends EosStruct
      swath_id = HdfeosLib.SWattach( file_id, name );
      struct_id = swath_id;
 
-     if ( swath_id < 0 ) 
+     if ( swath_id < 0 )
      {
         throw new HdfeosException(" EosSwath cannot attach to swath: "+name );
      }
@@ -64,11 +64,11 @@ public class EosSwath extends EosStruct
      int[] stringSize = new int[1];
      stringSize[0] = 0;
 
-     int n_maps = HdfeosLib.SWnentries( swath_id, HdfeosLib.G_MAPS, stringSize ); 
- 
-     if ( n_maps > 0 ) 
+     int n_maps = HdfeosLib.SWnentries( swath_id, HdfeosLib.G_MAPS, stringSize );
+
+     if ( n_maps > 0 )
      {
-        int[] offset = new int[ n_maps ]; 
+        int[] offset = new int[ n_maps ];
         int[] increment = new int[ n_maps ];
         String[] map_list = {"empty"};
 
@@ -80,7 +80,7 @@ public class EosSwath extends EosStruct
 
         int cnt = 0;
 
-        while ( mapElements.hasMoreElements() ) 
+        while ( mapElements.hasMoreElements() )
         {
            String map = (String) mapElements.nextElement();
 
@@ -89,7 +89,7 @@ public class EosSwath extends EosStruct
            String[] S_array = new String[2];
 
            int cnt2 = 0;
-           while ( dims.hasMoreElements() ) 
+           while ( dims.hasMoreElements() )
            {
               S_array[cnt2] = (String) dims.nextElement();
               cnt2++;
@@ -102,17 +102,17 @@ public class EosSwath extends EosStruct
            GeoMap obj = new GeoMap( toDim, fromDim, off, inc );
            G_Set.add( obj );
         }
-     } 
-     else 
+     }
+     else
      {
         G_Set = new GeoMapSet();
      }
-        
+
 /**-  Done, now make DimensionSet:  - - - - - - - - - - -  -*/
 
       int n_dims = HdfeosLib.SWnentries( swath_id, HdfeosLib.N_DIMS, stringSize );
- 
-      if ( n_dims <= 0 ) 
+
+      if ( n_dims <= 0 )
       {
         throw new HdfeosException("no dimension defined");
       }
@@ -125,17 +125,17 @@ public class EosSwath extends EosStruct
 
       n_dims = HdfeosLib.SWinqdims( swath_id, stringSize[0], dimensionList, lengths );
 
-      if ( n_dims <= 0 ) 
+      if ( n_dims <= 0 )
       {
         throw new HdfeosException("no dimension defined");
       }
 
-      StringTokenizer listElements = 
+      StringTokenizer listElements =
               new StringTokenizer( dimensionList[0], ",", false );
 
       int cnt = 0;
 
-      while ( listElements.hasMoreElements() ) 
+      while ( listElements.hasMoreElements() )
       {
         name = (String) listElements.nextElement();
         int len = lengths[cnt];
@@ -153,7 +153,7 @@ public class EosSwath extends EosStruct
 
        int n_flds = HdfeosLib.SWnentries( swath_id, HdfeosLib.D_FIELDS, stringSize );
 
-       if ( n_flds <= 0 )  
+       if ( n_flds <= 0 )
        {
           throw new HdfeosException(" no Data Fields from SWnentries ");
        }
@@ -165,7 +165,7 @@ public class EosSwath extends EosStruct
 
        n_flds = HdfeosLib.SWinqdatafields( swath_id, stringSize[0], D_List, dumA, dumB);
 
-       if ( n_flds < 0 ) 
+       if ( n_flds < 0 )
        {
           throw new HdfeosException("no data fields in swath # "+swath_id);
        }
@@ -175,10 +175,10 @@ public class EosSwath extends EosStruct
        n_flds = HdfeosLib.SWnentries( swath_id, HdfeosLib.G_FIELDS, stringSize );
 
        String[] G_List = {"empty"};
-      
+
          int[] dumC = new int[ n_flds ];
          int[] dumD = new int[ n_flds ];
-          
+
 
        n_flds = HdfeosLib.SWinqgeofields( swath_id, stringSize[0], G_List, dumC, dumD );
 
@@ -206,7 +206,7 @@ public class EosSwath extends EosStruct
     return GV_shapeSet;
   }
 
-  private void makeVariables( String fieldList, String f_type ) 
+  private void makeVariables( String fieldList, String f_type )
                throws HdfeosException
   {
     int[] rank = new int[ 1 ];
@@ -223,11 +223,11 @@ public class EosSwath extends EosStruct
     StringTokenizer listElements = new StringTokenizer( fieldList, ",", false );
 
     VariableSet varSet = new VariableSet();
- 
+
     String[] constantNames = CalibrationDefault.getNames();
     double[][] constants = new double[ constantNames.length ][];
 
-    while ( listElements.hasMoreElements() ) 
+    while ( listElements.hasMoreElements() )
     {
       noAttr = false;
       noAttrValue = false;
@@ -244,11 +244,11 @@ public class EosSwath extends EosStruct
            constants[ii] = new double[ cnt ];
          }
       }
-      if ( noAttr ) 
+      if ( noAttr )
       {
         calibration = null;
       }
-      else 
+      else
       {
         for ( int ii = 0; ii < constants.length; ii++ )
         {
@@ -276,7 +276,7 @@ public class EosSwath extends EosStruct
       DimensionSet newSet = new DimensionSet();
 
       cnt = 0;
-      while ( dimListElements.hasMoreElements() ) 
+      while ( dimListElements.hasMoreElements() )
       {
         String dimName = (String) dimListElements.nextElement();
         n_dim = D_Set.getByName( dimName );
@@ -302,7 +302,7 @@ public class EosSwath extends EosStruct
    {
      GV_Set = varSet;
    }
-   else 
+   else
    {
      DV_Set = varSet;
    }

@@ -5,19 +5,19 @@
 /*
 
 The software in this file is Copyright(C) 1998 by Tom Whittaker.
-It is designed to be used with the VisAD system for interactive 
-analysis and visualization of numerical data.  
- 
+It is designed to be used with the VisAD system for interactive
+analysis and visualization of numerical data.
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 1, or (at your option)
 any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License in file NOTICE for more details.
- 
+
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -58,7 +58,7 @@ import visad.java3d.DisplayImplJ3D;
  *  formats) Adapter for VisAD.  You need a sample AREA file,
  *  along with a McIDAS "OUTL" format map file.  You may
  *  get these from ftp://allegro.ssec.wisc.edu/visad/
- *  
+ *
  *  At this point, only GVAR, MSAT and MOLL navigation is supported, and no
  *  work has been done on calibration yet.
  *
@@ -271,7 +271,7 @@ public class TestArea {
       if (use2D) {
         display = new DisplayImplJ2D("display1");
       } else {
-        display = new DisplayImplJ3D("display1"); 
+        display = new DisplayImplJ3D("display1");
       }
 
 
@@ -280,10 +280,10 @@ public class TestArea {
       RealTupleType dtype = ftype.getDomain();
       RealTupleType rtype = (RealTupleType)ftype.getRange();
 
-      ScalarMap xaxis = new ScalarMap( (RealType) dtype.getComponent(0), 
+      ScalarMap xaxis = new ScalarMap( (RealType) dtype.getComponent(0),
               Display.XAxis);
       xaxis.setRange( 0.d, (double) numEles);
-      ScalarMap yaxis = new ScalarMap( (RealType) dtype.getComponent(1), 
+      ScalarMap yaxis = new ScalarMap( (RealType) dtype.getComponent(1),
               Display.YAxis);
       yaxis.setRange( 0.d, (double) numLines);
 
@@ -291,7 +291,7 @@ public class TestArea {
       display.addMap(yaxis);
 
       // select which band to show...
-      ScalarMap rgbMap = 
+      ScalarMap rgbMap =
           new ScalarMap( (RealType) rtype.getComponent(bandNumber-1),
               Display.RGB);
       display.addMap(rgbMap);
@@ -342,7 +342,7 @@ public class TestArea {
     } catch (Exception xxx) {System.out.println("Ex: "+xxx);System.exit(1); }
 
     while (true) {
-      try { 
+      try {
         Thread.sleep(5000);
       } catch (Exception e) {System.exit(0);}
     }

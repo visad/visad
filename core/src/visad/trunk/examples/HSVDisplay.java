@@ -1,13 +1,13 @@
 //
 // HSVDisplay.java
 //
- 
+
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -27,21 +27,21 @@ MA 02111-1307, USA
 import visad.*;
 import visad.java3d.*;
 import visad.util.*;
- 
+
 import java.io.IOException;
 import java.rmi.RemoteException;
 
- 
+
 // JFC packages
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.text.*;
 import javax.swing.border.*;
- 
+
 // AWT packages
 import java.awt.*;
 import java.awt.event.*;
- 
+
 /**
    HSVDisplay is an application for interactively exploring
    the relation between the HSV and RGB color coordiantes.<P>
@@ -50,14 +50,14 @@ public class HSVDisplay extends Object {
 
   public static void main(String args[])
          throws IOException, VisADException, RemoteException {
- 
+
     // define an rgb color space
     // (not to be confused with system's RGB DisplayTupleType)
     RealType red = new RealType("red", null, null);
     RealType green = new RealType("green", null, null);
     RealType blue = new RealType("blue", null, null);
     RealTupleType rgb = new RealTupleType(red, green, blue);
- 
+
     // define an hsv color space
     // (not to be confused with system's HSV DisplayTupleType)
     RealType hue = new RealType("hue", CommonUnit.degree,       null);
@@ -105,7 +105,7 @@ public class HSVDisplay extends Object {
     VisADSlider value_slider =
       new VisADSlider("value", 0, 100, 0, 0.01, value_ref,
                       RealType.Generic);
- 
+
     // construct a Display
     DisplayImplJ3D display1 = new DisplayImplJ3D("display1");
 
@@ -181,14 +181,14 @@ public class HSVDisplay extends Object {
     ContourControl control;
     DataReference ref;
     double value;
- 
+
     ContourCell(ContourControl c, DataReference r)
            throws VisADException, RemoteException {
       control = c;
       ref = r;
       value = ((Real) ref.getData()).getValue();
     }
- 
+
     public void doAction() throws VisADException, RemoteException {
       double val = ((Real) ref.getData()).getValue();
       if (val == val && val != value) {
@@ -197,7 +197,7 @@ public class HSVDisplay extends Object {
         value = val;
       }
     }
- 
+
   }
 
 }

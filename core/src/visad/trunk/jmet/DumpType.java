@@ -5,19 +5,19 @@
 /*
 
 The software in this file is Copyright(C) 1998 by Tom Whittaker.
-It is designed to be used with the VisAD system for interactive 
-analysis and visualization of numerical data.  
- 
+It is designed to be used with the VisAD system for interactive
+analysis and visualization of numerical data.
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 1, or (at your option)
 any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License in file NOTICE for more details.
- 
+
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -26,8 +26,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad.jmet;
 
 import visad.*;
-import visad.util.*;  
-import visad.Set;  
+import visad.util.*;
+import visad.Set;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -141,7 +141,7 @@ public class DumpType {
          ((Integer3DSet)d).getLength() );
 
          for (int i=0; i<3; i++) {
-           dumpDT( ((Linear3DSet)d).getLinear1DComponent(i), 
+           dumpDT( ((Linear3DSet)d).getLinear1DComponent(i),
                 prefix+"   "+i+".");
          }
 
@@ -150,7 +150,7 @@ public class DumpType {
          ((Linear3DSet)d).getLength()) ;
 
          for (int i=0; i<3; i++) {
-           dumpDT( ((Linear3DSet)d).getLinear1DComponent(i), 
+           dumpDT( ((Linear3DSet)d).getLinear1DComponent(i),
                prefix+"   "+i+".");
          }
 
@@ -164,7 +164,7 @@ public class DumpType {
          ((Integer2DSet)d).getLength()) ;
 
          for (int i=0; i<2; i++) {
-           dumpDT( ((Linear2DSet)d).getLinear1DComponent(i), 
+           dumpDT( ((Linear2DSet)d).getLinear1DComponent(i),
                  prefix+"   "+i+".");
          }
 
@@ -173,7 +173,7 @@ public class DumpType {
          ((Linear2DSet)d).getLength()) ;
 
          for (int i=0; i<2; i++) {
-           dumpDT( ((Linear2DSet)d).getLinear1DComponent(i), 
+           dumpDT( ((Linear2DSet)d).getLinear1DComponent(i),
                  prefix+"   "+i+".");
          }
 
@@ -191,7 +191,7 @@ public class DumpType {
       System.out.println(prefix+" Linear1DSet "+
          name( ((Linear1DSet)d).getType().toString()) +
          " Range = "+((Linear1DSet)d).getFirst() +
-         " to "+((Linear1DSet)d).getLast() + 
+         " to "+((Linear1DSet)d).getLast() +
          " step "+((Linear1DSet)d).getStep() ) ;
 
     } else if (d instanceof Gridded1DSet) {
@@ -202,9 +202,9 @@ public class DumpType {
     } else if (d instanceof IntegerNDSet) {
       System.out.println(prefix+" IntegerNDSet: Dimension = "+
          ((IntegerNDSet)d).getDimension());
-         
+
          for (int i=0; i<((IntegerNDSet)d).getDimension(); i++) {
-           dumpDT( ((LinearNDSet)d).getLinear1DComponent(i), 
+           dumpDT( ((LinearNDSet)d).getLinear1DComponent(i),
               prefix+"   "+i+".");
          }
 
@@ -213,39 +213,39 @@ public class DumpType {
          ((LinearNDSet)d).getDimension());
 
          for (int i=0; i<((LinearNDSet)d).getDimension(); i++) {
-           dumpDT( ((LinearNDSet)d).getLinear1DComponent(i), 
+           dumpDT( ((LinearNDSet)d).getLinear1DComponent(i),
                  prefix+"   "+i+".");
          }
 
     } else if (d instanceof GriddedSet) {
       System.out.println(prefix+" GriddedSet "+
-               name(((GriddedSet)d).getType().toString() ) + 
-               "  Dimension = "+ ((GriddedSet)d).getDimension() ); 
+               name(((GriddedSet)d).getType().toString() ) +
+               "  Dimension = "+ ((GriddedSet)d).getDimension() );
 
     } else if (d instanceof UnionSet) {
       System.out.println(prefix+" UnionSet "+
-               name(((UnionSet)d).getType().toString() ) + 
-               "  Dimension = "+ ((UnionSet)d).getDimension() ); 
+               name(((UnionSet)d).getType().toString() ) +
+               "  Dimension = "+ ((UnionSet)d).getDimension() );
 
     } else if (d instanceof ProductSet) {
       System.out.println(prefix+" ProductSet "+
-               name(((ProductSet)d).getType().toString() ) + 
-               "  Dimension = "+ ((ProductSet)d).getDimension() ); 
+               name(((ProductSet)d).getType().toString() ) +
+               "  Dimension = "+ ((ProductSet)d).getDimension() );
 
     } else if (d instanceof SampledSet) {
       System.out.println(prefix+" SampledSet "+
-               name(((SampledSet)d).getType().toString() ) + 
-               "  Dimension = "+ ((SampledSet)d).getDimension() ); 
+               name(((SampledSet)d).getType().toString() ) +
+               "  Dimension = "+ ((SampledSet)d).getDimension() );
 
     } else if (d instanceof FloatSet) {
       System.out.println(prefix+" FloatSet "+
-               name(((FloatSet)d).getType().toString() ) + 
-               " Dimension = "+ ((FloatSet)d).getDimension() ); 
+               name(((FloatSet)d).getType().toString() ) +
+               " Dimension = "+ ((FloatSet)d).getDimension() );
 
     } else if (d instanceof DoubleSet) {
       System.out.println(prefix+" DoubleSet "+
-               name(((DoubleSet)d).getType().toString() ) + 
-               "  Dimension = "+ ((DoubleSet)d).getDimension() ); 
+               name(((DoubleSet)d).getType().toString() ) +
+               "  Dimension = "+ ((DoubleSet)d).getDimension() );
 
     } else if (d instanceof SimpleSet) {
       System.out.println(prefix+" SimpleSet: ");

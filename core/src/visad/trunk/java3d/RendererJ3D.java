@@ -1,14 +1,13 @@
-
 //
 // RendererJ3D.java
 //
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -112,31 +111,31 @@ System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
          throws VisADException, RemoteException {
     return new ShadowFunctionTypeJ3D(type, link, parent);
   }
- 
+
   public ShadowType makeShadowRealTupleType(
          RealTupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
     return new ShadowRealTupleTypeJ3D(type, link, parent);
   }
- 
+
   public ShadowType makeShadowRealType(
          RealType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
     return new ShadowRealTypeJ3D(type, link, parent);
   }
- 
+
   public ShadowType makeShadowSetType(
          SetType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
     return new ShadowSetTypeJ3D(type, link, parent);
   }
- 
+
   public ShadowType makeShadowTextType(
          TextType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
     return new ShadowTextTypeJ3D(type, link, parent);
   }
- 
+
   public ShadowType makeShadowTupleType(
          TupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
@@ -256,7 +255,7 @@ System.out.println(getLinks()[0].getThingReference().getName());
     }
     return (all_feasible && (any_changed || any_transform_control));
   }
- 
+
   public BranchGroup getBranch() {
     synchronized (this) {
       if (branchNonEmpty[currentIndex]) {

@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -26,7 +26,7 @@ MA 02111-1307, USA
 
 package visad.data.hdfeos;
 
-public class GeoMap 
+public class GeoMap
 {
   String  toDim;
   String  fromDim;
@@ -38,5 +38,5 @@ public class GeoMap
      this.fromDim = fromDim;
      this.offset = offset;
      this.increment = increment;
-  } 
+  }
 }

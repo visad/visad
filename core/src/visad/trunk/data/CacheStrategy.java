@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -30,7 +30,7 @@ import visad.*;
 import java.lang.*;
 import java.rmi.*;
 
-public class CacheStrategy 
+public class CacheStrategy
 {
 
    public CacheStrategy()
@@ -47,15 +47,15 @@ public class CacheStrategy
       int adaptedFlatFieldIndex = 0;
       long oldest = adaptedFlatFieldTimes[0];
 
-      for ( int ii = 0; ii < adaptedFlatFields.length; ii++ ) 
+      for ( int ii = 0; ii < adaptedFlatFields.length; ii++ )
       {
 
-         if ( adaptedFlatFields[ii] == null ) 
+         if ( adaptedFlatFields[ii] == null )
          {
            adaptedFlatFieldIndex = ii;
            return adaptedFlatFieldIndex;
          }
-         else if ( adaptedFlatFieldTimes[ii] < oldest ) 
+         else if ( adaptedFlatFieldTimes[ii] < oldest )
          {
            oldest = adaptedFlatFieldTimes[ii];
            adaptedFlatFieldIndex = ii;

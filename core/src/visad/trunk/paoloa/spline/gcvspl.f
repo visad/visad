@@ -107,7 +107,7 @@ C
       if (mode.eq.1) then
          wkvalue(1) = 0
       endif
-         
+
       if (WK(4).le.10e-10) then
          wkvalue(1)=-10
       else
@@ -278,7 +278,7 @@ C       be rather large (at least 20) if |MD|=2 (GCV).
 C
 C       (4) For |MD| > 1, GCVSPL tries to iteratively minimize the
 C       selected criterion function. This minimum is unique for |MD|
-C       = 4, but not necessarily for |MD| = 2 or 3. Consequently, 
+C       = 4, but not necessarily for |MD| = 2 or 3. Consequently,
 C       local optima rather that the global optimum might be found,
 C       and some actual findings suggest that local optima might
 C       yield more meaningful results than the global optimum if N
@@ -400,7 +400,7 @@ C***  Check on knot sequence and weights
          IF (IER.NE.0) RETURN
    15 CONTINUE
 C
-C***  Work array parameters (address information for covariance 
+C***  Work array parameters (address information for covariance
 C***  propagation by means of the matrices STAT, B, and WE). NB:
 C***  BWE cannot be used since it is modified by function TRINV.
 C
@@ -433,7 +433,7 @@ C
          R1 = WK(4)      !User-determined starting value
       ELSE
          R1 = ONE / EL      !Default (DOF ~ 0.5)
-      ENDIF      
+      ENDIF
       R2 = R1 * RATIO
       GF2 = SPLC(M,N,K,Y,NY,WX,WY,MD,VAL,R2,EPS,C,NC,
      1          WK,WK(IB),WK(IWE),EL,WK(IBWE))
@@ -450,7 +450,7 @@ C
      1          WK,WK(IB),WK(IWE),EL,WK(IBWE))
       IF (GF3.GT.GF2) GO TO 70
          IF (WK(4).GE.EPSINV) GO TO 100      !Least-squares polynomial
-         R2  = R3      
+         R2  = R3
          GF2 = GF3
          R3  = R3 * RATIO
          GO TO 60
@@ -1068,7 +1068,7 @@ C
 C       This subroutine solves systems of linear equations given an LU
 C       decomposition of the design matrix. Such a decomposition is pro-
 C       vided by subroutine BANDET, in vectorized form. It is assumed
-C       that the design matrix is not singular. 
+C       that the design matrix is not singular.
 C
 C Calling convention:
 C ******************

@@ -1,6 +1,6 @@
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: DataNode.java,v 1.5 1999-07-14 22:01:38 dglo Exp $
+$Id: DataNode.java,v 1.6 2000-04-26 15:44:41 dglo Exp $
 */
 
 package visad.data;
@@ -77,7 +77,7 @@ DataNode
 	    node = new FlatFieldNode((FlatField)data);
 	else
 	    throw new UnimplementedException(
-		"VisAD data type not yet supported: " + 
+		"VisAD data type not yet supported: " +
 		data.getClass().getName());
 
 	return node;
@@ -100,7 +100,7 @@ DataNode
      *		the data model used by <code>visitor</code>.
      * @exception VisADException	Problem in core VisAD (probably
      *		couldn't create some VisAD object).
-     * @exception RemoteException	Problem accessing the VisAD data 
+     * @exception RemoteException	Problem accessing the VisAD data
      *		object.
      * @see visad.data.DataVisitor
      */
@@ -141,7 +141,7 @@ TupleNode
      * Accept a visitor and traverse the Tuple.
      *
      * @param visitor	The object that will have it's <code>visit()</code>
-     *			method called for each component of the VisAD 
+     *			method called for each component of the VisAD
      *			Tuple.
      * @precondition	<code>visitor</code> is non-null.
      * @postcondition	<code>visitor</code> has visited <code>tuple</code>.

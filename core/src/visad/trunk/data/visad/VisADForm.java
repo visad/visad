@@ -1,13 +1,13 @@
 //
 // VisADForm.java
 //
- 
+
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -43,7 +43,7 @@ import java.io.InputStream;
 import java.rmi.RemoteException;
 import java.net.URL;
 import visad.data.DefaultFamily;
- 
+
 // JFC packages
 import javax.swing.*;
 import javax.swing.event.*;
@@ -59,7 +59,7 @@ import java.awt.event.*;
    serialized visad.Data objects.<P>
 */
 public class VisADForm extends Form implements FormFileInformer {
- 
+
   private static int num = 0;
 
   public VisADForm() {
@@ -69,11 +69,11 @@ public class VisADForm extends Form implements FormFileInformer {
   public boolean isThisType(String name) {
     return name.endsWith(".vad");
   }
- 
+
   public boolean isThisType(byte[] block) {
     return false;
   }
- 
+
   public String[] getDefaultSuffixes() {
     String[] suff = { "vad" };
     return suff;
@@ -150,7 +150,7 @@ public class VisADForm extends Form implements FormFileInformer {
   public synchronized FormNode getForms(Data data) {
     return null;
   }
- 
+
   /** run 'java visad.data.visad.VisADForm in_file out_file' to
       convert in_file to out_file in VisAD serialized data format */
   public static void main(String args[])

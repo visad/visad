@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Vetter.java,v 1.6 1998-09-23 18:18:50 steve Exp $
+ * $Id: Vetter.java,v 1.7 2000-04-26 15:45:19 dglo Exp $
  */
 
 package visad.data.netcdf.in;
@@ -73,7 +73,7 @@ Vetter
     /**
      * Constructs from a netCDF variable type.
      *
-     * @param type		The Java type of the netCDF variable (i.e. 
+     * @param type		The Java type of the netCDF variable (i.e.
      *				float.class, char.class, etc.)
      */
     Vetter(Class type)

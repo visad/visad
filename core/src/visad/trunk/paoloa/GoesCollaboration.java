@@ -28,7 +28,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.text.*;
 import javax.swing.border.*;
- 
+
 // AWT packages
 import java.awt.*;
 import java.awt.event.*;
@@ -40,7 +40,7 @@ import java.awt.event.*;
    VisAD 1.1 by Paolo Antonelli.<P>
 */
 public class GoesCollaboration extends Object {
- 
+
   /** RemoteServerImpl for server
       this GoesCollaboration is a server if server_server != null */
   RemoteServerImpl server_server;
@@ -120,43 +120,43 @@ public class GoesCollaboration extends Object {
      threads wake up when linked Data objects change.  Display
      and JFC objects wake up on mouse events.  Display, Cell
      and JFC objects cause changes to Data objects.<P>
-   
+
      Here's a summary of the event logic among Data, Displays,
      Cells, and JSliders:<P>
-  
+
   <PRE>
   initialization ->
     zero_line = 0                              -> display4
 
   slider <--> in_dx
-  
+
   slider <--> gzen
-  
+
   slider <--> tskin
-  
+
   slider <--> save_config
-  
+
   in_dx -> real_tbcCell
     real_tbc = re_read_1_c(in_dx)
     month = 6
     lat = real_tbc[18];
     (tempa, mixra, ozonea, presa) =
       get_profil_c(lat, month)                 -> display2
-   
+
   direct_manipualtion (in display2) ->
     (tempa, mixra, ozonea)                     -> display2
-   
+
   gzen, tskin, tempa, mixra, ozonea, presa -> wfnbCell
     wfnb = goesrte_2_c(gzen, tskin, tempa, mixra, ozonea, presa)
-   
+
   wfnb, real_tbc -> wfnaCell
     wfna = wfnb.wfn                            -> display1
     diff_DATA = wfnb.tbc[nl=1] - real_tbc      -> display4
     smr = RootMeanSquare(diff_DATA)            -> display4
-   
+
   save_config -> wfna_oldCell
     wfna_old = wfna
-   
+
   wfna, wfna_old -> diff_colCell
     diff_col = wfna - wfna_old                 -> display3
    </PRE>
@@ -326,12 +326,12 @@ public class GoesCollaboration extends Object {
     FlatField diff_DATA = new FlatField(tbc_array_dif);
     diff_ref = new DataReferenceImpl("diff");
     diff_ref.setData(diff_DATA);
- 
+
     // construct zero line Data object and DataReference
     FlatField zero_line = new FlatField(tbc_array_dif);
     zero_line_ref = new DataReferenceImpl("zero_line");
     zero_line_ref.setData(zero_line);
- 
+
     // construct brightness temperature error root mean square
     // Data object and DataReference
     Real smr = new Real(tbc_d);
@@ -394,7 +394,7 @@ public class GoesCollaboration extends Object {
     double[][] zero_line_x = zero_line.getValues();
     for (int i=0; i<zero_line_x[0].length; i++) zero_line_x[0][i] = 0.0;
     zero_line.setSamples(zero_line_x);
- 
+
 
     // make sure Data are initialized
     new Delay(1000);
@@ -453,7 +453,7 @@ public class GoesCollaboration extends Object {
         new RemoteDataReferenceImpl((DataReferenceImpl) in_dx_ref);
       refs[3] =
         new RemoteDataReferenceImpl((DataReferenceImpl) save_config_ref);
-  
+
       server_server.setDataReferences(refs);
     }
 
@@ -489,7 +489,7 @@ public class GoesCollaboration extends Object {
     displays[1] = new DisplayImplJ3D(client_server.getDisplay("display2"));
     displays[2] = new DisplayImplJ3D(client_server.getDisplay("display3"));
     displays[3] = new DisplayImplJ3D(client_server.getDisplay("display4"));
- 
+
     // set up user interface
     setupUI(displays, in_dx_ref, save_config_ref, gzen_ref, tskin_ref);
 
@@ -816,12 +816,12 @@ public class GoesCollaboration extends Object {
   /** get observed brightness temperatures, as well as temperature,
       water-vapor mixing-ratio, ozone and pressure profiles */
   class real_tbcCell extends CellImpl {
- 
+
     public void doAction() throws VisADException, RemoteException {
       // get index into model atmospheres
       int in_dx = (int) ((Real) in_dx_ref.getData()).getValue();
       if (in_dx < 1 || in_dx > 2234) return;
- 
+
       // read observed brightness temperatures from data_obs_1.dat
       float[][] data_b = new float[1][19];
       re_read_1_c(in_dx, data_b[0]);
@@ -848,7 +848,7 @@ public class GoesCollaboration extends Object {
 
   /** compute weighting function of channel versus vertical level */
   class wfnbCell extends CellImpl {
- 
+
     public void doAction() throws VisADException, RemoteException {
       // get zenith angle and skin temperature
       float gzen = (float) ((Real) gzen_ref.getData()).getValue();
@@ -872,7 +872,7 @@ public class GoesCollaboration extends Object {
 
   /** compute brightness temperature errors and root mean square */
   class wfnaCell extends CellImpl {
- 
+
     public void doAction() throws VisADException, RemoteException {
       // compute brightness temperature errors
       float[][] t_x = new float[1][];
@@ -897,7 +897,7 @@ public class GoesCollaboration extends Object {
 
   /** save a copy of wfna in wfna_old */
   class wfna_oldCell extends CellImpl {
- 
+
     public void doAction() throws VisADException, RemoteException {
       // save a copy of wfna in wfna_old (i.e., wfna_old = wfna)
       wfna_old_ref.setData(
@@ -907,7 +907,7 @@ public class GoesCollaboration extends Object {
 
   /** compute diff_col = wfna - wfna_old */
   class diff_colCell extends CellImpl {
- 
+
     public void doAction() throws VisADException, RemoteException {
       // compute diff_col = wfna - wfna_old
       diff_col_ref.setData(
@@ -917,14 +917,14 @@ public class GoesCollaboration extends Object {
 
   /** native method declarations, to Fortran via C */
   private native void re_read_1_c(int i, float[] data_b);
- 
+
   private native void goesrte_2_c(float gzen, float tskin, float[] t,
                                   float[] w, float[] c, float[] p,
                                   float[] wfn, float[] tbcx);
- 
+
   private native void get_profil_c(float rlat, int imon, float[] tpro,
                                    float[] wpro, float[] opro,
                                    float[] pref);
- 
+
 }
 

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -27,7 +27,7 @@ MA 02111-1307, USA
 /*
 
 visad.java2d design:
- 
+
 0. common code in ClassNameJ2D and ClassNameJ3D
      DirectManipulationRendererJ2/3D
        common methods in visad.DataRenderer
@@ -50,7 +50,7 @@ visad.java2d design:
        methods in visad.Shadow*Type
 
 1. add VisAD-specific scene graph classes:
- 
+
      canvas, root, trans, direct, cursor_trans & other
        scene graph stuff in DisplayRendererJ2D
 
@@ -72,8 +72,8 @@ visad.java2d design:
        (VisADTransform not needed; trans in DisplayRendererJnD)
        (hence VisADBranchGroup not needed; a VisADBranchGroup
         is a VisADGroup that is not a VisADSwitch)
- 
- 
+
+
 2. add VisADSceneGraphObject as parent of
    existing VisAD-specific scene graph classes:
 
@@ -86,7 +86,7 @@ visad.java2d design:
          VisADPointArray
          VisADTriangleArray
          VisADQuadArray
- 
+
 3. VisADCanvasJ2D
      add BufferedImage[] array with element for each animation step
      AnimationControlJ2D.init() invoked in paint
@@ -97,20 +97,20 @@ visad.java2d design:
 
 5. AnimationControlJ2D.selectSwitches()
      invoke canvas.renderTrigger() instead of init()
- 
+
 6. ValueControlJ2D.setValue()
      invoke canvas.scratchImages()
 
 7. ProjectionControlJ2D.setMatrix()
      invoke canvas.scratchImages()
- 
+
 8. VisADCanvasJ2D.paint()
      invokes DisplayRendererJ2D.drawCursorStringVector()
      which draws cursor strings, Exception strings,
        WaitFlag & Animation string
      add draw of extra_branch from
        DirectManipulationRendererJ2D.addPoint
- 
+
 9. DirectManipulationRendererJ2D
      doTransform: create branch and extra_branch
      addPoint: add to extra_branch

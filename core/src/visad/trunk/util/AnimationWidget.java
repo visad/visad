@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -43,11 +43,11 @@ import java.rmi.RemoteException;
 /* VisAD packages */
 import visad.*;
 
-/** 
+/**
  * A widget that allows users to control aspects of animation (stop/start,
- * step, animation speed and direction).  It is initialized with the state 
- * of the AnimationControl for the ScalarMap used in the constructor. Once this 
- * widget is constructed, it should be used to control animation instead 
+ * step, animation speed and direction).  It is initialized with the state
+ * of the AnimationControl for the ScalarMap used in the constructor. Once this
+ * widget is constructed, it should be used to control animation instead
  * of using methods in AnimationControl.  Once constructed, changes made
  * using AnimationControl methods will not be reflected in this widget.
  */
@@ -70,9 +70,9 @@ public class AnimationWidget
 
   private AnimationControl control;
 
-  /** 
+  /**
    * construct an AnimationWidget linked to the Control in smap
-   * (which must be to Display.Animation) with auto-detecting ms/frame 
+   * (which must be to Display.Animation) with auto-detecting ms/frame
    *
    * @param	smap	Display.Animation ScalarMap
    */
@@ -81,12 +81,12 @@ public class AnimationWidget
     this(smap, -1);
   }
 
-  /** 
+  /**
    * construct an AnimationWidget linked to the Control in smap
-   * (which must be to Display.Animation) with specified ms/frame 
+   * (which must be to Display.Animation) with specified ms/frame
    *
    * @param     smap    Display.Animation ScalarMap
-   * @param     st      animation speed (ms/frame).  If value is negative, 
+   * @param     st      animation speed (ms/frame).  If value is negative,
    *                    the default speed set in the Control is used.
    */
   public AnimationWidget(ScalarMap smap, int st) throws VisADException,
@@ -281,8 +281,8 @@ public class AnimationWidget
     fixSliderUI();
   }
 
-  /** 
-   * ActionListener method used with JTextField and JButtons 
+  /**
+   * ActionListener method used with JTextField and JButtons
    */
   public void actionPerformed(ActionEvent e) {
     // WLH 28 March 2000
@@ -347,7 +347,7 @@ public class AnimationWidget
     }
   }
 
-  /** 
+  /**
    * ChangeListener method used with JSlider.
    */
   public void stateChanged(ChangeEvent e) {
@@ -361,8 +361,8 @@ public class AnimationWidget
     }
   }
 
-  /** 
-   * ControlListener method used for programmatically moving JSlider 
+  /**
+   * ControlListener method used for programmatically moving JSlider
    */
   public void controlChanged(ControlEvent e) {
     if (control != null) {
@@ -370,14 +370,14 @@ public class AnimationWidget
     }
   }
 
-  /** 
-   * ScalarMapListener method used to recompute JSlider bounds 
+  /**
+   * ScalarMapListener method used to recompute JSlider bounds
    */
   public void mapChanged(ScalarMapEvent e) {
     fixSliderUI();
   }
 
-  /** 
+  /**
    * ScalarMapListener method used to detect new AnimationControl
    */
   public void controlChanged(ScalarMapControlEvent evt)
@@ -402,9 +402,9 @@ public class AnimationWidget
     }
   }
 
-  /** 
+  /**
    * Work-around for Swing bug where pack() doesn't display slider labels;
-   * actually, it still won't, but window will be the right size 
+   * actually, it still won't, but window will be the right size
    */
   public Dimension getPreferredSize() {
     Dimension d = super.getPreferredSize();

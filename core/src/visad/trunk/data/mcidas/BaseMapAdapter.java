@@ -4,8 +4,8 @@
 
 /*
 The software in this file is Copyright(C) 1998 by Tom Whittaker.
-It is designed to be used with the VisAD system for interactive 
-analysis and visualization of numerical data.  
+It is designed to be used with the VisAD system for interactive
+analysis and visualization of numerical data.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -67,7 +67,7 @@ public class BaseMapAdapter {
   private int ylast = 0;
 
 
-  /** 
+  /**
    * Create a VisAD UnionSet from a local McIDAS Base Map file
    *
    * @param filename name of local file.
@@ -79,7 +79,7 @@ public class BaseMapAdapter {
   }
 
 
-  /** 
+  /**
    * Create a VisAD UnionSet from a McIDAS Base Map file on the Web
    *
    * @param filename name of local file.
@@ -88,12 +88,12 @@ public class BaseMapAdapter {
    * @exception IOException if there was a problem reading the URL.
    * @exception VisADException if an unexpected problem occurs.
    */
-  public BaseMapAdapter(String filename, Rectangle2D bbox) 
+  public BaseMapAdapter(String filename, Rectangle2D bbox)
     throws IOException, VisADException {
       this(new FileInputStream(filename), null);
   }
 
-  /** 
+  /**
    * Create a VisAD UnionSet from a McIDAS Base Map file on the Web
    *
    * @param url URL & filename name of remote file
@@ -105,7 +105,7 @@ public class BaseMapAdapter {
     this (url.openStream(), null);
   }
 
-  /** 
+  /**
    * Create a VisAD UnionSet from a McIDAS Base Map file on the Web
    *
    * @param url  URL of remote file
@@ -114,12 +114,12 @@ public class BaseMapAdapter {
    * @exception IOException if there was a problem reading the URL.
    * @exception VisADException if an unexpected problem occurs.
    */
-  public BaseMapAdapter(URL url, Rectangle2D bbox) 
+  public BaseMapAdapter(URL url, Rectangle2D bbox)
     throws IOException, VisADException {
       this (url.openStream(), bbox);
   }
 
-  /** 
+  /**
    * Create a VisAD UnionSet from a McIDAS Base Map file inputstream
    *
    * @param is input stream of mapfile
@@ -132,7 +132,7 @@ public class BaseMapAdapter {
     this(is, null);
   }
 
-  /** 
+  /**
    * Create a VisAD UnionSet from a McIDAS Base Map file inputstream
    *
    * @param is input stream of mapfile
@@ -141,7 +141,7 @@ public class BaseMapAdapter {
    * @exception IOException if there was a problem reading the inputstream
    * @exception VisADException if an unexpected problem occurs.
    */
-  public BaseMapAdapter(InputStream is, Rectangle2D bbox) 
+  public BaseMapAdapter(InputStream is, Rectangle2D bbox)
     throws IOException, VisADException {
 
     din = new DataInputStream (new BufferedInputStream(is));
@@ -149,7 +149,7 @@ public class BaseMapAdapter {
     isFileInitialized = false;
     InitFile();
     if (bbox != null)
-        setLatLonLimits((float) bbox.getMinY(), (float) bbox.getMaxY(), 
+        setLatLonLimits((float) bbox.getMinY(), (float) bbox.getMaxY(),
                         (float) bbox.getMinX(), (float) bbox.getMaxX());
   }
 
@@ -160,14 +160,14 @@ public class BaseMapAdapter {
    * coarsely cull points out of the returned VisAD UnionSet.<P>
    *
    * This may be used along with any other domain-setting routine,
-   * but should be invoked last.  Alternatively, pass in the 
+   * but should be invoked last.  Alternatively, pass in the
    * bounding box in the constructor.
    *
    * @param bbox Rectangle2D representing the bounding box
    */
   public void setLatLonLimits(Rectangle2D bbox)
   {
-      setLatLonLimits((float) bbox.getMinY(), (float) bbox.getMaxY(), 
+      setLatLonLimits((float) bbox.getMinY(), (float) bbox.getMaxY(),
                       (float) bbox.getMinX(), (float) bbox.getMaxX());
   }
 
@@ -186,20 +186,20 @@ public class BaseMapAdapter {
    * @param lonmax the maximum Longitude value
    *
    */
-  public void setLatLonLimits(float latmin, 
-                              float latmax, 
-                              float lonmin, 
+  public void setLatLonLimits(float latmin,
+                              float latmax,
+                              float lonmin,
                               float lonmax) {
-    latMin = (latmin == Float.NaN) 
+    latMin = (latmin == Float.NaN)
                 ? -900000
                 : (int) (latmin * 10000.f);
-    latMax = (latmax == Float.NaN) 
+    latMax = (latmax == Float.NaN)
                 ? 900000
                 : (int) (latmax * 10000.f);
-    lonMin = (lonmin == Float.NaN) 
+    lonMin = (lonmin == Float.NaN)
                 ? -1800000
                 : (int) (lonmin * 10000.f);
-    lonMax = (lonmax == Float.NaN) 
+    lonMax = (lonmax == Float.NaN)
                 ? 1800000
                 : (int) (lonmax * 10000.f);
     //System.out.println("Lat min/max = "+latMin+" "+latMax);
@@ -207,10 +207,10 @@ public class BaseMapAdapter {
     return;
   }
 
-  /** 
+  /**
    * Using the domain_set of the FlatField of an image (when
    * one is available), extract the elements required.  This
-   * implies that a CoordinateSystem is available with a 
+   * implies that a CoordinateSystem is available with a
    * reference coordinate of Latitude,Longitude.
    *
    * @param domainSet The VisAD Linear2DSet domain_set used when the
@@ -219,8 +219,8 @@ public class BaseMapAdapter {
    * @throws  VisADException  necessary VisAD object cannot be created
    */
 
-  public void setDomainSet(Linear2DSet domainSet) 
-     throws VisADException 
+  public void setDomainSet(Linear2DSet domainSet)
+     throws VisADException
   {
       coordMathType = domainSet.getType();
       cs = domainSet.getCoordinateSystem();
@@ -246,7 +246,7 @@ public class BaseMapAdapter {
       computeLimits();
   }
 
-  /** 
+  /**
    * Define a CoordinateSystem whose fromReference() will
    * be used to transform points from latitude/longitude
    * into element,line.
@@ -258,8 +258,8 @@ public class BaseMapAdapter {
    *
    * @exception  VisADException  a necessary VisAD object could not be created
    */
-  public void setCoordinateSystem(CoordinateSystem cs, int numEles, 
-                          int numLines, RealTupleType domain) 
+  public void setCoordinateSystem(CoordinateSystem cs, int numEles,
+                          int numLines, RealTupleType domain)
                           throws VisADException {
 
     this.numEles = numEles;
@@ -287,7 +287,7 @@ public class BaseMapAdapter {
 
     // Now set lat/lon limits...
 
-    float[][] linele = 
+    float[][] linele =
         { {(float) xfirst, (float) xlast, (float)xlast, (float)xfirst} ,
         {(float) yfirst, (float) yfirst, (float)ylast, (float)ylast} };
 
@@ -310,7 +310,7 @@ public class BaseMapAdapter {
       if (Float.isNaN(latlon[1][3])) latlon[1][3] = -180.f;
 
 
-      /* 
+      /*
       for (int i=0; i<4; i++) {
         System.out.println("Point "+i+"  Line/Ele="+linele[0][i]+" "+
           linele[1][i]+" Lat/long="+ latlon[0][i]+" "+latlon[1][i]);
@@ -369,15 +369,15 @@ public class BaseMapAdapter {
   // locate the next valid segment (based on lat/lon extremes)
   private int findNextSegment() throws VisADException {
     while (true) {
-      segmentPointer++; 
+      segmentPointer++;
       if (segmentPointer >= numSegments) {
         return 0;
       }
       // check for lat/lon bounds...
       if (segList[segmentPointer][0] > latMax ||
             segList[segmentPointer][1] < latMin) {continue;}
-            
-      if (isEastPositive) {  
+
+      if (isEastPositive) {
         int mx = -segList[segmentPointer][2];
         int mn = -segList[segmentPointer][3];
 
@@ -419,7 +419,7 @@ public class BaseMapAdapter {
       } catch (Exception e) {
         throw new VisADException("Base Map: IOException in skip" + e);
       }
-    
+
       lalo = new float[2][numPairs];
       for (int i=0; i<numPairs; i++) {
         lat = din.readInt();
@@ -439,7 +439,7 @@ public class BaseMapAdapter {
     return lalo;
   }
 
-  /** 
+  /**
     * getData creates a VisAD UnionSet type with the MathType
     * specified thru one of the other methods.  By default,
     * the MathType is a RealTupleType of Latitude,Longitude,
@@ -448,7 +448,7 @@ public class BaseMapAdapter {
     * is supposed to be drawn as a continuous line.  This should
     * only be called once after construction.
     *
-    * @return  UnionSet of maplines or null if there are no maplines 
+    * @return  UnionSet of maplines or null if there are no maplines
     *          in the domain of the display.
     */
   public UnionSet getData() {
@@ -543,7 +543,7 @@ public class BaseMapAdapter {
 
   }
 
-  /** 
+  /**
    * set the sign of longitude convention.  By default, the
    * longitudes are positive eastward
    *
@@ -554,7 +554,7 @@ public class BaseMapAdapter {
     isEastPositive = value;
   }
 
-  /** 
+  /**
    * determine what sign convention for longitude is currently
    * being used.
    *

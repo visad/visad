@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: TrivialAccessor.java,v 1.2 1998-06-17 20:32:43 visad Exp $
+ * $Id: TrivialAccessor.java,v 1.3 2000-04-26 15:45:26 dglo Exp $
  */
 
 package visad.data.netcdf.out;
@@ -80,7 +80,7 @@ TrivialAccessor
      * Return a datum given its location as netCDF indexes.
      *
      * @return		The data object at the position given by
-     *			<code>localIndexes</code> and 
+     *			<code>localIndexes</code> and
      *			<code>outerIndexes</code>.
      * @exception IOException
      *			Data access I/O failure.

@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -613,7 +613,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
       Point3d eye = new Point3d((left_eye.x + right_eye.x)/2.0,
                                 (left_eye.y + right_eye.y)/2.0,
                                 (left_eye.z + right_eye.z)/2.0);
-      double alpha = 0.3; 
+      double alpha = 0.3;
       position1.x = alpha * position1.x + (1.0 - alpha) * eye.x;
       position1.y = alpha * position1.y + (1.0 - alpha) * eye.y;
       position1.z = alpha * position1.z + (1.0 - alpha) * eye.z;

@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -53,13 +53,13 @@ public class PolarStereographic extends CoordinateSystem {
   private static Unit[] coordinate_system_units =
     {null, null};
 
-  public PolarStereographic( RealTupleType reference, 
-                             double r_major, 
-                             double r_minor, 
-                             double lon_center, 
+  public PolarStereographic( RealTupleType reference,
+                             double r_major,
+                             double r_minor,
+                             double lon_center,
                              double lat_center,
-                             double false_easting, 
-                             double false_northing 
+                             double false_easting,
+                             double false_northing
                                                         )
   throws VisADException
   {
@@ -141,7 +141,7 @@ public class PolarStereographic extends CoordinateSystem {
 
        lat = GctpFunction.phi2z(e,ts);
        if ( lat == Double.NaN ) {
-          // exit 
+          // exit
        }
        else {
          lat = lat*fac;
@@ -201,7 +201,7 @@ public class PolarStereographic extends CoordinateSystem {
 
        t_tuples[0][ii] = fac * rh * Math.sin(con1) + false_easting;
        t_tuples[0][ii] = -fac * rh * Math.cos(con1) + false_northing;;
-     } 
+     }
 
      return t_tuples;
   }

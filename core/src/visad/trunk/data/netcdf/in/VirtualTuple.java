@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VirtualTuple.java,v 1.1 1998-09-23 17:31:38 steve Exp $
+ * $Id: VirtualTuple.java,v 1.2 2000-04-26 15:45:21 dglo Exp $
  */
 
 package visad.data.netcdf.in;
@@ -98,7 +98,7 @@ VirtualTuple
     /**
      * Gets the VisAD MathType of this virtual tuple.
      *
-     * @return			The VisAD MathType of the consolidated data 
+     * @return			The VisAD MathType of the consolidated data
      *				items or <code>null</code> if no data items.
      */
     public MathType

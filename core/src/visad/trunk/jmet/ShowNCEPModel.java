@@ -5,19 +5,19 @@
 /*
 
 The software in this file is Copyright(C) 1999 by Tom Whittaker.
-It is designed to be used with the VisAD system for interactive 
-analysis and visualization of numerical data.  
- 
+It is designed to be used with the VisAD system for interactive
+analysis and visualization of numerical data.
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 1, or (at your option)
 any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License in file NOTICE for more details.
- 
+
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -30,7 +30,7 @@ import edu.wisc.ssec.mcidas.*;
 import visad.java3d.*;
 
 import visad.*;
-import visad.util.*;  
+import visad.util.*;
 import visad.Set;
 import visad.Real;
 import visad.VisADException;
@@ -41,9 +41,9 @@ import java.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.border.*; 
-import javax.swing.filechooser.*; 
-import javax.swing.filechooser.FileFilter; 
+import javax.swing.border.*;
+import javax.swing.filechooser.*;
+import javax.swing.filechooser.FileFilter;
 
 
 import java.io.*;
@@ -58,7 +58,7 @@ import visad.jmet.*;
 
 import java.rmi.RemoteException;
 
-public class ShowNCEPModel 
+public class ShowNCEPModel
        extends JFrame implements ActionListener, ChangeListener,
        DisplayListener {
 
@@ -255,7 +255,7 @@ public class ShowNCEPModel
     pc = di.getProjectionControl();
 
     // make the cube the size of the window...for 'snapping'
-    pcMatrix = pc.getMatrix(); 
+    pcMatrix = pc.getMatrix();
     pcMatrix[0] = .95;
     pcMatrix[5] = .95;
     pcMatrix[10] = .95;
@@ -523,7 +523,7 @@ public class ShowNCEPModel
       doBaseMap();
 
     } else if (cmd.startsWith("Param:") ) {
-    
+
        System.out.println("not implemented");
 
     } else if (cmd.equals("start_stop") ) {
@@ -531,7 +531,7 @@ public class ShowNCEPModel
       try {
         setLooping(!isLooping);
       } catch (Exception sse) {sse.printStackTrace(); System.exit(1); }
-       
+
     } else if (cmd.equals("backward")) {
       try {
         ca.setDirection(false);
@@ -581,7 +581,7 @@ public class ShowNCEPModel
   }
 
   public void displayChanged(DisplayEvent e) {
-    
+
     if (e.getId() == DisplayEvent.TRANSFORM_DONE) {
       statLabel.setText("Display Frame done...");
     }
@@ -598,7 +598,7 @@ public class ShowNCEPModel
         speedValue = val;
                try {
           ca.setStep(50*(21 - speedValue) );
-        } catch (Exception slis) {slis.printStackTrace(); System.exit(1);} 
+        } catch (Exception slis) {slis.printStackTrace(); System.exit(1);}
       }
     }
 

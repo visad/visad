@@ -3,7 +3,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -34,7 +34,7 @@ public class FileFlatField extends FlatField {
   // note FileFlatField extends FlatField but may not inherit
   // any of its methods - it must re-implement all of them
   // through the adapted FlatField
- 
+
   // number of FlatFields in cache
 
        private static final int MAX_FILE_FLAT_FIELDS = 10;
@@ -53,7 +53,7 @@ public class FileFlatField extends FlatField {
 
        private static FileFlatField[] adaptedFlatFieldOwner =
        new FileFlatField[MAX_FILE_FLAT_FIELDS];
- 
+
   // adaptedFlatFieldSizes and adaptedFlatFieldTimes
   // may be useful for cache allocation algorithms
   // approximate sizes of FlatFields in cache
@@ -65,13 +65,13 @@ public class FileFlatField extends FlatField {
 
        private static long[] adaptedFlatFieldTimes =
        new long[MAX_FILE_FLAT_FIELDS];
- 
+
   // index of cache entry owned by this FileFlatField;
   // but only if
   // this == adaptedFlatFieldOwner[adaptedFlatFieldIndex]
- 
+
        private int adaptedFlatFieldIndex;
- 
+
 
   // this is the FileAccessor for reading and writing values from
   // and to the adapted file
@@ -83,7 +83,7 @@ public class FileFlatField extends FlatField {
   // of FileFlatField
 
        private CacheStrategy cacheStrategy;
- 
+
   static {
     // initialize cache of FlatFields
     for (int i=0; i<MAX_FILE_FLAT_FIELDS; i++) {
@@ -96,26 +96,26 @@ public class FileFlatField extends FlatField {
       adaptedFlatFieldDirty[i] = false;
     }
   }
- 
+
   // all methods lock on adaptedFlatFields cache
   // to ensure thread safe access
- 
+
   public FileFlatField( FileAccessor accessor, CacheStrategy strategy )
-    throws VisADException 
+    throws VisADException
   {
-    super( accessor.getFunctionType(), 
+    super( accessor.getFunctionType(),
            getNullDomainSet(accessor.getFunctionType().getDomain()) );
 
     fileAccessor = accessor;
     cacheStrategy = strategy;
- 
+
     synchronized (adaptedFlatFields) {
       // '0' is in legal range of adaptedFlatFieldIndex,
       // but not owned by this
       adaptedFlatFieldIndex = 0;
     }
   }
- 
+
   private static Set getNullDomainSet(RealTupleType type)
           throws VisADException {
     int n = type.getDimension();
@@ -136,7 +136,7 @@ public class FileFlatField extends FlatField {
     // does not lock adaptedFlatFields since it is always
     // invoked from methods that have locked adaptedFlatFields
 
-    for ( int ii = 0; ii < MAX_FILE_FLAT_FIELDS; ii++ ) 
+    for ( int ii = 0; ii < MAX_FILE_FLAT_FIELDS; ii++ )
     {
       if (this == adaptedFlatFieldOwner[ii]) {
 
@@ -144,11 +144,11 @@ public class FileFlatField extends FlatField {
 
            adaptedFlatFieldTimes[adaptedFlatFieldIndex] =
            System.currentTimeMillis();
- 
+
            return adaptedFlatFields[ii];
       }
     }
- 
+
         // this FileFlatField does not own a cache entry, so invoke
         // CahceStrategy.allocate to allocate one, possibly by taking
         // one, possibly by taking one from another FileFlatField;
@@ -157,10 +157,10 @@ public class FileFlatField extends FlatField {
         adaptedFlatFieldIndex =
           cacheStrategy.allocate(adaptedFlatFields, adaptedFlatFieldDirty,
                                adaptedFlatFieldSizes, adaptedFlatFieldTimes);
- 
+
         // flush cache entry, if dirty
 
-        if (adaptedFlatFieldDirty[adaptedFlatFieldIndex]) 
+        if (adaptedFlatFieldDirty[adaptedFlatFieldIndex])
         {
           try
           {
@@ -171,7 +171,7 @@ public class FileFlatField extends FlatField {
             System.out.println( e.getMessage() );
           }
         }
- 
+
         // create a new entry in adaptedFlatFields at adaptedFlatFieldIndex
         // and read data values from fileAccessor at fileLocation
         try
@@ -195,13 +195,13 @@ public class FileFlatField extends FlatField {
         // (by calling a method that currently does not exist)
 
           /*adaptedFlatFields[adaptedFlatFieldIndex].getSize(); */
- 
+
          adaptedFlatFieldTimes[adaptedFlatFieldIndex] =
             System.currentTimeMillis();
 
          return adaptedFlatFields[adaptedFlatFieldIndex];
   }
- 
+
   private void flushCache()
       throws VisADException
   {
@@ -214,7 +214,7 @@ public class FileFlatField extends FlatField {
         templateFlatField, fileLocation); */
     }
   }
- 
+
   // must implement all the methods of Data, Function and Field
   //
   // bodies of all must be inside
@@ -224,17 +224,17 @@ public class FileFlatField extends FlatField {
   //
 
   public Data getSample(int index)
-         throws VisADException, RemoteException 
+         throws VisADException, RemoteException
   {
-    synchronized (adaptedFlatFields) 
+    synchronized (adaptedFlatFields)
     {
       return getadaptedFlatField().getSample(index);
     }
   }
 
-  public int getLength() 
+  public int getLength()
   {
-     synchronized (adaptedFlatFields) 
+     synchronized (adaptedFlatFields)
      {
        return getadaptedFlatField().getLength();
      }
@@ -267,7 +267,7 @@ public class FileFlatField extends FlatField {
 
   public CoordinateSystem[] getRangeCoordinateSystem( int component )
          throws VisADException
-  { 
+  {
      synchronized (adaptedFlatFields)
      {
        return getadaptedFlatField().getRangeCoordinateSystem( component );
@@ -293,11 +293,11 @@ public class FileFlatField extends FlatField {
   public double[][] getValues()
          throws VisADException
   {
-    synchronized (adaptedFlatFields) 
+    synchronized (adaptedFlatFields)
     {
       return getadaptedFlatField().getValues();
     }
-  } 
+  }
 
   public double[] getValues(int index)
          throws VisADException
@@ -317,14 +317,14 @@ public class FileFlatField extends FlatField {
     }
   }
 
-  public Set getDomainSet() 
+  public Set getDomainSet()
   {
-    synchronized ( adaptedFlatFields ) 
+    synchronized ( adaptedFlatFields )
     {
       return getadaptedFlatField().getDomainSet();
     }
   }
- 
+
   // setSample is typical of methods that involve changing the
   // contents of this Field
   public void setSample(int index, Data range)
@@ -336,9 +336,9 @@ public class FileFlatField extends FlatField {
   }
 
   public void setSample( RealTuple domain, Data range )
-         throws VisADException, RemoteException 
+         throws VisADException, RemoteException
   {
-    synchronized (adaptedFlatFields) 
+    synchronized (adaptedFlatFields)
     {
       getadaptedFlatField().setSample( domain, range );
       adaptedFlatFieldDirty[adaptedFlatFieldIndex] = true;
@@ -346,7 +346,7 @@ public class FileFlatField extends FlatField {
   }
 
   public void setSample( int index, Data range, boolean copy )
-         throws VisADException, RemoteException 
+         throws VisADException, RemoteException
   {
     synchronized (adaptedFlatFields)
     {
@@ -391,7 +391,7 @@ public class FileFlatField extends FlatField {
   }
 
   public Field resample( Set set, int sampling_mode, int error_mode )
-         throws VisADException, RemoteException 
+         throws VisADException, RemoteException
   {
     synchronized (adaptedFlatFields)
     {
@@ -409,7 +409,7 @@ public class FileFlatField extends FlatField {
   }
 
   public Data adjustSamplingError( Data error, int error_mode )
-         throws VisADException, RemoteException 
+         throws VisADException, RemoteException
   {
      synchronized (adaptedFlatFields)
      {
@@ -417,12 +417,12 @@ public class FileFlatField extends FlatField {
      }
   }
 
-  public boolean isFlatField() 
+  public boolean isFlatField()
   {
      return true;
   }
 
-  public Object clone() 
+  public Object clone()
   {
     synchronized (adaptedFlatFields )
     {

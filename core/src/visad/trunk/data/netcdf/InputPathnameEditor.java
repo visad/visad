@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: InputPathnameEditor.java,v 1.3 1998-06-29 19:47:13 visad Exp $
+ * $Id: InputPathnameEditor.java,v 1.4 2000-04-26 15:45:13 dglo Exp $
  */
 
 package visad.data.netcdf;
@@ -75,8 +75,8 @@ InputPathnameEditor
 	 * to the position of the reference point in the font (i.e. same
 	 * proportional position).
 	 */
-	graphics.drawString(getAsText(), box.x, 
-	    box.y + 
+	graphics.drawString(getAsText(), box.x,
+	    box.y +
 	    Math.round(box.height*fm.getAscent()/(float)fm.getHeight()));
     }
 

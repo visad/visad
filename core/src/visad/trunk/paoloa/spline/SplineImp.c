@@ -21,5 +21,5 @@ JNIEXPORT void JNICALL Java_visad_paoloa_spline_Spline_getspline_1c
     (*env)->ReleaseDoubleArrayElements(env, y_j, y, 0);
     (*env)->ReleaseDoubleArrayElements(env, ys0_j, ys0, 0);
     (*env)->ReleaseDoubleArrayElements(env, wkvalue_j, wkvalue, 0);
-   
+
 }

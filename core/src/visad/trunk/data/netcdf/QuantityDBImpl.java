@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: QuantityDBImpl.java,v 1.3 1999-01-20 18:05:38 steve Exp $
+ * $Id: QuantityDBImpl.java,v 1.4 2000-04-26 15:45:14 dglo Exp $
  */
 
 package visad.data.netcdf;
@@ -156,7 +156,7 @@ QuantityDBImpl
      * specification.
      *
      * @param name		The name of the quantity (e.g. "length").
-     * @param unitSpec		The preferred display unit for the 
+     * @param unitSpec		The preferred display unit for the
      *				quantity (e.g. "feet").
      * @throws ParseException	Couldn't decode unit specification.
      * @throws TypeException	Incompatible ScalarType of same name already
@@ -384,7 +384,7 @@ QuantityDBImpl
 
 
     /**
-     * Returns the quantity in the database whose name matches a 
+     * Returns the quantity in the database whose name matches a
      * given name.
      *
      * @param name	The name of the quantity.
@@ -408,7 +408,7 @@ QuantityDBImpl
      * convertible with a given unit.
      *
      * @param unit	The unit of the quantity.
-     * @return		The quantities in the database whose unit is 
+     * @return		The quantities in the database whose unit is
      *			convertible with <code>unit</code>.
      */
     public synchronized Quantity[]

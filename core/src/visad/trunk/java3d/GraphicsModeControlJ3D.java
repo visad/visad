@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -25,7 +25,7 @@ MA 02111-1307, USA
 */
 
 package visad.java3d;
- 
+
 import visad.*;
 
 import java.rmi.*;
@@ -47,15 +47,15 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   /** for LineAttributes; >= 1.0  @serial */
   private float lineWidth;
   /** for PointAttributes; >= 1.0  @serial */
-  private float pointSize; 
+  private float pointSize;
   /** true => points in place of lines and surfaces, @serial */
   private boolean pointMode;
   /** true => allow use of texture mapping @serial*/
-  private boolean textureEnable; 
+  private boolean textureEnable;
   /** true => display X, Y and Z scales @serial*/
-  private boolean scaleEnable; 
+  private boolean scaleEnable;
 
-  /** for TransparencyAttributes; see list below in setTransparencyMode 
+  /** for TransparencyAttributes; see list below in setTransparencyMode
       @serial */
   private int transparencyMode;
   /** View.PARALLEL_PROJECTION or View.PERSPECTIVE_PROJECTION @serial */
@@ -101,7 +101,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
       }
     }
   }
- 
+
   /**
    * See if the display is being rendered in 2D mode
    * @see visad.DisplayRenderer#getMode2D
@@ -112,7 +112,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     return getDisplayRenderer().getMode2D();
   }
 
-  /** 
+  /**
    * Get the current line width used for LineAttributes.  The default
    * is 1.0.
    *
@@ -122,7 +122,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     return lineWidth;
   }
 
-  /** 
+  /**
    * Set the line width used for LineAttributes.  Calls changeControl
    * and resets the display.
    *
@@ -139,7 +139,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     getDisplay().reDisplayAll();
   }
 
-  /** 
+  /**
    * Set the line width used for LineAttributes.   Does not update
    * display.
    *
@@ -150,7 +150,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     lineWidth = width;
   }
 
-  /** 
+  /**
    * Get the current point size used for PointAttributes.  The default
    * is 1.0.
    *
@@ -160,7 +160,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     return pointSize;
   }
 
-  /** 
+  /**
    * Get the point size used for PointAttributes.  Calls changeControl
    * and updates the display.
    *
@@ -177,7 +177,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     getDisplay().reDisplayAll();
   }
 
-  /** 
+  /**
    * Get the point size used for PointAttributes.  Doesn't update
    * the display.
    *
@@ -191,7 +191,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   /**
    * Gets the point mode.
    *
-   * @return  True if the display is using points rather than connected 
+   * @return  True if the display is using points rather than connected
    *          lines or surfaces for rendering.
    */
   public boolean getPointMode() {
@@ -238,7 +238,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
    * @param  enable    true to enable, false to disable
    *
    * @throws  VisADException   couldn't change state of scale enablement
-   * @throws  RemoteException  couldn't change state of scale enablement on 
+   * @throws  RemoteException  couldn't change state of scale enablement on
    *                           remote display
    */
   public void setScaleEnable(boolean enable)
@@ -247,9 +247,9 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     getDisplayRenderer().setScaleOn(enable);
     changeControl(true);
   }
- 
-  /** 
-   * Get whether display scales are enabled or not 
+
+  /**
+   * Get whether display scales are enabled or not
    *
    * @return  true if enabled, otherwise false
    */
@@ -260,7 +260,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   /**
    * Get the current transparency mode
    *
-   * @return  DisplayImplJ3D.FASTEST, DisplayImplJ3D.NICEST 
+   * @return  DisplayImplJ3D.FASTEST, DisplayImplJ3D.NICEST
    */
   public int getTransparencyMode() {
     return transparencyMode;
@@ -326,8 +326,8 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   /**
    * Get the current projection policy for the display.
    *
-   * @return  DisplayImplJ3D.PARALLEL_PROJECTION or 
-   *          DisplayImplJ3D.PERSPECTIVE_PROJECTION 
+   * @return  DisplayImplJ3D.PARALLEL_PROJECTION or
+   *          DisplayImplJ3D.PERSPECTIVE_PROJECTION
    */
   public int getProjectionPolicy() {
     return projectionPolicy;
@@ -337,8 +337,8 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
    * Sets the polygon rasterization mode.
    *
    * @param  mode   the polygon rasterization mode to be used; one of
-   *                DisplayImplJ3D.POLYGON_FILL, DisplayImplJ3D.POLYGON_LINE, 
-   *                or DisplayImplJ3D.POLYGON_POINT 
+   *                DisplayImplJ3D.POLYGON_FILL, DisplayImplJ3D.POLYGON_LINE,
+   *                or DisplayImplJ3D.POLYGON_POINT
    *
    * @throws  VisADException   bad mode or can't create the necessary VisAD
    *                           object
@@ -362,8 +362,8 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   /**
    * Get the current polygon rasterization mode.
    *
-   * @return  DisplayImplJ3D.POLYGON_FILL, DisplayImplJ3D.POLYGON_LINE, 
-   *          or DisplayImplJ3D.POLYGON_POINT 
+   * @return  DisplayImplJ3D.POLYGON_FILL, DisplayImplJ3D.POLYGON_LINE,
+   *          or DisplayImplJ3D.POLYGON_POINT
    */
   public int getPolygonMode() {
     return polygonMode;
@@ -387,7 +387,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     missingTransparent = missing;
   }
 
-  /** 
+  /**
    * Get the undersampling factor of surface shape for curved texture maps
    *
    * @return  undersampling factor (default 10)
@@ -395,8 +395,8 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   public int getCurvedSize() {
     return curvedSize;
   }
- 
-  /** 
+
+  /**
    * Set the undersampling factor of surface shape for curved texture maps
    *
    * @param  curved_size  undersampling factor (default 10)
@@ -422,11 +422,11 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     return mode;
   }
 
-  /** 
-   * Copy the state of a remote control to this control 
-   * 
+  /**
+   * Copy the state of a remote control to this control
+   *
    * @param  rmt   remote control to sync with this one
-   * @throws  VisADException  rmt == null or rmt is not a 
+   * @throws  VisADException  rmt == null or rmt is not a
    *                          GraphicsModeControlJ3D or couldn't tell if
    *                          control was changed.
    */

@@ -326,7 +326,7 @@ public class Rain implements ActionListener, ControlListener {
     //
     // construct JFC user interface
     //
- 
+
     // create a JFrame
     JFrame frame = new JFrame("Vis5D");
     WindowListener l = new WindowAdapter() {
@@ -338,14 +338,14 @@ public class Rain implements ActionListener, ControlListener {
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     frame.setLocation(screenSize.width/2 - WIDTH/2,
                       screenSize.height/2 - HEIGHT/2);
- 
+
     // create big_panel JPanel in frame
     JPanel big_panel = new JPanel();
     big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.X_AXIS));
     big_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
     big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     frame.getContentPane().add(big_panel);
- 
+
     final JPanel left_panel = new JPanel();
     left_panel.setLayout(new BoxLayout(left_panel, BoxLayout.Y_AXIS));
     left_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
@@ -675,7 +675,7 @@ public class Rain implements ActionListener, ControlListener {
     if (server_server != null || client_server != null) {
       CellImpl color_cellH2 = new CellImpl() {
         public void doAction() throws VisADException, RemoteException {
-          FlatField field = (FlatField) ref_colorH2.getData().local(); 
+          FlatField field = (FlatField) ref_colorH2.getData().local();
           float[][] table = field.getFloats();
           float[][] old_table = color_controlH2.getTable();
           boolean identical = true;
@@ -891,7 +891,7 @@ public class Rain implements ActionListener, ControlListener {
           }
         }
       }
-    }; 
+    };
     if (client_server != null) {
       RemoteCellImpl remote_cell = new RemoteCellImpl(cell_cursor);
       remote_cell.addReference(ref_cursor);
@@ -971,7 +971,7 @@ public class Rain implements ActionListener, ControlListener {
       // other cells all share ColorControl #1
       cc = color_controlH1;
     }
-    if (cc != null) { 
+    if (cc != null) {
       float[][] table = cc.getTable();
       if (table != null) color_controls[i][j].setTable(table);
     }

@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -40,7 +40,7 @@ public class HdfeosTuple extends HdfeosData
   private DataImpl tuple = null;
   private DataImpl[] datas = null;
 
-  HdfeosTuple( HdfeosData[] elements ) 
+  HdfeosTuple( HdfeosData[] elements )
              throws VisADException, RemoteException
   {
     dataSet = new Vector();
@@ -65,7 +65,7 @@ public class HdfeosTuple extends HdfeosData
   public DataImpl getData()
          throws VisADException, RemoteException
   {
-    if ( tuple == null ) 
+    if ( tuple == null )
     {
       for ( int ii = 0; ii < length; ii++ ) {
         datas[ii] = elements[ii].getData();
@@ -75,7 +75,7 @@ public class HdfeosTuple extends HdfeosData
     return tuple;
   }
 
-  public DataImpl getData( int[] indexes ) 
+  public DataImpl getData( int[] indexes )
          throws VisADException, RemoteException
   {
     for ( int ii = 0; ii < length; ii++ ) {
@@ -108,12 +108,12 @@ public class HdfeosTuple extends HdfeosData
     return tuple;
   }
 
-  public int getSize() 
+  public int getSize()
   {
     return length;
   }
 
-  public HdfeosData getElement( int ii ) 
+  public HdfeosData getElement( int ii )
   {
     HdfeosData data = elements[ii];
     return data;
@@ -125,7 +125,7 @@ public class HdfeosTuple extends HdfeosData
     return e;
   }
 
-  public String toString() 
+  public String toString()
   {
     String str = "dataSet: \n";
     for ( int ii = 0; ii < this.getSize(); ii++ )

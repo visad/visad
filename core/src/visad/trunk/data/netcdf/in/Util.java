@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Util.java,v 1.5 1999-01-07 17:01:30 steve Exp $
+ * $Id: Util.java,v 1.6 2000-04-26 15:45:19 dglo Exp $
  */
 
 package visad.data.netcdf.in;
@@ -70,25 +70,25 @@ Util
     /**
      * A cache of netCDF variables and their units.
      */
-    private final Map			unitMap = 
+    private final Map			unitMap =
 	Collections.synchronizedMap(new WeakHashMap());
 
     /**
      * A cache of netCDF dimensions and their VisAD domain types.
      */
-    private final Map			realTypeMap = 
+    private final Map			realTypeMap =
 	Collections.synchronizedMap(new WeakHashMap());
 
     /**
      * A cache of netCDF dimensions and their VisAD domain sets.
      */
-    private final Map			domainSetMap = 
+    private final Map			domainSetMap =
 	Collections.synchronizedMap(new WeakHashMap());
 
     /**
      * A cache of netCDF datasets and their Util instances.
      */
-    private static Map			utilMap = 
+    private static Map			utilMap =
 	Collections.synchronizedMap(new WeakHashMap());
 
     /**
@@ -276,7 +276,7 @@ Util
 	 */
 
 	Unit	unit = justGetUnit(var);
-	
+
 	return unit != null
 		? unit
 		: getRealType(var).getDefaultUnit();
@@ -393,9 +393,9 @@ Util
      * @param dims		A netCDF domain.  Dimensions are in netCDF
      *				order (outer dimension first).
      * @return			The type of the domain corresponding to
-     *				<code>dims</code>.  RETURN_VALUE is 
+     *				<code>dims</code>.  RETURN_VALUE is
      *				<code>null</code>, a <code>RealType</code>,
-     *				or a <code>RealTupleType</code> if 
+     *				or a <code>RealTupleType</code> if
      *				<code>dims.length</code> is 0, 1, or greater
      *				than 1, respectively.
      * @throws VisADException	Couldn't create necessary VisAD object.
@@ -537,15 +537,15 @@ Util
 		    type = new RealType(name);
 
 		    /*
-		     * QUESTION: add co-ordinate system?  I don't think so for 
-		     * a netCDF dimension that doesn't have a co-ordinate 
+		     * QUESTION: add co-ordinate system?  I don't think so for
+		     * a netCDF dimension that doesn't have a co-ordinate
 		     * variable.
 		     */
 		    type.setDefaultSet(new FloatSet(type));
 		}
 	    }
 	}
-	
+
 	return type;
     }
 
@@ -591,7 +591,7 @@ Util
 		 * The following is complicated due to the fact that the last
 		 * argument to the Linear1DSet() constructor:
 		 *
-		 *     Linear1DSet(MathType type, double start, double stop, 
+		 *     Linear1DSet(MathType type, double start, double stop,
 		 *			int length)
 		 *
 		 * is an "int" -- and the number of Java "int" values cannot
@@ -606,7 +606,7 @@ Util
 			    ? (SimpleSet)(new Linear1DSet(type, minValid,
 					    maxValid, (int)length))
 			    : (SimpleSet)(new FloatSet(type,
-					    /*CoordinateSystem=*/null, 
+					    /*CoordinateSystem=*/null,
 					    new Unit[] {getUnit(var)}));
 	    }
 	    else if (cl.equals(float.class))
@@ -729,7 +729,7 @@ Util
 		     */
 		    // TODO: add CoordinateSystem argument
 		    set = new Linear1DSet(
-			    getRealType(dim), 
+			    getRealType(dim),
 			    ap.getFirst(),
 			    ap.getLast(),
 			    ap.getNumber(),
@@ -788,7 +788,7 @@ Util
      * Gets the LinearSet of combined Linear1DSet-s and domain type.
      *
      * @param sets		Linear1DSet-s of the domain.
-     * @param type		VisAD math type of the domain set.  
+     * @param type		VisAD math type of the domain set.
      *				NB: The units of the dimensions needn't be the
      *				same as the units in <code>type</code>.
      * @return			LinearSet of the domain of the function.
@@ -851,7 +851,7 @@ Util
      *
      * @param sets		Gridded1DSet-s of the domain.
      * @param type		VisAD math type of the domain set.  NB: The
-     *				units of the dimensions needn't be the same as 
+     *				units of the dimensions needn't be the same as
      *				the units in <code>type</code>.
      * @return			GriddedSet of the domain of the function.
      * @throws IOException	Data access I/O failure.

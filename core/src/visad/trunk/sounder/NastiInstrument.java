@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -39,9 +39,9 @@ public class NastiInstrument extends SounderInstrument
   public NastiInstrument( String[] scalar_names,  //- names of retrieval/foward algorith parameters
                           String[] units,         //- units of the above
                           double[] model_parms    //- initial values of the above
-                                                ) 
+                                                )
          throws VisADException, RemoteException
-  { 
+  {
     super(scalar_names, units, model_parms);
   }
 

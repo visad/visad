@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Plain.java,v 1.15 1999-01-20 18:05:37 steve Exp $
+ * $Id: Plain.java,v 1.16 2000-04-26 15:45:13 dglo Exp $
  */
 
 package visad.data.netcdf;
@@ -34,7 +34,7 @@ Plain
     extends NetCDF
 {
     /**
-     * The quantity database to use for mapping netCDF variables to 
+     * The quantity database to use for mapping netCDF variables to
      * VisAD Quantity-s.
      */
     private final QuantityDB	quantityDB;

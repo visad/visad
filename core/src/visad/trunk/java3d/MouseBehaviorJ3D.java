@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -25,9 +25,9 @@ MA 02111-1307, USA
 */
 
 package visad.java3d;
- 
+
 import visad.*;
- 
+
 import java.awt.event.*;
 
 import javax.media.j3d.*;
@@ -113,20 +113,20 @@ public class MouseBehaviorJ3D extends Behavior
     canvas.getImagePlateToVworld(t);
     t.transform(position);
     t.transform(eye_position);
- 
+
     if (display.getGraphicsModeControl().getProjectionPolicy() ==
         View.PARALLEL_PROJECTION) {
       eye_position = new Point3d(position.x, position.y,
                                  position.z + 1.0f);
     }
- 
+
     TransformGroup trans = display_renderer.getTrans();
     Transform3D tt = new Transform3D();
     trans.getTransform(tt);
     tt.invert();
     tt.transform(position);
     tt.transform(eye_position);
- 
+
     // new eye_position = 2 * position - old eye_position
     Vector3d vector = new Vector3d(position.x - eye_position.x,
                                    position.y - eye_position.y,
@@ -153,7 +153,7 @@ public class MouseBehaviorJ3D extends Behavior
     Transform3D t = new Transform3D();
     canvas.getImagePlateToVworld(t);
     t.transform(eye_position);
- 
+
     TransformGroup trans = display_renderer.getTrans();
     Transform3D tt = new Transform3D();
     trans.getTransform(tt);
@@ -168,7 +168,7 @@ public class MouseBehaviorJ3D extends Behavior
     tt.invert();
     tt.transform(position);
     tt.transform(eye_position);
- 
+
     // new eye_position = 2 * position - old eye_position
     Vector3d vector = new Vector3d(position.x - eye_position.x,
                                    position.y - eye_position.y,
@@ -223,7 +223,7 @@ public class MouseBehaviorJ3D extends Behavior
     double deg2rad = 1.0 / 57.2957;
     double[] matrix = new double[16];
     double[][] mat = new double[4][4];
-  
+
     /* Get sin and cosine values */
     sx = Math.sin(rotx * deg2rad);
     cx = Math.cos(rotx * deg2rad);
@@ -231,41 +231,41 @@ public class MouseBehaviorJ3D extends Behavior
     cy = Math.cos(roty * deg2rad);
     sz = Math.sin(rotz * deg2rad);
     cz = Math.cos(rotz * deg2rad);
-  
+
     /* Start with identity matrix */
     mat[0][0] = 1.0;  mat[0][1] = 0.0;  mat[0][2] = 0.0;  mat[0][3] = 0.0;
     mat[1][0] = 0.0;  mat[1][1] = 1.0;  mat[1][2] = 0.0;  mat[1][3] = 0.0;
     mat[2][0] = 0.0;  mat[2][1] = 0.0;  mat[2][2] = 1.0;  mat[2][3] = 0.0;
     mat[3][0] = 0.0;  mat[3][1] = 0.0;  mat[3][2] = 0.0;  mat[3][3] = 1.0;
-  
+
     /* Z Rotation */
     for (i=0;i<4;i++) {
       t = mat[i][0];
       mat[i][0] = t*cz - mat[i][1]*sz;
       mat[i][1] = t*sz + mat[i][1]*cz;
     }
- 
+
     /* X rotation */
     for (i=0;i<4;i++) {
       t = mat[i][1];
       mat[i][1] = t*cx - mat[i][2]*sx;
       mat[i][2] = t*sx + mat[i][2]*cx;
     }
- 
+
     /* Y Rotation */
     for (i=0;i<4;i++) {
       t = mat[i][0];
       mat[i][0] = mat[i][2]*sy + t*cy;
       mat[i][2] = mat[i][2]*cy - t*sy;
     }
- 
+
     /* Scale */
     for (i=0;i<3;i++) {
       mat[i][0] *= scale;
       mat[i][1] *= scale;
       mat[i][2] *= scale;
     }
- 
+
     /* Translation */
 /* should be mat[0][3], mat[1][3], mat[2][3]
    WLH 22 Dec 97 */
@@ -296,14 +296,14 @@ public class MouseBehaviorJ3D extends Behavior
     int i, j;
     double[][] mat = new double[4][4];
     double[][] nat = new double[4][4];
-  
+
     double scalex, scaley, scalez, scaleinv, cxa, cxb, cxinv;
 
     if (rot == null || rot.length != 3) return;
     if (scale == null || scale.length != 1) return;
     if (trans == null || trans.length != 3) return;
     if (matrix == null || matrix.length != 16) return;
-  
+
     int k = 0;
     for (i=0; i<4; i++) {
       for (j=0; j<4; j++) {
@@ -322,7 +322,7 @@ public class MouseBehaviorJ3D extends Behavior
     trans[0] = mat[0][3];
     trans[1] = mat[1][3];
     trans[2] = mat[2][3];
-  
+
     /* scale */
     scalex = scaley = scalez = 0.0;
     for (i=0; i<3; i++) {
@@ -335,19 +335,19 @@ public class MouseBehaviorJ3D extends Behavior
     }
     scale[0] = Math.sqrt((scalex + scaley + scalez)/3.0);
     scaleinv = Math.abs(scale[0]) > EPS ? 1.0 / scale[0] : 1.0 / EPS;
-  
+
     for (i=0; i<3; i++) {
       for (j=0; j<3; j++) {
         nat[j][i] = scaleinv * mat[j][i];
       }
     }
-  
+
     /* rotation */
     sx = -nat[2][1];
-  
+
     cxa = Math.sqrt(nat[2][0]*nat[2][0] + nat[2][2]*nat[2][2]);
     cxb = Math.sqrt(nat[0][1]*nat[0][1] + nat[1][1]*nat[1][1]);
-  
+
     if (Math.abs(cxa - cxb) > EPS) {
       // System.out.println("problem2 " + cxa + " " + cxb);
     }
@@ -370,7 +370,7 @@ public class MouseBehaviorJ3D extends Behavior
       sz = nat[0][2];
       cz = nat[1][2];
     }
-  
+
     rot[0] = 57.2957 * Math.atan2(sx, cx);
     rot[1] = 57.2957 * Math.atan2(sy, cy);
     rot[2] = 57.2957 * Math.atan2(sz, cz);
@@ -390,12 +390,12 @@ public class MouseBehaviorJ3D extends Behavior
 
 /*
    see ViewPlatform.TransformGroup in UniverseBuilderJ3D constructor
- 
+
    View.setProjectionPolicy
      default is View.PERSPECTIVE_PROJECTION (vs PARALLEL_PROJECTION)
    View.getVpcToEc(Transform3D vpcToEc)
      "Compatibility mode method that retrieves the current ViewPlatform
-     Coordinates (VPC) system to Eye Coordinates (EC) transform and copies 
+     Coordinates (VPC) system to Eye Coordinates (EC) transform and copies
      it into the specified object."
    View.getLeftProjection(Transform3D projection)
    View.getRightProjection(Transform3D projection)
@@ -405,16 +405,16 @@ public class MouseBehaviorJ3D extends Behavior
      default is disabled
    View.getLeftProjection(Transform3D projection)
      "Compatibility mode method that specifies a viewing frustum for the
-     left eye that transforms points in Eye Coordinates (EC) to Clipping 
+     left eye that transforms points in Eye Coordinates (EC) to Clipping
      Coordinates (CC)."
- 
+
    NOTE have View in UniverseBuilderJ3D
 
    Canvas3D.getImagePlateToVworld(Transform3D t)
    Canvas3D.getPixelLocationInImagePlate(int x, int y, Point3d position)
    Canvas3D.getVworldToImagePlate(Transform3D t)
    Canvas3D.getCenterEyeInImagePlate(Point3d position)
- 
+
   spec page 176: "final transform for rendering shapes to Canvas3D is
     P * E * inv(ViewPlatform.TransformGroup) * trans
     use Transform3D.invert for inv
@@ -477,25 +477,25 @@ initial trans_frustum =
 0.0, 1.0, 0.0, 0.0
 0.0, 0.0, 1.0, 0.0
 0.0, 0.0, 0.0, 1.0
- 
+
 trans_frustum =
 1.0, 0.0, 0.0, 0.0
 0.0, 1.0, 0.0, 0.0
 0.0, 0.0, 3.0, 4.0
 0.0, 0.0, -1.0, 0.0
- 
+
 trans_perspective =
 3.91631736464594, 0.0, 0.0, 0.0
 0.0, 3.91631736464594, 0.0, 0.0
 0.0, 0.0, 3.0, 4.0
 0.0, 0.0, -1.0, 0.0
- 
+
 trans_ortho =
 1.0, 0.0, 0.0, -0.0
 0.0, 1.0, 0.0, -0.0
 0.0, 0.0, 2.0, 3.0
 0.0, 0.0, 0.0, 1.0
- 
+
 trans_ortho2 =
 1.0, 0.0, 0.0, -0.0
 0.0, 1.0, 0.0, -0.0
@@ -507,14 +507,14 @@ trans_translate_scale =
 3.9000000000000004, 4.199999999999999, 4.5, 2.2
 4.800000000000001, 5.1, 5.4, 2.3
 0.0, 0.0, 0.0, 1.0
- 
+
 trans_matrix =
 1.0, 1.1, 1.2, 1.3
 1.4, 1.5, 1.6, 1.7
 1.8, 1.9, 2.0, 2.1
 2.2, 2.3, 2.4, 2.5
 
-verner 26% 
+verner 26%
 //
 
 }

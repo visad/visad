@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -33,7 +33,7 @@ import visad.*;
    systems for ( X_map, Y_map ).<P>
 */
 
-public class LambertConformalConic extends CoordinateSystem 
+public class LambertConformalConic extends CoordinateSystem
 {
   double r_major;
   double es;
@@ -41,7 +41,7 @@ public class LambertConformalConic extends CoordinateSystem
   double r_minor;
   double lon_center;
   double lat_center;
-  double ns; 
+  double ns;
   double f0;
   double rh;
   double false_easting;
@@ -50,7 +50,7 @@ public class LambertConformalConic extends CoordinateSystem
   private static Unit[] coordinate_system_units =
    {SI.meter, SI.meter};
 
-  public LambertConformalConic( RealTupleType reference,  //- earth Reference 
+  public LambertConformalConic( RealTupleType reference,  //- earth Reference
                                 double r_major,           //- semimajor axis
                                 double r_minor,           //- semiminor axis
                                 double s_lat1,            //- 1st standard latitude
@@ -76,7 +76,7 @@ public class LambertConformalConic extends CoordinateSystem
       throw new GctpException(
          "Equal latitudes for st. paralles on opposite sides of equator");
     }
-     
+
     double sin_po;
     double cos_po;
     double con;
@@ -91,14 +91,14 @@ public class LambertConformalConic extends CoordinateSystem
     con = sin_po;
     ms1 = GctpFunction.msfnz(e, sin_po, cos_po);
     ts1 = GctpFunction.tsfnz(e, s_lat1, sin_po);
-    
+
     sin_po = Math.sin(s_lat2);
     cos_po = Math.cos(s_lat2);
     ms2 = GctpFunction.msfnz(e, sin_po, cos_po);
     ts2 = GctpFunction.tsfnz(e, s_lat2, sin_po);
     sin_po = Math.sin(lat_center);
     ts0 = GctpFunction.tsfnz(e, lat_center, sin_po);
-    
+
     if (Math.abs(s_lat1 - s_lat2) > GctpFunction.EPSLN) {
       ns = Math.log (ms1/ms2)/ Math.log (ts1/ts2);
     }
@@ -109,8 +109,8 @@ public class LambertConformalConic extends CoordinateSystem
     rh = r_major * f0 * Math.pow(ts0,ns);
   }
 
-  public double[][] toReference(double[][] tuples) 
-                    throws VisADException 
+  public double[][] toReference(double[][] tuples)
+                    throws VisADException
   {
      double rh1;
      double con;
@@ -152,7 +152,7 @@ public class LambertConformalConic extends CoordinateSystem
        if ((rh1 != 0) || (ns > 0.0)) {
          con = 1.0/ns;
          ts = Math.pow((rh1/(r_major*f0)),con);
-         t_tuples[1][ii] = GctpFunction.phi2z(e, ts); 
+         t_tuples[1][ii] = GctpFunction.phi2z(e, ts);
        }
        else {
          t_tuples[1][ii] = -GctpFunction.HALF_PI;
@@ -163,8 +163,8 @@ public class LambertConformalConic extends CoordinateSystem
      return t_tuples;
   }
 
-  public double[][] fromReference(double[][] tuples) 
-                    throws VisADException 
+  public double[][] fromReference(double[][] tuples)
+                    throws VisADException
   {
     int n_tuples = tuples[0].length;
     int tuple_dim = tuples.length;
@@ -182,7 +182,7 @@ public class LambertConformalConic extends CoordinateSystem
     double[] rh1 = new double[n_tuples];
     double t_tuples[][] = new double[2][n_tuples];
 
-    for ( int ii = 0; ii < n_tuples; ii++ ) 
+    for ( int ii = 0; ii < n_tuples; ii++ )
     {
       lon = tuples[0][ii];
       lat = tuples[1][ii];
@@ -200,7 +200,7 @@ public class LambertConformalConic extends CoordinateSystem
         }
         rh1[ii] = 0d;
       }
-      
+
       theta = ns*GctpFunction.adjust_lon(lon - lon_center);
       t_tuples[0][ii] = rh1[ii]*Math.sin(theta) + false_easting;
       t_tuples[1][ii] = rh - rh1[ii]*Math.cos(theta) + false_northing;
@@ -212,12 +212,12 @@ public class LambertConformalConic extends CoordinateSystem
     return ( cs instanceof LambertConformalConic );
   }
 
-  public static void main(String args[]) throws VisADException 
+  public static void main(String args[]) throws VisADException
   {
      CoordinateSystem cs_lamcc = null;
      RealType real1;
      RealType real2;
-     double[][] values_in = { {-2.3292989, -1.6580627, -1.6580627, -1.6580627}, 
+     double[][] values_in = { {-2.3292989, -1.6580627, -1.6580627, -1.6580627},
                               { 0.2127555, 0.4363323, 0.6981317, 0.8726646} };
 
      real1 = new RealType("Theta", SI.radian, null);
@@ -236,24 +236,24 @@ public class LambertConformalConic extends CoordinateSystem
      double center_lon = -95*Data.DEGREES_TO_RADIANS;
      double false_easting = 0;
      double false_northing = 0;
-  
+
      RealTupleType Reference = new RealTupleType(reals);
 
      cs_lamcc = new LambertConformalConic( Reference, r_major, r_minor,
                                            s_lat1, s_lat2,
-                                           center_lon, center_lat, 
+                                           center_lon, center_lat,
                                            false_easting, false_northing );
 
      double[][] values_out = cs_lamcc.fromReference( values_in );
 
-     for ( int i=0; i<values_out[0].length; i++) 
+     for ( int i=0; i<values_out[0].length; i++)
      {
        System.out.println(values_out[0][i]+",  "+values_out[1][i]);
      }
      System.out.println(" ");
 
      double[][] values_inR = cs_lamcc.toReference( values_out );
-     for ( int i=0; i<values_inR[0].length; i++) 
+     for ( int i=0; i<values_inR[0].length; i++)
      {
        System.out.println(values_inR[0][i]+",  "+values_inR[1][i]);
      }

@@ -5,9 +5,9 @@
 
 /*
 The code in this file is Copyright(C) 1999 by Don
-Murray.  It is designed to be used with the VisAD system for 
-interactive analysis and visualization of numerical data.  
- 
+Murray.  It is designed to be used with the VisAD system for
+interactive analysis and visualization of numerical data.
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 1, or (at your option)
@@ -35,11 +35,11 @@ import visad.data.mcidas.*;
 import visad.jmet.*;
 
 
-/** 
+/**
  * McIDASGridDirectory for McIDAS 'grid' directory entries
  *
  * @author Tom Whittaker
- * 
+ *
  */
 public class McIDASGridDirectory extends visad.jmet.MetGridDirectory {
   int validHour;
@@ -129,7 +129,7 @@ public class McIDASGridDirectory extends visad.jmet.MetGridDirectory {
    public String toString() {
      return new String(paramName + " "+paramUnit+" "+rows+" "+
      columns+" "+
-     levelValue+" "+levelUnit+" "+ 
+     levelValue+" "+levelUnit+" "+
      referenceTime.toGMTString()+ " "+validHour
      + " or "+validTime.toGMTString() );
    }

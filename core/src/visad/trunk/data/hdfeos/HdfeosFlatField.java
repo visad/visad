@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -50,23 +50,23 @@ public class HdfeosFlatField extends HdfeosData
   int[] inv_stride = null;
   int[] edge = null;
   int[] inv_edge = null;
- 
+
   DimensionSet rangeDimSet = null;
   DimensionSet domainDimSet = null;
 
   FlatField data = null;
 
   public HdfeosFlatField( HdfeosDomain domain, Variable[] range_s )
-         throws VisADException, 
-                UnimplementedException, 
+         throws VisADException,
+                UnimplementedException,
                 HdfeosException
   {
     initialize( domain, range_s );
   }
 
   public HdfeosFlatField( HdfeosDomain domain, Variable range )
-         throws VisADException, 
-                UnimplementedException, 
+         throws VisADException,
+                UnimplementedException,
                 HdfeosException
   {
     Variable[] range_s = { range };
@@ -74,15 +74,15 @@ public class HdfeosFlatField extends HdfeosData
   }
 
   public HdfeosFlatField( HdfeosDomain domain, VariableSet range_s )
-         throws VisADException, 
-                UnimplementedException, 
+         throws VisADException,
+                UnimplementedException,
                 HdfeosException
   {
     initialize( domain, range_s.getElements() );
   }
 
-  private void initialize( HdfeosDomain domain, 
-                           Variable[] range_s ) 
+  private void initialize( HdfeosDomain domain,
+                           Variable[] range_s )
           throws VisADException,
                  UnimplementedException,
                  HdfeosException
@@ -145,7 +145,7 @@ public class HdfeosFlatField extends HdfeosData
   public DataImpl getData()
          throws VisADException, RemoteException
   {
-    return getData(null);  
+    return getData(null);
   }
 
   public DataImpl getAdaptedData()
@@ -158,24 +158,24 @@ public class HdfeosFlatField extends HdfeosData
     return f_field;
   }
 
-  public DataImpl getData( int[] indexes ) 
+  public DataImpl getData( int[] indexes )
          throws VisADException, RemoteException
   {
     Set set = null;
-    if ( ! pointStruct ) 
+    if ( ! pointStruct )
     {
-      if ( indexes == null ) 
+      if ( indexes == null )
       {
         if ( data != null )
         {
           return data;
         }
-        else 
+        else
         {
           set = domain.getData();
         }
       }
-      else 
+      else
       {
         if ( d_rank == r_rank ) {
           set = domain.getData(indexes);
@@ -193,7 +193,7 @@ public class HdfeosFlatField extends HdfeosData
         }
       }
 
-      if ( struct instanceof EosSwath ) { 
+      if ( struct instanceof EosSwath ) {
         /**- invert dimension order  --*/
         for ( int ii = 0; ii < r_rank; ii++ )
         {
@@ -246,7 +246,7 @@ public class HdfeosFlatField extends HdfeosData
     RealType r_type;
     RealType[] r_types = new RealType[n_fields];
 
-    for ( int ii = 0; ii < n_fields; ii++ ) 
+    for ( int ii = 0; ii < n_fields; ii++ )
     {
       try
       {
@@ -269,7 +269,7 @@ public class HdfeosFlatField extends HdfeosData
     MathType range_type;
     if ( n_fields == 1 ) {
       range_type = r_types[0];
-    } 
+    }
     else {
       range_type = new RealTupleType(r_types);
     }

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: IndependentVar.java,v 1.3 1998-06-17 20:32:42 visad Exp $
+ * $Id: IndependentVar.java,v 1.4 2000-04-26 15:45:25 dglo Exp $
  */
 
 package visad.data.netcdf.out;
@@ -45,7 +45,7 @@ IndependentVar
      *
      * @param name	The name for the netCDF variable.
      * @param dim	The netCDF dimension for the independent variable.
-     * @param unit	The unit of the netCDF variable (may be 
+     * @param unit	The unit of the netCDF variable (may be
      *			<code>null</code>).
      * @param set	The VisAD SampledSet that "contains" the independent
      *			variable.
@@ -68,7 +68,7 @@ IndependentVar
     /**
      * Return my attributes for construction.
      *
-     * @param unit	The unit of the netCDF variable (may be 
+     * @param unit	The unit of the netCDF variable (may be
      *			<code>null</code>).
      * @return		The attributes for the netCDF variable.
      */

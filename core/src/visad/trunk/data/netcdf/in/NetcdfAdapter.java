@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.16 1999-01-20 18:05:41 steve Exp $
+ * $Id: NetcdfAdapter.java,v 1.17 2000-04-26 15:45:17 dglo Exp $
  */
 
 package visad.data.netcdf.in;
@@ -22,7 +22,7 @@ import visad.data.netcdf.QuantityDBManager;
 
 
 /**
- * The NetcdfAdapter class adapts a netCDF dataset to a VisAD API.  It is 
+ * The NetcdfAdapter class adapts a netCDF dataset to a VisAD API.  It is
  * useful for importing a netCDF dataset.
  */
 public class
@@ -89,9 +89,9 @@ NetcdfAdapter
     /**
      * Gets the VisAD data object corresponding to the netCDF dataset.
      *
-     * @return			The top-level, VisAD data object in the netCDF 
+     * @return			The top-level, VisAD data object in the netCDF
      *				dataset.
-     * @throws VisADException	Problem in core VisAD.  Probably some VisAD 
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD
      *				object couldn't be created.
      * @throws IOException	Data access I/O failure.
      */
@@ -104,12 +104,12 @@ NetcdfAdapter
 
 
     /**
-     * Gets a proxy for the VisAD data object corresponding to the 
+     * Gets a proxy for the VisAD data object corresponding to the
      * netCDF dataset.
      *
-     * @return			The top-level, VisAD data object in the netCDF 
+     * @return			The top-level, VisAD data object in the netCDF
      *				dataset.
-     * @throws VisADException	Problem in core VisAD.  Probably some VisAD 
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD
      *				object couldn't be created.
      * @throws IOException	Data access I/O failure.
      */
@@ -164,7 +164,7 @@ NetcdfAdapter
 
 	for (int i = 0; i < pathnames.length; ++i)
 	{
-	    NetcdfFile		file = new NetcdfFile(pathnames[i], 
+	    NetcdfFile		file = new NetcdfFile(pathnames[i],
 				    /*readonly=*/true);
 	    NetcdfAdapter	adapter =
 		new NetcdfAdapter(file, QuantityDBManager.instance());
@@ -173,7 +173,7 @@ NetcdfAdapter
 
 	    System.out.println("data.getType().prettyString():\n" +
 		data.getType().prettyString());
-	    // System.out.println("Domain set:\n" + 
+	    // System.out.println("Domain set:\n" +
 		// ((FieldImpl)data).getDomainSet());
 	    // System.out.println("Data:\n" + data);
 	}

@@ -1,6 +1,6 @@
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -64,7 +64,7 @@ class Earth
 	double[]	newRadiusRange = {0.925, 1.075};
 	double		newSlope = (newRadiusRange[1] - newRadiusRange[0]) /
 	    (altitudeRange[1] - altitudeRange[0]);
-	double		newIntercept = newRadiusRange[0] - 
+	double		newIntercept = newRadiusRange[0] -
 	    newSlope * altitudeRange[0];
 	double		newMinAltitude = (radiusRange[0] - newIntercept) /
 	    newSlope;

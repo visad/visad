@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VirtualDataIterator.java,v 1.1 1998-09-23 17:31:37 steve Exp $
+ * $Id: VirtualDataIterator.java,v 1.2 2000-04-26 15:45:20 dglo Exp $
  */
 
 package visad.data.netcdf.in;
@@ -90,7 +90,7 @@ VirtualDataIterator
 
 
     /**
-     * Gets the next virtual VisAD data object.  This method must be 
+     * Gets the next virtual VisAD data object.  This method must be
      * overridden in subclasses.
      *
      * @return			The next virtual VisAD data object or

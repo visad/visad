@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -38,7 +38,7 @@ class CalibrationDefault extends Calibration
 
   private static String[] names = new String[4];
 
-  static 
+  static
   {
     names[0] = scaleFactorName;
     names[1] = offsetName;
@@ -51,7 +51,7 @@ class CalibrationDefault extends Calibration
   double fillvalue;
   double v_range_low;
   double v_range_high;
-   
+
   CalibrationDefault( double[][] constants )
   {
     this.scale_factor = constants[0][0];
@@ -62,14 +62,14 @@ class CalibrationDefault extends Calibration
       this.v_range_low = constants[3][0];
       this.v_range_high = constants[3][1];
     }
-    else 
+    else
     {
       this.v_range_low = constants[3][1];
       this.v_range_high = constants[3][0];
     }
   }
 
-  public static String[] getNames() 
+  public static String[] getNames()
   {
     return names;
   }
@@ -78,11 +78,11 @@ class CalibrationDefault extends Calibration
   {
     double d_value;
 
-    for ( int ii = 0; ii < values.length; ii++ ) 
+    for ( int ii = 0; ii < values.length; ii++ )
     {
       d_value = (double) values[ii];
-        
-      if ( d_value == fillvalue ) 
+
+      if ( d_value == fillvalue )
       {
         d_value = Double.NaN;
       }
@@ -90,11 +90,11 @@ class CalibrationDefault extends Calibration
       {
         d_value = Double.NaN;
       }
-      else 
+      else
       {
         d_value = (values[ii] - offset)*scale_factor;
       }
-        
+
       out[ii] = d_value;
     }
   }

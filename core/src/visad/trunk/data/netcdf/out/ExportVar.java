@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ExportVar.java,v 1.2 1998-06-01 19:22:08 visad Exp $
+ * $Id: ExportVar.java,v 1.3 2000-04-26 15:45:25 dglo Exp $
  */
 
 package visad.data.netcdf.out;
@@ -65,7 +65,7 @@ ExportVar
      * method that needs to be implemented to support the saving of
      * VisAD data in a netCDF dataset.
      *
-     * @param indexes		The position of the array element as netCDF 
+     * @param indexes		The position of the array element as netCDF
      *				indexes.
      * @exception IOException	Data access I/O failure.
      */

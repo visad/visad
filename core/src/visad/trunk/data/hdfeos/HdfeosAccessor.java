@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -42,19 +42,19 @@ public class HdfeosAccessor extends FileAccessor
      this.indexes = indexes;
    }
 
-   public FlatField getFlatField() 
+   public FlatField getFlatField()
           throws VisADException, RemoteException
    {
      return (FlatField) data.getData(indexes);
    }
 
-   public FunctionType getFunctionType() 
+   public FunctionType getFunctionType()
           throws VisADException
    {
      return (FunctionType) data.getType();
    }
 
-   public void writeFile( int[] fileLocations, Data range ) 
+   public void writeFile( int[] fileLocations, Data range )
    {
 
    }

@@ -6,19 +6,19 @@
 /*
 
 The software in this file is Copyright(C) 1999 by Tom Whittaker.
-It is designed to be used with the VisAD system for interactive 
-analysis and visualization of numerical data.  
- 
+It is designed to be used with the VisAD system for interactive
+analysis and visualization of numerical data.
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 1, or (at your option)
 any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License in file NOTICE for more details.
- 
+
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -37,7 +37,7 @@ import visad.Set;
 import visad.data.netcdf.units.Parser;
 import visad.jmet.*;
 
-/** 
+/**
  * Reads data from netCDF NCEP model grids one parameter at a time
  * instead of the whole file (see Plain).  This is pretty focused on
  * delivering grids that are renderable in 3D.
@@ -166,7 +166,7 @@ public class NetcdfGrids {
       TreeMap orderTimes = new TreeMap();
 
       if (t != null) {
-	Unit baseTimeUnit = 
+	Unit baseTimeUnit =
 	    Parser.parse(t.getAttribute("units").getStringValue());
         int temp[] = t.getLengths();
         for (int i=0; i<num_records; i++) {
@@ -199,7 +199,7 @@ public class NetcdfGrids {
       p = nc.get("grid_number");
       int index2[] = new int[p.getRank()];
       for (int i=0; i<index2.length; i++) {index2[i] = 0; }
-      
+
       gridNumber = p.getInt(index2);
       System.out.println("grid number = "+gridNumber);
 
@@ -209,18 +209,18 @@ public class NetcdfGrids {
       System.out.println("grid type code = "+gridTypeCode);
 
     } catch (Exception ne) {ne.printStackTrace(); System.exit(1); }
-    
+
   }
 
   /** set the RealTypes to use for coordinates (x,y,z,t) and pressure
   *   values
   *
-  * @param x X-coordinate 
-  * @param y Y-coordinate 
-  * @param level level dimension 
+  * @param x X-coordinate
+  * @param y Y-coordinate
+  * @param level level dimension
   * @param time_type forecast valid time
   * @param pres MathType of vertical coordinate in display
-  * @param x X-coordinate 
+  * @param x X-coordinate
   */
 
   public void setRealTypes(RealType x, RealType y, RealType level,
@@ -278,9 +278,9 @@ public class NetcdfGrids {
             gridCoord = new
                  GRIBCoordinateSystem(0,Ni,Nj,La1,Lo1,La2,Lo2,Di,Dj);
           }
-            
+
         }
-          
+
         grid_domain = new RealTupleType(domain_components, gridCoord, null);
         dom_set = new Integer2DSet(grid_domain, xval, yval);
         time_set = new Gridded1DDoubleSet(time_type, times, num_records);
@@ -444,7 +444,7 @@ public class NetcdfGrids {
   *         value and Tuple[1] is the FlatField(s) of data
   *
   */
-  public synchronized Tuple[] getGrids(String name, RealType values, 
+  public synchronized Tuple[] getGrids(String name, RealType values,
     double[][] range) {
 
     // find the named variable
@@ -474,7 +474,7 @@ public class NetcdfGrids {
     int recordDim = -1;
 
     // locate the dimensions and record their values...
-    
+
     for (int i=0; i<numDims; i++) {
       dimNames[i] = (di.next().getName()).trim();
       if (dimNames[i] == "x" || dimNames[i] == "lon") xDim = i;
@@ -603,10 +603,10 @@ public class NetcdfGrids {
       }
 
     } catch (Exception ve) {ve.printStackTrace(); System.exit(1);}
-              
+
 
     return tup;
-    
+
   }
 
   /** Test routine: java NetcdfGrids <name of netCDF file>
@@ -696,10 +696,10 @@ public class NetcdfGrids {
 
       gridCoord = new GRIBCoordinateSystem(gridNumber);
 
-      RealTupleType grid_domain = 
+      RealTupleType grid_domain =
           new RealTupleType(domain_components, gridCoord, null);
 
-      dom_set = new Integer2DSet(grid_domain, 
+      dom_set = new Integer2DSet(grid_domain,
                                       dims[xDim], dims[yDim]);
 
       FunctionType grid_type = new FunctionType(grid_domain, values);
@@ -783,7 +783,7 @@ public class NetcdfGrids {
     } catch (Exception ve) {ve.printStackTrace(); System.exit(1);}
 
     return tup;
-    
+
   }
 
 

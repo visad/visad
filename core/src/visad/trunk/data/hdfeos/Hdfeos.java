@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -33,11 +33,11 @@ import visad.data.FormFileInformer;
 import visad.DataImpl;
 import visad.VisADException;
 
-public abstract class Hdfeos 
+public abstract class Hdfeos
        extends Form
        implements FormFileInformer
 {
-  public Hdfeos( String name ) 
+  public Hdfeos( String name )
   {
     super( name );
   }
@@ -45,7 +45,7 @@ public abstract class Hdfeos
   public boolean isThisType(String name)
   {
     String[] suff_s = getDefaultSuffixes();
-    for ( int ii = 0; ii < suff_s.length; ii++ ) 
+    for ( int ii = 0; ii < suff_s.length; ii++ )
     {
       if ( name.endsWith("."+suff_s[ii]) ) {
         return true;
@@ -68,6 +68,6 @@ public abstract class Hdfeos
     return suffs;
   }
 
-  public abstract DataImpl open( String file_path ) 
+  public abstract DataImpl open( String file_path )
      throws BadFormException, IOException, VisADException;
 }

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VirtualField.java,v 1.1 1998-09-23 17:31:37 steve Exp $
+ * $Id: VirtualField.java,v 1.2 2000-04-26 15:45:21 dglo Exp $
  */
 
 package visad.data.netcdf.in;
@@ -51,7 +51,7 @@ VirtualField
      * @param rangeTuple	The range of the field.
      */
     protected
-    VirtualField(FunctionType funcType, SampledSet domainSet, 
+    VirtualField(FunctionType funcType, SampledSet domainSet,
 	VirtualTuple rangeTuple)
     {
 	this.functionType = funcType;
@@ -135,7 +135,7 @@ VirtualField
      *
      * @param context		The context in which the data is to be
      *				retrieved.
-     * @return			The VisAD Field corresponding to this 
+     * @return			The VisAD Field corresponding to this
      *				virtual Field.
      * @throws VisADException	Couldn't created necessary VisAD object.
      * @throws RemoteException	Remote access failure.

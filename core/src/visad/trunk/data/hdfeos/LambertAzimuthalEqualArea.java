@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -46,12 +46,12 @@ public class LambertAzimuthalEqualArea extends CoordinateSystem {
   private static Unit[] coordinate_system_units =
     {null, null};
 
-  public LambertAzimuthalEqualArea( RealTupleType reference, 
-                                    double R, 
-                                    double lon_center, 
+  public LambertAzimuthalEqualArea( RealTupleType reference,
+                                    double R,
+                                    double lon_center,
                                     double lat_center,
-                                    double false_easting, 
-                                    double false_northing 
+                                    double false_easting,
+                                    double false_northing
                                                               )
   throws VisADException
   {
@@ -157,7 +157,7 @@ public class LambertAzimuthalEqualArea extends CoordinateSystem {
      double[] cos_delta_lon = new double[n_tuples];
 
      for ( int ii = 0; ii < n_tuples; ii++ ) {
-        delta_lon[ii] = tuples[1][ii] - lon_center; 
+        delta_lon[ii] = tuples[1][ii] - lon_center;
      }
 
      GctpFunction.adjust_lon( delta_lon );
@@ -176,16 +176,16 @@ public class LambertAzimuthalEqualArea extends CoordinateSystem {
        ksp = R * Math.sqrt(2.0 / (1.0 + g));
 
        t_tuples[0][ii] = ksp * cos_lat[ii] * sin_delta_lon[ii] + false_easting;
-       t_tuples[1][ii] = ksp * (cos_lat_o * sin_lat[ii] - 
+       t_tuples[1][ii] = ksp * (cos_lat_o * sin_lat[ii] -
                          sin_lat_o * cos_lat[ii] * cos_delta_lon[ii]) +
                          false_northing;
-     } 
+     }
 
-     
+
      delta_lon = null;
      sin_lat = null;
      cos_lat = null;
-     sin_delta_lon = null; 
+     sin_delta_lon = null;
      cos_delta_lon = null;
 
      return t_tuples;

@@ -6,7 +6,7 @@
  * Copyright 1999, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: QuantityDBManager.java,v 1.1 1999-01-20 18:05:38 steve Exp $
+ * $Id: QuantityDBManager.java,v 1.2 2000-04-26 15:45:14 dglo Exp $
  */
 
 package visad.data.netcdf;
@@ -31,8 +31,8 @@ QuantityDBManager
      * The singleton instance of the current database.
      */
     private static QuantityDB	db;
-    
-    
+
+
     static
     {
 	try

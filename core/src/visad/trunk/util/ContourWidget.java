@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -516,7 +516,7 @@ public class ContourWidget
       // set auto-scaling enabled (listen for new min and max)
       if (update) smap.addScalarMapListener(this);
     }
-  
+
     /** ScalarMapListener method used with delayed auto-scaling. */
     public void mapChanged(ScalarMapEvent e) {
       ScalarMap s = e.getScalarMap();

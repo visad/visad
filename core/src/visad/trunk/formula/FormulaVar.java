@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -198,7 +198,7 @@ public class FormulaVar extends ActionImpl {
                   if (v != null) {
                     if (v.isDependentOn(this)) {
                       clearDependencies();
-                      throw new FormulaException("This formula creates " + 
+                      throw new FormulaException("This formula creates " +
                                                  "an infinite loop");
                     }
                     setDependentOn(v);

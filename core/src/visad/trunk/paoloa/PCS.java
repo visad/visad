@@ -25,8 +25,8 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.util.Vector;
 
-public class PCS 
-       implements ActionListener, ScalarMapListener, DisplayListener 
+public class PCS
+       implements ActionListener, ScalarMapListener, DisplayListener
 {
 
   /** the width and height of the UI frame */
@@ -330,7 +330,7 @@ public class PCS
     band3_set = new Gridded1DSet(band, Set.doubleToFloat(nu_vals), nbands);
     band3_lo = band3_set.getLowX();
     band3_hi = band3_set.getHiX();
-    
+
 
     // System.out.println(ntimes + " " + nbands + " " + npcs + " " + nlevels);
 
@@ -388,9 +388,9 @@ public class PCS
     modeb1.setScaleEnable(true);
     modeb1.setPointSize(2);
 
-    ConstantMap[] yellow = 
+    ConstantMap[] yellow =
       new ConstantMap[] {new ConstantMap(0.0, Display.Blue)};
-    ConstantMap[] cyan = 
+    ConstantMap[] cyan =
       new ConstantMap[] {new ConstantMap(0.0, Display.Red)};
     cMaps_b1.addElement(yellow);
     cMaps_b1.addElement(cyan);
@@ -1038,7 +1038,7 @@ public class PCS
        latmap.getScale(scale_offset, data, display);
        lat = (cur[1] - scale_offset[1])/scale_offset[0];
 
-       for ( tt = 0; tt < ntimes; tt++ ) //- linear search OK for small # of pts. 
+       for ( tt = 0; tt < ntimes; tt++ ) //- linear search OK for small # of pts.
        {
          if ( ((lls[1][tt] < lon+del_lon) && (lls[1][tt] > lon-del_lon)) &&
               ((lls[0][tt] < lat+del_lat) && (lls[0][tt] > lat-del_lat)) )

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: LonArithProg.java,v 1.6 1998-11-20 22:51:56 steve Exp $
+ * $Id: LonArithProg.java,v 1.7 2000-04-26 15:45:17 dglo Exp $
  */
 
 package visad.data.netcdf.in;
@@ -65,8 +65,8 @@ LonArithProg
      *			increment differs from unity by more than the
      *			nearness threshold; otherwise, true.
      * @precondition	isConsistent() is true.
-     * @postcondition	A subsequent getNumber() will return 
-     *			<code>values.length</code> more than 
+     * @postcondition	A subsequent getNumber() will return
+     *			<code>values.length</code> more than
      *			previously if the function returns true.
      * @postcondition	A subsequent getLast() will return the transformed
      *			value argument if the function returns true.
@@ -132,8 +132,8 @@ LonArithProg
      *			increment differs from unity by more than the
      *			nearness threshold; otherwise, true.
      * @precondition	isConsistent() is true.
-     * @postcondition	A subsequent getNumber() will return 
-     *			<code>values.length</code> more than 
+     * @postcondition	A subsequent getNumber() will return
+     *			<code>values.length</code> more than
      *			previously if the function returns true.
      * @postcondition	A subsequent getLast() will return the transformed
      *			value argument if the function returns true.

@@ -1,6 +1,6 @@
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -46,10 +46,10 @@ public class VerySimple {
 
     // create JFrame (i.e., a window) for the display
     JFrame frame = new JFrame("VerySimple VisAD Application");
- 
+
     // link the display to the JFrame
     frame.getContentPane().add(display.getComponent());
- 
+
     // set the size of the JFrame and make it visible
     frame.setSize(400, 400);
     frame.setVisible(true);

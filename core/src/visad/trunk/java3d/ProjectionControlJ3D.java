@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -25,7 +25,7 @@ MA 02111-1307, USA
 */
 
 package visad.java3d;
- 
+
 import visad.*;
 
 import java.rmi.*;
@@ -66,7 +66,7 @@ public class ProjectionControlJ3D extends ProjectionControl {
     ((DisplayRendererJ3D) getDisplayRenderer()).setTransform3D(Matrix);
 */
   }
- 
+
   public void setMatrix(double[] m)
          throws VisADException, RemoteException {
     super.setMatrix(m);
@@ -156,13 +156,13 @@ System.out.println("which_child = " + which_child + "  " + dx +
       }
     }
   }
- 
+
   /** SwitchProjection is an inner class of ProjectionControlJ3D for
       (Switch, DataRenderer) structures */
   private class SwitchProjection extends Object {
     Switch swit;
     DataRenderer renderer;
- 
+
     SwitchProjection(Switch sw, DataRenderer re) {
       swit = sw;
       renderer = re;

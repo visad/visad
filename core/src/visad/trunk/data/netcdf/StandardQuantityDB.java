@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: StandardQuantityDB.java,v 1.9 1999-06-21 17:28:28 curtis Exp $
+ * $Id: StandardQuantityDB.java,v 1.10 2000-04-26 15:45:15 dglo Exp $
  */
 
 package visad.data.netcdf;
@@ -61,7 +61,7 @@ StandardQuantityDB
      *				entry found.  May be <code>null</code>.
      * @throws VisADException	Couldn't create necessary VisAD object.
      */
-    private 
+    private
     StandardQuantityDB()
       throws VisADException
     {
@@ -354,10 +354,10 @@ StandardQuantityDB
      * specification.
      *
      * @param name		The name of the quantity (e.g. "length").
-     * @param unitSpec		The preferred display unit for the 
+     * @param unitSpec		The preferred display unit for the
      *				quantity (e.g. "feet").
      * @exception UnsupportedOperationException
-     *				Always thrown because a standard database 
+     *				Always thrown because a standard database
      *				must be unmodifiable.
      */
     public void

@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -27,7 +27,7 @@ MA 02111-1307, USA
 package visad.data.hdfeos;
 
 
-public class Variable 
+public class Variable
 {
   String  name;
   int rank;
@@ -36,38 +36,38 @@ public class Variable
   Calibration calibration;
   boolean coordVar = false;
 
-  Variable( String name, 
-            DimensionSet dimSet, 
-            int rank, 
-            int type, 
-            Calibration calibration ) 
+  Variable( String name,
+            DimensionSet dimSet,
+            int rank,
+            int type,
+            Calibration calibration )
   throws HdfeosException
   {
     if ( dimSet.getSize() != rank )
     {
       throw new HdfeosException(" rank and DimensionSet length don't match");
     }
- 
+
     this.name = name;
     this.dimSet = dimSet;
     this.type = type;
     this.rank = rank;
     this.calibration = calibration;
 
-    if ( (rank == 1) && 
-         (name.equalsIgnoreCase((dimSet.getElement(0)).getName())) ) 
+    if ( (rank == 1) &&
+         (name.equalsIgnoreCase((dimSet.getElement(0)).getName())) )
     {
       coordVar = true;
     }
   }
 
-  public String getName() 
+  public String getName()
   {
     String name = this.name;
     return name;
   }
 
-  public int getRank() 
+  public int getRank()
   {
     return rank;
   }
@@ -77,13 +77,13 @@ public class Variable
     return calibration;
   }
 
-  public boolean equals( Variable obj ) 
+  public boolean equals( Variable obj )
   {
-    if( this.name.equals( obj.getName()) ) 
+    if( this.name.equals( obj.getName()) )
     {
       return true;
     }
-    else 
+    else
     {
       return false;
     }
@@ -109,7 +109,7 @@ public class Variable
     return coordVar;
   }
 
-  public String toString() 
+  public String toString()
   {
     String str = "Variable:  "+name+"\n"+
                  "    rank:  "+rank+"\n"+

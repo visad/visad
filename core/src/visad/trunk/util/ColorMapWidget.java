@@ -336,7 +336,7 @@ public class ColorMapWidget
     updateSlider((float) range[0], (float) range[1]);
   }
 
-  /** 
+  /**
    * ScalarMapListener method used to detect new control.
    */
   public void controlChanged(ScalarMapControlEvent evt)

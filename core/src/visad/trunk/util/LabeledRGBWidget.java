@@ -1,18 +1,18 @@
 /*
 
-@(#) $Id: LabeledRGBWidget.java,v 1.22 2000-02-24 16:49:31 dglo Exp $
+@(#) $Id: LabeledRGBWidget.java,v 1.23 2000-04-26 15:46:39 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
 Copyright (C) 1998 Nick Rasmussen
 VisAD is Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
 Rink and Dave Glowacki.
- 
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 1, or (at your option)
 any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -35,12 +35,12 @@ import visad.ScalarMap;
 import visad.ScalarMapListener;
 import visad.VisADException;
 
-/** 
+/**
  * A color widget that allows users to interactively map numeric data to
  * RGB tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.22 $, $Date: 2000-02-24 16:49:31 $
+ * @version $Revision: 1.23 $, $Date: 2000-04-26 15:46:39 $
  * @since Visad Utility Library v0.7.1
  * @deprecated - use LabeledColorWidget
  */

@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -28,43 +28,43 @@ package visad.data.hdfeos;
 
 import java.util.*;
 
-public class ShapeSet 
+public class ShapeSet
 {
   private Vector S_Set;
   private VariableSet c_vars;
 
-  ShapeSet( VariableSet varSet ) 
+  ShapeSet( VariableSet varSet )
   {
     boolean found;
 
     S_Set = new Vector();
     c_vars = new VariableSet();
 
-    for ( Enumeration e = varSet.getEnum(); e.hasMoreElements(); ) 
+    for ( Enumeration e = varSet.getEnum(); e.hasMoreElements(); )
     {
       Variable var = (Variable) e.nextElement();
-      if ( var.isCoordVar() ) 
+      if ( var.isCoordVar() )
       {
         c_vars.add(var);
       }
-      else 
+      else
       {
         int count = S_Set.size();
 
-        if ( count == 0 ) 
+        if ( count == 0 )
         {
           found = true;
           Shape s_obj  = new Shape( var );
           S_Set.addElement( s_obj );
         }
-        else 
+        else
         {
           found = false;
 
-          for ( int ii = 0; ii < count; ii++ ) 
+          for ( int ii = 0; ii < count; ii++ )
           {
             Shape s_obj = (Shape)S_Set.elementAt(ii);
-            if( s_obj.memberOf( var ) ) 
+            if( s_obj.memberOf( var ) )
             {
               s_obj.addVariable( var );
               found = true;
@@ -72,7 +72,7 @@ public class ShapeSet
           }
         }
 
-        if ( !found ) 
+        if ( !found )
         {
           Shape s_obj = new Shape( var );
           S_Set.addElement( s_obj );
@@ -99,11 +99,11 @@ public class ShapeSet
     return e;
   }
 
-  public boolean isMemberOf( NamedDimension dim ) 
+  public boolean isMemberOf( NamedDimension dim )
   {
     DimensionSet d_set;
 
-    for ( int ii = 0; ii < this.getSize(); ii++ ) 
+    for ( int ii = 0; ii < this.getSize(); ii++ )
     {
       d_set = (this.getElement(ii)).getShape();
 
@@ -123,7 +123,7 @@ public class ShapeSet
   {
     String str = " Shapes in this set:   \n";
 
-    for ( int ii = 0; ii < this.getSize(); ii++ ) 
+    for ( int ii = 0; ii < this.getSize(); ii++ )
     {
       str = str + (this.getElement(ii)).toString() + "\n";
     }

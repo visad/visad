@@ -1,11 +1,11 @@
       SUBROUTINE READ_PROF(I, P_FLG, TSKIN, PSFC, LSFC,
      +                     AZEN, P_DUM, T, W, O )
- 
-      
+
+
 C     Read in T,WV,O profiles, ST, PS, from a data file
 C     The profiles should be passed to a visad application
 C     and from the application to the nast-i forward model.
-C     Paolo Antonelli,  Wed Sep 23 09:25:31 DT  1998. 
+C     Paolo Antonelli,  Wed Sep 23 09:25:31 DT  1998.
 
       IMPLICIT NONE
 
@@ -19,19 +19,19 @@ C     Paolo Antonelli,  Wed Sep 23 09:25:31 DT  1998.
       REAL*4 P(NL), P_DUM(NL), T(NL),W(NL),O(NL)
       INTEGER lsurface, lout
       DATA LUI/15/
-  
+
       DATA    P/50.,60.,70.,75.,80.,85.,90.,100.,125.,150.,175.,200.,
      *   250.,300.,350.,400.,450.,500.,550.,600.,620.,640.,660.,680.,
      *   700.,720.,740.,760.,780.,800.,820.,840.,860.,880.,900.,920.,
      *   940.,960.,980.,1000./
- 
+
 
       if ( p_flg .EQ. 1) then
         PROFF='./raob980913_alt.ac.2237z'
-      else 
+      else
         PROFF='./camx97ax.two.psfc'
       endif
-      
+
       LENI=LENG*4
       OPEN(LUI,RECL=LENI,FILE=PROFF,STATUS='OLD',ACCESS='DIRECT')
 
@@ -68,7 +68,7 @@ C    $ p(l),t(l),w(l),o(l)
       CLOSE(LUI)
 
       RETURN
-      END 
+      END
 
 c
       function lsurface ( numlev, pres, psurf, plow, phigh )

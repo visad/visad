@@ -1,13 +1,13 @@
 //
 // Vis5DForm.java
 //
- 
+
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -33,7 +33,7 @@ import visad.util.*;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.net.URL;
- 
+
 // JFC packages
 import javax.swing.*;
 import javax.swing.event.*;
@@ -48,7 +48,7 @@ import java.awt.event.*;
    Vis5DForm is the VisAD data format adapter for Vis5D files.<P>
 */
 public class Vis5DForm extends Form implements FormFileInformer {
- 
+
   /** from vis5d-4.3/src/v5d.h */
   private final int MAXVARS = 30;
   private final int MAXTIMES = 400;
@@ -73,12 +73,12 @@ public class Vis5DForm extends Form implements FormFileInformer {
   public boolean isThisType(String name) {
     return name.endsWith(".v5d");
   }
- 
+
   public boolean isThisType(byte[] block) {
     String v5d = new String(block, 0, 3);
     return v5d.equals("V5D");
   }
- 
+
   public String[] getDefaultSuffixes() {
     String[] suff = { "v5d" };
     return suff;
@@ -97,7 +97,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
   public synchronized DataImpl open(String id)
          throws BadFormException, IOException, VisADException {
     if (id == null) {
-      throw new BadFormException("Vis5DForm.open: null name String"); 
+      throw new BadFormException("Vis5DForm.open: null name String");
     }
     byte[] name = id.getBytes();
     int[] sizes = new int[5];
@@ -105,7 +105,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
     float[] times = new float[MAXTIMES];
     V5DStruct v = V5DStruct.v5d_open(name, name.length, sizes, varnames, times);
     if (sizes[0] < 1) {
-      throw new BadFormException("Vis5DForm.open: bad file"); 
+      throw new BadFormException("Vis5DForm.open: bad file");
     }
     int nr = sizes[0];
     int nc = sizes[1];
@@ -158,7 +158,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
         }
         else {
           if (ranges[0] > ranges[1]) {
-            throw new BadFormException("Vis5DForm.open: bad read " + 
+            throw new BadFormException("Vis5DForm.open: bad read " +
                                        vars[j].getName());
           }
           range_sets[j] =
@@ -192,7 +192,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
   public synchronized FormNode getForms(Data data) {
     return null;
   }
- 
+
   /** the width and height of the UI frame */
   public static int WIDTH = 800;
   public static int HEIGHT = 600;
@@ -226,7 +226,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
     // construct JFC user interface with JSliders linked to
     // Data objects, and embed Displays into JFC JFrame
     //
- 
+
     // create a JFrame
     JFrame frame = new JFrame("Vis5D");
     WindowListener l = new WindowAdapter() {
@@ -238,21 +238,21 @@ public class Vis5DForm extends Form implements FormFileInformer {
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     frame.setLocation(screenSize.width/2 - WIDTH/2,
                       screenSize.height/2 - HEIGHT/2);
- 
+
     // create big_panel JPanel in frame
     JPanel big_panel = new JPanel();
     big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.X_AXIS));
     big_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
     big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     frame.getContentPane().add(big_panel);
- 
+
     // create left hand side JPanel for sliders and text
     JPanel left = new JPanel(); // FlowLayout and double buffer
     left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
     left.setAlignmentY(JPanel.TOP_ALIGNMENT);
     left.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     big_panel.add(left);
- 
+
     // construct JLabels
     // (JTextArea does not align in BoxLayout well, so use JLabels)
     left.add(new JLabel("Simple Vis5D File Viewer using VisAD - See:"));
@@ -273,7 +273,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
     left.add(new JLabel("  "));
     left.add(new JLabel("  "));
     left.add(new JLabel("  "));
- 
+
     // create sliders JPanel
     JPanel sliders = new JPanel();
     sliders.setName("GoesRetrieval Sliders");
@@ -282,7 +282,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
     sliders.setAlignmentY(JPanel.TOP_ALIGNMENT);
     sliders.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     left.add(sliders);
- 
+
     // construct JPanel and sub-panels for Displays
     JPanel display_panel = new JPanel();
     display_panel.setLayout(new BoxLayout(display_panel,
@@ -431,7 +431,7 @@ FunctionType: (time) -> FunctionType (Real): (row, col, lev) -> (U, V, W, QL, TH
 
 demedici% java visad.data.vis5d.Vis5DForm QLQ.v5d
 FunctionType: (time) -> FunctionType (Real): (row, col, lev) -> (QL, Q)
-demedici% 
+demedici%
 
 */
 

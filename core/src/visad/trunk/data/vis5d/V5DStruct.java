@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -213,7 +213,7 @@ public class V5DStruct {
   // vertical coordinate system 2000+
 
   /** int*4 VerticalSystem */
-  public static final int TAG_VERTICAL_SYSTEM = 2000;        
+  public static final int TAG_VERTICAL_SYSTEM = 2000;
   /** int*4 n;  real*4 VertArgs[0..n-1] */
   public static final int TAG_VERT_ARGS       = 2100;
 
@@ -272,7 +272,7 @@ public class V5DStruct {
 
   /** real*4 CentralCol (PHASED OUT) */
   public static final int TAG_CENTCOL         = 3012;
-  
+
   /** real*4 Rotation (PHASED OUT) */
   public static final int TAG_ROTATION        = 3013;
 
@@ -1595,7 +1595,7 @@ public class V5DStruct {
     CompressMode = 1;
 
     // Cylindrical equidistant
-    Projection = 1;  
+    Projection = 1;
 
     FileVersion = "";
 
@@ -1704,7 +1704,7 @@ public class V5DStruct {
     }
 
     // default
-    CompressMode = 1; 
+    CompressMode = 1;
 
     while (!end_of_header) {
       int tag, length;

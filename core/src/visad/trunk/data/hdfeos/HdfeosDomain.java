@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -46,7 +46,7 @@ import visad.CoordinateSystem;
 import visad.GridCoordinateSystem;
 import visad.Unit;
 
-class HdfeosDomain 
+class HdfeosDomain
 {
   private EosStruct struct;
 
@@ -108,7 +108,7 @@ class HdfeosDomain
     this(struct, dimSet.getElements(), coord_sys, units);
   }
 
-  public HdfeosDomain( EosStruct struct, 
+  public HdfeosDomain( EosStruct struct,
                        NamedDimension dim )
          throws VisADException
   {
@@ -137,7 +137,7 @@ class HdfeosDomain
     initializeNoVars( struct, dimSet.getElements() );
   }
 
-  public static GridCoordinateSystem 
+  public static GridCoordinateSystem
          getNullGridCoordinateSystem( HdfeosDomain gridCoordSys )
          throws VisADException
   {
@@ -149,7 +149,7 @@ class HdfeosDomain
     }
     IntegerNDSet set = new IntegerNDSet(reference, lens);
     GridCoordinateSystem c_sys = new GridCoordinateSystem(set);
-    return c_sys; 
+    return c_sys;
   }
 
   private void initializeNoVars( EosStruct struct,
@@ -191,16 +191,16 @@ class HdfeosDomain
     mathtype = makeType(null);
   }
 
-  public HdfeosDomain( EosStruct struct, 
-                       Variable[] vars, 
-                       NamedDimension[] dims ) 
+  public HdfeosDomain( EosStruct struct,
+                       Variable[] vars,
+                       NamedDimension[] dims )
          throws VisADException
   {
     initialize( struct, vars, dims );
   }
 
-  public HdfeosDomain( EosStruct struct, 
-                       VariableSet v_set, 
+  public HdfeosDomain( EosStruct struct,
+                       VariableSet v_set,
                        DimensionSet d_set )
          throws VisADException
   {
@@ -216,7 +216,7 @@ class HdfeosDomain
     NamedDimension[] dims = new NamedDimension[1];
     vars[0] = var;
     dims[0] = var.getDim(0);
-    
+
     initialize(struct, vars, dims);
   }
 
@@ -359,8 +359,8 @@ class HdfeosDomain
     if ( r_types.length == 1 ) {
       return r_types[0];
     }
-    else { 
-      if ( coord_sys == null ) { 
+    else {
+      if ( coord_sys == null ) {
         return new RealTupleType(r_types, this.coord_sys, null);
       }
       else {
@@ -390,7 +390,7 @@ class HdfeosDomain
          throws VisADException
   {
     int cnt = 0;
-    if ( indexes == null ) 
+    if ( indexes == null )
     {
       if ( subRank ) {
         throw new HdfeosException("indexes cannot be null");
@@ -411,10 +411,10 @@ class HdfeosDomain
       }
     }
     Set set = null;
-    switch (op) 
+    switch (op)
     {
-      case UNFACTORED: 
-        for ( int kk = 0; kk < domainDim; kk++ ) 
+      case UNFACTORED:
+        for ( int kk = 0; kk < domainDim; kk++ )
         {
           for ( int ii = 0; ii < manifoldDim; ii++ ) {
             start[cnt+ii] = 0;
@@ -461,7 +461,7 @@ class HdfeosDomain
         }
         break;
 
-      case FACTORED: 
+      case FACTORED:
         SampledSet[] sets = new SampledSet[domainDim];
         for ( int kk = 0; kk < domainDim; kk++ ) {
           start[0] = 0;
@@ -480,7 +480,7 @@ class HdfeosDomain
     return set;
   }
 
-  public EosStruct getStruct() 
+  public EosStruct getStruct()
   {
      return struct;
   }

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -25,7 +25,7 @@ MA 02111-1307, USA
 */
 
 /*
- 
+
 VisAD display logic efficiencies:
 
 1. Special cases of MathTypes, ScalarMaps and Sets
@@ -37,7 +37,7 @@ VisAD display logic efficiencies:
 
 4. Attach 'ShadowData' tree of scene graph nodes to DataDisplayLink,
    use it to replace scene graph components during replace
- 
+
 */
 
 package visad.java3d;
@@ -67,51 +67,51 @@ public class DisplayImplJ3D extends DisplayImpl {
   /** distance behind for surfaces in 2-D mode */
   public static final float BACK2D = -2.0f;
 
-  /** 
+  /**
    * Use a parallel projection view
    * @see GraphicsModeControlJ3D#setProjectionPolicy
    */
   public static final int PARALLEL_PROJECTION =
     javax.media.j3d.View.PARALLEL_PROJECTION;
 
-  /** 
+  /**
    * Use a perspective projection view. This is the default.
    * @see GraphicsModeControlJ3D#setProjectionPolicy
    */
   public static final int PERSPECTIVE_PROJECTION =
     javax.media.j3d.View.PERSPECTIVE_PROJECTION;
 
-  /** Render polygonal primitives by filling the interior of the polygon 
+  /** Render polygonal primitives by filling the interior of the polygon
       @see GraphicsModeControlJ3D#setPolygonMode */
   public static final int POLYGON_FILL =
     javax.media.j3d.PolygonAttributes.POLYGON_FILL;
 
-  /** 
-   * Render polygonal primitives as lines drawn between consecutive vertices 
-   * of the polygon. 
-   * @see GraphicsModeControlJ3D#setPolygonMode 
+  /**
+   * Render polygonal primitives as lines drawn between consecutive vertices
+   * of the polygon.
+   * @see GraphicsModeControlJ3D#setPolygonMode
    */
   public static final int POLYGON_LINE =
     javax.media.j3d.PolygonAttributes.POLYGON_LINE;
 
-  /** 
-   * Render polygonal primitives as points drawn at the vertices of 
-   * the polygon. 
-   * @see GraphicsModeControlJ3D#setPolygonMode 
+  /**
+   * Render polygonal primitives as points drawn at the vertices of
+   * the polygon.
+   * @see GraphicsModeControlJ3D#setPolygonMode
    */
   public static final int POLYGON_POINT =
     javax.media.j3d.PolygonAttributes.POLYGON_POINT;
 
-  /** 
+  /**
    * Use the nicest available method for transparency.
-   * @see GraphicsModeControlJ3D#setTransparencyMode 
+   * @see GraphicsModeControlJ3D#setTransparencyMode
    */
   public static final int NICEST =
     javax.media.j3d.TransparencyAttributes.NICEST;
 
-  /** 
+  /**
    * Use the fastest available method for transparency.
-   * @see GraphicsModeControlJ3D#setTransparencyMode 
+   * @see GraphicsModeControlJ3D#setTransparencyMode
    */
   public static final int FASTEST =
     javax.media.j3d.TransparencyAttributes.FASTEST;
@@ -340,7 +340,7 @@ public class DisplayImplJ3D extends DisplayImpl {
         array.setTextureCoordinateIndices(0, vgb.indices);
       }
       return array;
-  
+
 /* this expands indices
       if (vga.vertexCount == 0) return null;
       //
@@ -348,7 +348,7 @@ public class DisplayImplJ3D extends DisplayImpl {
       //
       int count = vga.indices.length;
       int len = 3 * count;
-  
+
       int sum = 0;
       for (int i=0; i<vga.stripVertexCounts.length; i++) sum += vga.stripVertexCounts[i];
       System.out.println("vga.indexCount = " + vga.indexCount + " sum = " + sum +
@@ -358,10 +358,10 @@ public class DisplayImplJ3D extends DisplayImpl {
       // strip_counts[0] = count;
       // TriangleStripArray array =
       //   new TriangleStripArray(count, makeFormat(vga), strip_counts);
-  
+
       TriangleStripArray array =
         new TriangleStripArray(count, makeFormat(vga), vga.stripVertexCounts);
-  
+
       if (vga.coordinates != null) {
         System.out.println("expand vga.coordinates");
         float[] coords = new float[len];
@@ -412,7 +412,7 @@ public class DisplayImplJ3D extends DisplayImpl {
       }
       return array;
 */
-  
+
 /* this draws normal vectors
       if (vga.vertexCount == 0) return null;
       LineArray array = new LineArray(2 * vga.vertexCount, LineArray.COORDINATES);
@@ -433,7 +433,7 @@ public class DisplayImplJ3D extends DisplayImpl {
       array.setCoordinates(0, new_coords);
       return array;
 */
-  
+
 /* this draws the 'dots'
       if (vga.vertexCount == 0) return null;
       PointArray array =

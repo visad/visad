@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -25,7 +25,7 @@ MA 02111-1307, USA
 */
 
 package visad.java2d;
- 
+
 import visad.*;
 import visad.util.Delay;
 
@@ -76,7 +76,7 @@ public class AnimationControlJ2D extends AVControlJ2D
           Set set = animationSet.getSet();
           if (set != null) stepValues = new long[set.getLength()];
       }
-      catch (VisADException v) {;} 
+      catch (VisADException v) {;}
       for (int i = 0; i<stepValues.length; i++)
       {
           stepValues[i] = step;
@@ -89,7 +89,7 @@ public class AnimationControlJ2D extends AVControlJ2D
   public void stop() {
     animationThread = null;
   }
- 
+
   public void run() {
     Thread me = Thread.currentThread();
     while (animationThread == me) {
@@ -125,7 +125,7 @@ public class AnimationControlJ2D extends AVControlJ2D
   void setNoTick(boolean nt) {
     no_tick = nt;
   }
- 
+
   /** get the current ordinal step number */
   public int getCurrent() {
     return current;
@@ -146,7 +146,7 @@ public class AnimationControlJ2D extends AVControlJ2D
     }
     changeControl(true);
   }
- 
+
   /** set the current step by the value of the RealType
       mapped to Display.Animation */
   public void setCurrent(double value)
@@ -161,7 +161,7 @@ public class AnimationControlJ2D extends AVControlJ2D
     changeControl(true);
   }
 
-  /** 
+  /**
    * Set the animation direction.
    *
    * @param    dir     true for forward, false for backward
@@ -201,8 +201,8 @@ public class AnimationControlJ2D extends AVControlJ2D
   {
       return stepValues;
   }
-    
-  /** 
+
+  /**
    * Set the dwell rate between animation steps to a constant value
    *
    * @param  st   dwell time in milliseconds
@@ -224,35 +224,35 @@ public class AnimationControlJ2D extends AVControlJ2D
     changeControl(true);
   }
 
-  /** 
+  /**
    * set the dwell time for individual steps.
    *
    * @param   steps   an array of dwell rates for each step in the animation
-   *                  If the length of the array is less than the number of 
-   *                  frames in the animation, the subsequent step values will 
+   *                  If the length of the array is less than the number of
+   *                  frames in the animation, the subsequent step values will
    *                  be set to the value of the last step.
    *
    * @throws  VisADException   Couldn't create necessary VisAD object.  The
    *                           dwell times remain unchanged.
    * @throws  RemoteException  Java RMI exception
    */
-  public void setSteps(int[] steps) 
-  throws VisADException, RemoteException 
+  public void setSteps(int[] steps)
+  throws VisADException, RemoteException
   {
     // verify that the values are valid
     for (int i = 0; i < stepValues.length; i++)
     {
-        stepValues[i] = 
+        stepValues[i] =
 	    (i < steps.length) ? steps[i] : steps[steps.length-1];
-        if (stepValues[i] <= 0) 
+        if (stepValues[i] <= 0)
             throw new DisplayException("AnimationControlJ2D.setSteps: " +
                                  "step " + i + " must be > 0");
     }
     changeControl(true);
   }
 
-  /** 
-   * advance one step (forward or backward) 
+  /**
+   * advance one step (forward or backward)
    *
    * @throws  VisADException   Couldn't create necessary VisAD object.  No
    *                           step is taken.
@@ -307,7 +307,7 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
         }
     }
   }
- 
+
   /** changeControl(!noChange) to not trigger re-transform,
       used by ScalarMap.setRange */
   public void setSet(Set s, boolean noChange)
@@ -335,7 +335,7 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
     }
   }
 
-  /** 
+  /**
    * Set automatic stepping on or off.
    *
    * @param  o  true = turn stepping on, false = turn stepping off
@@ -351,8 +351,8 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
     }
   }
 
-  /** 
-   * toggle automatic stepping between off and on 
+  /**
+   * toggle automatic stepping between off and on
    *
    * @throws  VisADException   Couldn't create necessary VisAD object.  No
    *                           change in automatic stepping occurs.

@@ -1,6 +1,6 @@
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -22,9 +22,9 @@ MA 02111-1307, USA
 
 package visad.data.hdfeos.hdfeosc;
 
-public class HdfeosLib 
+public class HdfeosLib
 {
-   static 
+   static
    {
      System.loadLibrary("hdfeos");
    }

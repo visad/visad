@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: RealAccessor.java,v 1.2 1998-03-25 15:23:19 visad Exp $
+ * $Id: RealAccessor.java,v 1.3 2000-04-26 15:45:26 dglo Exp $
  */
 
 package visad.data.netcdf.out;
@@ -14,7 +14,7 @@ import visad.Real;
 
 
 /**
- * The RealAccessor class accesses data in a VisAD Real that's been adapted 
+ * The RealAccessor class accesses data in a VisAD Real that's been adapted
  * to a netCDF API.  It's useful for exporting data to a netCDF dataset.
  */
 class
@@ -37,8 +37,8 @@ RealAccessor
     /**
      * Return a datum given the split, netCDF indexes.
      *
-     * @return		The datum at the position given by 
-     *			<code>localIndexes</code> and 
+     * @return		The datum at the position given by
+     *			<code>localIndexes</code> and
      *			<code>outerIndexes</code>.
      * @exception IOException
      *			Data access I/O failure.

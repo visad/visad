@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: View.java,v 1.1 1998-09-23 17:31:37 steve Exp $
+ * $Id: View.java,v 1.2 2000-04-26 15:45:20 dglo Exp $
  */
 
 package visad.data.netcdf.in;
@@ -12,7 +12,7 @@ import ucar.netcdf.Netcdf;
 
 
 /**
- * Provides support for viewing a netCDF dataset through a set of 
+ * Provides support for viewing a netCDF dataset through a set of
  * conventions.
  */
 public abstract class

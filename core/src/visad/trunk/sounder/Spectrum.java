@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -72,7 +72,7 @@ public class Spectrum extends FlatField {
                   float[] radiance_range,
                   Unit range_unit
                                             )
-         throws VisADException, RemoteException 
+         throws VisADException, RemoteException
   {
     super(spectrumType, makeSet(wavelength_domain));
 
@@ -98,7 +98,7 @@ public class Spectrum extends FlatField {
     if (wavelength_domain == null) {
       throw new SetException("wavelengths cannot be null");
     }
-    return new Gridded1DSet(wavelength, new float[][] {wavelength_domain}, 
+    return new Gridded1DSet(wavelength, new float[][] {wavelength_domain},
                             wavelength_domain.length,
                             null, new Unit[] {udb.get("Radiance")}, null);
   }
@@ -112,7 +112,7 @@ public class Spectrum extends FlatField {
     return true;
   }
 
-  public boolean remove() 
+  public boolean remove()
   {
     if ( this.display == null ) {
       return false;
@@ -124,7 +124,7 @@ public class Spectrum extends FlatField {
   {
     return false;
   }
-  
+
   public static void main(String args[]) {
   }
 }

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultConsolidator.java,v 1.1 1998-09-23 17:31:31 steve Exp $
+ * $Id: DefaultConsolidator.java,v 1.2 2000-04-26 15:45:16 dglo Exp $
  */
 
 package visad.data.netcdf.in;
@@ -54,7 +54,7 @@ DefaultConsolidator
     {
 	combine(topTuple, data);
     }
-    
+
 
     /**
      * Combines two virtual data objects, if possible.
@@ -208,7 +208,7 @@ DefaultConsolidator
     /**
      * Gets the VisAD MathType of the consolidated data items.
      *
-     * @return			The VisAD MathType of the consolidated data 
+     * @return			The VisAD MathType of the consolidated data
      *				items or <code>null</code> if no data items.
      */
     public MathType

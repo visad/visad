@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -167,7 +167,7 @@ public class DataUtility {
       boolean only_2d = true;
       for (int i=0; i<maps.length; i++) {
         DisplayRealType dtype = maps[i].getDisplayScalar();
-        if (Display.ZAxis.equals(maps[i]) || 
+        if (Display.ZAxis.equals(maps[i]) ||
             Display.Latitude.equals(maps[i])) {
           only_2d = false;
           break;
@@ -214,7 +214,7 @@ public class DataUtility {
 
   /**
    * Ensures that a MathType is a RealTupleType.  Converts if necessary.
-   * @param type		The math type to be "converted" to a 
+   * @param type		The math type to be "converted" to a
    *				RealTupleType.  It shall be either a RealType,
    *				a RealTupleType, or a SetType.
    * @return                    The RealTupleType version of <code>type</code>.
@@ -435,7 +435,7 @@ public class DataUtility {
   getComponentIndex(Set set, MathType componentType)
     throws VisADException, RemoteException
   {
-    return 
+    return
       getComponentIndex(((SetType)set.getType()).getDomain(), componentType);
   }
 
@@ -468,7 +468,7 @@ public class DataUtility {
    * @return			A field with the desired range type.  The range
    *				data will be missing, however, if <em>all</em>
    *				of it couldn't be extracted from the input
-   *				Field (i.e. 
+   *				Field (i.e.
    *				RETURN_VALUE<code>.isMissing()</code> will be
    *				true.
    * @throws UnimplementedException
@@ -481,7 +481,7 @@ public class DataUtility {
    */
   public static Field
   ensureRange(Field field, MathType newRangeType)
-    throws UnimplementedException, TypeException, VisADException, 
+    throws UnimplementedException, TypeException, VisADException,
       RemoteException
   {
     Field	result;
@@ -551,7 +551,7 @@ public class DataUtility {
     else if (newRangeType instanceof TupleType)
     {
       throw new UnimplementedException(
-	"Can't yet create Field with range " + newRangeType + 
+	"Can't yet create Field with range " + newRangeType +
 	" from existing Field");
     }
     else
@@ -621,7 +621,7 @@ public class DataUtility {
       {
 	/*
 	 * This is the only checked exception a Comparator is allowed to throw.
-	 * The original exception could be either a visad.VisADException or a 
+	 * The original exception could be either a visad.VisADException or a
 	 * java.rmi.RemoteException.
 	 */
 	String	reason = e.getMessage();
@@ -728,11 +728,11 @@ public class DataUtility {
       domainFloats.length == 1
 	? (SampledSet)new Gridded1DSet(
 	    getDomainType(field), domainFloats, domainFloats[0].length,
-	    (CoordinateSystem)null, field.getDomainUnits(), 
+	    (CoordinateSystem)null, field.getDomainUnits(),
 	    (ErrorEstimate[])null)
 	: domainFloats.length == 2
 	  ? (SampledSet)new Irregular2DSet(
-	      getDomainType(field), domainFloats, (CoordinateSystem)null, 
+	      getDomainType(field), domainFloats, (CoordinateSystem)null,
 	      field.getDomainUnits(), (ErrorEstimate[])null, (Delaunay)null)
 	  : domainFloats.length == 3
 	    ? (SampledSet)new Irregular3DSet(
@@ -741,7 +741,7 @@ public class DataUtility {
 	    : (SampledSet)new IrregularSet(
 		getDomainType(field), domainFloats, (CoordinateSystem)null,
 		field.getDomainUnits(), (ErrorEstimate[])null);
-    Field	consolidatedField = 
+    Field	consolidatedField =
       field instanceof FlatField
 	? new FlatField(funcType, consolidatedDomain)
 	: new FieldImpl(funcType, consolidatedDomain);
@@ -822,7 +822,7 @@ public class DataUtility {
    * Simplifies a MathType.  Removes all enclosing, single-component TupleType-s
    * until the "core" is revealed (e.g. ScalarType, multi-component TupleType).
    * @param type		The MathType to be simplified.
-   * @return			The simplest form corresponding to 
+   * @return			The simplest form corresponding to
    *				<code>type</code>.
    * @throws VisADException	Couldn't create necessary VisAD object.
    */
@@ -865,7 +865,7 @@ public class DataUtility {
     return i[0];
   }
 
-  /** 
+  /**
    * getRealTypes() helper method.
    */
   private static void parseFunction(FunctionType mathType, Vector v, int[] i)
@@ -891,7 +891,7 @@ public class DataUtility {
     return;
   }
 
-  /** 
+  /**
    * getRealTypes() helper method.
    */
   private static void parseSet(SetType mathType, Vector v, int[] i)
@@ -904,7 +904,7 @@ public class DataUtility {
     return;
   }
 
-  /** 
+  /**
    * getRealTypes() helper method.
    */
   private static void parseTuple(TupleType mathType, Vector v, int[] i)
@@ -930,7 +930,7 @@ public class DataUtility {
     return;
   }
 
-  /** 
+  /**
    * getRealTypes() helper method.
    */
   private static void parseScalar(ScalarType mathType, Vector v, int[] i) {

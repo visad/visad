@@ -327,7 +327,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       }
       image_ref = new DataReferenceImpl("image_ref");
       image_ref.setData(image);
- 
+
       // create red_cursor in spectrum display for setting wave number
       Real init_red_cursor = new Real(wnum1, (double) wnum_last);
       red_cursor_ref.setData(init_red_cursor);

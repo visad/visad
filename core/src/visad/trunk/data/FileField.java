@@ -1,6 +1,6 @@
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: FileField.java,v 1.4 1999-07-14 22:01:39 dglo Exp $
+$Id: FileField.java,v 1.5 2000-04-26 15:44:42 dglo Exp $
 */
 
 package visad.data;
@@ -39,9 +39,9 @@ public class FileField extends FieldImpl {
   // note FileField extends FieldImpl but may not inherit
   // any of its methods - it must re-implement all of them
   // through the adapted FieldImpl
- 
+
   FieldImpl adaptedField;
- 
+
   // this is the FileAccessor for reading and writing range
   // samples to the adapted file
   FileAccessor fileAccessor;
@@ -51,7 +51,7 @@ public class FileField extends FieldImpl {
   // the location for the index-th range sample of this
   // FileField
   int[][] fileLocations;
- 
+
   public FileField(FieldImpl field, FileAccessor accessor,
                    int[][] locations)
     throws FieldException, VisADException
@@ -65,7 +65,7 @@ public class FileField extends FieldImpl {
     fileAccessor = accessor;
     fileLocations = locations;
   }
- 
+
   // must implement all the methods of Data, Function and Field
   //
   // most are simple adapters, like this:
@@ -73,7 +73,7 @@ public class FileField extends FieldImpl {
          throws VisADException, RemoteException {
     return adaptedField.getSample(index);
   }
- 
+
   // setSample changes the contents of this Field,
   // in both the adaptedField and in the file
   public void setSample(int index, Data range)
@@ -83,8 +83,8 @@ public class FileField extends FieldImpl {
     // write range sample through to fileAccessor
     fileAccessor.writeFile(fileLocations[index], range);
   }
- 
+
   // setSamples also changes the file contents;
   // it could be implemented as a series of calls to setSample
- 
+
 }

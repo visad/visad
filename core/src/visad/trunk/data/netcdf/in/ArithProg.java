@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ArithProg.java,v 1.7 1998-11-20 22:51:56 steve Exp $
+ * $Id: ArithProg.java,v 1.8 2000-04-26 15:45:16 dglo Exp $
  */
 
 
@@ -31,7 +31,7 @@ class ArithProg {
     private double 		increment = Double.NaN;
 
     /**
-     * Whether the sequence is consistent with an arithmetic progression 
+     * Whether the sequence is consistent with an arithmetic progression
      * or not.
      */
     private boolean		consistent = true;
@@ -63,7 +63,7 @@ class ArithProg {
     }
 
     /**
-     * Accumulate a bunch of double values.  Indicate whether or not the 
+     * Accumulate a bunch of double values.  Indicate whether or not the
      * values are consistent with the arithmetic progression so far.
      *
      * @param values	The current values to accumulate.
@@ -71,7 +71,7 @@ class ArithProg {
      *			the arithmetic progression seen so far.
      *			nearness threshold; otherwise, true.
      * @require		isConsistent() is true.
-     * @promise		A subsequent getNumber() will return 
+     * @promise		A subsequent getNumber() will return
      *			<code>values.length</code> more than previously.
      * @promise		A subsequent getLast() will return the last value of
      *			the vector providing the function returns true.
@@ -103,10 +103,10 @@ class ArithProg {
                   increment = Double.NaN;
               }
           }
-     
+
           last = values[i];
           n++;
-     
+
           if (!consistent) return false;
 
         }
@@ -115,7 +115,7 @@ class ArithProg {
 
 
     /**
-     * Accumulate a bunch of float values.  Indicate whether or not the 
+     * Accumulate a bunch of float values.  Indicate whether or not the
      * values are consistent with the arithmetic progression so far.
      *
      * @param values	The current values to accumulate.
@@ -123,7 +123,7 @@ class ArithProg {
      *			the arithmetic progression seen so far.
      *			nearness threshold; otherwise, true.
      * @require		isConsistent() is true.
-     * @promise		A subsequent getNumber() will return 
+     * @promise		A subsequent getNumber() will return
      *			<code>values.length</code> more than previously.
      * @promise		A subsequent getLast() will return the last value of
      *			the vector providing the function returns true.
@@ -155,12 +155,12 @@ class ArithProg {
                   increment = Double.NaN;
               }
           }
- 
+
           last = values[i];
           n++;
- 
+
           if (!consistent) return false;
- 
+
         }
         return true;
     }

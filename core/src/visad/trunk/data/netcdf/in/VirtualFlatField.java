@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VirtualFlatField.java,v 1.1 1998-09-23 17:31:38 steve Exp $
+ * $Id: VirtualFlatField.java,v 1.2 2000-04-26 15:45:21 dglo Exp $
  */
 
 package visad.data.netcdf.in;
@@ -37,7 +37,7 @@ VirtualFlatField
      * @param rangeTuple	The range of the FlatField.
      */
     protected
-    VirtualFlatField(FunctionType functionType, SampledSet domainSet, 
+    VirtualFlatField(FunctionType functionType, SampledSet domainSet,
 	VirtualTuple rangeTuple)
     {
 	super(functionType, domainSet, rangeTuple);
@@ -50,7 +50,7 @@ VirtualFlatField
      *
      * @param context		The context in which the data is to be
      *				retrieved.
-     * @return			The VisAD data object corresponding to this 
+     * @return			The VisAD data object corresponding to this
      *				virtual, data object.
      * @throws VisADException	Couldn't created necessary VisAD object.
      * @throws InvalidContextException
@@ -68,7 +68,7 @@ VirtualFlatField
 
 	for (int i = 0; i < componentCount; ++i)
 	{
-	    VirtualScalar	component = 
+	    VirtualScalar	component =
 		(VirtualScalar)rangeTuple.get(i);
 
 	    rangeSets[i] = component.getRangeSet();
@@ -86,7 +86,7 @@ VirtualFlatField
 
 	for (int i = 0; i < componentCount; ++i)
 	{
-	    VirtualScalar	component = 
+	    VirtualScalar	component =
 		(VirtualScalar)rangeTuple.get(i);
 
 	    values[i] = component.getDoubles(context);

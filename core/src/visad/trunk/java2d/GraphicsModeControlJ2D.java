@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -25,7 +25,7 @@ MA 02111-1307, USA
 */
 
 package visad.java2d;
- 
+
 import java.rmi.*;
 
 import visad.*;
@@ -62,7 +62,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     textureEnable = true;
     scaleEnable = false;
   }
- 
+
   public boolean getMode2D() {
     return getDisplayRenderer().getMode2D();
   }
@@ -137,7 +137,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     getDisplayRenderer().setScaleOn(enable);
     changeControl(true);
   }
- 
+
   public boolean getScaleEnable() {
     return scaleEnable;
   }

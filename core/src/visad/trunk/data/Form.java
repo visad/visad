@@ -1,6 +1,6 @@
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: Form.java,v 1.4 1999-07-14 22:01:40 dglo Exp $
+$Id: Form.java,v 1.5 2000-04-26 15:44:42 dglo Exp $
 */
 
 package visad.data;
@@ -29,7 +29,7 @@ import visad.MathType;
 
 
 /**
- * A leaf-node in the data form hierarchy for the storage of 
+ * A leaf-node in the data form hierarchy for the storage of
  * persistent data objects.
  */
 public abstract class

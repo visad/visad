@@ -1,6 +1,6 @@
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: Repository.java,v 1.7 1999-07-14 22:01:41 dglo Exp $
+$Id: Repository.java,v 1.8 2000-04-26 15:44:43 dglo Exp $
 */
 
 package visad.data;
@@ -34,7 +34,7 @@ import visad.DataImpl;
 import visad.VisADException;
 
 
-/** 
+/**
  * A repository of persistent data objects.
  * This class implements the "abstract factory" design pattern.
  * The concrete implementation of this class could either be
@@ -148,7 +148,7 @@ public abstract class Repository
     }
 
     /**
-     * Open a data object specified as a URL.  Strictly speaking, this 
+     * Open a data object specified as a URL.  Strictly speaking, this
      * shouldn't be here because a URL can lie outside the domain of the
      * repository.  A repository, however, is characterized by the
      * data forms that it handles as well as its "location".

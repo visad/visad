@@ -52,9 +52,9 @@
     jdouble *tb = (*env)->GetDoubleArrayElements(env, tb_j, 0);
     jdouble *rr = (*env)->GetDoubleArrayElements(env, rr_j, 0);
 
-    nast_i_rte_( &tskin_j, &psfc_j, &lsfc_j, &azen_j, pp, tt, ww, oo, 
+    nast_i_rte_( &tskin_j, &psfc_j, &lsfc_j, &azen_j, pp, tt, ww, oo,
                  uu, vn, tb, rr );
-                 
+
     (*env)->ReleaseFloatArrayElements(env, p_j, pp, 0);
     (*env)->ReleaseFloatArrayElements(env, t_j, tt, 0);
     (*env)->ReleaseFloatArrayElements(env, w_j, ww, 0);
@@ -66,7 +66,7 @@
     (*env)->ReleaseDoubleArrayElements(env, rr_j, rr, 0);
   }
 JNIEXPORT void JNICALL Java_visad_paoloa_nesti_Nesti_nasti_1retrvl_1c
-  (JNIEnv *env, jobject obj, jint opt_j, jint opt2_j, jint rec_j, jfloat gt_j, jfloat gw_j, 
+  (JNIEnv *env, jobject obj, jint opt_j, jint opt2_j, jint rec_j, jfloat gt_j, jfloat gw_j,
    jfloat gts_j, jfloat e_j, jfloatArray tair_j, jfloatArray rr_j, jfloatArray pout_j)
 {
   jfloat *pout = (*env)->GetFloatArrayElements(env, pout_j, 0);
