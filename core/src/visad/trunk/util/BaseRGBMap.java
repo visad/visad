@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: BaseRGBMap.java,v 1.19 2000-03-27 17:30:12 dglo Exp $
+@(#) $Id: BaseRGBMap.java,v 1.20 2000-04-25 17:51:26 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -50,7 +50,7 @@ import visad.VisADException;
  * mouse button to alternate between the color curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.19 $, $Date: 2000-03-27 17:30:12 $
+ * @version $Revision: 1.20 $, $Date: 2000-04-25 17:51:26 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -69,9 +69,9 @@ public class BaseRGBMap
   private BaseColorControl ctl;
 
   /** The left modified value */
-  private int valLeft;
+  private int valLeft = 0;
   /** The right modified value */
-  private int valRight;
+  private int valRight = 0;
 
   /** A lock to synchronize against when modifying the modified area */
   private Object mutex = new Object();
@@ -88,7 +88,7 @@ public class BaseRGBMap
   private int state = RED;
 
   /** The resolution of the map */
-  private int resolution;
+  private int resolution = 256;
   /** 'true' if this map has an alpha component */
   private boolean hasAlpha;
 

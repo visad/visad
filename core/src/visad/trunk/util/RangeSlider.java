@@ -74,10 +74,10 @@ public class RangeSlider extends JComponent implements MouseListener,
   float maxValue = 100;
 
   /** minimum slider value */
-  float minLimit;
+  float minLimit = 0.0f;
 
   /** maximum slider value */
-  float maxLimit;
+  float maxLimit = 1.0f;
 
   /** location of min gripper */
   private int minGrip = GRIP_WIDTH;

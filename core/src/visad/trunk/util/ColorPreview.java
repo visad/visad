@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ColorPreview.java,v 1.12 2000-03-13 20:21:27 dglo Exp $
+@(#) $Id: ColorPreview.java,v 1.13 2000-04-25 17:51:26 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -35,7 +35,7 @@ import javax.swing.JPanel;
  * A small preview bar generated for a color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.12 $, $Date: 2000-03-13 20:21:27 $
+ * @version $Revision: 1.13 $, $Date: 2000-04-25 17:51:26 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -45,7 +45,7 @@ public class ColorPreview extends JPanel implements ColorChangeListener {
   private ColorMap map;
 
   /** The height of the ColorPreview */
-  private int height;
+  private int height = 15;
 
   /**
    * Constructs a ColorPreview that Listens to the specified

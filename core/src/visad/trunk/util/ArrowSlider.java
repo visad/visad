@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ArrowSlider.java,v 1.15 2000-04-25 13:38:54 billh Exp $
+@(#) $Id: ArrowSlider.java,v 1.16 2000-04-25 17:51:25 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -39,20 +39,20 @@ import java.awt.event.WindowEvent;
  * A pointer slider for visad .
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.15 $, $Date: 2000-04-25 13:38:54 $
+ * @version $Revision: 1.16 $, $Date: 2000-04-25 17:51:25 $
  * @since Visad Utility Library v0.7.1
  */
 
 public class ArrowSlider extends Slider implements MouseListener, MouseMotionListener {
 
   /** The upper bound */
-  private float upper = 1.0f;
+  private float upper;
 
   /** The lower bound */
-  private float lower = 0.0f;
+  private float lower;
 
   /** The current value */
-  private float val = 0.5f;
+  private float val;
 
   /** widget sizes */
   Dimension minSize = null;
@@ -325,6 +325,8 @@ public class ArrowSlider extends Slider implements MouseListener, MouseMotionLis
 // but not with DebugGraphics in constructor
 // the reason was JDC bug # 4252578 and the fact that
 // lower, upper and val were NaNs
+
+    if (val != val || lower != lower || upper != upper) return;
 
     g.setColor(Color.black);
     g.fillRect(0, 0, getBounds().width, getBounds().height);
