@@ -209,8 +209,14 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
       for (int i=0; i<maps.length; i++) {
         DisplayRealType drt = maps[i].getDisplayScalar();
         try {
-          RangeWidget rw = new RangeWidget(maps[i]);
-          addToFrame(rw, true);
+          double[] a = new double[2];
+          double[] b = new double[2];
+          double[] c = new double[2];
+          boolean scale = maps[i].getScale(a, b, c);
+          if (scale) {
+            RangeWidget rw = new RangeWidget(maps[i]);
+            addToFrame(rw, true);
+          }
         }
         catch (VisADException exc) {
           if (DEBUG) exc.printStackTrace();
