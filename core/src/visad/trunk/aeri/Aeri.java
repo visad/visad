@@ -7,13 +7,15 @@ might use (T - TD) instead of RH
 
 height changes (errors) are causing RH "changes"
 
-limit to 300 MB (or 500 MB)
+limit to 300 MB (9500 m) or 500 MB (5500 m)
+MR looks interesting up to 10000 m
 MR better near boundary layer (but tighter color range)
 */
 
 package visad.aeri;
 
 import visad.*;
+import visad.util.*;
 import visad.DisplayImpl;
 import visad.java3d.DisplayImplJ3D;
 import visad.data.netcdf.*;
@@ -24,6 +26,15 @@ import java.rmi.RemoteException;
 import java.io.IOException;
 import visad.data.visad.VisADForm;
 
+// JFC packages
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.text.*;
+import javax.swing.border.*;
+
+// AWT packages
+import java.awt.*;
+import java.awt.event.*;
 
 public class Aeri 
        implements ScalarMapListener
@@ -41,7 +52,7 @@ public class Aeri
   RealType temp;
   RealType dwpt;
   RealType wvmr;
-  RealType advAge;
+  RealType RH;
 
   //- (T,TD,WV,AGE)
   //
@@ -75,7 +86,8 @@ public class Aeri
   float del_lat, del_lon;
   double[] x_range, y_range;
 
-                
+  float height_limit = 5500; // roughly 500 MB
+
   public static void main(String args[])
          throws VisADException, RemoteException, IOException
   {
@@ -85,16 +97,53 @@ public class Aeri
   public Aeri(String[] args) 
          throws VisADException, RemoteException, IOException
   {
-    if ( args.length > 0 ) 
-    {
-      init_from_vad( args[0] );
+
+    String vadfile = null;
+    for (int i=0; i<args.length; i++) {
+      if (args[i] == null) {
+      }
+      else if (args[i].endsWith(".vad")) {
+        vadfile = args[i];
+      }
+      else if (args[i].equals("-limit") && (i+1) < args.length) {
+        try {
+          height_limit = Integer.parseInt(args[i+1]);
+        }
+        catch (NumberFormatException e) {
+          System.out.println("bad height limit: " + args[i+1]);
+        }
+      }
+    }
+    if (vadfile != null) {
+      init_from_vad(vadfile);
     } 
-    else 
-    { 
+    else { 
       init_from_cdf();
     }
-     
-    makeDisplay();
+    wvmr.alias("MR");
+
+    JFrame frame = new JFrame("VisAD HSV Color Coordinates");
+    frame.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {System.exit(0);}
+    });
+ 
+    // create JPanel in frame
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+    // panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    // panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    frame.getContentPane().add(panel);
+
+    DisplayImpl display = makeDisplay(panel);
+
+    int WIDTH = 1000;
+    int HEIGHT = 600;
+
+    frame.setSize(WIDTH, HEIGHT);
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    frame.setLocation(screenSize.width/2 - WIDTH/2,
+                      screenSize.height/2 - HEIGHT/2);
+    frame.setVisible(true);
   }
 
   void init_from_cdf()
@@ -107,7 +156,7 @@ public class Aeri
 
     longitude = RealType.Longitude;
     latitude = RealType.Latitude;
-    advAge = new RealType("age", SI.second, null);
+    RH = new RealType("RH", SI.second, null);
     stn_idx = new RealType("stn_idx", null, null);
 
     String[] wind_files = new String[n_stations];
@@ -132,7 +181,7 @@ public class Aeri
     System.out.println(rtvls[0].getType().prettyString());
 
     spatial_domain = new RealTupleType(longitude, latitude, altitude);
-    advect_range = new RealTupleType(temp, dwpt, wvmr, advAge);
+    advect_range = new RealTupleType(temp, dwpt, wvmr, RH);
     advect_type = new FunctionType(spatial_domain, advect_range);
     advect_field_type = new FunctionType(time, advect_type);
 
@@ -162,7 +211,8 @@ public class Aeri
 
     MathType file_type = stations_field.getType();
 
-    stn_idx = (RealType) ((RealTupleType)((FunctionType)file_type).getDomain()).getComponent(0);
+    stn_idx = (RealType)
+      ((RealTupleType)((FunctionType)file_type).getDomain()).getComponent(0);
     FunctionType f_type0 = (FunctionType) ((FunctionType)file_type).getRange();
     time = (RealType) ((RealTupleType)f_type0.getDomain()).getComponent(0);
     FunctionType f_type1 = (FunctionType) f_type0.getRange();
@@ -175,16 +225,16 @@ public class Aeri
     temp = (RealType) rtt.getComponent(0);
     dwpt = (RealType) rtt.getComponent(1);
     wvmr = (RealType) rtt.getComponent(2);
-    advAge = (RealType) rtt.getComponent(3);
+    RH = (RealType) rtt.getComponent(3);
   }
 
-  void makeDisplay()
+  DisplayImpl makeDisplay(JPanel panel)
        throws VisADException, RemoteException, IOException
   {
     del_lon = 5f;
     del_lat = 1.5f;
 
-    baseMap = new BaseMapAdapter("../data/mcidas/OUTLUSAM");
+    baseMap = new BaseMapAdapter("OUTLUSAM");
     map_ref = new DataReferenceImpl("map");
 
     if ( baseMap.isEastPositive() )
@@ -198,25 +248,35 @@ public class Aeri
     DataReference poles_ref = new DataReferenceImpl("poles");
     poles_ref.setData(poles);
 
-    DisplayImpl display = new DisplayImplJ3D("aeri", DisplayImplJ3D.APPLETFRAME);
+    DisplayImpl display = new DisplayImplJ3D("aeri");
     GraphicsModeControl mode = display.getGraphicsModeControl();
-    mode.setScaleEnable(false);
+    mode.setScaleEnable(true);
     DisplayRenderer dr = display.getDisplayRenderer();
     dr.setBoxOn(false);
 
     xmap = new ScalarMap(longitude, Display.XAxis);
+    xmap.setScaleEnable(false);
     ymap = new ScalarMap(latitude, Display.YAxis);
+    ymap.setScaleEnable(false);
     zmap = new ScalarMap(altitude, Display.ZAxis);
 
     display.addMap(xmap);
     display.addMap(ymap);
     display.addMap(zmap);
-    // display.addMap(new ScalarMap(wvmr, Display.RGB));
-    display.addMap(new ScalarMap(advAge, Display.RGB));
+    // note RH bonces around because temperature does
+    // ScalarMap cmap = new ScalarMap(RH, Display.RGB);
+    ScalarMap cmap = new ScalarMap(wvmr, Display.RGB);
+    display.addMap(cmap);
+    LabeledColorWidget cwidget = new LabeledColorWidget(cmap);
     ScalarMap tmap = new ScalarMap(time, Display.Animation);
     display.addMap(tmap);
     AnimationControl control = (AnimationControl) tmap.getControl();
-    control.setStep(100);
+    control.setStep(50);
+    AnimationWidget awidget = new AnimationWidget(tmap);
+
+    // xmap.setRange(lon_min, lon_max);
+    // ymap.setRange(lat_min, lat_max);
+    zmap.setRange(0.0, hgt_max);
 
     DataReference advect_ref = new DataReferenceImpl("advect_ref");
     advect_ref.setData(stations_field);
@@ -238,7 +298,31 @@ public class Aeri
     xmap.addScalarMapListener(this);
     ymap.addScalarMapListener(this);
     display.enableAction();
+    JPanel dpanel = new JPanel();
+    dpanel.setLayout(new BoxLayout(dpanel, BoxLayout.Y_AXIS));
+    // dpanel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    // dpanel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    dpanel.add(display.getComponent());
+    JPanel wpanel = new JPanel();
+    wpanel.setLayout(new BoxLayout(wpanel, BoxLayout.Y_AXIS));
+    // wpanel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    // wpanel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    cwidget.setMaximumSize(new Dimension(400, 200));
+    awidget.setMaximumSize(new Dimension(400, 400));
+    wpanel.add(cwidget);
+    wpanel.add(awidget);
+    Dimension d = new Dimension(400, 600);
+    wpanel.setMaximumSize(d);
+    panel.add(wpanel);
+    panel.add(dpanel);
+    return display;
   }
+
+  double lon_min = Double.MAX_VALUE;
+  double lon_max = Double.MIN_VALUE;
+  double lat_min = Double.MAX_VALUE;
+  double lat_max = Double.MIN_VALUE;
+  double hgt_max = Double.MIN_VALUE;
 
   DataImpl makePoles()
            throws VisADException, RemoteException
@@ -246,27 +330,33 @@ public class Aeri
     SampledSet[] set_s = new SampledSet[n_stations];
     float[][] locs = new float[3][2];
 
-    for ( int kk = 0; kk < n_stations; kk++ ) 
-    {
-      Set set = 
-        ((FieldImpl)((FieldImpl)stations_field.getSample(kk)).getSample(20)).getDomainSet();
+    for ( int kk = 0; kk < n_stations; kk++ ) {
+      Set set = ((FieldImpl)((FieldImpl)
+        stations_field.getSample(kk)).getSample(20)).getDomainSet();
       float[][] samples = set.getSamples(false);
       float[] lo = ((SampledSet)set).getLow();
       float[] hi = ((SampledSet)set).getHi();
-      
+
       locs[0][0] = samples[0][0];
       locs[1][0] = samples[1][0];
-      locs[2][0] = lo[2];
-      
+      // locs[2][0] = lo[2];
+      locs[2][0] = 0.0f;
+
       locs[0][1] = samples[0][0];
       locs[1][1] = samples[1][0];
-      locs[2][1] = hi[2];
+      // locs[2][1] = hi[2];
+      locs[2][1] = height_limit;
+
+      if (hi[2] > hgt_max) hgt_max = hi[2];
+      if (samples[0][0] > lat_max) lat_max = samples[0][0];
+      if (samples[0][0] < lat_min) lat_min = samples[0][0];
+      if (samples[1][0] > lon_max) lon_max = samples[1][0];
+      if (samples[1][0] < lon_min) lon_min = samples[1][0];
 
       set_s[kk] = new Gridded3DSet(spatial_domain, locs, 2, null, null, null);
 
 // System.out.println("set_s[" + kk + "] = " + set_s[kk]);
     }
-
     return new UnionSet(spatial_domain, set_s);
   }
 
@@ -331,7 +421,8 @@ System.out.println("lon = " + lonmin + " " + lonmax +
 
     //- make sub mathtype for file objects
     MathType file_type = file_data[0].getType();
-    FunctionType f_type0 = (FunctionType)((TupleType)file_type).getComponent(2);
+    FunctionType f_type0 =
+      (FunctionType)((TupleType)file_type).getComponent(2);
     FunctionType f_type1 =
       (FunctionType)((TupleType)f_type0.getRange()).getComponent(10);
     altitude = (RealType)((RealTupleType)f_type1.getRange()).getComponent(0);
@@ -339,15 +430,6 @@ System.out.println("lon = " + lonmin + " " + lonmax +
     dir = (RealType)((RealTupleType)f_type1.getRange()).getComponent(3);
     RealType[] r_types = { dir, spd };
  
-/*
-    CoordinateSystem cs =
-      new WindPolarCoordinateSystem(RealTupleType.SpatialEarth2DTuple);
-
-    RealTupleType ds = new RealTupleType(r_types, cs, null);
-
-    RealType[] uv_types = { u_wind, v_wind }; 
-    RealTupleType uv = new RealTupleType(uv_types);
-*/
     /* WLH 28 Dec 99 */
     RealType[] uv_types = { u_wind, v_wind }; 
     // EarthVectorType uv = new EarthVectorType(uv_types); WLH meeds m/s
@@ -359,7 +441,8 @@ System.out.println("lon = " + lonmin + " " + lonmax +
     FunctionType alt_to_ds = new FunctionType(altitude, ds);
     FunctionType alt_to_uv = new FunctionType(altitude, uv);
 
-    RealType domain_type = (RealType) ((TupleType)f_type0.getRange()).getComponent(0);
+    RealType domain_type = (RealType)
+      ((TupleType)f_type0.getRange()).getComponent(0);
     time = domain_type;
     FunctionType new_type = new FunctionType(domain_type, alt_to_uv);
 
@@ -367,12 +450,18 @@ System.out.println("lon = " + lonmin + " " + lonmax +
     
     for ( int ii = 0; ii < n_stations; ii++ )
     {
-      base_time[ii] = (double) ((Real)((Tuple)file_data[ii]).getComponent(1)).getValue();
-      time_field[ii] = (FieldImpl) ((Tuple)file_data[ii]).getComponent(2);
-      station_lat[ii] = ((Real)((Tuple)time_field[ii].getSample(0)).getComponent(6)).getValue();
-      station_lon[ii] = ((Real)((Tuple)time_field[ii].getSample(0)).getComponent(7)).getValue();
-      station_alt[ii] = ((Real)((Tuple)time_field[ii].getSample(0)).getComponent(8)).getValue();
-      station_id[ii] = ((Real)((Tuple)time_field[ii].getSample(0)).getComponent(9)).getValue();
+      base_time[ii] = (double)
+        ((Real)((Tuple)file_data[ii]).getComponent(1)).getValue();
+      time_field[ii] = (FieldImpl)
+        ((Tuple)file_data[ii]).getComponent(2);
+      station_lat[ii] =
+        ((Real)((Tuple)time_field[ii].getSample(0)).getComponent(6)).getValue();
+      station_lon[ii] =
+        ((Real)((Tuple)time_field[ii].getSample(0)).getComponent(7)).getValue();
+      station_alt[ii] =
+        ((Real)((Tuple)time_field[ii].getSample(0)).getComponent(8)).getValue();
+      station_id[ii] =
+        ((Real)((Tuple)time_field[ii].getSample(0)).getComponent(9)).getValue();
 
       int length = time_field[ii].getLength();
       time_offset = new double[1][length];
@@ -385,36 +474,18 @@ System.out.println("lon = " + lonmin + " " + lonmax +
         time_offset[0][jj] = (double)((Real)range.getComponent(0)).getValue();  
 
         FlatField p_field = (FlatField) range.getComponent(10);
-        double[][] values = p_field.getValues(); // WLH - (alt, ?, ?, dir, spd, ???)
+        double[][] values =
+          p_field.getValues(); // WLH - (alt, ?, ?, dir, spd, ???)
         double[][] new_values = new double[2][values[0].length];
 
-        if ( jj == 0 )  //- only do this once, vertical range gates don't change
+        if ( jj == 0 )  //- only once, vertical range gates don't change
         {
           samples = new double[1][values[0].length]; // WLH
           System.arraycopy(values[0], 0, samples[0], 0, samples[0].length);
-          d_set = new Gridded1DSet(altitude, Set.doubleToFloat(samples), samples[0].length);
+          d_set = new Gridded1DSet(altitude, Set.doubleToFloat(samples),
+                                   samples[0].length);
         }
         new_ff = new FlatField(alt_to_uv, d_set);
-
-/* WLH 28 Dec 99
-        for ( int mm = 0; mm < values[0].length; mm++ )
-        {
-          if ( values[3][mm] == -9999 ) {
-            new_values[0][mm] = Float.NaN;
-          }
-          else {
-            new_values[0][mm] = values[3][mm];
-          }
-   
-          if ( values[4][mm] == -9999 ) {
-            new_values[1][mm] = Float.NaN;
-          }
-          else {
-            new_values[1][mm] = values[4][mm];
-          }
-        }
-        new_ff.setSamples(cs.toReference(new_values));
-*/
 
 /* WLH - fill in missing winds - this also extrapolates to missing
 start or end altitudes - but it does nothing if all winds are missing */
@@ -451,9 +522,12 @@ start or end altitudes - but it does nothing if all winds are missing */
           float[][] newer_samples = new float[1][nn];
           // fill in non-missing values
           for (int i=0; i<n_not_miss; i++) {
-            newer_values[0][not_miss[0] + i] = (float) new_values[0][not_miss[i]];
-            newer_values[1][not_miss[0] + i] = (float) new_values[1][not_miss[i]];
-            newer_samples[0][not_miss[0] + i] = (float) samples[0][not_miss[i]];
+            newer_values[0][not_miss[0] + i] =
+              (float) new_values[0][not_miss[i]];
+            newer_values[1][not_miss[0] + i] =
+              (float) new_values[1][not_miss[i]];
+            newer_samples[0][not_miss[0] + i] =
+              (float) samples[0][not_miss[i]];
           }
           // extrapolate if necessary for starting values
           for (int i=0; i<not_miss[0]; i++) {
@@ -518,8 +592,10 @@ start or end altitudes - but it does nothing if all winds are missing */
 
     //- make sub mathtype for file objects
     MathType file_type = file_data[0].getType();
-    FunctionType f_type0 = (FunctionType)((TupleType)file_type).getComponent(1);
-    FunctionType f_type1 = (FunctionType)((TupleType)f_type0.getRange()).getComponent(1);
+    FunctionType f_type0 = (FunctionType)
+      ((TupleType)file_type).getComponent(1);
+    FunctionType f_type1 = (FunctionType)
+      ((TupleType)f_type0.getRange()).getComponent(1);
 
     RealTupleType rtt = (RealTupleType) f_type1.getRange();
     temp = (RealType) rtt.getComponent(1);
@@ -527,7 +603,8 @@ start or end altitudes - but it does nothing if all winds are missing */
     wvmr = (RealType) rtt.getComponent(3);
    
 
-    RealType domain_type = (RealType) ((TupleType)f_type0.getRange()).getComponent(0);
+    RealType domain_type = (RealType)
+      ((TupleType)f_type0.getRange()).getComponent(0);
     FunctionType new_type = new FunctionType(domain_type, f_type1);
 
     FieldImpl[] rtvls = new FieldImpl[n_stations];
@@ -535,7 +612,8 @@ start or end altitudes - but it does nothing if all winds are missing */
 
     for ( int ii = 0; ii < n_stations; ii++ )
     {
-      base_time[ii] = (double) ((Real)((Tuple)file_data[ii]).getComponent(0)).getValue();
+      base_time[ii] = (double)
+        ((Real)((Tuple)file_data[ii]).getComponent(0)).getValue();
       time_field[ii] = (FieldImpl) ((Tuple)file_data[ii]).getComponent(1);
 
       int length = time_field[ii].getLength();
@@ -611,6 +689,7 @@ start or end altitudes - but it does nothing if all winds are missing */
     FlatField advect;
     FieldImpl advect_field;
     FlatField[] rtvl_on_wind;
+    FieldImpl[] wind_on_wind;
     int n_samples;
     double age;
     double age_max = 3600;
@@ -649,13 +728,33 @@ start or end altitudes - but it does nothing if all winds are missing */
     //
     int len = rtvls.getLength();
     rtvl_on_wind = new FlatField[len];
-    for ( int tt = 0; tt < len; tt++ )
-    {
+    wind_on_wind = new FieldImpl[len];
+    for ( int tt = 0; tt < len; tt++ ) {
       alt_to_rtvl = (FieldImpl) rtvls.getSample(tt);
       alt_to_wind = (FieldImpl) wind_to_rtvl_time.getSample(tt);
-      rtvl_on_wind[tt] = (FlatField) alt_to_rtvl.resample( alt_to_wind.getDomainSet(),
-                                               Data.WEIGHTED_AVERAGE,
-                                               Data.NO_ERRORS );
+      Set ds = alt_to_wind.getDomainSet();
+// WLH height limit
+      float[][] samples = ds.getSamples();
+      float[] ns = new float[samples[0].length];
+      int nn = 0;
+      for (int i=0; i<samples[0].length; i++) {
+        if (samples[0][i] < height_limit) {
+          ns[nn] = samples[0][i];
+          nn++;
+        }
+      }
+      float[][] new_samples = new float[1][nn];
+      System.arraycopy(ns, 0, new_samples[0], 0, nn);
+      ds = new Gridded1DSet(ds.getType(), new_samples, nn);
+      wind_on_wind[tt] = (FieldImpl)
+        alt_to_wind.resample( ds,
+                              Data.WEIGHTED_AVERAGE,
+                              Data.NO_ERRORS );
+// end WLH height limit
+      rtvl_on_wind[tt] = (FlatField)
+        alt_to_rtvl.resample( ds,
+                              Data.WEIGHTED_AVERAGE,
+                              Data.NO_ERRORS );
     }
                                    
     //- get rtvls time domain samples
@@ -668,7 +767,8 @@ start or end altitudes - but it does nothing if all winds are missing */
     for ( int tt = n_advect_pts; tt < len; tt++ )
     {
       rtvl_idx = tt;
-      alt_to_wind = (FieldImpl)wind_to_rtvl_time.getSample(tt);
+      // alt_to_wind = (FieldImpl)wind_to_rtvl_time.getSample(tt);
+      alt_to_wind = wind_on_wind[tt];
       int alt_len = alt_to_wind.getLength();
 
       uv_wind = alt_to_wind.getValues();
@@ -696,7 +796,8 @@ start or end altitudes - but it does nothing if all winds are missing */
 // WLH - adjust for shortening of longitude with increasing latitude
           double lat_radians = (Math.PI/180.0)*station_lat[stn_idx];
           advect_locs[0][n_samples] = (float)
-            (uv_wind[0][jj]*age*factor/Math.cos(lat_radians) + station_lon[stn_idx]);
+            (uv_wind[0][jj]*age*factor/Math.cos(lat_radians) +
+             station_lon[stn_idx]);
           advect_locs[1][n_samples] = (float)
             (uv_wind[1][jj]*age*factor + station_lat[stn_idx]);
 
@@ -708,8 +809,8 @@ start or end altitudes - but it does nothing if all winds are missing */
           rtvl_vals[1][n_samples] = (float) vals[2][jj];
           rtvl_vals[2][n_samples] = (float) vals[3][jj];
 /*
-          rtvl_vals[3][n_samples] = (float) (-age*age); // WLH - quadratic age fade
-          rtvl_vals[3][n_samples] = (float) age;
+          rtvl_vals[3][n_samples] = (float) (-age*age);
+          // rtvl_vals[3][n_samples] = (float) age;
 */
           rtvl_vals[3][n_samples] = (float)
             relativeHumidity(vals[1][jj], vals[2][jj]);
