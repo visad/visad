@@ -42,7 +42,8 @@ import java.awt.event.WindowEvent;
 public class WeatherSymbols {
 
   private static HersheyFont wmoFont = new HersheyFont("wmo");
-  private static final int numWMOSymbols = 151;
+  private static final int numWMOSymbols = 203;
+  //private static final int numWMOSymbols = 151;
 
   private static VisADLineArray[] wmoSymbols = 
       new VisADLineArray[numWMOSymbols];
@@ -396,9 +397,9 @@ public class WeatherSymbols {
     DisplayImpl display = new DisplayImplJ2D("display");
     display.addMap(new ScalarMap(RealType.YAxis, Display.YAxis));
     display.addMap(new ScalarMap(RealType.XAxis, Display.XAxis));
-    float[][] values = new float[3][160];
+    float[][] values = new float[3][220];
     int l = 0;
-    for (int x = 0; x < 8; x++) {
+    for (int x = 0; x < 11; x++) {
       for (int y = 0; y < 20; y++) {
         values[0][l] = -1.f + y/10.f;
         values[1][l] = 1.f - x/4.f;
