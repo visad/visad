@@ -16,7 +16,7 @@ import java.awt.BorderLayout;
 import java.awt.event.*;
 
 import javax.media.j3d.*;
-import java.vecmath.*;
+import javax.vecmath.*;
 
 public class UniverseBuilder extends Object {
 

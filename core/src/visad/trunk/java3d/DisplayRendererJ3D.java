@@ -31,7 +31,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 import javax.media.j3d.*;
-import java.vecmath.*;
+import javax.vecmath.*;
 
 import java.util.*;
 import java.rmi.*;

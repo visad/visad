@@ -30,7 +30,7 @@ import visad.*;
 import java.awt.event.*;
 
 import javax.media.j3d.*;
-import java.vecmath.*;
+import javax.vecmath.*;
 
 import java.rmi.*;
 import java.awt.*;
@@ -510,7 +510,7 @@ public class MouseBehavior extends Behavior { // J3D
 */
 
 /*
-import java.vecmath.*;
+import javax.vecmath.*;
 import javax.media.j3d.*;
 
 public class TestTransform3D extends Object {

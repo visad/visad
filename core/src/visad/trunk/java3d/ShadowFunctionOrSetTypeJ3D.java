@@ -894,6 +894,7 @@ END MISSING TEST */
                 c[0] = color_values[0];
                 c[1] = color_values[1];
                 c[2] = color_values[2];
+                c[3] = new float[len];
                 for (int i=0; i<len; i++) c[3][i] = alpha;
                 constant_alpha = null;
                 color_values = c;

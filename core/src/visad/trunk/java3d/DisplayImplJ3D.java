@@ -35,7 +35,8 @@ import java.io.*;
 import java.awt.*;
 
 import javax.media.j3d.*;
-import com.sun.j3d.utils.applet.AppletFrame;
+import com.sun.j3d.utils.applet.MainFrame;
+// import com.sun.j3d.utils.applet.AppletFrame;
 
 /**
    DisplayImplJ3D is the VisAD class for displays that use
@@ -87,7 +88,8 @@ public class DisplayImplJ3D extends DisplayImpl {
 
     if (api == APPLETFRAME) {
       applet = new DisplayApplet(this);
-      Component component = new AppletFrame(applet, 256, 256);
+      Component component = new MainFrame(applet, 256, 256);
+      // Component component = new AppletFrame(applet, 256, 256);
       setComponent(component);
       // component.setTitle(name);
     }
