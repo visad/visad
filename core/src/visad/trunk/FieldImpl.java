@@ -77,7 +77,15 @@ public class FieldImpl extends FunctionImpl implements Field {
    *				{@link DoubleSet}.  If non-<code>null</code>, 
    *				then must be compatible with the domain of the
    *				FunctionType.
-   * @throws VisADException	VisAD failure.
+   * @throws CoordinateSystemException
+   *                            if the {@link CoordinateSystem} of the
+   *                            domain set is <code>null</code> but the
+   *                            {@link CoordinateSystem} of the domain of
+   *                            the FunctionType} is not; or if both {@link
+   *                            CoordinateSystem}s are non-<code>null</code>
+   *                            and do not have the same reference {@link
+   *                            RealTupleType}.
+   * @throws VisADException	if a VisAD failure occurs.
    */
   public FieldImpl(FunctionType type, Set set) throws VisADException {
     super(type);
@@ -102,6 +110,13 @@ public class FieldImpl extends FunctionImpl implements Field {
       DomainSet = (Set) set.cloneButType(new SetType(DomainType));
     }
     DomainCoordinateSystem = DomainSet.getCoordinateSystem();
+    CoordinateSystem domTypeCs = DomainType.getCoordinateSystem();
+    if (domTypeCs == null 
+	  ? (DomainCoordinateSystem != null)
+	  : (DomainCoordinateSystem != null && !domTypeCs.getReference().equals(
+	      DomainCoordinateSystem.getReference()))) {
+      throw new CoordinateSystemException(domTypeCs, DomainCoordinateSystem);
+    }
     DomainUnits = DomainSet.getSetUnits();
     Length = DomainSet.getLength();
     Range = new Data[Length];
