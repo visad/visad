@@ -222,7 +222,7 @@ public class FormulaVar extends ActionImpl {
             Text t = (Text) thing;
             String newForm = t.getValue();
             if (newForm == null) newForm = "";
-            if (!postfix.equals(newForm)) {
+            if (!newForm.equals(formula)) {
               textChanged = true;
               setFormula(newForm);
             }
