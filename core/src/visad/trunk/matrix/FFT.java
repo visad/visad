@@ -28,14 +28,199 @@ MA 02111-1307, USA
 package visad.matrix;
 
 import visad.*;
+import java.rmi.*;
 
 /**
- * FFT is the VisAD class for Fast Fourier Transforms
+ FFT is the VisAD class for Fourier Transforms, using
+ the Fast Fourier Transform when the domain length is
+ a power of two
 */
 
 public class FFT {
 
-  public static float[][] FFT2D(int rows, int cols, float[][] x,
+  /** compute Fourier Transform of field */
+  public static FlatField fourierTransform(Field field, boolean forward)
+         throws VisADException, RemoteException {
+    return fourierTransform(field, forward, null, null, null, null, null);
+  }
+
+  /**
+      compute Fourier Transform of field; use ftype, domain_set,
+      range_coord_sys, range_sets and units to construct return
+      FlatField - if null, use values from field where appropriate;
+  */
+  public static FlatField fourierTransform(Field field, boolean forward,
+                     FunctionType ftype, GriddedSet domain_set,
+                     CoordinateSystem range_coord_sys,
+                     Set[] range_sets, Unit[] units)
+         throws VisADException, RemoteException {
+    if (field == null) return null;
+    FunctionType type = (FunctionType) field.getType();
+    RealTupleType dtype = type.getDomain();
+    int ddim = dtype.getDimension();
+    MathType rtype = type.getRange();
+    RealType[] realComponents = null;
+    int rdim = 0;
+    if (rtype instanceof RealType) {
+      realComponents = new RealType[] {(RealType) rtype};
+      rdim = 1;
+    }
+    else if (rtype instanceof RealTupleType) {
+      realComponents = ((RealTupleType) rtype).getRealComponents();
+      rdim = realComponents.length;
+    }
+    else {
+      throw new FieldException("bad range type " + rtype);
+    }
+    if (ddim != 1 && ddim != 2) {
+      throw new FieldException("bad domain dimension " + dtype);
+    }
+    if (rdim != 1 && rdim != 2) {
+      throw new FieldException("bad range dimension " + rtype);
+    }
+
+    if (units == null || units.length == 0) {
+      units = new Unit[] {null, null};
+    }
+    else if (units.length == 1) {
+      units = new Unit[] {units[0], null};
+    }
+
+    if (ftype == null) {
+      RealType[] newReals = new RealType[2];
+      if (rdim == 2) {
+        if (forward) {
+          String name = realComponents[0].getName() + "_FT";
+          newReals[0] = RealType.getRealType(name, units[0], null);
+          name = realComponents[1].getName() + "_FT";
+          newReals[1] = RealType.getRealType(name, units[1], null);
+        }
+        else {
+          String name = realComponents[0].getName();
+          if (name.endsWith("_FT")) {
+            name = name.substring(0, name.length() - 3);
+          }
+          else if (name.endsWith("_FT_real")) { 
+            name = name.substring(0, name.length() - 8);
+          }
+          else if (name.endsWith("_RFT_real")) { 
+            name = name.substring(0, name.length() - 9);
+          }
+          newReals[0] = RealType.getRealType(name, units[0], null);
+          name = realComponents[1].getName();
+          if (name.endsWith("_FT")) {
+            name = name.substring(0, name.length() - 3);
+          }
+          else if (name.endsWith("_FT_imag")) { 
+            name = name.substring(0, name.length() - 8) + "_imag";
+          }
+          else if (name.endsWith("_RFT_imag")) { 
+            name = name.substring(0, name.length() - 9) + "_imag";
+          }
+          newReals[1] = RealType.getRealType(name, units[1], null);
+        }
+      }
+      else { // rdim == 1
+        if (forward) {
+          String name = realComponents[0].getName() + "_FT";
+          newReals[0] = RealType.getRealType(name + "_real", units[0], null);
+          newReals[1] = RealType.getRealType(name + "_imag", units[1], null);
+        }
+        else {
+          String name = realComponents[0].getName() + "_RFT";
+          newReals[0] = RealType.getRealType(name + "_real", units[0], null);
+          newReals[1] = RealType.getRealType(name + "_imag", units[1], null);
+        }
+      }
+      RealTupleType rftype = new RealTupleType(newReals, range_coord_sys, null);
+      ftype = new FunctionType(dtype, rftype);
+    }
+    else { // ftype != null
+      RealTupleType dftype = ftype.getDomain();
+      if (dftype.getDimension() != ddim) {
+        throw new FieldException("bad domain dimension " + dftype);
+      }
+      MathType rftype = ftype.getRange();
+      if (!(rftype instanceof RealTupleType) ||
+          ((RealTupleType) rftype).getDimension() != 2) {
+        throw new FieldException("bad range type " + rftype);
+      }
+    }
+
+    Set field_set = field.getDomainSet();
+    if (!(field_set instanceof GriddedSet)) {
+      throw new FieldException("field domain set must be Gridded2DSet " + field_set);
+    }
+
+    int[] field_lens = ((GriddedSet) field_set).getLengths();
+    if (domain_set == null) {
+      domain_set = (GriddedSet) field_set;
+    }
+    else {
+      if (domain_set.getDimension() != ddim) {
+        throw new FieldException("domain_set bad dimension " + domain_set);
+      }
+      int[] domain_lens = domain_set.getLengths();
+      for (int i=0; i<ddim; i++) {
+        if (field_lens[i] != domain_lens[i]) {
+          throw new FieldException("domain_set size must match field domain " +
+                                   "set " + domain_set + "\n" + field_set);
+        }
+      }
+    }
+
+    boolean use_double = true;
+    if (field instanceof FlatField) {
+      use_double = false;
+      Set[] fsets = ((FlatField) field).getRangeSets();
+      for (int i=0; i<fsets.length; i++) {
+        if (fsets[i] instanceof DoubleSet) use_double = true;
+      }
+    }
+    boolean doub = false;
+    if (range_sets != null) {
+      if (range_sets.length != 2) {
+        throw new FieldException("bad range_sets length" + range_sets.length);
+      }
+      for (int i=0; i<2; i++) {
+        if (range_sets[i] instanceof DoubleSet) doub = true;
+      }
+    }
+    use_double = use_double && doub;
+
+    FlatField new_field = new FlatField(ftype, domain_set, range_coord_sys,
+                                        null, range_sets, units);
+    if (use_double) {
+      double[][] values = field.getValues(false);
+      if (ddim == 1) {
+        values = FT1D(values, forward);
+      }
+      else { // ddim == 2
+        values = FT2D(field_lens[0], field_lens[1], values, forward);
+      }
+      new_field.setSamples(values, false);
+    }
+    else { // !use_double
+      float[][] values = field.getFloats(false);
+      if (ddim == 1) {
+        values = FT1D(values, forward);
+      }
+      else { // ddim == 2
+        values = FT2D(field_lens[0], field_lens[1], values, forward);
+      }
+      new_field.setSamples(values, false);
+    }
+    return new_field;
+  }
+
+
+  /** compute 2-D Fourier Transform, calling 1-D FT twice;
+      input and output data to this and following static
+      methods are organized:
+        float[2][domain_length] or double[2][domain_length]
+      where the 2 index is over real and imaginary parts
+  */
+  public static float[][] FT2D(int rows, int cols, float[][] x,
                                 boolean forward)
          throws VisADException {
     if (x == null) return null;
@@ -54,7 +239,7 @@ public class FFT {
         z[0][r] = x[0][i + r];
         z[1][r] = x[1][i + r];
       }
-      z = FFT1D(z, forward);
+      z = FT1D(z, forward);
       for (int r=0; r<rows; r++) {
         y[0][i + r] = z[0][r];
         y[1][i + r] = z[1][r];
@@ -69,7 +254,7 @@ public class FFT {
         v[0][c] = y[0][i + c * rows];
         v[1][c] = y[1][i + c * rows];
       }
-      v = FFT1D(v, forward);
+      v = FT1D(v, forward);
       for (int c=0; c<cols; c++) {
         u[0][i + c * rows] = v[0][c];
         u[1][i + c * rows] = v[1][c];
@@ -78,7 +263,8 @@ public class FFT {
     return u;
   }
 
-  public static double[][] FFT2D(int rows, int cols, double[][] x,
+  /** compute 2-D Fourier Transform, calling 1-D FT twice */
+  public static double[][] FT2D(int rows, int cols, double[][] x,
                                 boolean forward)
          throws VisADException {
     if (x == null) return null;
@@ -97,7 +283,7 @@ public class FFT {
         z[0][r] = x[0][i + r];
         z[1][r] = x[1][i + r];
       }
-      z = FFT1D(z, forward);
+      z = FT1D(z, forward);
       for (int r=0; r<rows; r++) {
         y[0][i + r] = z[0][r];
         y[1][i + r] = z[1][r];
@@ -112,7 +298,7 @@ public class FFT {
         v[0][c] = y[0][i + c * rows];
         v[1][c] = y[1][i + c * rows];
       }
-      v = FFT1D(v, forward);
+      v = FT1D(v, forward);
       for (int c=0; c<cols; c++) {
         u[0][i + c * rows] = v[0][c];
         u[1][i + c * rows] = v[1][c];
@@ -121,6 +307,54 @@ public class FFT {
     return u;
   }
 
+  /** compute 1-D Fourier Transform, using FFT if domain
+      length is a power of two */
+  public static float[][] FT1D(float[][] x, boolean forward)
+         throws VisADException {
+    if (x == null) return null;
+    if (x.length != 2 || x[0].length != x[1].length) {
+      throw new FieldException("bad x lengths");
+    }
+    int n = x[0].length;
+    int n2 = 1;
+    boolean fft = true;
+    while (n2 < n) {
+      n2 *= 2;
+      if (n2 > n) {
+        fft = false;
+      }
+    }
+    if (fft) return FFT1D(x, forward);
+
+    float[][] temp = new float[2][n];
+    float angle = (float) (-2.0 * Math.PI / n);
+    if (!forward) angle = -angle;
+    for (int i=0; i<n; i++) {
+      temp[0][i] = (float) Math.cos(i * angle);
+      temp[1][i] = (float) Math.sin(i * angle);
+    }
+    float[][] y = new float[2][n];
+    for (int i=0; i<n; i++) {
+      float re = 0.0f;
+      float im = 0.0f;
+      for (int j=0; j<n; j++) {
+        int m = (i * j) % n;
+        re += x[0][j] * temp[0][m] - x[1][j] * temp[1][m];
+        im += x[0][j] * temp[1][m] + x[1][j] * temp[0][m];
+      }
+      y[0][i] = re;
+      y[1][i] = im;
+    }
+    if (!forward) {
+      for(int i=0; i<n; i++) {
+        y[0][i] /= n;
+        y[1][i] /= n;
+      }
+    }
+    return y;
+  }
+
+  /** compute 1-D Fast Fourier Transform */
   public static float[][] FFT1D(float[][] x, boolean forward)
          throws VisADException {
     if (x == null) return null;
@@ -137,7 +371,7 @@ public class FFT {
     }
     n2 = n/2;
     float[][] temp = new float[2][n2];
-    float angle = (float) (-2*Math.PI/(float)n);
+    float angle = (float) (-2.0 * Math.PI / n);
     if (!forward) angle = -angle;
     for (int i=0; i<n2; i++) { 
       temp[0][i] = (float) Math.cos(i * angle);
@@ -153,6 +387,7 @@ public class FFT {
     return y; 
   }
 
+  /** inner function for 1-D Fast Fourier Transform */
   private static float[][] FFT1D(float[][] x, float[][] temp) {
     int n = x[0].length;
     int n2 = n/2;
@@ -199,6 +434,54 @@ public class FFT {
     return y;
   }
 
+  /** compute 1-D Fourier Transform, using FFT if domain
+      length is a power of two */
+  public static double[][] FT1D(double[][] x, boolean forward)
+         throws VisADException {
+    if (x == null) return null;
+    if (x.length != 2 || x[0].length != x[1].length) {
+      throw new FieldException("bad x lengths");
+    }
+    int n = x[0].length;
+    int n2 = 1;
+    boolean fft = true;
+    while (n2 < n) {
+      n2 *= 2;
+      if (n2 > n) {
+        fft = false;
+      }
+    }
+    if (fft) return FFT1D(x, forward);
+
+    double[][] temp = new double[2][n];
+    double angle = -2.0 * Math.PI / n;
+    if (!forward) angle = -angle;
+    for (int i=0; i<n; i++) {
+      temp[0][i] = Math.cos(i * angle);
+      temp[1][i] = Math.sin(i * angle);
+    }
+    double[][] y = new double[2][n];
+    for (int i=0; i<n; i++) {
+      double re = 0.0;
+      double im = 0.0;
+      for (int j=0; j<n; j++) {
+        int m = (i * j) % n;
+        re += x[0][j] * temp[0][m] - x[1][j] * temp[1][m];
+        im += x[0][j] * temp[1][m] + x[1][j] * temp[0][m];
+      }
+      y[0][i] = re;
+      y[1][i] = im;
+    }
+    if (!forward) {
+      for(int i=0; i<n; i++) {
+        y[0][i] /= n;
+        y[1][i] /= n;
+      }
+    }
+    return y;
+  }
+
+  /** compute 1-D Fast Fourier Transform */
   public static double[][] FFT1D(double[][] x, boolean forward)
          throws VisADException {
     if (x == null) return null;
@@ -215,7 +498,7 @@ public class FFT {
     }
     n2 = n/2;
     double[][] temp = new double[2][n2];
-    double angle = (double) (-2*Math.PI/(double)n);
+    double angle = (double) (-2.0 * Math.PI / n);
     if (!forward) angle = -angle;
     for (int i=0; i<n2; i++) {
       temp[0][i] = (double) Math.cos(i * angle);
@@ -231,6 +514,7 @@ public class FFT {
     return y; 
   }
 
+  /** inner function for 1-D Fast Fourier Transform */
   private static double[][] FFT1D(double[][] x, double[][] temp) {
     int n = x[0].length;
     int n2 = n/2;
@@ -277,6 +561,7 @@ public class FFT {
     return y;
   }
 
+  /** test Fourier Transform methods */
   public static void main(String args[])
          throws VisADException {
     int n = 16;
@@ -322,7 +607,7 @@ public class FFT {
                            PlotText.shortString(x[1][i]));
       }
     }
-    x = twod ? FFT2D(rows, cols, x, true) : FFT1D(x, true);
+    x = twod ? FT2D(rows, cols, x, true) : FT1D(x, true);
     System.out.println("\n  fft");
     if (twod) {
       int i = 0;
@@ -342,7 +627,7 @@ public class FFT {
                            PlotText.shortString(x[1][i]));
       }
     }
-    x = twod ? FFT2D(rows, cols, x, false) : FFT1D(x, false);
+    x = twod ? FT2D(rows, cols, x, false) : FT1D(x, false);
     System.out.println("\n  back fft");
     if (twod) {
       int i = 0;
