@@ -30,6 +30,7 @@ package visad.util;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.image.ColorModel;
+import java.awt.image.DirectColorModel;
 import java.awt.image.MemoryImageSource;
 import java.awt.image.PixelGrabber;
 import java.io.IOException;
@@ -253,8 +254,10 @@ public class DataUtility {
           pixels[index] = v << 16 | v << 8 | v;
         }
       }
-      return Toolkit.getDefaultToolkit().createImage(
-        new MemoryImageSource(w, h, pixels, 0, w));
+      MemoryImageSource source = new MemoryImageSource(w, h,
+        new DirectColorModel(24, 0xff0000, 0xff00, 0xff), pixels, 0, w);
+      source.setFullBufferUpdates(true);
+      return Toolkit.getDefaultToolkit().createImage(source);
     }
     catch (VisADException exc) {
       return null;
