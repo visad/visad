@@ -324,7 +324,7 @@ public class RealType extends ScalarType {
     {
       u = R_unit.divide( D_unit );
     }
-    newType = getRealType(newName, u, null);
+    newType = getRealType(newName, u);
 
     return newType;
   }
@@ -413,7 +413,7 @@ public class RealType extends ScalarType {
 	  else {
 	    throw new UnitException();
 	  }
-          newType = getRealType(newName, newUnit, null, newAttrMask);
+          newType = getRealType(newName, newUnit, newAttrMask);
           break;
 
         case Data.MULTIPLY:
@@ -444,7 +444,7 @@ public class RealType extends ScalarType {
             newName = getUniqueGenericName( names, newUnit.toString());
           }
 
-          newType = getRealType(newName, newUnit, null, newAttrMask);
+          newType = getRealType(newName, newUnit, newAttrMask);
           break;
 
         case Data.POW:
@@ -462,7 +462,7 @@ public class RealType extends ScalarType {
 	      newUnit = null;
 	      newName = getUniqueGenericName( names, "nullUnit" );
 	    }
-            newType = getRealType(newName, newUnit, null, newAttrMask);
+            newType = getRealType(newName, newUnit, newAttrMask);
 	  }
           break;
 
@@ -473,7 +473,7 @@ public class RealType extends ScalarType {
           }
           newUnit = null;
           newName = getUniqueGenericName( names, "nullUnit" );
-          newType = getRealType(newName, newUnit, null, newAttrMask);
+          newType = getRealType(newName, newUnit, newAttrMask);
           break;
 
         case Data.ATAN2:
@@ -481,7 +481,7 @@ public class RealType extends ScalarType {
         case Data.INV_ATAN2:
           newUnit = CommonUnit.radian;
           newName = getUniqueGenericName( names, newUnit.toString() );
-          newType = getRealType(newName, newUnit, null, newAttrMask);
+          newType = getRealType(newName, newUnit, newAttrMask);
           break;
 
         case Data.ATAN2_DEGREES:
@@ -489,7 +489,7 @@ public class RealType extends ScalarType {
         case Data.INV_ATAN2_DEGREES:
           newUnit = CommonUnit.degree;
           newName = getUniqueGenericName( names, "deg" );
-          newType = getRealType(newName, newUnit, null, newAttrMask);
+          newType = getRealType(newName, newUnit, newAttrMask);
           break;
 
         case Data.REMAINDER:
@@ -624,7 +624,7 @@ public class RealType extends ScalarType {
       case Data.ATAN:
         newUnit = CommonUnit.radian;
         newName = getUniqueGenericName( names, newUnit.toString() );
-        newType = getRealType(newName, newUnit, null, newAttrMask);
+        newType = getRealType(newName, newUnit, newAttrMask);
         break;
 
       case Data.ACOS_DEGREES:
@@ -632,7 +632,7 @@ public class RealType extends ScalarType {
       case Data.ATAN_DEGREES:
         newUnit = CommonUnit.degree;
         newName = getUniqueGenericName( names, "deg" );
-        newType = getRealType(newName, newUnit, null, newAttrMask);
+        newType = getRealType(newName, newUnit, newAttrMask);
         break;
 
       case Data.COS:
@@ -653,7 +653,7 @@ public class RealType extends ScalarType {
 	    ? CommonUnit.dimensionless : null;
           String ext = (newUnit == null) ? "nullUnit" : newUnit.toString();
           newName = getUniqueGenericName( names, ext );
-          newType = getRealType(newName, newUnit, null, newAttrMask);
+          newType = getRealType(newName, newUnit, newAttrMask);
         }
         break;
 
@@ -882,6 +882,60 @@ public class RealType extends ScalarType {
       try
       {
         rt = new RealType(name, u, set);
+      }
+      catch (VisADException e)
+      {}
+    }
+    return rt;
+  }
+
+  /**
+   * Returns a RealType corresponding to a name, unit, and attribute mask.  If
+   * a RealType with the given name doesn't exist, then it's created (with a
+   * default representational set) and returned; otherwise, the previously
+   * existing RealType is returned if it corresponds to the input arguments
+   * (the representational set is ignored in the comparison); otherwise
+   * <code>null</code> is returned.
+   *
+   * @param name                    The name for the RealType.
+   * @param unit                    The unit for the RealType.
+   * @param attrMask                The attribute mask for the RealType.
+   * @return                        A RealType corresponding to the input
+   *                                arguments or <code>null</code>.
+   * @throws NullPointerException   if the name is <code>null</code>.
+   */
+  public static final RealType getRealType(String name, Unit u, int attrMask)
+  {
+    if (name == null)
+      throw new NullPointerException();
+    /*
+     * The following should catch most of the times that an instance with the
+     * given name was previously-created -- without the performance-hit of a
+     * try-block.
+     */
+    RealType rt = getRealTypeByName(name);
+    if (rt != null)
+    {
+      /*
+       * Ensure that the previously-created instance conforms to the input
+       * arguments.
+       */
+      if ((u == null ? rt.DefaultUnit != null : !u.equals(rt.DefaultUnit)) ||
+          rt.attrMask != attrMask)
+      {
+        rt = null;
+      }
+    }
+    else
+    {
+      /*
+       * An instance with the given name didn't exist but might have just been
+       * created by another thread -- so we have to invoke the constructor
+       * inside a try-block.
+       */
+      try
+      {
+        rt = new RealType(name, u, null, attrMask);
       }
       catch (VisADException e)
       {}
