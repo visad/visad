@@ -97,7 +97,7 @@ public class NodeRendererJ3D extends DefaultRendererJ3D {
     VisADGroup branch = new VisADGroup();
 
     DataDisplayLink[] Links = getLinks();
-    if (Links == null || Links.length() == 0) {
+    if (Links == null || Links.length == 0) {
       return null;
     }
     DataDisplayLink link = Links[0];

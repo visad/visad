@@ -145,7 +145,7 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
     setIsDirectManipulation(false);
 
     DisplayImpl display = getDisplay();
-    DataDisplayLink[] Links = display.getLinks();
+    DataDisplayLink[] Links = getLinks();
     if (Links == null || Links.length == 0) {
       link = null;
       return;
