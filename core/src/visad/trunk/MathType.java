@@ -242,12 +242,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
         }
       }
       String rs = s.substring(0, len[0]);
-      try {
-        ret_type = new RealType(rs);
-      }
-      catch (TypeException e) {
-        ret_type = RealType.getRealTypeByName(rs);
-      }
+      ret_type = RealType.getRealType(rs);
       return ret_type;
     }
     else {

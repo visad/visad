@@ -339,22 +339,10 @@ class HdfeosDomain
            throws VisADException
   {
     int inv_ii;
-    RealType r_type = null;
     RealType[] r_types = new RealType[domainDim];
     for ( int ii = 0; ii < domainDim; ii++ ) {
       inv_ii = (domainDim-1) - ii;
-      try {
-        r_type = new RealType( name_s[inv_ii], units[inv_ii], null );
-      }
-      catch ( VisADException e ) {
-        if ( e instanceof TypeException ) {
-          r_type = RealType.getRealTypeByName( name_s[inv_ii] );
-        }
-        else {
-          throw e;
-        }
-      }
-      r_types[ii] = r_type;
+      r_types[ii] = RealType.getRealType(name_s[inv_ii], units[inv_ii], null);
     }
     if ( r_types.length == 1 ) {
       return r_types[0];

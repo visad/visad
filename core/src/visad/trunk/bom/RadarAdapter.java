@@ -140,28 +140,14 @@ public class RadarAdapter {
                              radlow, radres, azlow, azres);
     }
 
-    RealType azimuth;
-    try {
-      azimuth = new RealType("azimuth", CommonUnit.degree, null);
-    } catch (TypeException e) {
-      azimuth =  RealType.getRealTypeByName("azimuth");
-    }
-
-    RealType range;
-    try {
-    	range = new RealType("range", CommonUnit.meter, null);
-    } catch (TypeException e) {
-      range =  RealType.getRealTypeByName("range");
-    }
-
-    RealType elevation;
-    try {
-        // WLH 14 Oct 99
-    	// elevation = new RealType("elevation", CommonUnit.meter, null);
-    	elevation = new RealType("elevation", CommonUnit.degree, null);
-    } catch (TypeException e) {
-      elevation =  RealType.getRealTypeByName("elevation");
-    }
+    RealType azimuth =
+      RealType.getRealType("azimuth", CommonUnit.degree, null);
+    RealType range = RealType.getRealType("range", CommonUnit.meter, null);
+    // WLH 14 Oct 99
+    // RealType elevation =
+    //   RealType.getRealType("elevation", CommonUnit.meter, null);
+    RealType elevation =
+      RealType.getRealType("elevation", CommonUnit.degree, null);
 
     RealTupleType radaz = null;
     if (d3d) {
@@ -173,12 +159,7 @@ public class RadarAdapter {
       radaz = new RealTupleType(domain_components, rcs2d, null);
     }
 
-    RealType reflection;
-    try {
-    	reflection = new RealType("reflection");
-    } catch (TypeException e) {
-      reflection =  RealType.getRealTypeByName("reflection");
-    }
+    RealType reflection = RealType.getRealType("reflection");
 
     FunctionType radar_image = new FunctionType(radaz, reflection);
 	  //

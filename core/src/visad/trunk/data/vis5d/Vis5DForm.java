@@ -112,16 +112,16 @@ public class Vis5DForm extends Form implements FormFileInformer {
     int nl = sizes[2];
     int ntimes = sizes[3];
     int nvars = sizes[4];
-    RealType time = makeRealType("time");
-    RealType row = makeRealType("row");
-    RealType col = makeRealType("col");
-    RealType lev = makeRealType("lev");
+    RealType time = RealType.getRealType("time");
+    RealType row = RealType.getRealType("row");
+    RealType col = RealType.getRealType("col");
+    RealType lev = RealType.getRealType("lev");
     RealType[] vars = new RealType[nvars];
     for (int i=0; i<nvars; i++) {
       int k = 10 * i;
       int m = k;
       while (varnames[m] != 0) {m++;}
-      vars[i] = makeRealType(new String(varnames, k, m - k));
+      vars[i] = RealType.getRealType(new String(varnames, k, m - k));
     }
     RealTupleType domain;
     if (nl > 1) {
@@ -176,12 +176,6 @@ public class Vis5DForm extends Form implements FormFileInformer {
       v5d.setSample(i, grid);
     }
     return v5d;
-  }
-
-  private RealType makeRealType(String name) throws VisADException {
-    RealType type = RealType.getRealTypeByName(name);
-    if (type == null) type = new RealType(name);
-    return type;
   }
 
   public synchronized DataImpl open(URL url)

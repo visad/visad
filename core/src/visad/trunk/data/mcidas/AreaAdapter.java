@@ -85,19 +85,8 @@ public class AreaAdapter {
     int numEles = areaDirectory.getElements();
 
     // make the VisAD RealTypes for the dimension variables
-    RealType line;
-    try {
-      line = new RealType("ImageLine",null,null);
-    } catch (TypeException e) {
-      line =  RealType.getRealTypeByName("ImageLine");
-    }
-
-    RealType element;
-    try {
-      element = new RealType("ImageElement",null,null);
-    } catch (TypeException e) {
-      element =  RealType.getRealTypeByName("ImageElement");
-    }
+    RealType line = RealType.getRealType("ImageLine", null, null);
+    RealType element = RealType.getRealType("ImageElement", null, null);
 
     // extract the number of bands (sensors) and make the VisAD type
     int bandNums[] = areaDirectory.getBands();
@@ -108,13 +97,7 @@ public class AreaAdapter {
     // band number from the AREA file bandmap
     for (int i = 0; i < numBands; i++)
     {
-        RealType band = null;
-        try {
-          band = new RealType("Band"+bandNums[i]);
-        } catch (TypeException e) {
-          band= RealType.getRealTypeByName("Band"+bandNums[i]);
-        }
-        bands[i] = band;
+        bands[i] = RealType.getRealType("Band"+bandNums[i]);
     }
 
     // the range of the FunctionType is the band(s)

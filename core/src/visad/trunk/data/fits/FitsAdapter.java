@@ -231,21 +231,12 @@ public class FitsAdapter
     for (int i = 0; i < axisType.length; i++) {
       String name = "NAxis" + (i+1);
 
-      try {
-	axisType[i] = new RealType(name, null, null);
-      } catch (TypeException e) {
-	axisType[i] = RealType.getRealTypeByName(name);
-      }
+      axisType[i] = RealType.getRealType(name, null, null);
     }
 
     RealTupleType type = new RealTupleType(axisType);;
 
-    RealType value;
-    try {
-      value = new RealType("value", null, null);
-    } catch (TypeException e) {
-      value = RealType.getRealTypeByName("value");
-    }
+    RealType value = RealType.getRealType("value", null, null);
 
     FunctionType func = new FunctionType(type, value);
 
@@ -287,12 +278,7 @@ System.err.println("Punting on " + axes.length + "-D image");
 
     RealTupleType type = RealTupleType.SpatialCartesian2DTuple;
 
-    RealType pixel;
-    try {
-      pixel = new RealType("pixel", null, null);
-    } catch (TypeException e) {
-      pixel = RealType.getRealTypeByName("pixel");
-    }
+    RealType pixel = RealType.getRealType("pixel", null, null);
 
     FunctionType func = new FunctionType(type, pixel);
 
@@ -433,12 +419,7 @@ System.err.println("Punting on " + axes.length + "-D image");
 
     int numColumns = hdu.getNumColumns();
 
-    RealType index;
-    try {
-      index = new RealType("index", null, null);
-    } catch (TypeException e) {
-      index = RealType.getRealTypeByName("index");
-    }
+    RealType index = RealType.getRealType("index", null, null);
 
     boolean hasTextColumn = false;
 
@@ -454,11 +435,7 @@ System.err.println("Punting on " + axes.length + "-D image");
 	hasTextColumn = true;
       }
 
-      try {
-	rowType[i] = new RealType(name, null, null);
-      } catch (TypeException e) {
-	rowType[i] = RealType.getRealTypeByName(name);
-      }
+      rowType[i] = RealType.getRealType(name, null, null);
     }
 
     RealTupleType row = new RealTupleType(rowType);;

@@ -38,20 +38,8 @@ public class FormulaVar extends ActionImpl {
   public static boolean DEBUG = false;
 
   /** constant tag */
-  public static RealType CONSTANT = createConstant();
-
-  /** create constant tag */
-  private static RealType createConstant() {
-    RealType rt = null;
-    String s = "visad/formula/constant";
-    try {
-      rt = new RealType(s);
-    }
-    catch (VisADException exc) {
-      rt = RealType.getRealTypeByName(s);
-    }
-    return rt;
-  }
+  public static RealType CONSTANT =
+    RealType.getRealType("visad/formula/constant");
 
   /** associated FormulaManager object */
   private FormulaManager fm;

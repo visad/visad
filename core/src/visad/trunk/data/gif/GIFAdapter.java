@@ -112,36 +112,12 @@ public class GIFAdapter
     */
   private void buildFlatField(float[] red_pix, float[] green_pix, float[] blue_pix,
                               int width, int height) throws VisADException {
-    RealType line;
-    try {
-      line = new RealType("ImageLine");
-    } catch (TypeException e) {
-      line =  RealType.getRealTypeByName("ImageLine");
-    }
+    RealType line = RealType.getRealType("ImageLine");
+    RealType element = RealType.getRealType("ImageElement");
+    RealType c_red = RealType.getRealType("Red");
+    RealType c_green = RealType.getRealType("Green");
+    RealType c_blue = RealType.getRealType("Blue");
 
-    RealType element;
-    try {
-      element = new RealType("ImageElement");
-    } catch (TypeException e) {
-      element =  RealType.getRealTypeByName("ImageElement");
-    }
-
-    RealType c_red, c_green, c_blue;
-    try {
-      c_red = new RealType("Red");
-    } catch (TypeException e) {
-      c_red = RealType.getRealTypeByName("Red");
-    }
-    try {
-      c_green = new RealType("Green");
-    } catch (TypeException e) {
-      c_green = RealType.getRealTypeByName("Green");
-    }
-    try {
-      c_blue = new RealType("Blue");
-    } catch (TypeException e) {
-      c_blue = RealType.getRealTypeByName("Blue");
-    }
     RealType[] c_all = {c_red, c_green, c_blue};
     RealTupleType radiance = new RealTupleType(c_all);
 

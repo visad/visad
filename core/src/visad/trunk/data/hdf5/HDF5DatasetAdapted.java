@@ -169,20 +169,11 @@ public class HDF5DatasetAdapted
 
 		RealType line, element, c_red, c_green, c_blue;
 
-		try { line = new RealType("ImageLine");
-		} catch (TypeException e) {	line =  RealType.getRealTypeByName("ImageLine");}
-
-		try { element = new RealType("ImageElement");
-		} catch (TypeException e) { element =  RealType.getRealTypeByName("ImageElement"); }
-
-		try {	c_red = new RealType("Red");
-		} catch (TypeException e) { c_red = RealType.getRealTypeByName("Red"); }
-
-		try { c_green = new RealType("Green");
-		} catch (TypeException e) {	c_green = RealType.getRealTypeByName("Green"); }
-
-		try { c_blue = new RealType("Blue");
-		} catch (TypeException e) { c_blue = RealType.getRealTypeByName("Blue"); }
+                line = RealType.getRealType("ImageLine");
+                element = RealType.getRealType("ImageElement");
+                c_red = RealType.getRealType("Red");
+                c_green = RealType.getRealType("Green");
+                c_blue = RealType.getRealType("Blue");
 
 		RealType[] c_all = {c_red, c_green, c_blue};
 		RealTupleType radiance = new RealTupleType(c_all);
@@ -251,11 +242,7 @@ public class HDF5DatasetAdapted
 			for (int i=0; i<rank; i++)
 			{
 				dname = "dim"+String.valueOf(i);
-				try {
-					dimension_types[i] = new RealType(dname);
-				} catch (TypeException e) {
-					dimension_types[i] = RealType.getRealTypeByName(dname);
-				}
+                                dimension_types[i] = RealType.getRealType(dname);
 			}
 			domain = new RealTupleType(dimension_types);
 		} catch (VisADException e)
@@ -277,22 +264,14 @@ public class HDF5DatasetAdapted
 				for (int i=0; i<num_members; i++)
 				{
 					rname = (String)member_names.elementAt(i);
-					try {
-						range_types[i] = new RealType(rname);
-					} catch (TypeException e) {
-						range_types[i] = RealType.getRealTypeByName(rname);
-					}
+                                        range_types[i] = RealType.getRealType(rname);
 				}
 			}
 			else
 			{
 				range_types = new RealType[1];
 				rname = (new String(shortName)).replace('-', '_');
-				try {
-					range_types[0] = new RealType(rname);
-				} catch (TypeException e) {
-					range_types[0] = RealType.getRealTypeByName(rname);
-				}
+                                range_types[0] = RealType.getRealType(rname);
 			}
 			range = new RealTupleType(range_types);
 		} catch (VisADException e)

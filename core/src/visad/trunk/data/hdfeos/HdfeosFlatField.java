@@ -248,22 +248,7 @@ public class HdfeosFlatField extends HdfeosData
 
     for ( int ii = 0; ii < n_fields; ii++ )
     {
-      try
-      {
-        r_type = new RealType( name_s[ii], null, null );
-      }
-      catch ( VisADException e )
-      {
-        if ( e instanceof TypeException )
-        {
-          r_type = RealType.getRealTypeByName( name_s[ii] );
-        }
-        else
-        {
-          throw e;
-        }
-      }
-      r_types[ii]  =  r_type;
+      r_types[ii] = RealType.getRealType( name_s[ii], null, null );
     }
 
     MathType range_type;

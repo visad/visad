@@ -229,18 +229,6 @@ public class DisplaySwitch
     return display;
   }
 
-  private RealType getRealType(String name)
-    throws VisADException
-  {
-    RealType rt;
-    try {
-      rt = new RealType(name);
-    } catch (TypeException te) {
-      rt = RealType.getRealTypeByName(name);
-    }
-    return rt;
-  }
-
   private static ScalarMap findMap(LocalDisplay dpy, RealType displayScalar)
   {
     if (displayScalar == null) {
@@ -285,8 +273,8 @@ public class DisplaySwitch
   private void buildMaps(LocalDisplay dpy)
     throws RemoteException, VisADException
   {
-    RealType dom0 = getRealType("dom0");
-    RealType dom1 = getRealType("dom1");
+    RealType dom0 = RealType.getRealType("dom0");
+    RealType dom1 = RealType.getRealType("dom1");
 
     dpy.addMap(new ScalarMap(RealType.Latitude, Display.XAxis));
     dpy.addMap(new ScalarMap(RealType.Longitude, Display.YAxis));
@@ -303,8 +291,8 @@ public class DisplaySwitch
   private DataImpl buildAlphaRefZero()
     throws RemoteException, VisADException
   {
-    RealType dom0 = getRealType("dom0");
-    RealType dom1 = getRealType("dom1");
+    RealType dom0 = RealType.getRealType("dom0");
+    RealType dom1 = RealType.getRealType("dom1");
 
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earthLocation = new RealTupleType(types);
@@ -369,8 +357,8 @@ public class DisplaySwitch
   private DataImpl buildBetaRefZero()
     throws RemoteException, VisADException
   {
-    RealType dom0 = getRealType("dom0");
-    RealType dom1 = getRealType("dom1");
+    RealType dom0 = RealType.getRealType("dom0");
+    RealType dom1 = RealType.getRealType("dom1");
 
     int isize = 16;
 
@@ -397,8 +385,8 @@ public class DisplaySwitch
   private DataImpl buildBetaRefOne()
     throws RemoteException, VisADException
   {
-    RealType dom0 = getRealType("dom0");
-    RealType dom1 = getRealType("dom1");
+    RealType dom0 = RealType.getRealType("dom0");
+    RealType dom1 = RealType.getRealType("dom1");
 
     int isize = 16;
 

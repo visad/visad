@@ -53,9 +53,9 @@ public class RealType extends ScalarType {
    * of a RealType if the RealType refers to an interval (e.g. length
    * difference, delta temperature).  In general, RealType-s that are temporal
    * in nature should have this attribute because the "time" variable in most
-   * formulae actually refer to time differences (e.g. "time since the beginning
-   * of the experiment").  One obvious exception to this lies with cosmology,
-   * where "time" is absolute rather than an interval.
+   * formulae actually refer to time differences (e.g. "time since the
+   * beginning of the experiment").  One obvious exception to this lies with
+   * cosmology, where "time" is absolute rather than an interval.
    */
   public static final int	INTERVAL = 1;
 
@@ -98,8 +98,8 @@ public class RealType extends ScalarType {
 
   /**
    * Constructs from a name (two RealTypes are equal if their names are equal).
-   * Assumes <code>null</code> for the default Unit and default Set and that the
-   * RealType does <em>not</em> refer to an interval.
+   * Assumes <code>null</code> for the default Unit and default Set and that
+   * the RealType does <em>not</em> refer to an interval.
    * @param name		The name for the RealType.
    * @throws VisADException	Couldn't create necessary VisAD object.
    */
@@ -137,9 +137,9 @@ public class RealType extends ScalarType {
   }
 
   /**
-   * Constructs from a name (two RealTypes are equal if their names are equal) a
-   * default Unit, a default Set, and whether or not the RealType refers to an
-   * interval (e.g. length difference, delta temperature).  This is the most
+   * Constructs from a name (two RealTypes are equal if their names are equal)
+   * a default Unit, a default Set, and whether or not the RealType refers to
+   * an interval (e.g. length difference, delta temperature).  This is the most
    * general, public constructor.
    * @param name		The name for the RealType.
    * @param u                   The default unit for the RealType.  May be
@@ -153,7 +153,9 @@ public class RealType extends ScalarType {
    * @param attrMask		The attribute mask. 0 or INTERVAL.
    * @throws VisADException	Couldn't create necessary VisAD object.
    */
-  public RealType(String name, Unit u, Set set, int attrMask) throws VisADException {
+  public RealType(String name, Unit u, Set set, int attrMask)
+    throws VisADException
+  {
     super(name);
     if (set != null && set.getDimension() != 1) {
       throw new SetException("RealType: default set dimension != 1");
@@ -208,8 +210,7 @@ public class RealType extends ScalarType {
   /**
    * Indicates if the given bits are set in an integer.
    */
-  private static boolean
-  isSet(int value, int mask) {
+  private static boolean isSet(int value, int mask) {
     return (value & mask) == mask;
   }
 
@@ -268,7 +269,9 @@ public class RealType extends ScalarType {
     if (!(type instanceof RealType)) {
       return false;
     }
-    else if (!Unit.canConvert( this.getDefaultUnit(), ((RealType)type).getDefaultUnit()) ) {
+    else if (!Unit.canConvert( this.getDefaultUnit(),
+      ((RealType)type).getDefaultUnit()) )
+    {
       return false;
     }
     else {
@@ -291,13 +294,7 @@ public class RealType extends ScalarType {
     {
       u = R_unit.divide( D_unit );
     }
-
-    try {
-      newType = new RealType( newName, u, null );
-    }
-    catch ( TypeException e ) {
-      newType = RealType.getRealTypeByName( newName );
-    }
+    newType = getRealType(newName, u, null);
 
     return newType;
   }
@@ -386,12 +383,7 @@ public class RealType extends ScalarType {
 	  else {
 	    throw new UnitException();
 	  }
-	  try {
-	    newType = new RealType( newName, newUnit, null, newAttrMask );
-	  }
-	  catch ( TypeException e ) {
-	    newType = RealType.getRealTypeByName( newName );
-	  }
+          newType = getRealType(newName, newUnit, null, newAttrMask);
           break;
 
         case Data.MULTIPLY:
@@ -422,12 +414,7 @@ public class RealType extends ScalarType {
             newName = getUniqueGenericName( names, newUnit.toString());
           }
 
-          try {
-            newType = new RealType( newName, newUnit, null, newAttrMask );
-          }
-          catch ( TypeException e ) {
-            newType = RealType.getRealTypeByName( newName );
-          }
+          newType = getRealType(newName, newUnit, null, newAttrMask);
           break;
 
         case Data.POW:
@@ -445,12 +432,7 @@ public class RealType extends ScalarType {
 	      newUnit = null;
 	      newName = getUniqueGenericName( names, "nullUnit" );
 	    }
-	    try {
-	      newType = new RealType( newName, newUnit, null, newAttrMask );
-	    }
-	    catch ( TypeException e ) {
-	      newType = RealType.getRealTypeByName( newName );
-	    }
+            newType = getRealType(newName, newUnit, null, newAttrMask);
 	  }
           break;
 
@@ -461,12 +443,7 @@ public class RealType extends ScalarType {
           }
           newUnit = null;
           newName = getUniqueGenericName( names, "nullUnit" );
-          try {
-            newType = new RealType( newName, newUnit, null, newAttrMask );
-          }
-          catch ( TypeException e ) {
-            newType = RealType.getRealTypeByName( newName );
-          }
+          newType = getRealType(newName, newUnit, null, newAttrMask);
           break;
 
         case Data.ATAN2:
@@ -474,12 +451,7 @@ public class RealType extends ScalarType {
         case Data.INV_ATAN2:
           newUnit = CommonUnit.radian;
           newName = getUniqueGenericName( names, newUnit.toString() );
-          try {
-            newType = new RealType( newName, newUnit, null, newAttrMask );
-          }
-          catch ( TypeException e ) {
-            newType = RealType.getRealTypeByName( newName );
-          }
+          newType = getRealType(newName, newUnit, null, newAttrMask);
           break;
 
         case Data.ATAN2_DEGREES:
@@ -487,12 +459,7 @@ public class RealType extends ScalarType {
         case Data.INV_ATAN2_DEGREES:
           newUnit = CommonUnit.degree;
           newName = getUniqueGenericName( names, "deg" );
-          try {
-            newType = new RealType( newName, newUnit, null, newAttrMask );
-          }
-          catch ( TypeException e ) {
-            newType = RealType.getRealTypeByName( newName );
-          }
+          newType = getRealType(newName, newUnit, null, newAttrMask);
           break;
 
         case Data.REMAINDER:
@@ -542,7 +509,8 @@ public class RealType extends ScalarType {
     }
     else if (type instanceof FunctionType) {
       return new FunctionType(((FunctionType) type).getDomain(),
-        ((FunctionType) type).getRange().binary(this, DataImpl.invertOp(op), names));
+        ((FunctionType) type).getRange().binary(this,
+        DataImpl.invertOp(op), names));
     }
     else {
       throw new TypeException("RealType.binary: types don't match" );
@@ -626,12 +594,7 @@ public class RealType extends ScalarType {
       case Data.ATAN:
         newUnit = CommonUnit.radian;
         newName = getUniqueGenericName( names, newUnit.toString() );
-        try {
-          newType = new RealType( newName, newUnit, null, newAttrMask );
-        }
-        catch ( TypeException e ) {
-          newType = RealType.getRealTypeByName( newName );
-        }
+        newType = getRealType(newName, newUnit, null, newAttrMask);
         break;
 
       case Data.ACOS_DEGREES:
@@ -639,12 +602,7 @@ public class RealType extends ScalarType {
       case Data.ATAN_DEGREES:
         newUnit = CommonUnit.degree;
         newName = getUniqueGenericName( names, "deg" );
-        try {
-          newType = new RealType( newName, newUnit, null, newAttrMask );
-        }
-        catch ( TypeException e ) {
-          newType = RealType.getRealTypeByName( newName );
-        }
+        newType = getRealType(newName, newUnit, null, newAttrMask);
         break;
 
       case Data.COS:
@@ -665,12 +623,7 @@ public class RealType extends ScalarType {
 	    ? CommonUnit.dimensionless : null;
           String ext = (newUnit == null) ? "nullUnit" : newUnit.toString();
           newName = getUniqueGenericName( names, ext );
-          try {
-            newType = new RealType( newName, newUnit, null, newAttrMask );
-          }
-          catch ( TypeException e ) {
-            newType = RealType.getRealTypeByName( newName );
-          }
+          newType = getRealType(newName, newUnit, null, newAttrMask);
         }
         break;
 
@@ -710,6 +663,36 @@ public class RealType extends ScalarType {
 
   public Data missingData() throws VisADException {
     return new Real(this);
+  }
+
+  /** create a new RealType, or return it if it already exists */
+  public static RealType getRealType(String name) {
+    return getRealType(name, null, null, 0);
+  }
+
+  /** create a new RealType, or return it if it already exists */
+  public static RealType getRealType(String name, int attrMask) {
+    return getRealType(name, null, null, attrMask);
+  }
+
+  /** create a new RealType, or return it if it already exists */
+  public static RealType getRealType(String name, Unit u, Set set) {
+    return getRealType(name, u, set, 0);
+  }
+
+  /** create a new RealType, or return it if it already exists */
+  public static RealType getRealType(String name, Unit u, Set set,
+    int attrMask)
+  {
+    try {
+      return new RealType(name, u, set, attrMask);
+    }
+    catch (TypeException e) {
+      return getRealTypeByName(name);
+    }
+    catch (VisADException e) {
+      return null;
+    }
   }
 
   /** return any RealType constructed in this JVM with name,
