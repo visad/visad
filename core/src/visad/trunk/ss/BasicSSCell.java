@@ -1096,7 +1096,7 @@ public class BasicSSCell extends JPanel {
       if (DEBUG) err.printStackTrace();
     }
     catch (UnsatisfiedLinkError err) {
-      if (DEBUG) err.printStackTrace();
+      if (DEBUG) System.err.println("Warning: Java3D library not found");
     }
     catch (Exception exc) {
       if (DEBUG) exc.printStackTrace();

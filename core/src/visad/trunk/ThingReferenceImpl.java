@@ -110,6 +110,8 @@ public class ThingReferenceImpl extends Object implements ThingReference {
     if (Tick == Long.MAX_VALUE) Tick = Long.MIN_VALUE + 1;
     if (ListenerVector != null) {
       synchronized (ListenerVector) {
+
+/* CTR 26 May 2000 handle remote disconnects more robustly
         Enumeration listeners = ListenerVector.elements();
         while (listeners.hasMoreElements()) {
           ThingChangedLink listener =
@@ -118,6 +120,23 @@ public class ThingReferenceImpl extends Object implements ThingReference {
             new ThingChangedEvent(listener.getId(), Tick);
           listener.queueThingChangedEvent(e);
         }
+*/
+        int i = 0;
+        while (i < ListenerVector.size()) {
+          ThingChangedLink listener =
+            (ThingChangedLink) ListenerVector.elementAt(i);
+          ThingChangedEvent e =
+            new ThingChangedEvent(listener.getId(), Tick);
+          try {
+            listener.queueThingChangedEvent(e);
+            i++;
+          }
+          catch (ConnectException exc) {
+            // CTR 26 May 2000 remote listener has died; remove it from list
+            ListenerVector.remove(i);
+          }
+        }
+
       }
     }
     return Tick;

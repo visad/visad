@@ -429,7 +429,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
       if (BasicSSCell.DEBUG) err.printStackTrace();
     }
     catch (UnsatisfiedLinkError err) {
-      if (BasicSSCell.DEBUG) err.printStackTrace();
+      if (BasicSSCell.DEBUG) {
+        System.err.println("Warning: HDF5 library not found");
+      }
     }
     catch (Exception exc) {
       if (BasicSSCell.DEBUG) exc.printStackTrace();
@@ -1850,31 +1852,115 @@ public class SpreadSheet extends JFrame implements ActionListener,
   // *** Display menu methods ***
 
   /** add a column to the spreadsheet */
-  synchronized void addColumn() {
-    JLabel l = (JLabel) HorizLabel[NumVisX - 1].getComponent(0);
-    int maxVisX = Letters.indexOf(l.getText()) + 1;
-    if (maxVisX < Letters.length()) {
-      // re-layout horizontal spreadsheet labels
-      JPanel[] newLabels = new JPanel[NumVisX + 1];
-      for (int i=0; i<NumVisX; i++) newLabels[i] = HorizLabel[i];
-      newLabels[NumVisX] = new JPanel();
-      newLabels[NumVisX].setBorder(new LineBorder(Color.black, 1));
-      newLabels[NumVisX].setLayout(new BorderLayout());
-      newLabels[NumVisX].setPreferredSize(
-        new Dimension(DEFAULT_VIS_WIDTH, LABEL_HEIGHT));
-      String s = String.valueOf(Letters.charAt(maxVisX));
-      newLabels[NumVisX].add("Center", new JLabel(s, SwingConstants.CENTER));
+  void addColumn() {
+    synchronized (DisplayCells) {
+      JLabel l = (JLabel) HorizLabel[NumVisX - 1].getComponent(0);
+      int maxVisX = Letters.indexOf(l.getText()) + 1;
+      if (maxVisX < Letters.length()) {
+        // re-layout horizontal spreadsheet labels
+        JPanel[] newLabels = new JPanel[NumVisX + 1];
+        for (int i=0; i<NumVisX; i++) newLabels[i] = HorizLabel[i];
+        newLabels[NumVisX] = new JPanel();
+        newLabels[NumVisX].setBorder(new LineBorder(Color.black, 1));
+        newLabels[NumVisX].setLayout(new BorderLayout());
+        newLabels[NumVisX].setPreferredSize(
+          new Dimension(DEFAULT_VIS_WIDTH, LABEL_HEIGHT));
+        String s = String.valueOf(Letters.charAt(maxVisX));
+        newLabels[NumVisX].add("Center", new JLabel(s, SwingConstants.CENTER));
+
+        if (IsRemote) {
+          // let the server handle the actual cell layout
+          HorizLabel = newLabels;
+          synchColRow();
+        }
+        else {
+          // re-layout horizontal label separators
+          JComponent[] newDrag = new JComponent[NumVisX + 1];
+          for (int i=0; i<NumVisX; i++) newDrag[i] = HorizDrag[i];
+          newDrag[NumVisX] = new JComponent() {
+            public void paint(Graphics g) {
+              Dimension d = this.getSize();
+              g.setColor(Color.black);
+              g.drawRect(0, 0, d.width - 1, d.height - 1);
+              g.setColor(Color.yellow);
+              g.fillRect(1, 1, d.width - 2, d.height - 2);
+            }
+          };
+          newDrag[NumVisX].setPreferredSize(new Dimension(5, 0));
+          newDrag[NumVisX].addMouseListener(this);
+          newDrag[NumVisX].addMouseMotionListener(this);
+          HorizPanel.removeAll();
+
+          // re-layout spreadsheet cells
+          FancySSCell[][] fcells = new FancySSCell[NumVisX + 1][NumVisY];
+          DisplayPanel.removeAll();
+          for (int j=0; j<NumVisY; j++) {
+            for (int i=0; i<NumVisX; i++) fcells[i][j] = DisplayCells[i][j];
+            try {
+              String name = String.valueOf(Letters.charAt(maxVisX)) +
+                String.valueOf(j + 1);
+              FancySSCell f = createCell(name, null);
+              f.addSSCellChangeListener(this);
+              f.addMouseListener(this);
+              f.setAutoSwitch(AutoSwitch);
+              f.setAutoDetect(AutoDetect);
+              f.setAutoShowControls(AutoShowControls);
+              f.setDimension(!CanDo3D, !CanDo3D);
+              f.addDisplayListener(this);
+              f.setPreferredSize(
+                new Dimension(DEFAULT_VIS_WIDTH, DEFAULT_VIS_HEIGHT));
+              fcells[NumVisX][j] = f;
+              if (rsi != null) {
+                // add new cell to server
+                fcells[NumVisX][j].addToRemoteServer(rsi);
+              }
+            }
+            catch (VisADException exc) {
+              if (BasicSSCell.DEBUG) exc.printStackTrace();
+              displayErrorMessage("Cannot add the column. Unable to create " +
+                "new displays", exc, "VisAD SpreadSheet error");
+            }
+            catch (RemoteException exc) {
+              if (BasicSSCell.DEBUG) exc.printStackTrace();
+              displayErrorMessage("Cannot add the column. A remote error " +
+                "occurred", exc, "VisAD SpreadSheet error");
+            }
+          }
+
+          NumVisX++;
+          reconstructHoriz(newLabels, newDrag, fcells);
+        }
+      }
+    }
+  }
+
+  /** add a row to the spreadsheet */
+  void addRow() {
+    synchronized (DisplayCells) {
+      JLabel l = (JLabel) VertLabel[NumVisY - 1].getComponent(0);
+      int maxVisY = Integer.parseInt(l.getText());
+
+      // re-layout vertical spreadsheet labels
+      JPanel[] newLabels = new JPanel[NumVisY + 1];
+      JComponent[] newDrag = new JComponent[NumVisY + 1];
+      for (int i=0; i<NumVisY; i++) newLabels[i] = VertLabel[i];
+      newLabels[NumVisY] = new JPanel();
+      newLabels[NumVisY].setBorder(new LineBorder(Color.black, 1));
+      newLabels[NumVisY].setLayout(new BorderLayout());
+      newLabels[NumVisY].setPreferredSize(
+        new Dimension(LABEL_WIDTH, DEFAULT_VIS_HEIGHT));
+      String s = String.valueOf(maxVisY + 1);
+      newLabels[NumVisY].add("Center", new JLabel(s, SwingConstants.CENTER));
 
       if (IsRemote) {
-        // let the server handle the actual cell layout
-        HorizLabel = newLabels;
+        // let server handle the actual cell layout
+        VertLabel = newLabels;
         synchColRow();
       }
       else {
-        // re-layout horizontal label separators
-        JComponent[] newDrag = new JComponent[NumVisX + 1];
-        for (int i=0; i<NumVisX; i++) newDrag[i] = HorizDrag[i];
-        newDrag[NumVisX] = new JComponent() {
+        // re-layout vertical label separators
+        for (int i=0; i<NumVisY; i++) newDrag[i] = VertDrag[i];
+        newDrag[NumVisY] = new JComponent() {
           public void paint(Graphics g) {
             Dimension d = this.getSize();
             g.setColor(Color.black);
@@ -1883,19 +1969,19 @@ public class SpreadSheet extends JFrame implements ActionListener,
             g.fillRect(1, 1, d.width - 2, d.height - 2);
           }
         };
-        newDrag[NumVisX].setPreferredSize(new Dimension(5, 0));
-        newDrag[NumVisX].addMouseListener(this);
-        newDrag[NumVisX].addMouseMotionListener(this);
-        HorizPanel.removeAll();
+        newDrag[NumVisY].setPreferredSize(new Dimension(0, 5));
+        newDrag[NumVisY].addMouseListener(this);
+        newDrag[NumVisY].addMouseMotionListener(this);
+        VertPanel.removeAll();
 
         // re-layout spreadsheet cells
-        FancySSCell[][] fcells = new FancySSCell[NumVisX + 1][NumVisY];
+        FancySSCell[][] fcells = new FancySSCell[NumVisX][NumVisY + 1];
         DisplayPanel.removeAll();
-        for (int j=0; j<NumVisY; j++) {
-          for (int i=0; i<NumVisX; i++) fcells[i][j] = DisplayCells[i][j];
+        for (int i=0; i<NumVisX; i++) {
+          for (int j=0; j<NumVisY; j++) fcells[i][j] = DisplayCells[i][j];
           try {
-            String name = String.valueOf(Letters.charAt(maxVisX)) +
-              String.valueOf(j + 1);
+            String name = String.valueOf(Letters.charAt(i)) +
+              String.valueOf(maxVisY + 1);
             FancySSCell f = createCell(name, null);
             f.addSSCellChangeListener(this);
             f.addMouseListener(this);
@@ -1906,229 +1992,152 @@ public class SpreadSheet extends JFrame implements ActionListener,
             f.addDisplayListener(this);
             f.setPreferredSize(
               new Dimension(DEFAULT_VIS_WIDTH, DEFAULT_VIS_HEIGHT));
-            fcells[NumVisX][j] = f;
+            fcells[i][NumVisY] = f;
             if (rsi != null) {
               // add new cell to server
-              fcells[NumVisX][j].addToRemoteServer(rsi);
+              fcells[i][NumVisY].addToRemoteServer(rsi);
             }
           }
           catch (VisADException exc) {
             if (BasicSSCell.DEBUG) exc.printStackTrace();
-            displayErrorMessage("Cannot add the column. Unable to create " +
-              "new displays", exc, "VisAD SpreadSheet error");
+            displayErrorMessage("Cannot add the row. Unable to create new " +
+              "displays", exc, "VisAD SpreadSheet error");
           }
           catch (RemoteException exc) {
             if (BasicSSCell.DEBUG) exc.printStackTrace();
-            displayErrorMessage("Cannot add the column. A remote error " +
-              "occurred", exc, "VisAD SpreadSheet error");
+            displayErrorMessage("Cannot add the row. A remote error occurred",
+              exc, "VisAD SpreadSheet error");
           }
         }
 
-        NumVisX++;
-        reconstructHoriz(newLabels, newDrag, fcells);
+        NumVisY++;
+        reconstructVert(newLabels, newDrag, fcells);
       }
-    }
-  }
-
-  /** add a row to the spreadsheet */
-  synchronized void addRow() {
-    JLabel l = (JLabel) VertLabel[NumVisY - 1].getComponent(0);
-    int maxVisY = Integer.parseInt(l.getText());
-
-    // re-layout vertical spreadsheet labels
-    JPanel[] newLabels = new JPanel[NumVisY + 1];
-    JComponent[] newDrag = new JComponent[NumVisY + 1];
-    for (int i=0; i<NumVisY; i++) newLabels[i] = VertLabel[i];
-    newLabels[NumVisY] = new JPanel();
-    newLabels[NumVisY].setBorder(new LineBorder(Color.black, 1));
-    newLabels[NumVisY].setLayout(new BorderLayout());
-    newLabels[NumVisY].setPreferredSize(
-      new Dimension(LABEL_WIDTH, DEFAULT_VIS_HEIGHT));
-    String s = String.valueOf(maxVisY + 1);
-    newLabels[NumVisY].add("Center", new JLabel(s, SwingConstants.CENTER));
-
-    if (IsRemote) {
-      // let server handle the actual cell layout
-      VertLabel = newLabels;
-      synchColRow();
-    }
-    else {
-      // re-layout vertical label separators
-      for (int i=0; i<NumVisY; i++) newDrag[i] = VertDrag[i];
-      newDrag[NumVisY] = new JComponent() {
-        public void paint(Graphics g) {
-          Dimension d = this.getSize();
-          g.setColor(Color.black);
-          g.drawRect(0, 0, d.width - 1, d.height - 1);
-          g.setColor(Color.yellow);
-          g.fillRect(1, 1, d.width - 2, d.height - 2);
-        }
-      };
-      newDrag[NumVisY].setPreferredSize(new Dimension(0, 5));
-      newDrag[NumVisY].addMouseListener(this);
-      newDrag[NumVisY].addMouseMotionListener(this);
-      VertPanel.removeAll();
-
-      // re-layout spreadsheet cells
-      FancySSCell[][] fcells = new FancySSCell[NumVisX][NumVisY + 1];
-      DisplayPanel.removeAll();
-      for (int i=0; i<NumVisX; i++) {
-        for (int j=0; j<NumVisY; j++) fcells[i][j] = DisplayCells[i][j];
-        try {
-          String name = String.valueOf(Letters.charAt(i)) +
-            String.valueOf(maxVisY + 1);
-          FancySSCell f = createCell(name, null);
-          f.addSSCellChangeListener(this);
-          f.addMouseListener(this);
-          f.setAutoSwitch(AutoSwitch);
-          f.setAutoDetect(AutoDetect);
-          f.setAutoShowControls(AutoShowControls);
-          f.setDimension(!CanDo3D, !CanDo3D);
-          f.addDisplayListener(this);
-          f.setPreferredSize(
-            new Dimension(DEFAULT_VIS_WIDTH, DEFAULT_VIS_HEIGHT));
-          fcells[i][NumVisY] = f;
-          if (rsi != null) {
-            // add new cell to server
-            fcells[i][NumVisY].addToRemoteServer(rsi);
-          }
-        }
-        catch (VisADException exc) {
-          if (BasicSSCell.DEBUG) exc.printStackTrace();
-          displayErrorMessage("Cannot add the row. Unable to create new " +
-            "displays", exc, "VisAD SpreadSheet error");
-        }
-        catch (RemoteException exc) {
-          if (BasicSSCell.DEBUG) exc.printStackTrace();
-          displayErrorMessage("Cannot add the row. A remote error occurred",
-            exc, "VisAD SpreadSheet error");
-        }
-      }
-
-      NumVisY++;
-      reconstructVert(newLabels, newDrag, fcells);
     }
   }
 
   /** deletes a column from the spreadsheet */
-  synchronized boolean deleteColumn() {
-
-    // make sure at least one column will be left
-    if (NumVisX == 1) {
-      displayErrorMessage("This is the last column", null,
-        "Cannot delete column");
-      return false;
-    }
-    // make sure no cells are dependent on columns about to be deleted
-    for (int j=0; j<NumVisY; j++) {
-      if (DisplayCells[CurX][j].othersDepend()) {
-        displayErrorMessage("Other cells depend on cells from this column. " +
-          "Make sure that no cells depend on this column before attempting " +
-          "to delete it", null, "Cannot delete column");
+  boolean deleteColumn() {
+    synchronized (DisplayCells) {
+      // make sure at least one column will be left
+      if (NumVisX == 1) {
+        displayErrorMessage("This is the last column", null,
+          "Cannot delete column");
         return false;
       }
-    }
-
-    // re-layout horizontal spreadsheet labels
-    JPanel[] newLabels = new JPanel[NumVisX - 1];
-    for (int i=0; i<CurX; i++) newLabels[i] = HorizLabel[i];
-    for (int i=CurX+1; i<NumVisX; i++) newLabels[i - 1] = HorizLabel[i];
-
-    if (IsRemote) {
-      // let server handle the actual cell layout
-      HorizLabel = newLabels;
-      synchColRow();
-    }
-    else {
-      // re-layout horizontal label separators
-      JComponent[] newDrag = new JComponent[NumVisX - 1];
-      for (int i=0; i<NumVisX-1; i++) newDrag[i] = HorizDrag[i];
-      HorizPanel.removeAll();
-
-      // re-layout spreadsheet cells
-      FancySSCell[][] fcells = new FancySSCell[NumVisX - 1][NumVisY];
-      DisplayPanel.removeAll();
+      // make sure no cells are dependent on columns about to be deleted
       for (int j=0; j<NumVisY; j++) {
-        for (int i=0; i<CurX; i++) fcells[i][j] = DisplayCells[i][j];
-        for (int i=CurX+1; i<NumVisX; i++) {
-          fcells[i - 1][j] = DisplayCells[i][j];
+        if (DisplayCells[CurX][j].othersDepend()) {
+          displayErrorMessage("Other cells depend on cells from this column. " +
+            "Make sure that no cells depend on this column before attempting " +
+            "to delete it", null, "Cannot delete column");
+          return false;
         }
-        try {
-          DisplayCells[CurX][j].destroyCell();
-        }
-        catch (VisADException exc) {
-          if (BasicSSCell.DEBUG) exc.printStackTrace();
-        }
-        catch (RemoteException exc) {
-          if (BasicSSCell.DEBUG) exc.printStackTrace();
-        }
-        DisplayCells[CurX][j] = null;
       }
-      NumVisX--;
-      if (CurX > NumVisX - 1) selectCell(NumVisX - 1, CurY);
-      reconstructHoriz(newLabels, newDrag, fcells);
+
+      // re-layout horizontal spreadsheet labels
+      JPanel[] newLabels = new JPanel[NumVisX - 1];
+      for (int i=0; i<CurX; i++) newLabels[i] = HorizLabel[i];
+      for (int i=CurX+1; i<NumVisX; i++) newLabels[i - 1] = HorizLabel[i];
+
+      if (IsRemote) {
+        // let server handle the actual cell layout
+        HorizLabel = newLabels;
+        synchColRow();
+      }
+      else {
+        // re-layout horizontal label separators
+        JComponent[] newDrag = new JComponent[NumVisX - 1];
+        for (int i=0; i<NumVisX-1; i++) newDrag[i] = HorizDrag[i];
+        HorizPanel.removeAll();
+
+        // re-layout spreadsheet cells
+        FancySSCell[][] fcells = new FancySSCell[NumVisX - 1][NumVisY];
+        DisplayPanel.removeAll();
+        for (int j=0; j<NumVisY; j++) {
+          for (int i=0; i<CurX; i++) fcells[i][j] = DisplayCells[i][j];
+          for (int i=CurX+1; i<NumVisX; i++) {
+            fcells[i - 1][j] = DisplayCells[i][j];
+          }
+          try {
+            DisplayCells[CurX][j].destroyCell();
+          }
+          catch (VisADException exc) {
+            if (BasicSSCell.DEBUG) exc.printStackTrace();
+          }
+          catch (RemoteException exc) {
+            if (BasicSSCell.DEBUG) exc.printStackTrace();
+          }
+          DisplayCells[CurX][j] = null;
+        }
+        NumVisX--;
+        if (CurX > NumVisX - 1) selectCell(NumVisX - 1, CurY);
+        reconstructHoriz(newLabels, newDrag, fcells);
+      }
+      return true;
     }
-    return true;
   }
 
   /** delete a row from the spreadsheet */
-  synchronized boolean deleteRow() {
-    // make sure at least one row will be left
-    if (NumVisY == 1) {
-      displayErrorMessage("This is the last row", null, "Cannot delete row");
-      return false;
-    }
-
-    // make sure no cells are dependent on rows about to be deleted
-    for (int i=0; i<NumVisX; i++) {
-      if (DisplayCells[i][CurY].othersDepend()) {
-        displayErrorMessage("Other cells depend on cells from this row. " +
-          "Make sure that no cells depend on this row before attempting " +
-          "to delete it", null, "Cannot delete row");
+  boolean deleteRow() {
+    synchronized (DisplayCells) {
+      // make sure at least one row will be left
+      if (NumVisY == 1) {
+        displayErrorMessage("This is the last row", null, "Cannot delete row");
         return false;
       }
-    }
 
-    // re-layout vertical spreadsheet labels
-    JPanel[] newLabels = new JPanel[NumVisY - 1];
-    for (int i=0; i<CurY; i++) newLabels[i] = VertLabel[i];
-    for (int i=CurY+1; i<NumVisY; i++) newLabels[i - 1] = VertLabel[i];
-
-    if (IsRemote) {
-      // let server handle the actual cell layout
-      VertLabel = newLabels;
-      synchColRow();
-    }
-    else {
-      // re-layout horizontal label separators
-      JComponent[] newDrag = new JComponent[NumVisY];
-      for (int i=0; i<NumVisY; i++) newDrag[i] = VertDrag[i];
-      VertPanel.removeAll();
-
-      // re-layout spreadsheet cells
-      FancySSCell[][] fcells = new FancySSCell[NumVisX][NumVisY - 1];
-      DisplayPanel.removeAll();
+      // make sure no cells are dependent on rows about to be deleted
       for (int i=0; i<NumVisX; i++) {
-        for (int j=0; j<CurY; j++) fcells[i][j] = DisplayCells[i][j];
-        for (int j=CurY+1; j<NumVisY; j++) {
-          fcells[i][j - 1] = DisplayCells[i][j];
+        if (DisplayCells[i][CurY].othersDepend()) {
+          displayErrorMessage("Other cells depend on cells from this row. " +
+            "Make sure that no cells depend on this row before attempting " +
+            "to delete it", null, "Cannot delete row");
+          return false;
         }
-        try {
-          DisplayCells[i][CurY].destroyCell();
-        }
-        catch (VisADException exc) {
-          if (BasicSSCell.DEBUG) exc.printStackTrace();
-        }
-        catch (RemoteException exc) {
-          if (BasicSSCell.DEBUG) exc.printStackTrace();
-        }
-        DisplayCells[i][CurY] = null;
       }
-      NumVisY--;
-      if (CurY > NumVisY - 1) selectCell(CurX, NumVisY - 1);
-      reconstructVert(newLabels, newDrag, fcells);
+
+      // re-layout vertical spreadsheet labels
+      JPanel[] newLabels = new JPanel[NumVisY - 1];
+      for (int i=0; i<CurY; i++) newLabels[i] = VertLabel[i];
+      for (int i=CurY+1; i<NumVisY; i++) newLabels[i - 1] = VertLabel[i];
+
+      if (IsRemote) {
+        // let server handle the actual cell layout
+        VertLabel = newLabels;
+        synchColRow();
+      }
+      else {
+        // re-layout horizontal label separators
+        JComponent[] newDrag = new JComponent[NumVisY];
+        for (int i=0; i<NumVisY; i++) newDrag[i] = VertDrag[i];
+        VertPanel.removeAll();
+
+        // re-layout spreadsheet cells
+        FancySSCell[][] fcells = new FancySSCell[NumVisX][NumVisY - 1];
+        DisplayPanel.removeAll();
+        for (int i=0; i<NumVisX; i++) {
+          for (int j=0; j<CurY; j++) fcells[i][j] = DisplayCells[i][j];
+          for (int j=CurY+1; j<NumVisY; j++) {
+            fcells[i][j - 1] = DisplayCells[i][j];
+          }
+          try {
+            DisplayCells[i][CurY].destroyCell();
+          }
+          catch (VisADException exc) {
+            if (BasicSSCell.DEBUG) exc.printStackTrace();
+          }
+          catch (RemoteException exc) {
+            if (BasicSSCell.DEBUG) exc.printStackTrace();
+          }
+          DisplayCells[i][CurY] = null;
+        }
+        NumVisY--;
+        if (CurY > NumVisY - 1) selectCell(CurX, NumVisY - 1);
+        reconstructVert(newLabels, newDrag, fcells);
+      }
+      return true;
     }
-    return true;
   }
 
   /** resize all cells to exactly fill the entire pane, if possible */
@@ -2251,8 +2260,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
   private void refreshCells() {
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        for (int i=0; i<NumVisX; i++) {
-          for (int j=0; j<NumVisY; j++) DisplayCells[i][j].refresh();
+        synchronized (DisplayCells) {
+          for (int i=0; i<NumVisX; i++) {
+            for (int j=0; j<NumVisY; j++) DisplayCells[i][j].refresh();
+          }
         }
       }
     });
