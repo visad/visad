@@ -163,6 +163,11 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
       // create any other necessary widgets
       for (int i=0; i<maps.length; i++) {
         DisplayRealType drt = maps[i].getDisplayScalar();
+        try {
+          RangeWidget rw = new RangeWidget(maps[i]);
+          addToFrame(rw, true);
+        }
+        catch (VisADException exc) { }
         if (drt.equals(Display.RGB)) {
           LabeledRGBWidget lw = new LabeledRGBWidget(maps[i]);
           addToFrame(lw, true);
@@ -177,8 +182,8 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
           addToFrame(vs, true);
         }
         else if (drt.equals(Display.SelectRange)) {
-          SelectRangeWidget srs = new SelectRangeWidget(maps[i]);
-          addToFrame(srs, true);
+          SelectRangeWidget srw = new SelectRangeWidget(maps[i]);
+          addToFrame(srw, true);
         }
         else if (drt.equals(Display.IsoContour)) {
           ContourWidget cw = new ContourWidget(maps[i]);

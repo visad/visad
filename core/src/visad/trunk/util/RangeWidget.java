@@ -36,12 +36,12 @@ import visad.*;
 public class RangeWidget extends JPanel implements ActionListener,
                                                    ScalarMapListener {
 
-  private JTextField data_min, data_max;
+  private JTextField data_low, data_hi;
 
   private ScalarMap map;
 
   /** construct a RangeWidget linked to the ScalarMap smap */
-  public RangeWidget(ScalarMap smap) throws VisADException, RemoteException {
+  public RangeWidget(ScalarMap smap) throws VisADException {
     // verify scalar map
     map = smap;
     if (map == null) {
@@ -57,47 +57,48 @@ public class RangeWidget extends JPanel implements ActionListener,
     }
 
     // create JTextFields
-    data_min = new JTextField();
-    data_max = new JTextField();
+    data_low = new JTextField();
+    data_hi = new JTextField();
     updateTextFields(data);
 
     // limit JTextField heights
-    Dimension msize = data_min.getMaximumSize();
-    Dimension psize = data_min.getPreferredSize();
+    Dimension msize = data_low.getMaximumSize();
+    Dimension psize = data_low.getPreferredSize();
     msize.height = psize.height;
-    data_min.setMaximumSize(msize);
-    data_max.setMaximumSize(msize);
+    data_low.setMaximumSize(msize);
+    data_hi.setMaximumSize(msize);
 
     // create JPanel
     JPanel p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    p.add(new JLabel("min: "));
-    p.add(data_min);
-    p.add(new JLabel(" max: "));
-    p.add(data_max);
+    p.add(new JLabel("low: "));
+    p.add(data_low);
+    p.add(new JLabel(" hi: "));
+    p.add(data_hi);
 
     // lay out GUI
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-    add(new JLabel(map.toString().trim()));
+    add(new JLabel("Range of " + map.getScalar().getName() + " mapped to " +
+                   map.getDisplayScalar().getName().substring(8)));
     add(p);
 
     // add listeners
     map.addScalarMapListener(this);
-    data_min.addActionListener(this);
-    data_max.addActionListener(this);
+    data_low.addActionListener(this);
+    data_hi.addActionListener(this);
   }
 
   private void updateTextFields(double[] data) {
-    data_min.setText(PlotText.shortString(data[0]));
-    data_max.setText(PlotText.shortString(data[1]));
+    data_low.setText(PlotText.shortString(data[0]));
+    data_hi.setText(PlotText.shortString(data[1]));
   }
 
   /** handle JTextField changes */
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
     double[] data = new double[2];
-    data[0] = Double.parseDouble(data_min.getText());
-    data[1] = Double.parseDouble(data_max.getText());
+    data[0] = Double.parseDouble(data_low.getText());
+    data[1] = Double.parseDouble(data_hi.getText());
     try {
       map.setRange(data[0], data[1]);
     }
