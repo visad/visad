@@ -26,6 +26,8 @@ import java.net.URLConnection;
  *   descr - ADDE descriptor name   
  *   band - spectral band or channel number
  *   mag - image magnification, postitive for blowup, negative for blowdown
+ *   lmag - like mag keyword, but line direction only
+ *   emag - like mag keyword, but element direction only
  *   user - ADDE user identification
  *   proj - a valid ADDE project number
  *   lat - latitude to center image on
@@ -293,6 +295,22 @@ public class AddeURLConnection extends URLConnection
 
     // band keyword
     startIdx = uCmd.indexOf("band=");
+    if (startIdx > 0) {
+      endIdx = uCmd.indexOf('&', startIdx);
+      sb.append(" ");
+      sb.append(uCmd.substring(startIdx, endIdx));
+    }
+
+    // line magnification keyword
+    startIdx = uCmd.indexOf("lmag=");
+    if (startIdx > 0) {
+      endIdx = uCmd.indexOf('&', startIdx);
+      sb.append(" ");
+      sb.append(uCmd.substring(startIdx, endIdx));
+    }
+
+    // element magnification keyword
+    startIdx = uCmd.indexOf("emag=");
     if (startIdx > 0) {
       endIdx = uCmd.indexOf('&', startIdx);
       sb.append(" ");
