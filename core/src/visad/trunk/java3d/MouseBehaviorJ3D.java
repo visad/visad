@@ -250,12 +250,27 @@ public class MouseBehaviorJ3D extends Behavior
     return ray;
   }
 
+  private Method getPixelLocationFromImagePlateMethod = null;
+
   /**
    * Return the screen coordinates corresponding to the VisAD coordinates.
    * @param  position  array of VisAD coordinates
    * @return  corresponding (x, y) screen coordinates
    */
   public int[] getScreenCoords(double[] position) {
+    if (getPixelLocationFromImagePlateMethod == null) {
+      try {
+        Class canvas3DClass = Class.forName("javax.media.j3d.Canvas3D");
+        Class[] param =
+          {javax.vecmath.Point3d.class, javax.vecmath.Point2d.class};
+        getPixelLocationFromImagePlateMethod =
+          canvas3DClass.getMethod("getPixelLocationFromImagePlate", param);
+        if (getPixelLocationFromImagePlateMethod == null) return null;
+      }
+      catch (Exception e) {
+        return null;
+      }
+    }
     // get transforms
     Canvas3D canvas = display_renderer.getCanvas();
     Transform3D t = new Transform3D();
@@ -275,7 +290,14 @@ public class MouseBehaviorJ3D extends Behavior
     // CTR: unfortunately, the following method is Java3D 1.2 only
     // canvas.getPixelLocationFromImagePlate(pos, coords);
     // return new int[] {(int) coords.x, (int) coords.y};
-    return null; // unimplemented
+    try {
+      getPixelLocationFromImagePlateMethod.invoke(canvas,
+        new Object[] {pos, coords});
+    }
+    catch (Exception e) {
+      return null;
+    }
+    return new int[] {(int) coords.x, (int) coords.y};
   }
 
   /**
