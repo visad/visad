@@ -10,6 +10,7 @@ import visad.*;
 import visad.java3d.DisplayImplJ3D;
 import visad.java3d.TwoDDisplayRendererJ3D;
 import visad.util.VisADSlider;
+import visad.util.LabeledRGBWidget;
 import visad.data.vis5d.Vis5DForm;
 import java.rmi.RemoteException;
 import java.io.IOException;
@@ -19,7 +20,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 
-public class Rain {
+public class Rain implements ControlListener {
 
   static final int N_COLUMNS = 3;
   static final int N_ROWS = 4;
@@ -44,16 +45,34 @@ public class Rain {
   static final int WIDTH = 1100;
   static final int HEIGHT = 900;
 
+  static final float MIN = 0.0f;
+  static final float MAX = 200.0f;
+
   static DataReference ref300 = null;
   static DataReference ref1_4 = null;
+
+
+  static LabeledRGBWidget color_widget = null;
+  static ColorControl color_control = null;
+  static ColorControl[][] color_controls = new ColorControl[N_ROWS][N_COLUMNS];
+
+  static Rain rain = null;
 
   // type 'java Rain' to run this application
   public static void main(String args[])
          throws VisADException, RemoteException, IOException {
+    rain = new Rain();
+    rain.makeRain(args);
+  }
 
+  private Rain()
+          throws VisADException, RemoteException {
     ref300 = new DataReferenceImpl("num300");
     ref1_4 = new DataReferenceImpl("num1_4");
+  }
 
+  private void makeRain(String args[])
+         throws VisADException, RemoteException, IOException {
     if (args == null || args.length < 1) {
       System.out.println("run 'java visad.rabin.Rain file.v5d'");
     }
@@ -72,7 +91,7 @@ public class Rain {
     }
 
     FunctionType vis5d_type = (FunctionType) vis5d.getType();
-    System.out.println(vis5d_type);
+    // System.out.println(vis5d_type);
     RealType time = (RealType) vis5d_type.getDomain().getComponent(0);
     FunctionType grid_type = (FunctionType) vis5d_type.getRange();
     RealTupleType domain = grid_type.getDomain();
@@ -113,7 +132,7 @@ public class Rain {
     big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     frame.getContentPane().add(big_panel);
  
-    JPanel left_panel = new JPanel();
+    final JPanel left_panel = new JPanel();
     left_panel.setLayout(new BoxLayout(left_panel, BoxLayout.Y_AXIS));
     left_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
     left_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
@@ -154,13 +173,23 @@ public class Rain {
                              new EmptyBorder(10, 10, 10, 10));
         d_panel.setBorder(etchedBorder10);
         cell_panels[i][j].add(d_panel);
-/* ??
-        for (int i=0; i<dim; i++) {
-          displays[i][j].addMap(new ScalarMap(range_types[i], Display.RGB));
-        }
-*/
       } // end for (int j=0; j<N_ROWS; j++)
     } // end for (int i=0; i<N_COLUMNS; i++)
+
+
+    // does not crash Java
+    DisplayImplJ3D dummy_display = new DisplayImplJ3D("dummy");
+    ScalarMap dummy_map = new ScalarMap(range_types[0], Display.RGB);
+    dummy_display.addMap(dummy_map);
+    ColorControl dummy_control = (ColorControl) dummy_map.getControl();
+    final LabeledRGBWidget dummy_widget =
+      new LabeledRGBWidget(dummy_map, MIN, MAX, null, false);
+    {
+      Dimension d = new Dimension(500, 170);
+      dummy_widget.setMaximumSize(d);
+    }
+    left_panel.add(dummy_widget);
+
 
     VisADSlider slider300 = new VisADSlider("num300", 0, 600, 300, 1.0,
                                             ref300, RealType.Generic);
@@ -204,7 +233,24 @@ public class Rain {
           FunctionType type = (FunctionType) field.getType();
           if (!color_maps[0][2] && type != null) {
             RealType rt = (RealType) type.getRange();
-            displays[0][2].addMap(new ScalarMap(rt, Display.RGB));
+            ScalarMap color_map = new ScalarMap(rt, Display.RGB);
+            displays[0][2].addMap(color_map);
+            color_widget = new LabeledRGBWidget(color_map, MIN, MAX, null, false);
+            Dimension d = new Dimension(500, 170);
+            color_widget.setMaximumSize(d);
+
+            SwingUtilities.invokeLater(new Runnable() {
+              public void run() {
+                left_panel.remove(dummy_widget);
+                left_panel.add(color_widget, 0);
+              }
+            });
+
+            color_control = (ColorControl) color_map.getControl();
+            // listener sets all non-null color_controls[i][j]
+            // for ControlEvents from color_control
+            color_control.addControlListener(rain);
+
             displays[0][2].addReference(cell_refs[0][2]);
             color_maps[0][2] = true;
           }
@@ -224,7 +270,9 @@ public class Rain {
           FunctionType type = (FunctionType) field.getType();
           if (!color_maps[1][0] && type != null) {
             RealType rt = (RealType) type.getRange();
-            displays[1][0].addMap(new ScalarMap(rt, Display.RGB));
+            ScalarMap color_map = new ScalarMap(rt, Display.RGB);
+            displays[0][2].addMap(color_map);
+            color_controls[1][0] = (ColorControl) color_map.getControl();
             displays[1][0].addReference(cell_refs[1][0]);
             color_maps[1][0] = true;
           }
@@ -425,6 +473,20 @@ public class Rain {
       field = (FlatField) field.pow(one.divide(ref1_4.getData()));
     }
     return field;
+  }
+
+  public void controlChanged(ControlEvent e)
+         throws VisADException, RemoteException {
+    float[][] table = color_control.getTable();
+    if (table != null) {
+      for (int i=0; i<N_ROWS; i++) {
+        for (int j=0; j<N_COLUMNS; j++) {
+          if (color_controls[i][j] != null) {
+            color_controls[i][j].setTable(table);
+          }
+        }
+      }
+    }
   }
 
 }
