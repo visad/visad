@@ -245,7 +245,10 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
           }
         }
 // System.out.println("lon_min = " + lon_min + " lon_max = " + lon_max);
-        if (lon_min == Float.MAX_VALUE) return lons;
+        if (lon_min == Float.MAX_VALUE) {
+          longitude_coords = null;
+          return lons;
+        }
         boolean any_rotate = false;
         if (map_min == map_min && map_max == map_max) {
           float map_delta = 0.1f * (map_max - map_min);
@@ -288,9 +291,10 @@ for (int i=0; i<vertexCount; i++) {
   System.out.println("return lons[" + i + "] = " + lons[i]);
 }
 */
+        longitude_coords = null;
         return lons;
-      }
-    }
+      } // end if (tuple != null && ...
+    } // end while(maps.hasMoreElements())
 
     int[] indices = renderer.getLatLonIndices();
     if (indices[0] < 0 || indices[1] < 0) return null;
@@ -302,6 +306,7 @@ for (int i=0; i<vertexCount; i++) {
       locs[2][i] = coordinates[k++];
     }
     float[][] latlons = renderer.earthToSpatial(locs, null);
+    longitude_coords = null;
     return latlons[1];
   }
 
