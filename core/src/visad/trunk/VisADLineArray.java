@@ -97,8 +97,8 @@ public class VisADLineArray extends VisADGeometryArray {
   }
 
 
-  private final static float LIMIT = 1.0f; // constant for TEST = 0
-  private final static float ALPHA = 0.01f; // constant for TEST = 1
+  private final static double LIMIT = 1.0f; // constant for TEST = 0
+  private final static double ALPHA = 0.01f; // constant for TEST = 1
 
   /** eliminate any vectors or triangles crossing seams of
       map projections, defined by display-side CoordinateSystems;
@@ -120,14 +120,14 @@ public class VisADLineArray extends VisADGeometryArray {
 
 // System.out.println("VisADLineArray.adjustSeam try");
 
-    float[][] cs = new float[3][len];
+    double[][] cs = new double[3][len];
     int j = 0;
     for (int i=0; i<len; i++) {
       cs[0][i] = coordinates[j++];
       cs[1][i] = coordinates[j++];
       cs[2][i] = coordinates[j++];
     }
-    float[][] rs = coord_sys.fromReference(Set.copyFloats (cs));
+    double[][] rs = coord_sys.fromReference(Set.copyDoubles (cs));
     boolean[] test = new boolean[len];
     int last_i;
 
@@ -135,11 +135,11 @@ public class VisADLineArray extends VisADGeometryArray {
 
     // TEST 1
     if (len < 2) return this;
-    float[][] bs = new float[3][len/2];
-    float[][] ss = new float[3][len/2];
+    double[][] bs = new double[3][len/2];
+    double[][] ss = new double[3][len/2];
     // ALPHA = 0.01f
-    float ALPHA1 = 1.0f + ALPHA;
-    float ALPHA1m = 1.0f - ALPHA;
+    double ALPHA1 = 1.0f + ALPHA;
+    double ALPHA1m = 1.0f - ALPHA;
     for (int i=0; i<len/2; i++) {
       // BS = point ALPHA * opposite direction
       // bs = pt_i + 0.01 * (pt_i - pt_ip1), not ref
@@ -152,41 +152,41 @@ public class VisADLineArray extends VisADGeometryArray {
       ss[1][i] = ALPHA1 * rs[1][2*i+1] - ALPHA * rs[1][2*i];
       ss[2][i] = ALPHA1 * rs[2][2*i+1] - ALPHA * rs[2][2*i];
     }
-    float[][] ds = coord_sys.toReference(bs);
+    double[][] ds = coord_sys.toReference(bs);
     // ds = pt_i + 0.01 * (pt_i - pt_ip1), ref
-    float[][] es = coord_sys.toReference(ss);
+    double[][] es = coord_sys.toReference(ss);
     // es = pt_ip1 + 0.01 * (pt_ip1 - pt_i), ref
-    float IALPHA = 1.0f / ALPHA;
+    double IALPHA = 1.0f / ALPHA;
     for (int i=0; i<len; i+=2) {
       // a = original line segment, ref
       // a = pt_ip1 - pt_i, ref
-      float a0 = cs[0][i+1] - cs[0][i];
-      float a1 = cs[1][i+1] - cs[1][i];
-      float a2 = cs[2][i+1] - cs[2][i];
+      double a0 = cs[0][i+1] - cs[0][i];
+      double a1 = cs[1][i+1] - cs[1][i];
+      double a2 = cs[2][i+1] - cs[2][i];
       // b = estimate of vector using ALPHA * opposite direction
       // b = 100.0 * (pt_i - toRef(pt_i + 0.01 * (pt_i - pt_ip1)) )
       // if no break, b = pt_ip1 - pt_i, ref
-      float b0 = IALPHA * (cs[0][i] - ds[0][i/2]);
-      float b1 = IALPHA * (cs[1][i] - ds[1][i/2]);
-      float b2 = IALPHA * (cs[2][i] - ds[2][i/2]);
-      float aa = (a0 * a0 + a1 * a1 + a2 * a2);
-      float aminusb =
+      double b0 = IALPHA * (cs[0][i] - ds[0][i/2]);
+      double b1 = IALPHA * (cs[1][i] - ds[1][i/2]);
+      double b2 = IALPHA * (cs[2][i] - ds[2][i/2]);
+      double aa = (a0 * a0 + a1 * a1 + a2 * a2);
+      double aminusb =
         (b0 - a0) * (b0 - a0) +
         (b1 - a1) * (b1 - a1) +
         (b2 - a2) * (b2 - a2);
-      float abratio = aminusb / aa;
+      double abratio = aminusb / aa;
 
       // c = estimate of vector using ALPHA * opposite direction
       // c = 100.0 * (pt_ip1 - toRef(pt_ip1 + 0.01 * (pt_ip1 - pt_i)) )
       // if no break, c = pti - pt_ip1, ref
-      float c0 = IALPHA * (cs[0][i+1] - es[0][i/2]);
-      float c1 = IALPHA * (cs[1][i+1] - es[1][i/2]);
-      float c2 = IALPHA * (cs[2][i+1] - es[2][i/2]);
-      float aminusc =
+      double c0 = IALPHA * (cs[0][i+1] - es[0][i/2]);
+      double c1 = IALPHA * (cs[1][i+1] - es[1][i/2]);
+      double c2 = IALPHA * (cs[2][i+1] - es[2][i/2]);
+      double aminusc =
         (c0 + a0) * (c0 + a0) +
         (c1 + a1) * (c1 + a1) +
         (c2 + a2) * (c2 + a2);
-      float acratio = aminusc / aa;
+      double acratio = aminusc / aa;
 
       // true for bad segment
       test[i] = (0.01f < abratio) || (0.01f < acratio);
@@ -207,15 +207,15 @@ System.out.println("test[" + i + "] " + abratio + " " + acratio);
     }
 
     // TEST 0
-    float[] lengths = new float[len];
+    double[] lengths = new double[len];
     for (int i=0; i<len;  i++) lengths[i] = 0.0f;
-    float mean_length = 0.0f;
-    float var_length = 0.0f;
-    float max_length = 0.0f;
+    double mean_length = 0.0f;
+    double var_length = 0.0f;
+    double max_length = 0.0f;
     int num_length = 0;
     
     for (int i=0; i<len; i+=2) {
-      float cd = (cs[0][i+1] - cs[0][i]) * (cs[0][i+1] - cs[0][i]) +
+      double cd = (cs[0][i+1] - cs[0][i]) * (cs[0][i+1] - cs[0][i]) +
                  (cs[1][i+1] - cs[1][i]) * (cs[1][i+1] - cs[1][i]) +
                  (cs[2][i+1] - cs[2][i]) * (cs[2][i+1] - cs[2][i]);
       if (!test[i]) {
@@ -228,10 +228,10 @@ System.out.println("test[" + i + "] " + abratio + " " + acratio);
     } // end for (int i=0; i<len; i+=2)
     if (num_length < 2) return this;
     mean_length = mean_length / num_length;
-    var_length = (float)
+    var_length = (double)
       Math.sqrt((var_length - mean_length * mean_length) / num_length);
-    float limit_length = mean_length + LIMIT * var_length;
-/**TDR, TEST0 causing most of the problems...come back to this.
+    double limit_length = mean_length + LIMIT * var_length;
+/**TDR, TEST0 causes some problems...come back to this.
 System.out.println("limit_length = " + limit_length + " " + max_length + " " +
                    mean_length + " " + var_length + " " + num_length);
     if (max_length >= limit_length) {
@@ -239,7 +239,7 @@ System.out.println("limit_length = " + limit_length + " " + max_length + " " +
         test[i] = test[i] || (lengths[i] > limit_length);
       }
     }
-**/
+    */
 
     cs = null;
     rs = null;
