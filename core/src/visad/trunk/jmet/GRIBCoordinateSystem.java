@@ -164,6 +164,8 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
    * constructor for a latitude-longitude (GRIB type code = 0). Reference
    * should be RealTupleType.LatitudeLongitudeTuple.
    *
+   * [this is overloaded to also handle LambertConformal (above, type = 3)]
+   *
    * @param  ref             reference RealTupleType (should be lat/lon)
    * @param  gridTypeNumber  GRIB-1 grid type
    * @param  Ni              number of points along a latitude circle
@@ -186,11 +188,16 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
     if (gridTypeCode == 0) {
       doLatLon(ref, Ni, Nj, La1, Lo1, La2, Lo2, Di, Dj) ;
 
-      } else {
+    } else if (gridTypeCode == 3) {
+      //note the meaning of these parameters is defined in the actual
+      // Lambert constructor signature!
+      doLambert(ref, Ni, Nj, La1, Lo1, La2, Lo2, Di, Dj);
+
+    } else {
         System.out.println("GRIB Grid type not Lat/Lon = "+gridTypeCode);
         throw new VisADException
                ("Invalid grid type for Lat/Lon = "+gridTypeCode);
-      }
+    }
 
   }
 
@@ -218,7 +225,6 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
                    throws VisADException {
 
     super(ref, coordinate_system_units);
-    range = new double[4];
 
     if (gridNumber == 201) {
       doPolarStereo(ref, 65,65,-20.826, -150.0, 381.0, -105.0);
@@ -276,6 +282,7 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
     isPolarStereo = true;
     spacing = DxDy * 1000.0;
     aspectRatio = 1.0;
+    range = new double[4];
     range[0] = 0.0;
     range[1] = 0.0;
     range[2] = (double)(Nx-1);
@@ -294,6 +301,7 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
     spacing = DxDy*1000.0;
     double earth = 6371230.0;
     aspectRatio = 1.0;
+    range = new double[4];
     range[0] = 0.0;
     range[1] = 0.0;
     range[2] = (double)(Nx-1);
