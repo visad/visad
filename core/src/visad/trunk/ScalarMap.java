@@ -283,6 +283,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
   private synchronized void setRange(DataShadow shadow, double low, double hi,
           boolean unit_flag) throws VisADException, RemoteException {
     int i = ScalarIndex;
+    if (i < 0) return;
     if (shadow != null) {
       dataRange[0] = shadow.ranges[0][i];
       dataRange[1] = shadow.ranges[1][i];

@@ -1403,6 +1403,7 @@ public class Gridded3DSet extends GriddedSet {
                       vx1, vy1,  maxv1, numv1, vx2, vy2,  maxv2, numv2,
                       vx3, vy3,  maxv3, numv3, vx4, vy4,  maxv4, numv4,
                       color_values, color_levels1, color_levels2 );
+
     float[][] grid1 = new float[2][numv1[0]];
     System.arraycopy(vx1, 0, grid1[0], 0, numv1[0]);
     vx1 = null;
