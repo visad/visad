@@ -90,6 +90,9 @@ public class MetUnits {
     else if (in.equalsIgnoreCase("degrees e")) { out = "degrees_east"; }
     else if (in.equalsIgnoreCase("degree n")) { out = "degrees_north"; }
     else if (in.equalsIgnoreCase("degree e")) { out = "degrees_east"; }
+    else if (in.equalsIgnoreCase("degree e")) { out = "degrees_east"; }
+    else if (in.equalsIgnoreCase("degree k")) { out = "K"; }
+    else if (in.equalsIgnoreCase("degrees k")) { out = "K"; }
     else if (in.equalsIgnoreCase("gp m")) { out = "gpm"; }
     else if (in.equalsIgnoreCase("gp_m")) { out = "gpm"; }
 
