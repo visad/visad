@@ -114,7 +114,9 @@ Shapes(display, shapeMap)
 from visad import ScalarMap, Display, DataReferenceImpl, RealTupleType,\
           Gridded2DSet, Gridded3DSet, DisplayImpl, RealType, RealTuple, \
           VisADLineArray, VisADQuadArray, VisADTriangleArray, \
-          VisADGeometryArray, ConstantMap, Integer1DSet
+          VisADGeometryArray, ConstantMap, Integer1DSet, FunctionType, \
+          ScalarMap, Display, Integer1DSet, FieldImpl
+          
 
 from types import StringType
 from visad.ss import BasicSSCell
@@ -664,3 +666,32 @@ class Shapes:
     shapeLoc = RealTuple(self.shape_coord, coord)
     self.shapeRef[inx].setData(shapeLoc)
 
+# SelectField aids in showing a series of data objects
+# using the Display.SelectValue.  'data' should be
+# an array of data with same MathTypes
+# getScalarMap() used to get the ScalarMap to add to the display
+# getSelectField() used to get the Field to add() to display
+# showIt(n) called to show only field 'n'
+class SelectField:
+  def __init__(this, selectMapName, data):
+    selectMap = RealType.getRealType(selectMapName)
+    this.selectScalarMap = ScalarMap(selectMap, Display.SelectValue)
+    selectType = FunctionType(selectMap, data[0].getType())
+    selectSet = Integer1DSet(selectMap, len(data))
+    this.selectField = FieldImpl(selectType, selectSet)
+    for i in xrange(len(data)):
+      this.selectField.setSample(i, data[i])
+    this.selectedIndex = -1
+
+  def showIt(this, index):
+    if this.selectedIndex == -1:
+      this.control = this.selectScalarMap.getControl()
+    if index != this.selectedIndex:
+      this.control.setValue(index)
+      this.selectedIndex = index
+
+  def getScalarMap(this):
+    return this.selectScalarMap
+
+  def getSelectField(this):
+    return this.selectField
