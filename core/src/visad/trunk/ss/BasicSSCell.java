@@ -70,7 +70,7 @@ public class BasicSSCell extends JPanel
    * <li>2 = Collaboration messages.
    * <li>3 = All exceptions.
    */
-  public static int DEBUG_LEVEL = 2;
+  public static int DEBUG_LEVEL = 1;
 
 
   // --- STATIC UTILITY METHODS ---
@@ -2343,8 +2343,10 @@ public class BasicSSCell extends JPanel
           String s2 = st.nextToken();
           Double d1 = null, d2 = null;
           try {
-            d1 = new Double(Double.parseDouble(s1));
-            d2 = new Double(Double.parseDouble(s2));
+            d1 = new Double(s1.equals("NaN") ?
+              Double.NaN : Double.parseDouble(s1));
+            d2 = new Double(s2.equals("NaN") ?
+              Double.NaN : Double.parseDouble(s2));
           }
           catch (NumberFormatException exc) {
             if (DEBUG) exc.printStackTrace();
@@ -2521,7 +2523,14 @@ public class BasicSSCell extends JPanel
     // set up graphics mode control
     if (mode != null) {
       GraphicsModeControl gmc = VDisplay.getGraphicsModeControl();
-      if (gmc != null) gmc.setSaveString(mode);
+      if (gmc != null) {
+        try {
+          gmc.setSaveString(mode);
+        }
+        catch (VisADException exc) {
+          if (DEBUG && DEBUG_LEVEL >= 3) exc.printStackTrace();
+        }
+      }
       else if (!preserveMaps) warn("display has no GraphicsModeControl; " +
         "the provided graphics mode settings will be ignored");
     }

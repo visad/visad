@@ -124,39 +124,70 @@ public class MappingDialog extends JDialog
    * Names of system intrinsic DisplayRealTypes.
    */
   private static final String[][] MapNames = {
-    {"X Axis", "X Offset", "Latitude", "Flow1 X", "Flow2 X"},
-    {"Y Axis", "Y Offset", "Longitude", "Flow1 Y", "Flow2 Y"},
-    {"Z Axis", "Z Offset", "Radius", "Flow1 Z", "Flow2 Z"},
-    {"Red", "Cyan", "Hue", "Animation", "Select Value"},
-    {"Green", "Magenta", "Saturation", "Iso-contour", "Select Range"},
-    {"Blue", "Yellow", "Value", "Alpha", "Text"},
-    {"RGB", "CMY", "HSV", "RGBA", "Shape"}
+    {"X Axis", "Y Axis", "Z Axis", "X Offset", "Y Offset", "Z Offset"},
+    {"Latitude", "Longitude", "Radius",
+      "Cyl Radius", "Cyl Azimuth", "Cyl Z Axis"},
+    {"Flow1 X", "Flow1 Y", "Flow1 Z", "Flow2 X", "Flow2 Y", "Flow2 Z"},
+    {"Flow1 Elevation", "Flow1 Azimuth", "Flow1 Radial",
+      "Flow2 Elevation", "Flow2 Azimuth", "Flow2 Radial"},
+    {"Red", "Green", "Blue", "RGB", "RGBA", "Alpha"},
+    {"Cyan", "Magenta", "Yellow", "CMY", "Animation", "Iso-contour"},
+    {"Hue", "Saturation", "Value", "HSV", "Select Value", "Select Range"},
+    {"", "Text", "", "", "Shape", ""}
   };
 
   /**
    * List of system intrinsic DisplayRealTypes.
    */
   private static final DisplayRealType[][] MapTypes = {
-    {Display.XAxis, Display.XAxisOffset, Display.Latitude,
-     Display.Flow1X, Display.Flow2X},
-    {Display.YAxis, Display.YAxisOffset, Display.Longitude,
-     Display.Flow1Y, Display.Flow2Y},
-    {Display.ZAxis, Display.ZAxisOffset, Display.Radius,
-     Display.Flow1Z, Display.Flow2Z},
-    {Display.Red, Display.Cyan, Display.Hue,
-     Display.Animation, Display.SelectValue},
-    {Display.Green, Display.Magenta, Display.Saturation,
-     Display.IsoContour, Display.SelectRange},
-    {Display.Blue, Display.Yellow, Display.Value,
-     Display.Alpha, Display.Text},
-    {Display.RGB, Display.CMY, Display.HSV,
-     Display.RGBA, Display.Shape}
+    {Display.XAxis, Display.YAxis, Display.ZAxis,
+      Display.XAxisOffset, Display.YAxisOffset, Display.ZAxisOffset},
+    {Display.Latitude, Display.Longitude, Display.Radius,
+      Display.CylRadius, Display.CylAzimuth, Display.CylZAxis},
+    {Display.Flow1X, Display.Flow1Y, Display.Flow1Z,
+      Display.Flow2X, Display.Flow2Y, Display.Flow2Z},
+    {Display.Flow1Elevation, Display.Flow1Azimuth, Display.Flow1Radial,
+      Display.Flow2Elevation, Display.Flow2Azimuth, Display.Flow2Radial},
+    {Display.Red, Display.Green, Display.Blue,
+      Display.RGB, Display.RGBA, Display.Alpha},
+    {Display.Cyan, Display.Magenta, Display.Yellow,
+      Display.CMY, Display.Animation, Display.IsoContour},
+    {Display.Hue, Display.Saturation, Display.Value,
+      Display.HSV, Display.SelectValue, Display.SelectRange},
+    {null, Display.Text, null, null, Display.Shape, null}
   };
 
   /**
-   * Number of system intrinsic DisplayRealTypes.
+   * Indices into MapTypes of alpha-related DisplayRealTypes.
    */
-  private static final int NumMaps = MapTypes.length;
+  private static final Point[] AlphaMaps = {
+    new Point(4, 4), // RGBA
+    new Point(4, 5)  // Alpha
+  };
+
+  /**
+   * Indices into MapTypes of 3D-related DisplayRealTypes.
+   */
+  private static final Point[] ThreeDMaps = {
+    new Point(0, 2), // ZAxis
+    new Point(0, 5), // ZAxisOffset
+    new Point(1, 0), // Latitude
+    new Point(1, 5), // CylZAxis
+    new Point(2, 2), // Flow1Z
+    new Point(2, 5), // Flow2Z
+    new Point(3, 0), // Flow1Elevation
+    new Point(3, 3)  // Flow2Elevation
+  };
+  
+  /**
+   * Width of mapping arrays.
+   */
+  private static final int MapWidth = MapTypes[0].length;
+
+  /**
+   * Height of mapping arrays.
+   */
+  private static final int MapHeight = MapTypes.length;
 
   /**
    * display.gif image.
@@ -167,11 +198,6 @@ public class MappingDialog extends JDialog
    * Whether DRT image has been initialized.
    */
   private static boolean Inited = false;
-
-  /**
-   * For synchronization.
-   */
-  private Object Lock = new Object();
 
   /**
    * Pre-loads the display.gif file, so it's ready
@@ -260,6 +286,16 @@ public class MappingDialog extends JDialog
     int surplus = ndx - lines[i - 1];
     return new Point(w * surplus + 5, (h + 2) * (i - 1) + 6);
   }
+
+  /**
+   * For synchronization.
+   */
+  private Object Lock = new Object();
+
+  /**
+   * Flags marking whether each DisplayRealType is illegal.
+   */
+  private boolean[][] Illegal = new boolean[MapHeight][MapWidth];
 
   /**
    * This MappingDialog's copy of DRT with certain
@@ -524,9 +560,9 @@ public class MappingDialog extends JDialog
     MathCanvasView.setBackground(Color.white);
     JScrollBar horiz = MathCanvasView.getHorizontalScrollBar();
     JScrollBar verti = MathCanvasView.getVerticalScrollBar();
-    horiz.setBlockIncrement(5*ScH+10);
+    horiz.setBlockIncrement(5 * ScH + 10);
     horiz.setUnitIncrement(ScH+2);
-    verti.setBlockIncrement(5*ScH+10);
+    verti.setBlockIncrement(5 * ScH + 10);
     verti.setUnitIncrement(ScH+2);
     topPanel.add(Box.createRigidArea(new Dimension(5, 0)));
     JPanel whitePanel = new JPanel();
@@ -634,15 +670,15 @@ public class MappingDialog extends JDialog
     // begin set up "current mappings" list
     CurMaps = new DefaultListModel();
     int num = MathTypes.length;
-    CurMaps.ensureCapacity(num*35);
+    CurMaps.ensureCapacity(num * MapWidth * MapHeight);
     CurrentMaps = new JList(CurMaps);
 
     // set up "map from" list
-    Maps = new boolean[num][7][5];
-    CurMapLabel = new String[num][7][5];
+    Maps = new boolean[num][MapHeight][MapWidth];
+    CurMapLabel = new String[num][MapHeight][MapWidth];
     for (int i=0; i<num; i++) {
-      for (int j=0; j<7; j++) {
-        for (int k=0; k<5; k++) {
+      for (int j=0; j<MapHeight; j++) {
+        for (int k=0; k<MapWidth; k++) {
           Maps[i][j][k] = false;
           CurMapLabel[i][j][k] = Scalars[i] + " -> " + MapNames[j][k];
           if (startMaps != null) {
@@ -662,13 +698,13 @@ public class MappingDialog extends JDialog
     MathList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     JScrollPane mathListView = new JScrollPane(MathList) {
       public Dimension getMinimumSize() {
-        return new Dimension(0, 265);
+        return new Dimension(0, 40 * MapHeight - 15);
       }
       public Dimension getPreferredSize() {
-        return new Dimension(200, 265);
+        return new Dimension(200, 40 * MapHeight - 15);
       }
       public Dimension getMaximumSize() {
-        return new Dimension(Integer.MAX_VALUE, 265);
+        return new Dimension(Integer.MAX_VALUE, 40 * MapHeight - 15);
       }
     };
     JLabel l2 = new JLabel("Map from:");
@@ -695,20 +731,32 @@ public class MappingDialog extends JDialog
     }
     catch (InterruptedException exc) { }
 
-    // copy DRT into MapTo and black out icons of illegal DisplayRealTypes
-    MapTo = new BufferedImage(280, 200, BufferedImage.TYPE_INT_RGB);
-    Graphics gr = MapTo.getGraphics();
-    gr.drawImage(DRT, 0, 0, this);
+    // flag illegal DisplayRealTypes
+    for (int i=0; i<MapHeight; i++) {
+      for (int j=0; j<MapWidth; j++) Illegal[i][j] = MapTypes[i][j] == null;
+    }
     if (!AllowAlpha) {
-      eraseBox(5, 3, gr);
-      eraseBox(6, 3, gr);
+      for (int i=0; i<AlphaMaps.length; i++) {
+        Point p = AlphaMaps[i];
+        Illegal[p.x][p.y] = true;
+      }
     }
     if (!Allow3D) {
-      eraseBox(2, 0, gr);
-      eraseBox(2, 1, gr);
-      eraseBox(0, 2, gr);
-      eraseBox(2, 3, gr);
-      eraseBox(2, 4, gr);
+      for (int i=0; i<ThreeDMaps.length; i++) {
+        Point p = ThreeDMaps[i];
+        Illegal[p.x][p.y] = true;
+      }
+    }
+
+    // copy DRT into MapTo and black out icons of illegal DisplayRealTypes
+    MapTo = new BufferedImage(40 * MapWidth, 40 * MapHeight,
+      BufferedImage.TYPE_INT_RGB);
+    Graphics gr = MapTo.getGraphics();
+    gr.drawImage(DRT, 0, 0, this);
+    for (int i=0; i<MapHeight; i++) {
+      for (int j=0; j<MapWidth; j++) {
+        if (Illegal[i][j]) eraseBox(j, i, gr);
+      }
     }
     gr.dispose();
 
@@ -718,24 +766,24 @@ public class MappingDialog extends JDialog
         g2.drawImage(MapTo, 0, 0, this);
         int ndx = MathList.getSelectedIndex();
         if (ndx >= 0) {
-          for (int col=0; col<7; col++) {
-            for (int row=0; row<5; row++) {
-              if (Maps[ndx][col][row]) highlightBox(col, row, g2);
+          for (int col=0; col<MapWidth; col++) {
+            for (int row=0; row<MapHeight; row++) {
+              if (Maps[ndx][row][col]) highlightBox(col, row, g2);
             }
           }
         }
       }
 
       public Dimension getMinimumSize() {
-        return new Dimension(280, 200);
+        return new Dimension(40 * MapWidth, 40 * MapHeight);
       }
 
       public Dimension getPreferredSize() {
-        return new Dimension(280, 200);
+        return new Dimension(40 * MapWidth, 40 * MapHeight);
       }
 
       public Dimension getMaximumSize() {
-        return new Dimension(280, 200);
+        return new Dimension(40 * MapWidth, 40 * MapHeight);
       }
     };
     DisplayCanvas.addMouseListener(this);
@@ -810,15 +858,15 @@ public class MappingDialog extends JDialog
     CurrentMaps.addListSelectionListener(this);
     CurrentMapsView = new JScrollPane(CurrentMaps) {
       public Dimension getMinimumSize() {
-        return new Dimension(0, 265);
+        return new Dimension(0, 40 * MapHeight - 15);
       }
 
       public Dimension getPreferredSize() {
-        return new Dimension(200, 265);
+        return new Dimension(200, 40 * MapHeight - 15);
       }
 
       public Dimension getMaximumSize() {
-        return new Dimension(Integer.MAX_VALUE, 265);
+        return new Dimension(Integer.MAX_VALUE, 40 * MapHeight - 15);
       }
     };
     JLabel l4 = new JLabel("Current maps:");
@@ -890,12 +938,12 @@ public class MappingDialog extends JDialog
    * Clears a box in the &quot;map to&quot; canvas.
    */
   void eraseBox(int col, int row, Graphics g) {
-    int x = 40*col;
-    int y = 40*row;
+    int x = 40 * col;
+    int y = 40 * row;
     g.setColor(Color.black);
     for (int i=0; i<40; i+=2) {
-      g.drawLine(x, y+i, x+i, y);
-      g.drawLine(x+i, y+38, x+38, y+i);
+      g.drawLine(x, y + i, x + i, y);
+      g.drawLine(x + i, y + 38, x + 38, y + i);
     }
   }
 
@@ -903,20 +951,20 @@ public class MappingDialog extends JDialog
    * Highlights a box in the &quot;map to&quot; canvas.
    */
   void highlightBox(int col, int row, Graphics g) {
-    int x = 40*col;
-    int y = 40*row;
+    int x = 40 * col;
+    int y = 40 * row;
     final int n1 = 11;
     final int n2 = 29;
     g.setColor(Color.blue);
     g.drawRect(x, y, 39, 39);
-    g.drawLine(x, y+n1, x+n1, y);
-    g.drawLine(x, y+n2, x+n2, y);
-    g.drawLine(x+n1, y+39, x+39, y+n1);
-    g.drawLine(x+n2, y+39, x+39, y+n2);
-    g.drawLine(x+n2, y, x+39, y+n1);
-    g.drawLine(x+n1, y, x+39, y+n2);
-    g.drawLine(x, y+n1, x+n2, y+39);
-    g.drawLine(x, y+n2, x+n1, y+39);
+    g.drawLine(x, y + n1, x + n1, y);
+    g.drawLine(x, y + n2, x + n2, y);
+    g.drawLine(x + n1, y + 39, x + 39, y + n1);
+    g.drawLine(x + n2, y + 39, x + 39, y + n2);
+    g.drawLine(x + n2, y, x + 39, y + n1);
+    g.drawLine(x + n1, y, x + 39, y + n2);
+    g.drawLine(x, y + n1, x + n2, y + 39);
+    g.drawLine(x, y + n2, x + n1, y + 39);
   }
 
   /**
@@ -926,8 +974,8 @@ public class MappingDialog extends JDialog
     CurrentMaps.clearSelection(); // work-around for nasty swing bug
     CurMaps.removeAllElements();
     for (int i=0; i<CurMapLabel.length; i++) {
-      for (int j=0; j<7; j++) {
-        for (int k=0; k<5; k++) Maps[i][j][k] = false;
+      for (int j=0; j<MapHeight; j++) {
+        for (int k=0; k<MapWidth; k++) Maps[i][j][k] = false;
       }
     }
   }
@@ -958,8 +1006,8 @@ public class MappingDialog extends JDialog
           String s = (String) CurMaps.getElementAt(ndx[x]);
           boolean looking = true;
           for (int i=0; i<CurMapLabel.length && looking; i++) {
-            for (int j=0; j<7 && looking; j++) {
-              for (int k=0; k<5 && looking; k++) {
+            for (int j=0; j<MapHeight && looking; j++) {
+              for (int k=0; k<MapWidth && looking; k++) {
                 if (CurMapLabel[i][j][k] == s) {
                   Maps[i][j][k] = false;
                   looking = false;
@@ -985,8 +1033,8 @@ public class MappingDialog extends JDialog
         if (CurMaps.getSize() > 0) clearAll();
         if (maps != null) {
           for (int i=0; i<MathTypes.length; i++) {
-            for (int j=0; j<7; j++) {
-              for (int k=0; k<5; k++) {
+            for (int j=0; j<MapHeight; j++) {
+              for (int k=0; k<MapWidth; k++) {
                 for (int m=0; m<maps.length; m++) {
                   if (maps[m].getScalar() == MathTypes[i] &&
                     maps[m].getDisplayScalar() == MapTypes[j][k])
@@ -1013,8 +1061,8 @@ public class MappingDialog extends JDialog
         ScalarMaps = new ScalarMap[size];
         int s = 0;
         for (int i=0; i<CurMapLabel.length; i++) {
-          for (int j=0; j<7; j++) {
-            for (int k=0; k<5; k++) {
+          for (int j=0; j<MapHeight; j++) {
+            for (int k=0; k<MapWidth; k++) {
               if (Maps[i][j][k]) {
                 try {
                   ScalarMaps[s++] =
@@ -1090,19 +1138,16 @@ public class MappingDialog extends JDialog
         int col = e.getX() / 40;
         int row = e.getY() / 40;
         int ndx = MathList.getSelectedIndex();
-        if (ndx >= 0 && row >= 0 && col >= 0 && row < 5 && col < 7 &&
-          (AllowAlpha || ((col != 5 || row != 3) && (col != 6 || row != 3))) &&
-          (Allow3D || ((col != 2 || row != 0) && (col != 2 || row != 1) &&
-          (col != 0 || row != 2) && (col != 2 || row != 3) &&
-          (col != 2 || row != 4))))
+        if (ndx >= 0 && row >= 0 && col >= 0 &&
+          row < MapHeight && col < MapWidth && !Illegal[row][col])
         {
-          Maps[ndx][col][row] = !Maps[ndx][col][row];
-          if (Maps[ndx][col][row]) {
-            CurMaps.addElement(CurMapLabel[ndx][col][row]);
+          Maps[ndx][row][col] = !Maps[ndx][row][col];
+          if (Maps[ndx][row][col]) {
+            CurMaps.addElement(CurMapLabel[ndx][row][col]);
           }
           else {
             CurrentMaps.clearSelection();
-            CurMaps.removeElement(CurMapLabel[ndx][col][row]);
+            CurMaps.removeElement(CurMapLabel[ndx][row][col]);
           }
           // redraw DisplayCanvas
           Graphics g = DisplayCanvas.getGraphics();
