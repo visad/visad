@@ -2,13 +2,16 @@ package visad.install;
 
 import java.io.File;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
 public class Main
 {
   private static final String CLASSPATH_PROPERTY = "java.class.path";
   private static final String PATH_PROPERTY = "visad.install.path";
 
   Path classpath, path;
-  File[] jarList, javaList;
+  ArrayList jarList, javaList;
 
   public Main(String[] args)
   {
@@ -30,17 +33,16 @@ public class Main
     if (jarList == null) {
       System.err.println("No visad.jar found in " + classpath);
     } else {
-      jarList = loseDuplicates(jarList);
-      for (int i = 0; i < jarList.length; i++) {
-        System.out.println("#"+i+": "+jarList[i]);
+      for (int i = 0; i < jarList.size(); i++) {
+        System.out.println("#"+i+": "+jarList.get(i));
       }
     }
 
     if (javaList == null) {
       System.err.println("No java executable found in " + path);
     } else {
-      for (int i = 0; i < javaList.length; i++) {
-        System.out.println("#"+i+": "+javaList[i]);
+      for (int i = 0; i < javaList.size(); i++) {
+        System.out.println("#"+i+": "+javaList.get(i));
       }
     }
   }
@@ -68,75 +70,53 @@ public class Main
     if (jarList == null) {
       jarList = classpath.find("visad.jar");
     }
+    if (jarList != null) {
+      loseDuplicates(jarList);
+    }
 
-    File[] tmpList = path.find("java");
-    if (tmpList != null) {
-      javaList = checkJavaVersions(loseDuplicates(tmpList), 1, 2);
+    javaList = path.find("java");
+    if (javaList != null) {
+      loseDuplicates(javaList);
+      checkJavaVersions(javaList, 1, 2);
     }
 
     return true;
   }
 
-  private static final File[] checkJavaVersions(File[] list,
-                                                int major, int minor)
+  private static final void checkJavaVersions(ArrayList list,
+                                              int major, int minor)
   {
     // check all java executables for minimum version
-    int deleted = 0;
-    for (int i = 0; i < list.length; i++) {
-      if (!JavaVersion.matchMinimum(list[i], major, minor)) {
-        list[i] = null;
-        deleted++;
+    Iterator iter = list.iterator();
+    while (iter.hasNext()) {
+      if (!JavaVersion.matchMinimum((File )iter.next(), major, minor)) {
+        iter.remove();
       }
     }
-
-    return rebuildList(list, deleted);
   }
 
-  private static final File[] loseDuplicates(File[] list)
+  private static final void loseDuplicates(ArrayList list)
   {
-    final int listLen = list.length;
+    Iterator iter = list.iterator();
+    int iterIndex = 0;
 
-    int deleted = 0;
-    for (int i = 0; i < listLen; i++) {
-      if (list[i] == null) {
-        continue;
-      }
+    while (iter.hasNext()) {
+      Object obj = iter.next();
 
-      for (int j = i+1; j < listLen; j++) {
-        if (list[j] == null || !list[i].equals(list[j])) {
-          continue;
+      int j = iterIndex + 1;
+      while (j < list.size()) {
+        if (obj.equals(list.get(j))) {
+          // delete this entry
+          iter.remove();
+          iterIndex--;
+          break;
         }
 
-        // mark this entry for deletion
-        list[j] = null;
-        deleted++;
+        j++;
       }
+
+      iterIndex++;
     }
-
-    return rebuildList(list, deleted);
-  }
-
-  private static final File[] rebuildList(File[] list, int deleted)
-  {
-    // if everything matched, we're done
-    if (deleted == 0) {
-      return list;
-    }
-
-    // if everything was deleted, set list to null
-    if (deleted == list.length) {
-      return null;
-    }
-
-    // build a new list containing the valid entries
-    File[] newList = new File[list.length - deleted];
-    for (int i = 0, j = 0; i < list.length; i++) {
-      if (list[i] != null) {
-        newList[j++] = list[i];
-      }
-    }
-
-    return newList;
   }
 
   public static final void main(String[] args)

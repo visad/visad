@@ -7,7 +7,7 @@ import java.util.StringTokenizer;
 
 public class Path
 {
-  private String[] path;
+  private ArrayList path;
 
   public Path(String pathStr)
     throws IllegalArgumentException
@@ -26,23 +26,25 @@ public class Path
       throw new IllegalArgumentException("Empty path string");
     }
 
-    path = new String[numTokens];
+    path = new ArrayList();
 
     int i = 0;
     while (tok.hasMoreTokens()) {
-      path[i++] = tok.nextToken();
+      path.add(tok.nextToken());
     }
   }
 
-  public File[] find(String file)
+  public ArrayList find(String file)
   {
     if (file == null || file.length() == 0) {
       return null;
     }
 
+    final int pathLen = path.size();
+
     ArrayList list = null;
-    for (int i = 0; i < path.length; i++) {
-      File f = new File(path[i], file);
+    for (int i = 0; i < pathLen; i++) {
+      File f = new File((String )path.get(i), file);
       if (f.isFile()) {
         if (list == null) {
           list = new ArrayList();
@@ -56,19 +58,23 @@ public class Path
       return null;
     }
 
-    return (File[] )list.toArray(new File[list.size()]);
+    return list;
   }
 
-  public File[] findMatch(String file)
+  public ArrayList findMatch(String file)
   {
     if (file == null || file.length() == 0) {
       return null;
     }
 
+    final int pathLen = path.size();
+
     ArrayList list = null;
-    for (int i = 0; i < path.length; i++) {
-      if (path[i].endsWith(File.separator + file)) {
-        File f = new File(path[i]);
+    for (int i = 0; i < pathLen; i++) {
+      String pElem = (String )path.get(i);
+
+      if (pElem.endsWith(File.separator + file)) {
+        File f = new File(pElem);
         if (f.exists()) {
           if (list == null) {
             list = new ArrayList();
@@ -79,23 +85,19 @@ public class Path
       }
     }
 
-    if (list == null) {
-      return null;
-    }
-
-    return (File[] )list.toArray(new File[list.size()]);
+    return list;
   }
 
   public String toString()
   {
-    if (path == null || path.length == 0) {
+    if (path == null || path.size() == 0) {
       return null;
     }
 
-    StringBuffer buf = new StringBuffer(path[0]);
-    for (int i = 1; i < path.length; i++) {
+    StringBuffer buf = new StringBuffer((String )path.get(0));
+    for (int i = 1; i < path.size(); i++) {
       buf.append(File.pathSeparator);
-      buf.append(path[i]);
+      buf.append(path.get(i));
     }
 
     return buf.toString();
@@ -112,18 +114,18 @@ public class Path
 
     Path p = new Path(args[0]);
     for (int i = 1; i < args.length; i++) {
-      File[] f = p.findMatch(args[i]);
-      if (f == null) {
-        f = p.find(args[i]);
-        if (f == null) {
+      ArrayList l = p.findMatch(args[i]);
+      if (l == null) {
+        l = p.find(args[i]);
+        if (l == null) {
           System.err.println("Couldn't find \"" + args[i] + "\"");
           continue;
         }
       }
 
       System.out.println(args[i] + ":");
-      for (int j = 0; j < f.length; j++) {
-        System.out.println("  " + f[j]);
+      for (int j = 0; j < l.size(); j++) {
+        System.out.println("  " + l.get(j));
       }
     }
 
