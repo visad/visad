@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: StandardQuantityDB.java,v 1.14 2001-11-27 22:29:32 dglo Exp $
+ * $Id: StandardQuantityDB.java,v 1.15 2002-05-01 19:44:38 donm Exp $
  */
 
 package visad.data.netcdf;
@@ -329,6 +329,7 @@ StandardQuantityDB
             quantity = get("Altitude");		// from RealType.Altitude
 	    super.add("Elevation", quantity);
 	    super.add("Altitude", quantity);
+	    super.add("alt", quantity);
 	    super.add("Depth", "m");
 	} catch (ParseException e) {	// shouldn't happen
 	    throw new VisADException(e.getMessage());
