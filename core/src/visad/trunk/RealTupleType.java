@@ -200,8 +200,27 @@ public class RealTupleType extends TupleType {
     }
   }
 
+  /**
+   * Performs an arithmetic operation with another MathType.  CoordinateSystem
+   * information, if it exists, will be lost.
+   *
+   * @param type		The other  MathType.
+   * @param op			The arithmetic operation (see 
+   *				<code>Data</code>).
+   * @param names		Database of names.
+   * @return                    The MathType corresponding to the specified
+   *                            arithmetic operation between this and the
+   *                            other MathType.  If the returned type is
+   *                            a RealTupleType, then it will not have a
+   *                            CoordinateSystem.
+   * @throws TypeException	<code>type</code> is </code>null</code> or
+   *				can't be arithmetically combined with a
+   *				RealTupleType.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @see visad.Data
+   */
   public MathType binary( MathType type, int op, Vector names )
-                  throws VisADException
+                  throws TypeException, VisADException
   {
     if (type == null) {
       throw new TypeException("RealTupleType.binary: type may not be null" );
