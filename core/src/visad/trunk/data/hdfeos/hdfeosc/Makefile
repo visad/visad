@@ -1,14 +1,12 @@
 SLIB = hdfeos
 SLIBDIR = .
-ARCH = solaris
 JAVAINCS = -I${J_INC} -I${J_INC}/${ARCH}
 
 HDFINCS = -I${HDF_INC}
 HDFEOSINCS = -I${HDFEOS_INC}
 
-HDFLIBS = $(HDF_LIB)/libmfhdf.a $(HDF_LIB)/libdf.a $(HDF_LIB)/libjpeg.a $(HDF_LIB)/libz.a -lnsl -lm
+HDFLIBS = $(HDF_LIB)/libmfhdf.a $(HDF_LIB)/libdf.a $(HDF_LIB)/libjpeg.a $(HDF_LIB)/libz.a
 HDFEOSLIBS = $(HDFEOS_LIB)/libhdfeos.a $(HDFEOS_LIB)/libGctp.a ./libhdfeos_ext.a
-#HDFEOSLIBS = $(HDFEOS_LIB)/libhdfeos.a
 
 CC = cc
 AR = ar -r
@@ -26,6 +24,10 @@ OBJECTS = SWopenImp.o \
 	GDprojinfoImp.o GDgridinfoImp.o GDinqattrsImp.o \
 	EHchkfidImp.o EHcloseImp.o
 
+default:
+	@echo " use:  'make solaris' or 'make irix' "
+	@exit 1
+
 all: hdfeosLib
 
 hdfeos_ext: SWfdims.o GDfdims.o
@@ -41,9 +43,14 @@ GDfdims.o: GDfdims.c
 	$(CC) -c $*.c $(JAVAINCS) $(HDFINCS) $(HDFEOSINCS)
 
 hdfeosLib: $(OBJECTS) hdfeos_ext
-	$(LD) $(LDOPT) $(OBJECTS) $(HDFEOSLIBS) $(HDFLIBS) -o $(SLIBDIR)/lib$(SLIB).so
+	$(LD) $(LDOPT) $(OBJECTS) $(HDFEOSLIBS) $(HDFLIBS) $(FLAGS) -o $(SLIBDIR)/lib$(SLIB).so
 clean:
 	rm -f so_locations
 	rm -f $(SLIBDIR)/lib$(SLIB).so
 	rm -f libhdfeos_ext.a
 	rm -f *.o
+
+solaris:
+	@make ARCH=solaris FLAGS="-lnsl -lm" all
+irix:
+	@make ARCH=irix FLAGS="-lm" all
