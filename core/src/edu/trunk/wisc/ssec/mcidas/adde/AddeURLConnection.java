@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package edu.wisc.ssec.mcidas.adde;
 
 import java.io.DataInputStream;
+import java.io.BufferedInputStream;
 import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
@@ -42,8 +43,8 @@ import java.util.StringTokenizer;
  * work to establish an ADDE network connection, put together
  * a request packet, and initiate data flow.  Connections for
  * image data, image directories, grid data, grid directory, 
- * point source * data and dataset information (McIDAS
- * AGET, ADIR, GGET, MDKS, TXTG and LWPR requests) are supported.
+ * point source data and dataset information (McIDAS
+ * AGET, ADIR, GDIR, GGET, MDKS, TXTG and LWPR requests) are supported.
  * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
  *      McIDAS Programmer's Manual</A>
  *
@@ -55,11 +56,12 @@ import java.util.StringTokenizer;
  *
  * where request can be one of the following:
  *
- *   imagedata - request for data in AreaFile format (AGET)
- *   imagedirectory - request for image directory information (ADIR)
  *   datasetinfo - request for data set information (LWPR)
  *   griddirectory - request for grid directory information (GDIR)
  *   griddata - request for grid data (GGET)
+ *   imagedata - request for data in AreaFile format (AGET)
+ *   imagedirectory - request for image directory information (ADIR)
+ *   pointdata - request for point data (MDKS)
  *   textdata - request to read a text file (TXTG) 
  *
  * There can be any valid combination of the following supported keywords:
@@ -71,7 +73,8 @@ import java.util.StringTokenizer;
  *   proj=<proj #>             a valid ADDE project number
  *   trace=<0/1>               setting to 1 tells server to write debug 
  *                               trace file (imagedata, imagedirectory)
- *   version=1                 ADDE version number, currently 1 
+ *   version=                  ADDE version number, currently 1 except for
+ *                             griddata requests
  *
  * -------for images:
  *
@@ -404,8 +407,9 @@ public class AddeURLConnection extends URLConnection
             break;
     }
 
-    // indefinitely use ADDE version 1
-    sb.append(" version=1");
+    // indefinitely use ADDE version 1 unless it's a GGET request
+    sb.append(" version=");
+    sb.append((reqType == GGET) ? "A" : "1");
 
     // now convert to array of bytes for output since chars are two byte
     String cmd = new String(sb);
@@ -980,7 +984,7 @@ public class AddeURLConnection extends URLConnection
       buf.append(numString);
       buf.append(" ");
       buf.append(traceString);
-      buf.append(" version=A ");
+      //buf.append(" version=A ");
 
       // Create a subset string
       if (latString != null && lonString != null)
