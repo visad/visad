@@ -269,12 +269,9 @@ if (map.badRange()) {
   public abstract void clearScene();
 
   public void clearAVControls() {
-    Enumeration controls = display.getControlVector().elements();
+    Enumeration controls = display.getControls(AVControl.class).elements();
     while (controls.hasMoreElements()) {
-      Control control = (Control) controls.nextElement();
-      if (control instanceof AVControl) {
-        ((AVControl) control).clearSwitches(this);
-      }
+      ((AVControl )controls.nextElement()).clearSwitches(this);
     }
 
     // a convenient place to throw this in
