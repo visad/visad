@@ -2377,12 +2377,28 @@ public abstract class JPythonMethods {
   *
   * @param s is the string describing the names in
   * the form:  (x,y)->(a)  for a Field.
-  * It can be as simple as "foo" for a single RealType.
+  *
+  * Forms allowed:
+  * "Foo" will make and return a RealType
+  * "(Foo)" makes a RealType and returns a RealTupleType
+  * "Foo,Bar" will make two RealTypes and return a RealTupleType
+  * "(Foo,Bar)" does the same thing
+  * "(Foo,Bar)->val" makes 3 RealTypes and returns a FunctionType
+  * (use getDomainType(type) and getRangeType(type) to get the parts
+  *
+  * @return the MathType
   *
   */
   public static MathType makeType(String s) 
              throws VisADException, RemoteException {
-    return MathType.stringToType(s);
+    String ss = s.trim();
+
+    if ((ss.indexOf(",") != -1 || ss.indexOf(">") != -1 ) && 
+                 (!ss.startsWith("(") || !ss.endsWith(")") ) ) {
+      ss = "(" + s.trim() + ")";
+    }
+
+    return MathType.stringToType(ss);
   }
 
   /** make or get the RealType corresponding to the name; if
