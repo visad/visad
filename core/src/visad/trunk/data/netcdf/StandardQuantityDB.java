@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: StandardQuantityDB.java,v 1.10 2000-04-26 15:45:15 dglo Exp $
+ * $Id: StandardQuantityDB.java,v 1.11 2000-11-17 18:54:40 dglo Exp $
  */
 
 package visad.data.netcdf;
@@ -17,7 +17,7 @@ import visad.RealType;
 import visad.SI;
 import visad.TypeException;
 import visad.VisADException;
-import visad.data.netcdf.units.ParseException;
+import visad.data.units.ParseException;
 
 
 /**

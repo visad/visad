@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Quantity.java,v 1.7 2000-11-15 16:17:41 dglo Exp $
+ * $Id: Quantity.java,v 1.8 2000-11-17 18:54:39 dglo Exp $
  */
 
 package visad.data.netcdf;
@@ -19,8 +19,8 @@ import visad.SimpleSet;
 import visad.TypeException;
 import visad.Unit;
 import visad.VisADException;
-import visad.data.netcdf.units.ParseException;
-import visad.data.netcdf.units.Parser;
+import visad.data.units.ParseException;
+import visad.data.units.Parser;
 
 
 /**

@@ -100,9 +100,10 @@ visad\ss\*.java \
 visad\cluster\*.java \
 visad\collab\*.java \
 visad\data\*.java \
+visad\data\units\*.java \
+visad\data\units\*.jj \
 visad\data\netcdf\*.java \
 visad\data\netcdf\units\*.java \
-visad\data\netcdf\units\*.jj \
 visad\data\netcdf\in\*.java \
 visad\data\netcdf\out\*.java \
 visad\data\fits\*.java \
@@ -231,9 +232,10 @@ visad\ss\README.ss \
 visad\cluster\*.java \
 visad\collab\*.java \
 visad\data\*.java \
+visad\data\units\*.java \
+visad\data\units\*.jj \
 visad\data\netcdf\*.java \
 visad\data\netcdf\units\*.java \
-visad\data\netcdf\units\*.jj \
 visad\data\netcdf\in\*.java \
 visad\data\netcdf\out\*.java \
 visad\data\fits\*.java \
@@ -349,6 +351,8 @@ save:
 		$(DEL) $(BACKUP)\visad\ss\*.gif
 	if exist $(BACKUP)\visad\data\*.java \
 		$(DEL) $(BACKUP)\visad\data\*.java
+	if exist $(BACKUP)\visad\data\units\*.java \
+		$(DEL) $(BACKUP)\visad\data\units\*.java
 	if exist $(BACKUP)\visad\data\netcdf\*.java \
 		$(DEL) $(BACKUP)\visad\data\netcdf\*.java
 	if exist $(BACKUP)\visad\data\netcdf\units\*.java \
@@ -445,6 +449,7 @@ visad\ss\*.gif \
 visad\cluster\*.class \
 visad\collab\*.class \
 visad\data\*.class \
+visad\data\units\*.class \
 visad\data\netcdf\*.class \
 visad\data\netcdf\units\*.class \
 visad\data\netcdf\in\*.class \
@@ -527,6 +532,7 @@ clear:
 	if exist ss\*.java $(DEL) ss\*.java
 	if exist ss\*.gif $(DEL) ss\*.gif
 	if exist data\*.java $(DEL) data\*.java
+	if exist data\units\*.java $(DEL) data\units\*.java
 	if exist data\netcdf\*.java $(DEL) data\netcdf\*.java
 	if exist data\netcdf\units\*.java $(DEL) data\netcdf\units\*.java
 	if exist data\netcdf\in\*.java $(DEL) data\netcdf\in\*.java
@@ -590,6 +596,7 @@ clean:
 	if exist formula\*.class $(DEL) formula\*.class
 	if exist ss\*.class $(DEL) ss\*.class
 	if exist data\*.class $(DEL) data\*.class
+	if exist data\units\*.class $(DEL) data\units\*.class
 	if exist data\netcdf\*.class $(DEL) data\netcdf\*.class
 	if exist data\netcdf\units\*.class $(DEL) data\netcdf\units\*.class
 	if exist data\netcdf\in\*.class $(DEL) data\netcdf\in\*.class
@@ -672,6 +679,7 @@ data\*.class \
 ..\ucar\multiarray\*.class \
 ..\ucar\netcdf\*.class \
 ..\ucar\tests\*.class \
+data\units\*.class \
 data\netcdf\units\*.class \
 data\netcdf\in\*.class \
 data\netcdf\out\*.class \
@@ -740,6 +748,7 @@ compile: clean
 	$(JC) $(JFLAGS) cluster\*.java
 	$(JC) $(JFLAGS) collab\*.java
 	$(JC) $(JFLAGS) data\*.java
+	$(JC) $(JFLAGS) data\units\*.java
 	$(JC) $(JFLAGS) ..\ucar\multiarray\*.java
 	$(JC) $(JFLAGS) ..\ucar\netcdf\*.java
 	$(JC) $(JFLAGS) ..\ucar\tests\*.java
@@ -822,6 +831,7 @@ visad.math \
 visad.formula \
 visad.ss \
 visad.data \
+visad.data.units \
 visad.data.netcdf \
 visad.data.netcdf.units \
 visad.data.netcdf.in \

@@ -24,7 +24,7 @@ package visad.jmet;
 
 import visad.*;
 import visad.data.netcdf.*;
-import visad.data.netcdf.units.*;
+import visad.data.units.*;
 
 /** 
  * Class for defining a few common atmospheric science units which don't

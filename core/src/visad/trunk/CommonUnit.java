@@ -42,7 +42,7 @@ public class CommonUnit extends Object {
   /** CommonUnit for seconds since the Epoch (i.e. 1970-01-01 00:00:00Z) */
   public static Unit secondsSinceTheEpoch =
         new OffsetUnit(
-            visad.data.netcdf.units.UnitParser.encodeTimestamp(
+            visad.data.units.UnitParser.encodeTimestamp(
                 1970, 1, 1, 0, 0, 0, 0),
             SI.second);
 

@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: QuantityDB.java,v 1.8 2000-06-05 22:36:35 steve Exp $
+ * $Id: QuantityDB.java,v 1.9 2000-11-17 18:54:39 dglo Exp $
  */
 
 package visad.data.netcdf;
@@ -16,9 +16,9 @@ import visad.TypeException;
 import visad.Unit;
 import visad.UnitException;
 import visad.VisADException;
-import visad.data.netcdf.units.NoSuchUnitException;
-import visad.data.netcdf.units.ParseException;
-import visad.data.netcdf.units.Parser;
+import visad.data.units.NoSuchUnitException;
+import visad.data.units.ParseException;
+import visad.data.units.Parser;
 
 
 /**

@@ -29,8 +29,8 @@ import java.util.*;
 import java.lang.*;
 import edu.wisc.ssec.mcidas.*;
 import visad.*;
-import visad.data.netcdf.units.Parser;
-import visad.data.netcdf.units.*;
+import visad.data.units.Parser;
+import visad.data.units.*;
 import visad.data.mcidas.*;
 import visad.jmet.*;
 

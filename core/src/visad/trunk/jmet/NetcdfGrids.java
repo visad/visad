@@ -34,7 +34,7 @@ import ucar.netcdf.*;
 import visad.*;
 import visad.VisADException;
 import visad.Set;
-import visad.data.netcdf.units.Parser;
+import visad.data.units.Parser;
 import visad.jmet.*;
 
 /**

@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitParser.jj,v 1.13 2000-04-21 21:07:07 steve Exp $
+ * $Id: UnitParser.jj,v 1.1 2000-11-17 18:54:46 dglo Exp $
  */
 
 options
@@ -16,7 +16,7 @@ options
 
 PARSER_BEGIN(UnitParser)
 
-    package visad.data.netcdf.units;
+    package visad.data.units;
 
     import java.io.ByteArrayInputStream;
     import java.io.InputStreamReader;

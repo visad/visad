@@ -175,9 +175,10 @@ SAVE_FILES = \
 	visad/cluster/*.java				\
 	visad/collab/*.java				\
 	visad/data/*.java				\
+	visad/data/units/*.java				\
+	visad/data/units/*.jj				\
 	visad/data/netcdf/*.java			\
 	visad/data/netcdf/units/*.java			\
-	visad/data/netcdf/units/*.jj			\
 	visad/data/netcdf/in/*.java			\
 	visad/data/netcdf/out/*.java			\
 	visad/data/fits/*.java				\
@@ -281,6 +282,7 @@ DOC_PACKAGES = \
 		ucar.netcdf \
 		ucar.tests \
 		visad.data \
+		visad.data.units \
 		visad.data.netcdf.units \
 		visad.data.netcdf.in \
 		visad.data.netcdf.out \

@@ -2,10 +2,10 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitTable.java,v 1.7 1999-12-01 16:38:56 steve Exp $
+ * $Id: UnitTable.java,v 1.1 2000-11-17 18:54:46 dglo Exp $
  */
 
-package visad.data.netcdf.units;
+package visad.data.units;
 
 
 import java.util.Collections;
