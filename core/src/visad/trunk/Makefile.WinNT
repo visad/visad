@@ -64,7 +64,7 @@ DEL = del
 
 DOC = javadoc
 DOC_DIR = ..\docs
-DOCFLAGS = -d $(DOC_DIR)
+DOCFLAGS = -J-Xmx96m -d $(DOC_DIR)
 
 JAR_FILES1 = \
 visad\README \
