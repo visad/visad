@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Plain.java,v 1.8 1998-03-20 20:56:29 visad Exp $
+ * $Id: Plain.java,v 1.9 1998-03-26 21:07:22 visad Exp $
  */
 
 package visad.data.netcdf;
@@ -162,14 +162,29 @@ Plain
      * Return the data forms that are compatible with a data object.
      *
      * @param data	The VisAD data object to be examined.
-     * @return		The data forms compatible with <code>data</data>.
-     * @exception UnimplementedException
-     *			Not implemented yet.  Always thrown.
+     * @return		<code>this</code> if <code>data</code> is compatible;
+     *			otherwise, <code>null</code>.
+     * @exception VisADException	Problem with core VisAD.
+     * @exception IOException		Problem with local data access.
+     * @exception RemoteException	Problem with remote data access.
      */
     public FormNode
     getForms(Data data)
+	throws VisADException, RemoteException, IOException
     {
-	return this;	// TODO
+	FormNode	form;
+
+	try
+	{
+	    DataAdapter	adapter = new DataAdapter(data);
+	    form = this;
+	}
+	catch (BadFormException e)
+	{
+	    form = null;
+	}
+
+	return form;
     }
 
 
