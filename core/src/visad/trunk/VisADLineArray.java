@@ -32,6 +32,12 @@ package visad;
 */
 public class VisADLineArray extends VisADGeometryArray {
 
+  /**
+   * Merge an array of VisADLineArrays into a single VisADLineArray.
+   * @param  arrays  array of VisADLineArrays (may be null)
+   * @return a single VisADLineArray with all the info of arrays.
+   *         returns null if input is null.
+   */
   public static VisADLineArray merge(VisADLineArray[] arrays)
          throws VisADException {
     if (arrays == null || arrays.length == 0) return null;
@@ -75,6 +81,10 @@ public class VisADLineArray extends VisADGeometryArray {
     return array;
   }
 
+  /**
+   * Clone this VisADLineArray
+   * @return clone of this
+   */
   public Object clone() {
     VisADLineArray array = new VisADLineArray();
     copy(array);
