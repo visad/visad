@@ -119,6 +119,40 @@ public class TrivialMapProjection extends MapProjection
         return refTuple;
     }
 
+    /** 
+     * Transform to the reference coordinates
+     *
+     * @param  tuple  array of values
+     * @return  input array
+     *
+     * @throws VisADException  tuple is null or wrong dimension
+     */
+    public float[][] toReference(float[][] tuple)
+        throws VisADException
+    {
+        if (tuple == null || getDimension() != tuple.length)
+            throw new VisADException(
+                "Values are null or wrong dimension");
+        return tuple;
+    }
+
+    /** 
+     * Transform from the reference coordinates
+     *
+     * @param  refTuple  array of values
+     * @return  input array
+     *
+     * @throws VisADException  tuple is null or wrong dimension
+     */
+    public float[][] fromReference(float[][] refTuple)
+        throws VisADException
+    {
+        if (refTuple == null || getDimension() != refTuple.length)
+            throw new VisADException(
+                "Values are null or wrong dimension");
+        return refTuple;
+    }
+
     /**
      * See if the object in question is equal to this CoordinateSystem.
      * The two objects are equal if they are the same object or if they
