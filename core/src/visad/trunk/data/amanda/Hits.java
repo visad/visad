@@ -69,6 +69,8 @@ public class Hits
   }
 
   private float[] timeSteps = null;
+  private Integer1DSet timeSubSet = null;
+  private FlatField timeMissingFld = null;
 
   public Hits() { }
 
@@ -76,8 +78,29 @@ public class Hits
   {
     super.add(hit);
 
-    // need to recompute timesteps
+    // need to recompute all data objects which depend on list of Hit objects
     timeSteps = null;
+    timeSubSet = null;
+    timeMissingFld = null;
+  }
+
+  private final boolean computeDataObjects()
+  {
+    final int numHits = size();
+
+    // build some VisAD Data objects which will be used later
+    boolean rtnval = true;
+    try {
+      timeSubSet = new Integer1DSet(indexType, numHits);
+      timeMissingFld = new FlatField(indexTupleType, timeSubSet);
+    } catch (VisADException ve) {
+      ve.printStackTrace();
+      timeSubSet = null;
+      timeMissingFld = null;
+      rtnval = false;
+    }
+
+    return rtnval;
   }
 
   /**
@@ -136,6 +159,63 @@ public class Hits
 
   public final Hit get(int i) { return (Hit )super.internalGet(i); }
 
+  final FlatField getHitsBeforeTime(float time)
+  {
+    if (timeSubSet == null || timeMissingFld == null) {
+      if (!computeDataObjects()) {
+        return null;
+      }
+    }
+
+    final int numHits = size();
+
+    RealTuple[] rt = new RealTuple[numHits];
+
+    for (int i = 0; i < numHits; i++) {
+      Hit hit = (Hit )internalGet(i);
+
+      final float leadTime = hit.getLeadingEdgeTime();
+      if (time < leadTime) {
+        rt[i] = Hit.missing;
+      } else {
+        rt[i] = hit.makeData();
+      }
+    }
+
+    FlatField fld;
+    try {
+      fld = new FlatField(indexTupleType, timeSubSet);
+      fld.setSamples(rt, false);
+    } catch (VisADException ve) {
+      ve.printStackTrace();
+      fld = timeMissingFld;
+    } catch (RemoteException re) {
+      re.printStackTrace();
+      fld = timeMissingFld;
+    }
+
+    return fld;
+  }
+
+  final Gridded1DSet getTimeStepSet(RealType setType)
+  {
+    if (timeSteps == null) {
+      computeTimeSteps();
+    }
+
+    Gridded1DSet set;
+    try {
+      set = new Gridded1DSet(setType,
+                             new float[][] { timeSteps },
+                             timeSteps.length);
+    } catch (VisADException ve) {
+      ve.printStackTrace();
+      set = null;
+    }
+
+    return set;
+  }
+
   final float[] getTimeSteps()
   {
     if (timeSteps == null) {
@@ -147,65 +227,19 @@ public class Hits
 
   final FieldImpl makeTimeSequence()
   {
-    final int numHits = size();
-
-    // build some VisAD Data objects which will be used later
-    Integer1DSet subSet;
-    FlatField missingFld;
-    try {
-      subSet = new Integer1DSet(indexType, numHits);
-      missingFld = new FlatField(indexTupleType, subSet);
-    } catch (VisADException ve) {
-      ve.printStackTrace();
-      return null;
-    }
-
     if (timeSteps == null) {
       computeTimeSteps();
     }
 
     FlatField[] data = new FlatField[timeSteps.length];
 
-    RealTuple[] rt = new RealTuple[numHits];
     for (int a = 0; a < timeSteps.length; a++) {
-      for (int i = 0; i < numHits; i++) {
-        Hit hit = (Hit )internalGet(i);
-
-        final float leadTime = hit.getLeadingEdgeTime();
-        if (timeSteps[a] < leadTime) {
-          rt[i] = Hit.missing;
-        } else {
-          rt[i] = hit.makeData();
-        }
-      }
-
-      FlatField fld;
-      try {
-        fld = new FlatField(indexTupleType, subSet);
-        fld.setSamples(rt, false);
-      } catch (VisADException ve) {
-        ve.printStackTrace();
-        fld = missingFld;
-      } catch (RemoteException re) {
-        re.printStackTrace();
-        fld = missingFld;
-      }
-      data[a] = fld;
-    }
-
-    Gridded1DSet set;
-    try {
-      set = new Gridded1DSet(RealType.Time,
-                             new float[][] { timeSteps },
-                             timeSteps.length);
-    } catch (VisADException ve) {
-      ve.printStackTrace();
-      set = null;
+      data[a] = getHitsBeforeTime(timeSteps[a]);
     }
 
     FieldImpl fld;
     try {
-      fld = new FieldImpl(timeSequenceType, set);
+      fld = new FieldImpl(timeSequenceType, getTimeStepSet(RealType.Time));
       fld.setSamples(data, false);
     } catch (VisADException ve) {
       ve.printStackTrace();
