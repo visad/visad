@@ -87,7 +87,7 @@ public class DODSSource
 	{
 	    URL		url = new URL(spec);
 	    String	path = url.getFile();
-	    String	query = "";
+	    String	query = null;
 	    int		i = path.lastIndexOf('?');
 	    if (i != -1)
 	    {
@@ -108,7 +108,7 @@ public class DODSSource
 			url.getProtocol(),
 			url.getHost(),
 			url.getPort(),
-			path + "?" + query)
+			query == null ? path : path + "?" + query)
 		    .toString();
 	    }
 	    dConnect = new DConnect(spec);
