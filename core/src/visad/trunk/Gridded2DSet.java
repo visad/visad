@@ -79,18 +79,19 @@ public class Gridded2DSet extends GriddedSet {
     LengthY = Lengths[1];
 
     if (Samples != null && Lengths[0] > 1 && Lengths[1] > 1) {
-      for (int i=0; i<Length; i++) {
-        if (Samples[0][i] != Samples[0][i]) {
-          throw new SetException(
-           "Gridded2DSet: samples value #" + i + " may not be missing");
-        }
-      }
-
       Pos = ( (Samples[0][1]-Samples[0][0])
                *(Samples[1][LengthX+1]-Samples[1][1])
               - (Samples[1][1]-Samples[1][0])
                *(Samples[0][LengthX+1]-Samples[0][1]) > 0);
+
       if (test) {
+        for (int i=0; i<Length; i++) {
+          if (Samples[0][i] != Samples[0][i]) {
+            throw new SetException(
+             "Gridded2DSet: samples value #" + i + " may not be missing");
+          }
+        }
+
         // Samples consistency test
         for (int j=0; j<LengthY-1; j++) {
           for (int i=0; i<LengthX-1; i++) {
