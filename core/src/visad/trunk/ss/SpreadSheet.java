@@ -3506,7 +3506,9 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
     // update borders of all cells
     for (int j=0; j<NumVisY; j++) {
       for (int i=0; i<NumVisX; i++) {
-        DisplayCells[i][j].setSelected(x == i && y == j);
+        boolean selected = x == i && y == j;
+        DisplayCells[i][j].setSelected(selected);
+        DisplayCells[i][j].setAutoShowControls(selected && AutoShowControls);
       }
     }
 

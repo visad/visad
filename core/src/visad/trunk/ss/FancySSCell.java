@@ -255,6 +255,17 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   // --- DATA MANAGEMENT ---
 
   /**
+   * Removes the Data object corresponding to the
+   * given variable name from this cell.
+   */
+  public void removeData(String varName)
+    throws VisADException, RemoteException
+  {
+    super.removeData(varName);
+    if (CellData.size() == 0) clearWidgetFrame();
+  }
+
+  /**
    * Imports a data object from the given source of unknown type,
    * in a separate thread.
    */
