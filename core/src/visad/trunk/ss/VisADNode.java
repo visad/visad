@@ -6,7 +6,7 @@
 package visad.ss;
 
 // AWT classes
-import java.awt.swing.tree.DefaultMutableTreeNode;
+import com.sun.java.swing.tree.DefaultMutableTreeNode;
 
 // VisAD classes
 import visad.ScalarType;

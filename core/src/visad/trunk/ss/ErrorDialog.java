@@ -7,7 +7,7 @@ package visad.ss;
 
 // AWT classes
 import java.awt.Frame;
-import java.awt.swing.JOptionPane;
+import com.sun.java.swing.JOptionPane;
 
 /** The ErrorDialog class displays error messages in dialog boxes. */
 public class ErrorDialog extends JOptionPane {

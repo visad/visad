@@ -8,9 +8,9 @@ package visad.ss;
 // AWT packages
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.swing.*;
-import java.awt.swing.event.*;
-import java.awt.swing.tree.*;
+import com.sun.java.swing.*;
+import com.sun.java.swing.event.*;
+import com.sun.java.swing.tree.*;
 
 // RMI classes
 import java.rmi.RemoteException;

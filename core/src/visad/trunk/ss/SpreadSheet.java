@@ -30,9 +30,9 @@ import java.awt.*;
 import java.awt.event.*;
 
 // JFC packages
-import java.awt.swing.*;
-import java.awt.swing.border.*;
-import java.awt.swing.event.*;
+import com.sun.java.swing.*;
+import com.sun.java.swing.border.*;
+import com.sun.java.swing.event.*;
 
 // I/O packages
 import java.io.*;
