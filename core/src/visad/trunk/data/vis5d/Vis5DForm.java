@@ -93,13 +93,17 @@ public class Vis5DForm extends Form implements FormFileInformer {
 
   public synchronized DataImpl open(String id)
          throws BadFormException, IOException, VisADException {
-    if (id == null) return null;
+    if (id == null) {
+      throw new BadFormException("Vis5DForm.open: null name String"); 
+    }
     byte[] name = id.getBytes();
     int[] sizes = new int[5];
     byte[] varnames = new byte[10 * MAXVARS];
     float[] times = new float[MAXTIMES];
     v5d_open(name, name.length, sizes, varnames, times);
-    if (sizes[0] < 1) return null;
+    if (sizes[0] < 1) {
+      throw new BadFormException("Vis5DForm.open: bad file"); 
+    }
     int nr = sizes[0];
     int nc = sizes[1];
     int nl = sizes[2];
@@ -116,7 +120,13 @@ public class Vis5DForm extends Form implements FormFileInformer {
       while (varnames[m] != 0) {m++;}
       vars[i] = makeRealType(new String(varnames, k, m - k));
     }
-    RealTupleType domain = new RealTupleType(row, col, lev);
+    RealTupleType domain;
+    if (nl > 1) {
+      domain = new RealTupleType(row, col, lev);
+    }
+    else {
+      domain = new RealTupleType(row, col);
+    }
     RealTupleType range = new RealTupleType(vars);
     RealTupleType time_domain = new RealTupleType(time);
     FunctionType grid_type = new FunctionType(domain, range);
@@ -125,7 +135,13 @@ public class Vis5DForm extends Form implements FormFileInformer {
     float[][] timeses = new float[1][ntimes];
     for (int i=0; i<ntimes; i++) timeses[0][i] = times[i];
     Gridded1DSet time_set = new Gridded1DSet(time, timeses, ntimes);
-    Integer3DSet space_set = new Integer3DSet(nr, nc, nl);
+    Set space_set;
+    if (nl > 1) {
+      space_set = new Integer3DSet(nr, nc, nl);
+    }
+    else {
+      space_set = new Integer2DSet(nr, nc);
+    }
     FieldImpl v5d = new FieldImpl(v5d_type, time_set);
     int grid_size = nr * nc * nl;
     for (int i=0; i<ntimes; i++) {
@@ -295,8 +311,10 @@ public class Vis5DForm extends Form implements FormFileInformer {
                                  Display.XAxis));
     display.addMap(new ScalarMap((RealType) domain.getComponent(1),
                                  Display.YAxis));
-    display.addMap(new ScalarMap((RealType) domain.getComponent(2),
-                                 Display.ZAxis));
+    if (domain.getDimension() > 2) {
+      display.addMap(new ScalarMap((RealType) domain.getComponent(2),
+                                   Display.ZAxis));
+    }
 
     // map grid values to IsoContour
     RealTupleType range = (RealTupleType) grid_type.getRange();
