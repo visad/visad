@@ -398,13 +398,16 @@ public class VisADSlider extends JPanel implements ChangeListener,
    * set to <tt>true</t>)
    * from causing the rest of the window to be redrawn.
    *
-   * @param percent percentage to increase current size
-   *                before it is set.
+   * @param percent percent of current size to use for hardcoded
+   *                size.  (e.g. to keep the current size, specify
+   *                <tt>100</tt>; to increase the size a bit,
+   *                specify <tt>115</tt>, to decrease it a bit,
+   *                specify <tt>85</tt>, etc.)
    */
-  public void hardcodeSize(int percent)
+  public void hardcodeSizePercent(int percent)
   {
     Dimension d = getPreferredSize();
-    int newWidth = d.width + (d.width * percent) / 100;
+    int newWidth = d.width + (d.width * (percent - 100)) / 100;
     setPreferredSize(new Dimension(newWidth, d.height));
   }
 
