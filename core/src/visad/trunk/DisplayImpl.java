@@ -120,15 +120,15 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       DisplayRealTypeVector.addElement(DisplayRealArray[i]);
     }
 
+    displayMonitor = new DisplayMonitorImpl(this);
+    displaySync = new DisplaySyncImpl(this);
+
     if (renderer != null) {
       displayRenderer = renderer;
     } else {
       displayRenderer = getDefaultDisplayRenderer();
     }
     displayRenderer.setDisplay(this);
-
-    displayMonitor = new DisplayMonitorImpl(this);
-    displaySync = new DisplaySyncImpl(this);
 
     // initialize ScalarMap's, ShadowDisplayReal's and Control's
     clearMaps();
@@ -144,6 +144,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       DisplayRealTypeVector.addElement(DisplayRealArray[i]);
     }
 
+    displayMonitor = new DisplayMonitorImpl(this);
+    displaySync = new DisplaySyncImpl(this);
+
     if (renderer != null) {
       displayRenderer = renderer;
     } else {
@@ -156,9 +159,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       }
     }
     displayRenderer.setDisplay(this);
-
-    displayMonitor = new DisplayMonitorImpl(this);
-    displaySync = new DisplaySyncImpl(this);
 
     // initialize ScalarMap's, ShadowDisplayReal's and Control's
     clearMaps();
@@ -1098,6 +1098,9 @@ if (initialize) {
         Control control = (Control) getGraphicsModeControl();
         if (control != null) addControl(control);
         control = (Control) getProjectionControl();
+        if (control != null) addControl(control);
+        // don't forget RendererControl
+        control = (Control) displayRenderer.getRendererControl();
         if (control != null) addControl(control);
       }
       // clear RealType-s from RealTypeVector
