@@ -120,7 +120,7 @@ public class Hit
   public final Module getModule() { return mod; }
   public final float getTimeOverThreshold() { return timeOverThreshold; }
 
-  final RealTuple makeData()
+  public final RealTuple makeData()
   {
     if (data == null) {
       // construct Tuple for hit
