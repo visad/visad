@@ -77,7 +77,7 @@ public class ShadowRealTypeJ3D extends ShadowScalarTypeJ3D {
         group.addChild(data_group);
 */
         throw new UnimplementedException("terminal LEGAL unimplemented: " +
-                                         "ShadowRealTypeJ3D.doTransform");
+                                         "ShadowRealTypeJ3D.postProcess");
       }
       else {
         // nothing to do

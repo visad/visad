@@ -862,8 +862,17 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
       }
       else {
         if (anyFlow) {
+/* WLH 23 May 99
           renderer.setEarthSpatialData(Domain, null, null,
                       null, (RealTupleType) Domain.getType(),
+                      new CoordinateSystem[] {dataCoordinateSystem},
+                      domain_units);
+*/
+          RealTupleType ref = (domain_reference == null) ? null :
+                              (RealTupleType) domain_reference.getType();
+          Unit[] ref_units = (ref == null) ? null : ref.getDefaultUnits();
+          renderer.setEarthSpatialData(Domain, domain_reference, ref,
+                      ref_units, (RealTupleType) Domain.getType(),
                       new CoordinateSystem[] {dataCoordinateSystem},
                       domain_units);
         }
@@ -982,8 +991,19 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
             Unit[] range_units = ((Field) data).getDefaultRangeUnits();
             CoordinateSystem[] range_coord_sys =
               ((Field) data).getRangeCoordinateSystem();
+/* WLH 23 May 99
             renderer.setEarthSpatialData((ShadowRealTupleType) Range,
                       null, null, null, (RealTupleType) Range.getType(),
+                      range_coord_sys, range_units);
+*/
+            ShadowRealTupleType component_reference =
+              ((ShadowRealTupleType) Range).getReference();
+            RealTupleType ref = (component_reference == null) ? null :
+                                (RealTupleType) component_reference.getType();
+            Unit[] ref_units = (ref == null) ? null : ref.getDefaultUnits();
+            renderer.setEarthSpatialData((ShadowRealTupleType) Range,
+                      component_reference, ref, ref_units,
+                      (RealTupleType) Range.getType(),
                       range_coord_sys, range_units);
           }
           else {
@@ -999,9 +1019,20 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
                 for (int j=0; j<m; j++) range_units[j] = dummy_units[j + start];
                 CoordinateSystem[] range_coord_sys =
                   ((Field) data).getRangeCoordinateSystem(i);
+/* WLH 23 May 99
                 renderer.setEarthSpatialData((ShadowRealTupleType)
                       range_component, null, null,
                       null, (RealTupleType) range_component.getType(),
+                      range_coord_sys, range_units);
+*/
+                ShadowRealTupleType component_reference =
+                  ((ShadowRealTupleType) range_component).getReference();
+                RealTupleType ref = (component_reference == null) ? null :
+                                    (RealTupleType) component_reference.getType();
+                Unit[] ref_units = (ref == null) ? null : ref.getDefaultUnits();
+                renderer.setEarthSpatialData((ShadowRealTupleType) range_component,
+                      component_reference, ref, ref_units,
+                      (RealTupleType) range_component.getType(),
                       range_coord_sys, range_units);
                 start += ((ShadowRealTupleType) range_component).getDimension();
               }
@@ -2137,6 +2168,9 @@ if (size < 0.2) {
               }
             }
           }
+
+          // push lat_index and lon_index for flow navigation
+          int[] lat_lon_indices = renderer.getLatLonIndices();
           if (control != null) {
             Object branch = shadow_api.makeBranch();
             post |= shadow_api.recurseRange(branch, ((Field) data).getSample(i),
@@ -2150,6 +2184,9 @@ if (size < 0.2) {
                                              range_value_array, default_values,
                                              renderer);
           }
+          // pop lat_index and lon_index for flow navigation
+          renderer.setLatLonIndices(lat_lon_indices);
+
         }
         else { // if (!range_select[0][i])
           if (control != null) {

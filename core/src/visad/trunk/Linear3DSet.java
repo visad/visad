@@ -230,6 +230,55 @@ public class Linear3DSet extends Gridded3DSet
     return indexToValue(indices);
   }
 
+  /** note makeSpatial never returns a Linear3DSet,
+      so this is not enough;
+      must handle it like linear texture mapping;
+      also, want to exploit Texture3D -
+      so must figure out how to make texture alpha work */
+  public VisADGeometryArray[] make3DGeometry(byte[][] color_values)
+         throws VisADException {
+    if (ManifoldDimension != 3) {
+      throw new SetException("Linear3DSet.make3DGeometry: " +
+                             "ManifoldDimension must be 3");
+    }
+    int lengthX = X.getLength();
+    int lengthY = Y.getLength();
+    int lengthZ = Z.getLength();
+    if (lengthX < 2 || lengthY < 2 || lengthZ < 2 ||
+        color_values.length < 4) {
+      VisADGeometryArray array = makePointGeometry(color_values);
+      return new VisADGeometryArray[] {array, array, array};
+    }
+    double firstX = X.getFirst();
+    double firstY = Y.getFirst();
+    double firstZ = Z.getFirst();
+    double lastX = X.getLast();
+    double lastY = Y.getLast();
+    double lastZ = Z.getLast();
+/* Now the 'brick' has dimensions lengthX * lengthY * lengthZ
+   and locations in each of X, Y and Z are in arithmetic
+   progression, ranging from firstX to lastX in X, etc.
+ 
+   The color component are laid out as follows: */
+    float red, green, blue, alpha;
+    for (int x=0; x<lengthX; x++) {
+      for (int y=0; y<lengthY; y++) {
+        for (int z=0; z<lengthZ; z++) {
+          red = color_values[0][x + lengthX * (y + lengthY * z)];
+          green = color_values[2][x + lengthX * (y + lengthY * z)];
+          blue = color_values[3][x + lengthX * (y + lengthY * z)];
+          alpha = color_values[4][x + lengthX * (y + lengthY * z)];
+        }
+      }
+    }
+    /* now construct 3 triangle strip arrays, for the planes
+       perpendicular to X, Y and Z */
+    VisADTriangleStripArray[] arrays = {new VisADTriangleStripArray(),
+      new VisADTriangleStripArray(), new VisADTriangleStripArray()};
+ 
+    return arrays;
+  }
+
   public boolean equals(Object set) {
     if (!(set instanceof Linear3DSet) || set == null) return false;
     if (this == set) return true;

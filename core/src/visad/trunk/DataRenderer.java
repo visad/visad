@@ -156,11 +156,6 @@ public abstract class DataRenderer extends Object {
   public DataShadow prepareAction(boolean go, boolean initialize,
                                   DataShadow shadow)
          throws VisADException, RemoteException {
-
-    // initialize flow stuff
-    lat_index = -1;
-    lon_index = -1;
-
     any_changed = false;
     all_feasible = true;
     any_transform_control = false;
@@ -280,6 +275,10 @@ if (map.badRange()) {
         ((AVControl) control).clearSwitches(this);
       }
     }
+
+    // a convenient place to thorw this in
+    lat_index = -1;
+    lon_index = -1;
   }
 
   /** factory for constructing a subclass of ShadowType appropriate
@@ -359,27 +358,22 @@ if (map.badRange()) {
   /*  flow rendering stuff  */
   /* ********************** */
 
-  //
-  // this is incorrect
-  //
-  // lat_index, lon_index and the booleans should be determined
-  // in check_indices, to be set and unset correctly as doTransform
-  // traverses the ShadowType tree
-  //
-
   // value array (display_values) indices
   //   ((ScalarMap) MapVector.elementAt(valueToMap[index]))
   // can get these indices through shadow_data_out or shadow_data_in
 
 
   // true if lat and lon in data_in & shadow_data_in is allSpatial
-  // or if lat and lon in data_in & lat_lon_by_coord
+  // or if lat and lon in data_in & lat_lon_in_by_coord
   boolean lat_lon_in = false;
-  // true if lat and lon in data_out & shadow_data_out is allSpatial
-  boolean lat_lon_out = false;
   // true if lat_lon_in and shadow_data_out is allSpatial
   // i.e., map from lat, lon to display is through data CoordinateSystem
-  boolean lat_lon_by_coord = false;
+  boolean lat_lon_in_by_coord = false;
+  // true if lat and lon in data_out & shadow_data_out is allSpatial
+  boolean lat_lon_out = false;
+  // true if lat_lon_out and shadow_data_in is allSpatial
+  // i.e., map from lat, lon to display is inverse via data CoordinateSystem
+  boolean lat_lon_out_by_coord = false;
 
   int lat_lon_dimension = -1;
 
@@ -419,6 +413,15 @@ if (map.badRange()) {
     else return null;
   }
 
+  public int[] getLatLonIndices() {
+    return new int[] {lat_index, lon_index};
+  }
+
+  public void setLatLonIndices(int[] indices) {
+    lat_index = indices[0];
+    lon_index = indices[1];
+  }
+
   public int getEarthDimension() {
     return lat_lon_dimension;
   }
@@ -455,11 +458,13 @@ if (map.badRange()) {
   public float getLatLonRange() {
     double[] rlat = null;
     double[] rlon = null;
-    if (lat_lon_out || (lat_lon_in && lat_lon_by_coord)) {
+    if ((lat_lon_out && !lat_lon_out_by_coord) ||
+        (lat_lon_in && lat_lon_in_by_coord)) {
       rlat = sdo_maps[lat_index].getRange();
       rlon = sdo_maps[lon_index].getRange();
     }
-    else if (lat_lon_in) {
+    else if ((lat_lon_in && !lat_lon_in_by_coord) ||
+             (lat_lon_out && lat_lon_out_by_coord)) {
       rlat = sdi_maps[lat_index].getRange();
       rlon = sdi_maps[lon_index].getRange();
     }
@@ -516,7 +521,7 @@ if (map.badRange()) {
     int vert_index = -1; // non-lat/lon index for lat_lon_dimension = 2
 
     if (lat_lon_in) {
-      if (lat_lon_by_coord) {
+      if (lat_lon_in_by_coord) {
         // transform 'RealTupleType data_in' to 'RealTupleType data_out'
         if (data_coord_in.length == 1) {
           // one data_coord_in applies to all data points
@@ -556,20 +561,52 @@ if (map.badRange()) {
       }
     }
     else if (lat_lon_out) {
-      // map data_out to spatial DisplayRealTypes
-      for (int i=0; i<lat_lon_dimension; i++) {
-        spatial_locs[sdo_spatial_index[i]] =
-          sdo_maps[i].scaleValues(tuple_locs[i]);
+      if (lat_lon_out_by_coord) {
+        // transform 'RealTupleType data_out' to 'RealTupleType data_in'
+        if (data_coord_in.length == 1) {
+          // one data_coord_in applies to all data points
+          tuple_locs = CoordinateSystem.transformCoordinates(data_in,
+                           data_coord_in[0], data_units_in, null, data_out,
+                           null, data_units_out, null, tuple_locs);
+        }
+        else {
+          // one data_coord_in per data point
+          float[][] temp = new float[lat_lon_dimension][1];
+          for (int j=0; j<size; j++) {
+            for (int k=0; k<lat_lon_dimension; k++) temp[k][0] = tuple_locs[k][j];
+              temp = CoordinateSystem.transformCoordinates(data_in,
+                             data_coord_in[j], data_units_in, null, data_out,
+                             null, data_units_out, null, temp);
+            for (int k=0; k<lat_lon_dimension; k++) tuple_locs[k][j] = temp[k][0];
+          }
+        }
+        // map data_in to spatial DisplayRealTypes
+        for (int i=0; i<lat_lon_dimension; i++) {
+          spatial_locs[sdi_spatial_index[i]] =
+            sdi_maps[i].scaleValues(tuple_locs[i]);
+        }
+        if (lat_lon_dimension == 2) {
+          vert_index = 3 - (sdi_spatial_index[0] + sdi_spatial_index[1]);
+        }
       }
-      if (lat_lon_dimension == 2) {
-        vert_index = 3 - (sdo_spatial_index[0] + sdo_spatial_index[1]);
+      else {
+        // map data_out to spatial DisplayRealTypes
+        for (int i=0; i<lat_lon_dimension; i++) {
+          spatial_locs[sdo_spatial_index[i]] =
+            sdo_maps[i].scaleValues(tuple_locs[i]);
+        }
+        if (lat_lon_dimension == 2) {
+          vert_index = 3 - (sdo_spatial_index[0] + sdo_spatial_index[1]);
+        }
       }
     }
     else if (lat_lon_spatial) {
       // map lat & lon, not in allSpatial RealTupleType, to
       // spatial DisplayRealTypes
-      spatial_locs[lat_spatial_index] = lat_map.scaleValues(tuple_locs[0]);
-      spatial_locs[lon_spatial_index] = lon_map.scaleValues(tuple_locs[1]);
+      spatial_locs[lat_spatial_index] =
+        lat_map.scaleValues(tuple_locs[lat_index]);
+      spatial_locs[lon_spatial_index] =
+        lon_map.scaleValues(tuple_locs[lon_index]);
       vert_index = 3 - (lat_spatial_index + lon_spatial_index);
     }
     else {
@@ -629,7 +666,7 @@ if (map.badRange()) {
     float[][] tuple_locs = new float[lat_lon_dimension][];
 
     if (lat_lon_in) {
-      if (lat_lon_by_coord) {
+      if (lat_lon_in_by_coord) {
         // map spatial DisplayRealTypes to data_out
         for (int i=0; i<lat_lon_dimension; i++) {
           tuple_locs[i] =
@@ -663,24 +700,59 @@ if (map.badRange()) {
       }
     }
     else if (lat_lon_out) {
-      // map spatial DisplayRealTypes to data_out
-      for (int i=0; i<lat_lon_dimension; i++) {
-        tuple_locs[i] =
-          sdo_maps[i].inverseScaleValues(spatial_locs[sdo_spatial_index[i]]);
+      if (lat_lon_out_by_coord) {
+        // map spatial DisplayRealTypes to data_in
+        for (int i=0; i<lat_lon_dimension; i++) {
+          tuple_locs[i] =
+            sdi_maps[i].inverseScaleValues(spatial_locs[sdi_spatial_index[i]]);
+        }
+        // transform 'RealTupleType data_in' to 'RealTupleType data_out'
+        if (data_coord_in.length == 1) {
+          // one data_coord_in applies to all data points
+          tuple_locs = CoordinateSystem.transformCoordinates(data_out, null,
+                           data_units_out, null, data_in, data_coord_in[0],
+                           data_units_in, null, tuple_locs);
+        }
+        else {
+          // one data_coord_in per data point
+          float[][] temp = new float[lat_lon_dimension][1];
+          for (int j=0; j<size; j++) {
+            for (int k=0; k<lat_lon_dimension; k++) temp[k][0] = tuple_locs[k][j];
+              temp = CoordinateSystem.transformCoordinates(data_out, null,
+                             data_units_out, null, data_in, data_coord_in[j],
+                             data_units_in, null, temp);
+            for (int k=0; k<lat_lon_dimension; k++) tuple_locs[k][j] = temp[k][0];
+          }
+        }
+      }
+      else {
+        // map spatial DisplayRealTypes to data_out
+        for (int i=0; i<lat_lon_dimension; i++) {
+          tuple_locs[i] =
+            sdo_maps[i].inverseScaleValues(spatial_locs[sdo_spatial_index[i]]);
+        }
       }
     }
     else if (lat_lon_spatial) {
       // map spatial DisplayRealTypes to lat & lon, not in
       // allSpatial RealTupleType
-      tuple_locs[0] = lat_map.inverseScaleValues(spatial_locs[lat_spatial_index]);
-      tuple_locs[1] = lon_map.inverseScaleValues(spatial_locs[lon_spatial_index]);
+      tuple_locs[lat_index] =
+        lat_map.inverseScaleValues(spatial_locs[lat_spatial_index]);
+      tuple_locs[lon_index] =
+        lon_map.inverseScaleValues(spatial_locs[lon_spatial_index]);
     }
     else {
       // should never happen
       return null;
     }
 
-    return tuple_locs;
+    // permute data RealTupleType to (lat, lon, other)
+    float[][] locs = new float[lat_lon_dimension][];
+    locs[0] = tuple_locs[lat_index];
+    locs[1] = tuple_locs[lon_index];
+    if (lat_lon_dimension == 3) locs[2] = tuple_locs[other_index];
+
+    return locs;
   }
 
   // information from doTransform
@@ -717,16 +789,18 @@ if (map.badRange()) {
       }
     }
     if (lat_index_local > -1 && lon_index_local > -1 && (n == 2 || n == 3)) {
-      if (s_d_i.getAllSpatial()) {
-        lat_lon_by_coord = false;
+      if (s_d_i != null && s_d_i.getAllSpatial() &&
+          !s_d_i.getSpatialReference()) {
+        lat_lon_in_by_coord = false;
         sdi_spatial_index = new int[s_d_i.getDimension()];
         sdi_maps = getSpatialMaps(s_d_i, sdi_spatial_index);
         if (sdi_maps == null) {
-          throw new DisplayException("sdi_maps null");
+          throw new DisplayException("sdi_maps null A");
         }
       }
-      else if (s_d_o.getAllSpatial()) {
-        lat_lon_by_coord = true;
+      else if (s_d_o != null && s_d_o.getAllSpatial() &&
+               !s_d_o.getSpatialReference()) {
+        lat_lon_in_by_coord = true;
         sdo_spatial_index = new int[s_d_o.getDimension()];
         sdo_maps = getSpatialMaps(s_d_o, sdo_spatial_index);
         if (sdo_maps == null) {
@@ -739,6 +813,7 @@ if (map.badRange()) {
       }
       lat_lon_in = true;
       lat_lon_out = false;
+      lat_lon_out_by_coord = false;
       lat_lon_spatial = false;
       lat_lon_dimension = n;
       if (n == 3) {
@@ -748,7 +823,7 @@ if (map.badRange()) {
         }
       }
     }
-    else {
+    else { // if( !(lat & lon in di, di dimension = 2 or 3) )
       lat_index_local = -1;
       lon_index_local = -1;
       if (d_o != null) {
@@ -759,19 +834,36 @@ if (map.badRange()) {
           if (RealType.Longitude.equals(real)) lon_index_local = i;
         }
       }
-      if (lat_index_local < 0 || lon_index_local < 0 || !s_d_o.getAllSpatial() ||
-          !(m == 2 || m == 3)) {
+      if (lat_index_local < 0 || lon_index_local < 0 || !(m == 2 || m == 3)) {
         // do not update lat_index & lon_index
         return;
       }
-      sdo_spatial_index = new int[s_d_o.getDimension()];
-      sdo_maps = getSpatialMaps(s_d_o, sdo_spatial_index);
-      if (sdo_maps == null) {
-        throw new DisplayException("sdo_maps null B");
+      if (s_d_o != null && s_d_o.getAllSpatial() &&
+          !s_d_o.getSpatialReference()) {
+        lat_lon_out_by_coord = false;
+        sdo_spatial_index = new int[s_d_o.getDimension()];
+        sdo_maps = getSpatialMaps(s_d_o, sdo_spatial_index);
+        if (sdo_maps == null) {
+          throw new DisplayException("sdo_maps null B");
+        }
       }
+      else if (s_d_i != null && s_d_i.getAllSpatial() &&
+               !s_d_i.getSpatialReference()) {
+        lat_lon_out_by_coord = true;
+        sdi_spatial_index = new int[s_d_i.getDimension()];
+        sdi_maps = getSpatialMaps(s_d_i, sdi_spatial_index);
+        if (sdi_maps == null) {
+          throw new DisplayException("sdi_maps null B");
+        }
+      }
+      else {
+        // do not update lat_index & lon_index
+        return;
+      }
+
       lat_lon_out = true;
-      lat_lon_by_coord = false;
       lat_lon_in = false;
+      lat_lon_in_by_coord = false;
       lat_lon_spatial = false;
       lat_lon_dimension = m;
       if (m == 3) {
@@ -815,7 +907,9 @@ if (map.badRange()) {
           break;
         }
       }
-      if (maps[i] == null) return null;
+      if (maps[i] == null) {
+        return null;
+      }
     }
     return maps;
   }
@@ -876,15 +970,22 @@ if (map.badRange()) {
   int lat_spatial_index = -1;
   int lon_spatial_index = -1;
 
+  // spatial map getRange() results for flow adjustment
+  double[] ranges = null;
+
+  public double[] getRanges() {
+    return ranges;
+  }
 
   // information from assembleSpatial
   public void setEarthSpatialDisplay(CoordinateSystem coord,
            DisplayTupleType t, DisplayImpl display, int[] indices,
-           float[][] display_values, float[] default_values)
+           float[][] display_values, float[] default_values, double[] r)
          throws VisADException {
     display_coordinate_system = coord;
     spatial_tuple = t;
     spatial_value_indices = indices;
+    ranges = r;
     for (int i=0; i<3; i++) {
       int default_index = display.getDisplayScalarIndex(
               ((DisplayRealType) t.getComponent(i)) );
@@ -928,7 +1029,7 @@ if (map.badRange()) {
       lat_lon_spatial = true;
       lat_lon_dimension = 2;
       lat_lon_out = false;
-      lat_lon_by_coord = false;
+      lat_lon_in_by_coord = false;
       lat_lon_in = false;
     }
     else {
@@ -1058,10 +1159,6 @@ if (map.badRange()) {
                 (tuple != null &&
                  tuple.getCoordinateSystem().getReference().equals(
                  Display.DisplaySpatialCartesianTuple)) )) {
-/* WLH 3 Aug 98
-      else if(!(Display.DisplaySpatialCartesianTuple.equals(
-                           domain.getDisplaySpatialTuple() ) ) ) {
-*/
         whyNotDirect = domainNotSpatial;
         return;
       }
@@ -1482,7 +1579,8 @@ System.out.println("checkClose: distance = " + distance);
             reals[j] = (Real) ((RealTuple) data).getComponent(j);
           }
         }
-        newData = new RealTuple(reals);
+        newData = new RealTuple((RealTupleType) type, reals,
+                                ((RealTuple) data).getCoordinateSystem());
         ref.setData(newData);
       }
       else if (type instanceof FunctionType) {

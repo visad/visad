@@ -168,12 +168,12 @@ jar_split:
 	jar cvf visad_src-2.0.jar $(TAR_FILES) ; \
 	mv visad_src-2.0.jar visad ; \
 	cd visad ; \
-	split -b 1400000 visad_src-2.0.jar visad_src_split ; \
-	ls -l visad_src_split*
+	split -b 1400000 visad_src-2.0.jar visad_ ; \
+	ls -l visad_a*
 
 unjar_split:
 	cd .. ; \
-	cat visad_src_split* > visad_src-2.0.jar ;
+	cat visad_a* > visad_src-2.0.jar ;
 	jar xvf visad_src-2.0.jar
 
 CLASS_FILES = \

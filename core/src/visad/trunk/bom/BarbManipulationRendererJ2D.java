@@ -89,6 +89,8 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
     "RealType with multiple flow mappings";
   private final static String noFlow =
     "must be RealTypes mapped to flow X and flow Y";
+  private final static String nonCartesian =
+    "non-Cartesian spatial mapping";
 
 
   /** for use in drag_direct */
@@ -118,6 +120,11 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
   /** which_barb = 0 (Flow1) or 1 (Flow2);
       redundant with tuple */
   private int which_barb = -1;
+  /** flow from data when first */
+  private float[] data_flow = {0.0f, 0.0f, 0.0f};
+  /** data and display magnitudes when first */
+  private float data_speed = 0.0f;
+  private float display_speed = 0.0f;
 
   public String getWhyNotDirect() {
     return whyNotDirect;
@@ -133,7 +140,6 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
     link = getLinks()[0];
     ref = link.getDataReference();
     type = link.getType();
-    tuple = null;
     if (!(type instanceof TupleType) || !((TupleType) type).getFlat()) {
       whyNotDirect = notFlatTupleType;
       return;
@@ -141,13 +147,24 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
     flowToComponent = new int[] {-1, -1, -1};
     directMap = new ScalarMap[] {null, null, null};
     shadow = (ShadowTupleType) link.getShadow().getAdaptedShadowType();
-    DisplayTupleType[] tuples = {tuple};
+    DisplayTupleType[] tuples = {null};
     whyNotDirect = findFlow(shadow, display, tuples, flowToComponent);
     if (whyNotDirect != null) return;
     if (tuples[0] == null || flowToComponent[0] < 0 || flowToComponent[1] < 0) {
       whyNotDirect = noFlow;
       return;
     }
+
+    ShadowRealType[] components = shadow.getRealComponents();
+    for (int i=0; i<components.length; i++) {
+      DisplayTupleType spatial_tuple = components[i].getDisplaySpatialTuple();
+      if (spatial_tuple != null &&
+          !Display.DisplaySpatialCartesianTuple.equals(spatial_tuple)) {
+        whyNotDirect = nonCartesian;
+        return;
+      }
+    }
+
     tuple = tuples[0];
     // needs more, will find out when we write drag_direct
     setIsDirectManipulation(true);
@@ -303,50 +320,19 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
     x[0] = o_x + dot * d_x;
     x[1] = o_y + dot * d_y;
     x[2] = o_z + dot * d_z;
-
-    try {
-// must convert x from spatial to earth
-      if (getRealVectorTypes(which_barb) instanceof EarthVectorType) {
-
-//
-// work to do here
-//
-
-      }
-      else {
-        float[] xx = {x[0], x[1], x[2]};
-        if (tuple != null) {
-          float[][] cursor = {{x[0]}, {x[1]}, {x[2]}};
-          float[][] new_cursor =
-            tuple.getCoordinateSystem().fromReference(cursor);
-          x[0] = new_cursor[0][0];
-          x[1] = new_cursor[1][0];
-          x[2] = new_cursor[2][0];
-        }
-        for (int i=0; i<3; i++) {
-          if (flowToComponent[i] >= 0) {
-            f[0] = x[i];
-            d = directMap[i].inverseScaleValues(f);
-            x[i] = (float) d[0];
-          }
-        }
-      }
-
-      Data newData = null;
-      Data data = link.getData();
-      // type is a RealTupleType
-/* may need to do this for performance
-      float[] xx = {x[0], x[1], x[2]};
-      addPoint(xx);
+/*
+System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
 */
+    try {
+
+      Tuple data = (Tuple) link.getData();
       int n = ((TupleType) data.getType()).getNumberOfRealComponents();
       Real[] reals = new Real[n];
-
+ 
       int k = 0;
-      Tuple tdata = (Tuple) data;
-      int m = ((Tuple) data).getDimension();
+      int m = data.getDimension();
       for (int i=0; i<m; i++) {
-        Data component = ((Tuple) data).getComponent(i);
+        Data component = data.getComponent(i);
         if (component instanceof Real) {
           reals[k++] = (Real) component;
         }
@@ -357,6 +343,110 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
         }
       }
 
+      if (first) {
+        // get first Data flow vector
+        for (int i=0; i<3; i++) {
+          int j = flowToComponent[i];
+          data_flow[i] = (j >= 0) ? (float) reals[j].getValue() : 0.0f;
+        }
+        data_speed = (float) Math.sqrt(data_flow[0] * data_flow[0] +
+                                       data_flow[1] * data_flow[1] +
+                                       data_flow[2] * data_flow[2]);
+        float barb0 = barbValues[2] - barbValues[0];
+        float barb1 = barbValues[3] - barbValues[1];
+/*
+System.out.println("data_flow = " + data_flow[0] + " " + data_flow[1] +
+                   " " + data_flow[2]);
+System.out.println("barbValues = " + barbValues[0] + " " + barbValues[1] +
+                   "   " + barbValues[2] + " " + barbValues[3]);
+System.out.println("data_speed = " + data_speed);
+*/
+      }
+
+      // convert x to a flow vector, and from spatial to earth
+      if (getRealVectorTypes(which_barb) instanceof EarthVectorType) {
+        // don't worry about vector magnitude -
+        // data_speed & display_speed take care of that
+        float eps = 0.0001f; // estimate derivative with a little vector
+        float[][] spatial_locs =
+          {{barbValues[0], barbValues[0] + eps * (x[0] - barbValues[0])},
+           {barbValues[1], barbValues[1] + eps * (x[1] - barbValues[1])},
+           {0.0f, 0.0f}};
+/*
+System.out.println("spatial_locs = " + spatial_locs[0][0] + " " +
+                   spatial_locs[0][1] + " " + spatial_locs[1][0] + " " +
+                   spatial_locs[1][1]);
+*/
+        float[][] earth_locs = spatialToEarth(spatial_locs);
+/*
+System.out.println("earth_locs = " + earth_locs[0][0] + " " +
+                   earth_locs[0][1] + " " + earth_locs[1][0] + " " +
+                   earth_locs[1][1]);
+*/
+        x[2] = 0.0f;
+        x[0] = (earth_locs[1][1] - earth_locs[1][0]) *
+               ((float) Math.cos(Data.DEGREES_TO_RADIANS * earth_locs[0][0]));
+        x[1] = earth_locs[0][1] - earth_locs[0][0];
+/*
+System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
+*/
+      }
+      else { // if (!(getRealVectorTypes(which_barb) instanceof EarthVectorType))
+        // convert x to vector
+        x[0] -= barbValues[0];
+        x[1] -= barbValues[1];
+
+        // adjust for spatial map scalings but don't worry about vector
+        // magnitude - data_speed & display_speed take care of that
+        // also, spatial is Cartesian
+        double[] ranges = getRanges();
+        for (int i=0; i<3; i++) {
+          x[i] /= ranges[i];
+        }
+/*
+System.out.println("ranges = " + ranges[0] + " " + ranges[1] +
+                   " " + ranges[2]);
+System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
+*/
+      }
+
+/* may need to do this for performance
+      float[] xx = {x[0], x[1], x[2]};
+      addPoint(xx);
+*/
+
+      float x_speed =
+        (float) Math.sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2]);
+      if (first) {
+        display_speed = x_speed;
+      }
+
+      if (mshift != 0) {
+        // only modify data_flow direction
+        float ratio = data_speed / x_speed;
+        x[0] *= ratio;
+        x[1] *= ratio;
+        x[2] *= ratio;
+/*
+System.out.println("direction, ratio = " + ratio + " " +
+                   data_speed + " " + x_speed);
+System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
+*/
+      }
+      else {
+        // only modify data_flow speed
+        float ratio = x_speed / display_speed;
+        x[0] = ratio * data_flow[0];
+        x[1] = ratio * data_flow[1];
+        x[2] = ratio * data_flow[2];
+/*
+System.out.println("speed, ratio = " + ratio + " " +
+                   x_speed + " " + display_speed);
+System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
+*/
+      }
+
+      // now replace flow values
       Vector vect = new Vector();
       for (int i=0; i<3; i++) {
         int j = flowToComponent[i];
@@ -369,14 +459,17 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
       }
       getDisplayRenderer().setCursorStringVector(vect);
 
+      Data newData = null;
+      // now build new RealTuple or Flat Tuple
       if (data instanceof RealTuple) {
-        newData = new RealTuple(reals);
+        newData = new RealTuple(((RealTupleType) data.getType()), reals,
+                                ((RealTuple) data).getCoordinateSystem());
       }
       else {
         Data[] new_components = new Data[m];
         k = 0;
         for (int i=0; i<m; i++) {
-          Data component = ((Tuple) data).getComponent(i);
+          Data component = data.getComponent(i);
           if (component instanceof Real) {
             new_components[i] = reals[k++];
           }
@@ -385,7 +478,9 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
             for (int j=0; j<((RealTuple) component).getDimension(); j++) {
               sub_reals[j] = reals[k++];
             }
-            new_components[i] = new RealTuple(sub_reals);
+            new_components[i] =
+              new RealTuple(((RealTupleType) component.getType()), sub_reals,
+                            ((RealTuple) component).getCoordinateSystem());
           }
         }
         newData = new Tuple(new_components, false);
@@ -416,9 +511,10 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
     RealType red = new RealType("red");
     RealType green = new RealType("green");
 
+    // EarthVectorType extends RealTupleType and says that its
+    // components are vectors in m/s with components parallel
+    // to Longitude (positive east) and Latitude (positive north)
     EarthVectorType flowxy = new EarthVectorType(flowx, flowy);
-
-
 
     DisplayImpl display = new DisplayImplJ2D("display1");
     ScalarMap lonmap = new ScalarMap(lon, Display.XAxis);
@@ -437,23 +533,27 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
     display.addMap(new ScalarMap(green, Display.Green));
     display.addMap(new ConstantMap(1.0, Display.Blue));
 
+    // create an array of N by N winds
     for (int i=0; i<N; i++) {
       for (int j=0; j<N; j++) {
         double u = 2.0 * i / (N - 1.0) - 1.0;
         double v = 2.0 * j / (N - 1.0) - 1.0;
+
+        // each wind record is a Tuple (lon, lat, (flowx, flowy), red, green)
+        // set colors by wind components, just for grins
         Tuple tuple = new Tuple(new Data[]
           {new Real(lon, 10.0 * u), new Real(lat, 10.0 * v - 40.0),
-           new RealTuple(new EarthVectorType(flowx, flowy),
-                         new double[] {30.0 * u, 30.0 * v}),
+           new RealTuple(flowxy, new double[] {30.0 * u, 30.0 * v}),
            new Real(red, u), new Real(green, v)});
-/*
-        RealTuple tuple = new RealTuple(new Real[]
-          {new Real(x, u), new Real(y, v),
-           new Real(flowx, 30.0 * u), new Real(flowy, 30.0 * v),
-           new Real(red, 1.0), new Real(green, 1.0), new Real(blue, 0.0)});
-*/
+
+        // construct reference for wind record
         DataReferenceImpl ref = new DataReferenceImpl("ref");
         ref.setData(tuple);
+
+        // link wind record to display via BarbManipulationRendererJ2D
+        // so user can change barb by dragging it
+        // drag with right mouse button and shift to change direction
+        // drag with right mouse button and no shift to change speed
         display.addReferences(new BarbManipulationRendererJ2D(), ref);
       }
     }
@@ -478,6 +578,5 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
     frame.setSize(500, 500);
     frame.setVisible(true);
   }
-
 }
 

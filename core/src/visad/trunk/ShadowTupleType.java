@@ -320,7 +320,7 @@ public class ShadowTupleType extends ShadowType {
             CoordinateSystem.transformCoordinates(
               ref, null, ref.getDefaultUnits(), null,
               (RealTupleType) componentWithRef[i].getType(),
-              range_coord_sys, range_units, null, value);
+              range_coord_sys, range_units, null, values);
  
           if (getAnyFlow()) {
             renderer.setEarthSpatialData(componentWithRef[i],
@@ -332,7 +332,7 @@ public class ShadowTupleType extends ShadowType {
           // map reference_values to appropriate DisplayRealType-s
           // MEM
           mapValues(display_values, reference_values,
-                    getComponents(componentWithRef[i], false));
+                    getComponents(component_reference, false));
           // FREE
           reference_values = null;
           // FREE (redundant reference to range_values)
@@ -346,8 +346,19 @@ public class ShadowTupleType extends ShadowType {
           Unit[] range_units = value_units;
           CoordinateSystem range_coord_sys =
             ((RealTuple) data).getCoordinateSystem();
+/* WLH 23 May 99
           renderer.setEarthSpatialData((ShadowRealTupleType) this,
                     null, null, null, (RealTupleType) this.getType(),
+                    new CoordinateSystem[] {range_coord_sys}, range_units);
+*/
+          ShadowRealTupleType component_reference =
+            ((ShadowRealTupleType) this).getReference();
+          RealTupleType ref = (component_reference == null) ? null :
+                                (RealTupleType) component_reference.getType();
+          Unit[] ref_units = (ref == null) ? null : ref.getDefaultUnits();
+          renderer.setEarthSpatialData((ShadowRealTupleType) this,
+                    component_reference, ref, ref_units,
+                    (RealTupleType) this.getType(),
                     new CoordinateSystem[] {range_coord_sys}, range_units);
         }
         else {
@@ -362,9 +373,20 @@ public class ShadowTupleType extends ShadowType {
               for (j=0; j<m; j++) range_units[j] = value_units[j + start];
               CoordinateSystem range_coord_sys = ((RealTuple) ((Tuple) data).
                     getComponent(i)).getCoordinateSystem();
+/* WLH 23 May 99
               renderer.setEarthSpatialData((ShadowRealTupleType)
                       component, null, null,
                       null, (RealTupleType) component.getType(),
+                      new CoordinateSystem[] {range_coord_sys}, range_units);
+*/
+              ShadowRealTupleType component_reference =
+                ((ShadowRealTupleType) component).getReference();
+              RealTupleType ref = (component_reference == null) ? null :
+                                  (RealTupleType) component_reference.getType(); 
+              Unit[] ref_units = (ref == null) ? null : ref.getDefaultUnits();
+              renderer.setEarthSpatialData((ShadowRealTupleType) component,
+                      component_reference, ref, ref_units,
+                      (RealTupleType) component.getType(),
                       new CoordinateSystem[] {range_coord_sys}, range_units);
               start += ((ShadowRealTupleType) component).getDimension();
             }
@@ -433,13 +455,12 @@ public class ShadowTupleType extends ShadowType {
         Data component = tuple.getComponent(i);
         if (!(component instanceof Real) &&
             !(component instanceof RealTuple)) {
-/* WLH 7 May 99
-          ShadowTypeJ3D component_type = (ShadowTypeJ3D) getComponent(i);
-          post |= component_type.doTransform(group, component, value_array,
-                                             default_values, renderer);
-*/
+          // push lat_index and lon_index for flow navigation
+          int[] lat_lon_indices = renderer.getLatLonIndices();
           post |= shadow_api.recurseComponent(i, group, component, value_array,
                                               default_values, renderer);
+          // pop lat_index and lon_index for flow navigation
+          renderer.setLatLonIndices(lat_lon_indices);
         }
       }
       return post;

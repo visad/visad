@@ -1115,13 +1115,12 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     float[][] offset_values = new float[3][];
     boolean[] offset_copy = {false, false, false};
 
-/* WLH 8 May 99
     // spatial map getRange() results for flow adjustment
     double[] ranges = new double[] {Double.NaN, Double.NaN, Double.NaN};
-    // some helpers for this computing ranges
+    // some helpers for computing ranges for flow adjustment
     int[] valueToMap = display.getValueToMap();
     Vector MapVector = display.getMapVector();
-*/
+
     // indexed by tuple_index
     int[] spatial_value_indices = {-1, -1, -1};
 
@@ -1152,11 +1151,9 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
             tuple_indices[spatialDimension] = tuple_index;
             spatialDimension++; // # non-inherited spatial dimensions
           }
-/* WLH 8 May 99
           double[] map_range =
             ((ScalarMap) MapVector.elementAt(valueToMap[i])).getRange();
           ranges[tuple_index] = map_range[1] - map_range[0];
-*/
         }
       } // end if (display_values[i] != null)
     } // end for (int i=0; i<valueArrayLength; i++)
@@ -1328,7 +1325,6 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     if (flen[0] > 0) fillOut(flow1_values, len);
     if (flen[1] > 0) fillOut(flow2_values, len);
 
-/* WLH 8 May 99
     // adjust flow for spatial setRange scaling
     double max_range = -1.0;
     for (int i=0; i<3; i++) {
@@ -1346,95 +1342,94 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       }
     }
     for (int k=0; k<2; k++) {
-      if (ff_values[k][0] != null ||
-          ff_values[k][1] != null ||
-          ff_values[k][2] != null) {
-        for (int j=0; j<len; j++) {
-          float old_speed = 0.0f;
-          float new_speed = 0.0f;
-          for (int i=0; i<3; i++) {
-            if (ff_values[k][i] != null) {
-              old_speed += ff_values[k][i][j] * ff_values[k][i][j];
-              ff_values[k][i][j] *= ranges[i];
-              new_speed += ff_values[k][i][j] * ff_values[k][i][j];
+      if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType)) {
+        if (ff_values[k][0] != null ||
+            ff_values[k][1] != null ||
+            ff_values[k][2] != null) {
+          for (int j=0; j<len; j++) {
+            float old_speed = 0.0f;
+            float new_speed = 0.0f;
+            for (int i=0; i<3; i++) {
+              if (ff_values[k][i] != null) {
+                old_speed += ff_values[k][i][j] * ff_values[k][i][j];
+                ff_values[k][i][j] *= ranges[i];
+                new_speed += ff_values[k][i][j] * ff_values[k][i][j];
+              }
+            }
+            // but don't change vector magnitude ??
+            float ratio = (float) Math.sqrt(old_speed / new_speed);
+            for (int i=0; i<3; i++) {
+              if (ff_values[k][i] != null) {
+                ff_values[k][i][j] *= ratio;
+              }
             }
           }
-          // but don't change vector magnitude ????
-          float ratio = (float) Math.sqrt(old_speed / new_speed);
-          for (int i=0; i<3; i++) {
-            if (ff_values[k][i] != null) {
-              ff_values[k][i][j] *= ratio;
-            }
-          }
-        }
-      } // end if (ff_values[k][0] != null || ...)
+        } // end if (ff_values[k][0] != null || ...)
+      } // end if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType))
     } // end for (int k=0; k<2; k++)
-*/
 
     // adjust Flow values for coordinate transform
     if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
       if (anyFlow) {
         renderer.setEarthSpatialDisplay(null, spatial_tuple, display,
-                 spatial_value_indices, display_values, default_values);
+                 spatial_value_indices, display_values, default_values,
+                 ranges);
       }
     }
     else {
-    // if (!spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
       // transform tuple_values to DisplaySpatialCartesianTuple
       CoordinateSystem coord = spatial_tuple.getCoordinateSystem();
 
+      float[][][] vector_ends = new float[2][][];
       if (anyFlow) {
         renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
-                 spatial_value_indices, display_values, default_values);
-      }
+                 spatial_value_indices, display_values, default_values,
+                 ranges);
 
-/* WLH 8 May 99
-//
-// need to do transform for EarthVectorType
-//   adjust for longitude shortening with latitude
-//     transform vector_ends by linear tangent to earth transform?
-//
-      // compute and transform 'end points' of flow vectors
-      float[][][] vector_ends = new float[2][][];
-      for (int k=0; k<2; k++) {
-        if (flen[k] > 0) {
-          vector_ends[k] = new float[3][len];
-          for (int i=0; i<3; i++) {
-            if (ff_values[k][i] != null) {
-              for (int j=0; j<len; j++) {
-                vector_ends[k][i][j] =
-                  spatial_values[i][j] + flowScale[k] * ff_values[k][i][j];
-              }
-            }
-            else { // (ff_values[k][i] == null)
-              for (int j=0; j<len; j++) {
-                vector_ends[k][i][j] = spatial_values[i][j];
-              }
-            }
-          } // end for (int i=0; i<3; i++)
-          vector_ends[k] = coord.toReference(vector_ends[k]);
-        } // end if (flen[k] > 0)
-      } // end for (int k=0; k<2; k++)
-*/
+        // compute and transform 'end points' of flow vectors
+        for (int k=0; k<2; k++) {
+          if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType)) {
+            if (flen[k] > 0) {
+              vector_ends[k] = new float[3][len];
+              for (int i=0; i<3; i++) {
+                if (ff_values[k][i] != null) {
+                  for (int j=0; j<len; j++) {
+                    vector_ends[k][i][j] =
+                      spatial_values[i][j] + flowScale[k] * ff_values[k][i][j];
+                  }
+                }
+                else { // (ff_values[k][i] == null)
+                  for (int j=0; j<len; j++) {
+                    vector_ends[k][i][j] = spatial_values[i][j];
+                  }
+                }
+              } // end for (int i=0; i<3; i++)
+              vector_ends[k] = coord.toReference(vector_ends[k]);
+            } // end if (flen[k] > 0)
+          } // end if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType))
+        } // end for (int k=0; k<2; k++)
+      }
 
       // transform spatial_values
       float[][] new_spatial_values = coord.toReference(spatial_values);
       for (int i=0; i<3; i++) spatial_values[i] = new_spatial_values[i];
 
-/* WLH 8 May 99
-      // subtract transformed spatial_values from transformed flow vectors
-      for (int k=0; k<2; k++) {
-        if (flen[k] > 0) {
-          for (int i=0; i<3; i++) {
-            for (int j=0; j<len; j++) {
-              vector_ends[k][i][j] =
-                (vector_ends[k][i][j] - spatial_values[i][j]) / flowScale[k];
+      if (anyFlow) {
+        // subtract transformed spatial_values from transformed flow vectors
+        for (int k=0; k<2; k++) {
+          if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType)) {
+            if (flen[k] > 0) {
+              for (int i=0; i<3; i++) {
+                for (int j=0; j<len; j++) {
+                  vector_ends[k][i][j] =
+                    (vector_ends[k][i][j] - spatial_values[i][j]) / flowScale[k];
+                }
+                ff_values[k][i] = vector_ends[k][i];
+              }
             }
-            ff_values[k][i] = vector_ends[k][i];
-          }
-        }
+          } // end if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType))
+        } // end for (int k=0; k<2; k++)
       }
-*/
       missing_checked = new boolean[] {false, false, false};
     } // end if (!spatial_tuple.equals(Display.DisplaySpatialCartesianTuple))
 
@@ -1742,12 +1737,18 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       }
     }
     float inv_scale = 1.0f / scale;
-
+    if (inv_scale != inv_scale) inv_scale = 1.0f;
+/*
+System.out.println("spatial_values = " + spatial_values[0][0] + " " +
+                   spatial_values[1][0] + " " + spatial_values[2][0]);
+*/
     // convert spatial DisplayRealType values to earth coordinates
     float[][] earth_locs = renderer.spatialToEarth(spatial_values);
     if (earth_locs == null) return flow_values;
     int elen = earth_locs.length; // 2 or 3
-
+/*
+System.out.println("earth_locs = " + earth_locs[0][0] + " " + earth_locs[1][0]);
+*/
     // convert earth coordinate Units to (radian, radian, meter)
     boolean other_meters = false;
     Unit[] earth_units = renderer.getEarthUnits();
@@ -1767,7 +1768,10 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           CommonUnit.meter.toThis(earth_locs[2], earth_units[2]);
       }
     }
- 
+/*
+System.out.println("radian earth_locs = " + earth_locs[0][0] +
+                   " " + earth_locs[1][0]);
+*/
     // add scaled flow vector to earth location
     if (elen == 3) {
       // assume meters even if other_meters == false
@@ -1790,7 +1794,10 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
         earth_locs[0][j] += factor_lat * flow_values[1][j];
       }
     }
-
+/*
+System.out.println("flow earth_locs = " + earth_locs[0][0] +
+                   " " + earth_locs[1][0]);
+*/
     // convert earth coordinate Units from (radian, radian, meter)
     if (earth_units != null) {
       if (Unit.canConvert(earth_units[0], CommonUnit.radian)) {
@@ -1807,7 +1814,10 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           CommonUnit.meter.toThat(earth_locs[2], earth_units[2]);
       }
     }
-
+/*
+System.out.println("degree earth_locs = " + earth_locs[0][0] +
+                   " " + earth_locs[1][0]);
+*/
     // convert earth coordinates to spatial DisplayRealType values
     if (elen == 3) {
       earth_locs = renderer.earthToSpatial(earth_locs, null);
@@ -1821,14 +1831,20 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       }
       earth_locs = renderer.earthToSpatial(earth_locs, vert);
     }
-
+/*
+System.out.println("spatial earth_locs = " + earth_locs[0][0] + " " +
+                   earth_locs[1][0] + " " + earth_locs[2][0]);
+*/
     // flow = change in spatial_values
     for (int i=0; i<3; i++) {
       for (int j=0; j<flen; j++) {
         earth_locs[i][j] -= spatial_values[i][j];
       }
     }
-
+/*
+System.out.println("vector earth_locs = " + earth_locs[0][0] + " " +
+                   earth_locs[1][0] + " " + earth_locs[2][0]);
+*/
     // combine earth_locs direction with flow_values magnitude
     for (int j=0; j<flen; j++) {
       float mag =
@@ -1844,6 +1860,10 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       flow_values[1][j] = ratio * earth_locs[1][j];
       flow_values[2][j] = ratio * earth_locs[2][j];
     }
+/*
+System.out.println("flow_values = " + flow_values[0][0] + " " +
+                   flow_values[1][0] + " " + flow_values[2][0]);
+*/
     return flow_values;
   }
 

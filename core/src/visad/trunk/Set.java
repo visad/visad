@@ -333,7 +333,7 @@ public abstract class Set extends DataImpl {
     throw new SetException("Set.make2DGeometry: not valid for this Set");
   }
 
-  public VisADGeometryArray make3DGeometry(byte[][] color_values)
+  public VisADGeometryArray[] make3DGeometry(byte[][] color_values)
          throws VisADException {
     throw new SetException("Set.make3DGeometry: not valid for this Set");
   }

@@ -300,13 +300,14 @@ public abstract class SampledSet extends SimpleSet {
       the Irregular3DSet implementation should resample to a
       Gridded3DSet and use Texture3D;
       only used by Irregular3DSet and Gridded3DSet */
-  public VisADGeometryArray make3DGeometry(byte[][] color_values)
+  public VisADGeometryArray[] make3DGeometry(byte[][] color_values)
          throws VisADException {
-    if (ManifoldDimension != 1) {
-      throw new SetException("SampledSet.make1DGeometry: " +
-                             "ManifoldDimension must be 1");
+    if (ManifoldDimension != 3) {
+      throw new SetException("SampledSet.make3DGeometry: " +
+                             "ManifoldDimension must be 3");
     }
-    return makePointGeometry(color_values);
+    VisADGeometryArray array = makePointGeometry(color_values);
+    return new VisADGeometryArray[] {array, array, array};
   }
 
   /** create a PointArray from this Set and color_values;
