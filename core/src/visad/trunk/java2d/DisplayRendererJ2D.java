@@ -743,6 +743,7 @@ public abstract class DisplayRendererJ2D
       }
       scale_on.setChild(group, m);
     }
+    canvas.scratchImages(); // WLH 26 Jan 2001
   }
 
   /**
