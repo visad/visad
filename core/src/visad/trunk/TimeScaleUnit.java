@@ -6,7 +6,7 @@
  * Copyright 2000, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: TimeScaleUnit.java,v 1.3 2000-04-24 22:50:08 steve Exp $
+ * $Id: TimeScaleUnit.java,v 1.4 2000-04-25 13:03:31 billh Exp $
  */
 
 package visad;
@@ -445,6 +445,14 @@ public final class TimeScaleUnit
 	{
 	    newValues = toThat(values, (OffsetUnit)that);
 	}
+        // WLH 25 April 2000
+        else if (that instanceof ScaledUnit) {
+          newValues = toThat(values, (ScaledUnit)that);
+        }
+        // WLH 25 April 2000
+        else if (that instanceof DerivedUnit) {
+          newValues = toThat(values, (DerivedUnit)that);
+        }
 	else
 	{
 	  throw new UnitException(
@@ -476,6 +484,14 @@ public final class TimeScaleUnit
 	{
 	    newValues = toThat(values, (OffsetUnit)that);
 	}
+        // WLH 25 April 2000
+        else if (that instanceof ScaledUnit) {
+          newValues = toThat(values, (ScaledUnit)that);
+        }
+        // WLH 25 April 2000
+        else if (that instanceof DerivedUnit) {
+          newValues = toThat(values, (DerivedUnit)that);
+        }
 	else
 	{
 	  throw new UnitException(
@@ -515,6 +531,34 @@ public final class TimeScaleUnit
         throws UnitException
     {
 	return toThat(values, instance(that));
+    }
+
+    // WLH 25 April 2000
+    double[] toThat(double values[], ScaledUnit that)
+	throws UnitException
+    {
+	return toThat(values, instance(that, newDate(0.0, that.getAbsoluteUnit())));
+    }
+
+    // WLH 25 April 2000
+    float[] toThat(float values[], ScaledUnit that)
+        throws UnitException
+    {
+	return toThat(values, instance(that, newDate(0.0, that.getAbsoluteUnit())));
+    }
+
+    // WLH 25 April 2000
+    double[] toThat(double values[], DerivedUnit that)
+        throws UnitException
+    {
+        return toThat(values, instance(that, newDate(0.0, that.getAbsoluteUnit())));
+    }
+
+    // WLH 25 April 2000
+    float[] toThat(float values[], DerivedUnit that)
+        throws UnitException
+    {
+        return toThat(values, instance(that, newDate(0.0, that.getAbsoluteUnit())));
     }
 
     /**
