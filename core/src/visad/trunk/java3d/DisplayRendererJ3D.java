@@ -607,7 +607,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     canvas.getPixelLocationInImagePlate(1, 1, position3);
 
     DisplayImpl display = getDisplay();
-    if (display != null || display.getGraphicsModeControl() != null) {
+    if (display != null && display.getGraphicsModeControl() != null) {
       // hack to move text closer to eye
       if (getDisplay().getGraphicsModeControl().getProjectionPolicy() ==
           View.PERSPECTIVE_PROJECTION) {
