@@ -256,8 +256,12 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
       ShadowRealTupleType shad_ref = domain_type.getReference();
       if (shad_ref != null) {
         // computeRanges for Reference (relative to domain) RealTypes
-        shadow = computeReferenceRanges(domain_type, DomainCoordinateSystem,
-                                        SetUnits, shadow, shad_ref, ranges);
+                                 // WLH 20 Nov 2001
+        shadow =
+          computeReferenceRanges(domain_type, DomainCoordinateSystem,
+                                 ((SetType) Type).getDomain().getDefaultUnits(),
+                                 shadow, shad_ref, ranges);
+                                 // SetUnits, shadow, shad_ref, ranges);
       }
     }
 
