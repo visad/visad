@@ -26,8 +26,11 @@ MA 02111-1307, USA
 
 package visad.bio;
 
+import ij.ImagePlus;
+import ij.io.FileSaver;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.rmi.RemoteException;
 import java.util.Vector;
@@ -370,7 +373,78 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   /** Saves a snapshot of the displays to a file specified by the user. */
   public void fileSnap() {
-    // CTR - TODO
+    final BioVisAD bio = this;
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        JFileChooser fileBox = new JFileChooser();
+        fileBox.addChoosableFileFilter(new ExtensionFileFilter(
+          new String[] {"jpg", "jpeg"}, "JPEG files"));
+        fileBox.addChoosableFileFilter(new ExtensionFileFilter(
+          "raw", "RAW files"));
+        fileBox.addChoosableFileFilter(new ExtensionFileFilter(
+          new String[] {"tif", "tiff"}, "TIFF files"));
+        int rval = fileBox.showSaveDialog(bio);
+        if (rval == JFileChooser.APPROVE_OPTION) {
+          setWaitCursor(true);
+
+          // determine file type
+          String file = fileBox.getSelectedFile().getPath();
+          String ext = "";
+          int dot = file.indexOf(".");
+          if (dot >= 0) ext = file.substring(dot + 1).toLowerCase();
+          boolean tiff = ext.equals("tif") || ext.equals("tiff");
+          boolean jpeg = ext.equals("jpg") || ext.equals("jpeg");
+          boolean raw = ext.equals("raw");
+          if (!tiff && !jpeg && !raw) {
+            JOptionPane.showMessageDialog(bio, "Invalid filename (" +
+              file + "): " + "extension must be TIFF, JPEG or RAW.",
+              "Cannot export snapshot", JOptionPane.ERROR_MESSAGE);
+            setWaitCursor(false);
+            return;
+          }
+
+          // construct output image
+          boolean has2 = display2.getComponent().isVisible();
+          boolean has3 = display3 != null &&
+            display3.getComponent().isVisible();
+          if (!has2 && !has3) {
+            JOptionPane.showMessageDialog(bio, "No displays are visible.",
+              "Cannot export snapshot", JOptionPane.ERROR_MESSAGE);
+            setWaitCursor(false);
+            return;
+          }
+
+          BufferedImage image2 = has2 ? display2.getImage() : null;
+          BufferedImage image3 = has3 ? display3.getImage() : null;
+          int w2 = 0, h2 = 0, w3 = 0, h3 = 0;
+          int type = BufferedImage.TYPE_INT_RGB;
+          if (has2) {
+            w2 = image2.getWidth();
+            h2 = image2.getHeight();
+            type = image2.getType();
+          }
+          if (has3) {
+            w3 = image3.getWidth();
+            h3 = image3.getHeight();
+            type = image3.getType();
+          }
+          BufferedImage img = new BufferedImage(
+            w2 > w3 ? w2 : w3, h2 + h3, type);
+          Graphics g = img.createGraphics();
+          if (has2) g.drawImage(image2, 0, 0, null);
+          if (has3) g.drawImage(image3, 0, h2, null);
+
+          // save image to disk
+          FileSaver saver = new FileSaver(new ImagePlus("null", img));
+          if (tiff) saver.saveAsTiff(file);
+          else if (jpeg) saver.saveAsJpeg(file);
+          else if (raw) saver.saveAsRaw(file);
+
+          setWaitCursor(false);
+        }
+      }
+    });
+    t.start();
   }
 
   /** Exits the application. */
