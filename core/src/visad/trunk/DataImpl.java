@@ -1585,6 +1585,7 @@ public abstract class DataImpl extends ThingImpl
   }
 
   /** 
+   * @param pre String added to start of each line
    * @return a longer String than returned by toString(),
    *         indented by pre (a string of blanks)
    */
