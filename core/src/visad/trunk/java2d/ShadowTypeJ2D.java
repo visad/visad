@@ -442,7 +442,7 @@ public abstract class ShadowTypeJ2D extends ShadowType {
   }
 
   public String toString() {
-    return adaptedShadowType.toString();
+    return (adaptedShadowType == null ? null : adaptedShadowType.toString());
   }
 
 }
