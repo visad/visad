@@ -115,7 +115,7 @@ class Earth
 	                     "where file.nc is a netCDF file.");
 	  System.out.println("This program is designed to work with the " +
 	                     "lowresTerrain.nc file available at:");
-	  System.out.println("  ftp://demedici.ssec.wisc.edu/pub/" +
+	  System.out.println("  ftp://www.ssec.wisc.edu/pub/" +
                              "visad-2.0/lowresTerrain.nc");
 	  System.exit(0);
 	}
