@@ -100,9 +100,21 @@ public class LatLonTuple extends RealTuple
     public String toString() {
        StringBuffer buf = new StringBuffer();
        buf.append("Lat: ");
-       buf.append(visad.browser.Convert.shortString(lat.getValue()));
+       try {
+         buf.append(
+           visad.browser.Convert.shortString(lat.getValue(CommonUnit.degree)));
+       } catch (VisADException ve) {
+         buf.append(
+           visad.browser.Convert.shortString(lat.getValue()));
+       }
        buf.append(" Lon: ");
-       buf.append(visad.browser.Convert.shortString(lon.getValue()));
+       try {
+         buf.append(
+           visad.browser.Convert.shortString(lon.getValue(CommonUnit.degree)));
+       } catch (VisADException ve) {
+         buf.append(
+           visad.browser.Convert.shortString(lon.getValue()));
+       }
        return buf.toString();
     }
 
