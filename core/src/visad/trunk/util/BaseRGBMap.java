@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: BaseRGBMap.java,v 1.15 2000-03-13 20:14:46 dglo Exp $
+@(#) $Id: BaseRGBMap.java,v 1.16 2000-03-13 20:20:10 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -50,7 +50,7 @@ import visad.VisADException;
  * mouse button to alternate between the color curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.15 $, $Date: 2000-03-13 20:14:46 $
+ * @version $Revision: 1.16 $, $Date: 2000-03-13 20:20:10 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -357,6 +357,107 @@ public class BaseRGBMap
   /**
    * Returns the tuple at a floating point value val
    *
+   * @param firstVal the location to start.
+   * @param lastVal the location to finish.
+   * @param num the number of tuples to return.
+   *
+   * @return The array of 3 or 4 element arrays.
+   */
+  public float[][] getTuples(float firstVal, float lastVal, int num) {
+    if (num <= 0 || num == 1 && Math.abs(firstVal - lastVal) > 0.0001 ||
+        firstVal > lastVal)
+    {
+      return null;
+    }
+
+    float floatIdx;
+
+    floatIdx = firstVal * (resolution - 1);
+    int startIndex = (int )Math.floor(floatIdx);
+
+    floatIdx = lastVal * (resolution - 1);
+    int endIndex = (int )Math.floor(floatIdx);
+
+    float partialEnd = floatIdx - endIndex;
+    boolean isPartialEnd = (partialEnd != 0);
+
+    float[][] tuples = new float[num][hasAlpha ? 4 : 3];
+
+    int rStart = startIndex;
+    if (rStart < 0) {
+      rStart = 0;
+    } else if (rStart >= resolution) {
+      rStart = resolution - 1;
+    }
+
+    int rEnd = (isPartialEnd ? endIndex+1 : endIndex);
+    if (rEnd >= resolution) {
+      rEnd = resolution - 1;
+    } else if (rEnd < 0) {
+      rEnd = 0;
+    }
+
+    final int rLen = (rEnd - rStart) + 1;
+
+    float[][] colors;
+    try {
+      colors = ctl.lookupRange(rStart, rEnd);
+    } catch (Exception e) {
+      System.err.println("Error in " + getClass().getName() + ": " +
+                         e.getClass().getName() + ": " + e.getMessage());
+      return null;
+    }
+
+    float stepVal = (lastVal - firstVal) / (float )num;
+
+    for (int i = 0; i < num; i++) {
+      float thisVal = firstVal + (float )i * stepVal;
+
+      floatIdx = thisVal * (resolution - 1);
+      int index = (int )Math.floor(floatIdx);
+
+      float partial = floatIdx - index;
+      boolean isPartial = (partial != 0);
+
+      index -= rStart;
+
+      if (index < 0 || index >= rLen ||
+          (index == (rLen - 1) && isPartial))
+      {
+        tuples[i][RED] = tuples[i][GREEN] = tuples[i][BLUE] = 0;
+        if (hasAlpha) {
+          tuples[i][ALPHA] = 0;
+        }
+        continue;
+      }
+
+      if (isPartial) {
+        tuples[i][RED] = colors[RED][index] * (1 - partial) +
+          colors[RED][index+1] * partial;
+        tuples[i][GREEN] = colors[GREEN][index] * (1 - partial) +
+          colors[GREEN][index+1] * partial;
+        tuples[i][BLUE] = colors[BLUE][index] * (1 - partial) +
+          colors[BLUE][index+1] * partial;
+        if (hasAlpha) {
+          tuples[i][ALPHA] = colors[ALPHA][index] * (1 - partial) +
+            colors[ALPHA][index+1] * partial;
+        }
+      } else {
+        tuples[i][RED] = colors[RED][index];
+        tuples[i][GREEN] = colors[GREEN][index];
+        tuples[i][BLUE] = colors[BLUE][index];
+        if (hasAlpha) {
+          tuples[i][ALPHA] = colors[ALPHA][index];
+        }
+      }
+    }
+
+    return tuples;
+  }
+
+  /**
+   * Returns the tuple at a floating point value val
+   *
    * <B>WARNING</B>: This is a <I>really</I> slow way to
    * get a color, so don't use it inside a loop.
    *
@@ -365,56 +466,28 @@ public class BaseRGBMap
    * @return The 3 or 4 element array.
    */
   public float[] getTuple(float value) {
-    float arrayIndex = value * (resolution - 1);
-    int index = (int )Math.floor(arrayIndex);
-    float partial = arrayIndex - index;
-    boolean isPartial = (partial != 0);
+    float[][] v = getTuples(value, value, 1);
+    return (v == null ? null : v[0]);
+  }
 
-    if (index >= resolution || index < 0 ||
-        (index == (resolution - 1) && isPartial))
-    {
-      if (hasAlpha) {
-        return new float[] {0,0,0,0};
-      } else {
-        return new float[] {0,0,0};
+  /**
+   * Implementation of the abstract function in ColorMap
+   *
+   * <B>WARNING</B>: This is a <I>really</I> slow way to
+   * get a color, so don't use it inside a loop.
+   */
+  public float[][] getRGBTuples(float startVal, float endVal, int num) {
+    float[][] t = getTuples(startVal, endVal, num);
+    if (t[0].length > 3) {
+      float[][] f = new float[t.length][3];
+      for (int i = t.length - 1; i >= 0; i--) {
+        f[i][RED] = t[i][RED];
+        f[i][GREEN] = t[i][GREEN];
+        f[i][BLUE] = t[i][BLUE];
       }
+      t = f;
     }
-
-    float[][] colors;
-    try {
-      colors = ctl.lookupRange(index, isPartial ? index+1 : index);
-    } catch (Exception e) {
-      System.err.println("Error in " + getClass().getName() + ": " +
-                         e.getClass().getName() + ": " + e.getMessage());
-      return null;
-    }
-
-    float red, green, blue, alpha = 0.0F;
-    if (isPartial) {
-      red = colors[RED][0] * (1 - partial) +
-        colors[RED][1] * partial;
-      green = colors[GREEN][0] * (1 - partial) +
-        colors[GREEN][1] * partial;
-      blue = colors[BLUE][0] * (1 - partial) +
-        colors[BLUE][1] * partial;
-      if (hasAlpha) {
-        alpha = colors[ALPHA][0] * (1 - partial) +
-          colors[ALPHA][1] * partial;
-      }
-    } else {
-      red = colors[RED][0];
-      green = colors[GREEN][0];
-      blue = colors[BLUE][0];
-      if (hasAlpha) {
-        alpha = colors[ALPHA][0];
-      }
-    }
-
-    if (hasAlpha) {
-      return new float[] {red, green, blue, alpha};
-    } else {
-      return new float[] {red, green, blue};
-    }
+    return t;
   }
 
   /**

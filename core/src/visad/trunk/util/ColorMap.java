@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ColorMap.java,v 1.9 2000-03-13 19:59:14 dglo Exp $
+@(#) $Id: ColorMap.java,v 1.10 2000-03-13 20:20:09 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -36,7 +36,7 @@ import javax.swing.JPanel;
  * class manages all of the listener notification for the ColorMaps.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision 1.7 $, $Date: 2000-03-13 19:59:14 $
+ * @version $Revision: 1.10 $, $Date: 2000-03-13 20:20:09 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -44,6 +44,9 @@ public abstract class ColorMap extends JPanel {
 
   /** Maps a floating point value (in the range 0 to 1) onto a Color,
    * returns Color.black if the number is out of range
+   *
+   * If you're getting more than 1 or 2 colors,
+   * use getColors() instead.
    */
   public Color getColor(float value) {
     if (value < 0 || value > 1) {
@@ -62,14 +65,93 @@ public abstract class ColorMap extends JPanel {
     return new Color(rgb[0], rgb[1], rgb[2]);
   }
 
-  /** Maps a floating point value (in the range 0 to 1) onto an RGB
+  /**
+   * Map a range of floating point values (in the range 0 to 1) onto
+   * a range of Colors.
+   */
+  public Color[] getColors(float start, float end, int num) {
+    float[][] rgb;
+    if (getMapDimension() < 3) {
+      rgb = getRGBTuples(start, end, num);
+    } else {
+      rgb = getTuples(start, end, num);
+    }
+
+    if (rgb == null) {
+      return null;
+    }
+
+    Color[] colors = new Color[rgb.length];
+
+    for (int i = rgb.length - 1; i >= 0; i--) {
+      if (rgb[i][0] < 0.0f)
+        rgb[i][0] = 0.0f;
+      else if (rgb[i][0] > 1.0f)
+        rgb[i][0] = 1.0f;
+      if (rgb[i][1] < 0.0f)
+        rgb[i][1] = 0.0f;
+      else if (rgb[i][1] > 1.0f)
+        rgb[i][1] = 1.0f;
+      if (rgb[i][2] < 0.0f)
+        rgb[i][2] = 0.0f;
+      else if (rgb[i][2] > 1.0f)
+        rgb[i][2] = 1.0f;
+
+      colors[i] = new Color(rgb[i][0], rgb[i][1], rgb[i][2]);
+    }
+
+    return colors;
+  }
+
+  /**
+   * Maps a floating point value (in the range 0 to 1) onto an RGB
    * triplet of floating point numbers in the range 0 to 1)
+   *
+   * If you're getting more than 1 or 2 tuples,
+   * use getRGBTuples() instead.
    */
   public abstract float[] getRGBTuple(float value);
 
-  /** Maps a floating point value (in the range 0 to 1) into a tuple
-   * with dimension of the map */
+  /**
+   * Maps the specified floating point values (in the range 0 to 1)
+   * onto a group of RGB triplets of floating point numbers in the
+   * range 0 to 1.  The endpoints are included in <TT>count</TT>
+   * so if <TT>count=1</TT>, only the RGBTuple for <TT>start</TT>
+   * is returned; if <TT>count=3</TT>, then RGBTuples are returned
+   * for <TT>start</TT>, the midpoint between <TT>start</TT> and
+   * <TT>end, and for <TT>end</TT>.
+   *
+   * @param start - the first value to translate
+   * @param end - the last value to translate
+   * @param num - the number of values (including the two endpoints)
+   *              to be returned.
+   */
+  public abstract float[][] getRGBTuples(float start, float end, int count);
+
+  /**
+   * Maps a floating point value (in the range 0 to 1) into a tuple
+   * with dimension of the map
+   *
+   * If you're getting more than 1 or 2 tuples,
+   * use getTuples() instead.
+   */
   public abstract float[] getTuple(float value);
+
+  /**
+   * Maps the specified floating point values (in the range 0 to 1)
+   * onto a group of floating point tuples with the dimension of
+   * the map.  The endpoints are included in <TT>count</TT>
+   * so if <TT>count=1</TT>, only the tuple for <TT>start</TT>
+   * is returned; if <TT>count=3</TT>, then tuples are returned
+   * for <TT>start</TT>, the midpoint between <TT>start</TT> and
+   * <TT>end, and for <TT>end</TT>.
+   *
+   * @param start - the first value to translate
+   * @param end - the last value to translate
+   * @param num - the number of values (including the two endpoints)
+   *              to be returned.
+   */
+  public abstract float[][] getTuples(float start, float end, int count);
 
   /** Returns the current map resolution */
   public abstract int getMapResolution();
