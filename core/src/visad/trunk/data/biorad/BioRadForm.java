@@ -28,14 +28,22 @@ package visad.data.biorad;
 
 import visad.*;
 import visad.data.*;
-import java.io.*;
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.net.URL;
 import java.util.Vector;
-import visad.data.DefaultFamily;
+import ucar.netcdf.RandomAccessFile;
 
 /** BioRadForm is the VisAD data format adapter for Bio-Rad .PIC files. */
 public class BioRadForm extends Form implements FormFileInformer {
+
+  private static CacheStrategy strategy = new CacheStrategy();
 
   /** Debugging flag. */
   static final boolean DEBUG = false;
@@ -635,13 +643,13 @@ public class BioRadForm extends Form implements FormFileInformer {
     throws BadFormException, IOException, VisADException
   {
     try {
-      return readFile(new DataInputStream(in));
+      return readFile(new DataInputStream(in), false);
     } finally {
       try { in.close(); } catch (IOException ioe) { }
     }
   }
 
-  DataImpl readFile(DataInput fin)
+  DataImpl readFile(DataInput fin, boolean isRandom)
     throws IOException, RemoteException, VisADException
   {
     // read header
@@ -696,33 +704,44 @@ public class BioRadForm extends Form implements FormFileInformer {
     final int image_len = nx * ny;
 
     float[][][] samples;
+    long filePtr;
 
-    // read image bytes & convert to floats
-    samples = new float[npic][1][image_len];
-    if (byte_format) {
-      // read in image_len bytes
-      byte[] buf = new byte[image_len];
-      for (int i=0; i<npic; i++) {
-        fin.readFully(buf);
+    if (isRandom) {
+      filePtr = ((RandomAccessFile )fin).getFilePointer();
 
-        // each pixel is 8 bits
-        for (int l=0; l<image_len; l++) {
-          int q = 0x000000ff & buf[l];
-          samples[i][0][l] = (float) q;
+      fin.skipBytes(npic * image_len);
+
+      samples = null;
+    } else {
+      filePtr = 0;
+
+      // read image bytes & convert to floats
+      samples = new float[npic][1][image_len];
+      if (byte_format) {
+        // read in image_len bytes
+        byte[] buf = new byte[image_len];
+        for (int i=0; i<npic; i++) {
+          fin.readFully(buf);
+
+          // each pixel is 8 bits
+          for (int l=0; l<image_len; l++) {
+            int q = 0x000000ff & buf[l];
+            samples[i][0][l] = (float) q;
+          }
         }
       }
-    }
-    else {
-      // read in 2 * image_len bytes
-      final int data_len = 2 * image_len;
-      byte[] buf = new byte[data_len];
-      for (int i=0; i<npic; i++) {
-        fin.readFully(buf);
+      else {
+        // read in 2 * image_len bytes
+        final int data_len = 2 * image_len;
+        byte[] buf = new byte[data_len];
+        for (int i=0; i<npic; i++) {
+          fin.readFully(buf);
 
-        // each pixel is 16 bits
-        for (int l=0; l<data_len; l+=2) {
-          int q = getUnsignedShort(buf[l], buf[l + 1]);
-          samples[i][0][l/2] = (float) q;
+          // each pixel is 16 bits
+          for (int l=0; l<data_len; l+=2) {
+            int q = getUnsignedShort(buf[l], buf[l + 1]);
+            samples[i][0][l/2] = (float) q;
+          }
         }
       }
     }
@@ -852,8 +871,16 @@ public class BioRadForm extends Form implements FormFileInformer {
     // set up image fields
     FlatField[] imageFields = new FlatField[npic];
     for (int i=0; i<npic; i++) {
-      imageFields[i] = new FlatField(imageFunction, imageSet);
-      imageFields[i].setSamples(samples[i], false);
+      if (isRandom) {
+        BioRadAccessor acc = new BioRadAccessor((RandomAccessFile )fin,
+                                                filePtr, i, imageFunction,
+                                                imageSet, image_len,
+                                                byte_format);
+        imageFields[i] = new FileFlatField(acc, strategy);
+      } else {
+        imageFields[i] = new FlatField(imageFunction, imageSet);
+        imageFields[i].setSamples(samples[i], false);
+      }
     }
     FieldImpl stackField = new FieldImpl(stackFunction, stackSet);
     stackField.setSamples(imageFields, false);
@@ -923,6 +950,94 @@ public class BioRadForm extends Form implements FormFileInformer {
 
   public FormNode getForms(Data data) {
     return null;
+  }
+
+  class BioRadAccessor
+    extends FileAccessor
+  {
+    private final RandomAccessFile rdr;
+    private final long filePtr;
+    private final int imageNumber;
+    private final FunctionType imageType;
+    private final Linear2DSet imageSet;
+    private final int imageLen;
+    private final boolean byteFmt;
+
+    public BioRadAccessor(RandomAccessFile rdr, long filePtr, int imageNumber,
+                          FunctionType imageType, Linear2DSet imageSet,
+                          int imageLen, boolean byteFmt)
+    {
+      this.rdr = rdr;
+      this.filePtr = filePtr;
+      this.imageNumber = imageNumber;
+      this.imageType = imageType;
+      this.imageSet = imageSet;
+      this.imageLen = imageLen;
+      this.byteFmt = byteFmt;
+    }
+
+    public FlatField getFlatField()
+      throws RemoteException, VisADException
+    {
+      byte[] buf = new byte[imageLen];
+      float[][] samples = new float[1][imageLen];
+
+      FlatField ff;
+      try {
+        // save current position
+        final long curPtr = rdr.getFilePointer();
+
+        // move to image data
+        rdr.seek(filePtr);
+        if (imageNumber > 0) {
+          rdr.skipBytes(imageLen * imageNumber);
+        }
+
+        // read in image data and convert to sample array
+        rdr.readFully(buf);
+
+        if (byteFmt) {
+          for (int l = 0; l < imageLen; l++) {
+            samples[0][l] = (float )(0xff & buf[l]);
+          }
+        } else {
+          final int dataLen = 2 * imageLen;
+          for (int l = 0; l < dataLen; l += 2) {
+            samples[0][l/2] = (float )getUnsignedShort(buf[l], buf[l + 1]);
+          }
+        }
+
+        ff = new FlatField(imageType, imageSet);
+        ff.setSamples(samples, false);
+      } catch (IOException ioe) {
+        throw new VisADException(ioe.getClass().getName() + ": " +
+                                 ioe.getMessage());
+      }
+
+      return ff;
+    }
+
+    public FunctionType getFunctionType()
+      throws VisADException
+    {
+      return imageType;
+    }
+
+    public double[][] readFlatField(FlatField template, int[] fileLocations)
+    {
+      throw new RuntimeException("Unimplemented");
+    }
+
+    public void writeFile(int[] fileLocations, Data range)
+    {
+      throw new RuntimeException("Unimplemented");
+    }
+
+    public void writeFlatField(double[][] values, FlatField template,
+                               int[] fileLocations)
+    {
+      throw new RuntimeException("Unimplemented");
+    }
   }
 
   /**
