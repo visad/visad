@@ -164,21 +164,29 @@ public class RangeSlider extends JComponent implements MouseListener,
       // mouse pressed in pink rectangle
       minSlide = true;
       maxSlide = true;
-    } else if (containedIn(x, y, GRIP_WIDTH, GRIP_TOP_Y-3,
-                           minGrip-(GRIP_WIDTH*2),
+    } else if (containedIn(x, y, 0, GRIP_TOP_Y-3,
+                           minGrip-GRIP_WIDTH,
                            GRIP_TOP_Y+SLIDER_LINE_HEIGHT-1))
     {
       // mouse pressed to left of grips
-      minGrip = x;
+      if (x < GRIP_WIDTH) {
+        minGrip = GRIP_WIDTH;
+      } else {
+        minGrip = x;
+      }
       minSlide = true;
       lSlideMoved = true;
       percPaint();
     } else if (containedIn(x, y, maxGrip+1-GRIP_WIDTH, GRIP_TOP_Y-3,
-                           w-maxGrip-(GRIP_WIDTH*2),
+                           w-maxGrip+GRIP_WIDTH,
                            GRIP_TOP_Y+SLIDER_LINE_HEIGHT-1))
     {
       // mouse pressed to right of grips
-      maxGrip = x;
+      if (x > w-GRIP_WIDTH) {
+        maxGrip = w-GRIP_WIDTH;
+      } else {
+        maxGrip = x;
+      }
       maxSlide = true;
       rSlideMoved = true;
       percPaint();
