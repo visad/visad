@@ -7,12 +7,16 @@ package visad.rabin;
 
 // import needed classes
 import visad.*;
+import visad.java2d.DisplayImplJ2D;
+import visad.java2d.DirectManipulationRendererJ2D;
 import visad.java3d.DisplayImplJ3D;
 import visad.java3d.TwoDDisplayRendererJ3D;
 import visad.java3d.DirectManipulationRendererJ3D;
 import visad.util.VisADSlider;
 import visad.util.LabeledRGBWidget;
+import visad.data.Form;
 import visad.data.vis5d.Vis5DForm;
+import visad.data.netcdf.Plain;
 import visad.formula.*;
 import java.rmi.RemoteException;
 import java.rmi.NotBoundException;
@@ -36,6 +40,8 @@ public class Rain implements ActionListener, ControlListener {
   /** RemoteServer for client
       this Rain is a client if client_server != null */
   RemoteServer client_server;
+
+  static boolean twod = false;
 
   static final int N_COLUMNS = 3;
   static final int N_ROWS = 4;
@@ -118,6 +124,7 @@ public class Rain implements ActionListener, ControlListener {
          throws VisADException, RemoteException, IOException {
     if (args == null || args.length < 1) {
       System.out.println("run 'java visad.rabin.Rain file.v5d'\n or");
+      System.out.println("    'java visad.rabin.Rain file.nc'\n or");
       System.out.println("    'java visad.rabin.Rain server.ip.name'\n or");
     }
     rain = new Rain(args);
@@ -127,7 +134,7 @@ public class Rain implements ActionListener, ControlListener {
 
   private Rain(String args[])
           throws VisADException, RemoteException {
-    if (args[0].endsWith(".v5d")) {
+    if (args[0].endsWith(".v5d") || args[0].endsWith(".nc")) {
       // this is server
       // try to set up a RemoteServer
       server_server = new RemoteServerImpl();
@@ -147,7 +154,13 @@ public class Rain implements ActionListener, ControlListener {
         server_server = null;
       }
 
-      Vis5DForm form = new Vis5DForm();
+      Form form = null;
+      if (args[0].endsWith(".v5d")) {
+        form = new Vis5DForm();
+      }
+      else {
+        form = new Plain();
+      }
       FieldImpl vis5d = null;
       try {
         vis5d = (FieldImpl) form.open(args[0]);
@@ -341,8 +354,18 @@ public class Rain implements ActionListener, ControlListener {
         else {
           cell_refs[i][j] = new DataReferenceImpl("cell_" + i + "_" + j);
         }
-        displays[i][j] = new DisplayImplJ3D("display_" + i + "_" + j,
-                                            new TwoDDisplayRendererJ3D());
+        if (!twod) {
+          try {
+            displays[i][j] = new DisplayImplJ3D("display_" + i + "_" + j,
+                                                new TwoDDisplayRendererJ3D());
+          }
+          catch (Exception e) {
+            twod = true;
+          }
+        }
+        if (twod) {
+          displays[i][j] = new DisplayImplJ2D("display_" + i + "_" + j);
+        }
         displays[i][j].addMap(new ScalarMap(y_domain, Display.XAxis));
         displays[i][j].addMap(new ScalarMap(x_domain, Display.YAxis));
 
@@ -521,12 +544,19 @@ public class Rain implements ActionListener, ControlListener {
     }
 
     displays[0][2].addReference(cell_refs[0][2]);
-    if (client_server != null) {
-      RemoteDisplayImpl remote_display = new RemoteDisplayImpl(displays[0][2]);
-      remote_display.addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
+    DataRenderer dr = null;
+    if (twod) {
+      dr = new DirectManipulationRendererJ2D();
     }
     else {
-      displays[0][2].addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
+      dr = new DirectManipulationRendererJ3D();
+    }
+    if (client_server != null) {
+      RemoteDisplayImpl remote_display = new RemoteDisplayImpl(displays[0][2]);
+      remote_display.addReferences(dr, ref_cursor);
+    }
+    else {
+      displays[0][2].addReferences(dr, ref_cursor);
     }
     display_done[0][2] = true;
 
@@ -770,12 +800,18 @@ public class Rain implements ActionListener, ControlListener {
     left_panel.add(new JLabel("  "));
 
     displays[3][2].addReference(cell_refs[3][2]);
-    if (client_server != null) {
-      RemoteDisplayImpl remote_display = new RemoteDisplayImpl(displays[3][2]);
-      remote_display.addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
+    if (twod) {
+      dr = new DirectManipulationRendererJ2D();
     }
     else {
-      displays[3][2].addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
+      dr = new DirectManipulationRendererJ3D();
+    }
+    if (client_server != null) {
+      RemoteDisplayImpl remote_display = new RemoteDisplayImpl(displays[3][2]);
+      remote_display.addReferences(dr, ref_cursor);
+    }
+    else {
+      displays[3][2].addReferences(dr, ref_cursor);
     }
     display_done[3][2] = true;
 
@@ -859,12 +895,19 @@ public class Rain implements ActionListener, ControlListener {
       if (table != null) color_controls[i][j].setTable(table);
     }
     displays[i][j].addReference(cell_refs[i][j]);
-    if (cs != null) {
-      RemoteDisplayImpl remote_display = new RemoteDisplayImpl(displays[i][j]);
-      remote_display.addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
+    DataRenderer dr = null;
+    if (twod) {
+      dr = new DirectManipulationRendererJ2D();
     }
     else {
-      displays[i][j].addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
+      dr = new DirectManipulationRendererJ3D();
+    }
+    if (cs != null) {
+      RemoteDisplayImpl remote_display = new RemoteDisplayImpl(displays[i][j]);
+      remote_display.addReferences(dr, ref_cursor);
+    }
+    else {
+      displays[i][j].addReferences(dr, ref_cursor);
     }
     display_done[i][j] = true;
   }
@@ -893,7 +936,6 @@ public class Rain implements ActionListener, ControlListener {
   public void controlChanged(ControlEvent e)
          throws VisADException, RemoteException {
     Control control = e.getControl();
-    // if (control != null && control instanceof ColorControl) {
     if (control.equals(color_controlC1)) {
       float[][] table = ((ColorControl) control).getTable();
       if (table != null) {
@@ -905,6 +947,13 @@ public class Rain implements ActionListener, ControlListener {
           }
         }
       }
+      Field field = (Field) ref_colorC1.getData();
+      setSamples(field, table);
+    }
+    else if (control.equals(color_controlC4)) {
+      float[][] table = ((ColorControl) control).getTable();
+      Field field = (Field) ref_colorC4.getData();
+      setSamples(field, table);
     }
     else if (!in_proj && control != null &&
              control instanceof ProjectionControl) {
@@ -918,6 +967,21 @@ public class Rain implements ActionListener, ControlListener {
         }
       }
       in_proj = false;
+    }
+  }
+
+  private void setSamples(Field field, float[][] table)
+          throws VisADException, RemoteException {
+    if (field instanceof FlatField) {
+      ((FlatField) field).setSamples(table);
+    }
+    else {
+      for (int i=0; i<table[0].length; i++) {
+        field.setSample(i, new RealTuple(new Real[]
+          {new Real((double) table[0][i]),
+           new Real((double) table[1][i]),
+           new Real((double) table[2][i])}));
+      }
     }
   }
 
