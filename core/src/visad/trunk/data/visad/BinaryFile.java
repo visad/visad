@@ -1,5 +1,11 @@
 package visad.data.visad;
 
+/**
+ * Constant values used by both
+ * {@link visad.data.visad.BinaryReader BinaryReader}
+ * and
+ * {@link visad.data.visad.BinaryWriter BinaryWriter}
+ */
 public interface BinaryFile
 {
   String MAGIC_STR = "VisADBin";
