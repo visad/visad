@@ -373,7 +373,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
 
   /** a Display is runnable;
       doAction is invoked by any event that requires a re-transform */
-  public void doAction() throws VisADException, RemoteException {
+  public synchronized void doAction() throws VisADException, RemoteException {
     if (RendererVector == null) {
       return;
     }
@@ -523,7 +523,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   /** add a ScalarMap to this Display;
       can only be invoked when no DataReference-s are
       linked to this Display */
-  public void addMap(ScalarMap map)
+  public synchronized void addMap(ScalarMap map)
          throws VisADException, RemoteException {
     int index;
     if (!RendererVector.isEmpty()) {
@@ -615,7 +615,8 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   /** clear set of ScalarMap-s associated with this display;
       can only be invoked when no DataReference-s are
       linked to this Display */
-  public void clearMaps() throws VisADException, RemoteException {
+  public synchronized void clearMaps()
+         throws VisADException, RemoteException {
     if (!RendererVector.isEmpty()) {
       throw new DisplayException("DisplayImpl.clearMaps: RendererVector " +
                                  "must be empty");
