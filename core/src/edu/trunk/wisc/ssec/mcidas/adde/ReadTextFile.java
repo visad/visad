@@ -117,10 +117,17 @@ public class ReadTextFile
       {
           status = -1;
           statusString = "No file found";
+          String aes = ae.toString();
+          if (aes.indexOf(" Accounting ") != -1) {
+            statusString = "No accounting data";
+            status = -3;
+          }
+          if (debug) System.out.println("ReadText AF Exception:"+aes);
       }
       catch (Exception e) 
       {
           status = -2;
+          if (debug) System.out.println("ReadText Exception:"+e);
           statusString = "Error opening connection: "+e;
       }
 
@@ -151,17 +158,20 @@ public class ReadTextFile
          statusString = " "+iox;
          System.out.println(" "+iox);
        }
-
+       
+       if (linesOfText.size() < 1) statusString = "No data read";
+       status = linesOfText.size();
      }
-     if (linesOfText.size() < 1) statusString = "No data read";
     }
 
     public String getStatus() {
       return statusString;
     }
+    public int getStatusCode() {
+      return status;
+    }
 
     public Vector getText() {
-
       return linesOfText;
     }
  

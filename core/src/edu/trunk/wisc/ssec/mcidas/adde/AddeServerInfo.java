@@ -47,7 +47,7 @@ public class AddeServerInfo extends Object {
   private String userproj = null;
   private String DATEFORMAT = "yyyy-MM-dd / HH:mm:ss";
   
-  private boolean debug = true;
+  private boolean debug = false;
   private boolean priv = false;
 
  /** Creates new AddeServerInfo. This collects information about
@@ -114,9 +114,12 @@ public class AddeServerInfo extends Object {
   * @param s the name of the ADDE server to be selected
   * @param type the type of data to select.
   *
+  * @return status code: 0=ok, -1=invalid accounting, -2=didn't get metadata
+  *
   */
-  public void setSelectedServer(String s, String type) {
+  public int setSelectedServer(String s, String type) {
     selectedServer = s.trim();
+    int istatus = 0;
     dataType = type.trim();
     groups = new Vector();
     status = "Failed to get PUBLIC.SRV file from from server "+s+".";
@@ -135,6 +138,11 @@ public class AddeServerInfo extends Object {
 
       ReadTextFile rtf = new ReadTextFile(req);
       if (debug) System.out.println("Status from RTF="+rtf.getStatus());
+      
+      // see if accounting data is required but not provided...
+      if (rtf.getStatusCode() == -3) {
+        return -1;
+      }
 
 /* do we really want to do this????? */
 
@@ -157,7 +165,7 @@ public class AddeServerInfo extends Object {
       Vector table = rtf.getText();
 
       status = "Failed to locate required information on server "+s+".";
-
+      
       // look at each table member and pull out info only
       // when the TYPE='dataType'
       for (int i=0; i<table.size(); i++) {
@@ -252,8 +260,11 @@ public class AddeServerInfo extends Object {
       }
 
       status = "ADDE group & dataset information retrieved from server "+s+".";
+      istatus = 0;
 
-    } catch (Exception e) {e.printStackTrace();}
+    } catch (Exception e) {e.printStackTrace(); return -2;}
+    
+    return istatus;
   }
   
   /** get a list of all groups valid for this server
@@ -458,10 +469,10 @@ public class AddeServerInfo extends Object {
     AddeServerInfo asi = new AddeServerInfo();
     //asi.setUserIDandProjString("user=tomw&proj=8035");
     //asi.setSelectedServer("eastl.ssec.wisc.edu", "image");
-    asi.setSelectedServer("suomi.ssec.wisc.edu", "image");
+    int sstat = asi.setSelectedServer("suomi.ssec.wisc.edu", "image");
     //asi.setSelectedServer("adde.unidata.ucar.edu", "image");
 
-    System.out.println("Status = "+asi.getStatus());
+    System.out.println("Status = "+asi.getStatus()+"  code="+sstat);
     String[] a = asi.getGroupList();
     System.out.println("Status = "+asi.getStatus());
     for (int i=0; i<a.length; i++) {
