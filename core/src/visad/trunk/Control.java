@@ -49,6 +49,8 @@ public abstract class Control extends Object
   transient DisplayRenderer displayRenderer;
   /** index of this in display.ControlVector */
   private int Index;
+  /** instance of this in display.ControlVector */
+  private int Instance;
 
   /** Vector of ControlListeners */
   private transient Vector ListenerVector = new Vector();
@@ -58,6 +60,7 @@ public abstract class Control extends Object
     NewTick = Long.MIN_VALUE + 1;
     tickFlag = false;
     display = d;
+    Index = Instance = -1;
     if (display != null) displayRenderer = display.getDisplayRenderer();
   }
 
@@ -189,6 +192,14 @@ if (tickFlag) {
     return Index;
   }
 
+  void setInstanceNumber(int instance) {
+    Instance = instance;
+  }
+
+  int getInstanceNumber() {
+    return Instance;
+  }
+
   public DisplayImpl getDisplay() {
     return display;
   }
@@ -212,7 +223,7 @@ if (tickFlag) {
       return false;
     }
 
-    return true;
+    return (Instance == ((Control )o).Instance);
   }
 
   public String toString()
@@ -228,6 +239,6 @@ if (tickFlag) {
     } else {
       pt++;
     }
-    return cn.substring(pt) + "@" + Index;
+    return cn.substring(pt) + "@" + Index + "#" + Instance;
   }
 }

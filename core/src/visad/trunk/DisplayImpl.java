@@ -1100,6 +1100,7 @@ if (initialize) {
         while(maps.hasMoreElements()) {
           Control ctl = (Control )maps.nextElement();
           ctl.removeControlListener((ControlListener )displayMonitor);
+          ctl.setInstanceNumber(-1);
         }
         ControlVector.removeAllElements();
         // one each GraphicsModeControl and ProjectionControl always exists
@@ -1137,10 +1138,37 @@ if (initialize) {
     return (Vector) ConstantMapVector.clone();
   }
 
+  /**
+   * Get the instance number of this <CODE>Control</CODE>
+   * in the internal <CODE>ControlVector</CODE>.
+   *
+   * @param ctl <CODE>Control</CODE> to look for.
+   *
+   * @return Instance number (<CODE>-1</CODE> if not found.)
+   */
+  private int getInstanceNumber(Control ctl)
+  {
+    Class ctlClass = ctl.getClass();
+    int num = 0;
+    Enumeration enum = ControlVector.elements();
+    while (enum.hasMoreElements()) {
+      Control c = (Control )enum.nextElement();
+      if (ctlClass.isInstance(c)) {
+        if (ctl == c) {
+          return num;
+        }
+        num++;
+      }
+    }
+
+    return -1;
+  }
+
   public void addControl(Control control) {
     if (control != null && !ControlVector.contains(control)) {
       ControlVector.addElement(control);
       control.setIndex(ControlVector.indexOf(control));
+      control.setInstanceNumber(getInstanceNumber(control));
       control.addControlListener((ControlListener )displayMonitor);
     }
   }
