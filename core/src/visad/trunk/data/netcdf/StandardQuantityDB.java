@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: StandardQuantityDB.java,v 1.15 2002-05-01 19:44:38 donm Exp $
+ * $Id: StandardQuantityDB.java,v 1.16 2002-09-20 18:15:56 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -59,7 +59,6 @@ StandardQuantityDB
      */
     public static StandardQuantityDB
     instance()
-	throws VisADException
     {
 	return db;
     }
