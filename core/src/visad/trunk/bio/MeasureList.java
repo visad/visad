@@ -82,9 +82,11 @@ public class MeasureList {
   }
 
   /** Removes a measurement line or point from the measurement list. */
-  public void removeMeasurement(Measurement m) {
+  public void removeMeasurement(Measurement m) { removeMeasurement(m, true); }
+
+  void removeMeasurement(Measurement m, boolean updatePool) {
     measureList.remove(m);
-    pool.set(getMeasurements());
+    if (updatePool) pool.set(getMeasurements());
   }
 
   /** Gets the list of measurements in array form. */

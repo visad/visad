@@ -28,8 +28,10 @@ package visad.bio;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.rmi.RemoteException;
 import javax.swing.*;
 import javax.swing.event.*;
+import visad.*;
 import visad.browser.*;
 
 /** MeasureToolbar is a custom toolbar. */
@@ -46,6 +48,9 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
   private static final String INFO_LABEL =
     "   (000.000, 000.000)-(000.000, 000.000): distance=000.000";
 
+  /** First free id number for standard measurements. */
+  private static int maxId = 0;
+
 
   /** New group dialog box. */
   private GroupDialog groupBox = new GroupDialog();
@@ -58,6 +63,9 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
 
   /** Image stack widget. */
   private ImageStackWidget vert;
+
+  /** Computation cell for linking selection with measurement object. */
+  private CellImpl cell;
 
 
   // -- GLOBAL FUNCTIONS --
@@ -84,7 +92,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
   private JLabel measureInfo;
 
   /** Button for distributing measurement object through all focal planes. */
-  private JButton setStandard;
+  private JCheckBox setStandard;
 
   /** Button for removing objects. */
   private JButton removeThing;
@@ -205,25 +213,92 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
         return new Dimension(width, d.height);
       }
     };
+    cell = new CellImpl() {
+      public void doAction() {
+        synchronized (cell) {
+          String text = " ";
+          if (thing != null) {
+            Measurement m = thing.getMeasurement();
+            double[][] vals = m.doubleValues();
+            if (thing instanceof MeasureLine) {
+              String v1x = Convert.shortString(vals[0][0]);
+              String v1y = Convert.shortString(vals[1][0]);
+              String v2x = Convert.shortString(vals[0][1]);
+              String v2y = Convert.shortString(vals[1][1]);
+              String dist = Convert.shortString(m.getDistance());
+              text = "(" + v1x + ", " + v1y + ")-" +
+                "(" + v2x + ", " + v2y + "): distance=" + dist;
+            }
+            else {
+              String vx = Convert.shortString(vals[0][0]);
+              String vy = Convert.shortString(vals[1][0]);
+              text = "(" + vx + ", " + vy + ")";
+            }
+            int space = (INFO_LABEL.length() - text.length()) / 2;
+            for (int i=0; i<space; i++) text = " " + text + " ";
+          }
+          measureInfo.setText("   " + text);
+        }
+      }
+    };
     controls.add(pad(measureInfo));
     controls.add(Box.createVerticalStrut(10));
 
     // set standard button
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    setStandard = new JButton("Set standard");
-    setStandard.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+    setStandard = new JCheckBox("Set standard");
+    final MeasureToolbar toolbar = this;
+    setStandard.addItemListener(new ItemListener() {
+      private boolean ignore = false;
+      public void itemStateChanged(ItemEvent e) {
+        if (ignore) return;
+        boolean std = setStandard.isSelected();
         Measurement m = thing.getMeasurement();
         int index = horiz.getValue() - 1;
         int slice = vert.getValue() - 1;
-        MeasureList[][] lists = horiz.getMatrix().getMeasureLists();
-        for (int j=0; j<lists.length; j++) {
-          for (int i=0; i<lists[j].length; i++) {
-            if (j == index && slice == i) continue;
-            lists[j][i].addMeasurement((Measurement) m.clone(), false);
+        if (std) {
+          // set standard
+          m.setStdId(maxId++);
+          MeasureList[][] lists = horiz.getMatrix().getMeasureLists();
+          for (int j=0; j<lists.length; j++) {
+            for (int i=0; i<lists[j].length; i++) {
+              if (j == index && i == slice) continue;
+              lists[j][i].addMeasurement((Measurement) m.clone(), false);
+            }
           }
         }
+        else {
+          // unset standard
+          int ans = JOptionPane.showConfirmDialog(toolbar, "Are you sure?",
+            "Unset standard", JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE);
+          if (ans != JOptionPane.YES_OPTION) {
+            ignore = true;
+            setStandard.setSelected(true);
+            ignore = false;
+            return;
+          }
+          int stdId = m.getStdId();
+          m.setStdId(-1);
+          MeasureList[][] lists = horiz.getMatrix().getMeasureLists();
+          for (int j=0; j<lists.length; j++) {
+            for (int i=0; i<lists[j].length; i++) {
+              if (j == index && i == slice) continue;
+              Measurement[] mlist = lists[j][i].getMeasurements();
+              for (int k=0; k<mlist.length; k++) {
+                if (mlist[k].getStdId() == stdId) {
+                  lists[j][i].removeMeasurement(mlist[k], false);
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+    setStandard.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
       }
     });
     setStandard.setEnabled(false);
@@ -341,7 +416,6 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     this.thing = thing;
     boolean enabled = thing != null;
     boolean line = thing instanceof MeasureLine;
-    updateMeasureInfo();
     setStandard.setEnabled(enabled);
     removeThing.setEnabled(enabled);
     colorLabel.setEnabled(enabled && line);
@@ -355,6 +429,20 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
       Measurement m = thing.getMeasurement();
       colorList.setSelectedItem(m.getColor());
       groupList.setSelectedItem(m.getGroup());
+    }
+    synchronized (cell) {
+      try {
+        cell.disableAction();
+        cell.removeAllReferences();
+        if (enabled) {
+          DataReference[] refs = thing.getReferences();
+          for (int i=0; i<refs.length; i++) cell.addReference(refs[i]);
+        }
+        cell.enableAction();
+        if (!enabled) cell.doAction();
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
     }
   }
 

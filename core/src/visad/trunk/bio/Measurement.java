@@ -42,11 +42,15 @@ public class Measurement {
   /** Group of the measurement. */
   private LineGroup group;
 
+  /** ID for "standard" measurement. */
+  protected int stdId;
+
   /** Constructs a measurement. */
   public Measurement(RealTuple[] values, Color color, LineGroup group) {
     this.values = values;
     this.color = color;
     this.group = group;
+    this.stdId = -1;
   }
 
   /** Sets the measurement endpoint values. */
@@ -60,6 +64,9 @@ public class Measurement {
   /** Sets the measurement line color. */
   public void setColor(Color color) { this.color = color; }
 
+  /** Sets the measurement standard ID. */
+  public void setStdId(int id) { stdId = id; }
+
   /** Gets the measurement endpoint values. */
   public RealTuple[] getValues() { return values; }
 
@@ -68,6 +75,9 @@ public class Measurement {
 
   /** Gets the measurement line color. */
   public Color getColor() { return color; }
+
+  /** Gets the measurement standard ID. */
+  public int getStdId() { return stdId; }
 
   /** Gets whether this measurement is a point (rather than a line). */
   public boolean isPoint() { return values.length == 1; }
@@ -108,7 +118,9 @@ public class Measurement {
   public Object clone() {
     RealTuple[] vals = new RealTuple[values.length];
     System.arraycopy(values, 0, vals, 0, values.length);
-    return new Measurement(vals, color, group);
+    Measurement m = new Measurement(vals, color, group);
+    m.setStdId(stdId);
+    return m;
   }
 
 }
