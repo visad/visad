@@ -1,5 +1,5 @@
 //
-// CartesianProductCoordinateSystem.java
+// $Id: CartesianProductCoordinateSystem.java,v 1.2 2000-07-20 21:45:12 donm Exp $
 //
 
 /*
@@ -41,7 +41,7 @@ import java.util.Vector;
  * would transform (row, col, pressure) -> (lat, lon, alt).</P>
  *
  * <P>The resulting CartesianProductCoordinateSystem will have a dimension 
- * of the * sum of the dimensions of the individual CoordinateSystems and a
+ * of the sum of the dimensions of the individual CoordinateSystems and a
  * Reference RealTupleType that is the composite of the references of
  * each CoordinateSystem.  The CoordinateSystem Units are a composite of the
  * Units of each of the CoordinateSystems as well.</P>
