@@ -106,6 +106,10 @@ System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
     actualIndex = 0;
   }
 
+  public void toggle(boolean on) {
+    sw.setWhichChild(on ? currentIndex : (2 - currentIndex));
+  }
+
   public ShadowType makeShadowFunctionType(
          FunctionType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {

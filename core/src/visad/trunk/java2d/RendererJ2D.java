@@ -45,6 +45,8 @@ public abstract class RendererJ2D extends DataRenderer {
   /** parent of branch made by doAction */
   VisADGroup swParent;
 
+  VisADSwitch swit;
+
   public RendererJ2D() {
     super();
   }
@@ -62,7 +64,21 @@ public abstract class RendererJ2D extends DataRenderer {
     setLinks(links);
 
     swParent = new VisADGroup();
-    addSwitch((DisplayRendererJ2D) getDisplayRenderer(), swParent);
+    // addSwitch((DisplayRendererJ2D) getDisplayRenderer(), swParent);
+
+    swit = new VisADSwitch();
+    VisADGroup empty = new VisADGroup();
+    swit.addChild(swParent);
+    swit.addChild(empty);
+    swit.setWhichChild(0);
+    addSwitch((DisplayRendererJ2D) getDisplayRenderer(), swit);
+  }
+
+  public void toggle(boolean on) {
+    swit.setWhichChild(on ? 0 : 1);
+    VisADCanvasJ2D canvas =
+      ((DisplayRendererJ2D) getDisplayRenderer()).getCanvas();
+    canvas.scratchImages();
   }
 
   public ShadowType makeShadowFunctionType(

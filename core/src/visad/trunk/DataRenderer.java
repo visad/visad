@@ -104,6 +104,8 @@ public abstract class DataRenderer extends Object {
   public abstract void setLinks(DataDisplayLink[] links, DisplayImpl d)
            throws VisADException;
 
+  public abstract void toggle(boolean on);
+
   public synchronized void setLinks(DataDisplayLink[] links) {
     if (links == null || links.length == 0) return;
     Links = links;
