@@ -78,6 +78,34 @@ public class IdentityCoordinateSystem extends CoordinateSystem
     }
 
     /**
+     * Simple implementation of abstract method.  Returns the input values.
+     * @param values  input values
+     * @return values
+     * @throws VisADException  values are null or wrong dimension
+     */
+    public float[][] fromReference(float[][] values)
+        throws VisADException
+    {
+        if (values == null || values.length != getDimension())
+            throw new VisADException("values are null or wrong dimension");
+        return values;
+    }
+        
+    /**
+     * Simple implementation of abstract method.  Returns the input values.
+     * @param values  input values
+     * @return values
+     * @throws VisADException  values are null or wrong dimension
+     */
+    public float[][] toReference(float[][] values)
+        throws VisADException
+    {
+        if (values == null || values.length != getDimension())
+            throw new VisADException("values are null or wrong dimension");
+        return values;
+    }
+
+    /**
      * Check to see if the object in question is equal to this.
      * @param  o  object in question
      * @return  true if they are equal, otherwise false.
