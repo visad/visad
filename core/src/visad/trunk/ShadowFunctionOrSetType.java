@@ -409,7 +409,9 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 2:" +
                        ((FunctionType) getType()).getReal() &&   // ??
                        Domain.getDimension() == 3 &&
                        Domain.getAllSpatial() &&
-                       !Domain.getMultipleDisplayScalar() && // WLH 15 March 2000
+                       // WLH 1 April 2000
+                       // !Domain.getMultipleDisplayScalar() && // WLH 15 March 2000
+                       checkSpatialRange(Domain.getDisplayIndices()) && // WLH 1 April 2000
                        !Domain.getSpatialReference() &&
                        Display.DisplaySpatialCartesianTuple.equals(
                                Domain.getDisplaySpatialTuple() ) &&
@@ -661,6 +663,9 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
                             (domain_set instanceof LinearNDSet &&
                              domain_set.getDimension() == 3));
 
+    // WLH 1 April 2000
+    boolean range3D = isTexture3D && anyRange(Domain.getDisplayIndices());
+
 /*
 System.out.println("doTransform.isTextureMap = " + isTextureMap + " " +
                    getIsTextureMap() + " " +
@@ -743,22 +748,29 @@ System.out.println("doTransform.curvedTexture = " + curvedTexture + " " +
       }
       for (int i=0; i<DomainComponents.length; i++) {
         Enumeration maps = DomainComponents[i].getSelectedMapVector().elements();
-        ScalarMap map = (ScalarMap) maps.nextElement();
-        // scale values
-        limits[i] = map.scaleValues(limits[i]);
-        DisplayRealType real = map.getDisplayScalar();
-        DisplayTupleType tuple = real.getTuple();
+        while (maps.hasMoreElements()) {
+          ScalarMap map = (ScalarMap) maps.nextElement();
+          DisplayRealType real = map.getDisplayScalar();
+          DisplayTupleType tuple = real.getTuple();
+          if (Display.DisplaySpatialCartesianTuple.equals(tuple)) {
+            // scale values
+            limits[i] = map.scaleValues(limits[i]);
+            // get spatial index
+            tuple_index[i] = real.getTupleIndex();
+            break;
+          }
+        }
+/*
         if (tuple == null ||
             !tuple.equals(Display.DisplaySpatialCartesianTuple)) {
           throw new DisplayException("texture with bad tuple: " +
                                      "ShadowFunctionOrSetType.doTransform");
         }
-        // get spatial index
-        tuple_index[i] = real.getTupleIndex();
         if (maps.hasMoreElements()) {
           throw new DisplayException("texture with multiple spatial: " +
                                      "ShadowFunctionOrSetType.doTransform");
         }
+*/
       } // end for (int i=0; i<DomainComponents.length; i++)
       // get spatial index not mapped from domain_set
       tuple_index[2] = 3 - (tuple_index[0] + tuple_index[1]);
@@ -890,22 +902,30 @@ for (int i=0; i < 4; i++) {
       }
       for (int i=0; i<DomainComponents.length; i++) {
         Enumeration maps = DomainComponents[i].getSelectedMapVector().elements();
-        ScalarMap map = (ScalarMap) maps.nextElement();
-        // scale values
-        DisplayRealType real = map.getDisplayScalar();
-        DisplayTupleType tuple = real.getTuple();
+
+        while (maps.hasMoreElements()) {
+          ScalarMap map = (ScalarMap) maps.nextElement();
+          DisplayRealType real = map.getDisplayScalar();
+          DisplayTupleType tuple = real.getTuple();
+          if (Display.DisplaySpatialCartesianTuple.equals(tuple)) {
+            // scale values
+            limits[i] = map.scaleValues(limits[i]);
+            // get spatial index
+            tuple_index[i] = real.getTupleIndex();
+            break;
+          }
+        }
+/*
         if (tuple == null ||
             !tuple.equals(Display.DisplaySpatialCartesianTuple)) {
           throw new DisplayException("texture with bad tuple: " +
                                      "ShadowFunctionOrSetType.doTransform");
         }
-        // get spatial index
-        tuple_index[i] = real.getTupleIndex();
-        limits[i] = map.scaleValues(limits[i]);
         if (maps.hasMoreElements()) {
           throw new DisplayException("texture with multiple spatial: " +
                                      "ShadowFunctionOrSetType.doTransform");
         }
+*/
       } // end for (int i=0; i<DomainComponents.length; i++)
       volume_tuple_index = tuple_index;
 
@@ -1086,7 +1106,9 @@ for (int i=0; i < 4; i++) {
 }
 */
     }
-    else { // !isTextureMap && !isTexture3D
+    // WLH 1 April 2000
+    // else { // !isTextureMap && !isTexture3D
+    if (!isTextureMap && (!isTexture3D || range3D)) {
 
 // System.out.println("start domain " + (System.currentTimeMillis() - link.start_time));
 
@@ -1273,7 +1295,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
       // FREE
       domain_values = null;
       domain_doubles = null;
-    } // end if (!isTextureMap)
+    } // end if (!isTextureMap && (!isTexture3D || range3D))
 
     if (this instanceof ShadowFunctionType) {
 

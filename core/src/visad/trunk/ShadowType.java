@@ -593,6 +593,23 @@ public abstract class ShadowType extends Object
     return true;
   }
 
+  /** test for display_indices in (Spatial, Range, Unmapped) */
+  boolean checkSpatialRange(int[] display_indices) throws RemoteException {
+    for (int i=0; i<display_indices.length; i++) {
+      if (display_indices[i] == 0) continue;
+      DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
+      DisplayTupleType tuple = real.getTuple();
+      if (tuple != null &&
+          (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplaySpatialCartesianTuple)))) continue;  // Spatial
+      if (real.equals(Display.SelectRange)) continue;
+      return false;
+    }
+    return true;
+  }
+
   /** test for any Animation or Value in display_indices */
   int checkAnimationOrValue(int[] display_indices)
       throws RemoteException {
@@ -604,6 +621,16 @@ public abstract class ShadowType extends Object
           real.equals(Display.SelectValue)) count++;
     }
     return count;
+  }
+
+  /** test for any SelectRange in display_indices */
+  boolean anyRange(int[] display_indices) throws RemoteException {
+    for (int i=0; i<display_indices.length; i++) {
+      if (display_indices[i] == 0) continue;
+      DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
+      if (real.equals(Display.SelectRange)) return true;
+    }
+    return false;
   }
 
   /** test for any IsoContour in display_indices */

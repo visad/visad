@@ -21,6 +21,8 @@ MA 02111-1307, USA
 */
 
 import java.awt.Component;
+import javax.swing.JPanel;
+import javax.swing.BoxLayout;
 
 import java.rmi.RemoteException;
 
@@ -28,11 +30,17 @@ import visad.*;
 
 import visad.java3d.DisplayImplJ3D;
 import visad.util.LabeledColorWidget;
+import visad.util.SelectRangeWidget;
 
 public class Test61
   extends UISkeleton
 {
   private boolean nice = false;
+
+  private ScalarMap map1color = null;
+  private ScalarMap xrange = null;
+  private ScalarMap yrange = null;
+  private ScalarMap zrange = null;
 
   public Test61() { }
 
@@ -105,6 +113,13 @@ public class Test61
     dpys[0].addMap(new ScalarMap(yr, Display.YAxis));
     dpys[0].addMap(new ScalarMap(zr, Display.ZAxis));
 
+    xrange = new ScalarMap(xr, Display.SelectRange);
+    yrange = new ScalarMap(yr, Display.SelectRange);
+    zrange = new ScalarMap(zr, Display.SelectRange);
+    dpys[0].addMap(xrange);
+    dpys[0].addMap(yrange);
+    dpys[0].addMap(zrange);
+
     GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
     mode.setScaleEnable(true);
 
@@ -112,18 +127,22 @@ public class Test61
 
     // new
     RealType duh = new RealType("duh");
-    // Integer2DSet set2 = new Integer2DSet(2,2);
-    Linear2DSet set2 = new Linear2DSet(0.0, (double) NX, 2,
-                                       0.0, (double) NY, 2);
+    int NT = 32;
+    Linear2DSet set2 = new Linear2DSet(0.0, (double) NX, NT,
+                                       0.0, (double) NY, NT);
     RealType[] types2d = {xr, yr};
     RealTupleType domain2 = new RealTupleType(types2d);
     FunctionType ftype2 = new FunctionType(domain2, duh);
-    float[][] v2 = {{1.0f,2.0f,3.0f,4.0f}};
+    float[][] v2 = new float[1][NT * NT];
+    for (int i=0; i<NT*NT; i++) {
+      v2[0][i] = (i * i) % (NT/2 +3);
+    }
+    // float[][] v2 = {{1.0f,2.0f,3.0f,4.0f}};
     FlatField field2 = new FlatField(ftype2,set2);
     field2.setSamples(v2);
     dpys[0].addMap(new ScalarMap(duh, Display.RGB));
 
-    ScalarMap map1color = new ScalarMap(wr, Display.RGBA);
+    map1color = new ScalarMap(wr, Display.RGBA);
     dpys[0].addMap(map1color);
 
     ColorAlphaControl control = (ColorAlphaControl) map1color.getControl();
@@ -145,8 +164,15 @@ public class Test61
   Component getSpecialComponent(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    ScalarMap map1color = (ScalarMap )dpys[0].getMapVector().lastElement();
-    return new LabeledColorWidget(map1color);
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.add(new LabeledColorWidget(map1color));
+    panel.add(new SelectRangeWidget(xrange));
+    panel.add(new SelectRangeWidget(yrange));
+    panel.add(new SelectRangeWidget(zrange));
+    return panel;
+    // ScalarMap map1color = (ScalarMap )dpys[0].getMapVector().lastElement();
+    // return new LabeledColorWidget(map1color);
   }
 
   public String toString()
