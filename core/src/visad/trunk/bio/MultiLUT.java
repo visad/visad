@@ -233,9 +233,9 @@ set = Linear2DSet: Length = 393216
     final RealTupleType fdomain = domain;
     CellImpl cell = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
-        Set set = (Set) line_ref.getData();
-        if (set == null) return;
-        float[][] samples = set.getSamples();
+        Set cell_set = (Set) line_ref.getData();
+        if (cell_set == null) return;
+        float[][] samples = cell_set.getSamples();
         if (samples == null) return;
         // System.out.println("box (" + samples[0][0] + ", " + samples[1][0] +
         //                    ") to (" + samples[0][1] + ", " + samples[1][1] + ")");
