@@ -221,7 +221,7 @@ class myFrame:
     self.frame = JFrame(title, windowClosing=self.desty)
     self.pane = self.frame.getContentPane()
     self.pane.add(self.display.getComponent())
-    self.frame.setSize(width, height)
     self.frame.pack()
     self.frame.show()
+    self.frame.setSize(width, height)
 
