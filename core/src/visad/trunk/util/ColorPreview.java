@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ColorPreview.java,v 1.11 2000-03-13 19:59:15 dglo Exp $
+@(#) $Id: ColorPreview.java,v 1.12 2000-03-13 20:21:27 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -25,6 +25,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.util;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 
@@ -34,7 +35,7 @@ import javax.swing.JPanel;
  * A small preview bar generated for a color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.11 $, $Date: 2000-03-13 19:59:15 $
+ * @version $Revision: 1.12 $, $Date: 2000-03-13 20:21:27 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -135,10 +136,16 @@ public class ColorPreview extends JPanel implements ColorChangeListener {
       rightIndex = getBounds().width - 1;
     }
 
-    for (int i = leftIndex; i <= rightIndex; i++) {
-      float percent = (float) i / (float) getBounds().width;
-      g.setColor(map.getColor(percent));
-      g.drawLine(i,0,i,getBounds().height - 1);
+    final float fWidth = (float )getBounds().width;
+    final int num = (rightIndex - leftIndex) + 1;
+
+    Color[] c = map.getColors((float )leftIndex / fWidth,
+                              (float )rightIndex / fWidth,
+                              num);
+
+    for (int i = 0; i < num; i++) {
+      g.setColor(c[i]);
+      g.drawLine(i+leftIndex,0,i+leftIndex,getBounds().height - 1);
     }
   }
 
