@@ -123,33 +123,34 @@ public class FitsAdapter
   {
     if (data instanceof byte[]) {
       byte[] bl = (byte[] )data;
-      for (int i = 0; i < bl.length; ) {
-	list[offset++] = (double )bl[i++];
+      for (int i = 0; i < bl.length; i++) {
+	int val = (bl[i] >= 0 ? bl[i] : 256 - bl[i]);
+	list[offset++] = (double )val;
       }
     } else if (data instanceof short[]) {
       short[] sl = (short[] )data;
-      for (int i = 0; i < sl.length; ) {
-	list[offset++] = (double )sl[i++];
+      for (int i = 0; i < sl.length; i++) {
+	list[offset++] = (double )sl[i];
       }
     } else if (data instanceof int[]) {
       int[] il = (int[] )data;
-      for (int i = 0; i < il.length; ) {
-	list[offset++] = (double )il[i++];
+      for (int i = 0; i < il.length; i++) {
+	list[offset++] = (double )il[i];
       }
     } else if (data instanceof long[]) {
       long[] ll = (long[] )data;
-      for (int i = 0; i < ll.length; ) {
-	list[offset++] = (double )ll[i++];
+      for (int i = 0; i < ll.length; i++) {
+	list[offset++] = (double )ll[i];
       }
     } else if (data instanceof float[]) {
       float[] fl = (float[] )data;
-      for (int i = 0; i < fl.length; ) {
-	list[offset++] = (double )fl[i++];
+      for (int i = 0; i < fl.length; i++) {
+	list[offset++] = (double )fl[i];
       }
     } else if (data instanceof double[]) {
       double[] dl = (double[] )data;
-      for (int i = 0; i < dl.length; ) {
-	list[offset++] = dl[i++];
+      for (int i = 0; i < dl.length; i++) {
+	list[offset++] = dl[i];
       }
     } else {
       throw new VisADException("type '" + data.getClass().getName() +
@@ -172,7 +173,7 @@ public class FitsAdapter
     }
 
     int len = Array.getLength(data);
-    for (int i = 0; i < len; i++) {
+    for (int i = len - 1; i >= 0; i--) {
       offset = decompose(Array.get(data, i), list, offset);
     }
 
@@ -203,6 +204,15 @@ public class FitsAdapter
     int[] axes = hdu.getAxes();
     if (axes == null || axes.length == 0) {
       return null;
+    }
+
+    // reverse order of axes
+    for (int i = 0; i < axes.length / 2; i++) {
+      int j = axes.length - (i + 1);
+      int tmp = axes[j];
+
+      axes[j] = axes[i];
+      axes[i] = tmp;
     }
 
     Object fData = hdu.getData().getData();
