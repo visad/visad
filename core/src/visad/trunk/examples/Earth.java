@@ -1,0 +1,103 @@
+import java.awt.Frame;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.rmi.RemoteException;
+import visad.DataReference;
+import visad.DataReferenceImpl;
+import visad.Display;
+import visad.FlatField;
+import visad.FunctionType;
+import visad.RealType;
+import visad.ScalarMap;
+import visad.TupleType;
+import visad.VisADException;
+import visad.data.netcdf.Plain;
+import visad.util.LabeledRGBWidget;
+
+
+/**
+ * Draws a picture of the globe with topography and color.
+ */
+class Earth
+{
+    /*
+     * Set altitude scaling.
+     */
+    private static double[]
+    setAltitudeScaling(ScalarMap radiusMap)
+	throws InterruptedException, VisADException, RemoteException
+    {
+	double[]	coeffs = new double[2];		// scale and offset
+	double[]	altitudeRange = new double[2];	// data min and max
+	double[]	radiusRange = new double[2];	// display min and max
+
+	radiusMap.getScale(coeffs, altitudeRange, radiusRange);
+	while (Double.isNaN(altitudeRange[0]))
+	{
+	    Thread.sleep(1000);
+	    radiusMap.getScale(coeffs, altitudeRange, radiusRange);
+	}
+
+	double[]	newRadiusRange = {0.925, 1.075};
+	double		newSlope = (newRadiusRange[1] - newRadiusRange[0]) /
+	    (altitudeRange[1] - altitudeRange[0]);
+	double		newIntercept = newRadiusRange[0] - 
+	    newSlope * altitudeRange[0];
+	double		newMinAltitude = (radiusRange[0] - newIntercept) /
+	    newSlope;
+	double		newMaxAltitude = (radiusRange[1] - newIntercept) /
+	    newSlope;
+
+	radiusMap.setRange(newMinAltitude, newMaxAltitude);
+
+	return altitudeRange;
+    }
+
+
+    /**
+     * Set the color map.
+     */
+    private static void
+    setColorMap(ScalarMap colorMap, double min, double max)
+	throws VisADException, RemoteException
+    {
+        LabeledRGBWidget lw =
+	    new LabeledRGBWidget(colorMap, (float)min, (float)max);
+
+        Frame frame = new Frame("VisAD Color Widget");
+        frame.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+        frame.add(lw);
+        frame.setSize(lw.getPreferredSize());
+        frame.setVisible(true);
+    }
+
+
+    /**
+     * Test this class.
+     */
+    public static void
+    main(String[] args)
+	throws Exception
+    {
+	GeoDisplay	display = new GeoDisplay();
+	FlatField	earth = (FlatField) new Plain().open(args[0]);
+	FunctionType	earthType = (FunctionType) earth.getType();
+	RealType	altitudeType = (RealType)earthType.getRange();
+	ScalarMap	radiusMap = new ScalarMap(altitudeType, Display.Radius);
+        ScalarMap	colorMap = new ScalarMap(altitudeType, Display.RGB);
+	DataReference	earthRef = new DataReferenceImpl("earthRef");
+
+	display.addMap(radiusMap);
+        display.addMap(colorMap);
+
+	earthRef.setData(earth);
+
+	display.addReference(earthRef);
+
+	double[]	altitudeRange = setAltitudeScaling(radiusMap);
+
+	setColorMap(colorMap, altitudeRange[0], altitudeRange[1]);
+    }
+}
