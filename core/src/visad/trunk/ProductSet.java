@@ -88,6 +88,10 @@ public class ProductSet extends SampledSet {
     }
   }
 
+  public SampledSet[] getSets() {
+    return Sets;
+  }
+
   private static int find_manifold_dim(SampledSet[] sets, Unit[] units)
           throws VisADException {
     if (sets == null || sets[0] == null) {
