@@ -245,6 +245,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
     DispHSV.addItemListener(this);
     disp.add(DispHSV);
 
+    // window menu
+    Menu window = new Menu("Window");
+    menubar.add(window);
+
+    MenuItem winWidget = new MenuItem("Show VisAD controls");
+    winWidget.addActionListener(this);
+    winWidget.setActionCommand("winWidget");
+    window.add(winWidget);
+
     // set up toolbar
     JToolBar toolbar = new JToolBar();
     toolbar.setBackground(Color.lightGray);
@@ -511,6 +520,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
     // mappings menu commands
     else if (cmd.equals("dispEdit")) createMappings();
+
+    // window menu commands
+    else if (cmd.equals("winWidget")) {
+      DisplayCells[CurDisplay].showWidgetFrame();
+    }
 
     // formula bar commands
     else if (cmd.equals("formulaCancel")) refreshFormulaBar();
@@ -853,8 +867,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       refreshDisplayMenuItems();
     }
     catch (VisADException exc) {
-      JOptionPane.showMessageDialog(this,
-          "Cannot alter display dimension.",
+      JOptionPane.showMessageDialog(this, "Cannot alter display dimension.",
           "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
     }
     catch (RemoteException exc) { }
