@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.21 2000-06-26 20:28:15 steve Exp $
+ * $Id: NetcdfAdapter.java,v 1.22 2000-06-26 20:56:05 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -85,6 +85,19 @@ NetcdfAdapter
      * the default is to use the <code>getData()</code> method of inner class
      * <code>Strategy</code>; otherwise, the value of the property is used as a
      * class name to instantiate the strategy for importing the netCDF dataset.
+     * The strategy used to import a netCDF dataset can be set programatically 
+     * by code like the following:
+     * <blockquote><code><pre>
+     * String strategyClassName = ...;
+     * System.setProperty(
+     *     NetcdfAdapter.IMPORT_STRATEGY_PROPERTY, strategyClassName);
+     * visad.Data data = new NetcdfAdapter(...).getData();</pre>
+     * </code></blockquote>
+     * The import strategy can also be set by the user of an application by
+     * means of the property "visad.data.netcdf.in.Strategy":
+     * <blockquote><code><pre>
+     * java -Dvisad.data.netcdf.in.Strategy=<em>SomeClassName</em> ...</pre>
+     * </code></blockquote>
      *
      * @return			The top-level, VisAD data object in the netCDF
      *				dataset.
@@ -92,7 +105,8 @@ NetcdfAdapter
      *				object couldn't be created.
      * @throws IOException	Data access I/O failure.
      * @throws BadFormException	netCDF dataset doesn't conform to conventions
-     *				implicit in constructing View.
+     *				implicit in the View that was passed to the
+     *				constructor.
      * @throws OutOfMemoryError	Couldn't read netCDF dataset into memory.
      * @see #IMPORT_STRATEGY_PROPERTY
      * @see Strategy#getData
