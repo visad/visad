@@ -1,3 +1,4 @@
+#tomr's version
 """
 A collection of support methods for connecting VisAD to Jython.  The
 emphasis is on display-side methods and classes.  All display-dependent
@@ -161,6 +162,15 @@ class _vdisp:
       print "added Data is None"
 
     return ref
+
+  def toggle(self, ref, on):
+    rendVector = self.getRendererVector()
+    for i in range(rendVector.size()):
+      ren = rendVector.elementAt(i)
+      links = ren.getLinks()
+      for j in range(len(links)):
+        if (links[j].getThingReference() == ref):
+          links[j].getRenderer().toggle(on)
     
   def setPointSize(self, size):
     """
