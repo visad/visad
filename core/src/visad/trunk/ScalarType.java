@@ -229,5 +229,31 @@ public abstract class ScalarType extends MathType implements Comparable {
     }
   }
 */
+
+  /**
+   * <b>Used by the Java Serialization methods.</b>
+   *
+   * If a ScalarType with this name already exists,
+   * use it instead of this newly unserialized object.
+   * Otherwise, add this object to the internal Hashtable
+   * so it can be found and remains unique.
+   *
+   * @return the unique ScalarType object corresponding
+   *         to this object's name.
+   */
+  Object readResolve()
+  {
+    ScalarType st = getScalarTypeByName(getName());
+    if (st == null) {
+      ScalarHash.put(Name, this);
+      st = this;
+    } else if (!equals(st)) {
+      // if this isn't the same as the cached object,
+      //  use the de-serialized version and hope for the best
+      st = this;
+    }
+
+    return st;
+  }
 }
 
