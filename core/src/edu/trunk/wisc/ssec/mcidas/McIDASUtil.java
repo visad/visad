@@ -188,4 +188,23 @@ public final class McIDASUtil
                        ( (k & 0xff) << 24 )  | ( (k & 0xff00) << 8);
         }
     }
+
+    /**
+     * convert four consequtive bytes into a (signed) int. This
+     * is useful in dealing with McIDAS data files
+     *
+     * @param byte[] array of 4 bytes
+     * @param off is the offset into the byte array
+     *
+     */
+    public static int bytesToInteger(byte[] b, int off) {
+
+     int k = ( b[off] << 24) +
+         ((b[off+1] << 16)&0xff0000) +
+         ((b[off+2] << 8)&0xff00) +
+         ((b[off+3] << 0)&0xff);
+
+     return k;
+  }
+
 }
