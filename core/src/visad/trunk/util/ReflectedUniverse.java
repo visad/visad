@@ -240,7 +240,50 @@ public class ReflectedUniverse {
     variables.put(varName, obj);
   }
 
-  /** Returns the value of a variable or field in the universe. */
+  /** Registers a variable of primitive type boolean in the universe. */
+  public void setVar(String varName, boolean b) {
+    setVar(varName, new Boolean(b));
+  }
+
+  /** Registers a variable of primitive type byte in the universe. */
+  public void setVar(String varName, byte b) {
+    setVar(varName, new Byte(b));
+  }
+
+  /** Registers a variable of primitive type char in the universe. */
+  public void setVar(String varName, char c) {
+    setVar(varName, new Character(c));
+  }
+
+  /** Registers a variable of primitive type double in the universe. */
+  public void setVar(String varName, double d) {
+    setVar(varName, new Double(d));
+  }
+
+  /** Registers a variable of primitive type float in the universe. */
+  public void setVar(String varName, float f) {
+    setVar(varName, new Float(f));
+  }
+
+  /** Registers a variable of primitive type int in the universe. */
+  public void setVar(String varName, int i) {
+    setVar(varName, new Integer(i));
+  }
+
+  /** Registers a variable of primitive type long in the universe. */
+  public void setVar(String varName, long l) {
+    setVar(varName, new Long(l));
+  }
+
+  /** Registers a variable of primitive type short in the universe. */
+  public void setVar(String varName, short s) {
+    setVar(varName, new Short(s));
+  }
+
+  /**
+   * Returns the value of a variable or field in the universe.
+   * Primitive types will be wrapped in their Java Object wrapper classes.
+   */
   public Object getVar(String varName) throws VisADException {
     int dot = varName.indexOf(".");
     if (dot >= 0) {
