@@ -74,6 +74,9 @@ public class FormulaVar extends ActionImpl {
   /** for synchronization */
   private Object Lock = new Object();
 
+  /** whether the formula is currently being computed */
+  private boolean computing = false;
+
   /** constructor without specified ThingReference */
   FormulaVar(String n, FormulaManager f) throws VisADException {
     this(n, f, null);
@@ -238,12 +241,20 @@ public class FormulaVar extends ActionImpl {
       }
     }
     postfix = null;
+    computing = true;
     rebuildDependencies();
   }
 
   /** waits for this formula to recompute */
   void waitForFormula() {
-    synchronized (Lock) { }
+    synchronized (Lock) {
+      if (computing) {
+        try {
+          Lock.wait();
+        }
+        catch (InterruptedException exc) { }
+      }
+    }
   }
 
   /** reference to a Text object equal to this variable's formula */
@@ -371,6 +382,8 @@ public class FormulaVar extends ActionImpl {
       catch (RemoteException exc) {
         evalError("Could not store final value in variable");
       }
+      computing = false;
+      Lock.notify();
     }
   }
 
