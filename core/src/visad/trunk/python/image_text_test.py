@@ -13,7 +13,8 @@ print "Image size = ",ydim," by",xdim
 cs = ds.getCoordinateSystem()
 
 rangetype = a.getType().getRange()
-maps=subs.makeMaps(RealType.Latitude, "y", RealType.Longitude, "x", rangetype[0], "text")
+maps=subs.makeMaps(RealType.Latitude, "y", RealType.Longitude, "x",
+                   rangetype[0], "text")
 disp=subs.makeDisplay3D(maps)
 
 pcontrol = disp.getProjectionControl()
