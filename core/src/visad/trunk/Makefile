@@ -326,6 +326,7 @@ tar:
 	compress visad_src-2.0.tar ; \
 	mv visad_src-2.0.tar.Z visad ; \
 	cd visad ; \
+	rm -f visadsrc.taz; \
 	ln visad_src-2.0.tar.Z visadsrc.taz ; \
 	ls -l visad_src-2.0.tar.Z visadsrc.taz
 
@@ -335,6 +336,7 @@ jar:
 	jar cvf visad_src-2.0.jar $(TAR_FILES) ; \
 	mv visad_src-2.0.jar visad ; \
 	cd visad ; \
+	rm -f visadsrc.jar ; \
 	ln visad_src-2.0.jar visadsrc.jar ; \
 	ls -l visad_src-2.0.jar visadsrc.jar
 
@@ -502,6 +504,7 @@ tardocs: docs
 	 date > $$DNAME/DATE &&						\
 	 tar -cvf - $$DNAME) > visad_doc-2.0.tar;			\
 	compress visad_doc-2.0.tar;					\
+	rm -f visaddoc.taz;						\
 	ln visad_doc-2.0.tar.Z visaddoc.taz;				\
 	ls -l visad_doc-2.0.tar.Z visaddoc.taz
 
@@ -510,6 +513,7 @@ jardocs: docs
 	 DNAME=`basename $(DOC_DIR)` &&					\
 	 date > $$DNAME/DATE &&						\
 	 jar cv $$DNAME) > visad_doc-2.0.jar;				\
+	rm -f visaddoc.jar;						\
 	ln visad_doc-2.0.jar visaddoc.jar;				\
 	ls -l visad_doc-2.0.jar visaddoc.jar
 
