@@ -71,6 +71,7 @@ public class ObjectCache
   static {
     // start up reaper thread when cache is loaded
     reaper = new Thread(new ObjectCache(null));
+    reaper.setName("ObjectCache Reaper");
     reaper.start();
   }
 
@@ -98,7 +99,7 @@ public class ObjectCache
      */
     public String toString()
     {
-      return object.toString();
+      return "QueueMember[" + object.toString() + "]";
     }
   }
 
