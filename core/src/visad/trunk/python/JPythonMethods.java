@@ -1703,6 +1703,23 @@ public abstract class JPythonMethods {
     return new Linear1DSet(type, first, last, length);
   }
 
+  /** create a Linear1DSet for domain samples
+  *
+  * @param name is the name of the VisAD MathType of this set
+  * @param first is the first value in the linear set
+  * @param last is the last value in the linear set
+  * @param length is the number of values in the set
+  *
+  * @return the created visad.Linear1DSet
+  *
+  * Note: this is for testing ONLY and may not remain!
+  */
+  public static Linear1DSet makeDomain
+           (String name, double first, double last, int length) 
+           throws VisADException {
+    return new Linear1DSet(RealType.getRealType(name),first, last, length);
+  }
+
   /*
   public static Linear1DSet makeDomain(double[] vals) {
     //if vals is sorted, make a Gridded1DSet; otherwise, Irregular1DSet
@@ -1758,6 +1775,30 @@ public abstract class JPythonMethods {
                                   first2, last2, length2);
   }
 
+  /** create a Linear2DSet for domain samples
+  *
+  * @param name is the name of the VisAD MathType of this set
+  * @param first1 is the first value in the linear set's 1st dimension
+  * @param last1 is the last value in the linear set's 1st dimension
+  * @param length1 is the number of values in the set's 1st dimension
+  * @param first2 is the first value in the linear set's 2nd dimension
+  * @param last2 is the last value in the linear set's 2nd dimension
+  * @param length2 is the number of values in the set's 2nd dimension
+  *
+  * @return the created visad.Linear2DSet
+  *
+  * Note: this is for testing ONLY and may not remain!
+  */
+  public static Linear2DSet makeDomain (String name, 
+                         double first1, double last1, int length1, 
+                         double first2, double last2, int length2) 
+                         throws VisADException, RemoteException {
+
+    return new Linear2DSet((RealTupleType) (makeType(name)), 
+                                  first1, last1, length1, 
+                                  first2, last2, length2);
+  }
+
   /** create a Linear3DSet for domain samples
   *
   * @param first1 is the first value in the linear set's 1st dimension
@@ -1804,10 +1845,40 @@ public abstract class JPythonMethods {
                          double first2, double last2, int length2,
                          double first3, double last3, int length3) 
                          throws VisADException {
-    return new Linear3DSet(type, first1, last1, length1, 
+
+    return new Linear3DSet(type,  first1, last1, length1, 
                                   first2, last2, length2,
                                   first3, last3, length3);
   }
+
+  /** create a Linear3DSet for domain samples
+  *
+  * @param name is the name of the VisAD MathType of this set
+  * @param first1 is the first value in the linear set's 1st dimension
+  * @param last1 is the last value in the linear set's 1st dimension
+  * @param length1 is the number of values in the set's 1st dimension
+  * @param first2 is the first value in the linear set's 2nd dimension
+  * @param last2 is the last value in the linear set's 2nd dimension
+  * @param length2 is the number of values in the set's 2nd dimension
+  * @param first3 is the first value in the linear set's 3rd dimension
+  * @param last3 is the last value in the linear set's 3rd dimension
+  * @param length3 is the number of values in the set's 3rd dimension
+  * @return the created visad.Linear3DSet
+  *
+  * Note: this is for testing ONLY and may not remain!
+  */
+  public static Linear3DSet makeDomain (String name,
+                         double first1, double last1, int length1, 
+                         double first2, double last2, int length2,
+                         double first3, double last3, int length3) 
+                         throws VisADException, RemoteException {
+
+    return new Linear3DSet((RealTupleType) (makeType(name)), 
+                                  first1, last1, length1, 
+                                  first2, last2, length2,
+                                  first3, last3, length3);
+  }
+
   /** return the sampling set for the domain of the Data object
   *
   * @param data is the VisAD data object
