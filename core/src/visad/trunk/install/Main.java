@@ -428,7 +428,14 @@ public class Main
 
     if (installerJavaJar != null) {
       System.out.println("Supplied java jar file: " + installerJavaJar);
+    }
+
+    if (installerJava != null) {
       System.out.println("Supplied java: " + installerJava);
+    }
+
+    if (installerJar != null) {
+      System.out.println("Supplied visad.jar: " + installerJar);
     }
 
     if (jarList == null || jarList.size() == 0) {
