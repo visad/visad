@@ -204,6 +204,14 @@ public class DisplayImplJ2D extends DisplayImpl {
     else {
       throw new DisplayException("DisplayImplJ2D: bad graphicsApi");
     }
+
+    // a GraphicsModeControl always exists
+    mode = new GraphicsModeControlJ2D(this);
+    addControl(mode);
+    // a ProjectionControl always exists
+    projection = new ProjectionControlJ2D(this);
+    addControl(projection);
+
   }
 
   public ProjectionControl getProjectionControl() {

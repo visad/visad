@@ -144,7 +144,9 @@ public class MouseHelper {
             }
             else {
               VisADRay cursor_ray = behavior.findRay(start_x, start_y);
-              display_renderer.drag_cursor(cursor_ray, true);
+              if (cursor_ray != null) {
+                display_renderer.drag_cursor(cursor_ray, true);
+              }
             }
           }
           else if (m3 != 0 && !mousePressed1 && !mousePressed2) {
@@ -154,11 +156,13 @@ public class MouseHelper {
               int current_y = ((MouseEvent) event).getY();
               VisADRay direct_ray =
                 behavior.findRay(current_x, current_y);
-              direct_renderer =
-                display_renderer.findDirect(direct_ray);
-              if (direct_renderer != null) {
-                display_renderer.setDirectOn(true);
-                direct_renderer.drag_direct(direct_ray, true);
+              if (direct_ray != null) {
+                direct_renderer =
+                  display_renderer.findDirect(direct_ray);
+                if (direct_renderer != null) {
+                  display_renderer.setDirectOn(true);
+                  direct_renderer.drag_direct(direct_ray, true);
+                }
               }
             }
           }
@@ -275,13 +279,17 @@ public class MouseHelper {
             else {
               // current_x, current_y -> 3-D cursor X and Y
               VisADRay cursor_ray = behavior.findRay(current_x, current_y);
-              display_renderer.drag_cursor(cursor_ray, false);
+              if (cursor_ray != null) {
+                display_renderer.drag_cursor(cursor_ray, false);
+              }
             }
           }
           else if (mousePressed3) {
             if (direct_renderer != null) {
               VisADRay direct_ray = behavior.findRay(current_x, current_y);
-              direct_renderer.drag_direct(direct_ray, false);
+              if (direct_ray != null) {
+                direct_renderer.drag_direct(direct_ray, false);
+              }
             }
           }
         }

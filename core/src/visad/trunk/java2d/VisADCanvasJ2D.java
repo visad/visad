@@ -82,6 +82,9 @@ public class VisADCanvasJ2D extends Canvas
     };
     addComponentListener(cl);
 
+    setBackground(Color.black);
+    setForeground(Color.white);
+
     renderThread = new Thread(this);
     renderThread.start();
   }
@@ -167,8 +170,13 @@ public class VisADCanvasJ2D extends Canvas
         wakeup = false;
       }
       Graphics g = getGraphics();
-      paint(g);
-      g.dispose();
+      if (g != null) {
+        paint(g);
+        g.dispose();
+      }
+      else {
+System.out.println("VisADCanvasJ2D.run: null Graphics");
+      }
     }
   }
 
@@ -176,11 +184,12 @@ public class VisADCanvasJ2D extends Canvas
     BufferedImage image = null;
     boolean valid = false;
     int w = 0, h = 0;
-    int current_image = -1;
+    int current_image = 0;
+    AnimationControlJ2D animate_control = null;
     try {
-      AnimationControlJ2D control = (AnimationControlJ2D)
+      animate_control = (AnimationControlJ2D)
         display.getControl(AnimationControlJ2D.class);
-      current_image = control.getCurrent();
+      if (animate_control != null) current_image = animate_control.getCurrent();
     }
     catch (Exception e) {
     }
@@ -192,6 +201,9 @@ public class VisADCanvasJ2D extends Canvas
         h = height;
       }
     }
+System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
+                   " w, h = " + w + " " + h + " valid = " + valid +
+                   " image != null " + (image != null));
     if (image != null) {
       if (!valid) {
         VisADGroup root = displayRenderer.getRoot();
@@ -213,9 +225,7 @@ public class VisADCanvasJ2D extends Canvas
         }
         g2.setTransform(tgeometry);
         try {
-          AnimationControlJ2D animate_control = (AnimationControlJ2D)
-            display.getControl(AnimationControlJ2D.class);
-          animate_control.init();
+          if (animate_control != null) animate_control.init();
           render(g2, root);
         }
         catch (VisADException e) {
@@ -233,7 +243,12 @@ public class VisADCanvasJ2D extends Canvas
         }
       }
       g.drawImage(image, 0, 0, this);
-      displayRenderer.drawCursorStringVector(g, tgeometry, w, h);
+      if (tgeometry != null) {
+        displayRenderer.drawCursorStringVector(g, tgeometry, w, h);
+      }
+      else {
+System.out.println("tgeometry is null");
+      }
     } // end if (image != null)
   }
 

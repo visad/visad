@@ -61,6 +61,9 @@ public class MouseBehaviorJ2D implements MouseBehavior {
     // System.out.println("findRay " + screen_x + " " + screen_y);
     VisADCanvasJ2D canvas = display_renderer.getCanvas();
     AffineTransform trans = canvas.getTransform();
+
+    if (trans == null) return null;
+
     double[] coords = {(float) screen_x, (float) screen_y};
     double[] newcoords = new double[2];
     try {

@@ -48,9 +48,7 @@ public class ProjectionControlJ2D extends ProjectionControl {
     Matrix = new AffineTransform();
     matrix = new double[6];
     Matrix.getMatrix(matrix);
-    if (d != null) {
-      canvas = ((DisplayRendererJ2D) d.getDisplayRenderer()).getCanvas();
-    }
+    canvas = null;
   }
  
   public double[] getMatrix() {
@@ -63,7 +61,11 @@ public class ProjectionControlJ2D extends ProjectionControl {
          throws VisADException, RemoteException {
     System.arraycopy(m, 0, matrix, 0, 6);
     Matrix = new AffineTransform(matrix);
-    ((DisplayRendererJ2D) getDisplayRenderer()).setTransform2D(Matrix);
+    DisplayRendererJ2D dr = (DisplayRendererJ2D) getDisplayRenderer();
+    dr.setTransform2D(Matrix);
+    if (canvas == null) {
+      canvas = dr.getCanvas();
+    }
     canvas.scratchImages();
     changeControl(true);
   }

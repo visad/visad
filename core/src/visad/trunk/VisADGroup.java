@@ -65,15 +65,21 @@ public class VisADGroup extends VisADSceneGraphObject {
       if (child.parent != null) {
         throw new DisplayException("VisADGroup.setChild: already has parent");
       }
-      VisADSceneGraphObject c =
-        (VisADSceneGraphObject) children.elementAt(index);
-      if (c != null) {
-        synchronized(c) {
-          // nested VisADSceneGraphObject synchronized cannot
-          // deadlock: parent-less first, with-parent second
-          c.parent = null;
-          children.setElementAt(child, index);
+      VisADSceneGraphObject c = null;
+      if (children.size() > index) {
+        c = (VisADSceneGraphObject) children.elementAt(index);
+        if (c != null) {
+          synchronized(c) {
+            // nested VisADSceneGraphObject synchronized cannot
+            // deadlock: parent-less first, with-parent second
+            c.parent = null;
+            children.setElementAt(child, index);
+          }
         }
+        children.setElementAt(child, index);
+      }
+      else {
+        children.addElement(child);
       }
       child.parent = this;
     }
