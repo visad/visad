@@ -237,23 +237,15 @@ public class Real extends Scalar {
           }
           else {
 	    try {
-	      /*
 	      u = unit.getAbsoluteUnit();
 	      thisValue = u.toThis(thisValue, unit);
 	      thatValue = u.toThis(thatValue, data_unit);
-	      */
-	      if (((RealType)getType()).isInterval() ||
-		  !((RealType)data.getType()).isInterval()) {
-		u = unit;
-	      }
-	      else {
-		u = unit.getAbsoluteUnit();
-		thisValue = u.toThis(thisValue, unit);
-	      }
-	      thatValue = u.toThis(thatValue, data_unit);
 	      // scale data.ErrorEstimate for Unit.toThis
 	      if (error_mode != NO_ERRORS && dError != null) {
-		double new_error = u.toThis(dError.getErrorValue(), data_unit);
+		Unit	errorUnit = dError.getUnit();
+		if (errorUnit == null)
+		  errorUnit = data_unit;
+		double new_error = u.toThis(dError.getErrorValue(), errorUnit);
 		dError = new ErrorEstimate(thatValue, new_error, u);
 	      }
 	    }
@@ -808,8 +800,6 @@ public class Real extends Scalar {
 
     System.out.println("300 kelvin + -(32 fahrenheit) = " +
       ((Real)kelvin.add(fahrenheit.negate())).toValueString());
-    System.out.println("-300 kelvin = " +
-      ((Real)kelvin.negate()).toValueString());
     System.out.println("32 fahrenheit + -(300 kelvin) = " +
       ((Real)fahrenheit.add(kelvin.negate())).toValueString());
   }
