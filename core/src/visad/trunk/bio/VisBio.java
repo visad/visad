@@ -416,7 +416,7 @@ public class VisBio extends GUIFrame implements ChangeListener {
     else {
       for (int i=0; i<panels.length; i++) {
         toolPanes[i].removeAll();
-        toolFrames[i].hide();
+        toolFrames[i].setVisible(false);
         tabs.addTab(TOOL_PANELS[i], null, panels[i], tips[i]);
       }
       pane.add(tabs, BorderLayout.EAST);
