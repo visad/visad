@@ -1420,6 +1420,19 @@ public class CollectiveBarbManipulation extends Object
     FunctionType station_type = new FunctionType(time, tuple_type);
     FunctionType stations_type = new FunctionType(stn, station_type);
 
+    int image_size = 128;
+    RealType value = new RealType("value");
+    FunctionType image_type = new FunctionType(earth, value);
+    Linear2DSet image_set =
+      new Linear2DSet(earth, -50.0, -30.0, image_size, -10.0, 10.0, image_size);
+    FlatField image = new FlatField(image_type, image_set);
+    float[][] image_values = new float[1][image_size * image_size];
+    for (int i=0; i<image_size*image_size; i++) {
+      image_values[0][i] = (947 * i) % 677;
+    }
+    image_values[0][0] = 5101;
+    image.setSamples(image_values);
+
     // construct first Java3D display and mappings that govern
     // how wind records are displayed
     DisplayImplJ3D display1 =
@@ -1444,6 +1457,11 @@ public class CollectiveBarbManipulation extends Object
     display1.addMap(amap);
     AnimationControl acontrol = (AnimationControl) amap.getControl();
     acontrol.setStep(1000);
+
+    display1.addMap(new ScalarMap(value, Display.RGB));
+    DataReferenceImpl image_ref = new DataReferenceImpl("image");
+    image_ref.setData(image);
+    display1.addReference(image_ref);
 
     // construct second Java3D display and mappings that govern
     // how wind records are displayed
