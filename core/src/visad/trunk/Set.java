@@ -337,18 +337,34 @@ public abstract class Set extends DataImpl {
                    ((SetType) Type).getDomain(),
                    DomainCoordinateSystem,
                    SetUnits, null /* SetErrors */, values);
-    // set indices for values in this
-    int[] test_indices = set.doubleToIndex(values);
     // find indices of set not covered by this
     int set_length = set.getLength();
     boolean[] set_indices = new boolean[set_length];
     for (int i=0; i<set_length; i++) set_indices[i] = true;
-    try {
-      for (int i=0; i<length; i++) {
-        if (test_indices[i] > -1) set_indices[test_indices[i]] = false;
+    if (set_length > 1) {
+      // set indices for values in this
+      int[] test_indices = set.doubleToIndex(values);
+      try {
+        for (int i=0; i<length; i++) {
+          if (test_indices[i] > -1) set_indices[test_indices[i]] = false;
+        }
+      } catch (ArrayIndexOutOfBoundsException aioobe) {
+        throw new VisADException("Cannot merge sets");
       }
-    } catch (ArrayIndexOutOfBoundsException aioobe) {
-      throw new VisADException("Cannot merge sets");
+    }
+    else {
+      double[][] set_values = set.getDoubles();
+      double set_val = set_values[0][0];
+      double min = Double.MAX_VALUE;
+      double max = Double.MIN_VALUE;
+      for (int i=0; i<length; i++) {
+        if (values[0][i] > max) max = values[0][i];
+        if (values[0][i] < min) min = values[0][i];
+      }
+      double delt = (max - min) / length;
+      if ((min - delt) < set_val && set_val < (max + delt)) {
+        set_indices[0] = false;
+      }
     }
     // now set_indices = true for indices of set not covered by this
     int num_new = 0;
