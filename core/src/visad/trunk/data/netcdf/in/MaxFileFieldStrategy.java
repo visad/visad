@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: MaxFileFieldStrategy.java,v 1.3 2001-11-27 22:29:35 dglo Exp $
+ * $Id: MaxFileFieldStrategy.java,v 1.4 2001-12-19 16:45:25 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -33,7 +33,7 @@ public class MaxFileFieldStrategy
      *
      * @return			An instance of this class.
      */
-    public static NetcdfAdapter.Strategy instance()
+    public static Strategy instance()
     {
 	return instance;
     }
