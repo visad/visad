@@ -86,6 +86,15 @@ public class Event
   public final double getTime() { return time; }
   public final double getTimeShift() { return timeShift; }
 
+  public final BaseTrack getTrack(int idx)
+  {
+    if (tracks != null && idx >= 0 && idx < tracks.size()) {
+      return (BaseTrack )tracks.get(idx);
+    }
+
+    return null;
+  }
+
   static final RealType getTrackIndexType() { return trackIndexType; }
 
   public final int getYear() { return year; }

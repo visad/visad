@@ -31,7 +31,7 @@ import visad.Gridded3DSet;
 import visad.RealTupleType;
 import visad.VisADException;
 
-abstract class BaseTrack
+public abstract class BaseTrack
 {
   private static RealTupleType xyzType;
   private static FunctionType funcType;
@@ -60,6 +60,9 @@ abstract class BaseTrack
     this.energy = energy;
     this.time = time;
   }
+
+  public final float getEnergy() { return energy; }
+  public final float getLength() { return length; }
 
   static void initTypes(RealTupleType xyz, FunctionType trackFunctionType)
   {
