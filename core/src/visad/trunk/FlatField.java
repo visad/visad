@@ -1362,14 +1362,26 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     return Unit.convertTuple(values, RangeUnits, units_out);
   }
 
-  /** get String values for Text components
-      (there are none for FlatFields) */
+  /** 
+   * Get String values for Text components 
+   * @return null (there are none for FlatFields) 
+   * @throws VisADException     but doesn't happen
+   * @throws RemoteException    but doesn't happen
+   */
   public String[][] getStringValues()
          throws VisADException, RemoteException {
     return null;
   }
 
-  /** get values for 'Flat' components in default range Unit-s */
+  /** 
+   * Get values for 'Flat' components in default range Unit-s. 
+   * @return			The range values in their default units
+   *				as determined by the {@link MathType} of
+   *				the range.  Element <code>[i]</code> is
+   *				the value of the <code>i</code>th component 
+   *                            of the flattened range.
+   * @throws VisADException     if a VisAD object couldn't be created.
+   */
   /*- TDR June 1998  */
   public double[] getValues( int s_index ) throws VisADException {
     double[] values = new double[TupleDimension];
@@ -1387,14 +1399,24 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     return values;
   }
 
-  /** get default range Unit-s for 'Flat' components */
+  /** 
+   * Get default range Unit-s for 'Flat' components.
+   * @return array of the default Units for each of the RealTypes 
+   *         components in the flattened range. 
+   */
   public Unit[] getDefaultRangeUnits() {
     return ((FunctionType) Type).getFlatRange().getDefaultUnits();
   }
 
-  /** get the range value at the index-th sample;
-      FlatField does not override evaluate, but the correctness
-      of FlatField.evaluate depends on overriding getSample */
+  /** 
+   * Get the range value at the index-th sample.
+   * FlatField does not override evaluate, but the correctness
+   * of FlatField.evaluate depends on overriding getSample 
+   * @return Data object (Real, RealTuple, or Tuple) corresponding to
+   *         the range at the index-th sample.
+   * @throws VisADException  problem getting data
+   * @throws RemoteException problem getting data from remote object
+   */
   public Data getSample(int index)
          throws VisADException, RemoteException {
     int[] inds;
@@ -1480,21 +1502,41 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   }
 
   /**
-   * a stub routine which simply invokes {@link #getSample(int) getSample}
-   * to override {@link FieldImpl#getSample(int, boolean) FieldImpl.getSample}
+   * A stub routine which simply invokes 
+   * {@link #getSample(int) getSample} to override 
+   * {@link FieldImpl#getSample(int, boolean) FieldImpl.getSample}
+   * @param index index of requested range sample
+   * @throws VisADException     if a VisAD object couldn't be created.
+   * @throws RemoteException    if the Remote object couldn't be created.
    */
   public Data getSample(int index, boolean metadataOnly)
          throws VisADException, RemoteException {
     return getSample(index);
   }
 
-  /** set the range value at the index-th sample */
+  /** 
+   * Set the range value at the index-th sample 
+   * @param  index   index to set
+   * @param  range   range value to set
+   * @param  copy    flag to copy values - meaningless for FlatField
+   * @throws VisADException     if range's MathType is incompatible or
+   *                            some other error.
+   * @throws RemoteException    if the Remote object couldn't be created.
+   */
   public void setSample(int index, Data range, boolean copy)
          throws VisADException, RemoteException {
     setSample(index, range); // copy flag meaningless for FlatField
   }
 
-  /** set the range value at the index-th sample */
+  /** 
+   * Set the range value at the index-th sample 
+   * @param  index   index to set
+   * @param  range   range value to set
+   * @param  copy    flag to copy values - meaningless for FlatField
+   * @throws VisADException     if range's MathType is incompatible or
+   *                            some other error.
+   * @throws RemoteException    if the Remote object couldn't be created.
+   */
   public void setSample(int index, Data range)
          throws VisADException, RemoteException {
     double[][] values;
@@ -1691,24 +1733,41 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     }
   }
 
-  /** test whether Field value is missing */
+  /** 
+   * Test whether range values are missing 
+   * @return  true if the range values have not been set
+   */
   public boolean isMissing() {
     synchronized (DoubleRange) {
       return MissingFlag;
     }
   }
 
-  /** mark this FlatField as non-missing */
+  /** 
+   * Mark this FlatField as non-missing 
+   */
   public void clearMissing() {
     synchronized (DoubleRange) {
       MissingFlag = false;
     }
   }
 
-  /** return new Field with value 'this op data';
-      test for various relations between types of this and data;
-      note return type may not be FlatField,
-      in case data is a Field and this matches its range */
+  /** 
+   * Return new Field with value 'this op data'.
+   * test for various relations between types of this and data;
+   * note return type may not be FlatField,
+   * in case data is a Field and this matches its range 
+   * @param data  object to operate on
+   * @param op  operation to perform (e.g. ADD, SUB, MULT)
+   * @param new_type  MathType of new object
+   * @param sampling_mode  sampling mode to use 
+   *                       (e.g., NEAREST_NEIGHBOR, WEIGHTED_AVERAGE)
+   * @param error_mode    error estimate mode (e.g., NO_ERROR, DEPENDENT,
+   *                      independent)
+   * @return new Field corresponding to the requested operation
+   * @throws VisADException   couldn't create new VisAD object
+   * @throws RemoteException  couldn't create new Remote object
+   */
   /*- TDR May 1998
   public Data binary(Data data, int op, int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
@@ -2378,7 +2437,18 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   }
 
 
-  /** return new FlatField with value 'op this' */
+  /** 
+   * Return new FlatField with value 'this op'.
+   * @param op  operation to perform (e.g., NOP, ABS, COS)
+   * @param new_type  MathType of new object
+   * @param sampling_mode  sampling mode to use 
+   *                       (e.g., NEAREST_NEIGHBOR, WEIGHTED_AVERAGE)
+   * @param error_mode    error estimate mode (e.g., NO_ERROR, DEPENDENT,
+   *                      independent)
+   * @return new FlatField corresponding to the requested operation
+   * @throws VisADException   couldn't create new VisAD object
+   * @throws RemoteException  couldn't create new Remote object
+   */
   public Data unary(int op, MathType new_type, int sampling_mode, int error_mode)
               throws VisADException {
     // use DoubleSet rather than RangeSet for intermediate computation results
