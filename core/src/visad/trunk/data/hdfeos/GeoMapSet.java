@@ -22,74 +22,71 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-  package visad.data.hdfeos;
+package visad.data.hdfeos;
 
-  import java.lang.*;
-  import java.util.*;
+import java.lang.*;
+import java.util.*;
 
 
-  public class GeoMapSet {
-
-    Vector mapSet;
+public class GeoMapSet 
+{
+  Vector mapSet;
   
-    public GeoMapSet() {
-      mapSet = new Vector(); 
-    }
-
-    public void add( GeoMap obj ) {
-
-      mapSet.addElement( obj );
-    }
-
-    public int getSize()  {
-
-       int size = mapSet.size();
-       return size;
-    }
-
-    public GeoMap getElement( int ii )  {
-
-       if ( mapSet.size() == 0 ) {
-
-         return null;
-       }
-       else {
-
-         GeoMap obj = (GeoMap) mapSet.elementAt(ii);
-         return obj;
-       }
-    }
-
-    public GeoMap getGeoMap( NamedDimension obj ) {
-
-      String name = obj.getName();
-
-      return getGeoMap( name );
-    }
-
-    public GeoMap getGeoMap( String name ) {
-
-
-      int size = this.getSize();
-
-      if ( size == 0 )  {
-
-         return null;
-      }
-      else {
-
-        for ( int ii = 0; ii < size; ii++ ) {
-       
-          GeoMap obj = (GeoMap) mapSet.elementAt(ii);
-
-          if(( obj.toDim.equals( name ) ) || ( obj.fromDim.equals( name ) )) {
-                 
-            return obj;
-          }
-
-        }
-        return null;
-      }
-    }
-
+  public GeoMapSet() 
+  {
+    mapSet = new Vector(); 
   }
+
+  public void add( GeoMap obj ) 
+  {
+    mapSet.addElement( obj );
+  }
+
+  public int getSize() 
+  {
+    int size = mapSet.size();
+    return size;
+  }
+
+  public GeoMap getElement( int ii )  
+  {
+    if ( mapSet.size() == 0 ) 
+    {
+      return null;
+    }
+    else 
+    {
+      GeoMap obj = (GeoMap) mapSet.elementAt(ii);
+      return obj;
+    }
+  }
+
+  public GeoMap getGeoMap( NamedDimension obj ) 
+  {
+    String name = obj.getName();
+    return getGeoMap( name );
+  }
+
+  public GeoMap getGeoMap( String name ) 
+  {
+    int size = this.getSize();
+
+    if ( size == 0 ) 
+    {
+      return null;
+    }
+    else 
+    {
+      for ( int ii = 0; ii < size; ii++ ) 
+      {
+         GeoMap obj = (GeoMap) mapSet.elementAt(ii);
+
+         if(( obj.toDim.equals( name ) ) || ( obj.fromDim.equals( name ) )) 
+         {
+           return obj;
+         }
+      }
+      return null;
+    }
+  }
+}

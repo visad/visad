@@ -24,19 +24,130 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.data.hdfeos;
 
-public abstract class EosStruct {
+import visad.data.hdfeos.hdfeosc.HdfeosLib;
 
-  EosStruct () 
+public abstract class EosStruct 
+{
+  static String G_TYPE = "Geolocation Fields";
+  static String D_TYPE = "Data Fields";
+
+  int struct_id;
+
+  public int getStructId()
   {
-
+    return struct_id;
   }
 
-  public abstract int getStructId();
+  public void readData( String f_name, int[] start, int[] stride, int[] edge,
+                        int num_type, Calibration cal, float[] f_data )
+         throws HdfeosException
+  {
+    int status = 0;
+    int jj;
+    int n_values = f_data.length;
 
-  public abstract void readData( String s, int[] a, int[] b, int[] c, int d, float[] f )
-         throws HdfeosException; 
+    if ( num_type == HdfeosLib.FLOAT )
+    {
+      if ( this instanceof EosGrid )
+      {
+        status = HdfeosLib.GDreadfield( struct_id, f_name, start, stride, edge, f_data );
+      }
+      else if ( this instanceof EosSwath )
+      {
+        status = HdfeosLib.SWreadfield( struct_id, f_name, start, stride, edge, f_data );
+      }
+    }
+    else if ( num_type == HdfeosLib.DOUBLE )
+    {
+      double[] d_data = new double[ n_values ];
+      if( this instanceof EosGrid )
+      {
+        status = HdfeosLib.GDreadfield( struct_id, f_name, start, stride, edge, d_data );
+      }
+      else if ( this instanceof EosSwath )
+      {
+        status = HdfeosLib.SWreadfield( struct_id, f_name, start, stride, edge, d_data );
+      }
 
-  public abstract void readData( String s, int[] a, int[] b, int[] c, int d, double[] f )
-         throws HdfeosException; 
-  
+      for ( jj = 0; jj < n_values; jj++ )
+      {
+        f_data[jj] = (float)d_data[jj];
+      }
+      d_data = null;
+    }
+    else if ( num_type == HdfeosLib.INT )
+    {
+      int[] i_data = new int[ n_values ];
+      if ( this instanceof EosGrid )
+      {
+        status = HdfeosLib.GDreadfield( struct_id, f_name, start, stride, edge, i_data );
+      }
+      else if ( this instanceof EosSwath )
+      {
+        status = HdfeosLib.SWreadfield( struct_id, f_name, start, stride, edge, i_data );
+      }
+
+      for ( jj = 0; jj < n_values; jj++ )
+      {
+        f_data[jj] = (float)i_data[jj];
+      }
+      i_data = null;
+    }
+    else if (( num_type == HdfeosLib.SHORT )||
+              ( num_type == HdfeosLib.U_SHORT))
+    {
+      short[] s_data = new short[ n_values ];
+      if ( this instanceof EosGrid )
+      {
+        status = HdfeosLib.GDreadfield( struct_id, f_name, start, stride, edge, s_data );
+      }
+      else if ( this instanceof EosSwath )
+      {
+        status = HdfeosLib.SWreadfield( struct_id, f_name, start, stride, edge, s_data );
+      }
+
+      if ( cal != null )
+      {
+        cal.fromCalibration( s_data, f_data );
+      }
+      else
+      {
+        for ( jj = 0; jj < n_values; jj++ )
+        {
+          f_data[jj] = (float)s_data[jj];
+        }
+      }
+      s_data = null;
+    }
+    else if (( num_type == HdfeosLib.BYTE )||
+             ( num_type == HdfeosLib.U_BYTE))
+    {
+      byte[] b_data = new byte[ n_values ];
+      if ( this instanceof EosGrid )
+      {
+        status = HdfeosLib.GDreadfield( struct_id, f_name, start, stride, edge, b_data );
+      }
+      else if ( this instanceof EosSwath )
+      {
+        status = HdfeosLib.SWreadfield( struct_id, f_name, start, stride, edge, b_data );
+      }
+
+      if ( cal != null )
+      {
+        cal.fromCalibration( b_data, f_data );
+      }
+      else
+      {
+        for ( jj = 0; jj < n_values; jj++ )
+        {
+          f_data[jj] = (float)b_data[jj];
+        }
+      }
+      b_data = null;
+    }
+    else
+    {
+      throw new HdfeosException(" number type not implemented: "+num_type );
+    }
+  }
 }

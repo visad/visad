@@ -27,11 +27,13 @@ package visad.data.hdfeos;
 import java.util.*;
 import java.lang.*;
 import java.rmi.*;
+import visad.data.hdfeos.hdfeosc.HdfeosLib;
 
 public class EosGrid extends EosStruct {
 
   int grid_id;
   int file_id;
+  int sd_id;
   private String grid_name;
  
   DimensionSet  D_Set = null;
@@ -39,18 +41,15 @@ public class EosGrid extends EosStruct {
       ShapeSet  DV_shapeSet;
        GctpMap  gridMap;
 
-  static int DFACC_READ = 1;
-  static int D_FIELDS = 4;
-  static int N_DIMS = 0;
-  static String D_TYPE = "Data Fields";
-
-  EosGrid ( int file_id, String name ) 
+  EosGrid ( int file_id, int sd_id, String name ) 
   throws HdfeosException 
   {
      super();
      this.file_id = file_id;
+     this.sd_id = sd_id;
      grid_name = name;
-     grid_id = Library.Lib.GDattach( file_id, name );
+     grid_id = HdfeosLib.GDattach( file_id, name );
+     struct_id = grid_id;
 
      if ( grid_id < 0 ) 
      {
@@ -65,7 +64,7 @@ public class EosGrid extends EosStruct {
 
       DimensionSet D_Set = new DimensionSet();
 
-      int n_dims = Library.Lib.GDnentries( grid_id, N_DIMS, stringSize );
+      int n_dims = HdfeosLib.GDnentries( grid_id, HdfeosLib.N_DIMS, stringSize );
  
       if ( n_dims > 0 ) 
       {
@@ -73,7 +72,7 @@ public class EosGrid extends EosStruct {
         String[] dimensionList = {"empty"};
         int[] lengths = new int[ n_dims ];
 
-        n_dims = Library.Lib.GDinqdims( grid_id, stringSize[0], dimensionList, lengths );
+        n_dims = HdfeosLib.GDinqdims( grid_id, stringSize[0], dimensionList, lengths );
 
         if ( n_dims <= 0 ) 
         {
@@ -101,7 +100,7 @@ public class EosGrid extends EosStruct {
 
 /**-  Done, now make VariableSets:  - - - - - - - - -*/
 
-       int n_flds = Library.Lib.GDnentries( grid_id, D_FIELDS, stringSize );
+       int n_flds = HdfeosLib.GDnentries( grid_id, HdfeosLib.D_FIELDS, stringSize );
 
        if ( n_flds <= 0 ) 
        {
@@ -113,7 +112,7 @@ public class EosGrid extends EosStruct {
        int[] dumA = new int[ n_flds ];
        int[] dumB = new int[ n_flds ];
 
-       n_flds = Library.Lib.GDinqfields( grid_id, stringSize[0], D_List, dumA, dumB);
+       n_flds = HdfeosLib.GDinqfields( grid_id, stringSize[0], D_List, dumA, dumB);
       
        if ( n_flds < 0 ) 
        {
@@ -134,20 +133,11 @@ public class EosGrid extends EosStruct {
         int[] sphrcode = new int[1];
         double[] projparm = new double[16];
         
-        int stat = Library.Lib.GDprojinfo( grid_id, projcode, zonecode, sphrcode, projparm );  
+        int stat = HdfeosLib.GDprojinfo( grid_id, projcode, zonecode, sphrcode, projparm );  
 
         if ( stat < 0 ) 
         {
             throw new HdfeosException(" GDprojinfo, status: "+stat);
-        }
-        else {
-             System.out.println(" projcode: "+projcode[0]);
-             System.out.println(" zonecode: "+zonecode[0]);
-             System.out.println(" sphrcode: "+sphrcode[0]);
- 
-             for ( int ii = 0; ii < 16; ii++ ) {
-               System.out.println(" projparm["+ii+"]: "+projparm[ii] );
-             }
         }
  
             int[] xdimsize = new int[1];
@@ -155,15 +145,11 @@ public class EosGrid extends EosStruct {
          double[] uprLeft = new double[2];
          double[] lwrRight = new double[2];
 
-         stat = Library.Lib.GDgridinfo( grid_id, xdimsize, ydimsize, uprLeft, lwrRight );
+         stat = HdfeosLib.GDgridinfo( grid_id, xdimsize, ydimsize, uprLeft, lwrRight );
 
          if ( stat < 0 ) 
          {
              throw new HdfeosException(" GDgridinfo, status: "+stat);
-         }
-         else {
-              System.out.println(" uprLeft: "+uprLeft[0]+"  "+uprLeft[1]);
-              System.out.println(" lwrRight: "+lwrRight[0]+"  "+lwrRight[1]);
          }
 
          gridMap = new GctpMap( projcode[0], zonecode[0], sphrcode[0],
@@ -206,7 +192,7 @@ public class EosGrid extends EosStruct {
 
           String[] dim_list = {"empty"};
 
-          int stat = Library.Lib.GDfieldinfo( grid_id, field, dim_list, rank, lengths, type );
+          int stat = HdfeosLib.GDfieldinfo( grid_id, field, dim_list, rank, lengths, type );
 
           if ( stat < 0 ) 
           {
@@ -241,7 +227,7 @@ public class EosGrid extends EosStruct {
               newSet.setToFinished();
  
 
-          Variable obj = new Variable(  field, newSet, rank[0], type[0] );
+          Variable obj = new Variable(  field, newSet, rank[0], type[0], null );
           varSet.add( obj );
 
       }
@@ -251,19 +237,4 @@ public class EosGrid extends EosStruct {
           DV_Set = varSet;
    
   }
-
-  public void readData( String field, int[] start, int[] stride, 
-                                      int[] edge, int type, float[] data )
-    throws HdfeosException
-  {
-     ReadSwathGrid.readData( this, field, start, stride, edge, type, data);
-  }
-
-  public void readData( String field, int[] start, int[] stride, 
-                                      int[] edge, int type, double[] data )
-    throws HdfeosException
-  {
-     ReadSwathGrid.readData( this, field, start, stride, edge, type, data);
-  }
-
 }

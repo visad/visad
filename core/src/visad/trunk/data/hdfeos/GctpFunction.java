@@ -571,8 +571,7 @@ double phi;
 double con;
 double dphi;
 double sinpi;
-long i;
-
+int i;
   eccnth = .5 * eccent;
   phi = HALF_PI - 2 * Math.atan(ts);
   for (i = 0; i <= 15; i++)

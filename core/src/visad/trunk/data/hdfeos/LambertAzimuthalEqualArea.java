@@ -42,7 +42,7 @@ public class LambertAzimuthalEqualArea extends CoordinateSystem {
   double cos_lat_o;
 
   private static Unit[] coordinate_system_units =
-    {SI.radian, SI.radian};
+    {null, null};
 
   public LambertAzimuthalEqualArea( RealTupleType reference, 
                                     double R, 
@@ -78,8 +78,9 @@ public class LambertAzimuthalEqualArea extends CoordinateSystem {
      double temp;            // Re-used temporary variable
      double lon;
      double lat;
-     Double dum_1 = null;
-     Double dum_2 = null;
+     double[] dum_1 = new double[1];
+     double[] dum_2 = new double[1];
+     double[] dum = new double[1];
 
      int n_tuples = tuples[0].length;
      int tuple_dim = tuples.length;
@@ -101,9 +102,10 @@ public class LambertAzimuthalEqualArea extends CoordinateSystem {
          // p_error("Input data error", "lamaz-inverse");
        }
        z = 2.0 * GctpFunction.asinz(temp);
-       GctpFunction.sincos(z, dum_1, dum_2);
-       sin_z = dum_1.doubleValue();
-       cos_z = dum_2.doubleValue();
+       dum[0] = z;
+       GctpFunction.sincos(dum, dum_1, dum_2);
+       sin_z = dum_1[0];
+       cos_z = dum_2[0];
        lon = lon_center;
        if ( Math.abs(Rh) > GctpFunction.EPSLN )
        {

@@ -49,7 +49,7 @@ public class PolarStereographic extends CoordinateSystem {
 
 
   private static Unit[] coordinate_system_units =
-    {SI.radian, SI.radian};
+    {null, null};
 
   public PolarStereographic( RealTupleType reference, 
                              double r_major, 

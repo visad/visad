@@ -31,29 +31,25 @@ import java.rmi.*;
 
 public class HdfeosAccessor extends FileAccessor
 {
+   private HdfeosData data;
+   private int[] indexes;
 
-   FileData f_data;
-   IndexSet i_set;
-
-   public HdfeosAccessor( FileData f_data, IndexSet i_set )
+   public HdfeosAccessor( HdfeosData data, int[] indexes )
    {
-    
-     this.f_data = f_data;
-     this.i_set = i_set;
+     this.data = data;
+     this.indexes = indexes;
    }
 
-   public FlatField getFlatField() throws VisADException, RemoteException
+   public FlatField getFlatField() 
+          throws VisADException, RemoteException
    {
-
-     return (FlatField) f_data.getVisADDataObject( i_set );
-
+     return (FlatField) data.getData(indexes);
    }
 
-   public FunctionType getFunctionType() throws VisADException
+   public FunctionType getFunctionType() 
+          throws VisADException
    {
-
-     return (FunctionType) f_data.getVisADMathType();
-
+     return (FunctionType) data.getType();
    }
 
    public void writeFile( int[] fileLocations, Data range ) 
@@ -63,13 +59,11 @@ public class HdfeosAccessor extends FileAccessor
 
    public double[][] readFlatField( FlatField template, int[] fileLocation )
    {
-
      return null;
    }
 
    public void writeFlatField( double[][] values, FlatField template, int[] fileLocation )
    {
-
 
    }
 }

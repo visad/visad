@@ -27,18 +27,26 @@ package visad.data.hdfeos;
 import java.util.*;
 import java.lang.*;
 
-public class DimensionSet  {
-
+public class DimensionSet 
+{
   private Vector dimSet;
   private boolean finished = false;
 
-  DimensionSet()  {
-
-     dimSet = new Vector();
+  DimensionSet() 
+  {
+    dimSet = new Vector();
   }
 
-  public void add( NamedDimension obj )  {
+  DimensionSet( NamedDimension[] dims )
+  {
+    dimSet = new Vector();
+    for ( int ii = 0; ii < dims.length; ii++ ) {
+      dimSet.add(dims[ii]);
+    }
+  }
 
+  public void add( NamedDimension obj )
+  {
     if (! finished ) 
     {
       dimSet.addElement( obj );
@@ -49,34 +57,53 @@ public class DimensionSet  {
     }
   }
 
-  public void setToFinished()  {
-
-     finished = true;
+  public void setToFinished() 
+  {
+    finished = true;
   }
 
-  public int getSize()  {
-
+  public int getSize() 
+  {
     int size = dimSet.size();
     return size;
   }
 
-  public NamedDimension getElement( int ii )  {
-
+  public NamedDimension getElement( int ii ) 
+  {
     NamedDimension obj = (NamedDimension)dimSet.elementAt( ii );
 
     return obj;
   }
 
-  public boolean sameSetSameOrder( DimensionSet  dimSet )  {
+  public NamedDimension[] getElements()
+  {
+    NamedDimension[] array = new NamedDimension[getSize()];
+    for ( int ii = 0; ii < getSize(); ii++ ) {
+      array[ii] = getElement(ii);
+    }
+    return array;
+  }
 
+  public int getIndexOf( NamedDimension dim )
+  {
+    for ( int ii = 0; ii < getSize(); ii++ ) {
+      if ( (getElement(ii)).equals(dim) ) {
+        return ii;
+      }
+    }
+    return -1;
+  }
+
+  public boolean sameSetSameOrder( DimensionSet  dimSet )  
+  {
     int size = this.getSize();
 
     if ( size != dimSet.getSize() ) {
       return false;
     }
 
-    for ( int ii = 0; ii < size; ii++ ) {
-
+    for ( int ii = 0; ii < size; ii++ ) 
+    {
       if ( ! (this.getElement(ii).equals( dimSet.getElement(ii)))  ) {
         return false;
       }
@@ -84,11 +111,10 @@ public class DimensionSet  {
      return true;
   }
 
-  public boolean subsetOfThis( DimensionSet dimSet )  {
-
+  public boolean subsetOfThis( DimensionSet dimSet ) 
+  {
      int size = this.getSize();
      int size_arg = dimSet.getSize();
-
 
      if ( size_arg > size ) {
         return false;
@@ -116,27 +142,25 @@ public class DimensionSet  {
      }
 
     return true;
-
   }
 
-  public NamedDimension getByName( String dimName )  {
+  public NamedDimension getByName( String dimName ) 
+  {
+    for ( int ii = 0; ii < this.getSize(); ii++ ) 
+    {
+      NamedDimension obj = (NamedDimension)this.getElement(ii);
 
-    for ( int ii = 0; ii < this.getSize(); ii++ ) {
-
-       NamedDimension obj = (NamedDimension)this.getElement(ii);
-
-       String name = obj.getName();
+      String name = obj.getName();
 
       if ( name.equals( dimName )) {
         return obj;
       }
-
     }
-        return null;
+    return null;
   }
 
-  public boolean isMemberOf( NamedDimension dim ) {
-
+  public boolean isMemberOf( NamedDimension dim ) 
+  {
     String in_name = dim.getName();
 
     for ( int ii = 0; ii < this.getSize(); ii++ ) {
@@ -148,22 +172,18 @@ public class DimensionSet  {
       if ( (in_name).equals( name )) {
         return true;
       }
-
     }
-
     return false;
   }
 
-  public String toString()  {
-
+  public String toString() 
+  {
      String str = "DimensionSet: \n";
                 
      for ( int ii = 0; ii < this.getSize(); ii++ ) 
      {
         str = str + "   "+((this.getElement(ii)).toString())+"\n";
      } 
- 
      return str;
   }
-
 }

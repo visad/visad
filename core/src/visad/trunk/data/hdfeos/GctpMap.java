@@ -28,18 +28,15 @@ import visad.*;
 
 public class GctpMap
 {
-
-   double[] projparms;
-   int projcode;
-   int zonecode;
-   int sphrcode;
-   int xdimsize;
-   int ydimsize;
-   double[] uprLeft;
-   double[] lwrRight;
-
-   static RealType[] map_coords = { RealType.XAxis, RealType.YAxis };
-   
+  double[] projparms;
+  public int projcode;
+  Unit[] setUnits = null;
+  int zonecode;
+  int sphrcode;
+  int xdimsize;
+  int ydimsize;
+  double[] uprLeft;
+  double[] lwrRight;
 
   public GctpMap(  int projcode,
                    int zonecode,
@@ -50,7 +47,6 @@ public class GctpMap
                    double[] uprLeft,
                    double[] lwrRight )
   {
-
     this.projcode = projcode;
     this.projparms = projparms;
     this.zonecode = zonecode;
@@ -61,18 +57,19 @@ public class GctpMap
     this.lwrRight = lwrRight;
   }
 
-  public CoordinateSystem getVisADCoordinateSystem() throws VisADException 
+  public CoordinateSystem getVisADCoordinateSystem() 
+         throws VisADException 
   {
-
     CoordinateSystem coord_sys = null;
-    RealTupleType Reference = null;  
+    RealTupleType Reference;  
 
     double[] r_major = new double[1];
     double[] r_minor = new double[1];
     double[] radius =  new double[1];
-    double[] center_long = new double[1];
+    double[] center_lon = new double[1];
     double[] center_lat = new double[1];
     double[] lat_1 = new double[1];
+    double[] lat_2 = new double[1];
     int stat;
 
     double false_easting = projparms[6];
@@ -80,15 +77,15 @@ public class GctpMap
 
     RealType r_lat = RealType.Latitude;
     RealType r_lon = RealType.Longitude;
-    RealType[] components = { r_lat, r_lon };
+    RealType[] components = { r_lon, r_lat };
     Reference = new RealTupleType( components );
 
     GctpFunction.sphdz( sphrcode, projparms, r_major, r_minor, radius );
 
-    switch  ( projcode ) { 
-
+    switch  ( projcode ) 
+    { 
       case GctpFunction.LAMAZ:
-        stat = GctpFunction.paksz( projparms[4], center_long );
+        stat = GctpFunction.paksz( projparms[4], center_lon );
         if ( stat != 0 ) {
            // error?
         }
@@ -97,12 +94,16 @@ public class GctpMap
            // error?
         }
 
-        coord_sys = new LambertAzimuthalEqualArea( Reference, radius[0], center_long[0],
-                                             center_lat[0], false_easting, false_northing );
-
+        coord_sys = new LambertAzimuthalEqualArea( Reference, 
+                                                   radius[0], 
+                                                   center_lon[0],
+                                                   center_lat[0], 
+                                                   false_easting, 
+                                                   false_northing );
+        break;
       case GctpFunction.PS:
 
-        stat = GctpFunction.paksz( projparms[4], center_long );
+        stat = GctpFunction.paksz( projparms[4], center_lon );
         if ( stat !=0 ) {
           // error
         }
@@ -111,45 +112,62 @@ public class GctpMap
           // error
         }
 
-
-        coord_sys = new PolarStereographic( Reference, r_major[0],
-                                                       r_minor[0],
-                                                       center_long[0],
-                                                       lat_1[0],
-                                                       false_easting, false_northing );
-
+        coord_sys = new PolarStereographic( Reference, 
+                                            r_major[0],
+                                            r_minor[0],
+                                            center_lon[0],
+                                            lat_1[0],
+                                            false_easting, 
+                                            false_northing );
+        break;
       case GctpFunction.LAMCC:
+
+        coord_sys = new LambertConformalConic( Reference,
+                                               r_major[0],
+                                               r_minor[0],
+                                               lat_1[0],
+                                               lat_2[0],
+                                               center_lon[0],
+                                               center_lat[0],
+                                               false_easting,
+                                               false_northing );
+        break;
+      case GctpFunction.GEO:
+
+        uprLeft[0] = uprLeft[0]*1E-06;
+        lwrRight[0] = lwrRight[0]*1E-06;
+        uprLeft[1] = uprLeft[1]*1E-06;
+        lwrRight[1] = lwrRight[1]*1E-06;
+        setUnits = new Unit[2];
+        setUnits[0] = CommonUnit.degree;
+        setUnits[1] = CommonUnit.degree;
 
       default:
 
     }
-
     return coord_sys;
   }
 
- public Set getVisADSet() throws VisADException
- {
+  public Unit[] getUnits()
+  {
+    return setUnits;
+  }
 
-   int length1 = xdimsize;
-   int length2 = ydimsize;
+  public Set getVisADSet( MathType map ) 
+         throws VisADException
+  {
+    int length1 = xdimsize;
+    int length2 = ydimsize;
+    Set VisADset;
 
-   MathType M_type = getVisADMathType();
-
-   Set VisADset = new Linear2DSet( M_type, uprLeft[0], lwrRight[0], length1,
+    if ( projcode == GctpFunction.GEO ) {
+      VisADset = new LinearLatLonSet( map, uprLeft[0], lwrRight[0], length1,
                                            lwrRight[1], uprLeft[1] , length2 );
-
-   return VisADset;
- }
-
- public MathType getVisADMathType() throws VisADException
- {
-
-   CoordinateSystem coord_sys = getVisADCoordinateSystem();
-
-   MathType M_type = (MathType) new RealTupleType( map_coords, coord_sys, null );
-
-   return M_type;
-
- }
-
+    }
+    else {
+      VisADset = new Linear2DSet( map, uprLeft[0], lwrRight[0], length1,
+                                       lwrRight[1], uprLeft[1] , length2 );
+    }
+    return VisADset;
+  }
 }

@@ -26,69 +26,80 @@ package visad.data.hdfeos;
 
 import java.util.*;
 
+public class Shape 
+{
+  private DimensionSet  dimSet;
+  private VariableSet  varSet;
 
- public class Shape 
- {
+  public Shape( Variable var  ) 
+  {
+    varSet = new VariableSet();
+    varSet.add( var );
 
+    dimSet = var.getDimSet();
+  }
 
-    private DimensionSet  dimSet;
-    private VariableSet  varSet;
+  public void addVariable( Variable var ) 
+  {
+    varSet.add( var );
+  }
 
-    public Shape( Variable var  ) 
+  public DimensionSet getShape() 
+  {
+    return dimSet;
+  }
+
+  public VariableSet getVariables() 
+  {
+    return varSet;
+  }
+
+  public int getNumberOfVars() 
+  {
+    return varSet.getSize();
+  }
+
+  public Variable getVariable( int index ) 
+  {
+    return varSet.getElement( index );
+  }
+
+  public boolean memberOf( Variable var ) 
+  {
+    DimensionSet d_set = var.getDimSet();
+
+    if( this.dimSet.sameSetSameOrder( d_set ) )
     {
-
-       varSet = new VariableSet();
-       varSet.add( var );
-
-       dimSet = var.getDimSet();
+      return true;
     }
-
-    public void addVariable( Variable var ) 
+    else 
     {
-       varSet.add( var );
+      return false;
     }
+  }
 
-    public DimensionSet getShape() 
+  public Variable isCoordVar( int index )
+  {
+    if ( dimSet.getSize() == 1 ) 
     {
-       return dimSet;
+      return varSet.isCoordVar( index );
     }
-
-    public VariableSet getVariables() {
-  
-       return varSet;
-    }
-
-    public int getNumberOfVars() {
-
-       return varSet.getSize();
-    }
-
-    public boolean memberOf( Variable var ) 
+    else 
     {
-
-       DimensionSet d_set = var.getDimSet();
-
-       if( this.dimSet.sameSetSameOrder( d_set ) )
-       {
-          return true;
-       }
-       else 
-       {
-          return false;
-       }
-
+      return null;
     }
+  }
 
-    public String toString() 
+  public String toString() 
+  {
+    String str = dimSet.toString()+"  Variables: \n";
+
+    for( int ii = 0; ii < varSet.getSize(); ii++ ) 
     {
-       String str = dimSet.toString()+"  Variables: \n";
-
-       for( int ii = 0; ii < varSet.getSize(); ii++ ) 
-       {
-         str = str + "       "+(varSet.getElement(ii)).getName() + "\n";
-       }
-         str = str + "- - - - - - - - - - - - - - - - - - - \n";
+      str = str + "       "+(varSet.getElement(ii)).getName() + "\n";
+    }
+      str = str + "- - - - - - - - - - - - - - - - - - - \n";
        
-      return str;
-    }
- }
+    return str;
+  }
+}

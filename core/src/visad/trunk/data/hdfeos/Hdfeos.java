@@ -35,10 +35,8 @@ public abstract class Hdfeos
        extends Form
        implements FormFileInformer
 {
-
-
-  public Hdfeos( String name ) {
-
+  public Hdfeos( String name ) 
+  {
     super( name );
   }
 
@@ -70,7 +68,4 @@ public abstract class Hdfeos
 
   public abstract DataImpl open( String file_path ) 
      throws BadFormException, IOException, VisADException;
-
-
-
 }

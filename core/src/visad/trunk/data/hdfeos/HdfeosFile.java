@@ -28,96 +28,103 @@ import java.util.*;
 import java.lang.*;
 import visad.data.hdfeos.hdfeosc.HdfeosLib;
 
-  public class HdfeosFile {
+public class HdfeosFile 
+{
+  private String filename;
+  private int  file_id;
+  private int[] sd_id = new int[1];
+  private int  n_structs;
 
-    String filename;
-    int  file_id;
-    int  n_structs;
+  private Vector Structs;
 
-    Vector Structs;
+  static Vector openedFiles = new Vector();          // all opened file objects
 
-    static Vector openedFiles = new Vector();          // all opened file objects
+  HdfeosFile( String filename ) 
+            throws HdfeosException
+  {
+    this.filename = filename;
 
-    static int DFACC_READ = 1;
-    static int HDFE_mode = 4;
- 
+    String[] swath_list = {"empty"};
+    int n_swaths = HdfeosLib.SWinqswath( filename, swath_list );
+    n_structs = 0;
+    Structs = new Vector();
 
-    HdfeosFile( String filename ) 
-    throws HdfeosException
-    {
+    if ( n_swaths > 0 )  {
 
-      this.filename = filename;
+      file_id = HdfeosLib.SWopen( filename, HdfeosLib.DFACC_READ );
 
-      String[] swath_list = {"empty"};
-      int n_swaths = Library.Lib.SWinqswath( filename, swath_list );
-      n_structs = 0;
-      Structs = new Vector();
+      String struct_name = "Swath";
+      int[] hdf_id = new int[1];
+      byte[] access = new byte[1];
 
-      if ( n_swaths > 0 )  {
-
-         file_id = Library.Lib.SWopen( filename, DFACC_READ );
-
-            System.out.println( "file_id: "+file_id);
-
-         StringTokenizer swaths = new StringTokenizer( swath_list[0], ",", false );
-         while ( swaths.hasMoreElements() )
-         {
-           String swath = (String) swaths.nextElement();
-           EosSwath obj = new EosSwath( file_id, swath );
-           Structs.addElement( (EosStruct)obj );
-           n_structs++;
-         }
-      } 
-
-      String[] grid_list = {"empty"};
-      int n_grids = Library.Lib.GDinqgrid( filename, grid_list );
-
-      if ( n_grids > 0 ) {
-
-         file_id = Library.Lib.GDopen( filename, DFACC_READ );
-
-            System.out.println( "file_id: "+file_id);
-
-         StringTokenizer grids = new StringTokenizer( grid_list[0], ",", false );
- 
-         while ( grids.hasMoreElements() ) 
-         {
-           String grid = (String) grids.nextElement();
-           EosGrid g_obj = new EosGrid( file_id, grid );
-           Structs.addElement( (EosStruct)g_obj );
-           n_structs++;
-         }
-
-      }
-
-      openedFiles.addElement( this );
-    }
-
-    public int getNumberOfStructs() {
-
-      return n_structs; 
-    }
-
-    public EosStruct getStruct( int ii ) {
-
-      return (EosStruct) Structs.elementAt(ii);
-    }
-
-    public String getFileName()
-    {
-      return filename;
-    }
-
-    public static void close() throws HdfeosException {
-
-      for ( Enumeration e = openedFiles.elements(); e.hasMoreElements(); ) 
+      int stat = HdfeosLib.EHchkfid( file_id, struct_name, hdf_id, sd_id, access); 
+      if ( stat < 0 ) 
       {
-        int status = Library.Lib.EHclose( ((HdfeosFile) e.nextElement()).file_id );
+        throw new HdfeosException("--cannot obtain sdInterfaceId--" );
+      }
 
-        if ( status < 0 ) 
-        {
-          throw new HdfeosException(" trouble closing file, status: "+status );
-        }
+      StringTokenizer swaths = new StringTokenizer( swath_list[0], ",", false );
+      while ( swaths.hasMoreElements() )
+      {
+        String swath = (String) swaths.nextElement();
+        EosSwath obj = new EosSwath( file_id, sd_id[0], swath );
+        Structs.addElement( (EosStruct)obj );
+        n_structs++;
+      }
+    } 
+
+    String[] grid_list = {"empty"};
+    int n_grids = HdfeosLib.GDinqgrid( filename, grid_list );
+
+    if ( n_grids > 0 ) {
+
+      file_id = HdfeosLib.GDopen( filename, HdfeosLib.DFACC_READ );
+
+      StringTokenizer grids = new StringTokenizer( grid_list[0], ",", false );
+ 
+      while ( grids.hasMoreElements() ) 
+      {
+        String grid = (String) grids.nextElement();
+        EosGrid g_obj = new EosGrid( file_id, sd_id[0], grid );
+        Structs.addElement( (EosStruct)g_obj );
+        n_structs++;
       }
     }
+
+    openedFiles.addElement( this );
+  }
+
+  public int getNumberOfStructs() 
+  {
+    return n_structs; 
+  }
+
+  public EosStruct getStruct( int ii ) 
+  {
+    return (EosStruct) Structs.elementAt(ii);
+  }
+
+  public String getFileName()
+  {
+    return filename;
+  }
+
+  public void closeAll()  
+        throws HdfeosException 
+  {
+    int status = HdfeosLib.EHclose( file_id );
+    if ( status < 0 ) {
+      throw new HdfeosException("--closing file, "+filename+
+                                ", returned status: "+status+" --");
+    }
+  }
+
+  public static void close() 
+         throws HdfeosException 
+  {
+    for ( Enumeration e = openedFiles.elements(); e.hasMoreElements(); ) 
+    {
+      ((HdfeosFile)e.nextElement()).close();
+    }
+  }
 }

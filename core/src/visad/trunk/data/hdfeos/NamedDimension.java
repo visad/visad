@@ -25,82 +25,75 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad.data.hdfeos;
 
 
-  public class NamedDimension  
+public class NamedDimension  
+{
+  private String  name;
+  private int  length;
+  private GeoMap g_map;
+  private boolean unLimitFlag = false;
+
+  NamedDimension( int struct_id, String name, int length, GeoMap g_map ) 
   {
-
-    private String  name;
-    private int  length;
-    private GeoMap g_map;
-    private boolean unLimitFlag = false;
-
-    NamedDimension( int struct_id, String name, int length, GeoMap g_map ) 
-    {
-
-      this.name = name;
-      if ( length == 0 ) {
-        unLimitFlag = true;
-      }
-      this.length = length;
-      this.g_map = g_map;
+    this.name = name;
+    if ( length == 0 ) {
+      unLimitFlag = true;
     }
-
-    public String getName()  {
-
-      return this.name;
-    }
-
-    public boolean equals( NamedDimension obj ) 
-    {
-
-      if( this.name.equals( obj.getName() )) {
-
-         return true;
-      }
-      else {
-
-         return false;
-      }
-    }
-
-    public void setLength( int len ) {
-
-      length = len;
-      return;
-    }
-
-    public int getLength()
-    {
-      return length;
-    }
-
-    public GeoMap getGeoMap() {
-
-      return g_map;
-   }
-
-   public boolean isGeoMapDefined() {
-
-     if ( g_map == null ) {
-       return false;
-     }
-     else {
-       return true;
-     }
-
-   }
-
-   public boolean isUnlimited() {
-
-     return this.unLimitFlag;
-   }
-
-    public String toString() 
-    {
-
-       String str = "dimension: "+name+"\n"+
-                    "   length: "+length+"\n";
-       return str;
-    }
-
-
+    this.length = length;
+    this.g_map = g_map;
   }
+
+  public String getName() 
+  {
+    return this.name;
+  }
+
+  public boolean equals( NamedDimension obj ) 
+  {
+    if( this.name.equals( obj.getName() )) 
+    {
+      return true;
+    }
+    else 
+    {
+      return false;
+    }
+  }
+
+  public void setLength( int len ) 
+  {
+    length = len;
+    return;
+  }
+
+  public int getLength()
+  {
+    return length;
+  }
+
+  public GeoMap getGeoMap() 
+  {
+    return g_map;
+  }
+
+  public boolean isGeoMapDefined() 
+  {
+    if ( g_map == null ) {
+      return false;
+    }
+    else {
+     return true;
+    }
+  }
+
+  public boolean isUnlimited() 
+  {
+    return this.unLimitFlag;
+  }
+
+  public String toString() 
+  {
+    String str = "dimension: "+name+"\n"+
+                 "   length: "+length+"\n";
+    return str;
+  }
+}
