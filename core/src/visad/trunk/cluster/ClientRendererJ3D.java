@@ -1,5 +1,5 @@
 //
-// NodeRendererJ3D.java
+// ClientRendererJ3D.java
 //
 
 /*
@@ -40,59 +40,14 @@ import java.rmi.*;
 import java.io.Serializable;
 
 /**
-   NodeRendererJ3D is the VisAD class for transforming
-   data into VisADSceneGraphObjects, but not rendering,
-   on cluster nodes
+   ClientRendererJ3D is the VisAD DataRenderer for cluster clients
 */
-public class NodeRendererJ3D extends DefaultRendererJ3D {
+public class ClientRendererJ3D extends DefaultRendererJ3D {
 
-  private NodeAgent agent = null;
-
-  /** this constructor is need for NodeDisplayRendererJ3D.makeDefaultRenderer()
-      but it should never be called */
-  public NodeRendererJ3D () {
-    this(null);
+  public ClientRendererJ3D () {
   }
 
-  /** this DataRenderer transforms data into VisADSceneGraphObjects,
-      but does not render, on cluster nodes;
-      send scene graphs back via NodeAgent */
-  public NodeRendererJ3D (NodeAgent a) {
-    super();
-    agent = a;
-  }
-
-  public ShadowType makeShadowFunctionType(
-         FunctionType type, DataDisplayLink link, ShadowType parent)
-         throws VisADException, RemoteException {
-    return new ShadowNodeFunctionTypeJ3D(type, link, parent);
-  }
-
-  public ShadowType makeShadowRealTupleType(
-         RealTupleType type, DataDisplayLink link, ShadowType parent)
-         throws VisADException, RemoteException {
-    return new ShadowNodeRealTupleTypeJ3D(type, link, parent);
-  }
-
-  public ShadowType makeShadowRealType(
-         RealType type, DataDisplayLink link, ShadowType parent)
-         throws VisADException, RemoteException {
-    return new ShadowNodeRealTypeJ3D(type, link, parent);
-  }
-
-  public ShadowType makeShadowSetType(
-         SetType type, DataDisplayLink link, ShadowType parent)
-         throws VisADException, RemoteException {
-    return new ShadowNodeSetTypeJ3D(type, link, parent);
-  }
-
-  public ShadowType makeShadowTupleType(
-         TupleType type, DataDisplayLink link, ShadowType parent)
-         throws VisADException, RemoteException {
-    return new ShadowNodeTupleTypeJ3D(type, link, parent);
-  }
-
-  /** create a VisADGroup scene graph for Data in links[0] */
+  /** create a scene graph for Data in links[0] */
   public BranchGroup doTransform() throws VisADException, RemoteException {
     VisADGroup branch = new VisADGroup();
 
@@ -126,7 +81,7 @@ public class NodeRendererJ3D extends DefaultRendererJ3D {
     if (data == null) {
       branch = null;
       addException(
-        new DisplayException("Data is null: NodeRendererJ3D.doTransform"));
+        new DisplayException("Data is null: ClientRendererJ3D.doTransform"));
     }
     else {
       link.start_time = System.currentTimeMillis();
@@ -152,7 +107,7 @@ public class NodeRendererJ3D extends DefaultRendererJ3D {
     link.clearData();
 
     // send VisADGroup scene graph in branch back to client
-    if (agent != null) agent.sendToClient(branch);
+    // if (agent != null) agent.sendToClient(branch);
 
     // RendererJ3D.doAction is expecting a BranchGroup
     // so fake it
@@ -168,11 +123,11 @@ public class NodeRendererJ3D extends DefaultRendererJ3D {
          throws VisADException, RemoteException {
 
     DisplayImpl display =
-      new DisplayImplJ3D("display", new NodeDisplayRendererJ3D(),
+      new DisplayImplJ3D("display", new ClientDisplayRendererJ3D(),
                          DisplayImplJ3D.TRANSFORM_ONLY);
 
     // create JFrame (i.e., a window) for display and slider
-    JFrame frame = new JFrame("test NodeRendererJ3D");
+    JFrame frame = new JFrame("test ClientRendererJ3D");
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });

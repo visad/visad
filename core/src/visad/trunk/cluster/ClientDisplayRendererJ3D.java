@@ -1,5 +1,5 @@
 //
-// RemoteNodeDataImpl.java
+// ClientDisplayRendererJ3D.java
 //
 
 /*
@@ -27,27 +27,41 @@ MA 02111-1307, USA
 package visad.cluster;
 
 import visad.*;
+import visad.java3d.*;
+
+import java.awt.event.*;
+import java.awt.image.BufferedImage;
+
+import javax.media.j3d.*;
+import javax.vecmath.*;
+
+import java.rmi.RemoteException;
 
 import java.util.*;
-import java.rmi.*;
-import java.rmi.server.UnicastRemoteObject;
+
 
 /**
-   RemoteNodeData is the class for cluster node
-   VisAD data objects.<P>
-*/
-public class RemoteNodeDataImpl extends RemoteClusterDataImpl
-       implements RemoteNodeData {
+ * <CODE>ClientDisplayRendererJ3D</CODE> is the DisplayRenderer
+ * for cluster clients.<P>
+ */
+public class ClientDisplayRendererJ3D extends TransformOnlyDisplayRendererJ3D {
 
-  Vector agents = new Vector();
-
-  public RemoteNodeDataImpl() throws RemoteException {
+  /**
+   * This is the <CODE>DisplayRenderer</CODE> used for cluster clients.
+   * <CODE>TRANSFORM_ONLY</CODE> api.
+   * It transforms data into VisADSceneGraphObject
+   * but does not render (and hence no interaction).
+   */
+  public ClientDisplayRendererJ3D () {
+    super();
   }
 
-  public RemoteAgentContact sendAgent(NodeAgent agent)
-         throws RemoteException {
-    agents.addElement(agent);
-    return agent.getRemoteAgentContact(this);
+  public DataRenderer makeDefaultRenderer() {
+    return new ClientRendererJ3D();
+  }
+
+  public boolean legalDataRenderer(DataRenderer renderer) {
+    return (renderer instanceof ClientRendererJ3D);
   }
 
 }

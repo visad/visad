@@ -79,6 +79,26 @@ gets a Thread on arrival at node, return value from send of
 NodeAgent is RemoteAgentContact (and Impl)
 values from NodeAgent back declared Serializable
 
+  abstract class NodeAgent implements Serializable, Runnable
+    void sendToClient(Serializable message)
+      invokes RemoteClientAgent.sendToClient(message)
+    RemoteAgentContactImpl getRemoteAgentContact()
+  interface RemoteAgentContact extends Remote
+  class RemoteAgentContactImpl implements RemoteAgentContact
+  interface RemoteClientAgent extends Remote
+    void sendToClient(Serializable message)
+  abstract class RemoteClientAgentImpl implements RemoteClientAgent
+  class DefaultNodeRendererAgent extends NodeAgent
+    void run()
+
+  interface RemoteNodeData
+    RemoteAgentContact sendAgent(NodeAgent agent)
+
+  NodeRendererJ3D(NodeAgent agent)
+  NodeRendererJ3D.doTransform()
+    invokes agent.sendToClient(VisADGroup branch)
+
+
 see page 60 of Java Enterprise in a Nutshell
 no easy way to load RMI classes - security issues
 
@@ -121,11 +141,17 @@ whose doTransforms resample down, then call super.doTransform()
 with downsampled data
 
 
+Control field in ScalarMap is marked transient and dglo9.txt
+says it should be.  But can use the getSaveString() and
+setSaveString() methods of Control to transmit Control states.
 
 
 cluster design should include a native VisAD Data Model on
 binary files, via serialization, for an implementation of
 FileFlatField on nodes
+
+also need to support FileFlatFields
+
 */
 
 /* VisAD Data Model on various file formats

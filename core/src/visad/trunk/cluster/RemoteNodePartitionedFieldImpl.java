@@ -40,7 +40,7 @@ public class RemoteNodePartitionedFieldImpl extends RemoteNodeDataImpl
        implements RemoteNodePartitionedField {
 
   private boolean flat; // true if adaptedField is a FlatField
-  private Field adaptedField = null;
+  private Field adaptedField = null; // can be FileFlatField?
   private DataReferenceImpl adaptedFieldRef = null;
   private int length;
 

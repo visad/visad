@@ -37,6 +37,9 @@ import java.io.Serializable;
 public abstract class NodeAgent extends Object
        implements Serializable, Runnable {
 
+  /** object of agent */
+  private Object object = null;
+
   /** source of agent */
   private RemoteClientAgent source = null;
 
@@ -50,6 +53,14 @@ public abstract class NodeAgent extends Object
     source = s;
   }
 
+  public Object getObject() {
+    return object;
+  }
+
+  public Thread getAgentThread() {
+    return agentThread;
+  }
+
   public void sendToClient(Serializable message) {
     try {
       source.sendToClient(message);
@@ -60,7 +71,8 @@ public abstract class NodeAgent extends Object
   }
 
   /** create and start Thread, and return contact */
-  public RemoteAgentContactImpl getRemoteAgentContact() {
+  public RemoteAgentContactImpl getRemoteAgentContact(Object obj) {
+    object = obj;
     agentThread = new Thread(this);
     agentThread.start();
     try {
