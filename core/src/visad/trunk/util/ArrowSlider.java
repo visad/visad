@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ArrowSlider.java,v 1.13 2000-04-19 18:37:19 billh Exp $
+@(#) $Id: ArrowSlider.java,v 1.14 2000-04-20 14:33:02 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -39,7 +39,7 @@ import java.awt.event.WindowEvent;
  * A pointer slider for visad .
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.13 $, $Date: 2000-04-19 18:37:19 $
+ * @version $Revision: 1.14 $, $Date: 2000-04-20 14:33:02 $
  * @since Visad Utility Library v0.7.1
  */
 
@@ -98,6 +98,9 @@ public class ArrowSlider extends Slider implements MouseListener, MouseMotionLis
 
     this.addMouseListener(this);
     this.addMouseMotionListener(this);
+
+// javax.swing.RepaintManager.currentManager(this).setDoubleBufferingEnabled(false);
+// setDebugGraphicsOptions(javax.swing.DebugGraphics.LOG_OPTION);
 
   }
 
@@ -321,6 +324,10 @@ public class ArrowSlider extends Slider implements MouseListener, MouseMotionLis
 
   /** Redraw the slider */
   public void paint(Graphics g) {
+// System.out.println("ArrowSlider.paint in");
+// Test66 hangs between ArrowSlider.paint in and out
+// but not with DebugGraphics in constructor
+
     g.setColor(Color.black);
     g.fillRect(0, 0, getBounds().width, getBounds().height);
 
@@ -332,5 +339,6 @@ public class ArrowSlider extends Slider implements MouseListener, MouseMotionLis
     g.drawLine(xval, 0, xval + 4, 4);
 
     oldxval = xval;
+// System.out.println("ArrowSlider.paint out");
   }
 }
