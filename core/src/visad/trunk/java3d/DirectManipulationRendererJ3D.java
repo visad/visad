@@ -109,7 +109,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     mode.setLineWidth(lineWidth, true);
     mode.setLineStyle(lineStyle, true);
     Appearance appearance =
-      ShadowTypeJ3D.makeAppearance(mode, null, null, geometry, false);
+      ShadowTypeJ3D.staticMakeAppearance(mode, null, null, geometry, false);
 
     Shape3D shape = new Shape3D(geometry, appearance);
     BranchGroup group = new BranchGroup();

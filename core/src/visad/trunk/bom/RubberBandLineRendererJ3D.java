@@ -513,7 +513,7 @@ public class RubberBandLineRendererJ3D extends DirectManipulationRendererJ3D {
       mode.setPointSize(pointSize, true);
       mode.setLineWidth(lineWidth, true);
       Appearance appearance =
-        ShadowTypeJ3D.makeAppearance(mode, null, null, geometry, false);
+        ShadowTypeJ3D.staticMakeAppearance(mode, null, null, geometry, false);
 
       if (group != null) group.detach();
       group = null;

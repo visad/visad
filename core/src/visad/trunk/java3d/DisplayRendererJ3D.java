@@ -1198,7 +1198,7 @@ if (image == null) System.out.println("image is null");
     ColoringAttributes color = new ColoringAttributes();
     color.setColor(scale_color[0], scale_color[1], scale_color[2]);
     Appearance appearance =
-      ShadowTypeJ3D.makeAppearance(mode, null, color, geometry, false);
+      ShadowTypeJ3D.staticMakeAppearance(mode, null, color, geometry, false);
     Shape3D shape = new Shape3D(geometry, appearance);
     BranchGroup group = new BranchGroup();
     group.setCapability(BranchGroup.ALLOW_DETACH);
@@ -1207,7 +1207,8 @@ if (image == null) System.out.println("image is null");
     if (labels != null) {
       GeometryArray labelGeometry = display.makeGeometry(labels);
       Appearance labelAppearance =
-        ShadowTypeJ3D.makeAppearance(mode, null, null, labelGeometry, true);
+        ShadowTypeJ3D.staticMakeAppearance(mode, null, null,
+                                           labelGeometry, true);
       Shape3D labelShape = new Shape3D(labelGeometry, labelAppearance);
 
       group.addChild(labelShape);
@@ -1216,7 +1217,8 @@ if (image == null) System.out.println("image is null");
       if (labels instanceof VisADTriangleArray) {
         GeometryArray labelGeometry2 = display.makeGeometry(labels);
         Appearance labelAppearance2 =
-          ShadowTypeJ3D.makeAppearance(mode, null, null, labelGeometry2, true);
+          ShadowTypeJ3D.staticMakeAppearance(mode, null, null,
+                                             labelGeometry2, true);
 
         // LineAttributes la = labelAppearance2.getLineAttributes();
         // better without anti-aliasing

@@ -186,6 +186,14 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     return ShadowType.makePointGeometry(spatial_values, color_values);
   }
 
+  public Appearance makeAppearance(GraphicsModeControl mode,
+                      TransparencyAttributes constant_alpha,
+                      ColoringAttributes constant_color,
+                      GeometryArray geometry, boolean no_material) {
+    return ShadowTypeJ3D.staticMakeAppearance(mode, constant_alpha,
+                           constant_color, geometry, no_material);
+  }
+
   /** 
    * Construct an Appearance object from a GeometryArray
    * @param  mode  GraphicsModeControl
@@ -195,7 +203,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    * @param  no_material  true to not use a Material for illumination, 
    *                      false to use it for 2-D geometries
    */
-  public static Appearance makeAppearance(GraphicsModeControl mode,
+  public static Appearance staticMakeAppearance(GraphicsModeControl mode,
                       TransparencyAttributes constant_alpha,
                       ColoringAttributes constant_color,
                       GeometryArray geometry, boolean no_material) {
@@ -491,7 +499,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     colors[2] = 0.0f;
     geometry.setColors(0, colors);
     Appearance appearance =
-      makeAppearance(display.getGraphicsModeControl(), null, null, geometry, false);
+      staticMakeAppearance(display.getGraphicsModeControl(), null, null,
+                           geometry, false);
     Shape3D shape = new Shape3D(geometry, appearance);
     group.addChild(shape);
   }
