@@ -56,7 +56,6 @@ public abstract class RendererJ3D extends DataRenderer {
   BranchGroup[] branches;
   boolean[] switchFlags = {false, false, false};
   boolean[] branchNonEmpty = {false, false, false};
-  int actualIndex;
 
   public RendererJ3D() {
     super();
@@ -97,14 +96,11 @@ public abstract class RendererJ3D extends DataRenderer {
       branches[i].setCapability(Group.ALLOW_CHILDREN_WRITE);
       branches[i].setCapability(Group.ALLOW_CHILDREN_EXTEND);
       sw.addChild(branches[i]);
-      // sw.setChild(branches[i], i);
     }
-    // currentIndex = 0;
 /*
 System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
 */
     sw.setWhichChild(currentIndex);
-    actualIndex = 0;
     toggle(enabled);
   }
 
@@ -164,21 +160,6 @@ System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
 System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
                    " any_transform_control = " + any_transform_control);
 System.out.println(getLinks()[0].getThingReference().getName());
-*/
-
-/* WLH 4 Dec 99
-      synchronized (this) {
-        if (!branchNonEmpty[currentIndex]) {
-          BranchGroup branch = new BranchGroup();
-
-          // needed (?) to avoid NullPointerException
-          ShadowTypeJ3D shadow = (ShadowTypeJ3D) getLinks()[0].getShadow();
-          shadow.ensureNotEmpty(branch);
-
-          branches[currentIndex].addChild(branch);
-          branchNonEmpty[currentIndex] = true;
-        }
-      }
 */
 
       // exceptionVector.removeAllElements();

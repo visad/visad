@@ -1381,25 +1381,6 @@ System.out.println("initialize = " + initialize + " go = " + go +
 
       if (!initialize || go) {
         displayRenderer.prepareAction(temp, tmap, go, initialize);
-/* WLH 7 Dec 2000
-        DataShadow shadow = null;
-        renderers = temp.elements();
-        while (renderers.hasMoreElements()) {
-          DataRenderer renderer = (DataRenderer) renderers.nextElement();
-          shadow = renderer.prepareAction(go, initialize, shadow);
-        }
-
-        if (shadow != null) {
-          // apply RealType ranges and animationSampling
-          maps = tmap.elements();
-          while(maps.hasMoreElements()) {
-            ScalarMap map = ((ScalarMap) maps.nextElement());
-            map.setRange(shadow);
-          }
-        }
-        ScalarMap.equalizeFlow(tmap, Display.DisplayFlow1Tuple);
-        ScalarMap.equalizeFlow(tmap, Display.DisplayFlow2Tuple);
-*/
 
         // WLH 10 May 2001
         boolean anyBadMap = false;
