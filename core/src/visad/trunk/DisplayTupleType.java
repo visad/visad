@@ -139,17 +139,34 @@ public class DisplayTupleType extends RealTupleType {
             (tt[2][36] - tt[2][0]) * (tt[2][36] - tt[2][0]));
           if (diff360 < 0.01 * diff180) {
             circulars[i] = true;
-            double maxdiff = 0.0;
-            double mindiff = Double.MAX_VALUE;
-            for (int k=0; k<36; k++) {
-              double diff = Math.sqrt(
-                (tt[0][k+1] - tt[0][k]) * (tt[0][k+1] - tt[0][k]) +
-                (tt[1][k+1] - tt[1][k]) * (tt[1][k+1] - tt[1][k]) +
-                (tt[2][k+1] - tt[2][k]) * (tt[2][k+1] - tt[2][k]));
-              if (diff > maxdiff) maxdiff = diff;
-              if (diff < mindiff) mindiff = diff;
+            double diff0 = 0.0;
+            double difflast = 0.0;
+            for (int k=0; k<37; k++) {
+              if (k == 36) {
+                if (difflast < 0.1 * diff0 ||
+                    diff0 < 0.1 * difflast) {
+                  circulars[i] = false;
+                  break;
+                }
+              }
+              else {
+                double diff = Math.sqrt(
+                  (tt[0][k+1] - tt[0][k]) * (tt[0][k+1] - tt[0][k]) +
+                  (tt[1][k+1] - tt[1][k]) * (tt[1][k+1] - tt[1][k]) +
+                  (tt[2][k+1] - tt[2][k]) * (tt[2][k+1] - tt[2][k]));
+                if (k == 0) {
+                  diff0 = diff;
+                }
+                else {
+                  if (difflast < 0.1 * diff ||
+                      diff < 0.1 * difflast) {
+                    circulars[i] = false;
+                    break;
+                  }
+                }
+                difflast = diff;
+              }
             }
-            if (mindiff < 0.1 * maxdiff) circulars[i] = false;
           }
 // System.out.println("diff180 = " + diff180 + " diff360 = " + diff360 +
 //                    " " + circulars[i]);
