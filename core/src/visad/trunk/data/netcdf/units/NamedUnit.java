@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NamedUnit.java,v 1.3 1998-02-23 15:58:57 steve Exp $
+ * $Id: NamedUnit.java,v 1.4 1998-09-23 22:17:24 steve Exp $
  */
 
 package visad.data.netcdf.units;
@@ -80,6 +80,19 @@ NamedUnit
      */
     public abstract boolean
     hasPlural();
+
+
+    /**
+     * Indicates whether or not comparisons should be case-sensitive.
+     *
+     * @return			<code>true</code> if case-sensitive comparisons
+     *				should be made.
+     */
+    public boolean
+    isCaseSensitive()
+    {
+	return false;	// default; overridden by subclasses
+    }
 
 
     /**

@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitTable.java,v 1.3 1998-02-23 15:59:04 steve Exp $
+ * $Id: UnitTable.java,v 1.4 1998-09-23 22:17:24 steve Exp $
  */
 
 package visad.data.netcdf.units;
@@ -30,7 +30,8 @@ UnitTable
     /**
      * Unit table.
      */
-    protected final Hashtable	table;
+    protected final Hashtable	names;
+    protected final Hashtable	symbols;
 
 
     /**
@@ -42,13 +43,30 @@ UnitTable
      * @exception IllegalArgumentException	<code>num</code> < 0.
      */
     public
-    UnitTable(int num)
+    UnitTable(int numNames)
 	throws IllegalArgumentException
     {
-	if (num < 0)
+	this(numNames, 0);
+    }
+
+
+    /**
+     * Construct.
+     *
+     * @param num	The initial size of the table.  The table will grow,
+     *			as necessary, only after this number is exceeded.
+     * @require		<code>num</code> >= 0.
+     * @exception IllegalArgumentException	<code>num</code> < 0.
+     */
+    public
+    UnitTable(int numNames, int numSymbols)
+	throws IllegalArgumentException
+    {
+	if (numNames < 0 || numSymbols < 0)
 	    throw new IllegalArgumentException("Negative hashtable size");
 
-	table = new Hashtable(num);
+	names = new Hashtable(numNames);
+	symbols = new Hashtable(numSymbols);
     }
 
 
@@ -64,7 +82,7 @@ UnitTable
     public Unit
     get(String name)
     {
-	Unit	unit = null;
+	Unit	unit = null;	// default
 
 	if (name.length() == 0)
 	{
@@ -73,29 +91,76 @@ UnitTable
 	}
 	else
 	{
-	    NamedUnit	namedUnit = (NamedUnit)table.get(name);
+	    /*
+	     * Try the name table.
+	     */
+	    NamedUnit	namedUnit = getByName(name);
+
+	    if (namedUnit == null)
+	    {
+		/*
+		 * Try the symbol table.
+		 */
+		namedUnit = getBySymbol(name);
+	    }
 
 	    if (namedUnit != null)
 		unit = namedUnit.getUnit();
-	    else
-	    {
-		int	lastPos = name.length() - 1;
-
-		if (lastPos > 0 && name.charAt(lastPos) == 's')
-		{
-		    /*
-		     * Input name is possibly plural. Try singular form.
-		     */
-		    namedUnit = (NamedUnit)table.get(name.substring(0,
-			lastPos));
-
-		    if (namedUnit != null && namedUnit.hasPlural())
-			unit = namedUnit.getUnit();
-		}
-	    }
 	}
 
 	return unit;
+    }
+
+
+    /**
+     * Get a unit by name.
+     *
+     * @param name	The name of the unit to be retrieved.  If it is
+     *			the empty string, then the dimensionless, unity unit
+     *			will be returned.
+     * @return		The unit of the matching entry or null if not found.
+     * @require		<code>name</code> is non-null.
+     */
+    protected NamedUnit
+    getByName(String name)
+    {
+	name = name.toLowerCase();
+
+	NamedUnit	namedUnit = (NamedUnit)names.get(name);
+
+	if (namedUnit == null)
+	{
+	    int	lastPos = name.length() - 1;
+
+	    if (lastPos > 0 && name.charAt(lastPos) == 's')
+	    {
+		/*
+		 * Input name is possibly plural. Try singular form.
+		 */
+		namedUnit = (NamedUnit)names.get(name.substring(0, lastPos));
+
+		if (namedUnit != null && !namedUnit.hasPlural())
+		    namedUnit = null;
+	    }
+	}
+
+	return namedUnit;
+    }
+
+
+    /**
+     * Get a unit by symbol.
+     *
+     * @param symbol	The exact symbol of the unit to be retrieved.  If it is
+     *			the empty string, then the dimensionless, unity unit
+     *			will be returned.
+     * @return		The unit of the matching entry or null if not found.
+     * @require		<code>name</code> is non-null.
+     */
+    protected NamedUnit
+    getBySymbol(String symbol)
+    {
+	return (NamedUnit)symbols.get(symbol);
     }
 
 
@@ -119,7 +184,7 @@ UnitTable
 	if (name == null || name.length() == 0 || unit == null)
 	    throw new IllegalArgumentException("Invalid name or unit");
 
-	NamedUnit	namedUnit = (NamedUnit)table.put(name, 
+	NamedUnit	namedUnit = (NamedUnit)names.put(name.toLowerCase(), 
 	    hasPlural
 		? (NamedUnit)new PluralUnit(name, unit)
 		: (NamedUnit)new SingleUnit(name, unit));
@@ -146,7 +211,10 @@ UnitTable
 	if (namedUnit == null)
 	    throw new IllegalArgumentException("Null named unit");
 
-	return (NamedUnit)table.put(namedUnit.getName(), namedUnit);
+	return namedUnit.isCaseSensitive()
+		? (NamedUnit)symbols.put(namedUnit.getName(), namedUnit)
+		: (NamedUnit)names.put(namedUnit.getName().toLowerCase(),
+				       namedUnit);
     }
 
 
@@ -159,18 +227,22 @@ UnitTable
     {
 	return new Enumeration()
 	{
-	    protected Enumeration	enum = table.elements();
+	    protected Enumeration	nameEnum = names.elements();
+	    protected Enumeration	symbolEnum = symbols.elements();
 
 	    public boolean
 	    hasMoreElements()
 	    {
-		return enum.hasMoreElements();
+		return nameEnum.hasMoreElements() || 
+		       symbolEnum.hasMoreElements();
 	    }
 
 	    public Object
 	    nextElement()
 	    {
-		return enum.nextElement();
+		return nameEnum.hasMoreElements()
+			? nameEnum.nextElement()
+			: symbolEnum.nextElement();
 	    }
 	};
     }
@@ -182,7 +254,7 @@ UnitTable
     public String
     toString()
     {
-	return table.toString();
+	return names.toString() + symbols.toString();
     }
 
 

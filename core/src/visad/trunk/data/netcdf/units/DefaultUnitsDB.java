@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultUnitsDB.java,v 1.7 1998-08-17 14:50:41 steve Exp $
+ * $Id: DefaultUnitsDB.java,v 1.8 1998-09-23 22:17:23 steve Exp $
  */
 
 package visad.data.netcdf.units;
@@ -40,9 +40,9 @@ DefaultUnitsDB
     protected UnitTable			table;
 
     /**
-     * The unit prefixes in order of lexicographic length:
+     * The unit prefix names in order of lexicographic length:
      */
-    protected final UnitPrefix[]	prefixes =
+    protected final UnitPrefix[]	prefixNames =
     {
 	new UnitPrefix("centi",	1e-2),
 	new UnitPrefix("femto",	1e-15),
@@ -80,6 +80,13 @@ DefaultUnitsDB
 	new UnitPrefix("pico",	1e-12),
 	new UnitPrefix("tera",	1e12),
 	new UnitPrefix("exa",	1e18),
+    };
+
+    /**
+     * The unit prefix symbols in order of lexicographic length:
+     */
+    protected final UnitPrefix[]	prefixSymbols =
+    {
 	new UnitPrefix("da",	1e1),
 	new UnitPrefix("E",	1e18),
 	new UnitPrefix("G",	1e9),
@@ -118,9 +125,11 @@ DefaultUnitsDB
 	 * Create a unit table of the proper size.  Because
 	 * increasing the size might be expensive, the initial
 	 * size should be kept in sync with the actual number of 
-	 * entries (e.g. vi: .,$w !grep 'put(' | wc -l)
+	 * entries (e.g. in vi:
+	 *     :.,$w !egrep 'PluralUnit|SingleUnit' | wc -l
+	 *     :.,$w !egrep 'UnitSymbol' | wc -l
 	 */
-	table = new UnitTable(501);
+	table = new UnitTable(396, 91);
 
 
 	/*
@@ -152,8 +161,7 @@ DefaultUnitsDB
 
 	// NB: "billion" is ambiguous (1e9 in U.S. but 1e12 in U.K.)
 
-	put(new SingleUnit("%",		get("percent")));
-	put(new SingleUnit("pi",	get("PI")));
+	put(new UnitSymbol("%",		get("percent")));
 
 	/*
 	 * NB: All subsequent definitions must be given in terms of
@@ -167,7 +175,7 @@ DefaultUnitsDB
 	/*
 	 * UNITS OF ELECTRIC CURRENT
 	 */
-	put(new SingleUnit("A",		get("ampere")));
+	put(new UnitSymbol("A",		get("ampere")));
 	put(new PluralUnit("amp",	get("ampere")));
 	put(new PluralUnit("abampere",	get("decaampere")));
 							// exact
@@ -178,62 +186,50 @@ DefaultUnitsDB
 	/*
 	 * UNITS OF LUMINOUS INTENSITY
 	 */
-	put(new SingleUnit("cd",	get("candela")));
+	put(new UnitSymbol("cd",	get("candela")));
 	put(new PluralUnit("candle",	get("candela")));
 
 	/*
 	 * UNITS OF THERMODYNAMIC TEMPERATURE
 	 */
-	put(new PluralUnit("kelvin",		get("Kelvin")));
 	put(new SingleUnit("degree_Kelvin",	get("Kelvin")));
 	put(new SingleUnit("degrees_Kelvin",	get("Kelvin")));
 	put(new SingleUnit("degK",		get("Kelvin")));
 	put(new SingleUnit("degreeK",		get("Kelvin")));
 	put(new SingleUnit("degree_K",		get("Kelvin")));
-	put(new SingleUnit("degree_k",		get("Kelvin")));
 	put(new SingleUnit("deg_K",		get("Kelvin")));
-	put(new SingleUnit("deg_k",		get("Kelvin")));
-	put(new SingleUnit("K",			get("Kelvin")));
+	put(new UnitSymbol("K",			get("Kelvin")));
 
 	put(new SingleUnit("Celsius",
 	    new OffsetUnit(273.15, (BaseUnit)get("Kelvin"))));
-	put(new SingleUnit("celsius",		get("Celsius")));
 	put(new SingleUnit("degree_Celsius",	get("Celsius")));
 	put(new SingleUnit("degrees_Celsius",	get("Celsius")));
 	put(new SingleUnit("degree_centigrade",	get("Celsius")));
 	put(new SingleUnit("degC",		get("Celsius")));
 	put(new SingleUnit("degreeC",		get("Celsius")));
 	put(new SingleUnit("degree_C",		get("Celsius")));
-	put(new SingleUnit("degree_c",		get("Celsius")));
 	put(new SingleUnit("deg_C",		get("Celsius")));
-	put(new SingleUnit("deg_c",		get("Celsius")));
-	//put(new SingleUnit("C",	get("degree_Celsius")));
+	//put(new UnitSymbol("C",		get("degree_Celsius")));
 						// `C' means `coulomb'
 
 	put(new PluralUnit("Rankine",		get("Kelvin").scale(1/1.8)));
-	put(new PluralUnit("rankine",		get("Rankine")));
 	put(new SingleUnit("degree_Rankine",	get("Rankine")));
 	put(new SingleUnit("degrees_Rankine",	get("Rankine")));
 	put(new SingleUnit("degR",		get("Rankine")));
 	put(new SingleUnit("degreeR",		get("Rankine")));
 	put(new SingleUnit("degree_R",		get("Rankine")));
-	put(new SingleUnit("degree_r",		get("Rankine")));
 	put(new SingleUnit("deg_R",		get("Rankine")));
-	put(new SingleUnit("deg_r",		get("Rankine")));
-	//put(new SingleUnit("R",		get("Rankine")));
+	//put(new UnitSymbol("R",		get("Rankine")));
 						// "R" means "roentgen"
 
 	put(new PluralUnit("Fahrenheit",	get("Rankine").shift(459.67)));
-	put(new PluralUnit("fahrenheit",	get("Fahrenheit")));
 	put(new PluralUnit("degree_Fahrenheit",	get("Fahrenheit")));
 	put(new PluralUnit("degrees_Fahrenheit",get("Fahrenheit")));
 	put(new SingleUnit("degF",		get("Fahrenheit")));
 	put(new SingleUnit("degreeF",		get("Fahrenheit")));
 	put(new SingleUnit("degree_F",		get("Fahrenheit")));
-	put(new SingleUnit("degree_f",		get("Fahrenheit")));
 	put(new SingleUnit("deg_F",		get("Fahrenheit")));
-	put(new SingleUnit("deg_f",		get("Fahrenheit")));
-	//put(new SingleUnit("F",		get("Fahrenheit")));
+	//put(new UnitSymbol("F",		get("Fahrenheit")));
 						// "F" means "farad"
 
 	/*
@@ -249,7 +245,7 @@ DefaultUnitsDB
 						// exact
 	put(new PluralUnit("gram",	get("kilogram").scale(1e-3)));
 						// exact
-	put(new SingleUnit("kg",	get("kilogram")));
+	put(new UnitSymbol("kg",	get("kilogram")));
 	put(new PluralUnit("long_hundredweight",
 	    get("kilogram").scale(5.080235e1)));
 	put(new PluralUnit("metric_ton",get("megagram")));	// exact
@@ -268,7 +264,7 @@ DefaultUnitsDB
 	put(new PluralUnit("apothecary_pound",	get("avoirdupois_pound")));
 	put(new PluralUnit("pound",	get("avoirdupois_pound")));
 	put(new PluralUnit("metricton",	get("metric_ton")));
-	put(new SingleUnit("gr",	get("grain")));
+	put(new UnitSymbol("gr",	get("grain")));
 	put(new PluralUnit("scruple",	get("grain").scale(20)));
 	put(new PluralUnit("apdram",	get("grain").scale(60)));
 	put(new PluralUnit("apounce",	get("grain").scale(480)));
@@ -276,8 +272,8 @@ DefaultUnitsDB
 	put(new PluralUnit("atomicmassunit",	get("atomic_mass_unit")));
 	put(new PluralUnit("amu",	get("atomic_mass_unit")));
 
-	put(new SingleUnit("t",		get("tonne")));
-	put(new PluralUnit("lb",	get("pound")));
+	put(new UnitSymbol("t",		get("tonne")));
+	put(new UnitSymbol("lb",	get("pound")));
 	put(new PluralUnit("bag",	get("pound").scale(94)));
 	put(new PluralUnit("short_ton",	get("pound").scale(2000)));
 	put(new PluralUnit("long_ton",	get("pound").scale(2240)));
@@ -294,7 +290,7 @@ DefaultUnitsDB
 	put(new PluralUnit("astronomical_unit",
 	    get("meter").scale(1.495979e11)));
 	put(new PluralUnit("fermi",	get("femtometer")));	// exact
-	put(new SingleUnit("m",		get("meter")));
+	put(new UnitSymbol("m",		get("meter")));
 	put(new PluralUnit("metre",	get("meter")));
 	put(new PluralUnit("light_year",get("meter").scale(9.46073e15)));
 	put(new PluralUnit("micron",	get("micrometer")));	// exact
@@ -356,10 +352,10 @@ DefaultUnitsDB
 
 	// The following should hold regardless:
 	put(new SingleUnit("inches",	get("inch")));		// alias
-	put(new SingleUnit("in",	get("inches")));	// alias
+	put(new UnitSymbol("in",	get("inches")));	// alias
 	put(new SingleUnit("feet",	get("foot")));		// alias
-	put(new SingleUnit("ft",	get("feet")));		// alias
-	put(new SingleUnit("yd",	get("yard")));		// alias
+	put(new UnitSymbol("ft",	get("feet")));		// alias
+	put(new UnitSymbol("yd",	get("yard")));		// alias
 
 	put(new PluralUnit("chain",
 	    get("meter").scale(2.011684e1)));
@@ -367,9 +363,9 @@ DefaultUnitsDB
 	put(new PluralUnit("printers_pica",
 	    get("printers_point").scale(12)));		// exact
 	put(new PluralUnit("astronomicalunit",	get("astronomical_unit")));
-	put(new SingleUnit("au",	get("astronomical_unit")));
+	put(new UnitSymbol("au",	get("astronomical_unit")));
 	put(new PluralUnit("nmile",	get("nautical_mile")));
-	put(new SingleUnit("nmi",	get("nautical_mile")));
+	put(new UnitSymbol("nmi",	get("nautical_mile")));
 
 	put(new PluralUnit("pica",	get("printers_pica")));
 	put(new PluralUnit("big_point",	get("inch").scale(1./72)));
@@ -381,7 +377,7 @@ DefaultUnitsDB
 	/*
 	 * UNITS OF AMOUNT OF SUBSTANCE
 	 */
-	put(new SingleUnit("mol",	get("mole")));
+	put(new UnitSymbol("mol",	get("mole")));
 
 	/*
 	 * UNITS OF TIME
@@ -392,7 +388,7 @@ DefaultUnitsDB
 	    get("second").scale(3.6e3)));		// exact
 	put(new PluralUnit("minute",	get("second").scale(60)));
 							// exact
-	put(new SingleUnit("s",		get("second")));
+	put(new UnitSymbol("s",		get("second")));
 	put(new PluralUnit("sec",	get("second")));
 	put(new PluralUnit("shake",	get("second").scale(1e-8)));
 							// exact
@@ -430,10 +426,10 @@ DefaultUnitsDB
 	    get("day").scale(27.321661)));
 	put(new PluralUnit("tropical_month",	
 	    get("day").scale(27.321582)));
-	put(new SingleUnit("d",		get("day")));
+	put(new UnitSymbol("d",		get("day")));
 	put(new PluralUnit("min",	get("minute")));
 	put(new PluralUnit("hr",	get("hour")));
-	put(new SingleUnit("h",		get("hour")));
+	put(new UnitSymbol("h",		get("hour")));
 	put(new PluralUnit("fortnight",	get("day").scale(14)));	
 						    // exact
 	put(new PluralUnit("week",	get("day").scale(7)));
@@ -446,7 +442,7 @@ DefaultUnitsDB
 	put(new PluralUnit("year",	get("tropical_year")));
 
 	put(new PluralUnit("yr",	get("year")));
-	put(new SingleUnit("a",		get("year")));		// "anno"
+	put(new UnitSymbol("a",		get("year")));		// "anno"
 	put(new PluralUnit("eon",	get("gigayear")));	// fuzzy
 	put(new PluralUnit("month",	get("year").scale(1./12)));
 						    // on average
@@ -527,8 +523,7 @@ DefaultUnitsDB
 	    get("newton").divide(get("meter").pow(2))));
 	put(new PluralUnit("joule",	get("newton").multiply(get("meter"))));
 	put(new SingleUnit("Hz",	get("hertz")));
-	put(new SingleUnit("hz",	get("hertz")));
-	put(new SingleUnit("sr",	get("steradian")));
+	put(new UnitSymbol("sr",	get("steradian")));
 	put(new SingleUnit("force",	get("standard_free_fall")));
 	put(new SingleUnit("gravity",	get("standard_free_fall")));
 	put(new SingleUnit("free_fall",	get("standard_free_fall")));
@@ -555,7 +550,7 @@ DefaultUnitsDB
 	    get("kilogram").divide(get("meter").pow(3))).scale(999.972)));
 	put(new SingleUnit("water_60F", 	get("gravity").multiply(
 	    get("kilogram").divide(get("meter").pow(3))).scale(999.001)));
-	put(new SingleUnit("g",	get("gravity")));	// approx.
+	put(new UnitSymbol("g",	get("gravity")));	// approx.
 							// should be `local'
 
 	put(new PluralUnit("volt",	get("watt").divide(get("ampere"))));
@@ -569,11 +564,9 @@ DefaultUnitsDB
 	put(new PluralUnit("ohm",	get("volt").divide(get("ampere"))));
 	put(new SingleUnit("siemens",	get("ampere").divide(get("volt"))));
 	put(new PluralUnit("weber",	get("volt").multiply(get("second"))));
-	put(new SingleUnit("F",		get("farad")));
+	put(new UnitSymbol("F",		get("farad")));
 	put(new SingleUnit("Hg",	get("mercury")));
-	put(new SingleUnit("hg",	get("mercury")));
 	put(new SingleUnit("H2O",	get("water")));
-	put(new SingleUnit("h2o",	get("water")));
 
 	put(new PluralUnit("tesla",	
 	    get("weber").divide(get("meter").pow(2))));
@@ -617,8 +610,8 @@ DefaultUnitsDB
 	put(new PluralUnit("kilohm",	get("kiloohm")));	// exact
 	put(new PluralUnit("abvolt",	get("volt").scale(1e-8)));
 								// exact
-	put(new SingleUnit("C",		get("coulomb")));
-	put(new SingleUnit("e",	get("coulomb").scale(1.60217733-19)));
+	put(new UnitSymbol("C",		get("coulomb")));
+	put(new UnitSymbol("e",	get("coulomb").scale(1.60217733-19)));
 	put(new PluralUnit("chemical_faraday",
 	    get("coulomb").scale(9.64957e4)));
 	put(new PluralUnit("physical_faraday",
@@ -628,12 +621,12 @@ DefaultUnitsDB
 	put(new PluralUnit("gamma",	get("nanotesla")));	// exact
 	put(new SingleUnit("gauss",	get("tesla").scale(1e-4)));
 						// exact
-	put(new SingleUnit("H", get("henry")));
+	put(new UnitSymbol("H", get("henry")));
 	put(new PluralUnit("maxwell",	get("weber").scale(1e-8)));
 						// exact
 	put(new PluralUnit("oersted",	get("ampere").divide(
 	    get("meter")).scale(7.957747e1)));
-	put(new SingleUnit("S", get("siemens")));
+	put(new UnitSymbol("S", get("siemens")));
 	put(new PluralUnit("statcoulomb",	
 	    get("coulomb").scale(3.335640e-10)));
 	put(new PluralUnit("statfarad",	get("farad").scale(1.112650e-12)));
@@ -641,12 +634,12 @@ DefaultUnitsDB
 	put(new PluralUnit("statmho",	get("siemens").scale(1.112650e-12)));
 	put(new PluralUnit("statohm",	get("ohm").scale(8.987554e11)));
 	put(new PluralUnit("statvolt",	get("volt").scale(2.997925e2)));
-	put(new SingleUnit("T", get("tesla")));	put(new PluralUnit("unit_pole",
+	put(new UnitSymbol("T", get("tesla")));	put(new PluralUnit("unit_pole",
 	    get("weber").scale(1.256637e-7)));
-	put(new SingleUnit("V",		get("volt")));
-	put(new SingleUnit("Wb",	get("weber")));
+	put(new UnitSymbol("V",		get("volt")));
+	put(new UnitSymbol("Wb",	get("weber")));
 	put(new PluralUnit("mho",	get("siemens")));
-	put(new SingleUnit("Oe",	get("oersted")));
+	put(new UnitSymbol("Oe",	get("oersted")));
 	put(new PluralUnit("faraday",	get("C12_faraday")));
 	    // charge of 1 mole of electrons
 
@@ -665,22 +658,22 @@ DefaultUnitsDB
 	    get("joule").scale(4.184000)));		// exact
 	put(new PluralUnit("IT_calorie",	get("joule").scale(4.1868)));
 						// exact
-	put(new SingleUnit("J", get("joule")));	put(new SingleUnit("ton_TNT",
-	    get("joule").scale(4.184e9)));
+	put(new UnitSymbol("J", 	get("joule")));
+	put(new SingleUnit("ton_TNT",	get("joule").scale(4.184e9)));
 	put(new PluralUnit("US_therm",	get("joule").scale(1.054804e8)));
 						// exact
 	put(new PluralUnit("watthour",	get("watt").multiply(get("hour"))));
 
 	put(new PluralUnit("therm",	get("US_therm")));
-	put(new SingleUnit("Wh",	get("watthour")));
+	put(new UnitSymbol("Wh",	get("watthour")));
 	put(new PluralUnit("Btu",	get("IT_Btu")));
 	put(new PluralUnit("calorie",	get("IT_calorie")));
 	put(new PluralUnit("electron_volt",	get("electronvolt")));
 
-	put(new SingleUnit("thm",	get("therm")));
-	put(new SingleUnit("cal",	get("calorie")));
-	put(new SingleUnit("eV",	get("electronvolt")));
-	put(new SingleUnit("bev",	get("gigaelectron_volt")));
+	put(new UnitSymbol("thm",	get("therm")));
+	put(new UnitSymbol("cal",	get("calorie")));
+	put(new UnitSymbol("eV",	get("electronvolt")));
+	put(new UnitSymbol("bev",	get("gigaelectron_volt")));
 
 	/*
 	 * FORCE
@@ -696,18 +689,18 @@ DefaultUnitsDB
 	put(new SingleUnit("force_pound",	
 	    get("newton").scale(4.4482216152605)));	// exact
 	put(new PluralUnit("poundal",	get("newton").scale(1.382550e-1)));
-	put(new SingleUnit("N",		get("newton")));
-	put(new SingleUnit("gf",	get("gram").multiply(get("force"))));
+	put(new UnitSymbol("N",		get("newton")));
+	put(new UnitSymbol("gf",	get("gram").multiply(get("force"))));
 
 	put(new PluralUnit("force_gram",get("milliforce_kilogram")));
 	put(new PluralUnit("force_ton",	get("force_pound").scale(2000)));
 						// exact
-	put(new SingleUnit("lbf",	get("force_pound")));
+	put(new UnitSymbol("lbf",	get("force_pound")));
 	put(new SingleUnit("ounce_force",	get("force_ounce")));
 	put(new SingleUnit("kilogram_force",	get("force_kilogram")));
 	put(new SingleUnit("pound_force",	get("force_pound")));
-	put(new SingleUnit("ozf",	get("force_ounce")));
-	put(new SingleUnit("kgf",	get("force_kilogram")));
+	put(new UnitSymbol("ozf",	get("force_ounce")));
+	put(new UnitSymbol("kgf",	get("force_kilogram")));
 
 	put(new PluralUnit("kip",	get("kilolbf")));
 	put(new SingleUnit("ton_force",	get("force_ton")));
@@ -722,8 +715,8 @@ DefaultUnitsDB
 	/*
 	 * LIGHT
 	 */
-	put(new SingleUnit("lm",	get("lumen")));
-	put(new SingleUnit("lx",	get("lux")));
+	put(new UnitSymbol("lm",	get("lumen")));
+	put(new UnitSymbol("lx",	get("lux")));
 	put(new PluralUnit("footcandle",get("lux").scale(1.076391e-1)));
 	put(new PluralUnit("footlambert",	get("candela").divide(
 		get("meter").pow(2)).scale(3.426259)));
@@ -741,9 +734,9 @@ DefaultUnitsDB
 		get("meter").pow(2)).scale(1./Math.PI)));
 
 	put(new PluralUnit("apostilb",	get("blondel")));
-	put(new SingleUnit("nt",	get("nit")));
-	put(new SingleUnit("ph",	get("phot")));
-	put(new SingleUnit("sb",	get("stilb")));
+	put(new UnitSymbol("nt",	get("nit")));
+	put(new UnitSymbol("ph",	get("phot")));
+	put(new UnitSymbol("sb",	get("stilb")));
 
 	/*
 	 * MASS PER UNIT LENGTH
@@ -768,7 +761,7 @@ DefaultUnitsDB
 	 */
 	put(new PluralUnit("voltampere",	
 	    get("volt").multiply(get("ampere"))));
-	put(new SingleUnit("VA",	get("voltampere")));
+	put(new UnitSymbol("VA",	get("voltampere")));
 	put(new PluralUnit("boiler_horsepower",
 	    get("watt").scale(9.80950e3)));
 	put(new PluralUnit("shaft_horsepower",
@@ -776,7 +769,7 @@ DefaultUnitsDB
 	put(new PluralUnit("metric_horsepower",	get("watt").scale(7.35499)));
 	put(new PluralUnit("electric_horsepower",
 	    get("watt").scale(7.460000e2)));		// exact
-	put(new SingleUnit("W",	get("watt")));	
+	put(new UnitSymbol("W",	get("watt")));	
 	put(new PluralUnit("water_horsepower",	
 	    get("watt").scale(7.46043e2)));
 	put(new PluralUnit("UK_horsepower",	
@@ -788,7 +781,7 @@ DefaultUnitsDB
 	put(new PluralUnit("ton_of_refrigeration",
 	    get("refrigeration_ton")));
 
-	put(new SingleUnit("hp",	get("horsepower")));
+	put(new UnitSymbol("hp",	get("horsepower")));
 
 	/*
 	 * PRESSURE OR STRESS
@@ -812,30 +805,28 @@ DefaultUnitsDB
 	    get("millimeter").multiply(get("mercury_0C"))));
 	put(new SingleUnit("footH2O",
 	    get("foot").multiply(get("water"))));
-	put(new SingleUnit("cmHg",	get("centimeter").multiply(get("Hg"))));
-	put(new SingleUnit("cmH2O",	
+	put(new UnitSymbol("cmHg",	get("centimeter").multiply(get("Hg"))));
+	put(new UnitSymbol("cmH2O",	
 	    get("centimeter").multiply(get("water"))));
-	put(new SingleUnit("Pa",	get("pascal")));
+	put(new UnitSymbol("Pa",	get("pascal")));
 	put(new SingleUnit("inch_Hg",	get("inch").multiply(get("Hg"))));
 	put(new SingleUnit("inch_hg",	get("inch_Hg")));
-	put(new SingleUnit("inHg",	get("inch_Hg")));
+	put(new UnitSymbol("inHg",	get("inch_Hg")));
 	put(new SingleUnit("in_Hg",	get("inch_Hg")));
-	put(new SingleUnit("in_hg",	get("inch_Hg")));
 	put(new SingleUnit("millimeter_Hg",	
 	    get("millimeter").multiply(get("Hg"))));
-	put(new SingleUnit("mmHg",	get("millimeter_Hg")));
+	put(new UnitSymbol("mmHg",	get("millimeter_Hg")));
 	put(new SingleUnit("mm_Hg",	get("millimeter_Hg")));
-	put(new SingleUnit("mm_hg",	get("millimeter_Hg")));
 	put(new PluralUnit("torr",	get("millimeter_Hg")));
 	put(new SingleUnit("foot_H2O",	get("foot").multiply(get("water"))));
-	put(new SingleUnit("ftH2O",	get("foot_H2O")));
-	put(new SingleUnit("psi",	get("pound").multiply(
+	put(new UnitSymbol("ftH2O",	get("foot_H2O")));
+	put(new UnitSymbol("psi",	get("pound").multiply(
 	    get("gravity").divide(get("inch").pow(2)))));
-	put(new SingleUnit("ksi",	get("kip").divide(get("inch").pow(2))));
+	put(new UnitSymbol("ksi",	get("kip").divide(get("inch").pow(2))));
 	put(new PluralUnit("barie",	get("newton").divide(
 	    get("meter").pow(2)).scale(0.1)));
 
-	put(new SingleUnit("at",	get("technical_atmosphere")));
+	put(new UnitSymbol("at",	get("technical_atmosphere")));
 	put(new PluralUnit("atmosphere",get("standard_atmosphere")));
 	put(new PluralUnit("atm",	get("standard_atmosphere")));
 	put(new PluralUnit("barye",	get("barie")));
@@ -843,7 +834,7 @@ DefaultUnitsDB
 	/*
 	 * RADIATION UNITS
 	 */
-	put(new SingleUnit("Bq",	get("becquerel")));
+	put(new UnitSymbol("Bq",	get("becquerel")));
 	put(new PluralUnit("curie",	get("becquerel").scale(3.7e10)));
 						// exact
 	put(new PluralUnit("rem",	get("centisievert")));
@@ -852,17 +843,17 @@ DefaultUnitsDB
 						// absorbed dose. exact
 	put(new PluralUnit("roentgen",	get("coulomb").divide(
 	    get("kilogram")).scale(2.58e-4)));
-	put(new SingleUnit("Sv",	get("sievert")));
-	put(new SingleUnit("Gy",	get("gray")));
+	put(new UnitSymbol("Sv",	get("sievert")));
+	put(new UnitSymbol("Gy",	get("gray")));
 
-	put(new SingleUnit("Ci",	get("curie")));
-	put(new SingleUnit("R",		get("roentgen")));
-	put(new SingleUnit("rd",	get("rad")));
+	put(new UnitSymbol("Ci",	get("curie")));
+	put(new UnitSymbol("R",		get("roentgen")));
+	put(new UnitSymbol("rd",	get("rad")));
 
 	/*
 	 * VELOCITY (INCLUDES SPEED)
 	 */
-	put(new SingleUnit("c",	get("meter").divide(
+	put(new UnitSymbol("c",	get("meter").divide(
 	    get("second")).scale(2.997925e+8)));
 	put(new PluralUnit("knot",	
 	    get("nautical_mile").divide(get("hour"))));
@@ -879,10 +870,10 @@ DefaultUnitsDB
 							// exact
 	put(new SingleUnit("stokes",	get("meter").pow(2).divide(
 	    get("second")).scale(1e-4)));		// exact
-	put(new SingleUnit("rhe",
+	put(new UnitSymbol("rhe",
 	    get("pascal").multiply(get("second")).pow(-1).scale(10)));
 
-	put(new SingleUnit("St",	get("stokes")));
+	put(new UnitSymbol("St",	get("stokes")));
 
 	/*
 	 * VOLUME (INCLUDES CAPACITY)
@@ -903,7 +894,7 @@ DefaultUnitsDB
 	    get("meter").pow(3).scale(4.404884e-3)));
 	put(new PluralUnit("US_liquid_gallon",
 	    get("meter").pow(3).scale(3.785412e-3)));
-	put(new SingleUnit("cc",	get("meter").scale(.01).pow(3)));
+	put(new UnitSymbol("cc",	get("meter").scale(.01).pow(3)));
 	put(new PluralUnit("liter",	get("meter").pow(3).scale(1e-3)));
 		// exact. However, from 1901 to 1964, 1 liter = 1.000028 dm3
 	put(new PluralUnit("stere",	get("meter").pow(3)));	// exact
@@ -968,25 +959,25 @@ DefaultUnitsDB
 	put(new SingleUnit("acre_feet",	get("acre_foot")));
 	put(new SingleUnit("board_feet",	get("board_foot")));
 	put(new PluralUnit("Tbl",	get("tablespoon")));
-	put(new SingleUnit("Tbsp",	get("tablespoon")));
-	put(new SingleUnit("tbsp",	get("tablespoon")));
-	put(new SingleUnit("Tblsp",	get("tablespoon")));
-	put(new SingleUnit("tblsp",	get("tablespoon")));
+	put(new UnitSymbol("Tbsp",	get("tablespoon")));
+	put(new UnitSymbol("tbsp",	get("tablespoon")));
+	put(new UnitSymbol("Tblsp",	get("tablespoon")));
+	put(new UnitSymbol("tblsp",	get("tablespoon")));
 	put(new PluralUnit("litre",	get("liter")));
-	put(new SingleUnit("L",		get("liter")));
-	put(new SingleUnit("l",		get("liter")));
+	put(new UnitSymbol("L",		get("liter")));
+	put(new UnitSymbol("l",		get("liter")));
 	put(new SingleUnit("tsp",	get("teaspoon")));
-	put(new SingleUnit("pk",	get("peck")));
-	put(new SingleUnit("bu",	get("bushel")));
+	put(new UnitSymbol("pk",	get("peck")));
+	put(new UnitSymbol("bu",	get("bushel")));
 
-	put(new SingleUnit("fldr",	get("floz").scale(1./8)));
+	put(new UnitSymbol("fldr",	get("floz").scale(1./8)));
 	put(new PluralUnit("dram",	get("floz").scale(1./16)));
 
-	put(new SingleUnit("bbl",	get("barrel")));
+	put(new UnitSymbol("bbl",	get("barrel")));
 	put(new PluralUnit("firkin", 	get("barrel").scale(1./4)));
 					    // exact but "barrel" is vague
-	put(new SingleUnit("pt",	get("pint")));
-	put(new SingleUnit("dr",	get("dram")));
+	put(new UnitSymbol("pt",	get("pint")));
+	put(new UnitSymbol("dr",	get("dram")));
 
 	/*
 	 * VOLUME PER UNIT TIME
@@ -1001,10 +992,10 @@ DefaultUnitsDB
 	put(new PluralUnit("bit",	new ScaledUnit(1)));
 					    // unit of information
 	put(new SingleUnit("baud",	get("hertz")));
-	put(new SingleUnit("b",		get("bit")));
-	put(new SingleUnit("bps",	get("hertz")));
-	put(new SingleUnit("cps",	get("hertz")));
-	put(new SingleUnit("Bd",	get("baud")));
+	put(new UnitSymbol("b",		get("bit")));
+	put(new UnitSymbol("bps",	get("hertz")));
+	put(new UnitSymbol("cps",	get("hertz")));
+	put(new UnitSymbol("Bd",	get("baud")));
 
 	/*
 	 * MISC
@@ -1012,13 +1003,13 @@ DefaultUnitsDB
 	put(new PluralUnit("count",	new ScaledUnit(1)));
 	put(new PluralUnit("kayser",	get("meter").pow(-1).scale(1e2)));
 						// exact
-	put(new SingleUnit("rps",	get("hertz")));
-	put(new SingleUnit("rpm",	get("hertz").scale(1./60)));
+	put(new UnitSymbol("rps",	get("hertz")));
+	put(new UnitSymbol("rpm",	get("hertz").scale(1./60)));
 	put(new SingleUnit("geopotential",get("gravity")));
 	put(new PluralUnit("work_year",	get("hours").scale(2056)));
 	put(new PluralUnit("work_month",get("work_year").scale(1./12)));
 
-	put(new SingleUnit("gp",	get("geopotential")));
+	put(new UnitSymbol("gp",	get("geopotential")));
 	put(new SingleUnit("dynamic",	get("geopotential")));
     };
 
@@ -1122,7 +1113,7 @@ DefaultUnitsDB
 	     */
 	    Prefixer	prefixer = new Prefixer(name);
 
-	    if (prefixer.stripPrefix(prefixes))
+	    if (prefixer.stripPrefix(prefixNames, prefixSymbols))
 	    {
 		//System.out.println("Prefix found");
 		//System.out.println("Looking for \"" + prefixer.getString() +
@@ -1186,11 +1177,30 @@ DefaultUnitsDB
 	 * Strip leading prefix from the string.
 	 */
 	protected boolean
-	stripPrefix(UnitPrefix[] prefixes)
+	stripPrefix(UnitPrefix[] names, UnitPrefix[] symbols)
 	{
-	    for (int icur = 0; icur < prefixes.length; ++icur)
+	    /*
+	     * Perform a case-insensitive search on the names.
+	     */
+	    for (int icur = 0; icur < names.length; ++icur)
 	    {
-		UnitPrefix	prefix = prefixes[icur];
+		UnitPrefix	prefix = names[icur];
+
+		if (string.regionMatches(true, pos, prefix.name, 0, 
+					 prefix.name.length()))
+		{
+		    value *= prefix.value;
+		    pos += prefix.name.length();
+		    return true;
+		}
+	    }
+
+	    /*
+	     * Perform a case-sensitive search on the symbols.
+	     */
+	    for (int icur = 0; icur < symbols.length; ++icur)
+	    {
+		UnitPrefix	prefix = symbols[icur];
 
 		if (string.startsWith(prefix.name, pos))
 		{
@@ -1296,7 +1306,7 @@ DefaultUnitsDB
 	System.out.println("% = " + db.get("%"));
 	System.out.println("abampere = " + db.get("abampere"));
 	System.out.println("firkin = " + db.get("firkin"));
-	System.out.println("micromegafirkin = " + db.get("micromegafirkin"));
+	System.out.println("MiCrOmEgAfirkin = " + db.get("MiCrOmEgAfirkin"));
 	System.out.println("celsius = " + db.get("celsius"));
 	System.out.println("fahrenheit = " + db.get("fahrenheit"));
 	System.out.println("meter = " + db.get("meter"));
@@ -1305,7 +1315,7 @@ DefaultUnitsDB
 	System.out.println("million = " + db.get("million"));
 	System.out.println("pascal = " + db.get("pascal"));
 	System.out.println("Tperm_0C = " + db.get("Tperm_0C"));
-	System.out.println("millipoundal = " + db.get("millipoundal"));
+	System.out.println("MILLIpoundal = " + db.get("MILLIpoundal"));
 
 	//db.list();
     }

@@ -25,6 +25,16 @@ include ../../../rules.make
 test:	classes	\
 	UnitParser.test
 
+.SUFFIXES:	.save .run .class
+.class.run:	FORCE
+	CLASSPATH=$(ROOTDIR):$$CLASSPATH $(JAVA) $(PACKAGE).$* $<
+
+.class.save:
+	$(MAKE) -s $*.run >$@ 2>&1
+
+.class.test:
+	$(MAKE) -s $*.run 2>&1 | diff -cw $*.save -
+
 UnitParser.java:	UnitParser.jj
 classes:		UnitParser.java
 ASCII_CharStream.java:	UnitParser.java
