@@ -267,6 +267,9 @@ public class MeasureLine extends MeasureThing {
   }
 
   /** Links the given measurement. */
+  public void setMeasurement(Measurement m) { setMeasurement(m, -1); }
+
+  /** Links the given measurement at the specified slice. */
   public void setMeasurement(Measurement m, int slice) {
     super.setMeasurement(m, slice);
     if (m != null) setColor(m.getColor());

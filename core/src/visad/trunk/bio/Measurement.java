@@ -45,7 +45,7 @@ public class Measurement {
   private Vector things;
 
   /** Color of the measurement line. */
-  private Color color = Color.white;
+  private Color color;
 
   /** Group of the measurement. */
   private LineGroup group;
@@ -54,6 +54,14 @@ public class Measurement {
   protected int stdId;
 
   /** Constructs a measurement. */
+  public Measurement(RealTuple[] values) {
+    this(null, values, Color.white, null);
+  }
+
+  /**
+   * Constructs a measurement with an associated
+   * measurement matrix, color and line group.
+   */
   public Measurement(MeasureMatrix mm, RealTuple[] values, Color color,
     LineGroup group)
   {
@@ -107,7 +115,7 @@ public class Measurement {
     }
 
     // manage direct manipulation in 3-D window
-    if (mdim == 3) {
+    if (mm != null && mdim == 3) {
       // remove measurement from all slices
       int numSlices = mm.getNumberOfSlices();
       for (int i=0; i<numSlices; i++) {
