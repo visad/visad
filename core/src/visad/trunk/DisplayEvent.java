@@ -269,5 +269,29 @@ public class DisplayEvent extends VisADEvent {
     return mouse_y;
   }
 
+  /**
+   * String representation of the event.
+   * @return descriptive info about the event
+   */
+  public String toString() {
+    StringBuffer buf = new StringBuffer();
+    buf.append("DisplayEvent: ");
+    try {
+      String display = getDisplay().getName();
+      buf.append("Display=");
+      buf.append(display);
+      buf.append(", ");
+    } catch (Exception ve) { }
+    buf.append("Id=");
+    buf.append(getId());
+    buf.append(", X=");
+    buf.append(getX());
+    buf.append(", Y=");
+    buf.append(getY());
+    buf.append(", remoteId=");
+    buf.append(getRemoteId());
+    return buf.toString();
+  }
+
 }
 
