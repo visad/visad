@@ -174,7 +174,10 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
     unit = u;
     NumberNotMissing = 0;
     double sum = 0.0;
+/* TDR May 18 1998
     for (int i=0; i<NumberNotMissing; i++) {
+*/
+    for (int i=0; i<value.length; i++) {
       if (!Double.isNaN(value[i])) {
         NumberNotMissing++;
         sum += value[i];
@@ -195,7 +198,10 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
     unit = u;
     NumberNotMissing = 0;
     double sum = 0.0;
+/* TDR May 18 1998
     for (int i=0; i<NumberNotMissing; i++) {
+*/
+    for (int i=0; i<value.length; i++) {
       if (!Float.isNaN(value[i])) {
         NumberNotMissing++;
         sum += value[i];
@@ -219,7 +225,10 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
     unit = u;
     NumberNotMissing = 0;
     double sum = 0.0;
+/* TDR May 18 1998
     for (int i=0; i<NumberNotMissing; i++) {
+*/
+    for (int i=0; i<value.length; i++) {
       if (!Double.isNaN(value[i])) {
         NumberNotMissing++;
         sum += value[i];
@@ -243,7 +252,10 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
     unit = u;
     NumberNotMissing = 0;
     double sum = 0.0;
+/* TDR May 18 1998
     for (int i=0; i<NumberNotMissing; i++) {
+*/
+    for (int i=0; i<value.length; i++) {
       if (!Float.isNaN(value[i])) {
         NumberNotMissing++;
         sum += value[i];
@@ -266,7 +278,10 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
     unit = u;
     NumberNotMissing = 0;
     double sum = 0.0;
+/* TDR May 18 1998
     for (int i=0; i<NumberNotMissing; i++) {
+*/
+    for (int i=0; i<value.length; i++) {
       if (!Double.isNaN(value[i])) {
         NumberNotMissing++;
         sum += value[i];
@@ -289,7 +304,10 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
     unit = u;
     NumberNotMissing = 0;
     double sum = 0.0;
+/* TDR May 18 1998
     for (int i=0; i<NumberNotMissing; i++) {
+*/
+    for (int i=0; i<value.length; i++) {
       if (!Float.isNaN(value[i])) {
         NumberNotMissing++;
         sum += value[i];
