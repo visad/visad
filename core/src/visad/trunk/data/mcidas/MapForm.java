@@ -58,7 +58,7 @@ public class MapForm extends Form implements FormFileInformer {
    * @return  true if it matches the pattern for McIDAS map files (OUTL*)
    */
   public boolean isThisType(String name) {
-    return name.startsWith("OUTL");
+    return (name.indexOf("OUTL") >= 0);
   }
 
   /**
