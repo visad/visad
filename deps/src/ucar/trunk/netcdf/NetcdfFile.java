@@ -1,4 +1,4 @@
-// $Id: NetcdfFile.java,v 1.4 2001-08-28 19:12:45 steve Exp $
+// $Id: NetcdfFile.java,v 1.5 2001-09-10 20:46:55 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -35,6 +35,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 
@@ -52,7 +53,7 @@ import java.lang.reflect.InvocationTargetException;
  *
  * @see Netcdf
  * @author $Author: steve $
- * @version $Revision: 1.4 $ $Date: 2001-08-28 19:12:45 $
+ * @version $Revision: 1.5 $ $Date: 2001-09-10 20:46:55 $
  */
 public class NetcdfFile	extends AbstractNetcdf {
 
@@ -150,24 +151,39 @@ public class NetcdfFile	extends AbstractNetcdf {
     }
 
     /**
-     * Open existing, read-only netcdf file through an HTTP connection
-     * @param url       the file URL
+     * <p>Open a netCDF dataset corresponding to a URL for reading only.
+     * Currently supported protocols include "file" and "http".  The query
+     * component of the URL is ignored.</p>
      *
-     * Modified from ncBrowse (Donald Denbo)
+     * <p>Modified from ncBrowse (Donald Denbo).</p>
+     *
+     * @param url                    the URL of the netCDF dataset.
+     * @throws FileNotFoundException if the URL specifies a file that doesn't
+     *                               exist.
+     * @throws IOException           if an I/O failure occurs.
      */
-  public NetcdfFile(URL url) throws IOException {
+  public NetcdfFile(URL url) throws FileNotFoundException, IOException {
     super();
-    if (url.getProtocol().equals("file"))
+    String path = url.getFile();
+    int    i = path.indexOf('?');
+    if (i != -1)
+	path = path.substring(0, i);
+    if (url.getProtocol().equalsIgnoreCase("file"))
     {
-        file = new File(url.getPath());
+	/*
+	 * URL.getPath() isn't used to accomodate JDK 1.2.
+	 */
+        this.url = null;
+        file = new File(path);
         raf = new RandomAccessFile(file, "r");
-        url = null;
     }
     else
     {
-	this.url = url;
-	raf = new HTTPRandomAccessFile(url);
+	/* Defensive copy */
+	this.url =
+	    new URL(url.getProtocol(), url.getHost(), url.getPort(), path);
 	file = null;
+	raf = new HTTPRandomAccessFile(this.url);
     }
     readV1(raf);
     initRecSize();
@@ -1821,6 +1837,15 @@ public class NetcdfFile	extends AbstractNetcdf {
 
 /* Change History:
    $Log: not supported by cvs2svn $
+   Revision 1.9  2001/09/10 20:37:12  steve
+   Improved constructor NetcdfFile(URL):
+       Replaced URL.getPath() with URL.getFile() to accomodate JDK 1.2.
+       Made protocol comparison case-insensitive.
+       Added defensive copying of modifiable URL argument.
+       Added FileNotFoundException.
+       Added ignoring of query component of URL.
+       Enhanced JavaDoc.
+
    Revision 1.8  2001/08/28 16:59:59  steve
    Added support for "file" protocol to constructor NetcdfFile(URL).
 

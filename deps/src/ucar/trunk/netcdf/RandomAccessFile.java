@@ -1,4 +1,4 @@
-// $Id: RandomAccessFile.java,v 1.3 2001-08-28 19:12:49 steve Exp $
+// $Id: RandomAccessFile.java,v 1.4 2001-09-10 20:46:55 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -53,7 +53,7 @@ import java.util.Date;
  *
  * @author Alex McManus
  * @author Russ Rew
- * @version $Id: RandomAccessFile.java,v 1.3 2001-08-28 19:12:49 steve Exp $
+ * @version $Id: RandomAccessFile.java,v 1.4 2001-09-10 20:46:55 steve Exp $
  * @see DataInput
  * @see DataOutput
  * @see java.io.RandomAccessFile */
@@ -219,6 +219,9 @@ implements DataInput, DataOutput {
     * @param mode        how the file is to be opened. This may be a
                          combination (logical OR) of CREATE, WRITE, and READ.
     * @param bufferSize  the size of the temporary buffer, in bytes.
+    * @exception FileNotFoundException
+    *                               if the access is readonly and the file 
+    *                               doesn't exist.
     * @exception IOException        if an I/O error occurrs.
     * @exception SecurityException  if a security manager exists, its checkRead
     *                               method is called with the name argument to
@@ -231,7 +234,7 @@ implements DataInput, DataOutput {
     *                               security exception.
     */
    public RandomAccessFile( String filename, int mode, int bufferSize )
-   throws IOException {
+   throws FileNotFoundException, IOException {
       this.mode = mode;
 
       // If we are CREATEing a file, we must also WRITE. READ is always
