@@ -1639,26 +1639,16 @@ public class BasicSSCell extends JPanel {
     synchRMIAddress();
   }
 
-  /** export a data object to a given file name, in netCDF (netcdf == true)
-      or serialized (netcdf == false) format */
-  public void saveData(File f, boolean netcdf) throws BadFormException,
-                                                      IOException,
-                                                      VisADException,
-                                                      RemoteException {
+  /** export a data object to a given file name, using the given Data form */
+  public void saveData(File f, Form form) throws BadFormException,
+                                                 IOException,
+                                                 VisADException,
+                                                 RemoteException {
     Data d = getData();
     if (f == null || d == null) return;
     Saving++;
     try {
-      if (netcdf) {
-        Plain saver = new Plain();
-        saver.save(f.getPath(), d, true);
-        saver = null;
-      }
-      else {
-        VisADForm saver = new VisADForm();
-        saver.save(f.getPath(), d, true);
-        saver = null;
-      }
+      form.save(f.getPath(), d, true);
     }
     finally {
       Saving--;

@@ -34,7 +34,7 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import visad.*;
-import visad.data.BadFormException;
+import visad.data.*;
 import visad.util.*;
 
 /** FancySSCell is an extension of BasicSSCell with extra options, such
@@ -440,7 +440,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   }
 
   /** save to a file selected by the user, in netCDF or serialized format */
-  public void saveDataDialog(boolean netcdf) {
+  public void saveDataDialog(Form saveForm) {
     if (!hasData()) {
       JOptionPane.showMessageDialog(Parent, "This cell is empty.",
         "Nothing to save", JOptionPane.ERROR_MESSAGE);
@@ -462,14 +462,13 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     // start new thread to save the file
     final File fn = f;
     final BasicSSCell cell = this;
-    final boolean nc = netcdf;
+    final Form form = saveForm;
     Runnable saveFile = new Runnable() {
       public void run() {
         String msg = "Could not save the dataset \"" + fn.getName() +
-                     "\" as a " + (nc ? "netCDF file"
-                                      : "serialized data file") + ". ";
+                     "\" as a " + form.getName() + " file";
         try {
-          cell.saveData(fn, nc);
+          cell.saveData(fn, form);
         }
         catch (BadFormException exc) {
           if (DEBUG) exc.printStackTrace();

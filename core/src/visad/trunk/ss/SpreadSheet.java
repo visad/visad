@@ -100,7 +100,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
   RemoteDataReference RemoteColRow;
 
 
-  /** whether spreadsheet's cells automatically switch dimensions when needed */
+  /** whether spreadsheet's cells automatically switch dimensions
+      when needed */
   boolean AutoSwitch = true;
 
   /** whether spreadsheet's cells automatically detect mappings */
@@ -1258,12 +1259,18 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** export a data set to netCDF format */
   void exportDataSetNetcdf() {
-    DisplayCells[CurX][CurY].saveDataDialog(true);
+    try {
+      DisplayCells[CurX][CurY].saveDataDialog(new visad.data.netcdf.Plain());
+    }
+    catch (VisADException exc) {
+      displayErrorMessage("Cannot save the data. Unable to create " +
+        "a netCDF saver: " + exc.getMessage(), "VisAD SpreadSheet error");
+    }
   }
 
   /** export a data set to serialized data format */
   void exportDataSetSerial() {
-    DisplayCells[CurX][CurY].saveDataDialog(false);
+    DisplayCells[CurX][CurY].saveDataDialog(new visad.data.visad.VisADForm());
   }
 
   /** add a column to the spreadsheet */
@@ -1911,7 +1918,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     String[] hLabels = new String[NumVisX];
     synchronized (Lock) {
       HorizPanel.removeAll();
-      for (int i=0; i<NumVisX; i++) hLabels[i] = "" + cellNames[i][0].charAt(0);
+      for (int i=0; i<NumVisX; i++) {
+        hLabels[i] = "" + cellNames[i][0].charAt(0);
+      }
     }
     constructHorizontalLabels(hLabels);
 

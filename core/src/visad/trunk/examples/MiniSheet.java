@@ -33,6 +33,9 @@ import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 
+// import netCDF form, for saving data
+import visad.data.netcdf.Plain;
+
 // import needed Spread Sheet classes
 import visad.ss.BasicSSCell;
 import visad.ss.FancySSCell;
@@ -233,8 +236,18 @@ public class MiniSheet extends JFrame implements ActionListener {
     if (cmd.equals("quit")) quitProgram();
     else if (cmd.equals("load1")) Cell1.loadDataDialog();
     else if (cmd.equals("load2")) Cell2.loadDataDialog();
-    else if (cmd.equals("save1")) Cell1.saveDataDialog(true);
-    else if (cmd.equals("save2")) Cell2.saveDataDialog(true);
+    else if (cmd.equals("save1")) {
+      try {
+        Cell1.saveDataDialog(new Plain());
+      }
+      catch (Exception exc) { }
+    }
+    else if (cmd.equals("save2")) {
+      try {
+        Cell2.saveDataDialog(new Plain());
+      }
+      catch (Exception exc) { }
+    }
     else if (cmd.equals("maps1")) Cell1.addMapDialog();
     else if (cmd.equals("maps2")) Cell2.addMapDialog();
     else if (cmd.equals("show1")) Cell1.showWidgetFrame();
