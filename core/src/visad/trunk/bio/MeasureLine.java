@@ -52,23 +52,14 @@ public class MeasureLine extends MeasureThing {
   {
     this.ep1 = ep1;
     this.ep2 = ep2;
-    this.color = color;
-    this.group = group;
-    this.selected = selected;
-    ep1.lines.add(this);
-    ep2.lines.add(this);
+    init(color, group, selected, stdType, stdId);
   }
 
   /** Constructs a line cloned from the given line. */
   public MeasureLine(MeasureLine line) {
     ep1 = new MeasurePoint(line.ep1);
     ep2 = new MeasurePoint(line.ep2);
-    color = line.color;
-    group = line.group;
-    stdType = line.stdType;
-    stdId = line.stdId;
-    ep1.lines.add(this);
-    ep2.lines.add(this);
+    init(line.color, line.group, false, line.stdType, line.stdId);
   }
 
   /**
@@ -78,12 +69,17 @@ public class MeasureLine extends MeasureThing {
   public MeasureLine(MeasureLine line, double z) {
     ep1 = new MeasurePoint(line.ep1, z);
     ep2 = new MeasurePoint(line.ep2, z);
-    color = line.color;
-    group = line.group;
-    stdType = line.stdType;
-    stdId = line.stdId;
-    ep1.lines.add(this);
-    ep2.lines.add(this);
+    init(line.color, line.group, false, line.stdType, line.stdId);
+  }
+
+  /**
+   * Constructs a line cloned from the given line, but
+   * with a (possibly) different set of endpoint values.
+   */
+  public MeasureLine(MeasureLine line, double[] v1, double[] v2) {
+    ep1 = new MeasurePoint(line.ep1, v1);
+    ep2 = new MeasurePoint(line.ep2, v2);
+    init(line.color, line.group, false, line.stdType, line.stdId);
   }
 
 
@@ -101,6 +97,22 @@ public class MeasureLine extends MeasureThing {
     super.setStandard(stdType, stdId);
     ep1.setStandard(stdType, stdId);
     ep2.setStandard(stdType, stdId);
+  }
+
+
+  // -- HELPER METHODS --
+
+  /** Initializes this measurement line with the given information. */
+  private void init(Color color, MeasureGroup group, boolean selected,
+    int stdType, int stdId)
+  {
+    this.color = color;
+    this.group = group;
+    this.selected = selected;
+    this.stdType = stdType;
+    this.stdId = stdId;
+    ep1.lines.add(this);
+    ep2.lines.add(this);
   }
 
 }

@@ -64,28 +64,13 @@ public class MeasurePoint extends MeasureThing {
   public MeasurePoint(double x, double y, double z,
     Color color, MeasureGroup group)
   {
-    this.x = x;
-    this.y = y;
-    this.z = z;
-    this.preferredColor = color;
-    this.color = color;
-    this.group = group;
-    lines = new Vector();
-    pt = new PoolPoint[MeasurePool.MAX_POOLS];
+    init(x, y, z, color, color, group, stdType, stdId);
   }
 
   /** Constructs an endpoint cloned from the given endpoint. */
   public MeasurePoint(MeasurePoint point) {
-    x = point.x;
-    y = point.y;
-    z = point.z;
-    preferredColor = point.preferredColor;
-    color = point.color;
-    group = point.group;
-    lines = new Vector();
-    pt = new PoolPoint[MeasurePool.MAX_POOLS];
-    stdType = point.stdType;
-    stdId = point.stdId;
+    init(point.x, point.y, point.z, point.preferredColor,
+      point.color, point.group, point.stdType, point.stdId);
   }
 
   /**
@@ -93,16 +78,17 @@ public class MeasurePoint extends MeasureThing {
    * but with a (possibly) different Z value.
    */
   public MeasurePoint(MeasurePoint point, double z) {
-    x = point.x;
-    y = point.y;
-    this.z = z;
-    preferredColor = point.preferredColor;
-    color = point.color;
-    group = point.group;
-    lines = new Vector();
-    pt = new PoolPoint[MeasurePool.MAX_POOLS];
-    stdType = point.stdType;
-    stdId = point.stdId;
+    init(point.x, point.y, z, point.preferredColor,
+      point.color, point.group, point.stdType, point.stdId);
+  }
+
+  /**
+   * Constructs an endpoint cloned from the given endpoint,
+   * but with a (possibly) different set of values.
+   */
+  public MeasurePoint(MeasurePoint point, double[] v) {
+    init(v[0], v[1], v[2], point.preferredColor,
+      point.color, point.group, point.stdType, point.stdId);
   }
 
 
@@ -140,6 +126,24 @@ public class MeasurePoint extends MeasureThing {
       }
       color = c;
     }
+  }
+
+
+  // -- HELPER METHODS --
+
+  private void init(double x, double y, double z, Color preferredColor,
+    Color color, MeasureGroup group, int stdType, int stdId)
+  {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+    this.preferredColor = preferredColor;
+    this.color = color;
+    this.group = group;
+    this.stdType = stdType;
+    this.stdId = stdId;
+    lines = new Vector();
+    pt = new PoolPoint[MeasurePool.MAX_POOLS];
   }
 
 }

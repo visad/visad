@@ -96,6 +96,9 @@ public class AlignmentPlane extends PlaneSelector {
 
   // -- API METHODS --
 
+  /** Gets alignment mode. */
+  public int getMode() { return mode; }
+
   /** Sets the current timestep. */
   public void setIndex(int index) {
     if (this.index == index || index < 0 || index >= numIndices) return;
@@ -108,7 +111,10 @@ public class AlignmentPlane extends PlaneSelector {
     if (mode == APPLY_MODE) alignDisplay(old_index);
   }
 
-  /** Sets whether to lock endpoint distances to maintain size and shape. */
+  /**
+   * Sets alignment mode -- e.g., whether to lock
+   * endpoint distances to maintain size and shape.
+   */
   public void setMode(int mode) {
     if (mode != OFF_MODE && mode != SET_MODE &&
       mode != ADJUST_MODE && mode != APPLY_MODE)

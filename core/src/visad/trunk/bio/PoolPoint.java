@@ -77,7 +77,7 @@ public class PoolPoint {
         double[] v = tuple.getValues();
 
         // snap Z-coordinate to nearest slice
-        if (dim == 3) {
+        if (dim == 3 && bio.sm.getSnap()) {
           int numSlices = bio.sm.getNumberOfSlices();
           int slice = (int) (v[2] + 0.5);
           if (slice < 0) slice = 0;

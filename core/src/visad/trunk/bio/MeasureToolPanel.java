@@ -104,6 +104,9 @@ public class MeasureToolPanel extends ToolPanel {
   /** File chooser for exporting measurements. */
   private JFileChooser exportBox;
 
+  /** Checkbox for snapping measurement endpoints to nearest slice. */
+  private JCheckBox snap;
+
 
   // -- LINE FUNCTIONS --
 
@@ -260,6 +263,20 @@ public class MeasureToolPanel extends ToolPanel {
     exportBox = new JFileChooser();
     exportBox.addChoosableFileFilter(new ExtensionFileFilter(
       "txt", "VisBio measurements"));
+
+    // snap to slices checkbox
+    snap = new JCheckBox("Snap endpoints to nearest slice", true);
+    snap.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        boolean b = snap.isSelected();
+        bio.sm.setSnap(b);
+      }
+    });
+    snap.setMnemonic('p');
+    snap.setToolTipText("Prevents measurement endpoints " +
+      "from lying between slices.");
+    snap.setEnabled(false);
+    controls.add(pad(snap));
 
     // divider between global functions and measurement-specific functions
     controls.add(Box.createVerticalStrut(10));
@@ -532,11 +549,12 @@ public class MeasureToolPanel extends ToolPanel {
 
   /** Enables or disables this tool panel. */
   public void setEnabled(boolean enabled) {
-    export.setEnabled(enabled);
     addLine.setEnabled(enabled);
     addMarker.setEnabled(enabled);
     merge.setEnabled(enabled);
     clearAll.setEnabled(enabled);
+    export.setEnabled(enabled);
+    snap.setEnabled(enabled);
   }
 
   /** Updates the selection data to match the current measurement list. */
@@ -737,17 +755,34 @@ public class MeasureToolPanel extends ToolPanel {
       else id = maxId++; // thing.stdType == MeasureThing.STD_SINGLE
       thing.setStandard(MeasureThing.STD_2D, id);
       int numSlices = bio.sm.getNumberOfSlices();
+      boolean trans = bio.sm.align.getMode() == AlignmentPlane.APPLY_MODE;
       for (int j=0; j<bio.mm.lists.length; j++) {
         MeasureList list = bio.mm.lists[j];
         boolean update = j == index;
         for (int i=0; i<numSlices; i++) {
           if (j == index && i == slice) continue;
           if (isLine) {
-            MeasureLine line = new MeasureLine((MeasureLine) thing, i);
+            MeasureLine line;
+            if (trans) {
+              MeasureLine l = (MeasureLine) thing;
+              double[] v1 = {l.ep1.x, l.ep1.y, l.ep1.z};
+              double[] v2 = {l.ep2.x, l.ep2.y, l.ep2.z};
+              v1 = bio.sm.align.transform(v1, index, j);
+              v2 = bio.sm.align.transform(v2, index, j);
+              line = new MeasureLine(l, v1, v2);
+            }
+            else line = new MeasureLine((MeasureLine) thing, i);
             list.addLine(line, update);
           }
           else {
-            MeasurePoint point = new MeasurePoint((MeasurePoint) thing, i);
+            MeasurePoint point;
+            if (trans) {
+              MeasurePoint p = (MeasurePoint) thing;
+              double[] v = {p.x, p.y, p.z};
+              v = bio.sm.align.transform(v, index, j);
+              point = new MeasurePoint(p, v);
+            }
+            else point = new MeasurePoint((MeasurePoint) thing, i);
             list.addMarker(point, update);
           }
         }
@@ -766,15 +801,32 @@ public class MeasureToolPanel extends ToolPanel {
       }
       else id = maxId++; // thing.stdType == MeasureThing.STD_SINGLE
       thing.setStandard(MeasureThing.STD_3D, id);
+      boolean trans = bio.sm.align.getMode() == AlignmentPlane.APPLY_MODE;
       for (int j=0; j<bio.mm.lists.length; j++) {
         if (j == index) continue;
         MeasureList list = bio.mm.lists[j];
         if (isLine) {
-          MeasureLine line = new MeasureLine((MeasureLine) thing);
+          MeasureLine line;
+          if (trans) {
+            MeasureLine l = (MeasureLine) thing;
+            double[] v1 = {l.ep1.x, l.ep1.y, l.ep1.z};
+            double[] v2 = {l.ep2.x, l.ep2.y, l.ep2.z};
+            v1 = bio.sm.align.transform(v1, index, j);
+            v2 = bio.sm.align.transform(v2, index, j);
+            line = new MeasureLine(l, v1, v2);
+          }
+          else line = new MeasureLine((MeasureLine) thing);
           list.addLine(line, false);
         }
         else {
-          MeasurePoint point = new MeasurePoint((MeasurePoint) thing);
+          MeasurePoint point;
+          if (trans) {
+            MeasurePoint p = (MeasurePoint) thing;
+            double[] v = {p.x, p.y, p.z};
+            v = bio.sm.align.transform(v, index, j);
+            point = new MeasurePoint(p, v);
+          }
+          else point = new MeasurePoint((MeasurePoint) thing);
           list.addMarker(point, false);
         }
       }

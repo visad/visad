@@ -248,6 +248,9 @@ public class SliceManager
   /** Slice number of data at last resolution switch. */
   private int mode_slice;
 
+  /** Whether to snap endpoints to nearest slice. */
+  private boolean snap;
+
 
   // -- CONSTRUCTORS --
 
@@ -263,6 +266,7 @@ public class SliceManager
     planeChanged = false;
     colorRange = new RealTupleType(
       new RealType[] {RED_TYPE, GREEN_TYPE, BLUE_TYPE});
+    snap = true;
 
     // data references
     ref2 = new DataReferenceImpl("bio_ref2");
@@ -291,6 +295,21 @@ public class SliceManager
 
   /** Gets whether the currently loaded data has low-resolution thumbnails. */
   public boolean hasThumbnails() { return hasThumbs; }
+
+  /** Returns the current data series file list. */
+  public File[] getSeries() { return files; }
+
+  /** Returns whether each file is a single slice of one timestep. */
+  public boolean getFilesAsSlices() { return filesAsSlices; }
+
+  /** Returns the field data currently in memory. */
+  public FieldImpl getField() { return field; }
+
+  /** Gets whether arbitrary plane selection is in effect. */
+  public boolean getPlaneSelect() { return planeSelect; }
+
+  /** Gets whether measurement endpoints snap to the nearest slice. */
+  public boolean getSnap() { return snap; }
 
   /** Sets the display detail (low-resolution or full resolution). */
   public void setMode(boolean lowres) {
@@ -403,17 +422,8 @@ public class SliceManager
     }
   }
 
-  /** Returns the current data series file list. */
-  public File[] getSeries() { return files; }
-
-  /** Returns whether each file is a single slice of one timestep. */
-  public boolean getFilesAsSlices() { return filesAsSlices; }
-
-  /** Returns the field data currently in memory. */
-  public FieldImpl getField() { return field; }
-
-  /** Gets whether arbitrary plane selection is in effect. */
-  public boolean getPlaneSelect() { return planeSelect; }
+  /** Sets whether measurement endpoints should snap to the nearest slice. */
+  public void setSnap(boolean snap) { this.snap = snap; }
 
 
   // -- INTERNAL API METHODS --
