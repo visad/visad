@@ -834,6 +834,11 @@ public class AddeURLConnection extends URLConnection
      *   fday=<forecast day>     forecast day (ccyyddd)
      *   fhour=<forecast hours>  forecast hours (offset from model run time)
      *                                (hhmmss format)
+     *   lat=<min lat> <max lat> latitude bounding box (needs lon specified)
+     *   lon=<min lon> <max lon> longitude bounding box (needs lat specified)
+     *   row=<min row> <max row> row bounding box (needs col specified)
+     *   col=<min col> <max col> column bounding box (needs row specified)
+     *   skip=<row> <col>        skip factors for rows and columns (def = 1 1)
      *   num=<max>               maximum number of grids (nn) to return (def=1)
      *   user=<user_id>          ADDE user identification
      *   proj=<proj #>           a valid ADDE project number
@@ -857,6 +862,12 @@ public class AddeURLConnection extends URLConnection
       String sizeString = " 999999 ";
       String traceString = "trace=0";
       String numString = "num=1";
+      String subsetString = null;
+      String latString = null;
+      String lonString = null;
+      String rowString = null;
+      String colString = null;
+      String skip = null;
 
       StringTokenizer cmdTokens = new StringTokenizer(uCmd, "&");
       while (cmdTokens.hasMoreTokens()) {
@@ -916,6 +927,31 @@ public class AddeURLConnection extends URLConnection
           buf.append(" ");
           buf.append(testString);
 
+        } else if (testString.startsWith("lat")) {
+          latString = 
+              ensureTwoValues(
+                  testString.substring(testString.indexOf("=") + 1));
+
+        } else if (testString.startsWith("lon")) {
+          lonString = 
+              ensureTwoValues(
+                  testString.substring(testString.indexOf("=") + 1));
+
+        } else if (testString.startsWith("row")) {
+          rowString = 
+              ensureTwoValues(
+                  testString.substring(testString.indexOf("=") + 1));
+
+        } else if (testString.startsWith("col")) {
+          colString = 
+              ensureTwoValues(
+                  testString.substring(testString.indexOf("=") + 1));
+
+        } else if (testString.startsWith("skip")) {
+          skip = 
+              ensureTwoValues(
+                  testString.substring(testString.indexOf("=") + 1));
+        
         /*
         } else {
           System.out.println("Unknown token = "+testString);
@@ -927,6 +963,35 @@ public class AddeURLConnection extends URLConnection
       buf.append(" ");
       buf.append(traceString);
       buf.append(" version=A ");
+
+      // Create a subset string
+      if (latString != null && lonString != null)
+      {
+          StringBuffer subBuf = new StringBuffer();
+          subBuf.append("subset=");
+          subBuf.append(latString);
+          subBuf.append(" ");
+          subBuf.append(lonString);
+          subBuf.append(" ");
+          subBuf.append((skip == null) ? "1 1" : skip);
+          subBuf.append(" LATLON");
+          subsetString = subBuf.toString();
+          if (debug) System.out.println(subsetString);
+      }
+      else if (rowString != null && colString != null)
+      {
+          StringBuffer subBuf = new StringBuffer();
+          subBuf.append("subset=");
+          subBuf.append(rowString);
+          subBuf.append(" ");
+          subBuf.append(colString);
+          subBuf.append(" ");
+          subBuf.append((skip == null) ? "1 1" : skip);
+          subBuf.append(" ROWCOL");
+          subsetString = subBuf.toString();
+          if (debug) System.out.println(subsetString);
+      }
+      if (subsetString != null) buf.append(subsetString);
 
       // create command string
       String posParams = new String (
@@ -1439,4 +1504,21 @@ public class AddeURLConnection extends URLConnection
         return (buf.toString());
     }
 
+    /* Ensures that a string is two values.  If only one, then it
+       is returned as s + " " + s */
+    private String ensureTwoValues(String s)
+    {
+       String retVal = null;
+       if (s.trim().indexOf(" ") > 0)  // has multiple values
+       {
+           StringTokenizer tok = new StringTokenizer(s);
+           // return null if more than 2
+           if (tok.countTokens() == 2) retVal = s;
+       }
+       else
+       {
+           retVal = new String(s + " " + s);
+       }
+       return retVal;
+    }
 }
