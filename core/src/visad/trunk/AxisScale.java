@@ -1057,7 +1057,8 @@ public class AxisScale implements java.io.Serializable
   {
     Font oldFont = labelFont;
     labelFont = font;
-    if ((labelFont == null && oldFont != null) || !labelFont.equals(oldFont)) 
+    //if ((labelFont == null && oldFont != null) || !labelFont.equals(oldFont)) 
+    if (labelFont != null && !labelFont.equals(oldFont)) 
     {
       labelSize = labelFont.getSize();
       try {
