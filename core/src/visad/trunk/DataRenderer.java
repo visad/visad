@@ -1511,9 +1511,13 @@ if (map.badRange()) {
       DisplayRealType dreal = map.getDisplayScalar();
       DisplayTupleType tuple = dreal.getTuple();
       if (Display.DisplaySpatialCartesianTuple.equals(tuple) ||
-          (tuple != null &&
-           tuple.getCoordinateSystem().getReference().equals(
-           Display.DisplaySpatialCartesianTuple)) ) {
+          // WLH 23 Jan 2002
+          (tuple != null && tuple.getCoordinateSystem() != null &&
+           Display.DisplaySpatialCartesianTuple.equals(
+             tuple.getCoordinateSystem().getReference() )) ) {
+//          (tuple != null &&
+//           tuple.getCoordinateSystem().getReference().equals(
+//           Display.DisplaySpatialCartesianTuple)) ) {
         int index = dreal.getTupleIndex();
         if (domain) {
           domainAxis = index;
