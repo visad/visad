@@ -280,13 +280,13 @@ if(DEBUG_DATA)System.err.println("wrFldI: FLD_SET (" + FLD_SET + ")");
 
       final int len = fld.getLength();
       if (!fld.isMissing() && len > 0) {
-if(DEBUG_DATA)System.err.println("wrFlFld: FLD_DATA_SAMPLES (" + FLD_DATA_SAMPLES + ")");
+if(DEBUG_DATA)System.err.println("wrFldI: FLD_DATA_SAMPLES (" + FLD_DATA_SAMPLES + ")");
         file.writeByte(FLD_DATA_SAMPLES);
-if(DEBUG_DATA)System.err.println("wrFlFld: len (" + len + ")");
+if(DEBUG_DATA)System.err.println("wrFldI: len (" + len + ")");
         file.writeInt(len);
         for (int i = 0; i < len; i++) {
           DataImpl sample = (DataImpl )fld.getSample(i);
-if(DEBUG_DATA)System.err.println("wrFlFld: S#"+i+" type is "+sample.getType()+" ("+sample.getClass().getName()+")");
+if(DEBUG_DATA)System.err.println("wrFldI: S#"+i+" type is "+sample.getType()+" ("+sample.getClass().getName()+")");
           process(sample);
         }
       }
