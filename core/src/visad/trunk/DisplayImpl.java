@@ -497,6 +497,10 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       try {
         d.sendImage(encoded, width, height, type);
       }
+      catch (java.rmi.ConnectException exc) {
+        // remote slave client has died; remove it from list
+        Slaves.remove(i);
+      }
       catch (RemoteException e) { }
     }
   }
