@@ -595,15 +595,6 @@ public class TestEvents
       }
     }
 
-    public void notifyListeners()
-    {
-      ListIterator iter = list.listIterator();
-      while (iter.hasNext()) {
-        Revolver r = (Revolver )iter.next();
-        r.triggered();
-      }
-    }
-
     private final void delay()
     {
       int dLen = rand.nextInt() % 50;
@@ -619,7 +610,33 @@ public class TestEvents
       notifyListeners();
     }
 
+    public String getSaveString() { return Integer.toString(val); }
+
     public int getValue() { return val; }
+
+    public void notifyListeners()
+    {
+      ListIterator iter = list.listIterator();
+      while (iter.hasNext()) {
+        Revolver r = (Revolver )iter.next();
+        r.triggered();
+      }
+    }
+
+    public void setSaveString(String save)
+      throws VisADException, RemoteException
+    {
+      if (save == null) {
+        throw new VisADException("Invalid save string");
+      }
+
+      try {
+        val = Integer.parseInt(save);
+      } catch (NumberFormatException nfe) {
+        throw new VisADException("Bad TriggerControl save string \"" + save +
+                                 "\"");
+      }
+    }
 
     public void syncControl(Control ctl)
       throws VisADException
