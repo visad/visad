@@ -3,6 +3,7 @@ package visad.data;
 import java.io.IOException;
 import java.net.URL;
 import java.rmi.RemoteException;
+import visad.Data;
 import visad.DataImpl;
 import visad.VisADException;
 
@@ -13,7 +14,8 @@ import visad.VisADException;
  * This class implements the "composite" design pattern; the node will
  * actually be either a "Form" or a "FormFamily".
  */
-public abstract class FormNode
+public abstract class
+FormNode
 {
     /**
      * Construct a data-form node with the given name.
@@ -65,7 +67,7 @@ public abstract class FormNode
     /**
      * Return the data forms that are compatible with a data object.
      */
-    public abstract FormNode getForms(DataImpl data);
+    public abstract FormNode getForms(Data data);
 
 
     /**

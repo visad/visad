@@ -75,7 +75,7 @@ public abstract class Repository
      * Return the forms of data that are both supported by this repository
      * and compatible with a data object.
      */
-    public FormNode getForms(DataImpl data)
+    public FormNode getForms(Data data)
     {
 	return forms.getForms(data);
     }

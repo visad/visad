@@ -5,6 +5,7 @@ import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.Enumeration;
 import java.util.Vector;
+import visad.Data;
 import visad.DataImpl;
 import visad.VisADException;
 
@@ -120,7 +121,7 @@ FormFamily
     /**
      * Return the data forms that are compatible with a data object.
      */
-    public FormNode getForms(DataImpl data)
+    public FormNode getForms(Data data)
     {
 	FormFamily	family = new FormFamily(getName());
 
