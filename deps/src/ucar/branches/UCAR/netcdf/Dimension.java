@@ -16,13 +16,13 @@ import java.io.Serializable;
  * allowed. In the subclass UnlimitedDimension, the length may be increased.
  * <p>
  * Instances which have same name and same value are equal.
- * We override hashCode() and equals() to be consistant with
+ * We override hashCode() and equals() to be consistent with
  * this semantic.
  *
  * @see UnlimitedDimension
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:42:24 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:07 $
  */
 
 public class
@@ -47,7 +47,7 @@ Dimension
 
 	/**
 	 * Instances which have same name and same value are equal.
-	 * Overrides Object.hashCode() to be consistant with this semantic.
+	 * Overrides Object.hashCode() to be consistent with this semantic.
 	 */
 	public int
 	hashCode()
@@ -57,7 +57,7 @@ Dimension
 
 	/**
 	 * Instances which have same name and same value are equal.
-	 * Overrides Object.hashCode() to be consistant with this semantic.
+	 * Overrides Object.hashCode() to be consistent with this semantic.
 	 */
 	public boolean
 	equals(Object oo)

@@ -8,6 +8,7 @@ import ucar.netcdf.*;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import ucar.multiarray.MultiArray;
+import ucar.multiarray.MultiArrayImpl;
 import ucar.multiarray.ArrayMultiArray;
 import ucar.multiarray.MultiArrayProxy;
 import ucar.multiarray.SliceMap;
@@ -15,7 +16,7 @@ import ucar.multiarray.SliceMap;
 
 /**
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:42:24 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:08 $
  */
 
 public class TestNetcdf {
@@ -145,8 +146,6 @@ main(String[] args) {
 
 		{
 			Variable tao = nc.get(timeD.getName());
-			/* Variable tempao =
-				 nc.get(temperatureV.getName()); */
 			double time = 0.;
 			int [] index = { 0, 0, 0, 0};
 			for(; index[0] < 5; index[0]++, time += 60.) {
@@ -206,6 +205,9 @@ main(String[] args) {
 		ma.copyin(origin, flts);
 		MultiArray cflts = ma.copyout(origin, extent);
 System.out.println(MultiArrayToString(cflts));
+		MultiArray cflts2 = new MultiArrayImpl(extent,
+			ma.toArray(new float[36], origin, extent));
+System.out.println(MultiArrayToString(cflts2));
 
 	} catch (Exception ee) {
 		System.out.println(ee);

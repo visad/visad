@@ -8,31 +8,29 @@ import java.io.IOException;
 
 /**
  * This MultiArray implementation wraps another MultiArray
- * and an IndexMapping to provide a different view of the
+ * and an IndexMap to provide a different view of the
  * wrapped MultiArray. Indices passed to access methods
  * are passed through a chain of mappings.
  *
  * @see MultiArray
- * @see IntMap
+ * @see IndexMap
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:42:24 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:06 $
  */
 public class MultiArrayProxy implements MultiArray {
 
 	/**
 	 * Construct a new proxy.
 	 * @param delegate MultiArray backing the proxy view provided.
-	 * @param head IndexMapping defining the proxy view.
+	 * @param im IndexMap defining the proxy view.
 	 */
 	public
-	MultiArrayProxy(MultiArray delegate, IntMap head)
+	MultiArrayProxy(MultiArray delegate, IndexMap im)
 	{
-		this.delegate = delegate;
-		this.head = head;
-		dlengths = delegate.getLengths();
-		this.tail = head.tail(dlengths.length, dlengths);
-		this.converted = new int[dlengths.length];
-		
+		delegate_ = delegate;
+		im_ = im;
+		dlengths_ = delegate_.getLengths();
+		im_.setLengths(dlengths_);
 	}
 
  /* Begin MultiArrayInfo */
@@ -45,22 +43,22 @@ public class MultiArrayProxy implements MultiArray {
 	 */
 	public Class
 	getComponentType()
-		{ return delegate.getComponentType(); }
+		{ return delegate_.getComponentType(); }
 
 	/**
 	 * Returns the number of dimensions of the backing MultiArray,
 	 * as transformed by the <code>rankInverseMap()</code> method of
-	 * the IndexMapping.
+	 * the IndexMap.
 	 * @return int number of dimensions
 	 */
 	public int
 	getRank()
-		{ return head.size(); }
+		{ return im_.getRank(); }
 
 	/**
 	 * Returns the shape of the backing MultiArray as transformed
 	 * by the <code>dimensionsInverseMap()</code> method of
-	 * the IndexMapping.
+	 * the IndexMap.
 	 * @return int array whose length is the rank of this
 	 * MultiArray and whose elements represent the
 	 * length of each of it's dimensions
@@ -72,13 +70,11 @@ public class MultiArrayProxy implements MultiArray {
 		{
 			// The delegate lengths might have changed.
 			// This could better be handle by an event.
-			System.arraycopy(delegate.getLengths(), 0,
-				dlengths, 0, dlengths.length);
+			System.arraycopy(delegate_.getLengths(), 0,
+				dlengths_, 0, dlengths_.length);
 		}
 		final int [] lengths = new int[getRank()];
-		for(int ii = 0; ii < lengths.length; ii++)
-			lengths[ii] = tail.getLength(ii);
-		return lengths;
+		return im_.getLengths(lengths);
 	}
 
 	/**
@@ -87,7 +83,7 @@ public class MultiArrayProxy implements MultiArray {
 	 */
 	public boolean
 	isUnlimited()
-		{ return delegate.isUnlimited(); }
+		{ return delegate_.isUnlimited(); }
 
 	/**
 	 * Convenience interface; return <code>true</code>
@@ -113,63 +109,63 @@ public class MultiArrayProxy implements MultiArray {
 	get(int [] index)
 		throws IOException
 	{
-		return delegate.get(map(index));
+		return delegate_.get(map(index));
 	}
 
 	public boolean
 	getBoolean(int[] index)
 		 throws IOException
 	{
-		return delegate.getBoolean(map(index));
+		return delegate_.getBoolean(map(index));
 	}
 
 	public char
 	getChar(int[] index)
 		 throws IOException
 	{
-		return delegate.getChar(map(index));
+		return delegate_.getChar(map(index));
 	}
 
 	public byte
 	getByte(int[] index)
 		 throws IOException
 	{
-		return delegate.getByte(map(index));
+		return delegate_.getByte(map(index));
 	}
 
 	public short
 	getShort(int[] index)
 		 throws IOException
 	{
-		return delegate.getShort(map(index));
+		return delegate_.getShort(map(index));
 	}
 
 	public int
 	getInt(int[] index)
 		 throws IOException
 	{
-		return delegate.getInt(map(index));
+		return delegate_.getInt(map(index));
 	}
 
 	public long
 	getLong(int[] index)
 		 throws IOException
 	{
-		return delegate.getLong(map(index));
+		return delegate_.getLong(map(index));
 	}
 
 	public float
 	getFloat(int[] index)
 		 throws IOException
 	{
-		return delegate.getFloat(map(index));
+		return delegate_.getFloat(map(index));
 	}
 
 	public double
 	getDouble(int[] index)
 		 throws IOException
 	{
-		return delegate.getDouble(map(index));
+		return delegate_.getDouble(map(index));
 	}
 
 	/**
@@ -181,100 +177,235 @@ public class MultiArrayProxy implements MultiArray {
 	set(int [] index, Object value)
 		throws IOException
 	{
-		delegate.set(map(index), value);
+		delegate_.set(map(index), value);
 	}
 
 	public void
 	setBoolean(int [] index, boolean value)
 		 throws IOException
 	{
-		delegate.setBoolean(map(index), value);
+		delegate_.setBoolean(map(index), value);
 	}
 
 	public void
 	setChar(int [] index, char value)
 		 throws IOException
 	{
-		delegate.setChar(map(index), value);
+		delegate_.setChar(map(index), value);
 	}
 
 	public void
 	setByte(int [] index, byte value)
 		 throws IOException
 	{
-		delegate.setByte(map(index), value);
+		delegate_.setByte(map(index), value);
 	}
 
 	public void
 	setShort(int [] index, short value)
 		 throws IOException
 	{
-		delegate.setShort(map(index), value);
+		delegate_.setShort(map(index), value);
 	}
 
 	public void
 	setInt(int [] index, int value)
 		 throws IOException
 	{
-		delegate.setInt(map(index), value);
+		delegate_.setInt(map(index), value);
 	}
 
 	public void
 	setLong(int [] index, long value)
 		 throws IOException
 	{
-		delegate.setLong(map(index), value);
+		delegate_.setLong(map(index), value);
 	}
 
 	public void
 	setFloat(int [] index, float value)
 		 throws IOException
 	{
-		delegate.setFloat(map(index), value);
+		delegate_.setFloat(map(index), value);
 	}
 
 	public void
 	setDouble(int[] index, double value)
 		 throws IOException
 	{
-		delegate.setDouble(map(index), value);
+		delegate_.setDouble(map(index), value);
 	}
 
+	/**
+	 * @see Accessor#copyout
+	 */
 	public MultiArray
 	copyout(int [] origin, int [] shape)
 			throws IOException
 	{
-		throw new RuntimeException("Not Yet Implemented");
+		final int rank = getRank();
+		if(origin.length != rank
+				|| shape.length != rank)
+			throw new IllegalArgumentException("Rank Mismatch");
+		final MultiArrayImpl data = new MultiArrayImpl(
+			getComponentType(),
+			shape);
+		AbstractAccessor.copyO(this, origin, data, shape);
+		return data;
 	}
 
+	/**
+	 * @see Accessor#copyin
+	 */
 	public void
 	copyin(int [] origin, MultiArray data)
 		throws IOException
 	{
-		throw new RuntimeException("Not Yet Implemented");
+		final int rank = getRank();
+		if(origin.length != rank
+				|| data.getRank() != rank)
+			throw new IllegalArgumentException("Rank Mismatch");
+		// else
+		if(data.getComponentType() != getComponentType())
+			throw new ArrayStoreException();
+		// else
+		AbstractAccessor.copy(data, data.getLengths(), this, origin);
+	}
+
+	/**
+	 * @see Accessor#toArray
+	 * TODO: optimize?
+	 */
+	public Object
+	toArray()
+		throws IOException
+	{
+		return this.toArray(null, null, null);
+	}
+
+	/**
+	 * @see Accessor#toArray
+	 * TODO: optimize?
+	 */
+	public Object
+	toArray(Object dst, int [] origin, int [] shape)
+		throws IOException
+	{
+		final int rank = getRank();
+		if(origin == null)
+			origin = new int[rank];
+		else if(origin.length != rank)
+			throw new IllegalArgumentException("Rank Mismatch");
+
+		int [] shp = null;
+		if(shape == null)
+			shp = getLengths();
+		else if(shape.length == rank)
+			shp = (int []) shape.clone();
+		else
+			throw new IllegalArgumentException("Rank Mismatch");
+
+		final int [] products = new int[rank];
+		final int length = MultiArrayImpl.numberOfElements(shape,
+			products);
+		dst = MultiArrayImpl.fixDest(dst, length, getComponentType());
+		final MultiArrayImpl data = new MultiArrayImpl(shape, products,
+			dst);
+		AbstractAccessor.copyO(this, origin, data, shape);
+		return dst;
 	}
 
  /* End Accessor */
 
-	private int []
+	private synchronized int []
 	map(int [] index)
 	{
-		tail.rebind(index);
-		for(int ii = 0; ii < converted.length; ii++)
-			converted[ii] = head.get(ii);
-		return converted;
+		final int [] converted = new int[dlengths_.length];
+		return im_.transform(converted, index);
 	}
 
-	private final MultiArray delegate;
-	private final IntMap head;
+	private final MultiArray delegate_;
+	private final IndexMap im_;
 	/**
 	 * Storage of delegate dimension lengths
 	 */
-	private final int [] dlengths;
-	private final IntArrayAdapter tail;
-	/**
-	 * Scratch space used as storage for converted args.
-	 * Reference must be synchronized.
-	 */
-	private final int [] converted;
+	private final int [] dlengths_;
+
+ // TODO better test
+ /* Begin Test */
+	public static void
+	main(String[] args)
+	{
+			System.out.println(">>  " + System.currentTimeMillis());
+		final int [] shape = {48, 64};
+		MultiArrayImpl delegate =
+			new MultiArrayImpl(Integer.TYPE, shape);
+		{
+			final int size = MultiArrayImpl.numberOfElements(shape);
+			for(int ii = 0; ii < size; ii++)
+				java.lang.reflect.Array.setInt(delegate.storage,
+					ii, ii);
+
+		}
+		IndexMap im = new ClipMap(0, 4, 40);
+		MultiArray src = new MultiArrayProxy(delegate, im);
+
+		int [] clip = new int[] {32, 64};
+		int [] origin = new int[] {4, 0};
+		MultiArray ma = (MultiArray) null;
+
+		try {
+			ma = src.copyout(origin, clip);
+			System.out.println("Rank  " + ma.getRank());
+			int [] lengths = ma.getLengths();
+			System.out.println("Shape { " + lengths[0] + ", "
+					 + lengths[1] + " }");
+			System.out.println(ma.getInt(new int[] {0, 0}));
+			System.out.println(ma.getInt(new int[] {1, 0}));
+			System.out.println(ma.getInt(new int[] {lengths[0] -1,								 lengths[1] -1}));
+		}
+		catch (java.io.IOException ee) {}
+
+		MultiArrayImpl destD =
+			new MultiArrayImpl(Integer.TYPE, shape);
+		im = new ClipMap(0, 8, 36);
+		MultiArray dest = new MultiArrayProxy(destD, im);
+		try {
+			origin = new int[] {0, 0};
+			dest.copyin(origin, ma);
+			System.out.println("***Rank  " + dest.getRank());
+			int [] lengths = dest.getLengths();
+			System.out.println("Shape { " + lengths[0] + ", "
+					 + lengths[1] + " }");
+			System.out.println(destD.getInt(new int[] {0, 0}));
+			System.out.println(destD.getInt(new int[] {7, 63}));
+			System.out.println(destD.getInt(new int[] {8, 0}));
+			System.out.println(destD.getInt(new int[] {8, 63}));
+			System.out.println(destD.getInt(new int[] {9, 0}));
+			System.out.println(destD.getInt(new int[] {39, 0}));
+			System.out.println(destD.getInt(new int[] {40, 0}));
+			System.out.println(destD.getInt(new int[] {47, 63}));
+				
+		}
+		catch (java.io.IOException ee) {}
+
+	}
+ /* Test output java ucar.multiarray.MultiArrayProxy
+Rank  2
+Shape { 32, 64 }
+512
+576
+2559
+***Rank  2
+Shape { 36, 64 }
+0
+0
+512
+575
+576
+2496
+0
+0
+  */
+  /* End Test */
 }

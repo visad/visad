@@ -13,7 +13,7 @@ package ucar.netcdf;
  * @see Attribute
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:42:24 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:07 $
  */
 public interface AttributeSet {
 
@@ -73,7 +73,7 @@ public interface AttributeSet {
      * it is associated with a Schema or ProtoVariable.
      *
      * @param attr the Attribute to be added to this set.
-     * @returns Attribute replaced or null if not a replacement
+     * @return Attribute replaced or null if not a replacement
      */
     public Attribute put(Attribute attr);
 
@@ -89,7 +89,7 @@ public interface AttributeSet {
      * it is associated with a Schema or ProtoVariable.
      *
      * @param name String identifying the Attribute to be removed.
-     * @returns true if the Set changed as a result of this call.
+     * @return true if the Set changed as a result of this call.
      */
     public boolean remove(String name);
 
@@ -105,7 +105,7 @@ public interface AttributeSet {
      * it is associated with a Schema or ProtoVariable.
      *
      * @param oo Attribute to be removed.
-     * @returns true if the Set changed as a result of this call.
+     * @return true if the Set changed as a result of this call.
      */
     public boolean remove(Object oo);
 }

@@ -20,13 +20,96 @@ import java.io.IOException;
  * @see Accessor
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:42:24 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:05 $
  */
 
 public abstract class
 AbstractAccessor
 	implements Accessor
 {
+	/* NOTUSED, not correct?
+	 * Analogous to System.arraycopy,
+	 * copy elements from one Accessor to another.
+	 * <p>
+	 * The destination limits control the iteration.
+	 * If the source limits are such that there is less
+	 * data available in the source than requested in the
+	 * destination, the source IndexIterator will silently
+	 * "roll over", providing data from the beginning of
+	 * the source.
+	 *
+	 * @param src the data source
+	 * @param src_pos starting position in the data source
+	 * @param src_limits limits on the source IndexIterator
+	 *	typically < ((MultiArray)src).getLengths()
+	 * @param dst the destination, values here are modified
+	 * @param dst_pos starting position in the data source
+	 * @param dst_limits limits on the destination IndexIterator,
+	 *	typically < ((MultiArray)dst).getLengths()
+	 * 
+	static public void
+	copy(Accessor src, int [] src_pos, int [] src_limits,
+		Accessor dst, int [] dst_pos, int [] dst_limits)
+			throws IOException
+	{
+		IndexIterator src_odo = new IndexIterator(src_pos, src_limits);
+		IndexIterator dst_odo = new IndexIterator(dst_pos, dst_limits);
+
+		while(dst_odo.notDone())
+		{
+			dst.set(dst_odo.value(), src.get(src_odo.value()));
+			src_odo.incr();
+			dst_odo.incr();
+		}
+	}
+	 */
+
+	/**
+	 * Used to implement copyin.
+	 *
+	 * @param src the data source
+	 * @param src_limits limits on the source IndexIterator
+	 *	typically < ((MultiArray)src).getLengths()
+	 * @param dst the destination, values here are modified
+	 * @param dst_pos starting position in the data source
+	 * 
+	 */
+	static public void
+	copy(Accessor src, int [] src_limits,
+		Accessor dst, int [] dst_pos )
+			throws IOException
+	{
+		for(OffsetDualIndexIterator odo =
+			new OffsetDualIndexIterator(dst_pos, src_limits);
+				odo.notDone(); odo.incr())
+		{
+			dst.set(odo.offsetValue(), src.get(odo.value()));
+		}
+	}
+
+	/**
+	 * Used to implement copyout.
+	 *
+	 * @param src the data source
+	 * @param src_pos starting position in the data source
+	 * @param dst the destination, values here are modified
+	 * @param dst_limits limits on the source IndexIterator
+	 *	typically < ((MultiArray)dst).getLengths()
+	 * 
+	 */
+	static public void
+	copyO(Accessor src, int [] src_pos,
+		Accessor dst, int [] dst_limits )
+			throws IOException
+	{
+		for(OffsetDualIndexIterator odo =
+			new OffsetDualIndexIterator(src_pos, dst_limits);
+				odo.notDone(); odo.incr())
+		{
+			dst.set(odo.value(), src.get(odo.offsetValue()));
+		}
+	}
+
  /* Begin MultiArray read access methods */
 
 	abstract public Object
@@ -194,6 +277,14 @@ AbstractAccessor
 			set(odo.offsetValue(), data.get(odo.value()));
 		}
 	}
+
+	abstract public Object
+	toArray()
+		throws IOException;
+
+	abstract public Object
+	toArray(Object dst, int [] origin, int [] shape)
+		throws IOException;
 }
 
 
@@ -215,6 +306,13 @@ OffsetDualIndexIterator
 	incr()
 	{
 		int digit = counter.length -1;
+		if(digit < 0)
+		{
+			// counter is zero length array <==> scalar
+			ncycles++;
+			return;
+		}
+
 		while(digit >= 0)
 		{
 			offsetCounter[digit]++;

@@ -9,6 +9,7 @@ import ucar.multiarray.AbstractAccessor;
 import ucar.multiarray.MultiArray;
 import ucar.multiarray.MultiArrayImpl;
 import ucar.multiarray.IndexIterator;
+import ucar.multiarray.OffsetIndexIterator;
 
 
 import java.lang.reflect.Array;
@@ -33,7 +34,7 @@ import java.lang.reflect.InvocationTargetException;
  * 
  * @see Netcdf
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:42:24 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:07 $
  */
 public final class
 NetcdfFile
@@ -59,7 +60,7 @@ NetcdfFile
 			Schema template)
 		throws IOException
     {
-	super(template);
+	super(template, true);
 	if(!clobber && file.exists())
 	{
 		// TODO: netcdf exception?
@@ -829,6 +830,54 @@ NetcdfFile
 		}
 	}
 
+	public Object
+	toArray()
+		throws IOException
+	{
+		return this.toArray(null, null, null);
+	}
+	
+	public Object
+	toArray(Object dst, int [] origin, int [] shape)
+		throws IOException
+	{
+		final int rank = getRank();
+		if(origin == null)
+			origin = new int[rank];
+		else if(origin.length != rank)
+			throw new IllegalArgumentException("Rank Mismatch");
+
+		int [] shp = null;
+		if(shape == null)
+			shp = (int []) lengths.clone();
+		else if(shape.length == rank)
+			shp = (int []) shape.clone();
+		else
+			throw new IllegalArgumentException("Rank Mismatch");
+
+		final int product = MultiArrayImpl.numberOfElements(shp);
+		dst = MultiArrayImpl.fixDest(dst, product,
+			meta.getComponentType());
+		final int contig = iocount(origin, shape);
+		
+		// convert dimensions to limits
+		final int [] limits = (int []) shp.clone();
+		for(int ii = 0; ii < limits.length; ii++)
+			limits[ii] += origin[ii];
+
+		final OffsetIndexIterator odo = new OffsetIndexIterator(origin,
+			limits);
+		for(int begin = 0; odo.notDone(); odo.advance(contig),
+			 begin += contig)
+		{
+			final long offset = computeOffset(odo.value());
+			readArray(offset, dst, begin, contig);
+			
+		}
+
+		return dst;
+	}
+
   /**/
 	private final int []
 	compileDsizes(int [] shape)
@@ -1489,12 +1538,12 @@ NetcdfFile
 			catch (InstantiationException ie)
 			{
 				// Can't happen: Variable is concrete
-				throw new InternalError();
+				throw new Error();
 			}
 			catch (IllegalAccessException iae)
 			{
 				// Can't happen: Variable is accessable
-				throw new InternalError();
+				throw new Error();
 			}
 			catch (InvocationTargetException ite)
 			{
@@ -1706,45 +1755,4 @@ NetcdfFile
     private int recsize;
     private boolean doFill; // set to false to suppress data prefill.
 
-}
-
-
-final class
-OffsetIndexIterator
-	extends IndexIterator
-{
-
-	OffsetIndexIterator(int [] theOffset, int [] theLimits)
-	{
-		super(theOffset, theLimits);
-		offset = theOffset; // N.B. Not a copy
-	}
-
-	/**
-	 * Increment the odometer
-	 */
-	public void
-	incr()
-	{
-		int digit = counter.length -1;
-		while(digit >= 0)
-		{
-			counter[digit]++;
-			if(counter[digit] < limits[digit])
-			{
-				break; // normal exit
-			}
-			// else, carry
-			counter[digit] = offset[digit];
-			if(digit == 0)
-			{
-				ncycles++; // rolled over
-				break;
-			}
-			// else
-			digit--;
-		}
-	}
-
-	private final int[] offset;
 }
