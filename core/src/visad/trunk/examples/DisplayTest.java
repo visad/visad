@@ -1696,11 +1696,14 @@ public class DisplayTest extends Object {
         display1.addMap(new ConstantMap(0.5, Display.Red));
         map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
         display1.addMap(map1contour);
+        cw = new ContourWidget(map1contour);
+/*
         control1contour = (ContourControl) map1contour.getControl();
         control1contour.enableContours(true);
         control1contour.enableLabels(true);
         control1contour.setContourInterval(-3.0f, -10.0f, 50.0f, 15.0f);
-     
+*/
+
         mode = display1.getGraphicsModeControl();
         mode.setScaleEnable(true);
 
@@ -1712,6 +1715,15 @@ public class DisplayTest extends Object {
         jframe.getContentPane().add(display1.getComponent());
         jframe.setSize(256, 256);
         jframe.setVisible(true);
+
+        JFrame jframe2 = new JFrame("regular contours in Java2D");
+        jframe2.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+ 
+        jframe2.getContentPane().add(cw);
+        jframe2.setSize(256, 256);
+        jframe2.setVisible(true);
 
         ref_imaget1 = new DataReferenceImpl("ref_imaget1");
         ref_imaget1.setData(imaget1);
@@ -2057,12 +2069,6 @@ public class DisplayTest extends Object {
         }
         else if ( domain_flag == 3)
         {
-
-
-
-
-
-
 
         }
 
