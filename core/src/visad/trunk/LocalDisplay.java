@@ -77,14 +77,14 @@ public interface LocalDisplay
    * Returns the list of DataRenderer-s.
    * @return			The list of DataRenderer-s.
    */
-  public Vector getRenderers();
+  Vector getRenderers();
 
   /**
    * Returns a clone of the list of DataRenderer-s.  A clone is returned
    * to avoid concurrent access problems by the Display thread.
    * @return			A clone of the list of DataRenderer-s.
    */
-  public Vector getRendererVector();
+  Vector getRendererVector();
 
   /** return the GraphicsModeControl associated with this Display */
   GraphicsModeControl getGraphicsModeControl();
