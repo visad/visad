@@ -72,8 +72,6 @@ public class Main
 
   private boolean debug;
 
-  private File distDir;
-
   private URL jarURL;
   private ChooserList chooser;
   private Path classpath, path;
@@ -97,8 +95,18 @@ public class Main
       return;
     }
 
-    distDir = new File(System.getProperty(HOME_PROPERTY));
-    if (!distDir.exists()) {
+    File distDir;
+
+    // build File object from distribution directory property
+    String ddStr = System.getProperty(HOME_PROPERTY);
+    if (ddStr == null) {
+      distDir = null;
+    } else {
+      distDir = new File(ddStr);
+    }
+
+    // if no distribution directory, use current directory
+    if (distDir == null || !distDir.exists()) {
       distDir = new File(".");
     }
 
@@ -110,7 +118,7 @@ public class Main
       ss.setVisible(true);
     }
 
-    boolean initResult = initialize();
+    boolean initResult = initialize(distDir);
 
     if (ss != null) {
       ss.setVisible(false);
@@ -122,7 +130,7 @@ public class Main
     }
 
     if (debug) {
-      dumpInitialState();
+      dumpInitialState(distDir);
     }
 
     useSuppliedJava = downloadLatestJar = false;
@@ -401,7 +409,7 @@ public class Main
   /**
    * Dump post-initialization state for debugging
    */
-  private final void dumpInitialState()
+  private final void dumpInitialState(File distDir)
   {
     if (distDir != null && distDir.exists()) {
       System.out.println("Distribution directory: " + distDir);
@@ -519,7 +527,7 @@ public class Main
   /**
    * Initialize internal state.
    */
-  private final boolean initialize()
+  private final boolean initialize(File distDir)
   {
     // create a ChooserList (for speed purposes)
     chooser = new ChooserList();
