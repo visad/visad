@@ -49,11 +49,9 @@ import java.awt.geom.Rectangle2D;
 
 public class BaseMapAdapter {
   private boolean isCoordinateSystem = false;
-  private boolean isFileOK = false;
-  private boolean isFileInitialized = false;
   private int latMax=900000, latMin=-900000;
   private int lonMax=1800000, lonMin=-1800000;
-  private int segmentPointer = 0;
+  private int segmentPointer = 0;  // index into array of segments
   private int numEles=0, numLines=0;
   private CoordinateSystem cs=null;
   private DataInputStream din;
@@ -65,7 +63,6 @@ public class BaseMapAdapter {
   private int xlast = 0;
   private int yfirst = 0;
   private int ylast = 0;
-
 
   /**
    * Create a VisAD UnionSet from a local McIDAS Base Map file
@@ -145,8 +142,6 @@ public class BaseMapAdapter {
     throws IOException, VisADException {
 
     din = new DataInputStream (new BufferedInputStream(is));
-    isFileOK = true;
-    isFileInitialized = false;
     InitFile();
     if (bbox != null)
         setLatLonLimits((float) bbox.getMinY(), (float) bbox.getMaxY(),
@@ -337,39 +332,70 @@ public class BaseMapAdapter {
   // InitFile will initialize the file reading
 
   private void InitFile() throws VisADException {
-    coordMathType=new RealTupleType(RealType.Latitude, RealType.Longitude);
+    //coordMathType=new RealTupleType(RealType.Latitude, RealType.Longitude);
+    coordMathType = RealTupleType.LatitudeLongitudeTuple;
 
     try {
       numSegments = din.readInt();
     } catch (IOException e) {
-      isFileOK = false;
       throw new VisADException("Error reading map file " + e);
     }
 
-    isFileOK = true;
+    // Begin - DRM 04-20-2000
+    if (numSegments <= 0 )
+    {
+      throw new VisADException(
+          "McIDAS map file format error: number of segments = " + 
+          numSegments);
+    }
+    // End - DRM 04-20-2000
+
     position = 4;
     segList = new int[numSegments][6];
 
+    // read in the segment info
     for (int i=0; i<numSegments; i++) {
       try {
+        /* Each segement directory has 6 words:
+             0 - min lat
+             1 - max lat
+             2 - min lon
+             3 - max lon
+             4 - pointer (words) to start of data for segment
+             5 - number of words to read for the segment 
+                 (should be even lat/lon)
+        */
         for (int j=0; j<6; j++) {
           segList[i][j] = din.readInt();
+          // Begin - DRM 04-20-2000
+          if (j == 4 && segList[i][4] <= 0)  // bad pointer to data
+          {
+              throw new VisADException(
+                  "McIDAS map file format error: Negative pointer (" +
+                  segList[i][4] + ") to start of data for segment " + i);
+          }
+          //bad number of words
+          if (j == 5 && (segList[i][5] <= 0 || segList[i][5]%2 != 0)) 
+          {
+              throw new VisADException(
+                  "McIDAS map file format error: Wrong number of words (" + 
+                  segList[i][5] + ") to read for segment " + i);
+          }
+          // End - DRM 04-20-2000
           position = position + 4;
         }
       } catch (IOException e) {
-        isFileOK = false;
         throw new VisADException("Base Map: Error reading map file: "+e);
       }
     }
-    segmentPointer = 0;
-    isFileInitialized = true;
+    segmentPointer = -1;   // HACK!  set to -1 so first segment is not skipped
     return;
   }
 
   // locate the next valid segment (based on lat/lon extremes)
   private int findNextSegment() throws VisADException {
     while (true) {
-      segmentPointer++;
+      segmentPointer++;   
       if (segmentPointer >= numSegments) {
         return 0;
       }
@@ -404,6 +430,12 @@ public class BaseMapAdapter {
   private float[][] getLatLons() throws VisADException {
 
     int numPairs = segList[segmentPointer][5] / 2;
+
+    // DRM 4/20/2000
+    if (numPairs < 0)
+        throw new VisADException(
+            "Error in map file: Negative number of lat/lon pairs");
+            
     int lat;
     int lon;
     int skipByte;
@@ -468,7 +500,7 @@ public class BaseMapAdapter {
     try {
       while (true) {
         st = findNextSegment();
-        if (st == 0) break;
+        if (st == 0) break;   // we've read all the segments
         lalo = getLatLons();
         ll = lalo[0].length;
         int lbeg = 0;
