@@ -24,18 +24,24 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.data.mcidas;
 
-
+import edu.wisc.ssec.mcidas.McIDASUtil;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.io.*;
-import java.util.*;
-
 import java.rmi.RemoteException;
-
-import visad.data.mcidas.*;
-import visad.*;
-import visad.Set;
-import edu.wisc.ssec.mcidas.McIDASUtil;
+import java.util.Vector;
+import visad.CoordinateSystem;
+import visad.DataReference;
+import visad.Gridded2DSet;
+import visad.Linear2DSet;
+import visad.MathType;
+import visad.RealTupleType;
+import visad.RealType;
+import visad.UnionSet;
+import visad.VisADException;
 
 /** this is an adapter for McIDAS Base Map files */
 
@@ -53,6 +59,10 @@ public class BaseMapAdapter {
   private int position, numSegments = 0;
   private int[][] segList;
   private boolean isEastPositive = true;
+  private int xfirst = 0;
+  private int xlast = 0;
+  private int yfirst = 0;
+  private int ylast = 0;
 
 
   /** Create a VisAD UnionSet from a local McIDAS Base Map file
@@ -99,60 +109,51 @@ public class BaseMapAdapter {
    * @param lonmax the maximum Longitude value
    *
    */
-  public void setLatLonLimits(float latmin, float latmax, float lonmin, 
-        float lonmax) {
-    if (latmin == Float.NaN) {
-      latMin = -900000;
-    } else {
-      latMin = McIDASUtil.mcDoubleToPackedInteger( (double) latmin);
-      //latMin = (int) (latmin*10000.f);
-    }
-    if (latmax == Float.NaN) {
-      latMax = 900000;
-    } else {
-      latMax = McIDASUtil.mcDoubleToPackedInteger( (double) latmax);
-      //latMax = (int) (latmax*10000.f);
-    }
-    if (lonmin == Float.NaN) {
-      lonMin = -1800000;
-    } else {
-      lonMin = McIDASUtil.mcDoubleToPackedInteger( (double) lonmin);
-      //lonMin = (int) (lonmin*10000.f);
-    }
-    if (lonmax == Float.NaN) {
-      lonMax = 1800000;
-    } else {
-      lonMax = McIDASUtil.mcDoubleToPackedInteger( (double) lonmax);
-      //lonMax = (int) (lonmax*10000.f);
-    }
-
+  public void setLatLonLimits(float latmin, 
+                              float latmax, 
+                              float lonmin, 
+                              float lonmax) {
+    latMin = (latmin == Float.NaN) 
+                ? -900000
+                : McIDASUtil.mcDoubleToPackedInteger( (double) latmin);
+    latMax = (latmax == Float.NaN) 
+                ? 900000
+                : McIDASUtil.mcDoubleToPackedInteger( (double) latmax);
+    lonMin = (lonmin == Float.NaN) 
+                ? -1800000
+                : McIDASUtil.mcDoubleToPackedInteger( (double) lonmin);
+    lonMax = (lonmax == Float.NaN) 
+                ? 1800000
+                : McIDASUtil.mcDoubleToPackedInteger( (double) lonmax);
     //System.out.println("Lat min/max = "+latMin+" "+latMax);
     //System.out.println("Lon min/max = "+lonMin+" "+lonMax);
-
     return;
   }
 
-  /** using the domain_set of the FlatField of an image (when
-   *  one is available), extract the elements required.  This
-   *  implies that a CoordinateSystem is available with a 
-   *  reference coordinate of Latitude,Longitude.
+  /** 
+   * Using the domain_set of the FlatField of an image (when
+   * one is available), extract the elements required.  This
+   * implies that a CoordinateSystem is available with a 
+   * reference coordinate of Latitude,Longitude.
    *
-   * @param domainSet The VisAD domain_set used when the
-   * associated image FlatField was created
+   * @param domainSet The VisAD Linear2DSet domain_set used when the
+   *                  associated image FlatField was created
    *
+   * @throws  VisADException  necessary VisAD object cannot be created
    */
 
-  public void setDomainSet(Set domainSet) throws VisADException {
-    if (domainSet instanceof Linear2DSet) {
+  public void setDomainSet(Linear2DSet domainSet) 
+     throws VisADException 
+  {
       coordMathType = domainSet.getType();
       cs = domainSet.getCoordinateSystem();
       numEles = ((Linear2DSet) domainSet).getX().getLength();
       numLines = ((Linear2DSet) domainSet).getY().getLength();
 
-      int xfirst = (int) ((Linear2DSet) domainSet).getX().getFirst();
-      int xlast = (int) ((Linear2DSet) domainSet).getX().getLast();
-      int yfirst = (int) ((Linear2DSet) domainSet).getY().getFirst();
-      int ylast = (int) ((Linear2DSet) domainSet).getX().getFirst();
+      xfirst = (int) ((Linear2DSet) domainSet).getX().getFirst();
+      xlast = (int) ((Linear2DSet) domainSet).getX().getLast();
+      yfirst = (int) ((Linear2DSet) domainSet).getY().getFirst();
+      ylast = (int) ((Linear2DSet) domainSet).getY().getLast();
 
       /*
       System.out.println("coordMathType="+coordMathType);
@@ -166,11 +167,6 @@ public class BaseMapAdapter {
       */
 
       computeLimits();
-
-
-    } else {
-      throw new VisADException("BaseMap: unknown domain type");
-    }
   }
 
   /** define a CoordinateSystem whose fromReference() will
@@ -190,8 +186,17 @@ public class BaseMapAdapter {
     this.numLines = numLines;
     this.cs = cs;
     coordMathType = domain;
+    xlast = numEles;
+    ylast = numLines;
 
     computeLimits();
+  }
+
+  public void doByLatLon() {
+    isCoordinateSystem = false;
+    try {
+    coordMathType = new RealTupleType(RealType.Latitude, RealType.Longitude);
+    } catch (Exception ert) {;}
   }
 
   // compute the lat/long limits for fetching data; invert the Y axis, too.
@@ -199,8 +204,9 @@ public class BaseMapAdapter {
 
     // Now set lat/lon limits...
 
-    float[][] linele = { {0.f, (float)numEles-1, (float)numEles-1, 0.f} ,
-                         {(float)numLines-1, (float)numLines-1,0.f,0.f } };
+    float[][] linele = 
+        { {(float) xfirst, (float) xlast, (float)xlast, (float)xfirst} ,
+        {(float) yfirst, (float) yfirst, (float)ylast, (float)ylast} };
 
     float[][] latlon;
 
@@ -311,6 +317,7 @@ public class BaseMapAdapter {
 
     } // end while...
   }
+
   private float[][] getLatLons() throws VisADException {
 
     int numPairs = segList[segmentPointer][5] / 2;
@@ -338,7 +345,8 @@ public class BaseMapAdapter {
         lalo[1][i] = (float) lon/10000.f;
         if (isEastPositive) {
           lalo[1][i] = -lalo[1][i];
-          if (lalo[1][i] < 0.0 && lalo[1][i] < dLonMin && lonMax > 1800000) lalo[1][i] = 360.f+lalo[1][i];
+          if (lalo[1][i] < 0.0 && lalo[1][i] < dLonMin && lonMax > 1800000) 
+	    lalo[1][i] = 360.f+lalo[1][i];
         }
       }
     } catch (IOException e) {
@@ -447,26 +455,24 @@ public class BaseMapAdapter {
 
   }
 
-  /** set the sign of longitude convention.  By default, the
-  * longitudes are positive eastward
-  *
-  * @param value set to true for positive eastward, set to
-  * false for positive westward.
-  *
-  */
-
+  /** 
+   * set the sign of longitude convention.  By default, the
+   * longitudes are positive eastward
+   *
+   * @param value set to true for positive eastward, set to
+   *              false for positive westward.
+   */
   public void setEastPositive(boolean value) {
     isEastPositive = value;
   }
 
-  /** determine what sign convention for longitude is currently
-  * being used.
-  *
-  * @return true if the convention is positive eastward; false if
-  * positive westward.
-  */
-
-
+  /** 
+   * determine what sign convention for longitude is currently
+   * being used.
+   *
+   * @return true if the convention is positive eastward; false if
+   *         positive westward.
+   */
   public boolean isEastPositive() {
     return (isEastPositive);
   }
