@@ -399,7 +399,8 @@ Unit quantityExpression() :
 	unit = unitsDB.get(t.image);
 	if (unit == null)
 	{
-	    throw new NoSuchUnit("Unit \"" + t.image + "\" not in database");
+	    throw new NoSuchUnitException(
+		"Unit \"" + t.image + "\" not in database");
 	}
 	return unit;
     }
