@@ -248,7 +248,8 @@ public abstract class CoordinateSystem extends Object
     }
     else { // !out.equals(in)
       RealTupleType ref_out = out;
-      // CoordinateSystem coord_out = out.getCoordinateSystem();
+      if (coord_out == null)
+	coord_out = out.getCoordinateSystem();
       if (coord_out != null) {
         ref_out = coord_out.getReference();
         // WLH - this check for testing only - may eliminate later
@@ -260,7 +261,8 @@ public abstract class CoordinateSystem extends Object
       }
 
       RealTupleType ref_in = in;
-      // CoordinateSystem coord_in = in.getCoordinateSystem();
+      if (coord_in == null)
+	coord_in = in.getCoordinateSystem();
       if (coord_in != null) {
         ref_in = coord_in.getReference();
         // WLH - this check for testing only - may eliminate later
