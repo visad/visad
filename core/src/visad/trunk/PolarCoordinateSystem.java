@@ -28,7 +28,7 @@ package visad;
 /**
    PolarCoordinateSystem is the VisAD CoordinateSystem class
    for (Longitude, Radius) with a Cartesian Reference,
-   and with Latitude and Longitude in degrees.<P>
+   and with Longitude in degrees.<P>
 */
 public class PolarCoordinateSystem extends CoordinateSystem {
 
