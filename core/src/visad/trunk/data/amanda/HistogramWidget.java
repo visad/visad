@@ -34,14 +34,13 @@ public class HistogramWidget
     }
   }
 
-  private DisplayImplJ2D dpy;
   private DataReferenceImpl ref;
   private ScalarMap xMap, yMap, cMap;
 
   public HistogramWidget()
     throws RemoteException, VisADException
   {
-    dpy = new DisplayImplJ2D("histogram");
+    DisplayImplJ2D dpy = new DisplayImplJ2D("histogram");
 
     xMap = new ScalarMap(countType, Display.XAxis);
     yMap = new ScalarMap(Hit.leadingEdgeTimeType, Display.YAxis);
