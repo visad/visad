@@ -498,7 +498,7 @@ public class PCS {
       for (int i=0; i<nchannels; i++) {
         eigen_values[j][i] *= invmag;
       }
-      System.out.println("mag eigen[" + j + "] = " + mag);
+      // System.out.println("mag eigen[" + j + "] = " + mag);
     }
 
     // compute pressureSet
