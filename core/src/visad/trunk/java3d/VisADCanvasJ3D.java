@@ -31,6 +31,7 @@ import javax.media.j3d.*;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.rmi.RemoteException;
  
 /**
    VisADCanvasJ3D is the VisAD extension of Canvas3D
@@ -81,6 +82,12 @@ public class VisADCanvasJ3D extends Canvas3D { // J3D
       captureImage = img_src.getImage();
       displayRenderer.notifyCapture();
     }
+    // WLH 15 March 99
+    try {
+      display.notifyListeners(DisplayEvent.FRAME_DONE);
+    }
+    catch (VisADException e) {}
+    catch (RemoteException e) {}
   }
 
   public Dimension getPreferredSize() {

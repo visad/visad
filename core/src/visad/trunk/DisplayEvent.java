@@ -42,6 +42,8 @@ public class DisplayEvent extends Event {
   /* TDR 1 Nov 98 */
   //- Center mouse button pressed
   public final static int MOUSE_PRESSED_CENTER = 3;
+  /* WLH 15 March 99 */
+  public final static int FRAME_DONE = 4;
 
   private int id = 0;
 
@@ -64,7 +66,7 @@ public class DisplayEvent extends Event {
 
   /** get the ID type of this event; legal ID's are
       DisplayEvent.MOUSE_PRESSED, DisplayEvent.TRANSFORM_DONE
-      and DisplayEvent.MOUSE_PRESSED_CENTER */
+      DisplayEvent.MOUSE_PRESSED_CENTER, DisplayEvent.FRAME_DONE */
   public int getId() {
     return id;
   }

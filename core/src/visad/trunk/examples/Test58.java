@@ -9,10 +9,15 @@ import java.rmi.RemoteException;
 import visad.*;
 
 import visad.java2d.DisplayImplJ2D;
+import visad.java2d.MouseBehaviorJ2D;
 
 public class Test58
-	extends UISkeleton
+	extends UISkeleton implements DisplayListener
 {
+
+  ProjectionControl control;
+  double sa, ca;
+
   public Test58() { }
 
   public Test58(String args[])
@@ -67,33 +72,26 @@ public class Test58
     jframe.pack();
     jframe.setVisible(true);
  
-    ProjectionControl control = dpys[0].getProjectionControl();
-    double[] matrix = control.getMatrix();
- 
-    double sa = Math.sin(0.01);
-    double ca = Math.cos(0.01);
- 
-    while (true) {
-      try {
-        Thread.sleep(50);
-      }
-      catch (InterruptedException e) {
-      }
-      System.out.println("\ndelay\n");
-      double a =  ca * matrix[0] + sa * matrix[3];
-      double b =  ca * matrix[1] + sa * matrix[4];
-      double c = -sa * matrix[0] + ca * matrix[3];
-      double d = -sa * matrix[1] + ca * matrix[4];
-      matrix[0] = a;
-      matrix[1] = b;
-      matrix[3] = c;
-      matrix[4] = d;
-      control.setMatrix(matrix);
+    control = dpys[0].getProjectionControl();
+    sa = Math.sin(0.01);
+    ca = Math.cos(0.01);
+    dpys[0].addDisplayListener(this);
+    rotate();
+  }
+
+  public void displayChanged(DisplayEvent e)
+         throws VisADException, RemoteException {
+    if (e.getId() == DisplayEvent.FRAME_DONE) {
+      rotate();
     }
-/*
-if this doesn't work, send DisplayEvents (FRAME_DONE) from
-VisADCanvasJ3D.postSwap and from VisADCanvasJ2D.paint
-*/
+  }
+
+  public void rotate()
+         throws VisADException, RemoteException {
+    double[] matrix = control.getMatrix();
+    double[] mult =
+      MouseBehaviorJ2D.makeMatrix(0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0);
+    control.setMatrix(MouseBehaviorJ2D.multiplyMatrix(mult, matrix));
   }
 
   public String toString() { return ": scripted fly-through in Java2D"; }

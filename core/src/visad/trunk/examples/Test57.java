@@ -1,15 +1,23 @@
 import java.awt.Component;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import java.rmi.RemoteException;
 
 import visad.*;
 
-import visad.util.LabeledRGBWidget;
 import visad.java3d.DisplayImplJ3D;
+import visad.java3d.MouseBehaviorJ3D;
 
 public class Test57
-	extends UISkeleton
+	extends UISkeleton implements DisplayListener
 {
+
+  ProjectionControl control;
+  double sa, ca;
+
   public Test57() { }
 
   public Test57(String args[])
@@ -33,7 +41,7 @@ public class Test57
     FlatField imaget1 = FlatField.makeField(image_tuple, size, false);
 
     DisplayImpl display1;
-    display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
+    display1 = new DisplayImplJ3D("display1");
     display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
     display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
     display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
@@ -45,40 +53,46 @@ public class Test57
     ref_imaget1.setData(imaget1);
     display1.addReference(ref_imaget1, null);
 
-    ProjectionControl control = display1.getProjectionControl();
-    double[] matrix = control.getMatrix();
-
-    double sa = Math.sin(0.01);
-    double ca = Math.cos(0.01);
-
-    boolean forever = true;
-    while (forever) {
-      try {
-        Thread.sleep(50);
-      }
-      catch (InterruptedException e) {
-      }
-      System.out.println("\ndelay\n");
-      double a =  ca * matrix[0] + sa * matrix[4];
-      double b =  ca * matrix[1] + sa * matrix[5];
-      double c = -sa * matrix[0] + ca * matrix[4];
-      double d = -sa * matrix[1] + ca * matrix[5];
-      matrix[0] = a;
-      matrix[1] = b;
-      matrix[4] = c;
-      matrix[5] = d;
-      control.setMatrix(matrix);
-    }
-
-/*
-if this doesn't work, send DisplayEvents (FRAME_DONE) from
-VisADCanvasJ3D.postSwap and from VisADCanvasJ2D.paint
-*/
-
     DisplayImpl[] dpys = new DisplayImpl[1];
     dpys[0] = display1;
 
     return dpys;
+  }
+
+  String getFrameTitle() { return "fly-through in Java3D"; }
+ 
+  void setupUI(DisplayImpl[] dpys)
+        throws VisADException, RemoteException
+  {
+    JFrame jframe  = new JFrame(getFrameTitle() + getClientServerTitle());
+    jframe.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {System.exit(0);}
+    });
+ 
+    jframe.setContentPane((JPanel) dpys[0].getComponent());
+    jframe.pack();
+    jframe.setVisible(true);
+
+    control = dpys[0].getProjectionControl();
+    sa = Math.sin(0.01);
+    ca = Math.cos(0.01);
+    dpys[0].addDisplayListener(this);
+    rotate();
+  }
+
+  public void displayChanged(DisplayEvent e)
+         throws VisADException, RemoteException {
+    if (e.getId() == DisplayEvent.FRAME_DONE) {
+      rotate();
+    }
+  }
+ 
+  public void rotate()
+         throws VisADException, RemoteException {
+    double[] matrix = control.getMatrix();
+    double[] mult =
+      MouseBehaviorJ3D.makeMatrix(0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0);
+    control.setMatrix(MouseBehaviorJ3D.multiplyMatrix(mult, matrix));
   }
 
   public String toString() { return ": scripted fly-through in Java3D"; }

@@ -35,6 +35,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
+import java.rmi.RemoteException;
  
 import java.util.*;
 
@@ -371,6 +372,12 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
 // System.out.println("aux_copy capture end");
         }
       }
+      // WLH 15 March 99
+      try {
+        display.notifyListeners(DisplayEvent.FRAME_DONE);
+      }
+      catch (VisADException e) {}
+      catch (RemoteException e) {}
     } // end if (image != null)
     if (animate_control != null) animate_control.setNoTick(false);
   }
