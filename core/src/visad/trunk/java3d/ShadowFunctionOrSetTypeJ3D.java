@@ -198,17 +198,6 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
                             int texture_width, int texture_height)
          throws VisADException {
     GeometryArray geometry = display.makeGeometry(array);
-/*
-    int vertexFormat = GeometryArray.COORDINATES |
-                       GeometryArray.NORMALS |
-                       GeometryArray.COLOR_3 |
-                       GeometryArray.TEXTURE_COORDINATE_2;
-    QuadArray geometry = new QuadArray(4, vertexFormat);
-    geometry.setCoordinates(0, coordinates);
-    geometry.setNormals(0, normals);
-    geometry.setTextureCoordinates(0, texCoords);
-    geometry.setColors(0, colors);
-*/
     // System.out.println("texture geometry");
     // create basic Appearance
     TransparencyAttributes c_alpha = null;
@@ -227,7 +216,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     }
     Appearance appearance =
       makeAppearance(mode, c_alpha, c_color, geometry);
-    // appearance = makeAppearance(mode, null, null, geometry);
+    // Appearance appearance = makeAppearance(mode, null, null, geometry);
     // create TextureAttributes
     TextureAttributes texture_attributes = new TextureAttributes();
     texture_attributes.setTextureMode(TextureAttributes.REPLACE);

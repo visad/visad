@@ -441,10 +441,6 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     Color3f c3 = getCursorColor();
     ColoringAttributes color = new ColoringAttributes();
     color.setColor(c3);
-/* WLH 4 Feb 99
-    ColoringAttributes color = new ColoringAttributes();
-    color.setColor(1.0f, 1.0f, 1.0f);
-*/
     appearance.setColoringAttributes(color);
     graphics.setAppearance(appearance);
 
@@ -529,7 +525,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
       if (nchars < 12) nchars = 12;
       double[] starta = {(double) (-position2.x - nchars *
                                         (position2.x - position1.x)),
-                         (double) -position3.y,
+                         (double) -position3.y + 1.2 * up[1],
                          // (double) position2.y, WLH 30 April 99
                          (double) position2.z};
       try {

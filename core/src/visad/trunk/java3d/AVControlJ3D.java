@@ -54,13 +54,13 @@ public abstract class AVControlJ3D extends Control implements AVControl {
        throws VisADException {
     // check for missing
     if (value != value) return;
-    float[][] fvalues = new float[1][1];
-    fvalues[0][0] = (float) value;
+    double[][] fvalues = new double[1][1];
+    fvalues[0][0] = value;
     Enumeration pairs = ((Vector) switches.clone()).elements();
     while (pairs.hasMoreElements()) {
       SwitchSet ss = (SwitchSet) pairs.nextElement();
       Set set = ss.set;
-      float[][] values = null;
+      double[][] values = null;
       RealTupleType out = ((SetType) set.getType()).getDomain();
       if (animation_set != null) {
         RealTupleType in =
@@ -88,7 +88,7 @@ public abstract class AVControlJ3D extends Control implements AVControl {
         indices = new int[] {0};
       }
       else {
-        indices = set.valueToIndex(values);
+        indices = set.doubleToIndex(values);
       }
       if (0 <= indices[0] && indices[0] < ss.swit.numChildren()) {
         ss.swit.setWhichChild(indices[0]);

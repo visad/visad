@@ -101,6 +101,10 @@ public abstract class GraphicsModeControl extends Control
 
   public abstract boolean getMissingTransparent();
 
+  public abstract void setCurvedSize(int curved_size);
+
+  public abstract int getCurvedSize();
+
   /** a method to copy any data object */
   public abstract Object clone();
 

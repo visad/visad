@@ -121,6 +121,11 @@ public abstract class SampledSet extends SimpleSet {
     }
   }
 
+  void cram_samples(float[][] samples) {
+    Samples = samples;
+  }
+
+
   public void getNeighbors( int[][] neighbors, float[][] weights )
               throws VisADException
   {
@@ -149,7 +154,8 @@ public abstract class SampledSet extends SimpleSet {
           }
           lambda_squared = ( distance_squared*constant )/pi_squared;
       
-          weights[ii][kk] = (float) Math.exp( (double)(-1f*(distance_squared/lambda_squared)) );
+          weights[ii][kk] =
+            (float) Math.exp( (double)(-1f*(distance_squared/lambda_squared)) );
         }
      }
   }
@@ -330,6 +336,7 @@ public abstract class SampledSet extends SimpleSet {
       coordinates[j++] = samples[1][i];
       coordinates[j++] = samples[2][i];
     }
+
     array.coordinates = coordinates;
     if (color_values != null) {
       color_length = Math.min(color_length, color_values.length);

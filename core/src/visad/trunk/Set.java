@@ -221,6 +221,9 @@ public abstract class Set extends DataImpl {
     return indexToValue(indices);
   }
 
+  void cram_samples(float[][] samples) {
+  }
+
   //
   // must eventually move indexToValue and valueToIndex to SimpleSet
   // and add logic for UnionSet to Field and FlatField
@@ -262,7 +265,7 @@ public abstract class Set extends DataImpl {
     // all indices in this
     int[] indices = getWedge();
     // all values in this
-    float[][] values = indexToValue(indices);
+    double[][] values = indexToDouble(indices);
     // transform values from this to set
     ErrorEstimate[] errors_out = new ErrorEstimate[1];
     values = CoordinateSystem.transformCoordinates(
@@ -273,7 +276,7 @@ public abstract class Set extends DataImpl {
                    DomainCoordinateSystem,
                    SetUnits, null /* SetErrors */, values);
     // set indices for values in this
-    int[] test_indices = set.valueToIndex(values);
+    int[] test_indices = set.doubleToIndex(values);
     // find indices of set not covered by this
     int set_length = set.getLength();
     boolean[] set_indices = new boolean[set_length];
@@ -294,7 +297,7 @@ public abstract class Set extends DataImpl {
       }
     }
     // get uncovered values
-    float[][] new_values = set.indexToValue(new_indices);
+    double[][] new_values = set.indexToDouble(new_indices);
     // transform values for Units and CoordinateSystem
     new_values = CoordinateSystem.transformCoordinates(
                      ((SetType) Type).getDomain(),
@@ -303,7 +306,7 @@ public abstract class Set extends DataImpl {
                      set.getCoordinateSystem(), set.getSetUnits(),
                      null /* set.getSetErrors() */, new_values);
     // merge uncovered values with values of this
-    float[][] all_values = new float[1][length + num_new];
+    double[][] all_values = new double[1][length + num_new];
     for (int i=0; i<length; i++) all_values[0][i] = values[0][i];
     for (int i=0; i<num_new; i++) {
       all_values[0][length + i] = new_values[0][i];
@@ -311,9 +314,9 @@ public abstract class Set extends DataImpl {
     // sort all_values then construct Gridded1DSet
     // just use ErrorEstimates from this
     QuickSort.sort(all_values[0]);
-    return new Gridded1DSet(Type, all_values, all_values[0].length,
-                            DomainCoordinateSystem, SetUnits,
-                            SetErrors, false);
+    return new Gridded1DDoubleSet(Type, all_values, all_values[0].length,
+                                  DomainCoordinateSystem, SetUnits,
+                                  SetErrors, false);
   }
 
   public Set makeSpatial(SetType type, float[][] samples) throws VisADException {
@@ -353,6 +356,14 @@ public abstract class Set extends DataImpl {
          float[] fieldValues, byte[][] color_values, boolean indexed)
          throws VisADException {
     throw new SetException("Set.makeIsoSurface: not valid for this Set");
+  }
+
+  public double[][] indexToDouble(int[] index) throws VisADException {
+    return floatToDouble(indexToValue(index));
+  }
+
+  public int[] doubleToIndex(double[][] value) throws VisADException {
+    return valueToIndex(doubleToFloat(value));
   }
 
   public static double[][] floatToDouble(float[][] value) {

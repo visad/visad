@@ -89,6 +89,35 @@ public class Linear1DSet extends Gridded1DSet
     return values;
   }
 
+  public double[][] indexToDouble(int[] index) throws VisADException {
+    int length = index.length;
+    double[][] values = new double[1][length];
+    for (int i=0; i<length; i++) {
+      if (0 <= index[i] && index[i] < Length) {
+        values[0][i] = (First + ((double) index[i]) * Step);
+      }
+      else {
+        values[0][i] = Double.NaN;
+      }
+    }
+    return values;
+  }
+
+  public int[] doubleToIndex(double[][] value) throws VisADException {
+    if (value.length != DomainDimension) {
+      throw new SetException("Gridded1DDoubleSet.valueToIndex: bad dimension");
+    }
+    int length = value[0].length;
+    int[] index = new int[length];
+    double l = -0.5;
+    double h = Length - 0.5;
+    for (int i=0; i<length; i++) {
+      double di = 0.5 + (value[0][i] - First) * Invstep;
+      index[i] = (0.0 < di && di < (double) Length) ? (int) di : -1;
+    }
+    return index;
+  }
+
   /** transform an array of non-integer grid coordinates to an array
       of values in R */
   public float[][] gridToValue(float[][] grid) throws VisADException {

@@ -393,6 +393,7 @@ public class GriddedSet extends SampledSet {
       weights[i] = cs;
     }
   }
+
   public void getNeighbors( int[][] neighbors )
               throws VisADException
   {

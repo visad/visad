@@ -36,6 +36,9 @@ public class Test04
     display1.addMap(new ScalarMap(vis_radiance, Display.RGB));
     // display1.addMap(new ScalarMap(vis_radiance, Display.Radius));
 
+    GraphicsModeControl mode = display1.getGraphicsModeControl();
+    mode.setTextureEnable(false);
+
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
     display1.addReference(ref_imaget1, null);

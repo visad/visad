@@ -59,6 +59,23 @@ public class QuickSort {
     }
   }
 
+  // version for doubles
+  private static void insertion(double a[], int[] p, int lo, int hi)
+                                      throws VisADException {
+    for (int i=lo+1; i<=hi; i++) {
+      int j = i;
+      double B = a[i];
+      int P = p[i];
+      while ((j > 0) && (a[j-1] > B)) {
+        a[j] = a[j-1];
+        p[j] = p[j-1];
+        j--;
+      }
+      a[j] = B;
+      p[j] = P;
+    }
+  }
+
   // Quick Sort
   private static void sort(float a[], int[] p, int lo0, int hi0)
                                       throws VisADException {
@@ -99,7 +116,55 @@ public class QuickSort {
     }
   }
 
+  // version for doubles
+  private static void sort(double a[], int[] p, int lo0, int hi0)
+                                      throws VisADException {
+    // call the insertion sort if few enough elements
+    if (hi0-lo0 < CHEAT_NUM) {
+      insertion(a, p, lo0, hi0);
+    }
+    else {
+      int lo = lo0;
+      int hi = hi0;
+ 
+      // start in the middle
+      double mid = a[(lo0+hi0)/2];
+ 
+      // loop through the array until indices cross
+      while (lo <= hi) {
+        // find lo-most element >= partition element
+        while ( (lo < hi0) && (a[lo] < mid) ) ++lo;
+ 
+        // find hi-most element <= partition element
+        while ( (hi > lo0) && (a[hi] > mid) ) --hi;
+ 
+        // swap indices if they have not crossed
+        if (lo <= hi) {
+          int P = p[lo];
+          p[lo] = p[hi];
+          p[hi] = P;
+          double T = a[lo];
+          a[lo++] = a[hi];
+          a[hi--] = T;
+        }
+      }
+      // sort the left partition if necessary
+      if (lo0 < hi) sort(a, p, lo0, hi);
+ 
+      // sort the right partition if necessary
+      if (lo < hi0) sort(a, p, lo, hi0);
+    }
+  }
+
   public static int[] sort(float a[]) throws VisADException {
+    int[] p = new int[a.length];
+    for (int i=0; i<a.length; i++) p[i] = i;
+    sort(a, p, 0, a.length-1);
+    return p;
+  }
+
+  // version for doubles
+  public static int[] sort(double a[]) throws VisADException {
     int[] p = new int[a.length];
     for (int i=0; i<a.length; i++) p[i] = i;
     sort(a, p, 0, a.length-1);

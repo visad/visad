@@ -44,10 +44,14 @@ public class Test03
     int ntimes2 = 6;
 
     // different time resolution test
+    // 2 May 99, 15:51:00
+    double start = new DateTime(1999, 122, 57060).getValue();
     Set time_set =
-      new Linear1DSet(time_type, 0.0, 1.0, ntimes1);
-    Set time_hornet =
-      new Linear1DSet(time_type, 0.0, 1.0, ntimes2);
+      new Linear1DSet(time_type, start, start + 3000.0, ntimes1);
+    double[][] times =
+      {{start, start + 600.0, start + 1200.0,
+        start + 1800.0, start + 2400.0, start + 3000.0}};
+    Set time_hornet = new Gridded1DDoubleSet(time_type, times, 6);
 
     FieldImpl image_sequence = new FieldImpl(time_images, time_set);
     FieldImpl image_stinger = new FieldImpl(time_bee, time_hornet);

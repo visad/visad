@@ -101,4 +101,14 @@ public class RemoteGraphicsModeControlImpl extends RemoteControlImpl
   {
     return ((GraphicsModeControl )Control).getProjectionPolicy();
   }
+
+  public boolean getMissingTransparent()
+         throws VisADException, RemoteException {
+    return ((GraphicsModeControl )Control).getMissingTransparent();
+  }
+ 
+  public int getCurvedSize() throws VisADException, RemoteException {
+    return ((GraphicsModeControl )Control).getCurvedSize();
+  }
+
 }

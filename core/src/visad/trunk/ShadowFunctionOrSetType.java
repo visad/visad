@@ -379,20 +379,30 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 2:" +
 
       if (this instanceof ShadowFunctionType) {
         // test for texture mapping
+        // WLH 30 April 99
         isTextureMap = !getMultipleDisplayScalar() &&
                        getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD &&
-                       ((FunctionType) getType()).getReal() &&
+                       ((FunctionType) getType()).getReal() &&   // ??
                        Domain.getDimension() == 2 &&
                        Domain.getAllSpatial() &&
                        !Domain.getSpatialReference() &&
                        Display.DisplaySpatialCartesianTuple.equals(
                                Domain.getDisplaySpatialTuple() ) &&
-                       // checkColorOrAlpha(Range.getDisplayIndices()) &&
-                       checkColor(Range.getDisplayIndices()) &&
+                       checkColorRange(Range.getDisplayIndices()) &&
                        checkAny(Range.getDisplayIndices()) &&
-                       display.getGraphicsModeControl().getTextureEnable();
+                       display.getGraphicsModeControl().getTextureEnable() &&
+                       !display.getGraphicsModeControl().getPointMode();
+
+        curvedTexture = getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD &&
+                        Domain.getDimension() == 2 &&
+                        Domain.getAllSpatial() &&
+                        checkSpatialColorRange(Domain.getDisplayIndices()) &&
+                        checkSpatialColorRange(Range.getDisplayIndices()) &&
+                        checkAny(Range.getDisplayIndices()) &&
+                        display.getGraphicsModeControl().getTextureEnable() &&
+                        !display.getGraphicsModeControl().getPointMode();
 /*
-System.out.println("isTextureMap = " + isTextureMap + " " +
+System.out.println("checkIndices.isTextureMap = " + isTextureMap + " " +
                    !getMultipleDisplayScalar() + " " +
                    (getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD) + " " +
                    ((FunctionType) getType()).getReal() + " " +
@@ -401,9 +411,20 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
                    !Domain.getSpatialReference() + " " +
                    Display.DisplaySpatialCartesianTuple.equals(
                                Domain.getDisplaySpatialTuple() ) + " " +
-                   // checkColorOrAlpha(Range.getDisplayIndices()) + " " +
-                   checkColor(Range.getDisplayIndices()) + " " +
-                   checkAny(Range.getDisplayIndices()));
+                   checkColorRange(Range.getDisplayIndices()) + " " +
+                   checkAny(Range.getDisplayIndices()) + " " +
+                   display.getGraphicsModeControl().getTextureEnable() + " " +
+                   !display.getGraphicsModeControl().getPointMode() );
+
+System.out.println("checkIndices.curvedTexture = " + curvedTexture + " " +
+                        (getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD) + " " +
+                        (Domain.getDimension() == 2) + " " +
+                        Domain.getAllSpatial() + " " +
+                        checkSpatialColorRange(Domain.getDisplayIndices()) + " " +
+                        checkSpatialColorRange(Range.getDisplayIndices()) + " " +
+                        checkAny(Range.getDisplayIndices()) + " " +
+                        display.getGraphicsModeControl().getTextureEnable() + " " +
+                        !display.getGraphicsModeControl().getPointMode() );
 */
       }
     }
@@ -487,7 +508,7 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
     boolean anyShape = getAnyShape();
     boolean anyText = getAnyText();
 
-    boolean indexed = wantIndexed();
+    boolean indexed = shadow_api.wantIndexed();
 
     // get some precomputed values useful for transform
     // length of ValueArray
@@ -590,17 +611,45 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
 
     boolean isTextureMap = getIsTextureMap() &&
                            default_values[alpha_index] > 0.99 &&
+                           renderer.isLegalTextureMap() &&
                            (domain_set instanceof Linear2DSet ||
                             (domain_set instanceof LinearNDSet &&
                              domain_set.getDimension() == 2));
+
+    int curved_size = display.getGraphicsModeControl().getCurvedSize();
+
+    boolean curvedTexture = getCurvedTexture() &&
+                            !isTextureMap &&
+                            curved_size > 0 &&
+                            getIsTerminal() && // implied by getCurvedTexture()?
+                            !(shadow_api instanceof visad.java2d.ShadowTypeJ2D) &&
+                            default_values[alpha_index] > 0.99 &&
+                            renderer.isLegalTextureMap() &&
+                            (domain_set instanceof Gridded2DSet ||
+                             (domain_set instanceof GriddedSet &&
+                              domain_set.getDimension() == 2));
 /*
-System.out.println("isTextureMap = " + isTextureMap + " " +
+System.out.println("doTransform.isTextureMap = " + isTextureMap + " " +
                    getIsTextureMap() + " " +
                    (default_values[alpha_index] > 0.99) + " " +
+                   renderer.isLegalTextureMap() + " " +
                    (domain_set instanceof Linear2DSet) + " " +
                    (domain_set instanceof LinearNDSet) + " " +
                    (domain_set.getDimension() == 2));
+
+System.out.println("doTransform.curvedTexture = " + curvedTexture + " " +
+                        getCurvedTexture() + " " +
+                        !isTextureMap + " " +
+                        (curved_size > 0) + " " +
+                        getIsTerminal() + " " +
+                        !(shadow_api instanceof visad.java2d.ShadowTypeJ2D) + " " +
+                        (default_values[alpha_index] > 0.99) + " " +
+                        renderer.isLegalTextureMap() + " " +
+                        (domain_set instanceof Gridded2DSet) + " " +
+                        (domain_set instanceof GriddedSet) + " " +
+                        (domain_set.getDimension() == 2) );
 */
+
     float[] coordinates = null;
     float[] texCoords = null;
     float[] normals = null;
@@ -610,10 +659,6 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
     int texture_width = 1;
     int texture_height = 1;
     if (isTextureMap) {
-      if (!renderer.isLegalTextureMap()) {
-        throw new DisplayException("illegal DataRenderer for texture map: " +
-                                   "ShadowFunctionOrSetType.doTransform");
-      }
       Linear1DSet X = null;
       Linear1DSet Y = null;
       if (domain_set instanceof Linear2DSet) {
@@ -1500,6 +1545,10 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
             qarray.colors = colors;
             qarray.normals = normals;
 
+            BufferedImage image =
+              createImage(data_width, data_height, texture_width,
+                          texture_height, color_values);
+/*
             BufferedImage image = null;
             int[] rgbArray = new int[texture_width * texture_height];
             if (color_values.length > 3) {
@@ -1509,16 +1558,6 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
                                         BufferedImage.TYPE_INT_ARGB);
               for (int j=0; j<data_height; j++) {
                 for (int i=0; i<data_width; i++) {
-/* MEM_WLH
-                  r = (int) (color_values[0][k] * 255.0);
-                  r = (r < 0) ? 0 : (r > 255) ? 255 : r;
-                  g = (int) (color_values[1][k] * 255.0);
-                  g = (g < 0) ? 0 : (g > 255) ? 255 : g;
-                  b = (int) (color_values[2][k] * 255.0);
-                  b = (b < 0) ? 0 : (b > 255) ? 255 : b;
-                  a = (int) (color_values[3][k] * 255.0);
-                  a = (a < 0) ? 0 : (a > 255) ? 255 : a;
-*/
                   r = (color_values[0][k] < 0) ? color_values[0][k] + 256 :
                                                  color_values[0][k];
                   g = (color_values[1][k] < 0) ? color_values[1][k] + 256 :
@@ -1527,7 +1566,6 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
                                                  color_values[2][k];
                   a = (color_values[3][k] < 0) ? color_values[3][k] + 256 :
                                                  color_values[3][k];
-                  // image.setRGB(i, j, ((r << 24) | (g << 16) | (b << 8) | a));
                   image.setRGB(i, j, ((a << 24) | (r << 16) | (g << 8) | b));
                   k++;
                 }
@@ -1549,14 +1587,6 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
                                         BufferedImage.TYPE_INT_ARGB);
               for (int j=0; j<data_height; j++) {
                 for (int i=0; i<data_width; i++) {
-/* MEM_WLH
-                  r = (int) (color_values[0][k] * 255.0);
-                  r = (r < 0) ? 0 : (r > 255) ? 255 : r;
-                  g = (int) (color_values[1][k] * 255.0);
-                  g = (g < 0) ? 0 : (g > 255) ? 255 : g;
-                  b = (int) (color_values[2][k] * 255.0);
-                  b = (b < 0) ? 0 : (b > 255) ? 255 : b;
-*/
                   r = (color_values[0][k] < 0) ? color_values[0][k] + 256 :
                                                  color_values[0][k];
                   g = (color_values[1][k] < 0) ? color_values[1][k] + 256 :
@@ -1564,8 +1594,6 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
                   b = (color_values[2][k] < 0) ? color_values[2][k] + 256 :
                                                  color_values[2][k];
                   a = 255;
-
-                  // image.setRGB(i, j, ((r << 24) | (g << 16) | (b << 8) | a));
                   image.setRGB(i, j, ((a << 24) | (r << 16) | (g << 8) | b));
                   k++;
                 }
@@ -1578,7 +1606,6 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
                   image.setRGB(i, j, 0);
                 }
               }
-
 //
 // this doesn't work - why not?
 //            image.setRGB(0, 0, texture_width, texture_height,
@@ -1590,8 +1617,8 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
 //                           rgbArray, j*texture_width, texture_width);
 //            }
 //
-
             } // end if (color_values.length == 3)
+*/
 
             shadow_api.textureToGroup(group, qarray, image, mode,
                                       constant_alpha, constant_color,
@@ -1600,65 +1627,141 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
             // System.out.println("isTextureMap done");
             return false;
           } // end if (isTextureMap)
-          else if (range_select[0] != null) {
-            // WLH 29 April 99
-            if (!pointMode && spatial_set != null && spatial_all_select &&
-                (spatialManifoldDimension == 2 || spatialManifoldDimension == 1)) {
-              int len = range_select[0].length;
-              byte[][] cv = new byte[4][];
-              if (color_values != null) {
-                for (int i=0; i<color_values.length; i++) {
-                  cv[i] = color_values[i];
-                }
-              }
-              color_values = cv;
-              for (int i=0; i<4; i++) {
-                byte miss = (i < 3) ? 0 : missing_transparent;
-                if (color_values == null || color_values[i] == null) {
-                  color_values[i] = new byte[len];
-                  if (i < 3 && constant_color != null) {
-                    byte c = floatToByte(constant_color[i]);
-                    for (int j=0; j<len; j++) {
-                      color_values[i][j] = range_select[0][j] ? c : miss;
-                    }
-                  }
-                  else if (i == 3 && constant_alpha == constant_alpha) {
-                    if (constant_alpha < 0.99f) miss = 0;
-                    byte c = floatToByte(constant_alpha);
-                    for (int j=0; j<len; j++) {
-                      color_values[i][j] = range_select[0][j] ? c : miss;
-                    }
-                  }
-                  else {
-                    for (int j=0; j<len; j++) {
-                      color_values[i][j] = range_select[0][j] ? (byte) -1 : miss;
-                    }
-                  }
-                }
-                else if (color_values[i].length == 1) {
-                  byte c = color_values[i][0];
-                  if (i == 3 && c != -1) miss = 0;
-                  color_values[i] = new byte[len];
-                  for (int j=0; j<len; j++) {
-                    color_values[i][j] = range_select[0][j] ? c : miss;
-                  }
-                }
-                else {
-                  if (i == 3) miss = 0;
-                  for (int j=0; j<len; j++) {
-                    if (!range_select[0][j]) color_values[i][j] = miss;
-                  }
-                }
-              }
+          else if (curvedTexture) {
+            if (range_select[0] != null) {
+              color_values =
+                selectToColor(range_select, color_values, constant_color,
+                              constant_alpha, missing_transparent);
               constant_alpha = Float.NaN;
-              if (spatialManifoldDimension == 2) {
-                array = spatial_set.make2DGeometry(color_values, indexed);
-              }
-              else {
-                array = spatial_set.make1DGeometry(color_values);
+            }
+
+            // get domain_set sizes
+            int[] lengths = ((GriddedSet) domain_set).getLengths();
+            data_width = lengths[0];
+            data_height = lengths[1];
+            texture_width = shadow_api.textureWidth(data_width);
+            texture_height = shadow_api.textureHeight(data_height);
+
+            int size = (data_width + data_height) / 2;
+            curved_size = Math.max(2, Math.min(curved_size, size / 32));
+
+            int nwidth = 2 + (data_width - 1) / curved_size;
+            int nheight = 2 + (data_height - 1) / curved_size;
+            int nn = nwidth * nheight;
+            coordinates = new float[3 * nn];
+            int k = 0;
+            int[] is = new int[nwidth];
+            int[] js = new int[nheight];
+            for (int i=0; i<nwidth; i++) {
+              is[i] = Math.min(i * curved_size, data_width - 1);
+            }
+            for (int j=0; j<nheight; j++) {
+              js[j] = Math.min(j * curved_size, data_height - 1);
+            }
+            for (int j=0; j<nheight; j++) {
+              for (int i=0; i<nwidth; i++) {
+                int ij = is[i] + data_width * js[j];
+                coordinates[k++] = spatial_values[0][ij];
+                coordinates[k++] = spatial_values[1][ij];
+                coordinates[k++] = spatial_values[2][ij];
+/*
+double size = Math.sqrt(spatial_values[0][ij] * spatial_values[0][ij] +
+                        spatial_values[1][ij] * spatial_values[1][ij] +
+                        spatial_values[2][ij] * spatial_values[2][ij]);
+if (size < 0.2) {
+  System.out.println("spatial_values " + is[i] + " " + js[j] + " " +
+  spatial_values[0][ij] + " " + spatial_values[1][ij] + " " + spatial_values[2][ij]);
+}
+*/
               }
             }
-            else {
+            normals = Gridded3DSet.makeNormals(coordinates, nwidth, nheight);
+            colors = new byte[3 * nn];
+            for (int i=0; i<3*nn; i++) colors[i] = (byte) 127;
+
+            float ratiow = ((float) data_width) / ((float) texture_width);
+            float ratioh = ((float) data_height) / ((float) texture_height);
+            int mt = 0;
+            texCoords = new float[2 * nn];
+            for (int j=0; j<nheight; j++) {
+              for (int i=0; i<nwidth; i++) {
+                texCoords[mt++] = ratiow * is[i] / (data_width - 1.0f);
+                texCoords[mt++] = 1.0f - ratioh * js[j] / (data_height - 1.0f);
+              }
+            }
+
+            VisADTriangleStripArray tarray = new VisADTriangleStripArray();
+            tarray.stripVertexCounts = new int[nheight - 1];
+            for (int i=0; i<nheight - 1; i++) {
+              tarray.stripVertexCounts[i] = 2 * nwidth;
+            }
+            int len = (nheight - 1) * (2 * nwidth);
+            tarray.vertexCount = len;
+            tarray.normals = new float[3 * len];
+            tarray.coordinates = new float[3 * len];
+            tarray.colors = new byte[3 * len];
+            tarray.texCoords = new float[2 * len];
+
+            // shuffle normals into tarray.normals, etc
+            k = 0;
+            int kt = 0;
+            int nwidth3 = 3 * nwidth;
+            int nwidth2 = 2 * nwidth;
+            for (int i=0; i<nheight-1; i++) {
+              int m = i * nwidth3;
+              mt = i * nwidth2;
+              for (int j=0; j<nwidth; j++) {
+                tarray.coordinates[k] = coordinates[m];
+                tarray.coordinates[k+1] = coordinates[m+1];
+                tarray.coordinates[k+2] = coordinates[m+2];
+                tarray.coordinates[k+3] = coordinates[m+nwidth3];
+                tarray.coordinates[k+4] = coordinates[m+nwidth3+1];
+                tarray.coordinates[k+5] = coordinates[m+nwidth3+2];
+
+                tarray.normals[k] = normals[m];
+                tarray.normals[k+1] = normals[m+1];
+                tarray.normals[k+2] = normals[m+2];
+                tarray.normals[k+3] = normals[m+nwidth3];
+                tarray.normals[k+4] = normals[m+nwidth3+1];
+                tarray.normals[k+5] = normals[m+nwidth3+2];
+
+                tarray.colors[k] = colors[m];
+                tarray.colors[k+1] = colors[m+1];
+                tarray.colors[k+2] = colors[m+2];
+                tarray.colors[k+3] = colors[m+nwidth3];
+                tarray.colors[k+4] = colors[m+nwidth3+1];
+                tarray.colors[k+5] = colors[m+nwidth3+2];
+
+                tarray.texCoords[kt] = texCoords[mt];
+                tarray.texCoords[kt+1] = texCoords[mt+1];
+                tarray.texCoords[kt+2] = texCoords[mt+nwidth2];
+                tarray.texCoords[kt+3] = texCoords[mt+nwidth2+1];
+
+                k += 6;
+                m += 3;
+                kt += 4;
+                mt += 2;
+              }
+            }
+
+            if (!spatial_all_select) {
+              tarray = (VisADTriangleStripArray) tarray.removeMissing();
+            }
+
+            BufferedImage image =
+              createImage(data_width, data_height, texture_width,
+                          texture_height, color_values);
+
+            shadow_api.textureToGroup(group, tarray, image, mode,
+                                      constant_alpha, constant_color,
+                                      texture_width, texture_height);
+            // System.out.println("curvedTexture done");
+            return false;
+          } // end if (curvedTexture)
+          else if (pointMode || spatial_set == null ||
+                   spatialManifoldDimension == 0 ||
+                   spatialManifoldDimension == 3) {
+            if (range_select[0] != null) {
               int len = range_select[0].length;
               if (len == 1 || spatial_values[0].length == 1) {
                 return false;
@@ -1674,40 +1777,33 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
               array = makePointGeometry(spatial_values, color_values, true);
               // System.out.println("makePointGeometry for some missing");
             }
-          }
-          else if (pointMode) {
-            array = makePointGeometry(spatial_values, color_values);
-            // System.out.println("makePointGeometry for pointMode");
-          }
-          else if (spatial_set == null) {
-            array = makePointGeometry(spatial_values, color_values);
-            // System.out.println("makePointGeometry for spatial_set == null");
+            else {
+              array = makePointGeometry(spatial_values, color_values);
+              // System.out.println("makePointGeometry for pointMode");
+            }
           }
           else if (spatialManifoldDimension == 1) {
-            //
-            // TO_DO
-            // test make1DGeometry (I think I did already,
-            //   but test it again just to make sure)
-            //
+            if (range_select[0] != null) {
+              color_values =
+                selectToColor(range_select, color_values, constant_color,
+                              constant_alpha, missing_transparent);
+              constant_alpha = Float.NaN;
+            }
             array = spatial_set.make1DGeometry(color_values);
+            if (!spatial_all_select) array = array.removeMissing();
             // System.out.println("make1DGeometry");
           }
           else if (spatialManifoldDimension == 2) {
+            if (range_select[0] != null) {
+              color_values =
+                selectToColor(range_select, color_values, constant_color,
+                              constant_alpha, missing_transparent);
+              constant_alpha = Float.NaN;
+            }
             array = spatial_set.make2DGeometry(color_values, indexed);
+            if (!spatial_all_select) array = array.removeMissing();
             // System.out.println("make2DGeometry  vertexCount = " +
             //                    array.vertexCount);
-          }
-          else if (spatialManifoldDimension == 3) {
-            array = makePointGeometry(spatial_values, color_values);
-            // System.out.println("makePointGeometry  for 3D");
-            //
-            // when make3DGeometry is implemented:
-            // array = spatial_set.make3DGeometry(color_values);
-            //
-          }
-          else if (spatialManifoldDimension == 0) {
-            array = spatial_set.makePointGeometry(color_values);
-            // System.out.println("makePointGeometry  for 0D");
           }
           else {
             throw new DisplayException("bad spatialManifoldDimension: " +
@@ -1990,6 +2086,132 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
     } // end if (!isTerminal)
   }
 
+  public byte[][] selectToColor(boolean[][] range_select,
+                  byte[][] color_values, float[] constant_color,
+                  float constant_alpha, byte missing_transparent) {
+    int len = range_select[0].length;
+    byte[][] cv = new byte[4][];
+    if (color_values != null) {
+      for (int i=0; i<color_values.length; i++) {
+        cv[i] = color_values[i];
+      }
+    }
+    color_values = cv;
+    for (int i=0; i<4; i++) {
+      byte miss = (i < 3) ? 0 : missing_transparent;
+      if (color_values == null || color_values[i] == null) {
+        color_values[i] = new byte[len];
+        if (i < 3 && constant_color != null) {
+          byte c = floatToByte(constant_color[i]);
+          for (int j=0; j<len; j++) {
+            color_values[i][j] = range_select[0][j] ? c : miss;
+          }
+        }
+        else if (i == 3 && constant_alpha == constant_alpha) {
+          if (constant_alpha < 0.99f) miss = 0;
+          byte c = floatToByte(constant_alpha);
+          for (int j=0; j<len; j++) {
+            color_values[i][j] = range_select[0][j] ? c : miss;
+          }
+        }
+        else {
+          for (int j=0; j<len; j++) {
+            color_values[i][j] = range_select[0][j] ? (byte) -1 : miss;
+          }
+        }
+      }
+      else if (color_values[i].length == 1) {
+        byte c = color_values[i][0];
+        if (i == 3 && c != -1) miss = 0;
+        color_values[i] = new byte[len];
+        for (int j=0; j<len; j++) {
+          color_values[i][j] = range_select[0][j] ? c : miss;
+        }
+      }
+      else {
+        if (i == 3) miss = 0;
+        for (int j=0; j<len; j++) {
+          if (!range_select[0][j]) color_values[i][j] = miss;
+        }
+      }
+    }
+    return color_values;
+  }
+
+  public BufferedImage createImage(int data_width, int data_height,
+                       int texture_width, int texture_height,
+                       byte[][] color_values) {
+    BufferedImage image = null;
+    int[] rgbArray = new int[texture_width * texture_height];
+    if (color_values.length > 3) {
+      int k = 0;
+      int r, g, b, a;
+      image = new BufferedImage(texture_width, texture_height,
+                                BufferedImage.TYPE_INT_ARGB);
+      for (int j=0; j<data_height; j++) {
+        for (int i=0; i<data_width; i++) {
+          r = (color_values[0][k] < 0) ? color_values[0][k] + 256 :
+                                         color_values[0][k];
+          g = (color_values[1][k] < 0) ? color_values[1][k] + 256 :
+                                         color_values[1][k];
+          b = (color_values[2][k] < 0) ? color_values[2][k] + 256 :
+                                         color_values[2][k];
+          a = (color_values[3][k] < 0) ? color_values[3][k] + 256 :
+                                         color_values[3][k];
+          image.setRGB(i, j, ((a << 24) | (r << 16) | (g << 8) | b));
+          k++;
+        }
+        for (int i=data_width; i<texture_width; i++) {
+          image.setRGB(i, j, 0);
+        }
+      }
+      for (int j=data_height; j<texture_height; j++) {
+        for (int i=0; i<texture_width; i++) {
+          image.setRGB(i, j, 0);
+        }
+      }
+      // transparency does not work yet
+    }
+    else { // (color_values.length == 3)
+      int k = 0;
+      int r, g, b, a;
+      image = new BufferedImage(texture_width, texture_height,
+                                BufferedImage.TYPE_INT_ARGB);
+      for (int j=0; j<data_height; j++) {
+        for (int i=0; i<data_width; i++) {
+          r = (color_values[0][k] < 0) ? color_values[0][k] + 256 :
+                                         color_values[0][k];
+          g = (color_values[1][k] < 0) ? color_values[1][k] + 256 :
+                                         color_values[1][k];
+          b = (color_values[2][k] < 0) ? color_values[2][k] + 256 :
+                                         color_values[2][k];
+          a = 255;
+          image.setRGB(i, j, ((a << 24) | (r << 16) | (g << 8) | b));
+          k++;
+        }
+        for (int i=data_width; i<texture_width; i++) {
+          image.setRGB(i, j, 0);
+        }
+      }
+      for (int j=data_height; j<texture_height; j++) {
+        for (int i=0; i<texture_width; i++) {
+          image.setRGB(i, j, 0);
+        }
+      }
+//
+// this doesn't work - why not?
+//    image.setRGB(0, 0, texture_width, texture_height,
+//                 rgbArray, 0, texture_width);
+//
+// this doesn't work either - why not?
+//    for (int j=0; j<texture_height; j++) {
+//      image.setRGB(0, j, texture_width, 1,
+//                   rgbArray, j*texture_width, texture_width);
+//    }
+//
+    } // end if (color_values.length == 3)
+    return image;
+  }
 
 }
 

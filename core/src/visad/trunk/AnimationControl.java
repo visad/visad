@@ -43,7 +43,7 @@ public interface AnimationControl extends AVControl {
  
   /** set the current step by the value of the RealType
       mapped to Display.Animation */
-  public void setCurrent(float value)
+  public void setCurrent(double value)
          throws VisADException, RemoteException;
  
   /** get the current ordinal step number */

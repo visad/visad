@@ -48,6 +48,56 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
     texCoords = null;
   }
 
+  public VisADGeometryArray removeMissing() {
+    VisADPointArray array = new VisADPointArray();
+    float[] coords = new float[coordinates.length];
+    int color_length = 3;
+    byte[] cols = null;
+    if (colors != null) {
+      cols = new byte[colors.length];
+      if (colors.length != coordinates.length) color_length = 4;
+    }
+    int k = 0;
+    int m = 0;
+    int j = 0;
+    boolean any_missing = false;
+    for (int i=0; i<coordinates.length; i+=3) {
+      if (coordinates[i] == coordinates[i] &&
+          coordinates[i+1] == coordinates[i+1] &&
+          coordinates[i+2] == coordinates[i+2]) {
+        coords[k] = coordinates[i];
+        coords[k+1] = coordinates[i+1];
+        coords[k+2] = coordinates[i+2];
+        if (colors != null) {
+          cols[m] = colors[j];
+          cols[m+1] = colors[j+1];
+          cols[m+2] = colors[j+2];
+          m += 3;
+          if (color_length == 4) {
+            cols[m++] = colors[j+3];
+          }
+        }
+        k += 3;
+      }
+      else { // missing coordinates values
+        any_missing = true;
+      }
+      j += color_length;
+    }
+    if (!any_missing) {
+      return this;
+    }
+    else {
+      array.coordinates = new float[k];
+      System.arraycopy(coords, 0, array.coordinates, 0, k);
+      if (colors != null) {
+        array.colors = new byte[m];
+        System.arraycopy(cols, 0, array.colors, 0, m);
+      }
+      return array;
+    }
+  }
+
   static void merge(VisADGeometryArray[] arrays, VisADGeometryArray array)
          throws VisADException {
     if (arrays == null || arrays.length == 0 ||

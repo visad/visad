@@ -59,4 +59,11 @@ public interface RemoteGraphicsModeControl extends RemoteControl
   /** get graphics-API-specific projection policy
       (e.g., PARALLEL_PROJECTION, PERSPECTIVE_PROJECTION) */
   public abstract int getProjectionPolicy() throws VisADException, RemoteException;
+
+  public abstract boolean getMissingTransparent()
+         throws VisADException, RemoteException;
+
+  public abstract int getCurvedSize()
+         throws VisADException, RemoteException;
+
 }

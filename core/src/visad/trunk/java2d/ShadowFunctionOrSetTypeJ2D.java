@@ -103,12 +103,12 @@ public class ShadowFunctionOrSetTypeJ2D extends ShadowTypeJ2D {
   public void setTexCoords(float[] texCoords, float ratiow, float ratioh) {
     // corner 0
     texCoords[0] = 0.0f;
-    texCoords[1] = 1.0f - ratioh;
+    texCoords[1] = 1.0f - ratioh;  // = 0.0f
     // corner 1
-    texCoords[2] = ratiow;
-    texCoords[3] = 1.0f - ratioh;
+    texCoords[2] = ratiow;         // = 1.0f
+    texCoords[3] = 1.0f - ratioh;  // = 0.0f
     // corner 2
-    texCoords[4] = ratiow;
+    texCoords[4] = ratiow;         // = 1.0f
     texCoords[5] = 1.0f;
     // corner 3
     texCoords[6] = 0.0f;

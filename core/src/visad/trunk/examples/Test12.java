@@ -50,6 +50,9 @@ public class Test12
     color1map = new ScalarMap(ir_radiance, Display.RGB);
     display1.addMap(color1map);
 
+    GraphicsModeControl mode = display1.getGraphicsModeControl();
+    mode.setTextureEnable(false);
+
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
     display1.addReference(ref_imaget1, null);

@@ -115,7 +115,7 @@ public class AnimationControlJ3D extends AVControlJ3D
     changeControl(true);
   }
  
-  public void setCurrent(float value)
+  public void setCurrent(double value)
          throws VisADException, RemoteException {
     if (animationSet != null) {
       current = animationSet.getIndex(value);

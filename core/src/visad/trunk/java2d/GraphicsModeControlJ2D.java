@@ -48,6 +48,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
   private int projectionPolicy = 0;
 
   private boolean missingTransparent = false;
+  private int curvedSize = 10;
 
   public GraphicsModeControlJ2D(DisplayImpl d) {
     super(d);
@@ -182,6 +183,14 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     }
   }
 
+  public int getCurvedSize() {
+    return curvedSize;
+  }
+
+  public void setCurvedSize(int curved_size) {
+    curvedSize = curved_size;
+  }
+
   public Object clone() {
     GraphicsModeControlJ2D mode =
       new GraphicsModeControlJ2D(getDisplay());
@@ -193,6 +202,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     mode.transparencyMode = transparencyMode;
     mode.projectionPolicy = projectionPolicy;
     mode.missingTransparent = missingTransparent;
+    mode.curvedSize = curvedSize;
     return mode;
   }
 

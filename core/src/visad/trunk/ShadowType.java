@@ -76,6 +76,7 @@ public abstract class ShadowType extends Object
   boolean isTerminal;
   int LevelOfDifficulty;
   boolean isTextureMap;
+  boolean curvedTexture;
 
   /** Dtype and Rtype used only with ShadowSetType and
       Flat ShadowFunctionType */
@@ -131,6 +132,7 @@ public abstract class ShadowType extends Object
     ValueIndices = zeroIndices(display.getValueArrayLength());
     isTerminal = false;
     isTextureMap = false;
+    curvedTexture = false;
     LevelOfDifficulty = NOTHING_MAPPED;
     MultipleSpatialDisplayScalar = false;
     MultipleDisplayScalar = false;
@@ -151,6 +153,10 @@ public abstract class ShadowType extends Object
 
   public boolean getIsTextureMap() {
     return isTextureMap;
+  }
+
+  public boolean getCurvedTexture() {
+    return curvedTexture;
   }
 
   public int[] getRefToComponent() {
@@ -417,7 +423,8 @@ public abstract class ShadowType extends Object
     return true;
   }
 
-  /** test for display_indices in (Color, Alpha, Flow, Range, Unmapped) */
+  /** test for display_indices in (Color, Alpha, Range, Flow, Shape,
+      ShapeScale, Text, Unmapped) */
   boolean checkR1D3(int[] display_indices) throws RemoteException {
     for (int i=0; i<display_indices.length; i++) {
       if (display_indices[i] == 0) continue;
@@ -444,8 +451,28 @@ public abstract class ShadowType extends Object
     return true;
   }
 
-  /** test for display_indices in
-      (Spatial, SpatialOffset, Color, Alpha, Flow, Range, Unmapped) */
+  /** test for display_indices in (Color, Range, Unmapped) */
+  boolean checkColorRange(int[] display_indices) throws RemoteException {
+    for (int i=0; i<display_indices.length; i++) {
+      if (display_indices[i] == 0) continue;
+      DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
+      DisplayTupleType tuple = real.getTuple();
+      if (tuple != null &&
+          (tuple.equals(Display.DisplayRGBTuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplayRGBTuple)))) continue;  // Color
+      if (real.equals(Display.RGB) ||
+          real.equals(Display.HSV) ||
+          real.equals(Display.CMY)) continue;  // more Color
+      if (real.equals(Display.SelectRange)) continue;
+      return false;
+    }
+    return true;
+  }
+
+  /** test for display_indices in (Spatial, SpatialOffset, Color, Alpha,
+      Range, Flow, Shape, ShapeScale, Text, Unmapped) */
   boolean checkR2D2(int[] display_indices) throws RemoteException {
     for (int i=0; i<display_indices.length; i++) {
       if (display_indices[i] == 0) continue;
@@ -474,6 +501,34 @@ public abstract class ShadowType extends Object
           real.equals(Display.ShapeScale) ||
           real.equals(Display.Text) ||
           real.equals(Display.SelectRange)) continue;
+      return false;
+    }
+    return true;
+  }
+
+  /** test for display_indices in (Spatial, SpatialOffset, Color,
+      Range, Unmapped) */
+  boolean checkSpatialColorRange(int[] display_indices) throws RemoteException {
+    for (int i=0; i<display_indices.length; i++) {
+      if (display_indices[i] == 0) continue;
+      DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
+      DisplayTupleType tuple = real.getTuple();
+      if (tuple != null &&
+          (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplaySpatialCartesianTuple)))) continue;  // Spatial
+      // SpatialOffset
+      if (Display.DisplaySpatialOffsetTuple.equals(tuple)) continue;
+      if (tuple != null &&
+          (tuple.equals(Display.DisplayRGBTuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplayRGBTuple)))) continue;  // Color
+      if (real.equals(Display.RGB) ||
+          real.equals(Display.HSV) ||
+          real.equals(Display.CMY)) continue;  // more Color
+      if (real.equals(Display.SelectRange)) continue;
       return false;
     }
     return true;
@@ -1237,9 +1292,6 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
             swap[2] = (simax < 0.0f);
           }
         }
-/* WLH 20 Aug 98
-        swap[0] = (imax == 0 || (imax == 2 && jmax == 1));
-*/
       } // end if (spatial_tuple == Display.DisplaySpatialCartesianTuple)
     }
 
@@ -1284,26 +1336,11 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           vector_ends[k] = coord.toReference(vector_ends[k]);
         } // end if (flen[k] > 0)
       } // end for (int k=0; k<2; k++)
-/*
-System.out.println("\nbefore tranform spatial_values[" + spatial_values.length +
-                   "][" + spatial_values[0].length + "]");
-for (int p=0; p<spatial_values[0].length; p++) {
-  System.out.println(" " + p + " " + spatial_values[0][p] + " " +
-                     spatial_values[1][p] + " " + spatial_values[2][p]);
-}
-*/
+
       // transform spatial_values
       float[][] new_spatial_values = coord.toReference(spatial_values);
       for (int i=0; i<3; i++) spatial_values[i] = new_spatial_values[i];
-/*
-System.out.println("\nafter tranform spatial_values[" + spatial_values.length +
-                   "][" + spatial_values[0].length + "]");
-for (int p=0; p<spatial_values[0].length; p++) {
-  System.out.println(" " + p + " " + spatial_values[0][p] + " " +
-                     spatial_values[1][p] + " " + spatial_values[2][p]);
-}
-System.out.println(" ");
-*/
+
       // subtract transformed spatial_values from transformed flow vectors
       for (int k=0; k<2; k++) {
         if (flen[k] > 0) {
@@ -1446,24 +1483,47 @@ System.out.println(" ");
               range_select[0] = r;
             }
             range_select[0][j] = false;
-            spatial_values[i][j] = 0.0f;
+            spatial_values[i][j] = Float.NaN;
           }
         }
       }
     } // end for (int i=0; i<3; i++)
 
     if (set_needed) {
-      if (spatialDimension == 0) {
-        double[] values = new double[3];
-        for (int i=0; i<3; i++) values[i] = spatial_values[i][0];
-        RealTuple tuple =
-          new RealTuple(Display.DisplaySpatialCartesianTuple, values);
-        return new SingletonSet(tuple);
+      float[][] samples = null;
+      if (range_select[0] == null) {
+        samples = spatial_values;
       }
       else {
-        SetType type = new SetType(Display.DisplaySpatialCartesianTuple);
-        // MEM
-        return domain_set.makeSpatial(type, spatial_values);
+        samples = new float[3][len];
+        for (int i=0; i<3; i++) {
+          for (int j=0; j<len; j++) {
+            samples[i][j] = (spatial_values[i][j] == spatial_values[i][j]) ?
+                            spatial_values[i][j] : 0.0f;
+          }
+        }
+      }
+      try {
+        if (spatialDimension == 0) {
+          double[] values = new double[3];
+          for (int i=0; i<3; i++) values[i] = samples[i][0];
+          RealTuple tuple =
+            new RealTuple(Display.DisplaySpatialCartesianTuple, values);
+          return new SingletonSet(tuple);
+        }
+        else {
+          SetType type = new SetType(Display.DisplaySpatialCartesianTuple);
+          // MEM
+          Set new_set = domain_set.makeSpatial(type, samples);
+          if (range_select[0] != null) {
+            // a real hack - fix this someday
+            new_set.cram_samples(spatial_values);
+          }
+          return new_set;
+        }
+      }
+      catch (VisADException e) {
+        return null;
       }
     }
     else {

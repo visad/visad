@@ -169,6 +169,10 @@ public class DateTime extends Object implements java.io.Serializable {
     return new Real(SecondsSinceMidnight01Jan0001);
   }
 
+  public double getValue() {
+    return SecondsSinceMidnight01Jan0001;
+  }
+
   public boolean isMissing() {
     return (Year < 0);
   }

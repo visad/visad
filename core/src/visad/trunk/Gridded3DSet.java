@@ -3931,6 +3931,61 @@ for (int j=0; j<nvertex; j++) {
     return iST;
   }
 
+  public static float[] makeNormals(float[] coordinates, int LengthX,
+                                    int LengthY) {
+    int Length = LengthX * LengthY;
+
+    float[] normals = new float[3 * Length];
+    int k = 0;
+    int ki, kj;
+    int LengthX3 = 3 * LengthX;
+    for (int i=0; i<LengthY; i++) {
+      for (int j=0; j<LengthX; j++) {
+        float c0 = coordinates[k];
+        float c1 = coordinates[k+1];
+        float c2 = coordinates[k+2];
+        float n0 = 0.0f;
+        float n1 = 0.0f;
+        float n2 = 0.0f;
+        float n, m, m0, m1, m2;
+        for (int ip = -1; ip<=1; ip += 2) {
+          for (int jp = -1; jp<=1; jp += 2) {
+            int ii = i + ip;
+            int jj = j + jp;
+            if (0 <= ii && ii < LengthY && 0 <= jj && jj < LengthX) {
+              ki = k + ip * LengthX3;
+              kj = k + jp * 3;
+              m0 = (coordinates[kj+2] - c2) * (coordinates[ki+1] - c1) -
+                   (coordinates[kj+1] - c1) * (coordinates[ki+2] - c2);
+              m1 = (coordinates[kj] - c0) * (coordinates[ki+2] - c2) -
+                   (coordinates[kj+2] - c2) * (coordinates[ki] - c0);
+              m2 = (coordinates[kj+1] - c1) * (coordinates[ki] - c0) -
+                   (coordinates[kj] - c0) * (coordinates[ki+1] - c1);
+              m = (float) Math.sqrt(m0 * m0 + m1 * m1 + m2 * m2);
+              if (ip == jp) {
+                n0 += m0 / m;
+                n1 += m1 / m;
+                n2 += m2 / m;
+              }
+              else {
+                n0 -= m0 / m;
+                n1 -= m1 / m;
+                n2 -= m2 / m;
+              }
+            }
+          }
+        }
+        n = (float) Math.sqrt(n0 * n0 + n1 * n1 + n2 * n2);
+        normals[k] = n0 / n;
+        normals[k+1] = n1 / n;
+        normals[k+2] = n2 / n;
+        k += 3;
+      } // end for (int j=0; j<LengthX; j++)
+    } // end for (int i=0; i<LengthY; i++)
+    return normals;
+  }
+
+
   /** create a 2-D GeometryArray from this Set and color_values */
   public VisADGeometryArray make2DGeometry(byte[][] color_values,
          boolean indexed) throws VisADException {
@@ -3979,54 +4034,7 @@ for (int j=0; j<nvertex; j++) {
   
       // calculate normals
       float[] coordinates = array.coordinates;
-      float[] normals = new float[3 * Length];
-      k = 0;
-      int ki, kj;
-      int LengthX3 = 3 * LengthX;
-      for (int i=0; i<LengthY; i++) {
-        for (int j=0; j<LengthX; j++) {
-          float c0 = coordinates[k];
-          float c1 = coordinates[k+1];
-          float c2 = coordinates[k+2];
-          float n0 = 0.0f;
-          float n1 = 0.0f;
-          float n2 = 0.0f;
-          float n, m, m0, m1, m2;
-          for (int ip = -1; ip<=1; ip += 2) {
-            for (int jp = -1; jp<=1; jp += 2) {
-              int ii = i + ip;
-              int jj = j + jp;
-              if (0 <= ii && ii < LengthY && 0 <= jj && jj < LengthX) {
-                ki = k + ip * LengthX3;
-                kj = k + jp * 3;
-                m0 = (coordinates[kj+2] - c2) * (coordinates[ki+1] - c1) -
-                     (coordinates[kj+1] - c1) * (coordinates[ki+2] - c2);
-                m1 = (coordinates[kj] - c0) * (coordinates[ki+2] - c2) -
-                     (coordinates[kj+2] - c2) * (coordinates[ki] - c0);
-                m2 = (coordinates[kj+1] - c1) * (coordinates[ki] - c0) -
-                     (coordinates[kj] - c0) * (coordinates[ki+1] - c1);
-                m = (float) Math.sqrt(m0 * m0 + m1 * m1 + m2 * m2);
-                if (ip == jp) {
-                  n0 += m0 / m;
-                  n1 += m1 / m;
-                  n2 += m2 / m;
-                }
-                else {
-                  n0 -= m0 / m;
-                  n1 -= m1 / m;
-                  n2 -= m2 / m;
-                }
-              }
-            }
-          }
-          n = (float) Math.sqrt(n0 * n0 + n1 * n1 + n2 * n2);
-          normals[k] = n0 / n;
-          normals[k+1] = n1 / n;
-          normals[k+2] = n2 / n;
-          k += 3;
-        } // end for (int j=0; j<LengthX; j++)
-      } // end for (int i=0; i<LengthY; i++)
-      // array.vertexFormat |= NORMALS;
+      float[] normals = makeNormals(coordinates, LengthX, LengthY);
       array.normals = normals;
       return array;
     }
@@ -4110,7 +4118,10 @@ for (int j=0; j<nvertex; j++) {
         }
       }
       normals = null;
-  
+/*
+int nmiss = 0;
+int nsmall = 0;
+*/
       array.coordinates = new float[3 * len];
       // shuffle samples into array.coordinates
       k = 0;
@@ -4123,11 +4134,22 @@ for (int j=0; j<nvertex; j++) {
           array.coordinates[k+3] = samples[0][m+LengthX];
           array.coordinates[k+4] = samples[1][m+LengthX];
           array.coordinates[k+5] = samples[2][m+LengthX];
+/*
+if (samples[0][m] != samples[0][m] ||
+    samples[1][m] != samples[1][m] ||
+    samples[2][m] != samples[2][m]) nmiss++;
+double size = Math.sqrt(samples[0][m] * samples[0][m] +
+                        samples[1][m] * samples[1][m] +
+                        samples[2][m] * samples[2][m]);
+if (size < 0.2) nsmall++;
+*/
           k += 6;
           m++;
         }
       }
-  
+
+// System.out.println("make2DGeometry nmiss = " + nmiss + " nsmall = " + nsmall);
+
       if (color_values != null) {
         int color_length = color_values.length;
         array.colors = new byte[color_length * len];

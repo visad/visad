@@ -39,6 +39,9 @@ public class Test48
     display1.addMap(new ConstantMap(1.0, Display.Green));
     display1.addMap(new ConstantMap(0.0, Display.Blue));
 
+    GraphicsModeControl mode = display1.getGraphicsModeControl();
+    mode.setTextureEnable(false);
+
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
     display1.addReference(ref_imaget1, null);

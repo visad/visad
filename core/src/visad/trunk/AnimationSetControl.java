@@ -56,25 +56,25 @@ public class AnimationSetControl extends Control {
     return current;
   }
 
-  public float getValue(int current) throws VisADException {
+  public double getValue(int current) throws VisADException {
     int[] indices = new int[1];
     indices[0] = clipCurrent(current);
     if (set == null) {
-      return Float.NaN;
+      return Double.NaN;
     }
     else {
-      float[][] values = set.indexToValue(indices);
+      double[][] values = set.indexToDouble(indices);
       return values[0][0];
     }
   }
 
-  public int getIndex(float value) throws VisADException {
+  public int getIndex(double value) throws VisADException {
     if (set == null) {
       return 0;
     }
     else {
-      float[][] values = new float[][] {{value}};
-      int[] indices = set.valueToIndex(values);
+      double[][] values = new double[][] {{value}};
+      int[] indices = set.doubleToIndex(values);
       return ((indices[0] < 0) ? 0 : indices[0]);
     }
   }
