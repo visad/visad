@@ -379,7 +379,7 @@ public abstract class VariableAdapter
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
-	    getClass().getName() + ".data(DArray): " +
+	    getClass().getName() + ".data(DArray,boolean): " +
 	    "Can't make VisAD data object from DODS DArray");
     }
 
