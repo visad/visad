@@ -14,8 +14,8 @@ set = makeDomain(type, 1, n, n, 1, n, n)
 values = []
 
 # nested loops for the 2-D grid
-for x in range(n):
-  for y in range(n):
+for y in range(n):
+  for x in range(n):
 
     # compute the grid value at (x, y)
     values.append( math.sin(4 * x * y * 0.017) )
