@@ -38,6 +38,7 @@ default:
 
 JC = javac
 JFLAGS = -J-mx32m
+JAVADIR = /usr/local/jdk1.2beta4
 RM = rm -f
 DOCS_DIR = ../docs
 DOC = javadoc
@@ -335,7 +336,11 @@ clean:
 	      echo "$$dir does not exist";				\
 	    else							\
 	      echo "*** Cleaning in $$dir";				\
-	      (cd $$dir && $(RM) *.class);				\
+	      if [ -f $$dir/Makefile ]; then				\
+		(cd $$dir && make -k clean);				\
+	      else							\
+		(cd $$dir && $(RM) *.class);				\
+	      fi;							\
 	    fi;								\
 	  fi;								\
 	done
@@ -361,7 +366,11 @@ compile: clean
 	      echo "$$dir does not exist";				\
 	    else							\
 	      echo "*** Building in $$dir";				\
-	      (cd $$dir && $(JC) $(JFLAGS) *.java);			\
+	      if [ -f $$dir/Makefile ]; then				\
+		(cd $$dir && make JAVADIR=${JAVADIR}) || true;				\
+	      else							\
+		(cd $$dir && $(JC) $(JFLAGS) *.java) || true;		\
+	      fi;							\
 	    fi;								\
 	  fi;								\
 	done
