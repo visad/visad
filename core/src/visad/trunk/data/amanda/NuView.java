@@ -66,6 +66,7 @@ public class NuView
   implements CmdlineConsumer
 {
   private String fileName;
+  private int displayDim;
 
   private DisplayImpl display, display2;
 
@@ -88,8 +89,13 @@ public class NuView
 
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
+    // make sure display window will fit on the screen
+    if (displayDim > screenSize.height) {
+      displayDim = screenSize.height;
+    }
+
     JPanel displayPanel = (JPanel )display.getComponent();
-    Dimension dim = new Dimension(800, 800);
+    Dimension dim = new Dimension(displayDim, displayDim);
     displayPanel.setPreferredSize(dim);
     displayPanel.setMinimumSize(dim);
 
@@ -246,6 +252,20 @@ public class NuView
 
   public int checkOption(String mainName, char ch, String arg)
   {
+    if (ch == 'd') {
+      int tmpDim;
+      try {
+        tmpDim = Integer.parseInt(arg);
+      } catch (NumberFormatException nfe) {
+        System.err.println(mainName + ": Bad display dimension \"" + arg +
+                           "\"");
+        return -1;
+      }
+
+      displayDim = tmpDim;
+      return 2;
+    }
+
     return 0;
   }
 
@@ -270,6 +290,7 @@ public class NuView
 
   public void initializeArgs()
   {
+    displayDim = 800;
     fileName = null;
   }
 
@@ -299,7 +320,7 @@ public class NuView
 
   public String optionUsage()
   {
-    return " [-o(ldData)]";
+    return " [-d displayDim] [-o(ldTrack)]";
   }
 
   private static final void setRange(ScalarMap map, double min, double max,
