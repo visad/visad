@@ -162,7 +162,12 @@ public class Rain implements ActionListener, ControlListener {
 
       Form form = null;
       if (args[0].endsWith(".v5d")) {
-        form = new Vis5DForm();
+        try {
+          form = new Vis5DForm();
+        } catch (UnsatisfiedLinkError e) {
+          System.out.println("Cannot find vis5d library: " + e.getMessage());
+          System.exit(1);
+        }
       }
       else {
         form = new Plain();
