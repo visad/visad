@@ -192,13 +192,12 @@ public class TextAdapter {
         break;
       }
       maps = t.trim();
-      if (!maps.startsWith("((") && !maps.startsWith("( (")) {
-        String tx = "("+maps+")";
-        maps = tx;
-      }
     } else {
       maps = map;
     }
+
+    maps = makeMT(maps);
+    System.out.println("Specified MathType = "+maps);
 
     // but first, we need to get the column headers because they
     // may have [units] associated with them.  The column headers
@@ -376,6 +375,7 @@ public class TextAdapter {
     MathType mt = null;
     try {
       mt = MathType.stringToType(maps);
+      System.out.println("from: "+maps+" made MathType: "+mt);
     } catch (Exception mte) {
       throw new VisADException("TextAdapter: MathType badly formed or missing: "+maps);
     }
@@ -935,6 +935,38 @@ public class TextAdapter {
 
     bis.close();
 
+  }
+
+  // munges a pseudo MathType string into something legal
+
+  private String makeMT(String s) {
+    String t = "";
+    for (int i=0; i<s.length(); i++) {
+      String r = s.substring(i,i+1);
+      if (!r.equals(" ") && !r.equals("\t") && !r.equals("\n")) {
+              t = t + r;
+      }
+    }
+    int k = t.indexOf("->");
+    if (k < 0) {
+      System.out.println("Invalid MathType form: -> required:"+k);
+      return null;
+    }
+
+    if (t.charAt(k-1) != ')' ) {
+      String t2 = "("+t.substring(0,k) + ")->("+t.substring(k+2)+")";
+      t = t2;
+    } else if (t.charAt(k+2) != '(' ) {
+      String t2 = t.substring(0,k+2)+"("+t.substring(k+2)+")";
+      t = t2;
+    }
+
+    if (!t.startsWith("((") ) {
+      String t2= "("+t+")";
+      t = t2;
+    }
+
+    return t;
   }
 
   private static final boolean isText(String s)
