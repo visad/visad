@@ -196,7 +196,21 @@ public class RealType extends ScalarType {
         case Data.MAX:
         case Data.MIN:
           if ( unit == null || thisUnit == null ) {
-            newType = this;
+            if ( thisUnit == null ) {
+              newType = this;
+              break;
+            }
+            if ( unit == null ) { 
+              newName = getUniqueGenericName( names, "nullUnit" );
+              newUnit = null;
+              try {
+                newType = new RealType( newName, newUnit, null );
+              }
+              catch ( TypeException e ) {
+                newType = RealType.getRealTypeByName( newName );
+              }
+              break;
+            }
           }
           else if ( thisUnit.equals( CommonUnit.promiscuous ) ) {
             newType = type;
@@ -221,8 +235,14 @@ public class RealType extends ScalarType {
         case Data.DIVIDE:
         case Data.INV_DIVIDE:
           if ( unit == null || thisUnit == null ) {
-            newType = this;
-            break;
+            if ( thisUnit == null ) {
+              newType = this;
+              break;
+            }
+            if ( unit == null ) {
+              newName = getUniqueGenericName( names, "nullUnit" );
+              newUnit = null;
+            }
           }
           else {
             switch (op) {
@@ -252,7 +272,6 @@ public class RealType extends ScalarType {
           }
           newUnit = null;
           newName = getUniqueGenericName( names, "nullUnit" );
-
           try {
             newType = new RealType( newName, newUnit, null );
           }
@@ -260,30 +279,12 @@ public class RealType extends ScalarType {
             newType = RealType.getRealTypeByName( newName );
           }
           break;
+
         case Data.ATAN2:
           newUnit = CommonUnit.radian;
         case Data.INV_ATAN2:
           newUnit = CommonUnit.radian;
-        case Data.ATAN2_DEGREES:
-          newUnit = CommonUnit.degree;
-        case Data.INV_ATAN2_DEGREES: 
-          newUnit = CommonUnit.degree;
-        case Data.REMAINDER:
-          newUnit = thisUnit;
-        case Data.INV_REMAINDER:
-          newUnit = unit;
-          if ( thisUnit == null ) {
-            newType = this;
-            break;
-          }
-
-          if ( newUnit == null ) {
-            newName = getUniqueGenericName( names, "nullUnit" );
-          }
-          else {
-            newName = getUniqueGenericName( names, newUnit.toString() );
-          }
-
+          newName = getUniqueGenericName( names, newUnit.toString() );
           try {
             newType = new RealType( newName, newUnit, null );
           }
@@ -291,6 +292,31 @@ public class RealType extends ScalarType {
             newType = RealType.getRealTypeByName( newName );
           }
           break;
+
+        case Data.ATAN2_DEGREES:
+          newUnit = CommonUnit.degree;
+        case Data.INV_ATAN2_DEGREES: 
+          newUnit = CommonUnit.degree;
+          newName = getUniqueGenericName( names, "deg" );
+          try {
+            newType = new RealType( newName, newUnit, null );
+          }
+          catch ( TypeException e ) {
+            newType = RealType.getRealTypeByName( newName );
+          }
+          break;
+
+        case Data.REMAINDER:
+          newType = this;
+          break;
+        case Data.INV_REMAINDER:
+          if ( thisUnit == null ) {
+            newType = this;
+            break;
+          }
+          newType = type;
+          break;
+
         default:
           throw new ArithmeticException("RealType.binary: illegal operation");
       }
@@ -324,14 +350,11 @@ public class RealType extends ScalarType {
       case Data.NEGATE:
         newType = this;
         break;
+
       case Data.ACOS:
       case Data.ASIN:
       case Data.ATAN:
         newUnit = CommonUnit.radian;
-      case Data.ACOS_DEGREES:
-      case Data.ASIN_DEGREES:
-      case Data.ATAN_DEGREES:
-        newUnit = CommonUnit.degree;
         newName = getUniqueGenericName( names, newUnit.toString() );
         try {
           newType = new RealType( newName, newUnit, null );
@@ -340,6 +363,20 @@ public class RealType extends ScalarType {
           newType = RealType.getRealTypeByName( newName );
         }
         break;
+
+      case Data.ACOS_DEGREES:
+      case Data.ASIN_DEGREES:
+      case Data.ATAN_DEGREES:
+        newUnit = CommonUnit.degree;
+        newName = getUniqueGenericName( names, "deg" );
+        try {
+          newType = new RealType( newName, newUnit, null );
+        }
+        catch ( TypeException e ) {
+          newType = RealType.getRealTypeByName( newName );
+        }
+        break;
+
       case Data.COS:
       case Data.COS_DEGREES:
       case Data.SIN:
@@ -349,21 +386,23 @@ public class RealType extends ScalarType {
       case Data.SQRT:
       case Data.EXP:
       case Data.LOG:
-        newUnit = CommonUnit.dimensionless.equals( DefaultUnit ) ? DefaultUnit : null;
-        if ( newUnit == null ) {
-          newName = getUniqueGenericName( names, "nullUnit" );
+        if ( DefaultUnit == null ) {
+          newType = this;
+          break;
         }
         else {
-          newName = getUniqueGenericName( names, newUnit.toString() );
-        }
-
-        try {
-          newType = new RealType( newName, newUnit, null );
-        }
-        catch ( TypeException e ) {
-          newType = RealType.getRealTypeByName( newName );
+          newUnit = CommonUnit.dimensionless.equals( DefaultUnit ) ? DefaultUnit : null;
+          String ext = (newUnit == null) ? "nullUnit" : newUnit.toString();
+          newName = getUniqueGenericName( names, ext );
+          try {
+            newType = new RealType( newName, newUnit, null );
+          }
+          catch ( TypeException e ) {
+            newType = RealType.getRealTypeByName( newName );
+          }
         }
         break;
+
       default:
         throw new ArithmeticException("RealType.binary: illegal operation");
     }
@@ -404,6 +443,61 @@ public class RealType extends ScalarType {
 
   public String toString() {
     return getName();
+  }
+
+  public static void main( String[] args ) 
+         throws VisADException 
+  {
+
+  //- Tests for unary   --*
+    MathType m_type;
+    RealType real_R = new RealType( "Red_Brightness", null, null );
+    RealType real_G = new RealType( "Green_Brightness", null, null );
+    RealType real_B = new RealType( "Blue_Brightness", null, null );
+    RealType[] reals = { real_R, real_G, real_B }; 
+
+    RealTupleType RGBtuple = new RealTupleType( reals );
+
+    m_type = RGBtuple.unary( Data.COS, new Vector() );
+      System.out.println( m_type.toString() );
+
+    m_type = RGBtuple.unary( Data.COS_DEGREES, new Vector() );
+      System.out.println( m_type.toString() );
+
+    m_type = RGBtuple.unary( Data.ABS, new Vector() );
+      System.out.println( m_type.toString() );
+
+    m_type = RGBtuple.unary( Data.ACOS, new Vector() );
+      System.out.println( m_type.toString() );
+
+    m_type = RGBtuple.unary( Data.ACOS_DEGREES, new Vector() );
+      System.out.println( m_type.toString() );
+
+    RealType real_A = new RealType( "distance", SI.meter, null );
+
+    m_type = real_A.unary( Data.EXP, new Vector() );
+      System.out.println( m_type.toString() );
+
+
+  //- Tests for binary   --*
+
+    real_A = RealType.Generic;
+ // real_A = new RealType( "temperature", SI.kelvin, null );
+    m_type = RGBtuple.binary( real_A, Data.ADD, new Vector() );  
+      System.out.println( m_type.toString() );
+
+    m_type = RGBtuple.binary( real_A, Data.MULTIPLY, new Vector() );  
+      System.out.println( m_type.toString() );
+
+    m_type = RGBtuple.binary( real_A, Data.POW, new Vector() );  
+      System.out.println( m_type.toString() );
+
+    m_type = RGBtuple.binary( real_A, Data.ATAN2, new Vector() );  
+      System.out.println( m_type.toString() );
+
+    m_type = RGBtuple.binary( real_A, Data.ATAN2_DEGREES, new Vector() );  
+      System.out.println( m_type.toString() );
+
   }
 
 }
