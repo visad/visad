@@ -5,11 +5,9 @@
 /*
 
 This code was modified from the original Fortran code on the
-McIDAS system.
-
-VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
-Rink and Dave Glowacki.
+McIDAS system.  The code in this file is Copyright(C) 1998 by Tom
+Whittaker.  It is designed to be used with the VisAD system for 
+interactive analysis and visualization of numerical data.  
  
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

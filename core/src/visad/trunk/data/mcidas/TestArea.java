@@ -1,12 +1,12 @@
-
 //
 // TestArea.java
 //
 
 /*
-VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
-Rink and Dave Glowacki.
+
+The software in this file is Copyright(C) 1998 by Tom Whittaker.
+It is designed to be used with the VisAD system for interactive 
+analysis and visualization of numerical data.  
  
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
+package visad.data.mcidas;
 import edu.wisc.ssec.mcidas.*;
 
 import visad.java2d.DisplayImplJ2D;
@@ -31,9 +32,11 @@ import visad.java3d.DisplayImplJ3D;
 import visad.java3d.DefaultRendererJ3D;
 import visad.Set;
 
+import visad.*;
 import visad.util.*;  
 import visad.DataReferenceImpl;
 import visad.DataReference;
+import visad.DataRenderer;
 import visad.DisplayImpl;
 import visad.FunctionType;
 import visad.RealTupleType;
@@ -41,7 +44,6 @@ import visad.RealType;
 import visad.Display;
 import visad.ScalarMap;
 import visad.ConstantMap;
-import visad.*;
 
 import java.awt.*;
 import java.awt.event.*;
