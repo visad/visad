@@ -6,12 +6,13 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: QuantityDB.java,v 1.2 1998-08-12 18:40:42 visad Exp $
+ * $Id: QuantityDB.java,v 1.3 1998-09-23 19:22:44 steve Exp $
  */
 
 package visad.data.netcdf;
 
 import java.io.Serializable;
+import java.util.Iterator;
 import java.util.TreeMap;
 import visad.DerivedUnit;
 import visad.QuantityDimension;
@@ -93,6 +94,16 @@ public class QuantityDB
     throws VisADException, ParseException
   {
     add(name, new Quantity(name, unitSpec));
+  }
+
+
+  /**
+   * Return an iterator of the quantities in the database.
+   */
+  public Iterator
+  getIterator()
+  {
+    return nameMap.values().iterator();
   }
 
 
@@ -188,7 +199,7 @@ public class QuantityDB
      */
     protected Key(String name, Unit unit)
     {
-      this.name = name.toLowerCase();
+      this.name = name;
       this.unit = unit;
     }
 
