@@ -911,6 +911,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   /** a Display is runnable;
       doAction is invoked by any event that requires a re-transform */
   public void doAction() throws VisADException, RemoteException {
+// System.out.println("doAction start");
     if (mapslock == null) return;
     synchronized (mapslock) {
       if (RendererVector == null || displayRenderer == null) {
@@ -975,8 +976,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
           DataRenderer renderer = (DataRenderer) renderers.nextElement();
           go |= renderer.checkAction();
         }
-// System.out.println("initialize = " + initialize + " go = " + go);
       }
+// System.out.println("initialize = " + initialize + " go = " + go +
+//                    " redisplay_all = " + redisplay_all);
       if (redisplay_all) {
         go = true;
 // System.out.println("redisplay_all = " + redisplay_all + " go = " + go);

@@ -215,9 +215,15 @@ public class ScalarMap extends Object
 
   /** invoke incTick on every application call to setRange */
   public long incTick() {
-    if (display != null) display.controlChanged();
+    // WLH 19 Feb 2001 - move to after increment NewTick
+    // if (display != null) display.controlChanged();
     NewTick += 1;
     if (NewTick == Long.MAX_VALUE) NewTick = Long.MIN_VALUE + 1;
+/*
+System.out.println(Scalar + " -> " + DisplayScalar +
+                   "  incTick = " + NewTick);
+*/
+    if (display != null) display.controlChanged();
     return NewTick;
   }
 
