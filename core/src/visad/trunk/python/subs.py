@@ -14,7 +14,8 @@ try:  #try/except done to remove these lines from documentation only
           VisADLineArray, VisADQuadArray, VisADTriangleArray, SetType, \
           VisADGeometryArray, ConstantMap, Integer1DSet, FunctionType, \
           ScalarMap, Display, Integer1DSet, FieldImpl, CellImpl, \
-          DisplayListener, DisplayEvent, GraphicsModeControl
+          DisplayListener, DisplayEvent, GraphicsModeControl, \
+          MouseHelper
           
 
   from types import StringType
@@ -127,15 +128,24 @@ class _vdisp:
     Util.captureDisplay(self, filename)
 
 
-  def addData(self, name, data, constantMaps=None, renderer=None, ref=None):
+  def addData(self, name, data, constantMaps=None, renderer=None, ref=None, zlayer=None):
     """
     Add VisAD <data> to the display <disp>.  Use a reference <name>.
     If there are ConstantMaps, also add them.  If there is a non-default
-    Renderer, use it as well.  Finally, you can supply a pre-defined
-    DataReference as <ref>.
+    Renderer, use it as well.  You can supply a pre-defined
+    DataReference as <ref>.  Finally, if nothing is mapped to Display.ZAxis,
+    data objects with the highest <zlayer: (0,1)> will appear on top in the display.
+
 
     Returns the DataReference
     """
+
+    if zlayer is not None:
+      zmap = [ConstantMap(zlayer, Display.ZAxis)]
+      if constantMaps is not None:
+        constantMaps = constantMaps + zmap
+      else:
+        constantMaps = zmap
 
     if ref is None: 
       ref = DataReferenceImpl(name)
@@ -490,8 +500,16 @@ def makeDisplay(maps):
     disp = makeDisplay3D(maps)
   else:
     if __ok3d:
-      tdr = TwoDDisplayRendererJ3D() 
-      disp = _vdisp3D(maps, tdr)
+      disp = makeDisplay3D(maps)
+      mode = disp.getGraphicsModeControl()
+      mode.setProjectionPolicy(DisplayImplJ3D.PARALLEL_PROJECTION)
+      mousehelper = disp.getDisplayRenderer().getMouseBehavior().getMouseHelper()
+      mousehelper.setFunctionMap([[[MouseHelper.TRANSLATE, MouseHelper.ZOOM],
+                                   [MouseHelper.TRANSLATE, MouseHelper.NONE]],
+                                  [[MouseHelper.CURSOR_TRANSLATE, MouseHelper.CURSOR_ZOOM],
+                                   [MouseHelper.CURSOR_ROTATE, MouseHelper.NONE]],
+                                  [[MouseHelper.DIRECT, MouseHelper.DIRECT],
+                                   [MouseHelper.DIRECT, MouseHelper.DIRECT]]])
     else:
       disp =  _vdisp2D(maps)
   
@@ -505,16 +523,17 @@ def saveDisplay(disp, filename):
   disp.saveDisplay(filename)
 
 
-def addData(name, data, disp, constantMaps=None, renderer=None, ref=None):
+def addData(name, data, disp, constantMaps=None, renderer=None, ref=None, zlayer=None):
   """
   Add <data> to the display <disp>.  Use a reference <name>.
   If there are ConstantMaps, also add them.  If there is a non-default
-  Renderer, use it as well.  Finally, you can supply a pre-defined
-  DataReference as <ref>.
+  Renderer, use it as well.  You can supply a pre-defined
+  DataReference as <ref>.  Finally, if nothing is mapped to Display.ZAxis,
+  data objects with the highest <zlayer: (0,1)> will appear on top in the display.  
 
   Returns the DataReference
   """
-  return disp.addData(name, data, constantMaps, renderer, ref)
+  return disp.addData(name, data, constantMaps, renderer, ref, zlayer)
 
 
 def setPointSize(display, size):
@@ -1376,5 +1395,4 @@ class LinkBoxControl(ControlListener):
     if not self.control.equals(self.otherpc):
       self.mat = self.control.getMatrix()
       self.otherpc.setMatrix(self.mat)
-
 
