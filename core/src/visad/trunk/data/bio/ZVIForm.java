@@ -249,7 +249,7 @@ public class ZVIForm extends Form
     int index = 0;
     float[][] samples = new float[numChannels][numPixels];
     for (int i=0; i<numPixels; i++) {
-      for (int c=0; c<numChannels; c++) {
+      for (int c=numChannels-1; c>=0; c--) {
         byte[] b = new byte[bytesPerChannel];
         System.arraycopy(imageBytes, index, b, 0, bytesPerChannel);
         index += bytesPerChannel;
