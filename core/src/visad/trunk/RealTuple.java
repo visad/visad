@@ -258,8 +258,8 @@ public class RealTuple extends Tuple {
          throws VisADException, RemoteException {
     shadow = super.computeRanges(type, shadow);
     ShadowRealTupleType shad_ref = ((ShadowRealTupleType) type).getReference();
-    int n = tupleComponents.length;
     if (isMissing() || shad_ref == null) return shadow;
+    int n = tupleComponents.length;
     // computeRanges for Reference RealTypes
     double[][] ranges = new double[2][n];
     for (int i=0; i<n; i++) {

@@ -1,0 +1,529 @@
+//
+// RubberBandBoxRendererJ3D.java
+//
+
+/*
+VisAD system for interactive analysis and visualization of numerical
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
+Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
+Tommy Jasmin.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Library General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Library General Public License for more details.
+
+You should have received a copy of the GNU Library General Public
+License along with this library; if not, write to the Free
+Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+MA 02111-1307, USA
+*/
+
+package visad.bom;
+
+import visad.*;
+import visad.java3d.*;
+
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import java.util.*;
+import java.rmi.*;
+
+import javax.media.j3d.*;
+
+/**
+   RubberBandBoxRendererJ3D is the VisAD class for direct
+   manipulation of rubber band boxes
+*/
+public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
+
+  private RealType x = null;
+  private RealType y = null;
+  private RealTupleType xy = null;
+
+  private BranchGroup branch = null;
+  private BranchGroup group = null;
+
+  /** this DirectManipulationRenderer is quite different - it does not
+      render its data, but only place values into its DataReference
+      on right mouse button release;
+      it uses x and y to determine spatial ScalarMaps */
+  public RubberBandBoxRendererJ3D (RealType xarg, RealType yarg) {
+    super();
+    x = xarg;
+    y = yarg;
+  }
+
+  /** don't render - just return BranchGroup for scene graph to
+      render rectangle into */
+  public synchronized BranchGroup doTransform()
+         throws VisADException, RemoteException {
+    branch = new BranchGroup();
+    branch.setCapability(BranchGroup.ALLOW_DETACH);
+    branch.setCapability(Group.ALLOW_CHILDREN_READ);
+    branch.setCapability(Group.ALLOW_CHILDREN_WRITE);
+    branch.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+
+    // check type and maps for valid direct manipulation
+    if (!getIsDirectManipulation()) {
+      throw new BadDirectManipulationException(getWhyNotDirect() +
+        ": DirectManipulationRendererJ3D.doTransform");
+    }
+    setBranch(branch);
+    return branch;
+  }
+
+  /** for use in drag_direct */
+  private transient DataDisplayLink link = null;
+  private transient DataReference ref = null;
+
+  private transient ScalarMap xmap = null;
+  private transient ScalarMap ymap = null;
+
+  float[] default_values;
+
+  /** arrays of length one for inverseScaleValues */
+  private float[] f = new float[1];
+  private float[] d = new float[1];
+  private float[] value = new float[2];
+
+  /** information calculated by checkDirect */
+  /** explanation for invalid use of DirectManipulationRenderer */
+  private String whyNotDirect = null;
+  /** dimension of direct manipulation
+      (always 2 for RubberBandBoxRendererJ3D) */
+  private int directManifoldDimension = 2;
+  /** spatial DisplayTupleType other than
+      DisplaySpatialCartesianTuple */
+  private DisplayTupleType tuple;
+  private CoordinateSystem tuplecs;
+
+  private int xindex = -1;
+  private int yindex = -1;
+  private int otherindex = -1;
+  private float othervalue;
+
+  private byte red, green, blue; // default colors
+
+  private float[][] first_x;
+  private float[][] last_x;
+
+  /** possible values for whyNotDirect */
+  private final static String xandyNotMatch =
+    "x and y spatial domains don't match";
+  private final static String xandyNotSpatial =
+    "x and y must be mapped to spatial";
+
+
+  private boolean stop = false;
+
+  public void checkDirect() throws VisADException, RemoteException {
+    setIsDirectManipulation(false);
+
+    DisplayImpl display = getDisplay();
+    link = getLinks()[0];
+    ref = link.getDataReference();
+    default_values = link.getDefaultValues();
+
+    xmap = null;
+    ymap = null;
+    Vector scalar_map_vector = display.getMapVector();
+    Enumeration enum = scalar_map_vector.elements();
+    while (enum.hasMoreElements()) {
+      ScalarMap map = (ScalarMap) enum.nextElement();
+      ScalarType real = map.getScalar();
+      if (real.equals(x)) {
+        DisplayRealType dreal = map.getDisplayScalar();
+        DisplayTupleType t = dreal.getTuple();
+        if (t != null &&
+            (t.equals(Display.DisplaySpatialCartesianTuple) ||
+             (t.getCoordinateSystem() != null &&
+              t.getCoordinateSystem().getReference().equals(
+              Display.DisplaySpatialCartesianTuple)))) {
+          xmap = map;
+          xindex = dreal.getTupleIndex();
+          tuple = t;
+        }
+      }
+      if (real.equals(y)) {
+        DisplayRealType dreal = map.getDisplayScalar();
+        DisplayTupleType t = dreal.getTuple();
+        if (t != null &&
+            (t.equals(Display.DisplaySpatialCartesianTuple) ||
+             (t.getCoordinateSystem() != null &&
+              t.getCoordinateSystem().getReference().equals(
+              Display.DisplaySpatialCartesianTuple)))) {
+          ymap = map;
+          yindex = dreal.getTupleIndex();
+          if (!t.equals(tuple)) {
+            whyNotDirect = xandyNotMatch;
+            return;
+          }
+        }
+      }
+    }
+
+    if (xmap == null || ymap == null) {
+      whyNotDirect = xandyNotSpatial;
+      return;
+    }
+
+    xy = new RealTupleType(x, y);
+
+    // get default value for other component of tuple
+    otherindex = 3 - (xindex + yindex);
+    DisplayRealType dreal = (DisplayRealType) tuple.getComponent(otherindex);
+    int index = getDisplay().getDisplayScalarIndex(dreal);
+    othervalue = (index > 0) ? default_values[index] :
+                               (float) dreal.getDefaultValue();
+
+    // get default colors
+    index = getDisplay().getDisplayScalarIndex(Display.Red);
+    float v = (index > 0) ? default_values[index] :
+                           (float) Display.Red.getDefaultValue();
+    red = ShadowType.floatToByte(v);
+    index = getDisplay().getDisplayScalarIndex(Display.Green);
+    v = (index > 0) ? default_values[index] :
+                      (float) Display.Green.getDefaultValue();
+    green = ShadowType.floatToByte(v);
+    index = getDisplay().getDisplayScalarIndex(Display.Blue);
+    v = (index > 0) ? default_values[index] :
+                      (float) Display.Blue.getDefaultValue();
+    blue = ShadowType.floatToByte(v);
+
+    if (Display.DisplaySpatialCartesianTuple.equals(tuple)) {
+      tuple = null;
+      tuplecs = null;
+    }
+    else {
+      tuplecs = tuple.getCoordinateSystem();
+    }
+
+    directManifoldDimension = 2;
+    setIsDirectManipulation(true);
+  }
+
+  private int getDirectManifoldDimension() {
+    return directManifoldDimension;
+  }
+
+  public String getWhyNotDirect() {
+    return whyNotDirect;
+  }
+
+  public void addPoint(float[] x) throws VisADException {
+    // may need to do this for performance
+  }
+
+// methods customized from DataRenderer:
+
+  public CoordinateSystem getDisplayCoordinateSystem() {
+    return tuplecs;
+  }
+
+  /** set spatialValues from ShadowType.doTransform */
+  public synchronized void setSpatialValues(float[][] spatial_values) {
+    // do nothing
+  }
+
+  /** check if ray intersects sub-manifold */
+  public synchronized float checkClose(double[] origin, double[] direction) {
+    try {
+      float r = findRayManifoldIntersection(true, origin, direction);
+      if (r == r) {
+        return 0.0f;
+      }
+      else {
+        return Float.MAX_VALUE;
+      }
+    }
+    catch (VisADException ex) {
+      return Float.MAX_VALUE;
+    }
+  }
+
+  //
+  // may eventually move all this down to DataRenderer and
+  // generally support manifold dimension = 2 when !mode2d
+  //
+  private float ray_pos; // save last ray_pos as first guess for next
+  private static final int GUESSES = 200;
+  private static final float RAY_POS_INC = 0.1f;
+  private static final int TRYS = 20;
+  private static final double EPS = 0.00001f;
+
+  private float findRayManifoldIntersection(boolean first,
+                             double[] origin, double[] direction)
+          throws VisADException {
+    ray_pos = Float.NaN;
+    if (otherindex < 0) return ray_pos;
+    if (tuple == null) {
+      ray_pos = (float)
+        ((othervalue - origin[otherindex]) / direction[otherindex]);
+    }
+    else { // tuple != null
+      if (first) {
+        // generate a first guess ray_pos by brute force
+        ray_pos = Float.NaN;
+        float[][] guesses = new float[3][GUESSES];
+        for (int i=0; i<GUESSES; i++) {
+          float rp = i * RAY_POS_INC;
+          guesses[0][i] = (float) (origin[0] + rp * direction[0]);
+          guesses[1][i] = (float) (origin[1] + rp * direction[1]);
+          guesses[2][i] = (float) (origin[2] + rp * direction[2]);
+        }
+        guesses = tuplecs.fromReference(guesses);
+        double distance = Double.MAX_VALUE;
+        float lastg = 0.0f;
+        for (int i=0; i<GUESSES; i++) {
+          float g = othervalue - guesses[otherindex][i];
+          // first, look for nearest zero crossing and interpolate
+          if (i > 0 && ((g < 0.0f && lastg >= 0.0f) || (g >= 0.0f && lastg < 0.0f))) {
+            float r = (float)
+              (i - (Math.abs(g) / (Math.abs(lastg) + Math.abs(g))));
+            ray_pos = r * RAY_POS_INC;
+            break;
+          }
+          lastg = g;
+
+          // otherwise look for closest to zero
+          double d = Math.abs(othervalue - guesses[otherindex][i]);
+          if (d < distance) {
+            distance = d;
+            ray_pos = i * RAY_POS_INC;
+          }
+        } // end for (int i=0; i<GUESSES; i++)
+      }
+      if (ray_pos == ray_pos) {
+        // use Newton's method to refine first guess
+        double r = ray_pos;
+        double error = 1.0f;
+        double[][] guesses = new double[3][3];
+        for (int itry=0; (itry<TRYS && error>EPS && r == r); itry++) {
+          double rp = r + EPS;
+          double rm = r - EPS;
+          guesses[0][0] = origin[0] + rp * direction[0];
+          guesses[1][0] = origin[1] + rp * direction[1];
+          guesses[2][0] = origin[2] + rp * direction[2];
+          guesses[0][1] = origin[0] + ray_pos * direction[0];
+          guesses[1][1] = origin[1] + ray_pos * direction[1];
+          guesses[2][1] = origin[2] + ray_pos * direction[2];
+          guesses[0][2] = origin[0] + rm * direction[0];
+          guesses[1][2] = origin[1] + rm * direction[1];
+          guesses[2][2] = origin[2] + rm * direction[2];
+          guesses = tuplecs.fromReference(guesses);
+          double gp = othervalue - guesses[otherindex][0];
+          double g = othervalue - guesses[otherindex][1];
+          double gm = othervalue - guesses[otherindex][2];
+          double dg = (gp - gm) / (EPS + EPS);
+          r = r - g / dg;
+          error = Math.abs(g); // actually previous error
+        }
+        ray_pos = (float) r;
+        if (error > EPS) {
+          ray_pos = Float.NaN;
+System.out.println("error = " + error);
+        }
+      }
+    } // end (tuple != null)
+    if (ray_pos < 0.0f) ray_pos = Float.NaN;
+    return ray_pos;
+  }
+
+  /** mouse button released, ending direct manipulation */
+  public synchronized void release_direct() {
+    // actually set box RealTuple in ref here
+    if (group != null) group.detach();
+    group = null;
+    try {
+      RealTuple newData = null;
+
+      ref.setData(newData);
+      link.clearData();
+    } // end try
+    catch (VisADException e) {
+      // do nothing
+      System.out.println("drag_direct " + e);
+      e.printStackTrace();
+    }
+    catch (RemoteException e) {
+      // do nothing
+      System.out.println("drag_direct " + e);
+      e.printStackTrace();
+    }
+  }
+
+  public void stop_direct() {
+    stop = true;
+  }
+
+  private static final int EDGE = 20;
+
+  public synchronized void drag_direct(VisADRay ray, boolean first,
+                                       int mouseModifiers) {
+    // System.out.println("drag_direct " + first + " " + type);
+    if (ref == null) return;
+
+    if (first) {
+      stop = false;
+    }
+    else {
+      if (stop) return;
+    }
+
+    double[] origin = ray.position;
+    double[] direction = ray.vector;
+
+    try {
+      float r = findRayManifoldIntersection(true, origin, direction);
+      float[][] xx = {{(float) (origin[0] + r * direction[0])},
+                      {(float) (origin[1] + r * direction[1])},
+                      {(float) (origin[2] + r * direction[2])}};
+      if (tuple != null) xx = tuplecs.fromReference(xx);
+  
+      if (first) first_x = xx;
+      last_x = xx;
+
+      Vector vect = new Vector();
+      f[0] = xx[xindex][0];
+      d = xmap.inverseScaleValues(f);
+      String valueString = new Real(x, d[0]).toValueString();
+      vect.addElement(x.getName() + " = " + valueString);
+      f[0] = xx[yindex][0];
+      d = ymap.inverseScaleValues(f);
+      valueString = new Real(y, d[0]).toValueString();
+      vect.addElement(y.getName() + " = " + valueString);
+      getDisplayRenderer().setCursorStringVector(vect);
+
+      int npoints = 4 * EDGE + 1;
+      float[][] c = new float[3][npoints];
+      for (int i=0; i<EDGE; i++) {
+        float a = ((float) i) / EDGE;
+        float b = 1.0f - a;
+        c[xindex][i] = b * first_x[xindex][0] + a * last_x[xindex][0];
+        c[yindex][i] = first_x[yindex][0];
+        c[otherindex][i] = first_x[otherindex][0];
+        c[xindex][EDGE + i] = last_x[xindex][0];
+        c[yindex][EDGE + i] = b * first_x[yindex][0] + a * last_x[yindex][0];
+        c[otherindex][EDGE + i] = first_x[otherindex][0];
+        c[xindex][2 * EDGE + i] = b * last_x[xindex][0] + a * first_x[xindex][0];
+        c[yindex][2 * EDGE + i] = last_x[yindex][0];
+        c[otherindex][2 * EDGE + i] = first_x[otherindex][0];
+        c[xindex][3 * EDGE + i] = first_x[xindex][0];
+        c[yindex][3 * EDGE + i] = b * last_x[yindex][0] + a * first_x[yindex][0];
+        c[otherindex][3 * EDGE + i] = first_x[otherindex][0];
+      }
+      c[0][npoints - 1] = c[0][0];
+      c[1][npoints - 1] = c[1][0];
+      c[2][npoints - 1] = c[2][0];
+      if (tuple != null) c = tuplecs.toReference(c);
+      float[] coordinates = new float[3 * npoints];
+      for (int i=0; i<npoints; i++) {
+        int i3 = 3 * i;
+        coordinates[i3] = c[0][i];
+        coordinates[i3 + 1] = c[1][i];
+        coordinates[i3 + 2] = c[2][i];
+      }
+      VisADLineStripArray array = new VisADLineStripArray();
+      array.vertexCount = npoints;
+      array.coordinates = coordinates;
+      byte[] colors = new byte[3 * npoints];
+      for (int i=0; i<npoints; i++) {
+        int i3 = 3 * i;
+        colors[i3] = red;
+        colors[i3 + 1] = green;
+        colors[i3 + 2] = blue;
+      }
+      array.colors = colors;
+      array = (VisADLineStripArray) array.adjustSeam(this);
+
+      DisplayImplJ3D display = (DisplayImplJ3D) getDisplay();
+      GeometryArray geometry = display.makeGeometry(array);
+  
+      DataDisplayLink link = getLinks()[0];
+      float[] default_values = link.getDefaultValues();
+      GraphicsModeControl mode = (GraphicsModeControl)
+        display.getGraphicsModeControl().clone();
+      float pointSize =
+        default_values[display.getDisplayScalarIndex(Display.PointSize)];
+      float lineWidth =
+        default_values[display.getDisplayScalarIndex(Display.LineWidth)];
+      mode.setPointSize(pointSize, true);
+      mode.setLineWidth(lineWidth, true);
+      Appearance appearance =
+        ShadowTypeJ3D.makeAppearance(mode, null, null, geometry, false);
+
+      if (group != null) group.detach();
+      group = null;
+
+      Shape3D shape = new Shape3D(geometry, appearance);
+      group = new BranchGroup();
+      group.setCapability(Group.ALLOW_CHILDREN_READ);
+      group.setCapability(BranchGroup.ALLOW_DETACH);
+      group.addChild(shape);
+      branch.addChild(group);
+    } // end try
+    catch (VisADException e) {
+      // do nothing
+      System.out.println("drag_direct " + e);
+      e.printStackTrace();
+    }
+/*
+    catch (RemoteException e) {
+      // do nothing
+      System.out.println("drag_direct " + e);
+      e.printStackTrace();
+    }
+*/
+  }
+
+
+  /** test RubberBandBoxRendererJ3D */
+  public static void main(String args[])
+         throws VisADException, RemoteException {
+    // construct RealTypes for wind record components
+    RealType x = new RealType("x");
+    RealType y = new RealType("y");
+    RealTupleType xy = new RealTupleType(x, y);
+
+    // construct Java3D display and mappings
+    DisplayImpl display = new DisplayImplJ3D("display1");
+    ScalarMap xmap = new ScalarMap(x, Display.XAxis);
+    display.addMap(xmap);
+    xmap.setRange(-1.0, 1.0);
+    ScalarMap ymap = new ScalarMap(y, Display.YAxis);
+    display.addMap(ymap);
+    ymap.setRange(-1.0, 1.0);
+
+    DataReferenceImpl ref = new DataReferenceImpl("set");
+    ref.setData(new RealTuple(xy));
+    display.addReferences(new RubberBandBoxRendererJ3D(x, y), ref);
+
+    // create JFrame (i.e., a window) for display and slider
+    JFrame frame = new JFrame("test RubberBandBoxRendererJ3D");
+    frame.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {System.exit(0);}
+    });
+
+    // create JPanel in JFrame
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    frame.getContentPane().add(panel);
+
+    // add display to JPanel
+    panel.add(display.getComponent());
+
+    // set size of JFrame and make it visible
+    frame.setSize(500, 500);
+    frame.setVisible(true);
+  }
+}
+

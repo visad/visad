@@ -110,14 +110,12 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
   private boolean stop = false;
 
   public void checkDirect() throws VisADException, RemoteException {
-    // realCheckDirect();
-    //
-    // must customize
     setIsDirectManipulation(false);
 
     DisplayImpl display = getDisplay();
     link = getLinks()[0];
     ref = link.getDataReference();
+    default_values = link.getDefaultValues();
     type = link.getType();
     if (!(type instanceof SetType)) {
       whyNotDirect = notSetType;
@@ -171,9 +169,6 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
     }
 
     directManifoldDimension = 2;
-
-
-    // needs more, will find out when we write drag_direct
     setIsDirectManipulation(true);
   }
 

@@ -186,7 +186,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   }
 
   /** construct an Appearance object */
-  static Appearance makeAppearance(GraphicsModeControl mode,
+  public static Appearance makeAppearance(GraphicsModeControl mode,
                       TransparencyAttributes constant_alpha,
                       ColoringAttributes constant_color,
                       GeometryArray geometry, boolean no_material) {
