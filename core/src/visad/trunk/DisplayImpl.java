@@ -261,6 +261,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     } catch (UnmarshalException ue) {
       System.err.println("Couldn't copy remote GraphicsModeControl");
       return;
+    } catch (java.rmi.ConnectException ce) {
+      System.err.println("Couldn't copy remote GraphicsModeControl");
+      return;
     } catch (Exception e) {
       e.printStackTrace();
       return;
@@ -275,6 +278,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     try {
       ml = rmtDpy.getReferenceLinks();
     } catch (UnmarshalException ue) {
+      System.err.println("Couldn't copy remote DataReferences");
+      return;
+    } catch (java.rmi.ConnectException ce) {
       System.err.println("Couldn't copy remote DataReferences");
       return;
     } catch (Exception e) {
