@@ -4474,12 +4474,12 @@ if (pr) System.out.println("value = " + new_values[0][0]);
     byte b = 10;
     Real w = new Real(b);
 
-    RealType X = new RealType("X", null, null);
-    RealType Y = new RealType("Y", null, null);
-    RealType Z = new RealType("Z", null, null);
+    RealType X = RealType.getRealType("X");
+    RealType Y = RealType.getRealType("Y");
+    RealType Z = RealType.getRealType("Z");
 
-    RealType A = new RealType("A", null, null);
-    RealType B = new RealType("B", null, null);
+    RealType A = RealType.getRealType("A");
+    RealType B = RealType.getRealType("B");
 
     RealType[] domain2d = {X, Y};
     RealTupleType Domain2d = new RealTupleType(domain2d, null, null);

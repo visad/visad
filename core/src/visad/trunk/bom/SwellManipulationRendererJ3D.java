@@ -759,12 +759,12 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
     // construct RealTypes for swell record components
     RealType lat = RealType.Latitude;
     RealType lon = RealType.Longitude;
-    RealType red = new RealType("red");
-    RealType green = new RealType("green");
-    RealType swell_degree = new RealType("swell_degree",
-                          CommonUnit.degree, null);
-    RealType swell_height = new RealType("swell_height",
-                          CommonUnit.meter, null);
+    RealType red = RealType.getRealType("red");
+    RealType green = RealType.getRealType("green");
+    RealType swell_degree = RealType.getRealType("swell_degree",
+                          CommonUnit.degree);
+    RealType swell_height = RealType.getRealType("swell_height",
+                          CommonUnit.meter);
 
     // construct Java3D display and mappings that govern
     // how swell records are displayed

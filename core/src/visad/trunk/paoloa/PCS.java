@@ -261,7 +261,7 @@ public class PCS
     scatter_range_b1 = new RealTupleType(band,band1,band1_kur);
     scatter_range_b2 = new RealTupleType(band,band2,band2_kur);
     scatter_range_b3 = new RealTupleType(band,band3,band3_kur);
-    scatter_index = new RealType("scatter_index");
+    scatter_index = RealType.getRealType("scatter_index");
     scatter_type_b1 = new FunctionType(scatter_index, scatter_range_b1);
     scatter_type_b2 = new FunctionType(scatter_index, scatter_range_b2);
     scatter_type_b3 = new FunctionType(scatter_index, scatter_range_b3);

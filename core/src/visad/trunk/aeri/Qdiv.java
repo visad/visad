@@ -258,18 +258,18 @@ public class Qdiv
 
     longitude = RealType.Longitude;
     latitude = RealType.Latitude;
-    RH = new RealType("RH", SI.second, null);
-    stn_idx = new RealType("stn_idx", null, null);
-    theta = new RealType("theta", null, null);
-    thetaE = new RealType("thetaE", null, null);
-    u_wind = new RealType("u_wind", null, null);
-    v_wind = new RealType("v_wind", null, null);
-    wvmr_u = new RealType("wvmr_u", null, null);
-    wvmr_v = new RealType("wvmr_v", null, null);
-    div_qV = new RealType("div_qV", null, null);
-    q_divV = new RealType("q_divV", null, null);
-    qAdvct = new RealType("qAdvct", null, null);
-    shape = new RealType("shape", null, null);
+    RH = RealType.getRealType("RH", SI.second);
+    stn_idx = RealType.getRealType("stn_idx");
+    theta = RealType.getRealType("theta");
+    thetaE = RealType.getRealType("thetaE");
+    u_wind = RealType.getRealType("u_wind");
+    v_wind = RealType.getRealType("v_wind");
+    wvmr_u = RealType.getRealType("wvmr_u");
+    wvmr_v = RealType.getRealType("wvmr_v");
+    div_qV = RealType.getRealType("div_qV");
+    q_divV = RealType.getRealType("q_divV");
+    qAdvct = RealType.getRealType("qAdvct");
+    shape = RealType.getRealType("shape");
 
     String[] wind_files = new String[n_stations];
     String[] rtvl_files = new String[n_stations];
@@ -973,10 +973,10 @@ start or end altitudes - but it does nothing if all winds are missing */
       ((TupleType)f_type0.getRange()).getComponent(1);
 
     RealTupleType rtt = (RealTupleType) f_type1.getRange();
-    RealType pres = new RealType("press", null, null);
-    temp = new RealType("temp", null, null);
-    dwpt = new RealType("dwpt", null, null);
-    wvmr = new RealType("wvmr", null, null);
+    RealType pres = RealType.getRealType("press");
+    temp = RealType.getRealType("temp");
+    dwpt = RealType.getRealType("dwpt");
+    wvmr = RealType.getRealType("wvmr");
     RealType[] r_types = {pres, temp, dwpt, wvmr};
     f_type1 = new FunctionType(f_type1.getDomain(), new RealTupleType(r_types));
 

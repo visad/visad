@@ -80,8 +80,8 @@ public class Test02
   {
     RealType[] types3d = {RealType.Latitude, RealType.Longitude, RealType.Radius};
     RealTupleType earth_location3d = new RealTupleType(types3d);
-    RealType vis_radiance = new RealType("vis_radiance", null, null);
-    RealType ir_radiance = new RealType("ir_radiance", null, null);
+    RealType vis_radiance = RealType.getRealType("vis_radiance");
+    RealType ir_radiance = RealType.getRealType("ir_radiance");
     RealType[] types2 = {vis_radiance, ir_radiance};
     RealTupleType radiance = new RealTupleType(types2);
     FunctionType grid_tuple = new FunctionType(earth_location3d, radiance);

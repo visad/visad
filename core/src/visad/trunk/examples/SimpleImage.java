@@ -51,10 +51,10 @@ public class SimpleImage {
          throws VisADException, IOException {
 
     // define types
-    RealType line = new RealType("row");
-    RealType element = new RealType("col");
+    RealType line = RealType.getRealType("row");
+    RealType element = RealType.getRealType("col");
     RealTupleType domain = new RealTupleType(line, element);
-    RealType range = new RealType("brightness");
+    RealType range = RealType.getRealType("brightness");
 
     FunctionType image_func = new FunctionType(domain, range);
 

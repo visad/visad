@@ -55,10 +55,10 @@ public class Test35
   void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    RealType ir_radiance = new RealType("ir_radiance", null, null);
-    RealType count = new RealType("count", null, null);
+    RealType ir_radiance = RealType.getRealType("ir_radiance");
+    RealType count = RealType.getRealType("count");
     FunctionType ir_histogram = new FunctionType(ir_radiance, count);
-    RealType vis_radiance = new RealType("vis_radiance", null, null);
+    RealType vis_radiance = RealType.getRealType("vis_radiance");
 
     int size = 64;
     FlatField histogram1 = FlatField.makeField(ir_histogram, size, false);

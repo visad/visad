@@ -114,7 +114,7 @@ public class Test10
     throws RemoteException, VisADException
   {
     Unit super_degree = CommonUnit.degree.scale(2.5);
-    RealType lon = new RealType("lon", super_degree, null);
+    RealType lon = RealType.getRealType("lon", super_degree);
 
     DataReference ref = loadFile();
     if (ref == null) {

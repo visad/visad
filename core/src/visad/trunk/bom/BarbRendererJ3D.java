@@ -118,19 +118,19 @@ public class BarbRendererJ3D extends DefaultRendererJ3D
     }
     RealType lat = RealType.Latitude;
     RealType lon = RealType.Longitude;
-    RealType flowx = new RealType("flowx",
-                          CommonUnit.meterPerSecond, null);
-    RealType flowy = new RealType("flowy",
-                          CommonUnit.meterPerSecond, null);
-    RealType red = new RealType("red");
-    RealType green = new RealType("green");
-    RealType index = new RealType("index");
+    RealType flowx = RealType.getRealType("flowx",
+                          CommonUnit.meterPerSecond);
+    RealType flowy = RealType.getRealType("flowy",
+                          CommonUnit.meterPerSecond);
+    RealType red = RealType.getRealType("red");
+    RealType green = RealType.getRealType("green");
+    RealType index = RealType.getRealType("index");
     EarthVectorType flowxy = new EarthVectorType(flowx, flowy);
     TupleType range = null;
-    RealType flow_degree = new RealType("flow_degree",
-                          CommonUnit.degree, null);
-    RealType flow_speed = new RealType("flow_speed",
-                          CommonUnit.meterPerSecond, null);
+    RealType flow_degree = RealType.getRealType("flow_degree",
+                          CommonUnit.degree);
+    RealType flow_speed = RealType.getRealType("flow_speed",
+                          CommonUnit.meterPerSecond);
     if (args.length > 1) {
       System.out.println("polar winds");
       RealTupleType flowds =

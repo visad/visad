@@ -618,12 +618,12 @@ public class NetcdfGrids {
 
     try {
     NetcdfGrids ng = new NetcdfGrids("97032712_eta.nc");
-    RealType x = new RealType("x");
-    RealType y = new RealType("y");
-    RealType level = new RealType("level");
+    RealType x = RealType.getRealType("x");
+    RealType y = RealType.getRealType("y");
+    RealType level = RealType.getRealType("level");
     RealType time_type = RealType.Time;
-    RealType pres = new RealType("pres");
-    RealType Z = new RealType("Z");
+    RealType pres = RealType.getRealType("pres");
+    RealType Z = RealType.getRealType("Z");
     int num_levels = ng.getNumberOfLevels();
     double [][] range = new double[num_levels][2];
 

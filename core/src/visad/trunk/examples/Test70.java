@@ -59,7 +59,7 @@ public class Test70
   void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    RealType text = new RealType("text");
+    RealType text = RealType.getRealType("text");
     RealType[] time = {RealType.Time};
     RealTupleType time_type = new RealTupleType(time);
     RealType[] mtypes = {RealType.Latitude, RealType.Longitude, text};

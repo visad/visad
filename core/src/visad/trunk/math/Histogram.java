@@ -120,11 +120,11 @@ public class Histogram {
 
     int SIZE = 64;
 
-    RealType X = new RealType("X");
-    RealType Y = new RealType("Y");
+    RealType X = RealType.getRealType("X");
+    RealType Y = RealType.getRealType("Y");
 
-    RealType A = new RealType("A");
-    RealType B = new RealType("B");
+    RealType A = RealType.getRealType("A");
+    RealType B = RealType.getRealType("B");
 
     RealType[] domain2d = {X, Y};
     RealTupleType Domain2d = new RealTupleType(domain2d);

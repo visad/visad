@@ -190,7 +190,7 @@ public class HdfeosForm extends Hdfeos
 
       if ( types_equal )
       {
-        RealType struct_id = new RealType("struct_id", null, null);
+        RealType struct_id = RealType.getRealType("struct_id");
         Integer1DSet domain = new Integer1DSet(struct_id, n_structs);
         FieldImpl field = new FieldImpl(new FunctionType((MathType) struct_id,
                                                        first_type), domain);

@@ -65,10 +65,10 @@ DataImpl makeTrajectories() throws VisADException, RemoteException {
 public void initVisad(){
  try{
     // -------------------------------------------
-    latitude = new RealType("latitude");
-    longitude = new RealType("longitude");
-    profondeur = new RealType("profondeur");
-    trajectories = new RealType("trajectories");
+    latitude = RealType.getRealType("latitude");
+    longitude = RealType.getRealType("longitude");
+    profondeur = RealType.getRealType("profondeur");
+    trajectories = RealType.getRealType("trajectories");
     // -------------------------------------------
     domain3D = new RealTupleType(latitude, longitude, profondeur);
     // -------------------------------------------

@@ -122,13 +122,13 @@ public class Swells extends Exception {
     double mid_lat = -30.0;
     RealType lat = RealType.Latitude;
     RealType lon = RealType.Longitude;
-    RealType red = new RealType("red");
-    RealType green = new RealType("green");
-    RealType index = new RealType("index");
-    RealType swell_dir = new RealType("swell_dir",
-                            CommonUnit.degree, null);
-    RealType swell_height = new RealType("swell_speed",
-                            CommonUnit.meter, null);
+    RealType red = RealType.getRealType("red");
+    RealType green = RealType.getRealType("green");
+    RealType index = RealType.getRealType("index");
+    RealType swell_dir = RealType.getRealType("swell_dir",
+                            CommonUnit.degree);
+    RealType swell_height = RealType.getRealType("swell_speed",
+                            CommonUnit.meter);
     RealTupleType range =
       new RealTupleType(new RealType[] {lon, lat, swell_dir,
                                         swell_height, red, green});

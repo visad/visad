@@ -253,23 +253,23 @@ public class GoesCollaboration extends Object {
     // construct RealTypes used as Function domains
     // with null Units but non-null default Sets (for
     // function domain samplings)
-    nchan = new RealType("nchan", null, linear18);
-    indx = new RealType("indx", null, linear19);
-    nl = new RealType("nl", null, linear40);
+    nchan = RealType.getRealType("nchan", null, linear18);
+    indx = RealType.getRealType("indx", null, linear19);
+    nl = RealType.getRealType("nl", null, linear40);
 
     // construct RealTypes used as Function ranges
     // or for simple Real values, with null Units
     // and null default Sets
-    tbc = new RealType("tbc", null, null);
-    tbc_d = new RealType("tbc_d", null, null);
-    wfn = new RealType("wfn", null, null);
-    pres = new RealType("pres", null, null);
-    temp = new RealType("temp", null, null);
-    mixr = new RealType("mixr", null, null);
-    ozone = new RealType("ozone", null, null);
-    pressure = new RealType("pressure", null, null);
-    data_real = new RealType("data_real", null, null);
-    diff = new RealType("diff", null, null);
+    tbc = RealType.getRealType("tbc");
+    tbc_d = RealType.getRealType("tbc_d");
+    wfn = RealType.getRealType("wfn");
+    pres = RealType.getRealType("pres");
+    temp = RealType.getRealType("temp");
+    mixr = RealType.getRealType("mixr");
+    ozone = RealType.getRealType("ozone");
+    pressure = RealType.getRealType("pressure");
+    data_real = RealType.getRealType("data_real");
+    diff = RealType.getRealType("diff");
 
     // construct RealTupleType used as a Function domain
     // with non-null default Set

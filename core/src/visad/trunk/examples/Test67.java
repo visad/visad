@@ -73,10 +73,10 @@ public class Test67
   {
     DataReferenceImpl ref = new DataReferenceImpl("ref");
     DataReferenceImpl f_ref = new DataReferenceImpl("ref");
-    RealType x = new RealType("x");
-    RealType y = new RealType("y");
-    RealType z = new RealType("z");
-    RealType v = new RealType("v");
+    RealType x = RealType.getRealType("x");
+    RealType y = RealType.getRealType("y");
+    RealType z = RealType.getRealType("z");
+    RealType v = RealType.getRealType("v");
     FunctionType function;
     GriddedSet set, f_set;
     int size = 20;

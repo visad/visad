@@ -482,7 +482,7 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
     }
 
     // Set up instance of Gridded1DSet
-    RealType vis_data = new RealType("vis_data", null, null);
+    RealType vis_data = RealType.getRealType("vis_data");
     RealType[] vis_array = {vis_data};
     RealTupleType vis_tuple = new RealTupleType(vis_array);
     Gridded1DSet gSet1D = new Gridded1DSet(vis_tuple, samp, num_coords);

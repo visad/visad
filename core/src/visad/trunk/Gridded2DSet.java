@@ -605,8 +605,8 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
     }
 
     // Set up instance of Gridded2DSet
-    RealType vis_xcoord = new RealType("xcoord", null, null);
-    RealType vis_ycoord = new RealType("ycoord", null, null);
+    RealType vis_xcoord = RealType.getRealType("xcoord");
+    RealType vis_ycoord = RealType.getRealType("ycoord");
     RealType[] vis_array = {vis_xcoord, vis_ycoord};
     RealTupleType vis_tuple = new RealTupleType(vis_array);
     Gridded2DSet gSet2D = new Gridded2DSet(vis_tuple, samp, num_coords/4, 4);

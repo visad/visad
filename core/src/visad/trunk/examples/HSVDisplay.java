@@ -53,16 +53,16 @@ public class HSVDisplay extends Object {
 
     // define an rgb color space
     // (not to be confused with system's RGB DisplayTupleType)
-    RealType red = new RealType("red", null, null);
-    RealType green = new RealType("green", null, null);
-    RealType blue = new RealType("blue", null, null);
+    RealType red = RealType.getRealType("red");
+    RealType green = RealType.getRealType("green");
+    RealType blue = RealType.getRealType("blue");
     RealTupleType rgb = new RealTupleType(red, green, blue);
 
     // define an hsv color space
     // (not to be confused with system's HSV DisplayTupleType)
-    RealType hue = new RealType("hue", CommonUnit.degree,       null);
-    RealType saturation = new RealType("saturation", null, null);
-    RealType value = new RealType("value", null, null);
+    RealType hue = RealType.getRealType("hue", CommonUnit.degree);
+    RealType saturation = RealType.getRealType("saturation");
+    RealType value = RealType.getRealType("value");
     // note that we use the same HSVCoordinateSystem that the
     // system uses to define the relation between its RGB and HSV
     CoordinateSystem hsv_system = new HSVCoordinateSystem(rgb);

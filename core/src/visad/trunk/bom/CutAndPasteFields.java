@@ -667,17 +667,17 @@ public class CutAndPasteFields extends Object implements ActionListener {
          throws VisADException, RemoteException {
 
     // construct RealTypes for wind record components
-    RealType x = new RealType("x");
-    RealType y = new RealType("y");
+    RealType x = RealType.getRealType("x");
+    RealType y = RealType.getRealType("y");
     RealType lat = RealType.Latitude;
     RealType lon = RealType.Longitude;
     RealTupleType xy = new RealTupleType(x, y);
-    RealType windx = new RealType("windx",
-                          CommonUnit.meterPerSecond, null);     
-    RealType windy = new RealType("windy",
-                          CommonUnit.meterPerSecond, null);     
-    RealType red = new RealType("red");
-    RealType green = new RealType("green");
+    RealType windx = RealType.getRealType("windx",
+                          CommonUnit.meterPerSecond);     
+    RealType windy = RealType.getRealType("windy",
+                          CommonUnit.meterPerSecond);     
+    RealType red = RealType.getRealType("red");
+    RealType green = RealType.getRealType("green");
 
     // EarthVectorType extends RealTupleType and says that its
     // components are vectors in m/s with components parallel

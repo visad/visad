@@ -48,8 +48,8 @@ public class Test54
   void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    RealType ir_radiance = new RealType("ir_radiance", null, null);
-    RealType count = new RealType("count", null, null);
+    RealType ir_radiance = RealType.getRealType("ir_radiance");
+    RealType count = RealType.getRealType("count");
     FunctionType ir_histogram = new FunctionType(ir_radiance, count);
 
     int size = 64;

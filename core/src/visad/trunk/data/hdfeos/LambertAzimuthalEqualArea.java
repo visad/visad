@@ -205,8 +205,8 @@ public class LambertAzimuthalEqualArea extends CoordinateSystem {
      double[][] value_in = { {0, .5236, 1.0472, 1.5708}, {1, 1, 1, 1}};
      double[][] value_out = new double[2][4];
 
-     real1 = new RealType("Theta", SI.radian, null);
-     real2 = new RealType("radius", SI.meter, null);
+     real1 = RealType.getRealType("Theta", SI.radian);
+     real2 = RealType.getRealType("radius", SI.meter);
      RealType reals[] = {real1, real2};
 
      RealTupleType Reference = new RealTupleType(reals);

@@ -197,8 +197,8 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     // image_set = new Integer2DSet(nelements, nlines);
     image_set = new Linear2DSet(-48.75, 48.75, 13,
                                 -0.5, (double) (nlines - 0.5), nlines);
-    image_line = new RealType("image_line");
-    image_element = new RealType("image_element");
+    image_line = RealType.getRealType("image_line");
+    image_element = RealType.getRealType("image_element");
     image_domain = new RealTupleType(image_element, image_line);
     image_type = new FunctionType(image_domain, atmosphericRadiance);
 

@@ -38,10 +38,10 @@ public class Parallel {
   public static void main(String args[])
          throws VisADException, RemoteException, IOException {
 
-    RealType index = new RealType("index");
+    RealType index = RealType.getRealType("index");
     RealType[] coords = new RealType[NCOORDS];
     for (int i=0; i<NCOORDS; i++) {
-      coords[i] = new RealType("coord" + i);
+      coords[i] = RealType.getRealType("coord" + i);
     }
     RealTupleType range = new RealTupleType(coords);
     FunctionType ftype = new FunctionType(index, range);
@@ -96,8 +96,8 @@ public class Parallel {
     Set index_set = data.getDomainSet();
     float[][] samples = data.getFloats(false);
 
-    RealType x = new RealType("coordinate");
-    RealType y = new RealType("value");
+    RealType x = RealType.getRealType("coordinate");
+    RealType y = RealType.getRealType("value");
     SetType xy = new SetType(new RealTupleType(x, y));
     FunctionType ptype = new FunctionType(index, xy);
     FieldImpl pfield = new FieldImpl(ptype, index_set);

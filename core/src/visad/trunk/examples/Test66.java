@@ -149,8 +149,8 @@ public class Test66
   void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    RealType visRadiance = new RealType("vis_radiance", null, null);
-    RealType irRadiance = new RealType("ir_radiance", null, null);
+    RealType visRadiance = RealType.getRealType("vis_radiance");
+    RealType irRadiance = RealType.getRealType("ir_radiance");
 
     setupDisplayZero(dpys[0], visRadiance, irRadiance);
     setupDisplayOne(dpys[1], visRadiance, irRadiance);

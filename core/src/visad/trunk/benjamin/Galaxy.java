@@ -290,26 +290,26 @@ public class Galaxy extends Object implements ActionListener {
     NY = 2*NYP+1;
     NZ = 2*NZP+1;
 
-    gridx = new RealType("gridx", null, null);
-    gridy = new RealType("gridy", null, null);
-    gridz = new RealType("gridz", null, null);
+    gridx = RealType.getRealType("gridx");
+    gridy = RealType.getRealType("gridy");
+    gridz = RealType.getRealType("gridz");
     grid_domain = new RealTupleType(gridx, gridy, gridz);
-    density = new RealType("density", null, null);
-    // emission = new RealType("emission", null, null);
-    Intensity = new RealType("Intensity", null, null);
-    distance = new RealType("distance", null, null);
-    v_LSR = new RealType("v_LSR", null, null);
+    density = RealType.getRealType("density");
+    // emission = RealType.getRealType("emission");
+    Intensity = RealType.getRealType("Intensity");
+    distance = RealType.getRealType("distance");
+    v_LSR = RealType.getRealType("v_LSR");
     grid_type = new FunctionType(grid_domain, density);
     dist_density = new FunctionType(distance, density);
     vel_intensity = new FunctionType(v_LSR, Intensity);
 
-    line = new RealType("line", null, null);
-    element = new RealType("element", null, null);
+    line = RealType.getRealType("line");
+    element = RealType.getRealType("element");
     image_domain = new RealTupleType(element, line);
-    radiance = new RealType("H-alpha", null, null);
+    radiance = RealType.getRealType("H-alpha");
     image_type = new FunctionType(image_domain, radiance);
-    lon = new RealType("lon", CommonUnit.degree, null);
-    lat = new RealType("lat", CommonUnit.degree, null);
+    lon = RealType.getRealType("lon", CommonUnit.degree);
+    lat = RealType.getRealType("lat", CommonUnit.degree);
     lonlat_range = new RealTupleType(lon, lat);
     lonlat_type = new FunctionType(image_domain, lonlat_range);
 

@@ -2934,9 +2934,9 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
     float[][] samp = { {179, 232, 183, 244, 106, 344, 166, 304, 286},
                         { 86, 231, 152, 123, 183, 153, 308, 325,  89},
                         {121, 301, 346, 352, 123, 125, 187, 101, 142} };
-    RealType test1 = new RealType("x", null, null);
-    RealType test2 = new RealType("y", null, null);
-    RealType test3 = new RealType("z", null, null);
+    RealType test1 = RealType.getRealType("x");
+    RealType test2 = RealType.getRealType("y");
+    RealType test3 = RealType.getRealType("z");
     RealType[] t_array = {test1, test2, test3};
     RealTupleType t_tuple = new RealTupleType(t_array);
     Irregular3DSet iSet3D = new Irregular3DSet(t_tuple, samp);

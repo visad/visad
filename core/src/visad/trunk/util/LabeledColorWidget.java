@@ -334,11 +334,11 @@ public class LabeledColorWidget
   public static void main(String[] args)
   {
     try {
-      visad.RealType vis = new visad.RealType("vis", null, null);
+      visad.RealType vis = visad.RealType.getRealType("vis");
       ScalarMap visMap = new ScalarMap(vis, visad.Display.RGBA);
       visMap.setRange(0.0f, 1.0f);
 
-      visad.RealType ir = new visad.RealType("ir", null, null);
+      visad.RealType ir = visad.RealType.getRealType("ir");
       ScalarMap irMap = new ScalarMap(vis, visad.Display.RGB);
       irMap.setRange(0.0f, 1.0f);
 

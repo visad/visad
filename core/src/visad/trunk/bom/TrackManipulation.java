@@ -87,7 +87,7 @@ public class TrackManipulation extends Object {
 
     // construct RealTuple with RealType mapped to Shape that
     // creates storm track depiction
-    RealType shape = new RealType("shape");
+    RealType shape = RealType.getRealType("shape");
     latlonshape =
       new RealTupleType(RealType.Latitude, RealType.Longitude, shape);
     RealTuple track3 = new RealTuple(latlonshape, new double[] {lat1, lon1, 0.0});

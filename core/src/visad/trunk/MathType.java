@@ -1333,12 +1333,12 @@ public abstract class MathType extends Object implements java.io.Serializable {
       and MathType.guessMaps() */
   public static void main(String args[])
          throws VisADException, RemoteException {
-    RealType X = new RealType("Xxxxxx", null, null);
-    RealType Y = new RealType("Yyyyyy", null, null);
-    RealType Z = new RealType("Zzzzzz", null, null);
+    RealType X = RealType.getRealType("Xxxxxx");
+    RealType Y = RealType.getRealType("Yyyyyy");
+    RealType Z = RealType.getRealType("Zzzzzz");
 
-    RealType A = new RealType("Aaaaaa", null, null);
-    RealType B = new RealType("Bbbbbb", null, null);
+    RealType A = RealType.getRealType("Aaaaaa");
+    RealType B = RealType.getRealType("Bbbbbb");
 
     RealType[] domain2d = {X, Y};
     RealTupleType Domain2d = new RealTupleType(domain2d);
@@ -1369,11 +1369,11 @@ public abstract class MathType extends Object implements java.io.Serializable {
     System.out.println(t1.prettyString() + "\n");
 
     // construct second MathType
-    RealType T = new RealType("time");
+    RealType T = RealType.getRealType("time");
     RealTupleType Domain1d = new RealTupleType(new RealType[] {T});
-    RealType Rxx = new RealType("Red");
-    RealType Gxx = new RealType("Green");
-    RealType Bxx = new RealType("Blue");
+    RealType Rxx = RealType.getRealType("Red");
+    RealType Gxx = RealType.getRealType("Green");
+    RealType Bxx = RealType.getRealType("Blue");
     RealTupleType Range3d = new RealTupleType(new RealType[] {Rxx, Gxx, Bxx});
     FunctionType image = new FunctionType(Domain2d, Range3d);
     function = new FunctionType(Domain1d, image);

@@ -56,13 +56,13 @@ public class Test27
   {
     RealType[] types = {RealType.Latitude, RealType.Altitude};
     RealTupleType earth_location = new RealTupleType(types);
-    vis_radiance = new RealType("vis_radiance", null, null);
-    RealType ir_radiance = new RealType("ir_radiance", null, null);
+    vis_radiance = RealType.getRealType("vis_radiance");
+    RealType ir_radiance = RealType.getRealType("ir_radiance");
     RealType[] types2 = {vis_radiance, ir_radiance};
     RealTupleType radiance = new RealTupleType(types2);
     FunctionType image_tuple = new FunctionType(earth_location, radiance);
 
-    final RealType junk = new RealType("junk", null, null);
+    final RealType junk = RealType.getRealType("junk");
 
     System.out.println("  drag yellow points with right mouse button");
     int size = 32;

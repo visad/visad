@@ -165,7 +165,7 @@ public class Irregular1DSet extends IrregularSet {
       index[i] = i;
     }
     // instantiate Irregular1DSet
-    RealType test1 = new RealType("x", null, null);
+    RealType test1 = RealType.getRealType("x");
     RealType[] t_array = {test1};
     RealTupleType t_tuple = new RealTupleType(t_array);
     Irregular1DSet iSet1D = new Irregular1DSet(t_tuple, samp);

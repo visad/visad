@@ -490,8 +490,8 @@ public class ProductSet extends SampledSet {
 
   /* run 'java visad.ProductSet' to test the ProductSet class */
   public static void main(String[] argv) throws VisADException {
-    RealType vis_xcoord = new RealType("x", null, null);
-    RealType vis_ycoord = new RealType("y", null, null);
+    RealType vis_xcoord = RealType.getRealType("x");
+    RealType vis_ycoord = RealType.getRealType("y");
 
     // create Gridded2DSet
     RealType[] vis_arrayG = {vis_xcoord, vis_ycoord};

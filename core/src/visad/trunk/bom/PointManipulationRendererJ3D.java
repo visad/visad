@@ -374,11 +374,11 @@ public class PointManipulationRendererJ3D extends DirectManipulationRendererJ3D 
   /** test PointManipulationRendererJ3D */
   public static void main(String args[])
          throws VisADException, RemoteException {
-    RealType x = new RealType("x");
-    RealType y = new RealType("y");
+    RealType x = RealType.getRealType("x");
+    RealType y = RealType.getRealType("y");
     RealTupleType xy = new RealTupleType(x, y);
 
-    RealType c = new RealType("c");
+    RealType c = RealType.getRealType("c");
     FunctionType ft = new FunctionType(xy, c);
 
     // construct Java3D display and mappings

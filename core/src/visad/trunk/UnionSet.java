@@ -852,7 +852,7 @@ System.out.println("set_num[" + j + "] = " + set_num[j] +
 
   /* run 'java visad.UnionSet' to test the UnionSet class */
   public static void main(String[] argv) throws VisADException {
-    RealType vis_xcoord = new RealType("1D", null, null);
+    RealType vis_xcoord = RealType.getRealType("1D");
     RealType[] vis_array = {vis_xcoord};
     RealTupleType vis_tuple = new RealTupleType(vis_array);
 

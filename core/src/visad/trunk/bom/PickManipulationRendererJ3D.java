@@ -212,14 +212,14 @@ System.out.println("checkClose: distance = " + distance);
   public static void main(String args[])
          throws VisADException, RemoteException {
 
-    RealType x = new RealType("x");
-    RealType y = new RealType("y");
-    RealType z = new RealType("z");
+    RealType x = RealType.getRealType("x");
+    RealType y = RealType.getRealType("y");
+    RealType z = RealType.getRealType("z");
     FunctionType f1d = new FunctionType(x, y);
     RealTupleType xy = new RealTupleType(x, y);
     FunctionType f2d = new FunctionType(xy, z);
     TextType t = new TextType("text");
-    RealType s = new RealType("shape");
+    RealType s = RealType.getRealType("shape");
 
     Data[] td = {new Real(x, 0.5),
                  new Real(y, 0.5),

@@ -53,10 +53,10 @@ public class Test00
     GraphicsModeControl mode;
 
     final RealType ir_radiance =
-      new RealType("ir_radiance", CommonUnit.degree);
-    final RealType count = new RealType("count", CommonUnit.second);
+      RealType.getRealType("ir_radiance", CommonUnit.degree);
+    final RealType count = RealType.getRealType("count", CommonUnit.second);
     FunctionType ir_histogram = new FunctionType(ir_radiance, count);
-    final RealType vis_radiance = new RealType("vis_radiance", null, null);
+    final RealType vis_radiance = RealType.getRealType("vis_radiance");
 
     int size = 64;
     FlatField histogram1 = FlatField.makeField(ir_histogram, size, false);

@@ -430,8 +430,8 @@ public class Irregular2DSet extends IrregularSet {
   public static void main(String[] argv) throws VisADException {
     float[][] samp = { {139, 357, 416, 276, 495, 395, 578, 199},
                         {102,  44, 306, 174, 108, 460, 333, 351} };
-    RealType test1 = new RealType("x", null, null);
-    RealType test2 = new RealType("y", null, null);
+    RealType test1 = RealType.getRealType("x");
+    RealType test2 = RealType.getRealType("y");
     RealType[] t_array = {test1, test2};
     RealTupleType t_tuple = new RealTupleType(t_array);
     Irregular2DSet iSet2D = new Irregular2DSet(t_tuple, samp);

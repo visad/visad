@@ -220,8 +220,8 @@ public class LambertConformalConic extends CoordinateSystem
      double[][] values_in = { {-2.3292989, -1.6580627, -1.6580627, -1.6580627},
                               { 0.2127555, 0.4363323, 0.6981317, 0.8726646} };
 
-     real1 = new RealType("Theta", SI.radian, null);
-     real2 = new RealType("radius", SI.meter, null);
+     real1 = RealType.getRealType("Theta", SI.radian);
+     real2 = RealType.getRealType("radius", SI.meter);
      RealType reals[] = {RealType.Longitude,RealType.Latitude};
 
   //-double r_major = 6378206d;

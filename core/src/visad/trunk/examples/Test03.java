@@ -54,8 +54,8 @@ public class Test03
     RealType[] time = {RealType.Time};
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
-    RealType vis_radiance = new RealType("vis_radiance", null, null);
-    RealType ir_radiance = new RealType("ir_radiance", null, null);
+    RealType vis_radiance = RealType.getRealType("vis_radiance");
+    RealType ir_radiance = RealType.getRealType("ir_radiance");
     RealType[] types2 = {vis_radiance, ir_radiance};
     RealTupleType radiance = new RealTupleType(types2);
     FunctionType image_tuple = new FunctionType(earth_location, radiance);

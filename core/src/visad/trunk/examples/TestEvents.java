@@ -90,13 +90,7 @@ public class TestEvents
       }
     }
 
-    try {
-      mapType = new RealType("Map");
-    } catch (VisADException ve) {
-      System.err.println("Couldn't create mapType!");
-      System.exit(1);
-      return;
-    }
+    mapType = RealType.getRealType("Map");
 
     DisplayImpl server = createServer();
     if (server == null) {

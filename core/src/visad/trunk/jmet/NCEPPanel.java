@@ -139,7 +139,7 @@ public class NCEPPanel extends JPanel implements
 
     if (di != null) try {
 
-      Values = new RealType(valueName);
+      Values = RealType.getRealType(valueName);
       nc = Color.white;
 
       if (isAloft) {
@@ -174,7 +174,7 @@ public class NCEPPanel extends JPanel implements
 
       }
 
-      enable = new RealType(enableName);
+      enable = RealType.getRealType(enableName);
       map = new ScalarMap(enable, Display.SelectValue);
       di.addMap(map);
 

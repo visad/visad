@@ -295,7 +295,7 @@ public class Rain implements ActionListener, ControlListener {
     }
 
     // create cursor
-    final RealType shape = new RealType("shape");
+    final RealType shape = RealType.getRealType("shape");
     RealTupleType cursor_type = new RealTupleType(x_domain, y_domain, shape);
     SampledSet grid_set =
       (SampledSet) ((FlatField) vis5d.getSample(0)).getDomainSet();

@@ -773,14 +773,14 @@ public class Real
 
     Real fahrenheit =
       new Real(
-	new RealType(
+	RealType.getRealType(
 	  "FahrenheitTemperature",
 	  new OffsetUnit(459.67,
 	    new ScaledUnit(1/1.8, SI.kelvin, "degR"),
 	      "degF"),
 	  null),
 	32.0);
-    Real kelvin = new Real(new RealType("Temperature", SI.kelvin, null), 300);
+    Real kelvin = new Real(RealType.getRealType("Temperature", SI.kelvin, null), 300);
     System.out.println("300 kelvin + 32 fahrenheit = " +
       ((Real)kelvin.add(fahrenheit)).toValueString());
     System.out.println("300 kelvin - 32 fahrenheit = " +
@@ -805,7 +805,7 @@ public class Real
 
     Real deltaF =
       new Real(
-	new RealType(
+	RealType.getRealType(
 	  "DeltaFahrenheitTemperature",
 	  new OffsetUnit(459.67,
 	    new ScaledUnit(1/1.8, SI.kelvin, "degR"),
@@ -837,7 +837,7 @@ public class Real
 
     Real deltaK =
       new Real(
-	new RealType( "DeltaTemperature", SI.kelvin, null, RealType.INTERVAL),
+	RealType.getRealType( "DeltaTemperature", SI.kelvin, null, RealType.INTERVAL),
 	100.0);
     System.out.println("300 kelvin + 100 deltaK = " +
       ((Real)kelvin.add(deltaK)).toValueString());
@@ -893,8 +893,8 @@ public class Real
     Unit	foot = new ScaledUnit(3.048, SI.meter);
     Unit	yard = new ScaledUnit(3, (ScaledUnit)foot);
     System.out.println("log(1 yard / 3 feet) = " +
-      ((Real)new Real(new RealType("OneYard", SI.meter, null), 1, yard)
-	.divide(new Real(new RealType("ThreeFeet", SI.meter, null), 3, foot))
+      ((Real)new Real(RealType.getRealType("OneYard", SI.meter, null), 1, yard)
+	.divide(new Real(RealType.getRealType("ThreeFeet", SI.meter, null), 3, foot))
 	.log()).toValueString());
   }
 

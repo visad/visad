@@ -51,17 +51,17 @@ public class Test40
     throws RemoteException, VisADException
   {
     Unit super_degree = CommonUnit.degree.scale(2.5);
-    RealType lon = new RealType("lon", super_degree, null);
-    RealType radius = new RealType("radius", null, null);
-    RealType x = new RealType("x", null, null);
-    RealType y = new RealType("y", null, null);
+    RealType lon = RealType.getRealType("lon", super_degree);
+    RealType radius = RealType.getRealType("radius");
+    RealType x = RealType.getRealType("x");
+    RealType y = RealType.getRealType("y");
     RealTupleType cartesian = new RealTupleType(x, y);
     PolarCoordinateSystem polar_coord_sys = new PolarCoordinateSystem(cartesian);
     RealTupleType polar = new RealTupleType(lon, radius, polar_coord_sys, null);
-    RealType ir_radiance = new RealType("ir_radiance", null, null);
-    RealType count = new RealType("count", null, null);
+    RealType ir_radiance = RealType.getRealType("ir_radiance");
+    RealType count = RealType.getRealType("count");
     FunctionType ir_histogram = new FunctionType(ir_radiance, count);
-    RealType vis_radiance = new RealType("vis_radiance", null, null);
+    RealType vis_radiance = RealType.getRealType("vis_radiance");
 
     int size = 64;
     FlatField histogram1 = FlatField.makeField(ir_histogram, size, false);

@@ -1426,28 +1426,28 @@ old_current = current;
     RealType lat = RealType.Latitude;
     RealType lon = RealType.Longitude;
     RealTupleType earth = new RealTupleType(lat, lon);
-    RealType windx = new RealType("windx",
-                          CommonUnit.meterPerSecond, null);     
-    RealType windy = new RealType("windy",
-                          CommonUnit.meterPerSecond, null);     
-    RealType red = new RealType("red");
-    RealType green = new RealType("green");
+    RealType windx = RealType.getRealType("windx",
+                          CommonUnit.meterPerSecond);     
+    RealType windy = RealType.getRealType("windy",
+                          CommonUnit.meterPerSecond);     
+    RealType red = RealType.getRealType("red");
+    RealType green = RealType.getRealType("green");
 
     // EarthVectorType extends RealTupleType and says that its
     // components are vectors in m/s with components parallel
     // to Longitude (positive east) and Latitude (positive north)
     EarthVectorType windxy = new EarthVectorType(windx, windy);
 
-    RealType wind_dir = new RealType("wind_dir",
-                          CommonUnit.degree, null);
-    RealType wind_speed = new RealType("wind_speed",
-                          CommonUnit.meterPerSecond, null);
+    RealType wind_dir = RealType.getRealType("wind_dir",
+                          CommonUnit.degree);
+    RealType wind_speed = RealType.getRealType("wind_speed",
+                          CommonUnit.meterPerSecond);
     RealTupleType windds = null;
     windds =
       new RealTupleType(new RealType[] {wind_dir, wind_speed},
       new WindPolarCoordinateSystem(windxy), null);
 
-    RealType stn = new RealType("station");
+    RealType stn = RealType.getRealType("station");
     Set stn_set = new Integer1DSet(stn, NSTAS * NSTAS);
     RealType time = RealType.Time;
     double start = new DateTime(1999, 122, 57060).getValue();
@@ -1462,7 +1462,7 @@ old_current = current;
     FunctionType stations_type = new FunctionType(stn, station_type);
 
     int image_size = 128;
-    RealType value = new RealType("value");
+    RealType value = RealType.getRealType("value");
     FunctionType image_type = new FunctionType(earth, value);
     Linear2DSet image_set =
       new Linear2DSet(earth, -50.0, -30.0, image_size, -10.0, 10.0, image_size);

@@ -60,11 +60,11 @@ public class Test43
     int index;
     FlatField d_field;
     Set  domainSet = null;
-    RealType x_axis = new RealType( "x_axis", SI.meter, null );
-    RealType y_axis = new RealType( "y_axis", SI.meter, null );
+    RealType x_axis = RealType.getRealType( "x_axis", SI.meter );
+    RealType y_axis = RealType.getRealType( "y_axis", SI.meter );
     MathType Domain = (MathType) new RealTupleType( x_axis, y_axis );
 
-    MathType rangeTemp = (MathType) new RealType( "Temperature", SI.kelvin, null );
+    MathType rangeTemp = (MathType) RealType.getRealType( "Temperature", SI.kelvin );
 
     FunctionType domain_temp = new FunctionType( Domain, rangeTemp );
 

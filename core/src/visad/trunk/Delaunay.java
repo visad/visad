@@ -1017,9 +1017,9 @@ public abstract class Delaunay implements java.io.Serializable {
       final float[] s2 = samp2;
 
       // construct a UnionSet of line segments (tetrahedra edges)
-      final RealType x = new RealType("x");
-      final RealType y = new RealType("y");
-      final RealType z = new RealType("z");
+      final RealType x = RealType.getRealType("x");
+      final RealType y = RealType.getRealType("y");
+      final RealType z = RealType.getRealType("z");
       RealTupleType xyz = new RealTupleType(x, y, z);
       int[] e0 = {0, 0, 0, 1, 1, 2};
       int[] e1 = {1, 2, 3, 2, 3, 3};
@@ -1066,7 +1066,7 @@ public abstract class Delaunay implements java.io.Serializable {
       else if (label == 3) {   // triangle numbers
         int len = tri.length;
         TextType text = new TextType("text");
-        RealType t = new RealType("t");
+        RealType t = RealType.getRealType("t");
         RealTupleType rtt = new RealTupleType(new RealType[] {t});
         Linear1DSet time_set = new Linear1DSet(rtt, 0, len - 1, len);
         TupleType text_tuple = new TupleType(new MathType[] {x, y, z, text});
@@ -1095,7 +1095,7 @@ public abstract class Delaunay implements java.io.Serializable {
       else if (label == 4) {   // vertex numbers
         int len = s0.length;
         TextType text = new TextType("text");
-        RealType t = new RealType("t");
+        RealType t = RealType.getRealType("t");
         RealTupleType rtt = new RealTupleType(new RealType[] {t});
         Linear1DSet time_set = new Linear1DSet(rtt, 0, len - 1, len);
         TupleType text_tuple = new TupleType(new MathType[] {x, y, z, text});

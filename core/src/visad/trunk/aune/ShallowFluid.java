@@ -193,17 +193,17 @@ public class ShallowFluid extends Object {
     // construct RealTypes used as Function ranges
     // or for simple Real values, with null Units
     // and null default Sets
-    xloc = new RealType("xloc", null, null);
-    yloc = new RealType("yloc", null, null);
-    u = new RealType("u", null, null);
-    v = new RealType("v", null, null);
-    h = new RealType("h", null, null);
-    cc = new RealType("cc", null, null);
-    udiff = new RealType("udiff", null, null);
-    vdiff = new RealType("vdiff", null, null);
-    hdiff = new RealType("hdiff", null, null);
-    ccdiff = new RealType("ccdiff", null, null);
-    time = new RealType("time", null, null);
+    xloc = RealType.getRealType("xloc");
+    yloc = RealType.getRealType("yloc");
+    u = RealType.getRealType("u");
+    v = RealType.getRealType("v");
+    h = RealType.getRealType("h");
+    cc = RealType.getRealType("cc");
+    udiff = RealType.getRealType("udiff");
+    vdiff = RealType.getRealType("vdiff");
+    hdiff = RealType.getRealType("hdiff");
+    ccdiff = RealType.getRealType("ccdiff");
+    time = RealType.getRealType("time");
 
     // construct RealTupleType used as a Function domain
     // with non-null default Set

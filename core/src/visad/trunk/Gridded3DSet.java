@@ -4404,9 +4404,9 @@ if (size < 0.2) nsmall++;
     }
 
     // Set up instance of Gridded3DSet
-    RealType vis_xcoord = new RealType("xcoord", null, null);
-    RealType vis_ycoord = new RealType("ycoord", null, null);
-    RealType vis_zcoord = new RealType("zcoord", null, null);
+    RealType vis_xcoord = RealType.getRealType("xcoord");
+    RealType vis_ycoord = RealType.getRealType("ycoord");
+    RealType vis_zcoord = RealType.getRealType("zcoord");
     RealType[] vis_array = {vis_xcoord, vis_ycoord, vis_zcoord};
     RealTupleType vis_tuple = new RealTupleType(vis_array);
     Gridded3DSet gSet3D = new Gridded3DSet(vis_tuple, samp,

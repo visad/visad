@@ -58,20 +58,11 @@ public class MetGrid {
     dir = d;
 
     try {
-      RealType Nx = 
-           (ScalarType.getScalarTypeByName("Nx") == null)
-               ? new RealType("Nx", null, null)
-               : (RealType) ScalarType.getScalarTypeByName("Nx");
-      RealType  Ny = 
-           (ScalarType.getScalarTypeByName("Ny") == null)
-               ? new RealType("Ny", null, null)
-               : (RealType) ScalarType.getScalarTypeByName("Ny");
+      RealType Nx = RealType.getRealType("Nx");
+      RealType  Ny = RealType.getRealType("Ny");
 
       String param = d.getParamName().trim();
-      RealType value_type = 
-           (ScalarType.getScalarTypeByName(param) == null)
-               ? new RealType(param, null, null)
-               : (RealType) ScalarType.getScalarTypeByName(param);
+      RealType value_type = RealType.getRealType(param);
 
       RealType [] domain_components = {Nx,Ny};
       grid_domain =

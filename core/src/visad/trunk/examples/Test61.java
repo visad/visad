@@ -74,10 +74,10 @@ public class Test61
   void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    RealType xr = new RealType("xr");
-    RealType yr = new RealType("yr");
-    RealType zr = new RealType("zr");
-    RealType wr = new RealType("wr");
+    RealType xr = RealType.getRealType("xr");
+    RealType yr = RealType.getRealType("yr");
+    RealType zr = RealType.getRealType("zr");
+    RealType wr = RealType.getRealType("wr");
     RealType[] types3d = {xr, yr, zr};
     RealTupleType earth_location3d = new RealTupleType(types3d);
     FunctionType grid_tuple = new FunctionType(earth_location3d, wr);
@@ -127,7 +127,7 @@ public class Test61
     if (nice) mode.setTransparencyMode(DisplayImplJ3D.NICEST);
 
     // new
-    RealType duh = new RealType("duh");
+    RealType duh = RealType.getRealType("duh");
     int NT = 32;
     Linear2DSet set2 = new Linear2DSet(0.0, (double) NX, NT,
                                        0.0, (double) NY, NT);

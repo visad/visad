@@ -52,9 +52,9 @@ public class Test59
   void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    RealType index = new RealType("index", null, null);
-    RealType vis_radiance = new RealType("vis_radiance", null, null);
-    RealType ir_radiance = new RealType("ir_radiance", null, null);
+    RealType index = RealType.getRealType("index");
+    RealType vis_radiance = RealType.getRealType("vis_radiance");
+    RealType ir_radiance = RealType.getRealType("ir_radiance");
     RealType[] types = {RealType.Latitude, RealType.Longitude,
                         vis_radiance, ir_radiance};
     RealTupleType radiance = new RealTupleType(types);

@@ -67,9 +67,9 @@ public class Test41
 
     // construct types
     int isize = 16;
-    RealType dom0 = new RealType("dom0");
-    RealType dom1 = new RealType("dom1");
-    RealType ran = new RealType("ran");
+    RealType dom0 = RealType.getRealType("dom0");
+    RealType dom1 = RealType.getRealType("dom1");
+    RealType ran = RealType.getRealType("ran");
     RealTupleType dom = new RealTupleType(dom0, dom1);
     FunctionType ftype = new FunctionType(dom, ran);
     FlatField imaget1;
@@ -82,7 +82,7 @@ public class Test41
     }
     imaget1.setSamples(vals, false);
 
-    RealType oogle = new RealType("oogle");
+    RealType oogle = RealType.getRealType("oogle");
     FunctionType ftype2 = new FunctionType(dom, oogle);
     FlatField imaget2 = new FlatField(ftype2, imaget1.getDomainSet());
     imaget2.setSamples(vals, false);

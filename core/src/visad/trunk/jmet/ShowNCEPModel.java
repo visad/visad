@@ -253,12 +253,12 @@ public class ShowNCEPModel
     pcMatrix[10] = .95;
     pc.setMatrix(pcMatrix);
 
-    x = new RealType("x");
-    y = new RealType("y");
-    level = new RealType("level");
+    x = RealType.getRealType("x");
+    y = RealType.getRealType("y");
+    level = RealType.getRealType("level");
     time_type = RealType.Time;
-    //time_type = new RealType("Valid_time", CommonUnit.secondsSinceTheEpoch, null);
-    pres = new RealType("pres");
+    //time_type = RealType.getRealType("Valid_time", CommonUnit.secondsSinceTheEpoch);
+    pres = RealType.getRealType("pres");
 
     gmc = di.getGraphicsModeControl();
     gmc.setProjectionPolicy(0);
@@ -290,7 +290,7 @@ public class ShowNCEPModel
      ncp[i] = new NCEPPanel(true, di, statLabel, tabby,  "Data Aloft");
     }
 
-    enableMap = new RealType("enableMap");
+    enableMap = RealType.getRealType("enableMap");
     mapMap = new ScalarMap(enableMap, Display.SelectValue);
     di.addMap(mapMap);
     ScalarMap scalarMapColor = new ScalarMap(enableMap, Display.RGB);

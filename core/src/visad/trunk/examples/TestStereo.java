@@ -68,9 +68,9 @@ public class TestStereo
   void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    RealType vis_radiance = new RealType("vis_radiance", null, null);
-    RealType ir_radiance = new RealType("ir_radiance", null, null);
-    RealType count = new RealType("count", null, null);
+    RealType vis_radiance = RealType.getRealType("vis_radiance");
+    RealType ir_radiance = RealType.getRealType("ir_radiance");
+    RealType count = RealType.getRealType("count");
     RealType[] scatter_list = {vis_radiance, ir_radiance, count, RealType.Latitude,
                                RealType.Longitude, RealType.Radius};
     RealTupleType scatter = new RealTupleType(scatter_list);

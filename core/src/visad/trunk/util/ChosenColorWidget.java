@@ -318,7 +318,7 @@ public class ChosenColorWidget
   public static void main(String[] args)
   {
     try {
-      visad.RealType vis = new visad.RealType("vis", null, null);
+      visad.RealType vis = visad.RealType.getRealType("vis");
       ScalarMap map = new ScalarMap(vis, visad.Display.RGBA);
       map.setRange(0.0f, 1.0f);
 

@@ -850,7 +850,7 @@ public class FlexibleTrackManipulation extends Object {
     // construct RealTypes for wind record components
     RealType lat = RealType.Latitude;
     RealType lon = RealType.Longitude;
-    RealType shape = new RealType("shape");
+    RealType shape = RealType.getRealType("shape");
 
     RealType time = RealType.Time;
     double start = new DateTime(1999, 122, 57060).getValue();

@@ -95,12 +95,12 @@ public class Test68
   void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    RealType ir_radiance = new RealType("ir_radiance", null, null);
+    RealType ir_radiance = RealType.getRealType("ir_radiance");
     int size = 64;
     DisplayImpl display1 = (DisplayImpl) dpys[0];
 
     if (twoD) {
-      RealType count = new RealType("count", null, null);
+      RealType count = RealType.getRealType("count");
       FunctionType ir_histogram = new FunctionType(ir_radiance, count);
       FlatField histogram1 = FlatField.makeField(ir_histogram, size, false);
 
@@ -118,7 +118,7 @@ public class Test68
       ref_histogram1.setData(histogram1);
       display1.addReference(ref_histogram1, null);
     } else {
-      RealType vis_radiance = new RealType("vis_radiance", null, null);
+      RealType vis_radiance = RealType.getRealType("vis_radiance");
       RealType[] types = {RealType.Latitude, RealType.Longitude};
       RealType[] types2 = {vis_radiance, ir_radiance};
       RealTupleType earth_location = new RealTupleType(types);

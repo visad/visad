@@ -691,9 +691,9 @@ public abstract class Set extends DataImpl implements SetIface {
     // visad.data.Crumb crumb_data = new visad.data.Crumb(); // this works
     // but this does not work:   Crumb crumb = new Crumb();
 
-    RealType vis_radiance = new RealType("vis_radiance", null, null);
-    RealType ir_radiance = new RealType("ir_radiance", null, null);
-    RealType count = new RealType("count", null, null);
+    RealType vis_radiance = RealType.getRealType("vis_radiance");
+    RealType ir_radiance = RealType.getRealType("ir_radiance");
+    RealType count = RealType.getRealType("count");
 
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);

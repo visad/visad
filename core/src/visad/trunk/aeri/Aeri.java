@@ -223,10 +223,10 @@ public class Aeri
 
     longitude = RealType.Longitude;
     latitude = RealType.Latitude;
-    RH = new RealType("RH", SI.second, null);
-    stn_idx = new RealType("stn_idx", null, null);
-    theta = new RealType("theta", null, null);
-    thetaE = new RealType("thetaE", null, null);
+    RH = RealType.getRealType("RH", SI.second);
+    stn_idx = RealType.getRealType("stn_idx");
+    theta = RealType.getRealType("theta");
+    thetaE = RealType.getRealType("thetaE");
 
     String[] wind_files = new String[n_stations];
     String[] rtvl_files = new String[n_stations];
@@ -591,8 +591,8 @@ public class Aeri
     RealType spd;
     RealType dir;
 
-    RealType u_wind = new RealType("u_wind", null, null);
-    RealType v_wind = new RealType("v_wind", null, null);
+    RealType u_wind = RealType.getRealType("u_wind");
+    RealType v_wind = RealType.getRealType("v_wind");
 
     //- create a new netcdf reader
     Plain plain = new Plain();

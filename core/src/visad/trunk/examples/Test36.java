@@ -49,19 +49,14 @@ public class Test36
     throws RemoteException, VisADException
   {
     Unit super_degree = CommonUnit.degree.scale(2.5);
-    RealType lon = new RealType("lon", super_degree, null);
-    RealType radius = new RealType("radius", null, null);
-    RealType x = new RealType("x", null, null);
-    RealType y = new RealType("y", null, null);
-/*********** DEAD CODE ***********
-    RealTupleType cartesian = new RealTupleType(x, y);
-    PolarCoordinateSystem polar_coord_sys = new PolarCoordinateSystem(cartesian);
-    RealTupleType polar = new RealTupleType(lon, radius, polar_coord_sys, null);
- *********** DEAD CODE ***********/
+    RealType lon = RealType.getRealType("lon", super_degree);
+    RealType radius = RealType.getRealType("radius");
+    RealType x = RealType.getRealType("x");
+    RealType y = RealType.getRealType("y");
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
-    RealType vis_radiance = new RealType("vis_radiance", null, null);
-    RealType ir_radiance = new RealType("ir_radiance", null, null);
+    RealType vis_radiance = RealType.getRealType("vis_radiance");
+    RealType ir_radiance = RealType.getRealType("ir_radiance");
     RealType[] types2 = {vis_radiance, ir_radiance};
     RealTupleType radiance = new RealTupleType(types2);
     FunctionType image_tuple = new FunctionType(earth_location, radiance);
