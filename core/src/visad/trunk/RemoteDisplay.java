@@ -44,7 +44,7 @@ public interface RemoteDisplay extends Remote, Display {
   Vector getMapVector() throws VisADException, RemoteException;
   Vector getConstantMapVector()
 	throws VisADException, RemoteException;
-  RemoteGraphicsModeControl getGraphicsModeControl()
+  GraphicsModeControl getGraphicsModeControl()
 	throws VisADException, RemoteException;
   Vector getReferenceLinks()
 	throws VisADException, RemoteException;

@@ -223,9 +223,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   // suck in remote GraphicsModeControl settings
   void copyGraphicsModeControl(RemoteDisplay rmtDpy)
   {
-    RemoteGraphicsModeControl rc;
+    GraphicsModeControl rc;
     try {
-      rc = rmtDpy.getGraphicsModeControl();
+      getGraphicsModeControl().syncControl(rmtDpy.getGraphicsModeControl());
     } catch (UnmarshalException ue) {
       System.err.println("Couldn't copy remote GraphicsModeControl");
       return;
@@ -234,43 +234,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       return;
     }
 
-    GraphicsModeControl gmc = getGraphicsModeControl();
-
-    try {
-      gmc.setLineWidth(rc.getLineWidth());
-    } catch (Exception e) {
-      System.err.println("Couldn't copy remote GraphicsModeControl line width");
-    }
-    try {
-      gmc.setPointSize(rc.getPointSize());
-    } catch (Exception e) {
-      System.err.println("Couldn't copy remote GraphicsModeControl point size");
-    }
-    try {
-      gmc.setPointMode(rc.getPointMode());
-    } catch (Exception e) {
-      System.err.println("Couldn't copy remote GraphicsModeControl point mode");
-    }
-    try {
-      gmc.setTextureEnable(rc.getTextureEnable());
-    } catch (Exception e) {
-      System.err.println("Couldn't copy remote GraphicsModeControl texture enable");
-    }
-    try {
-      gmc.setScaleEnable(rc.getScaleEnable());
-    } catch (Exception e) {
-      System.err.println("Couldn't copy remote GraphicsModeControl scale enable");
-    }
-    try {
-      gmc.setTransparencyMode(rc.getTransparencyMode());
-    } catch (Exception e) {
-      System.err.println("Couldn't copy remote GraphicsModeControl transparency mode");
-    }
-    try {
-      gmc.setProjectionPolicy(rc.getProjectionPolicy());
-    } catch (Exception e) {
-      System.err.println("Couldn't copy remote GraphicsModeControl projection policy");
-    }
   }
 
   // suck in any remote DataReferences

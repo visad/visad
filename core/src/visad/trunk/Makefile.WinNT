@@ -439,7 +439,6 @@ clean:
 RMIC_FILES = \
 visad.RemoteActionImpl \
 visad.RemoteCellImpl \
-visad.RemoteControlImpl \
 visad.RemoteDataImpl \
 visad.RemoteDataReferenceImpl \
 visad.RemoteDisplayImpl \
@@ -447,7 +446,6 @@ visad.RemoteDisplayMonitorImpl \
 visad.RemoteDisplaySyncImpl \
 visad.RemoteFieldImpl \
 visad.RemoteFunctionImpl \
-visad.RemoteGraphicsModeControlImpl \
 visad.RemoteReferenceLinkImpl \
 visad.RemoteServerImpl \
 visad.RemoteSlaveDisplayImpl \

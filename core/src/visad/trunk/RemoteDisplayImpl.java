@@ -312,13 +312,15 @@ public class RemoteDisplayImpl extends RemoteActionImpl
     return ((DisplayImpl) AdaptedAction).getConstantMapVector();
   }
 
-  public RemoteGraphicsModeControl getGraphicsModeControl()
+  public GraphicsModeControl getGraphicsModeControl()
 	throws VisADException, RemoteException
   {
-    GraphicsModeControl ctl;
-    ctl = ((DisplayImpl) AdaptedAction).getGraphicsModeControl();
+    if (AdaptedAction == null) {
+      throw new RemoteVisADException(getClass().getName() + ".getGraphicsModeControl: " +
+                                     "AdaptedAction is null");
+    }
 
-    return new RemoteGraphicsModeControlImpl(ctl);
+    return ((DisplayImpl) AdaptedAction).getGraphicsModeControl();
   }
 
   public Vector getReferenceLinks()
