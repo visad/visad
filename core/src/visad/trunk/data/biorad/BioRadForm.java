@@ -856,7 +856,7 @@ public class BioRadForm extends Form implements FormFileInformer {
     RealType index = RealType.getRealType("index");
     RealType x = RealType.getRealType("ImageElement", horizUnit);
     RealType y = RealType.getRealType("ImageLine", vertUnit);
-    RealType value = RealType.getRealType("value");
+    RealType value = RealType.getRealType("intensity");
     RealTupleType xy = new RealTupleType(x, y);
     FunctionType imageFunction = new FunctionType(xy, value);
     FunctionType stackFunction = new FunctionType(index, imageFunction);
