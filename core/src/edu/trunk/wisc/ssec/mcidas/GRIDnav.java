@@ -96,116 +96,99 @@ public class GRIDnav
   private double xblon; 
 
   /**
-   *  Construct a new GRIDnav from a GRIDheader
-   *  @param gridHeader  grid header block
+   *  Construct a new GRIDnav from a grid directory block
+   *  @param gridDirBlock  grid header block
+   *  @throws McIDASException  illegal grid header
    */
-  public GRIDnav(int[] gridHeader)
+  public GRIDnav(int[] gridDirBlock)
     throws McIDASException
   {
-      this(new GridDirectory(gridHeader));
-  }
+    if (gridDirBlock.length != GridDirectory.DIRSIZE)
+      throw new McIDASException("Directory is not the right size");
+    int gridType = gridDirBlock[GridDirectory.NAV_BLOCK_INDEX];
+    navType = gridType%10;
+    wierd = gridType/10 == 1;
+    xnr = gridDirBlock[GridDirectory.ROWS_INDEX];
+    xnc = gridDirBlock[GridDirectory.COLS_INDEX];
+    xnrow = xnr;
+    xncol = xnc;
+    switch(navType)
+    {
+      case PSEUDO_MERCATOR:
+      case PSEUDO_MERCATOR_GENERAL:
+        glamx=gridDirBlock[34]/10000.;
+        glomx=gridDirBlock[35]/10000.;
+        ginct=gridDirBlock[38]/10000.;
+        gincn= 
+          (navType == PSEUDO_MERCATOR_GENERAL) 
+             ? gridDirBlock[39]/10000. : ginct;
+        if (wierd) {
+          double x = xnr;
+          xnr = xnc;
+          xnc = x;
+        }
+        break;
+      case PS_OR_LAMBERT_CONIC:
+        xrowi  = gridDirBlock[34]/10000.;  // row # of the North pole*10000
+        xcoli  = gridDirBlock[35]/10000.;  // col # of the North pole*10000
+        xspace = gridDirBlock[36]/1000.;   // column spacing at standard lat (m)
+        xqlon  = gridDirBlock[37]/10000.;  // lon parallel to cols (deg*10000)
+        double xt1 = gridDirBlock[38]/10000.;  // first standard lat
+        double xt2 = gridDirBlock[39]/10000.;  // second standard lat
+        xh = (xt1 >= 0) ? 1. : -1.;
+        xt1 =(90.-xh*xt1)*xrad;
+        xt2 =(90.-xh*xt2)*xrad;
+        xfac =1.0;
+        if (xt1 != xt2) 
+           xfac = (Math.log(Math.sin(xt1))-Math.log(Math.sin(xt2)))/
+                  (Math.log(Math.tan(.5*xt1))-Math.log(Math.tan(.5*xt2)));
+        xfac = 1.0/xfac;
+        xblat = 6370. * Math.sin(xt1)/
+                 (xspace*xfac*(Math.pow(Math.tan(xt1*.5),xfac)));
+        if (wierd) {
+           double x=xnr;
+           xnr=xnc;
+           xnc=x;
+           x=xcoli;
+           xcoli=xrowi;
+           xrowi=xnr-x+1.0;
+           xqlon=xqlon+90.;
+        }
 
-  /**
-   *  Construct a new GRIDnav from a GRIDheader
-   *  @param gridHeader  grid header block
-   */
-  public GRIDnav(GridDirectory directory)
-    throws McIDASException
-  {
-      navType = directory.getNavType()%10;
-      wierd = (directory.getNavType()/10 == 1);
-      int[] navBlock = directory.getNavBlock();
-      xnr = directory.getRows();
-      xnc = directory.getColumns();
-      xnrow = xnr;
-      xncol = xnc;
-      switch(navType)
-      {
-        /* Note:  We are using the navBlock instead of the directory block.
-           For translation purposes with GRDDEF.FOR:
-              1-based FORTRAN array     0-based Java array
-              ighd[34]          =       navBlock[0]
-              ighd[35]          =       navBlock[1]
-              ighd[36]          =       navBlock[2]
-              ighd[37]          =       navBlock[3]
-              ighd[38]          =       navBlock[4]
-              ighd[39]          =       navBlock[5]
-        */
-        case PSEUDO_MERCATOR:
-        case PSEUDO_MERCATOR_GENERAL:
-          glamx=navBlock[1]/10000.;
-          glomx=navBlock[2]/10000.;
-          ginct=navBlock[5]/10000.;
-          gincn= 
-            (navType == PSEUDO_MERCATOR_GENERAL) 
-               ? navBlock[6]/10000. : ginct;
-          if (wierd) {
-            double x = xnr;
-            xnr = xnc;
-            xnc = x;
-          }
-          break;
-        case PS_OR_LAMBERT_CONIC:
-          xrowi  = navBlock[1]/10000.;    // row # of the North pole*10000
-          xcoli  = navBlock[2]/10000.;    // col # of the North pole*10000
-          xspace = navBlock[3]/1000.;     // column spacing at standard lat (m)
-          xqlon  = navBlock[4]/10000.;    // lon parallel to cols (deg*10000)
-          double xt1 = navBlock[5]/10000.;  // first standard lat
-          double xt2 = navBlock[6]/10000.;  // second standard lat
-          xh = (xt1 >= 0) ? 1. : -1.;
-          xt1 =(90.-xh*xt1)*xrad;
-          xt2 =(90.-xh*xt2)*xrad;
-          xfac =1.0;
-          if (xt1 != xt2) 
-             xfac = (Math.log(Math.sin(xt1))-Math.log(Math.sin(xt2)))/
-                    (Math.log(Math.tan(.5*xt1))-Math.log(Math.tan(.5*xt2)));
-          xfac = 1.0/xfac;
-          xblat = 6370. * Math.sin(xt1)/
-                   (xspace*xfac*(Math.pow(Math.tan(xt1*.5),xfac)));
-          if (wierd) {
-             double x=xnr;
-             xnr=xnc;
-             xnc=x;
-             x=xcoli;
-             xcoli=xrowi;
-             xrowi=xnr-x+1.0;
-             xqlon=xqlon+90.;
-          }
+        break;
+      case EQUIDISTANT:
+        xrowi = 1.;
+        xcoli = 1.;
+        glamx = gridDirBlock[34]/10000.;       // lat of (1,1) degrees*10000
+        glomx = gridDirBlock[35]/10000.;       // lon of (1,1) degrees*10000
+        xrot  = -xrad*gridDirBlock[36]/10000.; // clockwise rotation of col 1
+        xspace = gridDirBlock[37]/1000.;       // column spacing
+        yspace = gridDirBlock[38]/1000.;       // row spacing
+        xblat = EARTH_RADIUS*xrad/yspace;
+        xblon = EARTH_RADIUS*xrad/xspace;
 
-          break;
-        case EQUIDISTANT:
-          xrowi = 1.;
-          xcoli = 1.;
-          glamx = navBlock[1]/10000.;       // lat of (1,1) degrees*10000
-          glomx = navBlock[2]/10000.;       // lon of (1,1) degrees*10000
-          xrot  = -xrad*navBlock[3]/10000.; // clockwise rotation of col 1
-          xspace = navBlock[4]/1000.;       // column spacing
-          yspace = navBlock[5]/1000.;       // row spacing
-          xblat = EARTH_RADIUS*xrad/yspace;
-          xblon = EARTH_RADIUS*xrad/xspace;
+        if (wierd) {
+          double x = xnr;
+          xnr = xnc;
+          xnc = x;
+        }
 
-          if (wierd) {
-            double x = xnr;
-            xnr = xnc;
-            xnc = x;
-          }
-
-          break;
-        case LAMBERT_CONFORMAL_TANGENT:
-          xrowi  = navBlock[1]/10000.;    // row # of the North pole*10000
-          xcoli  = navBlock[2]/10000.;    // col # of the North pole*10000
-          xspace = navBlock[3]/1000.;     // column spacing at standard lat (m)
-          xqlon  = navBlock[4]/10000.;    // lon parallel to cols (deg*10000)
-          double xtl = navBlock[5]/10000.; // standard lat
-          xh = (xtl >= 0) ? 1. : -1.;
-          xtl = (90. - xh * xtl) * xrad;
-          xfac = Math.cos(xtl);
-          xblat = EARTH_RADIUS * Math.tan(xtl) / 
-                     (xspace * Math.pow(Math.tan(xtl*.5), xfac));
-          break;
-        default:  
-          break;
-      }
+        break;
+      case LAMBERT_CONFORMAL_TANGENT:
+        xrowi  = gridDirBlock[34]/10000.;  // row # of the North pole*10000
+        xcoli  = gridDirBlock[35]/10000.;  // col # of the North pole*10000
+        xspace = gridDirBlock[36]/1000.;   // column spacing at standard lat (m)
+        xqlon  = gridDirBlock[37]/10000.;  // lon parallel to cols (deg*10000)
+        double xtl = gridDirBlock[38]/10000.; // standard lat
+        xh = (xtl >= 0) ? 1. : -1.;
+        xtl = (90. - xh * xtl) * xrad;
+        xfac = Math.cos(xtl);
+        xblat = EARTH_RADIUS * Math.tan(xtl) / 
+                   (xspace * Math.pow(Math.tan(xtl*.5), xfac));
+        break;
+      default:  
+        break;
+    }
   }
 
   /** 

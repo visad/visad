@@ -104,7 +104,8 @@ public class GridDirectory
     {
         if (dirblock.length != DIRSIZE)
             throw new McIDASException("Directory is not the right size");
-        dir = dirblock;
+        System.arraycopy(
+            dirblock, 0, dir, 0, DIRSIZE);
 
         // March down the list of parameters
         rows = dirblock[ROWS_INDEX];
@@ -309,7 +310,7 @@ public class GridDirectory
       if (gridNav == null) {
         // make the nav module
         try {
-          gridNav = new GRIDnav(this);
+          gridNav = new GRIDnav(getDirBlock());
         } catch (McIDASException excp) {
           gridNav = null;
         }
