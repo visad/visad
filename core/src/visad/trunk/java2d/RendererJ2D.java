@@ -125,6 +125,8 @@ public abstract class RendererJ2D extends DataRenderer {
           if (swParent.numChildren() > 0) {
             swParent.removeChild(0);
           }
+          Runtime.getRuntime().gc();
+          Runtime.getRuntime().runFinalization();
           branch = doTransform();
         }
         catch (BadMappingException ee) {

@@ -186,6 +186,8 @@ System.out.println(getLinks()[0].getThingReference().getName());
         clearBranch();
         new Delay(250);
         branch = null;
+        Runtime.getRuntime().gc();
+        Runtime.getRuntime().runFinalization();
         try {
           branch = doTransform();
         }
