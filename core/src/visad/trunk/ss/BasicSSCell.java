@@ -2125,7 +2125,7 @@ public class BasicSSCell extends JPanel {
 
       // ADDE detection --
       // necessary because java.net.URL does not understand adde:// addresses
-      else if (len < 7 && s.substring(0, 7).equalsIgnoreCase("adde://")) {
+      else if (len > 7 && s.substring(0, 7).equalsIgnoreCase("adde://")) {
         // location is an adde:// address
         isFile = true;
         location = s;
