@@ -1,6 +1,6 @@
        Quick Reference to VisAD Python Interface Functions
                          November 15, 2001
-                     (update: January 9th, 2003) 
+                     (update: February 26th, 2003) 
 
 from JPythonMethods...
 
@@ -67,13 +67,22 @@ data = field(domain_1_name, domain_2_name, range_name, values[][])
 data = field(set, range_name, values[][])
   Make a data object from arrays of values (1D and 2D).
 
+data = replace(field, int[], Real)
+data = replace(field, int[], double)
+  replace the values in each field(int[]) with the Real or double
+  value.
+
 int = getDomainDimension(data)
 int = getRangeDimension(data)
   Get the number of components of the data's domain and range
 
+int[] = getDomainSizes(data)
+  Get the dimension(s) of the component(s) of the domain sampling for data
+
 type = getDomainType(data)
 type = getRangeType(data)
   Get the Types of the domain and range for the data
+
 type = getType(data)
   Get the Type of the whole data object
 
@@ -96,16 +105,28 @@ string = rangeType(data, int)
 Unit = makeUnit(string)
   Create a Unit.
 
+set = makeDomain(int)
+set = makeDomain(type, int)
 set = makeDomain(double, double, int)
 set = makeDomain(type, double, double, int)
+  make 1D domain set
+
+set = makeDomain(int, int)
+set = makeDomain(type, int, int)
 set = makeDomain(double, double, int,  double, double, int)
 set = makeDomain(type, double, double, int,  double, double, int)
+  make 2D domain set
+
 set = makeDomain(double, double, int,  double, double, int, double, double, int)
 set = makeDomain(type,double, double, int,  double, double, int, double, double, int)
-  Make a linear set (either 1,2,or 3 dimensional).
+  make 3D domain set
 
 set = getDomainSet(data)
   Get the domain sampling set for this data object.
+
+data = combine(field[])
+  combine the array of fields into one data object.  All fields
+  must have the same sampling domain.
 
 data = resample(data, set)
   Resample the data into a new domain (specified by the sampling
@@ -171,8 +192,8 @@ data = sinDegrees(data)
 data = sqrt(data)
 data = tan(data)
 data = tanDegrees(data)
-data = max(data, data)
-data = min(data, data)
+data = max_data(data, data)
+data = min_data(data, data)
 data = atan2(data, data)
 data = atan2Degrees(data, data)
 data = max(data, double)
@@ -205,6 +226,8 @@ JamaSingularValueDecomposition = svd(data)
 
 
 from 'subs.py'.............
+(instance methods associated with the display 
+are preceded by "disp." in their signature)
 
 disp = makeDisplay(maps)
   create (and return) a VisAD DisplayImpl and add the ScalarMaps, if any
@@ -274,18 +297,22 @@ setBoxOn(display,on_off)
 x,y,z,disp = getDisplayMaps(display)
   return the x,y,z scalar maps for the display
 
-makeLine(domainType, points)
-  make a 2D or 3D line, return a reference so it can be changed
+set = makeLine(domainType, points)
+  make a 2D or 3D line, returns the Set so it can
+  be added to the display or changed as needed
 
-disp.drawLine(points[], color=None, mathtype=None)
-drawLine(display, points[], color=None, mathtype=None)
+ref = disp.drawLine(points[], color=None, mathtype=None)
+ref = drawLine(display, points[], color=None, mathtype=None)
   draw a line directly into the display; also return reference
   drawLine(display, domainType, points[], color=Color, mathtype=domainType)
   drawLine(name|display, points[], color=Color)
   "Color" is java.awt.Color
 
-disp.drawString(string, point, color=None, center=0, font='futural')
-drawString(display, string, point, color=None, center=0, font='futural')
+disp.moveLine(ref, points[])
+  move the line referred to by 'ref' to the new location.
+
+ref = disp.drawString(string, point, color=None, center=0, font='futural')
+ref = drawString(display, string, point, color=None, center=0, font='futural')
   draw a string on the display
 
 disp.addMaps(maps[])
@@ -311,15 +338,17 @@ moveShape(index, coord)
   Move shape # 'index' to the coordinates 'coord', which is a list or
   tuple of coordinates in the display space, in the order (x,y,z).
  
-makeMaps(RealType, name, RealType, name, ....)
+maps = makeMaps(RealType, name, RealType, name, ....)
   define ScalarMap(s) given pairs of (Type, name)
   where "name" is taken from the list, below.
+  Return is a list of maps to use in constructing a display.
 
-makeMaps(type_name, name, type_name, name, ....)
+maps = makeMaps(type_name, name, type_name, name, ....)
   define ScalarMap(s) given pairs of (type_name, name)
   where "type_name" is the (String) name of a valid ScalarType
   (RealType or TextType), and "name" is taken from the
-  list, below.
+  list, below.  Return is a list of maps to use in constructing 
+  a display.
 
   ("x","y","z","lat","lon","rad","list","red","green",
   "blue","rgb","rgba","hue","saturation","value","hsv","cyan",
@@ -358,7 +387,7 @@ class HandlePickEvent(display, handler)
    will get the domain coordinate values on the x and y
    axes.
 
-class RubberBandZoomer(display, requireKey)
+class RubberBandZoomer(display, requireKey, callback=callname)
   Class to define a Rubber Band Box zoom capability
   for a display.  Once invoked, a drag with right mouse
   button creates a RubberBandBox.  When released, the
@@ -366,8 +395,20 @@ class RubberBandZoomer(display, requireKey)
   'display' is just that.  The 'requireKey' is 0 for
   no simultaneous key, =1 for CTRL, =2 for SHIFT. Useful
   because other manipulation renderers might get events
-  as well.
+  as well.  If the 'callname' is given, then when the
+  box is zoomed, the samples array (x,y values of the
+  upper left and lower right corners) will be passed
+  to it.
 
+  def zoomit(samples)
+    Will force the display associated with this RBZ to
+    be zoomed according to the samples given.  This
+    (along with the callback=) can be used to allow
+    one display to zoom another.
+
+LinkBoxControl(myDisplay, otherDisplay)
+  this class will link the actions (roam, zoom, etc) of one display
+  to another.  
 
 from 'graph.py'.....
 
