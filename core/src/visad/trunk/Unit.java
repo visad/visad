@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.7 1998-06-24 14:08:52 billh Exp $
+ * $Id: Unit.java,v 1.8 1998-11-30 19:04:26 billh Exp $
  */
 
 package visad;
@@ -125,7 +125,7 @@ public abstract class Unit
                         Unit unit_in, ErrorEstimate error_in,
                         double[] value) throws VisADException {
  
-    if (unit_out == null) {
+    if (unit_out == null || unit_in == null) {
       errors_out[0] = error_in;
       return value;
     }
@@ -157,7 +157,7 @@ public abstract class Unit
                         Unit unit_in, ErrorEstimate error_in,
                         float[] value) throws VisADException {
  
-    if (unit_out == null) {
+    if (unit_out == null || unit_in == null) {
       errors_out[0] = error_in;
       return value;
     }
