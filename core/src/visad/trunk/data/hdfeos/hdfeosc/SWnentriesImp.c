@@ -7,10 +7,11 @@
 JNIEXPORT jint JNICALL 
 Java_visad_data_hdfeos_hdfeosc_HdfeosLib_SWnentries
 ( JNIEnv *env, 
-  jobject obj, 
+  jclass class, 
   jint swath_id, 
   jint HDFE_mode, 
-  jintArray strbufsize ) {
+  jintArray strbufsize ) 
+{
 
   int32  size;
   int32  n_entries;
@@ -25,4 +26,4 @@ Java_visad_data_hdfeos_hdfeosc_HdfeosLib_SWnentries
        (*env)->ReleaseIntArrayElements( env, strbufsize, body, JNI_COMMIT); 
 
    return (jint) n_entries;
-  }
+}

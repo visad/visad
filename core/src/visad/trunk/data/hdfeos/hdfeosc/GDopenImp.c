@@ -6,7 +6,7 @@
 
 JNIEXPORT jint JNICALL 
 Java_visad_data_hdfeos_hdfeosc_HdfeosLib_GDopen
-( JNIEnv *env, jobject obj, jstring filename, jint access )  {
+( JNIEnv *env, jclass class, jstring filename, jint access )  {
 
   int32 file_id;
   char *f_name;

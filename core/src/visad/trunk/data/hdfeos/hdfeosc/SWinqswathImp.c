@@ -6,7 +6,11 @@
 
 JNIEXPORT jint JNICALL 
 Java_visad_data_hdfeos_hdfeosc_HdfeosLib_SWinqswath
-  ( JNIEnv *env, jobject obj, jstring filename, jstring name_list )  {
+( JNIEnv *env, 
+  jclass class, 
+  jstring filename, 
+  jstring name_list ) 
+{
 
   int32 n_swaths;
   char *swath_names;
@@ -35,4 +39,4 @@ Java_visad_data_hdfeos_hdfeosc_HdfeosLib_SWinqswath
 
    return n_swaths;
 
-  }
+}

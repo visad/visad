@@ -7,7 +7,7 @@
 JNIEXPORT jint JNICALL 
 Java_visad_data_hdfeos_hdfeosc_HdfeosLib_GDfdims
 ( JNIEnv *env, 
-  jobject obj, 
+  jclass class, 
   jint grid_id, 
   jstring fieldname,
   jintArray strbufsize ) {

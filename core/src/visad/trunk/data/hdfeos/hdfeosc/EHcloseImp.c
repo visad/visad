@@ -7,7 +7,7 @@
 JNIEXPORT jint JNICALL 
 Java_visad_data_hdfeos_hdfeosc_HdfeosLib_EHclose
 ( JNIEnv *env, 
-  jobject obj, 
+  jclass class, 
   jint file_id
                ) 
 { 

@@ -6,7 +6,7 @@
 
 JNIEXPORT jint JNICALL 
 Java_visad_data_hdfeos_hdfeosc_HdfeosLib_GDattach
-( JNIEnv *env, jobject obj, jint file_id, jstring grid_name )  {
+( JNIEnv *env, jclass class, jint file_id, jstring grid_name )  {
 
   char *f_name;
   int32 grid_id;

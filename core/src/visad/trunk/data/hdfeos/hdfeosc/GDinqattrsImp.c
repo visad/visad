@@ -7,7 +7,7 @@
 JNIEXPORT jint JNICALL 
 Java_visad_data_hdfeos_hdfeosc_HdfeosLib_GDinqattrs
 ( JNIEnv *env, 
-  jobject obj, 
+  jclass class, 
   jint grid_id,
   jstring attr_list 
                     ) 

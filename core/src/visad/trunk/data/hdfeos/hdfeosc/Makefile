@@ -27,12 +27,16 @@ OBJECTS = SWopenImp.o \
 	GDinqdimsImp.o GDinqfieldsImp.o GDfdimsImp.o \
 	GDfieldinfoImp.o GDopenImp.o GDinqgridImp.o \
 	GDprojinfoImp.o GDgridinfoImp.o GDinqattrsImp.o \
-	EHchkfidImp.o EHcloseImp.o GDreadfieldImp.o
+	EHchkfidImp.o EHcloseImp.o GDreadfieldImp.o \
+	EHgetcalImp.o GetNumericAttrImp.o SDattrinfoImp.o
 
 .SUFFIXES : .java .class
 
 .java.class:
 	javac $<
+
+visad_data_hdfeos_hdfeosc_HdfeosLib.h: HdfeosLib.class
+	javah -jni visad.data.hdfeos.hdfeosc.HdfeosLib
 
 default: all
 

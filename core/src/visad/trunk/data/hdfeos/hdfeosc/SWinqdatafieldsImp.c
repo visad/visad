@@ -7,7 +7,7 @@
 JNIEXPORT jint JNICALL 
 Java_visad_data_hdfeos_hdfeosc_HdfeosLib_SWinqdatafields
 (JNIEnv *env, 
- jobject obj, 
+ jclass class, 
  jint swath_id, 
  jint strbufsize,
  jstring F_List, 

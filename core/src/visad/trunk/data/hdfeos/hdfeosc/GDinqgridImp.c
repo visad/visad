@@ -6,7 +6,7 @@
 
 JNIEXPORT jint JNICALL 
 Java_visad_data_hdfeos_hdfeosc_HdfeosLib_GDinqgrid
-( JNIEnv *env, jobject obj, jstring filename, jstring name_list )  {
+( JNIEnv *env, jclass class, jstring filename, jstring name_list )  {
 
   int32 n_grids;
   char *grid_names;

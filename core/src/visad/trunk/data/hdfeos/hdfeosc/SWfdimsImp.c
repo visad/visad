@@ -7,11 +7,12 @@
 JNIEXPORT jint JNICALL 
 Java_visad_data_hdfeos_hdfeosc_HdfeosLib_SWfdims
 ( JNIEnv *env, 
-  jobject obj, 
+  jclass class, 
   jint swath_id, 
   jstring fieldtype,
   jstring fieldname,
-  jintArray strbufsize ) {
+  jintArray strbufsize ) 
+{
 
   int32  size;
   int32  n_dims;
@@ -33,4 +34,4 @@ Java_visad_data_hdfeos_hdfeosc_HdfeosLib_SWfdims
        (*env)->ReleaseStringUTFChars( env, fieldtype, f_type );
 
    return (jint) n_dims;
-  }
+}
