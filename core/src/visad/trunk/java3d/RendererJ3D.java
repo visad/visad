@@ -52,7 +52,7 @@ public abstract class RendererJ3D extends DataRenderer {
   BranchGroup swParent;
   /** index of current 'intended' child of Switch sw;
       not necessarily == sw.getWhichChild() */
-  int currentIndex;
+  private static final int currentIndex = 0;
   BranchGroup[] branches;
   boolean[] switchFlags = {false, false, false};
   boolean[] branchNonEmpty = {false, false, false};
@@ -98,7 +98,7 @@ public abstract class RendererJ3D extends DataRenderer {
       sw.addChild(branches[i]);
       // sw.setChild(branches[i], i);
     }
-    currentIndex = 0;
+    // currentIndex = 0;
 /*
 System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
 */
@@ -107,7 +107,7 @@ System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
   }
 
   public void toggle(boolean on) {
-    sw.setWhichChild(on ? currentIndex : (2 - currentIndex));
+    sw.setWhichChild(on ? currentIndex : ((currentIndex+1)%3));
   }
 
   public ShadowType makeShadowFunctionType(

@@ -328,7 +328,7 @@ public class PlotText extends Object {
       for (int i=1; i<30; i++) {
         val *= 10.0;
         orig_val *= 10.0;
-        if (val >= 0.1) {
+        if (val >= 1.0) {
           return shortString(orig_val) + "E-" + i;
         }
       }
