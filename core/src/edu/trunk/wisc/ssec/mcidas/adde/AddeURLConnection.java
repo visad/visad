@@ -43,7 +43,7 @@ import java.util.StringTokenizer;
  * a request packet, and initiate data flow.  Connections for
  * image data, image directories, grid data, grid directory, 
  * point source * data and dataset information (McIDAS
- * AGET, ADIR, GGET, MDKS and LWPR requests) are supported.
+ * AGET, ADIR, GGET, MDKS, TXTG and LWPR requests) are supported.
  * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
  *      McIDAS Programmer's Manual</A>
  *
@@ -60,6 +60,7 @@ import java.util.StringTokenizer;
  *   datasetinfo - request for data set information (LWPR)
  *   griddirectory - request for grid directory information (GDIR)
  *   griddata - request for grid data (GGET)
+ *   textdata - request to read a text file (TXTG) 
  *
  * There can be any valid combination of the following supported keywords:
  *
@@ -125,6 +126,12 @@ import java.util.StringTokenizer;
  *   param=<param list>        what parameters to return
  *   num=<max>                 maximum number of obs to return
  *   
+ * ------ for text data:
+ *
+ *   descr=<descriptor>        ADDE descriptor name 
+ *                             (may also be "descr=FILE=filename")
+ *
+ *
  * The following keywords are required:
  *
  *   group 
@@ -165,7 +172,7 @@ public class AddeURLConnection extends URLConnection
   private final static int GDIR = 3;
   private final static int GGET = 4;
   private final static int MDKS = 5;
-
+  private final static int TXTG = 6;
 
 
   // ADDE data types
@@ -229,12 +236,14 @@ public class AddeURLConnection extends URLConnection
     // verify the service requested is for image, not grid or md data
     // get rid of leading /
     String request = url.getFile().toLowerCase().substring(1);
+
     if (!request.startsWith("image") && 
         (!request.startsWith("datasetinfo")) &&
+        (!request.startsWith("text")) &&
         (!request.startsWith("grid"))   && 
         (!request.startsWith("point"))  )
     {
-        throw new AddeURLException("Request for non-image data");
+        throw new AddeURLException("Request for unknown data");
     }
 
     // send version number - ADDE seems to be stuck at 1
@@ -264,6 +273,11 @@ public class AddeURLConnection extends URLConnection
     {
         svc = (new String("lwpr")).getBytes();
         reqType = LWPR;
+    }
+    else if (request.startsWith("text"))
+    {
+        svc = (new String("txtg")).getBytes();
+        reqType = TXTG;
     }
     else if (request.startsWith("image"))
     {
@@ -306,7 +320,7 @@ public class AddeURLConnection extends URLConnection
     // prep for real thing - get cmd from file part of URL
     int test = request.indexOf("?");
     String uCmd = (test >=0) ? request.substring(test+1) : request;
-    if (debug) System.out.println(uCmd);
+    if (debug) System.out.println("uCmd="+uCmd);
 
     int startIdx;
     int endIdx;
@@ -383,6 +397,9 @@ public class AddeURLConnection extends URLConnection
             break;
         case MDKS:
             sb = decodeMDKSString(uCmd);
+            break;
+        case TXTG:
+            sb = decodeTXTGString(uCmd);
             break;
     }
 
@@ -1141,6 +1158,54 @@ public class AddeURLConnection extends URLConnection
         }
         return buf;
     }
+
+
+    /**
+     * Decode the ADDE request for a text file.
+     *
+     * <pre>
+     * there can be any valid combination of the following supported keywords:
+     *
+     *   file=<filename>    the text file name on the server
+     *
+     * the following keywords are required:
+     *
+     *   file
+     *
+     * an example URL might look like:
+     *   adde://viper/text?file=myfile.txt
+     *   
+     * </pre>
+     */
+    public StringBuffer decodeTXTGString(String uCmd)
+    {
+        StringBuffer buf = new StringBuffer();
+        String testString;
+        String groupString = null;
+        String filenameString = null;
+
+        StringTokenizer cmdTokens = new StringTokenizer(uCmd, "&");
+        while (cmdTokens.hasMoreTokens())
+        {
+            testString = cmdTokens.nextToken();
+            if (testString.startsWith("desc"))
+            {
+                filenameString =
+                    testString.substring(testString.indexOf("=") + 1);
+            }
+            if (testString.startsWith("grou"))
+            {
+                groupString = 
+                    testString.substring(testString.indexOf("=") + 1);
+            }
+
+        }
+        buf.append(groupString);
+        buf.append(" ");
+        buf.append(filenameString);
+        return buf;
+    }
+
 
     /**
      * Decode the ADDE request for data set information.
