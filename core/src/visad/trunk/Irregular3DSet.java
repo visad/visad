@@ -216,8 +216,7 @@ public class Irregular3DSet extends IrregularSet {
                              "don't match");
     }
 
-    // DelaunayCustom may be non-convex
-    boolean custom = (Delan instanceof DelaunayCustom);
+    boolean nonConvex = Delan.getNonConvex();
 
     float[] PA = new float[3];
     float[] PB = new float[3];
@@ -393,8 +392,8 @@ public class Irregular3DSet extends IrregularSet {
           }
           if (fail) curtri = -1;
 
-/* to deal with non-convex Set, but very slow
-          if (custom) {
+          if (nonConvex) {
+            // to deal with non-convex Set, but very slow
             if (curtri == -1) {
               for (int jj=0; jj<fail_tri.length; jj++) {
                 if (!fail_tri[jj]) {
@@ -404,7 +403,6 @@ public class Irregular3DSet extends IrregularSet {
               }
             }
           }
-*/
 
         }
         else {

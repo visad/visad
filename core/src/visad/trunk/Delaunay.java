@@ -53,6 +53,8 @@ public abstract class Delaunay implements java.io.Serializable {
                              //   Edges = new int[ntris][3 * (dim - 1)];
   public int NumEdges;       // number of unique global edge numbers
 
+  private boolean nonConvex = false;
+
   /** The abstract constructor initializes the class's data arrays. */
   public Delaunay() throws VisADException {
     Tri = null;
@@ -60,6 +62,14 @@ public abstract class Delaunay implements java.io.Serializable {
     Walk = null;
     Edges = null;
     NumEdges = 0;
+  }
+
+  public void setNonConvex() {
+    nonConvex = true;
+  }
+
+  public boolean getNonConvex() {
+    return nonConvex;
   }
 
   public Object clone() {
