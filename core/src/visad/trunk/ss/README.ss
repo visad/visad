@@ -23,6 +23,7 @@
     2.2.1 File Menu
     2.2.2 Edit Menu
     2.2.3 Cell Menu
+    2.2.4 Mappings Menu
   2.3 Toolbars
     2.3.1 Main Toolbar
     2.3.2 Formula Toolbar
@@ -124,9 +125,8 @@ could prove useful to any class needing to work with formulas.
 2.1 Basic Commands
     The spreadsheet cell with the blue border is the current, highlighted
 cell.  Any operation you perform (such as importing a data set), will affect
-the highlighted cell.  To change which cell is highlighted, press the arrow
-keys, or click in the desired cell with the left mouse button (however, see
-the note about highlighting cells with the mouse in section 3, Known Bugs).
+the highlighted cell.  To change which cell is highlighted, click inside the
+desired cell with a mouse button, or press the arrow keys.
 
 2.2 Menu Commands
 
@@ -195,7 +195,7 @@ the note about highlighting cells with the mouse in section 3, Known Bugs).
 2.3.1 Main Toolbar
     The main toolbar provides shortcuts to the following menu items:
         File New, File Open, File Save,
-        Edit Cut, Edit Copy, Edit Paste, and Edit Mappings.
+        Edit Cut, Edit Copy, Edit Paste, and Mappings Edit.
 The main toolbar has tool tips so each button can be easily identified.
 
 2.3.2 Formula Toolbar
@@ -233,43 +233,39 @@ the unary function "NEGATE" must be used (e.g., "B2 * NEGATE(A1)").
 An example of a valid formula for cell A1 is:
     SQRT(A2 + B2^5 - MIN(B1, C1))
 
-Once you've entered a formula, click the green check box button to the left
-of the formula entry text box to apply the formula.  The red X button will
-cancel your entry, restoring the formula to its previous state.  The open folder
-button to the right of the formula entry text box is a shortcut to the
-Cell menu's Import Data menu item.
+Once you've typed in a formula, press Enter or click the green check box button
+to the left of the formula entry text box to apply the formula.  The red X
+button will cancel your entry, restoring the formula to its previous state.
+The open folder button to the right of the formula entry text box is a shortcut
+to the Cell menu's Import Data menu item.
 
 2.4 Undocumented Features
     Obviously, if they're undocumented, you won't find them in this README!
-    However, creating the javadoc for the visad.ss package should be a great
-    help in deciphering it, since the source is heavily commented.
+    However, creating the javadoc for the visad.ss package should help in
+    deciphering it, since the source is heavily commented.
 
 3. Known Bugs
     The following bugs have been discovered and have not yet been fixed:
       1) The spreadsheet does not start in the center of the screen like it
-         should.  Changing the WIDTH and HEIGHT variables in SpreadSheet.java
-         has no effect on the window's starting size.  This bug is somehow
-         caused by the use of an AWT MenuBar instead of a Swing JMenuBar.
-      2) Spreadsheet cells do not have labels (i.e., the cell in the top-left
-         is A1, the one directory to its right is B1, the one directly below
-         that is B2, etc., but the cells are not labeled in any way).
-      3) When a cell is not empty (it is displaying something), clicking on
-         the cell will not highlight it.  Instead, the arrow keys must be
-         used to select the cell.
-      4) Hitting enter after entering a formula doesn't do anything.  To apply
-         the formula, you have to click the green check box, which is a pain.
-      5) Error messages are displayed when the user clicks on a button that
+         should.  This bug is somehow caused by the use of an AWT MenuBar
+         instead of a Swing JMenuBar.
+      2) The spreadsheet's cell labels do not always line up exactly with
+         their cells (they can be off by as much as the width of a scrollbar).
+      3) Error messages are displayed when the user clicks on a button that
          doesn't make sense (such as trying to set up mappings for an empty
          cell).  These buttons should just be grayed out.
-      6) In rare cases, the spreadsheet will lock up when strange formula
+      4) In rare cases, the spreadsheet will lock up when strange formula
          cases occur.  For example, setting cell A1 = A1, cell B1 = A1, then
          trying to clear cell A1 will sometimes lock up the spreadsheet.
-      7) The spreadsheet will not import certain data sets correctly, due to
+      5) The spreadsheet will not import certain data sets correctly, due to
          incomplete implementations in VisAD file adapter forms.
-      8) Sometimes the SpreadSheet crashes with an "Invalid instruction"
+      6) Sometimes the SpreadSheet crashes with an "Invalid instruction"
          error in Windows NT (and possibly other operating systems).  This
          problem is probably due to bugs in Java3D or JDK 1.2beta3 rather
          than VisAD or SpreadSheet.
+      7) There is no way to change the number of spreadsheet rows and columns
+         without changing the NumVisX and NumVisY variables in
+         SpreadSheet.java and then recompiling.
 
     If you find a bug in the spreadsheet user interface not listed above,
 please send e-mail to curtis@ssec.wisc.edu describing the problem,
@@ -277,22 +273,20 @@ preferably with a detailed description of how to recreate the problem.
 
 4. Future Plans
     Here's what's coming in the future:
-      1) Automatic and shortcut display mappings
-      2) Spreadsheet column and row addition and deletion
-      3) Control widgets (such as when something is mapped to IsoContour)
-      4) Remote spreadsheet cloning with collaboration
-      5) Distributed Cells, Data, etc. (such as data import from http address)
-      6) Direct manipulation support
-      7) Multiple data per cell
-      8) Dynamic linkage of Java code into formulas
-      9) Formula enhancements, including derivatives, extraction of pieces of
+      1) Spreadsheet column and row addition and deletion
+      2) Control widgets (such as when something is mapped to IsoContour)
+      3) Remote spreadsheet cloning with collaboration
+      4) Distributed Cells, Data, etc. (such as data import from http address)
+      5) Direct manipulation support
+      6) Multiple data per cell
+      7) Dynamic linkage of Java code into formulas
+      8) Formula enhancements, including derivatives, extraction of pieces of
          a Data object (such as a single function from a multi-function file),
          and composition of multiple Data objects (such as creating an
          animation from multiple spreadsheet cells)
-     10) More "quick-maps," such as contour and animation combinations.
-     11) Misc. user interface enhancements
-     12) And of course, bug fixes.
+      9) More "quick-maps," such as contour and animation combinations.
+     10) Misc. user interface enhancements
+     11) And of course, bug fixes.
 
     If you have any suggestions for features that you would find useful,
 please send e-mail to curtis@ssec.wisc.edu describing the feature.
-

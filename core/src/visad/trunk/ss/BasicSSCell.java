@@ -94,6 +94,9 @@ public class BasicSSCell extends JPanel {
   /** Specifies whether the DisplayPanel is 2-D or 3-D, Java2D or Java3D. */
   int Dimension2D = JAVA3D_3D;
 
+  /** Specifies this SSCell's DisplayListener. */
+  DisplayListener DListen = null;
+
   /** Specifies whether the BasicSSCell contains any data. */
   boolean HasData = false;
 
@@ -136,6 +139,16 @@ public class BasicSSCell extends JPanel {
                                                       RemoteException {
     this(name);
     if (info != null) setSSCellString(info);
+  }
+
+  /** Returns the BasicSSCell object with the specified display. */
+  public static BasicSSCell getSSCellByDisplay(Display d) {
+    Enumeration panels = SSCellVector.elements();
+    while (panels.hasMoreElements()) {
+      BasicSSCell panel = (BasicSSCell) panels.nextElement();
+      if (d == (Display) panel.VDisplay) return panel;
+    }
+    return null;
   }
 
   /** Returns the BasicSSCell object with the specified name. */
@@ -227,20 +240,21 @@ public class BasicSSCell extends JPanel {
     return s;
   }
 
+  /** Sets up the DisplayListener for this cell. */
+  public void setDisplayListener(DisplayListener d) {
+    DListen = d;
+    if (d != null) VDisplay.addDisplayListener(d);
+  }
+
   /** Maps Reals to the display according to the specified ScalarMaps. */
   public void setMaps(ScalarMap[] maps) throws VisADException,
                                                RemoteException {
-    System.out.println("setMaps called"); /* CTR: TEMP */
     if (maps == null) return;
-    System.out.println("okay"); /* CTR: TEMP */
-    System.out.println("nummaps = "+maps.length); /* CTR: TEMP */
     clearDisplay();
     for (int i=0; i<maps.length; i++) {
       VDisplay.addMap(maps[i]);
     }
-    System.out.println("added maps"); /* CTR: TEMP */
     VDisplay.addReference(DataRef);
-    System.out.println("added ref"); /* CTR: TEMP */
     HasMappings = true;
   }
 
@@ -300,6 +314,7 @@ public class BasicSSCell extends JPanel {
     Dimension2D = dim;
     clearDisplay();
 
+    if (DListen != null) VDisplay.removeDisplayListener(DListen);
     if (Dimension2D == JAVA3D_3D) {
       VDisplay = new DisplayImplJ3D(Name);
     }
@@ -309,6 +324,7 @@ public class BasicSSCell extends JPanel {
     else {  // Dimension2D == JAVA3D_2D
       VDisplay = new DisplayImplJ3D(Name, new TwoDDisplayRendererJ3D());
     }
+    if (DListen != null) VDisplay.addDisplayListener(DListen);
 
     if (HasData) remove(VDPanel);
     VDPanel = (JPanel) VDisplay.getComponent();

@@ -53,13 +53,15 @@ import visad.data.BadFormException;
 /** SpreadSheet is a user interface for VisAD that supports
     multiple 3-D displays (FancySSCells).<P>*/
 public class SpreadSheet extends JFrame implements ActionListener,
+                                                   AdjustmentListener,
+                                                   DisplayListener,
                                                    KeyListener,
                                                    ItemListener,
                                                    MouseListener {
 
   // starting size of the application
-  static final int WIDTH = 1000;
-  static final int HEIGHT = 900;
+  static final int WIDTH = 900;
+  static final int HEIGHT = 800;
 
   // minimum VisAD display size, including display border
   static final int MIN_VIS_WIDTH = 200;
@@ -77,13 +79,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
   FileDialog SSFileDialog = null;
 
   // number of VisAD displays
-  int NumVisX = 3;
-  int NumVisY = 2;
+  int NumVisX = 4;
+  int NumVisY = 3;
   int NumVisDisplays = NumVisX*NumVisY;
 
   // display-related arrays and variables
   Panel DisplayPanel;
   JPanel ScrollPanel;
+  JScrollPane HorizLabels;
+  JScrollPane VertLabels;
   FancySSCell[] DisplayCells;
   JTextField FormulaField;
   MenuItem EditPaste;
@@ -120,8 +124,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
     JPanel pane = new JPanel();
     pane.setBackground(Color.white);
     pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
-    pane.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    pane.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     setContentPane(pane);
 
     // set up menus
@@ -226,6 +228,16 @@ public class SpreadSheet extends JFrame implements ActionListener,
     mapGrayImage.setActionCommand("mapGrayImage");
     map.add(mapGrayImage);
 
+    MenuItem mapCMYImage = new MenuItem("CMY image");
+    mapCMYImage.addActionListener(this);
+    mapCMYImage.setActionCommand("mapCMYImage");
+    map.add(mapCMYImage);
+
+    MenuItem mapHSVImage = new MenuItem("HSV image");
+    mapHSVImage.addActionListener(this);
+    mapHSVImage.setActionCommand("mapHSVImage");
+    map.add(mapHSVImage);
+
     MenuItem mapSphereColorImage = new MenuItem("Spherical color image");
     mapSphereColorImage.addActionListener(this);
     mapSphereColorImage.setActionCommand("mapSphereColorImage");
@@ -236,6 +248,16 @@ public class SpreadSheet extends JFrame implements ActionListener,
     mapSphereGrayImage.setActionCommand("mapSphereGrayImage");
     map.add(mapSphereGrayImage);
 
+    MenuItem mapSphereCMYImage = new MenuItem("Spherical CMY image");
+    mapSphereCMYImage.addActionListener(this);
+    mapSphereCMYImage.setActionCommand("mapSphereCMYImage");
+    map.add(mapSphereCMYImage);
+
+    MenuItem mapSphereHSVImage = new MenuItem("Spherical HSV image");
+    mapSphereHSVImage.addActionListener(this);
+    mapSphereHSVImage.setActionCommand("mapSphereHSVImage");
+    map.add(mapSphereHSVImage);
+
     MenuItem mapColor3DSurface = new MenuItem("Color 3-D surface");
     mapColor3DSurface.addActionListener(this);
     mapColor3DSurface.setActionCommand("mapColor3DSurface");
@@ -245,6 +267,16 @@ public class SpreadSheet extends JFrame implements ActionListener,
     mapGray3DSurface.addActionListener(this);
     mapGray3DSurface.setActionCommand("mapGray3DSurface");
     map.add(mapGray3DSurface);
+
+    MenuItem mapCMY3DSurface = new MenuItem("CMY 3-D surface");
+    mapCMY3DSurface.addActionListener(this);
+    mapCMY3DSurface.setActionCommand("mapCMY3DSurface");
+    map.add(mapCMY3DSurface);
+
+    MenuItem mapHSV3DSurface = new MenuItem("HSV 3-D surface");
+    mapHSV3DSurface.addActionListener(this);
+    mapHSV3DSurface.setActionCommand("mapHSV3DSurface");
+    map.add(mapHSV3DSurface);
 
     MenuItem mapColorSphere3DSurface = new MenuItem(
                                        "Color spherical 3-D surface");
@@ -258,13 +290,21 @@ public class SpreadSheet extends JFrame implements ActionListener,
     mapGraySphere3DSurface.setActionCommand("mapGraySphere3DSurface");
     map.add(mapGraySphere3DSurface);
 
+    MenuItem mapCMYSphere3DSurface = new MenuItem("CMY spherical 3-D surface");
+    mapCMYSphere3DSurface.addActionListener(this);
+    mapCMYSphere3DSurface.setActionCommand("mapCMYSphere3DSurface");
+    map.add(mapCMYSphere3DSurface);
+
+    MenuItem mapHSVSphere3DSurface = new MenuItem("HSV spherical 3-D surface");
+    mapHSVSphere3DSurface.addActionListener(this);
+    mapHSVSphere3DSurface.setActionCommand("mapHSVSphere3DSurface");
+    map.add(mapHSVSphere3DSurface);
+
     // set up toolbar
     JToolBar toolbar = new JToolBar();
     toolbar.setBackground(Color.lightGray);
     toolbar.setBorder(new EtchedBorder());
     toolbar.setFloatable(false);
-    toolbar.setAlignmentY(JToolBar.TOP_ALIGNMENT);
-    toolbar.setAlignmentX(JToolBar.LEFT_ALIGNMENT);
     pane.add(toolbar);
 
     // file menu toolbar icons
@@ -338,69 +378,126 @@ public class SpreadSheet extends JFrame implements ActionListener,
     formulaPanel.setBackground(Color.white);
     formulaPanel.setLayout(new BoxLayout(formulaPanel, BoxLayout.X_AXIS));
     formulaPanel.setBorder(new EtchedBorder());
-    formulaPanel.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    formulaPanel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     pane.add(formulaPanel);
+    pane.add(Box.createRigidArea(new Dimension(0, 6)));
 
     ImageIcon cancelIcon = new ImageIcon("cancel.gif");
     JButton formulaCancel = new JButton(cancelIcon);
+    formulaCancel.setAlignmentY(JButton.CENTER_ALIGNMENT);
     formulaCancel.setToolTipText("Cancel formula entry");
     formulaCancel.addActionListener(this);
     formulaCancel.setActionCommand("formulaCancel");
     Dimension size = new Dimension(cancelIcon.getIconWidth()+4,
                                    cancelIcon.getIconHeight()+4);
     formulaCancel.setPreferredSize(size);
-    formulaCancel.setAlignmentY(JButton.TOP_ALIGNMENT);
-    formulaCancel.setAlignmentX(JButton.LEFT_ALIGNMENT);
     formulaPanel.add(formulaCancel);
 
     ImageIcon okIcon = new ImageIcon("ok.gif");
     FormulaOk = new JButton(okIcon);
+    FormulaOk.setAlignmentY(JButton.CENTER_ALIGNMENT);
     FormulaOk.setToolTipText("Confirm formula entry");
     FormulaOk.addActionListener(this);
     FormulaOk.setActionCommand("formulaOk");
     size = new Dimension(okIcon.getIconWidth()+4, okIcon.getIconHeight()+4);
     FormulaOk.setPreferredSize(size);
-    FormulaOk.setAlignmentY(JButton.TOP_ALIGNMENT);
-    FormulaOk.setAlignmentX(JButton.LEFT_ALIGNMENT);
     formulaPanel.add(FormulaOk);
 
     FormulaField = new JTextField();
     FormulaField.setToolTipText("Enter a file name or formula");
-    FormulaField.setAlignmentY(JTextField.TOP_ALIGNMENT);
-    FormulaField.setAlignmentX(JTextField.LEFT_ALIGNMENT);
+    FormulaField.addActionListener(this);
+    FormulaField.setActionCommand("formulaChange");
     formulaPanel.add(FormulaField);
 
     ImageIcon importIcon = new ImageIcon("import.gif");
     JButton formulaImport = new JButton(importIcon);
+    formulaImport.setAlignmentY(JButton.CENTER_ALIGNMENT);
     formulaImport.setToolTipText("Import data");
     formulaImport.addActionListener(this);
     formulaImport.setActionCommand("cellImport");
     size = new Dimension(importIcon.getIconWidth()+4,
                          importIcon.getIconHeight()+4);
     formulaImport.setPreferredSize(size);
-    formulaImport.setAlignmentY(JButton.TOP_ALIGNMENT);
-    formulaImport.setAlignmentX(JButton.LEFT_ALIGNMENT);
     formulaPanel.add(formulaImport);
+
+    // label constants
+    final int LABEL_WIDTH = 30;
+    final int LABEL_HEIGHT = 20;
+
+    // set up horizontal spreadsheet cell labels
+    JPanel horizShell = new JPanel();
+    horizShell.setBackground(Color.white);
+    horizShell.setLayout(new BoxLayout(horizShell, BoxLayout.X_AXIS));
+    horizShell.add(Box.createRigidArea(new Dimension(LABEL_WIDTH+6, 0)));
+    pane.add(horizShell);
+
+    JPanel horizPanel = new JPanel() {
+      public Dimension getPreferredSize() {
+        Dimension d = super.getPreferredSize();
+        return new Dimension(d.width, LABEL_HEIGHT);
+      }
+    };
+    horizPanel.setLayout(new BoxLayout(horizPanel, BoxLayout.X_AXIS));
+    for (int i=0; i<NumVisX; i++) {
+      JPanel lp = new JPanel();
+      lp.setBorder(new LineBorder(Color.black, 1));
+      lp.setLayout(new GridLayout(1, 1));
+      lp.setPreferredSize(new Dimension(MIN_VIS_WIDTH+5, 0));
+      lp.add(new JLabel(String.valueOf(Letters.charAt(i)),
+                        SwingConstants.CENTER));
+      horizPanel.add(lp);
+    }
+    HorizLabels = new JScrollPane(horizPanel,
+                                  JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+                                  JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    HorizLabels.setPreferredSize(new Dimension(0, LABEL_HEIGHT));
+    HorizLabels.setMaximumSize(new Dimension(Integer.MAX_VALUE, LABEL_HEIGHT));
+    horizShell.add(HorizLabels);
+    horizShell.add(Box.createRigidArea(new Dimension(6, 0)));
 
     // set up window's main panel
     JPanel mainPanel = new JPanel();
     mainPanel.setBackground(Color.white);
     mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.X_AXIS));
-    mainPanel.setBorder(new EmptyBorder(6, 6, 6, 6));
-    mainPanel.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    mainPanel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     pane.add(mainPanel);
+    pane.add(Box.createRigidArea(new Dimension(0, 6)));
+
+    // set up vertical spreadsheet cell labels
+    JPanel vertShell = new JPanel();
+    vertShell.setBackground(Color.white);
+    vertShell.setLayout(new BoxLayout(vertShell, BoxLayout.Y_AXIS));
+    mainPanel.add(Box.createRigidArea(new Dimension(6, 0)));
+    mainPanel.add(vertShell);
+
+    JPanel vertPanel = new JPanel() {
+      public Dimension getPreferredSize() {
+        Dimension d = super.getPreferredSize();
+        return new Dimension(LABEL_WIDTH, d.height);
+      }
+    };
+    vertPanel.setLayout(new BoxLayout(vertPanel, BoxLayout.Y_AXIS));
+    for (int i=0; i<NumVisY; i++) {
+      JPanel lp = new JPanel();
+      lp.setBorder(new LineBorder(Color.black, 1));
+      lp.setLayout(new GridLayout(1, 1));
+      lp.setPreferredSize(new Dimension(0, MIN_VIS_HEIGHT+5));
+      lp.add(new JLabel(""+(i+1), SwingConstants.CENTER));
+      vertPanel.add(lp);
+    }
+    VertLabels = new JScrollPane(vertPanel,
+                                 JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+                                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    VertLabels.setPreferredSize(new Dimension(LABEL_WIDTH, 0));
+    VertLabels.setMaximumSize(new Dimension(LABEL_WIDTH, Integer.MAX_VALUE));
+    vertShell.add(VertLabels);
 
     // set up scroll pane's panel
     ScrollPanel = new JPanel();
-    mainPanel.add(ScrollPanel);
     ScrollPanel.setBackground(Color.white);
     ScrollPanel.setLayout(new BoxLayout(ScrollPanel, BoxLayout.X_AXIS));
-    ScrollPanel.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    ScrollPanel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    mainPanel.add(ScrollPanel);
+    mainPanel.add(Box.createRigidArea(new Dimension(6, 0)));
 
-    // set up scroll pane
+    // set up scroll pane for VisAD Displays
     ScrollPane scpane = new ScrollPane() {
       Dimension prefSize = new Dimension(0, 0);
 
@@ -412,15 +509,17 @@ public class SpreadSheet extends JFrame implements ActionListener,
     Adjustable vadj = scpane.getVAdjustable();
     hadj.setBlockIncrement(MIN_VIS_WIDTH);
     hadj.setUnitIncrement(MIN_VIS_WIDTH/4);
+    hadj.addAdjustmentListener(this);
     vadj.setBlockIncrement(MIN_VIS_HEIGHT);
     vadj.setUnitIncrement(MIN_VIS_HEIGHT/4);
+    vadj.addAdjustmentListener(this);
     ScrollPanel.add(scpane);
 
     // set up display panel
     DisplayPanel = new Panel();
-    scpane.add(DisplayPanel);
     DisplayPanel.setBackground(Color.white);
     DisplayPanel.setLayout(new GridLayout(NumVisY, NumVisX, 5, 5));
+    scpane.add(DisplayPanel);
 
     // set up display panel's individual VisAD displays
     DisplayCells = new FancySSCell[NumVisDisplays];
@@ -431,6 +530,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       try {
         DisplayCells[i] = new FancySSCell(name, this);
         DisplayCells[i].addMouseListener(this);
+        DisplayCells[i].setDisplayListener(this);
         DisplayCells[i].setMinSize(new Dimension(MIN_VIS_WIDTH,
                                                  MIN_VIS_HEIGHT));
         if (i == 0) DisplayCells[i].setSelected(true);
@@ -479,12 +579,27 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else if (cmd.equals("mapGrayImage")) {
       DisplayCells[CurDisplay].setMappingScheme(FancySSCell.GRAYSCALE_IMAGE);
     }
+    else if (cmd.equals("mapCMYImage")) {
+      DisplayCells[CurDisplay].setMappingScheme(FancySSCell.CMY_IMAGE);
+    }
+    else if (cmd.equals("mapHSVImage")) {
+      DisplayCells[CurDisplay].setMappingScheme(FancySSCell.HSV_IMAGE);
+    }
     else if (cmd.equals("mapSphereColorImage")) {
       DisplayCells[CurDisplay].setMappingScheme(
                                FancySSCell.COLOR_SPHERICAL_IMAGE);
     }
     else if (cmd.equals("mapSphereGrayImage")) {
-      DisplayCells[CurDisplay].setMappingScheme(FancySSCell.GRAYSCALE_IMAGE);
+      DisplayCells[CurDisplay].setMappingScheme(
+                               FancySSCell.GRAYSCALE_SPHERICAL_IMAGE);
+    }
+    else if (cmd.equals("mapSphereCMYImage")) {
+      DisplayCells[CurDisplay].setMappingScheme(
+                               FancySSCell.CMY_SPHERICAL_IMAGE);
+    }
+    else if (cmd.equals("mapSphereHSVImage")) {
+      DisplayCells[CurDisplay].setMappingScheme(
+                               FancySSCell.HSV_SPHERICAL_IMAGE);
     }
     else if (cmd.equals("mapColor3DSurface")) {
       DisplayCells[CurDisplay].setMappingScheme(FancySSCell.COLOR_3DSURFACE);
@@ -492,6 +607,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else if (cmd.equals("mapGray3DSurface")) {
       DisplayCells[CurDisplay].setMappingScheme(
                                FancySSCell.GRAYSCALE_3DSURFACE);
+    }
+    else if (cmd.equals("mapCMY3DSurface")) {
+      DisplayCells[CurDisplay].setMappingScheme(FancySSCell.CMY_3DSURFACE);
+    }
+    else if (cmd.equals("mapHSV3DSurface")) {
+      DisplayCells[CurDisplay].setMappingScheme(FancySSCell.HSV_3DSURFACE);
     }
     else if (cmd.equals("mapColorSphere3DSurface")) {
       DisplayCells[CurDisplay].setMappingScheme(
@@ -501,10 +622,22 @@ public class SpreadSheet extends JFrame implements ActionListener,
       DisplayCells[CurDisplay].setMappingScheme(
                                FancySSCell.GRAYSCALE_SPHERICAL_3DSURFACE);
     }
+    else if (cmd.equals("mapCMYSphere3DSurface")) {
+      DisplayCells[CurDisplay].setMappingScheme(
+                               FancySSCell.CMY_SPHERICAL_3DSURFACE);
+    }
+    else if (cmd.equals("mapHSVSphere3DSurface")) {
+      DisplayCells[CurDisplay].setMappingScheme(
+                               FancySSCell.HSV_SPHERICAL_3DSURFACE);
+    }
 
     // formula bar commands
     else if (cmd.equals("formulaCancel")) refreshFormulaBar();
     else if (cmd.equals("formulaOk")) updateFormula();
+    else if (cmd.equals("formulaChange")) {
+      FormulaOk.requestFocus();
+      updateFormula();
+    }
   }
 
   /** Creates a new spreadsheet file, prompting user to save
@@ -745,12 +878,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** Update spreadsheet info when selected cell changes. */
-  void refreshInfo() {
-    refreshFormulaBar();
-    refreshDimensionMenuItems();
-  }
-
   /** Handles checkbox menu item changes (dimension checkboxes). */
   public void itemStateChanged(ItemEvent e) {
     String i = (String) e.getItem();
@@ -772,36 +899,60 @@ public class SpreadSheet extends JFrame implements ActionListener,
     catch (RemoteException exc) { }
   }
 
+  /** Handles scrollbar changes. */
+  public void adjustmentValueChanged(AdjustmentEvent e) {
+    Adjustable a = e.getAdjustable();
+    int value = a.getValue();
+
+    if (a.getOrientation() == Adjustable.HORIZONTAL) {
+      HorizLabels.getViewport().setViewPosition(new Point(value, 0));
+    }
+    else {  // a.getOrientation() == Adjustable.VERTICAL
+      VertLabels.getViewport().setViewPosition(new Point(0, value));
+    }
+  }
+
+  /** Handles display changes. */
+  public void displayChanged(DisplayEvent e) {
+    FancySSCell fcell = (FancySSCell)
+                        BasicSSCell.getSSCellByDisplay(e.getDisplay());
+    int c = -1;
+    for (int i=0; i<NumVisDisplays; i++) {
+      if (fcell == DisplayCells[i]) c = i;
+    }
+    selectCell(c);
+  }
+
+  /** Selects the specified cell, updating screen info. */
+  void selectCell(int cell) {
+    if (cell < 0 || cell >= NumVisDisplays || cell == CurDisplay) return;
+
+    // update blue border on screen
+    DisplayCells[CurDisplay].setSelected(false);
+    DisplayCells[cell].setSelected(true);
+    CurDisplay = cell;
+
+    // update spreadsheet info
+    refreshFormulaBar();
+    refreshDimensionMenuItems();
+  }
+
   /** Handles key presses. */
   public void keyPressed(KeyEvent e) {
     int key = e.getKeyCode();
-    int oldDisplay = CurDisplay;
-
-    if (key == KeyEvent.VK_ENTER) {
-      FormulaOk.requestFocus();
-      updateFormula();
-    }
 
     if (key == KeyEvent.VK_RIGHT || key == KeyEvent.VK_LEFT
      || key == KeyEvent.VK_DOWN  || key == KeyEvent.VK_UP) {
-      // update display variable
-      if (key == KeyEvent.VK_RIGHT
-       && (CurDisplay+1) % NumVisX != 0) CurDisplay += 1;
-      if (key == KeyEvent.VK_LEFT
-       && CurDisplay % NumVisX != 0) CurDisplay -= 1;
-      if (key == KeyEvent.VK_DOWN) CurDisplay += NumVisX;
-      if (key == KeyEvent.VK_UP) CurDisplay -= NumVisX;
-      if (CurDisplay >= NumVisDisplays) CurDisplay = oldDisplay;
-      if (CurDisplay < 0) CurDisplay = oldDisplay;
-
-      // update blue border on screen
-      if (oldDisplay != CurDisplay) {
-        DisplayCells[oldDisplay].setSelected(false);
-        DisplayCells[CurDisplay].setSelected(true);
+      int c = CurDisplay;
+      if (key == KeyEvent.VK_RIGHT && (CurDisplay+1) % NumVisX != 0) {
+        c = CurDisplay + 1;
       }
-
-      // refresh spreadsheet info
-      refreshInfo();
+      if (key == KeyEvent.VK_LEFT && CurDisplay % NumVisX != 0) {
+        c = CurDisplay - 1;
+      }
+      if (key == KeyEvent.VK_DOWN) c = CurDisplay + NumVisX;
+      if (key == KeyEvent.VK_UP) c = CurDisplay - NumVisX;
+      selectCell(c);
     }
   }
 
@@ -816,15 +967,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     for (int i=0; i<DisplayCells.length; i++) {
       if (c == DisplayCells[i]) cnum = i;
     }
-    if (cnum < 0) return;
-
-    // update blue border on screen;
-    DisplayCells[CurDisplay].setSelected(false);
-    DisplayCells[cnum].setSelected(true);
-    CurDisplay = cnum;
-
-    // refresh spreadsheet info
-    refreshInfo();
+    selectCell(cnum);
   }
 
   public void mouseReleased(MouseEvent e) { }
