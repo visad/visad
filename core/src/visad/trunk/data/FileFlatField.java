@@ -25,6 +25,8 @@ MA 02111-1307, USA
 
 package visad.data;
 
+import java.io.IOException;
+
 import java.rmi.RemoteException;
 
 import visad.FlatField;
@@ -560,5 +562,17 @@ public class FileFlatField extends FlatField {
     } catch (VisADException e) {
       return pre + e.getMessage();
     }
+  }
+
+  private void readObject(java.io.ObjectInputStream oos)
+    throws ClassNotFoundException, IOException
+  {
+    throw new java.io.NotSerializableException("FileFlatField is not serializable");
+  }
+
+  private void writeObject(java.io.ObjectOutputStream oos)
+    throws IOException
+  {
+    throw new java.io.NotSerializableException("FileFlatField is not serializable");
   }
 }
