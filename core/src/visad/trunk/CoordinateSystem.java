@@ -297,7 +297,7 @@ public abstract class CoordinateSystem extends Object
           value = coord_out.fromReference(value, units);
         }
       }
-    }
+    } // end if (!out.equals(in))
 
     // set return Unit-s
     if (units_out != null) {
