@@ -123,6 +123,11 @@ public class CollectiveBarbManipulation extends Object
   private int time_dir = 0; // < 0 for backward only, > 0 for forward only,
                             // == 0 for both directions
 
+  private static final int NCIRCLE = 24;
+  private DataRenderer circle_renderer = null;
+  private DataReferenceImpl circle_ref = null;
+  private boolean circle_enable = false;
+
   /**
      wf should have MathType:
        (station_index -> (Time -> tuple))
@@ -160,12 +165,15 @@ public class CollectiveBarbManipulation extends Object
 
      kts is false to indicate no m/s to knots conversion in
      wind barb renderers
+
+     circle_color is array of RGB colors for circle of influence,
+     or null for no circle
   */
   public CollectiveBarbManipulation(FieldImpl wf,
                  DisplayImplJ3D d1, DisplayImplJ3D d2, ConstantMap[] cms,
                  boolean abs, float id, float od, float it, float ot,
                  int sta, boolean need_monitor, boolean brbs, boolean fs,
-                 boolean kts)
+                 boolean kts, double[] circle_color)
          throws VisADException, RemoteException {
     wind_field = wf;
     display1 = d1;
@@ -469,10 +477,10 @@ public class CollectiveBarbManipulation extends Object
         station_refs[i].setData(tuples[i][0]);
         which_times[i] = -1;
         if (barbs) {
-          barb_manipulation_renderers[i] = new BarbManipulationRendererJ3D();
+          barb_manipulation_renderers[i] = new CBarbManipulationRendererJ3D(this);
         }
         else {
-          barb_manipulation_renderers[i] = new SwellManipulationRendererJ3D();
+          barb_manipulation_renderers[i] = new CSwellManipulationRendererJ3D(this);
         }
         ((BarbRenderer) barb_manipulation_renderers[i]).setKnotsConvert(knots);
         display1.addReferences(barb_manipulation_renderers[i], station_refs[i],
@@ -494,6 +502,19 @@ public class CollectiveBarbManipulation extends Object
     }
 
     time_dir = 0;
+
+    if (display1 != null && circle_color != null) {
+      ConstantMap[] color_maps =
+        {new ConstantMap(circle_color[0], Display.Red),
+         new ConstantMap(circle_color[1], Display.Green),
+         new ConstantMap(circle_color[2], Display.Blue)};
+      circle_ref = new DataReferenceImpl("circle");
+      circle_ref.setData(null);
+      circle_renderer = new DefaultRendererJ3D();
+      display1.addReferences(circle_renderer, circle_ref, color_maps);
+      circle_renderer.toggle(false);
+      circle_renderer.suppressExceptions(true);
+    }
   }
 
   /** set values that govern collective barb adjustment
@@ -829,6 +850,8 @@ public class CollectiveBarbManipulation extends Object
         visad.util.Util.isApproximatelyEqual(new_radial,
                radials[sta_index][time_index], MPS_EPS)) return;
 
+    if (display_index == 1 && curve_ref == null) makeCircle(sta_index);
+
     boolean curve = (curve_ref != null);
     if (last_sta != sta_index || last_time != time_index ||
         last_display != display_index || last_curve != curve) {
@@ -942,6 +965,56 @@ public class CollectiveBarbManipulation extends Object
       } // end for (int j=0; j<ntimes[i]; j++)
     } // end for (int i=0; i<nindex; i++)
     if (wind_monitor != null) wind_monitor.enableAction();
+  }
+
+  private RealTupleType circle_type = null;
+
+  private void makeCircle(int sta_index) {
+    if (circle_ref == null || !circle_enable) return;
+    try {
+      if (circle_type == null) {
+        circle_type = new RealTupleType(RealType.Latitude, RealType.Longitude);
+      }
+      float lat = lats[sta_index];
+      float lon = lons[sta_index];
+      float[][] circle = new float[2][NCIRCLE+1];
+      float coslat = (float) Math.cos(Data.DEGREES_TO_RADIANS * lat);
+      float dist = outer_distance / ShadowType.METERS_PER_DEGREE;
+      for (int i=0; i<=NCIRCLE; i++) {
+        double angle = Data.DEGREES_TO_RADIANS * 360.0 * i / NCIRCLE;
+        float cos = (float) Math.cos(angle);
+        float sin = (float) Math.sin(angle);
+        circle[0][i] = lat + dist * cos;
+        circle[1][i] = lon + dist * sin / coslat;
+      }
+      Gridded2DSet set = new Gridded2DSet(circle_type, circle, NCIRCLE + 1);
+      circle_renderer.toggle(true);
+      circle_ref.setData(set);
+    }
+    catch (VisADException e) {
+      System.out.println("makeCircle " + e);
+    }
+    catch (RemoteException e) {
+      System.out.println("makeCircle " + e);
+    }
+  }
+
+  void circleEnable() {
+    circle_enable = true;
+  }
+
+  public void release() {
+    try {
+      circle_enable = false;
+      circle_renderer.toggle(false);
+      circle_ref.setData(null);
+    }
+    catch (VisADException e) {
+      System.out.println("release " + e);
+    }
+    catch (RemoteException e) {
+      System.out.println("release " + e);
+    }
   }
 
   class BarbMonitor extends CellImpl {
@@ -1107,7 +1180,8 @@ public class CollectiveBarbManipulation extends Object
     final CollectiveBarbManipulation cbm =
       new CollectiveBarbManipulation(field, display1, display2, cmaps, false,
                                      0.0f, 1000000.0f, 0.0f, 1000.0f,
-                                     0, false, (args.length == 0), true, false);
+                                     0, false, (args.length == 0), true, false,
+                                     new double[] {0.5, 0.5, 0.0});
 
     // construct invisible starter set
     Gridded2DSet set1 =
@@ -1262,6 +1336,48 @@ class EndManipCBM implements ActionListener {
       dir = (dir == 0) ? +1 : ((dir > 0) ? -1 : 0);
       cbm.setTimeDir(dir);
     }
+  }
+}
+
+class CBarbManipulationRendererJ3D extends BarbManipulationRendererJ3D {
+
+  CollectiveBarbManipulation cbm;
+
+  CBarbManipulationRendererJ3D(CollectiveBarbManipulation c) {
+    super();
+    cbm = c;
+  }
+
+  /** mouse button released, ending direct manipulation */
+  public void release_direct() {
+    cbm.release();
+  }
+
+  public void drag_direct(VisADRay ray, boolean first,
+                                       int mouseModifiers) {
+    if (first) cbm.circleEnable();
+    super.drag_direct(ray, first, mouseModifiers);
+  }
+}
+
+class CSwellManipulationRendererJ3D extends SwellManipulationRendererJ3D {
+
+  CollectiveBarbManipulation cbm;
+
+  CSwellManipulationRendererJ3D(CollectiveBarbManipulation c) {
+    super();
+    cbm = c;
+  }
+
+  /** mouse button released, ending direct manipulation */
+  public synchronized void release_direct() {
+    cbm.release();
+  }
+
+  public void drag_direct(VisADRay ray, boolean first,
+                                       int mouseModifiers) {
+    if (first) cbm.circleEnable();
+    super.drag_direct(ray, first, mouseModifiers);
   }
 }
 

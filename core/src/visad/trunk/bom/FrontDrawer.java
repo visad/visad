@@ -681,7 +681,7 @@ class FrontManipulationRendererJ3D extends CurveManipulationRendererJ3D {
   }
 
   /** mouse button released, ending direct manipulation */
-  public synchronized void release_direct() {
+  public void release_direct() {
     fd.release();
   }
 }
