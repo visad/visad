@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: View.java,v 1.3 2001-10-29 21:58:32 steve Exp $
+ * $Id: View.java,v 1.4 2001-11-06 17:55:14 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -21,6 +21,8 @@ import ucar.netcdf.Netcdf;
 import ucar.netcdf.Variable;
 import ucar.netcdf.VariableIterator;
 import visad.CoordinateSystem;
+import visad.data.in.ArithProg;
+import visad.data.in.LonArithProg;
 import visad.data.netcdf.Quantity;
 import visad.data.netcdf.QuantityDB;
 import visad.data.units.ParseException;
@@ -53,7 +55,7 @@ import visad.VisADException;
  * A convention-dependent view of a netCDF dataset.
  *
  * @author Steven R. Emmerson
- * @version $Revision: 1.3 $ $Date: 2001-10-29 21:58:32 $
+ * @version $Revision: 1.4 $ $Date: 2001-11-06 17:55:14 $
  */
 public abstract class View
 {
@@ -801,8 +803,8 @@ public abstract class View
             else
             {
                 ArithProg       ap = isLongitude(coordVar)
-                                        ? new LonArithProg()
-                                        : new ArithProg();
+                                        ? new visad.data.in.LonArithProg()
+                                        : new visad.data.in.ArithProg();
                 Class           varType = coordVar.getComponentType();
                 boolean         isDouble = varType.equals(double.class);
                 Object          coordValues;
@@ -856,7 +858,7 @@ public abstract class View
                             getRealType(dim),
                             ap.getFirst(),
                             ap.getLast(),
-                            ap.getNumber(),
+                            (int)ap.getNumber(),
                             (CoordinateSystem)null,
                             new Unit[] {getUnitFromAttribute(coordVar)},
                             (ErrorEstimate[])null);
