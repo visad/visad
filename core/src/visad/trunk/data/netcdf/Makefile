@@ -22,5 +22,5 @@ test:		small.test big.test pmsl.test #time.test
 .nc.test:	FORCE
 	CLASSPATH=$(ROOTDIR):$$CLASSPATH $(JAVA) $(PACKAGE).Plain $<
 
-.nc.debug:	FORCE
+.nc.debug:
 	$(JDB) -classpath $(ROOTDIR):$(NETCDF_JAR) $(PACKAGE_PREFIX)Plain $<
