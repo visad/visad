@@ -7,23 +7,53 @@ import java.io.IOException;
 
 public class Util
 {
+  /**
+   * @see Util#copyDirectory(ProgressMonitor, File, File, String)
+   */
   public static final boolean copyDirectory(File source, File target)
   {
     return copyDirectory(null, source, target, null);
   }
 
+  /**
+   * @see Util#copyDirectory(ProgressMonitor, File, File, String)
+   */
   public static final boolean copyDirectory(ProgressMonitor progress,
                                             File source, File target)
   {
     return copyDirectory(progress, source, target, null);
   }
 
+  /**
+   * @see Util#copyDirectory(ProgressMonitor, File, File, String)
+   */
   public static final boolean copyDirectory(File source, File target,
                                             String saveSuffix)
   {
     return copyDirectory(null, source, target, saveSuffix);
   }
 
+  /**
+   * Copy files under <i>source</i> directory to <i>target</i>
+   * directory.  If necessary, <i>target</i> directory is created.<br>
+   * <br>
+   * For example, if this method is called with a <i>source</i> of
+   * <tt>/foo</tt> (which contains <tt>/foo/a</tt> and <tt>/foo/b</tt>)
+   * and a <i>target</i> of <tt>/bar</tt>, when this method exits
+   * <tt>/bar</tt> will contain <tt>/bar/a</tt> and <tt>/bar/b</tt>.
+   * Note that <tt>foo</tt> itself is not copied.
+   *
+   * @param progess if non-null, this progress monitor is updated
+   *                with the name of each file as it is copied.
+   * @param source source directory
+   * @param target directory
+   * @param saveSuffix if non-null, pre-existing files under <i>target</i>
+   *                   whose paths match files to be copied from
+   *                   <i>source</i> will be renamed to
+   *                   <tt>name + saveSuffix</tt>.
+   *
+   * @return false if any problems were encountered.
+   */
   public static final boolean copyDirectory(ProgressMonitor progress,
                                             File source, File target,
                                             String saveSuffix)
@@ -33,7 +63,6 @@ public class Util
       return false;
     }
 
-    // if source and target are the same, we're done
     // if source and target are the same, we're done
     if (getPath(source).equals(getPath(target))) {
       return false;
@@ -69,23 +98,46 @@ public class Util
     return result;
   }
 
+  /**
+   * @see Util#copyFile(ProgressMonitor, File, File, String)
+   */
   public static final boolean copyFile(File source, File target)
   {
     return copyFile(null, source, target, null);
   }
 
+  /**
+   * @see Util#copyFile(ProgressMonitor, File, File, String)
+   */
   public static final boolean copyFile(ProgressMonitor progress,
                                        File source, File target)
   {
     return copyFile(progress, source, target, null);
   }
 
+  /**
+   * @see Util#copyFile(ProgressMonitor, File, File, String)
+   */
   public static final boolean copyFile(File source, File target,
                                        String saveSuffix)
   {
     return copyFile(null, source, target, saveSuffix);
   }
 
+  /**
+   * Copy <i>source</i> file to <i>target</i> file.
+   * <i>target</i> cannot be a directory.
+   * <br>
+   * @param progess if non-null, this progress monitor is updated
+   *                with the name of each file as it is copied.
+   * @param source source directory
+   * @param target directory
+   * @param saveSuffix if non-null and <i>target</i> exists,
+   *                   <i>target</i> will be renamed to
+   *                   <tt>name + saveSuffix</tt>.
+   *
+   * @return false if any problems were encountered.
+   */
   public static final boolean copyFile(ProgressMonitor progress,
                                        File source, File target,
                                        String saveSuffix)
@@ -180,6 +232,10 @@ public class Util
     return true;
   }
 
+  /**
+   * @return either the canonical path or, if that is not
+   *         available, the absolute path.
+   */
   public static final String getPath(File f)
   {
     try {
