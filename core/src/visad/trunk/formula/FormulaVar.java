@@ -129,12 +129,9 @@ public class FormulaVar extends ActionImpl {
     catch (RemoteException exc) { }
   }
 
-  /** flag for whether doAction should actually do anything */
-  private boolean reallyDoIt = true;
-
   /** rebuild this variable's dependency list, then recompute this variable */
   private void rebuildDependencies() throws FormulaException {
-    reallyDoIt = false;
+    disableAction();
     clearDependencies();
     if (formula != null) {
       if (postfix == null) {
@@ -187,7 +184,6 @@ public class FormulaVar extends ActionImpl {
         catch (FormulaException exc) {
           evalError("Syntax error in formula: " + exc);
           try {
-            reallyDoIt = true;
             tref.setThing(null);
           }
           catch (VisADException exc2) {
@@ -199,8 +195,7 @@ public class FormulaVar extends ActionImpl {
         }
       }
     }
-    reallyDoIt = true;
-    doAction();
+    enableAction();
   }
 
   /** set the formula for this variable */
@@ -329,16 +324,15 @@ public class FormulaVar extends ActionImpl {
 
   /** recompute this variable */
   public void doAction() {
-    if (reallyDoIt) {
-      try {
-        tref.setThing(compute(postfix));
-      }
-      catch (VisADException exc) {
-        evalError("Could not store final value in variable");
-      }
-      catch (RemoteException exc) {
-        evalError("Could not store final value in variable");
-      }
+    /* CTR: TEMP */ System.out.println("GUESS WHAT?  ACTION!");
+    try {
+      tref.setThing(compute(postfix));
+    }
+    catch (VisADException exc) {
+      evalError("Could not store final value in variable");
+    }
+    catch (RemoteException exc) {
+      evalError("Could not store final value in variable");
     }
   }
 
