@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.20 2000-06-26 18:38:59 steve Exp $
+ * $Id: NetcdfAdapter.java,v 1.21 2000-06-26 20:28:15 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -81,10 +81,10 @@ NetcdfAdapter
      *
      * <p>This method uses the Java property
      * <code>IMPORT_STRATEGY_PROPERTY</code> to determine the strategy with
-     * which to import the netCDF dataset.  If the property is not set, then the
-     * default strategy of inner class <em>Strategy</em> is used.  Otherwise;
-     * the value of the property is used as a class name to instantiate the
-     * strategy for importing the netCDF dataset.
+     * which to import the netCDF dataset.  If the property is not set, then
+     * the default is to use the <code>getData()</code> method of inner class
+     * <code>Strategy</code>; otherwise, the value of the property is used as a
+     * class name to instantiate the strategy for importing the netCDF dataset.
      *
      * @return			The top-level, VisAD data object in the netCDF
      *				dataset.
@@ -266,7 +266,9 @@ NetcdfAdapter
 
     /**
      * Provides support for implementing strategies for importing netCDF
-     * datasets.
+     * datasets.  The <code>getData()</code> method of this class implements the
+     * default strategy.  This method may be overriden in order to implement a
+     * different strategy.
      *
      * @author Steven R. Emmerson
      */
@@ -314,18 +316,22 @@ NetcdfAdapter
 	 * <p>The following tactics are used, in order, to import the netCDF
 	 * dataset.  The first one to succeed determines the details of the
 	 * returned VisAD data object.
-	 * <nl>
+	 * <ol>
 	 * <li>Attempt to import the entire dataset into memory;</li>
 	 * <li>Attempt to import the entire dataset into memory -- using
 	 * visad.data.FileFlatField-s wherever possible;</li>
 	 * <li>Attempt to import the entire dataset into memory -- using
 	 * visad.data.FileFlatField-s wherever possible and maximizing
 	 * their number.</li>
-	 * </nl>
-	 * Tactic #1 and #2 will yield VisAD data objects with identical
-	 * MathType-s.  Tactic #3 above can yield a VisAD data object with a 
-	 * different MathType than either #1 or #2 because multiple FlatField-s
-	 * with the same domain will not be consolidated.
+	 * </ol>
+         * The first two tactics above will yield VisAD data objects with
+         * identical MathType-s.  The last tactic above can yield a VisAD
+         * data object with a different MathType than the first two because
+         * multiple FlatField-s with the same domain will <em>not</em> be
+	 * consolidated.</p>
+	 *
+	 * <p>This method may be overridden in order to implement a different
+	 * netCDF-dataset import-strategy.</p>
 	 *
 	 * @param adapter		The netCDF-to-VisAD adapter.
 	 * @return			The top-level, VisAD data object in the
