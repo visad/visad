@@ -315,7 +315,7 @@ public class Util
    *
    */
   public static void captureDisplay(DisplayImpl display, String filename) 
-                             throws IOException {
+  {
 
     final DisplayImpl disp = display;
     final File fn = new File(filename);
