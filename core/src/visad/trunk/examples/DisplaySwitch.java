@@ -51,6 +51,7 @@ import visad.java2d.DisplayImplJ2D;
 import visad.java3d.DisplayImplJ3D;
 
 import visad.util.AnimationWidget;
+import visad.util.ClientServer;
 import visad.util.ContourWidget;
 import visad.util.GMCWidget;
 import visad.util.LabeledColorWidget;
@@ -222,141 +223,28 @@ public class DisplaySwitch
     return client;
   }
 
-  RemoteDisplay[] getClientDisplays(RemoteServer client)
-    throws RemoteException, VisADException
-  {
-    // fail if there's no remote server
-    if (client == null) {
-      return null;
-    }
-
-    RemoteDisplay[] rmtDpys = null;
-
-    int loops = 0;
-    while (rmtDpys == null && loops < maximumWaitTime) {
-
-      try {
-        rmtDpys = client.getDisplays();
-      } catch (java.rmi.ConnectException ce) {
-      }
-
-      // if we didn't get the display, print a message and wait a bit
-      if (rmtDpys == null) {
-        if (loops == 0) {
-          System.err.print("Client waiting for server displays ");
-        } else {
-          System.err.print(".");
-        }
-
-        try { sleep(1000); } catch (InterruptedException ie) { }
-
-        loops++;
-      }
-    }
-
-    if (loops == maximumWaitTime) {
-      System.err.println(" giving up!");
-      System.exit(1);
-    } else if (loops > 0) {
-      System.err.println(". ready");
-    }
-
-    return rmtDpys;
-  }
-
-  private static LocalDisplay wrapRemoteDisplay(RemoteDisplay rmtDpy)
-    throws RemoteException, VisADException
-  {
-    String className = rmtDpy.getDisplayClassName();
-    Class dpyClass;
-    try {
-      dpyClass = Class.forName(className);
-    } catch (ClassNotFoundException e) {
-      throw new VisADException("Couldn't create " + className);
-    }
-
-    Class[] params = new Class[1];
-    try {
-      params[0] = Class.forName("visad.RemoteDisplay");
-    } catch (ClassNotFoundException e) {
-      throw new VisADException("Yikes! Couldn't find visad.RemoteDisplay!");
-    }
-
-    java.lang.reflect.Constructor cons;
-    try {
-      cons = dpyClass.getConstructor(params);
-    } catch (NoSuchMethodException e) {
-      throw new VisADException(className + " has no RemoteDisplay" +
-                               " constructor");
-    }
-
-    DisplayImpl dpy;
-
-    Object[] cargs = new Object[1];
-    cargs[0] = rmtDpy;
-    try {
-      dpy = (DisplayImpl )cons.newInstance(cargs);
-    } catch (Exception e) {
-      throw new VisADException("Couldn't create local shadow for " +
-                               rmtDpy + ": " + e.getClass().getName() +
-                               ": " + e.getMessage());
-    }
-
-    return dpy;
-  }
-
   LocalDisplay setupClientData()
     throws RemoteException, VisADException
   {
-    RemoteServer client = getClientServer();
-    RemoteDisplay[] rmtDpy = getClientDisplays(client);
-    if (rmtDpy == null) {
-      throw new VisADException("No RemoteDisplays found!");
-    }
-    if (rmtDpy.length != 1) {
-      throw new VisADException("Multiple RemoteDisplays found!");
-    }
-
-    LocalDisplay dpy = wrapRemoteDisplay(rmtDpy[0]);
-
-    return dpy;
-  }
-
-  RemoteServerImpl setupServer(DisplayImpl dpy)
-    throws RemoteException, VisADException
-  {
-    // create new server
-    RemoteServerImpl server;
-    boolean registryStarted = false;
-    while (true) {
-      boolean success = true;
-      try {
-        server = new RemoteServerImpl();
-        String domain = "//:/" + getClass().getName();
-        Naming.rebind(domain, server);
-        break;
-      } catch (java.rmi.ConnectException ce) {
-        if (!registryStarted) {
-          LocateRegistry.createRegistry(Registry.REGISTRY_PORT);
-          registryStarted = true;
-        } else {
-          success = false;
-        }
-      } catch (Exception e) {
-        success = false;
-      }
-      if (!success) {
-        throw new VisADException("Cannot set up server" +
-                                 " (rmiregistry may not be running)");
-      }
+    RemoteServer client;
+    try {
+      client = ClientServer.connectToServer(hostName, getClass().getName(),
+                                            true);
+    } catch (VisADException ve) {
+      System.err.println(ve.getMessage());
+      System.exit(1);
+      client = null;
     }
 
-    // add display to server
-    if (dpy != null) {
-      server.addDisplay(new RemoteDisplayImpl(dpy));
+    LocalDisplay[] dpys = ClientServer.getClientDisplays(client);
+    if (dpys == null) {
+      throw new VisADException("No remote displays found!");
+    }
+    if (dpys.length != 1) {
+      throw new VisADException("Multiple remote displays found!");
     }
 
-    return server;
+    return dpys[0];
   }
 
   public void startThreads()
@@ -369,10 +257,15 @@ public class DisplaySwitch
       DisplayImpl dpy = setupServerDisplay();
 
       RemoteServerImpl server;
-      if (startServer) {
-        server = setupServer(dpy);
-      } else {
+      if (!startServer) {
         server = null;
+      } else {
+        server = ClientServer.startServer(getClass().getName());
+
+        // add display to server
+        if (dpy != null) {
+          server.addDisplay(new RemoteDisplayImpl(dpy));
+        }
       }
 
       local = dpy;
