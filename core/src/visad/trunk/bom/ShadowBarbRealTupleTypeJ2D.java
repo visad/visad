@@ -187,7 +187,8 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
           makeBarb(south, spatial_values[0][j], spatial_values[1][j],
                    scale, pt_size, f0, f1, vx, vy, numv, tx, ty, numt);
         if (direct) {
-          ((BarbManipulationRendererJ2D) renderer).setBarbSpatialValues(mbarb);
+          ((BarbManipulationRendererJ2D) renderer).
+            setBarbSpatialValues(mbarb, which);
         }
         int nv = numv[0];
         int nt = numt[0];

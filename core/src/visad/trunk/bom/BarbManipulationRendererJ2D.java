@@ -41,17 +41,9 @@ import java.rmi.*;
 */
 public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
 
-
-/*
-
- **** must invert CoordinateSystem adjustment to flow, from assembleSpatial ****
-
-*/
-
-
-  /** this DataRenderer supports direct manipulation for RealTuple
-      representations of wind barbs; four of the RealTuple's Real
-      components must be mapped to XAxis, YAxis, Flow1X and Flow1Y */
+  /** this DataRenderer supports direct manipulation for Tuple
+      representations of wind barbs; two of the Tuple's Real components
+      must be mapped to Flow1X and Flow1Y, or Flow2X and Flow2Y */
   public BarbManipulationRendererJ2D () {
     super();
   }
@@ -115,7 +107,7 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
 
   /** DisplayFlow1Tuple or DisplayFlow2Tuple */
   private DisplayTupleType tuple;
-  /** mapping from flow components to RealTuple components */
+  /** mapping from flow components to Tuple Real components */
   private int[] flowToComponent = {-1, -1, -1};
   /** mapping from flow components to ScalarMaps */
   private ScalarMap[] directMap = {null, null, null};
@@ -123,6 +115,9 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
   /** (barbValues[0], barbValues[1]) = (x, y) barb head location
       (barbValues[2], barbValues[3]) = (x, y) barb tail location */
   private float[] barbValues = null;
+  /** which_barb = 0 (Flow1) or 1 (Flow2);
+      redundant with tuple */
+  private int which_barb = -1;
 
   public String getWhyNotDirect() {
     return whyNotDirect;
@@ -149,14 +144,17 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
     DisplayTupleType[] tuples = {tuple};
     whyNotDirect = findFlow(shadow, display, tuples, flowToComponent);
     if (whyNotDirect != null) return;
-    if (tuples == null || flowToComponent[0] < 0 || flowToComponent[1] < 0) {
+    if (tuples[0] == null || flowToComponent[0] < 0 || flowToComponent[1] < 0) {
       whyNotDirect = noFlow;
       return;
     }
+    tuple = tuples[0];
     // needs more, will find out when we write drag_direct
     setIsDirectManipulation(true);
   }
 
+  /** check for flow mappings;
+      does not allow flow mapping through CoordinateSystem */
   private String findFlow(ShadowTupleType shadow,
                           DisplayImpl display, DisplayTupleType[] tuples,
                           int[] flowToComponent) {
@@ -226,10 +224,11 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
 */
   }
 
-  public synchronized void setBarbSpatialValues(float[] mbarb) {
+  public synchronized void setBarbSpatialValues(float[] mbarb, int which) {
     // (barbValues[0], barbValues[1]) = (x, y) barb head location
     // (barbValues[2], barbValues[3]) = (x, y) barb tail location
     barbValues = mbarb;
+    which_barb = which;
   }
 
 // methods customized from DataRenderer:
@@ -288,7 +287,7 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
       point_z = 0.0f;
       line_x = 0.0f;
       line_y = 0.0f;
-      line_z = 1.0f;
+      line_z = 1.0f; // lineAxis == 2 in DataRenderer.drag_direct
     } // end if (first)
 
     float[] x = new float[3]; // x marks the spot
@@ -306,6 +305,33 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
     x[2] = o_z + dot * d_z;
 
     try {
+// must convert x from spatial to earth
+      if (getRealVectorTypes(which_barb) instanceof EarthVectorType) {
+
+//
+// work to do here
+//
+
+      }
+      else {
+        float[] xx = {x[0], x[1], x[2]};
+        if (tuple != null) {
+          float[][] cursor = {{x[0]}, {x[1]}, {x[2]}};
+          float[][] new_cursor =
+            tuple.getCoordinateSystem().fromReference(cursor);
+          x[0] = new_cursor[0][0];
+          x[1] = new_cursor[1][0];
+          x[2] = new_cursor[2][0];
+        }
+        for (int i=0; i<3; i++) {
+          if (flowToComponent[i] >= 0) {
+            f[0] = x[i];
+            d = directMap[i].inverseScaleValues(f);
+            x[i] = (float) d[0];
+          }
+        }
+      }
+
       Data newData = null;
       Data data = link.getData();
       // type is a RealTupleType
@@ -315,27 +341,55 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
 */
       int n = ((TupleType) data.getType()).getNumberOfRealComponents();
       Real[] reals = new Real[n];
+
+      int k = 0;
+      Tuple tdata = (Tuple) data;
+      int m = ((Tuple) data).getDimension();
+      for (int i=0; i<m; i++) {
+        Data component = ((Tuple) data).getComponent(i);
+        if (component instanceof Real) {
+          reals[k++] = (Real) component;
+        }
+        else if (component instanceof RealTuple) {
+          for (int j=0; j<((RealTuple) component).getDimension(); j++) {
+            reals[k++] = (Real) ((RealTuple) component).getComponent(j);
+          }
+        }
+      }
+
       Vector vect = new Vector();
       for (int i=0; i<3; i++) {
         int j = flowToComponent[i];
         if (j >= 0) {
-          f[0] = x[i];
-          d = directMap[i].inverseScaleValues(f);
-          Real c = (Real) ((RealTuple) data).getComponent(j);
-          RealType rtype = (RealType) c.getType();
-          reals[j] = new Real(rtype, (double) d[0], rtype.getDefaultUnit(), null);
+          RealType rtype = (RealType) reals[j].getType();
+          reals[j] = new Real(rtype, (double) x[i], rtype.getDefaultUnit(), null);
           // create location string
-          float g = d[0];
-          vect.addElement(rtype.getName() + " = " + g);
+          vect.addElement(rtype.getName() + " = " + x[i]);
         }
       }
       getDisplayRenderer().setCursorStringVector(vect);
-      for (int j=0; j<n; j++) {
-        if (reals[j] == null) {
-          reals[j] = (Real) ((RealTuple) data).getComponent(j);
-        }
+
+      if (data instanceof RealTuple) {
+        newData = new RealTuple(reals);
       }
-      newData = new RealTuple(reals);
+      else {
+        Data[] new_components = new Data[m];
+        k = 0;
+        for (int i=0; i<m; i++) {
+          Data component = ((Tuple) data).getComponent(i);
+          if (component instanceof Real) {
+            new_components[i] = reals[k++];
+          }
+          else if (component instanceof RealTuple) {
+            Real[] sub_reals = new Real[((RealTuple) component).getDimension()];
+            for (int j=0; j<((RealTuple) component).getDimension(); j++) {
+              sub_reals[j] = reals[k++];
+            }
+            new_components[i] = new RealTuple(sub_reals);
+          }
+        }
+        newData = new Tuple(new_components, false);
+      }
       ref.setData(newData);
     }
     catch (VisADException e) {
