@@ -76,6 +76,8 @@ public class DelaunayFast extends Delaunay {
     float[][] samp = new float[2][numpts];
     System.arraycopy(samples[0], 0, samp[0], 0, numpts);
     System.arraycopy(samples[1], 0, samp[1], 0, numpts);
+    float[] samp0 = samp[0];
+    float[] samp1 = samp[1];
 
     // misc. variables
     int ntris = 0;
@@ -180,10 +182,10 @@ public class DelaunayFast extends Delaunay {
             hull[0] = indices[css];
             hull[1] = indices[css+1];
             hull[2] = indices[cse];
-            float a0x = samp[0][hull[0]];
-            float a0y = samp[1][hull[0]];
-            if ( (samp[0][hull[1]]-a0x)*(samp[1][hull[2]]-a0y)
-               - (samp[1][hull[1]]-a0y)*(samp[0][hull[2]]-a0x) > 0) {
+            float a0x = samp0[hull[0]];
+            float a0y = samp1[hull[0]];
+            if ( (samp0[hull[1]]-a0x)*(samp1[hull[2]]-a0y)
+               - (samp1[hull[1]]-a0y)*(samp0[hull[2]]-a0x) > 0) {
               // adjust step, hull must remain clockwise
               hull[1] = indices[cse];
               hull[2] = indices[css+1];
@@ -228,140 +230,143 @@ public class DelaunayFast extends Delaunay {
 
         // find initial upper and lower hull indices for later optimization
         for (int i=1; i<hull1.length; i++) {
-          if (samp[coord][hull1[i]] < samp[coord][hull1[upp1]]) upp1 = i;
-          if (samp[coord][hull1[i]] > samp[coord][hull1[low1]]) low1 = i;
+          if (samp[coord][hull1[i]] > samp[coord][hull1[upp1]]) upp1 = i;
+          if (samp[coord][hull1[i]] < samp[coord][hull1[low1]]) low1 = i;
         }
         for (int i=1; i<hull2.length; i++) {
-          if (samp[coord][hull2[i]] < samp[coord][hull2[upp2]]) upp2 = i;
-          if (samp[coord][hull2[i]] > samp[coord][hull2[low2]]) low2 = i;
+          if (samp[coord][hull2[i]] > samp[coord][hull2[upp2]]) upp2 = i;
+          if (samp[coord][hull2[i]] < samp[coord][hull2[low2]]) low2 = i;
         }
 
-        // optimize upp1
-        int bob = (upp1+1)%hull1.length;
-        float ax = samp[0][hull2[upp2]];
-        float ay = samp[1][hull2[upp2]];
-        float bamx = samp[0][hull1[bob]] - ax;
-        float bamy = samp[1][hull1[bob]] - ay;
-        float camx = samp[0][hull1[upp1]] - ax;
-        float camy = samp[1][hull1[upp1]] - ay;
-        float u = (cvh) ? (float) (bamy/Math.sqrt(bamx*bamx + bamy*bamy))
-                        : (float) (bamx/Math.sqrt(bamx*bamx + bamy*bamy));
-        float v = (cvh) ? (float) (camy/Math.sqrt(camx*camx + camy*camy))
-                        : (float) (camx/Math.sqrt(camx*camx + camy*camy));
-        boolean plus_dir = (u < v);
-        if (!plus_dir) {
-          bob = upp1;
-          u = 0;
-          v = 1;
-        }
-        while (u < v) {
-          upp1 = bob;
-          bob = plus_dir ? (upp1+1)%hull1.length
-                         : (upp1+hull1.length-1)%hull1.length;
-          bamx = samp[0][hull1[bob]] - ax;
-          bamy = samp[1][hull1[bob]] - ay;
-          camx = samp[0][hull1[upp1]] - ax;
-          camy = samp[1][hull1[upp1]] - ay;
+        // hull sweep must be performed twice to ensure correctness
+        for (int t=0; t<2; t++) {
+          // optimize upp1
+          int bob = (upp1+1)%hull1.length;
+          float ax = samp0[hull2[upp2]];
+          float ay = samp1[hull2[upp2]];
+          float bamx = samp0[hull1[bob]] - ax;
+          float bamy = samp1[hull1[bob]] - ay;
+          float camx = samp0[hull1[upp1]] - ax;
+          float camy = samp1[hull1[upp1]] - ay;
+          float u = (cvh) ? (float) (bamy/Math.sqrt(bamx*bamx + bamy*bamy))
+                          : (float) (bamx/Math.sqrt(bamx*bamx + bamy*bamy));
+          float v = (cvh) ? (float) (camy/Math.sqrt(camx*camx + camy*camy))
+                          : (float) (camx/Math.sqrt(camx*camx + camy*camy));
+          boolean plus_dir = (u < v);
+          if (!plus_dir) {
+            bob = upp1;
+            u = 0;
+            v = 1;
+          }
+          while (u < v) {
+            upp1 = bob;
+            bob = plus_dir ? (upp1+1)%hull1.length
+                           : (upp1+hull1.length-1)%hull1.length;
+            bamx = samp0[hull1[bob]] - ax;
+            bamy = samp1[hull1[bob]] - ay;
+            camx = samp0[hull1[upp1]] - ax;
+            camy = samp1[hull1[upp1]] - ay;
+            u = (cvh) ? (float) (bamy/Math.sqrt(bamx*bamx + bamy*bamy))
+                      : (float) (bamx/Math.sqrt(bamx*bamx + bamy*bamy));
+            v = (cvh) ? (float) (camy/Math.sqrt(camx*camx + camy*camy))
+                      : (float) (camx/Math.sqrt(camx*camx + camy*camy));
+          }
+
+          // optimize upp2
+          bob = (upp2+1)%hull2.length;
+          ax = samp0[hull1[upp1]];
+          ay = samp1[hull1[upp1]];
+          bamx = samp0[hull2[bob]] - ax;
+          bamy = samp1[hull2[bob]] - ay;
+          camx = samp0[hull2[upp2]] - ax;
+          camy = samp1[hull2[upp2]] - ay;
           u = (cvh) ? (float) (bamy/Math.sqrt(bamx*bamx + bamy*bamy))
                     : (float) (bamx/Math.sqrt(bamx*bamx + bamy*bamy));
           v = (cvh) ? (float) (camy/Math.sqrt(camx*camx + camy*camy))
                     : (float) (camx/Math.sqrt(camx*camx + camy*camy));
-        }
+          plus_dir = (u < v);
+          if (!plus_dir) {
+            bob = upp2;
+            u = 0;
+            v = 1;
+          }
+          while (u < v) {
+            upp2 = bob;
+            bob = plus_dir ? (upp2+1)%hull2.length
+                           : (upp2+hull2.length-1)%hull2.length;
+            bamx = samp0[hull2[bob]] - ax;
+            bamy = samp1[hull2[bob]] - ay;
+            camx = samp0[hull2[upp2]] - ax;
+            camy = samp1[hull2[upp2]] - ay;
+            u = (cvh) ? (float) (bamy/Math.sqrt(bamx*bamx + bamy*bamy))
+                      : (float) (bamx/Math.sqrt(bamx*bamx + bamy*bamy));
+            v = (cvh) ? (float) (camy/Math.sqrt(camx*camx + camy*camy))
+                      : (float) (camx/Math.sqrt(camx*camx + camy*camy));
+          }
 
-        // optimize upp2
-        bob = (upp2+1)%hull2.length;
-        ax = samp[0][hull1[upp1]];
-        ay = samp[1][hull1[upp1]];
-        bamx = samp[0][hull2[bob]] - ax;
-        bamy = samp[1][hull2[bob]] - ay;
-        camx = samp[0][hull2[upp2]] - ax;
-        camy = samp[1][hull2[upp2]] - ay;
-        u = (cvh) ? (float) (bamy/Math.sqrt(bamx*bamx + bamy*bamy))
-                  : (float) (bamx/Math.sqrt(bamx*bamx + bamy*bamy));
-        v = (cvh) ? (float) (camy/Math.sqrt(camx*camx + camy*camy))
-                  : (float) (camx/Math.sqrt(camx*camx + camy*camy));
-        plus_dir = (u < v);
-        if (!plus_dir) {
-          bob = upp2;
-          u = 0;
-          v = 1;
-        }
-        while (u < v) {
-          upp2 = bob;
-          bob = plus_dir ? (upp2+1)%hull2.length
-                         : (upp2+hull2.length-1)%hull2.length;
-          bamx = samp[0][hull2[bob]] - ax;
-          bamy = samp[1][hull2[bob]] - ay;
-          camx = samp[0][hull2[upp2]] - ax;
-          camy = samp[1][hull2[upp2]] - ay;
+          // optimize low1
+          bob = (low1+1)%hull1.length;
+          ax = samp0[hull2[low2]];
+          ay = samp1[hull2[low2]];
+          bamx = samp0[hull1[bob]] - ax;
+          bamy = samp1[hull1[bob]] - ay;
+          camx = samp0[hull1[low1]] - ax;
+          camy = samp1[hull1[low1]] - ay;
           u = (cvh) ? (float) (bamy/Math.sqrt(bamx*bamx + bamy*bamy))
                     : (float) (bamx/Math.sqrt(bamx*bamx + bamy*bamy));
           v = (cvh) ? (float) (camy/Math.sqrt(camx*camx + camy*camy))
                     : (float) (camx/Math.sqrt(camx*camx + camy*camy));
-        }
+          plus_dir = (u > v);
+          if (!plus_dir) {
+            bob = low1;
+            u = 1;
+            v = 0;
+          }
+          while (u > v) {
+            low1 = bob;
+            bob = plus_dir ? (low1+1)%hull1.length
+                           : (low1+hull1.length-1)%hull1.length;
+            bamx = samp0[hull1[bob]] - ax;
+            bamy = samp1[hull1[bob]] - ay;
+            camx = samp0[hull1[low1]] - ax;
+            camy = samp1[hull1[low1]] - ay;
+            u = (cvh) ? (float) (bamy/Math.sqrt(bamx*bamx + bamy*bamy))
+                      : (float) (bamx/Math.sqrt(bamx*bamx + bamy*bamy));
+            v = (cvh) ? (float) (camy/Math.sqrt(camx*camx + camy*camy))
+                      : (float) (camx/Math.sqrt(camx*camx + camy*camy));
+          }
 
-        // optimize low1
-        bob = (low1+1)%hull1.length;
-        ax = samp[0][hull2[low2]];
-        ay = samp[1][hull2[low2]];
-        bamx = samp[0][hull1[bob]] - ax;
-        bamy = samp[1][hull1[bob]] - ay;
-        camx = samp[0][hull1[low1]] - ax;
-        camy = samp[1][hull1[low1]] - ay;
-        u = (cvh) ? (float) (bamy/Math.sqrt(bamx*bamx + bamy*bamy))
-                  : (float) (bamx/Math.sqrt(bamx*bamx + bamy*bamy));
-        v = (cvh) ? (float) (camy/Math.sqrt(camx*camx + camy*camy))
-                  : (float) (camx/Math.sqrt(camx*camx + camy*camy));
-        plus_dir = (u > v);
-        if (!plus_dir) {
-          bob = low1;
-          u = 1;
-          v = 0;
-        }
-        while (u > v) {
-          low1 = bob;
-          bob = plus_dir ? (low1+1)%hull1.length
-                         : (low1+hull1.length-1)%hull1.length;
-          bamx = samp[0][hull1[bob]] - ax;
-          bamy = samp[1][hull1[bob]] - ay;
-          camx = samp[0][hull1[low1]] - ax;
-          camy = samp[1][hull1[low1]] - ay;
+          // optimize low2
+          bob = (low2+1)%hull2.length;
+          ax = samp0[hull1[low1]];
+          ay = samp1[hull1[low1]];
+          bamx = samp0[hull2[bob]] - ax;
+          bamy = samp1[hull2[bob]] - ay;
+          camx = samp0[hull2[low2]] - ax;
+          camy = samp1[hull2[low2]] - ay;
           u = (cvh) ? (float) (bamy/Math.sqrt(bamx*bamx + bamy*bamy))
                     : (float) (bamx/Math.sqrt(bamx*bamx + bamy*bamy));
           v = (cvh) ? (float) (camy/Math.sqrt(camx*camx + camy*camy))
                     : (float) (camx/Math.sqrt(camx*camx + camy*camy));
-        }
-
-        // optimize low2
-        bob = (low2+1)%hull2.length;
-        ax = samp[0][hull1[low1]];
-        ay = samp[1][hull1[low1]];
-        bamx = samp[0][hull2[bob]] - ax;
-        bamy = samp[1][hull2[bob]] - ay;
-        camx = samp[0][hull2[low2]] - ax;
-        camy = samp[1][hull2[low2]] - ay;
-        u = (cvh) ? (float) (bamy/Math.sqrt(bamx*bamx + bamy*bamy))
-                  : (float) (bamx/Math.sqrt(bamx*bamx + bamy*bamy));
-        v = (cvh) ? (float) (camy/Math.sqrt(camx*camx + camy*camy))
-                  : (float) (camx/Math.sqrt(camx*camx + camy*camy));
-        plus_dir = (u > v);
-        if (!plus_dir) {
-          bob = low2;
-          u = 1;
-          v = 0;
-        }
-        while (u > v) {
-          low2 = bob;
-          bob = plus_dir ? (low2+1)%hull2.length
-                         : (low2+hull2.length-1)%hull2.length;
-          bamx = samp[0][hull2[bob]] - ax;
-          bamy = samp[1][hull2[bob]] - ay;
-          camx = samp[0][hull2[low2]] - ax;
-          camy = samp[1][hull2[low2]] - ay;
-          u = (cvh) ? (float) (bamy/Math.sqrt(bamx*bamx + bamy*bamy))
-                    : (float) (bamx/Math.sqrt(bamx*bamx + bamy*bamy));
-          v = (cvh) ? (float) (camy/Math.sqrt(camx*camx + camy*camy))
-                    : (float) (camx/Math.sqrt(camx*camx + camy*camy));
+          plus_dir = (u > v);
+          if (!plus_dir) {
+            bob = low2;
+            u = 1;
+            v = 0;
+          }
+          while (u > v) {
+            low2 = bob;
+            bob = plus_dir ? (low2+1)%hull2.length
+                           : (low2+hull2.length-1)%hull2.length;
+            bamx = samp0[hull2[bob]] - ax;
+            bamy = samp1[hull2[bob]] - ay;
+            camx = samp0[hull2[low2]] - ax;
+            camy = samp1[hull2[low2]] - ay;
+            u = (cvh) ? (float) (bamy/Math.sqrt(bamx*bamx + bamy*bamy))
+                      : (float) (bamx/Math.sqrt(bamx*bamx + bamy*bamy));
+            v = (cvh) ? (float) (camy/Math.sqrt(camx*camx + camy*camy))
+                      : (float) (camx/Math.sqrt(camx*camx + camy*camy));
+          }
         }
 
         // calculate number of points in inner hull
@@ -434,6 +439,7 @@ public class DelaunayFast extends Delaunay {
             tris[tp][0][t] = hull2[base2];
             tris[tp][1][t] = hull1[base1];
             tris[tp][2][t] = hull2[oneUp2];
+            /* TEMP */ //System.out.println("case 2: add tri: (" + hull2[base2] + ", " + hull1[base1] + ", " + hull2[oneUp2] + ")");
             ntris++;
             nverts[hull1[base1]]++;
             nverts[hull2[base2]]++;
@@ -448,6 +454,7 @@ public class DelaunayFast extends Delaunay {
             tris[tp][0][t] = hull2[base2];
             tris[tp][1][t] = hull1[base1];
             tris[tp][2][t] = hull1[oneUp1];
+            /* TEMP */ //System.out.println("case 3: add tri: (" + hull2[base2] + ", " + hull1[base1] + ", " + hull1[oneUp1] + ")");
             ntris++;
             nverts[hull1[base1]]++;
             nverts[hull2[base2]]++;
@@ -459,14 +466,14 @@ public class DelaunayFast extends Delaunay {
           // neither side has reached the top yet
           else {
             boolean b1o2diag;
-            float Ax = samp[0][hull1[oneUp1]] - samp[0][hull1[base1]];
-            float Ay = samp[1][hull1[oneUp1]] - samp[1][hull1[base1]];
-            float Bx = samp[0][hull2[base2]] - samp[0][hull1[base1]];
-            float By = samp[1][hull2[base2]] - samp[1][hull1[base1]];
-            float Cx = samp[0][hull2[base2]] - samp[0][hull2[oneUp2]];
-            float Cy = samp[1][hull2[base2]] - samp[1][hull2[oneUp2]];
-            float Dx = samp[0][hull1[oneUp1]] - samp[0][hull2[oneUp2]];
-            float Dy = samp[1][hull1[oneUp1]] - samp[1][hull2[oneUp2]];
+            float Ax = samp0[hull1[oneUp1]] - samp0[hull1[base1]];
+            float Ay = samp1[hull1[oneUp1]] - samp1[hull1[base1]];
+            float Bx = samp0[hull2[base2]] - samp0[hull1[base1]];
+            float By = samp1[hull2[base2]] - samp1[hull1[base1]];
+            float Cx = samp0[hull2[base2]] - samp0[hull2[oneUp2]];
+            float Cy = samp1[hull2[base2]] - samp1[hull2[oneUp2]];
+            float Dx = samp0[hull1[oneUp1]] - samp0[hull2[oneUp2]];
+            float Dy = samp1[hull1[oneUp1]] - samp1[hull2[oneUp2]];
 
             /* Check for greater than 180 degree angles.
                -------------------------------------------
@@ -488,6 +495,7 @@ public class DelaunayFast extends Delaunay {
               tris[tp][0][t] = hull2[base2];
               tris[tp][1][t] = hull1[base1];
               tris[tp][2][t] = hull2[oneUp2];
+              /* TEMP */ //System.out.println("case 4: add tri: (" + hull2[base2] + ", " + hull1[base1] + ", " + hull2[oneUp2] + ")");
               ntris++;
               nverts[hull1[base1]]++;
               nverts[hull2[base2]]++;
@@ -502,6 +510,7 @@ public class DelaunayFast extends Delaunay {
               tris[tp][0][t] = hull2[base2];
               tris[tp][1][t] = hull1[base1];
               tris[tp][2][t] = hull1[oneUp1];
+              /* TEMP */ //System.out.println("case 5: add tri: (" + hull2[base2] + ", " + hull1[base1] + ", " + hull1[oneUp1] + ")");
               ntris++;
               nverts[hull1[base1]]++;
               nverts[hull2[base2]]++;
@@ -537,6 +546,7 @@ public class DelaunayFast extends Delaunay {
       nverts[i] = 0;
     }
     int a, b, c;
+    /* TEMP */ //System.out.println("Main algorithm finished: " + ntris + " triangles created");
     for (int i=0; i<ntris; i++) {
       a = Tri[i][0];
       b = Tri[i][1];
@@ -549,6 +559,81 @@ public class DelaunayFast extends Delaunay {
     // call more generic method for constructing Walk and Edges arrays
     finish_triang(samples);
   }
+
+  /** Illustrates the speed increase over other Delaunay algorithms */
+  public static void main(String[] argv) throws VisADException {
+    boolean problem = false;
+    int points = 0;
+    if (argv.length < 1) problem = true;
+    else {
+      try {
+        points = Integer.parseInt(argv[0]);
+        if (points < 3) problem = true;
+      }
+      catch (NumberFormatException exc) {
+        problem = true;
+      }
+    }
+    if (problem) {
+      System.out.println("Usage:\n" +
+                         "   java visad.DelaunayFast points\n" +
+                         "points = the number of points to triangulate.\n");
+      System.exit(1);
+    }
+    System.out.println("Generating " + points + " random points...");
+    float[][] samples = new float[2][points];
+    float[] samp0 = samples[0];
+    float[] samp1 = samples[1];
+    for (int i=0; i<points; i++) {
+      samp0[i] = (float) (500 * Math.random());
+      samp1[i] = (float) (500 * Math.random());
+    }
+    System.out.println("\nTriangulating points with Clarkson algorithm...");
+    long start1 = System.currentTimeMillis();
+    DelaunayClarkson dc = new DelaunayClarkson(samples);
+    long end1 = System.currentTimeMillis();
+    float time1 = (end1 - start1) / 1000f;
+    System.out.println("Triangulation took " + time1 + " seconds.");
+    System.out.println("\nTriangulating points with Watson algorithm...");
+    long start2 = System.currentTimeMillis();
+    DelaunayWatson dw = new DelaunayWatson(samples);
+    long end2 = System.currentTimeMillis();
+    float time2 = (end2 - start2) / 1000f;
+    System.out.println("Triangulation took " + time2 + " seconds.");
+    System.out.println("\nTriangulating points with Fast algorithm...");
+    long start3 = System.currentTimeMillis();
+    DelaunayFast df = new DelaunayFast(samples);
+    long end3 = System.currentTimeMillis();
+    float time3 = (end3 - start3) / 1000f;
+    System.out.println("Triangulation took " + time3 + " seconds.");
+    float ratio1 = (time1 / time3);
+    System.out.println("\nAt " + points + " points:");
+    System.out.println("  Fast is " + ratio1 + " times faster than Clarkson.");
+    float ratio2 = (time2 / time3);
+    System.out.println("  Fast is " + ratio2 + " times faster than Watson.");
+  }
+
+/* Here's the output of the main method:
+
+C:\java\visad>java visad.DelaunayFast 10000
+Generating 10000 random points...
+
+Triangulating points with Clarkson algorithm...
+Triangulation took 11.406 seconds.
+
+Triangulating points with Watson algorithm...
+Triangulation took 63.063 seconds.
+
+Triangulating points with Fast algorithm...
+Triangulation took 1.234 seconds.
+
+At 10000 points:
+  Fast is 9.243113 times faster than Clarkson.
+  Fast is 51.104538 times faster than Watson.
+
+C:\java\visad>
+
+*/
 
 }
 
