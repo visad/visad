@@ -87,6 +87,7 @@ clean:
 	$(RM) GoesCollaborationImp.o ${OBJS}
 	$(RM) libGoesCollaboration.so
 	$(RM) GoesCollaboration*.class
+	$(RM) Nasti*.class
 
 ############################################################################
 # Packaging rules
