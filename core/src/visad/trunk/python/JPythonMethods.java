@@ -36,6 +36,7 @@ import java.util.Vector;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
+import java.lang.Math;
 
 import visad.*;
 import visad.math.*;
@@ -531,7 +532,7 @@ public abstract class JPythonMethods {
    *
    */
   public static double abs(double value) {
-    return abs(value);
+    return Math.abs(value);
   }
 
   /**
@@ -541,7 +542,7 @@ public abstract class JPythonMethods {
    *
    */
   public static int abs(int value) {
-    return abs(value);
+    return Math.abs(value);
   }
 
   /**
@@ -551,7 +552,7 @@ public abstract class JPythonMethods {
    *
    */
   public static long abs(long value) {
-    return abs(value);
+    return Math.abs(value);
   }
 
   /**
