@@ -235,8 +235,7 @@ public class ZeissForm extends Form implements FormBlockReader,
         total += current;
       }
     }
-    // Then, create the array to return, and read the data in from the
-    // file.
+    // Then, create the array to return, and read the data in from the file.
     byte[] imageData = new byte[total];
     current = 0;
     //System.out.println(" Image Number: " + blockNumber);
