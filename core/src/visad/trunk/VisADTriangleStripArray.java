@@ -120,21 +120,22 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
 
     VisADTriangleStripArray array = new VisADTriangleStripArray();
     // worst case makes 3 times as many triangles
-    float[] coords = new float[3 * coordinates.length];
+    int worst = 6; // WLH 30 Dec 99 - try new worst
+    float[] coords = new float[worst * coordinates.length];
     float[] nos = null;
     if (normals != null) {
-      nos = new float[3 * normals.length];
+      nos = new float[worst * normals.length];
     }
     int color_length = 0;
     byte[] cols = null;
     if (colors != null) {
       color_length = 3;
-      cols = new byte[3 * colors.length];
+      cols = new byte[worst * colors.length];
       if (colors.length != coordinates.length) color_length = 4;
     }
     float[] texs = null;
     if (texCoords != null) {
-      texs = new float[3 * texCoords.length];
+      texs = new float[worst * texCoords.length];
     }
     // worst case makes as many strips as there were points
     int[] svcs = new int[coordinates.length];

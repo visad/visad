@@ -208,7 +208,8 @@ public class Aeri
     display.addMap(xmap);
     display.addMap(ymap);
     display.addMap(zmap);
-    display.addMap(new ScalarMap(wvmr, Display.RGB));
+    // display.addMap(new ScalarMap(wvmr, Display.RGB));
+    display.addMap(new ScalarMap(advAge, Display.RGB));
     ScalarMap tmap = new ScalarMap(time, Display.Animation);
     display.addMap(tmap);
     AnimationControl control = (AnimationControl) tmap.getControl();
@@ -253,7 +254,13 @@ public class Aeri
       locs[1][1] = samples[1][0];
       locs[2][1] = hi[2];
 
+System.out.println("kk = " + kk + " locs = " + locs[0][0] + " " + locs[1][0] + " " +
+                   locs[2][0] + " and hi = " + locs[2][1]);
+
       set_s[kk] = new Gridded3DSet(spatial_domain, locs, 2, null, null, null);
+
+System.out.println("set_s[" + kk + "] = " + set_s[kk]);
+
     }
 
     return new UnionSet(spatial_domain, set_s);
@@ -691,10 +698,12 @@ start or end altitudes - but it does nothing if all winds are missing */
           rtvl_vals[0][n_samples] = (float) vals[1][jj];
           rtvl_vals[1][n_samples] = (float) vals[2][jj];
           rtvl_vals[2][n_samples] = (float) vals[3][jj];
-      /**- TDR, take out for no-transparancy
+/*
           rtvl_vals[3][n_samples] = (float) (-age*age); // WLH - quadratic age fade
-       **/
           rtvl_vals[3][n_samples] = (float) age;
+*/
+          rtvl_vals[3][n_samples] = (float)
+            relativeHumidity(vals[1][jj], vals[2][jj]);
 
           n_samples++;
         }
@@ -722,4 +731,68 @@ start or end altitudes - but it does nothing if all winds are missing */
     }
     return advect_field;
   }
+
+  /** saturation vapor pressure over water.  t in kelvin.
+  *
+  */
+  public static double satVapPres(double t) {
+    double coef[]={6.1104546,0.4442351,1.4302099e-2, 2.6454708e-4,
+              3.0357098e-6, 2.0972268e-8, 6.0487594e-11,-1.469687e-13};
+
+    // sat vap pressures every 5C from -50 to -200
+    double escold[] = {
+      0.648554685769663908E-01, 0.378319512256073479E-01,
+      0.222444934288790197E-01, 0.131828928424683120E-01,
+      0.787402077141244848E-02, 0.473973049488473318E-02,
+      0.287512035504357928E-02, 0.175743037675810294E-02,
+      0.108241739518850975E-02, 0.671708939185605941E-03,
+      0.419964702632039404E-03, 0.264524363863469876E-03,
+      0.167847963736813220E-03, 0.107285397631620379E-03,
+      0.690742634496135612E-04, 0.447940489768084267E-04,
+      0.292570419563937303E-04, 0.192452912634994161E-04,
+      0.127491372410747951E-04, 0.850507010275505138E-05,
+      0.571340025334971129E-05, 0.386465029673876238E-05,
+      0.263210971965005286E-05, 0.180491072930570428E-05,
+      0.124607850555816049E-05, 0.866070571346870824E-06,
+      0.605982217668895538E-06, 0.426821197943242768E-06,
+      0.302616508514379476E-06, 0.215963854234913987E-06,
+      0.155128954578336869E-06};
+
+    double temp = t - 273.16;
+    double retval;
+
+    if (temp != temp) {
+      retval = Double.NaN;
+    }
+    else if (temp > -50.) {
+      retval = ( coef[0] + temp*(coef[1] + temp*(coef[2] + temp*(coef[3] +
+      temp*(coef[4] + temp*(coef[5] + temp*(coef[6] + temp*coef[7])))))) );
+    }
+    else {
+       double tt = (-temp - 50.)/5.;
+       int inx = (int) tt;
+       if (inx < escold.length) {
+         retval = escold[inx] + (tt % 1.)*(escold[inx+1]-escold[inx]);
+       } else {
+         retval = 1e-7;
+       }
+    }
+    return retval;
+  }
+
+  /** mixing ratio
+  *
+  */
+  public static double mixingRatio(double t, double p) {
+    double e = satVapPres(t);
+    return ( 621.97*e/(p - e) );
+  }
+
+  /** relative humidity
+  *
+  */
+  public static double relativeHumidity(double t, double td) {
+    return (satVapPres(td) / satVapPres(t));
+  }
+
 }
