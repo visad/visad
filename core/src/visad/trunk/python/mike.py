@@ -24,9 +24,9 @@ for i in range(0, n):
   v = []
 
   # nested loops for 3-D grid of values
-  for x in range(0, n):
+  for z in range(0, n):
     for y in range(0, n):
-      for z in range(0, n):
+      for x in range(0, n):
 
         # compute the grid value at (x, y, z)
         v.append( math.sin(i*x*y*z*0.0174533/n) )
