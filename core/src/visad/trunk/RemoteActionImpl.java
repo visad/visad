@@ -55,15 +55,15 @@ public abstract class RemoteActionImpl extends UnicastRemoteObject
   }
 
   /** create link to ThingReference;
-      must be RemoteThingReferenceImpl */
+      must be RemoteThingReference */
   public void addReference(ThingReference ref)
          throws VisADException, RemoteException {
     if (!(ref instanceof RemoteThingReference)) {
       throw new RemoteVisADException("RemoteActionImpl.addReference: requires " +
-                                     "RemoteThingReferenceImpl");
+                                     "RemoteThingReference");
     }
     if (AdaptedAction == null) {
-      throw new RemoteVisADException("RemoteActionImpl.addReference " +
+      throw new RemoteVisADException("RemoteActionImpl.addReference: " +
                                      "AdaptedAction is null");
     }
     // WLH - will 'this' be passed to RemoteThingReference ref as a RemoteAction?
@@ -72,12 +72,12 @@ public abstract class RemoteActionImpl extends UnicastRemoteObject
   }
 
   /** delete link to a ThingReference
-      must be RemoteThingReferenceImpl */
+      must be RemoteThingReference */
   public void removeReference(ThingReference ref)
          throws VisADException, RemoteException {
     if (!(ref instanceof RemoteThingReference)) {
       throw new RemoteVisADException("RemoteActionImpl.removeReference: requires " +
-                                     "RemoteThingReferenceImpl");
+                                     "RemoteThingReference");
     }
     if (AdaptedAction == null) {
       throw new RemoteVisADException("RemoteActionImpl.removeReference: " +
