@@ -33,8 +33,11 @@ import java.rmi.*;
 */
 public abstract class ProjectionControl extends Control {
 
-  public ProjectionControl(DisplayImpl d) {
+  public ProjectionControl(DisplayImpl d) throws VisADException {
     super(d);
+    if (d.getProjectionControl() != null) {
+      throw new DisplayException("display already has a ProjectionControl");
+    }
   }
 
   /** get matrix (16 elements in Java3D case, 6 elements in
