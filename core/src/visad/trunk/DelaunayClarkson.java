@@ -994,7 +994,13 @@ public class DelaunayClarkson extends Delaunay {
   }
 
 
-  // <<<< Constructor >>>>
+  /**
+   * construct a Delaunay triangulation of the points in the
+   * samples array using Clarkson's algorithm
+   * @param samples locations of points for topology - dimensioned
+   *                float[dimension][number_of_points]
+   * @throws VisADException a VisAD error occurred
+   */
   public DelaunayClarkson(float[][] samples) throws VisADException {
     int s, s_bn, q, q_bn;
     int root, root_bn;

@@ -37,19 +37,60 @@ package visad;
 */
 public class DelaunayCustom extends Delaunay {
 
-  /** shortcut constructor */
+  /**
+   * construct a Delaunay from point locations and a list of
+   * triangles; call finish_triang() to fill in helper arrays
+   * (vertices, walk and edges); copy arguments
+   * @param samples locations of points for topology - dimensioned
+   *                float[dimension][number_of_points]
+   * @param tri list of triangles - dimensioned int[ntris][dim + 1]
+   *            tris values are indices into second index of samples
+   * @throws VisADException a VisAD error occurred
+   */
   public DelaunayCustom(float[][] samples, int[][] tri)
                                            throws VisADException {
     this(samples, tri, null, null, null, 0, true);
   }
 
-  /** complete constructor */
+  /**
+   * construct a Delaunay from point locations, a list of triangles,
+   * and helper arrays (vertices, walk and edges); copy arguments
+   * @param samples locations of points for topology - dimensioned
+   *                float[dimension][number_of_points]
+   * @param tri list of triangles - dimensioned int[ntris][dim + 1]
+   *            tris values are indices into second index of samples
+   * @param vertices links from vertices to triangles/tetrahedra -
+   *                 dimensioned int[number_of_points][nverts[i]]
+   * @param walk links from triangles/tetrahedra to neighboring
+   *             triangles/tetrahedra - dimensioned int[ntris][dim + 1]
+   * @param edges links from tri/tetra edges to global edge numbers -
+   *              dimensioned int[ntris][3 * (dim - 1)]
+   * @param num_edges number of global edges
+   * @throws VisADException a VisAD error occurred
+   */
   public DelaunayCustom(float[][] samples, int[][] tri, int[][] vertices,
                         int[][] walk, int[][] edges, int num_edges)
                         throws VisADException {
     this(samples, tri, vertices, walk, edges, num_edges, true);
   }
 
+  /**
+   * construct a Delaunay from point locations, a list of triangles,
+   * and helper arrays (vertices, walk and edges); copy arguments
+   * @param samples locations of points for topology - dimensioned
+   *                float[dimension][number_of_points]
+   * @param tri list of triangles - dimensioned int[ntris][dim + 1]
+   *            tris values are indices into second index of samples
+   * @param vertices links from vertices to triangles/tetrahedra -
+   *                 dimensioned int[number_of_points][nverts[i]]
+   * @param walk links from triangles/tetrahedra to neighboring
+   *             triangles/tetrahedra - dimensioned int[ntris][dim + 1]
+   * @param edges links from tri/tetra edges to global edge numbers -
+   *              dimensioned int[ntris][3 * (dim - 1)]
+   * @param num_edges number of global edges
+   * @param copy flag indicating whether to copy arrays
+   * @throws VisADException a VisAD error occurred
+   */
   public DelaunayCustom(float[][] samples, int[][] tri, int[][] vertices,
                         int[][] walk, int[][] edges, int num_edges,
                         boolean copy) throws VisADException {
@@ -109,13 +150,15 @@ public class DelaunayCustom extends Delaunay {
     NumEdges = num_edges;
 
     // call more generic method for constructing any remaining null arrays
-/* WLH 7 June 98
-    finish_triang(samples);
-*/
     if (samples != null) super.finish_triang(samples);
   }
 
-  /** return true if closed path in samples self-intersects */
+  /**
+   * determine if a closed path self-intersects
+   * @param set Gridded2DSet with manifold dimension = 1
+   * @return true if closed path in set self-intersects
+   * @throws VisADException a VisAD error occurred
+   */
   public static boolean checkSelfIntersection(Gridded2DSet set)
          throws VisADException {
     if (set == null) return false;
@@ -125,7 +168,13 @@ public class DelaunayCustom extends Delaunay {
     return checkSelfIntersection(set.getSamples());
   }
 
-  /** return true if closed path in samples self-intersects */
+  /**
+   * determine if a closed path self-intersects
+   * @param samples locations of points on closed path - dimensioned
+   *                float[2][number_of_points]
+   * @return true if closed path in samples self-intersects
+   * @throws VisADException a VisAD error occurred
+   */
   public static boolean checkSelfIntersection(float[][] samples)
          throws VisADException {
     if (samples == null) return false;
@@ -169,7 +218,15 @@ public class DelaunayCustom extends Delaunay {
   private final static float PULL = 1.0f - SELF;
   private final static float PULL2 = 0.5f * (1.0f - SELF);
 
-  /** return true if closed path in samples self-intersects */
+  /**
+   * determine if a closed path self-intersects, and remove
+   * consecutive identical points
+   * @param samples locations of points on closed path - dimensioned
+   *                float[2][number_of_points] - may be modified on
+   *                return
+   * @return true if closed path in samples self-intersects
+   * @throws VisADException a VisAD error occurred
+   */
   public static boolean checkAndFixSelfIntersection(float[][] samples)
          throws VisADException {
     if (samples == null) return false;
@@ -179,7 +236,7 @@ public class DelaunayCustom extends Delaunay {
     int n = samples[0].length;
     boolean intersect = false;
 
-        // build circular boundary list
+    // build circular boundary list
     int[] next = new int[n];
     for (int i=0; i<n-1; i++) {
       next[i] = i+1;
@@ -265,7 +322,14 @@ public class DelaunayCustom extends Delaunay {
     return intersect;
   }
 
-  /** compute area inside closed path */
+  /**
+   * compute the area inside a set of closed paths
+   * @param set UnionSet of Gridded2DSets with manifold dimension = 1,
+   *            interpreted as a set of closed paths
+   * @return sum of areas inside closed paths
+   * @throws VisADException path self intersects or a VisAD error
+   *                        occurred
+   */
   public static float computeArea(UnionSet set) throws VisADException {
     if (set == null) return 0.0f;
     if (set.getManifoldDimension() != 1) {
@@ -295,7 +359,14 @@ public class DelaunayCustom extends Delaunay {
     return computeArea(samples);
   }
 
-  /** compute area inside closed path */
+  /**
+   * compute the area inside a set of closed paths
+   * @param set Gridded2DSet with manifold dimension = 1, interpreted
+   *            as a closed path
+   * @return area inside closed path
+   * @throws VisADException path self intersects or a VisAD error
+   *                        occurred
+   */
   public static float computeArea(Gridded2DSet set) throws VisADException {
     if (set == null) return 0.0f;
     if (set.getManifoldDimension() != 1) {
@@ -304,7 +375,14 @@ public class DelaunayCustom extends Delaunay {
     return computeArea(set.getSamples());
   }
 
-  /** compute area inside closed path */
+  /**
+   * compute the area inside a set of closed paths
+   * @param samples locations of points on closed path - dimensioned
+   *                float[2][number_of_points]
+   * @return area inside closed path
+   * @throws VisADException path self intersects or a VisAD error
+   *                        occurred
+   */
   public static float computeArea(float[][] samples) throws VisADException {
     if (samples == null) return 0.0f;
     if (samples.length != 2 || samples[0].length != samples[1].length) {
@@ -331,13 +409,34 @@ public class DelaunayCustom extends Delaunay {
     return (float) Math.abs(0.5 * area);
   }
 
-  /** check that set describes the boundary of a simply connected plane
-      region; return a decomposition of that region into triangles whose
-      vertices are all boundary points from samples, as an Irregular2DSet */
+  /**
+   * check that set describes the boundary of a simply connected plane
+   * region; return a decomposition of that region into triangles whose
+   * vertices are all boundary points from samples, as an Irregular2DSet
+   * @param set Gridded2DSet with manifold dimension = 1, interpreted
+   *            as a closed path boundary
+   * @return Irregular2DSet whose triangles form the interior of the
+   *         region enclosed by set
+   * @throws VisADException path self intersects or a VisAD error
+   *                        occurred
+   */
   public static Irregular2DSet fill(Gridded2DSet set) throws VisADException {
     return fillCheck(set, true);
   }
 
+  /**
+   * check that set describes the boundary of a simply connected plane
+   * region; return a decomposition of that region into triangles whose
+   * vertices are all boundary points from samples, as an Irregular2DSet
+   * @param set Gridded2DSet with manifold dimension = 1, interpreted
+   *            as a closed path boundary
+   * @param check if true then throw a VisADException if path self-
+   *              intersects, else just return null
+   * @return Irregular2DSet whose triangles form the interior of the
+   *         region enclosed by set
+   * @throws VisADException path self intersects or a VisAD error
+   *                        occurred
+   */
   public static Irregular2DSet fillCheck(Gridded2DSet set, boolean check)
          throws VisADException {
     if (set == null) return null;
@@ -353,16 +452,38 @@ public class DelaunayCustom extends Delaunay {
                               null, null, null, delaunay);
   }
 
-  /** check that float[2][number_of_points] samples describes the
-      boundary of a simply connected plane region; return a decomposition
-      of that region into triangles whose vertices are all boundary
-      points from samples;
-      the trick is that the region may not be convex, but the triangles
-      must all lie inside the region */
+  /**
+   * check that samples describes the boundary of a simply connected
+   * plane region; return a decomposition of that region into triangles
+   * whose vertices are all boundary points from samples; the trick is
+   * that the region may not be convex, but the triangles must all lie
+   * inside the region
+   * @param samples locations of points on closed path - dimensioned
+   *                float[2][number_of_points]
+   * @return triangles that form the interior of the region enclosed by
+   *         samples - dimensioned int[ntris][dim + 1]
+   * @throws VisADException path self intersects or a VisAD error
+   *                        occurred
+   */
   public static int[][] fill(float[][] samples) throws VisADException {
     return fillCheck(samples, true);
   }
 
+  /**
+   * check that samples describes the boundary of a simply connected
+   * plane region; return a decomposition of that region into triangles
+   * whose vertices are all boundary points from samples; the trick is
+   * that the region may not be convex, but the triangles must all lie
+   * inside the region
+   * @param samples locations of points on closed path - dimensioned
+   *                float[2][number_of_points]
+   * @param check if true then throw a VisADException if path self-
+   *              intersects, else just return null
+   * @return triangles that form the interior of the region enclosed by
+   *         samples - dimensioned int[ntris][dim + 1]
+   * @throws VisADException path self intersects or a VisAD error
+   *                        occurred
+   */
   public static int[][] fillCheck(float[][] samples, boolean check)
          throws VisADException {
     if (samples == null) return null;
@@ -500,13 +621,34 @@ public class DelaunayCustom extends Delaunay {
     return tris;
   }
 
-  /**  check that set describes the boundary of a simply connected plane
-      region; return a decomposition of that region into triangles whose
-      vertices are all boundary points from samples, as an Irregular2DSet */
+  /**
+   * check that set describes the boundary of a simply connected plane
+   * region; return a decomposition of that region into triangles whose
+   * vertices are all boundary points from samples, as an Irregular2DSet
+   * @param set UnionSet of Gridded2DSets with manifold dimension = 1,
+   *            interpreted as a set of closed paths
+   * @return Irregular2DSet whose triangles form the interior of the
+   *         region enclosed by set
+   * @throws VisADException path self intersects or a VisAD error
+   *                        occurred
+   */
   public static Irregular2DSet fill(UnionSet set) throws VisADException {
     return fillCheck(set, true);
   }
 
+  /**
+   * check that set describes the boundary of a simply connected plane
+   * region; return a decomposition of that region into triangles whose
+   * vertices are all boundary points from samples, as an Irregular2DSet
+   * @param set UnionSet of Gridded2DSets with manifold dimension = 1,
+   *            interpreted as a set of closed paths
+   * @param check if true then throw a VisADException if path self-
+   *              intersects, else just return null
+   * @return Irregular2DSet whose triangles form the interior of the
+   *         region enclosed by set
+   * @throws VisADException path self intersects or a VisAD error
+   *                        occurred
+   */
   public static Irregular2DSet fillCheck(UnionSet set, boolean check)
          throws VisADException {
     if (set == null) return null;
@@ -541,7 +683,16 @@ public class DelaunayCustom extends Delaunay {
                               null, null, null, delaunay);
   }
 
-  /** link multiple paths into a single path */
+  /**
+   * link multiple paths into a single path; this assumes that the
+   * paths in ss don't intersect each other but does test for
+   * self-intersection by each path
+   * @param ss a set of paths - dimensioned
+   *           float[number_of_paths][2][number_of_points_for_path]
+   * @return a path dimensioned float [2][number_of_points]
+   * @throws VisADException a path self intersects or a VisAD error
+   *                        occurred
+   */
   public static float[][] link(float[][][] ss) throws VisADException {
     if (ss == null || ss.length == 0) return null;
     int nn = ss.length;
@@ -713,7 +864,15 @@ public class DelaunayCustom extends Delaunay {
     return s;
   }
 
-  /** determine if (x, y) is inside the closed path defined by s */
+  /**
+   * determine if a point is inside a closed path
+   * @param s locations of points on closed path - dimensioned
+   *          float[2][number_of_points]
+   * @param x first coordinate of point
+   * @param y second coordinate of point
+   * @return true if point (x, y) is inside the path s
+   * @throws VisADException a VisAD error occurred
+   */
   public static boolean inside(float[][] s, float x, float y)
          throws VisADException {
     if (s == null) return false;
@@ -733,13 +892,23 @@ public class DelaunayCustom extends Delaunay {
     return (Math.abs(angle) > 0.5);
   }
 
-  /** clip (samples, tris) against xc * x + yc * y <= v
-      input samples and tris describes a network of triangles
-      samples[2][number_of_samples], tris[number_of_triangles][3]
-      tris values are indices into second index of samples
-      output is same thing in outs[0] and outt[0]
-      outs[1][2][number_of_output_samples]
-      outt[1][number_of_output_triangles][3]
+  /**
+   * clip the topology (samples, tris) against the half-plane
+   * xc * x + yc * y <= v and return the clipped topology
+   * @param samples locations of points for topology - dimensioned
+   *                float[dimension][number_of_points]
+   * @param tris list of triangles - dimensioned int[ntris][dim + 1]
+   *            tris values are indices into second index of samples
+   * @param xc x coefficient in half-plane inequality
+   * @param yc y coefficient in half-plane inequality
+   * @param v constant in half-plane inequality
+   * @param outs array dimensioned float[1][][] to take samples
+   *             of clipped topology - on output dimensioned
+   *             float[1][2][number_of_output_samples]
+   * @param outt array dimensioned int[1][][] to take tris
+   *             of clipped topology - on output dimensioned
+   *             int[1][number_of_output_triangles][3]
+   * @throws VisADException a VisAD error occurred
    */
   public static void clip(float[][] samples, int[][] tris,
                           float xc, float yc, float v,

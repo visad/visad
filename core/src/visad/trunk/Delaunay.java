@@ -32,24 +32,35 @@ import java.util.*;
 /**
    Delaunay represents an abstract class for calculating an
    N-dimensional Delaunay triangulation, that can be extended
-   to allow for various triangulation methods.<P>
+   to allow for various triangulation algorithms.<P>
 */
 public abstract class Delaunay implements java.io.Serializable {
 
-  // Delaunay core components
-  public int[][] Tri;        // triangles/tetrahedra --> vertices
-                             //   Tri = new int[ntris][dim + 1]
-  public int[][] Vertices;   // vertices --> triangles/tetrahedra
-                             //   Vertices = new int[nrs][nverts[i]]
-  public int[][] Walk;       // triangles/tetrahedra --> triangles/tetrahedra
-                             //   Walk = new int[ntris][dim + 1]
-  public int[][] Edges;      // tri/tetra edges --> global edge number
-                             //   Edges = new int[ntris][3 * (dim - 1)];
-  public int NumEdges;       // number of unique global edge numbers
+  /** triangles/tetrahedra --> vertices<p>
+      Tri = new int[ntris][dim + 1] */
+  public int[][] Tri;
+
+  /** vertices --> triangles/tetrahedra<p>
+      Vertices = new int[nrs][nverts[i]] */
+  public int[][] Vertices;
+
+  /** triangles/tetrahedra --> triangles/tetrahedra<p>
+      Walk = new int[ntris][dim + 1] */
+  public int[][] Walk;
+
+  /** tri/tetra edges --> global edge number<p>
+      Edges = new int[ntris][3 * (dim - 1)]; */
+  public int[][] Edges;
+
+  /** number of unique global edge numbers */
+  public int NumEdges;
 
   private boolean nonConvex = false;
 
-  /** The abstract constructor initializes the class's data arrays. */
+  /**
+   * The abstract constructor initializes the class's data arrays.
+   * @throws VisADException a VisAD error occurred
+   */
   public Delaunay() throws VisADException {
     Tri = null;
     Vertices = null;
@@ -58,14 +69,23 @@ public abstract class Delaunay implements java.io.Serializable {
     NumEdges = 0;
   }
 
+  /**
+   * set flag indicating this Delaunay topology is non-convex
+   */
   public void setNonConvex() {
     nonConvex = true;
   }
 
+  /**
+   * @return flag indicating whether this Delaunay topology is non-convex
+   */
   public boolean getNonConvex() {
     return nonConvex;
   }
 
+  /**
+   * @return clone of this Delaunay as a DelaunayCustom
+   */
   public Object clone() {
     try {
       return new DelaunayCustom(null, Tri, Vertices, Walk, Edges, NumEdges);
@@ -75,12 +95,18 @@ public abstract class Delaunay implements java.io.Serializable {
     }
   }
 
-  /** The factory class method heuristically decides which extension
-      to the Delaunay abstract class to use in order to construct the
-      fastest triangulation, and calls that extension, returning the
-      finished triangulation.  The exact parameter is an indication of
-      whether the exact Delaunay triangulation is required.  The
-      method chooses from among the Fast, Clarkson, and Watson methods. */
+  /**
+   * The factory class method heuristically decides which extension
+   * to the Delaunay abstract class to use in order to construct the
+   * fastest triangulation, and calls that extension, returning the
+   * finished triangulation. The method chooses from among the Fast,
+   * Clarkson, and Watson methods.
+   * @param samples locations of points for topology - dimensioned
+   *                float[dimension][number_of_points]
+   * @param exact flag indicating need for exact Delaunay triangulation
+   * @return a topology using an appropriate sub-class of Delaunay
+   * @throws VisADException a VisAD error occurred
+   */
   public static Delaunay factory(float[][] samples, boolean exact)
                                                   throws VisADException {
 
@@ -160,9 +186,16 @@ public abstract class Delaunay implements java.io.Serializable {
     return null;
   }
 
-  /** scale alters the values of the samples by multiplying them by
-      the mult factor; copy specifies whether scale should modify
-      the actual samples or a copy of them. */
+  /**
+   * alters the values of the samples by multiplying them by
+   * the mult factor
+   * @param samples locations of points for topology - dimensioned
+   *                float[dimension][number_of_points]
+   * @param mult multiplication factor
+   * @param copy specifies whether scale should modify and return the
+   *             argument samples array or a copy
+   * @return array of scaled values
+   */
   public static float[][] scale(float[][] samples, float mult,
                                 boolean copy) {
     int dim = samples.length;
@@ -184,10 +217,17 @@ public abstract class Delaunay implements java.io.Serializable {
     return samp;
   }
 
-  /** perturb alters the values of the samples by up to epsilon in
-      either direction, to eliminate triangulation problems such as
-      co-linear points; copy specifies whether perturb should modify
-      the actual samples or a copy of them. */
+  /**
+   * increments samples coordinates by random numbers between -epsilon
+   * and epsilon, in order to eliminate triangulation problems such as
+   * co-linear and co-located points
+   * @param samples locations of points for topology - dimensioned
+   *                float[dimension][number_of_points]
+   * @param epsilon size limit on random perturbations
+   * @param copy specifies whether perturb should modify and return the
+   *             argument samples array or a copy
+   * @return array of perturbed values
+   */
   public static float[][] perturb(float[][] samples, float epsilon,
                                   boolean copy) {
     int dim = samples.length;
@@ -209,10 +249,15 @@ public abstract class Delaunay implements java.io.Serializable {
     return samp;
   }
 
-  /** test checks a triangulation in various ways to make sure it
-      is constructed correctly; test returns false if there are
-      any problems with the triangulation.  This method is expensive,
-      provided mainly for debugging purposes. */
+  /**
+   * check this triangulation in various ways to make sure it is
+   * constructed correctly. This method is expensive, provided
+   * mainly for debugging purposes.
+   * @param samples locations of points for topology - dimensioned
+   *                float[dimension][number_of_points]
+   * @return flag that is false to indicate there are problems with
+   *         the triangulation
+   */
   public boolean test(float[][] samples) {
 
     int dim = samples.length;
@@ -297,11 +342,16 @@ public abstract class Delaunay implements java.io.Serializable {
     return true;
   }
 
-  /** improve uses edge-flipping to bring the current triangulation
-      closer to the true Delaunay triangulation.  pass is the number
-      of passes the algorithm should take over all edges (however,
-      the algorithm terminates if no edges are flipped for an
-      entire pass). */
+  /**
+   * use edge-flipping to bring the current triangulation closer
+   * to the true Delaunay triangulation.
+   * @param samples locations of points for topology - dimensioned
+   *                float[dimension][number_of_points]
+   * @param pass the number of passes the algorithm should take over
+   *             all edges (however, the algorithm terminates if no
+   *             edges are flipped for an entire pass). 
+   * @throws VisADException a VisAD error occurred
+   */
   public void improve(float[][] samples, int pass) throws VisADException {
     int dim = samples.length;
     int dim1 = dim+1;
@@ -491,10 +541,15 @@ public abstract class Delaunay implements java.io.Serializable {
     }
   }
 
-  /** finish_triang calculates a triangulation's helper arrays, Walk and Edges,
-      if the triangulation algorithm hasn't calculated them already.  Any
-      extension to the Delaunay class should call finish_triang at the end
-      of its triangulation constructor. */
+  /**
+   * calculate a triangulation's helper arrays, Walk and Edges, if the
+   * triangulation algorithm hasn't calculated them already. Any
+   * extension to the Delaunay class should call finish_triang() at
+   * the end of its triangulation constructor.
+   * @param samples locations of points for topology - dimensioned
+   *                float[dimension][number_of_points]
+   * @throws VisADException a VisAD error occurred
+   */
   public void finish_triang(float[][] samples) throws VisADException {
     int mdim = Tri[0].length - 1;
     int mdim1 = mdim + 1;
@@ -790,10 +845,19 @@ public abstract class Delaunay implements java.io.Serializable {
   }
 */
 
+  /**
+   * @return a String representation of this
+   */
   public String toString() {
     return sampleString(null);
   }
 
+  /**
+   * @param samples locations of points for topology - dimensioned
+   *                float[dimension][number_of_points] - may be null
+   * @return a String representation of this, including samples if
+   *         it is non-null
+   */
   public String sampleString(float[][] samples) {
     StringBuffer s = new StringBuffer("");
     if (samples != null) {

@@ -63,7 +63,13 @@ public class DelaunayFast extends Delaunay {
   /** Number of radians to rotate points before triangulating */
   public static final double ROTATE = Math.PI/18;   // (10 degrees)
 
-  /** The constructor computes the triangulation */
+  /**
+   * construct an approximate Delaunay triangulation of the points
+   * in the samples array using Curtis Rueden's algorithm
+   * @param samples locations of points for topology - dimensioned
+   *                float[dimension][number_of_points]
+   * @throws VisADException a VisAD error occurred
+   */
   public DelaunayFast(float[][] samples) throws VisADException {
     if (samples.length < 2 || samples.length > 3) {
       throw new VisADException("DelaunayFast: dimension must be 2 or 3");
@@ -581,7 +587,11 @@ public class DelaunayFast extends Delaunay {
     finish_triang(samples);
   }
 
-  /** Illustrates the speed increase over other Delaunay algorithms */
+  /**
+   * Illustrates the speed increase over other Delaunay algorithms
+   * @param argv command line arguments
+   * @throws VisADException a VisAD error occurred
+   */
   public static void main(String[] argv) throws VisADException {
     boolean problem = false;
     int points = 0;

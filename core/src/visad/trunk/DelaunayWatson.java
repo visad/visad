@@ -62,6 +62,13 @@ public class DelaunayWatson extends Delaunay {
   // factor (>=1) for radius of control points
   private static final float RANGE = 10.0f;
 
+  /**
+   * construct a Delaunay triangulation of the points in the
+   * samples array using Watson's algorithm
+   * @param samples locations of points for topology - dimensioned
+   *                float[dimension][number_of_points]
+   * @throws VisADException a VisAD error occurred
+   */
   public DelaunayWatson(float[][] samples) throws VisADException {
     int dim = samples.length;
     int nrs = samples[0].length;

@@ -53,7 +53,20 @@ public class DelaunayOverlap extends Delaunay {
   // topology signature of grid boxes
   private boolean sig;
 
-  /** constructor--lenx and leny are the dimensions of each gridded set. */
+  /**
+   * Construct a Delaunay triangulation of the points in the
+   * samples array, which are a sequence of 2-D grids of size
+   * lenx * leny, and which may overlap with each other. This
+   * situation can arise when each grid is a scan from a polar
+   * orbiting satellite and the scans are perpendicular to the
+   * direction of travel of the satellite. The scan grids widen
+   * away from the satellite sub-point and can overlap.
+   * @param samples locations of points for topology - dimensioned
+   *                float[dimension][number_of_points]
+   * @param lenx x size of scan grid
+   * @param leny y size of scan grid
+   * @throws VisADException a VisAD error occurred
+   */
   public DelaunayOverlap(float[][] samples, int lenx, int leny)
                                             throws VisADException {
     if (samples.length < 2) {
@@ -2079,40 +2092,45 @@ public class DelaunayOverlap extends Delaunay {
     finish_triang(samples);
   }
 
-  static final float[][] m_samples = {  // grid 1 x-coordinates
-                                       { 65, 142, 215, 315, 373, 435,  39, 118,
-                                        202, 320, 373, 455,  40, 114, 206, 307,
-                                        384, 457,  66, 128, 208, 308, 380, 436,
-                                        // grid 2 x-coordinates
-                                         83, 144, 201, 293, 354, 433,  60, 135,
-                                        202, 285, 355, 456,  59, 136, 204, 284,
-                                        362, 456,  75, 138, 207, 285, 363, 438,
-                                        // grid 3 x-coordinates
-                                         90, 153, 217, 292, 358, 441,  61, 145,
-                                        216, 292, 366, 452,  55, 143, 213, 295,
-                                        373, 463,  80, 148, 217, 295, 375, 444},
-                                        // grid 1 y-coordinates
-                                       { 67,  87, 103, 104,  72,  42, 122, 148,
-                                        160, 165, 156, 109, 212, 211, 203, 200,
-                                        204, 211, 282, 263, 248, 243, 256, 287,
-                                        // grid 2 y-coordinates
-                                        166, 187, 201, 207, 185, 155, 230, 235,
-                                        240, 241, 235, 210, 283, 275, 270, 267,
-                                        273, 280, 338, 310, 299, 297, 305, 331,
-                                        // grid 3 y-coordinates
-                                        247, 270, 277, 276, 265, 233, 295, 319,
-                                        325, 322, 306, 281, 368, 371, 368, 362,
-                                        372, 376, 464, 431, 417, 418, 424, 455} };
+  private static final float[][] m_samples = {  // grid 1 x-coordinates
+                               { 65, 142, 215, 315, 373, 435,  39, 118,
+                                202, 320, 373, 455,  40, 114, 206, 307,
+                                384, 457,  66, 128, 208, 308, 380, 436,
+                                // grid 2 x-coordinates
+                                 83, 144, 201, 293, 354, 433,  60, 135,
+                                202, 285, 355, 456,  59, 136, 204, 284,
+                                362, 456,  75, 138, 207, 285, 363, 438,
+                                // grid 3 x-coordinates
+                                 90, 153, 217, 292, 358, 441,  61, 145,
+                                216, 292, 366, 452,  55, 143, 213, 295,
+                                373, 463,  80, 148, 217, 295, 375, 444},
+                                // grid 1 y-coordinates
+                               { 67,  87, 103, 104,  72,  42, 122, 148,
+                                160, 165, 156, 109, 212, 211, 203, 200,
+                                204, 211, 282, 263, 248, 243, 256, 287,
+                                // grid 2 y-coordinates
+                                166, 187, 201, 207, 185, 155, 230, 235,
+                                240, 241, 235, 210, 283, 275, 270, 267,
+                                273, 280, 338, 310, 299, 297, 305, 331,
+                                // grid 3 y-coordinates
+                                247, 270, 277, 276, 265, 233, 295, 319,
+                                325, 322, 306, 281, 368, 371, 368, 362,
+                                372, 376, 464, 431, 417, 418, 424, 455} };
 
-  static final int m_lenx = 6;
-  static final int m_leny = 4;
-  static final int m_numgrids = 3;
+  private static final int m_lenx = 6;
+  private static final int m_leny = 4;
+  private static final int m_numgrids = 3;
 
-  static final Color[] m_col = {Color.black, Color.gray, Color.blue};
+  private static final Color[] m_col =
+    {Color.black, Color.gray, Color.blue};
 
-  static DelaunayOverlap delO = null;
+  private static DelaunayOverlap delO = null;
 
-  /* run 'java visad.DelaunayOverlap' to test the DelaunayOverlap class */
+  /**
+   * run 'java visad.DelaunayOverlap' to test the DelaunayOverlap class
+   * @param argv command line arguments
+   * @throws VisADException a VisAD error occurred
+   */
   public static void main(String[] argv) throws VisADException {
 
     Frame frame = new Frame("DelaunayOverlap");
