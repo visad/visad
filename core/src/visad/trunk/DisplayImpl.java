@@ -76,6 +76,9 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       and sampling for Animation */
   private boolean initialize = true;
 
+  // WLH 22 April 99
+  private boolean add_data = false;
+
   /** set to indicate that ranges should be auto-scaled
       every time data are displayed */
   private boolean always_initialize = false;
@@ -318,6 +321,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       Display is triggered */
   public void reAutoScale() {
     initialize = true;
+// System.out.println("reAutoScale");
   }
 
   /** if auto is true, re-apply auto-scaling of ScalarMap ranges
@@ -328,12 +332,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
 
   public void reDisplayAll() {
 /*
-    try {
-      throw new VisADException("reDisplayAll");
-    }
-    catch (VisADException e) {
-      e.printStackTrace();
-    }
+    printStack("reDisplayAll");
 */
     redisplay_all = true;
     notifyAction();
@@ -370,7 +369,13 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     synchronized (mapslock) {
       RendererVector.addElement(renderer);
     }
+
+/* WLH 22 April 99
     initialize = true;
+*/
+    add_data = true;
+
+// System.out.println("addReference");
     notifyAction();
   }
 
@@ -390,7 +395,13 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     synchronized (mapslock) {
       RendererVector.addElement(renderer);
     }
+
+/* WLH 22 April 99
     initialize = true;
+*/
+    add_data = true;
+
+// System.out.println("adaptedAddReference");
     notifyAction();
   }
 
@@ -478,7 +489,13 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     synchronized (mapslock) {
       RendererVector.addElement(renderer);
     }
+
+/* WLH 22 April 99
     initialize = true;
+*/
+    add_data = true;
+
+// System.out.println("addReferences");
     notifyAction();
   }
 
@@ -532,7 +549,13 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     synchronized (mapslock) {
       RendererVector.addElement(renderer);
     }
+
+/* WLH 22 April 99
     initialize = true;
+*/
+    add_data = true;
+
+// System.out.println("adaptedAddReferences");
     notifyAction();
   }
 
@@ -566,7 +589,12 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       RendererVector.removeElement(renderer);
     }
     removeLinks(links);
+
+/* WLH 22 April 99
     initialize = true;
+*/
+
+// System.out.println("adaptedDisplayRemoveReference");
   }
 
   /** remove all DataReference links */
@@ -584,6 +612,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
         }
       }
       initialize = true;
+// System.out.println("removeAllReferences");
     }
   }
 
@@ -602,7 +631,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   /** a Display is runnable;
       doAction is invoked by any event that requires a re-transform */
   public void doAction() throws VisADException, RemoteException {
-    if (mapslock == null) return; // WLH 4 Nov 98
+    if (mapslock == null) return;
     synchronized (mapslock) {
       if (RendererVector == null || displayRenderer == null) {
         return;
@@ -610,7 +639,6 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       displayRenderer.setWaitFlag(true);
       // set tickFlag-s in changed Control-s
       // clone MapVector to avoid need for synchronized access
-      // WLH 13 July 98
       Vector tmap = (Vector) MapVector.clone();
       Enumeration maps = tmap.elements();
       while (maps.hasMoreElements()) {
@@ -651,7 +679,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
         valueToScalar[map.getValueIndex()] = getDisplayScalarIndex(dreal);
         valueToMap[map.getValueIndex()] = tmap.indexOf(map);
       }
-  
+
       DataShadow shadow = null;
       // invoke each DataRenderer (to prepare associated Data objects
       // for transformation)
@@ -664,6 +692,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
           DataRenderer renderer = (DataRenderer) renderers.nextElement();
           go = renderer.checkAction(go);
         }
+// System.out.println("initialize = " + initialize + " go = " + go);
       }
       if (redisplay_all) {
         go = true;
@@ -672,20 +701,16 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
 
       if (!initialize || go) {
         renderers = temp.elements();
-/* WLH 30 Dec 98
-        boolean badScale = false;
-*/
         while (renderers.hasMoreElements()) {
           DataRenderer renderer = (DataRenderer) renderers.nextElement();
+/* WLH 22 April 99
           shadow = renderer.prepareAction(go, initialize, shadow);
-        } // WLH 30 Dec 98
-/* WLH 30 Dec 98
-          badScale |= renderer.getBadScale();
-System.out.println("badScale = " + badScale);
-        }
-        initialize = badScale;
-        if (always_initialize) initialize = true;
 */
+          shadow = renderer.prepareAction(go, initialize, shadow, add_data);
+        }
+
+        // WLH 22 April 99
+        add_data = false;
     
         if (shadow != null) {
           // apply RealType ranges and animationSampling
@@ -699,7 +724,6 @@ System.out.println("badScale = " + badScale);
         ScalarMap.equalizeFlow(tmap, Display.DisplayFlow1Tuple);
         ScalarMap.equalizeFlow(tmap, Display.DisplayFlow2Tuple);
 
-        // WLH 30 Dec 98
         renderers = temp.elements();
         boolean badScale = false;
         while (renderers.hasMoreElements()) {
@@ -708,26 +732,26 @@ System.out.println("badScale = " + badScale);
         }
         initialize = badScale;
         if (always_initialize) initialize = true;
-
-        /* WLH 28 Oct 98 */
+/*
+if (initialize) {
+  System.out.println("badScale = " + badScale +
+                     " always_initialize = " + always_initialize);
+}
+*/
         boolean transform_done = false;
 
         renderers = temp.elements();
         while (renderers.hasMoreElements()) {
           DataRenderer renderer = (DataRenderer) renderers.nextElement();
-          /* WLH 28 Oct 98 */
           transform_done |= renderer.doAction();
         }
-        /* WLH 28 Oct 98 */
         if (transform_done) {
-          // WLH 19 March 99
           AnimationControl control =
             (AnimationControl) getControl(AnimationControl.class);
           if (control != null) {
             control.init();
           }
 
-          // WLH 1 April 99
           synchronized (ControlVector) {
             Enumeration controls = ControlVector.elements();
             while(controls.hasMoreElements()) {

@@ -152,6 +152,7 @@ System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
 /*
 System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
                    " any_transform_control = " + any_transform_control);
+System.out.println(getLinks()[0].getThingReference().getName());
 */
       // exceptionVector.removeAllElements();
       clearAVControls();
