@@ -257,6 +257,14 @@ public abstract class Set extends DataImpl {
     return indexToValue(indices);
   }
 
+  public double[][] getDoubles() throws VisADException {
+    return getDoubles(true);
+  }
+
+  public double[][] getDoubles(boolean copy) throws VisADException {
+    return floatToDouble(getSamples(true));
+  }
+
   public void cram_missing(boolean[] range_select) {
   }
 

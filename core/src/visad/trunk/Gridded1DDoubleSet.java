@@ -165,6 +165,10 @@ public class Gridded1DDoubleSet extends GriddedSet {
     return Set.doubleToFloat(Samples);
   }
 
+  public double[][] getDoubles(boolean copy) throws VisADException {
+    return Samples;
+  }
+
   static int[] make_lengths(int lengthX) {
     int[] lens = new int[1];
     lens[0] = lengthX;

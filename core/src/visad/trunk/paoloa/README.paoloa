@@ -23,7 +23,7 @@ included in the main VisAD distribution in the package
 visad.paoloa.  However, the applications need two data files to
 run, data_obs_1.dat and goesrtcf.  Download these files from:
 
-  ftp://demedici.ssec.wisc.edu/pub/visad-2.0/paoloa.files.tar.Z
+  ftp://www.ssec.wisc.edu/pub/visad-2.0/paoloa.files.tar.Z
 
 Unpack the file by running:
 

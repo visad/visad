@@ -38,8 +38,9 @@ public class Test30
 
     int ntimes1 = 4;
 
-    Set time_set = 
-      new Linear1DSet(time_type, 0.0, (double) (ntimes1 - 1.0), ntimes1);
+    double start = new DateTime(1999, 122, 57060).getValue();
+    Set time_set = new Linear1DSet(time_type, start,
+                              start + 3600.0 * (ntimes1 - 1.0), ntimes1);
 
     FieldImpl image_sequence = new FieldImpl(time_images, time_set);
     FlatField temp = imaget1;

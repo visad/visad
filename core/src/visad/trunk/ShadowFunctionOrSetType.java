@@ -588,10 +588,13 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
     }
 
     float[][] domain_values = null;
+    double[][] domain_doubles = null;
     Unit[] domain_units = ((RealTupleType) Domain.getType()).getDefaultUnits();
     int domain_length;
+    int domain_dimension;
     try {
       domain_length = domain_set.getLength();
+      domain_dimension = domain_set.getDimension();
     }
     catch (SetException e) {
       return false;
@@ -804,16 +807,23 @@ for (int i=0; i < 4; i++) {
     else { // !isTextureMap
       // get values from Function Domain
       // NOTE - may defer this until needed, if needed
-      domain_values = domain_set.getSamples(false);
+      if (domain_dimension == 1) {
+        domain_doubles = domain_set.getDoubles(false);
+        domain_doubles = Unit.convertTuple(domain_doubles, dataUnits, domain_units);
+        mapValues(display_values, domain_doubles, DomainComponents);
+      }
+      else {
+        domain_values = domain_set.getSamples(false);
 
-      // convert values to default units (used in display)
-      // MEM & FREE
-      domain_values = Unit.convertTuple(domain_values, dataUnits, domain_units);
-      // System.out.println("got domain_values: domain_length = " + domain_length);
+        // convert values to default units (used in display)
+        // MEM & FREE
+        domain_values = Unit.convertTuple(domain_values, dataUnits, domain_units);
+        // System.out.println("got domain_values: domain_length = " + domain_length);
 
-      // map domain_values to appropriate DisplayRealType-s
-      // MEM
-      mapValues(display_values, domain_values, DomainComponents);
+        // map domain_values to appropriate DisplayRealType-s
+        // MEM
+        mapValues(display_values, domain_values, DomainComponents);
+      }
    
       // System.out.println("mapped domain_values");
   
@@ -830,11 +840,22 @@ for (int i=0; i < 4; i++) {
         // apply coordinate transform to domain values
         RealTupleType ref = (RealTupleType) domain_reference.getType();
         // MEM
-        float[][] reference_values =
-          CoordinateSystem.transformCoordinates(
-            ref, null, ref.getDefaultUnits(), null,
-            (RealTupleType) Domain.getType(), dataCoordinateSystem,
-            domain_units, null, domain_values);
+        float[][] reference_values = null;
+        double[][] reference_doubles = null;
+        if (domain_dimension == 1) {
+          reference_doubles =
+            CoordinateSystem.transformCoordinates(
+              ref, null, ref.getDefaultUnits(), null,
+              (RealTupleType) Domain.getType(), dataCoordinateSystem,
+              domain_units, null, domain_doubles);
+        }
+        else {
+          reference_values =
+            CoordinateSystem.transformCoordinates(
+              ref, null, ref.getDefaultUnits(), null,
+              (RealTupleType) Domain.getType(), dataCoordinateSystem,
+              domain_units, null, domain_values);
+        }
 
         if (anyFlow) {
           renderer.setEarthSpatialData(Domain, domain_reference, ref,
@@ -852,7 +873,12 @@ for (int i=0; i < 4; i++) {
         // map reference_values to appropriate DisplayRealType-s
         ShadowRealType[] DomainReferenceComponents = getDomainReferenceComponents();
         // MEM
-        mapValues(display_values, reference_values, DomainReferenceComponents);
+        if (domain_dimension == 1) {
+          mapValues(display_values, reference_doubles, DomainReferenceComponents);
+        }
+        else {
+          mapValues(display_values, reference_values, DomainReferenceComponents);
+        }
 /*
 for (int i=0; i<DomainReferenceComponents.length; i++) {
   System.out.println("DomainReferenceComponents[" + i + "] = " +
@@ -864,6 +890,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
 */
         // FREE
         reference_values = null;
+        reference_doubles = null;
       }
       else {
         if (anyFlow) {
@@ -884,6 +911,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
       }
       // FREE
       domain_values = null;
+      domain_doubles = null;
     } // end if (!isTextureMap)
 
     if (this instanceof ShadowFunctionType) {

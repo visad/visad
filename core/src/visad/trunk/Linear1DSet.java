@@ -193,6 +193,14 @@ public class Linear1DSet extends Gridded1DSet
     return false;
   }
 
+  public double[][] getDoubles(boolean copy) throws VisADException {
+    int n = getLength();
+    int[] indices = new int[n];
+    // do NOT call getWedge
+    for (int i=0; i<n; i++) indices[i] = i;
+    return indexToDouble(indices);
+  }
+
   public float[][] getSamples(boolean copy) throws VisADException {
     int n = getLength();
     int[] indices = new int[n];
