@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitParser.jj,v 1.7 1998-05-29 21:01:11 visad Exp $
+ * $Id: UnitParser.jj,v 1.8 1998-09-23 19:25:43 steve Exp $
  */
 
 options
@@ -380,8 +380,7 @@ Unit nameExpression() :
 	unit = unitsDB.get(t.image);
 	if (unit == null)
 	{
-	    throw new NoSuchUnitException(
-		"Unit \"" + t.image + "\" not in database");
+	    throw new NoSuchUnitException("Unit not in database");
 	}
     }
 

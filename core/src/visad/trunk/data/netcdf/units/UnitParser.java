@@ -371,8 +371,7 @@
          unit = unitsDB.get(t.image);
          if (unit == null)
          {
-             {if (true) throw new NoSuchUnitException(
-                 "Unit \"" + t.image + "\" not in database");}
+             {if (true) throw new NoSuchUnitException("Unit not in database");}
          }
          {if (true) return unit;}
     throw new Error("Missing return statement in function");
