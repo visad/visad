@@ -57,6 +57,7 @@ public class FlexibleTrackManipulation extends Object
 
   private float[] lats;
   private float[] lons;
+  private float[] shapes;
   private float[] old_lats;
   private float[] old_lons;
 
@@ -86,7 +87,8 @@ public class FlexibleTrackManipulation extends Object
 
      Time may or may not be mapped to Animation
   */
-  public FlexibleTrackManipulation(FlatField st, DisplayImplJ3D d)
+  public FlexibleTrackManipulation(FlatField st, DisplayImplJ3D d,
+                                   ScalarMap shape_map1, ScalarMap shape_map2)
          throws VisADException, RemoteException {
     storm_track = st;
     display = d;
@@ -146,6 +148,7 @@ public class FlexibleTrackManipulation extends Object
         }
       }
     } // for (int i=0; i<n; i++) {
+
     if (lat_index < 0 || lon_index < 0 || shape_index < 0) {
       throw new DisplayException("storm track data must include Latitude " +
                "and Longitude and a RealType mapped to Shape " +
@@ -159,6 +162,7 @@ public class FlexibleTrackManipulation extends Object
       lons = new float[ntimes];
       old_lats = new float[ntimes];
       old_lons = new float[ntimes];
+      shapes = new float[ntimes];
       time_set = storm_track.getDomainSet();
       for (int j=0; j<ntimes; j++) {
         tuples[j] = (Tuple) storm_track.getSample(j);
@@ -167,6 +171,7 @@ public class FlexibleTrackManipulation extends Object
         lons[j] = (float) reals[lon_index].getValue();
         old_lats[j] = lats[j];
         old_lons[j] = lons[j];
+        shapes[j] = (float) reals[shape_index].getValue();
       }
     }
     catch (ClassCastException e) {
@@ -174,6 +179,122 @@ public class FlexibleTrackManipulation extends Object
                      storm_track_type);
     }
 
+    // construct symbols
+    int nv = 16;
+    float size = 0.1f;
+
+    VisADLineArray circle = new VisADLineArray();
+    circle.vertexCount = 2 * nv;
+    float[] coordinates = new float[3 * circle.vertexCount];
+    int m = 0;
+    for (int i=0; i<nv; i++) {
+      double b = 2.0 * Math.PI * i / nv;
+      coordinates[m++] = 0.5f * size * ((float) Math.cos(b));
+      coordinates[m++] = 0.5f * size * ((float) Math.sin(b));
+      coordinates[m++] = 0.0f;
+      double c = 2.0 * Math.PI * (i + 1) / nv;
+      coordinates[m++] = 0.5f * size * ((float) Math.cos(c));
+      coordinates[m++] = 0.5f * size * ((float) Math.sin(c));
+      coordinates[m++] = 0.0f;
+    }
+    circle.coordinates = coordinates;
+
+    VisADTriangleArray filled_circle = new VisADTriangleArray();
+    filled_circle.vertexCount = 3 * nv;
+    coordinates = new float[3 * filled_circle.vertexCount];
+    m = 0;
+    for (int i=0; i<nv; i++) {
+      coordinates[m++] = 0.0f;
+      coordinates[m++] = 0.0f;
+      coordinates[m++] = 0.0f;
+      double b = 2.0 * Math.PI * i / nv;
+      coordinates[m++] = 0.5f * size * ((float) Math.cos(b));
+      coordinates[m++] = 0.5f * size * ((float) Math.sin(b));
+      coordinates[m++] = 0.0f;
+      double c = 2.0 * Math.PI * (i + 1) / nv;
+      coordinates[m++] = 0.5f * size * ((float) Math.cos(c));
+      coordinates[m++] = 0.5f * size * ((float) Math.sin(c));
+      coordinates[m++] = 0.0f;
+    }
+    filled_circle.coordinates = coordinates;
+    float[] normals = new float[3 * filled_circle.vertexCount];
+    m = 0;
+    for (int i=0; i<3*nv; i++) {
+      normals[m++] = 0.0f;
+      normals[m++] = 0.0f;
+      normals[m++] = 1.0f;
+    }
+    filled_circle.normals = normals;
+
+    VisADLineArray ell = new VisADLineArray();
+    ell.vertexCount = 2 * 4;
+    ell.coordinates = new float[] {
+      -0.5f * size, size, 0.0f,    0.0f, size, 0.0f,
+      -0.25f * size, size, 0.0f,   -0.25f * size, -size, 0.0f,
+      -0.25f * size, -size, 0.0f,  size, -size, 0.0f,
+      size, -size, 0.0f,           size, -0.75f * size, 0.0f
+    };
+
+    VisADLineArray south = new VisADLineArray();
+    south.vertexCount = 2 * nv;
+    coordinates = new float[3 * south.vertexCount];
+    m = 0;
+    for (int i=0; i<nv/2; i++) {
+      double b = Math.PI * i / nv;
+      coordinates[m++] = 0.5f * size * ((float) Math.cos(b));
+      coordinates[m++] = size * ((float) Math.sin(b));
+      coordinates[m++] = 0.0f;
+      double c = Math.PI * (i + 1) / nv;
+      coordinates[m++] = 0.5f * size * ((float) Math.cos(c));
+      coordinates[m++] = size * ((float) Math.sin(c));
+      coordinates[m++] = 0.0f;
+      coordinates[m++] = -0.5f * size * ((float) Math.cos(b));
+      coordinates[m++] = -size * ((float) Math.sin(b));
+      coordinates[m++] = 0.0f;
+      coordinates[m++] = -0.5f * size * ((float) Math.cos(c));
+      coordinates[m++] = -size * ((float) Math.sin(c));
+      coordinates[m++] = 0.0f;
+    }
+    south.coordinates = coordinates;
+
+    VisADLineArray north = new VisADLineArray();
+    north.vertexCount = 2 * nv;
+    coordinates = new float[3 * north.vertexCount];
+    m = 0;
+    for (int i=0; i<nv/2; i++) {
+      double b = Math.PI * i / nv;
+      coordinates[m++] = -0.5f * size * ((float) Math.cos(b));
+      coordinates[m++] = size * ((float) Math.sin(b));
+      coordinates[m++] = 0.0f;
+      double c = Math.PI * (i + 1) / nv;
+      coordinates[m++] = -0.5f * size * ((float) Math.cos(c));
+      coordinates[m++] = size * ((float) Math.sin(c));
+      coordinates[m++] = 0.0f;
+      coordinates[m++] = 0.5f * size * ((float) Math.cos(b));
+      coordinates[m++] = -size * ((float) Math.sin(b));
+      coordinates[m++] = 0.0f;
+      coordinates[m++] = 0.5f * size * ((float) Math.cos(c));
+      coordinates[m++] = -size * ((float) Math.sin(c));
+      coordinates[m++] = 0.0f;
+    }
+    north.coordinates = coordinates;
+
+    VisADLineArray south_circle =
+      VisADLineArray.merge(new VisADLineArray[] {circle, south});
+    VisADLineArray north_circle =
+      VisADLineArray.merge(new VisADLineArray[] {circle, north});
+
+    ShapeControl shape_control1 = (ShapeControl) shape_map1.getControl();
+    shape_control1.setShapeSet(new Integer1DSet(8));
+    VisADLineArray[] line_shapes =
+      {null, ell, circle, null, south_circle, south, north_circle, north};
+    shape_control1.setShapes(line_shapes);
+
+    ShapeControl shape_control2 = (ShapeControl) shape_map2.getControl();
+    shape_control2.setShapeSet(new Integer1DSet(8));
+    VisADTriangleArray[] triangle_shapes =
+      {null, null, null, filled_circle, null, filled_circle, null, filled_circle};
+    shape_control2.setShapes(triangle_shapes);
 
     track_ref = new DataReferenceImpl("track_ref");
     track_ref.setData(storm_track);
@@ -288,12 +409,21 @@ public class FlexibleTrackManipulation extends Object
 
         double lat = old_lats[j] + diff_lat;
         double lon = old_lons[j] + diff_lon;
+        int old_shape = (int) (shapes[j] + 0.01);
+        double shape = old_shape;
+        if (4 <= old_shape && old_shape < 6) {
+          if (lat >= 0.0) shape = old_shape + 2;
+        }
+        else if (6 <= old_shape && old_shape < 8) {
+          if (lat < 0.0) shape = old_shape - 2;
+        }
 
         Tuple old_storm = tuples[j];
         if (old_storm instanceof RealTuple) {
           reals = old_storm.getRealComponents();
           reals[lat_index] = reals[lat_index].cloneButValue(lat);
           reals[lon_index] = reals[lon_index].cloneButValue(lon);
+          reals[shape_index] = reals[shape_index].cloneButValue(shape);
           storm = new RealTuple((RealTupleType) old_storm.getType(), reals,
                            ((RealTuple) old_storm).getCoordinateSystem());
         }
@@ -312,12 +442,17 @@ public class FlexibleTrackManipulation extends Object
                 components[c] =
                   ((Real) components[c]).cloneButValue(lon);
               }
+              if (k == shape_index) {
+                components[c] =
+                  ((Real) components[c]).cloneButValue(shape);
+              }
               k++;
             }
             else { // (components[c] instanceof RealTuple)
               int m = ((RealTuple) components[c]).getDimension();
               if ((k <= lat_index && lat_index < k+m) ||
-                  (k <= lon_index && lon_index < k+m)) {
+                  (k <= lon_index && lon_index < k+m) ||
+                  (k <= shape_index && shape_index < k+m)) {
                 reals = ((RealTuple) components[c]).getRealComponents();
                 if (k <= lat_index && lat_index < k+m) {
                   reals[lat_index - k] =
@@ -326,6 +461,10 @@ public class FlexibleTrackManipulation extends Object
                 if (k <= lon_index && lon_index < k+m) {
                   reals[lon_index - k] =
                     reals[lon_index - k].cloneButValue(lon);
+                }
+                if (k <= shape_index && shape_index < k+m) {
+                  reals[shape_index - k] =
+                    reals[shape_index - k].cloneButValue(shape);
                 }
                 components[c] =
                   new RealTuple((RealTupleType) components[c].getType(),
@@ -341,6 +480,7 @@ public class FlexibleTrackManipulation extends Object
 
         lats[j] = (float) lat;
         lons[j] = (float) lon;
+        shapes[j] = (float) shape;
         tuples[j] = storm;
         storm_track.setSample(j, storm);
         if (control == null) {
@@ -378,128 +518,13 @@ public class FlexibleTrackManipulation extends Object
     lonmap.setRange(-10.0, 10.0);
     ScalarMap latmap = new ScalarMap(lat, Display.YAxis);
     display.addMap(latmap);
-    latmap.setRange(-50.0, -30.0);
-
-    // construct symbols
-    int nv = 16;
-    float size = 0.1f;
-
-    VisADLineArray circle = new VisADLineArray();
-    circle.vertexCount = 2 * nv;
-    float[] coordinates = new float[3 * circle.vertexCount];
-    int m = 0;
-    for (int i=0; i<nv; i++) {
-      double b = 2.0 * Math.PI * i / nv;
-      coordinates[m++] = 0.5f * size * ((float) Math.cos(b));
-      coordinates[m++] = 0.5f * size * ((float) Math.sin(b));
-      coordinates[m++] = 0.0f;
-      double c = 2.0 * Math.PI * (i + 1) / nv;
-      coordinates[m++] = 0.5f * size * ((float) Math.cos(c));
-      coordinates[m++] = 0.5f * size * ((float) Math.sin(c));
-      coordinates[m++] = 0.0f;
-    }
-    circle.coordinates = coordinates;
-
-    VisADTriangleArray filled_circle = new VisADTriangleArray();
-    filled_circle.vertexCount = 3 * nv;
-    coordinates = new float[3 * filled_circle.vertexCount];
-    m = 0;
-    for (int i=0; i<nv; i++) {
-      coordinates[m++] = 0.0f;
-      coordinates[m++] = 0.0f;
-      coordinates[m++] = 0.0f;
-      double b = 2.0 * Math.PI * i / nv;
-      coordinates[m++] = 0.5f * size * ((float) Math.cos(b));
-      coordinates[m++] = 0.5f * size * ((float) Math.sin(b));
-      coordinates[m++] = 0.0f;
-      double c = 2.0 * Math.PI * (i + 1) / nv;
-      coordinates[m++] = 0.5f * size * ((float) Math.cos(c));
-      coordinates[m++] = 0.5f * size * ((float) Math.sin(c));
-      coordinates[m++] = 0.0f;
-    }
-    filled_circle.coordinates = coordinates;
-    float[] normals = new float[3 * filled_circle.vertexCount];
-    m = 0;
-    for (int i=0; i<3*nv; i++) {
-      normals[m++] = 0.0f;
-      normals[m++] = 0.0f;
-      normals[m++] = 1.0f;
-    }
-    filled_circle.normals = normals;
-
-    VisADLineArray ell = new VisADLineArray();
-    ell.vertexCount = 2 * 4;
-    ell.coordinates = new float[] {
-      -0.5f * size, size, 0.0f,    0.0f, size, 0.0f,
-      -0.25f * size, size, 0.0f,   -0.25f * size, -size, 0.0f,
-      -0.25f * size, -size, 0.0f,  size, -size, 0.0f,
-      size, -size, 0.0f,           size, -0.75f * size, 0.0f
-    };
-
-    VisADLineArray south = new VisADLineArray();
-    south.vertexCount = 2 * nv;
-    coordinates = new float[3 * south.vertexCount];
-    m = 0;
-    for (int i=0; i<nv/2; i++) {
-      double b = Math.PI * i / nv;
-      coordinates[m++] = 0.5f * size * ((float) Math.cos(b));
-      coordinates[m++] = size * ((float) Math.sin(b));
-      coordinates[m++] = 0.0f;
-      double c = Math.PI * (i + 1) / nv;
-      coordinates[m++] = 0.5f * size * ((float) Math.cos(c));
-      coordinates[m++] = size * ((float) Math.sin(c));
-      coordinates[m++] = 0.0f;
-      coordinates[m++] = -0.5f * size * ((float) Math.cos(b));
-      coordinates[m++] = -size * ((float) Math.sin(b));
-      coordinates[m++] = 0.0f;
-      coordinates[m++] = -0.5f * size * ((float) Math.cos(c));
-      coordinates[m++] = -size * ((float) Math.sin(c));
-      coordinates[m++] = 0.0f;
-    }
-    south.coordinates = coordinates;
-
-    VisADLineArray north = new VisADLineArray();
-    north.vertexCount = 2 * nv;
-    coordinates = new float[3 * north.vertexCount];
-    m = 0;
-    for (int i=0; i<nv/2; i++) {
-      double b = Math.PI * i / nv;
-      coordinates[m++] = -0.5f * size * ((float) Math.cos(b));
-      coordinates[m++] = size * ((float) Math.sin(b));
-      coordinates[m++] = 0.0f;
-      double c = Math.PI * (i + 1) / nv;
-      coordinates[m++] = -0.5f * size * ((float) Math.cos(c));
-      coordinates[m++] = size * ((float) Math.sin(c));
-      coordinates[m++] = 0.0f;
-      coordinates[m++] = 0.5f * size * ((float) Math.cos(b));
-      coordinates[m++] = -size * ((float) Math.sin(b));
-      coordinates[m++] = 0.0f;
-      coordinates[m++] = 0.5f * size * ((float) Math.cos(c));
-      coordinates[m++] = -size * ((float) Math.sin(c));
-      coordinates[m++] = 0.0f;
-    }
-    north.coordinates = coordinates;
-
-    VisADLineArray south_circle =
-      VisADLineArray.merge(new VisADLineArray[] {circle, south});
-    VisADLineArray north_circle =
-      VisADLineArray.merge(new VisADLineArray[] {circle, north});
+    latmap.setRange(-10.0, 10.0);
 
     ScalarMap shape_map1 = new ScalarMap(shape, Display.Shape);
     display.addMap(shape_map1);
-    ShapeControl shape_control1 = (ShapeControl) shape_map1.getControl();
-    shape_control1.setShapeSet(new Integer1DSet(8));
-    VisADLineArray[] line_shapes =
-      {null, ell, circle, null, south_circle, south, north_circle, north};
-    shape_control1.setShapes(line_shapes);
 
     ScalarMap shape_map2 = new ScalarMap(shape, Display.Shape);
     display.addMap(shape_map2);
-    ShapeControl shape_control2 = (ShapeControl) shape_map2.getControl();
-    shape_control2.setShapeSet(new Integer1DSet(8));
-    VisADTriangleArray[] triangle_shapes =
-      {null, null, null, filled_circle, null, filled_circle, null, filled_circle};
-    shape_control2.setShapes(triangle_shapes);
 
     ScalarMap amap = null;
     if (args.length > 0) {
@@ -514,8 +539,15 @@ public class FlexibleTrackManipulation extends Object
     for (int k=0; k<NTIMES; k++) {
       // each track record is a Tuple (lon, lat, shape)
       values[0][k] = 2.0 * k - 8.0;
-      values[1][k] = 2.0 * k - 48.0;
-      values[2][k] = k % 8;
+      values[1][k] = 2.0 * k - 8.0;
+      int s =  k % 8;
+      if (4 <= s && s < 6) {
+        if (values[1][k] >= 0.0) s += 2;
+      }
+      else if (6 <= s && s < 8) {
+        if (values[1][k] < 0.0) s -= 2;
+      }
+      values[2][k] = s;
     }
     ff.setSamples(values);
 
@@ -537,7 +569,7 @@ public class FlexibleTrackManipulation extends Object
     if (amap != null) panel.add(new AnimationWidget(amap));
 
     FlexibleTrackManipulation ftm =
-      new FlexibleTrackManipulation(ff, display);
+      new FlexibleTrackManipulation(ff, display, shape_map1, shape_map2);
 
     JButton end = new JButton("end manip");
     end.addActionListener(new EndManip(ftm));
