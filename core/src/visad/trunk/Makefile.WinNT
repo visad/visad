@@ -173,6 +173,7 @@ ij\process\*.java \
 ij\text\*.java \
 ij\util\*.java \
 visad\jmet\*.java \
+visad\bio\*.java \
 visad\paoloa\README.paoloa \
 visad\paoloa\Makefile \
 visad\paoloa\*.java \
@@ -325,6 +326,7 @@ ij\process\*.java \
 ij\text\*.java \
 ij\util\*.java \
 visad\jmet\*.java \
+visad\bio\*.java \
 visad\paoloa\README.paoloa \
 visad\paoloa\Makefile \
 visad\paoloa\*.java \
@@ -475,6 +477,8 @@ save:
 		$(DEL) $(BACKUP)\ncsa\hdf\hdf5lib\exceptions\*.java
 	if exist $(BACKUP)\visad\jmet\*.java \
 		$(DEL) $(BACKUP)\visad\jmet\*.java
+	if exist $(BACKUP)\visad\bio\*.java \
+		$(DEL) $(BACKUP)\visad\bio\*.java
 	if exist $(BACKUP)\visad\paoloa\*.java \
 		$(DEL) $(BACKUP)\visad\paoloa\*.java
 	if exist $(BACKUP)\visad\paoloa\spline\*.java \
@@ -567,6 +571,7 @@ visad\data\hdf5\hdf5objects\*.class \
 ncsa\hdf\hdf5lib\*.class \
 ncsa\hdf\hdf5lib\exceptions\*.class \
 visad\jmet\*.class \
+visad\bio\*.class \
 visad\paoloa\*.class \
 visad\paoloa\spline\*.class \
 visad\aune\*.class \
@@ -662,6 +667,7 @@ clear:
 	if exist ..\ncsa\hdf\hdf5lib\*.java $(DEL) ..\ncsa\hdf\hdf5lib\*.java
 	if exist ..\ncsa\hdf\hdf5lib\exceptions\*.java $(DEL) ..\ncsa\hdf\hdf5lib\exceptions\*.java
 	if exist jmet\*.java $(DEL) jmet\*.java
+	if exist bio\*.java $(DEL) bio\*.java
 	if exist paoloa\*.java $(DEL) paoloa\*.java
 	if exist paoloa\spline\*.java $(DEL) paoloa\spline\*.java
 	if exist aune\*.java $(DEL) aune\*.java
@@ -738,6 +744,7 @@ clean:
 	if exist ..\ncsa\hdf\hdf5lib\*.class $(DEL) ..\ncsa\hdf\hdf5lib\*.class
 	if exist ..\ncsa\hdf\hdf5lib\exceptions\*.class $(DEL) ..\ncsa\hdf\hdf5lib\exceptions\*.class
 	if exist jmet\*.class $(DEL) jmet\*.class
+	if exist bio\*.class $(DEL) bio\*.class
 	if exist paoloa\*.class $(DEL) paoloa\*.class
 	if exist paoloa\spline\*.class $(DEL) paoloa\spline\*.class
 	if exist aune\*.class $(DEL) aune\*.class
@@ -846,6 +853,7 @@ util\*.class \
 formula\*.class \
 ss\*.class \
 jmet\*.class \
+bio\*.class \
 paoloa\*.class \
 paoloa\spline\*.class \
 benjamin\*.class \
@@ -930,6 +938,7 @@ compile: clean
 	$(JC) $(JFLAGS) formula\*.java
 	$(JC) $(JFLAGS) ss\*.java
 	$(JC) $(JFLAGS) jmet\*.java
+	$(JC) $(JFLAGS) bio\*.java
 	$(JC) $(JFLAGS) paoloa\*.java
 	$(JC) $(JFLAGS) paoloa\spline\*.java
 	$(JC) $(JFLAGS) benjamin\*.java
@@ -1018,6 +1027,7 @@ ncsa.hdf.hdf5lib.exceptions \
 visad.data.hdf5 \
 visad.data.hdf5.hdf5objects \
 visad.jmet \
+visad.bio \
 visad.paoloa \
 visad.paoloa.spline \
 visad.aune \
