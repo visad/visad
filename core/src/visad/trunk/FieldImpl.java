@@ -1587,7 +1587,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       SampledSet[] fac_sets;
       Object[] collapse_array;
 
-      public Helper(Data data, int collapse_depth)
+      public Helper(Data data, int col_depth)
              throws VisADException, RemoteException
       {
         MathType m_type = data.getType();
@@ -1600,9 +1600,9 @@ public class FieldImpl extends FunctionImpl implements Field {
         {
           throw new FieldException("MathType "+m_type.prettyString());
         }
-        else if ( depth_max >= collapse_depth ) 
+        else if ( depth_max >= col_depth ) 
         {
-          depth_max = collapse_depth;
+          depth_max = col_depth;
         }
 
         last_set = new SampledSet[depth_max + 1];

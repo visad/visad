@@ -305,20 +305,20 @@ public class MappingDialog extends JDialog implements ActionListener,
 
     // set up MathType canvas
     MathCanvas = new JComponent() {
-      public void paint(Graphics g) {
+      public void paint(Graphics g2) {
         // draw "pretty-print" MathType using its Image
-        g.drawImage(ppImg, 0, 0, this);
+        g2.drawImage(ppImg, 0, 0, this);
         int ind = MathList.getSelectedIndex();
         if (ind >= 0 && ScB[ind] == 0) {
-          g.setFont(Mono);
+          g2.setFont(Mono);
           String s = (String) Scalars[ind];
           for (int i=0; i<ScX[ind].length; i++) {
             int x = ScX[ind][i]+5;
             int y = (ScH+2)*ScY[ind][i];
-            g.setColor(Color.blue);
-            g.fillRect(x, y+6, ScW[ind], ScH);
-            g.setColor(Color.white);
-            g.drawString(s, x, y+ScH+2);
+            g2.setColor(Color.blue);
+            g2.fillRect(x, y+6, ScW[ind], ScH);
+            g2.setColor(Color.white);
+            g2.drawString(s, x, y+ScH+2);
           }
         }
       }
@@ -375,20 +375,20 @@ public class MappingDialog extends JDialog implements ActionListener,
 
     // set up CoordinateSystem references canvas
     CoordCanvas = new JComponent() {
-      public void paint(Graphics g) {
+      public void paint(Graphics g2) {
         // draw "pretty-print" CoordinateSystem reference list using its Image
-        g.drawImage(csImg, 0, 0, this);
+        g2.drawImage(csImg, 0, 0, this);
         int ind = MathList.getSelectedIndex();
         if (ind >= 0 && ScB[ind] == 1) {
-          g.setFont(Mono);
+          g2.setFont(Mono);
           String s = (String) Scalars[ind];
           for (int i=0; i<ScX[ind].length; i++) {
             int x = ScX[ind][i]+5;
             int y = (ScH+2)*ScY[ind][i];
-            g.setColor(Color.blue);
-            g.fillRect(x, y+6, ScW[ind], ScH);
-            g.setColor(Color.white);
-            g.drawString(s, x, y+ScH+2);
+            g2.setColor(Color.blue);
+            g2.fillRect(x, y+6, ScW[ind], ScH);
+            g2.setColor(Color.white);
+            g2.drawString(s, x, y+ScH+2);
           }
         }
       }
@@ -519,13 +519,13 @@ public class MappingDialog extends JDialog implements ActionListener,
 
     // set up "map to" canvas
     DisplayCanvas = new JComponent() {
-      public void paint(Graphics g) {
-        g.drawImage(MapTo, 0, 0, this);
+      public void paint(Graphics g2) {
+        g2.drawImage(MapTo, 0, 0, this);
         int ind = MathList.getSelectedIndex();
         if (ind >= 0) {
           for (int col=0; col<7; col++) {
             for (int row=0; row<5; row++) {
-              if (Maps[ind][col][row]) highlightBox(col, row, g);
+              if (Maps[ind][col][row]) highlightBox(col, row, g2);
             }
           }
         }
