@@ -60,7 +60,7 @@ public abstract class BasicHDU
     * the given stream object.
     * @param stream the stream which contains the data.
     * @param Header template indicating length of Data section
-    * @exception FitsException if the Data object could not be skipped.
+    * @exception IOException if the Data object could not be skipped.
     */
   public static void skipData(BufferedDataInputStream stream, Header hdr)
 	throws IOException
@@ -70,7 +70,7 @@ public abstract class BasicHDU
 
   /** Skip the Data object for this HDU.
     * @param stream the stream which contains the data.
-    * @exception FitsException if the Data object could not be skipped.
+    * @exception IOException if the Data object could not be skipped.
     */
   public void skipData(BufferedDataInputStream stream)
 	throws IOException
@@ -431,7 +431,6 @@ public abstract class BasicHDU
   /**
     * Return the minimum valid value in the array.
     * @return	minimum value.
-    * @exception FitsException	if there is no minimum value.
     */
   public double getMaximumValue()
   {
@@ -441,7 +440,6 @@ public abstract class BasicHDU
   /**
     * Return the minimum valid value in the array.
     * @return	minimum value.
-    * @exception FitsException	If there is no minimum value.
     */
   public double getMinimumValue()
   {

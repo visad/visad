@@ -271,7 +271,7 @@ public class BinaryTable extends Data {
        * @param col  The index of the column to be replaced.
        * @param data The new data array.  This should be a one-d
        *             primitive array.
-       * @exception FitsExcetion Thrown if the type of length of
+       * @exception FitsException Thrown if the type of length of
        *                         the replacement data differs from the
        *                         original.
        */
