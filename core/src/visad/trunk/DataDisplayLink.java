@@ -86,7 +86,10 @@ public class DataDisplayLink extends ReferenceActionLink {
         // WLH 10 Aug 2001
         if (constant_maps[i].getDisplay() != null &&
             !ConstantMap.getAllowMultipleUseKludge()) {
-          throw new DisplayException(constant_maps[i] + " already has a display");
+          throw new DisplayException(constant_maps[i] + " already has a display\n" +
+                      "If this Exception breaks an existing app add a call to:\n" +
+                      "ConstantMap.setAllowMultipleUseKludge(true) at the " +
+                      "start of your app \n  OR you can stop reusing ConstantMaps");
         }
 
         constant_maps[i].setDisplay(local_d);
