@@ -219,28 +219,26 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     if (contrast <= mid) slope = contrast / mid;
     else slope = mid / (COLOR_DETAIL - contrast);
 
+    float[] vals = new float[COLOR_DETAIL];
+    for (int i=0; i<COLOR_DETAIL; i++) {
+      vals[i] = (float) (0.5 * slope * (i / mid - 1.0) + center);
+      if (vals[i] < 0) vals[i] = 0;
+      else if (vals[i] > 1) vals[i] = 1;
+    }
+
     // initialize color tables
-    for (int j=0; j<cc2.length; j++) {
-      float[][] table = new float[3][COLOR_DETAIL];
-      boolean r = sm.rtypes[j].equals(red);
-      boolean g = sm.rtypes[j].equals(green);
-      boolean b = sm.rtypes[j].equals(blue);
-      if (r || g || b) {
-        float[] values = new float[COLOR_DETAIL];
-        for (int i=0; i<COLOR_DETAIL; i++) {
-          values[i] = (float) (0.5 * slope * (i / mid - 1.0) + center);
-          if (values[i] < 0) values[i] = 0;
-          else if (values[i] > 1) values[i] = 1;
-        }
-        if (r) System.arraycopy(values, 0, table[0], 0, COLOR_DETAIL);
-        if (g) System.arraycopy(values, 0, table[1], 0, COLOR_DETAIL);
-        if (b) System.arraycopy(values, 0, table[2], 0, COLOR_DETAIL);
-      }
+    for (int i=0; i<cc2.length; i++) {
+      if (i >= sm.rtypes.length) break;
+      RealType rt = sm.rtypes[i];
+      float[][] t = new float[3][COLOR_DETAIL];
+      if (rt.equals(red)) System.arraycopy(vals, 0, t[0], 0, COLOR_DETAIL);
+      if (rt.equals(green)) System.arraycopy(vals, 0, t[1], 0, COLOR_DETAIL);
+      if (rt.equals(blue)) System.arraycopy(vals, 0, t[2], 0, COLOR_DETAIL);
 
       // set color table
       try {
-        if (cc2[j] != null) cc2[j].setTable(table);
-        if (cc3 != null && cc3[j] != null) cc3[j].setTable(table);
+        if (cc2[i] != null) cc2[i].setTable(t);
+        if (cc3 != null && cc3[i] != null) cc3[i].setTable(t);
       }
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }

@@ -69,12 +69,7 @@ public class PoolPoint {
     renderer.setPickCrawlToCursor(false);
     renderer.suppressExceptions(true);
     renderer.toggle(false);
-    ConstantMap[] maps = {
-      new ConstantMap(1.0f, Display.Red),
-      new ConstantMap(1.0f, Display.Green),
-      new ConstantMap(1.0f, Display.Blue)
-    };
-    display.addReferences(renderer, ref, maps);
+    display.addReferences(renderer, ref);
   }
 
 }

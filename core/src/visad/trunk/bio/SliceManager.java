@@ -266,7 +266,8 @@ public class SliceManager implements ControlListener {
   /** Links the data series to the given list of files. */
   public void setSeries(File[] files) {
     this.files = files;
-    setFile(0, true);
+    index = 0;
+    setFile(true);
     bio.horiz.updateSlider(timesteps);
     bio.vert.updateSlider(slices);
   }
@@ -276,8 +277,10 @@ public class SliceManager implements ControlListener {
 
   /** ControlListener method used for programmatically updating GUI. */
   public void controlChanged(ControlEvent e) {
-    int index = anim_control2.getCurrent();
-    if (this.index != index) bio.horiz.setValue(index + 1);
+    if (anim_control2 != null) {
+      int index = anim_control2.getCurrent();
+      if (this.index != index) bio.horiz.setValue(index + 1);
+    }
     int slice = (int) value_control2.getValue();
     if (this.slice != slice) bio.vert.setValue(slice + 1);
   }
@@ -515,18 +518,18 @@ public class SliceManager implements ControlListener {
     return stack;
   }
 
-  /** Sets the given file as the current one. */
-  private void setFile(int curFile, boolean initialize) {
+  /** Sets the current file to match the current index. */
+  private void setFile(boolean initialize) {
     bio.setWaitCursor(true);
     try {
       if (initialize) init(files, 0);
       else {
-        field = loadData(files[curFile]);
+        field = loadData(files[index]);
         if (field != null) ref.setData(field);
         else {
           bio.setWaitCursor(false);
           JOptionPane.showMessageDialog(bio,
-            files[curFile].getName() + " does not contain an image stack",
+            files[index].getName() + " does not contain an image stack",
             "Cannot load file", JOptionPane.ERROR_MESSAGE);
           return;
         }
@@ -553,14 +556,17 @@ public class SliceManager implements ControlListener {
     ScalarMap x_map2 = new ScalarMap(dtypes[0], Display.XAxis);
     ScalarMap y_map2 = new ScalarMap(dtypes[1], Display.YAxis);
     ScalarMap slice_map2 = new ScalarMap(dtypes[2], Display.SelectValue);
-    ScalarMap anim_map2 = new ScalarMap(TIME_TYPE, Display.Animation);
+    ScalarMap anim_map2 = null;
     ScalarMap r_map2 = new ScalarMap(RED_TYPE, Display.Red);
     ScalarMap g_map2 = new ScalarMap(GREEN_TYPE, Display.Green);
     ScalarMap b_map2 = new ScalarMap(BLUE_TYPE, Display.Blue);
     bio.display2.addMap(x_map2);
     bio.display2.addMap(y_map2);
     bio.display2.addMap(slice_map2);
-    bio.display2.addMap(anim_map2);
+    if (hasThumbs) {
+      anim_map2 = new ScalarMap(TIME_TYPE, Display.Animation);
+      bio.display2.addMap(anim_map2);
+    }
     bio.display2.addMap(r_map2);
     bio.display2.addMap(g_map2);
     bio.display2.addMap(b_map2);
@@ -686,13 +692,15 @@ public class SliceManager implements ControlListener {
     if (value_control2 != null) value_control2.removeControlListener(this);
     if (anim_control2 != null) anim_control2.removeControlListener(this);
     value_control2 = (ValueControl) slice_map2.getControl();
-    anim_control2 = (AnimationControl) anim_map2.getControl();
+    if (hasThumbs) {
+      anim_control2 = (AnimationControl) anim_map2.getControl();
+      bio.toolView.setControl(anim_control2);
+      anim_control2.addControlListener(this);
+    }
     if (bio.display3 != null) {
       anim_control3 = (AnimationControl) anim_map3.getControl();
     }
-    bio.toolView.setControl(anim_control2);
     value_control2.addControlListener(this);
-    anim_control2.addControlListener(this);
 
     // set up color table characteristics
     bio.toolView.doColorTable();
@@ -700,11 +708,11 @@ public class SliceManager implements ControlListener {
 
   /** Refreshes the current image slice shown onscreen. */
   private void refresh(boolean new_slice, boolean new_index) {
-    if (files == null || anim_control2 == null) return;
+    if (files == null) return;
 
     // switch index values
     if (new_index) {
-      if (!lowres) setFile(index, false);
+      if (!lowres) setFile(false);
       Measurement[] m = bio.mm.lists[index].getMeasurements();
       bio.mm.pool2.set(m);
       if (bio.mm.pool3 != null) bio.mm.pool3.set(m);
@@ -742,9 +750,8 @@ public class SliceManager implements ControlListener {
 
   /** Updates the animation controls. */
   private void updateAnimationControls() {
-    // update animation controls
     try {
-      anim_control2.setCurrent(index);
+      if (anim_control2 != null) anim_control2.setCurrent(index);
       if (anim_control3 != null) anim_control3.setCurrent(index);
     }
     catch (VisADException exc) { exc.printStackTrace(); }
