@@ -183,12 +183,7 @@ public class Spasm
 				}
 			    });
 
-    frame.setSize(WIDTH, HEIGHT);
     frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    frame.setLocation(screenSize.width/2 - WIDTH/2,
-                      screenSize.height/2 - HEIGHT/2);
 
     return frame;
   }
@@ -245,6 +240,7 @@ public class Spasm
     mainPanel.add(displayPanel);
 
     // make the JFrame visible
+    frame.pack();
     frame.setVisible(true);
   }
 

@@ -257,7 +257,7 @@ public class DisplayTest extends Object {
         big_panel.add(display1.getComponent());
         big_panel.add(display2.getComponent());
         jframe.setContentPane(big_panel);
-        jframe.setSize(512, 256);
+        jframe.pack();
         jframe.setVisible(true);
 
         break;
@@ -567,7 +567,7 @@ public class DisplayTest extends Object {
         });
  
         jframe.setContentPane((JPanel) display1.getComponent());
-        jframe.setSize(256, 256);
+        jframe.pack();
         jframe.setVisible(true);
  
         break;
@@ -1612,7 +1612,7 @@ public class DisplayTest extends Object {
         big_panel.add(display1.getComponent());
         big_panel.add(display2.getComponent());
         jframe.setContentPane(big_panel);
-        jframe.setSize(512, 256);
+        jframe.pack();
         jframe.setVisible(true);
 
         break;
@@ -1678,7 +1678,7 @@ public class DisplayTest extends Object {
         big_panel.add(display1.getComponent());
         big_panel.add(display2.getComponent());
         jframe.setContentPane(big_panel);
-        jframe.setSize(512, 256);
+        jframe.pack();
         jframe.setVisible(true);
 
         break;
@@ -1703,7 +1703,7 @@ public class DisplayTest extends Object {
         });
  
         jframe.setContentPane((JPanel) display1.getComponent());
-        jframe.setSize(256, 256);
+        jframe.pack();
         jframe.setVisible(true);
 
         ref_imaget1 = new DataReferenceImpl("ref_imaget1");
@@ -1744,7 +1744,7 @@ public class DisplayTest extends Object {
         });
  
         jframe.setContentPane((JPanel) display1.getComponent());
-        jframe.setSize(256, 256);
+        jframe.pack();
         jframe.setVisible(true);
 
         big_panel = new JPanel();
@@ -1789,7 +1789,7 @@ public class DisplayTest extends Object {
         });
  
         jframe.setContentPane((JPanel) display1.getComponent());
-        jframe.setSize(256, 256);
+        jframe.pack();
         jframe.setVisible(true);
 
         ref_imaget1 = new DataReferenceImpl("ref_imaget1");
@@ -1893,7 +1893,7 @@ public class DisplayTest extends Object {
         big_panel.add(display1.getComponent());
         big_panel.add(display2.getComponent());
         jframe.setContentPane(big_panel);
-        jframe.setSize(512, 256);
+        jframe.pack();
         jframe.setVisible(true);
 
         break;
@@ -2238,7 +2238,7 @@ public class DisplayTest extends Object {
         });
  
         jframe.setContentPane((JPanel) display1.getComponent());
-        jframe.setSize(256, 256);
+        jframe.pack();
         jframe.setVisible(true);
 
         break;
@@ -2283,7 +2283,7 @@ public class DisplayTest extends Object {
         });
  
         jframe.setContentPane((JPanel) display1.getComponent());
-        jframe.setSize(256, 256);
+        jframe.pack();
         jframe.setVisible(true);
 
         break;
@@ -2363,7 +2363,7 @@ public class DisplayTest extends Object {
         });
  
         jframe.setContentPane((JPanel) display1.getComponent());
-        jframe.setSize(256, 256);
+        jframe.pack();
         jframe.setVisible(true);
 
         break;
@@ -2479,7 +2479,7 @@ public class DisplayTest extends Object {
         });
  
         jframe.setContentPane((JPanel) display1.getComponent());
-        jframe.setSize(256, 256);
+        jframe.pack();
         jframe.setVisible(true);
 
         break;
