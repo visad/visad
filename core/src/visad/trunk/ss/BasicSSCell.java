@@ -976,7 +976,7 @@ public class BasicSSCell extends JPanel {
   /** clear this cell completely and permanently remove it from the
       list of created cells */
   public void destroyCell() throws VisADException, RemoteException {
-    clearCell();
+    if (!IsRemote) clearCell();
 
     // remove cell from all servers
     int slen = Servers.size();
