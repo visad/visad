@@ -45,7 +45,7 @@ import visad.ss.*;
  */
 public abstract class JPythonMethods {
 
-  private static final String DEFAULT_NAME = "JPython";
+  private static final String DEFAULT_NAME = "Jython";
 
   private static final String ID = JPythonMethods.class.getName();
 
@@ -1780,7 +1780,7 @@ public abstract class JPythonMethods {
   * @param d is the Data object
   *
   */
-  public static void dumpType(Data d) 
+  public static void dumpTypes(Data d) 
              throws VisADException, RemoteException {
       MathType t = d.getType();
       visad.jmet.DumpType.dumpMathType(t);
