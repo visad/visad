@@ -3,218 +3,189 @@ package visad.data.dods;
 import dods.dap.*;
 import java.rmi.RemoteException;
 import visad.*;
-import visad.data.*;
-import visad.data.in.*;
-import visad.data.units.Parser;
+import visad.data.BadFormException;
 
 /**
- * Provides support for adapting DODS variables to the {@link visad.data.in}
- * context.
+ * Instances are immutable;
  */
 public abstract class VariableAdapter
+    extends	Adapter
 {
-    protected VariableAdapter()
-    {}
+    private static final SimpleSet[]		defaultRepSets =
+	new SimpleSet[] {null};
 
-    public abstract VirtualData getVirtualData();
+    public abstract MathType getMathType();
 
-    public final Data getData()
+    public DataImpl data(BaseType baseType)
 	throws VisADException, RemoteException
     {
-	return getVirtualData().getData();
-    }
-
-    public final MathType getMathType()
-    {
-	return getVirtualData().getMathType();
-    }
-
-    public static RealType realType(BaseType var, AttributeTable table)
-    {
-	return realType(var.getName(), table);
-    }
-
-    public static RealType realType(String name, AttributeTable table)
-    {
-	Unit	unit;
-	if (table == null)
-	{
-	    unit = null;
-	}
+	DataImpl	data;
+	if (baseType instanceof DString)
+	    data = data((DString)baseType);
+	else if (baseType instanceof DBoolean)
+	    data = data((DBoolean)baseType);
+	else if (baseType instanceof DByte)
+	    data = data((DByte)baseType);
+	else if (baseType instanceof DUInt16)
+	    data = data((DUInt16)baseType);
+	else if (baseType instanceof DInt16)
+	    data = data((DInt16)baseType);
+	else if (baseType instanceof DUInt32)
+	    data = data((DUInt32)baseType);
+	else if (baseType instanceof DInt32)
+	    data = data((DInt32)baseType);
+	else if (baseType instanceof DFloat32)
+	    data = data((DFloat32)baseType);
+	else if (baseType instanceof DFloat64)
+	    data = data((DFloat64)baseType);
+	else if (baseType instanceof DStructure)
+	    data = data((DStructure)baseType);
+	else if (baseType instanceof DList)
+	    data = data((DList)baseType);
+	else if (baseType instanceof DSequence)
+	    data = data((DSequence)baseType);
+	else if (baseType instanceof DArray)
+	    data = data((DArray)baseType);
+	else if (baseType instanceof DGrid)
+	    data = data((DGrid)baseType);
 	else
-	{
-	    Attribute	attr = table.getAttribute("units");
-	    if (attr == null)
-		attr = table.getAttribute("unit");
-	    if (attr == null)
-		attr = table.getAttribute("UNITS");
-	    if (attr == null)
-		attr = table.getAttribute("UNIT");
-	    if (attr == null)
-	    {
-		unit = null;
-	    }
-	    else
-	    {
-		if (attr.getType() == Attribute.STRING)
-		{
-		    try
-		    {
-			unit = Parser.instance().parse(attr.getValueAt(0));
-		    }
-		    catch (Exception e)
-		    {
-			System.err.println(
-			    "VariableAdapter.getRealType(...): " +
-			    "Ignoring variable \"" + name + 
-			    "\" non-decodable unit-specification: " +
-			    attr.getValueAt(0));
-			unit = null;
-		    }
-		}
-		else
-		{
-		    System.err.println(
-			"VariableAdapter.getRealType(...): " +
-			"Ignoring variable \"" + name + 
-			"\" non-string unit-specification: " +
-			attr.getTypeString());
-		    unit = null;
-		}
-	    }
-	}
-	return
-	    RealType.getRealType(VirtualScalar.scalarName(name), unit);
+	    throw new BadFormException(
+		getClass().getName() + ".data(BaseType): " +
+		"Unknown DODS type: " + baseType.getTypeName());
+	return data;
     }
 
-    public static MathType mathType(BaseType var, AttributeTable table)
-	throws BadFormException, VisADException
+    public DataImpl data(DString var)
+	throws VisADException, RemoteException
     {
-	MathType	mathType;
-	if (var instanceof DBoolean)
-	    mathType = DBooleanAdapter.mathType((DBoolean)var, table);
-	else if (var instanceof DByte)
-	    mathType = DByteAdapter.mathType((DByte)var, table);
-	else if (var instanceof DInt16)
-	    mathType = DInt16Adapter.mathType((DInt16)var, table);
-	else if (var instanceof DInt32)
-	    mathType = DInt32Adapter.mathType((DInt32)var, table);
-	else if (var instanceof DFloat32)
-	    mathType = DFloat32Adapter.mathType((DFloat32)var, table);
-	else if (var instanceof DFloat64)
-	    mathType = DFloat64Adapter.mathType((DFloat64)var, table);
-	else if (var instanceof DStructure)
-	    mathType = DStructureAdapter.mathType((DStructure)var, table);
-	else if (var instanceof DList)
-	    mathType = DListAdapter.mathType((DList)var, table);
-	/* TODO
-	else if (var instanceof DSequence)
-	    mathType = DSequenceAdapter.mathType((DSequence)var, table);
-	else if (var instanceof DArray)
-	    mathType = DArrayAdapter.mathType((DArray)var, table);
-	else if (var instanceof DGrid)
-	    mathType = DGridAdapter.mathType((DGrid)var, table);
-	*/
-	else
-	    throw new VisADException(
-		"VariableAdapter.mathType(BaseType,AttributeTable): " +
-		"Unknown DODS type: " + var.getTypeName());
-	return mathType;
+	throw new VisADException(
+	    getClass().getName() + ".data(DString): " +
+	    "Can't make VisAD data object");
+    }
+
+    public DataImpl data(DBoolean var)
+	throws VisADException, RemoteException
+    {
+	throw new VisADException(
+	    getClass().getName() + ".data(DBoolean): " +
+	    "Can't make VisAD data object");
+    }
+
+    public DataImpl data(DByte var)
+	throws VisADException, RemoteException
+    {
+	throw new VisADException(
+	    getClass().getName() + ".data(DByte): " +
+	    "Can't make VisAD data object");
+    }
+
+    public DataImpl data(DUInt16 var)
+	throws VisADException, RemoteException
+    {
+	throw new VisADException(
+	    getClass().getName() + ".data(DUInt16): " +
+	    "Can't make VisAD data object");
+    }
+
+    public DataImpl data(DInt16 var)
+	throws VisADException, RemoteException
+    {
+	throw new VisADException(
+	    getClass().getName() + ".data(DInt16): " +
+	    "Can't make VisAD data object");
+    }
+
+    public DataImpl data(DUInt32 var)
+	throws VisADException, RemoteException
+    {
+	throw new VisADException(
+	    getClass().getName() + ".data(DUInt32): " +
+	    "Can't make VisAD data object");
+    }
+
+    public DataImpl data(DInt32 var)
+	throws VisADException, RemoteException
+    {
+	throw new VisADException(
+	    getClass().getName() + ".data(DInt32): " +
+	    "Can't make VisAD data object");
+    }
+
+    public DataImpl data(DFloat32 var)
+	throws VisADException, RemoteException
+    {
+	throw new VisADException(
+	    getClass().getName() + ".data(DFloat32): " +
+	    "Can't make VisAD data object");
+    }
+
+    public DataImpl data(DFloat64 var)
+	throws VisADException, RemoteException
+    {
+	throw new VisADException(
+	    getClass().getName() + ".data(DFloat64): " +
+	    "Can't make VisAD data object");
+    }
+
+    public DataImpl data(DStructure var)
+	throws VisADException, RemoteException
+    {
+	throw new VisADException(
+	    getClass().getName() + ".data(DStructure): " +
+	    "Can't make VisAD data object from DODS DStructure");
+    }
+
+    public DataImpl data(DList var)
+	throws VisADException, RemoteException
+    {
+	throw new VisADException(
+	    getClass().getName() + ".data(DList): " +
+	    "Can't make VisAD data object from DODS DList");
+    }
+
+    public DataImpl data(DArray var)
+	throws VisADException, RemoteException
+    {
+	throw new VisADException(
+	    getClass().getName() + ".data(DArray): " +
+	    "Can't make VisAD data object from DODS DArray");
+    }
+
+    public DataImpl data(DGrid var)
+	throws VisADException, RemoteException
+    {
+	throw new VisADException(
+	    getClass().getName() + ".data(DGrid): " +
+	    "Can't make VisAD data object from DODS DGrid");
+    }
+
+    public DataImpl data(DSequence var)
+	throws VisADException, RemoteException
+    {
+	throw new VisADException(
+	    getClass().getName() + ".data(DSequence): " +
+	    "Can't make VisAD data object from DODS DSequence");
     }
 
     /**
-     * @return			The MathType of the input aggregate.  Will be
-     *				<code>null</code> if zero-length input array.
+     * Override in appropriate subclasses.
+     * @return			The VisAD sets used to represent the values
+     *				of this data, where appropriate.  Will never
+     *				be <code>null</code> -- though an individual
+     *				elements might be (e.g. for TextType objects).
      */
-    public static MathType mathType(MathType[] mathTypes)
+    public SimpleSet[] getRepresentationalSets()
 	throws VisADException
     {
-	MathType	mathType;
-	if (mathTypes.length == 0)
-	{
-	    mathType = null;
-	}
-	else if (mathTypes.length == 1)
-	{
-	    mathType = mathTypes[0];
-	}
-	else
-	{
-	    boolean	allReals = true;
-	    for (int i = 0; i < mathTypes.length && allReals; ++i)
-		allReals &= mathTypes[i] instanceof RealType;
-	    if (allReals)
-	    {
-		mathType = new RealTupleType((RealType[])mathTypes);
-	    }
-	    else
-	    {
-		mathType = new TupleType(mathTypes);
-	    }
-	}
-	return mathType;
+	return defaultRepSets;
     }
 
-    public static Range primitiveVectorRange(
-	    PrimitiveVector vector,
-	    AttributeTable table,
-	    DataMakerFactory factory)
+    protected static MathType mathType(VariableAdapter[] adapters)
 	throws VisADException, RemoteException
     {
-	Range	range;
-	if (vector instanceof BooleanPrimitiveVector)
-	    range =
-		BooleanVectorRange.instance(
-		    (BooleanPrimitiveVector)vector, table);
-	else if (vector instanceof BytePrimitiveVector)
-	    range = ByteVectorRange.instance(
-		(BytePrimitiveVector)vector, table);
-	else if (vector instanceof Int16PrimitiveVector)
-	    range = Int16VectorRange.instance(
-		(Int16PrimitiveVector)vector, table);
-	else if (vector instanceof Int32PrimitiveVector)
-	    range = Int32VectorRange.instance(
-		(Int32PrimitiveVector)vector, table);
-	else if (vector instanceof Float32PrimitiveVector)
-	    range =
-		Float32VectorRange.instance(
-		    (Float32PrimitiveVector)vector, table);
-	else if (vector instanceof Float64PrimitiveVector)
-	    range =
-		Float64VectorRange.instance(
-		    (Float64PrimitiveVector)vector, table);
-	else
-	    range =
-		BaseTypeVectorRange.instance(
-		    (BaseTypePrimitiveVector)vector, table, factory);
-	/*
-	{
-	    BaseType	template = vector.getTemplate();
-	    if (template instanceof DString)
-		range = DStringVectorRange(vector, table);
-	    else if (template instanceof DBoolean ||
-	        template instanceof DByte ||
-	        template instanceof DInt16 ||
-	        template instanceof DInt32 ||
-	        template instanceof DFloat32 ||
-	        template instanceof DFloat64)
-	    {
-		range = RealVectorRange.instance(vector, table);
-	    }
-	    else if (template instanceof DStructure)
-		range = DStructureVectorRange.instance(vector, table);
-	    else if (template instanceof DList)
-		range = DListVectorRange.instance(vector, table);
-	    else if (template instanceof DArray)
-		range = DArrayVectorRange.instance(vector, table);
-	    else if (template instanceof DGrid)
-		range = DGridVectorRange.instance(vector, table);
-	    else
-		throw new VisADException(
-		    getClass().getName() + "primitiveVectorRange(...): " +
-		    "Unknown DODS type: " + template.getTypeName());
-	}
-	*/
-	return range;
+	MathType[]	mathTypes = new MathType[adapters.length];
+	for (int i = 0; i < mathTypes.length; ++i)
+	    mathTypes[i] = adapters[i].getMathType();
+	return mathType(mathTypes);
     }
 }

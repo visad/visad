@@ -1,8 +1,10 @@
 package visad.data.dods;
 
 import dods.dap.*;
+import java.rmi.RemoteException;
 import visad.data.BadFormException;
 import visad.data.in.ValueProcessor;
+import visad.VisADException;
 
 public class Valuator
     extends	ValueProcessor
@@ -11,16 +13,26 @@ public class Valuator
     private final ValueUnpacker	unpacker;
 
     protected Valuator(AttributeTable table)
-	throws BadFormException
+	throws BadFormException, VisADException, RemoteException
     {
-	vetter = ValueVetter.instance(table);
-	unpacker = ValueUnpacker.instance(table);
+	vetter = ValueVetter.valueVetter(table);
+	unpacker = ValueUnpacker.valueUnpacker(table);
     }
 
-    public static Valuator instance(AttributeTable table)
-	throws BadFormException
+    public static Valuator valuator(AttributeTable table)
+	throws BadFormException, VisADException, RemoteException
     {
 	return new Valuator(table);
+    }
+
+    public double getMin()
+    {
+	return vetter.getMin();
+    }
+
+    public double getMax()
+    {
+	return vetter.getMax();
     }
 
     public float process(float value)

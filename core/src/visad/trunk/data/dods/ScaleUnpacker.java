@@ -1,6 +1,7 @@
 package visad.data.dods;
 
 import dods.dap.*;
+import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 import visad.data.BadFormException;
 
@@ -17,14 +18,21 @@ public final class ScaleUnpacker
 	doubleScale = scale;
     }
 
-    public static synchronized ScaleUnpacker instance(double scale)
+    public static synchronized ScaleUnpacker scaleUnpacker(double scale)
     {
-	Double	key = new Double(scale);
-	ScaleUnpacker	unpacker = (ScaleUnpacker)map.get(key);
-	if (unpacker == null)
+	ScaleUnpacker	unpacker = new ScaleUnpacker(scale);
+	WeakReference	ref = (WeakReference)map.get(unpacker);
+	if (ref == null)
 	{
-	    unpacker = new ScaleUnpacker(scale);
-	    map.put(key, unpacker);
+	    map.put(unpacker, new WeakReference(unpacker));
+	}
+	else
+	{
+	    ScaleUnpacker	oldUnpacker = (ScaleUnpacker)ref.get();
+	    if (oldUnpacker == null)
+		map.put(unpacker, new WeakReference(unpacker));
+	    else
+		unpacker = oldUnpacker;
 	}
 	return unpacker;
     }
@@ -51,5 +59,25 @@ public final class ScaleUnpacker
 	for (int i = 0; i < values.length; ++i)
 	    values[i] *= doubleScale;
 	return values;
+    }
+
+    public boolean equals(Object obj)
+    {
+	boolean	equals;
+	if (!(obj instanceof ScaleUnpacker))
+	{
+	    equals = false;
+	}
+	else
+	{
+	    ScaleUnpacker	that = (ScaleUnpacker)obj;
+	    equals = this == that || doubleScale == that.doubleScale;
+	}
+	return equals;
+    }
+
+    public int hashCode()
+    {
+	return new Double(doubleScale).hashCode();
     }
 }

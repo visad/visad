@@ -1,8 +1,10 @@
 package visad.data.dods;
 
 import dods.dap.*;
+import java.rmi.RemoteException;
 import visad.data.BadFormException;
 import visad.data.in.*;
+import visad.*;
 
 public abstract class ValueUnpacker
     extends	ValueProcessor
@@ -36,8 +38,8 @@ public abstract class ValueUnpacker
      *				<code>null</code>, in which case a trivial
      *				unpacker is returned.
      */
-    public static ValueUnpacker instance(AttributeTable table)
-	throws BadFormException
+    public static ValueUnpacker valueUnpacker(AttributeTable table)
+	throws BadFormException, VisADException, RemoteException
     {
 	ValueUnpacker	unpacker;
 	if (table == null)
@@ -46,20 +48,22 @@ public abstract class ValueUnpacker
 	}
 	else
 	{
-	    double	scale = DODSUtil.decode("scale_factor", table, 0);
-	    double	offset = DODSUtil.decode("add_offset", table, 0);
+	    double	scale = decode("scale_factor", table, 0);
+	    double	offset = decode("add_offset", table, 0);
 	    if (scale == scale && scale != 1 &&
 		offset == offset && offset != 0)
 	    {
-		unpacker = ScaleAndOffsetUnpacker.instance(scale, offset);
+		unpacker =
+		    ScaleAndOffsetUnpacker.scaleAndOffsetUnpacker(
+			scale, offset);
 	    }
 	    else if (scale == scale && scale != 1)
 	    {
-		unpacker = ScaleUnpacker.instance(scale);
+		unpacker = ScaleUnpacker.scaleUnpacker(scale);
 	    }
 	    else if (offset == offset && offset != 0)
 	    {
-		unpacker = OffsetUnpacker.instance(offset);
+		unpacker = OffsetUnpacker.offsetUnpacker(offset);
 	    }
 	    else
 	    {
