@@ -231,6 +231,8 @@ boolean anymissing = false;
 boolean anynotmissing = false;
 */
 
+// System.out.println("contour: swap = " + swap[0] + " " + swap[1] + " " + swap[2]);
+
     PlotDigits plot = new PlotDigits();
     int ir, ic;
     int nrm, ncm;

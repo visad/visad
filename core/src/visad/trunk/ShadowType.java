@@ -1501,60 +1501,6 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       }
     } // end for (int i=0; i<3; i++)
 
-    // calculate if need to swap rows and cols in contour line labels
-    swap[0] = false;
-    if (allSpatial && spatialDimensions[1] == 2 && len > 1) {
-      // if (spatial_tuple == Display.DisplaySpatialCartesianTuple) {
-      if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
-        float simax = 0.0f;
-        float max = -1.0f;
-        int imax = -1;
-        for (int i=0; i<3; i++) {
-          float sdiff = spatial_values[i][1] - spatial_values[i][0];
-          float diff = Math.abs(sdiff);
-          if (diff > max) {
-            simax = sdiff;
-            max = diff;
-            imax = i;
-          }
-        }
-        float sjmax = 0.0f;
-        max = -1.0f;
-        int jmax = -1;
-        for (int i=0; i<3; i++) {
-          if (i != imax) {
-            float sdiff = spatial_values[i][len-1] - spatial_values[i][0];
-            float diff = Math.abs(sdiff);
-            if (diff > max) {
-              sjmax = sdiff;
-              max = diff;
-              jmax = i;
-            }
-          }
-        } // end for (int i=0; i<3; i++)
-        if (imax == 0) {
-          swap[0] = true;
-          swap[1] = (simax < 0.0f);
-          swap[2] = (sjmax < 0.0f);
-        }
-        else if (imax == 1) {
-          swap[1] = (sjmax < 0.0f);
-          swap[2] = (simax < 0.0f);
-        }
-        else { // imax == 2
-          if (jmax == 1) {
-            swap[0] = true;
-            swap[1] = (simax < 0.0f);
-            swap[2] = (sjmax < 0.0f);
-          }
-          else {
-            swap[1] = (sjmax < 0.0f);
-            swap[2] = (simax < 0.0f);
-          }
-        }
-      } // end if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple))
-    }
-
     // first equalize lengths of flow*_values and spatial_values
     boolean anyFlow = false;
     int[] flen = {0, 0};
@@ -1682,6 +1628,65 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       }
       missing_checked = new boolean[] {false, false, false};
     } // end if (!spatial_tuple.equals(Display.DisplaySpatialCartesianTuple))
+
+    // calculate if need to swap rows and cols in contour line labels
+    swap[0] = false;
+    if (allSpatial && spatialDimensions[1] == 2 && len > 1) {
+
+      float simax = 0.0f;
+      float max = -1.0f;
+      int imax = -1;
+      for (int i=0; i<3; i++) {
+        float sdiff = spatial_values[i][1] - spatial_values[i][0];
+        float diff = Math.abs(sdiff);
+        if (diff > max) {
+          simax = sdiff;
+          max = diff;
+          imax = i;
+        }
+      }
+
+      int ll = len;
+      if (domain_set != null && domain_set instanceof Gridded2DSet) {
+        ll = ((Gridded2DSet) domain_set).getLength(0);
+      }
+
+      float sjmax = 0.0f;
+      max = -1.0f;
+      int jmax = -1;
+      for (int i=0; i<3; i++) {
+        if (i != imax) {
+          // float sdiff = spatial_values[i][len-1] - spatial_values[i][0];
+          float sdiff = spatial_values[i][ll] - spatial_values[i][0];
+          float diff = Math.abs(sdiff);
+          if (diff > max) {
+            sjmax = sdiff;
+            max = diff;
+            jmax = i;
+          }
+        }
+      } // end for (int i=0; i<3; i++)
+      if (imax == 0) {
+        swap[0] = true;
+        swap[1] = (simax < 0.0f);
+        swap[2] = (sjmax < 0.0f);
+      }
+      else if (imax == 1) {
+        swap[1] = (sjmax < 0.0f);
+        swap[2] = (simax < 0.0f);
+      }
+      else { // imax == 2
+        if (jmax == 1) {
+          swap[0] = true;
+          swap[1] = (simax < 0.0f);
+          swap[2] = (sjmax < 0.0f);
+        }
+        else {
+          swap[1] = (sjmax < 0.0f);
+          swap[2] = (simax < 0.0f);
+        }
+      }
+    }
 
     // assemble SpatialOffsets
     int offset_len = len;
