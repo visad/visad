@@ -48,24 +48,25 @@ public class VisADCanvasJ3D extends Canvas3D {
   boolean captureFlag = false;
   BufferedImage captureImage = null;
 
+  private static GraphicsConfiguration defaultConfig = makeConfig();
+
+  private static GraphicsConfiguration makeConfig() {
+    GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
+    GraphicsDevice d = e.getDefaultScreenDevice();
+    GraphicsConfiguration c = d.getDefaultConfiguration();
+    return c;
+  }
+
   VisADCanvasJ3D(DisplayRendererJ3D renderer, Component c) {
       this(renderer, c, null);
   }
 
   VisADCanvasJ3D(DisplayRendererJ3D renderer, Component c,
                  GraphicsConfiguration config) {
-    super(makeConfig(config));
+    super(config == null ? defaultConfig : config);
     displayRenderer = renderer;
     display = (DisplayImplJ3D) renderer.getDisplay();
     component = c;
-  }
-
-  private static GraphicsConfiguration makeConfig(GraphicsConfiguration config) {
-    if (config == null) {
-      return config; // Curtis - please change this
-    else {
-      return config;
-    }
   }
 
   public void renderField(int i) {
