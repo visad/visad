@@ -1,5 +1,5 @@
                    VisAD Spread Sheet User Interface README file
-                                   15 July 1999
+                                 11 January 2000
  
                                 Table of Contents
 
@@ -210,7 +210,7 @@ New - Clears all spreadsheet cells;  starts from scratch.
 Open - Opens a "spreadsheet file."  Spreadsheet files are small, containing
 only the instructions needed to recreate a spreadsheet.  They do not contain
 any actual data, but rather the file names, URLs, RMI addresses, formulas,
-dimensionality information, and mappings of the cells.
+dimensionality information, mappings, and control information of the cells.
 
 Save - Saves a spreadsheet file under the current name.  
 
@@ -481,18 +481,7 @@ The following bugs have been discovered and have not yet been fixed:
 1) The Spread Sheet may not import certain data sets correctly, due to
    incomplete implementations in VisAD file adapter forms.
 
-2) When resizing cells, if a cell is made to be as small as it can be
-   in one or more dimensions, some extra space or a scroll bar will
-   appear in the bottom or right-hand corners of the Spread Sheet window.
-
-3) In Windows, the first time a data set is imported, an error beginning with
-   "A nonfatal internal JIT (3.00.078(x)) error 'regvar' has occurred"
-   is displayed.  This error occurs whenever a VisAD application makes use
-   of the visad.data.DefaultFamily.open() method, and is a problem with the
-   Symantec JIT compiler for Windows.  This error is harmless and data sets
-   are still imported correctly (i.e., ignore this error message).
-
-4) When importing certain netCDF data sets, a series of errors beginning with
+2) When importing certain netCDF data sets, a series of errors beginning with
    "Couldn't decode attribute" may be displayed.  These are warnings the netCDF
    loader prints about unit types.  The Spread Sheet will still import the
    netCDF data set correctly (i.e., these warnings can be safely ignored).
@@ -511,10 +500,6 @@ Here's what's coming in the future:
 2) Multiple data per cell
 
 3) Direct manipulation support
-
-4) Misc. user interface enhancements
-
-5) And of course, bug fixes
 
 If you have any suggestions for features that you would find useful,
 please send e-mail to curtis@ssec.wisc.edu and hibbard@facstaff.wisc.edu
