@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: LabeledRGBAWidget.java,v 1.12 1999-04-23 15:25:28 dglo Exp $
+@(#) $Id: LabeledRGBAWidget.java,v 1.13 1999-07-29 16:52:27 curtis Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -40,7 +40,7 @@ import javax.swing.*;
  * RGBA tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.12 $, $Date: 1999-04-23 15:25:28 $
+ * @version $Revision: 1.13 $, $Date: 1999-07-29 16:52:27 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledRGBAWidget extends Panel implements ActionListener,
@@ -206,7 +206,7 @@ public class LabeledRGBAWidget extends Panel implements ActionListener,
 
   private void updateWidget(float min, float max) {
     float val = slider.getValue();
-    if (val <= min || val >= max) val = (min+max)/2;
+    if (val != val || val <= min || val >= max) val = (min+max)/2;
     slider.setBounds(min, max, val);
   }
 
