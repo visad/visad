@@ -212,7 +212,7 @@ public class FormulaVar extends ActionImpl {
   ThingReference textRef = null;
 
   /** cell for recomputing formula from referenced Text object */
-  Cell textCell = new CellImpl() {
+  CellImpl textCell = new CellImpl() {
     public void doAction() {
       boolean textChanged = false;
       if (textRef != null) {
@@ -234,12 +234,26 @@ public class FormulaVar extends ActionImpl {
     }
   };
 
+  RemoteCellImpl rtCell = null;
+
   /** set the formula to be dependent on a Text object referenced by tr */
   void setTextRef(ThingReference tr) throws VisADException, RemoteException {
     if (textRef == tr) return;
-    if (textRef != null) textCell.removeReference(textRef);
+    if (textRef != null) {
+      if (textRef instanceof RemoteDataReference) {
+        rtCell.removeReference(textRef);
+        rtCell = null;
+      }
+      else textCell.removeReference(textRef);
+    }
     textRef = tr;
-    if (textRef != null) textCell.addReference(textRef);
+    if (textRef != null) {
+      if (textRef instanceof RemoteDataReference) {
+        rtCell = new RemoteCellImpl(textCell);
+        rtCell.addReference(textRef);
+      }
+      else textCell.addReference(textRef);
+    }
   }
 
   /** set the Thing for this variable directly */
