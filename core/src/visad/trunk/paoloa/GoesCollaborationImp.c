@@ -4,6 +4,11 @@
 #include <jni.h>
 #include "visad_paoloa_GoesCollaboration.h"
 
+#ifdef NO_DASH
+#define FORTNAME(foo) foo
+#else
+#define FORTNAME(foo) foo##_
+#endif
 
 /*
  * Class:     visad_paoloa_GoesCollaboration
@@ -16,7 +21,7 @@
     int ia[1];
 
     jfloat *data_b = (*env)->GetFloatArrayElements(env, data_b_j, 0);
-    re_read_1_(&i, data_b);
+    FORTNAME(re_read_1)(&i, data_b);
     (*env)->ReleaseFloatArrayElements(env, data_b_j, data_b, 0);
   }
 
@@ -38,7 +43,7 @@
     jfloat *p = (*env)->GetFloatArrayElements(env, p_j, 0);
     jfloat *wfn = (*env)->GetFloatArrayElements(env, wfn_j, 0);
     jfloat *tbcx = (*env)->GetFloatArrayElements(env, tbcx_j, 0);
-    goesrte_2_(&gzen, &tskin, t, w, c, p, wfn, tbcx);
+    FORTNAME(goesrte_2)(&gzen, &tskin, t, w, c, p, wfn, tbcx);
     (*env)->ReleaseFloatArrayElements(env, t_j, t, 0);
     (*env)->ReleaseFloatArrayElements(env, w_j, w, 0);
     (*env)->ReleaseFloatArrayElements(env, c_j, c, 0);
@@ -62,7 +67,7 @@
     jfloat *wpro = (*env)->GetFloatArrayElements(env, wpro_j, 0);
     jfloat *opro = (*env)->GetFloatArrayElements(env, opro_j, 0);
     jfloat *pref = (*env)->GetFloatArrayElements(env, pref_j, 0);
-    get_profil_(&rlat, &imon, tpro, wpro, opro, pref);
+    FORTNAME(get_profil)(&rlat, &imon, tpro, wpro, opro, pref);
     (*env)->ReleaseFloatArrayElements(env, tpro_j, tpro, 0);
     (*env)->ReleaseFloatArrayElements(env, wpro_j, wpro, 0);
     (*env)->ReleaseFloatArrayElements(env, opro_j, opro, 0);
@@ -95,7 +100,7 @@
     printf("change_profil_c %d %d %d %d\n", t_len, w_len, o_len, p_len);
 */
 
-    change_profil_(&pt, &dt, &pw, &dw, &o_w, &t_w, &w_w, t, w, o, p);
+    FORTNAME(change_profil)(&pt, &dt, &pw, &dw, &o_w, &t_w, &w_w, t, w, o, p);
     (*env)->ReleaseFloatArrayElements(env, t_j, t, 0);
     (*env)->ReleaseFloatArrayElements(env, w_j, w, 0);
     (*env)->ReleaseFloatArrayElements(env, o_j, o, 0);
@@ -117,7 +122,7 @@
     jfloat *td = (*env)->GetFloatArrayElements(env, td_j, 0);
     jfloat *p = (*env)->GetFloatArrayElements(env, p_j, 0);
     jfloat *z = (*env)->GetFloatArrayElements(env, z_j, 0);
-    so_read_1_(&i, t, td, p, z);
+    FORTNAME(so_read_1)(&i, t, td, p, z);
     (*env)->ReleaseFloatArrayElements(env, t_j, t, 0);
     (*env)->ReleaseFloatArrayElements(env, td_j, td, 0);
     (*env)->ReleaseFloatArrayElements(env, p_j, p, 0);
@@ -145,7 +150,7 @@
     jfloat *oo = (*env)->GetFloatArrayElements(env, oo_j, 0);
     jfloat *po = (*env)->GetFloatArrayElements(env, po_j, 0);
     jfloat *diff = (*env)->GetFloatArrayElements(env, diff_j, 0);
-    ev_diff_prof_(ts, tds, ps, zs, to, wo, oo, po, diff);
+    FORTNAME(ev_diff_prof)(ts, tds, ps, zs, to, wo, oo, po, diff);
     (*env)->ReleaseFloatArrayElements(env, ts_j, ts, 0);
     (*env)->ReleaseFloatArrayElements(env, tds_j, tds, 0);
     (*env)->ReleaseFloatArrayElements(env, ps_j, ps, 0);
@@ -169,7 +174,7 @@
 
     jfloat *tbb = (*env)->GetFloatArrayElements(env, tbb_j, 0);
     jfloat *dbdtgx = (*env)->GetFloatArrayElements(env, dbdtgx_j, 0);
-    dbdtgx_1_(tbb, dbdtgx);
+    FORTNAME(dbdtgx_1)(tbb, dbdtgx);
     (*env)->ReleaseFloatArrayElements(env, tbb_j, tbb, 0);
     (*env)->ReleaseFloatArrayElements(env, dbdtgx_j, dbdtgx, 0);
   }
