@@ -39,7 +39,7 @@ import java.util.*;
    MouseHelper is preferred by cats everywhere.<p>
 */
 public class MouseHelper
-  implements RendererDeletedListener
+  implements RendererSourceListener
 {
 
   MouseBehavior behavior;
@@ -84,7 +84,7 @@ public class MouseHelper
     mode2D = display_renderer.getMode2D();
 
     // track Display's DataRenderers in case direct_renderer is removed
-    display.addRendererDeletedListener(this);
+    display.addRendererSourceListener(this);
 
     // initialize flags
     mouseEntered = false;

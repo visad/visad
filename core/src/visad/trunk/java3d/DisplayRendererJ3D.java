@@ -58,7 +58,7 @@ import visad.util.Util;
 */
 public abstract class DisplayRendererJ3D
   extends DisplayRenderer
-  implements RendererDeletedListener
+  implements RendererSourceListener
 {
 
   /** View associated with this VirtualUniverse */
@@ -142,7 +142,7 @@ public abstract class DisplayRendererJ3D
     throws VisADException
   {
     super.setDisplay(dpy);
-    dpy.addRendererDeletedListener(this);
+    dpy.addRendererSourceListener(this);
     boxOn = getRendererControl().getBoxOn();
   }
 

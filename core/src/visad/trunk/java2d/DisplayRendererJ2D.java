@@ -57,7 +57,7 @@ import visad.util.Util;
 */
 public abstract class DisplayRendererJ2D
   extends DisplayRenderer
-  implements RendererDeletedListener
+  implements RendererSourceListener
 {
 
   private VisADCanvasJ2D canvas;
@@ -132,7 +132,7 @@ public abstract class DisplayRendererJ2D
     throws VisADException
   {
     super.setDisplay(dpy);
-    dpy.addRendererDeletedListener(this);
+    dpy.addRendererSourceListener(this);
     boxOn = getRendererControl().getBoxOn();
   }
 

@@ -81,11 +81,11 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
   /** list of objects interested in learning when DataRenderers
       are deleted from this Display */
-  private Vector RendererDeletedListeners = new Vector();
+  private Vector RendererSourceListeners = new Vector();
 
   /** list of objects interested in learning when Data objects
       are deleted from this Display */
-  private Vector DataDeletedListeners = new Vector();
+  private Vector DataSourceListeners = new Vector();
 
   /** DisplayRenderer object for background and metadata rendering */
   private DisplayRenderer displayRenderer;
@@ -1740,40 +1740,40 @@ if (initialize) {
       }
     }
 
-    Enumeration enum = DataDeletedListeners.elements();
+    Enumeration enum = DataSourceListeners.elements();
     while (enum.hasMoreElements()) {
-      DataDeletedListener l = (DataDeletedListener )enum.nextElement();
-      l.dataDeleted(link.getName());
+      DataSourceListener l = (DataSourceListener )enum.nextElement();
+      l.dataSourceLost(link.getName());
     }
   }
 
-  public void addRendererDeletedListener(RendererDeletedListener listener)
+  public void addRendererSourceListener(RendererSourceListener listener)
   {
-    RendererDeletedListeners.addElement(listener);
+    RendererSourceListeners.addElement(listener);
   }
 
-  public void removeRendererDeletedListener(RendererDeletedListener listener)
+  public void removeRendererSourceListener(RendererSourceListener listener)
   {
-    RendererDeletedListeners.removeElement(listener);
+    RendererSourceListeners.removeElement(listener);
   }
 
   private void deleteRenderer(DataRenderer renderer)
   {
     RendererVector.removeElement(renderer);
 
-    Enumeration enum = RendererDeletedListeners.elements();
+    Enumeration enum = RendererSourceListeners.elements();
     while (enum.hasMoreElements()) {
-      ((RendererDeletedListener )enum.nextElement()).rendererDeleted(renderer);
+      ((RendererSourceListener )enum.nextElement()).rendererDeleted(renderer);
     }
   }
 
-  public void addDataDeletedListener(DataDeletedListener listener)
+  public void addDataSourceListener(DataSourceListener listener)
   {
-    DataDeletedListeners.addElement(listener);
+    DataSourceListeners.addElement(listener);
   }
 
-  public void removeDataDeletedListener(DataDeletedListener listener)
+  public void removeDataSourceListener(DataSourceListener listener)
   {
-    DataDeletedListeners.removeElement(listener);
+    DataSourceListeners.removeElement(listener);
   }
 }

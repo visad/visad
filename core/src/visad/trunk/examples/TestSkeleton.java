@@ -23,6 +23,7 @@ MA 02111-1307, USA
 import java.rmi.RemoteException;
 
 
+import visad.DataSourceListener;
 import visad.DisplayImpl;
 import visad.LocalDisplay;
 import visad.RemoteDisplayImpl;
@@ -211,7 +212,7 @@ public abstract class TestSkeleton
     }
 
     for (int i = 0; i < dpys.length; i++) {
-      ((DisplayImpl )dpys[i]).addDataDeletedListener(this);
+      ((DisplayImpl )dpys[i]).addDataSourceListener(this);
     }
 
     // fetch any data references from server
