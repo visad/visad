@@ -126,10 +126,6 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
     if (NumberNotMissing > 0) {
       double mean = 0.0;
       double error = 0.0;
-/* WLH 27 May 98
-      if (!Double.isNaN(ef)) error += nf * ef;
-      if (!Double.isNaN(mf)) mean += nf * mf;
-*/
       if (!Double.isNaN(ef)) error += (NumberNotMissing - ns) * ef;
       if (!Double.isNaN(mf)) mean += (NumberNotMissing - ns) * mf;
 
@@ -185,9 +181,6 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
     unit = u;
     NumberNotMissing = 0;
     double sum = 0.0;
-/* TDR May 18 1998
-    for (int i=0; i<NumberNotMissing; i++) {
-*/
     for (int i=0; i<value.length; i++) {
       if (!Double.isNaN(value[i])) {
         NumberNotMissing++;
@@ -209,9 +202,6 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
     unit = u;
     NumberNotMissing = 0;
     double sum = 0.0;
-/* TDR May 18 1998
-    for (int i=0; i<NumberNotMissing; i++) {
-*/
     for (int i=0; i<value.length; i++) {
       if (!Float.isNaN(value[i])) {
         NumberNotMissing++;
@@ -236,9 +226,6 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
     unit = u;
     NumberNotMissing = 0;
     double sum = 0.0;
-/* TDR May 18 1998
-    for (int i=0; i<NumberNotMissing; i++) {
-*/
     for (int i=0; i<value.length; i++) {
       if (!Double.isNaN(value[i])) {
         NumberNotMissing++;
@@ -263,9 +250,6 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
     unit = u;
     NumberNotMissing = 0;
     double sum = 0.0;
-/* TDR May 18 1998
-    for (int i=0; i<NumberNotMissing; i++) {
-*/
     for (int i=0; i<value.length; i++) {
       if (!Float.isNaN(value[i])) {
         NumberNotMissing++;
@@ -289,9 +273,6 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
     unit = u;
     NumberNotMissing = 0;
     double sum = 0.0;
-/* TDR May 18 1998
-    for (int i=0; i<NumberNotMissing; i++) {
-*/
     for (int i=0; i<value.length; i++) {
       if (!Double.isNaN(value[i])) {
         NumberNotMissing++;
@@ -315,9 +296,6 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
     unit = u;
     NumberNotMissing = 0;
     double sum = 0.0;
-/* TDR May 18 1998
-    for (int i=0; i<NumberNotMissing; i++) {
-*/
     for (int i=0; i<value.length; i++) {
       if (!Float.isNaN(value[i])) {
         NumberNotMissing++;
@@ -387,9 +365,6 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
         }
         am = a.Error * b.Mean;
         bm = b.Error * a.Mean;
-/* WLH 19 June 98
-        bm = b.Error * b.Mean;
-*/
         break;
       case Data.DIVIDE:
         if (a.unit != null && b.unit != null) {
