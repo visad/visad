@@ -397,6 +397,18 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     return polygonMode;
   }
 
+  public void setPolygonOffset(float polygonOffset)
+         throws VisADException, RemoteException {
+    throw new DisplayException("GraphicsModeControlJ2D." +
+                               "setPolygonMode not supported");
+  }
+
+  public float getPolygonOffset()
+         throws VisADException, RemoteException {
+    throw new DisplayException("GraphicsModeControlJ2D." +
+                               "getPolygonMode not supported");
+  }
+
   /**
    * See whether missing values are rendered as transparent or not.
    *
