@@ -228,7 +228,6 @@ public class ColorMapWidget
       colorWidget.setColorMap(colorMap);
     } else {
       control.setTable(table);
-      ((BaseRGBMap )colorWidget.getColorMap()).setValues(table);
     }
 
     // if not in immediate mode, build "Do It" and "Undo" buttons
