@@ -46,6 +46,9 @@ public class DisplayPanelJ2D extends JPanel {
     VisADCanvasJ2D canvas = new VisADCanvasJ2D(renderer, this);
     add(canvas);
     VisADGroup scene = renderer.createSceneGraph(canvas);
+
+    setPreferredSize(new java.awt.Dimension(256, 256));
+    setMinimumSize(new java.awt.Dimension(0, 0));
   }
 
 }

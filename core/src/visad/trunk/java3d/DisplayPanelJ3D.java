@@ -51,6 +51,8 @@ public class DisplayPanelJ3D extends JPanel {
     BranchGroup scene = renderer.createSceneGraph(universe.view, canvas); // J3D
     universe.addBranchGraph(scene);
 
+    setPreferredSize(new java.awt.Dimension(256, 256));
+    setMinimumSize(new java.awt.Dimension(0, 0));
   }
 
 }
