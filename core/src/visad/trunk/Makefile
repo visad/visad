@@ -429,19 +429,20 @@ recompile:
 	    else							\
 	      echo "*** Building in $$dir";				\
 	      if [ -f $$dir/Makefile -a "$$dir" != "." ]; then		\
-		(cd $$dir && make JAVADIR=${JAVADIR}) || true;		\
+		(cd $$dir && make JAVADIR=${JAVADIR} JC=${JC}		\
+				JFLAGS="${JFLAGS}") || true;		\
 	      else							\
 		(cd $$dir &&						\
 		 for j in *.java; do					\
 		   b=`basename $$j .java`;				\
 		   c=$$b.class;						\
-		   compile=/bin/false;					\
+		   compile=false;					\
 		   if [ ! -f $$c ]; then				\
-		     compile=/bin/true;					\
+		     compile=true;					\
 		   else							\
 		     set `ls -td $$j $$c` X;				\
 		     if [ $$c != $$1 ]; then				\
-		       compile=/bin/true;				\
+		       compile=true;					\
 		     fi;						\
 		   fi;							\
 		   if $$compile; then					\
@@ -452,7 +453,7 @@ recompile:
 		   *Remote*Impl)					\
 		     set `ls -t $$b.class $${b}_Stub.class 2>/dev/null || true` X; \
 		     if [ $${b}_Stub.class != $$1 ]; then		\
-		       compile=/bin/true;				\
+		       compile=true;					\
 		     fi;						\
 		     if $$compile; then					\
 		       (echo "${RMIC} $$i.$$b" && ${RMIC} $$i.$$b || true); \
