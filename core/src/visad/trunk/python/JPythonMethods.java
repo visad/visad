@@ -2786,6 +2786,18 @@ public abstract class JPythonMethods {
     return na.getData();
   }
 
+  /** helper method for visad.ScalarMap.getScale
+  */
+
+  public static double[][] getScale(ScalarMap smap) {
+    double[] so      = new double[2];
+    double[] data    = new double[2];
+    double[] display = new double[2];
+
+    smap.getScale(so, data, display);
+
+    return new double[][] {so, data, display};
+  }
 
 }
 
