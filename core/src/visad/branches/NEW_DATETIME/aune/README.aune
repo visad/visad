@@ -1,0 +1,102 @@
+
+                        ShallowFluid
+
+
+1. Introduction
+
+This is a demonstration of interactive steering of a 2-D
+shallow fuild model.  ShallowFluid is a stand-alone (i.e.,
+not collaborative) application.
+
+Because of native code, ShallowFluid runs only on sparc
+Solaris.
+
+This application is based on an application developed
+under VisAD 1.1 by Bob Aune.
+ 
+ 
+2. Downloading ShallowFluid
+ 
+The source code for the ShallowFluid application is
+included in the main VisAD distribution in the package
+visad.aune.
+
+
+3. Building ShallowFluid
+
+VisAD requires JDK 1.2 and Java3D.  More information about
+these is available at:
+ 
+  http://java.sun.com/
+
+Before you build this application, make sure that VisAD is
+installed and that your CLASS_PATH includes the class files
+for the visad, visad.java3d and visad.util packages.  They are
+available from:
+
+  http://www.ssec.wisc.edu/~billh/visad.html
+
+You must also have Java (at least JDK 1.2) and Java3D
+installed.  They are availble from:
+
+  http://java.sun.com/
+
+To build ShallowFluid first edit java/aune/Makefile to change
+the path:
+ 
+  JAVADIR=/opt/java
+ 
+to point to the appopriate directory where you installed Java.
+Then run 'make' in the visad/aune directory.
+
+
+4. Running ShallowFluid
+
+Before you run the ShallowFluid application make sure that
+your LD_LIBRARY_PATH includes the visad/aune directory (for
+access to native code in the shared object libShallowFluid.so).
+Then run the ShallowFluid application by typing:
+
+  java visad.aune.ShallowFluid
+
+
+5. How to Operate ShallowFluid
+
+The application starts with the 2-D shallow fluid running.
+You should see the flow vector (left) and surface height
+(right) displays changing slowly.  You can restart the model
+by moving the "initial configuration" slider.  It lets you
+select one of five initial fluid configurations.
+
+You can change physical parameters of the fluid by moving
+the other sliders, including the "gravity constant" and the
+"latitude of south boundary".  You can also change numerical
+parameters like the "simulated time step" (increasing this
+will create a nice illustration of numerical instability),
+"spatial filter constant" and "temporal filter constant".
+Note that decreasing the "animation delay (ms)" may lock
+out the user interface by giving all processor cycles to
+the model.
+
+
+6. Problems
+ 
+If you have problems, send en email message to the VisAD mailing
+list at:
+ 
+  visad-list@ssec.wisc.edu
+ 
+Join the list by sending an email message to:
+ 
+  majordomo@ssec.wisc.edu
+ 
+with:
+ 
+  subscribe visad-list
+ 
+as the first line of the message body (not the subject line).
+ 
+Please include any compiler or run time error messages in the text
+of email messages to the mailing list.
+ 
+

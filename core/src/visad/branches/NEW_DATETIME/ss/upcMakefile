@@ -1,0 +1,5 @@
+SUBPACKAGE	= ss
+
+include ../macros.make
+
+include ../rules.make
