@@ -116,8 +116,8 @@ public class NuView
     display.addMap(shapeScaleMap);
     shapeScaleMap.setRange(-20.0, 50.0);
 
-    ScalarMap letmap = new ScalarMap(Hit.leadingEdgeTimeType, Display.RGB);
-    display.addMap(letmap);
+    ScalarMap colorMap = new ScalarMap(Hit.leadingEdgeTimeType, Display.RGB);
+    display.addMap(colorMap);
 
     DisplayRenderer displayRenderer = display.getDisplayRenderer();
     displayRenderer.setBoxOn(false);
@@ -130,10 +130,10 @@ public class NuView
     modulesRef.setData(modules);
     display.addReference(modulesRef);
 
-    LabeledColorWidget letWidget = new LabeledColorWidget(letmap);
+    LabeledColorWidget colorWidget = new LabeledColorWidget(colorMap);
     // align along left side, to match VisADSlider alignment
     //   (if we don't left-align, BoxLayout hoses everything)
-    letWidget.setAlignmentX(Component.LEFT_ALIGNMENT);
+    colorWidget.setAlignmentX(Component.LEFT_ALIGNMENT);
 
     EventWidget eventWidget = new EventWidget(file, amanda, amandaRef,
                                               trackMap);
@@ -142,7 +142,7 @@ public class NuView
     widgetPanel.setLayout(new BoxLayout(widgetPanel, BoxLayout.Y_AXIS));
     widgetPanel.setMaximumSize(new Dimension(400, 600));
 
-    widgetPanel.add(letWidget);
+    widgetPanel.add(colorWidget);
     widgetPanel.add(eventWidget);
     widgetPanel.add(Box.createHorizontalGlue());
 
