@@ -250,4 +250,14 @@ public abstract class FlowControl extends Control {
 
     return true;
   }
+
+  public Object clone()
+  {
+    FlowControl fc = (FlowControl )super.clone();
+    if (TrajectorySet != null) {
+      fc.TrajectorySet = (boolean[] )TrajectorySet.clone();
+    }
+
+    return fc;
+  }
 }

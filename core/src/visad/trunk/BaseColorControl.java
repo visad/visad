@@ -778,4 +778,17 @@ public class BaseColorControl
 
     return true;
   }
+
+  public Object clone()
+  {
+    BaseColorControl bcc = (BaseColorControl )super.clone();
+    if (table != null) {
+      bcc.table = new float[table.length][];
+      for (int i = table.length - 1; i >= 0; i--) {
+        bcc.table[i] = (float[] )table[i].clone();
+      }
+    }
+
+    return bcc;
+  }
 }

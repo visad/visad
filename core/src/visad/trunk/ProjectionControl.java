@@ -276,6 +276,16 @@ public abstract class ProjectionControl extends Control {
     return true;
   }
 
+  public Object clone()
+  {
+    ProjectionControl pc = (ProjectionControl )super.clone();
+    if (matrix != null) {
+      pc.matrix = (double[] )matrix.clone();
+    }
+
+    return pc;
+  }
+
   public String toString()
   {
     StringBuffer buf = new StringBuffer("ProjectionControl[");

@@ -229,5 +229,13 @@ public class ShapeControl extends Control {
 
     return true;
   }
-}
 
+  public Object clone()
+  {
+    ShapeControl sc = (ShapeControl )super.clone();
+    if (shapes != null) {
+      sc.shapes = (VisADGeometryArray[] )shapes.clone();
+    }
+    return sc;
+  }
+}

@@ -522,4 +522,14 @@ public class ContourControl extends Control {
 
     return true;
   }
+
+  public Object clone()
+  {
+    ContourControl cc = (ContourControl )super.clone();
+    if (levels != null) {
+      cc.levels = (float[] )levels.clone();
+    }
+
+    return cc;
+  }
 }

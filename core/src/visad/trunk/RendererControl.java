@@ -261,4 +261,20 @@ public class RendererControl
 
     return true;
   }
+
+  public Object clone()
+  {
+    RendererControl rc = (RendererControl )super.clone();
+    if (backgroundColor != null) {
+      rc.backgroundColor = (float[] )backgroundColor.clone();
+    }
+    if (boxColor != null) {
+      rc.boxColor = (float[] )boxColor.clone();
+    }
+    if (cursorColor != null) {
+      rc.cursorColor = (float[] )cursorColor.clone();
+    }
+
+    return rc;
+  }
 }
