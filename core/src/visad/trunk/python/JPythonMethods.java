@@ -46,6 +46,10 @@ public abstract class JPythonMethods {
 
   private static DefaultFamily form = new DefaultFamily(ID);
 
+  private static JFrame displayFrame = null;
+
+  private static JFrame widgetFrame = null;
+
   /** reads in data from the given location (filename or URL) */
   public static DataImpl read(String location) throws VisADException {
     return form.open(location);
@@ -63,8 +67,8 @@ public abstract class JPythonMethods {
     if (data == null) throw new VisADException("Data cannot be null");
     if (display == null) {
       display = new DisplayImplJ3D(ID);
-      final JFrame displayFrame = new JFrame("VisAD Display Plot");
-      final JFrame widgetFrame = new JFrame("VisAD Display Widgets");
+      displayFrame = new JFrame("VisAD Display Plot");
+      widgetFrame = new JFrame("VisAD Display Widgets");
       WindowListener l = new WindowAdapter() {
         public void windowClosing(WindowEvent e) {
           synchronized (displayFrame) {
@@ -106,6 +110,20 @@ public abstract class JPythonMethods {
     }
     catch (VisADException exc) {
       display.addReference(ref);
+    }
+  }
+
+  // this is just a temporary and dumb hack
+  public static void clearplot() throws VisADException, RemoteException {
+    if (display != null) {
+      displayFrame.setVisible(false);
+      displayFrame.dispose();
+      displayFrame = null;
+      widgetFrame.setVisible(false);
+      widgetFrame.dispose();
+      widgetFrame = null;
+      display.destroy();
+      display = null;
     }
   }
 

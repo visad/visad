@@ -14,5 +14,6 @@ for j in range(map.length/200):
 	i = 200 * j
 	print "area = ", area[map[i]], " at ", map[i]
 
+clearplot()
 plot(area)
 plot(map)
