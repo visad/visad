@@ -374,6 +374,8 @@ public class PlotText extends Object {
       int path_count = 0;
       Vector samples_vector = new Vector();
       float x_plus = (float) (fsize_inv * gv.getLogicalBounds().getWidth());
+      if (x_plus < 0.01f) x_plus = 0.25f;
+// System.out.println(str_index + " " + chars[0] + " " + x_plus + " " + fsize_inv);
       for (int ig=0; ig<ng; ig++) {
         Shape sh = gv.getGlyphOutline(ig);
         // pi only has SEG_MOVETO, SEG_LINETO, and SEG_CLOSE point types
