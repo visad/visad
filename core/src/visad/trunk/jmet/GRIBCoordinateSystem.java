@@ -141,12 +141,12 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
    * RealTupleType.LatitudeLongitudeTuple as a reference.
    *
    * @param  gridTypeNumber  GRIB-1 grid type
-   * @param  Ni              number of points along a latitude circle
-   * @param  Nj              number of points along a longitude circle
+   * @param  Ni              number of points (W-E) along a latitude circle
+   * @param  Nj              number of points (N-S) along a longitude circle
    * @param  La1             latitude of first grid point (degrees)
    * @param  Lo1             longitude of first grid point (degrees)
-   * @param  La1             latitude of last grid point (degrees)
-   * @param  Lo1             longitude of last grid point (degrees)
+   * @param  La2             latitude of last grid point (degrees)
+   * @param  Lo2             longitude of last grid point (degrees)
    * @param  Di              longitudinal direction increment (degrees)
    * @param  Dj              latitudinal direction increment (degrees)
    *
@@ -168,16 +168,21 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
    *
    * @param  ref             reference RealTupleType (should be lat/lon)
    * @param  gridTypeNumber  GRIB-1 grid type
-   * @param  Ni              number of points along a latitude circle
-   * @param  Nj              number of points along a longitude circle
+   * @param  Ni              number of points (W-E) along a latitude circle
+   * @param  Nj              number of points (N-S) along a longitude circle
    * @param  La1             latitude of first grid point (degrees)
    * @param  Lo1             longitude of first grid point (degrees)
-   * @param  La1             latitude of last grid point (degrees)
-   * @param  Lo1             longitude of last grid point (degrees)
+   * @param  La2             latitude of last grid point (degrees)
+   * @param  Lo2             longitude of last grid point (degrees)
    * @param  Di              longitudinal direction increment (degrees)
    * @param  Dj              latitudinal direction increment (degrees)
    *
    * @exception VisADException  couldn't create the necessary VisAD object
+   * 
+   * When type=3, then the parameters are (see construtor for 3):
+   * ref = ref, Ni = Ni, Nj = Nj, La1 = La1, Lo1 = Lo1, La2 = DxDy,
+   * Lo2 = Latin1, Di = Latin2, Dj = lov 
+   * 
    */
   public GRIBCoordinateSystem(RealTupleType ref, int gridTypeCode,
     int Ni, int Nj, double La1, double Lo1, double La2, double Lo2,
@@ -200,6 +205,29 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
     }
 
   }
+
+  /**
+   * Constructor for a simple latitude-longitude (GRIB type code = 0) with
+   * RealTupleType.LatitudeLongitudeTuple as a reference.
+   *
+   * @param  Ni              number of points (W-E) along a latitude circle
+   * @param  Nj              number of points (N-S) along a longitude circle
+   * @param  La1             latitude of first grid point (degrees)
+   * @param  Lo1             longitude of first grid point (degrees)
+   * @param  Di              longitudinal direction increment (degrees)
+   * @param  Dj              latitudinal direction increment (degrees)
+   *
+   * @exception VisADException  couldn't create the necessary VisAD object
+   */
+
+  public GRIBCoordinateSystem(int Ni, int Nj, double La1, double Lo1, 
+            double Di, double Dj) throws VisADException {
+
+    this(RealTupleType.LatitudeLongitudeTuple, 0,
+           Ni, Nj, La1, Lo1, 0., 0., Di, Dj) ;
+  }
+
+
 
   /**
    * constructor for well-known grid numbers. Uses
