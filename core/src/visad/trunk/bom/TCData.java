@@ -9,8 +9,8 @@ import java.rmi.RemoteException;
 
 public class TCData {
 
+  // this is the actual TC data object
   FieldImpl data = null;
-  Object data_lock = new Object();
 
   // Time
   static RealType rtTime = RealType.Time;
