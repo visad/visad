@@ -45,6 +45,9 @@ public abstract class SounderInstrument
   DataReferenceImpl[] parm_refs;
   int n_parms;
 
+
+
+
   public SounderInstrument(String[] names, String[] units, double[] parms)
          throws VisADException, RemoteException
   {
@@ -96,19 +99,27 @@ public abstract class SounderInstrument
     return parm_refs;
   }
 
-  public void add(DisplayImpl display) {
+  public void retrieval(Spectrum spectrum, Sounding sounding, Sounding firstGuess)
+  {
+    float[] radiances = null;
+    
 
+    float[][] rtvl = computeRetrieval(radiances, model_parms);
   }
 
-  public void add(DisplayImpl[] display_s) {
-
+  public void retrieval(Spectrum spectrum, Sounding sounding)
+  {
+    this.retrieval(spectrum, sounding, null);
   }
 
-  public void remove() {
+  public void foward(Sounding sounding, Spectrum spectrum)
+  {
+    float[][] rtvl = null;
 
+
+    float[] spec = computeFoward(rtvl, model_parms);
   }
 
-  public abstract Sounding retrieval(Spectrum spectrum, Sounding firstGuess);
-
-  public abstract Spectrum foward(Sounding sounding);
+  abstract float[][] computeRetrieval(float[] radiances, double[] model_parms);
+  abstract float[] computeFoward(float[][] rtvl, double[] model_parms);
 }

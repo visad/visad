@@ -45,7 +45,7 @@ public class NastiInstrument extends SounderInstrument
     super(scalar_names, units, model_parms);
   }
 
-  public Sounding retrieval(Spectrum spectrum, Sounding first_guess)
+  float[][] computeRetrieval(float[] radiances, double[] model_parms)
   {
 
 
@@ -53,14 +53,13 @@ public class NastiInstrument extends SounderInstrument
     return null;
   }
 
-  public Spectrum foward(Sounding sounding)
+  float[] computeFoward(float[][] rtvl, double[] model_parms)
   {
 
 
     //-nastirte_c(   );
     return null;
   }
-
 
   private native void nastirte_c( float a, float b, int c, float d,
                                   float[] p, float[] t, float[] wv, float[] o,

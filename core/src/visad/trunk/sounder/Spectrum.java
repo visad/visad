@@ -60,7 +60,18 @@ public class Spectrum extends FlatField {
     }
   }
 
-  public Spectrum(float[] wavelength_domain, float[] radiance_range)
+  //- this spectrum's display
+  //
+  Display display;
+
+  Unit domain_unit;
+  Unit range_unit;
+
+  public Spectrum(float[] wavelength_domain,
+                  Unit domain_unit,
+                  float[] radiance_range,
+                  Unit range_unit
+                                            )
          throws VisADException, RemoteException 
   {
     super(spectrumType, makeSet(wavelength_domain));
@@ -76,7 +87,11 @@ public class Spectrum extends FlatField {
       }
     }
     setSamples(new float[][] {radiance_range});
+    display = null;
+    this.domain_unit = domain_unit;
+    this.range_unit = range_unit;
   }
+
 
   static private Gridded1DSet makeSet(float[] wavelength_domain)
          throws VisADException {
@@ -87,8 +102,29 @@ public class Spectrum extends FlatField {
                             wavelength_domain.length,
                             null, new Unit[] {udb.get("Radiance")}, null);
   }
+
+  public boolean addToDisplay( Display display )
+  {
+    if ( this.display != null ) {
+      return false;
+    }
+    this.display = display;
+    return true;
+  }
+
+  public boolean remove() 
+  {
+    if ( this.display == null ) {
+      return false;
+    }
+    return true;
+  }
+
+  public boolean restore()
+  {
+    return false;
+  }
   
   public static void main(String args[]) {
   }
 }
-

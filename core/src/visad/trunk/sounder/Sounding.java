@@ -63,6 +63,10 @@ public class Sounding extends FlatField {
     }
   }
 
+  //- this sounding's display
+  //
+  Display display;
+
   /** pressures in hPa, temperatures and dewpoints in K */
   public Sounding(float[] pressures, float[] temperatures, float[] dewpoints)
          throws VisADException, RemoteException {
@@ -99,6 +103,32 @@ public class Sounding extends FlatField {
     return new Gridded1DSet(Pressure, new float[][] {pressures}, pressures.length,
                             null, new Unit[] {udb.get("hPa")}, null);
   }
+  public boolean addToDisplay( Display display )
+  {
+    if ( this.display != null ) {
+      return false;
+    }
+    this.display = display;
+    return true;
+  }
+
+  public boolean addToDisplayWithDirectManipulation( Display display )
+  {
+     return false;
+  }
+
+  public boolean remove()
+  {
+    if ( this.display == null ) {
+      return false;
+    }
+    return true;
+  }
+
+  public boolean restore()
+  {
+    return false;
+  }
 
   public static void main(String args[])
          throws VisADException, RemoteException {
@@ -110,4 +140,3 @@ public class Sounding extends FlatField {
   }
 
 }
-
