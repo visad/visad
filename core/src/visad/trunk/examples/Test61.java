@@ -37,11 +37,6 @@ public class Test61
 {
   private boolean nice = false;
 
-  private ScalarMap map1color = null;
-  private ScalarMap xrange = null;
-  private ScalarMap yrange = null;
-  private ScalarMap zrange = null;
-
   public Test61() { }
 
   public Test61(String[] args)
@@ -113,9 +108,9 @@ public class Test61
     dpys[0].addMap(new ScalarMap(yr, Display.YAxis));
     dpys[0].addMap(new ScalarMap(zr, Display.ZAxis));
 
-    xrange = new ScalarMap(xr, Display.SelectRange);
-    yrange = new ScalarMap(yr, Display.SelectRange);
-    zrange = new ScalarMap(zr, Display.SelectRange);
+    ScalarMap xrange = new ScalarMap(xr, Display.SelectRange);
+    ScalarMap yrange = new ScalarMap(yr, Display.SelectRange);
+    ScalarMap zrange = new ScalarMap(zr, Display.SelectRange);
     dpys[0].addMap(xrange);
     dpys[0].addMap(yrange);
     dpys[0].addMap(zrange);
@@ -142,7 +137,7 @@ public class Test61
     field2.setSamples(v2);
     dpys[0].addMap(new ScalarMap(duh, Display.RGB));
 
-    map1color = new ScalarMap(wr, Display.RGBA);
+    ScalarMap map1color = new ScalarMap(wr, Display.RGBA);
     dpys[0].addMap(map1color);
 
     ColorAlphaControl control = (ColorAlphaControl) map1color.getControl();
@@ -164,6 +159,15 @@ public class Test61
   Component getSpecialComponent(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
+    java.util.Vector mapVector = dpys[0].getMapVector();
+    final int numMaps = mapVector.size();
+
+    ScalarMap xrange = (ScalarMap )mapVector.elementAt(numMaps-5);
+    ScalarMap yrange = (ScalarMap )mapVector.elementAt(numMaps-4);
+    ScalarMap zrange = (ScalarMap )mapVector.elementAt(numMaps-3);
+
+    ScalarMap map1color = (ScalarMap )mapVector.elementAt(numMaps-1);
+
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     panel.add(new LabeledColorWidget(map1color));
@@ -171,8 +175,6 @@ public class Test61
     panel.add(new SelectRangeWidget(yrange));
     panel.add(new SelectRangeWidget(zrange));
     return panel;
-    // ScalarMap map1color = (ScalarMap )dpys[0].getMapVector().lastElement();
-    // return new LabeledColorWidget(map1color);
   }
 
   public String toString()
