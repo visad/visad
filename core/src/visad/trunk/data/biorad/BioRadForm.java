@@ -230,7 +230,7 @@ public class BioRadForm extends Form implements FormFileInformer {
   }
 
   /**
-   * Run 'java visad.data.visad.BioRadForm in_file out_file' to convert
+   * Run 'java visad.data.biorad.BioRadForm in_file out_file' to convert
    * in_file to out_file in BioRad .PIC data format.
    */
   public static void main(String[] args)

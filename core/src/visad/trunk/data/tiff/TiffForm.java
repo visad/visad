@@ -39,11 +39,6 @@ import visad.*;
 import visad.data.*;
 import visad.util.DataUtility;
 
-import com.sun.media.jai.codec.SeekableStream;
-import com.sun.media.jai.codec.FileSeekableStream;
-import com.sun.media.jai.codec.ImageDecoder;
-import com.sun.media.jai.codec.ImageCodec;
-
 /**
  * TiffForm is the VisAD data form for the TIFF file format.
  * The following table indicates features that the form supports:<p>
@@ -55,7 +50,7 @@ import com.sun.media.jai.codec.ImageCodec;
  * </tr><tr>
  * <td><b>single image</b></td>
  * <td>read and write</td>
- * <td>read and write (with JAI)</td>
+ * <td>read only (with JAI)</td>
  * </tr><tr>
  * <td><b>multi-page</b></td>
  * <td>read and write</td>
@@ -67,9 +62,9 @@ import com.sun.media.jai.codec.ImageCodec;
  * <a href="http://java.sun.com/products/java-media/jai/index.html">
  * Java Advanced Imaging</a> web site.
  *
- * Also, only limited support for reading TIFF data from URLs is provided.
- * To import TIFF data from a URL, JAI must be installed, and only
- * single image TIFFs (compressed or uncompressed) can be imported.
+ * Also, no support for reading TIFF data from URLs is provided.
+ * However, the visad.data.jai package provides limited support for
+ * importing single-image TIFF data from a URL.
  */
 public class TiffForm extends Form implements FormFileInformer {
 
@@ -85,9 +80,10 @@ public class TiffForm extends Form implements FormFileInformer {
   private static final Method[] methods = createMethods();
 
   private static final Method[] createMethods() {
-    Method[] m = null;
+    Method[] m = new Method[3];
+    for (int i=0; i<3; i++) m[i] = null;
     try {
-      Class idp = Class.forName("com.sun.media.jai.codec.InputDecodeParam");
+      Class idp = Class.forName("com.sun.media.jai.codec.ImageDecodeParam");
       Class id = Class.forName("com.sun.media.jai.codec.ImageDecoder");
       Class ic = Class.forName("com.sun.media.jai.codec.ImageCodec");
 
@@ -106,9 +102,10 @@ public class TiffForm extends Form implements FormFileInformer {
   private static final Method idNumPages = methods[1];
   private static final Method idDecode = methods[2];
 
-  private static BufferedImage[] getImages(String filename)
+  private static BufferedImage[] jaiGetImages(String filename)
     throws BadFormException, IOException
   {
+    if (noJai) throw new BadFormException(NO_JAI);
     BufferedImage[] bi = null;
     try {
       File file = new File(filename);
@@ -173,21 +170,36 @@ public class TiffForm extends Form implements FormFileInformer {
   public void save(String id, Data data, boolean replace)
     throws BadFormException, IOException, RemoteException, VisADException
   {
-    save(id, data, replace, false);
-  }
+    // determine data type
+    String imageType = "((e, l) -> (r, g, b))";
+    String timeType = "(t -> " + imageType + ")";
+    MathType type = data.getType();
+    RealType time = null;
+    FlatField[] field;
+    boolean multiPage;
+    if (type.equalsExceptName(MathType.stringToType(timeType))) {
+      multiPage = true;
+      FieldImpl fi = (FieldImpl) data;
+      int len = fi.getLength();
+      field = new FlatField[len];
+      for (int i=0; i<len; i++) field[i] = (FlatField) fi.getSample(i);
+      FunctionType ft = (FunctionType) data.getType();
+      time = (RealType) ft.getDomain().getComponent(0);
+    }
+    else if (type.equalsExceptName(MathType.stringToType(imageType))) {
+      multiPage = false;
+      field = new FlatField[] {(FlatField) data};
+    }
+    else {
+      throw new BadFormException(
+        "Data type must be image or time sequence of images");
+    }
+    Gridded2DSet set = (Gridded2DSet) field[0].getDomainSet();
+    int[] wh = set.getLengths();
+    int w = wh[0];
+    int h = wh[1];
 
-  /**
-   * Saves a VisAD Data object to a TIFF file.
-   *
-   * @param id        Filename of TIFF file to save.
-   * @param data      VisAD Data to convert to TIFF format.
-   * @param replace   Whether to overwrite an existing file.
-   * @param compress  Whether to write the TIFF file in compressed format.
-   */
-  public void save(String id, Data data, boolean replace, boolean compress)
-    throws BadFormException, IOException, RemoteException, VisADException
-  {
-    throw new BadFormException("TiffForm.save");
+    throw new UnimplementedException("Saving data to TIFF coming soon");
   }
 
   /**
@@ -243,22 +255,23 @@ public class TiffForm extends Form implements FormFileInformer {
     }
     else {
       // ImageJ could not read the TIFF; try JAI
-      if (noJai) throw new BadFormException(NO_JAI);
-      BufferedImage[] bi = getImages(id);
+      BufferedImage[] bi = jaiGetImages(id);
       nImages = bi.length;
       fields = new FieldImpl[nImages];
       for (int i=0; i<nImages; i++) fields[i] = DataUtility.makeField(bi[i]);
     }
     if (nImages < 1) throw new BadFormException("No images in file");
 
-    // combine data stack into time function
-    RealType time = RealType.getRealType("time");
-    FunctionType time_function = new FunctionType(time, fields[0].getType());
-    Integer1DSet time_set = new Integer1DSet(nImages);
-    FieldImpl time_field = new FieldImpl(time_function, time_set);
-    time_field.setSamples(fields, false);
-
-    return time_field;
+    if (nImages == 1) return fields[0];
+    else {
+      // combine data stack into time function
+      RealType time = RealType.getRealType("time");
+      FunctionType time_function = new FunctionType(time, fields[0].getType());
+      Integer1DSet time_set = new Integer1DSet(nImages);
+      FieldImpl time_field = new FieldImpl(time_function, time_set);
+      time_field.setSamples(fields, false);
+      return time_field;
+    }
   }
 
   /**

@@ -160,7 +160,7 @@ public class JAIForm extends Form implements FormFileInformer {
     return open(bi);
   }
 
-  /** Reads in JAI image file data from the given input stream. */
+  /** Converts the given image to a VisAD Data object. */
   private DataImpl open(BufferedImage image)
     throws BadFormException, IOException, VisADException
   {

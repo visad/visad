@@ -32,6 +32,7 @@ import visad.VisADException;
 
 import visad.data.fits.FitsForm;
 import visad.data.gif.GIFForm;
+import visad.data.tiff.TiffForm;
 import visad.data.hdfeos.HdfeosAdaptedForm;
 import visad.data.netcdf.Plain;
 import visad.data.vis5d.Vis5DForm;
@@ -91,6 +92,11 @@ public class DefaultFamily
     }
     try {
       list[i] = new GIFForm();
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
+      list[i] = new TiffForm();
       i++;
     } catch (Throwable t) {
     }

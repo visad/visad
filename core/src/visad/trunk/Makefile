@@ -205,6 +205,7 @@ SAVE_FILES = \
 	visad/data/jai/*.java				\
 	visad/data/vis5d/*.java				\
 	visad/data/gif/*.java				\
+	visad/data/tiff/*.java				\
 	visad/data/visad/*.java				\
 	visad/data/hdf5/*.java				\
 	visad/data/hdf5/hdf5objects/*.java		\
@@ -285,6 +286,7 @@ DOC_PACKAGES = \
 		visad.data.biorad \
 		visad.data.jai \
 		visad.data.gif \
+		visad.data.tiff \
 		visad.data.visad \
 		visad.data.hdfeos.hdfeosc \
 		visad.data.hdfeos \

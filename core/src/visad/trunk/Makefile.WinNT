@@ -132,6 +132,7 @@ visad\data\biorad\*.java \
 visad\data\jai\*.java \
 visad\data\gif\*.java \
 visad\data\gif\sseclogo.gif \
+visad\data\tiff\*.java \
 visad\data\visad\*.java \
 visad\data\hdf5\*.java \
 visad\data\hdf5\COPYING \
@@ -243,6 +244,7 @@ visad\data\hdfeos\hdfeosc\*.h \
 visad\data\hdfeos\hdfeosc\Makefile \
 visad\data\vis5d\*.java \
 visad\data\gif\*.java \
+visad\data\tiff\*.java \
 visad\$(SSEC)\mcidas\*.java \
 visad\$(SSEC)\mcidas\adde\*.java \
 visad\data\mcidas\*.java \
@@ -367,6 +369,8 @@ save:
 		$(DEL) $(BACKUP)\visad\data\jai\*.java
 	if exist $(BACKUP)\visad\data\gif\*.java \
 		$(DEL) $(BACKUP)\visad\data\gif\*.java
+	if exist $(BACKUP)\visad\data\tiff\*.java \
+		$(DEL) $(BACKUP)\visad\data\tiff\*.java
 	if exist $(BACKUP)\visad\data\visad\*.java \
 		$(DEL) $(BACKUP)\visad\data\visad\*.java
 	if exist $(BACKUP)\visad\data\hdf5\*.java \
@@ -441,6 +445,7 @@ visad\data\mcidas\*.class \
 visad\data\biorad\*.class \
 visad\data\jai\*.class \
 visad\data\gif\*.class \
+visad\data\tiff\*.class \
 visad\data\visad\*.class \
 visad\data\hdf5\*.class \
 visad\data\hdf5\hdf5objects\*.class \
@@ -506,6 +511,7 @@ clear:
 	if exist data\hdfeos\hdfeosc\*.java $(DEL) data\hdfeos\hdfeosc\*.java
 	if exist data\vis5d\*.java $(DEL) data\vis5d\*.java
 	if exist data\gif\*.java $(DEL) data\gif\*.java
+	if exist data\tiff\*.java $(DEL) data\tiff\*.java
 	if exist $(SSEC)\mcidas\*.java $(DEL) $(SSEC)\mcidas\*.java
 	if exist $(SSEC)\mcidas\adde\*.java $(DEL) $(SSEC)\mcidas\adde\*.java
 	if exist data\mcidas\*.java $(DEL) data\mcidas\*.java
@@ -563,6 +569,7 @@ clean:
 	if exist data\biorad\*.class $(DEL) data\biorad\*.class
 	if exist data\jai\*.class $(DEL) data\jai\*.class
 	if exist data\gif\*.class $(DEL) data\gif\*.class
+	if exist data\tiff\*.class $(DEL) data\tiff\*.class
 	if exist data\visad\*.class $(DEL) data\visad\*.class
 	if exist data\hdf5\*.class $(DEL) data\hdf5\*.class
 	if exist data\hdf5\hdf5objects\*.class $(DEL) data\hdf5\hdf5objects\*.class
@@ -629,6 +636,7 @@ data\mcidas\*.class \
 data\biorad\*.class \
 data\jai\*.class \
 data\gif\*.class \
+data\tiff\*.class \
 data\visad\*.class \
 data\hdfeos\hdfeosc\*.class \
 data\hdfeos\*.class \
@@ -689,6 +697,7 @@ compile: clean
 	$(JC) $(JFLAGS) data\biorad\*.java
 	$(JC) $(JFLAGS) data\jai\*.java
 	$(JC) $(JFLAGS) data\gif\*.java
+	$(JC) $(JFLAGS) data\tiff\*.java
 	$(JC) $(JFLAGS) data\visad\*.java
 	$(JC) $(JFLAGS) data\hdfeos\hdfeosc\*.java
 	$(JC) $(JFLAGS) data\hdfeos\*.java
@@ -758,6 +767,7 @@ visad.data.hdfeos \
 visad.data.hdfeos.hdfeosc \
 visad.data.vis5d \
 visad.data.gif \
+visad.data.tiff \
 edu.wisc.ssec.mcidas \
 visad.data.mcidas \
 visad.data.biorad \
