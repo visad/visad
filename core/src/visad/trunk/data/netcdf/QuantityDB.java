@@ -6,12 +6,13 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: QuantityDB.java,v 1.11 2001-11-27 22:29:32 dglo Exp $
+ * $Id: QuantityDB.java,v 1.12 2002-09-20 18:15:29 steve Exp $
  */
 
 package visad.data.netcdf;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import visad.Unit;
 import visad.UnitException;
 import visad.VisADException;
@@ -28,6 +29,40 @@ import visad.data.units.Parser;
 public abstract class
 QuantityDB
 {
+    /**
+     * The empty quantity database.  This is useful if, for example, you do
+     * not want the netCDF import package to map incoming netCDF variables to
+     * canonical ones by, effectively, altering their names and units.  This
+     * database cannot be altered.
+     */
+    public static final QuantityDB emptyDB;
+
+    static {
+	try {
+	    emptyDB = 
+		new QuantityDB() {
+		    public Quantity get(String name) {
+			return null;
+		    }
+		    public Quantity[] get(Unit unit) {
+			return null;
+		    }
+		    public void add(String name, Quantity quantity) {
+			throw new UnsupportedOperationException();
+		    }
+		    public Iterator quantityIterator() {
+			return NilIterator.INSTANCE;
+		    }
+		    public Iterator nameIterator() {
+			return NilIterator.INSTANCE;
+		    }
+		};
+	}
+	catch (Exception ex) {
+	    throw new ExceptionInInitializerError();
+	}
+    }
+
     /**
      * Returns the quantity in the database whose name matches a
      * given name.
@@ -141,4 +176,49 @@ QuantityDB
      */
     public abstract Iterator
     nameIterator();
+
+    /**
+     * A nil {@link Iterator}.  Such an {@link Iterator} iterates over nothing.
+     */
+    static class NilIterator implements Iterator {
+
+	static final NilIterator INSTANCE;
+
+	static {
+	    INSTANCE = new NilIterator();
+	}
+
+	private NilIterator() {
+	}
+
+	/**
+	 * Indicates if another element exists.  This implementation always 
+	 * returns <code>false</code>.
+	 *
+	 * @return                     <code>false</code>.
+	 */
+	public boolean hasNext() {
+	    return false;
+	}
+
+	/**
+	 * Returns the next element.  This implementation always throws a
+	 * {@link NoSuchElementException}.
+	 *
+	 * @throws NoSuchElementException if this method is invoked.
+	 */
+	public Object next() {
+	    throw new NoSuchElementException();
+	}
+
+	/**
+	 * Removes the current element.  This implementation always throws an
+	 * {@link UnsupportedOperationException}.
+	 *
+	 * @throws UnsupportedOperationException if this method is invoked.
+	 */
+	public void remove() {
+	    throw new UnsupportedOperationException();
+	}
+    }
 }
