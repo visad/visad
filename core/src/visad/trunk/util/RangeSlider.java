@@ -248,7 +248,7 @@ public class RangeSlider extends JComponent implements MouseListener,
     }
     if (rSlideMoved) {
       g.setColor(Color.black);
-      g.fillRect(minGrip+1, 4, w-minGrip-3, 16);
+      g.fillRect(minGrip+1, 4, w-minGrip-3, 17);
       g.setColor(Color.white);
       g.drawLine(minGrip+1, 12, w-3, 12);
       g.setColor(Color.yellow);
