@@ -3668,12 +3668,12 @@ for (i=0; i<length; i++) {
       for (int k=i; k<ip; k++) {
         if (k > i) s.append(", ");
         if (TupleDimension == 1) {
-          s.append(new Real(types[0], values[0][k]).toString());
+          s.append(new Real(types[0], values[0][k], RangeUnits[0]).toString());
         }
         else if (((FunctionType) Type).getReal()) {
-          String t = "(" + new Real(types[0], values[0][k]);
+          String t = "(" + new Real(types[0], values[0][k], RangeUnits[0]);
           for (int j=1; j<TupleDimension; j++) {
-            t = t + ", " + new Real(types[j], values[j][k]);
+            t = t + ", " + new Real(types[j], values[j][k], RangeUnits[j]);
           }
           t = t + ")";
           s.append(t);
@@ -3686,15 +3686,15 @@ for (i=0; i<length; i++) {
             if (j > 0) t = t + ", ";
             MathType type = RangeType.getComponent(l);
             if (type instanceof RealType) {
-              t = t + new Real(types[j], values[j][k]);
+              t = t + new Real(types[j], values[j][k], RangeUnits[j]);
               j++;
             }
             else {
               int mm = ((TupleType) type).getDimension();
-              t = t + "(" + new Real(types[j], values[j][k]);
+              t = t + "(" + new Real(types[j], values[j][k], RangeUnits[j]);
               j++;
               for (int kk=1; kk<mm; kk++) {
-                t = t + ", " + new Real(types[j], values[j][k]);
+                t = t + ", " + new Real(types[j], values[j][k], RangeUnits[j]);
                 j++;
               }
               t = t + ")";
