@@ -1204,6 +1204,8 @@ public class FieldImpl extends FunctionImpl implements Field {
 
     return new_field;
   }
+
+  /** factor Field domain into domains of two nested Fields */
   public Field domainFactor( RealType factor )
          throws VisADException, RemoteException
   {
@@ -1447,6 +1449,8 @@ public class FieldImpl extends FunctionImpl implements Field {
     return factor_field;
   }
 
+  /** combine domains of two outermost nested Fields into a single
+      domain and Field */
   public Field domainMultiply()
          throws VisADException, RemoteException
   {

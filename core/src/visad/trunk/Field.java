@@ -78,6 +78,15 @@ public interface Field extends Function {
   public abstract Field extract(int component)
          throws VisADException, RemoteException;
 
+  /** combine domains of two outermost nested Fields into a single
+      domain and Field */
+  public Field domainMultiply()
+         throws VisADException, RemoteException;
+
+  /** factor Field domain into domains of two nested Fields */
+  public Field domainFactor( RealType factor )
+         throws VisADException, RemoteException;
+
   /** get the 'Flat' components of this Field's range values
       in their default range Units (as defined by the range of
       the Field's FunctionType); if the range type is a RealType

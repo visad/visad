@@ -120,6 +120,27 @@ public class RemoteFieldImpl extends RemoteFunctionImpl
     return ((FieldImpl) AdaptedData).extract(component);
   }
 
+  /** combine domains of two outermost nested Fields into a single
+      domain and Field */
+  public Field domainMultiply()
+         throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFieldImpl.domainMultiply: " +
+                                     "AdaptedData is null");
+    }
+    return ((FieldImpl) AdaptedData).domainMultiply();
+  }
+
+  /** factor Field domain into domains of two nested Fields */
+  public Field domainFactor( RealType factor )
+         throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFieldImpl.domainFactor: " +
+                                     "AdaptedData is null");
+    }
+    return ((FieldImpl) AdaptedData).domainFactor(factor);
+  }
+
   public double[][] getValues() 
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
