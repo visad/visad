@@ -138,6 +138,8 @@ public abstract class DisplayRendererJ3D
   private Method modelClipSetPlane = null;
   private Method modelClipAddScope = null;
   private Object modelClip = null;
+  private boolean[] modelClipEnables =
+    {false, false, false, false, false, false};
 
   public DisplayRendererJ3D () {
     super();
@@ -626,6 +628,41 @@ public abstract class DisplayRendererJ3D
       modelClipSetEnable.invoke(modelClip, params);
       params = new Object[] {new Integer(plane), vect};
       modelClipSetPlane.invoke(modelClip, params);
+      modelClipEnables[plane] = enable;
+    }
+    catch (IllegalAccessException e) {
+      e.printStackTrace();
+    }
+    catch (InvocationTargetException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void clipOff() {
+    try {
+      for (int i=0; i<6; i++) {
+        if (modelClipEnables[i]) {
+          Object[] params = {new Integer(i), new Boolean(false)};
+          modelClipSetEnable.invoke(modelClip, params);
+        }
+      }
+    }
+    catch (IllegalAccessException e) {
+      e.printStackTrace();
+    }
+    catch (InvocationTargetException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void clipOn() {
+    try {
+      for (int i=0; i<6; i++) {
+        if (modelClipEnables[i]) {
+          Object[] params = {new Integer(i), new Boolean(true)};
+          modelClipSetEnable.invoke(modelClip, params);
+        }
+      }
     }
     catch (IllegalAccessException e) {
       e.printStackTrace();
@@ -757,7 +794,10 @@ public abstract class DisplayRendererJ3D
    * @param canvas
    */
   public void drawCursorStringVector(VisADCanvasJ3D canvas) {
+    // clipOff(); doesn't work
     GraphicsContext3D graphics = canvas.getGraphicsContext3D();
+    // graphics.setModelClip(null);
+    // causes NullPointerException at GraphicsContext3D.java:689
 
     // set cursor color, if possible
     try {
@@ -952,6 +992,8 @@ public abstract class DisplayRendererJ3D
         }
       }
     }
+    // graphics.flush(true); doesn't help
+    // clipOn(); doesn't work
   }
 
   /**
