@@ -86,13 +86,11 @@ no easy way to load RMI classes - security issues
 partitioned data on client has similar data trees on
 client and nodes
   leaf node on client is:
-    Real, Text, or RealTuple
-    Field with split domain
-    Set with split domain (?)
-    Set with non-split domain
+    DataImpl
+    Field with partitioned domain (RemoteClientPartitionedField)
   non-leaf node on client is:
-    Tuple
-    Field with non-split domain
+    Tuple (RemoteClientTupleImpl)
+    Field with non-partitioned domain (RemoteClientField)
   leaf tree-nodes on cluster-nodes are usual data leaves
 
 every object in data tree on client connects to objects

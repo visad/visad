@@ -141,7 +141,8 @@ public abstract class FunctionImpl extends DataImpl implements Function {
   public abstract Function derivative( RealType d_partial, int error_mode )
          throws VisADException, RemoteException;
 
-  public abstract Function derivative( RealType d_partial, MathType derivType, int error_mode )
+  public abstract Function derivative( RealType d_partial, MathType derivType,
+                                       int error_mode )
          throws VisADException, RemoteException;
 
   /** for JPython */

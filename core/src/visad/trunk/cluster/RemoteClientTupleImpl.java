@@ -32,13 +32,11 @@ import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 
 /**
-   RemoteClientData is the class for cluster client
-   VisAD data objects.<P>
+   RemoteClientTupleImpl is the class for cluster client
+   VisAD Tuple data objects.<P>
 */
 public class RemoteClientTupleImpl extends RemoteClientDataImpl
        implements RemoteClientTuple {
-
-  private RemoteClusterDataImpl[] tupleComponents;
 
   private Tuple adaptedTuple = null;
 
@@ -48,6 +46,7 @@ public class RemoteClientTupleImpl extends RemoteClientDataImpl
   */
   public RemoteClientTupleImpl(Data[] datums)
          throws VisADException, RemoteException {
+    super();
     if (datums == null) {
       throw new ClusterException("datums cannot be null");
     }
@@ -56,10 +55,9 @@ public class RemoteClientTupleImpl extends RemoteClientDataImpl
       throw new ClusterException("datums.length must be > 0");
     }
     for (int i=0; i<n; i++) {
-      if (!(datums[i] instanceof Scalar || datums[i] instanceof RealTuple ||
-            datums[i] instanceof Set ||
+      if (!(datums[i] instanceof DataImpl ||
             datums[i] instanceof RemoteClientDataImpl)) {
-        throw new ClusterException("datums must be Scalar, RealTuple, Set " +
+        throw new ClusterException("datums must be DataImpl " +
                                    "or RemoteClientDataImpl");
       }
     }
