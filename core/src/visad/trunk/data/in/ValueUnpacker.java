@@ -1,6 +1,6 @@
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2001 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -18,43 +18,39 @@ You should have received a copy of the GNU Library General Public
 License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
-
-$Id: ValueProcessor.java,v 1.3 2001-03-07 20:58:44 steve Exp $
 */
 
 package visad.data.in;
 
+import visad.data.in.*;
+import visad.*;
+
 /**
- * Provides support for processing primitive data values (i.e. checking their
- * values, converting them, etc.).
+ * Provides support for unpacking data values (i.e. converting them from smaller
+ * types to bigger types).
  *
  * <P>Instances are immutable.</P>
  *
  * @author Steven R. Emmerson
  */
-public abstract class ValueProcessor
+public abstract class ValueUnpacker
+    extends	ValueProcessor
 {
-    /**
-     * The trivial processor (does nothing).
-     */
-    protected static final ValueProcessor	trivialProcessor =
-	new ValueProcessor()
+    private static final ValueUnpacker	TRIVIAL_UNPACKER =
+	new ValueUnpacker()
 	{
 	    public float process(float value)
 	    {
 		return value;
 	    }
-
 	    public double process(double value)
 	    {
 		return value;
 	    }
-
 	    public float[] process(float[] values)
 	    {
 		return values;
 	    }
-
 	    public double[] process(double[] values)
 	    {
 		return values;
@@ -64,38 +60,31 @@ public abstract class ValueProcessor
     /**
      * Constructs from nothing.
      */
-    protected ValueProcessor()
+    protected ValueUnpacker()
     {}
 
     /**
-     * Processes a float value.
+     * Returns the trivial value unpacker.  The trivial value unpacker does
+     * nothing to the value during processing and its {@link getIncrement()}
+     * method returns NaN.
      *
-     * @param value		The value to be processed.
-     * @return			The processed value.
+     * @return			The trivial value unpacker.
      */
-    public abstract float process(float value);
+    public static ValueUnpacker valueUnpacker()
+    {
+	return TRIVIAL_UNPACKER;
+    }
 
     /**
-     * Processes a double value.
+     * Returns the minimum, potential increment between numeric values.
+     * Typically, this is the absolute magnitude of a "scale factor" attribute.
+     * If the increment is undefined or not applicable, then Double.NaN is
+     * returned.  This method should be overridden in appropriate subclasses.
      *
-     * @param value		The value to be processed.
-     * @return			The processed value.
+     * @return			Double.NaN.
      */
-    public abstract double process(double value);
-
-    /**
-     * Processes float values.
-     *
-     * @param values		The values to be processed.
-     * @return			The processed values (same array as input).
-     */
-    public abstract float[] process(float[] values);
-
-    /**
-     * Processes double values.
-     *
-     * @param values		The values to be processed.
-     * @return			The processed values (same array as input).
-     */
-    public abstract double[] process(double[] values);
+    public double getIncrement()
+    {
+	return Double.NaN;
+    }
 }
