@@ -209,8 +209,6 @@ SAVE_FILES = \
 	ucar/tests/test.nc				\
 	ucar/tests/test.out				\
 	dods/dap/*.java					\
-	dods/dap/Server/*.java				\
-	dods/dap/functions/*.java			\
 	dods/dap/parser/*.java				\
 	dods/util/*.java				\
 	gnu/regexp/*.java				\
@@ -318,9 +316,6 @@ DOC_PACKAGES = \
 		ucar.netcdf \
 		ucar.tests \
 		dods.dap \
-		dods.dap.Server \
-		dods.dap.functions \
-		dods.dap.parser \
 		dods.util \
 		gnu.regexp \
 		visad.data \
