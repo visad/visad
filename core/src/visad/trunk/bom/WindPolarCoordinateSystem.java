@@ -64,8 +64,8 @@ public class WindPolarCoordinateSystem extends CoordinateSystem {
       else {
         double coslon = Math.cos(Data.DEGREES_TO_RADIANS * tuples[0][i]);
         double sinlon = Math.sin(Data.DEGREES_TO_RADIANS * tuples[0][i]);
-        value[0][i] = tuples[1][i] * sinlon;
-        value[1][i] = tuples[1][i] * coslon;
+        value[0][i] = -tuples[1][i] * sinlon;
+        value[1][i] = -tuples[1][i] * coslon;
       }
     }
     return value;
@@ -82,7 +82,7 @@ public class WindPolarCoordinateSystem extends CoordinateSystem {
       value[1][i] = Math.sqrt(tuples[0][i] * tuples[0][i] +
                               tuples[1][i] * tuples[1][i]);
       value[0][i] =
-        Data.RADIANS_TO_DEGREES * Math.atan2(tuples[0][i], tuples[1][i]);
+        Data.RADIANS_TO_DEGREES * Math.atan2(-tuples[0][i], -tuples[1][i]);
       if (value[0][i] < 0.0) value[0][i] += 180.0;
     }
     return value;
@@ -103,8 +103,8 @@ public class WindPolarCoordinateSystem extends CoordinateSystem {
       else {
         float coslon = (float) Math.cos(Data.DEGREES_TO_RADIANS * tuples[0][i]);
         float sinlon = (float) Math.sin(Data.DEGREES_TO_RADIANS * tuples[0][i]);
-        value[0][i] = tuples[1][i] * sinlon;
-        value[1][i] = tuples[1][i] * coslon;
+        value[0][i] = -tuples[1][i] * sinlon;
+        value[1][i] = -tuples[1][i] * coslon;
       }
     }
     return value;
@@ -121,7 +121,7 @@ public class WindPolarCoordinateSystem extends CoordinateSystem {
       value[1][i] = (float) Math.sqrt(tuples[0][i] * tuples[0][i] +
                                       tuples[1][i] * tuples[1][i]);
       value[0][i] = (float)
-        (Data.RADIANS_TO_DEGREES * Math.atan2(tuples[0][i], tuples[1][i]));
+        (Data.RADIANS_TO_DEGREES * Math.atan2(-tuples[0][i], -tuples[1][i]));
       if (value[0][i] < 0.0) value[0][i] += 180.0;
     }
     return value;
