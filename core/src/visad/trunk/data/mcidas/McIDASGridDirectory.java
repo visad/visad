@@ -71,11 +71,11 @@ public class McIDASGridDirectory extends visad.jmet.MetGridDirectory {
      levelScale = Math.pow(10., McIDASUtil.bytesToInteger(h,40));
      levelValue = levelValue * levelScale;
      gridType = McIDASUtil.bytesToInteger(h,132);
-     System.out.println("Grid type = "+gridType);
+     //System.out.println("Grid type = "+gridType);
      navBlock = new int[8];
      for (int n=0; n<7; n++) {
        navBlock[n] = McIDASUtil.bytesToInteger(h, (132 + (4*n)) );
-       System.out.println("nav word "+n+" = "+navBlock[n]);
+       //System.out.println("nav word "+n+" = "+navBlock[n]);
      }
      try {
        mu = new MetUnits();
@@ -83,9 +83,37 @@ public class McIDASGridDirectory extends visad.jmet.MetGridDirectory {
        String sl =new String(h,44,4);
        //System.out.println("param and level units incoming = "+su+" & "+sl);
        //System.out.println("param and level units converted = "+mu.makeSymbol(su)+" & "+mu.makeSymbol(sl));
-       paramUnit = Parser.parse(mu.makeSymbol(su));
-       levelUnit = Parser.parse(mu.makeSymbol(sl));
-     } catch (Exception e) {System.out.println(e);}
+       try {
+         paramUnit = Parser.parse(mu.makeSymbol(su));
+       } catch (ParseException pe) {
+         paramUnit = null;
+       }
+       try {
+         levelUnit = Parser.parse(mu.makeSymbol(sl));
+       } catch (ParseException pe) {
+         levelUnit = null;
+       }
+     } catch (VisADException e) {System.out.println(e);}
+
+     // Special case for character levels
+     if (Math.abs(levelValue) > 10000 && levelUnit == null)
+     {
+       levelValue = 999;
+     }
+     int paramType = McIDASUtil.bytesToInteger(h,48);
+     if (paramType == 4 || paramType == 8) // level difference or average
+     {
+       secondLevelValue = 
+         (double) McIDASUtil.bytesToInteger(h,56) * levelScale;
+     }
+     if (paramType == 1 || paramType == 2) // time difference or average
+     {
+       secondTime =
+         new Date( (McIDASUtil.mcDayTimeToSecs(refDay,refHMS)+
+           ((McIDASUtil.bytesToInteger(h,52)/10000) * 3600)) * 1000 );
+             // NB: second time is 10000*time in hours to make HHMMSS
+             // so we need to divide it out
+     }
    }
 
    public int[] getNavBlock() {
@@ -114,7 +142,7 @@ public class McIDASGridDirectory extends visad.jmet.MetGridDirectory {
          double dj = ( (double) navBlock[5])/10000.;
          double di = dj;
          if (gridType == 4) di = ( (double) navBlock[6])/10000.;
-         System.out.println("lat/lon = "+la1+"  "+lo1+"  incs = "+di+"  "+dj);
+         //System.out.println("lat/lon = "+la1+"  "+lo1+"  incs = "+di+"  "+dj);
          coordSystem = new GRIBCoordinateSystem(ref,0,columns,rows,
               la1, lo1, la2, lo2, di, dj);
        } else {
