@@ -279,7 +279,9 @@ public class DefaultFamily
   class OpenURLForm
 	extends URLFunction
   {
+    /* CTR: 13 Oct 1998
     private URL url;
+    */
     private DataImpl data;
 
     public OpenURLForm(URL url)
