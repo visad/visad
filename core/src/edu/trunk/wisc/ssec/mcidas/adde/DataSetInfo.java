@@ -31,6 +31,9 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Hashtable;
+import java.util.Arrays;
+import java.util.Enumeration;
 
 /** 
  * DataSetInfo interface for McIDAS ADDE data sets.   Simulates a
@@ -87,6 +90,7 @@ public class DataSetInfo
     private int status=0;                 // read status
     private URLConnection urlc;           // URL connection
     private char[] data;                  // data returned from server
+    private Hashtable descriptorTable;
     
     /**
      * creates a DataSetInfo object that allows reading
@@ -140,6 +144,20 @@ public class DataSetInfo
                 status = -1;
                 throw new AddeURLException("Error reading dataset info:" + e);
             }
+            int numNames = data.length/80;
+            descriptorTable = new Hashtable(numNames);
+            for (int i = 0; i < numNames; i++)
+            {
+                String temp = new String(data, i*80, 80);
+                if (temp.trim().equals("")) continue;
+                String descriptor = temp.substring(0,11).trim();
+                String comment;
+                if (temp.indexOf('"') <= 21)   // no comment
+                    comment = descriptor;
+                else
+                    comment = temp.substring(temp.indexOf('"')+ 1).trim();
+                descriptorTable.put(comment, descriptor);
+            }
         } 
     }
 
@@ -158,6 +176,47 @@ public class DataSetInfo
             throw new AddeURLException("No data available");
 
         return data;
+    }
+
+    /**
+     * Return a hashtable of descriptive names and ADDE dataset descriptors
+     * Descriptive names are the keys.  If there is no descriptive name,
+     * the dataset descriptor is used.
+     *
+     * @return hashtable of names/desciptors
+     *
+     * @exception AddeURLException if there was an error reading data
+     */
+    public Hashtable getDescriptionTable()
+        throws AddeURLException
+    {
+        if (status < 0)
+            throw new AddeURLException("No data available");
+        return descriptorTable;
+    }
+
+    /**
+     * Return a sorted list of the dataset descriptors
+     *
+     * @return sorted list 
+     *
+     * @exception AddeURLException if there was an error reading data
+     */
+    public String[] getDescriptors()
+        throws AddeURLException
+    {
+        if (status < 0)
+            throw new AddeURLException("No data available");
+        String[] list = new String[descriptorTable.size()];
+        Enumeration elements = descriptorTable.elements();
+        int i = 0;
+        while (elements.hasMoreElements())
+        {
+            list[i] = (String) elements.nextElement();
+            i++;
+        }
+        Arrays.sort(list);
+        return list;
     }
 
     /**
@@ -213,11 +272,15 @@ public class DataSetInfo
     {
         System.out.println("\nDataset Names:\n");
 
-        String request = 
-            (args.length == 0)
-                  ? "adde://zero.unidata.ucar.edu/datasetinfo?group=blizzard&type=image"
-                  : args[0];
+        String request = (args.length == 0)
+          ? "adde://zero.unidata.ucar.edu/datasetinfo?group=blizzard&type=image"
+          : args[0];
         DataSetInfo dsinfo = new DataSetInfo(request);
         System.out.println(dsinfo.toString());
+        String[] descriptors = dsinfo.getDescriptors();
+        System.out.println("Sorted list of Descriptors:");
+        for (int i = 0; i < descriptors.length; i++)
+            System.out.println(descriptors[i]);
+
     }
 }

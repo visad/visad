@@ -383,7 +383,7 @@ public class AddeURLConnection extends URLConnection
     // now convert to array of bytes for output since chars are two byte
     String cmd = new String(sb);
     cmd = cmd.toUpperCase();
-    System.out.println(cmd);
+    //System.out.println(cmd);
     byte [] ob = cmd.getBytes();
 
     // data length - num bytes beyond 120 length for command string
