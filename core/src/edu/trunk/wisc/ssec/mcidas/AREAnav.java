@@ -63,6 +63,9 @@ import visad.Set;
  *  ......................
  * </code></pre>
  *
+ * By convention, latitudes are positive North (negative South), and
+ * longitudes are positive East (negative West).
+ *
  * @author Tom Whittaker/Don Murray
  * 
  */
