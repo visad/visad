@@ -64,6 +64,9 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   /** RealType for mapping measurements to Z axis. */
   static final RealType Z_TYPE = RealType.getRealType("bio_line_z");
 
+  /** Starting brightness value. */
+  static final int NORMAL_BRIGHTNESS = 50;
+
 
   // -- PACKAGE-WIDE BIO-VISAD OBJECTS --
 
@@ -182,8 +185,13 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
       display3 = null;
     }
     display2.getGraphicsModeControl().setPointSize(5.0f);
-    if (display3 != null) display3.getGraphicsModeControl().setPointSize(5.0f);
+    display2.getDisplayRenderer().setPickThreshhold(Float.MAX_VALUE);
     displayPane.add(display2.getComponent());
+    if (display3 != null) {
+      display3.getGraphicsModeControl().setPointSize(5.0f);
+      display3.getDisplayRenderer().setPickThreshhold(Float.MAX_VALUE);
+      displayPane.add(display3.getComponent());
+    }
 
     // 2-D and 3-D measurement pools
     pool2 = new MeasurePool(this, display2, 2);
@@ -364,7 +372,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
       pool3.init();
     }
 
-    // set up spatial ranges
+    // set up 2-D ranges
     Set set = ((FieldImpl) field.getSample(0)).getDomainSet();
     float[][] samples = set.getSamples(false);
     int dim = samples.length;
@@ -376,7 +384,6 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     if (min_x != min_x) min_x = 0;
     if (max_x != max_x) max_x = 0;
     x_map2.setRange(min_x, max_x);
-    x_map3.setRange(min_x, max_x);
 
     // y-axis range
     float min_y = samples[1][0];
@@ -385,23 +392,33 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     if (min_y != min_y) min_y = 0;
     if (max_y != max_y) max_y = 0;
     y_map2.setRange(min_y, max_y);
-    y_map3.setRange(min_y, max_y);
 
-    // z-axis range
-    float min_z = 0;
-    float max_z = field.getLength() - 1;
-    if (min_z != min_z) min_z = 0;
-    if (max_z != max_z) max_z = 0;
-    z_map3a.setRange(min_z, max_z);
-    z_map3b.setRange(min_z, max_z);
-
-    // set up color ranges
+    // color ranges
     r_map2.setRange(0, 255);
-    r_map3.setRange(0, 255);
     g_map2.setRange(0, 255);
-    g_map3.setRange(0, 255);
     b_map2.setRange(0, 255);
-    b_map3.setRange(0, 255);
+
+    // set up 3-D ranges
+    if (display3 != null) {
+      // x-axis and y-axis ranges
+      x_map3.setRange(min_x, max_x);
+      y_map3.setRange(min_y, max_y);
+
+      // z-axis range
+      float min_z = 0;
+      float max_z = field.getLength() - 1;
+      if (min_z != min_z) min_z = 0;
+      if (max_z != max_z) max_z = 0;
+      z_map3a.setRange(min_z, max_z);
+      z_map3b.setRange(min_z, max_z);
+
+      // color ranges
+      r_map3.setRange(0, 255);
+      g_map3.setRange(0, 255);
+      b_map3.setRange(0, 255);
+    }
+
+    toolView.doColorTable();
 
     // initialize measurement list array
     lists = new MeasureList[timesteps];
@@ -410,6 +427,37 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     return true;
   }
 
+  /**
+   * Updates image color table to match the
+   * given grayscale and brightness values.
+   */
+  public void setImageColors(boolean grayscale, int brightness) {
+    float[][] table = grayscale ?
+      ColorControl.initTableGreyWedge(new float[3][256]) :
+      ColorControl.initTableVis5D(new float[3][256]);
+
+    // apply brightness (actually gamma correction)
+    double gamma = 1.0 -
+      (1.0 / NORMAL_BRIGHTNESS) * (brightness - NORMAL_BRIGHTNESS);
+    for (int i=0; i<256; i++) {
+      table[0][i] = (float) Math.pow(table[0][i], gamma);
+      table[1][i] = (float) Math.pow(table[1][i], gamma);
+      table[2][i] = (float) Math.pow(table[2][i], gamma);
+    }
+
+    // get color controls
+    ColorControl cc2 = (ColorControl) display2.getControl(ColorControl.class);
+    ColorControl cc3 = display3 == null ? null :
+      (ColorControl) display3.getControl(ColorControl.class);
+
+    // set color tables
+    try {
+      if (cc2 != null) cc2.setTable(table);
+      if (cc3 != null) cc3.setTable(table);
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+  }
   /** Gets current index value. */
   public int getIndex() { return horiz.getValue() - 1; }
 
@@ -428,7 +476,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   /** Loads a series of datasets specified by the user. */
   public void fileOpen() {
     final JFrame frame = this;
-    SwingUtilities.invokeLater(new Runnable() {
+    Util.invoke(false, new Runnable() {
       public void run() {
         // get file series from file dialog
         if (seriesBox.showDialog(frame) != SeriesChooser.APPROVE_OPTION) {

@@ -30,6 +30,7 @@ import java.awt.*;
 import java.rmi.RemoteException;
 import java.util.Vector;
 import visad.*;
+import visad.util.Util;
 
 /** MeasureList maintains a list of measurements between points in a field. */
 public class MeasureList {
@@ -111,17 +112,16 @@ public class MeasureList {
   }
 
   /** Removes a measurement from the measurement list. */
-  public void removeMeasurement(Measurement m) { removeMeasurement(m, true); }
-
-  /** Removes a measurement, notifying the measurement pool if specified. */
-  void removeMeasurement(Measurement m, boolean updatePool) {
+  public void removeMeasurement(Measurement m) {
     if (!measureList.contains(m)) return;
     measureList.remove(m);
-    if (updatePool) {
-      Measurement[] mm = getMeasurements();
-      bio.pool2.set(mm);
-      if (bio.pool3 != null) bio.pool3.set(mm);
-    }
+    m.kill();
+    Util.invoke(false, new Runnable() {
+      public void run() {
+        bio.pool2.refresh();
+        if (bio.pool3 != null) bio.pool3.refresh();
+      }
+    });
   }
 
   /** Removes all measurements, notifying the measurement pool if specified. */

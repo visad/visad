@@ -29,7 +29,6 @@ package visad.bio;
 import java.awt.Color;
 import java.rmi.RemoteException;
 import java.util.Vector;
-import javax.swing.SwingUtilities;
 import visad.*;
 import visad.util.Util;
 
@@ -45,16 +44,16 @@ public class Measurement {
   // -- FIELDS --
 
   /** Endpoint values of the measurement. */
-  protected RealTuple[] values;
+  private RealTuple[] values;
 
   /** Linked MeasureThing objects. */
-  protected Vector things;
+  private Vector things;
 
   /** Color of the measurement line. */
-  protected Color color;
+  private Color color;
 
   /** Group of the measurement. */
-  protected MeasureGroup group;
+  private MeasureGroup group;
 
   /** ID for "standard" measurement. */
   int stdId = -1;
@@ -91,24 +90,20 @@ public class Measurement {
   // -- API METHODS --
 
   /** Sets the measurement endpoint values. */
-  public void setValues(RealTuple[] values) {
-    if (Util.arraysEqual(this.values, values)) return;
-    this.values = values;
-    refreshThings();
-  }
+  public void setValues(RealTuple[] values) { setValues(values, null); }
 
   /** Sets the measurement line color. */
   public void setColor(Color color) {
     if (this.color.equals(color)) return;
     this.color = color;
-    refreshThings();
+    refreshThings(null);
   }
 
   /** Deletes this measurement. */
   public void kill() {
     if (killed) return;
     killed = true;
-    refreshThings();
+    refreshThings(null);
   }
 
   /** Sets the measurement group. */
@@ -186,14 +181,27 @@ public class Measurement {
     }
   }
 
-  /** Refreshes all MeasureThings to match the measurement. */
-  protected void refreshThings() {
+  /** Sets the measurement endpoint values, from the given MeasureThing. */
+  void setValues(RealTuple[] values, MeasureThing thing) {
+    this.values = values;
+    refreshThings(thing);
+  }
+
+
+  // -- HELPER METHODS --
+
+  /**
+   * Refreshes all MeasureThings, except the specified one,
+   * to match the measurement.
+   */
+  private void refreshThings(MeasureThing thing) {
     synchronized (things) {
+      final MeasureThing ex = thing;
       final MeasureThing[] t = new MeasureThing[things.size()];
       things.copyInto(t);
-      SwingUtilities.invokeLater(new Runnable() {
+      Util.invoke(false, new Runnable() {
         public void run() {
-          for (int i=0; i<t.length; i++) t[i].refresh();
+          for (int i=0; i<t.length; i++) if (t[i] != ex) t[i].refresh();
         }
       });
     }

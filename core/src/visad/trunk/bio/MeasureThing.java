@@ -41,16 +41,19 @@ public class MeasureThing {
   // -- FIELDS --
 
   /** Associated display. */
-  protected MeasurePool pool;
+  private MeasurePool pool;
 
   /** Associated measurement. */
-  protected Measurement m;
+  private Measurement m;
 
   /** Associated measurement pool points. */
-  protected PoolPoint[] pts;
+  private PoolPoint[] pts;
 
   /** Cell that ties endpoint values to measurement values. */
-  protected CellImpl cell;
+  private CellImpl cell;
+
+  /** Flag marking whether to ignore next cell update. */
+  private boolean ignoreNext = true;
 
 
   // -- CONSTRUCTOR --
@@ -63,15 +66,21 @@ public class MeasureThing {
     m.addThing(this);
 
     // cell for updating Measurement whenever endpoints change
+    final MeasureThing thing = this;
     final int dim = pool.getDimension();
     cell = new CellImpl() {
       public void doAction() {
-        RealTuple[] values = new RealTuple[pts.length];
-        for (int i=0; i<pts.length; i++) {
-          values[i] = (RealTuple) pts[i].ref.getData();
-          if (values[i] == null) return;
+        if (ignoreNext) {
+          ignoreNext = false;
+          return;
         }
-        if (dim == 2) values = BioVisAD.copy(values);
+        RealTuple[] values = getValues();
+        for (int i=0; i<values.length; i++) if (values[i] == null) return;
+        MeasureThing t;
+        if (dim == 2) {
+          values = BioVisAD.copy(values);
+          t = thing;
+        }
         else {
           // snap measurement endpoints to nearest slice plane
           try {
@@ -88,15 +97,18 @@ public class MeasureThing {
           }
           catch (VisADException exc) { exc.printStackTrace(); }
           catch (RemoteException exc) { exc.printStackTrace(); }
+          t = null;
         }
-        m.setValues(values);
+        m.setValues(values, t);
       }
     };
     cell.disableAction();
     try { for (int i=0; i<pts.length; i++) cell.addReference(pts[i].ref); }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
+    ignoreNext = true;
     cell.enableAction();
+    refresh();
   }
 
 
@@ -116,18 +128,22 @@ public class MeasureThing {
 
   /** Updates the endpoint values to match the linked measurement. */
   public void refresh() {
+    if (cell == null) return;
     if (m.killed) pool.release(this);
     else {
       RealTuple[] values = BioVisAD.copy(m.getValues());
       try {
         int dim = pool.getDimension();
         int slice = pool.getSlice();
+        cell.disableAction();
         for (int i=0; i<values.length; i++) {
           // for 2-D, toggle point on only if slice matches
           double[] s = values[i].getValues();
-          pts[i].toggle(dim != 2 || s[2] == slice);
           pts[i].ref.setData(values[i]);
+          pts[i].toggle(dim != 2 || s[2] == slice);
         }
+        ignoreNext = true;
+        cell.enableAction();
       }
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }
@@ -147,6 +163,12 @@ public class MeasureThing {
   public PoolPoint[] getPoints() { return pts; }
 
   /** Gets the endpoint values. */
-  public RealTuple[] getValues() { return m.getValues(); }
+  public RealTuple[] getValues() {
+    RealTuple[] values = new RealTuple[pts.length];
+    for (int i=0; i<pts.length; i++) {
+      values[i] = (RealTuple) pts[i].ref.getData();
+    }
+    return values;
+  }
 
 }

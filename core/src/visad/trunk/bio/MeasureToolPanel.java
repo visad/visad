@@ -341,7 +341,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
             Measurement[] mlist = bio.lists[j].getMeasurements();
             for (int k=0; k<mlist.length; k++) {
               if (mlist[k].stdId == stdId) {
-                bio.lists[j].removeMeasurement(mlist[k], true);
+                bio.lists[j].removeMeasurement(mlist[k]);
               }
             }
           }
@@ -511,7 +511,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
   public void restoreMeasurements(boolean microns) {
     final MeasureToolPanel measureTools = this;
     final boolean fmicrons = microns;
-    SwingUtilities.invokeLater(new Runnable() {
+    Util.invoke(false, new Runnable() {
       public void run() {
         bio.setWaitCursor(true);
         // get file name from file dialog
@@ -552,7 +552,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
   public void saveMeasurements(boolean microns) {
     final MeasureToolPanel measureTools = this;
     final boolean fmicrons = microns;
-    SwingUtilities.invokeLater(new Runnable() {
+    Util.invoke(false, new Runnable() {
       public void run() {
         bio.setWaitCursor(true);
         // get file name from file dialog
@@ -579,7 +579,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     });
   }
 
-  /** Updates the group list to match the static MeasureGroup list. */
+  /** Updates the group list to match the master MeasureGroup list. */
   void updateGroupList() {
     ignoreGroup = true;
     groupList.removeAllItems();

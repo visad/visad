@@ -99,7 +99,7 @@ public class MeasurePool implements DisplayListener {
     catch (VisADException exc) { exc.printStackTrace(); }
 
     cell = new CellImpl() {
-      public void doAction() { refreshLines(); }
+      public void doAction() { refresh(); }
     };
 
     display.addDisplayListener(this);
@@ -119,6 +119,7 @@ public class MeasurePool implements DisplayListener {
 
   /** Grants the given measurement object use of a number of pool points. */
   public PoolPoint[] lease(MeasureThing thing) {
+    if (things.contains(thing)) return null;
     int num = thing.getLength();
     expand(num, true);
     PoolPoint[] pts = new PoolPoint[num];
@@ -135,6 +136,8 @@ public class MeasurePool implements DisplayListener {
    * to the measurement pool.
    */
   public void release(MeasureThing thing) {
+    if (!things.contains(thing)) return;
+    select(null);
     PoolPoint[] pts = thing.getPoints();
     for (int i=0; i<pts.length; i++) {
       pts[i].toggle(false);
@@ -145,13 +148,7 @@ public class MeasurePool implements DisplayListener {
 
   /** Returns all pool points to the measurement pool. */
   public void releaseAll() {
-    // deselect first
-    if (box != null) box.select(null);
-    bio.toolMeasure.select(null);
-
-    while (!things.isEmpty()) {
-      release((MeasureThing) things.lastElement());
-    }
+    while (!things.isEmpty()) release((MeasureThing) things.lastElement());
   }
 
   /** Creates measurement pool objects to match the given measurements. */
@@ -162,139 +159,29 @@ public class MeasurePool implements DisplayListener {
     // register new leases
     expand(m.length, true);
     for (int i=0; i<m.length; i++) new MeasureThing(this, m[i]);
-    refreshLines();
+    select(null);
+    refresh();
   }
 
   /** Adds a measurement pool object to match the given measurement. */
   public void add(Measurement m) {
     expand(1, true);
-    MeasureThing thing = new MeasureThing(this, m);
+    new MeasureThing(this, m);
   }
 
   /** Sets the current image slice value. */
   public void setSlice(int slice) {
+    if (this.slice == slice) return;
     this.slice = slice;
     cell.disableAction();
     int size = things.size();
+    select(null);
     for (int i=0; i<size; i++) ((MeasureThing) things.elementAt(i)).refresh();
     cell.enableAction();
   }
 
-  /** Gets the current image slice value. */
-  public int getSlice() { return slice; }
-
-  /** Gets the display's dimensionality. */
-  public int getDimension() { return dim; }
-
-
-  // -- INTERNAL API METHODS --
-
-  private int cursor_x, cursor_y;
-
-  /** Listens for left mouse clicks in the display. */
-  public void displayChanged(DisplayEvent e) {
-    int id = e.getId();
-    int x = e.getX();
-    int y = e.getY();
-    if (id == DisplayEvent.MOUSE_PRESSED_LEFT) {
-      cursor_x = x;
-      cursor_y = y;
-    }
-    else if (id == DisplayEvent.MOUSE_RELEASED_LEFT &&
-      x == cursor_x && y == cursor_y)
-    {
-      // get domain coordinates of mouse click
-      double[] coords = pixelToDomain(x, y);
-
-      // compute maximum distance threshold
-      double[] e1 = pixelToDomain(0, 0);
-      double[] e2 = pixelToDomain(PICKING_THRESHOLD, 0);
-      double threshold = e2[0] - e1[0];
-
-      // find closest object
-      int index = -1;
-      double mindist = Double.MAX_VALUE;
-      int size = things.size();
-      for (int i=0; i<size; i++) {
-        // skip multi-vertex measurements
-        MeasureThing thing = (MeasureThing) things.elementAt(i);
-        int len = thing.getLength();
-        if (len > 2) continue;
-
-        // skip measurements not on this slice
-        double[][] values = thing.getMeasurement().doubleValues();
-        boolean okay = false;
-        for (int j=0; j<len; j++) {
-          if (values[2][j] == slice) {
-            okay = true;
-            break;
-          }
-        }
-        if (!okay) continue;
-
-        // compute distance
-        double dist;
-        if (len == 1) {
-          // compute point distance
-          double dx = values[0][0] - coords[0];
-          double dy = values[1][0] - coords[1];
-          dist = Math.sqrt(dx * dx + dy * dy);
-        }
-        else {
-          // compute line distance
-          dist = distance(values[0][0], values[1][0],
-            values[0][1], values[1][1], coords[0], coords[1]);
-        }
-        if (dist < mindist) {
-          mindist = dist;
-          index = i;
-        }
-      }
-
-      // highlight picked line or point
-      if (mindist > threshold) {
-        if (box != null) box.select(null);
-        if (bio.toolMeasure != null) bio.toolMeasure.select(null);
-      }
-      else {
-        MeasureThing thing = (MeasureThing) things.elementAt(index);
-        if (box != null) box.select(thing);
-        if (bio.toolMeasure != null) bio.toolMeasure.select(thing);
-      }
-    }
-  }
-
-
-  // -- HELPER METHODS --
-
-  /** Ensures the pool has at least the given number of free points. */
-  private void expand(int size, boolean init) {
-    // compute number of PoolPoints to add
-    int total = free.size();
-    if (size <= total) return;
-    int n = size - total + BUFFER_SIZE;
-
-    // add new PoolPoints to display
-    cell.disableAction();
-    display.disableAction();
-    for (int i=0; i<n; i++) {
-      PoolPoint pt = new PoolPoint(display, "p" + (total + n));
-      try {
-        cell.addReference(pt.ref);
-        if (init) pt.init();
-      }
-      catch (VisADException exc) { exc.printStackTrace(); }
-      catch (RemoteException exc) { exc.printStackTrace(); }
-      free.add(pt);
-    }
-    display.enableAction();
-    cell.enableAction();
-  }
-
   /** Refreshes the connecting lines of the measurements in the pool. */
-  private void refreshLines() {
-    box.select(null);
-
+  public void refresh() {
     // redraw line segments when endpoints change
     Vector strips = new Vector();
     Vector colors = new Vector();
@@ -307,6 +194,7 @@ public class MeasurePool implements DisplayListener {
 
       // create line strip
       RealTuple[] values = thing.getValues();
+      for (int j=0; j<values.length; j++) if (values[j] == null) return;
       if (dim == 2) {
         boolean okay = false;
         for (int j=0; j<values.length; j++) {
@@ -427,6 +315,119 @@ public class MeasurePool implements DisplayListener {
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }
     }
+  }
+
+  /** Gets the current image slice value. */
+  public int getSlice() { return slice; }
+
+  /** Gets the display's dimensionality. */
+  public int getDimension() { return dim; }
+
+
+  // -- INTERNAL API METHODS --
+
+  private int cursor_x, cursor_y;
+
+  /** Listens for left mouse clicks in the display. */
+  public void displayChanged(DisplayEvent e) {
+    int id = e.getId();
+    int x = e.getX();
+    int y = e.getY();
+    if (id == DisplayEvent.MOUSE_PRESSED_LEFT) {
+      cursor_x = x;
+      cursor_y = y;
+    }
+    else if (id == DisplayEvent.MOUSE_RELEASED_LEFT &&
+      x == cursor_x && y == cursor_y)
+    {
+      // get domain coordinates of mouse click
+      double[] coords = pixelToDomain(x, y);
+
+      // compute maximum distance threshold
+      double[] e1 = pixelToDomain(0, 0);
+      double[] e2 = pixelToDomain(PICKING_THRESHOLD, 0);
+      double threshold = e2[0] - e1[0];
+
+      // find closest object
+      int index = -1;
+      double mindist = Double.MAX_VALUE;
+      int size = things.size();
+      for (int i=0; i<size; i++) {
+        // skip multi-vertex measurements
+        MeasureThing thing = (MeasureThing) things.elementAt(i);
+        int len = thing.getLength();
+        if (len > 2) continue;
+
+        // skip measurements not on this slice
+        double[][] values = thing.getMeasurement().doubleValues();
+        boolean okay = false;
+        for (int j=0; j<len; j++) {
+          if (values[2][j] == slice) {
+            okay = true;
+            break;
+          }
+        }
+        if (!okay) continue;
+
+        // compute distance
+        double dist;
+        if (len == 1) {
+          // compute point distance
+          double dx = values[0][0] - coords[0];
+          double dy = values[1][0] - coords[1];
+          dist = Math.sqrt(dx * dx + dy * dy);
+        }
+        else {
+          // compute line distance
+          dist = distance(values[0][0], values[1][0],
+            values[0][1], values[1][1], coords[0], coords[1]);
+        }
+        if (dist < mindist) {
+          mindist = dist;
+          index = i;
+        }
+      }
+
+      // highlight picked line or point
+      if (mindist > threshold) select(null);
+      else {
+        MeasureThing thing = (MeasureThing) things.elementAt(index);
+        select(thing);
+      }
+    }
+  }
+
+
+  // -- HELPER METHODS --
+
+  /** Ensures the pool has at least the given number of free points. */
+  private void expand(int size, boolean init) {
+    // compute number of PoolPoints to add
+    int total = free.size();
+    if (size <= total) return;
+    int n = size - total + BUFFER_SIZE;
+
+    // add new PoolPoints to display
+    cell.disableAction();
+    display.disableAction();
+    for (int i=0; i<n; i++) {
+      PoolPoint pt = new PoolPoint(display, "p" + (total + n));
+      try {
+        cell.addReference(pt.ref);
+        if (init) pt.init();
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
+      free.add(pt);
+    }
+    display.enableAction();
+    cell.enableAction();
+  }
+
+  /** Deselects any selected measurements. */
+  void select(MeasureThing thing) {
+    bio.toolMeasure.select(thing);
+    box.select(thing);
   }
 
   /** Converts the given pixel coordinates to domain coordinates. */
