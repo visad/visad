@@ -35,6 +35,8 @@ import java.awt.image.BufferedImage;
 import java.rmi.*;
 import java.util.*;
 
+import java.lang.reflect.*;
+
 import javax.media.j3d.*;
 import javax.vecmath.*;
 
@@ -174,9 +176,19 @@ public abstract class DisplayRendererJ3D
         synchronized (this) {
           canvas.captureFlag = true;
           if (canvas.getOffscreen()) {
-            canvas.renderOffScreenBuffer();
-            // hangs
-            // canvas.waitForOffScreenRendering();
+            try {
+              Method waitMethod =
+                Canvas3D.class.getMethod("renderOffScreenBuffer",
+                                         new Class[] {});
+              waitMethod.invoke(canvas, new Object[] {});
+            }
+            catch (NoSuchMethodException e) {
+            }
+            catch (IllegalAccessException e) {
+            }
+            catch (InvocationTargetException e) {
+            }
+            // canvas.renderOffScreenBuffer();
           }
           try {
             proj.setMatrix(proj.getMatrix());
