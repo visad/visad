@@ -49,8 +49,8 @@ public class StepWidget extends JPanel
 
   protected JSlider step;
   private boolean horiz;
-  private JButton forward;
-  private JButton back;
+  protected JButton forward;
+  protected JButton back;
 
   protected int min = 1;
   protected int max = 1;
