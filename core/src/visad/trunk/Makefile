@@ -33,7 +33,7 @@ default:
 .java.class:
 	javac $<
 
-JAVAC = javac
+JC = javac
 JFLAGS = -J-mx32m
 RM = rm -f
 FITS = ../nom/tam
@@ -294,33 +294,41 @@ clear:
 	$(RM) paoloa/*.java aune/*.java examples/*.java
 
 
+RMIC = \
+	visad.RemoteCellImpl \
+	visad.RemoteActionImpl \
+	visad.RemoteDisplayImpl \
+	visad.RemoteThingReferenceImpl \
+	visad.RemoteDataReferenceImpl \
+	visad.RemoteThingImpl \
+	visad.RemoteDataImpl \
+	visad.RemoteFunctionImpl \
+	visad.RemoteFieldImpl \
+	visad.RemoteServerImpl
+
 compile: clean
-	$(JAVAC) $(JFLAGS) *.java
-	rmic visad.RemoteCellImpl visad.RemoteActionImpl \
-		visad.RemoteDisplayImpl visad.RemoteThingReferenceImpl \
-		visad.RemoteDataReferenceImpl visad.RemoteThingImpl \
-		visad.RemoteDataImpl visad.RemoteFunctionImpl \
-		visad.RemoteFieldImpl visad.RemoteServerImpl
-	$(JAVAC) $(JFLAGS) java3d/*.java
-	$(JAVAC) $(JFLAGS) util/*.java
+	$(JC) $(JFLAGS) *.java
+	rmic $(RMIC)
+	$(JC) $(JFLAGS) java3d/*.java
+	$(JC) $(JFLAGS) util/*.java
 	-(cd .. && jar xvf ucar.jar)
-	$(JAVAC) $(JFLAGS) data/*.java
-	$(JAVAC) $(JFLAGS) data/netcdf/units/*.java
-	$(JAVAC) $(JFLAGS) data/netcdf/in/*.java
-	$(JAVAC) $(JFLAGS) data/netcdf/out/*.java
-	$(JAVAC) $(JFLAGS) data/netcdf/*.java
-	-$(JAVAC) $(JFLAGS) $(FITS)/util/*.java
-	-$(JAVAC) $(JFLAGS) $(FITS)/fits/*.java
-	-$(JAVAC) $(JFLAGS) $(FITS)/test/*.java
-	$(JAVAC) $(JFLAGS) data/fits/*.java
-	$(JAVAC) $(JFLAGS) data/vis5d/*.java
-	$(JAVAC) $(JFLAGS) data/gif/*.java
-	$(JAVAC) $(JFLAGS) data/hdfeos/hdfeosc/*.java
-	$(JAVAC) $(JFLAGS) data/hdfeos/*.java
-	-$(JAVAC) $(JFLAGS) paoloa/*.java
-	-$(JAVAC) $(JFLAGS) aune/*.java
-	-(cd examples && $(JAVAC) $(JFLAGS) *.java)
-#	$(JAVAC) $(JFLAGS) java2d/*.java
+	$(JC) $(JFLAGS) data/*.java
+	$(JC) $(JFLAGS) data/netcdf/units/*.java
+	$(JC) $(JFLAGS) data/netcdf/in/*.java
+	$(JC) $(JFLAGS) data/netcdf/out/*.java
+	$(JC) $(JFLAGS) data/netcdf/*.java
+	-$(JC) $(JFLAGS) $(FITS)/util/*.java
+	-$(JC) $(JFLAGS) $(FITS)/fits/*.java
+	-$(JC) $(JFLAGS) $(FITS)/test/*.java
+	$(JC) $(JFLAGS) data/fits/*.java
+	$(JC) $(JFLAGS) data/vis5d/*.java
+	$(JC) $(JFLAGS) data/gif/*.java
+	$(JC) $(JFLAGS) data/hdfeos/hdfeosc/*.java
+	$(JC) $(JFLAGS) data/hdfeos/*.java
+	-$(JC) $(JFLAGS) paoloa/*.java
+	-$(JC) $(JFLAGS) aune/*.java
+	-(cd examples && $(JC) $(JFLAGS) *.java)
+#	$(JC) $(JFLAGS) java2d/*.java
 
 clean:
 	$(RM) *.class
