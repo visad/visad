@@ -299,6 +299,24 @@ public class FileFlatField extends FlatField {
     }
   } 
 
+  public double[] getValues(int index)
+         throws VisADException
+  {
+    synchronized (adaptedFlatFields)
+    {
+      return getadaptedFlatField().getValues(index);
+    }
+  }
+
+  public float[][] getFloats(boolean copy)
+         throws VisADException
+  {
+    synchronized (adaptedFlatFields)
+    {
+      return getadaptedFlatField().getFloats(copy);
+    }
+  }
+
   public Set getDomainSet() 
   {
     synchronized ( adaptedFlatFields ) 
