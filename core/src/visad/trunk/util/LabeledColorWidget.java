@@ -331,6 +331,10 @@ public class LabeledColorWidget
     wrappedWidget.setPreferredSize(size);
   }
 
+  public BaseRGBMap getBaseMap() { return wrappedWidget.baseMap; }
+  public ColorPreview getPreview() { return wrappedWidget.preview; }
+  public ArrowSlider getSlider() { return wrappedWidget.slider; }
+
   public static void main(String[] args)
   {
     try {

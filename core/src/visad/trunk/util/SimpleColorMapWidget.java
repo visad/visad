@@ -165,6 +165,10 @@ public class SimpleColorMapWidget
     slider.setBounds(min, max, val);
   }
 
+  public BaseRGBMap getBaseMap() { return baseMap; }
+  public ColorPreview getPreview() { return preview; }
+  public ArrowSlider getSlider() { return slider; }
+
   /**
    * Use a new table of color values.
    *
