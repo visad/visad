@@ -98,12 +98,18 @@ TAR_FILES = \
 	visad/data/gif/*.java				\
 	visad/data/gif/sseclogo.gif			\
 	visad/data/visad/*.java				\
+	visad/jmet/*.java				\
 	visad/paoloa/README.paoloa			\
 	visad/paoloa/Makefile				\
 	visad/paoloa/*.java				\
 	visad/paoloa/*.f				\
 	visad/paoloa/*.c				\
 	visad/paoloa/*.h				\
+	visad/paoloa/spline/Makefile			\
+	visad/paoloa/spline/*.java			\
+	visad/paoloa/spline/*.f				\
+	visad/paoloa/spline/*.c				\
+	visad/paoloa/spline/*.h				\
 	visad/aune/README.aune				\
 	visad/aune/Makefile				\
 	visad/aune/shsize.fcm				\
@@ -174,7 +180,9 @@ CLASS_FILES = \
 	visad/data/mcidas/*.class                       \
 	visad/data/gif/*.class				\
 	visad/data/visad/*.class			\
+	visad/jmet/*.class				\
 	visad/paoloa/*.class				\
+	visad/paoloa/spline/*.class			\
 	visad/aune/*.class				\
 	visad/benjamin/*.class				\
 	visad/examples/*.class
@@ -236,12 +244,18 @@ SAVE_FILES = \
 	visad/data/vis5d/Makefile			\
 	visad/data/gif/*.java				\
 	visad/data/visad/*.java				\
+	visad/jmet/*.java				\
 	visad/paoloa/README.paoloa			\
 	visad/paoloa/Makefile				\
 	visad/paoloa/*.java				\
 	visad/paoloa/*.f				\
 	visad/paoloa/*.c				\
 	visad/paoloa/*.h				\
+	visad/paoloa/spline/Makefile			\
+	visad/paoloa/spline/*.java			\
+	visad/paoloa/spline/*.f				\
+	visad/paoloa/spline/*.c				\
+	visad/paoloa/spline/*.h				\
 	visad/aune/README.aune				\
 	visad/aune/Makefile				\
 	visad/aune/shsize.fcm				\
@@ -264,14 +278,14 @@ SAVE_FILES = \
 	visad/plotdigits.html
 
 save:
-	/bin/rm -f backup/visad/*.java backup/visad/examples/*.java backup/visad/java3d/*.java backup/visad/java2d/*.java backup/visad/util/*.java backup/visad/formula/*.java backup/visad/ss/*.java backup/visad/ss/*.gif backup/visad/data/*.java backup/visad/data/netcdf/*.java backup/visad/data/netcdf/units/*.java backup/visad/data/netcdf/in/*.java backup/visad/data/netcdf/out/*.java backup/edu/wisc/ssec/mcidas/*.java backup/visad/data/mcidas/*.java backup/visad/data/fits/*.java backup/nom/tam/fits/*.java backup/nom/tam/util/*.java backup/nom/tam/test/*.java backup/ucar/multiarray/*.java backup/ucar/util/*.java backup/ucar/netcdf/*.java backup/ucar/tests/*.java backup/visad/data/hdfeos/*.java backup/visad/data/hdfeos/hdfeosc/*.java backup/visad/data/vis5d/*.java backup/visad/data/gif/*.java backup/visad/data/visad/*.java backup/visad/paoloa/*.java backup/visad/aune/*.java backup/visad/benjamin/*.java ; \
+	/bin/rm -f backup/visad/*.java backup/visad/examples/*.java backup/visad/java3d/*.java backup/visad/java2d/*.java backup/visad/util/*.java backup/visad/formula/*.java backup/visad/ss/*.java backup/visad/ss/*.gif backup/visad/data/*.java backup/visad/data/netcdf/*.java backup/visad/data/netcdf/units/*.java backup/visad/data/netcdf/in/*.java backup/visad/data/netcdf/out/*.java backup/edu/wisc/ssec/mcidas/*.java backup/visad/data/mcidas/*.java backup/visad/data/fits/*.java backup/nom/tam/fits/*.java backup/nom/tam/util/*.java backup/nom/tam/test/*.java backup/ucar/multiarray/*.java backup/ucar/util/*.java backup/ucar/netcdf/*.java backup/ucar/tests/*.java backup/visad/data/hdfeos/*.java backup/visad/data/hdfeos/hdfeosc/*.java backup/visad/data/vis5d/*.java backup/visad/data/gif/*.java backup/visad/data/visad/*.java backup/visad/paoloa/*.java backup/visad/aune/*.java backup/visad/benjamin/*.java backup/visad/jmet/*.java backup/visad/paoloa/spline/*.java ; \
 	cd .. ; \
 	tar -cvf save.tar $(SAVE_FILES) ; \
 	cd visad/backup ; \
 	tar -xvf ../../save.tar ; \
 	rm ../../save.tar ; \
 	cd .. ; \
-	wc backup/visad/*.java backup/visad/examples/*.java backup/visad/java3d/*.java backup/visad/java2d/*.java backup/visad/util/*.java backup/visad/formula/*.java backup/visad/ss/*.java backup/visad/data/*.java backup/visad/data/netcdf/*.java backup/visad/data/netcdf/units/*.java backup/visad/data/netcdf/in/*.java backup/visad/data/netcdf/out/*.java backup/edu/wisc/ssec/mcidas/*.java backup/visad/data/mcidas/*.java backup/visad/data/fits/*.java backup/nom/tam/fits/*.java backup/nom/tam/util/*.java backup/nom/tam/test/*.java backup/ucar/multiarray/*.java backup/ucar/util/*.java backup/ucar/netcdf/*.java backup/ucar/tests/*.java backup/visad/data/hdfeos/*.java backup/visad/data/hdfeos/hdfeosc/*.java backup/visad/data/vis5d/*.java backup/visad/data/gif/*.java backup/visad/data/visad/*.java backup/visad/paoloa/*.java backup/visad/aune/*.java backup/visad/benjamin/*.java
+	wc backup/visad/*.java backup/visad/examples/*.java backup/visad/java3d/*.java backup/visad/java2d/*.java backup/visad/util/*.java backup/visad/formula/*.java backup/visad/ss/*.java backup/visad/data/*.java backup/visad/data/netcdf/*.java backup/visad/data/netcdf/units/*.java backup/visad/data/netcdf/in/*.java backup/visad/data/netcdf/out/*.java backup/edu/wisc/ssec/mcidas/*.java backup/visad/data/mcidas/*.java backup/visad/data/fits/*.java backup/nom/tam/fits/*.java backup/nom/tam/util/*.java backup/nom/tam/test/*.java backup/ucar/multiarray/*.java backup/ucar/util/*.java backup/ucar/netcdf/*.java backup/ucar/tests/*.java backup/visad/data/hdfeos/*.java backup/visad/data/hdfeos/hdfeosc/*.java backup/visad/data/vis5d/*.java backup/visad/data/gif/*.java backup/visad/data/visad/*.java backup/visad/paoloa/*.java backup/visad/aune/*.java backup/visad/benjamin/*.java backup/visad/jmet/*.java backup/visad/paoloa/spline/*.java
 
 
 clear:
@@ -283,9 +297,10 @@ clear:
 	$(RM) $(FITS)/fits/*.java $(FITS)/util/*.java $(FITS)/test/*.java
 	$(RM) $(UCAR)/multiarray/*.java $(UCAR)/netcdf/*.java $(UCAR)/tests/*.java
 	$(RM) data/hdfeos/*.java data/hdfeos/hdfeosc/*.java
-	$(RM) $(SSEC)/mcidas/*.java data/mcidas/*.java
+	$(RM) $(SSEC)/mcidas/*.java data/mcidas/*.java jmet/*.java
 	$(RM) data/vis5d/*.java data/gif/*.java data/visad/*.java
 	$(RM) paoloa/*.java aune/*.java benjamin/*.java examples/*.java
+	$(RM) paoloa/spline/*.java
 
 
 debug:
@@ -319,7 +334,9 @@ VISAD_PACKAGES = \
 		visad.data.hdfeos \
 		visad.formula \
 		visad.ss \
+		visad.jmet \
 		visad.paoloa \
+		visad.paoloa.spline \
 		visad.aune \
 		visad.benjamin
 
