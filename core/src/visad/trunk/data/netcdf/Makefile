@@ -14,4 +14,8 @@ clean:		units/clean
 
 include ../../rules.make
 
-test:		Plain.test
+test:		small.test big.test pmsl.test #time.test
+
+.SUFFIXES:	.nc
+.nc.test:	FORCE
+	CLASSPATH=$(ROOTDIR):$$CLASSPATH $(JAVA) $(PACKAGE).Plain $<

@@ -2,13 +2,14 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: CoordVar.java,v 1.4 1998-02-23 15:58:15 steve Exp $
+ * $Id: CoordVar.java,v 1.5 1998-03-10 19:49:29 steve Exp $
  */
 
 package visad.data.netcdf;
 
 
 import java.io.IOException;
+import ucar.netcdf.Attribute;
 import ucar.netcdf.Dimension;
 import visad.Linear1DSet;
 import visad.Unit;
@@ -29,6 +30,11 @@ CoordVar
      */
     protected final Linear1DSet	set;
 
+    /**
+     * The unit.
+     */
+    protected final Unit	unit;
+
 
     /**
      * Construct.
@@ -37,25 +43,21 @@ CoordVar
     CoordVar(String name, Dimension dim, Unit unit, Linear1DSet set)
 	throws BadFormException
     {
-	super(name, Float.TYPE, new Dimension[] {dim}, unit);
+	super(name, Float.TYPE, new Dimension[] {dim}, myAttributes(unit));
 	this.set = set;
+	this.unit = unit;
     }
 
 
     /**
-     * Return the fill-value object for a co-ordinate variable.  This is
-     * necessarily null because VisAD domain sample sets don't have missing
-     * values.
-     *
-     * @param type	netCDF type (e.g. <code>Character.TYPE</code>, 
-     *			<code>Float.TYPE</code>).
-     * @return		The default fill-value object for the given netCDF
-     *			type.
+     * Return my attributes for construction.
      */
-    Number
-    getFillValueNumber(Class type)
+    protected static Attribute[]
+    myAttributes(Unit unit)
     {
-	return null;
+	return unit == null
+		? null
+		: new Attribute[] { new Attribute("units", unit.toString()) };
     }
 
 
@@ -89,7 +91,7 @@ CoordVar
 	return getName().equals(that.getName()) && 
 		getRank() == that.getRank() &&
 		getLengths()[0] == that.getLengths()[0] &&
-		unit.equals(that.unit) &&
+		(unit == that.unit || unit.equals(that.unit)) &&
 		set.equals(that.set);
     }
 }

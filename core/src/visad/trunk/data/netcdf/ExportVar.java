@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ExportVar.java,v 1.4 1998-02-23 15:58:17 steve Exp $
+ * $Id: ExportVar.java,v 1.5 1998-03-10 19:49:33 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -37,241 +37,17 @@ import visad.data.BadFormException;
  */
 abstract class
 ExportVar
+    extends	ProtoVariable
     implements	Accessor
 {
-    /**
-     * The fill-value export object.
-     */
-    protected final Object		fillObject;
-
-    /**
-     * The associated netCDF ProtoVariable.
-     */
-    protected final ProtoVariable	protoVar;
-
-    /**
-     * The physical units of the variable (used in equals() method).
-     */
-    protected final Unit		unit;
-
-
     /**
      * Construct from broken-out information.
      */
     protected
-    ExportVar(String name, Class type, Dimension[] dims, Unit unit)
+    ExportVar(String name, Class type, Dimension[] dims, Attribute[] attrs)
 	throws BadFormException
     {
-	this.unit = unit;
-
-	fillObject = getFillValueObject(type);
-
-	int		nattrs = (unit == null ? 0 : 1) +
-				 (fillObject == null ? 0 : 1);
-	Attribute[]	attrs;
-
-	if (nattrs == 0)
-	    attrs = null;
-	else
-	{
-	    int	iattr = 0;
-
-	    attrs = new Attribute[nattrs];
-
-	    /*
-	     * The following is necessary because the constructors
-	     * Attribute(String, Number) and Attribute(String, Object) both
-	     * exist and the compiler won't choose the "Number" constructor
-	     * if the argument is the common-type "Object".
-	     */
-	    if (fillObject != null)
-		attrs[iattr++] =
-		    fillObject instanceof Number
-			? new Attribute("_FillValue", (Number)fillObject)
-			: new Attribute("_FillValue", (String)fillObject);
-
-	    if (unit != null)
-		attrs[iattr++] = new Attribute("units", unit.toString());
-	}
-
-	protoVar = new ProtoVariable(name, type, reverse(dims), attrs);
-    }
-
-
-    /**
-     * Return the fill-value object for a netCDF variable of the
-     * given type.
-     *
-     * @param type	netCDF type (e.g. <code>Character.TYPE</code>, 
-     *			<code>Float.TYPE</code>).
-     * @return		The default fill-value object for the given netCDF
-     *			type.
-     * @exception BadFormException	Unknown netCDF type.
-     */
-    Object
-    getFillValueObject(Class type)
-	throws BadFormException
-    {
-	Object	object;
-
-	if (type.equals(Character.TYPE))
-	    object = getFillValueString();
-	else
-	    object = getFillValueNumber(type);
-
-	return object;
-    }
-
-
-    /**
-     * Return the fill-value object for a netCDF text variable.
-     */
-    static String
-    getFillValueString()
-    {
-	return "\000";
-    }
-
-
-    /**
-     * Return the fill-value object for a numeric netCDF variable of the
-     * given type.  Overridden in class CoordVar.
-     *
-     * @param type	netCDF type (e.g. <code>Character.TYPE</code>, 
-     *			<code>Float.TYPE</code>).
-     * @return		The default fill-value object for the given netCDF
-     *			type.
-     * @exception BadFormException	Unknown netCDF type.
-     */
-    Number
-    getFillValueNumber(Class type)
-	throws BadFormException
-    {
-	Number	number;
-
-	if (type.equals(Byte.TYPE))
-	    number = new Byte(Byte.MIN_VALUE);
-	else
-	if (type.equals(Short.TYPE))
-	    number = new Short((short)-32767);
-	else
-	if (type.equals(Integer.TYPE))
-	    number = new Integer(-2147483647);
-	else
-	if (type.equals(Float.TYPE))
-	    number = new Float(9.9692099683868690e+36);
-	else
-	if (type.equals(Double.TYPE))
-	    number = new Double(9.9692099683868690e+36);
-	else
-	    throw new BadFormException("Unknown netCDF type: " + type);
-
-	return number;
-    }
-
-
-    /**
-     * Reverse the order of an array of dimensions.
-     */
-    private static Dimension[]
-    reverse(Dimension[] dims)
-	throws BadFormException
-    {
-	Dimension[]	reversed = new Dimension[dims.length];
-
-	for (int idim = 0; idim < dims.length; ++idim)
-	    reversed[idim] = dims[dims.length-1-idim];
-
-	return reversed;
-    }
-
-
-    /**
-     * Get the class of the Java primitive type corresponding to the
-     * VisAD Set of a VisAD range value.
-     *
-     * @precondition	The set is that of a range value.
-     */
-    protected static Class
-    getJavaClass(Set set)
-	throws VisADException
-    {
-	if (set == null || set instanceof DoubleSet)
-	    return Double.TYPE;
-	if (set instanceof FloatSet)
-	    return Float.TYPE;
-	
-	int	nelts = set.getLength();
-
-	return nelts >= 65536
-		    ? Integer.TYPE
-		    : nelts >= 256
-			? Short.TYPE
-			: Byte.TYPE;
-    }
-
-
-    /**
-     * Return the object to be exported given the float value.
-     */
-    protected Object
-    getExportObject(float value)
-    {
-	return Float.isNaN(value)
-		? fillObject
-		: new Float(value);
-    }
-
-
-    /**
-     * Return the object to be exported given the double value.
-     */
-    protected Object
-    getExportObject(double value)
-    {
-	return Double.isNaN(value)
-		? fillObject
-		: new Double(value);
-    }
-
-
-    /**
-     * Return the associated netCDF ProtoVariable.
-     */
-    ProtoVariable
-    getProtoVariable()
-    {
-	return protoVar;
-    }
-
-
-    /**
-     * Return the name of the netCDF variable.
-     */
-    String
-    getName()
-    {
-	return protoVar.getName();
-    }
-
-
-    /**
-     * Return the rank of the netCDF variable.
-     */
-    int
-    getRank()
-    {
-	return protoVar.getRank();
-    }
-
-
-    /**
-     * Return the dimensional lengths of the netCDF variable.
-     */
-    int[]
-    getLengths()
-    {
-	return protoVar.getLengths();
+	super(name, type, dims, attrs);
     }
 
 

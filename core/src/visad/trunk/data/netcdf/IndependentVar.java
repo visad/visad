@@ -2,13 +2,14 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: IndependentVar.java,v 1.3 1998-02-23 15:58:19 steve Exp $
+ * $Id: IndependentVar.java,v 1.4 1998-03-10 19:49:35 steve Exp $
  */
 
 package visad.data.netcdf;
 
 
 import java.io.IOException;
+import ucar.netcdf.Attribute;
 import ucar.netcdf.Dimension;
 import visad.GriddedSet;
 import visad.Unit;
@@ -48,26 +49,21 @@ IndependentVar
 	    GriddedSet set, int idim)
 	throws BadFormException
     {
-	super(name, Float.TYPE, new Dimension[] {dim}, unit);
+	super(name, Float.TYPE, new Dimension[] {dim}, myAttributes(unit));
 	this.set = set;
 	this.idim = idim;
     }
 
 
     /**
-     * Return the fill-value object for an independent variable.  This is
-     * necessarily null because VisAD domain sample sets don't have missing
-     * values.
-     *
-     * @param type	netCDF type (e.g. <code>Character.TYPE</code>, 
-     *			<code>Float.TYPE</code>).
-     * @return		The default fill-value object for the given netCDF
-     *			type.
+     * Return my attributes for construction.
      */
-    Number
-    getFillValueNumber(Class type)
+    protected static Attribute[]
+    myAttributes(Unit unit)
     {
-	return null;
+	return unit == null
+		? null
+		: new Attribute[] { new Attribute("units", unit.toString()) };
     }
 
 
@@ -78,12 +74,11 @@ IndependentVar
      get(int[] indexes)
 	throws IOException
      {
-	int	index = indexes[indexes.length-1];
-
 	try
 	{
-	    return getExportObject(
-		set.indexToValue(new int[] {index})[idim][0]);
+	    return new Float(
+		set.indexToValue(new int[] {indexes[indexes.length-1]})
+		    [idim][0]);
 	}
 	catch (Exception e)
 	{

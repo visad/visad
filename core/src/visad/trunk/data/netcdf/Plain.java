@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Plain.java,v 1.5 1998-02-23 15:58:27 steve Exp $
+ * $Id: Plain.java,v 1.6 1998-03-10 19:49:37 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -55,7 +55,7 @@ Plain
 	throws BadFormException, IOException, RemoteException, VisADException,
 	    UnimplementedException
     {
-	VisADAdapter	adapter = new VisADAdapter(data);
+	DataAdapter	adapter = new DataAdapter(data);
 	Schema		schema = new Schema(adapter);
 	NetcdfFile	file = new NetcdfFile(path, replace, /*fill=*/false,
 					schema);

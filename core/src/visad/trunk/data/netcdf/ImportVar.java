@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ImportVar.java,v 1.4 1998-02-23 15:58:18 steve Exp $
+ * $Id: ImportVar.java,v 1.5 1998-03-10 19:49:34 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -804,8 +804,26 @@ NcInt
 	    ? new RealType(getName(), unit, (Set)null)
 	    : (RealType)mathType;
 
-	set = new FloatSet(realType, (CoordinateSystem)null,
-		    new Unit[] {unit});
+	/*
+	 * The following is complicated due to the fact that the last
+	 * argument to the Linear2DSet() constructor:
+	 *
+	 *     Linear1DSet(MathType type, double start, double stop, int length)
+	 *
+	 * is an "int" -- and the number of Java "int" values cannot
+	 * be represented by a Java "int".
+	 */
+	{
+	    Vetter	vetter = new Vetter(var);
+	    int		minValid = (int)vetter.minValid();
+	    int		maxValid = (int)vetter.maxValid();
+	    long	length	= maxValid - minValid + 1;
+	    set = length <= Integer.MAX_VALUE
+		    ? (Set)(new Linear1DSet(realType, minValid, maxValid, 
+					    (int)length))
+		    : (Set)(new FloatSet(realType, (CoordinateSystem)null,
+					new Unit[] {unit}));
+	}
 
 	if (mathType == null)
 	{
