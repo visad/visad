@@ -443,35 +443,39 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
                    " to " + dataRange[1] + " scale: " + scale + " " + offset);
 */
     if (DisplayScalar.equals(Display.Animation) && shadow != null) {
-      Set set = shadow.animationSampling;
-      if (set == null) {
-        return;
-        // WLH - should never happen
-        // set = shadow.animationRangeSampling;
-        // throw new DisplayException("ScalarMap.setRange: animationRangeSampling");
+      if (control != null) {
+        Set set = shadow.animationSampling;
+        if (set == null) {
+          return;
+          // WLH - should never happen
+          // set = shadow.animationRangeSampling;
+          // throw new DisplayException("ScalarMap.setRange: animationRangeSampling");
+        }
+        // dglo 24 Nov 1998 -- Dead code
+        // if (set == null) {
+        //   set = new Linear1DSet(Scalar, dataRange[0], dataRange[1], 100);
+        // }
+        ((AnimationControl) control).setSet(set, true);
       }
-      // dglo 24 Nov 1998 -- Dead code
-      // if (set == null) {
-      //   set = new Linear1DSet(Scalar, dataRange[0], dataRange[1], 100);
-      // }
-      ((AnimationControl) control).setSet(set, true);
     }
     else if (DisplayScalar.equals(Display.IsoContour)) {
-      boolean[] bvalues = new boolean[2];
-      float[] values = new float[5];
-      ((ContourControl) control).getMainContours(bvalues, values);
-      if (shadow == null) {
-        // don't set surface value for auto-scale
-        values[0] = (float) dataRange[0]; // surfaceValue
+      if (control != null) {
+        boolean[] bvalues = new boolean[2];
+        float[] values = new float[5];
+        ((ContourControl) control).getMainContours(bvalues, values);
+        if (shadow == null) {
+          // don't set surface value for auto-scale
+          values[0] = (float) dataRange[0]; // surfaceValue
+        }
+        // CTR: 29 Jul 1999: interval should never be zero
+        float f = (float) (dataRange[1] - dataRange[0]) / 10.0f;
+        if (f != 0.0f) values[1] = f;
+        //values[1] = (float) (dataRange[1] - dataRange[0]) / 10.0f; // contourInterval
+        values[2] = (float) dataRange[0]; // lowLimit
+        values[3] = (float) dataRange[1]; // hiLimit
+        values[4] = (float) dataRange[0]; // base
+        ((ContourControl) control).setMainContours(bvalues, values, true);
       }
-      // CTR: 29 Jul 1999: interval should never be zero
-      float f = (float) (dataRange[1] - dataRange[0]) / 10.0f;
-      if (f != 0.0f) values[1] = f;
-      //values[1] = (float) (dataRange[1] - dataRange[0]) / 10.0f; // contourInterval
-      values[2] = (float) dataRange[0]; // lowLimit
-      values[3] = (float) dataRange[1]; // hiLimit
-      values[4] = (float) dataRange[0]; // base
-      ((ContourControl) control).setMainContours(bvalues, values, true);
     }
     else if (DisplayScalar.equals(Display.XAxis) ||
              DisplayScalar.equals(Display.YAxis) ||
