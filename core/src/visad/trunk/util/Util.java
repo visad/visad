@@ -22,7 +22,11 @@ MA 02111-1307, USA
 
 package visad.util;
 
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.Window;
 import javax.swing.JFileChooser;
+import javax.swing.JTextField;
 import javax.swing.filechooser.FileFilter;
 
 /**
@@ -119,7 +123,9 @@ public class Util
     return isApproximatelyEqual(a, b, 0.000000001);
   }
 
-  /** return a JFileChooser that recognizes accepted VisAD file types */
+  /**
+   * Return a JFileChooser that recognizes accepted VisAD file types.
+   */
   public static JFileChooser getVisADFileChooser() {
     // construct file filters
     FileFilter fits = new ExtensionFileFilter(
@@ -146,7 +152,7 @@ public class Util
       png, serial, vis5d}, "All VisAD file types");
 
     // construct and configure file chooser
-    JFileChooser dialog = new JFileChooser();
+    JFileChooser dialog = new JFileChooser(System.getProperty("user.dir"));
     dialog.addChoosableFileFilter(fits);
     dialog.addChoosableFileFilter(gif);
     dialog.addChoosableFileFilter(hdf5);
@@ -159,6 +165,25 @@ public class Util
     dialog.addChoosableFileFilter(vis5d);
     dialog.addChoosableFileFilter(combo);
     return dialog;
+  }
+
+  /**
+   * Limit the given text field to one line in height.
+   */
+  public static void adjustTextField(JTextField field) {
+    Dimension msize = field.getMaximumSize();
+    Dimension psize = field.getPreferredSize();
+    msize.height = psize.height;
+    field.setMaximumSize(msize);
+  }
+
+  /**
+   * Center the given window on the screen.
+   */
+  public static void centerWindow(Window window) {
+    Dimension s = Toolkit.getDefaultToolkit().getScreenSize();
+    Dimension w = window.getSize();
+    window.setLocation(s.width / 2 - w.width / 2, s.height / 2 - w.height / 2);
   }
 
 }

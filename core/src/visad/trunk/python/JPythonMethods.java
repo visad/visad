@@ -55,7 +55,9 @@ public abstract class JPythonMethods {
 
   private static JFrame widgetFrame = null;
 
-  /** reads in data from the given location (filename or URL) */
+  /**
+   * Reads in data from the given location (filename or URL).
+   */
   public static DataImpl load(String location) throws VisADException {
     return form.open(location);
   }
@@ -74,7 +76,8 @@ public abstract class JPythonMethods {
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
   public static void plot(DataImpl data)
-    throws VisADException, RemoteException {
+    throws VisADException, RemoteException
+  {
     plot(data, 1.0, 1.0, 1.0);
   }
 
@@ -92,7 +95,8 @@ public abstract class JPythonMethods {
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
   public static void plot(DataImpl data, double red, double green, double blue)
-    throws VisADException, RemoteException {
+    throws VisADException, RemoteException
+  {
     if (data == null) throw new VisADException("Data cannot be null");
     if (display == null) {
       displayFrame = new JFrame("VisAD Display Plot");
@@ -111,7 +115,7 @@ public abstract class JPythonMethods {
       // allow user to alter default mappings
       dialog = new MappingDialog(null, data, maps, true, true);
       dialog.display();
-      if (dialog.Confirm) maps = dialog.ScalarMaps;
+      if (dialog.okPressed()) maps = dialog.getMaps();
       boolean d3d = false;
       for (int i=0; i<maps.length; i++) {
         if (maps[i].getDisplayScalar().equals(Display.ZAxis) ||
@@ -150,13 +154,13 @@ public abstract class JPythonMethods {
     data_references.addElement(ref);
     ref.setData(data);
     MathType type = data.getType();
+    boolean ok = false;
     try {
-      ImageRendererJ3D.verifyImageRendererUsable(type, maps);
-      display.addReferences(new ImageRendererJ3D(), ref, cmaps);
+      ok = ImageRendererJ3D.isRendererUsable(type, maps);
     }
-    catch (VisADException exc) {
-      display.addReference(ref, cmaps);
-    }
+    catch (VisADException exc) { }
+    if (ok) display.addReferences(new ImageRendererJ3D(), ref, cmaps);
+    else display.addReference(ref, cmaps);
   }
 
   /**
@@ -1275,7 +1279,7 @@ public abstract class JPythonMethods {
     return new int[] {values_len, min, max};
   }
 
-/** NOT DONE
+/* NOT DONE
   public static Set linear(MathType type, double first, double last, int length)
          throws VisADException, RemoteException {
     return null;

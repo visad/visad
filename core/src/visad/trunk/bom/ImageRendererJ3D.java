@@ -86,10 +86,17 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
             image_type3.equalsExceptName(type));
   }
 
-  /** determine whether the given MathType and collection of ScalarMaps
-      meets the criteria to use ImageRendererJ3D. Throws a VisADException
-      if ImageRenderer cannot be used, otherwise returns successfully. */
+  /** @deprecated Use isRendererUsable(MathType, ScalarMap[]) instead. */
   public static void verifyImageRendererUsable(MathType type, ScalarMap[] maps)
+    throws VisADException
+  {
+    isRendererUsable(type, maps);
+  }
+
+  /** determine whether the given MathType and collection of ScalarMaps
+      meets the criteria to use ImageRendererJ3D. Throw a VisADException
+      if ImageRenderer cannot be used, otherwise return true. */
+  public static boolean isRendererUsable(MathType type, ScalarMap[] maps)
     throws VisADException
   {
     RealType time = null;
@@ -273,6 +280,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
           br && bg && bb && dbr && dbg && dbb)) {
       throw new VisADException("Insufficient mappings");
     }
+    return true;
   }
 
   // flag to indicate:

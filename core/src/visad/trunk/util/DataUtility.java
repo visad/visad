@@ -34,6 +34,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Comparator;
 import java.util.Vector;
+import java.util.StringTokenizer;
 
 // RMI classes
 import java.rmi.RemoteException;
@@ -941,6 +942,201 @@ public class DataUtility {
   }
 
   /**
+   * Attempts to guess a good set of mappings for a display containing
+   * Data objects of the given types. The algorithm simply returns mappings
+   * for the first successfully guessed dataset.
+   */
+  public static ScalarMap[] guessMaps(MathType[] types, boolean allow3d) {
+    int len = types.length;
+    int numMaps = 0;
+    for (int i=0; i<len; i++) {
+      ScalarMap[] maps = types[i].guessMaps(allow3d);
+      if (maps != null) return maps;
+    }
+    return null;
+  }
+
+  /**
+   * Converts the given vector of mappings to an easy-to-read String form.
+   */
+  public static String convertMapsToString(Vector v) {
+    int len = v.size();
+    ScalarMap[] sm = new ScalarMap[len];
+    for (int i=0; i<len; i++) sm[i] = (ScalarMap) v.elementAt(i);
+    return convertMapsToString(sm);
+  }
+
+  /**
+   * Converts the given array of mappings to an easy-to-read String form.
+   */
+  public static String convertMapsToString(ScalarMap[] sm) {
+    StringBuffer sb = new StringBuffer(128);
+    for (int i=0; i<sm.length; i++) {
+      ScalarMap m = sm[i];
+      ScalarType domain = m.getScalar();
+      DisplayRealType range = m.getDisplayScalar();
+      int q = -1;
+      for (int j=0; j<Display.DisplayRealArray.length; j++) {
+        if (range.equals(Display.DisplayRealArray[j])) q = j;
+      }
+      sb.append(' ');
+      sb.append(domain.getName());
+      sb.append(' ');
+      sb.append(q);
+    }
+    return sb.toString();
+  }
+
+  /**
+   * Converts the given map string to its corresponding array of mappings.
+   * @param mapString      The String from which to extract the ScalarMaps.
+   * @param data           The Data object to search for valid ScalarTypes.
+   * @param showErrors     Whether to output errors to stdout.
+   */
+  public static ScalarMap[] convertStringToMaps(
+    String mapString, Data data, boolean showErrors)
+  {
+    return convertStringToMaps(mapString, new Data[] {data}, showErrors);
+  }
+
+  /**
+   * Converts the given map string to its corresponding array of mappings.
+   * @param mapString      The String from which to extract the ScalarMaps.
+   * @param data           The Data objects to search for valid ScalarTypes.
+   * @param showErrors     Whether to output errors to stdout.
+   */
+  public static ScalarMap[] convertStringToMaps(
+    String mapString, Data[] data, boolean showErrors)
+  {
+    Vector types = new Vector();
+    for (int i=0; i<data.length; i++) {
+      try {
+        getRealTypes(data[i], types);
+      }
+      catch (VisADException exc) {
+        if (showErrors) {
+          System.out.println("Warning: " +
+            "could not extract ScalarTypes from Data object.");
+        }
+      }
+      catch (RemoteException exc) {
+        if (showErrors) {
+          System.out.println("Warning: " +
+            "could not extract ScalarTypes from Data object.");
+        }
+      }
+    }
+    return convertStringToMaps(mapString, types, showErrors);
+  }
+
+  /**
+   * Converts the given map string to its corresponding array of mappings.
+   * @param mapString      The String from which to extract the ScalarMaps.
+   * @param types          List of valid ScalarTypes.
+   * @param showErrors     Whether to output errors to stdout.
+   */
+  public static ScalarMap[] convertStringToMaps(
+    String mapString, Vector types, boolean showErrors)
+  {
+    // extract mapping information from string
+    if (mapString == null) return null;
+    StringTokenizer st = new StringTokenizer(mapString);
+    Vector dnames = new Vector();
+    Vector rnames = new Vector();
+    while (true) {
+      if (!st.hasMoreTokens()) break;
+      String s = st.nextToken();
+      if (!st.hasMoreTokens()) {
+        if (showErrors) {
+          System.err.println("Warning: trailing maps value " + s +
+            " has no corresponding number and will be ignored");
+        }
+        continue;
+      }
+      String si = st.nextToken();
+      Integer i = null;
+      try {
+        i = new Integer(Integer.parseInt(si));
+      }
+      catch (NumberFormatException exc) { }
+      if (i == null) {
+        if (showErrors) {
+          System.err.println("Warning: maps value " + si + " is not a " +
+            "valid integer and the maps pair (" + s + ", " + si + ") " +
+            "will be ignored");
+        }
+      }
+      else {
+        dnames.add(s);
+        rnames.add(i);
+      }
+    }
+
+    // set up mappings
+    if (dnames != null) {
+      int len = dnames.size();
+      if (len > 0) {
+        int vLen = types.size();
+        int dLen = Display.DisplayRealArray.length;
+
+        // construct ScalarMaps
+        ScalarMap[] maps = new ScalarMap[len];
+        for (int j=0; j<len; j++) {
+          // find appropriate ScalarType
+          ScalarType mapDomain = null;
+          String name = (String) dnames.elementAt(j);
+          for (int k=0; k<vLen; k++) {
+            ScalarType type = (ScalarType) types.elementAt(k);
+            if (name.equals(type.getName())) {
+              mapDomain = type;
+              break;
+            }
+          }
+          if (mapDomain == null) {
+            // still haven't found type; look in static Vector for it
+            mapDomain = ScalarType.getScalarTypeByName(name);
+          }
+
+          // find appropriate DisplayRealType
+          int q = ((Integer) rnames.elementAt(j)).intValue();
+          DisplayRealType mapRange = null;
+          if (q >= 0 && q < dLen) mapRange = Display.DisplayRealArray[q];
+
+          // construct mapping
+          if (mapDomain == null || mapRange == null) {
+            if (showErrors) {
+              System.err.print("Warning: maps pair (" + name + ", " +
+                q + ") has an invalid ");
+              if (mapDomain == null && mapRange == null) {
+                System.err.print("domain and range");
+              }
+              else if (mapDomain == null) System.err.print("domain");
+              else System.err.print("range");
+              System.err.println(" and will be ignored");
+            }
+            maps[j] = null;
+          }
+          else {
+            try {
+              maps[j] = new ScalarMap(mapDomain, mapRange);
+            }
+            catch (VisADException exc) {
+              if (showErrors) {
+                System.err.println("Warning: maps pair (" + name + ", " +
+                  q + ") cannot be converted to a ScalarMap");
+              }
+              maps[j] = null;
+            }
+          }
+        }
+        return maps;
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Verify that an object is Serializable by attempting to
    * serializing it (and 
    *
@@ -1011,4 +1207,5 @@ public class DataUtility {
 
     return true;
   }
+
 }
