@@ -364,7 +364,7 @@ save:
 
 
 clear:
-	$(RM) $(JAVA_FILES)
+	cd .. && $(RM) $(JAVA_FILES)
 
 
 debug:
