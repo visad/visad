@@ -31,7 +31,6 @@ import java.rmi.*;
 import visad.java2d.DisplayImplJ2D;
 
 /**
-(Fulker)
    DataImpl is the superclass for VisAD's data hierarchy, inheriting
    the Data interface.  Data objects are immutable except for the range
    values of Field objects.<p>
@@ -49,19 +48,6 @@ import visad.java2d.DisplayImplJ2D;
 
    All of the Java arithmetical operations are defined for Data objects,
    to the extent that they make sense for the types involved.<p>
-(/Fulker)<p>
-
-   DataImpl is the abstract superclass of the VisAD data hierarchy,
-   inheriting the Data interface.  Data objects are immutable except
-   for the range values of Field and FlatField objects.<P>
-
-   Data objects are various forms of approximations to real numbers,
-   text strings, vectors, sets and functions.  Any Data object may
-   take the value 'missing', and any sub-object of a Data object may
-   take the value 'missing'.  All Data objects have a MathType, which
-   is a mathematical type rather than a synonym for class.  All of
-   the Java arithmetical operations are defined for Data objects, to
-   the extent that they make sense for the types involved.<P>
 */
 public abstract class DataImpl extends ThingImpl
        implements Data, Cloneable {

@@ -30,7 +30,6 @@ import java.rmi.*;
 import java.util.Vector;
 
 /**
-(Fulker)
    MathType is the superclass for VisAD's hierarchy of mathematical types.
    It encompasses the mathematical concepts of scalars, tuples (i.e.,
    n-dimensional vectors), functions, and certain forms of sets.<p>
@@ -45,18 +44,6 @@ import java.util.Vector;
    MathType objects are immutable; one implication is that the setDefaultSet
    method (in RealTupleType) can be invoked only <b>prior</b> to using the
    related getDefaultSet method.<p>
-(/Fulker)<p>
-
-   MathType is the superclass of the VisAD hierarchy of data types.
-   MathType objects are immutable; note that there is a setDefaultSet method
-   in RealTupleType, but if t is a RealTupleType then t.setDefaultSet cannot
-   be called after t.getDefaultSet has been called.<P>
-
-   VisAD Data objects are finite approximations to mathematical objects.
-   Every Data object includes a MathType, which is the mathematical type
-   of the mathematical object it approximates.  This MathType is not
-   synonymous with the class of the Data object.<P>
-
 */
 public abstract class MathType extends Object implements java.io.Serializable {
 
