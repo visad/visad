@@ -51,7 +51,7 @@ public class Test37
 
   public void initializeArgs() { reverse = false; }
 
-  public int checkExtraKeyword(String testName, int argc, String[] args)
+  public int checkKeyword(String testName, int argc, String[] args)
   {
     reverse = true;
     return 1;

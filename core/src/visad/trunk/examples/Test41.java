@@ -41,7 +41,7 @@ public class Test41
 
   public void initializeArgs() { autoAspect = false; }
 
-  public int checkExtraKeyword(String testName, int argc, String[] args)
+  public int checkKeyword(String testName, int argc, String[] args)
   {
     autoAspect = true;
     return 1;

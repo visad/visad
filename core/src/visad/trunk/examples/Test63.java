@@ -45,7 +45,7 @@ public class Test63
 
   public void initializeArgs() { twoD = false; }
 
-  public int checkExtraOption(String progName, char ch, String arg)
+  public int checkOption(String progName, char ch, String arg)
   {
     if (ch == '2') {
       twoD = true;

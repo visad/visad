@@ -71,7 +71,7 @@ public class Test71
 
   public void initializeArgs() { file1 = file2 = null; }
 
-  public int checkExtraKeyword(String testName, int argc, String[] args)
+  public int checkKeyword(String testName, int argc, String[] args)
   {
     if (file1 == null) {
       file1 = args[argc];
@@ -85,9 +85,9 @@ public class Test71
     return 1;
   }
 
-  public String extraKeywordUsage()
+  public String keywordUsage()
   {
-    return super.extraKeywordUsage() + " file1 file2";
+    return super.keywordUsage() + " file1 file2";
   }
 
   public boolean finalizeArgs(String progName)

@@ -2,11 +2,20 @@ package visad.util;
 
 import java.util.ArrayList;
 
+/**
+ * Parse command-line arguments passed to the initial main() method
+ * of an application.
+ */
 public class CmdlineParser
 {
   private String mainName;
   private ArrayList list;
 
+  /**
+   * Create a command-line parser.
+   *
+   * @param mainClass The class in which the main() method lives.
+   */
   public CmdlineParser(Object mainClass)
   {
     String className = mainClass.getClass().getName();
@@ -45,6 +54,12 @@ public class CmdlineParser
    */
   public String getMainClassName() { return mainName; }
 
+  /**
+   * Pass all options/keywords on to all
+   * {@link CmdlineConsumer CmdlineConsumer}s.
+   *
+   * @param args Array of command-line arguments passed to main() method.
+   */
   public boolean processArgs(String[] args)
   {
     boolean usage = false;
@@ -82,7 +97,7 @@ public class CmdlineParser
 
         int handled = 0;
         for (int c = 0; c < consumers.length; c++) {
-          handled = consumers[c].checkExtraOption(mainName, ch, str);
+          handled = consumers[c].checkOption(mainName, ch, str);
           if (handled > 0) {
             if (handled > 1) {
               if (strInOption) {
@@ -103,7 +118,7 @@ public class CmdlineParser
       } else {
         int handled = 0;
         for (int c = 0; c < consumers.length; c++) {
-          handled = consumers[c].checkExtraKeyword(mainName, i, args);
+          handled = consumers[c].checkKeyword(mainName, i, args);
           if (handled > 0) {
             i += (handled - 1);
             break;
@@ -125,10 +140,10 @@ public class CmdlineParser
     if (usage) {
       StringBuffer buf = new StringBuffer("Usage: " + mainName);
       for (int c = 0; c < consumers.length; c++) {
-        buf.append(consumers[c].extraOptionUsage());
+        buf.append(consumers[c].optionUsage());
       }
       for (int c = 0; c < consumers.length; c++) {
-        buf.append(consumers[c].extraKeywordUsage());
+        buf.append(consumers[c].keywordUsage());
       }
       System.err.println(buf.toString());
     }

@@ -42,7 +42,7 @@ public class Test70
 
   public void initializeArgs() { sphere = false; }
 
-  public int checkExtraKeyword(String testName, int argc, String[] args)
+  public int checkKeyword(String testName, int argc, String[] args)
   {
     sphere = true;
     return 1;

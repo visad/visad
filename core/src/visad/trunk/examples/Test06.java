@@ -50,7 +50,7 @@ public class Test06
 
   public void initializeArgs() { uneven = false; }
 
-  public int checkExtraKeyword(String testName, int argc, String[] args)
+  public int checkKeyword(String testName, int argc, String[] args)
   {
     uneven = true;
     return 1;

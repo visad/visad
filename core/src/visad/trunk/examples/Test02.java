@@ -55,7 +55,7 @@ public class Test02
 
   public void initializeArgs() { size3d = 6; }
 
-  public int checkExtraKeyword(String testName, int argc, String[] args)
+  public int checkKeyword(String testName, int argc, String[] args)
   {
     try {
       size3d = Integer.parseInt(args[0]);

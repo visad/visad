@@ -19,11 +19,11 @@ public interface CmdlineConsumer
    * <br>
    * If <tt>-abc -d efg -h -1 -i</tt> is specified, this
    * method will be called a maximum of 5 times:<ul>
-   * <li><tt>checkExtraOption(mainName, 'a', "bc");</tt>
-   * <li><tt>checkExtraOption(mainName, 'd', "efg");</tt>
-   * <li><tt>checkExtraOption(mainName, 'h', "-1");</tt>
-   * <li><tt>checkExtraOption(mainName, '1', "-i");</tt>
-   * <li><tt>checkExtraOption(mainName, 'i', null);</tt>
+   * <li><tt>checkOption(mainName, 'a', "bc");</tt>
+   * <li><tt>checkOption(mainName, 'd', "efg");</tt>
+   * <li><tt>checkOption(mainName, 'h', "-1");</tt>
+   * <li><tt>checkOption(mainName, '1', "-i");</tt>
+   * <li><tt>checkOption(mainName, 'i', null);</tt>
    * </ul>
    * <br>
    * Note that either of the last two method calls may not
@@ -51,7 +51,7 @@ public interface CmdlineConsumer
    *         <tt>2</tt> or greater to indicate that both the option and the
    *         argument were used
    */
-  int checkExtraOption(String mainName, char ch, String arg);
+  int checkOption(String mainName, char ch, String arg);
 
   /**
    * A short string included in the usage message to indicate
@@ -59,7 +59,7 @@ public interface CmdlineConsumer
    *
    * @return A <em>very</em> terse description string.
    */
-  String extraOptionUsage();
+  String optionUsage();
 
   /**
    * Handle subclass-specific command line options and their arguments.
@@ -74,7 +74,7 @@ public interface CmdlineConsumer
    *         class<br>
    *         <tt>1 or more</tt> to indicate the number of arguments used<br>
    */
-  int checkExtraKeyword(String mainName, int thisArg, String[] args);
+  int checkKeyword(String mainName, int thisArg, String[] args);
 
   /**
    * A short string included in the usage message to indicate
@@ -84,7 +84,7 @@ public interface CmdlineConsumer
    *
    * @return A <em>very</em> terse description string.
    */
-  String extraKeywordUsage();
+  String keywordUsage();
 
   /**
    * Validate arguments after argument parsing has finished.<br>

@@ -46,7 +46,7 @@ public class Test12
 
   public void initializeArgs() { dynamic = false; }
 
-  public int checkExtraKeyword(String testName, int argc, String[] args)
+  public int checkKeyword(String testName, int argc, String[] args)
   {
     dynamic = true;
     return 1;

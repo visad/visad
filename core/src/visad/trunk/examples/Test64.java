@@ -45,7 +45,7 @@ public class Test64
 
   public void initializeArgs() { domain = null; }
 
-  public int checkExtraKeyword(String testName, int argc, String[] args)
+  public int checkKeyword(String testName, int argc, String[] args)
   {
     if (domain == null) {
       domain = args[argc];

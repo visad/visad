@@ -43,7 +43,7 @@ public class Test67
 
   public void initializeArgs() { dim = 1; }
 
-  public int checkExtraKeyword(String testName, int argc, String[] args)
+  public int checkKeyword(String testName, int argc, String[] args)
   {
     int d = 0;
     try {

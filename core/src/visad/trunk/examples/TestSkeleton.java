@@ -64,7 +64,7 @@ public abstract class TestSkeleton
 
   public void initializeArgs() { startServer = false; hostName = null; }
 
-  public int checkExtraOption(String mainName, char ch, String arg)
+  public int checkOption(String mainName, char ch, String arg)
   {
     if (ch == 'c') {
       if (arg == null) {
@@ -108,7 +108,7 @@ public abstract class TestSkeleton
     return 0;
   }      
 
-  public String extraOptionUsage()
+  public String optionUsage()
   {
     if (hasClientServerMode()) {
       return " [-c(lient) hostname] [-s(erver)]";
@@ -117,12 +117,12 @@ public abstract class TestSkeleton
     return "";
   }
 
-  public int checkExtraKeyword(String mainName, int argc, String[] args)
+  public int checkKeyword(String mainName, int argc, String[] args)
   {
     return 0;
   }
 
-  public String extraKeywordUsage() { return ""; }
+  public String keywordUsage() { return ""; }
 
   public boolean finalizeArgs(String mainName) { return true; }
 

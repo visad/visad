@@ -50,7 +50,7 @@ public class Test68
 
   public void initializeArgs() { twoD = false; port = 0; }
 
-  public int checkExtraOption(String progName, char ch, String arg)
+  public int checkOption(String progName, char ch, String arg)
   {
     if (ch == '2') {
       twoD = true;
@@ -60,7 +60,7 @@ public class Test68
     return 0;
   }
 
-  public int checkExtraKeyword(String testName, int argc, String[] args)
+  public int checkKeyword(String testName, int argc, String[] args)
   {
     String arg = args[argc];
     int d = 0;
