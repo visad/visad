@@ -155,6 +155,14 @@ System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
     boolean all_feasible = get_all_feasible();
     boolean any_changed = get_any_changed();
     boolean any_transform_control = get_any_transform_control();
+/*
+// XYZW
+System.out.println("doAction " + getDisplay().getName() + " " +
+                   getLinks()[0].getThingReference().getName() +
+                   " any_changed = " + any_changed +
+                   " all_feasible = " + all_feasible +
+                   " any_transform_control = " + any_transform_control);
+*/
     if (all_feasible && (any_changed || any_transform_control)) {
 /*
 System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +

@@ -108,10 +108,10 @@ public class NodeRendererJ3D extends DefaultRendererJ3D {
   }
 
   public DataShadow prepareAction(boolean go, boolean initialize,
-                                  boolean force_prepare, DataShadow shadow)
+                                  DataShadow shadow)
          throws VisADException, RemoteException {
     // don't autoscale: initialize = false
-    return super.prepareAction(go, false, force_prepare, shadow);
+    return super.prepareAction(go, false, shadow);
   }
 
   /** re-transform if needed;

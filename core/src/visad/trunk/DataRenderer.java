@@ -186,7 +186,7 @@ public abstract class DataRenderer extends Object implements Cloneable {
   /** check if re-transform is needed; if initialize is true then
       compute ranges for RealType-s and Animation sampling */
   public DataShadow prepareAction(boolean go, boolean initialize,
-                                  boolean force_prepare, DataShadow shadow)
+                                  DataShadow shadow)
          throws VisADException, RemoteException {
 /*
 // XYZW
@@ -200,24 +200,27 @@ System.out.println("prepareAction " + go + " " + initialize);
       changed[i] = false;
       DataReference ref = Links[i].getDataReference();
       // test for changed Controls that require doTransform
+
+      boolean do_prepare = Links[i].checkTicks() || !feasible[i] || go;
+      if (feasible[i] && !do_prepare) {
+        // check if this Data includes any changed Controls
+        Enumeration maps = Links[i].getSelectedMapVector().elements();
+        while(maps.hasMoreElements()) {
+          ScalarMap map = (ScalarMap) maps.nextElement();
+          if (map.checkTicks(this, Links[i])) {
+            do_prepare = true;
+          }
+        }
+      }
 /*
 // XYZW
-System.out.println(display.getName() +
+System.out.println("prepareAction " + display.getName() + " " +
+                   Links[i].getThingReference().getName() +
                    " Links[" + i + "].checkTicks() = " + Links[i].checkTicks() +
                    " feasible[" + i + "] = " + feasible[i] + " go = " + go +
-                   " force_prepare = " + force_prepare);
-
-MathType junk = Links[i].getType();
-if (junk != null) System.out.println(junk.prettyString());
+                   " do_prepare = " + do_prepare);
 */
-      if (Links[i].checkTicks() || !feasible[i] || go || force_prepare) {
-/*
-boolean check = Links[i].checkTicks();
-System.out.println("DataRenderer.prepareAction: check = " + check + " feasible = " +
-                   feasible[i] + " go = " + go + " force_prepare = " +
-                   force_prepare + "  " + Links[i].getThingReference().getName());
-// DisplayImpl.printStack("prepareAction");
-*/
+      if (do_prepare) {
         // data has changed - need to re-display
         changed[i] = true;
         any_changed = true;
@@ -258,15 +261,6 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
           }
 
           shadow = computeRanges(data, type, shadow);
-/* WLH 8 Dec 2000
-          if (shadow == null) {
-            shadow =
-              data.computeRanges(type, display.getScalarCount());
-          }
-          else {
-            shadow = data.computeRanges(type, shadow);
-          }
-*/
         }
       } // end if (Links[i].checkTicks() || !feasible[i] || go)
 
@@ -280,8 +274,14 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
           }
         }
       } // end if (feasible[i])
-    } // end for (int i=0; i<Links.length; i++)
 
+    } // end for (int i=0; i<Links.length; i++)
+/*
+// XYZW
+System.out.println("any_changed = " + any_changed +
+                   " all_feasible = " + all_feasible +
+                   " any_transform_control = " + any_transform_control);
+*/
     return shadow;
   }
 
