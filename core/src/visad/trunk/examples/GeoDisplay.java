@@ -1,10 +1,10 @@
 import java.rmi.RemoteException;
 import visad.Display;
-import visad.QuantityDB;
+import visad.data.netcdf.QuantityDB;
 import visad.RealType;
 import visad.SI;
 import visad.ScalarMap;
-import visad.StandardQuantityDB;
+import visad.data.netcdf.StandardQuantityDB;
 import visad.VisADException;
 import visad.java3d.DisplayImplJ3D;
 
