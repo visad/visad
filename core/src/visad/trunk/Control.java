@@ -196,7 +196,7 @@ if (tickFlag) {
     Instance = instance;
   }
 
-  int getInstanceNumber() {
+  public int getInstanceNumber() {
     return Instance;
   }
 
