@@ -338,6 +338,7 @@ public class GriddedSet extends SampledSet {
           length_is *= 2;
         }
         base = l[ManifoldDimension-1];
+        if (base >= Lengths[ManifoldDimension-1]) base = -1;
       }
       for (j=ManifoldDimension-2; j>=0 && base>=0; j--) {
         if (Double.isNaN(grid[j][i])) {
@@ -353,6 +354,7 @@ public class GriddedSet extends SampledSet {
             length_is *= 2;
           }
           base = l[j] + Lengths[j] * base;
+          if (l[j] < 0 || l[j] >= Lengths[j]) base = -1;
         }
       }
 

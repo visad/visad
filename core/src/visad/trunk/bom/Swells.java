@@ -53,7 +53,6 @@ public class Swells extends Exception {
     for (int i=0; i<NDIRS; i++) {
       dir_shapes[i] = new VisADLineArray();
       dir_shapes[i].vertexCount = 6;
-      float[] c = new float[18];
       // copy arrow at zero degrees
       float[][] arrow = (float[][]) arrow_zero.clone();
       // rotate arrow by "i" degrees
