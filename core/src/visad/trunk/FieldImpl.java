@@ -59,7 +59,8 @@ public class FieldImpl extends FunctionImpl implements Field {
   private Data[] MyRange;  // won't be null though elements might be
 
 
-    //This is used to synchronize access to the Range (which might be null)
+  // This is used to synchronize access to the Range (which might be null)
+  // use VisADRay since it is Serializable and small
   private VisADRay RangeLock = new VisADRay();
 
   private boolean MissingFlag;
