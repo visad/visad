@@ -120,9 +120,6 @@ public class Vis5DForm extends Form {
     for (int i=0; i<ntimes; i++) {
       float[][] data = new float[nvars][grid_size];
       Linear1DSet[] range_sets = new Linear1DSet[nvars];
-/*
-System.out.println("\n");
-*/
       for (int j=0; j<nvars; j++) {
         float[] ranges = new float[2];
         v5d_read(i, j, ranges, data[j]);
@@ -132,10 +129,6 @@ System.out.println("\n");
         if (ranges[0] > ranges[1]) {
           throw new BadFormException("Vis5DForm.open: bad read");
         }
-/*
-System.out.println("time = " + i + " var = " + j);
-System.out.println(vars[j].getName() + " range: " + ranges[0] + " " + ranges[1]);
-*/
         range_sets[j] =
           new Linear1DSet((double) ranges[0], (double) ranges[1], 255);
       }
@@ -144,12 +137,6 @@ System.out.println(vars[j].getName() + " range: " + ranges[0] + " " + ranges[1])
       FlatField grid =
         new FlatField(grid_type, space_set);
       grid.setSamples(data, false);
-/*
-System.out.println(vars[0].getName() + " data[0][0 - 3]: " + data[0][0] + " " +
-                   data[0][1] + " " + data[0][2] + " " + data[0][3]);
-System.out.println(vars[1].getName() + " data[1][0 - 3]: " + data[1][0] + " " +
-                   data[1][1] + " " + data[1][2] + " " + data[1][3]);
-*/
       v5d.setSample(i, grid);
     }
     return v5d;
@@ -177,6 +164,9 @@ System.out.println(vars[1].getName() + " data[1][0 - 3]: " + data[1][0] + " " +
   /** run 'java visad.data.vis5d.Vis5DForm QLQ.v5d' to test */
   public static void main(String args[])
          throws VisADException, RemoteException, IOException {
+    if (args == null || args.length < 1) {
+      System.out.println("run 'java visad.data.vis5d.Vis5DForm file.v5d'");
+    }
     Vis5DForm form = new Vis5DForm();
     FieldImpl vis5d = null;
     try {
@@ -329,17 +319,10 @@ System.out.println(vars[1].getName() + " data[1][0 - 3]: " + data[1][0] + " " +
       }
     }
     for (int i=0; i<dim; i++) {
-/*
-System.out.println(range_types[i].getName() + " range: " +
-                   ranges[i][0] + " " + ranges[i][1]);
-*/
       double scale = (ranges[i][1] - ranges[i][0]) / 255.0;
       int low = (int) (ranges[i][0] / scale);
       int hi = (int) (ranges[i][1] / scale);
       range_refs[i].setData(new Real(range_types[i], scale * low));
-/*
-System.out.println(" low = " + low + "  hi = " + hi + "  scale = " + scale);
-*/
       sliders.add(new VisADSlider(range_types[i].getName(), low, hi, low, scale,
                                   range_refs[i], range_types[i]));
       sliders.add(new JLabel("  "));
