@@ -854,7 +854,7 @@ public class MappingDialog extends JDialog
           int t = trans[i] + mod[j];
           if (numXY[i] > 0) {
             MathTypes[t] = (RealType) v[j].elementAt(i);
-            /* CTR: TEMP */ System.out.println("Scalars[" + t + "] -> " + MathTypes[t].getName());
+            /* CTR: TEMP  System.out.println("Scalars[" + t + "] -> " + MathTypes[t].getName()); */
             Scalars[t] = MathTypes[t].getName();
             int u = numXY[i];
             ScX[t] = new int[u];
@@ -880,7 +880,7 @@ public class MappingDialog extends JDialog
    * Recursive quick-sort routine for alphabetizing scalars.
    */
   private void sort(int lo0, int hi0) {
-  /* CTR: TEMP */ if (lo0 == 0 && hi0 == Scalars.length - 1) { System.out.print("Scalars = "); for (int i=0; i<Scalars.length; i++) System.out.print(Scalars[i] + " "); System.out.println(); }
+  /* CTR: TEMP  if (lo0 == 0 && hi0 == Scalars.length - 1) { System.out.print("Scalars = "); for (int i=0; i<Scalars.length; i++) System.out.print(Scalars[i] + " "); System.out.println(); } */
     int lo = lo0;
     int hi = hi0;
     String mid = Scalars[(lo0+hi0)/2].toLowerCase();
