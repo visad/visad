@@ -32,7 +32,6 @@ import java.io.*;
 import java.rmi.RemoteException;
 import java.net.URL;
 import java.util.Vector;
-import ucar.netcdf.RandomAccessFile;
 
 /** BioRadForm is the VisAD data format adapter for Bio-Rad .PIC files. */
 public class BioRadForm extends Form
@@ -805,7 +804,7 @@ public class BioRadForm extends Form
     FlatField[] imageFields = new FlatField[npic];
     for (int i=0; i<npic; i++) {
       if (isRandom) {
-        BioRadAccessor acc = new BioRadAccessor((RandomAccessFile )fin,
+        BioRadAccessor acc = new BioRadAccessor((RandomAccessFile) fin,
                                                 filePtr, i, imageFunction,
                                                 imageSet, image_len,
                                                 byte_format);
