@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultView.java,v 1.1 1998-09-23 17:31:32 steve Exp $
+ * $Id: DefaultView.java,v 1.2 1998-09-30 14:27:41 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -99,9 +99,12 @@ DefaultView
      * Gets the unit of the values of a netCDF variable.
      *
      * @param var		A netCDF variable.
+     * @return			The unit of the values of <code>var</code>.
+     * @throws VisADException	Couldn't create necessary VisAD object.
      */
     protected Unit
     getUnit(Variable var)
+	throws VisADException
     {
 	return util.getUnit(var);
     }

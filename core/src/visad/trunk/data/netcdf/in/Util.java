@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Util.java,v 1.1 1998-09-23 17:31:36 steve Exp $
+ * $Id: Util.java,v 1.2 1998-09-30 14:27:41 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -44,7 +44,7 @@ import visad.data.netcdf.units.Parser;
 
 
 /**
- * Provides support for various utility methods that are useful when importing
+ * Provides various utility methods that are useful when importing
  * netCDF data into VisAD.
  */
 public class
@@ -200,7 +200,7 @@ Util
 	if (!realTypeMap.containsKey(var))
 	{
 	    String	name = var.getName();
-	    Unit	varUnit = getUnit(var);
+	    Unit	varUnit = justGetUnit(var);
 
 	    type = NetcdfQuantityDB.getBest(getLongName(var), name, varUnit);
 
@@ -254,9 +254,36 @@ Util
      * @return			The units of the values of <code>var</code>
      *				if it has a decodable "unit" attribute;
      *				otherwise, <code>null</code>.
+     * @throws VisADException	Couldn't create necessary VisAD object.
      */
     public Unit
     getUnit(Variable var)
+	throws VisADException
+    {
+	/*
+	 * First, try using the "unit" attribute.  If that's unsuccessful,
+	 * then use the default unit of the RealType.
+	 */
+
+	Unit	unit = justGetUnit(var);
+	
+	return unit != null
+		? unit
+		: getRealType(var).getDefaultUnit();
+    }
+
+
+    /**
+     * Just gets the unit of a netCDF variable (i.e. it doesn't do anything
+     * else).
+     *
+     * @param var		A netCDF variable.
+     * @return			The units of the values of <code>var</code>
+     *				if it has a decodable "unit" attribute;
+     *				otherwise, <code>null</code>.
+     */
+    protected Unit
+    justGetUnit(Variable var)
     {
 	/*
 	 * This implementation caches units because of the following:
@@ -319,7 +346,7 @@ Util
      *
      * @param var		A netCDF variable.
      * @param unit		The unit to be obtained by a subsequent
-     *				<code>getUnit(var)</code>.
+     *				<code>justGetUnit(var)</code>.
      */
     private void
     setUnit(Variable var, Unit unit)
@@ -333,7 +360,7 @@ Util
      *
      * @param var		A netCDF variable.
      * @return			The long name of <code>var</code> it it exists;
-     *				otherwise, <code>null</code.
+     *				otherwise, <code>null</code>.
      */
     public String
     getLongName(Variable var)

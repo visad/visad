@@ -13,6 +13,7 @@ test:	\
 	pmsl.test \
 	big.test \
 	lwc3rms.test \
+	98092911_perl_sao.test \
 	b2rlc.test \
 	rueden.test \
 	images.test \
