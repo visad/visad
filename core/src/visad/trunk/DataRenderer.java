@@ -1008,11 +1008,14 @@ if (map.badRange()) {
   // information from assembleSpatial
   public void setEarthSpatialDisplay(CoordinateSystem coord,
            DisplayTupleType t, DisplayImpl display, int[] indices,
-           float[][] display_values, float[] default_values, double[] r)
+           float[] default_values, double[] r)
          throws VisADException {
     display_coordinate_system = coord;
     spatial_tuple = t;
+    System.arraycopy(indices, 0, spatial_value_indices, 0, 3);
+/* WLH 5 Dec 99
     spatial_value_indices = indices;
+*/
     ranges = r;
     for (int i=0; i<3; i++) {
       int default_index = display.getDisplayScalarIndex(

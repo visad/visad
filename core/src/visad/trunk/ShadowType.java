@@ -1471,8 +1471,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
       if (anyFlow) {
         renderer.setEarthSpatialDisplay(null, spatial_tuple, display,
-                 spatial_value_indices, display_values, default_values,
-                 ranges);
+                 spatial_value_indices, default_values, ranges);
       }
     }
     else {
@@ -1482,8 +1481,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       float[][][] vector_ends = new float[2][][];
       if (anyFlow) {
         renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
-                 spatial_value_indices, display_values, default_values,
-                 ranges);
+                 spatial_value_indices, default_values, ranges);
 
         // compute and transform 'end points' of flow vectors
         for (int k=0; k<2; k++) {

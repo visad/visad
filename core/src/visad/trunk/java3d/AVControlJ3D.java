@@ -45,11 +45,11 @@ public abstract class AVControlJ3D extends Control implements AVControl {
     super(d);
   }
 
-  void addPair(Switch sw, Set se, DataRenderer re) {
+  public void addPair(Switch sw, Set se, DataRenderer re) {
     switches.addElement(new SwitchSet(sw, se, re));
   }
 
-  abstract void init() throws VisADException;
+  public abstract void init() throws VisADException;
 
   void selectSwitches(double value, Set animation_set)
        throws VisADException {

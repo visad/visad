@@ -29,7 +29,16 @@ package visad.java3d;
 import javax.media.j3d.*;
 
 public class VisADBranchGroup extends BranchGroup {
-  private double animate;
+  private double time;
+
+  public VisADBranchGroup(double t) {
+    super();
+    time = t;
+  }
+
+  public double getTime() {
+    return time;
+  }
 
 }
 

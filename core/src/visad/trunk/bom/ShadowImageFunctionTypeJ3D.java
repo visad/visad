@@ -77,7 +77,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     boolean anyText = adaptedShadowType.getAnyText();
 
     if (anyContour || anyFlow || anyShape || anyText) {
-      throw new DisplayException("no contour, flow, shape or text allowed");
+      throw new BadMappingException("no contour, flow, shape or text allowed");
     }
 
     // get some precomputed values useful for transform
@@ -100,7 +100,6 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         display_values[i][0] = value_array[i];
       }
     }
-
 
     Set domain_set = ((Field) data).getDomainSet();
     Unit[] dataUnits = ((Function) data).getDomainUnits();
@@ -125,6 +124,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     ShadowRealType[] DomainComponents = adaptedShadowType.getDomainComponents();
 
     if (adaptedShadowType.getIsTerminal()) {
+      // check that range is single RealType mapped to RGB only
       ShadowRealType[] RangeComponents = adaptedShadowType.getRangeComponents();
       Vector mvector = RangeComponents[0].getSelectedMapVector();     
       if (mvector.size() != 1) {
@@ -134,6 +134,8 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       if (!Display.RGB.equals(cmap.getDisplayScalar())) {
         throw new BadMappingException("image values must be mapped to RGB");
       }
+
+      // build texture colors in color_ints
       ColorControl control = (ColorControl) cmap.getControl();
       float[][] table = control.getTable();
       byte[][] bytes = null;
@@ -142,23 +144,27 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         bytes = ((FlatField) data).getBytes();
         rsets = ((FlatField) data). getRangeSets();
       }
-      // build texture colors in color_ints
       int[] color_ints = new int[domain_length];
       if (bytes != null && bytes[0] != null && table != null &&
           rsets != null && rsets[0] != null &&
           rsets[0] instanceof Linear1DSet) {
-        // fast if FlatField with bytes and range set is Linear1DSet
+        // fast since FlatField with bytes and range set is Linear1DSet
+        // get "scale and offset" for Linear1DSet
+        double first = ((Linear1DSet) rsets[0]).getFirst();
+        double step = ((Linear1DSet) rsets[0]).getStep();
+        // get scale and offset for ScalarMap
         double[] so = new double[2];
         double[] da = new double[2];
         double[] di = new double[2];
         cmap.getScale(so, da, di);
         double scale = so[0];
         double offset = so[1];
-        double first = ((Linear1DSet) rsets[0]).getFirst();
-        double step = ((Linear1DSet) rsets[0]).getStep();
+        // get scale for color table
         double table_scale = (double) table[0].length;
+        // combine scales and offsets for Set, ScalarMap and color table
         float mult = (float) (table_scale * scale * step);
         float add = (float) (table_scale * (offset + scale * first));
+        // combine color table RGB components into ints
         int[] itable = new int[table[0].length];
         int r, g, b, a = 255;
         int c;
@@ -171,25 +177,31 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
           itable[j] = ((a << 24) | (r << 16) | (g << 8) | b);
         }
+        // now do fast lookup from byte values to color ints
         int tblEnd = table[0].length - 1;
-
         byte[] bytes0 = bytes[0];
         for (int i=0; i<domain_length; i++) {
           int index = ((int) bytes0[i]) - MISSING1 - 1;
           if (index < 0) {
-            color_ints[i] = 0;
+            color_ints[i] = 0; // missing
           }
           else {
             int j = (int) (add + mult * index);
+            // clip to table
             color_ints[i] =
               (j < 0) ? itable[0] : ((j > tblEnd) ? itable[tblEnd] : itable[j]);
           }
         }
+        bytes = null; // take out the garbage
       }
       else {
+        // slower, more general way to build texture colors
+        bytes = null; // take out the garbage
         float[][] values = ((Field) data).getFloats();
         values[0] = cmap.scaleValues(values[0]);
         float[][] color_values = control.lookupValues(values[0]);
+        values = null; // take out the garbage
+        // combine color RGB components into ints
         int r, g, b, a = 255;
         int c;
         for (int i=0; i<domain_length; i++) {
@@ -203,8 +215,9 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         }
       }
 
+      // check domain and determine whether it is square or curved texture
       if (!Domain.getAllSpatial() || Domain.getMultipleDisplayScalar()) {
-        throw new DisplayException("domain must be only spatial");
+        throw new BadMappingException("domain must be only spatial");
       }
 
       boolean isTextureMap = adaptedShadowType.getIsTextureMap() &&
@@ -213,7 +226,6 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                                domain_set.getDimension() == 2));
    
       int curved_size = display.getGraphicsModeControl().getCurvedSize();
-      ShadowRealTupleType domain_reference = Domain.getReference();
       boolean curvedTexture = adaptedShadowType.getCurvedTexture() &&
                               !isTextureMap &&
                               curved_size > 0 &&
@@ -379,8 +391,6 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
         textureToGroup(group, qarray, image, mode, 1.0f, null,
                        texture_width, texture_height);
-
-        return false;
       } // end if (isTextureMap)
       else if (curvedTexture) {
 
@@ -418,10 +428,17 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         float[][] spline_domain = domain_set.indexToValue(indices);
         spline_domain = Unit.convertTuple(spline_domain, dataUnits, domain_units);
 
+        ShadowRealTupleType domain_reference = Domain.getReference();
+
         ShadowRealType[] DC = DomainComponents;
         if (domain_reference != null &&
             domain_reference.getMappedDisplayScalar()) {
           RealTupleType ref = (RealTupleType) domain_reference.getType();
+          renderer.setEarthSpatialData(Domain, domain_reference, ref,
+                      ref.getDefaultUnits(), (RealTupleType) Domain.getType(),
+                      new CoordinateSystem[] {dataCoordinateSystem},
+                      domain_units);
+
           spline_domain =
             CoordinateSystem.transformCoordinates(
               ref, null, ref.getDefaultUnits(), null,
@@ -430,22 +447,33 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           // ShadowRealTypes of DomainReference
           DC = adaptedShadowType.getDomainReferenceComponents();
         }
+        else {
+          RealTupleType ref = (domain_reference == null) ? null :
+                              (RealTupleType) domain_reference.getType();
+          Unit[] ref_units = (ref == null) ? null : ref.getDefaultUnits();
+          renderer.setEarthSpatialData(Domain, domain_reference, ref,
+                      ref_units, (RealTupleType) Domain.getType(),
+                      new CoordinateSystem[] {dataCoordinateSystem},
+                      domain_units);
+        }
 
         int[] tuple_index = new int[3];
+        int[] spatial_value_indices = {-1, -1, -1};
 
-        DisplayTupleType tuple = null;
+        DisplayTupleType spatial_tuple = null;
         for (int i=0; i<DC.length; i++) {
           Enumeration maps =
             DC[i].getSelectedMapVector().elements();
           ScalarMap map = (ScalarMap) maps.nextElement();
           DisplayRealType real = map.getDisplayScalar();
-          tuple = real.getTuple();
-          if (tuple == null) {
+          spatial_tuple = real.getTuple();
+          if (spatial_tuple == null) {
             throw new DisplayException("texture with bad tuple: " +
                                        "ShadowImageFunctionTypeJ3D.doTransform");
           }
           // get spatial index
           tuple_index[i] = real.getTupleIndex();
+          spatial_value_indices[tuple_index[i]] = map.getValueIndex();
           if (maps.hasMoreElements()) {
             throw new DisplayException("texture with multiple spatial: " +
                                        "ShadowImageFunctionTypeJ3D.doTransform");
@@ -471,9 +499,15 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         spatial_values[tuple_index[2]] = new float[nn];
         for (int i=0; i<nn; i++) spatial_values[tuple_index[2]][i] = value2;
 
-        if (!tuple.equals(Display.DisplaySpatialCartesianTuple)) {
-          CoordinateSystem coord = tuple.getCoordinateSystem();
+        if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
+          renderer.setEarthSpatialDisplay(null, spatial_tuple, display,
+                   spatial_value_indices, default_values, null);
+        }
+        else {
+          CoordinateSystem coord = spatial_tuple.getCoordinateSystem();
           spatial_values = coord.toReference(spatial_values);
+          renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
+                   spatial_value_indices, default_values, null);
         }
 
         // break from ShadowFunctionOrSetType
@@ -574,28 +608,119 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
         textureToGroup(group, tarray, image, mode, 1.0f, null,
                        texture_width, texture_height);
-
-        return false;
       } // end if (curvedTexture)
-      else {
-        throw new DisplayException("must be texture map or curved texture map");
+      else { // !isTextureMap && !curvedTexture
+        throw new BadMappingException("must be texture map or curved texture map");
       }
-
     }
     else { // !adaptedShadowType.getIsTerminal()
-      boolean isTimeSequence = false;
       Vector domain_maps = DomainComponents[0].getSelectedMapVector();
+      ScalarMap amap = null;
       if (domain_set.getDimension() == 1 && domain_maps.size() == 1) {
         ScalarMap map = (ScalarMap) domain_maps.elementAt(0);
-        isTimeSequence = !adaptedShadowType.getIsTerminal() &&
-                         Display.Animation.equals(map.getDisplayScalar());
+        if (Display.Animation.equals(map.getDisplayScalar())) {
+          amap = map;
+        }
       }
-      if (!isTimeSequence) {
-        throw new DisplayException("time must be mapped to Animation");
+      if (amap == null) {
+        throw new BadMappingException("time must be mapped to Animation");
       }
- 
-      // renderer.setBranchEarly((BranchGroup) group);
- 
+      AnimationControlJ3D control = (AnimationControlJ3D) amap.getControl();
+
+      // get any usable frames from the old scene graph
+      Switch old_swit = null;
+      BranchGroup[] old_nodes = null;
+      double[] old_times = null;
+      boolean[] old_mark = null;
+      int old_len = 0;
+      if (((BranchGroup) group).numChildren() > 0) {
+        Node g = ((BranchGroup) group).getChild(0);
+        if (g instanceof Switch) {
+          old_swit = (Switch) g;
+
+          old_len = old_swit.numChildren();
+          if (old_len > 0) {
+            old_nodes = new BranchGroup[old_len];
+            for (int i=0; i<old_len; i++) {
+              old_nodes[i] = (BranchGroup) old_swit.getChild(i);
+            }
+            // remove old_nodes from old_swit
+            for (int i=0; i<old_len; i++) {
+              old_nodes[i].detach();
+            }
+            old_times = new double[old_len];
+            old_mark = new boolean[old_len];
+            for (int i=0; i<old_len; i++) {
+              old_mark[i] = false;
+              if (old_nodes[i] instanceof VisADBranchGroup) {
+                old_times[i] = ((VisADBranchGroup) old_nodes[i]).getTime();
+              }
+              else {
+                old_times[i] = Double.NaN;
+              }
+            }
+          }
+        }
+      }
+
+      // create frames for new scene graph
+      Set aset = control.getSet();
+      double[][] values = aset.getDoubles();
+      double[] times = values[0];
+      int len = times.length;
+      double delta = Math.abs((times[len-1] - times[0]) / (1000.0 * len));
+
+      // create new Switch and make live
+      // control.clearSwitches(this); // already done in DataRenderer.doAction
+      Switch swit = null;
+      if (old_swit != null) {
+        swit = old_swit;
+        ((AVControlJ3D) control).addPair((Switch) swit, domain_set, renderer);
+        ((AVControlJ3D) control).init();
+      }
+      else {
+        swit = (Switch) makeSwitch();
+        addSwitch(group, swit, control, domain_set, renderer);
+      }
+
+      // insert old frames into new scene graph, and make
+      // new (blank) VisADBranchGroups for rendering new frames
+      VisADBranchGroup[] nodes = new VisADBranchGroup[len];
+      boolean[] mark = new boolean[len];
+      for (int i=0; i<len; i++) {
+        for (int j=0; j<old_len; j++) {
+          if (!old_mark[j] && Math.abs(times[i] - old_times[j]) < delta) {
+            old_mark[j] = true;
+            nodes[i] = (VisADBranchGroup) old_nodes[j];
+            break;
+          }
+        }
+        if (nodes[i] != null) {
+          mark[i] = true;
+        }
+        else {
+          mark[i] = false;
+          nodes[i] = new VisADBranchGroup(times[i]);
+          nodes[i].setCapability(BranchGroup.ALLOW_DETACH);
+          ensureNotEmpty(nodes[i]);
+        }
+        addToSwitch(swit, nodes[i]);
+      }
+
+      // make sure group is live
+      ((ImageRendererJ3D) renderer).setBranchEarly((BranchGroup) group);
+
+      // render new frames
+      for (int i=0; i<len; i++) {
+        if (!mark[i]) {
+          // not necessary, but perhaps if this is modified
+          // int[] lat_lon_indices = renderer.getLatLonIndices();
+          recurseRange(nodes[i], ((Field) data).getSample(i),
+                       value_array, default_values, renderer);
+          // not necessary, but perhaps if this is modified
+          // renderer.setLatLonIndices(lat_lon_indices);
+        }
+      }
     }
 
 
