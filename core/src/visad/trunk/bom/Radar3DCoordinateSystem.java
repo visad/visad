@@ -40,7 +40,7 @@ public class Radar3DCoordinateSystem extends CoordinateSystem {
     ShadowType.METERS_PER_DEGREE * Data.RADIANS_TO_DEGREES;
 
   private static Unit[] coordinate_system_units =
-    {CommonUnit.meter, CommonUnit.degree};
+    {CommonUnit.meter, CommonUnit.degree, CommonUnit.degree};
 
   private float centlat, centlon;
   private float radlow, radres, azlow, azres, elevlow, elevres;
@@ -129,7 +129,8 @@ System.out.println(tuples[0][i] + " " + tuples[1][i] + " " + tuples[2][i] +
       double rp = EARTH_RADIUS + tuples[2][i];
       double rad = Math.sqrt(EARTH_RADIUS * EARTH_RADIUS + rp * rp -
                              2.0 * rp * EARTH_RADIUS * Math.cos(angle));
-      double elev = Math.acos(Math.sin(angle) * rp / rad);
+      double elev =
+        Data.RADIANS_TO_DEGREES * Math.acos(Math.sin(angle) * rp / rad);
       value[0][i] = (rad - radlow) / radres;
       value[1][i] =
         (Data.RADIANS_TO_DEGREES * Math.atan2(slon, slat) - azlow) / azres;
@@ -190,7 +191,8 @@ System.out.println(tuples[0][i] + " " + tuples[1][i] + " " + tuples[2][i] +
       double rp = EARTH_RADIUS + tuples[2][i];
       double rad = Math.sqrt(EARTH_RADIUS * EARTH_RADIUS + rp * rp -
                              2.0 * rp * EARTH_RADIUS * Math.cos(angle));
-      double elev = Math.acos(Math.sin(angle) * rp / rad);
+      double elev =
+        Data.RADIANS_TO_DEGREES * Math.acos(Math.sin(angle) * rp / rad);
       value[0][i] = (float) ((rad - radlow) / radres);
       value[1][i] = (float)
         ((Data.RADIANS_TO_DEGREES * Math.atan2(slon, slat) - azlow) / azres);

@@ -110,18 +110,20 @@ public class RadarAdapter {
     }
     // System.out.println(" ");
 
-    RealTupleType ref = new RealTupleType
-                  (RealType.Latitude, RealType.Longitude);
+    RealTupleType ref = null;
     Radar2DCoordinateSystem rcs2d = null;
     Radar3DCoordinateSystem rcs3d = null;
-    float elevlow = 0.1f;
-    float elevres = 0.01f;
+    float elevlow = 0.1f; // degrees
+    float elevres = 1.0f; // degrees
     int nelev = 1;
     if (d3d) {
+      ref = new RealTupleType
+              (RealType.Latitude, RealType.Longitude, RealType.Altitude);
       rcs3d = new Radar3DCoordinateSystem(ref, centlat, centlon, radlow, radres,
                                           azlow, azres, elevlow, elevres);
     }
     else {
+      ref = new RealTupleType (RealType.Latitude, RealType.Longitude);
       rcs2d = new Radar2DCoordinateSystem(ref, centlat, centlon, radlow, radres,
                                           azlow, azres);
     }

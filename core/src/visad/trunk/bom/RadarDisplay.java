@@ -120,8 +120,9 @@ public class RadarDisplay {
     String radarSource = "radar.dat";
     RadarDisplay rd = null;
     RadarAdapter ra = null;
+    boolean d3d = (args.length > 0);
     try {
-        ra = new RadarAdapter(centlat, centlon, radarSource, false);
+        ra = new RadarAdapter(centlat, centlon, radarSource, d3d);
     } catch (Exception e) {
       System.err.println("Caught Exception for \"" + radarSource + "\": " +
                            e);
@@ -159,9 +160,16 @@ VisAD Data analysis
     display.addMap(latmap);
 		// centre lat -32
     latmap.setRange(centlat - radius, centlat + radius);
-    ScalarMap reflectionmap = new ScalarMap(reflection, Display.ZAxis);
-    reflectionmap.setRange(0, 10);
-    display.addMap(reflectionmap);
+    if (d3d) {
+      ScalarMap altitudemap = new ScalarMap(RealType.Altitude, Display.ZAxis);
+      altitudemap.setRange(0, 30000);
+      display.addMap(altitudemap);
+    }
+    else {
+      ScalarMap reflectionmap = new ScalarMap(reflection, Display.ZAxis);
+      reflectionmap.setRange(0, 10);
+      display.addMap(reflectionmap);
+    }
     ScalarMap rgbMap = new ScalarMap(reflection, Display.RGB);
 
 	  display.addMap(rgbMap);
