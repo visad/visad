@@ -40,11 +40,15 @@ public class DisplayEvent extends Event {
   public final static int MOUSE_PRESSED = 1;
   /* WLH 28 Oct 98 */
   public final static int TRANSFORM_DONE = 2;
+  /* WLH 15 March 99 */
+  public final static int FRAME_DONE = 3;
   /* TDR 1 Nov 98 */
   //- Center mouse button pressed
-  public final static int MOUSE_PRESSED_CENTER = 3;
-  /* WLH 15 March 99 */
-  public final static int FRAME_DONE = 4;
+  public final static int MOUSE_PRESSED_CENTER = 4;
+  //- Left mouse button pressed
+  public final static int MOUSE_PRESSED_LEFT = 5;
+  //- Right mouse button pressed
+  public final static int MOUSE_PRESSED_RIGHT = 6;
 
   private int id = 0;
 

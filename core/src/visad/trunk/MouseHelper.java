@@ -224,6 +224,16 @@ event_switch:
             else if (mctrl != 0 || mode2D) {
               t1Pressed = true;
             }
+            // WLH 19 July 99
+            if (mctrl == 0 && !z1Pressed) {
+              try {
+                display.notifyListeners(DisplayEvent.MOUSE_PRESSED_LEFT);
+              }
+              catch (VisADException e) {
+              }
+              catch (RemoteException e) {
+              }
+            }
           }
           else if (mousePressed2 || mouseCombo2) {
             // turn cursor on whenever mouse button2 pressed
@@ -252,18 +262,17 @@ event_switch:
                 display_renderer.drag_cursor(cursor_ray, true);
               }
             }
-           //- TDR, Oct. 1998
-           if (!t2Pressed && !z2Pressed)
-           {
-             try {
-               display.notifyListeners(DisplayEvent.MOUSE_PRESSED_CENTER);
-             }
-             catch (VisADException e) {
-             }
-             catch (RemoteException e) {
-             }
-           }
-           //--
+            //- TDR, Oct. 1998
+            if (!t2Pressed && !z2Pressed) {
+              try {
+                display.notifyListeners(DisplayEvent.MOUSE_PRESSED_CENTER);
+              }
+              catch (VisADException e) {
+              }
+              catch (RemoteException e) {
+              }
+            }
+            //--
           }
           else if (mousePressed3 || mouseCombo3) {
             if (display_renderer.anyDirects()) {
@@ -280,6 +289,14 @@ event_switch:
                                               mouseModifiers);
                 }
               }
+            }
+            // WLH 19 July 99
+            try {
+              display.notifyListeners(DisplayEvent.MOUSE_PRESSED_RIGHT);
+            }
+            catch (VisADException e) {
+            }
+            catch (RemoteException e) {
             }
           }
         }
