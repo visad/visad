@@ -283,6 +283,36 @@ public class LabeledColorWidget
     }
   }
 
+  /**
+   * Stub routine which calls <CODE>ColorMapWidget.getMaximumSize()</CODE>.
+   *
+   * @return Maximum size in <CODE>Dimension</CODE>.
+   */
+  public Dimension getMaximumSize()
+  {
+    return wrappedWidget.getMaximumSize();
+  }
+
+  /**
+   * Stub routine which calls <CODE>ColorMapWidget.setMaximumSize()</CODE>.
+   *
+   * @param size Maximum size.
+   */
+  public void setMaximumSize(Dimension size)
+  {
+    wrappedWidget.setMaximumSize(size);
+  }
+
+  /**
+   * Stub routine which calls <CODE>ColorMapWidget.getColorWidget()</CODE>.
+   *
+   * @return The <CODE>ColorWidget</CODE>.
+   */
+  public ColorWidget getColorWidget()
+  {
+    return wrappedWidget.getColorWidget();
+  }
+
   public static void main(String[] args)
   {
     try {
