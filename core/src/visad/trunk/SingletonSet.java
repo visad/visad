@@ -34,6 +34,8 @@ import java.rmi.*;
 public class SingletonSet extends SampledSet {
 
   private RealTuple data;
+  
+  private static final int[] nilNeighbors = {};
 
   /**  
    * Construct a SingletonSet with the single sample given by a RealTuple 
@@ -89,6 +91,54 @@ public class SingletonSet extends SampledSet {
   }
 
   /**
+   * Constructs from a type, numeric values, units, coordinate system, and
+   * error estimates.
+   *
+   * @param type                  The type for this instance.
+   * @param values                The numeric values in units of the <code>
+   *                              units</code> argument (if 
+   *                              non-<code>null</code>); otherwise, in units of
+   *                              the coordinate system argument (if non-
+   *                              <code>null</code>); otherwise, in the
+   *                              default units of the type argument.
+   * @param coordSys              The coordinate system transformation for this
+   *                              instance or <code>null</code>.
+   * @param units                 The units of the numeric values or <code>
+   *                              null</code>.
+   * @param errors                Error estimates for the values or <code>
+   *                              null</code>.
+   * @throws VisADException       if a VisAD failure occurs.
+   * @throws RemoteException      if a Java RMI failure occurs.
+   * @throws NullPointerException if the type or values argument is
+   *                              <code>null</code>.
+   * @see CoordinateSystem#getCoordinateSystemUnits()
+   */
+  public SingletonSet(RealTupleType type, double[] values,
+    CoordinateSystem coordSys, Unit[] units, ErrorEstimate[] errors)
+      throws VisADException, RemoteException {
+
+    super(type, 0, coordSys, units, errors); // ManifoldDimension = 0
+
+    int             dim = type.getDimension();
+    float[][]       samples = new float[dim][1];
+    Real[]          reals = new Real[dim];
+    
+    units = getSetUnits();
+    errors = getSetErrors();
+
+    for (int k=0; k<dim; k++) {
+      samples[k][0] = (float)values[k];
+      reals[k] = new Real(
+	(RealType)type.getComponent(k), values[k], units[k], errors[k]);
+    }
+
+    init_samples(samples);
+
+    data = new RealTuple(type, reals, coordSys);
+    Length = 1;
+  }
+
+  /**
    * Check if the samples are missing.
    *
    * @return false by definition, a SingletonSet never has missing samples
@@ -96,6 +146,26 @@ public class SingletonSet extends SampledSet {
    */
   public boolean isMissing() {
     return false;
+  }
+  
+  /**
+   * <p>Returns an array of indexes for neighboring points for each point in the
+   * set.  If <code>neighbors</code> is the return value, then
+   * <code>neighbors[i][j]</code> is the index of the <code>j</code>th 
+   * neighbor of sample <code>i</code>.</p>
+   *
+   * <p>This implementation places an array of length zero into the single
+   * element of the input array.  The length is zero because instances of this
+   * class have no neighboring sample points.</p>
+   *
+   * @param neighbors                The array to hold the indicial arrays for
+   *                                 each sample point.
+   * @throws ArrayIndexOutOfBoundsException
+   *                                 if the length of the argument array is
+                                     zero.
+   */
+  public void getNeighbors(int[][] neighbors) {
+    neighbors[0] = nilNeighbors;
   }
 
   /** 
