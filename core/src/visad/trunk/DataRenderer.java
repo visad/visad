@@ -1177,6 +1177,8 @@ if (map.badRange()) {
   private final static String badCoordSysManifoldDim =
     "bad directManifoldDimension with spatial CoordinateSystem";
 
+  private boolean stop = false;
+
   public synchronized void realCheckDirect()
          throws VisADException, RemoteException {
     setIsDirectManipulation(false);
@@ -1496,10 +1498,22 @@ System.out.println("checkClose: distance = " + distance);
   public synchronized void release_direct() {
   }
 
+  public void stop_direct() {
+    stop = true;
+  }
+
   public synchronized void drag_direct(VisADRay ray, boolean first,
                                        int mouseModifiers) {
     // System.out.println("drag_direct " + first + " " + type);
     if (spatialValues == null || ref == null || shadow == null) return;
+
+    if (first) {
+      stop = false;
+    }
+    else {
+      if (stop) return;
+    }
+
     float o_x = (float) ray.position[0];
     float o_y = (float) ray.position[1];
     float o_z = (float) ray.position[2];
