@@ -25,6 +25,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.rmi.*;
+
 /**
    SingletonSet is the class for Set-s containing one member.<P>
 */
@@ -33,14 +35,15 @@ public class SingletonSet extends SampledSet {
   private RealTuple data;
 
   /** construct a SingletonSet with the single sample given by a RealTuple */
-  public SingletonSet(RealTuple d) throws VisADException {
+  public SingletonSet(RealTuple d) throws VisADException, RemoteException {
     this(d, d.getType(), null, null, null);
   }
 
   /** construct a SingletonSet with the single sample given by a RealTuple,
       and a non-default CoordinateSystem */
   public SingletonSet(RealTuple d, CoordinateSystem coord_sys, Unit[] units,
-                      ErrorEstimate[] errors) throws VisADException {
+                      ErrorEstimate[] errors)
+         throws VisADException, RemoteException {
     this(d, d.getType(), coord_sys, units, errors);
   }
 
@@ -48,7 +51,7 @@ public class SingletonSet extends SampledSet {
       RealTuple argument, and a non-default CoordinateSystem */
   private SingletonSet(RealTuple d, MathType type, CoordinateSystem coord_sys,
                        Unit[] units, ErrorEstimate[] errors)
-          throws VisADException {
+          throws VisADException, RemoteException {
     super(type, 0, coord_sys, units, errors);
     int dim = d.getDimension();
     float[][] samples = new float[dim][1];
@@ -73,12 +76,18 @@ public class SingletonSet extends SampledSet {
   }
 
   /** convert an array of 1-D indices to an array of values in R^DomainDimension */
-  public float[][] indexToValue(int[] index) throws VisADException {
+  public float[][] indexToValue(int[] index)
+         throws VisADException {
     int length = index.length;
     float[][] value = new float[DomainDimension][length];
     float[] v = new float[DomainDimension];
     for (int k=0; k<DomainDimension; k++) {
-      v[k] = (float) (((Real) data.getComponent(k)).getValue());
+      try {
+        v[k] = (float) (((Real) data.getComponent(k)).getValue());
+      }
+      catch (RemoteException e) {
+        v[k] = Float.NaN;
+      }
     }
     for (int i=0; i<length; i++) {
       if (index[i] < 0 || index[i] >= Length) {
@@ -150,6 +159,9 @@ public class SingletonSet extends SampledSet {
     catch (VisADException e) {
       return false;
     }
+    catch (RemoteException e) {
+      return false;
+    }
   }
 
   public Object clone() {
@@ -160,11 +172,19 @@ public class SingletonSet extends SampledSet {
     catch (VisADException e) {
       throw new VisADError("SingletonSet.clone: " + e.toString());
     }
+    catch (RemoteException e) {
+      throw new VisADError("SingletonSet.clone: " + e.toString());
+    }
   }
 
   public Object cloneButType(MathType type) throws VisADException {
-    return new SingletonSet(data, type, DomainCoordinateSystem,
-                            SetUnits, SetErrors);
+    try {
+      return new SingletonSet(data, type, DomainCoordinateSystem,
+                              SetUnits, SetErrors);
+    }
+    catch (RemoteException e) {
+      throw new VisADError("SingletonSet.cloneButType: " + e.toString());
+    }
   }
 
   public String longString(String pre) throws VisADException {

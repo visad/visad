@@ -179,8 +179,12 @@ public class FunctionType extends MathType {
              " -> " + Range.toString();
   }
 
-  public Data missingData() throws VisADException {
-    return new FieldImpl(this, new SingletonSet((RealTuple) Domain.missingData()));
+  public Data missingData() throws VisADException, RemoteException {
+    int n = Domain.getDimension();
+    double[] values = new double[n];
+    for (int i=0; i<n; i++) values[i] = 0.0;
+    RealTuple tuple = new RealTuple(Domain, values);
+    return new FieldImpl(this, new SingletonSet(tuple));
   }
 
   public ShadowType buildShadowType(DataDisplayLink link, ShadowType parent)

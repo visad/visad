@@ -116,10 +116,15 @@ public class Tuple extends DataImpl {
   }
 
   public int getDimension() {
-    return tupleComponents.length;
+    if (tupleComponents != null) {
+      return tupleComponents.length;
+    }
+    else {
+      return ((TupleType) getType()).getDimension();
+    }
   }
 
-  public Data getComponent(int i) throws VisADException {
+  public Data getComponent(int i) throws VisADException, RemoteException {
     if (isMissing()) {
       return ((TupleType) Type).getComponent(i).missingData();
     }
