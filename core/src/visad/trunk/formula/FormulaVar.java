@@ -325,7 +325,7 @@ public class FormulaVar extends ActionImpl {
   /** recompute this variable */
   public void doAction() {
     try {
-      tref.setThing(compute(postfix));
+      if (postfix != null) tref.setThing(compute(postfix));
     }
     catch (VisADException exc) {
       evalError("Could not store final value in variable");
