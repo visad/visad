@@ -73,8 +73,7 @@ import edu.wisc.ssec.mcidas.McIDASUtil;
  * @author Don Murray - Unidata and James Kelly - BoM
  * 
  */
-public class AddePointDataReader 
-{
+public class AddePointDataReader {
 
     // load protocol for ADDE URLs
     // See java.net.URL for explanation of URL handling
@@ -98,13 +97,24 @@ public class AddePointDataReader
         }
     }
 
-    //private DataInputStream dataInputStream;   // input stream
+    /**
+     * Key for getting data in param order [numParams][numObs]
+     */
+    public static final int PARAM_ORDER = 0;
+
+    /**
+     * Key for getting data in obs order [numObs][numParams]
+     */
+    public static final int OB_ORDER = 1;
+
     private int status=0;                      // read status
-    private URLConnection urlc;                // URL connection
+    //private URLConnection urlc;                // URL connection
     private String[] params;       // parameters returned from server
     private int[] ScalingFactors;  // scaling factors returned from server
     private String[] units;        // units returned from server
-    private int[][] iData;         // data returned from server as array of ints
+    private int[][] iData = null;  // data returned from server as array of ints
+    private int[][] oData = null;  // data returned from server as array of ints
+    private Vector data = null;    // holds the obs
     private int numParams = 0;     // number of parameters
     private boolean debug = false; // set to true for debugging
     
@@ -221,7 +231,7 @@ public class AddePointDataReader
         //
         //  next get number of bytes for the actual data
         //
-        Vector data = new Vector();
+        data = new Vector();
         byte[] bThisUnitName = new byte[4];
         try
         {
@@ -235,16 +245,6 @@ public class AddePointDataReader
                 data.addElement(dataArray);
                 numDataBytes = dataInputStream.readInt();
                 if (debug) System.out.println("numDataBytes = " + numDataBytes);
-            }
-            // Convert to in array
-            iData = new int[numParams][data.size()];
-            if (debug) {
-              System.out.println("number of data records = " + data.size());
-            }
-            for (int i = 0; i < data.size(); i++)
-            {
-                int[] values = (int[]) data.get(i);
-                for (int j = 0; j < numParams; j++) iData[j][i] = values[j];
             }
         }
         catch (IOException e) 
@@ -265,10 +265,27 @@ public class AddePointDataReader
     public int[][] getData()
         throws AddeException
     {
+       return getData(PARAM_ORDER);
+    }
+
+    /**
+     * Return the data sent by the server. 
+     * @param   order   order of the data.  
+     *
+     * @return  array of the data.  Data is in the format of an integer array
+     *          of unscaled integers as returned from the server.
+     *
+     * @exception AddeException if there was an error reading data
+     */
+    public int[][] getData(int order)
+        throws AddeException
+    {
         if (status < 0)
             throw new AddeException("No data available");
 
-        return iData;
+        return (order == PARAM_ORDER)
+                    ? getParamOrderData()
+                    : getObOrderData();
     }
 
     /**
@@ -343,7 +360,8 @@ public class AddePointDataReader
      * @return array of values for the particular parameter or
      *         null if an invalid parameter was entered. This
      *         will return String[] for parameters with units of CHAR,
-     *         int[] for an array of non scaled data, and double[] for
+     *         float[1][] for an array of non scaled data, and double[1][] for
+     */
     public Object[] getData(String parameter)
         throws AddeException
     {
@@ -351,34 +369,35 @@ public class AddePointDataReader
             throw new AddeException("No data available");
         for (int i = 0; i < numParams; i++)
         {
-            if (parameter.equals(params[i]))
+            if (parameter.equalsIgnoreCase(params[i]))
             {
+                iData = getParamOrderData();
                 if (units[i].equalsIgnoreCase("CHAR"))
                 {
                     String[] vals = new String[iData[i].length];
                     for (int j = 0; j < iData[i].length; j++)
                     {
-                        vals[j] = McIDASUtil.intToString(iData[i][j]);
+                        vals[j] = McIDASUtil.intBitsToString(iData[i][j]);
                     }
                     return vals;
                 }
                 else 
                 if (ScalingFactors[i] != 0)
                 {
-                    double[] vals = new double[iData[i].length];
+                    double[][] vals = new double[1][iData[i].length];
                     for (int j = 0; j < iData[i].length; j++)
                     {
-                        vals[j] = iData[i][j]/Math.pow(10.0, 
-                                              (double) ScalingFactors[i]);
+                        vals[0][j] = iData[i][j]/Math.pow(10.0, 
+                                                 (double) ScalingFactors[i]);
                     }
                     return vals;
                 }
                 else
                 {
-                    int[] vals = new int[iData[i].length];
+                    float[][] vals = new float[1][iData[i].length];
                     for (int j = 0; j < iData[i].length; j++)
                     {
-                        vals[j] = iData[i][j];
+                        vals[0][j] = (float) iData[i][j];
                     }
                     return vals;
                 }
@@ -386,8 +405,47 @@ public class AddePointDataReader
         }
         return null;
     }
+
+    /**
+     * Create an array of data in parameter order [numParams][numobs].
+     * @return array of data in parameter order
      */
+    private int[][] getParamOrderData() {
                 
+      if (iData == null) {
+        // Convert to in array
+        iData = new int[numParams][data.size()];
+        if (debug) {
+          System.out.println("number of data records = " + data.size());
+        }
+        for (int i = 0; i < data.size(); i++)
+        {
+            int[] values = (int[]) data.get(i);
+            for (int j = 0; j < numParams; j++) iData[j][i] = values[j];
+        }
+      }
+      return iData;
+    }
+
+    /**
+     * Create an array of data in observation order [numObs][numParams].
+     * @return array of data in obs order
+     */
+    private int[][] getObOrderData() {
+                
+      if (oData == null) {
+        // Convert to in array
+        oData = new int[data.size()][numParams];
+        if (debug) {
+          System.out.println("number of data records = " + data.size());
+        }
+        for (int i = 0; i < data.size(); i++)
+        {
+            oData[i] = (int[]) data.get(i);
+        }
+      }
+      return oData;
+    }
 
     /**
      * Return a formated string of the returned data
@@ -409,6 +467,7 @@ public class AddePointDataReader
             buf.append("\t");
         }
         buf.append("\n");
+        iData = getParamOrderData();
         for (int i = 0; i < iData[0].length; i++)
         {
             for (int j = 0; j < numParams; j++)
@@ -449,7 +508,7 @@ public class AddePointDataReader
             (args.length == 0)
             // ? "adde://servb.ho.bom.gov.au/point?group=neons&descr=metar&num=2&select='id ymml; time 22 24; day 1999317'&parm=id dir spd t[c] td[c] psl&pos=ALL&version=1"
             // Unidata server
-            ? "adde://adde.unidata.ucar.edu/point?group=rtptsrc&descr=sfchourly&num=2&select='id ypph'&parm=id dir spd t[c] td[c] psl&pos=0&version=1&trace=1"
+            ? "adde://adde.ucar.edu/point?group=rtptsrc&descr=sfchourly&num=2&select='id ypph'&parm=id dir spd t[c] td[c] psl&pos=0&version=1&trace=1"
             : args[0];
         AddePointDataReader ptlist = new AddePointDataReader(request);
         System.out.println(ptlist.toString());
