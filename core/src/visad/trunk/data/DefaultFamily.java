@@ -36,10 +36,10 @@ public class DefaultFamily
     * List of all supported VisAD datatype Forms.
     */
   /*
-   *  note that I hardcoded the number of FormNodes (5)
+   *  note that I hardcoded the number of FormNodes (100)
    *  increase this if you add a new FormNode
    */
-  private static FormNode[] list = new FormNode[5];
+  private static FormNode[] list = new FormNode[100];
   private static boolean listInitialized = false;
 
   /**
