@@ -152,6 +152,7 @@ public class ImageJForm extends Form implements FormFileInformer {
     Data data = form.open(args[0]);
     System.out.println("[done]");
     System.out.println("MathType =\n" + data.getType().prettyString());
+    System.exit(0);
   }
 
 }

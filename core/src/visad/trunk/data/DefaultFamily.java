@@ -30,21 +30,22 @@ import visad.Data;
 import visad.DataImpl;
 import visad.VisADException;
 
+import visad.data.biorad.BioRadForm;
 import visad.data.dods.DODSForm;
 import visad.data.fits.FitsForm;
 import visad.data.gif.GIFForm;
-import visad.data.tiff.TiffForm;
 import visad.data.hdfeos.HdfeosAdaptedForm;
-import visad.data.netcdf.Plain;
-import visad.data.vis5d.Vis5DAdaptedForm;
-import visad.data.visad.VisADForm;
-import visad.data.mcidas.AreaForm;
-import visad.data.mcidas.PointForm;
-import visad.data.mcidas.MapForm;
-import visad.data.biorad.BioRadForm;
+import visad.data.ij.ImageJForm;
 import visad.data.jai.JAIForm;
+import visad.data.mcidas.AreaForm;
+import visad.data.mcidas.MapForm;
+import visad.data.mcidas.PointForm;
+import visad.data.netcdf.Plain;
 import visad.data.qt.QTForm;
 import visad.data.text.TextForm;
+import visad.data.tiff.TiffForm;
+import visad.data.vis5d.Vis5DAdaptedForm;
+import visad.data.visad.VisADForm;
 
 /**
   * A container for all the officially supported VisAD datatypes.<br>
@@ -150,17 +151,22 @@ public class DefaultFamily
     } catch (Throwable t) {
     }
     try {
-      list[i] = new JAIForm();
-      i++;
-    } catch (Throwable t) {
-    }
-    try {
       list[i] = new QTForm();
       i++;
     } catch (Throwable t) {
     }
     try {
       list[i] = new TextForm();
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
+      list[i] = new ImageJForm();
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
+      list[i] = new JAIForm();
       i++;
     } catch (Throwable t) {
     }
