@@ -97,7 +97,7 @@ public class Test55
 
   public String toString()
   {
-    return ": collaborative direct manipulation server" +
+    return ": collaborative direct manipulation server in Java2D" +
 		"\n\trun rmiregistry first" +
 		"\n\tany number of clients may connect";
   }

@@ -98,7 +98,7 @@ public class Test56
 
   public String toString()
   {
-    return " ip.name: collaborative direct manipulation client" +
+    return " ip.name: collaborative direct manipulation client in Java2D" +
 		"\n\tsecond parameter is server IP name";
   }
 
