@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: FileStrategy.java,v 1.5 2001-10-29 21:58:30 steve Exp $
+ * $Id: FileStrategy.java,v 1.6 2001-12-19 16:45:07 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -17,18 +17,18 @@ import visad.data.netcdf.*;
 
 
 /**
- * Provides support for importing netCDF datasets using the strategy of
- * employing FileFlatField-s wherever possible, but merging the data so as to
- * keep the number of FileFlatField-s to a minimum.
+ * <p>Provides support for importing netCDF datasets using the strategy of
+ * employing {@link FileFlatField}s wherever possible, but merging the data so
+ * as to keep the number of {@link FileFlatField}s to a minimum.</p>
  *
- * This class may be subclassed in order to use a different data merger tactic
- * -- one that maximizes the number of FileFlatField-s, for example (see {@link
- * #getMerger()}).
+ * <p>This class may be subclassed in order to use a different data merger
+ * tactic -- one that maximizes the number of {@link FileFlatField}s, for
+ * example (see {@link #getMerger()}).</p>
  *
  * @author Steven R. Emmerson
  */
 public class FileStrategy
-    extends     NetcdfAdapter.Strategy
+    extends     Strategy
 {
     /**
      * The singleton instance of this class.
@@ -46,7 +46,7 @@ public class FileStrategy
      *
      * @return                  An instance of this class.
      */
-    public static NetcdfAdapter.Strategy instance()
+    public static Strategy instance()
     {
         return instance;
     }
@@ -69,14 +69,15 @@ public class FileStrategy
      * @param adapter           The netCDF-to-VisAD adapter.
      * @return                  The top-level, VisAD data object in the
      *                          netCDF dataset.
-     * @throws VisADException   Problem in core VisAD.  Probably some
-     *                          VisAD object couldn't be created.
-     * @throws IOException      Data access I/O failure.
-     * @throws BadFormException netCDF dataset doesn't conform to
+     * @throws VisADException   if a problem occurs in core VisAD -- probably 
+     *                          because a VisAD object couldn't be created.
+     * @throws IOException      if a data access I/O failure occurs.
+     * @throws BadFormException if the netCDF dataset doesn't conform to
      *                          conventions implicit in constructing
      *                          View.
-     * @throws OutOfMemoryError Couldn't import netCDF dataset into 
+     * @throws OutOfMemoryError if the netCDF dataset couldn't be imported into 
      *                          memory.
+     * @throws RemoteException  if a Java RMI failure occurs.
      * @see #getMerger()
      */
     public DataImpl
