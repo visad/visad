@@ -43,6 +43,9 @@ public class MeasurePoint {
   /** Data reference for the point. */
   DataReferenceImpl ref;
 
+  /** Associated display. */
+  private DisplayImpl display;
+
   /** Associated measurement. */
   private Measurement m;
 
@@ -65,9 +68,17 @@ public class MeasurePoint {
   }
 
   /** Adds the distance measuring data to the given display. */
-  public void addToDisplay(DisplayImpl d)
+  public void setDisplay(DisplayImpl d)
     throws VisADException, RemoteException
   {
+    if (display != null) {
+      // remove measuring data from old display
+      display.removeReference(ref);
+    }
+    display = d;
+    if (d == null) return;
+
+    // add measuring data to new display
     boolean j3d = d instanceof DisplayImplJ3D;
     d.getGraphicsModeControl().setPointSize(5.0f);
     d.getDisplayRenderer().setPickThreshhold(5.0f);
@@ -79,14 +90,7 @@ public class MeasurePoint {
     d.addReferences(renderer, new DataReference[] {ref}, null);
   }
 
-  /** Removes this distance measuring data from the given display. */
-  public void removeFromDisplay(DisplayImpl d)
-    throws VisADException, RemoteException
-  {
-    d.removeReference(ref);
-  }
-
-  /** Hides this point. */
+  /** Hides the point. */
   public void hide() {
     setMeasurement(null);
     if (p != null) {

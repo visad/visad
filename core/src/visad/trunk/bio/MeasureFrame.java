@@ -149,7 +149,7 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
             return;
           }
           horizWidget.setSeries(f);
-          matrix = horizWidget.getMatrix();
+          matrix = horizWidget.matrix;
           setCursor(Cursor.getDefaultCursor());
         }
       }

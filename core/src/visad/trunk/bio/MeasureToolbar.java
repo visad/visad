@@ -25,6 +25,7 @@ MA 02111-1307, USA
 
 package visad.bio;
 
+import java.awt.Color;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
@@ -32,6 +33,14 @@ import visad.browser.Divider;
 
 /** MeasureToolbar is a custom toolbar. */
 public class MeasureToolbar extends JPanel implements SwingConstants {
+
+  /** List of colors for drop-down color box. */
+  private static final Color[] COLORS = {
+    Color.black, Color.blue, Color.cyan, Color.darkGray, Color.gray,
+    Color.green, Color.lightGray, Color.magenta, Color.orange,
+    Color.pink, Color.red, Color.white, Color.yellow
+  };
+
 
   /** Currently selected line. */
   private MeasureLine line;
@@ -136,10 +145,6 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
       public void itemStateChanged(ItemEvent e) {
         boolean gray = grayscale.isSelected();
         vert.setGrayscale(gray);
-        brightnessLabel.setEnabled(gray);
-        contrastLabel.setEnabled(gray);
-        brightness.setEnabled(gray);
-        contrast.setEnabled(gray);
       }
     });
     grayscale.setEnabled(false);
@@ -163,20 +168,20 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     // brightness slider
     p2 = new JPanel();
     p2.setLayout(new BoxLayout(p2, BoxLayout.Y_AXIS));
-    brightness = new JSlider(-100, 100, 0);
+    brightness = new JSlider(1, 100, 50);
     brightness.addChangeListener(new ChangeListener() {
       public void stateChanged(ChangeEvent e) {
-        /* CTR: TODO */ System.out.println("brightness changed");
+        vert.setBrightness(brightness.getValue());
       }
     });
     brightness.setEnabled(false);
     p2.add(brightness);
 
     // contrast slider
-    contrast = new JSlider(-100, 100, 0);
+    contrast = new JSlider(1, 100, 50);
     contrast.addChangeListener(new ChangeListener() {
       public void stateChanged(ChangeEvent e) {
-        /* CTR: TODO */ System.out.println("contrast changed");
+        vert.setContrast(contrast.getValue());
       }
     });
     contrast.setEnabled(false);
@@ -255,10 +260,13 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     p.add(colorLabel);
 
     // color list
-    colorList = new JComboBox();
+    colorList = new JComboBox(COLORS);
+    colorList.setRenderer(new ColorRenderer());
     colorList.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         /* CTR: TODO */ System.out.println("color list");
+        int index = colorList.getSelectedIndex();
+        line.setColor(COLORS[index]);
       }
     });
     colorList.setEnabled(false);
@@ -292,9 +300,8 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     grayscale.setEnabled(enabled);
     brightnessLabel.setEnabled(enabled);
     contrastLabel.setEnabled(enabled);
-    boolean b = enabled && grayscale.isSelected();
-    brightness.setEnabled(b);
-    contrast.setEnabled(b);
+    brightness.setEnabled(enabled);
+    contrast.setEnabled(enabled);
   }
 
   /** Selects the given measurement line. */
@@ -317,8 +324,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
   private MeasureList getList() {
     int index = horiz.getValue() - 1;
     int slice = vert.getValue() - 1;
-    MeasureMatrix mm = horiz.getMatrix();
-    return mm.getMeasureList(index, slice);
+    return horiz.matrix.getMeasureList(index, slice);
   }
 
   /** Pads a component or group of components with horizontal space. */

@@ -77,7 +77,7 @@ public class LinePool implements DisplayListener {
     display.addDisplayListener(this);
     try {
       box = new SelectionBox();
-      box.addToDisplay(display);
+      box.setDisplay(display);
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
@@ -117,8 +117,8 @@ public class LinePool implements DisplayListener {
         display.disableAction();
         for (int i=0; i<n; i++) {
           try {
-            l[i].addToDisplay(display);
-            p[i].addToDisplay(display);
+            l[i].setDisplay(display);
+            p[i].setDisplay(display);
           }
           catch (VisADException exc) { exc.printStackTrace(); }
           catch (RemoteException exc) { exc.printStackTrace(); }
@@ -198,7 +198,7 @@ public class LinePool implements DisplayListener {
       cursor_y = y;
     }
     else if (id == DisplayEvent.MOUSE_RELEASED_LEFT &&
-      x == cursor_x && y == cursor_y && ptUsed > 0)
+      x == cursor_x && y == cursor_y && (ptUsed > 0 || lnUsed > 0))
     {
       // CTR: TODO: detect mouse clicks on points as well
 
@@ -217,7 +217,7 @@ public class LinePool implements DisplayListener {
       int index = -1;
       double mindist = Double.MAX_VALUE;
       MouseBehavior mb = display.getMouseBehavior();
-      for (int i=0; i<ptUsed; i++) {
+      for (int i=0; i<lnUsed; i++) {
         MeasureLine line = (MeasureLine) lines.elementAt(i);
         double[][] vals = line.getMeasurement().doubleValues();
         int dim = vals.length;

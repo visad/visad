@@ -26,7 +26,9 @@ MA 02111-1307, USA
 
 package visad.bio;
 
+import java.awt.Color;
 import java.rmi.RemoteException;
+import java.util.Vector;
 import visad.*;
 import visad.java2d.*;
 import visad.java3d.*;
@@ -40,8 +42,11 @@ public class MeasureLine {
   /** Debugging flag. */
   private static final boolean DEBUG = false;
 
+  /** List of all measurement lines. */
+  private static final Vector lines = new Vector();
+
   /** First free id number for lines. */
-  private static int firstFreeId = 1;
+  private static int maxId = 0;
   
   /** Id number for the line. */
   int id;
@@ -57,6 +62,9 @@ public class MeasureLine {
 
   /** Cell that ties line to endpoints. */
   private CellImpl cell;
+
+  /** Associated display. */
+  private DisplayImpl display;
 
   /** Associated measurement. */
   private Measurement m;
@@ -101,7 +109,12 @@ public class MeasureLine {
 
           // set line data
           try {
-            ref_line.setData(new GriddedSet(dtype, samps, new int[] {2}));
+            FunctionType ftype =
+              new FunctionType(dtype, FileSeriesWidget.COLOR_TYPE);
+            Gridded2DSet set = new Gridded2DSet(dtype, samps, 2);
+            FlatField field = new FlatField(ftype, set);
+            field.setSamples(new double[][] {{id, id}});
+            ref_line.setData(field);
           }
           catch (VisADException exc) { exc.printStackTrace(); }
           catch (RemoteException exc) { exc.printStackTrace(); }
@@ -111,14 +124,25 @@ public class MeasureLine {
     cell.addReference(ref_p1);
     cell.addReference(ref_p2);
 
-    id = firstFreeId++;
+    id = maxId++;
+    lines.add(this);
     if (DEBUG) System.out.println("Line " + id + ": created.");
   }
 
   /** Adds the distance measuring data to the given display. */
-  public void addToDisplay(DisplayImpl d)
+  public void setDisplay(DisplayImpl d)
     throws VisADException, RemoteException
   {
+    if (display != null) {
+      // remove measuring data from old display
+      display.removeReference(ref_p1);
+      display.removeReference(ref_p2);
+      display.removeReference(ref_line);
+    }
+    display = d;
+    if (d == null) return;
+
+    // add measuring data to new display
     boolean j3d = d instanceof DisplayImplJ3D;
     d.getGraphicsModeControl().setPointSize(5.0f);
     d.getDisplayRenderer().setPickThreshhold(5.0f);
@@ -139,13 +163,33 @@ public class MeasureLine {
     d.addReference(ref_line);
   }
 
-  /** Removes this distance measuring data from the given display. */
-  public void removeFromDisplay(DisplayImpl d)
-    throws VisADException, RemoteException
-  {
-    d.removeReference(ref_p1);
-    d.removeReference(ref_p2);
-    d.removeReference(ref_line);
+  /** Sets the line's color for the given display to the specified values. */
+  public void setColor(Color color) {
+    if (display == null) return;
+    Vector v = display.getControls(ColorControl.class);
+    ColorControl cc = (ColorControl) v.lastElement();
+    if (cc == null) return;
+    float[][] table = cc.getTable();
+    int len = table[0].length;
+    if (len != maxId) {
+      // adjust table as necessary
+      float[][] t = new float[3][maxId];
+      int s = len < maxId ? len : maxId;
+      System.arraycopy(table[0], 0, t[0], 0, s);
+      System.arraycopy(table[1], 0, t[1], 0, s);
+      System.arraycopy(table[2], 0, t[2], 0, s);
+      table = t;
+    }
+    float[] cvals = color.getColorComponents(null);
+    table[0][id] = cvals[0];
+    table[1][id] = cvals[1];
+    table[2][id] = cvals[2];
+    if (m != null) m.setColor(color);
+    try {
+      cc.setTable(table);
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
   }
 
   /** Hides the endpoints of this line. */
@@ -197,6 +241,7 @@ public class MeasureLine {
     this.m = m;
     if (m != null) {
       setValues(m.values[0], m.values[1]);
+      setColor(m.color);
       if (DEBUG) System.out.println("Line " + id + ": measurement set.");
     }
   }

@@ -39,17 +39,19 @@ import visad.data.DefaultFamily;
  */
 public class FileSeriesWidget extends StepWidget {
 
+  static final RealType COLOR_TYPE = RealType.getRealType("color");
+
   private final DefaultFamily loader = new DefaultFamily("loader");
   private DataReferenceImpl ref;
   private File[] files;
   private int curFile;
-  private DisplayImpl display;
   private ImageStackWidget isw;
   private MeasureToolbar toolbar;
   private ScalarMap animMap;
   private ScalarMap xMap;
   private ScalarMap yMap;
-  private MeasureMatrix mm;
+  MeasureMatrix matrix;
+  DisplayImpl display;
 
   /** Constructs a new FileSeriesWidget. */
   public FileSeriesWidget(boolean horizontal) {
@@ -61,13 +63,13 @@ public class FileSeriesWidget extends StepWidget {
   }
 
   /** Gets the matrix of measurements linked to the widget. */
-  public MeasureMatrix getMatrix() { return mm; }
+  public MeasureMatrix getMatrix() { return matrix; }
 
   /** Links the FileSeriesWidget with the given series of files. */
   public void setSeries(File[] files) {
     this.files = files;
-    mm = new MeasureMatrix(files.length, display, toolbar);
-    isw.setMatrix(mm);
+    matrix = new MeasureMatrix(files.length, display, toolbar);
+    isw.setMatrix(matrix);
     loadFile(true);
     updateSlider();
   }
@@ -175,6 +177,8 @@ public class FileSeriesWidget extends StepWidget {
       }
       isw.setGrayscale(true); // default to grayscale color mode
       try {
+        ScalarMap colorMap = new ScalarMap(COLOR_TYPE, Display.RGB);
+        display.addMap(colorMap);
         display.addReference(ref);
       }
       catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
@@ -183,7 +187,7 @@ public class FileSeriesWidget extends StepWidget {
 
     try {
       ref.setData(field);
-      mm.initIndex(curFile, field, new ScalarMap[] {xMap, yMap}, false);
+      matrix.initIndex(curFile, field, new ScalarMap[] {xMap, yMap}, false);
       if (isw != null && animMap != null) isw.setMap(animMap);
     }
     catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
