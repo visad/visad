@@ -298,22 +298,8 @@ public class ContourControl extends Control {
     if (st.countTokens() < 7) throw new VisADException("Invalid save string");
     boolean[] b = new boolean[2];
     float[] f = new float[5];
-    String token = st.nextToken();
-    b[0] = token.equalsIgnoreCase("true") || token.equalsIgnoreCase("T");
-    token = st.nextToken();
-    b[1] = token.equalsIgnoreCase("true") || token.equalsIgnoreCase("T");
-    for (int i=0; i<5; i++) {
-      token = st.nextToken();
-      if (token.equalsIgnoreCase("NaN")) f[i] = Float.NaN;
-      else {
-        try {
-          f[i] = Float.parseFloat(token);
-        }
-        catch (NumberFormatException exc) {
-          throw new VisADException("Invalid save string");
-        }
-      }
-    }
+    for (int i=0; i<2; i++) b[i] = toBoolean(st.nextToken());
+    for (int i=0; i<5; i++) f[i] = toFloat(st.nextToken());
     setMainContours(b, f, false);
   }
 

@@ -924,6 +924,7 @@ public class BasicSSCell extends JPanel {
     Vector rnames = null;
     Vector dnames = null;
     String proj = null;
+    String mode = null;
     Vector color = new Vector();
     Vector contour = new Vector();
     Vector range = new Vector();
@@ -974,10 +975,10 @@ public class BasicSSCell extends JPanel {
       String surplus = line.substring(eq + 1).trim();
       String nextLine = tokens[tokenNum];
       if (nextLine != null && nextLine.indexOf('=') < 0) {
-        surplus = surplus + "\n";
+        surplus = surplus + '\n';
       }
       while (nextLine != null && nextLine.indexOf('=') < 0) {
-        if (nextLine.length() > 0) surplus = surplus + nextLine + "\n";
+        if (nextLine.length() > 0) surplus = surplus + nextLine + '\n';
         nextLine = tokens[++tokenNum];
       }
 
@@ -1069,6 +1070,16 @@ public class BasicSSCell extends JPanel {
         keyword.equalsIgnoreCase("proj"))
       {
         proj = surplus;
+      }
+
+      // graphics mode settings
+      else if (keyword.equalsIgnoreCase("graphics mode") ||
+        keyword.equalsIgnoreCase("graphics_mode") ||
+        keyword.equalsIgnoreCase("graphicsmode") ||
+        keyword.equalsIgnoreCase("graphics") ||
+        keyword.equalsIgnoreCase("mode"))
+      {
+        mode = surplus;
       }
 
       // color table
@@ -1202,6 +1213,14 @@ public class BasicSSCell extends JPanel {
         "the provided projection matrix will be ignored");
     }
 
+    // set up graphics mode control
+    if (mode != null) {
+      GraphicsModeControl gmc = VDisplay.getGraphicsModeControl();
+      if (gmc != null) gmc.setSaveString(mode);
+      else System.err.println("Warning: display has no GraphicsModeControl; " +
+        "the provided graphics mode settings will be ignored");
+    }
+
     // set up color control(s)
     int len = color.size();
     if (len > 0) {
@@ -1224,7 +1243,7 @@ public class BasicSSCell extends JPanel {
           VDisplay.getControl(ContourControl.class, i);
         if (cc != null) cc.setSaveString(s);
         else System.err.println("Warning: display has no ContourControl #" +
-          (i + 1) + "; the provided contour information will be ignored");
+          (i + 1) + "; the provided contour settings will be ignored");
       }
     }
 
@@ -1252,7 +1271,7 @@ public class BasicSSCell extends JPanel {
           VDisplay.getControl(AnimationControl.class, i);
         if (ac != null) ac.setSaveString(s);
         else System.err.println("Warning: display has on AnimationControl #" +
-          (i + 1) + "; the provided animation information will be ignored");
+          (i + 1) + "; the provided animation settings will be ignored");
       }
     }
 
@@ -1283,21 +1302,21 @@ public class BasicSSCell extends JPanel {
 
       if (Filename != null) {
         // add filename to save string
-        s = s + "filename = " + Filename.toString() + "\n";
+        s = s + "filename = " + Filename.toString() + '\n';
       }
 
       if (RMIAddress != null) {
         // add rmi address to save string
-        s = s + "rmi = " + RMIAddress + "\n";
+        s = s + "rmi = " + RMIAddress + '\n';
       }
 
       if (!Formula.equals("")) {
         // add formula to save string
-        s = s + "formula = " + Formula + "\n";
+        s = s + "formula = " + Formula + '\n';
       }
 
       // add dimension to save string
-      s = s + "dim = " + Dim + "\n";
+      s = s + "dim = " + Dim + '\n';
 
       if (hasMappings()) {
         // add mappings to save string
@@ -1316,7 +1335,7 @@ public class BasicSSCell extends JPanel {
             if (i > 0) s = s + " ";
             s = s + domain.getName() + " " + q;
           }
-          s = s + "\n";
+          s = s + '\n';
         }
       }
 
@@ -1324,6 +1343,12 @@ public class BasicSSCell extends JPanel {
         // add projection control state to save string
         ProjectionControl pc = VDisplay.getProjectionControl();
         if (pc != null) s = s + "projection = " + pc.getSaveString();
+
+        // add graphics mode control settings to save string
+        GraphicsModeControl gmc = VDisplay.getGraphicsModeControl();
+        if (gmc != null) {
+          s = s + "graphics mode = " + gmc.getSaveString() + '\n';
+        }
 
         // add color control state(s) to save string
         Vector cv = VDisplay.getControls(ColorControl.class);
@@ -1339,7 +1364,7 @@ public class BasicSSCell extends JPanel {
         if (cv != null) {
           for (int i=0; i<cv.size(); i++) {
             ContourControl cc = (ContourControl) cv.elementAt(i);
-            if (cc != null) s = s + "contour = " + cc.getSaveString() + "\n";
+            if (cc != null) s = s + "contour = " + cc.getSaveString() + '\n';
           }
         }
 
@@ -1348,7 +1373,7 @@ public class BasicSSCell extends JPanel {
         if (cv != null) {
           for (int i=0; i<cv.size(); i++) {
             RangeControl rc = (RangeControl) cv.elementAt(i);
-            if (rc != null) s = s + "range = " + rc.getSaveString() + "\n";
+            if (rc != null) s = s + "range = " + rc.getSaveString() + '\n';
           }
         }
 
@@ -1357,7 +1382,7 @@ public class BasicSSCell extends JPanel {
         if (cv != null) {
           for (int i=0; i<cv.size(); i++) {
             AnimationControl ac = (AnimationControl) cv.elementAt(i);
-            if (ac != null) s = s + "anim = " + ac.getSaveString() + "\n";
+            if (ac != null) s = s + "anim = " + ac.getSaveString() + '\n';
           }
         }
 
@@ -1366,7 +1391,7 @@ public class BasicSSCell extends JPanel {
         if (cv != null) {
           for (int i=0; i<cv.size(); i++) {
             ValueControl vc = (ValueControl) cv.elementAt(i);
-            if (vc != null) s = s + "value = " + vc.getSaveString() + "\n";
+            if (vc != null) s = s + "value = " + vc.getSaveString() + '\n';
           }
         }
       }

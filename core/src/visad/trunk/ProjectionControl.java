@@ -122,65 +122,35 @@ public abstract class ProjectionControl extends Control {
     // determine matrix size
     int size = -1;
     if (numTokens == 3) {
-      int len = -1;
-      try {
-        len = Integer.parseInt(st.nextToken());
-      }
-      catch (NumberFormatException exc) { }
+      int len = toInt(st.nextToken());
       if (len < 1) {
-        throw new VisADException("Invalid save string: first dimension " +
-          "is not a positive integer");
+        throw new VisADException("First matrix dimension is not positive");
       }
       if (!st.nextToken().equalsIgnoreCase("x")) {
         throw new VisADException("Invalid save string");
       }
-      int len0 = -1;
-      try {
-        len0 = Integer.parseInt(st.nextToken());
-      }
-      catch (NumberFormatException exc) { }
+      int len0 = toInt(st.nextToken());
       if (len0 < 1) {
-        throw new VisADException("Invalid save string: second dimension " +
-          "is not a positive integer");
+        throw new VisADException("Second matrix dimension is not positive");
       }
       size = len * len0;
     }
     else if (numTokens == 1) {
-      try {
-        size = Integer.parseInt(st.nextToken());
-      }
-      catch (NumberFormatException exc) { }
+      size = toInt(st.nextToken());
       if (size < 1) {
-        throw new VisADException("Invalid save string: matrix size is " +
-          "not a positive integer");
+        throw new VisADException("Matrix size is not positive");
       }
     }
-    else {
-      throw new VisADException("Invalid save string: " +
-        "cannot determine matrix size");
-    }
+    else throw new VisADException("Cannot determine matrix size");
 
     // get matrix entries
     st = new StringTokenizer(save.substring(eol + 1));
     numTokens = st.countTokens();
     if (numTokens < size) {
-      throw new VisADException("Invalid save string: not enough " +
-        "matrix entries");
+      throw new VisADException("Not enough matrix entries");
     }
     double[] m = new double[size];
-    for (int i=0; i<size; i++) {
-      String token = st.nextToken();
-      if (token.equalsIgnoreCase("NaN")) m[i] = Double.NaN;
-      else {
-        try {
-          m[i] = Double.parseDouble(token);
-        }
-        catch (NumberFormatException exc) {
-          throw new VisADException("Invalid save string: matrix entry #" +
-            i + " is not a floating-point number");
-        }
-      }
-    }
+    for (int i=0; i<size; i++) m[i] = toDouble(st.nextToken());
     setMatrix(m);
   }
 

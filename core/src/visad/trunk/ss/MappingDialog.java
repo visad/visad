@@ -176,7 +176,7 @@ public class MappingDialog extends JDialog implements ActionListener,
       if (cs != null) {
         RealTupleType ref = cs.getReference();
         if (ref != null) {
-          s = s + rtt.prettyString() + " ==> " + ref.prettyString() + "\n";
+          s = s + rtt.prettyString() + " ==> " + ref.prettyString() + '\n';
           for (int i=0; i<ref.getDimension(); i++) {
             try {
               v.add(ref.getComponent(i));
@@ -372,7 +372,7 @@ public class MappingDialog extends JDialog implements ActionListener,
 
     // only do CoordSys stuff if there are CoordinateSystem references
     if (CoordRefs) {
-      // draw the "pretty-print" CoordinateSystem references to an Image (slow!)
+      // draw the pretty-print CoordinateSystem references to an Image (slow!)
       final Image csImg = parent.createImage(StrWidth[1], StrHeight[1]);
       g = csImg.getGraphics();
       g.setFont(Mono);
@@ -385,7 +385,7 @@ public class MappingDialog extends JDialog implements ActionListener,
       // set up CoordinateSystem references canvas
       CoordCanvas = new JComponent() {
         public void paint(Graphics g2) {
-          // draw "pretty-print" CoordinateSystem reference list using its Image
+          // draw pretty-print CoordinateSystem reference list using its Image
           g2.drawImage(csImg, 0, 0, this);
           int ind = MathList.getSelectedIndex();
           if (ind >= 0 && ScB[ind] == 1) {

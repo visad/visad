@@ -75,14 +75,7 @@ public class ValueControlJ2D extends AVControlJ2D
     throws VisADException, RemoteException
   {
     if (save == null) throw new VisADException("Invalid save string");
-    try {
-      double val = Double.parseDouble(save.trim());
-      setValue(val);
-    }
-    catch (NumberFormatException exc) {
-      throw new VisADException("Invalid save string: value is not a " +
-        "double-precision floating point number");
-    }
+    setValue(Control.toDouble(save.trim()));
   }
 
   /** copy the state of a remote control to this control */

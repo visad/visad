@@ -486,6 +486,15 @@ The following bugs have been discovered and have not yet been fixed:
    loader prints about unit types.  The Spread Sheet will still import the
    netCDF data set correctly (i.e., these warnings can be safely ignored).
 
+3) In Windows, the first time a data set is imported, an error beginning with
+   "A nonfatal internal JIT (3.00.078(x)) error 'regvar' has occurred"
+   is displayed.  This error occurs whenever a VisAD application makes use
+   of the visad.data.DefaultFamily.open() method, and is a problem with the
+   Symantec JIT compiler for Windows.  This error is harmless and data sets
+   are still imported correctly (i.e., ignore this error message).
+   Also, this error no longer appears in JDK 1.3 beta, since the JVM no longer
+   uses the Symantic JIT compiler, but instead uses Sun's new Hotspot compiler.
+
 If you find a bug in the Spread Sheet user interface not listed above,
 please send e-mail to curtis@ssec.wisc.edu and hibbard@facstaff.wisc.edu
 describing the problem, preferably with a detailed description of how to

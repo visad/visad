@@ -438,50 +438,22 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
     int numTokens = st.countTokens();
     if (numTokens < 4) throw new VisADException("Invalid save string");
 
-    // get animation flag
-    String token = st.nextToken();
-    boolean on = token.equalsIgnoreCase("true") ||
-      token.equalsIgnoreCase("T");
-
-    // get direction flag
-    token = st.nextToken();
-    boolean dir = token.equalsIgnoreCase("true") ||
-      token.equalsIgnoreCase("T");
-
-    // get current step
-    token = st.nextToken();
-    int cur = 0;
-    try {
-      cur = Integer.parseInt(token);
-    }
-    catch (NumberFormatException exc) { }
-
-    // get number of steps in stepValues array
-    token = st.nextToken();
-    int numSteps = -1;
-    try {
-      numSteps = Integer.parseInt(token);
-    }
-    catch (NumberFormatException exc) { }
+    // get animation settings
+    boolean on = Control.toBoolean(st.nextToken());
+    boolean dir = Control.toBoolean(st.nextToken());
+    int cur = Control.toInt(st.nextToken());
+    int numSteps = Control.toInt(st.nextToken());
     if (numSteps <= 0) {
-      throw new VisADException("Invalid save string: number of steps is " +
-        "not a positive integer");
+      throw new VisADException("Number of steps is not positive");
     }
-
-    // get values of stepValues array
     if (numTokens < 4 + numSteps) {
-      throw new VisADException("Invalid save string: not enough step entries");
+      throw new VisADException("Not enough step entries");
     }
     int[] steps = new int[numSteps];
     for (int i=0; i<numSteps; i++) {
-      steps[i] = -1;
-      try {
-        steps[i] = Integer.parseInt(st.nextToken());
-      }
-      catch (NumberFormatException exc) { }
+      steps[i] = Control.toInt(st.nextToken());
       if (steps[i] <= 0) {
-        throw new VisADException("Invalid save string: step #" + (i + 1) +
-          "is not a positive integer");
+        throw new VisADException("Step #" + (i + 1) + "is not positive");
       }
     }
 

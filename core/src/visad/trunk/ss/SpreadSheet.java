@@ -221,7 +221,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** gateway into VisAD Visualization Spread Sheet user interface */
   public static void main(String[] argv) {
-    String usage = "\n" +
+    String usage = '\n' +
       "Usage: java [-mx###m] visad.ss.SpreadSheet [cols rows] [-no3d]\n" +
       "       [-server server_name] [-client rmi_address] [-debug]\n\n" +
       "### = Maximum megabytes of memory to use\n" +
@@ -1274,7 +1274,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
         // build this cell's save string
         String s = "";
-        for (int l=tokenNum; l<last; l++) s = s + tokens[l] + "\n";
+        for (int l=tokenNum; l<last; l++) s = s + tokens[l] + '\n';
         fileStrings[i][j] = s;
       }
     }
@@ -1360,27 +1360,27 @@ public class SpreadSheet extends JFrame implements ActionListener,
       if (milli < 10) sMilli = "0" + sMilli;
       String time = sHour + ":" + sMin + ":" + sSec + "." + sMilli;
       header = header + "# File " + CurrentFile.getName() +
-        " written at " + date + ", " + time + "\n";
+        " written at " + date + ", " + time + '\n';
 
       // compile global information
       String global = "[Global]\n" + 
-        "dimension = " + NumVisX + " x " + NumVisY + "\n" +
-        "sheet size = " + getWidth() + " x " + getHeight() + "\n" +
-        "auto switch = " + AutoSwitch + "\n" +
-        "auto detect = " + AutoDetect + "\n" +
-        "auto show = " + AutoShowControls + "\n";
+        "dimension = " + NumVisX + " x " + NumVisY + '\n' +
+        "sheet size = " + getWidth() + " x " + getHeight() + '\n' +
+        "auto switch = " + AutoSwitch + '\n' +
+        "auto detect = " + AutoDetect + '\n' +
+        "auto show = " + AutoShowControls + '\n';
 
       // compile cell information
       String cellInfo = "";
       for (int j=0; j<NumVisY; j++) {
         for (int i=0; i<NumVisX; i++) {
           cellInfo = cellInfo + "[" + DisplayCells[i][j].getName() + "]\n" +
-            DisplayCells[i][j].getSaveString() + "\n";
+            DisplayCells[i][j].getSaveString() + '\n';
         }
       }
 
       // convert information to a character array
-      char[] sc = (header + "\n" + global + "\n" + cellInfo).toCharArray();
+      char[] sc = (header + '\n' + global + '\n' + cellInfo).toCharArray();
 
       try {
         // write file to disk

@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad;
 
 import java.rmi.*;
+import java.util.StringTokenizer;
 
 /**
    GraphicsModeControl is the VisAD interface class for controlling various
@@ -110,6 +111,56 @@ public abstract class GraphicsModeControl extends Control
   public abstract void setCurvedSize(int curved_size);
 
   public abstract int getCurvedSize();
+
+  /** get a String that can be used to reconstruct this
+      GraphicsModeControl later */
+  public String getSaveString() {
+    return "" +
+      getLineWidth() + ' ' +
+      getPointSize() + ' ' +
+      getPointMode() + ' ' +
+      getTextureEnable() + ' ' +
+      getScaleEnable() + ' ' +
+      getTransparencyMode() + ' ' +
+      getProjectionPolicy() + ' ' +
+      getPolygonMode() + ' ' +
+      getMissingTransparent() + ' ' +
+      getCurvedSize();
+  }
+
+  /** reconstruct this GraphicsModeControl using the specified save string */
+  public void setSaveString(String save)
+    throws VisADException, RemoteException
+  {
+    if (save == null) throw new VisADException("Invalid save string");
+    StringTokenizer st = new StringTokenizer(save);
+    int numTokens = st.countTokens();
+    if (numTokens < 10) throw new VisADException("Invalid save string");
+
+    // determine graphics mode settings
+    float lw = toFloat(st.nextToken());
+    float ps = toFloat(st.nextToken());
+    boolean pm = toBoolean(st.nextToken());
+    boolean te = toBoolean(st.nextToken());
+    boolean se = toBoolean(st.nextToken());
+    int tm = toInt(st.nextToken());
+    int pp = toInt(st.nextToken());
+    int pm2 = toInt(st.nextToken());
+    boolean mt = toBoolean(st.nextToken());
+    int cs = toInt(st.nextToken());
+
+    // reset graphics mode settings
+    setLineWidth(lw);
+    setPointSize(ps);
+    setPointMode(pm);
+    setTextureEnable(te);
+    setScaleEnable(se);
+    setTransparencyMode(tm);
+    setProjectionPolicy(pp);
+    setPolygonMode(pm2);
+    setMissingTransparent(mt);
+    setCurvedSize(cs);
+  }
 
   /** a method to copy any data object */
   public abstract Object clone();

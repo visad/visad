@@ -200,48 +200,25 @@ public abstract class BaseColorControl extends Control {
     if (numTokens < 3) throw new VisADException("Invalid save string");
 
     // get table size
-    int len = -1;
-    try {
-      len = Integer.parseInt(st.nextToken());
-    }
-    catch (NumberFormatException exc) { }
+    int len = toInt(st.nextToken());
     if (len < 1) {
-      throw new VisADException("Invalid save string: first dimension " +
-        "is not a positive integer");
+      throw new VisADException("First dimension is not positive");
     }
     if (!st.nextToken().equalsIgnoreCase("x")) {
       throw new VisADException("Invalid save string");
     }
-    int len0 = -1;
-    try {
-      len0 = Integer.parseInt(st.nextToken());
-    }
-    catch (NumberFormatException exc) { }
+    int len0 = toInt(st.nextToken());
     if (len0 < 1) {
-      throw new VisADException("Invalid save string: second dimension " +
-        "is not a positive integer");
+      throw new VisADException("Second dimension is not positive");
     }
     if (numTokens < 3 + len * len0) {
-      throw new VisADException("Invalid save string: not enough " +
-        "table entries");
+      throw new VisADException("Not enough table entries");
     }
 
     // get table entries
     float[][] t = new float[len][len0];
     for (int j=0; j<len0; j++) {
-      for (int i=0; i<len; i++) {
-        String token = st.nextToken();
-        if (token.equalsIgnoreCase("NaN")) t[i][j] = Float.NaN;
-        else {
-          try {
-            t[i][j] = Float.parseFloat(token);
-          }
-          catch (NumberFormatException exc) {
-            throw new VisADException("Invalid save string: table entry (" +
-              i + ", " + j + ") is not a floating-point number");
-          }
-        }
-      }
+      for (int i=0; i<len; i++) t[i][j] = toFloat(st.nextToken());
     }
     setTable(t);
   }

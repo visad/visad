@@ -91,18 +91,7 @@ public class RangeControl extends Control {
     StringTokenizer st = new StringTokenizer(save);
     if (st.countTokens() < 2) throw new VisADException("Invalid save string");
     float[] r = new float[2];
-    for (int i=0; i<2; i++) {
-      String token = st.nextToken();
-      if (token.equalsIgnoreCase("NaN")) r[i] = Float.NaN;
-      else {
-        try {
-          r[i] = Float.parseFloat(token);
-        }
-        catch (NumberFormatException exc) {
-          throw new VisADException("Invalid save string");
-        }
-      }
-    }
+    for (int i=0; i<2; i++) r[i] = toFloat(st.nextToken());
     initializeRange(r);
   }
 
