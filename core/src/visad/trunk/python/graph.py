@@ -206,7 +206,7 @@ def scatter(data_1, data_2, panel=None, pointsize=None, width=400, height=400, x
   subs.setBoxSize(disp, .70)
   showAxesScales(disp,1)
   #setAxesScalesFont(maps, Font("Monospaced", Font.PLAIN, 18))
-  if pointsize is not None: subs.setPointSize(disp, size)
+  if pointsize is not None: subs.setPointSize(disp, pointsize)
 
   subs.setAspectRatio(disp, float(width)/float(height))
   subs.showDisplay(disp,width,height,title,None,None,panel)
