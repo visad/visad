@@ -511,7 +511,7 @@ public class FieldImpl extends FunctionImpl implements Field {
   }
 
   /** set the range value at the sample nearest to domain */
-  public void setSample(RealTuple domain, Data range)
+  public void setSample(RealTuple domain, Data range, boolean copy)
          throws VisADException, RemoteException {
     if (DomainSet == null) {
       throw new FieldException("FieldImpl.setSample: DomainSet undefined");
@@ -529,7 +529,12 @@ public class FieldImpl extends FunctionImpl implements Field {
     }
     // always use simple resampling for set
     int[] indices = DomainSet.valueToIndex(vals);
-    setSample(indices[0], range);
+    setSample(indices[0], range, copy);
+  }
+
+  public void setSample(RealTuple domain, Data range)
+         throws VisADException, RemoteException {
+    setSample(domain, range, true);
   }
 
   public void setSample(int index, Data range)
