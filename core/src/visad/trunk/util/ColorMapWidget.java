@@ -307,6 +307,13 @@ public class ColorMapWidget
     }
   }
 
+  /**
+   * Forward changes from the <CODE>Control</CODE> associated with
+   * this widget's <CODE>ScalarMap</CODE> to the internal
+   * shadow <CODE>Control</CODE>.
+   *
+   * @param evt Data from the changed <CODE>Control</CODE>.
+   */
   public void controlChanged(ControlEvent evt)
     throws RemoteException, VisADException
   {
