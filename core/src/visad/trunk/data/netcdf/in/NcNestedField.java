@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNestedField.java,v 1.3 1998-09-14 13:51:37 billh Exp $
+ * $Id: NcNestedField.java,v 1.4 1998-09-15 19:41:52 billh Exp $
  */
 
 package visad.data.netcdf.in;
@@ -50,11 +50,13 @@ NcNestedField
 	throws VisADException, IOException
     {
       /* WLH 13 Sept 98 */
+/* WLH 15 Sept 98
       super(new NcDomain(var, var.getDimension(0)));
+*/
 
 /* WLH 13 Sept 98
-        super(new NcDomain(var.getDimensions()));
 */
+        super(new NcDomain(var.getDimensions()));
 
 	if (var.getRank() == 0)
 	    throw new VisADException("Variable is scalar");

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNumber.java,v 1.9 1998-09-15 19:16:42 billh Exp $
+ * $Id: NcNumber.java,v 1.10 1998-09-15 19:41:53 billh Exp $
  */
 
 package visad.data.netcdf.in;
@@ -324,7 +324,6 @@ NcNumber
 	float[]		values = new float[npts];
 
         /* WLH 14 Sept 98 */
-/* WLH 15 Sept 98 - BACK OUT THIS CHANGE
         int [] origin = new int[var.getRank()];
         for (int i=0; i<origin.length; i++) origin[i] = 0;
         Class component_type = var.getComponentType();
@@ -337,15 +336,12 @@ NcNumber
           for (int i=0; i<dvals.length; i++) values[i] = (float) dvals[i];
         }
         else {
-*/
           IndexIterator	iter = new IndexIterator(lengths);
           for (int i = 0; i < npts; ++i) {
             values[i] = var.getFloat(iter.value());
             iter.incr();
           }
-/*
         }
-*/
 
 	vetter.vet(values);
 
@@ -669,11 +665,13 @@ NcNumber
 	throws IOException, VisADException
     {
       /* WLH 13 Sept 98 */
+/* WLH 15 Sept 98
       return getData(new NcDomain(this, getDimensions()), getDoubles());
+*/
 
 /* WLH 13 Sept 98
-	return getData(new NcDomain(getDimensions()), getDoubles());
 */
+	return getData(new NcDomain(getDimensions()), getDoubles());
     }
 
 
@@ -732,11 +730,13 @@ NcNumber
 		" can't be a function");
 
         /* WLH 13 Sept 98 */
+/* WLH 15 Sept 98
         NcDomain domain = new NcDomain(this, getDimensions());
+*/
 
 /* WLH 13 Sept 98
-	NcDomain	domain = new NcDomain(getDimensions());
 */
+	NcDomain	domain = new NcDomain(getDimensions());
 
 	return new FunctionType(domain.getType(), (RealType)getMathType());
     }
@@ -841,10 +841,12 @@ NcNumber
 	System.arraycopy(getDimensions(), 1, dims, 0, dims.length);
 
         /* WLH 13 Sept 98 */
+/* WLH 15 Sept 98
         return getData(new NcDomain(this, dims, true), getDoubles(ipt));
-/* WLH 13 Sept 98
-	return getData(new NcDomain(dims), getDoubles(ipt));
 */
+/* WLH 13 Sept 98
+*/
+	return getData(new NcDomain(dims), getDoubles(ipt));
     }
 
 
