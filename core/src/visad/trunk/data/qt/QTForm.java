@@ -27,41 +27,14 @@ MA 02111-1307, USA
 package visad.data.qt;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
+import java.awt.image.*;
 import java.io.*;
 import java.net.URL;
 import java.rmi.RemoteException;
 import javax.swing.*;
 import visad.*;
 import visad.data.*;
-import visad.util.DataUtility;
-
-// CTR: To be replaced with calls via reflection
-import quicktime.QTSession;
-import quicktime.app.display.QTCanvas;
-import quicktime.app.image.ImageDataSequence;
-import quicktime.app.image.ImageUtil;
-import quicktime.app.image.JImagePainter;
-import quicktime.app.image.QTImageDrawer;
-import quicktime.app.image.QTImageProducer;
-import quicktime.app.image.Redrawable;
-import quicktime.app.players.MoviePlayer;
-import quicktime.io.OpenMovieFile;
-import quicktime.io.QTFile;
-import quicktime.qd.QDDimension;
-import quicktime.qd.QDGraphics;
-import quicktime.qd.QDRect;
-import quicktime.std.StdQTConstants;
-import quicktime.std.image.CodecComponent;
-import quicktime.std.image.CompressedFrameInfo;
-import quicktime.std.image.CSequence;
-import quicktime.std.image.ImageDescription;
-import quicktime.std.image.QTImage;
-import quicktime.std.movies.Movie;
-import quicktime.std.movies.Track;
-import quicktime.std.movies.media.VideoMedia;
-import quicktime.util.QTHandle;
-import quicktime.util.RawEncodedImage;
+import visad.util.*;
 
 /**
  * QTForm is the VisAD data form for QuickTime movie files.
@@ -71,7 +44,9 @@ import quicktime.util.RawEncodedImage;
  * QuickTime Movie Opener and QuickTime Movie Writer plugins for
  * ImageJ (available at http://rsb.info.nih.gov/ij/).
  */
-public class QTForm extends Form implements FormFileInformer, StdQTConstants {
+public class QTForm extends Form implements FormFileInformer {
+
+  public static final int FRAME_RATE = 60; // 60/600 = 1/10 of a second
 
   private static int num = 0;
 
@@ -81,6 +56,41 @@ public class QTForm extends Form implements FormFileInformer, StdQTConstants {
     "QuickTime for Java from http://www.apple.com/quicktime/";
 
   private static boolean noQT = false;
+
+  private static ReflectedUniverse r = createReflectedUniverse();
+
+  private static ReflectedUniverse createReflectedUniverse() {
+    ReflectedUniverse r = null;
+    try {
+      r = new ReflectedUniverse();
+      r.exec("import quicktime.QTSession");
+      r.exec("import quicktime.app.display.QTCanvas");
+      r.exec("import quicktime.app.image.ImageDataSequence");
+      r.exec("import quicktime.app.image.ImageUtil");
+      r.exec("import quicktime.app.image.JImagePainter");
+      r.exec("import quicktime.app.image.QTImageDrawer");
+      r.exec("import quicktime.app.image.QTImageProducer");
+      r.exec("import quicktime.app.image.Redrawable");
+      r.exec("import quicktime.io.OpenMovieFile");
+      r.exec("import quicktime.io.QTFile");
+      r.exec("import quicktime.qd.QDDimension");
+      r.exec("import quicktime.qd.QDGraphics");
+      r.exec("import quicktime.qd.QDRect");
+      r.exec("import quicktime.std.StdQTConstants");
+      r.exec("import quicktime.std.image.CodecComponent");
+      r.exec("import quicktime.std.image.CompressedFrameInfo");
+      r.exec("import quicktime.std.image.CSequence");
+      r.exec("import quicktime.std.image.ImageDescription");
+      r.exec("import quicktime.std.image.QTImage");
+      r.exec("import quicktime.std.movies.Movie");
+      r.exec("import quicktime.std.movies.Track");
+      r.exec("import quicktime.std.movies.media.VideoMedia");
+      r.exec("import quicktime.util.QTHandle");
+      r.exec("import quicktime.util.RawEncodedImage");
+    }
+    catch (VisADException exc) { noQT = true; }
+    return r;
+  }
 
   /** Constructs a new QuickTime movie file form. */
   public QTForm() {
@@ -108,8 +118,11 @@ public class QTForm extends Form implements FormFileInformer, StdQTConstants {
     return s;
   }
 
-  private void setCurrentFrame(int frame, BufferedImage buffer, FlatField[] fields) {
-    Image img = DataUtility.extractImage(fields[frame], true);
+  /** Paints the given movie frame into the image buffer. */
+  private void setCurrentFrame(int frame,
+    BufferedImage buffer, FlatField[] fields)
+  {
+    Image img = DataUtility.extractImage(fields[frame], false);
     if (img != null) {
       Graphics g = buffer.getGraphics();
       g.drawImage(img, 0, 0, null);
@@ -130,98 +143,122 @@ public class QTForm extends Form implements FormFileInformer, StdQTConstants {
       int[] lengths = set.getLengths();
       int kWidth = lengths[0];
       int kHeight = lengths[1];
-      QTSession.open();
+      r.setVar("numFrames", new Integer(numFrames));
+      r.setVar("kWidth", new Integer(kWidth));
+      r.setVar("kHeight", new Integer(kHeight));
+      r.exec("QTSession.open()");
 
-//BEGIN
-      QTCanvas canv = new QTCanvas(QTCanvas.kInitialSize, 0.5F, 0.5F);
+      // set up QuickTime drawing objects
+      r.setVar("oneHalf", new Float(0.5f));
+      Component canv = (Component) r.exec(
+        "canv = new QTCanvas(QTCanvas.kInitialSize, oneHalf, oneHalf)");
       JFrame frame = new JFrame();
       JPanel pane = new JPanel();
       frame.setContentPane(pane);
       pane.add("Center", canv);
-      BufferedImage buffer = new BufferedImage(kWidth, kHeight, BufferedImage.TYPE_INT_RGB);
-      JImagePainter ip = new JImagePainter(buffer);
-      QTImageDrawer qid = new QTImageDrawer(ip, new Dimension(kWidth, kHeight), Redrawable.kMultiFrame);
-      qid.setRedrawing(true);
-      canv.setClient(qid, true);
+      BufferedImage buffer =
+        new BufferedImage(kWidth, kHeight, BufferedImage.TYPE_INT_RGB);
+      r.setVar("buffer", buffer);
+      r.exec("ip = new JImagePainter(buffer)");
+      Dimension dim = new Dimension(kWidth, kHeight);
+      r.setVar("dim", dim);
+      r.exec("qid = new QTImageDrawer(ip, dim, Redrawable.kMultiFrame)");
+      r.setVar("true", new Boolean(true));
+      r.exec("qid.setRedrawing(true)");
+      r.exec("canv.setClient(qid, true)");
       frame.pack();
 
-//--makeMovie
       // create movie file & empty movie
       File file = new File(id);
-      QTFile f = new QTFile(file.getAbsolutePath());
-      Movie theMovie = Movie.createMovieFile(f, kMoviePlayer, createMovieFileDeleteCurFile | createMovieFileDontCreateResFile);
+      r.setVar("path", file.getAbsolutePath());
+      r.exec("f = new QTFile(path)");
+      Integer i1 = (Integer) r.getVar(
+        "StdQTConstants.createMovieFileDeleteCurFile");
+      Integer i2 = (Integer) r.getVar(
+        "StdQTConstants.createMovieFileDontCreateResFile");
+      r.setVar("flags", new Integer(i1.intValue() | i2.intValue()));
+      r.exec("theMovie = " +
+        "Movie.createMovieFile(f, StdQTConstants.kMoviePlayer, flags)");
 
       // add content
-//--start addVideoTrack--
-      int kNoVolume  = 0;
-      int kVidTimeScale = 600;
+      int kNoVolume = 0;
+      r.setVar("kNoVolume", new Integer(kNoVolume));
+      r.setVar("kVidTimeScale", new Integer(600));
 
-      Track vidTrack = theMovie.addTrack(kWidth, kHeight, kNoVolume);
-      VideoMedia vidMedia = new VideoMedia(vidTrack, kVidTimeScale);  
+      r.setVar("fkWidth", new Float(kWidth));
+      r.setVar("fkHeight", new Float(kHeight));
+      r.setVar("fkNoVolume", new Float(kNoVolume));
+      r.exec("vidTrack = theMovie.addTrack(fkWidth, fkHeight, fkNoVolume)");
+      r.exec("vidMedia = new VideoMedia(vidTrack, kVidTimeScale)");
 
-      vidMedia.beginEdits();
-//--start addVideoSample--
-      QDRect rect = new QDRect(kWidth, kHeight);
-      QDGraphics gw = new QDGraphics(rect);
-      int size = QTImage.getMaxCompressionSize(gw, rect, gw.getPixMap().getPixelSize(), codecNormalQuality, kAnimationCodecType, CodecComponent.anyCodec);
-      QTHandle imageHandle = new QTHandle(size, true);
-      imageHandle.lock();
-      RawEncodedImage compressedImage = RawEncodedImage.fromQTHandle(imageHandle);
-      CSequence seq = new CSequence(gw,
-                      rect, 
-                      gw.getPixMap().getPixelSize(),
-                      kAnimationCodecType, 
-                      CodecComponent.bestFidelityCodec,
-                      codecNormalQuality, 
-                      codecNormalQuality, 
-                      numFrames,  //1 key frame
-                      null, //cTab,
-                      0);
-      ImageDescription desc = seq.getDescription();
+      r.exec("vidMedia.beginEdits()");
+      r.exec("rect = new QDRect(kWidth, kHeight)");
+      r.exec("gw = new QDGraphics(rect)");
+      r.exec("pixmap = gw.getPixMap()");
+      r.exec("pixsize = pixmap.getPixelSize()");
+      r.exec("size = QTImage.getMaxCompressionSize(gw, rect, pixsize, " +
+        "StdQTConstants.codecNormalQuality, " +
+        "StdQTConstants.kAnimationCodecType, CodecComponent.anyCodec)");
+      r.exec("imageHandle = new QTHandle(size, true)");
+      r.exec("imageHandle.lock()");
+      r.exec("compressedImage = RawEncodedImage.fromQTHandle(imageHandle)");
+      r.setVar("zero", new Integer(0));
+      r.exec("seq = new CSequence(gw, rect, pixsize, " +
+        "StdQTConstants.kAnimationCodecType, " +
+        "CodecComponent.bestFidelityCodec, " +
+        "StdQTConstants.codecNormalQuality, " +
+        "StdQTConstants.codecNormalQuality, numFrames, null, zero)");
+      r.exec("desc = seq.getDescription()");
 
       // redraw first...
       setCurrentFrame(0, buffer, fields);
-      qid.redraw(null);
+      r.exec("qid.redraw(null)");
 
-      qid.setGWorld(gw);
-      qid.setDisplayBounds(rect);
+      r.exec("qid.setGWorld(gw)");
+      r.exec("qid.setDisplayBounds(rect)");
 
       for (int curSample=0; curSample<numFrames; curSample++) {
         setCurrentFrame(curSample, buffer, fields);
-        qid.redraw(null);
-        CompressedFrameInfo info = seq.compressFrame(gw, rect, codecFlagUpdatePrevious, compressedImage);
-        boolean isKeyFrame = info.getSimilarity() == 0;
-        vidMedia.addSample(imageHandle, 
-          0, // dataOffset,
-          info.getDataSize(),
-          60, // frameDuration, 60/600 = 1/10 of a second, desired time per frame  
-          desc,
-          1, // one sample
-          (isKeyFrame ? 0 : mediaSampleNotSync)); // no flags
-       }
+        r.exec("qid.redraw(null)");
+        r.exec("info = seq.compressFrame(gw, rect, " +
+          "StdQTConstants.codecFlagUpdatePrevious, compressedImage)");
+        Integer sim = (Integer) r.exec("info.getSimilarity()");
+        if (sim.intValue() == 0) r.setVar("keyFrame", new Integer(0));
+        else {
+          r.setVar("keyFrame", r.getVar("StdQTConstants.mediaSampleNotSync"));
+        }
+        r.exec("dataSize = info.getDataSize()");
+        r.setVar("one", new Integer(1));
+        r.setVar("frameRate", new Integer(FRAME_RATE));
+        r.exec("vidMedia.addSample(imageHandle, zero, dataSize, " +
+          "frameRate, desc, one, keyFrame)");
+      }
 
       // redraw after finishing...
-      qid.setGWorld(canv.getPort());
-      qid.redraw(null);
-//--end addVideoSample--
-      vidMedia.endEdits();
+      r.exec("port = canv.getPort()");
+      r.exec("qid.setGWorld(port)");
+      r.exec("qid.redraw(null)");
+      r.exec("vidMedia.endEdits()");
 
-      int kTrackStart = 0;
-      int kMediaTime = 0;
-      int kMediaRate = 1;
-      vidTrack.insertMedia(kTrackStart, kMediaTime, vidMedia.getDuration(), kMediaRate);
-//--end addVideoTrack--
+      r.setVar("kTrackStart", new Integer(0));
+      r.setVar("kMediaTime", new Integer(0));
+      r.setVar("kMediaRate", new Float(1.0f));
+      r.exec("duration = vidMedia.getDuration()");
+      r.exec(
+        "vidTrack.insertMedia(kTrackStart, kMediaTime, duration, kMediaRate)");
 
       // save movie to file
-      OpenMovieFile outStream = OpenMovieFile.asWrite(f);
-      theMovie.addResource( outStream, movieInDataForkResID, f.getName() );
-      outStream.close();
-//END
+      r.exec("outStream = OpenMovieFile.asWrite(f)");
+      r.exec("name = f.getName()");
+      r.exec("theMovie.addResource(outStream, " +
+        "StdQTConstants.movieInDataForkResID, name)");
+      r.exec("outStream.close()");
 
-      QTSession.close();
+      r.exec("QTSession.close()");
     }
     catch (Exception exc) {
-      QTSession.close();
+      r.exec("QTSession.close()");
+      /* CTR: TEMP */ exc.printStackTrace();
       throw new BadFormException("Save movie failed: " + exc.getMessage());
     }
   }
@@ -249,53 +286,61 @@ public class QTForm extends Form implements FormFileInformer, StdQTConstants {
     int totalFrames;
     FlatField[] fields;
     try {
-      QTSession.open();
+      r.exec("QTSession.open()");
 
       // open movie file
       File file = new File(id);
-      QTFile qtf = new QTFile(file.getAbsolutePath());
-      OpenMovieFile openMovieFile = OpenMovieFile.asRead(qtf);
-      Movie m = Movie.fromFile(openMovieFile);
+      r.setVar("path", file.getAbsolutePath());
+      r.exec("qtf = new QTFile(path)");
+      r.exec("openMovieFile = OpenMovieFile.asRead(qtf)");
+      r.exec("m = Movie.fromFile(openMovieFile)");
 
       // find first track with width != soundtrack
-      int numTracks = m.getTrackCount();
+      int numTracks = ((Integer) r.exec("m.getTrackCount()")).intValue();
       int trackMostLikely = 0;
       int trackNum = 0;
       while (++trackNum <= numTracks && trackMostLikely == 0) {
-        Track imageTrack = m.getTrack(trackNum);
-        QDDimension d = imageTrack.getSize();
-        if (d.getWidth() > 0) trackMostLikely = trackNum;
+        r.setVar("trackNum", new Integer(trackNum));
+        r.exec("imageTrack = m.getTrack(trackNum)");
+        r.exec("d = imageTrack.getSize()");
+        Integer w = (Integer) r.exec("d.getWidth()");
+        if (w.intValue() > 0) trackMostLikely = trackNum;
       }
-      Track imageTrack = m.getTrack(trackMostLikely);
-      QDDimension d = imageTrack.getSize();
-      int width = d.getWidth();
-      int height = d.getHeight();
-      ImageDataSequence seq = ImageUtil.createSequence(imageTrack);
-      totalFrames = seq.size();
+      r.setVar("trackMostLikely", new Integer(trackMostLikely));
+      r.exec("imageTrack = m.getTrack(trackMostLikely)");
+      r.exec("d = imageTrack.getSize()");
+      Integer w = (Integer) r.exec("d.getWidth()");
+      Integer h = (Integer) r.exec("d.getHeight()");
+      r.exec("seq = ImageUtil.createSequence(imageTrack)");
+      totalFrames = ((Integer) r.exec("seq.size()")).intValue();
 
       // now use controller to step movie
-      MoviePlayer moviePlayer = new MoviePlayer(m);
-      QTImageProducer qtip = new QTImageProducer(moviePlayer, new Dimension(width, height));
+      r.exec("moviePlayer = new MoviePlayer(m)");
+      r.setVar("dim", new Dimension(w.intValue(), h.intValue()));
+      ImageProducer qtip = (ImageProducer)
+        r.exec("qtip = new QTImageProducer(moviePlayer, dim)");
       Image img = Toolkit.getDefaultToolkit().createImage(qtip);
-      boolean needsRedrawing = qtip.isRedrawing();
-      int maxTime = m.getDuration();
+      boolean needsRedrawing = ((Boolean)
+        r.exec("qtip.isRedrawing()")).booleanValue();
+      int maxTime = ((Integer) r.exec("m.getDuration()")).intValue();
       int timeStep = maxTime / totalFrames;
       fields = new FlatField[totalFrames];
       for (int i=0; i<totalFrames; i++) {
         // paint next frame into image
-        moviePlayer.setTime(timeStep * i);
-        if (needsRedrawing) qtip.redraw(null);
-        qtip.updateConsumers(null);
+        r.setVar("time", new Integer(timeStep * i));
+        r.exec("moviePlayer.setTime(time)");
+        if (needsRedrawing) r.exec("qtip.redraw(null)");
+        r.exec("qtip.updateConsumers(null)");
 
         // convert image to VisAD Data object
         fields[i] = DataUtility.makeField(img);
       }
 
-      openMovieFile.close();
-      QTSession.close();
+      r.exec("openMovieFile.close()");
+      r.exec("QTSession.close()");
     }
     catch (Exception e) {
-      QTSession.close();
+      r.exec("QTSession.close()");
       throw new BadFormException("Open movie failed: " + e.getMessage());
     }
 
