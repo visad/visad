@@ -7,7 +7,6 @@ JAVASRCS	= \
 		  DefaultUnitsDB.java	\
 		  NamedUnit.java	\
 		  NoSuchUnitException.java	\
-		  ParseError.java	\
 		  ParseException.java	\
 		  Parser.java		\
 		  PluralUnit.java	\
@@ -23,7 +22,7 @@ JAVASRCS	= \
 
 GARBAGE	= \
 	  ASCII_CharStream.java \
-	  ParseError.java ParseException.java Token.java \
+	  ParseException.java Token.java \
 	  TokenMgrError.java UnitParser.java
 
 include rules.make
