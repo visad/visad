@@ -1923,37 +1923,10 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
       StringBuffer sb = new StringBuffer(1024 * NumVisX * NumVisY + 1024);
       sb.append(SSFileHeader);
       sb.append("\n");
-      Calendar cal = Calendar.getInstance();
-      int year = cal.get(Calendar.YEAR);
-      int month = cal.get(Calendar.MONTH);
-      int day = cal.get(Calendar.DAY_OF_MONTH);
-      int hour = cal.get(Calendar.HOUR_OF_DAY);
-      int min = cal.get(Calendar.MINUTE);
-      int sec = cal.get(Calendar.SECOND);
-      int milli = cal.get(Calendar.MILLISECOND);
       sb.append("# File ");
       sb.append(CurrentFile.getName());
       sb.append(" written at ");
-      sb.append(year);
-      sb.append("/");
-      if (month < 10) sb.append("0");
-      sb.append(month + 1);
-      sb.append("/");
-      if (day < 10) sb.append("0");
-      sb.append(day);
-      sb.append(", ");
-      if (hour < 10) sb.append("0");
-      sb.append(hour);
-      sb.append(":");
-      if (min < 10) sb.append("0");
-      sb.append(min);
-      sb.append(":");
-      if (sec < 10) sb.append("0");
-      sb.append(sec);
-      sb.append(".");
-      if (milli < 100) sb.append("0");
-      if (milli < 10) sb.append("0");
-      sb.append(milli);
+      sb.append(Util.getTimestamp());
       sb.append("\n\n");
 
       // compile global information
