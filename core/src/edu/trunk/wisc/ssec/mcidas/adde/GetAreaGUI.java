@@ -56,7 +56,7 @@ import edu.wisc.ssec.mcidas.adde.AddeServerInfo;
  * @author tomw
  * @version 0.1
  */
-public class GetAreaGUI extends javax.swing.JDialog {
+public class GetAreaGUI extends JPanel {
   AddeServerInfo asi;
   String[] sl;
   String selectedServer, selectedGroup, selectedDescr, selectedDateTime;
@@ -87,13 +87,14 @@ public class GetAreaGUI extends javax.swing.JDialog {
   boolean gotUserDefaults = false;
   String propFile;
   String cmdout=null;
+  JDialog dialog;
 
   /** 
   * @param s is the label for the action button
   *
   */
   public GetAreaGUI(String s) {
-    this ((Frame)null, false, s, false, true);
+    this ((Frame)null, false, s, false, true, true);
   }
   
   /** 
@@ -103,7 +104,7 @@ public class GetAreaGUI extends javax.swing.JDialog {
   *
   */
   public GetAreaGUI(String s, boolean multi) {
-    this((Frame) null, false, s, multi, true);
+    this((Frame) null, false, s, multi, true, true);
   }
   
   /** 
@@ -115,22 +116,7 @@ public class GetAreaGUI extends javax.swing.JDialog {
   *
   */
   public GetAreaGUI(String s, boolean multi, boolean coa) {
-    this((Frame) null, false, s, multi, coa);
-  }
-  /** 
-  * @param owner is the top-level Dialog that owns this
-  * @param modal is true if this should be a modal dialog
-  * @param s is the label for the action button
-  * @param multi is true if multiple selection mode is to be used 
-  *  (this does not work yet!!)
-  * @param coa is true if the Dialog should close the window after
-  *  the actionPerformed is done.
-  *
-  */
-  public GetAreaGUI(Dialog owner, boolean modal, String s, boolean multi,
-                    boolean coa) {
-    super(owner, "ADDE image data picker", modal);
-    setupGUI(s, multi, coa);
+    this((Frame) null, false, s, multi, coa, true);
   }
 
   /** 
@@ -145,12 +131,28 @@ public class GetAreaGUI extends javax.swing.JDialog {
   */
   public GetAreaGUI(Frame owner, boolean modal, String s, boolean multi,
                     boolean coa) {
-    super(owner, "ADDE image data picker", modal);
-    setupGUI(s, multi, coa);
+    this(owner, modal, s, multi, coa, true);
+  }
+
+  /** 
+  * @param owner is the top-level Frame that owns this
+  * @param modal is true if this should be a modal dialog
+  * @param s is the label for the action button
+  * @param multi is true if multiple selection mode is to be used 
+  *  (this does not work yet!!)
+  * @param coa is true if the Dialog should close the window after
+  *  the actionPerformed is done.
+  * @param dodialog is true if this should pop up a Dialog interface
+  * box.  If this is false, then owner and modal may be null.
+  *
+  */
+  public GetAreaGUI(Frame owner, boolean modal, String s, boolean multi, boolean coa, boolean dodialog) {
+
+    setupGUI(s, multi, coa, owner, modal, dodialog);
   }
     
-  private void setupGUI(String s, boolean multi, boolean coa) {
-    setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
+  private void setupGUI(String s, boolean multi, boolean coa, Frame parent, boolean modal, boolean dod) {
+
     serverUpdated = false;
     groupUpdated = false;
     descrUpdated = false;
@@ -169,7 +171,7 @@ public class GetAreaGUI extends javax.swing.JDialog {
     String[] sla = asi.getServerList();
     dataProp = new Properties();
     try {
-      String path = System.getProperty("user.dir");
+      String path = System.getProperty("user.home");
       propFile =
           path+System.getProperty("file.separator")+"GetAreaGUI.properties";
       FileInputStream fi = new FileInputStream(propFile);
@@ -211,7 +213,16 @@ public class GetAreaGUI extends javax.swing.JDialog {
     buttGroupLoc.add(LinEleButton);
     buttGroupLoc.add(IDButton);
     
-    pack();
+    dialog = null;
+    if (dod) {
+      dialog = new JDialog(parent, "ADDE Image Data Selector", modal);
+      dialog.getContentPane().add(this);
+      dialog.pack();
+    }
+ }
+
+ public void show() {
+   if (dialog != null) dialog.show();
  }
   
     /** define the name of the ADDE server to select
@@ -616,15 +627,10 @@ public class GetAreaGUI extends javax.swing.JDialog {
             LatLineText = new javax.swing.JTextField();
             LonEleText = new javax.swing.JTextField();
             
-            getContentPane().setLayout(new java.awt.GridBagLayout());
+            setLayout(new java.awt.GridBagLayout());
             java.awt.GridBagConstraints gridBagConstraints1;
             
             setFont(new java.awt.Font("SansSerif", 0, 10));
-            addWindowListener(new java.awt.event.WindowAdapter() {
-                public void windowClosing(java.awt.event.WindowEvent evt) {
-                    exitForm(evt);
-                }
-            });
             
             PanelSGD.setLayout(new java.awt.BorderLayout());
             
@@ -706,7 +712,7 @@ public class GetAreaGUI extends javax.swing.JDialog {
               gridBagConstraints1.gridx = 0;
               gridBagConstraints1.gridy = 0;
               gridBagConstraints1.insets = new java.awt.Insets(2, 0, 2, 0);
-              getContentPane().add(PanelSGD, gridBagConstraints1);
+              add(PanelSGD, gridBagConstraints1);
               
               PanelListMag.setLayout(new java.awt.GridBagLayout());
               java.awt.GridBagConstraints gridBagConstraints2;
@@ -852,7 +858,7 @@ public class GetAreaGUI extends javax.swing.JDialog {
         gridBagConstraints1 = new java.awt.GridBagConstraints();
           gridBagConstraints1.gridx = 0;
           gridBagConstraints1.gridy = 1;
-          getContentPane().add(PanelListMag, gridBagConstraints1);
+          add(PanelListMag, gridBagConstraints1);
           
           PanelBandUnit.setLayout(new java.awt.GridBagLayout());
           java.awt.GridBagConstraints gridBagConstraints3;
@@ -916,7 +922,7 @@ public class GetAreaGUI extends javax.swing.JDialog {
         gridBagConstraints1 = new java.awt.GridBagConstraints();
         gridBagConstraints1.gridx = 0;
         gridBagConstraints1.gridy = 2;
-        getContentPane().add(PanelBandUnit, gridBagConstraints1);
+        add(PanelBandUnit, gridBagConstraints1);
         
         userActionButton.setToolTipText("Click button to "+actionButtonString);
         userActionButton.setText(actionButtonString);
@@ -932,7 +938,7 @@ public class GetAreaGUI extends javax.swing.JDialog {
         gridBagConstraints1 = new java.awt.GridBagConstraints();
         gridBagConstraints1.gridx = 0;
         gridBagConstraints1.gridy = 5;
-        getContentPane().add(UserActionPanel, gridBagConstraints1);
+        add(UserActionPanel, gridBagConstraints1);
         
         statusLabel.setEditable(false);
         statusLabel.setColumns(40);
@@ -952,7 +958,7 @@ public class GetAreaGUI extends javax.swing.JDialog {
         gridBagConstraints1 = new java.awt.GridBagConstraints();
           gridBagConstraints1.gridx = 0;
           gridBagConstraints1.gridy = 7;
-          getContentPane().add(PanelStatus, gridBagConstraints1);
+          add(PanelStatus, gridBagConstraints1);
           
           PanelLoc.setLayout(new java.awt.BorderLayout());
           
@@ -1021,7 +1027,7 @@ public class GetAreaGUI extends javax.swing.JDialog {
         gridBagConstraints1 = new java.awt.GridBagConstraints();
       gridBagConstraints1.gridx = 0;
       gridBagConstraints1.gridy = 3;
-      getContentPane().add(PanelLoc, gridBagConstraints1);
+      add(PanelLoc, gridBagConstraints1);
       
   }//GEN-END:initComponents
 
@@ -1219,6 +1225,10 @@ public class GetAreaGUI extends javax.swing.JDialog {
     dataProp.put(prop+"|Location",getLocationString());
     dataProp.put(prop+"|Size",getNumLinesEles());
     dataProp.put(prop+"|Mag",getMag());
+    if (getUserName() != null) 
+           dataProp.put(getServer()+"|UserName",getUserName());
+    if (getProjectNumber() != null) 
+           dataProp.put(getServer()+"|ProjectNumber",getProjectNumber());
     if (serverList != null) dataProp.put("user|server|list",serverList.toString());
     
     try {
@@ -1259,8 +1269,8 @@ public class GetAreaGUI extends javax.swing.JDialog {
       al.actionPerformed(
             new ActionEvent(this,ActionEvent.ACTION_PERFORMED, cmdout) );
     }
-    
-    if (closeOnAction) this.dispose();
+
+    if (closeOnAction && (dialog != null)) dialog.dispose();
     
   }//GEN-LAST:event_userActionButtonActionPerformed
   
@@ -1409,6 +1419,14 @@ public class GetAreaGUI extends javax.swing.JDialog {
           // first see if a user name & proj number have been set...
           String un = getUserName();
           if (un == null || un.length() < 2) {
+            un = (String) dataProp.get(selectedServer+"|UserName");
+            String pn = (String) dataProp.get(selectedServer+"|ProjectNumber");
+            if (un != null) {
+              setUserName(un);
+              setProjectNumber(pn);
+              String ups = "user="+un+"&proj="+pn;
+              asi.setUserIDandProjString(ups);
+            }
           } else {
             String ups = "user="+un+"&proj="+getProjectNumber();
             asi.setUserIDandProjString(ups);
@@ -1477,19 +1495,15 @@ public class GetAreaGUI extends javax.swing.JDialog {
     b.setSelectedIndex(0);
     b.revalidate();
   }
-    /** Exit the Application */
-    private void exitForm(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_exitForm
-      dispose();
-    }//GEN-LAST:event_exitForm
     
     /**
      * @param args the command line arguments
      */
     public static void main (String args[]) {
       GetAreaGUI gag = new GetAreaGUI ("avoid pain", false, false);
-      gag.show ();
       gag.setUserName("tomw");
       gag.setProjectNumber("1234");
+      gag.show();
       
     }
     
