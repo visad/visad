@@ -241,6 +241,18 @@ public class DisplayImplJ3D extends DisplayImpl {
     syncRemoteData(rmtDpy);
   }
 
+  /** special constructor for cluster */
+  public DisplayImplJ3D(RemoteDisplay rmtDpy,
+                        TransformOnlyDisplayRendererJ3D renderer,
+                        GraphicsConfiguration config)
+         throws VisADException, RemoteException {
+    super(rmtDpy, renderer);
+
+    initialize(TRANSFORM_ONLY, config);
+
+    syncRemoteData(rmtDpy, false); // don't link to remote data
+  }
+
   private void initialize(int api, GraphicsConfiguration config)
 	throws VisADException, RemoteException {
     // a ProjectionControl always exists
