@@ -280,18 +280,36 @@ public class ContourWidget
     }
   }
 
-  void detectValues(double[] range) throws VisADException, RemoteException {
+  private void detectValues(double[] range) throws VisADException,
+                                              RemoteException {
     boolean[] bval = new boolean[2];
     float[] fval = new float[5];
     control.getMainContours(bval, fval);
-    cSurface = fval[0];
-    cInterval = fval[1];
-    cBase = fval[4];
-    cLo = fval[2];
-    cHi = fval[3];
-    if (cSurface != cSurface) {
-      cSurface = (float) range[0];
+
+    boolean setSurface = false;
+    if (fval[0] == fval[0] && !Util.isApproximatelyEqual(cSurface, fval[0])) {
+      cSurface = fval[0];
+      setSurface = true;
+    } else if (!Util.isApproximatelyEqual(cSurface, (float )range[0])) {
+      cSurface = (float )range[0];
+      setSurface = true;
     }
+    if (setSurface) {
+      control.setSurfaceValue(cSurface);
+    }
+
+    if (!Util.isApproximatelyEqual(cInterval, fval[1]) ||
+        !Util.isApproximatelyEqual(cLo, fval[2]) ||
+        !Util.isApproximatelyEqual(cHi, fval[3]) ||
+        !Util.isApproximatelyEqual(cBase, fval[4]))
+    {
+      cInterval = fval[1];
+      cLo = fval[2];
+      cHi = fval[3];
+      cBase = fval[4];
+      control.setContourInterval(cInterval, cLo, cHi, cBase);
+    }
+
     updateWidgetSurface();
     updateWidgetRange();
   }
