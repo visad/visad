@@ -726,6 +726,12 @@ System.out.println("badScale = " + badScale);
           if (control != null) {
             control.init();
           }
+          // WLH 26 March 99
+          ValueControl vcontrol =
+            (ValueControl) getControl(ValueControl.class);
+          if (vcontrol != null) {
+            vcontrol.init();
+          }
 
           notifyListeners(DisplayEvent.TRANSFORM_DONE);
         }
