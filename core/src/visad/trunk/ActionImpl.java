@@ -425,5 +425,8 @@ public abstract class ActionImpl
     return Name;
   }
 
+  /** change name of this Action */
+  public void setName(String name) {
+    Name = name;
+  }
 }
-
