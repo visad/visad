@@ -947,4 +947,12 @@ public abstract class DisplayRendererJ2D
     }
   }
 
+  public int getTextureWidthMax() {
+    return Integer.MAX_VALUE;
+  }
+
+  public int getTextureHeightMax() {
+    return Integer.MAX_VALUE;
+  }
+
 }

@@ -60,6 +60,12 @@ public class VisADCanvasJ3D extends Canvas3D {
   private int width;
   private int height;
 
+  private static int textureWidthMax = 0;
+  private static int textureHeightMax = 0;
+
+  private static int textureWidthMaxDefault  = 1024;
+  private static int textureHeightMaxDefault = 1024;
+
   private boolean offscreen = false;
 
   private static GraphicsConfiguration defaultConfig = makeConfig();
@@ -74,6 +80,39 @@ public class VisADCanvasJ3D extends Canvas3D {
 */
     GraphicsConfigTemplate3D template = new GraphicsConfigTemplate3D();
     GraphicsConfiguration c = d.getBestConfiguration(template);
+
+    //- determine textureWidthMax ---------------------------------------
+    //- first check user-defined cmd-line specs:
+    String prop = System.getProperty("textureWidthMax");
+    textureWidthMax = (prop == null) ? 0 : Integer.parseInt(prop);
+
+    if (prop == null) {
+      prop = System.getProperty("textureHeightMax");
+      textureHeightMax = (prop == null) ? 0 : Integer.parseInt(prop);
+    }
+
+    // no user defined values, so query Java3D, or set to defaults
+    if ((textureHeightMax == 0) && (textureWidthMax == 0)) {
+      java.util.Map propertiesMap = new Canvas3D(c).queryProperties();
+      Integer wProp = (Integer) propertiesMap.get("textureWidthMax");
+      Integer hProp = (Integer) propertiesMap.get("textureHeightMax");
+                                                                                                                                  
+      if ((wProp == null) || (hProp == null)) {
+        textureWidthMax  = textureWidthMaxDefault;
+        textureHeightMax = textureHeightMaxDefault;
+        System.out.println("This version of Java3D can't query \"textureWidthMax/textureHeightMax\"\n"+
+          "so they are being assigned the default values: \n"+
+          "textureWidthMax:  "+textureWidthMaxDefault+"\n"+
+          "textureHeightMax:  "+textureHeightMaxDefault);
+        System.out.println("If images render as a 'grey-box', try setting these parameters\n"+
+          "to a lower value, eg. 512, with '-DtextureWidthMax=512'\n"+
+          "Otherwise check your graphics environment specifications");
+      }
+      else {
+        textureWidthMax = wProp.intValue();
+        textureHeightMax = hProp.intValue();
+      }
+    }
 
     return c;
   }
@@ -221,6 +260,14 @@ public class VisADCanvasJ3D extends Canvas3D {
 
   public void setPreferredSize(Dimension size) {
     prefSize = size;
+  }
+
+  public static int getTextureWidthMax() {
+    return textureWidthMax;
+  }
+
+  public static int getTextureHeightMax() {
+    return textureHeightMax;
   }
 
   public static void main(String[] args)

@@ -857,4 +857,10 @@ public abstract class DisplayRenderer
     ScalarMap.equalizeFlow(tmap, Display.DisplayFlow2Tuple);
   }
 
+  public abstract int getTextureWidthMax() 
+         throws VisADException; 
+
+  public abstract int getTextureHeightMax()
+         throws VisADException; 
+
 }

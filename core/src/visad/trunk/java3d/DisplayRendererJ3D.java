@@ -1495,5 +1495,13 @@ public abstract class DisplayRendererJ3D
     }
   }
 
+  public int getTextureWidthMax() {
+    return VisADCanvasJ3D.getTextureWidthMax();
+  }
+
+  public int getTextureHeightMax() {
+    return VisADCanvasJ3D.getTextureWidthMax();
+  }
+
 }
 
