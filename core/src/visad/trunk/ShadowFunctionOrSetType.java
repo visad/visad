@@ -1626,7 +1626,7 @@ System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
       mode.setLineWidth(lineWidth, true);
 
       boolean pointMode = mode.getPointMode();
-      byte missing_transparent = mode.getMissingTransparent() ? 0 : (byte) -1;
+      byte missing_transparent = (byte) (mode.getMissingTransparent() ? 0 : -1);
 
 // System.out.println("start assembleColor " + (System.currentTimeMillis() - link.start_time));
 
