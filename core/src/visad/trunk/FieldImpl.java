@@ -1862,6 +1862,9 @@ public class FieldImpl extends FunctionImpl implements Field {
         }
         cnt += len;
       }
+      // still a problem if a factor Set is doubles (e.g., Time)
+      // WLH 15 Jan 2000
+      ((FlatField) new_field).setSamples(new_values, false);
     }
     else
     {
