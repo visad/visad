@@ -40,12 +40,12 @@ import java.rmi.*;
 */
 public abstract class DataRenderer extends Object implements Cloneable {
 
-  private DisplayImpl display;
+  private DisplayImpl display = null;
   /** used to insert output into scene graph */
-  private DisplayRenderer displayRenderer;
+  private DisplayRenderer displayRenderer = null;
 
   /** links to Data to be renderer by this */
-  private transient DataDisplayLink[] Links;
+  private transient DataDisplayLink[] Links = null;
   /** flag from DataDisplayLink.prepareData */
   private boolean[] feasible; // it's a miracle if this is correct
   private boolean[] is_null; // WLH 7 May 2001
@@ -80,6 +80,7 @@ public abstract class DataRenderer extends Object implements Cloneable {
   /** add message from BadMappingException or
       UnimplementedException to exceptionVector */
   public void addException(Exception error) {
+    if (display == null) return;
     exceptionVector.addElement(error);
     // System.out.println(error.getMessage());
   }
@@ -132,6 +133,7 @@ public abstract class DataRenderer extends Object implements Cloneable {
   }
 
   public synchronized void setLinks(DataDisplayLink[] links) {
+    if (display == null) return;
     if (links == null || links.length == 0) return;
     Links = links;
     feasible = new boolean[Links.length];
@@ -166,6 +168,7 @@ public abstract class DataRenderer extends Object implements Cloneable {
   }
 
   public boolean checkAction() {
+    if (display == null) return false;
     for (int i=0; i<Links.length; i++) {
       if (Links[i].checkTicks() || !feasible[i]) {
         return true;
@@ -188,6 +191,7 @@ public abstract class DataRenderer extends Object implements Cloneable {
   public DataShadow prepareAction(boolean go, boolean initialize,
                                   DataShadow shadow)
          throws VisADException, RemoteException {
+    if (display == null) return null;
     any_changed = false;
     all_feasible = true;
     any_transform_control = false;
@@ -281,6 +285,7 @@ System.out.println("any_changed = " + any_changed +
 
   public DataShadow computeRanges(Data data, ShadowType type, DataShadow shadow)
          throws VisADException, RemoteException {
+    if (display == null) return null;
     if (shadow == null) {
       shadow =
         data.computeRanges(type, display.getScalarCount());
@@ -309,6 +314,7 @@ System.out.println("any_changed = " + any_changed +
   public abstract boolean doAction() throws VisADException, RemoteException;
 
   public boolean getBadScale(boolean anyBadMap) {
+    if (display == null) return false;
     boolean badScale = false;
     for (int i=0; i<Links.length; i++) {
       if (!feasible[i] && (anyBadMap || !is_null[i])) {
@@ -340,9 +346,17 @@ if (map.badRange()) {
 
   /** clear any display list created by the most recent doAction
       invocation */
-  public abstract void clearScene();
+  public void clearScene() {
+    display = null;
+    displayRenderer = null;
+    Links = null;
+    exceptionVector.removeAllElements();
+// need to clear flow rendering and direct manipulation variables
+// and test for display == null in methods
+  }
 
   public void clearAVControls() {
+    if (display == null) return;
     Enumeration controls = display.getControls(AVControl.class).elements();
     while (controls.hasMoreElements()) {
       ((AVControl )controls.nextElement()).clearSwitches(this);
@@ -401,6 +415,7 @@ if (map.badRange()) {
       may be over-ridden by DataRenderer sub-classes; this decision may use
       some values computed by link.prepareData */
   public boolean isTransformControl(Control control, DataDisplayLink link) {
+    if (display == null) return false;
     if (control instanceof ProjectionControl ||
         control instanceof ToggleControl) {
       return false;

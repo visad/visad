@@ -47,15 +47,15 @@ import java.awt.Image;
 public abstract class RendererJ3D extends DataRenderer {
 
   /** switch is parent of any BranchGroups created by this */
-  Switch sw;
+  Switch sw = null;
   /** parent of sw for 'detach' */
-  BranchGroup swParent;
+  BranchGroup swParent = null;
   /** index of current 'intended' child of Switch sw;
       not necessarily == sw.getWhichChild() */
   /** currentIndex is always = 0; this logic is a vestige of a
       workaround for an old (circa 1998) bug in Java3D */
   private static final int currentIndex = 0;
-  BranchGroup[] branches;
+  BranchGroup[] branches = null;
   boolean[] switchFlags = {false, false, false};
   boolean[] branchNonEmpty = {false, false, false};
 
@@ -153,6 +153,7 @@ System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
   /** re-transform if needed;
       return false if not done */
   public boolean doAction() throws VisADException, RemoteException {
+    if (branches == null) return false;
     BranchGroup branch; // J3D
     boolean all_feasible = get_all_feasible();
     boolean any_changed = get_any_changed();
@@ -256,7 +257,7 @@ System.out.println("doAction " + getDisplay().getName() + " " +
 
   public BranchGroup getBranch() {
     synchronized (this) {
-      if (branchNonEmpty[currentIndex]) {
+      if (branches != null && branchNonEmpty[currentIndex]) {
         return (BranchGroup) branches[currentIndex].getChild(0);
       }
       else {
@@ -266,6 +267,7 @@ System.out.println("doAction " + getDisplay().getName() + " " +
   }
 
   public void setBranchEarly(BranchGroup branch) {
+    if (branches == null) return;
     // needed (?) to avoid NullPointerException
     ShadowTypeJ3D shadow = (ShadowTypeJ3D) (getLinks()[0].getShadow());
     shadow.ensureNotEmpty(branch);
@@ -286,6 +288,7 @@ System.out.println("doAction " + getDisplay().getName() + " " +
   }
 
   public void clearBranch() {
+    if (branches == null) return;
     synchronized (branches[currentIndex]) {
       if (branchNonEmpty[currentIndex]) {
 // System.out.println("branch " + currentIndex + " not empty, clearBranch");
@@ -308,6 +311,7 @@ System.out.println("doAction " + getDisplay().getName() + " " +
   }
 
   public void flush(Group branch) {
+    if (branches == null) return;
     Enumeration ch = branch.getAllChildren();
     while(ch.hasMoreElements()) {
       Node n = (Node) ch.nextElement();
@@ -346,9 +350,14 @@ System.out.println("doAction " + getDisplay().getName() + " " +
   }
 
   public void clearScene() {
+    if (branches == null) return;
     flush(swParent);
     swParent.detach();
     ((DisplayRendererJ3D) getDisplayRenderer()).clearScene(this);
+    branches = null;
+    sw = null;
+    swParent = null;
+    super.clearScene();
   }
 
   /** create a BranchGroup scene graph for Data in links;

@@ -150,15 +150,14 @@ public abstract class DisplayRendererJ3D
   // WLH 17 Dec 2001
   public void destroy() {
     not_destroyed = null;
-//
-// now set all variables = null
-//
+
     if (canvas != null) canvas.stop();
     if (mouse != null) mouse.destroy();
     if (root != null) {
       root.detach();
       root = null;
     }
+
     axis_vector.removeAllElements();
     directs.removeAllElements();
 

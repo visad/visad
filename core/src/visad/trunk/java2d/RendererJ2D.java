@@ -228,6 +228,7 @@ public abstract class RendererJ2D extends DataRenderer {
     VisADCanvasJ2D canvas =
       ((DisplayRendererJ2D) getDisplayRenderer()).getCanvas();
     canvas.scratchImages();
+    super.clearScene();
   }
 
   /** create a VisADGroup scene graph for Data in links;

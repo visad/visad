@@ -72,6 +72,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
   }
 
   public void addPoint(float[] x) throws VisADException {
+    if (branch == null) return;
     int count = x.length / 3;
     VisADGeometryArray array = null;
     if (count == 1) {
@@ -86,6 +87,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     array.coordinates = x;
     array.vertexCount = count;
     DisplayImplJ3D display = (DisplayImplJ3D) getDisplay();
+    if (display == null) return;
     GeometryArray geometry = display.makeGeometry(array);
 
     DataDisplayLink[] Links = getLinks();
@@ -193,6 +195,11 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
 
   public boolean isLegalTextureMap() {
     return false;
+  }
+
+  public void clearScene() {
+    branch = null;
+    super.clearScene();
   }
 
   public Object clone() {

@@ -43,6 +43,8 @@ import java.util.*;
  */
 public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
 
+  private Object not_destroyed = new Object();
+
   /** color of box and cursor */
   private ColoringAttributes box_color = null;
   private ColoringAttributes cursor_color = null;
@@ -89,6 +91,14 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     mouseBehaviorJ3DClass = mbj3dClass;
   }
 
+  public void destroy() {
+    not_destroyed = null;
+    box_color = null;
+    cursor_color = null;
+    mouse = null; 
+    super.destroy();
+  }
+
   /**
    * Create scene graph root, if none exists, with Transform
    * and direct manipulation root;
@@ -101,6 +111,7 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
    */
   public BranchGroup createSceneGraph(View v, TransformGroup vpt,
                                       VisADCanvasJ3D c) {
+    if (not_destroyed == null) return null;
     BranchGroup root = getRoot();
     if (root != null) return root;
 
@@ -160,9 +171,6 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     trans.addChild(mouse);
 
     // create ambient light, directly under root (not transformed)
-/* WLH 27 Jan 98
-    Color3f color = new Color3f(0.4f, 0.4f, 0.4f);
-*/
     Color3f color = new Color3f(0.6f, 0.6f, 0.6f);
     AmbientLight light = new AmbientLight(color);
     light.setInfluencingBounds(bounds);
@@ -186,6 +194,7 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
 
   // WLH 24 Nov 2000
   public void setBoxAspect(double[] aspect) {
+    if (not_destroyed == null) return;
     float[] new_verts = new float[box_verts.length];
     for (int i=0; i<box_verts.length; i+=3) {
       new_verts[i] = (float) (box_verts[i] * aspect[0]);

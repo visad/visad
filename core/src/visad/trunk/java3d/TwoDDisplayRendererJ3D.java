@@ -43,6 +43,8 @@ import java.util.*;
  */
 public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
 
+  private Object not_destroyed = new Object();
+
   /** color of box and cursor */
   private ColoringAttributes box_color = null;
   private ColoringAttributes cursor_color = null;
@@ -74,6 +76,14 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
     mouseBehaviorJ3DClass = mbj3dClass;
   }
 
+  public void destroy() {
+    not_destroyed = null;
+    box_color = null;
+    cursor_color = null;
+    mouse = null;
+    super.destroy();
+  }
+
   public boolean getMode2D() {
     return true;
   }
@@ -96,6 +106,7 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
    */
   public BranchGroup createSceneGraph(View v, TransformGroup vpt,
                                       VisADCanvasJ3D c) {
+    if (not_destroyed == null) return null;
     BranchGroup root = getRoot();
     if (root != null) return root;
 
@@ -155,9 +166,6 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
     trans.addChild(mouse);
 
     // create ambient light, directly under root (not transformed)
-/* WLH 27 Jan 98
-    Color3f color = new Color3f(0.4f, 0.4f, 0.4f);
-*/
     Color3f color = new Color3f(0.6f, 0.6f, 0.6f);
     AmbientLight light = new AmbientLight(color);
     light.setInfluencingBounds(bounds);
@@ -181,6 +189,7 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
 
   // WLH 24 Nov 2000
   public void setBoxAspect(double[] aspect) {
+    if (not_destroyed == null) return;
     float[] new_verts = new float[box_verts.length];
     for (int i=0; i<box_verts.length; i+=3) {
       new_verts[i] = (float) (box_verts[i] * aspect[0]);
@@ -192,21 +201,6 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
     LineArray box_geometry = (LineArray) box.getGeometry();
     box_geometry.setCoordinates(0, new_verts);
   }
-
-/*
-  private static final float[] box_verts = {
-     // front face
-         -1.0f, -1.0f,  0.3f,                       -1.0f,  1.0f,  0.3f,
-         -1.0f,  1.0f,  0.3f,                        1.0f,  1.0f,  0.3f,
-          1.0f,  1.0f,  0.3f,                        1.0f, -1.0f,  0.3f,
-          1.0f, -1.0f,  0.3f,                       -1.0f, -1.0f,  0.3f
-  };
-
-  private static final float[] cursor_verts = {
-          0.0f,  0.1f,  0.3f,                        0.0f, -0.1f,  0.3f,
-          0.1f,  0.0f,  0.3f,                       -0.1f,  0.0f,  0.3f
-  };
-*/
 
   private static final float[] box_verts = {
      // front face

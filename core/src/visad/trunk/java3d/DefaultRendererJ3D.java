@@ -40,7 +40,7 @@ import java.rmi.*;
 */
 public class DefaultRendererJ3D extends RendererJ3D {
 
-  DataDisplayLink link;
+  DataDisplayLink link = null;
 
   /** this is the default DataRenderer used by the addReference method
       for DisplayImplJ3D */
@@ -60,6 +60,7 @@ public class DefaultRendererJ3D extends RendererJ3D {
 
   /** create a BranchGroup scene graph for Data in links[0] */
   public BranchGroup doTransform() throws VisADException, RemoteException {
+    if (link == null) return null;
     BranchGroup branch = new BranchGroup();
     branch.setCapability(BranchGroup.ALLOW_DETACH);
     branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
@@ -118,6 +119,11 @@ public class DefaultRendererJ3D extends RendererJ3D {
 
   public DataDisplayLink getLink() {
     return link;
+  }
+
+  public void clearScene() {
+    link = null;
+    super.clearScene();
   }
 
   public Object clone() throws CloneNotSupportedException {
