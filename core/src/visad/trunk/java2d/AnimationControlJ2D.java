@@ -332,7 +332,7 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
          throws VisADException, RemoteException {
     if (s == null && animationSet != null && 
         animationSet.getSet() == null) return;  // check for null/null
-    if (animationSet == null || 
+    if (animationSet == null || s == null ||
         (s != null && !s.equals(animationSet.getSet()))) {
       setSet(s, false);
       // have to do this i animationSet == null

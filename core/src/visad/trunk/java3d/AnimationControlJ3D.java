@@ -316,10 +316,10 @@ public class AnimationControlJ3D extends AVControlJ3D
          throws VisADException, RemoteException {
     if (s == null && animationSet != null && 
         animationSet.getSet() == null) return;  // check for null/null
-    if (animationSet == null || 
+    if (animationSet == null || s == null || 
         (s != null && !s.equals(animationSet.getSet()))) {
       setSet(s, false);
-      // have to do this i animationSet == null
+      // have to do this if animationSet == null
       if (s == null) {
         stepValues = new long[] {step};
         current = 0;
@@ -349,9 +349,7 @@ public class AnimationControlJ3D extends AVControlJ3D
       if (s == null) {
           stepValues = new long[] {step};
           current = 0;
-      } 
-      else if (s.getLength() != stepValues.length)
-      {
+      } else if (s.getLength() != stepValues.length) {
           stepValues = new long[s.getLength()];
           for (int i = 0; i < stepValues.length; i++)
           {
