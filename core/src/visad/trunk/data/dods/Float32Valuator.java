@@ -73,13 +73,12 @@ public final class Float32Valuator
      *
      * @return realType		The VisAD real-type for the set.
      * @return			The set used to represent numeric values
-     *				associated with this instance.  May be
-     *				<code>null</code>.
+     *				associated with this instance.
      * @throws VisADException	VisAD failure.
      */
     public SimpleSet getRepresentationalSet(RealType realType)
 	throws VisADException
     {
-	return null;	// the default representational set (a FloatSet)
+	return new FloatSet(realType);
     }
 }

@@ -115,8 +115,7 @@ public abstract class Valuator
      *
      * @return realType		The VisAD real-type for the set.
      * @return			The set used to represent numeric values
-     *				associated with this instance.  May be
-     *				<code>null</code>.
+     *				associated with this instance.
      * @throws VisADException	VisAD failure.
      */
     public abstract SimpleSet getRepresentationalSet(RealType realType)

@@ -75,8 +75,7 @@ public abstract class IntValuator
      *
      * @return realType		The VisAD real-type for the set.
      * @return			The set used to represent numeric values
-     *				associated with this instance.  May be
-     *				<code>null</code>.
+     *				associated with this instance.
      * @throws VisADException	VisAD failure.
      */
     public SimpleSet getRepresentationalSet(RealType realType)
@@ -88,10 +87,10 @@ public abstract class IntValuator
 	{
 	    repSet =
 		1+((upper-lower)/inc) < Integer.MAX_VALUE
-		    ? new Linear1DSet(
+		    ? (SimpleSet)new Linear1DSet(
 			realType, lower, upper,
 			1+(int)Math.round((upper-lower)/inc))
-		    : null;
+		    : new FloatSet(realType);
 	}
 	else
 	{
@@ -102,17 +101,17 @@ public abstract class IntValuator
 	    {
 		repSet =
 		    1+upper <= Integer.MAX_VALUE
-			? new Integer1DSet(
+			? (SimpleSet)new Integer1DSet(
 			    realType, 1+(int)Math.round(upper))
-			: null;
+			: new FloatSet(realType);
 	    }
 	    else
 	    {
 		repSet =
 		    1+upper-lower < Integer.MAX_VALUE
-			? new Linear1DSet(realType, lower, upper,
+			? (SimpleSet)new Linear1DSet(realType, lower, upper,
 			    1+(int)Math.round((upper-lower)))
-			: null;
+			: new FloatSet(realType);
 	    }
 	}
 	return repSet;
