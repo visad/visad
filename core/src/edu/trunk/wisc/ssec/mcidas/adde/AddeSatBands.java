@@ -1,3 +1,4 @@
+package edu.wisc.ssec.mcidas.adde;
 import java.util.*;
 import java.lang.*;
 import java.io.*;
@@ -8,21 +9,21 @@ import java.io.*;
 */
 
 public class AddeSatBands {
-  Vector c;
+  String[] c;
 
-  public AddeSatBands(Vector cards) {
+  public AddeSatBands(String[] cards) {
     c = cards;
   }
 
   /** given a sensor and a cal type, return a list of bands possible
   */
   public String[][] getBandDescr(int sensor, String cal) {
+    if (c == null) return null;
     int gotit = -1;
     Vector v = new Vector();
-    for (int i=0; i<c.size(); i++) {
-      String s = (String) c.elementAt(i);
-      if ( ! s.startsWith("Sat ")) continue;
-      StringTokenizer st = new StringTokenizer(s," ");
+    for (int i=0; i<c.length; i++) {
+      if ( ! c[i].startsWith("Sat ")) continue;
+      StringTokenizer st = new StringTokenizer(c[i]," ");
       String temp = st.nextToken();  // throw away the key
       int m = st.countTokens();
       for (int k=0; k<m; k++) {
@@ -40,10 +41,9 @@ public class AddeSatBands {
 
     // now look for Cal
     int gotCal = -1;
-    for (int i=gotit; i<c.size(); i++) {
-      String s = (String) c.elementAt(i);
-      if ( ! s.startsWith("Cal ")) continue;
-      String calVal = s.substring(4).trim();
+    for (int i=gotit; i<c.length; i++) {
+      if ( ! c[i].startsWith("Cal ")) continue;
+      String calVal = c[i].substring(4).trim();
       if (calVal.equals(cal)) {
         gotCal = i;
         break;
@@ -54,14 +54,13 @@ public class AddeSatBands {
     if (gotCal == -1) return null;
     gotCal++;
 
-    for (int i=gotCal; i<c.size(); i++) {
-      String s = (String) c.elementAt(i);
-      if (s.startsWith("C") || s.startsWith("S") || s.startsWith("E")) break;
-      if (s.startsWith("B") ) continue;
-      String b = s.substring(0,2);
-      String c = s.substring(4);
+    for (int i=gotCal; i<c.length; i++) {
+      if (c[i].startsWith("C") || c[i].startsWith("S") || c[i].startsWith("E")) break;
+      if (c[i].startsWith("B") ) continue;
+      String b = c[i].substring(0,2);
+      String d = c[i].substring(4);
       v.addElement(b);
-      v.addElement(c);
+      v.addElement(d);
     }
 
     int num = v.size()/2;
@@ -76,7 +75,7 @@ public class AddeSatBands {
 
   public static void main(String[] a) {
     try {
-      DataInputStream das = new DataInputStream(new FileInputStream("satband.txt"));
+      DataInputStream das = new DataInputStream(new FileInputStream("/src/edu/wisc/ssec/mcidas/adde/satband.txt"));
 
       Vector v = new Vector();
       while(true) {
@@ -95,9 +94,10 @@ public class AddeSatBands {
         sat = a[0];
         cal = a[1];
       }
-
-      System.out.println("calling addesatbands");
-      AddeSatBands asb = new AddeSatBands(v);
+      
+      String[] sv = new String[num];
+      for (int i=0; i<num; i++) { sv[i] = (String) v.elementAt(i); }
+      AddeSatBands asb = new AddeSatBands(sv);
       String[][] f = asb.getBandDescr(Integer.parseInt(sat), cal);
       System.out.println("return from addesatbands");
 
