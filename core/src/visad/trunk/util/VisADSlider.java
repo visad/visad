@@ -212,7 +212,6 @@ public class VisADSlider extends JPanel implements ChangeListener,
         autoScale = true;
         initLabel();
       }
-      updateSlider(start);
       control.addControlListener(this);
       smap.addScalarMapListener(this);
     }
@@ -287,6 +286,9 @@ public class VisADSlider extends JPanel implements ChangeListener,
 
     // add listeners
     slider.addChangeListener(this);
+
+    // do initial update of the slider
+    updateSlider(start);
   }
 
   /** sets up the JLabel */
@@ -303,23 +305,21 @@ public class VisADSlider extends JPanel implements ChangeListener,
   }
 
   /** called when slider is adjusted */
-  public void stateChanged(ChangeEvent e) {
-    synchronized (label) {
-      head = "";
-      try {
-        double val = slider.getValue();
-        double cur = (sMaximum - sMinimum) * (val / sTicks) + sMinimum;
-        if (Math.abs(sCurrent - cur) > 0.0001) {
-          if (smapControl) control.setValue(cur);
-          else sRef.setData(new Real(realType, cur));
-        }
+  public synchronized void stateChanged(ChangeEvent e) {
+    head = "";
+    try {
+      double val = slider.getValue();
+      double cur = (sMaximum - sMinimum) * (val / sTicks) + sMinimum;
+      if (Math.abs(sCurrent - cur) > 0.0001) {
+        if (smapControl) control.setValue(cur);
+        else sRef.setData(new Real(realType, cur));
       }
-      catch (VisADException exc) {
-        exc.printStackTrace();
-      }
-      catch (RemoteException exc) {
-        exc.printStackTrace();
-      }
+    }
+    catch (VisADException exc) {
+      exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      exc.printStackTrace();
     }
   }
 
@@ -363,17 +363,15 @@ public class VisADSlider extends JPanel implements ChangeListener,
   }
 
   /** Update the slider's value */
-  private void updateSlider(double value) {
-    synchronized (label) {
-      int ival = (int) (sTicks * ((value - sMinimum) / (sMaximum - sMinimum)));
-      if (Math.abs(slider.getValue() - ival) > 1) {
-        slider.removeChangeListener(this);
-        slider.setValue(ival);
-        slider.addChangeListener(this);
-      }
-      sCurrent = value;
-      label.setText(sName + " = " + PlotText.shortString(sCurrent) + head);
+  private synchronized void updateSlider(double value) {
+    int ival = (int) (sTicks * ((value - sMinimum) / (sMaximum - sMinimum)));
+    if (Math.abs(slider.getValue() - ival) > 1) {
+      slider.removeChangeListener(this);
+      slider.setValue(ival);
+      slider.addChangeListener(this);
     }
+    sCurrent = value;
+    label.setText(sName + " = " + PlotText.shortString(sCurrent) + head);
   }
 
 }
