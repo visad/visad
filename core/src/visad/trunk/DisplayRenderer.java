@@ -112,6 +112,14 @@ public abstract class DisplayRenderer extends Object {
     return false;
   }
 
+  public abstract void setBackgroundColor(float r, float g, float b);
+
+  public abstract void setBoxColor(float r, float g, float b);
+
+  public abstract void setCursorColor(float r, float g, float b);
+
+  /** factory for constructing a subclass of Control appropriate
+  /** factory for constructing a subclass of Control appropriate
   /** factory for constructing a subclass of Control appropriate
       for the graphics API and for this DisplayRenderer;
       invoked by ScalarMap when it is 'addMap'ed to a Display */
@@ -137,6 +145,8 @@ public abstract class DisplayRenderer extends Object {
   public abstract double[] getCursor();
 
   public abstract void setCursorOn(boolean on);
+
+  public abstract void setBoxOn(boolean on);
 
   public abstract void depth_cursor(VisADRay ray);
 

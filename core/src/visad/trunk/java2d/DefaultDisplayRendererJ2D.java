@@ -76,6 +76,28 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
     else return super.legalDisplayScalar(type);
   }
 
+  public void setBoxColor(float r, float g, float b) {
+    box.red = r;
+    box.green = g;
+    box.blue = b;
+    getCanvas().scratchImages();
+  }
+
+  public void setCursorColor(float r, float g, float b) {
+    cursor.red = r;
+    cursor.green = g;
+    cursor.blue = b;
+    render_trigger();
+  }
+
+  float[] getCursorColor() {
+    float[] c3 = new float[3];
+    c3[0] = cursor.red;
+    c3[1] = cursor.green;
+    c3[2] = cursor.blue;
+    return c3;
+  }
+
   /** create scene graph root, if none exists, with Transform
       and direct manipulation root;
       create 3-D box, lights and MouseBehaviorJ2D for
@@ -98,9 +120,14 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
     box.red = 1.0f;
     box.green = 1.0f;
     box.blue = 1.0f;
+    box.color_flag = true;
     box.array = box_array;
     // add box to root
+/* WLH 5 Feb 99
     root.addChild(box);
+*/
+    VisADGroup box_on = getBoxOnBranch();
+    box_on.addChild(box);
  
     // create cursor
     VisADLineArray cursor_array = new VisADLineArray();
@@ -111,6 +138,7 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
     cursor.red = 1.0f;
     cursor.green = 1.0f;
     cursor.blue = 1.0f;
+    cursor.color_flag = true;
     cursor.array = cursor_array;
     // add cursor to cursor_on branch
     VisADGroup cursor_on = getCursorOnBranch();

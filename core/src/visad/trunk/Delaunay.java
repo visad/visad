@@ -110,11 +110,20 @@ public abstract class Delaunay implements java.io.Serializable {
       for (int i=1; i<dim; i++) {
         nrs = Math.min(nrs, samples[i].length);
       }
+/* WLH 3 Feb 99
       if (dim == 2 && !exact && nrs > 10000) {
         // use fast in 2-D with a very large set and exact not required
         choice = FAST;
       }
       else if (nrs > 3000) {
+        // use Clarkson for large sets
+        choice = CLARKSON;
+      }
+      else {
+        choice = WATSON;
+      }
+*/
+      if (nrs > 3000) {
         // use Clarkson for large sets
         choice = CLARKSON;
       }

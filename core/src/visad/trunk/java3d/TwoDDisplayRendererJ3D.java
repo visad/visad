@@ -43,6 +43,7 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
 
   /** color of box */
   ColoringAttributes box_color = null;
+  ColoringAttributes cursor_color = null;
   MouseBehaviorJ3D mouse = null; // Behavior for mouse interactions
 
   /** this DisplayRenderer supports 2-D only rendering;
@@ -65,6 +66,20 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
     if (Display.ZAxis.equals(type) ||
         Display.Latitude.equals(type)) return false;
     else return super.legalDisplayScalar(type);
+  }
+
+  public void setBoxColor(float r, float g, float b) {
+    box_color.setColor(r, g, b);
+  }
+
+  public void setCursorColor(float r, float g, float b) {
+    cursor_color.setColor(r, g, b);
+  }
+
+  Color3f getCursorColor() {
+    Color3f c3 = new Color3f();
+    cursor_color.getColor(c3);
+    return c3;
   }
 
   /** create scene graph root, if none exists, with Transform
@@ -90,18 +105,25 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
     box_color.setColor(1.0f, 1.0f, 1.0f);
     box_appearance.setColoringAttributes(box_color);
     Shape3D box = new Shape3D(box_geometry, box_appearance);
-    // first child of trans
-    trans.addChild(box);
+    BranchGroup box_on = getBoxOnBranch();
+    box_on.addChild(box);
  
+    Appearance cursor_appearance = new Appearance();
+    cursor_color = new ColoringAttributes();
+    cursor_color.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
+    cursor_color.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
+    cursor_color.setColor(1.0f, 1.0f, 1.0f);
+    cursor_appearance.setColoringAttributes(cursor_color);
+
     BranchGroup cursor_on = getCursorOnBranch();
     LineArray cursor_geometry = new LineArray(4, LineArray.COORDINATES);
     cursor_geometry.setCoordinates(0, cursor_verts);
-    Shape3D cursor = new Shape3D(cursor_geometry, box_appearance);
+    Shape3D cursor = new Shape3D(cursor_geometry, cursor_appearance);
     cursor_on.addChild(cursor);
 
     // insert MouseBehaviorJ3D into scene graph
     BoundingSphere bounds =
-      new BoundingSphere(new Point3d(0.0,0.0,0.0), 100.0);
+      new BoundingSphere(new Point3d(0.0,0.0,0.0), 2000000.0);
     mouse.setSchedulingBounds(bounds);
     trans.addChild(mouse);
 

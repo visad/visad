@@ -117,6 +117,10 @@ public class VisADCanvasJ2D extends Canvas
     renderThread.start();
   }
 
+  public void setBackgroundColor(float r, float g, float b) {
+    setBackground(new Color(r, g, b));
+  }
+
   public void addMouseBehavior(MouseBehaviorJ2D mouse) {
     helper = mouse.getMouseHelper();
 

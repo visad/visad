@@ -76,6 +76,13 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
   /** on / off state of axis scale */
   private boolean scaleOn = false;
 
+  /** single VisADSwitch between root and box */
+  private VisADSwitch box_switch = null;
+  /** children of box_switch */
+  private VisADGroup box_on = null, box_off = null;
+  /** on / off state of box */
+  private boolean boxOn = false;
+
   /** single VisADSwitch between root and scales */
   private VisADSwitch scale_switch = null;
   /** children of scale_switch */
@@ -100,6 +107,11 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
 
   public VisADGroup getRoot() {
     return root;
+  }
+
+  public void setBackgroundColor(float r, float g, float b) {
+    canvas.setBackgroundColor(r, g, b);
+    canvas.scratchImages();
   }
 
   public AffineTransform getTrans() {
@@ -142,6 +154,10 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     return cursor_on;
   }
 
+  public VisADGroup getBoxOnBranch() {
+    return box_on;
+  }
+
   public void setCursorOn(boolean on) {
     cursorOn = on;
     if (on) {
@@ -154,6 +170,17 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     }
     render_trigger();
   }
+
+  public void setBoxOn(boolean on) {
+    boxOn = on;
+    if (on) {
+      box_switch.setWhichChild(1); // set box on
+    }
+    else {
+      box_switch.setWhichChild(0); // set box off
+    }
+    canvas.scratchImages();
+  } 
 
   public void setDirectOn(boolean on) {
     directOn = on;
@@ -218,6 +245,15 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     cursor_switch.addChild(cursor_on);
     cursor_switch.setWhichChild(0); // initially off
     cursorOn = false;
+
+    box_switch = new VisADSwitch();
+    box_on = new VisADGroup();
+    box_off = new VisADGroup();
+    box_switch.addChild(box_off);
+    box_switch.addChild(box_on);
+    box_switch.setWhichChild(1); // initially on
+    root.addChild(box_switch);
+    boxOn = true;
 
     scale_switch = new VisADSwitch();
     root.addChild(scale_switch);
@@ -309,6 +345,8 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     canvas.renderTrigger();
   }
 
+  abstract float[] getCursorColor();
+
   public boolean anyCursorStringVector() {
     if (cursorOn) return true;
 
@@ -368,7 +406,11 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     }
 
     // draw cursor strings in upper left corner of screen
+    float[] c3 = getCursorColor();
+    graphics.setColor(new Color(c3[0], c3[1], c3[2]));
+/* WLH 4 Feb 99
     graphics.setColor(new Color(1.0f, 1.0f, 1.0f));
+*/
     graphics.setFont(new Font("Times New Roman", Font.PLAIN, 10));
     int x = 1;
     int y = 10;

@@ -70,6 +70,9 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
   /** Behavior for delayed removal of BranchGroups */
   RemoveBehaviorJ3D remove = null;
 
+  /** background attached to root */
+  private Background background = null;
+
   /** TransformGroup between trans and cursor */
   private TransformGroup cursor_trans = null;
   /** single Switch between cursor_trans and cursor */
@@ -80,6 +83,13 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
   private boolean cursorOn = false;
   /** on / off state of direct manipulation location display */
   private boolean directOn = false;
+
+  /** single Switch between trans and box */
+  private Switch box_switch = null;
+  /** children of box_switch */
+  private BranchGroup box_on = null, box_off = null;
+  /** on / off state of box */
+  private boolean boxOn = false;
 
   /** single Switch between trans and scales */
   private Switch scale_switch = null;
@@ -146,12 +156,20 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     return root;
   }
 
+  public void setBackgroundColor(float r, float g, float b) {
+    background.setColor(r, g, b);
+  }
+
   public TransformGroup getTrans() {
     return trans;
   }
 
   public BranchGroup getCursorOnBranch() {
     return cursor_on;
+  }
+
+  public BranchGroup getBoxOnBranch() {
+    return box_on;
   }
 
   public void setCursorOn(boolean on) {
@@ -163,6 +181,16 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     else {
       cursor_switch.setWhichChild(0); // set cursor off
       setCursorStringVector(null);
+    }
+  }
+
+  public void setBoxOn(boolean on) {
+    boxOn = on;
+    if (on) {
+      box_switch.setWhichChild(1); // set box on
+    }
+    else {
+      box_switch.setWhichChild(0); // set box off
     }
   }
 
@@ -205,6 +233,14 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     trans.setCapability(Group.ALLOW_CHILDREN_EXTEND);
     root.addChild(trans);
 
+    // create background
+    background = new Background();
+    background.setCapability(Background.ALLOW_COLOR_WRITE);
+    background.setCapability(Background.ALLOW_COLOR_READ);
+    BoundingSphere bound2 = new BoundingSphere(new Point3d(0.0,0.0,0.0),2000000.0);
+    background.setApplicationBounds(bound2);
+    root.addChild(background);
+
     // initialize scale
     double scale = 0.5;
     ProjectionControl proj = getDisplay().getProjectionControl();
@@ -234,7 +270,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     // create removeBehavior
     remove = new RemoveBehaviorJ3D(this);
     BoundingSphere bounds =
-      new BoundingSphere(new Point3d(0.0,0.0,0.0), 100.0);
+      new BoundingSphere(new Point3d(0.0,0.0,0.0), 2000000.0);
     remove.setSchedulingBounds(bounds);
     trans.addChild(remove);
 
@@ -257,6 +293,19 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     cursor_switch.addChild(cursor_on);
     cursor_switch.setWhichChild(0); // initially off
     cursorOn = false;
+
+    box_switch = new Switch();
+    box_switch.setCapability(Switch.ALLOW_SWITCH_READ);
+    box_switch.setCapability(Switch.ALLOW_SWITCH_WRITE);
+    trans.addChild(box_switch);
+    box_on = new BranchGroup();
+    box_on.setCapability(Group.ALLOW_CHILDREN_READ);
+    box_on.setCapability(Group.ALLOW_CHILDREN_WRITE);
+    box_off = new BranchGroup();
+    box_switch.addChild(box_off);
+    box_switch.addChild(box_on);
+    box_switch.setWhichChild(1); // initially off
+    boxOn = true;
 
     scale_switch = new Switch();
     scale_switch.setCapability(Switch.ALLOW_SWITCH_READ);
@@ -383,13 +432,20 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     }
   }
 
+  abstract Color3f getCursorColor();
+
   /** whenever cursorOn or directOn is true, display
       Strings in cursorStringVector */
   public void drawCursorStringVector(VisADCanvasJ3D canvas) {
     GraphicsContext3D graphics = canvas.getGraphicsContext3D();
     Appearance appearance = new Appearance();
+    Color3f c3 = getCursorColor();
+    ColoringAttributes color = new ColoringAttributes();
+    color.setColor(c3);
+/* WLH 4 Feb 99
     ColoringAttributes color = new ColoringAttributes();
     color.setColor(1.0f, 1.0f, 1.0f);
+*/
     appearance.setColoringAttributes(color);
     graphics.setAppearance(appearance);
 
