@@ -148,8 +148,8 @@ public class GIFAdapter
 			new RealTupleType(domain_components);
     Linear2DSet domain_set =
 			new Linear2DSet(image_domain,
-					0.0, (float) (width - 1.0), width,
-					0.0, (float) (height - 1.0), height);
+					(float) (width - 1.0), 0.0, width,
+					(float) (height - 1.0), 0.0, height);
     FunctionType image_type =
 			new FunctionType(image_domain, radiance);
 
