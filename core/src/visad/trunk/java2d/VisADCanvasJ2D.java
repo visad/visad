@@ -475,40 +475,51 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
           else { // (array instanceof VisADLineStripArray)
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
                                 RenderingHints.VALUE_ANTIALIAS_ON);
-            float lastx = coordinates[0];
-            float lasty = coordinates[1];
-            float lastr = 0.0f, lastg = 0.0f, lastb = 0.0f;
-            if (colors != null) {
-              lastr = colors[0];
-              lastg = colors[1];
-              lastb = colors[2];
-            }
-            if (colors == null) {
-              for (int i=3; i<3*count; i += 3) {
-                g2.draw(new Line2D.Float(lastx, lasty,
-                                         coordinates[i], coordinates[i+1]));
-                lastx = coordinates[i];
-                lasty = coordinates[i+1];
+
+            int[] stripVertexCounts =
+               ((VisADLineStripArray) array).stripVertexCounts;
+            int base = 0;
+            for (int strip=0; strip<stripVertexCounts.length; strip++) {
+              count = stripVertexCounts[strip];
+
+              float lastx = coordinates[base];
+              float lasty = coordinates[base+1];
+              float lastr = 0.0f, lastg = 0.0f, lastb = 0.0f;
+              if (colors != null) {
+                lastr = colors[base];
+                lastg = colors[base+1];
+                lastb = colors[base+2];
               }
-            }
-            else {
-              int jinc = (colors.length == coordinates.length) ? 3 : 4;
-              int j = jinc;
-              for (int i=3; i<3*count; i += 3) {
-                g2.setColor(new Color(0.5f * (lastr + colors[j]),
-                                      0.5f * (lastg + colors[j+1]),
-                                      0.5f * (lastb + colors[j+2])));
-                lastr = colors[j];
-                lastg = colors[j+1];
-                lastb = colors[j+2];
-                j += jinc;
-                g2.draw(new Line2D.Float(lastx, lasty,
-                                         coordinates[i], coordinates[i+1]));
-                lastx = coordinates[i];
-                lasty = coordinates[i+1];
+              if (colors == null) {
+                for (int i=3; i<3*count; i += 3) {
+                  g2.draw(new Line2D.Float(lastx, lasty,
+                                           coordinates[base+i],
+                                           coordinates[base+i+1]));
+                  lastx = coordinates[base+i];
+                  lasty = coordinates[base+i+1];
+                }
               }
-            }
-          }
+              else {
+                int jinc = (colors.length == coordinates.length) ? 3 : 4;
+                int j = jinc;
+                for (int i=3; i<3*count; i += 3) {
+                  g2.setColor(new Color(0.5f * (lastr + colors[base+j]),
+                                        0.5f * (lastg + colors[base+j+1]),
+                                        0.5f * (lastb + colors[base+j+2])));
+                  lastr = colors[base+j];
+                  lastg = colors[base+j+1];
+                  lastb = colors[base+j+2];
+                  j += jinc;
+                  g2.draw(new Line2D.Float(lastx, lasty,
+                                           coordinates[base+i],
+                                           coordinates[base+i+1]));
+                  lastx = coordinates[base+i];
+                  lasty = coordinates[base+i+1];
+                }
+              }
+              base += 3 * count;
+            } // end for (int strip=0; strip<stripVertexCounts.length; strip++)
+          } // end if (array instanceof VisADLineStripArray)
         }
         else if (array instanceof VisADTriangleArray) {
           g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    

@@ -206,9 +206,11 @@ public class UnionSet extends SampledSet {
   public Set makeSpatial(SetType type, float[][] samples) throws VisADException {
     int n = Sets.length;
     int dim = samples.length;
+/* WLH 28 Aug 98
     if (dim != DomainDimension) {
       throw new SetException("UnionSet.makeSpatial: samples bad dimension");
     }
+*/
     SampledSet[] sets = new SampledSet[n];
     int base = 0;
     for (int i=0; i<n; i++) {
@@ -235,18 +237,21 @@ public class UnionSet extends SampledSet {
                               "ManifoldDimension must be 2");
     }
     int n = Sets.length;
-    int dim = color_values.length;
-    if (dim != DomainDimension) {
-      throw new SetException("UnionSet.makeSpatial: color_values bad dimension");
+    int dim = DomainDimension;
+    if (color_values != null && dim != color_values.length) {
+      throw new SetException("UnionSet.make1DGeometry: color_values bad dimension");
     }
     VisADIndexedTriangleStripArray[] arrays =
       new VisADIndexedTriangleStripArray[n];
     int base = 0;
     for (int i=0; i<n; i++) {
       int len = Sets[i].Length;
-      float[][] c = new float[dim][len];
-      for (int j=0; j<dim; j++) {
-        for (int k=0; k<len; k++) c[j][k] = color_values[j][base + k];
+      float[][] c = null;
+      if (color_values != null) {
+        c = new float[dim][len];
+        for (int j=0; j<dim; j++) {
+          for (int k=0; k<len; k++) c[j][k] = color_values[j][base + k];
+        }
       }
       VisADGeometryArray array = Sets[i].make2DGeometry(c);
       if (array instanceof VisADIndexedTriangleStripArray) {
@@ -258,6 +263,46 @@ public class UnionSet extends SampledSet {
       base += len;
     }
     return VisADIndexedTriangleStripArray.merge(arrays);
+  }
+
+  /** create a 1-D GeometryArray from this Set and color_values */
+  public VisADGeometryArray make1DGeometry(float[][] color_values)
+         throws VisADException {
+    if (DomainDimension != 3) {
+      throw new SetException("UnionSet.make1DGeometry: " +
+                              "DomainDimension must be 3");
+    }
+    if (ManifoldDimension != 1) {
+      throw new SetException("UnionSet.make1DGeometry: " +
+                              "ManifoldDimension must be 1");
+    }
+    int n = Sets.length;
+    int dim = DomainDimension;
+    if (color_values != null && dim != color_values.length) {
+      throw new SetException("UnionSet.make1DGeometry: color_values bad dimension");
+    }
+    VisADLineStripArray[] arrays =
+      new VisADLineStripArray[n];
+    int base = 0;
+    for (int i=0; i<n; i++) {
+      int len = Sets[i].Length;
+      float[][] c = null;
+      if (color_values != null) {
+        c = new float[dim][len];
+        for (int j=0; j<dim; j++) {
+          for (int k=0; k<len; k++) c[j][k] = color_values[j][base + k];
+        }
+      }
+      VisADGeometryArray array = Sets[i].make1DGeometry(c);
+      if (array instanceof VisADLineStripArray) {
+        arrays[i] = (VisADLineStripArray) array;
+      }
+      else {
+        arrays[i] = null;
+      }
+      base += len;
+    }
+    return VisADLineStripArray.merge(arrays);
   }
 
   /** return basic lines in array[0], fill-ins in array[1]
@@ -365,13 +410,26 @@ public class UnionSet extends SampledSet {
     for (int j=0; j<npts; j++) {
       int q = 0;
       int curind = index[j];
+/* WLH 28 Aug 98
       while (q < nsets && index[j] > Sets[q].Length) {
+*/
+      while (q < nsets && curind >= Sets[q].Length) {
         curind -= Sets[q++].Length;
+/*
+System.out.println("curind = " + curind +
+                   " Sets[" + (q-1) + "].Length = " + Sets[q-1].Length);
+*/
       }
       if (q == nsets) curind += Sets[--q].Length;
       ind_lens[q]++;
       set_num[j] = q;
       new_ind[j] = curind;
+/*
+System.out.println("index[" + j + "] = " + index[j] +
+                   " ind_lens[" + q + "] = " + ind_lens[q] +
+                   " set_num[" + j + "] = " + set_num[j] +
+                   " new_ind[" + j + "] = " + new_ind[j]);
+*/
     }
 
     // allocate subset space
@@ -397,8 +455,16 @@ public class UnionSet extends SampledSet {
     for (int i=0; i<nsets; i++) ind_lens[i] = 0;
     for (int j=0; j<npts; j++) {
       for (int k=0; k<DomainDimension; k++) {
+/* WLH 28 Aug 98
         value[k][j] = subvals[set_num[j]][k][ind_lens[set_num[j]]++];
+*/
+        value[k][j] = subvals[set_num[j]][k][ind_lens[set_num[j]]];
+/*
+System.out.println("set_num[" + j + "] = " + set_num[j] +
+                   " ind_lens[set_num[" + j + "]] = " + ind_lens[set_num[j]]);
+*/
       }
+      ind_lens[set_num[j]] += 1;
     }
 
     return value;

@@ -32,5 +32,33 @@ package visad;
 public class VisADLineStripArray extends VisADGeometryArray {
   public int[] stripVertexCounts;
 
+  public static VisADLineStripArray
+                merge(VisADLineStripArray[] arrays)
+         throws VisADException {
+    if (arrays == null || arrays.length == 0) return null;
+    VisADLineStripArray array = new VisADLineStripArray();
+    merge(arrays, array);
+    int n = arrays.length;
+    int nstrips = 0;
+    for (int i=0; i<n; i++) {
+      if (arrays[i] != null) {
+        nstrips += arrays[i].stripVertexCounts.length;
+      }
+    }
+    int[] stripVertexCounts = new int[nstrips];
+    nstrips = 0;
+    for (int i=0; i<n; i++) {
+      if (arrays[i] != null) {
+        int incnstrips = arrays[i].stripVertexCounts.length;
+        for (int j=0; j<incnstrips; j++) {
+          stripVertexCounts[nstrips + j] = arrays[i].stripVertexCounts[j];
+        }
+        nstrips += incnstrips;
+      }
+    }
+    array.stripVertexCounts = stripVertexCounts;
+    return array;
+  }
+
 }
 
