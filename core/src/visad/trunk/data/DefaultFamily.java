@@ -334,7 +334,10 @@ public class DefaultFamily
     }
   }
 
-  private void buildList()
+  /**
+   * Build a list of all known file adapter Forms
+   */
+  private static void buildList()
   {
     int i = 0;
 
@@ -380,6 +383,33 @@ public class DefaultFamily
     while (i < list.length) {
       list[i++] = null;
     }
+  }
+
+  /**
+    * Add to the family of the supported VisAD datatype Forms
+    * @exception ArrayIndexOutOfBoundsException
+    *			If there is no more room in the list.
+    */
+  public static void addFormToList(FormNode form)
+    throws ArrayIndexOutOfBoundsException
+  {
+    synchronized (list) {
+      if (!listInitialized) {
+	buildList();
+      }
+
+      int i = 0;
+      while (i < list.length) {
+        if (list[i] == null) {
+          list[i] = form;
+          return;
+        }
+        i++;
+      }
+    }
+
+    throw new ArrayIndexOutOfBoundsException("Only " + list.length +
+                                             " entries allowed");
   }
 
   /**
