@@ -59,7 +59,7 @@ xscale=AxisScale(m2[0],label="Element position in image")
 showAxesScales(d2,1)
 
 # display everything...
-frame = JFrame("Test T7")
+frame = JFrame("Test T8 Server")
 pane = frame.getContentPane()
 pane.setLayout(BorderLayout())
 # GridLayout with 1 row, 2 columns, 5 pixel horiz and vert gaps
@@ -70,4 +70,12 @@ pane.add("Center",panel)
 pane.add("North",slide)
 frame.setSize(800,500)
 frame.setVisible(1)
+
+from visad.util import ClientServer
+# add everything to the server
+server = ClientServer.startServer("Jython")
+server.addDisplay(d1)
+server.addDisplay(d2)
+server.addDataReference(refimg)
+server.addDataReference(userline)
 

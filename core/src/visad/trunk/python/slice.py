@@ -59,7 +59,7 @@ def makeSlice(z):
       # set constant z heights in the 2-D grid
       zs.append(z)
       # or, for a curved slice, use this instead:
-      # zs.append(z + 0.04 * ((x-xv[9])*(x-xv[9]) + (y-yv[9])*(y-yv[9])))
+      # zs.append(z + 0.04 * ((x-xv[9])*(x-xv[9])+(y-yv[9])*(y-yv[9])))
   # create a 2-D grid embedded at height 'z' in 3-D space
   slice_set = Gridded3DSet(d, [xs, ys, zs], len(xv), len(yv),
                            cs, units, errors)
