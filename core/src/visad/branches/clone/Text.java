@@ -54,12 +54,6 @@ public class Text extends Scalar {
     Value = value;
   }
 
-  // used by clone
-  private Text(TextType type, String value, boolean b) {
-    super(type);
-    Value = value;
-  }
-
   public String getValue() {
     return Value;
   }
