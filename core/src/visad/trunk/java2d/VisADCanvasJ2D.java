@@ -1222,12 +1222,39 @@ System.out.println("drawAppearance: VisADPointArray, count = " + count);
     }
     else if (array instanceof VisADLineArray) {
 /*
-System.out.println("drawAppearance: VisADLineArray, count = " + count);
+System.out.println("drawAppearance: VisADLineArray, count = " + count +
+                   " colors == null " + (colors == null));
 */
       if (colors == null) {
         for (int i=0; i<2*count; i += 4) {
+/* WLH 4 Dec 2002 */
+          int width = (int) appearance.lineWidth;
+          int x1 = (int) newcoords[i];
+          int y1 = (int) newcoords[i+1];
+          int x2 = (int) newcoords[i+2];
+          int y2 = (int) newcoords[i+3];
+          if (width <= 1 || (x1 != x2 && y1 != y2)) {
+            graphics.drawLine(x1, y1, x2, y2);
+          }
+          else { // (width > 1 && (x1 == x2 || y1 == y2))
+            int hw1 = width / 2;
+            int hw2 = width - hw1;
+            int[] xPoints = null;
+            int[] yPoints = null;
+            if (x1 == x2) {
+              xPoints = new int[] {x1 - hw1, x1 + hw2, x1 + hw2, x1 - hw1};
+              yPoints = new int[] {y1, y1, y2, y2};
+            }
+            else { // y1 == y2
+              xPoints = new int[] {x1, x1, x2, x2};
+              yPoints = new int[] {y1 - hw1, y1 + hw2, y1 + hw2, y1 - hw1};
+            }
+            graphics.fillPolygon(xPoints, yPoints, 4);
+          }
+/*
           graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
                             (int) newcoords[i+2], (int) newcoords[i+3]);
+*/
 /*
 System.out.println(" " + newcoords[i] + " " + newcoords[i+1] + " " +
                    newcoords[i+2] + " " + newcoords[i+3]);
@@ -1261,8 +1288,35 @@ System.out.println(" " + newcoords[i] + " " + newcoords[i+1] + " " +
                             ShadowType.byteToFloat(colors[j+jinc+2]))));
 */
           j += 2 * jinc;
+
+/* WLH 4 Dec 2002 */
+          int width = (int) appearance.lineWidth;
+          int x1 = (int) newcoords[i];
+          int y1 = (int) newcoords[i+1];
+          int x2 = (int) newcoords[i+2];
+          int y2 = (int) newcoords[i+3];
+          if (width <= 1 || (x1 != x2 && y1 != y2)) {
+            graphics.drawLine(x1, y1, x2, y2);
+          }
+          else { // (width > 1 && (x1 == x2 || y1 == y2))
+            int hw1 = width / 2;
+            int hw2 = width - hw1;
+            int[] xPoints = null;
+            int[] yPoints = null;
+            if (x1 == x2) {
+              xPoints = new int[] {x1 - hw1, x1 + hw2, x1 + hw2, x1 - hw1};
+              yPoints = new int[] {y1, y1, y2, y2};
+            }
+            else { // y1 == y2
+              xPoints = new int[] {x1, x1, x2, x2};
+              yPoints = new int[] {y1 - hw1, y1 + hw2, y1 + hw2, y1 - hw1};
+            }
+            graphics.fillPolygon(xPoints, yPoints, 4);
+          }
+/*
           graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
                             (int) newcoords[i+2], (int) newcoords[i+3]);
+*/
         }
       }
     }
