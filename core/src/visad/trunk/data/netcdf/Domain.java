@@ -122,6 +122,11 @@ Domain
 	    {
 		coordinateVariables = true;
 
+		if (var.isLongitude())
+		    aps[idim] = new LonArithProg();
+		else
+		    aps[idim] = new ArithProg();
+
 		if (!aps[idim].accumulate((double[])var.getValues()))
 		{
 		    arithmeticProgressions = false;
@@ -225,6 +230,10 @@ Domain
 		for (int pos = 0; pos < ntotal/vals.length; pos += vals.length)
 		    System.arraycopy(vals, 0, values[idim], pos, vals.length);
 	    }
+
+	    // System.out.println("lengths[0]=" + lengths[0]);
+	    // System.out.println("lengths[1]=" + lengths[1]);
+	    // System.out.println("lengths[2]=" + lengths[2]);
 
 	    set = GriddedSet.create(mathType, values, lengths);
 	}
