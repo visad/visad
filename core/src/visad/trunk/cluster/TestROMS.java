@@ -33,6 +33,7 @@ import visad.ss.*;
 import visad.util.*;
 import visad.bom.*;
 import visad.data.netcdf.Plain;
+import visad.data.mcidas.*;
 
 import java.util.Vector;
 import java.rmi.*;
@@ -122,7 +123,13 @@ System.out.println("ntimes = " + ntimes);
     RealType xi_rho = (RealType) grid_domain.getComponent(0);
     RealType eta_rho = (RealType) grid_domain.getComponent(1);
 
-    FunctionType history_type = new FunctionType(time, grid_type);
+    RealTupleType latlon_type = RealTupleType.LatitudeLongitudeTuple;
+    FunctionType grid_latlon_type =
+      new FunctionType(latlon_type, zeta);
+
+    FunctionType history_type = new FunctionType(time, grid_latlon_type);
+    // history_type = (Time -> ((Latitude, Longitude) -> zeta))
+    // FunctionType history_type = new FunctionType(time, grid_type);
     // history_type = (Time -> ((xi_rho, eta_rho) -> zeta))
     Real[] ocean_times = new Real[ntimes];
     double[][] times = new double[1][ntimes];
@@ -138,7 +145,7 @@ System.out.println("ntimes = " + ntimes);
     FieldImpl history = new FieldImpl(history_type, dset);
 
     Gridded2DSet grid_set =
-      new Gridded2DSet(grid_domain, rho_latlon,
+      new Gridded2DSet(latlon_type, rho_latlon,
                        rho_lengths[0], rho_lengths[1], null, null,
                        null, false, false);
 
@@ -146,7 +153,7 @@ System.out.println("ntimes = " + ntimes);
       Tuple t1tuple = (Tuple) t1.getSample(itime);
       Real ocean_time = (Real) t1tuple.getComponent(0);
       FlatField grid = (FlatField) t1tuple.getComponent(1);
-      FlatField grid_latlon = new FlatField(grid_type, grid_set);
+      FlatField grid_latlon = new FlatField(grid_latlon_type, grid_set);
       grid_latlon.setSamples(grid.getFloats(false), false);
       history.setSample(itime, grid_latlon);
     }
@@ -155,10 +162,12 @@ System.out.println("ntimes = " + ntimes);
     DisplayImpl display = new DisplayImplJ3D("TestROMS");
     ScalarMap tmap = new ScalarMap(time, Display.Animation);
     display.addMap(tmap);
-    ScalarMap xmap = new ScalarMap(xi_rho, Display.XAxis);
+    ScalarMap xmap = new ScalarMap(RealType.Longitude, Display.XAxis);
     display.addMap(xmap);
-    ScalarMap ymap = new ScalarMap(eta_rho, Display.YAxis);
+    xmap.setRange(160.0, 245.0);
+    ScalarMap ymap = new ScalarMap(RealType.Latitude, Display.YAxis);
     display.addMap(ymap);
+    ymap.setRange(20.0, 80.0);
     ScalarMap zmap = new ScalarMap(zeta, Display.ZAxis);
     display.addMap(zmap);
     ScalarMap rgbmap = new ScalarMap(zeta, Display.RGB);
@@ -167,6 +176,16 @@ System.out.println("ntimes = " + ntimes);
     GraphicsModeControl mode = display.getGraphicsModeControl();
     mode.setScaleEnable(true);
     mode.setTextureEnable(false);
+    mode.setProjectionPolicy(DisplayImplJ3D.PARALLEL_PROJECTION);
+
+    BaseMapAdapter baseMapAdapter = new BaseMapAdapter("OUTLSUPW");
+    // baseMapAdapter.setLatLonLimits(0.0f, 90.0f, -180.0f, 180.0f);
+    Data map = baseMapAdapter.getData();
+    DataReference maplinesRef = new DataReferenceImpl("MapLines");
+    maplinesRef.setData(map);
+    ConstantMap[] maplinesConstantMap = new ConstantMap[]
+      {new ConstantMap(1.0, Display.ZAxis)};
+    display.addReference(maplinesRef, maplinesConstantMap);
 
     DataReference dr = new DataReferenceImpl("history");
     dr.setData(history);
