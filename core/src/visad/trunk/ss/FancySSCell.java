@@ -307,7 +307,9 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
         maps[i] = (ScalarMap) mapVector.elementAt(i);
       }
     }
-    MappingDialog mapDialog = new MappingDialog(Parent, data, maps);
+    MappingDialog mapDialog = new MappingDialog(Parent, data, maps,
+                              Dimension2D != JAVA2D_2D || AutoSwitch,
+                              Dimension2D == JAVA3D_3D || AutoSwitch);
     mapDialog.pack();
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     Dimension mds = mapDialog.getSize();

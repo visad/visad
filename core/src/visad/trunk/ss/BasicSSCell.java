@@ -860,11 +860,23 @@ public class BasicSSCell extends JPanel {
                                                RemoteException {
     if (maps == null) return;
     clearMaps();
+    VisADException vexc = null;
+    RemoteException rexc = null;
     for (int i=0; i<maps.length; i++) {
-      VDisplay.addMap(maps[i]);
+      try {
+        VDisplay.addMap(maps[i]);
+      }
+      catch (VisADException exc) {
+        vexc = exc;
+      }
+      catch (RemoteException exc) {
+        rexc = exc;
+      }
     }
     VDisplay.addReference(DataRef);
     HasMappings = true;
+    if (vexc != null) throw vexc;
+    if (rexc != null) throw rexc;
   }
 
   /** whether other cells are dependent on this one */

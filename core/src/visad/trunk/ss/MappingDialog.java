@@ -116,9 +116,26 @@ public class MappingDialog extends JDialog implements ActionListener,
     Inited = true;
   }
 
+  /** This MappingDialog's copy of DRT with certain DisplayRealTypes
+      blacked out as necessary */
+  Image MapTo;
+
+  /** The MathType that this mapping dialog works with */
+  MathType type = null;
+
+  /** Whether this mapping dialog allows mappings to Alpha and RGBA */
+  boolean AllowAlpha;
+
+  /** Whether this mapping dialog allows mappings to Z-Axis, Latitude,
+      and Z-Offset */
+  boolean Allow3D;
+
   /** Constructor for MappingDialog */
-  public MappingDialog(Frame parent, Data data, ScalarMap[] startMaps) {
+  public MappingDialog(Frame parent, Data data, ScalarMap[] startMaps,
+                       boolean allowAlpha, boolean allow3D) {
     super(parent, "Set up data mappings", true);
+    AllowAlpha = allowAlpha;
+    Allow3D = allow3D;
 
     // set up content pane
     setBackground(Color.white);
@@ -130,12 +147,12 @@ public class MappingDialog extends JDialog implements ActionListener,
     // parse MathType
     Vector mv = new Vector();
     int dupl = BasicSSCell.getRealTypes(data, mv);
-    String mt = null;
     try {
-      mt = data.getType().prettyString();
+      type = data.getType();
     }
     catch (VisADException exc) { }
     catch (RemoteException exc) { }
+    String mt = (type == null ? "" : type.prettyString());
     final String[] mtype = extraPretty(mt, mv, dupl);
 
     // alphabetize Scalars list
@@ -239,8 +256,8 @@ public class MappingDialog extends JDialog implements ActionListener,
           CurMapLabel[i][j][k] = Scalars[i]+" -> "+MapNames[j][k];
           if (startMaps != null) {
             for (int m=0; m<startMaps.length; m++) {
-              if (startMaps[m].getScalar() == MathTypes[i]
-                        && startMaps[m].getDisplayScalar() == MapTypes[j][k]) {
+              if (startMaps[m].getScalar() == MathTypes[i] &&
+                  startMaps[m].getDisplayScalar() == MapTypes[j][k]) {
                 Maps[i][j][k] = true;
                 CurMaps.addElement(CurMapLabel[i][j][k]);
               }
@@ -278,25 +295,44 @@ public class MappingDialog extends JDialog implements ActionListener,
     l2.setAlignmentX(JLabel.CENTER_ALIGNMENT);
     centerPanel.add(l2);
 
+    // finish loading DRT if necessary
+    if (!Inited) initDialog();
+
+    MediaTracker mtracker = new MediaTracker(this);
+    mtracker.addImage(DRT, 0);
+    try {
+      mtracker.waitForID(0);
+    }
+    catch (InterruptedException exc) { }
+
+    // copy DRT into MapTo and black out needed DisplayRealType icons
+    MapTo = parent.createImage(280, 200);
+    Graphics gr = MapTo.getGraphics();
+    gr.drawImage(DRT, 0, 0, this);
+    if (!AllowAlpha) {
+      eraseBox(5, 3, gr);
+      eraseBox(6, 3, gr);
+    }
+    if (!Allow3D) {
+      eraseBox(2, 0, gr);
+      eraseBox(2, 1, gr);
+      eraseBox(0, 2, gr);
+      eraseBox(2, 3, gr);
+      eraseBox(2, 4, gr);
+    }
+    gr.dispose();
+
+    // wait for MapTo to finish loading
+    mtracker.addImage(MapTo, 1);
+    try {
+      mtracker.waitForID(1);
+    }
+    catch (InterruptedException exc) { }
+
     // set up "map to" canvas
     DisplayCanvas = new JComponent() {
       public void paint(Graphics g) {
-        if (DRT == null) {
-          if (!Inited) {
-            URL url = MappingDialog.class.getResource("display.gif");
-            DRT = Toolkit.getDefaultToolkit().getImage(url);
-          }
-          MediaTracker mtracker = new MediaTracker(this);
-          mtracker.addImage(DRT, 0);
-          try {
-            mtracker.waitForID(0);
-          }
-          catch (InterruptedException exc) {
-            return;
-          }
-          if (DRT == null) return;
-        }
-        g.drawImage(DRT, 0, 0, this);
+        g.drawImage(MapTo, 0, 0, this);
         int ind = MathList.getSelectedIndex();
         if (ind >= 0) {
           for (int col=0; col<7; col++) {
@@ -370,6 +406,15 @@ public class MappingDialog extends JDialog implements ActionListener,
     cancel.setActionCommand("cancel");
     cancel.addActionListener(this);
     b2Panel.add(cancel);
+    b2Panel.add(Box.createRigidArea(new Dimension(5, 0)));
+
+    // set up detect button
+    JButton detect = new JButton("Detect");
+    detect.setAlignmentX(JButton.CENTER_ALIGNMENT);
+    detect.setToolTipText("Automatically identify some good mappings");
+    detect.setActionCommand("detect");
+    detect.addActionListener(this);
+    b2Panel.add(detect);
     b2Panel.add(Box.createHorizontalGlue());
 
     // set up right-side panel
@@ -533,6 +578,17 @@ public class MappingDialog extends JDialog implements ActionListener,
     if (lo < hi0) sort(lo, hi0);
   }
 
+  /** Clears a box in the "map to" canvas */
+  void eraseBox(int col, int row, Graphics g) {
+    int x = 40*col;
+    int y = 40*row;
+    g.setColor(Color.black);
+    for (int i=0; i<40; i+=2) {
+      g.drawLine(x, y+i, x+i, y);
+      g.drawLine(x+i, y+38, x+38, y+i);
+    }
+  }
+
   /** Highlights a box in the "map to" canvas */
   void highlightBox(int col, int row, Graphics g) {
     int x = 40*col;
@@ -551,6 +607,17 @@ public class MappingDialog extends JDialog implements ActionListener,
     g.drawLine(x, y+n2, x+n1, y+39);
   }
 
+  private void clearAll() {
+    // take all maps off list
+    CurrentMaps.clearSelection(); // work-around for nasty swing bug
+    CurMaps.removeAllElements();
+    for (int i=0; i<CurMapLabel.length; i++) {
+      for (int j=0; j<7; j++) {
+        for (int k=0; k<5; k++) Maps[i][j][k] = false;
+      }
+    }
+  }
+
   /** Handles button press events */
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
@@ -558,14 +625,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     synchronized (Lock) {
       if (cmd.equals("all")) { // clear all
         if (CurMaps.getSize() > 0) {
-          // take all maps off list
-          CurrentMaps.clearSelection(); // work-around for nasty swing bug
-          CurMaps.removeAllElements();
-          for (int i=0; i<CurMapLabel.length; i++) {
-            for (int j=0; j<7; j++) {
-              for (int k=0; k<5; k++) Maps[i][j][k] = false;
-            }
-          }
+          clearAll();
           // update components
           Graphics g = DisplayCanvas.getGraphics();
           DisplayCanvas.paint(g);
@@ -602,6 +662,32 @@ public class MappingDialog extends JDialog implements ActionListener,
           CurrentMaps.repaint();
           CurrentMapsView.validate();
         }
+      }
+
+      else if (cmd.equals("detect")) {
+        ScalarMap[] maps = type.guessMaps(Allow3D);
+        if (CurMaps.getSize() > 0) clearAll();
+        if (maps != null) {
+          for (int i=0; i<MathTypes.length; i++) {
+            for (int j=0; j<7; j++) {
+              for (int k=0; k<5; k++) {
+                for (int m=0; m<maps.length; m++) {
+                  if (maps[m].getScalar() == MathTypes[i] &&
+                      maps[m].getDisplayScalar() == MapTypes[j][k]) {
+                    Maps[i][j][k] = true;
+                    CurMaps.addElement(CurMapLabel[i][j][k]);
+                  }
+                }
+              }
+            }
+          }
+        }
+        // update components
+        Graphics g = DisplayCanvas.getGraphics();
+        DisplayCanvas.paint(g);
+        g.dispose();
+        CurrentMaps.repaint();
+        CurrentMapsView.validate();
       }
 
       else if (cmd.equals("done")) {
@@ -656,7 +742,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     }
   }
 
-  /** Handles mouse clicks in the "map to" canvas */
+  /** Handles mouse clicks in the MathType window and "map to" canvas */
   public void mousePressed(MouseEvent e) {
     synchronized (Lock) {
       Component c = e.getComponent();
@@ -679,8 +765,14 @@ public class MappingDialog extends JDialog implements ActionListener,
         int col = e.getX() / 40;
         int row = e.getY() / 40;
         int ind = MathList.getSelectedIndex();
-
-        if (ind >= 0 && row >= 0 && col >= 0 && row < 5 && col < 7) {
+        if (ind >= 0 && row >= 0 && col >= 0 && row < 5 && col < 7 &&
+            (AllowAlpha || ((col != 5 || row != 3) &&
+                            (col != 6 || row != 3))) &&
+               (Allow3D || ((col != 2 || row != 0) &&
+                            (col != 2 || row != 1) &&
+                            (col != 0 || row != 2) &&
+                            (col != 2 || row != 3) &&
+                            (col != 2 || row != 4)))) {
           Maps[ind][col][row] = !Maps[ind][col][row];
           if (Maps[ind][col][row]) {
             CurMaps.addElement(CurMapLabel[ind][col][row]);
