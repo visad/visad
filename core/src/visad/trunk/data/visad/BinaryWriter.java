@@ -276,7 +276,7 @@ if(DEBUG_DATA)System.err.println("wrFlFld: S#"+i+" type is "+sample.getType()+" 
         }
       }
 
-      if (csIndex != -1) {
+      if (csIndex >= 0) {
 if(DEBUG_DATA)System.err.println("wrFlFld: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
         file.writeByte(FLD_INDEX_COORDSYS);
 if(DEBUG_DATA)System.err.println("wrFlFld: coord sys Index (" + csIndex + ")");
@@ -650,7 +650,7 @@ if(DEBUG_DATA)System.err.println("wrL1DSet: FLD_FLOAT_LIST (" + FLD_FLOAT_LIST +
       file.writeByte(FLD_FLOAT_LIST);
       writeFloatArray(list);
 
-      if (csIndex != -1) {
+      if (csIndex >= 0) {
 if(DEBUG_DATA)System.err.println("wrL1DSet: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
         file.writeByte(FLD_INDEX_COORDSYS);
 if(DEBUG_DATA)System.err.println("wrL1DSet: coord sys Index (" + csIndex + ")");
@@ -725,7 +725,7 @@ if(DEBUG_DATA)System.err.println("wrPrSet: punt "+set.getClass().getName());
         process(sets[i]);
       }
 
-      if (csIndex != -1) {
+      if (csIndex >= 0) {
         file.writeByte(FLD_INDEX_COORDSYS);
         file.writeInt(csIndex);
       }
@@ -888,7 +888,7 @@ if(DEBUG_DATA)System.err.println("wrRlTpl: len (" + components.length + ")");
         }
       }
 
-      if (csIndex != -1) {
+      if (csIndex >= 0) {
 if(DEBUG_DATA)System.err.println("wrRlTpl: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
         file.writeByte(FLD_INDEX_COORDSYS);
 if(DEBUG_DATA)System.err.println("wrRlTpl: coord sys Index (" + csIndex + ")");
@@ -979,7 +979,7 @@ if(DEBUG_DATA)System.err.println("wrSglSet: FLD_SAMPLE (" + FLD_SAMPLE + ")");
       processRealTuple((RealTupleType )sample.getType(), sampleReals,
                        sample.getCoordinateSystem(), sample);
 
-      if (csIndex != -1) {
+      if (csIndex >= 0) {
 if(DEBUG_DATA)System.err.println("wrSglSet: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
         file.writeByte(FLD_INDEX_COORDSYS);
 if(DEBUG_DATA)System.err.println("wrSglSet: coord sys Index (" + csIndex + ")");
@@ -1579,7 +1579,7 @@ if(DEBUG_DATA)System.err.println("wrGrDblSet: FLD_LENGTHS (" + FLD_LENGTHS + ")"
       file.writeByte(FLD_LENGTHS);
       writeIntegerArray(lengths);
 
-      if (csIndex != -1) {
+      if (csIndex >= 0) {
 if(DEBUG_DATA)System.err.println("wrGrDblSet: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
         file.writeByte(FLD_INDEX_COORDSYS);
 if(DEBUG_DATA)System.err.println("wrGrDblSet: coord sys Index (" + csIndex + ")");
@@ -1692,7 +1692,7 @@ if(DEBUG_DATA)System.err.println("wrGrSet: punt "+set.getClass().getName());
       file.writeByte(FLD_LENGTHS);
       writeIntegerArray(lengths);
 
-      if (csIndex != -1) {
+      if (csIndex >= 0) {
         file.writeByte(FLD_INDEX_COORDSYS);
         file.writeInt(csIndex);
       }
@@ -1864,7 +1864,7 @@ if(DEBUG_DATA)System.err.println("wrIntSet: set length (" + comps.length + ")");
         }
       }
 
-      if (csIndex != -1) {
+      if (csIndex >= 0) {
 if(DEBUG_DATA)System.err.println("wrIntSet: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
         file.writeByte(FLD_INDEX_COORDSYS);
 if(DEBUG_DATA)System.err.println("wrIntSet: coord sys Index (" + csIndex + ")");
@@ -1974,7 +1974,7 @@ if(DEBUG_DATA)System.err.println("wrIrrSet: punt "+set.getClass().getName());
       file.writeByte(FLD_FLOAT_SAMPLES);
       writeFloatMatrix(samples);
 
-      if (csIndex != -1) {
+      if (csIndex >= 0) {
         file.writeByte(FLD_INDEX_COORDSYS);
         file.writeInt(csIndex);
       }
@@ -2130,7 +2130,7 @@ if(DEBUG_DATA)System.err.println("wrLinSet: punt "+set.getClass().getName());
         }
       }
 
-      if (csIndex != -1) {
+      if (csIndex >= 0) {
         file.writeByte(FLD_INDEX_COORDSYS);
         file.writeInt(csIndex);
       }
@@ -2276,7 +2276,7 @@ if(DEBUG_MATH)System.err.println("wrRlTuTy: tuple #" + i + " index (" + types[i]
         file.writeInt(types[i]);
       }
 
-      if (csIndex != -1) {
+      if (csIndex >= 0) {
 if(DEBUG_MATH)System.err.println("wrRlTuTy: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
         file.writeByte(FLD_INDEX_COORDSYS);
 if(DEBUG_MATH)System.err.println("wrRlTuTy: coordSys index (" + csIndex + ")");
@@ -2543,7 +2543,7 @@ if(DEBUG_DATA)System.err.println("wrSimSet: dataType (" + dataType + ")");
 if(DEBUG_DATA)System.err.println("wrSimSet: type index (" + typeIndex + ")");
       file.writeInt(typeIndex);
 
-      if (csIndex != -1) {
+      if (csIndex >= 0) {
 if(DEBUG_DATA)System.err.println("wrSimSet: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
         file.writeByte(FLD_INDEX_COORDSYS);
 if(DEBUG_DATA)System.err.println("wrSimSet: coord sys Index (" + csIndex + ")");
