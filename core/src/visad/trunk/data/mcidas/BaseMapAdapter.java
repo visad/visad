@@ -56,13 +56,15 @@ public class BaseMapAdapter {
   private CoordinateSystem cs=null;
   private DataInputStream din;
   private MathType coordMathType;
-  private int position, numSegments = 0;
+  private int position;    // position (bytes) where we are reading in the file
+  private int numSegments = 0;
   private int[][] segList;
   private boolean isEastPositive = true;
   private int xfirst = 0;
   private int xlast = 0;
   private int yfirst = 0;
   private int ylast = 0;
+  private int MAX_SEGMENTS = 100000;  // docs say 1000, but they lie!
 
   /**
    * Create a VisAD UnionSet from a local McIDAS Base Map file
@@ -228,7 +230,6 @@ public class BaseMapAdapter {
       ylast = (int) ((Linear2DSet) domainSet).getY().getLast();
 
       /*
-      System.out.println("ylast="+ylast);
       System.out.println("coordMathType="+coordMathType);
       System.out.println("cs="+cs);
       System.out.println("numEles="+numEles);
@@ -236,6 +237,7 @@ public class BaseMapAdapter {
       System.out.println("xfirst="+xfirst);
       System.out.println("xlast="+xlast);
       System.out.println("yfirst="+yfirst);
+      System.out.println("ylast="+ylast);
       */
 
       computeLimits();
@@ -330,9 +332,7 @@ public class BaseMapAdapter {
   }
 
   // InitFile will initialize the file reading
-
   private void InitFile() throws VisADException {
-    //coordMathType=new RealTupleType(RealType.Latitude, RealType.Longitude);
     coordMathType = RealTupleType.LatitudeLongitudeTuple;
 
     try {
@@ -342,7 +342,7 @@ public class BaseMapAdapter {
     }
 
     // Begin - DRM 04-20-2000
-    if (numSegments <= 0 )
+    if (numSegments <= 0 || numSegments > MAX_SEGMENTS)
     {
       throw new VisADException(
           "McIDAS map file format error: number of segments = " + 
@@ -350,6 +350,7 @@ public class BaseMapAdapter {
     }
     // End - DRM 04-20-2000
 
+    // already read first word, so move pointer to start of second word (4 bytes)
     position = 4;
     segList = new int[numSegments][6];
 
@@ -368,37 +369,44 @@ public class BaseMapAdapter {
         for (int j=0; j<6; j++) {
           segList[i][j] = din.readInt();
           // Begin - DRM 04-20-2000
-          if (j == 4 && segList[i][4] <= 0)  // bad pointer to data
+          if (j == 4 && segList[i][4] < 0)  // bad pointer to data
           {
               throw new VisADException(
                   "McIDAS map file format error: Negative pointer (" +
                   segList[i][4] + ") to start of data for segment " + i);
           }
           //bad number of words
-          if (j == 5 && (segList[i][5] <= 0 || segList[i][5]%2 != 0)) 
+          if (j == 5 && (segList[i][5] < 0 || segList[i][5]%2 != 0)) 
           {
               throw new VisADException(
                   "McIDAS map file format error: Wrong number of words (" + 
                   segList[i][5] + ") to read for segment " + i);
           }
           // End - DRM 04-20-2000
-          position = position + 4;
+          position = position + 4;   // move the pointer to next word
         }
       } catch (IOException e) {
         throw new VisADException("Base Map: Error reading map file: "+e);
       }
     }
     segmentPointer = -1;   // HACK!  set to -1 so first segment is not skipped
+                           // in findNextSegment()
     return;
   }
 
-  // locate the next valid segment (based on lat/lon extremes)
+  /* 
+   * locate the next valid segment (based on lat/lon extremes)
+   * the return is 0 if we've read all the segments otherwise it is
+   * the number of pairs of lat/lon points
+   */
   private int findNextSegment() throws VisADException {
     while (true) {
       segmentPointer++;   
+      // exit if we've read all the points
       if (segmentPointer >= numSegments) {
         return 0;
       }
+
       // check for lat/lon bounds...
       if (segList[segmentPointer][0] > latMax ||
             segList[segmentPointer][1] < latMin) {continue;}
@@ -416,10 +424,8 @@ public class BaseMapAdapter {
         if ( mn < lonMin ) {continue;}
 
       } else {
-        if (segList[segmentPointer][0] > latMax ||
-            segList[segmentPointer][1] < latMin ||
-            segList[segmentPointer][2] > lonMax ||
-            segList[segmentPointer][3] < lonMin) { continue; }
+        if (segList[segmentPointer][2] > lonMax ||
+            segList[segmentPointer][3] < lonMin) {continue; }
       }
 
       return segList[segmentPointer][5] / 2;
@@ -427,6 +433,9 @@ public class BaseMapAdapter {
     } // end while...
   }
 
+  /* 
+   * Get the lat/lons for the current segment
+   */
   private float[][] getLatLons() throws VisADException {
 
     int numPairs = segList[segmentPointer][5] / 2;
@@ -486,7 +495,6 @@ public class BaseMapAdapter {
   public UnionSet getData() {
 
     UnionSet maplines=null;
-    //DataReference maplines_ref;
     Gridded2DSet gs;
     RealType x,y;
 
