@@ -153,8 +153,8 @@ public class ShowNCEPModel
     mapMenu.add(menuWorld);
     menuSelectors.add(menuWorld);
 
-    //MapFile = "OUTLAUST";
-    MapFile = "OUTLUSAM";
+    //MapFile = "../data/mcidas/OUTLAUST";
+    MapFile = "../data/mcidas/OUTLUSAM";
 
     mb.add(fileMenu);
     mb.add(mapMenu);
@@ -372,11 +372,11 @@ public class ShowNCEPModel
       System.exit(0);
 
     } else if (cmd.equals("menuNA") ) {
-      MapFile = "OUTLUSAM";
+      MapFile = "../data/mcidas/OUTLUSAM";
       doBaseMap();
 
     } else if (cmd.equals("menuWorld") ) {
-      MapFile = "OUTLSUPW";
+      MapFile = "../data/mcidas/OUTLSUPW";
       doBaseMap();
 
     } else if (cmd.startsWith("Param:") ) {
@@ -537,7 +537,7 @@ public class ShowNCEPModel
     if (ng == null) return;
     try {
       baseMap = new BaseMapAdapter(MapFile);
-      baseMap.setDomainSet(ng.getDomainSet() );
+      baseMap.setDomainSet((Linear2DSet)ng.getDomainSet() );
       Data mapData = baseMap.getData();
 
       // set up so map can be toggled on/off
