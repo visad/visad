@@ -90,13 +90,16 @@ public class TestProxyCluster extends FancySSCell implements ActionListener {
   {
     // add Data object to cell
     DataReferenceImpl ref = new DataReferenceImpl(Name);
-if (data instanceof RemoteData) {
-  remote_ref = new RemoteDataReferenceImpl(ref);
-  remote_ref.setData(data);
-}
-else {
-    ref.setData(data);
-}
+
+    // new
+    if (data instanceof RemoteData) {
+      remote_ref = new RemoteDataReferenceImpl(ref);
+      remote_ref.setData(data);
+    }
+    else {
+        ref.setData(data);
+    }
+
     SSCellData cellData;
     synchronized (CellData) {
       cellData = addReferenceImpl(id, ref, cmaps, source, type, notify, true);
@@ -210,8 +213,12 @@ else {
           VDisplay.addReferences(new ImageRendererJ3D(), dr[i], cmaps[i]);
         }
         else {
-          // VDisplay.addReference(dr[i], cmaps[i]);
-          RemoteVDisplay.addReference(remote_ref, cmaps[i]);
+          if (remote_ref == null) {
+            VDisplay.addReference(dr[i], cmaps[i]);
+          }
+          else {
+            RemoteVDisplay.addReference(remote_ref, cmaps[i]);
+          }
         }
       }
 
@@ -222,8 +229,6 @@ else {
     if (vexc != null) throw vexc;
     if (rexc != null) throw rexc;
   }
-
-
 
   /**
    * override method from BasicSSCell
@@ -322,7 +327,7 @@ else {
       System.out.println("usage: 'java visad.cluster.TestProxyCluster " +
                          "n (file)'");
       System.out.println("  where n = 0 for client, 1 - " + number_of_nodes +
-                         " for nodes");
+                         " for nodes, and " + (number_of_nodes+1) + " for user");
       return;
     }
     int pid = -1;
@@ -333,7 +338,7 @@ else {
       System.out.println("usage: 'java visad.cluster.TestProxyCluster " +
                          "n (file)'");
       System.out.println("  where n = 0 for client, 1 - " + number_of_nodes +
-                         " for nodes");
+                         " for nodes, and " + (number_of_nodes+1) + " for user");
       return;
     }
     if (pid < 0 || pid > number_of_nodes + 1) {
@@ -343,11 +348,11 @@ else {
                          " for nodes, and " + (number_of_nodes+1) + " for user");
       return;
     }
-    if (pid > 0 && args.length < 2) {
+    if (pid > 0 && pid <= number_of_nodes && args.length < 2) {
       System.out.println("usage: 'java visad.cluster.TestProxyCluster " +
                          "n (file)'");
       System.out.println("  where n = 0 for client, 1 - " + number_of_nodes +
-                         " for nodes");
+                         " for nodes, and " + (number_of_nodes+1) + " for user");
       return;
     }
 
@@ -509,7 +514,6 @@ System.out.println("kk = " + kk);
       }
   
       FunctionType nav_wrf_type = (FunctionType) node_wrfs[0].getType();
-  System.out.println("data type = " + nav_wrf_type);
       Set time_set = node_wrfs[0].getDomainSet();
   
       RemoteClientFieldImpl client_wrf =
@@ -536,7 +540,9 @@ System.out.println("kk = " + kk);
         System.out.println("rebind proxy " + e);
         return;
       }
-
+      // just so app doesn't exit
+      DisplayImpl display = new DisplayImplJ2D("dummy");
+      System.out.println("data ready as " + nav_wrf_type);
     } // end if (client)
 
     if (user) {

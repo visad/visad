@@ -86,13 +86,16 @@ public class TestWRFCluster extends FancySSCell implements ActionListener {
   {
     // add Data object to cell
     DataReferenceImpl ref = new DataReferenceImpl(Name);
-if (data instanceof RemoteData) {
-  remote_ref = new RemoteDataReferenceImpl(ref);
-  remote_ref.setData(data);
-}
-else {
-    ref.setData(data);
-}
+
+    // new
+    if (data instanceof RemoteData) {
+      remote_ref = new RemoteDataReferenceImpl(ref);
+      remote_ref.setData(data);
+    }
+    else {
+        ref.setData(data);
+    }
+
     SSCellData cellData;
     synchronized (CellData) {
       cellData = addReferenceImpl(id, ref, cmaps, source, type, notify, true);
@@ -206,8 +209,12 @@ else {
           VDisplay.addReferences(new ImageRendererJ3D(), dr[i], cmaps[i]);
         }
         else {
-          // VDisplay.addReference(dr[i], cmaps[i]);
-          RemoteVDisplay.addReference(remote_ref, cmaps[i]);
+          if (remote_ref == null) {
+            VDisplay.addReference(dr[i], cmaps[i]);
+          }
+          else {
+            RemoteVDisplay.addReference(remote_ref, cmaps[i]);
+          }
         }
       }
 

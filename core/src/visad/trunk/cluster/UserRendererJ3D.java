@@ -152,6 +152,7 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
 
   /** create a scene graph for Data in links[0] */
   public BranchGroup doTransform() throws VisADException, RemoteException {
+
     Serializable[] responses = null;
     try {
       // responses are VisADGroups
