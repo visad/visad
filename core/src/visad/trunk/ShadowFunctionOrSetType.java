@@ -1246,19 +1246,31 @@ END MISSING TEST */
         boolean anyFlowCreated = false;
         if (anyFlow) {
           // try Flow1
-          array = makeFlow(flow1_values, flowScale[0], spatial_values,
-                           color_values, range_select);
-          shadow_api.addToGroup(group, array, mode,
-                                constant_alpha, constant_color);
-          array = null;
+          arrays = shadow_api.makeFlow(flow1_values, flowScale[0],
+                            spatial_values, color_values, range_select);
+          if (arrays != null) {
+            for (int i=0; i<arrays.length; i++) {
+              if (arrays[i] != null) {
+                shadow_api.addToGroup(group, arrays[i], mode,
+                                      constant_alpha, constant_color);
+                arrays[i] = null;
+              }
+            }
+          }
           anyFlowCreated = true;
 
           // try Flow2
-          array = makeFlow(flow2_values, flowScale[1], spatial_values,
-                           color_values, range_select);
-          shadow_api.addToGroup(group, array, mode,
-                                constant_alpha, constant_color);
-          array = null;
+          arrays = shadow_api.makeFlow(flow2_values, flowScale[1],
+                            spatial_values, color_values, range_select);
+          if (arrays != null) {
+            for (int i=0; i<arrays.length; i++) {
+              if (arrays[i] != null) {
+                shadow_api.addToGroup(group, arrays[i], mode,
+                                      constant_alpha, constant_color);
+                arrays[i] = null;
+              }
+            }
+          }
           anyFlowCreated = true;
         }
 

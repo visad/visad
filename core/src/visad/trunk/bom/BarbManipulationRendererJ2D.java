@@ -28,6 +28,9 @@ package visad.bom;
 import visad.*;
 import visad.java2d.*;
 
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
 import java.util.*;
 import java.rmi.*;
 
@@ -85,10 +88,11 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
       whyNotDirect = notRealTupleType;
     }
     // . . .
+    setIsDirectManipulation(true);
   }
 
   public void addPoint(float[] x) throws VisADException {
-    // must customize
+/** is needed
     int count = x.length / 3;
     VisADGeometryArray array = null;
     if (count == 1) {
@@ -119,12 +123,14 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
     //
     // want replace rather than add
     extra_branch.addChild(appearance);
+*/
   }
 
 /* customize the following methods from visad.DataRenderer
   setSpatialValues
   checkClose
   drag_direct
+  release_direct
 */
 
   private float[][] spatialValues = null;
@@ -142,10 +148,79 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
     return distance;
   }
 
+  /** mouse button released, ending direct manipulation */
+  public synchronized void release_direct() {
+  }
+
   public synchronized void drag_direct(VisADRay ray, boolean first) {
     // System.out.println("drag_direct " + first + " " + type);
     if (spatialValues == null || ref == null || shadow == null) return;
     // . . .
+  }
+
+  static final int N = 5;
+
+  /** test BarbManipulationRendererJ2D */
+  public static void main(String args[])
+         throws VisADException, RemoteException {
+    RealType x = new RealType("x");
+    RealType y = new RealType("y");
+    RealType flowx = new RealType("flowx");
+    RealType flowy = new RealType("flowy");
+    RealType red = new RealType("red");
+    RealType green = new RealType("green");
+    RealType blue = new RealType("blue");
+
+    DisplayImpl display = new DisplayImplJ2D("display1");
+    ScalarMap xmap = new ScalarMap(x, Display.XAxis);
+    display.addMap(xmap);
+    xmap.setRange(-1.0, 1.0);
+    ScalarMap ymap = new ScalarMap(y, Display.YAxis);
+    display.addMap(ymap);
+    ymap.setRange(-1.0, 1.0);
+    ScalarMap flowx_map = new ScalarMap(flowx, Display.Flow1X);
+    display.addMap(flowx_map);
+    flowx_map.setRange(-1.0, 1.0);
+    ScalarMap flowy_map = new ScalarMap(flowy, Display.Flow1Y);
+    display.addMap(flowy_map);
+    flowy_map.setRange(-1.0, 1.0);
+    FlowControl flow_control = (FlowControl) flowy_map.getControl();
+    flow_control.setFlowScale(0.15f);
+
+    for (int i=0; i<N; i++) {
+      for (int j=0; j<N; j++) {
+        double u = 2.0 * i / (N - 1.0) - 1.0;
+        double v = 2.0 * j / (N - 1.0) - 1.0;
+        RealTuple tuple = new RealTuple(new Real[]
+          {new Real(x, u), new Real(y, v),
+           new Real(flowx, 70.0 * u), new Real(flowy, 70.0 * v),
+           new Real(red, 1.0), new Real(green, 1.0), new Real(blue, 0.0)});
+    
+        DataReferenceImpl ref = new DataReferenceImpl("ref");
+        ref.setData(tuple);
+        display.addReferences(new BarbManipulationRendererJ2D(), ref);
+      }
+    }
+
+    // create JFrame (i.e., a window) for display and slider
+    JFrame frame = new JFrame("test BarbManipulationRendererJ2D");
+    frame.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {System.exit(0);}
+    });
+ 
+    // create JPanel in JFrame
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    frame.getContentPane().add(panel);
+ 
+    // add display to JPanel
+    panel.add(display.getComponent());
+ 
+    // set size of JFrame and make it visible
+    frame.setSize(500, 500);
+    frame.setVisible(true);
   }
 
 }

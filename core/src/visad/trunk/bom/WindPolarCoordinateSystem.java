@@ -1,6 +1,6 @@
 
 //
-// PolarCoordinateSystem.java
+// WindPolarCoordinateSystem.java
 //
 
 /*
@@ -26,28 +26,29 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad;
 
 /**
-   PolarCoordinateSystem is the VisAD CoordinateSystem class
+   WindPolarCoordinateSystem is the VisAD CoordinateSystem class
    for (Longitude, Radius) with a Cartesian Reference,
    and with Longitude in degrees.<P>
 */
-public class PolarCoordinateSystem extends CoordinateSystem {
+public class WindPolarCoordinateSystem extends CoordinateSystem {
 
   private static Unit[] coordinate_system_units =
-    {CommonUnit.degree, null};
+    {CommonUnit.degree, CommonUnit.meterPerSecond};
 
   /** construct a CoordinateSystem for (longitude, radius)
       relative to a 2-D Cartesian reference;
-      this constructor supplies units = {CommonUnit.Degree, null}
+      this constructor supplies units =
+      {CommonUnit.Degree, CommonUnit.meterPerSecond}
       to the super constructor, in order to ensure Unit
       compatibility with its use of trigonometric functions */
-  public PolarCoordinateSystem(RealTupleType reference)
+  public WindPolarCoordinateSystem(RealTupleType reference)
          throws VisADException {
     super(reference, coordinate_system_units);
   }
 
   public double[][] toReference(double[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 2) {
-      throw new CoordinateSystemException("PolarCoordinateSystem." +
+      throw new CoordinateSystemException("WindPolarCoordinateSystem." +
              "toReference: tuples wrong dimension");
     }
     int len = tuples[0].length;
@@ -69,7 +70,7 @@ public class PolarCoordinateSystem extends CoordinateSystem {
 
   public double[][] fromReference(double[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 2) {
-      throw new CoordinateSystemException("PolarCoordinateSystem." +
+      throw new CoordinateSystemException("WindPolarCoordinateSystem." +
              "fromReference: tuples wrong dimension");
     }
     int len = tuples[0].length;
@@ -86,7 +87,7 @@ public class PolarCoordinateSystem extends CoordinateSystem {
 
   public float[][] toReference(float[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 2) {
-      throw new CoordinateSystemException("PolarCoordinateSystem." +
+      throw new CoordinateSystemException("WindPolarCoordinateSystem." +
              "toReference: tuples wrong dimension");
     }
     int len = tuples[0].length;
@@ -108,7 +109,7 @@ public class PolarCoordinateSystem extends CoordinateSystem {
 
   public float[][] fromReference(float[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 2) {
-      throw new CoordinateSystemException("PolarCoordinateSystem." +
+      throw new CoordinateSystemException("WindPolarCoordinateSystem." +
              "fromReference: tuples wrong dimension");
     }
     int len = tuples[0].length;
@@ -124,7 +125,7 @@ public class PolarCoordinateSystem extends CoordinateSystem {
   }
 
   public boolean equals(Object cs) {
-    return (cs instanceof PolarCoordinateSystem);
+    return (cs instanceof WindPolarCoordinateSystem);
   }
 
 }

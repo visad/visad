@@ -734,6 +734,10 @@ System.out.println("checkClose: distance = " + distance);
     return distance;
   }
 
+  /** mouse button released, ending direct manipulation */
+  public synchronized void release_direct() {
+  }
+
   public synchronized void drag_direct(VisADRay ray, boolean first) {
     // System.out.println("drag_direct " + first + " " + type);
     if (spatialValues == null || ref == null || shadow == null) return;

@@ -33,6 +33,9 @@ public class CommonUnit extends Object {
   public static Unit degree = SI.radian.scale(Math.PI/180.0, true);
   public static Unit radian = SI.radian;
   public static Unit second = SI.second;
+  public static Unit meterPerSecond =
+    new DerivedUnit(new BaseUnit[] {SI.meter, SI.second},
+                    new int[] {1, -1});
   /** all BaseUnits have exponent zero in dimensionless */
   public static Unit dimensionless = new DerivedUnit();
   /** promiscuous is compatible with any Unit; useful for constants;

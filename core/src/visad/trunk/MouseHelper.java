@@ -284,10 +284,13 @@ event_switch:
         int m1 = m & InputEvent.BUTTON1_MASK;
         int m2 = m & InputEvent.BUTTON2_MASK;
         int m3 = m & InputEvent.BUTTON3_MASK;
-        // special hack for BUTTON1 error in getModifiers
-/* WLH 22 Aug 98
-        if (m2 == 0 && m3 == 0 && mousePressed1) {
-*/
+
+        if (mousePressed3 || mouseCombo3) {
+          if (direct_renderer != null) {
+            direct_renderer.release_direct();
+          }
+        }
+
         if (m1 != 0 && mousePressed1) {
           mousePressed1 = false;
           z1Pressed = false;

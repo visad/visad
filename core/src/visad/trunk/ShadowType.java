@@ -137,6 +137,10 @@ public abstract class ShadowType extends Object
     MappedDisplayScalar = false;
   }
 
+  public DataDisplayLink getLink() {
+    return Link;
+  }
+
   public int getLevelOfDifficulty() {
     return LevelOfDifficulty;
   }
@@ -1577,7 +1581,7 @@ System.out.println(" ");
   private static final float BACK_SCALE = -0.15f;
   private static final float PERP_SCALE = 0.15f;
 
-  public static VisADGeometryArray makeFlow(float[][] flow_values,
+  public VisADGeometryArray[] makeFlow(float[][] flow_values,
                 float flowScale, float[][] spatial_values,
                 byte[][] color_values, boolean[][] range_select)
          throws VisADException {
@@ -1597,14 +1601,15 @@ System.out.println(" ");
     }
     if (rlen == 0) return null;
 
-    array.vertexCount = 4 * rlen;
+    array.vertexCount = 6 * rlen;
 
-    float[] coordinates = new float[12 * rlen];
+    float[] coordinates = new float[18 * rlen];
     int m = 0;
     // flow vector
     float f0 = 0.0f, f1 = 0.0f, f2 = 0.0f;
     // arrow head vector
     float a0 = 0.0f, a1 = 0.0f, a2 = 0.0f;
+    float b0 = 0.0f, b1 = 0.0f, b2 = 0.0f;
     for (int j=0; j<len; j++) {
       if (range_select[0] == null || range_select[0][j]) {
         if (flen == 1) {
@@ -1623,43 +1628,71 @@ System.out.println(" ");
         coordinates[m++] = spatial_values[1][j];
         coordinates[m++] = spatial_values[2][j];
         int n = m;
+        // k = orig m
+        // m = orig m + 3
         // end point of flow vector
         coordinates[m++] = coordinates[k++] + f0;
         coordinates[m++] = coordinates[k++] + f1;
         coordinates[m++] = coordinates[k++] + f2;
         k = n;
+        // n = orig m + 3
+        // m = orig m + 6
         // repeat end point of flow vector as
-        // first point of arrow head
+        // first point of first arrow head
         coordinates[m++] = coordinates[n++];
         coordinates[m++] = coordinates[n++];
         coordinates[m++] = coordinates[n++];
-        float fmin = Math.min(f0, Math.min(f1, f2));
-        if (f0 == fmin) {
-          a0 = BACK_SCALE * f0;
-          a1 = PERP_SCALE * (f2 - f1);
-          a2 = PERP_SCALE * (-f1 - f2);
+        boolean mode2d = display.getDisplayRenderer().getMode2D();
+        b0 = a0 = BACK_SCALE * f0;
+        b1 = a1 = BACK_SCALE * f1;
+        b2 = a2 = BACK_SCALE * f2;
+
+        if (mode2d || (f2 <= f0 && f2 <= f1)) {
+          a0 += PERP_SCALE * f1;
+          a1 -= PERP_SCALE * f0;
+          b0 -= PERP_SCALE * f1;
+          b1 += PERP_SCALE * f0;
         }
-        else if (f1 == fmin) {
-          a1 = BACK_SCALE * f1;
-          a2 = PERP_SCALE * (f0 - f2);
-          a0 = PERP_SCALE * (-f2 - f0);
+        else if (f1 <= f0) {
+          a0 += PERP_SCALE * f2;
+          a2 -= PERP_SCALE * f0;
+          b0 -= PERP_SCALE * f2;
+          b2 += PERP_SCALE * f0;
         }
-        else { // f2 == fmin
-          a2 = BACK_SCALE * f2;
-          a0 = PERP_SCALE * (f1 - f0);
-          a1 = PERP_SCALE * (-f0 - f1);
+        else { // f0 is least
+          a1 += PERP_SCALE * f2;
+          a2 -= PERP_SCALE * f1;
+          b1 -= PERP_SCALE * f2;
+          b2 += PERP_SCALE * f1;
         }
-        // second point of arrow head
+
+        k = n;
+        // n = orig m + 6
+        // m = orig m + 9
+        // second point of first arrow head
         coordinates[m++] = coordinates[n++] + a0;
         coordinates[m++] = coordinates[n++] + a1;
         coordinates[m++] = coordinates[n++] + a2;
+
+        n = k;
+        // k = orig m + 6
+        // first point of second arrow head
+        coordinates[m++] = coordinates[k++];
+        coordinates[m++] = coordinates[k++];
+        coordinates[m++] = coordinates[k++];
+
+        // n = orig m + 6
+        // second point of second arrow head
+        coordinates[m++] = coordinates[n++] + b0;
+        coordinates[m++] = coordinates[n++] + b1;
+        coordinates[m++] = coordinates[n++] + b2;
       }
     }
     array.coordinates = coordinates;
     // array.vertexFormat = COORDINATES;
 
     if (color_values != null) {
-      byte[] colors = new byte[12 * rlen];
+      byte[] colors = new byte[18 * rlen];
       m = 0;
       float c0 = 0.0f, c1 = 0.0f, c2 = 0.0f;
       for (int j=0; j<len; j++) {
@@ -1685,7 +1718,7 @@ System.out.println(" ");
       array.colors = colors;
       // array.vertexFormat |= COLOR_3;
     }
-    return array;
+    return new VisADGeometryArray[] {array};
   }
 
   private static final double FONT = 0.07;

@@ -128,19 +128,25 @@ public interface Display extends Action {
 
   /** three flow display scalars */
   public final static DisplayRealType Flow1X =
-    new DisplayRealType("Flow1X", true, -1.0, 1.0, 0.0, true);
+    new DisplayRealType("Flow1X", true, -1.0, 1.0, 0.0,
+                        CommonUnit.meterPerSecond, true);
   public final static DisplayRealType Flow1Y =
-    new DisplayRealType("Flow1Y", true, -1.0, 1.0, 0.0, true);
+    new DisplayRealType("Flow1Y", true, -1.0, 1.0, 0.0,
+                        CommonUnit.meterPerSecond, true);
   public final static DisplayRealType Flow1Z =
-    new DisplayRealType("Flow1Z", true, -1.0, 1.0, 0.0, true);
+    new DisplayRealType("Flow1Z", true, -1.0, 1.0, 0.0,
+                        CommonUnit.meterPerSecond, true);
 
   /** second set of three flow display scalars */
   public final static DisplayRealType Flow2X =
-    new DisplayRealType("Flow2X", true, -1.0, 1.0, 0.0, true);
+    new DisplayRealType("Flow2X", true, -1.0, 1.0, 0.0,
+                        CommonUnit.meterPerSecond, true);
   public final static DisplayRealType Flow2Y =
-    new DisplayRealType("Flow2Y", true, -1.0, 1.0, 0.0, true);
+    new DisplayRealType("Flow2Y", true, -1.0, 1.0, 0.0,
+                        CommonUnit.meterPerSecond, true);
   public final static DisplayRealType Flow2Z =
-    new DisplayRealType("Flow2Z", true, -1.0, 1.0, 0.0, true);
+    new DisplayRealType("Flow2Z", true, -1.0, 1.0, 0.0,
+                        CommonUnit.meterPerSecond, true);
 
   /** spatial offset display scalars */
   public final static DisplayRealType XAxisOffset =

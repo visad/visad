@@ -280,11 +280,11 @@ public abstract class ShadowTypeJ3D extends ShadowType {
                       display, default_values, range_select);
   }
 
-  public static VisADGeometryArray makeFlow(float[][] flow_values,
+  public VisADGeometryArray[] makeFlow(float[][] flow_values,
                 float flowScale, float[][] spatial_values,
                 byte[][] color_values, boolean[][] range_select)
          throws VisADException {
-    return ShadowType.makeFlow(flow_values, flowScale, spatial_values,
+    return adaptedShadowType.makeFlow(flow_values, flowScale, spatial_values,
            color_values, range_select);
   }
 
@@ -418,11 +418,15 @@ public abstract class ShadowTypeJ3D extends ShadowType {
             appearance = makeAppearance(mode, null, constant_color, geometry);
             shape = new Shape3D(geometry, appearance);
             group.addChild(shape);
+/*
             if (renderer instanceof DirectManipulationRendererJ3D) {
               ((DirectManipulationRendererJ3D) renderer).
                                       setSpatialValues(spatial_values);
             }
-
+*/
+            if (renderer.getIsDirectManipulation()) {
+              renderer.setSpatialValues(spatial_values);
+            }
           }
         }
         anyShapeCreated = true;
@@ -446,26 +450,34 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
       boolean anyFlowCreated = false;
       // try Flow1
-      array = makeFlow(flow1_values, flowScale[0], spatial_values,
+      arrays = makeFlow(flow1_values, flowScale[0], spatial_values,
                        color_values, range_select);
-      if (array != null) {
-        if (array.vertexCount > 0) {
-          geometry = display.makeGeometry(array);
-          appearance = makeAppearance(mode, null, constant_color, geometry);
-          shape = new Shape3D(geometry, appearance);
-          group.addChild(shape);
+      if (arrays != null) {
+        for (int i=0; i<arrays.length; i++) {
+          if (arrays[i] != null) {
+            if (arrays[i].vertexCount > 0) {
+              geometry = display.makeGeometry(arrays[i]);
+              appearance = makeAppearance(mode, null, constant_color, geometry);
+              shape = new Shape3D(geometry, appearance);
+              group.addChild(shape);
+            }
+          }
         }
         anyFlowCreated = true;
       }
       // try Flow2
-      array = makeFlow(flow2_values, flowScale[1], spatial_values,
+      arrays = makeFlow(flow2_values, flowScale[1], spatial_values,
                        color_values, range_select);
-      if (array != null) {
-        if (array.vertexCount > 0) {
-          geometry = display.makeGeometry(array);
-          appearance = makeAppearance(mode, null, constant_color, geometry);
-          shape = new Shape3D(geometry, appearance);
-          group.addChild(shape);
+      if (arrays != null) {
+        for (int i=0; i<arrays.length; i++) {
+          if (arrays[i] != null) {
+            if (arrays[i].vertexCount > 0) {
+              geometry = display.makeGeometry(arrays[i]);
+              appearance = makeAppearance(mode, null, constant_color, geometry);
+              shape = new Shape3D(geometry, appearance);
+              group.addChild(shape);
+            }
+          }
         }
         anyFlowCreated = true;
       }
@@ -477,9 +489,14 @@ public abstract class ShadowTypeJ3D extends ShadowType {
           appearance = makeAppearance(mode, null, constant_color, geometry);
           shape = new Shape3D(geometry, appearance);
           group.addChild(shape);
+/*
           if (renderer instanceof DirectManipulationRendererJ3D) {
             ((DirectManipulationRendererJ3D) renderer).
                                     setSpatialValues(spatial_values);
+          }
+*/
+          if (renderer.getIsDirectManipulation()) {
+            renderer.setSpatialValues(spatial_values);
           }
         }
       }
