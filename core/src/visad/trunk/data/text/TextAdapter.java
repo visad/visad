@@ -826,10 +826,10 @@ public class TextAdapter {
               rValues[values_to_index[1][i]] = getVal(sa,i);
               try {
                 tValues[values_to_index[1][i]] = 
-                          new Real((RealType) thisMT, getVal(sa,i));
+                    new Real((RealType) thisMT, getVal(sa,i), hdrUnits[i]);
                 if (debug) System.out.println("tValues[" + 
-                         values_to_index[1][i] + "] = " + 
-                                  tValues[values_to_index[1][i]]);
+                    values_to_index[1][i] + "] = " + 
+                    tValues[values_to_index[1][i]]);
 
               } catch (Exception e) {
                 System.out.println(" Exception converting " + thisMT + " " + e);
