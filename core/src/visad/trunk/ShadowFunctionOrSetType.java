@@ -403,11 +403,13 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 2:" +
                         display.getGraphicsModeControl().getTextureEnable() &&
                         !display.getGraphicsModeControl().getPointMode();
 
-        isTexture3D = !getMultipleDisplayScalar() &&
-                       getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD &&
+        // WLH 15 March 2000
+        // isTexture3D = !getMultipleDisplayScalar() &&
+        isTexture3D =  getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD &&
                        ((FunctionType) getType()).getReal() &&   // ??
                        Domain.getDimension() == 3 &&
                        Domain.getAllSpatial() &&
+                       !Domain.getMultipleDisplayScalar() && // WLH 15 March 2000
                        !Domain.getSpatialReference() &&
                        Display.DisplaySpatialCartesianTuple.equals(
                                Domain.getDisplaySpatialTuple() ) &&
@@ -890,7 +892,6 @@ for (int i=0; i < 4; i++) {
         Enumeration maps = DomainComponents[i].getSelectedMapVector().elements();
         ScalarMap map = (ScalarMap) maps.nextElement();
         // scale values
-        limits[i] = map.scaleValues(limits[i]);
         DisplayRealType real = map.getDisplayScalar();
         DisplayTupleType tuple = real.getTuple();
         if (tuple == null ||
@@ -900,6 +901,7 @@ for (int i=0; i < 4; i++) {
         }
         // get spatial index
         tuple_index[i] = real.getTupleIndex();
+        limits[i] = map.scaleValues(limits[i]);
         if (maps.hasMoreElements()) {
           throw new DisplayException("texture with multiple spatial: " +
                                      "ShadowFunctionOrSetType.doTransform");
@@ -2223,6 +2225,7 @@ if (size < 0.2) {
               int len = range_select[0].length;
 
 /* can be misleading because of the way transparency composites
+WLH 15 March 2000 */
               float alpha =
                 default_values[display.getDisplayScalarIndex(Display.Alpha)];
               if (constant_alpha == constant_alpha) {
@@ -2242,10 +2245,17 @@ if (size < 0.2) {
                 if (!range_select[0][i]) {
                   // make missing pixel invisible (transparent)
                   color_values[3][i] = 0;
+
+                  // WLH 15 March 2000
+                  // make missing pixel black
+                  color_values[0][i] = 0;
+                  color_values[1][i] = 0;
+                  color_values[2][i] = 0;
                 }
               }
-*/
+/* WLH 15 March 2000 */
 
+/* WLH 15 March 2000
               for (int i=0; i<len; i++) {
                 if (!range_select[0][i]) {
                   // make missing pixel black
@@ -2254,6 +2264,7 @@ if (size < 0.2) {
                   color_values[2][i] = 0;
                 }
               }
+*/
             } // end if (range_select[0] != null)
 
             // MEM

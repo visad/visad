@@ -74,6 +74,10 @@ public class VisADLineStripArray extends VisADGeometryArray {
     }
 
     int len = coordinates.length / 3;
+
+    // WLH 15 March 2000
+    if (len < 6) return this;
+
     float[][] cs = new float[3][len];
     int j = 0;
     for (int i=0; i<len; i++) {
