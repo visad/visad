@@ -26,7 +26,7 @@ import java.rmi.RemoteException;
 
 import visad.*;
 
-import visad.util.LabeledRGBWidget;
+import visad.util.LabeledColorWidget;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test33
@@ -88,7 +88,7 @@ public class Test33
       table[2][i] = 0.5f;
     }
 
-    return new LabeledRGBWidget(color1map, 0.0f, 32.0f, table);
+    return new LabeledColorWidget(color1map, 0.0f, 32.0f, table);
   }
 
   public String toString() { return ": ColorWidget with non-default table"; }

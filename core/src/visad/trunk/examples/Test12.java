@@ -26,7 +26,7 @@ import java.rmi.RemoteException;
 
 import visad.*;
 
-import visad.util.LabeledRGBWidget;
+import visad.util.LabeledColorWidget;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test12
@@ -120,7 +120,7 @@ public class Test12
 	throws VisADException, RemoteException
   {
     ScalarMap color1map = (ScalarMap )dpys[0].getMapVector().lastElement();
-    return new LabeledRGBWidget(color1map, 0.0f, 32.0f);
+    return new LabeledColorWidget(color1map, 0.0f, 32.0f);
   }
 
   public String toString() { return ": 2-D surface and ColorWidget"; }

@@ -35,7 +35,7 @@ import visad.ScalarMap;
 import visad.TupleType;
 import visad.VisADException;
 import visad.data.netcdf.Plain;
-import visad.util.LabeledRGBWidget;
+import visad.util.LabeledColorWidget;
 
 
 /**
@@ -85,11 +85,11 @@ class Earth
 	throws VisADException, RemoteException
     {
 /* WLH 11 Dec 98
-        LabeledRGBWidget lw =
-	    new LabeledRGBWidget(colorMap, (float)min, (float)max);
+        LabeledColorWidget lw =
+	    new LabeledColorWidget(colorMap, (float)min, (float)max);
 */
-        LabeledRGBWidget lw =
-	    new LabeledRGBWidget(colorMap);
+        LabeledColorWidget lw =
+	    new LabeledColorWidget(colorMap);
 
         Frame frame = new Frame("VisAD Color Widget");
         frame.addWindowListener(new WindowAdapter() {

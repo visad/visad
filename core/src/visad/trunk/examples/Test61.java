@@ -27,7 +27,7 @@ import java.rmi.RemoteException;
 import visad.*;
 
 import visad.java3d.DisplayImplJ3D;
-import visad.util.LabeledRGBAWidget;
+import visad.util.LabeledColorWidget;
 
 public class Test61
 	extends UISkeleton
@@ -99,7 +99,7 @@ public class Test61
 	throws VisADException, RemoteException
   {
     ScalarMap map1color = (ScalarMap )dpys[0].getMapVector().lastElement();
-    LabeledRGBAWidget widget = new LabeledRGBAWidget(map1color);
+    LabeledColorWidget widget = new LabeledColorWidget(map1color);
 
     ColorAlphaControl control = (ColorAlphaControl) map1color.getControl();
     float[][] table = control.getTable();

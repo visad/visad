@@ -221,12 +221,8 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
         catch (VisADException exc) {
           if (DEBUG) exc.printStackTrace();
         }
-        if (drt.equals(Display.RGB)) {
-          LabeledRGBWidget lw = new LabeledRGBWidget(maps[i]);
-          addToFrame(lw, true);
-        }
-        else if (drt.equals(Display.RGBA)) {
-          LabeledRGBAWidget lw = new LabeledRGBAWidget(maps[i]);
+        if (drt.equals(Display.RGB) || drt.equals(Display.RGBA)) {
+          LabeledColorWidget lw = new LabeledColorWidget(maps[i]);
           addToFrame(lw, true);
         }
         else if (drt.equals(Display.SelectValue)) {

@@ -13,7 +13,7 @@ import visad.java3d.DisplayImplJ3D;
 import visad.java3d.TwoDDisplayRendererJ3D;
 import visad.java3d.DirectManipulationRendererJ3D;
 import visad.util.VisADSlider;
-import visad.util.LabeledRGBWidget;
+import visad.util.LabeledColorWidget;
 import visad.util.Delay;
 import visad.data.Form;
 import visad.data.vis5d.Vis5DForm;
@@ -103,8 +103,8 @@ public class Rain implements ActionListener, ControlListener {
 
   /** widgets and controls */
   VisADSlider slider300;
-  LabeledRGBWidget color_widgetH1 = null;
-  LabeledRGBWidget color_widgetH2 = null;
+  LabeledColorWidget color_widgetH1 = null;
+  LabeledColorWidget color_widgetH2 = null;
   ColorControl color_controlH1 = null;
   ColorControl color_controlH2 = null;
   ColorControl[][] color_controls = new ColorControl[N_ROWS][N_COLUMNS];
@@ -593,7 +593,7 @@ public class Rain implements ActionListener, ControlListener {
     color_mapH1 = new ScalarMap(rangeH1, Display.RGB);
     DisplayImpl displayH1 = newDisplay("display_hidden_1");
     displayH1.addMap(color_mapH1);
-    color_widgetH1 = new LabeledRGBWidget(color_mapH1, (float) MIN,
+    color_widgetH1 = new LabeledColorWidget(color_mapH1, (float) MIN,
                                                        (float) MAX);
     Dimension d = new Dimension(500, 170);
     color_widgetH1.setMaximumSize(d);
@@ -651,7 +651,7 @@ public class Rain implements ActionListener, ControlListener {
     color_mapH2 = new ScalarMap(rangeH2, Display.RGB);
     DisplayImpl displayH2 = newDisplay("display_hidden_2");
     displayH2.addMap(color_mapH2);
-    color_widgetH2 = new LabeledRGBWidget(color_mapH2, (float) MIN,
+    color_widgetH2 = new LabeledColorWidget(color_mapH2, (float) MIN,
                                                        (float) MAXH2);
 
     Dimension dH2 = new Dimension(500, 170);

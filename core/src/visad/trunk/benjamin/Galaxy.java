@@ -11,7 +11,7 @@ package visad.benjamin;
 import visad.*;
 import visad.util.Delay;
 import visad.util.VisADSlider;
-import visad.util.LabeledRGBWidget;
+import visad.util.LabeledColorWidget;
 import visad.java3d.DisplayImplJ3D;
 import visad.java3d.DirectManipulationRendererJ3D;
 import visad.java2d.DisplayImplJ2D;
@@ -187,8 +187,8 @@ public class Galaxy extends Object implements ActionListener {
   JPanel widget_panel;
 
   /** color widgets for sky map images */
-  LabeledRGBWidget lw2;
-  LabeledRGBWidget lw5;
+  LabeledColorWidget lw2;
+  LabeledColorWidget lw5;
 
   ConstantMap[] cmaps;
 
@@ -855,7 +855,7 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
     display2.addMap(latmap);
 
     // color widget for sky map
-    lw2 = new LabeledRGBWidget(rgbmap2);
+    lw2 = new LabeledColorWidget(rgbmap2);
 
 /* WLH 26 Jan 99
    need DisplayImpl.clearMap(ScalarMap map)
@@ -937,7 +937,7 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
     display5.addMap(rgbmap5);
 
     // color widget for sky map
-    lw5 = new LabeledRGBWidget(rgbmap5);
+    lw5 = new LabeledColorWidget(rgbmap5);
 
     if (client) {
       RemoteDisplayImpl remote_display5 =

@@ -34,7 +34,7 @@ import visad.java3d.TwoDDisplayRendererJ3D;
 import visad.java2d.DisplayImplJ2D;
 import visad.java2d.DirectManipulationRendererJ2D;
 import visad.util.VisADSlider;
-import visad.util.LabeledRGBWidget;
+import visad.util.LabeledColorWidget;
 import visad.data.netcdf.Plain;
 import java.rmi.RemoteException;
 import java.io.IOException;
@@ -232,7 +232,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
   }
 
   /** this make an image of one NAST-I channel, with a JTextField
-      for channel selection, a LabeledRGBWidget for pixel colors
+      for channel selection, a LabeledColorWidget for pixel colors
       and a spectrum display */
   class ChannelImage extends JPanel
         implements ActionListener, ItemListener, ScalarMapListener {
@@ -394,7 +394,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       add(dpanel1);
 
       // create color widget for atmosphericRadiance
-      LabeledRGBWidget lw = new LabeledRGBWidget(radiance_map1);
+      LabeledColorWidget lw = new LabeledColorWidget(radiance_map1);
       Dimension d = new Dimension(400, 200);
       lw.setMaximumSize(d);
       JPanel lpanel = new JPanel();
