@@ -125,7 +125,7 @@ public class GridEdit extends Object implements ActionListener {
      gs has MathType (t -> ((x, y) -> v)) or ((x, y) -> v)
      conditions on gs and display:
      1. x and y mapped to XAxis, YAxis, ZAxis
-     2. (x, y) domain LinearSet
+     2. (x, y) domain GriddedSet
      3. if (t -> ...), then t is mapped to Animation
 </pre>
   */
@@ -325,7 +325,8 @@ public class GridEdit extends Object implements ActionListener {
 
   }
 
-  public void makePicks(int n) throws VisADException, RemoteException  {
+  // make PickCell's etc up from npicks through n-1
+  private void makePicks(int n) throws VisADException, RemoteException  {
     if (n <= npicks) return;
     PickCell[] tcell = null;
     DataReferenceImpl[] tref = null;
@@ -355,7 +356,8 @@ public class GridEdit extends Object implements ActionListener {
     npicks = n;
   }
 
-  public void makePick(int i) throws VisADException, RemoteException  {
+  // make PickCell etc for index i
+  private void makePick(int i) throws VisADException, RemoteException  {
     ref_picks[i] = new DataReferenceImpl("pick" + i);
     rend_picks[i] = new PickManipulationRendererJ3D(renderer_mask, renderer_mask);
     rend_picks[i].suppressExceptions(true);
@@ -367,6 +369,9 @@ public class GridEdit extends Object implements ActionListener {
     for (int j=0; j<rangedim; j++) delta_picks[j][i] = 0.0f;
   }
 
+  /**
+   * enable user to draw move vectors with optional deltas
+   */
   public void start() throws VisADException, RemoteException {
     synchronized (lock) {
       cell_rbl.addReference(ref_rbl);
@@ -376,6 +381,10 @@ public class GridEdit extends Object implements ActionListener {
     }
   }
 
+  /**
+   * warp grid according to move vectors drawn by user
+   * also interpolate user defined delta values at move points
+   */
   public void stop() throws VisADException, RemoteException {
     synchronized (lock) {
       int np = 0; // number of pick points
@@ -434,6 +443,20 @@ public class GridEdit extends Object implements ActionListener {
     }
   }
 
+  /**
+   * warpGrid is the workhorse of GridEdit and can be used independently
+   * of any instances of the class
+   * @param ff              A FlatField containing the 2-D grid to be warped.
+   * @param set_samples     The move vectors, dimensioned [number_of_moves][2][2]
+   *                        where the second index enumerates x and y and the third
+   *                        index enumerates the "from" and "to" ends of the move.
+   *                        These values are x and y data values
+   * @param deltas          Increments for moved values, to be interpolated over the
+   *                        grid, dimensioned [number_of_grid_range_values][number_of_moves].
+   *                        May be null.
+   * @return                Warped grid, with motion vectors and deltas applied.
+   * @throws VisADException bad parameters
+   */
   public static FlatField warpGrid(FlatField ff, float[][][] set_samples, float[][] deltas)
          throws VisADException, RemoteException {
 
@@ -491,6 +514,7 @@ public class GridEdit extends Object implements ActionListener {
 
     // limit number of points on border
     int NB = 32;
+    // int NB = 4;
     int nxb = (nx > NB) ? NB : nx;
     int nyb = (ny > NB) ? NB : ny;
     float xb = ((float) nx) / ((float) nxb);
@@ -534,12 +558,14 @@ public class GridEdit extends Object implements ActionListener {
     float[][] set_grid = xyset.valueToGrid(set_locs);
     float nx2 = (nx - 1.0f) / 2.0f;
     float ny2 = (ny - 1.0f) / 2.0f;
+    float nm2 = Math.min(nx2, ny2);
+    float nm22 = nm2 * nm2;
     float nx22 = nx2 * nx2;
     float ny22 = ny2 * ny2;
     boolean all_in = true;
     for (int i=0; i<np; i++) {
-      float d = (set_grid[0][i] - nx2) * (set_grid[0][i] - nx2) / nx22 +
-                (set_grid[1][i] - ny2) * (set_grid[1][i] - ny2) / ny22;
+      float d = (set_grid[0][i] - nx2) * (set_grid[0][i] - nx2) / nm22 +
+                (set_grid[1][i] - ny2) * (set_grid[1][i] - ny2) / nm22;
       if (d > 0.64) {
         all_in = false;
         // System.out.println("not all_in d = " + d);
@@ -547,8 +573,11 @@ public class GridEdit extends Object implements ActionListener {
       }
     }
 
+// CHANGE ELLIPSE INTO CIRCLE !!!!
+
     if (all_in) {
-      int ne = 32; // weird bug for ne proportional to nx and ny
+      int ne = 64; // weird bug for ne proportional to nx and ny
+      // int ne = 8; // weird bug for ne proportional to nx and ny
       int new_nb = nb + ne;
       float[][] new_samplesb = new float[2][new_nb];
       System.arraycopy(samplesb[0], 0, new_samplesb[0], 0, nb);
@@ -556,8 +585,8 @@ public class GridEdit extends Object implements ActionListener {
       float[][] ellipse_grid = new float[2][ne];
       for (int i=0; i<ne; i++) {
         double ang = 2.0 * Math.PI * i / (ne);
-        ellipse_grid[0][i] = nx2 * (1.0f + 0.99f * ((float) Math.sin(ang)) );
-        ellipse_grid[1][i] = ny2 * (1.0f + 0.99f * ((float) Math.cos(ang)) );
+        ellipse_grid[0][i] = nx2 + nm2 * 0.90f * ((float) Math.sin(ang) );
+        ellipse_grid[1][i] = ny2 + nm2 * 0.90f * ((float) Math.cos(ang) );
       }
       float[][] ellipse_locs = xyset.gridToValue(ellipse_grid);
       System.arraycopy(ellipse_locs[0], 0, new_samplesb[0], nb, ne);
@@ -739,6 +768,9 @@ a nice idea, but this accentuates corner effects
     return newff;
   }
 
+  /**
+   * undo action of last call to stop()
+   */
   public void undo() throws VisADException, RemoteException {
     synchronized (lock) {
       if (replacedff != null) {
@@ -750,6 +782,7 @@ a nice idea, but this accentuates corner effects
     stop();
   }
 
+  // return the index of the current animation step
   private int getAnimationIndex() throws VisADException {
     int[] indices = {acontrol.getCurrent()};
     Set aset = acontrol.getSet();
@@ -758,9 +791,11 @@ a nice idea, but this accentuates corner effects
     return tindices[0];
   }
 
-  private static final int NSTAS = 64; // actually NSTAS * NSTAS
+  private static final int NX = 64;
+  private static final int NY = 64;
   private static final int NTIMES = 4;
-  // private static final int NSTAS = 512; // actually NSTAS * NSTAS
+  // private static final int NX = 512;
+  // private static final int NY = 512;
   // private static final int NTIMES = 1;
 
   public static void main(String args[])
@@ -788,7 +823,7 @@ a nice idea, but this accentuates corner effects
     double startt = new DateTime(1999, 122, 57060).getValue();
     Linear1DSet time_set = new Linear1DSet(time, startt, startt + 2700.0, NTIMES);
 
-    Linear2DSet grid_set = new Integer2DSet(xy, NSTAS, NSTAS);
+    Linear2DSet grid_set = new Integer2DSet(xy, NX, NY);
 
     RealTupleType tuple_type = new RealTupleType(new RealType[]
              {lon, lat, windx, windy, red, green});
@@ -800,10 +835,13 @@ a nice idea, but this accentuates corner effects
     // how wind records are displayed
     DisplayImplJ3D display1 =
       new DisplayImplJ3D("display1", new TwoDDisplayRendererJ3D());
+    double NM = Math.max(NX, NY);
     ScalarMap ymap = new ScalarMap(y, Display.YAxis);
     display1.addMap(ymap);
     ScalarMap xmap = new ScalarMap(x, Display.XAxis);
     display1.addMap(xmap);
+    ymap.setRange(0.0, NM);
+    xmap.setRange(0.0, NM);
 
     ScalarMap cmap = null;
     if (args.length > 0) {
@@ -819,17 +857,19 @@ a nice idea, but this accentuates corner effects
     AnimationControl acontrol = (AnimationControl) amap.getControl();
     acontrol.setStep(500);
 
-    // create an array of NSTAS by NSTAS winds
+    // create an array of NX by NY winds
     FieldImpl field = new FieldImpl(seq_type, time_set);
-    double[][] values = new double[6][NSTAS * NSTAS];
+    double[][] values = new double[6][NX * NY];
     for (int k=0; k<NTIMES; k++) {
       FlatField ff = new FlatField(field_type, grid_set);
       int m = 0;
-      for (int i=0; i<NSTAS; i++) {
-        for (int j=0; j<NSTAS; j++) {
+      double NX2 = NX / 2.0;
+      double NY2 = NY / 2.0;
+      for (int j=0; j<NY; j++) {
+        for (int i=0; i<NX; i++) {
 
-          double u = 2.0 * i / (NSTAS - 1.0) - 1.0;
-          double v = 2.0 * j / (NSTAS - 1.0) - 1.0;
+          double u = 2.0 * (i - NX2) / (NM - 1.0);
+          double v = 2.0 * (j - NY2) / (NM - 1.0);
   
           // each wind record is a Tuple (lon, lat, (windx, windy), red, green)
           // set colors by wind components, just for grins
@@ -955,6 +995,10 @@ a nice idea, but this accentuates corner effects
 
 }
 
+/**
+ * CellImpl for user clicks to delete move vectors
+ * via setData(null)
+*/
 class PickCell extends CellImpl {
 
   private boolean skip;
