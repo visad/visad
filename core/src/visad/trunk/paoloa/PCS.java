@@ -48,9 +48,6 @@ public class PCS {
   FlatField means;
   FlatField pressures;
 
-  // flag to use Java2D
-  boolean java2d = false;
-
   // RealTypes for data
   RealType time;
   RealType band;
@@ -126,7 +123,7 @@ public class PCS {
   FunctionType wv_profile;
 
   // precomputed helper values for slider_cell
-  float[][][] eigen_values;
+  float[][] eigen_values;
   float[][] mean_values;
   Gridded1DSet pressureSet;
   FlatField ll_field;
@@ -210,6 +207,7 @@ public class PCS {
     band3_mean = (RealType) mr.getComponent(5);
     pressure = (RealType) pres_type.getRange();
 
+    // construct MathTypes for display data
     b1_func = new FunctionType(band, band1);
     b2_func = new FunctionType(band, band2);
     b3_func = new FunctionType(band, band3);
@@ -337,17 +335,22 @@ public class PCS {
 
     DisplayImpl displayll =
       new DisplayImplJ3D("displayll", new TwoDDisplayRendererJ3D());
+      // new DisplayImplJ3D("displayll");
     ScalarMap lonmap = new ScalarMap(longitude, Display.XAxis);
+    // ScalarMap lonmap = new ScalarMap(longitude, Display.Longitude);
     displayll.addMap(lonmap);
     ScalarMap latmap = new ScalarMap(latitude, Display.YAxis);
+    // ScalarMap latmap = new ScalarMap(latitude, Display.Latitude);
     displayll.addMap(latmap);
     GraphicsModeControl modell = displayll.getGraphicsModeControl();
     modell.setScaleEnable(true);
     modell.setPointSize(5);
     yellow = new ConstantMap[] {new ConstantMap(0.0, Display.Blue)};
-    cyan = new ConstantMap[] {new ConstantMap(0.0, Display.Red)};
-    displayll.addReference(select_ll_ref, cyan);
-    displayll.addReference(ll_ref, yellow);
+    cyan = new ConstantMap[] {new ConstantMap(0.0, Display.Red),
+                              new ConstantMap(0.5, Display.Green),
+                              new ConstantMap(0.5, Display.Blue)};
+    displayll.addReference(select_ll_ref, yellow);
+    displayll.addReference(ll_ref, cyan);
     displayll.addReference(map_ref);
 
     DisplayImpl displayprof =
@@ -482,24 +485,20 @@ public class PCS {
     mean_values[2] = values[5];
     // compute eigen_values
     values = eigen_vectors.getFloats(false);
-    eigen_values = new float[3][npcs][nbands];
-    for (int k=0; k<3; k++) {
-      int kb = k * nbands;
-      for (int j=0; j<npcs; j++) {
-        int m = j + npcs * kb;
-        double mag = 0.0;
-        for (int i=0; i<nbands; i++) {
-          // eigen_values[k][j][i] = values[0][j + npcs * (i + kb)];
-          eigen_values[k][j][i] = values[0][m];
-          m += npcs;
-          mag += eigen_values[k][j][i] * eigen_values[k][j][i];
-        }
-        float invmag = (float) (1.0 / Math.sqrt(mag));
-        for (int i=0; i<nbands; i++) {
-          eigen_values[k][j][i] *= invmag;
-        }
-        // System.out.println("mag eigen[" + k + "][" + j + "] = " + mag);
+    eigen_values = new float[npcs][nchannels];
+    for (int j=0; j<npcs; j++) {
+      double mag = 0.0;
+      double m = 0;
+      for (int i=0; i<nchannels; i++) {
+        eigen_values[j][i] = values[0][j + npcs * i];
+        m += npcs;
+        mag += eigen_values[j][i] * eigen_values[j][i];
       }
+      float invmag = (float) (1.0 / Math.sqrt(mag));
+      for (int i=0; i<nchannels; i++) {
+        eigen_values[j][i] *= invmag;
+      }
+      System.out.println("mag eigen[" + j + "] = " + mag);
     }
 /*
     // check eigen_values
@@ -632,38 +631,53 @@ prod eigen[0][7] * eigen[0][7] = 1.000000008945133
                              ne + " out of bounds");
           return;
         }
+
         Tuple tup = (Tuple) time_series.getSample(t);
         FlatField bn = (FlatField) tup.getComponent(0);
         float[][] cvalues = bn.getFloats(false);
-        float[][] bcoefs = new float[3][ne];
-        float[][] ncoefs = new float[3][ne];
+        float[] b = new float[nchannels];
+        float[] n = new float[nchannels];
+        float[] bm = new float[nchannels];
         for (int k=0; k<3; k++) {
-          float[] bm = mean_values[k];
-          float[] b = cvalues[k];
-          float[] n = cvalues[3 + k];
-          for (int j=0; j<ne; j++) {
-            double bcoef = 0.0;
-            double ncoef = 0.0;
-            float[] pc = eigen_values[k][j];
-            for (int i=0; i<nbands; i++) {
-              bcoef += pc[i] * (b[i] - bm[i]);
-              ncoef += pc[i] * n[i];
-            }
-            bcoefs[k][j] = (float) bcoef;
-            ncoefs[k][j] = (float) ncoef;
+          int kb = k * nbands;
+          for (int i=0; i<nbands; i++) {
+            b[kb + i] = cvalues[k][i];
+            n[kb + i] = cvalues[3 + k][i];
+            bm[kb + i] = mean_values[k][i];
           }
+        }
+
+        float[] bcoefs = new float[ne];
+        float[] ncoefs = new float[ne];
+        for (int j=0; j<ne; j++) {
+          double bcoef = 0.0;
+          double ncoef = 0.0;
+          float[] pc = eigen_values[j];
+          for (int i=0; i<nchannels; i++) {
+            bcoef += pc[i] * (b[i] - bm[i]);
+            ncoef += pc[i] * n[i];
+          }
+          bcoefs[j] = (float) bcoef;
+          ncoefs[j] = (float) ncoef;
+        }
+        float[] rb = new float[nchannels];
+        float[] rn = new float[nchannels];
+        for (int i=0; i<nchannels; i++) {
+          float bv = bm[i];
+          float nv = 0.0f;
+          for (int j=0; j<ne; j++) {
+            bv += bcoefs[j] * eigen_values[j][i];
+            nv += ncoefs[j] * eigen_values[j][i];
+          }
+          rb[i] = bv;
+          rn[i] = nv;
         }
         float[][] rvalues = new float[6][nbands];
         for (int k=0; k<3; k++) {
+          int kb = k * nbands;
           for (int i=0; i<nbands; i++) {
-            float bv = mean_values[k][i];
-            float nv = 0.0f;
-            for (int j=0; j<ne; j++) {
-              bv += bcoefs[k][j] * eigen_values[k][j][i];
-              nv += ncoefs[k][j] * eigen_values[k][j][i];
-            }
-            rvalues[k][i] = bv;
-            rvalues[3 + k][i] = nv;
+            rvalues[k][i] = rb[kb + i];
+            rvalues[3 + k][i] = rn[kb + i];
           }
         }
 
