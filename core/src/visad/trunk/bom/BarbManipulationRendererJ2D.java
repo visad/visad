@@ -380,6 +380,11 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
 */
       }
 
+      // WLH 6 August 99
+      x[0] = -x[0];
+      x[1] = -x[1];
+      x[2] = -x[2];
+
 /* may need to do this for performance
       float[] xx = {x[0], x[1], x[2]};
       addPoint(xx);

@@ -323,8 +323,9 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
       wsp25 = (float) Math.max(wnd_spd + 2.5, 5.0);
       slant = 0.15f * scale;
       barb = 0.4f * scale;
-      x0 = f0 / wnd_spd;
-      y0 = f1 / wnd_spd;
+      // WLH 6 Aug 99 - barbs point the other way (duh)
+      x0 = -f0 / wnd_spd;
+      y0 = -f1 / wnd_spd;
 
       //plot the flag pole
       // lengthen to 'd = 3.0f * barb'
