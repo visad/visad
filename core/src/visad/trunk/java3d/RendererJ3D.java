@@ -180,26 +180,21 @@ System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
         boolean doRemove = false;
         synchronized (this) {
           if (!branchNonEmpty[currentIndex]) {
+            /* WLH 18 Nov 98 */
+            branches[currentIndex].addChild(branch);
+/* WLH 18 Nov 98
             synchronized (branches[currentIndex]) {
-/*
-System.out.println("doAction1: branches[" + currentIndex + "].addChild( )");
-int n = branch.numChildren();
-Node[] children = new Node[n];
-for (int i=0; i<n; i++) {
-  children[i] = branch.getChild(i);
-}
-System.out.println("branch.numChildren = " + n);
-*/
               branches[currentIndex].addChild(branch);
             }
-/*
-System.out.println("doAction: sw.setWhichChild(" + currentIndex + ")");
-*/
             sw.setWhichChild(currentIndex);
             actualIndex = currentIndex;
+*/
             branchNonEmpty[currentIndex] = true;
           }
           else { // if (branchNonEmpty[currentIndex])
+            /* WLH 18 Nov 98 */
+            branches[currentIndex].setChild(branch, 0);
+/* WLH 18 Nov 98
             nextIndex = (currentIndex + 1) % 3;
             while (branchNonEmpty[nextIndex]) {
               try {
@@ -211,15 +206,13 @@ System.out.println("doAction: sw.setWhichChild(" + currentIndex + ")");
               }
             }
             synchronized (branches[nextIndex]) {
-/*
-System.out.println("doAction2: branches[" + nextIndex + "].addChild( )");
-*/
               branches[nextIndex].addChild(branch);
             }
             doRemove = true;
             switchFlags[nextIndex] = true;
             branchNonEmpty[nextIndex] = true;
             currentIndex = nextIndex;
+*/
           } // end if (branchNonEmpty[currentIndex])
         } // end synchronized (this)
         if (doRemove) {

@@ -68,7 +68,9 @@ public class RemoveBehaviorJ3D extends Behavior { // J3D
   }
 
   public void initialize() {
+/* WLH 18 Nov 98
     setWakeup();
+*/
   }
 
   public synchronized void processStimulus(Enumeration criteria) {
@@ -93,7 +95,9 @@ public class RemoveBehaviorJ3D extends Behavior { // J3D
       waiting = false;
     }
 */
+/* WLH 18 Nov 98
     setWakeup();
+*/
   }
 
   void setWakeup() {
