@@ -545,14 +545,22 @@ The following bugs have been discovered and have not yet been fixed:
    loader prints about unit types.  The SpreadSheet will still import the
    netCDF data set correctly (i.e., these warnings can be safely ignored).
 
-3) In Windows, the first time a data set is imported, an error beginning with
-   "A nonfatal internal JIT (3.00.078(x)) error 'regvar' has occurred"
-   is displayed.  This error occurs whenever a VisAD application makes use
-   of the visad.data.DefaultFamily.open() method, and is a problem with the
-   Symantec JIT compiler for Windows.  This error is harmless and data sets
-   are still imported correctly (i.e., ignore this error message).
-   Also, this error no longer appears in JDK 1.3 beta, since the JVM no longer
-   uses the Symantic JIT compiler, but instead uses Sun's new Hotspot compiler.
+3) With JDK 1.2 under Windows, the first time a data set is imported, an error
+   beginning with "A nonfatal internal JIT (3.00.078(x)) error 'regvar' has
+   occurred" is displayed.  This error occurs whenever a VisAD application
+   makes use of the visad.data.DefaultFamily.open() method, and is a problem
+   with the Symantec JIT compiler for Windows.  This error is harmless and data
+   sets are still imported correctly (i.e., ignore this error message).
+
+   Also, this error no longer appears in JDK 1.3, since the JVM no longer uses
+   the Symantic JIT compiler, but instead uses Sun's Hotspot compiler.
+
+4) On certain Windows configurations, the SpreadSheet may occasionally lock up
+   on startup.
+
+5) On certain Solaris configurations, key event processing has some glitches.
+   For example, the arrow keys may not work, and after loading a data set,
+   attempting to input text into the formula bar has no effect.
 
 If you find a bug in the SpreadSheet user interface not listed above,
 please send e-mail to curtis@ssec.wisc.edu and hibbard@facstaff.wisc.edu
@@ -561,13 +569,7 @@ recreate the problem.
 
 4. Future Plans
 
-Here's what's coming in the future:
-
-1) Remote spreadsheet cloning with collaboration
-
-2) Multiple data per cell
-
-3) Direct manipulation support
+In the future, the SpreadSheet may support multiple data sets per cell.
 
 If you have any suggestions for features that you would find useful,
 please send e-mail to curtis@ssec.wisc.edu and hibbard@facstaff.wisc.edu
