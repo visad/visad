@@ -59,11 +59,11 @@ public class DisplayImplJ3D extends DisplayImpl {
   private ProjectionControlJ3D projection = null;
   private GraphicsModeControlJ3D mode = null;
 
-  /** construct a DisplayImpl for Java3D with a
-      DefaultDisplayRendererJ3D, in a JFC JPanel */
+  /** construct a DisplayImpl for Java3D with the
+      default DisplayRenderer, in a JFC JPanel */
   public DisplayImplJ3D(String name)
          throws VisADException, RemoteException {
-    this(name, new DefaultDisplayRendererJ3D(), JPANEL);
+    this(name, null, JPANEL);
   }
 
   /** construct a DisplayImpl for Java3D with a non-default
@@ -73,10 +73,10 @@ public class DisplayImplJ3D extends DisplayImpl {
     this(name, renderer, JPANEL);
   }
 
-  /** constructor with DefaultDisplayRenderer */
+  /** constructor with default DisplayRenderer */
   public DisplayImplJ3D(String name, int api)
          throws VisADException, RemoteException {
-    this(name, new DefaultDisplayRendererJ3D(), api);
+    this(name, null, api);
   }
 
   /** construct a DisplayImpl for Java3D with a non-default
@@ -109,6 +109,10 @@ public class DisplayImplJ3D extends DisplayImpl {
     // a GraphicsModeControl always exists
     mode = new GraphicsModeControlJ3D(this);
     addControl(mode);
+  }
+
+  protected DisplayRenderer getDefaultDisplayRenderer() {
+    return new DefaultDisplayRendererJ3D();
   }
 
   public ProjectionControl getProjectionControl() {

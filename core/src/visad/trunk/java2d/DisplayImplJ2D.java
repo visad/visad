@@ -168,11 +168,11 @@ public class DisplayImplJ2D extends DisplayImpl {
   /** flag to scratch images in VisADCanvasJ2D */
   private boolean scratch;
 
-  /** construct a DisplayImpl for Java2D with a
-      DefaultDisplayRendererJ2D, in a JFC JPanel */
+  /** construct a DisplayImpl for Java2D with the
+      default DisplayRenderer, in a JFC JPanel */
   public DisplayImplJ2D(String name)
          throws VisADException, RemoteException {
-    this(name, new DefaultDisplayRendererJ2D(), JPANEL);
+    this(name, null, JPANEL);
   }
 
   /** construct a DisplayImpl for Java2D with a non-default
@@ -182,10 +182,10 @@ public class DisplayImplJ2D extends DisplayImpl {
     this(name, renderer, JPANEL);
   }
 
-  /** constructor with DefaultDisplayRenderer */
+  /** constructor with default DisplayRenderer */
   public DisplayImplJ2D(String name, int api)
          throws VisADException, RemoteException {
-    this(name, new DefaultDisplayRendererJ2D(), api);
+    this(name, null, api);
   }
 
   /** construct a DisplayImpl for Java2D with a non-default
@@ -201,10 +201,10 @@ public class DisplayImplJ2D extends DisplayImpl {
       returns null, but display is accesible via getImage() */
   public DisplayImplJ2D(String name, int width, int height)
          throws VisADException, RemoteException {
-    this(name, new DefaultDisplayRendererJ2D(), OFFSCREEN, width, height);
+    this(name, null, OFFSCREEN, width, height);
   }
 
-  /** offscreen constructor with non-DefaultDisplayRenderer */
+  /** offscreen constructor with non-default DisplayRenderer */
   public DisplayImplJ2D(String name, DisplayRendererJ2D renderer,
                         int width, int height)
          throws VisADException, RemoteException {
@@ -244,6 +244,10 @@ public class DisplayImplJ2D extends DisplayImpl {
     projection = new ProjectionControlJ2D(this);
     addControl(projection);
 
+  }
+
+  protected DisplayRenderer getDefaultDisplayRenderer() {
+    return new DefaultDisplayRendererJ2D();
   }
 
   public ProjectionControl getProjectionControl() {

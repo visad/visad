@@ -100,7 +100,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
 
   private Vector mapslock = new Vector();
 
-  /** constructor with non-DefaultDisplayRenderer */
+  /** constructor with non-default DisplayRenderer */
   public DisplayImpl(String name, DisplayRenderer renderer)
          throws VisADException, RemoteException {
     super(name);
@@ -108,8 +108,14 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     for (int i=0; i<DisplayRealArray.length; i++) {
       DisplayRealTypeVector.addElement(DisplayRealArray[i]);
     }
-    displayRenderer = renderer;
+
+    if (renderer != null) {
+      displayRenderer = renderer;
+    } else {
+      displayRenderer = getDefaultDisplayRenderer();
+    }
     displayRenderer.setDisplay(this);
+
     // initialize ScalarMap's, ShadowDisplayReal's and Control's
     clearMaps();
   }
@@ -586,6 +592,9 @@ System.out.println("badScale = " + badScale);
       displayRenderer.setWaitFlag(false);
     } // end synchronized (mapslock)
   }
+
+  /** return the default DisplayRenderer for this DisplayImpl */
+  protected abstract DisplayRenderer getDefaultDisplayRenderer();
 
   /** return the DisplayRenderer associated with this DisplayImpl */
   public DisplayRenderer getDisplayRenderer() {
