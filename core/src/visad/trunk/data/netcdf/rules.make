@@ -34,9 +34,7 @@ clean:
 	$(JAVAC) $(JAVACOPTS) $<
 
 .class.test:
-	@echo ''
 	$(JAVA_G) $(PACKAGE_PREFIX)$*
-	@echo ''
 
 .class.debug:
 	$(JDB) $(PACKAGE_PREFIX)$*

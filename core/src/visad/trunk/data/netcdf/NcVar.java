@@ -2,28 +2,25 @@ package visad.data.netcdf;
 
 
 import java.io.IOException;
+import ucar.multiarray.IndexIterator;
+import ucar.multiarray.MultiArray;
 import ucar.netcdf.Attribute;
-import ucar.netcdf.Dimension;
 import ucar.netcdf.DimensionIterator;
-import ucar.netcdf.IndexIterator;
-import ucar.netcdf.MultiArray;
 import ucar.netcdf.Netcdf;
 import ucar.netcdf.Variable;
 import visad.MathType;
 import visad.OffsetUnit;
 import visad.RealType;
 import visad.SI;
-import visad.Text;
 import visad.TextType;
 import visad.Unit;
 import visad.VisADException;
-import visad.data.BadFormException;
 import visad.data.netcdf.units.ParseException;
 import visad.data.netcdf.units.Parser;
 
 
 /**
- * Decorator class for netCDF variables.
+ * Adapter class for importing a netCDF variable.
  */
 abstract class
 NcVar
@@ -34,7 +31,7 @@ NcVar
     protected final Netcdf	netcdf;
 
     /**
-     * The netCDF variable.
+     * The netCDF Variable.
      */
     protected final Variable	var;
 
@@ -736,7 +733,7 @@ NcNumber
 	origin[0] = ipt;
 	lengths[0] = 1;
 
-	return getDoubleValues(var.get(origin, lengths));
+	return getDoubleValues(var.copyout(origin, lengths));
     }
 
 

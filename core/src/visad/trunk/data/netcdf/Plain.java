@@ -67,7 +67,7 @@ Plain
 		for (int i = 0; i < rank; ++i)
 		    origin[i] = 0;
 
-		outVar.set(origin, inVar);
+		outVar.copyin(origin, inVar);
 	    }
 	}
 	finally

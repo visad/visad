@@ -1,7 +1,9 @@
 package visad.data.netcdf;
 
 
+import ucar.multiarray.Accessor;
 import ucar.netcdf.Dimension;
+import ucar.netcdf.ProtoVariable;
 import ucar.netcdf.Variable;
 import visad.FlatField;
 import visad.FunctionType;
@@ -24,33 +26,24 @@ import visad.data.DataVisitor;
 
 
 /**
- * Class for defining the netCDF dimensions in a VisAD data object.
+ * Class for defining the netCDF variables in a VisAD data object.
  */
 class
 VarDefiner
     extends DataVisitor
 {
     /**
-     * The set of netCDF dimensions (previously defined).
+     * The VisAD data object adapted to a netCDF dataset.
      */
-    protected final DimSet	dimSet;
-
-    /**
-     * The set of netCDF (non-coordinate) variables.
-     */
-    protected final VarSet	varSet;
+    protected final VisADAdapter	adapter;
 
 
     /**
      * Construct.
-     *
-     * @precondition	<code>dimSet</code> contains all necessary netCDF
-     *			dimensions.
      */
-    VarDefiner(DimSet dimSet)
+    VarDefiner(VisADAdapter adapter)
     {
-	this.dimSet = dimSet;
-	varSet = new VarSet();
+	this.adapter = adapter;
     }
 
 
@@ -144,7 +137,7 @@ VarDefiner
 		    int		length = linear1DSet.getLength(0);
 		    String	name = dimNames[idim];
 
-		    dims[idim] = dimSet.get(name);
+		    dims[idim] = new Dimension(name, length);
 
 		    if (linear1DSet.getFirst() != 0.0 ||
 		        linear1DSet.getStep() != 1.0)
@@ -154,27 +147,10 @@ VarDefiner
 			 * values; therefore, we define a corresponding
 			 * netCDF coordinate-variable.
 			 */
-			CoordVar coordVar = new CoordVar(name, dims[idim],
+			CoordVar var = new CoordVar(name, dims[idim],
 			    dimUnits[idim], linear1DSet);
 
-			/*
-			 * Check to see if this co-ordinate variable has
-			 * already been defined.  If it has, then ensure
-			 * identicalness and don't bother replacing.
-			 */
-			Variable	prevVar = varSet.get(name);
-			if (prevVar == null)
-			    varSet.put(coordVar);	// first time
-			else
-			if (prevVar instanceof CoordVar &&
-			    !((CoordVar)prevVar).equals(coordVar))
-			{
-			    throw new BadFormException(
-				"attempt to replace coordinate variable (" +
-				prevVar + 
-				") with coordinate variable (" +
-				coordVar + ")");
-			}
+			adapter.add(var);
 		    }
 		}			// sample-domain dimension loop
 	    }				// the sample-domain is linear
@@ -190,15 +166,9 @@ VarDefiner
 		 */
 
 		/*
-		 * Get the index dimension.
+		 * Create the index dimension.
 		 */
-		Dimension	dim = dimSet.get("index");
-		if (dim == null)
-		    throw new BadFormException(
-			"\"index\" dimension not defined");
-		if (dim.getLength() != set.getLength())
-		    throw new BadFormException(
-			"\"index\" dimension wrong length");
+		Dimension	dim = new Dimension("index", set.getLength());
 
 		dims = new Dimension[] { dim };
 
@@ -206,9 +176,13 @@ VarDefiner
 		 * Define the independent variables.
 		 */
 		for (int idim = 0; idim < rank; ++idim)
-		    varSet.put(new IndependentVar(dimNames[idim],
-				    dim, dimUnits[idim], (GriddedSet)set,
-				    idim));
+		{
+		    IndependentVar	var = new IndependentVar(
+			dimNames[idim], dim, dimUnits[idim], (GriddedSet)set,
+			idim);
+
+		    adapter.add(var);
+		}
 	    }				// the sample-domain is not linear
 
 	    /*
@@ -224,8 +198,13 @@ VarDefiner
 		Unit[][]	rangeUnits = field.getRangeUnits();
 
 		if (rangeType instanceof RealType)
-		    varSet.put(new RealVar(((RealType)rangeType).getName(),
-				    dims, rangeUnits[0][0], field));
+		{
+		    RealVar	var = new RealVar(
+			((RealType)rangeType).getName(),
+			dims, rangeUnits[0][0], field);
+
+		    adapter.add(var);
+		}
 		else
 		if (rangeType instanceof RealTupleType)
 		{
@@ -234,10 +213,14 @@ VarDefiner
 		    int	nvar = realTupleType.getDimension();
 
 		    for (int ivar = 0; ivar < nvar; ++ivar)
-			varSet.put(new TupleVar(
-				((RealType)realTupleType.getComponent(ivar)).
-				    getName(),
-				dims, rangeUnits[ivar][0], field, ivar));
+		    {
+			TupleVar	var = new TupleVar(
+			    ((RealType)realTupleType.getComponent(ivar)).
+				getName(),
+			    dims, rangeUnits[ivar][0], field, ivar);
+
+			adapter.add(var);
+		    }
 		}
 		else
 		if (rangeType instanceof TupleType)
@@ -252,10 +235,14 @@ VarDefiner
 			    = tupleType.getComponent(icomp);
 
 			if (compType instanceof RealType)
-			    varSet.put(new TupleVar(
-				    ((RealType)compType).getName(),
-				    dims, rangeUnits[iunit++][0], field,
-				    icomp));
+			{
+			    TupleVar	var = new TupleVar(
+				((RealType)compType).getName(),
+				dims, rangeUnits[iunit++][0], field,
+				icomp);
+
+			    adapter.add(var);
+			}
 			else
 			if (compType instanceof RealTupleType)
 			{
@@ -265,29 +252,22 @@ VarDefiner
 				realTupleType.getDimension();
 
 			    for (int ivar = 0; ivar < nvar; ++ivar)
-				varSet.put(new TupleRealVar(
+			    {
+				TupleRealVar	var = new TupleRealVar(
 					((RealType)realTupleType.
 					    getComponent(ivar)).getName(),
 					dims, rangeUnits[iunit++][0], icomp,
-					ivar, field));
+					ivar, field);
+
+				adapter.add(var);
+			    }
 			}
 		    }
 		}			// the FlatField range is a Tuple
 	    }				// dependent-variable definition-block
 	}				// the sample domain is a GriddedSet
 
-	return false;		// no further traversal is necessary
-    }
-
-
-    /**
-     * Return the defined netCDF variables.
-     *
-     * @return	The set of netCDF variables seen.
-     */
-    VarSet
-    getSet()
-    {
-	return varSet;
+	return false;		// further traversal of the VisAD FlatField
+				// is inappropriate
     }
 }

@@ -1,23 +1,10 @@
 package visad.data.netcdf;
 
 
-import java.util.Enumeration;
-import java.util.Vector;
-import ucar.netcdf.Attribute;
-import ucar.netcdf.AttributeIterator;
-import ucar.netcdf.AttributeSet;
-import ucar.netcdf.Dimension;
-import ucar.netcdf.DimensionIterator;
-import ucar.netcdf.DimensionSet;
-import ucar.netcdf.Named;
-import ucar.netcdf.Netcdf;
-import ucar.netcdf.Variable;
-import ucar.netcdf.VariableIterator;
-import ucar.netcdf.VariableSet;
+import ucar.multiarray.Accessor;
+import ucar.netcdf.AbstractNetcdf;
+import ucar.netcdf.ProtoVariable;
 import visad.Data;
-import visad.FlatField;
-import visad.Tuple;
-import visad.UnimplementedException;
 import visad.VisADException;
 import visad.data.BadFormException;
 import visad.data.DataNode;
@@ -28,24 +15,8 @@ import visad.data.DataNode;
  */
 public class
 VisADAdapter
-    implements	Netcdf
+    extends	AbstractNetcdf
 {
-    /**
-     * The "netCDF" attributes.
-     */
-    protected final AttrSet	attrSet;
-
-    /**
-     * The "netCDF" dimensions.
-     */
-    protected final DimSet	dimSet;
-
-    /**
-     * The "netCDF" variables.
-     */
-    protected final VarSet	varSet;
-
-
     /**
      * Construct from a VisAD data object.
      */
@@ -53,113 +24,44 @@ VisADAdapter
 	throws BadFormException, VisADException
     {
 	/*
-	 * Define the (global) netCDF attributes.
+	 * Create a visitor for the VisAD data object.
 	 */
-	attrSet = new AttrSet();
-
 	DataNode	node = DataNode.create(data);
-
-	/*
-	 * Define the netCDF dimensions.
-	 */
-	dimSet = ((DimDefiner)node.accept(new DimDefiner())).getSet();
 
 	/*
 	 * Define the netCDF variables.
 	 */
-	varSet = ((VarDefiner)node.accept(new VarDefiner(dimSet))).getSet();
+	node.accept(new VarDefiner(this));
     }
 
 
     /**
-     * Indicate whether or not the given object is in the netCDF object.
+     * Add a netCDF variable (called by VarDefiner).
      */
-    public boolean
-    contains(Object obj)
+    void
+    add(Var var)
+	throws BadFormException
     {
-	return attrSet.contains(obj) || dimSet.contains(obj) ||
-	       varSet.contains(obj);
+	try
+	{
+	    add(var.getProtoVariable(), (Accessor)var);
+	}
+	catch (Exception e)
+	{
+	    // Can't happen.  (Yeah.  Right. ;-)
+	    throw new BadFormException("internal error");
+	}
     }
 
 
     /**
-     * Indicate whether or not the named variable is in the netCDF object.
-     */
-    public boolean
-    contains(String name)
-    {
-	return varSet.contains(name);
-    }
-
-
-    /**
-     * Return the variable identified by name.
-     */
-    public Variable
-    get(String name)
-    {
-	return varSet.get(name);
-    }
-
-
-    /**
-     * Return the global attribute identified by name.
-     */
-    public Attribute
-    getAttribute(String name)
-    {
-	return attrSet.get(name);
-    }
-
-
-    /**
-     * Return the set of global attributes associated with this netCDF object.
-     */
-    public AttributeSet
-    getAttributes()
-    {
-	return attrSet;
-    }
-
-
-    /**
-     * Return the "netCDF" dimensions of the VisAD data object.
-     */
-    public DimensionSet
-    getDimensions()
-    {
-	return dimSet;
-    }
-
-
-    /**
-     * Return a VariableIterator for the variables.
-     */
-    public VariableIterator
-    iterator()
-    {
-	return varSet.iterator();
-    }
-
-
-    /**
-     * Return the number of variables.
-     */
-    public int
-    size()
-    {
-	return varSet.size();
-    }
-
-
-    /**
-     * Return an array of the variables.
+     * Return an Accessor for a variable.
      *
-     * @deprecated
+     * This method should not be called -- so it always throws an error.
      */
-    public Variable[]
-    toArray()
+    protected Accessor
+    ioFactory(ProtoVariable protoVar)
     {
-	return varSet.toArray();
+	throw new UnsupportedOperationException();
     }
 }

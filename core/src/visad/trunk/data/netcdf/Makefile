@@ -2,6 +2,6 @@ SUBPACKAGE	=
 
 include macros.make
 
-GARBAGE		= NcOutFile.nc
+GARBAGE		= plain.nc
 
 include rules.make

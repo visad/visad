@@ -2,13 +2,13 @@ package visad.data.netcdf;
 
 
 import java.io.IOException;
+import ucar.multiarray.Accessor;
+import ucar.multiarray.MultiArray;
 import ucar.netcdf.Attribute;
 import ucar.netcdf.Dimension;
-import ucar.netcdf.MultiArray;
-import ucar.netcdf.Variable;
+import ucar.netcdf.ProtoVariable;
 import visad.Field;
 import visad.GriddedSet;
-import visad.Linear1DSet;
 import visad.Real;
 import visad.RealTuple;
 import visad.Tuple;
@@ -21,12 +21,17 @@ import visad.data.BadFormException;
  */
 abstract class
 Var
-    extends Variable
+    implements	Accessor
 {
     /**
-     * The units.
+     * The associated netCDF ProtoVariable.
      */
-    protected final Unit	unit;
+    protected final ProtoVariable	protoVar;
+
+    /**
+     * The physical units of the variable (used in equals() method).
+     */
+    protected final Unit		unit;
 
 
     /**
@@ -36,20 +41,21 @@ Var
     Var(String name, Class type, Dimension[] dims, Unit unit)
 	throws BadFormException
     {
-	super(name, type, reverse(dims), 
-	    unit == null
-		? new Attribute[]
-		    { 
-			new Attribute("_FillValue", Double.NaN)
-		    }
-		: new Attribute[]
-		    { 
-			new Attribute("units", unit.toString()),
-			new Attribute("_FillValue", Double.NaN)
-		    }
-	);
-
 	this.unit = unit;
+
+	protoVar = new ProtoVariable(
+	    name, type, reverse(dims), 
+		unit == null
+		    ? new Attribute[]
+			{ 
+			    new Attribute("_FillValue", Double.NaN)
+			}
+		    : new Attribute[]
+			{ 
+			    new Attribute("units", unit.toString()),
+			    new Attribute("_FillValue", Double.NaN)
+			}
+	    );
     }
 
 
@@ -70,11 +76,51 @@ Var
 
 
     /**
+     * Return the associated netCDF ProtoVariable.
+     */
+    ProtoVariable
+    getProtoVariable()
+    {
+	return protoVar;
+    }
+
+
+    /**
+     * Return the name of the netCDF variable.
+     */
+    String
+    getName()
+    {
+	return protoVar.getName();
+    }
+
+
+    /**
+     * Return the rank of the netCDF variable.
+     */
+    int
+    getRank()
+    {
+	return protoVar.getRank();
+    }
+
+
+    /**
+     * Return the dimensional lengths of the netCDF variable.
+     */
+    int[]
+    getLengths()
+    {
+	return protoVar.getLengths();
+    }
+
+
+    /**
      * Set an array element identified by position.  Not supported for
      * read-only, VisAD data objects.
      */
     public void
-    set(int[] origin, MultiArray multiArray)
+    copyin(int[] origin, MultiArray multiArray)
 	throws IOException
     {
 	throw new UnsupportedOperationException();
@@ -184,7 +230,7 @@ Var
      * Return an array element identified by position.
      *
      * This is the only method that needs to be implemented to support
-     * the saving of a VisAD data object in a netCDF dataset.
+     * the saving of VisAD data in a netCDF dataset.
      */
      public abstract Object
      get(int[] indexes)
@@ -283,7 +329,7 @@ Var
      * Return a MultiArray into a slice of the data.
      */
     public MultiArray
-    get(int[] origin, int[] shape)
+    copyout(int[] origin, int[] shape)
 	throws IOException
     {
 	throw new UnsupportedOperationException();

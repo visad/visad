@@ -59,7 +59,7 @@ NetcdfAdapter
     /**
      * Set the VisAD data objects in the netCDF dataset.
      */
-    protected Hashtable
+    protected static Hashtable
     setFunctionSet(Netcdf netcdf)
 	throws VisADException, BadFormException, IOException
     {
@@ -99,7 +99,7 @@ NetcdfAdapter
     /**
      * Set the outermost, netCDF data object.
      */
-    protected NcData
+    protected static NcData
     setOutermost(Dictionary functionSet)
 	throws VisADException, RemoteException
     {
