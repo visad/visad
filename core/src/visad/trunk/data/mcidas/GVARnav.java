@@ -42,6 +42,10 @@ import java.util.*;
 
 public class GVARnav {
 
+  public boolean navTransformOK;
+  private boolean isLineFlipped=false;
+  private double lineOffset;
+
   final double PI=3.141592653589793d;
   final double DEG=180.d/PI;
   final double RAD=PI/180.d; // degrees to radians conversion pi/180
@@ -215,6 +219,8 @@ public class GVARnav {
 
 
 
+  private int indexLine=1, indexEle=0, indexLat=0, indexLon=1;
+
   /**
    * Set up for the real math work.  Must pass in the int array
    * of the GVAR nav 'codicil'.
@@ -236,6 +242,8 @@ public class GVARnav {
     int count, offset, loop;
     int time[] = new int[2];
     float rparms[] = new float[MXCDSZ];
+
+    isLineFlipped = false;
 
 // rellst two dimensional array of location of float in o&a set
 
@@ -620,11 +628,11 @@ public class GVARnav {
 
   /** converts from satellite coordinates to latitude/longitude
    *
-   * @return array of lat/long pairs. Output array is latlon[0][]
-   * of latitudes and latlon[1][] of longitudes.
+   * @return array of lat/long pairs. Output array is latlon[indexLat][]
+   * of latitudes and latlon[indexLon][] of longitudes.
    *
    * @param linele[][] array of line/element pairs.  Where
-   * linele[0][] is a 'line' and linele[1][] is an element.       
+   * linele[indexLine][] is a 'line' and linele[indexEle][] is an element.
    * These are in 'file' coordinates (not "image" coordinates.)
    *
    */
@@ -633,6 +641,8 @@ public class GVARnav {
     double rl, rp;
     double ylat, ylon;
     int number = linele[0].length;
+
+    navTransformOK = true;
 
     // alpha = elevation angle (rad)
     // zeta = scan angle (rad)
@@ -648,8 +658,9 @@ public class GVARnav {
 
       //  transform line/pixel to geographic coordinates:
       //  set input line/pixel numbers
-      rl = linele[0][point];
-      rp = linele[1][point];
+      rl = linele[indexLine][point];
+      if (isLineFlipped) rl = lineOffset - rl;
+      rp = linele[indexEle][point];
 
       // rescale value, if needed:
 
@@ -739,8 +750,9 @@ public class GVARnav {
 	rlat = Math.atan(aebe2c * d1 / Math.sqrt(1. - d1 * d1));
 	rlon = Math.atan2(u[1],u[0]);
       } else {
-	latlon[0][point] = Double.NaN;
-	latlon[1][point] = Double.NaN;
+	latlon[indexLat][point] = Double.NaN;
+	latlon[indexLon][point] = Double.NaN;
+	navTransformOK = false;
 	continue;
       }
 
@@ -756,8 +768,8 @@ public class GVARnav {
 	ylon = (double) rlon;
 	// llcart(ylat,ylon,xlat,xlon,z);
       } else {
-	latlon[0][point] = rlat;
-	latlon[1][point] = rlon;
+	latlon[indexLat][point] = rlat;
+	latlon[indexLon][point] = rlon;
       }
 
     } // end point for loop
@@ -770,11 +782,11 @@ public class GVARnav {
   /**
    * toLinEle converts lat/long to satellite line/element
    *
-   * @param array of lat/long pairs. Where latlon[0][]
-   * are latitudes and latlon[1][] are longitudes.
+   * @param array of lat/long pairs. Where latlon[indexLat][]
+   * are latitudes and latlon[indexLon][] are longitudes.
    *
    * @return linele[][] array of line/element pairs.  Where
-   * linele[0][] is a line and linele[1][] is an element.       
+   * linele[indexLine][] is a line and linele[indexEle][] is an element.       
    *
    */
   public double[][] toLinEle(double[][] latlon) {
@@ -788,6 +800,8 @@ public class GVARnav {
     int number = latlon[0].length;
     double[][] linele = new double[2][number];
 
+    navTransformOK = true;
+
     ff = (double) iflip;
     if (instr == 2) ff = -ff;
     doff = scnmax[instr-1] - ewnom[instr - 1];
@@ -796,19 +810,20 @@ public class GVARnav {
 
      // if in cartesian coords, transform to lat/lon
       if (itype == 2){
-        x = latlon[0][point];
-        y = latlon[1][point];
+        x = latlon[indexLat][point];
+        y = latlon[indexLon][point];
         // cartll(x,y,z,zlat,zlon);
       }
 
-      if (Math.abs(latlon[0][point]) > 90.) {
-        linele[0][point] = Double.NaN;
-        linele[1][point] = Double.NaN;
+      if (Math.abs(latlon[indexLat][point]) > 90.) {
+        linele[indexLine][point] = Double.NaN;
+        linele[indexEle][point] = Double.NaN;
+	navTransformOK = false;
 	continue;
       }
 
-      rlat = (double)latlon[0][point]*RAD;
-      rlon = -(double)latlon[1][point]*RAD;
+      rlat = (double)latlon[indexLat][point]*RAD;
+      rlon = -(double)latlon[indexLon][point]*RAD;
 
      // transform lat/lon to elevation and scan angles
      // (used to be the gpoint routine...)
@@ -858,8 +873,9 @@ public class GVARnav {
 
       } else {
         // not visible...
-        linele[0][point] = Double.NaN;
-        linele[1][point] = Double.NaN;
+        linele[indexLine][point] = Double.NaN;
+        linele[indexEle][point] = Double.NaN;
+	navTransformOK = false;
 	continue;
       }
 
@@ -878,20 +894,22 @@ public class GVARnav {
       tmpele = (scnmax[instr-1] + gam) / scnpx[instr-1] + 1.;
 
    // convert internal 8 byte values to 4 bytes
-      linele[0][point] = tmplin;
-      linele[1][point] = tmpele;
+      linele[indexLine][point] = tmplin;
+      linele[indexEle][point] = tmpele;
 
    // if doing sounder nav, change lin & ele returned to res 10 values
       if (instr == 2) {
-        linele[0][point] = linele[0][point]*10.f-9.f;
-        linele[1][point] = linele[1][point]*10.f-9.f;
+        linele[indexLine][point] = linele[indexLine][point]*10.f-9.f;
+        linele[indexEle][point] = linele[indexEle][point]*10.f-9.f;
       }
 
-      linele[0][point] = startLine + ( magLine * (linele[0][point] - 
-			 startImageLine)) / resLine;
-      linele[1][point] = startElement + ( magElement * 
-		    (linele[1][point] - startImageElement)) / resElement;
+      linele[indexLine][point] = startLine + 
+	    ( magLine * (linele[indexLine][point] - startImageLine)) / resLine;
+      linele[indexEle][point] = startElement + ( magElement * 
+	    (linele[indexEle][point] - startImageElement)) / resElement;
 
+      if (isLineFlipped) linele[indexLine][point] = 
+			  lineOffset - linele[indexLine][point];
     } // end for loop on points
 
     return linele;
@@ -969,4 +987,31 @@ public class GVARnav {
     this.startImageLine = (float)startImageLine;
     this.startImageElement = (float)startImageElement;
   }
+
+  /** specify whether the line coordinates are inverted
+   *
+   * @param line is ending line #
+   *
+   */
+  public void setFlipLineCoordinates(int line) {
+    isLineFlipped = true;
+    lineOffset = (double) line;
+  }
+
+  /** define the indecies used in the linele[][] and latlon[][] arrays
+   *
+   * @param line index (0,1) of line values in linele array (default=1)
+   * @param ele index (0,1) of element values in linele array (default = 0)
+   * @param lat index (0,1) of latitude values in linele array (default = 0)
+   * @param lon index (0,1) of longitude values in linele array (default = 1)
+   *
+   */
+  public void setLinEleLatLonIndex(int line, int ele, int lat, int lon) {
+    indexLine = line;
+    indexEle = ele;
+    indexLat = lat;
+    indexLon = lon;
+    return;
+  }
+
 }

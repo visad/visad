@@ -1,4 +1,3 @@
-
 //
 // GVARCoordinateSystem.java
 //
@@ -36,28 +35,35 @@ public class GVARCoordinateSystem extends CoordinateSystem {
   private GVARnav ng = null;
 
   private static Unit[] coordinate_system_units =
-    {CommonUnit.degree, CommonUnit.degree};
+    {null, null};
 
-  public GVARCoordinateSystem(RealTupleType reference) throws VisADException {
+  public GVARCoordinateSystem(RealTupleType reference, int[] dir,
+                                 int[] nav) throws VisADException {
+
     super(reference, coordinate_system_units);
+    setNav(dir, nav);
   }
 
   /** trusted constructor for initializers */
   /*
-  GVARCoordinateSystem(RealTupleType reference, boolean b) {
+  GVARCoordinateSystem(RealTupleType reference, boolean b,
+                                      int[]dir, int[] nav) {
+
     super(reference, coordinate_system_units, b);
+    setNav(dir, nav);
   }
   */
 
-  public void setNavBlock(int[] dir, int[] navBlock) {
-    ng = new GVARnav(1, navBlock);
+  private void setNav(int[] dir, int[] nav) {
+    ng = new GVARnav(1, nav);
     ng.setImageStart(dir[5], dir[6]);
     ng.setRes(dir[11], dir[12]);
     ng.setStart(1,1);
     ng.setMag(1,1);
+    ng.setFlipLineCoordinates(dir[8]);
     return;
   }
-    
+
 
   public double[][] toReference(double[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 2) {

@@ -34,6 +34,7 @@ import java.rmi.RemoteException;
 import visad.FlatField;
 import visad.FunctionType;
 import visad.Linear2DSet;
+import visad.Integer2DSet;
 import visad.RealTupleType;
 import visad.RealType;
 import visad.TypeException;
@@ -48,6 +49,8 @@ import visad.CommonUnit;
 public class AreaAdapter {
 
   private FlatField field = null;
+  private GVARCoordinateSystem cs;
+  private int numLines, numEles, numBands;
 
   /** Create a VisAD FlatField from a local McIDAS AREA file
     * @param filename name of local file.
@@ -80,9 +83,7 @@ public class AreaAdapter {
 
 
   /** Build a FlatField from the image pixels
-    * @param pixels image pixels.
-    * @param numEles image width.
-    * @param numLines image height.
+    * @param af is the AreaFile
     * @exception VisADException if an unexpected problem occurs.
     */
   private void buildFlatField(AreaFile af) throws VisADException {
@@ -97,28 +98,28 @@ public class AreaAdapter {
 	throw new VisADException("Problem getting Area file directory"); 
     }
 
-    int numLines = dir[8];
-    int numEles = dir[9];
+    numLines = dir[8];
+    numEles = dir[9];
 
     RealType line;
     try {
-      line = new RealType("ImageLine");
+      line = new RealType("ImageLine",null,null);
     } catch (TypeException e) {
       line =  RealType.getRealTypeByName("ImageLine");
     }
 
     RealType element;
     try {
-      element = new RealType("ImageElement");
+      element = new RealType("ImageElement",null,null);
     } catch (TypeException e) {
       element =  RealType.getRealTypeByName("ImageElement");
     }
 
     // when it comes time to deal with multiple bands, change this...
 
-    int numbands = dir[13];
+    numBands = dir[13];
 
-    RealType[] bands = new RealType[numbands];
+    RealType[] bands = new RealType[numBands];
 
     // do we want to 'name' the bands something else?
     int bmap = dir[18];
@@ -126,7 +127,7 @@ public class AreaAdapter {
     for (int i=1; i<33; i++) {
       if ( (bmap & 1) != 0) {
 	bcount = bcount + 1;
-	if (bcount > numbands) {
+	if (bcount > numBands) {
 	  throw new VisADException("Invalid Area file bandmap");
         }
 	RealType band=null;
@@ -141,39 +142,21 @@ public class AreaAdapter {
     }
 
     RealTupleType radiance = new RealTupleType(bands);
-
-    RealType[] domain_components = {line, element};
-
-    // begin test code...
-    RealTupleType image_domain =
-			new RealTupleType(domain_components);
-    Linear2DSet domain_set = new Linear2DSet(image_domain,
-				0.0, (float) (numLines - 1),  numLines,
-				(float) (numEles - 1), 0.0, numEles);
-    FunctionType image_type =
-			new FunctionType(image_domain, radiance);
-    field = new FlatField(image_type, domain_set);
-    
-
-    /* 
+    RealType[] domain_components = {element,line};
     RealTupleType ref = new RealTupleType
 		  (RealType.Latitude, RealType.Longitude);
-    GVARCoordinateSystem gcs = new GVARCoordinateSystem(ref);
-    gcs.setNavBlock(dir, nav);
+    cs = new GVARCoordinateSystem(ref, dir, nav);
     RealTupleType image_domain = 
-		new RealTupleType(domain_components, gcs, null);
+		new RealTupleType(domain_components, cs, null);
+
+    Linear2DSet domain_set = new Linear2DSet(image_domain,
+				0.0, (float) (numEles - 1), numEles,
+				(float) (numLines - 1),0.0, numLines );
     FunctionType image_type =
 			new FunctionType(image_domain, radiance);
-    
-    field = new FlatField(image_type);
-
-    */
-
-    // end test code...
-
+    field = new FlatField(image_type,domain_set);
 
     int[][][] int_samples;
-
     try {
       int_samples = af.getData();
 
@@ -182,9 +165,9 @@ public class AreaAdapter {
     }
       
     try {
-      float[][] samples = new float[numbands][numEles*numLines];
+      float[][] samples = new float[numBands][numEles*numLines];
 
-      for (int b=0; b<numbands; b++) {
+      for (int b=0; b<numBands; b++) {
 	for (int i=0; i<numLines; i++) {
 	  for (int j=0; j<numEles; j++) {
 
@@ -202,8 +185,32 @@ public class AreaAdapter {
   }
 
 
-  public FlatField getData()
-  {
+  /**
+    * get the dimensions of the image
+    *
+    * @return dim[0]=number bands, dim[1] = number elements, 
+    *   dim[2] = number lines
+   */
+
+  public int[] getDimensions() {
+    int[] dim = new int[3];
+    dim[0] = numBands;
+    dim[1] = numEles;
+    dim[2] = numLines;
+    return dim;
+  }
+
+  /**
+    * get the CoordinateSystem of the image
+    *
+    * @return the CoordinateSystem object
+   */
+
+  public CoordinateSystem getCoordinateSystem() {
+    return cs;
+  }
+
+  public FlatField getData() {
     return field;
   }
 }
