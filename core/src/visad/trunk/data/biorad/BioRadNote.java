@@ -34,8 +34,11 @@ import visad.*;
 /** A Bio-Rad note object. */
 public class BioRadNote {
 
-  /** Micron unit. */
+  /** Distance unit. */
   public static final Unit micron = SI.meter.pow(-6);
+
+  /** Time unit. */
+  public static final Unit second = SI.second;
 
 
   // Return types for analyze()
@@ -250,12 +253,14 @@ public class BioRadNote {
   /** Metadata object constructed from this note, if any. */
   Data metadata;
 
-  /**
-   * If note has unit information, the Unit measurement constructed from this
-   * note is stored here. If note contains other Metadata requiring a Unit,
-   * the value of this field will be used in the construction of that metadata.
-   */
-  Unit unit;
+  /** The origin (starting location) of the data (in microns or seconds). */
+  double origin;
+
+  /** The step size between samples (in microns or seconds). */
+  double step;
+
+  /** True if seconds, false if microns. */
+  boolean time;
 
 
   /** Constructs a new Bio-Rad note object. */
@@ -324,7 +329,9 @@ public class BioRadNote {
         length = Integer.parseInt(st.nextToken());
         angle = Integer.parseInt(st.nextToken());
       }
-      catch (NumberFormatException exc) { }
+      catch (NumberFormatException exc) {
+        if (BioRadForm.DEBUG) exc.printStackTrace();
+      }
       if (!v.equals("SCALEBAR") || !eq.equals("=") ||
         length < 0 || angle < 0)
       {
@@ -358,7 +365,9 @@ public class BioRadNote {
         ly = Integer.parseInt(st.nextToken());
         angle = Integer.parseInt(st.nextToken());
       }
-      catch (NumberFormatException exc) { }
+      catch (NumberFormatException exc) {
+        if (BioRadForm.DEBUG) exc.printStackTrace();
+      }
       String fill_type = st.nextToken(); // either "Fill" or "Outline"
       if (!v.equals("ARROW") || !eq.equals("=") ||
         lx < 0 || ly < 0 || angle < 0 ||
@@ -443,7 +452,7 @@ public class BioRadNote {
         // horizontal axis information
         StringTokenizer st = new StringTokenizer(value);
         if (st.countTokens() != 4) {
-          warn("AXIS_2");
+          warn(v);
           return INVALID_NOTE;
         }
         int type = -1; // axt_D for distance in *m
@@ -454,9 +463,11 @@ public class BioRadNote {
           origin = Integer.parseInt(st.nextToken());
           inc = Integer.parseInt(st.nextToken());
         }
-        catch (NumberFormatException exc) { }
+        catch (NumberFormatException exc) {
+          if (BioRadForm.DEBUG) exc.printStackTrace();
+        }
         if (type < 0 || origin < 0 || inc < 0) {
-          warn("AXIS_2");
+          warn(v);
           return INVALID_NOTE;
         }
         // get text string describing the image X axis calibration
@@ -464,21 +475,19 @@ public class BioRadNote {
 
         // compute axis unit
         if (type != axt_D) {
-          warn("AXIS_2");
+          warn(v);
           return INVALID_NOTE;
         }
-        try {
-          unit = micron.scale(inc).shift(origin);
-          return HORIZ_UNIT;
-        }
-        catch (UnitException exc) { }
-        return INVALID_NOTE;
+        this.origin = origin;
+        this.step = inc;
+        this.time = false;
+        return HORIZ_UNIT;
       }
       else if (v.equals("AXIS_3")) {
         // vertical axis information
         StringTokenizer st = new StringTokenizer(value);
         if (st.countTokens() != 4) {
-          warn("AXIS_3");
+          warn(v);
           return INVALID_NOTE;
         }
         int type = -1; // axt_D for distance in *m (or axt_T for time in s)
@@ -489,9 +498,11 @@ public class BioRadNote {
           origin = Integer.parseInt(st.nextToken());
           inc = Integer.parseInt(st.nextToken());
         }
-        catch (NumberFormatException exc) { }
+        catch (NumberFormatException exc) {
+          if (BioRadForm.DEBUG) exc.printStackTrace();
+        }
         if (type < 0 || origin < 0 || inc < 0) {
-          warn("AXIS_3");
+          warn(v);
           return INVALID_NOTE;
         }
         // get text string describing the image X axis calibration
@@ -499,18 +510,16 @@ public class BioRadNote {
 
         // compute axis unit
         if (type == axt_D) {
-          try {
-            unit = micron.scale(inc).shift(origin);
-            return VERT_UNIT;
-          }
-          catch (UnitException exc) { }
+          this.origin = origin;
+          this.step = inc;
+          this.time = false;
+          return VERT_UNIT;
         }
         else if (type == axt_T) {
-          try {
-            unit = SI.second.scale(inc).shift(origin);
-            return VERT_UNIT;
-          }
-          catch (UnitException exc) { }
+          this.origin = origin;
+          this.step = inc;
+          this.time = true;
+          return VERT_UNIT;
         }
         warn();
         return INVALID_NOTE;
@@ -599,17 +608,23 @@ public class BioRadNote {
     return sb.toString();
   }
 
-  /** Converts a VisAD Unit to a BioRad note. */
-  public static BioRadNote getUnitNote(Unit u, boolean xAxis) {
-    if (u == null) return null;
+  /** Converts a VisAD Unit and Linear1DSet to a BioRad note. */
+  public static BioRadNote getUnitNote(Unit u, Linear1DSet set, boolean xAxis) {
+    if (u == null || set == null) return null;
+    boolean time = u.isConvertible(second);
+    if (!time && !u.isConvertible(micron)) return null;
 
-    // CTR: TODO
-    if (true) return null;
-
-    // extract info from Unit
-    int axis_type = axt_D;
-    int origin = 0;
-    int inc = 1;
+    // extract info from Unit and Set
+    int axis_type = time ? axt_T : axt_D;
+    double origin, inc;
+    try {
+      origin = u.toThat(set.getFirst(), time ? second : micron);
+      inc = u.toThat(set.getStep(), time ? second : micron);
+    }
+    catch (UnitException exc) {
+      if (BioRadForm.DEBUG) exc.printStackTrace();
+      return null;
+    }
     String label = "Calibration unknown";
 
     // fill in note fields

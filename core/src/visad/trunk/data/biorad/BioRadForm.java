@@ -434,11 +434,19 @@ public class BioRadForm extends Form implements FormFileInformer {
     // try to extract unit information if necessary
     if (!hasNoteTuple) {
       FlatField d = (FlatField) v_images.elementAt(0);
-      Unit[] u = d.getDomainSet().getSetUnits();
-      BioRadNote xNote = BioRadNote.getUnitNote(u[0], true);
-      BioRadNote yNote = BioRadNote.getUnitNote(u[1], false);
-      if (xNote != null) v_notes.add(xNote);
-      if (yNote != null) v_notes.add(yNote);
+      Set set = d.getDomainSet();
+      if (set instanceof Linear2DSet) {
+        Linear2DSet lset = (Linear2DSet) set;
+        Linear1DSet xset = lset.getX();
+        Linear1DSet yset = lset.getY();
+        Unit[] u = set.getSetUnits();
+        Unit xu = u[0];
+        Unit yu = u[1];
+        BioRadNote xNote = BioRadNote.getUnitNote(xu, xset, true);
+        BioRadNote yNote = BioRadNote.getUnitNote(yu, yset, false);
+        if (xNote != null) v_notes.add(xNote);
+        if (yNote != null) v_notes.add(yNote);
+      }
     }
 
     // validate color table data
@@ -746,6 +754,8 @@ public class BioRadForm extends Form implements FormFileInformer {
     }
 
     // extract horizontal and vertical unit information from notes
+    double horizOffset = 0, vertOffset = 0;
+    double horizStep = 0, vertStep = 0;
     Unit horizUnit = null, vertUnit = null;
     int i = 0;
     while (i < noteList.size()) {
@@ -753,14 +763,22 @@ public class BioRadForm extends Form implements FormFileInformer {
       if (note.hasUnitInfo()) {
         int rval = note.analyze();
         if (rval == BioRadNote.HORIZ_UNIT) {
-          if (horizUnit == null) horizUnit = note.unit;
+          if (horizStep == 0) {
+            horizOffset = note.origin;
+            horizStep = note.step;
+            horizUnit = BioRadNote.micron;
+          }
           else if (DEBUG && DEBUG_LEVEL >= 1) {
             System.err.println("Warning: ignoring extra AXIS_2 note");
           }
           noteList.remove(i);
         }
         else if (rval == BioRadNote.VERT_UNIT) {
-          if (vertUnit == null) vertUnit = note.unit;
+          if (vertStep == 0) {
+            vertOffset = note.origin;
+            vertStep = note.step;
+            vertUnit = note.time ? BioRadNote.second : BioRadNote.micron;
+          }
           else if (DEBUG && DEBUG_LEVEL >= 1) {
             System.err.println("Warning: ignoring extra AXIS_3 note");
           }
@@ -775,6 +793,8 @@ public class BioRadForm extends Form implements FormFileInformer {
       }
       else i++;
     }
+    if (horizStep == 0) horizStep = 1;
+    if (vertStep == 0) vertStep = 1;
 
     // convert image bytes to floats
     float[][][] samples = new float[npic][1][image_len];
@@ -812,18 +832,20 @@ public class BioRadForm extends Form implements FormFileInformer {
     }
 
     // set up image data types
-    RealType time = RealType.getRealType("time");
-    RealType x = RealType.getRealType("ImageElement");
-    RealType y = RealType.getRealType("ImageLine");
+    RealType index = RealType.getRealType("index");
+    RealType x = RealType.getRealType("ImageElement", horizUnit);
+    RealType y = RealType.getRealType("ImageLine", vertUnit);
     RealType value = RealType.getRealType("value");
     RealTupleType xy = new RealTupleType(x, y);
     FunctionType imageFunction = new FunctionType(xy, value);
-    FunctionType timeFunction = new FunctionType(time, imageFunction);
+    FunctionType stackFunction = new FunctionType(index, imageFunction);
 
     // set up image domain sets
-    Integer2DSet imageSet = new Integer2DSet(RealTupleType.Generic2D,
-      nx, ny, null, new Unit[] {horizUnit, vertUnit}, null);
-    Integer1DSet timeSet = new Integer1DSet(npic);
+    Linear2DSet imageSet = new Linear2DSet(xy,
+      horizOffset, horizOffset + (nx - 1) * horizStep, nx,
+      vertOffset, vertOffset + (ny - 1) * vertStep, ny,
+      null, new Unit[] {horizUnit, vertUnit}, null);
+    Integer1DSet stackSet = new Integer1DSet(index, npic);
 
     // set up image fields
     FlatField[] imageFields = new FlatField[npic];
@@ -831,8 +853,8 @@ public class BioRadForm extends Form implements FormFileInformer {
       imageFields[i] = new FlatField(imageFunction, imageSet);
       imageFields[i].setSamples(samples[i], false);
     }
-    FieldImpl timeField = new FieldImpl(timeFunction, timeSet);
-    timeField.setSamples(imageFields, false);
+    FieldImpl stackField = new FieldImpl(stackFunction, stackSet);
+    stackField.setSamples(imageFields, false);
 
     FieldImpl colorField = null;
     if (numLuts > 0) {
@@ -871,7 +893,7 @@ public class BioRadForm extends Form implements FormFileInformer {
 
     // compile data objects into vector
     Vector data = new Vector();
-    data.add(timeField);
+    data.add(stackField);
     if (colorField != null) data.add(colorField);
     if (noteField != null) data.add(noteField);
     data.add(r_ramp1_min);
