@@ -27,13 +27,14 @@ MA 02111-1307, USA
 package visad.bom;
 
 import visad.*;
+import visad.georef.*;
 
 /**
    Radar2DCoordinateSystem is the VisAD CoordinateSystem class
    for radar (range, azimuth) with an Earth (Latitude, Longitude) Reference,
    and with azimuth in degrees and range in meters.<P>
 */
-public class Radar2DCoordinateSystem extends CoordinateSystem {
+public class Radar2DCoordinateSystem extends NavigatedCoordinateSystem {
 
   private static Unit[] coordinate_system_units =
     {CommonUnit.meter, CommonUnit.degree};

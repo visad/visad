@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad.bom;
 
 import visad.*;
+import visad.georef.*;
 
 /**
    Radar3DCoordinateSystem is the VisAD CoordinateSystem class
@@ -34,7 +35,7 @@ import visad.*;
    (Latitude, Longitude, Altitude) Reference, and with
    azimuth and elevation angle in degrees, and range in meters.<P>
 */
-public class Radar3DCoordinateSystem extends CoordinateSystem {
+public class Radar3DCoordinateSystem extends NavigatedCoordinateSystem {
 
   public static final double EARTH_RADIUS =
     ShadowType.METERS_PER_DEGREE * Data.RADIANS_TO_DEGREES;
