@@ -252,6 +252,7 @@ public class ShowNCEPModel
     pcMatrix[0] = .95;
     pcMatrix[5] = .95;
     pcMatrix[10] = .95;
+    pc.setMatrix(pcMatrix);
 
     x = new RealType("x");
     y = new RealType("y");
