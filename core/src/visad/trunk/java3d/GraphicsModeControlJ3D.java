@@ -308,6 +308,12 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
       changed = true;
       redisplay = true;
       projectionPolicy = rmtCtl.projectionPolicy;
+
+      DisplayRendererJ3D displayRenderer;
+      displayRenderer = (DisplayRendererJ3D) getDisplayRenderer();
+      if (displayRenderer != null) {
+        displayRenderer.getView().setProjectionPolicy(projectionPolicy);
+      }
     }
     if (polygonMode != rmtCtl.polygonMode) {
       changed = true;
