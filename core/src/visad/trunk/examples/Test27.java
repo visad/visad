@@ -80,7 +80,6 @@ public class Test27
 
     GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
     mode.setScaleEnable(true);
-    mode.setPointSize(5.0f);
     mode.setPointMode(false);
 
     mode.setProjectionPolicy(DisplayImplJ3D.PARALLEL_PROJECTION);
@@ -113,7 +112,8 @@ public class Test27
     // color low and hi tuples yellow
     ConstantMap[][] maps = {{new ConstantMap(1.0f, Display.Red),
                              new ConstantMap(1.0f, Display.Green),
-                             new ConstantMap(0.0f, Display.Blue)}};
+                             new ConstantMap(0.0f, Display.Blue),
+                             new ConstantMap(5.0f, Display.PointSize)}};
     dpys[0].addReferences(new DirectManipulationRendererJ3D(),
                            new DataReference[] {ref_direct_low}, maps);
 
