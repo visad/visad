@@ -27,10 +27,11 @@ MA 02111-1307, USA
 package visad.util;
 
 import java.io.File;
-import javax.swing.filechooser.FileFilter;
 
 /** A file filter based on file extensions, for use with a JFileChooser. */
-public class ExtensionFileFilter extends FileFilter {
+public class ExtensionFileFilter extends javax.swing.filechooser.FileFilter
+  implements java.io.FileFilter
+{
   
   /** list of valid extensions */
   private String[] exts;
@@ -52,7 +53,7 @@ public class ExtensionFileFilter extends FileFilter {
     desc = desc + ")";
   }
 
-  /** accept files with the proper extentions */
+  /** accept files with the proper extensions */
   public boolean accept(File f) {
     if (f.isDirectory()) return true;
 
