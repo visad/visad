@@ -36,7 +36,7 @@ import visad.util.ReflectedUniverse;
 import java.util.Arrays;
 import java.rmi.RemoteException;
 
-/****
+/**
  * UsgsDemAdapter converts the data in a USGS DEM file to a VisAD object.
  * The specification for * the format can be found at 
  * <a href="http://rockyweb.cr.usgs.gov/nmpstds/acrodocs/dem/2DEM0198.PDF">
@@ -50,7 +50,7 @@ import java.rmi.RemoteException;
  * @author Don Murray
  * @author Jeffrey Albert Bergamini 
  *    (http://srproj.lib.calpoly.edu/projects/csc/jbergam/reports/final.html)
- * @version $Revision: 1.2 $ $Date: 2003-09-10 19:27:17 $
+ * @version $Revision: 1.3 $ $Date: 2003-09-10 22:50:13 $
  */
 public class UsgsDemAdapter {
 
@@ -213,15 +213,18 @@ public class UsgsDemAdapter {
   /** Maximum elevation */
   private float maxElevation;
 
+  /** Rotation angle elevation */
+  private float rotationAngle = 0;
+
   /** Minimum easting */
-  private float minX = Float.NaN;
+  private float minX = Float.MAX_VALUE;
   /** Maximum easting */
-  private float maxX = Float.NaN;
+  private float maxX = Float.MIN_VALUE;
 
   /** Minimum northing */
-  private float minY = Float.NaN;
+  private float minY = Float.MAX_VALUE;
   /** Maximum northing */
-  private float maxY = Float.NaN;
+  private float maxY = Float.MIN_VALUE;
 
   /** Range of elevation */
   private float elevationRange;
@@ -347,7 +350,7 @@ public class UsgsDemAdapter {
     elevationRange = maxElevation - minElevation;
     xRange = maxX - minX;
     yRange = maxY - minY;
-    makeFlatField();
+    //makeFlatField();
      
   }
   
@@ -386,7 +389,7 @@ public class UsgsDemAdapter {
     corner[SE] = parseCoordinate();  // 11 get SE corner of this quadrangle
     minElevation = parseFloat(24);   // 12 get minimum elevation
     maxElevation = parseFloat(24);   // 12 get maximum elevation
-    skip(24);                        // 13 skip angle thing which isn't used
+    rotationAngle = parseFloat(24);  // 13 skip angle thing which isn't used
     elevationAccuracy = parseInt(6); // 14 get accuracy code for elevations
     xResolution = parseFloat(12);    // 15 get x resolution (spacing)
     yResolution = parseFloat(12);    // 15 get y resolution (spacing)
@@ -422,63 +425,63 @@ public class UsgsDemAdapter {
      
     pos = 1;
      
-    int row,column,m,n;
-    float xStart, yStart, localElevation, min, max;
-    float xp, yp, x, y, theta, costheta, sintheta, elevation;
+    float Xp, Yp, Xgp, Ygp, elevation;
      
-    row = parseInt(6);                  // 1 row number
-    column = parseInt(6)-1;             // 1 column number (adjusted >= 0)
-    m = parseInt(6);                    // 2 num elevations
-    //n = parseInt(6);                  // 2 n is always 1 -- hmm, useful
-    skip(6);
-    xStart = parseFloat(24);            // x coord of starting point
-    yStart = parseFloat(24);            // y coord of starting point
-    localElevation = parseFloat(24);    // elevation of local datum
-    min = parseFloat(24);               // min elevation for the profile
-    max = parseFloat(24);               // max elevation for the profile
+    int row = parseInt(6);                 // 1 row number
+    int column = parseInt(6)-1;            // 1 column number (adjusted >= 0)
+    int m = parseInt(6);                   // 2 num elevations
+    int n = parseInt(6);                   // 2 n is always 1 -- hmm, useful
+    float Xgo = parseFloat(24);            // x coord of starting point
+    float Ygo = parseFloat(24);            // y coord of starting point
+    float localElevation = parseFloat(24); // elevation of local datum
+    float min = parseFloat(24);            // min elevation for the profile
+    float max = parseFloat(24);            // max elevation for the profile
 
     if (m > maxRows) maxRows = m;
+
+    float costheta = (float) Math.cos(rotationAngle);
+    float sintheta = (float) Math.sin(rotationAngle);
 
     /*
      * Calculate profile coordinates
      */
-    for (int i=0; i<m; i++) {
+    for (int j=0; j<m; j++) {
+      for (int i = 0; i<n; i++) {
 
-      xp = i*xResolution;
-      if (referenceSystem == UTM) {
-          theta = (float) Math.atan((i*xResolution)/(yResolution));
-          costheta = (float) Math.cos(theta);
-          sintheta = (float) Math.sin(theta);
-          x = xStart + xp*costheta;
-          y = yStart + xp*sintheta;
-      } else { // GEOGRAPHIC
-          x = xStart;
-          y = yStart + i*yResolution;
-      }   
-      elevation = parseInt()*zResolution+localElevation;
-      /*
-      if( i == m-1)  {
-        System.out.println("xStart for column " + column + " = " + xStart);
-        System.out.println("theta = " + theta);
-        System.out.println("costheta = " + costheta);
-        System.out.println("sintheta = " + sintheta);
-        System.out.println("x = " + x);
-        System.out.println("y = " + y);
+        // see Figure 5 in docs for equation explanation
+        Xp = i*xResolution;
+        Yp = j*yResolution;
+        Xgp = Xgo + Xp*costheta + Yp*sintheta;
+        Ygp = Ygo + Xp*sintheta + Yp*costheta;
+
+        elevation = parseInt()*zResolution+localElevation;
+        /* 
+        if( j == m-1)  {
+          System.out.println(
+              "Start for column " + column + " = " + Xgo + "," + Ygo);
+          System.out.println("number of rows = " + m);
+          System.out.println("number of columns = " + n);
+          System.out.println("theta = " + rotationAngle);
+          System.out.println("costheta = " + costheta);
+          System.out.println("sintheta = " + sintheta);
+          System.out.println("Xgp = " + Xgp);
+          System.out.println("Ygp = " + Ygp);
+        }
+        */
+        //update min and max x,y
+        minX = Math.min(Xgp, minX);
+        maxX = Math.max(Xgp, maxX);
+        minY = Math.min(Ygp, minY);
+        maxY = Math.max(Ygp, maxY);
+        minElevation = Math.min(minElevation, elevation);
+        maxElevation = Math.max(maxElevation, elevation);
+        rawCoords[0][numPoints] = Xgp;
+        rawCoords[1][numPoints] = Ygp;
+        rawCoords[2][numPoints] = elevation;
+        numPoints++;
       }
-      */
-      //update min and max x,y
-      if (Float.isNaN(minX) || x < minX) minX = x;
-      if (Float.isNaN(maxX) || x > maxX) maxX = x;
-      if (Float.isNaN(minY) || y < minY) minY = y;
-      if (Float.isNaN(maxY) || y > maxY) maxY = y;
-      if (elevation < minElevation) minElevation = elevation;
-      if (elevation > maxElevation) maxElevation = elevation;
-      rawCoords[0][numPoints] = x;
-      rawCoords[1][numPoints] = y;
-      rawCoords[2][numPoints] = elevation;
-      numPoints++;
     }
- 
+   
     skip(BLOCK_SIZE-(pos%BLOCK_SIZE)+1);
 
     //System.out.println("Size was " + pos);
@@ -779,11 +782,13 @@ public class UsgsDemAdapter {
     }
     domainSet =
       (referenceSystem == UTM)
-         ?  new Linear2DSet(rtt, minX, maxX, ((int)(xRange/xResolution))+1,
-                                 minY, maxY, ((int)(yRange/yResolution))+1,
-                                 (CoordinateSystem) null,  /* in rtt if used */
-                                 units, (ErrorEstimate[]) null, 
-                                 true /*cache*/)
+         ?  new Linear2DSet(rtt, 
+                            //minX, maxX, ((int)(xRange/xResolution))+1,
+                            minX, minX+(xResolution*(numColumns-1)), numColumns,
+                            minY, maxY, ((int)(yRange/yResolution))+1,
+                            (CoordinateSystem) null,  /* in rtt if used */
+                            units, (ErrorEstimate[]) null, 
+                            true /*cache*/)
          /* GEOGRAPHIC */
          : new LinearLatLonSet(rtt, 
                                minX, minX+(xResolution*(numColumns-1)), numColumns,
