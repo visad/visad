@@ -201,8 +201,10 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
 
     int n = responses.length;
     for (int i=0; i<n; i++) {
-      VisADSceneGraphObject vsgo = (VisADSceneGraphObject) responses[i];
-      branch.addChild(convertSceneGraph(vsgo));
+      if (responses[i] != null) {
+        VisADSceneGraphObject vsgo = (VisADSceneGraphObject) responses[i];
+        branch.addChild(convertSceneGraph(vsgo));
+      }
     }
     if (n == 0) ShadowTypeJ3D.ensureNotEmpty(branch, display);
     return branch;
@@ -503,10 +505,17 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
     Serializable[] responses =
       focus_agent.broadcastWithResponses(message, contacts);
 // System.out.println("ClientRendererJ3D.computeRanges messages received");
-    DataShadow new_shadow = (DataShadow) responses[0];
+    DataShadow new_shadow = null;
     int n = responses.length;
-    for (int i=1; i<n; i++) {
-      new_shadow.merge((DataShadow) responses[i]);
+    for (int i=0; i<n; i++) {
+      if (responses[i] != null) {
+        if (new_shadow == null) {
+          new_shadow = (DataShadow) responses[i];
+        }
+        else {
+          new_shadow.merge((DataShadow) responses[i]);
+        }
+      }
     }
     return new_shadow;
   }

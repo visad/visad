@@ -110,21 +110,6 @@ public class NodeRendererJ3D extends DefaultRendererJ3D {
   /** create a VisADGroup scene graph for Data in links[0] */
   public BranchGroup doTransform() throws VisADException, RemoteException {
 
-/*
-should wait until all collab events are quiet
-especially ScalarMapEvent.AUTO_SCALE
-*/
-
-
-/* WLH 16 April 2001
-DisplaySyncImpl ds = (DisplaySyncImpl) getDisplay().getDisplaySync();
-while (ds.isThreadRunning()) {
-  System.out.println("wait for DisplaySync");
-  new Delay(10);
-}
-*/
-
-
     // RendererJ3D.doAction is expecting a BranchGroup
     // so fake it
     BranchGroup fake_branch = new BranchGroup();
@@ -209,7 +194,10 @@ while (maps.hasMoreElements()) {
     link.clearData();
 
     // send VisADGroup scene graph in branch back to client
-    if (agent != null) agent.sendToClient(branch);
+    if (agent != null) {
+      agent.sendToClient(branch);
+System.out.println("scene graph sent to client");
+    }
 
     // RendererJ3D.doAction is expecting a BranchGroup
     // so fake it

@@ -89,12 +89,19 @@ public class RemoteClientAgentImpl extends UnicastRemoteObject
       responses[i] = null;
       contacts[i].sendToNode(message);
     }
+
+    long start_time = System.currentTimeMillis();
     while (not_all) {
       synchronized (this) {
         try {
-          wait();
+          wait(10000); // wait for at most 10 seconds
         }
         catch (InterruptedException e) {
+        }
+        long time = System.currentTimeMillis();
+        if (time > start_time + 10000) {
+          not_all = false;
+System.out.println("RemoteClientAgentImpl.broadcastWithResponses time out");
         }
       }
     }

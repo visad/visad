@@ -91,7 +91,6 @@ public class TestVis5DCluster extends Object {
     }
   
     FunctionType v5d_type = (FunctionType) v5d.getType();
-System.out.println("v5d_type = " + v5d_type);
     Set time_set = v5d.getDomainSet();
     int time_length = time_set.getLength();
     MathType v5d_range_type = v5d_type.getRange();
@@ -116,8 +115,8 @@ System.out.println("v5d_type = " + v5d_type);
     Gridded3DSet ps = makePS(domain_set, node_divide);
 
     if (!client) {
+System.out.println("v5d_type = " + v5d_type);
       RealTupleType domain_type = grid_type.getDomain();
-  
   
       RealTupleType time_tuple = v5d_type.getDomain();
       RealType time = (RealType) time_tuple.getComponent(0);
@@ -150,7 +149,7 @@ System.out.println("v5d_type = " + v5d_type);
       int sub_x_len = igp - ig;
       int sub_y_len = jgp - jg;
       int sub_len = sub_x_len * sub_y_len * z_len;
-System.out.println("sub_len = " + sub_len + " out of len = " + len);
+// System.out.println("sub_len = " + sub_len + " out of len = " + len);
       float[][] sub_samples = new float[3][sub_len];
       for (int i=0; i<sub_x_len; i++) {
         for (int j=0; j<sub_y_len; j++) {
@@ -210,7 +209,7 @@ System.out.println("sub_len = " + sub_len + " out of len = " + len);
       }
       // just so app doesn't exit
       DisplayImpl display = new DisplayImplJ2D("dummy");
-      System.out.println("data ready");
+      System.out.println("data ready as " + new_v5d_type);
       return;
     } // end if (!client)
 
@@ -227,7 +226,7 @@ System.out.println("sub_len = " + sub_len + " out of len = " + len);
     }
 
     v5d_type = (FunctionType) node_v5ds[0].getType();
-System.out.println("new v5d_type = " + v5d_type);
+System.out.println("data type = " + v5d_type);
     time_set = node_v5ds[0].getDomainSet();
 
     RemoteClientFieldImpl client_v5d =
@@ -302,21 +301,38 @@ System.out.println("new v5d_type = " + v5d_type);
 
     // create JPanel in JFrame
     JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-    panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+    // panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    // panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     frame.getContentPane().add(panel);
 
+    JPanel lpanel = new JPanel();
+    lpanel.setLayout(new BoxLayout(lpanel, BoxLayout.Y_AXIS));
+    // lpanel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    // lpanel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+
+    JPanel rpanel = new JPanel();
+    rpanel.setLayout(new BoxLayout(rpanel, BoxLayout.Y_AXIS));
+    // rpanel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    // rpanel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+
     // add display to JPanel
-    panel.add(display.getComponent());
-    panel.add(new AnimationWidget(animation_map));
-    panel.add(new ContourWidget(contour_maps[0]));
-    if (nvals > 1) {
-      panel.add(new ContourWidget(contour_maps[1]));
+    rpanel.add(display.getComponent());
+    AnimationWidget awidget = new AnimationWidget(animation_map);
+    awidget.setMaximumSize(new Dimension(400, 400));
+    lpanel.add(new AnimationWidget(animation_map));
+    for (int i=0; i<nvals; i++) {
+      ContourWidget cwidget = new ContourWidget(contour_maps[i]);
+      cwidget.setMaximumSize(new Dimension(400, 200));
+      lpanel.add(new ContourWidget(contour_maps[i]));
     }
 
+    lpanel.setMaximumSize(new Dimension(400, 600));
+    panel.add(lpanel);
+    panel.add(rpanel);
+
     // set size of JFrame and make it visible
-    frame.setSize(500, 700);
+    frame.setSize(800, 600);
     frame.setVisible(true);
   }
 
@@ -347,17 +363,6 @@ System.out.println("new v5d_type = " + v5d_type);
                        domain_set.getSetUnits(), null);
     return ps;
   }
-
-/*
-    Real r = new Real(0);
-    RemoteClientTupleImpl cd = new RemoteClientTupleImpl(new Data[] {r});
-    RemoteClientTupleImpl cd2 = new RemoteClientTupleImpl(new Data[] {r});
-    System.out.println(cd.equals(cd)); // true
-    System.out.println(cd.equals(cd2)); // false
-    System.out.println(cd.clusterDataEquals(cd)); // true
-    System.out.println(cd.clusterDataEquals(cd2)); // false
-    System.exit(0);
-*/
 
 }
 
