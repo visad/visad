@@ -475,9 +475,7 @@ public class ShowNCEPModel
 
     if (cmd.equals("menuFile") ) {
       try {
-	ca.setOn(false);
-	start_stop.setText("Animate");
-	isLooping = false;
+        setLooping(false);
       } catch (Exception mfs) {mfs.printStackTrace(); System.exit(1); }
       getNewFile();
 
@@ -499,15 +497,7 @@ public class ShowNCEPModel
     } else if (cmd.equals("start_stop") ) {
 
       try {
-       if (isLooping) {
-          ca.setOn(false);
-          start_stop.setText("Animate");
-          isLooping = false;
-        } else {
-          ca.setOn(true);
-          start_stop.setText("Stop");
-          isLooping = true;
-        }
+        setLooping(!isLooping);
       } catch (Exception sse) {sse.printStackTrace(); System.exit(1); }
        
     } else if (cmd.equals("backward")) {
@@ -672,5 +662,13 @@ public class ShowNCEPModel
       mapControl.setValue(0.0);
 
     } catch (Exception mapop) {mapop.printStackTrace(); System.exit(1); }
+  }
+
+  private void setLooping(boolean on)
+    throws RemoteException, VisADException
+  {
+    ca.setOn(on);
+    start_stop.setText(on ? "Stop" : "Animate");
+    isLooping = on;
   }
 }
