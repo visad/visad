@@ -139,9 +139,14 @@ public class MeasureMatrix {
   /** Sets the line pool to match the given matrix entry. */
   public void setEntry(int index, int slice) {
     if (!inited) System.err.println("Warning: matrix not inited!");
-    MeasureList ml = matrix[index][slice];
+    if (this.index != index) {
+      // set 3-D window to match given matrix index
+      MeasureList[] lists = matrix[index];
+      // CTR - TODO - set 3-D window appropriately
+    }
     this.index = index;
     this.slice = slice;
+    MeasureList ml = matrix[index][slice];
     pool.set(ml.getMeasurements());
   }
 

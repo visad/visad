@@ -30,28 +30,23 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.rmi.RemoteException;
-import java.util.StringTokenizer;
 import javax.swing.*;
 import javax.swing.event.*;
 import visad.*;
-import visad.data.DefaultFamily;
 import visad.java2d.DisplayImplJ2D;
 import visad.java3d.*;
 import visad.util.*;
 
 /**
- * MeasureFrame is a class for measuring the
- * distance between points in a field.
+ * MeasureFrame is a class for measuring distances
+ * between points in a field or stack of fields.
  */
 public class MeasureFrame extends GUIFrame implements ChangeListener {
 
   /** Application title. */
   private static final String TITLE = "BioVisAD Measurement Tool";
 
-  /**
-   * File chooser for loading and saving data.
-   * Static so that the directory is remembered between each load command.
-   */
+  /** File chooser for loading and saving data. */
   private JFileChooser fileBox = Util.getVisADFileChooser();
 
   /** Series chooser for loading a series of data files. */
@@ -79,17 +74,20 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
   /** Prefix of current data series. */
   private String prefix;
 
-  /** Constructs a measurement object to match the given field. */
+  /** Constructs a new instance of the measurement tool. */
   public MeasureFrame() throws VisADException, RemoteException { this(false); }
   
-  /** Constructs a measurement object to match the given field. */
+  /** Constructs a new instance of the measurement tool. */
   public MeasureFrame(boolean twoD) throws VisADException, RemoteException {
     super(true);
     setTitle(TITLE);
     addMenuItem("File", "Open...", "fileOpen", 'o');
     addMenuSeparator("File");
-    addMenuItem("File", "Restore lines...", "fileRestoreLines", 'r');
-    addMenuItem("File", "Save lines...", "fileSaveLines", 's');
+    addMenuItem("File", "Restore lines (pixels)...", "fileRestoreLines", 'r');
+    addMenuItem("File", "Save lines (pixels)...", "fileSaveLines", 's');
+    addMenuItem("File", "Restore lines (microns)...",
+      "fileRestoreMicrons", 'e');
+    addMenuItem("File", "Save lines (microns)...", "fileSaveMicrons", 'a');
     addMenuSeparator("File");
     addMenuItem("File", "Exit", "fileExit", 'x');
 
@@ -122,7 +120,7 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
     pane.add(horizWidget, BorderLayout.SOUTH);
 
     // custom toolbar
-    toolbar = new MeasureToolbar(horizWidget, vertWidget);
+    toolbar = new MeasureToolbar(this, horizWidget, vertWidget);
     horizWidget.setToolbar(toolbar);
     pane.add(toolbar, BorderLayout.EAST);
   }
@@ -156,7 +154,7 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
     });
   }
 
-  /** Restores a saved set of measurements. */
+  /** Restores a saved set of measurements (using pixel units). */
   public void fileRestoreLines() {
     final JFrame frame = this;
     SwingUtilities.invokeLater(new Runnable() {
@@ -179,7 +177,7 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
           return;
         }
       
-        // restore measurementss
+        // restore measurements
         try {
           MeasureDataFile mdf = new MeasureDataFile(f);
           mdf.readMatrix(matrix);
@@ -191,7 +189,7 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
     });
   }
 
-  /** Saves a set of measurements. */
+  /** Saves a set of measurements (using pixel units). */
   public void fileSaveLines() {
     final JFrame frame = this;
     SwingUtilities.invokeLater(new Runnable() {
@@ -214,6 +212,16 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
         setCursor(Cursor.getDefaultCursor());
       }
     });
+  }
+
+  /** Restores a saved set of measurements (using micron units). */
+  public void fileRestoreMicrons() {
+    // CTR: TODO: fileRestoreMicrons
+  }
+
+  /** Saves a set of measurements (using micron units). */
+  public void fileSaveMicrons() {
+    // CTR: TODO: fileSaveMicrons
   }
 
   /** Exits the application. */

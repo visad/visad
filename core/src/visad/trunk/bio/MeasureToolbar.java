@@ -58,6 +58,9 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
   /** Currently selected measurement object. */
   private MeasureThing thing;
 
+  /** Measurement frame. */
+  private MeasureFrame frame;
+
   /** File series widget. */
   private FileSeriesWidget horiz;
 
@@ -75,6 +78,18 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
 
 
   // -- GLOBAL FUNCTIONS --
+
+  /** Label for microns per pixel. */
+  private JLabel mPixLabel;
+
+  /** Text field for specifying microns per pixel. */
+  private JTextField micronsPerPixel;
+
+  /** Label for distance between slices. */
+  private JLabel sliceDistLabel;
+
+  /** Text field for specifying distance (in microns) between slices. */
+  private JTextField sliceDistance;
 
   /** Button for adding lines. */
   private JButton addLine;
@@ -126,7 +141,10 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
 
 
   /** Constructs a custom measurement toolbar. */
-  public MeasureToolbar(FileSeriesWidget h, ImageStackWidget v) {
+  public MeasureToolbar(MeasureFrame f,
+    FileSeriesWidget h, ImageStackWidget v)
+  {
+    frame = f;
     horiz = h;
     vert = v;
 
@@ -148,8 +166,42 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     pane.add(Box.createVerticalStrut(30));
     pane.add(Box.createVerticalGlue());
 
-    // add line button
+    // microns per pixel label
     JPanel p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    mPixLabel = new JLabel("Microns per pixel: ");
+    p.add(mPixLabel);
+
+    // microns per pixel text box
+    micronsPerPixel = new JTextField();
+    final MeasureToolbar toolbar = this;
+    micronsPerPixel.getDocument().addDocumentListener(new DocumentListener() {
+      public void changedUpdate(DocumentEvent e) { toolbar.updateMenuItems(); }
+      public void insertUpdate(DocumentEvent e) { toolbar.updateMenuItems(); }
+      public void removeUpdate(DocumentEvent e) { toolbar.updateMenuItems(); }
+    });
+    p.add(micronsPerPixel);
+    controls.add(pad(p));
+
+    // slice distance label
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    sliceDistLabel = new JLabel("Microns between slices: ");
+    p.add(sliceDistLabel);
+
+    // distance between slices text box
+    sliceDistance = new JTextField();
+    sliceDistance.getDocument().addDocumentListener(new DocumentListener() {
+      public void changedUpdate(DocumentEvent e) { toolbar.updateMenuItems(); }
+      public void insertUpdate(DocumentEvent e) { toolbar.updateMenuItems(); }
+      public void removeUpdate(DocumentEvent e) { toolbar.updateMenuItems(); }
+    });
+    p.add(sliceDistance);
+    controls.add(pad(p));
+    controls.add(Box.createVerticalStrut(10));
+
+    // add line button
+    p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     addLine = new JButton("New line");
     addLine.addActionListener(new ActionListener() {
@@ -254,7 +306,6 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     setStandard = new JCheckBox("Set standard");
-    final MeasureToolbar toolbar = this;
     setStandard.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         if (ignoreNextStandard) {
@@ -327,7 +378,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     // color label
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    colorLabel = new JLabel("Color");
+    colorLabel = new JLabel("Color: ");
     colorLabel.setEnabled(false);
     p.add(colorLabel);
 
@@ -351,7 +402,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     // group label
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    groupLabel = new JLabel("Group");
+    groupLabel = new JLabel("Group: ");
     groupLabel.setEnabled(false);
     p.add(groupLabel);
 
@@ -408,6 +459,8 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     });
     descriptionBox.setEnabled(false);
     controls.add(new JScrollPane(descriptionBox));
+
+    updateMenuItems();
   }
 
   /** Enables various toolbar controls. */
@@ -466,6 +519,19 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
       groupList.addItem(group);
     }
     ignoreGroup = false;
+  }
+
+  /** Updates the micron-related menu items. */
+  private void updateMenuItems() {
+    boolean b = false;
+    try {
+      double d1 = Double.parseDouble(micronsPerPixel.getText());
+      double d2 = Double.parseDouble(sliceDistance.getText());
+      if (d1 == d1 && d1 > 0 && d2 == d2 && d2 > 0) b = true;
+    }
+    catch (NumberFormatException exc) { }
+    frame.getMenuItem("File", "Restore lines (microns)...").setEnabled(b);
+    frame.getMenuItem("File", "Save lines (microns)...").setEnabled(b);
   }
 
   /** Updates the text in the measurement information box. */
