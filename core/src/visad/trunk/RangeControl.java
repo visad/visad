@@ -34,13 +34,11 @@ import java.rmi.*;
 public class RangeControl extends Control {
 
   private boolean initialized = false;
-  private float RangeLow;
-  private float RangeHi;
+  private float RangeLow = Float.NaN;
+  private float RangeHi = Float.NaN;
 
   public RangeControl(DisplayImpl d) {
     super(d);
-    RangeLow = 0.0f;
-    RangeHi = 0.0f;
   }
 
   /** initialize the range of selected values as (range[0], range[1]) */
