@@ -122,22 +122,6 @@ public class ControlMonitorEvent
   /**
    * Returns a <CODE>String</CODE> representation of this object.
    */
-  public String OLDtoString()
-  {
-    StringBuffer buf = new StringBuffer("ControlMonitorEvent[");
-buf.append('#');buf.append(getSequenceNumber());buf.append(' ');
-    buf.append(getTypeName());
-    buf.append(',');
-    buf.append(getOriginator());
-    buf.append(',');
-    buf.append(ctl);
-    buf.append(']');
-    return buf.toString();
-  }
-
-  /**
-   * Returns a <CODE>String</CODE> representation of this object.
-   */
   public String toString()
   {
     StringBuffer buf = new StringBuffer("CMonEvt[");
@@ -156,7 +140,7 @@ buf.append('#');buf.append(getSequenceNumber());buf.append(' ');
     }
 
     buf.append(' ');
-    buf.append(visad.Debug.getCtlString(ctl));
+    buf.append(ctl);
 
     buf.append(']');
     return buf.toString();
