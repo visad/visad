@@ -870,6 +870,10 @@ System.out.println("set_num[" + j + "] = " + set_num[j] +
     UnionSet uset = (UnionSet) set;
     if (uset.DomainDimension != DomainDimension
      || uset.ManifoldDimension != ManifoldDimension) return false;
+
+    //Added this to make sure both arrays are equal length
+    if (Sets.length != uset.Sets.length) return false;    
+
     for (int i=0; i<Sets.length; i++) {
       if (!Sets[i].equals(uset.Sets[i])) return false;
     }
