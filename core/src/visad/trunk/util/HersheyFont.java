@@ -58,7 +58,7 @@ Adapted from the original code by Buzbee (see source)
 public class HersheyFont extends java.lang.Object
 {
    private final static int MAX_CHARACTERS = 256;
-   private final static int MAX_POINTS = 150;
+   private final static int MAX_POINTS = 250;
    protected final static int X = 0;
    protected final static int Y = 1;
    private String copyright = "Copyright (c) James P. Buzbee Mar 30, 1996";
