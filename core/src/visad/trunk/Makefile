@@ -98,7 +98,7 @@ TAR_FILES = \
 	visad/paoloa/*.f				\
 	visad/paoloa/*.c				\
 	visad/paoloa/*.h				\
-	visad/paoloa/*.dat				\
+	visad/paoloa/data_obs_1.dat			\
 	visad/paoloa/goesrtcf				\
 	visad/aune/README.aune				\
 	visad/aune/Makefile				\
