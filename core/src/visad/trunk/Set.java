@@ -472,6 +472,17 @@ public abstract class Set extends DataImpl implements SetIface {
     throw new SetException("Set.makeIsoSurface: not valid for this Set");
   }
 
+  /**
+   * Returns an array of sample-point values corresponding to an array of 
+   * sample-point indicies.
+   *
+   * @param index              The indicies of the sample points.
+   * @return                   A corresponding array of sample-point values.
+   *                           <em>RETURN_VALUE</em><code>[i][j]</code> is the
+   *                           <code>j</code>th component of sample-point
+   *                           <code>i</code>.
+   * @throws VisADException    if a VisAD failure occurs.
+   */
   public double[][] indexToDouble(int[] index) throws VisADException {
     return floatToDouble(indexToValue(index));
   }
