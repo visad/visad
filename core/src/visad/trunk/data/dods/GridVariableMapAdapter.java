@@ -77,12 +77,13 @@ public class GridVariableMapAdapter
      *			the array used during construction.
      * @param copy	If true, then data values are copied.
      * @return		The VisAD data object corresponding to the adapted
-     *			map vector.
+     *			map vector.  The (super)class of the returned object
+     *			is {@link GriddedSet}.
      */
     public DataImpl data(DArray array, boolean copy)
 	throws VisADException, RemoteException
     {
-	SampledSet	newSet =
+	GriddedSet	newSet =
 	    vectorAdapter.griddedSet(array.getPrimitiveVector());
 	WeakReference	ref = (WeakReference)setMap.get(newSet);
 	if (ref == null)
@@ -91,7 +92,7 @@ public class GridVariableMapAdapter
 	}
 	else
 	{
-	    SampledSet	oldSet = (SampledSet)ref.get();
+	    GriddedSet	oldSet = (GriddedSet)ref.get();
 	    if (oldSet == null)
 		setMap.put(newSet, new WeakReference(newSet));
 	    else
