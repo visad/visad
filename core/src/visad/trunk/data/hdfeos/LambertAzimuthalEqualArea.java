@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2002 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -42,9 +42,21 @@ public class LambertAzimuthalEqualArea extends CoordinateSystem {
   double false_northing;
   double sin_lat_o;
   double cos_lat_o;
+  Unit[] reference_units;
 
   private static Unit[] coordinate_system_units =
     {null, null};
+
+  private static Unit[] default_reference_units =
+    {CommonUnit.radian, CommonUnit.radian};
+
+  public LambertAzimuthalEqualArea( RealTupleType reference,
+                                    double lon_center,
+                                    double lat_center       )
+         throws VisADException
+  {
+    this(reference, 6367470, lon_center, lat_center, 0, 0);
+  }
 
   public LambertAzimuthalEqualArea( RealTupleType reference,
                                     double R,
@@ -58,6 +70,18 @@ public class LambertAzimuthalEqualArea extends CoordinateSystem {
 
     super( reference, coordinate_system_units );
 
+    reference_units =
+      reference.getDefaultUnits();
+
+    if ( reference_units != null ) {
+      if (! Unit.canConvertArray(default_reference_units, reference_units)) {
+        throw new VisADException("not compatible with reference units");
+      }
+    }
+    else {
+      reference_units = default_reference_units;
+    }
+
     this.R = R;
     this.lon_center = lon_center;
     this.lat_center = lat_center;
@@ -65,8 +89,6 @@ public class LambertAzimuthalEqualArea extends CoordinateSystem {
     this.false_northing = false_northing;
     this.sin_lat_o = Math.sin( lat_center  );
     this.cos_lat_o = Math.cos( lat_center  );
-
-
   }
 
   public double[][] toReference(double[][] tuples) throws VisADException {
@@ -96,7 +118,7 @@ public class LambertAzimuthalEqualArea extends CoordinateSystem {
      for ( int ii = 0; ii < n_tuples; ii++ ) {
 
        x = tuples[0][ii] - false_easting;
-       y = tuples[0][ii] - false_northing;
+       y = tuples[1][ii] - false_northing;
        Rh = Math.sqrt(x * x + y * y);
        temp = Rh / (2.0 * R);
        if (temp > 1)
@@ -131,11 +153,11 @@ public class LambertAzimuthalEqualArea extends CoordinateSystem {
          lat = lat_center;
        }
 
-       t_tuples[0][ii] = lat;
-       t_tuples[1][ii] = lon;
+       t_tuples[0][ii] = lon;
+       t_tuples[1][ii] = lat;
      }
-
-     return t_tuples;
+     return 
+       Unit.convertTuple(t_tuples, default_reference_units, reference_units);
   }
 
   public double[][] fromReference(double[][] tuples) throws VisADException {
@@ -149,6 +171,9 @@ public class LambertAzimuthalEqualArea extends CoordinateSystem {
         throw new VisADException("LambertAzimuthalEqualArea: tuple dim != 2");
      }
 
+     tuples =
+       Unit.convertTuple(tuples, reference_units, default_reference_units);
+
      double t_tuples[][] = new double[2][n_tuples];
      double[] delta_lon = new double[n_tuples];
      double[] sin_lat = new double[n_tuples];
@@ -157,12 +182,12 @@ public class LambertAzimuthalEqualArea extends CoordinateSystem {
      double[] cos_delta_lon = new double[n_tuples];
 
      for ( int ii = 0; ii < n_tuples; ii++ ) {
-        delta_lon[ii] = tuples[1][ii] - lon_center;
+        delta_lon[ii] = tuples[0][ii] - lon_center;
      }
 
      GctpFunction.adjust_lon( delta_lon );
 
-     GctpFunction.sincos( tuples[0], sin_lat, cos_lat );
+     GctpFunction.sincos( tuples[1], sin_lat, cos_lat );
      GctpFunction.sincos( delta_lon, sin_delta_lon, cos_delta_lon );
 
 
@@ -170,7 +195,9 @@ public class LambertAzimuthalEqualArea extends CoordinateSystem {
 
        g = sin_lat_o * sin_lat[ii] + cos_lat_o * cos_lat[ii] * cos_delta_lon[ii];
        if ( g == -1 ) {
-          throw new VisADException( "Point projects to a circle of radius = "+(2.*R) );
+          //throw new VisADException( "Point projects to a circle of radius = "+(2.*R) );
+          t_tuples[0][ii] = Double.NaN;
+          t_tuples[1][ii] = Double.NaN;
        }
 
        ksp = R * Math.sqrt(2.0 / (1.0 + g));
@@ -196,38 +223,53 @@ public class LambertAzimuthalEqualArea extends CoordinateSystem {
   }
 
 
-  public static void main(String args[]) throws VisADException {
+  public static void main(String args[]) throws VisADException 
+  {
 
+     double[][] values_in = { {-90*Data.DEGREES_TO_RADIANS, 
+                               -85*Data.DEGREES_TO_RADIANS,
+                               -80*Data.DEGREES_TO_RADIANS,
+                               -75*Data.DEGREES_TO_RADIANS},
 
-     CoordinateSystem coord_cs1 = null;
-     RealType real1;
-     RealType real2;
-     double[][] value_in = { {0, .5236, 1.0472, 1.5708}, {1, 1, 1, 1}};
-     double[][] value_out = new double[2][4];
+                              {42*Data.DEGREES_TO_RADIANS,
+                               42*Data.DEGREES_TO_RADIANS,
+                               42*Data.DEGREES_TO_RADIANS,
+                               42*Data.DEGREES_TO_RADIANS}  };
 
-     real1 = RealType.getRealType("Theta", SI.radian);
-     real2 = RealType.getRealType("radius", SI.meter);
-     RealType reals[] = {real1, real2};
-
+     double earth_rad = 6367470;
+     double lon_center = -90*Data.DEGREES_TO_RADIANS;
+     double lat_center =  42*Data.DEGREES_TO_RADIANS;
+     double false_easting = 0;
+     double false_northing = 0;
+     
+     RealType reals[] = {RealType.Longitude,RealType.Latitude};
      RealTupleType Reference = new RealTupleType(reals);
 
-   //  coord_cs1 = new LambertAzimuthalEqualArea( Reference, null );
+     CoordinateSystem lamaz_cs = 
+        new LambertAzimuthalEqualArea( Reference, 
+                                       earth_rad,
+                                       lon_center,
+                                       lat_center,
+                                       false_easting,
+                                       false_northing );
+                               
 
-     RealTupleType tuple1 = new RealTupleType( reals, coord_cs1, null);
+     for ( int i=0; i<values_in[0].length; i++) {
+        System.out.println(values_in[0][i]+",  "+values_in[1][i]);
+     }
+     System.out.println("");
 
-     value_out = tuple1.getCoordinateSystem().fromReference( value_in );
+     double[][] values_out = lamaz_cs.fromReference( values_in );
 
-     for ( int i=0; i<value_out[0].length; i++) {
-        System.out.println(value_out[0][i]+",  "+value_out[1][i]);
+     for ( int i=0; i<values_out[0].length; i++) {
+        System.out.println(values_out[0][i]+",  "+values_out[1][i]);
      }
 
-     value_in = tuple1.getCoordinateSystem().toReference( value_out );
+     double[][] values_inR = lamaz_cs.toReference( values_out );
 
-     for ( int i=0; i<value_in[0].length; i++) {
-        System.out.println(value_in[0][i]+",  "+value_in[1][i]);
+     System.out.println("");
+     for ( int i=0; i<values_inR[0].length; i++) {
+        System.out.println(values_inR[0][i]+",  "+values_inR[1][i]);
      }
-
-     Unit kilometer = new ScaledUnit(1000, SI.meter);
-
   }
 }
