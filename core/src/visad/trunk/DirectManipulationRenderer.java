@@ -126,22 +126,22 @@ public class DirectManipulationRenderer extends Renderer {
       point_y = spatialValues[1][closeIndex];
       point_z = spatialValues[2][closeIndex];
       int lineAxis = -1;
-      if (type.directManifoldDimension == 3) {
+      if (type.getDirectManifoldDimension() == 3) {
         line_x = d_x;
         line_y = d_y;
         line_z = d_z;
       }
       else {
-        if (type.directManifoldDimension == 2) {
+        if (type.getDirectManifoldDimension() == 2) {
           for (int i=0; i<3; i++) {
-            if (type.axisToComponent[i] < 0 && type.domainAxis != i) {
+            if (type.getAxisToComponent(i) < 0 && type.getDomainAxis() != i) {
               lineAxis = i;
             }
           }
         }
-        else if (type.directManifoldDimension == 1) {
+        else if (type.getDirectManifoldDimension() == 1) {
           for (int i=0; i<3; i++) {
-            if (type.axisToComponent[i] >= 0) {
+            if (type.getAxisToComponent(i) >= 0) {
               lineAxis = i;
             }
           }
@@ -153,7 +153,7 @@ public class DirectManipulationRenderer extends Renderer {
     } // end if (first)
 
     float[] x = new float[3]; // x marks the spot
-    if (type.directManifoldDimension == 1) {
+    if (type.getDirectManifoldDimension() == 1) {
       // find closest point on line to ray
       // logic from vis5d/cursor.c
       // line o_, d_ to line point_, line_
@@ -169,7 +169,7 @@ public class DirectManipulationRenderer extends Renderer {
       x[1] = point_y + t * line_y;
       x[2] = point_z + t * line_z;
     }
-    else { // type.directManifoldDimension = 2 or 3
+    else { // type.getDirectManifoldDimension() = 2 or 3
       // intersect ray with plane
       float dot = (point_x - o_x) * line_x +
                   (point_y - o_y) * line_y +
@@ -190,9 +190,9 @@ public class DirectManipulationRenderer extends Renderer {
       Data newData = null;
       if (type instanceof ShadowRealType) {
         for (int i=0; i<3; i++) {
-          if (type.axisToComponent[i] >= 0) {
+          if (type.getAxisToComponent(i) >= 0) {
             f[0] = x[i];
-            d = type.directMap[i].inverseScaleValues(f);
+            d = type.getDirectMap(i).inverseScaleValues(f);
             RealType rtype = (RealType) data.getType();
             newData = new Real(rtype, d[0], rtype.getDefaultUnit(), null);
             // create location string
@@ -210,10 +210,10 @@ public class DirectManipulationRenderer extends Renderer {
         Real[] reals = new Real[n];
         Vector vect = new Vector();
         for (int i=0; i<3; i++) {
-          int j = type.axisToComponent[i];
+          int j = type.getAxisToComponent(i);
           if (j >= 0) {
             f[0] = x[i];
-            d = type.directMap[i].inverseScaleValues(f);
+            d = type.getDirectMap(i).inverseScaleValues(f);
             Real c = (Real) ((RealTuple) data).getComponent(j);
             RealType rtype = (RealType) c.getType();
             reals[j] = new Real(rtype, d[0], rtype.getDefaultUnit(), null);
@@ -234,7 +234,7 @@ public class DirectManipulationRenderer extends Renderer {
       else if (type instanceof ShadowFunctionType) {
         Vector vect = new Vector();
         if (first) lastIndex = -1;
-        int k = type.domainAxis;
+        int k = type.getDomainAxis();
         f[0] = x[k]; 
         d = type.directMap[k].inverseScaleValues(f);
         // create location string
@@ -265,13 +265,13 @@ public class DirectManipulationRenderer extends Renderer {
           directComponent[j] = false;
         }
         for (int i=0; i<3; i++) {
-          int j = type.axisToComponent[i];
+          int j = type.getAxisToComponent(i);
           if (j >= 0) {
             f[0] = x[i];
-            d = type.directMap[i].inverseScaleValues(f);
+            d = type.getDirectMap(i).inverseScaleValues(f);
             // create location string
             g = (float) d[0];
-            rtype = type.directMap[i].getScalar();
+            rtype = type.getDirectMap(i).getScalar();
             vect.addElement(rtype.getName() + " = " + g);
             thisD[j] = d[0];
             directComponent[j] = true;
@@ -357,9 +357,9 @@ public class DirectManipulationRenderer extends Renderer {
     type = link.getShadow();
 
     // check type and maps for valid direct manipulation
-    if (!type.isDirectManipulation) {
+    if (!type.getIsDirectManipulation()) {
       throw new BadDirectManipulationException(
-        "DirectManipulationRenderer.doTransform: " + type.whyNotDirect);
+        "DirectManipulationRenderer.doTransform: " + type.getWhyNotDirect());
     }
 
     // initialize valueArray to missing

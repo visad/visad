@@ -465,9 +465,10 @@ public class DisplayImpl extends ActionImpl implements Display {
                                  "must be empty");
     }
     if (displayRenderer.getMode2D() &&
-        Display.ZAxis.equals(map.getDisplayScalar())) {
+        (Display.ZAxis.equals(map.getDisplayScalar()) ||
+         Display.Latitude.equals(map.getDisplayScalar())) ) {
       throw new DisplayException("DisplayImpl.addMap: cannot map to " +
-                                 "ZAxis in 2D mode");
+                                 "ZAxis or Latitude in 2D mode");
     }
     map.setDisplay(this);
 

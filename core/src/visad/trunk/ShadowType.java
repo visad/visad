@@ -599,6 +599,14 @@ public abstract class ShadowType extends Object
     return 0;
   }
 
+  public DisplayImpl getDisplay() {
+    return display;
+  }
+ 
+  public MathType getType() {
+    return Type;
+  }
+
   public boolean getMultipleDisplayScalar() {
     return MultipleDisplayScalar;
   }
@@ -617,6 +625,30 @@ public abstract class ShadowType extends Object
     int[] ii = new int[ValueIndices.length];
     for (int i=0; i<ValueIndices.length; i++) ii[i] = ValueIndices[i];
     return ii;
+  }
+
+  public int getDirectManifoldDimension() {
+    return directManifoldDimension;
+  }
+
+  public boolean getIsDirectManipulation() {
+    return isDirectManipulation;
+  }
+
+  public String getWhyNotDirect() {
+    return whyNotDirect;
+  }
+
+  public int getAxisToComponent(int i) {
+    return axisToComponent[i];
+  }
+
+  public ScalarMap getDirectMap(int i) {
+    return directMap[i];
+  }
+
+  public int getDomainAxis() {
+    return domainAxis;
   }
 
   /** return true if DisplayIndices include multiple
@@ -639,14 +671,6 @@ public abstract class ShadowType extends Object
   /** mark Control-s as needing re-Transform;
       default for ShadowTextType and ShadowMissingType */
   void markTransform(boolean[] isTransform) {
-  }
-
-  public DisplayImpl getDisplay() {
-    return display;
-  }
-
-  public MathType getType() {
-    return Type;
   }
 
   /** clear AccumulationVector */
