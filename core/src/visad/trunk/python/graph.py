@@ -1,13 +1,29 @@
-from visad import RealType, RealTupleType, FunctionType, FieldImpl, ScalarMap, Display
-from visad.util import AnimationWidget
-from visad.python.JPythonMethods import *
-from javax.swing import JFrame, JPanel
-from java.awt import BorderLayout, FlowLayout, Font
+"""
+Graph.py provides a collection of methods for making quick-plots of a
+data object in a variety of ways.
+
+
+"""
+try:
+  from visad import RealType, RealTupleType, FunctionType, FieldImpl, ScalarMap, Display
+  from visad.util import AnimationWidget
+  from visad.python.JPythonMethods import *
+  from javax.swing import JFrame, JPanel
+  from java.awt import BorderLayout, FlowLayout, Font
+  __mapname='outlsupu'
+except:
+  pass
 import subs
 
-__mapname='outlsupu'
 
 def image(data, panel=None, colortable=None, width=400, height=400, title="VisAD Image"):
+  """
+  Display an image with a gray scale color mapping.  <data> contains
+  the image, <panel> is the name of a panel to put this into (default=
+  make a new one), <colortable> is a color table to use (def = gray
+  scale), <width> and <height> are the dimensions.  <title> is the
+  phrase for the title bar.  Returns a reference to the display.
+  """
 
   dom_1 = RealType.getRealType(domainType(data,0) )
   dom_2 = RealType.getRealType(domainType(data,1)) 
@@ -34,6 +50,15 @@ def image(data, panel=None, colortable=None, width=400, height=400, title="VisAD
   return disp
 
 def colorimage(red_data, green_data, blue_data, panel=None, colortable=None, width=400, height=400, title="VisAD Color Image"):
+  """
+  Display a color image, from three images <red_data>, <green_data>
+  and <blue_data>.  <panel> is the name of a panel to put this into
+  (default= make a new one), <colortable> is a color table to use (def
+  = gray scale), <width> and <height> are the dimensions.  <title> is
+  the phrase for the title bar.  Returns a reference to the display.
+
+  """
+
 
   _comb_image = FieldImpl.combine( [red_data, green_data, blue_data])
   dom_1 = RealType.getRealType(domainType(_comb_image,0))
@@ -52,6 +77,16 @@ def colorimage(red_data, green_data, blue_data, panel=None, colortable=None, wid
 #----------------------------------------------------------------------
 # mapimage displays a navigatedimage with a basemap on top
 def mapimage(imagedata, mapfile="outlsupw", panel=None, colortable=None, width=400, height=400, lat=None, lon=None, title="VisAD Image and Map"):
+  """
+  Display an image with a basemap.  <imagedata> is the image object,
+  <mapfile> is the name of the map file to use (def = outlsupw).
+  <panel> is the name of a panel to put this into (default= make a new
+  one), <colortable> is a color table to use (def = gray scale),
+  <width> and <height> are the dimensions.  <lat> and <lon> are
+  lists/tuples of the range (min->max) of the domain (def = compute
+  them). <title> is the phrase for the title bar.  Returns a reference
+  to the display.
+  """
 
   rng = RealType.getRealType(rangeType(imagedata,0))
   rngMap = ScalarMap(rng, Display.RGB)
@@ -128,6 +163,10 @@ def __showaddeimage(event):
   mapimage(load(event.getActionCommand()),__mapname)
 
 def addeimage(mapname='outlsupu'):
+  """
+  Pop up the GUI for fetching an image via ADDE and then display it.
+  <mapname> is the filename of the basemap file to use (def=outlsupu)
+  """
   global __mapname
   __mapname = mapname
   from edu.wisc.ssec.mcidas.adde import GetAreaGUI
@@ -137,6 +176,14 @@ def addeimage(mapname='outlsupu'):
 #----------------------------------------------------------------------------
 # basic scatter plot between two fields.
 def scatter(data_1, data_2, panel=None, pointsize=None, width=400, height=400, xlabel=None, ylabel=None, title="VisAD Scatter"):
+  """
+  Quick plot of a scatter diagram between <data_1> and <data_2>.
+  <panel> is the name of a panel to put this into (default= make a new
+  one), <pointsize> is the size of the scatter points (def = 1),
+  <width> and <height> are the dimensions, <xlabel> and <ylabel> are
+  the axes labels to use (def = names of data objects).  <title> is
+  the phrase for the title bar.  Returns a reference to the display.
+  """
 
   rng_1 = data_1.getType().getRange().toString()
   rng_2 = data_2.getType().getRange().toString()
@@ -157,6 +204,13 @@ def scatter(data_1, data_2, panel=None, pointsize=None, width=400, height=400, x
 # quick look histogram - only first range component is used.
 def histogram(data, bins=20, width=400, height=400, title="VisAD Histogram", color=None, panel=None):
 
+  """
+  Quick plot of a histogram from <data>.  <bins> is the number of bins
+  to use (def = 20), <panel> is the name of a panel to put this into
+  (default= make a new one), <color> is the color to use, <width> and
+  <height> are the dimensions, <title> is the phrase for the title
+  bar.  Returns a reference to the display.
+  """
   from java.lang.Math import abs
 
   x=[]
@@ -209,6 +263,13 @@ def histogram(data, bins=20, width=400, height=400, title="VisAD Histogram", col
 #----------------------------------------------------------------------------
 # a simple line plot for one parameter
 def lineplot(data, panel=None, color=None, width=400, height=400, title="Line Plot"):
+  """
+  Quick plot of a line plot from <data>.  <panel> is the name of a
+  panel to put this into (default= make a new one), <color> is the
+  color to use, <width> and <height> are the dimensions, <title> is
+  the phrase for the title bar.  Returns a reference to the display.
+  """
+
   domt = domainType(data)
   rngt = rangeType(data)
   xaxis = ScalarMap(domt[0], Display.XAxis)
@@ -233,6 +294,15 @@ def lineplot(data, panel=None, color=None, width=400, height=400, title="Line Pl
 # interval = [ interval, lowvalue, highvalue, basevalue ]
 
 def contour(data, panel=None, enableLabels=1, interval=None, width=400, height=400, title="VisAD Contour Plot"):
+
+  """
+  Quick plot of a contour (isopleth) from <data>.  <panel> is the name
+  of a panel to put this into (default= make a new one),
+  <enableLabels> controls whether the contour lines will be labelled,
+  <interval[]> is a list containing the contour interval info, <width>
+  and <height> are the dimensions, <title> is the phrase for the title
+  bar.  Returns a reference to the display.
+  """
 
   ndom = domainDimension(data)
   if ndom != 2:
@@ -261,11 +331,12 @@ def contour(data, panel=None, enableLabels=1, interval=None, width=400, height=4
   return disp
 
 
-#----------------------------------------------------------------------------
-# animation(data) creates a VisAD animation of the items in the data list/tuple
-# if panel is not None, then it will return a JPanel with the images
-# and AnimationWidget in it
-def animation(data, panel=None, width=400, height=500, title="VisAD Animation"):
+def animation(data, width=400, height=500, title="VisAD Animation"):
+  """
+  Quick plot of an animation.  <data> is a list/tuple of iamges to
+  animate.  <width> and <height> are the size, and <title> is the
+  label for the titlebar.  Returns a reference to the display.
+  """
 
   num_frames = len(data)
 
@@ -332,7 +403,11 @@ def animation(data, panel=None, width=400, height=500, title="VisAD Animation"):
 
   return disp
 
+
 class myAnimFrame:
+  """
+  Supporting class for animations.
+  """
   def desty(self, event):
     self.display.destroy()
     self.frame.dispose()

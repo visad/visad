@@ -40,6 +40,7 @@ import visad.*;
 import visad.math.*;
 import visad.matrix.*;
 import visad.data.*;
+import visad.data.netcdf.Plain;
 import visad.ss.*;
 
 /**
@@ -319,6 +320,14 @@ public abstract class JPythonMethods {
       display.destroyCell();
       display = null;
     }
+  }
+
+  /** save the Data in a netcdf file
+  *
+  */
+  public static void saveNetcdf(String fn, Data d) 
+                 throws VisADException, RemoteException, IOException {
+    new Plain().save(fn,d,false);
   }
 
   /** save the display genreated by a quick graph or showDisplay

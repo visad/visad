@@ -1,126 +1,28 @@
-"""subs.py is a collection of support methods
-
-makeDisplay(maps)
-  create (and return) a VisAD DisplayImpl and add the ScalarMaps, if any
-  the VisAD box is resized to about 95% of the window.  Use 3D if
-  availble.
-
-makeDisplay3D(maps)
-  create (and return) a VisAD DisplayImplJ3D and add the ScalarMaps, if any
-  the VisAD box is resized to about 95% of the window
-  
-makeDisplay2D(maps)"
-  create (and return) a VisAD DisplayImplJ2D and add the ScalarMaps, if any
-  the VisAD box is resized to about 95% of the window
-
-saveDisplay(display, filename)
-  save the display as a JPEG
-
-addData(name, data, display, constantMaps=None, renderer=None, ref=None)
-  add a Data object to a Display, and return a reference to the Data
-
-setPointSize(display, size)
-  set the size of points for point-type plots
-
-setAspectRatio(display, ratio)
-  define the aspects of width and height, as a ratio: width/height
-
-makeCube(display)
-  turn off the perspective-type display and just make a cube
-
-setAspects(display, x, y, z)
-  define the relative sizes of the axes
-
-maximizeBox(display, clip=1)
-  a simple method for making the VisAD "box" 95% of the window size,
-  and defining if box-edge clipping should be done in 3D
-
-setBoxSize(display, percent=.70, clip=1, showBox=1)
-  a simple method for making the VisAD "box" some % of the window size,
-  and defining if box-edge clipping should be done in 3D
-
-x,y,z,disp = getDisplay(display)
-  return the x,y,z scalar maps for the display
-
-makeLine(domainType, points)
-  make a 2D or 3D line, return a reference so it can be changed
-
-makeLineStyleMap(style, width)
-  makes constant map for lines, with style ('dash', 'dot','dashdot')
-  and width (pixels)
-
-drawLine(display, points[], color=None, mathtype=None)
-  draw a line directly into the display; also return reference
-  drawLine(display, domainType, points[], color=Color, mathtype=domainType)
-  drawLine(name|display, points[], color=Color)
-  "Color" is java.awt.Color
-
-drawString(display, string, point[], color=None, center=0, font='futural',
-start=, base= up=, size=.1)
-  draw a string on the display; use 'size=' to set size.  'point' is a
-  list/tuple of the starting coordinates (e.g., [1.3, 6.6]) in the
-  units of the scalars mapped to the x and y axes (or x,y,z if 3D).
-
-textShape(string, center=0 font='futural', start=, base=, up=, size=.1)
-  Creates a VisADGeometryArray (shape) for this string. Used by
-  drawString, and may be used directly with the Shapes class.
-
-addMaps(display, maps[])
-  add an array of ScalarMaps to a Display
-
-makeMaps(RealType, name, RealType, name, ....)
-  define ScalarMap(s) given pairs of (Type, name)
-  where "name" is taken from the list, below.
-
-  Alternatively, you may use the "string" names of
-  existing RealTypes.
-
-getDisplayMaps(display, includeShapes=0)
-  returns [x_map,y_map,z_map,display]  or
-  [x_map,y_map,z_map,display,shape_map].  Where "..._map" is
-  the ScalarType mapped to the corresponding display axis.
-
-showDisplay(display, width=300, height=300, title=, bottom=, top=)
-  quick display of a Display object in a separate JFrame
-  you can set the size and title, if you want...  Use the bottom=
-  and top= keywords to add these componenets (or panels) to the bottom
-  and top of the VisAD display (which always is put in the Center).
-
-addShape(type, scale=.1, color=None, index=None, autoScale=1)
-    type is a string that names a pre-defined type of shape 
-    ("cross", "triangle", "square", "solid_square", "solid_triangle")
-    or a VisADGeometryArray.  This will add  the shape for
-    the display.  If 'index=' is given, it is assumed you
-    are simply replacing that shape with a different one. If
-    'autoScale=' is true (the default) then shapes will not be resized
-    as the user zooms in and out.
-
-    Returns the shape index (see next method).
-
-moveShape(index, coordinates)
-    this will reposition the shape numbered 'index'.  The coordinates
-    must be in the order of the x,y,z axes mappings, and should be
-    the types of values defined by the call to 'getDisplayMaps()'. 
-
-Shapes(display, shapeMap)
-  a Class that allows you to do some easy displays of Shapes. The
-  display is the display, and the shapeMap is the ScalarMap you
-  created that maps to Display.Shape; this gives you control over the
-  autoScaling for a group of shapes.  This class has two methods:
-  addShape() and moveShape() - they are identical to the ones above.
+"""
+A collection of support methods for connecting VisAD to Jython.  The
+emphasis is on display-side methods and classes.
 
 """
 
-from visad import ScalarMap, Display, DataReferenceImpl, RealTupleType,\
+try: # try/except for pydoc
+  from visad import ScalarMap, Display, DataReferenceImpl, RealTupleType,\
           Gridded2DSet, Gridded3DSet, DisplayImpl, RealType, RealTuple, \
           VisADLineArray, VisADQuadArray, VisADTriangleArray, \
           VisADGeometryArray, ConstantMap, Integer1DSet, FunctionType, \
           ScalarMap, Display, Integer1DSet, FieldImpl
           
 
-from types import StringType
-from visad.ss import BasicSSCell
-from visad.java2d import DisplayImplJ2D, DisplayRendererJ2D
+  from types import StringType
+  from visad.ss import BasicSSCell
+  from visad.java2d import DisplayImplJ2D, DisplayRendererJ2D
+
+  # define private fields for certains types and scalar mappings
+  __py_text_type = RealType.getRealType("py_text_type")
+  __py_shape_type = RealType.getRealType("py_shape_type")
+  __py_shapes = None 
+  __pcMatrix = None
+except:
+  pass
 
 # try to get 3D
 __ok3d = 1
@@ -129,15 +31,14 @@ try:
 except:
   __ok3d = 0
 
-# define private fields for certains types and scalar mappings
-__py_text_type = RealType.getRealType("py_text_type")
-__py_shape_type = RealType.getRealType("py_shape_type")
-__py_shapes = None 
-__pcMatrix = None
 
-# create (and return) a VisAD DisplayImplJ3D and add the ScalarMaps, if any
-# the VisAD box is resized to about 95% of the window
 def makeDisplay3D(maps):
+  """
+  Create (and return) a VisAD DisplayImplJ3D and add the ScalarMaps
+  <maps>, if any.  The VisAD box is resized to about 95% of the window.
+  This returns the Display.
+  """
+  
   global __py_shapes
   disp = DisplayImplJ3D("Jython3D")
   __py_text_map = ScalarMap(__py_text_type, Display.Text)
@@ -149,9 +50,13 @@ def makeDisplay3D(maps):
   __py_shapes = Shapes(disp, __py_shape_map)
   return disp
 
-# create (and return) a VisAD DisplayImplJ2D and add the ScalarMaps, if any
-# the VisAD box is resized to about 95% of the window
 def makeDisplay2D(maps):
+  """
+  Create (and return) a VisAD DisplayImplJ2D and add the ScalarMaps
+  <maps>, if any.  The VisAD box is resized to about 95% of the window.
+  This returns the Display.
+  """
+  
   global __py_shapes
   disp = DisplayImplJ2D("Jython2D")
   __py_text_map = ScalarMap(__py_text_type, Display.Text)
@@ -167,6 +72,12 @@ def makeDisplay2D(maps):
 # create (and return) a VisAD DisplayImpl and add the ScalarMaps, if any
 # the VisAD box is resized to about 95% of the window
 def makeDisplay(maps):
+  """
+  Create (and return) a VisAD DisplayImpl and add the ScalarMaps
+  <maps>, if any.  The VisAD box is resized to about 95% of the window.  
+  Use 3D if availble, otherwise use 2D.  This returns the Display.
+  """
+
   global __py_shapes
   is3d = 0
   if maps == None:
@@ -192,13 +103,24 @@ def makeDisplay(maps):
   
   return disp
 
-# save the display as a JPEG
+
 def saveDisplay(disp, filename):
+  """
+  Save the display <disp> as a JPEG, given the filename to use.
+  """
   from visad.util import Util
   Util.captureDisplay(disp, filename)
 
-# add a Data object to a Display, and return a reference to the Data
+
 def addData(name, data, disp, constantMaps=None, renderer=None, ref=None):
+  """
+  Add <data> to the display <disp>.  Use a reference <name>.
+  If there are ConstantMaps, also add them.  If there is a non-default
+  Renderer, use it as well.  Finally, you can supply a pre-defined
+  DataReference as <ref>.
+
+  Returns the DataReference
+  """
 
   if ref is None: 
     ref = DataReferenceImpl(name)
@@ -215,13 +137,19 @@ def addData(name, data, disp, constantMaps=None, renderer=None, ref=None):
   return ref
   
 
-# set the size of points for point-type plots
 def setPointSize(display, size):
+  """
+  Set the size of points (1,2,3...) to use in the <display>.
+  """
   display.getGraphicsModeControl().setPointSize(size)
   
   
 # define the aspects of width and height, as a ratio: width/height
 def setAspectRatio(display, ratio):
+  """
+  Set the aspect <ratio> for the <display>.  The ratio is
+  expressed as the fractional value for: width/height.
+  """
   x = 1.
   y = 1.
   if ratio > 1:
@@ -232,16 +160,31 @@ def setAspectRatio(display, ratio):
     x = 1. * ratio
   setAspects(display, x, y, 1.)
 
-# define the relative sizes of the axes
+
 def setAspects(display, x, y, z):
+  """
+  Set the relative sizes of each axis in the <display>.
+  """
   display.getProjectionControl().setAspectCartesian( (x, y, z))
 
-# a simple method for making the VisAD "box" 95% of the window size
 def maximizeBox(display, clip=1):
+  """
+  Set the size of the VisAD 'box' for the <display> to 95%.  If
+  <clip> is true, the display will be clipped at the border of the
+  box; otherwise, data displays may spill over.
+  """
   setBoxSize(display, .95, clip)
 
-# a simple method for making the VisAD "box" some % of the window size
 def setBoxSize(display, percent=.70, clip=1, showBox=1, snap=0):
+  """
+  Set the size of the VisAD 'box' for the <display> as a percentage
+  (fraction). The default is .70 (70%).   If <clip> is true, the
+  display will be clipped at the border of the box; otherwise, data
+  displays may spill over.  If <showBox> is true, the wire-frame will
+  be shown; otherwise, it will be turned off.  If <snap> is true, the
+  box will be reoriented to an upright position.
+  """
+
   global __pcMatrix
   pc=display.getProjectionControl()
   if (not snap) or (__pcMatrix == None): 
@@ -275,10 +218,21 @@ def setBoxSize(display, percent=.70, clip=1, showBox=1, snap=0):
   dr.setBoxOn(showBox)
 
 def makeCube(display):
+  """
+  Turn the VisAD box for this <display> into a cube with no
+  perspective (no 'vanishing point'.  Useful for aligning
+  vertically-stacked data.  
+  """
+
   display.getGraphicsModeControl().setProjectionPolicy(0)
 
-# return the x,y,z scalar maps for the display
 def getDisplayMaps(display, includeShapes=0):
+  """
+  Return a list of the mappings for the <display>. The list
+  elements are ordered: x,y,z,display.  If <includeShapes> is
+  true, then mappings for Shape will be appended.  The <display>
+  may be a Display, or the name of a 'plot()' window.
+  """
 
   if type(display) == StringType:
     d = BasicSSCell.getSSCellByName(display)
@@ -319,11 +273,22 @@ def getDisplayMaps(display, includeShapes=0):
 
 # make a 2D or 3D line, return a reference so it can be changed
 def makeLine(domainType, points):
+  """
+  returns a set of <points>, as defined in the <domainType>. For
+  example, if <domaintType> defines a (Latitude,Longitude), then
+  the <points> are in Latitude,Longitude.
+  """
+
   return Gridded2DSet(RealTupleType(domainType), points, len(points[0]))
 
 
 # make ConstantMaps for line style and width
 def makeLineStyleMap(style, width):
+  """
+  Make a ConstantMap for the indicated line <style>, which
+  may be: "dash", "dot", "dashdot", or "solid" (default). The
+  <width> is the line width in pixels.  Used by drawLine.
+  """
 
   constmap = None
   constyle = None
@@ -347,14 +312,16 @@ def makeLineStyleMap(style, width):
       constmap = [constyle, constwid]
     else:
       constmap = constwid
-
-
-
     
   return constmap
 
 # make ConstantMap list for color
+
 def makeColorMap(color):
+  """
+  Return a ConstantMap of <color>, given by name (e.g., "red")
+  or a java.awt.Color object.  Default is white. Used by numerous methods.
+  """
 
   # see if color should be handled
   if color is not None:
@@ -384,6 +351,16 @@ def makeColorMap(color):
 # drawLine(name|display, points[], color=Color)
 # "Color" is java.awt.Color
 def drawLine(display, points, color=None, mathtype=None, style=None, width=None):
+  """
+  Draw lines on the <display>.  <points> is a 2 or 3 dimensional,
+  list/tuple of points to connect as a line, ordered as given in the
+  <mathtype>.  Default <mathtype> is whatever is mapped to the x,y
+  (and maybe z) axis.  <color> is the line color ("red" or
+  java.awt.Color; default=white), <style> is the line style (e.g.,
+  "dash"), and <width> is the line width in pixels.
+
+  Return a reference to this line.
+  """
 
   constmap = makeColorMap(color)
   constyle = makeLineStyleMap(style, width)
@@ -419,14 +396,31 @@ def drawLine(display, points, color=None, mathtype=None, style=None, width=None)
 def drawString(display, string, point, color=None, center=0, font="futural",
                  start=[0.,0.,0.], base=[.1,0.,0.], up=[0.,.1,0.],size=None ):
 
+  """
+  Draw a string of characters on the <display>.  <string> is the
+  string of characters.  <point> is the starting location for the
+  string drawing, expressed as a list/tuple of 2 or 3 values (x,y,z).
+  <color> is the color (e.g., "red" or java.awt.Color; default =
+  white).  <center> if true will center the string.  <font> defiles
+  the HersheyFont name to use.  <start> defines the relative location
+  of the starting point (x,y,z; default = 0,0,0).  <base> defines the
+  direction that the base of the string should point (x,y,z; default=
+  along x-axis).  <up> defines the direction of the vertical stroke
+  for each character (default = along y-axis).  <size> is the relative
+  size.
+  """
+
   textfs = textShape(string, center, font, start, base, up, size)
   i = __py_shapes.addShape(textfs, color=color)
   __py_shapes.moveShape(i, point)
 
   return __py_shapes 
   
-# add an array of ScalarMaps to a Display
 def addMaps(display, maps):
+  """
+  Add list/tuple <maps> mappings to the <display>.  These determine what
+  scalars will appear along what axes. See makeMaps, below.
+  """
 
   for map in maps:
     display.addMap(map)
@@ -434,6 +428,28 @@ def addMaps(display, maps):
 # define ScalarMap(s) given pairs of (Type, name)
 # where "name" is taken from the list, below.
 def makeMaps(*a):
+  """
+  Define a list of scalar mappings for each axis and any
+  other one needed.  The parameter list is in pairs:
+  Type, Name.  For example: makeMaps("lat","y", "lon","x")
+  returns a list that maps variable "lat" to the y-axis, and
+  variable "lon" to the x-axis.
+
+  Here is a complete list of available names:
+
+  "x","y","z","lat","lon","rad","list","red","green",
+  "blue","rgb","rgba","hue","saturation","value","hsv","cyan",
+  "magenta","yellow","cmy","alpha","animation","selectvalue",
+  "selectrange","contour","flow1x","flow1y","flow1z",
+  "flow2x","flow2y","flow2z","xoffset","yoffset","zoffset",
+  "shape","text","shapescale","linewidth","pointsize",
+  "cylradius","cylazimuth","cylzaxis",
+  "flow1elev","flow1azimuth","flow1radial",
+  "flow2elev","flow2azimuth","flow2radial","linestyle",
+  "textureenable"
+
+  """
+
   dis = ("x","y","z","lat","lon","rad","list","red","green",
   "blue","rgb","rgba","hue","saturation","value","hsv","cyan",
   "magenta","yellow","cmy","alpha","animation","selectvalue",
@@ -472,6 +488,15 @@ def makeMaps(*a):
 def showDisplay(display, width=300, height=300, 
                 title="VisAD Display", bottom=None, top=None,
                 panel=None):
+  """
+  Quick display of <display> in a separate frame. <width> and
+  <height> give the dimensions of the window; <title> is the
+  text string for the titlebar, <bottom> is a panel to put
+  below the <display>, <top> is a panel to put above the
+  <display>, and <panel> is the panel to put everything into (default
+  is to make a new one)
+  """
+
   myf = myFrame(display, width, height, title, bottom, top, panel)
   return myf
 
@@ -515,11 +540,16 @@ class myFrame:
       self.frame.pack()
       self.frame.show()
 
-# create a (VisADGeometryArray) shape for use with the Shape class
+
 def textShape(string, center=0, font="futural",
                  start=[0.,0.,0.], base=[.1,0.,0.], up=[0.,.1,0.],
                  size=None ):
     
+    """
+    Creates a Shape for the text string given.  For use with the Shape
+    class.  See comments on drawString, above.
+    """
+
     from visad import PlotText
     from visad.util import HersheyFont
     if size != None:
@@ -532,20 +562,31 @@ def textShape(string, center=0, font="futural",
 
 # local shadow methods for addShape and moveShape
 def addShape(type, scale=.1, color=None, index=None, autoScale=1):
+  """
+  Simply a shadow method for addShape in case the user has not
+  made their own.
+  """
   return (__py_shapes.addShape(type, scale, color, index, autoScale))
 
 
 def moveShape(index, coord):
+  """
+  Simply a shadow method for moveShape in case the user has not
+  made their own.
+  """
   __py_shapes.moveShape(index, coord)
 
 
-# defines Shapes for a display
-# note that when a Display is created (makeDisplay) a new Shapes object
-# is also created, in case it is needed by drawString()
-
 class Shapes:
+  """
+  Helper class for handling Shapes within a display.
+  """
 
   def __init__(self, display, shapemap):
+    """
+    <display> is the display this is working with; <shapemap>
+    is the mapping parameter for shapes.
+    """
 
     self.x, self.y, self.z, self.disp = getDisplayMaps(display)
     self.doing3D = 1
@@ -558,13 +599,17 @@ class Shapes:
     self.shapeMap = shapemap
     self.shapeType = shapemap.getScalar()
 
-  # type = type of shape ('cross','triangle','square',
-  #  'solid_square','solid_triangle'
-  # ...or a VisADGeometryArray
-  # scale = relative size for the shape
-  # color = color name (e.g., "green")
-  # index = the index of the shape to replace with this one
   def addShape(self, type, scale=.1, color=None, index=None, autoScale=1):
+    """
+    Add a shape.  Parameters: <type> of shape ('cross','triangle','square',
+    'solid_square','solid_triangle', or a VisADGeometryArray.  <scale> = 
+    relative size for the shape.  <color> = color name (e.g., "green") 
+    <index> = the index of the shape to replace with this one.  If
+    autoScale is true, the shape will be scaled.
+
+    Returns an index to this shape. (For use with moveShape.)
+
+    """
 
     if isinstance(type,VisADGeometryArray): 
 
@@ -657,11 +702,12 @@ class Shapes:
 
     return (self.count)
 
-  # move the shape to a new location
-  # inx = the shape index to move
-  # coordinates = a list or tuple of the coordinates (in the
-  #   same order as returned by 'getDisplayMaps()'
   def moveShape(self, inx, coordinates):
+    """
+    Move the shape pointed to by <inx>, to the <coordinates> which
+    is a list of values in the same order as returned by
+    getDisplayMaps.
+    """
     coord = list(coordinates)
     coord.append(inx)
     shapeLoc = RealTuple(self.shape_coord, coord)
@@ -670,11 +716,17 @@ class Shapes:
 # SelectField aids in showing a series of data objects
 # using the Display.SelectValue.  'data' should be
 # an array of data with same MathTypes
-# getScalarMap() used to get the ScalarMap to add to the display
-# getSelectField() used to get the Field to add() to display
-# showIt(n) called to show only field 'n' out of the group
 class SelectField:
+  """
+  Aids in showing a series of data objects using Display.SelectValue.
+  """
+
   def __init__(this, selectMapName, data):
+    """
+    <selectMapName> is the name of the type to be used for this
+    select map.  <data> is an array/list of data with identical
+    types (MathTypes).
+    """
     selectMap = RealType.getRealType(selectMapName)
     this.selectScalarMap = ScalarMap(selectMap, Display.SelectValue)
     selectType = FunctionType(selectMap, data[0].getType())
@@ -685,6 +737,9 @@ class SelectField:
     this.selectedIndex = -1
 
   def showIt(this, index):
+    """
+    Show only field <index> from this group.
+    """
     if this.selectedIndex == -1:
       this.control = this.selectScalarMap.getControl()
     if index != this.selectedIndex:
@@ -692,7 +747,13 @@ class SelectField:
       this.selectedIndex = index
 
   def getScalarMap(this):
+    """
+    Return the ScalarMap to add to the display for this Select
+    """
     return this.selectScalarMap
 
   def getSelectField(this):
+    """
+    Return the Field to add() to a display.
+    """
     return this.selectField
