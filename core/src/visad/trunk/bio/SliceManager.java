@@ -408,12 +408,11 @@ public class SliceManager
 
   /** DisplayListener method used for detecting mouse activity. */
   public void displayChanged(DisplayEvent e) {
-    int id = e.getId();
-    if (id == DisplayEvent.MOUSE_RELEASED_RIGHT) {
-      if (planeSelect && planeChanged && !continuous) updateSlice();
-      bio.state.saveState(planeSelect && planeChanged);
-      planeChanged = false;
-    }
+    if (e.getId() != DisplayEvent.MOUSE_RELEASED_RIGHT) return;
+    bio.state.saveState(planeSelect && planeChanged);
+    if (e.getDisplay() != bio.display3) return;
+    if (planeSelect && planeChanged && !continuous) updateSlice();
+    planeChanged = false;
   }
 
   /** PlaneListener method used for detecting PlaneSelector changes. */
@@ -874,11 +873,14 @@ public class SliceManager
       if (ps == null) {
         ps = new PlaneSelector(bio.display3);
         ps.addListener(this);
-        bio.display3.addDisplayListener(this);
       }
       ps.init(dtypes[0], dtypes[1], dtypes[2],
         min_x, min_y, min_z, max_x, max_y, max_z);
     }
+
+    // set up display listeners
+    bio.display2.addDisplayListener(this);
+    bio.display3.addDisplayListener(this);
 
     // set up color table characteristics
     bio.toolView.doColorTable();

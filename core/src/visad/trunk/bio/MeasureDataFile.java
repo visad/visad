@@ -324,6 +324,9 @@ public class MeasureDataFile {
         (MeasureGroup) bio.mm.groups.elementAt(data.groupId);
       Measurement m = new Measurement(values, color, group);
       m.stdId = data.stdId;
+      if (m.stdId >= bio.toolMeasure.maxId) {
+        bio.toolMeasure.maxId = m.stdId + 1;
+      }
       list.addMeasurement(m, data.index == index);
     }
 

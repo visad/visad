@@ -37,7 +37,7 @@ import visad.browser.Divider;
  * ViewToolPanel is the tool panel for
  * adjusting viewing parameters.
  */
-public class ViewToolPanel extends ToolPanel {
+public class ViewToolPanel extends ToolPanel implements ItemListener {
 
   // -- CONSTANTS --
 
@@ -228,23 +228,17 @@ public class ViewToolPanel extends ToolPanel {
 
     // red color map widget
     red = new BioColorWidget(bio, BioColorWidget.RED);
-    red.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) { doColorTable(); }
-    });
+    red.addItemListener(this);
     controls.add(pad(red));
 
     // green color map widget
     green = new BioColorWidget(bio, BioColorWidget.GREEN);
-    green.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) { doColorTable(); }
-    });
+    green.addItemListener(this);
     controls.add(pad(green));
 
     // blue color map widget
     blue = new BioColorWidget(bio, BioColorWidget.BLUE);
-    blue.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) { doColorTable(); }
-    });
+    blue.addItemListener(this);
     controls.add(pad(blue));
 
     // divider between color functions and misc functions
@@ -349,6 +343,9 @@ public class ViewToolPanel extends ToolPanel {
 
   // -- INTERNAL API METHODS --
 
+  /** ItemListener method for handling color mapping changes. */
+  public void itemStateChanged(ItemEvent e) { doColorTable(); }
+
   /** Updates image color table, for brightness and color adjustments. */
   void doColorTable() {
     if (ignore) return;
@@ -361,9 +358,15 @@ public class ViewToolPanel extends ToolPanel {
 
   /** Chooses most desirable range types for color widgets. */
   void guessTypes() {
+    red.removeItemListener(this);
+    green.removeItemListener(this);
+    blue.removeItemListener(this);
     red.guessType();
     green.guessType();
     blue.guessType();
+    red.addItemListener(this);
+    green.addItemListener(this);
+    blue.addItemListener(this);
   }
 
   /** Updates x and y slice resolution text fields. */
