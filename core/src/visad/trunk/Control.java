@@ -41,6 +41,8 @@ public abstract class Control extends Object
   private long OldTick;
   /** set by setTicks if OldTick < NewTick; cleared by resetTicks */
   private boolean tickFlag;
+  /** flag to indicate after setTicks and bfore resetTicks */
+  private boolean isSet = false;
 
   /** unique Display this Control is part of */
   transient DisplayImpl display;
@@ -99,13 +101,16 @@ public abstract class Control extends Object
     NewTick += 1;
     if (NewTick == Long.MAX_VALUE) NewTick = Long.MIN_VALUE + 1;
     if (display != null) display.controlChanged();
+// System.out.println(getClass().getName() + "  set  NewTick = " + NewTick);
     return NewTick;
   }
  
   /** set tickFlag according to OldTick and NewTick */
   public synchronized void setTicks() {
+    if (isSet) return; // WLH 22 Aug 99
+    isSet = true;
     tickFlag = (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
-// System.out.println(getClass().getName() + "  set  tickFlag = " + tickFlag);
+// if (tickFlag) System.out.println(getClass().getName() + "  set  tickFlag = " + tickFlag);
     OldTick = NewTick;
     subSetTicks();
   }
@@ -124,18 +129,22 @@ System.out.println(getClass().getName() + "  peek  flag = " + flag +
   /** return true if Control changed and requires re-Transform */
   public synchronized boolean checkTicks(DataRenderer r, DataDisplayLink link) {
 /*
-System.out.println(getClass().getName() + "  check  tickFlag = " + tickFlag +
+boolean flag = (tickFlag && r.isTransformControl(this, link)) || subCheckTicks(r, link);
+if (tickFlag) {
+  System.out.println(getClass().getName() + "  check  tickFlag = " + tickFlag +
                    " trans = " + r.isTransformControl(this, link) + " sub = " +
                    subCheckTicks(r, link));
+}
 */
     return (tickFlag && r.isTransformControl(this, link)) || subCheckTicks(r, link);
   }
 
   /** reset tickFlag */
   public synchronized void resetTicks() {
-// System.out.println(getClass().getName() + "  reset");
+// if (tickFlag) System.out.println(getClass().getName() + "  reset");
     tickFlag = false;
     subResetTicks();
+    isSet = false;
   }
 
   /** run setTicks on any sub-Controls;

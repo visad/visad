@@ -540,7 +540,7 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
 
         // link wind record to a CellImpl that will listen for changes
         // and print them
-        WindGetterJ3D cell = new WindGetterJ3D(refs[k]);
+        WindGetterJ3D cell = new WindGetterJ3D(flow_control, refs[k]);
         cell.addReference(refs[k]);
 
         k++;
@@ -577,8 +577,13 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
 class WindGetterJ3D extends CellImpl {
   DataReferenceImpl ref;
 
-  public WindGetterJ3D(DataReferenceImpl r) {
+  float scale = 0.15f;
+  int count = 20;
+  FlowControl flow_control;
+
+  public WindGetterJ3D(FlowControl f, DataReferenceImpl r) {
     ref = r;
+    flow_control = f;
   }
 
   public void doAction() throws VisADException, RemoteException {
@@ -590,6 +595,14 @@ class WindGetterJ3D extends CellImpl {
     float windy = (float) ((Real) wind.getComponent(1)).getValue();
     System.out.println("wind = (" + windx + ", " + windy + ") at (" +
                        + lat + ", " + lon +")");
+/* a testing hack
+    count--;
+    if (count < 0) {
+      count = 20;
+      scale = 0.15f * 0.3f / scale;
+      flow_control.setFlowScale(scale);
+    }
+*/
   }
 
 }
