@@ -33,6 +33,7 @@ import visad.data.bio.BioRadForm;
 import visad.data.bio.FluoviewTiffForm;
 import visad.data.bio.MetamorphForm;
 import visad.data.bio.OpenlabForm;
+import visad.data.bio.ZVIForm;
 import visad.data.dods.DODSForm;
 import visad.data.fits.FitsForm;
 import visad.data.gif.GIFForm;
@@ -166,6 +167,11 @@ public class DefaultFamily
     }
     try {
       list[i] = new OpenlabForm();
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
+      list[i] = new ZVIForm();
       i++;
     } catch (Throwable t) {
     }
