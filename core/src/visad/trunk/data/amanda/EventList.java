@@ -37,6 +37,19 @@ public abstract class EventList
 
   final void add(Object o) { list.add(o); }
 
+  final void addUnique(Object o)
+  {
+    final int len = list.size();
+    for (int i = 0; i < len; i++) {
+      if (o.equals(list.get(i))) {
+        // don't add duplicates
+        return;
+      }
+    }
+
+    list.add(o);
+  }
+
   public final void dump(java.io.PrintStream out)
   {
     final int num = list.size();
