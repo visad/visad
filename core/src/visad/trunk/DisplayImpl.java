@@ -1802,11 +1802,11 @@ if (initialize) {
           while(maps.hasMoreElements()) {
             ScalarMap map2 = (ScalarMap) maps.nextElement();
             ScalarType real2 = map2.getScalar();
-            index = RealTypeVector.indexOf(real2);
-            if (index < 0) {
+            int index2 = RealTypeVector.indexOf(real2);
+            if (index2 < 0) {
               throw new BadMappingException("Display.removeMap: impossible 1");
             }
-            map.setScalarIndex(index);
+            map2.setScalarIndex(index2);
           }
         } // end if (!any)
       } // end if (real != null)
