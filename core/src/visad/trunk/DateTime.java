@@ -453,9 +453,6 @@ DateTime
     public static Gridded1DDoubleSet makeTimeSet(DateTime[] times)
         throws VisADException
     {
-        if (times == null || times.length < 2)
-            throw new VisADException(
-                "Must be at least 2 times to create a Gridded1DDoubleSet");
         Arrays.sort(times);
         double[][] timeValues = new double[1][times.length];
         for (int i = 0; i < times.length; i++) 
@@ -477,9 +474,6 @@ DateTime
     public static Gridded1DDoubleSet makeTimeSet(double[] times)
         throws VisADException
     {
-        if (times == null || times.length < 2)
-            throw new VisADException(
-                "Must be at least 2 times to create a Gridded1DDoubleSet");
         Arrays.sort(times);
         double[][] alltimes = new double[1][times.length];
         for (int i = 0; i < times.length; i++) alltimes[0][i] = times[i];
@@ -493,7 +487,7 @@ DateTime
      *
      * @throws VisADException  invalid time set or couldn't create DateTimes
      */
-    public static DateTime[] timeSetToArray(Gridded1DDoubleSet timeSet)
+    public static DateTime[] timeSetToArray(Gridded1DSet timeSet)
         throws VisADException
     {
         RealTupleType domainType = ((SetType)timeSet.getType()).getDomain();
