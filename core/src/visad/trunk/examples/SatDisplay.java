@@ -109,10 +109,10 @@ public class SatDisplay {
             // select which band to show...
             ScalarMap rgbmap = new ScalarMap( (RealType) rtype.getComponent(0),
                                               Display.RGB);
+            display.addMap(rgbmap);
             ColorControl control = (ColorControl) rgbmap.getControl();
             control.initGreyWedge();
 
-            display.addMap(rgbmap);
 
             DataReferenceImpl ref_image = new DataReferenceImpl("ref_image");
 
@@ -131,10 +131,8 @@ public class SatDisplay {
     // run 'java -mx64m SatDisplay X 2D' for flat display
     public static void main (String[] args) {
 
-        // String mapFile = "ftp://www.ssec.wisc.edu/pub/visad-2.0/OUTLSUPW";
-        // String areaFile = "ftp://www.ssec.wisc.edu/pub/visad-2.0/AREA2001";
-        String mapFile = "OUTLSUPW";
-        String areaFile = "AREA2001";
+        String mapFile = "ftp://www.ssec.wisc.edu/pub/visad-2.0/OUTLSUPW";
+        String areaFile = "ftp://www.ssec.wisc.edu/pub/visad-2.0/AREA2001";
         boolean threeD = true;
         boolean remap = false;
 
