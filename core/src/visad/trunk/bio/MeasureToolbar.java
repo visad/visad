@@ -69,26 +69,23 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
   /** Label for brightness. */
   private JLabel brightnessLabel;
 
-  /** Label for contrast. */
-  private JLabel contrastLabel;
-
   /** Slider for level of brightness. */
   private JSlider brightness;
-
-  /** Slider for level of contrast. */
-  private JSlider contrast;
 
 
   // -- LINE FUNCTIONS --
 
-  /** Button for removing objects. */
-  private JButton removeThing;
-
   /** Button for distributing measurement object through all focal planes. */
   private JButton setStandard;
 
-  /** Toggle for writing measurement to file. */
-  private JCheckBox measureNow;
+  /** Button for removing objects. */
+  private JButton removeThing;
+
+  /** Label for color list. */
+  private JLabel colorLabel;
+
+  /** List of valid colors. */
+  private JComboBox colorList;
 
   /** Label for group list. */
   private JLabel groupLabel;
@@ -98,12 +95,6 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
 
   /** Button for adding a new group to the list. */
   private JButton newGroup;
-
-  /** Label for color list. */
-  private JLabel colorLabel;
-
-  /** List of valid colors. */
-  private JComboBox colorList;
 
   /** Label for description box. */
   private JLabel descriptionLabel;
@@ -125,6 +116,15 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     add(pane);
     add(Box.createHorizontalStrut(10));
 
+    // controls panel
+    JPanel controls = new JPanel() {
+      public Dimension getMaximumSize() { return getPreferredSize(); }
+    };
+    controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
+    pane.add(controls);
+    pane.add(Box.createVerticalStrut(30));
+    pane.add(Box.createVerticalGlue());
+
     // add line button
     JPanel p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
@@ -136,6 +136,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     });
     addLine.setEnabled(false);
     p.add(addLine);
+    p.add(Box.createHorizontalStrut(5));
 
     // add marker button
     addMarker = new JButton("New marker");
@@ -146,7 +147,8 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     });
     addMarker.setEnabled(false);
     p.add(addMarker);
-    pane.add(pad(p));
+    controls.add(pad(p));
+    controls.add(Box.createVerticalStrut(5));
 
     // grayscale checkbox
     grayscale = new JCheckBox("Grayscale");
@@ -158,26 +160,16 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
       }
     });
     grayscale.setEnabled(false);
-    pane.add(pad(grayscale));
+    controls.add(pad(grayscale));
 
     // brightness label
-    JPanel p2 = new JPanel();
-    p2.setLayout(new BoxLayout(p2, BoxLayout.Y_AXIS));
-    brightnessLabel = new JLabel("Brightness: ");
-    brightnessLabel.setEnabled(false);
-    p2.add(brightnessLabel);
-
-    // contrast label
-    contrastLabel = new JLabel("Contrast: ");
-    contrastLabel.setEnabled(false);
-    p2.add(contrastLabel);
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    p.add(p2);
+    brightnessLabel = new JLabel("Brightness: ");
+    brightnessLabel.setEnabled(false);
+    p.add(brightnessLabel);
 
     // brightness slider
-    p2 = new JPanel();
-    p2.setLayout(new BoxLayout(p2, BoxLayout.Y_AXIS));
     brightness = new JSlider(1, 100, 50);
     brightness.addChangeListener(new ChangeListener() {
       public void stateChanged(ChangeEvent e) {
@@ -185,24 +177,26 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
       }
     });
     brightness.setEnabled(false);
-    p2.add(brightness);
-
-    // contrast slider
-    contrast = new JSlider(1, 100, 50);
-    contrast.addChangeListener(new ChangeListener() {
-      public void stateChanged(ChangeEvent e) {
-        vert.setContrast(contrast.getValue());
-      }
-    });
-    contrast.setEnabled(false);
-    p2.add(contrast);
-    p.add(p2);
-    pane.add(p);
+    p.add(brightness);
+    controls.add(p);
 
     // divider between global functions and object functions
-    pane.add(Box.createVerticalStrut(10));
-    pane.add(new Divider());
-    pane.add(Box.createVerticalStrut(10));
+    controls.add(Box.createVerticalStrut(10));
+    controls.add(new Divider());
+    controls.add(Box.createVerticalStrut(10));
+
+    // set standard button
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    setStandard = new JButton("Set standard");
+    setStandard.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        /* CTR: TODO */ System.out.println("set standard");
+      }
+    });
+    setStandard.setEnabled(false);
+    p.add(setStandard);
+    p.add(Box.createHorizontalStrut(5));
 
     // remove thing button
     removeThing = new JButton("Remove");
@@ -212,27 +206,33 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
       }
     });
     removeThing.setEnabled(false);
-    pane.add(pad(removeThing));
+    p.add(removeThing);
+    controls.add(pad(p));
+    controls.add(Box.createVerticalStrut(5));
 
-    // set standard button
-    setStandard = new JButton("Set standard");
-    setStandard.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        /* CTR: TODO */ System.out.println("set standard");
-      }
-    });
-    setStandard.setEnabled(false);
-    pane.add(pad(setStandard));
+    // color label
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    colorLabel = new JLabel("Color");
+    colorLabel.setEnabled(false);
+    p.add(colorLabel);
 
-    // measure now button
-    measureNow = new JCheckBox("Measure now");
-    measureNow.addItemListener(new ItemListener() {
+    // color list
+    colorList = new JComboBox(COLORS);
+    colorList.setRenderer(new ColorRenderer());
+    colorList.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
-        /* CTR: TODO */ System.out.println("measure now");
+        if (thing instanceof MeasureLine) {
+          MeasureLine line = (MeasureLine) thing;
+          int index = colorList.getSelectedIndex();
+          line.setColor(COLORS[index]);
+        }
       }
     });
-    measureNow.setEnabled(false);
-    pane.add(pad(measureNow));
+    colorList.setEnabled(false);
+    p.add(colorList);
+    controls.add(p);
+    controls.add(Box.createVerticalStrut(5));
 
     // group label
     p = new JPanel();
@@ -269,36 +269,13 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     });
     newGroup.setEnabled(false);
     p.add(newGroup);
-    pane.add(p);
-
-    // color label
-    p = new JPanel();
-    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    colorLabel = new JLabel("Color");
-    colorLabel.setEnabled(false);
-    p.add(colorLabel);
-
-    // color list
-    colorList = new JComboBox(COLORS);
-    colorList.setRenderer(new ColorRenderer());
-    colorList.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
-        if (thing instanceof MeasureLine) {
-          MeasureLine line = (MeasureLine) thing;
-          int index = colorList.getSelectedIndex();
-          line.setColor(COLORS[index]);
-        }
-      }
-    });
-    colorList.setEnabled(false);
-    p.add(colorList);
-    pane.add(p);
+    controls.add(p);
 
     // description label
     descriptionLabel = new JLabel("Description");
     descriptionLabel.setAlignmentX(LEFT);
     descriptionLabel.setEnabled(false);
-    pane.add(pad(descriptionLabel));
+    controls.add(pad(descriptionLabel));
 
     // description box
     descriptionBox = new JTextArea();
@@ -315,11 +292,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
       }
     });
     descriptionBox.setEnabled(false);
-    pane.add(new JScrollPane(descriptionBox));
-
-    // some extra vertical space
-    pane.add(Box.createVerticalStrut(30));
-    pane.add(Box.createVerticalGlue());
+    controls.add(new JScrollPane(descriptionBox));
   }
 
   /** Enables various toolbar controls. */
@@ -328,9 +301,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     addMarker.setEnabled(enabled);
     grayscale.setEnabled(enabled);
     brightnessLabel.setEnabled(enabled);
-    contrastLabel.setEnabled(enabled);
     brightness.setEnabled(enabled);
-    contrast.setEnabled(enabled);
   }
 
   /** Selects the given measurement object. */
@@ -338,14 +309,13 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     this.thing = thing;
     boolean enabled = thing != null;
     boolean line = thing instanceof MeasureLine;
-    removeThing.setEnabled(enabled);
     setStandard.setEnabled(enabled);
-    measureNow.setEnabled(enabled);
+    removeThing.setEnabled(enabled);
+    colorLabel.setEnabled(enabled && line);
+    colorList.setEnabled(enabled && line);
     groupLabel.setEnabled(enabled);
     groupList.setEnabled(enabled);
     newGroup.setEnabled(enabled);
-    colorLabel.setEnabled(enabled && line);
-    colorList.setEnabled(enabled && line);
     descriptionLabel.setEnabled(enabled);
     descriptionBox.setEnabled(enabled);
     if (enabled) {

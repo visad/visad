@@ -35,14 +35,12 @@ public class ImageStackWidget extends StepWidget
 {
 
   private static final int NORMAL_BRIGHTNESS = 50;
-  private static final int NORMAL_CONTRAST = 50;
 
   private ScalarMap smap;
   private AnimationControl control;
   private MeasureMatrix mm;
   private boolean grayscale = false;
   private int brightness = NORMAL_BRIGHTNESS;
-  private int contrast = NORMAL_CONTRAST;
 
   /** Constructs a new ImageStackWidget. */
   public ImageStackWidget(boolean horizontal) { super(horizontal); }
@@ -84,41 +82,19 @@ public class ImageStackWidget extends StepWidget
     doColorTable();
   }
 
-  /** Sets image contrast. */
-  public void setContrast(int contrast) {
-    this.contrast = contrast;
-    doColorTable();
-  }
-
   private void doColorTable() {
     float[][] table = grayscale ?
       ColorControl.initTableGreyWedge(new float[3][256]) :
       ColorControl.initTableVis5D(new float[3][256]);
 
-    // apply brightness
+    // apply brightness (actually gamma correction)
     double gamma = 1.0 -
       (1.0 / NORMAL_BRIGHTNESS) * (brightness - NORMAL_BRIGHTNESS);
-    // CTR: TODO: do brightness, not gamma correction
     for (int i=0; i<256; i++) {
       table[0][i] = (float) Math.pow(table[0][i], gamma);
       table[1][i] = (float) Math.pow(table[1][i], gamma);
       table[2][i] = (float) Math.pow(table[2][i], gamma);
     }
-
-    // apply contrast
-    /* CTR: TODO
-    // compute grayscale table with contrast
-    float[][] table = new float[3][256];
-    double width = 2 * contrast;
-    double base = Math.pow(2, 2 / width);
-    double inc = base / 128;
-    double x = -base;
-    for (int i=0; i<256; i++, x+=inc) {
-      double g = Math.pow(2, -width * x * x - 1);
-      if (x > 0) g = 1 - g;
-      table[0][i] = table[1][i] = table[2][i] = (float) g;
-    }
-    */
 
     // get color control
     DisplayImpl display = mm.getDisplay();
