@@ -652,7 +652,8 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
       String sh_string = Float.toString(shf);
       int point = sh_string.indexOf('.');
       sh_string = sh_string.substring(0, point + 2);
-      double[] start = {x, y - 0.25 * sscale, 0.0};
+      // grf 2 Jun 2004 set z value the same as the barb
+      double[] start = {x, y - 0.25 * sscale, z};
       double[] base = {0.5 * sscale, 0.0, 0.0};
       double[] up = {0.0, 0.5 * sscale, 0.0};
       VisADLineArray array =

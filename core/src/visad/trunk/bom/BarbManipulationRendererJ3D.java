@@ -31,6 +31,7 @@ import visad.java3d.*;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.text.NumberFormat;
 import javax.swing.*;
 import java.util.*;
 import java.rmi.*;
@@ -144,6 +145,14 @@ public class BarbManipulationRendererJ3D extends DirectManipulationRendererJ3D
   private boolean refirst = false;
 
   private boolean stop = false;
+
+  // grf 17 Nov 2003 
+  private boolean noNumbers = true; // for no numbers on wind barbs
+  public boolean getNoNumbers() { return noNumbers; }
+  public void setNoNumbers(boolean flag) { noNumbers = flag; }
+  private int numDecPlaces = 1; // default of 1 decimal place on wind barbs
+  public void setNumDecPlaces(int num) { numDecPlaces = num; }
+  public int getNumDecPlaces() { return numDecPlaces; }
 
   /** pick error offset, communicated from checkClose() to drag_direct() */
   private float offsetx = 0.0f, offsety = 0.0f, offsetz = 0.0f;
@@ -318,7 +327,6 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
 
   public synchronized void drag_direct(VisADRay ray, boolean first,
                                        int mouseModifiers) {
-    // System.out.println("drag_direct " + first + " " + type);
     if (barbValues == null || ref == null || shadow == null) return;
 
     if (first) {
@@ -640,6 +648,7 @@ System.out.println("x = " + x[0] + " " + x[1] +" " + x[2] +
                           float[] vx, float[] vy, float[] vz, int[] numv,
                           float[] tx, float[] ty, float[] tz, int[] numt) {
 
+
     float wsp25,slant,barb,d,c195,s195;
     float x0,y0;
     float x1,y1,x2,y2,x3,y3;
@@ -857,18 +866,62 @@ System.out.println("barb50 " + x1 + " " + y1 + "" + x2 + " " + y2 +
         y1=y3;
       }
 
-      // WLH 24 April 99 - now plot the pole
-      vx[nv] = x;
-      vy[nv] = y;
-      vz[nv] = z;
-      nv++;
-      vx[nv] = x1;
-      vy[nv] = y1;
-      vz[nv] = z;
-      nv++;
+      // grf 17 Nov 2003 change this to shorten the pole and print the speed
+      if (noNumbers) {
+        // WLH 24 April 99 - now plot the pole
+        vx[nv] = x;
+        vy[nv] = y;
+        vz[nv] = z;
+        nv++;
+        vx[nv] = x1;
+        vy[nv] = y1;
+        vz[nv] = z;
+        nv++;
 
-      mbarb[2] = x1;
-      mbarb[3] = y1;
+        mbarb[2] = x1;
+        mbarb[3] = y1;
+      } else { // add numerical value to wind barbs
+        // guess some factors to shorten the start of the pole
+        float start_pole = 0.4f*scale;
+        x1 = (x + x0*start_pole);
+        y1 = (y + y0*start_pole);
+        x2 = (x + x0*d);
+        y2 = (y + y0*d);
+
+        // draw the shaft
+        vx[nv] = x1;
+        vy[nv] = y1;
+        vz[nv] = z;
+        nv++;
+        vx[nv] = x2;
+        vy[nv] = y2;
+        vz[nv] = z;
+        nv++;
+
+        mbarb[2] = x2;
+        mbarb[3] = y2;
+  
+        // draw the speed to 1 dec place by default
+        // Experimental factors in front of scale - get same as Swell
+        NumberFormat nf = NumberFormat.getInstance();
+        nf.setMaximumFractionDigits(numDecPlaces);
+        String speedString = nf.format((double)wnd_spd);
+        // grf 2 Jun 2004 set z value the same as the barb
+        double[] start = {x, y - 0.20*scale, z};
+        double[] base = {0.375*scale, 0.0, 0.0};
+        double up[] = {0.0, 0.375*scale, 0.0};
+        VisADLineArray array = 
+          PlotText.render_label(speedString, start, base, up, true);
+        int nl = array.vertexCount;
+        int k = 0;
+        for (int i=0; i<nl; i++) {
+          vx[nv] = array.coordinates[k++];
+          vy[nv] = array.coordinates[k++];
+          vz[nv] = array.coordinates[k++];
+
+          nv++;
+        }
+      }
     }
     else { // if (wnd_spd < 2.5)
 
@@ -969,6 +1022,9 @@ System.out.println("barb50 " + x1 + " " + y1 + "" + x2 + " " + y2 +
   /** test BarbManipulationRendererJ3D */
   public static void main(String args[])
          throws VisADException, RemoteException {
+
+System.out.println("BMR.main()");
+
     // construct RealTypes for wind record components
     RealType lat = RealType.Latitude;
     RealType lon = RealType.Longitude;
