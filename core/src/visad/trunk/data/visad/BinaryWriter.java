@@ -88,6 +88,16 @@ public class BinaryWriter
     file = null;
   }
 
+  private int computeDelaunayBytes(Delaunay d)
+  {
+    return (1 +
+            1 + computeIntegerMatrixBytes(d.Tri) +
+            1 + computeIntegerMatrixBytes(d.Vertices) +
+            1 + computeIntegerMatrixBytes(d.Walk) +
+            1 + computeIntegerMatrixBytes(d.Edges) +
+            6);
+  }
+
   private int computeDoubleArrayBytes(double[] array)
   {
     return (array == null ? 0 : 4 + (array.length * 8));
@@ -2134,7 +2144,13 @@ if(DEBUG_DATA)System.err.println("wrIrrSet: punt "+set.getClass().getName());
       errorsIndex = writeErrorEstimates(errors);
     }
 
-    final int objLen = -1;
+    final int objLen = 5 +
+      1 + computeFloatMatrixBytes(samples) +
+      (csIndex < 0 ? 0 : 5) +
+      (unitsIndex == null ? 0 : 1 + computeIntegerArrayBytes(unitsIndex)) +
+      (errorsIndex == null ? 0 : 1 + computeIntegerArrayBytes(errorsIndex)) +
+      (delaunay == null ? 0 : computeDelaunayBytes(delaunay)) +
+      1;
 
     try {
       file.writeByte(OBJ_DATA);
