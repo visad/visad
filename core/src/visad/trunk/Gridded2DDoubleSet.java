@@ -196,6 +196,10 @@ public class Gridded2DDoubleSet extends Gridded2DSet
                ErrorEstimate[] errors, boolean copy)
                throws VisADException {
     super(type, null, lengthX, coord_sys, units, errors, copy);
+    if (samples == null) {
+      throw new SetException("Gridded2DDoubleSet: samples are null");
+    }
+    init_doubles(samples, copy);
     LowX = Low[0];
     HiX = Hi[0];
     LengthX = Lengths[0];
