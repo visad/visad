@@ -94,9 +94,17 @@ class MonitorSyncer
 
   public MonitorEvent getEvent(Object key)
   {
+    MonitorEvent evt;
     synchronized (cacheLock) {
-      return (MonitorEvent )eventCache.remove(key);
+      evt = (MonitorEvent )eventCache.remove(key);
     }
+
+    // mark message as coming from this connection, so we don't see it again
+    if (evt != null) {
+      evt.setOriginator(id);
+    }
+
+    return evt;
   }
 
   /**
