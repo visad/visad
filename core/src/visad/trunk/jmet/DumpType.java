@@ -96,8 +96,14 @@ public class DumpType {
       }
 
     } else if (d instanceof FieldImpl) {
+      int nd = ((FieldImpl)d).getDomainDimension();
+      Set ds = ((FieldImpl)d).getDomainSet() ;
       System.out.println(prefix+" FieldImpl of length = "+
              ((FieldImpl)d).getLength() );
+      System.out.println(prefix+ " "+
+             ((FieldImpl)d).getType(). prettyString());
+      System.out.println(prefix+" Domain has "+nd+" components:");
+      dumpDT(ds, prefix+"  ");
       System.out.println(prefix+" first sample = ");
       dumpDT( ((FieldImpl)d).getSample(0),prefix+"   "+0+".");
 
