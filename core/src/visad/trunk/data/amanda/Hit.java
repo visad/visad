@@ -29,7 +29,10 @@ import visad.RealTupleType;
 import visad.RealType;
 import visad.VisADException;
 
+import visad.util.Util;
+
 public class Hit
+  implements Comparable
 {
   public static final RealType amplitudeType =
     RealType.getRealType("Hit_Amplitude");
@@ -66,6 +69,51 @@ public class Hit
     this.leadEdgeTime = leadEdgeTime;
     this.timeOverThreshold = timeOverThreshold;
   }
+
+  public int compareTo(Object obj)
+  {
+    if (!(obj instanceof Hit)) {
+      return getClass().toString().compareTo(obj.getClass().toString());
+    }
+
+    return compareTo((Hit )obj);
+  }
+
+  public int compareTo(Hit h)
+  {
+    if (!Util.isApproximatelyEqual(leadEdgeTime, h.leadEdgeTime)) {
+      if (leadEdgeTime < h.leadEdgeTime) {
+        return -1;
+      }
+
+      return 1;
+    }
+
+    if (!Util.isApproximatelyEqual(timeOverThreshold, h.timeOverThreshold)) {
+      if (timeOverThreshold < h.timeOverThreshold) {
+        return -1;
+      }
+
+      return 1;
+    }
+
+    if (!Util.isApproximatelyEqual(amplitude, h.amplitude)) {
+      if (amplitude < h.amplitude) {
+        return -1;
+      }
+
+      return 1;
+    }
+
+    return mod.compareTo(h.mod);
+  }
+
+  public boolean equals(Object obj) { return (compareTo(obj) == 0); }
+
+  public final float getAmplitude() { return amplitude; }
+  public final float getLeadingEdgeTime() { return leadEdgeTime; }
+  public final Module getModule() { return mod; }
+  public final float getTimeOverThreshold() { return timeOverThreshold; }
 
   final RealTuple makeData()
     throws VisADException
