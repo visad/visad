@@ -172,7 +172,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   public DisplayImpl(RemoteDisplay rmtDpy, DisplayRenderer renderer,
                      boolean cl)
          throws VisADException, RemoteException {
-    super(rmtDpy.getName());
+    // super(rmtDpy.getName());
+    super(rmtDpy.getName() + ".remote"); // WLH 11 April 2001
 
     cluster = cl;
 
@@ -912,7 +913,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   /** a Display is runnable;
       doAction is invoked by any event that requires a re-transform */
   public void doAction() throws VisADException, RemoteException {
-// System.out.println("doAction start");
     if (mapslock == null) return;
     synchronized (mapslock) {
       if (RendererVector == null || displayRenderer == null) {

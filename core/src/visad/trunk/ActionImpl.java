@@ -220,6 +220,7 @@ public abstract class ActionImpl
   public void run() {
     currentActionThread = Thread.currentThread();
     synchronized (lockEnabled) {
+// if (getName() != null) System.out.println("ENABLED = " + enabled + " " + getName());
       if (enabled) {
         try {
           setTicks();
