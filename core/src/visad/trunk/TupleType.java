@@ -141,6 +141,19 @@ public class TupleType extends MathType {
     }
   }
 
+  public int getIndex(String name) {
+    return getIndex(RealType.getRealTypeByName(name));
+  }
+
+  public int getIndex(MathType type) {
+    for (int i=0; i<tupleComponents.length; i++) {
+      if (tupleComponents[i].equals(type)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   public boolean equals(Object type) {
     if (!(type instanceof TupleType)) return false;
     try {
