@@ -2489,56 +2489,68 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
         break;
       case ACOS:
         for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Math.acos(valuesJ[i]);
-          }
-          units_out[j] = CommonUnit.radian;
+	  valuesJ = values[j];
+	  for (i=0; i<Length; i++) {
+	    valuesJ[i] = Math.acos(valuesJ[i]);
+	  }
+	  units_out[j] = units_in[j] == null || !units_in[j].isDimensionless()
+            ? (Unit)null
+	    : CommonUnit.radian;
         }
         break;
       case ACOS_DEGREES:
         for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Data.RADIANS_TO_DEGREES * Math.acos(valuesJ[i]);
-          }
-          units_out[j] = CommonUnit.degree;
+	  valuesJ = values[j];
+	  for (i=0; i<Length; i++) {
+	    valuesJ[i] = Data.RADIANS_TO_DEGREES * Math.acos(valuesJ[i]);
+	  }
+	  units_out[j] = units_in[j] == null || !units_in[j].isDimensionless()
+            ? (Unit)null
+	    : CommonUnit.degree;
         }
         break;
       case ASIN:
         for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Math.asin(valuesJ[i]);
-          }
-          units_out[j] = CommonUnit.radian;
+	  valuesJ = values[j];
+	  for (i=0; i<Length; i++) {
+	    valuesJ[i] = Math.asin(valuesJ[i]);
+	  }
+	  units_out[j] = units_in[j] == null || !units_in[j].isDimensionless()
+            ? (Unit)null
+	    : CommonUnit.radian;
         }
         break;
       case ASIN_DEGREES:
         for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Data.RADIANS_TO_DEGREES * Math.asin(valuesJ[i]);
-          }
-          units_out[j] = CommonUnit.degree;
+	  valuesJ = values[j];
+	  for (i=0; i<Length; i++) {
+	    valuesJ[i] = Data.RADIANS_TO_DEGREES * Math.asin(valuesJ[i]);
+	  }
+	  units_out[j] = units_in[j] == null || !units_in[j].isDimensionless()
+            ? (Unit)null
+	    : CommonUnit.degree;
         }
         break;
       case ATAN:
         for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Math.atan(valuesJ[i]);
-          }
-          units_out[j] = CommonUnit.radian;
+	  valuesJ = values[j];
+	  for (i=0; i<Length; i++) {
+	    valuesJ[i] = Math.atan(valuesJ[i]);
+	  }
+	  units_out[j] = units_in[j] == null || !units_in[j].isDimensionless()
+            ? (Unit)null
+	    : CommonUnit.radian;
         }
         break;
       case ATAN_DEGREES:
         for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Data.RADIANS_TO_DEGREES * Math.atan(valuesJ[i]);
-          }
-          units_out[j] = CommonUnit.degree;
+	  valuesJ = values[j];
+	  for (i=0; i<Length; i++) {
+	    valuesJ[i] = Data.RADIANS_TO_DEGREES * Math.atan(valuesJ[i]);
+	  }
+	  units_out[j] = units_in[j] == null || !units_in[j].isDimensionless()
+            ? (Unit)null
+	    : CommonUnit.degree;
         }
         break;
       case CEIL:
@@ -2551,48 +2563,43 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
         }
         break;
       case COS:
-        // do cos in degrees, unless unit is radians
         for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          if (CommonUnit.degree.equals(units_in[j])) {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.cos(Data.DEGREES_TO_RADIANS * valuesJ[i]);
-            }
-          }
-          else {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.cos(valuesJ[i]);
-            }
-          }
-          units_out[j] =
-            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+	  valuesJ = values[j];
+	  for (i=0; i<Length; i++) {
+	    valuesJ[i] = Math.cos(valuesJ[i]);
+	  }
+	  units_out[j] = units_in[j] == null || !units_in[j].isDimensionless()
+            ? (Unit)null
+	    : CommonUnit.dimensionless;
         }
         break;
       case COS_DEGREES:
         for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          if (CommonUnit.radian.equals(units_in[j])) {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.cos(valuesJ[i]);
-            }
-          }
-          else {
+          if (units_in[j] == null || !units_in[j].isDimensionless()) {
+            valuesJ = values[j];
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.cos(Data.DEGREES_TO_RADIANS * valuesJ[i]);
             }
+            units_out[j] = null;
           }
-          units_out[j] =
-            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+          else {
+            valuesJ = values[j];
+            for (i=0; i<Length; i++) {
+              valuesJ[i] = Math.cos(valuesJ[i]);
+            }
+            units_out[j] = CommonUnit.dimensionless;
+          }
         }
         break;
       case EXP:
         for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Math.exp(valuesJ[i]);
-          }
-          units_out[j] =
-            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+	  valuesJ = values[j];
+	  for (i=0; i<Length; i++) {
+	    valuesJ[i] = Math.exp(valuesJ[i]);
+	  }
+	  units_out[j] = units_in[j] == null || !units_in[j].isDimensionless()
+            ? (Unit)null
+	    : CommonUnit.dimensionless;
         }
         break;
       case FLOOR:
@@ -2606,12 +2613,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
         break;
       case LOG:
         for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Math.log(valuesJ[i]);
-          }
-          units_out[j] =
-            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+	  valuesJ = values[j];
+	  for (i=0; i<Length; i++) {
+	    valuesJ[i] = Math.log(valuesJ[i]);
+	  }
+	  units_out[j] = units_in[j] == null || !units_in[j].isDimensionless()
+            ? (Unit)null
+	    : CommonUnit.dimensionless;
         }
         break;
       case RINT:
@@ -2634,36 +2642,31 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
         break;
       case SIN:
         for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          if (CommonUnit.degree.equals(units_in[j])) {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.sin(Data.DEGREES_TO_RADIANS * valuesJ[i]);
-            }
-          }
-          else {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.sin(valuesJ[i]);
-            }
-          }
-          units_out[j] =
-            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+	  valuesJ = values[j];
+	  for (i=0; i<Length; i++) {
+	    valuesJ[i] = Math.sin(valuesJ[i]);
+	  }
+	  units_out[j] = units_in[j] == null || !units_in[j].isDimensionless()
+            ? (Unit)null
+	    : CommonUnit.dimensionless;
         }
         break;
       case SIN_DEGREES:
         for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          if (CommonUnit.radian.equals(units_in[j])) {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.sin(valuesJ[i]);
-            }
-          }
-          else {
+          if (units_in[j] == null || !units_in[j].isDimensionless()) {
+            valuesJ = values[j];
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.sin(Data.DEGREES_TO_RADIANS * valuesJ[i]);
             }
+            units_out[j] = null;
           }
-          units_out[j] =
-            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+          else {
+            valuesJ = values[j];
+            for (i=0; i<Length; i++) {
+              valuesJ[i] = Math.sin(valuesJ[i]);
+            }
+            units_out[j] = CommonUnit.dimensionless;
+          }
         }
         break;
       case SQRT:
@@ -2693,36 +2696,31 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
         break;
       case TAN:
         for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          if (CommonUnit.degree.equals(units_in[j])) {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.tan(Data.DEGREES_TO_RADIANS * valuesJ[i]);
-            }
-          }
-          else {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.tan(valuesJ[i]);
-            }
-          }
-          units_out[j] =
-            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+	  valuesJ = values[j];
+	  for (i=0; i<Length; i++) {
+	    valuesJ[i] = Math.tan(valuesJ[i]);
+	  }
+	  units_out[j] = units_in[j] == null || !units_in[j].isDimensionless()
+            ? (Unit)null
+	    : CommonUnit.dimensionless;
         }
         break;
       case TAN_DEGREES:
         for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          if (CommonUnit.radian.equals(units_in[j])) {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.tan(valuesJ[i]);
-            }
-          }
-          else {
+          if (units_in[j] == null || !units_in[j].isDimensionless()) {
+            valuesJ = values[j];
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.tan(Data.DEGREES_TO_RADIANS * valuesJ[i]);
             }
+            units_out[j] = null;
           }
-          units_out[j] =
-            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+          else {
+            valuesJ = values[j];
+            for (i=0; i<Length; i++) {
+              valuesJ[i] = Math.tan(valuesJ[i]);
+            }
+            units_out[j] = CommonUnit.dimensionless;
+          }
         }
         break;
       case NEGATE:
@@ -2776,20 +2774,27 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    * @param values              The numeric values.  On output,
    *                            <code>values[i]</code> will have been replaced
    *                            if necessary.
-   * @param units               The units for the values and error estimates.
+   * @param units               On input, the input units for the values and 
+   *                            error estimates; on output, the 
+   *                            output units for the same..
    *                            It's length shall be <code>values.length</code>.
    *                            On output, <code>units[i]</code> will have been
-   *                            replaced with the absolute form of the input
-   *                            unit if necessary.
+   *                            replaced with the output unit.
    * @param errors              The error estimates.  It's length shall be
    *                            <code>values.length</code>.  On output,
    *                            <code>errors[i]</code> will have been replaced
    *                            if necessary.
-   * @throws UnitException	Unit conversion error.
+   * @throws UnitException	if a unit conversion error occurs.  Not likely.
+   * @IllegalArgumentException  if <code>values.length != units.length</code> or
+   *                            <code>values.length != errors.length</code>.
+   * @throws NullPointerException if any argument is <code>null</code>.
    */
   protected static void makeRational(double[][] values, Unit[] units,
     ErrorEstimate[] errors) throws UnitException
   {
+    if (values.length != units.length || values.length != errors.length)
+      throw new IllegalArgumentException();
+
     for (int j=0; j<values.length; j++) {
       Unit	inputUnit = units[j];
       if (inputUnit != null && !(inputUnit instanceof PromiscuousUnit)) {

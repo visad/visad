@@ -691,16 +691,28 @@ public class RealType extends ScalarType {
       case Data.ACOS:
       case Data.ASIN:
       case Data.ATAN:
-        newUnit = CommonUnit.radian;
-        newName = getUniqueGenericName( names, newUnit.toString() );
+        if ( DefaultUnit == null || !DefaultUnit.isDimensionless()) {
+          newUnit = null;
+          newName = getUniqueGenericName( names, "nullUnit" );
+        }
+        else {
+	  newUnit = CommonUnit.radian;
+          newName = getUniqueGenericName(names, newUnit.toString());
+        }
         newType = getRealType(newName, newUnit, newAttrMask);
         break;
 
       case Data.ACOS_DEGREES:
       case Data.ASIN_DEGREES:
       case Data.ATAN_DEGREES:
-        newUnit = CommonUnit.degree;
-        newName = getUniqueGenericName( names, "deg" );
+        if ( DefaultUnit == null || !DefaultUnit.isDimensionless()) {
+          newUnit = null;
+          newName = getUniqueGenericName( names, "nullUnit" );
+        }
+        else {
+	  newUnit = CommonUnit.degree;
+          newName = getUniqueGenericName(names, newUnit.toString());
+        }
         newType = getRealType(newName, newUnit, newAttrMask);
         break;
 
@@ -712,18 +724,17 @@ public class RealType extends ScalarType {
       case Data.TAN_DEGREES:
       case Data.EXP:
       case Data.LOG:
-        if ( DefaultUnit == null ) {
-          newType = this;
-          break;
+        if ( DefaultUnit == null || !DefaultUnit.isDimensionless()) {
+          newUnit = null;
+          newName = getUniqueGenericName( names, "nullUnit" );
         }
         else {
-          newUnit = Unit.canConvert(CommonUnit.dimensionless, DefaultUnit)
-            ? CommonUnit.dimensionless : null;
-          String ext = (newUnit == null) ? "nullUnit" : newUnit.toString();
-          newName = getUniqueGenericName( names, ext );
-          newType = getRealType(newName, newUnit, newAttrMask);
+          newUnit = CommonUnit.dimensionless;
+          newName = getUniqueGenericName(names, newUnit.toString());
         }
+        newType = getRealType(newName, newUnit, newAttrMask);
         break;
+
       case Data.SQRT:
         if ( DefaultUnit == null ) {
           newType = this;
