@@ -76,6 +76,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
   int NumVisY;
   int NumVisDisplays;
 
+  // server for spreadsheet cells, if any
+  RemoteServerImpl rsi = null;
+
   // whether this JVM supports Java3D (detected on SpreadSheet launch)
   boolean CanDo3D = true;
 
@@ -688,7 +691,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         rdri[i] = DisplayCells[i%NumVisX][i/NumVisX].getRemoteDataRef();
       }
       try {
-        RemoteServerImpl rsi = new RemoteServerImpl(rdri);
+        rsi = new RemoteServerImpl(rdri);
         Naming.rebind("//:/" + server, rsi);
       }
       catch (java.rmi.ConnectException exc) {
@@ -1119,6 +1122,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
           fcells[NumVisX][j].setDisplayListener(this);
           fcells[NumVisX][j].setPreferredSize(new Dimension(MIN_VIS_WIDTH,
                                                             MIN_VIS_HEIGHT));
+          if (rsi != null) {
+            rsi.setDataReference(NumVisX*NumVisY+j,
+                                 fcells[NumVisX][j].getRemoteDataRef());
+          }
         }
         catch (VisADException exc) {
           JOptionPane.showMessageDialog(this, "Cannot create displays.",
@@ -1206,6 +1213,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
         fcells[i][NumVisY].setDisplayListener(this);
         fcells[i][NumVisY].setPreferredSize(new Dimension(MIN_VIS_WIDTH,
                                                           MIN_VIS_HEIGHT));
+        if (rsi != null) {
+          rsi.setDataReference(NumVisX*NumVisY+i,
+                               fcells[i][NumVisY].getRemoteDataRef());
+        }
       }
       catch (VisADException exc) {
         JOptionPane.showMessageDialog(this, "Cannot create displays.",
