@@ -85,9 +85,6 @@ public class NuView
 
     AmandaFile file = openFile(fileName);
 
-    final FieldImpl amanda = file.makeEventData(timeSequence);
-    final FieldImpl modules = file.makeModuleData();
-
     display = new DisplayImplJ3D("amanda");
 
     final double halfRange = getMaxRange(file) / 2.0;
@@ -155,12 +152,15 @@ public class NuView
     DisplayRenderer displayRenderer = display.getDisplayRenderer();
     displayRenderer.setBoxOn(false);
 
-    final DataReferenceImpl amandaRef = new DataReferenceImpl("amanda");
+    final FieldImpl eventsFld = file.makeEventData(timeSequence);
+    final FieldImpl modulesFld = file.makeModuleData();
+
+    final DataReferenceImpl eventRef = new DataReferenceImpl("event");
     // data set by eventWidget below
-    display.addReference(amandaRef);
+    display.addReference(eventRef);
 
     final DataReferenceImpl modulesRef = new DataReferenceImpl("modules");
-    modulesRef.setData(modules);
+    modulesRef.setData(modulesFld);
     display.addReference(modulesRef);
 
     LabeledColorWidget colorWidget = new LabeledColorWidget(colorMap);
@@ -168,7 +168,7 @@ public class NuView
     //   (if we don't left-align, BoxLayout hoses everything)
     colorWidget.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-    EventWidget eventWidget = new EventWidget(file, amanda, amandaRef,
+    EventWidget eventWidget = new EventWidget(file, eventsFld, eventRef,
                                               trackMap);
 
     AnimationWidget animWidget;

@@ -26,8 +26,8 @@ public class EventWidget
   extends JPanel
 {
   private AmandaFile fileData;
-  private FieldImpl amanda;
-  private DataReferenceImpl amandaRef;
+  private FieldImpl eventFld;
+  private DataReferenceImpl eventRef;
 
   private GregorianCalendar cal;
 
@@ -37,22 +37,22 @@ public class EventWidget
 
   private Event thisEvent;
 
-  public EventWidget(AmandaFile fileData, FieldImpl amanda,
-                     DataReferenceImpl amandaRef)
+  public EventWidget(AmandaFile fileData, FieldImpl eventFld,
+                     DataReferenceImpl eventRef)
     throws RemoteException, VisADException
   {
-    this(fileData, amanda, amandaRef, null);
+    this(fileData, eventFld, eventRef, null);
   }
 
-  public EventWidget(AmandaFile fileData, FieldImpl amanda,
-                     DataReferenceImpl amandaRef, ScalarMap trackMap)
+  public EventWidget(AmandaFile fileData, FieldImpl eventFld,
+                     DataReferenceImpl eventRef, ScalarMap trackMap)
     throws RemoteException, VisADException
   {
     super();
 
     this.fileData = fileData;
-    this.amanda = amanda;
-    this.amandaRef = amandaRef;
+    this.eventFld = eventFld;
+    this.eventRef = eventRef;
 
     cal = new GregorianCalendar();
 
@@ -66,7 +66,7 @@ public class EventWidget
     }
     dateLabel = new JLabel();
 
-    slider = buildSlider(amanda);
+    slider = buildSlider(eventFld);
 
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
@@ -75,12 +75,12 @@ public class EventWidget
     if (trackWidget != null) add(trackWidget);
   }
 
-  private VisADSlider buildSlider(FieldImpl amanda)
+  private VisADSlider buildSlider(FieldImpl eventFld)
     throws RemoteException, VisADException
   {
     final DataReferenceImpl eventRef = new DataReferenceImpl("event");
 
-    final int nEvents = amanda.getLength();
+    final int nEvents = eventFld.getLength();
 
     VisADSlider slider = new VisADSlider("event", 0, nEvents - 1, 0, 1.0,
                                          eventRef, Event.indexType, true);
@@ -145,7 +145,7 @@ public class EventWidget
   private void indexChanged(int index)
     throws RemoteException, VisADException
   {
-    amandaRef.setData(amanda.getSample(index));
+    eventRef.setData(eventFld.getSample(index));
 
     thisEvent = fileData.getEvent(index);
     if (thisEvent == null) {
