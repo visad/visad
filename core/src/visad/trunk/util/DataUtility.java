@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.TreeSet;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.Comparator;
 
 // RMI classes
 import java.rmi.RemoteException;
@@ -455,50 +456,140 @@ public class DataUtility extends Object {
   }
 
   /**
-   * Ensures that the range of a FieldImpl is a given type.
+   * Ensures that the range of a FieldImpl is a given type.  Extracts from
+   * the input field only if necessary.
    * @param field		The input field.
    * @param rangeType		The desired type of range for the resulting
    *				field.
-   * @param alwaysNew           Whether or not to always create a new field.
-   *                            If <code>false</code> and the input field
-   *                            is exactly what is desired, then the input
-   *                            field will simply be returned; otherwise, an
-   *                            extraction will always be performed.
-   * @return			A field with the desired range.
-   * @throws TypeException	A field with the given range cannot be created
-   *				from the input field.
+   * @return			A field with the desired range type.  The range
+   *				data will be missing, however, if <em>all</em>
+   *				of it couldn't be extracted from the input
+   *				Field (i.e. 
+   *				RETURN_VALUE<code>.isMissing()</code> will be
+   *				true.
    * @throws VisADException	Couldn't create necessary VisAD object.
    * @throws RemoteException	Java RMI failure.
    */
   public static FieldImpl
-  ensureRange(FieldImpl field, MathType rangeType, boolean alwaysNew)
-    throws TypeException, VisADException, RemoteException
+  ensureRange(FieldImpl field, MathType rangeType)
+    throws VisADException, RemoteException
   {
+    MathType	oldRangeType = getRangeType(field);
     FieldImpl	result;
-    if (rangeType.equals(getRangeType(field)))
+    if (rangeType.equals(oldRangeType))
     {
-      result = alwaysNew ? (FieldImpl)field.clone() : field;
+      result = field;
     }
     else
     {
-      result = null;
-      TupleType	rangeTuple = ensureTupleType(rangeType);
-      int	componentCount = rangeTuple.getDimension();
+      TupleType	newRangeTupleType = ensureTupleType(rangeType);
+      TupleType	oldRangeTupleType = ensureTupleType(oldRangeType);
+      int	componentCount = newRangeTupleType.getDimension();
+      boolean	hasAll = true;
       for (int i = 0; i < componentCount; i++)
       {
-	int	componentIndex =
-	  getComponentIndex(field, rangeTuple.getComponent(i));
-	if (componentIndex < 0)
-	  throw new TypeException("The range of field \"" + field + 
-	    "\" doesn't contain component \"" + rangeType + '"');
-	result =
-	  result == null
-	    ? (FieldImpl)field.extract(componentIndex)
-	    : (FieldImpl)FieldImpl.combine(
+	if (getComponentIndex(
+	  oldRangeTupleType, newRangeTupleType.getComponent(i)) < 0)
+	{
+	  hasAll = false;
+	  break;
+	}
+      }
+      if (!hasAll)
+      {
+	FunctionType	newFuncType = 
+	  new FunctionType(getDomainType(field), rangeType);
+	result = 
+	  newRangeTupleType.getFlat()
+	    ? (FieldImpl)new FlatField(newFuncType, field.getDomainSet())
+	    : new FieldImpl(newFuncType, field.getDomainSet());
+      }
+      else
+      {
+	result = null;
+	for (int i = 0; i < componentCount; i++)
+	{
+	  int	componentIndex = getComponentIndex(
+	    oldRangeTupleType, newRangeTupleType.getComponent(i));
+	  result =
+	    result == null
+	      ? (FieldImpl)field.extract(componentIndex)
+	      : (FieldImpl)FieldImpl.combine(
 		new Field[] {result, field.extract(componentIndex)});
+	}
       }
     }
     return result;
+  }
+
+  /**
+   * Provides support for comparing RealTuple-s of the same RealTupleType.
+   *
+   * @author Steven R. Emmerson
+   */
+  public static final class
+  RealTupleComparator
+    implements Comparator
+  {
+    /**
+     * The single instance.
+     */
+    public static final RealTupleComparator	INSTANCE =
+      new RealTupleComparator();
+
+    /**
+     * Constructs from nothing.
+     */
+    private
+    RealTupleComparator()
+    {}
+
+    /**
+     * Compares two RealTuple-s of the same RealTupleType.
+     *
+     * @param obj1		The first RealTuple.
+     * @param obj2		The second RealTuple.  It shall have the same
+     *				RealTupleType as the first RealTuple.
+     * @return			A negative integer, zero, or a positive integer
+     *				as the first RealTuple is less than, equal to,
+     *				or greater than the second RealTuple.
+     * @throws ClassCastException
+     *                          The types of the arguments prevent this
+     *                          comparator from comparing them.
+     */
+    public int
+    compare(Object obj1, Object obj2)
+      throws ClassCastException
+    {
+      RealTuple	realTuple1 = (RealTuple)obj1;
+      RealTuple	realTuple2 = (RealTuple)obj2;
+      try
+      {
+	int		rank = realTuple1.getDimension();
+	int		comp = 0;
+	/*
+	 * Because Set rasterization has the last component as the outermost
+	 * dimension, the last tuple component is treated as the grossest one
+	 * for the purpose of comparison.  Hence, components are compared in
+	 * decreasing order.
+	 */
+	for (int i = rank; --i >= 0 && comp == 0; )
+	  comp = ((Real)realTuple1.getComponent(i)).compareTo(
+	    ((Real)realTuple2.getComponent(i)));
+	return comp;
+      }
+      catch (Exception e)
+      {
+	/*
+	 * This is the only checked exception a Comparator is allowed to throw.
+	 * The original exception could be either a visad.VisADException or a 
+	 * java.rmi.RemoteException.
+	 */
+	String	reason = e.getMessage();
+	throw new ClassCastException("Can't compare RealTuple-s" +
+	  (reason == null ? "" : ": " + reason));
+      }
+    }
   }
 
   /**
@@ -506,11 +597,13 @@ public class DataUtility extends Object {
    * @param fields		The fields to consolidate.  Each field shall
    *				have the same FunctionType.
    * @return                    The input Fields consolidated into one Field.
-   *                            The FunctionType shall be the same as that of
-   *                            the input Field-s.  When more than one input
-   *                            Field has valid range data for the same domain
-   *                            point, it is unspecified which range datum is
-   *                            used for the output Field.
+   *                            The domain shall be a GriddedSet comprising the
+   *                            union of the sample points of the fields.  The
+   *                            FunctionType shall be the same as that of the
+   *                            input Field-s.  When more than one input Field
+   *                            has valid range data for the same domain point,
+   *                            it is unspecified which range datum is used for
+   *                            the output Field.
    * @throws FieldException	The Field array has zero length.
    * @throws TypeException	Input Field-s not all same type.
    * @throws VisADException	Couldn't create necessary VisAD object.
@@ -518,7 +611,7 @@ public class DataUtility extends Object {
    */
   public static Field
   consolidate(Field[] fields)
-    throws VisADException, RemoteException
+    throws FieldException, TypeException, VisADException, RemoteException
   {
     /*
      * Determine the consolidated domain.
@@ -527,7 +620,8 @@ public class DataUtility extends Object {
       throw new FieldException(
 	DataUtility.class.getName() + "(Field[]): Zero fields to consolidate");
     FunctionType	funcType = (FunctionType)fields[0].getType();
-    TreeSet		consolidatedDomainTuples = new TreeSet();
+    TreeSet		consolidatedDomainTuples = 
+      new TreeSet(RealTupleComparator.INSTANCE);
     for (int i = fields.length; --i >= 0; )
     {
 	Field	field = fields[i];
@@ -560,11 +654,15 @@ public class DataUtility extends Object {
 	  (float)((Real)domainTuple.getComponent(i)).getValue(domainUnits[i]);
       ++sampleIndex;
     }
-    int[]	lengths = new int[domainFloats.length];
-    for (int i = lengths.length; --i >= 0; )
-      lengths[i] = domainFloats[i].length;
-    GriddedSet	consolidatedDomain = 
-      GriddedSet.create(getDomainType(field), domainFloats, lengths);
+    SampledSet	consolidatedDomain =
+      domainFloats.length == 1
+	? (SampledSet)new Gridded1DSet(
+	    getDomainType(field), domainFloats, domainFloats[0].length)
+	: domainFloats.length == 2
+	  ? (SampledSet)new Irregular2DSet(getDomainType(field), domainFloats)
+	  : domainFloats.length == 3
+	    ? (SampledSet)new Irregular3DSet(getDomainType(field), domainFloats)
+	    : (SampledSet)new IrregularSet(getDomainType(field), domainFloats);
     Field	consolidatedField = 
       field instanceof FlatField
 	? new FlatField(funcType, consolidatedDomain)
