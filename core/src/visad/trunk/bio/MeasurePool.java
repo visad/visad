@@ -228,7 +228,6 @@ public class MeasurePool implements DisplayListener {
         if (boxRenderer == null) return;
         GriddedSet set = (GriddedSet) rubberBand.getData();
         float[][] samples = null;
-        boolean stdPts = false;
         try { samples = set.getSamples(); }
         catch (VisADException exc) { exc.printStackTrace(); }
         if (samples == null) return;
@@ -249,25 +248,12 @@ public class MeasurePool implements DisplayListener {
             // skip points that are not on this slice
             if (point.z != slice) continue;
 
-            // check for standard point
-            if (point.stdId >= 0) {
-              stdPts = true;
-              continue;
-            }
-
             // check for containment
             if (BioUtil.contains(x1, y1, x2, y2, point.x, point.y)) {
               sum_x += point.x;
               sum_y += point.y;
               mpts.add(point);
             }
-          }
-
-          // warn user if standard points are involved
-          if (stdPts) {
-            JOptionPane.showMessageDialog(bio, "Some points within the " +
-              "merge box are standard and will not be merged.", "Warning",
-              JOptionPane.WARNING_MESSAGE);
           }
 
           int num_pts = mpts.size();
