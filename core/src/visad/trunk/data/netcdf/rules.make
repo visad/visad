@@ -8,7 +8,7 @@ classes:	FORCE
 	    *) $(MAKE) $(JAVASRCS:.java=.class) ;; \
 	esac
 
-test:		all
+test:		classes
 
 javadocs:	FORCE
 	@case "$(JAVASRCS)" in \
