@@ -41,6 +41,10 @@ public abstract class ScalarType extends MathType {
   // (within local VM)
   private static Hashtable ScalarHash = new Hashtable();
 
+  // Aliases for scalar names
+  private static Hashtable Translations = new Hashtable();
+  private static Hashtable ReverseTranslations = new Hashtable();
+
   /**
    * Create a <CODE>ScalarType</CODE> with the specified name.
    *
@@ -50,19 +54,7 @@ public abstract class ScalarType extends MathType {
    */
   public ScalarType(String name) throws VisADException {
     super();
-    if (name == null) {
-      throw new TypeException("ScalarType: name cannot be null");
-    }
-    if (name.indexOf(".") > -1 ||
-        name.indexOf(" ") > -1 ||
-        name.indexOf("(") > -1 ||
-        name.indexOf(")") > -1) {
-      throw new TypeException("ScalarType: name cannot contain " +
-                              "space . ( or ) " + name);
-    }
-    if (ScalarHash.containsKey(name)) {
-      throw new TypeException("ScalarType: name already used");
-    }
+    validateName(name, "name");
     Name = name;
     ScalarHash.put(name, this);
   }
@@ -81,11 +73,34 @@ public abstract class ScalarType extends MathType {
   }
 
   /**
+   * Change the primary name for this <CODE>ScalarType</CODE>.
+   * The original name can still be used.<P>
+   * If multiple aliases are created, the last one is dominant.<P>
+   * This is handy for translating standard VisAD <CODE>RealType</CODE>
+   * names to a language other than English.
+   *
+   * @param alias The new name.
+   *
+   * @exception TypeException If the new name is not valid.
+   */
+  public void alias(String alias)
+    throws TypeException
+  {
+    validateName(alias, "alias");
+    Translations.put(alias, Name);
+    ReverseTranslations.put(Name, alias);
+  }
+
+  /**
    * Returns this <CODE>ScalarType</CODE>'s name.
    *
    * @return The name of this <CODE>ScalarType</CODE>.
    */
   public String getName() {
+    String alias = (String )ReverseTranslations.get(Name);
+    if (alias != null) {
+      return alias;
+    }
     return Name;
   }
 
@@ -97,6 +112,82 @@ public abstract class ScalarType extends MathType {
    *          or <CODE>null</CODE>.
    */
   public static ScalarType getScalarTypeByName(String name) {
+    if (name == null) {
+      return null;
+    }
+    if (Translations.containsKey(name)) {
+      name = (String )Translations.get(name);
+    }
     return (ScalarType )ScalarHash.get(name);
   }
+
+  /**
+   * Throw a <CODE>TypeException</CODE> if the name is invalid.
+   *
+   * @param name Name to check.
+   * @param type Type used in exception message.
+   *
+   * @exception TypeException If there is a problem with the name.
+   */
+  public static void validateName(String name, String type)
+    throws TypeException
+  {
+    if (name == null) {
+      throw new TypeException("ScalarType: " + type + " cannot be null");
+    }
+    if (name.indexOf(".") > -1 ||
+        name.indexOf(" ") > -1 ||
+        name.indexOf("(") > -1 ||
+        name.indexOf(")") > -1) {
+      throw new TypeException("ScalarType: " + type + " cannot contain " +
+                              "space . ( or ) " + name);
+    }
+    if (ScalarHash.containsKey(name)) {
+      throw new TypeException("ScalarType: " + type + " already used");
+    }
+    if (Translations.containsKey(name)) {
+      throw new TypeException("ScalarType: " + type + " already used" +
+                              " as an alias");
+    }
+  }
+
+/*
+  public static void dumpAliases()
+  {
+    java.util.Enumeration enum;
+
+    boolean needHead = true;
+    enum = Translations.keys();
+    while (enum.hasMoreElements()) {
+      Object key = enum.nextElement();
+      if (needHead) {
+        System.err.println("== Translation table");
+        needHead = false;
+      }
+      System.err.println("   \"" + key + "\" => \"" +
+                         Translations.get(key) + "\"");
+    }
+
+    boolean needMid = true;
+    enum = ReverseTranslations.keys();
+    while (enum.hasMoreElements()) {
+      Object key = enum.nextElement();
+      if (needMid) {
+        if (needHead) {
+          System.err.println("== Reverse Translation table");
+          needHead = false;
+        } else {
+          System.err.println("-- Reverse Translation table");
+        }
+        needMid = false;
+      }
+      System.err.println("   \"" + key + "\" => \"" +
+                         ReverseTranslations.get(key) + "\"");
+    }
+    if (!needHead) {
+      System.err.println("==");
+    }
+  }
+*/
 }
+
