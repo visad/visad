@@ -46,6 +46,7 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
 
   private int mouseModifiersMask = 0;
   private int mouseModifiersValue = 0;
+  private boolean only_one = false;
 
   /** this DataRenderer supports direct manipulation for
       representations of curves by UnionSets of Gridded2DSets
@@ -60,9 +61,20 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
       that will grab any right mouse click (that intersects its 2-D
       sub-manifold) */
   public CurveManipulationRendererJ3D (int mmm, int mmv) {
+    this(mmm, mmv, false);
+  }
+
+  /** mmm and mmv determine whehter SHIFT or CTRL keys are required -
+      this is needed since this is a greedy DirectManipulationRenderer
+      that will grab any right mouse click (that intersects its 2-D
+      sub-manifold);
+      oo is true to indicate that only one curve should exist at
+      any one time */
+  public CurveManipulationRendererJ3D (int mmm, int mmv, boolean oo) {
     super();
     mouseModifiersMask = mmm;
     mouseModifiersValue = mmv;
+    only_one = oo;
   }
 
   public ShadowType makeShadowSetType(
@@ -357,13 +369,23 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
 
       if (closeIndex < 0) {
         if (first) {
-          SampledSet[] new_sets = new SampledSet[n+1];
-          System.arraycopy(sets, 0, new_sets, 0, n);
-          float[][] new_samples = {{value[0]}, {value[1]}};
-          new_sets[n] = new Gridded2DSet(type, new_samples, 1,
-                                         data.getCoordinateSystem(),
-                                         data.getSetUnits(), null);
-          newData = new UnionSet(type, new_sets);
+          if (only_one) {
+            SampledSet[] new_sets = new SampledSet[1];
+            float[][] new_samples = {{value[0]}, {value[1]}};
+            new_sets[0] = new Gridded2DSet(type, new_samples, 1,
+                                           data.getCoordinateSystem(),
+                                           data.getSetUnits(), null);
+            newData = new UnionSet(type, new_sets);
+          }
+          else {
+            SampledSet[] new_sets = new SampledSet[n+1];
+            System.arraycopy(sets, 0, new_sets, 0, n);
+            float[][] new_samples = {{value[0]}, {value[1]}};
+            new_sets[n] = new Gridded2DSet(type, new_samples, 1,
+                                           data.getCoordinateSystem(),
+                                           data.getSetUnits(), null);
+            newData = new UnionSet(type, new_sets);
+          }
         }
         else { // !first
           float[][] samples = sets[n-1].getSamples(false);
@@ -717,8 +739,8 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
 
     DataReferenceImpl ref = new DataReferenceImpl("set");
     ref.setData(set);
-    int m = (args.length > 1) ? InputEvent.CTRL_MASK : 0;
-    display.addReferences(new CurveManipulationRendererJ3D(m, m), ref);
+    boolean only_one = (args.length > 1);
+    display.addReferences(new CurveManipulationRendererJ3D(0, 0, only_one), ref);
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test CurveManipulationRendererJ3D");
@@ -742,10 +764,12 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
     button_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
     CurveDelete cd = new CurveDelete(ref, display);
-    JButton del = new JButton("delete last");
-    del.addActionListener(cd);
-    del.setActionCommand("del");
-    button_panel.add(del);
+    if (!only_one) {
+      JButton del = new JButton("delete last");
+      del.addActionListener(cd);
+      del.setActionCommand("del");
+      button_panel.add(del);
+    }
     JButton fill = new JButton("fill");
     fill.addActionListener(cd);
     fill.setActionCommand("fill");
