@@ -23,12 +23,12 @@ MA 02111-1307, USA
 import java.rmi.RemoteException;
 
 
-import visad.RemoteSourceListener;
 import visad.DisplayImpl;
 import visad.LocalDisplay;
 import visad.RemoteDisplayImpl;
 import visad.RemoteServer;
 import visad.RemoteServerImpl;
+import visad.RemoteSourceListener;
 import visad.VisADException;
 
 import visad.util.ClientServer;
@@ -262,7 +262,7 @@ public abstract class TestSkeleton
     return " unknown";
   }
 
-  void getClientDataReferences(RemoteServer client)
+  void finishClientSetup(RemoteServer client)
     throws RemoteException, VisADException
   {
   }
@@ -300,7 +300,7 @@ public abstract class TestSkeleton
     }
 
     // fetch any data references from server
-    getClientDataReferences(client);
+    finishClientSetup(client);
 
     return dpys;
   }

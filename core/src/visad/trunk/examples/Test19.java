@@ -114,7 +114,7 @@ public class Test19
 
   }
 
-  void getClientDataReferences(RemoteServer client)
+  void finishClientSetup(RemoteServer client)
     throws RemoteException, VisADException
   {
     value_ref = (DataReference )client.getDataReference(0);
