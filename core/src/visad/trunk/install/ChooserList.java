@@ -48,54 +48,65 @@ class FileListAccessory
   {
     fileList.removeListSelectionListener(listener);
   }
+
+  public void setListData(File[] list)
+  {
+    fileList.setListData(list);
+  }
 }
 
 public class ChooserList
   extends JFileChooser
   implements ListSelectionListener
 {
+  private FileListAccessory accessory;
+
   public ChooserList()
   {
-    this((File[] )null);
+    accessory = null;
   }
 
-  public ChooserList(ArrayList list)
+  public void setList(File[] list)
   {
-    this((File[] )(list == null ? null : list.toArray(new File[list.size()])));
-  }
-
-  public ChooserList(File[] list)
-  {
-    super();
-
-    if (list != null) {
+    if (list == null) {
+      setAccessory(null);
+      updateSelectedFile(null);
+    }else {
       updateSelectedFile(list[0]);
 
-      FileListAccessory accessory = new FileListAccessory("Found", list);
+      if (accessory == null) {
+        accessory = new FileListAccessory("Found", list);
+      } else {
+        accessory.setListData(list);
+      }
+
       accessory.addListSelectionListener(this);
 
       setAccessory(accessory);
-    }
+    } 
   }
 
   private void updateSelectedFile(File file)
   {
-    // make sure filter doesn't exclude this file
-    FileFilter filter = getFileFilter();
-    if (filter != null) {
-      if (!filter.accept(file)) {
-        setFileFilter(getAcceptAllFileFilter());
+    if (file != null) {
+
+      // make sure filter doesn't exclude this file
+      FileFilter filter = getFileFilter();
+      if (filter != null) {
+        if (!filter.accept(file)) {
+          setFileFilter(getAcceptAllFileFilter());
+        }
       }
-    }
 
-    // point to the appropriate directory
-    File parent = file.getParentFile();
-    if (parent != null) {
-      setCurrentDirectory(parent);
-    }
+      // point to the appropriate directory
+      File parent = file.getParentFile();
+      if (parent != null) {
+        setCurrentDirectory(parent);
+      }
 
-    // clear out the current choice
-    setSelectedFile(null);
+      // clear out the current choice
+      setSelectedFile(null);
+    }
 
     // set the new choice
     setSelectedFile(file);
