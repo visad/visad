@@ -180,7 +180,6 @@ public class QTForm extends Form implements FormFileInformer, StdQTConstants {
         qid.redraw(null);
         CompressedFrameInfo info = seq.compressFrame(gw, rect, codecFlagUpdatePrevious, compressedImage);
         boolean isKeyFrame = info.getSimilarity() == 0;
-        System.out.println("f#:" + curSample + ",kf=" + isKeyFrame + ",sim=" + info.getSimilarity());
         vidMedia.addSample(imageHandle, 
           0, // dataOffset,
           info.getDataSize(),
@@ -189,10 +188,6 @@ public class QTForm extends Form implements FormFileInformer, StdQTConstants {
           1, // one sample
           (isKeyFrame ? 0 : mediaSampleNotSync)); // no flags
        }
-
-       // print out ImageDescription for the last video media data ->
-       // this has a sample count of 1 because we add each "frame" as an individual media sample
-       System.out.println(desc);
 
       // redraw after finishing...
       qid.setGWorld(canv.getPort());
