@@ -303,6 +303,10 @@ public interface Display extends Action {
   DisplayRealType CurvedSize =
     new DisplayRealType("CurvedSize", true, 0.0, true);
 
+  /** color mode - ConstantMap only, values must be > 0 */
+  DisplayRealType ColorMode =
+    new DisplayRealType("ColorMode", true, -1.0, true);
+
   /** array of system intrinsic DisplayRealTypes */
   DisplayRealType[] DisplayRealArray =
     {XAxis, YAxis, ZAxis, Latitude, Longitude, Radius, List, Red, Green, Blue,
@@ -313,7 +317,7 @@ public interface Display extends Action {
      Flow1Elevation, Flow1Azimuth, Flow1Radial,
      Flow2Elevation, Flow2Azimuth, Flow2Radial, 
      LineStyle, TextureEnable, MissingTransparent, 
-     PolygonMode, CurvedSize};
+     PolygonMode, CurvedSize, ColorMode};
 
   // system intrinsic DisplayTupleType objects
 

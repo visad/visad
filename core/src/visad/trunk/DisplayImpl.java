@@ -1888,7 +1888,8 @@ System.out.println("initialize = " + initialize + " go = " + go +
            Display.TextureEnable.equals(type) ||
            Display.MissingTransparent.equals(type) ||
            Display.PolygonMode.equals(type) ||
-           Display.CurvedSize.equals(type)) &&
+           Display.CurvedSize.equals(type) ||
+           Display.ColorMode.equals(type)) &&
           !(map instanceof ConstantMap))
       {
         throw new BadMappingException("DisplayImpl.addMap: " +

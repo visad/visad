@@ -3046,6 +3046,7 @@ System.out.println("color_values: nummissing = " + nummissing);
                        float[] tuple_single_counts, DisplayImpl display,
                        DisplayTupleType tuple, float[] default_values)
          throws VisADException {
+
     for (int index=nindex-1; index>=0; index--) {
       if (tuple_values[index] == null) {
         if (tuple_single_counts[index] > 0) {
@@ -3055,7 +3056,13 @@ System.out.println("color_values: nummissing = " + nummissing);
         }
       }
       else { // (tuple_values[index] != null)
-        int cm = display.getGraphicsModeControl().getColorMode();
+        // DRM: 2003-09-19 allow for setting by ConstantMap
+        //int cm = display.getGraphicsModeControl().getColorMode();
+        int colorMode = (int)
+          default_values[display.getDisplayScalarIndex(Display.ColorMode)];
+        int cm =  
+             (colorMode >= 0)
+                 ? colorMode : display.getGraphicsModeControl().getColorMode();
         float inv_count = cm == GraphicsModeControl.SUM_COLOR_MODE ? 1.0f :
           1.0f / (tuple_value_counts[index] + tuple_single_counts[index]);
         for (int j=0; j<tuple_values[index].length; j++) {
