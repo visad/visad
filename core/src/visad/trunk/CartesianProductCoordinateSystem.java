@@ -1,10 +1,10 @@
 //
-// $Id: CartesianProductCoordinateSystem.java,v 1.2 2000-07-20 21:45:12 donm Exp $
+// $Id: CartesianProductCoordinateSystem.java,v 1.3 2001-05-01 19:31:42 dglo Exp $
 //
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2001 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
