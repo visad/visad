@@ -46,7 +46,7 @@ public class ContourWidget extends JPanel implements ActionListener,
                                                      ItemListener,
                                                      ControlListener {
 
-  /** This ContourRangeWidget's associated Control. */
+  /** This ContourRangeSlider's associated Control. */
   private ContourControl control;
 
   private float cInterval;
@@ -64,7 +64,7 @@ public class ContourWidget extends JPanel implements ActionListener,
   private JCheckBox Labels;
   private JCheckBox Contours;
   private JCheckBox Dashed;
-  private ContourRangeWidget ContourRange;
+  private ContourRangeSlider ContourRange;
 
   /** construct a ContourWidget linked to the Control in the map
       (which must be to Display.IsoContour), with default interval,
@@ -150,7 +150,7 @@ public class ContourWidget extends JPanel implements ActionListener,
 
     SurfaceLabel = new JLabel(name + " = ---");
     Surface = new JSlider();
-    ContourRange = new ContourRangeWidget(smap, cLo, cHi, this, update);
+    ContourRange = new ContourRangeSlider(smap, cLo, cHi, this, update);
     if (!update) {
       control.setSurfaceValue(cSurface);
       control.setContourInterval(cInterval, cLo, cHi, cBase);
@@ -425,11 +425,11 @@ public class ContourWidget extends JPanel implements ActionListener,
   }
 
   /** Subclass of RangeSlider for selecting min and max values.<P> */
-  class ContourRangeWidget extends RangeSlider implements ScalarMapListener {
+  class ContourRangeSlider extends RangeSlider implements ScalarMapListener {
 
     ContourWidget pappy;
 
-    ContourRangeWidget(ScalarMap smap, float min, float max, ContourWidget dad,
+    ContourRangeSlider(ScalarMap smap, float min, float max, ContourWidget dad,
                        boolean update) throws VisADException, RemoteException {
       super(RangeSlider.nameOf(smap), min, max);
       pappy = dad;
