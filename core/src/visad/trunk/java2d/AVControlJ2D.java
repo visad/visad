@@ -81,7 +81,13 @@ public abstract class AVControlJ2D extends Control implements AVControl {
                              fvalues);
       }
       // compute set index from converted value
-      int [] indices = set.valueToIndex(values);
+      int [] indices;
+      if (set.getLength() == 1) {
+        indices = new int[] {0};
+      }
+      else {
+        indices = set.valueToIndex(values);
+      }
 /*
 System.out.println("selectSwitches: value = " + value +
                    " indices[0] = " + indices[0] +
