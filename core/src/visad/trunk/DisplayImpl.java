@@ -95,9 +95,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   /** set to re-display all linked Data */
   private boolean redisplay_all = false;
 
-  /** set whenever display changes (FRAME_DONE event occurs) */
-  protected boolean dirty = true;
-
 
   /** length of ValueArray of distinct DisplayRealType values;
       one per Single DisplayRealType that occurs in a ScalarMap,
@@ -397,9 +394,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
   public void notifyListeners(DisplayEvent evt)
          throws VisADException, RemoteException {
-    // CTR 23 May 2000 - set the dirty bit when FRAME_DONE received
-    if (evt.getId() == DisplayEvent.FRAME_DONE) dirty = true;
-
     if (ListenerVector != null) {
       synchronized (ListenerVector) {
         Enumeration listeners = ListenerVector.elements();
@@ -485,11 +479,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     return !Slaves.isEmpty();
   }
 
-  /** whether the slave displays need an image update */
-  public boolean slaveUpdateNeeded() {
-    return dirty && hasSlaves();
-  }
-
   /** updates all linked slave displays with the given image */
   public void updateSlaves(BufferedImage img) {
     // extract pixels from image
@@ -510,9 +499,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       }
       catch (RemoteException e) { }
     }
-
-    // clear dirty bit
-    dirty = false;
   }
 
   // CTR 21 Sep 1999 - end code for slaved displays
