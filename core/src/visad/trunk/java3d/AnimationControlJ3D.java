@@ -133,6 +133,10 @@ public class AnimationControlJ3D extends AVControlJ3D
     changeControl(true);
   }
 
+  public long getStep() {
+    return step;
+  }
+
   public void setStep(int st) throws VisADException, RemoteException {
     if (st < 0) {
       throw new DisplayException("AnimationControlJ3D.setStep: " +

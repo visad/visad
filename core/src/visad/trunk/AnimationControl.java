@@ -48,6 +48,8 @@ public interface AnimationControl extends AVControl {
   public void setDirection(boolean dir)
          throws VisADException, RemoteException;
 
+  public long getStep();
+
   public void setStep(int st)
          throws VisADException, RemoteException;
 

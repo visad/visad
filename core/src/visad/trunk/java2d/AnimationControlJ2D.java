@@ -138,6 +138,10 @@ public class AnimationControlJ2D extends AVControlJ2D
     changeControl(true);
   }
 
+  public long getStep() {
+    return step;
+  }
+
   public void setStep(int st) throws VisADException, RemoteException {
     if (st < 0) {
       throw new DisplayException("AnimationControlJ2D.setStep: " +
