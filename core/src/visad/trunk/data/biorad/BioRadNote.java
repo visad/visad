@@ -26,6 +26,7 @@ MA 02111-1307, USA
 
 package visad.data.biorad;
 
+import java.io.*;
 import java.rmi.RemoteException;
 import java.util.StringTokenizer;
 import visad.*;
@@ -58,46 +59,46 @@ public class BioRadNote {
   // Note types
 
   /** Information about live collection. */
-  private static final int NOTE_TYPE_LIVE = 1;
+  static final int NOTE_TYPE_LIVE = 1;
 
   /** Note from image #1. */
-  private static final int NOTE_TYPE_FILE1 = 2;
+  static final int NOTE_TYPE_FILE1 = 2;
 
   /** Number in multiple image file. */
-  private static final int NOTE_TYPE_NUMBER = 3;
+  static final int NOTE_TYPE_NUMBER = 3;
 
   /** User notes generated notes. */
-  private static final int NOTE_TYPE_USER = 4;
+  static final int NOTE_TYPE_USER = 4;
 
   /** Line mode info. */
-  private static final int NOTE_TYPE_LINE = 5;
+  static final int NOTE_TYPE_LINE = 5;
 
   /** Collect mode info. */
-  private static final int NOTE_TYPE_COLLECT = 6;
+  static final int NOTE_TYPE_COLLECT = 6;
 
   /** Note from image #2. */
-  private static final int NOTE_TYPE_FILE2 = 7;
+  static final int NOTE_TYPE_FILE2 = 7;
 
   /** Scale bar info. */
-  private static final int NOTE_TYPE_SCALEBAR = 8;
+  static final int NOTE_TYPE_SCALEBAR = 8;
 
   /** Merge info. */
-  private static final int NOTE_TYPE_MERGE = 9;
+  static final int NOTE_TYPE_MERGE = 9;
 
   /** Thruview info. */
-  private static final int NOTE_TYPE_THRUVIEW = 10;
+  static final int NOTE_TYPE_THRUVIEW = 10;
 
   /** Arrow info. */
-  private static final int NOTE_TYPE_ARROW = 11;
+  static final int NOTE_TYPE_ARROW = 11;
 
   /** Internal variable. */
-  private static final int NOTE_TYPE_VARIABLE = 20;
+  static final int NOTE_TYPE_VARIABLE = 20;
 
   /** Again internal variable, except held as a structure. */
-  private static final int NOTE_TYPE_STRUCTURE = 21;
+  static final int NOTE_TYPE_STRUCTURE = 21;
 
   /** List of note types. */
-  private static final String[] noteNames = {
+  static final String[] noteNames = {
     "0", "LIVE", "FILE1", "NUMBER", "USER", "LINE", "COLLECT", "FILE2",
     "SCALEBAR", "MERGE", "THRUVIEW", "ARROW", "12", "13", "14", "15",
     "16", "17", "18", "19", "VARIABLE", "STRUCTURE"
@@ -107,13 +108,13 @@ public class BioRadNote {
   // Note status types
 
   /** Whether note is displayed on all images. */
-  private static final int NOTE_STATUS_ALL = 0x0100;
+  static final int NOTE_STATUS_ALL = 0x0100;
 
   /** Note is currently displayed. */
-  private static final int NOTE_STATUS_DISPLAY = 0x0200;
+  static final int NOTE_STATUS_DISPLAY = 0x0200;
 
   /** Note has been positioned by the user. */
-  private static final int NOTE_STATUS_POSITION = 0x0400;
+  static final int NOTE_STATUS_POSITION = 0x0400;
 
 
   // Note axis types
@@ -178,8 +179,10 @@ public class BioRadNote {
 
   // MathTypes
 
+  /** MathType of a BioRad note. */
   static final TupleType noteTuple = makeNoteTuple();
   
+  /** Creates BioRad note MathType. */
   private static TupleType makeNoteTuple() {
     try {
       return new TupleType(new MathType[] {
@@ -195,10 +198,6 @@ public class BioRadNote {
     catch (VisADException exc) { }
     return null;
   }
-
-  static final RealType rtx = RealType.getRealType("nx");
-  static final RealType rty = RealType.getRealType("ny");
-  static final TextType tt = TextType.getTextType("note");
 
 
   // Fields
@@ -510,6 +509,23 @@ public class BioRadNote {
     }
   }
 
+  /**
+   * Outputs this note to the given output stream.
+   *
+   * @param more Whether another note will be written
+   *             to the stream after this one.
+   */
+  public void write(DataOutputStream out, boolean more) throws IOException {
+    BioRadForm.writeShort(out, level);
+    BioRadForm.writeInt(out, more ? 1 : 0);
+    BioRadForm.writeShort(out, num);
+    BioRadForm.writeShort(out, status);
+    BioRadForm.writeShort(out, type);
+    BioRadForm.writeShort(out, x);
+    BioRadForm.writeShort(out, y);
+    BioRadForm.writeString(out, text, 80);
+  }
+
   /** Prints a warning about this note to the standard error stream. */
   private void warn() {
     warn(null);
@@ -552,6 +568,32 @@ public class BioRadNote {
     sb.append(", type=" + noteNames[type] +
       ", x=" + x + ", y=" + y + ", text=" + text.trim());
     return sb.toString();
+  }
+
+  /** Converts a VisAD Unit to a BioRad note. */
+  public static BioRadNote getUnitNote(Unit u, boolean xAxis) {
+    if (u == null) return null;
+
+    // CTR: TODO
+    if (true) return null;
+
+    // extract info from Unit
+    int axis_type = axt_D;
+    int origin = 0;
+    int inc = 1;
+    String label = "Calibration unknown";
+
+    // fill in note fields
+    int level = 1;
+    int num = 0;
+    int status = NOTE_STATUS_ALL | NOTE_STATUS_POSITION;
+    int type = NOTE_TYPE_VARIABLE;
+    int x = 0;
+    int y = 0;
+    String text = "AXIS_" + (xAxis ? "2" : "3") + " " +
+      axis_type + " " + origin + " " + inc + " " + label;
+
+    return new BioRadNote(level, num, status, type, x, y, text);
   }
 
 }

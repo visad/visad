@@ -103,20 +103,54 @@ public class BioRadForm extends Form implements FormFileInformer {
   }
 
   /** Converts two bytes to an unsigned short. */
-  private int getUnsignedShort(byte b1, byte b2) {
+  private static int getUnsignedShort(byte b1, byte b2) {
     int i1 = 0x000000ff & b1;
     int i2 = 0x000000ff & b2;
     return (i2 << 8) | i1;
   }
 
   /** Converts four bytes to a float. */
-  private float getFloat(byte b1, byte b2, byte b3, byte b4) {
+  private static float getFloat(byte b1, byte b2, byte b3, byte b4) {
     int i1 = 0x000000ff & b1;
     int i2 = 0x000000ff & b2;
     int i3 = 0x000000ff & b3;
     int i4 = 0x000000ff & b4;
     int bits = (i4 << 24) | (i3 << 16) | (i2 << 8) | i1;
     return Float.intBitsToFloat(bits);
+  }
+
+  /** Writes the given value as a short, least-significant byte first. */
+  static void writeShort(DataOutputStream out, int val) throws IOException {
+    int q0 = 0x000000ff & val;
+    int q1 = (0x0000ff00 & val) >> 8;
+    byte[] b = new byte[2];
+    b[0] = (byte) q0;
+    b[1] = (byte) q1;
+    out.write(b, 0, 2);
+  }
+
+  /** Writes the given value as an int, least-significant byte first. */
+  static void writeInt(DataOutputStream out, int val) throws IOException {
+    int q0 = 0x000000ff & val;
+    int q1 = (0x0000ff00 & val) >> 8;
+    int q2 = (0x00ff0000 & val) >> 16;
+    int q3 = (0xff000000 & val) >> 24;
+    byte[] b = new byte[4];
+    b[0] = (byte) q0;
+    b[1] = (byte) q1;
+    b[2] = (byte) q2;
+    b[3] = (byte) q3;
+    out.write(b, 0, 4);
+  }
+
+  /** Writes the given string out using exactly len bytes. */
+  static void writeString(DataOutputStream out, String s, int len)
+    throws IOException
+  {
+    byte[] b = s.getBytes();
+    byte[] bytes = new byte[len];
+    System.arraycopy(b, 0, bytes, 0, b.length < len ? b.length : len);
+    out.write(bytes, 0, len);
   }
 
   /** Checks if the given string is a valid filename for a BioRad .PIC file. */
@@ -135,12 +169,392 @@ public class BioRadForm extends Form implements FormFileInformer {
     return new String[] {"pic"};
   }
 
+  /** RealType for indexing BioRad notes. */
+  private static final RealType noteIndex =
+    RealType.getRealType("NoteIndex");
+
+  /** RealType for ramp1_min header variable. */
+  private static final RealType rt_ramp1_min =
+    RealType.getRealType("ramp1_min");
+
+  /** RealType for ramp1_max header variable. */
+  private static final RealType rt_ramp1_max =
+    RealType.getRealType("ramp1_max");
+
+  /** RealType for byte_format header variable. */
+  private static final RealType rt_byte_format =
+    RealType.getRealType("byte_format");
+
+  /** TextType for name header variable. */
+  private static final TextType tt_name = TextType.getTextType("name");
+
+  /** RealType for ramp2_min header variable. */
+  private static final RealType rt_ramp2_min =
+    RealType.getRealType("ramp2_min");
+
+  /** RealType for ramp2_max header variable. */
+  private static final RealType rt_ramp2_max =
+    RealType.getRealType("ramp2_max");
+
+  /** RealType for lens header variable. */
+  private static final RealType rt_lens = RealType.getRealType("lens");
+
+  /** RealType for mag_factor header variable. */
+  private static final RealType rt_mag_factor =
+    RealType.getRealType("mag_factor");
+
+  /** List of allowed variable names for NOTE_TYPE_VARIABLE notes. */
+  private static final String[] noteVarNames = {
+    "SCALE_FACTOR", "LENS_MAGNIFICATION", "RAMP_GAMMA1", "RAMP_GAMMA2",
+    "RAMP_GAMMA3", "RAMP1_MIN", "RAMP2_MIN", "RAMP3_MIN", "RAMP1_MAX",
+    "RAMP2_MAX", "RAMP3_MAX", "PIC_FF_VERSION", "Z_CORRECT_FACTOR"
+  };
+
+  /** MathType of a 2-D image with 1-D range. */
+  private static MathType image;
+
+  /** MathType of a sequence of images. */
+  private static MathType imageSequence;
+
+  /** MathType of a color table mapping 1-D values to (red, green, blue). */
+  private static MathType table;
+
+  /** MathType of a sequence of color tables. */
+  private static MathType tableSequence;
+
+  /** MathType for indexed list of BioRad notes. */
+  private static FunctionType noteFunction;
+
+  static {
+    try {
+      image = MathType.stringToType("((x, y) -> a)");
+      imageSequence = MathType.stringToType("(t -> ((x, y) -> a))");
+      table = MathType.stringToType("(value -> (r, g, b))");
+      tableSequence = MathType.stringToType("(t -> (value -> (r, g, b)))");
+      noteFunction = new FunctionType(noteIndex, BioRadNote.noteTuple);
+    }
+    catch (VisADException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
+  };
+
   /** Saves a VisAD Data object to BioRad .PIC format at the given location. */
   public void save(String id, Data data, boolean replace)
     throws BadFormException, IOException, RemoteException, VisADException
   {
-    // CTR: TODO
-    throw new UnimplementedException("BioRadForm.save");
+    // CTR: TEMP:
+    if (true) throw new UnimplementedException("patience, almost working");
+
+    // make list of data elements
+    data = data.local();
+    Vector v = new Vector();
+    if (data instanceof Tuple) {
+      Tuple t = (Tuple) data;
+      for (int i=0; i<t.getDimension(); i++) {
+        v.add(t.getComponent(i).local());
+      }
+    }
+    else v.add(data);
+
+    // look for matching data types
+    Vector v_images = new Vector();
+    Vector v_tables = new Vector();
+    Vector v_notes = new Vector();
+    Real r_ramp1_min = null;
+    Real r_ramp1_max = null;
+    Real r_byte_format = null;
+    Text t_name = null;
+    Real r_ramp2_min = null;
+    Real r_ramp2_max = null;
+    Real r_lens = null;
+    Real r_mag_factor = null;
+    boolean hasNoteTuple = false;
+    int len = v.size();
+    for (int i=0; i<len; i++) {
+      DataImpl d = (DataImpl) v.elementAt(i);
+      MathType mt = d.getType();
+      if (mt.equalsExceptName(image)) {
+        // found image
+        v_images.add(d);
+      }
+      else if (mt.equalsExceptName(imageSequence)) {
+        // found image sequence
+        FieldImpl f = (FieldImpl) d;
+        int flen = f.getLength();
+        for (int j=0; j<flen; j++) v_images.add(f.getSample(j).local());
+      }
+      else if (mt.equalsExceptName(table)) {
+        // found color table
+        v_tables.add(d);
+      }
+      else if (mt.equalsExceptName(tableSequence)) {
+        // found color table sequence
+        FieldImpl f = (FieldImpl) d;
+        int flen = f.getLength();
+        for (int j=0; j<flen; j++) v_tables.add(f.getSample(j).local());
+      }
+      else if (mt.equalsExceptName(noteFunction)) {
+        // found BioRad note tuple
+        v_notes.removeAllElements();
+        FieldImpl f = (FieldImpl) d;
+        int flen = f.getLength();
+        for (int j=0; j<flen; j++) {
+          Tuple t = (Tuple) f.getSample(j).local();
+          Real r_level = (Real) t.getComponent(0);
+          Real r_num = (Real) t.getComponent(1);
+          Real r_status = (Real) t.getComponent(2);
+          Real r_type = (Real) t.getComponent(3);
+          Real r_x = (Real) t.getComponent(4);
+          Real r_y = (Real) t.getComponent(5);
+          Text t_text = (Text) t.getComponent(6);
+          int level = (int) r_level.getValue();
+          int num = (int) r_num.getValue();
+          int status = (int) r_status.getValue();
+          int type = (int) r_type.getValue();
+          int x = (int) r_x.getValue();
+          int y = (int) r_y.getValue();
+          String text = t_text.getValue();
+          BioRadNote note =
+            new BioRadNote(level, num, status, type, x, y, text);
+          v_notes.add(note);
+        }
+        hasNoteTuple = true;
+      }
+      else if (mt.equals(rt_ramp1_min)) {
+        // found ramp1_min variable
+        r_ramp1_min = (Real) d;
+      }
+      else if (mt.equals(rt_ramp1_max)) {
+        // found ramp1_max variable
+        r_ramp1_max = (Real) d;
+      }
+      else if (mt.equals(rt_byte_format)) {
+        // found byte_format variable
+        r_byte_format = (Real) d;
+      }
+      else if (mt.equals(tt_name)) {
+        // found name variable
+        t_name = (Text) d;
+      }
+      else if (mt.equals(rt_ramp2_min)) {
+        // found ramp2_min variable
+        r_ramp2_min = (Real) d;
+      }
+      else if (mt.equals(rt_ramp2_max)) {
+        // found ramp2_max variable
+        r_ramp2_max = (Real) d;
+      }
+      else if (mt.equals(rt_lens)) {
+        // found lens variable
+        r_lens = (Real) d;
+      }
+      else if (mt.equals(rt_mag_factor)) {
+        // found mag_factor variable
+        r_mag_factor = (Real) d;
+      }
+      else {
+        boolean ok = false;
+        if (mt instanceof RealType) {
+          if (hasNoteTuple) {
+            // ignore extraneous NOTE_TYPE_VARIABLE RealTypes
+            ok = true;
+          }
+          else {
+            // check for legal NOTE_TYPE_VARIABLE RealTypes
+            RealType rt = (RealType) mt;
+            String rtName = rt.getName();
+            for (int j=0; j<noteVarNames.length; j++) {
+              if (rtName.equals(noteVarNames[j])) {
+                BioRadNote note = new BioRadNote(1, 0,
+                  BioRadNote.NOTE_STATUS_ALL | BioRadNote.NOTE_STATUS_POSITION,
+                  BioRadNote.NOTE_TYPE_VARIABLE, 0, 0,
+                  rtName + " " + ((Real) d).getValue());
+                v_notes.add(note);
+                ok = true;
+              }
+            }
+          }
+        }
+        if (!ok) {
+          // invalid data object; cannot save
+          throw new BadFormException("Unsupported data object");
+        }
+      }
+    }
+
+    // validate image data
+    int xlen = -1;
+    int ylen = -1;
+    int numImages = v_images.size();
+    for (int i=0; i<numImages; i++) {
+      Object o = v_images.elementAt(i);
+      if (!(o instanceof FlatField)) {
+        throw new BadFormException("Invalid image data");
+      }
+      FlatField d = (FlatField) o;
+      Set set = d.getDomainSet();
+      if (!(set instanceof Gridded2DSet)) {
+        throw new BadFormException("Invalid image set");
+      }
+      Gridded2DSet gset = (Gridded2DSet) set;
+      int[] l = gset.getLengths();
+      if (xlen < 0) {
+        xlen = l[0];
+        ylen = l[1];
+      }
+      else {
+        if (xlen != l[0] || ylen != l[1]) {
+          throw new BadFormException(
+            "All images must have same width and height");
+        }
+      }
+      double[][] samples = d.getValues(false);
+      if (samples.length != 1 || samples[0].length != xlen * ylen) {
+        throw new BadFormException("Invalid image samples");
+      }
+    }
+
+    // try to extract unit information if necessary
+    if (!hasNoteTuple) {
+      FlatField d = (FlatField) v_images.elementAt(0);
+      Unit[] u = d.getDomainSet().getSetUnits();
+      BioRadNote xNote = BioRadNote.getUnitNote(u[0], true);
+      BioRadNote yNote = BioRadNote.getUnitNote(u[1], false);
+      if (xNote != null) v_notes.add(xNote);
+      if (yNote != null) v_notes.add(yNote);
+    }
+
+    // validate color table data
+    int numTables = v_tables.size();
+    if (numTables > 3) {
+      throw new BadFormException("Too many color tables");
+    }
+    for (int i=0; i<numTables; i++) {
+      Object o = v_tables.elementAt(i);
+      if (!(o instanceof FlatField)) {
+        throw new BadFormException("Invalid color table data");
+      }
+      FlatField d = (FlatField) o;
+      Set set = d.getDomainSet();
+      if (!(set instanceof Gridded1DSet)) {
+        throw new BadFormException("Invalid color table set");
+      }
+      Gridded1DSet gset = (Gridded1DSet) set;
+      int[] l = gset.getLengths();
+      if (l[0] != 256) {
+        throw new BadFormException("Invalid color table length");
+      }
+    }
+
+    // set up header data
+    int nx = xlen;
+    int ny = ylen;
+    int npic = numImages;
+    int ramp1_min = r_ramp1_min == null ? 0 : (int) r_ramp1_min.getValue();
+    int ramp1_max = r_ramp1_max == null ? 255 : (int) r_ramp1_max.getValue();
+    int notes = v_notes.size();
+    int byte_format =
+      r_byte_format == null ? 1 : (int) r_byte_format.getValue();
+    int image_number = 0;
+    String name = t_name == null ? id : t_name.getValue();
+    int merged = MERGE_OFF;
+    int color1 = 7;
+    int file_id = PIC_FILE_ID;
+    int ramp2_min = r_ramp2_min == null ? 0 : (int) r_ramp2_min.getValue();
+    int ramp2_max = r_ramp2_max == null ? 255 : (int) r_ramp2_max.getValue();
+    int color2 = 7;
+    int edited = 1;
+    int lens = r_lens == null ? 0 : (int) r_lens.getValue();
+    float mag_factor =
+      r_mag_factor == null ? 0f : (float) r_mag_factor.getValue();
+
+    // extract image data
+    byte[] imageBytes;
+    if (byte_format == 0) {
+      // word format (16 bits per pixel)
+      imageBytes = new byte[2 * npic * nx * ny];
+      for (int i=0; i<npic; i++) {
+        FlatField d = (FlatField) v_images.elementAt(i);
+        double[][] samples = d.getValues(false);
+        double[] samp = samples[0];
+        for (int j=0; j<samp.length; j++) {
+          int index = 2 * (samp.length * i + j);
+          int q = (int) samp[j];
+          int qhi = (0x0000ff00 & q) >> 8;
+          int qlo = 0x000000ff & q;
+          imageBytes[index] = (byte) qhi;
+          imageBytes[index + 1] = (byte) qlo;
+        }
+      }
+    }
+    else {
+      // byte format (8 bits per pixel)
+      imageBytes = new byte[npic * nx * ny];
+      for (int i=0; i<npic; i++) {
+        FlatField d = (FlatField) v_images.elementAt(i);
+        double[][] samples = d.getValues(false);
+        double[] samp = samples[0];
+        for (int j=0; j<samp.length; j++) {
+          int index = samp.length * i + j;
+          imageBytes[index] = (byte) samp[j];
+        }
+      }
+    }
+
+    // extract color table data
+    byte[] tableBytes = new byte[numTables * 768];
+    for (int i=0; i<numTables; i++) {
+      FlatField d = (FlatField) v_tables.elementAt(i);
+      double[][] samples = d.getValues(false);
+      double[] sr = samples[0];
+      double[] sg = samples[1];
+      double[] sb = samples[2];
+      for (int j=0; j<256; j++) {
+        int index = 768 * i + j;
+        tableBytes[index] = (byte) sr[j];
+        tableBytes[index + 256] = (byte) sg[j];
+        tableBytes[index + 512] = (byte) sb[j];
+      }
+    }
+
+    // open file
+    DataOutputStream fout = new DataOutputStream(new FileOutputStream(id));
+
+    // write header
+    writeShort(fout, nx);
+    writeShort(fout, ny);
+    writeShort(fout, npic);
+    writeShort(fout, ramp1_min);
+    writeShort(fout, ramp1_max);
+    writeInt(fout, notes);
+    writeShort(fout, byte_format);
+    writeShort(fout, image_number);
+    writeString(fout, name, 32);
+    writeShort(fout, merged);
+    writeShort(fout, color1);
+    writeShort(fout, file_id);
+    writeShort(fout, ramp2_min);
+    writeShort(fout, ramp2_max);
+    writeShort(fout, color2);
+    writeShort(fout, edited);
+    writeShort(fout, lens);
+    fout.writeFloat(mag_factor);
+    fout.write(new byte[] {0, 0, 0, 0, 0, 0}, 0, 6);
+
+    // write image data
+    fout.write(imageBytes, 0, imageBytes.length);
+
+    // write notes
+    for (int i=0; i<notes; i++) {
+      BioRadNote note = (BioRadNote) v_notes.elementAt(i);
+      note.write(fout, i != notes - 1);
+    }
+
+    // write color tables
+    fout.write(tableBytes, 0, tableBytes.length);
+
+    // close file
+    fout.close();
   }
 
   /**
@@ -285,12 +699,12 @@ public class BioRadForm extends Form implements FormFileInformer {
       BioRadNote note = (BioRadNote) noteList.elementAt(i);
       noteData[i] = note.getNoteData();
     }
-    RealType noteIndex = RealType.getRealType("NoteIndex");
-    FunctionType noteFunction =
-      new FunctionType(noteIndex, BioRadNote.noteTuple);
-    Integer1DSet noteSet = new Integer1DSet(len);
-    FieldImpl noteField = new FieldImpl(noteFunction, noteSet);
-    noteField.setSamples(noteData, false);
+    FieldImpl noteField = null;
+    if (len > 0) {
+      Integer1DSet noteSet = new Integer1DSet(len);
+      noteField = new FieldImpl(noteFunction, noteSet);
+      noteField.setSamples(noteData, false);
+    }
 
     // extract horizontal and vertical unit information from notes
     Unit horizUnit = null, vertUnit = null;
@@ -407,22 +821,20 @@ public class BioRadForm extends Form implements FormFileInformer {
     }
 
     // set up header data
-    Real r_ramp1_min = new Real(RealType.getRealType("ramp1_min"), ramp1_min);
-    Real r_ramp1_max = new Real(RealType.getRealType("ramp1_max"), ramp1_max);
-    Real r_byte_format = new Real(
-      RealType.getRealType("byte_format"), byte_format ? 1.0 : 0.0);
-    Text t_name = new Text(TextType.getTextType("name"), name);
-    Real r_ramp2_min = new Real(RealType.getRealType("ramp2_min"), ramp2_min);
-    Real r_ramp2_max = new Real(RealType.getRealType("ramp2_max"), ramp2_max);
-    Real r_lens = new Real(RealType.getRealType("lens"), lens);
-    Real r_mag_factor = new Real(
-      RealType.getRealType("mag_factor"), mag_factor);
+    Real r_ramp1_min = new Real(rt_ramp1_min, ramp1_min);
+    Real r_ramp1_max = new Real(rt_ramp1_max, ramp1_max);
+    Real r_byte_format = new Real(rt_byte_format, byte_format ? 1.0 : 0.0);
+    Text t_name = new Text(tt_name, name);
+    Real r_ramp2_min = new Real(rt_ramp2_min, ramp2_min);
+    Real r_ramp2_max = new Real(rt_ramp2_max, ramp2_max);
+    Real r_lens = new Real(rt_lens, lens);
+    Real r_mag_factor = new Real(rt_mag_factor, mag_factor);
 
     // compile data objects into vector
     Vector data = new Vector();
     data.add(timeField);
-    data.add(colorField);
-    data.add(noteField);
+    if (colorField != null) data.add(colorField);
+    if (noteField != null) data.add(noteField);
     data.add(r_ramp1_min);
     data.add(r_ramp1_max);
     data.add(r_byte_format);
