@@ -35,8 +35,8 @@ import java.rmi.*;
  * semantics.  Real objects are immutable.<P>
  */
 public class Real
-  extends	Scalar
-  implements	RealIface
+  extends       Scalar
+  implements    RealIface
 {
 
   private final double Value;
@@ -45,21 +45,21 @@ public class Real
 
   /**
    * Constructs a Real object.  This is the most general constructor.
-   * @param type		The type of the Real.
-   * @param value		The value of the Real.  May be
-   *				<code>Double.NaN</code>.
-   * @param u			The unit of the Real.  May be <code>null</code>.
-   *				If non-<code>null</code> and
-   *				<code>type.isInterval()</code> returns true,
-   *				then the unit will actually be
-   *				<code>u.getAbsoluteUnit()</code>.
-   * @param error		Error estimate of the Real.  May be
-   *				<code>null</code>.
+   * @param type                The type of the Real.
+   * @param value               The value of the Real.  May be
+   *                            <code>Double.NaN</code>.
+   * @param u                   The unit of the Real.  May be <code>null</code>.
+   *                            If non-<code>null</code> and
+   *                            <code>type.isInterval()</code> returns true,
+   *                            then the unit will actually be
+   *                            <code>u.getAbsoluteUnit()</code>.
+   * @param error               Error estimate of the Real.  May be
+   *                            <code>null</code>.
    * @throws UnitException      if the default unit of the type is inconvertible
    *                            with the unit argument (i.e. if <code>
    *                            Unit.canConvert(u, type.getDefaultUnit())</code>
    *                            returns false).
-   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws VisADException     Couldn't create necessary VisAD object.
    */
   public Real(RealType type, double value, Unit u, ErrorEstimate error)
          throws VisADException {
@@ -78,38 +78,38 @@ public class Real
   /**
    * Constructs a Real object.  The error estimate will be based on a numeric
    * value.
-   * @param type		The type of the Real.
-   * @param value		The value of the Real.  May be
-   *				<code>Double.NaN</code>.
-   * @param u			The unit of the Real.  May be <code>null</code>.
-   *				If non-<code>null</code> and
-   *				<code>type.isInterval()</code> returns true,
-   *				then the unit will actually be
-   *				<code>u.getAbsoluteUnit()</code>.
-   * @param error		Value for constructing an error estimate for the
-   *				Real in units of <code>u != null &&
-   *				type.isInterval() ? u.getAbsoluteUnit() :
-   *				u</code>.
-   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @param type                The type of the Real.
+   * @param value               The value of the Real.  May be
+   *                            <code>Double.NaN</code>.
+   * @param u                   The unit of the Real.  May be <code>null</code>.
+   *                            If non-<code>null</code> and
+   *                            <code>type.isInterval()</code> returns true,
+   *                            then the unit will actually be
+   *                            <code>u.getAbsoluteUnit()</code>.
+   * @param error               Value for constructing an error estimate for the
+   *                            Real in units of <code>u != null &&
+   *                            type.isInterval() ? u.getAbsoluteUnit() :
+   *                            u</code>.
+   * @throws VisADException     Couldn't create necessary VisAD object.
    */
   public Real(RealType type, double value, Unit u, double error)
          throws VisADException {
     this(type, value, u,
       new ErrorEstimate(value, Math.abs(error),
-	u != null && type.isInterval() ? u.getAbsoluteUnit() : u));
+        u != null && type.isInterval() ? u.getAbsoluteUnit() : u));
   }
 
   /**
    * Constructs a Real object.  The error estimate will be <code>null</code>.
-   * @param type		The type of the Real.
-   * @param value		The value of the Real.  May be
-   *				<code>Double.NaN</code>.
-   * @param u			The unit of the Real.  May be <code>null</code>.
-   *				If non-<code>null</code> and
-   *				<code>type.isInterval()</code> returns true,
-   *				then the unit will actually be
-   *				<code>u.getAbsoluteUnit()</code>.
-   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @param type                The type of the Real.
+   * @param value               The value of the Real.  May be
+   *                            <code>Double.NaN</code>.
+   * @param u                   The unit of the Real.  May be <code>null</code>.
+   *                            If non-<code>null</code> and
+   *                            <code>type.isInterval()</code> returns true,
+   *                            then the unit will actually be
+   *                            <code>u.getAbsoluteUnit()</code>.
+   * @throws VisADException     Couldn't create necessary VisAD object.
    */
   public Real(RealType type, double value, Unit u)
          throws VisADException {
@@ -119,10 +119,10 @@ public class Real
   /**
    * Constructs a Real object.  The unit of the Real will be the default unit of
    * the RealType and the error estimate will be <code>null</code>.
-   * @param type		The type of the Real.
-   * @param value		The value of the Real in units of
-   *				<code>type.getDefaultUnit()</code>.  May be
-   *				<code>Double.NaN</code>.
+   * @param type                The type of the Real.
+   * @param value               The value of the Real in units of
+   *                            <code>type.getDefaultUnit()</code>.  May be
+   *                            <code>Double.NaN</code>.
    */
   public Real(RealType type, double value) {
     this(type, value, type.getDefaultUnit(), null, true);
@@ -132,7 +132,7 @@ public class Real
    * Constructs a Real object.  The value will be missing, the unit of the
    * Real will be the default unit of the RealType, and the error estimate
    * will be <code>null</code>.
-   * @param type		The type of the Real.
+   * @param type                The type of the Real.
    */
   public Real(RealType type) {
     this(type, Double.NaN, type.getDefaultUnit(), null, true);
@@ -143,11 +143,11 @@ public class Real
    * <code>RealType.Generic</code>, the unit of the Real will be
    * <code>RealType.Generic.getDefaultUnit()</code>, and the error estimate
    * will be based on a numeric value.
-   * @param value		The value of the Real.  May be
-   *				<code>Double.NaN</code>.
-   * @param error		Value for constructing an error estimate for the
-   *				Real in units of
-   *				<code>RealType.Generic.getDefaultUnit()</code>.
+   * @param value               The value of the Real.  May be
+   *                            <code>Double.NaN</code>.
+   * @param error               Value for constructing an error estimate for the
+   *                            Real in units of
+   *                            <code>RealType.Generic.getDefaultUnit()</code>.
    */
   public Real(double value, double error) {
     this(RealType.Generic, value, RealType.Generic.getDefaultUnit(),
@@ -160,8 +160,8 @@ public class Real
    * <code>RealType.Generic</code>, the unit of the Real will be
    * <code>RealType.Generic.getDefaultUnit()</code>, and the error estimate
    * will be 0.0.
-   * @param value		The value of the Real.  May be
-   *				<code>Double.NaN</code>.
+   * @param value               The value of the Real.  May be
+   *                            <code>Double.NaN</code>.
    */
   public Real(double value) {
     this(RealType.Generic, value, RealType.Generic.getDefaultUnit(),
@@ -177,25 +177,43 @@ public class Real
     Error = Double.isNaN(value) ? null : error;
   }
 
+  /**
+   * Get the value for this Real in the units of the data.
+   * @return value as a double.
+   */
   public final double getValue() {
     return Value;
   }
 
   /** get double value converted to unit_out */
+  /**
+   * Get the value for this Real converted to unit_out.
+   * @param unit_out  unit for return value
+   * @return value in unit_out units.
+   * @throws VisADException  if either the Real's Unit or the unit_out
+   *                         is null (but not both).
+   */
   public final double getValue(Unit unit_out) throws VisADException {
     if (unit_out == null) {
-      if (unit != null) {
+      if (unit != null) {  // can't convert to null unit
         throw new UnitException("Real.getValue: illegal Unit conversion");
       }
       return Value;
     }
     else {
+      if (unit == null) {  // unit_out not null, but unit is
+        throw new UnitException("Real.getValue: illegal Unit conversion");
+      }
       if (((RealType)getType()).isInterval())
-	unit_out = unit_out.getAbsoluteUnit();
+        unit_out = unit_out.getAbsoluteUnit();
       return unit_out.toThis(Value, unit);
     }
   }
 
+  /**
+   * Check to see if the value of this Real is a NaN.
+   * @return true if a NaN.
+   */
   public boolean isMissing() {
     // note inf and -inf have proper semantics and are not missing
     return (Double.isNaN(Value));
@@ -237,227 +255,227 @@ public class Real
        * and then the output numeric value.
        */
       switch (op) {
-	case ADD:
-	case SUBTRACT:
-	case INV_SUBTRACT:
-	case MAX:
-	case MIN:
-	  if (thisUnit == null || thatUnit == null) {
-	    outUnit = null;
-	  }
-	  else if (thisUnit == CommonUnit.promiscuous) {
-	    outUnit = thatUnit.getAbsoluteUnit();
-	  }
-	  else if (thatUnit == CommonUnit.promiscuous) {
-	    outUnit = thisUnit.getAbsoluteUnit();
-	  }
-	  else {
-	    try {
-	      outUnit = thisUnit.getAbsoluteUnit();
+        case ADD:
+        case SUBTRACT:
+        case INV_SUBTRACT:
+        case MAX:
+        case MIN:
+          if (thisUnit == null || thatUnit == null) {
+            outUnit = null;
+          }
+          else if (thisUnit == CommonUnit.promiscuous) {
+            outUnit = thatUnit.getAbsoluteUnit();
+          }
+          else if (thatUnit == CommonUnit.promiscuous) {
+            outUnit = thisUnit.getAbsoluteUnit();
+          }
+          else {
+            try {
+              outUnit = thisUnit.getAbsoluteUnit();
               thisValue = outUnit.toThis(thisValue, thisUnit);
-	      thatValue = outUnit.toThis(thatValue, thatUnit);
+              thatValue = outUnit.toThis(thatValue, thatUnit);
 
-	      if (error_mode != NO_ERRORS
-		&& thisErr != null && thatErr != null) {
+              if (error_mode != NO_ERRORS
+                && thisErr != null && thatErr != null) {
 
-		if (!outUnit.equals(thisUnit)) {
-		  Unit	errUnit = thisErr.getUnit();
+                if (!outUnit.equals(thisUnit)) {
+                  Unit  errUnit = thisErr.getUnit();
 
-		  if (errUnit == null)
-		    errUnit = thisUnit;
+                  if (errUnit == null)
+                    errUnit = thisUnit;
 
-		  double newErr =
-		    outUnit.toThis(thisErr.getErrorValue(), errUnit);
+                  double newErr =
+                    outUnit.toThis(thisErr.getErrorValue(), errUnit);
 
-		  thisErr = new ErrorEstimate(thisValue, newErr, outUnit);
-		}
+                  thisErr = new ErrorEstimate(thisValue, newErr, outUnit);
+                }
 
-		if (!outUnit.equals(thatUnit)) {
-		  Unit	errUnit = thatErr.getUnit();
+                if (!outUnit.equals(thatUnit)) {
+                  Unit  errUnit = thatErr.getUnit();
 
-		  if (errUnit == null)
-		    errUnit = thatUnit;
+                  if (errUnit == null)
+                    errUnit = thatUnit;
 
-		  double newErr =
-		    outUnit.toThis(thatErr.getErrorValue(), errUnit);
+                  double newErr =
+                    outUnit.toThis(thatErr.getErrorValue(), errUnit);
 
-		  thatErr = new ErrorEstimate(thatValue, newErr, outUnit);
-		}
-	      }
-	    }
-	    catch (UnitException e) {		// inconvertible units
-	      outUnit = null;
-	    }
-	  }
-	  switch (op) {
-	    case ADD:
-	      outValue = thisValue + thatValue;
-	      break;
-	    case SUBTRACT:
-	      outValue = thisValue - thatValue;
-	      break;
-	    case INV_SUBTRACT:
-	      outValue = thatValue - thisValue;
-	      break;
-	    case MAX:
-	      outValue = Math.max(thisValue, thatValue);
-	      break;
-	    case MIN:
-	      outValue = Math.min(thisValue, thatValue);
-	      break;
-	  }
-	  break;
+                  thatErr = new ErrorEstimate(thatValue, newErr, outUnit);
+                }
+              }
+            }
+            catch (UnitException e) {           // inconvertible units
+              outUnit = null;
+            }
+          }
+          switch (op) {
+            case ADD:
+              outValue = thisValue + thatValue;
+              break;
+            case SUBTRACT:
+              outValue = thisValue - thatValue;
+              break;
+            case INV_SUBTRACT:
+              outValue = thatValue - thisValue;
+              break;
+            case MAX:
+              outValue = Math.max(thisValue, thatValue);
+              break;
+            case MIN:
+              outValue = Math.min(thisValue, thatValue);
+              break;
+          }
+          break;
 
-	case MULTIPLY:
-	case DIVIDE:
-	case INV_DIVIDE:
-	  if (thisUnit != null) {
-	    Unit absUnit = thisUnit.getAbsoluteUnit();
-	    thisValue = absUnit.toThis(thisValue, thisUnit);
-	    thisUnit = absUnit;
-	  }
-	  if (thatUnit != null) {
-	    Unit absUnit = thatUnit.getAbsoluteUnit();
-	    thatValue = absUnit.toThis(thatValue, thatUnit);
-	    thatUnit = absUnit;
-	  }
-	  if (thisUnit == null || thatUnit == null) {
-	    outUnit = null;
-	  }
-	  else {
-	    switch(op) {
-	      case MULTIPLY:
-		outUnit = 
+        case MULTIPLY:
+        case DIVIDE:
+        case INV_DIVIDE:
+          if (thisUnit != null) {
+            Unit absUnit = thisUnit.getAbsoluteUnit();
+            thisValue = absUnit.toThis(thisValue, thisUnit);
+            thisUnit = absUnit;
+          }
+          if (thatUnit != null) {
+            Unit absUnit = thatUnit.getAbsoluteUnit();
+            thatValue = absUnit.toThis(thatValue, thatUnit);
+            thatUnit = absUnit;
+          }
+          if (thisUnit == null || thatUnit == null) {
+            outUnit = null;
+          }
+          else {
+            switch(op) {
+              case MULTIPLY:
+                outUnit = 
                   thisUnit.equals(CommonUnit.promiscuous)
                     ? thatUnit
                     : thatUnit.equals(CommonUnit.promiscuous)
                       ? thisUnit
                       : thisUnit.multiply(thatUnit);
-		break;
-	      case DIVIDE:
-		outUnit = 
+                break;
+              case DIVIDE:
+                outUnit = 
                   thatUnit.equals(CommonUnit.promiscuous)
                     ? thisUnit
                     : thisUnit.divide(thatUnit);
-		break;
-	      case INV_DIVIDE:
-		outUnit = 
+                break;
+              case INV_DIVIDE:
+                outUnit = 
                   thisUnit.equals(CommonUnit.promiscuous)
                     ? thatUnit
                     : thatUnit.divide(thisUnit);
-		break;
-	    }
-	  }
-	  switch(op) {
-	    case MULTIPLY:
-	      outValue = thisValue * thatValue;
-	      break;
-	    case DIVIDE:
-	      outValue = thisValue / thatValue;
-	      break;
-	    case INV_DIVIDE:
-	      outValue = thatValue / thisValue;
-	      break;
-	  }
-	  break;
+                break;
+            }
+          }
+          switch(op) {
+            case MULTIPLY:
+              outValue = thisValue * thatValue;
+              break;
+            case DIVIDE:
+              outValue = thisValue / thatValue;
+              break;
+            case INV_DIVIDE:
+              outValue = thatValue / thisValue;
+              break;
+          }
+          break;
 
-	case POW:
-	  if (thisUnit != null) {
-	    Unit absUnit = thisUnit.getAbsoluteUnit();
-	    thisValue = absUnit.toThis(thisValue, thisUnit);
-	    thisUnit = absUnit;
-	  }
-	  if (thatUnit != null && !CommonUnit.promiscuous.equals(unit)) {
-	    Unit absUnit = thatUnit.getAbsoluteUnit();
-	    thatValue = absUnit.toThis(thatValue, thatUnit);
-	    thatUnit = absUnit;
-	  }
-	  if (thisUnit != null && (
-	      thisUnit.equals(CommonUnit.promiscuous) ||
-	      thisUnit.equals(CommonUnit.dimensionless))) {
-	    outUnit = thisUnit;
-	  }
-	  else {
-	    outUnit = null;
-	  }
-	  outValue = Math.pow(thisValue, thatValue);
-	  break;
+        case POW:
+          if (thisUnit != null) {
+            Unit absUnit = thisUnit.getAbsoluteUnit();
+            thisValue = absUnit.toThis(thisValue, thisUnit);
+            thisUnit = absUnit;
+          }
+          if (thatUnit != null && !CommonUnit.promiscuous.equals(unit)) {
+            Unit absUnit = thatUnit.getAbsoluteUnit();
+            thatValue = absUnit.toThis(thatValue, thatUnit);
+            thatUnit = absUnit;
+          }
+          if (thisUnit != null && (
+              thisUnit.equals(CommonUnit.promiscuous) ||
+              thisUnit.equals(CommonUnit.dimensionless))) {
+            outUnit = thisUnit;
+          }
+          else {
+            outUnit = null;
+          }
+          outValue = Math.pow(thisValue, thatValue);
+          break;
 
-	case INV_POW:
-	  if (thatUnit != null) {
-	    Unit absUnit = thatUnit.getAbsoluteUnit();
-	    thatValue = absUnit.toThis(thatValue, thatUnit);
-	    thatUnit = absUnit;
-	  }
-	  if (thisUnit != null && !CommonUnit.promiscuous.equals(unit)) {
-	    Unit absUnit = thisUnit.getAbsoluteUnit();
-	    thisValue = absUnit.toThis(thisValue, thisUnit);
-	    thisUnit = absUnit;
-	  }
-	  if (thatUnit != null && (
-	      thatUnit.equals(CommonUnit.promiscuous) ||
-	      thatUnit.equals(CommonUnit.dimensionless))) {
-	    outUnit = thatUnit;
-	  }
-	  else {
-	    outUnit = null;
-	  }
-	  outValue = Math.pow(thatValue, thisValue);
-	  break;
+        case INV_POW:
+          if (thatUnit != null) {
+            Unit absUnit = thatUnit.getAbsoluteUnit();
+            thatValue = absUnit.toThis(thatValue, thatUnit);
+            thatUnit = absUnit;
+          }
+          if (thisUnit != null && !CommonUnit.promiscuous.equals(unit)) {
+            Unit absUnit = thisUnit.getAbsoluteUnit();
+            thisValue = absUnit.toThis(thisValue, thisUnit);
+            thisUnit = absUnit;
+          }
+          if (thatUnit != null && (
+              thatUnit.equals(CommonUnit.promiscuous) ||
+              thatUnit.equals(CommonUnit.dimensionless))) {
+            outUnit = thatUnit;
+          }
+          else {
+            outUnit = null;
+          }
+          outValue = Math.pow(thatValue, thisValue);
+          break;
 
-	case ATAN2:
-	case ATAN2_DEGREES:
-	case INV_ATAN2:
-	case INV_ATAN2_DEGREES:
-	case REMAINDER:
-	case INV_REMAINDER:
-	  if (thisUnit != null && thatUnit != null) {
-	    Unit absUnit = thisUnit.getAbsoluteUnit();
-	    thisValue = absUnit.toThis(thisValue, thisUnit);
-	    thatValue = absUnit.toThis(thatValue, thatUnit);
-	    thisUnit = absUnit;
-	    thatUnit = absUnit;
-	  }
-	  switch(op) {
-	    case ATAN2:
-	      outValue = Math.atan2(thisValue, thatValue);
-	      outUnit = CommonUnit.radian;
-	      break;
-	    case ATAN2_DEGREES:
-	      outValue =
-		Data.RADIANS_TO_DEGREES * Math.atan2(thisValue, thatValue);
-	      outUnit = CommonUnit.degree;
-	      break;
-	    case INV_ATAN2:
-	      outValue = Math.atan2(thatValue, thisValue);
-	      outUnit = CommonUnit.radian;
-	      break;
-	    case INV_ATAN2_DEGREES:
-	      outValue =
-		Data.RADIANS_TO_DEGREES * Math.atan2(thatValue, thisValue);
-	      outUnit = CommonUnit.degree;
-	      break;
-	    case REMAINDER:
-	      outValue = thisValue % thatValue;
-	      outUnit = thisUnit;
-	      break;
-	    case INV_REMAINDER:
-	      outValue = thatValue % thisValue;
-	      outUnit = thatUnit;
-	      break;
-	  }
-	  break;
-	default:
-	  throw new ArithmeticException("Real.binary: illegal operation");
+        case ATAN2:
+        case ATAN2_DEGREES:
+        case INV_ATAN2:
+        case INV_ATAN2_DEGREES:
+        case REMAINDER:
+        case INV_REMAINDER:
+          if (thisUnit != null && thatUnit != null) {
+            Unit absUnit = thisUnit.getAbsoluteUnit();
+            thisValue = absUnit.toThis(thisValue, thisUnit);
+            thatValue = absUnit.toThis(thatValue, thatUnit);
+            thisUnit = absUnit;
+            thatUnit = absUnit;
+          }
+          switch(op) {
+            case ATAN2:
+              outValue = Math.atan2(thisValue, thatValue);
+              outUnit = CommonUnit.radian;
+              break;
+            case ATAN2_DEGREES:
+              outValue =
+                Data.RADIANS_TO_DEGREES * Math.atan2(thisValue, thatValue);
+              outUnit = CommonUnit.degree;
+              break;
+            case INV_ATAN2:
+              outValue = Math.atan2(thatValue, thisValue);
+              outUnit = CommonUnit.radian;
+              break;
+            case INV_ATAN2_DEGREES:
+              outValue =
+                Data.RADIANS_TO_DEGREES * Math.atan2(thatValue, thisValue);
+              outUnit = CommonUnit.degree;
+              break;
+            case REMAINDER:
+              outValue = thisValue % thatValue;
+              outUnit = thisUnit;
+              break;
+            case INV_REMAINDER:
+              outValue = thatValue % thisValue;
+              outUnit = thatUnit;
+              break;
+          }
+          break;
+        default:
+          throw new ArithmeticException("Real.binary: illegal operation");
       }
 
       if (error_mode == NO_ERRORS || thisErr == null || thatErr == null) {
-	return new Real(((RealType) new_type), outValue, outUnit, null);
+        return new Real(((RealType) new_type), outValue, outUnit, null);
       }
       else {
-	return new Real(((RealType) new_type), outValue, outUnit,
-		   new ErrorEstimate(outValue, outUnit, op, thisErr, thatErr,
-		   error_mode));
+        return new Real(((RealType) new_type), outValue, outUnit,
+                   new ErrorEstimate(outValue, outUnit, op, thisErr, thatErr,
+                   error_mode));
       }
     }
     else if (data instanceof Text) {
@@ -494,8 +512,8 @@ public class Real
       on Unit; transcental functions destroy dimensionfull Unit */
   public Data unary(int op, MathType new_type, int sampling_mode, int error_mode)
               throws VisADException {
-    Unit thisUnit;	// input unit
-    double thisValue;	// input value
+    Unit thisUnit;      // input unit
+    double thisValue;   // input value
     if (unit == null) {
       thisUnit = null;
       thisValue = Value;
@@ -508,11 +526,11 @@ public class Real
        * converted to be in units of the absolute unit of the input unit.
        */
       thisUnit = Unit.canConvert(CommonUnit.dimensionless, unit)
-	? CommonUnit.dimensionless : unit.getAbsoluteUnit();
+        ? CommonUnit.dimensionless : unit.getAbsoluteUnit();
       thisValue = thisUnit.toThis(Value, unit);
     }
-    double value;	// output value
-    Unit u;		// output unit
+    double value;       // output value
+    Unit u;             // output unit
     /*- TDR  June 1998  */
     if ( new_type == null ) {
       throw new TypeException("unary: new_type may not be null");
@@ -563,16 +581,16 @@ public class Real
         u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
         break;
       case EXP:
-	value = Math.exp(thisValue);
-	u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
+        value = Math.exp(thisValue);
+        u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
         break;
       case FLOOR:
         value = Math.floor(thisValue);
         u = thisUnit;
         break;
       case LOG:
-	value = Math.log(thisValue);
-	u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
+        value = Math.log(thisValue);
+        u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
         break;
       case RINT:
         value = Math.rint(thisValue);
@@ -627,7 +645,7 @@ public class Real
         break;
       case NEGATE:
         value = -thisValue;
-	u = thisUnit;
+        u = thisUnit;
         break;
       case NOP:
         value = thisValue;
@@ -712,10 +730,10 @@ public class Real
       }
       else {
         return
-	  (Unit.canConvert(getUnit(), CommonUnit.secondsSinceTheEpoch) &&
-	  !getUnit().getAbsoluteUnit().equals(getUnit()))
-	    ? new DateTime(this).toString()
-	    : Double.toString(Value);
+          (Unit.canConvert(getUnit(), CommonUnit.secondsSinceTheEpoch) &&
+          !getUnit().getAbsoluteUnit().equals(getUnit()))
+            ? new DateTime(this).toString()
+            : Double.toString(Value);
       }
     }
     catch (VisADException e) {
@@ -726,25 +744,25 @@ public class Real
   /**
    * Gets a string that represents just the value portion of this Real -- but
    * with full semantics (e.g. numeric value and unit).
-   * @return			A string representation of just the value
-   *				portion of this Real.
+   * @return                    A string representation of just the value
+   *                            portion of this Real.
    */
   public String toValueString() {
-    String	result;
+    String      result;
     try {
       if (Double.isNaN(Value)) {
         result = "missing";
       }
       else {
-	  if (Unit.canConvert(getUnit(), CommonUnit.secondsSinceTheEpoch) &&
-	      !getUnit().getAbsoluteUnit().equals(getUnit())) {
-	    result = new DateTime(this).toValueString();
-	  }
-	  else {
-	    Unit u =
-	      unit != null ? unit : ((RealType)getType()).getDefaultUnit();
-	    result = Float.toString((float)Value) + (u == null ? "" : " " + u);
-	  }
+          if (Unit.canConvert(getUnit(), CommonUnit.secondsSinceTheEpoch) &&
+              !getUnit().getAbsoluteUnit().equals(getUnit())) {
+            result = new DateTime(this).toValueString();
+          }
+          else {
+            Unit u =
+              unit != null ? unit : ((RealType)getType()).getDefaultUnit();
+            result = Float.toString((float)Value) + (u == null ? "" : " " + u);
+          }
       }
     }
     catch (VisADException e) {
@@ -758,7 +776,7 @@ public class Real
       return pre + "missing\n";
     }
     else if (Unit.canConvert(getUnit(), CommonUnit.secondsSinceTheEpoch) &&
-	!getUnit().getAbsoluteUnit().equals(getUnit())) {
+        !getUnit().getAbsoluteUnit().equals(getUnit())) {
       return pre + "Real.Time: Value = " +
              new DateTime(this).toString() + "\n";
     }
@@ -770,9 +788,9 @@ public class Real
 
   /**
    * Compares this Real to another.
-   * @param object		The other Real to compare against.  It shall be
-   *				a Real with a compatible (i.e. convertible)
-   *				unit.
+   * @param object              The other Real to compare against.  It shall be
+   *                            a Real with a compatible (i.e. convertible)
+   *                            unit.
    * @return                    A negative integer, zero, or a positive integer
    *                            depending on whether this Real is considered
    *                            less than, equal to, or greater than the other
@@ -783,37 +801,37 @@ public class Real
    */
   public int compareTo(Object object)
   {
-    Real	that = (Real)object;
-    int		comp;
+    Real        that = (Real)object;
+    int         comp;
     try
     {
-      Unit	defaultUnit = ((RealType)getType()).getDefaultUnit();
+      Unit      defaultUnit = ((RealType)getType()).getDefaultUnit();
       comp = new Double(getValue(defaultUnit)).compareTo(
-	     new Double(that.getValue(defaultUnit)));
+             new Double(that.getValue(defaultUnit)));
       if (comp == 0) {
-	if (Error == null) {
-	  comp = that.Error == null ? 0 : -1;
-	}
-	else if (that.Error == null) {
-	  comp = 1;
-	}
-	else {
-	  comp = Error.compareTo(that.Error);
-	}
+        if (Error == null) {
+          comp = that.Error == null ? 0 : -1;
+        }
+        else if (that.Error == null) {
+          comp = 1;
+        }
+        else {
+          comp = Error.compareTo(that.Error);
+        }
       }
     }
     catch (VisADException e)
     {
-      comp = 1;	// make problem Real-s greater than anything
+      comp = 1; // make problem Real-s greater than anything
     }
     return comp;
   }
 
   /**
    * Indicates if this Real is semantically identical to an object.
-   * @param obj			The object.
-   * @return			<code>true</code> if and only if this Real
-   *				is semantically identical to the object.
+   * @param obj                 The object.
+   * @return                    <code>true</code> if and only if this Real
+   *                            is semantically identical to the object.
    */
   public boolean equals(Object obj) {
     return obj != null && obj instanceof Real &&
@@ -822,19 +840,19 @@ public class Real
 
   /**
    * Returns the hash code of this Real.
-   * @return			The hash code of this Real.  If two Real-s are
-   *				semantically identical, then their hash codes
-   *				are equal.
+   * @return                    The hash code of this Real.  If two Real-s are
+   *                            semantically identical, then their hash codes
+   *                            are equal.
    */
   public int hashCode() {
-    RealType	realType = (RealType)getType();
-    int		hashCode = realType.hashCode();
+    RealType    realType = (RealType)getType();
+    int         hashCode = realType.hashCode();
     try
     {
       hashCode ^= new Double(getValue(realType.getDefaultUnit())).hashCode();
     }
     catch (VisADException e)
-    {}	// ignore because can't happen
+    {}  // ignore because can't happen
     if (Error != null)
       hashCode ^= Error.hashCode();
     return hashCode;
@@ -867,13 +885,13 @@ public class Real
 
     Real fahrenheit =
       new Real(
-	RealType.getRealType(
-	  "FahrenheitTemperature",
-	  new OffsetUnit(459.67,
-	    new ScaledUnit(1/1.8, SI.kelvin, "degR"),
-	      "degF"),
-	  null),
-	32.0);
+        RealType.getRealType(
+          "FahrenheitTemperature",
+          new OffsetUnit(459.67,
+            new ScaledUnit(1/1.8, SI.kelvin, "degR"),
+              "degF"),
+          null),
+        32.0);
     Real kelvin = new Real(RealType.getRealType("Temperature", SI.kelvin, null), 300);
     System.out.println("300 kelvin + 32 fahrenheit = " +
       ((Real)kelvin.add(fahrenheit)).toValueString());
@@ -899,14 +917,14 @@ public class Real
 
     Real deltaF =
       new Real(
-	RealType.getRealType(
-	  "DeltaFahrenheitTemperature",
-	  new OffsetUnit(459.67,
-	    new ScaledUnit(1/1.8, SI.kelvin, "degR"),
-	      "degF"),
-	  null,
-	  RealType.INTERVAL),
-	32.0);
+        RealType.getRealType(
+          "DeltaFahrenheitTemperature",
+          new OffsetUnit(459.67,
+            new ScaledUnit(1/1.8, SI.kelvin, "degR"),
+              "degF"),
+          null,
+          RealType.INTERVAL),
+        32.0);
     System.out.println("300 kelvin + 32 deltaF = " +
       ((Real)kelvin.add(deltaF)).toValueString());
     System.out.println("300 kelvin - 32 deltaF = " +
@@ -931,8 +949,8 @@ public class Real
 
     Real deltaK =
       new Real(
-	RealType.getRealType( "DeltaTemperature", SI.kelvin, null, RealType.INTERVAL),
-	100.0);
+        RealType.getRealType( "DeltaTemperature", SI.kelvin, null, RealType.INTERVAL),
+        100.0);
     System.out.println("300 kelvin + 100 deltaK = " +
       ((Real)kelvin.add(deltaK)).toValueString());
     System.out.println("300 kelvin - 100 deltaK = " +
@@ -984,12 +1002,12 @@ public class Real
 
     System.out.println("");
 
-    Unit	foot = new ScaledUnit(3.048, SI.meter);
-    Unit	yard = new ScaledUnit(3, (ScaledUnit)foot);
+    Unit        foot = new ScaledUnit(3.048, SI.meter);
+    Unit        yard = new ScaledUnit(3, (ScaledUnit)foot);
     System.out.println("log(1 yard / 3 feet) = " +
       ((Real)new Real(RealType.getRealType("OneYard", SI.meter, null), 1, yard)
-	.divide(new Real(RealType.getRealType("ThreeFeet", SI.meter, null), 3, foot))
-	.log()).toValueString());
+        .divide(new Real(RealType.getRealType("ThreeFeet", SI.meter, null), 3, foot))
+        .log()).toValueString());
   }
 
 /* Here's the output:
