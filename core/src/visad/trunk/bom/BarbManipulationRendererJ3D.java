@@ -127,6 +127,11 @@ public class BarbManipulationRendererJ3D extends DirectManipulationRendererJ3D {
   private float data_speed = 0.0f;
   private float display_speed = 0.0f;
 
+  /** if user adjusts speed, make sure start speed is greater than EPS */
+  private static final float EPS = 0.2f;
+
+  private boolean refirst = false;
+
   public String getWhyNotDirect() {
     return whyNotDirect;
   }
@@ -271,14 +276,14 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
     float d_y = (float) ray.vector[1];
     float d_z = (float) ray.vector[2];
 
-    if (first) {
+    if (first || refirst) {
       point_x = barbValues[2];
       point_y = barbValues[3];
       point_z = 0.0f;
       line_x = 0.0f;
       line_y = 0.0f;
       line_z = 1.0f; // lineAxis == 2 in DataRenderer.drag_direct
-    } // end if (first)
+    } // end if (first || refirst)
 
     float[] x = new float[3]; // x marks the spot
     // DirectManifoldDimension = 2
@@ -316,7 +321,7 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
         }
       }
 
-      if (first) {
+      if (first || refirst) {
         // get first Data flow vector
         for (int i=0; i<3; i++) {
           int j = flowToComponent[i];
@@ -334,7 +339,7 @@ System.out.println("barbValues = " + barbValues[0] + " " + barbValues[1] +
                    "   " + barbValues[2] + " " + barbValues[3]);
 System.out.println("data_speed = " + data_speed);
 */
-      }
+      } // end if (first || refirst)
 
       // convert x to a flow vector, and from spatial to earth
       if (getRealVectorTypes(which_barb) instanceof EarthVectorType) {
@@ -397,9 +402,11 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
 
       float x_speed =
         (float) Math.sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2]);
-      if (first) {
+      if (x_speed < 0.000001f) x_speed = 0.000001f;
+      if (first || refirst) {
         display_speed = x_speed;
       }
+      refirst = false;
 
       if (mshift != 0) {
         // only modify data_flow direction
@@ -416,6 +423,10 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
       else if (mctrl != 0) {
         // only modify data_flow speed
         float ratio = x_speed / display_speed;
+        if (data_speed < EPS) {
+          data_flow[0] = 2.0f * EPS;
+          refirst = true;
+        }
         x[0] = ratio * data_flow[0];
         x[1] = ratio * data_flow[1];
         x[2] = ratio * data_flow[2];
@@ -428,9 +439,18 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
       else {
         // modify data_flow speed and direction
         float ratio = data_speed / display_speed;
-        x[0] *= ratio;
-        x[1] *= ratio;
-        x[2] *= ratio;
+        if (data_speed < EPS) {
+          data_flow[0] = 2.0f * EPS;
+          x[0] = data_flow[0];
+          x[1] = data_flow[1];
+          x[2] = data_flow[2];
+          refirst = true;
+        }
+        else {
+          x[0] *= ratio;
+          x[1] *= ratio;
+          x[2] *= ratio;
+        }
       }
 
       // now replace flow values

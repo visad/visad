@@ -852,14 +852,20 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     }
     else if (type.equals(Display.Flow1X) ||
              type.equals(Display.Flow1Y) ||
-             type.equals(Display.Flow1Z)) {
+             type.equals(Display.Flow1Z) ||
+             type.equals(Display.Flow1Elevation) ||
+             type.equals(Display.Flow1Azimuth) ||
+             type.equals(Display.Flow1Radial)) {
       Control control = display.getControl(Flow1Control.class);
       if (control != null) return control;
       else return new Flow1Control(display);
     }
     else if (type.equals(Display.Flow2X) ||
              type.equals(Display.Flow2Y) ||
-             type.equals(Display.Flow2Z)) {
+             type.equals(Display.Flow2Z) ||
+             type.equals(Display.Flow2Elevation) ||
+             type.equals(Display.Flow2Azimuth) ||
+             type.equals(Display.Flow2Radial)) {
       Control control = display.getControl(Flow2Control.class);
       if (control != null) return control;
       else return new Flow2Control(display);

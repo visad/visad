@@ -1762,9 +1762,12 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     float[][][] ff_values = {flow1_values, flow2_values};
     DisplayTupleType[] flow_tuple =
       {Display.DisplayFlow1Tuple, Display.DisplayFlow2Tuple};
+    DisplayTupleType[] actual_tuple = {null, null};
 
     boolean anyFlow = false;
+/* WLH 15 April 2000
     ScalarMap[][] maps = new ScalarMap[2][3];
+*/
 
     for (int i=0; i<valueArrayLength; i++) {
       if (display_values[i] != null) {
@@ -1772,7 +1775,17 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
         DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
         DisplayTupleType tuple = real.getTuple();
         for (int k=0; k<2; k++) {
-          if (flow_tuple[k].equals(tuple)) {
+          if (tuple != null &&
+              (tuple.equals(flow_tuple[k]) ||
+               (tuple.getCoordinateSystem() != null &&
+                tuple.getCoordinateSystem().getReference().equals(
+                    flow_tuple[k])))) {
+            if (actual_tuple[k] != null && !actual_tuple[k].equals(tuple)) {
+              throw new DisplayException("multiple flow " + k +
+                                         " display tuples: " +
+                                         "ShadowType.assembleFlow");
+            }
+            actual_tuple[k] = tuple;
             ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
             FlowControl control = (FlowControl) map.getControl();
             flowScale[k] = control.getFlowScale();
@@ -1780,13 +1793,18 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
             ff_values[k][flow_index] = display_values[i];
             flen[k] = Math.max(flen[k], display_values[i].length);
             display_values[i] = null; // MEM_WLH 27 March 99
+/* WLH 15 April 2000
             maps[k][flow_index] = map;
+*/
             anyFlow = true;
           }
         }
       }
     }
+
+/* WLH 15 April 2000
     if (anyFlow) renderer.setFlowDisplay(maps, flowScale);
+*/
 
     //
     // TO_DO
@@ -1826,6 +1844,19 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
               }
             }
           } // end if (ff_values[k][i].length == 1)
+        } // end for (int i=0; i<3; i++)
+      } // end if (flen[k] > 0)
+
+      if (actual_tuple[k] != null && !actual_tuple[k].equals(flow_tuple[k])) {
+        missing_checked = new boolean[] {false, false, false};
+        // transform tuple_values to flow_tuple[k]
+        CoordinateSystem coord = actual_tuple[k].getCoordinateSystem();
+        float[][] new_ff_values = coord.toReference(ff_values[k]);
+        for (int i=0; i<3; i++) ff_values[k][i] = new_ff_values[i];
+      }
+
+      if (flen[k] > 0) {
+        for (int i=0; i<3; i++) {
           if (!missing_checked[i]) {
             for (int j=0; j<flen[k]; j++) {
               if (ff_values[k][i][j] != ff_values[k][i][j]) {

@@ -42,13 +42,19 @@ public class SphericalCoordinateSystem extends CoordinateSystem {
       {CommonUnit.Degree, CommonUnit.Degree, null} to the super
       constructor, in order to ensure Unit compatibility with its
       use of trigonometric functions */
-  public SphericalCoordinateSystem(RealTupleType reference) throws VisADException {
+  public SphericalCoordinateSystem(RealTupleType reference)
+         throws VisADException {
     super(reference, coordinate_system_units);
   }
 
   /** trusted constructor for initializers */
   SphericalCoordinateSystem(RealTupleType reference, boolean b) {
     super(reference, coordinate_system_units, b);
+  }
+
+  /** trusted constructor for initializers */
+  SphericalCoordinateSystem(RealTupleType reference, Unit[] units, boolean b) {
+    super(reference, units, b);
   }
 
   public double[][] toReference(double[][] tuples) throws VisADException {

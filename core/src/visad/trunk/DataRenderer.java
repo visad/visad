@@ -985,6 +985,7 @@ if (map.badRange()) {
   }
 
 
+/* WLH 15 April 2000
   // from assembleFlow
   ScalarMap[][] flow_maps = null;
   float[] flow_scale = null;
@@ -993,7 +994,7 @@ if (map.badRange()) {
     flow_maps = maps;
     flow_scale = fs;
   }
-
+*/
 
   // if non-null, float[][] new_spatial_values =
   //   display_coordinate_system.toReference(spatial_values);

@@ -149,6 +149,16 @@ public interface Display extends Action {
     new DisplayRealType("Flow1Z", true, -1.0, 1.0, 0.0,
                         CommonUnit.meterPerSecond, true);
 
+  DisplayRealType Flow1Elevation =
+    new DisplayRealType("Flow1Elevation", true, -90.0, 90.0, 0.0,
+                        CommonUnit.degree, true);
+  DisplayRealType Flow1Azimuth =
+    new DisplayRealType("Flow1Azimuth", true, 0.0, 360.0, 0.0,
+                        CommonUnit.degree, true);
+  DisplayRealType Flow1Radial =
+    new DisplayRealType("Flow1Radial", true, -1.0, 1.0, 0.0,
+                        CommonUnit.meterPerSecond, true);
+
   /** second set of three flow display scalars */
   DisplayRealType Flow2X =
     new DisplayRealType("Flow2X", true, -1.0, 1.0, 0.0,
@@ -158,6 +168,16 @@ public interface Display extends Action {
                         CommonUnit.meterPerSecond, true);
   DisplayRealType Flow2Z =
     new DisplayRealType("Flow2Z", true, -1.0, 1.0, 0.0,
+                        CommonUnit.meterPerSecond, true);
+
+  DisplayRealType Flow2Elevation =
+    new DisplayRealType("Flow2Elevation", true, -90.0, 90.0, 0.0,
+                        CommonUnit.degree, true);
+  DisplayRealType Flow2Azimuth =
+    new DisplayRealType("Flow2Azimuth", true, 0.0, 360.0, 0.0,
+                        CommonUnit.degree, true);
+  DisplayRealType Flow2Radial =
+    new DisplayRealType("Flow2Radial", true, -1.0, 1.0, 0.0,
                         CommonUnit.meterPerSecond, true);
 
   /** spatial offset display scalars */
@@ -193,9 +213,10 @@ public interface Display extends Action {
     {XAxis, YAxis, ZAxis, Latitude, Longitude, Radius, List, Red, Green, Blue,
      RGB, RGBA, Hue, Saturation, Value, HSV, Cyan, Magenta, Yellow, CMY, Alpha,
      Animation, SelectValue, SelectRange, IsoContour, Flow1X, Flow1Y, Flow1Z,
-     Flow2X, Flow2Y, Flow2Z, XAxisOffset, YAxisOffset, ZAxisOffset, Shape, Text,
-     ShapeScale, LineWidth, PointSize, CylRadius, CylAzimuth, CylZAxis};
-
+     Flow2X, Flow2Y, Flow2Z, XAxisOffset, YAxisOffset, ZAxisOffset, Shape,
+     Text, ShapeScale, LineWidth, PointSize, CylRadius, CylAzimuth, CylZAxis,
+     Flow1Elevation, Flow1Azimuth, Flow1Radial,
+     Flow2Elevation, Flow2Azimuth, Flow2Radial};
 
   /** system intrinsic DisplayTupleType objects */
   /** system intrinsic DisplayTupleType for 3D Cartesian Spatial Coordinates */
@@ -264,6 +285,30 @@ public interface Display extends Action {
           {Flow2X, Flow2Y, Flow2Z};
   DisplayTupleType DisplayFlow2Tuple =
     new DisplayTupleType(componentsflow2, true);
+
+  /** system intrinsic DisplayTupleType for first set of 3D Spherical
+      Flow Coordinates, this defines a CoordinateSystem with Reference
+      DisplayFlow1Tuple */
+  CoordinateSystem DisplayFlow1SphericalCoordSys =
+    new SphericalCoordinateSystem(DisplayFlow1Tuple, new Unit[]
+          {CommonUnit.degree, CommonUnit.degree, CommonUnit.meterPerSecond},
+          true);
+  DisplayRealType[] componentsflow1s =
+          {Flow1Elevation, Flow1Azimuth, Flow1Radial};
+  DisplayTupleType DisplayFlow1SphericalTuple =
+    new DisplayTupleType(componentsflow1s, DisplayFlow1SphericalCoordSys, true);
+
+  /** system intrinsic DisplayTupleType for second set of 3D Spherical
+      Flow Coordinates, this defines a CoordinateSystem with Reference
+      DisplayFlow2Tuple */
+  CoordinateSystem DisplayFlow2SphericalCoordSys =
+    new SphericalCoordinateSystem(DisplayFlow2Tuple, new Unit[]
+          {CommonUnit.degree, CommonUnit.degree, CommonUnit.meterPerSecond},
+          true);
+  DisplayRealType[] componentsflow2s =
+          {Flow2Elevation, Flow2Azimuth, Flow2Radial};
+  DisplayTupleType DisplayFlow2SphericalTuple =
+    new DisplayTupleType(componentsflow2s, DisplayFlow2SphericalCoordSys, true);
 
   /** system intrinsic DisplayTupleType for Spatial Offset Coordinates */
   DisplayRealType[] componentsso =
