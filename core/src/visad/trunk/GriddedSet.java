@@ -817,11 +817,24 @@ public class GriddedSet extends SampledSet {
       }
       // Sets are immutable, so no need for 'synchronized'
       float[][] samples = ((GriddedSet) set).getSamples(false);
-      for (j=0; j<DomainDimension; j++) {
-        for (i=0; i<Length; i++) {
-          if (Samples[j][i] != samples[j][i]) {
-            addNotEqualsCache((Set) set);
-            return false;
+      if (Samples != null) {
+        for (j=0; j<DomainDimension; j++) {
+          for (i=0; i<Length; i++) {
+            if (Samples[j][i] != samples[j][i]) {
+              addNotEqualsCache((Set) set);
+              return false;
+            }
+          }
+        }
+      }
+      else {
+        float[][] this_samples = getSamples(false);
+        for (j=0; j<DomainDimension; j++) {
+          for (i=0; i<Length; i++) {
+            if (this_samples[j][i] != samples[j][i]) {
+              addNotEqualsCache((Set) set);
+              return false;
+            }
           }
         }
       }

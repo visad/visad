@@ -338,6 +338,51 @@ public class Gridded1DDoubleSet extends GriddedSet {
     return (float) HiX;
   }
 
+  public boolean equals(Object set) {
+    if (!(set instanceof Gridded1DDoubleSet) || set == null) return false;
+    if (this == set) return true;
+    if (testNotEqualsCache((Set) set)) return false;
+    if (testEqualsCache((Set) set)) return true;
+    if (!equalUnitAndCS((Set) set)) return false;
+    try {
+      int i, j;
+      if (DomainDimension != ((Gridded1DDoubleSet) set).getDimension() ||
+          ManifoldDimension != ((Gridded1DDoubleSet) set).getManifoldDimension() ||
+          Length != ((Gridded1DDoubleSet) set).getLength()) return false;
+      for (j=0; j<ManifoldDimension; j++) {
+        if (Lengths[j] != ((Gridded1DDoubleSet) set).getLength(j)) return false;
+      }
+      // Sets are immutable, so no need for 'synchronized'
+      double[][] samples = ((Gridded1DDoubleSet) set).getDoubles(false);
+      if (Samples != null) {
+        for (j=0; j<DomainDimension; j++) {
+          for (i=0; i<Length; i++) {
+            if (Samples[j][i] != samples[j][i]) {
+              addNotEqualsCache((Set) set);
+              return false;
+            }
+          }
+        }
+      }
+      else {
+        double[][] this_samples = getDoubles(false);
+        for (j=0; j<DomainDimension; j++) {
+          for (i=0; i<Length; i++) {
+            if (this_samples[j][i] != samples[j][i]) {
+              addNotEqualsCache((Set) set);
+              return false;
+            }
+          }
+        }
+      }
+      addEqualsCache((Set) set);
+      return true;
+    }
+    catch (VisADException e) {
+      return false;
+    }
+  }
+
   public Object clone() {
     try {
       return new Gridded1DDoubleSet(Type, Samples, Length, DomainCoordinateSystem,
