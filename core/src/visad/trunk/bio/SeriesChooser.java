@@ -58,33 +58,41 @@ public class SeriesChooser extends JPanel implements ActionListener {
   public SeriesChooser() {
     // create panels
     JPanel top = new JPanel();
+    JPanel mid = new JPanel();
     JPanel bottom = new JPanel();
-    JPanel topLeft = new JPanel();
-    JPanel topMid = new JPanel();
-    JPanel topRight = new JPanel();
+    JPanel midLeft = new JPanel();
+    JPanel midRight = new JPanel();
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-    top.setLayout(new BoxLayout(top, BoxLayout.X_AXIS));
+    top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
+    mid.setLayout(new BoxLayout(mid, BoxLayout.X_AXIS));
     bottom.setLayout(new BoxLayout(bottom, BoxLayout.X_AXIS));
-    topLeft.setLayout(new BoxLayout(topLeft, BoxLayout.Y_AXIS));
-    topMid.setLayout(new BoxLayout(topMid, BoxLayout.Y_AXIS));
-    topRight.setLayout(new BoxLayout(topRight, BoxLayout.Y_AXIS));
-    add(top);
-    add(bottom);
-    top.add(topLeft);
-    top.add(topMid);
-    top.add(topRight);
+    midLeft.setLayout(new BoxLayout(midLeft, BoxLayout.Y_AXIS));
+    midRight.setLayout(new BoxLayout(midRight, BoxLayout.Y_AXIS));
+    top.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    mid.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    bottom.setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
-    // create first row of components
+    // create labels
+    JLabel l1 = new JLabel("File prefix");
+    JLabel l2 = new JLabel("Count");
+    JLabel l3 = new JLabel("Type");
+    l1.setForeground(Color.black);
+    l2.setForeground(Color.black);
+    l3.setForeground(Color.black);
+
+    // create text fields
     prefix = new JTextField();
     count = new JTextField();
     Vector items = new Vector(types.length);
     for (int i=0; i<types.length; i++) items.add(types[i]);
     type = new JComboBox(items);
+    prefix.setAlignmentX(JLabel.LEFT_ALIGNMENT);
+    count.setAlignmentX(JLabel.LEFT_ALIGNMENT);
+    type.setAlignmentX(JLabel.LEFT_ALIGNMENT);
     Util.adjustTextField(prefix);
-    Util.adjustTextField(count);
     type.setEditable(true);
 
-    // create second row of components
+    // create buttons
     JButton select = new JButton("Choose file");
     JButton ok = new JButton("Ok");
     JButton cancel = new JButton("Cancel");
@@ -101,15 +109,20 @@ public class SeriesChooser extends JPanel implements ActionListener {
     cancel.addActionListener(this);
 
     // lay out components
-    topLeft.add(new JLabel("File prefix"));
-    topLeft.add(prefix);
-    topMid.add(new JLabel("Count"));
-    topMid.add(count);
-    topRight.add(new JLabel("Type"));
-    topRight.add(type);
+    add(top);
+    add(mid);
+    add(bottom);
+    top.add(l1);
+    top.add(prefix);
+    mid.add(midLeft);
+    mid.add(midRight);
     bottom.add(select);
     bottom.add(ok);
     bottom.add(cancel);
+    midLeft.add(l2);
+    midLeft.add(count);
+    midRight.add(l3);
+    midRight.add(type);
   }
 
   /** Currently visible dialog. */
@@ -127,9 +140,25 @@ public class SeriesChooser extends JPanel implements ActionListener {
     return rval;
   }
 
+  /** Returns the selected series of files in array form. */
   public File[] getFileSeries() {
-    // CTR: TODO
-    return null;
+    String p = prefix.getText();
+    String c = count.getText();
+    String t = (String) type.getSelectedItem();
+    int num = 1;
+    try {
+      num = Integer.parseInt(c);
+      if (num < 1) num = 1;
+    }
+    catch (NumberFormatException exc) { }
+    boolean dot = (t == null || t.equals(""));
+    if (dot) t = "." + t;
+    File[] series = new File[num];
+    for (int i=0; i<num; i++) {
+      String name = p + i + (dot ? t : "");
+      series[i] = new File(name);
+    }
+    return series;
   }
 
   /** Handles button press events. */
@@ -154,7 +183,7 @@ public class SeriesChooser extends JPanel implements ActionListener {
           char last = name.charAt(--i);
           if (last < '0' || last > '9') break;
         }
-        prefix = name.substring(0, i);
+        prefix = name.substring(0, i + 1);
         ext = name.substring(dot + 1);
       }
       else {
@@ -169,7 +198,7 @@ public class SeriesChooser extends JPanel implements ActionListener {
       int count = maxFiles / 2;
       int max = maxFiles;
       String end = (ext.equals("") ? "" : ".") + ext;
-      while (true) {
+      while (min != max) {
         File top = new File(prefix + count + end);
         File top1 = new File(prefix + (count + 1) + end);
         boolean exists = top.exists();
@@ -183,7 +212,6 @@ public class SeriesChooser extends JPanel implements ActionListener {
           min = count;
         }
         else break;
-        /* CTR: START HERE: debug this loop. Print out each file checked. */
         count = (min + max) / 2;
       }
 

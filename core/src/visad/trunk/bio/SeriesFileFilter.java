@@ -39,6 +39,7 @@ public class SeriesFileFilter extends FileFilter implements FilenameFilter {
 
   /** Returns whether the series file filter accepts the given file. */
   public boolean accept(File f) {
+    if (f.isDirectory()) return true;
     String name = f.getName();
     int dot = name.lastIndexOf(".");
     if (dot >= 0) name = name.substring(0, dot);

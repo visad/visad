@@ -30,6 +30,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.plaf.basic.BasicArrowButton;
 import java.rmi.RemoteException;
 import visad.*;
 
@@ -38,49 +39,119 @@ public class StepWidget extends JPanel implements ActionListener,
   ChangeListener, ControlListener, ScalarMapListener
 {
   private static final boolean DEBUG = true;
+  private static final int BUTTON_WIDTH = 25;
+  private static final int BUTTON_HEIGHT = 25;
+  private static final int GAP = 5;
 
   private JSlider step;
-  private JButton back;
-  private JButton forward;
+  private JButton up;
+  private JButton down;
 
+  private ScalarMap smap;
   private AnimationControl control;
 
-  /** Constructs a StepWidget linked to the AnimationControl in smap. */
-  public StepWidget(ScalarMap smap) throws VisADException, RemoteException {
+  /** Constructs a StepWidget. */
+  public StepWidget() throws VisADException, RemoteException {
+    // create panels
+    JPanel top = new JPanel();
+    JPanel bottom = new JPanel();
+    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+    top.setLayout(new BoxLayout(top, BoxLayout.X_AXIS));
+    bottom.setLayout(new BoxLayout(bottom, BoxLayout.X_AXIS));
+
+    // create components
+    up = new BasicArrowButton(BasicArrowButton.NORTH) {
+      public Dimension getPreferredSize() {
+        return new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT);
+      }
+      public Dimension getMaximumSize() {
+        return new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT);
+      }
+    };
+    step = new JSlider(JSlider.VERTICAL, 1, 1, 1);
+    down = new BasicArrowButton(BasicArrowButton.SOUTH) {
+      public Dimension getPreferredSize() {
+        return new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT);
+      }
+      public Dimension getMaximumSize() {
+        return new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT);
+      }
+    };
+    step.setPaintTicks(true);
+    step.setAlignmentX(JButton.LEFT_ALIGNMENT);
+
+    // lay out components
+    add(top);
+    add(Box.createRigidArea(new Dimension(0, GAP)));
+    add(step);
+    add(Box.createRigidArea(new Dimension(0, GAP)));
+    add(bottom);
+    top.add(Box.createHorizontalGlue());
+    top.add(up);
+    top.add(Box.createHorizontalGlue());
+    bottom.add(Box.createHorizontalGlue());
+    bottom.add(down);
+    bottom.add(Box.createHorizontalGlue());
+
+    // listen for button press events
+    step.addChangeListener(this);
+    up.addActionListener(this);
+    down.addActionListener(this);
+
+    // disable controls
+    step.setEnabled(false);
+    up.setEnabled(false);
+    down.setEnabled(false);
+  }
+
+  /** Returns the minimum size of the StepWidget. */
+  public Dimension getMinimumSize() {
+    Dimension min = getPreferredSize();
+    return new Dimension(min.width, 0);
+  }
+
+  /** Returns the maximum size of the StepWidget. */
+  public Dimension getMaximumSize() {
+    Dimension max = getPreferredSize();
+    return new Dimension(max.width, Integer.MAX_VALUE);
+  }
+
+  /** Links the StepWidget with the given scalar map. */
+  public void setMap(ScalarMap smap) throws VisADException, RemoteException {
     // verify scalar map
-    if (!Display.Animation.equals(smap.getDisplayScalar())) {
+    if (smap != null && !Display.Animation.equals(smap.getDisplayScalar())) {
       throw new DisplayException("StepWidget: " +
         "ScalarMap must be to Display.Animation");
     }
 
-    // lay out components
-    setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-    step = new JSlider(1, 1, 1);
-    back = new JButton("<");
-    forward = new JButton(">");
-    step.setPaintTicks(true);
-    step.setAlignmentX(JButton.CENTER_ALIGNMENT);
-    add(step);
-    add(back);
-    add(forward);
+    // remove old listeners
+    if (this.smap != null) smap.removeScalarMapListener(this);
+    if (control != null) control.removeControlListener(this);
 
-    // get control startup values
+    // get control values
+    this.smap = smap;
     control = (AnimationControl) smap.getControl();
     fixControlUI();
 
     // add listeners
     if (control != null) control.addControlListener(this);
-    smap.addScalarMapListener(this);
-    back.addActionListener(this);
-    forward.addActionListener(this);
-    step.addChangeListener(this);
+    if (smap != null) smap.addScalarMapListener(this);
   }
 
   private void fixControlUI() {
     // update slider ticks
     int max = 1;
     int cur = 1;
-    if (control != null) {
+    if (control == null) {
+      // disable controls
+      step.setEnabled(false);
+      up.setEnabled(false);
+      down.setEnabled(false);
+    }
+    else {
+      step.setEnabled(true);
+      up.setEnabled(true);
+      down.setEnabled(true);
       try {
         Set set = control.getSet();
         if (set != null) max = set.getLength();
@@ -90,9 +161,8 @@ public class StepWidget extends JPanel implements ActionListener,
       if (cur < 1) cur = 1;
       else if (cur > max) cur = max;
     }
-
-    step.setMaximum(max);
     step.setMinimum(1);
+    step.setMaximum(max);
     step.setValue(cur);
 
     int maj;
@@ -112,19 +182,19 @@ public class StepWidget extends JPanel implements ActionListener,
       return;
     }
     Object o = e.getSource();
-    if (o == back) {
-      // move back one step
+    if (o == up) {
+      // move up one step
       try {
-        control.setDirection(false);
+        control.setDirection(true);
         control.takeStep();
       }
       catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
       catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
     }
-    if (o == forward) {
-      // move forward one step
+    if (o == down) {
+      // move down one step
       try {
-        control.setDirection(true);
+        control.setDirection(false);
         control.takeStep();
       }
       catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
@@ -137,9 +207,7 @@ public class StepWidget extends JPanel implements ActionListener,
     try {
       if (control != null) {
         int cur = step.getValue() - 1;
-        if (control.getCurrent() != cur) {
-          control.setCurrent(cur);
-        }
+        if (control.getCurrent() != cur) control.setCurrent(cur);
       }
     }
     catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
@@ -150,9 +218,7 @@ public class StepWidget extends JPanel implements ActionListener,
   public void controlChanged(ControlEvent e) {
     if (control != null) {
       int val = control.getCurrent() + 1;
-      if (step.getValue() != val) {
-        step.setValue(val);
-      }
+      if (step.getValue() != val) step.setValue(val);
     }
   }
 
@@ -165,14 +231,14 @@ public class StepWidget extends JPanel implements ActionListener,
   public void controlChanged(ScalarMapControlEvent evt) {
     int id = evt.getId();
     if (id == ScalarMapEvent.CONTROL_REMOVED ||
-        id == ScalarMapEvent.CONTROL_REPLACED)
+      id == ScalarMapEvent.CONTROL_REPLACED)
     {
       evt.getControl().removeControlListener(this);
       if (id == ScalarMapEvent.CONTROL_REMOVED) control = null;
     }
 
     if (id == ScalarMapEvent.CONTROL_REPLACED ||
-        id == ScalarMapEvent.CONTROL_ADDED)
+      id == ScalarMapEvent.CONTROL_ADDED)
     {
       control = (AnimationControl) evt.getScalarMap().getControl();
       fixControlUI();

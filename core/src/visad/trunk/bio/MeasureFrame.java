@@ -66,12 +66,6 @@ public class MeasureFrame extends GUIFrame {
   /** Widget for stepping through the time stack. */
   private StepWidget sw;
 
-  /** Frame for step widget. */
-  private JFrame sf;
-
-  /** Content pane for step widget. */
-  private JPanel spane;
-
   /** Synchronization object. */
   private Object lock = new Object();
 
@@ -79,30 +73,104 @@ public class MeasureFrame extends GUIFrame {
   public MeasureFrame() throws VisADException, RemoteException {
     super(true);
     setTitle("BioVisAD Measurement Tool");
+    addMenuItem("File", "Open...", "fileOpen", 'o');
+    addMenuItem("File", "Open series...", "fileOpenSeries", 's');
+    addMenuItem("File", "Exit", "fileExit", 'x');
+    addMenuItem("Measure", "Restore...", "measureRestore", 'r');
+    addMenuItem("Measure", "Save...", "measureSave", 's');
+
+    // lay out components
     JPanel pane = new JPanel();
+    JPanel top = new JPanel();
+    JPanel bottom = new JPanel();
     setContentPane(pane);
     pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
+    top.setLayout(new BoxLayout(top, BoxLayout.X_AXIS));
+    bottom.setLayout(new BoxLayout(bottom, BoxLayout.X_AXIS));
+    /*
+    top.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    bottom.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    */
+    pane.add(top);
+    pane.add(bottom);
+    sw = new StepWidget();
+    sw.setAlignmentY(StepWidget.TOP_ALIGNMENT);
+    top.add(sw);
     try {
       display = new DisplayImplJ3D("display", new TwoDDisplayRendererJ3D());
     }
     catch (Throwable t) {
       display = new DisplayImplJ2D("display");
     }
-    pane.add(display.getComponent());
-    addMenuItem("File", "Open...", "fileOpen", 'o');
-    addMenuItem("File", "Open series...", "fileOpenSeries", 's');
-    addMenuItem("File", "Exit", "fileExit", 'x');
-    addMenuItem("Measure", "Restore...", "measureRestore", 'r');
-    addMenuItem("Measure", "Save...", "measureSave", 's');
-    addMenuSeparator("Measure");
-    addMenuItem("Measure", "Show controls", "measureShow", 'c');
-    sf = new JFrame("Step controls");
-    spane = new JPanel();
-    sf.setContentPane(spane);
-    spane.setLayout(new BoxLayout(spane, BoxLayout.Y_AXIS));
+    top.add(display.getComponent());
+    // CTR: TODO: bottom.add(cool horiz slider thingie)
   }
 
-  /** Loads a dataset. */
+  /** Loads the given dataset. */
+  public void loadFile(File f) {
+    // make sure file exists
+    if (f == null) {
+      JOptionPane.showMessageDialog(this,
+        "Invalid file", "Cannot load file",
+        JOptionPane.ERROR_MESSAGE);
+      return;
+    }
+    if (!f.exists()) {
+      JOptionPane.showMessageDialog(this,
+        f.getName() + " does not exist", "Cannot load file",
+        JOptionPane.ERROR_MESSAGE);
+      return;
+    }
+
+    try {
+      // load data
+      DefaultFamily loader = new DefaultFamily("loader");
+      Data data = loader.open(f.getPath());
+      FieldImpl field = null;
+      if (data instanceof FieldImpl) field = (FieldImpl) data;
+      else if (data instanceof Tuple) {
+        Tuple tuple = (Tuple) data;
+        int len = tuple.getDimension();
+        for (int i=0; i<len; i++) {
+          Data d = tuple.getComponent(i);
+          if (d instanceof FieldImpl) {
+            field = (FieldImpl) d;
+            break;
+          }
+        }
+      }
+      if (field == null) {
+        JOptionPane.showMessageDialog(this,
+          f.getName() + " does not contain an image stack",
+          "Cannot load file", JOptionPane.ERROR_MESSAGE);
+        return;
+      }
+
+      // clear old display
+      display.removeAllReferences();
+      display.clearMaps();
+
+      // set up mappings
+      ScalarMap animMap = null;
+      ScalarMap[] maps = field.getType().guessMaps(false);
+      for (int i=0; i<maps.length; i++) {
+        ScalarMap smap = maps[i];
+        display.addMap(smap);
+        if (Display.Animation.equals(smap.getDisplayScalar())) {
+          animMap = smap;
+        }
+      }
+      DataReferenceImpl ref = new DataReferenceImpl("ref");
+      ref.setData(field);
+      display.addReference(ref);
+      ism = new ImageStackMeasure(field);
+      ism.setDisplay(display);
+      if (animMap != null) sw.setMap(animMap);
+    }
+    catch (Throwable t) { t.printStackTrace(); }
+  }
+
+  /** Loads a dataset specified by the user. */
   public void fileOpen() {
     final JFrame frame = this;
     Thread t = new Thread(new Runnable() {
@@ -115,70 +183,7 @@ public class MeasureFrame extends GUIFrame {
             setCursor(Cursor.getDefaultCursor());
             return;
           }
-
-          // make sure file exists
-          File f = fileBox.getSelectedFile();
-          if (!f.exists()) {
-            JOptionPane.showMessageDialog(frame,
-              f.getName() + " does not exist", "Cannot load file",
-              JOptionPane.ERROR_MESSAGE);
-            setCursor(Cursor.getDefaultCursor());
-            return;
-          }
-
-          try {
-            // load data
-            DefaultFamily loader = new DefaultFamily("loader");
-            Data data = loader.open(f.getPath());
-            FieldImpl field = null;
-            if (data instanceof FieldImpl) field = (FieldImpl) data;
-            else if (data instanceof Tuple) {
-              Tuple tuple = (Tuple) data;
-              int len = tuple.getDimension();
-              for (int i=0; i<len; i++) {
-                Data d = tuple.getComponent(i);
-                if (d instanceof FieldImpl) {
-                  field = (FieldImpl) d;
-                  break;
-                }
-              }
-            }
-            if (field == null) {
-              JOptionPane.showMessageDialog(frame,
-                f.getName() + " does not contain an image stack",
-                "Cannot load file", JOptionPane.ERROR_MESSAGE);
-              setCursor(Cursor.getDefaultCursor());
-              return;
-            }
-
-            // clear old display
-            display.removeAllReferences();
-            display.clearMaps();
-
-            // set up mappings
-            ScalarMap animMap = null;
-            ScalarMap[] maps = field.getType().guessMaps(false);
-            for (int i=0; i<maps.length; i++) {
-              ScalarMap smap = maps[i];
-              display.addMap(smap);
-              if (Display.Animation.equals(smap.getDisplayScalar())) {
-                animMap = smap;
-              }
-            }
-            DataReferenceImpl ref = new DataReferenceImpl("ref");
-            ref.setData(field);
-            display.addReference(ref);
-            ism = new ImageStackMeasure(field);
-            ism.setDisplay(display);
-            if (animMap != null) {
-              spane.removeAll();
-              sw = new StepWidget(animMap);
-              spane.add(sw);
-              sf.pack();
-              sf.show();
-            }
-          }
-          catch (Throwable t) { t.printStackTrace(); }
+          loadFile(fileBox.getSelectedFile());
           setCursor(Cursor.getDefaultCursor());
         }
       }
@@ -186,75 +191,30 @@ public class MeasureFrame extends GUIFrame {
     t.start();
   }
 
+  /** Loads a series of datasets specified by the user. */
   public void fileOpenSeries() {
     final JFrame frame = this;
     Thread t = new Thread(new Runnable() {
       public void run() {
         synchronized (lock) {
           setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-          // get file name from file dialog
+          // get file series from file dialog
           if (seriesBox.showDialog(frame) != SeriesChooser.APPROVE_OPTION) {
             setCursor(Cursor.getDefaultCursor());
             return;
           }
 
-          // make sure file exists
+          // load first file in series
           File[] f = seriesBox.getFileSeries();
-
-          // CTR: TODO: fix this code!!
-          try {
-            // load data
-            DefaultFamily loader = new DefaultFamily("loader");
-            Data data = loader.open(f[0].getPath());
-            FieldImpl field = null;
-            if (data instanceof FieldImpl) field = (FieldImpl) data;
-            else if (data instanceof Tuple) {
-              Tuple tuple = (Tuple) data;
-              int len = tuple.getDimension();
-              for (int i=0; i<len; i++) {
-                Data d = tuple.getComponent(i);
-                if (d instanceof FieldImpl) {
-                  field = (FieldImpl) d;
-                  break;
-                }
-              }
-            }
-            if (field == null) {
-              JOptionPane.showMessageDialog(frame,
-                f[0].getName() + " does not contain an image stack",
-                "Cannot load file", JOptionPane.ERROR_MESSAGE);
-              setCursor(Cursor.getDefaultCursor());
-              return;
-            }
-
-            // clear old display
-            display.removeAllReferences();
-            display.clearMaps();
-
-            // set up mappings
-            ScalarMap animMap = null;
-            ScalarMap[] maps = field.getType().guessMaps(false);
-            for (int i=0; i<maps.length; i++) {
-              ScalarMap smap = maps[i];
-              display.addMap(smap);
-              if (Display.Animation.equals(smap.getDisplayScalar())) {
-                animMap = smap;
-              }
-            }
-            DataReferenceImpl ref = new DataReferenceImpl("ref");
-            ref.setData(field);
-            display.addReference(ref);
-            ism = new ImageStackMeasure(field);
-            ism.setDisplay(display);
-            if (animMap != null) {
-              spane.removeAll();
-              sw = new StepWidget(animMap);
-              spane.add(sw);
-              sf.pack();
-              sf.show();
-            }
+          if (f == null || f.length < 1) {
+            JOptionPane.showMessageDialog(frame,
+              "Invalid series", "Cannot load series",
+              JOptionPane.ERROR_MESSAGE);
+            setCursor(Cursor.getDefaultCursor());
+            return;
           }
-          catch (Throwable t) { t.printStackTrace(); }
+          loadFile(f[0]);
+          // CTR: TODO: finish this method... load up widgets and stuff
           setCursor(Cursor.getDefaultCursor());
         }
       }
@@ -358,11 +318,6 @@ public class MeasureFrame extends GUIFrame {
       }
     });
     t.start();
-  }
-
-  /** Redisplays the step controls. */
-  public void measureShow() {
-    sf.show();
   }
 
   /** Launches the MeasureFrame GUI. */
