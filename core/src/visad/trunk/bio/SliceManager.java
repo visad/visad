@@ -324,6 +324,19 @@ public class SliceManager
     bio.vert.updateSlider(slices);
   }
 
+  /**
+   * Constructs a high-resolution data object of the animation
+   * across all timesteps, at the current slice.
+   */
+  public FieldImpl buildAnimationStack() {
+    /* CTR - TODO
+    // compile high-resolution animation data
+    FunctionType ftype = new FunctionType(time, 
+    FieldImpl data = new FieldImpl(
+    */
+    return null;
+  }
+
 
   // -- INTERNAL API METHODS --
 
@@ -854,6 +867,7 @@ public class SliceManager
 
   /** Updates 2-D display of arbitrary plane slice. */
   private void updateSlice() {
+    bio.setWaitCursor(true);
     try {
       if (collapsedField == null) {
         FieldImpl f = lowres ?
@@ -865,6 +879,7 @@ public class SliceManager
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
+    bio.setWaitCursor(false);
   }
 
 }

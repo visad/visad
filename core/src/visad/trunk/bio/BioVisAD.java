@@ -34,7 +34,9 @@ import java.util.Vector;
 import javax.swing.*;
 import javax.swing.event.*;
 import visad.*;
-import visad.data.DefaultFamily;
+import visad.data.*;
+import visad.data.qt.QTForm;
+import visad.data.tiff.TiffForm;
 import visad.java2d.DisplayImplJ2D;
 import visad.java3d.*;
 import visad.util.*;
@@ -107,6 +109,9 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   /** Panel containing VisAD displays. */
   private JPanel displayPane;
 
+  /** Menu items for exporting slice animation sequences. */
+  private JMenuItem exportTIFF, exportQT;
+
 
   // -- OTHER FIELDS --
 
@@ -130,8 +135,14 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
     // menu bar
     addMenuItem("File", "Open...", "fileOpen", 'o');
+    exportTIFF =
+      addMenuItem("File", "Export TIFF stack...", "fileExportTIFF", 't');
+    exportQT =
+      addMenuItem("File", "Export QuickTime movie...", "fileExportQT", 'q');
     addMenuSeparator("File");
     addMenuItem("File", "Exit", "fileExit", 'x');
+    exportTIFF.setEnabled(false);
+    exportQT.setEnabled(false);
 
     // lay out components
     JPanel pane = new JPanel();
@@ -273,8 +284,20 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
           return;
         }
         sm.setSeries(f);
+        exportTIFF.setEnabled(true);
+        exportQT.setEnabled(Util.canDoQuickTime());
       }
     });
+  }
+
+  /** Exports a slice animation sequence to a TIFF stack. */
+  public void fileExportTIFF() {
+    exportData(new TiffForm(), new String[] {"tif", "tiff"}, "TIFF stacks");
+  };
+
+  /** Exports a slice animation sequence to a QuickTime movie. */
+  public void fileExportQT() {
+    exportData(new QTForm(), new String[] {"mov", "qt"}, "QuickTime movies");
   }
 
   /** Exits the application. */
@@ -292,8 +315,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   /** Toggles the cursor between hourglass and normal pointer mode. */
   void setWaitCursor(boolean wait) {
-    setCursor(wait ?
-      Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) :
+    setCursor(wait ? Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) :
       Cursor.getDefaultCursor());
   }
 
@@ -352,6 +374,33 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
       System.out.println("#" + i +
         ": type=" + real.getType() + "; value=" + real.getValue());
     }
+  }
+
+
+  // -- HELPER METHODS --
+
+  /** Exports a slice animation sequence using the given file form. */
+  private void exportData(Form saver, String[] exts, String desc) {
+    final JFrame frame = this;
+    final Form fsaver = saver;
+    final String[] fexts = exts;
+    final String fdesc = desc;
+    Util.invoke(false, new Runnable() {
+      public void run() {
+        JFileChooser fileBox = new JFileChooser();
+        fileBox.setFileFilter(new ExtensionFileFilter(fexts, fdesc));
+        int rval = fileBox.showSaveDialog(frame);
+        if (rval == JFileChooser.APPROVE_OPTION) {
+          setWaitCursor(true);
+          String f = fileBox.getSelectedFile().getPath();
+          FieldImpl data = sm.buildAnimationStack();
+          try { fsaver.save(f, data, true); }
+          catch (IOException exc) { exc.printStackTrace(); }
+          catch (VisADException exc) { exc.printStackTrace(); }
+          setWaitCursor(false);
+        }
+      }
+    });
   }
 
 
