@@ -1606,11 +1606,11 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
 
       float[][][] vector_ends = new float[2][][];
   
-      if (spatial_flow) {
 
         // WLH 4 March 2000
-        renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
-                 spatial_value_indices, default_values, ranges);
+      renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
+               spatial_value_indices, default_values, ranges);
+      if (spatial_flow) {
         if (anyFlow) {
           // WLH 4 March 2000
           // renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
