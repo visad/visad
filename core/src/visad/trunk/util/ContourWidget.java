@@ -23,6 +23,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad.util;
 
 /* AWT packages */
+import java.awt.*;
 import java.awt.event.*;
 
 /* JFC packages */
@@ -128,6 +129,11 @@ public class ContourWidget extends JPanel implements ActionListener,
     Contours = new JCheckBox("contours", true);
     Dashed = new JCheckBox("dashed lines below base", false);
     ContourRangeWidget crw = new ContourRangeWidget(smap, this, update);
+
+    // set label foregrounds
+    intLabel.setForeground(Color.black);
+    baseLabel.setForeground(Color.black);
+    surfLabel.setForeground(Color.black);
 
     // align JComponents
     Dashed.setAlignmentX(JCheckBox.CENTER_ALIGNMENT);
