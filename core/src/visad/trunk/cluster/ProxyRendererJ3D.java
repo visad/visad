@@ -24,42 +24,6 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-/*      PROXY
-
-ProxyRendererJ3D like ClientRendererJ3D, but without any Java3D
-UserRendererJ3D like ClientRendererJ3D, but ?
-
-  ClientRendererJ3D <--> nodes
-
-or
-
-  UserRendererJ3D     <--> ProxyRendererJ3D     <--> nodes
-  RemoteUserAgentImpl <--> RemoteProxyAgentImpl
-  RemoteUserAgent     <--> RemoteProxyAgent
-
-no Java3D on nodes or ProxyRendererJ3D
-  but ProxyRendererJ3D extends DefaultRendererJ3D and that
-  imports Java3D
-RemoteClientDataImpl on Client or Proxy, not on User
-
-ProxyDisplayRendererJ3D extends TransformOnlyDisplayRendererJ3D
-  like NodeDisplayRendererJ3D
-UserDisplayRendererJ3D extends DefaultDisplayRendererJ3D
-  like ClientDisplayRendererJ3D
-
-ProxyDisplayImplJ3D extends DisplayImplJ3D
-  super("display", new ProxyDisplayRendererJ3D(),
-        DisplayImplJ3D.TRANSFORM_ONLY);
-  its doAction() does nothing
-
-UserDummyDataImpl extends DataImpl
-  getType() from adaptedRemoteClientData
-  RemoteCellImpl triggered by adaptedRemoteClientData
-      calls notifyReferences()
-
-
-*/
-
 package visad.cluster;
 
 import visad.*;
@@ -78,18 +42,29 @@ import java.util.Enumeration;
 import java.rmi.*;
 import java.io.Serializable;
 
+// ****    ****    **** ELIMINATE THIS ****    ****    ****
+// ****    ****    **** ELIMINATE THIS ****    ****    ****
+// ****    ****    **** ELIMINATE THIS ****    ****    ****
+// ****    ****    **** ELIMINATE THIS ****    ****    ****
+// ****    ****    **** ELIMINATE THIS ****    ****    ****
+// ****    ****    **** ELIMINATE THIS ****    ****    ****
+// ****    ****    **** ELIMINATE THIS ****    ****    ****
+// ****    ****    **** ELIMINATE THIS ****    ****    ****
+// ****    ****    **** ELIMINATE THIS ****    ****    ****
+// ****    ****    **** ELIMINATE THIS ****    ****    ****
+// ****    ****    **** ELIMINATE THIS ****    ****    ****
+// ****    ****    **** ELIMINATE THIS ****    ****    ****
+
 /**
    ProxyRendererJ3D is the VisAD DataRenderer for proxy clients
 */
 public class ProxyRendererJ3D extends DefaultRendererJ3D {
 
   private DisplayImpl display = null;
-  private RemoteDisplay rdisplay = null;
   private ConstantMap[] cmaps = null;
 
   private DataDisplayLink link = null;
   private Data data = null;
-  private ProxyDisplayRendererJ3D pdr = null;
   private boolean cluster = true;
 
   private RemoteClientAgentImpl[] agents = null;
@@ -115,6 +90,16 @@ public class ProxyRendererJ3D extends DefaultRendererJ3D {
     for (int i=0; i<n; i++) resolutions[i] = rs[i];
   }
 
+  // dummy
+  public boolean getBadScale(boolean anyBadMap) {
+    return false;
+  }
+
+  // dummy
+  public boolean doAction() {
+    return true;
+  }
+
   public DataShadow prepareAction(boolean go, boolean initialize,
                                   DataShadow shadow)
          throws VisADException, RemoteException {
@@ -124,10 +109,9 @@ public class ProxyRendererJ3D extends DefaultRendererJ3D {
     if (Links != null && Links.length > 0) {
       link = Links[0];
 
-      // initialize rdisplay and cmaps if not already
-      if (rdisplay == null) {
+      // initialize cmaps if not already
+      if (cmaps == null) {
         display = getDisplay();
-        rdisplay = new RemoteDisplayImpl(display);
         Vector cvector = link.getConstantMaps();
         if (cvector != null && cvector.size() > 0) {
           int clength = cvector.size();
@@ -136,7 +120,6 @@ public class ProxyRendererJ3D extends DefaultRendererJ3D {
             cmaps[i] = (ConstantMap) cvector.elementAt(i);
           }
         }
-        pdr = (ProxyDisplayRendererJ3D) display.getDisplayRenderer();
       }
 
       // get the data
@@ -169,7 +152,7 @@ public class ProxyRendererJ3D extends DefaultRendererJ3D {
         for (int i=0; i<nagents; i++) {
           agents[i] = new RemoteClientAgentImpl(focus_agent, i);
           DefaultNodeRendererAgent node_agent =
-            new DefaultNodeRendererAgent(agents[i], rdisplay, cmaps);
+            new DefaultNodeRendererAgent(agents[i], display.getName(), cmaps);
           contacts[i] = ((RemoteNodeData) jvmTable[i]).sendAgent(node_agent);
         }
       }
@@ -257,7 +240,7 @@ public class ProxyRendererJ3D extends DefaultRendererJ3D {
         // branch.addChild(convertSceneGraph(vsgo));
       }
     }
-    if (n == 0) ShadowTypeJ3D.ensureNotEmpty(branch, display);
+    // if (n == 0) ShadowTypeJ3D.ensureNotEmpty(branch, display);
     return branch;
   }
 

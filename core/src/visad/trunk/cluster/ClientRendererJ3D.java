@@ -48,12 +48,10 @@ import java.io.Serializable;
 public class ClientRendererJ3D extends DefaultRendererJ3D {
 
   private DisplayImpl display = null;
-  private RemoteDisplay rdisplay = null;
   private ConstantMap[] cmaps = null;
 
   private DataDisplayLink link = null;
   private Data data = null;
-  private ClientDisplayRendererJ3D cdr = null;
   private boolean cluster = true;
 
   private RemoteClientAgentImpl[] agents = null;
@@ -88,10 +86,9 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
     if (Links != null && Links.length > 0) {
       link = Links[0];
 
-      // initialize rdisplay and cmaps if not already
-      if (rdisplay == null) {
+      // initialize cmaps if not already
+      if (cmaps == null) {
         display = getDisplay();
-        rdisplay = new RemoteDisplayImpl(display);
         Vector cvector = link.getConstantMaps();
         if (cvector != null && cvector.size() > 0) {
           int clength = cvector.size();
@@ -100,7 +97,6 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
             cmaps[i] = (ConstantMap) cvector.elementAt(i);
           }
         }
-        cdr = (ClientDisplayRendererJ3D) display.getDisplayRenderer();
       }
 
       // get the data
@@ -139,7 +135,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
         for (int i=0; i<nagents; i++) {
           agents[i] = new RemoteClientAgentImpl(focus_agent, i);
           DefaultNodeRendererAgent node_agent =
-            new DefaultNodeRendererAgent(agents[i], rdisplay, cmaps);
+            new DefaultNodeRendererAgent(agents[i], display.getName(), cmaps);
           contacts[i] = ((RemoteNodeData) jvmTable[i]).sendAgent(node_agent);
         }
       }

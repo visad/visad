@@ -24,6 +24,32 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
+/*      PROXY
+
+  ELIMINATE ProxyRendererJ3D, RemoteUserAgentImpl & RemoteUserAgent
+            ProxyDisplayRendererJ3D
+
+UserRendererJ3D like ClientRendererJ3D, but ?
+
+  ClientRendererJ3D <--> nodes
+
+or
+
+  UserRendererJ3D   <--> RemoteProxyAgentImpl <--> nodes
+                         RemoteProxyAgent
+
+no Java3D on nodes or proxy
+RemoteClientDataImpl on Client or Proxy, not on User
+UserDummyDataImpl extends DataImpl
+  getType() from adaptedRemoteClientData
+  RemoteCellImpl triggered by adaptedRemoteClientData
+      calls notifyReferences()
+
+UserDisplayRendererJ3D extends DefaultDisplayRendererJ3D
+  like ClientDisplayRendererJ3D
+
+*/
+
 package visad.cluster;
 
 import visad.*;
@@ -49,12 +75,10 @@ import java.io.Serializable;
 public class UserRendererJ3D extends DefaultRendererJ3D {
 
   private DisplayImpl display = null;
-  private RemoteDisplay rdisplay = null;
   private ConstantMap[] cmaps = null;
 
   private DataDisplayLink link = null;
   private Data data = null;
-  private ClientDisplayRendererJ3D cdr = null;
   private boolean cluster = true;
 
   private RemoteClientAgentImpl[] agents = null;
@@ -89,10 +113,9 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
     if (Links != null && Links.length > 0) {
       link = Links[0];
 
-      // initialize rdisplay and cmaps if not already
-      if (rdisplay == null) {
+      // initialize cmaps if not already
+      if (cmaps == null) {
         display = getDisplay();
-        rdisplay = new RemoteDisplayImpl(display);
         Vector cvector = link.getConstantMaps();
         if (cvector != null && cvector.size() > 0) {
           int clength = cvector.size();
@@ -101,7 +124,6 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
             cmaps[i] = (ConstantMap) cvector.elementAt(i);
           }
         }
-        cdr = (ClientDisplayRendererJ3D) display.getDisplayRenderer();
       }
 
       // get the data
@@ -120,14 +142,9 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
           new DisplayException("Data is null: UserRendererJ3D.doTransform"));
       }
   
+/* PROXY
       // is this cluster data?
       cluster = (data instanceof RemoteClientDataImpl);
-
-/*
-      if (cluster) {
-        Set partitionSet = ((RemoteClientDataImpl) data).getPartitionSet();
-      }
-*/
 
       if (cluster && data != old_data) { // PROXY
         // send agents to nodes if data changed
@@ -140,12 +157,13 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
         for (int i=0; i<nagents; i++) {
           agents[i] = new RemoteClientAgentImpl(focus_agent, i);
           DefaultNodeRendererAgent node_agent =
-            new DefaultNodeRendererAgent(agents[i], rdisplay, cmaps);
+            new DefaultNodeRendererAgent(agents[i], display.getName(), cmaps);
           contacts[i] = ((RemoteNodeData) jvmTable[i]).sendAgent(node_agent);
         }
       }
-    }
+*/
 
+    }
 
 
 // WLH new 16 April 2001
@@ -157,8 +175,9 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
       message.addElement(map);
       message.addElement(map.getControl());
     }
+// PROXY: Vector of ScalarMaps and Controls
     Serializable[] responses =
-      focus_agent.broadcastWithResponses(message, contacts); // PROXY
+      focus_agent.broadcastWithResponses(message, contacts);
 // System.out.println("UserRendererJ3D.prepareAction messages received");
 
 
@@ -201,6 +220,7 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
       }
     }
 
+// PROXY: Vector of "transform", Integer and ScalarMaps
     // responses are VisADGroups
     Serializable[] responses =
       focus_agent.broadcastWithResponses(messages, contacts);
@@ -530,6 +550,7 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
       message.addElement(shadow);
       // shadow = data.computeRanges(type, shadow);
     }
+// PROXY: Vector of ShadowType, (Integer or DataShadow)
     Serializable[] responses =
       focus_agent.broadcastWithResponses(message, contacts);
 // System.out.println("UserRendererJ3D.computeRanges messages received");

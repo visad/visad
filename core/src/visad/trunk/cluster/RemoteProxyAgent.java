@@ -35,6 +35,16 @@ import java.io.Serializable;
 */
 public interface RemoteProxyAgent extends Remote {
 
+  public RemoteClientData getRemoteClientData() throws RemoteException;
+
+  public Serializable[] prepareAction(boolean go, boolean initialize,
+                                  DataShadow shadow, ConstantMap[] cmaps,
+                                  ScalarMap[] maps, Control[] controls,
+                                  String name)
+         throws VisADException, RemoteException;
+
+
   void sendToProxy(Serializable message) throws RemoteException;
+
 }
 

@@ -41,7 +41,7 @@ import java.io.Serializable;
 public class DefaultNodeRendererAgent extends NodeAgent {
 
   /** fields from constructor on client */
-  private RemoteDisplay rmtDpy = null; // display on client
+  private String rmtDpyName = null; // display name on client
   private ConstantMap[] cmaps = null; // ConstantMaps for data on client
 
   /** fields on node */
@@ -54,10 +54,11 @@ public class DefaultNodeRendererAgent extends NodeAgent {
   private NodeRendererJ3D nr = null;
   private RemoteDisplayImpl remote_display = null;
 
-  public DefaultNodeRendererAgent(RemoteClientAgent source, RemoteDisplay rd,
+  public DefaultNodeRendererAgent(RemoteClientAgent source, String name,
                                   ConstantMap[] cms) {
     super(source);
-    rmtDpy = rd;
+    rmtDpyName = name;
+    if (rmtDpyName == null) rmtDpyName = "null";
     cmaps = cms;
   }
 
@@ -70,12 +71,6 @@ public class DefaultNodeRendererAgent extends NodeAgent {
     }
     data = (RemoteNodeDataImpl) o;
 
-    if (rmtDpy == null) {
-      System.out.println("DefaultNodeRendererAgent cannot run: " +
-                         "RemoteDisplay is null ");
-      return;
-    }
-
     try {
       // construct collaborative display but without links to
       // data on client; client does not listen to node events;
@@ -84,9 +79,7 @@ public class DefaultNodeRendererAgent extends NodeAgent {
       ndr = new NodeDisplayRendererJ3D();
 // System.out.println("DefaultNodeRendererAgent.run after new NodeDisplayRendererJ3D");
 
-      // WLH 16 April 2001
-      // display = new DisplayImplJ3D(rmtDpy, ndr, null);
-      String name = rmtDpy.getName() + ".remote";
+      String name = rmtDpyName + ".remote";
       display = new DisplayImplJ3D(name, ndr, DisplayImplJ3D.TRANSFORM_ONLY);
 // System.out.println("DefaultNodeRendererAgent.run after new DisplayImplJ3D");
 
