@@ -46,27 +46,7 @@ public class Spasm
   public Spasm(String filename)
 	throws VisADException, RemoteException
   {
-    FitsAdaptor fits = new FitsAdaptor(filename);
-
-    Data[] fitsData;
-    try {
-      fitsData = fits.getData();
-    } catch (ExceptionStack e) {
-      System.err.println(filename + " getData threw " + e.getMessage());
-      e.printStackTrace(System.err);
-
-      fits.clearExceptionStack();
-      fitsData = fits.getData();
-    }
-
-    fits = null;
-
-    if (fitsData.length == 1) {
-      fitsTuple = fitsData[0];
-    } else {
-      fitsTuple = new Tuple(fitsData);
-    }
-    fitsData = null;
+    fitsTuple = new FitsForm().open(filename);
   }
 
   public String toString()

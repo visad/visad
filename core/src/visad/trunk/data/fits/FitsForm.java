@@ -37,21 +37,39 @@ public class FitsForm
   }
 
   public DataImpl open(String path)
-	throws BadFormException, IOException, VisADException
+	throws BadFormException, RemoteException, VisADException
   {
-    FitsAdaptor obj = new FitsAdaptor(path);
+    FitsAdaptor fits = new FitsAdaptor(path);
 
-    Data[] data = obj.getData();
+    // convert the FITS object to a VisAD data object
+    Data[] data;
+    try {
+      data = fits.getData();
+    } catch (ExceptionStack e) {
+      fits.clearExceptionStack();
+      data = fits.getData();
+    }
 
+    // throw away FitsAdaptor object so we can reuse that memory
+    fits = null;
+
+    // if there's no data, we're done
     if (data == null) {
       return null;
     }
 
+    // either grab solo Data object or wrap a Tuple around all the Data objects
+    DataImpl di;
     if (data.length == 1) {
-      return (DataImpl )data[0];
+      di = (DataImpl )data[0];
+    } else {
+      di = new Tuple(data);
     }
 
-    return (DataImpl )new Tuple(data);
+    // throw away Data array so we can reuse (a small bit of) that memory
+    data = null;
+
+    return di;
   }
 
   public DataImpl open(URL url)
