@@ -53,6 +53,8 @@ public abstract class TestSkeleton
   public TestSkeleton(String[] args)
     throws RemoteException, VisADException
   {
+    this();
+
     if (!processArgs(args)) {
       System.err.println("Exiting...");
       System.exit(1);
