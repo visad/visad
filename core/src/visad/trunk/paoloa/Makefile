@@ -57,7 +57,7 @@ RM = rm -f
 .java.class:
 	$(JC) $(JFLAGS) $<
 
-default: Nasti.class GoesCollaboration.class libGoesCollaboration.so
+default: Nasti.class GoesCollaboration.class libGoesCollaboration.so PCS.class
 
 # these Fortran functions compile correctly under sparc Solaris
 # 2.5.1
