@@ -1844,6 +1844,23 @@ if (initialize) {
             }
           }
         }
+        // add DRM 2003-02-21
+        if (map.getAxisScale() != null) {
+          DisplayRenderer displayRenderer = getDisplayRenderer();
+          displayRenderer.clearScale(map.getAxisScale());
+
+          Enumeration maps = MapVector.elements();
+          while(maps.hasMoreElements()) {
+            ScalarMap map2 = (ScalarMap) maps.nextElement();
+            AxisScale axisScale = map2.getAxisScale();
+            if (axisScale != null) {
+              displayRenderer.clearScale(axisScale);
+              axisScale.setAxisOrdinal(-1);
+              map2.makeScale();
+            }
+          }
+
+        }
         needWidgetRefresh = true;
       } // end !(map instanceof ConstantMap)
       notifyListeners(new DisplayMapEvent(this, DisplayEvent.MAP_REMOVED, map,
