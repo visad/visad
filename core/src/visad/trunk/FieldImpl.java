@@ -1194,6 +1194,9 @@ public class FieldImpl extends FunctionImpl implements Field {
   public Field extract(MathType type) throws VisADException, RemoteException {
     int index = -1;
     MathType rangeType = ((FunctionType)Type).getRange();
+    if (!(rangeType instanceof TupleType)) {
+      throw new VisADException("FieldImpl.extract: range must be a TupleType");
+    }
     int n_comps = ((TupleType)rangeType).getDimension();
     for (int i=0; i<n_comps; i++) {
       MathType test_comp = ((TupleType)rangeType).getComponent(i);
@@ -1217,6 +1220,9 @@ public class FieldImpl extends FunctionImpl implements Field {
   public Field extract(String name) throws VisADException, RemoteException {
     int index = -1;
     MathType rangeType = ((FunctionType)Type).getRange();
+    if (!(rangeType instanceof TupleType)) {
+      throw new VisADException("FieldImpl.extract: range must be a TupleType");
+    }
     int n_comps = ((TupleType)rangeType).getDimension();
     for (int i=0; i<n_comps; i++) {
       String test_comp = ((TupleType)rangeType).getComponent(i).toString();
@@ -1246,7 +1252,6 @@ public class FieldImpl extends FunctionImpl implements Field {
     Unit unit;
     double[][] values, t_values;
     double value;
-    int n_comps = ((TupleType)rangeType).getDimension();
     CoordinateSystem coord_sys, coord_in, coord_out;
     MathType m_type;
     RealTupleType rt_type;
@@ -1260,7 +1265,9 @@ public class FieldImpl extends FunctionImpl implements Field {
     {
       throw new VisADException("extract: range type must be TupleType");
     }
-    else if ( (component + 1) > n_comps )
+    int n_comps = ((TupleType)rangeType).getDimension();
+
+    if ( (component + 1) > n_comps )
     {
       throw new VisADException("extract: component selection too large");
     }
