@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VirtualScalar.java,v 1.3 2000-06-08 19:13:46 steve Exp $
+ * $Id: VirtualScalar.java,v 1.4 2001-11-06 17:55:55 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -204,11 +204,88 @@ VirtualScalar
 
 	double[]	values = new double[total];
 
-	Util.toArray(var, values, ioOrigin, ioShape);
+	toArray(var, values, ioOrigin, ioShape);
 
 	vetter.vet(values);
 
 	return values;
+    }
+
+    /**
+     * Gets data values of a netCDF variable and performs type conversion.
+     *
+     * @param var               A netCDF variable.
+     * @param values            The destination array for the data values.
+     *                          <code>values.length</code> must be >=
+     *                          the number of points represented by
+     *                          <code>shape</code>.
+     * @param origin            The origin vector for the values.
+     * @param shape             The shape of the I/O transfer.
+     * @return                  <code>values</code>.
+     * @throws IOException      I/O failure.
+     * @see ucar.netcdf.Variable#toArray(Object, int[], int[])
+     */
+    static Object
+    toArray(Variable var, double[] values, int[] origin, int[] shape)
+        throws IOException
+    {
+        // TODO: support text
+
+        if (var.getRank() == 0)
+        {
+            values[0] = var.getDouble(new int[] {});
+        }
+        else
+        {
+            Class       fromClass = var.getComponentType();
+
+            if (fromClass.equals(double.class))
+            {
+                var.toArray(values, origin, shape);
+            }
+            else
+            {
+                int     length = 1;
+
+                for (int i = 0; i < shape.length; ++i)
+                    length *= shape[i];
+
+                Object  dst = Array.newInstance(fromClass, length);
+
+                var.toArray(dst, origin, shape);
+
+                if (fromClass.equals(byte.class))
+                {
+                    byte[]      fromArray = (byte[])dst;
+
+                    for (int i = 0; i < fromArray.length; ++i)
+                        values[i] = fromArray[i];
+                }
+                else if (fromClass.equals(short.class))
+                {
+                    short[]     fromArray = (short[])dst;
+
+                    for (int i = 0; i < fromArray.length; ++i)
+                        values[i] = fromArray[i];
+                }
+                else if (fromClass.equals(int.class))
+                {
+                    int[]       fromArray = (int[])dst;
+
+                    for (int i = 0; i < fromArray.length; ++i)
+                        values[i] = fromArray[i];
+                }
+                else if (fromClass.equals(float.class))
+                {
+                    float[]     fromArray = (float[])dst;
+
+                    for (int i = 0; i < fromArray.length; ++i)
+                        values[i] = fromArray[i];
+                }
+            }
+        }
+
+        return values;
     }
 
 
