@@ -226,17 +226,19 @@ public class Gridded3DDoubleSet extends Gridded3DSet
                - (t100[1]-t000[1])*(t101[0]-t100[0]) )
                 *(t110[2]-t100[2])  ) > 0;
     if (test) {
+        double[] v000 = new double[3];
+        double[] v100 = new double[3];
+        double[] v010 = new double[3];
+        double[] v001 = new double[3];
+        double[] v110 = new double[3];
+        double[] v101 = new double[3];
+        double[] v011 = new double[3];
+        double[] v111 = new double[3];
+
+
       for (int k=0; k<LengthZ-1; k++) {
         for (int j=0; j<LengthY-1; j++) {
           for (int i=0; i<LengthX-1; i++) {
-            double[] v000 = new double[3];
-            double[] v100 = new double[3];
-            double[] v010 = new double[3];
-            double[] v001 = new double[3];
-            double[] v110 = new double[3];
-            double[] v101 = new double[3];
-            double[] v011 = new double[3];
-            double[] v111 = new double[3];
             for (int v=0; v<3; v++) {
               int zadd = LengthY*LengthX;
               int base = k*zadd + j*LengthX + i;
@@ -631,6 +633,18 @@ public class Gridded3DDoubleSet extends Gridded3DSet
     int length = Math.min(grid[0].length, grid[1].length);
     length = Math.min(length, grid[2].length);
     double[][] value = new double[3][length];
+    double[] A = new double[3];
+    double[] B = new double[3];
+    double[] C = new double[3];
+    double[] D = new double[3];
+    double[] E = new double[3];
+    double[] F = new double[3];
+    double[] G = new double[3];
+    double[] H = new double[3];
+
+
+
+
     for (int i=0; i<length; i++) {
       // let gx, gy, and gz be the current grid values
       double gx = grid[0][i];
@@ -683,14 +697,6 @@ public class Gridded3DDoubleSet extends Gridded3DSet
         int fi = base+1;               // 1, 0, 0
         int gi = base+LengthX+1;       // 1, 1, 0
         int hi = base+LengthX;         // 0, 1, 0
-        double[] A = new double[3];
-        double[] B = new double[3];
-        double[] C = new double[3];
-        double[] D = new double[3];
-        double[] E = new double[3];
-        double[] F = new double[3];
-        double[] G = new double[3];
-        double[] H = new double[3];
         if (evencube) {
           A[0] = Samples[0][ai];
           A[1] = Samples[1][ai];
@@ -871,6 +877,24 @@ public class Gridded3DDoubleSet extends Gridded3DSet
       gz = (LengthZ-1)/2;
     }
 
+    double[] A = new double[3];
+    double[] B = new double[3];
+    double[] C = new double[3];
+    double[] D = new double[3];
+    double[] E = new double[3];
+    double[] F = new double[3];
+    double[] G = new double[3];
+    double[] H = new double[3];
+
+    double[] M = new double[3];
+    double[] N = new double[3];
+    double[] O = new double[3];
+    double[] P = new double[3];
+    double[] X = new double[3];
+    double[] Y = new double[3];
+    double[] Q = new double[3];
+
+
     for (int i=0; i<length; i++) {
 
       if (Length == 1) {
@@ -911,14 +935,6 @@ public class Gridded3DDoubleSet extends Gridded3DSet
         int fi = base+1;               // 1, 0, 0
         int gi = base+LengthX+1;       // 1, 1, 0
         int hi = base+LengthX;         // 0, 1, 0
-        double[] A = new double[3];
-        double[] B = new double[3];
-        double[] C = new double[3];
-        double[] D = new double[3];
-        double[] E = new double[3];
-        double[] F = new double[3];
-        double[] G = new double[3];
-        double[] H = new double[3];
         if (evencube) {
           A[0] = Samples[0][ai];
           A[1] = Samples[1][ai];
@@ -1026,12 +1042,6 @@ public class Gridded3DDoubleSet extends Gridded3DSet
           if (  ( (gx == ogx) && (gy == ogy) && (gz == ogz) )
                 || offgrid) {
             // solve point
-            double[] M = new double[3];
-            double[] N = new double[3];
-            double[] O = new double[3];
-            double[] P = new double[3];
-            double[] X = new double[3];
-            double[] Y = new double[3];
             for (int j=0; j<3; j++) {
               M[j] = (F[j]-E[j])*(A[(j+1)%3]-E[(j+1)%3])
                    - (F[(j+1)%3]-E[(j+1)%3])*(A[j]-E[j]);
@@ -1149,12 +1159,6 @@ public class Gridded3DDoubleSet extends Gridded3DSet
           if (  ( (gx == ogx) && (gy == ogy) && (gz == ogz) )
                 || offgrid) {
             // solve point
-            double[] M = new double[3];
-            double[] N = new double[3];
-            double[] O = new double[3];
-            double[] P = new double[3];
-            double[] X = new double[3];
-            double[] Y = new double[3];
             for (int j=0; j<3; j++) {
               M[j] = (A[j]-B[j])*(F[(j+1)%3]-B[(j+1)%3])
                    - (A[(j+1)%3]-B[(j+1)%3])*(F[j]-B[j]);
@@ -1272,12 +1276,6 @@ public class Gridded3DDoubleSet extends Gridded3DSet
           if (  ( (gx == ogx) && (gy == ogy) && (gz == ogz) )
                 || offgrid) {
             // solve point
-            double[] M = new double[3];
-            double[] N = new double[3];
-            double[] O = new double[3];
-            double[] P = new double[3];
-            double[] X = new double[3];
-            double[] Y = new double[3];
             for (int j=0; j<3; j++) {
               M[j] = (C[j]-D[j])*(H[(j+1)%3]-D[(j+1)%3])
                    - (C[(j+1)%3]-D[(j+1)%3])*(H[j]-D[j]);
@@ -1395,12 +1393,6 @@ public class Gridded3DDoubleSet extends Gridded3DSet
           if (  ( (gx == ogx) && (gy == ogy) && (gz == ogz) )
                 || offgrid) {
             // solve point
-            double[] M = new double[3];
-            double[] N = new double[3];
-            double[] O = new double[3];
-            double[] P = new double[3];
-            double[] X = new double[3];
-            double[] Y = new double[3];
             for (int j=0; j<3; j++) {
               M[j] = (H[j]-G[j])*(C[(j+1)%3]-G[(j+1)%3])
                    - (H[(j+1)%3]-G[(j+1)%3])*(C[j]-G[j]);
@@ -1569,16 +1561,11 @@ public class Gridded3DDoubleSet extends Gridded3DSet
           // If all tests pass then this is the correct tetrahedron
           if ( (gx == ogx) && (gy == ogy) && (gz == ogz) && (tetnum == 5) ) {
             // solve point
-            double[] Q = new double[3];
+
             for (int j=0; j<3; j++) {
               Q[j] = (H[j] + F[j] + A[j] - C[j])/2;
             }
-            double[] M = new double[3];
-            double[] N = new double[3];
-            double[] O = new double[3];
-            double[] P = new double[3];
-            double[] X = new double[3];
-            double[] Y = new double[3];
+
             for (int j=0; j<3; j++) {
               M[j] = (F[j]-Q[j])*(A[(j+1)%3]-Q[(j+1)%3])
                    - (F[(j+1)%3]-Q[(j+1)%3])*(A[j]-Q[j]);

@@ -145,12 +145,13 @@ public class Gridded2DDoubleSet extends Gridded2DSet
              *(Samples[1][LengthX+1]-Samples[1][1])
             - (Samples[1][1]-Samples[1][0])
              *(Samples[0][LengthX+1]-Samples[0][1]) > 0);
+      double[] v00 = new double[2];
+      double[] v10 = new double[2];
+      double[] v01 = new double[2];
+      double[] v11 = new double[2];
+
       for (int j=0; j<LengthY-1; j++) {
         for (int i=0; i<LengthX-1; i++) {
-          double[] v00 = new double[2];
-          double[] v10 = new double[2];
-          double[] v01 = new double[2];
-          double[] v11 = new double[2];
           for (int v=0; v<2; v++) {
             v00[v] = Samples[v][j*LengthX+i];
             v10[v] = Samples[v][j*LengthX+i+1];
