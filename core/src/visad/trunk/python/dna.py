@@ -76,6 +76,9 @@ locs.setSamples([dna_x, dna_y, dna_z, dna_id])
 
 maps = makeMaps(atom_range[0], "x", atom_range[1], "y", atom_range[2], "z",
                 atom_range[3], "shape")
+maps[0].setRange(-20, 20)
+maps[1].setRange(-20, 20)
+maps[2].setRange(-20, 20)
 plot (locs, maps)
 
 control = maps[3].getControl()
@@ -111,4 +114,3 @@ control.setShapes(atoms)
 molecule.close()
 
 print "done"
-
