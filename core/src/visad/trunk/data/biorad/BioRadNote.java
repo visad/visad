@@ -39,14 +39,17 @@ public class BioRadNote {
 
   // Return types for analyze()
 
+  /** Indicates that no information could be extracted from this note. */
+  public static final int NO_INFORMATION = 0;
+
   /** Indicates that a VisAD Data object was computed. */
-  public static final int METADATA = 0;
+  public static final int METADATA = 1;
 
   /** Indicates that a Unit for the horizontal axis was computed. */
-  public static final int HORIZ_UNIT = 1;
+  public static final int HORIZ_UNIT = 2;
 
   /** Indicates that a Unit for the vertical axis was computed. */
-  public static final int VERT_UNIT = 2;
+  public static final int VERT_UNIT = 3;
 
   /** Indicates that this note is invalid. */
   public static final int INVALID_NOTE = -1;
@@ -173,6 +176,31 @@ public class BioRadNote {
   private static final int axt_WORD = 0x200;
 
 
+  // MathTypes
+
+  static final TupleType noteTuple = makeNoteTuple();
+  
+  private static TupleType makeNoteTuple() {
+    try {
+      return new TupleType(new MathType[] {
+        RealType.getRealType("level"),
+        RealType.getRealType("num"),
+        RealType.getRealType("status"),
+        RealType.getRealType("type"),
+        RealType.getRealType("x"),
+        RealType.getRealType("y"),
+        TextType.getTextType("text")
+      });
+    }
+    catch (VisADException exc) { }
+    return null;
+  }
+
+  static final RealType rtx = RealType.getRealType("nx");
+  static final RealType rty = RealType.getRealType("ny");
+  static final TextType tt = TextType.getTextType("note");
+
+
   // Fields
 
   /** Level of this note. */
@@ -200,9 +228,9 @@ public class BioRadNote {
   Data metadata;
 
   /**
-   * If note has unit information, Unit measurement constructed from this note.
-   * If note contains other Metadata requiring a Unit, this field will be used
-   * in the construction of that metadata.
+   * If note has unit information, the Unit measurement constructed from this
+   * note is stored here. If note contains other Metadata requiring a Unit,
+   * the value of this field will be used in the construction of that metadata.
    */
   Unit unit;
 
@@ -218,29 +246,9 @@ public class BioRadNote {
     this.x = x;
     this.y = y;
     this.text = text;
-    if (BioRadForm.DEBUG) {
-      System.out.println("Note: level=" + level + ", num=" + num +
-        ", status=" + status + ", type=" + noteNames[type] +
-        ", x=" + x + ", y=" + y + ", text=" + text);
+    if (BioRadForm.DEBUG && BioRadForm.DEBUG_LEVEL >= 2) {
+      System.err.println(toString());
     }
-  }
-
-  static final TupleType noteTuple = makeNoteTuple();
-  
-  private static TupleType makeNoteTuple() {
-    try {
-      return new TupleType(new MathType[] {
-        RealType.getRealType("level"),
-        RealType.getRealType("num"),
-        RealType.getRealType("status"),
-        RealType.getRealType("type"),
-        RealType.getRealType("x"),
-        RealType.getRealType("y"),
-        TextType.getTextType("text")
-      });
-    }
-    catch (VisADException exc) { }
-    return null;
   }
 
   /** Gets a simple VisAD Data object representing this note. */
@@ -295,7 +303,11 @@ public class BioRadNote {
         warn();
         return INVALID_NOTE;
       }
-      // CTR: TODO: deal with extracted SCALEBAR information
+      // CTR: TODO
+      if (BioRadForm.DEBUG && BioRadForm.DEBUG_LEVEL >= 1) {
+        System.err.println("Warning: ignoring SCALEBAR information");
+      }
+      return NO_INFORMATION;
     }
     else if (type == NOTE_TYPE_THRUVIEW) {
       // ignore (Reserved for Bio-Rad Image Processing Software ThruView)
@@ -324,10 +336,14 @@ public class BioRadNote {
         lx < 0 || ly < 0 || angle < 0 ||
         !(fill_type.equals("Fill") || fill_type.equals("Outline")))
       {
-        warn();
+        warn(v);
         return INVALID_NOTE;
       }
-      // CTR: TODO: deal with extracted ARROW information
+      // CTR: TODO
+      if (BioRadForm.DEBUG && BioRadForm.DEBUG_LEVEL >= 1) {
+        System.err.println("Warning: ignoring ARROW information");
+      }
+      return NO_INFORMATION;
     }
     else if (type == NOTE_TYPE_VARIABLE) {
       // VARIABLE = value
@@ -338,50 +354,62 @@ public class BioRadNote {
       }
       String v = text.substring(0, sp).trim();
       String value = text.substring(sp + 1).trim();
-      if (v.equals("SCALE_FACTOR")) {
+      if (
         // calibration scale factor for microscope system that acquired image
-      }
-      else if (v.equals("LENS_MAGNIFICATION")) {
+        v.equals("SCALE_FACTOR") ||
         // floating point number of objective lens used to acquire image
-      }
-      else if (v.equals("RAMP_GAMMA1")) {
+        v.equals("LENS_MAGNIFICATION") ||
         // gamma factor applied to the LUT used to display image1
-      }
-      else if (v.equals("RAMP_GAMMA2")) {
+        v.equals("RAMP_GAMMA1") ||
         // gamma factor applied to the LUT used to display image2
-      }
-      else if (v.equals("RAMP_GAMMA3")) {
+        v.equals("RAMP_GAMMA2") ||
         // gamma factor applied to the LUT used to display image3
-      }
-      else if (v.equals("RAMP1_MIN")) {
+        v.equals("RAMP_GAMMA3") ||
         // ramp values used for brightness and contrast values for image1
-      }
-      else if (v.equals("RAMP2_MIN")) {
+        v.equals("RAMP1_MIN") ||
         // ramp values used for brightness and contrast values for image2
-      }
-      else if (v.equals("RAMP3_MIN")) {
+        v.equals("RAMP2_MIN") ||
         // ramp values used for brightness and contrast values for image3
-      }
-      else if (v.equals("RAMP1_MAX")) {
+        v.equals("RAMP3_MIN") ||
         // ramp values used for brightness and contrast values for image1
-      }
-      else if (v.equals("RAMP2_MAX")) {
+        v.equals("RAMP1_MAX") ||
         // ramp values used for brightness and contrast values for image2
-      }
-      else if (v.equals("RAMP3_MAX")) {
+        v.equals("RAMP2_MAX") ||
         // ramp values used for brightness and contrast values for image3
-      }
-      else if (v.equals("PIC_FF_VERSION")) {
+        v.equals("RAMP3_MAX") ||
         // version of the file
-      }
-      else if (v.equals("Z_CORRECT_FACTOR")) {
+        v.equals("PIC_FF_VERSION") ||
         // correction factor for z depth
-      }
-      else if (v.equals("AXIS_0")) {
+        v.equals("Z_CORRECT_FACTOR") ||
         // uncalibrated intensity axis information for upper bytes
-      }
-      else if (v.equals("AXIS_1")) {
+        v.equals("AXIS_0") ||
         // grey-level lower byte axis information
+        v.equals("AXIS_1") ||
+        // image1 information
+        v.equals("AXIS_4") ||
+        // image2 information
+        v.equals("AXIS_5") ||
+        // image3 information
+        v.equals("AXIS_6") ||
+        // image4 information
+        v.equals("AXIS_7") ||
+        // image5 information
+        v.equals("AXIS_8") || 
+        // mixer information for z-series
+        v.equals("AXIS_9") ||
+        // calibrated intensity information
+        v.equals("AXIS_21"))
+      {
+        double dv;
+        try {
+          dv = Double.parseDouble(value);
+        }
+        catch (NumberFormatException exc) {
+          warn();
+          return INVALID_NOTE;
+        }
+        metadata = new Real(RealType.getRealType(v), dv);
+        return METADATA;
       }
       else if (v.equals("AXIS_2")) {
         // horizontal axis information
@@ -420,7 +448,6 @@ public class BioRadNote {
       }
       else if (v.equals("AXIS_3")) {
         // vertical axis information
-        // CTR: TODO: extract units
         StringTokenizer st = new StringTokenizer(value);
         if (st.countTokens() != 4) {
           warn("AXIS_3");
@@ -460,27 +487,6 @@ public class BioRadNote {
         warn();
         return INVALID_NOTE;
       }
-      else if (v.equals("AXIS_4")) {
-        // image1 information
-      }
-      else if (v.equals("AXIS_5")) {
-        // image2 information
-      }
-      else if (v.equals("AXIS_6")) {
-        // image3 information
-      }
-      else if (v.equals("AXIS_7")) {
-        // image4 information
-      }
-      else if (v.equals("AXIS_8")) {
-        // image5 information
-      }
-      else if (v.equals("AXIS_9")) {
-        // mixer information for z-series
-      }
-      else if (v.equals("AXIS_21")) {
-        // calibrated intensity information
-      }
       else {
         warn(v);
         return INVALID_NOTE;
@@ -488,12 +494,20 @@ public class BioRadNote {
     }
     else if (type == NOTE_TYPE_STRUCTURE) {
       // CTR: TODO
+      if (BioRadForm.DEBUG && BioRadForm.DEBUG_LEVEL >= 1) {
+        System.err.println("Warning: ignoring STRUCTURE information");
+      }
+      return NO_INFORMATION;
     }
     else {
       // One of LIVE, FILE1, FILE2, NUMBER, USER, LINE, COLLECT, or MERGE
-      // CTR: TODO: see Test45, but need Units first
+      // CTR: TODO
+      if (BioRadForm.DEBUG && BioRadForm.DEBUG_LEVEL >= 1) {
+        System.err.println("Warning: ignoring " +
+          noteNames[type] + " information");
+      }
+      return NO_INFORMATION;
     }
-    return METADATA; // CTR: TEMP
   }
 
   /** Prints a warning about this note to the standard error stream. */
@@ -503,9 +517,41 @@ public class BioRadNote {
 
   /** Prints a warning about this note to the standard error stream. */
   private void warn(String subType) {
-    System.err.print("Warning: invalid " + noteNames[type] + " ");
-    if (subType != null) System.err.print("(" + subType + ") ");
-    System.err.println("note: \"" + text + "\"");
+    if (BioRadForm.DEBUG && BioRadForm.DEBUG_LEVEL >= 1) {
+      System.err.print("Warning: invalid " + noteNames[type] + " ");
+      if (subType != null) System.err.print("(" + subType + ") ");
+      System.err.println("note: \"" + text + "\"");
+    }
+  }
+
+  /** Gets a human-readable string representation of this note. */
+  public String toString() {
+    StringBuffer sb = new StringBuffer(100);
+    boolean a = (status & NOTE_STATUS_ALL) != 0;
+    boolean d = (status & NOTE_STATUS_DISPLAY) != 0;
+    boolean p = (status & NOTE_STATUS_POSITION) != 0;
+    sb.append("Note: level=" + level + ", num=" + num + ", status=");
+    boolean first = true;
+    if (a) {
+      sb.append("NOTE_STATUS_ALL");
+      first = false;
+    }
+    if (d) {
+      if (!first) sb.append("|");
+      sb.append("NOTE_STATUS_DISPLAY");
+      first = false;
+    }
+    if (p) {
+      if (!first) sb.append("|");
+      sb.append("NOTE_STATUS_POSITION");
+      first = false;
+    }
+    if (first) {
+      sb.append("NONE");
+    }
+    sb.append(", type=" + noteNames[type] +
+      ", x=" + x + ", y=" + y + ", text=" + text.trim());
+    return sb.toString();
   }
 
 }

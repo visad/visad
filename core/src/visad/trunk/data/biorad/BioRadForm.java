@@ -40,6 +40,8 @@ public class BioRadForm extends Form implements FormFileInformer {
   /** Debugging flag. */
   static final boolean DEBUG = false;
 
+  static final int DEBUG_LEVEL = 1;
+
   /** Numerical ID of a valid BioRad .PIC file. */
   private static final int PIC_FILE_ID = 12345;
 
@@ -72,6 +74,12 @@ public class BioRadForm extends Form implements FormFileInformer {
    * as opposed to at the end of each image data.
    */
   private static final int MERGE_OPT12_V2 = 7;
+
+  /** List of merge types. */
+  private static final String[] mergeNames = {
+    "MERGE_OFF", "MERGE_16", "MERGE_ALTERNATE", "MERGE_COLUMN",
+    "MERGE_ROW", "MERGE_MAXIMUM", "MERGE_OPT12", "MERGE_OPT12_V2"
+  };
 
 
   // Look-up table constants
@@ -184,7 +192,7 @@ public class BioRadForm extends Form implements FormFileInformer {
     int ramp1_max = getUnsignedShort(header[8], header[9]);
     boolean notes = (header[10] | header[11] | header[12] | header[13]) != 0;
     boolean byte_format = getUnsignedShort(header[14], header[15]) != 0;
-    int n = getUnsignedShort(header[16], header[17]);
+    int image_number = getUnsignedShort(header[16], header[17]);
     String name = new String(header, 18, 32);
     int merged = getUnsignedShort(header[50], header[51]);
     int color1 = getUnsignedShort(header[52], header[53]);
@@ -193,9 +201,30 @@ public class BioRadForm extends Form implements FormFileInformer {
     int ramp2_max = getUnsignedShort(header[58], header[59]);
     int color2 = getUnsignedShort(header[60], header[61]);
     int edited = getUnsignedShort(header[62], header[63]);
-    int _lens = getUnsignedShort(header[64], header[65]);
+    int lens = getUnsignedShort(header[64], header[65]);
     float mag_factor =
       getFloat(header[66], header[67], header[68], header[69]);
+    if (DEBUG && DEBUG_LEVEL >= 2) {
+      System.out.println("\nBioRad header:\n" +
+        "nx = " + nx + "\n" +
+        "ny = " + ny + "\n" +
+        "npic = " + npic + "\n" +
+        "ramp1_min = " + ramp1_min + "\n" +
+        "ramp1_max = " + ramp1_max + "\n" +
+        "notes = " + notes + "\n" +
+        "byte_format = " + byte_format + "\n" +
+        "image_number = " + image_number + "\n" +
+        "name = " + name + "\n" +
+        "merged = " + mergeNames[merged] + "\n" +
+        "color1 = " + color1 + "\n" +
+        "file_id = " + file_id + "\n" +
+        "ramp2_min = " + ramp2_min + "\n" +
+        "ramp2_max = " + ramp2_max + "\n" +
+        "color2 = " + color2 + "\n" +
+        "edited = " + edited + "\n" +
+        "lens = " + lens + "\n" +
+        "mag_factor = " + mag_factor);
+    }
 
     // check validity of header
     if (file_id != PIC_FILE_ID) {
@@ -234,7 +263,17 @@ public class BioRadForm extends Form implements FormFileInformer {
     }
 
     // read color table
-    // CTR: TODO
+    int numLuts = 0;
+    byte[][] lut = new byte[3][768];
+    try {
+      fin.read(lut[numLuts]);
+      numLuts++;
+    }
+    catch (IOException exc) { } // eof
+    if (DEBUG && DEBUG_LEVEL >= 2) {
+      System.out.println(numLuts + " color table" +
+        (numLuts == 1 ? "" : "s") + " present.");
+    }
 
     // close file
     fin.close();
@@ -246,8 +285,9 @@ public class BioRadForm extends Form implements FormFileInformer {
       BioRadNote note = (BioRadNote) noteList.elementAt(i);
       noteData[i] = note.getNoteData();
     }
-    RealType index = RealType.getRealType("index");
-    FunctionType noteFunction = new FunctionType(index, BioRadNote.noteTuple);
+    RealType noteIndex = RealType.getRealType("NoteIndex");
+    FunctionType noteFunction =
+      new FunctionType(noteIndex, BioRadNote.noteTuple);
     Integer1DSet noteSet = new Integer1DSet(len);
     FieldImpl noteField = new FieldImpl(noteFunction, noteSet);
     noteField.setSamples(noteData, false);
@@ -261,28 +301,26 @@ public class BioRadForm extends Form implements FormFileInformer {
         int rval = note.analyze();
         if (rval == BioRadNote.HORIZ_UNIT) {
           if (horizUnit == null) horizUnit = note.unit;
-          else System.err.println("Warning: ignoring extra AXIS_2 note");
+          else if (DEBUG && DEBUG_LEVEL >= 1) {
+            System.err.println("Warning: ignoring extra AXIS_2 note");
+          }
           noteList.remove(i);
         }
         else if (rval == BioRadNote.VERT_UNIT) {
           if (vertUnit == null) vertUnit = note.unit;
-          else System.err.println("Warning: ignoring extra AXIS_3 note");
+          else if (DEBUG && DEBUG_LEVEL >= 1) {
+            System.err.println("Warning: ignoring extra AXIS_3 note");
+          }
           noteList.remove(i);
         }
-        else if (rval == BioRadNote.INVALID_NOTE) noteList.remove(i);
+        else if (rval == BioRadNote.INVALID_NOTE ||
+          rval == BioRadNote.NO_INFORMATION)
+        {
+          noteList.remove(i);
+        }
         else i++;
       }
       else i++;
-    }
-
-    // parse remaining notes
-    len = noteList.size();
-    for (i=0; i<len; i++) {
-      BioRadNote note = (BioRadNote) noteList.elementAt(i);
-      int rval = note.analyze();
-      if (rval == BioRadNote.METADATA) {
-        // CTR: TODO
-      }
     }
 
     // convert image bytes to floats
@@ -307,31 +345,105 @@ public class BioRadForm extends Form implements FormFileInformer {
       }
     }
 
-    // set up data types
+    // convert color table bytes to floats
+    float[][][] colors = new float[numLuts][3][256];
+    for (i=0; i<numLuts; i++) {
+      for (int l=0; l<256; l++) {
+        int qr = 0x000000ff & lut[i][l];
+        int qg = 0x000000ff & lut[i][l + 256];
+        int qb = 0x000000ff & lut[i][l + 512];
+        colors[i][0][l] = (float) qr;
+        colors[i][1][l] = (float) qg;
+        colors[i][2][l] = (float) qb;
+      }
+    }
+
+    // set up image data types
     RealType time = RealType.getRealType("time");
     RealType x = RealType.getRealType("ImageElement");
     RealType y = RealType.getRealType("ImageLine");
-    RealType rgb = RealType.getRealType("value");
+    RealType value = RealType.getRealType("value");
     RealTupleType xy = new RealTupleType(x, y);
-    FunctionType imageFunction = new FunctionType(xy, rgb);
-    FunctionType time_function = new FunctionType(time, imageFunction);
+    FunctionType imageFunction = new FunctionType(xy, value);
+    FunctionType timeFunction = new FunctionType(time, imageFunction);
 
-    // set up domain sets
+    // set up image domain sets
     Integer2DSet imageSet = new Integer2DSet(RealTupleType.Generic2D,
       nx, ny, null, new Unit[] {horizUnit, vertUnit}, null);
     Integer1DSet timeSet = new Integer1DSet(npic);
 
-    // set up fields
+    // set up image fields
     FlatField[] imageFields = new FlatField[npic];
     for (i=0; i<npic; i++) {
       imageFields[i] = new FlatField(imageFunction, imageSet);
       imageFields[i].setSamples(samples[i], false);
     }
-    FieldImpl timeField = new FieldImpl(time_function, timeSet);
+    FieldImpl timeField = new FieldImpl(timeFunction, timeSet);
     timeField.setSamples(imageFields, false);
 
-    // compile data objects into tuple
-    return new Tuple(new Data[] {timeField, noteField}, false);
+    FieldImpl colorField = null;
+    if (numLuts > 0) {
+      // set up color table data types
+      RealType tableNum = RealType.getRealType("TableNumber");
+      RealType red = RealType.getRealType("Red");
+      RealType green = RealType.getRealType("Green");
+      RealType blue = RealType.getRealType("Blue");
+      RealTupleType rgb = new RealTupleType(red, green, blue);
+      FunctionType rgbFunction = new FunctionType(value, rgb);
+      FunctionType colorFunction = new FunctionType(tableNum, rgbFunction);
+
+      // set up color table domain sets
+      Integer1DSet rgbSet = new Integer1DSet(256);
+      Integer1DSet colorSet = new Integer1DSet(numLuts);
+
+      // set up color table fields
+      FlatField[] rgbFields = new FlatField[numLuts];
+      for (i=0; i<numLuts; i++) {
+        rgbFields[i] = new FlatField(rgbFunction, rgbSet);
+        rgbFields[i].setSamples(colors[i], false);
+      }
+      colorField = new FieldImpl(colorFunction, colorSet);
+      colorField.setSamples(rgbFields, false);
+    }
+
+    // set up header data
+    Real r_ramp1_min = new Real(RealType.getRealType("ramp1_min"), ramp1_min);
+    Real r_ramp1_max = new Real(RealType.getRealType("ramp1_max"), ramp1_max);
+    Real r_byte_format = new Real(
+      RealType.getRealType("byte_format"), byte_format ? 1.0 : 0.0);
+    Text t_name = new Text(TextType.getTextType("name"), name);
+    Real r_ramp2_min = new Real(RealType.getRealType("ramp2_min"), ramp2_min);
+    Real r_ramp2_max = new Real(RealType.getRealType("ramp2_max"), ramp2_max);
+    Real r_lens = new Real(RealType.getRealType("lens"), lens);
+    Real r_mag_factor = new Real(
+      RealType.getRealType("mag_factor"), mag_factor);
+
+    // compile data objects into vector
+    Vector data = new Vector();
+    data.add(timeField);
+    data.add(colorField);
+    data.add(noteField);
+    data.add(r_ramp1_min);
+    data.add(r_ramp1_max);
+    data.add(r_byte_format);
+    data.add(t_name);
+    data.add(r_ramp2_min);
+    data.add(r_ramp2_max);
+    data.add(r_lens);
+    data.add(r_mag_factor);
+
+    // parse remaining notes
+    len = noteList.size();
+    for (i=0; i<len; i++) {
+      BioRadNote note = (BioRadNote) noteList.elementAt(i);
+      int rval = note.analyze();
+      if (rval == BioRadNote.METADATA) data.add(note.metadata);
+    }
+
+    // convert vector into VisAD tuple
+    Data[] dataArray = new Data[data.size()];
+    data.copyInto(dataArray);
+    return new Tuple(dataArray, false);
   }
 
   public FormNode getForms(Data data) {
