@@ -309,11 +309,18 @@ public abstract class BaseTrack
 
     final double degrees2radians = Data.DEGREES_TO_RADIANS;
 
-    final double sinZenith = Math.sin(zenith * degrees2radians);
-    final double cosZenith = Math.cos(zenith * degrees2radians);
+    // zenith value is the direction from which
+    // the muon came, not the direction in which it's going,
+    // so it's 180 degrees off
+    final double z2 = ((double )zenith + 180.0) % 360.0;
 
-    final double sinAzimuth = Math.sin(azimuth * degrees2radians);
-    final double cosAzimuth = Math.cos(azimuth * degrees2radians);
+    final double a2 = (double )azimuth;
+
+    final double sinZenith = Math.sin(z2 * degrees2radians);
+    final double cosZenith = Math.cos(z2 * degrees2radians);
+
+    final double sinAzimuth = Math.sin(a2 * degrees2radians);
+    final double cosAzimuth = Math.cos(a2 * degrees2radians);
 
     // speed of light (.3 m/nanosecond)
     final double SPEED_OF_LIGHT = 0.3;
@@ -324,7 +331,7 @@ public abstract class BaseTrack
     final float timeOrigin = timeSteps[0];
     final float timeFinal = timeSteps[timeSteps.length - 1];
 
-    final double baseLength = (timeFinal - time) * SPEED_OF_LIGHT;
+    final double baseLength = (timeOrigin - time) * SPEED_OF_LIGHT;
 
     final float xBaseDelta = (float )(baseLength * sinZenith * cosAzimuth);
     final float yBaseDelta = (float )(baseLength * sinZenith * sinAzimuth);
@@ -344,9 +351,9 @@ public abstract class BaseTrack
       final float zDelta = (float )(length * cosZenith);
 
       float[][] locs = {
-        { xOrigin, xOrigin - xDelta },
-        { yOrigin, yOrigin - yDelta },
-        { zOrigin, zOrigin - zDelta },
+        { xOrigin, xOrigin + xDelta },
+        { yOrigin, yOrigin + yDelta },
+        { zOrigin, zOrigin + zDelta },
       };
 
       Gridded3DSet subSet;
