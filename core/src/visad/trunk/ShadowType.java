@@ -3322,10 +3322,12 @@ System.out.println("range = " + range[0] + " " + range[1] +
               // WLH 4 May 2001
               if (arrays != null) {
                 for (int j=0; j<arrays.length; j++) {
-                  arrays[j] = arrays[j].adjustLongitude(renderer);
+                  if (arrays[j] != null) {
+                    arrays[j] = arrays[j].adjustLongitude(renderer);
 // System.out.println("adjustLongitude " + j + " done");
-                  arrays[j] = arrays[j].adjustSeam(renderer);
+                    arrays[j] = arrays[j].adjustSeam(renderer);
 // System.out.println("adjustSeam " + j + " done");
+                  }
                 }
               }
 
