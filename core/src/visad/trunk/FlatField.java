@@ -2678,7 +2678,10 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   public Data unary(int op, MathType new_type, int sampling_mode, int error_mode)
               throws VisADException {
     // use DoubleSet rather than RangeSet for intermediate computation results
-    if (isMissing()) return cloneDouble();
+    if (isMissing()) {
+      cloneDouble(new_type, RangeUnits, RangeErrors);
+    }
+
 
     /*- TDR July 1998  */
     if ( new_type == null ) {
