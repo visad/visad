@@ -114,10 +114,10 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   public BioVisAD() throws VisADException, RemoteException { this(32); }
 
   /**
-   * Constructs a new instance of BioVisAD with the
-   * specified maximum heap size in megabytes.
+   * Constructs a new instance of BioVisAD with the specified
+   * maximum low-resolution thumbnail size in megabytes.
    */
-  public BioVisAD(int heapSize) throws VisADException, RemoteException {
+  public BioVisAD(int thumbSize) throws VisADException, RemoteException {
     super(true);
     setTitle(TITLE);
     seriesBox = new SeriesChooser();
@@ -159,7 +159,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
     // logic managers
     mm = new MeasureManager(this);
-    sm = new SliceManager(this, heapSize);
+    sm = new SliceManager(this, thumbSize);
 
     // vertical slider
     vert = new ImageStackWidget(this);
@@ -356,13 +356,12 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   /** Launches the BioVisAD GUI. */
   public static void main(String[] args) throws Exception {
-    int heap = 32;
+    int thumbSize = 32;
     if (args.length > 0) {
-      try { heap = Integer.parseInt(args[0]); }
+      try { thumbSize = Integer.parseInt(args[0]); }
       catch (NumberFormatException exc) { }
     }
-    heap /= 2; // CTR - FIXME - a temporary hack
-    final BioVisAD bio = new BioVisAD(heap);
+    final BioVisAD bio = new BioVisAD(thumbSize);
     bio.pack();
     bio.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) { System.exit(0); }

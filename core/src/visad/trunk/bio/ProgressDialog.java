@@ -92,6 +92,7 @@ public class ProgressDialog extends JDialog {
 
     // finish layout
     pack();
+    setResizable(false);
     Util.centerWindow(this);
   }
 
@@ -99,15 +100,7 @@ public class ProgressDialog extends JDialog {
   // -- INTERNAL API METHODS --
 
   /** Keeps progress dialog from closing due to user intervention. */
-  public void hide() { }
-
-  /** Sets the exception to be thrown when checkException() is called. */
-  public void setException(VisADException exc) { this.exc = exc; }
-
-  /** Throws the exception registered with setException(), if any. */
-  public void checkException() throws VisADException {
-    if (exc != null) throw exc;
-  }
+  public void setVisible(boolean visible) { }
 
   /** Makes progress dialog decently sized. */
   public Dimension getPreferredSize() {
@@ -128,8 +121,16 @@ public class ProgressDialog extends JDialog {
   /** Sets the information label to the specified string. */
   public void setText(String info) { label.setText(info + "..."); }
 
+  /** Sets the exception to be thrown when checkException() is called. */
+  public void setException(VisADException exc) { this.exc = exc; }
+
+  /** Throws the exception registered with setException(), if any. */
+  public void checkException() throws VisADException {
+    if (exc != null) throw exc;
+  }
+
   /** Hides the progress dialog. */
-  public void kill() { super.hide(); }
+  public void kill() { super.setVisible(false); }
 
 
   // -- MAIN --

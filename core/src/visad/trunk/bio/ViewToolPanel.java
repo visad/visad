@@ -68,6 +68,18 @@ public class ViewToolPanel extends ToolPanel {
   /** Slider for level of brightness. */
   private JSlider brightness;
 
+  /** Red color map widget. */
+  private BioColorMapWidget red;
+
+  /** Green color map widget. */
+  private BioColorMapWidget green;
+
+  /** Blue color map widget. */
+  private BioColorMapWidget blue;
+
+  /** Composite color map widget. */
+  private BioColorMapWidget rgb;
+
 
   // -- CONSTRUCTOR --
 
@@ -177,6 +189,22 @@ public class ViewToolPanel extends ToolPanel {
     });
     p.add(brightness);
     controls.add(p);
+
+    // red color map widget
+    red = new BioColorMapWidget(bio, BioColorMapWidget.RED);
+    controls.add(pad(red));
+
+    // green color map widget
+    green = new BioColorMapWidget(bio, BioColorMapWidget.GREEN);
+    controls.add(pad(green));
+
+    // blue color map widget
+    blue = new BioColorMapWidget(bio, BioColorMapWidget.BLUE);
+    controls.add(pad(blue));
+
+    // composite color map widget
+    rgb = new BioColorMapWidget(bio, BioColorMapWidget.RGB);
+    controls.add(pad(rgb));
   }
 
 

@@ -77,8 +77,26 @@ public class SliceManager implements ControlListener {
   /** List of domain type components for image stack data. */
   RealType[] dtypes;
 
+  /** List of range type components for image stack data. */
+  RealType[] rtypes;
+
   /** X and Y range of images. */
   double xRange, yRange;
+
+
+  // -- DISPLAY MAPPING INFORMATION --
+
+  /** High-resolution field for current timestep and slice number. */
+  private FieldImpl field;
+
+  /** Domain type for animation and Z-axis mappings. */
+  private RealType time_slice;
+
+  /** Animation mapping used for fast image stepping. */
+  private ScalarMap anim_map;
+
+  /** Animation control associated with animation mapping. */
+  private AnimationControl anim_control;
 
 
   // -- DATA REFERENCES --
@@ -99,13 +117,10 @@ public class SliceManager implements ControlListener {
   private DataRenderer[] lowresRenderers;
 
 
-  // -- OTHER FIELDS --
+  // -- THUMBNAIL-RELATED FIELDS --
 
-  /** BioVisAD frame. */
-  private BioVisAD bio;
-
-  /** Maximum heap size in megabytes. */
-  private int heapSize;
+  /** Maximum memory to use for low-resolution thumbnails, in megabytes. */
+  private int thumbSize;
 
   /** Flag indicating low-resolution slice display. */
   private boolean lowres;
@@ -116,30 +131,39 @@ public class SliceManager implements ControlListener {
   /** Flag indicating whether current data has low-resolution thumbnails. */
   private boolean hasThumbs;
 
-  /** Timestep and slice number of data at last resolution switch. */
-  private int old_index, old_slice;
 
-  /** Loader for opening data series. */
-  private final DefaultFamily loader = new DefaultFamily("bio_loader");
+  // -- OTHER FIELDS --
+
+  /** BioVisAD frame. */
+  private BioVisAD bio;
 
   /** List of files containing current data series. */
   private File[] files;
 
-  /** Animation mapping used for fast image stepping. */
-  private ScalarMap anim_map;
+  /** Number of timesteps in data series. */
+  private int timesteps;
 
-  /** Animation control associated with animation mapping. */
-  private AnimationControl anim_control;
+  /** Number of slices in data series. */
+  private int slices;
+
+  /** Timestep of data at last resolution switch. */
+  private int old_index;
+
+  /** Slice number of data at last resolution switch. */
+  private int old_slice;
+
+  /** Loader for opening data series. */
+  private final DefaultFamily loader = new DefaultFamily("bio_loader");
 
 
   // -- CONSTRUCTORS --
 
   /** Constructs a slice manager. */
-  public SliceManager(BioVisAD biovis, int heapSize)
+  public SliceManager(BioVisAD biovis, int thumbSize)
     throws VisADException, RemoteException
   {
     bio = biovis;
-    this.heapSize = heapSize;
+    this.thumbSize = thumbSize;
     lowres = false;
     doThumbs = true;
     colorRange = new RealTupleType(
@@ -159,10 +183,10 @@ public class SliceManager implements ControlListener {
   public int getSlice() { return bio.vert.getValue() - 1; }
 
   /** Gets the number of timestep indices. */
-  public int getNumberOfIndices() { return bio.horiz.getMaximum(); }
+  public int getNumberOfIndices() { return timesteps; }
 
   /** Gets the number of image slices. */
-  public int getNumberOfSlices() { return bio.vert.getMaximum(); }
+  public int getNumberOfSlices() { return slices; }
 
   /** Gets whether the currently loaded data has low-resolution thumbnails. */
   public boolean hasThumbnails() { return hasThumbs; }
@@ -172,7 +196,7 @@ public class SliceManager implements ControlListener {
     if (this.lowres == lowres) return;
     this.lowres = lowres;
     int index = getIndex();
-    int slice = getIndex();
+    int slice = getSlice();
     refresh(old_index != index, old_slice != slice);
     old_index = index;
     old_slice = slice;
@@ -194,7 +218,8 @@ public class SliceManager implements ControlListener {
   public void setSeries(File[] files) {
     this.files = files;
     setFile(0, true);
-    bio.horiz.updateSlider(files == null ? 0 : files.length);
+    bio.horiz.updateSlider(timesteps);
+    bio.vert.updateSlider(slices);
   }
 
 
@@ -213,6 +238,20 @@ public class SliceManager implements ControlListener {
     }
   }
 
+  /** Clears the display, then reapplies mappings and references. */
+  void reconfigureDisplay() {
+    try {
+      bio.display2.disableAction();
+      if (bio.display3 != null) bio.display3.disableAction();
+      bio.sm.clearDisplays();
+      bio.sm.configureDisplays();
+      bio.display2.enableAction();
+      if (bio.display3 != null) bio.display3.enableAction();
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+  }
+
   /** Ensures slices are set up properly for animation. */
   void startAnimation() {
     // switch to low resolution
@@ -226,14 +265,6 @@ public class SliceManager implements ControlListener {
 
   // -- HELPER METHODS --
 
-  /** Sets the displays to use the image stack timestep from the given file. */
-  private boolean setData(File file) throws VisADException, RemoteException {
-    FieldImpl field = loadData(file);
-    if (field == null) return false;
-    ref.setData(field);
-    return true;
-  }
-
   /**
    * Initializes the displays to use the image stack data
    * from the given files.
@@ -246,23 +277,18 @@ public class SliceManager implements ControlListener {
 
     Thread t = new Thread(new Runnable() {
       public void run() {
+        bio.display2.disableAction();
+        if (bio.display3 != null) bio.display3.disableAction();
         try {
-          // clear old displays
-          bio.display2.removeAllReferences();
-          bio.display2.clearMaps();
-          if (bio.display3 != null) {
-            bio.display3.removeAllReferences();
-            bio.display3.clearMaps();
-          }
+          clearDisplays();
 
           // reset measurements
           if (bio.mm.lists != null) bio.mm.clear();
 
           // create low-res thumbnails for timestep animation
-          FieldImpl field = null;
+          field = null;
           FieldImpl[][] thumbs = null;
-          int slices = 0;
-          int timesteps = f.length;
+          timesteps = f.length;
           double scale = Double.NaN;
           for (int i=0; i<timesteps; i++) {
             // set up index so that current timestep is done last
@@ -293,15 +319,20 @@ public class SliceManager implements ControlListener {
                 // compute scale-down factor
                 GriddedSet set = (GriddedSet) image.getDomainSet();
                 int[] len = set.getLengths();
+/*
                 long tsBytes = BYTES_PER_PIXEL * slices * len[0] * len[1];
                 long freeBytes = MEGA * (heapSize - RESERVED) - tsBytes;
                 freeBytes /= 4; // use quarter available, for safety (TEMP?)
-                // CTR - FIXME - scale computation is messed up somehow
                 if (freeBytes < BYTES_PER_PIXEL * timesteps * slices) {
                   throw new VisADException("Insufficient memory " +
                     "to compute image slice thumbnails");
                 }
                 scale = Math.sqrt((double) freeBytes / (timesteps * tsBytes));
+*/
+                long freeBytes = MEGA * thumbSize;
+                long fullBytes = BYTES_PER_PIXEL *
+                  slices * timesteps * len[0] * len[1];
+                scale = Math.sqrt((double) freeBytes / fullBytes);
                 if (scale > 0.5) scale = 0.5;
               }
               thumbs[j][ndx] = DualRes.rescale(image, scale);
@@ -328,7 +359,7 @@ public class SliceManager implements ControlListener {
           {
             throw new VisADException("Field is not an image stack");
           }
-          RealType time_slice = (RealType) time_domain.getComponent(0);
+          time_slice = (RealType) time_domain.getComponent(0);
           FunctionType image_function = (FunctionType) time_range;
           domain2 = image_function.getDomain();
           RealType[] image_dtypes = domain2.getRealComponents();
@@ -345,8 +376,7 @@ public class SliceManager implements ControlListener {
           {
             throw new VisADException("Invalid field range");
           }
-          dtypes = domain3.getRealComponents();
-          RealType[] rtypes = range instanceof RealTupleType ?
+          rtypes = range instanceof RealTupleType ?
             ((RealTupleType) range).getRealComponents() :
             new RealType[] {(RealType) range};
 
@@ -377,115 +407,8 @@ public class SliceManager implements ControlListener {
             }
           }
 
-          // set up mappings to 2-D display
-          ScalarMap x_map2 = new ScalarMap(dtypes[0], Display.XAxis);
-          ScalarMap y_map2 = new ScalarMap(dtypes[1], Display.YAxis);
-          ScalarMap anim_map = new ScalarMap(time_slice, Display.Animation);
-          ScalarMap r_map2 = new ScalarMap(RED_TYPE, Display.Red);
-          ScalarMap g_map2 = new ScalarMap(GREEN_TYPE, Display.Green);
-          ScalarMap b_map2 = new ScalarMap(BLUE_TYPE, Display.Blue);
-          bio.display2.addMap(x_map2);
-          bio.display2.addMap(y_map2);
-          bio.display2.addMap(anim_map);
-          bio.display2.addMap(r_map2);
-          bio.display2.addMap(g_map2);
-          bio.display2.addMap(b_map2);
-
-          // CTR - TODO - full range component color support
-          bio.display2.addMap(new ScalarMap(rtypes[0], Display.RGB));
-
-          // set up 2-D data references
-          renderer2 = bio.display2.getDisplayRenderer().makeDefaultRenderer();
-          bio.display2.addReferences(renderer2, ref);
-          if (doThumbs) {
-            for (int j=0; j<slices; j++) {
-              bio.display2.addReferences(lowresRenderers[j], lowresRefs[j]);
-            }
-          }
-          bio.mm.pool2.init();
-
-          // set up mappings to 3-D display
-          ScalarMap x_map3 = null, y_map3 = null,
-            z_map3a = null, z_map3b = null;
-          ScalarMap r_map3 = null, g_map3 = null, b_map3 = null;
-          if (bio.display3 != null) {
-            x_map3 = new ScalarMap(dtypes[0], Display.XAxis);
-            y_map3 = new ScalarMap(dtypes[1], Display.YAxis);
-            z_map3a = new ScalarMap(time_slice, Display.ZAxis);
-            z_map3b = new ScalarMap(Z_TYPE, Display.ZAxis);
-            r_map3 = new ScalarMap(RED_TYPE, Display.Red);
-            g_map3 = new ScalarMap(GREEN_TYPE, Display.Green);
-            b_map3 = new ScalarMap(BLUE_TYPE, Display.Blue);
-            bio.display3.addMap(x_map3);
-            bio.display3.addMap(y_map3);
-            bio.display3.addMap(z_map3a);
-            bio.display3.addMap(z_map3b);
-            bio.display3.addMap(r_map3);
-            bio.display3.addMap(g_map3);
-            bio.display3.addMap(b_map3);
-
-            // CTR - TODO - full range component color support
-            bio.display3.addMap(new ScalarMap(rtypes[0], Display.RGB));
-
-            // set up 3-D data references
-            renderer3 =
-              bio.display3.getDisplayRenderer().makeDefaultRenderer();
-            bio.display3.addReferences(renderer3, ref);
-            bio.mm.pool3.init();
-          }
-
-          // set up 2-D ranges
-          SampledSet set = (SampledSet)
-            ((FieldImpl) field.getSample(0)).getDomainSet();
-          float[] lo = set.getLow();
-          float[] hi = set.getHi();
-
-          // x-axis range
-          float min_x = lo[0];
-          float max_x = hi[0];
-          xRange = Math.abs(max_x - min_x);
-          if (min_x != min_x) min_x = 0;
-          if (max_x != max_x) max_x = 0;
-          x_map2.setRange(min_x, max_x);
-
-          // y-axis range
-          float min_y = lo[1];
-          float max_y = hi[1];
-          yRange = Math.abs(max_y - min_y);
-          if (min_y != min_y) min_y = 0;
-          if (max_y != max_y) max_y = 0;
-          y_map2.setRange(min_y, max_y);
-
-          // animation range
-          float min_z = 0;
-          float max_z = field.getLength() - 1;
-          if (min_z != min_z) min_z = 0;
-          if (max_z != max_z) max_z = 0;
-          anim_map.setRange(min_z, max_z);
-
-          // color ranges
-          r_map2.setRange(0, 255);
-          g_map2.setRange(0, 255);
-          b_map2.setRange(0, 255);
-
-          // set up 3-D ranges
-          if (bio.display3 != null) {
-            // x-axis and y-axis ranges
-            x_map3.setRange(min_x, max_x);
-            y_map3.setRange(min_y, max_y);
-
-            // z-axis range
-            z_map3a.setRange(min_z, max_z);
-            z_map3b.setRange(min_z, max_z);
-
-            // color ranges
-            r_map3.setRange(0, 255);
-            g_map3.setRange(0, 255);
-            b_map3.setRange(0, 255);
-          }
-
-          setAnimationMap(anim_map);
-          bio.toolView.doColorTable();
+          // CTR - TODO - initialize color widgets properly
+          configureDisplays();
 
           // initialize measurement list array
           bio.mm.initLists(timesteps);
@@ -496,6 +419,8 @@ public class SliceManager implements ControlListener {
             new VisADException("RemoteException: " + exc.getMessage()));
         }
 
+        bio.display2.enableAction();
+        if (bio.display3 != null) bio.display3.enableAction();
         dialog.kill();
       }
     });
@@ -515,19 +440,19 @@ public class SliceManager implements ControlListener {
     catch (VisADException exc) { exc.printStackTrace(); }
 
     // convert data to field
-    FieldImpl field = null;
-    if (data instanceof FieldImpl) field = (FieldImpl) data;
+    FieldImpl f = null;
+    if (data instanceof FieldImpl) f = (FieldImpl) data;
     else if (data instanceof Tuple) {
       Tuple tuple = (Tuple) data;
       Data[] d = tuple.getComponents();
       for (int i=0; i<d.length; i++) {
         if (d[i] instanceof FieldImpl) {
-          field = (FieldImpl) d[i];
+          f = (FieldImpl) d[i];
           break;
         }
       }
     }
-    return field;
+    return f;
   }
 
   /** Sets the given file as the current one. */
@@ -536,8 +461,9 @@ public class SliceManager implements ControlListener {
     try {
       if (initialize) init(files, 0);
       else {
-        boolean success = setData(files[curFile]);
-        if (!success) {
+        field = loadData(files[curFile]);
+        if (field != null) ref.setData(field);
+        else {
           bio.setWaitCursor(false);
           JOptionPane.showMessageDialog(bio,
             files[curFile].getName() + " does not contain an image stack",
@@ -551,27 +477,137 @@ public class SliceManager implements ControlListener {
     bio.setWaitCursor(false);
   }
 
-  /** Links the slice manager with the given animation mapping. */
-  private void setAnimationMap(ScalarMap smap)
-    throws VisADException, RemoteException
-  {
-    // verify scalar map
-    if (smap != null && !Display.Animation.equals(smap.getDisplayScalar())) {
-      throw new DisplayException("ImageStackWidget: " +
-        "ScalarMap must be to Display.Animation");
+  /** Clears display mappings and references. */
+  private void clearDisplays() throws VisADException, RemoteException {
+    bio.display2.removeAllReferences();
+    bio.display2.clearMaps();
+    if (bio.display3 != null) {
+      bio.display3.removeAllReferences();
+      bio.display3.clearMaps();
+    }
+  }
+
+  /** Configures display mappings and references. */
+  private void configureDisplays() throws VisADException, RemoteException {
+    // set up mappings to 2-D display
+    ScalarMap x_map2 = new ScalarMap(dtypes[0], Display.XAxis);
+    ScalarMap y_map2 = new ScalarMap(dtypes[1], Display.YAxis);
+    ScalarMap anim_map = new ScalarMap(time_slice, Display.Animation);
+    ScalarMap r_map2 = new ScalarMap(RED_TYPE, Display.Red);
+    ScalarMap g_map2 = new ScalarMap(GREEN_TYPE, Display.Green);
+    ScalarMap b_map2 = new ScalarMap(BLUE_TYPE, Display.Blue);
+    bio.display2.addMap(x_map2);
+    bio.display2.addMap(y_map2);
+    bio.display2.addMap(anim_map);
+    bio.display2.addMap(r_map2);
+    bio.display2.addMap(g_map2);
+    bio.display2.addMap(b_map2);
+
+    // CTR - TODO - full range component color support - grab state from GUI
+    bio.display2.addMap(new ScalarMap(rtypes[0], Display.RGB));
+
+    // set up 2-D data references
+    renderer2 = bio.display2.getDisplayRenderer().makeDefaultRenderer();
+    bio.display2.addReferences(renderer2, ref);
+    if (doThumbs) {
+      for (int j=0; j<slices; j++) {
+        if (j == slices - 1) bio.display2.enableAction(); // CTR - TEMP HACK
+        bio.display2.addReferences(lowresRenderers[j], lowresRefs[j]);
+      }
+    }
+    bio.mm.pool2.init();
+
+    // set up mappings to 3-D display
+    ScalarMap x_map3 = null;
+    ScalarMap y_map3 = null;
+    ScalarMap z_map3a = null;
+    ScalarMap z_map3b = null;
+    ScalarMap r_map3 = null;
+    ScalarMap g_map3 = null;
+    ScalarMap b_map3 = null;
+    if (bio.display3 != null) {
+      x_map3 = new ScalarMap(dtypes[0], Display.XAxis);
+      y_map3 = new ScalarMap(dtypes[1], Display.YAxis);
+      z_map3a = new ScalarMap(time_slice, Display.ZAxis);
+      z_map3b = new ScalarMap(Z_TYPE, Display.ZAxis);
+      r_map3 = new ScalarMap(RED_TYPE, Display.Red);
+      g_map3 = new ScalarMap(GREEN_TYPE, Display.Green);
+      b_map3 = new ScalarMap(BLUE_TYPE, Display.Blue);
+      bio.display3.addMap(x_map3);
+      bio.display3.addMap(y_map3);
+      bio.display3.addMap(z_map3a);
+      bio.display3.addMap(z_map3b);
+      bio.display3.addMap(r_map3);
+      bio.display3.addMap(g_map3);
+      bio.display3.addMap(b_map3);
+
+      // CTR - TODO - full range component color support - grab state from GUI
+      bio.display3.addMap(new ScalarMap(rtypes[0], Display.RGB));
+
+      // set up 3-D data references
+      renderer3 = bio.display3.getDisplayRenderer().makeDefaultRenderer();
+      bio.display3.addReferences(renderer3, ref);
+      bio.mm.pool3.init();
     }
 
-    // remove old listeners
+    // set up 2-D ranges
+    SampledSet set = (SampledSet)
+      ((FieldImpl) field.getSample(0)).getDomainSet();
+    float[] lo = set.getLow();
+    float[] hi = set.getHi();
+
+    // x-axis range
+    float min_x = lo[0];
+    float max_x = hi[0];
+    xRange = Math.abs(max_x - min_x);
+    if (min_x != min_x) min_x = 0;
+    if (max_x != max_x) max_x = 0;
+    x_map2.setRange(min_x, max_x);
+
+    // y-axis range
+    float min_y = lo[1];
+    float max_y = hi[1];
+    yRange = Math.abs(max_y - min_y);
+    if (min_y != min_y) min_y = 0;
+    if (max_y != max_y) max_y = 0;
+    y_map2.setRange(min_y, max_y);
+
+    // animation range
+    float min_z = 0;
+    float max_z = field.getLength() - 1;
+    if (min_z != min_z) min_z = 0;
+    if (max_z != max_z) max_z = 0;
+    anim_map.setRange(min_z, max_z);
+
+    // color ranges
+    r_map2.setRange(0, 255);
+    g_map2.setRange(0, 255);
+    b_map2.setRange(0, 255);
+
+    // set up 3-D ranges
+    if (bio.display3 != null) {
+      // x-axis and y-axis ranges
+      x_map3.setRange(min_x, max_x);
+      y_map3.setRange(min_y, max_y);
+
+      // z-axis range
+      z_map3a.setRange(min_z, max_z);
+      z_map3b.setRange(min_z, max_z);
+
+      // color ranges
+      r_map3.setRange(0, 255);
+      g_map3.setRange(0, 255);
+      b_map3.setRange(0, 255);
+    }
+
+    // set up animation mapping
     if (anim_control != null) anim_control.removeControlListener(this);
-
-    // get control values
-    anim_map = smap;
     anim_control = (AnimationControl) anim_map.getControl();
-    bio.vert.updateSlider((int) anim_map.getRange()[1] + 1);
     bio.toolView.setControl(anim_control);
-
-    // add listeners
     if (anim_control != null) anim_control.addControlListener(this);
+
+    // set up color table brightness
+    bio.toolView.doColorTable();
   }
 
   /** Refreshes the current image slice shown onscreen. */
