@@ -287,6 +287,106 @@ class Hit
   }
 }
 
+class Event
+{
+  private static RealType hitIndexType;
+  private static FunctionType hitsFunctionType;
+
+  private static RealType trackIndexType;
+  private static FunctionType tracksFunctionType;
+
+  private int number, run, year, day;
+  private double time, timeShift;
+  private ArrayList tracks, hits;
+
+  Event(int number, int run, int year, int day, double time, double timeShift)
+  {
+    this.number = number;
+    this.run = run;
+    this.year = year;
+    this.day = day;
+    this.time = time;
+    this.timeShift = timeShift;
+
+    this.tracks = new ArrayList();
+    this.hits = new ArrayList();
+  }
+
+  final void add(Hit hit) { hits.add(hit); }
+  final void add(FitTrack track) { tracks.add(track); }
+  final void add(MCTrack track) { tracks.add(track); }
+
+  static final RealType getTrackIndexType() { return trackIndexType; }
+
+  static void initTypes(RealType trackIndex, RealType hitIndex,
+                        FunctionType tracksFunc,
+                        FunctionType hitsFunc)
+  {
+    trackIndexType = trackIndex;
+    tracksFunctionType = tracksFunc;
+    hitIndexType = hitIndex;
+    hitsFunctionType = hitsFunc;
+  }
+
+  final Tuple makeData()
+    throws VisADException
+  {
+    // finish EM event
+    final int ntracks = tracks.size();
+    final int nhits = hits.size();
+
+    // if no tracks or hits were found, we're done
+    if (ntracks == 0 && nhits == 0) {
+      return null;
+    }
+
+    // construct parent Field for all tracks
+    Integer1DSet tracksSet =
+      new Integer1DSet(trackIndexType, (ntracks == 0 ? 1 : ntracks));
+    FieldImpl tracksField =
+      new FieldImpl(tracksFunctionType, tracksSet);
+    if (ntracks > 0) {
+      FlatField[] trackFields = new FlatField[ntracks];
+      for (int t = 0; t < ntracks; t++) {
+        trackFields[t] = ((BaseTrack )tracks.get(t)).makeData();
+      }
+      try {
+        tracksField.setSamples(trackFields, false);
+      } catch (RemoteException re) {
+        re.printStackTrace();
+      }
+    }
+
+    // construct parent Field for all hits
+    Integer1DSet hitsSet =
+      new Integer1DSet(hitIndexType, (nhits == 0 ? 1 : nhits));
+    FlatField hitsField =
+      new FlatField(hitsFunctionType, hitsSet);
+    if (nhits > 0) {
+      RealTuple[] hitTuples = new RealTuple[nhits];
+      for (int h = 0; h < nhits; h++) {
+        hitTuples[h] = ((Hit )hits.get(h)).makeData();
+      }
+      try {
+        hitsField.setSamples(hitTuples, true);
+      } catch (RemoteException re) {
+        re.printStackTrace();
+      }
+    }
+
+    // construct Tuple of all tracks and hits
+    Tuple t;
+    try {
+      t = new Tuple(new Data[] {tracksField, hitsField});
+    } catch (RemoteException re) {
+      re.printStackTrace();
+      t = null;
+    }
+
+    return t;
+  }
+}
+
 /**
    F2000Form is the VisAD data format adapter for
    F2000 files for Amanda events.<P>
@@ -301,15 +401,11 @@ public class F2000Form
 
   private static boolean typesCreated = false;
   private static RealType xType, yType, zType;
-  private static RealType trackIndexType;
-  private static RealType hitIndexType;
   private static RealType amplitudeType;
   private static RealType letType;
   private static RealType eventIndexType;
   private static RealType moduleIndexType;
 
-  private static FunctionType tracksFunctionType;
-  private static FunctionType hitsFunctionType;
   private static FunctionType eventsFunctionType;
   private static FunctionType moduleFunctionType;
 
@@ -398,9 +494,9 @@ public class F2000Form
     // zenith = 0.0f toward -z (this is the "latitude")
     // azimuth = 0.0f toward +x (this is the "longitude")
     RealType timeType = RealType.Time;
-    trackIndexType = RealType.getRealType("track_index");
+    RealType trackIndexType = RealType.getRealType("track_index");
     RealType energyType = RealType.getRealType("energy"); // track energy
-    hitIndexType = RealType.getRealType("hit_index");
+    RealType hitIndexType = RealType.getRealType("hit_index");
     amplitudeType = RealType.getRealType("amplitude"); // hit amplitude
     RealType totType = RealType.getRealType("tot"); // hit time-over-threshold
     letType = RealType.getRealType("let"); // hit leading-edge-time
@@ -413,9 +509,9 @@ public class F2000Form
     RealType[] hitReals =
       {xType, yType, zType, amplitudeType, letType, totType};
     RealTupleType hitType = new RealTupleType(hitReals);
-    tracksFunctionType =
+    FunctionType tracksFunctionType =
       new FunctionType(trackIndexType, trackFunctionType);
-    hitsFunctionType = 
+    FunctionType hitsFunctionType = 
       new FunctionType(hitIndexType, hitType);
 
     TupleType eventsFunctionRange = new TupleType(new MathType[]
@@ -428,70 +524,10 @@ public class F2000Form
 
     BaseTrack.initTypes(xyzType, trackFunctionType);
     Hit.initTypes(hitType);
+    Event.initTypes(trackIndexType, hitIndexType,
+                    tracksFunctionType, hitsFunctionType);
 
     typesCreated = true;
-  }
-
-  private final Tuple finishEvent(ArrayList emTracks, ArrayList emHits)
-    throws VisADException
-  {
-    // finish EM event
-    final int ntracks = emTracks.size();
-    final int nhits = emHits.size();
-
-    // if no tracks or hits were found, we're done
-    if (ntracks == 0 && nhits == 0) {
-      return null;
-    }
-
-    // construct parent Field for all tracks
-    Integer1DSet tracksSet =
-      new Integer1DSet(trackIndexType, (ntracks == 0 ? 1 : ntracks));
-    FieldImpl tracksField =
-      new FieldImpl(tracksFunctionType, tracksSet);
-    if (ntracks > 0) {
-      FlatField[] trackFields = new FlatField[ntracks];
-      for (int t = 0; t < ntracks; t++) {
-        trackFields[t] = ((BaseTrack )emTracks.get(t)).makeData();
-      }
-      try {
-        tracksField.setSamples(trackFields, false);
-      } catch (RemoteException re) {
-        re.printStackTrace();
-      }
-
-      emTracks.clear();
-    }
-
-    // construct parent Field for all hits
-    Integer1DSet hitsSet =
-      new Integer1DSet(hitIndexType, (nhits == 0 ? 1 : nhits));
-    FlatField hitsField =
-      new FlatField(hitsFunctionType, hitsSet);
-    if (nhits > 0) {
-      RealTuple[] hitTuples = new RealTuple[nhits];
-      for (int h = 0; h < nhits; h++) {
-        hitTuples[h] = ((Hit )emHits.get(h)).makeData();
-      }
-      try {
-        hitsField.setSamples(hitTuples, true);
-      } catch (RemoteException re) {
-        re.printStackTrace();
-      }
-
-      emHits.clear();
-    }
-
-    // construct Tuple of all tracks and hits
-    Tuple t;
-    try {
-      t = new Tuple(new Data[] {tracksField, hitsField});
-    } catch (RemoteException re) {
-      re.printStackTrace();
-      t = null;
-    }
-
-    return t;
   }
 
   public static final RealType getAmplitude() { return amplitudeType; }
@@ -576,7 +612,7 @@ public class F2000Form
   }
 
   public static final RealType getLet() { return letType; }
-  public static final RealType getTrackIndex() { return trackIndexType; }
+  public static final RealType getTrackIndex() { return Event.getTrackIndexType(); }
 
   public static final RealType getX() { return xType; }
   public final double getXMax() { return xmax; }
@@ -653,9 +689,7 @@ public class F2000Form
 
     ArrayList events = new ArrayList();
 
-    // initialize tracks and hits to empty
-    ArrayList emTracks = new ArrayList();
-    ArrayList emHits = new ArrayList();
+    Event currentEvent = null;
 
     while (true) {
       String line;
@@ -728,13 +762,11 @@ public class F2000Form
       }
 
       if (keyword.equals("em")) {
-        if (emTracks.size() != 0 || emHits.size() != 0) {
-          System.err.println("Warning: EM data discarded!");
-          emTracks.clear();
-          emHits.clear();
+        if (currentEvent != null) {
+          System.err.println("Warning: Missing EE for " + currentEvent);
         }
 
-        startEvent(line, tok);
+        currentEvent = startEvent(line, tok);
 
         continue;
       }
@@ -743,7 +775,12 @@ public class F2000Form
       if (keyword.equals("tr")) {
         MCTrack track = readTrack(line, tok);
         if (track != null) {
-          emTracks.add(track);
+          if (currentEvent == null) {
+            System.err.println("Found TRACK " + track +
+                               " outside event");
+          } else {
+            currentEvent.add(track);
+          }
         }
 
         continue;
@@ -752,7 +789,12 @@ public class F2000Form
       if (keyword.equals("fit")) {
         FitTrack fit = readFit(line, tok);
         if (fit != null) {
-          emTracks.add(fit);
+          if (currentEvent == null) {
+            System.err.println("Found FIT " + fit +
+                               " outside event");
+          } else {
+            currentEvent.add(fit);
+          }
         }
 
         continue;
@@ -761,16 +803,23 @@ public class F2000Form
       if (keyword.equals("ht")) {
         Hit hit = readHit(line, tok, om);
         if (hit != null) {
-          emHits.add(hit);
+          if (currentEvent == null) {
+            System.err.println("Found HIT " + hit +
+                               " outside event");
+          } else {
+            currentEvent.add(hit);
+          }
         }
 
         continue;
       }
 
       if (keyword.equals("ee")) {
-        Tuple event = finishEvent(emTracks, emHits);
-        if (event != null) {
-          events.add(event);
+        if (currentEvent == null) {
+          System.err.println("Found EE outside event");
+        } else {
+          events.add(currentEvent.makeData());
+          currentEvent = null;
         }
 
         continue;
@@ -1070,22 +1119,25 @@ public class F2000Form
     throw new BadFormException("F2000Form.save");
   }
 
-  private final void startEvent(String line, StringTokenizer tok)
+  private final Event startEvent(String line, StringTokenizer tok)
     throws BadFormException
   {
     // assemble EM event
-/* XXX don't do anything, since it's all thrown away
+    int evtNum, runNum, year, day;
+    double time, timeShift;
     try {
-      int number = parseInt("emNum", tok.nextToken());
-      int year = parseInt("emYear", tok.nextToken());
-      int day = parseInt("emDay", tok.nextToken());
-      double time = parseDouble("emTime", tok.nextToken());
+      evtNum = parseInt("emNum", tok.nextToken());
+      runNum = parseInt("emRun", tok.nextToken());
+      year = parseInt("emYear", tok.nextToken());
+      day = parseInt("emDay", tok.nextToken());
+      time = parseDouble("emTime", tok.nextToken());
       // time shift in nsec of all times in event
-      double timeShift = parseDouble("emTimeShift", tok.nextToken()) * 0.000000001;
+      timeShift = parseDouble("emTimeShift", tok.nextToken()) * 0.000000001;
     } catch(NumberFormatException e) {
       throw new BadFormException("Bad EM line \"" + line + "\": " +
                                  e.getMessage());
     }
-*/
+
+    return new Event(evtNum, runNum, year, day, time, timeShift);
   }
 }
