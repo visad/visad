@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: FileStrategy.java,v 1.6 2001-12-19 16:45:07 steve Exp $
+ * $Id: FileStrategy.java,v 1.7 2001-12-19 20:55:11 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -24,6 +24,8 @@ import visad.data.netcdf.*;
  * <p>This class may be subclassed in order to use a different data merger
  * tactic -- one that maximizes the number of {@link FileFlatField}s, for
  * example (see {@link #getMerger()}).</p>
+ *
+ * <p>Instances are immutable.</p>
  *
  * @author Steven R. Emmerson
  */

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.26 2001-12-19 16:47:05 steve Exp $
+ * $Id: NetcdfAdapter.java,v 1.27 2001-12-19 20:55:50 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -82,21 +82,12 @@ NetcdfAdapter
      * <p>Gets the VisAD data object corresponding to the netCDF dataset.  This
      * is a potentially expensive method in either time or space.</p>
      *
-     * <p>This method uses the Java (not JavaBean) property
-     * <em>visad.data.netcdf.in.Strategy</em> to determine the strategy with
-     * which to import the netCDF dataset.  If the property is not set,
-     * then the default is to use {@link Strategy#DEFAULT}; otherwise, the
-     * value of the property is used as a class name to instantiate the
-     * strategy for importing the netCDF dataset.  The import strategy
-     * can be set by the user of an application by means of the property
-     * <em>visad.data.netcdf.in.Strategy</em>:
-     * <blockquote><code><pre>
-     * java -Dvisad.data.netcdf.in.Strategy=<em>SomeClassName</em> ...</pre>
-     * </code></blockquote></p>
-     *
-     * <p>This implementation invokes method {@link
-     * #getData(NetcdfAdapter.Strategy)} with the {@link NetcdfAdapter.Strategy}
-     * determined from the above procedure.</p>
+     * <p>This implementation uses the value of the Java (not JavaBean) property
+     * <em>visad.data.netcdf.in.Strategy</em> as the name of the {@link
+     * Strategy} class to use to import the netCDF dataset.  If that property
+     * is not set, then this implementation uses {@link Strategy#DEFAULT} as
+     * the import strategy.  This implementation then invokes method {@link
+     * #getData(Strategy)} with the determined {@link Strategy}.</p>
      *
      * @return                  The top-level, VisAD data object in the netCDF
      *                          dataset.
@@ -111,8 +102,7 @@ NetcdfAdapter
      * @see #getData(Strategy)
      * @see #IMPORT_STRATEGY_PROPERTY
      */
-    public synchronized DataImpl
-    getData()
+    public synchronized DataImpl getData()
         throws IOException, VisADException, RemoteException, BadFormException,
             OutOfMemoryError
     {
