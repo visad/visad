@@ -168,7 +168,7 @@ public class Real
          new ErrorEstimate(value, 0.0, RealType.Generic.getDefaultUnit()), true);
   }
 
-  /** trusted constructor for clone and other constructors */
+  /** trusted constructor for other constructors */
   private Real(RealType type, double value, Unit u, ErrorEstimate error,
                boolean b) {
     super(type);
