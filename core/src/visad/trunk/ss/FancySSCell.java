@@ -394,12 +394,17 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
 
   /** import a data object from a given URL, in a separate thread */
   public void loadDataURL(URL u) {
-    final URL url = u;
+    loadDataString(u.toString());
+  }
+
+  /** import a data object from the given string, in a separate thread */
+  public synchronized void loadDataString(String s) {
+    final String file = s;
     final BasicSSCell cell = this;
     Runnable loadFile = new Runnable() {
       public void run() {
         try {
-          cell.loadData(url);
+          cell.loadData(file);
           if (!cell.hasData() && !IsRemote) {
             JOptionPane.showMessageDialog(Parent, "Unable to import data",
               "Error importing data", JOptionPane.ERROR_MESSAGE);

@@ -107,7 +107,7 @@ public class BasicSSCell extends JPanel {
 
 
   /** URL from where data was imported, if any */
-  protected URL Filename = null;
+  protected String Filename = null;
 
   /** whether the cell's file is considered &quot;remote data&quot; */
   protected boolean FileIsRemote = false;
@@ -376,17 +376,13 @@ public class BasicSSCell extends JPanel {
             // act on filename update from remote cell
             Text nFile = (Text) t.getComponent(1);
             String s = nFile.getValue();
-            URL newFilename = (s.equals("") ? null : new URL(s));
-            Filename = newFilename;
+            Filename = s.equals("") ? null : s;
           }
         }
         catch (VisADException exc) {
           if (DEBUG) exc.printStackTrace();
         }
         catch (RemoteException exc) {
-          if (DEBUG) exc.printStackTrace();
-        }
-        catch (MalformedURLException exc) {
           if (DEBUG) exc.printStackTrace();
         }
         catch (IOException exc) {
@@ -642,7 +638,7 @@ public class BasicSSCell extends JPanel {
   private void synchFilename() {
     try {
       Real id = new Real(CollabID);
-      Text nFile = new Text(Filename == null ? "" : Filename.toString());
+      Text nFile = new Text(Filename == null ? "" : Filename);
       Tuple t = new Tuple(new Data[] {id, nFile}, false);
       RemoteFilename.setData(t);
     }
@@ -1510,7 +1506,7 @@ public class BasicSSCell extends JPanel {
       if (Filename != null) {
         // add filename to save string
         sb.append("filename = ");
-        sb.append(Filename.toString());
+        sb.append(Filename);
         sb.append('\n');
       }
 
@@ -2039,18 +2035,20 @@ public class BasicSSCell extends JPanel {
 
   /** return the URL of the file from which this cell's Data came */
   public URL getFileURL() {
-    return Filename;
+    if (Filename == null) return null;
+    try {
+      return new URL(Filename);
+    }
+    catch (MalformedURLException exc) {
+      if (DEBUG) exc.printStackTrace();
+      return null;
+    }
   }
 
   /** return the file name from which the associated Data came */
   public String getFilename() {
-    String f;
-    if (Filename == null) f = "";
-    else {
-      f = Filename.toString();
-      if (FileIsRemote) f = f + " (remote)";
-    }
-    return f;
+    if (Filename == null) return "";
+    return (FileIsRemote ? Filename + " (remote)" : Filename);
   }
 
   /** return the RMI address from which the associated Data came */
@@ -2094,10 +2092,16 @@ public class BasicSSCell extends JPanel {
   }
 
   /** import a data object from a given URL */
-  public synchronized void loadData(URL u)
+  public void loadData(URL u) throws VisADException, RemoteException {
+    if (u == null) return;
+    loadData(u.toString());
+  }
+
+  /** import a data object from the given location */
+  public synchronized void loadData(String s)
     throws VisADException, RemoteException
   {
-    if (u == null) return;
+    if (s == null) return;
 
     clearDisplay();
     setFormula(null);
@@ -2107,24 +2111,41 @@ public class BasicSSCell extends JPanel {
 
     Data data = null;
     try {
+      int len = s.length();
+      boolean isFile = false;
+      String location = null;
+
       // file detection --
       // necessary because some Data Forms lack open(URL) capability
-      String s = u.toString();
-      boolean f = false;
-      String file = null;
-      if (s.length() >= 6 && s.substring(0, 6).equalsIgnoreCase("file:/")) {
-        f = true;
-        file = s.substring(6);
+      if (len >= 6 && s.substring(0, 6).equalsIgnoreCase("file:/")) {
+        // location is a file:/ address
+        isFile = true;
+        location = s.substring(6);
       }
+
+      // ADDE detection --
+      // necessary because java.net.URL does not understand adde:// addresses
+      else if (len < 7 && s.substring(0, 7).equalsIgnoreCase("adde://")) {
+        // location is an adde:// address
+        isFile = true;
+        location = s;
+      }
+
+      // location is some other kind of URL
+      else location = s;
 
       // load file
       DefaultFamily loader = new DefaultFamily("loader");
-      if (f) data = loader.open(file);
-      else data = loader.open(u);
+      if (isFile) data = loader.open(location);
+      else data = loader.open(new URL(location));
     }
     catch (BadFormException exc) {
       if (DEBUG) exc.printStackTrace();
       setError("The file could not be converted to VisAD data.");
+    }
+    catch (MalformedURLException exc) {
+      if (DEBUG) exc.printStackTrace();
+      setError("The given URL is not valid.");
     }
     catch (RemoteException exc) {
       if (DEBUG) exc.printStackTrace();
@@ -2143,7 +2164,7 @@ public class BasicSSCell extends JPanel {
     }
     if (data != null) {
       setData(data);
-      Filename = u;
+      Filename = s;
     }
     else setData(null);
 

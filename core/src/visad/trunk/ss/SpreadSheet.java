@@ -2215,6 +2215,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
       // try to load the data from a server using RMI
       DisplayCells[CurX][CurY].loadDataRMI(newFormula);
     }
+    else if (newFormula.startsWith("adde://")) {
+      // try to load the data from a server using ADDE
+      DisplayCells[CurX][CurY].loadDataString(newFormula);
+    }
     else {
       // check if formula has changed from last entry
       String oldFormula = "";
