@@ -87,6 +87,17 @@ public class ConstantMap extends ScalarMap {
             getDisplayScalar().equals(cm.getDisplayScalar()));
   }
 
+  public Object clone()
+  {
+    try {
+      ConstantMap cm = new ConstantMap(Constant, getDisplayScalar());
+      copy(cm);
+      return cm;
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
   public String toString(String pre) {
     return pre + "ConstantMap: " + Constant +
            " -> " + getDisplayScalar().toString() + "\n";

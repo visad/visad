@@ -37,7 +37,8 @@ import java.util.*;
    The mapping of values is linear.  Any non-linear mapping
    must be handled by Display CoordinateSystem-s.<P>
 */
-public class ScalarMap extends Object implements java.io.Serializable {
+public class ScalarMap extends Object
+        implements Cloneable, java.io.Serializable {
 
   private ScalarType Scalar;
   private DisplayRealType DisplayScalar;
@@ -828,6 +829,37 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
 
     ScalarMap sm = (ScalarMap )o;
     return Scalar.equals(sm.Scalar) && DisplayScalar.equals(sm.DisplayScalar);
+  }
+
+  public Object clone()
+  {
+    try {
+      ScalarMap sm = new ScalarMap(Scalar, DisplayScalar);
+      copy(sm);
+      return sm;
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  protected void copy(ScalarMap map)
+  {
+    map.control = control;
+    map.isScaled = isScaled;
+    map.isManual = isManual;
+    map.dataRange[0] = dataRange[0];
+    map.dataRange[1] = dataRange[1];
+    map.displayRange[0] = displayRange[0];
+    map.displayRange[1] = displayRange[1];
+    map.scale = scale;
+    map.offset = offset;
+    map.axis = axis;
+    map.axis_ordinal = axis_ordinal;
+    map.scale_flag = scale_flag;
+    map.back_scale_flag = back_scale_flag;
+    map.scale_color[0] = scale_color[0];
+    map.scale_color[1] = scale_color[1];
+    map.scale_color[2] = scale_color[2];
   }
 
   public String toString() {

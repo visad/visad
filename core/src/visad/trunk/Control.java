@@ -197,6 +197,15 @@ if (tickFlag) {
   public abstract void syncControl(Control rmt)
     throws VisADException;
 
+  public Object clone()
+  {
+    try {
+      return super.clone();
+    } catch (CloneNotSupportedException e) {
+      return null;
+    }
+  }
+
   public boolean equals(Object o)
   {
     if (o == null || !(o instanceof Control)) {
