@@ -155,7 +155,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
 
     RealType row = RealType.getRealType("row");
     RealType col = RealType.getRealType("col");
-    RealType lev = RealType.getRealType("lev");
+    //RealType lev = RealType.getRealType("lev");  not used
 
     vars = new RealType[nvars];
 
@@ -257,26 +257,27 @@ public class Vis5DForm extends Form implements FormFileInformer {
       vert_coord_sys =
         new Vis5DVerticalSystem(vert_sys[0], nl, vert_args[0]);
 
-      RealType height =
-        (RealType)
-          vert_coord_sys.vert_type;
+      RealType height = vert_coord_sys.vert_type;
 
       CoordinateSystem pcs =
-        new CartesianProductCoordinateSystem(
-          new CoordinateSystem[]
-            {coord_sys,
-             new IdentityCoordinateSystem(vert_coord_sys.reference)});
+        new CachingCoordinateSystem(
+          new CartesianProductCoordinateSystem(
+            new CoordinateSystem[]
+              {coord_sys, vert_coord_sys.vert_cs}));
+             
 
       domain =
-        new RealTupleType(
-          new RealType[] {row, col, height}, pcs, null);
+        new RealTupleType( new RealType[] {row, col, height}, pcs, null);
+        /*
     }
     else {
-      domain = new RealTupleType(new RealType[] {row, col}, coord_sys, null);
+      domain = new RealTupleType(new RealType[] {row, col}, 
+        new CachingCoordinateSystem(coord_sys), null);
     }
 
     if (nl > 1)
     {
+    */
       SampledSet vert_set = vert_coord_sys.vertSet;
 
      /**-  Maybe sometime in the future
@@ -286,21 +287,40 @@ public class Vis5DForm extends Form implements FormFileInformer {
         new SampledSet[] {row_col_set, vert_set});
       */
 
-      float[][] vert_samples = vert_set.getSamples();
-      float[][] domain_samples = new float[3][nr*nc*nl];
-      int idx = 0;
-      for (int kk = 0; kk < nl; kk++) {
-        for (int jj = 0; jj < nc; jj++) {
-          for ( int ii = 0; ii < nr; ii++) {
-            domain_samples[0][idx] = ii;
-            domain_samples[1][idx] = jj;
-            domain_samples[2][idx] = vert_samples[0][kk];
-            idx++;
+      if (vert_set instanceof Linear1DSet) {
+        space_set =
+          new Linear3DSet(domain, 
+                          new Linear1DSet[] {
+                              new Integer1DSet(row, nr),
+                              new Integer1DSet(col, nc),
+                              (Linear1DSet) vert_set},
+                           (CoordinateSystem) null,
+                           new Unit[] {null, null, vert_coord_sys.vert_unit},
+                           (ErrorEstimate[]) null);
+      }
+      else {  // Gridde1DSet
+        float[][] vert_samples = vert_set.getSamples();
+        float[][] domain_samples = new float[3][nr*nc*nl];
+        int idx = 0;
+        for (int kk = 0; kk < nl; kk++) {
+          for (int jj = 0; jj < nc; jj++) {
+            for ( int ii = 0; ii < nr; ii++) {
+              domain_samples[0][idx] = ii;
+              domain_samples[1][idx] = jj;
+              domain_samples[2][idx] = vert_samples[0][kk];
+              idx++;
+            }
           }
         }
+        space_set =
+          //new Gridded3DSet(domain, domain_samples, nr, nc, nl);
+          new Gridded3DSet(
+                  domain, domain_samples, nr, nc, nl,
+                  (CoordinateSystem) null,
+                  //new Unit[] {null, null, height.getDefaultUnit()},
+                  new Unit[] {null, null, vert_coord_sys.vert_unit},
+                  (ErrorEstimate[]) null);
       }
-      space_set =
-        new Gridded3DSet(domain, domain_samples, nr, nc, nl);
 
       
       grid_type[grp] = new FunctionType[sub_vars.length];
@@ -318,8 +338,10 @@ public class Vis5DForm extends Form implements FormFileInformer {
       }
       n_comps += grid_type[grp].length;
     }
-    else
+    else 
     {
+      domain = new RealTupleType(new RealType[] {row, col}, 
+        new CachingCoordinateSystem(coord_sys), null);
       space_set = new Integer2DSet(domain, nr, nc);
 
       grid_type[grp] = new FunctionType[1];
@@ -598,6 +620,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
     mode.setScaleEnable(true);
     display_panel.add(display.getComponent());
 
+
     // extract RealType components from vis5d_type and use
     // them to determine how data are displayed
 
@@ -611,6 +634,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
 
     // get grid type
 
+    /*
  //-RealTupleType reference = (domain.getCoordinateSystem()).getReference();
  // domain = reference;
     // map grid coordinates to display coordinates
@@ -623,6 +647,10 @@ public class Vis5DForm extends Form implements FormFileInformer {
 //-display.addMap(new ScalarMap((RealType) domain.getComponent(2),
    display.addMap(new ScalarMap(RealType.getRealType("lev"),
                                    Display.ZAxis));
+   */
+   display.addMap(new ScalarMap(RealType.Latitude,  Display.YAxis));
+   display.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+   display.addMap(new ScalarMap(RealType.Altitude,  Display.ZAxis));
 
     // map grid values to IsoContour
 
