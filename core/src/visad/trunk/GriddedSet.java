@@ -441,8 +441,8 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
     switch( ManifoldDimension )
     {
        case 1:
-         neighbors[0] = new int[2];
-         neighbors[Length - 1] = new int[2];
+         neighbors[0] = new int[1];
+         neighbors[Length - 1] = new int[1];
          neighbors[0][0] = 1;
          neighbors[Length - 1][0] = Length - 2;
 
