@@ -41,11 +41,15 @@ public class FitsForm
   {
     FitsAdaptor fits = new FitsAdaptor(path);
 
+    // save any exceptions
+    ExceptionStack eStack = null;
+
     // convert the FITS object to a VisAD data object
     Data[] data;
     try {
       data = fits.getData();
     } catch (ExceptionStack e) {
+      eStack = e;
       fits.clearExceptionStack();
       data = fits.getData();
     }
@@ -54,7 +58,10 @@ public class FitsForm
     fits = null;
 
     // if there's no data, we're done
-    if (data == null) {
+    if (data == null || data.length == 0) {
+      if (eStack != null) {
+	throw eStack;
+      }
       return null;
     }
 
