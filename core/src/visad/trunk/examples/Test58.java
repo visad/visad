@@ -16,7 +16,6 @@ public class Test58
 {
 
   ProjectionControl control;
-  double sa, ca;
 
   public Test58() { }
 
@@ -73,8 +72,6 @@ public class Test58
     jframe.setVisible(true);
  
     control = dpys[0].getProjectionControl();
-    sa = Math.sin(0.01);
-    ca = Math.cos(0.01);
     dpys[0].addDisplayListener(this);
     rotate();
   }
@@ -97,7 +94,7 @@ public class Test58
   public String toString() { return ": scripted fly-through in Java2D"; }
 
   public static void main(String args[])
-	throws VisADException, RemoteException
+         throws VisADException, RemoteException
   {
     Test58 t = new Test58(args);
   }
