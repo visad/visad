@@ -317,7 +317,7 @@ public abstract class BaseTrack
     final double cosAzimuth = Math.cos(azimuth * degrees2radians);
 
     // speed of light (.3 m/nanosecond)
-    final double SPEED_OF_LIGHT = 0.3 * 100.0;
+    final double SPEED_OF_LIGHT = 0.3;
 
     Gridded3DSet[] sets = new Gridded3DSet[timeSteps.length];
     Gridded3DSet missingSet = null;
