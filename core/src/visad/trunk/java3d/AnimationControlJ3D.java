@@ -166,7 +166,9 @@ public class AnimationControlJ3D extends AVControlJ3D
   public void setDirection(boolean dir)
          throws VisADException, RemoteException {
     direction = dir;
-    changeControl(true);
+    // WLH 5 May 2000
+    // changeControl(true);
+    changeControl(false);
   }
 
   /** Get the animation direction.
@@ -214,7 +216,9 @@ public class AnimationControlJ3D extends AVControlJ3D
     {
         stepValues[i] = st;
     }
-    changeControl(true);
+    // WLH 5 May 2000
+    // changeControl(true);
+    changeControl(false);
   }
 
   /**
@@ -240,6 +244,8 @@ public class AnimationControlJ3D extends AVControlJ3D
             throw new DisplayException("AnimationControlJ3D.setSteps: " +
                                  "step " + i + " must be > 0");
     }
+    // WLH 5 May 2000
+    // changeControl(true);
     changeControl(true);
   }
 
@@ -503,7 +509,9 @@ public class AnimationControlJ3D extends AVControlJ3D
 
     if (changed) {
       try {
-        changeControl(true);
+        // WLH 5 May 2000
+        // changeControl(true);
+        changeControl(false);
       } catch (RemoteException re) {
         throw new VisADException("Could not indicate that control" +
                                  " changed: " + re.getMessage());

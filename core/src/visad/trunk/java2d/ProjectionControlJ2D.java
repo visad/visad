@@ -65,7 +65,9 @@ public class ProjectionControlJ2D extends ProjectionControl {
       canvas = dr.getCanvas();
     }
     canvas.scratchImages();
-    changeControl(true);
+    // WLH 5 May 2000
+    // changeControl(true);
+    changeControl(false);
   }
 
   public void setAspect(double[] aspect)

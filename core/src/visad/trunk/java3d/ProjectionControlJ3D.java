@@ -73,7 +73,9 @@ public class ProjectionControlJ3D extends ProjectionControl {
     Matrix = new Transform3D(matrix);
     ((DisplayRendererJ3D) getDisplayRenderer()).setTransform3D(Matrix);
     if (!switches.isEmpty()) selectSwitches();
-    changeControl(true);
+    // WLH 5 May 2000
+    // changeControl(true);
+    changeControl(false);
   }
 
   public void setAspect(double[] aspect)

@@ -177,7 +177,9 @@ public class AnimationControlJ2D extends AVControlJ2D
   public void setDirection(boolean dir)
          throws VisADException, RemoteException {
     direction = dir;
-    changeControl(true);
+    // WLH 5 May 2000
+    // changeControl(true);
+    changeControl(false);
   }
 
   /** Get the animation direction.
@@ -225,7 +227,9 @@ public class AnimationControlJ2D extends AVControlJ2D
     {
         stepValues[i] = step;
     }
-    changeControl(true);
+    // WLH 5 May 2000
+    // changeControl(true);
+    changeControl(false);
   }
 
   /**
@@ -252,7 +256,9 @@ public class AnimationControlJ2D extends AVControlJ2D
             throw new DisplayException("AnimationControlJ2D.setSteps: " +
                                  "step " + i + " must be > 0");
     }
-    changeControl(true);
+    // WLH 5 May 2000
+    // changeControl(true);
+    changeControl(false);
   }
 
   /**
@@ -522,7 +528,9 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
 
     if (changed) {
       try {
-        changeControl(true);
+        // WLH 5 May 2000
+        // changeControl(true);
+        changeControl(false);
       } catch (RemoteException re) {
         throw new VisADException("Could not indicate that control" +
                                  " changed: " + re.getMessage());
