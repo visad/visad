@@ -2017,14 +2017,6 @@ public class BasicSSCell extends JPanel {
       initVDPanel();
       if (success && hasData()) setVDPanel(true);
 
-      // put slave display's listeners back
-      if (IsSlave) {
-        for (int i=0; i<dLen; i++) {
-          DisplayListener d = (DisplayListener) DListen.elementAt(i);
-          RemoteVSlave.addDisplayListener(d);
-        }
-      }
-
       // put all listeners back
       for (int i=0; i<dLen; i++) {
         DisplayListener d = (DisplayListener) DListen.elementAt(i);

@@ -2981,7 +2981,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
     if (e.getId() == DisplayEvent.MOUSE_PRESSED) {
       String name = null;
       try {
-        name = e.getDisplay().getName();
+        Display d = e.getDisplay();
+        /* CTR: TEMP */ System.out.println("display = " + d.getClass().toString());
+        /* CTR: TEMP */ if (d.getClass().toString().endsWith("RemoteDisplayImpl_Stub")) new Exception().printStackTrace();
+        name = d.getName();
       }
       catch (VisADException exc) {
         if (BasicSSCell.DEBUG) exc.printStackTrace();
@@ -3006,8 +3009,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
           "corresponding SSCell with that name!");
       }
       selectCell(ci, cj);
-    }
-    else if (e.getId() == DisplayEvent.FRAME_DONE && IsSlave) {
     }
   }
 
