@@ -245,6 +245,10 @@ probably provide better performance than 2-D (Java2D).  It also has better
 display quality than 2-D (Java2D).  If you do not have Java3D installed, this
 option will be grayed out.
 
+Print cell - Prints the current cell to the printer.  Choosing this option
+causes a dialog box to appear that lets you specify your printer settings
+before the cell is actually printed.
+
 Edit Mappings - Brings up a dialog box which lets you change how the current
 cell's Data object is mapped to the Display.  Click a RealType object on the
 left (or from the MathType display at the top), then click a display icon from
