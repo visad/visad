@@ -56,6 +56,16 @@ public interface LocalDisplay
       have been made;
       the maps[i] array applies only to rendering refs[i];
   */
+  void replaceReferences(RemoteDisplay rDpy, DataRenderer renderer,
+                         DataReference[] refs, ConstantMap[][] constant_maps)
+         throws VisADException, RemoteException;
+
+  /** link refs to this Display using the non-default renderer;
+      must be local DataRendererImpls;
+      this method may only be invoked after all links to ScalarMaps
+      have been made;
+      the maps[i] array applies only to rendering refs[i];
+  */
   void addReferences(DataRenderer renderer,
                              DataReference[] refs,
                              ConstantMap[][] constant_maps)
