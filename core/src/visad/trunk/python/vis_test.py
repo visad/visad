@@ -1,12 +1,7 @@
-from visad.python.JPythonMethods import plot
-from visad.python.JPythonMethods import read
-from visad.python.JPythonMethods import equals
-from visad.python.JPythonMethods import getClass
+from visad.python.JPythonMethods import *
 """\
 vis_test.py
-"""
 
-"""\
 An example of a JPython script that utilizes
 VisAD functionality.
 

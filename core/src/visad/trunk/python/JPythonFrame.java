@@ -61,10 +61,11 @@ public class JPythonFrame extends TextFrame {
     SpreadSheet.adjustTextField(textLine);
     textLine.setToolTipText(
       "Enter a JPython command and press enter to execute it immediately");
+    final JPythonEditor fTextPane = (JPythonEditor) textPane;
     textLine.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         try {
-          ((JPythonEditor) getTextPane()).exec(textLine.getText());
+          fTextPane.exec(textLine.getText());
         }
         catch (VisADException exc) {
           showError(exc.getMessage());

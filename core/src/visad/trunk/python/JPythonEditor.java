@@ -40,25 +40,7 @@ public class JPythonEditor extends TextEditor {
     "from visad.python.JPythonMethods import ";
 
   /** text to be prepended to all JPython documents */
-  private static final String PREPENDED_TEXT = getPrependedText();
-
-  /** determines the list of import statements to prepend to all documents */
-  private static String getPrependedText() {
-    Class c = JPythonMethods.class;
-    Method[] m = c.getMethods();
-    StringBuffer sb = new StringBuffer();
-    for (int i=0; i<m.length; i++) {
-      String methodName = m[i].getName();
-
-      // hack to skip Object's public methods
-      if (methodName.equals("hashCode")) break;
-
-      sb.append(PREPEND_CODE);
-      sb.append(m[i].getName());
-      sb.append("\n");
-    }
-    return sb.toString();
-  }
+  private static final String PREPENDED_TEXT = PREPEND_CODE + "*\n";
 
   /** number of prepended lines */
   private static final int NUM_PREPENDED = getNumPrepended();

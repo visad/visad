@@ -120,7 +120,7 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
     refreshSaveMenuItem(dirty);
   }
 
-  /** make sure it's okay to discard changes to the document */
+  /** makes sure it's okay to discard changes to the document */
   protected boolean verifyLoseChanges() {
     int ans = JOptionPane.showConfirmDialog(this,
       "Discard changes to the file?", getTitle(),
@@ -128,7 +128,7 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
     return (ans == JOptionPane.YES_OPTION);
   }
 
-  /** display an error message in an error box */
+  /** displays an error message in an error box */
   public void showError(String msg) {
     // strip off carriage returns
     int i = 0;
@@ -216,12 +216,13 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
     refreshMenuItems(true);
   }
 
-  /** update menu items when undoable action occurs */
+  /** updates menu items when undoable action occurs */
   public void undoableEditHappened(UndoableEditEvent e) {
     // refresh menu items when an undoable event occurs
     refreshMenuItems(true);
   }
 
+  /** returns the main text editor pane */
   public TextEditor getTextPane() {
     return textPane;
   }
