@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VisADAdapter.java,v 1.6 2001-11-27 22:29:38 dglo Exp $
+ * $Id: VisADAdapter.java,v 1.7 2002-10-15 18:15:15 donm Exp $
  */
 
 package visad.data.netcdf.out;
@@ -135,7 +135,7 @@ VisADAdapter
          * dimension, we traverse all the strings in order to determine
          * the maximum length.
 	 */
-	int	charLen = 0;
+	int	charLen = 1;   // gotta have at least 1 character
 	for (IndexIterator index =
 		new IndexIterator(outerAccessor.getLengths());
 	     index.notDone();
