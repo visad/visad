@@ -297,11 +297,11 @@ public class LabeledColorWidget
   {
     try {
       visad.RealType vis = new visad.RealType("vis", null, null);
-      ScalarMap map = new ScalarMap(vis, visad.Display.RGBA);
-      map.setRange(0.0f, 1.0f);
+      ScalarMap visMap = new ScalarMap(vis, visad.Display.RGBA);
+      visMap.setRange(0.0f, 1.0f);
 
       visad.DisplayImpl dpy = new visad.java2d.DisplayImplJ2D("2d");
-      dpy.addMap(map);
+      dpy.addMap(visMap);
 
       javax.swing.JFrame f;
 
@@ -311,7 +311,7 @@ public class LabeledColorWidget
             System.exit(0);
           }
         });
-      f.getContentPane().add(new LabeledColorWidget(map));
+      f.getContentPane().add(new LabeledColorWidget(visMap));
       f.pack();
       f.setVisible(true);
 
@@ -321,7 +321,7 @@ public class LabeledColorWidget
             System.exit(0);
           }
         });
-      f.getContentPane().add(new LabeledColorWidget(map, null));
+      f.getContentPane().add(new LabeledColorWidget(visMap, null));
       f.pack();
       f.setVisible(true);
 
@@ -331,7 +331,7 @@ public class LabeledColorWidget
             System.exit(0);
           }
         });
-      f.getContentPane().add(new LabeledColorWidget(map, null, false));
+      f.getContentPane().add(new LabeledColorWidget(visMap, null, false));
       f.pack();
       f.setVisible(true);
 
@@ -341,14 +341,14 @@ public class LabeledColorWidget
             System.exit(0);
           }
         });
-      ColorMapWidget cmw = new ColorMapWidget(map, null, false, false);
+      ColorMapWidget cmw = new ColorMapWidget(visMap, null, false, false);
       f.getContentPane().add(new LabeledColorWidget(cmw));
       f.pack();
       f.setVisible(true);
 
       try { Thread.sleep(5000); } catch (InterruptedException ie) { }
 
-      map.setRange(-10.0f, 10.0f);
+      visMap.setRange(-10.0f, 10.0f);
     } catch (RemoteException re) {
       re.printStackTrace();
     } catch (VisADException ve) {

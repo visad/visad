@@ -423,11 +423,11 @@ public class ColorMapWidget
   {
     try {
       visad.RealType vis = new visad.RealType("vis", null, null);
-      ScalarMap map = new ScalarMap(vis, visad.Display.RGBA);
-      map.setRange(0.0f, 1.0f);
+      ScalarMap visMap = new ScalarMap(vis, visad.Display.RGBA);
+      visMap.setRange(0.0f, 1.0f);
 
       visad.DisplayImpl dpy = new visad.java2d.DisplayImplJ2D("2d");
-      dpy.addMap(map);
+      dpy.addMap(visMap);
 
       javax.swing.JFrame f;
 
@@ -437,7 +437,7 @@ public class ColorMapWidget
             System.exit(0);
           }
         });
-      f.getContentPane().add(new ColorMapWidget(map));
+      f.getContentPane().add(new ColorMapWidget(visMap));
       f.pack();
       f.setVisible(true);
 
@@ -447,7 +447,7 @@ public class ColorMapWidget
             System.exit(0);
           }
         });
-      f.getContentPane().add(new ColorMapWidget(map, false));
+      f.getContentPane().add(new ColorMapWidget(visMap, false));
       f.pack();
       f.setVisible(true);
 
@@ -457,13 +457,13 @@ public class ColorMapWidget
             System.exit(0);
           }
         });
-      f.getContentPane().add(new ColorMapWidget(map, null, false, true));
+      f.getContentPane().add(new ColorMapWidget(visMap, null, false, true));
       f.pack();
       f.setVisible(true);
 
       try { Thread.sleep(5000); } catch (InterruptedException ie) { }
 
-      map.setRange(-10.0f, 10.0f);
+      visMap.setRange(-10.0f, 10.0f);
     } catch (RemoteException re) {
       re.printStackTrace();
     } catch (VisADException ve) {
