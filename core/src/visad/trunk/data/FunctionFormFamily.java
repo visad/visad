@@ -367,57 +367,6 @@ public class FunctionFormFamily
   }
 
   /**
-   * Convert a 'file:' URL into a file path
-   */
-  private static String trimFileURL(String str)
-  {
-    // reject strings which couldn't possibly be file URLs
-    if (str == null || str.length() < 6 ||
-        !str.substring(0, 6).equalsIgnoreCase("file:/"))
-    {
-      return str;
-    }
-
-    // if it's the short form, just strip off the 'file:' part
-    if (str.length() < 7 || str.charAt(6) != '/') {
-      str = str.substring(5);
-    } else {
-      // strip off the 'file://' bit
-      str = str.substring(7);
-
-      // if the host field isn't empty (i.e. 'file:///')
-      if (str.length() > 0 && str.charAt(0) != '/') {
-        int slash = str.indexOf('/');
-
-        // if there's no end-of-host marker...
-        if (slash < 0) {
-          // bad URL; restore 'file://'
-          str = "file://" + str;
-        } else {
-          // break into host part and path part
-          String host = str.substring(0, slash);
-          String path = str.substring(slash);
-
-          // if its empty or 'localhost', just use the path
-          if (host.length() == 0 || host.equalsIgnoreCase("localhost")) {
-            str = path;
-          } else {
-            // remote host; give up
-            str = "file://" + host + path;
-          }
-        }
-      }
-    }
-
-    // hack for NT/Windows
-    if (str.length() >= 2 && str.charAt(2) == ':') {
-      str = str.substring(1);
-    }
-
-    return str;
-  }
-
-  /**
     * Open a local data object using the first appropriate Form.
     */
   public synchronized DataImpl open(String id)
@@ -428,53 +377,66 @@ public class FunctionFormFamily
       return null;
     }
 
-    // treat 'file:/' URLs as plain files
-    if (id.length() >= 6 && id.substring(0, 6).equalsIgnoreCase("file:/")) {
-      id = trimFileURL(id);
-    }
-
-    OpenStringForm o = new OpenStringForm(id);
-
-    DataImpl data;
-    IOException strEx;
-
+    // try to build a URL from the string
+    URL url;
     try {
-      if (!o.run()) {
-        data = null;
-      } else {
-        data = o.getData();
-      }
-      strEx = null;
-    } catch (IOException ioe) {
-      data = null;
-      strEx = ioe;
+      url = new URL(id);
+    } catch (MalformedURLException mue) {
+      url = null;
     }
 
-    if (data == null) {
-      URL url;
+    DataImpl data = null;
+
+    // if we got a URL, try to extract a Data object from it
+    if (url != null) {
+      OpenURLForm u = new OpenURLForm(url);
+
       try {
-        url = new URL(id);
-      } catch (MalformedURLException mue) {
-        url = null;
-      }
-
-      if (url != null) {
-        OpenURLForm u = new OpenURLForm(url);
-
-        try {
-          if (!u.run()) {
-            data = null;
-          } else {
-            data = u.getData();
-          }
-        } catch (Exception e) {
+        if (!u.run()) {
           data = null;
+        } else {
+          data = u.getData();
+        }
+      } catch (Exception e) {
+        data = null;
+      }
+    }
+
+    // if we didn't get a Data object, look for a filename
+    String file = null;
+    if (data == null) {
+      if (url == null) {
+        file = id;
+      } else if (url.getProtocol() == "file") {
+        file = url.getFile();
+
+        // if file looks like it starts with a Windows drive spec...
+        if (file.length() > 2 && file.charAt(2) == ':' &&
+            file.charAt(0) == '/')
+        {
+          file = file.substring(1);
         }
       }
     }
 
+    // if we found a filename, try to open it
+    if (file != null) {
+      OpenStringForm o = new OpenStringForm(id);
+
+      try {
+        if (!o.run()) {
+          data = null;
+        } else {
+          data = o.getData();
+        }
+      } catch (IOException ioe) {
+        data = null;
+      }
+    }
+
+    // puke if we didn't find a data object
     if (data == null) {
-      if (!new java.io.File(id).exists()) {
+      if (file != null && !new java.io.File(file).exists()) {
         throw new BadFormException("No such data object \"" + id + "\"");
       }
       throw new BadFormException("Data object \"" + id +
