@@ -27,20 +27,18 @@ package visad;
 
 /**
    InverseCoordinateSystem is the VisAD CoordinateSystem class
-   for grids defined by GriddedSets.<P>
-
-   It should be used as the CoordinateSystem of an IntegerSet
-   describing the set of grid values (so the dimensions of the
-   IntegerSet should match the dimensions of the GriddedSet
-   argument to the InverseCoordinateSystem constructor) where
-   the reference RealTupleType describes the value space of the
-   GriddedSet.<P>
+   for inverting other CoordinateSystems.<P>
 */
 public class InverseCoordinateSystem extends CoordinateSystem {
 
   private CoordinateSystem inverse;
   private int dimension;
 
+  /** construct a CoordinateSystem that whose transforms invert
+      the transforms of inverse (i.e., toReference and
+      fromReference are switched); for example, this could be
+      used to define Cartesian coordinates releative to a
+      refernce in spherical coordinates */
   public InverseCoordinateSystem(RealTupleType reference, CoordinateSystem inv)
          throws VisADException {
     super(reference, inv.getReference().getDefaultUnits());

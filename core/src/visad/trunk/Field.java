@@ -45,16 +45,17 @@ public interface Field extends Function {
   public abstract void setSamples(Data[] range, boolean copy)
          throws VisADException, RemoteException;
 
+  /** get the domain Set */
   public abstract Set getDomainSet() throws VisADException, RemoteException;
 
   /** get number of samples */
   public abstract int getLength() throws VisADException, RemoteException;
 
-  /** get SetUnits of DomainSet */
+  /** get the Units of the Real components of the domain Set (SetUnits) */
   public abstract Unit[] getDomainUnits()
          throws VisADException, RemoteException;
 
-  /** get DomainCoordinateSystem */
+  /** get the CoordinateSystem of the domain Set (DomainCoordinateSystem) */
   public abstract CoordinateSystem getDomainCoordinateSystem()
          throws VisADException, RemoteException;
 
@@ -70,11 +71,21 @@ public interface Field extends Function {
   public abstract void setSample(int index, Data range)
          throws VisADException, RemoteException;
 
-  /** extract field from this[].component */
+  /** assumes the range type of this is a Tuple and returns
+      a Field with the same domain as this, but whose range
+      samples consist of the specified Tuple component of the
+      range samples of this; in shorthand, this[].component */
   public abstract Field extract(int component)
          throws VisADException, RemoteException;
 
-  /** get values for 'Flat' components in default range Unit-s */
+  /** get the 'Flat' components of this Field's range values
+      in their default range Units (as defined by the range of
+      the Field's FunctionType); if the range type is a RealType
+      it is a 'Flat' component, if the range type is a TupleType
+      its RealType components and RealType components of its
+      RealTupleType components are all 'Flat' components; the
+      return array is dimensioned:
+      double[number_of_flat_components][number_of_range_samples] */
   public abstract double[][] getValues()
          throws VisADException, RemoteException;
  
@@ -101,7 +112,7 @@ public interface Field extends Function {
   public abstract CoordinateSystem[] getRangeCoordinateSystem(int component)
          throws VisADException, RemoteException;
 
-  /** is this a FlatField or a RemoteField adapting a FlatField */
+  /** return true if this a FlatField or a RemoteField adapting a FlatField */
   public abstract boolean isFlatField()
          throws VisADException, RemoteException;
 

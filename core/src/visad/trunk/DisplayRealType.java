@@ -104,7 +104,11 @@ public class DisplayRealType extends RealType {
     }
   }
 
-  /** public constructor for user-defined DisplayRealType's */
+  /** construct a DisplayRealType with given name (used only for
+      user interfaces), single flag (if true, this DisplayRealType
+      may only occur once in a path to a terminal node, as defined
+      in Appendix A), (low, hi) range of values, default value = def,
+      and unit */
   public DisplayRealType(String name, boolean single, double low, double hi,
                          double def, Unit unit)
          throws VisADException {
@@ -129,7 +133,11 @@ public class DisplayRealType extends RealType {
     }
   }
 
-  /** public constructor for user-defined DisplayRealType's */
+  /** construct a DisplayRealType with given name (used only for
+      user interfaces), single flag (if true, this DisplayRealType
+      may only occur once in a path to a terminal node, as defined
+      in Appendix A), default value = def, and unit;
+      this DisplayRealType is not scaled (no range of values) */
   public DisplayRealType(String name, boolean single, double def,
                          Unit unit) throws VisADException {
     this(name, single, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY,
@@ -171,10 +179,15 @@ public class DisplayRealType extends RealType {
     return Count;
   }
 
+  /** return the unique DisplayTupleType that this
+      DisplayRealType is a component of, or return null
+      if it is not a component of any DisplayTupleType */
   public DisplayTupleType getTuple() {
     return tuple;
   }
 
+  /** return index of this as component of a
+      DisplayTupleType */
   public int getTupleIndex() {
     return tupleIndex;
   }
@@ -184,14 +197,20 @@ public class DisplayRealType extends RealType {
     tupleIndex = i;
   }
 
+  /** return true if this DisplayRealType is 'single' */
   public boolean isSingle() {
     return Single;
   }
 
+  /** return default value for this DisplayRealType */
   public double getDefaultValue() {
     return DefaultValue;
   }
 
+  /** return true is a range of values is defined for this
+      DisplayRealType, and return the range in range_values[0]
+      and range_values[1]; range_values must be passed in as a
+      double[2] array */
   public boolean getRange(double[] range_values) {
     if (range) {
       range_values[0] = LowValue;

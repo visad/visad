@@ -68,13 +68,17 @@ public class Tuple extends DataImpl {
     }
   }
 
-  /** construct a Tuple object from an array of Data objects */
+  /** construct a Tuple object from an array of Data objects;
+      this constructs its MathType from the MathTypes of the
+      data array; only copy data if copy == true */
   public Tuple(Data[] datums, boolean copy)
          throws VisADException, RemoteException {
     this(buildTupleType(datums), datums, copy);
   }
 
-  /** construct a Tuple object from an array of Data objects */
+  /** construct a Tuple object from an array of Data objects;
+      this constructs its MathType from the MathTypes of the
+      data array; components are copies of data */
   public Tuple(Data[] datums)
          throws VisADException, RemoteException {
     this(buildTupleType(datums), datums, true);
@@ -115,6 +119,7 @@ public class Tuple extends DataImpl {
     }
   }
 
+  /** return number of components */
   public int getDimension() {
     if (tupleComponents != null) {
       return tupleComponents.length;
@@ -124,6 +129,7 @@ public class Tuple extends DataImpl {
     }
   }
 
+  /** return component for i between 0 and getDimension() - 1 */
   public Data getComponent(int i) throws VisADException, RemoteException {
     if (isMissing()) {
       return ((TupleType) Type).getComponent(i).missingData();

@@ -44,6 +44,7 @@ public abstract class CoordinateSystem extends Object
   /** not required to be convertable with Reference.DefaultUnits */
   private final Unit[] CoordinateSystemUnits;
 
+  /** subclasses must supply reference and units */
   public CoordinateSystem(RealTupleType reference, Unit[] units)
          throws VisADException {
     if (reference == null) {
@@ -91,20 +92,38 @@ public abstract class CoordinateSystem extends Object
     return Unit.copyUnitsArray(CoordinateSystemUnits);
   }
 
-  /** from this CoordinateSystem to Reference
+  /** convert RealTuple values to Reference coordinates;
+      for efficiency, input and output values are passed as
+      double[][] arrays rather than RealTuple[] arrays; the array
+      organization is double[tuple_dimension][number_of_tuples];
       can modify and return argument array */
   public abstract double[][] toReference(double[][] value) throws VisADException;
 
-  /** from Reference to this CoordinateSystem
+  /** convert RealTuple values from Reference coordinates;
+      for efficiency, input and output values are passed as
+      double[][] arrays rather than RealTuple[] arrays; the array
+      organization is double[tuple_dimension][number_of_tuples];
       can modify and return argument array */
   public abstract double[][] fromReference(double[][] value) throws VisADException;
 
+  /** convert RealTuple values to Reference coordinates;
+      for efficiency, input and output values are passed as
+      double[][] arrays rather than RealTuple[] arrays; the array
+      organization is double[tuple_dimension][number_of_tuples];
+      can modify and return argument array;
+      for efficiency, subclasses should override this implementation */
   public float[][] toReference(float[][] value) throws VisADException {
     double[][] val = Set.floatToDouble(value);
     val = toReference(val);
     return Set.doubleToFloat(val);
   }
 
+  /** convert RealTuple values from Reference coordinates;
+      for efficiency, input and output values are passed as
+      double[][] arrays rather than RealTuple[] arrays; the array
+      organization is double[tuple_dimension][number_of_tuples];
+      can modify and return argument array
+      for efficiency, subclasses should override this implementation */
   public float[][] fromReference(float[][] value) throws VisADException {
     double[][] val = Set.floatToDouble(value);
     val = fromReference(val);

@@ -59,6 +59,8 @@ public class Linear2DSet extends Gridded2DSet
     this (type, sets, null, null, null);
   }
 
+  /** a 2-D cross product of arithmetic progressions with
+      null errors and generic type */
   public Linear2DSet(double first1, double last1, int length1,
                      double first2, double last2, int length2)
          throws VisADException {
@@ -106,6 +108,9 @@ public class Linear2DSet extends Gridded2DSet
     }
   }
 
+  /** a 2-D cross product of arithmetic progressions;
+      coordinate_system and units must be compatible with defaults
+      for type, or may be null; errors may be null */
   public Linear2DSet(MathType type, double first1, double last1, int length1,
                      double first2, double last2, int length2,
                      CoordinateSystem coord_sys, Unit[] units,

@@ -34,6 +34,7 @@ import java.rmi.*;
 */
 public interface ControlListener extends EventListener {
 
+  /** send a ControlEvent to this ControlListener */
   public abstract void controlChanged(ControlEvent e)
          throws VisADException, RemoteException;
  

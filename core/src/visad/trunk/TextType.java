@@ -35,6 +35,7 @@ public class TextType extends ScalarType {
 
   public final static TextType Generic = new TextType("GENERIC_TEXT", true);
 
+  /** name of type (two TextTypes are equal if their names are equal) */
   public TextType(String name) throws VisADException {
     super(name);
   }

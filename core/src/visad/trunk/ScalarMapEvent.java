@@ -45,6 +45,8 @@ public class ScalarMapEvent extends Event {
     map = m;
   }
 
+  /** get the ScalarMap that sent this ScalarMapEvent (or
+      a copy if the ScalarMap was on a different JVM) */
   public ScalarMap getScalarMap() {
     return map;
   }

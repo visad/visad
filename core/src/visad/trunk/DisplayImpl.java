@@ -118,6 +118,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       Remote DisplayListeners */
   private RemoteDisplayImpl rd = null;
 
+  /** return a captured image of the display */
   public BufferedImage getImage() {
     return displayRenderer.getImage();
   }
@@ -144,16 +145,20 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     }
   }
 
+  /** add a DisplayListener */
   public void addDisplayListener(DisplayListener listener) {
     ListenerVector.addElement(listener);
   }
  
+  /** remove a DisplayListener */
   public void removeDisplayListener(DisplayListener listener) {
     if (listener != null) {
       ListenerVector.removeElement(listener);
     }
   }
 
+  /** return the java.awt.Component (e.g., JPanel or AppletPanel)
+      this DisplayImpl uses; returns null for an offscreen DisplayImpl */
   public Component getComponent() {
     return component;
   }
@@ -162,10 +167,14 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     component = c;
   }
 
+  /** re-apply auto-scaling of ScalarMap ranges next time
+      Display is triggered */
   public void reAutoScale() {
     initialize = true;
   }
 
+  /** if auto is true, re-apply auto-scaling of ScalarMap ranges
+      every time Display is triggered */
   public void setAlwaysAutoScale(boolean a) {
     always_initialize = a;
   }
@@ -183,6 +192,8 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     notifyAction();
   }
 
+  /** link ref to this Display; this method may only be invoked
+      after all links to ScalarMaps have been made */
   public void addReference(ThingReference ref)
          throws VisADException, RemoteException {
     if (!(ref instanceof DataReference)) {
@@ -192,8 +203,9 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     addReference((DataReference) ref, null);
   }
 
-  /** create link to DataReference with DefaultRenderer;
-      must be local DataReferenceImpl */
+  /** link ref to this Display; must be local DataReferenceImpl; this
+      method may only be invoked after all links to ScalarMaps have
+      been made; the ConstantMap array applies only to rendering ref */
   public void addReference(DataReference ref,
          ConstantMap[] constant_maps) throws VisADException, RemoteException {
     if (!(ref instanceof DataReferenceImpl)) {
@@ -235,14 +247,26 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     notifyAction();
   }
 
-  /** signature for addReferences with one DataReference and
-      without constant_maps */
+  /** link ref to this Display using the non-default renderer;
+      must be local DataRendererImpls;
+      this method may only be invoked after all links to ScalarMaps
+      have been made;
+      this is a method of DisplayImpl and RemoteDisplayImpl rather
+      than Display - see Section 6.1 of the Developer's Guide for
+      more information */
   public void addReferences(DataRenderer renderer, DataReference ref)
          throws VisADException, RemoteException {
     addReferences(renderer, new DataReference[] {ref}, null);
   }
 
-  /** signature for addReferences with one DataReference */
+  /** link ref to this Display using the non-default renderer;
+      must be local DataRendererImpls;
+      this method may only be invoked after all links to ScalarMaps
+      have been made;
+      the maps array applies only to rendering ref;
+      this is a method of DisplayImpl and RemoteDisplayImpl rather
+      than Display - see Section 6.1 of the Developer's Guide for
+      more information */
   public void addReferences(DataRenderer renderer, DataReference ref,
                             ConstantMap[] constant_maps)
          throws VisADException, RemoteException {
@@ -250,14 +274,25 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
                   new ConstantMap[][] {constant_maps});
   }
 
-  /** signature for addReferences without constant_maps */
+  /** link refs to this Display using the non-default renderer;
+      must be local DataRendererImpls;
+      this method may only be invoked after all links to ScalarMaps
+      have been made; this is a method of DisplayImpl and
+      RemoteDisplayImpl rather than Display - see Section 6.1 of the
+      Developer's Guide for more information */
   public void addReferences(DataRenderer renderer, DataReference[] refs)
          throws VisADException, RemoteException {
     addReferences(renderer, refs, null);
   }
 
-  /** create link to set of DataReference objects with non-DefaultRenderer;
-      must be local DataReferenceImpl */
+  /** link refs to this Display using the non-default renderer;
+      must be local DataRendererImpls;
+      this method may only be invoked after all links to ScalarMaps
+      have been made;
+      the maps[i] array applies only to rendering refs[i];
+      this is a method of DisplayImpl and RemoteDisplayImpl rather
+      than Display - see Section 6.1 of the Developer's Guide for
+      more information */
   public void addReferences(DataRenderer renderer, DataReference[] refs,
                             ConstantMap[][] constant_maps)
          throws VisADException, RemoteException {
@@ -354,8 +389,9 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     notifyAction();
   }
 
-  /** remove link to a DataReference;
-      must be local DataReferenceImpl */
+  /** remove link to ref; must be local DataReferenceImpl; if ref was
+      added as part of a DataReference  array passed to addReferences,
+      remove links to all of them */
   public void removeReference(ThingReference ref)
          throws VisADException, RemoteException {
     if (!(ref instanceof DataReferenceImpl)) {
@@ -386,7 +422,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     initialize = true;
   }
 
-  /** remove all DataReferences */
+  /** remove all DataReference links */
   public void removeAllReferences()
          throws VisADException, RemoteException {
     synchronized (mapslock) {
@@ -551,6 +587,7 @@ System.out.println("badScale = " + badScale);
     } // end synchronized (mapslock)
   }
 
+  /** return the DisplayRenderer associated with this DisplayImpl */
   public DisplayRenderer getDisplayRenderer() {
     return displayRenderer;
   }
@@ -806,8 +843,10 @@ System.out.println("badScale = " + badScale);
     return valueToMap;
   }
 
+  /** return the ProjectionControl associated with this DisplayImpl */
   public abstract ProjectionControl getProjectionControl();
  
+  /** return the GraphicsModeControl associated with this DisplayImpl */
   public abstract GraphicsModeControl getGraphicsModeControl(); 
 
   /** wait for millis milliseconds */

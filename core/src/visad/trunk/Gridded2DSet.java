@@ -35,11 +35,20 @@ public class Gridded2DSet extends GriddedSet {
   int LengthX, LengthY;
   float LowX, HiX, LowY, HiY;
 
+  /** a 2-D set whose topology is a lengthX x lengthY grid, with
+      null errors, CoordinateSystem and Units are defaults from type */
   public Gridded2DSet(MathType type, float[][] samples, int lengthX, int lengthY)
          throws VisADException {
     this(type, samples, lengthX, lengthY, null, null, null);
   }
 
+  /** a 2-D set whose topology is a lengthX x lengthY grid;
+      samples array is organized float[2][number_of_samples] where
+      lengthX * lengthY = number_of_samples; samples must form a
+      non-degenerate 2-D grid (no bow-tie-shaped grid boxes); the
+      X component increases fastest in the second index of samples;
+      coordinate_system and units must be compatible with defaults
+      for type, or may be null; errors may be null */
   public Gridded2DSet(MathType type, float[][] samples, int lengthX, int lengthY,
                       CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors) throws VisADException {
@@ -112,13 +121,18 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
     }
   }
 
-  /** construct Gridded2DSet with ManifoldDimension = 1 */
+  /** a 2-D set with manifold dimension = 1, with null errors,
+      CoordinateSystem and Units are defaults from type */
   public Gridded2DSet(MathType type, float[][] samples, int lengthX)
          throws VisADException {
     this(type, samples, lengthX, null, null, null);
   }
  
-  /** construct Gridded2DSet with ManifoldDimension = 1 */
+  /** a 2-D set with manifold dimension = 1; samples array is
+      organized float[2][number_of_samples] where lengthX =
+      number_of_samples; no geometric constraint on samples;
+      coordinate_system and units must be compatible with defaults
+      for type, or may be null; errors may be null */
   public Gridded2DSet(MathType type, float[][] samples, int lengthX,
                       CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors) throws VisADException {

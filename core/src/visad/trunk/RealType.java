@@ -64,12 +64,15 @@ public class RealType extends ScalarType {
     new RealType("GENERIC_REAL", CommonUnit.promiscuous, true);
 
  
-  /** construct a RealType with null Unit and default set */
+  /** name of type (two RealTypes are equal if their names are equal);
+      default Unit and Set are null */
   public RealType(String name) throws VisADException {
     this(name, null, null);
   }
 
-  /** construct a RealType with given Unit and default set */
+  /** name of type (two RealTypes are equal if their names are equal);
+      default Unit for values of this type and may be null; default Set
+      used when this type is a FunctionType domain and may be null */
   public RealType(String name, Unit u, Set set) throws VisADException {
     super(name);
     if (set != null && set.getDimension() != 1) {
@@ -95,16 +98,23 @@ public class RealType extends ScalarType {
     DefaultSetEverAccessed = false;
   }
 
+  /** get default Unit */
   public Unit getDefaultUnit() {
     return DefaultUnit;
   }
 
+  /** get default Set*/
   public synchronized Set getDefaultSet() {
     DefaultSetEverAccessed = true;
     return DefaultSet;
   }
 
-  /** set the default sampling; cannot be called after getDefaultSet */
+  /** set the default Set;
+      this is a violation of MathType immutability to allow a
+      a RealType to be an argument (directly or through a
+      SetType) to the constructor of its default Set;
+      this method throws an Exception if getDefaultSet has
+      previously been invoked */
   public synchronized void setDefaultSet(Set sampling) throws VisADException {
     if (sampling.getDimension() != 1) {
       throw new SetException(
@@ -464,6 +474,8 @@ public class RealType extends ScalarType {
     return new Real(this);
   }
 
+  /** return any RealType constructed in this JVM with name,
+      or null */
   public static RealType getRealTypeByName(String name) {
     ScalarType real = ScalarType.getScalarTypeByName(name);
     if (!(real instanceof RealType)) {

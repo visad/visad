@@ -198,11 +198,19 @@ public abstract class Set extends DataImpl {
     return Length;
   }
 
-  /** get an int array ennumerating all index values of this set */
+  /** return an enumeration of sample indices in a spatially
+      coherent order; this is useful for efficiency */
   public int[] getWedge() {
     int[] wedge = new int[Length];
     for (int i=0; i<Length; i++) wedge[i] = i;
     return wedge;
+  }
+
+  /** return an enumeration of sample values in index order
+     (i.e., not in getWedge order); the return array is
+     organized as float[domain_dimension][number_of_samples] */
+  public float[][] getSamples() throws VisADException {
+    return getSamples(true);
   }
 
   public float[][] getSamples(boolean copy) throws VisADException {
@@ -217,10 +225,14 @@ public abstract class Set extends DataImpl {
   // must eventually move indexToValue and valueToIndex to SimpleSet
   // and add logic for UnionSet to Field and FlatField
   //
-  /** convert an array of 1-D indices to an array of values in R^DomainDimension */
+  /** convert an array of indices to an array of sample values;
+      the return array is organized as
+      float[domain_dimension][indices.length] */
   public abstract float[][] indexToValue(int[] index) throws VisADException;
 
-  /** convert an array of values in R^DomainDimension to an array of 1-D indices */
+  /** convert an array of values to an array of indices of the nearest
+      samples; the values array is organized as
+      float[domain_dimension][number_of_values] */
   public abstract int[] valueToIndex(float[][] value) throws VisADException;
 
   public DataShadow computeRanges(ShadowType type, DataShadow shadow)

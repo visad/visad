@@ -42,17 +42,26 @@ public class SelectRangeWidget extends RangeSlider
   /** This SelectRangeWidget's associated Control. */
   private RangeControl rangeControl;
 
-  /** construct a SelectRangeWidget linked to the Control
-      in the map (which must be to Display.SelectRange), with
-      auto-scaling range values. */
+  /** this will be labeled with the name of smap's RealType;
+      the range of RealType values defining the bounds of the
+      selectable range is taken from smap.getRange() - this allows
+      a SelectRangeWidget to be used with a range of values defined
+      by auto-scaling from displayed Data; if smap's range values
+      are not available at the time this constructor is invoked,
+      the SelectRangeWidget becomes a ScalarMapListener and sets
+      its range when smap's range is set;
+      the DisplayRealType of smap must be Display.SelectRange and
+      should already be added to a Display */
   public SelectRangeWidget(ScalarMap smap) throws VisADException,
                                                   RemoteException {
     this(smap, Float.NaN, Float.NaN, true);
   }
 
-  /** construct a SelectRangeWidget linked to the Control
-      in the map (which must be to Display.SelectRange), with
-      range of values (min, max) and auto-scaling range. */
+  /** this will be labeled with the name of smap's RealType;
+      the range of RealType values (min, max) is defines the
+      bounds of the selectable range;
+      the DisplayRealType of smap must be Display.SelectRange and
+      should already be added to a Display */
   public SelectRangeWidget(ScalarMap smap, float min, float max)
                            throws VisADException, RemoteException {
     this(smap, min, max, true);

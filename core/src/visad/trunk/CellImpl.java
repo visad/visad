@@ -46,6 +46,7 @@ public abstract class CellImpl extends ActionImpl implements Cell {
     this(null);
   }
 
+  /** the name String can be useful for debugging */
   public CellImpl(String name) {
     super(name);
     otherReferences = null;

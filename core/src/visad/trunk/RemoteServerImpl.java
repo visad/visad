@@ -33,12 +33,15 @@ public class RemoteServerImpl extends UnicastRemoteObject
 {
   private RemoteDataReferenceImpl[] refs;
  
+  /** construct a RemoteServerImpl and initialize it with
+      an array of RemoteDataReferenceImpls */
   public RemoteServerImpl(RemoteDataReferenceImpl[] rs)
          throws RemoteException {
     super();
     refs = rs;
   }
  
+  /** get a RemoteDataReference by index */
   public synchronized RemoteDataReference getDataReference(int index)
          throws RemoteException {
     if (refs != null && 0 <= index && index < refs.length) return refs[index];
@@ -66,7 +69,8 @@ public class RemoteServerImpl extends UnicastRemoteObject
     return rs;
   }
 
-  /** set a single RemoteDataReferenceImpl to serve */
+  /** set one RemoteDataReference in the array on this
+      RemoteServer (and extend length of array if necessary) */
   public synchronized void setDataReference(int index, RemoteDataReferenceImpl ref)
          throws VisADException {
     if (index < 0) {
@@ -84,7 +88,7 @@ public class RemoteServerImpl extends UnicastRemoteObject
     refs[index] = ref;
   }
 
-  /** set all RemoteDataReferenceImpls to serve */
+  /** set array of all RemoteDataReferences on this RemoteServer */
   public synchronized void setDataReferences(RemoteDataReferenceImpl[] rs) {
     if (rs == null) {
       refs = null;

@@ -39,7 +39,8 @@ public class Real extends Scalar {
   private Unit unit;
   private ErrorEstimate Error;
 
-  /** construct a Real object with Unit and ErrorEstimate */
+  /** construct a Real object with Unit and ErrorEstimate
+      u and error may be null */
   public Real(RealType type, double value, Unit u, ErrorEstimate error)
          throws VisADException {
     super(type);
@@ -81,7 +82,8 @@ public class Real extends Scalar {
          true);
   }
 
-  /** construct a Real object with the generic REAL type, and ErrorEstimate 0.0 */
+  /** construct a Real object with the generic REAL type (RealType.Generic)
+      and ErrorEstimate 0.0 */
   public Real(double value) {
     this(RealType.Generic, value, RealType.Generic.getDefaultUnit(),
          new ErrorEstimate(value, 0.0, RealType.Generic.getDefaultUnit()), true);
@@ -100,6 +102,7 @@ public class Real extends Scalar {
     return Value;
   }
 
+  /** get double value converted to unit_out */
   public final double getValue(Unit unit_out) throws VisADException {
     if (unit_out == null) {
       if (unit != null) {

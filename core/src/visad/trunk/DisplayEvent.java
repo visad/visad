@@ -55,10 +55,16 @@ public class DisplayEvent extends Event {
     id = id_d;
   }
 
+  /** get the DisplayImpl that sent this DisplayEvent (or
+      a RemoteDisplay reference to it if the Display was on
+      a different JVM) */
   public Display getDisplay() {
     return display;
   }
 
+  /** get the ID type of this event; legal ID's are
+      DisplayEvent.MOUSE_PRESSED, DisplayEvent.TRANSFORM_DONE
+      and DisplayEvent.MOUSE_PRESSED_CENTER */
   public int getId() {
     return id;
   }

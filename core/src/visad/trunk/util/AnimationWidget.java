@@ -58,14 +58,14 @@ public class AnimationWidget extends JPanel implements ActionListener,
 
   private AnimationControl control;
 
-  /** construct an AnimationWidget linked to the Control in the map
+  /** construct an AnimationWidget linked to the Control in smap
       (which must be to Display.Animation) with auto-detecting ms/frame */
   public AnimationWidget(ScalarMap smap) throws VisADException,
                                                 RemoteException {
     this(smap, -1);
   }
 
-  /** construct an AnimationWidget linked to the Control in the map
+  /** construct an AnimationWidget linked to the Control in smap
       (which must be to Display.Animation) with specified ms/frame */
   public AnimationWidget(ScalarMap smap, int st) throws VisADException,
                                                         RemoteException {

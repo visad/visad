@@ -53,6 +53,9 @@ public class LinearLatLonSet extends Linear2DSet {
     this(type, sets, null, null, null);
   }
 
+  /** a 2-D cross product of arithmetic progressions that whose east
+      and west edges may be joined (for interpolation purposes), with
+      null errors, CoordinateSystem and Units are defaults from type */
   public LinearLatLonSet(MathType type, double first1, double last1, int length1,
                                         double first2, double last2, int length2)
          throws VisADException {
@@ -67,11 +70,25 @@ public class LinearLatLonSet extends Linear2DSet {
     checkWrap();
   }
 
+  /** a 2-D cross product of arithmetic progressions that whose east
+      and west edges may be joined (for interpolation purposes);
+      coordinate_system and units must be compatible with defaults
+      for type, or may be null; errors may be null */
+  public LinearLatLonSet(MathType type, double first1, double last1, int length1,
+                         double first2, double last2, int length2,
+                         CoordinateSystem coord_sys, Unit[] units,
+                         ErrorEstimate[] errors) throws VisADException {
+    super(type, first1, last1, length1, first2, last2, length2, coord_sys,
+          units, errors);
+    setParameters();
+    checkWrap();
+  }
+
   private void setParameters() throws VisADException, UnitException {
-    MathType	type0 = ((SetType)getType()).getDomain().getComponent(0);
-
+    MathType    type0 = ((SetType)getType()).getDomain().getComponent(0);
+ 
     latI = RealType.Latitude.equals(type0) ? 0 : 1;
-
+ 
     if (latI == 0) {
       lonI = 1;
       lat = X;
@@ -81,25 +98,15 @@ public class LinearLatLonSet extends Linear2DSet {
       lat = Y;
       lon = X;
     }
-
+ 
     Unit[] units = getSetUnits();
     halfPiLat = SI.radian.toThat(0.5*Math.PI, units[latI]);
     halfPiLon = SI.radian.toThat(0.5*Math.PI, units[lonI]);
     twoPiLon = 4.0 * halfPiLon;
   }
-
+ 
   private void setLatLonUnits()
   {
-  }
-
-  public LinearLatLonSet(MathType type, double first1, double last1, int length1,
-                         double first2, double last2, int length2,
-                         CoordinateSystem coord_sys, Unit[] units,
-                         ErrorEstimate[] errors) throws VisADException {
-    super(type, first1, last1, length1, first2, last2, length2, coord_sys,
-          units, errors);
-    setParameters();
-    checkWrap();
   }
 
   void checkWrap() throws VisADException {

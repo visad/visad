@@ -67,6 +67,8 @@ public class FunctionType extends MathType {
   public final static FunctionType REAL_1TO4_FUNCTION =
     new FunctionType(RealType.Generic, new RealTupleType(real4, true), true);
 
+  /** domain must be a RealType or a RealTupleType;
+      range may be any MathType */
   public FunctionType(MathType domain, MathType range) throws VisADException {
     super();
     if (!(domain instanceof RealTupleType || domain instanceof RealType)) {
@@ -185,6 +187,9 @@ public class FunctionType extends MathType {
     }
   }
 
+  /** if the domain passed to constructor was a RealType,
+      getDomain returns a RealTupleType with that RealType
+      as its single component */
   public RealTupleType getDomain() {
     return Domain;
   }

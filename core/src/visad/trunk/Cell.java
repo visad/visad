@@ -30,16 +30,21 @@ import java.rmi.*;
 
 /**
    Cell is the VisAD interface for "spread sheet" cells.  It has
-   a set of input DataReferences and an output DataReference, which
-   updates whenever an input changes.  Cell is runnable.<P>
+   a set of 'triggering' DataReferences and access to a set of non-
+   triggering DataReferences. <P>
 */
 public interface Cell extends Action {
 
-  /** create link to an output DataReference */
+  /** set a non-triggering link to a DataReference; this is
+      used to give the Cell access to Data without triggering
+      the Cell's doAction whenever the Data changes;
+      these 'other' DataReferences are identified by their
+      integer index */
   public abstract void setOtherReference(int index, DataReference ref)
          throws VisADException, RemoteException;
  
-  /** get link to an output DataReference */
+  /** return the non-triggering link to a DataReference
+      identified by index */
   public abstract DataReference getOtherReference(int index)
          throws VisADException, RemoteException;
 

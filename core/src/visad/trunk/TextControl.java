@@ -43,32 +43,40 @@ public class TextControl extends Control {
     super(d);
   }
 
+  /** set the Font; in the initial release this has no effect */
   public void setFont(Font f)
          throws VisADException, RemoteException {
     font = f;
     changeControl(true);
   }
 
+  /** return the Font */
   public Font getFont() {
     return font;
   }
 
+  /** set the centering flag; if true, text will be centered at
+      mapped locations; if false, text will be to the right
+      of mapped locations */
   public void setCenter(boolean c)
          throws VisADException, RemoteException {
     center = c;
     changeControl(true);
   }
 
+  /** return the centering flag */
   public boolean getCenter() {
     return center;
   }
 
+  /** set the size of characters; the default is 1.0 */
   public void setSize(double s)
          throws VisADException, RemoteException {
     size = s;
     changeControl(true);
   }
  
+  /** return the size */
   public double getSize() {
     return size;
   }

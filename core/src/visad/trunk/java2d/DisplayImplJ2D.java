@@ -168,13 +168,15 @@ public class DisplayImplJ2D extends DisplayImpl {
   /** flag to scratch images in VisADCanvasJ2D */
   private boolean scratch;
 
-  /** constructor with DefaultDisplayRendererJ2D */
+  /** construct a DisplayImpl for Java2D with a
+      DefaultDisplayRendererJ2D, in a JFC JPanel */
   public DisplayImplJ2D(String name)
          throws VisADException, RemoteException {
     this(name, new DefaultDisplayRendererJ2D(), JPANEL);
   }
 
-  /** constructor with non-DefaultDisplayRenderer */
+  /** construct a DisplayImpl for Java2D with a non-default
+      DisplayRenderer, in a JFC JPanel */
   public DisplayImplJ2D(String name, DisplayRendererJ2D renderer)
          throws VisADException, RemoteException {
     this(name, renderer, JPANEL);
@@ -186,13 +188,17 @@ public class DisplayImplJ2D extends DisplayImpl {
     this(name, new DefaultDisplayRendererJ2D(), api);
   }
 
-  /** constructor with non-DefaultDisplayRenderer */
+  /** construct a DisplayImpl for Java2D with a non-default
+      DisplayRenderer;
+      in a JFC JPanel if api == DisplayImplJ2D.JPANEL */
   public DisplayImplJ2D(String name, DisplayRendererJ2D renderer, int api)
          throws VisADException, RemoteException {
     this(name, renderer, api, 300, 300);
   }
 
-  /** offscreen constructor */
+  /** construct a DisplayImpl for Java2D for offscreen rendering,
+      with size geiven by width and height; getComponent() of this
+      returns null, but display is accesible via getImage() */
   public DisplayImplJ2D(String name, int width, int height)
          throws VisADException, RemoteException {
     this(name, new DefaultDisplayRendererJ2D(), OFFSCREEN, width, height);

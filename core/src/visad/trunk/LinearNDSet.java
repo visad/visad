@@ -40,16 +40,25 @@ public class LinearNDSet extends GriddedSet
 
   Linear1DSet[] L;
 
+  /** construct an N-dimensional set as the product of N Linear1DSets,
+      with null errors, CoordinateSystem and Units are defaults from
+      type */
   public LinearNDSet(MathType type, Linear1DSet[] l) throws VisADException {
     this(type, l, null, null, null);
   }
 
+  /** construct an N-dimensional set as the product of N arithmetic
+      progressions (lengths[i] samples between firsts[i] and lasts[i]),
+      with null errors, CoordinateSystem and Units are defaults from type */
   public LinearNDSet(MathType type, double[] firsts, double[] lasts, int[] lengths)
          throws VisADException {
     this(type, get_linear1d_array(type, firsts, lasts, lengths), null,
          null, null);
   }
 
+  /** construct an N-dimensional set as the product of N Linear1DSets;
+      coordinate_system and units must be compatible with defaults
+      for type, or may be null; errors may be null */
   public LinearNDSet(MathType type, Linear1DSet[] l, CoordinateSystem coord_sys,
                    Unit[] units, ErrorEstimate[] errors) throws VisADException {
     super(type, null, get_lengths(l), coord_sys, units, errors);
@@ -69,6 +78,10 @@ public class LinearNDSet extends GriddedSet
     }
   }
 
+  /** construct an N-dimensional set as the product of N arithmetic
+      progressions (lengths[i] samples between firsts[i] and lasts[i]), 
+      coordinate_system and units must be compatible with defaults for
+      type, or may be null; errors may be null */
   public LinearNDSet(MathType type, double[] firsts, double[] lasts, int[] lengths,
                    CoordinateSystem coord_sys, Unit[] units,
                    ErrorEstimate[] errors) throws VisADException {

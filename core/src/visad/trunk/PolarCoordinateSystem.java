@@ -40,6 +40,11 @@ public class PolarCoordinateSystem extends CoordinateSystem {
   private RealType zreal =
     new RealType("PolarCoordinateSystem.Z", null, true);
 
+  /** construct a CoordinateSystem for (longitude, radius)
+      relative to a 2-D Cartesian reference;
+      this constructor supplies units = {CommonUnit.Degree, null}
+      to the super constructor, in order to ensure Unit
+      compatibility with its use of trigonometric functions */
   public PolarCoordinateSystem(RealTupleType reference)
          throws VisADException {
     super(reference, coordinate_system_units);

@@ -34,6 +34,7 @@ import java.rmi.*;
 */
 public interface DisplayListener extends EventListener {
 
+  /** send a DisplayEvent to this DisplayListener */
   public abstract void displayChanged(DisplayEvent e)
          throws VisADException, RemoteException;
  

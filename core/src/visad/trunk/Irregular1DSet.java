@@ -37,11 +37,19 @@ public class Irregular1DSet extends IrregularSet {
 
   Gridded1DSet SortedSet;
 
+  /** a 1-D irregular set with null errors, CoordinateSystem
+      and Units are defaults from type */
   public Irregular1DSet(MathType type, float[][] samples)
          throws VisADException {
     this(type, samples, null, null, null, true);
   }
 
+  /** a 1-D irregular set; samples array is organized
+      float[1][number_of_samples]; samples need not be
+      sorted - the constructor sorts samples to define
+      a 1-D "triangulation";
+      coordinate_system and units must be compatible with
+      defaults for type, or may be null; errors may be null */
   public Irregular1DSet(MathType type, float[][] samples,
                       CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors) throws VisADException {

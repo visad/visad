@@ -35,11 +35,22 @@ public class Gridded3DSet extends GriddedSet {
   int LengthX, LengthY, LengthZ;
   float LowX, HiX, LowY, HiY, LowZ, HiZ;
 
+  /** a 3-D set whose topology is a lengthX x lengthY x lengthZ
+      grid, with null errors, CoordinateSystem and Units are
+      defaults from type */
   public Gridded3DSet(MathType type, float[][] samples, int lengthX,
                       int lengthY, int lengthZ) throws VisADException {
     this(type, samples, lengthX, lengthY, lengthZ, null, null, null);
   }
 
+  /** a 3-D set whose topology is a lengthX x lengthY x lengthZ
+      grid; samples array is organized float[3][number_of_samples]
+      where lengthX * lengthY * lengthZ = number_of_samples;
+      samples must form a non-degenerate 3-D grid (no bow-tie-shaped
+      grid cubes);  the X component increases fastest and the Z
+      component slowest in the second index of samples;
+      coordinate_system and units must be compatible with defaults
+      for type, or may be null; errors may be null */
   public Gridded3DSet(MathType type, float[][] samples,
                       int lengthX, int lengthY, int lengthZ,
                       CoordinateSystem coord_sys, Unit[] units,
@@ -199,13 +210,19 @@ public class Gridded3DSet extends GriddedSet {
     }
   }
 
-  /** construct Gridded3DSet with ManifoldDimension = 2 */
+  /** a 3-D set with manifold dimension = 2, with null errors,
+      CoordinateSystem and Units are defaults from type */
   public Gridded3DSet(MathType type, float[][] samples, int lengthX,
                       int lengthY) throws VisADException {
     this(type, samples, lengthX, lengthY, null, null, null);
   }
  
-  /** construct Gridded3DSet with ManifoldDimension = 2 */
+  /** a 3-D set with manifold dimension = 2; samples array is
+      organized float[3][number_of_samples] where lengthX * lengthY
+      = number_of_samples; no geometric constraint on samples; the
+      X component increases fastest in the second index of samples;
+      coordinate_system and units must be compatible with defaults
+      for type, or may be null; errors may be null */
   public Gridded3DSet(MathType type, float[][] samples,
                       int lengthX, int lengthY,
                       CoordinateSystem coord_sys, Unit[] units,
@@ -233,13 +250,18 @@ public class Gridded3DSet extends GriddedSet {
     // no Samples consistency test
   }
 
-  /** construct Gridded3DSet with ManifoldDimension = 1 */
+  /** a 3-D set with manifold dimension = 1, with null errors,
+      CoordinateSystem and Units are defaults from type */
   public Gridded3DSet(MathType type, float[][] samples, int lengthX)
          throws VisADException {
     this(type, samples, lengthX, null, null, null);
   }
  
-  /** construct Gridded3DSet with ManifoldDimension = 1 */
+  /** a 3-D set with manifold dimension = 1; samples array is
+      organized float[3][number_of_samples] where lengthX =
+      number_of_samples; no geometric constraint on samples;
+      coordinate_system and units must be compatible with defaults
+      for type, or may be null; errors may be null */
   public Gridded3DSet(MathType type, float[][] samples, int lengthX,
                       CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors) throws VisADException {

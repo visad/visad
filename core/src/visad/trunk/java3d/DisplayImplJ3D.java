@@ -59,13 +59,15 @@ public class DisplayImplJ3D extends DisplayImpl {
   private ProjectionControlJ3D projection = null;
   private GraphicsModeControlJ3D mode = null;
 
-  /** constructor with DefaultDisplayRendererJ3D */
+  /** construct a DisplayImpl for Java3D with a
+      DefaultDisplayRendererJ3D, in a JFC JPanel */
   public DisplayImplJ3D(String name)
          throws VisADException, RemoteException {
     this(name, new DefaultDisplayRendererJ3D(), JPANEL);
   }
 
-  /** constructor with non-DefaultDisplayRenderer */
+  /** construct a DisplayImpl for Java3D with a non-default
+      DisplayRenderer, in a JFC JPanel */
   public DisplayImplJ3D(String name, DisplayRendererJ3D renderer)
          throws VisADException, RemoteException {
     this(name, renderer, JPANEL);
@@ -77,16 +79,14 @@ public class DisplayImplJ3D extends DisplayImpl {
     this(name, new DefaultDisplayRendererJ3D(), api);
   }
 
-  /** constructor with non-DefaultDisplayRenderer */
+  /** construct a DisplayImpl for Java3D with a non-default
+      DisplayRenderer;
+      in a JFC JPanel if api == DisplayImplJ3D.JPANEL and
+      in an AppletFrame if api == DisplayImplJ3D.APPLETFRAME */
   public DisplayImplJ3D(String name, DisplayRendererJ3D renderer, int api)
          throws VisADException, RemoteException {
     super(name, renderer);
 
-/* WLH 11 Aug 98
-    // a GraphicsModeControl always exists
-    mode = new GraphicsModeControlJ3D(this);
-    addControl(mode);
-*/
     // a ProjectionControl always exists
     projection = new ProjectionControlJ3D(this);
     addControl(projection);

@@ -109,10 +109,14 @@ public abstract class SimpleSet extends Set {
     }
   }
 
-  /** for each of an array of values in R^DomainDimension, compute an array
-      of 1-D indices and an array of weights, to be used for interpolation;
-      indices[i] and weights[i] are null if i-th value is outside grid
-      (i.e., if no interpolation is possible) */
+  /** convert an array of values to arrays of indices and weights for
+      those indices, appropriate for interpolation; the values array is
+      organized as float[domain_dimension][number_of_values]; indices
+      and weights must be passed in as int[number_of_values][] and
+      float[number_of_values][]; on return, quantity( values[.][i] )
+      can be estimated as the sum over j of
+      weights[i][j] * quantity (sample at indices[i][j]);
+      no estimate possible if indices[i] and weights[i] are null */
   public abstract void valueToInterp(float[][] value, int[][] indices,
                           float weights[][]) throws VisADException;
 

@@ -68,6 +68,7 @@ public abstract class DisplayRenderer extends Object {
     display = d;
   }
 
+  /** return the DisplayImpl that this DisplayRenderer is attached to */
   public DisplayImpl getDisplay() {
     return display;
   }
@@ -106,12 +107,18 @@ public abstract class DisplayRenderer extends Object {
 
   public abstract void setScaleOn(boolean on);
 
+  /** return true is this is a 2-D DisplayRenderer */
   public boolean getMode2D() {
     return false;
   }
 
+  /** factory for constructing a subclass of Control appropriate
+      for the graphics API and for this DisplayRenderer;
+      invoked by ScalarMap when it is 'addMap'ed to a Display */
   public abstract Control makeControl(ScalarMap map);
 
+  /** factory for constructing the default subclass of
+      DataRenderer for this DisplayRenderer */
   public abstract DataRenderer makeDefaultRenderer();
 
   public abstract boolean legalDataRenderer(DataRenderer renderer);
@@ -125,6 +132,8 @@ public abstract class DisplayRenderer extends Object {
     animationString[1] = animation[1];
   }
 
+  /** return a double[3] array giving the cursor location in
+      (XAxis, YAxis, ZAxis) coordinates */
   public abstract double[] getCursor();
 
   public abstract void setCursorOn(boolean on);
@@ -139,14 +148,16 @@ public abstract class DisplayRenderer extends Object {
 
   public abstract boolean anyDirects();
 
-  // actually returns a direct manipulation renderer
+  /** actually returns a direct manipulation renderer */
   public abstract DataRenderer findDirect(VisADRay ray);
 
+  /** return Vector of Strings describing the cursor location */
   public Vector getCursorStringVector() {
     return (Vector) cursorStringVector.clone();
   }
 
-  /** copy Strings in vect to cursorStringVector */
+  /** set vector of Strings describing the cursor location by copy;
+      this is invoked by direct manipulation renderers */
   public void setCursorStringVector(Vector vect) {
     synchronized (cursorStringVector) {
       cursorStringVector.removeAllElements();
@@ -160,7 +171,10 @@ public abstract class DisplayRenderer extends Object {
     render_trigger();
   }
 
-  /** create Strings in cursorStringVector from cursor location */
+  /** set vector of Strings describing the cursor location
+      from the cursor location;
+      this is invoked when the cursor location changes or
+      the cursor display status changes */
   public void setCursorStringVector() {
     synchronized (cursorStringVector) {
       cursorStringVector.removeAllElements();
@@ -218,6 +232,9 @@ public abstract class DisplayRenderer extends Object {
   public void render_trigger() {
   }
 
+  /** return true if type is legal for this DisplayRenderer;
+      for example, 2-D DisplayRenderers use this to disallow
+      mappings to ZAxis and Latitude */
   public boolean legalDisplayScalar(DisplayRealType type) {
     for (int i=0; i<Display.DisplayRealArray.length; i++) {
       if (Display.DisplayRealArray[i].equals(type)) return true;

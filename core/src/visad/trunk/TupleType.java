@@ -43,6 +43,7 @@ public class TupleType extends MathType {
   /** range of tupleComponents[i] in realComponents; NEVER USED */
   private int[] lows, his;
 
+  /** array of component types */
   public TupleType(MathType[] types) throws VisADException {
     super();
     boolean allReal = true;
@@ -132,6 +133,7 @@ public class TupleType extends MathType {
     return realComponents.length;
   }
 
+  /** return component for i between 0 and getDimension() - 1 */
   public MathType getComponent(int i) throws VisADException {
     if (0 <= i && i < tupleComponents.length) {
       return tupleComponents[i];
@@ -141,10 +143,14 @@ public class TupleType extends MathType {
     }
   }
 
+  /** return index of first RealType component with name;
+      if no such component, return -1 */
   public int getIndex(String name) {
     return getIndex(RealType.getRealTypeByName(name));
   }
 
+  /** return index of first component with type;
+      if no such component, return -1 */
   public int getIndex(MathType type) {
     for (int i=0; i<tupleComponents.length; i++) {
       if (tupleComponents[i].equals(type)) {

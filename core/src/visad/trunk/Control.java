@@ -79,10 +79,12 @@ public abstract class Control extends Object
     }
   }
 
+  /** add a ControlListener */
   public void addControlListener(ControlListener listener) {
     ListenerVector.addElement(listener);
   }
 
+  /** remove a ControlListener */
   public void removeControlListener(ControlListener listener) {
     if (listener != null) {
       ListenerVector.removeElement(listener);

@@ -57,12 +57,18 @@ public class FieldImpl extends FunctionImpl implements Field {
   private boolean MissingFlag;
 
   /** construct a FieldImpl from type;
-      use default Set of FunctionType domain */
+      use default Set of FunctionType domain;
+      initial values are missing */
   public FieldImpl(FunctionType type) throws VisADException {
     this(type, null);
   }
 
-  /** construct a FieldImpl from type and domain Set */
+  /** construct a FieldImpl from type and domain Set;
+      FieldImpl is the most general sampled function;
+      domain_set defines the domain sampling;
+      if it is null, use the default Set of type.getDomain();
+      domain_set defines the Units and CoordinateSystem
+      of the Field domain */
   public FieldImpl(FunctionType type, Set set) throws VisADException {
     super(type);
     RealTupleType DomainType = type.getDomain();
@@ -142,7 +148,8 @@ public class FieldImpl extends FunctionImpl implements Field {
     return DomainCoordinateSystem;
   }
 
-  /** get String values for Text components */
+  /** get range values for Text components; the return array is dimensioned
+      double[number_of_range_components][number_of_range_samples] */
   public String[][] getStringValues()
          throws VisADException, RemoteException {
     TextType[] textComponents = ((FunctionType) Type).getTextComponents();
@@ -182,7 +189,10 @@ public class FieldImpl extends FunctionImpl implements Field {
     return values;
   }
 
-  /** get values for 'Flat' components in default range Unit-s */
+  /** get range values for 'Flat' components in their default range
+      Units (as defined by the range of this FieldImpl's
+      FunctionType); the return array is dimensioned
+      double[number_of_range_components][number_of_range_samples] */
   public double[][] getValues()
          throws VisADException, RemoteException {
     RealType[] realComponents = ((FunctionType) Type).getRealComponents();
@@ -235,8 +245,11 @@ public class FieldImpl extends FunctionImpl implements Field {
     return values;
   }
  
-  /** get range Unit-s for 'Flat' components;
-      second index enumerates samples */
+  /** return array of Units associated with each RealType
+      component of range; these may differ from default
+      Units of range RealTypes, but must be convertable;
+      the second index enumerates samples since Units may
+      differ between samples */
   public Unit[][] getRangeUnits()
          throws VisADException, RemoteException {
     RealType[] realComponents = ((FunctionType) Type).getRealComponents();
@@ -281,6 +294,12 @@ public class FieldImpl extends FunctionImpl implements Field {
  
   /** get range CoordinateSystem for 'RealTuple' range;
       second index enumerates samples */
+  /** return range CoordinateSystem assuming range type is
+      a RealTupleType (throws a TypeException if its not);
+      this may differ from default CoordinateSystem of
+      range RealTupleType, but must be convertable;
+      the index enumerates samples since Units may
+      differ between samples */
   public CoordinateSystem[] getRangeCoordinateSystem()
          throws VisADException, RemoteException {
     MathType RangeType = ((FunctionType) Type).getRange();
@@ -575,12 +594,35 @@ public class FieldImpl extends FunctionImpl implements Field {
     return new_field;
   }
 
+  /** resample all elements of the fields array to the domain
+      set of fields[0], then return a Field whose range samples
+      are Tuples merging the corresponding range samples from
+      each element of fields; if the range of fields[i] is a
+      Tuple without a RangeCoordinateSystem, then each Tuple
+      component of a range sample of fields[i] becomes a
+      Tuple component of a range sample of the result -
+      otherwise a range sample of fields[i] becomes a Tuple
+      component of a range sample of the result; this assumes
+      all elements of the fields array have the same domain
+      dimension; use default sampling_mode (Data.NEAREST_NEIGHBOR)
+      and default error_mode (Data.NO_ERRORS) */
   public static Field combine( Field[] fields )
                 throws VisADException, RemoteException
   {
     return combine( fields, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS );
   }
 
+  /** resample all elements of the fields array to the domain
+      set of fields[0], then return a Field whose range samples
+      are Tuples merging the corresponding range samples from
+      each element of fields; if the range of fields[i] is a
+      Tuple without a RangeCoordinateSystem, then each Tuple
+      component of a range sample of fields[i] becomes a
+      Tuple component of a range sample of the result -
+      otherwise a range sample of fields[i] becomes a Tuple
+      component of a range sample of the result; this assumes
+      all elements of the fields array have the same domain
+      dimension */
   public static Field combine( Field[] fields, int sampling_mode, int error_mode )
                 throws VisADException, RemoteException
   {

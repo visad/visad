@@ -74,7 +74,11 @@ public abstract class DataRenderer extends Object {
     // System.out.println(error.getMessage());
   }
 
-  /** get a clone of exceptionVector to avoid
+  /** this returns a Vector of Strings from the BadMappingExceptions
+      and UnimplementedExceptions generated during the last invocation
+      of this DataRenderer's doAction method;
+      there is no need to over-ride this method, but it may be invoked
+      by DisplayRenderer; gets a clone of exceptionVector to avoid
       concurrent access by Display thread */
   public Vector getExceptionVector() {
     return (Vector) exceptionVector.clone();
@@ -107,6 +111,8 @@ public abstract class DataRenderer extends Object {
     for (int i=0; i<Links.length; i++) feasible[i] = false;
   }
 
+  /** return an array of links to Data objects to be rendered;
+      Data objects are accessed by DataDisplayLink.getData() */
   public DataDisplayLink[] getLinks() {
     return Links;
   }
@@ -204,6 +210,16 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
 
   /** re-transform if needed;
       return false if not done */
+  /** transform linked Data objects into a display list, if
+      any Data object values have changed or relevant Controls
+      have changed; DataRenderers that assume the default
+      implementation of DisplayImpl.doAction can determine
+      whether re-transform is needed by:
+        (get_all_feasible() && (get_any_changed() || get_any_transform_control()));
+      these flags are computed by the default DataRenderer
+      implementation of prepareAction;
+      the return boolean is true if the transform was done
+      successfully */
   public abstract boolean doAction() throws VisADException, RemoteException;
 
   public boolean getBadScale() {
@@ -218,6 +234,8 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
     return badScale;
   }
 
+  /** clear any display list created by the most recent doAction
+      invocation */
   public abstract void clearScene();
 
   public void clearAVControls() {
@@ -230,32 +248,49 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
     }
   }
 
+  /** factory for constructing a subclass of ShadowType appropriate
+      for the graphics API, that also adapts ShadowFunctionType;
+      these factories are invoked by the buildShadowType methods of
+      the MathType subclasses, which are invoked by
+      DataDisplayLink.prepareData, which is invoked by
+      DataRenderer.prepareAction */
   public abstract ShadowType makeShadowFunctionType(
          FunctionType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException;
  
+  /** factory for constructing a subclass of ShadowType appropriate
+      for the graphics API, that also adapts ShadowRealTupleType */
   public abstract ShadowType makeShadowRealTupleType(
          RealTupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException;
  
+  /** factory for constructing a subclass of ShadowType appropriate
+      for the graphics API, that also adapts ShadowRealType */
   public abstract ShadowType makeShadowRealType(
          RealType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException;
  
+  /** factory for constructing a subclass of ShadowType appropriate
+      for the graphics API, that also adapts ShadowSetType */
   public abstract ShadowType makeShadowSetType(
          SetType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException;
  
+  /** factory for constructing a subclass of ShadowType appropriate
+      for the graphics API, that also adapts ShadowTextType */
   public abstract ShadowType makeShadowTextType(
          TextType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException;
  
+  /** factory for constructing a subclass of ShadowType appropriate
+      for the graphics API, that also adapts ShadowTupleType */
   public abstract ShadowType makeShadowTupleType(
          TupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException;
 
   /** DataRenderer-specific decision about which Controls require re-transform;
-      may be over-ridden by DataRenderer sub-classes */
+      may be over-ridden by DataRenderer sub-classes; this decision may use
+      some values computed by link.prepareData */
   public boolean isTransformControl(Control control, DataDisplayLink link) {
     if (control instanceof ProjectionControl ||
         control instanceof ToggleControl) {
@@ -965,6 +1000,8 @@ System.out.println("checkClose: distance = " + distance);
       for this ShadowType */
   private boolean isDirectManipulation;
 
+  /** set isDirectManipulation = true if this DataRenderer
+      supports direct manipulation for its linked Data */
   public void checkDirect() throws VisADException, RemoteException {
     isDirectManipulation = false;
   }

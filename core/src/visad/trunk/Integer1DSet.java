@@ -32,6 +32,7 @@ package visad;
 public class Integer1DSet extends Linear1DSet
        implements IntegerSet {
 
+  /** a 1-D set with null errors and generic type */
   public Integer1DSet(int length) throws VisADException {
     this(RealType.Generic, length, null, null, null);
   }
@@ -40,6 +41,9 @@ public class Integer1DSet extends Linear1DSet
     this(type, length, null, null, null);
   }
 
+  /** construct a 1-dimensional set with values {0, 1, ..., length-1};
+      coordinate_system and units must be compatible with defaults for
+      type, or may be null; errors may be null */
   public Integer1DSet(MathType type, int length, CoordinateSystem coord_sys,
                       Unit[] units, ErrorEstimate[] errors) throws VisADException {
     super(type, 0.0, (double) (length - 1), length, coord_sys, units, errors);

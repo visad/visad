@@ -92,8 +92,8 @@ public interface Data extends Thing {
   final static double RADIANS_TO_DEGREES = 180.0 / Math.PI;
   final static double DEGREES_TO_RADIANS = Math.PI / 180.0;
 
-  /** DataImpl.local() returns 'this'
-      RemoteDataImpl.local() returns 'AdaptedData' */
+  /** if remote (i.e., RemoteData), return a local copy;
+      if local (i.e., DataImpl), return this */
   public abstract DataImpl local() throws VisADException, RemoteException;
 
   public abstract MathType getType() throws VisADException, RemoteException;
@@ -102,17 +102,31 @@ public interface Data extends Thing {
   public abstract boolean isMissing()
          throws VisADException, RemoteException;
 
-  /** binary operations */
+  /** general binary operation between this and data; op may
+      be Data.ADD, Data.SUBTRACT, etc; these include all binary
+      operations defined for Java primitive data types; sampling_mode
+      may be Data.NEAREST_NEIGHBOR or Data.WEIGHTED_AVERAGE; error_mode
+      may be Data.INDEPENDENT, Data.DEPENDENT or Data.NO_ERRORS;
+      result takes the MathType of this unless the default Units of
+      that MathType conflict with Units of the result, in which case
+      a generic MathType with appropriate Units is constructed */
   public abstract Data binary(Data data, int op, int sampling_mode,
          int error_mode) throws VisADException, RemoteException;
 
   /*- BINARY - TDR June 1998  */
+  /** general binary operation between this and data; op may
+      be Data.ADD, Data.SUBTRACT, etc; these include all binary
+      operations defined for Java primitive data types; new_type
+      is the MathType of the result; sampling_mode may be
+      Data.NEAREST_NEIGHBOR or Data.WEIGHTED_AVERAGE; error_mode
+      may be Data.INDEPENDENT, Data.DEPENDENT or Data.NO_ERRORS */
   public abstract Data binary(Data data, int op, MathType new_type, 
                               int sampling_mode, int error_mode )
          throws VisADException, RemoteException;
 
   /** a list of binary operations using default modes for
-      sampling and error estimation */
+      sampling (Data.NEAREST_NEIGHBOR) and error estimation
+      (Data.NO_ERRORS) */
   public abstract Data add(Data data)
          throws VisADException, RemoteException;
 
@@ -175,21 +189,34 @@ public interface Data extends Thing {
   public abstract Data remainder(Data data, int sampling_mode,
          int error_mode) throws VisADException, RemoteException;
 
-  /** unary operations */
+  /** general unary operation; operation may be Data.ABS, Data.ACOS, etc;
+      these include all unary operations defined for Java primitive data
+      types; sampling_mode may be Data.NEAREST_NEIGHBOR or
+      Data.WEIGHTED_AVERAGE; error_mode may be Data.INDEPENDENT,
+      Data.DEPENDENT or Data.NO_ERRORS; result takes
+      the MathType of this unless the default Units of that MathType
+      conflict with Units of the result, in which case a generic
+      MathType with appropriate Units is constructed */
   public abstract Data unary(int op, int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
   /*- TDR June 1998  */
+  /** general unary operation; operation may be Data.ABS, Data.ACOS, etc;
+      these include all unary operations defined for Java primitive data
+      types; new_type is the MathType of the result; sampling_mode may be
+      Data.NEAREST_NEIGHBOR or Data.WEIGHTED_AVERAGE; error_mode may be
+      Data.INDEPENDENT, Data.DEPENDENT or Data.NO_ERRORS */
   public abstract Data unary(int op, MathType new_type, int sampling_mode,
                              int error_mode )
          throws VisADException, RemoteException;
 
-  /* WLH 5 Sept 98 */
+  /** clone this Data object except give it new_type */
   public abstract Data changeMathType(MathType new_type)
          throws VisADException, RemoteException;
 
   /** a list of unary operations using default modes for
-      sampling and error estimation */
+      sampling (Data.NEAREST_NEIGHBOR) and error estimation
+      (Data.NO_ERRORS) */
   public abstract Data abs() throws VisADException, RemoteException;
 
   public abstract Data acos() throws VisADException, RemoteException;

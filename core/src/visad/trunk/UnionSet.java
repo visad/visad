@@ -36,13 +36,15 @@ public class UnionSet extends SampledSet {
 
   SampledSet[] Sets;
 
-  /** construct a UnionSet with an array of SampledSets */
+  /** create the union of the sets array, with null errors,
+      CoordinateSystem and Units are defaults from type */
   public UnionSet(MathType type, SampledSet[] sets) throws VisADException {
     this(type, sets, null, null, null, true);
   }
 
-  /** construct a UnionSet with an array of SampledSets and
-      non-default CoordinateSystem */
+  /** create the union of the sets array; coordinate_system
+      and units must be compatible with defaults for type,
+      or may be null; errors may be null */
   public UnionSet(MathType type, SampledSet[] sets,
                   CoordinateSystem coord_sys, Unit[] units, 
                   ErrorEstimate[] errors) throws VisADException {

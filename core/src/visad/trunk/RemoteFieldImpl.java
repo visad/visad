@@ -35,6 +35,8 @@ import java.rmi.server.UnicastRemoteObject;
 public class RemoteFieldImpl extends RemoteFunctionImpl
        implements RemoteField {
 
+  /** construct a RemoteFieldImpl object to provide remote
+      access to field */
   public RemoteFieldImpl(FieldImpl field) throws RemoteException {
     super(field);
   }

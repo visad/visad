@@ -37,13 +37,15 @@ public class ProductSet extends SampledSet {
 
   SampledSet[] Sets;
 
-  /** construct a ProductSet with an array of SampledSets */
+  /** create the product of the sets array, with null errors,
+      CoordinateSystem and Units are defaults from type */
   public ProductSet(MathType type, SampledSet[] sets) throws VisADException {
     this(type, sets, null, null, null, true);
   }
 
-  /** construct a ProductSet with an array of SampledSets and
-      non-default CoordinateSystem */
+  /** create the product of the sets array; coordinate_system
+      and units must be compatible with defaults for type,
+      or may be null; errors may be null */
   public ProductSet(MathType type, SampledSet[] sets,
                     CoordinateSystem coord_sys, Unit[] units,
                     ErrorEstimate[] errors) throws VisADException {

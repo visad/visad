@@ -32,6 +32,7 @@ package visad;
 public class IntegerNDSet extends LinearNDSet
        implements IntegerSet {
 
+  /** an N-D set with null errors and generic type */
   public IntegerNDSet(int[] lengths) throws VisADException {
     this(get_generic_type(lengths), lengths, null, null, null);
   }
@@ -40,6 +41,11 @@ public class IntegerNDSet extends LinearNDSet
     this(type, lengths, null, null, null);
   }
 
+  /** construct an N-dimensional set with values in the cross product
+      of {0, 1, ..., lengths[i]-1}
+      for i=0, ..., lengths[lengths.length-1];
+      coordinate_system and units must be compatible with defaults for
+      type, or may be null; errors may be null */
   public IntegerNDSet(MathType type, int[] lengths,
                     CoordinateSystem coord_sys, Unit[] units,
                     ErrorEstimate[] errors) throws VisADException {

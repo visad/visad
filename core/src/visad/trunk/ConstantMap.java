@@ -35,6 +35,9 @@ public class ConstantMap extends ScalarMap {
   // no Scalar, control or function for ConstantMap
   private double Constant;
 
+  /** construct a ConstantMap with a double constant;
+      display_scalar may not be Animation, SelectValue, SelectRange
+      or IsoContour */
   public ConstantMap(double constant, DisplayRealType display_scalar)
                      throws VisADException {
     super(null, display_scalar, false); // no Scalar for ConstantMap
@@ -56,6 +59,9 @@ public class ConstantMap extends ScalarMap {
     Constant = constant;
   }
 
+  /** construct a ConstantMap with a Real constant;
+      display_scalar may not be Animation, SelectValue, SelectRange
+      or IsoContour */
   public ConstantMap(Real constant, DisplayRealType display_scalar)
                      throws VisADException {
     this(constant.getValue(), display_scalar);

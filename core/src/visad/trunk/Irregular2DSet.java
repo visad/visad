@@ -35,13 +35,23 @@ public class Irregular2DSet extends IrregularSet {
 
   private float LowX, HiX, LowY, HiY;
 
-  /** shortcut constructor */
+  /** a 2-D irregular set with null errors, CoordinateSystem
+      and Units are defaults from type; topology is computed
+      by the constructor */
   public Irregular2DSet(MathType type, float[][] samples)
          throws VisADException {
     this(type, samples, null, null, null, null, true);
   }
 
-  /** complete constructor */
+  /** a 2-D irregular set; samples array is organized
+      float[2][number_of_samples];  no geometric constraint on
+      samples; if delan is non-null it defines the topology of
+      samples (which must have manifold dimension 2), else the
+      constructor computes a topology with manifold dimension 2;
+      note that Gridded2DSet can be used for an irregular set
+      with domain dimension 2 and manifold dimension 1;
+      coordinate_system and units must be compatible with
+      defaults for type, or may be null; errors may be null */
   public Irregular2DSet(MathType type, float[][] samples,
                         CoordinateSystem coord_sys, Unit[] units,
                         ErrorEstimate[] errors, Delaunay delan)

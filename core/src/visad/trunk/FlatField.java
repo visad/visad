@@ -131,14 +131,34 @@ public class FlatField extends FieldImpl {
     this(type, domain_set, null, null, null, null);
   }
 
-  /** construct a FlatField with a Real Function Type */
+  /** FlatField is a sampled function whose range is a Real,
+      a RealTuple, or a Tuple of Reals and RealTuples; if range
+      is a RealTuple, range_coordinate_system may be non-null
+      but must have the same Reference as RangeType default
+      CoordinateSystem; domain_set defines the domain sampling;
+      range_sets define samplings for range values - if range_set[i]
+      is null, the i-th range component values are stored as doubles;
+      if range_set[i] is non-null, the i-th range component values are
+      stored in bytes if range_sets[i].getLength() < 256, stored in
+      shorts if range_sets[i].getLength() < 65536, etc;
+      any argument but type may be null */
   public FlatField(FunctionType type, Set domain_set,
                    CoordinateSystem range_coord_sys, Set[] range_sets,
                    Unit[] units) throws VisADException {
     this(type, domain_set, range_coord_sys, null, range_sets, units);
   }
 
-  /** construct a FlatField with a non-Real Function Type */
+  /** FlatField is a sampled function whose range is a Real,
+      a RealTuple, or a Tuple of Reals and RealTuples; if the i-th
+      component of range is a RealTuple, range_coordinate_syses[i] may
+      be non-null but must have the same Reference as the corresponding
+      RangeType component's default CoordinateSystem; domain_set defines
+      the domain sampling; range_sets define samplings for range values -
+      if range_set[i] is null, the i-th range component values are stored
+      as doubles; if range_set[i] is non-null, the i-th range component
+      values are stored in bytes if range_sets[i].getLength() < 256,
+      stored in shorts if range_sets[i].getLength() < 65536, etc;
+      any argument but type may be null */
   public FlatField(FunctionType type, Set domain_set,
                    CoordinateSystem[] range_coord_syses, Set[] range_sets,
                    Unit[] units) throws VisADException {
@@ -358,6 +378,12 @@ public class FlatField extends FieldImpl {
     MissingFlag = true;
   }
 
+  /** return range CoordinateSystem assuming range type is
+      a RealTupleType (throws a TypeException if its not);
+      this may differ from default CoordinateSystem of
+      range RealTupleType, but must be convertable;
+      the index has length = 1 (since all samples
+      have the same Units) */
   public CoordinateSystem[] getRangeCoordinateSystem()
          throws VisADException {
     MathType RangeType = ((FunctionType) Type).getRange();
@@ -385,6 +411,11 @@ public class FlatField extends FieldImpl {
     return cs;
   }
 
+  /** return array of Units associated with each RealType
+      component of range; these may differ from default
+      Units of range RealTypes, but must be convertable;
+      the second index has length = 1 (since all samples
+      have the same Units) */
   public Unit[][] getRangeUnits() {
     Unit[][] units = new Unit[RangeUnits.length][1];
     for (int i=0; i<RangeUnits.length; i++) {
@@ -393,12 +424,18 @@ public class FlatField extends FieldImpl {
     return units;
   }
 
+  /** return array of ErrorEstimates associated with each
+      RealType component of range; each ErrorEstimate is a
+      mean error for all samples of a range RealType
+      component */
   public ErrorEstimate[] getRangeErrors() {
     synchronized (RangeErrors) {
       return ErrorEstimate.copyErrorsArray(RangeErrors);
     }
   }
 
+  /** set ErrorEstimates associated with each RealType
+      component of range */
   public void setRangeErrors(ErrorEstimate[] errors) throws VisADException {
     synchronized (RangeErrors) {
       if (errors == null) {
@@ -431,29 +468,41 @@ public class FlatField extends FieldImpl {
     }
   }
 
-  /** set the range values of the function; the order of range values
-      must be the same as the order of domain indices in the DomainSet */
+  /** set range array as range values of this FlatField;
+      the array is dimensioned
+      double[number_of_range_components][number_of_range_samples];
+      the order of range values must be the same as the order of domain
+      indices in the DomainSet */
   public void setSamples(double[][] range)
          throws VisADException, RemoteException {
     setSamples(range, null, true);
   }
  
-  /** set the range values of the function; the order of range values
-      must be the same as the order of domain indices in the DomainSet */
+  /** set range array as range values of this FlatField;
+      the array is dimensioned
+      float[number_of_range_components][number_of_range_samples];
+      the order of range values must be the same as the order of domain
+      indices in the DomainSet */
   public void setSamples(float[][] range)
          throws VisADException, RemoteException {
     setSamples(range, null, true);
   }
 
-  /** set the range values of the function; the order of range values
-      must be the same as the order of domain indices in the DomainSet */
+  /** set range array as range values of this FlatField;
+      the array is dimensioned
+      double[number_of_range_components][number_of_range_samples];
+      the order of range values must be the same as the order of domain
+      indices in the DomainSet; copy array if copy flag is true */
   public void setSamples(double[][] range, boolean copy)
          throws VisADException, RemoteException {
     setSamples(range, null, copy);
   }
 
-  /** set the range values of the function; the order of range values
-      must be the same as the order of domain indices in the DomainSet */
+  /** set range array as range values of this FlatField;
+      the array is dimensioned
+      float[number_of_range_components][number_of_range_samples];
+      the order of range values must be the same as the order of domain
+      indices in the DomainSet; copy array if copy flag is true */
   public void setSamples(float[][] range, boolean copy)
          throws VisADException, RemoteException {
     setSamples(range, null, copy);
@@ -742,7 +791,10 @@ public class FlatField extends FieldImpl {
     return range;
   }
 
-  /** get values for 'Flat' components in default range Unit-s */
+  /** get this FlatField's range values in their default range
+      Units (as defined by the range of the FlatField's
+      FunctionType); the return array is dimensioned
+      double[number_of_range_components][number_of_range_samples] */
   public double[][] getValues() throws VisADException {
     double[][] values = unpackValues();
     Unit[] units_out =
@@ -2923,7 +2975,7 @@ for (i=0; i<length; i++) {
     return new_field;
   }
 
-  /** convert this FlatField to a (non-Flat) Field */
+  /** convert this FlatField to a (non-Flat) FieldImpl */
   public Field convertToField() throws VisADException, RemoteException {
     Field new_field = new FieldImpl((FunctionType) Type, DomainSet);
     if (isMissing()) return new_field;

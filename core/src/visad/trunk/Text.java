@@ -47,7 +47,7 @@ public class Text extends Scalar {
     Value = value;
   }
 
-  /** construct a Text object with the generic TEXT type */
+  /** construct a Text object with the generic TEXT type (TextType.Generic) */
   public Text(String value) {
     super(TextType.Generic);
     Value = value;

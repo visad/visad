@@ -41,6 +41,14 @@ public class GridCoordinateSystem extends CoordinateSystem {
   private GriddedSet set;
   private int dimension;
 
+  /** construct a CoordinateSystem for grid coordinates (e.g.,
+      (row, column, level) in 3-D) relative to the value space
+      of set; for example, if satellite pixel locations are
+      defined by explicit latitudes and longitude, these could
+      be used to construct a Gridded2DSet which could then be
+      used to construct a GridCoordinateSystem for (ImageLine,
+      ImageElement) coordinates relative to reference coordinates
+      (Latitude, Longitude) */
   public GridCoordinateSystem(GriddedSet s) throws VisADException {
     super(((SetType) s.getType()).getDomain(), null);
     set = s;

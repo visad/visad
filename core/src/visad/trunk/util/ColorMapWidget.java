@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ColorMapWidget.java,v 1.13 1998-12-21 16:12:20 billh Exp $
+@(#) $Id: ColorMapWidget.java,v 1.14 1998-12-31 23:22:44 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -40,7 +40,7 @@ import javax.swing.*;
  * RGB tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.13 $, $Date: 1998-12-21 16:12:20 $
+ * @version $Revision: 1.14 $, $Date: 1998-12-31 23:22:44 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledRGBWidget extends Panel implements ActionListener,
@@ -60,25 +60,40 @@ public class LabeledRGBWidget extends Panel implements ActionListener,
 
   ColorControl colorControl;
 
-  /** construct a LabeledRGBWidget linked to the ColorControl
-      in map (which must be to Display.RGB), with auto-scaling range */
+  /** this will be labeled with the name of smap's RealType and
+      linked to the ColorControl in smap;
+      the range of RealType values mapped to color is taken from
+      smap.getRange() - this allows a color widget to be used with
+      a range of values defined by auto-scaling from displayed Data;
+      if smap's range values are not available at the time this
+      constructor is invoked, the LabeledRGBWidget becomes a
+      ScalarMapListener and sets its range when smap's range is set;
+      the DisplayRealType of smap must be Display.RGB and should
+      already be added to a Display */
   public LabeledRGBWidget(ScalarMap smap) throws VisADException,
                                                  RemoteException {
     this(smap, Float.NaN, Float.NaN, null, true);
   }
 
-  /** construct a LabeledRGBWidget linked to the ColorControl
-      in map (which must be to Display.RGB), with auto-scaling
-      range of values (min, max) */
+  /** this will be labeled with the name of smap's RealType and
+      linked to the ColorControl in smap;
+      the range of RealType values (min, max) is mapped to color
+      as defined by an interactive color widget;
+      the DisplayRealType of smap must be Display.RGB and should
+      already be added to a Display */
   public LabeledRGBWidget(ScalarMap smap, float min, float max)
                           throws VisADException, RemoteException {
     this(smap, min, max, null, true);
   }
 
-  /** construct a LabeledRGBWidget linked to the ColorControl
-      in map (which must be to Display.RGB), with auto-scaling range
-      of values (min, max), and initial color table in format
-      float[TABLE_SIZE][3] with values between 0.0f and 1.0f */
+  /** this will be labeled with the name of smap's RealType and
+      linked to the ColorControl in smap;
+      the range of RealType values (min, max) is mapped to color
+      as defined by an interactive color widget; table initializes
+      the color lookup table, organized as float[TABLE_SIZE][3]
+      with values between 0.0f and 1.0f;
+      the DisplayRealType of smap must be Display.RGB and should
+      already be added to a Display */
   public LabeledRGBWidget(ScalarMap smap, float min, float max,
          float[][] table) throws VisADException, RemoteException {
     this(smap, min, max, table, true);
@@ -182,6 +197,7 @@ public class LabeledRGBWidget extends Panel implements ActionListener,
     else return super.getMaximumSize();
   }
 
+  /** set maximum size of widget using java.awt.Dimension */
   public void setMaximumSize(Dimension size) {
     maxSize = size;
   }

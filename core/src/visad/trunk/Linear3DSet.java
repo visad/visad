@@ -46,6 +46,8 @@ public class Linear3DSet extends Gridded3DSet
     this(type, sets, null, null, null);
   }
 
+  /** a 3-D cross product of arithmetic progressions with
+      null errors and generic type */
   public Linear3DSet(double first1, double last1, int length1,
                      double first2, double last2, int length2,
                      double first3, double last3, int length3)
@@ -104,6 +106,9 @@ public class Linear3DSet extends Gridded3DSet
     }
   }
 
+  /** a 3-D cross product of arithmetic progressions;
+      coordinate_system and units must be compatible with defaults
+      for type, or may be null; errors may be null */
   public Linear3DSet(MathType type, double first1, double last1, int length1,
                      double first2, double last2, int length2, double first3,
                      double last3, int length3, CoordinateSystem coord_sys,

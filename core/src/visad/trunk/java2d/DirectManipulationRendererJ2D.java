@@ -50,6 +50,16 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
   VisADGroup branch = null;
   VisADGroup extra_branch = null;
 
+  /** this DataRenderer supports direct manipulation for Real,
+      RealTuple and Field Data objects (Field data objects must
+      have RealType or RealTupleType ranges and Gridded1DSet
+      domain Sets); no RealType may be mapped to multiple spatial
+      DisplayRealTypes; the RealType of a Real object must be
+      mapped to XAxis, YAxis or YAxis; at least one of the
+      RealType components of a RealTuple object must be mapped
+      to XAxis, YAxis or YAxis; the domain RealType and at
+      least one RealType range component of a Field object
+      must be mapped to XAxis, YAxis or YAxis */
   public DirectManipulationRendererJ2D () {
     super();
   }

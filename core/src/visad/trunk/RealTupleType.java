@@ -72,28 +72,38 @@ public class RealTupleType extends TupleType {
   public final static RealTupleType Generic3D =
     new RealTupleType(components3g, true);
 
+  /** array of component types;
+      default CoordinateSystem and Set are null */
   public RealTupleType(RealType[] types) throws VisADException {
     this(types, null, null);
   }
 
+  /** construct a RealTupleType with one component */
   public RealTupleType(RealType a) throws VisADException {
     this(makeArray(a), null, null);
   }
 
+  /** construct a RealTupleType with two components */
   public RealTupleType(RealType a, RealType b) throws VisADException {
     this(makeArray(a, b), null, null);
   }
 
+  /** construct a RealTupleType with three components */
   public RealTupleType(RealType a, RealType b, RealType c)
          throws VisADException {
     this(makeArray(a, b, c), null, null);
   }
 
+  /** construct a RealTupleType with four components */
   public RealTupleType(RealType a, RealType b, RealType c, RealType d)
          throws VisADException {
     this(makeArray(a, b, c, d), null, null);
   }
 
+  /** array of component types;
+      default CoordinateSystem for values of this type (including
+      Function domains) and may be null; default Set used when this
+      type is a FunctionType domain and may be null */
   public RealTupleType(RealType[] types, CoordinateSystem coord_sys, Set set)
          throws VisADException {
     super(types);
@@ -131,21 +141,25 @@ public class RealTupleType extends TupleType {
     }
   }
 
+  /** construct a RealTupleType with one component */
   public RealTupleType(RealType a, CoordinateSystem coord_sys,
          Set set) throws VisADException {
     this(makeArray(a), coord_sys, set);
   }
 
+  /** construct a RealTupleType with two components */
   public RealTupleType(RealType a, RealType b,
          CoordinateSystem coord_sys, Set set) throws VisADException {
     this(makeArray(a, b), coord_sys, set);
   }
 
+  /** construct a RealTupleType with three components */
   public RealTupleType(RealType a, RealType b, RealType c,
          CoordinateSystem coord_sys, Set set) throws VisADException {
     this(makeArray(a, b, c), coord_sys, set);
   }
 
+  /** construct a RealTupleType with four components */
   public RealTupleType(RealType a, RealType b, RealType c, RealType d,
          CoordinateSystem coord_sys, Set set) throws VisADException {
     this(makeArray(a, b, c, d), coord_sys, set);
@@ -279,16 +293,23 @@ public class RealTupleType extends TupleType {
     }
   }
 
-  /** copy DefaultUnits array to ensure that it cannot be altered */
+  /** get default Units of RealType components; copy DefaultUnits
+      array to ensure that it cannot be altered */
   public Unit[] getDefaultUnits() {
     return Unit.copyUnitsArray(DefaultUnits);
   }
 
+  /** get default CoordinateSystem */
   public CoordinateSystem getCoordinateSystem() {
     return DefaultCoordinateSystem;
   }
 
-  /** set the default sampling; cannot be called after getDefaultSet */
+  /** set the default sampling;
+      this is an unavoidable violation of MathType immutability -
+      a RealTupleType must be an argument (directly or through a
+      SetType) to the constructor of its default Set;
+      this method throws an Exception if getDefaultSet has
+      previously been invoked */
   public synchronized void setDefaultSet(Set sampling) throws VisADException {
     if (sampling.getDimension() != getDimension()) {
       throw new SetException(
@@ -321,6 +342,7 @@ public class RealTupleType extends TupleType {
     }
   }
 
+  /** get default Set*/
   public synchronized Set getDefaultSet() {
     DefaultSetEverAccessed = true;
     return DefaultSet;

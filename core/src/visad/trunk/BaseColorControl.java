@@ -61,6 +61,9 @@ public abstract class BaseColorControl extends Control {
     table[3][DEFAULT_TABLE_LENGTH] = table[3][DEFAULT_TABLE_LENGTH - 1];
   }
  
+  /** define the color lookup by a Function, whose MathType must
+      have a 1-D domain and a 4-D RealTupleType range; the domain
+      and range Reals must vary over the range (0.0, 1.0) */
   public synchronized void setFunction(Function func)
          throws VisADException, RemoteException {
     if (func == null ||
@@ -76,6 +79,9 @@ public abstract class BaseColorControl extends Control {
     changeControl(true);
   }
 
+  /** define the color lookup by an array of floats which must
+      have the form float[4][table_length]; values should be in
+      the range (0.0, 1.0) */
   public synchronized void setTable(float[][] t)
          throws VisADException, RemoteException {
     if (t == null || t.length != 4 ||

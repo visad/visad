@@ -71,4 +71,5 @@ clean:
 	$(RM) visad_benjamin_Galaxy.h
 	$(RM) *.o
 	$(RM) *.so
+	$(RM) *.class
 

@@ -72,6 +72,7 @@ clean:
 	$(RM) visad_paoloa_GoesCollaboration.h
 	$(RM) *.o
 	$(RM) *.so
+	$(RM) *.class
 
 ############################################################################
 # Packaging rules

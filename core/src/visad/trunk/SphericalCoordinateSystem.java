@@ -35,6 +35,12 @@ public class SphericalCoordinateSystem extends CoordinateSystem {
   private static Unit[] coordinate_system_units =
     {CommonUnit.degree, CommonUnit.degree, null};
 
+  /** construct a CoordinateSystem for (latitude, longitude,
+      radius) relative to a 3-D Cartesian reference;
+      this constructor supplies units =
+      {CommonUnit.Degree, CommonUnit.Degree, null} to the super
+      constructor, in order to ensure Unit compatibility with its
+      use of trigonometric functions */
   public SphericalCoordinateSystem(RealTupleType reference) throws VisADException {
     super(reference, coordinate_system_units);
   }

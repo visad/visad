@@ -40,6 +40,7 @@ public class Integer2DSet extends Linear2DSet
     this(type, sets, null, null, null);
   }
 
+  /** a 2-D set with null errors and generic type */
   public Integer2DSet(int length1, int length2)
          throws VisADException {
     this(RealTupleType.Generic2D,
@@ -58,7 +59,11 @@ public class Integer2DSet extends Linear2DSet
                       ErrorEstimate[] errors) throws VisADException {
     super(type, sets, coord_sys, units, errors);
   } 
-  
+
+  /** construct a 2-dimensional set with values
+      {0, 1, ..., length1-1} x {0, 1, ..., length2-1};
+      coordinate_system and units must be compatible with defaults for
+      type, or may be null; errors may be null */
   public Integer2DSet(MathType type, int length1, int length2,
                       CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors) throws VisADException {

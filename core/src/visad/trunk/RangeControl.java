@@ -41,6 +41,7 @@ public class RangeControl extends Control {
     RangeHi = 0.0f;
   }
  
+  /** set the range of selected values as (range[0], range[1]) */
   public void setRange(float[] range)
          throws VisADException, RemoteException {
     RangeLow = range[0];
@@ -48,6 +49,7 @@ public class RangeControl extends Control {
     changeControl(true);
   }
 
+  /** return the range of selected values */
   public float[] getRange() {
     float[] range = new float[2];
     range[0] = RangeLow;

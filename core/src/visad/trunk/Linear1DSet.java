@@ -36,6 +36,7 @@ public class Linear1DSet extends Gridded1DSet
 
   private double First, Last, Step, Invstep;
 
+  /** a 1-D arithmetic progression with null errors and generic type */
   public Linear1DSet(double first, double last, int length)
          throws VisADException {
     this(RealType.Generic, first, last, length, null, null, null);
@@ -46,6 +47,9 @@ public class Linear1DSet extends Gridded1DSet
     this(type, first, last, length, null, null, null);
   }
 
+  /** an arithmetic progression of length values between first and last;
+      coordinate_system and units must be compatible with defaults
+      for type, or may be null; errors may be null */
   public Linear1DSet(MathType type, double first, double last, int length,
                      CoordinateSystem coord_sys, Unit[] units,
                      ErrorEstimate[] errors) throws VisADException {

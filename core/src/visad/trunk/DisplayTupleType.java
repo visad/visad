@@ -31,10 +31,15 @@ package visad;
 
 public class DisplayTupleType extends RealTupleType {
 
+  /** null CoordinateSystem; a DisplayrealType may
+      not be a component of more than one DisplayTupleType */
   public DisplayTupleType(DisplayRealType[] types) throws VisADException {
     this(types, null);
   }
 
+  /** if coord_sys is not null then coord_sys.Reference
+      must be another DisplayTupleType; a DisplayrealType may
+      not be a component of more than one DisplayTupleType */
   public DisplayTupleType(DisplayRealType[] types, CoordinateSystem coord_sys)
          throws VisADException {
     super(types, coord_sys, null);

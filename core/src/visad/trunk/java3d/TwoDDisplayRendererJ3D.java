@@ -45,6 +45,14 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
   ColoringAttributes box_color = null;
   MouseBehaviorJ3D mouse = null; // Behavior for mouse interactions
 
+  /** this DisplayRenderer supports 2-D only rendering;
+      is easiest to describe in terms of differences
+      from DefaultDisplayRendererJ3D: the cursor and box
+      around the scene are 2-D, the scene cannot be rotated,
+      the cursor cannot be translated in and out, and the
+      scene can be translated sideways with the left mouse
+      button with or without pressing the Ctrl key;
+      no RealType may be mapped to ZAxis or Latitude */
   public TwoDDisplayRendererJ3D () {
     super();
   }

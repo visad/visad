@@ -38,6 +38,8 @@ public class Gridded1DSet extends GriddedSet {
   /** Whether this set is ascending or descending */
   boolean Ascending;
 
+  /** a 1-D sequence with no regular interval with null errors,
+      CoordinateSystem and Units are defaults from type */
   public Gridded1DSet(MathType type, float[][] samples, int lengthX)
          throws VisADException {
     this(type, samples, lengthX, null, null, null);
@@ -49,6 +51,11 @@ public class Gridded1DSet extends GriddedSet {
     this(type, samples, lengthX, coord_sys, units, errors, true);
   }
 
+  /** a 1-D sorted sequence with no regular interval; samples array
+      is organized float[1][number_of_samples] where lengthX =
+      number_of_samples; samples must be sorted (either increasing
+      or decreasing); coordinate_system and units must be compatible
+      with defaults for type, or may be null; errors may be null */
   Gridded1DSet(MathType type, float[][] samples, int lengthX,
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy)

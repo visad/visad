@@ -235,7 +235,11 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     if (scale_flag) makeScale();
   }
 
-  /** get Control for DisplayScalar */
+  /** get the Control this ScalarMap is linked to;
+      the Control is constructed when this ScalarMap is linked to
+      a Display via an invocation of the Display's addMap method;
+      not all ScalarMaps have Controls, generally depending on the
+      ScalarMap's DisplayRealType */
   public Control getControl() {
     return control;
   }
@@ -250,6 +254,14 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     display.addControl(control);
   }
 
+  /** return value is true if data (RealType) values are linearly
+      scaled to display (DisplayRealType) values;
+      if so, then values are scaled by:
+      display_value = data_value * so[0] + so[1];
+      (data[0], data[1]) defines range of data values (either passed
+      in to setRange or computed by autoscaling logic) and
+      (display[0], display[1]) defines range of display values;
+      so, data, display must each be passed in as double[2] arrays */
   public boolean getScale(double[] so, double[] data, double[] display) {
     so[0] = scale;
     so[1] = offset;
@@ -265,7 +277,12 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     return range;
   }
 
-  /** set range by Units */
+  /** explicitly set the range of data (RealType) values according
+      to Unit conversion between this ScalarMap's RealType and
+      DisplayRealType (both must have Units and they must be
+      convertable; if neither this nor setRange is invoked, then
+      the range will be computed from the initial values of Data
+      objects linked to the Display by autoscaling logic */
   public void setRangeByUnits()
          throws VisADException, RemoteException {
     isManual = true;
@@ -278,8 +295,14 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     }
   }
 
-  /** set range used for linear map from Scalar to DisplayScalar values; 
-      this is the call for applications */
+  /** explicitly set the range of data (RealType) values; used for
+      linear map from Scalar to DisplayScalar values;
+      if neither this nor setRangeByUnits is invoked, then the
+      range will be computed from the initial values of Data
+      objects linked to the Display by autoscaling logic;
+      if the range of data values is (0.0, 1.0), for example, this
+      method may be invoked with low = 1.0 and hi = 0.0 to invert
+      the display scale */
   public void setRange(double low, double hi)
          throws VisADException, RemoteException {
     isManual = true;
@@ -424,6 +447,8 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     }
   }
 
+  /** add a ScalarMapListener, to be notified whenever setRange is
+      invoked */
   public synchronized void addScalarMapListener(ScalarMapListener listener) {
     ListenerVector.addElement(listener);
     if (dataRange[0] == dataRange[0] &&
@@ -438,6 +463,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     }
   }
  
+  /** remove a ScalarMapListener */
   public void removeScalarMapListener(ScalarMapListener listener) {
     if (listener != null) {
       ListenerVector.removeElement(listener);
@@ -578,6 +604,9 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     scale_flag = false;
   }
 
+  /** set color of axis scales; color must be float[3] with red,
+      green and blue components; DisplayScalar must be XAxis,
+      YAxis or ZAxis */
   public void setScaleColor(float[] color) throws VisADException {
      throw new DisplayException("ScalarMap.setScaleColor: DisplayScalar " +
     if (DisplayScalar != Display.XAxis &&
@@ -598,7 +627,9 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     return (isScaled && (scale != scale || offset != offset));
   }
 
-  /** apply linear map to Scalar values */
+  /** return an array of display (DisplayRealType) values by
+      linear scaling (if applicable) the data_values array
+      (RealType values) */
   public float[] scaleValues(double[] values) {
     if (values == null || badRange()) return null;
     float[] new_values = new float[values.length];
@@ -615,7 +646,9 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       return new_values;
   }
 
-  /** apply linear map to Scalar values */
+  /** return an array of display (DisplayRealType) values by
+      linear scaling (if applicable) the data_values array
+      (RealType values) */
   public float[] scaleValues(float[] values) {
     if (values == null || badRange()) return null;
     float[] new_values = new float[values.length];
@@ -632,7 +665,10 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       return new_values;
   }
 
-  /** apply inverse linear map to Scalar values */
+  /** return an array of data (RealType) values by inverse
+      linear scaling (if applicable) the display_values array
+      (DisplayRealType values); this is useful for direct
+      manipulation and cursor labels */
   public double[] inverseScaleValues(float[] values) {
     if (values == null) return null;
     double[] new_values = new double[values.length];

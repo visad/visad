@@ -35,6 +35,7 @@ public class SetType extends MathType {
 
   private RealTupleType Domain;
 
+  /** type must be a RealType or a RealTupleType */
   public SetType(MathType type) throws VisADException {
     super();
     if (type instanceof RealType) {
@@ -98,6 +99,9 @@ public class SetType extends MathType {
     return new DoubleSet(this);
   }
 
+  /** if the domain passed to constructor was a RealType,
+      getDomain returns a RealTupleType with that RealType
+      as its single component */
   public RealTupleType getDomain() {
     return Domain;
   }

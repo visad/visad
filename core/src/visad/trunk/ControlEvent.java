@@ -44,6 +44,8 @@ public class ControlEvent extends Event {
     control = c;
   }
 
+  /** get the Control that sent this ControlEvent (or a copy
+      if the Control was on a different JVM) */
   public Control getControl() {
     return control;
   }

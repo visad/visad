@@ -242,7 +242,8 @@ public interface Display extends Action {
   public abstract void addReference(DataReference ref,
          ConstantMap[] constant_maps) throws VisADException, RemoteException;
 
-  /** add a ScalarMap to this Display */
+  /** link map to this Display; this method may not be invoked
+      after any links to DataReferences have been made */
   public abstract void addMap(ScalarMap map)
          throws VisADException, RemoteException;
 

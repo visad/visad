@@ -34,12 +34,16 @@ package visad;
 */
 public class DoubleSet extends SimpleSet {
 
-  /** construct a DoubleSet object */
+  /** construct a DoubleSet object with null CoordinateSystem and Units */
   public DoubleSet(MathType type) throws VisADException {
     this(type, null, null);
   }
 
-  /** construct a DoubleSet object with a non-default CoordinateSystem */
+  /** the set of values representable by N doubles;
+      type must be a RealType, a RealTupleType or a SetType;
+      coordinate_system and units must be compatible with defaults
+      for type, or may be null;
+      a DoubleSet may not be used as a Field domain */
   public DoubleSet(MathType type, CoordinateSystem coord_sys, Unit[] units)
          throws VisADException {
     super(type, coord_sys, units, null); // no ErrorEstimate for DoubleSet

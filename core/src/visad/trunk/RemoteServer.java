@@ -34,15 +34,18 @@ import java.rmi.*;
 */
 public interface RemoteServer extends Remote {
  
-  /** get a RemoteDataReference by index */
+  /** return the RemoteDataReference with index on this
+      RemoteServer, or null */
   public abstract RemoteDataReference getDataReference(int index)
          throws RemoteException;
 
-  /** get a RemoteDataReference by name */
+  /** return the RemoteDataReference with name on this
+      RemoteServer, or null */
   public abstract RemoteDataReference getDataReference(String name)
          throws VisADException, RemoteException;
 
-  /** return array of all RemoteDataReferences in this RemoteServer */
+  /** return an array of all RemoteDataReferences on this
+      RemoteServer, or null */
   public abstract RemoteDataReference[] getDataReferences()
          throws RemoteException;
 

@@ -96,7 +96,9 @@ public class VisADSlider extends JPanel implements ChangeListener,
   /** Flags whether this VisADSlider is linked to a Real or a ScalarMap */
   private boolean smapcontrol;
 
-  /** for compatibility purposes */
+  /** JSlider values range between low and hi (with initial value
+      st) and are multiplied by scale to create Real values
+      of RealType rt referenced by ref */
   public VisADSlider(String n, int lo, int hi, int st, double scale,
                      DataReference ref, RealType rt) throws VisADException,
                                                             RemoteException {

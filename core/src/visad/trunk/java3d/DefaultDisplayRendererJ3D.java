@@ -45,6 +45,25 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
   ColoringAttributes box_color = null;
   MouseBehaviorJ3D mouse = null; // Behavior for mouse interactions
 
+  /** this is the default DisplayRenderer used by the
+      DisplayImplJ3D constructor;
+      it draws a 3-D cube around the scene;
+      the left mouse button controls the projection as
+      follows: mouse drag rotates in 3-D, mouse drag with
+      Shift down zooms the scene, mouse drag with Ctrl
+      translates the scene sideways;
+      the center mouse button activates and controls the
+      3-D cursor as follows: mouse drag translates the
+      cursor sideways, mouse drag with Shift translates
+      the cursor in and out, mouse drag with Ctrl rotates
+      scene in 3-D with cursor on;
+      the right mouse button is used for direct
+      manipulation by clicking on the depiction of a Data
+      object and dragging or re-drawing it;
+      cursor and direct manipulation locations are displayed
+      in RealType values;
+      BadMappingExceptions and UnimplementedExceptions are
+      displayed */
   public DefaultDisplayRendererJ3D () {
     super();
   }

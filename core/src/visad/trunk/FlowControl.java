@@ -59,6 +59,7 @@ public abstract class FlowControl extends Control {
     HorizontalStreamSliceHeight = 0.0;
   }
  
+  /** set scale length for flow vectors (default is 0.02f) */
   public void setFlowScale(float scale)
          throws VisADException, RemoteException {
     flowScale = scale;

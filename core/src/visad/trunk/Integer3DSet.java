@@ -40,6 +40,7 @@ public class Integer3DSet extends Linear3DSet
     this(type, sets, null, null, null);
   }
 
+  /** a 3-D set with null errors and generic type */
   public Integer3DSet(int length1, int length2, int length3)
          throws VisADException {
     this(RealTupleType.Generic3D,
@@ -59,6 +60,10 @@ public class Integer3DSet extends Linear3DSet
     super(type, sets, coord_sys, units, errors);
   }
 
+  /** construct a 3-dimensional set with values {0, 1, ..., length1-1}
+      x {0, 1, ..., length2-1} x {0, 1, ..., length3-1};
+      coordinate_system and units must be compatible with defaults for
+      type, or may be null; errors may be null */
   public Integer3DSet(MathType type, int length1, int length2, int length3,
                       CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors) throws VisADException {

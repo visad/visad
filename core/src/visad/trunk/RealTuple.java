@@ -48,7 +48,10 @@ public class RealTuple extends Tuple {
     }
   }
 
-  /** construct a RealTuple according to an array of Real objects */
+  /** construct a RealTuple according to an array of Real objects;
+      coordinate_system may be null; otherwise
+      coordinate_system.getReference() must equal
+      type.getCoordinateSystem.getReference() */
   public RealTuple(RealTupleType type, Real[] reals, CoordinateSystem coord_sys)
          throws VisADException, RemoteException {
     super(type, reals);
@@ -114,10 +117,12 @@ public class RealTuple extends Tuple {
     return reals;
   }
 
+  /** get Units of Real components */
   public Unit[] getTupleUnits() {
     return Unit.copyUnitsArray(TupleUnits);
   }
 
+  /** get ErrorEstimates of Real components */
   public ErrorEstimate[] getErrors()
          throws VisADException, RemoteException {
     int n = getDimension();
@@ -126,6 +131,7 @@ public class RealTuple extends Tuple {
     return errors;
   }
 
+  /** get CoordinateSystem */
   public CoordinateSystem getCoordinateSystem() {
     return TupleCoordinateSystem;
   }

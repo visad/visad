@@ -43,6 +43,8 @@ public class DefaultRendererJ2D extends RendererJ2D {
 
   DataDisplayLink link;
 
+  /** this is the default DataRenderer used by the addReference method
+      for DisplayImplJ2D */
   public DefaultRendererJ2D () {
     super();
   }

@@ -34,12 +34,16 @@ package visad;
 */
 public class FloatSet extends SimpleSet {
 
-  /** construct a FloatSet object */
+  /** construct a FloatSet object with null CoordinateSystem and Units */
   public FloatSet(MathType type) throws VisADException {
     this(type, null, null);
   }
 
-  /** construct a FloatSet object with a non-default CoordinateSystem */
+  /** the set of values representable by N floats;
+      type must be a RealType, a RealTupleType or a SetType;
+      coordinate_system and units must be compatible with defaults
+      for type, or may be null;
+      a FloatSet may not be used as a Field domain */
   public FloatSet(MathType type, CoordinateSystem coord_sys, Unit[] units)
          throws VisADException {
     super(type, coord_sys, units, null); // no ErrorEstimate for FloatSet

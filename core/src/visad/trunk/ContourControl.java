@@ -97,6 +97,7 @@ public class ContourControl extends Control {
     changeControl(!noChange);
   }
 
+  /** set level for iso-surfaces */
   public void setSurfaceValue(float value)
          throws VisADException, RemoteException {
     boolean change = (surfaceValue != value);
@@ -106,6 +107,9 @@ public class ContourControl extends Control {
     }
   }
 
+  /** set parameters for iso-lines: draw lines for levels
+      between low and hi, starting at ba, spaced by
+      interval */
   public void setContourInterval(float interval, float low,
                                  float hi, float ba)
          throws VisADException, RemoteException {
@@ -118,6 +122,7 @@ public class ContourControl extends Control {
     if (change) changeControl(true);
   }
 
+  /** set label enable to 'on' */
   public void enableLabels(boolean on)
          throws VisADException, RemoteException {
     boolean change = (labels != on);
@@ -125,6 +130,7 @@ public class ContourControl extends Control {
     if (change) changeControl(true);
   }
 
+  /** set contour enable to 'on' */
   public void enableContours(boolean on)
          throws VisADException, RemoteException {
     boolean change = (mainContours != on);
@@ -132,6 +138,11 @@ public class ContourControl extends Control {
     if (change) changeControl(true);
   }
 
+  /** get contour parameters: bvalues[0] = contour enable,
+      bvalues[1] = labels enable, fvalues[0] = surface level,
+      fvalues[1] = interval, fvalues[2] = low, fvalues[3] = hi,
+      fvalues[4] = base; bvalues and fvalues must be passed in
+      as boolean[2] and float[5] */
   public void getMainContours(boolean[] bvalues, float[] fvalues)
          throws VisADException {
     if (fvalues == null || fvalues.length != 5 ||

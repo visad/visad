@@ -35,13 +35,23 @@ public class Irregular3DSet extends IrregularSet {
 
   private float LowX, HiX, LowY, HiY, LowZ, HiZ;
 
-  /** shortcut constructor */
+  /** a 3-D irregular set with null errors, CoordinateSystem
+      and Units are defaults from type; topology is computed
+      by the constructor */
   public Irregular3DSet(MathType type, float[][] samples)
                       throws VisADException {
     this(type, samples, null, null, null, null, true);
   }
 
-  /** complete constructor */
+  /** a 3-D irregular set; samples array is organized
+      float[3][number_of_samples];  no geometric constraint on
+      samples; if delan is non-null it defines the topology of
+      samples (which may have manifold dimension 2 or 3), else
+      the constructor computes a topology with manifold dimension
+      3; note that Gridded3DSet can be used for an irregular set
+      with domain dimension 3 and manifold dimension 1;
+      coordinate_system and units must be compatible with
+      defaults for type, or may be null; errors may be null */
   public Irregular3DSet(MathType type, float[][] samples,
                       CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors, Delaunay delan)

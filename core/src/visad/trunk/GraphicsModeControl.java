@@ -45,6 +45,8 @@ public abstract class GraphicsModeControl extends Control
 
   public abstract float getLineWidth();
 
+  /** set the width of line rendering; this is over-ridden by
+      ConstantMaps to Display.LineWidth */
   public abstract void setLineWidth(float width)
          throws VisADException, RemoteException;
 
@@ -52,6 +54,8 @@ public abstract class GraphicsModeControl extends Control
 
   public abstract float getPointSize();
 
+  /** set the size for point rendering; this is over-ridden by
+      ConstantMaps to Display.PointSize */
   public abstract void setPointSize(float size)
          throws VisADException, RemoteException;
 
@@ -59,24 +63,34 @@ public abstract class GraphicsModeControl extends Control
 
   public abstract boolean getPointMode();
 
+  /** if mode is true this will cause some rendering as points
+      rather than lines or surfaces */
   public abstract void setPointMode(boolean mode)
          throws VisADException, RemoteException;
 
   public abstract boolean getTextureEnable();
 
+  /** if enable is true this will enable use of texture
+      mapping, where appropriate */
   public abstract void setTextureEnable(boolean enable)
          throws VisADException, RemoteException;
 
   public abstract boolean getScaleEnable();
 
+  /** if enable is true this will enable numerical
+      scales along display spatial axes */
   public abstract void setScaleEnable(boolean enable)
          throws VisADException, RemoteException;
 
   public abstract int getTransparencyMode();
 
+  /** sets a graphics-API-specific transparency mode (e.g.,
+      SCREEN_DOOR, BLENDED) */
   public abstract void setTransparencyMode(int mode)
          throws VisADException, RemoteException;
 
+  /** sets a graphics-API-specific projection policy (e.g.,
+      PARALLEL_PROJECTION, PERSPECTIVE_PROJECTION) */
   public abstract void setProjectionPolicy(int policy)
          throws VisADException, RemoteException;
 

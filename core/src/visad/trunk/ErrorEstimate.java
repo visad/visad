@@ -42,7 +42,8 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
   private static final double DERIVATIVE_LOW_LIMIT = 0.01;
   private static final double DERIVATIVE_HI_LIMIT = 1.0 / DERIVATIVE_LOW_LIMIT;
 
-  /** simple constructor */
+  /** construct an error distribution of number values with
+      given mean and error (variance), in Unit unit */
   public ErrorEstimate(double error, double mean, long number, Unit u) {
     unit = u;
     if (Double.isNaN(error) || Double.isNaN(mean) || number <= 0) {
@@ -57,7 +58,8 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
     }
   }
 
-  /** construct Error for a single value with an error */
+  /** construct an error distribution of 1 value with
+      given mean and error (variance), in Unit unit */
   public ErrorEstimate(double value, double error, Unit u) {
     unit = u;
     if (Double.isNaN(value)) {

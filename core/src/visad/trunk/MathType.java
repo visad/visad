@@ -72,29 +72,18 @@ public abstract class MathType extends Object implements java.io.Serializable {
     SystemIntrinsic = true;
   }
 
-  /** 
-(Fulker)
-   Check for equality of MathType, including equality of scalar names.
-   All MathType objects are named or are built up of named MathTypes.
-   For example, a ScalarType object might be named "Pressure," and a
-   FunctionType object might map a "Time" domain onto a range named 
-   "Temperature."  Therefore MathType objects have methods to test for
-   two types of equality; both compare the underlying mathematical types,
-   but only this method tests to be sure that all of the names match.  
-   Such tests are useful because some operations on Data objects 
-   (differencing, for example) make sense only when those objects 
-   approximate MathTypes that are identical in the named as well as the
-   mathematical sense.<p>
-(/Fulker)<p>
-
-  check for equality of data types, including equality of scalar names
-  for example, real types for "pressure" and "temperature" are not equal
-
-  */
+  /** ScalarTypes are equal if they have the same name;
+      TupleTypes are equal if their components are equal;
+      FunctionTypes are equal if their domains and ranges
+      are equal */
   public abstract boolean equals(Object type);
 
-  /** check for equality of data types, excluding equality of scalar names
-      for example, real types for "pressure" and "temperature" are equal */
+  /** this is useful for determining compatibility of
+      Data objects for binary mathematical operations;
+      any RealTypes are equal; any TextTypes are equal;
+      TupleTypes are equal if their components are equal;
+      FunctionTypes are equal if their domains and ranges
+      are equal */
   public abstract boolean equalsExceptName(MathType type);
 
   /* TDR - May 1998.  As above, except units must be convertible */
@@ -113,6 +102,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
   public abstract MathType unary( int op, Vector names )
          throws VisADException;
 
+  /** returns a missing Data object for any MathType */
   public abstract Data missingData() throws VisADException, RemoteException;
 
   public abstract ShadowType buildShadowType(DataDisplayLink link, ShadowType parent)
@@ -120,12 +110,16 @@ public abstract class MathType extends Object implements java.io.Serializable {
 
   public abstract String toString();
 
+  /** return a String that indents complex MathTypes
+      for human readability */
   public String prettyString() {
     return prettyString(0);
   }
 
   public abstract String prettyString(int indent);
 
+  /** create a MathType from its string representation;
+      essentially the inverse of the prettyString method */
   public static MathType stringToType(String s) throws VisADException {
     int length = s.length();
     String r = "";

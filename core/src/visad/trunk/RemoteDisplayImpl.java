@@ -40,6 +40,8 @@ public class RemoteDisplayImpl extends RemoteActionImpl
     super(d);
   }
 
+  /** link ref to this Display; this method may only be invoked
+      after all links to ScalarMaps have been made */
   public void addReference(ThingReference ref)
          throws VisADException, RemoteException {
     if (!(ref instanceof DataReference)) {
@@ -49,8 +51,9 @@ public class RemoteDisplayImpl extends RemoteActionImpl
     addReference((DataReference) ref, null);
   }
 
-  /** create link to DataReference;
-      must be RemoteDataReference */
+  /** link ref to this Display; must be RemoteDataReference; this
+      method may only be invoked after all links to ScalarMaps have
+      been made; the ConstantMap array applies only to rendering ref */
   public void addReference(DataReference ref,
          ConstantMap[] constant_maps) throws VisADException, RemoteException {
     if (!(ref instanceof RemoteDataReference)) {
@@ -66,14 +69,32 @@ public class RemoteDisplayImpl extends RemoteActionImpl
                      constant_maps);
   }
 
-  /** signature for addReferences with one DataReference and
-      without constant_maps */
+  /** link ref to this Display using the non-default renderer;
+      refs may be a mix of RemoteDataReference & DataReferenceImpl;
+      cannot be called through RemoteDisplay interface, since
+      renderer implements neither Remote nor Serializable;
+      must be called locally;
+      this method may only be invoked after all links to ScalarMaps
+      have been made;
+      this is a method of DisplayImpl and RemoteDisplayImpl rather
+      than Display - see Section 6.1 of the Developer's Guide for
+      more information */
   public void addReferences(DataRenderer renderer, DataReference ref)
          throws VisADException, RemoteException {
     addReferences(renderer, new DataReference[] {ref}, null);
   }
  
-  /** signature for addReferences with one DataReference */
+  /** link ref to this Display using the non-default renderer;
+      refs may be a mix of RemoteDataReference & DataReferenceImpl;
+      cannot be called through RemoteDisplay interface, since
+      renderer implements neither Remote nor Serializable;
+      must be called locally;
+      this method may only be invoked after all links to ScalarMaps
+      have been made;
+      the maps array applies only to rendering ref;
+      this is a method of DisplayImpl and RemoteDisplayImpl rather
+      than Display - see Section 6.1 of the Developer's Guide for
+      more information */
   public void addReferences(DataRenderer renderer, DataReference ref,
                             ConstantMap[] constant_maps)
          throws VisADException, RemoteException {
@@ -81,17 +102,31 @@ public class RemoteDisplayImpl extends RemoteActionImpl
                   new ConstantMap[][] {constant_maps});
   }
 
-  /** signature for addReferences without constant_maps */
+  /** link refs to this Display using the non-default renderer;
+      refs may be a mix of RemoteDataReference & DataReferenceImpl;
+      cannot be called through RemoteDisplay interface, since
+      renderer implements neither Remote nor Serializable;
+      must be called locally;
+      this method may only be invoked after all links to ScalarMaps
+      have been made; this is a method of DisplayImpl and
+      RemoteDisplayImpl rather than Display - see Section 6.1 of the
+      Developer's Guide for more information */
   public void addReferences(DataRenderer renderer, DataReference[] refs)
          throws VisADException, RemoteException {
     addReferences(renderer, refs, null);
   }
 
-  /** create links to DataReference;
+  /** link refs to this Display using the non-default renderer;
       refs may be a mix of RemoteDataReference & DataReferenceImpl;
       cannot be called through RemoteDisplay interface, since
       renderer implements neither Remote nor Serializable;
-      must be called locally */
+      must be called locally;
+      this method may only be invoked after all links to ScalarMaps
+      have been made;
+      the maps[i] array applies only to rendering refs[i];
+      this is a method of DisplayImpl and RemoteDisplayImpl rather
+      than Display - see Section 6.1 of the Developer's Guide for
+      more information */
   public void addReferences(DataRenderer renderer, DataReference[] refs,
          ConstantMap[][] constant_maps) throws VisADException, RemoteException {
     if (AdaptedAction == null) {

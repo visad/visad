@@ -45,6 +45,8 @@ public class DefaultRendererJ3D extends RendererJ3D {
 
   DataDisplayLink link;
 
+  /** this is the default DataRenderer used by the addReference method
+      for DisplayImplJ3D */
   public DefaultRendererJ3D () {
     super();
   }
