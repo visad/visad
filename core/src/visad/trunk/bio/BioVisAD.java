@@ -269,7 +269,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
             JOptionPane.ERROR_MESSAGE);
           return;
         }
-        horiz.setSeries(f);
+        sm.setSeries(f);
       }
     });
   }

@@ -81,11 +81,7 @@ public class ImageStackWidget extends BioStepWidget
     if (control == null) setEnabled(false);
     else {
       setEnabled(true);
-      try {
-        Set set = control.getSet();
-        if (set != null) max = set.getLength();
-      }
-      catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
+      if (smap != null) max = (int) smap.getRange()[1] + 1;
       cur = control.getCurrent() + 1;
       if (cur < 1) cur = 1;
       else if (cur > max) cur = max;

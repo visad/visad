@@ -28,6 +28,7 @@ package visad.bio;
 
 import java.io.File;
 import java.rmi.RemoteException;
+import javax.swing.JOptionPane;
 import visad.*;
 import visad.data.DefaultFamily;
 import visad.util.DualRes;
@@ -53,7 +54,7 @@ public class SliceManager {
   // -- MEMORY ALLOCATION CONSTANTS --
 
   /** Number of megabytes reserved for objects apart from image data. */
-  private static final int RESERVED = 20;
+  private static final int RESERVED = 24;
 
   /** Number of bytes in a megabyte. */
   private static final int MEGA = 1024 * 1024;
@@ -106,6 +107,10 @@ public class SliceManager {
   /** Loader for opening data series. */
   private final DefaultFamily loader = new DefaultFamily("bio_loader");
 
+  /** List of files containing current data series. */
+  private File[] files;
+
+
 
   // -- CONSTRUCTORS --
 
@@ -144,12 +149,23 @@ public class SliceManager {
 
   /** Sets the currently displayed timestep index. */
   public void setIndex(int index) {
-    // CTR - TODO - called by FileSeriesWidget
+    if (files == null) return;
+    setFile(index, false);
+    Measurement[] m = bio.mm.lists[index].getMeasurements();
+    bio.mm.pool2.set(m);
+    bio.mm.pool3.set(m);
   }
 
   /** Sets the currently displayed image slice. */
   public void setSlice(int slice) {
     // CTR - TODO - called by ImageStackWidget
+  }
+
+  /** Links the data series to the given list of files. */
+  public void setSeries(File[] files) {
+    this.files = files;
+    setFile(0, true);
+    bio.horiz.updateSlider(files == null ? 0 : files.length);
   }
 
   /** Sets the displays to use the image stack timestep from the given file. */
@@ -291,7 +307,6 @@ public class SliceManager {
           bio.display2.addMap(x_map2);
           bio.display2.addMap(y_map2);
           bio.display2.addMap(anim_map);
-          bio.vert.setMap(anim_map);
           bio.display2.addMap(r_map2);
           bio.display2.addMap(g_map2);
           bio.display2.addMap(b_map2);
@@ -385,6 +400,7 @@ public class SliceManager {
             b_map3.setRange(0, 255);
           }
 
+          bio.vert.setMap(anim_map);
           bio.toolView.doColorTable();
 
           // initialize measurement list array
@@ -450,6 +466,27 @@ public class SliceManager {
       }
     }
     return field;
+  }
+
+  /** Sets the given file as the current one. */
+  private void setFile(int curFile, boolean initialize) {
+    bio.setWaitCursor(true);
+    try {
+      if (initialize) init(files, 0);
+      else {
+        boolean success = setData(files[curFile]);
+        if (!success) {
+          bio.setWaitCursor(false);
+          JOptionPane.showMessageDialog(bio,
+            files[curFile].getName() + " does not contain an image stack",
+            "Cannot load file", JOptionPane.ERROR_MESSAGE);
+          return;
+        }
+      }
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+    bio.setWaitCursor(false);
   }
 
 }
