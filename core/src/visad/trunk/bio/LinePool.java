@@ -206,14 +206,14 @@ public class LinePool implements DisplayListener {
       // measurement is a point
       expand(ptUsed + 1);
       MeasurePoint point = (MeasurePoint) points.elementAt(ptUsed);
-      point.setMeasurement(m);
+      point.setMeasurement(m, slice);
       ptUsed++;
     }
     else {
       // measurement is a line
       expand(lnUsed + 1);
       MeasureLine line = (MeasureLine) lines.elementAt(lnUsed);
-      line.setMeasurement(m);
+      line.setMeasurement(m, slice);
       lnUsed++;
     }
   }

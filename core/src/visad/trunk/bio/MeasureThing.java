@@ -204,7 +204,7 @@ public abstract class MeasureThing {
       System.err.println("MeasureThing.setValues: invalid dimension");
       return;
     }
-    for (int i=0; i<len; i++) {
+    for (int i=0; i<dim; i++) {
       if (vals[i].length != len) {
         System.err.println("MeasureThing.setValues: invalid length");
         return;
