@@ -28,12 +28,14 @@ package visad;
 
 import java.io.*;
 
+
 /**
    Gridded3DSet represents a finite set of samples of R^3.<P>
 */
 public class Gridded3DSet extends GriddedSet {
 
   int LengthX, LengthY, LengthZ;
+
   float LowX, HiX, LowY, HiY, LowZ, HiZ;
 
   /** a 3-D set whose topology is a lengthX x lengthY x lengthZ
@@ -124,17 +126,18 @@ public class Gridded3DSet extends GriddedSet {
               *(t110[2]-t100[2])  ) > 0;
 
       if (test) {
+          float[] v000 = new float[3];
+          float[] v100 = new float[3];
+          float[] v010 = new float[3];
+          float[] v001 = new float[3];
+          float[] v110 = new float[3];
+          float[] v101 = new float[3];
+          float[] v011 = new float[3];
+          float[] v111 = new float[3];
+
         for (int k=0; k<LengthZ-1; k++) {
           for (int j=0; j<LengthY-1; j++) {
             for (int i=0; i<LengthX-1; i++) {
-              float[] v000 = new float[3];
-              float[] v100 = new float[3];
-              float[] v010 = new float[3];
-              float[] v001 = new float[3];
-              float[] v110 = new float[3];
-              float[] v101 = new float[3];
-              float[] v011 = new float[3];
-              float[] v111 = new float[3];
               for (int v=0; v<3; v++) {
                 int zadd = LengthY*LengthX;
                 int base = k*zadd + j*LengthX + i;
@@ -312,7 +315,7 @@ public class Gridded3DSet extends GriddedSet {
     return lens;
   }
 
-  /** convert an array of 1-D indices to an array of values in R^DomainDimension */
+
   public float[][] indexToValue(int[] index) throws VisADException {
     int length = index.length;
     if (Samples == null) {
@@ -483,6 +486,16 @@ public class Gridded3DSet extends GriddedSet {
     int length = Math.min(grid[0].length, grid[1].length);
     length = Math.min(length, grid[2].length);
     float[][] value = new float[3][length];
+
+    float[] A = new float[3];
+    float[] B = new float[3];
+    float[] C = new float[3];
+    float[] D = new float[3];
+    float[] E = new float[3];
+    float[] F = new float[3];
+    float[] G = new float[3];
+    float[] H = new float[3];
+
     for (int i=0; i<length; i++) {
       // let gx, gy, and gz be the current grid values
       float gx = grid[0][i];
@@ -535,14 +548,6 @@ public class Gridded3DSet extends GriddedSet {
         int fi = base+1;               // 1, 0, 0
         int gi = base+LengthX+1;       // 1, 1, 0
         int hi = base+LengthX;         // 0, 1, 0
-        float[] A = new float[3];
-        float[] B = new float[3];
-        float[] C = new float[3];
-        float[] D = new float[3];
-        float[] E = new float[3];
-        float[] F = new float[3];
-        float[] G = new float[3];
-        float[] H = new float[3];
         if (evencube) {
           A[0] = Samples[0][ai];
           A[1] = Samples[1][ai];
@@ -688,9 +693,11 @@ public class Gridded3DSet extends GriddedSet {
   private int gy = -1;
   private int gz = -1;
 
+
   /** transform an array of values in R^DomainDimension to an array
       of non-integer grid coordinates */
   public float[][] valueToGrid(float[][] value) throws VisADException {
+
     if (value.length < DomainDimension) {
       throw new SetException("Gridded3DSet.valueToGrid: value dimension " +
                              value.length + " not equal to Domain dimension " +
@@ -723,6 +730,26 @@ public class Gridded3DSet extends GriddedSet {
       gz = (LengthZ-1)/2;
     }
 
+
+    float[] A = new float[3];
+    float[] B = new float[3];
+    float[] C = new float[3];
+    float[] D = new float[3];
+    float[] E = new float[3];
+    float[] F = new float[3];
+    float[] G = new float[3];
+    float[] H = new float[3];
+    float[] M = new float[3];
+    float[] N = new float[3];
+    float[] O = new float[3];
+    float[] P = new float[3];
+    float[] Q = new float[3];
+    float[] X = new float[3];
+    float[] Y = new float[3];
+
+
+
+
     for (int i=0; i<length; i++) {
       // a flag indicating whether point is off the grid
       boolean offgrid = false;
@@ -750,6 +777,8 @@ public class Gridded3DSet extends GriddedSet {
       int tetnum = 5;  // Tetrahedron number in which to start search
       // if the iteration loop fails, the result should be NaN
       grid[0][i] = grid[1][i] = grid[2][i] = Float.NaN;
+
+
       for (int itnum=0; itnum<2*(LengthX+LengthY+LengthZ); itnum++) {
         // determine tetrahedralization type
         boolean evencube = ((gx+gy+gz) % 2 == 0);
@@ -765,14 +794,9 @@ public class Gridded3DSet extends GriddedSet {
         int fi = base+1;               // 1, 0, 0
         int gi = base+LengthX+1;       // 1, 1, 0
         int hi = base+LengthX;         // 0, 1, 0
-        float[] A = new float[3];
-        float[] B = new float[3];
-        float[] C = new float[3];
-        float[] D = new float[3];
-        float[] E = new float[3];
-        float[] F = new float[3];
-        float[] G = new float[3];
-        float[] H = new float[3];
+
+
+
         if (evencube) {
           A[0] = Samples[0][ai];
           A[1] = Samples[1][ai];
@@ -880,12 +904,6 @@ public class Gridded3DSet extends GriddedSet {
           if (  ( (gx == ogx) && (gy == ogy) && (gz == ogz) )
                 || offgrid) {
             // solve point
-            float[] M = new float[3];
-            float[] N = new float[3];
-            float[] O = new float[3];
-            float[] P = new float[3];
-            float[] X = new float[3];
-            float[] Y = new float[3];
             for (int j=0; j<3; j++) {
               M[j] = (F[j]-E[j])*(A[(j+1)%3]-E[(j+1)%3])
                    - (F[(j+1)%3]-E[(j+1)%3])*(A[j]-E[j]);
@@ -1031,12 +1049,6 @@ public class Gridded3DSet extends GriddedSet {
           if (  ( (gx == ogx) && (gy == ogy) && (gz == ogz) )
                 || offgrid) {
             // solve point
-            float[] M = new float[3];
-            float[] N = new float[3];
-            float[] O = new float[3];
-            float[] P = new float[3];
-            float[] X = new float[3];
-            float[] Y = new float[3];
             for (int j=0; j<3; j++) {
               M[j] = (A[j]-B[j])*(F[(j+1)%3]-B[(j+1)%3])
                    - (A[(j+1)%3]-B[(j+1)%3])*(F[j]-B[j]);
@@ -1182,12 +1194,6 @@ public class Gridded3DSet extends GriddedSet {
           if (  ( (gx == ogx) && (gy == ogy) && (gz == ogz) )
                 || offgrid) {
             // solve point
-            float[] M = new float[3];
-            float[] N = new float[3];
-            float[] O = new float[3];
-            float[] P = new float[3];
-            float[] X = new float[3];
-            float[] Y = new float[3];
             for (int j=0; j<3; j++) {
               M[j] = (C[j]-D[j])*(H[(j+1)%3]-D[(j+1)%3])
                    - (C[(j+1)%3]-D[(j+1)%3])*(H[j]-D[j]);
@@ -1333,12 +1339,6 @@ public class Gridded3DSet extends GriddedSet {
           if (  ( (gx == ogx) && (gy == ogy) && (gz == ogz) )
                 || offgrid) {
             // solve point
-            float[] M = new float[3];
-            float[] N = new float[3];
-            float[] O = new float[3];
-            float[] P = new float[3];
-            float[] X = new float[3];
-            float[] Y = new float[3];
             for (int j=0; j<3; j++) {
               M[j] = (H[j]-G[j])*(C[(j+1)%3]-G[(j+1)%3])
                    - (H[(j+1)%3]-G[(j+1)%3])*(C[j]-G[j]);
@@ -1535,16 +1535,11 @@ public class Gridded3DSet extends GriddedSet {
           // If all tests pass then this is the correct tetrahedron
           if ( (gx == ogx) && (gy == ogy) && (gz == ogz) && (tetnum == 5) ) {
             // solve point
-            float[] Q = new float[3];
             for (int j=0; j<3; j++) {
               Q[j] = (H[j] + F[j] + A[j] - C[j])/2;
             }
-            float[] M = new float[3];
-            float[] N = new float[3];
-            float[] O = new float[3];
-            float[] P = new float[3];
-            float[] X = new float[3];
-            float[] Y = new float[3];
+
+
             for (int j=0; j<3; j++) {
               M[j] = (F[j]-Q[j])*(A[(j+1)%3]-Q[(j+1)%3])
                    - (F[(j+1)%3]-Q[(j+1)%3])*(A[j]-Q[j]);
@@ -1641,6 +1636,11 @@ public class Gridded3DSet extends GriddedSet {
           }
         }
       }
+
+
+
+
+
       // allow estimations up to 0.5 boxes outside of defined samples
       if ( (grid[0][i] <= -0.5) || (grid[0][i] >= LengthX-0.5)
         || (grid[1][i] <= -0.5) || (grid[1][i] >= LengthY-0.5)
@@ -1648,6 +1648,10 @@ public class Gridded3DSet extends GriddedSet {
         grid[0][i] = grid[1][i] = grid[2][i] = Float.NaN;
       }
     }
+
+
+
+
     return grid;
   }
 
