@@ -473,12 +473,7 @@ public final class OffsetUnit
      */
     public boolean isConvertible(Unit unit)
     {
-      return
-	unit == null
-	  ? false
-	  : isTime()
-	    ? (unit instanceof OffsetUnit && ((OffsetUnit)unit).isTime()) 
-	    : scaledUnit.isConvertible(unit);
+      return scaledUnit.isConvertible(unit);
     }
 
     /**
