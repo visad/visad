@@ -512,8 +512,8 @@ visad.RemoteCellImpl \
 visad.RemoteDataImpl \
 visad.RemoteDataReferenceImpl \
 visad.RemoteDisplayImpl \
-visad.RemoteDisplayMonitorImpl \
-visad.RemoteDisplaySyncImpl \
+visad.collab.RemoteDisplayMonitorImpl \
+visad.collab.RemoteDisplaySyncImpl \
 visad.RemoteFieldImpl \
 visad.RemoteFunctionImpl \
 visad.RemoteReferenceLinkImpl \
