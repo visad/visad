@@ -167,7 +167,7 @@ public class AddePointDataReader
                 //
                 //  read Parameter names into paramNames
                 //
-                dataInputStream.read(bParamNames, 0, numParamBytes);
+                dataInputStream.readFully(bParamNames, 0, numParamBytes);
                 String sParamNames = new String(bParamNames);
                 if (debug) System.out.println(" sParamNames = " + sParamNames);
                 for (int i = 0; i < numParams; i++)
@@ -189,7 +189,7 @@ public class AddePointDataReader
             units = new String[numUnitBytes/4];
             if (debug) System.out.println("numUnitBytes = " + numUnitBytes);
             byte[] bUnitNames = new byte[numUnitBytes];
-            dataInputStream.read(bUnitNames, 0, numUnitBytes);
+            dataInputStream.readFully(bUnitNames, 0, numUnitBytes);
             String sUnitNames = new String(bUnitNames);
             if (debug) System.out.println("sUnitNames = " + sUnitNames);
             for (int i = 0; i < numUnitBytes/4; i++)
@@ -440,7 +440,7 @@ public class AddePointDataReader
     public static void main (String[] args)
         throws Exception
     {
-        System.out.println("\nDataset Names:");
+        System.out.println("\nData Requested:");
 
         String request = 
             (args.length == 0)

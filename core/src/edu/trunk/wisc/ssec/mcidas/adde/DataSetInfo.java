@@ -28,7 +28,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Hashtable;
@@ -86,9 +85,7 @@ public class DataSetInfo
         }
     }
 
-    private BufferedReader inputStream;   // input stream
     private int status=0;                 // read status
-    private URLConnection urlc;           // URL connection
     private char[] data;                  // data returned from server
     private Hashtable descriptorTable;
     private boolean debug = false;        // debug
@@ -111,13 +108,16 @@ public class DataSetInfo
         throws AddeURLException
     {
    
-        URL url;
+        URLConnection urlc;           
+        BufferedReader reader;
         try 
         {
-            url = new URL(request);
+            URL url = new URL(request);
             urlc = url.openConnection();
-            InputStream is = urlc.getInputStream();
-            inputStream = new BufferedReader(new InputStreamReader(is));
+            reader = 
+                new BufferedReader(
+                    new InputStreamReader(
+                        urlc.getInputStream()));
         }
         catch (AddeURLException ae) 
         {
@@ -143,7 +143,7 @@ public class DataSetInfo
                 while (start < numBytes)
                 {
                     int numRead = 
-                        inputStream.read(data, start, (numBytes - start));
+                        reader.read(data, start, (numBytes - start));
                     if (debug) System.out.println("bytes read = " + numRead);
                     start += numRead;
                 }

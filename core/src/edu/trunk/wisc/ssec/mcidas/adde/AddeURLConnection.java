@@ -431,7 +431,7 @@ public class AddeURLConnection extends URLConnection
     // if server returns zero, there was an error so read trailer and exit
     if (numBytes == 0) {
       byte [] trailer = new byte[TRAILER_SIZE];
-      dis.read(trailer, 0, trailer.length);
+      dis.readFully(trailer, 0, trailer.length);
       String errMsg = new String(trailer, ERRMSG_OFFS, ERRMSG_SIZE);
       throw new AddeURLException(errMsg);
     }
