@@ -62,7 +62,7 @@ public class ShadowScalarType extends ShadowType {
 
   /*
    * Comparator for sorting ScalarMap-s by increasing generality of their
-   * ScalarTypes.
+   * ScalarTypes (i.e. by decreasing ScalarType depth).
    */
   private static final Comparator comparator =
     new Comparator() {
@@ -93,63 +93,85 @@ public class ShadowScalarType extends ShadowType {
      * When examining the ScalarMap-s, favor mappings of more specific 
      * ScalarType-s over more general ones.
      */
-    TreeSet mapSet = new TreeSet(comparator);
+    TreeSet mapSet = new TreeSet(comparator);  // sorted by decreasing depth
     mapSet.addAll(display.getMapVector());
     Iterator maps = mapSet.iterator();
+    int spatialLevel = -1;  // RealType depth of first spatial mapping
 
     // determine which ScalarMap-s apply to this ShadowScalarType
     while(maps.hasNext()) {
       ScalarMap map = (ScalarMap) maps.next();
+      ScalarType mapScalarType = map.getScalar();
 /*
-System.out.println("map: " + map.getScalar().getName() + " -> " +
+System.out.println("map: " + mapScalarType.getName() + " -> " +
                    map.getDisplayScalar().getName());
 */
-      if (((ScalarType)Type).isTypeOf(map.getScalar())) {
+      if (((ScalarType)Type).isTypeOf(mapScalarType)) {
 /*
 System.out.println("Type = " + ((ScalarType) Type).getName() +
                    " DisplayIndex = " + map.getDisplayScalarIndex());
 */
-        Index = map.getScalarIndex();
-        SelectedMapVector.addElement(map);
-        Link.addSelectedMapVector(map);
-        DisplayIndices[map.getDisplayScalarIndex()]++;
-        ValueIndices[map.getValueIndex()]++;
+	if (Index == -1)
+	  Index = map.getScalarIndex();
         // could test here for any DisplayIndices[.] > 1
         // i.e., multiple maps between same ScalarType and DisplayRealType
         // actually tested in DisplayImpl.addMap
         //
-        // compute DisplaySpatialTuple and DisplaySpatialTupleIndex
-        DisplayTupleType tuple =
-          (DisplayTupleType) map.getDisplayScalar().getTuple();
-        if (tuple != null &&
-            !tuple.equals(Display.DisplaySpatialCartesianTuple)) {
-          CoordinateSystem coord_sys = tuple.getCoordinateSystem();
-          if (coord_sys == null ||
-              !coord_sys.getReference().equals(
-               Display.DisplaySpatialCartesianTuple)) {
-            tuple = null; // tuple not spatial, no worries
-          }
-        }
-        if (tuple != null) {
-          spatial_count++;
-          if (DisplaySpatialTuple != null) {
-            if (!tuple.equals(DisplaySpatialTuple)) {
-              // this mapped to multiple spatial DisplayTupleType-s
-              ScalarType real = (ScalarType) Type;
-              throw new BadMappingException(real.getName() +
-                         " mapped to multiple spatial DisplayTupleType-s: " +
-                                            "ShadowScalarType");
-            }
-          }
-          else { // DisplaySpatialTuple == null
-            DisplaySpatialTuple = tuple;
-          }
-          DisplaySpatialTupleIndex[DisplaySpatialTupleIndexIndex] =
-            map.getDisplayScalar().getTupleIndex();
-          DisplaySpatialTupleIndexIndex++;
-        } // end if (tuple != null)
-      } // end if (Type.isTypeOf(map.Scalar.equals)) {
-    } // end while(maps.hasNext()) {
+	// compute DisplaySpatialTuple and DisplaySpatialTupleIndex
+	DisplayTupleType tuple =
+	  (DisplayTupleType) map.getDisplayScalar().getTuple();
+	if (tuple != null &&
+	    !tuple.equals(Display.DisplaySpatialCartesianTuple)) {
+	  CoordinateSystem coord_sys = tuple.getCoordinateSystem();
+	  if (coord_sys == null ||
+	      !coord_sys.getReference().equals(
+	       Display.DisplaySpatialCartesianTuple)) {
+	    tuple = null; // tuple not spatial, no worries
+	  }
+	}
+	if (tuple == null) {
+	  /*
+	   * The ScalarType of the ScalarMap maps to a non-spatial
+	   * DisplayRealType.
+	   */
+	  SelectedMapVector.addElement(map);
+	  Link.addSelectedMapVector(map);
+	  DisplayIndices[map.getDisplayScalarIndex()]++;
+	  ValueIndices[map.getValueIndex()]++;
+	}
+	else {
+	  int level = mapScalarType.getLevel();
+	  if (spatialLevel == -1)
+	    spatialLevel = level;
+	  if (level >= spatialLevel) {
+	    /*
+	     * The ScalarType of the ScalarMap maps to a spatial DisplayRealType
+	     * and is a most-specific ScalarType to do so.
+	     */
+	    spatial_count++;
+	    if (DisplaySpatialTuple != null) {
+	      if (!tuple.equals(DisplaySpatialTuple)) {
+		// this mapped to multiple spatial DisplayTupleType-s
+		ScalarType real = (ScalarType) Type;
+		throw new BadMappingException(real.getName() +
+			   " mapped to multiple spatial DisplayTupleType-s: " +
+					      "ShadowScalarType");
+	      }
+	    }
+	    else { // DisplaySpatialTuple == null
+	      DisplaySpatialTuple = tuple;
+	    }
+	    DisplaySpatialTupleIndex[DisplaySpatialTupleIndexIndex] =
+	      map.getDisplayScalar().getTupleIndex();
+	    DisplaySpatialTupleIndexIndex++;
+	    SelectedMapVector.addElement(map);
+	    Link.addSelectedMapVector(map);
+	    DisplayIndices[map.getDisplayScalarIndex()]++;
+	    ValueIndices[map.getValueIndex()]++;
+	  }
+	} // end if (tuple != null)
+     } // end if (((ScalarType)Type).isTypeOf(mapScalarType))
+    } // end while(maps.hasNext())
     MultipleSpatialDisplayScalar = (spatial_count > 1);
     MultipleDisplayScalar = (SelectedMapVector.size() > 1);
     MappedDisplayScalar = (SelectedMapVector.size() > 0);
