@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Plain.java,v 1.21 2001-08-28 17:07:45 steve Exp $
+ * $Id: Plain.java,v 1.22 2001-08-28 17:13:42 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -184,7 +184,10 @@ Plain
 
 
     /**
-     * Open a URL.
+     * Returns a VisAD data object corresponding to a URL.  The "query"
+     * component of the URL may comprise a comma-separated list of netCDF
+     * variable names.  The returned VisAD data object will contain only those
+     * variables in the netCDF dataset that are also named in the list.
      *
      * @param url	The URL of the netCDF dataset.
      * @return		A VisAD object corresponding to the netCDF datset.
