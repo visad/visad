@@ -1789,6 +1789,7 @@ public class AddeURLConnection extends URLConnection
         String justTheParametersString = "";
         String justTheSelectString = "";
         String sBinaryData = "";
+        boolean posInDescriptor = false;
         // in hard coded notation, the binaryData for "param=t" would look like:
         // binaryData = new byte[4];
         // binaryData[0] = (byte) 'T';
@@ -1811,6 +1812,12 @@ public class AddeURLConnection extends URLConnection
             {
                 descrString = 
                     testString.substring(testString.indexOf("=") + 1);
+                int pos = descrString.indexOf(".");
+                if (pos >=0) {
+                    posString = "pos=" + descrString.substring(pos+1);
+                    descrString = descrString.substring(0,pos);
+                    posInDescriptor = true;
+                }
             }
             else
             // in McIDAS Clients the parameter request string contains param=
@@ -1861,11 +1868,16 @@ public class AddeURLConnection extends URLConnection
                 traceString = testString;
             }
             else
-            if (testString.startsWith("pos"))       
+            if (testString.startsWith("pos") && !posInDescriptor)       
             {
                 posString = testString;
             }
         } 
+        // fudge the max string in case ALL is specified.  Some servers
+        // don't handle all
+        if (maxString.trim().equalsIgnoreCase("max=all")) {
+            maxString="max=99999";
+        }
 
         // now create command string
         /*
