@@ -28,6 +28,7 @@ package visad.data.tiff;
 
 import java.awt.Image;
 import java.awt.image.*;
+import java.lang.reflect.*;
 import java.io.*;
 import java.net.URL;
 import java.rmi.RemoteException;
@@ -191,12 +192,49 @@ public class TiffForm extends Form
         if (is == null) {
           r.exec("w = ips.getWidth()");
           r.exec("h = ips.getHeight()");
-          r.exec("cm = ips.getColorMode()");
+          r.exec("cm = ips.getColorModel()");
           r.exec("is = new ImageStack(w, h, cm)");
           is = r.getVar("is");
         }
         r.setVar("si", "" + i);
-        r.exec("is.addSlice(si, ips)");
+
+        // ugly, ugly, UGLY!
+        //
+        // There are two methods:
+        //  - ImageStack.addSlice(String, Object)
+        //  - ImageStack.addSlice(String, ImageProcessor)
+        //
+        // But since addSlice(String, Object) is declared first,
+        // ReflectedUniverse always matches it first, and thus it is
+        // impossible to call addSlice(String, ImageProcessor).
+        //
+        // We must fall back to basic Java reflection to accomplish this...
+
+        //r.exec("is.addSlice(si, ips)");
+        try {
+          Class imageStack = Class.forName("ij.ImageStack");
+          Class imageProcessor = Class.forName("ij.process.ImageProcessor");
+          Method addSlice = imageStack.getMethod("addSlice",
+            new Class[] {String.class, imageProcessor});
+          addSlice.invoke(is, new Object[] {"" + i, r.getVar("ips")});
+        }
+        catch (ClassNotFoundException exc) {
+          throw new BadFormException(
+            "Reflection exception: class not found: " + exc.getMessage());
+        }
+        catch (NoSuchMethodException exc) {
+          throw new BadFormException(
+            "Reflection exception: no such method: " + exc.getMessage());
+        }
+        catch (IllegalAccessException exc) {
+          throw new BadFormException(
+            "Reflection exception: illegal access: " + exc.getMessage());
+        }
+        catch (InvocationTargetException exc) {
+          throw new BadFormException(
+            "Reflection exception: " + exc.getTargetException().getMessage());
+        }
+
         percent = (double) (i + 1) / fields.length;
       }
       r.exec("image = new ImagePlus(id, is)");
@@ -338,7 +376,7 @@ public class TiffForm extends Form
    * to an ImageJ ImageProcessor object.
    */
   private Object extractImage(FlatField field) throws VisADException {
-    Gridded2DSet set = (Gridded2DSet) field.getDomainSet();
+    GriddedSet set = (GriddedSet) field.getDomainSet();
     int[] wh = set.getLengths();
     int w = wh[0];
     int h = wh[1];
