@@ -202,32 +202,46 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
    * Updates image color table to match the
    * given grayscale and brightness values.
    */
-  public void setImageColors(boolean grayscale, int brightness) {
-    float[][] table = grayscale ?
-      ColorControl.initTableGreyWedge(new float[3][256]) :
-      ColorControl.initTableVis5D(new float[3][256]);
-
-    // apply brightness (actually gamma correction)
-    double gamma = 1.0 -
-      (1.0 / NORMAL_BRIGHTNESS) * (brightness - NORMAL_BRIGHTNESS);
-    for (int i=0; i<256; i++) {
-      table[0][i] = (float) Math.pow(table[0][i], gamma);
-      table[1][i] = (float) Math.pow(table[1][i], gamma);
-      table[2][i] = (float) Math.pow(table[2][i], gamma);
-    }
-
+  public void setImageColors(int brightness,
+    RealType red, RealType green, RealType blue)
+  {
     // get color controls
-    ColorControl cc2 = (ColorControl) display2.getControl(ColorControl.class);
-    ColorControl cc3 = display3 == null ? null :
-      (ColorControl) display3.getControl(ColorControl.class);
+    ColorControl[] cc2 = sm.getColorControls2D();
+    if (cc2 == null) return;
+    ColorControl[] cc3 = sm.getColorControls3D();
 
-    // set color tables
-    try {
-      if (cc2 != null) cc2.setTable(table);
-      if (cc3 != null) cc3.setTable(table);
+    // initialize each color table
+    for (int j=0; j<cc2.length; j++) {
+      float[][] table = new float[3][256];
+
+      // initialize table with appropriate colors
+      if (sm.rtypes[j].equals(red)) {
+        for (int i=0; i<256; i++) table[0][i] = i / 255.0f;
+      }
+      if (sm.rtypes[j].equals(green)) {
+        for (int i=0; i<256; i++) table[1][i] = i / 255.0f;
+      }
+      if (sm.rtypes[j].equals(blue)) {
+        for (int i=0; i<256; i++) table[2][i] = i / 255.0f;
+      }
+
+      // apply brightness (gamma correction)
+      double gamma = 1.0 -
+        (1.0 / NORMAL_BRIGHTNESS) * (brightness - NORMAL_BRIGHTNESS);
+      for (int i=0; i<256; i++) {
+        table[0][i] = (float) Math.pow(table[0][i], gamma);
+        table[1][i] = (float) Math.pow(table[1][i], gamma);
+        table[2][i] = (float) Math.pow(table[2][i], gamma);
+      }
+
+      // set color table
+      try {
+        cc2[j].setTable(table);
+        if (cc3 != null) cc3[j].setTable(table);
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
     }
-    catch (VisADException exc) { exc.printStackTrace(); }
-    catch (RemoteException exc) { exc.printStackTrace(); }
   }
 
 

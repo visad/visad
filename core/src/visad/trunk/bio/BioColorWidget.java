@@ -1,5 +1,5 @@
 //
-// BioColorMapWidget.java
+// BioColorWidget.java
 //
 
 /*
@@ -32,39 +32,22 @@ import javax.swing.*;
 import visad.*;
 
 /**
- * BioColorMapWidget is a widget for controlling mappings
+ * BioColorWidget is a widget for controlling mappings
  * from range scalars to color scalars.
  */
-public class BioColorMapWidget extends JPanel implements ItemListener {
+public class BioColorWidget extends JPanel {
 
   // -- CONSTANTS --
 
   public static final int RED = 0;
   public static final int GREEN = 1;
   public static final int BLUE = 2;
-  public static final int RGB = 3;
-
-  public static final int CYAN = 4;
-  public static final int MAGENTA = 5;
-  public static final int YELLOW = 6;
-  public static final int CMY = 7;
-
-  public static final int HUE = 8;
-  public static final int SATURATION = 9;
-  public static final int VALUE = 10;
-  public static final int HSV = 11;
 
   private static final DisplayRealType[] COLOR_TYPES = {
-    Display.Red, Display.Green, Display.Blue, Display.RGB,
-    Display.Cyan, Display.Magenta, Display.Yellow, Display.CMY,
-    Display.Hue, Display.Saturation, Display.Value, Display.HSV
+    Display.Red, Display.Green, Display.Blue
   };
 
-  private static final String[] COLOR_NAMES = {
-    "Red", "Green", "Blue", "RGB",
-    "Cyan", "Magenta", "Yellow", "CMY",
-    "Hue", "Saturation", "Value", "HSV"
-  };
+  private static final String[] COLOR_NAMES = {"Red", "Green", "Blue"};
 
 
   // -- GUI COMPONENTS --
@@ -77,13 +60,12 @@ public class BioColorMapWidget extends JPanel implements ItemListener {
 
   private BioVisAD bio;
   private DisplayRealType type;
-  private boolean changed;
 
 
   // -- CONSTRUCTOR --
 
   /** Constructs a new animation widget. */
-  public BioColorMapWidget(BioVisAD biovis, int colorType) {
+  public BioColorWidget(BioVisAD biovis, int colorType) {
     bio = biovis;
     type = COLOR_TYPES[colorType];
     color = new JLabel(COLOR_NAMES[colorType] + ":") {
@@ -94,7 +76,6 @@ public class BioColorMapWidget extends JPanel implements ItemListener {
     };
     scalars = new JComboBox();
     scalars.addItem("None");
-    scalars.addItemListener(this);
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
     add(color);
     add(scalars);
@@ -109,11 +90,12 @@ public class BioColorMapWidget extends JPanel implements ItemListener {
     return o instanceof RealType ? (RealType) o : null;
   }
 
-  /** Gets whether the widget has changed since last method call. */
-  public boolean hasChanged() {
-    boolean b = changed;
-    changed = false;
-    return b;
+  /** Adds an item listener to this widget. */
+  public void addItemListener(ItemListener l) { scalars.addItemListener(l); }
+
+  /** Removes an item listener from this widget. */
+  public void removeItemListener(ItemListener l) {
+    scalars.removeItemListener(l);
   }
 
   /** Enables or disables this widget. */
@@ -122,57 +104,38 @@ public class BioColorMapWidget extends JPanel implements ItemListener {
     scalars.setEnabled(enabled);
   }
 
-  /** Refreshes the combo box to contain the current range types. */
-  public void refreshTypes() {
-    scalars.removeItemListener(this);
+  /** Chooses most desirable range type for this widget's color. */
+  public void guessType() {
     RealType[] rt = bio.sm.rtypes;
     for (int i=0; i<rt.length; i++) scalars.addItem(rt[i]);
 
     // Autodetect types
 
     // Case 1: rtypes.length == 1
-    //   RGB, CMY, & HSV -> rtypes[0]
-    //   Other           -> None
+    //   R -> rtypes[0]
+    //   G -> rtypes[0]
+    //   B -> rtypes[0]
 
-    if (rt.length == 1) {
-      if (type.equals(Display.RGB) || type.equals(Display.CMY) ||
-        type.equals(Display.HSV))
-      {
-        scalars.setSelectedItem(rt[0]);
-      }
-      else scalars.setSelectedIndex(0); // None
-    }
+    if (rt.length == 1) scalars.setSelectedItem(rt[0]);
 
-    // Case 2: rtypes.length > 1
-    //   R, C & H -> rtypes[0]
-    //   G, M & S -> rtypes[1]
-    //   B, Y & V -> rtypes[2] (if rtypes.length > 2)
-    //   Other    -> None
+    // Case 2: rtypes.length == 2
+    //   R -> rtypes[0]
+    //   G -> rtypes[1]
+    //   B -> None
+
+    // Case 3: rtypes.length >= 3
+    //   R -> rtypes[0]
+    //   G -> rtypes[1]
+    //   B -> rtypes[2]
 
     else {
-      if (type.equals(Display.Red) || type.equals(Display.Cyan) ||
-        type.equals(Display.Hue))
-      {
-        scalars.setSelectedItem(rt[0]);
-      }
-      else if (type.equals(Display.Green) || type.equals(Display.Magenta) ||
-        type.equals(Display.Saturation))
-      {
-        scalars.setSelectedItem(rt[1]);
-      }
-      else if (type.equals(Display.Blue) || type.equals(Display.Yellow) ||
-        type.equals(Display.Value))
-      {
-        scalars.setSelectedItem(rt.length > 2 ? rt[2] : null);
+      if (type.equals(Display.Red)) scalars.setSelectedItem(rt[0]);
+      else if (type.equals(Display.Green)) scalars.setSelectedItem(rt[1]);
+      else if (type.equals(Display.Blue) && rt.length >= 3) {
+        scalars.setSelectedItem(rt[2]);
       }
       else scalars.setSelectedIndex(0); // None
     }
-    scalars.addItemListener(this);
   }
-
-
-  // -- INTERNAL API METHODS --
-
-  public void itemStateChanged(ItemEvent e) { changed = true; }
 
 }

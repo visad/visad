@@ -67,28 +67,19 @@ public class ViewToolPanel extends ToolPanel {
   private BioAnimWidget anim;
 
   /** Red color map widget. */
-  private BioColorMapWidget red;
+  private BioColorWidget red;
 
   /** Green color map widget. */
-  private BioColorMapWidget green;
+  private BioColorWidget green;
 
   /** Blue color map widget. */
-  private BioColorMapWidget blue;
-
-  /** Composite color map widget. */
-  private BioColorMapWidget rgb;
-
-  /** Toggle for grayscale mode. */
-  private JCheckBox grayscale;
+  private BioColorWidget blue;
 
   /** Label for brightness. */
   private JLabel brightnessLabel;
 
   /** Slider for level of brightness. */
   private JSlider brightness;
-
-  /** Button for applying color map changes. */
-  private JButton applyColors;
 
 
   // -- CONSTRUCTOR --
@@ -177,13 +168,6 @@ public class ViewToolPanel extends ToolPanel {
     controls.add(new Divider());
     controls.add(Box.createVerticalStrut(10));
 
-    // grayscale checkbox
-    grayscale = new JCheckBox("Grayscale", true);
-    grayscale.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) { doColorTable(); }
-    });
-    controls.add(pad(grayscale));
-
     // brightness label
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
@@ -201,38 +185,26 @@ public class ViewToolPanel extends ToolPanel {
     // spacing
     controls.add(Box.createVerticalStrut(5));
 
-    // composite color map widget
-    rgb = new BioColorMapWidget(bio, BioColorMapWidget.RGB);
-    controls.add(pad(rgb));
-
-    // spacing
-    controls.add(Box.createVerticalStrut(5));
-
     // red color map widget
-    red = new BioColorMapWidget(bio, BioColorMapWidget.RED);
+    red = new BioColorWidget(bio, BioColorWidget.RED);
+    red.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) { doColorTable(); }
+    });
     controls.add(pad(red));
 
     // green color map widget
-    green = new BioColorMapWidget(bio, BioColorMapWidget.GREEN);
+    green = new BioColorWidget(bio, BioColorWidget.GREEN);
+    green.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) { doColorTable(); }
+    });
     controls.add(pad(green));
 
     // blue color map widget
-    blue = new BioColorMapWidget(bio, BioColorMapWidget.BLUE);
-    controls.add(pad(blue));
-
-    // spacing
-    controls.add(Box.createVerticalStrut(5));
-
-    // color settings application button
-    JButton applyColors = new JButton("Apply color settings");
-    applyColors.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        boolean changed = red.hasChanged() || green.hasChanged() ||
-          blue.hasChanged() || rgb.hasChanged();
-        if (changed) bio.sm.reconfigureDisplays();
-      }
+    blue = new BioColorWidget(bio, BioColorWidget.BLUE);
+    blue.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) { doColorTable(); }
     });
-    controls.add(pad(applyColors));
+    controls.add(pad(blue));
   }
 
 
@@ -244,7 +216,6 @@ public class ViewToolPanel extends ToolPanel {
     hiRes.setEnabled(enabled && bio.sm.hasThumbnails());
     autoSwitch.setEnabled(enabled && bio.sm.hasThumbnails());
     anim.setEnabled(enabled && bio.sm.hasThumbnails());
-    grayscale.setEnabled(enabled);
     brightnessLabel.setEnabled(enabled);
     brightness.setEnabled(enabled);
   }
@@ -258,37 +229,20 @@ public class ViewToolPanel extends ToolPanel {
 
   // -- INTERNAL API METHODS --
 
-  /** Updates image color table, for grayscale and brightness adjustments. */
+  /** Updates image color table, for brightness and color adjustments. */
   void doColorTable() {
-    bio.setImageColors(grayscale.isSelected(), brightness.getValue());
+    bio.setImageColors(brightness.getValue(),
+      red.getSelectedItem(), green.getSelectedItem(), blue.getSelectedItem());
   }
 
   /** Sets the animation widget's animation control. */
   void setControl(AnimationControl control) { anim.setControl(control); }
 
-  /** Refreshes the color combo boxes to contain the current range types. */
-  void refreshColorWidgets() {
-    red.refreshTypes();
-    green.refreshTypes();
-    blue.refreshTypes();
-    rgb.refreshTypes();
-  }
-
-  /** Gets the current color maps indicated by the color combo boxes. */
-  ScalarMap[] getColorMaps() throws VisADException {
-    RealType[] rt = {
-      red.getSelectedItem(),
-      green.getSelectedItem(),
-      blue.getSelectedItem(),
-      rgb.getSelectedItem()
-    };
-    ScalarMap[] maps = new ScalarMap[rt.length];
-    for (int i=0; i<rt.length; i++) {
-      maps[i] = rt[i] == null ?
-        new ConstantMap(0.0, COLOR_TYPES[i]) :
-        new ScalarMap(rt[i], COLOR_TYPES[i]);
-    }
-    return maps;
+  /** Chooses most desirable range types for color widgets. */
+  void guessTypes() {
+    red.guessType();
+    green.guessType();
+    blue.guessType();
   }
 
 }

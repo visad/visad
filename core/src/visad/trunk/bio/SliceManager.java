@@ -60,7 +60,7 @@ public class SliceManager implements ControlListener {
   private static final int RESERVED = 16;
 
   /** Number of bytes in a megabyte. */
-  private static final int MEGA = 1024 * 1024;
+  private static final int MEGA = 1 << 20;
 
   /** Number of bytes in a single image pixel. */
   private static final int BYTES_PER_PIXEL = 8; // double = 64 bits
@@ -103,6 +103,12 @@ public class SliceManager implements ControlListener {
 
   /** High-resolution field for current timestep and slice number. */
   private FieldImpl field;
+
+  /** List of range component mappings for 2-D display. */
+  private ScalarMap[] rmaps2;
+
+  /** List of range component mappings for 3-D display. */
+  private ScalarMap[] rmaps3;
 
 
   // -- DATA REFERENCES --
@@ -276,20 +282,6 @@ public class SliceManager implements ControlListener {
     if (this.slice != slice) bio.vert.setValue(slice + 1);
   }
 
-  /** Clears the display, then reapplies mappings and references. */
-  void reconfigureDisplays() {
-    try {
-      bio.display2.disableAction();
-      if (bio.display3 != null) bio.display3.disableAction();
-      bio.sm.clearDisplays();
-      bio.sm.configureDisplays();
-      bio.display2.enableAction();
-      if (bio.display3 != null) bio.display3.enableAction();
-    }
-    catch (VisADException exc) { exc.printStackTrace(); }
-    catch (RemoteException exc) { exc.printStackTrace(); }
-  }
-
   /** Ensures slices are set up properly for animation. */
   void startAnimation() {
     // switch to low resolution
@@ -298,6 +290,26 @@ public class SliceManager implements ControlListener {
       bio.toolView.setMode(true);
       setMode(true);
     }
+  }
+
+  /** Gets the color controls for 2-D range type color mappings. */
+  ColorControl[] getColorControls2D() {
+    if (rmaps2 == null) return null;
+    ColorControl[] controls = new ColorControl[rmaps2.length];
+    for (int i=0; i<rmaps2.length; i++) {
+      controls[i] = (ColorControl) rmaps2[i].getControl();
+    }
+    return controls;
+  }
+
+  /** Gets the color controls for 3-D range type color mappings. */
+  ColorControl[] getColorControls3D() {
+    if (rmaps3 == null) return null;
+    ColorControl[] controls = new ColorControl[rmaps3.length];
+    for (int i=0; i<rmaps3.length; i++) {
+      controls[i] = (ColorControl) rmaps3[i].getControl();
+    }
+    return controls;
   }
 
 
@@ -442,7 +454,7 @@ public class SliceManager implements ControlListener {
           ref.setData(field);
           if (doThumbs) lowresRef.setData(lowresField);
 
-          bio.toolView.refreshColorWidgets();
+          bio.toolView.guessTypes();
           configureDisplays();
 
           // initialize measurement list array
@@ -540,9 +552,12 @@ public class SliceManager implements ControlListener {
     bio.display2.addMap(g_map2);
     bio.display2.addMap(b_map2);
 
-    // add color maps according to state of color mapping widgets
-    ScalarMap[] maps = bio.toolView.getColorMaps();
-    for (int i=0; i<maps.length; i++) bio.display2.addMap(maps[i]);
+    // add color maps for all range components
+    rmaps2 = new ScalarMap[rtypes.length];
+    for (int i=0; i<rtypes.length; i++) {
+      rmaps2[i] = new ScalarMap(rtypes[i], Display.RGB);
+      bio.display2.addMap(rmaps2[i]);
+    }
 
     // set up 2-D data references
     DisplayRenderer dr = bio.display2.getDisplayRenderer();
@@ -585,9 +600,12 @@ public class SliceManager implements ControlListener {
       bio.display3.addMap(g_map3);
       bio.display3.addMap(b_map3);
 
-      // add color maps according to state of color mapping widgets
-      maps = bio.toolView.getColorMaps();
-      for (int i=0; i<maps.length; i++) bio.display3.addMap(maps[i]);
+      // add color maps for all range components
+      rmaps3 = new ScalarMap[rtypes.length];
+      for (int i=0; i<rtypes.length; i++) {
+        rmaps3[i] = new ScalarMap(rtypes[i], Display.RGB);
+        bio.display3.addMap(rmaps3[i]);
+      }
 
       // set up 3-D data references
       on = renderer3 == null ? true : renderer3.getEnabled();
@@ -663,7 +681,7 @@ public class SliceManager implements ControlListener {
     value_control2.addControlListener(this);
     anim_control2.addControlListener(this);
 
-    // set up color table brightness
+    // set up color table characteristics
     bio.toolView.doColorTable();
   }
 
