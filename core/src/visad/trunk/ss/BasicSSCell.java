@@ -1242,6 +1242,8 @@ public class BasicSSCell extends JPanel {
     }
 
     // set up animation control(s)
+    // CTR - Note: there is a race condition that prevents the AnimationControl
+    // from correctly setting the current step and step delays
     len = anim.size();
     if (len > 0) {
       for (int i=0; i<len; i++) {

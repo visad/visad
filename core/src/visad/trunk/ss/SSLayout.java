@@ -42,179 +42,91 @@ public class SSLayout implements LayoutManager {
   /** number of rows components should form */
   private int NumRows;
 
-  /** minimum width of a column */
-  private int MinColW;
-
-  /** minimum height of a row */
-  private int MinRowH;
-
   /** space between columns */
   private int ColSpace;
 
   /** space between rows */
   private int RowSpace;
 
-  /** whether this layout manager should use added "label logic" */
-  private boolean Labels;
-
   /** constructor */
-  public SSLayout(int ncol, int nrow, int mwidth, int mheight,
-                  int wspace, int hspace, boolean labels) {
+  public SSLayout(int ncol, int nrow, int wspace, int hspace) {
     NumCols = ncol;
     NumRows = nrow;
-    MinColW = mwidth;
-    MinRowH = mheight;
     ColSpace = wspace;
     RowSpace = hspace;
-    Labels = labels;
   }
 
-  /** heart of the layout manager--does all the work */
-  public void layoutContainer(Container parent) {
-    // get parent's current width and height
-    int curW = parent.getSize().width - (NumCols - 1) * ColSpace;
-    int curH = parent.getSize().height - (NumRows - 1) * RowSpace;
+  /** add the necessary number of elements to the Component array */
+  private Component[] fillOut(Component[] c) {
+    // warn the user
+    System.err.println("Warning: spreadsheet cell layout is corrupted");
 
-    // work-around for ScrollPane bug
-    if (!Labels) {
-      curW--;
-      curH--;
+    // add blank components to the layout
+    Component[] nc = new Component[NumCols * NumRows];
+    System.arraycopy(c, 0, nc, 0, c.length);
+    for (int i=c.length; i<nc.length; i++) {
+      nc[i] = new JComponent() {
+        public void paint(Graphics g) { }
+      };
     }
+    return nc;
+  }
 
+  /** lay out the components */
+  public void layoutContainer(Container parent) {
     // get parent's components
     Component[] c = parent.getComponents();
-    if (c.length != NumCols*NumRows) {
-      throw new Error("wrong number of components!");
-    }
+    if (c.length < NumCols * NumRows) c = fillOut(c);
 
-    // get preferred widths and total width
+    // get preferred widths
     int[] pw = new int[NumCols];
-    double totalW = 0.0;
-    int unusedW = 0;
     for (int i=0; i<NumCols; i++) {
       pw[i] = c[i].getPreferredSize().width;
-      if (i % 2 == 0 || !Labels) totalW += pw[i];
-      else unusedW += pw[i];
     }
 
-    // compute real widths
-    int[] rw = new int[NumCols];
-    for (int i=0; i<NumCols; i++) {
-      if (i % 2 == 0 || !Labels) {
-        rw[i] = (int) (pw[i] / totalW * (curW - unusedW));
-        if (rw[i] < MinColW) rw[i] = MinColW;
-      }
-      else rw[i] = pw[i];
-    }
-
-    // get preferred heights and total height
+    // get preferred heights
     int[] ph = new int[NumRows];
-    double totalH = 0.0;
-    int unusedH = 0;
-    for (int i=0; i<NumRows; i++) {
-      ph[i] = c[NumCols*i].getPreferredSize().height;
-      if (i % 2 == 0 || !Labels) totalH += ph[i];
-      else unusedH += ph[i];
+    for (int j=0; j<NumRows; j++) {
+      ph[j] = c[NumCols * j].getPreferredSize().height;
     }
 
-    // compute real heights
-    int[] rh = new int[NumRows];
-    for (int i=0; i<NumRows; i++) {
-      if (i % 2 == 0 || !Labels) {
-        rh[i] = (int) (ph[i] / totalH * (curH - unusedH));
-        if (rh[i] < MinRowH) rh[i] = MinRowH;
-      }
-      else rh[i] = ph[i];
-    }
-
-    // set widths and heights of all components
+    // lay out all components
     int sy = 0;
-    for (int i=0; i<NumRows; i++) {
-      int rhy = rh[i];
+    for (int j=0; j<NumRows; j++) {
       int sx = 0;
-      for (int j=0; j<NumCols; j++) {
-        int rwx = rw[j];
-        c[i*NumCols+j].setBounds(sx, sy, rwx, rhy);
-        sx += rwx + ColSpace;
-      }
-      sy += rhy + RowSpace;
-    }
-  }
-
-  /** returns minimum layout size */
-  public Dimension minimumLayoutSize(Container parent) {
-    if (Labels) {
-      // get array of components
-      Component[] c = parent.getComponents();
-      if (c.length != NumCols*NumRows) {
-        throw new Error("wrong number of components!");
-      }
-
-      // get total minimum width
-      int minW = -ColSpace;
       for (int i=0; i<NumCols; i++) {
-        minW += ColSpace;
-        int mw = c[i].getMinimumSize().width;
-        minW += (mw < MinColW && i % 2 == 0) ? MinColW : mw;
+        c[NumCols * j + i].setBounds(sx, sy, pw[i], ph[j]);
+        sx += pw[i] + ColSpace;
       }
-
-      // get total minimum height
-      int minH = -RowSpace;
-      for (int i=0; i<NumRows; i++) {
-        minH += RowSpace;
-        int mh = c[NumCols*i].getMinimumSize().height;
-        minH += (mh < MinRowH && i % 2 == 0) ? MinRowH : mh;
-      }
-      return new Dimension(minW, minH);
+      sy += ph[j] + RowSpace;
     }
-    else return new Dimension(NumCols * (MinColW + ColSpace) - ColSpace,
-                              NumRows * (MinRowH + RowSpace) - RowSpace);
   }
 
-  /** returns preferred layout size */
+  /** return minimum layout size */
+  public Dimension minimumLayoutSize(Container parent) {
+    return preferredLayoutSize(parent);
+  }
+
+  /** return preferred layout size */
   public Dimension preferredLayoutSize(Container parent) {
+    // get parent's components
     Component[] c = parent.getComponents();
-    if (c.length != NumCols*NumRows) {
-      throw new Error("wrong number of components!");
-    }
+    if (c.length < NumCols * NumRows) c = fillOut(c);
 
-    // get preferred widths, and smallest preferred width
-    int[] pw = new int[NumCols];
-    int sw = 0;
+    // get preferred widths total
+    int pwt = -ColSpace;
     for (int i=0; i<NumCols; i++) {
-      pw[i] = c[i].getPreferredSize().width;
-      if ((i % 2 == 0 || !Labels) && pw[i] < pw[sw]) sw = i;
+      pwt += c[i].getPreferredSize().width + ColSpace;
     }
 
-    // compute preferred total width
-    double scaleW = (double) MinColW / pw[sw];
-    int[] rw = new int[NumCols];
-    int prefW = -ColSpace;
-    for (int i=0; i<NumCols; i++) {
-      prefW += ColSpace;
-      if (i % 2 == 0 || !Labels) prefW += scaleW * pw[i];
-      else prefW += pw[i];
+    // get preferred heights total
+    int pht = -RowSpace;
+    for (int j=0; j<NumRows; j++) {
+      pht += c[NumCols * j].getPreferredSize().height + RowSpace;
     }
 
-    // get preferred heights, and smallest preferred height
-    int[] ph = new int[NumRows];
-    int sh = 0;
-    for (int i=0; i<NumRows; i++) {
-      ph[i] = c[NumCols*i].getPreferredSize().height;
-      if ((i % 2 == 0 || !Labels) && ph[i] < ph[sh]) sh = i;
-    }
-
-    // compute preferred total height
-    double scaleH = (double) MinRowH / ph[sh];
-    int[] rh = new int[NumRows];
-    int prefH = -RowSpace;
-    for (int i=0; i<NumRows; i++) {
-      prefH += RowSpace;
-      if (i % 2 == 0 || !Labels) prefH += scaleH * ph[i];
-      else prefH += ph[i];
-    }
-
-    return new Dimension(prefW, prefH);
+    // return final layout size
+    return new Dimension(pwt, pht);
   }
 
   /** not used by SSLayout */
@@ -223,7 +135,7 @@ public class SSLayout implements LayoutManager {
   /** not used by SSLayout */
   public void removeLayoutComponent(Component comp) { }
 
-  /* run 'java visad.ss.SSLayout' to test the SSLayout class */
+  /** test the SSLayout layout manager class */
   public static void main(String[] argv) {
     JFrame f = new JFrame("SSLayout test");
     f.addWindowListener(new WindowAdapter() {
@@ -233,19 +145,12 @@ public class SSLayout implements LayoutManager {
     });
     JPanel p = new JPanel();
     f.setContentPane(p);
-    p.setLayout(new SSLayout(3, 4, 200, 50, 5, 15, false));
-    p.add(new JButton("Button01"));
-    p.add(new JButton("Button02"));
-    p.add(new JButton("Button03"));
-    p.add(new JButton("Button04"));
-    p.add(new JButton("Button05"));
-    p.add(new JButton("Button06"));
-    p.add(new JButton("Button07"));
-    p.add(new JButton("Button08"));
-    p.add(new JButton("Button09"));
-    p.add(new JButton("Button10"));
-    p.add(new JButton("Button11"));
-    p.add(new JButton("Button12"));
+    p.setLayout(new SSLayout(3, 4, 5, 15));
+    for (int i=1; i<=12; i++) {
+      String s = "" + i;
+      if (i < 10) s = "0" + s;
+      p.add(new JButton("Button" + s));
+    }
     f.pack();
     f.show();
   }

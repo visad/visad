@@ -43,13 +43,9 @@ import visad.java3d.*;
 /** SpreadSheet is a user interface for VisAD that supports
     multiple 3-D displays (FancySSCells).<P>*/
 public class SpreadSheet extends JFrame implements ActionListener,
-                                                   AdjustmentListener,
-                                                   DisplayListener,
-                                                   KeyListener,
-                                                   ItemListener,
-                                                   MouseListener,
-                                                   MouseMotionListener,
-                                                   SSCellListener {
+  AdjustmentListener, DisplayListener, KeyListener, ItemListener,
+  MouseListener, MouseMotionListener, SSCellListener
+{
 
   /** starting width of the application, in percentage of screen size */
   static final int WIDTH_PERCENT = 60;
@@ -62,6 +58,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** minimum VisAD display height, including display border */
   static final int MIN_VIS_HEIGHT = 120;
+
+  /** default VisAD display width */
+  static final int DEFAULT_VIS_WIDTH = 250;
+
+  /** default VisAD display height */
+  static final int DEFAULT_VIS_HEIGHT = 250;
 
   /** spreadsheet cell letter order */
   static final String Letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -707,7 +709,17 @@ public class SpreadSheet extends JFrame implements ActionListener,
     HorizLabels = hl;
     HorizLabels.setView(HorizPanel);
     horizShell.add(HorizLabels);
-    horizShell.add(Box.createRigidArea(new Dimension(6, 0)));
+    horizShell.add(new JComponent() {
+      public Dimension getMinimumSize() {
+        return new Dimension(6 + SCPane.getVScrollbarWidth(), 0);
+      }
+      public Dimension getPreferredSize() {
+        return new Dimension(6 + SCPane.getVScrollbarWidth(), 0);
+      }
+      public Dimension getMaximumSize() {
+        return new Dimension(6 + SCPane.getVScrollbarWidth(), 0);
+      }
+    });
 
     // set up window's main panel
     JPanel mainPanel = new JPanel();
@@ -718,9 +730,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
     // set up vertical spreadsheet cell labels
     JPanel vertShell = new JPanel();
-    vertShell.setAlignmentY(JPanel.CENTER_ALIGNMENT);
     vertShell.setBackground(Color.white);
-    vertShell.setLayout(new BoxLayout(vertShell, BoxLayout.X_AXIS));
+    vertShell.setLayout(new BoxLayout(vertShell, BoxLayout.Y_AXIS));
     mainPanel.add(Box.createRigidArea(new Dimension(6, 0)));
     mainPanel.add(vertShell);
 
@@ -745,6 +756,17 @@ public class SpreadSheet extends JFrame implements ActionListener,
     VertLabels = vl;
     VertLabels.setView(VertPanel);
     vertShell.add(VertLabels);
+    vertShell.add(new JComponent() {
+      public Dimension getMinimumSize() {
+        return new Dimension(0, SCPane.getHScrollbarHeight());
+      }
+      public Dimension getPreferredSize() {
+        return new Dimension(0, SCPane.getHScrollbarHeight());
+      }
+      public Dimension getMaximumSize() {
+        return new Dimension(0, SCPane.getHScrollbarHeight());
+      }
+    });
 
     // set up scroll pane's panel
     ScrollPanel = new JPanel();
@@ -754,7 +776,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     mainPanel.add(Box.createRigidArea(new Dimension(6, 0)));
 
     // set up scroll pane for VisAD Displays
-    SCPane = new ScrollPane() {
+    SCPane = new ScrollPane(ScrollPane.SCROLLBARS_ALWAYS) {
       public Dimension getPreferredSize() {
         return new Dimension(0, 0);
       }
@@ -1512,7 +1534,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** add a column to the spreadsheet */
   void addColumn() {
-    JLabel l = (JLabel) HorizLabel[NumVisX-1].getComponent(0);
+    JLabel l = (JLabel) HorizLabel[NumVisX - 1].getComponent(0);
     int maxVisX = Letters.indexOf(l.getText()) + 1;
     if (maxVisX < Letters.length()) {
       // re-layout horizontal spreadsheet labels
@@ -1522,8 +1544,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
       newLabels[nvx] = new JPanel();
       newLabels[nvx].setBorder(new LineBorder(Color.black, 1));
       newLabels[nvx].setLayout(new BorderLayout());
-      newLabels[nvx].setPreferredSize(new Dimension(MIN_VIS_WIDTH,
-                                                        LABEL_HEIGHT));
+      newLabels[nvx].setPreferredSize(
+        new Dimension(DEFAULT_VIS_WIDTH, LABEL_HEIGHT));
       String s = String.valueOf(Letters.charAt(maxVisX));
       newLabels[nvx].add("Center", new JLabel(s, SwingConstants.CENTER));
 
@@ -1534,9 +1556,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
       else {
         // re-layout horizontal label separators
-        JComponent[] newDrag = new JComponent[NumVisX];
-        for (int i=0; i<NumVisX-1; i++) newDrag[i] = HorizDrag[i];
-        newDrag[NumVisX-1] = new JComponent() {
+        JComponent[] newDrag = new JComponent[NumVisX + 1];
+        for (int i=0; i<NumVisX; i++) newDrag[i] = HorizDrag[i];
+        newDrag[NumVisX] = new JComponent() {
           public void paint(Graphics g) {
             Dimension d = this.getSize();
             g.setColor(Color.black);
@@ -1545,20 +1567,20 @@ public class SpreadSheet extends JFrame implements ActionListener,
             g.fillRect(1, 1, d.width - 2, d.height - 2);
           }
         };
-        newDrag[NumVisX-1].setPreferredSize(new Dimension(5, 0));
-        newDrag[NumVisX-1].addMouseListener(this);
-        newDrag[NumVisX-1].addMouseMotionListener(this);
+        newDrag[NumVisX].setPreferredSize(new Dimension(5, 0));
+        newDrag[NumVisX].addMouseListener(this);
+        newDrag[NumVisX].addMouseMotionListener(this);
         HorizPanel.removeAll();
 
         // re-layout spreadsheet cells
-        FancySSCell[][] fcells = new FancySSCell[NumVisX+1][NumVisY];
+        FancySSCell[][] fcells = new FancySSCell[NumVisX + 1][NumVisY];
         DisplayPanel.removeAll();
         for (int j=0; j<NumVisY; j++) {
           for (int i=0; i<NumVisX; i++) fcells[i][j] = DisplayCells[i][j];
           try {
             String name = String.valueOf(Letters.charAt(maxVisX)) +
-                          String.valueOf(j + 1);
-            fcells[NumVisX][j] = new FancySSCell(name, this);
+              String.valueOf(j + 1);
+            fcells[NumVisX][j] = new FancySSCell(name, fm, this);
             fcells[NumVisX][j].addSSCellChangeListener(this);
             fcells[NumVisX][j].addMouseListener(this);
             fcells[NumVisX][j].setAutoSwitch(AutoSwitch);
@@ -1566,8 +1588,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
             fcells[NumVisX][j].setAutoShowControls(AutoShowControls);
             fcells[NumVisX][j].setDimension(!CanDo3D, !CanDo3D);
             fcells[NumVisX][j].addDisplayListener(this);
-            fcells[NumVisX][j].setPreferredSize(new Dimension(MIN_VIS_WIDTH,
-                                                              MIN_VIS_HEIGHT));
+            fcells[NumVisX][j].setPreferredSize(
+              new Dimension(DEFAULT_VIS_WIDTH, DEFAULT_VIS_HEIGHT));
             if (rsi != null) {
               // add new cell to server
               fcells[NumVisX][j].addToRemoteServer(rsi);
@@ -1591,19 +1613,19 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** add a row to the spreadsheet */
   void addRow() {
-    JLabel l = (JLabel) VertLabel[NumVisY-1].getComponent(0);
+    JLabel l = (JLabel) VertLabel[NumVisY - 1].getComponent(0);
     int maxVisY = Integer.parseInt(l.getText());
 
     // re-layout vertical spreadsheet labels
     int nvy = VertLabel.length;
     JPanel[] newLabels = new JPanel[nvy+1];
-    JComponent[] newDrag = new JComponent[nvy];
+    JComponent[] newDrag = new JComponent[nvy+1];
     for (int i=0; i<nvy; i++) newLabels[i] = VertLabel[i];
     newLabels[nvy] = new JPanel();
     newLabels[nvy].setBorder(new LineBorder(Color.black, 1));
     newLabels[nvy].setLayout(new BorderLayout());
-    newLabels[nvy].setPreferredSize(new Dimension(LABEL_WIDTH,
-                                                  MIN_VIS_HEIGHT));
+    newLabels[nvy].setPreferredSize(
+      new Dimension(LABEL_WIDTH, DEFAULT_VIS_HEIGHT));
     String s = String.valueOf(maxVisY + 1);
     newLabels[nvy].add("Center", new JLabel(s, SwingConstants.CENTER));
 
@@ -1614,8 +1636,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     else {
       // re-layout vertical label separators
-      for (int i=0; i<NumVisY-1; i++) newDrag[i] = VertDrag[i];
-      newDrag[NumVisY-1] = new JComponent() {
+      for (int i=0; i<NumVisY; i++) newDrag[i] = VertDrag[i];
+      newDrag[NumVisY] = new JComponent() {
         public void paint(Graphics g) {
           Dimension d = this.getSize();
           g.setColor(Color.black);
@@ -1624,20 +1646,20 @@ public class SpreadSheet extends JFrame implements ActionListener,
           g.fillRect(1, 1, d.width - 2, d.height - 2);
         }
       };
-      newDrag[NumVisY-1].setPreferredSize(new Dimension(0, 5));
-      newDrag[NumVisY-1].addMouseListener(this);
-      newDrag[NumVisY-1].addMouseMotionListener(this);
+      newDrag[NumVisY].setPreferredSize(new Dimension(0, 5));
+      newDrag[NumVisY].addMouseListener(this);
+      newDrag[NumVisY].addMouseMotionListener(this);
       VertPanel.removeAll();
 
       // re-layout spreadsheet cells
-      FancySSCell[][] fcells = new FancySSCell[NumVisX][NumVisY+1];
+      FancySSCell[][] fcells = new FancySSCell[NumVisX][NumVisY + 1];
       DisplayPanel.removeAll();
       for (int i=0; i<NumVisX; i++) {
         for (int j=0; j<NumVisY; j++) fcells[i][j] = DisplayCells[i][j];
         try {
           String name = String.valueOf(Letters.charAt(i)) +
-                        String.valueOf(maxVisY + 1);
-          fcells[i][NumVisY] = new FancySSCell(name, this);
+            String.valueOf(maxVisY + 1);
+          fcells[i][NumVisY] = new FancySSCell(name, fm, this);
           fcells[i][NumVisY].addSSCellChangeListener(this);
           fcells[i][NumVisY].addMouseListener(this);
           fcells[i][NumVisY].setAutoSwitch(AutoSwitch);
@@ -1645,8 +1667,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
           fcells[i][NumVisY].setAutoShowControls(AutoShowControls);
           fcells[i][NumVisY].setDimension(!CanDo3D, !CanDo3D);
           fcells[i][NumVisY].addDisplayListener(this);
-          fcells[i][NumVisY].setPreferredSize(new Dimension(MIN_VIS_WIDTH,
-                                                            MIN_VIS_HEIGHT));
+          fcells[i][NumVisY].setPreferredSize(
+            new Dimension(DEFAULT_VIS_WIDTH, DEFAULT_VIS_HEIGHT));
           if (rsi != null) {
             // add new cell to server
             fcells[i][NumVisY].addToRemoteServer(rsi);
@@ -1699,8 +1721,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     else {
       // re-layout horizontal label separators
-      JComponent[] newDrag = new JComponent[NumVisX-2];
-      for (int i=0; i<NumVisX-2; i++) newDrag[i] = HorizDrag[i];
+      JComponent[] newDrag = new JComponent[NumVisX-1];
+      for (int i=0; i<NumVisX-1; i++) newDrag[i] = HorizDrag[i];
       HorizPanel.removeAll();
 
       // re-layout spreadsheet cells
@@ -1759,12 +1781,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     else {
       // re-layout horizontal label separators
-      JComponent[] newDrag = new JComponent[NumVisY-2];
-      for (int i=0; i<NumVisY-2; i++) newDrag[i] = VertDrag[i];
+      JComponent[] newDrag = new JComponent[NumVisY-1];
+      for (int i=0; i<NumVisY-1; i++) newDrag[i] = VertDrag[i];
       VertPanel.removeAll();
 
       // re-layout spreadsheet cells
-      FancySSCell[][] fcells = new FancySSCell[NumVisX][NumVisY-1];
+      FancySSCell[][] fcells = new FancySSCell[NumVisX][NumVisY - 1];
       DisplayPanel.removeAll();
       for (int i=0; i<NumVisX; i++) {
         for (int j=0; j<CurY; j++) fcells[i][j] = DisplayCells[i][j];
@@ -2084,15 +2106,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   private void constructSpreadsheetCells(String[][] l, RemoteServer rs) {
     synchronized (Lock) {
-      DisplayPanel.setLayout(new SSLayout(NumVisX, NumVisY, MIN_VIS_WIDTH,
-                                          MIN_VIS_HEIGHT, 5, 5, false));
+      DisplayPanel.setLayout(new SSLayout(NumVisX, NumVisY, 5, 5));
       DisplayCells = new FancySSCell[NumVisX][NumVisY];
       for (int j=0; j<NumVisY; j++) {
         for (int i=0; i<NumVisX; i++) {
           try {
             FancySSCell f = (FancySSCell) BasicSSCell.getSSCellByName(l[i][j]);
             if (f == null) {
-              f = new FancySSCell(l[i][j], rs, this);
+              f = new FancySSCell(l[i][j], fm, rs, null, this);
               f.addSSCellChangeListener(this);
               f.addMouseListener(this);
               f.setAutoSwitch(AutoSwitch);
@@ -2100,7 +2121,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
               f.setAutoShowControls(AutoShowControls);
               if (rs == null) f.setDimension(!CanDo3D, !CanDo3D);
               f.addDisplayListener(this);
-              f.setPreferredSize(new Dimension(MIN_VIS_WIDTH, MIN_VIS_HEIGHT));
+              f.setPreferredSize(
+                new Dimension(DEFAULT_VIS_WIDTH, DEFAULT_VIS_HEIGHT));
               if (rsi != null) {
                 // add new cell to server
                 f.addToRemoteServer(rsi);
@@ -2134,33 +2156,33 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   private void constructHorizontalLabels(String[] l) {
     synchronized (Lock) {
-      HorizPanel.setLayout(new SSLayout(2*NumVisX-1, 1, MIN_VIS_WIDTH,
-                                        LABEL_HEIGHT, 0, 0, true));
+      HorizPanel.setLayout(new SSLayout(2*NumVisX, 1, 0, 0));
       HorizLabel = new JPanel[NumVisX];
-      HorizDrag = new JComponent[NumVisX-1];
+      HorizDrag = new JComponent[NumVisX];
       for (int i=0; i<NumVisX; i++) {
         HorizLabel[i] = new JPanel();
         HorizLabel[i].setBorder(new LineBorder(Color.black, 1));
         HorizLabel[i].setLayout(new BorderLayout());
-        HorizLabel[i].setPreferredSize(new Dimension(MIN_VIS_WIDTH,
-                                                     LABEL_HEIGHT));
+        HorizLabel[i].setPreferredSize(
+          new Dimension(DEFAULT_VIS_WIDTH, LABEL_HEIGHT));
         HorizLabel[i].add("Center", new JLabel(l[i], SwingConstants.CENTER));
         HorizPanel.add(HorizLabel[i]);
-        if (i < NumVisX-1) {
-          HorizDrag[i] = new JComponent() {
-            public void paint(Graphics g) {
-              Dimension d = this.getSize();
-              g.setColor(Color.black);
-              g.drawRect(0, 0, d.width - 1, d.height - 1);
-              g.setColor(Color.yellow);
-              g.fillRect(1, 1, d.width - 2, d.height - 2);
-            }
-          };
-          HorizDrag[i].setPreferredSize(new Dimension(5, 0));
-          HorizDrag[i].addMouseListener(this);
-          HorizDrag[i].addMouseMotionListener(this);
-          HorizPanel.add(HorizDrag[i]);
-        }
+        HorizDrag[i] = new JComponent() {
+          public void paint(Graphics g) {
+            Dimension d = this.getSize();
+            g.setColor(Color.black);
+            g.drawRect(0, 0, d.width - 1, d.height - 1);
+            g.setColor(Color.yellow);
+            g.fillRect(1, 1, d.width - 2, d.height - 2);
+          }
+          public Dimension getPreferredSize() {
+            return new Dimension(5, LABEL_HEIGHT);
+          }
+        };
+        HorizDrag[i].setPreferredSize(new Dimension(5, 0));
+        HorizDrag[i].addMouseListener(this);
+        HorizDrag[i].addMouseMotionListener(this);
+        HorizPanel.add(HorizDrag[i]);
       }
     }
   }
@@ -2173,34 +2195,34 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   private void constructVerticalLabels(String[] l) {
     synchronized (Lock) {
-      VertPanel.setLayout(new SSLayout(1, 2*NumVisY-1, LABEL_WIDTH,
-                                       MIN_VIS_HEIGHT, 0, 0, true));
+      VertPanel.setLayout(new SSLayout(1, 2*NumVisY, 0, 0));
       VertLabel = new JPanel[NumVisY];
-      VertDrag = new JComponent[NumVisY-1];
+      VertDrag = new JComponent[NumVisY];
       for (int i=0; i<NumVisY; i++) {
         VertLabel[i] = new JPanel();
         VertLabel[i].setBorder(new LineBorder(Color.black, 1));
         VertLabel[i].setLayout(new BorderLayout());
-        VertLabel[i].setPreferredSize(new Dimension(LABEL_WIDTH,
-                                                    MIN_VIS_HEIGHT));
+        VertLabel[i].setPreferredSize(
+          new Dimension(LABEL_WIDTH, DEFAULT_VIS_HEIGHT));
         VertLabel[i].add("Center", new JLabel(l[i], SwingConstants.CENTER));
         VertPanel.add(VertLabel[i]);
-        if (i < NumVisY-1) {
-          VertDrag[i] = new JComponent() {
-            public void paint(Graphics g) {
-              Dimension d = this.getSize();
-              g.setColor(Color.black);
-              g.drawRect(0, 0, d.width - 1, d.height - 1);
-              g.setColor(Color.yellow);
-              g.fillRect(1, 1, d.width - 2, d.height - 2);
-            }
-          };
-          VertDrag[i].setBackground(Color.white);
-          VertDrag[i].setPreferredSize(new Dimension(0, 5));
-          VertDrag[i].addMouseListener(this);
-          VertDrag[i].addMouseMotionListener(this);
-          VertPanel.add(VertDrag[i]);
-        }
+        VertDrag[i] = new JComponent() {
+          public void paint(Graphics g) {
+            Dimension d = this.getSize();
+            g.setColor(Color.black);
+            g.drawRect(0, 0, d.width - 1, d.height - 1);
+            g.setColor(Color.yellow);
+            g.fillRect(1, 1, d.width - 2, d.height - 2);
+          }
+          public Dimension getPreferredSize() {
+            return new Dimension(LABEL_WIDTH, 5);
+          }
+        };
+        VertDrag[i].setBackground(Color.white);
+        VertDrag[i].setPreferredSize(new Dimension(0, 5));
+        VertDrag[i].addMouseListener(this);
+        VertDrag[i].addMouseMotionListener(this);
+        VertPanel.add(VertDrag[i]);
       }
     }
   }
@@ -2273,8 +2295,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
       for (int i=0; i<NumVisX; i++) HorizLabel[i].doLayout();
       VertPanel.doLayout();
       for (int j=0; j<NumVisY; j++) VertLabel[j].doLayout();
-      DisplayPanel.doLayout();
       SCPane.doLayout();
+      DisplayPanel.doLayout();
       refreshCells();
     }
   }
@@ -2285,17 +2307,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
       // reconstruct horizontal spreadsheet label layout
       HorizLabel = newLabels;
       HorizDrag = newDrag;
-      HorizPanel.setLayout(new SSLayout(2*NumVisX-1, 1, MIN_VIS_WIDTH,
-                                        LABEL_HEIGHT, 0, 0, true));
+      HorizPanel.setLayout(new SSLayout(2*NumVisX, 1, 0, 0));
       for (int i=0; i<NumVisX; i++) {
         HorizPanel.add(HorizLabel[i]);
-        if (i < NumVisX-1) HorizPanel.add(HorizDrag[i]);
+        HorizPanel.add(HorizDrag[i]);
       }
 
       // reconstruct spreadsheet cell layout
       DisplayCells = fcells;
-      DisplayPanel.setLayout(new SSLayout(NumVisX, NumVisY, MIN_VIS_WIDTH,
-                                          MIN_VIS_HEIGHT, 5, 5, false));
+      DisplayPanel.setLayout(new SSLayout(NumVisX, NumVisY, 5, 5));
       for (int j=0; j<NumVisY; j++) {
         for (int i=0; i<NumVisX; i++) DisplayPanel.add(DisplayCells[i][j]);
       }
@@ -2303,8 +2323,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
       // refresh display
       HorizPanel.doLayout();
       for (int i=0; i<NumVisX; i++) HorizLabel[i].doLayout();
-      DisplayPanel.doLayout();
       SCPane.doLayout();
+      DisplayPanel.doLayout();
       refreshCells();
     }
 
@@ -2317,17 +2337,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
       // reconstruct vertical spreadsheet label layout
       VertLabel = newLabels;
       VertDrag = newDrag;
-      VertPanel.setLayout(new SSLayout(1, 2*NumVisY-1, LABEL_WIDTH,
-                                       MIN_VIS_HEIGHT, 0, 0, true));
+      VertPanel.setLayout(new SSLayout(1, 2*NumVisY, 0, 0));
       for (int i=0; i<NumVisY; i++) {
         VertPanel.add(VertLabel[i]);
-        if (i < NumVisY-1) VertPanel.add(VertDrag[i]);
+        VertPanel.add(VertDrag[i]);
       }
 
       // reconstruct spreadsheet cell layout
       DisplayCells = fcells;
-      DisplayPanel.setLayout(new SSLayout(NumVisX, NumVisY, MIN_VIS_WIDTH,
-                                          MIN_VIS_HEIGHT, 5, 5, false));
+      DisplayPanel.setLayout(new SSLayout(NumVisX, NumVisY, 5, 5));
       for (int j=0; j<NumVisY; j++) {
         for (int i=0; i<NumVisX; i++) DisplayPanel.add(DisplayCells[i][j]);
       }
@@ -2335,8 +2353,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
       // refresh display
       VertPanel.doLayout();
       for (int j=0; j<NumVisY; j++) VertLabel[j].doLayout();
-      DisplayPanel.doLayout();
       SCPane.doLayout();
+      DisplayPanel.doLayout();
       refreshCells();
     }
 
@@ -2505,13 +2523,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
     int y = e.getY();
     Component c = e.getComponent();
     boolean change = false;
-    for (int j=0; j<NumVisX-1; j++) {
+    for (int j=0; j<NumVisX; j++) {
       if (c == HorizDrag[j]) {
         change = true;
         break;
       }
     }
-    for (int j=0; j<NumVisY-1; j++) {
+    for (int j=0; j<NumVisY; j++) {
       if (c == VertDrag[j]) {
         change = true;
         break;
@@ -2534,6 +2552,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         d.height = VertLabel[j].getSize().height;
         DisplayCells[0][j].setPreferredSize(d);
       }
+      SCPane.doLayout();
       DisplayPanel.doLayout();
       refreshCells();
     }
@@ -2544,50 +2563,28 @@ public class SpreadSheet extends JFrame implements ActionListener,
     Component c = e.getComponent();
     int x = e.getX();
     int y = e.getY();
-    for (int j=0; j<NumVisX-1; j++) {
+    for (int j=0; j<NumVisX; j++) {
       if (c == HorizDrag[j]) {
         // resize columns (labels)
-        Dimension s1 = HorizLabel[j].getSize();
-        Dimension s2 = HorizLabel[j+1].getSize();
-        int oldW = s1.width;
-        s1.width += x - oldX;
-        if (s1.width < MIN_VIS_WIDTH) s1.width = MIN_VIS_WIDTH;
-        s2.width += oldW - s1.width;
-        if (s2.width < MIN_VIS_WIDTH) {
-          oldW = s2.width;
-          s2.width = MIN_VIS_WIDTH;
-          s1.width += oldW - s2.width;
-        }
-        HorizLabel[j].setSize(s1);
-        HorizLabel[j+1].setSize(s2);
-        for (int i=0; i<NumVisX; i++) {
-          HorizLabel[i].setPreferredSize(HorizLabel[i].getSize());
-        }
-        HorizLabels.invalidate();
+        Dimension s = HorizLabel[j].getSize();
+        int oldW = s.width;
+        s.width += x - oldX;
+        if (s.width < MIN_VIS_WIDTH) s.width = MIN_VIS_WIDTH;
+        HorizLabel[j].setSize(s);
+        HorizLabel[j].setPreferredSize(s);
         HorizLabels.validate();
         return;
       }
     }
-    for (int j=0; j<NumVisY-1; j++) {
+    for (int j=0; j<NumVisY; j++) {
       if (c == VertDrag[j]) {
         // resize rows (labels)
-        Dimension s1 = VertLabel[j].getSize();
-        Dimension s2 = VertLabel[j+1].getSize();
-        int oldH = s1.height;
-        s1.height += y - oldY;
-        if (s1.height < MIN_VIS_HEIGHT) s1.height = MIN_VIS_HEIGHT;
-        s2.height += oldH - s1.height;
-        if (s2.height < MIN_VIS_HEIGHT) {
-          oldH = s2.height;
-          s2.height = MIN_VIS_HEIGHT;
-          s1.height += oldH - s2.height;
-        }
-        VertLabel[j].setSize(s1);
-        VertLabel[j+1].setSize(s2);
-        for (int i=0; i<NumVisY; i++) {
-          VertLabel[i].setPreferredSize(VertLabel[i].getSize());
-        }
-        VertLabels.invalidate();
+        Dimension s = VertLabel[j].getSize();
+        int oldH = s.height;
+        s.height += y - oldY;
+        if (s.height < MIN_VIS_HEIGHT) s.height = MIN_VIS_HEIGHT;
+        VertLabel[j].setSize(s);
+        VertLabel[j].setPreferredSize(s);
         VertLabels.validate();
         return;
       }
@@ -2628,8 +2625,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
   void selectCell(int x, int y) {
     if (x < 0) x = 0;
     if (y < 0) y = 0;
-    if (x >= NumVisX) x = NumVisX-1;
-    if (y >= NumVisY) y = NumVisY-1;
+    if (x >= NumVisX) x = NumVisX - 1;
+    if (y >= NumVisY) y = NumVisY - 1;
 
     // update blue border on screen
     if (CurX < NumVisX && CurY < NumVisY) {
