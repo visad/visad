@@ -26,8 +26,11 @@ MA 02111-1307, USA
 
 package visad.python;
 
+import java.awt.Cursor;
 import java.lang.reflect.*;
-import javax.swing.JOptionPane;
+import java.io.*;
+import java.util.ArrayList;
+import javax.swing.*;
 import visad.VisADException;
 import visad.formula.FormulaUtil;
 import visad.util.*;
@@ -39,57 +42,46 @@ public class JPythonEditor extends CodeEditor {
   private static final String PREPENDED_TEXT =
     "from visad.python.JPythonMethods import *";
 
-  /** name of JPython interpreter class */
-  private static final String interp = "org.python.util.PythonInterpreter";
-
-  /** JPython interpreter class */
-  private static final Class interpClass = constructInterpClass();
-
-  /** obtains the JPython interpreter class */
-  private static Class constructInterpClass() {
-    Class c = null;
-    try {
-      c = Class.forName(interp);
-    }
-    catch (ClassNotFoundException exc) {
-      if (DEBUG) exc.printStackTrace();
-    }
-    return c;
-  }
-
-  /** names of useful methods from JPython interpreter class */
-  private static final String[] methodNames = {
-    interp + ".eval(java.lang.String)",
-    interp + ".exec(java.lang.String)",
-    interp + ".execfile(java.lang.String)",
-    interp + ".set(java.lang.String, org.python.core.PyObject)",
-    interp + ".get(java.lang.String)"
-  };
-
-  /** useful methods from JPython interpreter class */
-  private static final Method[] methods =
-    FormulaUtil.stringsToMethods(methodNames);
-
-  /** method for evaluating a line of JPython code */
-  private static final Method eval = methods[0];
-
-  /** method for executing a line of JPython code */
-  private static final Method exec = methods[1];
-
-  /** method for executing a document containing JPython code */
-  private static final Method execfile = methods[2];
-
-  /** method for setting a JPython variable's value */
-  private static final Method set = methods[3];
-
-  /** method for getting a JPython variable's value */
-  private static final Method get = methods[4];
-
-  /** PythonInterpreter object */
-  protected Object python = null;
+  /** wrapper for PythonInterpreter object */
+  protected RunJPython python = null;
 
   /** flag indicating whether to warn before auto-saving */
   protected boolean warnBeforeSave = true;
+  
+  /** flag indicating whether to launch scripts in a separate process */
+  protected boolean runSeparate = true;
+
+  /** run menu item */
+  private JMenuItem runItem;
+
+
+  /** runs the given command in a separate process */
+  public static String[] runCommand(String cmd)
+    throws IOException, VisADException
+  {
+    ArrayList list = new ArrayList();
+    Process proc = Runtime.getRuntime().exec(cmd);
+
+    // capture program output
+    InputStream istr = proc.getInputStream();
+    BufferedReader br = new BufferedReader(new InputStreamReader(istr));
+    String str;
+    while ((str = br.readLine()) != null) list.add(str);
+
+    // wait for command to terminate
+    try { proc.waitFor(); }
+    catch (InterruptedException e) { e.printStackTrace(); }
+
+    br.close();
+
+    // check exit value
+    if (proc.exitValue() != 0) {
+      throw new VisADException("exit value was non-zero");
+    }
+
+    // return output as a list of strings
+    return (String[]) list.toArray(new String[0]);
+  }
 
 
   /** constructs a JPythonEditor */
@@ -100,21 +92,7 @@ public class JPythonEditor extends CodeEditor {
   /** constructs a JPythonEditor containing text from the given filename */
   public JPythonEditor(String filename) throws VisADException {
     super(filename);
-
-    // construct a JPython interpreter
-    try {
-      python = interpClass.newInstance();
-    }
-    catch (NullPointerException exc) {
-      if (DEBUG) exc.printStackTrace();
-    }
-    catch (IllegalAccessException exc) {
-      if (DEBUG) exc.printStackTrace();
-    }
-    catch (InstantiationException exc) {
-      if (DEBUG) exc.printStackTrace();
-    }
-    if (python == null) throw new VisADException("JPython library not found");
+    python = new RunJPython();
 
     // add JPython files to file chooser dialog box
     fileChooser.addChoosableFileFilter(
@@ -139,85 +117,19 @@ public class JPythonEditor extends CodeEditor {
     return err.substring(0, index) + lineNum + err.substring(comma);
   }
 
-  /** evaluates a line of JPython code */
-  public Object eval(String line) throws VisADException {
-    try {
-      return eval.invoke(python, new Object[] {line});
-    }
-    catch (IllegalAccessException exc) {
-      throw new VisADException(exc.toString());
-    }
-    catch (IllegalArgumentException exc) {
-      throw new VisADException(exc.toString());
-    }
-    catch (InvocationTargetException exc) {
-      throw new VisADException(exc.getTargetException().toString());
-    }
-  }
-
   /** executes a line of JPython code */
   public void exec(String line) throws VisADException {
-    try {
-      exec.invoke(python, new Object[] {line});
-    }
-    catch (IllegalAccessException exc) {
-      throw new VisADException(exc.toString());
-    }
-    catch (IllegalArgumentException exc) {
-      throw new VisADException(exc.toString());
-    }
-    catch (InvocationTargetException exc) {
-      throw new VisADException(exc.getTargetException().toString());
-    }
+    python.exec(line);
   }
 
   /** executes the document as JPython source code */
   public void execfile(String filename) throws VisADException {
     try {
-      execfile.invoke(python, new Object[] {filename});
+      python.execfile(filename);
     }
-    catch (IllegalAccessException exc) {
-      throw new VisADException(exc.toString());
-    }
-    catch (IllegalArgumentException exc) {
-      throw new VisADException(exc.toString());
-    }
-    catch (InvocationTargetException exc) {
-      String error = exc.getTargetException().toString();
-      error = handleError(error);
+    catch (VisADException exc) {
+      String error = handleError(exc.getMessage());
       throw new VisADException(error);
-    }
-  }
-
-  /** sets a JPython variable's value */
-  public void set(String name, Object value) throws VisADException {
-    try {
-      set.invoke(python, new Object[] {name, value});
-    }
-    catch (IllegalAccessException exc) {
-      throw new VisADException(exc.toString());
-    }
-    catch (IllegalArgumentException exc) {
-      throw new VisADException(exc.toString());
-    }
-    catch (InvocationTargetException exc) {
-      throw new VisADException(exc.getTargetException().toString());
-    }
-  }
-
-  /** gets a JPython variable's value */
-  public Object get(String name) throws VisADException {
-    try {
-      return get.invoke(python, new Object[] {name});
-    }
-    catch (IllegalAccessException exc) {
-      throw new VisADException(exc.toString());
-    }
-    catch (IllegalArgumentException exc) {
-      throw new VisADException(exc.toString());
-    }
-    catch (InvocationTargetException exc) {
-      throw new VisADException(exc.getTargetException().toString());
     }
   }
 
@@ -237,12 +149,18 @@ public class JPythonEditor extends CodeEditor {
   }
 
   /** sets whether editor should warn user before auto-saving */
-  public void setWarnBeforeSave(boolean warn) {
-    warnBeforeSave = warn;
+  public void setWarnBeforeSave(boolean warn) { warnBeforeSave = warn; }
+
+  /** sets whether editor should run scripts in a separate process */
+  public void setRunSeparateProcess(boolean separate) {
+    runSeparate = separate;
   }
+  
+  /** sets the run menu item */
+  public void setRunItem(JMenuItem run) { runItem = run; }
 
   /** executes the JPython script */
-  public void run() throws VisADException {
+  public void run() {
     if (hasChanged()) {
       if (warnBeforeSave) {
         int ans = JOptionPane.showConfirmDialog(this,
@@ -253,7 +171,37 @@ public class JPythonEditor extends CodeEditor {
       boolean success = saveFile();
       if (!success) return;
     }
-    execfile(getFilename());
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        String name = getFilename();
+        if (runSeparate) {
+          String[] out;
+          try {
+            out = runCommand("java visad.python.RunJPython " + name);
+          }
+          catch (IOException exc) {
+            if (DEBUG) exc.printStackTrace();
+          }
+          catch (VisADException exc) {
+            if (DEBUG) exc.printStackTrace();
+            String error = handleError(exc.getMessage());
+          }
+        }
+        else {
+          runItem.setEnabled(false);
+          runItem.setText("Running...");
+          try {
+            execfile(name);
+          }
+          catch (VisADException exc) {
+            if (DEBUG) exc.printStackTrace();
+          }
+          runItem.setText("Run");
+          runItem.setEnabled(true);
+        }
+      }
+    });
+    t.start();
   }
 
   /** compiles the JPython script to a Java class */

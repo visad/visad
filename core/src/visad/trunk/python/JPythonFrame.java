@@ -27,11 +27,19 @@ MA 02111-1307, USA
 package visad.python;
 
 import java.awt.event.*;
+import java.io.IOException;
+import javax.swing.JCheckBoxMenuItem;
 import visad.VisADException;
 import visad.util.CodeFrame;
 
 /** A GUI frame for editing JPython code in Java runtime. */
 public class JPythonFrame extends CodeFrame {
+
+  /** flag for java shell availability */
+  protected boolean canRunSeparate = true;
+
+  /** menu item for running JPython in a separate process */
+  protected JCheckBoxMenuItem separateProcess;
 
   /** constructs a JPythonFrame */
   public JPythonFrame() throws VisADException {
@@ -46,6 +54,28 @@ public class JPythonFrame extends CodeFrame {
   /** constructs a JPythonFrame from the given JPythonEditor object */
   public JPythonFrame(JPythonEditor editor) throws VisADException {
     super(editor);
+    ((JPythonEditor) textPane).setRunItem(getMenuItem("Command", "Run"));
+
+    // determine external java shell availability
+    try {
+      JPythonEditor.runCommand("java visad.python.RunJPython");
+    }
+    catch (IOException exc) { canRunSeparate = false; }
+    catch (VisADException exc) { canRunSeparate = false; }
+    ((JPythonEditor) textPane).setRunSeparateProcess(false);
+
+    // setup menu bar
+    addMenuSeparator("Command");
+    separateProcess = new JCheckBoxMenuItem(
+      "Launch JPython in a separate process", false);
+    addMenuItem("Command", separateProcess,
+      "commandSeparate", 'l', canRunSeparate);
+  }
+
+  /** sets up the GUI */
+  public void commandSeparate() {
+    boolean separate = separateProcess.getState();
+    ((JPythonEditor) textPane).setRunSeparateProcess(separate);
   }
 
   /** sets whether editor should warn user before auto-saving */
