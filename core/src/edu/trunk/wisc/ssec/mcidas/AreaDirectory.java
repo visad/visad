@@ -39,7 +39,6 @@ import java.util.TimeZone;
 public class AreaDirectory 
 {
 
-    private boolean flipwords = false;
     private int[] dir = new int[AreaFile.AD_DIRSIZE];   // single directory
     private Date nominalTime;          // time of the image
     private Date startTime;            // start time of the image
@@ -160,10 +159,13 @@ public class AreaDirectory
             throw new AreaFileException("Directory is not the right size");
         dir = dirblock;
         // see if the directory needs to be byte-flipped
-        if (dir[AreaFile.AD_VERSION] > 255 || flipwords) 
+        if (dir[AreaFile.AD_VERSION] != AreaFile.VERSION_NUMBER) 
         {
-            flipwords = true;
             McIDASUtil.flip(dir,0,19);
+            // check again to make sure we got the right type of file
+            if (dir[AreaFile.AD_VERSION] != AreaFile.VERSION_NUMBER)
+                throw new AreaFileException(
+                    "Invalid version number - probably not an AREA file");
             // word 20 may contain characters -- if small int, flip it
             if ( (dir[20] & 0xffff) == 0) McIDASUtil.flip(dir,20,20);
             McIDASUtil.flip(dir,21,23);

@@ -117,6 +117,9 @@ public class AreaFile {
   /** AD_DIRSIZE - size in 4 byte words of an image directory block */
   public static final int AD_DIRSIZE    = 64;
 
+  /** VERSION_NUMBER - version number for a valid AREA file (since 1985) */
+  public static final int VERSION_NUMBER = 4;
+
   // load protocol handler for ADDE URLs
   // See java.net.URL for explanation of URL handling
   static 
@@ -280,8 +283,12 @@ public class AreaFile {
 
     // see if the directory needs to be byte-flipped
 
-    if (dir[AD_VERSION] > 255) {
+    if (dir[AD_VERSION] != VERSION_NUMBER) {
       McIDASUtil.flip(dir,0,19);
+      // check again
+     if (dir[AD_VERSION] != VERSION_NUMBER)
+         throw new AreaFileException(
+             "Invalid version number - probably not an AREA file");
       // word 20 may contain characters -- if small integer, flip it...
       if ( (dir[20] & 0xffff) == 0) McIDASUtil.flip(dir,20,20);
       McIDASUtil.flip(dir,21,23);
