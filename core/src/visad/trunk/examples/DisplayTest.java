@@ -1631,7 +1631,10 @@ public class DisplayTest extends Object {
 
         display1 = new DisplayImplJ2D("display1");
         display1.addMap(new ScalarMap(RealType.Latitude, Display.Radius));
-        display1.addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
+        ScalarMap lonmap = new ScalarMap(RealType.Longitude, Display.Longitude);
+        lonmap.setRangeByUnits();
+        display1.addMap(lonmap);
+        // display1.addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
         display1.addMap(new ScalarMap(vis_radiance, Display.RGB));
      
         jframe = new JFrame("polar coordinates in Java2D");
