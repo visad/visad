@@ -463,8 +463,11 @@ System.out.println("dataRange = " + dataRange[0] + " " + dataRange[1] +
       }
       else {
         if (dataRange[0] == dataRange[1]) {
-          dataRange[0] -= 0.5;
-          dataRange[1] += 0.5;
+          // WLH 11 April 2000
+          double half = dataRange[0] / 2000.0;
+          if (half < 0.5) half = 0.5;
+          dataRange[0] -= half;
+          dataRange[1] += half;
         }
         scale = (displayRange[1] - displayRange[0]) /
                 (dataRange[1] - dataRange[0]);
@@ -688,10 +691,14 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       tens /= 2.0;
     }
 
-    int bot = (int) Math.ceil(min / tens);
-    int top = (int) Math.floor(max / tens);
+    long bot = (int) Math.ceil(min / tens);
+    long top = (int) Math.floor(max / tens);
+    if (bot == top) {
+      if (bot < 0) top++;
+      else bot--;
+    }
     arrays[0] = new VisADLineArray();
-    int nticks = (top - bot) + 1;
+    int nticks = (int) ((top - bot) + 1);
     float[] coordinates = new float[6 * (nticks + 1)];
     // draw base line
     for (int i=0; i<3; i++) {
@@ -701,7 +708,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
 
     // draw tick marks
     int k = 6;
-    for (int j=bot; j<=top; j++) {
+    for (long j=bot; j<=top; j++) {
       double val = j * tens;
       double a = (val - min) / (max - min);
       for (int i=0; i<3; i++) {
