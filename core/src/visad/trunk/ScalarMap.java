@@ -478,8 +478,8 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
    * #setRange(double,double)} method.  Note that if overrideUnit != null,
    * then dataRange is in overrideUnit.
    *
-   * @return			The current range of the {@link RealType} data.
-   *				The array is new and may be safely modified.
+   * @return                    The current range of the {@link RealType} data.
+   *                            The array is new and may be safely modified.
    */
   public double[] getRange() {
     double[] range = {dataRange[0], dataRange[1]};
@@ -517,10 +517,10 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
    * example, this method may be invoked with low = 1.0 and hi = 0.0 to invert
    * the display scale.
    *
-   * @param low			One end of the range of applicable data.
-   * @param hi			The other end of the range of applicable data.
-   * @throws VisADException	VisAD failure.
-   * @throws RemoteException	Java RMI failure.
+   * @param low                 One end of the range of applicable data.
+   * @param hi                  The other end of the range of applicable data.
+   * @throws VisADException     VisAD failure.
+   * @throws RemoteException    Java RMI failure.
    */
   public void setRange(double low, double hi)
          throws VisADException, RemoteException {
@@ -882,6 +882,8 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
           //displayRenderer.setScale(axis, axis_ordinal, array, scale_color);
           if (scale_on) {
             displayRenderer.setScale(axisScale);
+          } else {
+            displayRenderer.clearScale(axisScale);
           }
           scale_flag = false;
         }
@@ -892,14 +894,22 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
    * Enable the display of the scale for this map.  This can be used
    * to selectively turn on or off the scales in a display.  Must be
    * used in conjunction with <CODE>GraphicsModeControl.setScaleEnable()</CODE>
-   * or <CODE>DisplayRenderer.setScaleOn(boolean on)</CODE>
+   * or <CODE>DisplayRenderer.setScaleOn(boolean on)</CODE>.  
    * @param  on  true will enable display of axis, false will disable display
    * @see visad.GraphicsModeControl#setScaleEnable(boolean enable)
    * @see visad.DisplayRenderer#setScaleOn(boolean on)
+   * @see visad.AxisScale#setVisible(boolean visible)
    */
   public void setScaleEnable(boolean on) {
     scale_on = on;
+    if (axisScale != null) axisScale.setVisible(on);
   }
+
+  /**
+   * See if the AxisScale is visible or not.
+   * @return true if the AxisScale is visible
+   */
+  public boolean getScaleEnable() { return scale_on; }
 
   /** 
    * Set color of axis scales; color must be float[3] with red,

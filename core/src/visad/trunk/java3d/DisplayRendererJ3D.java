@@ -906,6 +906,8 @@ public abstract class DisplayRendererJ3D
       if (!axis_vector.contains(axisScale)) {
         axis_vector.addElement(axisScale);
 
+        clearScale(axisScale);
+	/*  Replaced by clearScale()  2001-08-08  DRM
         // eliminate any non-screen-based scale for this AxisScale
         int axis = axisScale.getAxis();
         int axis_ordinal = axisScale.getAxisOrdinal();
@@ -926,6 +928,7 @@ public abstract class DisplayRendererJ3D
           empty.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
           scale_on.setChild(empty, m);
         }
+	*/
       }
     }
     else {
@@ -1026,7 +1029,7 @@ public abstract class DisplayRendererJ3D
   }
 
   /**
-   * Remove all the scales.
+   * Remove all the scales being rendered.
    */
   public void clearScales() {
     if (scale_on != null) {
@@ -1038,6 +1041,33 @@ public abstract class DisplayRendererJ3D
       }
     }
     axis_vector.removeAllElements();
+  }
+
+  /**
+   * Remove a particular scale being rendered.
+   * @param scale  AxisScale to remove
+   */
+  public void clearScale(AxisScale axisScale) {
+    // eliminate any non-screen-based scale for this AxisScale
+    int axis = axisScale.getAxis();
+    int axis_ordinal = axisScale.getAxisOrdinal();
+    int dim = getMode2D() ? 2 : 3;
+    synchronized (scale_on) {
+      int n = scale_on.numChildren();
+      int m = dim * axis_ordinal + axis;
+      if (m >= n) {
+        for (int i=n; i<=m; i++) {
+          BranchGroup empty = new BranchGroup();
+          empty.setCapability(BranchGroup.ALLOW_DETACH);
+          empty.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+          scale_on.addChild(empty);
+        }
+      }
+      BranchGroup empty = new BranchGroup();
+      empty.setCapability(BranchGroup.ALLOW_DETACH);
+      empty.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+      scale_on.setChild(empty, m);
+    }
   }
 
   public void setTransform3D(Transform3D t) {

@@ -74,7 +74,8 @@ public class Test26
     latScale.setFont(java.awt.Font.decode("serif"));
 
     ScalarMap map1lon = new ScalarMap(RealType.Longitude, Display.XAxis);
-    map1lon.setScaleEnable(false);
+    //map1lon.setScaleEnable(false);  Old way DRM: 2001-08-09
+    map1lon.getAxisScale().setVisible(false);
     dpys[0].addMap(map1lon);
 
     ScalarMap map1vis = new ScalarMap(vis_radiance, Display.ZAxis);
@@ -122,6 +123,8 @@ public class Test26
       map1lat.getAxisScale().setMinorTickSpacing(
         map1lat.getAxisScale().getMajorTickSpacing()/2);
       map1lon.setRange(range1lon[1] + inclon, range1lon[0] - inclon);
+      boolean visible = !map1lon.getAxisScale().isVisible();
+      map1lon.getAxisScale().setVisible(visible);
       map1vis.setRange(range1vis[1] + incvis, range1vis[0] - incvis);
     }
 

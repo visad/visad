@@ -237,6 +237,12 @@ public abstract class DisplayRenderer
   public abstract void clearScales();
 
   /**
+   * Remove a particular scale being rendered.
+   * @param axisScale  scale to remove
+   */
+  public abstract void clearScale(AxisScale axisScale);
+
+  /**
    * Allow scales to be displayed if they are set on.  This should not be
    * called programmatically, since it does not update collaborative displays.
    * Applications should use

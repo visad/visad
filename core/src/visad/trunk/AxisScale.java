@@ -67,13 +67,14 @@ public class AxisScale implements java.io.Serializable
   private int axisOrdinal = -1;
   private String myTitle;
   private Hashtable labelTable;
-  protected double majorTickSpacing = 0.0;
-  protected double minorTickSpacing = 0.0;
-  protected double tickBase = 0.0;
-  protected boolean autoComputeTicks = true;
-  protected boolean baseLineVisible = true;
-  protected boolean snapToBox = false;
-  protected boolean userLabels = false;
+  private double majorTickSpacing = 0.0;
+  private double minorTickSpacing = 0.0;
+  private double tickBase = 0.0;
+  private boolean autoComputeTicks = true;
+  private boolean baseLineVisible = true;
+  private boolean snapToBox = false;
+  private boolean userLabels = false;
+  private boolean visibility = true;
   private Font labelFont = null;
   private int labelSize = 12;
   private int axisSide = PRIMARY;
@@ -101,6 +102,7 @@ public class AxisScale implements java.io.Serializable
     myAxis = (displayScalar.equals(Display.XAxis)) ? X_AXIS :
        (displayScalar.equals(Display.YAxis)) ? Y_AXIS : Z_AXIS;
     myTitle = scalarMap.getScalarName();
+    visibility = scalarMap.getScaleEnable();
     labelTable = new Hashtable();
     DisplayImpl display = scalarMap.getDisplay();
     if (display != null) {
@@ -1232,6 +1234,32 @@ public class AxisScale implements java.io.Serializable
    * @return format used for labeling
    */
   public NumberFormat getNumberFormat() { return labelFormat; }
+
+  /**
+   * Set the visibility of the AxisScale
+   * @param visibile  true to display the AxisScale
+   */
+  public void setVisible(boolean visible) { 
+    boolean oldVisibility = visibility;
+    visibility = visible;
+    if (!(oldVisibility == visibility) ) {
+      try {
+        // check for case if this was called from scalarmap.setScaleEnable()
+        if ( !(visible == scalarMap.getScaleEnable()) ) {
+          scalarMap.setScaleEnable(visible);
+	}
+        scalarMap.makeScale();  // update the display
+      } catch (VisADException ve) {;}
+    }
+  }
+
+  /**
+   * Get the visibility of the AxisScale
+   * @return true if AxisScale is being rendered
+   */
+  public boolean isVisible() { 
+    return scalarMap.getScaleEnable();
+  }
 
 
   /** compute the tick mark values */

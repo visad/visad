@@ -776,6 +776,31 @@ public abstract class DisplayRendererJ2D
     }
   }
 
+  /**
+   * Remove a particular scale being rendered.
+   * @param axisScale  scale to be removed
+   */
+  public void clearScale(AxisScale axisScale) {
+    int axis = axisScale.getAxis();
+    int axis_ordinal = axisScale.getAxisOrdinal();
+    int dim = getMode2D() ? 2 : 3;
+    try {
+      synchronized (scale_on) {
+        int n = scale_on.numChildren();
+        int m = dim * axis_ordinal + axis;
+        if (m >= n) {
+          for (int i=n; i<=m; i++) {
+            VisADGroup empty = new VisADGroup();
+            scale_on.addChild(empty);
+          }
+        }
+        VisADGroup empty = new VisADGroup();
+        scale_on.setChild(empty, m);
+        canvas.scratchImages(); 
+      }
+    } catch (VisADException ve) {;}
+  }
+
   public void setTransform2D(AffineTransform t) {
     trans = new AffineTransform(t);
   }
