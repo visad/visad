@@ -28,6 +28,8 @@ package visad;
 import java.util.*;
 import java.rmi.*;
 
+import visad.util.ThreadPool;
+
 /**
    ActionImpl is the abstract superclass for runnable threads that
    need to be notified when ThingReference objects change.  For example,
@@ -36,11 +38,13 @@ import java.rmi.*;
    ActionImpl is not Serializable and should not be copied
    between JVMs.<P>
 */
-public abstract class ActionImpl extends Object
+public abstract class ActionImpl
        implements Action, Runnable {
 
-  /** lock for thread starting */
-  public static Object threadLock = new Object();
+  /** thread pool and its lock */
+  private transient static ThreadPool pool = null;
+  private static Object poolLock = new Object();
+
   /** delay for thread starting */
   public static final int THREAD_DELAY = 50;
 
@@ -48,9 +52,6 @@ public abstract class ActionImpl extends Object
   private Object lockEnabled = new Object();
 
   String Name;
-
-  /** ActionImpl is not Serializable, but mark as transient anyway */
-  private transient Thread actionThread;
 
   /** Vector of ReferenceActionLink-s;
       ActionImpl is not Serializable, but mark as transient anyway */
@@ -60,21 +61,54 @@ public abstract class ActionImpl extends Object
       in LinkVector */
   private long link_id;
 
-  private boolean dontSleep;
+  private boolean requeue = false;
 
   public ActionImpl(String name) {
+    // if the thread pool hasn't been initialized...
+    if (pool == null) {
+      startThreadPool();
+    }
+
     Name = name;
     link_id = 0;
-    synchronized (ActionImpl.threadLock) {
-      DisplayImpl.delay(ActionImpl.THREAD_DELAY);
-      actionThread = new Thread(this);
-      actionThread.start();
+  }
+
+  /** used internally to create the shared Action thread pool */
+  private static void startThreadPool()
+  {
+    synchronized (poolLock) {
+      if (pool == null) {
+        // ...fill the pool; die if pool wasn't created
+        try {
+          pool = new ThreadPool();
+        } catch (Exception e) {
+          System.err.println(e.getClass().getName() + ": " + e.getMessage());
+          System.exit(1);
+        }
+      }
     }
   }
 
+  /** destroy all threads after they've drained the job queue */
+  public static void stopThreadPool()
+  {
+    if (pool != null) {
+      pool.stopThreads();
+      pool = null;
+    }
+  }
+
+  /** increase the maximum number of threads allowed for the thread pool */
+  public static void setThreadPoolMaximum(int num)
+        throws Exception
+  {
+    if (pool == null) {
+      startThreadPool();
+    }
+    pool.setThreadMaximum(num);
+  }
+
   public void stop() {
-    Thread oldThread = actionThread;
-    actionThread = null;
     if (LinkVector == null) return;
     synchronized (LinkVector) {
       Enumeration links = LinkVector.elements();
@@ -90,7 +124,6 @@ public abstract class ActionImpl extends Object
       }
       LinkVector.removeAllElements();
     }
-    oldThread.interrupt();
   }
 
   synchronized long getLinkId() {
@@ -131,13 +164,13 @@ public abstract class ActionImpl extends Object
     }
   }
 
-  /** enable and notify this */
+  /** enable and notify this Action */
   public void enableAction() {
     enabled = true;
     notifyAction();
   }
 
-  /** disable this and if necessary wait for end of doAction */
+  /** disable this Action and if necessary wait for end of doAction */
   public void disableAction() {
     enabled = false;
     synchronized (lockEnabled) {
@@ -145,28 +178,8 @@ public abstract class ActionImpl extends Object
     }
   }
 
+  /** code executed by a thread to manage updates to the corresponding Thing */
   public void run() {
-    dontSleep = true;
-    Thread me = Thread.currentThread();
-    while (actionThread == me) {
-      try {
-        synchronized (this) {
-          if (!dontSleep) {
-            wait();
-          }
-          dontSleep = false;
-        }
-      }
-      catch(InterruptedException e) {
-        dontSleep = false;
-        // note notify generates a normal return from wait rather
-        // than an Exception - control doesn't normally come here
-      }
-      doRun();
-    } // end while (actionThread == me)
-  }
-
-  void doRun() {
     synchronized (lockEnabled) {
       if (enabled) {
         try {
@@ -188,7 +201,7 @@ public abstract class ActionImpl extends Object
                 ref.acknowledgeThingChanged(link.getAction());
               if (e != null) {
                 thingChanged(e);
-                dontSleep = true;
+                requeue = true;
               }
             }
           }
@@ -203,27 +216,34 @@ public abstract class ActionImpl extends Object
           throw new VisADError("Action.run: " + v.toString());
         }
       } // end if (enabled)
+
+      // if there's more to do, add this to the end of the task list
+      if (requeue) {
+        if (pool != null) {
+          pool.queue(this);
+        }
+        requeue = false;
+      }
+
     } // end synchronized (lockEnabled)
   }
 
   public abstract void doAction() throws VisADException, RemoteException;
 
-  // WLH 4 Dec 98
-  // public void thingChanged(ThingChangedEvent e)
   public boolean thingChanged(ThingChangedEvent e)
          throws VisADException, RemoteException {
     long id = e.getId();
     ReferenceActionLink link = findLink(id);
 
+    boolean changed = true;
     if (link != null) {
       link.incTick(e.getTick());
       link.setBall(true);
       notifyAction();
-      return false; // WLH 4 Dec 98
+      changed = false;
     }
-    else {
-      return true; // WLH 4 Dec 98
-    }
+
+    return changed;
   }
 
   /** add a ReferenceActionLink */
@@ -245,10 +265,11 @@ public abstract class ActionImpl extends Object
   }
 
   void notifyAction() {
-    synchronized (this) {
-      dontSleep = true;
-      notify();
+    requeue = true;
+    if (pool == null) {
+      startThreadPool();
     }
+    pool.queue(this);
   }
 
   /** create link to a ThingReference;
