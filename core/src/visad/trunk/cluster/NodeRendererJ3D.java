@@ -95,7 +95,13 @@ public class NodeRendererJ3D extends DefaultRendererJ3D {
   /** create a VisADGroup scene graph for Data in links[0] */
   public BranchGroup doTransform() throws VisADException, RemoteException {
     VisADGroup branch = new VisADGroup();
-    DataDisplayLink link = getLinks()[0];
+
+    DataDisplayLink[] Links = getLinks();
+    if (Links == null || Links.length() == 0) {
+      return null;
+    }
+    DataDisplayLink link = Links[0];
+
     ShadowTypeJ3D type = (ShadowTypeJ3D) link.getShadow();
 
     // initialize valueArray to missing

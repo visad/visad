@@ -145,7 +145,13 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
     setIsDirectManipulation(false);
 
     DisplayImpl display = getDisplay();
-    link = getLinks()[0];
+    DataDisplayLink[] Links = display.getLinks();
+    if (Links == null || Links.length == 0) {
+      link = null;
+      return;
+    }
+    link = Links[0];
+
     ref = link.getDataReference();
     type = link.getType();
     if (!(type instanceof TupleType) || !((TupleType) type).getFlat()) {

@@ -319,7 +319,13 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
       branch.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
     }
-    DataDisplayLink link = getLinks()[0];
+
+    DataDisplayLink[] Links = getLinks();
+    if (Links == null || Links.length == 0) {
+      return null;
+    }
+
+    DataDisplayLink link = Links[0];
     ShadowTypeJ3D type = (ShadowTypeJ3D) link.getShadow();
 
     // initialize valueArray to missing

@@ -142,7 +142,14 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
     setIsDirectManipulation(false);
 
     DisplayImpl display = getDisplay();
-    link = getLinks()[0];
+
+    DataDisplayLink[] Links = getLinks();
+    if (Links == null || Links.length == 0) {
+      link = null;
+      return;
+    }
+    link = Links[0];
+
     ref = link.getDataReference();
     default_values = link.getDefaultValues();
     type = link.getType();

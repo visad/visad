@@ -144,7 +144,14 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
     setIsDirectManipulation(false);
 
     DisplayImpl display = getDisplay();
-    link = getLinks()[0];
+
+    DataDisplayLink[] Links = getLinks();
+    if (Links == null || Links.length == 0) {
+      link = null;
+      return;
+    }
+    link = Links[0];
+
     ref = link.getDataReference();
     default_values = link.getDefaultValues();
 
@@ -440,7 +447,12 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
       DisplayImplJ3D display = (DisplayImplJ3D) getDisplay();
       GeometryArray geometry = display.makeGeometry(array);
   
-      DataDisplayLink link = getLinks()[0];
+      DataDisplayLink[] Links = getLinks();
+      if (Links == null || Links.length == 0) {
+        return;
+      }
+      DataDisplayLink link = Links[0];
+
       float[] default_values = link.getDefaultValues();
       GraphicsModeControl mode = (GraphicsModeControl)
         display.getGraphicsModeControl().clone();
