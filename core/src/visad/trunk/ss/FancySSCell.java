@@ -38,6 +38,9 @@ public class FancySSCell extends BasicSSCell {
   /** selected border */
   static final Border HIGH = new LineBorder(Color.yellow, 3);
 
+  /** This variable is static so that the previous directory is remembered */
+  static FileDialog FileBox = null;
+
   /** This cell's parent frame */
   Frame Parent;
 
@@ -352,14 +355,14 @@ public class FancySSCell extends BasicSSCell {
   /** Loads a file selected by the user */
   public void loadDataDialog() {
     // get file name from file dialog
-    FileDialog fileBox = new FileDialog(Parent);
-    fileBox.setMode(FileDialog.LOAD);
-    fileBox.setVisible(true);
+    if (FileBox == null) FileBox = new FileDialog(Parent);
+    FileBox.setMode(FileDialog.LOAD);
+    FileBox.setVisible(true);
 
     // make sure file exists
-    String file = fileBox.getFile();
+    String file = FileBox.getFile();
     if (file == null) return;
-    String directory = fileBox.getDirectory();
+    String directory = FileBox.getDirectory();
     if (directory == null) return;
     File f = new File(directory, file);
     if (!f.exists()) {
@@ -381,14 +384,14 @@ public class FancySSCell extends BasicSSCell {
     }
 
     // get file name from file dialog
-    FileDialog fileBox = new FileDialog(Parent);
-    fileBox.setMode(FileDialog.SAVE);
-    fileBox.setVisible(true);
+    if (FileBox == null) FileBox = new FileDialog(Parent);
+    FileBox.setMode(FileDialog.SAVE);
+    FileBox.setVisible(true);
 
     // make sure file is valid
-    String file = fileBox.getFile();
+    String file = FileBox.getFile();
     if (file == null) return;
-    String directory = fileBox.getDirectory();
+    String directory = FileBox.getDirectory();
     if (directory == null) return;
     File f = new File(directory, file);
 
