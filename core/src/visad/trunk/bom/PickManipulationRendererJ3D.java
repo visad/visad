@@ -347,24 +347,32 @@ System.out.println("checkClose: distance = " + distance);
 
     DataReferenceImpl field1dref = new DataReferenceImpl("field1d");
     field1dref.setData(field1d);
-    display.addReferences(new PickManipulationRendererJ3D(), field1dref);
+    final PickManipulationRendererJ3D pmr1d = new PickManipulationRendererJ3D();
+    display.addReferences(pmr1d, field1dref);
     CellImpl cellfield1d = new CellImpl() {
       private boolean first = true;
       public void doAction() throws VisADException, RemoteException {
         if (first) first = false;
-        else System.out.println("1-D Field picked");
+        else {
+          int i = pmr1d.getCloseIndex();
+          System.out.println("1-D Field picked, index = " + i);
+        }
       }
     };
     cellfield1d.addReference(field1dref);
 
     DataReferenceImpl field2dref = new DataReferenceImpl("field2d");
     field2dref.setData(field2d);
-    display.addReferences(new PickManipulationRendererJ3D(), field2dref);
+    final PickManipulationRendererJ3D pmr2d = new PickManipulationRendererJ3D();
+    display.addReferences(pmr2d, field2dref);
     CellImpl cellfield2d = new CellImpl() {
       private boolean first = true;
       public void doAction() throws VisADException, RemoteException {
         if (first) first = false;
-        else System.out.println("2-D Field picked");
+        else {
+          int i = pmr2d.getCloseIndex();
+          System.out.println("2-D Field picked, index = " + i);
+        }
       }
     };
     cellfield2d.addReference(field2dref);
@@ -372,12 +380,16 @@ System.out.println("checkClose: distance = " + distance);
     DataReferenceImpl setref = new DataReferenceImpl("set");
     setref.setData(set2d);
     ConstantMap[] smaps = {new ConstantMap(-1.0, Display.ZAxis)};
-    display.addReferences(new PickManipulationRendererJ3D(), setref, smaps);
+    final PickManipulationRendererJ3D pmrset = new PickManipulationRendererJ3D();
+    display.addReferences(pmrset, setref, smaps);
     CellImpl cellset = new CellImpl() {
       private boolean first = true;
       public void doAction() throws VisADException, RemoteException {
         if (first) first = false;
-        else System.out.println("set picked");
+        else {
+          int i = pmrset.getCloseIndex();
+          System.out.println("set picked, index = " + i);
+        }
       }
     };
     cellset.addReference(setref);
