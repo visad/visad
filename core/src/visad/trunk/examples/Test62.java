@@ -70,7 +70,7 @@ public class Test62
 
   public String toString()
   {
-    return ": outline iso-surfaces from irregular grids and ContourWidget";
+    return ": edges of iso-surfaces from irregular grids and ContourWidget";
   }
 
   public static void main(String args[])
