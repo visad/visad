@@ -47,6 +47,62 @@ public class ShadowNodeFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     super(t, link, parent);
   }
 
+  public boolean doTransform(Object group, Data data, float[] value_array,
+                             float[] default_values, DataRenderer renderer)
+         throws VisADException, RemoteException {
+    Data new_data = data;
+    if (renderer instanceof NodeRendererJ3D &&
+        data instanceof RemoteNodePartitionedFieldImpl) {
+      int resolution = ((NodeRendererJ3D) renderer).getResolution();
+      if (resolution > 1) {
+        FieldImpl adaptedField =
+          ((RemoteNodePartitionedFieldImpl) data).getAdaptedField();
+        Set set = adaptedField.getDomainSet();
+        if (set instanceof Gridded3DSet &&
+            set.getManifoldDimension() == 3) {
+          Gridded3DSet domain_set = (Gridded3DSet) set;
+          float[][] samples = domain_set.getSamples(false);
+          int x_len = domain_set.getLength(0);
+          int y_len = domain_set.getLength(1);
+          int z_len = domain_set.getLength(2);
+          int len = domain_set.getLength();
+          int new_x_len = 1 + (x_len - 1) / resolution;
+          int new_y_len = 1 + (y_len - 1) / resolution;
+          int new_z_len = 1 + (z_len - 1) / resolution;
+          int new_len = new_x_len * new_y_len * new_z_len;
+          float[][] new_samples = new float[3][new_len];
+          for (int x=0; x<new_x_len; x++) {
+            int i = x * resolution;
+            for (int y=0; y<new_y_len; y++) {
+              int j = y * resolution;
+              for (int z=0; z<new_z_len; z++) {
+                int k = z * resolution;
+                int ijk = i + x_len * (j + y_len * k);
+                int xyz = x + new_x_len * (y + new_y_len * z);
+                new_samples[0][xyz] = samples[0][ijk];
+                new_samples[1][xyz] = samples[1][ijk];
+                new_samples[2][xyz] = samples[2][ijk];
+              }
+            }
+          }
+          SetType domain_type = (SetType) domain_set.getType();
+          Gridded3DSet new_domain_set =
+            new Gridded3DSet(domain_type, new_samples,
+                             new_x_len, new_y_len, new_z_len,
+                             domain_set.getCoordinateSystem(),
+                             domain_set.getSetUnits(), null);
+          FieldImpl newAdaptedField = (FieldImpl)
+            adaptedField.resample(new_domain_set);
+          new_data = new RemoteNodePartitionedFieldImpl(newAdaptedField);
+// System.out.println("resolution = " + resolution + " " +
+//                    new_len + " out of " + len);
+        }
+      }
+    }
+    return super.doTransform(group, new_data, value_array,
+                             default_values, renderer);
+  }
+
   public void textureToGroup(Object group, VisADGeometryArray array,
                             BufferedImage image, GraphicsModeControl mode,
                             float constant_alpha, float[] constant_color,

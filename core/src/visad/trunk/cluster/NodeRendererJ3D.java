@@ -52,6 +52,8 @@ public class NodeRendererJ3D extends DefaultRendererJ3D {
 
   private boolean enable_transform = false;
 
+  private int resolution = 1;
+
   /** this constructor is need for NodeDisplayRendererJ3D.makeDefaultRenderer()
       but it should never be called */
   public NodeRendererJ3D () {
@@ -94,6 +96,14 @@ public class NodeRendererJ3D extends DefaultRendererJ3D {
          TupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
     return new ShadowNodeTupleTypeJ3D(type, link, parent);
+  }
+
+  public void setResolution(int r) {
+    resolution = r;
+  }
+
+  public int getResolution() {
+    return resolution;
   }
 
   public void enableTransform() {

@@ -297,6 +297,10 @@ public abstract class RemoteClusterDataImpl extends RemoteDataImpl
     jvmTable = table;
   }
 
+  public Set getPartitionSet() {
+    return partitionSet;
+  }
+
   public boolean clusterDataEquals(RemoteClusterData cd)
          throws RemoteException {
     return (cd == me); // seems to work - but does it really?

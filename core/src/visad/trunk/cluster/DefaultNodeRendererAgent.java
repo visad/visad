@@ -195,14 +195,17 @@ public class DefaultNodeRendererAgent extends NodeAgent {
           String sfirst = (String) first;
           if (sfirst.equals("transform")) {
             display.disableAction();
+            int resolution = ((Integer) vmessage.elementAt(1)).intValue();
+            nr.setResolution(resolution);
             int m = vmessage.size();
             Vector map_vector = display.getMapVector();
-            if (map_vector.size() != (m - 1)) {
-              System.out.println("ERROR1 " + map_vector.size() + " != " + (m - 1));
+            if (map_vector.size() != (m - 2)) {
+              System.out.println("ERROR1 " + map_vector.size() +
+                                 " != " + (m - 2));
               return;
             }
             Enumeration maps = map_vector.elements();
-            for (int i=1; i<m; i++) {
+            for (int i=2; i<m; i++) {
               ScalarMap map1 = (ScalarMap) vmessage.elementAt(i);
               ScalarMap map2 = (ScalarMap) maps.nextElement();
               if (!map1.getScalar().equals(map2.getScalar()) ||

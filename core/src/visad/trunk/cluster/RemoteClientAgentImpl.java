@@ -88,10 +88,18 @@ public class RemoteClientAgentImpl extends UnicastRemoteObject
   public Serializable[] broadcastWithResponses(Serializable message,
                                                RemoteAgentContact[] contacts)
          throws VisADException, RemoteException {
+    return broadcastWithResponses(new Serializable[] {message}, contacts);
+  }
+
+  public Serializable[] broadcastWithResponses(Serializable[] messages,
+                                               RemoteAgentContact[] contacts)
+         throws VisADException, RemoteException {
     int nagents = contacts.length;
     responses = new Serializable[nagents];
     not_all = true;
     for (int i=0; i<nagents; i++) {
+      int im = (messages.length == 1) ? 0 : i;
+        Serializable message = messages[im];
 // System.out.println("RemoteClientAgentImpl.broadcastWithResponses " +
 //                    i + " " + message);
       responses[i] = null;

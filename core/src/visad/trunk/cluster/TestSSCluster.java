@@ -34,6 +34,7 @@ import visad.util.*;
 import visad.bom.*;
 import visad.data.vis5d.Vis5DForm;
 
+import java.util.Vector;
 import java.rmi.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -506,6 +507,26 @@ System.out.println("data type = " + v5d_type);
     show.setActionCommand("widgets");
     bpanel.add(show);
 
+    JButton res1 = new JButton("Res 1");
+    res1.addActionListener(ss);
+    res1.setActionCommand("res1");
+    bpanel.add(res1);
+
+    JButton res2 = new JButton("Res 2");
+    res2.addActionListener(ss);
+    res2.setActionCommand("res2");
+    bpanel.add(res2);
+
+    JButton res3 = new JButton("Res 3");
+    res3.addActionListener(ss);
+    res3.setActionCommand("res3");
+    bpanel.add(res3);
+
+    JButton res4 = new JButton("Res 4");
+    res4.addActionListener(ss);
+    res4.setActionCommand("res4");
+    bpanel.add(res4);
+
     panel.add(ss);
     panel.add(bpanel);
 
@@ -513,6 +534,8 @@ System.out.println("data type = " + v5d_type);
     frame.setSize(600, 600);
     frame.setVisible(true);
   }
+
+  int[] res = {1, 1, 1, 1};
 
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
@@ -523,6 +546,31 @@ System.out.println("data type = " + v5d_type);
     else if (cmd.equals("widgets")) {
       showWidgetFrame();
     }
+    else if (cmd.equals("res1")) {
+      flipRes(0);
+    }
+    else if (cmd.equals("res2")) {
+      flipRes(1);
+    }
+    else if (cmd.equals("res3")) {
+      flipRes(2);
+    }
+    else if (cmd.equals("res4")) {
+      flipRes(3);
+    }
+  }
+
+  private void flipRes(int k) {
+    res[k] = 5 - res[k];
+    DisplayImpl display = getDisplay();
+    Vector renderers = display.getRendererVector();
+    for (int i=0; i<renderers.size(); i++) {
+      DataRenderer renderer = (DataRenderer) renderers.elementAt(i);
+      if (renderer instanceof ClientRendererJ3D) {
+        ((ClientRendererJ3D) renderer).setResolutions(res);
+      }
+    }
+    display.reDisplayAll();
   }
 
   private static Gridded3DSet makePS(Gridded3DSet domain_set, int node_divide)

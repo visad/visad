@@ -63,12 +63,21 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
 
   private long time_out = 10000;
 
+  private int[] resolutions = null;
+
   public ClientRendererJ3D () {
     this(10000);
   }
 
   public ClientRendererJ3D (long to) {
     time_out = to;
+  }
+
+  public void setResolutions(int[] rs) {
+    if (rs == null) return;
+    int n = rs.length;
+    resolutions = new int[n];
+    for (int i=0; i<n; i++) resolutions[i] = rs[i];
   }
 
   public DataShadow prepareAction(boolean go, boolean initialize,
@@ -113,6 +122,12 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
   
       // is this cluster data?
       cluster = (data instanceof RemoteClientDataImpl);
+
+/*
+      if (cluster) {
+        Set partitionSet = ((RemoteClientDataImpl) data).getPartitionSet();
+      }
+*/
 
       if (cluster && data != old_data) {
         // send agents to nodes if data changed
@@ -163,32 +178,32 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
       return super.doTransform();
     }
 
+    int n = contacts.length;
+    Vector[] messages = new Vector[n];
 
-/* WLH 16 April 2001
-    DisplayMonitor dm = display.getDisplayMonitor();
-    while (!dm.isEmpty()) {
-      System.out.println("wait for DisplayMonitor");
-      new Delay(10);
-    }
-*/
-
-
-    // String message = "transform";
-    Vector message = new Vector();
-    message.addElement("transform");
-
-
-    Vector map_vector = display.getMapVector();
-    Enumeration maps = map_vector.elements();
-    while (maps.hasMoreElements()) {
-      ScalarMap map = (ScalarMap) maps.nextElement();
-      message.addElement(map);
+    if (resolutions == null || resolutions.length != n) {
+      resolutions = new int[n];
+      for (int i=0; i<n; i++) resolutions[i] = 1;
     }
 
+    for (int i=0; i<n; i++) {
+      // String message = "transform";
+      messages[i] = new Vector();
+      messages[i].addElement("transform");
+
+      messages[i].addElement(new Integer(resolutions[i]));
+
+      Vector map_vector = display.getMapVector();
+      Enumeration maps = map_vector.elements();
+      while (maps.hasMoreElements()) {
+        ScalarMap map = (ScalarMap) maps.nextElement();
+        messages[i].addElement(map);
+      }
+    }
 
     // responses are VisADGroups
     Serializable[] responses =
-      focus_agent.broadcastWithResponses(message, contacts);
+      focus_agent.broadcastWithResponses(messages, contacts);
 // System.out.println("ClientRendererJ3D.doTransform messages received");
 
     // responses are VisADGroups
@@ -206,7 +221,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
     branch.setCapability(Group.ALLOW_CHILDREN_WRITE);
     branch.setCapability(Group.ALLOW_CHILDREN_EXTEND);
 
-    int n = responses.length;
+    n = responses.length;
     for (int i=0; i<n; i++) {
       if (responses[i] != null) {
         VisADSceneGraphObject vsgo = (VisADSceneGraphObject) responses[i];
@@ -215,6 +230,12 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
     }
     if (n == 0) ShadowTypeJ3D.ensureNotEmpty(branch, display);
     return branch;
+  }
+
+  private boolean enable_spatial = true;
+
+  public synchronized void setSpatialValues(float[][] spatial_values) {
+    if (enable_spatial) super.setSpatialValues(spatial_values);
   }
 
   /* convert from VisAD scene graph to Java3D scene graph
