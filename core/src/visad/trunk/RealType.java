@@ -847,8 +847,10 @@ public class RealType extends ScalarType {
        * Ensure that the previously-created instance conforms to the input
        * arguments.
        */
-      if (!Unit.canConvert(u, rt.DefaultUnit))
+      if (!Unit.canConvert(u, rt.DefaultUnit)) {
+// System.out.println("getRealType " + name + " unit mismatchA " + u + " " + rt.DefaultUnit);
         rt = null;
+      }
     }
     else
     {
@@ -866,6 +868,7 @@ public class RealType extends ScalarType {
         rt = getRealTypeByName(name);
         if (rt != null) {
           if (!Unit.canConvert(u, rt.DefaultUnit)) {
+// System.out.println("getRealType " + name + " unit mismatchB " + u + " " + rt.DefaultUnit);
             rt = null;
           }
         }
