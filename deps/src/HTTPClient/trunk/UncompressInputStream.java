@@ -28,6 +28,9 @@
  *
  *  http://www.innovation.ch/java/HTTPClient/ 
  *
+ *  This version has been modified from the original 0.3-3 version by the 
+ *  Unidata Program Center (support@unidata.ucar.edu) to make the constructor 
+ *  public and to fix a couple of bugs.
  */
 
 package HTTPClient;
@@ -43,10 +46,11 @@ import java.io.FilterInputStream;
  * This class decompresses an input stream containing data compressed with
  * the unix "compress" utility (LZC, a LZW variant). This code is based
  * heavily on the <var>unlzw.c</var> code in <var>gzip-1.2.4</var> (written
- * by Peter Jannesen) and the original compress code.
+ * by Peter Jannesen) and the original compress code.  
  *
  * @version	0.3-3  06/05/2001
  * @author	Ronald Tschalär
+ * @author	Unidata Program Center 
  */
 public class UncompressInputStream extends FilterInputStream
 {
