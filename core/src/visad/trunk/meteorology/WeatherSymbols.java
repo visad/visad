@@ -42,7 +42,7 @@ import java.awt.event.WindowEvent;
 public class WeatherSymbols {
 
   private static HersheyFont wmoFont = new HersheyFont("wmo");
-  private static final int numMetSymbols = 203;
+  private static final int numMetSymbols = 205;
 
   private static VisADLineArray[] metSymbols = 
       new VisADLineArray[numMetSymbols];
@@ -92,7 +92,7 @@ public class WeatherSymbols {
   public final static int TURB_NUM = 11;
 
   /** Number of miscellaneous symbols */
-  public final static int MISC_NUM = 32;
+  public final static int MISC_NUM = 34;
 
   /** Number of lightning symbols */
   public final static int LIGHTNING_NUM = 2;
@@ -455,7 +455,7 @@ public class WeatherSymbols {
    *   2  -  Circle (outline)            18 - Tropical Storm (SH)
    *   3  -  Circle (filled)             19 - Hurricane (SH)
    *   4  -  Triangle (outline)          20 - Triangle with antenna
-   *   5  -  Triangle (filled)           21 - Sideways "S"
+   *   5  -  Triangle (filled)           21 - Mountain obscuration
    *   6  -  Diamond (outline)           22 - Slash
    *   7  -  Diamond (filled)            23 - Storm Center
    *   8  -  Star (outline)              24 - Tropical Depression
@@ -464,8 +464,9 @@ public class WeatherSymbols {
    *  11  - Low Pressure (outline)       27 - "X" Cross
    *  12  - High Pressure (filled)       28 - Low pressure with X (outline)
    *  13  - Low Pressure (filled)        29 - Low pressure with X (filled)
-   *  14  - Single "]" bracket           30 - Tropical Storm (NH)
-   *  15  - Bottom half of "]" bracket   31 - Tropical Storm (SH)
+   *  14  - Plus sign                    30 - Tropical Storm (NH)
+   *  15  - Minus sign                   31 - Tropical Storm (SH)
+   *  32  - Volcanic activity            33 - Blowing spray
    * </pre>
    * @param   miscCode     miscellaneous code to use
    * @return  corresponding shape
