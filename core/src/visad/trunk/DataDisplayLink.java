@@ -111,6 +111,29 @@ public class DataDisplayLink extends ReferenceActionLink {
     }
   }
 
+  public void clearMaps()
+    throws RemoteException, VisADException
+  {
+    Enumeration maps;
+
+    synchronized (SelectedMapVector) {
+      maps = SelectedMapVector.elements();
+      while(maps.hasMoreElements()) {
+        ScalarMap map = (ScalarMap) maps.nextElement();
+        map.nullDisplay();
+      }
+      SelectedMapVector.removeAllElements();
+    }
+    synchronized (ConstantMapVector) {
+      maps = ConstantMapVector.elements();
+      while(maps.hasMoreElements()) {
+        ConstantMap map = (ConstantMap) maps.nextElement();
+        map.nullDisplay();
+      }
+      ConstantMapVector.removeAllElements();
+    }
+  }
+
   /** Prepare to render data (include feasibility check);
       return false if infeasible */
   public boolean prepareData() throws VisADException, RemoteException {
