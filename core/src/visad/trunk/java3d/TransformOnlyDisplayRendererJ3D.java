@@ -139,5 +139,8 @@ public class TransformOnlyDisplayRendererJ3D extends DisplayRendererJ3D {
     return (renderer instanceof RendererJ3D);
   }
 
+  public void setBoxAspect(double[] aspect) {
+  }
+
 }
 

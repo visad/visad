@@ -135,6 +135,8 @@ public class HSVDisplay extends Object {
     display1.addMap(mapvcontour);
     ContourControl controlvcontour = (ContourControl) mapvcontour.getControl();
 
+    display1.getGraphicsModeControl().setScaleEnable(true);
+
     // display cube_set
     display1.addReference(cube_ref);
 
