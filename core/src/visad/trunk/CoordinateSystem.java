@@ -57,7 +57,8 @@ public abstract class CoordinateSystem extends Object
    * @param units               The default units for this coordinate system.
    *                            Numeric values in this coordinate system shall
    *                            be in units of <code>units</code> unless
-   *                            specified otherwise.
+   *                            specified otherwise.  May be <code>null</code>
+   *				or an array of <code>null</code>-s.
    * @throws VisADException	Couldn't create necessary VisAD object.
    */
   public CoordinateSystem(RealTupleType reference, Unit[] units)
