@@ -43,6 +43,9 @@ public class LinePool implements DisplayListener {
   /** Associated VisAD display. */
   private DisplayImpl display;
 
+  /** Associated selection box. */
+  private SelectionBox box;
+
   /** Number of lines in a block. */
   private int blockSize;
 
@@ -60,6 +63,12 @@ public class LinePool implements DisplayListener {
     size = 0;
     used = 0;
     display.addDisplayListener(this);
+    try {
+      box = new SelectionBox();
+      box.addToDisplay(display);
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
   }
 
   /** Ensures the line pool is at least the given size. */
@@ -181,10 +190,13 @@ public class LinePool implements DisplayListener {
           index = i;
         }
       }
-      if (mindist > threshold) return;
 
       // highlight picked line
-      // CTR: TODO
+      if (mindist > threshold) box.select(null);
+      else {
+        MeasureLine line = (MeasureLine) lines.elementAt(index);
+        box.select(line);
+      }
     }
   }
 

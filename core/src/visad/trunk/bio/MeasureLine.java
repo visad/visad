@@ -157,8 +157,8 @@ public class MeasureLine {
       int len = ptypes.length;
       double[][] values = new double[len][2];
       for (int i=0; i<len; i++) {
-        values[i][0] = (double) Float.MAX_VALUE / 2;
-        values[i][1] = (double) Float.MAX_VALUE / 2;
+        values[i][0] = Double.NaN;
+        values[i][1] = Double.NaN;
       }
       setValues(values);
       if (DEBUG) debug = debug + "values set.";
@@ -184,7 +184,7 @@ public class MeasureLine {
     Real[] r = new Real[dim];
     for (int i=0; i<dim; i++) {
       ptypes[i] = (RealType) domain.getComponent(i);
-      r[i] = new Real(ptypes[i], 0.0);
+      r[i] = new Real(ptypes[i], Double.NaN);
     }
     if (fillVals) {
       p1 = p2 = new RealTuple(r);
