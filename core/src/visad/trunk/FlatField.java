@@ -1896,7 +1896,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
        * kelvin rather than celsius).
        */
       units_in = (Unit[])RangeUnits.clone();
-      errors_in = (ErrorEstimate[])RangeErrors.clone();;
+      errors_in = (ErrorEstimate[])RangeErrors.clone();
       makeRational(values, units_in, errors_in);
       makeRational(value2, units_out, errors_out);
 

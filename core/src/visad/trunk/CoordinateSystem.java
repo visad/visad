@@ -236,7 +236,7 @@ public abstract class CoordinateSystem extends Object
     // prepare for Unit calculations
     Unit[] units = Unit.copyUnitsArray(units_in);
     if (units == null) units = new Unit[n];
-    Unit[] error_units = Unit.copyUnitsArray(units);;
+    Unit[] error_units = Unit.copyUnitsArray(units);
 
     if (units_out != null) {
       // set default units_out in case no transform

@@ -489,7 +489,7 @@ public final class OffsetUnit
         Unit            degC = new OffsetUnit(273.15, degK);
         ScaledUnit      degR = new ScaledUnit(1/1.8, degK);
         Unit            degF = new OffsetUnit(459.67, degR);
-        Unit            degF2 = degF.pow(2);;
+        Unit            degF2 = degF.pow(2);
 
         System.out.println("degC=\"" + degC + "\"");
 
