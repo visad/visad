@@ -175,6 +175,164 @@ public abstract class SampledSet extends SimpleSet {
      }
   }
 
+  /**
+   * Returns the indefinite curve integral of the gradient of a vector function.
+   * The points at which the returned curve integral has a value will be the
+   * same as this Set's.  The value of the curve integral at the first point
+   * shall be arbitrarily set to the zero vector.
+   *
+   * This method is only valid for a gradient of a function: if the function
+   * being integrated is not a gradient of a function, then the value at a
+   * point will depend upon the integration path to the point.  When confronted
+   * with a path-dependent value for a point, this method forms a weighted mean
+   * of the estimates.  The weight for an estimate is the reciprocal of the
+   * estimated variance for the estimate.  The variance for an estimate at a
+   * point is determined from the difference between the linear and quadratic
+   * estimates for the point.  Estimates with zero variance (i.e. infinite
+   * weight) are accumulated separately and averaged to determine the final
+   * value -- regardless of any estimates with finite variance.  If no such
+   * "infinite" estimates exist for a point, then the finite estimates are
+   * weighted to determine the value for the point.
+   *
+   * Because the algorithm used by this method is necessarily quite general (it
+   * uses, for example, the memory-intensive Set.getNeighbor(int[][]) method
+   * -- which can return <code>getLength()*Math.pow(2, getDimension())</code>
+   * integers) derived classes should override this method for faster or less
+   * memory-intensive performance.
+   * @param gradients           Partial derivatives at the points of this set
+   *                            for each component of the vector function.
+   *                            <code>gradients[i][j][k]</code> is the partial
+   *                            derivative of the <code>i</code>-th component
+   *                            of the function in the <code>j</code>-th
+   *                            dimension for the <code>k</code>-th point of
+   *                            this set. <code>gradients[i].length</code>
+   *                            shall equal <code>getDimension()</code>
+   *                            for all <code>i</code> and
+   *                            <code>gradients[i][j].length</code> shall equal
+   *                            <code>getLength()</code> for all <code>i</code>
+   *                            and <code>j</code>.
+   * @param newRangeValues      Allocated space to hold the indefinite curve
+   *                            integral. <code>newRangeValues.length</code>
+   *                            shall equal <code>getDimension()</code>
+   *                            and <code>newRangeValues[i].length</code>
+   *                            shall equal <code>getLength()</code>
+   *                            for all <code>i</code>. On return,
+   *                            newRangeValues<code>[i][k]</code>
+   *                            is the indefinite curve integral of
+   *                            the <code>i</code>-th component of
+   *                            <code>gradients</code> at the <code>k</code>-th
+   *                            point in this set.
+   * @return			<code>newRangeValues</code>.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   */
+  float[][] curveIntegralOfGradient(float[][][] gradients,
+    float[][] newRangeValues) throws VisADException
+  {
+    int		componentCount = gradients.length;
+    int		domainDimension = getDimension();
+    int		sampleCount = getLength();
+    int[][]	neighborsIndexes = new int[sampleCount][];
+    getNeighbors(neighborsIndexes);
+    /*
+     * For each component of the function:
+     */
+    for (int icomp = 0; icomp < componentCount; ++icomp)
+    {
+      float[][]	gradient = gradients[icomp];
+      float[]	compValues = newRangeValues[icomp];
+      java.util.Arrays.fill(compValues, Float.NaN);
+      if (sampleCount > 0)
+	compValues[0] = 0;	// 1st point arbitrarily set to zero
+      /*
+       * For each sample point after the first one:
+       */
+      for (int sampleIndex = 1; sampleIndex < sampleCount; ++sampleIndex)
+      {
+	/*
+	 * Get the neighboring points of this sample point.
+	 */
+	int[]	neighborIndexes = neighborsIndexes[sampleIndex];
+	if (neighborIndexes != null)
+	{
+	  /*
+	   * The sample point has valid neighboring points.
+	   */
+	  double	valueSum = 0;
+	  double	weightSum = 0;
+	  double	infinitySum = 0;
+	  int		infinityCount = 0;
+	  float[][]	sampleCoordinates =
+	    indexToValue(new int[] {sampleIndex});
+	  float[][]	neighborCoordinates = indexToValue(neighborIndexes);
+	  /*
+	   * For each neighboring point:
+	   */
+	  for (int i = 0; i < neighborIndexes.length; ++i)
+	  {
+	    int		neighborIndex = neighborIndexes[i];
+	    double	newRangeNeighborValue = compValues[neighborIndex];
+	    if (!Double.isNaN(newRangeNeighborValue))
+	    {
+	      /*
+               * The neighboring point already has an output value.  Use it to
+               * compute a value for the sample point based on the value at the
+               * neighboring point and the increment from the neighboring point
+               * to the sample point.  The contribution of a neighboring point
+	       * is weighted by the inverse square of the error estimate for
+	       * that neighbor.  The error estimate is computed from the
+	       * difference between the linear estimate of the value at the
+	       * sample point and the quadratic estimate of the value at the
+	       * sample point.
+	       */
+	      double	delta1 = 0;	// linear difference estimate
+	      double	delta2 = 0;	// quadratic difference estimate
+	      /*
+	       * For each dimension:
+	       */
+	      for (int dimIndex = 0; dimIndex < domainDimension; ++dimIndex)
+	      {
+		/*
+                 * Compute the contribution due to this dimension's derivative
+                 * and displacement.
+		 */
+		float[]	derivatives = gradient[dimIndex];
+		double	neighborDerivative = derivatives[neighborIndex];
+		double	deltaDomain = sampleCoordinates[dimIndex][0] -
+		  neighborCoordinates[dimIndex][i];
+		delta1 += neighborDerivative * deltaDomain;
+		delta2 += (derivatives[sampleIndex] + neighborDerivative) *
+		  deltaDomain;
+	      }					// dimension loop
+	      delta2 /= 2;			// deferred mean computation
+	      double	error = delta1 - delta2;
+	      double	weight = 1 / (error * error);
+	      if (Double.isInfinite(weight))
+	      {
+		infinitySum += newRangeNeighborValue + delta2;
+		infinityCount++;
+	      }
+	      else if (infinityCount == 0)
+	      {
+		valueSum += (newRangeNeighborValue + delta2) * weight;
+		weightSum += weight;
+	      }
+	    }					// usable neighbor
+	  }					// neighbor loop
+	  /*
+           * The value at the output sample is the weighted mean of the values
+           * computed from the neighboring points.
+	   */
+	  if (infinityCount != 0)
+	    compValues[sampleIndex] = (float)(infinitySum / infinityCount);
+	  else if (weightSum != 0)
+	    compValues[sampleIndex] = (float)(valueSum / weightSum);
+	}					// sample point has neighbors
+      }						// sample point loop
+    }						// component loop
+
+    return newRangeValues;
+  }
+
   public boolean isMissing() {
     return (Samples == null);
   }

@@ -124,7 +124,7 @@ public class FlatField extends FieldImpl {
    * Constructs a FlatField from a function type.  The domain Set is the
    * default Set of the function domain.
    * @param type		The type of the function.
-   * throws VisADException	Couldn't create necessary VisAD object.
+   * @throws VisADException	Couldn't create necessary VisAD object.
    */
   public FlatField(FunctionType type) throws VisADException {
     this(type, null, null, null, null, null);
@@ -135,10 +135,9 @@ public class FlatField extends FieldImpl {
    * Set.
    * @param type		The type of the function.
    * @param domain_set          The sampling set of the domain.  May be <code>
-   *				null<code>, in
-   *                            which case the sampling set is the default Set
-   *                            of the function domain.
-   * throws VisADException	Couldn't create necessary VisAD object.
+   *                            null</code>, in which case the sampling set is
+   *                            the default Set of the function domain.
+   * @throws VisADException	Couldn't create necessary VisAD object.
    */
   public FlatField(FunctionType type, Set domain_set) throws VisADException {
     this(type, domain_set, null, null, null, null);
@@ -149,11 +148,11 @@ public class FlatField extends FieldImpl {
    * a coordinate system for the range, sampling sets for the range components,
    * and units for the range components.
    * @param type		The type of the function.
-   * @param domain_set          The sampling set of the domain.  May be null, in
-   *                            which case the sampling set is set to the
-   *				default sampling set of the function domain
-   *				(i.e. <code>
-   *				type.getDomain().getDefaultSet()</code>).
+   * @param domain_set          The sampling set of the domain.  May be
+   *                            <code> null</code>, in which case the
+   *                            sampling set is set to the default sampling
+   *                            set of the function domain (i.e. <code>
+   *                            type.getDomain().getDefaultSet()</code>).
    * @param range_coord_sys     Optional coordinate system for the range.
    *                            May be <code>null</code>.  If non-<code>null
    *                            </code>, then the range of the function shall
@@ -163,7 +162,7 @@ public class FlatField extends FieldImpl {
    *                            of the range coordinate system shall be
    *                            the same as the reference coordiinate
    *                            system of the function range (i.e.
-   *                            range_coord_sys().getReference().equals(
+   *                            <code>range_coord_sys().getReference().equals(
    *                            ((RealTuple)type.getRange()).getReference())
    *                            </code> shall be true).
    * @param range_sets          The sampling sets of the (flat) range
@@ -174,14 +173,14 @@ public class FlatField extends FieldImpl {
    *                            .getDefaultSet()</code> for all <code>i</code>
    *                            in the flat range).  If non-<code>null</code>,
    *                            then the <code> i</code>th flat range
-   *                            component values are stored in bytes if
-   *                            <code>range_sets[i].getLength() < 256, stored
-   *                            in shorts if <code> range_sets[i].getLength() <
-   *                            65536</code>, etc.
+   *                            component values are stored in bytes
+   *                            if <code>range_sets[i].getLength() <
+   *                            256</code>, stored in shorts if <code>
+   *                            range_sets[i].getLength() < 65536</code>, etc.
    * @param units		The units of the (flat) range components.  May
    *				be <code>null</code>, in which case the default
    *				units of the flat range RealType-s are used.
-   * throws VisADException	Couldn't create necessary VisAD object.
+   * @throws VisADException	Couldn't create necessary VisAD object.
    */
   public FlatField(FunctionType type, Set domain_set,
                    CoordinateSystem range_coord_sys, Set[] range_sets,
@@ -217,14 +216,14 @@ public class FlatField extends FieldImpl {
    *                            .getDefaultSet()</code> for all <code>i</code>
    *                            in the flat range).  If non-<code>null</code>,
    *                            then the <code> i</code>th flat range
-   *                            component values are stored in bytes if
-   *                            <code>range_sets[i].getLength() < 256, stored
-   *                            in shorts if <code> range_sets[i].getLength() <
-   *                            65536</code>, etc.
+   *                            component values are stored in bytes
+   *                            if <code>range_sets[i].getLength() <
+   *                            256</code>, stored in shorts if <code>
+   *                            range_sets[i].getLength() < 65536</code>, etc.
    * @param units		The units of the (flat) range components.  May
    *				be <code>null</code>, in which case the default
    *				units of the flat range RealType-s are used.
-   * throws VisADException	Couldn't create necessary VisAD object.
+   * @throws VisADException	Couldn't create necessary VisAD object.
    */
   public FlatField(FunctionType type, Set domain_set,
                    CoordinateSystem[] range_coord_syses, Set[] range_sets,
@@ -252,7 +251,7 @@ public class FlatField extends FieldImpl {
    *                            of the range coordinate system shall be
    *                            the same as the reference coordiinate
    *                            system of the function range (i.e.
-   *                            range_coord_sys().getReference().equals(
+   *                            <code>range_coord_sys().getReference().equals(
    *                            ((RealTuple)type.getRange()).getReference())
    *                            </code> shall be true).
    * @param range_coord_syses   Optional coordinate systems for the range
@@ -273,14 +272,14 @@ public class FlatField extends FieldImpl {
    *                            .getDefaultSet()</code> for all <code>i</code>
    *                            in the flat range).  If non-<code>null</code>,
    *                            then the <code> i</code>th flat range
-   *                            component values are stored in bytes if
-   *                            <code>range_sets[i].getLength() < 256, stored
-   *                            in shorts if <code> range_sets[i].getLength() <
-   *                            65536</code>, etc.
+   *                            component values are stored in bytes
+   *                            if <code>range_sets[i].getLength() <
+   *                            256</code>, stored in shorts if <code>
+   *                            range_sets[i].getLength() < 65536</code>, etc.
    * @param units		The units of the (flat) range components.  May
    *				be <code>null</code>, in which case the default
    *				units of the flat range RealType-s are used.
-   * throws VisADException	Couldn't create necessary VisAD object.
+   * @throws VisADException	Couldn't create necessary VisAD object.
    */
   public FlatField(FunctionType type, Set domain_set,
                    CoordinateSystem range_coord_sys,
@@ -2687,7 +2686,7 @@ public class FlatField extends FieldImpl {
       }
     }
   
-    if ( !isMissing() )  //- skip computations. if thisDoimainFlag is also set, then
+    if ( !isMissing() )  //- skip computations. if thisDomainFlag is also set, then
                          //- method would have already returned.
     {
 
@@ -3019,18 +3018,80 @@ public class FlatField extends FieldImpl {
     return (Function) derivative( null, d_partial_s, derivType_s, error_mode );
   }
 
-  /** Resample range values of this to domain samples in set,
-      either by nearest neighbor or mulit-linear interpolation.
-      NOTE this code is very similar to resample in Field.java
-      @param set		The set of points at which to resample this
-      				field.
-      @param sampling_mode	Resampling mode: Data.NEAREST_NEIGHBOR or
-				Data.WEIGHTED_AVERAGE
-      @param error_mode		Error estimation mode: Data.DEPENDENT,
-				Data.INDEPENDENT, or Data.NO_ERRORS.
-      @return			Field of resampled data.  RangeSet objects
-				in result are set to DoubleSet.  NOTE may
-				return this (i.e., not a copy).
+  /**
+   * Returns the indefinite curve integral of this FlatField, which is
+   * assumed to be the gradient of a function.  The flat range components of
+   * this FlatField shall be derivatives with respect to the corresponding
+   * dimensions, in order (i.e. the first component shall be the derivative with
+   * respect to the first dimension, etc.).  The domain points of the returned
+   * FlatField will be the same as this FlatField's.  The type of the range of
+   * the returned FlatField shall be a RealType.  The value of the range at the
+   * first domain point of the returned FlatField shall be arbitrarily set to
+   * zero.
+   * @return			The indefinite curve integral of this FlatField.
+   * @throws FieldException	Flat range dimension of this FlatField !=
+   *				domain dimension of this FlatField.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws RemoteException	Java RMI failure.
+   */
+  public FlatField curveIntegralOfGradient() 
+      throws FieldException, VisADException, RemoteException {
+    /*
+     * Create the resulting FlatField with missing data.
+     */
+    int	rangeDimension = getRangeDimension();
+    int	domainDimension = getDomainDimension();
+    if (rangeDimension != domainDimension)
+    {
+      throw new FieldException(getClass().getName() + 
+	".integeral(): Flat range dimension (" + rangeDimension +
+	") != domain dimension (" + domainDimension + ")");
+    }
+    FunctionType	oldFuncType = (FunctionType)getType();
+    RealTupleType	domainType = oldFuncType.getDomain();
+    MathType		productType = oldFuncType.getFlatRange().
+      binary(domainType, Data.MULTIPLY, new Vector());
+    RealType		newRangeType;
+    if (productType instanceof RealType)
+    {
+      newRangeType = (RealType)productType;
+    }
+    else
+    {
+      TupleType	productTupleType = (TupleType)productType;
+      newRangeType = (RealType)productTupleType.getComponent(0);
+      for (int i = 1; i < rangeDimension; ++i)
+	newRangeType = (RealType)newRangeType.binary(
+	    (RealType)productTupleType.getComponent(i), Data.ADD, new Vector());
+    }
+    Set		domainSet = getDomainSet();
+    FlatField	newField =
+      new FlatField(new FunctionType(domainType, newRangeType), domainSet);
+
+    /*
+     * Set the data.
+     */
+    newField.setSamples(
+      domainSet.curveIntegralOfGradient(
+	new float[][][] {getFloats(false)}, new float[1][getLength()]),
+      false);
+
+    return newField;
+  }
+
+  /**
+   * Resamples the range to domain samples of a given set.  Resampling is either
+   * by nearest neighbor or mulit-linear interpolation.  NOTE: This code is very
+   * similar to FieldImpl.resample(Set,int,int).
+   * @param set			The set of points at which to resample this
+   *				field.
+   * @param sampling_mode	Resampling mode: Data.NEAREST_NEIGHBOR or
+   *				Data.WEIGHTED_AVERAGE
+   * @param error_mode		Error estimation mode: Data.DEPENDENT,
+   *				Data.INDEPENDENT, or Data.NO_ERRORS.
+   * @return			Field of resampled data.  RangeSet objects
+   *				in result are set to DoubleSet.  NOTE: May
+   *				return this (i.e., not a copy).
    */
   public Field resample(Set set, int sampling_mode, int error_mode)
          throws VisADException, RemoteException {

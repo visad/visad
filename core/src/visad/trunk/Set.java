@@ -86,7 +86,7 @@ public abstract class Set extends DataImpl {
    * @param type		The MathType of the set.  May be a RealType,
    *				a RealTupleType, or a SetType.
    * @param coord_sys		Optional coordinate system for the domain of the
-   *				set.  May be <code>null</null>, in which case
+   *				set.  May be <code>null</code>, in which case
    *				the default coordinate system of the domain is
    *				used.
    * @param units               Optional units for the values.  May
@@ -460,6 +460,53 @@ public abstract class Set extends DataImpl {
                  throws VisADException
   {
     throw new UnimplementedException("Set: getNeighbors()");
+  }
+
+  /**
+   * Returns the indefinite curve integral of the gradient of a vector function.
+   * The points at which the returned curve integral has a value will be the
+   * same as this Set's.  The value of the curve integral at the first point
+   * shall be arbitrarily set to the zero vector.  This method exists because
+   * a FieldImpl has a Set (rather than a SampledSet); consequently, classes
+   * derived from this class for which this method makes sense must override
+   * this method (as it is in SampledSet).
+   * @param gradients           Partial derivatives at the points of this set
+   *                            for each component of the vector function.
+   *                            <code>gradients[i][j][k]</code> is the partial
+   *                            derivative of the <code>i</code>-th component
+   *                            of the function in the <code>j</code>-th
+   *                            dimension for the <code>k</code>-th point of
+   *                            this set. <code>gradients[i].length</code>
+   *                            shall equal <code>getDimension()</code>
+   *                            for all <code>i</code> and
+   *                            <code>gradients[i][j].length</code> shall equal
+   *                            <code>getLength()</code> for all <code>i</code>
+   *                            and <code>j</code>.
+   * @param newRangeValues      Allocated space to hold the indefinite curve
+   *                            integral. <code>newRangeValues.length</code>
+   *                            shall equal <code>getDimension()</code>
+   *                            and <code>newRangeValues[i].length</code>
+   *                            shall equal <code>getLength()</code>
+   *                            for all <code>i</code>. On return,
+   *                            newRangeValues<code>[i][k]</code>
+   *                            is the indefinite curve integral of
+   *                            the <code>i</code>-th component of
+   *                            <code>gradients</code> at the <code>k</code>-th
+   *                            point in this set.
+   * @return			<code>newRangeValues</code>.
+   * @throws UnimplementedException
+   *				This method is not implemented.  Always thrown.
+   * @throws SetException	<code>gradients[i].length !=
+   *				getDimension()</code> for some <code>i</code>.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @see visad.SampledSet#curveIntegralOfGradient(float[][][], float[][])
+   */
+  float[][] curveIntegralOfGradient(float[][][] gradients,
+    float[][] newRangeValues) throws UnimplementedException, SetException,
+      VisADException
+  {
+    throw new UnimplementedException(getClass().getName() + 
+      ".curveIntegeralOfGradient(float[][]): Method not implemented");
   }
 
 
