@@ -36,6 +36,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 import visad.*;
+import visad.formula.FormulaVar;
 import visad.java3d.*;
 
 /** SpreadSheet is a user interface for VisAD that supports
@@ -206,7 +207,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   public static void main(String[] argv) {
     String usage = "\n" +
       "Usage: java [-mx###m] visad.ss.SpreadSheet [cols rows] [-no3d]\n" +
-      "       [-server server_name] [-client rmi_address]\n\n" +
+      "       [-server server_name] [-client rmi_address] [-debug]\n\n" +
       "### = Maximum megabytes of memory to use\n" +
       "cols = Number of columns in this Spread Sheet\n" +
       "rows = Number of rows in this Spread Sheet\n" +
@@ -214,7 +215,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
       "-server server_name = Initialize this Spread Sheet as an RMI\n" +
       "                      server named server_name\n" +
       "-client rmi_address = Initialize this Spread Sheet as a clone\n" +
-      "                      of the Spread Sheet at rmi_address\n";
+      "                      of the Spread Sheet at rmi_address\n" +
+      "-debug = Print stack traces for all errors\n";
     int cols = 2;
     int rows = 2;
     String servname = null;
@@ -260,6 +262,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
               System.out.println(usage);
               System.exit(5);
             }
+          }
+          else if (argv[ix].equals("-debug")) {
+            BasicSSCell.DEBUG = true;
+            FormulaVar.DEBUG = true;
           }
           else {
             // unknown flag
@@ -806,6 +812,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else {
       // construct cells from specified server
       boolean success = true;
+
+      // support ':' as separator in addition to '/'
+      char[] c = clone.toCharArray();
+      for (int i=0; i<c.length; i++) if (c[i] == ':') c[i] = '/';
+      clone = new String(c);
       try {
         rs = (RemoteServer) Naming.lookup("//" + clone);
       }

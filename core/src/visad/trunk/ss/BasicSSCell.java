@@ -48,7 +48,7 @@ import visad.java3d.*;
 public class BasicSSCell extends JPanel {
 
   /** used for debugging */
-  private static final boolean DEBUG = false;
+  public static boolean DEBUG = false;
 
 
   /** constant for use with Dim variable */
