@@ -310,6 +310,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
   }
 
   public boolean wantIndexed() {
+/* doesn't seem to matter to memory use
+    return true;
+*/
     return false;
   }
 

@@ -2527,13 +2527,6 @@ for (int j=0; j<nvertex; j++) {
     return npolygons;
   }
 
-void debug(float[][] VX, float[][] VY, float[][] VZ, int nvet, int c) {
-  if (VX[0][nvet] < -2.0 || VY[0][nvet] < -2.0 || VY[0][nvet] < -2.0) {
-    System.out.println("nvet = " + nvet + "  VX = " + VX[0][nvet] +
-      "  VY = " + VY[0][nvet] + "  VZ = " + VZ[0][nvet] + " case = " + c);
-  }
-}
-
   private int isosurf( float isovalue, int[] ptFLAG, int nvertex_estimate,
                        int npolygons, float[] ptGRID, int xdim, int ydim,
                        int zdim, float[][] VX, float[][] VY, float[][] VZ,

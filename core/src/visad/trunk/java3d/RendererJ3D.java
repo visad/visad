@@ -160,8 +160,9 @@ System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
         branch = doTransform();
       }
       catch (OutOfMemoryError e) {
-System.out.println("OutOfMemoryError, try again ...");
+        // System.out.println("OutOfMemoryError, try again ...");
         clearBranch();
+        branch = null;
         try {
           branch = doTransform();
         }
