@@ -36,6 +36,13 @@ public abstract class FlowControl extends Control {
 
   float flowScale;
 
+  // DRM add 09-Sep-1999
+  /** Northern Hemisphere orientation for wind barbs */
+  public static final int NH_ORIENTATION = 0;
+  /** Southern Hemisphere orientation for wind barbs */
+  public static final int SH_ORIENTATION = 1;
+  int barbOrientation;
+
   boolean HorizontalVectorSlice;
   boolean VerticalVectorSlice;
   boolean HorizontalStreamSlice;
@@ -54,6 +61,7 @@ public abstract class FlowControl extends Control {
     VerticalVectorSlice = false;
     HorizontalStreamSlice = false;
     VerticalStreamSlice = false;
+    barbOrientation = SH_ORIENTATION;    // DRM 9-Sept-1999
     TrajectorySet = null;
  
     HorizontalVectorSliceHeight = 0.0;
@@ -67,9 +75,35 @@ public abstract class FlowControl extends Control {
     changeControl(true);
   }
 
+  /** get scale length for flow vectors */
   public float getFlowScale() {
     return flowScale;
   }
 
-}
+  /** 
+   * set barb orientation for wind barbs (default is southern hemisphere) 
+   *
+   * @param  orientation   wind barb orientation 
+   *                       (NH_ORIENTATION or SH_ORIENTATION); 
+   */
+  public void setBarbOrientation(int orientation)
+         throws VisADException, RemoteException 
+  {
+    // make sure it is one or the other
+    if (orientation == SH_ORIENTATION || orientation == NH_ORIENTATION)
+       barbOrientation = orientation;
+    else 
+      throw new VisADException( "Invalid orientation value: " + orientation);
+    changeControl(true);
+  }
+    
+  /** 
+   * Get barb orientation for wind barbs 
+   * 
+   * @return orientation (false = northern hemisphere)
+   */
+  public int getBarbOrientation() {
+    return barbOrientation; 
+  }
 
+}

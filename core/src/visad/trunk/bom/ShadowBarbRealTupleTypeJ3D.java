@@ -95,8 +95,22 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
       for (int i=0; i<len; i++) south[i] = (earth_locs[0][i] < 0.0f);
     }
     else {
-      // if no latitude information is available, assume south
-      for (int i=0; i<len; i++) south[i] = true; // where BOM is
+      // if no latitude information is available, get value set in FlowControl
+      // default = south  where BOM is
+      FlowControl fcontrol = null;
+      if (which == 0) {
+        fcontrol = (FlowControl) display.getControl(Flow1Control.class);
+      }
+      else if (which == 1) {
+        fcontrol = (FlowControl) display.getControl(Flow2Control.class);
+      }
+      if (fcontrol == null) {
+        throw new VisADException(
+          "ShadowBarbRealTupleTypeJ3D: Unable to get FlowControl");
+      }
+      boolean isSouth = 
+        (fcontrol.getBarbOrientation() == FlowControl.SH_ORIENTATION);
+      for (int i=0; i<len; i++) south[i] = isSouth;
     }
 
     // use default flowScale = 0.02f here, since flowScale for barbs is
