@@ -113,7 +113,7 @@ public class Histogram {
     }
 
     FlatField result = new FlatField(htype, set);
-    result.setSamples(hist_values);
+    result.setSamples(hist_values, false);
     return result;
   }
 
