@@ -83,6 +83,12 @@ public class MeasureToolPanel extends ToolPanel {
   private boolean stdEnabled = true;
 
 
+  // -- EXPORT FUNCTIONS --
+
+  /** Button for exporting measurements to Excel-friendly text format. */
+  private JButton export;
+
+
   // -- GLOBAL FUNCTIONS --
 
   /** Button for adding lines. */
@@ -143,6 +149,21 @@ public class MeasureToolPanel extends ToolPanel {
   public MeasureToolPanel(VisBio biovis) {
     super(biovis);
 
+    // export measurements button
+    export = new JButton("Export measurements");
+    export.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        // CTR - TODO - export measurements
+      }
+    });
+    export.setToolTipText(
+      "Exports measurements to Excel-friendly text format");
+    export.setEnabled(false);
+    controls.add(pad(export));
+
+    // spacing
+    controls.add(Box.createVerticalStrut(5));
+
     // add line button
     JPanel p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
@@ -150,7 +171,7 @@ public class MeasureToolPanel extends ToolPanel {
     addLine.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         bio.mm.getList().addLine();
-        bio.state.saveState(false);
+        bio.state.saveState();
       }
     });
     addLine.setToolTipText("Adds a line to the current slice");
@@ -163,7 +184,7 @@ public class MeasureToolPanel extends ToolPanel {
     addMarker.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         bio.mm.getList().addMarker();
-        bio.state.saveState(false);
+        bio.state.saveState();
       }
     });
     addMarker.setToolTipText("Adds a marker to the current slice");
@@ -203,7 +224,7 @@ public class MeasureToolPanel extends ToolPanel {
           JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (ans != JOptionPane.YES_OPTION) return;
         bio.mm.clear();
-        bio.state.saveState(false);
+        bio.state.saveState();
       }
     });
     clearAll.setToolTipText("Removes all measurements");
@@ -269,7 +290,7 @@ public class MeasureToolPanel extends ToolPanel {
         MeasureThing[] things = bio.mm.pool2.getSelection();
         for (int i=0; i<things.length; i++) doStandard(things[i], std);
         bio.mm.changed = true;
-        bio.state.saveState(false);
+        bio.state.saveState();
       }
     });
     setStandard.setToolTipText("Distributes the current " +
@@ -283,7 +304,7 @@ public class MeasureToolPanel extends ToolPanel {
     removeSelected.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         bio.mm.getList().removeSelected();
-        bio.state.saveState(false);
+        bio.state.saveState();
         updateSelection();
       }
     });
@@ -317,7 +338,7 @@ public class MeasureToolPanel extends ToolPanel {
         }
         if (changed) {
           bio.mm.changed = true;
-          bio.state.saveState(false);
+          bio.state.saveState();
           bio.mm.pool2.refresh(true);
           if (bio.mm.pool3 != null) bio.mm.pool3.refresh(true);
         }
@@ -354,7 +375,7 @@ public class MeasureToolPanel extends ToolPanel {
         if (group != null) descriptionBox.setText(group.getDescription());
         if (changed) {
           bio.mm.changed = true;
-          bio.state.saveState(false);
+          bio.state.saveState();
         }
       }
     });
@@ -373,7 +394,7 @@ public class MeasureToolPanel extends ToolPanel {
           groupList.addItem(group);
           groupList.setSelectedItem(group);
           bio.mm.changed = true;
-          bio.state.saveState(false);
+          bio.state.saveState();
         }
       }
     });
@@ -401,7 +422,7 @@ public class MeasureToolPanel extends ToolPanel {
       public void update(DocumentEvent e) {
         MeasureGroup group = (MeasureGroup) groupList.getSelectedItem();
         group.setDescription(descriptionBox.getText());
-        bio.state.saveState(false);
+        bio.state.saveState();
       }
     });
     descriptionBox.setToolTipText("Edits the description " +
@@ -418,6 +439,7 @@ public class MeasureToolPanel extends ToolPanel {
 
   /** Enables or disables this tool panel. */
   public void setEnabled(boolean enabled) {
+    export.setEnabled(enabled);
     addLine.setEnabled(enabled);
     addMarker.setEnabled(enabled);
     merge.setEnabled(enabled);

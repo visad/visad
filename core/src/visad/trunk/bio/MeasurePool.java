@@ -652,7 +652,7 @@ public class MeasurePool implements DisplayListener {
     else if (right && id == DisplayEvent.MOUSE_RELEASED) {
       // right release - save measurements if necessary
       if (needMeasureSave) {
-        bio.state.saveState(false);
+        bio.state.saveState();
         needMeasureSave = false;
       }
     }

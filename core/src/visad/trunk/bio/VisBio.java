@@ -56,6 +56,9 @@ public class VisBio extends GUIFrame implements ChangeListener {
   /** Application title. */
   private static final String TITLE = "VisBio";
 
+  /** Application version. */
+  private static final String VERSION = "v1.0 beta 2";
+
   /** Flag for enabling or disabling Java3D, for debugging. */
   private static final boolean ALLOW_3D = true;
 
@@ -130,11 +133,11 @@ public class VisBio extends GUIFrame implements ChangeListener {
 
   // -- LOGIC MANAGEMENT OBJECTS --
 
-  /** Object for handling measurement logic. */
-  MeasureManager mm;
-
   /** Object for handling slice logic. */
   SliceManager sm;
+
+  /** Object for handling measurement logic. */
+  MeasureManager mm;
 
   /** Object for handling state logic in case of a program crash. */
   StateManager state;
@@ -159,6 +162,12 @@ public class VisBio extends GUIFrame implements ChangeListener {
 
   /** Menu item for exporting data. */
   private JMenuItem fileExport;
+
+  /** File chooser for snapshots. */
+  private JFileChooser snapBox;
+
+  /** File chooser for state saves. */
+  private JFileChooser stateBox;
 
 
   // -- COLOR SETTINGS --
@@ -257,8 +266,8 @@ public class VisBio extends GUIFrame implements ChangeListener {
     }
 
     // logic managers
-    mm = new MeasureManager(this);
     sm = new SliceManager(this);
+    mm = new MeasureManager(this);
     state = new StateManager(this);
     if (noneGroup == null) noneGroup = new MeasureGroup(this, "NONE");
 
@@ -291,6 +300,20 @@ public class VisBio extends GUIFrame implements ChangeListener {
     // measurement tool panel
     toolMeasure = new MeasureToolPanel(this);
     tabs.addTab("Measure", null, toolMeasure, "Controls for measuring data");
+
+    // snapshot file chooser
+    snapBox = new JFileChooser();
+    snapBox.addChoosableFileFilter(new ExtensionFileFilter(
+      new String[] {"jpg", "jpeg"}, "JPEG files"));
+    snapBox.addChoosableFileFilter(new ExtensionFileFilter(
+      "raw", "RAW files"));
+    snapBox.addChoosableFileFilter(new ExtensionFileFilter(
+      new String[] {"tif", "tiff"}, "TIFF files"));
+
+    // save state file chooser
+    stateBox = new JFileChooser();
+    stateBox.addChoosableFileFilter(new ExtensionFileFilter(
+      "txt", "VisBio state files"));
   }
 
 
@@ -469,7 +492,7 @@ public class VisBio extends GUIFrame implements ChangeListener {
         oldt.length > 3 ? oldt[3] : null, doAlpha);
       widgets[j].setTable(t);
     }
-    state.saveState(true);
+    state.saveState();
   }
 
 
@@ -512,12 +535,34 @@ public class VisBio extends GUIFrame implements ChangeListener {
 
   /** Restores the current state from a text file specified by the user. */
   public void fileRestore() {
-    // CTR - TODO - fileRestore
+    final VisBio bio = this;
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        int rval = stateBox.showOpenDialog(bio);
+        if (rval == JFileChooser.APPROVE_OPTION) {
+          setWaitCursor(true);
+          state.restoreState(stateBox.getSelectedFile());
+          setWaitCursor(false);
+        }
+      }
+    });
+    t.start();
   }
 
   /** Saves the current state to a text file specified by the user. */
   public void fileSave() {
-    // CTR - TODO - fileSave
+    final VisBio bio = this;
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        int rval = stateBox.showSaveDialog(bio);
+        if (rval == JFileChooser.APPROVE_OPTION) {
+          setWaitCursor(true);
+          state.saveState(stateBox.getSelectedFile());
+          setWaitCursor(false);
+        }
+      }
+    });
+    t.start();
   }
 
   /** Saves a snapshot of the displays to a file specified by the user. */
@@ -525,19 +570,12 @@ public class VisBio extends GUIFrame implements ChangeListener {
     final VisBio bio = this;
     Thread t = new Thread(new Runnable() {
       public void run() {
-        JFileChooser fileBox = new JFileChooser();
-        fileBox.addChoosableFileFilter(new ExtensionFileFilter(
-          new String[] {"jpg", "jpeg"}, "JPEG files"));
-        fileBox.addChoosableFileFilter(new ExtensionFileFilter(
-          "raw", "RAW files"));
-        fileBox.addChoosableFileFilter(new ExtensionFileFilter(
-          new String[] {"tif", "tiff"}, "TIFF files"));
-        int rval = fileBox.showSaveDialog(bio);
+        int rval = snapBox.showSaveDialog(bio);
         if (rval == JFileChooser.APPROVE_OPTION) {
           setWaitCursor(true);
 
           // determine file type
-          String file = fileBox.getSelectedFile().getPath();
+          String file = snapBox.getSelectedFile().getPath();
           String ext = "";
           int dot = file.indexOf(".");
           if (dot >= 0) ext = file.substring(dot + 1).toLowerCase();
@@ -640,6 +678,8 @@ public class VisBio extends GUIFrame implements ChangeListener {
 
   /** Writes the current program state to the given output stream. */
   void saveState(PrintWriter fout) throws IOException, VisADException {
+    fout.println("# " + TITLE + " " + VERSION +
+      " state file - written at " + Util.getTimestamp());
     fout.println(prefix);
     fout.println(brightness);
     fout.println(contrast);
@@ -649,6 +689,7 @@ public class VisBio extends GUIFrame implements ChangeListener {
     fout.println(green == null ? "null" : green.getName());
     fout.println(blue == null ? "null" : blue.getName());
     sm.saveState(fout);
+    mm.saveState(fout);
   }
 
   /** Restores the current program state from the given input stream. */

@@ -76,6 +76,7 @@ public class BioColorWidget extends JPanel {
     color.setForeground(Color.black);
     scalars = new JComboBox();
     scalars.addItem("None");
+    scalars.addItem("Full");
     color.setLabelFor(scalars);
 
     // lay out components
@@ -92,7 +93,7 @@ public class BioColorWidget extends JPanel {
 
   // -- API METHODS --
 
-  /** Gets the currently selected RealType, or null of None. */
+  /** Gets the currently selected RealType, or null if None. */
   public RealType getSelectedItem() {
     Object o = scalars.getSelectedItem();
     if (o instanceof RealType) return (RealType) o;

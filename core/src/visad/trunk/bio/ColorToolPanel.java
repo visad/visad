@@ -486,7 +486,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
       }
       widgets[j].setTable(table);
     }
-    bio.state.saveState(true);
+    bio.state.saveState();
 
     String s = "" + pow;
     if (s.length() > 4) s = s.substring(0, 4);

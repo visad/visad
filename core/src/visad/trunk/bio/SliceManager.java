@@ -398,7 +398,7 @@ public class SliceManager
     if (success) {
       bio.horiz.updateSlider(timesteps);
       bio.vert.updateSlider(slices);
-      bio.state.saveState(true);
+      bio.state.saveState();
     }
   }
 
@@ -435,7 +435,7 @@ public class SliceManager
   /** DisplayListener method used for mouse activity in 3-D display. */
   public void displayChanged(DisplayEvent e) {
     if (e.getId() != DisplayEvent.MOUSE_RELEASED_RIGHT) return;
-    bio.state.saveState(planeSelect && planeChanged);
+    bio.state.saveState();
     if (planeSelect && planeChanged && !continuous) updateSlice();
     planeChanged = false;
   }
@@ -545,7 +545,7 @@ public class SliceManager
     if (sliceRes_x == x && sliceRes_y == y) return;
     sliceRes_x = x;
     sliceRes_y = y;
-    bio.state.saveState(true);
+    bio.state.saveState();
     if (planeSelect) updateSlice();
     else sliceField = null;
   }
@@ -751,7 +751,7 @@ public class SliceManager
 
         bio.display2.enableAction();
         if (bio.display3 != null) bio.display3.enableAction();
-        bio.state.saveState(false); // save initial measurement file
+        bio.state.saveState(); // save initial state file
         dialog.kill();
       }
     });

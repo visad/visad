@@ -50,8 +50,6 @@ public class SeriesFileFilter extends FileFilter implements FilenameFilter {
   }
 
   /** Returns the description of the series file filter. */
-  public String getDescription() {
-    return "Data series";
-  }
+  public String getDescription() { return "Multiple file data series"; }
 
 }

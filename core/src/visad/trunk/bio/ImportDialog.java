@@ -151,7 +151,7 @@ public class ImportDialog extends JPanel implements ActionListener {
     String command = e.getActionCommand();
     if (command.equals("select")) {
       if (fileBox == null) {
-        fileBox = new JFileChooser();
+        fileBox = Util.getVisADFileChooser();
         SeriesFileFilter filter = new SeriesFileFilter();
         fileBox.setFileFilter(filter);
       }

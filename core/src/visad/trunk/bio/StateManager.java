@@ -44,20 +44,14 @@ public class StateManager {
   /** Temp file for storing temporary state information. */
   private File state;
 
-  /** Temp file for storing temporary measurement information. */
-  private File lines;
-
-  /** Temp file for storing undo measurement information. */
-  private File oldLines;
+  /** Temp file for storing undo state information. */
+  private File oldState;
 
   /** Thread for saving state information. */
   private Thread saveThread;
 
   /** Is a state save needed? */
-  private boolean stateDirty = false;
-
-  /** Is a measurement save needed? */
-  private boolean measureDirty = false;
+  private boolean dirty = false;
 
   /** Is state currently being restored? */
   private boolean restoring = false;
@@ -67,46 +61,45 @@ public class StateManager {
 
   /** Constructs a VisBio state management object. */
   public StateManager(VisBio biovis) {
-    this(biovis, "biovisad.tmp", "lines.tmp", "linesold.tmp");
+    this(biovis, "visbio.tmp", "vb-old.tmp");
   }
 
   /** Constructs a VisBio state management object. */
-  public StateManager(VisBio biovis,
-    String state, String lines, String oldLines)
-  {
+  public StateManager(VisBio biovis, String state, String oldState) {
     bio = biovis;
     this.state = new File(state);
-    this.lines = new File(lines);
-    this.oldLines = new File(oldLines);
+    this.oldState = new File(oldState);
   }
 
 
   // -- API METHODS --
 
-  /** Restores the last state written to the temp file. */
-  public void restoreState() {
-    restoring = true;
-    try {
-      BufferedReader fin = new BufferedReader(new FileReader(state));
-      bio.restoreState(fin);
-      fin.close();
-      if (lines.exists()) new MeasureDataFile(bio, lines).read();
-    }
-    catch (IOException exc) { exc.printStackTrace(); }
-    catch (VisADException exc) { exc.printStackTrace(); }
-    restoring = false;
+  /** Restores the latest state from the temp file. */
+  public void restoreState() { restoreState(state); }
+
+  /** Restores the previous state from the backup temp file. */
+  public void undo() {
+    restoreState(oldState);
+    File temp = oldState;
+    oldState = state;
+    state = temp;
   }
 
-  /** Restores the previous measurement state. */
-  public void undo() {
+  /** Saves the current state to the temp file. */
+  public void saveState() {
+    if (oldState.exists()) oldState.delete();
+    if (state.exists()) state.renameTo(oldState);
+    saveState(state);
+  }
+
+  /** Restores the state from the given state file. */
+  public void restoreState(File stateFile) {
     restoring = true;
+    /* CTR: TEMP */ System.out.println("Restoring state from " + stateFile);
     try {
-      if (oldLines.exists()) {
-        new MeasureDataFile(bio, oldLines).read();
-        File temp = oldLines;
-        oldLines = lines;
-        lines = temp;
-      }
+      BufferedReader fin = new BufferedReader(new FileReader(stateFile));
+      bio.restoreState(fin);
+      fin.close();
     }
     catch (IOException exc) { exc.printStackTrace(); }
     catch (VisADException exc) { exc.printStackTrace(); }
@@ -114,35 +107,28 @@ public class StateManager {
   }
 
   /** Saves the current state to the temp file. */
-  public void saveState(boolean doState) {
+  public void saveState(File stateFile) {
     if (restoring) return;
-    stateDirty = stateDirty || doState;
-    measureDirty = measureDirty || !doState;
-    if (saveThread == null || !saveThread.isAlive()) {
+    dirty = true;
+    if (saveThread == null) {
+      final File fstate = stateFile;
       saveThread = new Thread(new Runnable() {
         public void run() {
-          while (stateDirty || measureDirty) {
+          while (dirty) {
+            /* CTR: TEMP */ System.out.println("Saving state to " + fstate);
             try {
-              if (stateDirty) {
-                stateDirty = false;
-                PrintWriter fout = new PrintWriter(new FileWriter(state));
-                bio.saveState(fout);
-                fout.close();
-              }
-              if (measureDirty) {
-                measureDirty = false;
-                if (oldLines.exists()) oldLines.delete();
-                if (lines.exists()) lines.renameTo(oldLines);
-                new MeasureDataFile(bio, lines).write(); // do measurements
-              }
+              dirty = false;
+              PrintWriter fout = new PrintWriter(new FileWriter(fstate));
+              bio.saveState(fout);
+              fout.close();
             }
             catch (IOException exc) { exc.printStackTrace(); }
             catch (VisADException exc) { exc.printStackTrace(); }
           }
         }
       });
-      saveThread.start();
     }
+    if (!saveThread.isAlive()) saveThread.start();
   }
 
   /**
@@ -150,7 +136,7 @@ public class StateManager {
    * asks the user whether to restore the previous state.
    */
   public void checkState() {
-    if (!state.exists() && !lines.exists()) return;
+    if (!state.exists()) return;
     int ans = JOptionPane.showConfirmDialog(bio,
       "It appears that VisBio crashed last time. " +
       "Attempt to restore the previous state?", "VisBio",
@@ -162,8 +148,7 @@ public class StateManager {
   /** Deletes state-related temp files. */
   public void destroy() {
     if (state.exists()) state.delete();
-    if (lines.exists()) lines.delete();
-    if (oldLines.exists()) oldLines.delete();
+    if (oldState.exists()) oldState.delete();
   }
 
 }

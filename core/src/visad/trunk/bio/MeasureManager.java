@@ -63,7 +63,7 @@ public class MeasureManager {
   private VisBio bio;
 
   /** File chooser for loading and saving data. */
-  private JFileChooser fileBox = Util.getVisADFileChooser();
+  private JFileChooser fileBox = new JFileChooser();
 
 
   // -- CONSTRUCTORS --
@@ -174,6 +174,19 @@ public class MeasureManager {
     catch (IOException exc) { exc.printStackTrace(); }
     changed = false;
     bio.setWaitCursor(false);
+  }
+
+
+  // -- INTERNAL API METHODS --
+
+  /** Writes the current program state to the given output stream. */
+  void saveState(PrintWriter fout) throws IOException, VisADException {
+    // CTR - TODO - MeasureManager.saveState
+  }
+
+  /** Restores the current program state from the given input stream. */
+  void restoreState(BufferedReader fin) throws IOException, VisADException {
+    // CTR - TODO - MeasureManager.restoreState
   }
 
 }
