@@ -1009,6 +1009,7 @@ public class DelaunayClarkson extends Delaunay {
     for (int j=0; j<dim; j++) {
       System.arraycopy(samples[j], 0, site_blocks[j], 0, nrs);
     }
+
 /* WLH 29 Jan 98 - scale samples values as discussed in Delaunay.factory
     for (int j=0; j<dim; j++) {
       for (int kk=0; kk<nrs; kk++) site_blocks[j][kk] = 100.0f * samples[j][kk];
