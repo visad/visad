@@ -188,6 +188,7 @@ public class TextAdapter {
       while (true) {
         t = bis.readLine();
         if (t == null) return;
+        if (!isText(t)) return;
         if (t.startsWith("#") ||
             t.startsWith("!") || 
             t.startsWith("%") || 
@@ -213,6 +214,7 @@ public class TextAdapter {
       while (true) {
         hdr = bis.readLine();
         if (hdr == null) return;
+        if (!isText(hdr)) return;
         if (hdr.startsWith("#") || 
            hdr.startsWith("!") || 
            hdr.startsWith("%") || 
@@ -595,6 +597,7 @@ public class TextAdapter {
       String s = bis.readLine();
       if (debug) System.out.println("read:"+s);
       if (s == null) break;
+      if (!isText(s)) return;
       if (s.startsWith("#") || 
          s.startsWith("!") || 
          s.startsWith("%") || 
@@ -936,6 +939,25 @@ public class TextAdapter {
 
     bis.close();
 
+  }
+
+  private static final boolean isText(String s)
+  {
+    final int len = (s == null ? -1 : s.length());
+
+    if (len <= 0) {
+      // well, it's not really *binary*, so pretend it's text
+      return true;
+    }
+
+    for (int i = 0; i < len; i++) {
+      if (Character.isISOControl(s.charAt(i))) {
+        // we might want to special-case formfeed/linefeed/newline here...
+        return false;
+      }
+    }
+
+    return true;
   }
 
   double getVal(String s, int k) {
