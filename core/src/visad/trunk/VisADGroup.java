@@ -105,5 +105,17 @@ public class VisADGroup extends VisADSceneGraphObject {
     return (Vector) children.clone();
   }
 
+  public String toString() {
+    String s = getClass().getName() + " ";
+    synchronized (children) {
+      int n = children.size();
+      s = s + n + " ";
+      for (int i=0; i<n; i++) {
+        s = s + children.elementAt(i).toString();
+      }
+    }
+    return s;
+  }
+
 }
 
