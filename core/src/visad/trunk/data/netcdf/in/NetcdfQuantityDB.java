@@ -3,13 +3,14 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: QuantityDB.java,v 1.2 1998-06-22 18:30:45 visad Exp $
+ * $Id: NetcdfQuantityDB.java,v 1.1 1998-06-23 14:35:49 visad Exp $
  */
 
 package visad.data.netcdf.in;
 
 import ucar.netcdf.Variable;
 import visad.data.netcdf.Quantity;
+import visad.data.netcdf.QuantityDB;
 import visad.data.netcdf.StandardQuantityDB;
 import visad.Unit;
 import visad.VisADException;
@@ -21,19 +22,19 @@ import visad.data.netcdf.units.ParseException;
  * This class maps netCDF variables and dimensions to VisAD quantities.
  */
 public class
-QuantityDB
-    extends	visad.data.netcdf.QuantityDB
+NetcdfQuantityDB
+    extends	QuantityDB
 {
     /**
      * The singleton instance.
      */
-    private static QuantityDB	db;
+    private static NetcdfQuantityDB	db;
 
 
     /**
      * Construct.
      */
-    private QuantityDB()
+    private NetcdfQuantityDB()
 	throws VisADException
     {
 	super(StandardQuantityDB.instance());
@@ -58,12 +59,12 @@ QuantityDB
     /**
      * Return the singleton instance of this database.
      */
-    public static QuantityDB
+    public static NetcdfQuantityDB
     instance()
 	throws VisADException
     {
 	if (db == null)
-	    db = new QuantityDB();
+	    db = new NetcdfQuantityDB();
 
 	return db;
     }
