@@ -28,6 +28,9 @@ package visad.bom;
 
 import visad.*;
 import visad.java3d.*;
+import visad.data.mcidas.BaseMapAdapter;
+import visad.data.mcidas.AreaAdapter;
+
 
 import javax.media.j3d.*;
 
@@ -35,6 +38,12 @@ import java.util.Vector;
 import java.util.Enumeration;
 import java.rmi.*;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
@@ -200,19 +209,26 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         float[][] values = ((Field) data).getFloats();
         values[0] = cmap.scaleValues(values[0]);
         float[][] color_values = control.lookupValues(values[0]);
-        values = null; // take out the garbage
         // combine color RGB components into ints
         int r, g, b, a = 255;
         int c;
         for (int i=0; i<domain_length; i++) {
-          c = (int) (255.0 * color_values[0][i]);
-          r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-          c = (int) (255.0 * color_values[1][i]);
-          g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-          c = (int) (255.0 * color_values[2][i]);
-          b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-          color_ints[i] = ((a << 24) | (r << 16) | (g << 8) | b);
+          if (values[0][i] != values[0][i]) {
+            color_ints[i] = 0; // missing
+          }
+          else {
+            c = (int) (255.0 * color_values[0][i]);
+            r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+            c = (int) (255.0 * color_values[1][i]);
+            g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+            c = (int) (255.0 * color_values[2][i]);
+            b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+            color_ints[i] = ((a << 24) | (r << 16) | (g << 8) | b);
+          }
         }
+        // take out the garbage
+        values = null;
+        color_values = null;
       }
 
       // check domain and determine whether it is square or curved texture
@@ -527,17 +543,6 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           coordinates[k++] = spatial_values[1][i];
           coordinates[k++] = spatial_values[2][i];
         }
-/* OUT
-        k = 0;
-        for (int j=0; j<nheight; j++) {
-          for (int i=0; i<nwidth; i++) {
-            int ij = is[i] + data_width * js[j];
-            coordinates[k++] = spatial_values[0][ij];
-            coordinates[k++] = spatial_values[1][ij];
-            coordinates[k++] = spatial_values[2][ij];
-          }
-        }
-*/
 
         boolean spatial_all_select = true;
         for (int i=0; i<3*nn; i++) {
@@ -680,8 +685,9 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       }
 
       // create frames for new scene graph
-      Set aset = control.getSet();
-      double[][] values = aset.getDoubles();
+      // Set aset = control.getSet();
+      // double[][] values = aset.getDoubles();
+      double[][] values = domain_set.getDoubles();
       double[] times = values[0];
       int len = times.length;
       double delta = Math.abs((times[len-1] - times[0]) / (1000.0 * len));
@@ -696,6 +702,10 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       }
       else {
         swit = (Switch) makeSwitch();
+        swit.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+        swit.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+        swit.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
+
         addSwitch(group, swit, control, domain_set, renderer);
       }
 
@@ -718,6 +728,9 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           mark[i] = false;
           nodes[i] = new VisADBranchGroup(times[i]);
           nodes[i].setCapability(BranchGroup.ALLOW_DETACH);
+          nodes[i].setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+          nodes[i].setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+          nodes[i].setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
           ensureNotEmpty(nodes[i]);
         }
         addToSwitch(swit, nodes[i]);
@@ -725,14 +738,18 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
       // make sure group is live
       ((ImageRendererJ3D) renderer).setBranchEarly((BranchGroup) group);
+      // change animation sampling, but don't trigger re-transform
+      control.setSet(domain_set, true);
 
       // render new frames
       for (int i=0; i<len; i++) {
         if (!mark[i]) {
           // not necessary, but perhaps if this is modified
           // int[] lat_lon_indices = renderer.getLatLonIndices();
-          recurseRange(nodes[i], ((Field) data).getSample(i),
+          BranchGroup branch = (BranchGroup) makeBranch();
+          recurseRange(branch, ((Field) data).getSample(i),
                        value_array, default_values, renderer);
+          nodes[i].addChild(branch);
           // not necessary, but perhaps if this is modified
           // renderer.setLatLonIndices(lat_lon_indices);
         }
@@ -769,6 +786,123 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       }
     }
     return image;
+  }
+
+
+  // test program
+  private static DisplayImpl display;
+  private static BaseMapAdapter baseMap;
+  private static ScalarMap lat_map;
+  private static ScalarMap lon_map;
+  private static ScalarMap xaxis;
+  private static ScalarMap yaxis;
+
+  // run 'java -mx64m ShadowImageFunctionTypeJ3D' for globe display
+  // run 'java -mx64m ShadowImageFunctionTypeJ3D X remap' for remapped globe display
+  // run 'java -mx64m ShadowImageFunctionTypeJ3D X 2D' for flat display
+  public static void main (String[] args) {
+
+    String mapFile = "OUTLSUPW";
+    String areaFile = "AREA2001";
+    boolean threeD = true;
+    boolean remap = false;
+
+    JFrame frame = new JFrame("Map Display");
+    frame.addWindowListener(new WindowAdapter() {
+        public void windowClosing(WindowEvent e) {
+            System.exit(0);
+        }
+    });
+
+    if (args.length > 0 && !args[0].equals("X")) {
+       areaFile = args[0];
+       // mapFile = args[0];
+    }
+    if (args.length == 2) {
+       threeD = (args[1].indexOf("2") >= 0) ? false : true;
+       remap = (args[1].indexOf("2") >= 0) ? false : true;
+    }
+
+    // SatDisplay map = new SatDisplay(mapFile, areaFile, threeD, remap);
+
+    try {
+
+      if (mapFile.indexOf("://") > 0) {
+        baseMap = new BaseMapAdapter(new URL(mapFile) );
+      } else {
+        baseMap = new BaseMapAdapter(mapFile);
+      }
+ 
+      //--- map data to display ---//
+      if (threeD)
+      {
+        display = new DisplayImplJ3D("display");
+        lat_map = new ScalarMap(RealType.Latitude, Display.Latitude);
+        lon_map = new ScalarMap(RealType.Longitude, Display.Longitude);
+      }
+      else
+      {
+        display = new DisplayImplJ3D("display",
+                                     new TwoDDisplayRendererJ3D());
+        lat_map = new ScalarMap(RealType.Latitude, Display.YAxis);
+        lon_map = new ScalarMap(RealType.Longitude, Display.XAxis);
+      }
+
+      display.addMap(lat_map);
+      display.addMap(lon_map);
+
+      lat_map.setRange(-90.0, 90.0);
+      lon_map.setRange(-180.0, 180.0);
+
+      DataReference maplines_ref = new DataReferenceImpl("MapLines");
+      maplines_ref.setData(baseMap.getData());
+
+      ConstantMap[] colMap;
+      colMap = new ConstantMap[4];
+      colMap[0] = new ConstantMap(0., Display.Blue);
+      colMap[1] = new ConstantMap(1., Display.Red);
+      colMap[2] = new ConstantMap(0., Display.Green);
+      colMap[3] = new ConstantMap(1.001, Display.Radius);
+
+      AreaAdapter aa = new AreaAdapter(areaFile);
+
+      FlatField imaget = aa.getData();
+
+      FunctionType ftype = (FunctionType) imaget.getType();
+      RealTupleType dtype = ftype.getDomain();
+      RealTupleType rtype = (RealTupleType)ftype.getRange();
+
+      if (remap) {
+        int SIZE = 256;
+        RealTupleType lat_lon =
+          ((CoordinateSystem) dtype.getCoordinateSystem()).getReference();
+        Linear2DSet dset = new Linear2DSet(lat_lon, -4.0, 70.0, SIZE,
+                                           -150.0, 5.0, SIZE);
+        imaget = (FlatField)
+          imaget.resample(dset, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
+      }
+
+      // select which band to show...
+      ScalarMap rgbmap = new ScalarMap( (RealType) rtype.getComponent(0),
+                                        Display.RGB);
+      display.addMap(rgbmap);
+      ColorControl control = (ColorControl) rgbmap.getControl();
+      control.initGreyWedge();
+
+
+      DataReferenceImpl ref_image = new DataReferenceImpl("ref_image");
+
+      ref_image.setData(imaget);
+
+      display.disableAction();
+      display.addReferences(new ImageRendererJ3D(), ref_image);
+      display.addReference(maplines_ref, colMap);
+      display.enableAction();
+    } catch (Exception ne) {ne.printStackTrace(); System.exit(1); }
+
+    frame.getContentPane().add(display.getComponent());
+    frame.setSize(500, 500);
+    frame.setVisible(true);
   }
 
 }

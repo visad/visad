@@ -28,16 +28,27 @@ package visad.bom;
 
 import visad.*;
 import visad.java3d.*;
+import visad.util.VisADSlider;
+import visad.util.Delay;
+import visad.data.netcdf.Plain;
 
 import javax.media.j3d.*;
 
-import java.util.*;
 import java.rmi.*;
-
+import java.io.IOException;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
 
 /**
    ImageRendererJ3D is the VisAD class for fast loading of images
-   and image sequences under Java3D.<P>
+   and image sequences under Java3D.
+
+   WARNING - this DataREnderer makes assumptions:
+   1. That the images in a new time sequence are identical to
+   any images at the same time in a previous sequence.
+   2. That the image sequence defines the entire animation
+   sampling.<P>
 */
 public class ImageRendererJ3D extends DefaultRendererJ3D {
 
@@ -91,6 +102,9 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     if (branch == null) {
       branch = new BranchGroup();
       branch.setCapability(BranchGroup.ALLOW_DETACH);
+      branch.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+      branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+      branch.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
     }
     link = getLinks()[0];
     ShadowTypeJ3D type = (ShadowTypeJ3D) link.getShadow();
@@ -116,6 +130,142 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     }
     link.clearData();
     return branch;
+  }
+
+  // type 'java visad.bom.ImageRendererJ3D' to run this test
+  public static void main(String args[])
+         throws VisADException, RemoteException, IOException {
+
+    int step = 1000;
+    if (args.length > 0) {
+      try {
+        step = Integer.parseInt(args[0]);
+      }
+      catch(NumberFormatException e) {
+        step = 1000;
+      }
+    }
+    if (step < 1) step = 1;
+
+    // create a netCDF reader
+    Plain plain = new Plain();
+
+    // open a netCDF file containing an image sequence and adapt
+    // it to a Field Data object
+    Field raw_image_sequence = null;
+    try {
+      raw_image_sequence = (Field) plain.open("images.nc");
+    }
+    catch (IOException exc) {
+      String s = "To run this example, the images.nc file must be "
+        +"present in\nthe current directory."
+        +"You can obtain this file from:\n"
+        +"  ftp://www.ssec.wisc.edu/pub/visad-2.0/images.nc.Z";
+      System.out.println(s);
+      System.exit(0);
+    }
+
+    // just take first half of raw_image_sequence
+    FunctionType image_sequence_type =
+      (FunctionType) raw_image_sequence.getType();
+    Set raw_set = raw_image_sequence.getDomainSet();
+    float[][] raw_times = raw_set.getSamples();
+    int raw_len = raw_times[0].length;
+    if (raw_len != 4) {
+      throw new VisADException("wrong number of images in sequence");
+    }
+    int len = 3;
+    double[][] times = new double[1][len];
+    for (int i=0; i<len; i++) times[0][i] = raw_times[0][i];
+    Gridded1DDoubleSet set =
+      new Gridded1DDoubleSet(raw_set.getType(), times, len);
+    Field image_sequence = new FieldImpl(image_sequence_type, set);
+    for (int i=0; i<len; i++) {
+      image_sequence.setSample(i, raw_image_sequence.getSample(i));
+    }
+
+    // create a DataReference for image sequence
+    final DataReference image_ref = new DataReferenceImpl("image");
+    image_ref.setData(image_sequence);
+
+    // create a Display using Java3D
+    DisplayImpl display = new DisplayImplJ3D("image display");
+    // create a Display using Java2D
+    // DisplayImpl display = new DisplayImplJ2D("image display");
+
+    // extract the type of image and use
+    // it to determine how images are displayed
+    FunctionType image_type =
+      (FunctionType) image_sequence_type.getRange();
+    RealTupleType domain_type = image_type.getDomain();
+    // map image coordinates to display coordinates
+    display.addMap(new ScalarMap((RealType) domain_type.getComponent(0),
+                                 Display.XAxis));
+    display.addMap(new ScalarMap((RealType) domain_type.getComponent(1),
+                                 Display.YAxis));
+    // map image brightness values to RGB (default is grey scale)
+    display.addMap(new ScalarMap((RealType) image_type.getRange(),
+                                 Display.RGB));
+    RealType hour_type =
+      (RealType) image_sequence_type.getDomain().getComponent(0);
+    ScalarMap animation_map = new ScalarMap(hour_type, Display.Animation);
+    display.addMap(animation_map);
+    AnimationControl animation_control =
+      (AnimationControl) animation_map.getControl();
+    animation_control.setStep(step);
+
+    // link the Display to image_ref
+    display.addReferences(new ImageRendererJ3D(), image_ref);
+
+    // create JFrame (i.e., a window) for display and slider
+    JFrame frame = new JFrame("ImageRendererJ3D test");
+    frame.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {System.exit(0);}
+    });
+
+    // create JPanel in JFrame
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    frame.getContentPane().add(panel);
+
+    // add display to JPanel
+    panel.add(display.getComponent());
+
+    // set size of JFrame and make it visible
+    frame.setSize(500, 500);
+    frame.setVisible(true);
+
+    new Delay(10000);
+    // now substitute a new image sequence for the old one
+
+/*
+    // open a netCDF file containing another image sequence and
+    // adapt it to a Field Data object
+    Field image_sequence2 = null;
+    try {
+      image_sequence2 = (Field) plain.open("images256x256.nc");
+    }
+    catch (IOException exc) {
+      String s = "To run this example, the images.nc file must be "
+        +"present in\nthe current directory."
+        +"You can obtain this file from:\n"
+        +"  ftp://www.ssec.wisc.edu/pub/visad-2.0/images256x256.nc.Z";
+      System.out.println(s);
+      System.exit(0);
+    }
+    image_ref.setData(image_sequence2);
+*/
+
+    for (int i=0; i<len; i++) times[0][i] = raw_times[0][i + 1];
+    set = new Gridded1DDoubleSet(raw_set.getType(), times, len);
+    image_sequence = new FieldImpl(image_sequence_type, set);
+    for (int i=0; i<len; i++) {
+      image_sequence.setSample(i, raw_image_sequence.getSample(i + 1));
+    }
+
+    image_ref.setData(image_sequence);
   }
 
 }

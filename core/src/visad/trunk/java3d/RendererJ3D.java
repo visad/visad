@@ -222,8 +222,10 @@ System.out.println(getLinks()[0].getThingReference().getName());
       if (branch != null) {
         int nextIndex = 0;
         boolean doRemove = false;
+        branch.detach();
         synchronized (this) {
-          if (!branchNonEmpty[currentIndex]) {
+          if (!branchNonEmpty[currentIndex] ||
+              branches[currentIndex].numChildren() == 0) {
             /* WLH 18 Nov 98 */
             branches[currentIndex].addChild(branch);
             branchNonEmpty[currentIndex] = true;
@@ -271,8 +273,10 @@ System.out.println(getLinks()[0].getThingReference().getName());
     ShadowTypeJ3D shadow = (ShadowTypeJ3D) (getLinks()[0].getShadow());
     shadow.ensureNotEmpty(branch);
 
+    branch.detach();
     synchronized (this) {
-      if (!branchNonEmpty[currentIndex]) {
+      if (!branchNonEmpty[currentIndex] ||
+          branches[currentIndex].numChildren() == 0) {
         /* WLH 18 Nov 98 */
         branches[currentIndex].addChild(branch);
         branchNonEmpty[currentIndex] = true;
