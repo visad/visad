@@ -128,6 +128,10 @@ public class TupleType extends MathType {
     return realComponents;
   }
 
+  public int getNumberOfRealComponents() {
+    return realComponents.length;
+  }
+
   public MathType getComponent(int i) throws VisADException {
     if (0 <= i || i < tupleComponents.length) {
       return tupleComponents[i];
@@ -194,12 +198,24 @@ public class TupleType extends MathType {
   {
     int n_comps = tupleComponents.length;
     MathType[] new_types = new MathType[ n_comps ];
+    boolean allReal = true;
 
     for ( int ii = 0; ii < n_comps; ii++ ) {
       new_types[ii] = (this.getComponent(ii)).cloneDerivative( d_partial );
+      if (!(new_types[ii] instanceof RealType) ) {
+        allReal = false;
+      }
     }
-
-    return new TupleType( new_types );
+    if ( allReal ) {
+      RealType[] r_types = new RealType[ n_comps ];
+      for ( int ii = 0; ii < n_comps; ii++ ) {
+        r_types[ii] = (RealType) new_types[ii];
+      }
+      return new RealTupleType( r_types );
+    }
+    else {
+      return new TupleType( new_types );
+    }
   }
 
   /*- TDR July 1998  */
