@@ -220,10 +220,10 @@ class FormulaVar {
   }
 
   /** attempts to invoke a Method with the given Object arguments */
-  private static Object invokeMethod(Method m, Object[] o)
-                                     throws IllegalAccessException,
-                                            IllegalArgumentException,
-                                            InvocationTargetException {
+  public static Object invokeMethod(Method m, Object[] o)
+                                    throws IllegalAccessException,
+                                           IllegalArgumentException,
+                                           InvocationTargetException {
     Object obj;
     Object[] args;
     Class[] c = m.getParameterTypes();
@@ -372,7 +372,7 @@ class FormulaVar {
           if (num > 0) o = new Object[num];
           else o = null;
           boolean eflag = false;
-          for (int j=0; j<num; j++) {
+          for (int j=num-1; j>=0; j--) {
             o[j] = popStack(stack);
             if (o[j] instanceof NullObject) eflag = true;
           }
@@ -470,7 +470,33 @@ class FormulaVar {
             setDependentOn(v);
           }
         }
-        else stack.push(d);
+        else {
+          Object ans = null;
+          if (code == Postfix.OTHER) {
+            // convert constant to appropriate data type
+            Object[] o = new Object[1];
+            o[0] = d;
+            try {
+              ans = invokeMethod(fm.cMethod, o);
+            }
+            catch (IllegalAccessException exc) {
+              /* CTR: TEMP */ System.out.println(exc);
+            } // no access
+            catch (IllegalArgumentException exc) {
+              /* CTR: TEMP */ System.out.println(exc);
+            } // wrong type of method
+            catch (InvocationTargetException exc) {
+              /* CTR: TEMP */ System.out.println(exc);
+            } // method threw exception
+            if (ans == null) {
+              evalError("The constant \"" + token + "\" could not be " +
+                        "properly converted.");
+              stack.push(new NullObject());
+            }
+          }
+          else ans = d;
+          stack.push(ans);
+        }
       }
     }
 

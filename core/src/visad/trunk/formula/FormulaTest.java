@@ -67,11 +67,13 @@ public class FormulaTest {
     int implicitPrec = 200;
     String[] implicitMethods = {"visad.formula.FormulaTest.multiply(" +
                                 "java.lang.Double, java.lang.Double)"};
+    String constantMethod = "visad.formula.FormulaTest.constant(" +
+                            "java.lang.Double)";
     FormulaManager f = null;
     try {
       f = new FormulaManager(binOps, binPrec, binMethods, unaryOps, unaryPrec,
                              unaryMethods, functions, funcMethods,
-                             implicitPrec, implicitMethods);
+                             implicitPrec, implicitMethods, constantMethod);
     }
     catch (FormulaException exc) {
       System.out.println("Error creating FormulaManager object:\n" + exc);
@@ -218,6 +220,10 @@ public class FormulaTest {
       if (a[i].doubleValue() > a[index].doubleValue()) index = i;
     }
     return a[index];
+  }
+
+  public static Double constant(Double a) {
+    return a;
   }
 
 }

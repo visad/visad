@@ -81,6 +81,9 @@ public class FormulaManager {
   /** implicit function methods */
   Method[] iMethods;
   
+  /** constant conversion method */
+  Method cMethod;
+
   /** converts an array of strings of the form
       &quot;package.Class.method(Class, Class, ...)&quot;
       to an array of Method objects */
@@ -165,7 +168,8 @@ public class FormulaManager {
                         String[] unaryOps, int[] unaryPrec,
                         String[] unaryMethods, String[] functions,
                         String[] funcMethods, int implicitPrec,
-                        String[] implicitMethods) throws FormulaException {
+                        String[] implicitMethods, String constantMethod)
+                        throws FormulaException {
     bOps = binOps;
     bPrec = binPrec;
     bMethods = stringsToMethods(binMethods);
@@ -176,6 +180,9 @@ public class FormulaManager {
     fMethods = stringsToMethods(funcMethods);
     iPrec = implicitPrec;
     iMethods = stringsToMethods(implicitMethods);
+    String[] s = new String[1];
+    s[0] = constantMethod;
+    cMethod = stringsToMethods(s)[0];
 
     // check that parallel arrays are really parallel
     int l1 = bOps.length;
@@ -270,6 +277,10 @@ public class FormulaManager {
                                    "\" is not valid");
       }
     }
+    if (cMethod == null) {
+      throw new FormulaException("The method \"" + constantMethod +
+                                 "\" is not valid");
+    }
   }
 
   /** list of all variables in this FormulaManager object */
@@ -300,15 +311,15 @@ public class FormulaManager {
   /** assign a formula to a variable */
   public void assignFormula(String name, String formula)
                                          throws FormulaException {
-    FormulaVar v = getVarByNameOrCreate(name);
-    v.setFormula(formula);
+    FormulaVar v = getVarByNameOrCreate(name.toLowerCase());
+    v.setFormula(formula.toLowerCase());
   }
 
   /** gets the current list of errors that occurred when evaluating
       &quot;name&quot; and clears the list */
   public String[] getErrors(String name) {
     try {
-      FormulaVar v = getVarByNameOrCreate(name);
+      FormulaVar v = getVarByNameOrCreate(name.toLowerCase());
       String[] s = v.getErrors();
       v.clearErrors();
       return s;
@@ -322,7 +333,7 @@ public class FormulaManager {
   public boolean canBeRemoved(String name) {
     FormulaVar v = null;
     try {
-      getVarByName(name);
+      getVarByName(name.toLowerCase());
     }
     catch (FormulaException exc) { }
     if (v == null) return false;
@@ -331,7 +342,7 @@ public class FormulaManager {
 
   /** remove a variable from the database */
   public void remove(String name) throws FormulaException {
-    FormulaVar v = getVarByName(name);
+    FormulaVar v = getVarByName(name.toLowerCase());
     if (v.isSafeToDelete()) {
       v.setValue(null);
       Vars.remove(v);
@@ -344,32 +355,32 @@ public class FormulaManager {
 
   /** set a variable's value directly */
   public void setValue(String name, Object value) throws FormulaException {
-    FormulaVar v = getVarByNameOrCreate(name);
+    FormulaVar v = getVarByNameOrCreate(name.toLowerCase());
     v.setValue(value);
   }
 
   /** get a variable's current value */
   public Object getValue(String name) throws FormulaException {
-    FormulaVar v = getVarByName(name);
+    FormulaVar v = getVarByName(name.toLowerCase());
     return v.getValue();
   }
 
   /** get a variable's current formula */
   public String getFormula(String name) throws FormulaException {
-    FormulaVar v = getVarByName(name);
+    FormulaVar v = getVarByName(name.toLowerCase());
     return v.getFormula();
   }
 
   /** add a listener for when a variable changes */
   public void addVarChangeListener(String name, FormulaListener f)
                                    throws FormulaException {
-    FormulaVar v = getVarByName(name);
+    FormulaVar v = getVarByName(name.toLowerCase());
     v.addListener(f);
   }
 
   public void removeVarChangeListener(String name, FormulaListener f)
                                       throws FormulaException {
-    FormulaVar v = getVarByName(name);
+    FormulaVar v = getVarByName(name.toLowerCase());
     v.removeListener(f);
   }
 

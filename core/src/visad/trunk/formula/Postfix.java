@@ -39,8 +39,11 @@ class Postfix {
   /** code for function name */
   static final int FUNC = 2;
 
+  /** code for constant that represents number of function arguments */
+  static final int FUNCCONST = 3;
+
   /** code for variable, constant, or other */
-  static final int OTHER = 3;
+  static final int OTHER = 4;
 
   /** String representation of an implicit function */
   private static final String IMPLICIT = " ";
@@ -174,7 +177,7 @@ class Postfix {
           boolean implicit;
           if (zero) {
             implicit = f.equals(IMPLICIT);
-            pcode[pfixlen] = implicit ? FUNC : OTHER;
+            pcode[pfixlen] = implicit ? FUNC : FUNCCONST;
             pfix[pfixlen++] = "0";
           }
           else {
@@ -189,7 +192,7 @@ class Postfix {
               f = funcStack[--funcPt];
             }
             implicit = f.equals(IMPLICIT);
-            pcode[pfixlen] = implicit ? FUNC : OTHER;
+            pcode[pfixlen] = implicit ? FUNC : FUNCCONST;
             pfix[pfixlen++] = "" + n;
           }
           if (!implicit) {
