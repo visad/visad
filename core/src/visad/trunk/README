@@ -24,7 +24,7 @@ directory is a directory in your CLASSPATH (which we will refer
 to as '/parent_dir' through the rest of this README file).
 Then get:
 
-  ftp://ftp.ssec.wisc.edu/pub/visad-2.0/visad_src.2.0.jar
+  ftp://ftp.ssec.wisc.edu/pub/visad-2.0/visad_src-2.0.jar
  
 If you have previously downloaded the VisAD source you
 should run 'make clear' in your visad directory to clear
@@ -32,7 +32,7 @@ out the old source files before you unpack the new source.
 
 Unpack the jar file by running:
  
-  jar xvf visad_src.2.0.jar
+  jar xvf visad_src-2.0.jar
  
 Unpacking VisAD will create the following sub-directories:
 
