@@ -207,6 +207,7 @@ public class Util
 
   /**
    * Test whether HDF-5 native code is present in this JVM.
+   * @return true if found, otherwise false
    */
   public static boolean canDoHDF5() {
     boolean success = false;
@@ -222,8 +223,10 @@ public class Util
 
   /**
    * Test whether JPEG codec (com.sun.image.codec.jpeg) is present in this JVM.
+   * @return true if found, otherwise false
    */
   public static boolean canDoJPEG() {
+    /* DRM 04-APR-2001
     boolean success = false;
     try {
       Class c = Class.forName("com.sun.image.codec.jpeg.JPEGCodec");
@@ -231,12 +234,16 @@ public class Util
     }
     catch (ClassNotFoundException exc) { }
     return success;
+    */
+    return (canDoClass("com.sun.image.codec.jpeg.JPEGCodec") != null);
   }
 
   /**
    * Test whether JPython is present in this JVM.
+   * @return true if found, otherwise false
    */
   public static boolean canDoPython() {
+    /* DRM 04-APR-2001
     boolean success = false;
     try {
       Class c = Class.forName("org.python.util.PythonInterpreter");
@@ -244,6 +251,54 @@ public class Util
     }
     catch (ClassNotFoundException exc) { }
     return success;
+    */
+    return (canDoClass("org.python.util.PythonInterpreter") != null);
   }
 
+  /**
+   * Test whether Java 3D is present
+   * @return true if found, otherwise false
+   */
+  public static boolean canDoJava3D() {
+    return canDoJava3D("1.0");
+  }
+
+  /**
+   * Checks to see if the version of Java 3D being used is compatible
+   * with the desired specification version.
+   * @param version   version to check.  Needs to conform to the dotted format
+   *                  of specification version numbers (e.g., 1.2)
+   * @return true if the Java 3D version being used is greater than or 
+   *         equal to the desired version number
+   */
+  public static boolean canDoJava3D(String version) {
+    Class testClass = canDoClass("javax.vecmath.Point3d");
+    boolean b = (testClass != null) 
+                   ? (canDoClass("javax.media.j3d.SceneGraphObject") != null)
+                   : false;
+    if (b) {
+      Package p = testClass.getPackage();
+      if (p != null) {
+        try {
+          b = p.isCompatibleWith(version);
+        } catch (NumberFormatException nfe) { b = false; }
+      }
+    }
+    return b;
+  }
+
+  /**
+   * General classloader tester. 
+   * @param classname  name of class to test
+   * @return  the class or null if class can't be loaded.
+   */
+  private static Class canDoClass(String classname)
+  {
+    Class c = null;
+    try {
+      c = Class.forName(classname);
+    }
+    catch (ClassNotFoundException exc) { }
+    return c;
+  }
 }
