@@ -68,8 +68,6 @@ DOCFLAGS = -J-Xmx96m -d $(DOC_DIR)
 
 JAR_FILES1 = \
 dods\dap\*.java \
-dods\dap\Server\*.java \
-dods\dap\functions\*.java \
 dods\dap\parser\*.java \
 dods\util\*.java \
 edu\wisc\ssec\mcidas\*.java \
@@ -304,8 +302,6 @@ ucar\tests\*.java \
 ucar\tests\test.nc \
 ucar\tests\test.out \
 dods\dap\*.java \
-dods\dap\Server\*.java \
-dods\dap\functions\*.java \
 dods\dap\parser\*.java \
 dods\util\*.java \
 gnu\regexp\*.java \
@@ -460,10 +456,6 @@ save:
 		$(DEL) $(BACKUP)\ucar\tests\*.java
 	if exist $(BACKUP)\dods\dap\*.java \
 		$(DEL) $(BACKUP)\dods\dap\*.java
-	if exist $(BACKUP)\dods\dap\Server\*.java \
-		$(DEL) $(BACKUP)\dods\dap\Server\*.java
-	if exist $(BACKUP)\dods\dap\functions\*.java \
-		$(DEL) $(BACKUP)\dods\dap\functions\*.java
 	if exist $(BACKUP)\dods\dap\parser\*.java \
 		$(DEL) $(BACKUP)\dods\dap\parser\*.java
 	if exist $(BACKUP)\dods\util\*.java \
@@ -577,8 +569,6 @@ ucar\multiarray\*.class \
 ucar\netcdf\*.class \
 ucar\tests\*.class \
 dods\dap\*.class \
-dods\dap\Server\*.class \
-dods\dap\functions\*.class \
 dods\dap\parser\*.class \
 dods\util\*.class \
 gnu\regexp\*.class \
@@ -681,8 +671,6 @@ clear:
 	if exist ..\ucar\netcdf\*.java $(DEL) ..\ucar\netcdf\*.java
 	if exist ..\ucar\tests\*.java $(DEL) ..\ucar\tests\*.java
 	if exist ..\dods\dap\*.java $(DEL) ..\dods\dap\*.java 
-	if exist ..\dods\dap\Server\*.java $(DEL) ..\dods\dap\Server\*.java 
-	if exist ..\dods\dap\functions\*.java $(DEL) ..\dods\dap\functions\*.java 
 	if exist ..\dods\dap\parser\*.java $(DEL) ..\dods\dap\parser\*.java 
 	if exist ..\dods\util\*.java $(DEL) ..\dods\util\*.java 
 	if exist ..\gnu\regexp\*.java $(DEL) ..\gnu\regexp\*.java 
@@ -760,8 +748,6 @@ clean:
 	if exist ..\ucar\netcdf\*.class $(DEL) ..\ucar\netcdf\*.class
 	if exist ..\ucar\tests\*.class $(DEL) ..\ucar\tests\*.class
 	if exist ..\dods\dap\*.class $(DEL) ..\dods\dap\*.class 
-	if exist ..\dods\dap\Server\*.class $(DEL) ..\dods\dap\Server\*.class 
-	if exist ..\dods\dap\functions\*.class $(DEL) ..\dods\dap\functions\*.class 
 	if exist ..\dods\dap\parser\*.class $(DEL) ..\dods\dap\parser\*.class 
 	if exist ..\dods\util\*.class $(DEL) ..\dods\util\*.class 
 	if exist ..\gnu\regexp\*.class $(DEL) ..\gnu\regexp\*.class 
@@ -854,8 +840,6 @@ data\*.class \
 ..\ucar\netcdf\*.class \
 ..\ucar\tests\*.class \
 ..\dods\dap\*.class \
-..\dods\dap\Server\*.class \
-..\dods\dap\functions\*.class \
 ..\dods\dap\parser\*.class \
 ..\dods\util\*.class \
 ..\gnu\regexp\*.class \
@@ -942,9 +926,6 @@ compile: clean
 	$(JC) $(JFLAGS) ..\ucar\netcdf\*.java
 	$(JC) $(JFLAGS) ..\ucar\tests\*.java
 	$(JC) $(JFLAGS) ..\dods\dap\*.java
-	$(JC) $(JFLAGS) ..\dods\dap\Server\*.java
-	$(JC) $(JFLAGS) ..\dods\dap\functions\*.java
-	$(JC) $(JFLAGS) ..\dods\dap\parser\*.java
 	$(JC) $(JFLAGS) ..\dods\util\*.java
 	$(JC) $(JFLAGS) ..\gnu\regexp\*.java
 	$(JC) $(JFLAGS) data\in\*.java
@@ -1051,9 +1032,6 @@ ucar.util \
 ucar.netcdf \
 ucar.tests \
 dods.dap \
-dods.dap.Server \
-dods.dap.functions \
-dods.dap.parser \
 dods.util \
 gnu.regexp \
 visad.data.hdfeos \
