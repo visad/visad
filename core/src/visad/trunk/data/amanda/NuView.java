@@ -36,6 +36,7 @@ import java.net.URL;
 
 import java.rmi.RemoteException;
 
+import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
@@ -85,6 +86,8 @@ public class NuView
 
     JPanel widgetPanel = buildMainDisplay(display, file, histoWidget);
 
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
     JPanel displayPanel = (JPanel )display.getComponent();
     Dimension dim = new Dimension(800, 800);
     displayPanel.setPreferredSize(dim);
@@ -92,10 +95,10 @@ public class NuView
 
     // create JPanel in frame
     JPanel panel = new JPanel();
-    panel.setLayout(new BorderLayout());
+    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 
-    panel.add(widgetPanel, BorderLayout.WEST);
-    panel.add(displayPanel, BorderLayout.EAST);
+    panel.add(widgetPanel);
+    panel.add(displayPanel);
 
     JFrame frame = new JFrame("VisAD AMANDA Viewer");
 
@@ -106,9 +109,8 @@ public class NuView
 
     Dimension fSize = frame.getSize();
 
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    frame.setLocation((screenSize.width - fSize.width)/2,
-                      (screenSize.height - fSize.height)/2);
+    frame.setLocation((screenSize.width - fSize.width) / 2,
+                      (screenSize.height - fSize.height) / 2);
 
     frame.setVisible(true);
   }
