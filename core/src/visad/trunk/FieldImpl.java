@@ -2769,8 +2769,6 @@ public class FieldImpl extends FunctionImpl implements Field {
       return false;
     }
 
-    if (super.equals(obj)) return true;
-
     FieldImpl fi = (FieldImpl )obj;
 
     if (!getType().equals(fi.getType())) {
