@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2001 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -60,10 +60,10 @@ public class Irregular3DSet extends IrregularSet {
     this(type, samples, coord_sys, units, errors, delan, true);
   }
 
-  public Irregular3DSet(MathType type, float[][] samples,
-                        CoordinateSystem coord_sys, Unit[] units,
-                        ErrorEstimate[] errors, Delaunay delan,
-		        boolean copy) throws VisADException {
+  Irregular3DSet(MathType type, float[][] samples,
+                 CoordinateSystem coord_sys, Unit[] units,
+                 ErrorEstimate[] errors, Delaunay delan,
+		 boolean copy) throws VisADException {
     /* ManifoldDimension might not be equal to samples.length
        if a 2D triangulation has been specified */
     super(type, samples, (delan == null) ? samples.length
@@ -104,11 +104,11 @@ public class Irregular3DSet extends IrregularSet {
     this(type, samples, delaunay_set, coord_sys, units, errors, true);
   }
 
-  public Irregular3DSet(MathType type, float[][] samples,
-                        IrregularSet delaunay_set,
-                        CoordinateSystem coord_sys, Unit[] units,
-                        ErrorEstimate[] errors, boolean copy)
-                        throws VisADException {
+  Irregular3DSet(MathType type, float[][] samples,
+                 IrregularSet delaunay_set,
+                 CoordinateSystem coord_sys, Unit[] units,
+                 ErrorEstimate[] errors, boolean copy)
+                 throws VisADException {
     super(type, samples, delaunay_set.getManifoldDimension(),
           coord_sys, units, errors, copy);
     int dim = delaunay_set.getManifoldDimension();
@@ -147,11 +147,11 @@ public class Irregular3DSet extends IrregularSet {
     this(type, samples, new2old, old2new, coord_sys, units, errors, true);
   }
 
-  public Irregular3DSet(MathType type, float[][] samples,
-                        int[] new2old, int[] old2new,
-                        CoordinateSystem coord_sys, Unit[] units,
-                        ErrorEstimate[] errors, boolean copy)
-                        throws VisADException {
+  Irregular3DSet(MathType type, float[][] samples,
+                 int[] new2old, int[] old2new,
+                 CoordinateSystem coord_sys, Unit[] units,
+                 ErrorEstimate[] errors, boolean copy)
+                 throws VisADException {
     super(type, samples, 1, coord_sys, units, errors, null, copy);
     if (Length != new2old.length || Length != old2new.length) {
       throw new SetException("Irregular3DSet: sort lengths do not match");
@@ -215,14 +215,37 @@ public class Irregular3DSet extends IrregularSet {
       throw new SetException("Irregular3DSet.valueToTri: lengths " +
                              "don't match");
     }
+
+    float[] PA = new float[3];
+    float[] PB = new float[3];
+    float[] PC = new float[3];
+    float[] PD = new float[3];
+    float[] BAxCB = new float[3];
+    float[] CBxDC = new float[3];
+    float[] DCxAD = new float[3];
+    float[] ADxBA = new float[3];
+    float sum_BAxCB;
+    float sum_CBxDC;
+    float sum_DCxAD;
+    float sum_ADxBA;
+
+    boolean[] fail_tri = new boolean[Delan.Tri.length];
+    for ( int kk = 0; kk < fail_tri.length; kk++ ) { 
+      fail_tri[kk] = false;
+    }
+
     int[] tri = new int[length];
     int curtri = 0;
     for (int i=0; i<length; i++) {
+
+      boolean circle = false; // mark true if a failed tri is revisited
+
       // Return -1 if iteration loop fails
       tri[i] = -1;
       boolean foundit = false;
       if (curtri < 0) curtri = 0;
-      for (int itnum=0; (itnum<Delan.Tri.length) && !foundit; itnum++) {
+      int itnum;
+      for (itnum=0; (itnum<Delan.Tri.length) && !foundit; itnum++) {
         // define data
         int t0 = Delan.Tri[curtri][0];
         int t1 = Delan.Tri[curtri][1];
@@ -244,47 +267,219 @@ public class Irregular3DSet extends IrregularSet {
         float Py = value[1][i];
         float Pz = value[2][i];
 
+        PA[0]     =  Px-Ax;
+        PA[1]     =  Py-Ay;
+        PA[2]     =  Pz-Az;
+
+        PB[0]     =  Px-Bx;
+        PB[1]     =  Py-By;
+        PB[2]     =  Pz-Bz;
+
+        PC[0]     =  Px-Cx;
+        PC[1]     =  Py-Cy;
+        PC[2]     =  Pz-Cz;
+
+        PD[0]     =  Px-Dx;
+        PD[1]     =  Py-Dy;
+        PD[2]     =  Pz-Dz;
+
+        BAxCB[0]  =  (By-Ay)*(Cz-Bz)-(Bz-Az)*(Cy-By);
+        BAxCB[1]  =  (Bz-Az)*(Cx-Bx)-(Bx-Ax)*(Cz-Bz);
+        BAxCB[2]  =  (Bx-Ax)*(Cy-By)-(By-Ay)*(Cx-Bx);
+        sum_BAxCB =  BAxCB[0] + BAxCB[1] + BAxCB[2];
+
+        CBxDC[0]  =  (Cy-By)*(Dz-Cz)-(Cz-Bz)*(Dy-Cy);
+        CBxDC[1]  =  (Cz-Bz)*(Dx-Cx)-(Cx-Bx)*(Dz-Cz);
+        CBxDC[2]  =  (Cx-Bx)*(Dy-Cy)-(Cy-By)*(Dx-Cx);
+        sum_CBxDC =  CBxDC[0] + CBxDC[1] + CBxDC[2];
+
+        DCxAD[0]  =  (Dy-Cy)*(Az-Dz)-(Dz-Cz)*(Ay-Dy);
+        DCxAD[1]  =  (Dz-Cz)*(Ax-Dx)-(Dx-Cx)*(Az-Dz);
+        DCxAD[2]  =  (Dx-Cx)*(Ay-Dy)-(Dy-Cy)*(Ax-Dx);
+        sum_DCxAD =  DCxAD[0] + DCxAD[1] + DCxAD[2];
+
+        ADxBA[0]  =  (Ay-Dy)*(Bz-Az)-(Az-Dz)*(By-Ay);
+        ADxBA[1]  =  (Az-Dz)*(Bx-Ax)-(Ax-Dx)*(Bz-Az);
+        ADxBA[2]  =  (Ax-Dx)*(By-Ay)-(Ay-Dy)*(Bx-Ax);
+        sum_ADxBA =  ADxBA[0] + ADxBA[1] + ADxBA[2];
+
         // test whether point is contained in current triangle
-        float tval1 = ( (By-Ay)*(Cz-Bz)-(Bz-Az)*(Cy-By) )*(Px-Ax)
-                     + ( (Bz-Az)*(Cx-Bx)-(Bx-Ax)*(Cz-Bz) )*(Py-Ay)
-                     + ( (Bx-Ax)*(Cy-By)-(By-Ay)*(Cx-Bx) )*(Pz-Az);
-        float tval2 = ( (Cy-By)*(Dz-Cz)-(Cz-Bz)*(Dy-Cy) )*(Px-Bx)
-                     + ( (Cz-Bz)*(Dx-Cx)-(Cx-Bx)*(Dz-Cz) )*(Py-By)
-                     + ( (Cx-Bx)*(Dy-Cy)-(Cy-By)*(Dx-Cx) )*(Pz-Bz);
-        float tval3 = ( (Dy-Cy)*(Az-Dz)-(Dz-Cz)*(Ay-Dy) )*(Px-Cx)
-                     + ( (Dz-Cz)*(Ax-Dx)-(Dx-Cx)*(Az-Dz) )*(Py-Cy)
-                     + ( (Dx-Cx)*(Ay-Dy)-(Dy-Cy)*(Ax-Dx) )*(Pz-Cz);
-        float tval4 = ( (Ay-Dy)*(Bz-Az)-(Az-Dz)*(By-Ay) )*(Px-Dx)
-                     + ( (Az-Dz)*(Bx-Ax)-(Ax-Dx)*(Bz-Az) )*(Py-Dy)
-                     + ( (Ax-Dx)*(By-Ay)-(Ay-Dy)*(Bx-Ax) )*(Pz-Dz);
-        boolean test1 = (tval1 == 0) || ( (tval1 > 0) == (
-                      ( (By-Ay)*(Cz-Bz)-(Bz-Az)*(Cy-By) )*(Dx-Ax)
-                    + ( (Bz-Az)*(Cx-Bx)-(Bx-Ax)*(Cz-Bz) )*(Dy-Ay)
-                    + ( (Bx-Ax)*(Cy-By)-(By-Ay)*(Cx-Bx) )*(Dz-Az) > 0) );
-        boolean test2 = (tval2 == 0) || ( (tval2 > 0) == (
-                      ( (Cy-By)*(Dz-Cz)-(Cz-Bz)*(Dy-Cy) )*(Ax-Bx)
-                    + ( (Cz-Bz)*(Dx-Cx)-(Cx-Bx)*(Dz-Cz) )*(Ay-By)
-                    + ( (Cx-Bx)*(Dy-Cy)-(Cy-By)*(Dx-Cx) )*(Az-Bz) > 0) );
-        boolean test3 = (tval3 == 0) || ( (tval3 > 0) == (
-                      ( (Dy-Cy)*(Az-Dz)-(Dz-Cz)*(Ay-Dy) )*(Bx-Cx)
-                    + ( (Dz-Cz)*(Ax-Dx)-(Dx-Cx)*(Az-Dz) )*(By-Cy)
-                    + ( (Dx-Cx)*(Ay-Dy)-(Dy-Cy)*(Ax-Dx) )*(Bz-Cz) > 0) );
-        boolean test4 = (tval4 == 0) || ( (tval4 > 0) == (
-                      ( (Ay-Dy)*(Bz-Az)-(Az-Dz)*(By-Ay) )*(Cx-Dx)
-                    + ( (Az-Dz)*(Bx-Ax)-(Ax-Dx)*(Bz-Az) )*(Cy-Dy)
-                    + ( (Ax-Dx)*(By-Ay)-(Ay-Dy)*(Bx-Ax) )*(Cz-Dz) > 0) );
+
+        float tval1 = BAxCB[0]*PA[0] + BAxCB[1]*PA[1] + BAxCB[2]*PA[2];
+        float tval2 = CBxDC[0]*PB[0] + CBxDC[1]*PB[1] + CBxDC[2]*PB[2];
+        float tval3 = DCxAD[0]*PC[0] + DCxAD[1]*PC[1] + DCxAD[2]*PC[2];
+        float tval4 = ADxBA[0]*PD[0] + ADxBA[1]*PD[1] + ADxBA[2]*PD[2];
+    
+
+     // System.out.println("Px-Ax: "+(Px-Ax)+" Py-Ay: "+(Py-Ay)+" Pz-Az: "+(Pz-Az));
+     // System.out.println("Px-Bx: "+(Px-Bx)+" Py-By: "+(Py-By)+" Pz-Bz: "+(Pz-Bz));
+     // System.out.println("Px-Cx: "+(Px-Cx)+" Py-Cy: "+(Py-Cy)+" Pz-Cz: "+(Pz-Cz));
+     // System.out.println("Px-Dx: "+(Px-Dx)+" Py-Dy: "+(Py-Dy)+" Pz-Dz: "+(Pz-Dz));
+     // System.out.println("sum_BAxCB: "+sum_BAxCB+" sum_CBxDC: "+sum_CBxDC+" sum_DCxAD "+sum_DCxAD+" sum_ADxBA "+sum_ADxBA);
+     // System.out.println("curtri: "+curtri+" tval1: "+tval1+" tval2: "+tval2+" tval2: "+tval3+" tval4: "+tval4);
+
+        boolean test1 = ((tval1 == 0) || ( (tval1 > 0) == (
+                          BAxCB[0]*(Dx-Ax)
+                        + BAxCB[1]*(Dy-Ay)
+                        + BAxCB[2]*(Dz-Az) > 0) )) && (sum_BAxCB != 0);
+
+        boolean test2 = ((tval2 == 0) || ( (tval2 > 0) == (
+                          CBxDC[0]*(Ax-Bx)
+                        + CBxDC[1]*(Ay-By)
+                        + CBxDC[2]*(Az-Bz) > 0) )) && (sum_CBxDC != 0);
+
+        boolean test3 = ((tval3 == 0) || ( (tval3 > 0) == (
+                          DCxAD[0]*(Bx-Cx)
+                        + DCxAD[1]*(By-Cy)
+                        + DCxAD[2]*(Bz-Cz) > 0) )) && (sum_DCxAD != 0);
+
+        boolean test4 = ((tval4 == 0) || ( (tval4 > 0) == (
+                          ADxBA[0]*(Cx-Dx)
+                        + ADxBA[1]*(Cy-Dy)
+                        + ADxBA[2]*(Cz-Dz) > 0) )) && (sum_ADxBA != 0);
+
+
+     //-System.out.println("curtri: "+curtri+" test1: "+test1+" test2: "+test2+" test2: "+test3+" test4: "+test4);
+
 
         // figure out which triangle to go to next
-        if (!test1) curtri = Delan.Walk[curtri][0];
-        else if (!test2) curtri = Delan.Walk[curtri][1];
-        else if (!test3) curtri = Delan.Walk[curtri][2];
-        else if (!test4) curtri = Delan.Walk[curtri][3];
-        else foundit = true;
+
+        if (!test1) {
+          fail_tri[curtri] = true;
+
+          int t = Delan.Walk[curtri][0];
+          if ( t != -1) {
+            if ( fail_tri[t] == true ) {
+              circle = true;
+              for ( int jj = 0; jj < fail_tri.length; jj++ ) {
+                if ( fail_tri[jj] == false ) {
+                  curtri = jj;
+                  break;
+                }
+              }
+            }
+            else {
+              curtri = t;
+            }
+          }
+          else if ( !circle ) {
+            curtri = t;
+          }
+          else {
+            for ( int jj = 0; jj < fail_tri.length; jj++ ) {
+              if ( fail_tri[jj] == false ) {
+                curtri = jj;
+                break;
+              }
+            }
+          }
+        }
+        else if (!test2) {
+          fail_tri[curtri] = true;
+
+          int t = Delan.Walk[curtri][1];
+          if ( t != -1 ) {
+            if ( fail_tri[t] == true ) {
+              circle = true;
+              for ( int jj = 0; jj < fail_tri.length; jj++ ) {
+                if ( fail_tri[jj] == false ) {
+                  curtri = jj;
+                  break;
+                }
+              }
+            }
+            else {
+              curtri = t;
+            }
+          }
+          else if ( !circle ) {
+            curtri = t;
+          }
+          else {
+            for ( int jj = 0; jj < fail_tri.length; jj++ ) {
+              if ( fail_tri[jj] == false ) {
+                curtri = jj;
+                break;
+              }
+            }
+          }
+        }
+        else if (!test3) {
+          fail_tri[curtri] = true;
+
+          int t = Delan.Walk[curtri][2];
+          if ( t != -1 ) {
+            if ( fail_tri[t] == true ) {
+              circle = true;
+              for ( int jj = 0; jj < fail_tri.length; jj++ ) {
+                if ( fail_tri[jj] == false ) {
+                  curtri = jj;
+                  break;
+                }
+              }
+            }
+            else {
+              curtri = t;
+            }
+          } 
+          else if ( !circle ) {
+            curtri = t;
+          }
+          else {
+            for ( int jj = 0; jj < fail_tri.length; jj++ ) {
+              if ( fail_tri[jj] == false ) {
+                curtri = jj;
+                break;
+              }
+            }
+
+          }
+        }
+        else if (!test4) {
+          fail_tri[curtri] = true;
+
+          int t = Delan.Walk[curtri][3];
+          if ( t != -1 ) {
+            if ( fail_tri[t] == true ) {
+              circle = true;
+              for ( int jj = 0; jj < fail_tri.length; jj++ ) {
+                if ( fail_tri[jj] == false ) {
+                  curtri = jj;
+                  break;
+                }
+              }
+            }
+            else {
+              curtri = t;
+            }
+          }
+          else if ( !circle ) {
+            curtri = t;
+          }
+          else {
+            for ( int jj = 0; jj < fail_tri.length; jj++ ) {
+              if ( fail_tri[jj] == false ) {
+                curtri = jj;
+                break;
+              }
+            }
+          }
+        }
+        else {
+          foundit = true;
+        }
+
 
         // Return -1 if outside of the convex hull
         if (curtri < 0) foundit = true;
         if (foundit) tri[i] = curtri;
       }
+      if ( circle ) {  //- reinitialize only if circularity condition found
+        for ( int kk = 0; kk < fail_tri.length; kk++ ) {
+          fail_tri[kk] = false;
+        }
+      }
+   //-System.out.println("itnum: "+itnum);
     }
     return tri;
   }
@@ -363,6 +558,7 @@ public class Irregular3DSet extends IrregularSet {
       throw new SetException("Irregular3DSet.valueToInterp:"
                             +" lengths don't match");
     }
+    System.out.println("value: "+value[0][0]+", "+value[1][0]+", "+value[2][0]);
     int[] tri = valueToTri(value);
     for (int i=0; i<tri.length; i++) {
       if (tri[i] < 0) {
