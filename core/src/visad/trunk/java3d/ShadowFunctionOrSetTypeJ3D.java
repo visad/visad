@@ -712,14 +712,14 @@ System.out.println("doTerminal: isTerminal = " + adaptedShadowType.getIsTerminal
       float[][] color_values =
         assembleColor(display_values, valueArrayLength, valueToScalar,
                       display, default_values, range_select);
-
+/*
 if (color_values != null) {
   System.out.println("color_values.length = " + color_values.length +
                      " color_values[0].length = " + color_values[0].length);
   System.out.println(color_values[0][0] + " " + color_values[1][0] +
                      " " + color_values[2][0]);
 }
-
+*/
       if (range_select[0] != null && range_select[0].length == 1 &&
           range_select[0][0] != range_select[0][0]) {
         // single missing value in range_select[0], so render nothing
