@@ -6,12 +6,13 @@
  * Copyright 1999, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: QuantityDBManager.java,v 1.2 2000-04-26 15:45:14 dglo Exp $
+ * $Id: QuantityDBManager.java,v 1.3 2001-04-03 19:12:26 steve Exp $
  */
 
 package visad.data.netcdf;
 
 import java.io.Serializable;
+import visad.VisADError;
 import visad.VisADException;
 
 
@@ -39,9 +40,13 @@ QuantityDBManager
 	{
 	    db = defaultInstance();
 	}
-	catch (VisADException e)
+	catch (Exception e)
 	{
-	    System.err.println("Couldn't initialize class QuantityDBManager");
+	    if (e instanceof RuntimeException)
+		throw (RuntimeException)e;
+	    throw new VisADError(
+		"visad.data.netcdf.QuantityDBManager.<clinit>: " +
+		"Couldn't initialize class" + e);
 	}
     }
 
@@ -58,14 +63,14 @@ QuantityDBManager
     /**
      * Returns the default quantity database.
      *
-     * @return			The default quantity database.
-     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @return                  The default quantity database.
+     * @throws VisADException   Couldn't create necessary VisAD object.
      */
     protected static QuantityDB
     defaultInstance()
-	throws VisADException
+        throws VisADException
     {
-	return StandardQuantityDB.instance();
+        return StandardQuantityDB.instance();
     }
 
 
@@ -93,8 +98,30 @@ QuantityDBManager
     setInstance(QuantityDB db)
 	throws VisADException
     {
-	QuantityDBManager.db = db != null
-		    ? db
-		    : defaultInstance();
+	QuantityDBManager.db = db == null ? defaultInstance() : db;
+    }
+
+
+    /**
+     * Tests this class by listing the contents -- one per line --
+     * in the following format:
+     *	    <name> ( <CannonicalName> ) in <PreferredUnit>
+     * e.g.
+     *	    VolumicElectricCharge (ElectricChargeDensity) in C/m3
+     */
+    public static void
+    main(String[] args)
+      throws	Exception
+    {
+	QuantityDB	db = QuantityDBManager.instance();
+
+	for (java.util.Iterator iter = db.nameIterator(); iter.hasNext(); )
+	{
+	    String	name = (String)iter.next();
+	    Quantity	quantity = db.get(name);
+	    System.out.println(
+		name + " (" + quantity.getName() + ") in " +
+		quantity.getDefaultUnitString());
+	}
     }
 }
