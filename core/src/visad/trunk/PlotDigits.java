@@ -66,7 +66,7 @@ public class PlotDigits extends Applet implements MouseListener {
    * Return:  number of vertices put into vx,vy.
    */
   public void plotdigits(float gg, float xk, float yk,
-                         float xm, float ym, int max, boolean swap)
+                         float xm, float ym, int max, boolean[] swap)
          throws VisADException {
     int[] lb = { 0,   // 91 elements
       105,102,80,20,02,05,27,87,105,85,103,3,1,5,87,105,102,80,
@@ -136,7 +136,7 @@ public class PlotDigits extends Applet implements MouseListener {
     ymk = ym-yk;
     if (ymk < 0) ymk = -ymk;
   
-    if (swap) {
+    if (swap[0]) {
       hgt = ymk/1.2f;
       h = xmk/(dig+0.2f);
       if (h < hgt) hgt=h;
@@ -162,7 +162,7 @@ public class PlotDigits extends Applet implements MouseListener {
       ib = lt[j3+1];
       ie = lt[j3+2]-1;
       for (i=ib;i<=ie;i++) {
-        if (swap) {
+        if (swap[0]) {
           llel = lb[i]/10;
           llin = lb[i]-llel*10;
         }
@@ -184,7 +184,7 @@ public class PlotDigits extends Applet implements MouseListener {
         cs = col-he;
       }
       // SPACE FOR COLUMN OF DIGIT
-      if (swap) {
+      if (swap[0]) {
         row = row-hgt;
       }
       else {
@@ -197,7 +197,7 @@ public class PlotDigits extends Applet implements MouseListener {
       ib = lt[j2+1];
       ie = lt[j2+2]-1;
       for (i=ib;i<=ie;i++) {
-        if (swap) {
+        if (swap[0]) {
           llel = lb[i]/10;
           llin = lb[i]-llel*10;
         }
@@ -219,7 +219,7 @@ public class PlotDigits extends Applet implements MouseListener {
         cs = col-he;
       }
       // space for column of digit
-      if (swap) {
+      if (swap[0]) {
         row = row-hgt;
       }
       else {
@@ -233,7 +233,7 @@ public class PlotDigits extends Applet implements MouseListener {
       ib = lt[j1+1];
       ie = lt[j1+2]-1;
       for (i=ib;i<=ie;i++) {
-        if (swap) {
+        if (swap[0]) {
           llel = lb[i]/10;
           llin = lb[i]-llel*10;
         }
@@ -256,7 +256,7 @@ public class PlotDigits extends Applet implements MouseListener {
       }
 
       // space for column of digit
-      if (swap) {
+      if (swap[0]) {
         row = row-hgt;
       }
       else {
@@ -264,7 +264,7 @@ public class PlotDigits extends Applet implements MouseListener {
       }
 
       // plot decimal cross
-      if (swap) {
+      if (swap[0]) {
         Vx[NumVerts] = row-0.2f*hgt;
         Vy[NumVerts] = col-0.1f*hgt;
         NumVerts++;
@@ -294,7 +294,7 @@ public class PlotDigits extends Applet implements MouseListener {
       }
 
       // half space for column of decimal cross
-      if (swap) {
+      if (swap[0]) {
         row = row-0.5f*hgt;
       }
       else {
@@ -309,7 +309,7 @@ public class PlotDigits extends Applet implements MouseListener {
       ib = lt[m+1];
       ie = lt[m+2]-1;
       for (i=ib;i<=ie;i++) {
-        if (swap) {
+        if (swap[0]) {
           llel = lb[i]/10;
           llin = lb[i]-llel*10;
         }
@@ -332,7 +332,7 @@ public class PlotDigits extends Applet implements MouseListener {
       }
       jg = jg/10;
       // SPACE FOR COLUMN OF DIGIT
-      if (swap) {
+      if (swap[0]) {
         row = row-hgt;
       }
       else {
@@ -343,7 +343,7 @@ public class PlotDigits extends Applet implements MouseListener {
   
     if (isign < 0) {
       // PLOT MINUS SIGN
-      if (swap) {
+      if (swap[0]) {
         Vx[NumVerts] = row-0.4f*hgt;
         Vy[NumVerts] = col-0.5f*hgt;
         NumVerts++;
@@ -366,13 +366,23 @@ public class PlotDigits extends Applet implements MouseListener {
       VxB[r] = (xm+xk)-Vx[r];
       VyB[r] = (ym+yk)-Vy[r];
     }
-    if (swap) {
+    if (swap[0]) {
       float[] temp = VyB;
       VyB = Vy;
       Vy = temp;
       temp = VxB;
       VxB = Vx;
       Vx = temp;
+    }
+    if (swap[1]) {
+      float[] temp = VxB;
+      VxB = Vx;
+      Vx = temp;
+    }
+    if (swap[2]) {
+      float[] temp = VyB;
+      VyB = Vy;
+      Vy = temp;
     }
   }
 
@@ -386,8 +396,8 @@ public class PlotDigits extends Applet implements MouseListener {
     try {
       width = Integer.parseInt(getParameter("width"));
       height = Integer.parseInt(getParameter("height"));
-      plot.plotdigits(plot.Number, 0, 0, 
-                      height, 7*width/8, 150, false);
+      boolean[] swap = {false, false, false};
+      plot.plotdigits(plot.Number, 0, 0, height, 7*width/8, 150, swap);
     }
     catch (VisADException VE) {
       System.out.println("PlotDigits.init: "+VE);

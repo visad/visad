@@ -284,7 +284,7 @@ public abstract class ShadowTypeJ2D extends ShadowType {
       return false;
     }
 
-    boolean[] swap = {false};
+    boolean[] swap = {false, false, false};
     int[] spatialDimensions = new int[2];
     float[][] spatial_values = new float[3][];
     assembleSpatial(spatial_values, display_values, valueArrayLength,

@@ -621,8 +621,8 @@ System.out.println("doTerminal: isTerminal = " + adaptedShadowType.getIsTerminal
       // spatialDimensions[0] = spatialDomainDimension and
       // spatialDimensions[1] = spatialManifoldDimension
       int[] spatialDimensions = new int[2];
-      // flag for swapping rows and columns in contour labels
-      boolean[] swap = {false};
+      // flags for swapping rows and columns in contour labels
+      boolean[] swap = {false, false, false};
 
       // MEM
       Set spatial_set = 
@@ -863,7 +863,7 @@ END MISSING TEST */
                     VisADGeometryArray[] arrays =
                       spatial_set.makeIsoLines(fvalues[1], fvalues[2], fvalues[3],
                                                fvalues[4], display_values[i],
-                                               color_values, swap[0]);
+                                               color_values, swap);
                     if (arrays != null && arrays.length > 0 && arrays[0] != null &&
                         arrays[0].vertexCount > 0) {
                       // MEM

@@ -332,7 +332,7 @@ public abstract class Set extends DataImpl {
       and labels in array[2] */
   public VisADGeometryArray[] makeIsoLines(float interval, float low,
                       float hi, float base, float[] fieldValues,
-                      float[][] color_values, boolean swap)
+                      float[][] color_values, boolean[] swap)
          throws VisADException {
     throw new SetException("Set.makeIsoLines: not valid for this Set");
   }

@@ -424,7 +424,7 @@ public class Irregular3DSet extends IrregularSet {
   public VisADGeometryArray[] makeIsoLines(float interval,
                   float lowlimit, float highlimit, float base,
                   float[] fieldValues, float[][] color_values,
-                  boolean swap) throws VisADException {
+                  boolean[] swap) throws VisADException {
     if (ManifoldDimension != 2) {
       throw new SetException("Irregular3DSet.makeIsoLines: " +
                              "ManifoldDimension must be 2");

@@ -1362,7 +1362,7 @@ public class Gridded3DSet extends GriddedSet {
   public VisADGeometryArray[] makeIsoLines(float interval,
                   float lowlimit, float highlimit, float base,
                   float[] fieldValues, float[][] color_values,
-                  boolean swap) throws VisADException {
+                  boolean[] swap) throws VisADException {
     if (ManifoldDimension != 2) {
       throw new SetException("Gridded3DSet.makeIsoLines: " +
                              "ManifoldDimension must be 2");
