@@ -392,7 +392,7 @@ public class SliceManager
     throws VisADException
   {
     final Form fsaver = saver;
-    final String f = file;
+    final String ff = file;
     final ProgressDialog dialog = new ProgressDialog(bio,
       "Compiling animation data");
     Thread t = new Thread(new Runnable() {
@@ -421,7 +421,7 @@ public class SliceManager
 
           // save animation data to file
           dialog.setText("Exporting animation");
-          fsaver.save(f, data, true);
+          fsaver.save(ff, data, true);
         }
         catch (VisADException exc) { dialog.setException(exc); }
         catch (Exception exc) {
