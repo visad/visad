@@ -83,9 +83,11 @@ public class DefaultNodeRendererAgent extends NodeAgent {
       display = new DisplayImplJ3D(rmtDpy, ndr, null);
 
       ref = new DataReferenceImpl("dummy");
-      ref.setData(data);
+      RemoteDataReferenceImpl remote_ref = new RemoteDataReferenceImpl(ref);
+      remote_ref.setData(data);
       nr = new NodeRendererJ3D(this);
-      display.addReferences(nr, ref, cmaps);
+      RemoteDisplayImpl remote_display = new RemoteDisplayImpl(display);
+      remote_display.addReferences(nr, ref, cmaps);
     }
     catch (VisADException e) {
       System.out.println("DefaultNodeRendererAgent cannot run: " + e.toString());

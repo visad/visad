@@ -452,15 +452,17 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
     message.addElement(type);
     if (shadow == null) {
       message.addElement(new Integer(getDisplay().getScalarCount()));
-      shadow =
-        data.computeRanges(type, getDisplay().getScalarCount());
+      // shadow =
+      //   data.computeRanges(type, getDisplay().getScalarCount());
     }
     else {
       message.addElement(shadow);
-      shadow = data.computeRanges(type, shadow);
+      // shadow = data.computeRanges(type, shadow);
     }
     Serializable[] responses =
       focus_agent.broadcastWithResponses(message, contacts);
+// never printed
+// System.out.println("ClientRendererJ3D.computeRanges messages received");
     DataShadow new_shadow = (DataShadow) responses[0];
     int n = responses.length;
     for (int i=1; i<n; i++) {

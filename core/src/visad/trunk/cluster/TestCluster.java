@@ -215,9 +215,10 @@ MathType.stringToType("((ImageElement, ImageLine) -> ImageRadiance)");
     Linear2DSet domain_set = (Linear2DSet) image.getDomainSet();
     Linear1DSet x_set = domain_set.getX();
     Linear1DSet y_set = domain_set.getY();
-    // getFirst, getLast, getStep, getLength:q
-    int x_length = x_set.getLength();
-    int y_length = y_set.getLength();
+    // getFirst, getLast, getStep, getLength
+    int x_len = x_set.getLength();
+    int y_len = y_set.getLength();
+    int len = domain_set.getLength();
     Linear2DSet ps =
       new Linear2DSet(domain_type,
                       x_set.getFirst(), x_set.getLast(), node_divide,
@@ -231,7 +232,52 @@ MathType.stringToType("((ImageElement, ImageLine) -> ImageRadiance)");
     RemoteNodePartitionedFieldImpl[] node_images =
       new RemoteNodePartitionedFieldImpl[number_of_nodes];
 
-    node_images[0] = new RemoteNodePartitionedFieldImpl(image);
+    if (number_of_nodes == 1) {
+      subsets[0] = domain_set;
+      node_images[0] = new RemoteNodePartitionedFieldImpl(image);
+    }
+    else {
+      int[] indices = new int[len];
+      for (int i=0; i<len; i++) indices[i] = i;
+      float[][] values = domain_set.indexToValue(indices);
+      int[] ps_indices = ps.valueToIndex(values);
+      float[][] firsts = new float[2][number_of_nodes];
+      float[][] lasts = new float[2][number_of_nodes];
+      int[][] lows = new int[2][number_of_nodes];
+      int[][] his = new int[2][number_of_nodes];
+      for (int j=0; j<2; j++) {
+        for (int i=0; i<number_of_nodes; i++) {
+          firsts[j][i] = Float.MAX_VALUE;
+          lasts[j][i] = -Float.MAX_VALUE;
+          lows[j][i] = len + 1;
+          his[j][i] = -1;
+        }
+      }
+      for (int i=0; i<len; i++) {
+        int k = ps_indices[i];
+        if (k < 0) continue;
+        int[] index = {indices[i] % x_len, indices[i] / x_len};
+        for (int j=0; j<2; j++) {
+          if (values[j][i] < firsts[j][k]) firsts[j][k] = values[j][i];
+          if (values[j][i] > lasts[j][k]) lasts[j][k] = values[j][i];
+          if (index[j] < lows[j][k]) lows[j][k] = index[j];
+          if (index[j] > his[j][k]) his[j][k] = index[j];
+        }
+      }
+      for (int k=0; k<number_of_nodes; k++) {
+        if (his[0][k] < 0 || his[1][k] < 0) {
+          throw new ClusterException("Set partition error");
+        }
+        subsets[k] =
+          new Linear2DSet(domain_type,
+                      firsts[0][k], lasts[0][k], (his[0][k] - lows[0][k] + 1),
+                      firsts[1][k], lasts[1][k], (his[1][k] - lows[1][k] + 1),
+                      domain_set.getCoordinateSystem(),
+                      domain_set.getSetUnits(), null);
+        FieldImpl subimage = (FieldImpl) image.resample(subsets[k]);
+        node_images[k] = new RemoteNodePartitionedFieldImpl(subimage);
+      }
+    }
 
     RemoteClusterData[] table =
       new RemoteClusterData[number_of_nodes + 1];
@@ -245,10 +291,11 @@ MathType.stringToType("((ImageElement, ImageLine) -> ImageRadiance)");
     for (int i=0; i<number_of_nodes; i++) {
       node_images[i].setupClusterData(ps, table);
     }
+    client_image.setupClusterData(ps, table);
 
     DisplayImpl display =
-      new DisplayImplJ3D("display");
-      // new DisplayImplJ3D("display", new ClientDisplayRendererJ3D());
+      // new DisplayImplJ3D("display");
+      new DisplayImplJ3D("display", new ClientDisplayRendererJ3D());
 
     // get a list of decent mappings for this data
     MathType type = image.getType();
@@ -261,8 +308,12 @@ MathType.stringToType("((ImageElement, ImageLine) -> ImageRadiance)");
 
     // link data to the display
     DataReferenceImpl ref = new DataReferenceImpl("image");
-    ref.setData(image);
-    display.addReference(ref);
+    // ref.setData(image);
+    // display.addReference(ref);
+    RemoteDataReferenceImpl remote_ref = new RemoteDataReferenceImpl(ref);
+    remote_ref.setData(client_image);
+    RemoteDisplayImpl remote_display = new RemoteDisplayImpl(display);
+    remote_display.addReference(remote_ref);
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test ClientRendererJ3D");
