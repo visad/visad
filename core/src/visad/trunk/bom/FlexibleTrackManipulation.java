@@ -600,8 +600,8 @@ public class FlexibleTrackManipulation extends Object {
         float ratio = cscale / last_cscale;
         if (ratio < 0.95f || 1.05f < ratio) {
           last_cscale = cscale;
-          shape_control1.setScale(cscale);
-          shape_control2.setScale(cscale);
+          if (shape_control1 != null) shape_control1.setScale(cscale);
+          if (shape_control2 != null) shape_control2.setScale(cscale);
         }
 /* WLH 10 Sept 2001
       }
