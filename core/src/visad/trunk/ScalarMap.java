@@ -100,6 +100,16 @@ public class ScalarMap extends Object
   /** AxisScale */
   private AxisScale axisScale = null;  // added DRM 10-Oct-2000
 
+  /**
+   * Construct a <CODE>ScalarMap</CODE> that maps the scalar to
+   * the display_scalar.
+   * @param  scalar  ScalarType (must be RealType at present)
+   * @param  display_scalar   DisplayScalar to map to.  If the
+   *                          display_scalar is one of the spatial
+   *                          axes (X, Y, Z) an AxisScale will be
+   *                          created.
+   * @throws VisADException   VisAD error
+   */
   public ScalarMap(ScalarType scalar, DisplayRealType display_scalar)
          throws VisADException {
     this(scalar, display_scalar, true);
@@ -152,8 +162,13 @@ public class ScalarMap extends Object
   }
 
   // WLH 31 Aug 2000
-  /** set display Unit to override default Unit of Scalar;
-      MUST be called before any data are displayed */
+  /** 
+   * Set display Unit to override default Unit of Scalar;
+   *  MUST be called before any data are displayed 
+   * @param  unit  unit that data will be displayed with
+   * @throws  VisADException  <CODE>unit</CODE> is not convertable with
+   *                          the default unit or scalar is not a RealType.
+   */
   public void setOverrideUnit(Unit unit) throws VisADException {
     if (!(Scalar instanceof RealType)) {
       throw new UnitException("Scalar is not RealType");
@@ -170,14 +185,29 @@ public class ScalarMap extends Object
   }
 
   // WLH 31 Aug 2000
+  /**
+   * Return the override unit.
+   * @return  Unit being used in the display.
+   */
   public Unit getOverrideUnit() {
     return overrideUnit;
   }
 
+  /**
+   * Get the name being used on the axis scale.
+   * @return  name of the scale - either the default or the one set by
+   *          <CODE>setScalarName</CODE>
+   * @see  #setScalarName(String name)
+   */
   public String getScalarName() {
     return scalarName;
   }
 
+  /**
+   * Set the name being used on the axis scale.
+   * @param new name for the scalar.
+   * @see  AxisScale#setLabel(String name)
+   */
   public void setScalarName(String name) {
     scalarName = name;
     if (axisScale != null) axisScale.setLabel(scalarName);
@@ -252,17 +282,26 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     if (control != null) control.resetTicks();
   }
 
-  /** get the ScalarType that is the map domain */
+  /** 
+   * Get the ScalarType that is the map domain 
+   * @return  ScalarType of map domain
+   */
   public ScalarType getScalar() {
     return Scalar;
   }
 
-  /** get the DisplayRealType that is the map range */
+  /** 
+   * Get the DisplayRealType that is the map range 
+   * @return  DisplayRealType of map range
+   */
   public DisplayRealType getDisplayScalar() {
     return DisplayScalar;
   }
 
-  /** get the DisplayImpl this ScalarMap is linked to */
+  /** 
+   * Get the DisplayImpl this ScalarMap is linked to 
+   * @return  display that this ScalarMap is linked to
+   */
   public DisplayImpl getDisplay() {
     return display;
   }
@@ -277,8 +316,8 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
    * ScalarMapEvent#CONTROL_REMOVED} as the event ID, and the control as the
    * event control.
    *
-   * @throws RemoteException	Java RMI failure
-   * @throws VisADException	VisAD failure
+   * @throws RemoteException    Java RMI failure
+   * @throws VisADException     VisAD failure
    */
   synchronized void nullDisplay()
     throws RemoteException, VisADException
@@ -305,7 +344,12 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     if (axisScale != null) axisScale.setAxisOrdinal(-1);
   }
 
-  /** set the DisplayImpl this ScalarMap is linked to */
+  /** 
+   * Set the DisplayImpl this ScalarMap is linked to 
+   * @param  d   display to link to
+   * @throws  VisADException  map is already linked to a DisplayImpl or
+   *                          other VisAD error
+   */
   synchronized void setDisplay(DisplayImpl d)
                throws VisADException {
     if (d.equals(display)) return;
@@ -326,8 +370,8 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
    * in general, any information in the ScalarMap's control will be lost and
    * must be reestablished.
    *
-   * @return			The Control for the DisplayScalar or <code>
-   *				null</code> if one has not yet been set.
+   * @return                    The Control for the DisplayScalar or <code>
+   *                            null</code> if one has not yet been set.
    */
   public Control getControl() {
     return control;
@@ -339,14 +383,14 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
    * on all registered {@link ScalarMapListener}s with this instance as
    * the event source and {@link ScalarMapEvent#CONTROL_ADDED} or {@link
    * ScalarMapEvent#CONTROL_REPLACED} as the event ID -- depending on whether
-   * this is the first control or not.	The event control is the previous
+   * this is the first control or not.  The event control is the previous
    * control if the event ID is {@link ScalarMapEvent#CONTROL_REPLACED}.  If the
    * event ID is {@link ScalarMapEvent#CONTROL_ADDED}, then the event control is
    * the created control or <code>null</code> -- depending on whether or not the
    * control was successfully created.
    *
-   * @throws RemoteException	Java RMI failure
-   * @throws VisADException	VisAD failure
+   * @throws RemoteException    Java RMI failure
+   * @throws VisADException     VisAD failure
    */
   synchronized void setControl() throws VisADException, RemoteException {
     int evtID;
@@ -378,14 +422,19 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
   }
 
   /** return value is true if data (RealType) values are linearly
-      scaled to display (DisplayRealType) values;
-      if so, then values are scaled by:
-      display_value = data_value * so[0] + so[1];
-      (data[0], data[1]) defines range of data values (either passed
-      in to setRange or computed by autoscaling logic) and
-      (display[0], display[1]) defines range of display values;
-      so, data, display must each be passed in as double[2] arrays;
-      note if overrideUnit != null, so and data are in overrideUnit */
+   *  scaled to display (DisplayRealType) values;
+   *  if so, then values are scaled by:
+   *  display_value = data_value * so[0] + so[1];
+   *  (data[0], data[1]) defines range of data values (either passed
+   *  in to setRange or computed by autoscaling logic) and
+   *  (display[0], display[1]) defines range of display values;
+   *  so, data, display must each be passed in as double[2] arrays;
+   *  note if overrideUnit != null, so and data are in overrideUnit 
+   *  @param  so       array to contain scale and offset
+   *  @param  data     array to contain the data range
+   *  @param  display  array to contain the display range
+   *  @return  true if data are linearly scaled
+   */
   public boolean getScale(double[] so, double[] data, double[] display) {
     // WLH 31 Aug 2000
     if (overrideUnit != null) {
@@ -403,18 +452,25 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     return isScaled;
   }
 
-  /** note if overrideUnit != null, dataRange is in overrideUnit */
+  /** 
+   * Get the range of the data.
+   * @return  array containing the data range.  note if overrideUnit != null, 
+   *          dataRange is in overrideUnit.
+   */
   public double[] getRange() {
     double[] range = {dataRange[0], dataRange[1]};
     return range;
   }
 
   /** explicitly set the range of data (RealType) values according
-      to Unit conversion between this ScalarMap's RealType and
-      DisplayRealType (both must have Units and they must be
-      convertable; if neither this nor setRange is invoked, then
-      the range will be computed from the initial values of Data
-      objects linked to the Display by autoscaling logic. */
+   *  to Unit conversion between this ScalarMap's RealType and
+   *  DisplayRealType (both must have Units and they must be
+   *  convertable; if neither this nor setRange is invoked, then
+   *  the range will be computed from the initial values of Data
+   *  objects linked to the Display by autoscaling logic. 
+   *  @throws  VisADException   VisAD error
+   *  @throws  RemoteException  Java RMI error
+   */
   public void setRangeByUnits()
          throws VisADException, RemoteException {
     isManual = true;
@@ -428,26 +484,37 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
   }
 
   /** explicitly set the range of data (RealType) values; used for
-      linear map from Scalar to DisplayScalar values;
-      if neither this nor setRangeByUnits is invoked, then the
-      range will be computed from the initial values of Data
-      objects linked to the Display by autoscaling logic;
-      if the range of data values is (0.0, 1.0), for example, this
-      method may be invoked with low = 1.0 and hi = 0.0 to invert
-      the display scale */
+   *  linear map from Scalar to DisplayScalar values;
+   *  if neither this nor setRangeByUnits is invoked, then the
+   *  range will be computed from the initial values of Data
+   *  objects linked to the Display by autoscaling logic;
+   *  if the range of data values is (0.0, 1.0), for example, this
+   *  method may be invoked with low = 1.0 and hi = 0.0 to invert
+   *  the display scale 
+   *  @param  low   lower range value (see notes above)
+   *  @param  hi    upper range value (see notes above)
+   *  @throws  VisADException   VisAD error
+   *  @throws  RemoteException  Java RMI error
+   */
   public void setRange(double low, double hi)
          throws VisADException, RemoteException {
     setRange(low, hi, VisADEvent.LOCAL_SOURCE);
   }
 
   /** explicitly set the range of data (RealType) values; used for
-      linear map from Scalar to DisplayScalar values;
-      if neither this nor setRangeByUnits is invoked, then the
-      range will be computed from the initial values of Data
-      objects linked to the Display by autoscaling logic;
-      if the range of data values is (0.0, 1.0), for example, this
-      method may be invoked with low = 1.0 and hi = 0.0 to invert
-      the display scale */
+   *  linear map from Scalar to DisplayScalar values;
+   *  if neither this nor setRangeByUnits is invoked, then the
+   *  range will be computed from the initial values of Data
+   *  objects linked to the Display by autoscaling logic;
+   *  if the range of data values is (0.0, 1.0), for example, this
+   *  method may be invoked with low = 1.0 and hi = 0.0 to invert
+   *  the display scale .
+   *  @param  low         lower range value (see notes above)
+   *  @param  hi          upper range value (see notes above)
+   *  @param  remoteID    id of remote scale
+   *  @throws  VisADException   VisAD error
+   *  @throws  RemoteException  Java RMI error
+   */
   public void setRange(double low, double hi, int remoteId)
          throws VisADException, RemoteException {
     isManual = true;
@@ -654,7 +721,10 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
   }
 
   /** add a ScalarMapListener, to be notified whenever setRange is
-      invoked */
+   *  invoked 
+   *  @param  listener   <CODE>ScalarMapListener</CODE> to recieve notification
+   *                     of changes.
+   */
   public void addScalarMapListener(ScalarMapListener listener) {
     if (ListenerVector == null) {
       ListenerVector = new Vector();
@@ -672,7 +742,9 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     }
   }
 
-  /** remove a ScalarMapListener */
+  /** remove a ScalarMapListener 
+   *  @param  listener   <CODE>ScalarMapListener</CODE> to remove from the list
+   */
   public void removeScalarMapListener(ScalarMapListener listener) {
     if (listener != null && ListenerVector != null) {
       ListenerVector.removeElement(listener);
@@ -697,6 +769,12 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     }
   }
 
+  /**
+   * Change underscore characters (_) in the Scalar name to blanks.
+   * Can be used to change the displayed scalar name on the axis.
+   * @param  u2b   true to change, false to change back
+   * @see #setScalarName  as an alternative
+   */
   public void setUnderscoreToBlank(boolean u2b) {
     underscore_to_blank = u2b;
     if (Scalar != null) {
@@ -704,12 +782,21 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       if (underscore_to_blank) {
         scalarName = scalarName.replace('_', ' ');
       }
+      // set the label on the scale as well.  DRM 17-Nov-2000
+      if (axisScale != null) axisScale.setLabel(scalarName);
     }
   }
 
   private static final double SCALE = 0.06;
   private static final double OFFSET = 1.05;
 
+  /**
+   * Create the scale that is displayed.  This is called automatically
+   * when <CODE>setRange(lo, hi)</CODE> and <CODE>setDisplay</CODE> are
+   * called.  It makes a call to <CODE>AxisScale.makeScale()</CODE> where
+   * the actual hard work is done.
+   * @throws VisADException   VisAD error.
+   */
   public void makeScale() throws VisADException {
     if (axisScale != null) 
     {
@@ -733,13 +820,31 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     }
   }
 
+  /**
+   * Enable the display of the scale for this map.  This can be used
+   * to selectively turn on or off the scales in a display.  Must be
+   * used in conjunction with <CODE>GraphicsModeControl.setScaleEnable()</CODE>
+   * or <CODE>DisplayRenderer.setScaleOn(boolean on)</CODE>
+   * @param  on  true will enable display of axis, false will disable display
+   * @see visad.GraphicsModeControl#setScaleEnable(boolean enable)
+   * @see visad.DisplayRenderer#setScaleOn(boolean on)
+   */
   public void setScaleEnable(boolean on) {
     scale_on = on;
   }
 
-  /** set color of axis scales; color must be float[3] with red,
-      green and blue components; DisplayScalar must be XAxis,
-      YAxis or ZAxis */
+  /** 
+   * Set color of axis scales; color must be float[3] with red,
+   * green and blue components; DisplayScalar must be XAxis,
+   * YAxis or ZAxis.  Preferred method is to use <CODE>AxisScale.setColor<CODE>
+   * methods.
+   * @param  color  array of R,G,B values of color.
+   * @throws  VisADException  non-spatial DisplayScalar or wrong length
+   *                          of color array
+   * @see #getAxisScale()
+   * @see visad.AxisScale#setColor(Color color)
+   * @see visad.AxisScale#setColor(float[] color)
+   */
   public void setScaleColor(float[] color) throws VisADException {
     if (!DisplayScalar.equals(Display.XAxis) &&
         !DisplayScalar.equals(Display.YAxis) &&
@@ -753,11 +858,6 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     }
     // DRM 10-Oct 2000
     axisScale.setColor(color);
-    /* 
-    scale_color[0] = color[0];
-    scale_color[1] = color[1];
-    scale_color[2] = color[2];
-    */
   }
 
   public boolean badRange() {
@@ -765,8 +865,11 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
   }
 
   /** return an array of display (DisplayRealType) values by
-      linear scaling (if applicable) the data_values array
-      (RealType values) */
+   *  linear scaling (if applicable) the data_values array
+   *  (RealType values) 
+   * @param   values to scale as doubles
+   * @return  array of display values
+   */
   public float[] scaleValues(double[] values) {
 /* WLH 23 June 99
     if (values == null || badRange()) return null;
@@ -813,8 +916,11 @@ if (overrideUnit != null) {
   }
 
   /** return an array of display (DisplayRealType) values by
-      linear scaling (if applicable) the data_values array
-      (RealType values) */
+   *  linear scaling (if applicable) the data_values array
+   *  (RealType values) 
+   * @param   values to scale as floats
+   * @return  array of display values
+   */
   public float[] scaleValues(float[] values) {
 /* WLH 23 June 99
     if (values == null || badRange()) return null;
@@ -861,9 +967,12 @@ if (overrideUnit != null) {
   }
 
   /** return an array of data (RealType) values by inverse
-      linear scaling (if applicable) the display_values array
-      (DisplayRealType values); this is useful for direct
-      manipulation and cursor labels */
+   *  linear scaling (if applicable) the display_values array
+   *  (DisplayRealType values); this is useful for direct
+   *  manipulation and cursor labels 
+   * @param  display values
+   * @return data values
+   */
   public float[] inverseScaleValues(float[] values) {
     if (values == null) return null;
     float[] new_values = new float[values.length];
@@ -930,7 +1039,7 @@ System.out.println("inverse values = " + values[0] + " " + old_values[0] + " " +
     }
   }
 
-  /** get index of DisplayScalar in display.DisplayRealTypeVector */
+  /** Get index of DisplayScalar in display.DisplayRealTypeVector */
   int getDisplayScalarIndex() {
     return DisplayScalarIndex;
   }
@@ -964,7 +1073,7 @@ System.out.println("inverse values = " + values[0] + " " + old_values[0] + " " +
 
   /**
    * Compares this ScalarMap with another ScalarMap.
-   * @param o		The other ScalarMap.
+   * @param o           The other ScalarMap.
    * @return            A value that is negative, zero, or positive depending on
    *                    whether this ScalarMap is considered less than, equal
    *                    to, or greater than the other ScalarMap, respectively.
@@ -978,14 +1087,14 @@ System.out.println("inverse values = " + values[0] + " " + old_values[0] + " " +
    * Compares this ScalarMap with another ScalarMap.  The ScalarType-s are
    * first compared; if they compare equal, then the DisplayRealType-s are
    * compared.
-   * @param that		The other ScalarMap.
+   * @param that                The other ScalarMap.
    * @return            A value that is negative, zero, or positive depending on
    *                    whether this ScalarMap is considered less than, equal
    *                    to, or greater than the other ScalarMap, respectively.
    */
   protected int compareTo(ScalarMap that)
   {
-    int		comp = getScalar().compareTo(that.getScalar());
+    int         comp = getScalar().compareTo(that.getScalar());
     if (comp == 0)
       comp = getDisplayScalar().compareTo(that.getDisplayScalar());
     return comp;
@@ -993,9 +1102,9 @@ System.out.println("inverse values = " + values[0] + " " + old_values[0] + " " +
 
   /**
    * Indicates if this ScalarMap is the same as another object.
-   * @param o		The other object.
-   * @return		<code>true</code> if and only if the other object is a
-   *			ScalarMap and compares equal to this ScalarMap.
+   * @param o           The other object.
+   * @return            <code>true</code> if and only if the other object is a
+   *                    ScalarMap and compares equal to this ScalarMap.
    */
   public boolean equals(Object o)
   {
@@ -1006,7 +1115,7 @@ System.out.println("inverse values = " + values[0] + " " + old_values[0] + " " +
    * Returns the hash code for this ScalarMap.  If <code>scalarMap1.equals(
    * scalarMap2)</code> is true, then <code>scalarMap1.hashCode() ==
    * scalarMap2.hashCode()</code>.
-   * @return		The hash code for this ScalarMap.
+   * @return            The hash code for this ScalarMap.
    */
   public int hashCode()
   {
@@ -1027,6 +1136,11 @@ System.out.println("inverse values = " + values[0] + " " + old_values[0] + " " +
     return hash;
   }
 
+  /**
+   * Create and return a copy of this ScalarMap.
+   * @return  copy of the ScalarMap or <CODE>null</CODE> if a copy couldn't
+   *          be created.
+   */
   public Object clone()
   {
     try {
@@ -1039,8 +1153,9 @@ System.out.println("inverse values = " + values[0] + " " + old_values[0] + " " +
   }
 
   protected void copy(ScalarMap map)
+    throws VisADException, RemoteException
   {
-    map.control = control;
+    //map.control = control;
     map.isScaled = isScaled;
     map.isManual = isManual;
     map.dataRange[0] = dataRange[0];
@@ -1049,24 +1164,38 @@ System.out.println("inverse values = " + values[0] + " " + old_values[0] + " " +
     map.displayRange[1] = displayRange[1];
     map.scale = scale;
     map.offset = offset;
-    //map.axis = axis;
-    map.axisScale = axisScale;
-    //map.axis_ordinal = axis_ordinal;
+    map.axisScale = (axisScale != null) ? axisScale.clone(map) : null;
     map.scale_flag = scale_flag;
     map.back_scale_flag = back_scale_flag;
-    //map.scale_color[0] = scale_color[0];
-    //map.scale_color[1] = scale_color[1];
-    //map.scale_color[2] = scale_color[2];
+    map.setControl();
   }
 
+  /**
+   * Returns a string representation of the ScalarMap.
+   * @return  a string that "textually represents" this ScalarMap.
+   */
   public String toString() {
     return toString("");
   }
 
+  /**
+   * Returns a string representation of the ScalarMap with the specified
+   * prefix prepended.
+   * @param pre  prefix to prepend to the representation
+   * @return  a string that "textually represents" this ScalarMap with
+   *          <CODE>pre</CODE> prepended.
+   */
   public String toString(String pre) {
     return pre + "ScalarMap: " + Scalar.toString() +
            " -> " + DisplayScalar.toString() + "\n";
   }
 
+  /**
+   * Get the AxisScale associated with this ScalarMap.
+   * @return the AxisScale or null if not a spatial ScalarMap
+   */
+  public AxisScale getAxisScale()
+  {
+      return axisScale;
+  }
 }
-

@@ -63,14 +63,22 @@ public class Test26
 
     ScalarMap map1lat = new ScalarMap(RealType.Latitude, Display.YAxis);
     dpys[0].addMap(map1lat);
+    /* Old way  DRM 17-Nov-2000
     map1lat.setScalarName("Distance to Wall (m)");
     map1lat.setScaleColor(new float[] {0.0f, 1.0f, 0.0f});
+    */
+    // New Way
+    map1lat.getAxisScale().setLabel("Distance to Wall (m)");
+    map1lat.getAxisScale().setColor(java.awt.Color.green);
+
     ScalarMap map1lon = new ScalarMap(RealType.Longitude, Display.XAxis);
     map1lon.setScaleEnable(false);
     dpys[0].addMap(map1lon);
+
     ScalarMap map1vis = new ScalarMap(vis_radiance, Display.ZAxis);
     map1vis.setUnderscoreToBlank(true);
-    map1vis.setScaleColor(new float[] {1.0f, 0.0f, 0.0f});
+    // could also use map1vis.getAxisScale().setLabel("vis radiance") above
+    map1vis.getAxisScale().setColor(new float[] {1.0f, 0.0f, 0.0f});
     dpys[0].addMap(map1vis);
     dpys[0].addMap(new ScalarMap(ir_radiance, Display.Green));
     dpys[0].addMap(new ConstantMap(0.5, Display.Blue));
