@@ -227,7 +227,12 @@ public abstract class ActionImpl
 
   /** code executed by a thread to manage updates to the corresponding Thing */
   public void run() {
+
+    // Save the current thread so we can prohibit it from calling
+    // getImage.  This is thread-safe, because only one ActionImpl
+    // thread can be running at a time.
     currentActionThread = Thread.currentThread();
+
     synchronized (lockEnabled) {
 // if (getName() != null) System.out.println("ENABLED = " + enabled + " " + getName());
       if (enabled) {
