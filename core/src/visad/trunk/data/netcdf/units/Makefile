@@ -1,48 +1,35 @@
-JAVAC		= javac -g
-JAVA		= java
-JAVA_G		= java_g
-JAVACC		= javacc	# javacc is available from 
-				# <http://www.suntest.com/JavaCC/>
-JAVADOC		= javadoc
-PACKAGE		= visad.data.netcdf.units
-PACKAGE_PREFIX	= $(PACKAGE).
+SUBPACKAGE	= .units
 
-all:	UnitParser.class \
-	DefaultUnitsDB.class \
-	NamedUnit.class \
-	PluralUnit.class \
-	Prefix.class \
-	SingleUnit.class \
-	UnitTable.class \
-	UnitsDB.class
+include macros.make
 
-test:	all \
+JAVASRCS	= \
+		  ASCII_CharStream.java	\
+		  DefaultUnitsDB.java	\
+		  NamedUnit.java	\
+		  NoSuchUnitException.java	\
+		  ParseError.java	\
+		  ParseException.java	\
+		  Parser.java		\
+		  PluralUnit.java	\
+		  SingleUnit.java	\
+		  Token.java	\
+		  TokenMgrError.java	\
+		  UnitParser.java	\
+		  UnitParserConstants.java	\
+		  UnitParserTokenManager.java	\
+		  UnitPrefix.java	\
+		  UnitTable.java	\
+		  UnitsDB.java
+
+GARBAGE	= \
+	  ASCII_CharStream.java \
+	  ParseError.java ParseException.java Token.java \
+	  TokenMgrError.java UnitParser.java
+
+include rules.make
+
+test:	all	\
 	UnitParser.test
-
-documentation:
-	$(JAVADOC) $(PACKAGE)
-
-clean:
-	rm -f *.class *.html .cvsignore .exrc ASCII_CharStream.java \
-	    ParseError.java ParseException.java Token.java \
-	    TokenMgrError.java UnitParser.java
-
-.SUFFIXES:
-.SUFFIXES:	.test .class .html .java .jj
-
-.jj.java:
-	$(JAVACC) $<
-
-.java.class:
-	$(JAVAC) $<
-
-.class.test:
-	@echo ''
-	$(JAVA_G) $(PACKAGE_PREFIX)$*
-	@echo ''
-
-.java.html:
-	$(JAVADOC) $<
 
 UnitParser.java:	UnitParser.jj
 UnitParser.class:	UnitParser.java
