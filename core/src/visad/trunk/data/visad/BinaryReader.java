@@ -92,6 +92,9 @@ public class BinaryReader
     this.typeCache = new BinaryObjectCache();
 
     int version = readMagic(file);
+    if (version < 1) {
+      throw new IOException("File is not in VisAD binary format");
+    }
 
     // validate the format version number
     if (version > FORMAT_VERSION) {
