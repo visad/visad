@@ -209,6 +209,14 @@ SAVE_FILES = \
 	visad/aune/*.f					\
 	visad/aune/*.c					\
 	visad/aune/*.h					\
+        visad/benjamin/README.benjamin                  \
+        visad/benjamin/Makefile                         \
+        visad/benjamin/*.java                           \
+        visad/benjamin/*.f                              \
+        visad/benjamin/*.c                              \
+        visad/benjamin/*.h                              \
+        visad/benjamin/switch.inp                       \
+        visad/benjamin/*.table                          \
 	ucar.jar					\
 	visad/Gridded1D.txt				\
 	visad/Gridded2D.txt				\
@@ -218,14 +226,14 @@ SAVE_FILES = \
 	visad/plotdigits.html
 
 save:
-	/bin/rm -f backup/visad/*.java backup/visad/examples/*.java backup/visad/java3d/*.java backup/visad/java2d/*.java backup/visad/util/*.java backup/visad/ss/*.java backup/visad/ss/*.gif backup/visad/data/*.java backup/visad/data/netcdf/*.java backup/visad/data/netcdf/units/*.java backup/visad/data/netcdf/in/*.java backup/visad/data/netcdf/out/*.java backup/visad/data/fits/*.java backup/visad/nom/tam/fits/*.java backup/visad/nom/tam/util/*.java backup/visad/nom/tam/test/*.java backup/visad/data/hdfeos/*.java backup/visad/data/hdfeos/hdfeosc/*.java backup/visad/data/vis5d/*.java backup/visad/data/gif/*.java backup/visad/paoloa/*.java backup/visad/aune/*.java ; \
+	/bin/rm -f backup/visad/*.java backup/visad/examples/*.java backup/visad/java3d/*.java backup/visad/java2d/*.java backup/visad/util/*.java backup/visad/ss/*.java backup/visad/ss/*.gif backup/visad/data/*.java backup/visad/data/netcdf/*.java backup/visad/data/netcdf/units/*.java backup/visad/data/netcdf/in/*.java backup/visad/data/netcdf/out/*.java backup/visad/data/fits/*.java backup/visad/nom/tam/fits/*.java backup/visad/nom/tam/util/*.java backup/visad/nom/tam/test/*.java backup/visad/data/hdfeos/*.java backup/visad/data/hdfeos/hdfeosc/*.java backup/visad/data/vis5d/*.java backup/visad/data/gif/*.java backup/visad/paoloa/*.java backup/visad/aune/*.java backup/visad/benjamin/*.java ; \
 	cd .. ; \
 	tar -cvf save.tar $(SAVE_FILES) ; \
 	cd visad/backup ; \
 	tar -xvf ../../save.tar ; \
 	rm ../../save.tar ; \
 	cd .. ; \
-	wc backup/visad/*.java backup/visad/examples/*.java backup/visad/java3d/*.java backup/visad/java2d/*.java backup/visad/util/*.java backup/visad/ss/*.java backup/visad/data/*.java backup/visad/data/netcdf/*.java backup/visad/data/netcdf/units/*.java backup/visad/data/netcdf/in/*.java backup/visad/data/netcdf/out/*.java backup/visad/data/fits/*.java backup/nom/tam/fits/*.java backup/nom/tam/util/*.java backup/nom/tam/test/*.java backup/visad/data/hdfeos/*.java backup/visad/data/hdfeos/hdfeosc/*.java backup/visad/data/vis5d/*.java backup/visad/data/gif/*.java backup/visad/paoloa/*.java backup/visad/aune/*.java
+	wc backup/visad/*.java backup/visad/examples/*.java backup/visad/java3d/*.java backup/visad/java2d/*.java backup/visad/util/*.java backup/visad/ss/*.java backup/visad/data/*.java backup/visad/data/netcdf/*.java backup/visad/data/netcdf/units/*.java backup/visad/data/netcdf/in/*.java backup/visad/data/netcdf/out/*.java backup/visad/data/fits/*.java backup/nom/tam/fits/*.java backup/nom/tam/util/*.java backup/nom/tam/test/*.java backup/visad/data/hdfeos/*.java backup/visad/data/hdfeos/hdfeosc/*.java backup/visad/data/vis5d/*.java backup/visad/data/gif/*.java backup/visad/paoloa/*.java backup/visad/aune/*.java backup/visad/benjamin/*.java
 
 
 clear:
@@ -237,7 +245,7 @@ clear:
 	$(RM) $(FITS)/fits/*.java $(FITS)/util/*.java $(FITS)/test/*.java
 	$(RM) data/hdfeos/*.java data/hdfeos/hdfeosc/*.java
 	$(RM) data/vis5d/*.java data/gif/*.java
-	$(RM) paoloa/*.java aune/*.java examples/*.java
+	$(RM) paoloa/*.java aune/*.java benjamin/*.java examples/*.java
 
 
 RMIC = \
@@ -275,6 +283,7 @@ compile: clean
 	$(JC) $(JFLAGS) ss/*.java
 	-$(JC) $(JFLAGS) paoloa/*.java
 	-$(JC) $(JFLAGS) aune/*.java
+	-$(JC) $(JFLAGS) benjamin/*.java
 	-(cd examples && $(JC) $(JFLAGS) *.java)
 
 clean:
@@ -286,7 +295,7 @@ clean:
 	$(RM) $(FITS)/fits/*.class $(FITS)/util/*.class $(FITS)/test/*.class
 	$(RM) data/hdfeos/*.class data/hdfeos/hdfeosc/*.class
 	$(RM) data/vis5d/*.class data/gif/*.class
-	$(RM) paoloa/*.class aune/*.class examples/*.class
+	$(RM) paoloa/*.class aune/*.class benjamin/*.class examples/*.class
 
 
 
@@ -306,6 +315,7 @@ JAVAONE_FILES = \
 	paoloa/goesrtcf					\
 	aune/*.so					\
 	paoloa/*.so					\
+	benjamin/*.so					\
 	data/vis5d/*.so					\
 	data/hdfeos/hdfeosc/*.so			\
 	visad.jar					\
