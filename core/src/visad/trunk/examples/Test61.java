@@ -79,9 +79,12 @@ public class Test61
     RealTupleType earth_location3d = new RealTupleType(types3d);
     FunctionType grid_tuple = new FunctionType(earth_location3d, wr);
 
-    int NX = 32;
-    int NY = 32;
-    int NZ = 32;
+    // int NX = 32;
+    // int NY = 32;
+    // int NZ = 32;
+    int NX = 35;
+    int NY = 35;
+    int NZ = 35;
     Integer3DSet set = new Integer3DSet(NX, NY, NZ);
     FlatField grid3d = new FlatField(grid_tuple, set);
 
