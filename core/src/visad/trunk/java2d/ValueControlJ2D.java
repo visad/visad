@@ -92,23 +92,6 @@ public class ValueControlJ2D extends AVControlJ2D
 
   public boolean equals(Object o)
   {
-    if (o == null || !(o instanceof ValueControl)) {
-      return false;
-    }
-
-    ValueControl vc = (ValueControl )o;
-
-    double v = getValue();
-    double rv = vc.getValue();
-    if (Math.abs(v - rv) > 0.001) {
-      return false;
-    }
-
-    return true;
-  }
-
-  public boolean equals(Object o)
-  {
     if (o == null || !(o instanceof ValueControlJ2D)) {
       return false;
     }
