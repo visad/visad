@@ -41,59 +41,64 @@ public class FileFlatField extends FlatField {
 
   // array of cached FlatFields
 
-       private static FlatField[] adaptedFlatFields =
+       private static transient FlatField[] adaptedFlatFields =
        new FlatField[MAX_FILE_FLAT_FIELDS];
 
   // true if cache entry differs from file contents
 
-       private static boolean adaptedFlatFieldDirty[] =
+       private static transient boolean adaptedFlatFieldDirty[] =
        new boolean[MAX_FILE_FLAT_FIELDS];
 
   // the FileFlatField that owns this cache entry
 
-       private static FileFlatField[] adaptedFlatFieldOwner =
+       private static transient FileFlatField[] adaptedFlatFieldOwner =
        new FileFlatField[MAX_FILE_FLAT_FIELDS];
 
   // adaptedFlatFieldSizes and adaptedFlatFieldTimes
   // may be useful for cache allocation algorithms
   // approximate sizes of FlatFields in cache
 
-       private static long[] adaptedFlatFieldSizes =
+       private static transient long[] adaptedFlatFieldSizes =
        new long[MAX_FILE_FLAT_FIELDS];
 
   // times of most recent accesses to FlatFields in cache
 
-       private static long[] adaptedFlatFieldTimes =
+       private static transient long[] adaptedFlatFieldTimes =
        new long[MAX_FILE_FLAT_FIELDS];
 
   // index of cache entry owned by this FileFlatField;
   // but only if
   // this == adaptedFlatFieldOwner[adaptedFlatFieldIndex]
 
-       private int adaptedFlatFieldIndex;
+       private transient int adaptedFlatFieldIndex;
 
 
   // this is the FileAccessor for reading and writing values from
   // and to the adapted file
 
-       FileAccessor fileAccessor;
+       transient FileAccessor fileAccessor;
 
   // this implements a strategy for cache replacement;
   // this separates the cahce strategy algorithm from the logic
   // of FileFlatField
 
-       private CacheStrategy cacheStrategy;
+       private transient CacheStrategy cacheStrategy;
 
-  static {
+  static
+  {
     // initialize cache of FlatFields
-    for (int i=0; i<MAX_FILE_FLAT_FIELDS; i++) {
-      // mark Owners for all cache entries to indicate not
-      // belonging to any FileFlatField
-      adaptedFlatFieldOwner[i] = null;
-      adaptedFlatFields[i] = null;
-      adaptedFlatFieldSizes[i] = 0;
-      adaptedFlatFieldTimes[i] = System.currentTimeMillis();
-      adaptedFlatFieldDirty[i] = false;
+    if (adaptedFlatFieldOwner != null && adaptedFlatFields != null &&
+        adaptedFlatFieldSizes != null && adaptedFlatFieldTimes != null &&
+        adaptedFlatFieldDirty != null) {
+      for (int i=0; i<MAX_FILE_FLAT_FIELDS; i++) {
+        // mark Owners for all cache entries to indicate not
+        // belonging to any FileFlatField
+        adaptedFlatFieldOwner[i] = null;
+        adaptedFlatFields[i] = null;
+        adaptedFlatFieldSizes[i] = 0;
+        adaptedFlatFieldTimes[i] = System.currentTimeMillis();
+        adaptedFlatFieldDirty[i] = false;
+      }
     }
   }
 
@@ -133,6 +138,12 @@ public class FileFlatField extends FlatField {
 
   private FlatField getadaptedFlatField()
   {
+    // if owner array is null,
+    //  assume this object got serailized & unserialized
+    if (adaptedFlatFieldOwner == null) {
+      return null;
+    }
+
     // does not lock adaptedFlatFields since it is always
     // invoked from methods that have locked adaptedFlatFields
 
@@ -204,6 +215,10 @@ public class FileFlatField extends FlatField {
   private void flushCache()
       throws VisADException
   {
+    if (adaptedFlatFields == null) {
+      throw new VisADException("Cannot access serialized FileFlatField");
+    }
+
     // make sure this owns cache entry
     if (this == adaptedFlatFieldOwner[adaptedFlatFieldIndex]) {
       // unpackValues is currently private, would need default protection
@@ -225,6 +240,10 @@ public class FileFlatField extends FlatField {
   public Data getSample(int index)
          throws VisADException, RemoteException
   {
+    if (adaptedFlatFields == null) {
+      throw new VisADException("Cannot access serialized FileFlatField");
+    }
+
     synchronized (adaptedFlatFields)
     {
       return getadaptedFlatField().getSample(index);
@@ -233,6 +252,10 @@ public class FileFlatField extends FlatField {
 
   public int getLength()
   {
+    if (adaptedFlatFields == null) {
+      return 0;
+    }
+
      synchronized (adaptedFlatFields)
      {
        return getadaptedFlatField().getLength();
@@ -241,6 +264,10 @@ public class FileFlatField extends FlatField {
 
   public Unit[] getDomainUnits()
   {
+    if (adaptedFlatFields == null) {
+      return null;
+    }
+
      synchronized (adaptedFlatFields)
      {
        return getadaptedFlatField().getDomainUnits();
@@ -249,6 +276,10 @@ public class FileFlatField extends FlatField {
 
   public CoordinateSystem getDomainCoordinateSystem()
   {
+    if (adaptedFlatFields == null) {
+      return null;
+    }
+
      synchronized (adaptedFlatFields)
      {
        return getadaptedFlatField().getDomainCoordinateSystem();
@@ -258,6 +289,10 @@ public class FileFlatField extends FlatField {
   public CoordinateSystem[] getRangeCoordinateSystem()
          throws TypeException
   {
+    if (adaptedFlatFields == null) {
+      return null;
+    }
+
      synchronized (adaptedFlatFields)
      {
        return getadaptedFlatField().getRangeCoordinateSystem();
@@ -267,6 +302,10 @@ public class FileFlatField extends FlatField {
   public CoordinateSystem[] getRangeCoordinateSystem( int component )
          throws TypeException
   {
+    if (adaptedFlatFields == null) {
+      return null;
+    }
+
      synchronized (adaptedFlatFields)
      {
        return getadaptedFlatField().getRangeCoordinateSystem( component );
@@ -275,6 +314,10 @@ public class FileFlatField extends FlatField {
 
   public Unit[][] getRangeUnits()
   {
+    if (adaptedFlatFields == null) {
+      return null;
+    }
+
      synchronized (adaptedFlatFields)
      {
        return getadaptedFlatField().getRangeUnits();
@@ -283,6 +326,10 @@ public class FileFlatField extends FlatField {
 
   public Unit[] getDefaultRangeUnits()
   {
+    if (adaptedFlatFields == null) {
+      return null;
+    }
+
      synchronized (adaptedFlatFields)
      {
        return getadaptedFlatField().getDefaultRangeUnits();
@@ -292,6 +339,10 @@ public class FileFlatField extends FlatField {
   public double[][] getValues()
          throws VisADException
   {
+    if (adaptedFlatFields == null) {
+      throw new VisADException("Cannot access serialized FileFlatField");
+    }
+
     synchronized (adaptedFlatFields)
     {
       return getadaptedFlatField().getValues();
@@ -301,6 +352,10 @@ public class FileFlatField extends FlatField {
   public double[] getValues(int index)
          throws VisADException
   {
+    if (adaptedFlatFields == null) {
+      throw new VisADException("Cannot access serialized FileFlatField");
+    }
+
     synchronized (adaptedFlatFields)
     {
       return getadaptedFlatField().getValues(index);
@@ -310,6 +365,10 @@ public class FileFlatField extends FlatField {
   public float[][] getFloats(boolean copy)
          throws VisADException
   {
+    if (adaptedFlatFields == null) {
+      throw new VisADException("Cannot access serialized FileFlatField");
+    }
+
     synchronized (adaptedFlatFields)
     {
       return getadaptedFlatField().getFloats(copy);
@@ -318,6 +377,10 @@ public class FileFlatField extends FlatField {
 
   public Set getDomainSet()
   {
+    if (adaptedFlatFields == null) {
+      return null;
+    }
+
     synchronized ( adaptedFlatFields )
     {
       return getadaptedFlatField().getDomainSet();
@@ -328,6 +391,10 @@ public class FileFlatField extends FlatField {
   // contents of this Field
   public void setSample(int index, Data range)
          throws VisADException, RemoteException {
+    if (adaptedFlatFields == null) {
+      throw new VisADException("Cannot access serialized FileFlatField");
+    }
+
     synchronized (adaptedFlatFields) {
       getadaptedFlatField().setSample(index, range);
       adaptedFlatFieldDirty[adaptedFlatFieldIndex] = true;
@@ -337,6 +404,10 @@ public class FileFlatField extends FlatField {
   public void setSample( RealTuple domain, Data range )
          throws VisADException, RemoteException
   {
+    if (adaptedFlatFields == null) {
+      throw new VisADException("Cannot access serialized FileFlatField");
+    }
+
     synchronized (adaptedFlatFields)
     {
       getadaptedFlatField().setSample( domain, range );
@@ -347,6 +418,10 @@ public class FileFlatField extends FlatField {
   public void setSample( int index, Data range, boolean copy )
          throws VisADException, RemoteException
   {
+    if (adaptedFlatFields == null) {
+      throw new VisADException("Cannot access serialized FileFlatField");
+    }
+
     synchronized (adaptedFlatFields)
     {
       getadaptedFlatField().setSample( index, range, copy );
@@ -356,6 +431,10 @@ public class FileFlatField extends FlatField {
 
   public boolean isMissing()
   {
+    if (adaptedFlatFields == null) {
+      return true;
+    }
+
     synchronized (adaptedFlatFields)
     {
       return getadaptedFlatField().isMissing();
@@ -365,6 +444,10 @@ public class FileFlatField extends FlatField {
   public Data binary( Data data, int op, int sampling_mode, int error_mode )
          throws VisADException, RemoteException
   {
+    if (adaptedFlatFields == null) {
+      throw new VisADException("Cannot access serialized FileFlatField");
+    }
+
     synchronized (adaptedFlatFields)
     {
       return getadaptedFlatField().binary( data, op, sampling_mode, error_mode);
@@ -374,6 +457,10 @@ public class FileFlatField extends FlatField {
   public Data unary( int op, int sampling_mode, int error_mode )
          throws VisADException, RemoteException
   {
+    if (adaptedFlatFields == null) {
+      throw new VisADException("Cannot access serialized FileFlatField");
+    }
+
     synchronized (adaptedFlatFields)
     {
       return getadaptedFlatField().unary( op, sampling_mode, error_mode );
@@ -383,6 +470,10 @@ public class FileFlatField extends FlatField {
   public Field extract( int component )
          throws VisADException, RemoteException
   {
+    if (adaptedFlatFields == null) {
+      throw new VisADException("Cannot access serialized FileFlatField");
+    }
+
     synchronized (adaptedFlatFields)
     {
       return getadaptedFlatField().extract( component );
@@ -392,6 +483,10 @@ public class FileFlatField extends FlatField {
   public Field domainFactor( RealType factor )
          throws VisADException, RemoteException
   {
+    if (adaptedFlatFields == null) {
+      throw new VisADException("Cannot access serialized FileFlatField");
+    }
+
     synchronized (adaptedFlatFields)
     {
       return getadaptedFlatField().domainFactor( factor );
@@ -401,6 +496,10 @@ public class FileFlatField extends FlatField {
   public Field resample( Set set, int sampling_mode, int error_mode )
          throws VisADException, RemoteException
   {
+    if (adaptedFlatFields == null) {
+      throw new VisADException("Cannot access serialized FileFlatField");
+    }
+
     synchronized (adaptedFlatFields)
     {
       return getadaptedFlatField().resample( set, sampling_mode, error_mode );
@@ -410,6 +509,10 @@ public class FileFlatField extends FlatField {
   public DataShadow computeRanges(ShadowType type, DataShadow shadow)
          throws VisADException
   {
+    if (adaptedFlatFields == null) {
+      throw new VisADException("Cannot access serialized FileFlatField");
+    }
+
     synchronized (adaptedFlatFields)
     {
       return getadaptedFlatField().computeRanges( type, shadow );
@@ -419,6 +522,10 @@ public class FileFlatField extends FlatField {
   public Data adjustSamplingError( Data error, int error_mode )
          throws VisADException, RemoteException
   {
+    if (adaptedFlatFields == null) {
+      throw new VisADException("Cannot access serialized FileFlatField");
+    }
+
      synchronized (adaptedFlatFields)
      {
        return getadaptedFlatField().adjustSamplingError( error, error_mode );
@@ -432,6 +539,10 @@ public class FileFlatField extends FlatField {
 
   public Object clone()
   {
+    if (adaptedFlatFields == null) {
+      return null;
+    }
+
     synchronized (adaptedFlatFields )
     {
       return getadaptedFlatField().clone();
@@ -440,6 +551,10 @@ public class FileFlatField extends FlatField {
 
   public String toString()
   {
+    if (adaptedFlatFields == null) {
+      return "Serialized FileFlatField";
+    }
+
     synchronized (adaptedFlatFields)
     {
       String	string;
@@ -457,6 +572,10 @@ public class FileFlatField extends FlatField {
 
   public String longString(String pre)
   {
+    if (adaptedFlatFields == null) {
+      return "Serialized FileFlatField";
+    }
+
     synchronized (adaptedFlatFields)
     {
       String	string;
