@@ -121,6 +121,9 @@ public class CollectiveBarbManipulation extends Object
 
   private boolean ended = false; // manipulation ended
 
+  private int time_dir = 0; // < 0 for backward only, > 0 for forward only,
+                            // == 0 for both directions
+
   /**
      wf should have MathType:
        (station_index -> (Time -> tuple))
@@ -483,6 +486,8 @@ public class CollectiveBarbManipulation extends Object
     if (display2 != null) {
       setStation(sta);
     }
+
+    time_dir = 0;
   }
 
   /** set values that govern collective barb adjustment
@@ -526,6 +531,13 @@ public class CollectiveBarbManipulation extends Object
     }
     inner_time = it;
     outer_time = ot;
+  }
+
+  /** set value that governs whether collective changes are
+      propagated only forward in time (dir > 0), only backward
+      (dir < 0), or both (dir == 0) */
+  public void setTimeDir(int dir) {
+    time_dir = dir;
   }
 
   /** set a DataReference to a curve (typically from a
@@ -871,6 +883,13 @@ public class CollectiveBarbManipulation extends Object
         if (time_diff > outer_time) continue;
         double time_mult = (time_diff <= inner_time) ? 1.0 :
           (outer_time - time_diff) / (outer_time - inner_time);
+
+        // WLH 13 July 2000
+        if ((time_dir > 0 && times[i][j] < time) ||
+            (time_dir < 0 && time < times[i][j])) {
+          continue;
+        }
+
         double mult = dist_mult * time_mult;
         if (i == sta_index && j == time_index) mult = 1.0;
         double azimuth_diff = 0.0;
@@ -1160,6 +1179,10 @@ public class CollectiveBarbManipulation extends Object
     del.addActionListener(emc);
     del.setActionCommand("del");
     button_panel.add(del);
+    JButton dir = new JButton("time dir");
+    dir.addActionListener(emc);
+    dir.setActionCommand("dir");
+    button_panel.add(dir);
 
     widget_panel.add(button_panel);
     widget_panel.setMaximumSize(new Dimension(400, 800));
@@ -1177,6 +1200,7 @@ public class CollectiveBarbManipulation extends Object
 class EndManipCBM implements ActionListener {
   CollectiveBarbManipulation cbm;
   DataReferenceImpl set_ref;
+  int dir = 0;
 
   EndManipCBM(CollectiveBarbManipulation c, DataReferenceImpl r) {
     cbm = c;
@@ -1217,6 +1241,10 @@ class EndManipCBM implements ActionListener {
       catch (RemoteException ex) {
         ex.printStackTrace();
       }
+    }
+    else if (cmd.equals("dir")) {
+      dir = (dir == 0) ? +1 : ((dir > 0) ? -1 : 0);
+      cbm.setTimeDir(dir);
     }
   }
 }
