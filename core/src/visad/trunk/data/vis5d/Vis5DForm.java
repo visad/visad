@@ -72,7 +72,8 @@ public class Vis5DForm extends Form implements FormFileInformer {
   }
  
   public boolean isThisType(byte[] block) {
-    return false;
+    String v5d = new String(block, 0, 3);
+    return v5d.equals("V5D");
   }
  
   public String[] getDefaultSuffixes() {
