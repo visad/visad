@@ -3214,6 +3214,9 @@ System.out.println("range = " + range[0] + " " + range[1] +
          throws VisADException {
     boolean anyContourCreated = false;
 
+    // WLH 4 May 2001
+    DataRenderer renderer = getLink().getRenderer();
+
     boolean isLinearContour3D = getIsLinearContour3D() &&
                                 spatial_set instanceof Linear3DSet;
     ScalarMap[] spatial_maps = {null, null, null};
@@ -3288,6 +3291,13 @@ System.out.println("range = " + range[0] + " " + range[1] +
                   array = spatial_set.makeIsoSurface(fvalues[0],
                               display_values[i], color_values, indexed);
                 }
+
+                // WLH 4 May 2001
+                if (array != null) {
+                  array = array.adjustLongitude(renderer);
+                  array = array.adjustSeam(renderer);
+                }
+
 // System.out.println("end makeIsoSurface " + (System.currentTimeMillis() - Link.start_time));
                 // System.out.println("makeIsoSurface " + array.vertexCount);
                 shadow_api.addToGroup(group, array, mode,
@@ -3308,6 +3318,16 @@ System.out.println("range = " + range[0] + " " + range[1] +
                 spatial_set.makeIsoLines(levs, lowhibase[0], lowhibase[1],
                                          lowhibase[2], display_values[i],
                                          color_values, swap, dashes[0]);
+
+              // WLH 4 May 2001
+              if (arrays != null) {
+                for (int j=0; j<arrays.length; j++) {
+                  arrays[j] = arrays[j].adjustLongitude(renderer);
+// System.out.println("adjustLongitude " + j + " done");
+                  arrays[j] = arrays[j].adjustSeam(renderer);
+// System.out.println("adjustSeam " + j + " done");
+                }
+              }
 
 // System.out.println("makeIsoLines");
               if (arrays != null && arrays.length > 0 && arrays[0] != null &&

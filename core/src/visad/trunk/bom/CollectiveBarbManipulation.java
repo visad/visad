@@ -572,6 +572,7 @@ public class CollectiveBarbManipulation extends Object
     if (station_refs != null) {
       for (int i=0; i<station_refs.length; i++) {
         display1.removeReference(station_refs[i]);
+System.out.println("setupStations: removeReference");
         barb_monitors[i].removeReference(station_refs[i]);
         barb_monitors[i].stop();
       }
@@ -595,6 +596,7 @@ public class CollectiveBarbManipulation extends Object
       ((BarbRenderer) barb_manipulation_renderers[i]).setKnotsConvert(knots);
       display1.addReferences(barb_manipulation_renderers[i], station_refs[i],
                              constantMaps());
+// System.out.println("setupStations: addReferences");
       barb_monitors[i] = new BarbMonitor(station_refs[i], i);
       barb_monitors[i].addReference(station_refs[i]);
     }
@@ -859,6 +861,7 @@ public class CollectiveBarbManipulation extends Object
 int old_current = -1;
     public void doAction() throws VisADException, RemoteException {
       if (first || control == null) return;
+// System.out.println("Stepper");
       synchronized (data_lock) {
         which_time = -1;
 
@@ -1479,7 +1482,7 @@ old_current = current;
     display1.addMap(new ScalarMap(value, Display.RGB));
     DataReferenceImpl image_ref = new DataReferenceImpl("image");
     image_ref.setData(image);
-    display1.addReference(image_ref);
+    // display1.addReference(image_ref);
 
     // construct second Java3D display and mappings that govern
     // how wind records are displayed

@@ -48,6 +48,7 @@ public abstract class DataRenderer extends Object {
   private transient DataDisplayLink[] Links;
   /** flag from DataDisplayLink.prepareData */
   private boolean[] feasible; // it's a miracle if this is correct
+  private boolean[] is_null; // WLH 7 May 2001
   /** flag to indicate that DataDisplayLink.prepareData was invoked */
   private boolean[] changed;
 
@@ -124,8 +125,12 @@ public abstract class DataRenderer extends Object {
     if (links == null || links.length == 0) return;
     Links = links;
     feasible = new boolean[Links.length];
+    is_null = new boolean[Links.length];
     changed = new boolean[Links.length];
-    for (int i=0; i<Links.length; i++) feasible[i] = false;
+    for (int i=0; i<Links.length; i++) {
+      feasible[i] = false;
+      is_null[i] = true;
+    }
   }
 
   /** return an array of links to Data objects to be rendered;
@@ -194,7 +199,7 @@ boolean check = Links[i].checkTicks();
 System.out.println("DataRenderer.prepareAction: check = " + check + " feasible = " +
                    feasible[i] + " go = " + go + "  " +
                    Links[i].getThingReference().getName());
-DisplayImpl.printStack("prepareAction");
+// DisplayImpl.printStack("prepareAction");
 */
         // data has changed - need to re-display
         changed[i] = true;
@@ -203,6 +208,7 @@ DisplayImpl.printStack("prepareAction");
         // create ShadowType for data, classify data for display
         try {
           feasible[i] = Links[i].prepareData();
+          is_null[i] = (Links[i].getData() == null); // WLH 7 May 2001
         } catch (RemoteException re) {
           if (visad.collab.CollabUtil.isDisconnectException(re)) {
             getDisplay().connectionFailed(this, Links[i]);
@@ -294,7 +300,7 @@ DisplayImpl.printStack("prepareAction");
   public boolean getBadScale() {
     boolean badScale = false;
     for (int i=0; i<Links.length; i++) {
-      if (!feasible[i]) {
+      if (!feasible[i] && !is_null[i]) {
 /*
 try {
   System.out.println("getBadScale not feasible " +

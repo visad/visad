@@ -985,8 +985,10 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
           go |= renderer.checkAction();
         }
       }
-// System.out.println("initialize = " + initialize + " go = " + go +
-//                    " redisplay_all = " + redisplay_all);
+/*
+System.out.println("initialize = " + initialize + " go = " + go +
+                   " redisplay_all = " + redisplay_all);
+*/
       if (redisplay_all) {
         go = true;
 // System.out.println("redisplay_all = " + redisplay_all + " go = " + go);

@@ -130,6 +130,7 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
       if (!RealType.Longitude.equals(map.getScalar())) continue;
       if (Display.Longitude.equals(dreal)) return null; // do nothing!
       if (Display.DisplaySpatialCartesianTuple.equals(tuple)) {
+// System.out.println("getLongitudes: found a map from Longitude to a Cartesian spatial axis");
         // have found a map from Longitude to a Cartesian spatial axis
         double[] map_range = map.getRange();
         float map_min = (float) map_range[0];
