@@ -208,27 +208,17 @@ public class DODSForm
      * Indicates if a dataset specification is consistent with a DODS dataset
      * specification.
      *
-     * @param spec		A dataset specification.
+     * @param spec		A dataset specification.  NB: Not a URL.
      * @return			<code>true</code> if and only if the dataset
      *				specification is consistent with a DODS dataset
      *				specification.
      */
     public boolean isThisType(String spec)
     {
-	boolean	isThisType;
-	try
-	{
-	    String	fileSpec = new URL(spec).getFile();
-	    int		i = fileSpec.lastIndexOf('?');
-	    if (i != -1)
-		fileSpec = fileSpec.substring(0, i);
-	    isThisType = fileSpec.toLowerCase().endsWith(periodSuffix);
-	}
-	catch (MalformedURLException e)
-	{
-	    isThisType = false;
-	}
-	return isThisType;
+	int	i = spec.lastIndexOf('?');
+	if (i != -1)
+	    spec = spec.substring(0, i);
+	return spec.toLowerCase().endsWith(periodSuffix);
     }
 
     /**
