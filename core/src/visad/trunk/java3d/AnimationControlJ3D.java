@@ -74,6 +74,13 @@ public class AnimationControlJ3D extends AVControlJ3D
     d.addControl(animationSet);
     animate = new ToggleControl(d, this);
     d.addControl(animate);
+    try {
+      animate.setOn(false);
+    }
+    catch (VisADException v) {
+    }
+    catch (RemoteException v) {
+    }
     if (d != null) {
       animationThread = new Thread(this);
       animationThread.start();

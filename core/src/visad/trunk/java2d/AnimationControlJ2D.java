@@ -69,6 +69,13 @@ public class AnimationControlJ2D extends AVControlJ2D
       d.addControl(animationSet);
       animate = new ToggleControl(d, this);
       d.addControl(animate);
+      try {
+        animate.setOn(false);
+      }
+      catch (VisADException v) {
+      }
+      catch (RemoteException v) {
+      }
 
       new Delay();
       // initialize the stepValues array
