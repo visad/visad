@@ -112,7 +112,7 @@ public class CmdlineParser
           str = null;
         }
 
-        int handled = 0;
+        int handled;
         for (int c = 0; c < consumers.length; c++) {
           handled = consumers[c].checkOption(mainName, ch, str);
           if (handled > 0) {
@@ -125,27 +125,30 @@ public class CmdlineParser
             }
             i += (handled - 1);
             break;
+          } else {
+            if (handled == 0) {
+              System.err.println(mainName + ": Unknown option \"-" + ch +
+                                 "\"");
+            }
+
+            usage = true;
           }
         }
-
-        if (handled == 0) {
-          System.err.println(mainName + ": Unknown option \"-" + ch + "\"");
-          usage = true;
-        }
       } else {
-        int handled = 0;
+        int handled;
         for (int c = 0; c < consumers.length; c++) {
           handled = consumers[c].checkKeyword(mainName, i, args);
           if (handled > 0) {
             i += (handled - 1);
             break;
-          }
-        }
+          } else {
+            if (handled == 0) {
+              System.err.println(mainName + ": Unknown keyword \"" +
+                                 args[i] + "\"");
+            }
 
-        if (handled == 0) {
-          System.err.println(mainName + ": Unknown keyword \"" +
-                             args[i] + "\"");
-          usage = true;
+            usage = true;
+          }
         }
       }
     }
