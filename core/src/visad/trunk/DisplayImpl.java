@@ -1539,25 +1539,14 @@ if (initialize) {
     synchronized (mapslock) {
       int index;
       if (!RendererVector.isEmpty()) {
-/* WLH 26 Oct 2001
-        throw new DisplayException("DisplayImpl.addMap: RendererVector " +
-                                   "must be empty");
-*/
         ScalarType st = map.getScalar();
-        Vector temp = (Vector) RendererVector.clone();
-        Iterator renderers = temp.iterator();
-        while (renderers.hasNext()) {
-          DataRenderer renderer = (DataRenderer) renderers.next();
-          DataDisplayLink[] links = renderer.getLinks();
-          renderers.remove();
-          for (int i=0; i<links.length; i++) {
-            if (map instanceof ConstantMap) {
-              if (links[i].getData() != null) {
-                throw new DisplayException("DisplayImpl.addMap(ConstantMap): " + 
-                            "data must be null in all DataReferences");
-              }
-            }
-            else {
+        if (st != null) {
+          Vector temp = (Vector) RendererVector.clone();
+          Iterator renderers = temp.iterator();
+          while (renderers.hasNext()) {
+            DataRenderer renderer = (DataRenderer) renderers.next();
+            DataDisplayLink[] links = renderer.getLinks();
+            for (int i=0; i<links.length; i++) {
               if (MathType.findScalarType(links[i].getType(), st)) {
                 throw new DisplayException("DisplayImpl.addMap(): " + 
                             "ScalarType may not occur in any DataReference");
@@ -1589,6 +1578,9 @@ if (initialize) {
             }
           }
           ConstantMapVector.addElement(map);
+        }
+        if (!RendererVector.isEmpty()) {
+          reDisplayAll(); // WLH 1 March 2002
         }
       }
       else { // !(map instanceof ConstantMap)
