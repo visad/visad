@@ -566,10 +566,10 @@ public class PCS
     big_panel.add(sliders);
     // construct VisADSliders linked to Real Data objects and embedded
     // in sliders JPanel
-    /**
+    /*
     sliders.add(new VisADSlider("time", 1, ntimes, 1, 1.0, time_ref,
                                  time));
-     **/
+     */
     time_ref.setData(new Real(time, 1));
     // sliders.add(new JLabel("  "));
     sliders.add(new VisADSlider("neigen", 0, npcs, 0, 1.0,
