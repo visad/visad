@@ -1831,6 +1831,17 @@ if (spatial_values[0].length == 5329) {
     boolean[] offset_missing_checked = {false, false, false};
     for (int i=0; i<3; i++) {
       if (offset_values[i] == null) {
+        // WLH 13 June 2003
+        DisplayRealType offset = (DisplayRealType)
+          Display.DisplaySpatialOffsetTuple.getComponent(i);
+        int default_index = display.getDisplayScalarIndex(offset);
+        if (0 <= default_index && default_index < default_values.length) {
+          float default_value = default_values[default_index];
+          if (default_value == default_value) {
+            offset_values[i] = new float[] {default_value};
+          }
+        }
+        // end WLH 13 June 2003
         offset_missing_checked[i] = true;
       }
       else if (offset_values[i].length == 1) {
