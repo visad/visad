@@ -466,13 +466,28 @@ public class Util
    */
   public static void captureDisplay(DisplayImpl display, String filename) 
   {
+      captureDisplay(display, filename, false);
+  }
+
+  /**
+   * Capture a DisplayImpl into a JPEG file
+   *
+   * @param display the DisplayImpl to capture
+   * @param filename the name of the file to write into
+   * @param sync ensure the display is "done" if true
+   *
+   */
+  public static void captureDisplay(DisplayImpl display, 
+                                    String filename, boolean sync) 
+  {
     final DisplayImpl disp = display;
     final File fn = new File(filename);
+    final boolean wait = sync;
 
     Runnable savedisp = new Runnable() { 
         
       public void run() {
-        BufferedImage image = disp.getImage();
+        BufferedImage image = disp.getImage(wait);
         try {
           JPEGEncodeParam param = JPEGCodec.getDefaultJPEGEncodeParam(image);
           param.setQuality(1.0f, true);
