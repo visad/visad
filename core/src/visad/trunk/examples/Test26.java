@@ -68,8 +68,10 @@ public class Test26
     map1lat.setScaleColor(new float[] {0.0f, 1.0f, 0.0f});
     */
     // New Way
-    map1lat.getAxisScale().setLabel("Distance to Wall (m)");
-    map1lat.getAxisScale().setColor(java.awt.Color.green);
+    AxisScale latScale = map1lat.getAxisScale();
+    latScale.setLabel("Distance to Wall (m)");
+    latScale.setColor(java.awt.Color.green);
+    latScale.setFont(java.awt.Font.decode("serif"));
 
     ScalarMap map1lon = new ScalarMap(RealType.Longitude, Display.XAxis);
     map1lon.setScaleEnable(false);
@@ -117,6 +119,8 @@ public class Test26
       double inclon = 0.05 * (range1lon[1] - range1lon[0]);
       double incvis = 0.05 * (range1vis[1] - range1vis[0]);
       map1lat.setRange(range1lat[1] + inclat, range1lat[0] - inclat);
+      map1lat.getAxisScale().setMinorTickSpacing(
+        map1lat.getAxisScale().getMajorTickSpacing()/2);
       map1lon.setRange(range1lon[1] + inclon, range1lon[0] - inclon);
       map1vis.setRange(range1vis[1] + incvis, range1vis[0] - incvis);
     }

@@ -121,6 +121,12 @@ public class TransformOnlyDisplayRendererJ3D extends DisplayRendererJ3D {
          throws VisADException {
   }
 
+  public void setScale(int axis, int axis_ordinal,
+              VisADLineArray array, VisADTriangleArray labels,
+              float[] scale_color)
+         throws VisADException {
+  }
+
   public void clearScales() {
   }
 
