@@ -37,6 +37,9 @@ import java.net.URL;
 
 import java.rmi.RemoteException;
 
+import java.util.HashMap;
+import java.util.Iterator;
+
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -67,8 +70,28 @@ public class NuView
   extends WindowAdapter
   implements CmdlineConsumer
 {
+  private static HashMap colorHash;
+
+  static {
+    colorHash = new HashMap();
+    colorHash.put("black", Color.black);
+    colorHash.put("blue", Color.blue);
+    colorHash.put("cyan", Color.cyan);
+    colorHash.put("darkGray", Color.darkGray);
+    colorHash.put("gray", Color.gray);
+    colorHash.put("green", Color.green);
+    colorHash.put("lightGray", Color.lightGray);
+    colorHash.put("magenta", Color.magenta);
+    colorHash.put("orange", Color.orange);
+    colorHash.put("pink", Color.pink);
+    colorHash.put("red", Color.red);
+    colorHash.put("white", Color.white);
+    colorHash.put("yellow", Color.yellow);
+  };
+
   private String fileName;
   private int displayDim;
+  private Color trackColor;
 
   private DisplayImpl display, display2;
 
@@ -87,7 +110,8 @@ public class NuView
 
     HistogramWidget histoWidget = new HistogramWidget();
 
-    JPanel widgetPanel = buildMainDisplay(display, file, histoWidget);
+    JPanel widgetPanel = buildMainDisplay(display, file, histoWidget,
+                                          trackColor);
 
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
@@ -137,7 +161,8 @@ public class NuView
 
   private static final JPanel buildMainDisplay(DisplayImpl dpy,
                                                AmandaFile file,
-                                               HistogramWidget histoWidget)
+                                               HistogramWidget histoWidget,
+                                               Color trackColor)
     throws RemoteException, VisADException
   {
     final double halfRange = getMaxRange(file) / 2.0;
@@ -189,7 +214,7 @@ public class NuView
 
     final DataReferenceImpl trackRef = new DataReferenceImpl("track");
     // data set by eventWidget below
-    dpy.addReference(trackRef, Util.getColorMaps(Color.darkGray));
+    dpy.addReference(trackRef, Util.getColorMaps(trackColor));
 
     final DataReferenceImpl modulesRef = new DataReferenceImpl("modules");
     modulesRef.setData(file.makeModuleData());
@@ -269,6 +294,24 @@ public class NuView
       return 2;
     }
 
+    if (ch == 't') {
+      final String lName = arg.toLowerCase();
+      if (!colorHash.containsKey(lName)) {
+        System.err.println(mainName + ": Unknown color \"" + arg +
+                           "\". Valid colors are:");
+
+        Iterator iter = colorHash.keySet().iterator();
+        while (iter.hasNext()) {
+          System.err.println("  " + iter.next());
+        }
+
+        return -1;
+      }
+
+      trackColor = (Color )colorHash.get(lName);
+      return 2;
+    }
+
     return 0;
   }
 
@@ -295,6 +338,7 @@ public class NuView
   {
     displayDim = 800;
     fileName = null;
+    trackColor = Color.darkGray;
   }
 
   public String keywordUsage()
@@ -323,7 +367,7 @@ public class NuView
 
   public String optionUsage()
   {
-    return " [-d displayDim] [-o(ldTrack)]";
+    return " [-d displayDim] [-t trackColor]";
   }
 
   private static final void setRange(ScalarMap map, double min, double max,
