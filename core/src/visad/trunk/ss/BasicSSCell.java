@@ -141,6 +141,9 @@ public class BasicSSCell extends JPanel {
   /** this BasicSSCell's DisplayListeners */
   Vector DListen = new Vector();
 
+  /** whether the BasicSSCell has a valid display on-screen */
+  boolean HasDisplay = false;
+
   /** whether the BasicSSCell has mappings from Data to Display */
   boolean HasMappings = false;
 
@@ -202,8 +205,12 @@ public class BasicSSCell extends JPanel {
       VDisplay.addDisplayListener(new DisplayListener() {
         public void displayChanged(DisplayEvent e) {
           int id = e.getId();
-          if (id == DisplayEvent.TRANSFORM_DONE && !setupComplete) {
-            setupRemoteDataChangeCell();
+          if (id == DisplayEvent.TRANSFORM_DONE) {
+            if (!setupComplete) setupRemoteDataChangeCell();
+            if (!hasDisplay()) {
+              constructDisplay();
+              setVDPanel(true);
+            }
           }
           else if (id == DisplayEvent.MAPS_CLEARED) setVDPanel(false);
         }
@@ -475,34 +482,10 @@ public class BasicSSCell extends JPanel {
   private void setupRemoteDataChangeCell() {
     // attempt to obtain DataReference from cloned display
     DataReference dr = null;
-    Vector v = null;
-    try {
-      v = RemoteVDisplay.getReferenceLinks();
-    }
-    catch (VisADException exc) {
-      if (DEBUG) exc.printStackTrace();
-    }
-    catch (RemoteException exc) {
-      if (DEBUG) exc.printStackTrace();
-    }
-    /* CTR: Alternate call might be:
     Vector v = VDisplay.getLinks();
-    */
     if (v != null && v.size() > 0) {
-      /* CTR: Alternate calls might be:
       DataDisplayLink ddl = (DataDisplayLink) v.elementAt(0);
       dr = (DataReference) ddl.getThingReference();
-      */
-      RemoteReferenceLink rrl = (RemoteReferenceLink) v.elementAt(0);
-      try {
-        dr = (DataReference) rrl.getReference();
-      }
-      catch (VisADException exc) {
-        if (DEBUG) exc.printStackTrace();
-      }
-      catch (RemoteException exc) {
-        if (DEBUG) exc.printStackTrace();
-      }
     }
     if (dr != null) {
       // if successful, use cell to listen for data changes
@@ -631,6 +614,8 @@ public class BasicSSCell extends JPanel {
 
   /** add or remove VDPanel from this BasicSSCell */
   void setVDPanel(boolean value) {
+    HasDisplay = false;
+
     // redraw cell
     synchronized (Lock) {
       removeAll();
@@ -638,6 +623,8 @@ public class BasicSSCell extends JPanel {
       validate();
       repaint();
     }
+
+    HasDisplay = value;
   }
 
   /** display an error in this BasicSSCell, or setError(null) for no error */
@@ -1095,8 +1082,12 @@ public class BasicSSCell extends JPanel {
 
     VisADException vexc = null;
     RemoteException rexc = null;
+    DataReference dr = getReference();
     if (IsRemote) {
-      DataReference dr = getReference();
+      if (true) {
+        throw new UnimplementedException("Cannot setMaps " +
+          "on a cloned cell (yet).");
+      }
       setVDPanel(false);
       clearMaps();
       for (int i=0; i<maps.length; i++) {
@@ -1128,7 +1119,7 @@ public class BasicSSCell extends JPanel {
           rexc = exc;
         }
       }
-      VDisplay.addReference(DataRef);
+      VDisplay.addReference(dr);
       VDisplay.enableAction();
     }
     HasMappings = true;
@@ -1677,29 +1668,11 @@ public class BasicSSCell extends JPanel {
   /** return the data reference of this cell */
   public DataReference getReference() {
     if (IsRemote) {
-      Vector v = null;
-      try {
-        v = RemoteVDisplay.getReferenceLinks();
-      }
-      catch (VisADException exc) {
-        if (DEBUG) exc.printStackTrace();
-      }
-      catch (RemoteException exc) {
-        if (DEBUG) exc.printStackTrace();
-      }
+      Vector v = VDisplay.getLinks();
       if (v == null || v.isEmpty()) return null;
-      RemoteReferenceLink rrli = (RemoteReferenceLink) v.elementAt(0);
-      if (rrli == null) return null;
-      try {
-        return rrli.getReference();
-      }
-      catch (VisADException exc) {
-        if (DEBUG) exc.printStackTrace();
-      }
-      catch (RemoteException exc) {
-        if (DEBUG) exc.printStackTrace();
-      }
-      return null;
+      DataDisplayLink ddli = (DataDisplayLink) v.elementAt(0);
+      ThingReference tr = ddli.getThingReference();
+      return (tr instanceof DataReference ? (DataReference) tr : null);
     }
     else return DataRef;
   }
@@ -1728,6 +1701,11 @@ public class BasicSSCell extends JPanel {
   /** whether the cell has a formula */
   public boolean hasFormula() {
     return !Formula.equals("");
+  }
+
+  /** whether the cell has a valid display on-screen */
+  public boolean hasDisplay() {
+    return HasDisplay;
   }
 
   /** whether the cell has any mappings */
