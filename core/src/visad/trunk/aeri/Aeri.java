@@ -189,9 +189,11 @@ public class Aeri
 
     //- make barber poles for each station
     //
+/*
     DataImpl poles = makePoles();
     DataReference poles_ref = new DataReferenceImpl("poles");
     poles_ref.setData(poles);
+*/
 
     DisplayImpl display = new DisplayImplJ3D("aeri", DisplayImplJ3D.APPLETFRAME);
     GraphicsModeControl mode = display.getGraphicsModeControl();
@@ -227,7 +229,7 @@ public class Aeri
       new ConstantMap(-.99, Display.ZAxis)
     };
 
-    display.addReference(poles_ref);
+    // display.addReference(poles_ref);
     display.addReference(advect_ref);
     display.addReference(map_ref, map_constMap);
   }
