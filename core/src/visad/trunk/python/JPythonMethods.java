@@ -26,20 +26,17 @@ MA 02111-1307, USA
 
 package visad.python;
 
-import java.util.Vector;
+import java.awt.Dimension;
 import java.awt.event.*;
 import java.rmi.RemoteException;
-import javax.swing.JFrame;
+import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;
 
 import visad.*;
 import visad.math.*;
 import visad.matrix.*;
-import visad.java3d.DisplayImplJ3D;
-import visad.java3d.TwoDDisplayRendererJ3D;
 import visad.data.*;
-import visad.ss.MappingDialog;
-import visad.bom.ImageRendererJ3D;
+import visad.ss.FancySSCell;
 
 /**
  * A collection of methods for working with VisAD, callable from the
@@ -51,10 +48,6 @@ public abstract class JPythonMethods {
 
   private static DefaultFamily form = new DefaultFamily(ID);
 
-  private static JFrame displayFrame = null;
-
-  private static JFrame widgetFrame = null;
-
   /**
    * Reads in data from the given location (filename or URL).
    */
@@ -62,10 +55,6 @@ public abstract class JPythonMethods {
     return form.open(location);
   }
 
-  private static DisplayImpl display = null;
-  private static ScalarMap[] maps = null;
-  private static MappingDialog dialog = null;
-  private static Vector data_references = null;
 
   /**
    * Displays the given data onscreen.
@@ -80,6 +69,9 @@ public abstract class JPythonMethods {
   {
     plot(data, 1.0, 1.0, 1.0);
   }
+
+  private static FancySSCell display = null;
+  private static JFrame displayFrame = null;
 
   /**
    * Displays the given data onscreen, using given color default.
@@ -99,68 +91,47 @@ public abstract class JPythonMethods {
   {
     if (data == null) throw new VisADException("Data cannot be null");
     if (display == null) {
+      display = new FancySSCell("J");
+      display.setPreferredSize(new Dimension(256, 256));
       displayFrame = new JFrame("VisAD Display Plot");
-      widgetFrame = new JFrame("VisAD Display Widgets");
-      WindowListener l = new WindowAdapter() {
-        public void windowClosing(WindowEvent e) {
-          synchronized (displayFrame) {
-            displayFrame.setVisible(false);
-            widgetFrame.setVisible(false);
-          }
+      JPanel pane = new JPanel();
+      pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
+      displayFrame.setContentPane(pane);
+      pane.add(display);
+
+      // add buttons to cell layout
+      JButton maps = new JButton("Maps");
+      JButton clear = new JButton("Clear");
+      JPanel buttons = new JPanel();
+      buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
+      buttons.add(maps);
+      buttons.add(clear);
+      pane.add(buttons);
+      maps.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          display.addMapDialog();
         }
-      };
-      // set up scalar maps
-      maps = data.getType().guessMaps(true);
-  
-      // allow user to alter default mappings
-      dialog = new MappingDialog(null, data, maps, true, true);
-      dialog.display();
-      if (dialog.okPressed()) maps = dialog.getMaps();
-      boolean d3d = false;
-      for (int i=0; i<maps.length; i++) {
-        if (maps[i].getDisplayScalar().equals(Display.ZAxis) ||
-            maps[i].getDisplayScalar().equals(Display.Latitude) ||
-            maps[i].getDisplayScalar().equals(Display.Flow1Z) ||
-            maps[i].getDisplayScalar().equals(Display.Flow2Z) ||
-            maps[i].getDisplayScalar().equals(Display.ZAxisOffset) ||
-            maps[i].getDisplayScalar().equals(Display.Alpha)) d3d = true;
-      }
-      display = d3d ? new DisplayImplJ3D(ID) :
-                      new DisplayImplJ3D(ID, new TwoDDisplayRendererJ3D());
-      for (int i=0; i<maps.length; i++) display.addMap(maps[i]);
-      GraphicsModeControl gmc = display.getGraphicsModeControl();
-      gmc.setScaleEnable(true);
-  
-      // set up widget panel
-      widgetFrame.addWindowListener(l);
-      widgetFrame.getContentPane().add(display.getWidgetPanel());
-      widgetFrame.pack();
-      widgetFrame.setVisible(true);
-  
-      // set up display frame
-      displayFrame.addWindowListener(l);
-      displayFrame.getContentPane().add(display.getComponent());
+      });
+      clear.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          try {
+            display.smartClear();
+          }
+          catch (VisADException exc) { }
+          catch (RemoteException exc) { }
+        }
+      });
       displayFrame.pack();
-      displayFrame.setSize(512, 512);
       displayFrame.setVisible(true);
-      data_references = new Vector();
     }
 
-    ConstantMap[] cmaps = {new ConstantMap(red, Display.Red),
-                           new ConstantMap(green, Display.Green),
-                           new ConstantMap(blue, Display.Blue)};
+    ConstantMap[] cmaps = {
+      new ConstantMap(red, Display.Red),
+      new ConstantMap(green, Display.Green),
+      new ConstantMap(blue, Display.Blue)
+    };
 
-    DataReferenceImpl ref = new DataReferenceImpl(ID);
-    data_references.addElement(ref);
-    ref.setData(data);
-    MathType type = data.getType();
-    boolean ok = false;
-    try {
-      ok = ImageRendererJ3D.isRendererUsable(type, maps);
-    }
-    catch (VisADException exc) { }
-    if (ok) display.addReferences(new ImageRendererJ3D(), ref, cmaps);
-    else display.addReference(ref, cmaps);
+    display.addData(data, cmaps);
   }
 
   /**
@@ -171,13 +142,11 @@ public abstract class JPythonMethods {
    */
   public static void clearplot() throws VisADException, RemoteException {
     if (display != null) {
+      display.clearCell();
       displayFrame.setVisible(false);
       displayFrame.dispose();
       displayFrame = null;
-      widgetFrame.setVisible(false);
-      widgetFrame.dispose();
-      widgetFrame = null;
-      display.destroy();
+      display.destroyCell();
       display = null;
     }
   }
