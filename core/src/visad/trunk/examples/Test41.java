@@ -29,7 +29,7 @@ import visad.java2d.DisplayImplJ2D;
 public class Test41
   extends UISkeleton
 {
-  private boolean autoAspect = false;
+  private boolean autoAspect;
 
   public Test41() { }
 
@@ -39,7 +39,10 @@ public class Test41
     super(args);
   }
 
-  int checkExtraKeyword(String testName, int argc, String[] args) {
+  public void initializeArgs() { autoAspect = false; }
+
+  public int checkExtraKeyword(String testName, int argc, String[] args)
+  {
     autoAspect = true;
     return 1;
   }

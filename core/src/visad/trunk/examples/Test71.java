@@ -58,8 +58,8 @@ public class Test71
     }
   }
 
-  private String file1 = null;
-  private String file2 = null;
+  private String file1;
+  private String file2;
 
   public Test71() { }
 
@@ -69,7 +69,9 @@ public class Test71
     super(args);
   }
 
-  int checkExtraKeyword(String testName, int argc, String[] args)
+  public void initializeArgs() { file1 = file2 = null; }
+
+  public int checkExtraKeyword(String testName, int argc, String[] args)
   {
     if (file1 == null) {
       file1 = args[argc];
@@ -83,12 +85,12 @@ public class Test71
     return 1;
   }
 
-  String extraKeywordUsage()
+  public String extraKeywordUsage()
   {
     return super.extraKeywordUsage() + " file1 file2";
   }
 
-  boolean finalizeArgs(String progName)
+  public boolean finalizeArgs(String progName)
   {
     if (file1 == null) {
       System.err.println(progName + ": Please specify two files");

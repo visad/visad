@@ -38,7 +38,7 @@ import visad.java3d.DisplayImplJ3D;
 public class Test06
   extends UISkeleton
 {
-  private boolean uneven = false;
+  private boolean uneven;
 
   public Test06() { }
 
@@ -48,7 +48,10 @@ public class Test06
     super(args);
   }
 
-  int checkExtraKeyword(String testName, int argc, String[] args) {
+  public void initializeArgs() { uneven = false; }
+
+  public int checkExtraKeyword(String testName, int argc, String[] args)
+  {
     uneven = true;
     return 1;
   }

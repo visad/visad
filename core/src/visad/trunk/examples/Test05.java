@@ -39,7 +39,7 @@ import visad.util.ContourWidget;
 public class Test05
   extends UISkeleton
 {
-  private boolean uneven = false;
+  private boolean uneven;
 
   public Test05() { }
 
@@ -49,7 +49,10 @@ public class Test05
     super(args);
   }
 
-  int checkExtraKeyword(String testName, int argc, String[] args) {
+  public void initializeArgs() { uneven = false; }
+
+  public int checkExtraKeyword(String testName, int argc, String[] args)
+  {
     uneven = true;
     return 1;
   }

@@ -31,6 +31,8 @@ import visad.java3d.DisplayImplJ3D;
 public class Test63
   extends UISkeleton
 {
+  private boolean twoD;
+
   boolean hasClientServerMode() { return false; }
 
   public Test63() { }
@@ -41,16 +43,16 @@ public class Test63
     super(args);
   }
 
-  private boolean twoD = false;
+  public void initializeArgs() { twoD = false; }
 
-  int checkExtraOption(String progName, char ch, String arg)
+  public int checkExtraOption(String progName, char ch, String arg)
   {
-    if (ch != '2') {
-      return 0;
+    if (ch == '2') {
+      twoD = true;
+      return 1;
     }
 
-    twoD = true;
-    return 1;
+    return 0;
   }
 
   DisplayImpl[] setupServerDisplays()

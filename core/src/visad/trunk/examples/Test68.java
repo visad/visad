@@ -35,9 +35,8 @@ import visad.util.GMCWidget;
 public class Test68
   extends UISkeleton
 {
-  private int port = 0;
-
-  private boolean twoD = false;
+  private boolean twoD;
+  private int port;
 
   boolean hasClientServerMode() { return false; }
 
@@ -49,17 +48,19 @@ public class Test68
     super(args);
   }
 
-  int checkExtraOption(String progName, char ch, String arg)
+  public void initializeArgs() { twoD = false; port = 0; }
+
+  public int checkExtraOption(String progName, char ch, String arg)
   {
-    if (ch != '2') {
-      return 0;
+    if (ch == '2') {
+      twoD = true;
+      return 1;
     }
 
-    twoD = true;
-    return 1;
+    return 0;
   }
 
-  int checkExtraKeyword(String testName, int argc, String[] args)
+  public int checkExtraKeyword(String testName, int argc, String[] args)
   {
     String arg = args[argc];
     int d = 0;
@@ -67,13 +68,14 @@ public class Test68
       d = Integer.parseInt(arg);
     }
     catch (NumberFormatException exc) { }
+
     if (d < 1 || d > 9999) {
-      System.err.println(testName + ": Ignoring parameter \"" + arg +
+      System.err.println(testName + ": Bad parameter \"" + arg +
         "\": port must be between 1 and 9999");
-    } else {
-      port = d;
+      return -1;
     }
 
+    port = d;
     return 1;
   }
 

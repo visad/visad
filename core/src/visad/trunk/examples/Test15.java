@@ -33,7 +33,7 @@ import visad.java3d.DisplayImplJ3D;
 public class Test15
   extends TestSkeleton
 {
-  private String domain = null;
+  private String domain;
 
   boolean hasClientServerMode() { return false; }
 
@@ -45,7 +45,9 @@ public class Test15
     super(args);
   }
 
-  int checkExtraKeyword(String testName, int argc, String[] args)
+  public void initializeArgs() { domain = null; }
+
+  public int checkExtraKeyword(String testName, int argc, String[] args)
   {
     if (domain == null) {
       domain = args[argc];

@@ -34,7 +34,7 @@ import visad.java3d.DisplayImplJ3D;
 public class Test12
   extends UISkeleton
 {
-  boolean dynamic = false;
+  boolean dynamic;
 
   public Test12() { }
 
@@ -44,7 +44,9 @@ public class Test12
     super(args);
   }
 
-  int checkExtraKeyword(String testName, int argc, String[] args)
+  public void initializeArgs() { dynamic = false; }
+
+  public int checkExtraKeyword(String testName, int argc, String[] args)
   {
     dynamic = true;
     return 1;

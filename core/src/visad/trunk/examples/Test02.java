@@ -43,7 +43,7 @@ public class Test02
 {
   ScalarMap map1color = null;
   ScalarMap map1contour = null;
-  static int size3d = 6;
+  int size3d;
 
   public Test02() { }
 
@@ -53,7 +53,10 @@ public class Test02
     super(args);
   }
 
-  int checkExtraKeyword(String testName, int argc, String[] args) {
+  public void initializeArgs() { size3d = 6; }
+
+  public int checkExtraKeyword(String testName, int argc, String[] args)
+  {
     try {
       size3d = Integer.parseInt(args[0]);
       if (size3d < 1) size3d = 6;

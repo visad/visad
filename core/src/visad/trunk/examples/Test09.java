@@ -33,7 +33,7 @@ import visad.java2d.DisplayImplJ2D;
 public class Test09
   extends UISkeleton
 {
-  private String fileName = null;
+  private String fileName;
 
   public Test09() { }
 
@@ -43,7 +43,9 @@ public class Test09
     super(args);
   }
 
-  int checkExtraKeyword(String testName, int argc, String[] args)
+  public void initializeArgs() { fileName = null; }
+
+  public int checkExtraKeyword(String testName, int argc, String[] args)
   {
     if (fileName == null) {
       fileName = args[argc];
@@ -55,15 +57,24 @@ public class Test09
     return 1;
   }
 
-  String extraKeywordUsage() { return super.extraKeywordUsage() + " file"; }
+  public String extraKeywordUsage()
+  {
+    return super.extraKeywordUsage() + " file";
+  }
+
+  public boolean finalizeArgs(String mainName)
+  {
+    if (fileName == null) {
+      System.err.println(mainName + ": No filename specified!");
+      return false;
+    }
+
+    return true;
+  }
 
   private DataReferenceImpl loadFile()
     throws RemoteException, VisADException
   {
-    if (fileName == null) {
-      return null;
-    }
-
     GIFForm gif_form = new GIFForm();
     FlatField img = (FlatField) gif_form.open(fileName);
 

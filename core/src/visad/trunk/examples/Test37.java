@@ -39,7 +39,7 @@ import visad.util.ContourWidget;
 public class Test37
   extends TestSkeleton
 {
-  private boolean reverse = false;
+  private boolean reverse;
 
   public Test37() { }
 
@@ -49,7 +49,10 @@ public class Test37
     super(args);
   }
 
-  int checkExtraKeyword(String testName, int argc, String[] args) {
+  public void initializeArgs() { reverse = false; }
+
+  public int checkExtraKeyword(String testName, int argc, String[] args)
+  {
     reverse = true;
     return 1;
   }

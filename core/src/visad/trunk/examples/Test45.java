@@ -29,7 +29,7 @@ import visad.java3d.DisplayImplJ3D;
 public class Test45
   extends UISkeleton
 {
-  private boolean sphere = false;
+  private boolean sphere;
 
   public Test45() { }
 
@@ -39,7 +39,10 @@ public class Test45
     super(args);
   }
 
-  int checkExtraKeyword(String testName, int argc, String[] args) {
+  public void initializeArgs() { sphere = false; }
+
+  public int checkExtraKeyword(String testName, int argc, String[] args)
+  {
     sphere = true;
     return 1;
   }

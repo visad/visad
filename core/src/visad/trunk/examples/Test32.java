@@ -34,7 +34,7 @@ import visad.java3d.DisplayImplJ3D;
 public class Test32
   extends TestSkeleton
 {
-  private String fileName = null;
+  private String fileName;
 
   public Test32() { }
 
@@ -44,7 +44,9 @@ public class Test32
     super(args);
   }
 
-  int checkExtraKeyword(String testName, int argc, String[] args)
+  public void initializeArgs() { fileName = null; }
+
+  public int checkExtraKeyword(String testName, int argc, String[] args)
   {
     if (fileName == null) {
       fileName = args[argc];
@@ -56,7 +58,10 @@ public class Test32
     return 1;
   }
 
-  String extraKeywordUsage() { return super.extraKeywordUsage() + " file"; }
+  public String extraKeywordUsage()
+  {
+    return super.extraKeywordUsage() + " file";
+  }
 
   private DataReferenceImpl loadFile()
     throws RemoteException, VisADException

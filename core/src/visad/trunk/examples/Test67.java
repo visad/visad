@@ -41,20 +41,23 @@ public class Test67
     super(args);
   }
 
-  int checkExtraKeyword(String testName, int argc, String[] args)
+  public void initializeArgs() { dim = 1; }
+
+  public int checkExtraKeyword(String testName, int argc, String[] args)
   {
     int d = 0;
     try {
       d = Integer.parseInt(args[argc]);
     }
     catch (NumberFormatException exc) { }
+
     if (d < 1 || d > 3) {
-      System.err.println(testName + ": Ignoring parameter \"" + args[argc] +
+      System.err.println(testName + ": Bad parameter \"" + args[argc] +
         "\": dimension must be 1, 2 or 3");
-    } else {
-      dim = d;
+      return -1;
     }
 
+    dim = d;
     return 1;
   }
 
@@ -70,7 +73,6 @@ public class Test67
   void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    if (dim == 0) dim = 1;
     DataReferenceImpl ref = new DataReferenceImpl("ref");
     DataReferenceImpl f_ref = new DataReferenceImpl("ref");
     RealType x = new RealType("x");

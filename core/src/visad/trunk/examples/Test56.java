@@ -33,7 +33,7 @@ import visad.java2d.DisplayImplJ2D;
 public class Test56
   extends UISkeleton
 {
-  private String domain = null;
+  private String domain;
 
   boolean hasClientServerMode() { return false; }
 
@@ -45,7 +45,9 @@ public class Test56
     super(args);
   }
 
-  int checkExtraKeyword(String testName, int argc, String[] args)
+  public void initializeArgs() { domain = null; }
+
+  public int checkExtraKeyword(String testName, int argc, String[] args)
   {
     if (domain == null) {
       domain = args[argc];

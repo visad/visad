@@ -45,7 +45,10 @@ public class Test61
     super(args);
   }
 
-  int checkExtraKeyword(String testName, int argc, String[] args) {
+  public void initializeArgs() { nice = false; }
+
+  public int checkExtraKeyword(String testName, int argc, String[] args)
+  {
     nice = true;
     return 1;
   }

@@ -53,7 +53,10 @@ public class Test01
     super(args);
   }
 
-  int checkExtraKeyword(String testName, int argc, String[] args) {
+  public void initializeArgs() { size3d = 6; }
+
+  public int checkExtraKeyword(String testName, int argc, String[] args)
+  {
     try {
       size3d = Integer.parseInt(args[0]);
       if (size3d < 1) size3d = 6;
