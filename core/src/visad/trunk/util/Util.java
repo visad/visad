@@ -294,7 +294,7 @@ public class Util
       dialog.addChoosableFileFilter(pgm);
       filters.add(pgm);
 
-      // PNG - gif/GIFForm, jai/JAIForm
+      // PNG - gif/GIFForm, ij/ImageJForm, jai/JAIForm
       FileFilter png = new ExtensionFileFilter("png", "PNG images");
       dialog.addChoosableFileFilter(png);
       filters.add(png);
