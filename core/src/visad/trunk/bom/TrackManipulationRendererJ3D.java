@@ -236,9 +236,21 @@ public class TrackManipulationRendererJ3D extends BarbManipulationRendererJ3D {
   }
 
 
-  /** test TrackManipulationRendererJ3D */
+  /** test TrackManipulationRendererJ3D
+      optional command line arguments:
+      java visad.bom.TrackManipulationRendererJ3D xsize ysize angle(degrees) */
   public static void main(String args[])
          throws VisADException, RemoteException {
+    float[] fargs = {0.2f, 0.1f, 0.0f};
+
+    for (int i=0; i<args.length; i++) {
+      try {
+        fargs[i] = Float.parseFloat(args[i]);
+      }
+      catch (NumberFormatException exc) {
+      }
+    }
+
     // construct RealTypes for track record components
     RealType lat = RealType.Latitude;
     RealType lon = RealType.Longitude;
@@ -290,7 +302,7 @@ public class TrackManipulationRendererJ3D extends BarbManipulationRendererJ3D {
     // drag with right mouse button and shift to change direction
     // drag with right mouse button and no shift to change speed
     TrackManipulationRendererJ3D renderer =
-      new TrackManipulationRendererJ3D(0.2f, 0.1f, 0.0f);
+      new TrackManipulationRendererJ3D(fargs[0], fargs[1], fargs[2]);
     display.addReferences(renderer, ref);
 
     // link track record to a CellImpl that will listen for changes
