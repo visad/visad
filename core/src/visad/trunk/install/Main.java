@@ -606,8 +606,11 @@ public class Main
     while (step < STEP_FINISHED) {
       switch (step) {
       case STEP_USE_SUPPLIED:
-        queryUserUseSuppliedJava();
-        step++;
+        if (queryUserUseSuppliedJava()) {
+          step++;
+        } else {
+          step--;
+        }
         break;
       case STEP_INSTALL_JAVA:
         step += queryUserInstallJava();
@@ -616,27 +619,56 @@ public class Main
         step += queryUserInstallJar();
         break;
       case STEP_DOWNLOAD_JAR:
-        queryUserDownloadJar();
-        step++;
+        if (queryUserDownloadJar()) {
+          step++;
+        } else {
+          step--;
+        }
         break;
       case STEP_CLUSTER:
-        queryUserClusterPush();
-        step++;
+        if (queryUserClusterPush()) {
+          step++;
+        } else {
+          step--;
+        }
         break;
+      }
+
+      if (step < 0) {
+        if (queryUserCancelInstall()) {
+          System.exit(0);
+          return;
+        }
+
+        // don't go negative
+        step = 0;
       }
     }
   }
 
-  private final void queryUserClusterPush()
+  private final boolean queryUserCancelInstall()
+  {
+    String canMsg = "Do you want to cancel this install?";
+
+    int n = JOptionPane.showConfirmDialog(null, canMsg,
+                                          "Cancel install?",
+                                          JOptionPane.YES_NO_OPTION);
+    return (n == JOptionPane.YES_OPTION);
+  }
+
+  /**
+   * @return false if [Cancel] button was pressed,
+   *         true if another choice was made.
+   */
+  private final boolean queryUserClusterPush()
   {
     int result = JOptionPane.NO_OPTION;
     if (cPushStr != null) {
-      String cMsg =
-        "Would you like to push everything out to the cluster?";
+      String msg = "Would you like to push everything out to the cluster?";
+      String title = "Push files to cluster?";
 
-      result = JOptionPane.showConfirmDialog(null, cMsg,
-                                             "Push files to cluster?",
-                                             JOptionPane.YES_NO_OPTION);
+      result = JOptionPane.showConfirmDialog(null, msg, title,
+                                             JOptionPane.YES_NO_CANCEL_OPTION);
     }
 
     if (result != JOptionPane.YES_OPTION) {
@@ -644,22 +676,28 @@ public class Main
     } else {
       clusterInstaller = new ClusterInstaller(cPushStr);
     }
+
+    return (result != JOptionPane.CANCEL_OPTION);
   }
 
-  private final void queryUserDownloadJar()
+  /**
+   * @return false if [Cancel] button was pressed,
+   *         true if another choice was made.
+   */
+  private final boolean queryUserDownloadJar()
   {
     int result = JOptionPane.YES_OPTION;
     if (installerJar != null) {
-      String djMsg = "Would you like to download the latest " +
-        JAR_NAME + "?";
+      String msg = "Would you like to download the latest " + JAR_NAME + "?";
+      String title = "Download latest " + JAR_NAME + "?";
 
-      result = JOptionPane.showConfirmDialog(null, djMsg,
-                                             "Download latest " +
-                                             JAR_NAME + "?",
-                                             JOptionPane.YES_NO_OPTION);
+      result = JOptionPane.showConfirmDialog(null, msg, title,
+                                             JOptionPane.YES_NO_CANCEL_OPTION);
     }
 
     downloadLatestJar = (result == JOptionPane.YES_OPTION);
+
+    return (result != JOptionPane.CANCEL_OPTION);
   }
 
   /**
@@ -720,22 +758,27 @@ public class Main
     return 1;
   }
 
-  private final void queryUserUseSuppliedJava()
+  /**
+   * @return false if [Cancel] button was pressed,
+   *         true if another choice was made.
+   */
+  private final boolean queryUserUseSuppliedJava()
   {
-    if (installerJavaDir == null) {
-      useSuppliedJava = false;
-      return;
+    int result = JOptionPane.NO_OPTION;
+    if (installerJavaDir != null) {
+      String msg = "Would you like to install the supplied " +
+        " Java Development Kit " + installerJava.getMajor() + "." +
+        installerJava.getMinor() + " (" +
+        installerJava.getFullString() + ")?";
+      String title = "Install supplied JDK?";
+
+      result = JOptionPane.showConfirmDialog(null, msg, title,
+                                             JOptionPane.YES_NO_CANCEL_OPTION);
     }
 
-    String usMsg = "Would you like to install the supplied " +
-      " Java Development Kit " + installerJava.getMajor() + "." +
-      installerJava.getMinor() + " (" +
-      installerJava.getFullString() + ")?";
+    useSuppliedJava = (result == JOptionPane.YES_OPTION);
 
-    int n = JOptionPane.showConfirmDialog(null, usMsg,
-                                          "Install supplied JDK?",
-                                          JOptionPane.YES_NO_OPTION);
-    useSuppliedJava = (n == JOptionPane.YES_OPTION);
+    return (result != JOptionPane.CANCEL_OPTION);
   }
 
   public static final void main(String[] args)
