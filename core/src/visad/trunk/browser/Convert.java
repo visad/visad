@@ -216,15 +216,34 @@ public class Convert {
    */
   public static final int PLACES = 3;
 
+  /** Mode where shortString rounds to the nearest value. */
+  public static final int ROUND_NEAREST = 1;
+
+  /** Mode where shortString rounds to the lower value. */
+  public static final int ROUND_DOWN = 2;
+
+  /** Mode where shortString rounds to the higher value. */
+  public static final int ROUND_UP = 3;
+
   /**
    * Gets a reasonably short string representation of a double
-   * for use in a graphical user interface.
+   * for use in a graphical user interface. The number will be rounded
+   * to the nearest integer.
    */
   public static String shortString(double val) {
+    return shortString(val, ROUND_NEAREST);
+  }
+
+  /**
+   * Gets a reasonably short string representation of a double
+   * for use in a graphical user interface. Mode indicates the method
+   * used to deal insignificant digits: ROUND_NEAREST, ROUND_UP or ROUND_DOWN.
+   */
+  public static String shortString(double val, int mode) {
     // remember whether or not the number is negative
     boolean negative = (val < 0.0);
 
-    double orig_val = val;
+    double origVal = val;
 
     // now we only need to deal with a positive number
     val = Math.abs(val);
@@ -232,9 +251,9 @@ public class Convert {
     if (val < 0.001) {
       for (int i = 1; i < 30; i++) {
         val *= 10.0;
-        orig_val *= 10.0;
+        origVal *= 10.0;
         if (val >= 1.0) {
-          return shortString(orig_val) + "E-" + i;
+          return shortString(origVal) + "E-" + i;
         }
       }
     }
@@ -242,7 +261,10 @@ public class Convert {
     // build multiplier for saving significant digits
     // also build value used to round up insignificant digits
     int mult = 1;
-    float round = 0.5f;
+    float round;
+    if (mode == ROUND_DOWN) round = negative ? 1 : 0;
+    else if (mode == ROUND_UP) round = negative ? 0 : 1;
+    else round = 0.5f; // mode == ROUND_NEAREST (default)
     for (int p = PLACES; p > 0; p--) {
       mult *= 10;
       round /= 10;
