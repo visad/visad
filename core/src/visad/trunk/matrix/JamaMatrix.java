@@ -124,13 +124,13 @@ public class JamaMatrix extends FlatField {
   public static void main(String[] args)
     throws VisADException, RemoteException
   {
-    double[][] e1 = { {4, 4, 4},
-                      {3, 3, 3},
-                      {2, 2, 2} };
+    double[][] e1 = { {3, 4, 5},
+                      {10, 8, 6},
+                      {2, 1, 0} };
     JamaMatrix m1 = new JamaMatrix(e1);
-    double[][] e2 = { {5, 5, 5},
-                      {6, 6, 6},
-                      {7, 7, 7} };
+    double[][] e2 = { {6, 4, 2},
+                      {-4, -3, -2},
+                      {1, 1, 1} };
     JamaMatrix m2 = new JamaMatrix(e2);
     JamaMatrix m3 = convertToMatrix(m1.add(m2));
     JamaMatrix m4 = m1.plus(m2);
@@ -166,33 +166,60 @@ public class JamaMatrix extends FlatField {
    * Construct a new JamaMatrix from the given matrix dimensions.
    */
   public JamaMatrix(int rows, int cols) throws VisADException {
-    this(new Matrix(rows, cols), null, null, null, null);
+    this(new Matrix(rows, cols), null, null, null, null, null, null);
   }
 
   /**
    * Construct a new JamaMatrix from the given matrix entries.
    */
   public JamaMatrix(double[][] entries) throws VisADException {
-    this(new Matrix(entries), null, null, null, null);
+    this(new Matrix(entries), null, null, null, null, null, null);
   }
 
   /**
    * Construct a new JamaMatrix from the given JAMA Matrix.
    */
   public JamaMatrix(Matrix matrix) throws VisADException {
-    this(matrix, null, null, null, null);
+    this(matrix, null, null, null, null, null, null);
   }
 
   /**
-   * Construct a new JamaMatrix with the specified domain set,
+   * Construct a new JamaMatrix from the given JAMA Matrix,
+   * MathType and domain set.
+   */
+  public JamaMatrix(Matrix matrix, FunctionType type, Gridded2DSet domain_set)
+    throws VisADException
+  {
+    this(matrix, type, domain_set, null, null, null, null);
+  }
+
+  /**
+   * Construct a new JamaMatrix from the specified JAMA Matrix,
    * coordinate systems, range sets and units.
    */
   public JamaMatrix(Matrix matrix, CoordinateSystem range_coord_sys,
     CoordinateSystem[] range_coord_syses, Set[] range_sets, Unit[] units)
     throws VisADException
   {
-    super(matrixType, getDomainSet(matrix), range_coord_sys,
-      range_coord_syses, range_sets, units);
+    this(matrix, null, null, range_coord_sys, range_coord_syses, range_sets,
+      units);
+  }
+
+  /**
+   * Construct a new JamaMatrix from the specified JAMA Matrix, MathType,
+   * domain set, coordinate systems, range sets and units.
+   */
+  public JamaMatrix(Matrix matrix, FunctionType type, Gridded2DSet domain_set,
+    CoordinateSystem range_coord_sys, CoordinateSystem[] range_coord_syses,
+    Set[] range_sets, Unit[] units) throws VisADException
+  {
+    super(type == null ? matrixType : type,
+      domain_set == null ? getDomainSet(matrix) : domain_set,
+      range_coord_sys, range_coord_syses, range_sets, units);
+    if (type != null && !matrixType.equalsExceptName(type)) {
+      throw new VisADException("JamaMatrix: " +
+        "MathType must be of the form ((x, y) -> z)");
+    }
     setMatrix(matrix);
   }
 
