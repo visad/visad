@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: BaseRGBMap.java,v 1.1 1999-08-24 23:09:20 dglo Exp $
+@(#) $Id: BaseRGBMap.java,v 1.2 1999-09-10 18:32:18 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -35,7 +35,7 @@ import java.awt.*;
  * mouse button to alternate between the color curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.1 $, $Date: 1999-08-24 23:09:20 $
+ * @version $Revision: 1.2 $, $Date: 1999-09-10 18:32:18 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -91,7 +91,7 @@ public class BaseRGBMap
     this.resolution = resolution;
     this.hasAlpha = hasAlpha;
 
-    val = new float[resolution][4];
+    val = new float[resolution][hasAlpha ? 4 : 3];
     initColormap();
 
     addMouseListener(this);
@@ -263,11 +263,14 @@ public class BaseRGBMap
    */
   public float[] getRGBTuple(float value) {
     float[] t = getTuple(value);
-    float[] f = new float[3];
-    f[0] = t[0];
-    f[1] = t[1];
-    f[2] = t[2];
-    return f;
+    if (t.length > 3) {
+      float[] f = new float[3];
+      f[0] = t[0];
+      f[1] = t[1];
+      f[2] = t[2];
+      t = f;
+    }
+    return t;
   }
 
   /** Present to implement MouseListener, currently ignored */
