@@ -247,7 +247,7 @@ System.out.println("amanda MathType\n" + amanda.getType());
 
     widget_panel.add(let_widget);
     // widget_panel.add(new VisADSlider(eventmap));
-    widget_panel.add(new VisADSlider(maps.trackmap));
+    widget_panel.add(new VisADSlider(maps.trackmap, true));
     widget_panel.add(event_slider);
 
     JPanel display_panel = (JPanel) display.getComponent();

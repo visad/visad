@@ -134,7 +134,7 @@ widget_panel.setLayout(BoxLayout(widget_panel, BoxLayout.Y_AXIS))
 widget_panel.setMaximumSize(Dimension(400, 600))
 
 widget_panel.add(let_widget)
-widget_panel.add(VisADSlider(maps.trackmap))
+widget_panel.add(VisADSlider(maps.trackmap, 1))
 widget_panel.add(event_slider)
 
 display_panel = display.getComponent()
