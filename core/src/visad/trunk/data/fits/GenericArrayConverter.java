@@ -70,7 +70,7 @@ public abstract class GenericArrayConverter
   {
     int l = 0;
 
-    while (coord[l] >= lengths[l]) {
+    while (coord[l] >= lengths[lengths.length - (l+1)]) {
       coord[l] = 0;
 
       l++;
@@ -91,12 +91,12 @@ public abstract class GenericArrayConverter
       coord[i] = 0;
     }
 
-    int lastCoord = lengths.length - 1;
+    final int lastCoord = lengths.length - 1;
 
     Object ra = getBottomArray(o, coord);
     for (int i = 0; i < values.length; i++) {
       for (int j = 0; j < values[i].length; j++) {
-        assign(ra, coord[lastCoord]++, values[i][j]);
+        assign(ra, lengths[lastCoord] - ++coord[lastCoord], values[i][j]);
 
 	if (coord[lastCoord] >= lengths[lastCoord]) {
 	  ra = getNextRMBottomArray(o, coord);
@@ -117,18 +117,16 @@ public abstract class GenericArrayConverter
       coord[i] = 0;
     }
 
-    int lastCoord = lengths.length - 1;
+    final int lastCoord = lengths.length - 1;
 
     Object ra;
-    for (int i = 0; i < values.length; i++) {
-      for (int j = 0; j < values[i].length; j++) {
-        assign(getBottomArray(o, coord), coord[lastCoord], values[i][j]);
-	coord[0]++;
+    for (int i = 0; i < values[0].length; i++) {
+      assign(getBottomArray(o, coord), coord[lastCoord], values[0][i]);
+      coord[0]++;
 
-	if (coord[0] >= lengths[0]) {
-	  if (getNextCMBottomArray(o, coord) == null) {
-	    return o;
-	  }
+      if (coord[0] >= lengths[0]) {
+        if (getNextCMBottomArray(o, coord) == null) {
+          return o;
 	}
       }
     }

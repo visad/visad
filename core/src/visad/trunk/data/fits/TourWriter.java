@@ -32,6 +32,8 @@ import nom.tam.fits.FitsException;
 import nom.tam.fits.ImageHDU;
 import nom.tam.fits.PrimaryHDU;
 
+import nom.tam.util.ArrayFuncs;
+
 import visad.CoordinateSystem;
 import visad.Data;
 import visad.FieldImpl;
@@ -175,7 +177,7 @@ public class TourWriter
     }
   }
 
-  private void saveImage(FlatField fld, int domainDim)
+  private void saveImage(FlatField fld, int domainDim, int rangeDim)
 	throws VisADException
   {
     Set set = fld.getDomainSet();
@@ -194,18 +196,54 @@ public class TourWriter
       throw new VisADException("Couldn't get size of FITS file");
     }
 
-    ConvertDoubleArray cvtArray = new ConvertDoubleArray(fld);
-    Object o = cvtArray.getConverter().getRowMajor(fld.getValues());
-    if (o == null) {
-      throw new VisADException("Couldn't extract array from Data object");
+    final int[] lengths = ((GriddedSet )set).getLengths();
+    if (lengths.length != 2) {
+      throw new VisADException("Don't know how to decipher " + lengths.length +
+                               "-dimension FlatField!");
     }
+
+    double[][] values = fld.getValues();
+    if (values[0].length != lengths[0]*lengths[1]) {
+      throw new VisADException("Mismatch between FlatField length array" +
+                               " and value array length");
+    } else if (values.length != 1 && values.length != 3) {
+      throw new VisADException("Don't know how to decipher " + values.length +
+                               "-dimension FlatField values!");
+    }
+
+    // create 8-bit color value array
+    final int len = values[0].length;
+    byte[] colorVals = new byte[len];
+
+    // fill in 8-bit color values
+    int colRow, valIndex;
+    valIndex = 0;
+    for (int i = lengths[1] - 1; i >= 0; i--) {
+      colRow = i * lengths[0];
+      for (int j = 0; j < lengths[0]; j++) {
+        int v;
+        if (values.length == 3) {
+          // map to RGB
+          v = (int )((0.299 * values[0][valIndex]) +
+                     (0.587 * values[1][valIndex]) +
+                     (0.114 * values[2][valIndex]));
+        } else {
+          v = (int )values[0][valIndex];
+        }
+        colorVals[colRow+j] = (byte )v;
+
+        valIndex++;
+      }
+    }
+
+    byte[][] image = (byte[][] )ArrayFuncs.curl(colorVals, lengths);
 
     try {
       BasicHDU hdu;
       if (size == 0) {
-	hdu = new PrimaryHDU(o);
+	hdu = new PrimaryHDU((Object )image);
       } else {
-	hdu = new ImageHDU(o);
+	hdu = new ImageHDU((Object )image);
       }
 
       fits.addHDU(hdu);
@@ -225,21 +263,22 @@ public class TourWriter
 			       " (FlatField with non-FunctionType)");
     }
 
-    int rangeDim = fld.getRangeDimension();
     int domainDim = fld.getDomainSet().getDimension();
-
-    if (rangeDim > 1 && domainDim > 1) {
-if (0 == 1) {
+    if (domainDim > 2) {
       throw new VisADException("Can't write FITS file with" +
-			       " range dimension of " + rangeDim +
-			       " and domain dimension of " + domainDim);
-} else { System.err.println("TourWriter.save(FlatField): Not checking dimensions!!!"); }
+			       " domain dimension of " + domainDim);
     }
 
-    if (rangeDim > 1) {
+    int rangeDim = fld.getRangeDimension();
+    if (rangeDim != 1 && rangeDim != 3) {
+      throw new VisADException("Can't write FITS file with" +
+			       " range dimension of " + rangeDim);
+    }
+
+    if (domainDim != 2) {
       saveBinaryTable(fld, domainDim, rangeDim);
     } else {
-      saveImage(fld, domainDim);
+      saveImage(fld, domainDim, rangeDim);
     }
   }
 

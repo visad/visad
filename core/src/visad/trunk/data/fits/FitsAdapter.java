@@ -126,7 +126,8 @@ public class FitsAdapter
     if (data instanceof byte[]) {
       byte[] bl = (byte[] )data;
       for (int i = 0; i < bl.length; i++) {
-	int val = (bl[i] >= 0 ? bl[i] : ((Byte.MAX_VALUE + 1) * 2) - bl[i]);
+	int val = (bl[i] >= 0 ? bl[i] :
+                   (((int )Byte.MAX_VALUE + 1) * 2 + (int )bl[i]));
 	list[offset++] = (double )val;
       }
     } else if (data instanceof short[]) {
@@ -263,8 +264,8 @@ public class FitsAdapter
       throw new VisADException("Couldn't get image axes");
     }
     if (axes.length != 2) {
-System.err.println("Punting on " + axes.length + "-D image");
-      throw new VisADException("Not a two-dimensional image");
+      throw new VisADException("Expected two-dimensional image, not " +
+                               axes.length +" dimensions");
     }
 
     Object fData = hdu.getData().getData();
