@@ -26,6 +26,8 @@ MA 02111-1307, USA
 
 package visad.data.visad;
 
+import java.io.IOException;
+
 import ucar.netcdf.RandomAccessFile;
 
 import visad.DataImpl;
@@ -71,6 +73,6 @@ e.printStackTrace();
     throws IOException, VisADException
   {
     // don't close the file here, it might be needed by a FileFlatField
-    return return rdr.getData();
+    return rdr.getData();
   }
 }
