@@ -526,6 +526,7 @@ public class SliceManager
           field = null;
           collapsedField = null;
           FieldImpl[][] thumbs = null;
+          mode_index = mode_slice = 0;
 
           if (filesAsSlices) {
             // load data at all indices and compile into a single timestep
@@ -555,7 +556,6 @@ public class SliceManager
               if (field == null) return;
               if (thumbs == null) {
                 slices = field.getLength();
-                mode_index = mode_slice = 0;
                 thumbs = new FieldImpl[timesteps][slices];
               }
               for (int j=0; j<slices; j++) {
@@ -570,6 +570,8 @@ public class SliceManager
             // load data at current index only
             timesteps = f.length;
             field = loadData(f[curfile], true);
+            if (field == null) return;
+            slices = field.getLength();
             dialog.setPercent(100);
           }
           if (field == null) return;
