@@ -39,7 +39,7 @@ public interface RealTupleIface
    *
    * @return			The units of the components.
    */
-  public Unit[] getTupleUnits();
+  Unit[] getTupleUnits();
 
   /**
    * Returns the uncertainties of the components.
@@ -48,7 +48,7 @@ public interface RealTupleIface
    * @throws VisADException	VisAD failure.
    * @throws RemoteException	Java RMI failure.
    */
-  public ErrorEstimate[] getErrors()
+  ErrorEstimate[] getErrors()
     throws VisADException, RemoteException;
 
   /**
@@ -57,19 +57,19 @@ public interface RealTupleIface
    * @return			The coordinate system transformation.  May be
    *				<code>null</code>.
    */
-  public CoordinateSystem getCoordinateSystem();
+  CoordinateSystem getCoordinateSystem();
 
   /**
    * Clones this instance.
    *
    * @return			A clone of this instance.
    */
-  public Object clone();
+  Object clone();
 
   /**
    * Returns a string representation of this instance.
    *
    * @return			A string representation of this instance.
    */
-  public String toString();
+  String toString();
 }

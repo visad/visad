@@ -59,7 +59,7 @@ public interface RealIface
    *
    * @return			The unit of this instance.
    */
-  public Unit getUnit();
+  Unit getUnit();
 
   /**
    * Returns the uncertainty in the numeric value of this instance.
@@ -67,7 +67,7 @@ public interface RealIface
    * @return			The uncertainty in the numeric value of this
    *				instance.
    */
-  public ErrorEstimate getError();
+  ErrorEstimate getError();
 
   /**
    * Returns a clone, except that the ErrorEstimate of the clone
@@ -81,7 +81,7 @@ public interface RealIface
    * @throws VisADException	VisAD failure.
    * @throws RemoteException	Java RMI failure.
    */
-  public Data adjustSamplingError(Data error, int error_mode)
+  Data adjustSamplingError(Data error, int error_mode)
     throws VisADException, RemoteException;
 
   /**
@@ -93,7 +93,7 @@ public interface RealIface
    *				value.
    * @throws VisADException	VisAD failure.
    */
-  public Real cloneButValue(double value)
+  Real cloneButValue(double value)
     throws VisADException;
 
   /**
@@ -104,7 +104,7 @@ public interface RealIface
    * @return			A clone of this instance but with the given
    *				unit.
    */
-  public Real cloneButUnit(Unit u)
+  Real cloneButUnit(Unit u)
     throws VisADException;
 
   /*
@@ -112,14 +112,14 @@ public interface RealIface
    *
    * @return			A clone of this instance.
    */
-  public Object clone();
+  Object clone();
 
   /*
    * Returns a string representation of this instance.
    *
    * @return			A string representation of this instance.
    */
-  public String toString();
+  String toString();
 
   /**
    * Returns a string that represents just the value portion of this Real -- but
@@ -128,7 +128,7 @@ public interface RealIface
    * @return			A string representation of just the value
    *				portion of this Real.
    */
-  public String toValueString();
+  String toValueString();
 
   /**
    * Compares this Real to another.
@@ -144,7 +144,7 @@ public interface RealIface
    *                            ErrorEstimate.compareTo()</code> method is used
    *                            to break the tie.
    */
-  public int compareTo(Object object);
+  int compareTo(Object object);
 
   /**
    * Returns the hash code of this Real.
@@ -153,5 +153,5 @@ public interface RealIface
    *				semantically identical, then their hash codes
    *				are equal.
    */
-  public int hashCode();
+  int hashCode();
 }
