@@ -54,7 +54,9 @@ public class Test00
 
     final RealType ir_radiance =
       RealType.getRealType("ir_radiance", CommonUnit.degree);
-    final RealType count = RealType.getRealType("count", CommonUnit.second);
+    Unit cycles = CommonUnit.dimensionless.divide(CommonUnit.second);
+    Unit hz = cycles.clone("Hz");
+    final RealType count = RealType.getRealType("count", hz);
     FunctionType ir_histogram = new FunctionType(ir_radiance, count);
     final RealType vis_radiance = RealType.getRealType("vis_radiance");
 
