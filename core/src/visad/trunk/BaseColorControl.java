@@ -84,70 +84,172 @@ public abstract class BaseColorControl
     this.components = components;
 
     tableLength = DEFAULT_TABLE_LENGTH;
-    table = new float[components][tableLength];
-    initTableVis5D(table, components);
+    table = initTableVis5D(new float[components][tableLength]);
   }
 
   /**
    * Initialize table to a grey wedge.
    *
    * @param table Table to be initialized.
-   * @param components Number of components
-   *        (4 if there is an alpha, 3 otherwise).
+   *
+   * @return the initialized table.
    */
-  private static void initTableGreyWedge(float[][] table, int components)
+  public static float[][] initTableGreyWedge(float[][] table)
   {
-    float scale = (float) (1.0f / (float) (DEFAULT_TABLE_LENGTH - 1));
-    for (int i=0; i<DEFAULT_TABLE_LENGTH; i++) {
+    if (table == null || table[0] == null) {
+      return null;
+    }
+
+    boolean hasAlpha = table.length > 3;
+
+    final int numColors = table[0].length;
+    float scale = (float) (1.0f / (float) (numColors - 1));
+    for (int i=0; i<numColors; i++) {
       table[RED][i] = scale * i;
       table[GREEN][i] = scale * i;
       table[BLUE][i] = scale * i;
-      if (components > ALPHA) {
+      if (hasAlpha) {
         table[ALPHA][i] = scale * i;
       }
     }
+
+    return table;
+  }
+
+  /**
+   * Initialize the colormap to a grey wedge
+   */
+  public void initGreyWedge()
+  {
+    initTableGreyWedge(table);
   }
 
   /**
    * Initialize table to the Vis5D colormap.
    *
    * @param table Table to be initialized.
-   * @param components Number of components
-   *        (4 if there is an alpha, 3 otherwise).
+   *
+   * @return the initialized table.
    */
-  private static void initTableVis5D(float[][] table, int components)
+  public static float[][] initTableVis5D(float[][] table)
   {
+    if (table == null || table[0] == null) {
+      return null;
+    }
+
+    boolean hasAlpha = table.length > 3;
+
     float curve = 1.4f;
     float bias = 1.0f;
     float rfact = 0.5f * bias;
 
-    for (int i=0; i<DEFAULT_TABLE_LENGTH; i++) {
+    final int numColors = table[0].length;
+    for (int i=0; i<numColors; i++) {
 
       /* compute s in [0,1] */
-      float s = (float) i / (float) (DEFAULT_TABLE_LENGTH-1);
+      float s = (float) i / (float) (numColors-1);
       float t = curve * (s - rfact);   /* t in [curve*-0.5,curve*0.5) */
 
       table[RED][i] = (float) (0.5 + 0.5 * Math.atan( 7.0*t ) / 1.57);
       table[GREEN][i] = (float) (0.5 + 0.5 * (2 * Math.exp(-7*t*t) - 1));
       table[BLUE][i] = (float) (0.5 + 0.5 * Math.atan( -7.0*t ) / 1.57);
-      if (components > ALPHA) {
+      if (hasAlpha) {
         table[ALPHA][i] = 1.0f;
       }
     }
+
+    return table;
   }
 
   /**
-   */
-  public void initGreyWedge()
-  {
-    initTableGreyWedge(table, components);
-  }
-
-  /**
+   * Initialize the colormap to the VisAD sine waves
    */
   public void initVis5D()
   {
-    initTableVis5D(table, components);
+    initTableVis5D(table);
+  }
+
+  /**
+   * Initialize table to the Hue-Saturation-Value colormap.
+   *
+   * @param table Table to be initialized.
+   *
+   * @return the initialized table.
+   */
+  public static float[][] initTableHSV(float[][] table)
+  {
+    if (table == null || table[0] == null) {
+      return null;
+    }
+
+    boolean hasAlpha = table.length > 3;
+
+    float s = 1;
+    float v = 1;
+
+    final int numColors = table[0].length;
+    for (int i=0; i<numColors; i++) {
+
+      float h = i * 6 / (float )(numColors - 1);
+
+      int hFloor = (int )Math.floor(h);
+      float hPart = h - hFloor;
+
+      // if hFloor is even
+      if ((hFloor & 1) == 0) {
+        hPart = 1 - hPart;
+      }
+
+      float m = v * (1 - s);
+      float n = v * (1 - s*hPart);
+
+      switch (hFloor) {
+      case 0:
+      case 6:
+        table[RED][i] = v;
+        table[GREEN][i] = n;
+        table[BLUE][i] = m;
+        break;
+      case 1:
+        table[RED][i] = n;
+        table[GREEN][i] = v;
+        table[BLUE][i] = m;
+        break;
+      case 2:
+        table[RED][i] = m;
+        table[GREEN][i] = v;
+        table[BLUE][i] = n;
+        break;
+      case 3:
+        table[RED][i] = m;
+        table[GREEN][i] = n;
+        table[BLUE][i] = v;
+        break;
+      case 4:
+        table[RED][i] = n;
+        table[GREEN][i] = m;
+        table[BLUE][i] = v;
+        break;
+      case 5:
+        table[RED][i] = v;
+        table[GREEN][i] = m;
+        table[BLUE][i] = n;
+        break;
+      }
+
+      if (hasAlpha) {
+        table[ALPHA][i] = 1.0f;
+      }
+    }
+
+    return table;
+  }
+
+  /**
+   * Initialize the colormap to Hue-Saturation-Value
+   */
+  public void initHSV() {
+    initTableHSV(table);
   }
 
   /**
