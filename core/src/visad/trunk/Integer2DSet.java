@@ -40,6 +40,13 @@ public class Integer2DSet extends Linear2DSet
     this(type, sets, null, null, null);
   }
 
+  public Integer2DSet(int length1, int length2)
+         throws VisADException {
+    this(RealTupleType.Generic2D,
+         get_integer1d_array(RealTupleType.Generic2D, length1, length2),
+         null, null, null);
+  }
+
   public Integer2DSet(MathType type, int length1, int length2)
          throws VisADException {
     this(type, get_integer1d_array(type, length1, length2), null,

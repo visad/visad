@@ -40,6 +40,13 @@ public class Integer3DSet extends Linear3DSet
     this(type, sets, null, null, null);
   }
 
+  public Integer3DSet(int length1, int length2, int length3)
+         throws VisADException {
+    this(RealTupleType.Generic3D,
+         get_integer1d_array(RealTupleType.Generic3D, length1, length2, length3),
+         null, null, null);
+  }
+
   public Integer3DSet(MathType type, int length1, int length2, int length3)
          throws VisADException {
     this(type, get_integer1d_array(type, length1, length2, length3),
