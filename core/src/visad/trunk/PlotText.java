@@ -322,13 +322,16 @@ public class PlotText extends Object {
     val = Math.abs(val);
 
     // build multiplier for saving significant digits
+    // also build value used to round up insignificant digits
     int mult = 1;
+    float round = 0.5f;
     for (int p = places; p > 0; p--) {
       mult *= 10;
+      round /= 10;
     }
 
     // break into digits before (preDot) and after (postDot) the decimal point
-    long l = (long) (val * mult);
+    long l = (long) ((val + round) * mult);
     long preDot = l / mult;
     int postDot = (int )(l % mult);
 
