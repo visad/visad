@@ -249,12 +249,10 @@ public class NetcdfGrids {
         System.out.println("x,y dimensions = "+xval+" "+yval);
 
         RealType[] domain_components = {x,y};
-        RealTupleType ref = new RealTupleType(
-                   RealType.Latitude, RealType.Longitude);
 
         if (GRIBCoordinateSystem.isGridNumberKnown(gridNumber) ) {
 
-          gridCoord = new GRIBCoordinateSystem(ref, gridNumber);
+          gridCoord = new GRIBCoordinateSystem(gridNumber);
 
         } else {
 
@@ -278,7 +276,7 @@ public class NetcdfGrids {
             p = nc.get("Dj");
             double Dj = p.getDouble(inx);
             gridCoord = new
-                 GRIBCoordinateSystem(ref,0,Ni,Nj,La1,Lo1,La2,Lo2,Di,Dj);
+                 GRIBCoordinateSystem(0,Ni,Nj,La1,Lo1,La2,Lo2,Di,Dj);
           }
             
         }
@@ -695,10 +693,8 @@ public class NetcdfGrids {
       // define the VisAD type for (x,y) -> values
 
       RealType[] domain_components = {x,y};
-      RealTupleType ref = new RealTupleType(RealType.Latitude,
-          RealType.Longitude);
 
-      gridCoord = new GRIBCoordinateSystem(ref, gridNumber);
+      gridCoord = new GRIBCoordinateSystem(gridNumber);
 
       RealTupleType grid_domain = 
           new RealTupleType(domain_components, gridCoord, null);

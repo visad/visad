@@ -40,10 +40,42 @@ public class GRIBCoordinateSystem extends visad.MapProjection {
   private double aspectRatio = 1.0;
   private Rectangle2D range;
 
+  /** 
+   * Constructor for a Lambert conformal (GRIB type code = 3) with
+   * RealTupleType.LatitudeLongitudeTuple as a reference.
+   *
+   * @param  gridTypeCode    GRIB-1 grid type
+   * @param  La1             latitude of first grid point
+   * @param  Lo1             longitude of first grid point
+   * @param  DxDy            ?
+   * @param  Latin1          first intersecting latitude
+   * @param  Latin2          second intersecting latitude
+   * @param  lov             orientation of the grid
+   *
+   * @exception VisADException  couldn't create the necessary VisAD object
+   */
+  public GRIBCoordinateSystem(int gridTypeCode,
+    double La1, double Lo1, double DxDy, 
+    double Latin1, double Latin2, double Lov) 
+                   throws VisADException {
+    this(RealTupleType.LatitudeLongitudeTuple, gridTypeCode,
+         La1, Lo1, DxDy, Latin1, Latin2, Lov);
+  }
 
-  /** constructor for a Lambert conformal (GRIB type code = 3)
-  *
-  */
+  /** 
+   * Constructor for a Lambert conformal (GRIB type code = 3)
+   * 
+   * @param  ref             reference RealTupleType (should be lat/lon)
+   * @param  gridTypeCode    GRIB-1 grid type
+   * @param  La1             latitude of first grid point
+   * @param  Lo1             longitude of first grid point
+   * @param  DxDy            ?
+   * @param  Latin1          first intersecting latitude
+   * @param  Latin2          second intersecting latitude
+   * @param  lov             orientation of the grid
+   *
+   * @exception VisADException  couldn't create the necessary VisAD object
+   */
   public GRIBCoordinateSystem(RealTupleType ref, int gridTypeCode,
     double La1, double Lo1, double DxDy, 
     double Latin1, double Latin2, double Lov) 
@@ -59,12 +91,48 @@ public class GRIBCoordinateSystem extends visad.MapProjection {
         throw new VisADException
                ("Invalid grid type for Lambert = "+gridTypeCode);
       }
-
   }
 
-  /** constructor for a latitude-longitude (GRIB type code = 0)
-  *
-  */
+  /** 
+   * Constructor for a latitude-longitude (GRIB type code = 0) with
+   * RealTupleType.LatitudeLongitudeTuple as a reference.
+   *
+   * @param  gridTypeNumber  GRIB-1 grid type
+   * @param  Ni              number of points along a latitude circle
+   * @param  Nj              number of points along a longitude circle
+   * @param  La1             latitude of first grid point
+   * @param  Lo1             longitude of first grid point
+   * @param  La1             latitude of last grid point
+   * @param  Lo1             longitude of last grid point
+   * @param  Di              longitudinal direction increment
+   * @param  Dj              latitudinal direction increment
+   * 
+   * @exception VisADException  couldn't create the necessary VisAD object
+   */
+  public GRIBCoordinateSystem(int gridTypeCode,
+    int Ni, int Nj, double La1, double Lo1, double La2, double Lo2,
+    double Di, double Dj) throws VisADException {
+    this(RealTupleType.LatitudeLongitudeTuple, gridTypeCode, 
+         Ni, Nj, La1, Lo1, La2, Lo2,  Di, Dj);
+  }
+
+  /** 
+   * constructor for a latitude-longitude (GRIB type code = 0). Reference
+   * should be RealTupleType.LatitudeLongitudeTuple.
+   *
+   * @param  ref             reference RealTupleType (should be lat/lon)
+   * @param  gridTypeNumber  GRIB-1 grid type
+   * @param  Ni              number of points along a latitude circle
+   * @param  Nj              number of points along a longitude circle
+   * @param  La1             latitude of first grid point
+   * @param  Lo1             longitude of first grid point
+   * @param  La1             latitude of last grid point
+   * @param  Lo1             longitude of last grid point
+   * @param  Di              longitudinal direction increment
+   * @param  Dj              latitudinal direction increment
+   * 
+   * @exception VisADException  couldn't create the necessary VisAD object
+   */
   public GRIBCoordinateSystem(RealTupleType ref, int gridTypeCode,
     int Ni, int Nj, double La1, double Lo1, double La2, double Lo2,
     double Di, double Dj) throws VisADException {
@@ -81,9 +149,27 @@ public class GRIBCoordinateSystem extends visad.MapProjection {
       }
 
   }
+
+  /** 
+   * constructor for well-known grid numbers. Uses 
+   * RealTupleType.LatitudeLongitudeTuple for a reference.
+   *
+   * @param  gridNumber  GRIB grid number
+   *
+   * @exception VisADException  couldn't create the necessary VisAD object
+   */
+  public GRIBCoordinateSystem(int gridNumber) 
+                   throws VisADException {
+    this(RealTupleType.LatitudeLongitudeTuple, gridNumber);
+  }
+  
   /** constructor for well-known grid numbers
-  *
-  */
+   *
+   * @param  ref             reference RealTupleType (should be lat/lon)
+   * @param  gridNumber  GRIB grid number
+   *
+   * @exception VisADException  couldn't create the necessary VisAD object
+   */
   public GRIBCoordinateSystem(RealTupleType ref, int gridNumber) 
                    throws VisADException {
   
@@ -92,6 +178,16 @@ public class GRIBCoordinateSystem extends visad.MapProjection {
       
       doLambert(ref, 12.190, -133.459, 81.2705, 25.0, 25.0, -95.0);
       range = new Rectangle2D.Double(0.0, 0.0, 93., 65.);
+
+    } else if (gridNumber == 212) {
+      
+      doLambert(ref, 12.190, -133.459, 40.63525, 25.0, 25.0, -95.0);
+      range = new Rectangle2D.Double(0.0, 0.0, 185., 129.);
+
+    } else if (gridNumber == 215) {
+      
+      doLambert(ref, 12.190, -133.459, 20.317625, 25.0, 25.0, -95.0);
+      range = new Rectangle2D.Double(0.0, 0.0, 369., 257.);
 
     } else if (gridNumber == 236) {
 
@@ -157,7 +253,7 @@ public class GRIBCoordinateSystem extends visad.MapProjection {
 
 
 
-  /** convert from x,y to lon,lat
+  /** convert from x,y to lat,lon
   *
   * @param tuples contains the x,y coordinates (grid col, row)
   * @return tuple of (lat,lon);
@@ -206,7 +302,7 @@ public class GRIBCoordinateSystem extends visad.MapProjection {
 
   }
 
-  /** convert from lon,lat to x,y
+  /** convert from lat,lon to x,y
   *
   * @param tuples contains the lat,lon coordinates 
   *
@@ -271,7 +367,7 @@ public class GRIBCoordinateSystem extends visad.MapProjection {
   }
 
   public static boolean isGridNumberKnown(int gridNumber) {
-    final int[] knownGrids = {211,236};
+    final int[] knownGrids = {211,212,215,236};
     for (int i=0; i<knownGrids.length; i++) {
       if (knownGrids[i] == gridNumber) return (true);
     }
@@ -285,7 +381,7 @@ public class GRIBCoordinateSystem extends visad.MapProjection {
     RealTupleType ref = new RealTupleType
          (RealType.Latitude, RealType.Longitude);
 
-    GRIBCoordinateSystem nc = new GRIBCoordinateSystem(ref, 211);
+    GRIBCoordinateSystem nc = new GRIBCoordinateSystem(211);
 
     double[][] latlon = new double[2][1];
     double[][] xy = new double[2][1];
@@ -297,22 +393,22 @@ public class GRIBCoordinateSystem extends visad.MapProjection {
     System.out.println(" (53,25) lat="+latlon[0][0]+" lon="+latlon[1][0]);
 
     // first, the (1,1) point...
-    latlon[1][0] = -133.459;
-    latlon[0][0] = 12.190;
+    latlon[0][0] = 12.190;        // lat
+    latlon[1][0] = -133.459;      // lon
 
     xy = nc.fromReference(latlon);
     System.out.println(" at (1,1) x="+xy[0][0]+" y="+xy[1][0]);
     //now the upper right..
-    latlon[1][0] = -49.385;
-    latlon[0][0] = 57.290;
+    latlon[0][0] = 57.290;       // lat
+    latlon[1][0] = -49.385;      // lon
 
     xy = nc.fromReference(latlon);
     System.out.println(" max row/col x="+xy[0][0]+" y="+xy[1][0]);
 
     //now the given point at 35n, 95w
 
-    latlon[1][0] = -95.;
-    latlon[0][0] = 35.;
+    latlon[0][0] = 35.;        // lat
+    latlon[1][0] = -95.;       // lon
 
     xy = nc.fromReference(latlon);
     System.out.println(" at 35N/95W x="+xy[0][0]+" y="+xy[1][0]);
