@@ -484,6 +484,28 @@ public abstract class Set extends DataImpl {
     return val;
   }
 
+  public static float[][] copyFloats(float[][] samples) {
+    int dim = samples.length;
+    float[][] s_copy = new float[dim][];
+    for (int j=0; j<dim; j++) {
+      int len = samples[j].length;
+      s_copy[j] = new float[len];
+      System.arraycopy(samples[j], 0, s_copy[j], 0, len);
+    }
+    return s_copy;
+  }
+
+  public static double[][] copyDoubles(double[][] samples) {
+    int dim = samples.length;
+    double[][] s_copy = new double[dim][];
+    for (int j=0; j<dim; j++) {
+      int len = samples[j].length;
+      s_copy[j] = new double[len];
+      System.arraycopy(samples[j], 0, s_copy[j], 0, len);
+    }
+    return s_copy;
+  }
+
   public void getNeighbors( int[][] neighbors )
               throws VisADException
   {
