@@ -124,13 +124,11 @@ public class DefaultFamily
       i++;
     } catch (Throwable t) {
     }
- /**
     try {
       list[i] = new VisADForm();
       i++;
     } catch (Throwable t) {
     }
-  **/
     try {
       list[i] = new AreaForm();
       i++;
