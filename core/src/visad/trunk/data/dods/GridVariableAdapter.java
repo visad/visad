@@ -43,6 +43,25 @@ public class GridVariableAdapter
     private final FunctionType			funcType;
     private final boolean			isFlat;
     private final GridVariableMapAdapter[]	domainAdapters;	// VisAD order
+    private static RealTupleType		latLonType;
+    private static RealTupleType		lonLatType;
+
+    static
+    {
+	try
+	{
+	    latLonType =
+		new RealTupleType(RealType.Latitude, RealType.Longitude);
+	    lonLatType =
+		new RealTupleType(RealType.Longitude, RealType.Latitude);
+	}
+	catch (Exception e)
+	{
+	    throw new VisADError(
+		"visad.data.dods.GridVariableAdapter.<clinit>: " +
+		"Couldn't initialize class: " + e);
+	}
+    }
 
     private GridVariableAdapter(
 	    GridVariableMapAdapter[] domainAdapters,
@@ -94,8 +113,8 @@ public class GridVariableAdapter
 	catch (NoSuchVariableException e)
 	{
 	    throw new BadFormException(
-	    "visad.data.dods.GridVariableAdapter.gridVariableAdapter(...): " +
-		"No such variable: " + e);
+		"visad.data.dods.GridVariableAdapter.gridVariableAdapter(...): "
+		+ "No such variable: " + e);
 	}
 	return new GridVariableAdapter(domainAdapters, arrayAdapter);
     }
@@ -166,8 +185,7 @@ public class GridVariableAdapter
 		for (int i = 0; i < rank; ++i)
 		{
 		    domainSets[i] = (SampledSet)
-			domainAdapters[i].data(
-			    (DArray)grid.getVar(rank-i));
+			domainAdapters[i].data((DArray)grid.getVar(rank-i));
 		    isLinear &= domainSets[i] instanceof Linear1DSet;
 		}
 		if (!isLinear)
@@ -181,7 +199,26 @@ public class GridVariableAdapter
 			linearSets[i] = (Linear1DSet)domainSets[i];
 		    if (rank == 2)
 		    {
-			domain = new Linear2DSet(linearSets);
+			RealTupleType	rtt =
+			    ((SetType)linearSets[0].getType()).getDomain();
+			if (!(rtt.equals(latLonType) || rtt.equals(lonLatType)))
+			{
+			    domain = new Linear2DSet(linearSets);
+			}
+			else
+			{
+			    Linear1DSet	set0 = linearSets[0];
+			    Linear1DSet	set1 = linearSets[1];
+			    domain =
+				new LinearLatLonSet(
+				    rtt,
+				    set0.getFirst(),
+				    set0.getLast(),
+				    set0.getLength(),
+				    set1.getFirst(),
+				    set1.getLast(),
+				    set1.getLength());
+			}
 		    }
 		    else if (rank == 3)
 		    {
