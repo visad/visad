@@ -240,7 +240,8 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
       case PROJ_SPHERICAL:
         for (int kk = 0; kk < length; kk++) {
 
-          latlon[0][kk] = NorthBound - rowcol[0][kk] * (NorthBound-SouthBound)
+       //-latlon[0][kk] = NorthBound - rowcol[0][kk] * (NorthBound-SouthBound)
+          latlon[0][kk] = NorthBound - (Nr-1-rowcol[0][kk]) * (NorthBound-SouthBound)
                     / (double) (Nr-1);
           latlon[1][kk] = WestBound - rowcol[1][kk] * (WestBound-EastBound)
                     / (double) (Nc-1);
@@ -252,7 +253,8 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
            double xldif, xedif, xrlon, radius, lon, lat;
            for (int kk = 0; kk < length; kk++) {
 
-             xldif = Hemisphere * (rowcol[0][kk]-PoleRow) / ConeFactor;
+          //-xldif = Hemisphere * (rowcol[0][kk]-PoleRow) / ConeFactor;
+             xldif = Hemisphere * ((Nr-1-rowcol[0][kk])-PoleRow) / ConeFactor;
              xedif = (PoleCol-rowcol[1][kk]) / ConeFactor;
              if (xldif==0.0 && xedif==0.0)
                xrlon = 0.0;
@@ -279,7 +281,8 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
          {
             double xrow, xcol, rho, c, cc, sc, lon, lat;
             for ( int kk = 0; kk < length; kk++) {
-              xrow = CentralRow - rowcol[0][kk] - 1;
+           //-xrow = CentralRow - rowcol[0][kk] - 1;
+              xrow = CentralRow - (Nr-1-rowcol[0][kk]) - 1;
               xcol = CentralCol - rowcol[1][kk] - 1;
               rho = xrow*xrow + xcol*xcol;
               if (rho<1.0e-20) {
@@ -308,7 +311,8 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
       case PROJ_ROTATED:
          {
            for (int kk = 0; kk < length; kk++) {
-             latlon[0][kk] = NorthBound - rowcol[0][kk]
+          //-latlon[0][kk] = NorthBound - rowcol[0][kk]
+             latlon[0][kk] = NorthBound - (Nr-1-rowcol[0][kk])
                      * (NorthBound-SouthBound) / (double) (Nr-1);
              latlon[1][kk] = WestBound - rowcol[0][kk]
                      * (WestBound-EastBound) / (double) (Nc-1);
@@ -336,6 +340,7 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
       case PROJ_SPHERICAL:
          for ( int kk = 0; kk < length; kk++ ) {
            rowcol[0][kk] = (NorthBound - latlon[0][kk])/RowInc;
+           rowcol[0][kk] = (Nr-1) - rowcol[0][kk];
            rowcol[1][kk] = (WestBound - latlon[1][kk]*WEST_POSITIVE)/ColInc;
          }
          break;
@@ -358,6 +363,7 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
                 r = ConeFactor * Math.pow(Math.tan(rlat), Cone);
               }
               rowcol[0][kk] = PoleRow + r * Math.cos(rlon);
+              rowcol[0][kk] = (Nr-1) - rowcol[0][kk];
               rowcol[1][kk] = PoleCol - r * Math.sin(rlon);
             }
          }
@@ -381,6 +387,7 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
               rowcol[0][kk] = (CentralRow-1)
                    - k * (CosCentralLat * Math.sin(rlat)
                        - SinCentralLat * clat * clon);
+              rowcol[0][kk] = (Nr-1) - rowcol[0][kk];
             }
          }
          break;
@@ -389,6 +396,7 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
             pandg_for(latlon, CentralLat, CentralLon, Rotation);
             for (int kk = 0; kk < length; kk++) {
               rowcol[0][kk] = (NorthBound - latlon[0][kk])/RowInc;
+              rowcol[0][kk] = (Nr-1) - rowcol[0][kk];
               rowcol[1][kk] = (WestBound - latlon[1][kk])/ColInc;
             }
          }
@@ -486,7 +494,7 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
      {{89, 42, 60}, {-100, -100, -180}};
 
     double[][] rowcol = v5dcs.fromReference(latlon);
-    System.out.println(rowcol[0][0]+", "+rowcol[1][0]+" : "+rowcol[0][2]+", "+rowcol[1][2]);
+ // System.out.println(rowcol[0][0]+", "+rowcol[1][0]+" : "+rowcol[0][2]+", "+rowcol[1][2]);
 
     double[][] latlon_t = v5dcs.toReference(rowcol);
     System.out.println(latlon_t[0][0]+", "+latlon_t[1][0]+" : "+latlon_t[0][2]+", "+latlon_t[1][2]);
@@ -501,7 +509,7 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
     double[][] latlon2 =
      {{90, 40, 50}, {-100, -100, -180}};
     rowcol = v5dcs.fromReference(latlon2);
-    System.out.println(rowcol[0][0]+", "+rowcol[1][0]+" : "+rowcol[0][2]+", "+rowcol[1][2]);
+ // System.out.println(rowcol[0][0]+", "+rowcol[1][0]+" : "+rowcol[0][2]+", "+rowcol[1][2]);
     latlon_t = v5dcs.toReference(rowcol);
     System.out.println(latlon_t[0][0]+", "+latlon_t[1][0]+" : "+latlon_t[0][2]+", "+latlon_t[1][2]);
   }

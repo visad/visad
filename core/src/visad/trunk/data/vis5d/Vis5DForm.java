@@ -136,6 +136,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
     if (sizes[0] < 1) {
       throw new BadFormException("Vis5DForm.open: bad file");
     }
+    //-System.out.println("proj: "+map_proj[0]);
 
     int nr = sizes[0];
     int nc = sizes[1];
@@ -263,6 +264,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
       domain = new RealTupleType(new RealType[] {row, col}, coord_sys, null);
     }
 
+
     RealTupleType range = new RealTupleType(sub_vars);
     grid_type[grp] = new FunctionType(domain, range);
 
@@ -327,6 +329,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
     Unit v5d_time_unit = new OffsetUnit(
                              visad.data.units.UnitParser.encodeTimestamp(
                                 1900, 1, 1, 0, 0, 0, 0), SI.second);
+
     Gridded1DDoubleSet time_set =
       new Gridded1DDoubleSet(time, timeses, ntimes,
                              null, new Unit[] {v5d_time_unit}, null);
@@ -387,6 +390,23 @@ public class Vis5DForm extends Form implements FormFileInformer {
         range_sets[j] =
           new Linear1DSet((double) ranges[0], (double) ranges[1], 255);
       }
+
+
+      //- invert rows
+      float[] tmp_data = new float[grid_size];
+      int[] lens = ((GriddedSet)space_set).getLengths();
+      int cnt = 0;
+      for ( int mm = 0; mm < lens[1]; mm++) {
+        int start = (mm+1)*lens[0] - 1;
+        for ( int nn = 0; nn < lens[0]; nn++) {
+          tmp_data[cnt++] = data[j][start--];
+        }
+      }
+      System.arraycopy(tmp_data, 0, data[j], 0, grid_size);
+      tmp_data = null;
+
+
+
       for (int k=0; k<grid_size; k++) {
         if (data[j][k] > 0.5e35) data[j][k] = Float.NaN;
       }
@@ -521,6 +541,8 @@ public class Vis5DForm extends Form implements FormFileInformer {
 
     // create a Display and add it to panel
     DisplayImpl display = new DisplayImplJ3D("image display");
+    GraphicsModeControl mode = display.getGraphicsModeControl();
+    mode.setScaleEnable(true);
     display_panel.add(display.getComponent());
 
     // extract RealType components from vis5d_type and use
