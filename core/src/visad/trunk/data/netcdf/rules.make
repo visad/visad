@@ -10,7 +10,11 @@ classes:	FORCE
 
 test:		all
 
-javadocs:	$(TOP_JAVADOCS)
+javadocs:	FORCE
+	@case "$(JAVASRCS)" in \
+	    '') $(MAKE) $(TOP_JAVADOCS) JAVASRCS=`ls *.java` ;; \
+	    *) $(MAKE) $(TOP_JAVADOCS) ;; \
+	esac
 
 $(TOP_JAVADOCS):	$(JAVASRCS)
 	$(JAVADOC) $(PACKAGE)
