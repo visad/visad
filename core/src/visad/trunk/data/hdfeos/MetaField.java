@@ -35,11 +35,14 @@ import visad.FieldImpl;
 import visad.TupleType;
 import visad.Tuple;
 import visad.DataImpl;
+import visad.Data;
 import visad.GriddedSet;
 import visad.Gridded1DSet;
 import visad.TypeException;
 import visad.VisADException;
 import visad.RealTupleType;
+import visad.FlatField;
+import visad.data.FileFlatField;
 
 
 class MetaField extends FileData  {
@@ -147,8 +150,9 @@ class MetaField extends FileData  {
     return this.leaf;
   }
 
-  public Set getVisADSet() throws VisADException {
-
+  public Set getVisADSet() 
+         throws VisADException 
+  {
     if ( this.VisADset != null ) {
       return this.VisADset;
     }
@@ -158,23 +162,25 @@ class MetaField extends FileData  {
     } 
   }
 
-  static MathType getVisADMathType( MetaField link ) throws VisADException { 
+  static MathType getVisADMathType( MetaField link ) 
+         throws VisADException 
+  { 
 
       int n_next = link.getNextSize();
 
-      if ( n_next == 0 ) {
- 
+      if ( n_next == 0 ) 
+      {
         MathType M_type = link.getLeaf().getVisADMathType();
 
         return M_type;
       }
-      else { 
-
+      else 
+      { 
         MathType D_type = link.getBranch().getVisADMathType();
         MathType[] T_type = new MathType[ n_next ];
 
-        for ( int ii = 0; ii < n_next; ii++ ) {
- 
+        for ( int ii = 0; ii < n_next; ii++ ) 
+        {
           T_type[ii] = getVisADMathType( link.getNext(ii) );
         }
 
@@ -183,18 +189,19 @@ class MetaField extends FileData  {
         MathType F_type = (MathType) new FunctionType( D_type, R_type ); 
    
         return F_type;
-
       }
   }
 
-  public MathType getVisADMathType() throws VisADException {
-
+  public MathType getVisADMathType() 
+         throws VisADException 
+  {
      MathType M_type = MetaField.getVisADMathType( this );
      return M_type;
   }
 
-  public DataImpl getVisADDataObject( IndexSet i_set ) throws VisADException, RemoteException {
-
+  public DataImpl getVisADDataObject( IndexSet i_set ) 
+         throws VisADException, RemoteException 
+  {
      MathType M_type = MetaField.getVisADMathType( this );
      DataImpl data = MetaField.getVisADDataObject( null, M_type, this);
      return data;
@@ -209,15 +216,14 @@ class MetaField extends FileData  {
      FunctionType F_type;
      TupleType R_type;
 
-     if ( n_next == 0 ) {
-
+     if ( n_next == 0 ) 
+     {
        DataImpl datum = link.getLeaf().getAdaptedVisADDataObject( i_set );
- 
+
        return datum;
-
      }
-     else {
-
+     else 
+     {
        Set domainSet = link.getVisADSet();
        size = domainSet.getLength();
        F_type = (FunctionType) M_type;
@@ -227,9 +233,8 @@ class MetaField extends FileData  {
 
        DataImpl[] range = new DataImpl[ n_next ];
 
-
-       for ( int ii = 0; ii < size; ii++ ) {
-
+       for ( int ii = 0; ii < size; ii++ ) 
+       {
          NamedDimension n_dim = link.domain.getDimSet().getElement(0);
 
          IndexSet idx = new IndexSet( n_dim, ii, i_set );
@@ -241,13 +246,11 @@ class MetaField extends FileData  {
          }
 
          Tuple r_tuple = new Tuple( R_type, range, false );
-
-         F_func.setSample( ii, r_tuple );
-
+ 
+         F_func.setSample( ii, r_tuple, false );
        }
 
          return (DataImpl) F_func;
-
      }
 
   }

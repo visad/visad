@@ -37,7 +37,7 @@ import visad.RealTupleType;
 
   class MetaDomainGen extends MetaDomain {
 
-    private int struct_id;
+    private EosStruct struct;
 
     final static int HYBRID = 0;         // product of next two
     final static int FACTORED = 1;       // aligned with R^N
@@ -57,11 +57,11 @@ import visad.RealTupleType;
 
     private MathType M_type = null;
 
-    public MetaDomainGen( int struct_id ) {
+    public MetaDomainGen( EosStruct struct ) {
 
       super();
 
-      this.struct_id = struct_id;
+      this.struct = struct;
       dimSet = new DimensionSet();
       varSet = new VariableSet();
     }
@@ -194,7 +194,7 @@ import visad.RealTupleType;
           float[][] samples1D = new float[ n_domVars ][ n_samples ];
 
 
-          ReadSwathGrid.SWreadfield( struct_id, R_name, start1, stride1, edge1, num_type, samples1D[0] );
+          struct.readData( R_name, start1, stride1, edge1, num_type, samples1D[0] );
 
           R_types[0] = new RealType( R_name, null, null );
           VisADset = new Gridded1DSet( R_types[0], samples1D, lengths[0] );
@@ -244,7 +244,7 @@ import visad.RealTupleType;
                 cnt = cnt*edge[ d_idx ];
               }
 
-             ReadSwathGrid.SWreadfield( struct_id, R_name, start, stride, edge, num_type, samples[v_idx] );
+             struct.readData( R_name, start, stride, edge, num_type, samples[v_idx] );
 
              start = null;
              stride = null;

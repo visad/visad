@@ -220,7 +220,7 @@ public class EosSwath extends EosStruct {
 
  } /**-  end EosSwath constuctor  - - - - - - - - - - - - -*/
 
-  public int getSwathId() {
+  public int getStructId() {
      return swath_id;
   }
 
@@ -232,7 +232,13 @@ public class EosSwath extends EosStruct {
     return GV_shapeSet;
   }
 
-  private void makeVariables( String fieldList, String f_type )  {
+  private void makeVariables( String fieldList, String f_type ) 
+               throws HdfeosException
+  {
+
+      int[] rank = new int[ 1 ];
+      int[] type = new int[ 1 ];
+      int[] lengths = new int[ 10 ];
 
       NamedDimension n_dim;
       int cnt;
@@ -250,15 +256,7 @@ public class EosSwath extends EosStruct {
 
           String[] dim_list = {"empty"};
 
-          int[] stringSize = new int[1];
-
-          int n_dims = Library.Lib.SWfdims( swath_id, f_type, field, stringSize ); 
-
-          int[] rank = new int[ 1 ];
-          int[] lengths = new int[ n_dims ];
-          int[] type = new int[ 1 ];
-
-          int stat = Library.Lib.SWfieldinfo( swath_id, field, stringSize[0], dim_list, rank, lengths, type );
+          int stat = Library.Lib.SWfieldinfo( swath_id, field, dim_list, rank, lengths, type );
 
           StringTokenizer dimListElements = new StringTokenizer( dim_list[0], ",", false );
 
@@ -298,5 +296,20 @@ public class EosSwath extends EosStruct {
           }
    
   }
+
+  public void readData( String field, int[] start, int[] stride,
+                                      int[] edge, int type, float[] data )
+    throws HdfeosException
+  {
+     ReadSwathGrid.readData( this, field, start, stride, edge, type, data);
+  }
+
+  public void readData( String field, int[] start, int[] stride,
+                                      int[] edge, int type, double[] data )
+    throws HdfeosException
+  {
+     ReadSwathGrid.readData( this, field, start, stride, edge, type, data);
+  }
+
 
 }

@@ -10,7 +10,6 @@ Java_visad_data_hdfeos_hdfeosc_HdfeosLib_SWfieldinfo
  jobject obj, 
  jint swath_id, 
  jstring filename,
- jint strbufsize,
  jstring D_List, 
  jintArray rank, 
  jintArray lengths,
@@ -22,24 +21,22 @@ Java_visad_data_hdfeos_hdfeosc_HdfeosLib_SWfieldinfo
   jint *j_lengths;
   jboolean bb;
   jstring j_new;
-  char *c_ptr;
+  char c_array[1024];
   char *f_name;
   char *name;
   int32 ii;
 
 
      f_name = (char *) (*env)->GetStringUTFChars( env, filename, 0);
-     c_ptr = (char *)malloc((size_t)strbufsize+1);
      
      j_rank = (jint *) (*env)->GetIntArrayElements( env, rank, &bb); 
      j_type = (jint *) (*env)->GetIntArrayElements( env, type, &bb); 
      j_lengths = (jint *) (*env)->GetIntArrayElements( env, lengths, &bb); 
 
      status = SWfieldinfo( (int32)swath_id, (char *)f_name, (int32 *)j_rank,
-                           (int32 *)j_lengths, (int32 *)j_type, (char *)c_ptr );
+                           (int32 *)j_lengths, (int32 *)j_type, (char *)c_array );
 
-       j_new = (*env)->NewStringUTF(env, c_ptr );
-       free( c_ptr );
+       j_new = (*env)->NewStringUTF(env, c_array );
       
        (*env)->SetObjectArrayElement(env, D_List, 0, (jobject)j_new);
 

@@ -40,7 +40,7 @@ public class HdfeosDefault extends Hdfeos {
   }
      
   public DataImpl open( String file_path ) 
-    throws VisADException, RemoteException 
+         throws VisADException, RemoteException 
   {
 
     DataImpl data = null;
@@ -54,19 +54,19 @@ public class HdfeosDefault extends Hdfeos {
   }
 
   public DataImpl open( URL url ) 
-    throws VisADException 
+         throws VisADException 
   {
     throw new UnimplementedException( "HdfeosDefault.open( URL url )" );
   }
 
-  public void add( String id, Data data, boolean replace ) throws
-     BadFormException {
- 
+  public void add( String id, Data data, boolean replace ) 
+              throws BadFormException
+  {
     throw new BadFormException( "HdfeosDefault.add" );
   }
 
   public void save( String id, Data data, boolean replace )
-    throws BadFormException, RemoteException, VisADException 
+         throws BadFormException, RemoteException, VisADException 
   {
     throw new UnimplementedException( "HdfeosDefault.save" );
   }
@@ -77,7 +77,8 @@ public class HdfeosDefault extends Hdfeos {
   }
 
 
-  MathType getMathType( HdfeosFile file ) throws VisADException
+  MathType getMathType( HdfeosFile file ) 
+           throws VisADException
   {
 
     MathType M_type = null;
@@ -123,7 +124,7 @@ public class HdfeosDefault extends Hdfeos {
   }
 
   DataImpl getDataObject( HdfeosFile file ) 
-    throws VisADException, RemoteException 
+           throws VisADException, RemoteException 
   {
 
     DataImpl data = null;
@@ -177,6 +178,7 @@ public class HdfeosDefault extends Hdfeos {
   }
 
    FileDataSet getGridData( EosGrid Grid ) 
+               throws HdfeosException
    {
 
     Shape S_obj;
@@ -192,14 +194,13 @@ public class HdfeosDefault extends Hdfeos {
     int D_size;
     int idx;
 
-    int grid_id = Grid.getGridId();
 
     FileDataSet file_data = new FileDataSet();
     ShapeSet DV_shapeSet = Grid.getShapeSet();
     GctpMap gridMap = Grid.getMap();
 
-    for ( Enumeration e_out = DV_shapeSet.getEnum(); e_out.hasMoreElements(); ) {
-
+    for ( Enumeration e_out = DV_shapeSet.getEnum(); e_out.hasMoreElements(); ) 
+    {
 
       S_obj = (Shape)e_out.nextElement();     // this particular data Variable group
 
@@ -207,6 +208,14 @@ public class HdfeosDefault extends Hdfeos {
 
       D_size = D_set.getSize();     // # of dimensions in the set
 
+      if ( D_size == 0 ) 
+      {
+         throw new HdfeosException(" number of dimension equals zero ");
+      }
+      if ( D_size == 1 )  // coordinate variable
+      {
+         continue;
+      }
 
       F_dims = new DimensionSet();
       G_dims = new DimensionSet();
@@ -225,12 +234,13 @@ public class HdfeosDefault extends Hdfeos {
         }
       }
 
-      if ( G_dims.getSize() != 2 ) {
-         /* throw exception */
+      if ( G_dims.getSize() > 2 ) 
+      {
+        throw new HdfeosException(" number of geo-dimensions > 2 ");
       }
-      else {
-
-        FF_domain = new MetaDomainMap( grid_id, gridMap );
+      else 
+      {
+        FF_domain = new MetaDomainMap( Grid, gridMap );
       }
 
       System.out.println( "< < < < < < < < < < < < < < < < < < < ");
@@ -239,7 +249,7 @@ public class HdfeosDefault extends Hdfeos {
 
       VariableSet range_var = S_obj.getVariables();
       System.out.println( range_var.toString() );
-      MetaFlatField m_FField = new MetaFlatField( grid_id, FF_domain, range_var );
+      MetaFlatField m_FField = new MetaFlatField( Grid, FF_domain, range_var );
 
       if ( F_dims.getSize() == 0 ) {
 
@@ -260,7 +270,7 @@ public class HdfeosDefault extends Hdfeos {
            if ( n_vars == 1 ) {   // coordinate Variable, factorable dimension
 
              VariableSet Vset = c_var.getVariables();
-             m_domain = new MetaDomainGen( grid_id );
+             m_domain = new MetaDomainGen( Grid );
              m_domain.addDim( dim );
              m_domain.addVar( Vset.getElement( 0 ) );
              allm_domain.addElement( m_domain );
@@ -272,7 +282,7 @@ public class HdfeosDefault extends Hdfeos {
         }
         else {   // no coordinate Variable present
 
-          m_domainS = new MetaDomainSimple( grid_id );
+          m_domainS = new MetaDomainSimple( Grid );
           m_domainS.addDim( dim );
          // allm_domain.addElement( m_domain );
         }
@@ -321,7 +331,6 @@ public class HdfeosDefault extends Hdfeos {
     int idx;
     Enumeration e;
 
-    int swath_id = Swath.getSwathId();
     ShapeSet DV_shapeSet = Swath.getDV_shapeSet();
     ShapeSet GV_shapeSet = Swath.getGV_shapeSet();
 
@@ -387,7 +396,7 @@ public class HdfeosDefault extends Hdfeos {
       }
       else if ( g_size == 2 )
       {
-        FF_domain = new MetaDomainGen( swath_id );
+        FF_domain = new MetaDomainGen( Swath );
         FF_domain.addDim( G_dims.getElement(0) );
         FF_domain.addDim( G_dims.getElement(1) );
         FF_domain.addVar( Latitude );
@@ -407,7 +416,7 @@ public class HdfeosDefault extends Hdfeos {
 
       VariableSet range_var = S_obj.getVariables();
 
-      MetaFlatField m_FField = new MetaFlatField( swath_id, FF_domain, range_var );
+      MetaFlatField m_FField = new MetaFlatField( Swath, FF_domain, range_var );
 
 
       if ( F_dims.getSize() == 0 ) 
@@ -429,7 +438,7 @@ public class HdfeosDefault extends Hdfeos {
              if ( n_vars == 1 ) {   // coordinate Variable, factorable dimension
 
                VariableSet Vset = c_var.getVariables();
-               m_domain = new MetaDomainGen( swath_id );
+               m_domain = new MetaDomainGen( Swath );
                m_domain.addDim( dim );
                m_domain.addVar( Vset.getElement( 0 ) );
                allm_domain.addElement( m_domain );
@@ -441,7 +450,7 @@ public class HdfeosDefault extends Hdfeos {
           }
           else {   // no coordinate Variable present
 
-            m_domainS = new MetaDomainSimple( swath_id );
+            m_domainS = new MetaDomainSimple( Swath );
             m_domainS.addDim( dim );
            // allm_domain.addElement( m_domain );
           }

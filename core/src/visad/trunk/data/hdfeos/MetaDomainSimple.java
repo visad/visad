@@ -39,7 +39,7 @@ import visad.RealTupleType;
 
   class MetaDomainSimple {
 
-    private int struct_id;
+    private EosStruct struct;
 
     private MathType M_type = null;
 
@@ -48,9 +48,9 @@ import visad.RealTupleType;
     - - - - - - - - - - - - - - - - - -  */
     private DimensionSet dimSet;  
 
-    public MetaDomainSimple( int struct_id ) 
+    public MetaDomainSimple( EosStruct struct ) 
     {
-      this.struct_id = struct_id;
+      this.struct = struct;
       dimSet = new DimensionSet();
     }
 
@@ -145,7 +145,6 @@ import visad.RealTupleType;
      
         M_type = (MathType) new RealTupleType( R_types );
         this.M_type = M_type;
-
       }
         return M_type;
     }

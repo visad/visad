@@ -38,7 +38,7 @@ import visad.VisADException;
 
 class MetaFlatField extends FileData  {
 
-   int struct_id;
+   EosStruct struct;
    int n_fields;
    MetaDomain domainSet;
    VariableSet range_vars;
@@ -46,12 +46,12 @@ class MetaFlatField extends FileData  {
 
    MathType M_type = null;
 
-  public MetaFlatField( int struct_id, MetaDomain m_dom, VariableSet range_vars )  
+  public MetaFlatField( EosStruct struct, MetaDomain m_dom, VariableSet range_vars )  
   {
 
     super();
 
-    this.struct_id = struct_id;
+    this.struct = struct;
     this.domainSet = m_dom;
     this.range_vars = range_vars;
 
@@ -59,7 +59,7 @@ class MetaFlatField extends FileData  {
   
     for ( int ii = 0; ii < n_fields; ii++ ) {
 
-       MetaFlatFieldSimple obj = new MetaFlatFieldSimple( struct_id, m_dom, 
+       MetaFlatFieldSimple obj = new MetaFlatFieldSimple( struct, m_dom, 
                                  range_vars.getElement(ii) );
 
        this.m_simple.addElement(obj);

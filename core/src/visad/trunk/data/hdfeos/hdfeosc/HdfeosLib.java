@@ -52,9 +52,9 @@ public class HdfeosLib  {
 
    public native int GDnentries( int grid_id, int HDFE_mode, int[] strSize );
 
-   public native int SWfieldinfo( int swath_id, String name, int size, String[] list, int[] rank, int[] length, int[] type );
+   public native int SWfieldinfo( int swath_id, String name, String[] list, int[] rank, int[] length, int[] type );
 
-   public native int GDfieldinfo( int grid_id, String name, int size, String[] list, int[] rank, int[] length, int[] type );
+   public native int GDfieldinfo( int grid_id, String name, String[] list, int[] rank, int[] length, int[] type );
 
    public native int SWfdims( int swath_id, String type, String name, int[] strSize );
 
@@ -67,4 +67,13 @@ public class HdfeosLib  {
    public native int SWreadfield( int swath_id, String name, int[] start, int[] stride, int[] edge, int[] data );
 
    public native int SWreadfield( int swath_id, String name, int[] start, int[] stride, int[] edge, short[] data );
+
+   public native int GDreadfield( int swath_id, String name, int[] start, int[] stride, int[] edge, float[] data );
+
+   public native int GDreadfield( int swath_id, String name, int[] start, int[] stride, int[] edge, double[] data );
+
+   public native int GDreadfield( int swath_id, String name, int[] start, int[] stride, int[] edge, int[] data );
+
+   public native int GDreadfield( int swath_id, String name, int[] start, int[] stride, int[] edge, short[] data );
+
 }

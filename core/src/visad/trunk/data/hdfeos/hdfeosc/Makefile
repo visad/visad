@@ -21,7 +21,7 @@ OBJECTS = SWopenImp.o \
 	GDinqdimsImp.o GDinqfieldsImp.o GDfdimsImp.o \
 	GDfieldinfoImp.o GDopenImp.o GDinqgridImp.o \
 	GDprojinfoImp.o GDgridinfoImp.o GDinqattrsImp.o \
-	EHchkfidImp.o EHcloseImp.o
+	EHchkfidImp.o EHcloseImp.o GDreadfieldImp.o
 
 default:
 	@echo " use:  'make solaris' or 'make irix' "

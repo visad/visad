@@ -27,6 +27,7 @@ package visad.data.hdfeos;
 import java.util.*;
 import java.rmi.*;
 import visad.*;
+import visad.data.FileFlatField;
 
   public class FileDataSet 
   {
@@ -92,10 +93,10 @@ import visad.*;
          f_data = getElement(ii);
          data[ii] = f_data.getAdaptedVisADDataObject( i_set );
        }
-       
+
        TupleType T_type = (TupleType) getVisADMathType();
 
-       Tuple tuple = new Tuple( T_type, data );
+       Tuple tuple = new Tuple( T_type, data, false );
 
        return tuple;
     }

@@ -42,7 +42,7 @@ import visad.RealTupleType;
 
 class MetaFlatFieldTuple extends FileData  {
 
-   int struct_id;
+   EosStruct struct;
    MetaDomain domainSet;
    Variable range_var;
 
@@ -59,11 +59,11 @@ class MetaFlatFieldTuple extends FileData  {
    int[] edge;
    int[] stride;
 
-  public MetaFlatFieldTuple( int struct_id, MetaDomain m_dom, VariableSet range_vars )  
+  public MetaFlatFieldTuple( EosStruct struct, MetaDomain m_dom, VariableSet range_vars )  
   {
     super();
 
-    this.struct_id = struct_id;
+    this.struct = struct;
     this.domainSet = m_dom;
     this.range_var = range_var;
    
@@ -141,7 +141,7 @@ class MetaFlatFieldTuple extends FileData  {
 
     for ( ii = 0; ii < n_fields; ii++ ) {
 
-      ReadSwathGrid.SWreadfield( struct_id, F_name[ii], start, stride, edge, num_type[ii], data[ii] );
+      struct.readData( F_name[ii], start, stride, edge, num_type[ii], data[ii] );
     }
 
     F_field.setSamples( data );

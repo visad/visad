@@ -75,6 +75,7 @@ public class EosGrid extends EosStruct {
 
         n_dims = Library.Lib.GDinqdims( grid_id, stringSize[0], dimensionList, lengths );
 
+
         if ( n_dims <= 0 ) 
         {
            System.out.println(" error: no dimensions ");
@@ -103,22 +104,21 @@ public class EosGrid extends EosStruct {
 
        int n_flds = Library.Lib.GDnentries( grid_id, D_FIELDS, stringSize );
 
-       if ( n_flds <= 0 )  {
-         /* throw exception */
-            System.out.println(" no Data Fields ");
+       if ( n_flds <= 0 ) 
+       {
+         throw new HdfeosException(" no data fields  ");
        }
-            System.out.println(" # of Data Fields: "+n_flds );
 
        String[] D_List = {"empty"};
 
-         int[] dumA = new int[ n_flds ];
-         int[] dumB = new int[ n_flds ];
-            System.out.println("size= "+stringSize[0]);
+       int[] dumA = new int[ n_flds ];
+       int[] dumB = new int[ n_flds ];
 
        n_flds = Library.Lib.GDinqfields( grid_id, stringSize[0], D_List, dumA, dumB);
-
-       if ( n_flds < 0 ) {
-         /* throw new VisADException("no data fields in grid # "+grid_id); */
+      
+       if ( n_flds < 0 ) 
+       {
+          throw new HdfeosException("no data fields in grid struct: "+grid_id);
        }
 
        this.makeVariables( D_List[0] );
@@ -171,7 +171,7 @@ public class EosGrid extends EosStruct {
  } /**-  end EosGrid constuctor  - - - - - - - - - - - - -*/
 
 
-  public int getGridId() {
+  public int getStructId() {
      return grid_id;
   }
 
@@ -183,7 +183,13 @@ public class EosGrid extends EosStruct {
     return DV_shapeSet;
   }
 
-  private void makeVariables( String fieldList )  {
+  private void makeVariables( String fieldList ) 
+               throws HdfeosException
+  {
+
+      int[] rank = new int[ 1 ];
+      int[] type = new int[ 1 ];
+      int[] lengths = new int[ 10 ];
 
       NamedDimension n_dim;
       int cnt;
@@ -197,27 +203,14 @@ public class EosGrid extends EosStruct {
 
           String field = (String)listElements.nextElement();
 
-             System.out.println(" field: "+field);
-
           String[] dim_list = {"empty"};
 
-          int[] stringSize = new int[1];
+          int stat = Library.Lib.GDfieldinfo( grid_id, field, dim_list, rank, lengths, type );
 
-          int n_dims = Library.Lib.GDfdims( grid_id, field, stringSize ); 
-
-            if ( n_dims <= 0 ) {
-               System.out.println(" no dimensions for Variable:"+field );
-            }
-
-          int[] rank = new int[ 1 ];
-          int[] lengths = new int[ n_dims ];
-          int[] type = new int[ 1 ];
-
-          int stat = Library.Lib.GDfieldinfo( grid_id, field, stringSize[0], dim_list, rank, lengths, type );
- 
-            if ( stat < 0 ) {
-              System.out.println(" GDfieldinfo, stat < 1 for: "+field );
-            }
+          if ( stat < 0 ) 
+          {
+            throw new HdfeosException(" GDfieldinfo, stat < 1 for: "+field );
+          }
 
           StringTokenizer dimListElements = new StringTokenizer( dim_list[0], ",", false );
 
@@ -256,6 +249,20 @@ public class EosGrid extends EosStruct {
 
           DV_Set = varSet;
    
+  }
+
+  public void readData( String field, int[] start, int[] stride, 
+                                      int[] edge, int type, float[] data )
+    throws HdfeosException
+  {
+     ReadSwathGrid.readData( this, field, start, stride, edge, type, data);
+  }
+
+  public void readData( String field, int[] start, int[] stride, 
+                                      int[] edge, int type, double[] data )
+    throws HdfeosException
+  {
+     ReadSwathGrid.readData( this, field, start, stride, edge, type, data);
   }
 
 }

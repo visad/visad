@@ -30,11 +30,11 @@ import visad.Set;
 import visad.MathType;
 import visad.VisADException;
 
-  abstract class MetaDomain {
+  abstract class MetaDomain 
+  {
 
     public abstract Set getVisADSet( IndexSet i_set ) throws VisADException;
 
     public abstract MathType getVisADMathType() throws VisADException;
       
-
   }

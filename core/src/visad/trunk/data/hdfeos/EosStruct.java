@@ -30,4 +30,13 @@ public abstract class EosStruct {
   {
 
   }
+
+  public abstract int getStructId();
+
+  public abstract void readData( String s, int[] a, int[] b, int[] c, int d, float[] f )
+         throws HdfeosException; 
+
+  public abstract void readData( String s, int[] a, int[] b, int[] c, int d, double[] f )
+         throws HdfeosException; 
+  
 }

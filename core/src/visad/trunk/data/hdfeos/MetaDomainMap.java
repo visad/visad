@@ -34,7 +34,7 @@ import visad.VisADException;
 
   class MetaDomainMap extends MetaDomain {
 
-    private int struct_id;
+    private EosStruct struct;
 
     final static int FLOAT = 5;
     final static int DOUBLE = 6;
@@ -44,11 +44,11 @@ import visad.VisADException;
 
     GctpMap gridMap;
 
-    public MetaDomainMap( int struct_id, GctpMap gridMap  ) {
+    public MetaDomainMap( EosStruct struct, GctpMap gridMap  ) {
 
       super();
 
-      this.struct_id = struct_id;
+      this.struct = struct;
       this.gridMap = gridMap;
     }
 

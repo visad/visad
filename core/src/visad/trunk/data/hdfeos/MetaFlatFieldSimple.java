@@ -41,7 +41,7 @@ import visad.TypeException;
 
 class MetaFlatFieldSimple extends FileData {
 
-   int struct_id;
+   EosStruct struct;
    MetaDomain domainSet;
    Variable range_var;
 
@@ -57,12 +57,12 @@ class MetaFlatFieldSimple extends FileData {
    int[] edge;
    int[] stride;
 
-  public MetaFlatFieldSimple( int struct_id, MetaDomain m_dom, Variable range_var )  
+  public MetaFlatFieldSimple( EosStruct struct, MetaDomain m_dom, Variable range_var )  
   {
 
     super();
 
-    this.struct_id = struct_id;
+    this.struct = struct;
     this.domainSet = m_dom;
     this.range_var = range_var;
 
@@ -76,16 +76,14 @@ class MetaFlatFieldSimple extends FileData {
     edge = new int[ v_rank ];
     stride = new int[ v_rank ];
 
-    for ( int ii = 0; ii < v_rank; ii++ ) {
-
+    for ( int ii = 0; ii < v_rank; ii++ ) 
+    {
       n_dim = range_var.getDim(ii);
 
       start[ii] = 0;
       edge[ii] = n_dim.getLength();
       stride[ii] = 1;
-
     }
-
   }
 
   public DataImpl getVisADDataObject( IndexSet i_set ) throws VisADException, RemoteException
@@ -101,34 +99,34 @@ class MetaFlatFieldSimple extends FileData {
     int stat;
     int samples = 1;
 
-    if ( i_set != null ) {
-
+    if ( i_set != null ) 
+    {
       for ( ii = 0; ii < i_set.getSize(); ii++ ) {
 
         n_dim = i_set.getDim(ii);
 
-        if ( d_set.isMemberOf( n_dim ) ) {
-          
+        if ( d_set.isMemberOf( n_dim ) ) 
+        {
           start[ii] = i_set.getIndex( n_dim );
           edge[ii] = 1;
         }
-        else {
-
+        else 
+        {
           throw new HdfeosException(" named dimension incompatible ");
         }
       }
-
     }
 
-    for ( ii = 0; ii < v_rank; ii++ ) {
-
+    for ( ii = 0; ii < v_rank; ii++ ) 
+    {
       samples = samples*edge[ii];
     }
 
-
     float[][] data = new float[ 1 ][ samples ];
 
-    ReadSwathGrid.SWreadfield( struct_id, F_name, start, stride, edge, num_type, data[0] );
+    struct.readData( F_name, start, stride, edge, num_type, data[0] );
+
+    // struct.readData( F_name, start, stride, edge, num_type, data[0]);
 
     F_field.setSamples( data );
 
@@ -138,7 +136,6 @@ class MetaFlatFieldSimple extends FileData {
 
   public MathType getVisADMathType() throws VisADException 
   {
-
     MathType M_type = null;
     RealType R_type = null;
 

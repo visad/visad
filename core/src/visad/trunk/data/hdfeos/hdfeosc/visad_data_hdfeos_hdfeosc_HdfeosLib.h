@@ -42,10 +42,10 @@ JNIEXPORT jint JNICALL Java_visad_data_hdfeos_hdfeosc_HdfeosLib_GDfdims
 /*
  * Class:     visad_data_hdfeos_hdfeosc_HdfeosLib
  * Method:    GDfieldinfo
- * Signature: (ILjava/lang/String;I[Ljava/lang/String;[I[I[I)I
+ * Signature: (ILjava/lang/String;[Ljava/lang/String;[I[I[I)I
  */
 JNIEXPORT jint JNICALL Java_visad_data_hdfeos_hdfeosc_HdfeosLib_GDfieldinfo
-  (JNIEnv *, jobject, jint, jstring, jint, jobjectArray, jintArray, jintArray, jintArray);
+  (JNIEnv *, jobject, jint, jstring, jobjectArray, jintArray, jintArray, jintArray);
 
 /*
  * Class:     visad_data_hdfeos_hdfeosc_HdfeosLib
@@ -113,6 +113,38 @@ JNIEXPORT jint JNICALL Java_visad_data_hdfeos_hdfeosc_HdfeosLib_GDprojinfo
 
 /*
  * Class:     visad_data_hdfeos_hdfeosc_HdfeosLib
+ * Method:    GDreadfield
+ * Signature: (ILjava/lang/String;[I[I[I[D)I
+ */
+JNIEXPORT jint JNICALL Java_visad_data_hdfeos_hdfeosc_HdfeosLib_GDreadfield__ILjava_lang_String_2_3I_3I_3I_3D
+  (JNIEnv *, jobject, jint, jstring, jintArray, jintArray, jintArray, jdoubleArray);
+
+/*
+ * Class:     visad_data_hdfeos_hdfeosc_HdfeosLib
+ * Method:    GDreadfield
+ * Signature: (ILjava/lang/String;[I[I[I[F)I
+ */
+JNIEXPORT jint JNICALL Java_visad_data_hdfeos_hdfeosc_HdfeosLib_GDreadfield__ILjava_lang_String_2_3I_3I_3I_3F
+  (JNIEnv *, jobject, jint, jstring, jintArray, jintArray, jintArray, jfloatArray);
+
+/*
+ * Class:     visad_data_hdfeos_hdfeosc_HdfeosLib
+ * Method:    GDreadfield
+ * Signature: (ILjava/lang/String;[I[I[I[I)I
+ */
+JNIEXPORT jint JNICALL Java_visad_data_hdfeos_hdfeosc_HdfeosLib_GDreadfield__ILjava_lang_String_2_3I_3I_3I_3I
+  (JNIEnv *, jobject, jint, jstring, jintArray, jintArray, jintArray, jintArray);
+
+/*
+ * Class:     visad_data_hdfeos_hdfeosc_HdfeosLib
+ * Method:    GDreadfield
+ * Signature: (ILjava/lang/String;[I[I[I[S)I
+ */
+JNIEXPORT jint JNICALL Java_visad_data_hdfeos_hdfeosc_HdfeosLib_GDreadfield__ILjava_lang_String_2_3I_3I_3I_3S
+  (JNIEnv *, jobject, jint, jstring, jintArray, jintArray, jintArray, jshortArray);
+
+/*
+ * Class:     visad_data_hdfeos_hdfeosc_HdfeosLib
  * Method:    SWattach
  * Signature: (ILjava/lang/String;)I
  */
@@ -130,10 +162,10 @@ JNIEXPORT jint JNICALL Java_visad_data_hdfeos_hdfeosc_HdfeosLib_SWfdims
 /*
  * Class:     visad_data_hdfeos_hdfeosc_HdfeosLib
  * Method:    SWfieldinfo
- * Signature: (ILjava/lang/String;I[Ljava/lang/String;[I[I[I)I
+ * Signature: (ILjava/lang/String;[Ljava/lang/String;[I[I[I)I
  */
 JNIEXPORT jint JNICALL Java_visad_data_hdfeos_hdfeosc_HdfeosLib_SWfieldinfo
-  (JNIEnv *, jobject, jint, jstring, jint, jobjectArray, jintArray, jintArray, jintArray);
+  (JNIEnv *, jobject, jint, jstring, jobjectArray, jintArray, jintArray, jintArray);
 
 /*
  * Class:     visad_data_hdfeos_hdfeosc_HdfeosLib

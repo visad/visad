@@ -4,7 +4,8 @@
 #include "mfhdf.h"
 #include "HdfEosDef.h"
 
-JNIEXPORT jint JNICALL Java_visad_data_hdfeos_hdfeosNative_hdfeosLib_SWreadfield__ILjava_lang_String_2_3I_3I_3I_3F
+JNIEXPORT jint JNICALL 
+Java_visad_data_hdfeos_hdfeosc_HdfeosLib_GDreadfield__ILjava_lang_String_2_3I_3I_3I_3F
 (JNIEnv *env, 
  jobject obj, 
  jint swath_id, 
@@ -29,7 +30,7 @@ JNIEXPORT jint JNICALL Java_visad_data_hdfeos_hdfeosNative_hdfeosLib_SWreadfield
      j_edge = (jint *) (*env)->GetIntArrayElements( env, edge, &bb); 
      j_data = (jfloat *) (*env)->GetFloatArrayElements( env, data, &bb);
 
-     status = SWreadfield( (int32)swath_id, (char *)f_name, (int32 *)j_start,
+     status = GDreadfield( (int32)swath_id, (char *)f_name, (int32 *)j_start,
                            (int32 *)j_stride, (int32 *)j_edge, (float *)j_data );
 
 
@@ -43,7 +44,9 @@ JNIEXPORT jint JNICALL Java_visad_data_hdfeos_hdfeosNative_hdfeosLib_SWreadfield
    return (jint) status;
   }
 
-JNIEXPORT jint JNICALL Java_visad_data_hdfeos_hdfeosNative_hdfeosLib_SWreadfield__ILjava_lang_String_2_3I_3I_3I_3D (JNIEnv *env,
+JNIEXPORT jint JNICALL 
+Java_visad_data_hdfeos_hdfeosc_HdfeosLib_GDreadfield__ILjava_lang_String_2_3I_3I_3I_3D
+(JNIEnv *env,
  jobject obj,
  jint swath_id,
  jstring fieldname,
@@ -68,7 +71,7 @@ JNIEXPORT jint JNICALL Java_visad_data_hdfeos_hdfeosNative_hdfeosLib_SWreadfield
      j_edge = (jint *) (*env)->GetIntArrayElements( env, edge, &bb);
      j_data = (jdouble *) (*env)->GetDoubleArrayElements( env, data, &bb);
 
-     status = SWreadfield( (int32)swath_id, (char *)f_name, (int32 *)j_start,
+     status = GDreadfield( (int32)swath_id, (char *)f_name, (int32 *)j_start,
                            (int32 *)j_stride, (int32 *)j_edge, (double *)j_data );
 
 
@@ -82,7 +85,8 @@ JNIEXPORT jint JNICALL Java_visad_data_hdfeos_hdfeosNative_hdfeosLib_SWreadfield
    return (jint) status;
   }
 
-JNIEXPORT jint JNICALL Java_visad_data_hdfeos_hdfeosNative_hdfeosLib_SWreadfield__ILjava_lang_String_2_3I_3I_3I_3I
+JNIEXPORT jint JNICALL
+Java_visad_data_hdfeos_hdfeosc_HdfeosLib_GDreadfield__ILjava_lang_String_2_3I_3I_3I_3I
 (JNIEnv *env,
  jobject obj,
  jint swath_id,
@@ -108,7 +112,7 @@ JNIEXPORT jint JNICALL Java_visad_data_hdfeos_hdfeosNative_hdfeosLib_SWreadfield
      j_edge = (jint *) (*env)->GetIntArrayElements( env, edge, &bb);
      j_data = (jint *) (*env)->GetIntArrayElements( env, data, &bb);
 
-     status = SWreadfield( (int32)swath_id, (char *)f_name, (int32 *)j_start,
+     status = GDreadfield( (int32)swath_id, (char *)f_name, (int32 *)j_start,
                            (int32 *)j_stride, (int32 *)j_edge, (int *)j_data );
 
 
@@ -122,7 +126,8 @@ JNIEXPORT jint JNICALL Java_visad_data_hdfeos_hdfeosNative_hdfeosLib_SWreadfield
    return (jint) status;
   }
 
-JNIEXPORT jint JNICALL Java_visad_data_hdfeos_hdfeosNative_hdfeosLib_SWreadfield__ILjava_lang_String_2_3I_3I_3I_3S
+JNIEXPORT jint JNICALL
+Java_visad_data_hdfeos_hdfeosc_HdfeosLib_GDreadfield__ILjava_lang_String_2_3I_3I_3I_3S
 (JNIEnv *env,
  jobject obj,
  jint swath_id,
@@ -147,7 +152,7 @@ JNIEXPORT jint JNICALL Java_visad_data_hdfeos_hdfeosNative_hdfeosLib_SWreadfield
      j_edge = (jint *) (*env)->GetIntArrayElements( env, edge, &bb);
      j_data = (jshort *) (*env)->GetShortArrayElements( env, data, &bb);
 
-     status = SWreadfield( (int32)swath_id, (char *)f_name, (int32 *)j_start,
+     status = GDreadfield( (int32)swath_id, (char *)f_name, (int32 *)j_start,
                            (int32 *)j_stride, (int32 *)j_edge, (short *)j_data );
 
 

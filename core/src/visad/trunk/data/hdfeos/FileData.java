@@ -56,6 +56,7 @@ abstract class FileData
      }
      else if ( this instanceof MetaFlatFieldSimple ) 
      {
+        System.out.println("MetaFlatFieldSimple");
         HdfeosAccessor accessor = new HdfeosAccessor( this, i_set );
         
         FileFlatField FF_field = new FileFlatField( (FileAccessor)accessor, c_strategy ); 
@@ -64,6 +65,7 @@ abstract class FileData
      }
      else if ( this instanceof MetaFlatField ) 
      {
+        System.out.println("MetaFlatField");
         FileFlatField[] FF_field = new FileFlatField[ ((MetaFlatField)this).getSize() ];
 
         for ( int ii = 0; ii < ((MetaFlatField)this).getSize(); ii++ ) 
