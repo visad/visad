@@ -70,7 +70,7 @@ showDisplay(display, width=300, height=300, title=, bottom=, top=)
 """
 
 from visad import ScalarMap, Display, DataReferenceImpl, RealTupleType,\
-          Gridded2DSet, DisplayImpl, RealType, RealTuple
+          Gridded2DSet, Gridded3DSet, DisplayImpl, RealType, RealTuple
 from types import StringType
 from visad.ss import BasicSSCell
 from visad.java2d import DisplayImplJ2D
@@ -215,7 +215,7 @@ def makeCube(display):
   display.getGraphicsModeControl().setProjectionPolicy(0)
 
 # return the x,y,z scalar maps for the display
-def getDisplayMaps(display):
+def getDisplayMaps(display, includeShapes=0):
 
   if type(display) == StringType:
     d = BasicSSCell.getSSCellByName(display)
@@ -230,11 +230,12 @@ def getDisplayMaps(display):
     maps = None
     disp = None
 
-  x = y = z = None
+  x = y = z = shape = None
   if maps == None:
     x = RealType.getRealTypeByName("x")
     y = RealType.getRealTypeByName("y")
     z = RealType.getRealTypeByName("z")
+    shape = RealType.getRealTypeByName("shape")
   # if no maps, make them...
   else:
     for m in maps:
@@ -244,8 +245,13 @@ def getDisplayMaps(display):
         y = m.getScalar()
       if m.getDisplayScalar().toString() == "DisplayZAxis":
         z = m.getScalar()
+      if m.getDisplayScalar().toString() == "DisplayShape":
+        shape = m.getScalar()
   
-  return [x,y,z,disp]
+  if includeShapes:
+    return [x,y,z,disp,shape]
+  else:
+    return [x,y,z,disp]
 
 
 # make a 2D or 3D line, return a reference so it can be changed
@@ -389,6 +395,7 @@ def makeMaps(*a):
 
   return maps
 
+
 # quick display of a Display object in a separate JFrame
 # you can set the size and title, if you want...
 def showDisplay(display, width=300, height=300, 
@@ -432,4 +439,18 @@ class myFrame:
     if autoShow:
       self.frame.pack()
       self.frame.show()
+
+class Shape:
+  def __init__(self, points, display, color=None, solid=0):
+    this.x,this.y,this.z,this.disp,this.shape = getDisplayMaps(display, 1)
+
+    # get display maps, if no shape then add one?
+    # make VisADLineArray or VisADQuadArray
+    # set coordinates and vertexCount
+    # etc
+
+  def moveShape(self, coordinates):
+    # self.shapeLoc = visad.RealTuple(self.shape_coord, (coord[0], coord[1], coord[2]))
+    # self.shape_ref.setData(self.shapeLoc)
+    pass
 
