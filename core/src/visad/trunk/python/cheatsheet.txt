@@ -1,6 +1,6 @@
        Quick Reference to VisAD Python Interface Functions
                          November 15, 2001
-                     (update: November 18th, 2002)
+                     (update: January 9th, 2003) 
 
 from JPythonMethods...
 
@@ -46,6 +46,10 @@ saveplot(name, filename)
   Save the Plot into a JPEG file.
 saveplot(display, filename)
   Save a quick graph into a JPEG file.
+
+showAxesScales(display, boolean)
+setAxesScalesFont(maps, font)
+  Things for the axes of graphs.
 
 data = hist(data, (dim, bins))
 data = hist(data, (ranges))
@@ -128,9 +132,17 @@ data = evaluate(data, Real)
 data = evaluate(data, double)
   Evaluate the data at the given point in the domain. 
 
-showAxesScales(display, boolean)
-setAxesScalesFont(maps, font)
-  Things for the axes of graphs.
+int[] = find(data, string, double)
+int[] = find(data, string, data)
+  Return pointers to samples where the data meets the criteria.
+  For example:  b = find(image, "gt", 100) returns a list of
+  points (in b) of where image[k] > 100.
+
+data = mask(data, string, double)
+data = mask(data, string, data)
+  Returns a new data (like an image or grid) of 1.0 at each point
+  where the criteria is met; 0.0 at all other points.  For example:
+  d = mask(image, 'gt', 200) 
 
 dumpTypes(data)
   General-purpose Type and Data information dump
@@ -194,58 +206,111 @@ JamaSingularValueDecomposition = svd(data)
 
 from 'subs.py'.............
 
-makeDisplay(maps)
+disp = makeDisplay(maps)
   create (and return) a VisAD DisplayImpl and add the ScalarMaps, if any
   the VisAD box is resized to about 95% of the window.  Use 3D if
   availble.
 
-makeDisplay3D(maps)
+disp = makeDisplay3D(maps)
   create (and return) a VisAD DisplayImplJ3D and add the ScalarMaps, if any
   the VisAD box is resized to about 95% of the window
   
-makeDisplay2D(maps)"
+disp = makeDisplay2D(maps)"
   create (and return) a VisAD DisplayImplJ2D and add the ScalarMaps, if any
   the VisAD box is resized to about 95% of the window
 
+disp.saveDisplay(filename)
 saveDisplay(display, filename)
   save the display as a JPEG
 
+disp.addData(name, data, constantMaps=None, renderer=None, ref=None)
 addData(name, data, display, constantMaps=None, renderer=None, ref=None)
   add a Data object to a Display, and return a reference to the Data
 
+disp.setPointSize(size)
 setPointSize(display, size)
   set the size of points for point-type plots
 
+disp.setAspectRatio(ratio)
 setAspectRatio(display, ratio)
   define the aspects of width and height, as a ratio: width/height
 
+disp.setAspects(x, y, z)
 setAspects(display, x, y, z)
   define the relative sizes of the axes
 
+disp.maximizeBox()
 maximizeBox(display)
   a simple method for making the VisAD "box" 95% of the window size
 
+disp.setBoxSize(percent=.70)
 setBoxSize(display, percent=.70)
   a simple method for making the VisAD "box" some % of the window size
 
-x,y,z,disp = getDisplay(display)
+disp.setBackgroundColor(color)
+setBackgroundColor(display,color)
+  sets the display background color to 'c', which may be a string
+  (like "white") or a java.awt.Color object.
+
+disp.setForegroundColor(color)
+setForegroundColor(display,color)
+  sets the display foreground color to 'c', which may be a string
+  (like "white") or a java.awt.Color object.
+
+disp.setCursorColor(color)
+setCursorColor(display,color)
+  sets the display cursor color to 'c', which may be a string
+  (like "white") or a java.awt.Color object.
+
+disp.setBoxColor(color)
+setBoxColor(display,color)
+  sets the display VisAD "box" color to 'c', which may be a string
+  (like "white") or a java.awt.Color object.
+
+disp.setBoxOn(on_off)
+setBoxOn(display,on_off)
+  turns the 'wire frame VisAD box' on or off.
+
+x,y,z,disp = getDisplayMaps(display)
   return the x,y,z scalar maps for the display
 
 makeLine(domainType, points)
   make a 2D or 3D line, return a reference so it can be changed
 
+disp.drawLine(points[], color=None, mathtype=None)
 drawLine(display, points[], color=None, mathtype=None)
   draw a line directly into the display; also return reference
   drawLine(display, domainType, points[], color=Color, mathtype=domainType)
   drawLine(name|display, points[], color=Color)
   "Color" is java.awt.Color
 
+disp.drawString(string, point, color=None, center=0, font='futural')
 drawString(display, string, point, color=None, center=0, font='futural')
   draw a string on the display
 
+disp.addMaps(maps[])
 addMaps(display, maps[])
   add an array of ScalarMaps to a Display
 
+disp.showDisplay(width=300, height=300, title=, bottom=, top=)
+showDisplay(display, width=300, height=300, title=, bottom=, top=)
+  quick display of a Display object in a separate JFrame
+  you can set the size and title, if you want...  Use the bottom=
+  and top= keywords to add these componenets (or panels) to the bottom
+  and top of the VisAD display (which always is put in the Center).
+
+disp.addShape(type, scale=.1, color=None, index=None, autoScale=1)
+addShape(type, scale=.1, color=None, index=None, autoScale=1)
+  Add a shape to the current display (see Shapes class, below). "type" 
+  can be 'cross', 'triangle', 'solid_square', or 'cube'.  It may also
+  be a user-defined VisADGeometryArray.  Return value is the shape
+  index (used for moveShape).
+
+disp.moveShape(index, coord)
+moveShape(index, coord)
+  Move shape # 'index' to the coordinates 'coord', which is a list or
+  tuple of coordinates in the display space, in the order (x,y,z).
+ 
 makeMaps(RealType, name, RealType, name, ....)
   define ScalarMap(s) given pairs of (Type, name)
   where "name" is taken from the list, below.
@@ -266,22 +331,6 @@ makeMaps(type_name, name, type_name, name, ....)
   "flow1elev","flow1azimuth","flow1radial",
   "flow2elev","flow2azimuth","flow2radial")
 
-showDisplay(display, width=300, height=300, title=, bottom=, top=)
-  quick display of a Display object in a separate JFrame
-  you can set the size and title, if you want...  Use the bottom=
-  and top= keywords to add these componenets (or panels) to the bottom
-  and top of the VisAD display (which always is put in the Center).
-
-addShape(type, scale=.1, color=None, index=None, autoScale=1)
-  Add a shape to the current display (see Shapes class, below). "type" 
-  can be 'cross', 'triangle', 'solid_square', or 'cube'.  It may also
-  be a user-defined VisADGeometryArray.  Return value is the shape
-  index (used for moveShape).
-
-moveShape(index, coord)
-  Move shape # 'index' to the coordinates 'coord', which is a list or
-  tuple of coordinates in the display space, in the order (x,y,z).
- 
 
 class Shapes(display, shapemap)
   A class useful for manipulating many shapes on multiple displays.

@@ -34,7 +34,8 @@ def image(data, panel=None, colortable=None, width=400, height=400, title="VisAD
   xMap = ScalarMap(dom_1, Display.XAxis)
   yMap = ScalarMap(dom_2, Display.YAxis)
   maps = (xMap, yMap, rngMap)
-  disp = subs.makeDisplay(maps)
+
+  disp = subs.makeDisplay2D(maps)
 
   if colortable is None:
     # make a gray-scale table
