@@ -197,6 +197,7 @@ public class AddeURLConnection extends URLConnection
   private byte[] binaryData = null;   // byte array to hold extra binary data
   private int reqType = AGET;
   private boolean debug = false;
+  private int portToUse;   // DRM 03-Mar-2001
 
   /**
    *
@@ -210,6 +211,7 @@ public class AddeURLConnection extends URLConnection
   {
     super(url);
     this.url = url;
+    portToUse = (url.getPort() == -1) ? PORT : url.getPort(); // DRM 03-Mar-2001
   } 
 
   /**
@@ -229,7 +231,7 @@ public class AddeURLConnection extends URLConnection
 
     Socket t;
     try {
-      t = new Socket(url.getHost(), PORT);
+      t = new Socket(url.getHost(), portToUse);   // DRM 03-Mar-2001
     } catch (UnknownHostException e) {
       throw new AddeURLException(e.toString());
     }
@@ -270,7 +272,7 @@ public class AddeURLConnection extends URLConnection
     dos.write(ipa, 0, ipa.length);
 
     // send ADDE port number
-    dos.writeInt(PORT);
+    dos.writeInt(portToUse);   // DRM 03-Mar-2001
 
     // service - for area files, it's either AGET (Area GET) or 
     // ADIR (AREA directory)
@@ -321,7 +323,7 @@ public class AddeURLConnection extends URLConnection
     // now build and send request block, repeat some stuff
     // server IP address, port
     dos.write(ipa, 0, ipa.length);
-    dos.writeInt(PORT);
+    dos.writeInt(portToUse);   // DRM 03-Mar-2001
 
     // client IP address
     InetAddress lh = InetAddress.getLocalHost();
