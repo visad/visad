@@ -24,119 +24,172 @@ MA 02111-1307, USA
 // SatDisplay.java by Don Murray of Unidata
 //
 
-import visad.*;
-import visad.data.mcidas.BaseMapAdapter;
-import visad.data.mcidas.AreaAdapter;
-import visad.java3d.*;
-import visad.java2d.*;
-
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.net.MalformedURLException;
 import java.net.URL;
+import javax.swing.JFrame;
+import visad.ColorControl;
+import visad.CoordinateSystem;
+import visad.ConstantMap;
+import visad.Data;
+import visad.DataReference;
+import visad.DataReferenceImpl;
+import visad.Display;
+import visad.DisplayImpl;
+import visad.FieldImpl;
+import visad.FlatField;
+import visad.FunctionType;
+import visad.Linear2DSet;
+import visad.RealTupleType;
+import visad.RealType;
+import visad.ScalarMap;
+import visad.data.mcidas.AreaAdapter;
+import visad.data.mcidas.BaseMapAdapter;
+import visad.java3d.DisplayImplJ3D;
+import visad.java3d.TwoDDisplayRendererJ3D;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-
-public class SatDisplay {
+/**
+ * Example class to display a satellite image in VisAD.
+ *
+ * @author  Don Murray - Unidata
+ */
+public class SatDisplay 
+{
 
     private DisplayImpl display;
-    private BaseMapAdapter baseMap;
-    private ScalarMap lat_map;
-    private ScalarMap lon_map;
-    private ScalarMap xaxis;
-    private ScalarMap yaxis;
 
-    public SatDisplay(String mapfile, String areafile,
-                      boolean display3D, boolean remap) {
-
-        try {
-
-           if (mapfile.indexOf("://") > 0) {
-               baseMap = new BaseMapAdapter(new URL(mapfile) );
-           } else {
-               baseMap = new BaseMapAdapter(mapfile);
-           }
-
-           //--- map data to display ---//
-           if (display3D) 
-           {
-               display = new DisplayImplJ3D("display");
-               lat_map = new ScalarMap(RealType.Latitude, Display.Latitude);
-               lon_map = new ScalarMap(RealType.Longitude, Display.Longitude);
-           }
-           else
-           {
-               display = new DisplayImplJ3D("display",
-                                              new TwoDDisplayRendererJ3D());
-               lat_map = new ScalarMap(RealType.Latitude, Display.YAxis);
-               lon_map = new ScalarMap(RealType.Longitude, Display.XAxis);
+    /**
+     * Construct a satellite display using the specified McIDAS map file,
+     * image source.  The image can be displayed on a 3D globe or on a
+     * flat rectillinear projection.
+     *
+     * @param  mapFile      location of the McIDAS map file (path or URL)
+     * @param  imageSource  location of the image source (path or URL)
+     * @param  display3D    if true, use 3D display, otherwise flat rectillinear
+     * @param  remap        remap the image into a domain over North America
+     */
+    public SatDisplay(String mapFile, String imageSource,
+                      boolean display3D, boolean remap) 
+    {
+        try 
+        {
+            //  Read in the map file
+            BaseMapAdapter baseMapAdapter;
+            if (mapFile.indexOf("://") > 0)   // URL specified
+            {
+               baseMapAdapter = new BaseMapAdapter(new URL(mapFile) );
+            } 
+            else   // local disk file
+            {
+               baseMapAdapter = new BaseMapAdapter(mapFile);
             }
 
-            display.addMap(lat_map);
-            display.addMap(lon_map);
+            // Create the display and set up the scalar maps to map
+            // data to the display 
+            ScalarMap latMap;     // latitude  -> YAxis
+            ScalarMap lonMap;     // longitude -> XAxis
+            if (display3D) 
+            {
+                display = new DisplayImplJ3D("display");
+                latMap = new ScalarMap(RealType.Latitude, Display.Latitude);
+                lonMap = new ScalarMap(RealType.Longitude, Display.Longitude);
+            }
+            else
+            {
+                display = new DisplayImplJ3D("display",
+                                               new TwoDDisplayRendererJ3D());
+                latMap = new ScalarMap(RealType.Latitude, Display.YAxis);
+                lonMap = new ScalarMap(RealType.Longitude, Display.XAxis);
+            }
+            display.addMap(latMap);
+            display.addMap(lonMap);
 
-            lat_map.setRange(-90.0, 90.0);
-            lon_map.setRange(-180.0, 180.0);
+            // set the display to a global scale
+            latMap.setRange(-90.0, 90.0);
+            lonMap.setRange(-180.0, 180.0);
   
-            DataReference maplines_ref = new DataReferenceImpl("MapLines");
-            maplines_ref.setData(baseMap.getData());
+            // create a reference for the map line
+            DataReference maplinesRef = new DataReferenceImpl("MapLines");
+            maplinesRef.setData(baseMapAdapter.getData());
         
-            ConstantMap[] colMap;
-            colMap = new ConstantMap[4];
-            colMap[0] = new ConstantMap(0., Display.Blue);
-            colMap[1] = new ConstantMap(1., Display.Red);
-            colMap[2] = new ConstantMap(0., Display.Green);
-            colMap[3] = new ConstantMap(1.001, Display.Radius);
+            // set the attributes of the map lines (color, location)
+            ConstantMap[] maplinesConstantMap = new ConstantMap[4];
+            maplinesConstantMap[0] = new ConstantMap(0., Display.Blue);
+            maplinesConstantMap[1] = new ConstantMap(1., Display.Red);
+            maplinesConstantMap[2] = new ConstantMap(0., Display.Green);
+            maplinesConstantMap[3] = 
+                new ConstantMap(1.001, Display.Radius); // just above the image
 
-            AreaAdapter aa = new AreaAdapter(areafile);
+            // read in the image
+            AreaAdapter areaAdapter = new AreaAdapter(imageSource);
+            FlatField image = areaAdapter.getData();
 
-            FlatField imaget = aa.getData();
+            // Extract the metadata from the image
+            FunctionType imageFunctionType = 
+                (FunctionType) image.getType();
+            RealTupleType imageDomainType = imageFunctionType.getDomain();
+            RealTupleType imageRangeType = 
+                (RealTupleType) imageFunctionType.getRange();
 
-            FunctionType ftype = (FunctionType) imaget.getType();
-            RealTupleType dtype = ftype.getDomain();
-            RealTupleType rtype = (RealTupleType)ftype.getRange();
-
-            if (remap) {
-              int SIZE = 256;
-              RealTupleType lat_lon =
-                ((CoordinateSystem) dtype.getCoordinateSystem()).getReference();
-              Linear2DSet dset = new Linear2DSet(lat_lon, -4.0, 70.0, SIZE,
-                                                 -150.0, 5.0, SIZE);
-              imaget = (FlatField)
-                imaget.resample(dset, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
+            // remap and resample the image
+            if (remap) 
+            {
+                int SIZE = 256;
+                RealTupleType latlonType =
+                  ((CoordinateSystem) 
+                      imageDomainType.getCoordinateSystem()).getReference();
+                Linear2DSet remapDomainSet = 
+                    new Linear2DSet(
+                        latlonType, -4.0, 70.0, SIZE, -150.0, 5.0, SIZE);
+                image = 
+                    (FlatField) image.resample(
+                        remapDomainSet, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
             }
 
             // select which band to show...
-            ScalarMap rgbmap = new ScalarMap( (RealType) rtype.getComponent(0),
-                                              Display.RGB);
-            display.addMap(rgbmap);
-            ColorControl control = (ColorControl) rgbmap.getControl();
-            control.initGreyWedge();
+            ScalarMap rgbMap = 
+                new ScalarMap( 
+                    (RealType) imageRangeType.getComponent(0), Display.RGB);
+            display.addMap(rgbMap);
 
+            // set the enhancement to a grey scale
+            ColorControl colorControl = (ColorControl) rgbMap.getControl();
+            colorControl.initGreyWedge();
 
-            DataReferenceImpl ref_image = new DataReferenceImpl("ref_image");
+            // create a data reference for the image
+            DataReferenceImpl imageRef = new DataReferenceImpl("ImageRef");
+            imageRef.setData(image);
 
-            ref_image.setData(imaget);
-
+            // add the data references to the display
             display.disableAction();
-            display.addReference(ref_image,null);
-            display.addReference(maplines_ref, colMap);
+            display.addReference(imageRef,null);
+            display.addReference(maplinesRef, maplinesConstantMap);
             display.enableAction();
-        } catch (Exception ne) {ne.printStackTrace(); System.exit(1); }
+        } 
+        catch (Exception ne) 
+        {
+            ne.printStackTrace(); System.exit(1); 
+        }
 
     }
 
-    // run 'java -mx64m SatDisplay' for globe display
-    // run 'java -mx64m SatDisplay X remap' for remapped globe display
-    // run 'java -mx64m SatDisplay X 2D' for flat display
+    /**
+     * <UL>
+     * <LI>run 'java -mx64m SatDisplay' for globe display
+     * <LI>run 'java -mx64m SatDisplay X remap' for remapped globe display
+     * <LI>run 'java -mx64m SatDisplay X 2D' for flat display
+     * </UL>
+     */
     public static void main (String[] args) {
 
         String mapFile = "ftp://www.ssec.wisc.edu/pub/visad-2.0/OUTLSUPW";
-        String areaFile = "ftp://www.ssec.wisc.edu/pub/visad-2.0/AREA2001";
-        boolean threeD = true;
+        String imageSource = "ftp://www.ssec.wisc.edu/pub/visad-2.0/AREA2001";
+        boolean use3D = true;
         boolean remap = false;
 
-        JFrame frame = new JFrame("Map Display");
+        JFrame frame = new JFrame("Satellite Display");
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 System.exit(0);
@@ -144,18 +197,18 @@ public class SatDisplay {
         });
 
         if (args.length > 0 && !args[0].equals("X")) {
-           areaFile = args[0];
+           imageSource = args[0];
            // mapFile = args[0];
         }
         if (args.length == 2) {
-           threeD = (args[1].indexOf("2") >= 0) ? false : true;
+           use3D = (args[1].indexOf("2") >= 0) ? false : true;
            remap = (args[1].indexOf("2") >= 0) ? false : true;
         }
 
-        SatDisplay map = new SatDisplay(mapFile, areaFile, threeD, remap);
-        frame.getContentPane().add(map.display.getComponent());
+        SatDisplay satDisplay = 
+            new SatDisplay(mapFile, imageSource, use3D, remap);
+        frame.getContentPane().add(satDisplay.display.getComponent());
         frame.setSize(500, 500);
         frame.setVisible(true);
     }
 }
-
