@@ -950,7 +950,7 @@ public class DataUtility {
    *
    * @return <tt>true</tt> if the object is Serializable, false otherwise.
    */
-  public boolean isSerializable(Object obj, boolean printStackTraces)
+  public static boolean isSerializable(Object obj, boolean printStackTraces)
   {
     java.io.ByteArrayOutputStream outBytes;
     outBytes = new java.io.ByteArrayOutputStream();
