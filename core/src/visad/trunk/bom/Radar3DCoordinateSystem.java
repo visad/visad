@@ -531,4 +531,35 @@ public class Radar3DCoordinateSystem extends NavigatedCoordinateSystem {
       return new float[] {centlat, centlon, centalt};
   }
 
+  /**
+   * Return String representation of this Radar3DCoordinateSystem
+   *
+   * @return string listing params
+   */
+  public String toString() {
+    StringBuffer buf = new StringBuffer();
+    buf.append("Radar 3D CoordinateSystem: \n");
+    buf.append("  Center point = Lat: ");
+    buf.append(PlotText.shortString(centlat));
+    buf.append(" Lon: ");
+    buf.append(PlotText.shortString(centlon));
+    buf.append(" Alt: ");
+    buf.append(PlotText.shortString(centalt));
+    buf.append("\n");
+    buf.append("  Range params = ");
+    buf.append(PlotText.shortString(radlow));
+    buf.append(",");
+    buf.append(PlotText.shortString(radres));
+    buf.append("\n");
+    buf.append("  Azimuth params = ");
+    buf.append(PlotText.shortString(azlow));
+    buf.append(",");
+    buf.append(PlotText.shortString(azres));
+    buf.append("\n");
+    buf.append("  Elevation params = ");
+    buf.append(PlotText.shortString(elevlow));
+    buf.append(",");
+    buf.append(PlotText.shortString(elevres));
+    return buf.toString();
+  }
 }

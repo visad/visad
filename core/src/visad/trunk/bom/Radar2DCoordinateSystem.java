@@ -312,4 +312,30 @@ System.out.println(tuples[0][i] + " " + tuples[1][i] + " -> " +
   {
       return new float[] {centlat, centlon};
   }
+
+  /**
+   * Return String representation of this Radar2DCoordinateSystem
+   *
+   * @return string listing params
+   */
+  public String toString() {
+    StringBuffer buf = new StringBuffer();
+    buf.append("Radar 2D CoordinateSystem: \n");
+    buf.append("  Center point = Lat: ");
+    buf.append(PlotText.shortString(centlat));
+    buf.append(" Lon: ");
+    buf.append(PlotText.shortString(centlon));
+    buf.append("\n");
+    buf.append("  Range params = ");
+    buf.append(PlotText.shortString(radlow));
+    buf.append(",");
+    buf.append(PlotText.shortString(radres));
+    buf.append("\n");
+    buf.append("  Azimuth params = ");
+    buf.append(PlotText.shortString(azlow));
+    buf.append(",");
+    buf.append(PlotText.shortString(azres));
+    return buf.toString();
+  }
+
 }
