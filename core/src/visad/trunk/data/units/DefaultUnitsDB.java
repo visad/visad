@@ -2,7 +2,7 @@
  * Copyright 1999, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultUnitsDB.java,v 1.3 2001-11-27 22:29:42 dglo Exp $
+ * $Id: DefaultUnitsDB.java,v 1.4 2004-01-21 22:08:00 steve Exp $
  */
 
 package visad.data.units;
@@ -390,8 +390,8 @@ DefaultUnitsDB
 	pn("week",		get("d").scale(7));		// exact
 
 	pn("jiffy",		get("s").scale(1e-2));		// it's true
-	pn("eon",		get("y").scale(1e9));		// fuzzy
-	pn("month",		get("y").scale(1./12));		// on average
+	pn("eon",		get("year").scale(1e9));	// fuzzy
+	pn("month",		get("year").scale(1./12));	// on average
 
 	pn("tropical year",	"year");
 	pn("yr",		"year");
