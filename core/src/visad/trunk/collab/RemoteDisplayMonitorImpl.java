@@ -202,6 +202,13 @@ public class RemoteDisplayMonitorImpl
     throw new RemoteVisADException("Cannot connect two RemoteDisplayMonitors");
   }
 
+  // WLH 6 Dec 2000
+  public void addRemoteListener(RemoteDisplay rd, boolean link_to_data)
+    throws RemoteException, RemoteVisADException
+  {
+    throw new RemoteVisADException("Cannot connect two RemoteDisplayMonitors");
+  }
+
   /**
    * Return the ID associated with the specified <tt>RemoteDisplay</tt>.
    *

@@ -263,6 +263,36 @@ public class DisplayMonitorImpl
     }
   }
 
+  // WLH 6 Dec 2000
+  public void addRemoteListener(RemoteDisplay rd, boolean link_to_data)
+    throws RemoteException, RemoteVisADException
+  {
+    RemoteDisplayMonitor rdm = rd.getRemoteDisplayMonitor();
+    final int id = negotiateUniqueID(rdm);
+
+    DisplaySyncImpl dsi = (DisplaySyncImpl )myDisplay.getDisplaySync();
+    RemoteDisplaySyncImpl wrap = new RemoteDisplaySyncImpl(dsi);
+    try {
+      rdm.addListener(new RemoteDisplayImpl(myDisplay), id);
+    } catch (Exception e) {
+      throw new RemoteVisADException("Couldn't make this object" +
+                                     " a listener for the remote display");
+    }
+
+    boolean unwind = false;
+    try {
+      if (link_to_data) addListener(rd, id);
+    } catch (Exception e) {
+      unwind = true;
+    }
+
+    if (unwind) {
+      removeListener(wrap);
+      throw new RemoteVisADException("Couldn't add listener for the" +
+                                     " remote display to this object");
+    }
+  }
+
   /**
    * Returns a suggestion for a unique listener identifier which is
    * equal to or greater than the supplied ID.
