@@ -1,7 +1,7 @@
                     VisAD SpreadSheet User Interface README file
-                                   22 June 2000
+                                   5 October 2000
  
-                                Table of Contents
+                                 Table of Contents
 
 1. The visad.ss Package
   1.1 Description
@@ -12,8 +12,10 @@
     1.3.3 MappingDialog
     1.3.4 SpreadSheet
     1.3.5 SSCellChangeEvent
-    1.3.6 SSCellListener
-    1.3.7 SSLayout
+    1.3.6 SSCellData
+    1.3.7 SSCellImpl
+    1.3.8 SSCellListener
+    1.3.9 SSLayout
 2. Features of the SpreadSheet User Interface
   2.1 Basic Commands
   2.2 Menu Commands
@@ -26,7 +28,7 @@
   2.3 Toolbars
     2.3.1 Main Toolbar
     2.3.2 Formula Toolbar
-      2.3.2.1 Description
+      2.3.2.1 Description and Usage
       2.3.2.2 How To Enter Formulas
       2.3.2.3 Formula Syntax
       2.3.2.4 Linking to External Java Code
@@ -38,7 +40,6 @@
     2.4.4 Creating a SpreadSheet slave
   2.5 Undocumented Features
 3. Known Bugs
-4. Future Plans
 
 
 1. The visad.ss Package
@@ -54,6 +55,12 @@ many types of data, without any programming.  It supports many features of a
 traditional spreadsheet, such as formulas.  The package also provides a class
 structure such that developers can easily create their own user interfaces
 using SpreadSheet cells from the visad.ss package.
+
+Each VisAD SpreadSheet cell can display an arbitrary number of VisAD Data
+objects, mapped to the display in any way you choose.  Data can be imported
+from a file or URL, an RMI address for a server SpreadSheet running on
+another machine, or computed from a formula, similar to a traditional
+spreadsheet application.
 
 For up-to-date information about the VisAD SpreadSheet, see the VisAD
 SpreadSheet web page at http://www.ssec.wisc.edu/~curtis/ss.html
@@ -92,12 +99,12 @@ Other useful command line parameters include:
   -no3d    Disables Java3D.  The SpreadSheet will run as though Java3D is not
            present on the system, allowing only "2-D (Java2D)" displays.
   -gui     Causes a dialog box to pop up, allowing you to configure the
-           SpreadSheet.  Options include setting up a SpreadSheet server, clone
-           or slave; specifying numbers of rows and columns; and toggling debug
-           mode or Java3D support.  If you are running Windows and wish to
-           create a shortcut to the SpreadSheet, but you still wish to have the
-           full power of the command line arguments, just make a shortcut to:
-              java -mx64m visad.ss.SpreadSheet -gui
+           SpreadSheet.  Options include setting up a SpreadSheet server (clone
+           or slave), specifying numbers of rows and columns, and toggling
+           debug mode or Java3D support.  This flag is useful, for example, if
+           you are running Windows and want to create a shortcut to the
+           SpreadSheet, but still wish to have the full power of the command
+           line arguments.
 
 1.3 Source Files
 
@@ -107,20 +114,21 @@ The following source files are part of the visad.ss package:
     - MappingDialog.java
     - SpreadSheet.java
     - SSCellChangeEvent.java
+    - SSCellData.java
+    - SSCellImpl.java
     - SSCellListener.java
     - SSLayout.java
 
 The following included GIF files are needed by the package:
     - 2d.gif
     - 3d.gif
-    - cancel.gif
+    - add.gif
     - copy.gif
     - cut.gif
+    - del.gif
     - display.gif
-    - import.gif
     - j2d.gif
     - mappings.gif
-    - ok.gif
     - open.gif
     - paste.gif
     - reset.gif
@@ -146,7 +154,7 @@ than throwing exceptions).
 1.3.3 MappingDialog
 
 This class is a dialog box allowing the user to specify ScalarMaps for
-the current data set.
+the current data sets.
 
 1.3.4 SpreadSheet
 
@@ -157,11 +165,22 @@ multiple FancySSCells.
 
 An event signifying a data, display or dimension change in an SSCell.
 
-1.3.6 SSCellChangeListener
+1.3.6 SSCellData
+
+This class encapsulates a VisAD Data object and important associated
+information, such as the data's variable name (e.g., A1d1).
+
+1.3.7 SSCellImpl
+
+Each VisAD Data object present in an SSCell is monitored by an instance of this
+class, which takes care of updating the SSCell display and notifying remote
+cells of the data changes that occur.
+
+1.3.8 SSCellListener
 
 An interface for classes that wish to be informed when an SSCell changes.
 
-1.3.7 SSLayout
+1.3.9 SSLayout
 
 This is the layout manager for the spreadsheet cells and their labels.
 
@@ -171,13 +190,24 @@ This is the layout manager for the spreadsheet cells and their labels.
 
 The spreadsheet cell with the yellow border is the current, highlighted
 cell.  Any operation you perform (such as importing a data set), will affect
-the highlighted cell.  Cells that are not highlighted will be one of four
-colors: dim red (meaning the cell contains a formula), dim blue (meaning the
-cell contains an RMI address), dim green (meaning the cell contains a filename
-or URL), or dim gray (meaning the cell contains no data).  To change which cell
-is highlighted, click inside the desired cell with a mouse button, or press
-the arrow keys.  You can also resize the spreadsheet cells, to allow some cells
-to be larger than others, by dragging the yellow blocks between cell labels.
+the highlighted cell.  Cells that are not highlighted will be colored according
+to the following scheme:
+  - Gray - no data
+  - Red - a formula
+  - Blue - an RMI address
+  - Green - a filename or URL
+  - Rainbow - multiple data objects
+
+In addition, the following border colors are supported, although they will not
+appear during normal SpreadSheet operation:
+  - Purple - data from an unknown source
+  - Yellow - data from a remote source
+  - Cyan - data that was set directly
+
+To change which cell is highlighted, click inside the desired cell with a mouse
+button, or press the arrow keys.  You can also resize the spreadsheet cells, to
+allow some cells to be larger than others, by dragging the yellow blocks
+between cell labels.
 
 2.2 Menu Commands
 
@@ -196,14 +226,14 @@ Note: You must have the HDF-EOS and HDF-5 file adapter native C code compiled
       page for information on how to compile this native code.
 -------------------------------------------------------------------------------
 
-Export data to netCDF - Exports the current cell to a file in netCDF format.
-A dialog box will appear to let you select the name and location of the netCDF
-file.  If the file exists, it will be overwritten.
+Export data to netCDF - Exports the selected dataset from the current cell to a
+file in netCDF format.  A dialog box will appear to let you select the name and
+location of the netCDF file.  If the file exists, it will be overwritten.
 
-Export serialized data - Exports the current cell to a file in serialized data
-format (the "VisAD" form).  A dialog box will appear to let you select the name
-and location of the serialized data file.  If the file exists, it will be
-overwritten.
+Export serialized data - Exports the selected dataset from the current cell to
+a file in serialized data format (the "VisAD" form).  A dialog box will appear
+to let you select the name and location of the serialized data file.  If the
+file exists, it will be overwritten.
 -------------------------------------------------------------------------------
 WARNING: Exporting a cell as serialized data is a handy and portable way to
          store data, but each time the VisAD Data class hierarchy changes, old
@@ -212,9 +242,9 @@ WARNING: Exporting a cell as serialized data is a handy and portable way to
          netCDF" command.
 -------------------------------------------------------------------------------
 
-Export data to HDF5 - Exports the current cell to a file in HDF-5 format.
-A dialog box will appear to let you select the name and location of the HDF-5
-file.  If the file exists, it will be overwritten.
+Export data to HDF5 - Exports the selected dataset from the current cell to a
+file in HDF-5 format.  A dialog box will appear to let you select the name and
+location of the HDF-5 file.  If the file exists, it will be overwritten.
 -------------------------------------------------------------------------------
 Note: You must have the HDF-5 file adapter native C code compiled in order to
 export data sets of this type.  See the SpreadSheet web page for information on
@@ -243,7 +273,7 @@ Clear - Clears the current cell.
 
 Here are the commands from the Setup menu:
 
-New - Clears all spreadsheet cells;  starts from scratch.
+New - Clears all spreadsheet cells; starts from scratch.
 
 Open - Opens a "spreadsheet file".  Spreadsheet files are small, containing
 only the instructions needed to recreate a spreadsheet.  They do not contain
@@ -274,17 +304,23 @@ probably provide better performance than 2-D (Java2D).  It also has better
 display quality than 2-D (Java2D).  If you do not have Java3D installed, this
 option will be grayed out.
 
+Add data object - Blanks out the formula bar, allowing you to type in a new
+data source (e.g., filename, URL or formula).
+
+Remove data object - Removes the data object currently selected (use the
+drop-down formula bar list to specify a data object).
+
 Print cell - Prints the current cell to the printer.  Choosing this option
 causes a dialog box to appear that lets you specify your printer settings
 before the cell is actually printed.
 
 Edit Mappings - Brings up a dialog box which lets you change how the current
-cell's Data object is mapped to the Display.  Click a RealType object on the
+cell's Data objects are mapped to the Display.  Click a RealType object on the
 left (or from the MathType display at the top), then click a display icon from
 the display panel in the center of the dialog.  The "Current Mappings" box on
 the lower right will change to reflect which mappings you've currently set up.
 When you've set up all the mappings to your liking, click the Done button and
-the SpreadSheet will try to display the data object.  To close the dialog box
+the SpreadSheet will try to display the data objects.  To close the dialog box
 without applying any of the changes you made to the mappings, click the Cancel
 button.  You can also highlight items from the "Current Mappings" box, then
 click "Clear selected" to remove those mappings from the list, or click "Clear
@@ -355,7 +391,7 @@ The main toolbar has tool tips so each button can be easily identified.
 
 2.3.2 Formula Toolbar
 
-2.3.2.1 Description
+2.3.2.1 Description and Usage
 
 The formula toolbar is used for entering file names, URLs, RMI addresses,
 and formulas for the current cell.  If you enter the name of a file in the
@@ -371,19 +407,31 @@ URL, or RMI address entered does not exist, the cell will have an explanation
 box.  If the data box appears, the cell was computed successfully and mappings
 can be set up.
 
+The down arrow to the right of the formula text box brings up a drop-down list
+of all data objects currently loaded in this cell.  The data object you choose
+from this list becomes the current dataset for the cell (e.g., when you choose
+to export data from the File menu, this is the dataset that will be exported).
+
+You can remove the current dataset by clicking the formula bar's delete button
+("Del"), located just to the left of the formula text box.
+
+Clicking the formula bar's add button ("Add") will blank out the formula text
+box, allowing you to type in a new filename, URL, RMI address or formula.
+
 2.3.2.2 How To Enter Formulas
 
-To reference cells, keep in mind that each column is a letter (the first
-column is 'A', the second is 'B', and so on), and each row is a number (the
-first row is '1', the second is '2', and so on).  So, the cell on the top-left
-is A1, the cell on A1's right is B1, and the cell directly below A1 is A2, etc.
+To reference the data objects of a cell, keep in mind that each column is a
+letter (the first column is 'A', the second is 'B', and so on), and each row is
+a number (the first row is '1', the second is '2', and so on).  So, the cell on
+the top-left is A1, the cell on A1's right is B1, and the cell directly below
+A1 is A2, etc.  Each dataset of a cell has an associated variable name, which
+you can determine by examining the formula bar's drop-down list of datasets for
+that cell.  For example, the first data object you load into cell A1 will be
+called "A1d1", the second will be called "A1d2", etc.
 
-Type your formula in the formula text field.  Once you've typed in a
-formula, press Enter or click the green check box button to the left of the
-formula entry text box to apply the formula.  The red X button will cancel your
-entry, restoring the formula to its previous state.  The open folder button to
-the right of the formula entry text box is a shortcut to the File menu's Import
-Data menu item.
+Type your formula in the formula text field.  Once you've typed in a formula,
+press Enter to apply the formula.  The new dataset will be added to the formula
+bar's drop-down list, and the dataset will appear in the cell.
 
 2.3.2.3 Formula Syntax
 
@@ -402,7 +450,7 @@ Any of the following can be used in formula construction:
        cos, cosDegrees, domainMultiply, exp, floor, log, rint, round, sin,
        sinDegrees, sqrt, tan, tanDegrees, negate
 
-4) Unary minus syntax (e.g., B2 * -A1) is supported.
+4) Unary minus syntax (e.g., B2d1 * -A1d1) is supported.
 
 5) Derivatives are supported with the syntax:
        d(DATA)/d(TYPE)
@@ -468,19 +516,19 @@ that you wish to link to the SpreadSheet:
    example, a method with the signature "public static Data max(Data[] d)"
    that is part of a class called Util could be linked into a SpreadSheet cell
    with any number of arguments; e.g.,
-       link(Util.max(A1, A2))
-       link(Util.max(A2, C3, B1, A1))
+       link(Util.max(A1d1, A2d1))
+       link(Util.max(A2d1, C3d2, B1d4, A1d2))
    would both be correct references to the max method.
 
 2.3.2.5 Examples of Valid Formulas
 
 Here are some examples of valid formulas for cell A1:
-    sqrt(A2 + B2^5 - min(B1, -C1))
-    d(A2 + B2)/d(ImageElement)
-    A2(A3)
-    C2.6[0]
-    (B1 * C1)(A3).1
-    C2 - 5*link(com.happyjava.vis.Linked.crunch(A6, C3, B5))
+    sqrt(A2d1 + B2d2^5 - min(B1d1, -C1d1))
+    d(A2d1 + A2d2)/d(ImageElement)
+    A2d1(A3d1)
+    C2d2.6[0]
+    (B1d2 * C1d1)(A3d4).1
+    C2d10 - 5*link(com.happyjava.vis.Linked.crunch(A6d1, C3d11, B5d15))
 
 2.4 Remote Collaboration
 
@@ -513,7 +561,7 @@ an RMI server called "VisADServ" using a SpreadSheet with two cells, A1 and B1.
 A SpreadSheet on another machine could import data from cell B1 of VisADServ
 by typing the following RMI address in the formula bar:
 
-    rmi://www.ssec.wisc.edu/VisADServ/B1
+    rmi://www.ssec.wisc.edu/VisADServ/B1d1
 
 Just like file names, URLs, and formulas, the SpreadSheet will load the data,
 showing the data box if the import is successful, or displaying error messages
@@ -570,14 +618,23 @@ using the "-help" command line option.
 
 3. Known Bugs
 
-The following bugs have been discovered and have not yet been fixed:
+The following bugs have been discovered:
 
-1) On certain machine configurations, the SpreadSheet may sometimes lock up
-   on startup due to a MediaTracker bug (#4332685). Try running the SpreadSheet
-   with a different number of rows and columns on startup.
+1) Key event processing has some glitches.  For example, the arrow keys may not
+   work at times.  This problem seems to be worse on Solaris, but still occurs
+   on NT.  It is somehow related to Java3D, so try running the SpreadSheet with
+   the "-no3d" parameter to avoid the problem.  Another useful way around the
+   problem is to compute all your data first in 2-D (Java2D) mode, then switch
+   cells to 3-D (Java3D) mode as desired, and finally set up mappings.
 
-2) The SpreadSheet may not import certain data sets correctly, due to
-   incomplete implementations in VisAD file adapter forms.
+2) On certain machine configurations, the SpreadSheet may sometimes lock up
+   on startup (or when a toolbar button first becomes grayed out) due to a
+   MediaTracker bug (#4332685). Try running the SpreadSheet with a different
+   number of rows and columns on startup. If you still have trouble, you can
+   use the "-bugfix" command line flag to disable the SpreadSheet's toolbar.
+   This workaround will keep the SpreadSheet from locking up on startup, but
+   you will not have the convenience of the toolbar. Of course, all
+   functionality is still accessible from the menus.
 
 3) When importing certain netCDF data sets, a series of errors beginning with
    "Couldn't decode attribute" may be displayed.  These are warnings the netCDF
@@ -594,19 +651,13 @@ The following bugs have been discovered and have not yet been fixed:
    This error no longer appears in JDK 1.3, since the JVM no longer uses the
    Symantec JIT compiler, but instead uses Sun's Hotspot compiler.
 
-5) On certain Solaris configurations, key event processing has some glitches.
-   For example, the arrow keys may not work at times.  If keys seem to have
-   stopped working, click the "Formula OK" button (green check mark), then try
-   pressing the keys again.
+5) The SpreadSheet may not import certain data sets correctly, due to
+   incomplete implementations in VisAD file adapter forms.
 
 If you find a bug in the SpreadSheet user interface not listed above,
 please send e-mail to curtis@ssec.wisc.edu and hibbard@facstaff.wisc.edu
 describing the problem, preferably with a detailed description of how to
 recreate the problem.
-
-4. Future Plans
-
-In the future, the SpreadSheet may support multiple data sets per cell.
 
 If you have any suggestions for features that you would find useful,
 please send e-mail to curtis@ssec.wisc.edu and hibbard@facstaff.wisc.edu

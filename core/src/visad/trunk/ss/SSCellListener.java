@@ -26,11 +26,14 @@ MA 02111-1307, USA
 
 package visad.ss;
 
-/** Interface for listeners of SSCell changes.<P> */
+/**
+ * Interface for listeners of SSCell changes.
+ */
 public interface SSCellListener {
 
-  /** called when an SSCell's data changes */
+  /**
+   * Handles an SSCell data, display or dimension change.
+   */
   void ssCellChanged(SSCellChangeEvent e);
 
 }
-

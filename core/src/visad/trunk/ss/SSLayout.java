@@ -30,25 +30,36 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-/** SSLayout is the layout manager for the SpreadSheet's cells
-    and their labels.  It sets up components in a rectangular
-    grid similar to GridLayout, but uses the components'
-    getPreferredSize methods to allow for variable-sized cells.<P> */
+/**
+ * SSLayout is the layout manager for the SpreadSheet's cells and their labels.
+ * It sets up components in a rectangular grid similar to GridLayout, but uses
+ * the components' preferred sizes to allow for variable-sized cells.
+ */
 public class SSLayout implements LayoutManager {
 
-  /** number of columns components should form */
+  /**
+   * Number of columns components should form.
+   */
   private int NumCols;
 
-  /** number of rows components should form */
+  /**
+   * Number of rows components should form.
+   */
   private int NumRows;
 
-  /** space between columns */
+  /**
+   * Space between columns.
+   */
   private int ColSpace;
 
-  /** space between rows */
+  /**
+   * Space between rows.
+   */
   private int RowSpace;
 
-  /** constructor */
+  /**
+   * Constructs an SSLayout.
+   */
   public SSLayout(int ncol, int nrow, int wspace, int hspace) {
     NumCols = ncol;
     NumRows = nrow;
@@ -56,7 +67,9 @@ public class SSLayout implements LayoutManager {
     RowSpace = hspace;
   }
 
-  /** add the necessary number of elements to the Component array */
+  /**
+   * Adds the necessary number of elements to the Component array.
+   */
   private Component[] fillOut(Component[] c) {
     // warn the user
     System.err.println("Warning: spreadsheet cell layout is corrupted");
@@ -72,7 +85,9 @@ public class SSLayout implements LayoutManager {
     return nc;
   }
 
-  /** lay out the components */
+  /**
+   * Lays out the components.
+   */
   public void layoutContainer(Container parent) {
     // get parent's components
     Component[] c = parent.getComponents();
@@ -102,12 +117,16 @@ public class SSLayout implements LayoutManager {
     }
   }
 
-  /** return minimum layout size */
+  /**
+   * Gets minimum layout size.
+   */
   public Dimension minimumLayoutSize(Container parent) {
     return preferredLayoutSize(parent);
   }
 
-  /** return preferred layout size */
+  /**
+   * Gets preferred layout size.
+   */
   public Dimension preferredLayoutSize(Container parent) {
     // get parent's components
     Component[] c = parent.getComponents();
@@ -129,31 +148,14 @@ public class SSLayout implements LayoutManager {
     return new Dimension(pwt, pht);
   }
 
-  /** not used by SSLayout */
+  /**
+   * Not used by SSLayout.
+   */
   public void addLayoutComponent(String name, Component comp) { }
 
-  /** not used by SSLayout */
+  /**
+   * Not used by SSLayout.
+   */
   public void removeLayoutComponent(Component comp) { }
 
-  /** test the SSLayout layout manager class */
-  public static void main(String[] argv) {
-    JFrame f = new JFrame("SSLayout test");
-    f.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {
-        System.exit(0);
-      }
-    });
-    JPanel p = new JPanel();
-    f.setContentPane(p);
-    p.setLayout(new SSLayout(3, 4, 5, 15));
-    for (int i=1; i<=12; i++) {
-      String s = "" + i;
-      if (i < 10) s = "0" + s;
-      p.add(new JButton("Button" + s));
-    }
-    f.pack();
-    f.show();
-  }
-
 }
-

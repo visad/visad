@@ -29,16 +29,19 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 
-// import AWT package
+// import AWT packages
 import java.awt.*;
 import java.awt.event.*;
 
 // import netCDF form, for saving data
 import visad.data.netcdf.Plain;
 
-// import needed Spread Sheet classes
+// import needed SpreadSheet classes
 import visad.ss.BasicSSCell;
 import visad.ss.FancySSCell;
+
+// import VisAD utility class
+import visad.util.Util;
 
 /** MiniSheet is a &quot;toy&quot; version of visad.ss.SpreadSheet,
     with only two cells.  It demonstrates how the developer can use
@@ -105,9 +108,9 @@ public class MiniSheet extends JFrame implements ActionListener {
     // add JLabels to left panel
     createLabel(left, "MiniSheet -- a toy spreadsheet example program");
     createLabel(left, "created using components from the");
-    createLabel(left, "VisAD Visualization Spread Sheet.  See:");
+    createLabel(left, "VisAD Visualization SpreadSheet.  See:");
     createLabel(left, "    http://www.ssec.wisc.edu/~curtis/ss.html");
-    createLabel(left, "for more information about the Spread Sheet.");
+    createLabel(left, "for more information about the SpreadSheet.");
     createLabel(left, "  ");
     createLabel(left, "Drag the left mouse button for 3-D rotation.");
     createLabel(left, "  ");
@@ -124,7 +127,7 @@ public class MiniSheet extends JFrame implements ActionListener {
     createLabel(left, "  ");
     createLabel(left, "Type a formula into a cell's Formula text field");
     createLabel(left, "to compute the cell using that formula.");
-    createLabel(left, "For example, try typing \"sqrt(CELL1) / 3\"");
+    createLabel(left, "For example, try typing \"sqrt(CELL1d1) / 3\"");
     createLabel(left, "into the second cell's Formula text field");
     createLabel(left, "after loading data into the first cell.");
 
@@ -156,12 +159,12 @@ public class MiniSheet extends JFrame implements ActionListener {
       FancySSCell fCell = null;
       try {
         fCell = new FancySSCell("CELL" + i, this);
-        fCell.setDimension(false, false);  // set Java3D display mode
+        fCell.setDimension(BasicSSCell.JAVA3D_3D);
       }
       catch (Exception exc) {
         System.out.println("Could not create the first spreadsheet cell!");
         System.out.println("Received the following exception:");
-        System.out.println(exc.toString());
+        exc.printStackTrace();
         System.exit(i);
       }
       fCell.setPreferredSize(new Dimension(400, 400));
@@ -185,13 +188,7 @@ public class MiniSheet extends JFrame implements ActionListener {
       show.setActionCommand("show" + i);
       bPanel.add(show);
       JTextField tf = new JTextField();
-
-      // WLH 2 Dec 98
-      Dimension msize = tf.getMaximumSize();
-      Dimension psize = tf.getPreferredSize();
-      msize.height = psize.height;
-      tf.setMaximumSize(msize);
-
+      Util.adjustTextField(tf);
       JPanel lPanel = new JPanel();
       lPanel.setLayout(new BoxLayout(lPanel, BoxLayout.X_AXIS));
       lPanel.add(Box.createHorizontalGlue());
@@ -203,13 +200,7 @@ public class MiniSheet extends JFrame implements ActionListener {
       fPanel.setLayout(new BoxLayout(fPanel, BoxLayout.X_AXIS));
       createLabel(fPanel, "Formula:  ");
       JTextField textf = new JTextField();
-
-      // WLH 2 Dec 98
-      msize = textf.getMaximumSize();
-      psize = textf.getPreferredSize();
-      msize.height = psize.height;
-      textf.setMaximumSize(msize);
-
+      Util.adjustTextField(textf);
       textf.addActionListener(this);
       textf.setActionCommand("formula" + i);
       fPanel.add(textf);
@@ -234,19 +225,39 @@ public class MiniSheet extends JFrame implements ActionListener {
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
     if (cmd.equals("quit")) quitProgram();
-    else if (cmd.equals("load1")) Cell1.loadDataDialog();
-    else if (cmd.equals("load2")) Cell2.loadDataDialog();
+    else if (cmd.equals("load1")) {
+      try {
+        Cell1.removeAllReferences();
+      }
+      catch (Exception exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+      }
+      Cell1.loadDataDialog();
+    }
+    else if (cmd.equals("load2")) {
+      try {
+        Cell2.removeAllReferences();
+      }
+      catch (Exception exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+      }
+      Cell2.loadDataDialog();
+    }
     else if (cmd.equals("save1")) {
       try {
-        Cell1.saveDataDialog(new Plain());
+        Cell1.saveDataDialog(Cell1.getFirstVariableName(), new Plain());
       }
-      catch (Exception exc) { }
+      catch (Exception exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+      }
     }
     else if (cmd.equals("save2")) {
       try {
-        Cell2.saveDataDialog(new Plain());
+        Cell2.saveDataDialog(Cell2.getFirstVariableName(), new Plain());
       }
-      catch (Exception exc) { }
+      catch (Exception exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+      }
     }
     else if (cmd.equals("maps1")) Cell1.addMapDialog();
     else if (cmd.equals("maps2")) Cell2.addMapDialog();
@@ -255,16 +266,20 @@ public class MiniSheet extends JFrame implements ActionListener {
     else if (cmd.equals("formula1")) {
       Maps1.requestFocus();
       try {
-        Cell1.setFormula(Formula1.getText());
+        Cell1.addDataSource(Formula1.getText());
       }
-      catch (Exception exc) { }
+      catch (Exception exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+      }
     }
     else if (cmd.equals("formula2")) {
       Maps2.requestFocus();
       try {
-        Cell2.setFormula(Formula2.getText());
+        Cell2.addDataSource(Formula2.getText());
       }
-      catch (Exception exc) { }
+      catch (Exception exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+      }
     }
   }
 

@@ -26,30 +26,75 @@ MA 02111-1307, USA
 
 package visad.ss;
 
-/** Event class for SSCell changes.<P> */
+/**
+ * Event class for SSCell changes.
+ */
 public class SSCellChangeEvent {
 
+  /**
+   * Indicates that the cell's data has changed.
+   */
   public static int DATA_CHANGE = 0;
+
+  /**
+   * Indicates that the cell's display has changed.
+   */
   public static int DISPLAY_CHANGE = 1;
+
+  /**
+   * Indicates that the cell's dimension has changed.
+   */
   public static int DIMENSION_CHANGE = 2;
 
+  /**
+   * The cell that changed.
+   */
   private BasicSSCell SSCell;
+
+  /**
+   * The type of change that occurred.
+   */
   private int ChangeType;
 
-  /** constructor */
+  /**
+   * If data changed, the variable name of that data.
+   */
+  private String VarName;
+
+  /**
+   * Constructs an SSCellChangeEvent.
+   */
   public SSCellChangeEvent(BasicSSCell ssCell, int changeType) {
-    SSCell = ssCell;
-    ChangeType = changeType;
+    this(ssCell, changeType, null);
   }
 
-  /** get this event's SSCell */
+  public SSCellChangeEvent(BasicSSCell ssCell, int changeType,
+    String varName)
+  {
+    SSCell = ssCell;
+    ChangeType = changeType;
+    VarName = varName;
+  }
+
+  /**
+   * Gets the cell that changed.
+   */
   public BasicSSCell getSSCell() {
     return SSCell;
   }
 
+  /**
+   * Gets the type of change that occurred.
+   */
   public int getChangeType() {
     return ChangeType;
   }
 
-}
+  /**
+   * Gets the variable name for the data that has changed.
+   */
+  public String getVariableName() {
+    return VarName;
+  }
 
+}

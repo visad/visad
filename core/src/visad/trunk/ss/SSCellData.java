@@ -27,10 +27,9 @@ MA 02111-1307, USA
 package visad.ss;
 
 import java.rmi.RemoteException;
-import java.util.Vector;
 import visad.*;
 import visad.formula.*;
-import visad.util.DataUtility;
+import visad.util.SaveStringTokenizer;
 
 /**
  * Class for encapsulating all needed information
@@ -38,10 +37,12 @@ import visad.util.DataUtility;
  */
 public class SSCellData {
 
+  // --- FIELDS ---
+
   /**
    * Associated spreadsheet cell for the data.
    */
-  private BasicSSCell ssCell;
+  BasicSSCell ssCell;
 
   /**
    * The id number the Data object.
@@ -71,7 +72,17 @@ public class SSCellData {
   /**
    * The variable name of the Data object.
    */
-  private String name;
+  private String varName;
+
+  /**
+   * Errors encountered when computing the Data object.
+   */
+  private String[] errors;
+
+  /**
+   * Whether other data depends on this data.
+   */
+  private boolean othersDepend;
 
   /**
    * The formula manager of the data's spreadsheet cell.
@@ -79,121 +90,75 @@ public class SSCellData {
   private FormulaManager fm;
 
   /**
-   * VisAD CellImpl for monitoring changes to the data.
+   * VisAD Cell for monitoring local data changes.
    */
-  private CellImpl cell;
+  SSCellImpl cell;
+
+
+  // --- CONSTRUCTORS ---
 
   /**
    * Constructs a new SSCellData object, for encapsulating
    * a Data object and related information.
    */
-  public SSCellData(BasicSSCell ssCell, DataReferenceImpl ref,
-    String source, int type) throws VisADException, RemoteException
+  public SSCellData(int id, BasicSSCell ssCell, DataReferenceImpl ref,
+    String source, int type, boolean checkErrors)
+    throws VisADException, RemoteException
   {
     this.ssCell = ssCell;
-    this.id = ssCell.getFirstFreeID();
-    this.ref = ref;
+    this.id = id;
+    this.ref = (DataReferenceImpl) ref;
     this.remoteRef = new RemoteDataReferenceImpl(ref);
     this.source = source;
     this.type = type;
-    this.name = ssCell.getName() + "d" + id;
+    this.varName = ssCell.getName() + "d" + id;
+    this.errors = new String[0];
+    this.othersDepend = false;
     this.fm = ssCell.getFormulaManager();
 
-    // add data reference to formula manager database
-    fm.createVar(name, ref);
+    // set variable name's reference in formula manager database
+    fm.setReference(varName, ref);
 
     // detect changes to the data
-    final DataReference fref = ref;
-    final BasicSSCell fssCell = ssCell;
-    this.cell = new CellImpl() {
-      public void doAction() {
-        // clear old errors
-        fssCell.setErrors(null);
-
-        // get new data
-        Data data = null;
-        try {
-          data = fref.getData();
-        }
-        catch (VisADException exc) {
-          if (BasicSSCell.DEBUG) exc.printStackTrace();
-        }
-        catch (RemoteException exc) {
-          if (BasicSSCell.DEBUG) exc.printStackTrace();
-        }
-        if (data != null) {
-          // update cell's data
-          fssCell.setVDPanel(true);
-
-          // add data's RealTypes to FormulaManager variable registry
-          Vector v = new Vector();
-          try {
-            DataUtility.getRealTypes(data, v);
-          }
-          catch (VisADException exc) {
-            if (BasicSSCell.DEBUG) exc.printStackTrace();
-          }
-          catch (RemoteException exc) {
-            if (BasicSSCell.DEBUG) exc.printStackTrace();
-          }
-          int len = v.size();
-          for (int i=0; i<len; i++) {
-            RealType rt = (RealType) v.elementAt(i);
-            try {
-              fm.setThing(rt.getName(), new VRealType(rt));
-            }
-            catch (VisADException exc) {
-              if (BasicSSCell.DEBUG) exc.printStackTrace();
-            }
-            catch (RemoteException exc) {
-              if (BasicSSCell.DEBUG) exc.printStackTrace();
-            }
-          }
-        }
-
-        // display new errors, if any
-        String[] es = fm.getErrors(name);
-        if (es != null) fssCell.setErrors(es);
-
-        // broadcast data change event
-        fssCell.notifySSCellListeners(SSCellChangeEvent.DATA_CHANGE, name);
-      }
-    };
-    cell.addReference(ref);
+    this.cell = new SSCellImpl(this, ref, varName, checkErrors);
   }
+
+
+  // --- ACCESSORS ---
 
   /**
    * Gets the ID number.
    */
-  protected int getID() {
+  public int getId() {
     return id;
   }
 
   /**
    * Gets the Data object.
    */
-  protected Data getData() {
+  public Data getData() {
     return ref.getData();
   }
 
   /**
-   * Gets the DataReference pointing to the data.
+   * Gets the DataReference pointing to the data. Changes to the
+   * reference's data automatically propagate to all linked cells.
    */
-  protected DataReferenceImpl getReference() {
+  public DataReferenceImpl getReference() {
     return ref;
   }
 
   /**
    * Gets the remote copy of the DataReference.
    */
-  protected RemoteDataReferenceImpl getRemoteReference() {
+  public RemoteDataReferenceImpl getRemoteReference() {
     return remoteRef;
   }
 
   /**
    * Gets the source of the data, in String form.
    */
-  protected String getSource() {
+  public String getSource() {
     return source;
   }
 
@@ -209,29 +174,114 @@ public class SSCellData {
    *         <LI>BasicSSCell.REMOTE_SOURCE
    *         </UL>
    */
-  protected int getSourceType() {
+  public int getSourceType() {
     return type;
   }
 
   /**
    * Gets the variable name used for the data in the formula manager.
    */
-  protected String getVariableName() {
-    return name;
+  public String getVariableName() {
+    return varName;
+  }
+
+  /**
+   * Gets the errors encountered when generating the Data object.
+   */
+  public String[] getErrors() {
+    return errors;
+  }
+
+  /**
+   * Gets whether other data depends on this data.
+   */
+  public boolean othersDepend() {
+    return othersDepend;
+  }
+
+  /**
+   * Returns whether this data's cell has finished initializing.
+   */
+  public boolean isInited() {
+    return cell.isInited();
+  }
+
+
+  // --- MODIFIERS ---
+
+  /**
+   * Sets the data.
+   */
+  public void setData(Data data) throws VisADException, RemoteException {
+    setData(data, true);
+  }
+  
+  /**
+   * Sets the data, broadcasting data change notification if flag is set.
+   */
+  void setData(Data data, boolean notify)
+    throws VisADException, RemoteException
+  {
+    DataImpl d = data.local();
+    if (!notify) cell.skipNextNotify();
+    ref.setData(d);
+  }
+
+  /**
+   * Sets a single error for the Data object.
+   */
+  public void setError(String error) {
+    setErrors(new String[] {error}, true, true);
+  }
+
+  /**
+   * Sets the errors for the Data object.
+   */
+  public void setErrors(String[] errors) {
+    setErrors(errors, true, true);
+  }
+
+  /**
+   * Sets the errors for the Data object, notifying
+   * linked cells if notify flag is set.
+   */
+  void setErrors(String[] errors, boolean notify) {
+    setErrors(errors, notify, true);
+  }
+
+  /**
+   * Sets the errors for the Data object, notifying linked cells if
+   * notify flag is set, and updating display if update flag is set.
+   */
+  void setErrors(String[] errors, boolean notify, boolean update) {
+    if (BasicSSCell.arraysEqual(this.errors, errors)) return;
+    this.errors = errors;
+    if (update) ssCell.updateDisplay();
+    if (notify) {
+      try {
+        ssCell.sendMessage(BasicSSCell.SET_ERRORS, varName,
+          BasicSSCell.stringsToTuple(errors));
+      }
+      catch (RemoteException exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+      }
+    }
+  }
+
+  /**
+   * Sets whether others depend on this data.
+   */
+  public void setDependencies(Real real) {
+    othersDepend = real.equals(SSCellImpl.TRUE);
   }
 
   /**
    * Stops monitoring the data for changes.
    */
-  protected void destroy() {
+  public void destroy() {
+    // set data's variable to null in formula manager database
     try {
-      fm.remove(name);
-    }
-    catch (FormulaException exc) {
-      if (BasicSSCell.DEBUG) exc.printStackTrace();
-    }
-    try {
-      this.cell.removeAllReferences();
+      fm.setThing(varName, null);
     }
     catch (VisADException exc) {
       if (BasicSSCell.DEBUG) exc.printStackTrace();
@@ -239,8 +289,22 @@ public class SSCellData {
     catch (RemoteException exc) {
       if (BasicSSCell.DEBUG) exc.printStackTrace();
     }
-    this.cell.stop();
-    this.cell = null;
+
+    // stop local data change monitoring
+    try {
+      cell.removeAllReferences();
+    }
+    catch (VisADException exc) {
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+    }
+    cell.stop();
+    cell = null;
+
+    // broadcast data change event
+    ssCell.notifySSCellListeners(SSCellChangeEvent.DATA_CHANGE, varName);
   }
 
 }

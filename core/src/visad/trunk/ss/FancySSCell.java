@@ -38,373 +38,233 @@ import visad.data.*;
 import visad.formula.FormulaManager;
 import visad.util.*;
 
-/** FancySSCell is an extension of BasicSSCell with extra options, such
-    as a file loader dialog and a dialog to set up ScalarMaps.  It
-    provides an example of GUI extensions to BasicSSCell.<P> */
+/**
+ * FancySSCell is an extension of BasicSSCell with extra options, such
+ * as a file loader dialog and a dialog to set up ScalarMaps.
+ * It provides an example of GUI extensions to BasicSSCell.
+ */
 public class FancySSCell extends BasicSSCell implements SSCellListener {
 
-  /** border for cell with no data */
-  static final Border B_EMPTY = new LineBorder(Color.gray, 3);
+  // --- CONSTANTS ---
 
-  /** border for selected cell */
-  static final Border B_HIGH = new LineBorder(Color.yellow, 3);
+  /**
+   * Dark red.
+   */
+  public static final Color DARK_RED = new Color(0.5f, 0f, 0f);
 
-  /** border for cell with formula */
-  static final Border B_FORM = new LineBorder(new Color(0.5f, 0f, 0f), 3);
+  /**
+   * Dark green.
+   */
+  public static final Color DARK_GREEN = new Color(0f, 0.5f, 0f);
 
-  /** border for cell with RMI address */
-  static final Border B_RMI = new LineBorder(new Color(0f, 0f, 0.5f), 3);
+  /**
+   * Dark blue.
+   */
+  public static final Color DARK_BLUE = new Color(0f, 0f, 0.5f);
 
-  /** border for cell with file or URL */
-  static final Border B_URL = new LineBorder(new Color(0f, 0.5f, 0f), 3);
+  /**
+   * Dark yellow.
+   */
+  public static final Color DARK_YELLOW = new Color(0.5f, 0.5f, 0f);
 
-  /** this variable is static so that the previous directory is remembered */
+  /**
+   * Dark purple.
+   */
+  public static final Color DARK_PURPLE = new Color(0.5f, 0f, 0.5f);
+
+  /**
+   * Dark cyan.
+   */
+  public static final Color DARK_CYAN = new Color(0f, 0.5f, 0.5f);
+
+  /**
+   * Border for cell with no data.
+   */
+  public static final Border B_EMPTY = new LineBorder(Color.gray, 3);
+
+  /**
+   * Border for selected cell.
+   */
+  public static final Border B_HIGHLIGHT = new LineBorder(Color.yellow, 3);
+
+  /**
+   * Border for cell with data from an unknown source.
+   */
+  public static final Border B_UNKNOWN = new LineBorder(DARK_PURPLE, 3);
+
+  /**
+   * Border for cell with data set directly.
+   */
+  public static final Border B_DIRECT = new LineBorder(DARK_CYAN, 3);
+
+  /**
+   * Border for cell with file or URL.
+   */
+  public static final Border B_URL = new LineBorder(DARK_GREEN, 3);
+
+  /**
+   * Border for cell with formula.
+   */
+  public static final Border B_FORMULA = new LineBorder(DARK_RED, 3);
+
+  /**
+   * Border for cell with RMI address.
+   */
+  public static final Border B_RMI = new LineBorder(DARK_BLUE, 3);
+
+  /**
+   * Border for cell with data from a remote source.
+   */
+  public static final Border B_REMOTE = new LineBorder(DARK_YELLOW, 3);
+
+  /**
+   * Border for cell with multiple data objects.
+   */
+  public static final Border B_MULTI = new CompoundBorder(
+    new CompoundBorder(new LineBorder(DARK_RED), new LineBorder(DARK_GREEN)),
+    new LineBorder(DARK_BLUE));
+
+
+  // --- FIELDS ---
+
+  /**
+   * File chooser for loading and saving data. This variable is static so
+   * that the directory is remembered between each load or save command.
+   */
   protected static JFileChooser FileBox = Util.getVisADFileChooser();
 
-
-  /** parent frame */
+  /**
+   * Parent frame.
+   */
   protected Frame Parent;
 
-  /** associated JFrame, for use with VisAD Controls */
+  /**
+   * Associated JFrame, for use with VisAD Controls.
+   */
   protected JFrame WidgetFrame;
 
-  /** whether this cell is selected */
+  /**
+   * Whether this cell is selected.
+   */
   protected boolean Selected = false;
 
-  /** whether this cell should auto-switch to 3-D */
+  /**
+   * Whether this cell should auto-switch to 3-D.
+   */
   protected boolean AutoSwitch = true;
 
-  /** whether this cell should auto-detect mappings for data */
+  /**
+   * Whether this cell should auto-detect mappings for data.
+   */
   protected boolean AutoDetect = true;
 
-  /** whether this cell should auto-display its widget frame */
+  /**
+   * Whether this cell should auto-display its widget frame.
+   */
   protected boolean AutoShowControls = true;
 
 
-  /** construct a new FancySSCell with the given name */
+  // --- CONSTRUCTORS ---
+
+  /**
+   * Constructs a new FancySSCell with the given name.
+   */
   public FancySSCell(String name) throws VisADException, RemoteException {
     this(name, null, null, false, null, null);
   }
 
-  /** construct a new FancySSCell with the given name and parent Frame */
+  /**
+   * Constructs a new FancySSCell with the given name and parent Frame.
+   */
   public FancySSCell(String name, Frame parent)
     throws VisADException, RemoteException
   {
     this(name, null, null, false, null, parent);
   }
 
-  /** construct a new FancySSCell with the given name, formula manager,
-      and parent Frame */
+  /**
+   * Constructs a new FancySSCell with the given name, formula manager,
+   * and parent Frame.
+   */
   public FancySSCell(String name, FormulaManager fman, Frame parent)
     throws VisADException, RemoteException
   {
     this(name, fman, null, false, null, parent);
   }
 
-  /** construct a new FancySSCell with the given name, remote server,
-      and parent Frame */
+  /**
+   * Constructs a new FancySSCell with the given name, remote server,
+   * and parent Frame.
+   */
   public FancySSCell(String name, RemoteServer rs, Frame parent)
     throws VisADException, RemoteException
   {
     this(name, null, rs, false, null, parent);
   }
 
-  /** construct a new FancySSCell with the given name, save string, and
-      parent Frame */
+  /**
+   * Constructs a new FancySSCell with the given name, save string, and
+   * parent Frame.
+   */
   public FancySSCell(String name, String save, Frame parent)
     throws VisADException, RemoteException
   {
     this(name, null, null, false, save, parent);
   }
 
-  /** construct a new FancySSCell with the given name, formula manager,
-      remote server, save string, and parent Frame */
+  /**
+   * Constructs a new FancySSCell with the given name, formula manager,
+   * remote server, save string, and parent Frame.
+   */
   public FancySSCell(String name, FormulaManager fman, RemoteServer rs,
     String save, Frame parent) throws VisADException, RemoteException
   {
     this(name, fman, rs, false, save, parent);
   }
 
-  /** construct a new, possibly slaved, FancySSCell with the given name,
-      formula manager, remote server, save string, and parent Frame */
+  /**
+   * Constructs a new, possibly slaved, FancySSCell with the given name,
+   * formula manager, remote server, save string, and parent Frame.
+   */
   public FancySSCell(String name, FormulaManager fman, RemoteServer rs,
     boolean slave, String save, Frame parent) throws VisADException,
     RemoteException
   {
     super(name, fman, rs, slave, save);
     Parent = parent;
-    setHighlighted(false);
-    addSSCellChangeListener(this);
-  }
-
-  /** re-auto-detect mappings when this cell's data changes */
-  public void ssCellChanged(SSCellChangeEvent e) {
-    int type = e.getChangeType();
-    if (type == SSCellChangeEvent.DATA_CHANGE) {
-      // refresh border color
-      setHighlighted(Selected);
-
-      if (!IsRemote) {
-        // attempt to auto-detect mappings for new data
-        Data value = null;
-        try {
-          value = (Data) fm.getThing(Name);
-        }
-        catch (ClassCastException exc) {
-          if (DEBUG) exc.printStackTrace();
-        }
-        catch (VisADException exc) {
-          if (DEBUG) exc.printStackTrace();
-        }
-        try {
-          if (value != null) autoDetectMappings();
-        }
-        catch (VisADException exc) {
-          if (DEBUG) exc.printStackTrace();
-        }
-        catch (RemoteException exc) {
-          if (DEBUG) exc.printStackTrace();
-        }
+    WidgetFrame = new JFrame("Controls (" + Name + ")");
+    BasicSSCell.invoke(false, new Runnable() {
+      public void run() {
+        setHighlighted(false);
       }
-    }
-    else if (type == SSCellChangeEvent.DISPLAY_CHANGE) {
-      if (IsRemote) {
-        // reconstruct controls for cloned display
-        if (AutoShowControls) showWidgetFrame();
-      }
-    }
+    });
+    addSSCellListener(this);
   }
 
-  /** switch to 3-D mode if necessary and available, then call setMaps() */
-  public void setMapsAuto(ScalarMap[] maps)
-    throws VisADException, RemoteException
-  {
-    if (AutoSwitch && maps != null) {
-      int need = 0;
-      for (int i=0; i<maps.length; i++) {
-        DisplayRealType drt = maps[i].getDisplayScalar();
-        if (drt.equals(Display.ZAxis) || drt.equals(Display.Latitude)) {
-          need = 2;
-        }
-        if (drt.equals(Display.Alpha) || drt.equals(Display.RGBA)) {
-          if (need < 1) need = 1;
-        }
-      }
-      // switch to Java3D mode if needed
-      if (need == 2) setDimension(false, false);
-      else if (need == 1 && Dim != JAVA3D_3D) setDimension(true, false);
-    }
-    setMaps(maps);
+
+  // --- DATA MANAGEMENT ---
+
+  /**
+   * Imports a data object from the given source of unknown type,
+   * in a separate thread.
+   */
+  public void loadDataSource(String source) {
+    loadDataSource(source, UNKNOWN_SOURCE);
   }
 
-  /** set the ScalarMaps for this cell and creates needed control widgets */
-  public void setMaps(ScalarMap[] maps)
-    throws VisADException, RemoteException
-  {
-    super.setMaps(maps);
-    if (WidgetFrame != null && WidgetFrame.isVisible() || AutoShowControls) {
-      showWidgetFrame();
-    }
-  }
-
-  /** show the widgets for altering controls (if there are any) */
-  public synchronized void showWidgetFrame() {
-    if (VDisplay == null) return;
-    if (WidgetFrame == null) {
-      WidgetFrame = new JFrame("Controls (" + Name + ")");
-    }
-    synchronized (WidgetFrame) {
-      Container jc = VDisplay.getWidgetPanel();
-      if (jc != null && jc.getComponentCount() > 0) {
-        WidgetFrame.setContentPane(jc);
-        WidgetFrame.pack();
-        WidgetFrame.setVisible(true);
-      }
-    }
-  }
-
-  /** hide the widgets for altering controls */
-  public void hideWidgetFrame() {
-    if (WidgetFrame != null) WidgetFrame.setVisible(false);
-  }
-
-  /** whether the cell has any associated controls */
-  public boolean hasControls() {
-    if (VDisplay == null) return false;
-    Container jc = VDisplay.getWidgetPanel();
-    if (jc == null) return false;
-    return (jc.getComponentCount() > 0);
-  }
-
-  /** remove all widgets for altering controls and hide widget frame */
-  private void clearWidgetFrame() {
-    hideWidgetFrame();
-    WidgetFrame = null;
-  }
-
-  /** guess a good set of mappings for this cell's Data and apply them */
-  void autoDetectMappings() throws VisADException, RemoteException {
-    if (AutoDetect) {
-      Data data = null;
-      data = getData();
-      MathType mt = null;
-      try {
-        if (data != null) mt = data.getType();
-      }
-      catch (VisADException exc) {
-        if (DEBUG) exc.printStackTrace();
-      }
-      catch (RemoteException exc) {
-        if (DEBUG) exc.printStackTrace();
-      }
-      if (mt != null) {
-        boolean allow3D = (Dim != JAVA2D_2D || AutoSwitch);
-        setMapsAuto(mt.guessMaps(allow3D));
-      }
-    }
-  }
-
-  /** set this cell's formula */
-  public void setFormula(String f) throws VisADException, RemoteException {
-    super.setFormula(f);
-  }
-
-  /** specify whether the FancySSCell has a highlighted border */
-  public void setSelected(boolean value) {
-    if (Selected == value) return;
-    Selected = value;
-    setHighlighted(Selected);
-    if (!Selected) hideWidgetFrame();
-    else if (AutoShowControls) showWidgetFrame();
-    refresh();
-  }
-
-  /** specify whether this FancySSCell should auto-switch to 3-D */
-  public synchronized void setAutoSwitch(boolean value) {
-    AutoSwitch = value;
-  }
-
-  /** return whether this FancySSCell auto-switches to 3-D */
-  public boolean getAutoSwitch() {
-    return AutoSwitch;
-  }
-
-  /** specify whether this FancySSCell should auto-detect its mappings */
-  public synchronized void setAutoDetect(boolean value) {
-    AutoDetect = value;
-  }
-
-  /** return whether this FancySSCell auto-detects its mappings */
-  public boolean getAutoDetect() {
-    return AutoDetect;
-  }
-
-  /** specify whether this FancySSCell should auto-display its widget frame */
-  public synchronized void setAutoShowControls(boolean value) {
-    AutoShowControls = value;
-  }
-
-  /** return whether this FancySSCell auto-displays its widget frame */
-  public boolean getAutoShowControls() {
-    return AutoShowControls;
-  }
-
-  /** ask user to confirm clearing the cell if any other cell depends on it */
-  public boolean confirmClear() {
-    if (othersDepend()) {
-      int ans = JOptionPane.showConfirmDialog(null, "Other cells depend on " +
-        "this cell. Are you sure you want to clear it?", "Warning",
-        JOptionPane.YES_NO_OPTION);
-      if (ans != JOptionPane.YES_OPTION) return false;
-    }
-    return true;
-  }
-
-  /** clear the cell if no other cell depends on it; otherwise, ask the
-      user &quot;Are you sure?&quot; return true if the cell was cleared */
-  public boolean smartClear() throws VisADException, RemoteException {
-    if (confirmClear()) {
-      clearWidgetFrame();
-      clearCell();
-      return true;
-    }
-    else return false;
-  }
-
-  /** permanently destroy this cell, asking user for confirmation first
-      if other cells depend on it; return true if the cell was destroyed */
-  public boolean smartDestroy() throws VisADException, RemoteException {
-    if (confirmClear()) {
-      clearWidgetFrame();
-      destroyCell();
-      return true;
-    }
-    else return false;
-  }
-
-  /** used by addMapDialog */
-  private boolean mapDialogUp = false;
-
-  /** let the user create ScalarMaps from the current SSPanel's Data
-      to its Display */
-  public void addMapDialog() {
-    if (mapDialogUp) return;
-    mapDialogUp = true;
-
-    try {
-      // check whether this cell has data
-      Data data = getData();
-      if (data == null) {
-        JOptionPane.showMessageDialog(Parent, "This cell has no data",
-          "FancySSCell error", JOptionPane.ERROR_MESSAGE);
-        return;
-      }
-
-      // get mappings from mapping dialog
-      MappingDialog mapDialog = new MappingDialog(Parent, data, getMaps(),
-                                Dim != JAVA2D_2D || AutoSwitch,
-                                Dim == JAVA3D_3D || AutoSwitch);
-      mapDialog.display();
-
-      // make sure user did not cancel the operation
-      if (!mapDialog.okPressed()) return;
-
-      // set up new mappings
-      try {
-        setMapsAuto(mapDialog.getMaps());
-      }
-      catch (VisADException exc) {
-        if (DEBUG) exc.printStackTrace();
-        JOptionPane.showMessageDialog(Parent,
-          "This combination of mappings is not valid: " + exc.getMessage(),
-          "Cannot assign mappings", JOptionPane.ERROR_MESSAGE);
-      }
-      catch (RemoteException exc) {
-        if (DEBUG) exc.printStackTrace();
-        JOptionPane.showMessageDialog(Parent,
-          "This combination of mappings is not valid: " + exc.getMessage(),
-          "Cannot assign mappings", JOptionPane.ERROR_MESSAGE);
-      }
-    }
-    finally {
-      mapDialogUp = false;
-    }
-  }
-
-  /** import a data object from a given URL, in a separate thread */
-  public void loadDataURL(URL u) {
-    loadDataString(u.toString());
-  }
-
-  /** import a data object from the given string, in a separate thread */
-  public synchronized void loadDataString(String s) {
-    final String file = s;
+  /**
+   * Imports a data object from the given source of the specified type,
+   * in a separate thread.
+   */
+  public void loadDataSource(String source, int type) {
+    final String fsource = source;
+    final int ftype = type;
     final BasicSSCell cell = this;
-    Runnable loadFile = new Runnable() {
+    Runnable load = new Runnable() {
       public void run() {
         try {
-          cell.loadData(file);
-          if (!cell.hasData() && !IsRemote) {
+          cell.addDataSource(fsource, ftype);
+          if (!cell.hasData()) {
             JOptionPane.showMessageDialog(Parent, "Unable to import data",
               "Error importing data", JOptionPane.ERROR_MESSAGE);
           }
@@ -421,35 +281,13 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
         }
       }
     };
-    Thread t = new Thread(loadFile);
+    Thread t = new Thread(load);
     t.start();
   }
 
-  /** import a data object from a server using RMI, in a separate thread */
-  public void loadDataRMI(String s) {
-    final String sname = s;
-    Runnable loadRMI = new Runnable() {
-      public void run() {
-        try {
-          loadRMI(sname);
-        }
-        catch (RemoteException exc) {
-          if (DEBUG) exc.printStackTrace();
-          JOptionPane.showMessageDialog(Parent, exc.getMessage(),
-            "Error importing data", JOptionPane.ERROR_MESSAGE);
-        }
-        catch (VisADException exc) {
-          if (DEBUG) exc.printStackTrace();
-          JOptionPane.showMessageDialog(Parent, exc.getMessage(),
-            "Error importing data", JOptionPane.ERROR_MESSAGE);
-        }
-      }
-    };
-    Thread t = new Thread(loadRMI);
-    t.start();
-  }
-
-  /** load a file selected by the user */
+  /**
+   * Imports data from a file selected by the user.
+   */
   public void loadDataDialog() {
     // get file name from file dialog
     FileBox.setDialogType(JFileChooser.OPEN_DIALOG);
@@ -464,31 +302,12 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     }
 
     // load file
-    String filename = "file:/" + f.getAbsolutePath();
-    URL u = null;
-    try {
-      u = new URL(filename);
-    }
-    catch (MalformedURLException exc) {
-      if (DEBUG) exc.printStackTrace();
-    }
-    if (u != null) loadDataURL(u);
+    loadDataSource(f.getAbsolutePath(), URL_SOURCE);
   }
 
-  /** @deprecated use saveDataDialog(Form) instead */
-  public void saveDataDialog(boolean netcdf) {
-    try {
-      Form f;
-      if (netcdf) f = new visad.data.netcdf.Plain();
-      else f = new visad.data.visad.VisADForm();
-      saveDataDialog(f);
-    }
-    catch (VisADException exc) {
-      if (DEBUG) exc.printStackTrace();
-    }
-  }
-
-  /** pops up a dialog box for user to select file where data will be saved */
+  /**
+   * Pops up a dialog box for user to select file where data will be saved.
+   */
   private File getSaveFile() {
     if (!hasData()) {
       JOptionPane.showMessageDialog(Parent, "This cell is empty.",
@@ -504,21 +323,25 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     return FileBox.getSelectedFile();
   }
 
-  /** save to a file selected by the user, using the given data form */
-  public void saveDataDialog(Form saveForm) {
+  /**
+   * Saves a Data object to a file selected by the user,
+   * using the given data form.
+   */
+  public void saveDataDialog(String varName, Form saveForm) {
     // get file where data should be saved
-    final File f = getSaveFile();
-    if (f == null) return;
+    final File file = getSaveFile();
+    if (file == null) return;
 
     // start new thread to save the file
     final BasicSSCell cell = this;
+    final String fname = varName;
     final Form form = saveForm;
     Runnable saveFile = new Runnable() {
       public void run() {
-        String msg = "Could not save the dataset \"" + f.getName() +
-                     "\" as a " + form.getName() + " file. ";
+        String msg = "Could not save the dataset to the file " +
+          "\"" + file.getName() + "\" in " + form.getName() + " format. ";
         try {
-          cell.saveData(f, form);
+          cell.saveData(fname, file.getAbsolutePath(), form);
         }
         catch (BadFormException exc) {
           if (DEBUG) exc.printStackTrace();
@@ -550,7 +373,326 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     t.start();
   }
 
-  /** capture image and save to a file selected by the user, in JPEG format */
+
+  // --- DISPLAY MANAGEMENT ---
+
+  /**
+   * Whether the mapping dialog is currently being displayed.
+   */
+  private boolean mapDialogUp = false;
+
+  /**
+   * Asks user to confirm clearing the cell if any other cell depends on it.
+   */
+  public boolean confirmClear() {
+    if (othersDepend()) {
+      int ans = JOptionPane.showConfirmDialog(null, "Other cells depend on " +
+        "this cell. Are you sure you want to clear it?", "Warning",
+        JOptionPane.YES_NO_OPTION);
+      if (ans != JOptionPane.YES_OPTION) return false;
+    }
+    return true;
+  }
+
+  /**
+   * Clears the cell if no other cell depends on it; otherwise, ask the
+   * user &quot;Are you sure?&quot; return true if the cell was cleared.
+   */
+  public boolean smartClear() throws VisADException, RemoteException {
+    if (confirmClear()) {
+      clearWidgetFrame();
+      clearCell();
+      return true;
+    }
+    else return false;
+  }
+
+  /**
+   * Permanently destroy this cell, asking user for confirmation first
+   * if other cells depend on it; return true if the cell was destroyed.
+   */
+  public boolean smartDestroy() throws VisADException, RemoteException {
+    if (confirmClear()) {
+      clearWidgetFrame();
+      destroyCell();
+      return true;
+    }
+    else return false;
+  }
+
+  /**
+   * Switches to 3-D mode if necessary and available.
+   */
+  public void setMapsAuto(ScalarMap[] maps)
+    throws VisADException, RemoteException
+  {
+    if (AutoSwitch && maps != null) {
+      int need = 0;
+      for (int i=0; i<maps.length; i++) {
+        DisplayRealType drt = maps[i].getDisplayScalar();
+        if (drt.equals(Display.ZAxis) || drt.equals(Display.Latitude)) {
+          need = 2;
+        }
+        if (drt.equals(Display.Alpha) || drt.equals(Display.RGBA)) {
+          if (need < 1) need = 1;
+        }
+      }
+      // switch to Java3D mode if needed
+      if (need == 2) setDimension(JAVA3D_3D);
+      else if (need == 1 && Dim != JAVA3D_3D) setDimension(JAVA3D_2D);
+    }
+    setMaps(maps);
+  }
+
+  /**
+   * Sets the ScalarMaps for this cell and creates needed control widgets.
+   */
+  public void setMaps(ScalarMap[] maps)
+    throws VisADException, RemoteException
+  {
+    super.setMaps(maps);
+    if (WidgetFrame.isVisible() || AutoShowControls) showWidgetFrame();
+  }
+
+  /**
+   * Lets the user specify mappings between this cell's data and display.
+   */
+  public void addMapDialog() {
+    if (mapDialogUp) return;
+    mapDialogUp = true;
+
+    try {
+      // check whether this cell has data
+      if (getDataCount() == 0) {
+        JOptionPane.showMessageDialog(Parent, "This cell has no data",
+          "FancySSCell error", JOptionPane.ERROR_MESSAGE);
+        return;
+      }
+
+      // get mappings from mapping dialog
+      MappingDialog mapDialog = new MappingDialog(Parent, getData(), getMaps(),
+        Dim != JAVA2D_2D || AutoSwitch, Dim == JAVA3D_3D || AutoSwitch);
+      mapDialog.display();
+
+      // make sure user did not cancel the operation
+      if (!mapDialog.okPressed()) return;
+
+      // set up new mappings
+      try {
+        setMapsAuto(mapDialog.getMaps());
+      }
+      catch (VisADException exc) {
+        if (DEBUG) exc.printStackTrace();
+        JOptionPane.showMessageDialog(Parent,
+          "This combination of mappings is not valid: " + exc.getMessage(),
+          "Cannot assign mappings", JOptionPane.ERROR_MESSAGE);
+      }
+      catch (RemoteException exc) {
+        if (DEBUG) exc.printStackTrace();
+        JOptionPane.showMessageDialog(Parent,
+          "This combination of mappings is not valid: " + exc.getMessage(),
+          "Cannot assign mappings", JOptionPane.ERROR_MESSAGE);
+      }
+    }
+    finally {
+      mapDialogUp = false;
+    }
+  }
+
+  /**
+   * Guesses a good set of mappings for this cell's data and applies them.
+   */
+  protected void autoDetectMappings() throws VisADException, RemoteException {
+    if (AutoDetect) {
+      boolean allow3d = (Dim != JAVA2D_2D || AutoSwitch);
+
+      // guess mappings for Data objects
+      int len = getDataCount();
+      Data[] data = getData();
+      MathType[] types = new MathType[len];
+      for (int i=0; i<len; i++) {
+        Data d = data[i];
+        types[i] = (d == null ? null : d.getType());
+      }
+      ScalarMap[] maps = DataUtility.guessMaps(types, allow3d);
+
+      // apply the mappings
+      setMapsAuto(maps);
+    }
+  }
+
+
+  // --- GUI MANAGEMENT ---
+
+  /**
+   * Shows the widgets for altering controls (if there are any).
+   */
+  public synchronized void showWidgetFrame() {
+    if (VDisplay == null) return;
+    BasicSSCell.invoke(false, new Runnable() {
+      public void run() {
+        Container jc = VDisplay.getWidgetPanel();
+        if (jc != null && jc.getComponentCount() > 0) {
+          WidgetFrame.setContentPane(jc);
+          WidgetFrame.pack();
+          WidgetFrame.setVisible(true);
+        }
+      }
+    });
+  }
+
+  /**
+   * Hides the widgets for altering controls.
+   */
+  public void hideWidgetFrame() {
+    BasicSSCell.invoke(false, new Runnable() {
+      public void run() {
+        WidgetFrame.setVisible(false);
+      }
+    });
+  }
+
+  /**
+   * Specifies whether the FancySSCell has a border.
+   */
+  public void setBorderEnabled(boolean value) {
+    if (value) setSelected(Selected);
+    else setBorder(null);
+  }
+
+  /**
+   * Specifies whether the FancySSCell has a highlighted border.
+   */
+  public void setSelected(boolean value) {
+    if (Selected == value) return;
+    Selected = value;
+    BasicSSCell.invoke(false, new Runnable() {
+      public void run() {
+        setHighlighted(Selected);
+        if (!Selected) hideWidgetFrame();
+        else if (AutoShowControls) showWidgetFrame();
+        refresh();
+      }
+    });
+  }
+
+  /**
+   * Specifies whether this FancySSCell should auto-switch to 3-D.
+   */
+  public synchronized void setAutoSwitch(boolean value) {
+    AutoSwitch = value;
+  }
+
+  /**
+   * Specifies whether this FancySSCell should auto-detect its mappings.
+   */
+  public synchronized void setAutoDetect(boolean value) {
+    AutoDetect = value;
+  }
+
+  /**
+   * Specifies whether this FancySSCell should auto-display its widget frame.
+   */
+  public synchronized void setAutoShowControls(boolean value) {
+    AutoShowControls = value;
+  }
+
+  /**
+   * Removes all widgets for altering controls and hide widget frame.
+   */
+  private void clearWidgetFrame() {
+    BasicSSCell.invoke(false, new Runnable() {
+      public void run() {
+        WidgetFrame.setVisible(false);
+        JPanel pane = new JPanel();
+        pane.add(new JLabel("No controls"), "CENTER");
+        WidgetFrame.setContentPane(pane);
+      }
+    });
+  }
+
+  /**
+   * Sets whether this cell is highlighted.
+   */
+  private void setHighlighted(boolean hl) {
+    if (hl) setBorder(B_HIGHLIGHT);
+    else {
+      int dataCount = getDataCount();
+      if (dataCount == 0) {
+        // no datasets
+        setBorder(B_EMPTY);
+      }
+      else if (dataCount == 1) {
+        // single dataset
+        int type = getDataSourceType(getFirstVariableName());
+        if (type == DIRECT_SOURCE) setBorder(B_DIRECT);
+        else if (type == URL_SOURCE) setBorder(B_URL);
+        else if (type == FORMULA_SOURCE) setBorder(B_FORMULA);
+        else if (type == RMI_SOURCE) setBorder(B_RMI);
+        else if (type == REMOTE_SOURCE) setBorder(B_REMOTE);
+        else setBorder(B_UNKNOWN);
+      }
+      else {
+        // multiple datasets
+        setBorder(B_MULTI);
+      }
+    }
+  }
+
+
+  // --- EVENT HANDLING ---
+
+  /**
+   * Re-detects mappings when this cell's data changes.
+   */
+  public void ssCellChanged(SSCellChangeEvent e) {
+    int type = e.getChangeType();
+    if (type == SSCellChangeEvent.DATA_CHANGE) {
+      // refresh border color
+      BasicSSCell.invoke(false, new Runnable() {
+        public void run() {
+          setHighlighted(Selected);
+        }
+      });
+
+      if (!IsRemote) {
+        // attempt to auto-detect mappings for new data
+        Data value = null;
+        try {
+          value = (Data) fm.getThing(e.getVariableName());
+        }
+        catch (ClassCastException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+        catch (VisADException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+        try {
+          if (value != null) autoDetectMappings();
+        }
+        catch (VisADException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+      }
+    }
+    else if (type == SSCellChangeEvent.DISPLAY_CHANGE) {
+      if (IsRemote) {
+        // reconstruct controls for cloned display
+        if (AutoShowControls) showWidgetFrame();
+      }
+    }
+  }
+
+
+  // --- MISCELLANEOUS ---
+
+  /**
+   * Captures display image and saves to a file selected by the user,
+   * in JPEG format.
+   */
   public void captureDialog() {
     // get file where captured image should be saved
     final File f = getSaveFile();
@@ -583,16 +725,84 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     t.start();
   }
 
-  /** set whether this cell is highlighted */
-  private void setHighlighted(boolean hl) {
-    if (hl) setBorder(B_HIGH);
-    else {
-      if (hasFormula()) setBorder(B_FORM);
-      else if (RMIAddress != null) setBorder(B_RMI);
-      else if (hasData()) setBorder(B_URL);
-      else setBorder(B_EMPTY);
+
+  // --- ACCESSORS ---
+
+  /**
+   * Returns whether this FancySSCell auto-switches to 3-D.
+   */
+  public boolean getAutoSwitch() {
+    return AutoSwitch;
+  }
+
+  /**
+   * Returns whether this FancySSCell auto-detects its mappings.
+   */
+  public boolean getAutoDetect() {
+    return AutoDetect;
+  }
+
+  /**
+   * Returns whether this FancySSCell auto-displays its widget frame.
+   */
+  public boolean getAutoShowControls() {
+    return AutoShowControls;
+  }
+
+  /**
+   * Returns whether the cell has any associated controls.
+   */
+  public boolean hasControls() {
+    if (VDisplay == null) return false;
+    Container jc = VDisplay.getWidgetPanel();
+    if (jc == null) return false;
+    return (jc.getComponentCount() > 0);
+  }
+
+
+  // --- DEPRECATED ---
+
+  /**
+   * @deprecated Use loadDataSource(String, RMI_SOURCE) instead.
+   */
+  public void loadDataRMI(String s) {
+    loadDataSource(s, RMI_SOURCE);
+  }
+
+  /**
+   * @deprecated Use loadDataSource(String, URL_SOURCE) instead.
+   */
+  public synchronized void loadDataString(String s) {
+    loadDataSource(s, URL_SOURCE);
+  }
+
+  /**
+   * @deprecated Use loadDataSource(String, URL_SOURCE) instead.
+   */
+  public void loadDataURL(URL u) {
+    loadDataSource(u.toString(), URL_SOURCE);
+  }
+
+  /**
+   * @deprecated Use saveDataDialog(String, Form) instead.
+   */
+  public void saveDataDialog(boolean netcdf) {
+    try {
+      Form f;
+      if (netcdf) f = new visad.data.netcdf.Plain();
+      else f = new visad.data.visad.VisADForm();
+      saveDataDialog(getFirstVariableName(), f);
+    }
+    catch (VisADException exc) {
+      if (DEBUG) exc.printStackTrace();
     }
   }
 
-}
+  /**
+   * @deprecated Use saveDataDialog(String, Form) instead.
+   */
+  public void saveDataDialog(Form saveForm) {
+    saveDataDialog(getFirstVariableName(), saveForm);
+  }
 
+}

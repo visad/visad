@@ -39,102 +39,160 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
-import ncsa.hdf.hdf5lib.H5;
 import visad.*;
 import visad.data.Form;
 import visad.data.netcdf.Plain;
 import visad.data.visad.VisADForm;
 import visad.formula.*;
 import visad.java3d.*;
-import visad.util.ExtensionFileFilter;
+import visad.util.*;
 
-/** SpreadSheet is a user interface for VisAD that supports
-    multiple 3-D displays (FancySSCells).<P>*/
-public class SpreadSheet extends JFrame implements ActionListener,
-  AdjustmentListener, DisplayListener, KeyListener, ItemListener,
-  MouseListener, MouseMotionListener, SSCellListener
+/**
+ * SpreadSheet is a user interface for VisAD that supports
+ * multiple 3-D displays (FancySSCells).
+ */
+public class SpreadSheet extends GUIFrame implements AdjustmentListener,
+  DisplayListener, KeyListener, ItemListener, MouseListener,
+  MouseMotionListener, SSCellListener
 {
 
-  /** starting width of the application, in percentage of screen size */
-  static final int WIDTH_PERCENT = 60;
+  /**
+   * Starting width of the application, in percentage of screen size.
+   */
+  protected static final int WIDTH_PERCENT = 60;
 
-  /** starting width of the application, in percentage of screen size */
-  static final int HEIGHT_PERCENT = 80;
+  /**
+   * Starting width of the application, in percentage of screen size.
+   */
+  protected static final int HEIGHT_PERCENT = 80;
 
-  /** minimum VisAD display width, including display border */
-  static final int MIN_VIS_WIDTH = 120;
+  /**
+   * Minimum VisAD display width, including display border.
+   */
+  protected static final int MIN_VIS_WIDTH = 120;
 
-  /** minimum VisAD display height, including display border */
-  static final int MIN_VIS_HEIGHT = 120;
+  /**
+   * Minimum VisAD display height, including display border.
+   */
+  protected static final int MIN_VIS_HEIGHT = 120;
 
-  /** default VisAD display width */
-  static final int DEFAULT_VIS_WIDTH = 250;
+  /**
+   * Default VisAD display width.
+   */
+  protected static final int DEFAULT_VIS_WIDTH = 250;
 
-  /** default VisAD display height */
-  static final int DEFAULT_VIS_HEIGHT = 250;
+  /**
+   * Default VisAD display height.
+   */
+  protected static final int DEFAULT_VIS_HEIGHT = 250;
 
-  /** spreadsheet cell letter order */
-  static final String Letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  /**
+   * Spreadsheet cell letter order.
+   */
+  protected static final String Letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-  /** vertical cell label's width */
-  static final int LABEL_WIDTH = 30;
+  /**
+   * Vertical cell label's width.
+   */
+  protected static final int LABEL_WIDTH = 30;
 
-  /** horizontal cell label's height */
-  static final int LABEL_HEIGHT = 20;
+  /**
+   * Horizontal cell label's height.
+   */
+  protected static final int LABEL_HEIGHT = 20;
 
-  /** whether connection status messages are printed about clones */
-  static final boolean SHOW_CONNECT_MESSAGES = true;
+  /**
+   * Whether connection status messages are printed about clones.
+   */
+  protected static final boolean SHOW_CONNECT_MESSAGES = true;
 
 
-  /** whether Java3D is possible on this JVM */
+  /**
+   * Whether Java3D is possible on this JVM.
+   */
   protected static boolean Possible3D;
 
-  /** whether Java3D is enabled on this JVM */
+  /**
+   * Whether Java3D is enabled on this JVM.
+   */
   protected static boolean CanDo3D;
 
-  /** whether the HDF-5 native library is present on this JVM */
+  /**
+   * Whether the HDF-5 native library is present on this JVM.
+   */
   protected static boolean CanDoHDF5;
 
-  /** whether this JVM supports saving JPEG images with JPEGImageEncoder */
+  /**
+   * Whether this JVM supports saving JPEG images with JPEGImageEncoder.
+   */
   protected static boolean CanDoJPEG;
 
-  /** whether this JVM supports JPython scripting */
+  /**
+   * Whether this JVM supports JPython scripting.
+   */
   protected static boolean CanDoPython;
 
+  /**
+   * Whether spreadsheet should have toolbar buttons.
+   */
+  protected static boolean BugFix;
 
-  /** file dialog */
+
+  /**
+   * File dialog.
+   */
   protected JFileChooser SSFileDialog;
 
-  /** base title */
+  /**
+   * Base title.
+   */
   protected String bTitle;
 
-  /** number of display columns */
+  /**
+   * Number of display columns.
+   */
   protected int NumVisX;
 
-  /** number of display rows */
+  /**
+   * Number of display rows.
+   */
   protected int NumVisY;
 
-  /** formula manager */
+  /**
+   * Formula manager.
+   */
   protected FormulaManager fm;
 
 
-  /** server name, if any */
+  /**
+   * Server name, if any.
+   */
   protected String serverName;
 
-  /** server address for a cloned sheet, if any */
+  /**
+   * Server address for a cloned sheet, if any.
+   */
   protected String cloneAddress;
 
-  /** server for spreadsheet cells, if any */
+  /**
+   * Server for spreadsheet cells, if any.
+   */
   protected RemoteServerImpl rsi = null;
 
-  /** whether spreadsheet is a clone of another spreadsheet */
+  /**
+   * Whether spreadsheet is a clone of another spreadsheet.
+   */
   protected boolean IsRemote = false;
 
-  /** whether spreadsheet is a slaved clone of another spreadsheet */
+  /**
+   * Whether spreadsheet is a slaved clone of another spreadsheet.
+   */
   protected boolean IsSlave = false;
 
-  /** ID number for this collaborative spreadsheet */
-  protected double CollabID = 0.0;
+  /**
+   * ID number for this collaborative spreadsheet.
+   */
+  protected double CollabID = 0;
 
   /** row and column information needed for spreadsheet cloning */
   protected RemoteDataReference RemoteColRow;
@@ -143,183 +201,150 @@ public class SpreadSheet extends JFrame implements ActionListener,
   protected RemoteDataReference RemoteCanDo3D;
 
 
-  /** whether spreadsheet's cells automatically switch dimensions
-      when needed */
+  /**
+   * Flag marking whether spreadsheet's cells
+   * automatically switch dimensions when needed.
+   */
   protected boolean AutoSwitch = true;
 
-  /** whether spreadsheet's cells automatically detect mappings */
+  /**
+   * Flag marking whether spreadsheet's cells
+   * automatically detect mappings.
+   */
   protected boolean AutoDetect = true;
 
-  /** whether spreadsheet's cells automatically show controls */
+  /**
+   * Flag marking whether spreadsheet's cells
+   * automatically show controls.
+   */
   protected boolean AutoShowControls = true;
 
 
-  /** panel that contains actual VisAD displays */
+  /**
+   * Panel that contains actual VisAD displays.
+   */
   protected Panel DisplayPanel;
 
-  /** panel containing the scrolling pane */
+  /**
+   * Panel containing the scrolling pane.
+   */
   protected JPanel ScrollPanel;
 
-  /** scrolling pane, in case sheet gets too small */
+  /**
+   * Scrolling pane, in case sheet gets too small.
+   */
   protected ScrollPane SCPane;
 
-  /** view port for horizontal cell labels */
+  /**
+   * View port for horizontal cell labels.
+   */
   protected JViewport HorizLabels;
 
-  /** view port for vertical cell labels */
+  /**
+   * View port for vertical cell labels.
+   */
   protected JViewport VertLabels;
 
-  /** array of panels for horizontal labels */
+  /**
+   * Array of panels for horizontal labels.
+   */
   protected JPanel[] HorizLabel;
 
-  /** array of panels for vertical labels */
+  /**
+   * Array of panels for vertical labels.
+   */
   protected JPanel[] VertLabel;
 
-  /** array of horizontal yellow sizing boxes */
+  /**
+   * Array of horizontal yellow sizing boxes.
+   */
   protected JComponent[] HorizDrag;
 
-  /** array of vertical yellow sizing boxes */
+  /**
+   * Array of vertical yellow sizing boxes.
+   */
   protected JComponent[] VertDrag;
 
-  /** panel containing horizontal labels and sizing boxes */
+  /**
+   * Panel containing horizontal labels and sizing boxes.
+   */
   protected JPanel HorizPanel;
 
-  /** panel containing vertical labels and sizing boxes */
+  /**
+   * Panel containing vertical labels and sizing boxes.
+   */
   protected JPanel VertPanel;
 
-  /** array of spreadsheet cells */
+  /**
+   * Array of spreadsheet cells.
+   */
   protected FancySSCell[][] DisplayCells = null;
 
-  /** formula bar */
-  protected JTextField FormulaField;
+  /**
+   * Formula bar.
+   */
+  protected JComboBox FormulaBox;
+
+  /**
+   * Formula editor.
+   */
+  protected ComboBoxEditor FormulaEditor;
 
 
-  /** the menu bar */
-  protected MenuBar Menubar;
-
-  /** the file menu */
-  protected Menu FileMenu;
-
-  /** the edit menu */
-  protected Menu EditMenu;
-
-  /** the setup menu */
-  protected Menu SetupMenu;
-
-  /** the cell menu */
-  protected Menu CellMenu;
-
-  /** the layout menu */
-  protected Menu LayoutMenu;
-
-  /** the options menu */
-  protected Menu OptionsMenu;
-
-  /** File "Export data to netCDF..." menu item */
-  protected MenuItem FileSave1;
-
-  /** File "Export serialized data..." menu item */
-  protected MenuItem FileSave2;
-
-  /** File "Export data to HDF-5..." menu item */
-  protected MenuItem FileSave3;
-
-  /** File "Take JPEG snapshot..." menu item */
-  protected MenuItem FileSnap;
-
-  /** Edit "Paste" menu item */
-  protected MenuItem EditPaste;
-
-  /** Edit "Clear" menu item */
-  protected MenuItem EditClear;
-
-  /** Cell "3-D (Java3D)" menu item */
-  protected CheckboxMenuItem CellDim3D3D;
-
-  /** Cell "2-D (Java2D)" menu item */
-  protected CheckboxMenuItem CellDim2D2D;
-
-  /** Cell "2-D (Java3D)" menu item */
-  protected CheckboxMenuItem CellDim2D3D;
-
-  /** Cell "Print cell..." menu item */
-  protected MenuItem CellPrint;
-
-  /** Cell "Edit mappings..." menu item */
-  protected MenuItem CellEdit;
-
-  /** Cell "Reset orientation" menu item */
-  protected MenuItem CellReset;
-
-  /** Cell "Show controls" menu item */
-  protected MenuItem CellShow;
-
-  /** Layout "Add column" menu item */
-  protected MenuItem LayAddCol;
-
-  /** Layout "Delete column" menu item */
-  protected MenuItem LayDelCol;
-
-  /** Layout "Delete row" menu item */
-  protected MenuItem LayDelRow;
-
-  /** Options "Auto-switch to 3-D" menu item */
-  protected CheckboxMenuItem AutoSwitchBox;
-
-  /** Options "Auto-detect mappings" menu item */
-  protected CheckboxMenuItem AutoDetectBox;
-
-  /** Options "Auto-display controls" menu item */
-  protected CheckboxMenuItem AutoShowBox;
-
-  /** the tool bar */
+  /**
+   * Tool bar.
+   */
   protected JToolBar Toolbar;
 
-  /** File "Export data to netCDF" toolbar button */
-  protected JButton ToolSave;
+  /**
+   * Menu items.
+   */
+  protected JMenuItem FileSave1, FileSave2, FileSave3, FileSnap,
+    EditPaste, EditClear, CellDel, CellPrint, CellEdit, CellReset, CellShow,
+    LayAddCol, LayDelCol, LayDelRow;
 
-  /** Edit "Paste" toolbar button */
-  protected JButton ToolPaste;
+  /**
+   * Checkbox menu items.
+   */
+  protected JCheckBoxMenuItem CellDim3D3D, CellDim2D2D, CellDim2D3D,
+    AutoSwitchBox, AutoDetectBox, AutoShowBox;
 
-  /** Cell "3-D (Java3D)" toolbar button */
-  protected JButton Tool3D;
-
-  /** Cell "2-D (Java3D)" toolbar button */
-  protected JButton Tool2D;
-
-  /** Cell "2-D (Java2D)" toolbar button */
-  protected JButton ToolJ2D;
-
-  /** Cell "Edit mappings" toolbar button */
-  protected JButton ToolMap;
-
-  /** Cell "Show controls" toolbar button */
-  protected JButton ToolShow;
-
-  /** Cell "Reset orientation" toolbar button */
-  protected JButton ToolReset;
-
-  /** formula bar checkbox toolbar button */
-  protected JButton FormulaOk;
+  /**
+   * Toolbar buttons.
+   */
+  protected JButton ToolSave, ToolPaste, Tool3D, Tool2D, ToolJ2D, ToolMap,
+    ToolShow, ToolReset, FormulaAdd, FormulaDel;
 
 
-  /** column of currently selected cell */
+  /**
+   * Column of currently selected cell.
+   */
   protected int CurX = 0;
 
-  /** row of currently selected cell */
+  /**
+   * Row of currently selected cell.
+   */
   protected int CurY = 0;
 
-  /** contents of clipboard */
+  /**
+   * Contents of clipboard.
+   */
   protected String Clipboard = null;
 
-  /** current spreadsheet file */
+  /**
+   * Current spreadsheet file.
+   */
   protected File CurrentFile = null;
 
-  /** object for preventing simultaneous GUI manipulation */
+  /**
+   * Object for preventing simultaneous GUI manipulation.
+   */
   protected Object Lock = new Object();
 
 
-  /** wait the specified number of milliseconds */
+  /**
+   * Waits the specified number of milliseconds.
+   */
   public static void snooze(long ms) {
     try {
       Thread.sleep(ms);
@@ -329,9 +354,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** gateway into VisAD Visualization SpreadSheet user interface */
+  /**
+   * Gateway into VisAD Visualization SpreadSheet user interface.
+   */
   public static void main(String[] argv) {
-    String usage = '\n' +
+    String usage = "\n" +
       "Usage: java [-mx###m] visad.ss.SpreadSheet [cols rows]\n" +
       "       [-server server_name] [-client rmi_address]\n" +
       "       [-slave rmi_address] [-gui] [-no3d] [-debug]\n\n" +
@@ -347,6 +374,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
       "-gui = Pop up an options window so that the user can\n" +
       "       select SpreadSheet settings graphically\n" +
       "-no3d = Disable Java3D\n" +
+      "-bugfix = Disable toolbar. For some systems, will prevent\n" +
+      "          lockups on spreadsheet start." +
       "-debug = Print stack traces for all errors\n";
     int cols = 2;
     int rows = 2;
@@ -395,6 +424,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
             }
           }
           else if (argv[ix].equals("-gui")) guiOptions = true;
+          else if (argv[ix].equals("-bugfix")) BugFix = true;
           else if (argv[ix].equals("-no3d")) BasicSSCell.disable3D();
           else if (argv[ix].equals("-debug")) {
             BasicSSCell.DEBUG = true;
@@ -446,34 +476,42 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
 
-  // *** Constructors ***
+  // --- CONSTRUCTORS ---
 
-  /** constructor with option selection dialog at default values */
+  /**
+   * Constructor with option selection dialog at default values.
+   */
   public SpreadSheet() {
     this(WIDTH_PERCENT, HEIGHT_PERCENT, 2, 2, null, null,
       "VisAD SpreadSheet", null, true);
   }
 
-  /** constructor with default formula manager
-      and no option selection dialog */
+  /**
+   * Constructor with default formula manager and no option selection dialog.
+   */
   public SpreadSheet(int sWidth, int sHeight, int cols, int rows,
     String server, String clone, String sTitle)
   {
-    this(sWidth, sHeight, cols, rows, server, clone, sTitle, null);
+    this(sWidth, sHeight, cols, rows, server, clone, sTitle, null, false);
   }
 
-  /** constructor with no option selection dialog */
+  /**
+   * Constructor with no option selection dialog.
+   */
   public SpreadSheet(int sWidth, int sHeight, int cols, int rows,
     String server, String clone, String sTitle, FormulaManager fm)
   {
     this(sWidth, sHeight, cols, rows, server, clone, sTitle, fm, false);
   }
 
-  /** main constructor */
+  /**
+   * Main constructor.
+   */
   public SpreadSheet(int sWidth, int sHeight, int cols, int rows,
     String server, String clone, String sTitle, FormulaManager fm,
     boolean chooseOptions)
   {
+    super(true);
     bTitle = sTitle;
     NumVisX = cols;
     NumVisY = rows;
@@ -503,46 +541,20 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
     // test whether HDF-5 native library is present
     CanDoHDF5 = false;
-    try {
-      H5.J2C(0); // HDF-5 call initializes HDF-5 native library
-      CanDoHDF5 = true;
-    }
-    catch (NoClassDefFoundError err) {
-      if (BasicSSCell.DEBUG) err.printStackTrace();
-    }
-    catch (UnsatisfiedLinkError err) {
-      if (BasicSSCell.DEBUG) {
-        System.err.println("Warning: HDF-5 library not found");
-      }
-    }
-    catch (Exception exc) {
-      if (BasicSSCell.DEBUG) exc.printStackTrace();
+    if (!CanDoHDF5 && BasicSSCell.DEBUG) {
+      System.err.println("Warning: HDF-5 library not found");
     }
 
     // test whether JPEG codec is present
-    CanDoJPEG = false;
-    try {
-      // search for JPEG codec class
-      Class c = Class.forName("com.sun.image.codec.jpeg.JPEGCodec");
-      CanDoJPEG = true;
-    }
-    catch (ClassNotFoundException exc) {
-      if (BasicSSCell.DEBUG) {
-        System.err.println("Warning: JPEG codec not found");
-      }
+    CanDoJPEG = Util.canDoJPEG();
+    if (!CanDoJPEG && BasicSSCell.DEBUG) {
+      System.err.println("Warning: JPEG codec not found");
     }
 
     // test whether JPython is present
-    CanDoPython = false;
-    try {
-      // search for JPython interpreter class
-      Class c = Class.forName("org.python.util.PythonInterpreter");
-      CanDoPython = true;
-    }
-    catch (ClassNotFoundException exc) {
-      if (BasicSSCell.DEBUG) {
-        System.err.println("Warning: JPython not found");
-      }
+    CanDoPython = Util.canDoPython();
+    if (!CanDoPython && BasicSSCell.DEBUG) {
+      System.err.println("Warning: JPython not found");
     }
 
     // create file chooser dialog
@@ -561,6 +573,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     RemoteServer rs = null;
     String[][] cellNames = null;
     if (clone != null) {
+      // CLIENT: initialize
+
+      // connect to server
       boolean success = true;
       if (SHOW_CONNECT_MESSAGES) {
         System.out.print("Connecting to " + clone + " ");
@@ -616,6 +631,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
           // server is not ready yet; try again
           if (BasicSSCell.DEBUG) exc.printStackTrace();
         }
+        catch (NullPointerException exc) {
+          // server is not ready yet; try again
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
+        }
         catch (RemoteException exc) {
           // server is not ready yet; try again
           if (BasicSSCell.DEBUG) exc.printStackTrace();
@@ -625,9 +644,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
       if (success) {
         if (SHOW_CONNECT_MESSAGES) System.out.println(" done");
         bTitle = bTitle + " [" + (IsSlave ? "slaved" : "collaborative") +
-          " mode: " + clone + ']';
+          " mode: " + clone + "]";
         IsRemote = true;
-        CollabID = (double) (new Random().nextInt(Integer.MAX_VALUE - 1) + 1);
       }
       else {
         if (SHOW_CONNECT_MESSAGES) System.out.println(" failed");
@@ -642,276 +660,158 @@ public class SpreadSheet extends JFrame implements ActionListener,
     pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
     setContentPane(pane);
 
-    // set up menus
-    Menubar = new MenuBar();
-    setMenuBar(Menubar);
+    // set up file menu
+    addMenuItem("File", "Import data...", "loadDataSet", 'i');
+    FileSave1 = addMenuItem("File", "Export data to netCDF...",
+      "exportDataSetNetcdf", 'n', false);
+    FileSave2 = addMenuItem("File", "Export serialized data...",
+      "exportDataSetSerial", 's', false);
+    FileSave3 = addMenuItem("File", "Export data to HDF-5...",
+      "exportDataSetHDF5", 'h', false);
+    addMenuSeparator("File");
+    FileSnap = addMenuItem("File", "Take JPEG snapshot...",
+      "captureImageJPEG", 'j', false);
+    addMenuSeparator("File");
+    addMenuItem("File", "Exit", "quitProgram", 'x');
 
-    // file menu
-    FileMenu = new Menu("File");
-    Menubar.add(FileMenu);
+    // set up edit menu
+    addMenuItem("Edit", "Cut", "cutCell", 't', !IsRemote);
+    addMenuItem("Edit", "Copy", "copyCell", 'c', !IsRemote);
+    EditPaste = addMenuItem("Edit", "Paste", "pasteCell", 'p', false);
+    EditClear = addMenuItem("Edit", "Clear", "clearCell", 'l', false);
 
-    MenuItem fileOpen = new MenuItem("Import data...");
-    fileOpen.addActionListener(this);
-    fileOpen.setActionCommand("fileOpen");
-    FileMenu.add(fileOpen);
+    // set up setup menu
+    addMenuItem("Setup", "New spreadsheet file", "newFile", 'n');
+    addMenuItem("Setup", "Open spreadsheet file...", "openFile", 'o',
+      !IsRemote);
+    addMenuItem("Setup", "Save spreadsheet file", "saveFile", 's', !IsRemote);
+    addMenuItem("Setup", "Save spreadsheet file as...", "saveAsFile", 'a',
+      !IsRemote);
 
-    FileSave1 = new MenuItem("Export data to netCDF...");
-    FileSave1.addActionListener(this);
-    FileSave1.setActionCommand("fileSaveNetcdf");
-    FileSave1.setEnabled(false);
-    FileMenu.add(FileSave1);
+    // set up cell menu
+    CellDim3D3D = new JCheckBoxMenuItem("3-D (Java3D)", CanDo3D);
+    addMenuItem("Cell", CellDim3D3D, "setDim3D", '3', CanDo3D);
+    CellDim2D2D = new JCheckBoxMenuItem("2-D (Java2D)", !CanDo3D);
+    addMenuItem("Cell", CellDim2D2D, "setDimJ2D", 'j', true);
+    CellDim2D3D = new JCheckBoxMenuItem("2-D (Java3D)", false);
+    addMenuItem("Cell", CellDim2D3D, "setDim2D", '2', CanDo3D);
+    addMenuSeparator("Cell");
+    addMenuItem("Cell", "Add data object", "formulaAdd", 'a');
+    CellDel = addMenuItem("Cell", "Delete data object",
+      "formulaDel", 'd', false);
+    addMenuSeparator("Cell");
+    CellPrint = addMenuItem("Cell", "Print cell...",
+      "printCurrentCell", 'p', false);
+    addMenuSeparator("Cell");
+    CellEdit = addMenuItem("Cell", "Edit mappings...",
+      "createMappings", 'e', false);
+    CellReset = addMenuItem("Cell", "Reset orientation",
+      "resetOrientation", 'r', false);
+    CellShow = addMenuItem("Cell", "Show controls",
+      "showControls", 's', false);
 
-    FileSave2 = new MenuItem("Export serialized data...");
-    FileSave2.addActionListener(this);
-    FileSave2.setActionCommand("fileSaveSerial");
-    FileSave2.setEnabled(false);
-    FileMenu.add(FileSave2);
+    // set up layout menu
+    LayAddCol = addMenuItem("Layout", "Add column", "addColumn", 'c');
+    addMenuItem("Layout", "Add row", "addRow", 'r');
+    LayDelCol = addMenuItem("Layout", "Delete column",
+      "deleteColumn", 'l', NumVisX > 1);
+    LayDelRow = addMenuItem("Layout", "Delete row",
+      "deleteRow", 'w', NumVisY > 1);
+    addMenuSeparator("Layout");
+    addMenuItem("Layout", "Tile cells", "tileCells", 't');
 
-    FileSave3 = new MenuItem("Export data to HDF-5...");
-    FileSave3.addActionListener(this);
-    FileSave3.setActionCommand("fileSaveHDF5");
-    FileSave3.setEnabled(false);
-    FileMenu.add(FileSave3);
-
-    FileMenu.addSeparator();
-
-    FileSnap = new MenuItem("Take JPEG snapshot...");
-    FileSnap.addActionListener(this);
-    FileSnap.setActionCommand("fileSnapJPEG");
-    FileSnap.setEnabled(false);
-    FileMenu.add(FileSnap);
-
-    FileMenu.addSeparator();
-
-    MenuItem fileExit = new MenuItem("Exit");
-    fileExit.addActionListener(this);
-    fileExit.setActionCommand("fileExit");
-    FileMenu.add(fileExit);
-
-    // edit menu
-    EditMenu = new Menu("Edit");
-    Menubar.add(EditMenu);
-
-    MenuItem editCut = new MenuItem("Cut");
-    editCut.addActionListener(this);
-    editCut.setActionCommand("editCut");
-    editCut.setEnabled(!IsRemote);
-    EditMenu.add(editCut);
-
-    MenuItem editCopy = new MenuItem("Copy");
-    editCopy.addActionListener(this);
-    editCopy.setActionCommand("editCopy");
-    editCopy.setEnabled(!IsRemote);
-    EditMenu.add(editCopy);
-
-    EditPaste = new MenuItem("Paste");
-    EditPaste.addActionListener(this);
-    EditPaste.setActionCommand("editPaste");
-    EditPaste.setEnabled(false);
-    EditMenu.add(EditPaste);
-
-    EditClear = new MenuItem("Clear");
-    EditClear.addActionListener(this);
-    EditClear.setActionCommand("editClear");
-    EditClear.setEnabled(false);
-    EditMenu.add(EditClear);
-
-    // setup menu
-    SetupMenu = new Menu("Setup");
-    Menubar.add(SetupMenu);
-
-    MenuItem setupNew = new MenuItem("New spreadsheet file");
-    setupNew.addActionListener(this);
-    setupNew.setActionCommand("setupNew");
-    SetupMenu.add(setupNew);
-
-    MenuItem setupOpen = new MenuItem("Open spreadsheet file...");
-    setupOpen.addActionListener(this);
-    setupOpen.setActionCommand("setupOpen");
-    setupOpen.setEnabled(!IsRemote);
-    SetupMenu.add(setupOpen);
-
-    MenuItem setupSave = new MenuItem("Save spreadsheet file");
-    setupSave.addActionListener(this);
-    setupSave.setActionCommand("setupSave");
-    setupSave.setEnabled(!IsRemote);
-    SetupMenu.add(setupSave);
-
-    MenuItem setupSaveas = new MenuItem("Save spreadsheet file as...");
-    setupSaveas.addActionListener(this);
-    setupSaveas.setActionCommand("setupSaveas");
-    setupSaveas.setEnabled(!IsRemote);
-    SetupMenu.add(setupSaveas);
-
-    // cell menu
-    CellMenu = new Menu("Cell");
-    Menubar.add(CellMenu);
-
-    CellDim3D3D = new CheckboxMenuItem("3-D (Java3D)", CanDo3D);
-    CellDim3D3D.addItemListener(this);
-    CellDim3D3D.setEnabled(CanDo3D);
-    CellMenu.add(CellDim3D3D);
-
-    CellDim2D2D = new CheckboxMenuItem("2-D (Java2D)", !CanDo3D);
-    CellDim2D2D.addItemListener(this);
-    CellMenu.add(CellDim2D2D);
-
-    CellDim2D3D = new CheckboxMenuItem("2-D (Java3D)", false);
-    CellDim2D3D.addItemListener(this);
-    CellDim2D3D.setEnabled(CanDo3D);
-    CellMenu.add(CellDim2D3D);
-
-    CellMenu.addSeparator();
-
-    CellPrint = new MenuItem("Print cell...");
-    CellPrint.addActionListener(this);
-    CellPrint.setActionCommand("cellPrint");
-    CellPrint.setEnabled(false);
-    CellMenu.add(CellPrint);
-
-    CellMenu.addSeparator();
-
-    CellEdit = new MenuItem("Edit mappings...");
-    CellEdit.addActionListener(this);
-    CellEdit.setActionCommand("cellEdit");
-    CellEdit.setEnabled(false);
-    CellMenu.add(CellEdit);
-
-    CellReset = new MenuItem("Reset orientation");
-    CellReset.addActionListener(this);
-    CellReset.setActionCommand("cellReset");
-    CellReset.setEnabled(false);
-    CellMenu.add(CellReset);
-
-    CellShow = new MenuItem("Show controls");
-    CellShow.addActionListener(this);
-    CellShow.setActionCommand("cellShow");
-    CellShow.setEnabled(false);
-    CellMenu.add(CellShow);
-
-    // layout menu
-    LayoutMenu = new Menu("Layout");
-    Menubar.add(LayoutMenu);
-
-    LayAddCol = new MenuItem("Add column");
-    LayAddCol.addActionListener(this);
-    LayAddCol.setActionCommand("layAddCol");
-    LayoutMenu.add(LayAddCol);
-
-    MenuItem layAddRow = new MenuItem("Add row");
-    layAddRow.addActionListener(this);
-    layAddRow.setActionCommand("layAddRow");
-    LayoutMenu.add(layAddRow);
-
-    LayDelCol = new MenuItem("Delete column");
-    LayDelCol.addActionListener(this);
-    LayDelCol.setActionCommand("layDelCol");
-    LayDelCol.setEnabled(NumVisX > 1);
-    LayoutMenu.add(LayDelCol);
-
-    LayDelRow = new MenuItem("Delete row");
-    LayDelRow.addActionListener(this);
-    LayDelRow.setActionCommand("layDelRow");
-    LayDelRow.setEnabled(NumVisY > 1);
-    LayoutMenu.add(LayDelRow);
-
-    LayoutMenu.addSeparator();
-
-    MenuItem layTile = new MenuItem("Tile cells");
-    layTile.addActionListener(this);
-    layTile.setActionCommand("layTile");
-    LayoutMenu.add(layTile);
-
-    // options menu
-    OptionsMenu = new Menu("Options");
-    Menubar.add(OptionsMenu);
-
+    // set up options menu
     if (!CanDo3D) AutoSwitch = false;
-    AutoSwitchBox = new CheckboxMenuItem("Auto-switch to 3-D",
+    AutoSwitchBox = new JCheckBoxMenuItem("Auto-switch to 3-D",
       AutoSwitch && !IsRemote);
-    AutoSwitchBox.addItemListener(this);
-    AutoSwitchBox.setEnabled(CanDo3D && !IsRemote);
-    OptionsMenu.add(AutoSwitchBox);
-
-    AutoDetectBox = new CheckboxMenuItem("Auto-detect mappings",
+    addMenuItem("Options", AutoSwitchBox,
+      "optionsSwitch", '3', CanDo3D && !IsRemote);
+    AutoDetectBox = new JCheckBoxMenuItem("Auto-detect mappings",
       AutoDetect && !IsRemote);
-    AutoDetectBox.addItemListener(this);
-    AutoDetectBox.setEnabled(!IsRemote);
-    OptionsMenu.add(AutoDetectBox);
-
-    AutoShowBox = new CheckboxMenuItem("Auto-display controls",
+    addMenuItem("Options", AutoDetectBox, "optionsDetect", 'm', !IsRemote);
+    AutoShowBox = new JCheckBoxMenuItem("Auto-display controls",
       AutoShowControls && !IsSlave);
-    AutoShowBox.addItemListener(this);
-    AutoShowBox.setEnabled(!IsSlave);
-    OptionsMenu.add(AutoShowBox);
+    addMenuItem("Options", AutoShowBox, "optionsDisplay", 'c', !IsSlave);
 
     // set up toolbar
-    Toolbar = new JToolBar();
-    Toolbar.setBackground(Color.lightGray);
-    Toolbar.setBorder(new EtchedBorder());
-    Toolbar.setFloatable(false);
-    pane.add(Toolbar);
+    if (!BugFix) {
+      Toolbar = new JToolBar();
+      Toolbar.setBackground(Color.lightGray);
+      Toolbar.setBorder(new EtchedBorder());
+      Toolbar.setFloatable(false);
+      pane.add(Toolbar);
 
-    // file menu toolbar icons
-    addToolbarButton("open.gif", "Import data", "fileOpen", true, Toolbar);
-    ToolSave = addToolbarButton("save.gif", "Export data to netCDF",
-      "fileSaveNetcdf", false, Toolbar);
-    Toolbar.addSeparator();
+      // file menu toolbar icons
+      addToolbarButton("open", "Import data", "loadDataSet", true, Toolbar);
+      ToolSave = addToolbarButton("save", "Export data to netCDF",
+        "exportDataSetNetcdf", false, Toolbar);
+      Toolbar.addSeparator();
 
-    // edit menu toolbar icons
-    addToolbarButton("cut.gif", "Cut", "editCut", !IsRemote, Toolbar);
-    addToolbarButton("copy.gif", "Copy", "editCopy", !IsRemote, Toolbar);
-    ToolPaste = addToolbarButton("paste.gif", "Paste",
-      "editPaste", false, Toolbar);
-    Toolbar.addSeparator();
+      // edit menu toolbar icons
+      addToolbarButton("cut", "Cut", "cutCell", !IsRemote, Toolbar);
+      addToolbarButton("copy", "Copy", "copyCell", !IsRemote, Toolbar);
+      ToolPaste = addToolbarButton("paste", "Paste",
+        "pasteCell", false, Toolbar);
+      Toolbar.addSeparator();
 
-    // cell menu toolbar icons
-    Tool3D = addToolbarButton("3d.gif", "3-D (Java3D)",
-      "cell3D", false, Toolbar);
-    ToolJ2D = addToolbarButton("j2d.gif", "2-D (Java2D)",
-      "cellJ2D", CanDo3D, Toolbar);
-    Tool2D = addToolbarButton("2d.gif", "2-D (Java3D)",
-      "cell2D", CanDo3D, Toolbar);
-    Toolbar.addSeparator();
-    ToolMap = addToolbarButton("mappings.gif", "Edit mappings",
-      "cellEdit", false, Toolbar);
-    ToolReset = addToolbarButton("reset.gif", "Reset orientation",
-      "cellReset", false, Toolbar);
-    ToolShow = addToolbarButton("show.gif", "Show controls",
-      "cellShow", false, Toolbar);
-    Toolbar.addSeparator();
+      // cell menu toolbar icons
+      Tool3D = addToolbarButton("3d", "3-D (Java3D)",
+        "setDim3D", false, Toolbar);
+      ToolJ2D = addToolbarButton("j2d", "2-D (Java2D)",
+        "setDimJ2D", CanDo3D, Toolbar);
+      Tool2D = addToolbarButton("2d", "2-D (Java3D)",
+        "setDim2D", CanDo3D, Toolbar);
+      Toolbar.addSeparator();
+      ToolMap = addToolbarButton("mappings", "Edit mappings",
+        "createMappings", false, Toolbar);
+      ToolReset = addToolbarButton("reset", "Reset orientation",
+        "resetOrientation", false, Toolbar);
+      ToolShow = addToolbarButton("show", "Show controls",
+        "showControls", false, Toolbar);
+      Toolbar.addSeparator();
 
-    // layout menu toolbar icon
-    addToolbarButton("tile.gif", "Tile cells", "layTile", true, Toolbar);
-    Toolbar.add(Box.createHorizontalGlue());
+      // layout menu toolbar icon
+      addToolbarButton("tile", "Tile cells", "tileCells", true, Toolbar);
+      Toolbar.add(Box.createHorizontalGlue());
+    }
 
     // set up formula bar
     JPanel formulaPanel = new JPanel();
-    formulaPanel.setBackground(Color.white);
+    formulaPanel.setPreferredSize(new Dimension(Integer.MAX_VALUE, 25));
+    formulaPanel.setBackground(Color.lightGray);
     formulaPanel.setLayout(new BoxLayout(formulaPanel, BoxLayout.X_AXIS));
     formulaPanel.setBorder(new EtchedBorder());
     pane.add(formulaPanel);
     pane.add(Box.createRigidArea(new Dimension(0, 6)));
-    addToolbarButton("cancel.gif", "Cancel formula entry",
-      "formulaCancel", true, formulaPanel);
-    FormulaOk = addToolbarButton("ok.gif", "Confirm formula entry",
-      "formulaOk", true, formulaPanel);
-    FormulaField = new JTextField();
-
-    // limit formula bar to one line in height
-    adjustTextField(FormulaField);
-
-    /* When a tool tip is being displayed, there is a bug where GUI
-       components cannot be repainted; this tool tip has been removed
-       to decrease the frequency of this bug's occurrence.
-    FormulaField.setToolTipText("Enter a file name, URL, RMI address, " +
-                                "or formula");
-    */
-    FormulaField.addActionListener(this);
-    FormulaField.setActionCommand("formulaChange");
-    formulaPanel.add(FormulaField);
-    addToolbarButton("import.gif", "Import data",
-      "fileOpen", true, formulaPanel);
+    if (!BugFix) {
+      FormulaAdd = addToolbarButton("add", "Add data",
+        "formulaAdd", true, formulaPanel);
+      FormulaDel = addToolbarButton("del", "Remove data",
+        "formulaDel", true, formulaPanel);
+    }
+    FormulaBox = new JComboBox();
+    formulaPanel.add(FormulaBox);
+    FormulaBox.setLightWeightPopupEnabled(false);
+    FormulaBox.setEditable(true);
+    FormulaEditor = FormulaBox.getEditor();
+    FormulaEditor.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        String newItem = (String) FormulaEditor.getItem();
+        try {
+          String varName = DisplayCells[CurX][CurY].addDataSource(newItem);
+          String itemString = varName + ": " + newItem;
+          FormulaBox.addItem(itemString);
+          FormulaBox.setSelectedItem(itemString);
+          if (!BugFix) FormulaAdd.requestFocus();
+        }
+        catch (VisADException exc) {
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
+        }
+      }
+    });
 
     // set up horizontal spreadsheet cell labels
     JPanel horizShell = new JPanel();
@@ -1030,7 +930,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     DisplayPanel.setBackground(Color.darkGray);
     SCPane.add(DisplayPanel);
 
-    // ugly hack to improve reliability of key presses
+    // CTR: ugly hack to improve reliability of key presses
     addKeyListener(this);
     SCPane.addKeyListener(this);
     ScrollPanel.addKeyListener(this);
@@ -1038,7 +938,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
     DataReferenceImpl lColRow = null;
     if (server != null) {
-      // initialize RemoteServer
+      // SERVER: initialize
       boolean success = true;
       boolean registryStarted = false;
       while (true) {
@@ -1098,7 +998,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
         lColRow = new DataReferenceImpl("ColRow");
         RemoteColRow = new RemoteDataReferenceImpl(lColRow);
         rsi.addDataReference((RemoteDataReferenceImpl) RemoteColRow);
-
       }
       catch (VisADException exc) {
         if (BasicSSCell.DEBUG) exc.printStackTrace();
@@ -1115,21 +1014,20 @@ public class SpreadSheet extends JFrame implements ActionListener,
         success = false;
       }
 
-      if (success) bTitle = bTitle + " (" + server + ')';
+      if (success) bTitle = bTitle + " (" + server + ")";
       else rsi = null;
     }
 
     // construct spreadsheet cells
-    if (rs == null) {
-      constructSpreadsheetCells(null);
-      if (rsi != null) synchColRow();
-    }
+    if (rs == null) constructSpreadsheetCells(null);
     else {
       NumVisX = cellNames.length;
       NumVisY = cellNames[0].length;
       reconstructLabels(cellNames, null, null);
       constructSpreadsheetCells(cellNames, rs);
     }
+    if (rsi != null) synchColRow();
+    CollabID = DisplayCells[0][0].getRemoteId();
 
     if (rsi != null || IsRemote) {
       // update spreadsheet when remote row and column information changes
@@ -1138,18 +1036,26 @@ public class SpreadSheet extends JFrame implements ActionListener,
         public void doAction() {
           // extract new cell information
           if (getColRowID() != CollabID) {
-            // update is coming from a different sheet
-            String[][] cellNamesx = getNewCellNames();
-            if (cellNamesx == null) return;
-            int oldNVX = NumVisX;
-            int oldNVY = NumVisY;
-            NumVisX = cellNamesx.length;
-            NumVisY = cellNamesx[0].length;
-            if (NumVisX != oldNVX || NumVisY != oldNVY) {
-              // reconstruct spreadsheet cells and labels
-              reconstructSpreadsheet(cellNamesx, null, null, frs);
-              if (!IsRemote) synchColRow();
-            }
+            BasicSSCell.invoke(true, new Runnable() {
+              public void run() {
+                // update is coming from a different sheet
+                String[][] cellNamesx = getNewCellNames();
+                if (cellNamesx == null) {
+                  if (BasicSSCell.DEBUG) System.out.println("Warning: " +
+                    "could not obtain new spreadsheet dimensions!");
+                  return;
+                }
+                int oldNVX = NumVisX;
+                int oldNVY = NumVisY;
+                NumVisX = cellNamesx.length;
+                NumVisY = cellNamesx[0].length;
+                if (NumVisX != oldNVX || NumVisY != oldNVY) {
+                  // reconstruct spreadsheet cells and labels
+                  reconstructSpreadsheet(cellNamesx, null, null, frs);
+                  if (!IsRemote) synchColRow();
+                }
+              }
+            });
           }
         }
       };
@@ -1179,42 +1085,50 @@ public class SpreadSheet extends JFrame implements ActionListener,
     int appWidth = (int) (0.01 * sWidth * screenSize.width);
     int appHeight = (int) (0.01 * sHeight * screenSize.height);
     setSize(appWidth, appHeight);
-    centerWindow(this);
+    Util.centerWindow(this);
     setVisible(true);
 
     // wait for frame to lay itself out, then tile cells
     snooze(500);
-    FormulaOk.requestFocus();
+    if (!BugFix) FormulaAdd.requestFocus();
     tileCells();
   }
 
 
-  // *** File menu methods ***
+  // --- FILE MENU ---
 
-  /** import a data set */
-  void loadDataSet() {
+  /**
+   * Imports a data set.
+   */
+  public void loadDataSet() {
     DisplayCells[CurX][CurY].loadDataDialog();
   }
 
-  /** export a data set to netCDF format */
-  void exportDataSetNetcdf() {
+  /**
+   * Exports a data set to netCDF format.
+   */
+  public void exportDataSetNetcdf() {
     try {
-      DisplayCells[CurX][CurY].saveDataDialog(new Plain());
+      exportDataSet(new Plain());
     }
     catch (VisADException exc) {
       if (BasicSSCell.DEBUG) exc.printStackTrace();
-      displayErrorMessage("Cannot export data to netCDF format", exc,
+      displayErrorMessage("Error initializing netCDF export", exc,
         "VisAD SpreadSheet error");
     }
   }
 
-  /** export a data set to serialized data format */
-  void exportDataSetSerial() {
-    DisplayCells[CurX][CurY].saveDataDialog(new VisADForm());
+  /**
+   * Exports a data set to serialized data format.
+   */
+  public void exportDataSetSerial() {
+    exportDataSet(new VisADForm());
   }
 
-  /** export a data set to HDF-5 format */
-  void exportDataSetHDF5() {
+  /**
+   * Exports a data set to HDF-5 format.
+   */
+  public void exportDataSetHDF5() {
     Form hdf5form = null;
     try {
       ClassLoader cl = ClassLoader.getSystemClassLoader();
@@ -1223,21 +1137,39 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     catch (Exception exc) {
       if (BasicSSCell.DEBUG) exc.printStackTrace();
-      displayErrorMessage("Cannot export data to HDF-5 format", exc,
+      displayErrorMessage("Error initializing HDF-5 export", exc,
         "VisAD SpreadSheet error");
     }
-    if (hdf5form != null) {
-      DisplayCells[CurX][CurY].saveDataDialog(hdf5form);
-    }
+    if (hdf5form != null) exportDataSet(hdf5form);
   }
 
-  /** capture the display of the current cell and save it as a JPEG image */
-  void captureImageJPEG() {
+  /**
+   * Exports a data set using the given form.
+   */
+  public void exportDataSet(Form form) {
+    String item = (String) FormulaBox.getSelectedItem();
+    String varName = item.substring(0, item.indexOf(":"));
+    DisplayCells[CurX][CurY].saveDataDialog(varName, form);
+  }
+
+  /**
+   * Captures the display of the current cell and saves it as a JPEG image.
+   */
+  public void captureImageJPEG() {
     DisplayCells[CurX][CurY].captureDialog();
   }
 
-  /** do any necessary clean-up, then quit the program */
-  void quitProgram() {
+  /**
+   * Does any necessary clean-up, then quits the program.
+   */
+  public void quitProgram() {
+    // hide frames
+    try {
+      DisplayCells[CurX][CurY].hideWidgetFrame();
+    }
+    catch (NullPointerException exc) { }
+    setVisible(false);
+
     // wait for files to finish saving
     Thread t = new Thread() {
       public void run() {
@@ -1299,25 +1231,31 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
 
-  // *** Edit menu methods ***
+  // --- EDIT MENU ---
 
-  /** move a cell from the screen to the clipboard */
-  void cutCell() {
+  /**
+   * Moves a cell from the screen to the clipboard.
+   */
+  public void cutCell() {
     if (DisplayCells[CurX][CurY].confirmClear()) {
       copyCell();
       clearCell(false);
     }
   }
 
-  /** copy a cell from the screen to the clipboard */
-  void copyCell() {
+  /**
+   * Copies a cell from the screen to the clipboard.
+   */
+  public void copyCell() {
     Clipboard = DisplayCells[CurX][CurY].getSaveString();
     EditPaste.setEnabled(true);
-    ToolPaste.setEnabled(true);
+    if (!BugFix) ToolPaste.setEnabled(true);
   }
 
-  /** copy a cell from the clipboard to the screen */
-  void pasteCell() {
+  /**
+   * Copies a cell from the clipboard to the screen.
+   */
+  public void pasteCell() {
     if (Clipboard != null) {
       try {
         boolean b = DisplayCells[CurX][CurY].getAutoDetect();
@@ -1338,8 +1276,18 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** clear the mappings and formula of the current cell */
-  void clearCell(boolean checkSafe) {
+  /**
+   * Clears the mappings and formula of the current cell
+   * if it is safe to do so, or if the user confirms the clear.
+   */
+  public void clearCell() {
+    clearCell(true);
+  }
+
+  /**
+   * Clears the mappings and formula of the current cell.
+   */
+  protected void clearCell(boolean checkSafe) {
     try {
       if (checkSafe) DisplayCells[CurX][CurY].smartClear();
       else DisplayCells[CurX][CurY].clearCell();
@@ -1359,10 +1307,21 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
 
-  // *** Setup menu methods ***
+  // --- SETUP MENU ---
 
-  /** create a new spreadsheet file; return true if successful */
-  boolean newFile(boolean safe) {
+  /**
+   * Creates a new spreadsheet file, asking user to confirm first.
+   * @return true if successful.
+   */
+  public boolean newFile() {
+    return newFile(true);
+  }
+
+  /**
+   * Creates a new spreadsheet file.
+   * @return true if successful.
+   */
+  protected boolean newFile(boolean safe) {
     if (safe) {
       int ans = JOptionPane.showConfirmDialog(this,
                 "Clear all spreadsheet cells?", "Are you sure?",
@@ -1403,8 +1362,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
     return true;
   }
 
-  /** open an existing spreadsheet file */
-  void openFile() {
+  /**
+   * Opens an existing spreadsheet file.
+   */
+  public void openFile() {
     SSFileDialog.setDialogType(JFileChooser.OPEN_DIALOG);
     if (SSFileDialog.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
       // user has canceled request
@@ -1498,7 +1459,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         // parse global information
         int endToken = tokenNum;
         while (tokens[endToken] != null &&
-          tokens[endToken].trim().indexOf('[') != 0)
+          tokens[endToken].trim().indexOf("[") != 0)
         {
           endToken++;
         }
@@ -1509,7 +1470,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
             // ignore comments
             continue;
           }
-          eq = line.indexOf('=');
+          eq = line.indexOf("=");
           if (eq < 0) {
             // ignore worthless lines
             continue;
@@ -1522,7 +1483,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
             keyword.equalsIgnoreCase("sheetsize") ||
             keyword.equalsIgnoreCase("size"))
           {
-            int x = line.indexOf('x', eq);
+            int x = line.indexOf("x", eq);
             if (x >= 0) {
               String sX = line.substring(eq + 1, x).trim();
               String sY = line.substring(x + 1).trim();
@@ -1541,7 +1502,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
             keyword.equalsIgnoreCase("dimensions") ||
             keyword.equalsIgnoreCase("dim"))
           {
-            int x = line.indexOf('x', eq);
+            int x = line.indexOf("x", eq);
             if (x >= 0) {
               String sX = line.substring(eq + 1, x).trim();
               String sY = line.substring(x + 1).trim();
@@ -1706,14 +1667,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
         // find last line of this cell's save string
         int last = tokenNum + 1;
         while (tokens[last] != null &&
-          tokens[last].trim().indexOf('[') != 0)
+          tokens[last].trim().indexOf("[") != 0)
         {
           last++;
         }
 
         // build this cell's save string
         String s = "";
-        for (int l=tokenNum; l<last; l++) s = s + tokens[l] + '\n';
+        for (int l=tokenNum; l<last; l++) s = s + tokens[l] + "\n";
         fileStrings[i][j] = s;
       }
     }
@@ -1760,9 +1721,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
     repaint();
   }
 
-  /** save a spreadsheet file under its current name */
-  void saveFile() {
-    if (CurrentFile == null) saveasFile();
+  /**
+   * Saves a spreadsheet file under its current name.
+   */
+  public void saveFile() {
+    if (CurrentFile == null) saveAsFile();
     else {
       // construct file header
       StringBuffer sb = new StringBuffer(1024 * NumVisX * NumVisY + 1024);
@@ -1779,24 +1742,24 @@ public class SpreadSheet extends JFrame implements ActionListener,
       sb.append(CurrentFile.getName());
       sb.append(" written at ");
       sb.append(year);
-      sb.append('/');
-      if (month < 10) sb.append('0');
+      sb.append("/");
+      if (month < 10) sb.append("0");
       sb.append(month + 1);
-      sb.append('/');
-      if (day < 10) sb.append('0');
+      sb.append("/");
+      if (day < 10) sb.append("0");
       sb.append(day);
       sb.append(", ");
-      if (hour < 10) sb.append('0');
+      if (hour < 10) sb.append("0");
       sb.append(hour);
-      sb.append(':');
-      if (min < 10) sb.append('0');
+      sb.append(":");
+      if (min < 10) sb.append("0");
       sb.append(min);
-      sb.append(':');
-      if (sec < 10) sb.append('0');
+      sb.append(":");
+      if (sec < 10) sb.append("0");
       sb.append(sec);
-      sb.append('.');
-      if (milli < 100) sb.append('0');
-      if (milli < 10) sb.append('0');
+      sb.append(".");
+      if (milli < 100) sb.append("0");
+      if (milli < 10) sb.append("0");
       sb.append(milli);
       sb.append("\n\n");
 
@@ -1806,30 +1769,30 @@ public class SpreadSheet extends JFrame implements ActionListener,
       sb.append(getWidth());
       sb.append(" x ");
       sb.append(getHeight());
-      sb.append('\n');
+      sb.append("\n");
       sb.append("dimension = ");
       sb.append(NumVisX);
       sb.append(" x ");
       sb.append(NumVisY);
-      sb.append('\n');
+      sb.append("\n");
       sb.append("columns =");
       for (int j=0; j<NumVisX; j++) {
-        sb.append(' ');
+        sb.append(" ");
         sb.append(HorizLabel[j].getSize().width);
       }
-      sb.append('\n');
+      sb.append("\n");
       sb.append("rows =");
       for (int i=0; i<NumVisY; i++) {
-        sb.append(' ');
+        sb.append(" ");
         sb.append(VertLabel[i].getSize().height);
       }
-      sb.append('\n');
+      sb.append("\n");
       sb.append("auto switch = ");
       sb.append(AutoSwitch);
-      sb.append('\n');
+      sb.append("\n");
       sb.append("auto detect = ");
       sb.append(AutoDetect);
-      sb.append('\n');
+      sb.append("\n");
       sb.append("auto show = ");
       sb.append(AutoShowControls);
       sb.append("\n\n");
@@ -1837,11 +1800,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
       // compile cell information
       for (int j=0; j<NumVisY; j++) {
         for (int i=0; i<NumVisX; i++) {
-          sb.append('[');
+          sb.append("[");
           sb.append(DisplayCells[i][j].getName());
           sb.append("]\n");
           sb.append(DisplayCells[i][j].getSaveString());
-          sb.append('\n');
+          sb.append("\n");
         }
       }
 
@@ -1863,8 +1826,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** save a spreadsheet file under a new name */
-  void saveasFile() {
+  /**
+   * Saves a spreadsheet file under a new name.
+   */
+  public void saveAsFile() {
     SSFileDialog.setDialogType(JFileChooser.SAVE_DIALOG);
     if (SSFileDialog.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
       // user has canceled request
@@ -1879,12 +1844,35 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
 
-  // *** Cell menu methods ***
+  // --- CELL MENU ---
 
-  /** set the dimension of the current cell */
-  private void setDim(boolean threeD, boolean java3D) {
+  /**
+   * Sets the dimension of the current cell to 3-D (Java3D).
+   */
+  public void setDim3D() {
+    setDim(BasicSSCell.JAVA3D_3D);
+  }
+
+  /**
+   * Sets the dimension of the current cell to 2-D (Java2D).
+   */
+  public void setDimJ2D() {
+    setDim(BasicSSCell.JAVA2D_2D);
+  }
+
+  /**
+   * Sets the dimension of the current cell to 2-D (Java3D).
+   */
+  public void setDim2D() {
+    setDim(BasicSSCell.JAVA3D_2D);
+  }
+
+  /**
+   * Sets the dimension of the current cell.
+   */
+  protected void setDim(int dim) {
     try {
-      DisplayCells[CurX][CurY].setDimension(threeD, java3D);
+      DisplayCells[CurX][CurY].setDimension(dim);
     }
     catch (VisADException exc) {
       if (BasicSSCell.DEBUG) exc.printStackTrace();
@@ -1899,8 +1887,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
     refreshDisplayMenuItems();
   }
 
-  /** create a hardcopy of the current spreadsheet cell */
-  void printCurrentCell() {
+  /**
+   * Creates a hardcopy of the current spreadsheet cell.
+   */
+  public void printCurrentCell() {
     if (!DisplayCells[CurX][CurY].hasData()) {
       displayErrorMessage("The current cell contains no data to be printed",
         null, "VisAD SpreadSheet error");
@@ -1911,16 +1901,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
     Printable p = display.getPrintable();
     printJob.setPrintable(p);
     if (printJob.printDialog()) {
-/* WLH 16 June 2000
-      try {
-        printJob.print();
-      }
-      catch (Exception exc) {
-        if (BasicSSCell.DEBUG) exc.printStackTrace();
-        displayErrorMessage("Cannot print the current cell", exc,
-          "VisAD SpreadSheet error");
-      }
-*/
       Runnable printImage = new Runnable() {
         public void run() {
           try {
@@ -1939,8 +1919,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** specify mappings from Data to Display */
-  void createMappings() {
+  /**
+   * Specifies mappings from Data to Display.
+   */
+  public void createMappings() {
     DisplayCells[CurX][CurY].addMapDialog();
     refreshMenuCommands();
   }
@@ -1955,8 +1937,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
     {1, 0, 0, -1, 0, 0};
 
 
-  /** resets the display projection to its original value */
-  void resetOrientation() {
+  /**
+   * Resets the display projection to its original value.
+   */
+  public void resetOrientation() {
     DisplayImpl display = DisplayCells[CurX][CurY].getDisplay();
     if (display != null) {
       ProjectionControl pc = display.getProjectionControl();
@@ -1988,11 +1972,20 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
+  /**
+   * Displays the controls for the currently selected cell.
+   */
+  public void showControls() {
+    DisplayCells[CurX][CurY].showWidgetFrame();
+  }
 
-  // *** Display menu methods ***
 
-  /** add a column to the spreadsheet */
-  synchronized void addColumn() {
+  // --- DISPLAY MENU ---
+
+  /**
+   * Adds a column to the spreadsheet.
+   */
+  public synchronized void addColumn() {
     JLabel l = (JLabel) HorizLabel[NumVisX - 1].getComponent(0);
     int maxVisX = Letters.indexOf(l.getText()) + 1;
     int diffX = Letters.length() - maxVisX;
@@ -2040,12 +2033,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
             String name = String.valueOf(Letters.charAt(maxVisX)) +
               String.valueOf(j + 1);
             FancySSCell f = createCell(name, null);
-            f.addSSCellChangeListener(this);
+            f.addSSCellListener(this);
             f.addMouseListener(this);
             f.setAutoSwitch(AutoSwitch);
             f.setAutoDetect(AutoDetect);
             f.setAutoShowControls(AutoShowControls);
-            f.setDimension(!CanDo3D, !CanDo3D);
+            f.setDimension(CanDo3D ?
+              BasicSSCell.JAVA3D_3D : BasicSSCell.JAVA2D_2D);
             f.addDisplayListener(this);
             f.setPreferredSize(
               new Dimension(DEFAULT_VIS_WIDTH, DEFAULT_VIS_HEIGHT));
@@ -2075,8 +2069,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** add a row to the spreadsheet */
-  synchronized void addRow() {
+  /**
+   * Adds a row to the spreadsheet.
+   */
+  public void addRow() {
     JLabel l = (JLabel) VertLabel[NumVisY - 1].getComponent(0);
     int maxVisY = Integer.parseInt(l.getText());
 
@@ -2123,12 +2119,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
           String name = String.valueOf(Letters.charAt(i)) +
             String.valueOf(maxVisY + 1);
           FancySSCell f = createCell(name, null);
-          f.addSSCellChangeListener(this);
+          f.addSSCellListener(this);
           f.addMouseListener(this);
           f.setAutoSwitch(AutoSwitch);
           f.setAutoDetect(AutoDetect);
           f.setAutoShowControls(AutoShowControls);
-          f.setDimension(!CanDo3D, !CanDo3D);
+          f.setDimension(CanDo3D ?
+            BasicSSCell.JAVA3D_3D : BasicSSCell.JAVA2D_2D);
           f.addDisplayListener(this);
           f.setPreferredSize(
             new Dimension(DEFAULT_VIS_WIDTH, DEFAULT_VIS_HEIGHT));
@@ -2156,8 +2153,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** deletes a column from the spreadsheet */
-  synchronized boolean deleteColumn() {
+  /**
+   * Deletes a column from the spreadsheet.
+   */
+  public synchronized boolean deleteColumn() {
     // make sure at least one column will be left
     if (NumVisX == 1) {
       displayErrorMessage("This is the last column", null,
@@ -2223,8 +2222,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
     return true;
   }
 
-  /** delete a row from the spreadsheet */
-  synchronized boolean deleteRow() {
+  /**
+   * Deletes a row from the spreadsheet.
+   */
+  public synchronized boolean deleteRow() {
     // make sure at least one row will be left
     if (NumVisY == 1) {
       displayErrorMessage("This is the last row", null, "Cannot delete row");
@@ -2284,8 +2285,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
     return true;
   }
 
-  /** resize all cells to exactly fill the entire pane, if possible */
-  void tileCells() {
+  /**
+   * Resizes all cells to exactly fill the entire pane, if possible.
+   */
+  public void tileCells() {
     Dimension paneSize = SCPane.getSize();
     int w = paneSize.width - SCPane.getVScrollbarWidth() - 5 * NumVisX;
     int h = paneSize.height - SCPane.getHScrollbarHeight() - 5 * NumVisY;
@@ -2307,26 +2310,53 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
 
-  // *** Options menu methods ***
+  // --- OPTIONS MENU ---
 
-  /** toggle auto-dimension switching */
-  void setAutoSwitch(boolean b) {
+  /**
+   * Sets auto-dimension switching to match Auto-switch menu item state.
+   */
+  public void optionsSwitch() {
+    setAutoSwitch(AutoSwitchBox.getState());
+  }
+
+  /**
+   * Sets mapping auto-detection to match Auto-detect menu item state.
+   */
+  public void optionsDetect() {
+    setAutoDetect(AutoDetectBox.getState());
+  }
+
+  /**
+   * Sets auto-display of controls to match Auto-display menu item state.
+   */
+  public void optionsDisplay() {
+    setAutoShowControls(AutoShowBox.getState());
+  }
+
+  /**
+   * Toggles auto-dimension switching.
+   */
+  protected void setAutoSwitch(boolean b) {
     for (int j=0; j<NumVisY; j++) {
       for (int i=0; i<NumVisX; i++) DisplayCells[i][j].setAutoSwitch(b);
     }
     AutoSwitch = b;
   }
 
-  /** toggle mapping auto-detection */
-  void setAutoDetect(boolean b) {
+  /**
+   * Toggles mapping auto-detection.
+   */
+  protected void setAutoDetect(boolean b) {
     for (int j=0; j<NumVisY; j++) {
       for (int i=0; i<NumVisX; i++) DisplayCells[i][j].setAutoDetect(b);
     }
     AutoDetect = b;
   }
 
-  /** toggle auto-display of controls */
-  void setAutoShowControls(boolean b) {
+  /**
+   * Toggles auto-display of controls.
+   */
+  protected void setAutoShowControls(boolean b) {
     for (int j=0; j<NumVisY; j++) {
       for (int i=0; i<NumVisX; i++) DisplayCells[i][j].setAutoShowControls(b);
     }
@@ -2334,75 +2364,50 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
 
-  // *** Toolbar methods ***
+  // --- FORMULA BAR BUTTONS ---
 
-  /** update formula based on formula entered in formula bar */
-  void updateFormula() {
-    String newFormula = FormulaField.getText();
-    URL u = null;
-    // check if new entry is a local file
-    File f = new File(newFormula);
-    if (f.exists()) {
-      // convert local file to a URL
-      try {
-        u = new URL("file:/" + f.getAbsolutePath());
-      }
-      catch (MalformedURLException exc) {
-        if (BasicSSCell.DEBUG) exc.printStackTrace();
-      }
-    }
-    else {
-      // check if new entry is a URL
-      try {
-        u = new URL(newFormula);
-      }
-      catch (MalformedURLException exc) {
-        if (BasicSSCell.DEBUG) exc.printStackTrace();
-      }
-    }
-    if (u != null) {
-      // try to load the data from the URL
-      DisplayCells[CurX][CurY].loadDataURL(u);
-    }
-    else if (newFormula.startsWith("rmi://")) {
-      // try to load the data from a server using RMI
-      DisplayCells[CurX][CurY].loadDataRMI(newFormula);
-    }
-    else if (newFormula.startsWith("adde://")) {
-      // try to load the data from a server using ADDE
-      DisplayCells[CurX][CurY].loadDataString(newFormula);
-    }
-    else {
-      // check if formula has changed from last entry
-      String oldFormula = "";
-      if (DisplayCells[CurX][CurY].hasFormula()) {
-        oldFormula = DisplayCells[CurX][CurY].getFormula();
-      }
-      if (oldFormula.equalsIgnoreCase(newFormula)) return;
+  /**
+   * Prompts the user to type a source for a new data object
+   * for the current cell.
+   */
+  public void formulaAdd() {
+    FormulaEditor.setItem("");
+    FormulaEditor.selectAll();
+  }
 
-      // try to set the formula
-      try {
-        DisplayCells[CurX][CurY].setFormula(newFormula);
-      }
-      catch (VisADException exc) {
-        if (BasicSSCell.DEBUG) exc.printStackTrace();
-        displayErrorMessage("Unable to assign the new formula", exc,
-          "VisAD SpreadSheet error");
-      }
-      catch (RemoteException exc) {
-        if (BasicSSCell.DEBUG) exc.printStackTrace();
-        displayErrorMessage("Unable to assign the new formula", exc,
-          "VisAD SpreadSheet error");
-      }
+  /**
+   * Deletes the selected data object from the current cell.
+   */
+  public void formulaDel() {
+    String item = (String) FormulaBox.getSelectedItem();
+    if (item == null) return;
+    int index = item.indexOf(":");
+    if (index < 0) return;
+    String varName = item.substring(0, index);
+    try {
+      DisplayCells[CurX][CurY].removeData(varName);
+      FormulaBox.removeItem(item);
+    }
+    catch (VisADException exc) {
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+      displayErrorMessage("Cannot delete data " + varName, exc,
+        "VisAD SpreadSheet error");
+    }
+    catch (RemoteException exc) {
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+      displayErrorMessage("Cannot delete data " + varName, exc,
+        "VisAD SpreadSheet error");
     }
   }
 
 
-  // *** Methods for refreshing GUI components when things change ***
+  // --- GUI MANAGEMENT ---
 
-  /** refresh spreadsheet cells */
-  private void refreshCells() {
-    SwingUtilities.invokeLater(new Runnable() {
+  /**
+   * Refreshes spreadsheet cells.
+   */
+  protected void refreshCells() {
+    BasicSSCell.invoke(false, new Runnable() {
       public void run() {
         for (int i=0; i<NumVisX; i++) {
           for (int j=0; j<NumVisY; j++) DisplayCells[i][j].refresh();
@@ -2411,9 +2416,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
     });
   }
 
-  /** refresh check box items in the Options menu */
-  private void refreshOptions() {
-    SwingUtilities.invokeLater(new Runnable() {
+  /**
+   * Refreshes check box items in the Options menu.
+   */
+  protected void refreshOptions() {
+    BasicSSCell.invoke(false, new Runnable() {
       public void run() {
         AutoSwitchBox.setState(AutoSwitch);
         AutoDetectBox.setState(AutoDetect);
@@ -2422,21 +2429,25 @@ public class SpreadSheet extends JFrame implements ActionListener,
     });
   }
 
-  /** refresh the "Show controls" menu option and toolbar button */
-  private void refreshShowControls() {
-    SwingUtilities.invokeLater(new Runnable() {
+  /**
+   * Refreshes the "Show controls" menu option and toolbar button.
+   */
+  protected void refreshShowControls() {
+    BasicSSCell.invoke(false, new Runnable() {
       public void run() {
         boolean b = DisplayCells[CurX][CurY].hasControls();
         CellShow.setEnabled(b);
-        ToolShow.setEnabled(b);
+        if (!BugFix) ToolShow.setEnabled(b);
       }
     });
   }
 
-  /** enable or disable certain menu items depending on whether
-      this cell has data */
-  private void refreshMenuCommands() {
-    SwingUtilities.invokeLater(new Runnable() {
+  /**
+   * Enables or disables certain menu items
+   * depending on whether this cell has data.
+   */
+  protected void refreshMenuCommands() {
+    BasicSSCell.invoke(false, new Runnable() {
       public void run() {
         boolean b = DisplayCells[CurX][CurY].hasData();
         FileSave1.setEnabled(b);
@@ -2447,34 +2458,42 @@ public class SpreadSheet extends JFrame implements ActionListener,
         CellPrint.setEnabled(b);
         CellEdit.setEnabled(b);
         CellReset.setEnabled(b && !IsSlave);
-        ToolSave.setEnabled(b);
-        ToolMap.setEnabled(b);
-        ToolReset.setEnabled(b && !IsSlave);
+        if (!BugFix) {
+          ToolSave.setEnabled(b);
+          ToolMap.setEnabled(b);
+          ToolReset.setEnabled(b && !IsSlave);
+        }
         refreshShowControls();
       }
     });
   }
 
-  /** make sure the formula bar is displaying up-to-date info */
-  private void refreshFormulaBar() {
-    SwingUtilities.invokeLater(new Runnable() {
+  /**
+   * Makes sure the formula bar is displaying up-to-date info.
+   */
+  protected void refreshFormulaBar() {
+    BasicSSCell.invoke(false, new Runnable() {
       public void run() {
-        if (DisplayCells[CurX][CurY].hasFormula()) {
-          FormulaField.setText(DisplayCells[CurX][CurY].getFormula());
+        FormulaBox.removeAllItems();
+        String[] varNames = DisplayCells[CurX][CurY].getVariableNames();
+        int len = varNames.length;
+        for (int i=0; i<len; i++) {
+          String varName = varNames[i];
+          String source = DisplayCells[CurX][CurY].getDataSource(varName);
+          FormulaBox.addItem(varName + ": " + source);
         }
-        else {
-          String f = DisplayCells[CurX][CurY].getFilename();
-          String s = DisplayCells[CurX][CurY].getRMIAddress();
-          String t = (f.equals("") ? (s == null ? "" : s) : f);
-          FormulaField.setText(t);
-        }
+        boolean b = len > 0;
+        CellDel.setEnabled(b);
+        if (!BugFix) FormulaDel.setEnabled(b);
       }
     });
   }
 
-  /** update dimension checkbox menu items and toolbar buttons */
-  private void refreshDisplayMenuItems() {
-    SwingUtilities.invokeLater(new Runnable() {
+  /**
+   * Updates dimension checkbox menu items and toolbar buttons.
+   */
+  protected void refreshDisplayMenuItems() {
+    BasicSSCell.invoke(false, new Runnable() {
       public void run() {
         // update dimension check marks
         int dim = DisplayCells[CurX][CurY].getDimension();
@@ -2484,17 +2503,21 @@ public class SpreadSheet extends JFrame implements ActionListener,
         CellDim3D3D.setState(j3d3d);
         CellDim2D2D.setState(j2d2d);
         CellDim2D3D.setState(j3d2d);
-        Tool3D.setEnabled(!j3d3d && CanDo3D);
-        Tool2D.setEnabled(!j3d2d && CanDo3D);
-        ToolJ2D.setEnabled(!j2d2d);
+        if (!BugFix) {
+          Tool3D.setEnabled(!j3d3d && CanDo3D);
+          Tool2D.setEnabled(!j3d2d && CanDo3D);
+          ToolJ2D.setEnabled(!j2d2d);
+        }
       }
     });
   }
 
 
-  // *** Spreadsheet collaboration-related methods ***
+  // --- COLLABORATION ---
 
-  /** determine whether or not the last remote event was from the server */
+  /**
+   * Determines whether or not the last remote event was from the server.
+   */
   private double getColRowID() {
     TupleIface t = null;
     Real id = null;
@@ -2515,27 +2538,34 @@ public class SpreadSheet extends JFrame implements ActionListener,
     return Float.NaN;
   }
 
-  /** get the latest remote row and column information */
+  /**
+   * Gets the latest remote row and column information.
+   */
   private String[][] getNewCellNames() {
     // extract new row and column information
     TupleIface t = null;
     TupleIface tc = null;
     RealTuple tr = null;
-    int collen = 0;
-    int rowlen = 0;
     try {
       t = (TupleIface) RemoteColRow.getData();
       tc = (TupleIface) t.getComponent(1);
       tr = (RealTuple) t.getComponent(2);
-      if (tc == null || tr == null) return null;
-      collen = tc.getDimension();
-      rowlen = tr.getDimension();
     }
     catch (NullPointerException exc) {
       if (BasicSSCell.DEBUG) exc.printStackTrace();
     }
     catch (VisADException exc) {
       if (BasicSSCell.DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+    }
+    if (tc == null || tr == null) return null;
+    int collen = -1;
+    int rowlen = -1;
+    try {
+      collen = tc.getDimension();
+      rowlen = tr.getDimension();
     }
     catch (RemoteException exc) {
       if (BasicSSCell.DEBUG) exc.printStackTrace();
@@ -2581,7 +2611,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     return cellNames;
   }
 
-  /** update the remote row and column information */
+  /**
+   * Updates the remote row and column information.
+   */
   private void synchColRow() {
     if (RemoteColRow != null) {
       synchronized (RemoteColRow) {
@@ -2624,9 +2656,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
 
-  // *** Methods for (re)constructing spreadsheet cells and labels ***
+  // --- CELL & LABEL CONSTRUCTION ---
 
-  /** ensure that the cells' preferred sizes match those of the labels */
+  /**
+   * Ensures that the cells' preferred sizes match those of the labels.
+   */
   private void synchLabelAndCellSizes() {
     // resize spreadsheet cells
     for (int j=0; j<NumVisY; j++) {
@@ -2649,7 +2683,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     String[][] labels = new String[NumVisX][NumVisY];
     for (int i=0; i<NumVisX; i++) {
       for (int j=0; j<NumVisY; j++) {
-        labels[i][j] = "" + Letters.charAt(i) + (j+1);
+        labels[i][j] = "" + Letters.charAt(i) + (j + 1);
       }
     }
     constructSpreadsheetCells(labels, rs);
@@ -2667,12 +2701,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
             FancySSCell f = (FancySSCell) BasicSSCell.getSSCellByName(l[i][j]);
             if (f == null) {
               f = createCell(l[i][j], rs);
-              f.addSSCellChangeListener(this);
+              f.addSSCellListener(this);
               f.addMouseListener(this);
               f.setAutoSwitch(AutoSwitch);
               f.setAutoDetect(AutoDetect);
               f.setAutoShowControls(AutoShowControls);
-              if (rs == null) f.setDimension(!CanDo3D, !CanDo3D);
+              if (rs == null) f.setDimension(CanDo3D ?
+                BasicSSCell.JAVA3D_3D : BasicSSCell.JAVA2D_2D);
               f.addDisplayListener(this);
               if (rsi != null) {
                 // add new cell to server
@@ -2809,7 +2844,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     constructVerticalLabels(vLabels, h);
   }
 
-  private void reconstructSpreadsheet(String[][] cellNames, int[] w, int[] h,
+  protected void reconstructSpreadsheet(String[][] cellNames, int[] w, int[] h,
     RemoteServer rs)
   {
     // reconstruct labels
@@ -2931,69 +2966,16 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
 
-  // *** Event handling ***
+  // --- EVENT HANDLING ---
 
-  /** handle menubar/toolbar events */
-  public void actionPerformed(ActionEvent e) {
-    String cmd = e.getActionCommand();
-
-    // file menu commands
-    if (cmd.equals("fileOpen")) loadDataSet();
-    else if (cmd.equals("fileSaveNetcdf")) exportDataSetNetcdf();
-    else if (cmd.equals("fileSaveSerial")) exportDataSetSerial();
-    else if (cmd.equals("fileSaveHDF5")) exportDataSetHDF5();
-    else if (cmd.equals("fileSnapJPEG")) captureImageJPEG();
-    else if (cmd.equals("fileExit")) {
-      DisplayCells[CurX][CurY].hideWidgetFrame();
-      setVisible(false);
-      quitProgram();
-    }
-
-    // edit menu commands
-    else if (cmd.equals("editCut")) cutCell();
-    else if (cmd.equals("editCopy")) copyCell();
-    else if (cmd.equals("editPaste")) pasteCell();
-    else if (cmd.equals("editClear")) clearCell(true);
-
-    // setup menu commands
-    else if (cmd.equals("setupNew")) newFile(true);
-    else if (cmd.equals("setupOpen")) openFile();
-    else if (cmd.equals("setupSave")) saveFile();
-    else if (cmd.equals("setupSaveas")) saveasFile();
-
-    // cell menu commands
-    else if (cmd.equals("cell3D")) setDim(false, false);
-    else if (cmd.equals("cellJ2D")) setDim(true, true);
-    else if (cmd.equals("cell2D")) setDim(true, false);
-    else if (cmd.equals("cellPrint")) printCurrentCell();
-    else if (cmd.equals("cellEdit")) createMappings();
-    else if (cmd.equals("cellShow")) {
-      DisplayCells[CurX][CurY].showWidgetFrame();
-    }
-    else if (cmd.equals("cellReset")) resetOrientation();
-
-    // layout menu commands
-    else if (cmd.equals("layAddCol")) addColumn();
-    else if (cmd.equals("layAddRow")) addRow();
-    else if (cmd.equals("layDelCol")) deleteColumn();
-    else if (cmd.equals("layDelRow")) deleteRow();
-    else if (cmd.equals("layTile")) tileCells();
-
-    // formula bar commands
-    else if (cmd.equals("formulaCancel")) refreshFormulaBar();
-    else if (cmd.equals("formulaOk")) updateFormula();
-    else if (cmd.equals("formulaChange")) {
-      FormulaOk.requestFocus();
-      updateFormula();
-    }
-  }
-
-  /** handle checkbox menu item changes (dimension checkboxes) */
+  /**
+   * Handles checkbox menu item changes (dimension checkboxes).
+   */
   public void itemStateChanged(ItemEvent e) {
     String item = (String) e.getItem();
-    if (item.equals("3-D (Java3D)")) setDim(false, false);
-    else if (item.equals("2-D (Java2D)")) setDim(true, true);
-    else if (item.equals("2-D (Java3D)")) setDim(true, false);
+    if (item.equals("3-D (Java3D)")) setDim(BasicSSCell.JAVA3D_3D);
+    else if (item.equals("2-D (Java2D)")) setDim(BasicSSCell.JAVA2D_2D);
+    else if (item.equals("2-D (Java3D)")) setDim(BasicSSCell.JAVA3D_2D);
     else if (item.equals("Auto-switch to 3-D")) {
       boolean b = e.getStateChange() == ItemEvent.SELECTED;
       setAutoSwitch(b);
@@ -3008,7 +2990,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** handle scrollbar changes */
+  /**
+   * Handles scrollbar changes.
+   */
   public void adjustmentValueChanged(AdjustmentEvent e) {
     Adjustable a = e.getAdjustable();
     int value = a.getValue();
@@ -3021,7 +3005,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** handle display changes */
+  /**
+   * Handles display changes.
+   */
   public void displayChanged(DisplayEvent e) {
     if (e.getId() == DisplayEvent.MOUSE_PRESSED && !e.isRemote()) {
       // highlight cell if it is the source of a local mouse click
@@ -3056,7 +3042,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** handle key presses */
+  /**
+   * Handles key presses.
+   */
   public void keyPressed(KeyEvent e) {
     int key = e.getKeyCode();
 
@@ -3082,19 +3070,29 @@ public class SpreadSheet extends JFrame implements ActionListener,
     if (changed) selectCell(ci, cj);
   }
 
-  /** unused KeyListener method */
+  /**
+   * Unused KeyListener method.
+   */
   public void keyReleased(KeyEvent e) { }
 
-  /** unused KeyListener method */
+  /**
+   * Unused KeyListener method.
+   */
   public void keyTyped(KeyEvent e) { }
 
-  /** old x value used with cell resizing logic */
+  /**
+   * Old x value used with cell resizing logic.
+   */
   private int oldX;
 
-  /** old y value used with cell resizing logic */
+  /**
+   * Old y value used with cell resizing logic.
+   */
   private int oldY;
 
-  /** handle mouse presses */
+  /**
+   * Handles mouse presses.
+   */
   public void mousePressed(MouseEvent e) {
     Component c = e.getComponent();
     for (int j=0; j<NumVisY; j++) {
@@ -3109,7 +3107,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     oldY = e.getY();
   }
 
-  /** handle cell resizing */
+  /**
+   * Handles cell resizing.
+   */
   public void mouseReleased(MouseEvent e) {
     int x = e.getX();
     int y = e.getY();
@@ -3130,7 +3130,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     if (change) synchLabelAndCellSizes();
   }
 
-  /** handle cell label resizing */
+  /**
+   * Handles cell label resizing.
+   */
   public void mouseDragged(MouseEvent e) {
     Component c = e.getComponent();
     int x = e.getX();
@@ -3163,19 +3165,29 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** unused MouseListener method */
+  /**
+   * Unused MouseListener method.
+   */
   public void mouseClicked(MouseEvent e) { }
 
-  /** unused MouseListener method */
+  /**
+   * Unused MouseListener method.
+   */
   public void mouseEntered(MouseEvent e) { }
 
-  /** unused MouseListener method */
+  /**
+   * Unused MouseListener method.
+   */
   public void mouseExited(MouseEvent e) { }
 
-  /** unused MouseMotionListener method */
+  /**
+   * Unused MouseMotionListener method.
+   */
   public void mouseMoved(MouseEvent e) { }
 
-  /** handle changes in a cell's data */
+  /**
+   * Handles changes in a cell's data.
+   */
   public void ssCellChanged(SSCellChangeEvent e) {
     FancySSCell f = (FancySSCell) e.getSSCell();
     if (CurX < NumVisX && CurY < NumVisY && DisplayCells[CurX][CurY] == f) {
@@ -3199,9 +3211,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
 
-  // *** SpreadSheet API methods ***
+  // --- SPREADSHEET API ---
 
-  /** select the specified cell and update screen info */
+  /**
+   * Selects the specified cell and updates screen info.
+   */
   public void selectCell(int x, int y) {
     if (x < 0) x = 0;
     if (y < 0) y = 0;
@@ -3218,13 +3232,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
     // update spreadsheet info
     CurX = x;
     CurY = y;
-    FormulaOk.requestFocus();
+    if (!BugFix) FormulaAdd.requestFocus();
     refreshFormulaBar();
     refreshMenuCommands();
     refreshDisplayMenuItems();
   }
 
-  /** pop up an option selection dialog for choosing SpreadSheet options */
+  /**
+   * Pops up an option selection dialog for choosing SpreadSheet options.
+   */
   protected boolean getOptions(int cols, int rows,
     String server, String clone, boolean slave)
   {
@@ -3235,7 +3251,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
     // set up the initial settings
     final SSOptions options = new SSOptions(cols, rows, CanDo3D,
-      BasicSSCell.DEBUG, server, clone, slave);
+      BugFix, BasicSSCell.DEBUG, server, clone, slave);
 
     // set up main content pane
     final boolean[] success = new boolean[1];
@@ -3253,7 +3269,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     row1Cols.setLayout(new BoxLayout(row1Cols, BoxLayout.Y_AXIS));
     row1Cols.add(new JLabel("Columns"));
     final JTextField colField = new JTextField("" + cols);
-    adjustTextField(colField);
+    Util.adjustTextField(colField);
     colField.setEnabled(clone == null);
     row1Cols.add(colField);
     row1.add(row1Cols);
@@ -3266,7 +3282,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     row1Rows.setLayout(new BoxLayout(row1Rows, BoxLayout.Y_AXIS));
     row1Rows.add(new JLabel("Rows"));
     final JTextField rowField = new JTextField("" + rows);
-    adjustTextField(rowField);
+    Util.adjustTextField(rowField);
     rowField.setEnabled(clone == null);
     row1Rows.add(rowField);
     row1.add(row1Rows);
@@ -3275,6 +3291,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
     final JCheckBox java3d = new JCheckBox("Enable Java3D", CanDo3D);
     java3d.setEnabled(Possible3D);
     row1Boxes.add(java3d);
+    final JCheckBox toolBox = new JCheckBox("Enable toolbar", !BugFix);
+    row1Boxes.add(toolBox);
     final JCheckBox debugBox = new JCheckBox("Debug mode", BasicSSCell.DEBUG);
     row1Boxes.add(debugBox);
     row1.add(row1Boxes);
@@ -3307,7 +3325,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     row3.setLayout(new BoxLayout(row3, BoxLayout.X_AXIS));
     row3.add(new JLabel("Server name "));
     final JTextField name = new JTextField(server == null ? "" : server);
-    adjustTextField(name);
+    Util.adjustTextField(name);
     name.setEnabled(server != null);
     row3.add(name);
     pane.add(row3);
@@ -3317,7 +3335,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     row4.setLayout(new BoxLayout(row4, BoxLayout.X_AXIS));
     row4.add(new JLabel("Server address "));
     final JTextField host = new JTextField(clone == null ? "" : clone);
-    adjustTextField(host);
+    Util.adjustTextField(host);
     host.setEnabled(clone != null);
     row4.add(host);
     pane.add(row4);
@@ -3423,6 +3441,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
           // get Java3D toggle value
           options.enable3d = java3d.isSelected();
 
+          // get toolbar toggle value
+          options.bugfix = !toolBox.isSelected();
+
           // get debug toggle value
           options.debug = debugBox.isSelected();
 
@@ -3440,6 +3461,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
           NumVisY = options.rows;
           CanDo3D = options.enable3d;
           BasicSSCell.DEBUG = options.debug;
+          BugFix = options.bugfix;
           serverName = options.name;
           cloneAddress = options.address;
           IsSlave = options.slave;
@@ -3468,28 +3490,32 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
     // display dialog
     dialog.pack();
-    centerWindow(dialog);
+    Util.centerWindow(dialog);
     dialog.setVisible(true);
 
     return success[0];
   }
 
-  /** inner class for use with getOptions() */
+  /**
+   * Inner class for use with getOptions().
+   */
   public class SSOptions {
     public int cols;
     public int rows;
     public boolean enable3d;
+    public boolean bugfix;
     public boolean debug;
     public String name;
     public String address;
     public boolean slave;
 
-    public SSOptions(int c, int r, boolean e, boolean d,
-      String n, String a, boolean s)
+    public SSOptions(int c, int r, boolean e, boolean b,
+      boolean d, String n, String a, boolean s)
     {
       cols = c;
       rows = r;
       enable3d = e;
+      bugfix = b;
       debug = d;
       name = n;
       address = a;
@@ -3497,26 +3523,33 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** returns the JToolBar object for other programs to use
-      (e.g., add buttons) */
+  /**
+   * Returns the JToolBar object for other programs to use (e.g., add buttons).
+   */
   public JToolBar getToolbar() {
     return Toolbar;
   }
 
-  /** returns the spreadsheet cell class (which must extend FancySSCell)
-      used for creating spreadsheet cells at runtime */
+  /**
+   * Returns the spreadsheet cell class (which must extend FancySSCell)
+   * used for creating spreadsheet cells at runtime.
+   */
   protected FancySSCell createCell(String name, RemoteServer rs)
     throws VisADException, RemoteException
   {
     return new FancySSCell(name, fm, rs, IsSlave, null, this);
   }
 
-  /** display an error in a message dialog */
+  /**
+   * Displays an error in a message dialog.
+   */
   protected void displayErrorMessage(String msg, Exception exc, String title) {
     displayErrorMessage(this, msg, exc, title);
   }
 
-  /** display an error in a message dialog */
+  /**
+   * Displays an error in a message dialog.
+   */
   protected void displayErrorMessage(Component parent, String msg,
     Exception exc, String title)
   {
@@ -3524,18 +3557,20 @@ public class SpreadSheet extends JFrame implements ActionListener,
     final Component c = parent;
     final String m = msg + (s == null ? "." : (": " + s));
     final String t = title;
-    SwingUtilities.invokeLater(new Runnable() {
+    BasicSSCell.invoke(false, new Runnable() {
       public void run() {
         JOptionPane.showMessageDialog(c, m, t, JOptionPane.ERROR_MESSAGE);
       }
     });
   }
 
-  /** add a button to a toolbar */
+  /**
+   * Adds a button to a toolbar.
+   */
   protected JButton addToolbarButton(String file, String tooltip,
     String command, boolean enabled, JComponent parent)
   {
-    URL url = SpreadSheet.class.getResource(file);
+    URL url = SpreadSheet.class.getResource(file + ".gif");
     ImageIcon icon = new ImageIcon(url);
     if (icon != null) {
       JButton b = new JButton(icon);
@@ -3555,20 +3590,21 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else return null;
   }
 
-  /** limits the given text field to one line in height */
+
+  // --- DEPRECATED METHODS ---
+
+  /**
+   * @deprecated Use Util.adjustTextField(JTextField) instead.
+   */
   public static void adjustTextField(JTextField field) {
-    Dimension msize = field.getMaximumSize();
-    Dimension psize = field.getPreferredSize();
-    msize.height = psize.height;
-    field.setMaximumSize(msize);
+    Util.adjustTextField(field);
   }
 
-  /** centers the given window on the screen */
+  /**
+   * @deprecated Use Util.centerWindow(Window) instead.
+   */
   public static void centerWindow(Window window) {
-    Dimension s = Toolkit.getDefaultToolkit().getScreenSize();
-    Dimension w = window.getSize();
-    window.setLocation(s.width / 2 - w.width / 2, s.height / 2 - w.height / 2);
+    Util.centerWindow(window);
   }
 
 }
-
