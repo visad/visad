@@ -25,62 +25,72 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.util;
 
-/* VisAD classes */
+import com.sun.java.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 import visad.PlotText;
 import visad.ScalarMap;
 
-/* AWT packages */
-import java.awt.*;
-import java.awt.event.*;
-
 /** A slider widget that allows users to select a lower and upper bound.<P> */
-public class RangeSlider extends Canvas implements MouseListener,
-                                                   MouseMotionListener {
+public class RangeSlider extends JComponent implements MouseListener,
+                                                       MouseMotionListener {
 
-  /** Percent through scale of min gripper. */
+  /** percent through scale of min gripper */
   float minPercent = 0;
 
-  /** Percent through scale of max gripper. */
+  /** percent through scale of max gripper */
   float maxPercent = 100;
 
-  /** Minimum slider value. */
+  /** minimum slider value */
   float minVal;
 
-  /** Maximum slider value. */
+  /** maximum slider value */
   float maxVal;
 
-  /** Location of min gripper. */
-  private int minGrip; 
+  /** location of min gripper */
+  private int minGrip = 9; 
 
-  /** Location of max gripper. */
-  private int maxGrip;
+  /** location of max gripper */
+  private int maxGrip = 291;
 
-  /** Flag whether mouse is currently affecting min gripper. */
+  /** flag whether mouse is currently affecting min gripper */
   private boolean minSlide = false;
 
-  /** Flag whether mouse is currently affecting max gripper. */
+  /** flag whether mouse is currently affecting max gripper */
   private boolean maxSlide = false;
 
-  /** RealType name of values */
+  /** flag whether left gripper has moved */
+  private boolean lSlideMoved = false;
+
+  /** flag whether right gripper has moved */
+  private boolean rSlideMoved = false;
+
+  /** flag whether current text string value needs updating */
+  private boolean textChanged = false;
+
+  /** variable name for values */
   private String name;
 
-
-  /** construct a RangeSlider with range of values (min, max). */
-  public RangeSlider(ScalarMap smap, float min, float max) {
+  /** obtains the name of the specified ScalarMap */
+  static String nameOf(ScalarMap smap) {
+    String n = "value = ";
+    try {
+      n = smap.getScalar().getName() + " = ";
+    }
+    catch (Exception exc) { }
+    return n;
+  }
+  
+  /** construct a RangeSlider with range of values (min, max) */
+  public RangeSlider(String n, float min, float max) {
     addMouseListener(this);
     addMouseMotionListener(this);
-    setBackground(Color.black);
     minVal = min;
     maxVal = max;
-    try {
-      name = smap.getScalar().getName() + " = ";
-    }
-    catch (Exception e) {
-      name = "";
-    }
+    name = n;
   }
 
-  /** sets the slider's bounds to the specified values. */
+  /** sets the slider's bounds to the specified values */
   public void setBounds(float min, float max) {
     minVal = min;
     maxVal = max;
@@ -88,10 +98,13 @@ public class RangeSlider extends Canvas implements MouseListener,
     maxGrip = getSize().width-9;
     minSlide = false;
     maxSlide = false;
+    lSlideMoved = true;
+    rSlideMoved = true;
+    textChanged = true;
     percPaint();
   }
 
-  /** MouseListener method for moving slider. */
+  /** MouseListener method for moving slider */
   public void mousePressed(MouseEvent e) {
     int w = getSize().width;
     int x = e.getX();
@@ -113,24 +126,23 @@ public class RangeSlider extends Canvas implements MouseListener,
     else if (left.contains(x, y)) {
       minGrip = x;
       minSlide = true;
+      lSlideMoved = true;
       percPaint();
     }
     else if (right.contains(x, y)) {
       maxGrip = x;
       maxSlide = true;
+      rSlideMoved = true;
       percPaint();
     }
   }
 
-  /** MouseListener method for moving slider. */
+  /** MouseListener method for moving slider */
   public void mouseReleased(MouseEvent e) {
     minSlide = false;
     maxSlide = false;
-    Graphics g = getGraphics();
-    if (g != null) {
-      drawLabels(g);
-      g.dispose();
-    }
+    textChanged = true;
+    repaint();
   }
   
   // unneeded MouseListener methods
@@ -138,10 +150,10 @@ public class RangeSlider extends Canvas implements MouseListener,
   public void mouseEntered(MouseEvent e) { }
   public void mouseExited(MouseEvent e) { }
 
-  /** Previous mouse X position. */
+  /** previous mouse X position */
   private int oldX;
 
-  /** MouseMotionListener method for moving slider. */
+  /** MouseMotionListener method for moving slider */
   public void mouseDragged(MouseEvent e) {
     int w = getSize().width;
     int x = e.getX();
@@ -155,6 +167,8 @@ public class RangeSlider extends Canvas implements MouseListener,
       if (change != 0) {
         minGrip += change;
         maxGrip += change;
+        lSlideMoved = true;
+        rSlideMoved = true;
         percPaint();
       }
     }
@@ -164,6 +178,7 @@ public class RangeSlider extends Canvas implements MouseListener,
       if (x < 9) minGrip = 9;
       else if (x >= maxGrip) minGrip = maxGrip-1;
       else minGrip = x;
+      lSlideMoved = true;
       percPaint();
     }
 
@@ -172,44 +187,78 @@ public class RangeSlider extends Canvas implements MouseListener,
       if (x > w-9) maxGrip = w-9;
       else if (x <= minGrip) maxGrip = minGrip+1;
       else maxGrip = x;
+      rSlideMoved = true;
       percPaint();
     }
 
     oldX = x;
   }
   
-  // unneeded MouseMotionListener methods
+  /** not used */
   public void mouseMoved(MouseEvent e) { }
 
-  // size methods for widget
+  /** return minimum size of widget */
   public Dimension getMinimumSize() {
     return new Dimension(0, 42);
   }
+
+  /** return preferred size of widget */
   public Dimension getPreferredSize() {
     return new Dimension(300, 42);
   }
+
+  /** return maximum size of widget */
   public Dimension getMaximumSize() {
     return new Dimension(Integer.MAX_VALUE, 42);
   }
 
-  /** Recomputes percent variables then paints. */
+  /** recomputes percent variables then repaints */
   void percPaint() {
     int w = getSize().width;
     minPercent = 100*((float) (minGrip-9))/((float) (w-18));
     maxPercent = 100*((float) (maxGrip-9))/((float) (w-18));
+    repaint();
+  }
+
+  /** repaints anything that needs it */
+  public void repaint() {
     Graphics g = getGraphics();
-    if (g != null) {
-      paint(g);
-      g.dispose();
+    if (g == null) return;
+    int w = getSize().width;
+    if (lSlideMoved) {
+      g.setColor(Color.black);
+      g.fillRect(2, 4, maxGrip-3, 16);
+      g.setColor(Color.white);
+      g.drawLine(2, 12, maxGrip-3, 12);
+      g.setColor(Color.yellow);
+      int[] xpts = {minGrip-7, minGrip+1, minGrip+1};
+      int[] ypts = {12, 4, 21};
+      g.fillPolygon(xpts, ypts, 3);
     }
+    if (rSlideMoved) {
+      g.setColor(Color.black);
+      g.fillRect(minGrip+1, 4, w-minGrip-3, 16);
+      g.setColor(Color.white);
+      g.drawLine(minGrip+1, 12, w-3, 12);
+      g.setColor(Color.yellow);
+      int[] xpts = new int[] {maxGrip+8, maxGrip, maxGrip};
+      int[] ypts = {12, 5, 21};
+      g.fillPolygon(xpts, ypts, 3);
+    }
+    if (lSlideMoved || rSlideMoved) {
+      g.setColor(Color.pink);
+      g.fillRect(minGrip+1, 11, maxGrip-minGrip-1, 3);
+    }
+    if (textChanged) drawLabels(g);
+    lSlideMoved = false;
+    rSlideMoved = false;
+    textChanged = false;
+    g.dispose();
   }
 
   private int lastW = 0;
-  private float lastMin = 0.0f;
-  private float lastMax = 0.0f;
-  private String lastCurStr = "";
 
-  /** Draws the slider. */
+  /** draws the slider from scratch */
   public void paint(Graphics g) {
     int w = getSize().width;
 
@@ -218,6 +267,10 @@ public class RangeSlider extends Canvas implements MouseListener,
       minGrip = (int) (0.01*minPercent*(w-18)+9);
       maxGrip = (int) (0.01*maxPercent*(w-18)+9);
     }
+
+    // draw background
+    g.setColor(Color.black);
+    g.fillRect(0, 0, w, 42);
 
     // draw slider lines
     g.setColor(Color.white);
@@ -230,30 +283,28 @@ public class RangeSlider extends Canvas implements MouseListener,
     g.drawLine(w-1, 23, w-3, 23);
 
     // draw labels
-    if (!minSlide && !maxSlide) drawLabels(g);
-
-    // erase old slider junk
-    g.setColor(Color.black);
-    g.fillRect(1, 4, w-2, 8);
-    g.fillRect(1, 13, w-2, 8);
+    drawLabels(g);
 
     // draw grippers
     g.setColor(Color.yellow);
-    int[] xpts = {minGrip-8, minGrip, minGrip};
-    int[] ypts = {12, 4, 21};
+    int[] xpts = {minGrip-8, minGrip+1, minGrip+1};
+    int[] ypts = {12, 4, 20};
     g.fillPolygon(xpts, ypts, 3);
-    // Note: these coordinates are shifted up and left
-    //       by one, to work around a misalignment problem
-    xpts = new int[] {maxGrip+7, maxGrip-1, maxGrip-1};
-    ypts = new int[] {13, 5, 20};
+    xpts = new int[] {maxGrip+7, maxGrip, maxGrip};
+    ypts = new int[] {12, 4, 20};
     g.fillPolygon(xpts, ypts, 3);
 
+    // draw pink rectangle between grippers
     g.setColor(Color.pink);
-    g.fillRect(minGrip, 11, maxGrip-minGrip-1, 3);
+    g.fillRect(minGrip+1, 11, maxGrip-minGrip-1, 3);
     lastW = w;
   }
 
-  /** Updates the labels at the bottom of the widget. */
+  private float lastMin = 0.0f;
+  private float lastMax = 0.0f;
+  private String lastCurStr = "";
+
+  /** updates the labels at the bottom of the widget */
   private void drawLabels(Graphics g) {
     int w = getSize().width;
     FontMetrics fm = g.getFontMetrics();
@@ -289,18 +340,18 @@ public class RangeSlider extends Canvas implements MouseListener,
     g.drawString(curStr, (w - fm.stringWidth(curStr))/2, 40);
   }
 
-  /** Main method for testing purposes. */
+  /** main method for testing purposes */
   public static void main(String[] argv) {
-    RangeSlider rs = new RangeSlider(null, 0.0f, 100.0f);
-    Frame f = new Frame("VisAD RangeSlider test");
+    RangeSlider rs = new RangeSlider("", 0.0f, 100.0f);
+    JFrame f = new JFrame("VisAD RangeSlider test");
     f.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
         System.exit(0);
       }
     });
-    f.add(rs);
+    f.getContentPane().add(rs);
     f.pack();
-    f.show();
+    f.setVisible(true);
   }
 
 }

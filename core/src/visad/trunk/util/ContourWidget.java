@@ -160,6 +160,21 @@ public class ContourWidget extends JPanel implements ActionListener,
     Contours.addItemListener(this);
     Dashed.addItemListener(this);
 
+    // set up JComponents' tool tips
+    Contours.setToolTipText("Toggle contours");
+    Labels.setToolTipText("Toggle iso-contour labels (2-D only)");
+    Dashed.setToolTipText("Toggle dashed lines below base value (2-D only)");
+    String s = "Specify the iso-contouring interval (2-D only)";
+    intLabel.setToolTipText(s);
+    Interval.setToolTipText(s);
+    String t = "Specify the iso-contouring base value (2-D only)";
+    baseLabel.setToolTipText(t);
+    Base.setToolTipText(t);
+    String u = "Specify the iso-level value (3-D only)";
+    SurfaceLabel.setToolTipText(u);
+    Surface.setToolTipText(u);
+    crw.setToolTipText("Specify the iso-contouring range (2-D only)");
+
     // lay out JComponents
     top.add(Contours);
     top.add(Labels);
@@ -332,7 +347,7 @@ public class ContourWidget extends JPanel implements ActionListener,
 
     ContourRangeWidget(ScalarMap smap, float min, float max, ContourWidget dad,
                        boolean update) throws VisADException, RemoteException {
-      super(smap, min, max);
+      super(RangeSlider.nameOf(smap), min, max);
       pappy = dad;
 
       // set auto-scaling enabled (listen for new min and max)

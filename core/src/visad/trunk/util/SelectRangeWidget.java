@@ -63,7 +63,7 @@ public class SelectRangeWidget extends RangeSlider
       range of values (min, max) and specified auto-scaling behavior. */
   public SelectRangeWidget(ScalarMap smap, float min, float max,
          boolean update) throws VisADException, RemoteException {
-    super(smap, min == min && max == max ? min : 0.0f,
+    super(RangeSlider.nameOf(smap), min == min && max == max ? min : 0.0f,
           min == min && max == max ? max : 1.0f);
 
     // verify scalar map
