@@ -530,7 +530,7 @@ public class MeasureManager {
         MeasurePoint point = new MeasurePoint(x, y, z, color, group);
         point.setStandard(stdType, stdId);
         if (stdId >= maxSID) maxSID = stdId + 1;
-        list.addMarker(point, false);
+        list.addMarker(point);
       }
     }
 
@@ -556,7 +556,7 @@ public class MeasureManager {
         MeasureLine line = new MeasureLine(ep1, ep2, color, group, false);
         line.setStandard(stdType, stdId);
         if (stdId >= maxSID) maxSID = stdId + 1;
-        list.addLine(line, false);
+        list.addLine(line);
       }
     }
 

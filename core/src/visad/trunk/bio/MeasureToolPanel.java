@@ -101,6 +101,9 @@ public class MeasureToolPanel extends ToolPanel {
   /** Checkbox for snapping measurement endpoints to nearest slice. */
   private JCheckBox snap;
 
+  /** Button for snapping all measurement endpoints now. */
+  private JButton snapNow;
+
 
   // -- LINE FUNCTIONS --
 
@@ -271,6 +274,21 @@ public class MeasureToolPanel extends ToolPanel {
       "from lying between slices.");
     snap.setEnabled(false);
     controls.add(pad(snap));
+
+    // snap now button
+    snapNow = new JButton("Snap all endpoints now");
+    snapNow.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        for (int j=0; j<bio.mm.lists.length; j++) {
+          bio.mm.lists[j].snapMeasurements();
+        }
+      }
+    });
+    snapNow.setMnemonic('w');
+    snapNow.setToolTipText("Systematically snaps measurements " +
+      "to the closest slices.");
+    snapNow.setEnabled(false);
+    controls.add(pad(snapNow));
 
     // divider between global functions and measurement-specific functions
     controls.add(Box.createVerticalStrut(10));
@@ -549,6 +567,7 @@ public class MeasureToolPanel extends ToolPanel {
     clearAll.setEnabled(enabled);
     export.setEnabled(enabled);
     snap.setEnabled(enabled);
+    snapNow.setEnabled(enabled);
   }
 
   /** Updates the selection data to match the current measurement list. */
@@ -765,7 +784,6 @@ public class MeasureToolPanel extends ToolPanel {
         bio.sm.align.getMode() == AlignmentPlane.APPLY_MODE;
       for (int j=0; j<bio.mm.lists.length; j++) {
         MeasureList list = bio.mm.lists[j];
-        boolean update = j == index;
         for (int i=0; i<numSlices; i++) {
           if (j == index && i == slice) continue;
           if (isLine) {
@@ -779,7 +797,7 @@ public class MeasureToolPanel extends ToolPanel {
               line = new MeasureLine(l, v1, v2);
             }
             else line = new MeasureLine((MeasureLine) thing, i);
-            list.addLine(line, update);
+            list.addLine(line);
           }
           else {
             MeasurePoint point;
@@ -790,7 +808,7 @@ public class MeasureToolPanel extends ToolPanel {
               point = new MeasurePoint(p, v);
             }
             else point = new MeasurePoint((MeasurePoint) thing, i);
-            list.addMarker(point, update);
+            list.addMarker(point);
           }
         }
       }
@@ -824,7 +842,7 @@ public class MeasureToolPanel extends ToolPanel {
             line = new MeasureLine(l, v1, v2);
           }
           else line = new MeasureLine((MeasureLine) thing);
-          list.addLine(line, false);
+          list.addLine(line);
         }
         else {
           MeasurePoint point;
@@ -835,7 +853,7 @@ public class MeasureToolPanel extends ToolPanel {
             point = new MeasurePoint(p, v);
           }
           else point = new MeasurePoint((MeasurePoint) thing);
-          list.addMarker(point, false);
+          list.addMarker(point);
         }
       }
     }
@@ -853,19 +871,18 @@ public class MeasureToolPanel extends ToolPanel {
     thing.setStandard(MeasureThing.STD_SINGLE, -1);
     for (int j=0; j<bio.mm.lists.length; j++) {
       MeasureList list = bio.mm.lists[j];
-      boolean update = j == index;
       Vector lines = list.getLines();
       int k = 0;
       while (k < lines.size()) {
         MeasureLine line = (MeasureLine) lines.elementAt(k);
-        if (line.stdId == stdId) list.removeLine(line, update);
+        if (line.stdId == stdId) list.removeLine(line);
         else k++;
       }
       Vector points = list.getPoints();
       k = 0;
       while (k < points.size()) {
         MeasurePoint point = (MeasurePoint) points.elementAt(k);
-        if (point.stdId == stdId) list.removeMarker(point, update);
+        if (point.stdId == stdId) list.removeMarker(point);
         else k++;
       }
     }

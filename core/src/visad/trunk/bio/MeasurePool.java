@@ -286,7 +286,7 @@ public class MeasurePool implements DisplayListener {
 
             // point is a marker; remove from measurement list
             if (point.lines.isEmpty()) {
-              list.removeMarker(point, false);
+              list.removeMarker(point);
               continue;
             }
 
@@ -295,13 +295,13 @@ public class MeasurePool implements DisplayListener {
             while (j < point.lines.size()) {
               MeasureLine line = (MeasureLine) point.lines.elementAt(j);
               if (line.ep1 == point || line.ep2 == point) {
-                list.removeLine(line, false);
+                list.removeLine(line);
                 if (line.ep1 == point) line.ep1 = merged;
                 if (line.ep2 == point) line.ep2 = merged;
                 if (line.ep1 != line.ep2) {
                   line.ep1.lines.add(line);
                   line.ep2.lines.add(line);
-                  list.addLine(line, false);
+                  list.addLine(line);
                 }
               }
               else j++;
@@ -311,7 +311,7 @@ public class MeasurePool implements DisplayListener {
 
           if (merged.lines.isEmpty()) {
             // add merged point back as a marker
-            list.addMarker(merged, false);
+            list.addMarker(merged);
           }
           list.refreshPools(true);
           bio.toolMeasure.updateSelection();

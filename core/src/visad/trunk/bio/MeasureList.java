@@ -96,7 +96,7 @@ public class MeasureList {
     MeasurePoint ep2 = new MeasurePoint(x2, y2, slice);
     MeasureLine line = new MeasureLine(ep1, ep2,
       Color.white, VisBio.noneGroup, false);
-    addLine(line, true);
+    addLine(line);
   }
 
   /** Adds a measurement marker to the measurement list. */
@@ -117,40 +117,40 @@ public class MeasureList {
     // create one new endpoint
     MeasurePoint point = new MeasurePoint(x, y, slice,
       Color.white, VisBio.noneGroup);
-    addMarker(point, true);
+    addMarker(point);
   }
 
   /** Adds the given measurement line to the measurement list. */
-  public void addLine(MeasureLine line, boolean updatePools) {
+  public void addLine(MeasureLine line) {
     if (!points.contains(line.ep1)) points.add(line.ep1);
     if (!points.contains(line.ep2)) points.add(line.ep2);
     lines.add(line);
-    if (updatePools) refreshPools(false);
+    refreshPools(false);
     //boolean selection = bio.mm.pool2.hasSelection();
     //setEndpointEnabled(line.ep1, !selection || line.ep1.selected > 0);
     //setEndpointEnabled(line.ep2, !selection || line.ep2.selected > 0);
   }
 
   /** Adds the given measurement marker to the measurement list. */
-  public void addMarker(MeasurePoint point, boolean updatePools) {
+  public void addMarker(MeasurePoint point) {
     points.add(point);
-    if (updatePools) refreshPools(false);
+    refreshPools(false);
     //setEndpointEnabled(point,
     //  !bio.mm.pool2.hasSelection() || point.selected > 0);
   }
 
   /** Removes the given measurement line from the measurement list. */
-  public void removeLine(MeasureLine line, boolean updatePools) {
+  public void removeLine(MeasureLine line) {
     if (!lines.contains(line)) return;
     remove(line);
-    if (updatePools) refreshPools(true);
+    refreshPools(true);
   }
 
   /** Removes the given measurement marker from the measurement list. */
-  public void removeMarker(MeasurePoint point, boolean updatePools) {
+  public void removeMarker(MeasurePoint point) {
     if (!points.contains(point)) return;
     remove(point);
-    if (updatePools) refreshPools(true);
+    refreshPools(true);
   }
 
   /** Removes selected measurements from the measurement list. */
@@ -158,6 +158,32 @@ public class MeasureList {
 
   /** Removes all measurements from the measurement list. */
   public void removeAll() { remove(true); }
+
+  /** Snaps all measurement endpoints to the nearest slice. */
+  public void snapMeasurements() {
+    int slices = bio.sm.getNumberOfSlices();
+    int size = points.size();
+    for (int i=0; i<size; i++) {
+      MeasurePoint point = (MeasurePoint) points.elementAt(i);
+      int z = (int) (point.z + 0.5);
+      if (z < 0) z = 0;
+      if (z >= slices) z = slices - 1;
+      point.z = z;
+    }
+    size = lines.size();
+    for (int i=0; i<size; i++) {
+      MeasureLine line = (MeasureLine) lines.elementAt(i);
+      int z1 = (int) (line.ep1.z + 0.5);
+      int z2 = (int) (line.ep2.z + 0.5);
+      if (z1 < 0) z1 = 0;
+      if (z2 < 0) z2 = 0;
+      if (z1 >= slices) z1 = slices - 1;
+      if (z2 >= slices) z2 = slices - 1;
+      line.ep1.z = z1;
+      line.ep2.z = z2;
+    }
+    refreshPools(true);
+  }
 
   /** Sets whether this list is currently linked to the measurement pools. */
   public void setCurrent(boolean current) { isCurrent = current; }
