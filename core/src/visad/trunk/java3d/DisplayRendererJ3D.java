@@ -390,6 +390,9 @@ public abstract class DisplayRendererJ3D
     canvas = c;
     // Create the root of the branch graph
     root = new BranchGroup();
+    root.setCapability(Group.ALLOW_CHILDREN_READ);
+    root.setCapability(Group.ALLOW_CHILDREN_WRITE);
+    root.setCapability(Group.ALLOW_CHILDREN_EXTEND);
     // create the TransformGroup that is the parent of
     // Data object Group objects
     setTransform3D(null);
