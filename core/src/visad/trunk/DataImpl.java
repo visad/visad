@@ -38,7 +38,7 @@ import java.rmi.*;
    VisAD Data objects are finite approximations to math objects
    that include scalars, tuples (i.e., n-dimensional vectors), functions, 
    and certain forms of sets.  Hence, all Data objects possess a MathType, 
-   which identifies the corresponding concept and is <b>not</> a synonym 
+   which identifies the corresponding concept and is <b>not</b> a synonym 
    for the data class, even though the class names for a Data object and 
    its corresponding MathType object (Set and SetType, e.g.) may be 
    similar.  In order to approximate their corresponding mathematical 
