@@ -129,6 +129,8 @@ public class Util
    */
   public static JFileChooser getVisADFileChooser() {
     // construct file filters
+    FileFilter biorad = new ExtensionFileFilter(
+      "pic", "BioRad PIC images");
     FileFilter fits = new ExtensionFileFilter(
       "fits", "FITS datasets");
     FileFilter gif = new ExtensionFileFilter(
@@ -149,11 +151,12 @@ public class Util
     FileFilter vis5d = new ExtensionFileFilter(
       "v5d", "Vis5D datasets");
     FileFilter combo = new ComboFileFilter(
-      new FileFilter[] {fits, gif, hdf5, hdfeos, jpeg, mcidas, netcdf,
-      png, serial, vis5d}, "All VisAD file types");
+      new FileFilter[] {biorad, fits, gif, hdf5, hdfeos, jpeg, mcidas,
+      netcdf, png, serial, vis5d}, "All VisAD file types");
 
     // construct and configure file chooser
     JFileChooser dialog = new JFileChooser(System.getProperty("user.dir"));
+    dialog.addChoosableFileFilter(biorad);
     dialog.addChoosableFileFilter(fits);
     dialog.addChoosableFileFilter(gif);
     dialog.addChoosableFileFilter(hdf5);

@@ -46,6 +46,8 @@ import visad.data.mcidas.AreaForm;
 
 import visad.data.mcidas.MapForm;
 
+import visad.data.biorad.BioRadForm;
+
 /**
   * A container for all the officially supported VisAD datatypes.<br>
   * <br>
@@ -126,6 +128,11 @@ public class DefaultFamily
     }
     try {
       list[i] = new MapForm();
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
+      list[i] = new BioRadForm();
       i++;
     } catch (Throwable t) {
     }
