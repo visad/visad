@@ -59,9 +59,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
                                                    ItemListener,
                                                    MouseListener {
 
-  // CTR: temporary constant for enabling or disabling widgets
-  static final boolean WIDGETS_ENABLED = false;
-
   // starting size of the application, in percentage of screen size
   static final int WIDTH_PERCENT = 75;
   static final int HEIGHT_PERCENT = 75;
@@ -99,7 +96,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   String Clipboard = null;
   File CurrentFile = null;
-  ErrorDialog ErrorBox;
 
   public static void main(String[] argv) { 
     SpreadSheet ss = new SpreadSheet(WIDTH_PERCENT, HEIGHT_PERCENT,
@@ -108,7 +104,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** This is the constructor for the SpreadSheet class. */
   SpreadSheet(int sWidth, int sHeight, String sTitle) {
-    ErrorBox = new ErrorDialog(this, "VisAD SpreadSheet Error");
     addKeyListener(this);
     addWindowListener((WindowListener)
       new WindowAdapter() {
@@ -361,7 +356,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     JPanel horizShell = new JPanel();
     horizShell.setBackground(Color.white);
     horizShell.setLayout(new BoxLayout(horizShell, BoxLayout.X_AXIS));
-    horizShell.add(Box.createRigidArea(new Dimension(LABEL_WIDTH+6, 0)));
+    horizShell.add(Box.createRigidArea(new Dimension(LABEL_WIDTH+10, 0)));
     pane.add(horizShell);
 
     JPanel horizPanel = new JPanel() {
@@ -383,8 +378,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
     HorizLabels = new JScrollPane(horizPanel,
                                   JScrollPane.VERTICAL_SCROLLBAR_NEVER,
                                   JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-    HorizLabels.setPreferredSize(new Dimension(0, LABEL_HEIGHT));
-    HorizLabels.setMaximumSize(new Dimension(Integer.MAX_VALUE, LABEL_HEIGHT));
+    HorizLabels.setMinimumSize(new Dimension(0, LABEL_HEIGHT+4));
+    HorizLabels.setPreferredSize(new Dimension(0, LABEL_HEIGHT+4));
+    HorizLabels.setMaximumSize(new Dimension(Integer.MAX_VALUE,
+                                             LABEL_HEIGHT+4));
     horizShell.add(HorizLabels);
     horizShell.add(Box.createRigidArea(new Dimension(6, 0)));
 
@@ -420,8 +417,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     VertLabels = new JScrollPane(vertPanel,
                                  JScrollPane.VERTICAL_SCROLLBAR_NEVER,
                                  JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-    VertLabels.setPreferredSize(new Dimension(LABEL_WIDTH, 0));
-    VertLabels.setMaximumSize(new Dimension(LABEL_WIDTH, Integer.MAX_VALUE));
+    VertLabels.setMinimumSize(new Dimension(LABEL_WIDTH+4, 0));
+    VertLabels.setPreferredSize(new Dimension(LABEL_WIDTH+4, 0));
+    VertLabels.setMaximumSize(new Dimension(LABEL_WIDTH+4, Integer.MAX_VALUE));
     vertShell.add(VertLabels);
 
     // set up scroll pane's panel
@@ -471,7 +469,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
         DisplayPanel.add(DisplayCells[i]);
       }
       catch (VisADException exc) {
-        ErrorBox.showError("Cannot create displays.");
+        JOptionPane.showMessageDialog(this,
+            "Cannot create displays.",
+            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       }
       catch (RemoteException exc) { }
     }
@@ -550,7 +550,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     if (dir == null) return;
     File f = new File(dir, file);
     if (!f.exists()) {
-      ErrorBox.showError("The file "+file+" does not exist");
+      JOptionPane.showMessageDialog(this,
+          "The file "+file+" does not exist",
+          "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       return;
     }
 
@@ -569,7 +571,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
       fr.close();
     }
     catch (IOException exc) {
-      ErrorBox.showError("The file "+file+" could not be loaded");
+      JOptionPane.showMessageDialog(this,
+          "The file "+file+" could not be loaded",
+          "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       return;
     }
 
@@ -579,7 +583,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
         DisplayCells[i].setSSCellString(fileStrings[i]);
       }
       catch (VisADException exc) {
-        ErrorBox.showError("Could not reconstruct SpreadSheet");
+        JOptionPane.showMessageDialog(this,
+            "Could not reconstruct spreadsheet",
+            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
         newFile();
         return;
       }
@@ -605,7 +611,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
         fw.close();
       }
       catch (IOException exc) {
-        ErrorBox.showError("Could not save file "+CurrentFile.getName());
+        JOptionPane.showMessageDialog(this,
+            "Could not save file "+CurrentFile.getName(),
+            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       }
     }
   }
@@ -662,7 +670,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
         DisplayCells[CurDisplay].setSSCellString(Clipboard);
       }
       catch (VisADException exc) {
-        ErrorBox.showError("Could not paste cell: "+exc.toString());
+        //ErrorBox.showError("Could not paste cell: "+exc.toString());
+        JOptionPane.showMessageDialog(this,
+            "Could not paste cell: "+exc.toString(),
+            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       }
       catch (RemoteException exc) { }
     }
@@ -675,7 +686,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
       else DisplayCells[CurDisplay].clearCell();
     }
     catch (VisADException exc) {
-      ErrorBox.showError("Cannot clear display mappings.");
+      JOptionPane.showMessageDialog(this,
+          "Cannot clear display mappings.",
+          "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
     }
     catch (RemoteException exc) { }
     refreshFormulaBar();
@@ -718,16 +731,20 @@ public class SpreadSheet extends JFrame implements ActionListener,
         DisplayCells[CurDisplay].loadData(f);
       }
       catch (RemoteException exc) {
-        ErrorBox.showError(exc.toString());
+        JOptionPane.showMessageDialog(this, exc.toString(),
+            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       }
       catch (BadFormException exc) {
-        ErrorBox.showError(exc.toString());
+        JOptionPane.showMessageDialog(this, exc.toString(),
+            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       }
       catch (IOException exc) {
-        ErrorBox.showError(exc.toString());
+        JOptionPane.showMessageDialog(this, exc.toString(),
+            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       }
       catch (VisADException exc) {
-        ErrorBox.showError(exc.toString());
+        JOptionPane.showMessageDialog(this, exc.toString(),
+            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       }
     }
     else {
@@ -743,10 +760,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
         DisplayCells[CurDisplay].setFormula(newFormula);
       }
       catch (VisADException exc) {
-        ErrorBox.showError(exc.toString());
+        JOptionPane.showMessageDialog(this, exc.toString(),
+            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       }
       catch (RemoteException exc) {
-        ErrorBox.showError(exc.toString());
+        JOptionPane.showMessageDialog(this, exc.toString(),
+            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       }
     }
   }
@@ -770,7 +789,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else DispSphereImage.setState(false);
     if (d == FancySSCell.SURFACE3D) DispSurface3D.setState(true);
     else DispSurface3D.setState(false);
-    if (d == FancySSCell.SPHERICAL_SURFACE3D) DispSphereSurface3D.setState(true);
+    if (d == FancySSCell.SPHERICAL_SURFACE3D) {
+      DispSphereSurface3D.setState(true);
+    }
     else DispSphereSurface3D.setState(false);
 
     // update range mapping scheme check marks
@@ -832,7 +853,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
       refreshDisplayMenuItems();
     }
     catch (VisADException exc) {
-      ErrorBox.showError("Cannot alter display dimension.");
+      JOptionPane.showMessageDialog(this,
+          "Cannot alter display dimension.",
+          "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
     }
     catch (RemoteException exc) { }
   }

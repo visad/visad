@@ -10,13 +10,12 @@
   1.3 Compiling and Running
   1.4 Source Files
     1.4.1 BasicSSCell
-    1.4.2 ErrorDialog
-    1.4.3 FancySSCell
-    1.4.4 Formula
-    1.4.5 FormulaCell
-    1.4.6 MappingDialog
-    1.4.7 SpreadSheet
-    1.4.8 VisADNode
+    1.4.2 FancySSCell
+    1.4.3 Formula
+    1.4.4 FormulaCell
+    1.4.5 MappingDialog
+    1.4.6 SpreadSheet
+    1.4.7 VisADNode
 2. Features of the SpreadSheet User Interface
   2.1 Basic Commands
   2.2 Menu Commands
@@ -67,7 +66,6 @@ from the visad.ss package.
 1.4 Source Files
     The following source files are part of the visad.ss package:
       - BasicSSCell.java
-      - ErrorDialog.java
       - FancySSCell.java
       - Formula.java
       - FormulaCell.java
@@ -94,31 +92,30 @@ represents a single spreadsheet cell with some basic capabilities.  It is
 designed to be "quiet" (i.e., it throws exceptions rather than displaying
 errors in error message dialog boxes).
 
-1.4.2 ErrorDialog
-    This class is used internally by FancySSCell and SpreadSheet.  It is an
-error message dialog box.
-
-1.4.3 FancySSCell
+1.4.2 FancySSCell
     This class is an extension of BasicSSCell that can be instantiated and
 added to a JFC user interface to provide all of the capabilities of a
 BasicSSCell, plus some additional, "fancy" capabilities.  It is designed to
 be "loud" (i.e., it displays errors in error message dialog boxes rather
 than throwing exceptions).
 
-1.4.4 Formula
+1.4.3 Formula
     This class is designed to parse formulas and convert them to postfix
 notation for evaluation.  It is used by FormulaCell, although its methods
 could prove useful to any class needing to work with formulas.
 
-1.4.5 FormulaCell
+1.4.4 FormulaCell
     This class is used internally by BasicSSCell to evaluate formulas.
 
-1.4.6 MappingDialog
+1.4.5 MappingDialog
     This class is used internally by FancySSCell to set up ScalarMaps.
 
-1.4.7 SpreadSheet
+1.4.6 SpreadSheet
     This is the main spreadsheet user interface class.  It manages
     multiple FancySSCells.
+
+1.4.7 VisADNode
+    This is an extension of DefaultMutableTreeNode used by MappingDialog.
 
 2. Features of the SpreadSheet User Interface
 
@@ -159,7 +156,7 @@ desired cell with a mouse button, or press the arrow keys.
       Save as - Saves a "spreadsheet file" under a new name.
 
 2.2.4 Display Menu
-    Here are the commands from the Mappings menu:
+    Here are the commands from the Display menu:
       Edit Mappings - Brings up a dialog box which lets you change how the Data
                       object is mapped to the Display.  Click a Display object
                       on the left, such as DisplayXAxis for the X axis, then
@@ -229,6 +226,8 @@ Formulas can use any of the following unary functions:
     COSDEGREES, EXP, FLOOR, LOG, RINT, ROUND, SIN, SINDEGREES, SQRT, TAN,
     TANDEGREES, NEGATE
 
+Formulas are not case sensitive.
+
 Note that unary minus syntax (e.g., "B2 * -A1") is not supported.  Instead,
 the unary function "NEGATE" must be used (e.g., "B2 * NEGATE(A1)").
 
@@ -239,7 +238,7 @@ Once you've typed in a formula, press Enter or click the green check box button
 to the left of the formula entry text box to apply the formula.  The red X
 button will cancel your entry, restoring the formula to its previous state.
 The open folder button to the right of the formula entry text box is a shortcut
-to the Cell menu's Import Data menu item.
+to the File menu's Import Data menu item.
 
 2.4 Undocumented Features
     Obviously, if they're undocumented, you won't find them in this README!
@@ -248,26 +247,28 @@ to the Cell menu's Import Data menu item.
 
 3. Known Bugs
     The following bugs have been discovered and have not yet been fixed:
-      1) The spreadsheet does not start in the center of the screen like it
-         should.  This bug is somehow caused by the use of an AWT MenuBar
-         instead of a Swing JMenuBar.
-      2) The spreadsheet's cell labels do not always line up exactly with
-         their cells (they can be off by as much as the width of a scrollbar).
-      3) Error messages are displayed when the user clicks on a button that
+      1) The spreadsheet's cell labels have scrollbars obscuring them when
+         the spreadsheet window is resized small enough, even though the
+         scrollbar policy for the labels is set to *_SCROLLBAR_NEVER.  This
+         appears to be a bug in Swing.
+      2) Error messages are displayed when the user clicks on a button that
          doesn't make sense (such as trying to set up mappings for an empty
          cell).  These buttons should just be grayed out.
-      4) In rare cases, the spreadsheet will lock up when strange formula
+      3) In rare cases, the spreadsheet will lock up when strange formula
          cases occur.  For example, setting cell A1 = A1, cell B1 = A1, then
          trying to clear cell A1 will sometimes lock up the spreadsheet.
-      5) The spreadsheet will not import certain data sets correctly, due to
+      4) The spreadsheet will not import certain data sets correctly, due to
          incomplete implementations in VisAD file adapter forms.
-      6) Sometimes the SpreadSheet crashes with an "Invalid instruction"
+      5) Sometimes the SpreadSheet crashes with an "Invalid instruction"
          error in Windows NT (and possibly other operating systems).  This
-         problem is probably due to bugs in Java3D or JDK 1.2beta3 rather
-         than VisAD or SpreadSheet.
-      7) There is no way to change the number of spreadsheet rows and columns
+         problem is probably due to bugs in Java3D, JDK 1.2beta4, or
+         Windows NT rather than VisAD or SpreadSheet.
+      6) There is no way to change the number of spreadsheet rows and columns
          without changing the NumVisX and NumVisY variables in
          SpreadSheet.java and then recompiling.
+      7) Clicking a cell with an illegal file name or formula (one with a
+         large X through it) will not highlight that cell.  The arrow keys
+         must be used to select it.
 
     If you find a bug in the spreadsheet user interface not listed above,
 please send e-mail to curtis@ssec.wisc.edu describing the problem,

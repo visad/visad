@@ -150,7 +150,9 @@ public class Formula {
     }
     if (leftParen != rightParen) return null;
     int j = 0;
-    char[] exp = new char[charStr.length-numSpaces];
+    int newlen = charStr.length-numSpaces;
+    if (newlen == 0) return null;
+    char[] exp = new char[newlen];
     for (int i=0; i<charStr.length; i++) {
       if (charStr[i] != ' ') exp[j++] = charStr[i];
     }
