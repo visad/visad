@@ -130,7 +130,7 @@ public final class MSATnav extends AREAnav
         for (int point=0; point < number; point++) 
         {
             xlin = imglinele[indexLine][point];
-            xele = linele[indexEle][point];
+            xele = imglinele[indexEle][point];
 
             xele2 = xele/2.;
             xlin2 = xlin/2.;
