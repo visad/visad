@@ -96,6 +96,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     RealTupleType domain = null;
     RealTupleType range = null;
     RealType x = null, y = null;
+    RealType rx = null, ry = null; // WLH 19 July 2000
     RealType r = null, g = null, b = null;
     RealType rgb = null;
 
@@ -143,6 +144,14 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     x = (RealType) domain.getComponent(0);
     y = (RealType) domain.getComponent(1);
 
+    // WLH 19 July 2000
+    CoordinateSystem cs = domain.getCoordinateSystem();
+    if (cs != null) {
+      RealTupleType rxy = cs.getReference();
+      rx = (RealType) rxy.getComponent(0);
+      ry = (RealType) rxy.getComponent(1);
+    }
+
     // extract colors from range
     int dim = range.getDimension();
     if (dim == 1) rgb = (RealType) range.getComponent(0);
@@ -155,6 +164,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     // verify that collection of ScalarMaps is legal
     boolean btime = (time == null);
     boolean bx = false, by = false;
+    boolean brx = false, bry = false; // WLH 19 July 2000
     boolean br = false, bg = false, bb = false;
     boolean dbr = false, dbg = false, dbb = false;
     Boolean latlon = null;
@@ -166,6 +176,8 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       DisplayRealType mr = m.getDisplayScalar();
       boolean ddx = md.equals(x);
       boolean ddy = md.equals(y);
+      boolean ddrx = md.equals(rx);
+      boolean ddry = md.equals(ry);
       boolean ddr = md.equals(r);
       boolean ddg = md.equals(g);
       boolean ddb = md.equals(b);
@@ -181,11 +193,18 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       }
 
       // spatial mapping
-      else if (ddx || ddy) {
-        if (ddx && bx || ddy && by) {
+      else if (ddx || ddy || ddrx || ddry) {
+        if (ddx && bx || ddy && by || ddrx && brx || ddry && bry) {
           throw new VisADException("Duplicate spatial mappings");
         }
-        RealType q = (ddx ? x : y);
+        if (((ddx || ddy) && (brx || bry)) ||
+            ((ddrx || ddry) && (bx || by))) {
+          throw new VisADException("reference and non-reference spatial mappings");
+        }
+        RealType q = (ddx ? x : null);
+        if (ddy) q = y;
+        if (ddrx) q = rx;
+        if (ddry) q = ry;
 
         boolean ll;
         if (mr.equals(Display.XAxis) || mr.equals(Display.YAxis) ||
@@ -214,7 +233,9 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
         }
 
         if (ddx) bx = true;
-        else by = true;
+        else if (ddy) by = true;
+        else if (ddrx) brx = true;
+        else if (ddry) bry = true;
       }
 
       // rgb mapping
@@ -248,7 +269,8 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     }
 
     // return true if all conditions for ImageRendererJ3D are met
-    if (!(btime && bx && by && br && bg && bb && dbr && dbg && dbb)) {
+    if (!(btime && ((bx && by) || (brx && bry)) &&
+          br && bg && bb && dbr && dbg && dbb)) {
       throw new VisADException("Insufficient mappings");
     }
   }
