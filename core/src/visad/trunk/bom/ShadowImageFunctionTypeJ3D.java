@@ -456,15 +456,27 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         limits[1][0] = (float) Y.getFirst();
         limits[1][1] = (float) Y.getLast();
 
-        // convert values to default units (used in display)
-        limits = Unit.convertTuple(limits, dataUnits, domain_units);
-
         // get domain_set sizes
         data_width = X.getLength();
         data_height = Y.getLength();
         // texture sizes must be powers of two
         texture_width = textureWidth(data_width);
         texture_height = textureHeight(data_height);
+
+
+        // WLH 27 Jan 2003
+        float half_width = 0.5f / ((float) (data_width - 1));
+        float half_height = 0.5f / ((float) (data_height - 1));
+        half_width = (limits[0][1] - limits[0][0]) * half_width;
+        half_height = (limits[1][1] - limits[1][0]) * half_height;
+        limits[0][0] -= half_width;
+        limits[0][1] += half_width;
+        limits[1][0] -= half_height;
+        limits[1][1] += half_height;
+
+
+        // convert values to default units (used in display)
+        limits = Unit.convertTuple(limits, dataUnits, domain_units);
 
         int[] tuple_index = new int[3];
         if (DomainComponents.length != 2) {
@@ -755,12 +767,25 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
         float ratiow = ((float) data_width) / ((float) texture_width);
         float ratioh = ((float) data_height) / ((float) texture_height);
+
+        // WLH 27 Jan 2003
+        float half_width = 0.5f / ((float) texture_width);
+        float half_height = 0.5f / ((float) texture_height);
+        float width = 1.0f / ((float) texture_width);
+        float height = 1.0f / ((float) texture_height);
+
         int mt = 0;
         texCoords = new float[2 * nn];
         for (int j=0; j<nheight; j++) {
           for (int i=0; i<nwidth; i++) {
-            texCoords[mt++] = ratiow * is[i] / (data_width - 1.0f);
-            texCoords[mt++] = 1.0f - ratioh * js[j] / (data_height - 1.0f);
+            //texCoords[mt++] = ratiow * is[i] / (data_width - 1.0f);
+            //texCoords[mt++] = 1.0f - ratioh * js[j] / (data_height - 1.0f);
+
+            // WLH 27 Jan 2003
+            float isfactor = is[i] / (data_width - 1.0f);
+            float jsfactor = js[j] / (data_height - 1.0f);
+            texCoords[mt++] = (ratiow - width) * isfactor + half_width;
+            texCoords[mt++] = 1.0f - (ratioh - height) * jsfactor - half_height;
           }
         }
 
