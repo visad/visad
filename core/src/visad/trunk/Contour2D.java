@@ -1510,7 +1510,6 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
               tri_color[2][tt] = color_bin[2][cc];
               tri[0][tt]       = vv1[0];
               tri[1][tt]       = vv1[1];
-              t_idx[0] = tt;
               interpNormals(tri[0][tt],
                             tri[1][tt], xx, yy, nc, nr,
                             xd, yd, grd_normals, n_idx, tri_normals);
@@ -1521,7 +1520,6 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
               tri_color[2][tt] = color_bin[2][cc];
               tri[0][tt]       = vv2[0];
               tri[1][tt]       = vv2[1];
-              t_idx[0] = tt;
               interpNormals(tri[0][tt],
                             tri[1][tt], xx, yy, nc, nr,
                             xd, yd, grd_normals, n_idx, tri_normals);
@@ -1532,7 +1530,6 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
               tri_color[2][tt] = color_bin[2][cc];
               tri[0][tt]       = vv1_last[0];
               tri[1][tt]       = vv1_last[1];
-              t_idx[0] = tt;
               interpNormals(tri[0][tt],
                             tri[1][tt], xx, yy, nc, nr,
                             xd, yd, grd_normals, n_idx, tri_normals);
@@ -1544,7 +1541,6 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
               tri_color[2][tt] = color_bin[2][cc];
               tri[0][tt] = vv1_last[0];
               tri[1][tt] = vv1_last[1];
-              t_idx[0]   = tt;
               interpNormals(tri[0][tt],
                             tri[1][tt], xx, yy, nc, nr,
                             xd, yd, grd_normals, n_idx, tri_normals);
@@ -1555,7 +1551,6 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
               tri_color[2][tt] = color_bin[2][cc];
               tri[0][tt] = vv2_last[0];
               tri[1][tt] = vv2_last[1];
-              t_idx[0]   = tt;
               interpNormals(tri[0][tt],
                             tri[1][tt], xx, yy, nc, nr,
                             xd, yd, grd_normals, n_idx, tri_normals);
@@ -1566,11 +1561,11 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
               tri_color[2][tt] = color_bin[2][cc];
               tri[0][tt] = vv2[0];
               tri[1][tt] = vv2[1];
-              t_idx[0]   = tt;
               interpNormals(tri[0][tt],
                             tri[1][tt], xx, yy, nc, nr,
                             xd, yd, grd_normals, n_idx, tri_normals);
               tt++;
+              t_idx[0] = tt;
               cnt_tri[0]++;
 
 
@@ -1628,12 +1623,12 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
               }
             }
             else {
+              tt = t_idx[0];
               tri_color[0][tt] = color_bin[0][cc];
               tri_color[1][tt] = color_bin[1][cc];
               tri_color[2][tt] = color_bin[2][cc];
               tri[0][tt] = vx[v_idx];
               tri[1][tt] = vy[v_idx];
-              t_idx[0]   = tt;
               interpNormals(tri[0][tt],
                             tri[1][tt], xx, yy, nc, nr,
                             xd, yd, grd_normals, n_idx, tri_normals);
@@ -1644,7 +1639,6 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
               tri_color[2][tt] = color_bin[2][cc];
               tri[0][tt] = vx[v_idx+dir];
               tri[1][tt] = vy[v_idx+dir];
-              t_idx[0]   = tt;
               interpNormals(tri[0][tt],
                             tri[1][tt], xx, yy, nc, nr,
                             xd, yd, grd_normals, n_idx, tri_normals);
@@ -1655,7 +1649,6 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
               tri_color[2][tt] = color_bin[2][cc];
               tri[0][tt] = vx[v_idx_last];
               tri[1][tt] = vy[v_idx_last];
-              t_idx[0]   = tt;
               interpNormals(tri[0][tt],
                             tri[1][tt], xx, yy, nc, nr,
                             xd, yd, grd_normals, n_idx, tri_normals);
@@ -1667,7 +1660,6 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
               tri_color[2][tt] = color_bin[2][cc];
               tri[0][tt] = vx[v_idx_last];
               tri[1][tt] = vy[v_idx_last];
-              t_idx[0]   = tt;
               interpNormals(tri[0][tt],
                             tri[1][tt], xx, yy, nc, nr,
                             xd, yd, grd_normals, n_idx, tri_normals);
@@ -1678,7 +1670,6 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
               tri_color[2][tt] = color_bin[2][cc];
               tri[0][tt] = vx[v_idx_last+dir];
               tri[1][tt] = vy[v_idx_last+dir];
-              t_idx[0]   = tt;
               interpNormals(tri[0][tt],
                             tri[1][tt], xx, yy, nc, nr,
                             xd, yd, grd_normals, n_idx, tri_normals);
@@ -1689,11 +1680,11 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
               tri_color[2][tt] = color_bin[2][cc];
               tri[0][tt] = vx[v_idx+dir];
               tri[1][tt] = vy[v_idx+dir];
-              t_idx[0]   = tt;
               interpNormals(tri[0][tt],
                             tri[1][tt], xx, yy, nc, nr,
                             xd, yd, grd_normals, n_idx, tri_normals);
               tt++;
+              t_idx[0] = tt;
               cnt_tri[0]++;
             }
             last_o = o_flags[o_idx];
