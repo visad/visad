@@ -27,8 +27,6 @@ MA 02111-1307, USA
 package visad.bom;
 
 import java.awt.event.*;
-import java.awt.AWTEvent;
-import java.util.Enumeration;
 import javax.media.j3d.*;
 import java.rmi.RemoteException;
 import javax.vecmath.*;

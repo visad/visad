@@ -30,7 +30,6 @@ import visad.*;
 import visad.data.netcdf.units.Parser;
 import visad.data.netcdf.units.ParseException;
 import visad.data.netcdf.units.NoSuchUnitException;
-import visad.data.netcdf.StandardQuantityDB;
 
 import java.rmi.RemoteException;
 

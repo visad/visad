@@ -29,7 +29,6 @@ package visad.cluster;
 import visad.*;
 
 import java.rmi.*;
-import java.rmi.server.UnicastRemoteObject;
 
 /**
    RemoteNodeTupleImpl is the class for cluster client

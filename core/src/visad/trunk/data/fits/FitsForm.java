@@ -35,7 +35,6 @@ import java.rmi.RemoteException;
 import visad.Data;
 import visad.DataImpl;
 import visad.Tuple;
-import visad.UnimplementedException;
 import visad.VisADException;
 
 import visad.data.BadFormException;

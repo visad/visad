@@ -190,7 +190,6 @@ package visad.cluster;
 
 import visad.*;
 import java.rmi.*;
-import java.rmi.server.UnicastRemoteObject;
 
 /**
    RemoteClusterDataImpl is the super class for cluster

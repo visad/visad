@@ -31,7 +31,6 @@ import visad.java3d.*;
 import visad.data.mcidas.BaseMapAdapter;
 import visad.data.mcidas.AreaAdapter;
 import visad.data.gif.GIFForm;
-import visad.util.Delay;
 
 import javax.media.j3d.*;
 
@@ -39,7 +38,6 @@ import java.util.Vector;
 import java.util.Enumeration;
 import java.rmi.*;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 
 import java.awt.*;

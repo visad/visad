@@ -35,8 +35,6 @@ import java.rmi.RemoteException;
 
 import java.util.Vector;
 
-import javax.swing.JPanel;
-
 /**
    LocalDisplay is the VisAD interface for local instances of displays.
    It declares the methods which are used by applications.

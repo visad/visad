@@ -34,17 +34,13 @@ import visad.java3d.DisplayImplJ3D;
 import visad.data.netcdf.*;
 import visad.bom.WindPolarCoordinateSystem;
 import visad.data.mcidas.BaseMapAdapter;
-import visad.data.mcidas.AreaForm;
 import visad.data.mcidas.AreaAdapter;
 import visad.meteorology.ImageSequenceManager;
 import visad.meteorology.NavigatedImage;
 import visad.meteorology.ImageSequence;
-import visad.meteorology.ImageSequenceImpl;
-import visad.meteorology.SingleBandedImage;
 import java.rmi.RemoteException;
 import java.io.IOException;
 import java.io.File;
-import java.lang.Math;
 import visad.data.visad.VisADSerialForm;
 
 // JFC packages

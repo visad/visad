@@ -25,7 +25,6 @@ MA 02111-1307, USA
 */
 
 import java.awt.event.*;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.rmi.*;
 import java.util.Vector;

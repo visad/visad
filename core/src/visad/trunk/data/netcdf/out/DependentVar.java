@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DependentVar.java,v 1.3 2000-04-26 15:45:25 dglo Exp $
+ * $Id: DependentVar.java,v 1.4 2001-11-27 22:29:38 dglo Exp $
  */
 
 package visad.data.netcdf.out;
@@ -11,15 +11,6 @@ package visad.data.netcdf.out;
 import java.io.IOException;
 import ucar.netcdf.Attribute;
 import ucar.netcdf.Dimension;
-import visad.DoubleSet;
-import visad.FloatSet;
-import visad.Real;
-import visad.RealType;
-import visad.ScalarType;
-import visad.Set;
-import visad.Text;
-import visad.Unit;
-import visad.VisADException;
 import visad.data.BadFormException;
 
 

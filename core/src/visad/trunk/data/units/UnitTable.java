@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitTable.java,v 1.1 2000-11-17 18:54:46 dglo Exp $
+ * $Id: UnitTable.java,v 1.2 2001-11-27 22:29:42 dglo Exp $
  */
 
 package visad.data.units;
@@ -21,7 +21,6 @@ import visad.OffsetUnit;
 import visad.SI;
 import visad.ScaledUnit;
 import visad.Unit;
-import visad.UnitException;
 
 
 /**

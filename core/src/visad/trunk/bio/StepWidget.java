@@ -31,7 +31,6 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.basic.BasicArrowButton;
-import java.rmi.RemoteException;
 import visad.*;
 
 /**

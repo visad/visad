@@ -34,8 +34,6 @@ import nom.tam.fits.PrimaryHDU;
 
 import nom.tam.util.ArrayFuncs;
 
-import visad.CoordinateSystem;
-import visad.Data;
 import visad.FieldImpl;
 import visad.FlatField;
 import visad.Function;
@@ -43,14 +41,11 @@ import visad.FunctionType;
 import visad.GriddedSet;
 import visad.MathType;
 import visad.RealTupleType;
-import visad.RealType;
 import visad.Scalar;
 import visad.ScalarType;
 import visad.Set;
-import visad.Tuple;
 import visad.VisADException;
 import visad.UnimplementedException;
-import visad.Unit;
 
 public class TourWriter
 	extends Tourist

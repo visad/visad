@@ -32,7 +32,6 @@ import javax.media.j3d.*;
 import javax.vecmath.*;
 
 import java.util.Vector;
-import java.util.Enumeration;
 import java.rmi.*;
 
 /**

@@ -3,14 +3,11 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Merger.java,v 1.2 2000-06-08 19:13:44 steve Exp $
+ * $Id: Merger.java,v 1.3 2001-11-27 22:29:35 dglo Exp $
  */
 
 package visad.data.netcdf.in;
 
-import java.rmi.RemoteException;
-import java.util.Vector;
-import java.io.IOException;
 import visad.*;
 
 

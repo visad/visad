@@ -26,11 +26,9 @@ MA 02111-1307, USA
 
 package visad.data.vis5d;
 
-import java.lang.*;
 import visad.FunctionType;
 import visad.RealType;
 import visad.Set;
-import visad.data.vis5d.V5DStruct;
 
 public class Vis5DFile
 {

@@ -25,7 +25,6 @@ package visad.data.in;
 import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 import visad.*;
-import visad.data.in.*;
 
 /**
  * Provides support for verifying data values (i.e. seeing that they aren't

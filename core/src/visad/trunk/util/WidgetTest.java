@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: WidgetTest.java,v 1.10 2000-03-14 16:56:49 dglo Exp $
+@(#) $Id: WidgetTest.java,v 1.11 2001-11-27 22:30:28 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -30,8 +30,6 @@ import java.awt.event.WindowEvent;
 
 import java.applet.Applet;
 
-import java.util.Vector;
-
 import javax.swing.*;
 
 /**
@@ -39,7 +37,7 @@ import javax.swing.*;
  * RGB tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision 1.2 $, $Date: 2000-03-14 16:56:49 $
+ * @version $Revision 1.2 $, $Date: 2001-11-27 22:30:28 $
  * @since Visad Utility Library v0.7.1
  */
 

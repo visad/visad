@@ -29,7 +29,6 @@ package visad.ss;
 import com.sun.image.codec.jpeg.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
 import java.awt.print.*;
 import java.io.*;
 import java.lang.reflect.*;

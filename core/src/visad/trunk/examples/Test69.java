@@ -26,7 +26,6 @@ import java.awt.*;
 import visad.*;
 
 import visad.java3d.DisplayImplJ3D;
-import visad.java2d.DisplayImplJ2D;
 import visad.util.HersheyFont;
 
 public class Test69

@@ -27,11 +27,7 @@ MA 02111-1307, USA
 package visad.data.hdfeos;
 
 import java.util.*;
-import java.lang.*;
 import java.rmi.*;
-import visad.data.CacheStrategy;
-import visad.data.FileFlatField;
-import visad.data.FileAccessor;
 import visad.*;
 
 abstract class HdfeosData

@@ -26,7 +26,6 @@ package visad.data.mcidas;
 import java.io.*;
 import java.util.*;
 import visad.*;
-import visad.data.mcidas.*;
 import edu.wisc.ssec.mcidas.adde.*;
 import edu.wisc.ssec.mcidas.*;
 

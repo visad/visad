@@ -26,7 +26,6 @@ import dods.dap.*;
 import java.rmi.RemoteException;
 import java.util.*;
 import visad.*;
-import visad.data.BadFormException;
 
 /**
  * Provides support for adapting DODS {@link Attribute#STRING} attributes to

@@ -23,12 +23,10 @@ MA 02111-1307, USA
 package visad.data.dods;
 
 import dods.dap.*;
-import dods.dap.Server.InvalidParameterException;
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.rmi.RemoteException;
 import visad.*;
-import visad.data.BadFormException;
 import visad.data.in.*;
 
 /**

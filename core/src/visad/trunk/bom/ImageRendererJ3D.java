@@ -28,7 +28,6 @@ package visad.bom;
 
 import visad.*;
 import visad.java3d.*;
-import visad.util.VisADSlider;
 import visad.util.Delay;
 import visad.data.netcdf.Plain;
 

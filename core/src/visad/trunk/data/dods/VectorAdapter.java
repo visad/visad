@@ -24,7 +24,6 @@ package visad.data.dods;
 
 import dods.dap.*;
 import java.rmi.RemoteException;
-import java.util.Vector;
 import visad.data.BadFormException;
 import visad.*;
 

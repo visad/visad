@@ -29,9 +29,7 @@ import edu.wisc.ssec.mcidas.McIDASException;
 
 import java.awt.geom.Rectangle2D;
 
-import visad.CoordinateSystem;
 import visad.CoordinateSystemException;
-import visad.Gridded2DSet;
 import visad.QuickSort;
 import visad.RealTupleType;
 import visad.Set;

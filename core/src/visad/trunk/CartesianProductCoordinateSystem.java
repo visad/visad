@@ -1,5 +1,5 @@
 //
-// $Id: CartesianProductCoordinateSystem.java,v 1.4 2001-11-06 17:36:08 donm Exp $
+// $Id: CartesianProductCoordinateSystem.java,v 1.5 2001-11-27 22:28:47 dglo Exp $
 //
 
 /*
@@ -26,7 +26,6 @@ MA 02111-1307, USA
 
 package visad;
 
-import visad.*;
 import java.util.Vector;
 
 /**

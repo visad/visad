@@ -29,13 +29,9 @@ package visad.data.text;
 import java.io.IOException;
 import java.io.*;
 import java.util.*;
-import java.lang.*;
 import visad.Set;
 
-import java.net.MalformedURLException;
 import java.net.URL;
-
-import java.rmi.RemoteException;
 
 import visad.*;
 import visad.VisADException;

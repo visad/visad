@@ -29,10 +29,8 @@ package visad.matrix;
 import java.lang.reflect.*;
 import java.io.*;
 import java.rmi.RemoteException;
-import java.text.NumberFormat;
 
 import visad.*;
-import visad.formula.FormulaUtil;
 
 /**
  * JamaCholeskyDecomposition is a VisAD wrapper for JAMA CholeskyDecompositions.

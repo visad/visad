@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultView.java,v 1.6 2001-10-29 21:58:29 steve Exp $
+ * $Id: DefaultView.java,v 1.7 2001-11-27 22:29:34 dglo Exp $
  */
 
 package visad.data.netcdf.in;
@@ -12,19 +12,14 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.WeakHashMap;
 import ucar.netcdf.Dimension;
-import ucar.netcdf.DimensionIterator;
-import ucar.netcdf.DimensionSet;
 import ucar.netcdf.Netcdf;
 import ucar.netcdf.Variable;
 import ucar.netcdf.VariableIterator;
-import visad.data.BadFormException;
 import visad.data.netcdf.QuantityDB;
 import visad.CoordinateSystem;
 import visad.ErrorEstimate;
-import visad.FunctionType;
 import visad.Gridded1DSet;
 import visad.GriddedSet;
 import visad.Integer1DSet;
@@ -37,8 +32,6 @@ import visad.MathType;
 import visad.RealTupleType;
 import visad.RealType;
 import visad.SampledSet;
-import visad.ScalarType;
-import visad.SimpleSet;
 import visad.TypeException;
 import visad.Unit;
 import visad.VisADException;
@@ -48,7 +41,7 @@ import visad.VisADException;
  * in the netCDF User's Guide.
  *
  * @author Steven R. Emmerson
- * @version $Revision: 1.6 $ $Date: 2001-10-29 21:58:29 $
+ * @version $Revision: 1.7 $ $Date: 2001-11-27 22:29:34 $
  */
 public class DefaultView
     extends     View

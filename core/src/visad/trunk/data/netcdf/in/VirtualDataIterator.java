@@ -3,14 +3,13 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VirtualDataIterator.java,v 1.3 2000-06-08 19:13:45 steve Exp $
+ * $Id: VirtualDataIterator.java,v 1.4 2001-11-27 22:29:36 dglo Exp $
  */
 
 package visad.data.netcdf.in;
 
 import java.io.IOException;
 import java.util.NoSuchElementException;
-import ucar.netcdf.Netcdf;
 import visad.VisADException;
 import visad.data.BadFormException;
 

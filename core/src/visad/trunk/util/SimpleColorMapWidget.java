@@ -23,8 +23,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.util;
 
-import java.awt.Dimension;
-
 import java.rmi.RemoteException;
 
 import javax.swing.BoxLayout;

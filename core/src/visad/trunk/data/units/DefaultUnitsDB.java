@@ -2,14 +2,13 @@
  * Copyright 1999, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultUnitsDB.java,v 1.2 2001-05-02 15:13:02 steve Exp $
+ * $Id: DefaultUnitsDB.java,v 1.3 2001-11-27 22:29:42 dglo Exp $
  */
 
 package visad.data.units;
 
 
 import visad.BaseUnit;
-import visad.DerivedUnit;
 import visad.OffsetUnit;
 import visad.SI;
 import visad.ScaledUnit;

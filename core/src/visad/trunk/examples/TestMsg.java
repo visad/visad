@@ -28,7 +28,6 @@ import visad.FlatField;
 import visad.LocalDisplay;
 import visad.MessageEvent;
 import visad.MessageListener;
-import visad.RemoteData;
 import visad.RemoteDisplayImpl;
 import visad.VisADException;
 

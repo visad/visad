@@ -3,32 +3,17 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ExportVar.java,v 1.3 2000-04-26 15:45:25 dglo Exp $
+ * $Id: ExportVar.java,v 1.4 2001-11-27 22:29:38 dglo Exp $
  */
 
 package visad.data.netcdf.out;
 
 import java.io.IOException;
-import java.rmi.RemoteException;
 import ucar.multiarray.Accessor;
 import ucar.multiarray.MultiArray;
 import ucar.netcdf.Attribute;
 import ucar.netcdf.Dimension;
 import ucar.netcdf.ProtoVariable;
-import visad.DoubleSet;
-import visad.Field;
-import visad.FloatSet;
-import visad.FunctionType;
-import visad.GriddedSet;
-import visad.Real;
-import visad.RealTuple;
-import visad.RealTupleType;
-import visad.RealType;
-import visad.Set;
-import visad.Tuple;
-import visad.TupleType;
-import visad.Unit;
-import visad.VisADException;
 import visad.data.BadFormException;
 
 

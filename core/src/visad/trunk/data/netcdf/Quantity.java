@@ -6,15 +6,12 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Quantity.java,v 1.11 2001-11-07 21:56:41 steve Exp $
+ * $Id: Quantity.java,v 1.12 2001-11-27 22:29:32 dglo Exp $
  */
 
 package visad.data.netcdf;
 
-import java.io.Serializable;
-import visad.FloatSet;
 import visad.RealType;
-import visad.Set;
 import visad.SimpleSet;
 import visad.TypeException;
 import visad.Unit;

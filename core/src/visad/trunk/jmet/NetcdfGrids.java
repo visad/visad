@@ -27,15 +27,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad.jmet;
 
 import java.io.*;
-import java.lang.*;
 import java.util.*;
 import java.awt.*;
 import ucar.netcdf.*;
 import visad.*;
-import visad.VisADException;
 import visad.Set;
 import visad.data.units.Parser;
-import visad.jmet.*;
 
 /**
  * Reads data from netCDF NCEP model grids one parameter at a time

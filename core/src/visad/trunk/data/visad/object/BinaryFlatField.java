@@ -9,7 +9,6 @@ import java.rmi.RemoteException;
 
 import visad.CoordinateSystem;
 import visad.Data;
-import visad.DataImpl;
 import visad.FlatField;
 import visad.FunctionType;
 import visad.Set;

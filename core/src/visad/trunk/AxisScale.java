@@ -26,9 +26,7 @@ MA 02111-1307, USA
 
 package visad;
 
-import visad.*;
 import java.awt.Color;
-import java.rmi.RemoteException;
 import java.util.*;
 import java.awt.Font;
 import visad.util.HersheyFont;

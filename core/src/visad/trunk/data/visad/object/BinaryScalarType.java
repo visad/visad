@@ -1,6 +1,5 @@
 package visad.data.visad.object;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 import visad.RealType;

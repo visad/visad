@@ -20,15 +20,12 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-import java.awt.Component;
-
 import java.rmi.RemoteException;
 
 import visad.*;
 
 import visad.data.fits.FitsForm;
 
-import visad.java3d.TwoDDisplayRendererJ3D;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test32

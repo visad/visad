@@ -30,11 +30,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
 
 import visad.*;
-
-import visad.data.netcdf.Quantity;
 
 import visad.data.visad.object.*;
 
@@ -78,8 +75,6 @@ public class BinaryReader
    * class can read the format version used by the file.
    *
    * @param ref File to be read.
-   * @param randomAccess <tt>true</tt> if file is to be opened for
-   *                     random access
    *
    * @exception IOException If the file cannot be opened.
    */

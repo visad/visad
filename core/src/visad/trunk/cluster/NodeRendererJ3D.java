@@ -27,7 +27,6 @@ MA 02111-1307, USA
 package visad.cluster;
 
 import visad.*;
-import visad.util.Delay;
 import visad.collab.*;
 import visad.java3d.*;
 import visad.java2d.*;
@@ -39,7 +38,6 @@ import java.awt.event.*;
 import javax.swing.*;
 import java.util.*;
 import java.rmi.*;
-import java.io.Serializable;
 
 /**
    NodeRendererJ3D is the VisAD class for transforming

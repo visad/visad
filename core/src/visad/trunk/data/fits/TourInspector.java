@@ -24,11 +24,9 @@ package visad.data.fits;
 
 import java.rmi.RemoteException;
 
-import visad.Data;
 import visad.Function;
 import visad.Scalar;
 import visad.Set;
-import visad.Tuple;
 import visad.VisADException;
 
 public class TourInspector

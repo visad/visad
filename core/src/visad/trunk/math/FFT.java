@@ -37,7 +37,6 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
-import java.io.IOException;
 
 /**
  FFT is the VisAD class for Fourier Transforms, using

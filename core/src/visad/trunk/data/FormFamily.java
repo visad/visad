@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: FormFamily.java,v 1.10 2001-05-01 20:33:04 dglo Exp $
+$Id: FormFamily.java,v 1.11 2001-11-27 22:29:12 dglo Exp $
 */
 
 package visad.data;
@@ -27,10 +27,8 @@ package visad.data;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.net.URL;
-import java.rmi.RemoteException;
 import java.util.Enumeration;
 import java.util.Vector;
-import visad.Data;
 import visad.Data;
 import visad.DataImpl;
 import visad.VisADException;

@@ -31,9 +31,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 
 import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Toolkit;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -41,8 +38,6 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 
 import java.rmi.RemoteException;
-
-import java.net.URL;
 
 import visad.ConstantMap;
 import visad.Data;

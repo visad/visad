@@ -34,8 +34,6 @@ MA 02111-1307, USA
 
 package visad.data.hdf5;
 
-import java.util.Vector; 
-import java.util.Enumeration; 
 import visad.*;
 import visad.data.*;
 import visad.UnimplementedException;
@@ -46,7 +44,6 @@ import ncsa.hdf.hdf5lib.H5;
 import ncsa.hdf.hdf5lib.HDF5Constants;
 import ncsa.hdf.hdf5lib.HDF5CDataTypes;
 import ncsa.hdf.hdf5lib.exceptions.HDF5Exception;
-import visad.data.hdf5.hdf5objects.HDF5Object;
 
 /**
 	HDF5Form is a data form adapter for HDF5 files. 

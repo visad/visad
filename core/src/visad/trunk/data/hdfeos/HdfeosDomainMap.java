@@ -27,13 +27,8 @@ MA 02111-1307, USA
 package visad.data.hdfeos;
 
 import java.util.*;
-import java.lang.*;
 import visad.Set;
-import visad.MathType;
-import visad.Gridded1DSet;
-import visad.RealTupleType;
 import visad.VisADException;
-import visad.Unit;
 
 public class HdfeosDomainMap extends HdfeosDomain
 {

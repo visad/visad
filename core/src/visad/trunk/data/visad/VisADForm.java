@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OptionalDataException;
 
 import java.net.URL;
 
@@ -43,11 +42,6 @@ import java.rmi.RemoteException;
 
 import visad.Data;
 import visad.DataImpl;
-import visad.FunctionType;
-import visad.MathType;
-import visad.RealType;
-import visad.SetType;
-import visad.TupleType;
 import visad.VisADException;
 
 import visad.data.BadFormException;

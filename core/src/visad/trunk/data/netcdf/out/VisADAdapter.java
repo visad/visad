@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VisADAdapter.java,v 1.5 2000-04-26 15:45:26 dglo Exp $
+ * $Id: VisADAdapter.java,v 1.6 2001-11-27 22:29:38 dglo Exp $
  */
 
 package visad.data.netcdf.out;
@@ -17,10 +17,8 @@ import ucar.netcdf.Dimension;
 import ucar.netcdf.ProtoVariable;
 import visad.Data;
 import visad.Field;
-import visad.FunctionType;
 import visad.Gridded1DSet;
 import visad.GriddedSet;
-import visad.IrregularSet;
 import visad.Linear1DSet;
 import visad.LinearSet;
 import visad.Real;

@@ -26,7 +26,6 @@ MA 02111-1307, USA
 
 package visad.util;
 
-import visad.ActionImpl;
 import java.util.ListIterator;
 import java.util.Vector;
 

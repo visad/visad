@@ -36,7 +36,6 @@ import visad.data.gif.GIFForm;
 import visad.data.tiff.TiffForm;
 import visad.data.hdfeos.HdfeosAdaptedForm;
 import visad.data.netcdf.Plain;
-import visad.data.vis5d.Vis5DForm;
 import visad.data.vis5d.Vis5DAdaptedForm;
 import visad.data.visad.VisADForm;
 import visad.data.mcidas.AreaForm;

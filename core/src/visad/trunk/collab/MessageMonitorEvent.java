@@ -25,14 +25,10 @@ package visad.collab;
 import java.rmi.RemoteException;
 
 import visad.Data;
-import visad.DataImpl;
 import visad.FieldImpl;
-import visad.FunctionImpl;
 import visad.MessageEvent;
 import visad.RemoteData;
-import visad.RemoteDataImpl;
 import visad.RemoteFieldImpl;
-import visad.RemoteFunctionImpl;
 import visad.VisADException;
 
 /**

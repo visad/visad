@@ -35,7 +35,6 @@ import java.rmi.RemoteException;
 import java.net.URL;
 import java.util.StringTokenizer;
 import java.util.Vector;
-import java.util.Enumeration;
 
 // JFC packages
 import javax.swing.*;

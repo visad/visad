@@ -27,7 +27,6 @@ MA 02111-1307, USA
 package visad.java3d;
 
 import visad.*;
-import visad.util.Delay;
 
 import javax.media.j3d.*;
 

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetCDF.java,v 1.5 2001-05-16 20:38:21 steve Exp $
+ * $Id: NetCDF.java,v 1.6 2001-11-27 22:29:32 dglo Exp $
  */
 
 package visad.data.netcdf;
@@ -12,7 +12,6 @@ import java.io.IOException;
 import visad.data.BadFormException;
 import visad.data.Form;
 import visad.data.FormFileInformer;
-import visad.Data;
 import visad.DataImpl;
 import visad.VisADException;
 

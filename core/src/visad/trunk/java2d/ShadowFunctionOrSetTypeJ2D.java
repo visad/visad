@@ -29,7 +29,6 @@ package visad.java2d;
 import visad.*;
 
 import java.util.Vector;
-import java.util.Enumeration;
 import java.rmi.*;
 
 import java.awt.*;

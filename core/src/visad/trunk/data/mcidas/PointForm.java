@@ -36,7 +36,6 @@ import java.rmi.RemoteException;
 
 import visad.Data;
 import visad.DataImpl;
-import visad.FlatField;
 import visad.UnimplementedException;
 import visad.VisADException;
 

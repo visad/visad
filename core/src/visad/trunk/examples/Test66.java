@@ -41,7 +41,6 @@ import visad.Display;
 import visad.DisplayImpl;
 import visad.FlatField;
 import visad.FunctionType;
-import visad.GraphicsModeControl;
 import visad.LocalDisplay;
 import visad.RealTupleType;
 import visad.RealType;

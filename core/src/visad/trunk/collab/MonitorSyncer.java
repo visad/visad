@@ -26,12 +26,10 @@ import java.rmi.RemoteException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import visad.Control;
 import visad.RemoteDisplay;
 import visad.RemoteVisADException;
-import visad.ScalarMap;
 
 import visad.util.ThreadPool;
 

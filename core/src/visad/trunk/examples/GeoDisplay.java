@@ -21,12 +21,6 @@ MA 02111-1307, USA
 */
 
 import java.rmi.RemoteException;
-import visad.Display;
-import visad.data.netcdf.QuantityDB;
-import visad.RealType;
-import visad.SI;
-import visad.ScalarMap;
-import visad.data.netcdf.StandardQuantityDB;
 import visad.VisADException;
 import visad.java3d.DisplayImplJ3D;
 

@@ -19,13 +19,12 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: Selector.java,v 1.8 2001-05-01 20:33:40 dglo Exp $
+$Id: Selector.java,v 1.9 2001-11-27 22:29:27 dglo Exp $
 */
 
 package visad.data.in;
 
 import java.rmi.RemoteException;
-import java.util.ArrayList;
 import visad.*;
 
 /**

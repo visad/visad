@@ -26,7 +26,6 @@ import java.rmi.Naming;
 import java.rmi.RemoteException;
 import javax.swing.*;
 import visad.*;
-import visad.java2d.DisplayImplJ2D;
 
 public class Test64
   extends TestSkeleton

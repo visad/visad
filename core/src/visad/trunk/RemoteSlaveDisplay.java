@@ -26,7 +26,6 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.awt.image.BufferedImage;
 import java.rmi.*;
 
 /** RemoteSlaveDisplay is the interface for &quot;slave&quot; displays

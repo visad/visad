@@ -7,8 +7,6 @@ import java.util.ArrayList;
 
 import javax.swing.Timer;
 
-import visad.DisplayImpl;
-
 public class DisplayActivity
 {
   private static final int DEFAULT_IDLE_MILLISECONDS = 250;

@@ -6,13 +6,11 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: StandardQuantityDB.java,v 1.13 2001-04-03 18:56:55 steve Exp $
+ * $Id: StandardQuantityDB.java,v 1.14 2001-11-27 22:29:32 dglo Exp $
  */
 
 package visad.data.netcdf;
 
-import java.io.Serializable;
-import java.util.Iterator;
 import visad.data.units.ParseException;
 import visad.RealType;
 import visad.SI;

@@ -13,8 +13,6 @@ import visad.util.VisADSlider;
 import visad.java3d.*;
 
 // Java packages
-import java.util.Vector;
-import java.util.Enumeration;
 import java.rmi.*;
 import java.net.MalformedURLException;
 

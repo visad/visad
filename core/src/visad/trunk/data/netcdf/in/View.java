@@ -3,15 +3,12 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: View.java,v 1.4 2001-11-06 17:55:14 steve Exp $
+ * $Id: View.java,v 1.5 2001-11-27 22:29:35 dglo Exp $
  */
 
 package visad.data.netcdf.in;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
 import ucar.netcdf.Attribute;
@@ -22,27 +19,17 @@ import ucar.netcdf.Variable;
 import ucar.netcdf.VariableIterator;
 import visad.CoordinateSystem;
 import visad.data.in.ArithProg;
-import visad.data.in.LonArithProg;
 import visad.data.netcdf.Quantity;
 import visad.data.netcdf.QuantityDB;
-import visad.data.units.ParseException;
 import visad.data.units.Parser;
 import visad.DoubleSet;
 import visad.ErrorEstimate;
 import visad.FloatSet;
 import visad.Gridded1DDoubleSet;
 import visad.Gridded1DSet;
-import visad.GriddedSet;
 import visad.Integer1DSet;
-import visad.IntegerNDSet;
 import visad.Linear1DSet;
-import visad.LinearLatLonSet;
-import visad.LinearNDSet;
-import visad.LinearSet;
-import visad.MathType;
-import visad.RealTupleType;
 import visad.RealType;
-import visad.SampledSet;
 import visad.ScalarType;
 import visad.SI;
 import visad.SimpleSet;
@@ -55,7 +42,7 @@ import visad.VisADException;
  * A convention-dependent view of a netCDF dataset.
  *
  * @author Steven R. Emmerson
- * @version $Revision: 1.4 $ $Date: 2001-11-06 17:55:14 $
+ * @version $Revision: 1.5 $ $Date: 2001-11-27 22:29:35 $
  */
 public abstract class View
 {

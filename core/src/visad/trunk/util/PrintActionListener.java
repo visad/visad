@@ -30,7 +30,6 @@ import visad.*;
 import java.awt.*;
 import java.awt.print.*;
 import java.awt.event.*;
-import java.lang.*;
 import javax.swing.*;
 
 /** PrintActionListener is an ActionListener which is used to

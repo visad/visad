@@ -28,7 +28,6 @@ package visad;
 
 import java.util.*;
 import java.rmi.*;
-import visad.util.DataUtility;
 
 /**
    FlatField is the VisAD class for finite samplings of functions whose

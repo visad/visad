@@ -38,10 +38,7 @@ import visad.SampledSet;
 import visad.Set;
 import visad.Unit;
 import visad.VisADException;
-import visad.data.in.ArithProg;
 import visad.data.units.ParseException;
-import visad.data.units.ParseException;
-import visad.data.units.Parser;
 import visad.data.units.Parser;
 
 /**

@@ -22,7 +22,6 @@ MA 02111-1307, USA
 
 import visad.*;
 import visad.Set;
-import visad.java2d.DisplayImplJ2D;
 import visad.java3d.*;
 import visad.util.*;
 import java.io.IOException;

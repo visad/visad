@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: CfView.java,v 1.2 2001-10-29 21:58:29 steve Exp $
+ * $Id: CfView.java,v 1.3 2001-11-27 22:29:34 dglo Exp $
  */
 
 package visad.data.netcdf.in;
@@ -12,41 +12,29 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.SortedSet;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
 import java.util.WeakHashMap;
-import ucar.netcdf.Attribute;
 import ucar.netcdf.Dimension;
-import ucar.netcdf.DimensionIterator;
-import ucar.netcdf.DimensionSet;
 import ucar.netcdf.Netcdf;
 import ucar.netcdf.Variable;
 import ucar.netcdf.VariableIterator;
 import visad.CommonUnit;
-import visad.data.BadFormException;
 import visad.data.netcdf.QuantityDB;
 import visad.data.netcdf.QuantityDBImpl;
-import visad.data.units.Parser;
 import visad.CoordinateSystem;
 import visad.ErrorEstimate;
-import visad.FunctionType;
 import visad.GriddedSet;
-import visad.Linear1DSet;
-import visad.LinearSet;
 import visad.MathType;
 import visad.OffsetUnit;
 import visad.ProductSet;
 import visad.RealTupleType;
 import visad.RealType;
 import visad.SampledSet;
-import visad.ScalarType;
 import visad.SI;
-import visad.SimpleSet;
 import visad.TypeException;
 import visad.Unit;
 import visad.VisADException;
@@ -61,7 +49,7 @@ import visad.VisADException;
  * {@link System#err} and the JVM is terminated.</p>
  *
  * @author Steven R. Emmerson
- * @version $Revision: 1.2 $ $Date: 2001-10-29 21:58:29 $
+ * @version $Revision: 1.3 $ $Date: 2001-11-27 22:29:34 $
  * @see http://www.cgd.ucar.edu/cms/eaton/netcdf/CF-current.htm
  */
 final class CfView

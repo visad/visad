@@ -27,7 +27,6 @@ MA 02111-1307, USA
 package visad.sounder;
 
 import visad.*;
-import java.rmi.RemoteException;
 
 /**
    SoundingInstrument is the VisAD abstract class for atmospheric

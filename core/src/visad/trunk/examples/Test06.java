@@ -23,9 +23,6 @@ MA 02111-1307, USA
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 

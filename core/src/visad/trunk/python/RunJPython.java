@@ -28,8 +28,6 @@ package visad.python;
 
 import java.lang.reflect.*;
 import java.io.*;
-import java.util.ArrayList;
-import javax.swing.JOptionPane;
 import visad.VisADException;
 import visad.formula.FormulaUtil;
 import visad.util.*;

@@ -22,8 +22,6 @@ MA 02111-1307, USA
 
 package visad;
 
-import visad.DataRenderer;
-
 public interface RendererSourceListener
 {
   void rendererDeleted(DataRenderer renderer);

@@ -27,10 +27,8 @@ MA 02111-1307, USA
 package visad.gifts;
 
 import visad.*;
-import visad.data.FileFlatField;
 import visad.java3d.DisplayImplJ3D;
 import visad.java2d.DisplayImplJ2D;
-import visad.java3d.DirectManipulationRendererJ3D;
 import visad.util.*;
 import visad.data.mcidas.BaseMapAdapter;
 import visad.data.mcidas.AreaForm;
@@ -42,8 +40,6 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
-import java.util.Vector;
-import java.util.Enumeration;
 import java.rmi.*;
 import java.io.*;
 

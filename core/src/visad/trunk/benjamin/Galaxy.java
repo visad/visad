@@ -9,7 +9,6 @@ package visad.benjamin;
 
 // the VisAD packages
 import visad.*;
-import visad.util.Delay;
 import visad.util.VisADSlider;
 import visad.util.LabeledColorWidget;
 import visad.java3d.DisplayImplJ3D;

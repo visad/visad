@@ -24,7 +24,6 @@ package visad.data.in;
 
 import java.lang.ref.WeakReference;
 import java.util.*;
-import visad.data.in.*;
 import visad.*;
 
 /**

@@ -40,8 +40,6 @@ import visad.*;
 import visad.bom.ImageRendererJ3D;
 import visad.collab.DisplayMonitor;
 import visad.data.*;
-import visad.data.netcdf.Plain;
-import visad.data.visad.VisADForm;
 import visad.formula.*;
 import visad.java2d.*;
 import visad.java3d.*;

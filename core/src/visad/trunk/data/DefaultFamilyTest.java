@@ -22,14 +22,7 @@ MA 02111-1307, USA
 
 package visad.data;
 
-
-import java.io.IOException;
-import java.rmi.RemoteException;
 import visad.Data;
-import visad.data.netcdf.Plain;
-import visad.DataImpl;
-import visad.VisADException;
-
 
 public class DefaultFamilyTest
 {

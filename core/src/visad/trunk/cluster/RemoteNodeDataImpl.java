@@ -30,7 +30,6 @@ import visad.*;
 
 import java.util.*;
 import java.rmi.*;
-import java.rmi.server.UnicastRemoteObject;
 
 /**
    RemoteNodeData is the class for cluster node

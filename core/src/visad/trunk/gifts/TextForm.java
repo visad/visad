@@ -27,7 +27,6 @@ MA 02111-1307, USA
 package visad.gifts;
 
 import java.util.Vector; 
-import java.util.Enumeration; 
 import java.io.FileReader;
 import java.io.LineNumberReader;
 import java.io.FileNotFoundException;
@@ -35,9 +34,7 @@ import java.io.IOException;
 import java.util.StringTokenizer;
 import visad.*;
 import visad.data.*;
-import visad.UnimplementedException;
 import java.rmi.*;
-import java.net.URL;
 
 public class TextForm
 {

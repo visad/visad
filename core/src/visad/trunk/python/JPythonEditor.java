@@ -33,7 +33,6 @@ import java.io.*;
 import java.util.*;
 import javax.swing.*;
 import visad.VisADException;
-import visad.formula.FormulaUtil;
 import visad.util.*;
 
 /** An editor for writing and executing JPython code in Java runtime. */

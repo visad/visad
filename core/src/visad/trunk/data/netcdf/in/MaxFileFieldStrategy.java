@@ -3,16 +3,12 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: MaxFileFieldStrategy.java,v 1.2 2001-03-28 16:04:16 steve Exp $
+ * $Id: MaxFileFieldStrategy.java,v 1.3 2001-11-27 22:29:35 dglo Exp $
  */
 
 package visad.data.netcdf.in;
 
-import java.io.IOException;
-import java.rmi.RemoteException;
-import ucar.netcdf.NetcdfFile;
 import visad.*;
-import visad.data.BadFormException;
 import visad.data.netcdf.*;
 
 

@@ -27,7 +27,6 @@ MA 02111-1307, USA
 package visad.georef;
 
 import visad.Text;
-import visad.TextType;
 
 /**
  *  An interface for a named earth location.

@@ -29,7 +29,6 @@ import java.rmi.RemoteException;
 import visad.*;
 import visad.data.*;
 import visad.data.in.*;
-import visad.util.ReflectedUniverse;
 
 /**
  * Provides support for accessing the DODS form of data from VisAD.

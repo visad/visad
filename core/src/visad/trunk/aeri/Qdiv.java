@@ -35,17 +35,13 @@ import visad.java3d.TwoDDisplayRendererJ3D;
 import visad.data.netcdf.*;
 import visad.bom.WindPolarCoordinateSystem;
 import visad.data.mcidas.BaseMapAdapter;
-import visad.data.mcidas.AreaForm;
 import visad.data.visad.VisADSerialForm;
-import visad.data.hdfeos.PolarStereographic;
 import visad.data.mcidas.AreaAdapter;
 import visad.meteorology.ImageSequenceManager;
 import visad.meteorology.NavigatedImage;
 import visad.meteorology.ImageSequence;
-import visad.meteorology.SingleBandedImage;
 import java.rmi.RemoteException;
 import java.io.IOException;
-import java.lang.Math;
 import java.io.File;
 
 // JFC packages

@@ -37,7 +37,6 @@ import visad.Linear2DSet;
 import visad.RealTupleType;
 import visad.RealType;
 import visad.Set;
-import visad.TypeException;
 import visad.Unit;
 import visad.VisADException;
 

@@ -28,12 +28,10 @@ package visad.util;
 
 // General Java
 import java.awt.Image;
-import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.PixelGrabber;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.TreeSet;
 import java.util.Enumeration;
 import java.util.Iterator;

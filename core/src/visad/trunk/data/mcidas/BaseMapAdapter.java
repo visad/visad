@@ -24,18 +24,14 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.data.mcidas;
 
-import edu.wisc.ssec.mcidas.McIDASUtil;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.rmi.RemoteException;
 import java.util.Vector;
 import visad.CoordinateSystem;
-import visad.DataReference;
 import visad.Gridded2DSet;
 import visad.Linear2DSet;
 import visad.MathType;

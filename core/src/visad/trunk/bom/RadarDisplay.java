@@ -10,7 +10,6 @@ Copyright (C) 1999 Bureau of Meteorology
 
 package visad.bom;
 
-import java.io.IOException;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.event.*;
@@ -21,7 +20,6 @@ import visad.*;
 import visad.java3d.*;
 import visad.util.LabeledColorWidget;
 import visad.data.mcidas.BaseMapAdapter;
-import visad.jmet.DumpType;
 
 /**
  * RadarDisplay

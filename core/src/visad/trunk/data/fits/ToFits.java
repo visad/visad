@@ -26,13 +26,10 @@ import java.io.IOException;
 
 import java.rmi.RemoteException;
 
-import java.net.URL;
-
 import visad.Data;
 import visad.VisADException;
 
 import visad.data.DefaultFamily;
-import visad.data.DataNode;
 
 public class ToFits
 {

@@ -31,8 +31,6 @@ import visad.*;
 import java.lang.reflect.*;
 import java.awt.event.*;
 
-import java.rmi.RemoteException;
-
 import java.util.*;
 
 

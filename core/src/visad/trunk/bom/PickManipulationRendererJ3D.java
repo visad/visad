@@ -32,8 +32,6 @@ import visad.java3d.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import java.util.Vector;
-import java.util.Enumeration;
 import java.rmi.*;
 
 import javax.media.j3d.*;

@@ -29,7 +29,6 @@ package visad.java3d;
 import visad.*;
 
 import java.rmi.*;
-import java.util.Enumeration;
 
 import javax.media.j3d.*;
 

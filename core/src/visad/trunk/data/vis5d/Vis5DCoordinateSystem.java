@@ -27,8 +27,6 @@ MA 02111-1307, USA
 package visad.data.vis5d;
 
 import visad.*;
-import visad.data.units.Parser;
-import visad.data.units.ParseException;
 
 /**
    Vis5DCoordinateSystem is the VisAD class for coordinate

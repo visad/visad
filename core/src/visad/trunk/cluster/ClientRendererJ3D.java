@@ -30,7 +30,6 @@ import visad.*;
 import visad.java3d.*;
 import visad.java2d.*;
 import visad.util.*;
-import visad.collab.DisplayMonitor;
 
 import javax.media.j3d.*;
 

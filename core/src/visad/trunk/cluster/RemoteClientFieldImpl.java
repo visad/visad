@@ -30,7 +30,6 @@ import visad.*;
 
 import java.util.Enumeration;
 import java.rmi.*;
-import java.rmi.server.UnicastRemoteObject;
 
 /**
    RemoteClientFieldImpl is the class for cluster client

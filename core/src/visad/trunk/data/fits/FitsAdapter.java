@@ -49,19 +49,11 @@ import java.util.Vector;
 import visad.Data;
 import visad.FlatField;
 import visad.FunctionType;
-import visad.FunctionImpl;
 import visad.Integer1DSet;
 import visad.Integer2DSet;
 import visad.IntegerNDSet;
-import visad.MathType;
 import visad.RealTupleType;
 import visad.RealType;
-import visad.ScalarType;
-import visad.Set;
-import visad.SetType;
-import visad.Tuple;
-import visad.TupleType;
-import visad.TypeException;
 import visad.VisADException;
 
 public class FitsAdapter

@@ -24,7 +24,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import java.awt.Component;
 import java.awt.Graphics;
 
 import java.awt.event.WindowAdapter;

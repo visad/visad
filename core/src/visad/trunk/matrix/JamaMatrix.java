@@ -32,7 +32,6 @@ import java.rmi.RemoteException;
 import java.text.NumberFormat;
 
 import visad.*;
-import visad.formula.FormulaUtil;
 
 /**
  * JamaMatrix is a VisAD wrapper for JAMA matrices. This class requires the

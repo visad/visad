@@ -30,7 +30,6 @@ import javax.swing.*;
 import visad.*;
 import visad.java2d.DisplayImplJ2D;
 import visad.java3d.DisplayImplJ3D;
-import visad.util.GMCWidget;
 
 public class Test68
   extends UISkeleton

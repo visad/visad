@@ -30,12 +30,9 @@ import visad.*;
 import visad.java3d.*;
 
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
 
 import javax.media.j3d.*;
 import javax.vecmath.*;
-
-import java.rmi.RemoteException;
 
 import java.util.*;
 

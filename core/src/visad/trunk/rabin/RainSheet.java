@@ -41,9 +41,7 @@ import visad.ss.FancySSCell;
 // import other needed classes
 import visad.*;
 import visad.util.VisADSlider;
-import visad.data.vis5d.Vis5DForm;
 import java.rmi.RemoteException;
-import java.io.IOException;
 
 
 /** RainSheet is a &quot;toy&quot; version of visad.ss.SpreadSheet,

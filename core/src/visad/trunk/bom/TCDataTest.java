@@ -9,17 +9,11 @@ import visad.*;
 import java.rmi.RemoteException;
 // import visad.java3d.DisplayImplJ3D;
 import visad.java2d.DisplayImplJ2D;
-import visad.util.VisADSlider;
-import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.rmi.RemoteException;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JButton;
 
 /**
  * Test program to demonstrate TCData, a class for representing

@@ -23,7 +23,6 @@ MA 02111-1307, USA
 package visad.data.in;
 
 import java.util.Arrays;
-import visad.data.in.*;
 import visad.*;
 
 /**

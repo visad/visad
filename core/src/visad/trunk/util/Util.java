@@ -32,7 +32,6 @@ import ncsa.hdf.hdf5lib.H5;
 import com.sun.image.codec.jpeg.*;
 import visad.DisplayImpl;
 import java.io.File;
-import java.io.IOException;
 import java.io.FileOutputStream;
 import java.awt.image.BufferedImage;
 /**

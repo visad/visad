@@ -22,7 +22,6 @@ MA 02111-1307, USA
 
 package visad.data.in;
 
-import visad.data.in.*;
 import visad.*;
 
 /**

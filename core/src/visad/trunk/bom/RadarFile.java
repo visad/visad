@@ -11,10 +11,6 @@ Copyright (C) 1999 Bureau of Meteorology
 package visad.bom;
 
 import java.io.*;
-import java.lang.*;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.*;
 import visad.*;
 

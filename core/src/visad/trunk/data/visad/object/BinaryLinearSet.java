@@ -6,7 +6,6 @@ import java.io.EOFException;
 import java.io.IOException;
 
 import visad.CoordinateSystem;
-import visad.Delaunay;
 import visad.ErrorEstimate;
 import visad.GriddedSet;
 import visad.LinearSet;

@@ -1,7 +1,6 @@
 package visad.data.visad.object;
 
 import java.io.DataInput;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 import visad.FunctionType;

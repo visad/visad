@@ -44,8 +44,6 @@ package visad.java3d;
 
 import visad.*;
 
-import java.util.Vector;
-import java.util.Enumeration;
 import java.rmi.*;
 import java.io.*;
 

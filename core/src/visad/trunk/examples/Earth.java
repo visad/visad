@@ -32,7 +32,6 @@ import visad.FunctionType;
 import visad.RealType;
 import visad.RealTupleType;
 import visad.ScalarMap;
-import visad.TupleType;
 import visad.VisADException;
 import visad.data.netcdf.Plain;
 import visad.util.LabeledColorWidget;

@@ -29,7 +29,6 @@ package visad.ss;
 import java.rmi.RemoteException;
 import visad.*;
 import visad.formula.*;
-import visad.util.SaveStringTokenizer;
 
 /**
  * Class for encapsulating all needed information

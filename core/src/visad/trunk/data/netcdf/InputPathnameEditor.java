@@ -3,24 +3,16 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: InputPathnameEditor.java,v 1.4 2000-04-26 15:45:13 dglo Exp $
+ * $Id: InputPathnameEditor.java,v 1.5 2001-11-27 22:29:31 dglo Exp $
  */
 
 package visad.data.netcdf;
 
-import java.awt.Panel;
-import java.awt.Canvas;
 import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FileDialog;
 import java.awt.FontMetrics;
-import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Rectangle;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.beans.PropertyEditorSupport;
-import java.beans.PropertyEditor;
 
 
 /**

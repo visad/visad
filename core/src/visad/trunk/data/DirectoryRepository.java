@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: DirectoryRepository.java,v 1.7 2001-05-01 20:33:03 dglo Exp $
+$Id: DirectoryRepository.java,v 1.8 2001-11-27 22:29:11 dglo Exp $
 */
 
 package visad.data;
@@ -28,8 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
-import visad.data.FormFamily;
-import visad.data.Repository;
 
 
 /**

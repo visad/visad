@@ -8,7 +8,6 @@ import java.io.IOException;
 import visad.CoordinateSystem;
 import visad.Delaunay;
 import visad.ErrorEstimate;
-import visad.GriddedSet;
 import visad.IrregularSet;
 import visad.Irregular1DSet;
 import visad.Irregular2DSet;

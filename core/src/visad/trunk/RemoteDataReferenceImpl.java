@@ -28,7 +28,6 @@ package visad;
 
 import java.util.*;
 import java.rmi.*;
-import java.rmi.server.UnicastRemoteObject;
 
 /**
    RemoteDataReferenceImpl is VisAD remote adapter for DataReferenceImpl.<P>

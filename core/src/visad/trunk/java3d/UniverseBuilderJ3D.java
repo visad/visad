@@ -11,8 +11,6 @@ package visad.java3d;
 
 import visad.*;
 
-import java.applet.Applet;
-import java.awt.BorderLayout;
 import java.awt.event.*;
 
 import javax.media.j3d.*;

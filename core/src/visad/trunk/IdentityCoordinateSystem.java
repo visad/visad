@@ -26,8 +26,6 @@ MA 02111-1307, USA
 
 package visad;
 
-import visad.*;
-
 /**
  * A CoordinateSystem that will
  * return the input values when <CODE>toReference()</CODE> and

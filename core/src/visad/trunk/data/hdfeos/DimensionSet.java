@@ -27,7 +27,6 @@ MA 02111-1307, USA
 package visad.data.hdfeos;
 
 import java.util.*;
-import java.lang.*;
 
 public class DimensionSet
 {

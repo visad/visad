@@ -23,7 +23,6 @@ MA 02111-1307, USA
 package visad.collab;
 
 import java.rmi.Remote;
-import java.rmi.RemoteException;
 
 /**
  * <CODE>RemoteDisplaySync</CODE> is the interface for stubs which are

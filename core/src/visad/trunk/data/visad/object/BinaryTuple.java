@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.EOFException;
 
 import visad.Data;
-import visad.DataImpl;
 import visad.Tuple;
 import visad.TupleType;
 import visad.VisADException;

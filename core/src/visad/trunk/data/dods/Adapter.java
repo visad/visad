@@ -23,7 +23,6 @@ MA 02111-1307, USA
 package visad.data.dods;
 
 import dods.dap.*;
-import java.rmi.RemoteException;
 import visad.*;
 import visad.data.*;
 import visad.data.units.Parser;

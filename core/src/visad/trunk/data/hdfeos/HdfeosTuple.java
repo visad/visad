@@ -29,7 +29,6 @@ package visad.data.hdfeos;
 import java.util.*;
 import java.rmi.*;
 import visad.*;
-import visad.data.FileFlatField;
 
 public class HdfeosTuple extends HdfeosData
 {

@@ -28,7 +28,6 @@ package visad.data.hdfeos;
 
 import visad.*;
 import visad.data.*;
-import java.lang.*;
 import java.rmi.*;
 
 public class HdfeosAccessor extends FileAccessor

@@ -22,7 +22,6 @@ MA 02111-1307, USA
 
 package visad.data.fits;
 
-import nom.tam.fits.AsciiTableHDU;
 import nom.tam.fits.BadHeaderException;
 import nom.tam.fits.BasicHDU;
 import nom.tam.fits.BinaryTableHDU;
@@ -30,11 +29,9 @@ import nom.tam.fits.Data;
 import nom.tam.fits.ExtensionHDU;
 import nom.tam.fits.Fits;
 import nom.tam.fits.FitsException;
-import nom.tam.fits.Header;
 import nom.tam.fits.ImageHDU;
 import nom.tam.fits.PrimaryHDU;
 import nom.tam.fits.RandomGroupsHDU;
-import nom.tam.fits.TableHDU;
 import nom.tam.fits.TruncatedFileException;
 
 import java.io.IOException;

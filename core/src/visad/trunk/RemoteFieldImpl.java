@@ -28,7 +28,6 @@ package visad;
 
 import java.util.*;
 import java.rmi.*;
-import java.rmi.server.UnicastRemoteObject;
 
 /**
    RemoteFieldImpl is the VisAD remote adapter for FieldImpl.<P>

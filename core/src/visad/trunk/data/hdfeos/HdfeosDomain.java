@@ -26,22 +26,18 @@ MA 02111-1307, USA
 
 package visad.data.hdfeos;
 
-import java.lang.*;
 import visad.Set;
 import visad.MathType;
 import visad.RealType;
 import visad.GriddedSet;
 import visad.Gridded1DSet;
-import visad.Gridded2DSet;
 import visad.IntegerNDSet;
 import visad.LinearNDSet;
 import visad.SampledSet;
 import visad.ProductSet;
-import visad.TypeException;
 import visad.SetException;
 import visad.VisADException;
 import visad.RealTupleType;
-import visad.DataImpl;
 import visad.CoordinateSystem;
 import visad.GridCoordinateSystem;
 import visad.Unit;

@@ -3,20 +3,16 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfQuantityDB.java,v 1.11 2000-11-17 18:54:41 dglo Exp $
+ * $Id: NetcdfQuantityDB.java,v 1.12 2001-11-27 22:29:35 dglo Exp $
  */
 
 package visad.data.netcdf.in;
 
 import java.util.Iterator;
-import ucar.netcdf.Netcdf;
-import ucar.netcdf.Variable;
-import visad.TypeException;
 import visad.Unit;
 import visad.VisADException;
 import visad.data.netcdf.Quantity;
 import visad.data.netcdf.QuantityDB;
-import visad.data.units.ParseException;
 
 
 /**

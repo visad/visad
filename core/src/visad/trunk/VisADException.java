@@ -26,15 +26,9 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.io.Serializable;
-
 /**
    VisADException is the superclass of all exceptions defined within the
    VisAD package.<P>
-*/
-/* WLH 8 Dec 98 - can throw from remote methods without Serializable
-   and Serializable makes life difficult for NexusRMI
-public class VisADException extends Exception implements Serializable {
 */
 public class VisADException extends Exception {
 

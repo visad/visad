@@ -3,15 +3,13 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfInBean.java,v 1.1 1998-06-29 19:47:59 visad Exp $
+ * $Id: NetcdfInBean.java,v 1.2 2001-11-27 22:29:32 dglo Exp $
  */
 
 package visad.data.netcdf;
 
-import java.beans.BeanDescriptor;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.beans.SimpleBeanInfo;
 import java.io.IOException;
 import java.io.Serializable;
 import visad.DataImpl;

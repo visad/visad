@@ -34,8 +34,6 @@ MA 02111-1307, USA
 package visad.data.hdf5.hdf5objects;
 
 import java.io.Serializable;
-import ncsa.hdf.hdf5lib.H5;
-import ncsa.hdf.hdf5lib.HDF5Constants;
 import ncsa.hdf.hdf5lib.exceptions.HDF5Exception;
 
 /**

@@ -28,7 +28,6 @@ import visad.java3d.DisplayImplJ3D;
 
 import javax.media.j3d.*;
 import java.io.IOException;
-import java.rmi.RemoteException;
 
 // JFC packages
 import javax.swing.*;

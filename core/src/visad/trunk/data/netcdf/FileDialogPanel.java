@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: FileDialogPanel.java,v 1.1 1998-06-29 19:47:59 visad Exp $
+ * $Id: FileDialogPanel.java,v 1.2 2001-11-27 22:29:31 dglo Exp $
  */
 
 package visad.data.netcdf;
@@ -17,7 +17,6 @@ import java.awt.GridBagLayout;
 import java.awt.Label;
 import java.awt.List;
 import java.awt.Panel;
-import java.awt.TextArea;
 import java.awt.TextField;
 
 

@@ -31,8 +31,6 @@ import visad.java3d.*;
 
 import visad.*;
 import visad.util.*;
-import visad.Set;
-import visad.Real;
 import visad.VisADException;
 
 import java.awt.*;
@@ -43,18 +41,12 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
 import javax.swing.filechooser.*;
-import javax.swing.filechooser.FileFilter;
 
 
 import java.io.*;
-import java.io.IOException;
-
-import java.net.MalformedURLException;
-import java.net.URL;
 
 import visad.data.netcdf.*;
 import visad.data.mcidas.*;
-import visad.jmet.*;
 
 import java.rmi.RemoteException;
 

@@ -22,8 +22,6 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.rmi.RemoteException;
-
 public class MessageEvent
 {
   public static final int ID_GENERIC = 1;

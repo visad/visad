@@ -33,7 +33,6 @@ import visad.util.*;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.net.URL;
-import visad.data.DefaultFamily;
 
 
 /**

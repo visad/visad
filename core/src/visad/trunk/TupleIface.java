@@ -27,7 +27,6 @@ MA 02111-1307, USA
 package visad;
 
 import java.rmi.*;
-import java.util.Vector;
 
 /**
    TupleIface is the VisAD data interface for vectors.<P>

@@ -22,7 +22,6 @@ MA 02111-1307, USA
 
 package visad.collab;
 
-import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 import java.rmi.server.UnicastRemoteObject;

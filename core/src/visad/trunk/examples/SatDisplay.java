@@ -26,8 +26,6 @@ MA 02111-1307, USA
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
-import java.net.MalformedURLException;
 import java.net.URL;
 import javax.swing.JFrame;
 import visad.ColorControl;
@@ -38,7 +36,6 @@ import visad.DataReference;
 import visad.DataReferenceImpl;
 import visad.Display;
 import visad.DisplayImpl;
-import visad.FieldImpl;
 import visad.FlatField;
 import visad.FunctionType;
 import visad.Linear2DSet;

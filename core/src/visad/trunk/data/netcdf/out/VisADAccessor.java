@@ -3,18 +3,13 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VisADAccessor.java,v 1.1 1998-03-20 20:57:28 visad Exp $
+ * $Id: VisADAccessor.java,v 1.2 2001-11-27 22:29:38 dglo Exp $
  */
 
 package visad.data.netcdf.out;
 
 import java.io.IOException;
 import ucar.netcdf.Dimension;
-import visad.Data;
-import visad.Field;
-import visad.Real;
-import visad.Text;
-import visad.Tuple;
 
 
 /**

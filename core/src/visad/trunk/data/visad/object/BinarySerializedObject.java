@@ -2,7 +2,6 @@ package visad.data.visad.object;
 
 import java.io.DataInput;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 
 import visad.data.visad.BinaryWriter;

@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: LabeledRGBWidget.java,v 1.23 2000-04-26 15:46:39 dglo Exp $
+@(#) $Id: LabeledRGBWidget.java,v 1.24 2001-11-27 22:30:27 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -25,14 +25,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.util;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import java.rmi.RemoteException;
 
-import visad.ControlListener;
 import visad.ScalarMap;
-import visad.ScalarMapListener;
 import visad.VisADException;
 
 /**
@@ -40,7 +35,7 @@ import visad.VisADException;
  * RGB tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.23 $, $Date: 2000-04-26 15:46:39 $
+ * @version $Revision: 1.24 $, $Date: 2001-11-27 22:30:27 $
  * @since Visad Utility Library v0.7.1
  * @deprecated - use LabeledColorWidget
  */

@@ -42,8 +42,6 @@ import visad.RemoteVisADException;
 import visad.ScalarMap;
 import visad.VisADException;
 
-import visad.util.ThreadPool;
-
 public class DisplaySyncImpl
   implements Comparator, DisplaySync, Runnable
 {

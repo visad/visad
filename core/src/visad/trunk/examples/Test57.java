@@ -20,7 +20,6 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-import java.awt.Component;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import java.awt.event.WindowAdapter;
@@ -31,7 +30,6 @@ import java.rmi.RemoteException;
 import visad.*;
 
 import visad.java3d.DisplayImplJ3D;
-import visad.java3d.MouseBehaviorJ3D;
 
 public class Test57
   extends UISkeleton

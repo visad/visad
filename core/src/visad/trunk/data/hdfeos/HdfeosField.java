@@ -28,7 +28,6 @@ package visad.data.hdfeos;
 
 import java.rmi.*;
 import visad.*;
-import visad.data.FileFlatField;
 
 public class HdfeosField extends HdfeosData
 {

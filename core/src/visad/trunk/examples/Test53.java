@@ -20,18 +20,6 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-import javax.swing.BoxLayout;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-
-import java.awt.Component;
-import java.awt.Graphics;
-
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-
-import java.awt.image.BufferedImage;
-
 import java.rmi.RemoteException;
 
 import visad.*;

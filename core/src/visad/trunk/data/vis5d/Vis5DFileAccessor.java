@@ -28,8 +28,6 @@ package visad.data.vis5d;
 
 import visad.*;
 import visad.data.*;
-import visad.data.vis5d.V5DStruct;
-import java.lang.*;
 import java.rmi.*;
 
 public class Vis5DFileAccessor extends FileAccessor

@@ -29,7 +29,6 @@ package visad.data.tiff;
 import ij.*;
 import ij.io.*;
 import ij.process.*;
-import java.awt.Image;
 import java.awt.image.*;
 import java.io.*;
 import java.net.URL;
