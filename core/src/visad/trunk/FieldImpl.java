@@ -939,11 +939,36 @@ public class FieldImpl extends FunctionImpl implements Field {
     }
   }
 
+  public Data derivative( int error_mode ) 
+         throws VisADException, RemoteException
+  {
+    MathType[] derivType_s = null;
+    RealType[] d_partial_s = null;
+    return this.derivative( null, d_partial_s, derivType_s, error_mode );
+  }
+
+  public Data derivative( MathType[] derivType_s, int error_mode )
+         throws VisADException, RemoteException
+  {
+    return this.derivative( null, null, derivType_s, error_mode );
+  }
+
   public Function derivative( RealType d_partial, int error_mode )
          throws VisADException, RemoteException
   {
     MathType[] derivType_s = null;
     RealType[] d_partial_s = new RealType[1];
+    d_partial_s[0] = d_partial;
+
+    return (Function) this.derivative( null, d_partial_s, derivType_s, error_mode );
+  }
+
+  public Function derivative( RealType d_partial, MathType derivType, int error_mode)
+         throws VisADException, RemoteException
+  {
+    MathType[] derivType_s = new MathType[1];
+    RealType[] d_partial_s = new RealType[1];
+    derivType_s[0] = derivType;
     d_partial_s[0] = d_partial;
 
     return (Function) this.derivative( null, d_partial_s, derivType_s, error_mode );

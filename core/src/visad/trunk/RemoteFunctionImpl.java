@@ -118,5 +118,50 @@ public abstract class RemoteFunctionImpl extends RemoteDataImpl
     return ((FunctionImpl) AdaptedData).resample(set, sampling_mode, error_mode);
   }
 
+  public Data derivative( RealTuple location, RealType[] d_partial_s,
+                          MathType[] derivType_s, int error_mode )
+         throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFunctionImpl.derivative: " +
+                                     "AdaptedData is null");
+    }
+    return ((FunctionImpl) AdaptedData).derivative( location, d_partial_s, derivType_s, error_mode);
+  }
+
+  public Data derivative( int error_mode )
+         throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFunctionImpl.derivative: " +
+                                     "AdaptedData is null");
+    }
+    return ((FunctionImpl) AdaptedData).derivative(error_mode);
+  }
+
+  public Data derivative( MathType[] derivType_s, int error_mode )
+         throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFunctionImpl.derivative: " +
+                                     "AdaptedData is null");
+    }
+    return ((FunctionImpl) AdaptedData).derivative(derivType_s, error_mode);
+  }
+
+  public Function derivative( RealType d_partial, int error_mode )
+         throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFunctionImpl.derivative: " +
+                                     "AdaptedData is null");
+    }
+    return ((FunctionImpl) AdaptedData).derivative(d_partial, error_mode);
+  }
+
+  public Function derivative( RealType d_partial, MathType derivType, int error_mode )
+         throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFunctionImpl.derivative: " +
+                                     "AdaptedData is null");
+    }
+    return ((FunctionImpl) AdaptedData).derivative( d_partial, derivType, error_mode);
+  }
 }
 

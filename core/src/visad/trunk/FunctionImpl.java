@@ -87,5 +87,21 @@ public abstract class FunctionImpl extends DataImpl implements Function {
   public abstract Field resample(Set set, int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  public abstract Data derivative( RealTuple location, RealType[] d_partial_s,
+                                   MathType[] derivType_s, int error_mode )
+         throws VisADException, RemoteException;
+
+  public abstract Data derivative( int error_mode )
+         throws VisADException, RemoteException;
+
+  public abstract Data derivative( MathType[] derivType_s, int error_mode )
+         throws VisADException, RemoteException;
+
+  public abstract Function derivative( RealType d_partial, int error_mode )
+         throws VisADException, RemoteException;
+
+  public abstract Function derivative( RealType d_partial, MathType derivType, int error_mode )
+         throws VisADException, RemoteException;
+
 }
 
