@@ -412,7 +412,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     formulaPanel.add(FormulaOk);
 
     FormulaField = new JTextField();
-    FormulaField.setToolTipText("Enter a file name or formula");
+    FormulaField.setToolTipText("Enter a file name, URL, or formula");
     FormulaField.addActionListener(this);
     FormulaField.setActionCommand("formulaChange");
     formulaPanel.add(FormulaField);

@@ -1,5 +1,5 @@
                    VisAD Spread Sheet User Interface README file
-                                24 September 1998
+                                 16 October 1998
  
                                 Table of Contents
 
@@ -174,10 +174,13 @@ Exit
 
 Cut
     Moves the current cell to the clipboard.
+
 Copy
     Copies the current cell to the clipboard.
+
 Paste
     Copies the cell in the clipboard to the current cell.
+
 Clear
     Clears the current cell.
 
@@ -272,14 +275,15 @@ The main toolbar has tool tips so each button can be easily identified.
 2.3.2 Formula Toolbar
 
 2.3.2.1 Description
-    The formula toolbar is used for entering file names and formulas for the
-current cell.  If you enter the name of a file in the formula text box, the
+    The formula toolbar is used for entering file names, URLs, and formulas for
+the current cell.  If you enter the name of a file in the formula text box, the
 Spread Sheet will attempt to import the data from that file.  If you enter a
-formula, it will attempt to parse and evaluate that formula.  If a formula
-entered is invalid for some reason, the answer cannot be computed, or the file
-entered does not exist, the cell will have a large X through it instead of the
-normal data box.  If the data box appears, the cell was computed successfully
-and mappings can be set up.
+URL, the Spread Sheet will try to download and import the data from that URL.
+If you enter a formula, it will attempt to parse and evaluate that formula.
+If a formula entered is invalid for some reason, the answer cannot be computed,
+or the file entered does not exist, the cell will have a large X through it
+instead of the normal data box.  If the data box appears, the cell was computed
+successfully and mappings can be set up.
 
 2.3.2.2 How To Enter Formulas
     To reference cells, keep in mind that each column is a letter (the first
@@ -366,9 +370,9 @@ to the File menu's Import Data menu item.
       5) When resizing cells, if a cell is made to be as small as it can be
          in one or more dimensions, some extra space or a scroll bar will
          appear in the bottom or right-hand corners of the Spread Sheet window.
-      6) The tooltips for the formula checkbox and formula X-box buttons, as
-         well as the tooltip for the formula text field itself, pop up behind
-         the column labels, making them impossible to read.
+      6) When a cell auto-dimension-switches, the Display menu's dimension
+         indicator check-boxes don't update until you select a different cell,
+         then reselect the original cell.
 
     If you find a bug in the Spread Sheet user interface not listed above,
 please send e-mail to curtis@ssec.wisc.edu describing the problem, preferably
@@ -379,7 +383,7 @@ with a detailed description of how to recreate the problem.
       1) Spreadsheet column and row addition and deletion
       2) Multiple data per cell
       3) Direct manipulation support
-      4) Distributed Cells, Data, etc. (such as data import from http address)
+      4) Distributed Cells, Data, etc.
       5) Remote Spread Sheet cloning with collaboration
       6) Formula enhancements, including composition of multiple Data objects
          (such as creating an animation from multiple spreadsheet cells), and
