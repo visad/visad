@@ -273,7 +273,6 @@ public class ScaleTest extends JFrame {
                     if (fontName.startsWith("Hershey")) {
                       HersheyFont font = new HersheyFont( 
                           fontName.substring(fontName.indexOf(".")+1) );
-                      System.out.println("HersheyFont = "+font);
                       scale.setFont(font);
                       labelSize.setValue(12);  // HersheyFonts are 12 point
 
