@@ -24,6 +24,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.data.mcidas;
 
+import edu.wisc.ssec.mcidas.*;
+
 import java.io.IOException;
 
 import java.net.URL;
@@ -128,7 +130,8 @@ public class AreaForm extends Form implements FormFileInformer {
   public synchronized DataImpl open(URL url)
 	throws BadFormException, VisADException, IOException {
 
-    aa = new AreaAdapter(url);
+    // AreaAdapter constructor decides if argument is a file or a URL
+    aa = new AreaAdapter(url.toString());
     return aa.getData();
   }
 

@@ -1,3 +1,4 @@
+
 //
 // TestArea.java
 //
@@ -22,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-import visad.*;
+import edu.wisc.ssec.mcidas.*;
 
 import visad.java3d.DisplayImplJ3D;
 import visad.java3d.DefaultRendererJ3D;
@@ -82,10 +83,10 @@ public class TestArea {
   public static void main(String args[]) {
 
     boolean use2D = false;
-    String filename, band, mapfile;
+    String imageSource, band, mapfile;
 
     if (args.length == 0) {
-      filename = "AREA0007";
+      imageSource = "AREA0007";
       band = "1";
       mapfile = "OUTLUSAM";
 
@@ -94,15 +95,15 @@ public class TestArea {
       System.out.println("       -- using default: AREA0007 1 OUTLUSAM");
 
     } else if (args.length == 1) {
-      filename = args[0];
+      imageSource = args[0];
       band = "1";
       mapfile = "OUTLUSAM";
     } else if (args.length == 2) {
-      filename = args[0];
+      imageSource = args[0];
       band = args[1];
       mapfile = "OUTLUSAM";
     } else if (args.length == 3) {
-      filename = args[0];
+      imageSource = args[0];
       band = args[1];
       mapfile = args[2];
     } else {
@@ -112,20 +113,14 @@ public class TestArea {
 
     FlatField imaget = null;
 
-      System.out.println("Reading AREA file \"" + filename+ "\"");
+      System.out.println("Reading AREA file \"" + imageSource+ "\"");
 
       AreaAdapter aa = null;
 
       try {
-	if (filename.indexOf("://") > 0) {
-	  URL u = new URL(filename);
-	  aa = new AreaAdapter(u);
-        } else {
-	  aa = new AreaAdapter(filename);
-	}
-
+	aa = new AreaAdapter(imageSource);
       } catch (Exception e) {
-	System.err.println("Caught IOException for \"" + filename + "\": " +
+	System.err.println("Caught IOException for \"" + imageSource + "\": " +
 			   e.getMessage());
       }
 
