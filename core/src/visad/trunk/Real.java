@@ -215,6 +215,7 @@ public class Real
     }
     /*- end */
     if (data instanceof Real) {
+      Real that = (Real)data;
 
   /*- TDR May 28 1998 */
       if ( !(new_type instanceof RealType) ) {
@@ -222,144 +223,241 @@ public class Real
       }
   /*- end */
 
-      Unit u;	// output unit
-      Unit data_unit = ((Real) data).getUnit();
-      Unit thisUnit =
-	unit == null
-	  ? null
-	  : Unit.canConvert(CommonUnit.dimensionless, unit)
-	    ? CommonUnit.dimensionless
-	    : unit.getAbsoluteUnit();
-      Unit thatUnit =
-	data_unit == null
-	  ? null
-	  : Unit.canConvert(CommonUnit.dimensionless, data_unit)
-	    ? CommonUnit.dimensionless
-	    : data_unit.getAbsoluteUnit();
-      double thatValue = ((Real) data).getValue(thatUnit);
-      double thisValue = getValue(thisUnit);
-      double opValue;
-      ErrorEstimate dError = ((Real) data).getError();
+      Unit          thisUnit = getUnit();
+      Unit          thatUnit = that.getUnit();
+      double        thisValue = getValue();
+      double        thatValue = that.getValue();
+      ErrorEstimate thisErr = getError();
+      ErrorEstimate thatErr = that.getError();
+      Unit          outUnit = null;  // default; the following switch might set
+      double        outValue = Double.NaN;
+
+      /*
+       * Set the output value.  If possible, he output unit is first determined
+       * and then the output numeric value.
+       */
       switch (op) {
-        case ADD:
-        case SUBTRACT:
-        case INV_SUBTRACT:
-        case MAX:
-        case MIN:
-          if (thisUnit == null || thatUnit == null) {
-            u = null;
-          }
-          else if (thisUnit == CommonUnit.promiscuous) {
-            u = thatUnit;
-          }
-          else if (thatUnit == CommonUnit.promiscuous) {
-            u = thisUnit;
-          }
-          else {
+	case ADD:
+	case SUBTRACT:
+	case INV_SUBTRACT:
+	case MAX:
+	case MIN:
+	  if (thisUnit == null || thatUnit == null) {
+	    outUnit = null;
+	  }
+	  else if (thisUnit == CommonUnit.promiscuous) {
+	    outUnit = thatUnit.getAbsoluteUnit();
+	  }
+	  else if (thatUnit == CommonUnit.promiscuous) {
+	    outUnit = thisUnit.getAbsoluteUnit();
+	  }
+	  else {
 	    try {
-	      u = thisUnit;
-	      thatValue = u.toThis(thatValue, thatUnit);
-	      // scale data.ErrorEstimate for Unit.toThis
-	      if (error_mode != NO_ERRORS && dError != null) {
-		Unit	errorUnit = dError.getUnit();
-		if (errorUnit == null)
-		  errorUnit = thatUnit;
-		double new_error = u.toThis(dError.getErrorValue(), errorUnit);
-		dError = new ErrorEstimate(thatValue, new_error, u);
+	      outUnit = thisUnit.getAbsoluteUnit();
+              thisValue = outUnit.toThis(thisValue, thisUnit);
+	      thatValue = outUnit.toThis(thatValue, thatUnit);
+
+	      if (error_mode != NO_ERRORS
+		&& thisErr != null && thatErr != null) {
+
+		if (!outUnit.equals(thisUnit)) {
+		  Unit	errUnit = thisErr.getUnit();
+
+		  if (errUnit == null)
+		    errUnit = thisUnit;
+
+		  double newErr =
+		    outUnit.toThis(thisErr.getErrorValue(), errUnit);
+
+		  thisErr = new ErrorEstimate(thisValue, newErr, outUnit);
+		}
+
+		if (!outUnit.equals(thatUnit)) {
+		  Unit	errUnit = thatErr.getUnit();
+
+		  if (errUnit == null)
+		    errUnit = thatUnit;
+
+		  double newErr =
+		    outUnit.toThis(thatErr.getErrorValue(), errUnit);
+
+		  thatErr = new ErrorEstimate(thatValue, newErr, outUnit);
+		}
 	      }
 	    }
 	    catch (UnitException e) {		// inconvertible units
-	      u = null;
+	      outUnit = null;
 	    }
-          }
-          switch (op) {
-            case ADD:
-              opValue = thisValue + thatValue;
-              break;
-            case SUBTRACT:
-              opValue = thisValue - thatValue;
-              break;
-            case INV_SUBTRACT:
-              opValue = thatValue - thisValue;
-              break;
-            case MAX:
-              opValue = Math.max(thisValue, thatValue);
-              break;
-            case MIN:
-            default:
-              opValue = Math.min(thisValue, thatValue);
-              break;
-          }
-          break;
-        case MULTIPLY:
-          opValue = thisValue * thatValue;
-          if (thisUnit == null || thatUnit == null) {
-            u = null;
-          }
-          else {
-            u = thisUnit.multiply(thatUnit);
-          }
-          break;
-        case DIVIDE:
-          opValue = thisValue / thatValue;
-          if (thisUnit == null || thatUnit == null) {
-            u = null;
-          }
-          else {
-            u = thisUnit.divide(thatUnit);
-          }
-          break;
-        case INV_DIVIDE:
-          opValue = thatValue / thisValue;
-          if (thisUnit == null || thatUnit == null) {
-            u = null;
-          }
-          else {
-            u = thatUnit.divide(thisUnit);
-          }
-          break;
-        case POW:
-          opValue = Math.pow(thisValue, thatValue);
-          u = CommonUnit.dimensionless.equals(thisUnit)
-	    ? CommonUnit.dimensionless : null;
-          break;
-        case INV_POW:
-          opValue = Math.pow(thatValue, thisValue);
-          u = null;
-          break;
-        case ATAN2:
-          opValue = Math.atan2(thisValue, thatValue);
-          u = CommonUnit.radian;
-          break;
-        case ATAN2_DEGREES:
-          opValue = Data.RADIANS_TO_DEGREES * Math.atan2(thisValue, thatValue);
-          u = CommonUnit.degree;
-          break;
-        case INV_ATAN2:
-          opValue = Math.atan2(thatValue, thisValue);
-          u = CommonUnit.radian;
-          break;
-        case INV_ATAN2_DEGREES:
-          opValue = Data.RADIANS_TO_DEGREES * Math.atan2(thatValue, thisValue);
-          u = CommonUnit.degree;
-          break;
-        case REMAINDER:
-          opValue = thisValue % thatValue;
-          u = thisUnit;
-          break;
-        case INV_REMAINDER:
-          opValue = thatValue % thisValue;
-          u = thatUnit;
-          break;
-        default:
-          throw new ArithmeticException("Real.binary: illegal operation");
+	  }
+	  switch (op) {
+	    case ADD:
+	      outValue = thisValue + thatValue;
+	      break;
+	    case SUBTRACT:
+	      outValue = thisValue - thatValue;
+	      break;
+	    case INV_SUBTRACT:
+	      outValue = thatValue - thisValue;
+	      break;
+	    case MAX:
+	      outValue = Math.max(thisValue, thatValue);
+	      break;
+	    case MIN:
+	      outValue = Math.min(thisValue, thatValue);
+	      break;
+	  }
+	  break;
+
+	case MULTIPLY:
+	case DIVIDE:
+	case INV_DIVIDE:
+	  if (thisUnit != null) {
+	    Unit absUnit = thisUnit.getAbsoluteUnit();
+	    thisValue = absUnit.toThis(thisValue, thisUnit);
+	    thisUnit = absUnit;
+	  }
+	  if (thatUnit != null) {
+	    Unit absUnit = thatUnit.getAbsoluteUnit();
+	    thatValue = absUnit.toThis(thatValue, thatUnit);
+	    thatUnit = absUnit;
+	  }
+	  if (thisUnit == null || thatUnit == null) {
+	    outUnit = null;
+	  }
+	  else {
+	    switch(op) {
+	      case MULTIPLY:
+		outUnit = 
+                  thisUnit.equals(CommonUnit.promiscuous)
+                    ? thatUnit
+                    : thatUnit.equals(CommonUnit.promiscuous)
+                      ? thisUnit
+                      : thisUnit.multiply(thatUnit);
+		break;
+	      case DIVIDE:
+		outUnit = 
+                  thatUnit.equals(CommonUnit.promiscuous)
+                    ? thisUnit
+                    : thisUnit.divide(thatUnit);
+		break;
+	      case INV_DIVIDE:
+		outUnit = 
+                  thisUnit.equals(CommonUnit.promiscuous)
+                    ? thatUnit
+                    : thatUnit.divide(thisUnit);
+		break;
+	    }
+	  }
+	  switch(op) {
+	    case MULTIPLY:
+	      outValue = thisValue * thatValue;
+	      break;
+	    case DIVIDE:
+	      outValue = thisValue / thatValue;
+	      break;
+	    case INV_DIVIDE:
+	      outValue = thatValue / thisValue;
+	      break;
+	  }
+	  break;
+
+	case POW:
+	  if (thisUnit != null) {
+	    Unit absUnit = thisUnit.getAbsoluteUnit();
+	    thisValue = absUnit.toThis(thisValue, thisUnit);
+	    thisUnit = absUnit;
+	  }
+	  if (thatUnit != null && !CommonUnit.promiscuous.equals(unit)) {
+	    Unit absUnit = thatUnit.getAbsoluteUnit();
+	    thatValue = absUnit.toThis(thatValue, thatUnit);
+	    thatUnit = absUnit;
+	  }
+	  if (thisUnit != null && (
+	      thisUnit.equals(CommonUnit.promiscuous) ||
+	      thisUnit.equals(CommonUnit.dimensionless))) {
+	    outUnit = thisUnit;
+	  }
+	  else {
+	    outUnit = null;
+	  }
+	  outValue = Math.pow(thisValue, thatValue);
+	  break;
+
+	case INV_POW:
+	  if (thatUnit != null) {
+	    Unit absUnit = thatUnit.getAbsoluteUnit();
+	    thatValue = absUnit.toThis(thatValue, thatUnit);
+	    thatUnit = absUnit;
+	  }
+	  if (thisUnit != null && !CommonUnit.promiscuous.equals(unit)) {
+	    Unit absUnit = thisUnit.getAbsoluteUnit();
+	    thisValue = absUnit.toThis(thisValue, thisUnit);
+	    thisUnit = absUnit;
+	  }
+	  if (thatUnit != null && (
+	      thatUnit.equals(CommonUnit.promiscuous) ||
+	      thatUnit.equals(CommonUnit.dimensionless))) {
+	    outUnit = thatUnit;
+	  }
+	  else {
+	    outUnit = null;
+	  }
+	  outValue = Math.pow(thatValue, thisValue);
+	  break;
+
+	case ATAN2:
+	case ATAN2_DEGREES:
+	case INV_ATAN2:
+	case INV_ATAN2_DEGREES:
+	case REMAINDER:
+	case INV_REMAINDER:
+	  if (thisUnit != null && thatUnit != null) {
+	    Unit absUnit = thisUnit.getAbsoluteUnit();
+	    thisValue = absUnit.toThis(thisValue, thisUnit);
+	    thatValue = absUnit.toThis(thatValue, thatUnit);
+	    thisUnit = absUnit;
+	    thatUnit = absUnit;
+	  }
+	  switch(op) {
+	    case ATAN2:
+	      outValue = Math.atan2(thisValue, thatValue);
+	      outUnit = CommonUnit.radian;
+	      break;
+	    case ATAN2_DEGREES:
+	      outValue =
+		Data.RADIANS_TO_DEGREES * Math.atan2(thisValue, thatValue);
+	      outUnit = CommonUnit.degree;
+	      break;
+	    case INV_ATAN2:
+	      outValue = Math.atan2(thatValue, thisValue);
+	      outUnit = CommonUnit.radian;
+	      break;
+	    case INV_ATAN2_DEGREES:
+	      outValue =
+		Data.RADIANS_TO_DEGREES * Math.atan2(thatValue, thisValue);
+	      outUnit = CommonUnit.degree;
+	      break;
+	    case REMAINDER:
+	      outValue = thisValue % thatValue;
+	      outUnit = thisUnit;
+	      break;
+	    case INV_REMAINDER:
+	      outValue = thatValue % thisValue;
+	      outUnit = thatUnit;
+	      break;
+	  }
+	  break;
+	default:
+	  throw new ArithmeticException("Real.binary: illegal operation");
       }
-      if (error_mode == NO_ERRORS || Error == null || dError == null) {
-        return new Real(((RealType) new_type), opValue, u, null);
+
+      if (error_mode == NO_ERRORS || thisErr == null || thatErr == null) {
+	return new Real(((RealType) new_type), outValue, outUnit, null);
       }
       else {
-        return new Real(((RealType) new_type), opValue, u,
-                   new ErrorEstimate(opValue, u, op, Error, dError, error_mode));
+	return new Real(((RealType) new_type), outValue, outUnit,
+		   new ErrorEstimate(outValue, outUnit, op, thisErr, thatErr,
+		   error_mode));
       }
     }
     else if (data instanceof Text) {
