@@ -82,6 +82,27 @@ public class NavigatedImage
                           String desc)
         throws VisADException
     {
+        this(image, startTime, desc, true);
+    }
+
+    /**
+     * Construct a NavigatedImage from a FlatField.
+     *
+     * @param  image     FlatField representing an image.  It must
+     *                   have a domain with a NavigatedCoordinateSystem
+     *                   and a Range that only has one (Real) component.
+     * @param  startTime starting time of the image.
+     * @param  desc      description
+     * @param  copyData  make a copy of the samples
+     *
+     * @throws  VisADException  couldn't create the NavigatedImage
+     */
+    public NavigatedImage(FlatField image, 
+                          DateTime startTime, 
+                          String desc,
+                          boolean copyData)
+        throws VisADException
+    {
         super(image, startTime, desc);
 
         // make sure the domain is okay
@@ -147,6 +168,6 @@ public class NavigatedImage
             new NavigatedImage(
                 (FlatField) 
                     super.unary(op, new_type, sampling_mode, error_mode),
-                getStartTime(), getDescription());
+                getStartTime(), getDescription(), false);
     }
 }

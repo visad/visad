@@ -44,6 +44,7 @@ public class SingleBandedImageImpl
     private String description;
     private Real minValue;
     private Real maxValue;
+    private boolean copyOnClone = true;
 
     /**
      * Construct a SingleBandedImageImpl without any data.  
@@ -62,10 +63,9 @@ public class SingleBandedImageImpl
                           String desc)
         throws VisADException
     {
-        this(new FlatField(function, domain), 
-             startTime, 
-             desc);
+        this(new FlatField(function, domain), startTime, desc);
     }
+
 
     /**
      * Construct a SingleBandedImageImpl from a FlatField.
@@ -80,6 +80,26 @@ public class SingleBandedImageImpl
     public SingleBandedImageImpl(FlatField image, 
                           DateTime startTime, 
                           String desc)
+        throws VisADException
+    {
+        this(image, startTime, desc, true);
+    }
+
+    /**
+     * Construct a SingleBandedImage from the FlatField specified.
+     *
+     * @param  image     FlatField representing an image.  It must
+     *                   have a Range that only has one (Real) component.
+     * @param  startTime starting time of the image.
+     * @param  desc      description
+     * @param  copyData  make a copy of the data on setSample call
+     *
+     * @throws  VisADException  couldn't create the SingleBandedImageImpl
+     */
+    public SingleBandedImageImpl(FlatField image, 
+                          DateTime startTime, 
+                          String desc,
+                          boolean copyData)
         throws VisADException
     {
         super((FunctionType) image.getType(), image.getDomainSet(),
@@ -101,9 +121,8 @@ public class SingleBandedImageImpl
         {
             if (!image.isMissing()) 
             {
-                setSamples(image.getFloats(false), true);
-                setRangeErrors(image.getRangeErrors());
-                setMaxMinValues();
+                setSamples(
+                   image.getFloats(false), image.getRangeErrors(), copyData);
             }
         }
         catch (java.rmi.RemoteException re) {;}  // can't happen since local
@@ -217,7 +236,7 @@ public class SingleBandedImageImpl
             new SingleBandedImageImpl(
                 (FlatField) 
                     super.unary(op, new_type, sampling_mode, error_mode),
-                startTime, description);
+                startTime, description, false);
     }
 
     private void setMaxMinValues()
@@ -226,8 +245,8 @@ public class SingleBandedImageImpl
         Unit units = null;
         RealType type = RealType.Generic;
         ErrorEstimate errors = null;
-        double min = Double.MIN_VALUE;
-        double max = Double.MAX_VALUE;
+        float min = Float.MIN_VALUE;
+        float max = Float.MAX_VALUE;
         try
         {
             Set rangeSet = getRangeSets()[0];
@@ -243,13 +262,13 @@ public class SingleBandedImageImpl
             }
             else
             {
-                double[] values = getValues(false)[0];
+                float[] values = getFloats(false)[0];
                 for (int i = 0; i < values.length; i++)
                 {
                     // initialize on first non-missing value
-                    if (!Double.isNaN(values[i]))
+                    if (!Float.isNaN(values[i]))
                     {
-                        if (min == Double.MIN_VALUE)  // initialize first time
+                        if (min == Float.MIN_VALUE)  // initialize first time
                         {
                            min = values[i];
                            max = values[i];
@@ -293,71 +312,71 @@ public class SingleBandedImageImpl
      * @throws RemovetException    if a Java RMI failure occurs.
      */
     public Data binary(Data data, int op, int samplingMode, int errorMode) 
-	throws VisADException, RemoteException {
+        throws VisADException, RemoteException {
 
-	Data result = super.binary(data, op, samplingMode, errorMode);
+        Data result = super.binary(data, op, samplingMode, errorMode);
 
-	if (data instanceof SingleBandedImage && result instanceof FlatField) {
+        if (data instanceof SingleBandedImage && result instanceof FlatField) {
 
-	    SingleBandedImage that = (SingleBandedImage)data;
-	    double            time1 = startTime.getReal().getValue();
-	    double            time2 = that.getStartTime().getReal().getValue();
-	    DateTime          time = new DateTime((time1 + time2) / 2);
-	    String            desc;
-	    String            desc1 = description;
-	    String            desc2 = that.getDescription();
+            SingleBandedImage that = (SingleBandedImage)data;
+            double            time1 = startTime.getReal().getValue();
+            double            time2 = that.getStartTime().getReal().getValue();
+            DateTime          time = new DateTime((time1 + time2) / 2);
+            String            desc;
+            String            desc1 = description;
+            String            desc2 = that.getDescription();
 
-	    if (desc1.indexOf(' ') != -1)
-		desc1 = "(" + desc1 + ")";
+            if (desc1.indexOf(' ') != -1)
+                desc1 = "(" + desc1 + ")";
 
-	    if (desc2.indexOf(' ') != -1)
-		desc2 = "(" + desc2 + ")";
+            if (desc2.indexOf(' ') != -1)
+                desc2 = "(" + desc2 + ")";
 
-	    switch (op) {
-		case ADD:
-		    desc = desc1 + " + " + desc2;
-		    break;
-		case SUBTRACT:
-		    desc = desc1 + " - " + desc2;
-		    break;
-		case MULTIPLY:
-		    desc = desc1 + " * " + desc2;
-		    break;
-		case DIVIDE:
-		    desc = desc1 + " / " + desc2;
-		    break;
-		case POW:
-		    desc = "POW(" + desc1 + ", " + desc2 + ")";
-		    break;
-		case MAX:
-		    desc = "MAX(" + desc1 + ", " + desc2 + ")";
-		    break;
-		case MIN:
-		    desc = "MIN(" + desc1 + ", " + desc2 + ")";
-		    break;
-		case ATAN:
-		    desc = "ATAN2(" + desc1 + ", " + desc2 + ")";
-		    break;
-		case ATAN2_DEGREES:
-		    desc = "ATAN2_DEGREES(" + desc1 + ", " + desc2 + ")";
-		    break;
-		case REMAINDER:
-		    desc = "REMAINDER(" + desc1 + ", " + desc2 + ")";
-		    break;
-		default:
-		    throw new Error("Assertion Failure");
-	    }
+            switch (op) {
+                case ADD:
+                    desc = desc1 + " + " + desc2;
+                    break;
+                case SUBTRACT:
+                    desc = desc1 + " - " + desc2;
+                    break;
+                case MULTIPLY:
+                    desc = desc1 + " * " + desc2;
+                    break;
+                case DIVIDE:
+                    desc = desc1 + " / " + desc2;
+                    break;
+                case POW:
+                    desc = "POW(" + desc1 + ", " + desc2 + ")";
+                    break;
+                case MAX:
+                    desc = "MAX(" + desc1 + ", " + desc2 + ")";
+                    break;
+                case MIN:
+                    desc = "MIN(" + desc1 + ", " + desc2 + ")";
+                    break;
+                case ATAN:
+                    desc = "ATAN2(" + desc1 + ", " + desc2 + ")";
+                    break;
+                case ATAN2_DEGREES:
+                    desc = "ATAN2_DEGREES(" + desc1 + ", " + desc2 + ")";
+                    break;
+                case REMAINDER:
+                    desc = "REMAINDER(" + desc1 + ", " + desc2 + ")";
+                    break;
+                default:
+                    throw new Error("Assertion Failure");
+            }
 
-	    try {
-		result = 
-                    new SingleBandedImageImpl((FlatField)result, time, desc);
-	    }
-	    catch (VisADException ex) {
-		// do nothing: return the original result
-	    }
-	}
+            try {
+                result = 
+                    new SingleBandedImageImpl((FlatField)result, time, desc, false);
+            }
+            catch (VisADException ex) {
+                // do nothing: return the original result
+            }
+        }
 
-	return result;
+        return result;
     }
 
     /**
@@ -382,91 +401,91 @@ public class SingleBandedImageImpl
      * @throws RemovetException    if a Java RMI failure occurs.
      */
     public Data unary(int op, int samplingMode, int errorMode) 
-	throws VisADException, RemoteException {
+        throws VisADException, RemoteException {
 
-	Data result = super.unary(op, samplingMode, errorMode);
+        Data result = super.unary(op, samplingMode, errorMode);
 
-	if (result instanceof FlatField) {
+        if (result instanceof FlatField) {
 
-	    String            desc = description;
+            String            desc = description;
 
-	    switch (op) {
-		case ABS:
-		    desc = "ABS(" + desc + ")";
-		    break;
-		case ACOS:
-		    desc = "ACOS(" + desc + ")";
-		    break;
-		case ACOS_DEGREES:
-		    desc = "ACOS_DEGREES(" + desc + ")";
-		    break;
-		case ASIN:
-		    desc = "ASIN(" + desc + ")";
-		    break;
-		case ASIN_DEGREES:
-		    desc = "ASIN_DEGREES(" + desc + ")";
-		    break;
-		case ATAN:
-		    desc = "ATAN(" + desc + ")";
-		    break;
-		case ATAN_DEGREES:
-		    desc = "ATAN_DEGREES(" + desc + ")";
-		    break;
-		case CEIL:
-		    desc = "CEIL(" + desc + ")";
-		    break;
-		case COS:
-		    desc = "COS(" + desc + ")";
-		    break;
-		case COS_DEGREES:
-		    desc = "COS_DEGREES(" + desc + ")";
-		    break;
-		case EXP:
-		    desc = "EXP(" + desc + ")";
-		    break;
-		case FLOOR:
-		    desc = "FLOOR(" + desc + ")";
-		    break;
-		case LOG:
-		    desc = "LOG(" + desc + ")";
-		    break;
-		case RINT:
-		    desc = "RINT(" + desc + ")";
-		    break;
-		case ROUND:
-		    desc = "ROUND(" + desc + ")";
-		    break;
-		case SIN:
-		    desc = "SIN(" + desc + ")";
-		    break;
-		case SIN_DEGREES:
-		    desc = "SIN_DEGREES(" + desc + ")";
-		    break;
-		case SQRT:
-		    desc = "SQRT(" + desc + ")";
-		    break;
-		case TAN:
-		    desc = "TAN(" + desc + ")";
-		    break;
-		case TAN_DEGREES:
-		    desc = "TAN_DEGREES(" + desc + ")";
-		    break;
-		case NEGATE:
-		    desc = "NEGATE(" + desc + ")";
-		    break;
-		default:
-		    throw new Error("Assertion Failure");
-	    }
+            switch (op) {
+                case ABS:
+                    desc = "ABS(" + desc + ")";
+                    break;
+                case ACOS:
+                    desc = "ACOS(" + desc + ")";
+                    break;
+                case ACOS_DEGREES:
+                    desc = "ACOS_DEGREES(" + desc + ")";
+                    break;
+                case ASIN:
+                    desc = "ASIN(" + desc + ")";
+                    break;
+                case ASIN_DEGREES:
+                    desc = "ASIN_DEGREES(" + desc + ")";
+                    break;
+                case ATAN:
+                    desc = "ATAN(" + desc + ")";
+                    break;
+                case ATAN_DEGREES:
+                    desc = "ATAN_DEGREES(" + desc + ")";
+                    break;
+                case CEIL:
+                    desc = "CEIL(" + desc + ")";
+                    break;
+                case COS:
+                    desc = "COS(" + desc + ")";
+                    break;
+                case COS_DEGREES:
+                    desc = "COS_DEGREES(" + desc + ")";
+                    break;
+                case EXP:
+                    desc = "EXP(" + desc + ")";
+                    break;
+                case FLOOR:
+                    desc = "FLOOR(" + desc + ")";
+                    break;
+                case LOG:
+                    desc = "LOG(" + desc + ")";
+                    break;
+                case RINT:
+                    desc = "RINT(" + desc + ")";
+                    break;
+                case ROUND:
+                    desc = "ROUND(" + desc + ")";
+                    break;
+                case SIN:
+                    desc = "SIN(" + desc + ")";
+                    break;
+                case SIN_DEGREES:
+                    desc = "SIN_DEGREES(" + desc + ")";
+                    break;
+                case SQRT:
+                    desc = "SQRT(" + desc + ")";
+                    break;
+                case TAN:
+                    desc = "TAN(" + desc + ")";
+                    break;
+                case TAN_DEGREES:
+                    desc = "TAN_DEGREES(" + desc + ")";
+                    break;
+                case NEGATE:
+                    desc = "NEGATE(" + desc + ")";
+                    break;
+                default:
+                    throw new Error("Assertion Failure");
+            }
 
-	    try {
-		result = 
-                    new SingleBandedImageImpl((FlatField)result, startTime, desc);
-	    }
-	    catch (VisADException ex) {
-		// do nothing: return the original result
-	    }
-	}
+            try {
+                result = 
+                    new SingleBandedImageImpl((FlatField)result, startTime, desc, false);
+            }
+            catch (VisADException ex) {
+                // do nothing: return the original result
+            }
+        }
 
-	return result;
+        return result;
     }
 }
