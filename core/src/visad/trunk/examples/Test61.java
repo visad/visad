@@ -48,6 +48,16 @@ public class Test61
     return dpys;
   }
 
+  private static float[][] buildTable(float[][] table)
+  {
+    int length = table[0].length;
+    for (int i=0; i<length; i++) {
+      float a = ((float) i) / ((float) (table[3].length - 1));
+      table[3][i] = a;
+    }
+    return table;
+  }
+
   void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
@@ -103,13 +113,7 @@ public class Test61
     ScalarMap map1color = (ScalarMap )dpys[0].getMapVector().lastElement();
 
     ColorAlphaControl control = (ColorAlphaControl) map1color.getControl();
-    float[][] table = control.getTable();
-    int length = table[0].length;
-    for (int i=0; i<length; i++) {
-      float a = ((float) i) / ((float) (table[3].length - 1));
-      table[3][i] = a;
-    }
-    control.setTable(table);
+    control.setTable(buildTable(control.getTable()));
 
     return new LabeledColorWidget(map1color);
   }
