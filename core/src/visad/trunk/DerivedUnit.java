@@ -527,7 +527,7 @@ public final class DerivedUnit
 	for (int j = 0; j < that.factors.length; ++j)
 	{
 	    if (that.factors[j].power != 0 &&
-                !factors[j].baseUnit.isDimensionless())
+                !that.factors[j].baseUnit.isDimensionless())
 	    {
 		int	i;
 
