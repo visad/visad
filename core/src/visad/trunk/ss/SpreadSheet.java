@@ -500,9 +500,28 @@ public class SpreadSheet extends JFrame implements ActionListener,
       if (SHOW_CONNECT_MESSAGES) {
         System.out.print("Connecting to " + clone + " ");
       }
-      while (true) {
+
+      // connection loop
+      while (cellNames == null && success) {
+        // wait a second before trying to connect
+        snooze(1000);
+        if (SHOW_CONNECT_MESSAGES) System.out.print(".");
+
         try {
+          // look up server
           rs = (RemoteServer) Naming.lookup("//" + clone);
+
+          // determine whether server supports Java3D
+          RemoteCanDo3D = rs.getDataReference("CanDo3D");
+          Real bit = (Real) RemoteCanDo3D.getData();
+          if (bit.getValue() == 0) {
+            CanDo3D = false;
+            BasicSSCell.disable3D();
+          }
+
+          // extract cell name information
+          RemoteColRow = rs.getDataReference("ColRow");
+          cellNames = getNewCellNames();
         }
         catch (NotBoundException exc) {
           if (BasicSSCell.DEBUG) exc.printStackTrace();
@@ -517,42 +536,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
             "Failed to clone spreadsheet");
           success = false;
         }
-        if (SHOW_CONNECT_MESSAGES) System.out.print(".");
-        if (rs == null && success) {
-          // wait a second before trying to connect again
-          snooze(1000);
-        }
-        else break;
-      }
-
-      if (success) {
-        if (SHOW_CONNECT_MESSAGES) {
-          System.out.println(" connected");
-          System.out.print("Cloning sheet ");
-        }
-
-        // get info for spreadsheet cloning and construct spreadsheet clone
-        try {
-          // determine whether server supports Java3D
-          RemoteCanDo3D = rs.getDataReference("CanDo3D");
-          Real bit = (Real) RemoteCanDo3D.getData();
-          if (bit.getValue() == 0) {
-            CanDo3D = false;
-            BasicSSCell.disable3D();
-          }
-
-          // extract cell name information
-          RemoteColRow = rs.getDataReference("ColRow");
-          while (true) {
-            cellNames = getNewCellNames();
-            if (SHOW_CONNECT_MESSAGES) System.out.print(".");
-            if (cellNames == null) {
-              // wait a second before trying again
-              snooze(1000);
-            }
-            else break;
-          }
-        }
         catch (VisADException exc) {
           if (BasicSSCell.DEBUG) exc.printStackTrace();
           displayErrorMessage("Unable to clone the spreadsheet at " + clone +
@@ -560,15 +543,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
             "Failed to clone spreadsheet");
           success = false;
         }
-        catch (RemoteException exc) {
-          if (BasicSSCell.DEBUG) exc.printStackTrace();
-          displayErrorMessage("Unable to clone the spreadsheet at " + clone +
-            ". Could not download the necessary data", exc,
-            "Failed to clone spreadsheet");
-          success = false;
-        }
       }
-      else if (SHOW_CONNECT_MESSAGES) System.out.println(" failed");
 
       if (success) {
         if (SHOW_CONNECT_MESSAGES) System.out.println(" done");
