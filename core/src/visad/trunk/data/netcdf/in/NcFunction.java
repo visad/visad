@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcFunction.java,v 1.5 1998-08-04 15:04:14 visad Exp $
+ * $Id: NcFunction.java,v 1.6 1998-08-04 17:24:59 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -349,12 +349,17 @@ NcFunction
     {
 	int	rank = dims.length;
 	int[]	lengths = new int[rank];
+	Unit[]	domainUnits = new Unit[rank];
 
 	for (int idim = 0; idim < rank; ++idim)
+	{
 	    lengths[idim] = dims[idim].getLength();
+	    domainUnits[idim] = dims[idim].getUnit();
+	}
 
 	// TODO: add CoordinateSystem argument
-	return IntegerNDSet.create(domain, lengths);
+	return IntegerNDSet.create(domain, lengths, /*(CoordinateSystem)*/null,
+		domainUnits, /*(ErrorEstimate[])*/null);
     }
 
 
@@ -363,6 +368,14 @@ NcFunction
      * and coordinate variables.
      *
      * @param dims	The netCDF dimensions of the domain in VisAD order.
+     * @param aps	The arithmetic progressions associated with 
+     *			<code>dims</code>.
+     * @param coordVars	Coordinate variables associated with <code>dims</code>.
+     *			If(<code>coordVars[i] == null</code> then 
+     *			<code>dim[i]</code> doesn't have a coordinate variable.
+     * @param domainType	The VisAD math type of the domain set.  
+     *			NB: The units of the dimensions needn't be the same
+     *			as the units in <code>domain</code>.
      * @return		The LinearSet of the domain of the function.
      * @precondition	The sampling domain-set of this function is (logically)
      *			a LinearSet.
@@ -402,6 +415,11 @@ NcFunction
 	    }
 	}
 
+	Unit[]	domainUnits = new Unit[rank];
+
+	for (int idim = 0; idim < rank; ++idim)
+	    domainUnits[idim] = dims[idim].getUnit();
+
 	// TODO: add CoordinateSystem argument
 	if (rank == 2 &&
 	      ((dims[0].isLatitude() && dims[1].isLongitude()) ||
@@ -409,13 +427,18 @@ NcFunction
 	{
 	    set = new LinearLatLonSet(domainType,
 					firsts[0], lasts[0], lengths[0],
-					firsts[1], lasts[1], lengths[1]);
+					firsts[1], lasts[1], lengths[1],
+					/*(CoordinateSystem)*/null,
+					domainUnits,
+					/*(ErrorEstimate[])*/null);
 	}
 	else
 	{
 	    set = LinearNDSet.create(domainType,
 				      firsts, lasts, lengths,
-				      null, null, null);
+				      /*(CoordinateSystem)*/null,
+				      domainUnits,
+				      /*(ErrorEstimate[])*/null);
 	}
 
 	return set;
@@ -427,6 +450,12 @@ NcFunction
      * variables.
      *
      * @param dims	The netCDF dimensions of the domain in VisAD order.
+     * @param coordVars	Coordinate variables associated with <code>dims</code>.
+     *			If(<code>coordVars[i] == null</code> then 
+     *			<code>dim[i]</code> doesn't have a coordinate variable.
+     * @param domain	The VisAD math type of the domain set.  NB: The units
+     *			of the dimensions needn't be the same as the units
+     *			in <code>domain</code>.
      * @return		The GriddedSet of the domain of the function.
      * @precondition	The sampling domain-set of this function is a 
      *			GriddedSet.
@@ -486,8 +515,15 @@ NcFunction
             laststep = step;
 	}
 
+	Unit[]	domainUnits = new Unit[rank];
+
+	for (int idim = 0; idim < rank; ++idim)
+	    domainUnits[idim] = dims[idim].getUnit();
+
 	// TODO: add CoordinateSystem argument
-	return GriddedSet.create(domain, values, lengths);
+	return GriddedSet.create(domain, values, lengths,
+		 /*(CoordinateSystem)*/null, domainUnits,
+		 /*(ErrorEstimate[])*/null);
     }
 
 
