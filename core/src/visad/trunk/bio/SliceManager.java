@@ -31,17 +31,12 @@ import java.io.*;
 import java.rmi.RemoteException;
 import javax.swing.JOptionPane;
 import visad.*;
-import visad.data.*;
 import visad.util.*;
 
 /** SliceManager is the class encapsulating VisBio's slice logic. */
 public class SliceManager
   implements ControlListener, DisplayListener, PlaneListener
 {
-
-  /** Loader for opening data series. */
-  private static DefaultFamily loader = new DefaultFamily("bio_loader");
-
 
   // -- DATA TYPE CONSTANTS --
 
@@ -317,11 +312,6 @@ public class SliceManager
       updateList();
       updateAnimationControls();
     }
-    if (align.isVisible()) {
-      // auto-switch to drift correction locked mode
-      bio.toolAlign.setDriftLock(true);
-      align.setMode(false);
-    }
     align.setIndex(index);
   }
 
@@ -480,7 +470,7 @@ public class SliceManager
         purgeData(true);
 
         // load new data
-        field = loadData(files[index], true);
+        field = BioUtil.loadData(files[index], true);
         sliceField = volumeField = null;
         if (field != null) {
           ref2.setData(field);
@@ -519,20 +509,20 @@ public class SliceManager
       float[][] table = widgets[i].getTable();
       try {
         BaseColorControl cc2 = (BaseColorControl) rmaps2[i].getControl();
-        float[][] t2 = VisBio.adjustColorTable(table, null, false);
-        if (!VisBio.tablesEqual(t2, cc2.getTable())) cc2.setTable(t2);
+        float[][] t2 = BioUtil.adjustColorTable(table, null, false);
+        if (!BioUtil.tablesEqual(t2, cc2.getTable())) cc2.setTable(t2);
         if (bio.display3 != null) {
           BaseColorControl cc3 = (BaseColorControl) rmaps3[i].getControl();
           float[][] t3 = cc3.getTable();
-          t3 = VisBio.adjustColorTable(table, t3[3], true);
-          if (!VisBio.tablesEqual(t3, cc3.getTable())) cc3.setTable(t3);
+          t3 = BioUtil.adjustColorTable(table, t3[3], true);
+          if (!BioUtil.tablesEqual(t3, cc3.getTable())) cc3.setTable(t3);
         }
         if (hasThumbs && bio.previous != null && bio.next != null) {
-          if (t2 == null) t2 = VisBio.adjustColorTable(table, null, false);
+          if (t2 == null) t2 = BioUtil.adjustColorTable(table, null, false);
           for (int j=0; j<rmapsP.length; j++) {
             BaseColorControl ccP = (BaseColorControl)
               rmapsP[j][i].getControl();
-            if (!VisBio.tablesEqual(t2, ccP.getTable())) ccP.setTable(t2);
+            if (!BioUtil.tablesEqual(t2, ccP.getTable())) ccP.setTable(t2);
           }
         }
       }
@@ -626,7 +616,7 @@ public class SliceManager
             timesteps = 1;
             for (int i=0; i<slices; i++) {
               dialog.setText("Loading " + f[i].getName());
-              FieldImpl image = loadData(f[i], false);
+              FieldImpl image = BioUtil.loadData(f[i], false);
               if (image == null) return;
               if (field == null) {
                 FunctionType stack_type =
@@ -647,7 +637,7 @@ public class SliceManager
                 (i >= curfile ? i + 1 : i);
               purgeData(false);
               dialog.setText("Loading " + f[ndx].getName());
-              field = loadData(f[ndx], true);
+              field = BioUtil.loadData(f[ndx], true);
               if (field == null) return;
               if (thumbs == null) {
                 slices = field.getLength();
@@ -665,7 +655,7 @@ public class SliceManager
             // load data at current index only
             timesteps = f.length;
             dialog.setText("Loading " + f[curfile].getName());
-            field = loadData(f[curfile], true);
+            field = BioUtil.loadData(f[curfile], true);
             if (field == null) return;
             slices = field.getLength();
             dialog.setPercent(100);
@@ -1232,47 +1222,6 @@ public class SliceManager
     MeasureList list = bio.mm.lists[index];
     bio.mm.pool2.set(list);
     if (bio.mm.pool3 != null) bio.mm.pool3.set(list);
-  }
-
-
-  // -- UTILITY METHODS --
-
-  /**
-   * Loads the data from the given file, and ensures that the
-   * resulting data object is of the proper form, converting
-   * image data into single-slice stack data if specified.
-   */
-  public static FieldImpl loadData(File file, boolean makeStack)
-    throws VisADException, RemoteException
-  {
-    // load data from file
-    Data data = loader.open(file.getPath());
-
-    // convert data to field
-    FieldImpl f = null;
-    if (data instanceof FieldImpl) f = (FieldImpl) data;
-    else if (data instanceof Tuple) {
-      Tuple tuple = (Tuple) data;
-      Data[] d = tuple.getComponents();
-      for (int i=0; i<d.length; i++) {
-        if (d[i] instanceof FieldImpl) {
-          f = (FieldImpl) d[i];
-          break;
-        }
-      }
-    }
-    return makeStack && f instanceof FlatField ?
-      makeStack(new FlatField[] {(FlatField) f}) : f;
-  }
-
-  /** Converts an array of images to an image stack. */
-  public static FieldImpl makeStack(FlatField[] f)
-    throws VisADException, RemoteException
-  {
-    FunctionType func = new FunctionType(SLICE_TYPE, f[0].getType());
-    FieldImpl stack = new FieldImpl(func, new Integer1DSet(f.length));
-    for (int i=0; i<f.length; i++) stack.setSample(i, f[i], false);
-    return stack;
   }
 
 }

@@ -338,7 +338,7 @@ public class ExportDialog extends JPanel
                   images = new FlatField[numIndices];
                   for (int j=0; j<numIndices; j++) {
                     File f = infiles[minIndex + j];
-                    FieldImpl timestep = SliceManager.loadData(f, true);
+                    FieldImpl timestep = BioUtil.loadData(f, true);
                     images[j] = (FlatField) bio.sm.arb.extractSlice((FieldImpl)
                       timestep.domainMultiply(), resX, resY, rx, ry);
                     float percent = (float) (j + 1) / numIndices;
@@ -349,7 +349,7 @@ public class ExportDialog extends JPanel
                   // compile timestep across slices
                   images = new FlatField[1];
                   File f = infiles[minIndex + i];
-                  FieldImpl timestep = SliceManager.loadData(f, true);
+                  FieldImpl timestep = BioUtil.loadData(f, true);
                   images[0] = (FlatField) bio.sm.arb.extractSlice((FieldImpl)
                     timestep.domainMultiply(), resX, resY, rx, ry);
                 }
@@ -381,7 +381,7 @@ public class ExportDialog extends JPanel
                 images = new FlatField[numIndices];
                 for (int j=0; j<numIndices; j++) {
                   File f = infiles[minIndex + j];
-                  FieldImpl timestep = SliceManager.loadData(f, true);
+                  FieldImpl timestep = BioUtil.loadData(f, true);
                   images[j] = (FlatField) timestep.getSample(minSlice + i);
                   float percent = (float)
                     (numIndices * i + (j + 1)) / (series.length * numIndices);
@@ -392,7 +392,7 @@ public class ExportDialog extends JPanel
                 // compile timestep across slices
                 images = new FlatField[numSlices];
                 File f = infiles[minIndex + i];
-                FieldImpl timestep = SliceManager.loadData(f, true);
+                FieldImpl timestep = BioUtil.loadData(f, true);
                 for (int j=0; j<numSlices; j++) {
                   images[j] = (FlatField) timestep.getSample(minSlice + j);
                   float percent = (float)
@@ -411,7 +411,7 @@ public class ExportDialog extends JPanel
                 images[j] = (FlatField) images[j].resample(nset);
               }
             }
-            data = SliceManager.makeStack(images);
+            data = BioUtil.makeStack(images);
             if (colors) {
               // CTR - TODO - apply color settings to export
             }

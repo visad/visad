@@ -40,9 +40,6 @@ public class AlignmentPlane extends PlaneSelector implements DisplayListener {
 
   // -- FIELDS --
 
-  /** Flag for free mode versus lockable mode. */
-  protected boolean lockMode;
-
   /** Flags for whether each endpoint is locked at each timestep. */
   protected boolean[][] locked;
 
@@ -55,28 +52,35 @@ public class AlignmentPlane extends PlaneSelector implements DisplayListener {
   /** Current timestep value. */
   protected int index;
 
+  /** Maximum timestep value. */
+  protected int maxIndex;
+
 
   // -- CONSTRUCTOR --
 
   /** Constructs a plane selector. */
-  public AlignmentPlane(DisplayImpl display) { super(display); }
+  public AlignmentPlane(DisplayImpl display) {
+    super(display);
+    maxIndex = 10;
+    locked = new boolean[maxIndex][3];
+    pos = new double[maxIndex][3][3];
+  }
 
 
   // -- API METHODS --
-
-  /** Toggles the plane's mode between manipulable endpoints and rotatable. */
-  public void setMode(boolean lockable) {
-    if (lockMode == lockable) return;
-    lockMode = lockable;
-    if (lockMode) display.removeDisplayListener(this);
-    else display.addDisplayListener(this);
-    toggle(visible);
-  }
 
   /** Sets the current timestep. */
   public void setIndex(int index) {
     if (this.index == index) return;
     this.index = index;
+    if (index >= maxIndex) {
+      int ndx = index + 1;
+      boolean[][] nlock = new boolean[ndx][3];
+      double[][][] npos = new double[ndx][3][3];
+      System.arraycopy(locked, 0, nlock, 0, maxIndex);
+      System.arraycopy(pos, 0, npos, 0, maxIndex);
+      maxIndex = ndx;
+    }
     // set endpoint values to match those at current index
     for (int i=0; i<3; i++) {
       setData(i, pos[index][i][0], pos[index][i][1], pos[index][i][2]);
@@ -111,9 +115,39 @@ public class AlignmentPlane extends PlaneSelector implements DisplayListener {
       my = y;
       m_ctrl = ctrl;
     }
-    else if (id == DisplayEvent.MOUSE_RELEASED) {
+    else if (id == DisplayEvent.MOUSE_RELEASED && x == mx && y == my) {
       // CTR - TODO - lock or unlock picked point
+      /*
+      use 3-D ray, pick between pos[index][0], pos[index][1], and pos[index][2]
+      toggle locked[index][0], locked[index][1] or locked[index][2];
+      */
     }
+  }
+
+
+  // -- HELPER METHODS --
+
+  /** Refreshes the plane data from its endpoint locations. */
+  protected boolean refresh() {
+    if (!super.refresh()) return false;
+    for (int i=0; i<3; i++) {
+      RealTuple tuple = (RealTuple) refs[i + 2].getData();
+      try {
+        Real[] r = tuple.getRealComponents();
+        for (int j=0; j<3; j++) pos[index][i][j] = r[j].getValue();
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
+    }
+    return true;
+  }
+
+  /** Moves the given reference point. */
+  protected void setData(int i, double x, double y, double z) {
+    super.setData(i, x, y, z);
+    pos[index][i][0] = x;
+    pos[index][i][1] = y;
+    pos[index][i][2] = z;
   }
 
 }

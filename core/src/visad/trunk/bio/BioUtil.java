@@ -26,11 +26,17 @@ MA 02111-1307, USA
 
 package visad.bio;
 
-import java.util.Vector;
+import java.io.File;
+import java.rmi.RemoteException;
+import java.util.*;
 import visad.*;
+import visad.data.DefaultFamily;
 
 /** BioUtil provides a collection of general utilities used by VisBio. */
 public class BioUtil {
+
+  /** Loader for opening data series. */
+  private static DefaultFamily loader = new DefaultFamily("bio_loader");
 
   /** Converts the given pixel coordinates to domain coordinates. */
   public static double[] pixelToDomain(DisplayImpl d, int x, int y) {
@@ -240,6 +246,144 @@ public class BioUtil {
       y2 = t;
     }
     return vx >= x1 && vx <= x2 && vy >= y1 && vy <= y2;
+  }
+
+  /**
+   * Loads the data from the given file, and ensures that the
+   * resulting data object is of the proper form, converting
+   * image data into single-slice stack data if specified.
+   */
+  public static FieldImpl loadData(File file, boolean makeStack)
+    throws VisADException, RemoteException
+  {
+    // load data from file
+    Data data = loader.open(file.getPath());
+
+    // convert data to field
+    FieldImpl f = null;
+    if (data instanceof FieldImpl) f = (FieldImpl) data;
+    else if (data instanceof Tuple) {
+      Tuple tuple = (Tuple) data;
+      Data[] d = tuple.getComponents();
+      for (int i=0; i<d.length; i++) {
+        if (d[i] instanceof FieldImpl) {
+          f = (FieldImpl) d[i];
+          break;
+        }
+      }
+    }
+    return makeStack && f instanceof FlatField ?
+      makeStack(new FlatField[] {(FlatField) f}) : f;
+  }
+
+  /** Converts an array of images to an image stack. */
+  public static FieldImpl makeStack(FlatField[] f)
+    throws VisADException, RemoteException
+  {
+    FunctionType func = new FunctionType(
+      SliceManager.SLICE_TYPE, f[0].getType());
+    FieldImpl stack = new FieldImpl(func, new Integer1DSet(f.length));
+    for (int i=0; i<f.length; i++) stack.setSample(i, f[i], false);
+    return stack;
+  }
+
+  /** Makes a deep copy of the given RealTuple array. */
+  public static RealTuple[] copy(RealTuple[] tuples) {
+    return copy(tuples, -1);
+  }
+
+  /**
+   * Makes a deep copy of the given RealTuple array,
+   * altering the last dimension to match the specified Z-slice value.
+   */
+  public static RealTuple[] copy(RealTuple[] tuples, int slice) {
+    try {
+      RealTuple[] n_tuples = new RealTuple[tuples.length];
+      for (int j=0; j<tuples.length; j++) {
+        int dim = tuples[j].getDimension();
+        Data[] comps = tuples[j].getComponents();
+        Real[] n_comps = new Real[dim];
+        for (int i=0; i<dim; i++) {
+          Real real = (Real) comps[i];
+          double value;
+          RealType type;
+          if (slice >= 0 && i == dim - 1) {
+            value = slice;
+            type = SliceManager.Z_TYPE;
+          }
+          else {
+            value = real.getValue();
+            type = (RealType) real.getType();
+          }
+          n_comps[i] = new Real(type, value, real.getUnit(), real.getError());
+        }
+        RealTupleType tuple_type = (RealTupleType) tuples[j].getType();
+        RealType[] real_types = tuple_type.getRealComponents();
+        RealType[] n_real_types = new RealType[dim];
+        System.arraycopy(real_types, 0, n_real_types, 0, dim);
+        n_tuples[j] = new RealTuple(new RealTupleType(n_real_types),
+          n_comps, tuples[j].getCoordinateSystem());
+      }
+      return n_tuples;
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+    return null;
+  }
+
+  /** Dumps information about the given RealTuple to the screen. */
+  public static void dump(RealTuple tuple) {
+    Data[] comps = tuple.getComponents();
+    for (int i=0; i<comps.length; i++) {
+      Real real = (Real) comps[i];
+      System.out.println("#" + i +
+        ": type=" + real.getType() + "; value=" + real.getValue());
+    }
+  }
+
+  /**
+   * Ensures the color table is of the proper type (RGB or RGBA).
+   *
+   * If the alpha is not required but the table has an alpha channel,
+   * a new table is returned with the alpha channel stripped out.
+   *
+   * If alpha is required but the table does not have an alpha channel,
+   * a new table is returned with an alpha channel matching the provided
+   * one (or all 1s if the provided alpha channel is null or invalid).
+   */
+  public static float[][] adjustColorTable(float[][] table,
+    float[] alpha, boolean doAlpha)
+  {
+    if (table == null || table[0] == null) return null;
+    if (table.length == 3) {
+      if (!doAlpha) return table;
+      int len = table[0].length;
+      if (alpha == null || alpha.length != len) {
+        alpha = new float[len];
+        Arrays.fill(alpha, 1.0f);
+      }
+      return new float[][] {table[0], table[1], table[2], alpha};
+    }
+    else { // table.length == 4
+      if (doAlpha) return table;
+      return new float[][] {table[0], table[1], table[2]};
+    }
+  }
+
+  /** Tests whether two color tables are identical in content. */
+  public static boolean tablesEqual(float[][] t1, float[][] t2) {
+    if (t1 == null && t2 == null) return true;
+    if (t1 == null || t2 == null) return false;
+    if (t1.length != t2.length) return false;
+    if (t1.length == 0) return true;
+    int len = t1[0].length;
+    if (len != t2[0].length) return false;
+    for (int i=0; i<t1.length; i++) {
+      for (int j=0; j<len; j++) {
+        if (t1[i][j] != t2[i][j]) return false;
+      }
+    }
+    return true;
   }
 
 }
