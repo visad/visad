@@ -58,6 +58,8 @@ public class Rain implements ActionListener, ControlListener {
     new CellImpl[N_ROWS][N_COLUMNS];
   final DisplayImpl[][] displays =
     new DisplayImpl[N_ROWS][N_COLUMNS];
+  final RemoteDisplayImpl[][] remote_displays =
+    new RemoteDisplayImpl[N_ROWS][N_COLUMNS];
   final CellImpl[][] formula_update =
     new CellImpl[N_ROWS][N_COLUMNS];
   final boolean[][] display_done =
@@ -378,6 +380,9 @@ public class Rain implements ActionListener, ControlListener {
           cell_refs[i][j] = new DataReferenceImpl("cell_" + i + "_" + j);
         }
         displays[i][j] = newDisplay("display_" + i + "_" + j);
+        if (client_server != null) {
+          remote_displays[i][j] = new RemoteDisplayImpl(displays[i][j]);
+        }
         displays[i][j].addMap(new ScalarMap(y_domain, Display.XAxis));
         displays[i][j].addMap(new ScalarMap(x_domain, Display.YAxis));
 
@@ -451,7 +456,7 @@ public class Rain implements ActionListener, ControlListener {
               try {
                 displays[fi][fj].removeReference(cell_refs[fi][fj]);
                 if (color_controls[fi][fj] != null || (fi == 0 && fj == 2)) {
-                  displays[fi][fj].removeReference(ref_cursor);
+                  removeCursor(fi, fj);
                 }
                 displays[fi][fj].clearMaps();
               }
@@ -531,9 +536,7 @@ public class Rain implements ActionListener, ControlListener {
               }
               try {
                 displays[fi][fj].addReference(cell_refs[fi][fj]);
-                if (color_controls[fi][fj] != null) {
-                  addCursor(displays[fi][fj]);
-                }
+                if (color_controls[fi][fj] != null) addCursor(fi, fj);
               }
               catch (VisADException exc) { }
               catch (RemoteException exc) { }
@@ -922,9 +925,8 @@ public class Rain implements ActionListener, ControlListener {
     return display;
   }
 
-  /** adds a cursor to the given display */
-  public void addCursor(DisplayImpl display) throws VisADException,
-                                                    RemoteException {
+  /** adds a cursor to display (i, j) */
+  public void addCursor(int i, int j) throws VisADException, RemoteException {
     DataRenderer dr = null;
     if (twod) {
       dr = new DirectManipulationRendererJ2D();
@@ -933,11 +935,21 @@ public class Rain implements ActionListener, ControlListener {
       dr = new DirectManipulationRendererJ3D();
     }
     if (client_server != null) {
-      RemoteDisplayImpl remote_display = new RemoteDisplayImpl(display);
-      remote_display.addReferences(dr, ref_cursor);
+      remote_displays[i][j].addReferences(dr, ref_cursor);
     }
     else {
-      display.addReferences(dr, ref_cursor);
+      displays[i][j].addReferences(dr, ref_cursor);
+    }
+  }
+
+  /** removes a cursor from display (i, j) */
+  public void removeCursor(int i, int j) throws VisADException,
+                                                RemoteException {
+    if (client_server != null) {
+      remote_displays[i][j].removeReference(ref_cursor);
+    }
+    else {
+      displays[i][j].removeReference(ref_cursor);
     }
   }
 
@@ -961,7 +973,7 @@ public class Rain implements ActionListener, ControlListener {
       if (table != null) color_controls[i][j].setTable(table);
     }
     displays[i][j].addReference(cell_refs[i][j]);
-    addCursor(displays[i][j]);
+    addCursor(i, j);
     display_done[i][j] = true;
   }
 
