@@ -110,6 +110,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   /** set to re-display all linked Data */
   private boolean redisplay_all = false;
 
+  /** set to force prepareAction */
+  private boolean force_prepare = false;
+
 
   /** length of ValueArray of distinct DisplayRealType values;
       one per Single DisplayRealType that occurs in a ScalarMap,
@@ -1482,7 +1485,8 @@ System.out.println("initialize = " + initialize + " go = " + go +
       }
 
       if (!initialize || go) {
-        displayRenderer.prepareAction(temp, tmap, go, initialize);
+        displayRenderer.prepareAction(temp, tmap, go, initialize, force_prepare);
+        force_prepare = false;
 
         // WLH 10 May 2001
         boolean anyBadMap = false;
@@ -1682,6 +1686,9 @@ if (initialize) {
           }
           ConstantMapVector.addElement(map);
         }
+        if (!RendererVector.isEmpty()) {
+          reDisplayAll(); // WLH 2 April 2002
+        }
       }
       else { // !(map instanceof ConstantMap)
         // add to RealTypeVector and set ScalarIndex
@@ -1715,9 +1722,14 @@ if (initialize) {
         }
         map.setScalarIndex(index);
         map.setControl();
+        // WLH 18 June 2002
+        if (!RendererVector.isEmpty() && map.doInitialize()) {
+          reAutoScale();
+        }
       } // end !(map instanceof ConstantMap)
+      // WLH 18 June 2002
       if (!RendererVector.isEmpty()) {
-        reDisplayAll(); // WLH 2 April 2002
+        force_prepare = true;
       }
       addDisplayScalar(map);
       notifyListeners(new DisplayMapEvent(this, DisplayEvent.MAP_ADDED, map,

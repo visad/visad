@@ -624,13 +624,13 @@ public abstract class DisplayRenderer
   }
 
   public void prepareAction(Vector temp, Vector tmap, boolean go,
-                            boolean initialize)
+                            boolean initialize, boolean force_prepare)
          throws VisADException, RemoteException {
     DataShadow shadow = null;
     Enumeration renderers = temp.elements();
     while (renderers.hasMoreElements()) {
       DataRenderer renderer = (DataRenderer) renderers.nextElement();
-      shadow = renderer.prepareAction(go, initialize, shadow);
+      shadow = renderer.prepareAction(go, initialize, force_prepare, shadow);
     }
 
     if (shadow != null) {

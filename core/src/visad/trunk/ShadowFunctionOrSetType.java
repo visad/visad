@@ -251,7 +251,11 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
 
     // get value_indices arrays used by doTransform
     inherited_values = copyIndices(value_indices);
-
+/*
+// XYZW
+System.out.println("checkIndices inherited_values.length = " +
+                   inherited_values.length);
+*/
     // check for any mapped
     if (levelOfDifficulty == NOTHING_MAPPED) {
       if (checkAny(local_display_indices)) {
@@ -586,6 +590,7 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
       ((ShadowFunctionOrSetType) adaptedShadowType).getInheritedValues();
 */
 /*
+// XYZW
 System.out.println("valueArrayLength = " + valueArrayLength +
                    " inherited_values.length = " + inherited_values.length);
 */

@@ -186,8 +186,12 @@ public abstract class DataRenderer extends Object implements Cloneable {
   /** check if re-transform is needed; if initialize is true then
       compute ranges for RealType-s and Animation sampling */
   public DataShadow prepareAction(boolean go, boolean initialize,
-                                  DataShadow shadow)
+                                  boolean force_prepare, DataShadow shadow)
          throws VisADException, RemoteException {
+/*
+// XYZW
+System.out.println("prepareAction " + go + " " + initialize);
+*/
     any_changed = false;
     all_feasible = true;
     any_transform_control = false;
@@ -197,18 +201,21 @@ public abstract class DataRenderer extends Object implements Cloneable {
       DataReference ref = Links[i].getDataReference();
       // test for changed Controls that require doTransform
 /*
+// XYZW
 System.out.println(display.getName() +
                    " Links[" + i + "].checkTicks() = " + Links[i].checkTicks() +
-                   " feasible[" + i + "] = " + feasible[i] + " go = " + go);
+                   " feasible[" + i + "] = " + feasible[i] + " go = " + go +
+                   " force_prepare = " + force_prepare);
+
 MathType junk = Links[i].getType();
 if (junk != null) System.out.println(junk.prettyString());
 */
-      if (Links[i].checkTicks() || !feasible[i] || go) {
+      if (Links[i].checkTicks() || !feasible[i] || go || force_prepare) {
 /*
 boolean check = Links[i].checkTicks();
 System.out.println("DataRenderer.prepareAction: check = " + check + " feasible = " +
-                   feasible[i] + " go = " + go + "  " +
-                   Links[i].getThingReference().getName());
+                   feasible[i] + " go = " + go + " force_prepare = " +
+                   force_prepare + "  " + Links[i].getThingReference().getName());
 // DisplayImpl.printStack("prepareAction");
 */
         // data has changed - need to re-display
