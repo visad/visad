@@ -2705,11 +2705,27 @@ public class BasicSSCell extends JPanel
     final JComponent ec = errorCanvas;
     invoke(true, new Runnable() {
       public void run() {
+        // determine whether VDPanel is already present onscreen
+        Component[] c = getComponents();
+        boolean hasPanel = c.length > 0 && c[0] == VDPanel;
+
         // redraw cell
-        removeAll();
-        if (Loading > 0) add(WaitPanel);
-        else if (ec != null) add(ec);
-        else if (HasDisplay) add(VDPanel);
+        if (Loading > 0) {
+          removeAll();
+          add(WaitPanel);
+        }
+        else if (ec != null) {
+          removeAll();
+          add(ec);
+        }
+        else if (HasDisplay) {
+          if (!hasPanel) {
+            // no need to re-add VDPanel if already present
+            removeAll();
+            add(VDPanel);
+          }
+        }
+        else removeAll();
         refresh();
       }
     });
