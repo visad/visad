@@ -519,24 +519,12 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
     // construct RealTypes for swell record components
     RealType lat = RealType.Latitude;
     RealType lon = RealType.Longitude;
-    RealType swellx = new RealType("swellx");
-    RealType swelly = new RealType("swelly");
     RealType red = new RealType("red");
     RealType green = new RealType("green");
-
-    // EarthVectorType extends RealTupleType and says that its
-    // components are vectors in m/s with components parallel
-    // to Longitude (positive east) and Latitude (positive north)
-    EarthVectorType swellxy = new EarthVectorType(swellx, swelly);
-
     RealType swell_degree = new RealType("swell_degree",
                           CommonUnit.degree, null);
     RealType swell_height = new RealType("swell_height",
                           CommonUnit.meter, null);
-    Unit[] units = {CommonUnit.degree, CommonUnit.meter};
-    RealTupleType swelldh =
-      new RealTupleType(new RealType[] {swell_degree, swell_height},
-      new WindPolarCoordinateSystem(swellxy, units), null);
 
     // construct Java3D display and mappings that govern
     // how swell records are displayed
@@ -571,12 +559,12 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
         double fa = Data.RADIANS_TO_DEGREES * Math.atan2(-fx, -fy);
         double fh = Math.sqrt(fx * fx + fy * fy);
 
-        // each swell record is a Tuple (lon, lat,
-        //   (swell_degree, swell_height), red, green)
+        // each swell record is a RealTuple (lon, lat,
+        //   swell_degree, swell_height, red, green)
         // set colors by swell components, just for grins
-        Tuple tuple = new Tuple(new Data[]
+        RealTuple tuple = new RealTuple(new Real[]
           {new Real(lon, 10.0 * u), new Real(lat, 10.0 * v - 40.0),
-           new RealTuple(swelldh, new double[] {fa, fh}),
+           new Real(swell_degree, fa), new Real(swell_height, fh),
            new Real(red, u), new Real(green, v)});
 
         // construct reference for swell record
@@ -638,22 +626,13 @@ class SwellGetterJ3D extends CellImpl {
   }
 
   public void doAction() throws VisADException, RemoteException {
-    Tuple tuple = (Tuple) ref.getData();
+    RealTuple tuple = (RealTuple) ref.getData();
     float lon = (float) ((Real) tuple.getComponent(0)).getValue();
     float lat = (float) ((Real) tuple.getComponent(1)).getValue();
-    RealTuple wind = (RealTuple) tuple.getComponent(2);
-    float windx = (float) ((Real) wind.getComponent(0)).getValue();
-    float windy = (float) ((Real) wind.getComponent(1)).getValue();
-    System.out.println("wind = (" + windx + ", " + windy + ") at (" +
+    float dir = (float) ((Real) tuple.getComponent(2)).getValue();
+    float height = (float) ((Real) tuple.getComponent(3)).getValue();
+    System.out.println("swell = (" + dir + ", " + height + ") at (" +
                        + lat + ", " + lon +")");
-/* a testing hack
-    count--;
-    if (count < 0) {
-      count = 20;
-      scale = 0.15f * 0.3f / scale;
-      flow_control.setFlowScale(scale);
-    }
-*/
   }
 
 }
