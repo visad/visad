@@ -3203,7 +3203,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
           if ( r_compsRef[jj].equals(d_partial_s[ii]) )
           {
             u_index[ii] = jj;
-            u_vectors[jj][ii] = 1d;
+            u_vectors[ii][jj] = 1d;
             foundRef++;
           }
         }
