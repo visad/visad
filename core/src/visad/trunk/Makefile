@@ -48,7 +48,7 @@ RM = rm -f
 
 DOCS_DIR = ../docs
 DOC = javadoc
-DOCFLAGS = -d $(DOCS_DIR)
+DOCFLAGS = -d $(DOCS_DIR) -J-Xmx64m -package -doctitle 'VisAD Documentation'
 
 FITS = ../nom/tam
 UCAR = ../ucar
