@@ -550,8 +550,8 @@ public abstract class DisplayRenderer
     return false;
   }
 
-  public void autoscale(Vector temp, Vector tmap, boolean go,
-                        boolean initialize)
+  public void prepareAction(Vector temp, Vector tmap, boolean go,
+                            boolean initialize)
          throws VisADException, RemoteException {
     DataShadow shadow = null;
     Enumeration renderers = temp.elements();

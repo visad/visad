@@ -968,7 +968,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       }
 
       if (!initialize || go) {
-        displayRenderer.autoscale(temp, tmap, go, initialize);
+        displayRenderer.prepareAction(temp, tmap, go, initialize);
 /* WLH 7 Dec 2000
         DataShadow shadow = null;
         renderers = temp.elements();
