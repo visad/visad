@@ -49,6 +49,15 @@ public interface RemoteServer extends Remote {
   public abstract RemoteDataReference[] getDataReferences()
          throws RemoteException;
 
+  /** add a new RemoteDataReferenceImpl to server and extend array */
+  public abstract void addDataReference(RemoteDataReferenceImpl ref);
+
+  /** set array of all RemoteDataReferences on this RemoteServer */
+  public abstract void setDataReferences(RemoteDataReferenceImpl[] rs);
+
+  /** remove a RemoteDataReferenceImpl from server and shrink size of array */
+  public abstract void removeDataReference(RemoteDataReferenceImpl ref);
+
   /** return array of all RemoteDisplays in this RemoteServer */
   public abstract RemoteDisplay[] getDisplays()
          throws RemoteException;
@@ -61,5 +70,13 @@ public interface RemoteServer extends Remote {
   public abstract RemoteDisplay getDisplay(String name)
          throws VisADException, RemoteException;
 
+  /** add a new RemoteDisplayImpl to server and extend array */
+  public abstract void addDisplay(RemoteDisplayImpl rd);
+
+  /** set all RemoteDisplayImpls to serve */
+  public abstract void setDisplays(RemoteDisplayImpl[] rd);
+
+  /** remove a RemoteDisplayImpl from server and shrink size of array */
+  public abstract void removeDisplay(RemoteDisplayImpl rd);
 }
 

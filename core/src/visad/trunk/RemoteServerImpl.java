@@ -106,7 +106,7 @@ public class RemoteServerImpl extends UnicastRemoteObject
     refs[index] = ref;
   }
 
-  /** add a new RemoteDataReferenceImpl to serve and extend array */
+  /** add a new RemoteDataReferenceImpl to server and extend array */
   public synchronized void addDataReference(RemoteDataReferenceImpl ref) {
     if (ref == null) return;
 
@@ -132,6 +132,30 @@ public class RemoteServerImpl extends UnicastRemoteObject
     for (int i=0; i<refs.length; i++) {
       refs[i] = rs[i];
     }
+  }
+
+  /** remove a RemoteDataReferenceImpl from server and shrink size of array */
+  public synchronized void removeDataReference(RemoteDataReferenceImpl ref) {
+    int len;
+    if (refs == null || refs.length == 0) len = 0;
+    else len = refs.length;
+
+    int index = -1;
+    for (int i=0; i<len; i++) {
+      if (refs[i] == ref) {
+        index = i;
+        break;
+      }
+    }
+    if (index < 0) return;
+
+    RemoteDataReferenceImpl[] nr = new RemoteDataReferenceImpl[len - 1];
+    if (index > 0) System.arraycopy(refs, 0, nr, 0, index);
+    if (index < len - 1) {
+      System.arraycopy(refs, index + 1, nr, index, len - index - 1);
+    }
+
+    refs = nr;
   }
 
   /** return array of all RemoteDisplays in this RemoteServer */
@@ -175,7 +199,7 @@ public class RemoteServerImpl extends UnicastRemoteObject
     throw new RemoteException("Display \"" + name + "\" not found");
   }
 
-  /** add a new RemoteDisplayImpls to serve and extend array */
+  /** add a new RemoteDisplayImpl to server and extend array */
   public synchronized void addDisplay(RemoteDisplayImpl rd) {
     if (rd == null) {
       return;
@@ -207,5 +231,31 @@ public class RemoteServerImpl extends UnicastRemoteObject
       dpys[i] = rd[i];
     }
   }
+
+  /** remove a RemoteDisplayImpl from server and shrink size of array */
+  public synchronized void removeDisplay(RemoteDisplayImpl rd) {
+    //
+    int len;
+    if (dpys == null || dpys.length == 0) len = 0;
+    else len = dpys.length;
+
+    int index = -1;
+    for (int i=0; i<len; i++) {
+      if (dpys[i] == rd) {
+        index = i;
+        break;
+      }
+    }
+    if (index < 0) return;
+
+    RemoteDisplayImpl[] nd = new RemoteDisplayImpl[len - 1];
+    if (index > 0) System.arraycopy(dpys, 0, nd, 0, index);
+    if (index < len - 1) {
+      System.arraycopy(dpys, index + 1, nd, index, len - index - 1);
+    }
+
+    dpys = nd;
+  }
+
 }
 
