@@ -785,6 +785,97 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     notifyReferences();
   }
 
+  public void setSamples(int[] indices, double[][] range)
+         throws VisADException, RemoteException
+  {
+    int length = indices.length;
+
+    if(range.length != TupleDimension ) {
+      throw new FieldException("FlatField.setSamples: bad tuple length");
+    }
+    if ( length > Length ) {
+      throw new FieldException("setSamples: indices array too long");
+    }
+    for (int i=0; i<TupleDimension; i++) {
+      if (range[i].length != length) {
+        throw new FieldException("setSamples: bad data array length");
+      }
+    }
+
+    boolean copy = false;
+
+  //--  packValues starts here:
+
+    // NOTE INVERTED ORDER OF range ARRAY INDICES !!!
+    int[] index;
+    synchronized (DoubleRange) {
+      for (int i=0; i<TupleDimension; i++) {
+        double[] rangeI = range[i];
+        double[][] range1 = new double[1][];
+        range1[0] = rangeI;
+        switch (RangeMode[i]) {
+          case DOUBLE:
+            if (DoubleRange[i] == null) {
+              DoubleRange[i] = new double[Length];
+            }
+            double[] DoubleRangeI = DoubleRange[i];
+            for (int j = 0; j < length; j++) {
+              DoubleRangeI[indices[j]] = rangeI[j];
+            }
+            break;
+          case FLOAT:
+            if (FloatRange[i] == null) {
+              FloatRange[i] = new float[Length];
+              for (int j=0; j<Length; j++) FloatRange[i][j] = Float.NaN;
+            }
+            float[] FloatRangeI = FloatRange[i];
+            for (int j=0; j<length; j++) FloatRangeI[indices[j]] = (float) rangeI[j];
+            break;
+          case BYTE:
+            index = RangeSet[i].valueToIndex(Set.doubleToFloat(range1));
+            if (ByteRange[i] == null) {
+              ByteRange[i] = new byte[Length];
+              for (int j=0; j<Length; j++) ByteRange[i][j] = (byte) MISSING1;
+            }
+            byte[] ByteRangeI = ByteRange[i];
+            for (int j=0; j<length; j++) {
+              ByteRangeI[indices[j]] = (byte) (index[j] + MISSING1 + 1);
+            }
+            break;
+          case SHORT:
+            index = RangeSet[i].valueToIndex(Set.doubleToFloat(range1));
+            if (ShortRange[i] == null) {
+              ShortRange[i] = new short[Length];
+              for (int j=0; j<Length; j++) ShortRange[i][j] = (short) MISSING2;
+            }
+            short[] ShortRangeI = ShortRange[i];
+            for (int j=0; j<length; j++) {
+              ShortRangeI[indices[j]] = (short) (index[j] + MISSING2 + 1);
+            }
+            break;
+          case INT:
+            index = RangeSet[i].valueToIndex(Set.doubleToFloat(range1));
+            if (IntRange[i] == null) {
+              IntRange[i] = new int[Length];
+              for (int j=0; j<Length; j++) IntRange[i][j] = (int) MISSING4;
+            }
+            int[] IntRangeI = IntRange[i];
+            for (int j=0; j<length; j++) {
+              IntRangeI[indices[j]] = index[j] + MISSING4 + 1;
+            }
+            break;
+          default:
+            throw new SetException("FlatField.packValues: bad RangeMode");
+        }
+      }
+      clearMissing();
+    }
+  //-- End packValues
+
+    setRangeErrors(null);
+    notifyReferences();
+  }
+
   /** set the range values of the function including ErrorEstimate-s;
       the order of range values must be the same as the order of
       domain indices in the DomainSet */
