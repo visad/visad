@@ -41,7 +41,7 @@ import javax.swing.*;
 *  DisplayImpl di = new DisplayImpl(...);
 *  ...
 *  JButton pb = new JButton("Print Me");
-*  pb.addActionListener(new PrintAction(di);
+*  pb.addActionListener(new PrintAction(di));
 *</pre>
 *
 */
