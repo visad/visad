@@ -230,7 +230,7 @@ public abstract class TestSkeleton
       System.err.println(" giving up!");
       System.exit(1);
     } else if (loops > 0) {
-      System.err.println(" connected");
+      System.err.println(". connected");
     }
 
     return client;
@@ -239,16 +239,43 @@ public abstract class TestSkeleton
   RemoteDisplay[] getClientDisplays(RemoteServer client)
     throws RemoteException, VisADException
   {
-    // try to get displays from remote server
-    RemoteDisplay[] rmtDpy = null;
-    try {
-      if (client != null) {
-        rmtDpy = client.getDisplays();
-      }
-    } catch (java.rmi.ConnectException ce) {
+    // fail if there's no remote server
+    if (client == null) {
+      return null;
     }
 
-    return rmtDpy;
+    RemoteDisplay[] rmtDpys = null;
+
+    int loops = 0;
+    while (rmtDpys == null && loops < maximumWaitTime) {
+
+      try {
+        rmtDpys = client.getDisplays();
+      } catch (java.rmi.ConnectException ce) {
+      }
+
+      // if we didn't get the display, print a message and wait a bit
+      if (rmtDpys == null) {
+        if (loops == 0) {
+          System.err.print("Client waiting for server displays ");
+        } else {
+          System.err.print(".");
+        }
+
+        try { sleep(1000); } catch (InterruptedException ie) { }
+
+        loops++;
+      }
+    }
+
+    if (loops == maximumWaitTime) {
+      System.err.println(" giving up!");
+      System.exit(1);
+    } else if (loops > 0) {
+      System.err.println(". ready");
+    }
+
+    return rmtDpys;
   }
 
   private static LocalDisplay wrapRemoteDisplay(RemoteDisplay rmtDpy)
