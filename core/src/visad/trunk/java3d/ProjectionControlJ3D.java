@@ -141,7 +141,7 @@ public class ProjectionControlJ3D extends ProjectionControl {
     return mat;
   }
 
-  void addPair(Switch sw, DataRenderer re) {
+  public void addPair(Switch sw, DataRenderer re) {
     switches.addElement(new SwitchProjection(sw, re));
     sw.setWhichChild(which_child);
   }
