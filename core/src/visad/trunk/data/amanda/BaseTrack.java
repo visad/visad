@@ -331,29 +331,35 @@ public abstract class BaseTrack
     final float timeOrigin = timeSteps[0];
     final float timeFinal = timeSteps[timeSteps.length - 1];
 
-    final double baseLength = (timeOrigin - time) * SPEED_OF_LIGHT;
-
-    final float xBaseDelta = (float )(baseLength * sinZenith * cosAzimuth);
-    final float yBaseDelta = (float )(baseLength * sinZenith * sinAzimuth);
-    final float zBaseDelta = (float )(baseLength * cosZenith);
+    final double baseTime = (timeOrigin - time);
+    final double baseLength = baseTime * SPEED_OF_LIGHT;
 
     final float xOrigin, yOrigin, zOrigin;
-    xOrigin = xstart + xBaseDelta;
-    yOrigin = ystart + yBaseDelta;
-    zOrigin = zstart + zBaseDelta;
+    xOrigin = xstart + (float )(baseLength * sinZenith * cosAzimuth);
+    yOrigin = ystart + (float )(baseLength * sinZenith * sinAzimuth);
+    zOrigin = zstart + (float )(baseLength * cosZenith);
+
+    final double preTime = baseTime - ((timeFinal - timeOrigin) / 2.0);
+    final double preLength = preTime * SPEED_OF_LIGHT;
+
+    final float xPreOrigin, yPreOrigin, zPreOrigin;
+    xPreOrigin = xstart + (float )(preLength * sinZenith * cosAzimuth);
+    yPreOrigin = ystart + (float )(preLength * sinZenith * sinAzimuth);
+    zPreOrigin = zstart + (float )(preLength * cosZenith);
 
     for (int i = 0; i < timeSteps.length; i++) {
 
       final double length = (timeSteps[i] - timeOrigin) * SPEED_OF_LIGHT;
 
-      final float xDelta = (float )(length * sinZenith * cosAzimuth);
-      final float yDelta = (float )(length * sinZenith * sinAzimuth);
-      final float zDelta = (float )(length * cosZenith);
+      final float xEndpoint, yEndpoint, zEndpoint;
+      xEndpoint = xOrigin + (float )(length * sinZenith * cosAzimuth);
+      yEndpoint = yOrigin + (float )(length * sinZenith * sinAzimuth);
+      zEndpoint = zOrigin + (float )(length * cosZenith);
 
       float[][] locs = {
-        { xOrigin, xOrigin + xDelta },
-        { yOrigin, yOrigin + yDelta },
-        { zOrigin, zOrigin + zDelta },
+        { xPreOrigin, xEndpoint },
+        { yPreOrigin, yEndpoint },
+        { zPreOrigin, zEndpoint },
       };
 
       Gridded3DSet subSet;
