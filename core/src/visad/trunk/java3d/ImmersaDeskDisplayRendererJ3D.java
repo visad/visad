@@ -58,7 +58,7 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
   private ColoringAttributes box_color = null;
   private ColoringAttributes cursor_color = null;
 
-  private MouseBehaviorJ3D mouse = null; // Behavior for mouse interactions
+  private WandBehaviorJ3D wand = null; // for wand interactions
 
   /**
    * This is the default <CODE>DisplayRenderer</CODE> used by the
@@ -104,12 +104,12 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
     BranchGroup root = getRoot();
     if (root != null) return root;
 
-    // create MouseBehaviorJ3D for mouse interactions
-    mouse = new MouseBehaviorJ3D(this);
-    getDisplay().setMouseBehavior(mouse);
+    // create WandBehaviorJ3D for wand interactions
+    wand = new WandBehaviorJ3D(this);
+    getDisplay().setMouseBehavior(wand); // OK - just for transforms
     box_color = new ColoringAttributes();
     cursor_color = new ColoringAttributes();
-    root = createBasicSceneGraph(v, vpt, c, mouse, box_color, cursor_color);
+    root = createBasicSceneGraph(v, vpt, c, wand, box_color, cursor_color); // OK
     TransformGroup trans = getTrans();
 
     // create the box containing data depictions
@@ -138,18 +138,14 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
     Shape3D cursor = new Shape3D(cursor_geometry, cursor_appearance);
     cursor_on.addChild(cursor);
 
-    // insert MouseBehaviorJ3D into scene graph
-    BoundingSphere bounds =
-      new BoundingSphere(new Point3d(0.0,0.0,0.0), 2000000.0);
-    mouse.setSchedulingBounds(bounds);
-    trans.addChild(mouse);
-
     // create ambient light, directly under root (not transformed)
 /* WLH 27 Jan 98
     Color3f color = new Color3f(0.4f, 0.4f, 0.4f);
 */
     Color3f color = new Color3f(0.6f, 0.6f, 0.6f);
     AmbientLight light = new AmbientLight(color);
+    BoundingSphere bounds =
+      new BoundingSphere(new Point3d(0.0,0.0,0.0), 2000000.0);
     light.setInfluencingBounds(bounds);
     root.addChild(light);
 

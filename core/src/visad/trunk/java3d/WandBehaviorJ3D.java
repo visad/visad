@@ -38,26 +38,20 @@ import java.awt.*;
 import java.util.*;
 
 /**
-   WandBehaviorJ3D is the VisAD class for mouse behaviors for Java3D
+   WandBehaviorJ3D is the VisAD class for wand behaviors for Java3D
 */
 
-/*
-   On MOUSE_PRESSED event with left button,
-   ((InputEvent) events[i]).getModifiers() returns 0 and
-   should return 16 ( = InputEvent.BUTTON1_MASK ).
-   ((InputEvent) events[i]).getModifiers() correctly
-   returns 16 on MOUSE_RELEASED with left button.
-*/
+/* extend MouseBehaviorJ3D to inherit multiply_matrix, make_matrix, etc */
 public class WandBehaviorJ3D extends MouseBehaviorJ3D
-       implements MouseBehavior {
+       implements Runnable, MouseBehavior {
 
-  /** wakeup condition for WandBehaviorJ3D */
-  private WakeupOr wakeup;
   /** DisplayRenderer for Display */
   DisplayRendererJ3D display_renderer;
   DisplayImpl display;
 
   MouseHelper helper = null;
+
+  private Thread wandThread;
 
   public WandBehaviorJ3D(DisplayRendererJ3D r) {
     super();
@@ -65,38 +59,32 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
     display_renderer = r;
     display = display_renderer.getDisplay();
 
-    WakeupCriterion[] conditions = new WakeupCriterion[5];
-    conditions[0] = new WakeupOnAWTEvent(MouseEvent.MOUSE_DRAGGED);
-    conditions[1] = new WakeupOnAWTEvent(MouseEvent.MOUSE_ENTERED);
-    conditions[2] = new WakeupOnAWTEvent(MouseEvent.MOUSE_EXITED);
-    conditions[3] = new WakeupOnAWTEvent(MouseEvent.MOUSE_PRESSED);
-    conditions[4] = new WakeupOnAWTEvent(MouseEvent.MOUSE_RELEASED);
-    wakeup = new WakeupOr(conditions);
+    wandThread = new Thread(this);
+    wandThread.start();
   }
 
   public MouseHelper getMouseHelper() {
     return helper;
   }
 
+  /* override MouseBehaviorJ3D.initialize() to do nothing */
   public void initialize() {
-    setWakeup();
   }
 
+  /* override MouseBehaviorJ3D.processStimulus() to do nothing */
   public void processStimulus(Enumeration criteria) {
-    while (criteria.hasMoreElements()) {
-      WakeupCriterion wakeup = (WakeupCriterion) criteria.nextElement();
-      if (!(wakeup instanceof WakeupOnAWTEvent)) {
-        System.out.println("WandBehaviorJ3D.processStimulus: non-" +
-                            "WakeupOnAWTEvent");
-      }
-      else {
-        AWTEvent[] events = ((WakeupOnAWTEvent) wakeup).getAWTEvent();
-        for (int i=0; i<events.length; i++) {
-          helper.processEvent(events[i]);
-        }
-      }
+  }
+
+  public void stop() {
+    wandThread = null;
+  }
+
+  public void run() {
+    Thread me = Thread.currentThread();
+    while (wandThread == me) {
+
+
     }
-    setWakeup();
   }
 
   public VisADRay findRay(int screen_x, int screen_y) {
@@ -181,10 +169,6 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
     ray.vector[2] = vector.z;
     // PickRay ray = new PickRay(eye_position, vector);
     return ray;
-  }
-
-  void setWakeup() {
-    wakeupOn(wakeup);
   }
 
 }
