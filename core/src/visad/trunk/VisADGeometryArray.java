@@ -56,8 +56,8 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
     texCoords = null;
   }
 
-  /** eliminate any vectors or trianlges crossing seams of
-      map projections, defined by display-side CoordinateSystems
+  /** eliminate any vectors or triangles crossing seams of
+      map projections, defined by display-side CoordinateSystems;
       this default implementation does nothing */
   public VisADGeometryArray adjustSeam(DataRenderer renderer)
          throws VisADException {
@@ -80,7 +80,7 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
     return this;
   }
 
-  /** split any vectors or trianlges crossing crossing longitude
+  /** split any vectors or triangles crossing crossing longitude
       seams when Longitude is mapped to a Cartesian display axis;
       default implementation: rotate if necessary, then return points */
   public VisADGeometryArray adjustLongitude(DataRenderer renderer)

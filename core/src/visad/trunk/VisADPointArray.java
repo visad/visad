@@ -38,6 +38,12 @@ public class VisADPointArray extends VisADGeometryArray {
     return array;
   }
 
+  /** like the default implementation in VisADGeometryArray.java,
+      except no need to construct new VisADPointArray since this
+      already is a VisADPointArray */
+ split any vectors or trianlges crossing crossing longitude
+      seams when Longitude is mapped to a Cartesian display axis;
+      default implementation: rotate if necessary, then return points */
   public VisADGeometryArray adjustLongitude(DataRenderer renderer)
          throws VisADException {
     float[] lons = getLongitudes(renderer);

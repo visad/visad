@@ -84,6 +84,9 @@ public class VisADLineArray extends VisADGeometryArray {
   private final static float LIMIT = 1.0f; // constant for TEST = 0
   private final static float ALPHA = 0.01f; // constant for TEST = 1
 
+  /** eliminate any vectors or triangles crossing seams of
+      map projections, defined by display-side CoordinateSystems;
+      this default implementation does nothing */
   public VisADGeometryArray adjustSeam(DataRenderer renderer)
          throws VisADException {
 // System.out.println("VisADLineArray.adjustSeam");
