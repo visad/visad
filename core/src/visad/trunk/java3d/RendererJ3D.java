@@ -77,17 +77,17 @@ public abstract class RendererJ3D extends DataRenderer {
     setLinks(links);
 
     // set up switch logic for clean BranchGroup replacement
-    sw = new Switch(); // J3D
-    sw.setCapability(Group.ALLOW_CHILDREN_READ);
-    sw.setCapability(Group.ALLOW_CHILDREN_WRITE);
-    sw.setCapability(Group.ALLOW_CHILDREN_EXTEND);
-    sw.setCapability(Switch.ALLOW_SWITCH_READ);
-    sw.setCapability(Switch.ALLOW_SWITCH_WRITE);
+    Switch swt = new Switch(); // J3D
+    swt.setCapability(Group.ALLOW_CHILDREN_READ);
+    swt.setCapability(Group.ALLOW_CHILDREN_WRITE);
+    swt.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+    swt.setCapability(Switch.ALLOW_SWITCH_READ);
+    swt.setCapability(Switch.ALLOW_SWITCH_WRITE);
 
     swParent = new BranchGroup();
     swParent.setCapability(BranchGroup.ALLOW_DETACH);
     swParent.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-    swParent.addChild(sw);
+    swParent.addChild(swt);
     // make it 'live'
     addSwitch((DisplayRendererJ3D) getDisplayRenderer(), swParent);
 
@@ -97,13 +97,14 @@ public abstract class RendererJ3D extends DataRenderer {
       branches[i].setCapability(Group.ALLOW_CHILDREN_READ);
       branches[i].setCapability(Group.ALLOW_CHILDREN_WRITE);
       branches[i].setCapability(Group.ALLOW_CHILDREN_EXTEND);
-      sw.addChild(branches[i]);
+      swt.addChild(branches[i]);
     }
 /*
 System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
 */
-    sw.setWhichChild(currentIndex);
+    swt.setWhichChild(currentIndex);
     toggle(getEnabled());
+    sw = swt; // avoid IndexOutOfBoundsException in toggle()
   }
 
   public void toggle(boolean on) {
