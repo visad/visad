@@ -25,8 +25,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
  
-import visad.*;
- 
 import java.rmi.*;
 
 /**
