@@ -71,7 +71,9 @@ public abstract class JPythonMethods {
     plot(data, 1.0, 1.0, 1.0);
   }
 
-  /** displays the given data onscreen */
+  /** displays the given data onscreen, with the given default color
+      (red, green and blue values between 0.0 and 1.0), which the user
+      may override by color mappings */
   public static void plot(DataImpl data, double red, double green, double blue)
     throws VisADException, RemoteException {
     if (data == null) throw new VisADException("Data cannot be null");
@@ -138,6 +140,7 @@ public abstract class JPythonMethods {
   }
 
   // this is just a temporary and dumb hack
+  /** clear the plot */
   public static void clearplot() throws VisADException, RemoteException {
     if (display != null) {
       displayFrame.setVisible(false);
@@ -371,16 +374,74 @@ public abstract class JPythonMethods {
     return matrix.svd();
   }
 
-  /** return histogram */
+  /** return histogram of field, with dimension and bin sampling
+      defined by set */
   public static FlatField hist(Field field, Set set)
          throws VisADException, RemoteException {
     return Histogram.makeHistogram(field, set);
   }
 
+  /** return histogram of range values of field selected
+      by indices in ranges, and with 64 equally spaced bins
+      in each dimension */
+  public static FlatField hist(Field field, int[] ranges)
+         throws VisADException, RemoteException {
+    int dim = ranges.length;
+    int[] sizes = new int[dim];
+    for (int i=0; i<dim; i++) sizes[i] = 64;
+    return hist(field, ranges, sizes);
+  }
+
+  /** return histogram of range values of field selected
+      by indices in ranges, and with number of equally spaced
+      bins defined by sizes */
+  public static FlatField hist(Field field, int[] ranges, int[] sizes)
+         throws VisADException, RemoteException {
+    FunctionType ftype = (FunctionType) field.getType();
+    RealType[] frealComponents = ftype.getRealComponents();
+    int n = frealComponents.length;
+
+    int dim = ranges.length;
+    RealType[] srealComponents = new RealType[dim];
+    for (int i=0; i<dim; i++) {
+      if (0 <= ranges[i] && ranges[i] < n) {
+        srealComponents[i] = frealComponents[ranges[i]];
+      }
+      else {
+        throw new VisADException("range index out of range " + ranges[i]);
+      }
+    }
+    RealTupleType rtt = new RealTupleType(srealComponents);
+    double[][] data_ranges = field.computeRanges(srealComponents);
+    Set set = null;
+    if (dim == 1) {
+      set = new Linear1DSet(rtt, data_ranges[0][0], data_ranges[0][1], sizes[0]);
+    }
+    else if (dim == 2) {
+      set = new Linear2DSet(rtt, data_ranges[0][0], data_ranges[0][1], sizes[0],
+                                 data_ranges[1][0], data_ranges[1][1], sizes[1]);
+    }
+    else if (dim == 3) {
+      set = new Linear3DSet(rtt, data_ranges[0][0], data_ranges[0][1], sizes[0],
+                                 data_ranges[1][0], data_ranges[1][1], sizes[1],
+                                 data_ranges[2][0], data_ranges[2][1], sizes[2]);
+    }
+    else {
+      double[] firsts = new double[dim];
+      double[] lasts = new double[dim];
+      for (int i=0; i<dim; i++) {
+        firsts[i] = data_ranges[i][0];
+        lasts[i] = data_ranges[i][1];
+      }
+      set = new LinearNDSet(rtt, firsts, lasts, sizes);
+    }
+    return Histogram.makeHistogram(field, set);
+  }
+
+  /** NOT DONE */
   public static Set linear(MathType type, double first, double last, int length)
          throws VisADException, RemoteException {
-
-
+    return null;
   }
 
 }
