@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcDomain.java,v 1.3 1998-09-15 21:55:27 steve Exp $
+ * $Id: NcDomain.java,v 1.4 1998-09-16 15:06:37 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
+import ucar.netcdf.Netcdf;
 import visad.Gridded1DSet;
 import visad.GriddedSet;
 import visad.Integer1DSet;
@@ -43,6 +44,11 @@ NcDomain
     private final NcDim[]	dims;
 
     /**
+     * The Netcdf dataset that contains this domain.
+     */
+    private final Netcdf	netcdf;
+
+    /**
      * The VisAD MathType of the domain.
      */
     private final MathType	type;
@@ -63,13 +69,15 @@ NcDomain
      * Constructs from an adapted netCDF dimension.
      *
      * @param dim		The adapted netCDF dimension.
+     * @param netcdf		The netCDF dataset that contains 
+     *				<code>dim</code>.
      * @throws VisADException	Couldn't create necessary VisAD object.
      */
     private
-    NcDomain(NcDim dim)
+    NcDomain(NcDim dim, Netcdf netcdf)
 	throws VisADException
     {
-	this(new NcDim[] {dim});
+	this(new NcDim[] {dim}, netcdf);
     }
 
 
@@ -78,10 +86,12 @@ NcDomain
      *
      * @param dims		The array of adapted netCDF dimensions in
      *				netCDF order.
+     * @param netcdf		The netCDF dataset that contains 
+     *				<code>dims</code>.
      * @throws VisADException	Couldn't create necessary VisAD object.
      */
     private
-    NcDomain(NcDim[] dims)
+    NcDomain(NcDim[] dims, Netcdf netcdf)
 	throws VisADException
     {
 	int	rank = dims.length;
@@ -120,6 +130,7 @@ NcDomain
 	}
 
 	this.dims = dims;
+	this.netcdf = netcdf;
 
 	/*
 	 * The sampling set isn't set because that is a potentially expensive
@@ -133,14 +144,16 @@ NcDomain
      * single adapted, netCDF dimension.
      *
      * @param dim		The adapted netCDF dimension.
+     * @param netcdf		The netCDF dataset that contains 
+     *				<code>dim</code>.
      * @return			The NcDomain corresponding to <code>dim</code>.
      * @throws VisADException	Couldn't create necessary VisAD object.
      */
     public static NcDomain
-    newNcDomain(NcDim dim)
+    newNcDomain(NcDim dim, Netcdf netcdf)
 	throws VisADException
     {
-	return newNcDomain(new NcDim[] {dim});
+	return newNcDomain(new NcDim[] {dim}, netcdf);
     }
 
 
@@ -149,12 +162,14 @@ NcDomain
      *
      * @param dims		The array of adapted netCDF dimensions in
      *				netCDF order.
+     * @param netcdf		The netCDF dataset that contains 
+     *				<code>dims</code>.
      * @return			The NcDomain corresponding to <code>dims</code>;
      *				or <code>null</code> for scalar domains.
      * @throws VisADException	Couldn't create necessary VisAD object.
      */
     public static NcDomain
-    newNcDomain(NcDim[] dims)
+    newNcDomain(NcDim[] dims, Netcdf netcdf)
 	throws VisADException
     {
 	NcDomain	domain;
@@ -165,13 +180,13 @@ NcDomain
 	}
 	else
 	{
-	    Key		key = new Key(dims);
+	    Key		key = new Key(dims, netcdf);
 
 	    domain = (NcDomain)cache.get(key);
 
 	    if (domain == null)
 	    {
-		domain = new NcDomain(dims);
+		domain = new NcDomain(dims, netcdf);
 		cache.put(key, domain);
 	    }
 	}
@@ -254,7 +269,7 @@ NcDomain
 	if (getRank() < 1)
 	    throw new NestedException("Can't get outer domain of scalar");
 
-	return newNcDomain(new NcDim[] {dims[dims.length-1]});
+	return newNcDomain(new NcDim[] {dims[dims.length-1]}, netcdf);
     }
 
 
@@ -486,21 +501,23 @@ NcDomain
     protected static class
     Key
     {
-	protected NcDim[]	dims;
+	private NcDim[]	dims;
+	private Netcdf	netcdf;
 
 	/*
 	 * @param dims		The netCDF dimensions in netCDF order.
 	 */
 	protected
-	Key(NcDim[] dims)
+	Key(NcDim[] dims, Netcdf netcdf)
 	{
 	    this.dims = dims;
+	    this.netcdf = netcdf;
 	}
 
 	public int
 	hashCode()
 	{
-	    int	hash = 0;
+	    int	hash = netcdf.hashCode();
 
 	    for (int i = 0; i < dims.length; ++i)
 		hash ^= dims[i].hashCode();
@@ -521,7 +538,7 @@ NcDomain
 	    {
 		Key	that = (Key)obj;
 
-		if (dims.length != that.dims.length)
+		if (netcdf != that.netcdf || dims.length != that.dims.length)
 		{
 		    equals = false;
 		}

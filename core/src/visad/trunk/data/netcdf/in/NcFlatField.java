@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcFlatField.java,v 1.5 1998-09-15 21:55:28 steve Exp $
+ * $Id: NcFlatField.java,v 1.6 1998-09-16 15:06:37 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -49,7 +49,7 @@ NcFlatField
     NcFlatField(NcVar var)
 	throws VisADException, IOException
     {
-	super(NcDomain.newNcDomain(var.getDimensions()));
+	super(NcDomain.newNcDomain(var.getDimensions(), var.getNetcdf()));
 
 	if (var.getRank() == 0)
 	    throw new VisADException("Variable is scalar");

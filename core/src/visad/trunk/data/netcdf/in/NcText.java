@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcText.java,v 1.8 1998-09-15 21:55:33 steve Exp $
+ * $Id: NcText.java,v 1.9 1998-09-16 15:06:38 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -292,7 +292,8 @@ NcText
 	}
 	else
 	{
-	    NcDomain		domain = NcDomain.newNcDomain(getDimensions());
+	    NcDomain		domain =
+		NcDomain.newNcDomain(getDimensions(), getNetcdf());
 	    FunctionType	funcType =
 		new FunctionType(domain.getType(), getMathType());
 	    FieldImpl		field =

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNumber.java,v 1.11 1998-09-15 21:55:31 steve Exp $
+ * $Id: NcNumber.java,v 1.12 1998-09-16 15:06:37 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -177,21 +177,23 @@ NcNumber
      * Return the VisAD RealType of the given, netCDF variable.
      *
      * @param var		The netCDF variable.
+     * @param netcdf		The netCDF dataset that contains 
+     *				<code>var</code>.
      * @return			The VisAD RealType of <code>var</code>.
      * @throws VisADException	Problem in core VisAD.  Probably some VisAD
      *				object couldn't be created.
      */
     protected static RealType
-    getRealType(Variable var)
+    getRealType(Variable var, Netcdf netcdf)
 	throws VisADException
     {
-	RealType	realType = NetcdfQuantityDB.get(var);
+	RealType	realType = NetcdfQuantityDB.get(var, netcdf);
 
 	if (realType == null)
 	{
 	    try
 	    {
-		realType = new RealType(var.getName(), getUnit(var), 
+		realType = new RealType(var.getName(), getUnit(var, netcdf), 
 					/*Set=*/null);	// default set
 	    }
 	    catch (TypeException e)
@@ -220,6 +222,8 @@ NcNumber
      * Indicates whether or not a variable is a co-ordinate variable.
      *
      * @param var		The netCDF variable.
+     * @param netcdf		The netCDF dataset that contains 
+     *				<code>var</code>.
      * @return			<code>true</code> if and only if the variable
      *				is a netCDF coordinate variable.
      */
@@ -687,7 +691,8 @@ NcNumber
     getData()
 	throws IOException, VisADException
     {
-	return getData(NcDomain.newNcDomain(getDimensions()), getDoubles());
+	return getData(NcDomain.newNcDomain(getDimensions(), getNetcdf()),
+		       getDoubles());
     }
 
 
@@ -772,7 +777,8 @@ NcNumber
 	    throw new VisADException("Scalar " + getName() + 
 		" can't be a function");
 
-	NcDomain	domain = NcDomain.newNcDomain(getDimensions());
+	NcDomain	domain =
+	    NcDomain.newNcDomain(getDimensions(), getNetcdf());
 
 	return new FunctionType(domain.getType(), (RealType)getMathType());
     }
@@ -1048,7 +1054,8 @@ NcNumber
 	InnerField()
 	    throws VisADException, IOException
 	{
-	    NcDomain	domain = NcDomain.newNcDomain(getInnerDimensions());
+	    NcDomain	domain =
+		NcDomain.newNcDomain(getInnerDimensions(), getNetcdf());
 
 	    domainSet = domain.getSet();
 	    type = new FunctionType(domain.getType(), getMathType());
@@ -1064,7 +1071,8 @@ NcNumber
 	    {
 		NcDim[]		innerDims = getInnerDimensions();
 		MathType	varType = getMathType();
-		NcDomain	innerDomain = NcDomain.newNcDomain(innerDims);
+		NcDomain	innerDomain =
+		    NcDomain.newNcDomain(innerDims, getNetcdf());
 
 		innerMathType =
 		    new FunctionType(innerDomain.getType(), varType);

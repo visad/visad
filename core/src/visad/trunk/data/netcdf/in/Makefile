@@ -4,13 +4,32 @@ include ../../../macros.make
 
 include ../../../rules.make
 
-.SUFFIXES:	.nc
-.nc.test:	FORCE
+test:	\
+	scalar.test \
+	sounding.test \
+	time.test
+	small.test \
+	pmsl.test \
+	big.test \
+	lwc3rms.test \
+	b2rlc.test \
+	rueden.test \
+	images.test \
+	2332_2365.test
+
+.SUFFIXES:	.save .run .nc
+.nc.run:	FORCE
 	CLASSPATH=$(ROOTDIR):$$CLASSPATH $(JAVA) $(PACKAGE).NetcdfAdapter $<
 
 .nc.debug:
 	$(JDB) -classpath $(ROOTDIR):$(NETCDF_JAR) \
 	    $(PACKAGE_PREFIX)NetcdfAdapter $<
+
+.nc.save:
+	$(MAKE) -s $*.run >$@
+
+.nc.test:
+	$(MAKE) -s $*.run | diff -cw $*.save -
 
 
 NcFlatRange.class:	NcRange.java

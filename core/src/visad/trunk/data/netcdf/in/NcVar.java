@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcVar.java,v 1.9 1998-09-15 21:55:35 steve Exp $
+ * $Id: NcVar.java,v 1.10 1998-09-16 15:06:39 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -128,7 +128,7 @@ NcVar
 	this.var = var;
 	this.netcdf = netcdf;
 
-	Unit	tmpUnit = getUnit(var);
+	Unit	tmpUnit = getUnit(var, netcdf);
 
 	if (type instanceof RealType)
 	{
@@ -219,15 +219,18 @@ NcVar
     /**
      * Determine the units of the given, netCDF variable.
      *
-     * @param var	The netCDF variable to have it's units returned.
-     * @return          The units of the variable if it has a decodable
-     *			"unit" attribute; otherwise, <code>null</code>.
+     * @param var		The netCDF variable to have it's units returned.
+     * @param netcdf		The netCDF dataset that contains 
+     *				<code>var</code>.
+     * @return			The units of the variable if it has a decodable
+     *				"unit" attribute; otherwise, <code>null</code>.
      */
     protected static Unit
-    getUnit(Variable var)
+    getUnit(Variable var, Netcdf netcdf)
     {
 	Unit		unit;
-	UnitMapValue	value = (UnitMapValue)unitMap.get(var);
+	Key		key = new Key(var, netcdf);
+	UnitMapValue	value = (UnitMapValue)unitMap.get(key);
 
 	if (value != null)
 	{
@@ -267,7 +270,7 @@ NcVar
 		}
 	    }
 
-	    unitMap.put(var, new UnitMapValue(unit));
+	    unitMap.put(key, new UnitMapValue(unit));
 	}
 
 	return unit;
@@ -643,14 +646,20 @@ NcVar
     /**
      * Return the long name of the variable.
      *
-     * @return	The long name of the variable or <code>null</code> if the
-     *		variable doesn't have a long name.
+     * @param var		The netCDF variable to be examined.
+     * @param netcdf		The netCDF dataset that contains 
+     *				<code>var</code>.
+     * @return			The long name of the variable or
+     *				<code>null</code> if the variable doesn't
+     *				have a long name.
      */
     static String
-    getLongName(Variable var)
+    getLongName(Variable var, Netcdf netcdf)
     {
-	String	name;
-	LongNameMapValue	value = (LongNameMapValue)longNameMap.get(var);
+	String			name;
+	Key			key = new Key(var, netcdf);
+	LongNameMapValue	value =
+	    (LongNameMapValue)longNameMap.get(key);
 
 	if (value != null)
 	{
@@ -664,7 +673,7 @@ NcVar
 			? null
 			: attr.getStringValue();
 
-	    longNameMap.put(var, new LongNameMapValue(name));
+	    longNameMap.put(key, new LongNameMapValue(name));
 	}
 
 	return name;
@@ -680,7 +689,14 @@ NcVar
     String
     getLongName()
     {
-	return getLongName(var);
+	String		longName;
+	Attribute	attr = var.getAttribute("long_name");
+
+	return attr == null
+		? null
+		: attr.getComponentType().equals(Character.class)
+		    ? attr.getStringValue()
+		    : null;
     }
 
 
@@ -790,7 +806,7 @@ NcVar
     /**
      * Return the netCDF dataset.
      */
-    protected Netcdf
+    public Netcdf
     getNetcdf()
     {
 	return netcdf;
@@ -840,7 +856,7 @@ NcVar
 
 
     /**
-     * Supports the key field of the variable cache.
+     * Supports the key field of the various caches.
      */
     protected static class
     Key
@@ -984,7 +1000,7 @@ NcByte
     NcByte(Variable var, Netcdf netcdf)
 	throws VisADException, IOException
     {
-	super(var, netcdf, getRealType(var));
+	super(var, netcdf, getRealType(var, netcdf));
 
 	if (!isRepresentable(var))
 	    throw new VisADException("Variable not assignable to byte");
@@ -1060,7 +1076,7 @@ NcShort
     NcShort(Variable var, Netcdf netcdf)
 	throws VisADException, IOException
     {
-	super(var, netcdf, getRealType(var));
+	super(var, netcdf, getRealType(var, netcdf));
 
 	if (!isRepresentable(var))
 	    throw new VisADException("Variable not assignable to short");
@@ -1136,7 +1152,7 @@ NcInt
     NcInt(Variable var, Netcdf netcdf)
 	throws VisADException, IOException
     {
-	super(var, netcdf, getRealType(var));
+	super(var, netcdf, getRealType(var, netcdf));
 
 	if (!isRepresentable(var))
 	    throw new VisADException("Variable not assignable to int");
@@ -1262,7 +1278,7 @@ NcFloat
     NcFloat(Variable var, Netcdf netcdf)
 	throws VisADException, IOException
     {
-	super(var, netcdf, getRealType(var));
+	super(var, netcdf, getRealType(var, netcdf));
 
 	if (!isRepresentable(var))
 	    throw new VisADException("Variable not assignable to float");
@@ -1339,7 +1355,7 @@ NcDouble
     NcDouble(Variable var, Netcdf netcdf)
 	throws VisADException, IOException
     {
-	super(var, netcdf, getRealType(var));
+	super(var, netcdf, getRealType(var, netcdf));
 
 	if (!isRepresentable(var))
 	    throw new VisADException("Variable not assignable to double");

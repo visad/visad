@@ -3,11 +3,12 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfQuantityDB.java,v 1.2 1998-08-12 19:03:04 visad Exp $
+ * $Id: NetcdfQuantityDB.java,v 1.3 1998-09-16 15:06:39 steve Exp $
  */
 
 package visad.data.netcdf.in;
 
+import ucar.netcdf.Netcdf;
 import ucar.netcdf.Variable;
 import visad.data.netcdf.Quantity;
 import visad.data.netcdf.QuantityMap;
@@ -48,6 +49,9 @@ NetcdfQuantityDB
 
     /**
      * Return the VisAD quantity corresponding to a netCDF dimension.
+     *
+     * @param dim		The adapted, netCDF dimension to be examined.
+     * @return			The quantity corresponding to <code>dim</dim>.
      */
     public static Quantity
     get(NcDim dim)
@@ -58,6 +62,9 @@ NetcdfQuantityDB
 
     /**
      * Return the VisAD quantity corresponding to an adapted, netCDF variable.
+     *
+     * @param var		The adapted, netCDF variable to be examined.
+     * @return			The quantity corresponding to <code>var</dim>.
      */
     public static Quantity
     get(NcVar var)
@@ -68,11 +75,16 @@ NetcdfQuantityDB
 
     /**
      * Return the VisAD quantity corresponding to a netCDF variable.
+     *
+     * @param var		The netCDF variable to be examined.
+     * @param netcdf		The netCDF dataset that contains 
+     *				<code>var</code>.
+     * @return			The quantity corresponding to <code>var</code>.
      */
     public static Quantity
-    get(Variable var)
+    get(Variable var, Netcdf netcdf)
     {
-	return getBest(NcVar.getLongName(var), var.getName(), 
-	    NcVar.getUnit(var));
+	return getBest(NcVar.getLongName(var, netcdf), var.getName(), 
+	    NcVar.getUnit(var, netcdf));
     }
 }
