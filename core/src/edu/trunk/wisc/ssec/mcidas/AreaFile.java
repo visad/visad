@@ -192,7 +192,8 @@ public class AreaFile {
   public AreaFile(String source) throws AreaFileException {
     
     imageSource = source;
-    if (imageSource.startsWith("adde://") && imageSource.endsWith("image?")) {
+    if (imageSource.startsWith("adde://") && (
+      imageSource.endsWith("image?") || imageSource.endsWith("imagedata?") ) {
 
       GetAreaGUI gag = new GetAreaGUI((Frame)null, true, "Get data", false, true);
       gag.addActionListener(new ActionListener() {
