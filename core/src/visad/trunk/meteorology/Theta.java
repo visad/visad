@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Theta.java,v 1.1 1998-08-28 16:50:25 steve Exp $
+ * $Id: Theta.java,v 1.2 1998-10-21 15:27:59 steve Exp $
  */
 
 package visad.meteorology;
@@ -18,8 +18,8 @@ import visad.data.netcdf.units.NoSuchUnitException;
 
 
 /**
- * Supports conversions between pressure and temperature and
- * potential temperature.
+ * Supports conversion between potential temperature and pressure and
+ * temperature.
  *
  * An instance of this class is immutable.
  *
@@ -34,14 +34,19 @@ Theta
     private final double	referencePressure;
 
     /**
-     * The pressure unit.
+     * The assumed pressure unit.
      */
     private final Unit		pressureUnit;
 
     /**
-     * The temperature unit.
+     * The assumed temperature unit.
      */
     private final Unit		temperatureUnit;
+
+    /**
+     * The assumed potential temperature unit.
+     */
+    private final Unit		thetaUnit;
 
     /*
      * The following value is take from "An Introduction to Boundary
@@ -52,108 +57,99 @@ Theta
 
 
     /**
-     * Constructs from pressure and temperature units.
+     * Constructs from units for pressure, temperature, and potential
+     * temperature.
      *
-     * @param pressureUnit	Unit of pressure.
-     * @param temperatureUnit	Unit of temperature.
+     * @param pressureUnit	Unit of pressure to assume.
+     * @param temperatureUnit	Unit of temperature to assume.
+     * @param thetaUnit		Unit of potential temperature to assume.
      * @postcondition		<code>getPressureUnit()</code> will return
      *				<pressureUnit>.
      * @postcondition		<code>getTemperatureUnit()</code> will return
      *				<temperatureUnit>.
-     * @exception UnitException	Invalid pressure or temperature unit.
+     * @throws UnitException	<code>pressureUnit</code> is not a unit of
+     *				pressure or <code>temperatureUnit</code> is
+     *				not a unit of temperature or <code>
+     *				thetaUnit</code> is not a unit of temperature..
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws ParseException	Couldn't decode unit specification.  This
+     *				Should never be throw.
+     * @throws UnitException	Input units are not correct for their type.
      */
     public
-    Theta(Unit pressureUnit, Unit temperatureUnit)
+    Theta(Unit pressureUnit, Unit temperatureUnit, Unit thetaUnit)
 	throws UnitException, VisADException
     {
-	this.pressureUnit = pressureUnit;
-	this.temperatureUnit = temperatureUnit;
+	Unit	millibar = null;
 
 	try
 	{
-	    Unit	millibar = Parser.instance().parse("millibar");
-
-	    referencePressure = getPressureUnit().toThis(1000.0, millibar);
+	    millibar = Parser.parse("millibar");
 	}
 	catch (ParseException e)
+	{}
+
+	if (!Unit.canConvert(pressureUnit, millibar) ||
+	    !Unit.canConvert(temperatureUnit, SI.kelvin) ||
+	    !Unit.canConvert(thetaUnit, SI.kelvin))
 	{
-	    throw new VisADException(e.getMessage());
+	    throw new UnitException("Incompatible units");
 	}
+
+	this.pressureUnit = pressureUnit;
+	this.temperatureUnit = temperatureUnit;
+	this.thetaUnit = thetaUnit;
+
+	referencePressure = pressureUnit.toThis(1000.0, millibar);
     }
 
 
     /**
      * Computes potential temperatures from pressures and temperatures.
      *
-     * @param pressures		Input Pressure values in units of 
-     *				<code>getPressureUnit()</code>.  The array is 
-     *				not modified.
-     * @param temperatures	Input Temperature values in units of 
-     *				<code>getTemperatureUnit()</code>.  The array
-     *				is not modified.
-     * @precondition		<code>pressures.length ==
-     *				temperatures.length</code>
-     * @precondition		<code>temperatures.length ==
-     *				pressures.length</code>
-     * @return			An array of length <code>pressures.length</code>
-     *				containing the corresponding potential
-     *				temperature values in units of 
-     *				</code>getTemperatureUnit()</code>.
+     * @param pressures		Pressures in units of 
+     *				<code>getPressureUnit()</code>.
+     * @param temperatures	Temperatures in units of 
+     *				<code>getTemperatureUnit()</code>.
+     *				<code>temperatures.length</code> must equal
+     * 				<code>pressures.length</code>.
+     * @return			Corresponding potential temperatures in units
+     *				of <code>getThetaUnit()</code>.
      * @exception UnitException	Non-convertible units.  Shouldn't happen.
      * @exception VisADException	<code>pressures.length != 
-     *				temperatures.length</code>.
+     *					temperatures.length</code>.
      */
     public double[]
-    toTheta(double[] pressures, double[] temperatures)
+    theta(double[] pressures, double[] temperatures)
 	throws VisADException
     {
 	if (pressures.length != temperatures.length)
 	    throw new VisADException("pressures.length != temperatures.length");
 
-	temperatures = getTemperatureUnit().toThat(temperatures, SI.kelvin);
+	temperatures = SI.kelvin.toThis(temperatures, temperatureUnit);
 
 	for (int i = 0; i < pressures.length; ++i)
-	    temperatures[i] *=
-		Math.pow(referencePressure/pressures[i], kappa);
+	    temperatures[i] *= Math.pow(referencePressure/pressures[i], kappa);
 
-	return getTemperatureUnit().toThis(temperatures, SI.kelvin);
-    }
-
-
-    /**
-     * Computes potential temperature from pressure and temperature.
-     *
-     * @param pressure		The pressure in units of 
-     *				<code>getPressureUnit()</code>.
-     * @param temperatures	The temperature in units of 
-     *				<code>getTemperatureUnit()</code>.
-     */
-    public double
-    theta(double pressure, double temperature)
-	throws VisADException
-    {
-	return toTheta(new double[] {pressure}, new double[] {temperature})[0];
+	return thetaUnit.toThis(temperatures, SI.kelvin);
     }
 
 
     /**
      * Computes temperatures from pressures and potential temperatures.
      *
-     * @param pressures		Input Pressure values in units of 
-     *				<code>getPressureUnit()</code>.  The array is 
-     *				not modified.
-     * @param temperatures	Input Temperature values in units of 
-     *				<code>getTemperatureUnit()</code>.  The array
-     *				is not modified.
+     * @param pressures		Pressures in units of 
+     *				<code>getPressureUnit()</code>.
+     * @param thetas		Potential temperatures in units of 
+     *				<code>getThetaUnit()</code>.
      * @precondition		<code>pressures.length ==
      *				temperatures.length</code>
      * @precondition		<code>presures.length == thetas.length</code>
-     * @return			An array of length <code>pressures.length</code>
-     *				containing the corresponding temperature values
+     * @return			Corresponding temperatures
      *				in units of </code>getTemperatureUnit()</code>.
      * @exception UnitException	Non-convertible units.  Shouldn't happen.
      * @exception VisADException	<code>pressures.length != 
-     *				thetas.length</code>.
+     *					thetas.length</code>.
      */
     public double[]
     temperature(double[] pressures, double[] thetas)
@@ -162,35 +158,19 @@ Theta
 	if (pressures.length != thetas.length)
 	    throw new VisADException("pressures.length != thetas.length");
 
-	thetas = getTemperatureUnit().toThat(thetas, SI.kelvin);
+	thetas = thetaUnit.toThat(thetas, SI.kelvin);
 
 	for (int i = 0; i < pressures.length; ++i)
 	    thetas[i] /= Math.pow(referencePressure/pressures[i], kappa);
 
-	return getTemperatureUnit().toThis(thetas, SI.kelvin);
+	return temperatureUnit.toThis(thetas, SI.kelvin);
     }
 
 
     /**
-     * Computes temperature from pressure and potential temperature.
+     * Gets the assumed pressure unit.
      *
-     * @param pressure		The pressure in units of 
-     *				<code>getPressureUnit()</code>.
-     * @param theta		The potential temperature in units of 
-     *				<code>getTemperatureUnit()</code>.
-     */
-    public double
-    temperature(double pressure, double theta)
-	throws VisADException
-    {
-	return temperature(new double[] {pressure}, new double[] {theta})[0];
-    }
-
-
-    /**
-     * Gets the pressure unit.
-     *
-     * @return	The unit of pressure
+     * @return			The assumed unit of pressure.
      */
     public Unit
     getPressureUnit()
@@ -200,9 +180,9 @@ Theta
 
 
     /**
-     * Gets the temperature unit.
+     * Gets the assumed temperature unit.
      *
-     * @return	The unit of temperature
+     * @return			The assumed unit of temperature.
      */
     public Unit
     getTemperatureUnit()
@@ -212,22 +192,33 @@ Theta
 
 
     /**
-     * Indicates whether or not this potential temperature utility
-     * is semantically idential to another.
+     * Gets the assumed potential temperature unit.
      *
-     * @param obj	The other potential temperature utility
+     * @return			The assumed unit of potential temperature.
+     */
+    public Unit
+    getThetaUnit()
+    {
+	return thetaUnit;
+    }
+
+
+    /**
+     * Indicates if this instance semantically equals an object.
+     *
+     * @param object		An object.
      */
     public boolean
-    equals(Object obj)
+    equals(Object object)
     {
-	if (!(obj instanceof Theta))
+	if (!(object instanceof Theta))
 	    return false;
 
-	Theta	other = (Theta)obj;
+	Theta	that = (Theta)object;
 
 	return
-	    referencePressure == other.referencePressure &&
-	    pressureUnit == other.pressureUnit &&
-	    temperatureUnit == other.temperatureUnit;
+	    pressureUnit.equals(that.pressureUnit) &&
+	    temperatureUnit.equals(that.temperatureUnit) &&
+	    thetaUnit.equals(that.thetaUnit);
     }
 }

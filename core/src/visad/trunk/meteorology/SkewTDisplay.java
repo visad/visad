@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTDisplay.java,v 1.10 1998-08-28 16:50:24 steve Exp $
+ * $Id: SkewTDisplay.java,v 1.11 1998-10-21 15:27:58 steve Exp $
  */
 
 package visad.meteorology;
@@ -21,21 +21,23 @@ import visad.CoordinateSystem;
 import visad.DataReference;
 import visad.DataReferenceImpl;
 import visad.Display;
-import visad.DisplayRealType;
 import visad.FlatField;
 import visad.FunctionType;
+import visad.GraphicsModeControl;
+import visad.Linear1DSet;
 import visad.Linear2DSet;
-import visad.MathType;
 import visad.RealTupleType;
 import visad.RealType;
-import visad.ScalarMap;
 import visad.SI;
+import visad.ScalarMap;
+import visad.ScaledUnit;
 import visad.Set;
-import visad.Unit;
 import visad.VisADException;
 import visad.data.netcdf.Plain;
 import visad.data.netcdf.QuantityMap;
 import visad.data.netcdf.units.ParseException;
+import visad.data.netcdf.units.Parser;
+import visad.java2d.DirectManipulationRendererJ2D;
 import visad.java2d.DisplayImplJ2D;
 
 
@@ -54,19 +56,14 @@ SkewTDisplay
     private final DisplayImplJ2D		display;
 
     /**
-     * The sounding property.
+     * The temperature-sounding data-reference.
      */
-    private Sounding				sounding;
+    private final DataReference			temperatureSoundingRef;
 
     /**
-     * The sounding data-reference.
+     * The dewPoint-sounding data-reference.
      */
-    private final DataReference			soundingRef;
-
-    /**
-     * Whether or not the display has been configured.
-     */
-    private boolean				displayInitialized;
+    private final DataReference			dewPointSoundingRef;
 
     /**
      * Supports property changes.
@@ -89,19 +86,14 @@ SkewTDisplay
     private final ThetaESCoordinateSystem	thetaESCoordSys;
 
     /**
+     * The saturation mixing-ratio coordinate system.
+     */
+    private final RSatCoordinateSystem		rSatCoordSys;
+
+    /**
      * The interval between isotherms.
      */
-    private final float				deltaTemperature = 10f;
-
-    /**
-     * The interval between potential isotherms.
-     */
-    private final float				deltaTheta = 10f;
-
-    /**
-     * The base isotherm.
-     */
-    private final float				baseIsotherm = 0f;
+    private static final float			deltaTemperature = 10f;
 
     /**
      * The DisplayRenderer.
@@ -111,162 +103,231 @@ SkewTDisplay
     /**
      * Temperature sounding constant maps.
      */
-    private ConstantMap[]			soundingConstantMaps;
+    private ConstantMap[]			temperatureSoundingConstantMaps;
 
     /**
-     * Temperature field constant maps
+     * DewPoint sounding constant maps
      */
-    private ConstantMap[]			temperatureConstantMaps =
-	new ConstantMap[0];
-
-    /**
-     * Potential temperature field constant maps
-     */
-    private ConstantMap[]			thetaConstantMaps =
-	new ConstantMap[0];
+    private ConstantMap[]			dewPointSoundingConstantMaps;
 
     /**
      * Saturation equivalent potential temperature constant maps.
      */
     private ConstantMap[]			thetaESConstantMaps;
 
+    /**
+     * Saturation mixing-ratio constant maps.
+     */
+    private ConstantMap[]			rSatConstantMaps;
 
     /**
-     * Constructs from nothing.
+     * Data references.
+     */
+    private DataReferenceImpl			bgPressureRef;
+    private DataReferenceImpl			bgTemperatureRef;
+    private DataReferenceImpl			thetaRef;
+    private DataReferenceImpl			thetaESRef;
+    private DataReferenceImpl			rSatRef;
+
+    /*
+     * Types.
+     */
+    private RealType				bgTemperatureType;
+    private RealTupleType			domainType;
+
+
+    /**
+     * Constructs from a JFrame.
      */
     public
-    SkewTDisplay()
-	throws	VisADException, RemoteException, ParseException
+    SkewTDisplay(JFrame jframe)
+	throws	VisADException, RemoteException
     {
 	displayRenderer = new SkewTDisplayRenderer();
 
-	sounding = null;
-	soundingRef = new DataReferenceImpl("soundingRef");
-	displayInitialized = false;
+	temperatureSoundingRef =
+	    new DataReferenceImpl("temperatureSoundingRef");
+	dewPointSoundingRef = new DataReferenceImpl("dewPointSoundingRef");
+
 	changes = new PropertyChangeSupport(this);
-	display = new DisplayImplJ2D("Skew T, Log P Diagram",
-				     displayRenderer);
+
+	display = new DisplayImplJ2D("Skew T, Log P Diagram", displayRenderer);
+
+	jframe.getContentPane().add(display.getComponent());
+
 	skewTCoordSys = displayRenderer.skewTCoordSys;
 	thetaCoordSys = displayRenderer.thetaCoordSys;
 	thetaESCoordSys = displayRenderer.thetaESCoordSys;
+	rSatCoordSys = displayRenderer.rSatCoordSys;
 
-	JFrame jframe = new JFrame("Skew-T Chart");
-	jframe.addWindowListener(new WindowAdapter() {
-	    public void windowClosing(WindowEvent e) {System.exit(0);}
-	});
-	jframe.getContentPane().add(display.getComponent());
-	jframe.setSize(256, 256);
-	jframe.setVisible(true);
+	domainType = new RealTupleType(RealType.XAxis, RealType.YAxis);
 
-	soundingConstantMaps = new ConstantMap[] {
-	    new ConstantMap(1., Display.Red),
-	    new ConstantMap(0., Display.Blue),
-	    new ConstantMap(0., Display.Green),
-	    new ConstantMap(3.0, Display.LineWidth)};
+	temperatureSoundingRef.setData(
+	    createEmptySounding(CommonTypes.PRESSURE, CommonTypes.TEMPERATURE));
+	dewPointSoundingRef.setData(
+	    createEmptySounding(CommonTypes.PRESSURE, CommonTypes.DEW_POINT));
 
-	thetaESConstantMaps = new ConstantMap[] {
-	    new ConstantMap(0., Display.Red),
-	    new ConstantMap(0., Display.Blue),
-	    new ConstantMap(1., Display.Green)
-	};
+	defineScalarMaps();
+
+	/*
+	 * Define the background.
+	 */
+	definePressureBackground();
+	defineTemperatureBackground();
+	/*
+         * Hold off on displaying isopleths of saturation mixing-ratio 
+	 * until ContourControl-s can contour arbitrary isopleths (the
+	 * contour values don't form an arithmetic series).
+	 */
+	// defineRSatBackground();
+
+	/*
+	 * Add the various data references to the display.
+	 */
+	display.addReference(bgPressureRef);
+	display.addReference(bgTemperatureRef);
+	display.addReference(thetaRef);
+	display.addReference(thetaESRef, thetaESConstantMaps);
+	// display.addReference(rSatRef, rSatConstantMaps);
+	display.addReferences(new DirectManipulationRendererJ2D(),
+	    temperatureSoundingRef, temperatureSoundingConstantMaps);
+	display.addReferences(new DirectManipulationRendererJ2D(),
+	    dewPointSoundingRef, dewPointSoundingConstantMaps);
     }
 
 
     /**
-     * Displays a given sounding.
+     * Define the pressure background.
+     *
+     * @throws VisADException	Couldn't create necessary VisAD object.
      */
     protected void
-    display(Sounding sounding)
-	throws	RemoteException, VisADException
+    definePressureBackground()
+	throws VisADException, RemoteException
     {
-	soundingRef.setData(sounding);
+	/*
+	 * Create the background pressure field.
+	 *
+	 * Defining the pressure only at the corners of a linear
+	 * pressure domain won't work because VisAD transforms the
+	 * corner locations and values before doing the contouring
+	 * using linear interpolation.
+	 */
 
-	if (!displayInitialized)
-	{
-	    /*
-	     * Map the X and Y coordinates of the various background fields
-	     * to the display X and Y coordinates.  This is necessary for
-	     * contouring of the various fields -- though it does have the
-	     * unfortunate effect of making XAxis and YAxis value readouts
-	     * appear.
-	     */
-	    ScalarMap	xMap = new ScalarMap(RealType.XAxis, Display.XAxis);
-	    ScalarMap	yMap = new ScalarMap(RealType.YAxis, Display.YAxis);
-	    display.addMap(xMap);
-	    display.addMap(yMap);
+	RealType	bgPressureType = new RealType(
+	    "bgPressureType", CommonTypes.PRESSURE.getDefaultUnit(), null);
 
-	    /*
-	     * Map the sounding types to display types.  NB: Because of this
-	     * mapping, the display will have a value readout for regular
-	     * temperature values.  Consequently, we don't need to create
-	     * one for the regular temperature field.
-	     */
-	    ScalarMap	soundingPressureMap = new ScalarMap(
-		sounding.getPressureType(), displayRenderer.pressure);
-	    soundingPressureMap.setRangeByUnits();
-	    display.addMap(soundingPressureMap);
+	FunctionType	funcType = new FunctionType(domainType, bgPressureType);
+	Linear2DSet	domainSet = new Linear2DSet(-1., 1., 2, -1., 1., 100);
+	FlatField	bgPressure = new FlatField(funcType, domainSet);
+	float[]		pressures = domainSet.getSamples()[1];
+	float		scale =
+	    (float)(2./Math.log(skewTCoordSys.maxP/skewTCoordSys.minP));
 
-	    ScalarMap	soundingTemperatureMap = new ScalarMap(
-		sounding.getTemperatureType(), displayRenderer.temperature);
-	    soundingTemperatureMap.setRangeByUnits();
-	    display.addMap(soundingTemperatureMap);
+	for (int i = 0; i < pressures.length; ++i)
+	    pressures[i] = (float)(skewTCoordSys.minP *
+		Math.exp((1. - pressures[i]) / scale));
 
-	    /*
-	     * Define the temperature type for the various
-	     * temperature fields which will be contoured.
-	     */
-	    RealType	isothermType = new RealType("isotherm");
+	bgPressure.setSamples(new float[][] {pressures}, false);
+	bgPressureRef = new DataReferenceImpl("bgPressure_ref");
+	bgPressureRef.setData(bgPressure);
 
-	    /*
-	     * Map the temperature parameter of the various temperature
-	     * fields to display contours.
-	     */
-	    ScalarMap	contourMap = new ScalarMap(isothermType,
-		Display.IsoContour);
-	    display.addMap(contourMap);
-	    ContourControl	control =
-		(ContourControl)contourMap.getControl();
-	    Unit	temperatureUnit = skewTCoordSys.getTemperatureUnit();
-	    control.setContourInterval(deltaTemperature,
-		(float)temperatureUnit.toThis(0.f, SI.kelvin),
-		Float.POSITIVE_INFINITY, 0f);
+	/**
+	 * Define contouring of the background pressure.
+	 */
+	ScalarMap	bgPressureMap =
+	    new ScalarMap(bgPressureType, Display.IsoContour);
+	display.addMap(bgPressureMap);
+	ContourControl	control = (ContourControl)bgPressureMap.getControl();
+	control.setContourInterval(50f, 1f, Float.POSITIVE_INFINITY, 1000f);
+	control.enableLabels(false);
+    }
 
-	    /*
-	     * Establish value readouts for the non-sounding temperature
-	     * parameters.
-	     */
-	    RealType	type = new RealType("potential_temperature");
-	    ScalarMap	fieldTemperatureMap = new ScalarMap(type, 
-		displayRenderer.theta);
-	    display.addMap(fieldTemperatureMap);
 
-	    type = new RealType("saturation_equivalent_potential_temperature");
-	    fieldTemperatureMap = new ScalarMap(type, displayRenderer.thetaES);
-	    display.addMap(fieldTemperatureMap);
+    /**
+     * Define the saturation mixing-ratio background.
+     *
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    protected void
+    defineRSatBackground()
+	throws VisADException, RemoteException
+    {
+	/*
+	 * Create the background saturation mixing-ratio field.
+	 */
+	RealType	bgRSatType =
+	    new RealType("bgRsat", rSatCoordSys.getRSatUnit(), null);
+	FunctionType	funcType = new FunctionType(domainType, bgRSatType);
+	Linear2DSet	domainSet = new Linear2DSet(-1., 1., 20, -1., 1., 20);
+	FlatField	rSat = new FlatField(funcType, domainSet);
+	float[][]	samples = domainSet.getSamples();
 
-	    /*
-	     * Create the temperature fields.
-	     */
-	    DataReferenceImpl	temperatureRef = 
-		createTemperatureField("temperature", isothermType,
-		    skewTCoordSys.viewport, 2, 2, skewTCoordSys);
-	    DataReferenceImpl	thetaRef =
-		createTemperatureField("potential_temperature", isothermType,
-		    skewTCoordSys.viewport, 10, 10, thetaCoordSys);
-	    DataReferenceImpl	thetaESRef = createTemperatureField(
-		"saturation_equivalent_potential_temperature", isothermType,
-		skewTCoordSys.viewport, 20, 20, thetaESCoordSys);
+	rSat.setSamples(new float[][] {
+	    rSatCoordSys.fromReference(samples)[1]}, false);
 
-	    /*
-	     * Add the temperature fields to the display.
-	     */
-	    display.addReference(soundingRef, soundingConstantMaps);
-	    display.addReference(temperatureRef, temperatureConstantMaps);
-	    display.addReference(thetaRef, thetaConstantMaps);
-	    display.addReference(thetaESRef, thetaESConstantMaps);
+	rSatRef = new DataReferenceImpl("Rsat_ref");
+	rSatRef.setData(rSat);
 
-	    displayInitialized = true;
-	}
+	/*
+	 * Define contouring of the background saturation mixing-ratio.
+	 */
+	ScalarMap	bgRSatMap =
+	    new ScalarMap(bgRSatType, Display.IsoContour);
+	display.addMap(bgRSatMap);
+	ContourControl	control = (ContourControl)bgRSatMap.getControl();
+	control.setContourInterval(5f, 0f, 1000f, 5f);
+	control.enableLabels(false);
+    }
+
+
+    /**
+     * Define the temperature backgrounds.
+     */
+    protected void
+    defineTemperatureBackground()
+	throws RemoteException, VisADException
+    {
+	RealType	bgTemperatureType = new RealType(
+	    "bgTemperature", CommonTypes.TEMPERATURE.getDefaultUnit(), null);
+
+	/*
+	 * Create the regular temperature background.
+	 */
+	bgTemperatureRef = createTemperatureField("temperature",
+	    bgTemperatureType,
+	    skewTCoordSys.minX, skewTCoordSys.maxX, 2,
+	    skewTCoordSys.minY, skewTCoordSys.maxY, 2,
+	    skewTCoordSys);
+
+	/*
+	 * Create the potential temperature background.
+	 */
+	thetaRef = createTemperatureField("theta",
+	    bgTemperatureType,
+	    skewTCoordSys.minX, skewTCoordSys.maxX, 10,
+	    skewTCoordSys.minY, skewTCoordSys.maxY, 10,
+	    thetaCoordSys);
+
+	/*
+	 * Create the saturation potential temperature background.
+	 */
+	thetaESRef = createTemperatureField("thetaES",
+	    bgTemperatureType,
+	    skewTCoordSys.minX, skewTCoordSys.maxX, 20,
+	    skewTCoordSys.minY, skewTCoordSys.maxY, 20,
+	    thetaESCoordSys);
+
+	/*
+	 * Define contouring of the background temperatures.
+	 */
+	ScalarMap	contourMap =
+	    new ScalarMap(bgTemperatureType, Display.IsoContour);
+	display.addMap(contourMap);
+	ContourControl	control = (ContourControl)contourMap.getControl();
+	control.setContourInterval(deltaTemperature, -273.15f,
+	    Float.POSITIVE_INFINITY, 0f);
+	control.enableLabels(false);
     }
 
 
@@ -279,8 +340,11 @@ SkewTDisplay
      *				"potential_temperature") for the purpose of
      *				naming the returned DdataReference.
      * @param rangeType		The RealType of the parameter.
-     * @param viewport		The display viewport.
+     * @param minX		The minimum display X.
+     * @param maxX		The maximum display X.
      * @param nx		The number of samples in the X dimension.
+     * @param minY		The minimum display Y.
+     * @param maxY		The maximum display Y.
      * @param ny		The number of samples in the Y dimension.
      * @param coordSys		The coordinate system transform.
      * @return			Data reference to created field.
@@ -289,15 +353,14 @@ SkewTDisplay
      */
     protected DataReferenceImpl
     createTemperatureField(String name, RealType rangeType,
-	    Rectangle2D viewport, int nx, int ny, CoordinateSystem coordSys)
+	    float minX, float maxX, int nx,
+	    float minY, float maxY, int ny,
+	    CoordinateSystem coordSys)
 	throws	VisADException, RemoteException
     {
-	MathType	domainType = 
-	    new RealTupleType(new RealType[] {RealType.XAxis, RealType.YAxis});
 	FunctionType	funcType = new FunctionType(domainType, rangeType);
 	Linear2DSet	set = new Linear2DSet(domainType,
-	    viewport.getX(), viewport.getX() + viewport.getWidth(), nx,
-	    viewport.getY(), viewport.getY() + viewport.getHeight(), ny);
+					      minX, maxX, nx, minY, maxY, ny);
 	FlatField	temperature = new FlatField(funcType, set);
 	float[][]	xyCoords = set.getSamples();
 	float[][]	ptCoords = coordSys.fromReference(
@@ -308,53 +371,252 @@ SkewTDisplay
 	/*
 	 * Create a data-reference for the temperature field.
 	 */
-	DataReferenceImpl	temperatureRef =
-	    new DataReferenceImpl(name + "_ref");
-	temperatureRef.setData(temperature);
+	DataReferenceImpl	ref = new DataReferenceImpl(name + "_ref");
+	ref.setData(temperature);
 
-	return temperatureRef;
+	return ref;
+    }
+
+
+    /**
+     * Create an empty sounding.
+     *
+     * @param rangeType		The type of the dependent variable.
+     * @return			An empty sounding over the display domain.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    protected FlatField
+    createEmptySounding(RealType domainType, RealType rangeType)
+	throws VisADException
+    {
+	FunctionType	funcType = new FunctionType(domainType, rangeType);
+	Linear1DSet	domainSet = new Linear1DSet(
+	    domainType, skewTCoordSys.minP, skewTCoordSys.maxP, 2);
+
+	return new FlatField(funcType, domainSet);
+    }
+
+
+    /*
+     * Define the data-independent VisAD mappings for this display.
+     *
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    protected void
+    defineScalarMaps()
+	throws VisADException, RemoteException
+    {
+	temperatureSoundingConstantMaps = new ConstantMap[] {
+	    new ConstantMap(1., Display.Red),
+	    new ConstantMap(0., Display.Blue),
+	    new ConstantMap(0., Display.Green),
+	    new ConstantMap(3.0, Display.LineWidth)
+	};
+
+	dewPointSoundingConstantMaps = new ConstantMap[] {
+	    new ConstantMap(0., Display.Red),
+	    new ConstantMap(1., Display.Blue),
+	    new ConstantMap(0., Display.Green),
+	    new ConstantMap(3.0, Display.LineWidth)
+	};
+
+	thetaESConstantMaps = new ConstantMap[] {
+	    new ConstantMap(0., Display.Red),
+	    new ConstantMap(0., Display.Blue),
+	    new ConstantMap(1., Display.Green)
+	};
+
+	rSatConstantMaps = new ConstantMap[] {
+	    new ConstantMap(0., Display.Red),
+	    new ConstantMap(0., Display.Blue),
+	    new ConstantMap(1., Display.Green)
+	};
+
+	/*
+         * Map the X and Y coordinates of the various background fields
+         * to the display X and Y coordinates.  This is necessary for
+         * contouring the background fields and drawing the soundings.
+	 */
+	display.addMap(new ScalarMap(RealType.XAxis, Display.XAxis));
+	display.addMap(new ScalarMap(RealType.YAxis, Display.YAxis));
+
+	/*
+	 * Map the other types to display types.
+	 */
+	ScalarMap	pressureMap =
+	    new ScalarMap(CommonTypes.PRESSURE, displayRenderer.pressure);
+	display.addMap(pressureMap);
+	pressureMap.setRangeByUnits();
+
+	ScalarMap	temperatureMap =
+	    new ScalarMap(CommonTypes.TEMPERATURE, displayRenderer.temperature);
+	display.addMap(temperatureMap);
+	temperatureMap.setRangeByUnits();
+
+	ScalarMap	dewPointMap =
+	    new ScalarMap(CommonTypes.DEW_POINT, displayRenderer.temperature);
+	dewPointMap.setRangeByUnits();
+	display.addMap(dewPointMap);
+
+	display.addMap(new ScalarMap(CommonTypes.THETA,
+	    displayRenderer.theta));
+	display.addMap(new ScalarMap(CommonTypes.THETA_ES,
+	    displayRenderer.thetaES));
+	display.addMap(new ScalarMap(CommonTypes.R_SAT,
+	    displayRenderer.rSat));
+    }
+
+
+    /**
+     * Sets the temperature sounding property.
+     *
+     * @param sounding		Temperature sounding.  Must be single 
+     *				temperature parameter defined over 1-D
+     *				pressure domain.
+     */
+    public synchronized void
+    setTemperatureSounding(FlatField sounding)
+    {
+	try
+	{
+	    vetSounding(sounding, CommonTypes.TEMPERATURE);
+	    temperatureSoundingRef.setData(sounding);
+	    displayRenderer.setTemperatureSounding(sounding);
+	}
+	catch (Exception e)
+	{
+	    String	reason = e.getMessage();
+
+	    System.err.println(
+		"Couldn't display temperature sounding" +
+		(reason == null ? "" : (": " + reason)));
+	}
+    }
+
+
+    /**
+     * Sets the dew-point sounding property.
+     *
+     * @param sounding		Dew-point sounding.  Must be single 
+     *				dew-point parameter defined over 1-D
+     *				pressure domain.
+     */
+    public synchronized void
+    setDewPointSounding(FlatField sounding)
+    {
+	try
+	{
+	    vetSounding(sounding, CommonTypes.DEW_POINT);
+	    dewPointSoundingRef.setData(sounding);
+	    displayRenderer.setDewPointSounding(sounding);
+	}
+	catch (Exception e)
+	{
+	    String	reason = e.getMessage();
+
+	    System.err.println(
+		"Couldn't display dew-point sounding" +
+		(reason == null ? "" : (": " + reason)));
+	}
+    }
+
+
+    /**
+     * Vets a single-parameter sounding.
+     *
+     * @param sounding		The sounding to be vetted.  Must single-
+     *				parameter <code>desiredRangeType</code> defined
+     *				over 1-D pressure domain.
+     * @throws SoundingException	Invalid sounding.
+     */
+    protected static void
+    vetSounding(FlatField sounding, RealType desiredRangeType)
+	throws SoundingException
+    {
+	FunctionType	soundingType = (FunctionType)sounding.getType();
+	RealType[]	soundingDomain =
+	    soundingType.getDomain().getRealComponents();
+
+	if (soundingDomain.length != 1)
+	    throw new SoundingException("Temperature sounding isn't 1-D");
+
+	if (!soundingDomain[0].equals(CommonTypes.PRESSURE))
+	    throw new SoundingException("Sounding domain isn't pressure");
+
+	RealType[]	soundingRangeTypes =
+	    soundingType.getFlatRange().getRealComponents();
+
+	if (soundingRangeTypes.length != 1)
+	    throw new SoundingException(
+		"Sounding range isn't single-parameter");
+
+	if (!soundingRangeTypes[0].equals(desiredRangeType))
+	    throw new SoundingException(
+		"Sounding parameter isn't appropriate");
     }
 
 
     /**
      * Sets the sounding property.
      */
-    public synchronized void
+    public void
     setSounding(Sounding sounding)
     {
-	try
-	{
-	    Sounding	oldSounding = this.sounding;
+	FlatField	profile;
 
-	    display(sounding);
-	    this.sounding = sounding;
-	    changes.firePropertyChange("sounding", oldSounding, sounding);
-	}
-	catch (Exception e)
-	{
-	    String	reason = e.getMessage();
+	profile = sounding.getTemperature();
+	if (profile != null)
+	    setTemperatureSounding(profile);
 
-	    System.err.println("Couldn't display sounding {" +
-		sounding + "}" + (reason == null ? "" : (": " + reason)));
-	}
+	profile = sounding.getDewPoint();
+	if (profile != null)
+	    setDewPointSounding(profile);
     }
 
 
     /**
-     * Tests this class.
+     * Tests this class by creating a Skew T, Log P Diagram and displaying
+     * a sounding on it.
      */
     public static void
     main(String[] args)
 	throws Exception
     {
-	/*
-	 * Create and display a Skew T, Log P Diagram.
-	 */
-	SkewTDisplay	display = new SkewTDisplay();
+	JFrame		jframe = new JFrame("Skew-T Chart");
+
+	jframe.addWindowListener(new WindowAdapter() {
+	    public void windowClosing(WindowEvent e) {System.exit(0);}
+	});
+	jframe.setSize(512, 512);
+	jframe.setVisible(true);
+
+	SkewTDisplay	display = new SkewTDisplay(jframe);
+	Plain		plain = new Plain();
 
 	QuantityMap.push(MetQuantityDB.instance());
 
-	display.setSounding(
-	    new Sounding((FlatField)new Plain().open("sounding.nc")));
+	/*
+	 * Simulate arbitrary setting of the sounding property by 
+	 * looping over a single sounding.
+	for (;;)
+	 */
+	{
+	    FlatField	field;
+	    Sounding	sounding;
+
+	    /*
+	    field = (FlatField)plain.open("soundingA.nc");
+	    sounding = new Sounding(field, CommonTypes.PRESSURE,
+		CommonTypes.TEMPERATURE, CommonTypes.DEW_POINT);
+	    display.setSounding(sounding);
+	    java.lang.Thread.sleep(5000);
+	    */
+
+	    field = (FlatField)plain.open("soundingB.nc");
+	    sounding = new Sounding(field, CommonTypes.PRESSURE,
+		CommonTypes.TEMPERATURE, CommonTypes.DEW_POINT);
+	    display.setSounding(sounding);
+	    // java.lang.Thread.sleep(5000);
+	}
     }
 }

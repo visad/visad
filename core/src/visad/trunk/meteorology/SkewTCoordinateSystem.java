@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTCoordinateSystem.java,v 1.4 1998-08-28 16:50:23 steve Exp $
+ * $Id: SkewTCoordinateSystem.java,v 1.5 1998-10-21 15:27:58 steve Exp $
  */
 
 package visad.meteorology;
@@ -11,11 +11,9 @@ package visad.meteorology;
 import java.awt.geom.Rectangle2D;
 import visad.CoordinateSystem;
 import visad.Display;
-import visad.DisplayTupleType;
-import visad.DisplayRealType;
 import visad.Unit;
+import visad.UnitException;
 import visad.VisADException;
-import visad.data.netcdf.units.Parser;
 
 
 /**
@@ -34,36 +32,54 @@ public class
 SkewTCoordinateSystem
     extends	CoordinateSystem
 {
+    /*
+     * Default parameter values.
+     */
+    public static final float	DEFAULT_MIN_X =   -1.0f;
+    public static final float	DEFAULT_MAX_X =    1.0f;
+    public static final float	DEFAULT_MIN_Y =   -1.0f;
+    public static final float	DEFAULT_MAX_Y =    1.0f;
+    public static final float	DEFAULT_MIN_P =  100.0f;
+    public static final float	DEFAULT_MAX_P = 1050.0f;
+    public static final float	DEFAULT_MIN_T = -122.5f;
+    public static final float	DEFAULT_MAX_T =   52.0f;
+    public static final float	DEFAULT_TANGENT =  1.2f;
+    public static final Unit	DEFAULT_PRESSURE_UNIT;
+    public static final Unit	DEFAULT_TEMPERATURE_UNIT;
+
+    /*
+     * Actual parameter values.
+     */
+    public final float	minX;
+    public final float	maxX;
+    public final float	minY;
+    public final float	maxY;
+    public final float	minP;
+    public final float	maxP;
+    public final float	minT;
+    public final float	maxT;
+    public final float	tangent;
+    public final float	maxTAtMinP;
+    public final float	minTAtMaxP;
+
     /**
      * Transformation parameters.
      */
-    private final double	YPerNegLogP;
-    private final double	negLogMaxP;
-    private final double	XPerT;
-    public final Rectangle2D	viewport;
-    public final double		minP;
-    public final double		maxP;
-    public final double		minTAtMaxP;
-    public final double		maxTAtMaxP;
-    public final double		minTAtMinP;
-    public final double		maxTAtMinP;
-    public final double		isothermTangent;
+    private final float		yPerLogP;
+    private final float		logMinP;
+    private final float		xPerT;
 
-    /**
-     * Canonical diagram parameters.  Estimated from page 2-3 of
-     * AWS/TR-79/006: "The Use of the Skew T, Log P Diagram in
-     * Analysis and Forecasting".
-     */
-    private static final double	CANONICAL_MIN_P            =  100.0;
-    private static final double	CANONICAL_MAX_P            = 1050.0;
-    private static final double	CANONICAL_MIN_T_AT_MAX_P   =  -46.5;
-    private static final double	CANONICAL_MAX_T_AT_MAX_P   =   52.0;
-    private static final double	CANONICAL_ISOTHERM_TANGENT =    1.2;
+
+    static
+    {
+	DEFAULT_PRESSURE_UNIT = CommonUnits.MILLIBAR;;
+	DEFAULT_TEMPERATURE_UNIT = CommonUnits.CELSIUS;
+    }
 
 
     /**
-     * Constructs from nothing.  Default pressure and temperature extents 
-     * and default isotherm angle are used.
+     * Constructs from nothing.  Default display and data parameters
+     * are used.
      *
      * @throws VisADException	Couldn't create necessary VisAD object.
      */
@@ -71,92 +87,89 @@ SkewTCoordinateSystem
     SkewTCoordinateSystem()
 	throws VisADException
     {
-	this(CANONICAL_MIN_P, CANONICAL_MAX_P, 
-	    CANONICAL_MIN_T_AT_MAX_P, CANONICAL_MAX_T_AT_MAX_P,
-	    CANONICAL_ISOTHERM_TANGENT, getDefaultDisplayRectangle());
+	this(DEFAULT_MIN_X, DEFAULT_MAX_X, DEFAULT_MIN_Y, DEFAULT_MAX_Y,
+	     DEFAULT_PRESSURE_UNIT, DEFAULT_MIN_P, DEFAULT_MAX_P,
+	     DEFAULT_TEMPERATURE_UNIT, DEFAULT_MIN_T, DEFAULT_MAX_T, 
+	     DEFAULT_TANGENT);
     }
 
 
     /**
      * Constructs from another SkewTCoordinateSystem.
      *
-     * @param that	The other SkewTCoordinateSystem.
+     * @param that		The other SkewTCoordinateSystem.
+     * @throws UnitException	Improper unit.
      * @throws VisADException	Couldn't create necessary VisAD object.
      */
     public
     SkewTCoordinateSystem(SkewTCoordinateSystem that)
-	throws VisADException
+	throws UnitException, VisADException
     {
-	this(that.minP, that.maxP, that.minTAtMaxP, that.maxTAtMaxP,
-	    that.isothermTangent, that.viewport);
+	this(that.minX, that.maxX, that.minY, that.maxY,
+	     that.getPressureUnit(), that.minP, that.maxP,
+	     that.getTemperatureUnit(), that.minT, that.maxT,
+	     that.tangent);
     }
 
 
     /**
-     * Gets the default display rectangle.  
+     * Constructs from display and data parameters.
      *
-     * @return		Display viewport.
-     */
-    protected static Rectangle2D
-    getDefaultDisplayRectangle()
-	throws	VisADException
-    {
-	double[]		xRange = new double[2];
-	double[]		yRange = new double[2];
-	DisplayTupleType	reference =
-	    Display.DisplaySpatialCartesianTuple;
-
-	((DisplayRealType)reference.getComponent(0)).getRange(xRange);
-	((DisplayRealType)reference.getComponent(1)).getRange(yRange);
-
-	return new Rectangle2D.Float(
-	    (float)xRange[0], (float)yRange[0], 
-	    (float)(xRange[1] - xRange[0]), (float)(yRange[1] - yRange[0]));
-    }
-
-
-
-    /**
-     * Constructs, given pressure and temperature extents and isotherm angle.
-     *
-     * @param reference		The reference coordinate space (e.g.
-     *				visad.Display.DisplaySpatialCartesianTuple).
-     * @param minP		Minimum pressure on the plot in millibar.
-     * @param maxP		Maximum pressure on the plot in millibar.
-     * @param minTAtMaxP	Lower left temperature on the plot in celsius.
-     * @param maxTAtMaxP	Lower right temperature on the plot in celsius.
-     * @param isothermTangent	Tangent of the isotherm angle with the 
-     *				horizontal.
-     * @param viewport		Display viewport.
+     * @param minX		The minimum display X coordinate.
+     * @param maxX		The maximum display X coordinate.
+     * @param minY		The minimum display Y coordinate.
+     * @param maxY		The maximum display Y coordinate.
+     * @param pressureUnit	The unit of pressure.
+     * @param minP		The minimum pressure coordinate.
+     * @param maxP		The maximum pressure coordinate.
+     * @param temperatureUnit	The unit of temperature.
+     * @param minT		The minimum temperature coordinate.
+     * @param maxT		The maximum temperature coordinate.
+     * @param tangent		The tangent of the isotherms in display space.
+     * @throws UnitException	Improper unit.
      * @throws VisADException	Couldn't create necessary VisAD object.
      */
     public
-    SkewTCoordinateSystem(double minP, double maxP,
-	    double minTAtMaxP, double maxTAtMaxP,
-	    double isothermTangent, Rectangle2D viewport)
-	throws VisADException
+    SkewTCoordinateSystem(float minX, float maxX, float minY, float maxY,
+			  Unit pressureUnit, float minP, float maxP,
+			  Unit temperatureUnit, float minT, float maxT,
+			  float tangent)
+	throws UnitException, VisADException
     {
-	super(Display.DisplaySpatialCartesianTuple, getUnits());
+	super(Display.DisplaySpatialCartesianTuple, 
+	    getUnits(pressureUnit, temperatureUnit));
 
+	this.minX = minX;
+	this.maxX = maxX;
+	this.minY = minY;
+	this.maxY = maxY;
 	this.minP = minP;
 	this.maxP = maxP;
-	this.minTAtMaxP = minTAtMaxP;
-	this.maxTAtMaxP = maxTAtMaxP;
-	this.isothermTangent = isothermTangent;
-	this.viewport = viewport;
+	this.minT = minT;
+	this.maxT = maxT;
+	this.tangent = tangent;
 
-	negLogMaxP = -Math.log(maxP);
-	YPerNegLogP = viewport.getHeight() / ((-Math.log(minP)) - negLogMaxP);
-	XPerT = viewport.getWidth() / (maxTAtMaxP - minTAtMaxP);
+	float	deltaX = maxX - minX;
+	float	deltaY = minY - maxY;
+	float	deltaT = maxT - minT;
+	float	normGradY = (float)-Math.sqrt(1/(tangent*tangent + 1));
+	float	normGradX = -normGradY*tangent;
+	float	dotProduct = (deltaX * normGradX + deltaY * normGradY);
+	float	gradX = deltaT * normGradX / dotProduct;
+	float	gradY = deltaT * normGradY / dotProduct;
 
-	double[]	coords[] = fromReference(
-	    new double[][] {new double[] {viewport.getX(), 
-					  viewport.getY()+viewport.getHeight()},
-			    new double[] {viewport.getX()+viewport.getWidth(),
-					  viewport.getY()+viewport.getHeight()},
-			    new double[] {0, 0}});
-	minTAtMinP = coords[1][0];
-	maxTAtMinP = coords[1][1];
+	maxTAtMinP = minT + deltaX * gradX;
+	minTAtMaxP = minT + deltaY * gradY;
+
+	logMinP = (float)Math.log(minP);
+	yPerLogP = (float)(deltaY / (Math.log(maxP) - logMinP));
+	xPerT = deltaX / (maxT - minTAtMaxP);
+
+	if (!Unit.canConvert(pressureUnit, DEFAULT_PRESSURE_UNIT) ||
+	    !Unit.canConvert(temperatureUnit, DEFAULT_TEMPERATURE_UNIT))
+	{
+	    throw new UnitException("Improper unit argument(s)");
+	}
     }
 
 
@@ -164,27 +177,9 @@ SkewTCoordinateSystem
      * Gets the coordinate system units.
      */
     protected static Unit[]
-    getUnits()
+    getUnits(Unit pressureUnit, Unit temperatureUnit)
     {
-	Unit[]	units = new Unit[3];
-
-	try
-	{
-	    Parser	parser = Parser.instance();
-
-	    units[0] = parser.parse("millibar");
-	    units[1] = parser.parse("celsius");
-	    units[2] = null;
-	}
-	catch (Exception e)
-	{
-	    String	reason = e.getMessage();
-
-	    System.err.println
-		("Couldn't initialize class SkewTCoordinateSystem" +
-		(reason == null ? "" : (": " + reason)));
-	    e.printStackTrace();
-	}
+	Unit[]	units = new Unit[] {pressureUnit, temperatureUnit, null};
 
 	return units;
     }
@@ -201,7 +196,7 @@ SkewTCoordinateSystem
 
 
     /**
-     * Return the canonical temperature unit.
+     * Return the temperature unit.
      */
     public Unit
     getTemperatureUnit()
@@ -227,40 +222,24 @@ SkewTCoordinateSystem
     toReference(double[][] coords)
 	throws VisADException
     {
-	if (coords == null || coords.length != 3)
+	if (coords == null || coords.length < 2)
 	    throw new IllegalArgumentException("Invalid real coordinates");
 
 	int		npts = coords[0].length;
+	double[]	x = coords[0];
+	double[]	y = coords[1];
 
 	for (int i = 0; i < npts; ++i)
 	{
-	    double	pressure = coords[0][i];
-	    double	temperature = coords[1][i];
-	    double	deltaY = YPerNegLogP*
-		((-Math.log(pressure)) - negLogMaxP);
+	    double	pressure = x[i];
+	    double	temperature = y[i];
+	    double	deltaY = yPerLogP * ((Math.log(pressure)) - logMinP);
 
-	    coords[0][i] = XPerT * (temperature - minTAtMaxP) +
-		viewport.getX() + deltaY/isothermTangent;	// X
-	    coords[1][i] = viewport.getY() + deltaY;		// Y
-	    coords[2][i] = 0;					// Z
+	    x[i] = xPerT * (temperature - minT) + minX + deltaY/tangent;
+	    y[i] = maxY + deltaY;
 	}
 
 	return coords;
-    }
-
-
-    /**
-     * Transforms a real coordinate to a display coordinate.
-     */
-    public double[]
-    toReference(double pressure, double temperature)
-	throws VisADException
-    {
-	double[][]	xyCoords = toReference(
-	    new double[][] {new double[] {pressure}, new double[] {temperature},
-			    new double[] {0}});
-
-	return new double[] {xyCoords[0][0], xyCoords[1][0]};
     }
 
 
@@ -282,44 +261,30 @@ SkewTCoordinateSystem
     fromReference(double[][] coords)
 	throws VisADException
     {
-	if (coords == null || coords.length != 3)
+	if (coords == null || coords.length < 2)
 	    throw new IllegalArgumentException("Invalid real coordinates");
 
 	int		npts = coords[0].length;
+	double[]	pressures = coords[0];
+	double[]	temperatures = coords[1];
 
 	for (int i = 0; i < npts; ++i)
 	{
 	    // System.out.print("SkewTCoordinateSystem.fromReference(): (" +
 		// coords[0][i] + "," + coords[1][i] + ") -> ");
 
-	    double	x = coords[0][i];
-	    double	deltaY = coords[1][i] - viewport.getY();
+	    double	x = pressures[i];
+	    double	deltaY = temperatures[i] - maxY;
 
-	    coords[0][i] = Math.exp(-deltaY/YPerNegLogP - negLogMaxP);
-						// pressure
-	    coords[1][i] = (x - deltaY/isothermTangent - viewport.getX()) /
-		XPerT + minTAtMaxP;		// temperature
+	    pressures[i] = Math.exp(deltaY/yPerLogP + logMinP);
+	    temperatures[i] = (x - deltaY/tangent - minX) /
+		xPerT + minT;
 
 	    // System.out.println("(" + coords[0][i] + "," +
 		// coords[1][i] + ")");
 	}
 
 	return coords;
-    }
-
-
-    /**
-     * Transforms a display coordinate to a real coordinate.
-     */
-    public double[]
-    fromReference(double x, double y)
-	throws VisADException
-    {
-	double[][]	ptCoords = fromReference(
-	    new double[][] {new double[] {x}, new double[] {y},
-			    new double[] {}});
-
-	return new double[] {ptCoords[0][0], ptCoords[1][0]};
     }
 
 
@@ -336,15 +301,18 @@ SkewTCoordinateSystem
 	if (!(obj instanceof SkewTCoordinateSystem))
 	    return false;
 
-	SkewTCoordinateSystem	other = (SkewTCoordinateSystem)obj;
+	SkewTCoordinateSystem	that = (SkewTCoordinateSystem)obj;
 
 	return
-	    other.YPerNegLogP     == YPerNegLogP &&
-	    other.negLogMaxP      == YPerNegLogP &&
-	    other.XPerT           == XPerT &&
-	    other.minTAtMaxP      == minTAtMaxP &&
-	    other.viewport.equals(viewport) &&
-	    other.isothermTangent == isothermTangent;
+	    that.minX == minX &&
+	    that.maxX == maxX &&
+	    that.minY == minY &&
+	    that.maxY == maxY &&
+	    that.minP == minP &&
+	    that.maxP == maxP &&
+	    that.minT == minT &&
+	    that.maxT == maxT &&
+	    that.tangent == tangent;
     }
 
 

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ThetaESCoordinateSystem.java,v 1.2 1998-08-28 16:50:25 steve Exp $
+ * $Id: ThetaESCoordinateSystem.java,v 1.3 1998-10-21 15:28:00 steve Exp $
  */
 
 package visad.meteorology;
@@ -53,15 +53,22 @@ ThetaESCoordinateSystem
      */
     public
     ThetaESCoordinateSystem(ThetaCoordinateSystem thetaCoordSys)
-	throws VisADException, ParseException
+	throws VisADException
     {
-	super(Display.DisplaySpatialCartesianTuple, 
+	super(thetaCoordSys.getReference(), 
 	    thetaCoordSys.getCoordinateSystemUnits());
 
 	this.thetaCoordSys = thetaCoordSys;
 
-	eSat0 =
-	    getPressureUnit().toThis(0.61078, Parser.instance().parse("kPa"));
+	try
+	{
+	    eSat0 = getPressureUnit().toThis(
+		0.61078, Parser.instance().parse("kPa"));
+	}
+	catch (ParseException e)
+	{
+	    throw new VisADException(e.getMessage());	// shouldn't happen
+	}
     }
 
 
@@ -114,7 +121,7 @@ ThetaESCoordinateSystem
 	double[]	temperatures =
 	    SI.kelvin.toThis(coords[1], getTemperatureUnit());
 	double[]	thetas = new Theta(getPressureUnit(),
-	    SI.kelvin).toTheta(pressures, temperatures);
+	    SI.kelvin, SI.kelvin).theta(pressures, temperatures);
 
 	for (int i = 0; i < pressures.length; ++i)
 	{

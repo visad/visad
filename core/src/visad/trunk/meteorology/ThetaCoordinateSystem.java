@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ThetaCoordinateSystem.java,v 1.2 1998-08-28 16:50:25 steve Exp $
+ * $Id: ThetaCoordinateSystem.java,v 1.3 1998-10-21 15:27:59 steve Exp $
  */
 
 package visad.meteorology;
@@ -70,12 +70,13 @@ ThetaCoordinateSystem
     ThetaCoordinateSystem(SkewTCoordinateSystem skewTCoordSys)
 	throws VisADException
     {
-	super(Display.DisplaySpatialCartesianTuple, 
+	super(skewTCoordSys.getReference(), 
 	    skewTCoordSys.getCoordinateSystemUnits());
 
 	this.skewTCoordSys = skewTCoordSys;
 
 	theta = new Theta(skewTCoordSys.getPressureUnit(),
+			  skewTCoordSys.getTemperatureUnit(),
 			  skewTCoordSys.getTemperatureUnit());
     }
 
@@ -173,24 +174,9 @@ ThetaCoordinateSystem
     invert(double[][] coords)
 	throws UnitException, VisADException
     {
-	coords[1] = theta.toTheta(coords[0], coords[1]);
+	coords[1] = theta.theta(coords[0], coords[1]);
 
 	return coords;
-    }
-
-
-    /**
-     * Computes potential temperature from pressure and temperature.
-     * May be used by subclasses.
-     *
-     * @param pressure		Pressure in getPressureUnit() units.
-     * @param temperature	Temperature in K.
-     * @return			Potential temperature in K.
-     */
-    protected final double
-    theta(double pressure, double temperature)
-    {
-	return theta(pressure, temperature);
     }
 
 
