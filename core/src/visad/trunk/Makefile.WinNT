@@ -206,6 +206,10 @@ visad\aeri\*.java \
 visad\data\amanda\*.java \
 visad\georef\*.java \
 visad\meteorology\*.java \
+visad\install\*.java \
+visad\install\install_visad \
+visad\install\README \
+visad\install\README.html \
 visad\Gridded1D.txt \
 visad\Gridded2D.txt \
 visad\Gridded3D.txt \
@@ -360,6 +364,10 @@ visad\aeri\*.java \
 visad\data\amanda\*.java \
 visad\georef\*.java \
 visad\meteorology\*.java \
+visad\install\*.java \
+visad\install\install_visad \
+visad\install\README \
+visad\install\README.html \
 visad\Gridded1D.txt \
 visad\Gridded2D.txt \
 visad\Gridded3D.txt \
@@ -503,6 +511,14 @@ save:
 		$(DEL) $(BACKUP)\visad\georef\*.java
 	if exist $(BACKUP)\visad\meteorology\*.java \
 		$(DEL) $(BACKUP)\visad\meteorology\*.java
+	if exist $(BACKUP)\visad\install\*.java \
+		$(DEL) $(BACKUP)\visad\install\*.java
+	if exist $(BACKUP)\visad\install\install_visad \
+		$(DEL) $(BACKUP)\visad\install\install_visad
+	if exist $(BACKUP)\visad\install\README \
+		$(DEL) $(BACKUP)\visad\install\README
+	if exist $(BACKUP)\visad\install\README.html \
+		$(DEL) $(BACKUP)\visad\install\README.html
 	$(JAR) $(JARVERBOSE)cf $(BACKUP)\save.jar $(SAVE_FILES1)
 	$(JAR) $(JARVERBOSE)uf $(BACKUP)\save.jar $(SAVE_FILES2)
 	cd $(BACKUP)
@@ -587,6 +603,7 @@ visad\aeri\*.class \
 visad\data\amanda\*.class \
 visad\georef\*.class \
 visad\meteorology\*.class \
+visad\install\*.class \
 visad\examples\*.class
 
 classes:
@@ -684,6 +701,7 @@ clear:
 	if exist data\amanda\*.java $(DEL) data\amanda\*.java
 	if exist georef\*.java $(DEL) georef\*.java
 	if exist meteorology\*.java $(DEL) meteorology\*.java
+	if exist install\*.java $(DEL) install\*.java
 	if exist examples\*.java $(DEL) examples\*.java
 
 clean:
@@ -761,6 +779,7 @@ clean:
 	if exist data\amanda\*.class $(DEL) data\amanda\*.class
 	if exist georef\*.class $(DEL) georef\*.class
 	if exist meteorology\*.class $(DEL) meteorology\*.class
+	if exist install\*.class $(DEL) install\*.class
 	if exist examples\*.class $(DEL) examples\*.class
 
 RMIC_FILES = \
@@ -869,7 +888,8 @@ bom\*.class \
 aeri\*.class \
 data\amanda\*.class \
 georef\*.class \
-meteorology\*.class
+meteorology\*.class \
+install\*.class
 	cd examples
 	$(JC) $(JFLAGS) *.java
 	cd ..
@@ -955,6 +975,7 @@ compile: clean
 	$(JC) $(JFLAGS) data\amanda\*.java
 	$(JC) $(JFLAGS) georef\*.java
 	$(JC) $(JFLAGS) meteorology\*.java
+	$(JC) $(JFLAGS) install\*.java
 	cd examples
 	$(JC) $(JFLAGS) *.java
 	cd ..
@@ -1043,7 +1064,8 @@ visad.bom \
 visad.aeri \
 visad.data.amanda \
 visad.georef \
-visad.meteorology
+visad.meteorology \
+visad.install
 
 docs:
 	if not exist $(DOC_DIR) mkdir $(DOC_DIR)

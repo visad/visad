@@ -283,6 +283,10 @@ SAVE_FILES = \
 	visad/data/amanda/*.java			\
 	visad/georef/*.java				\
 	visad/meteorology/*.java			\
+	visad/install/*.java				\
+	visad/install/install_visad			\
+	visad/install/README				\
+	visad/install/README.html			\
 	visad/Gridded1D.txt				\
 	visad/Gridded2D.txt				\
 	visad/Gridded3D.txt				\
@@ -372,7 +376,8 @@ DOC_PACKAGES = \
 		visad.aeri \
 		visad.data.amanda \
 		visad.georef \
-		visad.meteorology
+		visad.meteorology \
+		visad.install
 
 ALL_PACKAGES = \
 		$(DOC_PACKAGES) \
