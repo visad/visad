@@ -137,7 +137,7 @@ public class FileFlatField extends FlatField {
   private FlatField getAdaptedFlatField()
   {
     // if owner array is null,
-    //  assume this object got serailized & unserialized
+    //  assume this object got serialized & unserialized
     if (adaptedFlatFieldOwner == null) {
       return null;
     }
@@ -323,6 +323,17 @@ public class FileFlatField extends FlatField {
     }
 
     return fld.getValues();
+  }
+
+  public double[][] getValues(boolean copy)
+         throws VisADException
+  {
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
+      throw new VisADException("Cannot get cached FlatField");
+    }
+
+    return fld.getValues(copy);
   }
 
   public double[] getValues(int index)
