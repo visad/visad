@@ -81,6 +81,22 @@ public class VisADLineArray extends VisADGeometryArray {
     return array;
   }
 
+  public VisADGeometryArray adjustLongitude(DataRenderer renderer)
+         throws VisADException {
+    float[] lons = getLongitudes(renderer);
+    if (any_longitude_rotate) {
+      VisADLineArray array = new VisADLineArray();
+      array.vertexCount = vertexCount;
+      array.coordinates = coordinates;
+      array.colors = colors;
+      return array;
+    }
+    else {
+      return this;
+    }
+  }
+
+
   private final static float LIMIT = 1.0f; // constant for TEST = 0
   private final static float ALPHA = 0.01f; // constant for TEST = 1
 
