@@ -68,91 +68,91 @@ public class DelaunayClarkson extends Delaunay {
   private static final int INFINITY = -2;      // replaces infinity
   private static final int NOVAL = -1;         // replaces null
 
-  private static float[][] site_blocks;        // copy of samples array
-  private static int[][]   a3s;                // output array
-  private static int       a3size;             // output array maximum size
-  private static int       nts = 0;            // # output objects
+  private float[][] site_blocks;        // copy of samples array
+  private int[][]   a3s;                // output array
+  private int       a3size;             // output array maximum size
+  private int       nts = 0;            // # output objects
   
   private static final int max_blocks = 10000; // max # basis/simplex blocks
   private static final int Nobj = 10000;
   private static final int MAXDIM = 8;         // max dimension
   
-  private static int    dim;
-  private static int    p;
-  private static long   pnum;
-  private static int    rdim,          // region dimension
-                        cdim;          // # sites currently specifying region
-  private static int    exact_bits;
-  private static double b_err_min,
-                        b_err_min_sq;
-  private static double ldetbound = 0;
-  private static int    failcount = 0;          // static: reduce_inner
-  private static int    lscale;                 // static: reduce_inner
-  private static double max_scale;              // static: reduce_inner
-  private static float  Sb;                     // static: reduce_inner
-  private static int    nsb = 0;                // # simplex blocks
-  private static int    nbb = 0;                // # basis_s blocks
-  private static int    ss = MAXDIM;            // static: search
-  private static int    ss2 = 2000;             // static: visit_triang
-  private static long   vnum = -1;              // static: visit_triang
-  private static int    p_neigh_vert = NOVAL;   // static: main
+  private int    dim;
+  private int    p;
+  private long   pnum;
+  private int    rdim,          // region dimension
+                 cdim;          // # sites currently specifying region
+  private int    exact_bits;
+  private double b_err_min,
+                 b_err_min_sq;
+  private double ldetbound = 0;
+  private int    failcount = 0;          // static: reduce_inner
+  private int    lscale;                 // static: reduce_inner
+  private double max_scale;              // static: reduce_inner
+  private float  Sb;                     // static: reduce_inner
+  private int    nsb = 0;                // # simplex blocks
+  private int    nbb = 0;                // # basis_s blocks
+  private int    ss = MAXDIM;            // static: search
+  private int    ss2 = 2000;             // static: visit_triang
+  private long   vnum = -1;              // static: visit_triang
+  private int    p_neigh_vert = NOVAL;   // static: main
 
   // "void stuff" -- dummy variables to hold unused return information
-  private static int[] voidp = new int[1];
-  private static int[] voidp_bn = new int[1];
+  private int[] voidp = new int[1];
+  private int[] voidp_bn = new int[1];
 
   // basis_s stuff
-  private static int[][]      bbt_next = new int[max_blocks][];
-  private static int[][]      bbt_next_bn = new int[max_blocks][];
-  private static int[][]      bbt_ref_count = new int[max_blocks][];
-  private static int[][]      bbt_lscale = new int[max_blocks][];
-  private static double[][]   bbt_sqa = new double[max_blocks][];
-  private static double[][]   bbt_sqb = new double[max_blocks][];
-  private static double[][][] bbt_vecs = new double[max_blocks][][];
+  private int[][]      bbt_next = new int[max_blocks][];
+  private int[][]      bbt_next_bn = new int[max_blocks][];
+  private int[][]      bbt_ref_count = new int[max_blocks][];
+  private int[][]      bbt_lscale = new int[max_blocks][];
+  private double[][]   bbt_sqa = new double[max_blocks][];
+  private double[][]   bbt_sqb = new double[max_blocks][];
+  private double[][][] bbt_vecs = new double[max_blocks][][];
 
-  private static int ttbp;
-  private static int ttbp_bn;
-  private static int ib;
-  private static int ib_bn;
-  private static int basis_s_list = NOVAL;
-  private static int basis_s_list_bn;
-  private static int pnb = NOVAL;
-  private static int pnb_bn;
-  private static int b = NOVAL;              // static: sees
-  private static int b_bn;
+  private int ttbp;
+  private int ttbp_bn;
+  private int ib;
+  private int ib_bn;
+  private int basis_s_list = NOVAL;
+  private int basis_s_list_bn;
+  private int pnb = NOVAL;
+  private int pnb_bn;
+  private int b = NOVAL;              // static: sees
+  private int b_bn;
 
   // simplex stuff
-  private static int[][]   sbt_next = new int[max_blocks][];
-  private static int[][]   sbt_next_bn = new int[max_blocks][];
-  private static long[][]  sbt_visit = new long[max_blocks][];
-  private static short[][] sbt_mark = new short[max_blocks][];
-  private static int[][]   sbt_normal = new int[max_blocks][];
-  private static int[][]   sbt_normal_bn = new int[max_blocks][];
-  private static int[][]   sbt_peak_vert = new int[max_blocks][];
-  private static int[][]   sbt_peak_simp = new int[max_blocks][];
-  private static int[][]   sbt_peak_simp_bn = new int[max_blocks][];
-  private static int[][]   sbt_peak_basis = new int[max_blocks][];
-  private static int[][]   sbt_peak_basis_bn = new int[max_blocks][];
-  private static int[][][] sbt_neigh_vert = new int[max_blocks][][];
-  private static int[][][] sbt_neigh_simp = new int[max_blocks][][];
-  private static int[][][] sbt_neigh_simp_bn = new int[max_blocks][][];
-  private static int[][][] sbt_neigh_basis = new int[max_blocks][][];
-  private static int[][][] sbt_neigh_basis_bn = new int[max_blocks][][];
+  private int[][]   sbt_next = new int[max_blocks][];
+  private int[][]   sbt_next_bn = new int[max_blocks][];
+  private long[][]  sbt_visit = new long[max_blocks][];
+  private short[][] sbt_mark = new short[max_blocks][];
+  private int[][]   sbt_normal = new int[max_blocks][];
+  private int[][]   sbt_normal_bn = new int[max_blocks][];
+  private int[][]   sbt_peak_vert = new int[max_blocks][];
+  private int[][]   sbt_peak_simp = new int[max_blocks][];
+  private int[][]   sbt_peak_simp_bn = new int[max_blocks][];
+  private int[][]   sbt_peak_basis = new int[max_blocks][];
+  private int[][]   sbt_peak_basis_bn = new int[max_blocks][];
+  private int[][][] sbt_neigh_vert = new int[max_blocks][][];
+  private int[][][] sbt_neigh_simp = new int[max_blocks][][];
+  private int[][][] sbt_neigh_simp_bn = new int[max_blocks][][];
+  private int[][][] sbt_neigh_basis = new int[max_blocks][][];
+  private int[][][] sbt_neigh_basis_bn = new int[max_blocks][][];
   
-  private static int   simplex_list = NOVAL;
-  private static int   simplex_list_bn;
-  private static int   ch_root;
-  private static int   ch_root_bn;
-  private static int   ns;                            // static: make_facets
-  private static int   ns_bn;
-  private static int[] st = new int[ss+MAXDIM+1];    // static: search
-  private static int[] st_bn = new int[ss+MAXDIM+1];
-  private static int[] st2 = new int[ss2+MAXDIM+1];    // static: visit_triang
-  private static int[] st2_bn = new int[ss2+MAXDIM+1];
+  private int   simplex_list = NOVAL;
+  private int   simplex_list_bn;
+  private int   ch_root;
+  private int   ch_root_bn;
+  private int   ns;                            // static: make_facets
+  private int   ns_bn;
+  private int[] st = new int[ss+MAXDIM+1];    // static: search
+  private int[] st_bn = new int[ss+MAXDIM+1];
+  private int[] st2 = new int[ss2+MAXDIM+1];    // static: visit_triang
+  private int[] st2_bn = new int[ss2+MAXDIM+1];
 
 
   // <<<< Functions >>>>
-  private static final int new_block_basis_s() {
+  private int new_block_basis_s() {
     bbt_next[nbb] = new int[Nobj];
     bbt_next_bn[nbb] = new int[Nobj];
     bbt_ref_count[nbb] = new int[Nobj];
@@ -176,9 +176,8 @@ public class DelaunayClarkson extends Delaunay {
     nbb++;
     return basis_s_list;
   }
-  
-  private static final int reduce_inner(int v, int v_bn,
-                                        int s, int s_bn, int k) {
+
+  private int reduce_inner(int v, int v_bn, int s, int s_bn, int k) {
     int q, q_bn;
     double dd,
            Sb = 0;
@@ -278,8 +277,7 @@ public class DelaunayClarkson extends Delaunay {
     return 0;
   }
   
-  private static final int reduce(int[] v, int[] v_bn, int rp,
-                                  int s, int s_bn, int k) {
+  private int reduce(int[] v, int[] v_bn, int rp, int s, int s_bn, int k) {
     if (v[0] == NOVAL) {
       v[0] = basis_s_list != NOVAL ? basis_s_list : new_block_basis_s();
       v_bn[0] = basis_s_list_bn;
@@ -323,7 +321,7 @@ public class DelaunayClarkson extends Delaunay {
     return reduce_inner(v[0], v_bn[0], s, s_bn, k);
   }
   
-  private static final void get_basis_sede(int s, int s_bn) {
+  private void get_basis_sede(int s, int s_bn) {
     int   k=1;
     int   q, q_bn;
     int[] curt = new int[1];
@@ -396,7 +394,7 @@ public class DelaunayClarkson extends Delaunay {
     }
   }
   
-  private static final int sees(int rp, int s, int s_bn) {
+  private int sees(int rp, int s, int s_bn) {
     double  dd, dds;
     int     q, q_bn, q1, q1_bn, q2, q2_bn;
     int[]   curt = new int[1];
@@ -544,7 +542,7 @@ public class DelaunayClarkson extends Delaunay {
     return 0;
   }
   
-  private static final int new_block_simplex() {
+  private int new_block_simplex() {
     sbt_next[nsb] = new int[Nobj];
     sbt_next_bn[nsb] = new int[Nobj];
     sbt_visit[nsb] = new long[Nobj];
@@ -597,8 +595,8 @@ public class DelaunayClarkson extends Delaunay {
      apply visit function to all visited simplices;
      when visit returns nonnull, exit and return its value.
   */
-  private static final void visit_triang_gen(int s, int s_bn, int whichfunc,
-                                             int[] ret, int[] ret_bn) {
+  private void visit_triang_gen(int s, int s_bn, int whichfunc,
+                                int[] ret, int[] ret_bn) {
     int v;
     int v_bn;
     int t;
@@ -678,7 +676,7 @@ public class DelaunayClarkson extends Delaunay {
   /**
      make neighbor connections between newly created simplices incident to p.
   */
-  private static final void connect(int s, int s_bn) {
+  private void connect(int s, int s_bn) {
     int xb, xf;
     int sb, sb_bn;
     int sf, sf_bn;
@@ -739,8 +737,7 @@ public class DelaunayClarkson extends Delaunay {
      visit simplices s with sees(p,s), and make a facet for every neighbor
      of s not seen by p.
   */
-  private static final void make_facets(int seen, int seen_bn,
-                                        int[] ret, int[] ret_bn) {
+  private void make_facets(int seen, int seen_bn, int[] ret, int[] ret_bn) {
     int n, n_bn;
     int q, q_bn;
     int j;
@@ -829,8 +826,7 @@ public class DelaunayClarkson extends Delaunay {
      p lies outside flat containing previous sites;
      make p a vertex of every current simplex, and create some new simplices.
   */
-  private static final void extend_simplices(int s, int s_bn,
-                                             int[] ret, int[] ret_bn) {
+  private void extend_simplices(int s, int s_bn, int[] ret, int[] ret_bn) {
     int q, q_bn;
     int ns, ns_bn;
   
@@ -949,8 +945,7 @@ public class DelaunayClarkson extends Delaunay {
      return a simplex s that corresponds to a facet of the
      current hull, and sees(p, s).
   */
-  private static final void search(int root, int root_bn,
-                                   int[] ret, int[] ret_bn) {
+  private void search(int root, int root_bn, int[] ret, int[] ret_bn) {
     int s, s_bn;
     int tms = 0;
   
