@@ -26,6 +26,7 @@ MA 02111-1307, USA
 
 package visad.python;
 
+import java.util.Vector;
 import java.awt.event.*;
 import java.rmi.RemoteException;
 import javax.swing.JFrame;
@@ -33,6 +34,7 @@ import visad.*;
 import visad.java3d.DisplayImplJ3D;
 import visad.data.*;
 import visad.ss.MappingDialog;
+import visad.bom.ImageRendererJ3D;
 
 /**
  * A collection of methods for working with VisAD, callable from the
@@ -49,46 +51,64 @@ public abstract class JPythonMethods {
     return form.open(location);
   }
 
+  private static DisplayImpl display = null;
+  private static ScalarMap[] maps = null;
+  private static MappingDialog dialog = null;
+  private static Vector data_references = null;
+
   /** displays the given data onscreen */
   public static void plot(DataImpl data)
     throws VisADException, RemoteException
   {
     if (data == null) throw new VisADException("Data cannot be null");
-    DisplayImpl display = new DisplayImplJ3D(ID);
-    final JFrame displayFrame = new JFrame("VisAD Display Plot");
-    final JFrame widgetFrame = new JFrame("VisAD Display Widgets");
-    WindowListener l = new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {
-        synchronized (displayFrame) {
-          displayFrame.setVisible(false);
-          widgetFrame.setVisible(false);
+    if (display == null) {
+      display = new DisplayImplJ3D(ID);
+      final JFrame displayFrame = new JFrame("VisAD Display Plot");
+      final JFrame widgetFrame = new JFrame("VisAD Display Widgets");
+      WindowListener l = new WindowAdapter() {
+        public void windowClosing(WindowEvent e) {
+          synchronized (displayFrame) {
+            displayFrame.setVisible(false);
+            widgetFrame.setVisible(false);
+          }
         }
-      }
-    };
+      };
+  
+      // set up scalar maps
+      maps = data.getType().guessMaps(true);
+  
+      // allow user to alter default mappings
+      dialog = new MappingDialog(null, data, maps, true, true);
+      dialog.display();
+      if (dialog.Confirm) maps = dialog.ScalarMaps;
+      for (int i=0; i<maps.length; i++) display.addMap(maps[i]);
+  
+      // set up widget panel
+      widgetFrame.addWindowListener(l);
+      widgetFrame.getContentPane().add(display.getWidgetPanel());
+      widgetFrame.pack();
+      widgetFrame.setVisible(true);
+  
+      // set up display frame
+      displayFrame.addWindowListener(l);
+      displayFrame.getContentPane().add(display.getComponent());
+      displayFrame.pack();
+      displayFrame.setVisible(true);
+      data_references = new Vector();
+    }
 
-    // set up scalar maps
     DataReferenceImpl ref = new DataReferenceImpl(ID);
+    data_references.addElement(ref);
     ref.setData(data);
-    ScalarMap[] maps = data.getType().guessMaps(true);
-
-    // allow user to alter default mappings
-    MappingDialog dialog = new MappingDialog(null, data, maps, true, true);
-    dialog.display();
-    if (dialog.Confirm) maps = dialog.ScalarMaps;
-    for (int i=0; i<maps.length; i++) display.addMap(maps[i]);
-    display.addReference(ref);
-
-    // set up widget panel
-    widgetFrame.addWindowListener(l);
-    widgetFrame.getContentPane().add(display.getWidgetPanel());
-    widgetFrame.pack();
-    widgetFrame.setVisible(true);
-
-    // set up display frame
-    displayFrame.addWindowListener(l);
-    displayFrame.getContentPane().add(display.getComponent());
-    displayFrame.pack();
-    displayFrame.setVisible(true);
+    MathType type = data.getType();
+    try {
+      ImageRendererJ3D.verifyImageRendererUsable(type, maps);
+      display.addReferences(new ImageRendererJ3D(), ref);
+    }
+    catch (VisADException exc) {
+System.out.println("not using ImageRendererJ3D");
+      display.addReference(ref);
+    }
   }
 
 }
