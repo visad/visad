@@ -487,7 +487,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
   /** whether the slave displays need an image update */
   public boolean slaveUpdateNeeded() {
-    if (true) return false;
     return dirty && hasSlaves();
   }
 
