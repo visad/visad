@@ -27,9 +27,9 @@ MA 02111-1307, USA
 package visad;
 
 /**
-   List1DSet is the class for Set-s containing lists of
-   1-D values with no topology.<P>
-*/
+ * List1DSet is the class for Set-s containing lists of
+ * 1-D values with no topology.  This set does not support interpolation.<P>
+ */
 public class List1DSet extends SimpleSet {
 
   float[] data;
