@@ -1073,12 +1073,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
       if (eq >= 0) {
         boolean success = true;
         int end = line.indexOf(']', eq);
-        /* CTR: TEMP */ if (end < 0) System.out.println("FUCK");
         if (end < 0) success = false;
         else {
           String sub = line.substring(eq + 1, end).trim();
           if (!sub.equalsIgnoreCase("global")) success = false;
-          /* CTR: TEMP */ if (!success) System.out.println("DAMMIT");
         }
         if (!success) {
           displayErrorMessage("The file " + file + " does not contain the " +
