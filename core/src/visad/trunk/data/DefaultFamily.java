@@ -186,7 +186,19 @@ public class DefaultFamily
   }
 
   /**
-    * Add to the family of the supported VisAD datatype Forms
+    * Add a Form to the list of supported VisAD datatype Forms.
+    *
+    * Forms are added to the front of the list, which means
+    * that they will take precedence over existing Forms.
+    * If, for example, an added Form claims to open files
+    * ending in <tt>.gif</tt>, it will supersede the standard
+    * {@link visad.data.gif.GIFForm GIFForm}.
+    *
+    * If the added form discovers that it cannot handle a
+    * file, it can simply throw an exception and DefaultFamily
+    * will pass the file onto the next Form in the list, so any
+    * superseded Form will still be able to open the file.
+    *
     * @exception ArrayIndexOutOfBoundsException
     *			If there is no more room in the list.
     */
@@ -201,7 +213,8 @@ public class DefaultFamily
       int i = 0;
       while (i < list.length) {
         if (list[i] == null) {
-          list[i] = form;
+          System.arraycopy(list, 0, list, 1, i);
+          list[0] = form;
           return;
         }
         i++;
