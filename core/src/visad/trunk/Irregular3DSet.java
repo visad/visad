@@ -454,9 +454,9 @@ public class Irregular3DSet extends IrregularSet {
     float[] NY = new float[nvertex];
     float[] NZ = new float[nvertex];
 
+    if (nvertex == 0 || npolygons == 0) return null;
 
 
-/*
     // with make_normals
     float[] NxA = new float[npolygons];
     float[] NxB = new float[npolygons];
@@ -474,24 +474,9 @@ public class Irregular3DSet extends IrregularSet {
 
     // take the garbage out
     NxA = NxB = NyA = NyB = NzA = NzB = Pnx = Pny = Pnz = null;
-*/
 
 
-
-    // without make_normals
-    for (int i=0; i<nvertex; i++) {
-      float a = fieldVertices[0][i];
-      float b = fieldVertices[1][i];
-      float c = fieldVertices[2][i];
-      float d = (float) Math.sqrt(a * a + b * b + c * c);
-      NX[i] = a / d;
-      NY[i] = b / d;
-      NZ[i] = c / d;
-    }
-
-
-
-
+/*
     // without poly_triangle_stripe
     int ntris = npolygons;
     for (int i=0; i<npolygons; i++) {
@@ -576,11 +561,11 @@ public class Irregular3DSet extends IrregularSet {
     setGeometryArray(array, coordinates, 4, colors);
     array.normals = normals;
     normals = null;
+*/
  
 
 
 
-/*
     // with poly_triangle_stripe
     float[] normals = new float[3 * nvertex];
     int j = 0;
@@ -621,7 +606,6 @@ public class Irregular3DSet extends IrregularSet {
  
     // array.vertexFormat |= NORMALS;
     array.normals = normals;
-*/
 
 
 
@@ -643,7 +627,7 @@ public class Irregular3DSet extends IrregularSet {
                               float[][] auxValues, float[][] fieldVertices,
                               float[][] auxLevels, int[][][] polyToVert,
                               int[][][] vertToPoly) throws VisADException {
-    boolean DEBUG = true;
+    boolean DEBUG = false;
     if (ManifoldDimension != 3) {
       throw new SetException("Irregular3DSet.makeIsosurface: " +
                              "ManifoldDimension must be 3");
@@ -723,11 +707,33 @@ public class Irregular3DSet extends IrregularSet {
       float f3 = (float) fieldValues[v3];
       int e0, e1, e2, e3, e4, e5;
 
+      // compute tetrahedron signature
+      // vector from v0 to v3
+      float vx = Samples[0][v3] - Samples[0][v0];
+      float vy = Samples[1][v3] - Samples[1][v0];
+      float vz = Samples[2][v3] - Samples[2][v0];
+      // cross product (v2 - v0) x (v1 - v0)
+      float sx = Samples[0][v2] - Samples[0][v0];
+      float sy = Samples[1][v2] - Samples[1][v0];
+      float sz = Samples[2][v2] - Samples[2][v0];
+      float tx = Samples[0][v1] - Samples[0][v0];
+      float ty = Samples[1][v1] - Samples[1][v0];
+      float tz = Samples[2][v1] - Samples[2][v0];
+      float cx = sy * tz - sz * ty;
+      float cy = sz * tx - sx * tz;
+      float cz = sx * ty - sy * tx;
+      // signature is sign of v (dot) c
+      float sig = vx * cx + vy * cy + vz * cz;
+
       // 8 possibilities
-      switch ( ((f0 > isolevel) ? 1 : 0)
-             + ((f1 > isolevel) ? 2 : 0)
-             + ((f2 > isolevel) ? 4 : 0)
-             + ((f3 > isolevel) ? 8 : 0) ) {
+      int index = ((f0 > isolevel) ? 1 : 0)
+                + ((f1 > isolevel) ? 2 : 0)
+                + ((f2 > isolevel) ? 4 : 0)
+                + ((f3 > isolevel) ? 8 : 0);
+      // apply signature to index
+      if (sig < 0.0f) index = 15 - index;
+
+      switch (index) {
         case 0:
         case 15:             // plane does not intersect this tetrahedron
           break;
@@ -791,8 +797,14 @@ public class Irregular3DSet extends IrregularSet {
 
           // fill in the polys and vertToPoly arrays
           polys[npolygons][0] = e0;
-          polys[npolygons][1] = e1;
-          polys[npolygons][2] = e2;
+          if (index == 1) {
+            polys[npolygons][1] = e1;
+            polys[npolygons][2] = e2;
+          }
+          else { // index == 14
+            polys[npolygons][1] = e2;
+            polys[npolygons][2] = e1;
+          }
           polys[npolygons][3] = -1;
 
           // on to the next tetrahedron
@@ -858,8 +870,14 @@ public class Irregular3DSet extends IrregularSet {
 
           // fill in the polys array
           polys[npolygons][0] = e0;
-          polys[npolygons][1] = e3;
-          polys[npolygons][2] = e4;
+          if (index == 2) {
+            polys[npolygons][1] = e4;
+            polys[npolygons][2] = e3;
+          }
+          else { // index == 13
+            polys[npolygons][1] = e3;
+            polys[npolygons][2] = e4;
+          }
           polys[npolygons][3] = -1;
 
           // on to the next tetrahedron
@@ -943,9 +961,16 @@ public class Irregular3DSet extends IrregularSet {
 
           // fill in the polys array
           polys[npolygons][0] = e1;
-          polys[npolygons][1] = e2;
-          polys[npolygons][2] = e4;
-          polys[npolygons][3] = e3;
+          if (index == 3) {
+            polys[npolygons][1] = e2;
+            polys[npolygons][2] = e4;
+            polys[npolygons][3] = e3;
+          }
+          else { // index == 12
+            polys[npolygons][1] = e3;
+            polys[npolygons][2] = e4;
+            polys[npolygons][3] = e2;
+          }
 
           // on to the next tetrahedron
           npolygons++;
@@ -1010,8 +1035,14 @@ public class Irregular3DSet extends IrregularSet {
 
           // fill in the polys array
           polys[npolygons][0] = e1;
-          polys[npolygons][1] = e3;
-          polys[npolygons][2] = e5;
+          if (index == 4) {
+            polys[npolygons][1] = e3;
+            polys[npolygons][2] = e5;
+          }
+          else { // index == 11
+            polys[npolygons][1] = e5;
+            polys[npolygons][2] = e3;
+          }
           polys[npolygons][3] = -1;
 
           // on to the next tetrahedron
@@ -1095,9 +1126,16 @@ public class Irregular3DSet extends IrregularSet {
 
           // fill in the polys array
           polys[npolygons][0] = e0;
-          polys[npolygons][1] = e2;
-          polys[npolygons][2] = e5;
-          polys[npolygons][3] = e3;
+          if (index == 5) {
+            polys[npolygons][1] = e3;
+            polys[npolygons][2] = e5;
+            polys[npolygons][3] = e2;
+          }
+          else { // index == 10
+            polys[npolygons][1] = e2;
+            polys[npolygons][2] = e5;
+            polys[npolygons][3] = e3;
+          }
 
           // on to the next tetrahedron
           npolygons++;
@@ -1180,9 +1218,16 @@ public class Irregular3DSet extends IrregularSet {
 
           // fill in the polys array
           polys[npolygons][0] = e0;
-          polys[npolygons][1] = e1;
-          polys[npolygons][2] = e5;
-          polys[npolygons][3] = e4;
+          if (index == 6) {
+            polys[npolygons][1] = e4;
+            polys[npolygons][2] = e5;
+            polys[npolygons][3] = e1;
+          }
+          else { // index == 9
+            polys[npolygons][1] = e1;
+            polys[npolygons][2] = e5;
+            polys[npolygons][3] = e4;
+          }
 
           // on to the next tetrahedron
           npolygons++;
@@ -1248,8 +1293,14 @@ public class Irregular3DSet extends IrregularSet {
 
           // fill in the polys array
           polys[npolygons][0] = e2;
-          polys[npolygons][1] = e4;
-          polys[npolygons][2] = e5;
+          if (index == 7) {
+            polys[npolygons][1] = e4;
+            polys[npolygons][2] = e5;
+          }
+          else { // index == 8
+            polys[npolygons][1] = e5;
+            polys[npolygons][2] = e4;
+          }
           polys[npolygons][3] = -1;
 
           // on to the next tetrahedron
@@ -1384,7 +1435,7 @@ public class Irregular3DSet extends IrregularSet {
   static final float  EPS_0 = (float) 1.0e-5;
  
 /* copied from Contour3D.java */
-  private static void make_normals( float[] VX, float[] VY, float[] VZ,
+  private static void make_normals(float[] VX, float[] VY, float[] VZ,
                    float[] NX, float[] NY, float[] NZ, int nvertex,
                    int npolygons, float[] Pnx, float[] Pny, float[] Pnz,
                    float[] NxA, float[] NxB, float[] NyA, float[] NyB,
@@ -1401,15 +1452,16 @@ public class Irregular3DSet extends IrregularSet {
    float x, y, z, a, minimum_area, len;
 
    int iv[] = new int[3];
+   if (nvertex <= 0) return;
 
 
-   for ( i = 0; i < nvertex; i++ ) {
+   for (i = 0; i < nvertex; i++) {
       NX[i] = 0;
       NY[i] = 0;
       NZ[i] = 0;
    }
 
-   minimum_area = (float) ((1.e-4 > EPS_0) ? 1.e-4:EPS_0);
+   minimum_area = (float) ((1.e-4 > EPS_0) ? 1.e-4 : EPS_0);
 
    /* Calculate maximum number of vertices per polygon */
 /* WLH 25 Oct 97
@@ -1455,8 +1507,7 @@ public class Irregular3DSet extends IrregularSet {
    }
 
    swap_flag = 0;
-   for ( k = 2; k < max_vert_per_pol; k++ )
-   {
+   for ( k = 2; k < max_vert_per_pol; k++ ) {
 
       if (swap_flag==0) {
          /*$dir no_recurrence */        /* Vectorized */
@@ -1487,7 +1538,7 @@ public class Irregular3DSet extends IrregularSet {
       }
       else {  /* swap_flag!=0 */
          /*$dir no_recurrence */        /* Vectorized */
-         for ( i=0; i<npolygons; i++ ) {
+         for (i=0; i<npolygons; i++) {
 /* WLH 25 Oct 97
             if ( Vert_f_Pol[k+i*7] >= 0 ) {
                NxA[i]  = VX[Vert_f_Pol[k+i*7]] - VX[Vert_f_Pol[0+i*7]];
@@ -1510,36 +1561,41 @@ public class Irregular3DSet extends IrregularSet {
                   Pnz[i] /= NxB[i];
                }
             }
-         }
-      }
+         } // end for (i=0; i<npolygons; i++)
+      } // end swap_flag!=0
 
        /* This Loop <CAN'T> be Vectorized */
-       for ( i=0; i<npolygons; i++ ) {
+      for ( i=0; i<npolygons; i++ ) {
 /* WLH 25 Oct 97
-           if (Vert_f_Pol[k+i*7] >= 0) {
-               iv[0] = Vert_f_Pol[0+i*7];
-               iv[1] = Vert_f_Pol[(k-1)+i*7];
-               iv[2] = Vert_f_Pol[k+i*7];
+         if (Vert_f_Pol[k+i*7] >= 0) {
+            iv[0] = Vert_f_Pol[0+i*7];
+            iv[1] = Vert_f_Pol[(k-1)+i*7];
+            iv[2] = Vert_f_Pol[k+i*7];
 */
-           if (k < polyToVert[i].length) {
-               iv[0] = polyToVert[i][0];
-               iv[1] = polyToVert[i][k-1];
-               iv[2] = polyToVert[i][k];
-                 x = Pnx[i];   y = Pny[i];   z = Pnz[i];
+         if (k < polyToVert[i].length) {
+            iv[0] = polyToVert[i][0];
+            iv[1] = polyToVert[i][k-1];
+            iv[2] = polyToVert[i][k];
+              x = Pnx[i];   y = Pny[i];   z = Pnz[i];
 
-               // Update the origin vertex
-                  NX[iv[0]] += x;   NY[iv[0]] += y;   NZ[iv[0]] += z;
+/*
+System.out.println("vertices: " + iv[0] + " " + iv[1] + " " + iv[2]);
+System.out.println("  normal: " + x + " " + y + " " + z + "\n");
+*/
 
-               // Update the vertex that defines the first vector
-                  NX[iv[1]] += x;   NY[iv[1]] += y;   NZ[iv[1]] += z;
+            // Update the origin vertex
+               NX[iv[0]] += x;   NY[iv[0]] += y;   NZ[iv[0]] += z;
 
-               // Update the vertex that defines the second vector
-                  NX[iv[2]] += x;   NY[iv[2]] += y;   NZ[iv[2]] += z;
-           }
-       }
+            // Update the vertex that defines the first vector
+               NX[iv[1]] += x;   NY[iv[1]] += y;   NZ[iv[1]] += z;
+
+            // Update the vertex that defines the second vector
+               NX[iv[2]] += x;   NY[iv[2]] += y;   NZ[iv[2]] += z;
+         }
+      } // end for ( i=0; i<npolygons; i++ )
 
        swap_flag = ( (swap_flag != 0) ? 0 : 1 );
-    }
+   } // end for ( k = 2; k < max_vert_per_pol; k++ )
  
     /* Normalize the Normals */
     for ( i=0; i<nvertex; i++ ) {  /* Vectorized */

@@ -27,7 +27,8 @@ package visad;
 
 /**
    CMYCoordinateSystem is the VisAD CoordinateSystem class for
-   (Cyan, Magenta, Yellow).  Algorithm from Foley and van Dam.<P>
+   (Cyan, Magenta, Yellow) with Reference (Red, Green, Blue).
+   Algorithm from Foley and van Dam.<P>
 */
 class CMYCoordinateSystem extends CoordinateSystem {
 

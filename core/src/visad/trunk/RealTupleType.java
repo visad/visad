@@ -219,6 +219,26 @@ public class RealTupleType extends TupleType {
                                " so cannot change");
     }
     DefaultSet = sampling;
+
+    /* WLH 4 Feb 98 copied from constructor */
+    if (DefaultSet != null &&
+        !Unit.canConvertArray(DefaultSet.getSetUnits(), DefaultUnits)) {
+      throw new UnitException("RealTupleType: default Set Units must be " +
+                              "convertable with default Units");
+    }
+    if (DefaultCoordinateSystem != null && DefaultSet != null) {
+      CoordinateSystem cs = DefaultSet.getCoordinateSystem();
+      if (cs != null &&
+          !cs.getReference().equals(DefaultCoordinateSystem.getReference())) {
+        throw new CoordinateSystemException("RealTupleType: DefaultSet " +
+                        "CoordinateSystem must match DefaultCoordinateSystem");
+      }
+      if (!Unit.canConvertArray(DefaultCoordinateSystem.getCoordinateSystemUnits(),
+                                DefaultSet.getSetUnits())) {
+        throw new UnitException("RealTupleType: CoordinateSystem Units must be " +
+                                "convertable with default Set Units");
+      }
+    }
   }
 
   public synchronized Set getDefaultSet() {

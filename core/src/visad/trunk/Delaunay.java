@@ -251,7 +251,8 @@ public abstract class Delaunay implements java.io.Serializable {
               }
 
               // assign global edge number to all members of set 
-              for (int k=0; k<setlen; k++) {
+              for (int kk=0; kk<setlen; kk++) {
+                int k = set[kk];
                 for (int l=0; l<edim; l++) {
                   if ((Tri[k][ptlook1[l]] == endpt1
                     && Tri[k][ptlook2[l]] == endpt2)

@@ -2519,8 +2519,9 @@ for (i=0; i<length; i++) {
       else if (domain_dim == 3) {
         dsize = length * length * length;
         float[][] samples = new float[3][dsize];
-        // random Irregular3DSet
+
 /*
+        // random Irregular3DSet
         for (int i=0; i<dsize; i++) {
           samples[0][i] = length * random.nextFloat();
           samples[1][i] = length * random.nextFloat();
@@ -2537,6 +2538,7 @@ for (i=0; i<length; i++) {
           samples[1][i] += 0.05 * random.nextFloat();
           samples[2][i] += 0.05 * random.nextFloat();
         }
+
         domain_set = new Irregular3DSet(dtype, samples);
       }
       else {

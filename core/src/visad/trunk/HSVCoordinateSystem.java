@@ -27,7 +27,8 @@ package visad;
 
 /**
    HSVCoordinateSystem is the VisAD CoordinateSystem class for
-   (Hue, Saturation, Value).  Algorithm from Foley and van Dam.<P>
+   (Hue, Saturation, Value) with Reference (Red, Green, Blue).
+   Algorithm from Foley and van Dam.<P>
 */
 class HSVCoordinateSystem extends CoordinateSystem {
 

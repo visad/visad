@@ -34,7 +34,13 @@ import java.rmi.*;
 public class RealType extends ScalarType {
 
   private Unit DefaultUnit; // default Unit of RealType
+
+  /** if not null, this sampling is used as a default when this type
+      is used as the domain or range of a field;
+      null unless explicitly set */
   private Set DefaultSet;
+  private boolean DefaultSetEverAccessed;
+
 
   /** Cartesian spatial coordinates */
   public final static RealType XAxis = new RealType("XAxis", null, true);
@@ -63,15 +69,16 @@ public class RealType extends ScalarType {
     if (set != null && set.getDimension() != 1) {
       throw new SetException("RealType: default set dimension != 1");
     }
+    DefaultUnit = u;
     DefaultSet = set;
-    if (u != null && set != null) {
-      Unit[] us = {u};
-      if (!Unit.canConvertArray(us, set.getSetUnits())) {
+    DefaultSetEverAccessed = false;
+    if (DefaultUnit != null && DefaultSet != null) {
+      Unit[] us = {DefaultUnit};
+      if (!Unit.canConvertArray(us, DefaultSet.getSetUnits())) {
         throw new UnitException("RealType: default Unit must be convertable " +
                                 "with Set default Unit");
       }
     }
-    DefaultUnit = u;
   }
 
   /** trusted constructor for initializers */
@@ -79,14 +86,37 @@ public class RealType extends ScalarType {
     super(name, b);
     DefaultUnit = u;
     DefaultSet = null;
+    DefaultSetEverAccessed = false;
   }
 
   public Unit getDefaultUnit() {
     return DefaultUnit;
   }
 
-  public Set getDefaultSet() {
+  public synchronized Set getDefaultSet() {
+    DefaultSetEverAccessed = true;
     return DefaultSet;
+  }
+
+  /** set the default sampling; cannot be called after getDefaultSet */
+  public synchronized void setDefaultSet(Set sampling) throws VisADException {
+    if (sampling.getDimension() != 1) {
+      throw new SetException(
+           "RealType.setDefaultSet: default set dimension != 1");
+    }
+    if (DefaultSetEverAccessed) {
+      throw new TypeException("RealType: DefaultSet already accessed" +
+                               " so cannot change");
+    }
+    DefaultSet = sampling;
+ 
+    if (DefaultUnit != null && DefaultSet != null) {
+      Unit[] us = {DefaultUnit};
+      if (!Unit.canConvertArray(us, DefaultSet.getSetUnits())) {
+        throw new UnitException("RealType: default Unit must be convertable " +
+                                "with Set default Unit");
+      }
+    }
   }
 
   /** two RealType-s are equal if they have the same name; this allows

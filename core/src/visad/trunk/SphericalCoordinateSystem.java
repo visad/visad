@@ -27,8 +27,8 @@ package visad;
 
 /**
    SphericalCoordinateSystem is the VisAD CoordinateSystem class
-   for (Latitude, Longitude, Radius), with Latitude and Longitude
-   in degrees.<P>
+   for (Latitude, Longitude, Radius) with a Cartesian Reference,
+   and with Latitude and Longitude in degrees.<P>
 */
 class SphericalCoordinateSystem extends CoordinateSystem {
 
