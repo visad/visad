@@ -56,7 +56,7 @@ public class UniverseBuilderJ3D extends Object {
         Transform3D t = new Transform3D();
         t.set(new Vector3f(0.0f, 0.0f, 2.0f));
         ViewPlatform vp = new ViewPlatform();
-        TransformGroup vpTrans = new TransformGroup(t);
+        vpTrans = new TransformGroup(t);
         vpTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
         vpTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 
