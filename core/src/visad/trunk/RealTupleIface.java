@@ -35,6 +35,13 @@ public interface RealTupleIface
   extends TupleIface
 {
   /**
+   * Returns the values of the components.
+   *
+   * @return			The values of the components.
+   */
+  double[] getValues();
+
+  /**
    * Returns the units of the components.
    *
    * @return			The units of the components.

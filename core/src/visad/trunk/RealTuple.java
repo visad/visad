@@ -125,6 +125,17 @@ public class RealTuple
     return reals;
   }
 
+  /**
+   * Get the values of the Real components
+   * @return double array of the values of each Real component
+   */
+  public double[] getValues() {
+    int n = getDimension();
+    double[] values = new double[n];
+    for (int i=0; i<n; i++) values[i] = ((Real) tupleComponents[i]).getValue();
+    return values;
+  }
+
   /** get Units of Real components */
   public Unit[] getTupleUnits() {
     return Unit.copyUnitsArray(TupleUnits);
@@ -308,6 +319,9 @@ public class RealTuple
     return tuple;
   }
 
+  /**
+   * Provide a String representation of this RealTuple.
+   */
   public String toString() {
     if (isMissing()) return "missing";
     String s = "(" + tupleComponents[0];
