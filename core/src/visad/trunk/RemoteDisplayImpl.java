@@ -355,8 +355,12 @@ public class RemoteDisplayImpl extends RemoteActionImpl
       DataDisplayLink[] dl = dr.getLinks();
       if (dl != null) {
 	for (int i = 0; i < dl.length; i++) {
-	  links.addElement(new RemoteReferenceLinkImpl(dl[i]));
-	}
+          try {
+            links.addElement(new RemoteReferenceLinkImpl(dl[i]));
+          } catch (RemoteException re) {
+            // skip remote links
+          }
+        }
       }
     }
 
