@@ -456,6 +456,9 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
   /** add a ScalarMapListener, to be notified whenever setRange is
       invoked */
   public synchronized void addScalarMapListener(ScalarMapListener listener) {
+    if (ListenerVector == null) {
+      ListenerVector = new Vector();
+    }
     ListenerVector.addElement(listener);
     if (dataRange[0] == dataRange[0] &&
         dataRange[1] == dataRange[1]) {
@@ -471,7 +474,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
  
   /** remove a ScalarMapListener */
   public void removeScalarMapListener(ScalarMapListener listener) {
-    if (listener != null) {
+    if (listener != null && ListenerVector != null) {
       ListenerVector.removeElement(listener);
     }
   }
