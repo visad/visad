@@ -68,6 +68,7 @@ public class MeasureLine extends MeasureThing {
     ep2 = new MeasurePoint(line.ep2, z);
     color = line.color;
     group = line.group;
+    stdType = line.stdType;
     stdId = line.stdId;
     ep1.lines.add(this);
     ep2.lines.add(this);
@@ -84,10 +85,10 @@ public class MeasureLine extends MeasureThing {
   }
 
   /** Sets the line's standard id to match the given id. */
-  public void setStdId(int stdId) {
-    this.stdId = stdId;
-    ep1.setStdId(stdId);
-    ep2.setStdId(stdId);
+  public void setStandard(int stdType, int stdId) {
+    super.setStandard(stdType, stdId);
+    ep1.setStandard(stdType, stdId);
+    ep2.setStandard(stdType, stdId);
   }
 
 }

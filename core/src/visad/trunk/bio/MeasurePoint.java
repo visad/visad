@@ -87,6 +87,7 @@ public class MeasurePoint extends MeasureThing {
     group = point.group;
     lines = new Vector();
     pt = new PoolPoint[MeasurePool.MAX_POOLS];
+    stdType = point.stdType;
     stdId = point.stdId;
   }
 
@@ -98,9 +99,6 @@ public class MeasurePoint extends MeasureThing {
     preferredColor = color;
     refreshColor();
   }
-
-  /** Sets the point's standard id to match the given id. */
-  public void setStdId(int stdId) { this.stdId = stdId; }
 
   /** Sets the coordinates of the endpoint to match those given. */
   public void setCoordinates(PoolPoint p, double x, double y, double z) {

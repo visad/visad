@@ -45,18 +45,6 @@ public class MeasureToolPanel extends ToolPanel {
 
   // -- CONSTANTS --
 
-  /** Standard flag for standalone measurements. */
-  public static final int STD_SINGLE = 0;
-
-  /**
-   * Standard flag for measurements distributed
-   * across all slices of all timesteps.
-   */
-  public static final int STD_2D = 1;
-
-  /** Standard flag for measurements distributed across all timesteps. */
-  public static final int STD_3D = 2;
-
   /** List of colors for drop-down color box. */
   private static final Color[] COLORS = {
     Color.white, Color.red, Color.orange, Color.green,
@@ -319,17 +307,30 @@ public class MeasureToolPanel extends ToolPanel {
           ignoreStandard = false;
           return;
         }
+        int stdType = MeasureThing.STD_SINGLE;
+        MeasureThing[] things = bio.mm.pool2.getSelection();
+        for (int i=0; i<things.length; i++) {
+          int type = things[i].stdType;
+          if (type != MeasureThing.STD_SINGLE) {
+            stdType = type;
+            break;
+          }
+        }
+        if (stdType == MeasureThing.STD_SINGLE) return; // no change
         int ans = JOptionPane.showConfirmDialog(tool,
           "Are you sure?", "Unset standard", JOptionPane.YES_NO_OPTION,
           JOptionPane.QUESTION_MESSAGE);
         if (ans != JOptionPane.YES_OPTION) {
           ignoreStandard = true;
-          // CTR - TODO - reset proper standard type
-          standard2D.setSelected(true);
+          if (stdType == MeasureThing.STD_2D) standard2D.setSelected(true);
+          else if (stdType == MeasureThing.STD_3D) {
+            standard3D.setSelected(true);
+          }
           return;
         }
-        MeasureThing[] things = bio.mm.pool2.getSelection();
-        for (int i=0; i<things.length; i++) doStandard(things[i], STD_SINGLE);
+        for (int i=0; i<things.length; i++) {
+          doStandard(things[i], MeasureThing.STD_SINGLE);
+        }
         bio.mm.changed = true;
         bio.state.saveState();
       }
@@ -352,7 +353,9 @@ public class MeasureToolPanel extends ToolPanel {
           return;
         }
         MeasureThing[] things = bio.mm.pool2.getSelection();
-        for (int i=0; i<things.length; i++) doStandard(things[i], STD_2D);
+        for (int i=0; i<things.length; i++) {
+          doStandard(things[i], MeasureThing.STD_2D);
+        }
         bio.mm.changed = true;
         bio.state.saveState();
       }
@@ -375,7 +378,9 @@ public class MeasureToolPanel extends ToolPanel {
           return;
         }
         MeasureThing[] things = bio.mm.pool2.getSelection();
-        for (int i=0; i<things.length; i++) doStandard(things[i], STD_3D);
+        for (int i=0; i<things.length; i++) {
+          doStandard(things[i], MeasureThing.STD_3D);
+        }
         bio.mm.changed = true;
         bio.state.saveState();
       }
@@ -540,7 +545,7 @@ public class MeasureToolPanel extends ToolPanel {
     boolean b = bio.mm.pool2.hasSelection() && enabled;
     single.setEnabled(b);
     standard2D.setEnabled(b);
-    //standard3D.setEnabled(b);
+    standard3D.setEnabled(b);
   }
 
   /** Updates the selection data to match the current measurement list. */
@@ -549,7 +554,7 @@ public class MeasureToolPanel extends ToolPanel {
     boolean b = enabled && stdEnabled;
     single.setEnabled(b);
     standard2D.setEnabled(b);
-    //standard3D.setEnabled(b);
+    standard3D.setEnabled(b);
     updateRemove();
     colorLabel.setEnabled(enabled);
     colorList.setEnabled(enabled);
@@ -559,10 +564,18 @@ public class MeasureToolPanel extends ToolPanel {
     descriptionLabel.setEnabled(enabled);
     descriptionBox.setEnabled(enabled);
     if (enabled) {
-      boolean std = bio.mm.pool2.isSelectionStandard();
-      if (standard2D.isSelected() != std) {
+      int stdType = bio.mm.pool2.getSelectionStandardType();
+      if (stdType == MeasureThing.STD_SINGLE && !single.isSelected()) {
         ignoreStandard = true;
-        standard2D.setSelected(std);
+        single.setSelected(true);
+      }
+      else if (stdType == MeasureThing.STD_2D && !standard2D.isSelected()) {
+        ignoreStandard = true;
+        standard2D.setSelected(true);
+      }
+      else if (stdType == MeasureThing.STD_3D && !standard3D.isSelected()) {
+        ignoreStandard = true;
+        standard3D.setSelected(true);
       }
       Color c = bio.mm.pool2.getSelectionColor();
       if (colorList.getSelectedItem() != c) colorList.setSelectedItem(c);
@@ -697,40 +710,23 @@ public class MeasureToolPanel extends ToolPanel {
     boolean isLine = thing instanceof MeasureLine;
     int index = bio.sm.getIndex();
     int slice = bio.sm.getSlice();
-    if (std == STD_SINGLE) {
+    if (std == MeasureThing.STD_SINGLE) {
       // unset standard
-      if (thing.stdId == -1) {
-        // line not standard; skip it
-        return;
-      }
-      int stdId = thing.stdId;
-      thing.setStdId(-1);
-      for (int j=0; j<bio.mm.lists.length; j++) {
-        MeasureList list = bio.mm.lists[j];
-        boolean update = j == index;
-        Vector lines = list.getLines();
-        int k = 0;
-        while (k < lines.size()) {
-          MeasureLine line = (MeasureLine) lines.elementAt(k);
-          if (line.stdId == stdId) list.removeLine(line, update);
-          else k++;
-        }
-        Vector points = list.getPoints();
-        k = 0;
-        while (k < points.size()) {
-          MeasurePoint point = (MeasurePoint) points.elementAt(k);
-          if (point.stdId == stdId) list.removeMarker(point, update);
-          else k++;
-        }
-      }
+      undoStandard(thing);
     }
-    else if (std == STD_2D) {
-      // set standard
-      if (thing.stdId != -1) {
+    else if (std == MeasureThing.STD_2D) {
+      // set 2-D standard
+      int id;
+      if (thing.stdType == MeasureThing.STD_2D) {
         // line already standard; skip it
         return;
       }
-      thing.setStdId(maxId++);
+      else if (thing.stdType == MeasureThing.STD_3D) {
+        id = thing.stdId;
+        undoStandard(thing);
+      }
+      else id = maxId++; // thing.stdType == MeasureThing.STD_SINGLE
+      thing.setStandard(MeasureThing.STD_2D, id);
       int numSlices = bio.sm.getNumberOfSlices();
       for (int j=0; j<bio.mm.lists.length; j++) {
         MeasureList list = bio.mm.lists[j];
@@ -748,10 +744,62 @@ public class MeasureToolPanel extends ToolPanel {
         }
       }
     }
-    else if (std == STD_3D) {
-      // CTR - TODO - 3-D standard
+    else if (std == MeasureThing.STD_3D) {
+      // set 3-D standard
+      int id;
+      if (thing.stdType == MeasureThing.STD_3D) {
+        // line already standard; skip it
+        return;
+      }
+      else if (thing.stdType == MeasureThing.STD_2D) {
+        id = thing.stdId;
+        undoStandard(thing);
+      }
+      else id = maxId++; // thing.stdType == MeasureThing.STD_SINGLE
+      thing.setStandard(MeasureThing.STD_3D, id);
+      for (int j=0; j<bio.mm.lists.length; j++) {
+        if (j == index) continue;
+        MeasureList list = bio.mm.lists[j];
+        if (isLine) {
+          MeasureLine line = new MeasureLine((MeasureLine) thing, slice);
+          list.addLine(line, false);
+        }
+        else {
+          MeasurePoint point = new MeasurePoint((MeasurePoint) thing, slice);
+          list.addMarker(point, false);
+        }
+      }
     }
     updateRemove();
+  }
+
+  /** Unsets the given measurement as standard. */
+  private void undoStandard(MeasureThing thing) {
+    if (thing.stdType == MeasureThing.STD_SINGLE) {
+      // line not standard; skip it
+      return;
+    }
+    int index = bio.sm.getIndex();
+    int stdId = thing.stdId;
+    thing.setStandard(MeasureThing.STD_SINGLE, -1);
+    for (int j=0; j<bio.mm.lists.length; j++) {
+      MeasureList list = bio.mm.lists[j];
+      boolean update = j == index;
+      Vector lines = list.getLines();
+      int k = 0;
+      while (k < lines.size()) {
+        MeasureLine line = (MeasureLine) lines.elementAt(k);
+        if (line.stdId == stdId) list.removeLine(line, update);
+        else k++;
+      }
+      Vector points = list.getPoints();
+      k = 0;
+      while (k < points.size()) {
+        MeasurePoint point = (MeasurePoint) points.elementAt(k);
+        if (point.stdId == stdId) list.removeMarker(point, update);
+        else k++;
+      }
+    }
   }
 
 }

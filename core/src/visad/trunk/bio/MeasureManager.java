@@ -346,6 +346,7 @@ public class MeasureManager {
         fout.println(point.x);
         fout.println(point.y);
         fout.println(point.z);
+        fout.println(point.stdType);
         fout.println(point.stdId);
         fout.println(point.group.getId());
         fout.println(point.color.getRed());
@@ -376,6 +377,7 @@ public class MeasureManager {
         MeasureLine line = (MeasureLine) lines.elementAt(i);
         fout.println(points.indexOf(line.ep1));
         fout.println(points.indexOf(line.ep2));
+        fout.println(line.stdType);
         fout.println(line.stdId);
         fout.println(line.group.getId());
         fout.println(line.color.getRed());
@@ -445,6 +447,7 @@ public class MeasureManager {
         double x = Double.parseDouble(fin.readLine());
         double y = Double.parseDouble(fin.readLine());
         double z = Double.parseDouble(fin.readLine());
+        int stdType = Integer.parseInt(fin.readLine());
         int stdId = Integer.parseInt(fin.readLine());
         int gid = Integer.parseInt(fin.readLine());
         int r = Integer.parseInt(fin.readLine());
@@ -458,7 +461,7 @@ public class MeasureManager {
         Color color = new Color(r, g, b);
         MeasureGroup group = (MeasureGroup) bio.mm.groups.elementAt(gid);
         MeasurePoint point = new MeasurePoint(x, y, z, color, group);
-        point.setStdId(stdId);
+        point.setStandard(stdType, stdId);
         list.addMarker(point, false);
       }
     }
@@ -472,6 +475,7 @@ public class MeasureManager {
       for (int i=0; i<lsize; i++) {
         int ep1_ndx = Integer.parseInt(fin.readLine());
         int ep2_ndx = Integer.parseInt(fin.readLine());
+        int stdType = Integer.parseInt(fin.readLine());
         int stdId = Integer.parseInt(fin.readLine());
         int gid = Integer.parseInt(fin.readLine());
         int r = Integer.parseInt(fin.readLine());
@@ -482,6 +486,7 @@ public class MeasureManager {
         MeasurePoint ep1 = (MeasurePoint) points.elementAt(ep1_ndx);
         MeasurePoint ep2 = (MeasurePoint) points.elementAt(ep2_ndx);
         MeasureLine line = new MeasureLine(ep1, ep2, color, group, false);
+        line.setStandard(stdType, stdId);
         list.addLine(line, false);
       }
     }

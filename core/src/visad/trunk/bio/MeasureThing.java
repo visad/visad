@@ -34,11 +34,31 @@ import java.awt.Color;
  */
 public abstract class MeasureThing {
 
+  // -- CONSTANTS --
+
+  /** Standard flag for standalone measurements. */
+  public static final int STD_SINGLE = 0;
+
+  /**
+   * Standard flag for measurements distributed
+   * across all slices of all timesteps.
+   */
+  public static final int STD_2D = 1;
+
+  /** Standard flag for measurements distributed across all timesteps. */
+  public static final int STD_3D = 2;
+
+
+  // -- FIELDS --
+
   /** Color of this measurement. */
   Color color;
 
   /** Group of this measurement. */
   MeasureGroup group;
+
+  /** Standard id type. */
+  int stdType = STD_SINGLE;
 
   /** Standard id tag. -1 if not a standard line. */
   int stdId = -1;
@@ -47,6 +67,12 @@ public abstract class MeasureThing {
   public abstract void setColor(Color color);
 
   /** Sets the standard id of this measurement to match the given id. */
-  public abstract void setStdId(int stdId);
+  public void setStandard(int stdType, int stdId) {
+    this.stdType = stdType;
+    this.stdId = stdId;
+  }
+
+  /** Gets whether the measurement is standard. */
+  public boolean isStandard() { return stdId != -1; }
 
 }

@@ -493,20 +493,26 @@ public class MeasurePool implements DisplayListener {
     return things;
   }
 
-  /** Gets whether all measurements in the current selection are standard. */
-  public boolean isSelectionStandard() {
+  /**
+   * Gets the standard type corresponding to the current selection.
+   * If the selection consists of more than one standard type,
+   * STD_SINGLE is returned.
+   */
+  public int getSelectionStandardType() {
     int lsize = selLines.size();
-    int psize = selPoints.size();
-    if (lsize == 0 && psize == 0) return false;
+    int stdType = -1;
     for (int i=0; i<lsize; i++) {
       MeasureLine line = (MeasureLine) selLines.elementAt(i);
-      if (line.stdId == -1) return false;
+      if (stdType == -1) stdType = line.stdType;
+      else if (line.stdType != stdType) return MeasureThing.STD_SINGLE;
     }
+    int psize = selPoints.size();
     for (int i=0; i<psize; i++) {
       MeasurePoint point = (MeasurePoint) selPoints.elementAt(i);
-      if (point.stdId == -1) return false;
+      if (stdType == -1) stdType = point.stdType;
+      else if (point.stdType != stdType) return MeasureThing.STD_SINGLE;
     }
-    return true;
+    return stdType;
   }
 
   /**
