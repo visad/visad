@@ -2503,6 +2503,8 @@ public class FieldImpl extends FunctionImpl implements Field {
               break;
             }
           }
+          if (r != null) // SRE 2002-02-13
+              r = r.changeMathType(((FunctionType)Type).getRange());
           range[wedge[i]] = r;
         }
         else {
