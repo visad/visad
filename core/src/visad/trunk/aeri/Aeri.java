@@ -4,6 +4,9 @@ Bill Smith looks at RH
 look at lowest 3 KM for mixing ratio
 use RH if looking above 3 KM
 might use (T - TD) instead of RH
+
+height changes (errors) are causing RH "changes"
+
 */
 
 package visad.aeri;
