@@ -116,7 +116,10 @@ public class HDF5Form
 		} catch (HDF5Exception e) {
 			throw new HDF5AdapterException(
 			"HDF5Form.save() failed: cannot create file "+filename);
-		}
+		} catch (NoClassDefFoundError e) {
+			throw new HDF5AdapterException(
+			"HDF5Form.save() failed: cannot create file "+filename);
+                }
 
 		try { save(fid, data, 0, 0); }
 		catch (BadFormException e) {
