@@ -16,6 +16,42 @@ import java.net.URLConnection;
  * work to establish an ADDE network connection, put together
  * a request packet, and initiate data flow.
  *
+ * <pre>
+ *
+ * URLs must all have the following format   
+ *   adde://host/image?keyword_1=value_1&keyword_2=value_2
+ *
+ * there can be any valid combination of the following supported keywords:
+ *   group - ADDE group name   
+ *   descr - ADDE descriptor name   
+ *   band - spectral band or channel number
+ *   mag - image magnification, postitive for blowup, negative for blowdown
+ *   user - ADDE user identification
+ *   proj - a valid ADDE project number
+ *   lat - latitude to center image on
+ *   lon - longitude to center image on
+ *   pos - when requesting an absolute or relative ADDE position number
+ *   lines - number of lines to include in image
+ *   elems - number of elements to include in image
+ *   unit - to specify calibration units other than the default
+ *   spac - number of bytes per data point, 1, 2, or 4
+ *   doc - specify yes to include line documentation with image
+ *   aux - specify yes to include auxilliary information with image
+ *   time - to specify an image start time
+ *   cal - to request a specific calibration on the image
+ *   trace - setting non zero tells server to write debug trace file
+ *   version - ADDE version number, currently 1
+ *
+ * the following keywords are required, and version MUST be the last 
+ * in the URL:
+ *
+ *   group, band, user, proj, version
+ *
+ * an example URL might look like:
+ *   adde://viper/image?group=gvar&band=1&user=tjj&proj=6999&version=1
+ *   
+ * </pre>
+ *
  * @author Tommy Jasmin, University of Wisconsin, SSEC
  */
 
@@ -54,9 +90,10 @@ public class AddeURLConnection extends URLConnection
    * Establishes an ADDE connection using the URL passed to the
    * constructor.  Opens a socket on the ADDE port, and formulates
    * an ADDE image data request based on the file portion of URL.
+   *   
    * an example URL might look like:
    *   adde://viper.ssec.wisc.edu/image?group=gvar&band=1&mag=-8&version=1
-   *
+   *   
    */
 
   synchronized public void connect ()
