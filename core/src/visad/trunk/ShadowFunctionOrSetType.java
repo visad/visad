@@ -2203,20 +2203,13 @@ makeGeometry 350, 171
             }
 
             if (range_select[0] != null) {
-              if (mode.getMissingTransparent()) {
-                if (color_values.length == 3) {
-                  spatial_set.cram_missing(range_select[0]);
-                  spatial_all_select = false;
-                }
-                else {
-                  for (int i=0; i<domain_length; i++) {
-                    if (!range_select[0][i]) {
-                      // make missing pixel invisible (transparent)
-                      color_values[3][i] = 0;
-                    }
+              if (mode.getMissingTransparent() && color_values.length > 3) {
+                for (int i=0; i<domain_length; i++) {
+                  if (!range_select[0][i]) {
+                    // make missing pixel invisible (transparent)
+                    color_values[3][i] = 0;
                   }
                 }
-
               }
               else {
                 for (int i=0; i<domain_length; i++) {

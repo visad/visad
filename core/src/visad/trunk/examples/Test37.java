@@ -188,7 +188,7 @@ public class Test37
 
   public String toString()
   {
-    return " swap: colored contours from regular grids and ContourWidget in Java3D";
+    return ": colored contours from regular grids and ContourWidget in Java3D";
   }
 
   public static void main(String[] args)

@@ -33,6 +33,8 @@ import visad.util.SelectRangeWidget;
 public class Test21
   extends UISkeleton
 {
+  private boolean texture;
+
   public Test21() { }
 
   public Test21(String[] args)
@@ -47,6 +49,14 @@ public class Test21
     DisplayImpl[] dpys = new DisplayImpl[1];
     dpys[0] = new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
     return dpys;
+  }
+
+  public void initializeArgs() { texture = false; }
+
+  public int checkKeyword(String testName, int argc, String[] args)
+  {
+    texture = true;
+    return 1;
   }
 
   void setupServerData(LocalDisplay[] dpys)
@@ -78,6 +88,7 @@ public class Test21
     mode.setPointSize(2.0f);
     mode.setPointMode(false);
     mode.setMissingTransparent(true);
+    mode.setTextureEnable(texture);
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
@@ -93,7 +104,7 @@ public class Test21
     return new SelectRangeWidget(range1map);
   }
 
-  public String toString() { return ": SelectRange and SelectRangeWidget"; }
+  public String toString() { return " texture: SelectRange and SelectRangeWidget"; }
 
   public static void main(String[] args)
     throws RemoteException, VisADException
