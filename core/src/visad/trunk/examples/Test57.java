@@ -77,6 +77,9 @@ public class Test57
     dpys[0].addMap(new ConstantMap(0.5, Display.Blue));
     dpys[0].addMap(new ConstantMap(0.5, Display.Red));
 
+    GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
+    mode.setScaleEnable(true);
+
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
     dpys[0].addReference(ref_imaget1, null);
@@ -99,7 +102,9 @@ public class Test57
     if (!isClient()) {
       // change aspect ratio
       control = dpys[0].getProjectionControl();
-      control.setAspect(new double[] {1.0, 0.5, 0.25});
+      // control.setAspect(new double[] {1.0, 0.5, 0.25});
+      control.setAspect2(new double[] {2.0, 1.0, 0.5});
+      control.setAspect(new double[] {0.5, 0.5, 0.5});
 
       dpys[0].addDisplayListener(this);
       rotate(dpys[0]);

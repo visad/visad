@@ -150,7 +150,7 @@ public class AxisScale implements java.io.Serializable
     DisplayRenderer displayRenderer = display.getDisplayRenderer();
     if (displayRenderer == null) return false;
     if (axisOrdinal < 0) {
-    axisOrdinal = displayRenderer.getAxisOrdinal(myAxis);
+      axisOrdinal = displayRenderer.getAxisOrdinal(myAxis);
     }
     dataRange = scalarMap.getRange();
     VisADLineArray[] arrays = new VisADLineArray[4];
@@ -166,39 +166,72 @@ public class AxisScale implements java.io.Serializable
     double[] startn = null; // -1.0 position along axis
     double[] startp = null; // +1.0 position along axis
   
+// WLH 24 Nov 2000
+    ProjectionControl pcontrol = display.getProjectionControl();
+    double[] aspect = pcontrol.getAspect2();
+
+/* WLH 24 Nov 2000
     double XMIN = -1.0;
     double YMIN = -1.0;
     double ZMIN = -1.0;
-  
+*/
+    double XMIN = -aspect[0];
+    double YMIN = -aspect[1];
+    double ZMIN = -aspect[2];
+
     double line = 2.0 * axisOrdinal * SCALE;
   
     double ONE = 1.0;
     if (dataRange[0] > dataRange[1]) ONE = -1.0; // inverted range
     if (myAxis == X_AXIS) {
-    base = new double[] {SCALE, 0.0, 0.0};
-    up = new double[] {0.0, SCALE, SCALE};
-    startp = new double[] {ONE, YMIN * (OFFSET + line), ZMIN * (OFFSET + line)};
-    startn = new double[] {-ONE, YMIN * (OFFSET + line), ZMIN * (OFFSET + line)};
+      base = new double[] {SCALE, 0.0, 0.0};
+      up = new double[] {0.0, SCALE, SCALE};
+/* WLH 24 Nov 2000
+      startp = new double[] {ONE, YMIN * (OFFSET + line), ZMIN * (OFFSET + line)};
+      startn = new double[] {-ONE, YMIN * (OFFSET + line), ZMIN * (OFFSET + line)};
+*/
+      startp = new double[] {-ONE * XMIN,
+                             YMIN - ((OFFSET - 1.0) + line),
+                             ZMIN - ((OFFSET - 1.0) + line)};
+      startn = new double[] {ONE * XMIN,
+                             YMIN - ((OFFSET - 1.0) + line),
+                             ZMIN - ((OFFSET - 1.0) + line)};
     }
     else if (myAxis == Y_AXIS) {
-    base = new double[] {0.0, -SCALE, 0.0};
-    up = new double[] {SCALE, 0.0, SCALE};
-    startp = new double[] {XMIN * (OFFSET + line), ONE, ZMIN * (OFFSET + line)};
-    startn = new double[] {XMIN * (OFFSET + line), -ONE, ZMIN * (OFFSET + line)};
+      base = new double[] {0.0, -SCALE, 0.0};
+      up = new double[] {SCALE, 0.0, SCALE};
+/* WLH 24 Nov 2000
+      startp = new double[] {XMIN * (OFFSET + line), ONE, ZMIN * (OFFSET + line)};
+      startn = new double[] {XMIN * (OFFSET + line), -ONE, ZMIN * (OFFSET + line)};
+*/
+      startp = new double[] {XMIN - ((OFFSET - 1.0) + line),
+                             -ONE * YMIN,
+                             ZMIN - ((OFFSET - 1.0) + line)};
+      startn = new double[] {XMIN - ((OFFSET - 1.0) + line),
+                             ONE * YMIN,
+                             ZMIN - ((OFFSET - 1.0) + line)};
     }
     else if (myAxis == Z_AXIS) {
-    base = new double[] {0.0, 0.0, -SCALE};
-    up = new double[] {SCALE, SCALE, 0.0};
-    startp = new double[] {XMIN * (OFFSET + line), YMIN * (OFFSET + line), ONE};
-    startn = new double[] {XMIN * (OFFSET + line), YMIN * (OFFSET + line), -ONE};
+      base = new double[] {0.0, 0.0, -SCALE};
+      up = new double[] {SCALE, SCALE, 0.0};
+/* WLH 24 Nov 2000
+      startp = new double[] {XMIN * (OFFSET + line), YMIN * (OFFSET + line), ONE};
+      startn = new double[] {XMIN * (OFFSET + line), YMIN * (OFFSET + line), -ONE};
+*/
+      startp = new double[] {XMIN - ((OFFSET - 1.0) + line),
+                             YMIN - ((OFFSET - 1.0) + line),
+                             -ONE * ZMIN};
+      startn = new double[] {XMIN - ((OFFSET - 1.0) + line),
+                             YMIN - ((OFFSET - 1.0) + line),
+                             ONE * ZMIN};
     }
     if (twoD) {
-    // zero out z coordinates
-    base[2] = 0.0;
-    up[2] = 0.0;
-    startn[2] = 0.0;
-    startp[2] = 0.0;
-    if (myAxis == 2) return false;
+      // zero out z coordinates
+      base[2] = 0.0;
+      up[2] = 0.0;
+      startn[2] = 0.0;
+      startp[2] = 0.0;
+      if (myAxis == 2) return false;
     }
   
     // compute tick mark values
@@ -207,27 +240,27 @@ public class AxisScale implements java.io.Serializable
     double max = Math.max(dataRange[0], dataRange[1]);
     double tens = 1.0;
     if (range < tens) {
-    tens /= 10.0;
-    while (range < tens) tens /= 10.0;
+      tens /= 10.0;
+      while (range < tens) tens /= 10.0;
     }
     else {
-    while (10.0 * tens <= range) tens *= 10.0;
+      while (10.0 * tens <= range) tens *= 10.0;
     }
     // now tens <= range < 10.0 * tens;
     double ratio = range / tens;
     if (ratio < 2.0) {
-    tens /= 5.0;
+      tens /= 5.0;
     }
     else if (ratio < 4.0) {
-    tens /= 2.0;
+      tens /= 2.0;
     }
     // now tens = interval between tick marks
   
     long bot = (int) Math.ceil(min / tens);
     long top = (int) Math.floor(max / tens);
     if (bot == top) {
-    if (bot < 0) top++;
-    else bot--;
+      if (bot < 0) top++;
+      else bot--;
     }
     // now bot * tens = value of lowest tick mark, and
     // top * tens = values of highest tick mark
@@ -240,24 +273,24 @@ public class AxisScale implements java.io.Serializable
     float[] coordinates = new float[6 * (nticks + 1)];
     // draw base line
     for (int i=0; i<3; i++) { // loop over x, y & z coordinates
-    coordinates[i] = (float) startn[i];
-    coordinates[3 + i] = (float) startp[i];
+      coordinates[i] = (float) startn[i];
+      coordinates[3 + i] = (float) startp[i];
     }
     // now coordinates[0], [1] and [2]
   
     // draw tick marks
     int k = 6;
     for (long j=bot; j<=top; j++) {
-    double val = j * tens;
-    double a = (val - min) / (max - min);
-    for (int i=0; i<3; i++) {
-      if ((k + 3 + i) < coordinates.length) {
-      // guard against error that cannot happen, but was seen?
-      coordinates[k + i] = (float) ((1.0 - a) * startn[i] + a * startp[i]);
-      coordinates[k + 3 + i] = (float) (coordinates[k + i] - 0.5 * up[i]);
+      double val = j * tens;
+      double a = (val - min) / (max - min);
+      for (int i=0; i<3; i++) {
+        if ((k + 3 + i) < coordinates.length) {
+          // guard against error that cannot happen, but was seen?
+          coordinates[k + i] = (float) ((1.0 - a) * startn[i] + a * startp[i]);
+          coordinates[k + 3 + i] = (float) (coordinates[k + i] - 0.5 * up[i]);
+        }
       }
-    }
-    k += 6;
+      k += 6;
     }
     arrays[0].vertexCount = 2 * (nticks + 1);
     arrays[0].coordinates = coordinates;
@@ -271,9 +304,9 @@ public class AxisScale implements java.io.Serializable
     double abot = (botval - min) / (max - min);
     double atop = (topval - min) / (max - min);
     for (int i=0; i<3; i++) {
-    startbot[i] = (1.0 - abot) * startn[i] + abot * startp[i] - 1.5 * up[i];
-    starttop[i] = (1.0 - atop) * startn[i] + atop * startp[i] - 1.5 * up[i];
-    startlabel[i] = 0.5 * (startn[i] + startp[i]) - 1.5 * up[i];
+      startbot[i] = (1.0 - abot) * startn[i] + abot * startp[i] - 1.5 * up[i];
+      starttop[i] = (1.0 - atop) * startn[i] + atop * startp[i] - 1.5 * up[i];
+      startlabel[i] = 0.5 * (startn[i] + startp[i]) - 1.5 * up[i];
     }
     // all labels rendered with 'true' for centered
   
@@ -284,9 +317,9 @@ public class AxisScale implements java.io.Serializable
     String botstr = PlotText.shortString(botval);
     String topstr = PlotText.shortString(topval);
     if (RealType.Time.equals(scalarMap.getScalar())) {
-    RealType rtype = (RealType) scalarMap.getScalar();
-    botstr = new Real(rtype, botval).toValueString();
-    topstr = new Real(rtype, topval).toValueString();
+      RealType rtype = (RealType) scalarMap.getScalar();
+      botstr = new Real(rtype, botval).toValueString();
+      topstr = new Real(rtype, topval).toValueString();
     }
     // draw number at bottom tick mark
     arrays[2] = PlotText.render_label(botstr, startbot, base, up, true);

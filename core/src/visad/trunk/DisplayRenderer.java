@@ -89,7 +89,10 @@ public abstract class DisplayRenderer
     pickThreshhold = pt;
   }
 
-  /**
+  // WLH 24 Nov 2000
+  public abstract void setBoxAspect(double[] aspect);
+
+/**
    * Specify <CODE>DisplayImpl</CODE> to be rendered.
    * @param d <CODE>Display</CODE> to render.
    * @exception VisADException If a <CODE>DisplayImpl</CODE> has already

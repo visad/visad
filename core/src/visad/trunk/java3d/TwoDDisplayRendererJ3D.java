@@ -99,6 +99,10 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
 
     // create the box containing data depictions
     LineArray box_geometry = new LineArray(8, LineArray.COORDINATES);
+
+    // WLH 24 Nov 2000
+    box_geometry.setCapability(GeometryArray.ALLOW_COORDINATE_WRITE);
+
     box_geometry.setCoordinates(0, box_verts);
     Appearance box_appearance = new Appearance();
     box_color.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
@@ -107,6 +111,7 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
     box_color.setColor(ctlBox[0], ctlBox[1], ctlBox[2]);
     box_appearance.setColoringAttributes(box_color);
     Shape3D box = new Shape3D(box_geometry, box_appearance);
+    box.setCapability(Shape3D.ALLOW_GEOMETRY_READ); // WLH 24 Nov 2000
     BranchGroup box_on = getBoxOnBranch();
     box_on.addChild(box);
 
@@ -152,6 +157,20 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
     root.addChild(light2);
 
     return root;
+  }
+
+  // WLH 24 Nov 2000
+  public void setBoxAspect(double[] aspect) {
+    float[] new_verts = new float[box_verts.length];
+    for (int i=0; i<box_verts.length; i+=3) {
+      new_verts[i] = (float) (box_verts[i] * aspect[0]);
+      new_verts[i+1] = (float) (box_verts[i+1] * aspect[1]);
+      new_verts[i+2] = (float) (box_verts[i+2] * aspect[2]);
+    }
+    BranchGroup box_on = getBoxOnBranch();
+    Shape3D box = (Shape3D) box_on.getChild(0);
+    LineArray box_geometry = (LineArray) box.getGeometry();
+    box_geometry.setCoordinates(0, new_verts);
   }
 
 /*

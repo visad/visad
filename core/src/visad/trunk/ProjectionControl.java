@@ -41,6 +41,8 @@ public abstract class ProjectionControl extends Control {
   protected double[] matrix = null;
   private double[] savedProjectionMatrix = null;
 
+  private double[] asp = {1.0, 1.0, 1.0}; // WLH 24 Nov 2000
+
   /** Length of a 2D matrix */
   public static final int MATRIX2D_LENGTH = 6;
   /** Major dimension of the 2D matrix */
@@ -195,6 +197,30 @@ public abstract class ProjectionControl extends Control {
   public abstract void setAspect(double[] aspect)
          throws VisADException, RemoteException;
 
+  // WLH 24 Nov 2000
+  /** 
+   * Set aspect ratio of axes, in ScalarMaps rather than matrix
+   * @param aspect ratios; 3 elements for Java3D, 2 for Java2D 
+   * @throws VisADException   VisAD failure.
+   * @throws RemoteException  Java RMI failure.
+   */
+  public void setAspect2(double[] aspect)
+         throws VisADException, RemoteException {
+    if (aspect != null) {
+      for (int i=0; i<aspect.length; i++) {
+        if (aspect[i] <= 0.0) {
+          throw new DisplayException("aspect must be positive");
+        }
+        asp[i] = aspect[i];
+      }
+    }
+    getDisplay().setAspect2(asp);
+  }
+
+  public double[] getAspect2() {
+    return (double[]) asp.clone();
+  }
+
   /**
    * Saves the current display projection matrix.  The projection may 
    * later be restored by the method <code>resetProjection()</code>.
@@ -329,6 +355,30 @@ public abstract class ProjectionControl extends Control {
     return true;
   }
 
+  // WLH 24 Nov 2000
+  private boolean aspEquals(double[] newAsp)
+  {
+    if (asp == null) {
+      if (newAsp != null) {
+        return false;
+      }
+    } else if (newAsp == null) {
+      return false;
+    } else {
+      if (asp.length != newAsp.length) {
+        return false;
+      }
+
+      for (int i = 0; i < asp.length; i++) {
+        if (!Util.isApproximatelyEqual(asp[i], newAsp[i])) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
   /** 
    * Copy the state of a remote control to this control 
    * @param  rmt  remote control
@@ -357,6 +407,15 @@ public abstract class ProjectionControl extends Control {
         throw new VisADException("Could not set matrix: " + re.getMessage());
       }
     }
+    // WLH 24 Nov 2000
+    if (!aspEquals(pc.asp)) {
+      try {
+        setAspect2(pc.asp);
+      } catch (RemoteException re) {
+        throw new VisADException("Could not setAspect2: " + re.getMessage());
+      }
+    }
+
   }
 
   /**
@@ -377,6 +436,11 @@ public abstract class ProjectionControl extends Control {
       return false;
     }
 
+    // WLH 24 Nov 2000
+    if (!aspEquals(pc.asp)) {
+      return false;
+    }
+
     return true;
   }
 
@@ -389,6 +453,10 @@ public abstract class ProjectionControl extends Control {
     ProjectionControl pc = (ProjectionControl )super.clone();
     if (matrix != null) {
       pc.matrix = (double[] )matrix.clone();
+    }
+    // WLH 24 Nov 2000
+    if (asp != null) {
+      pc.asp = (double[] )asp.clone();
     }
 
     return pc;

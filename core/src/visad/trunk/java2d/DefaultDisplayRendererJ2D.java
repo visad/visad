@@ -144,6 +144,18 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
     return root;
   }
 
+  // WLH 24 Nov 2000
+  public void setBoxAspect(double[] aspect) {
+    float[] new_verts = new float[box_verts.length];
+    for (int i=0; i<box_verts.length; i+=3) {
+      new_verts[i] = (float) (box_verts[i] * aspect[0]);
+      new_verts[i+1] = (float) (box_verts[i+1] * aspect[1]);
+      new_verts[i+2] = (float) (box_verts[i+2] * aspect[2]);
+    }
+    VisADLineArray box_array = (VisADLineArray) box.array;
+    box_array.coordinates = new_verts;
+  }
+
   private static final float[] box_verts = {
      // front face
          -1.0f, -1.0f,  0.0f,                       -1.0f,  1.0f,  0.0f,

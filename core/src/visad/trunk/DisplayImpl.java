@@ -1908,4 +1908,34 @@ if (initialize) {
       throw exception;
     }
   }
+
+
+// WLH 24 Nov 2000
+  void setAspect2(double[] aspect)
+       throws VisADException, RemoteException {
+    if (mapslock == null) return;
+    synchronized (mapslock) {
+      // clone MapVector to avoid need for synchronized access
+      Vector tmap = (Vector) MapVector.clone();
+      Enumeration maps = tmap.elements();
+      while (maps.hasMoreElements()) {
+        ScalarMap map = (ScalarMap) maps.nextElement();
+        map.setAspect2(aspect);
+      }
+
+      tmap = (Vector) ConstantMapVector.clone();
+      maps = tmap.elements();
+      while (maps.hasMoreElements()) {
+        ConstantMap map = (ConstantMap) maps.nextElement();
+        map.setAspect2(aspect);
+      }
+
+      // resize box
+      getDisplayRenderer().setBoxAspect(aspect);
+
+      // reAutoScale(); ??
+      reDisplayAll();
+    } // end synchronized (mapslock)
+  }
+
 }

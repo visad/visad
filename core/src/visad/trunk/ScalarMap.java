@@ -601,6 +601,8 @@ System.out.println("dataRange = " + dataRange[0] + " " + dataRange[1] +
     // at this point dataRange is range for Scalar default Unit
     //   even if (overrideUnit != null)
     if (isScaled) {
+      computeScaleAndOffset();
+/* WLH 24 Nov 2000
       if (dataRange[0] == Double.MAX_VALUE ||
           dataRange[1] == -Double.MAX_VALUE) {
         dataRange[0] = Double.NaN;
@@ -635,6 +637,7 @@ System.out.println("dataRange = " + dataRange[0] + " " + dataRange[1] +
         scale = Double.NaN;
         offset = Double.NaN;
       }
+*/
     }
     else { // if (!isScaled)
       if (dataRange[0] == Double.MAX_VALUE ||
@@ -717,6 +720,43 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
           (ScalarMapListener) listeners.nextElement();
         listener.mapChanged(evt);
       }
+    }
+  }
+
+  private void computeScaleAndOffset() {
+    if (dataRange[0] == Double.MAX_VALUE ||
+        dataRange[1] == -Double.MAX_VALUE) {
+      dataRange[0] = Double.NaN;
+      dataRange[1] = Double.NaN;
+      scale = Double.NaN;
+      offset = Double.NaN;
+    }
+    else {
+      if (dataRange[0] == dataRange[1]) {
+        // WLH 11 April 2000
+        double half = dataRange[0] / 2000.0;
+        if (half < 0.5) half = 0.5;
+        dataRange[0] -= half;
+        dataRange[1] += half;
+      }
+
+      // WLH 31 Aug 2000
+      if (overrideUnit != null) {
+        // now convert dataRange to overrideUnit
+        dataRange[0] = dataRange[0] * override_scale + override_offset;
+        dataRange[1] = dataRange[1] * override_scale + override_offset;
+      }
+
+      scale = (displayRange[1] - displayRange[0]) /
+              (dataRange[1] - dataRange[0]);
+      offset = displayRange[0] - scale * dataRange[0];
+    }
+    if (Double.isInfinite(scale) || Double.isInfinite(offset) ||
+        scale != scale || offset != offset) {
+      dataRange[0] = Double.NaN;
+      dataRange[1] = Double.NaN;
+      scale = Double.NaN;
+      offset = Double.NaN;
     }
   }
 
@@ -1198,4 +1238,25 @@ System.out.println("inverse values = " + values[0] + " " + old_values[0] + " " +
   {
       return axisScale;
   }
+
+// WLH 24 Nov 2000
+// won't work for spherical, polar, cylindrical coordinates ****
+  void setAspect2(double[] aspect)
+       throws VisADException, RemoteException {
+    double asp = Double.NaN;
+    if (DisplayScalar.equals(Display.XAxis)) asp = aspect[0];
+    if (DisplayScalar.equals(Display.YAxis)) asp = aspect[1];
+    if (DisplayScalar.equals(Display.ZAxis)) asp = aspect[2];
+    if (asp == asp) {
+      isScaled = DisplayScalar.getRange(displayRange);
+      displayRange[0] *= asp;
+      displayRange[1] *= asp;
+      computeScaleAndOffset();
+
+      makeScale();
+// needs work in AxisScale ****
+    }
+    // note XAxis, YAxis and ZAxis have no unit, so cannot be setRangeByUnits()
+  }
+
 }
