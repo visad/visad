@@ -568,7 +568,7 @@ public class Gridded1DDoubleSet extends Gridded1DSet
       }
       // Sets are immutable, so no need for 'synchronized'
       double[][] samples = ((Gridded1DDoubleSet) set).getDoubles(false);
-      if (Samples != null) {
+      if (Samples != null && samples != null) {
         for (j=0; j<DomainDimension; j++) {
           for (i=0; i<Length; i++) {
             if (Samples[j][i] != samples[j][i]) {
@@ -580,11 +580,19 @@ public class Gridded1DDoubleSet extends Gridded1DSet
       }
       else {
         double[][] this_samples = getDoubles(false);
-        for (j=0; j<DomainDimension; j++) {
-          for (i=0; i<Length; i++) {
-            if (this_samples[j][i] != samples[j][i]) {
-              addNotEqualsCache((Set) set);
-              return false;
+        if (this_samples == null) {
+          if (samples != null) {
+            return false;
+          }
+        } else if (samples == null) {
+          return false;
+        } else {
+          for (j=0; j<DomainDimension; j++) {
+            for (i=0; i<Length; i++) {
+              if (this_samples[j][i] != samples[j][i]) {
+                addNotEqualsCache((Set) set);
+                return false;
+              }
             }
           }
         }

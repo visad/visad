@@ -121,8 +121,21 @@ public class Text extends Scalar {
    *				is semantically identical to the object.
    */
   public boolean equals(Object obj) {
-    return obj != null && obj instanceof Text &&
-      ((Text)obj).getValue().equals(getValue());
+    if (obj == null || !(obj instanceof Text)) {
+      return false;
+    }
+
+    String objValue = ((Text)obj).getValue();
+
+    if (Value == null) {
+      return (objValue == null);
+    }
+
+    if (objValue == null) {
+      return false;
+    }
+
+    return objValue.equals(Value);
   }
 }
 
