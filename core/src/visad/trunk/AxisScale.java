@@ -370,7 +370,7 @@ public class AxisScale implements java.io.Serializable
       // coordinates has three entries for (x, y, z) of each point
       // two points determine a line segment,
       // hence 6 coordinates entries per segment
-      float[] minorCoordinates = new float[6 * (nticks + 1)];
+      float[] minorCoordinates = new float[6 * nticks];
       /*
       // draw base line
       for (int i=0; i<3; i++) { // loop over x, y & z coordinates
@@ -396,7 +396,7 @@ public class AxisScale implements java.io.Serializable
         }
         k += 6;
       }
-      minorTickArray.vertexCount = 2 * (nticks + 1);
+      minorTickArray.vertexCount = 2 * (nticks);
       minorTickArray.coordinates = minorCoordinates;
       lineArrayVector.add(minorTickArray);
     }
