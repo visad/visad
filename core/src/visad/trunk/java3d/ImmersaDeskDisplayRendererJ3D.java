@@ -1,5 +1,5 @@
 //
-// TwoDDisplayRendererJ3D.java
+// ImmersaDeskDisplayRendererJ3D.java
 //
 
 /*
@@ -37,43 +37,56 @@ import java.rmi.RemoteException;
 
 import java.util.*;
 
+/*
+extend MouseBehaviorJ3D to:
+  draw ray from wand for direct manipulation (right button)
+  also to drive cursor location from wand (center button)
+  rotation, scale, translate (left button)?
+
+connect head tracker to DisplayRendererJ3D.vpTrans
+*/
 
 /**
- * <CODE>TwoDDisplayRendererJ3D</CODE> is the VisAD class for 2-D background
- * and metadata rendering under Java3D.<P>
+ * <CODE>ImmersaDeskDisplayRendererJ3D</CODE> is the VisAD class for the
+ * ImmersaDesk background and metadata rendering algorithm under Java3D.<P>
  */
-public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
+public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
 
   MouseBehaviorJ3D mouse = null; // Behavior for mouse interactions
 
   /**
-   * This <CODE>DisplayRenderer</CODE> supports 2-D only rendering.
-   * It is easiest to describe in terms of differences from
-   * <CODE>DefaultDisplayRendererJ3D</CODE>.  The cursor and box
-   * around the scene are 2-D, the scene cannot be rotated,
-   * the cursor cannot be translated in and out, and the
-   * scene can be translated sideways with the left mouse
-   * button with or without pressing the Ctrl key.<P>
-   * No RealType may be mapped to ZAxis or Latitude.
+   * This is the default <CODE>DisplayRenderer</CODE> used by the
+   * <CODE>DisplayImplJ3D</CODE> constructor.
+   * It draws a 3-D cube around the scene.<P>
+   * The left mouse button controls the projection as follows:
+   * <UL>
+   *  <LI>mouse drag rotates in 3-D
+   *  <LI>mouse drag with Shift down zooms the scene
+   *  <LI>mouse drag with Ctrl translates the scene sideways
+   * </UL>
+   * The center mouse button activates and controls the
+   * 3-D cursor as follows:
+   * <UL>
+   *  <LI>mouse drag translates the cursor sideways
+   *  <LI>mouse drag with Shift translates the cursor in and out
+   *  <LI>mouse drag with Ctrl rotates scene in 3-D with cursor on
+   * </UL>
+   * The right mouse button is used for direct manipulation by clicking on
+   * the depiction of a <CODE>Data</CODE> object and dragging or re-drawing
+   * it.<P>
+   * Cursor and direct manipulation locations are displayed in RealType
+   * values.<P>
+   * <CODE>BadMappingExceptions</CODE> and
+   * <CODE>UnimplementedExceptions</CODE> are displayed<P>
    */
-  public TwoDDisplayRendererJ3D () {
+  public ImmersaDeskDisplayRendererJ3D () {
     super();
-  }
-
-  public boolean getMode2D() {
-    return true;
-  }
-
-  public boolean legalDisplayScalar(DisplayRealType type) {
-    if (Display.ZAxis.equals(type) ||
-        Display.Latitude.equals(type)) return false;
-    else return super.legalDisplayScalar(type);
   }
 
   /**
    * Create scene graph root, if none exists, with Transform
    * and direct manipulation root;
-   * create 3-D box, lights and MouseBehaviorJ3D for
+   * create 3-D box, lights and <CODE>MouseBehaviorJ3D</CODE> for
    * embedded user interface.
    * @param v
    * @param vpt
@@ -92,7 +105,7 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
     TransformGroup trans = getTrans();
 
     // create the box containing data depictions
-    LineArray box_geometry = new LineArray(8, LineArray.COORDINATES);
+    LineArray box_geometry = new LineArray(24, LineArray.COORDINATES);
     box_geometry.setCoordinates(0, box_verts);
     Appearance box_appearance = new Appearance();
     box_color = new ColoringAttributes();
@@ -114,7 +127,7 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
     cursor_appearance.setColoringAttributes(cursor_color);
 
     BranchGroup cursor_on = getCursorOnBranch();
-    LineArray cursor_geometry = new LineArray(4, LineArray.COORDINATES);
+    LineArray cursor_geometry = new LineArray(6, LineArray.COORDINATES);
     cursor_geometry.setCoordinates(0, cursor_verts);
     Shape3D cursor = new Shape3D(cursor_geometry, cursor_appearance);
     cursor_on.addChild(cursor);
@@ -150,32 +163,29 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
     return root;
   }
 
-/*
   private static final float[] box_verts = {
      // front face
-         -1.0f, -1.0f,  0.3f,                       -1.0f,  1.0f,  0.3f,
-         -1.0f,  1.0f,  0.3f,                        1.0f,  1.0f,  0.3f,
-          1.0f,  1.0f,  0.3f,                        1.0f, -1.0f,  0.3f,
-          1.0f, -1.0f,  0.3f,                       -1.0f, -1.0f,  0.3f
+         -1.0f, -1.0f,  1.0f,                       -1.0f,  1.0f,  1.0f,
+         -1.0f,  1.0f,  1.0f,                        1.0f,  1.0f,  1.0f,
+          1.0f,  1.0f,  1.0f,                        1.0f, -1.0f,  1.0f,
+          1.0f, -1.0f,  1.0f,                       -1.0f, -1.0f,  1.0f,
+     // back face
+         -1.0f, -1.0f, -1.0f,                       -1.0f,  1.0f, -1.0f,
+         -1.0f,  1.0f, -1.0f,                        1.0f,  1.0f, -1.0f,
+          1.0f,  1.0f, -1.0f,                        1.0f, -1.0f, -1.0f,
+          1.0f, -1.0f, -1.0f,                       -1.0f, -1.0f, -1.0f,
+     // connectors
+         -1.0f, -1.0f,  1.0f,                       -1.0f, -1.0f, -1.0f,
+         -1.0f,  1.0f,  1.0f,                       -1.0f,  1.0f, -1.0f,
+          1.0f,  1.0f,  1.0f,                        1.0f,  1.0f, -1.0f,
+          1.0f, -1.0f,  1.0f,                        1.0f, -1.0f, -1.0f
   };
 
   private static final float[] cursor_verts = {
-          0.0f,  0.1f,  0.3f,                        0.0f, -0.1f,  0.3f,
-          0.1f,  0.0f,  0.3f,                       -0.1f,  0.0f,  0.3f
-  };
-*/
-
-  private static final float[] box_verts = {
-     // front face
-         -1.0f, -1.0f,  0.0f,                       -1.0f,  1.0f,  0.0f,
-         -1.0f,  1.0f,  0.0f,                        1.0f,  1.0f,  0.0f,
-          1.0f,  1.0f,  0.0f,                        1.0f, -1.0f,  0.0f,
-          1.0f, -1.0f,  0.0f,                       -1.0f, -1.0f,  0.0f
-  };
-
-  private static final float[] cursor_verts = {
+          0.0f,  0.0f,  0.1f,                        0.0f,  0.0f, -0.1f,
           0.0f,  0.1f,  0.0f,                        0.0f, -0.1f,  0.0f,
           0.1f,  0.0f,  0.0f,                       -0.1f,  0.0f,  0.0f
   };
+
 }
 

@@ -77,10 +77,15 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
 
   /** TransformGroup for ViewPlatform */
   TransformGroup vpTrans = null;
+
   /** MouseBehaviorJ3D */
   MouseBehaviorJ3D mouse = null;
   double back_clip = 0.0;
   double front_clip = 0.0;
+
+  /** color of box and cursor */
+  ColoringAttributes box_color = null;
+  ColoringAttributes cursor_color = null;
 
   /** background attached to root */
   private Background background = null;
@@ -189,9 +194,30 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
    */
   public void initControl(RendererControl ctl)
   {
+    Color3f c3f = new Color3f();
+
+    // initialize box colors
+    if (box_color != null) {
+      box_color.getColor(c3f);
+      try {
+        ctl.setBoxColor(c3f.x, c3f.y, c3f.z);
+      } catch (Throwable t) {
+        // ignore any initialization problems
+      }
+    }
+
+    // initialize cursor colors
+    if (cursor_color != null) {
+      cursor_color.getColor(c3f);
+      try {
+        ctl.setCursorColor(c3f.x, c3f.y, c3f.z);
+      } catch (Throwable t) {
+        // ignore any initialization problems
+      }
+    }
+
     // initialize background colors
     if (background != null) {
-      Color3f c3f = new Color3f();
       background.getColor(c3f);
       try {
         ctl.setBackgroundColor(c3f.x, c3f.y, c3f.z);
@@ -217,9 +243,35 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
   {
     RendererControl ctl = (RendererControl )evt.getControl();
 
-    // update background colors
-    float[] ct = ctl.getBackgroundColor();
+    float[] ct;
     Color3f c3f = new Color3f();
+
+    // update box colors
+    if (box_color != null) {
+      ct = ctl.getBoxColor();
+      box_color.getColor(c3f);
+      if (Math.abs(ct[0] - c3f.x) > 0.0001 ||
+          Math.abs(ct[1] - c3f.y) > 0.0001 ||
+          Math.abs(ct[2] - c3f.z) > 0.0001)
+      {
+        box_color.setColor(ct[0], ct[1], ct[2]);
+      }
+    }
+
+    // update cursor colors
+    if (cursor_color != null) {
+      ct = ctl.getCursorColor();
+      cursor_color.getColor(c3f);
+      if (Math.abs(ct[0] - c3f.x) > 0.0001 ||
+          Math.abs(ct[1] - c3f.y) > 0.0001 ||
+          Math.abs(ct[2] - c3f.z) > 0.0001)
+      {
+        cursor_color.setColor(ct[0], ct[1], ct[2]);
+      }
+    }
+
+    // update background colors
+    ct = ctl.getBackgroundColor();
     background.getColor(c3f);
     if (Math.abs(ct[0] - c3f.x) > 0.0001 ||
         Math.abs(ct[1] - c3f.y) > 0.0001 ||
@@ -279,28 +331,29 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
    * create special graphics (e.g., 3-D box, SkewT background),
    * any lights, any user interface embedded in scene.
    * @param v
-   * @param vpTrans
+   * @param vpt
    * @param c
    * @return Scene graph root.
    */
-  public abstract BranchGroup createSceneGraph(View v, TransformGroup vpTrans,
+  public abstract BranchGroup createSceneGraph(View v, TransformGroup vpt,
                                                VisADCanvasJ3D c);
 
   /**
    * Create scene graph root, if none exists, with Transform
    * and direct manipulation root.
    * @param v
-   * @param vpTrans
+   * @param vpt
    * @param c
    * @param m
    * @return Scene graph root.
    */
-  public BranchGroup createBasicSceneGraph(View v, TransformGroup vpTrans,
+  public BranchGroup createBasicSceneGraph(View v, TransformGroup vpt,
          VisADCanvasJ3D c, MouseBehaviorJ3D m) {
     if (root != null) return root;
 
     mouse = m;
     view = v;
+    vpTrans = vpt;
     back_clip = view.getBackClipDistance();
     front_clip = view.getFrontClipDistance();
     // System.out.println("back_clip = " + back_clip + " front_clip = " + front_clip);
