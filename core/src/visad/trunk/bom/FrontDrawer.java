@@ -1400,7 +1400,10 @@ public class FrontDrawer extends Object implements ControlListener {
     ScalarMap timemap = new ScalarMap(RealType.Time, Display.Animation);
     display.addMap(timemap);
     AnimationControl acontrol = (AnimationControl) timemap.getControl();
+/* WLH 3 Sept 2001 WHY?
     // acontrol.setSet(new Integer1DSet(RealType.Time, 4));
+*/
+    acontrol.setSet(new Integer1DSet(RealType.Time, 4));
 
     initColormaps(display);
 
@@ -1445,8 +1448,10 @@ public class FrontDrawer extends Object implements ControlListener {
     frame.setSize(500, 700);
     frame.setVisible(true);
 
+/* WLH 3 Sept 2001 WHY?
     new Delay(5000);
     acontrol.setSet(new Integer1DSet(RealType.Time, 4));
+*/
   }
 }
 
