@@ -1680,11 +1680,22 @@ public abstract class JPythonMethods {
   *
   * @return the new Field
   *
-  * Note: this is for testing ONLY and may not remain!
   */
   public static Field resample(Field data, Set s) 
              throws VisADException, RemoteException {
     return data.resample(s,0,0);
+  }
+
+  /** returns the double values of the range
+  *
+  * @param data is the Field from which to get the numeric values
+  *
+  * @return values for all range components in the Field
+  *
+  */
+  public static double[][] getValues(Field data) 
+             throws VisADException, RemoteException {
+    return data.getValues();
   }
 
   /** extracts a component of the Field
@@ -1694,7 +1705,6 @@ public abstract class JPythonMethods {
   *
   * @return the new Field
   *
-  * Note: this is for testing ONLY and may not remain!
   */
   public static Field extract(Field data, MathType t) 
              throws VisADException, RemoteException {
@@ -1709,7 +1719,6 @@ public abstract class JPythonMethods {
   *
   * @return the new Field
   *
-  * Note: this is for testing ONLY and may not remain!
   */
   public static Field extract(Field data, String s) 
              throws VisADException, RemoteException {
@@ -1724,7 +1733,6 @@ public abstract class JPythonMethods {
   *
   * @return the new Field
   *
-  * Note: this is for testing ONLY and may not remain!
   */
   public static Field extract(Field data, int comp) 
              throws VisADException, RemoteException {
@@ -1742,7 +1750,6 @@ public abstract class JPythonMethods {
   *
   * @return the new Field
   *
-  * Note: this is for testing ONLY and may not remain!
   */
   public static Field domainFactor(Field data, RealType factor) 
              throws VisADException, RemoteException {
