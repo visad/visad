@@ -289,7 +289,6 @@ public class AnimationControlJ3D extends AVControlJ3D
   public void setSet(Set s, boolean noChange)
          throws VisADException, RemoteException {
     if (animationSet != null) {
-      animationSet.setSet(s, noChange);
       if (s.getLength() != stepValues.length)
       {
           stepValues = new long[s.getLength()];
@@ -298,6 +297,7 @@ public class AnimationControlJ3D extends AVControlJ3D
               stepValues[i] = step;
           }
       }
+      animationSet.setSet(s, noChange);
     }
   }
 

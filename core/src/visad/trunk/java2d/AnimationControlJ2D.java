@@ -307,7 +307,6 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
   public void setSet(Set s, boolean noChange)
          throws VisADException, RemoteException {
     if (animationSet != null) {
-      animationSet.setSet(s, noChange);
       if (s.getLength() != stepValues.length)
       {
           stepValues = new long[s.getLength()];
@@ -316,6 +315,7 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
               stepValues[i] = step;
           }
       }
+      animationSet.setSet(s, noChange);
     }
   }
 
