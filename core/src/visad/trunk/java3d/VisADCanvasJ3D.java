@@ -38,7 +38,7 @@ import java.rmi.RemoteException;
    VisADCanvasJ3D is the VisAD extension of Canvas3D
 */
 
-public class VisADCanvasJ3D extends Canvas3D { // J3D
+public class VisADCanvasJ3D extends Canvas3D {
 
   private DisplayRendererJ3D displayRenderer;
   private DisplayImplJ3D display;
