@@ -225,9 +225,12 @@ boolean anynotmissing = false;
     int nump, ip;
     int numv;
 
-/* DRM 1999-05-18 */
-    float[] myvals = (float[]) values.clone();
-    java.util.Arrays.sort(myvals);
+/* DRM 1999-05-18, CTR 29 Jul 1999: values could be null */
+    float[] myvals = null;
+    if (values != null) {
+      myvals = (float[]) values.clone();
+      java.util.Arrays.sort(myvals);
+    }
     int low;
     int hi;
 

@@ -416,7 +416,10 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
         // don't set surface value for auto-scale
         values[0] = (float) dataRange[0]; // surfaceValue
       }
-      values[1] = (float) (dataRange[1] - dataRange[0]) / 10.0f; // contourInterval
+      // CTR: 29 Jul 1999: interval should never be zero
+      float f = (float) (dataRange[1] - dataRange[0]) / 10.0f;
+      if (f != 0.0f) values[1] = f;
+      //values[1] = (float) (dataRange[1] - dataRange[0]) / 10.0f; // contourInterval
       values[2] = (float) dataRange[0]; // lowLimit
       values[3] = (float) dataRange[1]; // hiLimit
       values[4] = (float) dataRange[0]; // base
