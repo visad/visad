@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: WindProfileImpl.java,v 1.3 1999-01-07 16:13:21 steve Exp $
+ * $Id: WindProfileImpl.java,v 1.4 1999-01-08 19:55:00 steve Exp $
  */
 
 package visad.meteorology;
@@ -137,5 +137,17 @@ WindProfileImpl
 	if (value < 0)
 	    value += 2*Math.PI;
 	return new Real(CommonTypes.DIRECTION, value, SI.radian);
+    }
+
+
+    /**
+     * Gets the unit of the speed values in the range.  This may differ from
+     * the default unit of the speed type.
+     * @return			The unit of speed.
+     */
+    public Unit
+    getSpeedUnit()
+    {
+	return getRangeUnits()[0][0];
     }
 }

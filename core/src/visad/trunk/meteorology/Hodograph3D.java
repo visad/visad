@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Hodograph3D.java,v 1.3 1999-01-07 23:03:07 steve Exp $
+ * $Id: Hodograph3D.java,v 1.4 1999-01-08 19:54:59 steve Exp $
  */
 
 package visad.meteorology;
@@ -15,27 +15,16 @@ import java.beans.PropertyChangeListener;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import javax.swing.JFrame;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.EventListenerList;
 import visad.ConstantMap;
-import visad.CoordinateSystem;
 import visad.DataReferenceImpl;
 import visad.Display;
-import visad.ErrorEstimate;
 import visad.FlatField;
 import visad.FlowControl;
 import visad.FunctionType;
-import visad.Gridded1DSet;
-import visad.Gridded3DSet;
 import visad.Real;
 import visad.RealTupleType;
 import visad.RealType;
 import visad.ScalarMap;
-import visad.ScalarMapEvent;
-import visad.ScalarMapListener;
-import visad.Set;
-import visad.Unit;
 import visad.VisADException;
 import visad.data.netcdf.Plain;
 import visad.java3d.DirectManipulationRendererJ3D;
@@ -143,15 +132,15 @@ Hodograph3D
 	    (RealType)flowRangeType.getComponent(1), Display.Flow1Y);
 
 	Real	maximumSpeed = displayRenderer.getMaximumSpeed();
-	double	maxSpeed =
-	    maximumSpeed.getValue(windProfile.U_TYPE.getDefaultUnit());
+	double	maxSpeed = maximumSpeed.getValue(
+	    ((RealType)uFlowMap.getScalar()).getDefaultUnit());
 	uFlowMap.setRange(-maxSpeed, maxSpeed);
 	vFlowMap.setRange(-maxSpeed, maxSpeed);
-
-	display.addMap(uFlowMap);
-	display.addMap(vFlowMap);
-	((FlowControl)uFlowMap.getControl()).setFlowScale(5f);
-	((FlowControl)vFlowMap.getControl()).setFlowScale(5f);
+	display.addMap(uFlowMap);	// sets control in ScalarMap
+	display.addMap(vFlowMap);	// sets control in ScalarMap
+	maxSpeed = maximumSpeed.getValue();
+	((FlowControl)uFlowMap.getControl()).setFlowScale((float)maxSpeed);
+	((FlowControl)vFlowMap.getControl()).setFlowScale((float)maxSpeed);
 
 	display.addReferences(
 	    new DirectManipulationRendererJ3D(),

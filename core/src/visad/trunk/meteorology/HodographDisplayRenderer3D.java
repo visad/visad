@@ -62,22 +62,27 @@ HodographDisplayRenderer3D
     /**
      * The maximum speed.
      */
-    private static final float		MAX_SPEED = 10;
+    private static final float		MAX_SPEED = 25;
 
     /**
      * The unit of pressure.
      */
-    private static final Unit		PRESSURE_UNIT = CommonUnits.PASCAL;
+    private static final Unit		PRESSURE_UNIT = CommonUnits.MILLIBAR;
 
     /**
      * The minimum pressure.
      */
-    private static final float		MIN_P = 10000f;
+    private static final float		MIN_P = 100f;
 
     /**
      * The maximum pressure.
      */
-    private static final float		MAX_P = 105000f;
+    private static final float		MAX_P = 1050f;
+
+    /**
+     * The default pressure.
+     */
+    private static final float		DEF_P = 500f;
 
     /**
      * The hodograph coordinate-system transform.
@@ -108,9 +113,12 @@ HodographDisplayRenderer3D
 
 	try
 	{
-	    u = new DisplayRealType("Hodograph3D_U", false, 0.0, SPEED_UNIT);
-	    v = new DisplayRealType("Hodograph3D_V", false, 0.0, SPEED_UNIT);
-	    p = new DisplayRealType("Hodograph3D_P", false, 0.0, PRESSURE_UNIT);
+	    u = new DisplayRealType(
+		"Hodograph3D_U", false, -MAX_SPEED, MAX_SPEED, 0.0, SPEED_UNIT);
+	    v = new DisplayRealType(
+		"Hodograph3D_V", false, -MAX_SPEED, MAX_SPEED, 0.0, SPEED_UNIT);
+	    p = new DisplayRealType(
+		"Hodograph3D_P", false, MIN_P, MAX_P, DEF_P, PRESSURE_UNIT);
 	    coordSys = new HodographCoordSys(
 		MAX_SPEED, SPEED_UNIT, MIN_P, MAX_P, PRESSURE_UNIT);
 	    displayTupleType = new DisplayTupleType(
@@ -337,7 +345,8 @@ HodographDisplayRenderer3D
     /**
      * Get the speed at the canonical outer limit of the display.
      * @return			The speed at the canonical outer limit of the
-     *				display.
+     *				display.  The unit is the same as used by
+     *				the display.
      * @throws VisADException	Couldn't create necessary VisAD object.
      */
     public Real
