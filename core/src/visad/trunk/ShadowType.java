@@ -1576,6 +1576,16 @@ System.out.println(" ");
          throws VisADException { 
     if (text_values == null || text_values.length == 0 ||
         text_control == null) return null;
+
+    float r = 0.0f;
+    float g = 0.0f;
+    float b = 0.0f;
+    if (color_values != null) {
+      r = color_values[0][0];
+      g = color_values[1][0];
+      b = color_values[2][0];
+    }
+
     int n = text_values.length;
     VisADLineArray[] as = new VisADLineArray[n];
     boolean center = text_control.getCenter();
@@ -1596,6 +1606,21 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
                               spatial_values[1][i],
                               spatial_values[2][i]};
         as[k] = PlotText.render_label(text_values[i], start, base, up, center);
+        int len = (as[k] == null) ? 0 : as[k].coordinates.length;
+        if (len > 0 && color_values != null) {
+          if (color_values[0].length > 1) {
+            r = color_values[0][k];
+            g = color_values[1][k];
+            b = color_values[2][k];
+          }
+          float[] colors = new float[len];
+          for (int j=0; j<len; j+=3) {
+            colors[j] = r;
+            colors[j+1] = g;
+            colors[j+2] = b;
+          }
+          as[k].colors = colors;
+        }
         k++;
       }
     }

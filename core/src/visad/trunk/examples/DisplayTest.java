@@ -2214,6 +2214,9 @@ public class DisplayTest extends Object {
      
         display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
         display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.Green));
+        display1.addMap(new ConstantMap(0.5, Display.Blue));
+        display1.addMap(new ConstantMap(0.5, Display.Red));
         ScalarMap text_map = new ScalarMap(text, Display.Text);
         display1.addMap(text_map);
         TextControl text_control = (TextControl) text_map.getControl();
@@ -2260,6 +2263,9 @@ public class DisplayTest extends Object {
      
         display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
         display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.Green));
+        display1.addMap(new ConstantMap(0.5, Display.Blue));
+        display1.addMap(new ConstantMap(0.5, Display.Red));
         display1.addMap(new ScalarMap(text, Display.Text));
 
         ref_text_field =
