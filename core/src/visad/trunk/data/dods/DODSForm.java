@@ -22,11 +22,13 @@ MA 02111-1307, USA
 
 package visad.data.dods;
 
+import java.lang.reflect.*;
 import java.net.*;
 import java.rmi.RemoteException;
 import visad.*;
 import visad.data.*;
 import visad.data.in.*;
+import visad.util.ReflectedUniverse;
 
 /**
  * Provides support for accessing the DODS form of data from VisAD.
@@ -41,27 +43,24 @@ public class DODSForm
 {
     /**
      * The suffix in the path-component of a URL specification that identifies
-     * a dataset specification as being a DODS dataset specification.
+     * a dataset specification as being a DODS dataset specification.  It 
+     * doesn't have a leading period.
      */
-    public final static String		SUFFIX = ".dods";
+    public final static String		SUFFIX = "dods";
 
-    private static DODSForm		instance;
-    private final DODSSource		source;
+    private final static String		periodSuffix = "." + SUFFIX;
+    private final static DODSForm	instance = new DODSForm();
     private final Consolidator		consolidator;
-
-    static
-    {
-	try
-	{
-	    instance = new DODSForm();
-	}
-	catch (VisADException e)
-	{
-	    throw new VisADError(
-		"visad.data.dods.DODSForm.<clinit>: " +
-		"Can't initialize class: " + e);
-	}
-    }
+    private final static String		sourceMessage =
+	"DODS data-import capability is not available -- " +
+	"probably because the DODS package wasn't available when " +
+	"this package was compiled.  If you want DODS data-import " +
+	"capability, then you'll have to first obtain the DODS " +
+	"package (see " +
+	"<http://www.unidata.ucar.edu/packages/dods/index.html>) and " +
+	"then recompile this package.";
+    private final static String		contactMessage =
+	".  This exception should not have occurred.  Contact VisAD support.";
 
     /**
      * Constructs from nothing.
@@ -69,12 +68,9 @@ public class DODSForm
      * @throws VisADException	VisAD failure.
      */
     protected DODSForm()
-	throws VisADException
     {
 	super("DODS");
 	consolidator = new Consolidator();
-	// source = new DODSSource(new TimeFactorer(consolidator));
-	source = new DODSSource(consolidator);
     }
 
     /**
@@ -121,7 +117,7 @@ public class DODSForm
     }
 
     /**
-     * Opens an existing data object.
+     * Opens an existing DODS dataset.
      *
      * @param id		The URL for a DODS dataset.  The path component
      *				should have a {@link #SUFFIX} suffix.
@@ -134,9 +130,52 @@ public class DODSForm
     public DataImpl open(String id)
 	throws BadFormException, RemoteException, VisADException
     {
-	source.open(id);
-	DataImpl	data = consolidator.getData();
-	source.close();		// clears consolidator
+	String		header = getClass().getName() + ".open(String): ";
+	DataImpl	data;
+	try
+	{
+	    Class	sourceClass = 
+		Class.forName(
+		    getClass().getPackage().getName() + ".DODSSource");
+	    // source = new DODSSource(new TimeFactorer(consolidator));
+	    Object	source =
+		sourceClass.getConstructor(
+		    new Class[] {DataSink.class})
+		    .newInstance(new Object[] {consolidator});
+	    sourceClass.getMethod("open", new Class[] {String.class})
+		.invoke(source, new Object[] {id});
+	    data = consolidator.getData();
+	    /* Clears consolidator. */
+	    sourceClass.getMethod("close", null).invoke(source, null);
+	}
+	catch (ClassNotFoundException e)
+	{
+	    throw new VisADException(header + e + ".  " + sourceMessage);
+	}
+	catch (NoSuchMethodException e)
+	{
+	    throw new VisADException(header + e + contactMessage);
+	}
+	catch (SecurityException e)
+	{
+	    throw new VisADException(header + e + contactMessage);
+	}
+	catch (InstantiationException e)
+	{
+	    throw new VisADException(header + e + contactMessage);
+	}
+	catch (IllegalAccessException e)
+	{
+	    throw new VisADException(header + e + contactMessage);
+	}
+	catch (IllegalArgumentException e)
+	{
+	    throw new VisADException(header + e + contactMessage);
+	}
+	catch (InvocationTargetException e)
+	{
+	    throw new VisADException(header + e + contactMessage);
+	}
 	return data;
     }
 
@@ -168,20 +207,32 @@ public class DODSForm
 	return null;	// can't save data to a DODS server
     }
 
-    /*
-     * FormFileInformer method implementations:
-     */
+/*
+ * FormFileInformer method implementations:
+ */
 
     /**
-     * Indicates if a pathname dataset specification refers to a DODS dataset.
+     * Indicates if a dataset specification is consistent with a DODS dataset
+     * specification.
      *
-     * @param spec		A pathname dataset specification.
-     * @return			<code>true</code> if and only if the pathname 
-     *				dataset specification refers to a DODS dataset.
+     * @param spec		A dataset specification.
+     * @return			<code>true</code> if and only if the dataset
+     *				specification is consistent with a DODS dataset
+     *				specification.
      */
-    public boolean isThisType(String pathname)
+    public boolean isThisType(String spec)
     {
-	return pathname.endsWith(SUFFIX);
+	boolean	isThisType;
+	try
+	{
+	    isThisType =
+		new URL(spec).getPath().toLowerCase().endsWith(periodSuffix);
+	}
+	catch (MalformedURLException e)
+	{
+	    isThisType = false;
+	}
+	return isThisType;
     }
 
     /**
@@ -198,10 +249,12 @@ public class DODSForm
     }
 
     /**
-     * Returns the path-component suffixes that identifies a dataset 
-     * specification as being a DODS dataset specification.
+     * Returns the path-component suffixes that identifies a dataset
+     * specification as being a DODS dataset specification.  The suffixes don't
+     * have a leading period.  The returned array can be safely modified.
      *
-     * @return			The array of relevant suffixes.
+     * @return			A freshly-allocated array with the relevant 
+     *				suffixes.
      */
     public String[] getDefaultSuffixes()
     {
