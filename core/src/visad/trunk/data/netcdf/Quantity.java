@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Quantity.java,v 1.10 2000-11-29 14:51:04 dglo Exp $
+ * $Id: Quantity.java,v 1.11 2001-11-07 21:56:41 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -49,7 +49,8 @@ public class Quantity
    * @param name		The name of the quantity (e.g. "length").
    * @param unitSpec		The preferred unit for the quantity
    *				(e.g. "feet").
-   * @param set			The default sample set of the quantity.
+   * @param set			The default sample set for the quantity.  May be
+   *                            <code>null</code>.
    * @throws ParseException	Couldn't decode unit specification.
    * @throws VisADException	ScalarType of same name already exists.
    */
@@ -57,14 +58,6 @@ public class Quantity
     throws VisADException, ParseException
   {
     super(name, Parser.parse(unitSpec), set);
-
-    if (set == null) {
-      setDefaultSet(
-	  new FloatSet(
-	      this,
-	      /*CoordinateSystem=*/null,
-	      new Unit[] {super.getDefaultUnit()}));
-    }
 
     this.unitSpec = unitSpec;
   }
