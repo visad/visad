@@ -711,6 +711,11 @@ public class AddeURLConnection extends URLConnection
                 traceString = testString;
             }
             else
+            if (testString.startsWith("spa"))       // aux keyword
+            {
+                spaceString = testString;
+            }
+            else
             if (testString.startsWith("aux"))       // aux keyword
             {
                 auxString = testString;
@@ -768,6 +773,8 @@ public class AddeURLConnection extends URLConnection
         } 
         buf.append(" ");
         buf.append(traceString);
+        buf.append(" ");
+        buf.append(spaceString);
         buf.append(" ");
         buf.append(unitString);
         buf.append(" ");
