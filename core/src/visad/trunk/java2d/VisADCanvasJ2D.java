@@ -84,6 +84,9 @@ public class VisADCanvasJ2D extends JPanel
   // wake up flag for renderTrigger
   boolean wakeup = false;
 
+  // flag set if images not created
+  boolean timeout = false;
+
   public VisADCanvasJ2D(DisplayRendererJ2D renderer, Component c) {
     displayRenderer = renderer;
     display = (DisplayImplJ2D) renderer.getDisplay();
@@ -338,6 +341,7 @@ System.out.println("VisADCanvasJ2D.createImages: len = " + len +
   public void run() {
     Thread me = Thread.currentThread();
     while (renderThread == me) {
+      timeout = false;
       if (component != null) {
         Graphics g = getGraphics();
         if (g != null) {
@@ -352,7 +356,12 @@ System.out.println("VisADCanvasJ2D.createImages: len = " + len +
       try {
         synchronized (this) {
           if (!wakeup) {
-            wait();
+            if (timeout) {
+              wait(1000);
+            }
+            else {
+              wait();
+            }
           }
         }
       }
@@ -410,6 +419,7 @@ System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
                    " length = " + length + " w, h = " + w + " " + h +
                    " valid = " + valid + " image != null " + (image != null));
 */
+    timeout = false;
     if (image != null) {
       if (!valid) {
         VisADGroup root = displayRenderer.getRoot();
@@ -535,7 +545,11 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
       catch (VisADException e) {}
       catch (RemoteException e) {}
     } // end if (image != null)
+    else { // image == null
+      timeout = true;
+    }
     if (animate_control != null) animate_control.setNoTick(false);
+    return;
   }
 
   private void render(Graphics2D g2, Graphics ggg,
