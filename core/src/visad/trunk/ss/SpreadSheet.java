@@ -415,7 +415,9 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
       // parse command line flags
       while (ix < len) {
         if (argv[ix].charAt(0) == '-') {
-          if (argv[ix].equals("-file")) dfile = argv[++ix];
+          if (argv[ix].equals("-file")) {
+            if (ix < len - 1) dfile = argv[++ix];
+          }
           else if (argv[ix].equals("-server")) {
             if (clonename != null) {
               System.out.println("A spreadsheet cannot be both a server " +
