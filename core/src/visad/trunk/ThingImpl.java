@@ -39,13 +39,29 @@ public abstract class ThingImpl
     RemoteThingReference ref;
     RemoteThing data;
    
-    RemotePair(RemoteThingReference r, RemoteThing d) {
+    RemotePair(RemoteThingReference r, RemoteThing d)
+        throws ReferenceException {
+      if (r == null) {
+        throw new ReferenceException("Cannot create RemotePair " +
+                                     "from null RemoteThingReference");
+      }
+      if (d == null) {
+        throw new ReferenceException("Cannot create RemotePair " +
+                                     "from null RemoteThing");
+      }
       ref = r;
       data = d;
     }
    
     public boolean equals(Object pair) {
+
+      // make sure we're comparing against another RemotePair
       if (!(pair instanceof RemotePair)) return false;
+
+      // check null reference/data conditions
+      RemotePair rp = (RemotePair )pair;
+
+      // ref/data are non-null, use the equals() method
       return (ref.equals(((RemotePair) pair).ref) &&
               data.equals(((RemotePair) pair).data));
     }
@@ -80,10 +96,17 @@ public abstract class ThingImpl
   /** method for use by RemoteThingImpl that adapts this ThingImpl */
   void adaptedAddReference(RemoteThingReference r, RemoteThing t)
         throws VisADException {
+    RemotePair p;
+    try {
+      p = new RemotePair(r, t);
+    } catch (ReferenceException e) {
+      throw new ReferenceException("ThingImpl.adaptedAddReference: " +
+                                   e.getMessage());
+    }
     synchronized (this) {
       if (references == null) references = new Vector();
     }
-    references.addElement(new RemotePair(r, t));
+    references.addElement(p);
 /* DEBUG
     System.out.println("ThingImpl.adaptedAddReference " +
                        "(" + System.getProperty("os.name") + ")");
@@ -97,20 +120,36 @@ public abstract class ThingImpl
       'public' because it is defined in the Thing interface */
   public void removeReference(ThingReference r)
          throws VisADException {
+    if (references == null) {
+      throw new ReferenceException("ThingImpl.removeReference: already clear");
+    }
     if (!(r instanceof ThingReferenceImpl)) {
       throw new RemoteVisADException("ThingImpl.removeReference: must use " +
                                      "RemoteThing for RemoteThingReference");
     }
-    if (references == null || !references.removeElement(r)) {
-      throw new ReferenceException("ThingImpl.removeReference: already clear");
+    if (!references.removeElement(r)) {
+      throw new ReferenceException("ThingImpl.removeReference: not found");
     }
   }
 
   /** method for use by RemoteThingImpl that adapts this ThingImpl */
   void adaptedRemoveReference(RemoteThingReference r, RemoteThing t)
        throws VisADException {
-    if (references == null || !references.removeElement(new RemotePair(r, t))) {
+    if (references == null) {
       throw new ReferenceException("ThingImpl.removeReference: already clear");
+    }
+
+    RemotePair p;
+    try {
+      p = new RemotePair(r, t);
+    } catch (ReferenceException e) {
+      throw new ReferenceException("ThingImpl.adaptedRemoveReference: " +
+                                   e.getMessage());
+    }
+
+    if (!references.removeElement(p)) {
+      throw new ReferenceException("ThingImpl.adaptedRemoveReference: " +
+                                   " not found");
     }
   }
 
