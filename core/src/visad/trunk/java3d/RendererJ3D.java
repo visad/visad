@@ -52,6 +52,8 @@ public abstract class RendererJ3D extends DataRenderer {
   BranchGroup swParent;
   /** index of current 'intended' child of Switch sw;
       not necessarily == sw.getWhichChild() */
+  /** currentIndex is always = 0; this logic is a vestige of a
+      workaround for an old (circa 1998) bug in Java3D */
   private static final int currentIndex = 0;
   BranchGroup[] branches;
   boolean[] switchFlags = {false, false, false};
