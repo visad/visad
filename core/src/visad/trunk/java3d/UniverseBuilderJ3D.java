@@ -36,6 +36,7 @@ public class UniverseBuilderJ3D extends Object {
      * This method has been available since Java 3D 1.2.
      */
     private static final Method  REMOVE_ALL_LOCALES;
+    private static final Method  REMOVE_ALL_CANVAS3DS;
     private static final Class[] NIL_CLASS_ARRAY;
 
     static {
@@ -47,6 +48,13 @@ public class UniverseBuilderJ3D extends Object {
       }
       catch (Exception ex) {      }
       REMOVE_ALL_LOCALES = method;
+      method = null;
+      try {
+        method = Class.forName("javax.media.j3d.View")
+          .getMethod("removeAllCanvas3Ds", NIL_CLASS_ARRAY);
+      }
+      catch (Exception ex) {      }
+      REMOVE_ALL_CANVAS3DS = method;
     }
 
     public UniverseBuilderJ3D(Canvas3D c) {
@@ -100,6 +108,16 @@ public class UniverseBuilderJ3D extends Object {
       // according to Kelvin Chung, 26 Apr 2000, this should work
       // but it throws a NullPointerException
       // view.attachViewPlatform(null);
+      if (REMOVE_ALL_CANVAS3DS != null) {
+        try {
+          REMOVE_ALL_CANVAS3DS.invoke(view, NIL_CLASS_ARRAY);
+        }
+        catch (Exception ex) {
+            throw new RuntimeException("Assertion failure: " + ex);
+        }
+      }
+      // in Java3D 1.3.1
+      // Viewer.setViewingPlatform(null);
       if (REMOVE_ALL_LOCALES != null) {
         try {
           REMOVE_ALL_LOCALES.invoke(universe, NIL_CLASS_ARRAY);
@@ -108,6 +126,8 @@ public class UniverseBuilderJ3D extends Object {
             throw new RuntimeException("Assertion failure: " + ex);
         }
       }
+      // in Java3D 1.3.1
+      // Viewer.clearViewerMap();
 
       canvas = null;
       universe = null;

@@ -76,9 +76,9 @@ public class AnimationRendererJ3D extends DefaultRendererJ3D {
   // logic to 'mark' missing frames
   private VisADBranchGroup vbranch = null;
 
-  public void clearBranch() {
+  public void clearScene() {
     vbranch = null;
-    super.clearBranch();
+    super.clearScene();
   }
 
   void setVisADBranch(VisADBranchGroup branch) {
