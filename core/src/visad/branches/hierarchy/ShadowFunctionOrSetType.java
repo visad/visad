@@ -2584,21 +2584,28 @@ WLH 15 March 2000 */
 
         Control control = null;
         Object swit = null;
-        int index = -1;
 
         if (DomainComponents.length == 1) {
           RealType real = (RealType) DomainComponents[0].getType();
+
+	  /*
+	   * When examining the ScalarMap-s, favor mappings of more specific 
+	   * ScalarType-s over more general ones.
+	   */
+	  int[] indexes =
+	    scalarTypeLevelOrder(valueArrayLength, valueToMap, MapVector);
+
           for (int i=0; i<valueArrayLength; i++) {
-            ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
-            float[] values = display_values[i];
+	    int index = indexes[i];
+            ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[index]);
+            float[] values = display_values[index];
             if (values != null && real.isTypeOf(map.getScalar())) {
-              int displayScalarIndex = valueToScalar[i];
+              int displayScalarIndex = valueToScalar[index];
               DisplayRealType dreal =
                 display.getDisplayScalar(displayScalarIndex);
               if (dreal.equals(Display.Animation) ||
                   dreal.equals(Display.SelectValue)) {
                 swit = shadow_api.makeSwitch();
-                index = i;
                 control = map.getControl();
                 break;
               }
@@ -2819,21 +2826,28 @@ WLH 15 March 2000 */
 
       Control control = null;
       Object swit = null;
-      int index = -1;
 
       if (DomainComponents.length == 1) {
         RealType real = (RealType) DomainComponents[0].getType();
+
+	/*
+	 * When examining the ScalarMap-s, favor mappings of more specific 
+	 * ScalarType-s over more general ones.
+	 */
+	int[] indexes =
+	  scalarTypeLevelOrder(valueArrayLength, valueToMap, MapVector);
+
         for (int i=0; i<valueArrayLength; i++) {
-          ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
-          float[] values = display_values[i];
+	  int index = indexes[i];
+          ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[index]);
+          float[] values = display_values[index];
           if (values != null && real.isTypeOf(map.getScalar())) {
-            int displayScalarIndex = valueToScalar[i];
+            int displayScalarIndex = valueToScalar[index];
             DisplayRealType dreal =
               display.getDisplayScalar(displayScalarIndex);
             if (dreal.equals(Display.Animation) ||
                 dreal.equals(Display.SelectValue)) {
               swit = shadow_api.makeSwitch();
-              index = i;
               control = map.getControl();
               break;
             }
@@ -2970,6 +2984,45 @@ WLH 15 March 2000 */
       }
     }
     return color_values;
+  }
+
+  /**
+   * Returns an indicial array specifiying the {@link DisplayRealType} indexes
+   * in decreasing order of ScalarType level.  Element <code>i</code> of the
+   * returned array gives the index of the {@link DisplayRealType} that is
+   * mapped to the {@link ScalarType} at the <code>i</code>th greatest level
+   *
+   * @return                  The DisplayRealType indexes in sorted order.
+   * @see ScalarType#getLevel()
+   */
+  private static int[] scalarTypeLevelOrder(
+    int size, int[] ndxToMap, Vector maps) {
+
+    class Element implements Comparable {
+      int index;
+      int level;
+      Element(int index, ScalarMap map) {
+	this.index = index;
+	level = map.getScalar().getLevel();
+      }
+      public int compareTo(Object o) {
+	return ((Element)o).level - level;  // deeper ScalarTypes first
+      }
+    }
+
+    Element[] elts = new Element[size];
+
+    for (int i = 0; i < elts.length; i++)
+      elts[i] = new Element(i, (ScalarMap)maps.elementAt(ndxToMap[i]));
+
+    Arrays.sort(elts);
+
+    int[] indexes = new int[elts.length];
+
+    for (int i = 0; i < elts.length; i++)
+      indexes[i] = elts[i].index;
+
+    return indexes;
   }
 
   public BufferedImage createImage(int data_width, int data_height,

@@ -60,6 +60,22 @@ public class ShadowScalarType extends ShadowType {
   /** value_indices from parent */
   private int[] inherited_values;
 
+  /*
+   * Comparator for sorting ScalarMap-s by increasing generality of their
+   * ScalarTypes.
+   */
+  private static final Comparator comparator =
+    new Comparator() {
+      public int compare(Object o1, Object o2) {
+	ScalarMap map1 = (ScalarMap)o1;
+	ScalarMap map2 = (ScalarMap)o2;
+	int cmp = map2.getScalar().getLevel() - map1.getScalar().getLevel();
+	return cmp != 0
+	    ? cmp
+	    : System.identityHashCode(o2) - System.identityHashCode(o1);
+      }
+    };
+
   public ShadowScalarType(MathType type, DataDisplayLink link, ShadowType parent)
       throws VisADException, RemoteException {
     super(type, link, parent);
@@ -72,10 +88,18 @@ public class ShadowScalarType extends ShadowType {
     int spatial_count = 0;
     Index = -1;
     SelectedMapVector = new Vector();
-    Enumeration maps = display.getMapVector().elements();
+
+    /*
+     * When examining the ScalarMap-s, favor mappings of more specific 
+     * ScalarType-s over more general ones.
+     */
+    TreeSet mapSet = new TreeSet(comparator);
+    mapSet.addAll(display.getMapVector());
+    Iterator maps = mapSet.iterator();
+
     // determine which ScalarMap-s apply to this ShadowScalarType
-    while(maps.hasMoreElements()) {
-      ScalarMap map = (ScalarMap) maps.nextElement();
+    while(maps.hasNext()) {
+      ScalarMap map = (ScalarMap) maps.next();
 /*
 System.out.println("map: " + map.getScalar().getName() + " -> " +
                    map.getDisplayScalar().getName());
@@ -125,7 +149,7 @@ System.out.println("Type = " + ((ScalarType) Type).getName() +
           DisplaySpatialTupleIndexIndex++;
         } // end if (tuple != null)
       } // end if (Type.isTypeOf(map.Scalar.equals)) {
-    } // end while(maps.hasMoreElements()) {
+    } // end while(maps.hasNext()) {
     MultipleSpatialDisplayScalar = (spatial_count > 1);
     MultipleDisplayScalar = (SelectedMapVector.size() > 1);
     MappedDisplayScalar = (SelectedMapVector.size() > 0);
