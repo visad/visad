@@ -257,7 +257,6 @@ public class VisADApplet extends Applet
             int w = in.readInt();
             if (w == 0) continue;
             int h = in.readInt();
-            int t = in.readInt();
             int len = 4 * w * h;
             byte[] pixels = new byte[len];
             int p = 0;
