@@ -107,7 +107,8 @@ System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
   }
 
   public void toggle(boolean on) {
-    sw.setWhichChild(on ? currentIndex : ((currentIndex+1)%3));
+    if (sw != null) sw.setWhichChild(on ? currentIndex : ((currentIndex+1)%3));
+    super.toggle(on);
   }
 
   public ShadowType makeShadowFunctionType(

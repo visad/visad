@@ -172,7 +172,13 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
               Display.DisplaySpatialCartesianTuple)))) {
           xmap = map;
           xindex = dreal.getTupleIndex();
-          tuple = t;
+          if (tuple == null) {
+            tuple = t;
+          }
+          else if (!t.equals(tuple)) {
+            whyNotDirect = xandyNotMatch;
+            return;
+          }
         }
       }
       if (real.equals(y)) {
@@ -185,7 +191,10 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
               Display.DisplaySpatialCartesianTuple)))) {
           ymap = map;
           yindex = dreal.getTupleIndex();
-          if (!t.equals(tuple)) {
+          if (tuple == null) {
+            tuple = t;
+          }
+          else if (!t.equals(tuple)) {
             whyNotDirect = xandyNotMatch;
             return;
           }

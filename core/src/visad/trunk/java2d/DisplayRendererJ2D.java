@@ -642,11 +642,13 @@ public abstract class DisplayRendererJ2D
     while (renderers.hasMoreElements()) {
       DirectManipulationRendererJ2D r =
         (DirectManipulationRendererJ2D) renderers.nextElement();
-      r.setLastMouseModifiers(mouseModifiers);
-      float d = r.checkClose(ray.position, ray.vector);
-      if (d < distance) {
-        distance = d;
-        renderer = r;
+      if (r.getEnabled()) {
+        r.setLastMouseModifiers(mouseModifiers);
+        float d = r.checkClose(ray.position, ray.vector);
+        if (d < distance) {
+          distance = d;
+          renderer = r;
+        }
       }
     }
     if (distance < getPickThreshhold()) {

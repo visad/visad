@@ -61,6 +61,8 @@ public abstract class DataRenderer extends Object {
 
   private boolean suppress_exceptions = false;
 
+  private boolean enabled = true;
+
   public DataRenderer() {
     Links = null;
     display = null;
@@ -110,7 +112,13 @@ public abstract class DataRenderer extends Object {
   public abstract void setLinks(DataDisplayLink[] links, DisplayImpl d)
            throws VisADException;
 
-  public abstract void toggle(boolean on);
+  public void toggle(boolean on) {
+    enabled = on;
+  }
+
+  public boolean getEnabled() {
+    return enabled;
+  }
 
   public synchronized void setLinks(DataDisplayLink[] links) {
     if (links == null || links.length == 0) return;

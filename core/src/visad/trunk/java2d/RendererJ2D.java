@@ -75,10 +75,13 @@ public abstract class RendererJ2D extends DataRenderer {
   }
 
   public void toggle(boolean on) {
-    swit.setWhichChild(on ? 0 : 1);
-    VisADCanvasJ2D canvas =
-      ((DisplayRendererJ2D) getDisplayRenderer()).getCanvas();
-    canvas.scratchImages();
+    if (swit != null) {
+      swit.setWhichChild(on ? 0 : 1);
+      VisADCanvasJ2D canvas =
+        ((DisplayRendererJ2D) getDisplayRenderer()).getCanvas();
+      canvas.scratchImages();
+    }
+    super.toggle(on);
   }
 
   public ShadowType makeShadowFunctionType(

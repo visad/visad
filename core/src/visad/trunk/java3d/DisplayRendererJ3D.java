@@ -772,7 +772,6 @@ public abstract class DisplayRendererJ3D
    * @return  closest DataRenderer that uses the specified mouse click
    *          modifiers for direct manipulation or null if there is none.
    */
-  // public DirectManipulationRendererJ3D findDirect(PickRay ray) {
   public DataRenderer findDirect(VisADRay ray, int mouseModifiers) {
     DirectManipulationRendererJ3D renderer = null;
     float distance = Float.MAX_VALUE;
@@ -780,11 +779,13 @@ public abstract class DisplayRendererJ3D
     while (renderers.hasMoreElements()) {
       DirectManipulationRendererJ3D r =
         (DirectManipulationRendererJ3D) renderers.nextElement();
-      r.setLastMouseModifiers(mouseModifiers);
-      float d = r.checkClose(ray.position, ray.vector);
-      if (d < distance) {
-        distance = d;
-        renderer = r;
+      if (r.getEnabled()) {
+        r.setLastMouseModifiers(mouseModifiers);
+        float d = r.checkClose(ray.position, ray.vector);
+        if (d < distance) {
+          distance = d;
+          renderer = r;
+        }
       }
     }
     if (distance < getPickThreshhold()) {

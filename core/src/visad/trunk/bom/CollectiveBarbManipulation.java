@@ -453,6 +453,7 @@ public class CollectiveBarbManipulation extends Object
     stepper.addReference(stepper_ref);
   }
 
+
   // assumes inside synchronized (data_lock) { ... }
   private void setupData()
           throws VisADException, RemoteException {
@@ -612,27 +613,24 @@ public class CollectiveBarbManipulation extends Object
          throws VisADException, RemoteException {
     synchronized (data_lock) {
       // check MathType of station
+      FunctionType ftype = (FunctionType) station.getType();
+      if (!wind_station_type.equals(ftype)) {
+        throw new CollectiveBarbException("station type doesn't match");
+      }
+
       // add station to wind_field
-      // increment nindex
-      // recompute time_set
-      // fix everything else
+      int len = wind_field.getLength() + 1;
+      int new_len = len + 1;
+      Integer1DSet new_set = new Integer1DSet(new_len);
+      FieldImpl new_wind_field = new FieldImpl(wind_field_type, new_set);
+      for (int i=0; i<len; i++) {
+        new_wind_field.setSample(i, wind_field.getSample(i), false);
+      }
+      new_wind_field.setSample(len, station, false);
 
-/*
-     wf should have MathType:
-       (station_index -> (Time -> tuple))
-     where tuple is flat
-       [e.g., (Latitude, Longitude, (flow_dir, flow_speed))]
-     if (nindex != wind_field.getLength()) {
-*/
-
-
-
-
-
-
-
-
-
+      // recompute internal data
+      setupData();
+      setupStations();
     }
   }
 
@@ -1376,12 +1374,20 @@ public class CollectiveBarbManipulation extends Object
       new Gridded2DSet(earth, new float[][] {{0.0f}, {0.0f}}, 1);
     Gridded2DSet[] sets = {set1};
     UnionSet set = new UnionSet(earth, sets);
-
     final DataReferenceImpl set_ref = new DataReferenceImpl("set_ref");
     set_ref.setData(set);
     int mask = InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK;
-    display1.addReferences(new CurveManipulationRendererJ3D(mask, mask, true),
-                           set_ref);
+    CurveManipulationRendererJ3D cmr =
+      new CurveManipulationRendererJ3D(mask, mask, true);
+    display1.addReferences(cmr, set_ref);
+
+    RealTuple rt = new RealTuple(earth, new double[] {Double.NaN, Double.NaN});
+    final DataReferenceImpl point_ref = new DataReferenceImpl("point_ref");
+    point_ref.setData(rt);
+    PointManipulationRendererJ3D pmr =
+      new PointManipulationRendererJ3D(lat, lon, mask, mask);
+    display1.addReferences(pmr, point_ref);
+    pmr.toggle(false);
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test CollectiveBarbManipulation");
@@ -1445,12 +1451,26 @@ public class CollectiveBarbManipulation extends Object
     };
     cell2.addReference(set_ref);
 
+    CellImpl cell3 = new CellImpl() {
+      public void doAction() throws VisADException, RemoteException {
+        RealTuple rt = (RealTuple) point_ref.getData();
+        float lat = (float) ((Real) rt.getComponent(0)).getValue();
+        float lon = (float) ((Real) rt.getComponent(1)).getValue();
+        if (lat == lat && lon == lon) {
+          cbm.addStation(lat, lon);
+        }
+      }
+    };
+    cell3.addReference(point_ref);
+
     JPanel button_panel = new JPanel();
     button_panel.setLayout(new BoxLayout(button_panel, BoxLayout.X_AXIS));
     button_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
     button_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
-    EndManipCBM emc = new EndManipCBM(cbm, cbm2, set_ref);
+    JButton add = new JButton("add");
+    EndManipCBM emc =
+      new EndManipCBM(cbm, cbm2, set_ref, add, cmr, pmr);
     JButton end = new JButton("end manip");
     end.addActionListener(emc);
     end.setActionCommand("end");
@@ -1459,6 +1479,9 @@ public class CollectiveBarbManipulation extends Object
     del.addActionListener(emc);
     del.setActionCommand("del");
     button_panel.add(del);
+    add.addActionListener(emc);
+    add.setActionCommand("add");
+    button_panel.add(add);
     JButton dir = new JButton("time dir");
     dir.addActionListener(emc);
     dir.setActionCommand("dir");
@@ -1481,13 +1504,23 @@ class EndManipCBM implements ActionListener {
   CollectiveBarbManipulation cbm;
   CollectiveBarbManipulation cbm2;
   DataReferenceImpl set_ref;
+  DisplayImpl display;
   int dir = 0;
+  boolean add_mode;
+  JButton add;
+  CurveManipulationRendererJ3D cmr;
+  PointManipulationRendererJ3D pmr;
 
-  EndManipCBM(CollectiveBarbManipulation c, CollectiveBarbManipulation c2,
-              DataReferenceImpl r) {
-    cbm = c;
-    cbm2 = c2;
+  EndManipCBM(CollectiveBarbManipulation cb, CollectiveBarbManipulation cb2,
+              DataReferenceImpl r, JButton a,
+              CurveManipulationRendererJ3D cm, PointManipulationRendererJ3D p) {
+    cbm = cb;
+    cbm2 = cb2;
     set_ref = r;
+    add = a;
+    cmr = cm;
+    pmr = p;
+    add_mode = false;
   }
 
   public void actionPerformed(ActionEvent e) {
@@ -1504,22 +1537,28 @@ class EndManipCBM implements ActionListener {
     }
     else if (cmd.equals("del")) {
       try {
-        UnionSet set = (UnionSet) set_ref.getData();
-        SampledSet[] sets = set.getSets();
-        int n = sets.length - 1;
-        SampledSet[] new_sets = null;
-        if (n > 0) {
-          new_sets = new SampledSet[n];
-          System.arraycopy(sets, 0, new_sets, 0, n);
+        del_curve();
+      }
+      catch (VisADException ex) {
+        ex.printStackTrace();
+      }
+      catch (RemoteException ex) {
+        ex.printStackTrace();
+      }
+    }
+    else if (cmd.equals("add")) {
+      try {
+        add_mode = !add_mode;
+        if (add_mode) {
+          cmr.toggle(false);
+          pmr.toggle(true);
+          add.setText("stop add");
+          del_curve();
         }
         else {
-          new_sets = new SampledSet[] {new Gridded2DSet(set.getType(),
-                                new float[][] {{0.0f}, {0.0f}}, 1)};
-        }
-        set_ref.setData(new UnionSet(set.getType(), new_sets));
-        cbm.setCollectiveParameters(false, 500000.0f, 1000000.0f, 0.0f, 1000.0f);
-        if (cbm2 != null) {
-          cbm2.setCollectiveParameters(false, 500000.0f, 1000000.0f, 0.0f, 1000.0f);
+          cmr.toggle(true);
+          pmr.toggle(false);
+          add.setText("add");
         }
       }
       catch (VisADException ex) {
@@ -1535,6 +1574,28 @@ class EndManipCBM implements ActionListener {
       if (cbm2 != null) cbm2.setTimeDir(dir);
     }
   }
+
+  private void del_curve()
+          throws VisADException, RemoteException {
+    UnionSet set = (UnionSet) set_ref.getData();
+    SampledSet[] sets = set.getSets();
+    int n = sets.length - 1;
+    SampledSet[] new_sets = null; 
+    if (n > 0) {      
+      new_sets = new SampledSet[n];
+      System.arraycopy(sets, 0, new_sets, 0, n);
+    }
+    else {
+      new_sets = new SampledSet[] {new Gridded2DSet(set.getType(),
+                            new float[][] {{0.0f}, {0.0f}}, 1)};
+    }
+    set_ref.setData(new UnionSet(set.getType(), new_sets));
+    cbm.setCollectiveParameters(false, 500000.0f, 1000000.0f, 0.0f, 1000.0f);
+    if (cbm2 != null) {
+      cbm2.setCollectiveParameters(false, 500000.0f, 1000000.0f, 0.0f, 1000.0f);
+    }
+  }
+
 }
 
 class CBarbManipulationRendererJ3D extends BarbManipulationRendererJ3D {
