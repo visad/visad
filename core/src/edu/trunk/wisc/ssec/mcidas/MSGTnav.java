@@ -4,8 +4,8 @@
 
 /*
 This code was modified from the original Fortran code on the
-McIDAS system.  The code in this file is Copyright(C) 1999 by Don
-Murray.  It is designed to be used with the VisAD system for 
+McIDAS system.  The code in this file is Copyright(C) 2004 by Tom
+Whittaker.  It is designed to be used with the VisAD system for 
 interactive analysis and visualization of numerical data.  
  
 This program is free software; you can redistribute it and/or modify
@@ -33,7 +33,7 @@ package edu.wisc.ssec.mcidas;
  * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
  *      McIDAS Programmer's Manual</A>
  *
- * @author  Don Murray
+ * @author  Tom Whittaker
  */
 public final class MSGTnav extends AREAnav 
 {
@@ -228,8 +228,12 @@ public final class MSGTnav extends AREAnav
 
             xlin = 3713.0 - xlin;
             xele = 3713.0 - xele;
-            xlin = 3. * 3712 - (3. * (xlin - 2) -1.5);
-            xele = 3. * 3712 - (3. * (xele - 2) -1.5);
+            xlin = 3. * 3712 - 3. * (xlin - 2);
+            xele = 3. * 3712 - 3. * (xele - 2);
+
+            // original code follows...used to round the values...
+            //xlin = 3. * 3712 - (3. * (xlin - 2) - 1.5);
+            //xele = 3. * 3712 - (3. * (xele - 2) - 1.5);
 
             linele[indexLine][point] = xlin - 1;
             linele[indexEle][point] = xele - 1;
