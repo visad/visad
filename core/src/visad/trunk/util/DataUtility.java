@@ -28,7 +28,9 @@ package visad.util;
 
 // General Java
 import java.awt.Image;
+import java.awt.Toolkit;
 import java.awt.image.ColorModel;
+import java.awt.image.MemoryImageSource;
 import java.awt.image.PixelGrabber;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -50,7 +52,6 @@ import visad.java3d.TwoDDisplayRendererJ3D;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import ij.process.ColorProcessor;
 import javax.swing.*;
 
 // VisAD packages
@@ -244,7 +245,7 @@ public class DataUtility {
           pixels[index] = r << 16 | g << 8 | b;
         }
       }
-      else if (samples.length == 1) {
+      else {
         int len = samples[0].length;
         for (int i=0; i<len; i++) {
           int v = (int) samples[0][i] & 0x000000ff;
@@ -252,7 +253,8 @@ public class DataUtility {
           pixels[index] = v << 16 | v << 8 | v;
         }
       }
-      return new ColorProcessor(w, h, pixels).createImage();
+      return Toolkit.getDefaultToolkit().createImage(
+        new MemoryImageSource(w, h, pixels, 0, w));
     }
     catch (VisADException exc) {
       return null;
