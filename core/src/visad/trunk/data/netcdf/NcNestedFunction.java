@@ -40,8 +40,8 @@ NcNestedFunction
     NcNestedFunction(ImportVar[] vars)
 	throws UnimplementedException, VisADException, IOException
     {
-	initialize(new NcDim[] {vars[0].getDimensions()[0]}, vars);
 	innerFunction = new NcInnerFunction(vars);
+	initialize(new NcDim[] {vars[0].getDimensions()[0]}, vars);
     }
 
 

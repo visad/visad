@@ -261,7 +261,7 @@ VarDefiner
 				adapter.add(var);
 			    }
 			}
-		    }
+		    }			// Tuple-range component-loop
 		}			// the FlatField range is a Tuple
 	    }				// dependent-variable definition-block
 	}				// the sample domain is a GriddedSet

@@ -33,7 +33,7 @@ NcInnerFunction
 	int	rank = varDims.length;
 	NcDim[]	innerDims = new NcDim[rank-1];
 
-	System.arraycopy(dims, 1, innerDims, 0, rank-1);
+	System.arraycopy(varDims, 1, innerDims, 0, rank-1);
 
 	initialize(innerDims, vars);
     }

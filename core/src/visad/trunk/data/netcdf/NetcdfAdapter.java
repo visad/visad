@@ -81,7 +81,7 @@ NetcdfAdapter
 	{
 	    Domain	domain = domEnum.nextElement();
 	    NcDim[]	dims = domain.getDimensions();
-	    NcFunction	function = (!dims[0].isTime() || domain.getRank() <= 2)
+	    NcFunction	function = (domain.getRank() <= 1 || !dims[0].isTime())
 			    ? new NcFunction(domain.getVariables())
 			    : new NcNestedFunction(domain.getVariables());
 
