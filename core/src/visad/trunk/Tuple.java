@@ -329,7 +329,16 @@ public class Tuple extends DataImpl implements TupleIface {
   }
 
   /**
-   * A wrapper around {@link #getDimension() getDimension} for JPython.
+   * A wrapper around {@link #getLength() getLength} for JPython.
+   *
+   * @return The number of components of the Tuple
+   */
+  public int __len__() {
+    return getDimension();
+  }
+
+  /**
+   * Return the number of components of the Tuple
    *
    * @return Number of components.
    */

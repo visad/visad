@@ -1802,6 +1802,7 @@ public abstract class JPythonMethods {
   * then factoring out Element, creates a new data
   * object with a MathType:  Element->(Line->(value))
   *
+  * @parameter data is the Field Data object
   * @param factor is the domain component Type to factor out
   *
   * @return the new Field
@@ -1812,6 +1813,24 @@ public abstract class JPythonMethods {
     return ((FieldImpl)data).domainFactor(factor);
   }
 
+
+  /** factors out the given domain component (by index)
+  * and creates a new data object.  See above.
+  *
+  * @parameter data is the Field Data object
+  * @parameter comp is the domain component index
+  *
+  * @return the new Field
+  */
+  public static Field domainFactor(Field data, int comp) 
+             throws VisADException, RemoteException {
+
+    RealType mt = (RealType) (
+            (RealTupleType) (
+            (FunctionType)data.getType()).getDomain()).getComponent(comp);
+
+    return ((FieldImpl)data).domainFactor(mt);
+  }
 
   /** creates a VisAD Data by evaluating the Field at the
   * point given in the domain.
