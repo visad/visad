@@ -149,7 +149,7 @@ public abstract class DataRenderer extends Object {
   /** check if re-transform is needed; if initialize is true then
       compute ranges for RealType-s and Animation sampling */
   public DataShadow prepareAction(boolean go, boolean initialize,
-                                  DataShadow shadow, boolean add_data)
+                                  DataShadow shadow)
          throws VisADException, RemoteException {
     any_changed = false;
     all_feasible = true;
@@ -166,26 +166,15 @@ System.out.println(display.getName() +
 MathType junk = Links[i].getType();
 if (junk != null) System.out.println(junk.prettyString());
 */
-/* WLH 22 April 99
       if (Links[i].checkTicks() || !feasible[i] || go) {
-*/
-      boolean check = Links[i].checkTicks();
-      if (check || !feasible[i] || go || add_data) {
 /*
 System.out.println("DataRenderer.prepareAction: check = " + check + " feasible = " +
                    !feasible[i] + " go = " + go + "  " +
                    Links[i].getThingReference().getName());
 */
         // data has changed - need to re-display
-/* WLH 22 April 99
         changed[i] = true;
         any_changed = true;
-*/
-        // WLH 22 April 99
-        if (check || !feasible[i] || go) {
-          changed[i] = true;
-          any_changed = true;
-        }
 
         // create ShadowType for data, classify data for display
         feasible[i] = Links[i].prepareData();
@@ -194,7 +183,7 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
           // WLH 31 March 99
           clearBranch();
         }
-        if ((initialize || add_data) && feasible[i]) {
+        if (initialize && feasible[i]) {
           // compute ranges of RealTypes and Animation sampling
           ShadowType type = Links[i].getShadow().getAdaptedShadowType();
           if (shadow == null) {
@@ -205,7 +194,7 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
             shadow = Links[i].getData().computeRanges(type, shadow);
           }
         }
-      } // end if (Links[i].checkTicks() || !feasible[i] || go || add_data)
+      } // end if (Links[i].checkTicks() || !feasible[i] || go)
  
       if (feasible[i]) {
         // check if this Data includes any changed Controls

@@ -76,9 +76,6 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       and sampling for Animation */
   private boolean initialize = true;
 
-  // WLH 22 April 99
-  private boolean add_data = false;
-
   /** set to indicate that ranges should be auto-scaled
       every time data are displayed */
   private boolean always_initialize = false;
@@ -369,12 +366,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     synchronized (mapslock) {
       RendererVector.addElement(renderer);
     }
-
-/* WLH 22 April 99
     initialize = true;
-*/
-    add_data = true;
-
 // System.out.println("addReference");
     notifyAction();
   }
@@ -395,12 +387,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     synchronized (mapslock) {
       RendererVector.addElement(renderer);
     }
-
-/* WLH 22 April 99
     initialize = true;
-*/
-    add_data = true;
-
 // System.out.println("adaptedAddReference");
     notifyAction();
   }
@@ -489,12 +476,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     synchronized (mapslock) {
       RendererVector.addElement(renderer);
     }
-
-/* WLH 22 April 99
     initialize = true;
-*/
-    add_data = true;
-
 // System.out.println("addReferences");
     notifyAction();
   }
@@ -549,12 +531,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     synchronized (mapslock) {
       RendererVector.addElement(renderer);
     }
-
-/* WLH 22 April 99
     initialize = true;
-*/
-    add_data = true;
-
 // System.out.println("adaptedAddReferences");
     notifyAction();
   }
@@ -703,15 +680,9 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
         renderers = temp.elements();
         while (renderers.hasMoreElements()) {
           DataRenderer renderer = (DataRenderer) renderers.nextElement();
-/* WLH 22 April 99
           shadow = renderer.prepareAction(go, initialize, shadow);
-*/
-          shadow = renderer.prepareAction(go, initialize, shadow, add_data);
         }
 
-        // WLH 22 April 99
-        add_data = false;
-    
         if (shadow != null) {
           // apply RealType ranges and animationSampling
           maps = tmap.elements();

@@ -35,16 +35,17 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
+import javax.swing.*;
 import java.rmi.RemoteException;
  
 import java.util.*;
 
 /**
-   VisADCanvasJ2D is the VisAD extension of Canvas
-   for Java2D.<P>
+   VisADCanvasJ2D is the VisAD "Canvas" for Java2D.  But
+   not really a Canvas, since Canvas is heavyweight.<P>
 */
 
-public class VisADCanvasJ2D extends Canvas
+public class VisADCanvasJ2D extends JPanel
        implements Runnable {
 
   private DisplayRendererJ2D displayRenderer;
