@@ -51,6 +51,7 @@ public class RangeControl extends Control {
       RangeLow = range[0];
       RangeHi = range[1];
       initialized = (RangeLow == RangeLow && RangeHi == RangeHi);
+      changeControl(true); // WLH - 24 Sept 99
     } else {
       setRange(range);
     }
