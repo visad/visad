@@ -284,16 +284,28 @@ public abstract class RemoteClusterDataImpl extends RemoteDataImpl
 
   public void setupClusterData(Set ps, RemoteClusterData[] table)
          throws RemoteException, VisADException {
+/* WLH 4 Sept 2001
     if (ps == null || table == null) {
       throw new ClusterException("ps and table must be non-null");
     }
-    if ((ps.getLength() + 1) > table.length) {
-      throw new ClusterException("table.length (" + table.length +") must " +
-                                 " >= ps.length + 1 (" + (ps.getLength() + 1) +
-                                 ")");
+*/
+    if (table == null) {
+      throw new ClusterException("table must be non-null");
     }
-    partitionSet = ps;
-    dimension = ps.getDimension();
+    if (ps != null) {
+      if ((ps.getLength() + 1) > table.length) {
+        throw new ClusterException("table.length (" + table.length +") must " +
+                                   " >= ps.length + 1 (" + (ps.getLength() + 1) +
+                                   ")");
+      }
+      partitionSet = ps;
+      dimension = ps.getDimension();
+    }
+    else {
+      partitionSet = null;
+      dimension = -1;
+    }
+
     jvmTable = table;
   }
 

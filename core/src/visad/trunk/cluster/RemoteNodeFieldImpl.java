@@ -59,6 +59,19 @@ public class RemoteNodeFieldImpl extends RemoteNodeDataImpl
     length = set.getLength();
   }
 
+  // WLH 4 Sept 2001
+  /**
+     constructor for rendering without using partitionSet
+  */
+  public RemoteNodeFieldImpl(FieldImpl field)
+         throws VisADException, RemoteException {
+    super();
+    if (field == null) {
+      throw new ClusterException("field cannot be null");
+    }
+    adaptedField = field;
+  }
+
   public void setSamples(RemoteNodeDataImpl[] range)
          throws VisADException, RemoteException {
     setSamples(range, false);
