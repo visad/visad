@@ -96,7 +96,13 @@ public class SetType extends MathType {
 
   public String prettyString(int indent) {
     // return toString();  WLH 5 Jan 2000
-    return "Set" + Domain.toString();
+    String s = Domain.toString();
+    if (s.lastIndexOf("(") < 0) {
+      return "Set(" + s + ")";
+    }
+    else {
+      return "Set" + s;
+    }
   }
 
   public Data missingData() throws VisADException {
