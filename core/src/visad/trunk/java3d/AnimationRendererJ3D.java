@@ -150,6 +150,18 @@ public class AnimationRendererJ3D extends DefaultRendererJ3D {
       link.start_time = System.currentTimeMillis();
       link.time_flag = false;
       vbranch = null;
+
+
+      if (!animation1D) {
+        // TDR, 3-2003: 
+        // make sure branch not live for default logic, ie. super.doTransform()
+        branch = new BranchGroup();
+        branch.setCapability(BranchGroup.ALLOW_DETACH);
+        branch.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+        branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+        branch.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
+      }
+
       // transform data into a depiction under branch
       try {
         type.doTransform(branch, data, valueArray,
