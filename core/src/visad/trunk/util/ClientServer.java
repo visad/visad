@@ -157,6 +157,56 @@ public class ClientServer
     return dpy;
   }
 
+  public static LocalDisplay getClientDisplay(RemoteServer client, int index)
+    throws RemoteException, VisADException
+  {
+    // fail if there's no remote server
+    if (client == null) {
+      return null;
+    }
+
+    RemoteDisplay rmtDpy = null;
+
+    int loops = 0;
+    while (rmtDpy == null && loops < maximumWaitTime) {
+
+      try {
+        rmtDpy = client.getDisplay(index);
+if (rmtDpy == null) System.err.println("Null dpy " + index + " (#" + loops + ")");
+      } catch (java.rmi.ConnectException ce) {
+ce.printStackTrace();
+      }
+
+      // if we didn't get the display, print a message and wait a bit
+      if (rmtDpy == null) {
+try { RemoteDisplay[] rd = client.getDisplays(); System.err.println("Server has " + rd.length + " dpys (" + rd[0] + ")");} catch (Exception e) { e.printStackTrace(); }
+        if (loops == 0) {
+          System.err.print("Client waiting for server display #" + index +
+                           " ");
+        } else {
+          System.err.print(".");
+        }
+
+        try { Thread.sleep(1000); } catch (InterruptedException ie) { }
+
+        loops++;
+      }
+    }
+
+    if (rmtDpy == null && loops == maximumWaitTime) {
+      System.err.println(" giving up!");
+      System.exit(1);
+    } else if (loops > 0) {
+      System.err.println(". ready");
+    }
+
+    if (rmtDpy == null) {
+      return null;
+    }
+
+    return wrapRemoteDisplay(rmtDpy);
+  }
+
   public static LocalDisplay[] getClientDisplays(RemoteServer client)
     throws RemoteException, VisADException
   {
