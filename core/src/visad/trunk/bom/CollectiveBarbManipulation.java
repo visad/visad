@@ -71,6 +71,8 @@ public class CollectiveBarbManipulation extends Object
   private BarbManipulationRendererJ3D[] barb_manipulation_renderers;
   private BarbMonitor[] barb_monitors;
 
+  private WindMonitor wind_monitor = null;
+
   private AnimationControl control = null;
 
   private DisplayImplJ3D display;
@@ -88,7 +90,6 @@ public class CollectiveBarbManipulation extends Object
 
   private int last_sta = -1;
   private int last_time = -1;
-  // private Tuple[][] old_tuples;
 
   private float[][] azimuths;
   private float[][] radials;
@@ -219,7 +220,6 @@ public class CollectiveBarbManipulation extends Object
       nindex = wind_field.getLength();
       ntimes = new int[nindex];
       tuples = new Tuple[nindex][];
-      // old_tuples = new Tuple[nindex][];
       which_times = new int[nindex];
       wind_stations = new FlatField[nindex];
       time_sets = new Set[nindex];
@@ -232,7 +232,6 @@ public class CollectiveBarbManipulation extends Object
         ntimes[i] = wind_stations[i].getLength();
         time_sets[i] = wind_stations[i].getDomainSet();
         tuples[i] = new Tuple[ntimes[i]];
-        // old_tuples[i] = new Tuple[ntimes[i]];
         azimuths[i] = new float[ntimes[i]];
         radials[i] = new float[ntimes[i]];
         old_azimuths[i] = new float[ntimes[i]];
@@ -277,6 +276,9 @@ public class CollectiveBarbManipulation extends Object
       barb_monitors[i] = new BarbMonitor(station_refs[i], i);
       barb_monitors[i].addReference(station_refs[i]);
     }
+
+    wind_monitor = new WindMonitor();
+    wind_monitor.addReference(stations_ref);
 
     control.setCurrent(0);
   }
@@ -364,18 +366,49 @@ public class CollectiveBarbManipulation extends Object
     }
   }
 
+  private final static float DEGREE_EPS = 0.1f;
+  private final static float MPS_EPS = 0.01f;
+
+  class WindMonitor extends CellImpl {
+    public void doAction() throws VisADException, RemoteException {
+      if (nindex != wind_field.getLength()) {
+        throw new CollectiveBarbException("number of stations changed");
+      }
+      for (int i=0; i<nindex; i++) {
+        FlatField ff = (FlatField) wind_field.getSample(i);
+        if (ntimes[i] != ff.getLength()) {
+          throw new CollectiveBarbException("number of times changed");
+        }
+        for (int j=0; j<ntimes[i]; j++) {
+          Tuple tuple = (Tuple) ff.getSample(j);
+          Real[] reals = tuple.getRealComponents();
+          float new_azimuth = (float) reals[azimuth_index].getValue();
+          float new_radial = (float) reals[radial_index].getValue();
+          if (!visad.util.Util.isApproximatelyEqual(new_azimuth,
+                     azimuths[i][j], DEGREE_EPS) ||
+              !visad.util.Util.isApproximatelyEqual(new_radial,
+                     radials[i][j], MPS_EPS)) {
+            azimuths[i][j] = new_azimuth;
+            radials[i][j] = new_radial;
+            tuples[i][j] = tuple;
+            if (j == which_times[i]) {
+              station_refs[i].setData(tuples[i][j]);
+            }
+          }
+        }
+      }
+    }
+  }
+
   class BarbMonitor extends CellImpl {
     DataReferenceImpl ref;
     int sta_index;
-  
+ 
     public BarbMonitor(DataReferenceImpl r, int index) {
       ref = r;
       sta_index = index;
     }
   
-    private final static float DEGREE_EPS = 0.1f;
-    private final static float MPS_EPS = 0.01f;
-
     public void doAction() throws VisADException, RemoteException {
       int time_index = which_times[sta_index];
       if (time_index < 0) return;
@@ -395,12 +428,13 @@ System.out.println("new " + new_azimuth + " " + new_radial +
           visad.util.Util.isApproximatelyEqual(new_radial,
                  radials[sta_index][time_index], MPS_EPS)) return;
 
+      wind_monitor.disableAction();
+
       if (last_sta != sta_index || last_time != time_index) {
         last_sta = sta_index;
         last_time = time_index;
         for (int i=0; i<nindex; i++) {
           for (int j=0; j<ntimes[i]; j++) {
-            // old_tuples[i][j] = tuples[i][j];
             old_azimuths[i][j] = azimuths[i][j];
             old_radials[i][j] = radials[i][j];
           }
@@ -511,6 +545,8 @@ System.out.println("this " + sta_index + " " + time_index + " that " +
           }
         } // end for (int j=0; j<ntimes[i]; j++)
       } // end for (int i=0; i<nindex; i++)
+
+      wind_monitor.enableAction();
     }
   }
 
@@ -640,7 +676,7 @@ System.out.println("this " + sta_index + " " + time_index + " that " +
                                      0.0f, 1000000.0f, 0.0f, 1000.0f);
 
     JButton end = new JButton("end manip");
-    end.addActionListener(new EndManip(cbm));
+    end.addActionListener(new EndManipCBM(cbm));
     end.setActionCommand("end");
     panel.add(end);
 
@@ -650,10 +686,10 @@ System.out.println("this " + sta_index + " " + time_index + " that " +
   }
 }
 
-class EndManip implements ActionListener {
+class EndManipCBM implements ActionListener {
   CollectiveBarbManipulation cbm;
 
-  EndManip(CollectiveBarbManipulation c) {
+  EndManipCBM(CollectiveBarbManipulation c) {
     cbm = c;
   }
 
