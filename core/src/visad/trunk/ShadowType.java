@@ -3499,8 +3499,8 @@ System.out.println("range = " + range[0] + " " + range[1] +
                   }
                 }
                 if (smap[0] == null) {
-                  throw new DisplayException("IsoContour color-fill is enabled, so "+
-                      sc+" must also be mapped to Display.RGB");
+                  throw new BadMappingException("must also map "+sc+" to RGB for" +
+                      " IsoContour color-fill");
                 }
               }
               arrays =
