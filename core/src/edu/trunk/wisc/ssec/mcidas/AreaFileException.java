@@ -25,7 +25,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package edu.wisc.ssec.mcidas;
 
-import visad.VisADException;
 
 /**
  * AreaFileException class is to handle exceptions when dealing
@@ -34,7 +33,7 @@ import visad.VisADException;
  * @author Tom Whittaker SSEC
  */
 
-public class AreaFileException extends VisADException {
+public class AreaFileException extends Exception {
 
   public AreaFileException() {super(); }
   public AreaFileException(String s) {super(s); }
