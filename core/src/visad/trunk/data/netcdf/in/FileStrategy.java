@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: FileStrategy.java,v 1.3 2000-06-26 20:27:54 steve Exp $
+ * $Id: FileStrategy.java,v 1.4 2001-01-08 17:10:42 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -35,6 +35,11 @@ public class FileStrategy
      */
     private static FileStrategy	instance;
 
+    static
+    {
+	instance = new FileStrategy();
+    }
+
 
     /**
      * Returns an instance of this class.
@@ -43,14 +48,6 @@ public class FileStrategy
      */
     public static NetcdfAdapter.Strategy instance()
     {
-	if (instance == null)
-	{
-	    synchronized(FileStrategy.class)
-	    {
-		if (instance == null)
-		    instance = new FileStrategy();
-	    }
-	}
 	return instance;
     }
 

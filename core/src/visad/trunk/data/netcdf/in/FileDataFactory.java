@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: FileDataFactory.java,v 1.2 2000-06-08 19:13:44 steve Exp $
+ * $Id: FileDataFactory.java,v 1.3 2001-01-08 17:10:31 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -29,6 +29,11 @@ FileDataFactory
 
     private static CacheStrategy	cacheStrategy = new CacheStrategy();
 
+    static
+    {
+	instance = new FileDataFactory();
+    }
+
 
     private FileDataFactory()
     {}
@@ -41,14 +46,6 @@ FileDataFactory
      */
     public static DataFactory instance()
     {
-	if (instance == null)
-	{
-	    synchronized(FileDataFactory.class)
-	    {
-		if (instance == null)
-		    instance = new FileDataFactory();
-	    }
-	}
 	return instance;
     }
 
