@@ -2,7 +2,7 @@
  * Copyright 1999, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultUnitsDB.java,v 1.17 1999-10-18 22:48:11 steve Exp $
+ * $Id: DefaultUnitsDB.java,v 1.18 1999-12-01 16:40:18 steve Exp $
  */
 
 package visad.data.netcdf.units;
@@ -390,7 +390,7 @@ DefaultUnitsDB
 	pn("fortnight",		get("d").scale(14));	
 	pn("week",		get("d").scale(7));		// exact
 
-	px("jiffy",		get("s").scale(1e-2));		// it's true
+	pn("jiffy",		get("s").scale(1e-2));		// it's true
 	pn("eon",		get("y").scale(1e9));		// fuzzy
 	pn("month",		get("y").scale(1./12));		// on average
 
