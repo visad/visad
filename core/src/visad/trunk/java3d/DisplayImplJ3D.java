@@ -371,6 +371,8 @@ public class DisplayImplJ3D extends DisplayImpl {
     // a GraphicsModeControl always exists
     mode = new GraphicsModeControlJ3D(this);
     addControl(mode);
+
+    ((DisplayRendererJ3D) getDisplayRenderer()).getCanvas().setDisplay();
   }
 
   /** return a DefaultDisplayRendererJ3D */

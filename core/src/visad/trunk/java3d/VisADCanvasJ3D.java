@@ -140,6 +140,12 @@ public class VisADCanvasJ3D extends Canvas3D {
 */
   }
 
+  void setDisplay() {
+    if (display == null) {
+      display = (DisplayImplJ3D) displayRenderer.getDisplay();
+    }
+  }
+
   public boolean getOffscreen() {
     return offscreen;
   }
