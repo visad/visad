@@ -108,6 +108,7 @@ visad\data\vis5d\*.c \
 visad\data\vis5d\*.h \
 visad\data\vis5d\Makefile \
 visad\$(SSEC)\mcidas\*.java \
+visad\$(SSEC)\mcidas\adde\*.java \
 visad\data\mcidas\*.java \
 visad\data\mcidas\README.mcidas \
 visad\data\gif\*.java \
@@ -208,6 +209,7 @@ visad\data\vis5d\*.h \
 visad\data\vis5d\Makefile \
 visad\data\gif\*.java \
 visad\$(SSEC)\mcidas\*.java \
+visad\$(SSEC)\mcidas\adde\*.java \
 visad\data\mcidas\*.java \
 visad\data\mcidas\README.mcidas \
 visad\data\visad\*.java \
@@ -297,6 +299,8 @@ save:
 		$(DEL) $(BACKUP)\visad\data\vis5d\*.java
 	if exist $(BACKUP)\visad\$(SSEC)\mcidas\*.java \
 		$(DEL) $(BACKUP)\visad\$(SSEC)\mcidas\*.java
+	if exist $(BACKUP)\visad\$(SSEC)\mcidas\adde\*.java \
+		$(DEL) $(BACKUP)\visad\$(SSEC)\mcidas\adde\*.java
 	if exist $(BACKUP)\visad\data\mcidas\*.java \
 		$(DEL) $(BACKUP)\visad\data\mcidas\*.java
 	if exist $(BACKUP)\visad\data\gif\*.java \
@@ -347,6 +351,7 @@ visad\data\hdfeos\*.class \
 visad\data\hdfeos\hdfeosc\*.class \
 visad\data\vis5d\*.class \
 visad\$(SSEC)\mcidas\*.class \
+visad\$(SSEC)\mcidas\adde\*.class \
 visad\data\mcidas\*.class \
 visad\data\gif\*.class \
 visad\data\visad\*.class
@@ -383,6 +388,7 @@ clear:
 	if exist data\vis5d\*.java $(DEL) data\vis5d\*.java
 	if exist data\gif\*.java $(DEL) data\gif\*.java
 	if exist $(SSEC)\mcidas\*.java $(DEL) $(SSEC)\mcidas\*.java
+	if exist $(SSEC)\mcidas\adde\*.java $(DEL) $(SSEC)\mcidas\adde\*.java
 	if exist data\mcidas\*.java $(DEL) data\mcidas\*.java
 	if exist data\visad\*.java $(DEL) data\visad\*.java
 	if exist jmet\*.java $(DEL) jmet\*.java
@@ -417,6 +423,7 @@ clean:
 	if exist data\hdfeos\hdfeosc\*.class $(DEL) data\hdfeos\hdfeosc\*.class
 	if exist data\vis5d\*.class $(DEL) data\vis5d\*.class
 	if exist $(SSEC)\mcidas\*.class $(DEL) $(SSEC)\mcidas\*.class
+	if exist $(SSEC)\mcidas\adde\*.class $(DEL) $(SSEC)\mcidas\adde\*.class
 	if exist data\mcidas\*.class $(DEL) data\mcidas\*.class
 	if exist data\gif\*.class $(DEL) data\gif\*.class
 	if exist data\visad\*.class $(DEL) data\visad\*.class
@@ -462,6 +469,7 @@ $(FITS)\test\*.class \
 data\fits\*.class \
 data\vis5d\*.class \
 $(SSEC)\mcidas\*.class \
+$(SSEC)\mcidas\adde\*.class \
 data\mcidas\*.class \
 data\gif\*.class \
 data\visad\*.class \
