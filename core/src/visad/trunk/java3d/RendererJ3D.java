@@ -105,6 +105,7 @@ System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
 */
     sw.setWhichChild(currentIndex);
     actualIndex = 0;
+    toggle(enabled);
   }
 
   public void toggle(boolean on) {

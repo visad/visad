@@ -62,7 +62,7 @@ public abstract class DataRenderer extends Object {
 
   private boolean suppress_exceptions = false;
 
-  private boolean enabled = true;
+  protected boolean enabled = true;
 
   public DataRenderer() {
     Links = null;
