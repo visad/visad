@@ -286,9 +286,9 @@ public class ShowNCEPModel
 
     ncp = new NCEPPanel[numPanels+1];
 
-    ncp[0] = new NCEPPanel(1, di, statLabel, tabby,  "Single-level Data");
+    ncp[0] = new NCEPPanel(false, di, statLabel, tabby,  "Single-level Data");
     for (int i=1; i<ncp.length; i++) {
-     ncp[i] = new NCEPPanel(0, di, statLabel, tabby,  "Data Aloft");
+     ncp[i] = new NCEPPanel(true, di, statLabel, tabby,  "Data Aloft");
     }
 
     enableMap = new RealType("enableMap");

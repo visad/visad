@@ -87,7 +87,8 @@ public class NCEPPanel extends JPanel implements
     private FieldImpl field;
     private String valueName, enableName, dataName;
     private ScalarMap valueMap, valueColorMap;
-    private int mode, ndx;
+    private boolean isAloft;
+    private int ndx;
     private Vector paramInfo;
     private double[] pressureLevels;
     private double[][] range;
@@ -98,7 +99,7 @@ public class NCEPPanel extends JPanel implements
 
     JFrame f = new JFrame();
     JLabel sl = new JLabel("The status label");
-    NCEPPanel ss = new NCEPPanel(0, null, sl, null, "Title");
+    NCEPPanel ss = new NCEPPanel(true, null, sl, null, "Title");
     Container cf = f.getContentPane();
 
     cf.add(ss);
@@ -119,7 +120,7 @@ public class NCEPPanel extends JPanel implements
 
   /** set up a panel
   * 
-  * @param mode is the level mode (0=aloft, 1=surface)
+  * @param isAloft is false if this is the surface level, true otherwise
   * @param di is the associated DisplayImpl
   * @param statLabel is the status label from the Frame
   * @param tabby is the JTabbedPane that this may be in (if non-null)
@@ -127,19 +128,18 @@ public class NCEPPanel extends JPanel implements
   *
   */
   public NCEPPanel 
-     (int mode, DisplayImpl di, JLabel statLabel, JTabbedPane tabby, String title) {
+     (boolean isAloft, DisplayImpl di, JLabel statLabel, JTabbedPane tabby, String title) {
 
     super();
     this.di = di;
     this.statLabel = statLabel;
-    this.mode = mode;
+    this.isAloft = isAloft;
     this.tabby = tabby;
 
-    myInstance = instance;
-    instance ++;
-    valueName = "Value"+instance;
-    enableName = "enable"+instance;
-    dataName = "data"+instance;
+    myInstance = getNextInstance();
+    valueName = "Value"+(myInstance+1);
+    enableName = "enable"+(myInstance+1);
+    dataName = "data"+(myInstance+1);
     range = new double[1][2];
     range[0][0] = -20000.;
     cbeg = 0.f;
@@ -151,7 +151,7 @@ public class NCEPPanel extends JPanel implements
       Values = new RealType(valueName);
       nc = Color.white;
 
-      if (mode == 0) {
+      if (isAloft) {
         valueMap = new ScalarMap(Values, Display.IsoContour);
         valueColorMap = new ScalarMap(Values, Display.RGB);
 
@@ -203,7 +203,7 @@ public class NCEPPanel extends JPanel implements
     add(Box.createRigidArea(new Dimension(10,10) ) );
 
     levelValue = 0;
-    if (mode == 0) {
+    if (isAloft) {
       levelSliderLabel = new JLabel("Pressure level = 1000",JLabel.CENTER);
       levelSliderLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
       levelSlider = new JSlider(JSlider.HORIZONTAL,0,100,0);
@@ -228,7 +228,7 @@ public class NCEPPanel extends JPanel implements
     add(paramBox);
 
     intervalValue = 60.;
-    if (mode == 0) {
+    if (isAloft) {
       add(Box.createRigidArea(new Dimension(10,10)) );
       JLabel intervalTextLabel = new JLabel("Contour interval:");
       intervalTextLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
@@ -270,12 +270,14 @@ public class NCEPPanel extends JPanel implements
 
   }
 
+  private static synchronized int getNextInstance() { return instance++; }
+
   public void setNetcdfGrid(NetcdfGrids n) {
     try {
       if (ref != null && di != null) di.removeReference(ref);
     } catch (Exception rmrf) {rmrf.printStackTrace(); }
     ncg = n;
-    if (mode == 0) {
+    if (isAloft) {
       pressureLevels = ncg.getPressureLevels();
       int num_levels = ncg.getNumberOfLevels();
       range = new double[num_levels][2];
@@ -333,7 +335,7 @@ public class NCEPPanel extends JPanel implements
             ref = new DataReferenceImpl(dataName);
 
             valueMap.setRange(range[levelValue][0], range[levelValue][1]);
-            if (mode == 0) {
+            if (isAloft) {
               intervalUnits.setText( 
                    (String) paramInfo.elementAt( (ndx-1)*3 +2) );
               setContInterval(range[levelValue]);
@@ -388,7 +390,7 @@ public class NCEPPanel extends JPanel implements
         if (tabby != null) tabby.setBackgroundAt(myInstance, nc);
         try {
           for (int i=0; i<256; i++) {
-            if (mode == 0) {
+            if (isAloft) {
               colorTable[0][i] = (float) nc.getRed()/255.f;
               colorTable[1][i] = (float) nc.getGreen()/255.f;
               colorTable[2][i] = (float) nc.getBlue()/255.f;
