@@ -93,29 +93,35 @@ public class VisADForm extends Form implements FormFileInformer {
 
   private static int num = 0;
 
-  public VisADForm() {
+  public VisADForm()
+  {
     super("VisADForm" + num++);
   }
 
-  public boolean isThisType(String name) {
+  public boolean isThisType(String name)
+  {
     return name.endsWith(".vad") || name.endsWith(".VAD");
   }
 
-  public boolean isThisType(byte[] block) {
+  public boolean isThisType(byte[] block)
+  {
     return BinaryReader.isMagic(block);
   }
 
-  public String[] getDefaultSuffixes() {
+  public String[] getDefaultSuffixes()
+  {
     String[] suff = { "vad" };
     return suff;
   }
 
   public synchronized void add(String id, Data data, boolean replace)
-         throws BadFormException {
+    throws BadFormException
+  {
     throw new BadFormException("VisADForm.add");
   }
 
-  public synchronized FormNode getForms(Data data) {
+  public synchronized FormNode getForms(Data data)
+  {
     return null;
   }
 
@@ -186,7 +192,8 @@ public class VisADForm extends Form implements FormFileInformer {
   }
 
   public synchronized void save(String id, Data data, boolean replace)
-         throws BadFormException, IOException, RemoteException, VisADException {
+    throws BadFormException, IOException, RemoteException, VisADException
+  {
     File file = new File(id);
     if (!replace && file.exists()) {
       throw new IllegalArgumentException("File \"" + id + "\" exists");
@@ -200,7 +207,8 @@ public class VisADForm extends Form implements FormFileInformer {
   /** run 'java visad.data.visad.VisADForm in_file out_file' to
       convert in_file to out_file in VisAD serialized data format */
   public static void main(String args[])
-         throws VisADException, RemoteException, IOException {
+    throws VisADException, RemoteException, IOException
+  {
     if (args == null || args.length < 1 || args.length > 2) {
       System.out.println("to convert a file to a VisAD binary file, run:");
       System.out.println("  java visad.data.visad.VisADForm in_file out_file");
@@ -227,6 +235,4 @@ public class VisADForm extends Form implements FormFileInformer {
     }
     System.exit(0);
   }
-
 }
-

@@ -1664,10 +1664,12 @@ if(DEBUG_MATH)System.err.println("wrFuTy: FLD_END (" + FLD_END + ")");
   }
 
   private final void writeGriddedDoubleSet(SetType type, double[][] samples,
-                                     int[] lengths, CoordinateSystem cs,
-                                     Unit[] units, ErrorEstimate[] errors,
-                                     GriddedSet set, Class canonicalClass,
-                                     byte dataType)
+                                           int[] lengths, CoordinateSystem cs,
+                                           Unit[] units,
+                                           ErrorEstimate[] errors,
+                                           GriddedSet set,
+                                           Class canonicalClass,
+                                           byte dataType)
     throws VisADException
   {
     if (file == null) {
@@ -1796,10 +1798,10 @@ if(DEBUG_DATA)System.err.println("wrGrDblSet: FLD_END (" + FLD_END + ")");
   }
 
   private final void writeGriddedSet(SetType type, float[][] samples,
-                               int[] lengths, CoordinateSystem cs,
-                               Unit[] units, ErrorEstimate[] errors,
-                               GriddedSet set, Class canonicalClass,
-                               byte dataType)
+                                     int[] lengths, CoordinateSystem cs,
+                                     Unit[] units, ErrorEstimate[] errors,
+                                     GriddedSet set, Class canonicalClass,
+                                     byte dataType)
     throws VisADException
   {
     if (file == null) {
@@ -1945,10 +1947,10 @@ if(DEBUG_DATA_DETAIL)System.err.println("wrIntMtx: #" + i + "," + j + " (" + mat
   }
 
   private final void writeIntegerSet(SetType type, int[] lengths,
-                               Integer1DSet[] comps, CoordinateSystem cs,
-                               Unit[] units, ErrorEstimate[] errors,
-                               GriddedSet set, Class canonicalClass,
-                               byte dataType)
+                                     Integer1DSet[] comps,
+                                     CoordinateSystem cs, Unit[] units,
+                                     ErrorEstimate[] errors, GriddedSet set,
+                                     Class canonicalClass, byte dataType)
     throws VisADException
   {
     if (file == null) {
@@ -2094,10 +2096,10 @@ if(DEBUG_DATA)System.err.println("wrIntSet: FLD_END (" + FLD_END + ")");
   }
 
   private final void writeIrregularSet(SetType type, float[][] samples,
-                                 CoordinateSystem cs, Unit[] units,
-                                 ErrorEstimate[] errors, Delaunay delaunay,
-                                 IrregularSet set, Class canonicalClass,
-                                 byte dataType)
+                                       CoordinateSystem cs, Unit[] units,
+                                       ErrorEstimate[] errors,
+                                       Delaunay delaunay, IrregularSet set,
+                                       Class canonicalClass, byte dataType)
     throws VisADException
   {
     if (file == null) {
@@ -2211,11 +2213,12 @@ if(DEBUG_DATA)System.err.println("wrIrrSet: punt "+set.getClass().getName());
     }
   }
 
-  private final void writeLinearSet(SetType type, double[] firsts, double[] lasts,
-                              int[] lengths, Linear1DSet[] comps,
-                              CoordinateSystem cs, Unit[] units,
-                              ErrorEstimate[] errors, GriddedSet set,
-                              Class canonicalClass, byte dataType)
+  private final void writeLinearSet(SetType type, double[] firsts,
+                                    double[] lasts, int[] lengths,
+                                    Linear1DSet[] comps, CoordinateSystem cs,
+                                    Unit[] units, ErrorEstimate[] errors,
+                                    GriddedSet set, Class canonicalClass,
+                                    byte dataType)
     throws VisADException
   {
     if (file == null) {
@@ -2661,9 +2664,6 @@ if(DEBUG_MATH)System.err.println("wrScTy: serialized ScalarType (" + st.getClass
       file.writeByte(bytes[i]);
     }
     file.writeByte(FLD_END);
-
-System.err.println("Wrote serialized " + obj.getClass().getName());
-if(obj instanceof FloatSet||obj instanceof LinearNDSet)Thread.dumpStack();
   }
 
   private final void writeSet(Set set)
@@ -2732,8 +2732,8 @@ if(DEBUG_MATH)System.err.println("wrSetTy: FLD_END (" + FLD_END + ")");
   }
 
   private final void writeSimpleSet(SetType type, CoordinateSystem cs,
-                              Unit[] units, SimpleSet set,
-                              Class canonicalClass, byte dataType)
+                                    Unit[] units, SimpleSet set,
+                                    Class canonicalClass, byte dataType)
     throws VisADException
   {
     if (file == null) {
@@ -2921,14 +2921,7 @@ if(DEBUG_MATH)System.err.println("wrTuTy: FLD_END (" + FLD_END + ")");
       return index;
     }
 
-    // don't bother saving this Unit if there's no definition
     String uDef = u.getDefinition().trim();
-/* WLH 12 Jan 2001
-    // empty string indicates unity dimensionless Unit, OK
-    if (uDef.length() == 0) {
-      throw new VisADException("Unwriteable Unit \"" + u + "\"");
-    }
-*/
 
     String uId = u.getIdentifier();
 

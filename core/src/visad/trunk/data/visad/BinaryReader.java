@@ -320,9 +320,9 @@ if(DEBUG_MATH)System.err.println("getData: OBJ_UNIT (" + OBJ_UNIT + ")");
   public static boolean isMagic(byte[] block)
   {
     DataInputStream dis;
-      java.io.ByteArrayInputStream bs;
-      bs = new java.io.ByteArrayInputStream(block);
-      dis = new java.io.DataInputStream(bs);
+    java.io.ByteArrayInputStream bs;
+    bs = new java.io.ByteArrayInputStream(block);
+    dis = new java.io.DataInputStream(bs);
     try {
       return (readMagic(dis) <= FORMAT_VERSION);
     } catch (IOException ioe) {
@@ -1821,7 +1821,7 @@ if(DEBUG_DATA)System.err.println("rdRlTpl: FLD_END (" + FLD_END + ")");
     }
 
     if (components != null && values != null) {
-        throw new IOException("Found both RealTuple Real[] and double[] values");
+      throw new IOException("Found both RealTuple Real[] and double[] values");
     }
 
     if (values != null) {
