@@ -583,7 +583,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
    * Shows the widgets for altering controls (if there are any).
    */
   public synchronized void showWidgetFrame() {
-    if (VDisplay == null) return;
+    if (VDisplay == null || CellData.size() == 0) return;
     BasicSSCell.invoke(false, new Runnable() {
       public void run() {
         Container jc = VDisplay.getWidgetPanel();
@@ -808,7 +808,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
    * Returns whether the cell has any associated controls.
    */
   public boolean hasControls() {
-    if (VDisplay == null) return false;
+    if (VDisplay == null || CellData.size() == 0) return false;
     Container jc = VDisplay.getWidgetPanel();
     if (jc == null) return false;
     return (jc.getComponentCount() > 0);
