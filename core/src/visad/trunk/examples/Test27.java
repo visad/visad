@@ -64,6 +64,8 @@ public class Test27
     RealTupleType radiance = new RealTupleType(types2);
     FunctionType image_tuple = new FunctionType(earth_location, radiance);
 
+    final RealType junk = new RealType("junk", null, null);
+
     System.out.println("  drag yellow points with right mouse button");
     int size = 32;
     FlatField imaget1 = FlatField.makeField(image_tuple, size, false);
@@ -77,6 +79,22 @@ public class Test27
     dpys[0].addMap(new ScalarMap(ir_radiance, Display.Green));
     dpys[0].addMap(new ConstantMap(0.5, Display.Blue));
     dpys[0].addMap(new ConstantMap(0.5, Display.Red));
+
+    ScalarMap smap = new ScalarMap(junk, Display.Shape);
+    dpys[0].addMap(smap);
+
+    Gridded1DSet count_set =
+      new Gridded1DSet(RealType.Latitude, new float[][] {{0.0f}}, 1);
+    ShapeControl shape_control = (ShapeControl) smap.getControl();
+    shape_control.setShapeSet(count_set);
+    VisADLineArray cross = new VisADLineArray();
+    cross.coordinates = new float[]
+      {0.1f,  0.0f,  0.0f,    -0.1f,  0.0f,  0.0f,
+       0.0f, -0.1f,  0.0f,     0.0f,  0.1f,  0.0f,
+       0.0f,  0.0f,  0.1f,     0.0f,  0.0f, -0.1f};
+    cross.vertexCount = cross.coordinates.length / 3;
+    VisADGeometryArray[] shapes = {cross};
+    shape_control.setShapes(shapes);
 
     GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
     mode.setScaleEnable(true);
@@ -100,11 +118,13 @@ public class Test27
     RealTuple direct_low = new RealTuple(new Real[]
                      {new Real(RealType.Latitude, range1lat[0]),
                       new Real(RealType.Altitude, range1lon[0]),
-                      new Real(vis_radiance, range1vis[0])});
+                      new Real(vis_radiance, range1vis[0]),
+                      new Real(junk, 0.0)});
     RealTuple direct_hi = new RealTuple(new Real[]
                      {new Real(RealType.Latitude, range1lat[1]),
                       new Real(RealType.Altitude, range1lon[1]),
-                      new Real(vis_radiance, range1vis[1])});
+                      new Real(vis_radiance, range1vis[1]),
+                      new Real(junk, 0.0)});
 
     final DataReferenceImpl ref_direct_low =
       new DataReferenceImpl("ref_direct_low");
@@ -113,7 +133,7 @@ public class Test27
     ConstantMap[][] maps = {{new ConstantMap(1.0f, Display.Red),
                              new ConstantMap(1.0f, Display.Green),
                              new ConstantMap(0.0f, Display.Blue),
-                             new ConstantMap(5.0f, Display.PointSize)}};
+                             new ConstantMap(3.0f, Display.LineWidth)}};
     dpys[0].addReferences(new DirectManipulationRendererJ3D(),
                            new DataReference[] {ref_direct_low}, maps);
 
@@ -123,7 +143,7 @@ public class Test27
     maps = new ConstantMap[][] {{new ConstantMap(1.0f, Display.Red),
                                  new ConstantMap(1.0f, Display.Green),
                                  new ConstantMap(0.0f, Display.Blue),
-                                 new ConstantMap(5.0f, Display.PointSize)}};
+                                 new ConstantMap(3.0f, Display.LineWidth)}};
     dpys[0].addReferences(new DirectManipulationRendererJ3D(),
                            new DataReference[] {ref_direct_hi}, maps);
 
@@ -158,11 +178,13 @@ public class Test27
           RealTuple dlow = new RealTuple(new Real[]
                      {new Real(RealType.Latitude, lows[0]),
                       new Real(RealType.Altitude, lows[1]),
-                      new Real(vis_radiance, lows[2])});
+                      new Real(vis_radiance, lows[2]),
+                      new Real(junk, 0.0)});
           RealTuple dhi = new RealTuple(new Real[]
                      {new Real(RealType.Latitude, his[0]),
                       new Real(RealType.Altitude, his[1]),
-                      new Real(vis_radiance, his[2])});
+                      new Real(vis_radiance, his[2]),
+                      new Real(junk, 0.0)});
           ref_direct_low.setData(dlow);
           ref_direct_hi.setData(dhi);
           no_self += 2;
