@@ -66,12 +66,10 @@ public class QTForm extends Form
   /** Flag indicating QuickTime for Java is not installed. */
   private static boolean noQT = false;
 
-  /** Reflection tool for QuickTime for Java calls. */
-  private static final ReflectedUniverse r = constructUniverse();
+  /** Additional paths to search for QTJava.zip. */
+  private static final URL[] paths = constructPaths();
 
-  private static ReflectedUniverse constructUniverse() {
-    boolean needClose = false;
-
+  private static URL[] constructPaths() {
     // set up additional QuickTime for Java paths
     URL[] paths = null;
     try {
@@ -85,6 +83,14 @@ public class QTForm extends Form
       };
     }
     catch (MalformedURLException exc) { }
+    return paths;
+  }
+
+  /** Reflection tool for QuickTime for Java calls. */
+  private static final ReflectedUniverse r = constructUniverse();
+
+  private static ReflectedUniverse constructUniverse() {
+    boolean needClose = false;
 
     // create reflected universe
     ReflectedUniverse r = new ReflectedUniverse(paths);
@@ -134,6 +140,9 @@ public class QTForm extends Form
     }
     return r;
   }
+
+  /** Gets QuickTime for Java reflected universe. */
+  public static ReflectedUniverse getUniverse() { return r; }
 
 
   // -- Fields --
