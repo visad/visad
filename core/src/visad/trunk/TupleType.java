@@ -27,7 +27,7 @@ MA 02111-1307, USA
 package visad;
 
 import java.rmi.*;
-import java.util.Vector;
+import java.util.*;
 
 /**
    TupleType is the general VisAD data type for vectors.<P>
@@ -175,6 +175,10 @@ public class TupleType extends MathType {
       return false;
     }
     return true;
+  }
+
+  public int hashCode() {
+    return Arrays.asList(tupleComponents).hashCode();
   }
 
   public boolean equalsExceptName(MathType type) {
