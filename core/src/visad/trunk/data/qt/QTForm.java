@@ -246,9 +246,9 @@ public class QTForm extends Form
       r.setVar("kNoVolume", kNoVolume);
       r.setVar("kVidTimeScale", 600);
 
-      r.setVar("fkWidth", kWidth);
-      r.setVar("fkHeight", kHeight);
-      r.setVar("fkNoVolume", kNoVolume);
+      r.setVar("fkWidth", (float) kWidth);
+      r.setVar("fkHeight", (float) kHeight);
+      r.setVar("fkNoVolume", (float) kNoVolume);
       r.exec("vidTrack = theMovie.addTrack(fkWidth, fkHeight, fkNoVolume)");
       r.exec("vidMedia = new VideoMedia(vidTrack, kVidTimeScale)");
 
