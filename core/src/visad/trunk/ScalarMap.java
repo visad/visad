@@ -927,7 +927,21 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
    */
   public int hashCode()
   {
-    return getScalar().hashCode() ^ getDisplayScalar().hashCode();
+    ScalarType s = getScalar();
+    DisplayRealType ds = getDisplayScalar();
+
+    int hash = 0;
+    if (s != null) {
+      if (ds != null) {
+        hash = s.hashCode() ^ ds.hashCode();
+      } else {
+        hash = s.hashCode();
+      }
+    } else if (ds != null) {
+      hash = ds.hashCode();
+    }
+
+    return hash;
   }
 
   public Object clone()
