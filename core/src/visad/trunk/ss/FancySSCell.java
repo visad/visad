@@ -32,16 +32,6 @@ import visad.data.BadFormException;
     provides an example of GUI extensions to BasicSSCell.<P> */
 public class FancySSCell extends BasicSSCell {
 
-  // Custom mapping type
-  static final int CUSTOM = 0;
-
-  // Default mapping types
-  static final int IMAGE = 1;
-  static final int LATLONIMAGE = 2;
-  static final int SURFACE3D = 3;
-
-  static final int DEFAULT_MAPPING_TYPE = SURFACE3D;
-
   /** unselected border */
   static final Border NORM = new LineBorder(Color.gray, 3);
 
@@ -54,11 +44,11 @@ public class FancySSCell extends BasicSSCell {
   /** This cell's associated JFrame, for use with VisAD Controls */
   JFrame WidgetFrame = null;
 
-  /** default mapping type */
-  int MappingType = DEFAULT_MAPPING_TYPE;
-
   /** Specifies whether this cell is selected */
   boolean Selected = false;
+
+  /** Specified whether this cell should auto-detect mappings for data */
+  boolean AutoDetect = true;
 
   /** file dialog box */
   static FileDialog FileBox;
@@ -161,180 +151,25 @@ public class FancySSCell extends BasicSSCell {
     super.setData(data);
     hideWidgetFrame();
     WidgetFrame = null;
-    setMappingScheme(MappingType);
+    if (AutoDetect) {
+      MathType mt = null;
+      try {
+        if (data != null) mt = data.getType();
+      }
+      catch (VisADException exc) { }
+      catch (RemoteException exc) { }
+      if (mt != null) {
+        ScalarMap[] smaps = mt.guessMaps(Dimension2D != JAVA2D_2D);
+        setMaps(smaps);
+      }
+    }
   }
 
-  /** Sets the dimension for this cell, and applies the default ScalarMaps */
+  /** Sets the dimension for this cell, and re-applies existing ScalarMaps */
   public void setDimension(boolean twoD, boolean java2d)
                               throws VisADException, RemoteException {
     super.setDimension(twoD, java2d);
-    if (MappingType != CUSTOM) setMappingScheme(MappingType);
-  }
-
-  /** Gets this cell's mapping scheme */
-  public int getMappingScheme() {
-    return MappingType;
-  }
-
-  /** Sets the mapping scheme for this cell */
-  public void setMappingScheme(int mappingScheme) {
-    MappingType = mappingScheme;
-
-    // parse data's MathType;  find FunctionType of form:
-    // ((RealType, ..., RealType) -> (RealType, ..., RealType))
-    Data data = DataRef.getData();
-    if (data == null) return;
-    MathType mathType;
-    try {
-      mathType = data.getType();
-    }
-    catch (VisADException exc) {
-      return;
-    }
-    catch (RemoteException exc) {
-      return;
-    }
-
-    FunctionType function = findFunction(mathType);
-    if (function == null) return;
-
-    MathType domain = function.getDomain();
-    MathType range = function.getRange();
-    RealType[] dlist;
-    if (domain instanceof TupleType) {
-      dlist = ((TupleType) domain).getRealComponents();
-    }
-    else {
-      dlist = new RealType[1];
-      dlist[0] = (RealType) domain;
-    }
-    RealType[] rlist;
-    if (range instanceof TupleType) {
-      rlist = ((TupleType) range).getRealComponents();
-    }
-    else {
-      rlist = new RealType[1];
-      rlist[0] = (RealType) range;
-    }
-    DisplayRealType[] d = null;
-    DisplayRealType[] r = null;
-
-    // set up default ScalarMaps
-    if (MappingType == IMAGE) {
-      d = new DisplayRealType[2];
-      d[0] = Display.XAxis;
-      d[1] = Display.YAxis;
-      r = new DisplayRealType[3];
-      r[0] = Display.Red;
-      r[1] = Display.Green;
-      r[2] = Display.Blue;
-    }
-    else if (MappingType == LATLONIMAGE) {
-      d = new DisplayRealType[2];
-      d[0] = Display.Latitude;
-      d[1] = Display.Longitude;
-      r = new DisplayRealType[3];
-      r[0] = Display.Red;
-      r[1] = Display.Green;
-      r[2] = Display.Blue;
-    }
-    else if (MappingType == SURFACE3D) {
-      d = new DisplayRealType[3];
-      d[0] = Display.XAxis;
-      d[1] = Display.YAxis;
-      d[2] = Display.ZAxis;
-      r = new DisplayRealType[3];
-      r[0] = Display.Red;
-      r[1] = Display.Green;
-      r[2] = Display.Blue;
-    }
-    if (d == null || r == null) return;
-
-    // apply ScalarMaps
-    int dlen = dlist.length > d.length ? d.length : dlist.length;
-    int rlen = rlist.length > r.length ? r.length : rlist.length;
-    ScalarMap[] smaps = new ScalarMap[dlen+rlen];
-    for (int i=0; i<dlen; i++) {
-      try {
-        smaps[i] = new ScalarMap(dlist[i], d[i]);
-      }
-      catch (VisADException exc) {
-        return;
-      }
-    }
-    for (int i=0; i<rlen; i++) {
-      try {
-        smaps[i+dlen] = new ScalarMap(rlist[i], r[i]);
-      }
-      catch (VisADException exc) {
-        return;
-      }
-    }
-
-    try {
-      setMaps(smaps);
-    }
-    catch (VisADException exc) { }
-    catch (RemoteException exc) { }
-  }
-
-  /** Used by setData's default ScalarMap logic, to find a valid function */
-  FunctionType findFunction(MathType mathType) {
-    if (mathType instanceof ScalarType) return null;
-    if (mathType instanceof SetType) return null;
-    if (mathType instanceof TupleType) {
-      for (int i=0; i<((TupleType) mathType).getDimension(); i++) {
-        FunctionType f = null;
-        try {
-          f = findFunction(((TupleType) mathType).getComponent(i));
-        }
-        catch (VisADException exc) { }
-        if (f != null) return f;
-      }
-    }
-    if (mathType instanceof FunctionType) {
-      MathType domain = ((FunctionType) mathType).getDomain();
-      MathType range = ((FunctionType) mathType).getRange();
-      if (domain instanceof FunctionType) return null;
-      if (domain instanceof SetType) return null;
-      if (domain instanceof TextType) return null;
-      if (range instanceof FunctionType) return null;
-      if (range instanceof SetType) return null;
-      if (range instanceof TextType) return null;
-
-      if (!(domain instanceof RealType)) {
-        // test domain
-        int dlen = ((TupleType) domain).getDimension();
-        for (int i=0; i<dlen; i++) {
-          try {
-            if (!(((TupleType) domain).getComponent(i) instanceof RealType)) {
-              return null;
-            }
-          }
-          catch (VisADException exc) {
-            return null;
-          }
-        }
-      }
-
-      if (!(range instanceof RealType)) {
-        // test range
-        int rlen = ((TupleType) range).getDimension();
-        for (int i=0; i<rlen; i++) {
-          try {
-            if (!(((TupleType) range).getComponent(i) instanceof RealType)) {
-              return null;
-            }
-          }
-          catch (VisADException exc) {
-            return null;
-          }
-        }
-      }
-
-      return (FunctionType) mathType;
-    }
-    return null;
+    // TO DO: RE-APPLY EXISTING SCALAR MAPS HERE
   }
 
   /** Specifies whether the FancySSCell has a blue border or a gray border */
@@ -354,6 +189,16 @@ public class FancySSCell extends BasicSSCell {
       paint(g);
       g.dispose();
     }
+  }
+
+  /** Specifies whether this FancySSCell should auto-detect its mappings */
+  public void setAutoDetect(boolean value) {
+    AutoDetect = value;
+  }
+
+  /** Returns whether this FancySSCell auto-detects its mappings */
+  public boolean getAutoDetect() {
+    return AutoDetect;
   }
 
   /** Asks user to confirm clearing the cell if any other cell depends on it */
@@ -376,7 +221,6 @@ public class FancySSCell extends BasicSSCell {
 
   public void clearCell() throws VisADException, RemoteException {
     super.clearCell();
-    MappingType = DEFAULT_MAPPING_TYPE;
   }
 
   /** Clears the cell if no other cell depends it;  otherwise, asks the
@@ -431,7 +275,6 @@ public class FancySSCell extends BasicSSCell {
     // set up new mappings
     try {
       setMaps(mapDialog.ScalarMaps);
-      MappingType = CUSTOM;
     }
     catch (VisADException exc) {
       JOptionPane.showMessageDialog(Parent,

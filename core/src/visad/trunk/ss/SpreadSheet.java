@@ -96,7 +96,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   JButton ToolPaste;
   JButton FormulaOk;
   CheckboxMenuItem CellDim3D3D, CellDim2D2D, CellDim2D3D;
-  CheckboxMenuItem DispImage, DispSphere, DispSurface3D;
+  CheckboxMenuItem CellAuto;
   CheckboxMenuItem WinFormula;
   int CurDisplay = 0;
 
@@ -238,17 +238,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     disp.add(CellDim2D3D);
     disp.addSeparator();
 
-    DispImage = new CheckboxMenuItem("Image");
-    DispImage.addItemListener(this);
-    disp.add(DispImage);
-
-    DispSphere = new CheckboxMenuItem("Spherical image");
-    DispSphere.addItemListener(this);
-    disp.add(DispSphere);
-
-    DispSurface3D = new CheckboxMenuItem("3-D surface", true);
-    DispSurface3D.addItemListener(this);
-    disp.add(DispSurface3D);
+    CellAuto = new CheckboxMenuItem("Auto-detect mappings", true);
+    CellAuto.addItemListener(this);
+    disp.add(CellAuto);
 
     // window menu
     Menu window = new Menu("Window");
@@ -908,15 +900,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else CellDim2D2D.setState(false);
     if (dim == BasicSSCell.JAVA3D_2D) CellDim2D3D.setState(true);
     else CellDim2D3D.setState(false);
-
-    // update mapping scheme check marks
-    int s = DisplayCells[CurDisplay].getMappingScheme();
-    if (s == FancySSCell.IMAGE) DispImage.setState(true);
-    else DispImage.setState(false);
-    if (s == FancySSCell.LATLONIMAGE) DispSphere.setState(true);
-    else DispSphere.setState(false);
-    if (s == FancySSCell.SURFACE3D) DispSurface3D.setState(true);
-    else DispSurface3D.setState(false);
+    // update auto-detect check mark
+    CellAuto.setState(DisplayCells[CurDisplay].getAutoDetect());
   }
 
   /** Handles checkbox menu item changes (dimension checkboxes) */
@@ -938,14 +923,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
       else if (item.equals("2-D (Java3D)")) {
         DisplayCells[CurDisplay].setDimension(true, false);
       }
-      else if (item.equals("Image")) {
-        DisplayCells[CurDisplay].setMappingScheme(FancySSCell.IMAGE);
-      }
-      else if (item.equals("Spherical image")) {
-        DisplayCells[CurDisplay].setMappingScheme(FancySSCell.LATLONIMAGE);
-      }
-      else if (item.equals("3-D surface")) {
-        DisplayCells[CurDisplay].setMappingScheme(FancySSCell.SURFACE3D);
+      else if (item.equals("Auto-detect mappings")) {
+        DisplayCells[CurDisplay].setAutoDetect(e.getStateChange()
+                                            == ItemEvent.SELECTED);
       }
       refreshDisplayMenuItems();
     }

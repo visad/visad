@@ -172,7 +172,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
 
     // look for matches between templates and FunctionTypes list
     int numfuncs = flist.size();
-    for (int template=(threeD ? 0 : 4); template<8; template++) {
+    for (int template=(threeD ? 0 : 4); template<7; template++) {
       for (int fi=0; fi<numfuncs; fi++) {
         FunctionType ft = (FunctionType) flist.elementAt(fi);
         switch (template) {
@@ -616,6 +616,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
                   RealType time = (RealType) rtt.getComponent(0);
                   smaps[5] = new ScalarMap(time, Display.Animation);
                 }
+                return smaps;
               }
               catch (VisADException exc) { }
             }
@@ -680,6 +681,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
                 RealType time = (RealType) rtt.getComponent(0);
                 smaps[3] = new ScalarMap(time, Display.Animation);
               }
+              return smaps;
             }
             catch (VisADException exc) { }
 
@@ -728,6 +730,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
                 RealType time = (RealType) rtt.getComponent(0);
                 smaps[2] = new ScalarMap(time, Display.Animation);
               }
+              return smaps;
             }
             catch (VisADException exc) { }
             break;
@@ -852,8 +855,11 @@ public abstract class MathType extends Object implements java.io.Serializable {
     // construct second MathType
     RealType T = new RealType("time");
     RealTupleType Domain1d = new RealTupleType(new RealType[] {T});
-    RealTupleType Domain3d = new RealTupleType(new RealType[] {X, Y, Z});
-    FunctionType image = new FunctionType(Domain3d, Range2d);
+    RealType Rxx = new RealType("Red");
+    RealType Gxx = new RealType("Green");
+    RealType Bxx = new RealType("Blue");
+    RealTupleType Range3d = new RealTupleType(new RealType[] {Rxx, Gxx, Bxx});
+    FunctionType image = new FunctionType(Domain2d, Range3d);
     function = new FunctionType(Domain1d, image);
 
     // test prettyString() again
