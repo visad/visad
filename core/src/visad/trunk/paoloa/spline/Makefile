@@ -77,7 +77,7 @@ Spline2D.class: Spline2D.java
 	javac Spline2D.java
 
 $(FORTRANS) : $(SOURCE)
-	f77 -c $(FFLAGS) $*.f
+	f77 -c -static $(FFLAGS) $*.f
 
 clean:
 	$(RM) visad_paoloa_spline_Spline.h

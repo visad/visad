@@ -1,4 +1,4 @@
-      SUBROUTINE getspline( Y, S0, VAL, MODE )
+      SUBROUTINE getspline( Y, S0, VAL, MODE, wkvalue )
 c--------editorial remark by Eric Grosse, 14 Jun 87-------------
 c  If you plan to use this to automatically mininize GCV, read the
 c  comments very carefully and run tests.  For example, on a problem
@@ -45,24 +45,11 @@ C       compiled, also the raw data and the estimated spline values,
 C       first and second derivatives at the knot positions are typed.
 C
 C**********************************************************************
-C
-cR    PROGRAM GCV       !REAL*8
-C
       IMPLICIT REAL*8 (A-H,O-Z), LOGICAL (L)
       PARAMETER ( K=1, NN=50, MM=10, MM2=MM*2, NWK=NN+6*(NN*MM+1) )
       REAL*8 S0(NN)
       DIMENSION X(NN), Y(NN), WX(NN), C(NN), WK(NWK), Q(0:MM), V(MM2)
-C
-c     DATA Y/1.770D0,1.757D0,1.748D0,1.740D0,1.726D0,   !Noisy samples
-c    1      1.715D0,1.698D0,1.683D0,1.667D0,1.651D0,    !of the vertical
-c    2      1.632D0,1.612D0,1.593D0,1.572D0,1.551D0,    !coordinates (in
-c    3      1.530D0,1.507D0,1.483D0,1.445D0,1.428D0,    !metres) of a
-c    4      1.401D0,1.371D0,1.343D0,1.311D0,1.279D0,    !freely falling
-c    5      1.245D0,1.212D0,1.175D0,1.143D0,1.105D0,    !golf ball.
-c    6      1.063D0,1.029D0,0.991D0,0.953D0,0.910D0,
-c    7      0.869D0,0.823D0,0.779D0,0.732D0,0.691D0,
-c    8      0.644D0,0.595D0,0.548D0,0.501D0,0.447D0,
-c    9      0.395D0,0.350D0,0.294D0,0.243D0,0.185D0/
+      DIMENSION wkvalue(1)
       DATA WX/50*1D0/, WY/1D0/, AT/9.85D-3/   !Weights, sampling interval
       SCALE = 125D-3 / DATAN(1D0)             !1/(2*PI)
 C
@@ -71,49 +58,34 @@ C
       DO 10 IX=1,NN
          X(IX) = AT * (IX - 1)
    10 CONTINUE
+c      print *,y
+c      print *,s0
+c      print *,val
+c      print *,mode
+c      print *,wkvalue
 C
 C***  Get parameters (see comments in subroutine GCVSPL) or exit
 C
-C  20 PRINT 700
-   20 CONTINUE
-  700 FORMAT(/'$M, MODE, VAL , N = ')
-C      READ (*,710) M, MODE, VAL, N
-C  710 FORMAT(2I10,E15.0,I10)
       M=2
 c      MODE=1
 c     VAL=.2
       N=50
-      IF ((N.LT.2*M).OR.(N.GT.NN)) N = NN
-      IF ((MODE.EQ.0).OR.(IABS(MODE).GT.5).OR.
-     1   (   M.LE.0).OR.(  M.GT.MM)) STOP 'ready'    !exit
 C
 C***  Assess spline coefficients and type resulting statistics
 C
       CALL GCVSPL ( X, Y, NN, WX, WY, M, N, K, MODE, VAL, C, NN,
      1             WK, IER)
-      IF (IER.NE.0) THEN
-C        PRINT 720, IER
-  720    FORMAT(' error #',I3)
-         GO TO 20              !next trial
-      ELSE
+      IF (IER.EQ.0) THEN
          VAR = WK(6)
          IF (WK(4).EQ.0D0) THEN
             FRE = 5D-1 / AT
          ELSE
             FRE = SCALE * (WK(4)*AT)**(-0.5/M)
          ENDIF
-C           PRINT 730, VAR, (WK(I),I=1,4), FRE
-  730       FORMAT(' var =',1PD15.6,', GCV =',D15.6,',  msr =',D15.6/
-     1             '  df =',0PF8.3,',          p =',1PD15.6,
-     2             ',  fre =',1PD15.6)
       ENDIF
 C
 C***  Reconstruct data, type i, x(i), y(i), s(i), s'(i), s''(i) [D]
-C***  Assess and type acceleration mean and standard deviation
 C
-C     PRINT 740
-  740 FORMAT('0  i         x(i)         y(i)     ',
-     1      '   s0(i)        s1(i)        s2(i)'/)
       IDM = MIN0(2,M)
       DACCAV = 0D0
       DACCSD = 0D0
@@ -123,20 +95,25 @@ C     PRINT 740
          DO 30 IDER=0,IDM
             Q(IDER) = SPLDER ( IDER, M, N, X(I), X, C, J, V )
    30    CONTINUE
-Cpaolo         PRINT 750, I, X(I), Y(I), (Q(IDER), IDER=0,IDM)
          S0(I) = Q(0)
+C         write(*,*) S0(i)
   750    FORMAT(I4,':',5F13.6)
          DACCAV = DACCAV + Q(2)
          DACCSD = DACCSD + Q(2)*Q(2)
    40 CONTINUE
       ACCAV = DACCAV / N
       ACCSD = DSQRT((DACCSD - ACCAV*DACCAV)/(N-1))
-C     PRINT 760, ACCAV, ACCSD
-  760 FORMAT('0acceleration mean and sd:',2F12.7,' m/s**2')
 C
-C***  Next run
-C
-C      GO TO 20
+      if (mode.eq.1) then
+         wkvalue(1) = 0
+      endif
+         
+      if (WK(4).le.10e-10) then
+         wkvalue(1)=-10
+      else
+         wkvalue(1) = log10(WK(4))
+      endif
+C      write (*,*) 'this is wkvalue',wkvalue(1)
       RETURN
       END
 C GCVSPL.FOR, 1986-05-12
@@ -1482,6 +1459,8 @@ C***  Multiply with factorial if IDER.gt.0
 C
 C***  Ready
 C
+
+
       RETURN
       END
 C SEARCH.FOR, 1985-06-03
