@@ -177,7 +177,9 @@ System.out.println("checkClose: distance = " + distance);
     RealType x = new RealType("x");
     RealType y = new RealType("y");
     RealType z = new RealType("z");
-    FunctionType f = new FunctionType(x, y);
+    FunctionType f1d = new FunctionType(x, y);
+    RealTupleType xy = new RealTupleType(x, y);
+    FunctionType f2d = new FunctionType(xy, z);
     TextType t = new TextType("text");
     RealType s = new RealType("shape");
 
@@ -200,10 +202,22 @@ System.out.println("checkClose: distance = " + distance);
                  new Real(z, 0.0)};
     RealTuple real_tuple = new RealTuple(rtd);
 
-    FlatField field = new FlatField(f, new Linear1DSet(x, -1.0, 1.0, 64));
+    FlatField field1d = new FlatField(f1d, new Linear1DSet(x, -1.0, -0.5, 64));
     double[][] values = new double[1][64];
-    for (int i=0; i<64; i++) values[0][i] = Math.abs(i - 31.5) / 31.5;
-    field.setSamples(values);
+    for (int i=0; i<64; i++) values[0][i] = 0.5 + Math.abs(i - 31.5) / 63.0;
+    field1d.setSamples(values);
+
+    Set set2d = new Linear2DSet(xy, 0.5, 1.0, 32, -0.25, 0.25, 32);
+    FlatField field2d = new FlatField(f2d, set2d);
+    values = new double[1][1024];
+    int k = 0;
+    for (int i=0; i<32; i++) {
+      for (int j=0; j<32; j++) {
+        values[0][k++] =
+          Math.sqrt((i-15.5) * (i-15.5) + (j-15.5) * (j-15.5)) / 32.0;
+      }
+    }
+    field2d.setSamples(values);
 
     // construct Java3D display and mappings
     DisplayImpl display = new DisplayImplJ3D("display");
@@ -265,7 +279,7 @@ System.out.println("checkClose: distance = " + distance);
     };
     cells.addReference(sref);
 
-    DataReferenceImpl rref = new DataReferenceImpl("real");
+    DataReferenceImpl rref = new DataReferenceImpl("Real");
     rref.setData(real);
     ConstantMap[] rmaps = {new ConstantMap(5.0, Display.PointSize)};
     display.addReferences(new PickManipulationRendererJ3D(), rref, rmaps);
@@ -273,12 +287,12 @@ System.out.println("checkClose: distance = " + distance);
       private boolean first = true;
       public void doAction() throws VisADException, RemoteException {
         if (first) first = false;
-        else System.out.println("real picked");
+        else System.out.println("Real picked");
       }
     };
     cellr.addReference(rref);
 
-    DataReferenceImpl rtref = new DataReferenceImpl("real tuple");
+    DataReferenceImpl rtref = new DataReferenceImpl("RealTuple");
     rtref.setData(real_tuple);
     ConstantMap[] rtmaps = {new ConstantMap(5.0, Display.PointSize)};
     display.addReferences(new PickManipulationRendererJ3D(), rtref, rtmaps);
@@ -286,22 +300,34 @@ System.out.println("checkClose: distance = " + distance);
       private boolean first = true;
       public void doAction() throws VisADException, RemoteException {
         if (first) first = false;
-        else System.out.println("real tuple picked");
+        else System.out.println("RealTuple picked");
       }
     };
     cellrt.addReference(rtref);
 
-    DataReferenceImpl fieldref = new DataReferenceImpl("field");
-    fieldref.setData(field);
-    display.addReferences(new PickManipulationRendererJ3D(), fieldref);
-    CellImpl cellfield = new CellImpl() {
+    DataReferenceImpl field1dref = new DataReferenceImpl("field1d");
+    field1dref.setData(field1d);
+    display.addReferences(new PickManipulationRendererJ3D(), field1dref);
+    CellImpl cellfield1d = new CellImpl() {
       private boolean first = true;
       public void doAction() throws VisADException, RemoteException {
         if (first) first = false;
-        else System.out.println("field picked");
+        else System.out.println("1-D Field picked");
       }
     };
-    cellfield.addReference(fieldref);
+    cellfield1d.addReference(field1dref);
+
+    DataReferenceImpl field2dref = new DataReferenceImpl("field2d");
+    field2dref.setData(field2d);
+    display.addReferences(new PickManipulationRendererJ3D(), field2dref);
+    CellImpl cellfield2d = new CellImpl() {
+      private boolean first = true;
+      public void doAction() throws VisADException, RemoteException {
+        if (first) first = false;
+        else System.out.println("2-D Field picked");
+      }
+    };
+    cellfield2d.addReference(field2dref);
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test PickManipulationRendererJ3D");
