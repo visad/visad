@@ -376,13 +376,21 @@ public class ViewToolPanel extends ToolPanel {
     if (bio.sm.res_y > maxVolRes) maxVolRes = bio.sm.res_y;
     int slices = bio.sm.getNumberOfSlices();
     if (slices > maxVolRes) maxVolRes = slices;
+
+    // volume rendering takes so darn much memory!
+    if (maxVolRes > 128) maxVolRes = 128;
+
     int volVal = maxVolRes < 64 ? maxVolRes : 64;
     double volPercent = (double) volVal / maxVolRes;
-    volumeRes.setValue((int) (volPercent * VisBio.RESOLUTION_DETAIL));
+    int vv = (int) (volPercent * VisBio.RESOLUTION_DETAIL);
+    if (volumeRes.getValue() == vv) doVolumeRes(true);
+    else volumeRes.setValue(vv);
     int max = bio.sm.res_x < bio.sm.res_y ? bio.sm.res_x : bio.sm.res_y;
     int sliceVal = max < 64 ? max : 64;
     double slicePercent = (double) sliceVal / max;
-    sliceRes.setValue((int) (slicePercent * VisBio.RESOLUTION_DETAIL));
+    int sv = (int) (slicePercent * VisBio.RESOLUTION_DETAIL);
+    if (sliceRes.getValue() == sv) doSliceRes(true);
+    else sliceRes.setValue((int) (slicePercent * VisBio.RESOLUTION_DETAIL));
   }
 
   /** Enables or disables this tool panel. */

@@ -70,8 +70,11 @@ public class PlaneSelector implements DisplayListener {
   /** Flag for whether selection plane is visible. */
   protected boolean visible;
 
-  /** Flag for endpoint mode versus rotatable mode. */
-  protected boolean endpointMode;
+  /** Flag for free mode versus lockable mode. */
+  protected boolean lockMode;
+
+  /** Flags for whether each endpoint is locked at each timestep. */
+  protected boolean[][] locked;
 
   /** Position of plane selector for each timestep. */
   protected double[][][] pos;
@@ -319,7 +322,7 @@ public class PlaneSelector implements DisplayListener {
               pos[index][i][j] = values[j];
             }
           }
-          if (endpointMode) {
+          if (lockMode) {
             // set all indices to match the current one
             for (int ndx=0; ndx<numIndices; ndx++) {
               if (ndx == index) continue;
@@ -423,9 +426,7 @@ public class PlaneSelector implements DisplayListener {
   public void toggle(boolean visible) {
     this.visible = visible;
     for (int i=0; i<2; i++) renderers[i].toggle(visible);
-    for (int i=2; i<renderers.length; i++) {
-      renderers[i].toggle(visible && endpointMode);
-    }
+    for (int i=2; i<renderers.length; i++) renderers[i].toggle(visible);
   }
 
   /**
@@ -441,9 +442,10 @@ public class PlaneSelector implements DisplayListener {
     this.ztype = ztype;
     snap = lox == lox;
     visible = false;
-    endpointMode = true;
+    lockMode = false;
     numIndices = numTime;
     pos = new double[numIndices][3][3];
+    locked = new boolean[numIndices][3];
     if (snap) {
       this.lox = lox;
       this.loy = loy;
@@ -621,10 +623,10 @@ public class PlaneSelector implements DisplayListener {
   public void removeListener(PlaneListener l) { listeners.remove(l); }
 
   /** Toggles the plane's mode between manipulable endpoints and rotatable. */
-  public void setMode(boolean endpoints) {
-    if (endpointMode == endpoints) return;
-    endpointMode = endpoints;
-    if (endpointMode) display.removeDisplayListener(this);
+  public void setMode(boolean lockable) {
+    if (lockMode == lockable) return;
+    lockMode = lockable;
+    if (lockMode) display.removeDisplayListener(this);
     else display.addDisplayListener(this);
     toggle(visible);
   }
@@ -659,20 +661,19 @@ public class PlaneSelector implements DisplayListener {
     int x = e.getX();
     int y = e.getY();
     int mods = e.getModifiers();
-    boolean right = (mods & InputEvent.BUTTON3_MASK) != 0;
+    boolean left = (mods & InputEvent.BUTTON1_MASK) != 0;
     boolean ctrl = (mods & InputEvent.CTRL_MASK) != 0;
 
-    // ignore non-right button events
-    if (!right) return;
+    // ignore non-left button events
+    if (!left) return;
 
     if (id == DisplayEvent.MOUSE_PRESSED) {
       mx = x;
       my = y;
       m_ctrl = ctrl;
     }
-    else if (id == DisplayEvent.MOUSE_DRAGGED) {
-      // CTR - TODO - actually, this is obsolete--purge it.
-      // instead, do "locking down" of individual endpoints.
+    else if (id == DisplayEvent.MOUSE_RELEASED) {
+      // CTR - TODO - lock or unlock picked point
     }
   }
 

@@ -277,9 +277,6 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     controls.add(pad(p));
     cc++;
 
-    controls.add(pad(p));
-    cc++;
-
     // divider between display functions and resolution functions
     controls.add(Box.createVerticalStrut(10));
     controls.add(new Divider());
