@@ -328,7 +328,7 @@ public class ExportDialog extends JPanel
               if (sliceSeries) {
                 // loaded dataset is a slice series
                 images = new FlatField[1];
-                images[0] = (FlatField) bio.sm.ps.extractSlice((FieldImpl)
+                images[0] = (FlatField) bio.sm.arb.extractSlice((FieldImpl)
                   bio.sm.getField().domainMultiply(), resX, resY, rx, ry);
               }
               else {
@@ -339,7 +339,7 @@ public class ExportDialog extends JPanel
                   for (int j=0; j<numIndices; j++) {
                     File f = infiles[minIndex + j];
                     FieldImpl timestep = SliceManager.loadData(f, true);
-                    images[j] = (FlatField) bio.sm.ps.extractSlice((FieldImpl)
+                    images[j] = (FlatField) bio.sm.arb.extractSlice((FieldImpl)
                       timestep.domainMultiply(), resX, resY, rx, ry);
                     float percent = (float) (j + 1) / numIndices;
                     dialog.setPercent((int) (100 * percent));
@@ -350,7 +350,7 @@ public class ExportDialog extends JPanel
                   images = new FlatField[1];
                   File f = infiles[minIndex + i];
                   FieldImpl timestep = SliceManager.loadData(f, true);
-                  images[0] = (FlatField) bio.sm.ps.extractSlice((FieldImpl)
+                  images[0] = (FlatField) bio.sm.arb.extractSlice((FieldImpl)
                     timestep.domainMultiply(), resX, resY, rx, ry);
                 }
               }

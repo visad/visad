@@ -26,6 +26,7 @@ MA 02111-1307, USA
 
 package visad.bio;
 
+import java.awt.Color;
 import java.io.*;
 import java.rmi.RemoteException;
 import javax.swing.JOptionPane;
@@ -111,10 +112,10 @@ public class SliceManager
   ValueControl value_control2;
 
   /** Plane selection object. */
-  PlaneSelector ps;
+  ArbitrarySlice arb;
 
   /** Image stack alignment plane. */
-  PlaneSelector align;
+  AlignmentPlane align;
 
   /** Is arbitrary plane selection on? */
   private boolean planeSelect;
@@ -344,7 +345,7 @@ public class SliceManager
   public void setPlaneSelect(boolean value) {
     if (bio.display3 == null) return;
     planeSelect = value;
-    ps.toggle(value);
+    arb.toggle(value);
     planeRenderer2.toggle(value);
     renderer2.toggle(!value && !lowres);
     if (hasThumbs) lowresRenderer2.toggle(!value && lowres);
@@ -573,7 +574,7 @@ public class SliceManager
     fout.println(thumbSize[1]);
     fout.println(sliceRes_x);
     fout.println(sliceRes_y);
-    if (ps != null) ps.saveState(fout);
+    if (arb != null) arb.saveState(fout);
   }
 
   /** Restores the current program state from the given input stream. */
@@ -589,7 +590,7 @@ public class SliceManager
     int sliceY = Integer.parseInt(fin.readLine().trim());
     setThumbnails(thumbs, thumbX, thumbY);
     setSeries(files, fas);
-    if (ps != null) ps.restoreState(fin);
+    if (arb != null) arb.restoreState(fin);
   }
 
 
@@ -1032,19 +1033,17 @@ public class SliceManager
 
     if (bio.display3 != null) {
       // initialize plane selector
-      if (ps == null) {
-        ps = new PlaneSelector(bio.display3);
-        ps.addListener(this);
+      if (arb == null) {
+        arb = new ArbitrarySlice(bio.display3);
+        arb.addListener(this);
       }
-      ps.init(dtypes[0], dtypes[1], dtypes[2], 0,
-        min_x, min_y, min_z, max_x, max_y, max_z);
+      arb.init(dtypes[0], dtypes[1], dtypes[2], Color.cyan, Color.white,
+        min_x, min_y, min_z, max_x, max_y, max_z, min_x, max_y, max_z);
 
       // initialize alignment plane
-      if (align == null) {
-        align = new PlaneSelector(bio.display3);
-      }
-      align.init(dtypes[0], dtypes[1], dtypes[2], timesteps,
-        Float.NaN, Float.NaN, Float.NaN, Float.NaN, Float.NaN, Float.NaN);
+      if (align == null) align = new AlignmentPlane(bio.display3);
+      align.init(dtypes[0], dtypes[1], dtypes[2], Color.red, Color.red,
+        min_x, min_y, min_z, max_x, max_y, max_z, min_x, max_y, max_z);
     }
 
     // adjust display aspect ratio
@@ -1148,7 +1147,7 @@ public class SliceManager
     bio.setWaitCursor(true);
     try {
       if (sliceField == null) updateSliceField();
-      planeRef.setData(ps.extractSlice(sliceField,
+      planeRef.setData(arb.extractSlice(sliceField,
         sliceRes_x, sliceRes_y, res_x, res_y));
     }
     catch (VisADException exc) { exc.printStackTrace(); }
