@@ -93,6 +93,14 @@ public class FormulaVar extends ActionImpl {
   /** vector of variables on which this one depends */
   private Vector depend = new Vector();
 
+  /** vector of variables that require this variable (depend on it) */
+  private Vector required = new Vector();
+
+  /** return whether any other variables depend on this one */
+  boolean othersDepend() {
+    return required.isEmpty();
+  }
+
   /** return whether this variable depends on v */
   boolean isDependentOn(FormulaVar v) {
     if (v == this || depend.contains(v)) return true;
@@ -109,6 +117,7 @@ public class FormulaVar extends ActionImpl {
       depend.add(v);
       try {
         addReference(v.getReference());
+        v.required.add(this);
       }
       catch (VisADException exc) {
         if (DEBUG) exc.printStackTrace();
@@ -122,6 +131,11 @@ public class FormulaVar extends ActionImpl {
   /** clear this variable's dependency list */
   private void clearDependencies() {
     synchronized (Lock) {
+      int len = depend.size();
+      for (int i=0; i<len; i++) {
+        FormulaVar v = (FormulaVar) depend.elementAt(i);
+        v.required.remove(this);
+      }
       depend.removeAllElements();
       try {
         removeAllReferences();
@@ -312,6 +326,20 @@ public class FormulaVar extends ActionImpl {
   /** set the ThingReference for this variable */
   void setReference(ThingReference tr) {
     synchronized (Lock) {
+      int len = required.size();
+      for (int i=0; i<len; i++) {
+        FormulaVar v = (FormulaVar) required.elementAt(i);
+        try {
+          v.removeReference(tref);
+          v.addReference(tr);
+        }
+        catch (VisADException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+      }
       tref = tr;
     }
   }

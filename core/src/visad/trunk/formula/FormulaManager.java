@@ -255,11 +255,7 @@ public class FormulaManager {
   /** check whether it is safe to remove a variable from the database */
   public boolean canBeRemoved(String name) throws FormulaException {
     FormulaVar v = getVarByName(name);
-    for (int i=0; i<Vars.size(); i++) {
-      FormulaVar q = (FormulaVar) Vars.elementAt(i);
-      if (q != v && q.isDependentOn(v)) return false;
-    }
-    return true;
+    return !v.othersDepend();
   }
 
   /** check whether a given variable is currently in the database */
