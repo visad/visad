@@ -2,7 +2,6 @@
 Graph.py provides a collection of methods for making quick-plots of a
 data object in a variety of ways.
 
-
 """
 try:
   from visad import RealType, RealTupleType, FunctionType, FieldImpl, ScalarMap, Display
@@ -11,9 +10,9 @@ try:
   from javax.swing import JFrame, JPanel
   from java.awt import BorderLayout, FlowLayout, Font
   __mapname='outlsupu'
+  import subs
 except:
   pass
-import subs
 
 
 def image(data, panel=None, colortable=None, width=400, height=400, title="VisAD Image"):
