@@ -89,7 +89,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   private int TupleDimension; // dimension of Type.getFlatRange()
   private Set RangeSet[]; // one 1-D Set per range components
   private int RangeMode[]; // DOUBLE, FLOAT, INT, SHORT or BYTE
-  // coordinate system of the function range R^n
+ // coordinate system of the function range R^n
   private CoordinateSystem RangeCoordinateSystem; // used if Type.Real
   private CoordinateSystem[] RangeCoordinateSystems; // used for Flat, not for Real
   private boolean MissingFlag;
@@ -124,8 +124,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   /**
    * Constructs a FlatField from a function type.  The domain Set is the
    * default Set of the function domain.
-   * @param type		The type of the function.
-   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @param type                The type of the function.
+   * @throws VisADException     Couldn't create necessary VisAD object.
    */
   public FlatField(FunctionType type) throws VisADException {
     this(type, type.getDomain().getDefaultSet(), null, null, null, null);
@@ -134,11 +134,11 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   /**
    * Constructs a FlatField from a function type and a (non-default) domain
    * Set.
-   * @param type		The type of the function.
+   * @param type                The type of the function.
    * @param domain_set          The sampling set of the domain.  May be <code>
    *                            null</code>, in which case the sampling set is
    *                            the default Set of the function domain.
-   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws VisADException     Couldn't create necessary VisAD object.
    */
   public FlatField(FunctionType type, Set domain_set) throws VisADException {
     this(type, domain_set, null, null, null, null);
@@ -148,7 +148,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    * Constructs a FlatField from a function type, a sampling set of the domain,
    * a coordinate system for the range, sampling sets for the range components,
    * and units for the range components.
-   * @param type		The type of the function.
+   * @param type                The type of the function.
    * @param domain_set          The sampling set of the domain.  May be
    *                            <code> null</code>, in which case the
    *                            sampling set is set to the default sampling
@@ -178,10 +178,10 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    *                            if <code>range_sets[i].getLength() <
    *                            256</code>, stored in shorts if <code>
    *                            range_sets[i].getLength() < 65536</code>, etc.
-   * @param units		The units of the (flat) range components.  May
-   *				be <code>null</code>, in which case the default
-   *				units of the flat range RealType-s are used.
-   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @param units               The units of the (flat) range components.  May
+   *                            be <code>null</code>, in which case the default
+   *                            units of the flat range RealType-s are used.
+   * @throws VisADException     Couldn't create necessary VisAD object.
    */
   public FlatField(FunctionType type, Set domain_set,
                    CoordinateSystem range_coord_sys, Set[] range_sets,
@@ -193,12 +193,12 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    * Constructs a FlatField from a function type, a sampling set of the domain,
    * coordinate systems for the range components, sampling sets for the range
    * components, and units for the range components.
-   * @param type		The type of the function.
+   * @param type                The type of the function.
    * @param domain_set          The sampling set of the domain.  May be null, in
    *                            which case the sampling set is set to the
-   *				default sampling set of the function domain
-   *				(i.e. <code>
-   *				type.getDomain().getDefaultSet()</code>).
+   *                            default sampling set of the function domain
+   *                            (i.e. <code>
+   *                            type.getDomain().getDefaultSet()</code>).
    * @param range_coord_syses   Optional coordinate systems for the range
    *                            components.  May be <code>null</code>.
    *                            If the <code>i</code>th component
@@ -221,10 +221,10 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    *                            if <code>range_sets[i].getLength() <
    *                            256</code>, stored in shorts if <code>
    *                            range_sets[i].getLength() < 65536</code>, etc.
-   * @param units		The units of the (flat) range components.  May
-   *				be <code>null</code>, in which case the default
-   *				units of the flat range RealType-s are used.
-   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @param units               The units of the (flat) range components.  May
+   *                            be <code>null</code>, in which case the default
+   *                            units of the flat range RealType-s are used.
+   * @throws VisADException     Couldn't create necessary VisAD object.
    */
   public FlatField(FunctionType type, Set domain_set,
                    CoordinateSystem[] range_coord_syses, Set[] range_sets,
@@ -237,12 +237,12 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    * a coordinate system for the range, coordinate systems for the range
    * components, sampling sets for the range components, and units for the range
    * components.  This is the most general constructor.
-   * @param type		The type of the function.
+   * @param type                The type of the function.
    * @param domain_set          The sampling set of the domain.  May be null, in
    *                            which case the sampling set is set to the
-   *				default sampling set of the function domain
-   *				(i.e. <code>
-   *				type.getDomain().getDefaultSet()</code>).
+   *                            default sampling set of the function domain
+   *                            (i.e. <code>
+   *                            type.getDomain().getDefaultSet()</code>).
    * @param range_coord_sys     Optional coordinate system for the range.
    *                            May be <code>null</code>.  If non-<code>null
    *                            </code>, then the range of the function shall
@@ -277,21 +277,24 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    *                            if <code>range_sets[i].getLength() <
    *                            256</code>, stored in shorts if <code>
    *                            range_sets[i].getLength() < 65536</code>, etc.
-   * @param units		The units of the (flat) range components.  May
-   *				be <code>null</code>, in which case the default
-   *				units of the flat range RealType-s are used.
+   * @param units               The units of the (flat) range components.  May
+   *                            be <code>null</code>, in which case the default
+   *                            units of the flat range RealType-s are used.
    * @throws SetException       if <code>range_sets</code> is non-<code>null
    *                            </code> and either one of its elements is
    *                            <code>null</code> or an element's dimension is
    *                            not one.
-   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws VisADException     Couldn't create necessary VisAD object.
    */
   public FlatField(FunctionType type, Set domain_set,
                    CoordinateSystem range_coord_sys,
                    CoordinateSystem[] range_coord_syses,
                    Set[] range_sets, Unit[] units)
           throws VisADException {
+   //Call FieldImpl.ctor passing false to tell it not to create the Range array
     super(type, domain_set, false);
+    pr ("ctor");
+
     if (!type.getFlat()) {
       throw new FieldException("FlatField: FunctionType must be Flat");
     }
@@ -378,13 +381,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
         }
         RangeUnits = new Unit[TupleDimension];
         for (int i=0; i<TupleDimension; i++) {
-	  RealType componentType = (RealType)FlatRange.getComponent(i);
-	  Unit componentUnit = units[i];
-	  RangeUnits[i] =
-	    componentUnit == null || !componentType.isInterval()
-	      ? componentUnit
-	      : componentUnit.getAbsoluteUnit();
-	}
+          RealType componentType = (RealType)FlatRange.getComponent(i);
+          Unit componentUnit = units[i];
+          RangeUnits[i] =
+            componentUnit == null || !componentType.isInterval()
+              ? componentUnit
+              : componentUnit.getAbsoluteUnit();
+        }
       }
       if (RangeType instanceof RealTupleType) {
         type_units = ((RealTupleType) RangeType).getDefaultUnits();
@@ -469,13 +472,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
         }
         RangeUnits = new Unit[TupleDimension];
         for (int i=0; i<TupleDimension; i++) {
-	  RealType componentType = (RealType)FlatRange.getComponent(i);
-	  Unit componentUnit = units[i];
-	  RangeUnits[i] =
-	    componentUnit == null || !componentType.isInterval()
-	      ? componentUnit
-	      : componentUnit.getAbsoluteUnit();
-	}
+          RealType componentType = (RealType)FlatRange.getComponent(i);
+          Unit componentUnit = units[i];
+          RangeUnits[i] =
+            componentUnit == null || !componentType.isInterval()
+              ? componentUnit
+              : componentUnit.getAbsoluteUnit();
+        }
       }
 
       int j = 0;
@@ -517,7 +520,9 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
         j += m;
       }
     } // end !type.getReal()
+
     if (RangeUnits == null) RangeUnits = new Unit[TupleDimension];
+
 
     // initialize RangeErrors to all null
     RangeErrors = new ErrorEstimate[TupleDimension];
@@ -536,8 +541,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    * @return                    The CoordinateSystem of the RealTuple range.
    *                            Will not be <code>null</code> and will be of
    *                            length 1.
-   * @throws TypeException	The type of the range is neither RealType nor
-   *				RealTupleType.
+   * @throws TypeException      The type of the range is neither RealType nor
+   *                            RealTupleType.
    */
   public CoordinateSystem[] getRangeCoordinateSystem()
          throws TypeException {
@@ -552,7 +557,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
 
   /**
    * Returns the sampling set of each flat component.
-   * @return		The sampling set of each component in the flat range.
+   * @return            The sampling set of each component in the flat range.
    */
   public Set[] getRangeSets() {
     Set[] sets = new Set[RangeSet.length];
@@ -564,16 +569,16 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    * Returns the CoordinateSystem of a component of the range.  The MathType
    * of the range shall be a TupleType.
    *
-   * @param i			The index of the component.  The value shall be
-   *				greater than or equal to zero and less that the
-   *				number of components in the TupleType of the
-   *				range.
-   * @return			The CoordinateSystem of the <code>i</code>-th
-   *				component.  Won't be <code>null</code> and will
-   *				be of length 1.  The single element might be
-   *				<code>null</code>.
-   * @throws TypeException	The type of the range is either RealType or
-   *				RealTupleType.
+   * @param i                   The index of the component.  The value shall be
+   *                            greater than or equal to zero and less that the
+   *                            number of components in the TupleType of the
+   *                            range.
+   * @return                    The CoordinateSystem of the <code>i</code>-th
+   *                            component.  Won't be <code>null</code> and will
+   *                            be of length 1.  The single element might be
+   *                            <code>null</code>.
+   * @throws TypeException      The type of the range is either RealType or
+   *                            RealTupleType.
    */
   public CoordinateSystem[] getRangeCoordinateSystem(int i)
          throws TypeException {
@@ -709,6 +714,21 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     notifyReferences();
   }
 
+    /**
+       This returns true if any of the RangeMode values == DOUBLE. We use this
+       so in operations (e.g., unary, binary) that deal with the data we try
+       to keep it to be floats if we can (for size efficiency).
+     **/
+    private boolean  shouldBeDouble () {
+      for (int i=0; i<TupleDimension; i++) {
+          if (RangeMode[i] == DOUBLE) {
+              return true;
+          }
+      }
+      return false;
+    }
+
+
   public void setSamples(int start, double[][] range)
          throws VisADException, RemoteException
   {
@@ -798,6 +818,9 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   public void setSamples(int[] indices, double[][] range)
          throws VisADException, RemoteException
   {
+      pr ("setSamples");
+
+
     int length = indices.length;
 
     if(range.length != TupleDimension ) {
@@ -823,6 +846,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
         double[] rangeI = range[i];
         double[][] range1 = new double[1][];
         range1[0] = rangeI;
+
+
         switch (RangeMode[i]) {
           case DOUBLE:
             if (DoubleRange[i] == null) {
@@ -906,14 +931,20 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     notifyReferences();
   }
 
+    private void pr (String message) {
+        //      System.err.println ( hashCode () + " " + getClass().getName () + "  " + message);
+    }
+
   /** pack an array of doubles into field sample values according to the
-      RangeSet-s; copies data;
-      any method calling this must also call notifyReferences(),
-      and this method must remain private */
+      RangeSet-s; copies data */
   private void packValues(double[][] range, boolean copy)
           throws VisADException {
     // NOTE INVERTED ORDER OF range ARRAY INDICES !!!
     int[] index;
+    pr ("packValuesD");
+
+
+
     synchronized (DoubleRange) {
       nullRanges();
       for (int i=0; i<TupleDimension; i++) {
@@ -972,13 +1003,12 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   /**
    * Pack an array of floats into field sample values according to the
    * RangeSet-s; copies data.
-   * any method calling this must also call notifyReferences(),
-   * and this method must remain private
    *
    * @throws VisADException if {@link #nullRanges()} fails.
    */
   private void packValues(float[][] range, boolean copy)
           throws VisADException {
+
     // NOTE INVERTED ORDER OF range ARRAY INDICES !!!
     int[] index;
     synchronized (DoubleRange) {
@@ -1008,8 +1038,9 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             index = RangeSet[i].valueToIndex(range1);
             ByteRange[i] = new byte[Length];
             byte[] ByteRangeI = ByteRange[i];
+            int offset = MISSING1+1;
             for (int j=0; j<Length; j++) {
-              ByteRangeI[j] = (byte) (index[j] + MISSING1 + 1);
+              ByteRangeI[j] = (byte) (index[j] + offset);
             }
             break;
           case SHORT:
@@ -1034,6 +1065,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       }
       clearMissing();
     }
+
   }
 
   public byte[][] grabBytes() {
@@ -1046,6 +1078,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     return unpackValues(true);
   }
 
+
   /**
    * Unpacks an array of doubles from field sample values according to the
    * RangeSet-s; returns a copy if copy == true.
@@ -1056,83 +1089,91 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    * @throws VisADException if {@link Set.indexToValue(int)} on a range set
    *                        fails.
    */
-  private double[][] unpackValues(boolean copy)
-      throws SetException, VisADException {
-    double[][] range;
-    synchronized (DoubleRange) {
-      if (isMissing()) {
-        range = new double[TupleDimension][Length];
-        for (int i=0; i<TupleDimension; i++) {
-          for (int j=0; j<Length; j++) {
-            range[i][j] = Double.NaN;
-          }
+    private double[][] unpackValues(boolean copy)
+        throws SetException, VisADException {
+        double[][] range;
+        synchronized (DoubleRange) {
+            if (isMissing()) {
+                range = new double[TupleDimension][Length];
+                for (int i=0; i<TupleDimension; i++) {
+                    for (int j=0; j<Length; j++) {
+                        range[i][j] = Double.NaN;
+                    }
+                }
+                return range;
+            }
+
+            int[] index;
+            range = new double[TupleDimension][];
+            double[][] range0;
+            double[] rangeI;
+            for (int i=0; i<TupleDimension; i++) {
+                switch (RangeMode[i]) {
+                case DOUBLE:
+                    if (copy) {
+                        range[i] = new double[Length];
+                        rangeI = range[i];
+                        double[] DoubleRangeI = DoubleRange[i];
+                        System.arraycopy(DoubleRangeI, 0, rangeI, 0, Length);
+                        // for (int j=0; j<Length; j++) rangeI[j] = DoubleRangeI[j];
+                    }
+                    else {
+                        range[i] = DoubleRange[i];
+                    }
+                    break;
+                case FLOAT:
+                    range[i] = new double[Length];
+                    rangeI = range[i];
+                    float[] FloatRangeI = FloatRange[i];
+                    for (int j=0; j<Length; j++) {
+                        rangeI[j] = (double) FloatRangeI[j];
+                    }
+                    break;
+                case BYTE:
+                    index = new int[Length];
+                    byte[] ByteRangeI = ByteRange[i];
+                    for (int j=0; j<Length; j++) {
+                        index[j] = ((int) ByteRangeI[j]) - MISSING1 - 1;
+                    }
+                    range0 = Set.floatToDouble(RangeSet[i].indexToValue(index));
+                    range[i] = range0[0];
+                    break;
+                case SHORT:
+                    index = new int[Length];
+                    short[] ShortRangeI = ShortRange[i];
+                    for (int j=0; j<Length; j++) {
+                        index[j] = ((int) ShortRangeI[j]) - MISSING2 - 1;
+                    }
+                    range0 = Set.floatToDouble(RangeSet[i].indexToValue(index));
+                    range[i] = range0[0];
+                    break;
+                case INT:
+                    index = new int[Length];
+                    int[] IntRangeI = IntRange[i];
+                    for (int j=0; j<Length; j++) {
+                        index[j] = ((int) IntRangeI[j]) - MISSING4 - 1;
+                    }
+                    range0 = Set.floatToDouble(RangeSet[i].indexToValue(index));
+                    range[i] = range0[0];
+                    break;
+                default:
+                    throw new SetException("FlatField.unpackValues: bad RangeMode");
+                }
+            }
         }
         return range;
-      }
-      int[] index;
-      range = new double[TupleDimension][];
-      double[][] range0;
-      double[] rangeI;
-      for (int i=0; i<TupleDimension; i++) {
-        switch (RangeMode[i]) {
-          case DOUBLE:
-            if (copy) {
-              range[i] = new double[Length];
-              rangeI = range[i];
-              double[] DoubleRangeI = DoubleRange[i];
-              System.arraycopy(DoubleRangeI, 0, rangeI, 0, Length);
-              // for (int j=0; j<Length; j++) rangeI[j] = DoubleRangeI[j];
-            }
-            else {
-              range[i] = DoubleRange[i];
-            }
-            break;
-          case FLOAT:
-            range[i] = new double[Length];
-            rangeI = range[i];
-            float[] FloatRangeI = FloatRange[i];
-            for (int j=0; j<Length; j++) {
-              rangeI[j] = (double) FloatRangeI[j];
-            }
-            break;
-          case BYTE:
-            index = new int[Length];
-            byte[] ByteRangeI = ByteRange[i];
-            for (int j=0; j<Length; j++) {
-              index[j] = ((int) ByteRangeI[j]) - MISSING1 - 1;
-            }
-            range0 = Set.floatToDouble(RangeSet[i].indexToValue(index));
-            range[i] = range0[0];
-            break;
-          case SHORT:
-            index = new int[Length];
-            short[] ShortRangeI = ShortRange[i];
-            for (int j=0; j<Length; j++) {
-              index[j] = ((int) ShortRangeI[j]) - MISSING2 - 1;
-            }
-            range0 = Set.floatToDouble(RangeSet[i].indexToValue(index));
-            range[i] = range0[0];
-            break;
-          case INT:
-            index = new int[Length];
-            int[] IntRangeI = IntRange[i];
-            for (int j=0; j<Length; j++) {
-              index[j] = ((int) IntRangeI[j]) - MISSING4 - 1;
-            }
-            range0 = Set.floatToDouble(RangeSet[i].indexToValue(index));
-            range[i] = range0[0];
-            break;
-          default:
-            throw new SetException("FlatField.unpackValues: bad RangeMode");
-        }
-      }
     }
-    return range;
+
+
+  /** unpack an array of floats from field sample values according to the
+      RangeSet-s; returns a copy */
+  public float[][] unpackFloats() throws VisADException {
+      return unpackFloats (true);
   }
 
   /** unpack an array of floats from field sample values according to the
       RangeSet-s; returns a copy if copy == true */
-  private float[][] unpackFloats(boolean copy) throws VisADException {
+ private float[][] unpackFloats(boolean copy) throws VisADException {
     float[][] range;
     synchronized (DoubleRange) {
       if (isMissing()) {
@@ -1148,6 +1189,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       range = new float[TupleDimension][];
       float[][] range0;
       float[] rangeI;
+
       for (int i=0; i<TupleDimension; i++) {
         switch (RangeMode[i]) {
           case DOUBLE:
@@ -1161,24 +1203,20 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
           case FLOAT:
             if (copy) {
               range[i] = new float[Length];
-              rangeI = range[i];
-              float[] FloatRangeI = FloatRange[i];
-              System.arraycopy(FloatRangeI, 0, rangeI, 0, Length);
-              // for (int j=0; j<Length; j++) rangeI[j] = FloatRangeI[j];
-            }
-            else {
+              System.arraycopy (FloatRange[i], 0, range[i], 0, Length);
+            }  else {
               range[i] = FloatRange[i];
             }
             break;
           case BYTE:
-            index = new int[Length];
-            byte[] ByteRangeI = ByteRange[i];
-            for (int j=0; j<Length; j++) {
-              index[j] = ((int) ByteRangeI[j]) - MISSING1 - 1;
-            }
-            range0 = RangeSet[i].indexToValue(index);
-            range[i] = range0[0];
-            break;
+              index = new int[Length];
+              byte[] ByteRangeI = ByteRange[i];
+              for (int j=0; j<Length; j++) {
+                  index[j] = ((int) ByteRangeI[j]) - MISSING1 - 1;
+              }
+              range0 = RangeSet[i].indexToValue(index);
+              range[i] = range0[0];
+              break;
           case SHORT:
             index = new int[Length];
             short[] ShortRangeI = ShortRange[i];
@@ -1322,11 +1360,11 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   /**
    * Returns the range values in their default units as floats.
    *
-   * @return			The range values in their default units
-   *				as determined by the {@link MathType} of
-   *				the range.  Element <code>[i][j]</code> is
-   *				the <code>j</code>th sample value of the
-   *				<code>i</code>th component of the range.
+   * @return                    The range values in their default units
+   *                            as determined by the {@link MathType} of
+   *                            the range.  Element <code>[i][j]</code> is
+   *                            the <code>j</code>th sample value of the
+   *                            <code>i</code>th component of the range.
    * @throws VisADException     if a VisAD object couldn't be created.
    */
   public float[][] getFloats() throws VisADException {
@@ -1336,32 +1374,36 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   /**
    * Returns the range values in their default units as floats.
    *
-   * @param copy		Whether or not the returned array might be the
-   *				actual range array.  If <code>true</code>, then
-   *				the returned array will not be the actual range
-   *				array.
-   * @return			The range values in their default units
-   *				as determined by the {@link MathType} of
-   *				the range.  Element <code>[i][j]</code> is
-   *				the <code>j</code>th sample value of the
-   *				<code>i</code>th component of the range.
+   * @param copy                Whether or not the returned array might be the
+   *                            actual range array.  If <code>true</code>, then
+   *                            the returned array will not be the actual range
+   *                            array.
+   * @return                    The range values in their default units
+   *                            as determined by the {@link MathType} of
+   *                            the range.  Element <code>[i][j]</code> is
+   *                            the <code>j</code>th sample value of the
+   *                            <code>i</code>th component of the range.
    * @throws VisADException     if a VisAD object couldn't be created.
    */
-  public float[][] getFloats(boolean copy) throws VisADException {
-    float[][] values = unpackFloats(copy);
-    Unit[] units_out =
-      ((FunctionType) Type).getFlatRange().getDefaultUnits();
-    return Unit.convertTuple(values, RangeUnits, units_out);
+  public float[][] getFloats (boolean copy) throws VisADException {
+      float[][] values = unpackFloats(copy);
+
+      Unit[] units_out =  ((FunctionType) Type).getFlatRange().getDefaultUnits();
+      //Only converty the data if the output units not equal to the input units
+      if (!Arrays.equals (units_out, RangeUnits)) {
+          values =  Unit.convertTuple(values, RangeUnits, units_out);
+      }
+      return values;
   }
 
   /**
    * Returns the range values in their default units as doubles.
    *
-   * @return			The range values in their default units
-   *				as determined by the {@link MathType} of
-   *				the range.  Element <code>[i][j]</code> is
-   *				the <code>j</code>th sample value of the
-   *				<code>i</code>th component of the range.
+   * @return                    The range values in their default units
+   *                            as determined by the {@link MathType} of
+   *                            the range.  Element <code>[i][j]</code> is
+   *                            the <code>j</code>th sample value of the
+   *                            <code>i</code>th component of the range.
    * @throws VisADException     if a VisAD object couldn't be created.
    */
   public double[][] getValues() throws VisADException {
@@ -1371,22 +1413,23 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   /**
    * Returns the range values in their default units as doubles.
    *
-   * @param copy		Whether or not the returned array might be the
-   *				actual range array.  If <code>true</code>, then
-   *				the returned array will not be the actual range
-   *				array.
-   * @return			The range values in their default units
-   *				as determined by the {@link MathType} of
-   *				the range.  Element <code>[i][j]</code> is
-   *				the <code>j</code>th sample value of the
-   *				<code>i</code>th component of the range.
+   * @param copy                Whether or not the returned array might be the
+   *                            actual range array.  If <code>true</code>, then
+   *                            the returned array will not be the actual range
+   *                            array.
+   * @return                    The range values in their default units
+   *                            as determined by the {@link MathType} of
+   *                            the range.  Element <code>[i][j]</code> is
+   *                            the <code>j</code>th sample value of the
+   *                            <code>i</code>th component of the range.
    * @throws VisADException     if a VisAD object couldn't be created.
    */
   public double[][] getValues(boolean copy) throws VisADException {
-    double[][] values = unpackValues(copy);
-    Unit[] units_out =
-      ((FunctionType) Type).getFlatRange().getDefaultUnits();
-    return Unit.convertTuple(values, RangeUnits, units_out);
+      double[][] values = unpackValues(copy);
+      Unit[] units_out =
+          ((FunctionType) Type).getFlatRange().getDefaultUnits();
+      double[][]result =  Unit.convertTuple(values, RangeUnits, units_out);
+      return result;
   }
 
   /** 
@@ -1402,10 +1445,10 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
 
   /** 
    * Get values for 'Flat' components in default range Unit-s. 
-   * @return			The range values in their default units
-   *				as determined by the {@link MathType} of
-   *				the range.  Element <code>[i]</code> is
-   *				the value of the <code>i</code>th component 
+   * @return                    The range values in their default units
+   *                            as determined by the {@link MathType} of
+   *                            the range.  Element <code>[i]</code> is
+   *                            the value of the <code>i</code>th component 
    *                            of the flattened range.
    * @throws VisADException     if a VisAD object couldn't be created.
    */
@@ -1566,6 +1609,9 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    */
   public void setSample(int index, Data range)
          throws VisADException, RemoteException {
+      pr ("setSample");
+
+
     double[][] values;
     int[] indices;
     if (DomainSet == null) {
@@ -1587,7 +1633,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     ErrorEstimate[] errors_out = new ErrorEstimate[TupleDimension];
     if (range instanceof Real) {
       vals[0] = ((Real) range).getValue();
-      vals = Unit.transformUnits(
+      vals = Unit.transformUnits (
                         RangeUnits[0], errors_out,
                         ((Real) range).getUnit(), ((Real) range).getError(),
                         vals);
@@ -1739,6 +1785,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       // DoubleRange = new double[TupleDimension][];
       for (int i=0; i<TupleDimension; i++) DoubleRange[i] = null; // WLH 12 Jan 2001
 
+
       FloatRange = new float[TupleDimension][];
       LongRange = new long[TupleDimension][];
       IntRange = new int[TupleDimension][];
@@ -1747,7 +1794,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
 
       for (int i=0; i<TupleDimension; i++) {
         if (RangeSet[i] instanceof DoubleSet) {
-          RangeMode[i] = DOUBLE;
+            RangeMode[i] = DOUBLE;
         }
         else if (RangeSet[i] instanceof FloatSet) {
           RangeMode[i] = FLOAT;
@@ -1813,6 +1860,9 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     if ( new_type == null ) {
       throw new TypeException("binary: new_type may not be null");
     }
+
+
+
     if (data instanceof Field) {
       /*- TDR June  1998 */
       FunctionType data_type = (FunctionType) data.getType();
@@ -1855,8 +1905,21 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       data = ((FlatField) data).resample(DomainSet, sampling_mode, error_mode);
 
       // get values from two FlatField's
-      double[][] values = unpackValues();
-      double[][] value2 = ((FlatField) data).unpackValues();
+      double[][] thatValuesD = null;
+      double[][] thisValuesD = null;
+      float[][]  thatValuesF = null;
+      float[][]  thisValuesF = null;
+
+      //Should this operation use doubles or floats?
+      boolean binaryDouble = (shouldBeDouble () && ((FlatField)data).shouldBeDouble ());
+      if (binaryDouble) {
+          thatValuesD = ((FlatField) data).unpackValues ();
+          thisValuesD = unpackValues();
+      } else {
+          thatValuesF = ((FlatField) data).unpackFloats ();
+          thisValuesF = unpackFloats ();
+      }
+
 
       // initialize for Unit and ErrorEstimate calculations
       Unit[][] temp_units = ((FlatField) data).getRangeUnits();
@@ -1875,13 +1938,22 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       if (((FunctionType) Type).getReal()) {
         // transformCoordinatesFreeUnits does not impose any
         // particular Units on the final value2
-        CoordinateSystem[] cs =
-          ((FlatField) data).getRangeCoordinateSystem();
-        value2 = CoordinateSystem.transformCoordinatesFreeUnits(
+          CoordinateSystem[] cs = ((FlatField) data).getRangeCoordinateSystem();
+          if (thatValuesD != null) {
+              thatValuesD = CoordinateSystem.transformCoordinatesFreeUnits(
                    ((FunctionType) Type).getFlatRange(),
                    RangeCoordinateSystem, units_out, errors_out,
                    ((FunctionType) data.getType()).getFlatRange(),
-                   cs[0], units_in, errors_in, value2);
+                   cs[0], units_in, errors_in, thatValuesD);
+          } 
+          if (thatValuesF != null) {
+              thatValuesF = CoordinateSystem.transformCoordinatesFreeUnits(
+                   ((FunctionType) Type).getFlatRange(),
+                   RangeCoordinateSystem, units_out, errors_out,
+                   ((FunctionType) data.getType()).getFlatRange(),
+                   cs[0], units_in, errors_in, thatValuesF);
+          }
+
       }      else if (RangeCoordinateSystems != null) {
         TupleType rtype =
           (TupleType) ((FunctionType) Type).getRange();
@@ -1894,25 +1966,52 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
           MathType cdtype = dtype.getComponent(i);
           if (crtype instanceof RealTupleType) {
             int m = ((RealTupleType) crtype).getDimension();
-            double[][] vals = new double[m][];
+
+
+            double[][] tmpValuesD = null;
+            float [][] tmpValuesF = null;
+
+            if (thatValuesD != null) {
+                tmpValuesD = new double[m][];
+            } 
+            if (thatValuesF != null) {
+                tmpValuesF = new float[m][];
+            } 
+
+
             Unit[] sub_units_out = new Unit[m];
             Unit[] sub_units_in = new Unit[m];
             ErrorEstimate[] sub_errors_out = new ErrorEstimate[m];
-            ErrorEstimate[] sub_errors_in = new ErrorEstimate[m];
-            for (int k=0; k<m; k++) {
-              vals[k] = value2[j + k];
+            ErrorEstimate[] sub_errors_in = new ErrorEstimate[m]; 
+           for (int k=0; k<m; k++) {
+                if (tmpValuesD != null)
+                    tmpValuesD[k] = thatValuesD[j + k];
+                if (tmpValuesF!= null)
+                    tmpValuesF[k] = thatValuesF[j + k];
               sub_units_in[k] = units_in[j + k];
               sub_errors_in[k] = errors_in[j + k];
             }
-            CoordinateSystem[] cs =
-              ((FlatField) data).getRangeCoordinateSystem(i);
-            vals = CoordinateSystem.transformCoordinatesFreeUnits(
-                     (RealTupleType) crtype, RangeCoordinateSystems[i],
-                     sub_units_out, sub_errors_out,
-                     (RealTupleType) cdtype,
-                     cs[0], sub_units_in, sub_errors_in, vals);
+            CoordinateSystem[] cs = ((FlatField) data).getRangeCoordinateSystem(i);
+            if (tmpValuesD != null) {
+                tmpValuesD = CoordinateSystem.transformCoordinatesFreeUnits(
+                       (RealTupleType) crtype, RangeCoordinateSystems[i],
+                       sub_units_out, sub_errors_out,
+                       (RealTupleType) cdtype,
+                       cs[0], sub_units_in, sub_errors_in, tmpValuesD);
+            } 
+            if (tmpValuesF != null) {
+                tmpValuesF = CoordinateSystem.transformCoordinatesFreeUnits(
+                       (RealTupleType) crtype, RangeCoordinateSystems[i],
+                       sub_units_out, sub_errors_out,
+                       (RealTupleType) cdtype,
+                       cs[0], sub_units_in, sub_errors_in, tmpValuesF);
+
+            }
             for (int k=0; k<m; k++) {
-              value2[j + k] = vals[k];
+                if (thatValuesD !=null)
+                    thatValuesD[j + k] = tmpValuesD[k];
+                if (thatValuesF !=null)
+                    thatValuesF[j + k] = tmpValuesF[k];
               errors_out[j + k] = sub_errors_out[k];
               units_out[j + k] = sub_units_out[k];
             }
@@ -1926,13 +2025,17 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
         }
       }
 
+
+
+
       /*
        * Some variable renamings for clarity in the following:
        */
       Unit[]          thisUnits = (Unit[])RangeUnits.clone();
       Unit[]          thatUnits = units_out;
-      double[][]      thisValues = values;
-      double[][]      thatValues = value2;
+
+
+
       ErrorEstimate[] thisErrs = (ErrorEstimate[])RangeErrors.clone();
       ErrorEstimate[] thatErrs = errors_out;
       /*
@@ -1944,6 +2047,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
        * Set the output values.  NOTE: The input array (thisValues) is also
        * used to store the output numeric values.
        */
+
       switch (op) {
         case ADD:
         case SUBTRACT:
@@ -1951,275 +2055,378 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
         case MAX:
         case MIN:
           for (int j=0; j<TupleDimension; j++) {
-	    if (thisUnits[j] == null || thatUnits[j] == null) {
-	      outUnits[j] = null;
-	    }
-	    else if (thisUnits[j] == CommonUnit.promiscuous) {
-	      outUnits[j] = thatUnits[j].getAbsoluteUnit();
-	    }
-	    else if (thatUnits[j] == CommonUnit.promiscuous) {
-	      outUnits[j] = thisUnits[j].getAbsoluteUnit();
-	    }
-	    else {
-	      try {
-		outUnits[j] = thisUnits[j].getAbsoluteUnit();
-		boolean convertThis = !outUnits[j].equals(thisUnits[j]);
-		boolean convertThat = !outUnits[j].equals(thatUnits[j]);
+            if (thisUnits[j] == null || thatUnits[j] == null) {
+              outUnits[j] = null;
+            }
+            else if (thisUnits[j] == CommonUnit.promiscuous) {
+              outUnits[j] = thatUnits[j].getAbsoluteUnit();
+            }
+            else if (thatUnits[j] == CommonUnit.promiscuous) {
+              outUnits[j] = thisUnits[j].getAbsoluteUnit();
+            }
+            else {
+              try {
+                outUnits[j] = thisUnits[j].getAbsoluteUnit();
+                boolean convertThis = !outUnits[j].equals(thisUnits[j]);
+                boolean convertThat = !outUnits[j].equals(thatUnits[j]);
 
-		if (convertThis)
-		  thisValues[j] =
-		    outUnits[j].toThis(thisValues[j], thisUnits[j]);
+                if (convertThis) {
+                    if (thisValuesD[j] != null)
+                        thisValuesD[j] = outUnits[j].toThis (thisValuesD[j], thisUnits[j]);
+                    if (thisValuesF[j] != null)
+                        thisValuesF[j] = outUnits[j].toThis (thisValuesF[j], thisUnits[j]);
+                }
 
-		if (convertThat)
-		  thatValues[j] =
-		    outUnits[j].toThis(thatValues[j], thatUnits[j]);
+                if (convertThat) {
+                    if (thatValuesD!=null)
+                        thatValuesD[j] = outUnits[j].toThis (thatValuesD[j], thatUnits[j]);
+                    if (thatValuesF!=null)
+                        thatValuesF[j] = outUnits[j].toThis (thatValuesF[j], thatUnits[j]);
+                }
 
-		if (error_mode != NO_ERRORS &&
-		  thisErrs[j] != null && thatErrs[j] != null) {
+                if (error_mode != NO_ERRORS &&
+                  thisErrs[j] != null && thatErrs[j] != null) {
 
-		  if (convertThis) {
-		    Unit	errUnit = thisErrs[j].getUnit();
+                  if (convertThis) {
+                    Unit        errUnit = thisErrs[j].getUnit();
 
-		    if (errUnit == null)
-		      errUnit = thisUnits[j];
+                    if (errUnit == null)
+                      errUnit = thisUnits[j];
 
-		    double err = 0.5 * thisErrs[j].getErrorValue();
-		    double mean = thisErrs[j].getMean();
-		    double a = outUnits[j].toThis(mean + err, errUnit);
-		    double b = outUnits[j].toThis(mean - err, errUnit);
-		    mean = (a + b) / 2;
-		    err = Math.abs(a - b);
-		    thisErrs[j] = new ErrorEstimate(mean, err, outUnits[j]);
-		  }
+                    double err = 0.5 * thisErrs[j].getErrorValue();
+                    double mean = thisErrs[j].getMean();
+                    double a = outUnits[j].toThis(mean + err, errUnit);
+                    double b = outUnits[j].toThis(mean - err, errUnit);
+                    mean = (a + b) / 2;
+                    err = Math.abs(a - b);
+                    thisErrs[j] = new ErrorEstimate(mean, err, outUnits[j]);
+                  }
 
-		  if (convertThat) {
-		    Unit	errUnit = thatErrs[j].getUnit();
+                  if (convertThat) {
+                    Unit        errUnit = thatErrs[j].getUnit();
 
-		    if (errUnit == null)
-		      errUnit = thatUnits[j];
+                    if (errUnit == null)
+                      errUnit = thatUnits[j];
 
-		    double err = 0.5 * thatErrs[j].getErrorValue();
-		    double mean = thatErrs[j].getMean();
-		    double a = outUnits[j].toThis(mean + err, errUnit);
-		    double b = outUnits[j].toThis(mean - err, errUnit);
-		    mean = (a + b) / 2;
-		    err = Math.abs(a - b);
-		    thatErrs[j] = new ErrorEstimate(mean, err, outUnits[j]);
-		  }
-		}
-	      }
-	      catch (UnitException e) {		// inconvertible units
-		outUnits[j] = null;
-	      }
-	    }
-	    switch (op) {
-	      case ADD:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] += thatValues[j][i];
-		break;
-	      case SUBTRACT:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] -= thatValues[j][i];
-		break;
-	      case INV_SUBTRACT:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] = thatValues[j][i] - thisValues[j][i];
-		break;
-	      case MAX:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] =
-		    Math.max(thisValues[j][i], thatValues[j][i]);
-		break;
-	      case MIN:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] =
-		    Math.min(thisValues[j][i], thatValues[j][i]);
-		break;
-	    }
-	  }
-	  break;
+                    double err = 0.5 * thatErrs[j].getErrorValue();
+                    double mean = thatErrs[j].getMean();
+                    double a = outUnits[j].toThis(mean + err, errUnit);
+                    double b = outUnits[j].toThis(mean - err, errUnit);
+                    mean = (a + b) / 2;
+                    err = Math.abs(a - b);
+                    thatErrs[j] = new ErrorEstimate(mean, err, outUnits[j]);
+                  }
+                }
+              }
+              catch (UnitException e) {         // inconvertible units
+                outUnits[j] = null;
+              }
+            }
+            double[]thisLineD = null;
+            double[]thatLineD = null;
+            float[]thisLineF = null;
+            float[]thatLineF = null;
+            switch (op) {
+              case ADD:
+                  if (thisValuesD != null) {
+                      double[]thisValuesLineD = thisValuesD[j];
+                      double[]thatValuesLineD = thatValuesD[j];
+                      for (int i=0; i<Length; i++) {
+                          thisValuesLineD[i] += thatValuesLineD[i];
+                      }
+                  }
+                  if (thisValuesF != null) {
+                      float[]thisValuesLineF = thisValuesF[j];
+                      float[]thatValuesLineF = thatValuesF[j];
+                      for (int i=0; i<Length; i++) {
+                          thisValuesLineF[i] += thatValuesLineF[i];
+                      }
+                  }
+
+                break;
+              case SUBTRACT:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++) 
+                          thisValuesD[j][i] -= thatValuesD[j][i];
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++) 
+                          thisValuesF[j][i] -= thatValuesF[j][i];
+                break;
+              case INV_SUBTRACT:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++) 
+                          thisValuesD[j][i] = thatValuesD[j][i] - thisValuesD[j][i];
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++) 
+                          thisValuesF[j][i] = thatValuesF[j][i] - thisValuesF[j][i];
+                break;
+              case MAX:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] = Math.max(thisValuesD[j][i], thatValuesD[j][i]);
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] = Math.max(thisValuesF[j][i], thatValuesF[j][i]);
+                break;
+              case MIN:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] = Math.min (thisValuesD[j][i], thatValuesD[j][i]);
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] = Math.min (thisValuesF[j][i], thatValuesF[j][i]);
+                break;
+            }
+          }
+          break;
+
 
         case MULTIPLY:
         case DIVIDE:
         case INV_DIVIDE:
           for (int j=0; j<TupleDimension; j++) {
-	    if (thisUnits[j] != null) {
-	      Unit absUnit = thisUnits[j].getAbsoluteUnit();
-	      if (!absUnit.equals(thisUnits[j])) {
-		thisValues[j] = absUnit.toThis(thisValues[j], thisUnits[j]);
-		thisUnits[j] = absUnit;
-	      }
-	    }
-	    if (thatUnits[j] != null) {
-	      Unit absUnit = thatUnits[j].getAbsoluteUnit();
-	      if (!absUnit.equals(thatUnits[j])) {
-		thatValues[j] = absUnit.toThis(thatValues[j], thatUnits[j]);
-		thatUnits[j] = absUnit;
-	      }
-	    }
-	    if (thisUnits[j] == null || thatUnits[j] == null) {
-	      outUnits[j] = null;
-	    }
-	    else {
-	      switch(op) {
-		case MULTIPLY:
-		  outUnits[j] = 
+            if (thisUnits[j] != null) {
+              Unit absUnit = thisUnits[j].getAbsoluteUnit();
+              if (!absUnit.equals(thisUnits[j])) {
+                  if (thisValuesD != null)
+                      thisValuesD[j] = absUnit.toThis (thisValuesD[j], thisUnits[j]);
+                  if (thisValuesF != null)
+                      thisValuesF[j] = absUnit.toThis (thisValuesF[j], thisUnits[j]);
+                  thisUnits[j] = absUnit;
+              }
+            }
+            if (thatUnits[j] != null) {
+              Unit absUnit = thatUnits[j].getAbsoluteUnit();
+              if (!absUnit.equals(thatUnits[j])) {
+                  if (thatValuesD != null)
+                      thatValuesD[j] = absUnit.toThis(thatValuesD[j], thatUnits[j]);
+                  if (thatValuesF != null)
+                      thatValuesF[j] = absUnit.toThis(thatValuesF[j], thatUnits[j]);
+                  thatUnits[j] = absUnit;
+              }
+            }
+            if (thisUnits[j] == null || thatUnits[j] == null) {
+              outUnits[j] = null;
+            }
+            else {
+              switch(op) {
+                case MULTIPLY:
+                  outUnits[j] = 
                     thisUnits[j].equals(CommonUnit.promiscuous)
                       ? thatUnits[j]
                       : thatUnits[j].equals(CommonUnit.promiscuous)
                         ? thisUnits[j]
                         : thisUnits[j].multiply(thatUnits[j]);
-		  break;
-		case DIVIDE:
-		  outUnits[j] =
+                  break;
+                case DIVIDE:
+                  outUnits[j] =
                     thatUnits[j].equals(CommonUnit.promiscuous)
                       ? thisUnits[j]
                       : thisUnits[j].divide(thatUnits[j]);
-		  break;
-		case INV_DIVIDE:
-		  outUnits[j] = 
+                  break;
+                case INV_DIVIDE:
+                  outUnits[j] = 
                     thisUnits[j].equals(CommonUnit.promiscuous)
                       ? thatUnits[j]
                       : thatUnits[j].divide(thisUnits[j]);
-		  break;
-	      }
-	    }
-	    switch(op) {
-	      case MULTIPLY:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] *= thatValues[j][i];
-		break;
-	      case DIVIDE:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] /= thatValues[j][i];
-		break;
-	      case INV_DIVIDE:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] = thatValues[j][i] / thisValues[j][i];
-		break;
-	    }
-	  }
-	  break;
+                  break;
+              }
+            }
+            switch(op) {
+              case MULTIPLY:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] *= thatValuesD[j][i];
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] *= thatValuesF[j][i];
+                break;
+              case DIVIDE:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] /= thatValuesD[j][i];
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] /= thatValuesF[j][i];
+                break;
+              case INV_DIVIDE:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] = thatValuesD[j][i] / thisValuesD[j][i];
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] = thatValuesF[j][i] / thisValuesF[j][i];
+                break;
+            }
+          }
+          break;
 
         case POW:
-	  for (int j=0; j<TupleDimension; j++) {
-	    if (thisUnits[j] != null) {
-	      Unit absUnit = thisUnits[j].getAbsoluteUnit();
-	      if (!absUnit.equals(thisUnits[j])) {
-		thisValues[j] = absUnit.toThis(thisValues[j], thisUnits[j]);
-		thisUnits[j] = absUnit;
-	      }
-	    }
-	    if (thatUnits[j] != null && 
-		!CommonUnit.promiscuous.equals(thatUnits[j])) {
-	      Unit absUnit = thatUnits[j].getAbsoluteUnit();
-	      if (!absUnit.equals(thatUnits[j])) {
-		thatValues[j] = absUnit.toThis(thatValues[j], thatUnits[j]);
-		thatUnits[j] = absUnit;
-	      }
-	    }
-	    if (thisUnits[j] != null && (
-		thisUnits[j].equals(CommonUnit.promiscuous) ||
-		thisUnits[j].equals(CommonUnit.dimensionless))) {
-	      outUnits[j] = thisUnits[j];
-	    }
-	    else {
-	      outUnits[j] = null;
-	    }
-	    for (int i=0; i<Length; i++)
-	      thisValues[j][i] = Math.pow(thisValues[j][i], thatValues[j][i]);
-	  }
+          for (int j=0; j<TupleDimension; j++) {
+            if (thisUnits[j] != null) {
+              Unit absUnit = thisUnits[j].getAbsoluteUnit();
+              if (!absUnit.equals(thisUnits[j])) {
+                  if (thisValuesD != null)
+                      thisValuesD[j] = absUnit.toThis(thisValuesD[j], thisUnits[j]);
+                  if (thisValuesF != null)
+                      thisValuesF[j] = absUnit.toThis(thisValuesF[j], thisUnits[j]);
+                  thisUnits[j] = absUnit;
+              }
+            }
+            if (thatUnits[j] != null && 
+                !CommonUnit.promiscuous.equals(thatUnits[j])) {
+                Unit absUnit = thatUnits[j].getAbsoluteUnit();
+                if (!absUnit.equals(thatUnits[j])) {
+                    if (thatValuesD != null)
+                        thatValuesD[j] = absUnit.toThis(thatValuesD[j], thatUnits[j]);
+                    if (thatValuesF != null)
+                        thatValuesF[j] = absUnit.toThis(thatValuesF[j], thatUnits[j]);
+                    thatUnits[j] = absUnit;
+              }
+            }
+            if (thisUnits[j] != null && (
+                thisUnits[j].equals(CommonUnit.promiscuous) ||
+                thisUnits[j].equals(CommonUnit.dimensionless))) {
+              outUnits[j] = thisUnits[j];
+            }
+            else {
+              outUnits[j] = null;
+            }
+            if (thisValuesD != null)
+                for (int i=0; i<Length; i++)
+                    thisValuesD[j][i] = (double)(Math.pow(thisValuesD[j][i], thatValuesD[j][i]));
+            if (thisValuesF != null)
+                for (int i=0; i<Length; i++)
+                    thisValuesF[j][i] = (float)(Math.pow(thisValuesF[j][i], thatValuesF[j][i]));
+          }
           break;
 
         case INV_POW:
           for (int j=0; j<TupleDimension; j++) {
-	    if (thatUnits[j] != null) {
-	      Unit absUnit = thatUnits[j].getAbsoluteUnit();
-	      if (!absUnit.equals(thatUnits[j])) {
-		thatValues[j] = absUnit.toThis(thatValues[j], thatUnits[j]);
-		thatUnits[j] = absUnit;
-	      }
-	    }
-	    if (thisUnits[j] != null && 
-		!CommonUnit.promiscuous.equals(thisUnits[j])) {
-	      Unit absUnit = thisUnits[j].getAbsoluteUnit();
-	      if (!absUnit.equals(thisUnits[j])) {
-		thisValues[j] = absUnit.toThis(thisValues[j], thisUnits[j]);
-		thisUnits[j] = absUnit;
-	      }
-	    }
-	    if (thatUnits[j] != null && (
-		thatUnits[j].equals(CommonUnit.promiscuous) ||
-		thatUnits[j].equals(CommonUnit.dimensionless))) {
-	      outUnits[j] = thatUnits[j];
-	    }
-	    else {
-	      outUnits[j] = null;
-	    }
-            for (int i=0; i<Length; i++)
-	      thisValues[j][i] = Math.pow(thatValues[j][i], thisValues[j][i]);
-	  }
-          break;
-
-        case ATAN2:
-	case ATAN2_DEGREES:
-	case INV_ATAN2:
-	case INV_ATAN2_DEGREES:
-	case REMAINDER:
-	case INV_REMAINDER:
-          for (int j=0; j<TupleDimension; j++) {
-	    if (thisUnits[j] != null && thatUnits[j] != null) {
-	      Unit absUnit = thisUnits[j].getAbsoluteUnit();
-	      if (!absUnit.equals(thisUnits[j])) {
-		thisValues[j] = absUnit.toThis(thisValues[j], thisUnits[j]);
-		thisUnits[j] = absUnit;
-	      }
-	      if (!absUnit.equals(thatUnits[j])) {
-		thatValues[j] = absUnit.toThis(thatValues[j], thatUnits[j]);
-		thatUnits[j] = absUnit;
-	      }
-	    }
-	    switch(op) {
-	      case ATAN2:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] =
-		    Math.atan2(thisValues[j][i], thatValues[j][i]);
-		outUnits[j] = CommonUnit.radian;
-		break;
-	      case ATAN2_DEGREES:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] = Data.RADIANS_TO_DEGREES * 
-		    Math.atan2(thisValues[j][i], thatValues[j][i]);
-		outUnits[j] = CommonUnit.degree;
-		break;
-	      case INV_ATAN2:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] =
-		    Math.atan2(thatValues[j][i], thisValues[j][i]);
-		outUnits[j] = CommonUnit.radian;
-		break;
-	      case INV_ATAN2_DEGREES:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] = Data.RADIANS_TO_DEGREES * 
-		    Math.atan2(thatValues[j][i], thisValues[j][i]);
-		outUnits[j] = CommonUnit.degree;
-		break;
-	      case REMAINDER:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] %= thatValues[j][i];
-		outUnits[j] = thisUnits[j];
-		break;
-	      case INV_REMAINDER:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] = thatValues[j][i] % thisValues[j][i];
-		outUnits[j] = thatUnits[j];
-		break;
-	    }
+            if (thatUnits[j] != null) {
+              Unit absUnit = thatUnits[j].getAbsoluteUnit();
+              if (!absUnit.equals(thatUnits[j])) {
+                  if (thatValuesD != null)
+                      thatValuesD[j] = absUnit.toThis(thatValuesD[j], thatUnits[j]);
+                  if (thatValuesF != null)
+                      thatValuesF[j] = absUnit.toThis(thatValuesF[j], thatUnits[j]);
+                  thatUnits[j] = absUnit;
+              }
+            }
+            if (thisUnits[j] != null && 
+                !CommonUnit.promiscuous.equals(thisUnits[j])) {
+              Unit absUnit = thisUnits[j].getAbsoluteUnit();
+              if (!absUnit.equals(thisUnits[j])) {
+                  if (thisValuesD != null)
+                      thisValuesD[j] = absUnit.toThis(thisValuesD[j], thisUnits[j]);
+                  if (thisValuesF != null)
+                      thisValuesF[j] = absUnit.toThis(thisValuesF[j], thisUnits[j]);
+                  thisUnits[j] = absUnit;
+              }
+            }
+            if (thatUnits[j] != null && (
+                thatUnits[j].equals(CommonUnit.promiscuous) ||
+                thatUnits[j].equals(CommonUnit.dimensionless))) {
+              outUnits[j] = thatUnits[j];
+            }
+            else {
+              outUnits[j] = null;
+            }
+            if (thisValuesD != null)
+                for (int i=0; i<Length; i++)
+                    thisValuesD[j][i] = (double)(Math.pow(thatValuesD[j][i], thisValuesD[j][i]));
+            if (thisValuesF != null)
+                for (int i=0; i<Length; i++)
+                    thisValuesF[j][i] = (float)(Math.pow(thatValuesF[j][i], thisValuesF[j][i]));
           }
           break;
 
-	default:
-	  throw new ArithmeticException("FlatField.binary: illegal operation");
+        case ATAN2:
+        case ATAN2_DEGREES:
+        case INV_ATAN2:
+        case INV_ATAN2_DEGREES:
+        case REMAINDER:
+        case INV_REMAINDER:
+          for (int j=0; j<TupleDimension; j++) {
+            if (thisUnits[j] != null && thatUnits[j] != null) {
+              Unit absUnit = thisUnits[j].getAbsoluteUnit();
+              if (!absUnit.equals(thisUnits[j])) {
+                  if (thisValuesD != null)
+                      thisValuesD[j] = absUnit.toThis(thisValuesD[j], thisUnits[j]);
+                  if (thisValuesF != null)
+                      thisValuesF[j] = absUnit.toThis(thisValuesF[j], thisUnits[j]);
+                  thisUnits[j] = absUnit;
+              }
+              if (!absUnit.equals(thatUnits[j])) {
+                  if (thatValuesD != null)
+                      thatValuesD[j] = absUnit.toThis(thatValuesD[j], thatUnits[j]);
+                  if (thatValuesF != null)
+                      thatValuesF[j] = absUnit.toThis(thatValuesF[j], thatUnits[j]);
+                  thatUnits[j] = absUnit;
+              }
+            }
+            switch(op) {
+              case ATAN2:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] = (double)(Math.atan2(thisValuesD[j][i], thatValuesD[j][i]));
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] = (float)(Math.atan2(thisValuesF[j][i], thatValuesF[j][i]));
+                  outUnits[j] = CommonUnit.radian;
+                  break;
+              case ATAN2_DEGREES:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] = (double)(Data.RADIANS_TO_DEGREES * Math.atan2(thisValuesD[j][i], thatValuesD[j][i]));
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] = (float)(Data.RADIANS_TO_DEGREES * Math.atan2(thisValuesF[j][i], thatValuesF[j][i]));
+                outUnits[j] = CommonUnit.degree;
+                break;
+              case INV_ATAN2:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] = (double)(Math.atan2(thatValuesD[j][i], thisValuesD[j][i]));
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] = (float)(Math.atan2(thatValuesF[j][i], thisValuesF[j][i]));
+                  outUnits[j] = CommonUnit.radian;
+                break;
+              case INV_ATAN2_DEGREES:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] = (double)(Data.RADIANS_TO_DEGREES * Math.atan2(thatValuesD[j][i], thisValuesD[j][i]));
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] = (float)(Data.RADIANS_TO_DEGREES * Math.atan2(thatValuesF[j][i], thisValuesF[j][i]));
+
+                  outUnits[j] = CommonUnit.degree;
+                  break;
+              case REMAINDER:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] %= thatValuesD[j][i];
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] %= thatValuesF[j][i];
+                outUnits[j] = thisUnits[j];
+                break;
+              case INV_REMAINDER:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] = thatValuesD[j][i] % thisValuesD[j][i];
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] = thatValuesF[j][i] % thisValuesF[j][i];
+                outUnits[j] = thatUnits[j];
+                break;
+            }
+          }
+          break;
+
+        default:
+          throw new ArithmeticException("FlatField.binary: illegal operation");
       }
 
       /*
@@ -2232,9 +2439,14 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
           outErrs[j] = null;
         }
         else {
-          outErrs[j] =
-            new ErrorEstimate(thisValues[j], outUnits[j], op, thisErrs[j],
-                              thatErrs[j], error_mode);
+            if (thisValuesD != null)
+                outErrs[j] =
+                    new ErrorEstimate(thisValuesD[j], outUnits[j], op, thisErrs[j],
+                                      thatErrs[j], error_mode);
+            if (thisValuesF != null)
+                outErrs[j] =
+                    new ErrorEstimate(thisValuesF[j], outUnits[j], op, thisErrs[j],
+                                      thatErrs[j], error_mode);
         }
       }
 
@@ -2242,10 +2454,12 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       /*- TDR June  1998
       FlatField new_field = cloneDouble(units_out, errors_out);
       */
-      FlatField new_field = cloneDouble( new_type, outUnits, outErrs);
 
-      new_field.packValues(thisValues, false);
-      // new_field.DoubleRange = values;
+      FlatField new_field=null;
+      if (thisValuesD!=null)
+          new_field = cloneDouble (new_type, outUnits, outErrs, thisValuesD);
+      if (thisValuesF!=null)
+          new_field = cloneFloat (new_type, outUnits, outErrs, thisValuesF);
       new_field.clearMissing();
       return new_field;
     }
@@ -2267,7 +2481,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       // use DoubleSet rather than RangeSet for intermediate computation results
       if (isMissing() || data.isMissing()) return new_type.missingData();
 
-      double[][] values = unpackValues();
+
       // get data values and possibly apply coordinate transform
       double[][] vals = new double[TupleDimension][1];
 
@@ -2338,7 +2552,18 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
        */
       Unit[]          thisUnits = (Unit[])RangeUnits.clone();
       Unit[]          thatUnits = units_out;
-      double[][]      thisValues = values;
+
+
+      boolean binaryDouble = shouldBeDouble ();
+      double[][]      thisValuesD = null;
+      float [][]      thisValuesF = null;
+      if (binaryDouble) {
+          thisValuesD = unpackValues ();
+      } else {
+          thisValuesF = unpackFloats ();
+      }
+
+
       double[]        thatValues = new double[vals.length];
       ErrorEstimate[] thisErrs = (ErrorEstimate[])RangeErrors.clone();
       ErrorEstimate[] thatErrs = errors_out;
@@ -2348,286 +2573,358 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       Unit[]          outUnits = new Unit[TupleDimension];
 
       for (int j = 0; j < vals.length; j++)
-	thatValues[j] = vals[j][0];
+          thatValues[j] = vals[j][0];
 
       /*
-       * Set the output values.  NOTE: The input array (thisValues) is also
+       * Set the output values.  NOTE: The input array (thisValuesD) is also
        * used to store the output numeric values.
        */
       switch (op) {
-	case ADD:
-	case SUBTRACT:
-	case INV_SUBTRACT:
-	case MAX:
-	case MIN:
+      case ADD:
+      case SUBTRACT:
+      case INV_SUBTRACT:
+      case MAX:
+      case MIN:
           for (int j=0; j<TupleDimension; j++) {
-	    if (thisUnits[j] == null || thatUnits[j] == null) {
-	      outUnits[j] = null;
-	    }
-	    else if (thisUnits[j] == CommonUnit.promiscuous) {
-	      outUnits[j] = thatUnits[j].getAbsoluteUnit();
-	    }
-	    else if (thatUnits[j] == CommonUnit.promiscuous) {
-	      outUnits[j] = thisUnits[j].getAbsoluteUnit();
-	    }
-	    else {
-	      try {
-		outUnits[j] = thisUnits[j].getAbsoluteUnit();
-		boolean convertThis = !outUnits[j].equals(thisUnits[j]);
-		boolean convertThat = !outUnits[j].equals(thatUnits[j]);
+              if (thisUnits[j] == null || thatUnits[j] == null) {
+                  outUnits[j] = null;
+              }
+              else if (thisUnits[j] == CommonUnit.promiscuous) {
+                  outUnits[j] = thatUnits[j].getAbsoluteUnit();
+              }
+              else if (thatUnits[j] == CommonUnit.promiscuous) {
+                  outUnits[j] = thisUnits[j].getAbsoluteUnit();
+              }
+              else {
+                  try {
+                      outUnits[j] = thisUnits[j].getAbsoluteUnit();
+                      boolean convertThis = !outUnits[j].equals(thisUnits[j]);
+                      boolean convertThat = !outUnits[j].equals(thatUnits[j]);
 
-		if (convertThis)
-		  thisValues[j] =
-		    outUnits[j].toThis(thisValues[j], thisUnits[j]);
+                      if (convertThis)
+                          if (thisValuesD != null)
+                              thisValuesD[j] = outUnits[j].toThis(thisValuesD[j], thisUnits[j]);
+                          if (thisValuesF != null)
+                              thisValuesF[j] = outUnits[j].toThis(thisValuesF[j], thisUnits[j]);
 
-		if (convertThat)
-		  thatValues[j] =
-		    outUnits[j].toThis(thatValues[j], thatUnits[j]);
+                      if (convertThat)
+                          thatValues[j] =
+                              outUnits[j].toThis(thatValues[j], thatUnits[j]);
 
-		if (error_mode != NO_ERRORS &&
-		  thisErrs[j] != null && thatErrs[j] != null) {
+                      if (error_mode != NO_ERRORS &&
+                          thisErrs[j] != null && thatErrs[j] != null) {
 
-		  if (convertThis) {
-		    Unit	errUnit = thisErrs[j].getUnit();
+                          if (convertThis) {
+                              Unit      errUnit = thisErrs[j].getUnit();
 
-		    if (errUnit == null)
-		      errUnit = thisUnits[j];
+                              if (errUnit == null)
+                                  errUnit = thisUnits[j];
 
-		    double err = 0.5 * thisErrs[j].getErrorValue();
-		    double mean = thisErrs[j].getMean();
-		    double a = outUnits[j].toThis(mean + err, errUnit);
-		    double b = outUnits[j].toThis(mean - err, errUnit);
-		    mean = (a + b) / 2;
-		    err = Math.abs(a - b);
-		    thisErrs[j] = new ErrorEstimate(mean, err, outUnits[j]);
-		  }
+                              double err = 0.5 * thisErrs[j].getErrorValue();
+                              double mean = thisErrs[j].getMean();
+                              double a = outUnits[j].toThis(mean + err, errUnit);
+                              double b = outUnits[j].toThis(mean - err, errUnit);
+                              mean = (a + b) / 2;
+                              err = Math.abs(a - b);
+                              thisErrs[j] = new ErrorEstimate(mean, err, outUnits[j]);
+                          }
 
-		  if (convertThat) {
-		    Unit	errUnit = thatErrs[j].getUnit();
+                          if (convertThat) {
+                              Unit      errUnit = thatErrs[j].getUnit();
 
-		    if (errUnit == null)
-		      errUnit = thatUnits[j];
+                              if (errUnit == null)
+                                  errUnit = thatUnits[j];
 
-		    double err = 0.5 * thatErrs[j].getErrorValue();
-		    double mean = thatErrs[j].getMean();
-		    double a = outUnits[j].toThis(mean + err, errUnit);
-		    double b = outUnits[j].toThis(mean - err, errUnit);
-		    mean = (a + b) / 2;
-		    err = Math.abs(a - b);
-		    thatErrs[j] = new ErrorEstimate(mean, err, outUnits[j]);
-		  }
-		}
-	      }
-	      catch (UnitException e) {		// inconvertible units
-		outUnits[j] = null;
-	      }
-	    }
-	    switch (op) {
-	      case ADD:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] += thatValues[j];
-		break;
-	      case SUBTRACT:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] -= thatValues[j];
-		break;
-	      case INV_SUBTRACT:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] = thatValues[j] - thisValues[j][i];
-		break;
-	      case MAX:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] = Math.max(thisValues[j][i], thatValues[j]);
-		break;
-	      case MIN:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] = Math.min(thisValues[j][i], thatValues[j]);
-		break;
-	    }
-	  }
-	  break;
-
-        case MULTIPLY:
-        case DIVIDE:
-        case INV_DIVIDE:
-          for (int j=0; j<TupleDimension; j++) {
-	    if (thisUnits[j] != null) {
-	      Unit absUnit = thisUnits[j].getAbsoluteUnit();
-	      if (!absUnit.equals(thisUnits[j])) {
-		thisValues[j] = absUnit.toThis(thisValues[j], thisUnits[j]);
-		thisUnits[j] = absUnit;
-	      }
-	    }
-	    if (thatUnits[j] != null) {
-	      Unit absUnit = thatUnits[j].getAbsoluteUnit();
-	      if (!absUnit.equals(thatUnits[j])) {
-		thatValues[j] = absUnit.toThis(thatValues[j], thatUnits[j]);
-		thatUnits[j] = absUnit;
-	      }
-	    }
-	    if (thisUnits[j] == null || thatUnits[j] == null) {
-	      outUnits[j] = null;
-	    }
-	    else {
-	      switch(op) {
-		case MULTIPLY:
-		  outUnits[j] =
-                    thisUnits[j].equals(CommonUnit.promiscuous)
-                      ? thatUnits[j]
-                      : thatUnits[j].equals(CommonUnit.promiscuous)
-                        ? thisUnits[j]
-                        : thisUnits[j].multiply(thatUnits[j]);
-		  break;
-		case DIVIDE:
-		  outUnits[j] =
-                    thatUnits[j].equals(CommonUnit.promiscuous)
-                      ? thisUnits[j]
-                      : thisUnits[j].divide(thatUnits[j]);
-		  break;
-		case INV_DIVIDE:
-		  outUnits[j] =
-                    thisUnits[j].equals(CommonUnit.promiscuous)
-                      ? thatUnits[j]
-                      : thatUnits[j].divide(thisUnits[j]);
-		  break;
-	      }
-	    }
-	    switch(op) {
-	      case MULTIPLY:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] *= thatValues[j];
-		break;
-	      case DIVIDE:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] /= thatValues[j];
-		break;
-	      case INV_DIVIDE:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] = thatValues[j] / thisValues[j][i];
-		break;
-	    }
-	  }
-	  break;
-
-        case POW:
-	  for (int j=0; j<TupleDimension; j++) {
-	    if (thisUnits[j] != null) {
-	      Unit absUnit = thisUnits[j].getAbsoluteUnit();
-	      if (!absUnit.equals(thisUnits[j])) {
-		thisValues[j] = absUnit.toThis(thisValues[j], thisUnits[j]);
-		thisUnits[j] = absUnit;
-	      }
-	    }
-	    if (thatUnits[j] != null && 
-		!CommonUnit.promiscuous.equals(thatUnits[j])) {
-	      Unit absUnit = thatUnits[j].getAbsoluteUnit();
-	      if (!absUnit.equals(thatUnits[j])) {
-		thatValues[j] = absUnit.toThis(thatValues[j], thatUnits[j]);
-		thatUnits[j] = absUnit;
-	      }
-	    }
-	    if (thisUnits[j] != null && (
-		thisUnits[j].equals(CommonUnit.promiscuous) ||
-		thisUnits[j].equals(CommonUnit.dimensionless))) {
-	      outUnits[j] = thisUnits[j];
-	    }
-	    else {
-	      outUnits[j] = null;
-	    }
-            for (int i=0; i<Length; i++)
-	      thisValues[j][i] = Math.pow(thisValues[j][i], thatValues[j]);
-	  }
-          break;
-
-        case INV_POW:
-          for (int j=0; j<TupleDimension; j++) {
-	    if (thatUnits[j] != null) {
-	      Unit absUnit = thatUnits[j].getAbsoluteUnit();
-	      if (!absUnit.equals(thatUnits[j])) {
-		thatValues[j] = absUnit.toThis(thatValues[j], thatUnits[j]);
-		thatUnits[j] = absUnit;
-	      }
-	    }
-	    if (thisUnits[j] != null && 
-		!CommonUnit.promiscuous.equals(thisUnits[j])) {
-	      Unit absUnit = thisUnits[j].getAbsoluteUnit();
-	      if (!absUnit.equals(thisUnits[j])) {
-		thisValues[j] = absUnit.toThis(thisValues[j], thisUnits[j]);
-		thisUnits[j] = absUnit;
-	      }
-	    }
-	    if (thatUnits[j] != null && (
-		thatUnits[j].equals(CommonUnit.promiscuous) ||
-		thatUnits[j].equals(CommonUnit.dimensionless))) {
-	      outUnits[j] = thatUnits[j];
-	    }
-	    else {
-	      outUnits[j] = null;
-	    }
-            for (int i=0; i<Length; i++)
-	      thisValues[j][i] = Math.pow(thatValues[j], thisValues[j][i]);
-	  }
-          break;
-
-        case ATAN2:
-	case ATAN2_DEGREES:
-	case INV_ATAN2:
-	case INV_ATAN2_DEGREES:
-	case REMAINDER:
-	case INV_REMAINDER:
-          for (int j=0; j<TupleDimension; j++) {
-	    if (thisUnits[j] != null && thatUnits[j] != null) {
-	      Unit absUnit = thisUnits[j].getAbsoluteUnit();
-	      if (!absUnit.equals(thisUnits[j])) {
-		thisValues[j] = absUnit.toThis(thisValues[j], thisUnits[j]);
-		thisUnits[j] = absUnit;
-	      }
-	      if (!absUnit.equals(thatUnits[j])) {
-		thatValues[j] = absUnit.toThis(thatValues[j], thatUnits[j]);
-		thatUnits[j] = absUnit;
-	      }
-	    }
-	    switch(op) {
-	      case ATAN2:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] =
-		    Math.atan2(thisValues[j][i], thatValues[j]);
-		outUnits[j] = CommonUnit.radian;
-		break;
-	      case ATAN2_DEGREES:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] = Data.RADIANS_TO_DEGREES * 
-		    Math.atan2(thisValues[j][i], thatValues[j]);
-		outUnits[j] = CommonUnit.degree;
-		break;
-	      case INV_ATAN2:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] =
-		    Math.atan2(thatValues[j], thisValues[j][i]);
-		outUnits[j] = CommonUnit.radian;
-		break;
-	      case INV_ATAN2_DEGREES:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] = Data.RADIANS_TO_DEGREES * 
-		    Math.atan2(thatValues[j], thisValues[j][i]);
-		outUnits[j] = CommonUnit.degree;
-		break;
-	      case REMAINDER:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] %= thatValues[j];
-		outUnits[j] = thisUnits[j];
-		break;
-	      case INV_REMAINDER:
-		for (int i=0; i<Length; i++)
-		  thisValues[j][i] = thatValues[j] % thisValues[j][i];
-		outUnits[j] = thatUnits[j];
-		break;
-	    }
+                              double err = 0.5 * thatErrs[j].getErrorValue();
+                              double mean = thatErrs[j].getMean();
+                              double a = outUnits[j].toThis(mean + err, errUnit);
+                              double b = outUnits[j].toThis(mean - err, errUnit);
+                              mean = (a + b) / 2;
+                              err = Math.abs(a - b);
+                              thatErrs[j] = new ErrorEstimate(mean, err, outUnits[j]);
+                          }
+                      }
+                  }
+                  catch (UnitException e) {             // inconvertible units
+                      outUnits[j] = null;
+                  }
+              }
+              switch (op) {
+              case ADD:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] += thatValues[j];
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] += thatValues[j];
+                  break;
+              case SUBTRACT:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] -= thatValues[j];
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] -= thatValues[j];
+                  break;
+              case INV_SUBTRACT:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] = (double)(thatValues[j] - thisValuesD[j][i]);
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] = (float)(thatValues[j] - thisValuesF[j][i]);
+                  break;
+              case MAX:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] = (double)(Math.max(thisValuesD[j][i], thatValues[j]));
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] = (float)(Math.max(thisValuesF[j][i], thatValues[j]));
+                  break;
+              case MIN:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] = (double)(Math.min(thisValuesD[j][i], thatValues[j]));
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] = (float)(Math.min(thisValuesF[j][i], thatValues[j]));
+                  break;
+              }
           }
           break;
 
-	default:
-	  throw new ArithmeticException("FlatField.binary: illegal operation");
+      case MULTIPLY:
+      case DIVIDE:
+      case INV_DIVIDE:
+          for (int j=0; j<TupleDimension; j++) {
+              if (thisUnits[j] != null) {
+                  Unit absUnit = thisUnits[j].getAbsoluteUnit();
+                  if (!absUnit.equals(thisUnits[j])) {
+                      if (thisValuesD != null) thisValuesD[j] = absUnit.toThis(thisValuesD[j], thisUnits[j]);
+                      if (thisValuesF != null) thisValuesF[j] = absUnit.toThis(thisValuesF[j], thisUnits[j]);
+                      thisUnits[j] = absUnit;
+                  }
+              }
+              if (thatUnits[j] != null) {
+                  Unit absUnit = thatUnits[j].getAbsoluteUnit();
+                  if (!absUnit.equals(thatUnits[j])) {
+                      thatValues[j] = absUnit.toThis(thatValues[j], thatUnits[j]);
+                      thatUnits[j] = absUnit;
+                  }
+              }
+              if (thisUnits[j] == null || thatUnits[j] == null) {
+                  outUnits[j] = null;
+              }
+              else {
+                  switch(op) {
+                  case MULTIPLY:
+                      outUnits[j] =
+                          thisUnits[j].equals(CommonUnit.promiscuous)
+                          ? thatUnits[j]
+                          : thatUnits[j].equals(CommonUnit.promiscuous)
+                          ? thisUnits[j]
+                          : thisUnits[j].multiply(thatUnits[j]);
+                      break;
+                  case DIVIDE:
+                      outUnits[j] =
+                          thatUnits[j].equals(CommonUnit.promiscuous)
+                          ? thisUnits[j]
+                          : thisUnits[j].divide(thatUnits[j]);
+                      break;
+                  case INV_DIVIDE:
+                      outUnits[j] =
+                          thisUnits[j].equals(CommonUnit.promiscuous)
+                          ? thatUnits[j]
+                          : thatUnits[j].divide(thisUnits[j]);
+                      break;
+                  }
+              }
+              switch(op) {
+              case MULTIPLY:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] *= thatValues[j];
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] *= thatValues[j];
+                  break;
+              case DIVIDE:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] /= thatValues[j];
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] /= thatValues[j];
+                  break;
+              case INV_DIVIDE:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] = (double)(thatValues[j] / thisValuesD[j][i]);
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] = (float)(thatValues[j] / thisValuesF[j][i]);
+                  break;
+              }
+          }
+          break;
+
+      case POW:
+          for (int j=0; j<TupleDimension; j++) {
+              if (thisUnits[j] != null) {
+                  Unit absUnit = thisUnits[j].getAbsoluteUnit();
+                  if (!absUnit.equals(thisUnits[j])) {
+                      if (thisValuesD != null) thisValuesD[j] = absUnit.toThis(thisValuesD[j], thisUnits[j]);
+                      if (thisValuesF != null) thisValuesF[j] = absUnit.toThis(thisValuesF[j], thisUnits[j]);
+                      thisUnits[j] = absUnit;
+                  }
+              }
+              if (thatUnits[j] != null && 
+                  !CommonUnit.promiscuous.equals(thatUnits[j])) {
+                  Unit absUnit = thatUnits[j].getAbsoluteUnit();
+                  if (!absUnit.equals(thatUnits[j])) {
+                      thatValues[j] = absUnit.toThis(thatValues[j], thatUnits[j]);
+                      thatUnits[j] = absUnit;
+                  }
+              }
+              if (thisUnits[j] != null && (
+                                           thisUnits[j].equals(CommonUnit.promiscuous) ||
+                                           thisUnits[j].equals(CommonUnit.dimensionless))) {
+                  outUnits[j] = thisUnits[j];
+              }
+              else {
+                  outUnits[j] = null;
+              }
+              if (thisValuesD != null)
+                  for (int i=0; i<Length; i++)
+                      thisValuesD[j][i] = (double)(Math.pow(thisValuesD[j][i], thatValues[j]));
+              if (thisValuesF != null)
+                  for (int i=0; i<Length; i++)
+                      thisValuesF[j][i] = (float)(Math.pow(thisValuesF[j][i], thatValues[j]));
+          }
+          break;
+
+      case INV_POW:
+          for (int j=0; j<TupleDimension; j++) {
+              if (thatUnits[j] != null) {
+                  Unit absUnit = thatUnits[j].getAbsoluteUnit();
+                  if (!absUnit.equals(thatUnits[j])) {
+                      thatValues[j] = absUnit.toThis(thatValues[j], thatUnits[j]);
+                      thatUnits[j] = absUnit;
+                  }
+              }
+              if (thisUnits[j] != null && 
+                  !CommonUnit.promiscuous.equals(thisUnits[j])) {
+                  Unit absUnit = thisUnits[j].getAbsoluteUnit();
+                  if (!absUnit.equals(thisUnits[j])) {
+                      if (thisValuesD != null)  thisValuesD[j] = absUnit.toThis(thisValuesD[j], thisUnits[j]);
+                      if (thisValuesF != null)  thisValuesF[j] = absUnit.toThis(thisValuesF[j], thisUnits[j]);
+                      thisUnits[j] = absUnit;
+                  }
+              }
+              if (thatUnits[j] != null && (
+                                           thatUnits[j].equals(CommonUnit.promiscuous) ||
+                                           thatUnits[j].equals(CommonUnit.dimensionless))) {
+                  outUnits[j] = thatUnits[j];
+              }
+              else {
+                  outUnits[j] = null;
+              }
+              if (thisValuesD != null)
+                  for (int i=0; i<Length; i++)
+                      thisValuesD[j][i] = (double)(Math.pow(thatValues[j], thisValuesD[j][i]));
+              if (thisValuesF != null)
+                  for (int i=0; i<Length; i++)
+                      thisValuesF[j][i] = (float)(Math.pow(thatValues[j], thisValuesF[j][i]));
+          }
+          break;
+
+      case ATAN2:
+      case ATAN2_DEGREES:
+      case INV_ATAN2:
+      case INV_ATAN2_DEGREES:
+      case REMAINDER:
+      case INV_REMAINDER:
+          for (int j=0; j<TupleDimension; j++) {
+              if (thisUnits[j] != null && thatUnits[j] != null) {
+                  Unit absUnit = thisUnits[j].getAbsoluteUnit();
+                  if (!absUnit.equals(thisUnits[j])) {
+                      if (thisValuesD != null)
+                          thisValuesD[j] = absUnit.toThis(thisValuesD[j], thisUnits[j]);
+                      if (thisValuesF != null)
+                          thisValuesF[j] = absUnit.toThis(thisValuesF[j], thisUnits[j]);
+                      thisUnits[j] = absUnit;
+                  }
+                  if (!absUnit.equals(thatUnits[j])) {
+                      thatValues[j] = absUnit.toThis(thatValues[j], thatUnits[j]);
+                      thatUnits[j] = absUnit;
+                  }
+              }
+              switch(op) {
+              case ATAN2:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] = (double)(Math.atan2(thisValuesD[j][i], thatValues[j]));
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] = (float)(Math.atan2(thisValuesF[j][i], thatValues[j]));
+                  outUnits[j] = CommonUnit.radian;
+                  break;
+              case ATAN2_DEGREES:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] = (double)(Data.RADIANS_TO_DEGREES * 
+                                                       Math.atan2(thisValuesD[j][i], thatValues[j]));
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] = (float)(Data.RADIANS_TO_DEGREES * 
+                                                       Math.atan2(thisValuesF[j][i], thatValues[j]));
+                  outUnits[j] = CommonUnit.degree;
+                  break;
+              case INV_ATAN2:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] = (double)(Math.atan2(thatValues[j], thisValuesD[j][i]));
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] = (float)(Math.atan2(thatValues[j], thisValuesF[j][i]));
+                  outUnits[j] = CommonUnit.radian;
+                  break;
+              case INV_ATAN2_DEGREES:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] = (double)(Data.RADIANS_TO_DEGREES * 
+                                                       Math.atan2(thatValues[j], thisValuesD[j][i]));
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] = (float)(Data.RADIANS_TO_DEGREES * 
+                                                       Math.atan2(thatValues[j], thisValuesF[j][i]));
+                  outUnits[j] = CommonUnit.degree;
+                  break;
+              case REMAINDER:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] %= thatValues[j];
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] %= thatValues[j];
+                  outUnits[j] = thisUnits[j];
+                  break;
+              case INV_REMAINDER:
+                  if (thisValuesD != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesD[j][i] = (double)(thatValues[j] % thisValuesD[j][i]);
+                  if (thisValuesF != null)
+                      for (int i=0; i<Length; i++)
+                          thisValuesF[j][i] = (float)(thatValues[j] % thisValuesF[j][i]);
+                  outUnits[j] = thatUnits[j];
+                  break;
+              }
+          }
+          break;
+
+      default:
+          throw new ArithmeticException("FlatField.binary: illegal operation");
       }
 
       /*
@@ -2635,363 +2932,652 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
        */
       ErrorEstimate[] outErrs = new ErrorEstimate[TupleDimension];
       for (int j=0; j<TupleDimension; j++) {
-        if (error_mode == NO_ERRORS ||
-            thisErrs[j] == null || thatErrs[j] == null) {
-          outErrs[j] = null;
-        }
-        else {
-          outErrs[j] =
-            new ErrorEstimate(thisValues[j], outUnits[j], op, thisErrs[j],
-                              thatErrs[j], error_mode);
-        }
+          if (error_mode == NO_ERRORS ||
+              thisErrs[j] == null || thatErrs[j] == null) {
+              outErrs[j] = null;
+          }
+          else {
+              if (thisValuesD != null)
+                  outErrs[j] = new ErrorEstimate(thisValuesD[j], outUnits[j], op, thisErrs[j],
+                                                 thatErrs[j], error_mode);
+              if (thisValuesF != null)
+                  outErrs[j] = new ErrorEstimate(thisValuesF[j], outUnits[j], op, thisErrs[j],
+                                                 thatErrs[j], error_mode);
+          }
       }
 
       // create a FlatField for return
       /*- TDR June  1998
-      FlatField new_field = cloneDouble(units_out, errors_out);
+        FlatField new_field = cloneDouble(units_out, errors_out);
       */
-      FlatField new_field = cloneDouble( new_type, outUnits, outErrs);
+      FlatField new_field = null;
+      if (thisValuesD != null)
+          new_field = cloneDouble( new_type, outUnits, outErrs, thisValuesD);
+      if (thisValuesF != null)
+          new_field = cloneFloat( new_type, outUnits, outErrs, thisValuesF);
 
-      new_field.packValues(thisValues, false);
-      // new_field.DoubleRange = values;
       new_field.clearMissing();
       return new_field;
     }
     else {
-      throw new TypeException("Field.binary");
+        throw new TypeException("Field.binary");
     }
   }
 
 
-  /** 
-   * Return new FlatField with value 'this op'.
-   * @param op  operation to perform (e.g., NOP, ABS, COS)
-   * @param new_type  MathType of new object
-   * @param sampling_mode  sampling mode to use 
-   *                       (e.g., NEAREST_NEIGHBOR, WEIGHTED_AVERAGE)
-   * @param error_mode    error estimate mode (e.g., NO_ERROR, DEPENDENT,
-   *                      independent)
-   * @return new FlatField corresponding to the requested operation
-   * @throws VisADException   couldn't create new VisAD object
-   * @throws RemoteException  couldn't create new Remote object
-   */
-  public Data unary(int op, MathType new_type, int sampling_mode, int error_mode)
-              throws VisADException {
-    // use DoubleSet rather than RangeSet for intermediate computation results
-    if (isMissing()) {
-      cloneDouble(new_type, RangeUnits, RangeErrors);
-    }
-
-
-    /*- TDR July 1998  */
-    if ( new_type == null ) {
-      throw new TypeException("unary: new_type may not be null");
-    }
-
-    double[][] values = unpackValues();
-
-    Unit[] units_out = new Unit[TupleDimension];
-
-    /*
-     * Ensure that the numeric values and units are in rational form, i.e. one
-     * in which ratios of data values make sense (e.g. Temperature values in
-     * kelvin rather than celsius).
+    /** 
+     * Return new FlatField with value 'this op'.
+     * @param op  operation to perform (e.g., NOP, ABS, COS)
+     * @param new_type  MathType of new object
+     * @param sampling_mode  sampling mode to use 
+     *                       (e.g., NEAREST_NEIGHBOR, WEIGHTED_AVERAGE)
+     * @param error_mode    error estimate mode (e.g., NO_ERROR, DEPENDENT,
+     *                      independent)
+     * @return new FlatField corresponding to the requested operation
+     * @throws VisADException   couldn't create new VisAD object
+     * @throws RemoteException  couldn't create new Remote object
      */
-    Unit[]		units_in = (Unit[])RangeUnits.clone();
-    ErrorEstimate[]	errors_in = (ErrorEstimate[])RangeErrors.clone();;
-    makeRational(values, units_in, errors_in);
+    public Data unary (int op, MathType new_type, int sampling_mode, int error_mode)
+        throws VisADException {
+        // use DoubleSet rather than RangeSet for intermediate computation results
+        //      if (isMissing()) return cloneDouble();
+        if (isMissing()) {
+            if (shouldBeDouble ()) {
+                return cloneDouble(new_type, RangeUnits, RangeErrors);
+            } else {
+                return cloneFloat(new_type, RangeUnits, RangeErrors);
+            }
+        }
 
-    int i, j; // loop indices
-    double[] valuesJ;
-    switch (op) {
-      case ABS:
-        for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Math.abs(valuesJ[i]);
-          }
-          units_out[j] = units_in[j];
+
+        /*- TDR July 1998  */
+        if ( new_type == null ) {
+            throw new TypeException("unary: new_type may not be null");
         }
-        break;
-      case ACOS:
-        for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Math.acos(valuesJ[i]);
-          }
-          units_out[j] = CommonUnit.radian;
+
+        Unit[] units_out = new Unit[TupleDimension];
+
+        /*
+         * Ensure that the numeric values and units are in rational form, i.e. one
+         * in which ratios of data values make sense (e.g. Temperature values in
+         * kelvin rather than celsius).
+         */
+        Unit[]          units_in = (Unit[])RangeUnits.clone();
+        ErrorEstimate[] errors_in = (ErrorEstimate[])RangeErrors.clone();;
+
+
+        double[][] valuesD = null;
+        float [][] valuesF = null;
+
+        if (shouldBeDouble ()) {
+            valuesD = unpackValues ();
+            makeRational (valuesD, units_in, errors_in);
+        } else {
+            valuesF = unpackFloats ();
+            makeRational (valuesF, units_in, errors_in);
         }
-        break;
-      case ACOS_DEGREES:
-        for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Data.RADIANS_TO_DEGREES * Math.acos(valuesJ[i]);
-          }
-          units_out[j] = CommonUnit.degree;
-        }
-        break;
-      case ASIN:
-        for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Math.asin(valuesJ[i]);
-          }
-          units_out[j] = CommonUnit.radian;
-        }
-        break;
-      case ASIN_DEGREES:
-        for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Data.RADIANS_TO_DEGREES * Math.asin(valuesJ[i]);
-          }
-          units_out[j] = CommonUnit.degree;
-        }
-        break;
-      case ATAN:
-        for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Math.atan(valuesJ[i]);
-          }
-          units_out[j] = CommonUnit.radian;
-        }
-        break;
-      case ATAN_DEGREES:
-        for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Data.RADIANS_TO_DEGREES * Math.atan(valuesJ[i]);
-          }
-          units_out[j] = CommonUnit.degree;
-        }
-        break;
-      case CEIL:
-        for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Math.ceil(valuesJ[i]);
-          }
-          units_out[j] = units_in[j];
-        }
-        break;
-      case COS:
-        // do cos in degrees, unless unit is radians
-        for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          if (CommonUnit.degree.equals(units_in[j])) {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.cos(Data.DEGREES_TO_RADIANS * valuesJ[i]);
+
+
+        int i, j; // loop indices
+        double[] valuesDJ;
+        float[] valuesFJ;
+
+        switch (op) {
+        case ABS:
+            for (j=0; j<TupleDimension; j++) {
+                if (valuesD != null) {
+                    valuesDJ = valuesD[j];
+                    for (i=0; i<Length; i++) {
+                        valuesDJ[i] = Math.abs(valuesDJ[i]);
+                    }
+                }
+                if (valuesF != null) {
+                    valuesFJ = valuesF[j];
+                    for (i=0; i<Length; i++) {
+                        valuesFJ[i] = Math.abs(valuesFJ[i]);
+                    }
+                }
+                units_out[j] = units_in[j];
             }
-          }
-          else {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.cos(valuesJ[i]);
+            break;
+        case ACOS:
+            for (j=0; j<TupleDimension; j++) {
+                if (valuesD != null) {
+                    valuesDJ = valuesD[j];
+                    for (i=0; i<Length; i++) {
+                        valuesDJ[i] = (double)(Math.acos(valuesDJ[i]));
+                    }
+                }
+                if (valuesF != null) {
+                    valuesFJ = valuesF[j];
+                    for (i=0; i<Length; i++) {
+                        valuesFJ[i] = (float)(Math.acos(valuesFJ[i]));
+                    }
+                }
+
+                units_out[j] = CommonUnit.radian;
             }
-          }
-          units_out[j] =
-            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+            break;
+        case ACOS_DEGREES:
+            for (j=0; j<TupleDimension; j++) {
+                if (valuesD != null) {
+                    valuesDJ = valuesD[j];
+                    for (i=0; i<Length; i++) {
+                        valuesDJ[i] = (double)(Data.RADIANS_TO_DEGREES * Math.acos(valuesDJ[i]));
+                    }
+                }
+                if (valuesF != null) {
+                    valuesFJ = valuesF[j];
+                    for (i=0; i<Length; i++) {
+                        valuesFJ[i] = (float)(Data.RADIANS_TO_DEGREES * Math.acos(valuesFJ[i]));
+                    }
+                }
+
+                units_out[j] = CommonUnit.degree;
+            }
+            break;
+        case ASIN:
+            for (j=0; j<TupleDimension; j++) {
+                if (valuesD != null) {
+                    valuesDJ = valuesD[j];
+                    for (i=0; i<Length; i++) {
+                        valuesDJ[i] = (double)(Math.asin(valuesDJ[i]));
+                    }
+                }
+                if (valuesF != null) {
+                    valuesFJ = valuesF[j];
+                    for (i=0; i<Length; i++) {
+                        valuesFJ[i] = (float)(Math.asin(valuesFJ[i]));
+                    }
+                }
+
+                units_out[j] = CommonUnit.radian;
+            }
+            break;
+        case ASIN_DEGREES:
+            for (j=0; j<TupleDimension; j++) {
+                if (valuesD != null) {
+                    valuesDJ = valuesD[j];
+                    for (i=0; i<Length; i++) {
+                        valuesDJ[i] = (double)(Data.RADIANS_TO_DEGREES * Math.asin(valuesDJ[i]));
+                    }
+                }
+                if (valuesF != null) {
+                    valuesFJ = valuesF[j];
+                    for (i=0; i<Length; i++) {
+                        valuesFJ[i] = (float)(Data.RADIANS_TO_DEGREES * Math.asin(valuesFJ[i]));
+                    }
+                }
+
+                units_out[j] = CommonUnit.degree;
+            }
+            break;
+        case ATAN:
+            for (j=0; j<TupleDimension; j++) {
+                if (valuesD != null) {
+                    valuesDJ = valuesD[j];
+                    for (i=0; i<Length; i++) {
+                        valuesDJ[i] = (double)(Math.atan(valuesDJ[i]));
+                    }
+                }
+                if (valuesF != null) {
+                    valuesFJ = valuesF[j];
+                    for (i=0; i<Length; i++) {
+                        valuesFJ[i] = (float)(Math.atan(valuesFJ[i]));
+                    }
+                }
+
+                units_out[j] = CommonUnit.radian;
+            }
+            break;
+        case ATAN_DEGREES:
+            for (j=0; j<TupleDimension; j++) {
+                if (valuesD != null) {
+                    valuesDJ = valuesD[j];
+                    for (i=0; i<Length; i++) {
+                        valuesDJ[i] = (double)(Data.RADIANS_TO_DEGREES * Math.atan(valuesDJ[i]));
+                    }
+                }
+                if (valuesF != null) {
+                    valuesFJ = valuesF[j];
+                    for (i=0; i<Length; i++) {
+                        valuesFJ[i] = (float)(Data.RADIANS_TO_DEGREES * Math.atan(valuesFJ[i]));
+                    }
+                }
+                units_out[j] = CommonUnit.degree;
+            }
+            break;
+        case CEIL:
+            for (j=0; j<TupleDimension; j++) {
+                if (valuesD != null) {
+                    valuesDJ = valuesD[j];
+                    for (i=0; i<Length; i++) {
+                        valuesDJ[i] = (double)(Math.ceil(valuesDJ[i]));
+                    }
+                }
+                if (valuesF != null) {
+                    valuesFJ = valuesF[j];
+                    for (i=0; i<Length; i++) {
+                        valuesFJ[i] = (float)(Math.ceil(valuesFJ[i]));
+                    }
+                }
+
+                units_out[j] = units_in[j];
+            }
+            break;
+        case COS:
+            // do cos in degrees, unless unit is radians
+            for (j=0; j<TupleDimension; j++) {
+                if (CommonUnit.degree.equals(units_in[j])) {
+                    if (valuesD != null) {
+                        valuesDJ = valuesD[j];
+                        for (i=0; i<Length; i++) {
+                            valuesDJ[i] = (double)(Math.cos(Data.DEGREES_TO_RADIANS * valuesDJ[i]));
+                        }
+                    }
+                    if (valuesF != null) {
+                        valuesFJ = valuesF[j];
+                        for (i=0; i<Length; i++) {
+                            valuesFJ[i] = (float)(Math.cos(Data.DEGREES_TO_RADIANS * valuesFJ[i]));
+                        }
+                    }
+
+                }
+                else {
+                    if (valuesD != null) {
+                        valuesDJ = valuesD[j];
+                        for (i=0; i<Length; i++) {
+                            valuesDJ[i] = (double)(Math.cos(valuesDJ[i]));
+                        }
+                    }
+                    if (valuesF != null) {
+                        valuesFJ = valuesF[j];
+                        for (i=0; i<Length; i++) {
+                            valuesFJ[i] = (float)(Math.cos(valuesFJ[i]));
+                        }
+                    }
+
+                }
+                units_out[j] = CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+            }
+            break;
+        case COS_DEGREES:
+            for (j=0; j<TupleDimension; j++) {
+
+
+                if (CommonUnit.radian.equals(units_in[j])) {
+                    if (valuesD != null) {
+                        valuesDJ = valuesD[j];
+                        for (i=0; i<Length; i++) {
+                            valuesDJ[i] = (double)(Math.cos(valuesDJ[i]));
+                        }
+                    }
+                    if (valuesF != null) {
+                        valuesFJ = valuesF[j];
+                        for (i=0; i<Length; i++) {
+                            valuesFJ[i] = (float)(Math.cos(valuesFJ[i]));
+                        }
+                    }
+
+                }
+                else {
+                    if (valuesD != null) {
+                        valuesDJ = valuesD[j];
+                        for (i=0; i<Length; i++) {
+                            valuesDJ[i] = (double)(Math.cos(Data.DEGREES_TO_RADIANS * valuesDJ[i]));
+                        }
+                    }
+                    if (valuesF != null) {
+                        valuesFJ = valuesF[j];
+                        for (i=0; i<Length; i++) {
+                            valuesFJ[i] = (float)(Math.cos(Data.DEGREES_TO_RADIANS * valuesFJ[i]));
+                        }
+                    }
+
+                }
+                units_out[j] =
+                    CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+            }
+            break;
+        case EXP:
+            for (j=0; j<TupleDimension; j++) {
+                if (valuesD != null) {
+                    valuesDJ = valuesD[j];
+                    for (i=0; i<Length; i++) {
+                        valuesDJ[i] = (double)(Math.exp(valuesDJ[i]));
+                    }
+                }
+                if (valuesF != null) {
+                    valuesFJ = valuesF[j];
+                    for (i=0; i<Length; i++) {
+                        valuesFJ[i] = (float)(Math.exp(valuesFJ[i]));
+                    }
+                }
+
+                units_out[j] =
+                    CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+            }
+            break;
+        case FLOOR:
+            for (j=0; j<TupleDimension; j++) {
+                if (valuesD != null) {
+                    valuesDJ = valuesD[j];
+                    for (i=0; i<Length; i++) {
+                        valuesDJ[i] = (double)(Math.floor(valuesDJ[i]));
+                    }
+                }
+                if (valuesF != null) {
+                    valuesFJ = valuesF[j];
+                    for (i=0; i<Length; i++) {
+                        valuesFJ[i] = (float)(Math.floor(valuesFJ[i]));
+                    }
+                }
+
+                units_out[j] = units_in[j];
+            }
+            break;
+        case LOG:
+            for (j=0; j<TupleDimension; j++) {
+                if (valuesD != null) {
+                    valuesDJ = valuesD[j];
+                    for (i=0; i<Length; i++) {
+                        valuesDJ[i] = (double)(Math.log(valuesDJ[i]));
+                    }
+                }
+                if (valuesF != null) {
+                    valuesFJ = valuesF[j];
+                    for (i=0; i<Length; i++) {
+                        valuesFJ[i] = (float)(Math.log(valuesFJ[i]));
+                    }
+                }
+
+                units_out[j] =
+                    CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+            }
+            break;
+        case RINT:
+            for (j=0; j<TupleDimension; j++) {
+                if (valuesD != null) {
+                    valuesDJ = valuesD[j];
+                    for (i=0; i<Length; i++) {
+                        valuesDJ[i] = (double)(Math.rint(valuesDJ[i]));
+                    }
+                }
+                if (valuesF != null) {
+                    valuesFJ = valuesF[j];
+                    for (i=0; i<Length; i++) {
+                        valuesFJ[i] = (float)(Math.rint(valuesFJ[i]));
+                    }
+                }
+
+                units_out[j] = units_in[j];
+            }
+            break;
+        case ROUND:
+            for (j=0; j<TupleDimension; j++) {
+                if (valuesD != null) {
+                    valuesDJ = valuesD[j];
+                    for (i=0; i<Length; i++) {
+                        valuesDJ[i] = Math.round(valuesDJ[i]);
+                    }
+                }
+                if (valuesF != null) {
+                    valuesFJ = valuesF[j];
+                    for (i=0; i<Length; i++) {
+                        valuesFJ[i] = Math.round(valuesFJ[i]);
+                    }
+                }
+
+                units_out[j] = units_in[j];
+            }
+            break;
+        case SIN:
+            for (j=0; j<TupleDimension; j++) {
+                if (CommonUnit.degree.equals(units_in[j])) {
+                    if (valuesD != null) {
+                        valuesDJ = valuesD[j];
+                        for (i=0; i<Length; i++) {
+                            valuesDJ[i] = (double)(Math.sin(Data.DEGREES_TO_RADIANS * valuesDJ[i]));
+                        }
+                    }
+                    if (valuesF != null) {
+                        valuesFJ = valuesF[j];
+                        for (i=0; i<Length; i++) {
+                            valuesFJ[i] = (float)(Math.sin(Data.DEGREES_TO_RADIANS * valuesFJ[i]));
+                        }
+                    }
+
+                }
+                else {
+                    if (valuesD != null) {
+                        valuesDJ = valuesD[j];
+                        for (i=0; i<Length; i++) {
+                            valuesDJ[i] = (double)(Math.sin(valuesDJ[i]));
+                        }
+                    }
+                    if (valuesF != null) {
+                        valuesFJ = valuesF[j];
+                        for (i=0; i<Length; i++) {
+                            valuesFJ[i] = (float)(Math.sin(valuesFJ[i]));
+                        }
+                    }
+
+                }
+                units_out[j] =
+                    CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+            }
+            break;
+        case SIN_DEGREES:
+            for (j=0; j<TupleDimension; j++) {
+
+                if (CommonUnit.radian.equals(units_in[j])) {
+                    if (valuesD != null) {
+                        valuesDJ = valuesD[j];
+                        for (i=0; i<Length; i++) {
+                            valuesDJ[i] = (double)(Math.sin(valuesDJ[i]));
+                        }
+                    }
+                    if (valuesF != null) {
+                        valuesFJ = valuesF[j];
+                        for (i=0; i<Length; i++) {
+                            valuesFJ[i] = (float)(Math.sin(valuesFJ[i]));
+                        }
+                    }
+
+                }
+                else {
+                    if (valuesD != null) {
+                        valuesDJ = valuesD[j];
+                        for (i=0; i<Length; i++) {
+                            valuesDJ[i] = (double)(Math.sin(Data.DEGREES_TO_RADIANS * valuesDJ[i]));
+                        }
+                    }
+                    if (valuesF != null) {
+                        valuesFJ = valuesF[j];
+                        for (i=0; i<Length; i++) {
+                            valuesFJ[i] = (float)(Math.sin(Data.DEGREES_TO_RADIANS * valuesFJ[i]));
+                        }
+                    }
+
+                }
+                units_out[j] =
+                    CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+            }
+            break;
+        case SQRT:
+            for (j=0; j<TupleDimension; j++) {
+                if (valuesD != null) {
+                    valuesDJ = valuesD[j];
+                    for (i=0; i<Length; i++) {
+                        valuesDJ[i] = (double)(Math.sqrt(valuesDJ[i]));
+                    }
+                }
+                if (valuesF != null) {
+                    valuesFJ = valuesF[j];
+                    for (i=0; i<Length; i++) {
+                        valuesFJ[i] = (float)(Math.sqrt(valuesFJ[i]));
+                    }
+                }
+
+                // WLH 26 Nov 2001
+                // units_out[j] =
+                //   CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+                if (units_in[j] == null) {
+                    units_out[j] = null;
+                }
+                else {
+                    try {
+                        units_out[j] = units_in[j].sqrt();
+                    }
+                    catch (IllegalArgumentException e) {
+                        units_out[j] = null;
+                    }
+                    catch (UnitException e) {
+                        units_out[j] = null;
+                    }
+                }
+            }
+            break;
+        case TAN:
+            for (j=0; j<TupleDimension; j++) {
+                if (CommonUnit.degree.equals(units_in[j])) {
+                    if (valuesD != null) {
+                        valuesDJ = valuesD[j];
+                        for (i=0; i<Length; i++) {
+                            valuesDJ[i] = (double)(Math.tan(Data.DEGREES_TO_RADIANS * valuesDJ[i]));
+                        }
+                    }
+                    if (valuesF != null) {
+                        valuesFJ = valuesF[j];
+                        for (i=0; i<Length; i++) {
+                            valuesFJ[i] = (float)(Math.tan(Data.DEGREES_TO_RADIANS * valuesFJ[i]));
+                        }
+                    }
+
+                }
+                else {
+                    if (valuesD != null) {
+                        valuesDJ = valuesD[j];
+                        for (i=0; i<Length; i++) {
+                            valuesDJ[i] = (double)(Math.tan(valuesDJ[i]));
+                        }
+                    }
+                    if (valuesF != null) {
+                        valuesFJ = valuesF[j];
+                        for (i=0; i<Length; i++) {
+                            valuesFJ[i] = (float)(Math.tan(valuesFJ[i]));
+                        }
+                    }
+
+                }
+                units_out[j] =
+                    CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+            }
+            break;
+        case TAN_DEGREES:
+            for (j=0; j<TupleDimension; j++) {
+                if (CommonUnit.radian.equals(units_in[j])) {
+                    if (valuesD != null) {
+                        valuesDJ = valuesD[j];
+                        for (i=0; i<Length; i++) {
+                            valuesDJ[i] = (double)(Math.tan(valuesDJ[i]));
+                        }
+                    }
+                    if (valuesF != null) {
+                        valuesFJ = valuesF[j];
+                        for (i=0; i<Length; i++) {
+                            valuesFJ[i] = (float)(Math.tan(valuesFJ[i]));
+                        }
+                    }
+
+                }
+                else {
+                    if (valuesD != null) {
+                        valuesDJ = valuesD[j];
+                        for (i=0; i<Length; i++) {
+                            valuesDJ[i] = (double)(Math.tan(Data.DEGREES_TO_RADIANS * valuesDJ[i]));
+                        }
+                    }
+                    if (valuesF != null) {
+                        valuesFJ = valuesF[j];
+                        for (i=0; i<Length; i++) {
+                            valuesFJ[i] = (float)(Math.tan(Data.DEGREES_TO_RADIANS * valuesFJ[i]));
+                        }
+                    }
+
+                }
+                units_out[j] =
+                    CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+            }
+            break;
+        case NEGATE:
+            for (j=0; j<TupleDimension; j++) {
+                if (valuesD != null) {
+                    valuesDJ = valuesD[j];
+                    for (i=0; i<Length; i++) {
+                        valuesDJ[i] = -valuesDJ[i];
+                    }
+                }
+                if (valuesF != null) {
+                    valuesFJ = valuesF[j];
+                    for (i=0; i<Length; i++) {
+                        valuesFJ[i] = -valuesFJ[i];
+                    }
+                }
+
+                units_out[j] = units_in[j];
+            }
+            break;
+        case NOP:
+            for (j=0; j<TupleDimension; j++) {
+                units_out[j] = units_in[j];
+            }
+            break;
         }
-        break;
-      case COS_DEGREES:
+
+        // compute ErrorEstimates for result
+        ErrorEstimate[] errors_out = new ErrorEstimate[TupleDimension];
         for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          if (CommonUnit.radian.equals(units_in[j])) {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.cos(valuesJ[i]);
+            if (error_mode == NO_ERRORS || errors_in[j] == null) {
+                errors_out[j] = null;
             }
-          }
-          else {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.cos(Data.DEGREES_TO_RADIANS * valuesJ[i]);
+            else {
+                if (valuesD != null)
+                    errors_out[j] = new ErrorEstimate(valuesD[j], units_out[j], op,
+                                                      errors_in[j], error_mode);
+                if (valuesF != null)
+                    errors_out[j] = new ErrorEstimate(valuesF[j], units_out[j], op,
+                                                      errors_in[j], error_mode);
             }
-          }
-          units_out[j] =
-            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
         }
-        break;
-      case EXP:
-        for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Math.exp(valuesJ[i]);
-          }
-          units_out[j] =
-            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+
+        // create a FlatField for return
+        /*- TDR July 1998
+          FlatField new_field = cloneDouble(units_out, errors_out);
+        */
+
+        FlatField newField=null;
+        if (valuesD!=null) {
+            newField = cloneDouble (new_type, units_out, errors_out, valuesD);
         }
-        break;
-      case FLOOR:
-        for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Math.floor(valuesJ[i]);
-          }
-          units_out[j] = units_in[j];
+        if (valuesF!=null) {
+            newField = cloneFloat (new_type, units_out, errors_out, valuesF);
         }
-        break;
-      case LOG:
-        for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Math.log(valuesJ[i]);
-          }
-          units_out[j] =
-            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
-        }
-        break;
-      case RINT:
-        for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Math.rint(valuesJ[i]);
-          }
-          units_out[j] = units_in[j];
-        }
-        break;
-      case ROUND:
-        for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Math.round(valuesJ[i]);
-          }
-          units_out[j] = units_in[j];
-        }
-        break;
-      case SIN:
-        for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          if (CommonUnit.degree.equals(units_in[j])) {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.sin(Data.DEGREES_TO_RADIANS * valuesJ[i]);
-            }
-          }
-          else {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.sin(valuesJ[i]);
-            }
-          }
-          units_out[j] =
-            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
-        }
-        break;
-      case SIN_DEGREES:
-        for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          if (CommonUnit.radian.equals(units_in[j])) {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.sin(valuesJ[i]);
-            }
-          }
-          else {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.sin(Data.DEGREES_TO_RADIANS * valuesJ[i]);
-            }
-          }
-          units_out[j] =
-            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
-        }
-        break;
-      case SQRT:
-        for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = Math.sqrt(valuesJ[i]);
-          }
-          // WLH 26 Nov 2001
-          // units_out[j] =
-          //   CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
-          if (units_in[j] == null) {
-            units_out[j] = null;
-          }
-          else {
-            try {
-              units_out[j] = units_in[j].sqrt();
-            }
-            catch (IllegalArgumentException e) {
-              units_out[j] = null;
-            }
-            catch (UnitException e) {
-              units_out[j] = null;
-            }
-          }
-        }
-        break;
-      case TAN:
-        for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          if (CommonUnit.degree.equals(units_in[j])) {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.tan(Data.DEGREES_TO_RADIANS * valuesJ[i]);
-            }
-          }
-          else {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.tan(valuesJ[i]);
-            }
-          }
-          units_out[j] =
-            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
-        }
-        break;
-      case TAN_DEGREES:
-        for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          if (CommonUnit.radian.equals(units_in[j])) {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.tan(valuesJ[i]);
-            }
-          }
-          else {
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.tan(Data.DEGREES_TO_RADIANS * valuesJ[i]);
-            }
-          }
-          units_out[j] =
-            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
-        }
-        break;
-      case NEGATE:
-        for (j=0; j<TupleDimension; j++) {
-          valuesJ = values[j];
-          for (i=0; i<Length; i++) {
-            valuesJ[i] = -valuesJ[i];
-          }
-          units_out[j] = units_in[j];
-        }
-        break;
-      case NOP:
-        for (j=0; j<TupleDimension; j++) {
-          units_out[j] = units_in[j];
-        }
-        break;
+
+
+
+        // new_field.DoubleRange = values;
+        newField.clearMissing();
+        return newField;
     }
 
-    // compute ErrorEstimates for result
-    ErrorEstimate[] errors_out = new ErrorEstimate[TupleDimension];
-    for (j=0; j<TupleDimension; j++) {
-      if (error_mode == NO_ERRORS || errors_in[j] == null) {
-        errors_out[j] = null;
-      }
-      else {
-        errors_out[j] = new ErrorEstimate(values[j], units_out[j], op,
-                                          errors_in[j], error_mode);
-      }
-    }
 
-    // create a FlatField for return
-    /*- TDR July 1998
-    FlatField new_field = cloneDouble(units_out, errors_out);
-    */
-    FlatField new_field = cloneDouble(new_type, units_out, errors_out);
 
-    new_field.packValues(values, false);
-    // new_field.DoubleRange = values;
-    new_field.clearMissing();
-    return new_field;
-  }
 
-  /**
+
+
+
+    /**
    * Ensure that numeric values and units are in rational form, i.e. one in
    * which ratios of data values make sense (e.g. Temperature values in Kelvin
    * rather than Celsius).  Additionally, if an input unit is a non-unity
@@ -3011,31 +3597,61 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    *                            <code>values.length</code>.  On output,
    *                            <code>errors[i]</code> will have been replaced
    *                            if necessary.
-   * @throws UnitException	Unit conversion error.
+   * @throws UnitException      Unit conversion error.
    */
-  protected static void makeRational(double[][] values, Unit[] units,
-    ErrorEstimate[] errors) throws UnitException
-  {
-    for (int j=0; j<values.length; j++) {
-      Unit	inputUnit = units[j];
-      if (inputUnit != null && !(inputUnit instanceof PromiscuousUnit)) {
-	Unit	outputUnit = inputUnit.getAbsoluteUnit();
-	if (Unit.canConvert(outputUnit, CommonUnit.dimensionless))
-	  outputUnit = CommonUnit.dimensionless;
-	if (!outputUnit.equals(inputUnit)) {
-	  values[j] = outputUnit.toThis(values[j], inputUnit);
-	  if (errors[j] != null) {
-	    errors[j] =
-	      new ErrorEstimate(
-		outputUnit.toThis(errors[j].getMean(), inputUnit),
-		errors[j].getErrorValue(),
-		outputUnit);
-	  }
-	  units[j] = outputUnit;
-	}
-      }
+    protected static void makeRational(double[][] values, Unit[] units,
+                                       ErrorEstimate[] errors) throws UnitException
+    {
+
+        for (int j=0; j<values.length; j++) {
+            Unit   inputUnit = units[j];
+            if (inputUnit != null && !(inputUnit instanceof PromiscuousUnit)) {
+                Unit    outputUnit = inputUnit.getAbsoluteUnit();
+                if (Unit.canConvert (outputUnit, CommonUnit.dimensionless)) {
+                    outputUnit = CommonUnit.dimensionless;
+                }
+                if (!outputUnit.equals(inputUnit)) {
+                    values[j] = outputUnit.toThis (values[j], inputUnit);
+                    if (errors[j] != null) {
+                        errors[j] =
+                            new ErrorEstimate(
+                                              outputUnit.toThis(errors[j].getMean(), inputUnit),
+                                              errors[j].getErrorValue(),
+                                              outputUnit);
+                    }
+                    units[j] = outputUnit;
+                }
+            }
+        }
     }
-  }
+
+
+    protected static void makeRational(float[][] values, Unit[] units,
+                                       ErrorEstimate[] errors) throws UnitException
+    {
+
+        for (int j=0; j<values.length; j++) {
+            Unit        inputUnit = units[j];
+            if (inputUnit != null && !(inputUnit instanceof PromiscuousUnit)) {
+                Unit    outputUnit = inputUnit.getAbsoluteUnit();
+
+                if (Unit.canConvert (outputUnit, CommonUnit.dimensionless)) {
+                    outputUnit = CommonUnit.dimensionless;
+                }
+                if (!outputUnit.equals(inputUnit)) {
+                    values[j] = outputUnit.toThis (values[j], inputUnit);
+                    if (errors[j] != null) {
+                        errors[j] =
+                            new ErrorEstimate(
+                                              outputUnit.toThis(errors[j].getMean(), inputUnit),
+                                              errors[j].getErrorValue(),
+                                              outputUnit);
+                    }
+                    units[j] = outputUnit;
+                }
+            }
+        }
+    }
 
   /** extract field from this[].component;
       this is OK, when we get around to it */
@@ -3682,17 +4298,17 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    * Resamples the range to domain samples of a given set.  Resampling is either
    * by nearest neighbor or mulit-linear interpolation.  NOTE: This code is very
    * similar to FieldImpl.resample(Set,int,int).
-   * @param set			The set of points at which to resample this
-   *				field.
-   * @param sampling_mode	Resampling mode: Data.NEAREST_NEIGHBOR or
-   *				Data.WEIGHTED_AVERAGE
-   * @param error_mode		Error estimation mode: Data.DEPENDENT,
-   *				Data.INDEPENDENT, or Data.NO_ERRORS.
-   * @return			Field of resampled data.  RangeSet objects
-   *				in result are set to DoubleSet.  NOTE: May
-   *				return this (i.e., not a copy).
+   * @param set                 The set of points at which to resample this
+   *                            field.
+   * @param sampling_mode       Resampling mode: Data.NEAREST_NEIGHBOR or
+   *                            Data.WEIGHTED_AVERAGE
+   * @param error_mode          Error estimation mode: Data.DEPENDENT,
+   *                            Data.INDEPENDENT, or Data.NO_ERRORS.
+   * @return                    Field of resampled data.  RangeSet objects
+   *                            in result are set to DoubleSet.  NOTE: May
+   *                            return this (i.e., not a copy).
    */
-  public Field resample(Set set, int sampling_mode, int error_mode)
+  public Field resample (Set set, int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (DomainSet.equals(set)) {
       // nothing to do
@@ -3838,7 +4454,7 @@ for (i=0; i<ii; i++) {
           for (i=0; i<length; i++) {
             float v = Float.NaN;
             int len = indices[i] == null ? 0 : indices[i].length;
-  	    if (len > 0) {
+            if (len > 0) {
               v = valuesJ[indices[i][0]] * coefs[i][0];
               for (k=1; k<len; k++) {
                 v += valuesJ[indices[i][k]] * coefs[i][k];
@@ -4062,6 +4678,8 @@ if (pr) System.out.println("value = " + new_values[0][0]);
     // new_field.DoubleRange = new_values;
     new_field.setRangeErrors(range_errors_out);
     new_field.clearMissing();
+
+
     return new_field;
   }
 
@@ -4103,19 +4721,49 @@ if (pr) System.out.println("value = " + new_values[0][0]);
     ranges = anyRangeRef ? new double[2][TupleDimension] : null;
 
     // get range values
-    double[][] values = unpackValues();
+
+
+
+    double[][] valuesD = null;
+    float[][] valuesF = null;
+    if (shouldBeDouble ()) {
+        valuesD = unpackValues (false);
+    } else {
+        valuesF = unpackFloats (false);
+    }
+
+
     for (int i=0; i<TupleDimension; i++) {
-      double[] valuesI = values[i];
+        double[] valuesDI = null;
+        float [] valuesFI = null;
+        if (valuesD !=null)
+            valuesDI = valuesD[i];
+        if (valuesF !=null)
+            valuesFI = valuesF[i];
       int k = indices[i];
       if (k >= 0 || anyRangeRef) {
         double min = Double.MAX_VALUE;
         double max = -Double.MAX_VALUE;
-        for (int j=0; j<Length; j++) {
-          if (valuesI[j] == valuesI[j]) {
-            min = Math.min(min, valuesI[j]);
-            max = Math.max(max, valuesI[j]);
-          }
+
+        if (valuesDI!=null) {
+            for (int j=0; j<Length; j++) {
+                if (valuesDI[j] == valuesDI[j]) {
+                    min = Math.min(min, valuesDI[j]);
+                    max = Math.max(max, valuesDI[j]);
+                }
+            }
         }
+
+        if (valuesFI!=null) {
+            for (int j=0; j<Length; j++) {
+                if (valuesFI[j] == valuesFI[j]) {
+                    min = Math.min(min, valuesFI[j]);
+                    max = Math.max(max, valuesFI[j]);
+                }
+            }
+        }
+
+
         Unit dunit = ((RealType)
           ((FunctionType) Type).getFlatRange().getComponent(i)).getDefaultUnit();
         if (dunit != null && !dunit.equals(RangeUnits[i])) {
@@ -4188,6 +4836,8 @@ if (pr) System.out.println("value = " + new_values[0][0]);
     if (isMissing()) return field;
     FlatField new_error = (FlatField)
       ((FlatField) error).resample(DomainSet, NEAREST_NEIGHBOR, NO_ERRORS);
+
+    //TODO: check for float vs. double
     double[][] values = unpackValues();
     field.packValues(values, false);
 
@@ -4245,10 +4895,21 @@ if (pr) System.out.println("value = " + new_values[0][0]);
   }
 
   /*- TDR June 1998  */
-  private FlatField cloneDouble( MathType f_type, Unit[] units,
+  private FlatField cloneDouble ( MathType f_type, Unit[] units,
                                  ErrorEstimate[] errors )
           throws VisADException
   {
+      return cloneDouble ( f_type, units, errors, null);
+  }
+
+
+  /*- TDR June 1998  */
+  private FlatField cloneDouble (MathType f_type, 
+                                 Unit[] units,
+                                 ErrorEstimate[] errors, 
+                                 double[][]newValues )
+      throws VisADException
+    {
     MathType N_type = ((f_type == null) ? Type : f_type );
 
     // create (initially missing) FlatField for return
@@ -4260,15 +4921,67 @@ if (pr) System.out.println("value = " + new_values[0][0]);
       sets[i] = new DoubleSet(set_type);
     }
     FlatField field =
-      new FlatField((FunctionType) N_type, DomainSet, RangeCoordinateSystem,
-                    RangeCoordinateSystems, sets, units);
-    double[][] values = unpackValues();
-    field.packValues(values, false);
+      new FlatField((FunctionType) N_type, 
+                    DomainSet, 
+                    RangeCoordinateSystem,
+                    RangeCoordinateSystems, 
+                    sets, 
+                    units);
+
+    if (newValues == null)
+        newValues = unpackValues ();
+    field.packValues(newValues, false);
+
     // field.DoubleRange = values;
     field.setRangeErrors(errors);
     field.clearMissing();
     return field;
   }
+
+
+
+  private FlatField cloneFloat (MathType f_type, 
+                                Unit[] units,
+                                ErrorEstimate[] errors)
+          throws VisADException
+  {
+      //Pass in null values array
+      return cloneFloat (f_type, units, errors, null);
+  }
+
+  /*- TDR June 1998  */
+  private FlatField cloneFloat (MathType f_type, 
+                                Unit[] units,
+                                ErrorEstimate[] errors, 
+                                float[][]newValues )
+          throws VisADException
+  {
+      MathType N_type = ((f_type == null) ? Type : f_type );
+
+    // create (initially missing) FlatField for return
+    // use FloatSet rather than RangeSet for intermediate computation results
+    Set[] sets = new Set[TupleDimension];
+    for (int i=0; i<TupleDimension; i++) {
+      SetType set_type =
+        new SetType(((FunctionType) N_type).getFlatRange().getComponent(i));
+      sets[i] = new FloatSet(set_type);
+    }
+    FlatField field =
+      new FlatField((FunctionType) N_type, DomainSet, RangeCoordinateSystem,
+                    RangeCoordinateSystems, sets, units);
+
+    if (newValues == null) {
+        //If we don't have the values array then copy this one.
+        newValues = unpackFloats (true);
+    }
+    field.packValues(newValues, false);
+
+    // field.DoubleRange = values;
+    field.setRangeErrors(errors);
+    field.clearMissing();
+    return field;
+  }
+
 
   /** clone metadata but return missing values */
   private FlatField cloneMissing() throws VisADException {
@@ -4302,7 +5015,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
     synchronized(DoubleRange) {
       if (!MissingFlag) {
         try {
-	  clone.packValues(unpackValues(true), false);
+          clone.packValues(unpackValues(true), false);
         }
         catch (VisADException ex) {
           throw new RuntimeException(ex.toString());
@@ -4431,7 +5144,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
   /**
    * Gets the number of components in the "flat" range.
    *
-   * @return			The number of components in the "flat" range.
+   * @return                    The number of components in the "flat" range.
    */
   public int getRangeDimension() {
      return TupleDimension;
@@ -4904,6 +5617,8 @@ imaget = FlatField
 (0.0, 1970-01-01 00:00:03.000Z), (1.0, 1970-01-01 00:00:03.000Z), (2.0, 1970-01-01 00:00:03.000Z), (3.0, 1970-01-01 00:00:03.000Z)
 
 */
+
+
 
 }
 

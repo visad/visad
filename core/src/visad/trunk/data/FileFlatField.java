@@ -470,6 +470,17 @@ public class FileFlatField extends FlatField {
     return fld.unpackValues();
   }
 
+  /** unpack an array of floats from field sample values according to the
+      RangeSet-s; returns a copy */
+  public float[][] unpackFloats() throws VisADException {
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
+      throw new VisADException("Cannot get cached FlatField");
+    }
+
+    return fld.unpackFloats();
+  }
+
   public Field extract( int component )
          throws VisADException, RemoteException
   {
