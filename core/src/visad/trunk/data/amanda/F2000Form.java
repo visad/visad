@@ -603,7 +603,9 @@ System.out.println("IOException " + e.getMessage());
   }
 
   /** run 'java visad.data.amanda.F2000Form in_file out_file' to
-      convert in_file to out_file in VisAD serialized data format */
+      convert in_file to out_file in VisAD serialized data format;
+      try 'java visad.data.amanda.F2000Form 100events.r'
+ */
   public static void main(String args[])
          throws VisADException, RemoteException, IOException {
     if (args == null || args.length != 1) {
