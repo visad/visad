@@ -72,14 +72,18 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   static final int NORMAL_CONTRAST = COLOR_DETAIL / 2;
 
   /** Amount of detail for resolution sliders. */
-  static final int RESOLUTION_DETAIL = 384;
+  static final int RESOLUTION_DETAIL = 256;
 
   /** Default measurement group. */
   static MeasureGroup noneGroup;
 
-  /** Rainbow composite color table. */
+  /** RGB composite color table. */
   static final float[][] rainbow =
     ColorControl.initTableVis5D(new float[3][COLOR_DETAIL]);
+
+  /** HSV composite color table. */
+  static final float[][] hsv =
+    ColorControl.initTableHSV(new float[3][COLOR_DETAIL]);
 
 
   // -- DISPLAYS --
@@ -155,6 +159,9 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   /** Brightness and contrast of images. */
   private int brightness, contrast;
+
+  /** Color model (RGB or HSV). */
+  private int model;
 
   /** Whether to use RGB composite coloring. */
   private boolean composite;
@@ -337,17 +344,19 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   }
 
   /** Updates image color table to match the given values. */
-  public void setImageColors(int brightness, int contrast,
+  public void setImageColors(int brightness, int contrast, int model,
     boolean composite, RealType r, RealType g, RealType b)
   {
     // verify that image color information has changed
     if (this.brightness == brightness && this.contrast == contrast &&
-      this.composite == composite && red == r && green == g && blue == b)
+      this.model == model && this.composite == composite &&
+      red == r && green == g && blue == b)
     {
       return;
     }
     this.brightness = brightness;
     this.contrast = contrast;
+    this.model = model;
     this.composite = composite;
     red = r;
     green = g;
@@ -355,6 +364,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
     // get color widgets
     LabeledColorWidget[] widgets = sm.getColorWidgets();
+    if (widgets == null) return;
 
     // compute center and slope from brightness and contrast
     double mid = COLOR_DETAIL / 2.0;
@@ -371,10 +381,11 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
       rvals = new float[COLOR_DETAIL];
       gvals = new float[COLOR_DETAIL];
       bvals = new float[COLOR_DETAIL];
+      float[][] comp = model == 0 ? rainbow : hsv;
       for (int i=0; i<COLOR_DETAIL; i++) {
-        rvals[i] = (float) (slope * (rainbow[0][i] - 0.5) + center);
-        gvals[i] = (float) (slope * (rainbow[1][i] - 0.5) + center);
-        bvals[i] = (float) (slope * (rainbow[2][i] - 0.5) + center);
+        rvals[i] = (float) (slope * (comp[0][i] - 0.5) + center);
+        gvals[i] = (float) (slope * (comp[1][i] - 0.5) + center);
+        bvals[i] = (float) (slope * (comp[2][i] - 0.5) + center);
         if (rvals[i] > 1) rvals[i] = 1;
         if (rvals[i] < 0) rvals[i] = 0;
         if (gvals[i] > 1) gvals[i] = 1;
@@ -395,25 +406,45 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     }
 
     // initialize color tables
-    for (int i=0; i<widgets.length; i++) {
-      if (i >= sm.rtypes.length) break;
-      RealType rt = sm.rtypes[i];
+    boolean r_solid = r == BioColorWidget.SOLID;
+    boolean g_solid = g == BioColorWidget.SOLID;
+    boolean b_solid = b == BioColorWidget.SOLID;
+    for (int j=0; j<widgets.length; j++) {
+      if (j >= sm.rtypes.length) break;
+      RealType rt = sm.rtypes[j];
 
       // fill in color table elements
       float[][] t;
       if (composite) t = new float[][] {rvals, gvals, bvals};
       else {
-        t = new float[3][];
-        t[0] = rt.equals(r) ? rvals : new float[COLOR_DETAIL];
-        t[1] = rt.equals(g) ? gvals : new float[COLOR_DETAIL];
-        t[2] = rt.equals(b) ? bvals : new float[COLOR_DETAIL];
+        t = new float[][] {
+          rt.equals(r) ? rvals : new float[COLOR_DETAIL],
+          rt.equals(g) ? gvals : new float[COLOR_DETAIL],
+          rt.equals(b) ? bvals : new float[COLOR_DETAIL]
+        };
+        if (r_solid) Arrays.fill(t[0], 1.0f);
+        if (g_solid) Arrays.fill(t[1], 1.0f);
+        if (b_solid) Arrays.fill(t[2], 1.0f);
+
+        // convert color table to HSV color model if necessary
+        if (model == BioColorWidget.HSV) {
+          float[][] newt = new float[3][COLOR_DETAIL];
+          for (int i=0; i<COLOR_DETAIL; i++) {
+            int rgb = Color.HSBtoRGB(t[0][i], t[1][i], t[2][i]);
+            Color c = new Color(rgb);
+            newt[0][i] = c.getRed() / 255f;
+            newt[1][i] = c.getGreen() / 255f;
+            newt[2][i] = c.getBlue() / 255f;
+          }
+          t = newt;
+        }
       }
 
       // set widget color table
       boolean doAlpha = display3 != null;
-      float[][] oldt = widgets[i].getTable();
+      float[][] oldt = widgets[j].getTable();
       t = adjustColorTable(t, oldt.length > 3 ? oldt[3] : null, doAlpha);
-      widgets[i].setTable(t);
+      widgets[j].setTable(t);
     }
     state.saveState(true);
   }
@@ -561,6 +592,8 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     fout.println(prefix);
     fout.println(brightness);
     fout.println(contrast);
+    fout.println(model);
+    fout.println(composite);
     fout.println(red == null ? "null" : red.getName());
     fout.println(green == null ? "null" : green.getName());
     fout.println(blue == null ? "null" : blue.getName());
@@ -574,6 +607,8 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     prefix = fin.readLine().trim();
     int bright = Integer.parseInt(fin.readLine().trim());
     int cont = Integer.parseInt(fin.readLine().trim());
+    int model = Integer.parseInt(fin.readLine().trim());
+    boolean comp = fin.readLine().trim().equals("true");
     String r = fin.readLine().trim();
     String g = fin.readLine().trim();
     String b = fin.readLine().trim();
@@ -581,7 +616,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     RealType green = g.equals("null") ? null : RealType.getRealType(g);
     RealType blue = b.equals("null") ? null : RealType.getRealType(b);
     sm.restoreState(fin);
-    toolColor.setColors(bright, cont, red, green, blue);
+    toolColor.setColors(bright, cont, model, comp, red, green, blue);
   }
 
 
@@ -649,7 +684,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
    *
    * If alpha is required but the table does not have an alpha channel,
    * a new table is returned with an alpha channel matching the provided
-   * one (or all 1s if the provided alpha channel is null).
+   * one (or all 1s if the provided alpha channel is null or invalid).
    */
   public static float[][] adjustColorTable(float[][] table,
     float[] alpha, boolean doAlpha)
@@ -670,6 +705,21 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     }
   }
 
+  /** Tests whether two color tables are identical in content. */
+  public static boolean tablesEqual(float[][] t1, float[][] t2) {
+    if (t1 == null && t2 == null) return true;
+    if (t1 == null || t2 == null) return false;
+    if (t1.length != t2.length) return false;
+    if (t1.length == 0) return true;
+    int len = t1[0].length;
+    if (len != t2[0].length) return false;
+    for (int i=0; i<t1.length; i++) {
+      for (int j=0; j<len; j++) {
+        if (t1[i][j] != t2[i][j]) return false;
+      }
+    }
+    return true;
+  }
 
   // -- MAIN --
 

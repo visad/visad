@@ -671,14 +671,8 @@ public class PlaneSelector implements DisplayListener {
       m_ctrl = ctrl;
     }
     else if (id == DisplayEvent.MOUSE_DRAGGED) {
-      if (m_ctrl) {
-        // move plane
-        // CTR - TODO - move plane
-      }
-      else {
-        // rotate plane
-        // CTR - TODO - rotate plane
-      }
+      // CTR - TODO - actually, this is obsolete--purge it.
+      // instead, do "locking down" of individual endpoints.
     }
   }
 

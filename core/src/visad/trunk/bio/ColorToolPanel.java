@@ -41,13 +41,6 @@ import visad.util.*;
  */
 public class ColorToolPanel extends ToolPanel implements ItemListener {
 
-  // -- CONSTANTS --
-
-  private static final DisplayRealType[] COLOR_TYPES = {
-    Display.Red, Display.Green, Display.Blue, Display.RGB
-  };
-
-
   // -- GUI COMPONENTS --
 
   /** Label for brightness. */
@@ -68,13 +61,19 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
   /** Label for current contrast value. */
   private JLabel contrastValue;
 
-  /** Red color map widget. */
+  /** Option for RGB color model. */
+  private JRadioButton rgb;
+
+  /** Option for HSV color model. */
+  private JRadioButton hsv;
+
+  /** Red/hue color map widget. */
   private BioColorWidget red;
 
-  /** Green color map widget. */
+  /** Green/saturation color map widget. */
   private BioColorWidget green;
 
-  /** Blue color map widget. */
+  /** Blue/value color map widget. */
   private BioColorWidget blue;
 
   /** Toggle for composite coloring. */
@@ -162,20 +161,60 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     controls.add(Box.createVerticalStrut(5));
     cc++;
 
-    // red color map widget
+    // color model label
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    red = new BioColorWidget(bio, BioColorWidget.RED);
+    JLabel colorModel = new JLabel("Color model: ");
+    colorModel.setForeground(Color.black);
+    p.add(colorModel);
+
+    // RGB color model option
+    ButtonGroup group = new ButtonGroup();
+    rgb = new JRadioButton("RGB", true);
+    rgb.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        red.setModel(BioColorWidget.RGB);
+        green.setModel(BioColorWidget.RGB);
+        blue.setModel(BioColorWidget.RGB);
+        doColorTable();
+      }
+    });
+    group.add(rgb);
+    p.add(rgb);
+
+    // HSV color model option
+    hsv = new JRadioButton("HSV");
+    hsv.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        red.setModel(BioColorWidget.HSV);
+        green.setModel(BioColorWidget.HSV);
+        blue.setModel(BioColorWidget.HSV);
+        doColorTable();
+      }
+    });
+    group.add(hsv);
+    p.add(hsv);
+    controls.add(pad(p));
+    cc++;
+
+    // spacing
+    controls.add(Box.createVerticalStrut(5));
+    cc++;
+
+    // red/hue color map widget
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    red = new BioColorWidget(bio, 0);
     red.addItemListener(this);
     p.add(red);
 
-    // green color map widget
-    green = new BioColorWidget(bio, BioColorWidget.GREEN);
+    // green/saturation color map widget
+    green = new BioColorWidget(bio, 1);
     green.addItemListener(this);
     p.add(green);
 
-    // blue color map widget
-    blue = new BioColorWidget(bio, BioColorWidget.BLUE);
+    // blue/value color map widget
+    blue = new BioColorWidget(bio, 2);
     blue.addItemListener(this);
     p.add(blue);
     controls.add(pad(p));
@@ -193,17 +232,6 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
       }
     });
     controls.add(pad(composite));
-    cc++;
-
-    // colorize across slice level checkbox
-    colorize = new JCheckBox("Colorize image stack across slices", false);
-    colorize.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
-        // CTR - TODO - colorize across slices - need to rearrange ScalarMaps
-      }
-    });
-    colorize.setEnabled(false);
-    controls.add(pad(colorize));
     cc++;
 
     // divider between display functions and resolution functions
@@ -284,18 +312,27 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     if (ignore) return;
     int bright = brightness.getValue();
     int cont = contrast.getValue();
+    int model = rgb.isSelected() ? 0 : 1;
     boolean comp = composite.isSelected();
-    bio.setImageColors(bright, cont, comp, red.getSelectedItem(),
+    bio.setImageColors(bright, cont, model, comp, red.getSelectedItem(),
       green.getSelectedItem(), blue.getSelectedItem());
     brightnessValue.setText("" + bright);
     contrastValue.setText("" + cont);
   }
 
   /** Updates color components to match those specified. */
-  void setColors(int bright, int cont, RealType r, RealType g, RealType b) {
+  void setColors(int bright, int cont, int model, boolean comp,
+    RealType r, RealType g, RealType b)
+  {
     ignore = true;
     brightness.setValue(bright);
     contrast.setValue(cont);
+    rgb.setSelected(model == 0);
+    hsv.setSelected(model == 1);
+    red.setModel(model);
+    green.setModel(model);
+    blue.setModel(model);
+    composite.setSelected(comp);
     red.setSelectedItem(r);
     green.setSelectedItem(g);
     blue.setSelectedItem(b);

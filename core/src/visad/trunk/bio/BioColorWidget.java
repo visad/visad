@@ -39,11 +39,15 @@ public class BioColorWidget extends JPanel {
 
   // -- CONSTANTS --
 
-  public static final int RED = 0;
-  public static final int GREEN = 1;
-  public static final int BLUE = 2;
+  public static final int RGB = 0;
+  public static final int HSV = 1;
 
-  private static final String[] COLOR_NAMES = {"Red", "Green", "Blue"};
+  public static final RealType SOLID = RealType.getRealType("bio_solid");
+
+  private static final String[][] COLOR_NAMES = {
+    {"Red", "Green", "Blue"},
+    {"Hue", "Saturation", "Value"}
+  };
 
 
   // -- GUI COMPONENTS --
@@ -55,6 +59,7 @@ public class BioColorWidget extends JPanel {
   // -- OTHER FIELDS --
 
   private BioVisAD bio;
+  private int model;
   private int type;
 
 
@@ -63,10 +68,11 @@ public class BioColorWidget extends JPanel {
   /** Constructs a new animation widget. */
   public BioColorWidget(BioVisAD biovis, int colorType) {
     bio = biovis;
+    model = RGB;
     type = colorType;
 
     // create components
-    color = new JLabel(COLOR_NAMES[colorType] + ":");
+    color = new JLabel(COLOR_NAMES[model][type] + ":");
     color.setForeground(Color.black);
     scalars = new JComboBox();
     scalars.addItem("None");
@@ -88,13 +94,24 @@ public class BioColorWidget extends JPanel {
   /** Gets the currently selected RealType, or null of None. */
   public RealType getSelectedItem() {
     Object o = scalars.getSelectedItem();
-    return o instanceof RealType ? (RealType) o : null;
+    if (o instanceof RealType) return (RealType) o;
+    String s = (String) o;
+    return s.equals("1.0") ? SOLID : null;
   }
+
+  /** Gets the widget's color model (RGB or HSV). */
+  public int getModel() { return model; }
 
   /** Sets the currently selected RealType. */
   public void setSelectedItem(RealType rt) {
     if (rt == null) scalars.setSelectedIndex(0);
     else scalars.setSelectedItem(rt);
+  }
+
+  /** Sets the widget's color model (RGB or HSV). */
+  public void setModel(int model) {
+    this.model = model;
+    color.setText(COLOR_NAMES[model][type] + ":");
   }
 
   /** Adds an item listener to this widget. */
@@ -115,6 +132,7 @@ public class BioColorWidget extends JPanel {
   public void guessType() {
     scalars.removeAllItems();
     scalars.addItem("None");
+    scalars.addItem("1.0");
     RealType[] rt = bio.sm.rtypes;
     for (int i=0; i<rt.length; i++) scalars.addItem(rt[i]);
 
@@ -145,9 +163,9 @@ public class BioColorWidget extends JPanel {
     //   B -> rtypes[2]
 
     else {
-      if (type == RED) scalars.setSelectedItem(rt[0]);
-      else if (type == GREEN) scalars.setSelectedItem(rt[1]);
-      else if (type == BLUE && rt.length >= 3) scalars.setSelectedItem(rt[2]);
+      if (type == 0) scalars.setSelectedItem(rt[0]);
+      else if (type == 1) scalars.setSelectedItem(rt[1]);
+      else if (type == 2 && rt.length >= 3) scalars.setSelectedItem(rt[2]);
       else scalars.setSelectedIndex(0); // None
     }
   }

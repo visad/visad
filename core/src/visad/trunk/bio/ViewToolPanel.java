@@ -67,6 +67,9 @@ public class ViewToolPanel extends ToolPanel {
   /** Button for zooming out on 3-D display. */
   private JButton zoomOut3;
 
+  /** Toggle for 3-D bounding box. */
+  private JCheckBox box3;
+
   /** Toggle for preview displays. */
   private JCheckBox preview;
 
@@ -194,6 +197,18 @@ public class ViewToolPanel extends ToolPanel {
     zoomOut3.setEnabled(okay3d);
     p.add(zoomOut3);
     controls.add(pad(p));
+
+    // Bounding box checkbox
+    box3 = new JCheckBox("3-D bounding box", okay3d);
+    box3.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        try { bio.display3.getDisplayRenderer().setBoxOn(box3.isSelected()); }
+        catch (VisADException exc) { exc.printStackTrace(); }
+        catch (RemoteException exc) { exc.printStackTrace(); }
+      }
+    });
+    box3.setEnabled(okay3d);
+    controls.add(pad(box3));
 
     // Preview checkbox
     preview = new JCheckBox("Previous/next preview displays", false);

@@ -292,33 +292,27 @@ public class SliceManager
 
   /** Sets the display detail (low-resolution or full resolution). */
   public void setMode(boolean lowres) {
-    bio.toolView.setMode(lowres);
-    if (this.lowres == lowres) return;
-    this.lowres = lowres;
-    refresh(mode_slice != slice, mode_index != index);
-    mode_index = index;
-    mode_slice = slice;
+    setMode(lowres, true);
   }
 
   /** Sets the currently displayed timestep index. */
   public void setIndex(int index) {
-    if (this.index == index ||
-      bio.horiz.isBusy() && !lowres && !autoSwitch)
-    {
+    if (this.index == index || bio.horiz.isBusy() && !lowres && !autoSwitch) {
       return;
     }
     boolean doRefresh = true;
     if (autoSwitch && !lowres) {
-      setMode(true);
+      setMode(true, false);
       doRefresh = false;
     }
     this.index = index;
-    if (autoSwitch && index == mode_index && lowres) {
-      setMode(false);
+    if (autoSwitch && lowres && index == mode_index) {
+      setMode(false, false);
       doRefresh = false;
     }
     if (doRefresh) refresh(false, true);
     else {
+      if (volume) doVolumeMode();
       updateList();
       updateAnimationControls();
     }
@@ -352,7 +346,8 @@ public class SliceManager
     planeSelect = value;
     ps.toggle(value);
     planeRenderer2.toggle(value);
-    renderer2.toggle(!value);
+    renderer2.toggle(!value && !lowres);
+    if (hasThumbs) lowresRenderer2.toggle(!value && lowres);
     if (value && planeRef.getData() == null) updateSlice();
   }
 
@@ -458,13 +453,16 @@ public class SliceManager
         float[][] t2 = null;
         if (cc2 != c) {
           t2 = BioVisAD.adjustColorTable(table, null, false);
+          if (!BioVisAD.tablesEqual(t2, cc2.getTable())) cc2.setTable(t2);
           cc2.setTable(t2);
         }
         if (bio.display3 != null) {
           BaseColorControl cc3 = (BaseColorControl) rmaps3[index].getControl();
           if (cc3 != c) {
             float[][] t3 = cc3.getTable();
-            cc3.setTable(BioVisAD.adjustColorTable(table, t3[3], true));
+            t3 = BioVisAD.adjustColorTable(table, t3[3], true);
+            if (!BioVisAD.tablesEqual(t3, cc3.getTable())) cc3.setTable(t3);
+            cc3.setTable(t3);
           }
         }
         if (hasThumbs && bio.previous != null && bio.next != null) {
@@ -472,6 +470,7 @@ public class SliceManager
           for (int j=0; j<rmapsP.length; j++) {
             BaseColorControl ccP = (BaseColorControl)
               rmapsP[j][index].getControl();
+            if (!BioVisAD.tablesEqual(t2, ccP.getTable())) ccP.setTable(t2);
             ccP.setTable(t2);
           }
         }
@@ -1050,6 +1049,7 @@ public class SliceManager
 
     // switch index values
     if (new_index) {
+      sliceField = null;
       if (!lowres) {
         try { setFile(false); }
         catch (VisADException exc) { exc.printStackTrace(); }
@@ -1074,10 +1074,7 @@ public class SliceManager
     }
 
     // switch resolution in 2-D display
-    if (planeSelect) {
-      sliceField = null;
-      updateSlice();
-    }
+    if (planeSelect) updateSlice();
     else if (lowres) {
       if (hasThumbs) lowresRenderer2.toggle(true);
       renderer2.toggle(false);
@@ -1098,6 +1095,29 @@ public class SliceManager
         if (hasThumbs) lowresRenderer3.toggle(false);
       }
     }
+  }
+
+  /** Does the work of setting the resolution mode. */
+  private void setMode(boolean lowres, boolean doVolume) {
+    bio.toolView.setMode(lowres);
+    if (this.lowres == lowres) return;
+    this.lowres = lowres;
+    volumeField = sliceField = null;
+    refresh(mode_slice != slice, mode_index != index);
+    mode_index = index;
+    mode_slice = slice;
+    if (doVolume && volume) doVolumeMode();
+  }
+
+  /** Handles volume rendering details when the resolution mode changes. */
+  private void doVolumeMode() {
+    updateVolumeField();
+    try {
+      if (lowres) ref3.setData(field);
+      else lowresRef3.setData(lowresField);
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
   }
 
   /** Updates the animation controls. */
