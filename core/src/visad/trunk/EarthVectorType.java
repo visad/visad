@@ -34,8 +34,8 @@ winds not on a grid have components in earth coordinates */
 /**
    EarthVectorType is the VisAD data type for 2-D and 3-D wind
    or current vectors in Units convertable with meter / second
-   whose first component is parallel to longitude lines, positive
-   east, and whose second component is parallel to latitude lines,
+   whose first component is parallel to latitude lines, positive
+   east, and whose second component is parallel to longitude lines,
    positive north.  It assumes vertical coordinates transform
    nearly flat, so the optional third vertical wind component
    does not transform. <P>
