@@ -153,6 +153,7 @@ public class Aeri
     temp = (RealType) rtt.getComponent(0);
     dwpt = (RealType) rtt.getComponent(1);
     wvmr = (RealType) rtt.getComponent(2);
+    advAge = (RealType) rtt.getComponent(3);
   }
 
   void makeDisplay()
