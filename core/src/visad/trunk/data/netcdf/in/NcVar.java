@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcVar.java,v 1.3 1998-06-17 20:30:38 visad Exp $
+ * $Id: NcVar.java,v 1.4 1998-08-12 19:00:03 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -85,9 +85,9 @@ NcVar
      * Determine the units of the given, netCDF variable.
      *
      * @param var	The netCDF variable to have it's units returned.
-     * @return		The units of the variable or <code>null</code> if there
-     *			was no "unit" attribute or an error occurred during 
-     *			parsing.
+     * @return          The units of the variable or <code>null</code>
+     *                  if there was no "unit" attribute or the "unit"
+     *                  attribute couldn't be decoded.
      */
     protected static Unit
     getUnit(Variable var)
@@ -104,9 +104,7 @@ NcVar
 	    {
 		unit = Parser.parse(attr.getStringValue());
 	    }
-	    catch (ParseException e)
-	    {
-	    }
+	    catch (ParseException e) { }
 	}
 
 	return unit;
