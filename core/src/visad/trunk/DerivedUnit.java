@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DerivedUnit.java,v 1.6 1998-12-16 16:10:40 steve Exp $
+ * $Id: DerivedUnit.java,v 1.7 1998-12-16 20:29:38 steve Exp $
  */
 
 package visad;
@@ -217,7 +217,8 @@ public final class DerivedUnit
 
 		for (j = 0; j < that.factors.length; ++j)
 		{
-		    if (factors[i].baseUnit.equals(that.factors[j].baseUnit))
+		    if (that.factors[j].power != 0 &&
+			factors[i].baseUnit.equals(that.factors[j].baseUnit))
 		    {
 			vector[2].addElement(new Factor[] {factors[i],
 							   that.factors[j]});
@@ -236,8 +237,13 @@ public final class DerivedUnit
 		int	i;
 
 		for (i = 0; i < factors.length; ++i)
-		    if (factors[i].baseUnit.equals(that.factors[j].baseUnit))
+		{
+		    if (factors[i].power != 0 &&
+			factors[i].baseUnit.equals(that.factors[j].baseUnit))
+		    {
 			break;
+		    }
+		}
 		if (i == factors.length)
 		    vector[1].addElement(that.factors[j]);
 	    }
