@@ -147,9 +147,25 @@ public class ContourControl extends Control {
     }
   }
 
-  /** set parameters for iso-lines: draw lines for levels
-      between low and hi, starting at ba, spaced by
-      interval */
+  /**
+   * Sets the parameters for contour iso-lines.  This method invokes the
+   * {@link ControlListener.controlChanged(ControlEvent)} method of all
+   * registered listeners;
+   *
+   * @param interval		The contour interval.  Must be non-zero.  If
+   *				negative, then contour lines below the base will
+   *				be dashed.  Must not be NaN.
+   * @param low			The minimum contour value.  No contour line less
+   *				than this value will be drawn.  Must not be NaN.
+   * @param hi			The maximum contour value.  No contour like
+   *				greater than this value will be drawn.  Must not
+   *				be NaN.
+   * @param ba			The base contour value.  The contour lines will
+   *				be integer multiples of the interval away from
+   *				this value.  Must not be NaN.
+   * @throws VisADException	The interval is zero or too small.
+   * @throws RemoteException	Java RMI failure.
+   */
   public void setContourInterval(float interval, float low,
                                  float hi, float ba)
          throws VisADException, RemoteException {

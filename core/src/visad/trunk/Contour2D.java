@@ -101,6 +101,28 @@ public class Contour2D extends Applet implements MouseListener {
              auxLevels2, auxLevels3, swap );
   }
 
+  /**
+   * Returns an array of contour values and an indication on whether to use
+   * dashed lines below the base value.
+   *
+   * @param interval		The contouring interval.  Must be non-zero.
+   *				If the interval is negative, then contour lines
+   *				less than the base will be drawn as dashed
+   *				lines.  Must not be NaN.
+   * @param low			The minimum contour value.  The returned array
+   *				will not contain a value below this.  Must not
+   *				be NaN.
+   * @param high		The maximum contour value.  The returned array
+   *				will not contain a value above this.  Must not
+   *				be NaN.
+   * @param ba			The base contour value.  The returned values
+   *				will be integer multiples of the interval
+   *				away from this this value. Must not be NaN.
+   * dash			Whether or not contour lines less than the base
+   *				should be drawn as dashed lines.  This is a
+   *				computed and returned value.
+   * @throws VisADException	The contour interval is zero or too small.
+   */
   public static float[] intervalToLevels(float interval, float low,
                                          float high, float ba, boolean[] dash)
         throws VisADException {
