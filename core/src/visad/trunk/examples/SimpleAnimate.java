@@ -32,7 +32,18 @@ public class SimpleAnimate {
 
     // open a netCDF file containing an image sequence and adapt
     // it to a Field Data object
-    Field image_sequence = (Field) plain.open("images.nc");
+    Field image_sequence = null;
+    try {
+      image_sequence = (Field) plain.open("images.nc");
+    }
+    catch (IOException exc) {
+      String s = "To run this example, the images.nc file must be "
+        +"present in\nyour visad/examples directory."
+        +"You can obtain this file from:\n"
+        +"  ftp://iris.ssec.wisc.edu/pub/visad-2.0/images.nc.Z";
+      System.out.println(s);
+      System.exit(0);
+    }
 
     // create a DataReference for image sequence
     final DataReference image_ref = new DataReferenceImpl("image");
