@@ -6,21 +6,18 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: QuantityDB.java,v 1.1 1998-06-22 18:32:02 visad Exp $
+ * $Id: QuantityDB.java,v 1.2 1998-08-12 18:40:42 visad Exp $
  */
 
 package visad.data.netcdf;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.SortedMap;
 import java.util.TreeMap;
 import visad.DerivedUnit;
 import visad.QuantityDimension;
 import visad.Unit;
 import visad.UnitException;
 import visad.VisADException;
-import visad.data.netcdf.units.NoSuchUnitException;
 import visad.data.netcdf.units.ParseException;
 import visad.data.netcdf.units.Parser;
 
@@ -33,11 +30,6 @@ import visad.data.netcdf.units.Parser;
 public class QuantityDB
   implements	Serializable
 {
-  /**
-   * The quantity database to search after this one.
-   */
-  private /*final*/ QuantityDB	otherDB;
-
   /**
    * The (Name, Unit) -> Quantity map.
    */
@@ -70,19 +62,6 @@ public class QuantityDB
 
 
   /**
-   * Construct.
-   *
-   * @param otherDB		The quantity database for the get...()
-   *				methods to search after this one if no
-   *				entry found.  May be <code>null</code>.
-   */
-  public QuantityDB(QuantityDB otherDB)
-  {
-    this.otherDB = otherDB;
-  }
-
-
-  /**
    * Add a quantity to the database under a given name.
    *
    * @param name		The name of the quantity (e.g. "length").
@@ -108,16 +87,17 @@ public class QuantityDB
    * @param unitSpec		The preferred display unit for the 
    *				quantity (e.g. "feet").
    * @exception VisADException	Couldn't create necessary VisAD object.
+   * @exception ParseException	Couldn't decode unit specification.
    */
   public synchronized void add(String name, String unitSpec)
-    throws VisADException, ParseException, NoSuchUnitException
+    throws VisADException, ParseException
   {
     add(name, new Quantity(name, unitSpec));
   }
 
 
   /**
-   * Return all quantities in the local database whose name matches a 
+   * Return all quantities in the database whose name matches a 
    * given name.
    *
    * @param name	The name of the quantity.
@@ -125,7 +105,7 @@ public class QuantityDB
    *			<code>name</code> and whose unit is convertible with
    *			<code>unit</code>.
    */
-  public synchronized Quantity[] getLocal(String name)
+  public synchronized Quantity[] get(String name)
   {
     return (Quantity[])nameMap.subMap(
       new NameKey(name, minUnit), new NameKey(name, maxUnit))
@@ -134,121 +114,18 @@ public class QuantityDB
 
 
   /**
-   * Return all quantities in the global database whose name matches a 
-   * given name.
-   *
-   * @param name	The name of the quantity.
-   * @return		All quantities in the global database with name
-   *			<code>name</code>.
-   */
-  public synchronized Quantity[] get(String name)
-  {
-    Quantity[]	values;
-    Quantity[]	myValues = getLocal(name);
-
-    if (otherDB == null)
-    {
-      values = myValues;
-    }
-    else
-    {
-      Quantity[]	otherValues = otherDB.get(name);
-
-      values = new Quantity[myValues.length + otherValues.length];
-
-      System.arraycopy(myValues, 0, values, 0, myValues.length);
-      System.arraycopy(otherValues, 0, values, myValues.length, 
-	otherValues.length);
-    }
-
-    return values;
-  }
-
-
-  /**
-   * Return the unique quantity in the global database whose name matches a 
-   * given name.
-   *
-   * @param name	The name of the quantity.
-   * @return		The unique quantity in the global database with name
-   *			<code>name</code> or <code>null</code> if no such
-   *			quantity exists or is not unique.
-   */
-  public synchronized Quantity getIfUnique(String name)
-  {
-    Quantity[]	values = get(name);
-
-    return values.length == 1
-		? values[0]
-		: null;
-  }
-
-
-  /**
-   * Return all quantities in the local database whose default unit is
+   * Return all quantities in the database whose default unit is
    * convertible with a given unit.
    *
    * @param unit	The unit of the quantity.
-   * @return		The quantities in the local database whose unit is 
-   *			convertible with <code>unit</code>.
-   */
-  public synchronized Quantity[] getLocal(Unit unit)
-  {
-    return (Quantity[])unitMap.subMap
-      (new UnitKey(minName, unit), new UnitKey(maxName, unit))
-      .values().toArray(new Quantity[0]);
-  }
-
-
-  /**
-   * Return all quantities in the global database whose default unit is
-   * convertible with a given unit.
-   *
-   * @param unit	The unit of the quantity.
-   * @return		All quantities in the global database whose unit is 
+   * @return		The quantities in the database whose unit is 
    *			convertible with <code>unit</code>.
    */
   public synchronized Quantity[] get(Unit unit)
   {
-    Quantity[]  values;
-    Quantity[]	myValues = getLocal(unit);
-
-    if (otherDB == null)
-    {
-      values = myValues;
-    }
-    else
-    {
-      Quantity[]	otherValues = otherDB.get(unit);
-
-      values = new Quantity[myValues.length + otherValues.length];
-
-      System.arraycopy(myValues, 0, values, 0, myValues.length);
-      System.arraycopy(otherValues, 0, values, myValues.length, 
-	otherValues.length);
-    }
-
-    return values;
-  }
-
-
-  /**
-   * Return the unique quantity in the global database whose unit is
-   * convertible with a given unit.
-   *
-   * @param unit	The unit of the quantity.
-   * @return		The unique quantity in the global database whose
-   *			unit is convertible with <code>unit</code>, or
-   *			<code>null</code> if no such quantity exists or is
-   *			not unique.
-   */
-  public synchronized Quantity getIfUnique(Unit unit)
-  {
-    Quantity[]	values = get(unit);
-
-    return values.length == 1
-		? values[0]
-		: null;
+    return (Quantity[])unitMap.subMap
+      (new UnitKey(minName, unit), new UnitKey(maxName, unit))
+      .values().toArray(new Quantity[0]);
   }
 
 
@@ -264,12 +141,7 @@ public class QuantityDB
    */
   public synchronized Quantity get(String name, Unit unit)
   {
-    Quantity	quantity = (Quantity)nameMap.get(new NameKey(name, unit));
-
-    if (quantity == null && otherDB != null)
-      quantity = otherDB.get(name, unit);
-
-    return quantity;
+    return (Quantity)nameMap.get(new NameKey(name, unit));
   }
 
 
@@ -282,9 +154,10 @@ public class QuantityDB
    * @return		The quantity in the database with name <code>name</code>
    *			and whose unit is convertible with <code>unit</code>,
    *			or <code>null</code> if no such quantity exists.
+   * @exception ParseException	Couldn't decode unit specification.
    */
   public synchronized Quantity get(String name, String unitSpec)
-    throws ParseException, NoSuchUnitException
+    throws ParseException
   {
     return get(name, Parser.parse(unitSpec));
   }
