@@ -25,6 +25,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package edu.wisc.ssec.mcidas;
 import java.lang.Float;
+import java.lang.Double;
+import java.lang.Math;
+import visad.Gridded2DSet;
 
 /**
  * Navigation class for Radar (RECT) type nav. This code was modified
@@ -39,15 +42,16 @@ import java.lang.Float;
 public final class LALOnav extends AREAnav 
 {
 
-    int rows, cols, latres, lonres, latpoint, lonpoint;
+    int rows, cols, latres, lonres, latpoint, lonpoint, numPoints;
     int ulline, ulelem, aux_size, lat_aux_offset, lon_aux_offset;
     int lrlin, lrele;
     double minlat, maxlat, minlon, maxlon;
     float[] latData, lonData;
     float LAT_MISSING = 0.f;
     float LON_MISSING = 0.f;
-    int count = 0;
     boolean debug = false;
+    int count = 0;
+    Gridded2DSet gs = null;
 
     /**
      * Set up for the real math work.  Must pass in the int array
@@ -116,25 +120,44 @@ public final class LALOnav extends AREAnav
           System.out.println("len of auxBlock="+auxBlock.length);
         }
 
+        /*
         float[][] lats = new float[cols][rows];
         float[][] lons = new float[cols][rows];
+        */
 
-        int numPoints = cols * rows;
+        numPoints = cols * rows;
         latData = new float[numPoints];
         lonData = new float[numPoints];
+        float[][] lalo = new float[2][numPoints];
 
         for (int k=0; k<numPoints; k++) {
           latData[k] = Float.intBitsToFloat(auxBlock[k + begLat]);
           lonData[k] = Float.intBitsToFloat(auxBlock[k + begLon]);
+          lalo[0][k] = lonData[k];
+          lalo[1][k] = latData[k];
+
           if (latData[k] < -90.f || latData[k] > 90.f
                   || lonData[k] < -180.f || lonData[k] > 360.f) {
 
             latData[k] = LAT_MISSING;
             lonData[k] = LON_MISSING;
+            lalo[0][k] = Float.NaN;
+            lalo[1][k] = Float.NaN;
           }
         }
 
         count = 0;
+        // look up VisAD stuff...if available...
+  try {
+    
+    gs = new Gridded2DSet(visad.RealTupleType.SpatialEarth2DTuple,
+       lalo, cols, rows, null, null, null, false, false);
+
+  } catch (Exception ge) {
+    System.out.println("####  The VisAD library visad.jar is needed for this operation");
+    ge.printStackTrace();
+  }
+
         if (debug) System.out.println("done coverting");
 
     }
@@ -226,7 +249,7 @@ public final class LALOnav extends AREAnav
              frac_row = (float)(((int)rlin-ulline) % latres) / (float)latres;
              frac_col = (float)(((int)rele-ulelem) % lonres) / (float)lonres;
 
-           if (debug) {
+           if (debug && count < 20) {
              System.out.println(" tl_entry="+tl_entry);
              if (linele[indexLine][point] < .1) {
                System.out.println(" lats: tl, tr, bl, br="+tl_lats+" "+tr_lats+" "+bl_lats+" "+br_lats);
@@ -253,7 +276,7 @@ public final class LALOnav extends AREAnav
             
           }
 
-          if (debug) System.out.println(" line/ele = "+linele[indexLine][point]+"/"+linele[indexEle][point]+"  rlin/rele="+rlin+"/"+rele+" Lat/Lon="+latlon[indexLat][point]+"/"+latlon[indexLon][point]);
+          if (debug && count < 20) System.out.println(" line/ele = "+linele[indexLine][point]+"/"+linele[indexEle][point]+"  rlin/rele="+rlin+"/"+rele+" Lat/Lon="+latlon[indexLat][point]+"/"+latlon[indexLon][point]);
 
       } // end point for loop
 
@@ -272,24 +295,36 @@ public final class LALOnav extends AREAnav
      *                    is an element.  These are in 'file' coordinates
      *                    (not "image" coordinates);
      */
-    public double[][] toLinEle(double[][] latlon) 
-    {
-        double xlon;
-        double xlat;
+  private int gx = -1;
+  private int gy = -1;
+  boolean Pos;
 
-        int number = latlon[0].length;
-        double[][] linele = new double[2][number];
+  /** transform an array of values in R^DomainDimension to an array
+      of non-integer grid coordinates */
+  public double[][] toLinEle(double[][] latlon) {
+    try {
+      float[][] ll = new float[2][latlon[0].length];
+      for (int i=0; i<2; i++) {
+        for (int k=0; k<ll[0].length; k++) {
+          ll[0][k] = (float)latlon[indexLon][k];
+          ll[1][k] = (float)latlon[indexLat][k];
+        }
+      }
 
-        for (int point=0; point < number; point++) 
-        {
+      float[][] xy = gs.valueToGrid(ll);
 
-          // for now, all values are missing...
-          linele[indexLine][point] = Double.NaN;
-          linele[indexEle][point]  = Double.NaN;
+      double[][] linele = new double[2][xy[0].length];
+      for (int i=0; i<2; i++) {
+        for (int k=0; k<xy[0].length; k++) {
+          linele[indexLine][k] = ulline + latres*xy[1][k];
+          linele[indexEle][k] = ulelem + lonres*xy[0][k];
+        }
+      }
 
-        } // end point loop
-
-        // Return in 'File' coordinates
-        return imageCoordToAreaCoord(linele);
+      return imageCoordToAreaCoord(linele);
+    } catch (Exception e) {
+      return null;
     }
+  }
+
 }
