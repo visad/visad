@@ -930,6 +930,7 @@ public class MappingDialog extends JDialog
    * Recursive quick-sort routine for alphabetizing scalars.
    */
   private void sort(int lo0, int hi0) {
+    if (hi0 < lo0) return;
     int lo = lo0;
     int hi = hi0;
     String mid = Scalars[(lo0 + hi0) / 2].toLowerCase();
