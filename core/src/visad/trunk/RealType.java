@@ -452,120 +452,122 @@ public class RealType extends ScalarType {
         case Data.INV_SUBTRACT:
         case Data.MAX:
         case Data.MIN:
-          if ( thisUnit == null ) {
-            newUnit = null;
-	    newName = Name;
-          }
-          else if ( unit == null ) {
-            newUnit = null;
-	    newName = that.Name;
-          }
-          else if ( thisUnit.equals( CommonUnit.promiscuous ) ) {
-            newUnit = that.DefaultUnit.getAbsoluteUnit();
-	    newName = that.Name;
-          }
-          else if ( unit.equals( CommonUnit.promiscuous ) ||
-                    Unit.canConvert( thisUnit, unit ) ) {
-            newUnit = thisUnit.getAbsoluteUnit();
-	    newName = Name;
-          }
-          else {
-            throw new UnitException();
-          }
-          newType = getRealType(newName, newUnit, newAttrMask);
-	  if (newType == null) {
-	    /*
-	     * The new RealType can't be create -- possibly because the
-	     * attribute mask differs from an extant RealType.  Create a new
-	     * RealType from a new name.
-	     */
-	    newType = getRealType(newName(), newUnit, newAttrMask);
+	  if (CommonUnit.promiscuous.equals(unit)) {
+            newType = this;
 	  }
-          break;
+	  else if (CommonUnit.promiscuous.equals(thisUnit)) {
+            newType = type;
+	  }
+	  else if (thisUnit != null && unit != null) {
+            if (!thisUnit.isConvertible(unit)) {
+              throw new UnitException();
+            }
+            newUnit = thisUnit;
+            newName = Name;
+            newType = getRealType(newName, newUnit, newAttrMask);
+	    if (newType == null) {
+	      /*
+	       * The new RealType can't be created -- possibly because the
+	       * attribute mask differs from an extant RealType.  Create a new
+	       * RealType from a new name.
+	       */
+	      newType = getRealType(newName(newUnit), newUnit, newAttrMask);
+	    }
+ 	  }
+         break;
 
         case Data.MULTIPLY:
-        case Data.DIVIDE:
-        case Data.INV_DIVIDE:
-          if ( unit == null || thisUnit == null ) {
-            if ( thisUnit == null ) {
-              newType = this;
-              break;
-            }
-            if ( unit == null ) {
-              newUnit = null;
-            }
-          }
-          else {
-            switch (op) {
-              case Data.MULTIPLY:
-                newUnit = thisUnit.multiply( unit );
-                break; // WLH 26 Jan 99
-              case Data.DIVIDE:
-                newUnit = thisUnit.divide( unit );
-                break; // WLH 26 Jan 99
-              case Data.INV_DIVIDE:
-                newUnit = unit.divide( thisUnit );
-                break; // WLH 26 Jan 99
-            }
-          }
-	  newName = newName();
-
-          newType = getRealType(newName, newUnit, newAttrMask);
-          break;
-
-        case Data.POW:
-          if ( thisUnit == null ) {
+          if (CommonUnit.promiscuous.equals(unit) ||
+              CommonUnit.dimensionless.isConvertible(unit)) {
             newType = this;
           }
-          else
-          {
-            if ( Unit.canConvert(CommonUnit.dimensionless, thisUnit) ) {
-              newUnit = CommonUnit.dimensionless;
-            }
-            else
-            {
-              newUnit = null;
-            }
-	    newName = newName();
+          else if (CommonUnit.promiscuous.equals(thisUnit) ||
+              CommonUnit.dimensionless.isConvertible(thisUnit)) {
+            newType = type;
+          }
+          else {
+            newUnit = (unit != null && thisUnit != null)
+	        ? thisUnit.multiply(unit)
+	        : null;
+            newName = getUniqueGenericName(names, newUnit);
             newType = getRealType(newName, newUnit, newAttrMask);
           }
+	  break;
+
+        case Data.DIVIDE:
+          if (CommonUnit.promiscuous.equals(unit) ||
+              CommonUnit.dimensionless.isConvertible(unit)) {
+            newType = this;
+          }
+          else {
+            newUnit = (unit != null && thisUnit != null)
+	        ? thisUnit.divide(unit)
+	        : null;
+            newName = getUniqueGenericName(names, newUnit);
+            newType = getRealType(newName, newUnit, newAttrMask);
+          }
+	  break;
+
+        case Data.INV_DIVIDE:
+          if (CommonUnit.promiscuous.equals(thisUnit) ||
+              CommonUnit.dimensionless.isConvertible(thisUnit)) {
+            newType = type;
+          }
+          else {
+            newUnit = (unit != null && thisUnit != null)
+	        ? unit.divide(thisUnit)
+	        : null;
+            newName = getUniqueGenericName(names, newUnit);
+            newType = getRealType(newName, newUnit, newAttrMask);
+          }
+	  break;
+
+        case Data.POW:
+	  if (thisUnit != null && (
+	      thisUnit.equals(CommonUnit.promiscuous) ||
+	      thisUnit.isConvertible(CommonUnit.dimensionless))) {
+	    newUnit = thisUnit.getAbsoluteUnit();
+	  }
+	  else {
+	    newUnit = null;
+	  }
+	  newName = getUniqueGenericName(names, newUnit);
+	  newType = getRealType(newName, newUnit, newAttrMask);
           break;
 
         case Data.INV_POW:
-          if ( thisUnit == null ) {
-            newType = this;
-            break;
-          }
-          newUnit = null;
-	  newName = newName();
-          newType = getRealType(newName, newUnit, newAttrMask);
+	  if (unit != null && (
+	      unit.equals(CommonUnit.promiscuous) ||
+	      unit.isConvertible(CommonUnit.dimensionless))) {
+	    newUnit = unit.getAbsoluteUnit();
+	  }
+	  else {
+	    newUnit = null;
+	  }
+	  newName = getUniqueGenericName(names, newUnit);
+	  newType = getRealType(newName, newUnit, newAttrMask);
           break;
 
         case Data.ATAN2:
-          newUnit = CommonUnit.radian;
         case Data.INV_ATAN2:
           newUnit = CommonUnit.radian;
-	  newName = newName();
+	  newName = getUniqueGenericName(names, newUnit);
           newType = getRealType(newName, newUnit, newAttrMask);
           break;
 
         case Data.ATAN2_DEGREES:
-          newUnit = CommonUnit.degree;
         case Data.INV_ATAN2_DEGREES:
           newUnit = CommonUnit.degree;
-	  newName = newName();
+	  newName = getUniqueGenericName(names, newUnit);
           newType = getRealType(newName, newUnit, newAttrMask);
           break;
 
         case Data.REMAINDER:
           newType = this;
           break;
+
         case Data.INV_REMAINDER:
-          if ( thisUnit == null ) {
-            newType = this;
-            break;
-          }
-          newType = type;
+	  newType = type;
           break;
 
         default:
@@ -615,16 +617,9 @@ public class RealType extends ScalarType {
     return newType;
   }
 
-  private static String newName() {
-    return "RealType_" + Integer.toString(++count);
-  }
-
-  private static String newName( String oldName, int attrMask ) {
-    String      intervalSuffix = "Interval";
-    return
-       !isSet( attrMask, INTERVAL ) || oldName.endsWith( intervalSuffix )
-          ? oldName
-          : oldName + intervalSuffix;
+  private static String newName(Unit unit) {
+    return "RealType_" + Integer.toString(++count) + "_" + 
+      (unit == null ? "nullUnit" : unit.toString());
   }
 
   /*- TDR July 1998 */
@@ -670,8 +665,6 @@ public class RealType extends ScalarType {
         newAttrMask = 0;                // clear all attributes
     }
 
-    newName = newName(getName(), newAttrMask);
-
     /*
      * Determine the RealType that will result from the operation.  Use the
      * previously-determined attributes.
@@ -692,7 +685,7 @@ public class RealType extends ScalarType {
       case Data.ASIN:
       case Data.ATAN:
         newUnit = CommonUnit.radian;
-        newName = getUniqueGenericName( names, newUnit.toString() );
+        newName = getUniqueGenericName( names, newUnit );
         newType = getRealType(newName, newUnit, newAttrMask);
         break;
 
@@ -700,7 +693,7 @@ public class RealType extends ScalarType {
       case Data.ASIN_DEGREES:
       case Data.ATAN_DEGREES:
         newUnit = CommonUnit.degree;
-        newName = getUniqueGenericName( names, "deg" );
+        newName = getUniqueGenericName( names, newUnit );
         newType = getRealType(newName, newUnit, newAttrMask);
         break;
 
@@ -712,30 +705,16 @@ public class RealType extends ScalarType {
       case Data.TAN_DEGREES:
       case Data.EXP:
       case Data.LOG:
-        if ( DefaultUnit == null ) {
-          newType = this;
-          break;
-        }
-        else {
-          newUnit = Unit.canConvert(CommonUnit.dimensionless, DefaultUnit)
-            ? CommonUnit.dimensionless : null;
-          String ext = (newUnit == null) ? "nullUnit" : newUnit.toString();
-          newName = getUniqueGenericName( names, ext );
-          newType = getRealType(newName, newUnit, newAttrMask);
-        }
+	newUnit = Unit.canConvert(CommonUnit.dimensionless, DefaultUnit)
+	  ? CommonUnit.dimensionless : null;
+	newName = getUniqueGenericName( names, newUnit );
+	newType = getRealType(newName, newUnit, newAttrMask);
         break;
       case Data.SQRT:
-        if ( DefaultUnit == null ) {
-          newType = this;
-          break;
-        }
-        else {
-          newUnit = Unit.canConvert(CommonUnit.dimensionless, DefaultUnit)
-            ? CommonUnit.dimensionless : DefaultUnit.sqrt();
-          String ext = (newUnit == null) ? "nullUnit" : newUnit.toString();
-          newName = getUniqueGenericName( names, ext );
-          newType = getRealType(newName, newUnit, newAttrMask);
-        }
+	newUnit = Unit.canConvert(CommonUnit.dimensionless, DefaultUnit)
+	  ? CommonUnit.dimensionless : DefaultUnit.sqrt();
+	newName = getUniqueGenericName( names, newUnit );
+	newType = getRealType(newName, newUnit, newAttrMask);
         break;
 
       default:
@@ -770,6 +749,11 @@ public class RealType extends ScalarType {
       }
     }
     return name;
+  }
+
+  private static String getUniqueGenericName(Vector names, Unit unit) {
+    return getUniqueGenericName(
+      names, unit == null ? "nullUnit" : unit.toString());
   }
 
   public Data missingData() throws VisADException {
