@@ -309,7 +309,10 @@ public class FunctionType extends MathType {
     double[] values = new double[n];
     for (int i=0; i<n; i++) values[i] = 0.0;
     RealTuple tuple = new RealTuple(Domain, values);
-    return new FieldImpl(this, new SingletonSet(tuple));
+    Set domainSet = new SingletonSet(tuple);
+    return getFlat()
+        ? new FlatField(this, domainSet)
+        : new FieldImpl(this, domainSet);
   }
 
   public ShadowType buildShadowType(DataDisplayLink link, ShadowType parent)
