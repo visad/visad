@@ -82,7 +82,7 @@ public class Float64VectorAdapter
     public final void setField(PrimitiveVector vector, FieldImpl field)
 	throws VisADException, RemoteException
     {
-	if (field instanceof FlatField)
+	if (field.isFlatField())
 	    ((FlatField)field).setSamples(
 		new double[][] {getDoubles(vector)}, /*copy=*/false);
 	else

@@ -79,7 +79,7 @@ public abstract class FloatVectorAdapter
     public final void setField(PrimitiveVector vector, FieldImpl field)
 	throws VisADException, RemoteException
     {
-	if (field instanceof FlatField)
+	if (field.isFlatField())
 	    ((FlatField)field).setSamples(
 		new float[][] {getFloats(vector)}, /*copy=*/false);
 	else
