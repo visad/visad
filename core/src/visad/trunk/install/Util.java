@@ -262,12 +262,14 @@ public class Util
     while (enum.hasMoreElements()) {
       JarEntry entry = (JarEntry )enum.nextElement();
 
+      final String entryName = entry.getName();
+
       // skip manifest files
-      if (JarFile.MANIFEST_NAME.startsWith(entry.getName())) {
+      if (JarFile.MANIFEST_NAME.startsWith(entryName)) {
         continue;
       }
 
-      File newFile = new File(target, entry.getName());
+      File newFile = new File(target, entryName);
       newFile.mkdirs();
 
       if (!entry.isDirectory()) {
@@ -276,7 +278,7 @@ public class Util
         try {
           in = jar.getInputStream(entry);
         } catch (IOException ioe) {
-          System.err.println("Couldn't copy entry " + entry.getName());
+          System.err.println("Couldn't copy entry " + entryName);
           continue;
         }
 
