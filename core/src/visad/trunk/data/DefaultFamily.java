@@ -44,7 +44,7 @@ import visad.data.netcdf.Plain;
 import visad.data.qt.QTForm;
 import visad.data.text.TextForm;
 import visad.data.tiff.TiffForm;
-import visad.data.vis5d.Vis5DAdaptedForm;
+import visad.data.vis5d.Vis5DFamily;
 import visad.data.visad.VisADForm;
 
 /**
@@ -116,7 +116,7 @@ public class DefaultFamily
     } catch (Throwable t) {
     }
     try {
-      list[i] = new Vis5DAdaptedForm();
+      list[i] = new Vis5DFamily("vis5d");
       i++;
     } catch (Throwable t) {
     }

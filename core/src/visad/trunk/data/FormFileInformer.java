@@ -28,7 +28,23 @@ package visad.data;
 */
 public interface FormFileInformer
 {
+  /**
+   * Check to see if the file name might be right for this form.
+   * @param name   name of the file
+   * @return  true if the name is right for this type of form
+   */
   boolean isThisType(String name);
+
+  /**
+   * Check to see if the block contains the magic number for this form.
+   * @param block   block of bytes from file
+   * @return  true if the magic number is right
+   */
   boolean isThisType(byte[] block);
+
+  /**
+   * Get default suffixes for files/URLs handeled by this form.
+   * @return  array of suffixes 
+   */
   String[] getDefaultSuffixes();
 }
