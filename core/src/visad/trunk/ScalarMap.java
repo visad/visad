@@ -166,6 +166,11 @@ public class ScalarMap extends Object
     isManual = false;
   }
 
+  /** determine whether this ScalarMap is auto-scaled */
+  public boolean isAutoScale() {
+    return !isManual;
+  }
+
   // WLH 22 August 2001
   public boolean doInitialize() {
     if (DisplayScalar.equals(Display.IsoContour)) {
