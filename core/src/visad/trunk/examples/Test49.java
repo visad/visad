@@ -25,6 +25,10 @@ public class Test49
     int size = 64;
     FlatField histogram1 = FlatField.makeField(ir_histogram, size, false);
 
+    float[][] values = histogram1.getFloats();
+    for (int i=0; i<values[0].length; i+=13) values[0][i] = Float.NaN;
+    histogram1.setSamples(values);
+
     DisplayImpl display1;
     display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
     display1.addMap(new ScalarMap(count, Display.YAxis));
@@ -45,7 +49,7 @@ public class Test49
     return dpys;
   }
 
-  public String toString() { return ": 1-D line and ConstantMap colors"; }
+  public String toString() { return ": 1-D line w/missing and ConstantMap colors"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

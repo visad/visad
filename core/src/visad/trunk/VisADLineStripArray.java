@@ -79,8 +79,8 @@ public class VisADLineStripArray extends VisADGeometryArray {
     boolean any_missing = false;
     for (int i_svc=0; i_svc<stripVertexCounts.length; i_svc++) {
       int accum = 0;
+      j = color_length * last_i / 3;
       for (int i=last_i; i<last_i+stripVertexCounts[i_svc]*3; i+=3) {
-        j = color_length * last_i / 3;
  
         if (coordinates[i] == coordinates[i] &&
             coordinates[i+1] == coordinates[i+1] &&
@@ -133,6 +133,7 @@ public class VisADLineStripArray extends VisADGeometryArray {
       return this;
     }
     else {
+      array.vertexCount = k / 3;
       array.coordinates = new float[k];
       System.arraycopy(coords, 0, array.coordinates, 0, k);
       if (colors != null) {
