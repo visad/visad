@@ -33,7 +33,7 @@ import java.util.StringTokenizer;
    BaseColorControl is the VisAD class for controlling N-component Color
    DisplayRealType-s.<P>
 */
-public abstract class BaseColorControl
+public class BaseColorControl
   extends Control
 {
 
@@ -50,6 +50,9 @@ public abstract class BaseColorControl
    */
   public static final int ALPHA = 3;
 
+  /** The default number of colors */
+  public final static int DEFAULT_NUMBER_OF_COLORS = 256;
+
   // color map represented by either table or function
   private float[][] table;
   private int tableLength; // = table[0].length - 1
@@ -57,8 +60,6 @@ public abstract class BaseColorControl
   private transient RealTupleType functionDomainType;
   private transient CoordinateSystem functionCoordinateSystem;
   private transient Unit[] functionUnits;
-
-  private final static int DEFAULT_TABLE_LENGTH = 256;
 
   private transient Object lock = new Object();
 
@@ -83,7 +84,7 @@ public abstract class BaseColorControl
     }
     this.components = components;
 
-    tableLength = DEFAULT_TABLE_LENGTH;
+    tableLength = DEFAULT_NUMBER_OF_COLORS;
     table = initTableVis5D(new float[components][tableLength]);
   }
 
@@ -710,7 +711,14 @@ public abstract class BaseColorControl
                                    "][]");
         }
         synchronized (lock) {
-          table = bcc.table;
+          tableLength = bcc.table[0].length;
+          for (int i = 0; i < components; i++) {
+            if (table[i].length != bcc.table[i].length) {
+              table[i] = new float[bcc.table[i].length];
+            }
+            System.arraycopy(bcc.table[i], 0, table[i], 0,
+                             bcc.table[i].length);
+          }
           tableLength = table[0].length;
           function = null;
         }
