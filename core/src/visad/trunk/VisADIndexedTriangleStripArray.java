@@ -58,7 +58,7 @@ public class VisADIndexedTriangleStripArray extends VisADGeometryArray {
         nstrips += arrays[i].stripVertexCounts.length;
 
         // WLH 1 May 99
-        if (i > 0) start[i] = start[i-1] + arrays[i].vertexCount;
+        if (i > 0) start[i] = start[i-1] + arrays[i-1].vertexCount;
 
       }
     }
