@@ -1,0 +1,220 @@
+//
+// TextFrame.java
+//
+
+/*
+VisAD system for interactive analysis and visualization of numerical
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
+Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
+Tommy Jasmin.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Library General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Library General Public License for more details.
+
+You should have received a copy of the GNU Library General Public
+License along with this library; if not, write to the Free
+Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+MA 02111-1307, USA
+*/
+
+package visad.util;
+
+import java.awt.event.*;
+import java.io.*;
+import javax.swing.*;
+import javax.swing.event.*;
+import visad.VisADException;
+
+/** A GUI frame for editing text files. */
+public class TextFrame extends GUIFrame implements UndoableEditListener {
+
+  /** main frame component */
+  protected TextEditor pane;
+
+  /** frame title */
+  private String title = "VisAD Text Editor";
+
+  /** constructs a TextFrame */
+  public TextFrame() throws VisADException {
+    this((String) null);
+  }
+
+  /** constructs a TextFrame containing text from the given filename */
+  public TextFrame(String filename) throws VisADException {
+    this(new TextEditor(filename));
+  }
+
+  /** constructs a TextFrame from the given TextEditor object */
+  public TextFrame(TextEditor textEdit) throws VisADException {
+    pane = textEdit;
+    pane.addUndoableEditListener(this);
+
+    // setup menu bar
+    addMenuItem("File", "New", "fileNew", 'n');
+    addMenuItem("File", "Open...", "fileOpen", 'o');
+    addMenuItem("File", "Save", "fileSave", 's');
+    addMenuItem("File", "Save as...", "fileSaveAs", 'a');
+    addMenuItem("File", "Exit", "fileExit", 'x');
+    addMenuItem("Edit", "Undo", "editUndo", 'u');
+    addMenuItem("Edit", "Redo", "editRedo", 'r');
+    addMenuItem("Edit", "Cut", "editCut", 't');
+    addMenuItem("Edit", "Copy", "editCopy", 'c');
+    addMenuItem("Edit", "Paste", "editPaste", 'p');
+
+    // disable some menu items
+    getMenuItem("File", "Save").setEnabled(false);
+    getMenuItem("Edit", "Undo").setEnabled(false);
+    getMenuItem("Edit", "Redo").setEnabled(false);
+
+    // finish UI setup
+    setContentPane(pane);
+    setTitle(title);
+  }
+
+  /** sets the text editor's title bar text */
+  public void setTitle(String title) {
+    this.title = title;
+    refreshTitleBar();
+  }
+
+  /** gets the text editor's title bar text */
+  public String getTitle() {
+    return title;
+  }
+
+  /** refreshes the Edit Undo and Edit Redo menu items */
+  private void refreshUndoMenuItems() {
+    JMenuItem editUndo = getMenuItem("Edit", "Undo");
+    JMenuItem editRedo = getMenuItem("Edit", "Redo");
+    editUndo.setEnabled(pane.canUndo());
+    editUndo.setText(pane.getUndoName());
+    editRedo.setEnabled(pane.canRedo());
+    editRedo.setText(pane.getRedoName());
+  }
+
+  /** refreshes the File Save menu item */
+  private void refreshSaveMenuItem(boolean dirty) {
+    JMenuItem fileSave = getMenuItem("File", "Save");
+    fileSave.setEnabled(dirty);
+  }
+
+  /** refreshes the frame's title bar */
+  private void refreshTitleBar() {
+    String filename = pane.getFilename();
+    super.setTitle(title + (filename == null ? "" : " - " + filename));
+  }
+
+  /** refreshes Edit Undo, Edit Redo and File Save */
+  private void refreshMenuItems(boolean dirty) {
+    refreshUndoMenuItems();
+    refreshSaveMenuItem(dirty);
+  }
+
+  /** make sure it's okay to discard changes to the document */
+  protected boolean verifyLoseChanges() {
+    int ans = JOptionPane.showConfirmDialog(this,
+      "Discard changes to the file?", getTitle(),
+      JOptionPane.YES_NO_OPTION);
+    return (ans == JOptionPane.YES_OPTION);
+  }
+
+  /** display an error message in an error box */
+  protected void showError(String msg) {
+    JOptionPane.showMessageDialog(this, msg, getTitle(),
+      JOptionPane.ERROR_MESSAGE);
+  }
+
+  public void fileNew() {
+    if (!verifyLoseChanges()) return;
+    pane.newFile();
+    refreshMenuItems(false);
+    refreshTitleBar();
+  }
+
+  public void fileOpen() {
+    pane.openDialog();
+    refreshMenuItems(false);
+    refreshTitleBar();
+  }
+
+  public void fileSave() {
+    File file = pane.getFile();
+    if (file == null) fileSaveAs();
+    else {
+      try {
+        pane.saveFile(file);
+      }
+      catch (IOException exc) {
+        // display error box
+        showError("Could not save the file.");
+      }
+    }
+    refreshSaveMenuItem(false);
+  }
+
+  public void fileSaveAs() {
+    pane.saveDialog();
+    refreshSaveMenuItem(false);
+    refreshTitleBar();
+  }
+
+  public void fileExit() {
+    if (pane.hasChanged() && !verifyLoseChanges()) return;
+    System.exit(0);
+  }
+
+  public void editUndo() {
+    pane.undo();
+    refreshMenuItems(true);
+  }
+
+  public void editRedo() {
+    pane.redo();
+    refreshMenuItems(true);
+  }
+
+  public void editCut() {
+    pane.cut();
+    refreshMenuItems(true);
+  }
+
+  public void editCopy() {
+    pane.copy();
+    refreshUndoMenuItems();
+  }
+
+  public void editPaste() {
+    pane.paste();
+    refreshMenuItems(true);
+  }
+
+  /** update menu items when undoable action occurs */
+  public void undoableEditHappened(UndoableEditEvent e) {
+    // refresh menu items when an undoable event occurs
+    refreshMenuItems(true);
+  }
+
+  /** tests the TextFrame class */
+  public static void main(String[] args) throws VisADException {
+    final TextFrame frame = new TextFrame();
+
+    // close program if frame is closed
+    frame.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {
+        frame.fileExit();
+      }
+    });
+
+    // display frame onscreen
+    frame.setBounds(100, 100, 500, 500);
+    frame.setVisible(true);
+  }
+
+}
