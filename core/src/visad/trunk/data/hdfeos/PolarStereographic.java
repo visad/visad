@@ -58,7 +58,7 @@ public class PolarStereographic extends CoordinateSystem
                                                )
          throws VisADException
   {
-    this(RealTupleType.SpatialEarth2DTuple, 6367470, 6367470,
+    this(RealTupleType.SpatialEarth2DTuple, 6371230, 6371230,
          lon_center, lat_center, 0, 0); 
   }
 
@@ -96,7 +96,7 @@ public class PolarStereographic extends CoordinateSystem
                                                      )
          throws VisADException
   {
-    return makePolarStereographic(reference, 6367470, 6367470, La1, Lo1, Lov, 
+    return makePolarStereographic(reference, 6371230, 6371230, La1, Lo1, Lov, 
                                   60*Data.DEGREES_TO_RADIANS);
   }
                                          
@@ -283,8 +283,8 @@ public class PolarStereographic extends CoordinateSystem
 
   public static void main(String args[]) throws VisADException 
   {
-    double r_major = 6367470; 
-    double r_minor = 6367470;
+    double r_major = 6371230; 
+    double r_minor = 6371230;
     double center_lat = 40*Data.DEGREES_TO_RADIANS;
     double center_lon = -100*Data.DEGREES_TO_RADIANS;
     double false_easting = 0;
