@@ -236,17 +236,21 @@ public class AnimationWidget
   {
     int max = 1;
     int cur = 1;
+    Set set = null;
     if(control != null) {
       try {
-        Set set = control.getSet();
+        set = control.getSet();
         if (set != null) {
           max = set.getLength();
-        }
+        } 
       }
       catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
       cur = control.getCurrent() + 1;
-      if (cur < 1) cur = 1;
-      else if (cur > max) cur = max;
+      if (cur < 1) {
+        cur = 1;
+      } else if (cur > max) {
+        cur = max;
+      }
     }
 
     TimeSlider.setMaximum(max);
@@ -264,7 +268,8 @@ public class AnimationWidget
 
     TimeSlider.setMajorTickSpacing(maj);
     TimeSlider.setMinorTickSpacing(maj/4);
-    TimeSlider.setPaintLabels(true);
+    TimeSlider.setPaintLabels(set != null);
+    TimeSlider.repaint();
   }
 
   private void fixControlUI()
@@ -280,6 +285,7 @@ public class AnimationWidget
 
     // update slider ticks
     fixSliderUI();
+
   }
 
   /**
