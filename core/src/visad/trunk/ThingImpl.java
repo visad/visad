@@ -70,7 +70,10 @@ public class ThingImpl
   }
 
   /** vector of ThingReference that reference this Thing object */
-  private transient Vector references = new Vector();
+    //To save on memory let's not create this automatically, rather
+    //we create this on demand.
+    //          private transient Vector references = new Vector();
+    private transient Vector references;
 
   public ThingImpl() {
   }
