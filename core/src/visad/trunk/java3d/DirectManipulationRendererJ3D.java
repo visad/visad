@@ -149,6 +149,11 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     return branch;
   }
 
+  /** for use by sub-classes that override doTransform() */
+  public void setBranch(BranchGroup b) {
+    branch = b;
+  }
+
   void addSwitch(DisplayRendererJ3D displayRenderer, BranchGroup branch) {
     displayRenderer.addDirectManipulationSceneGraphComponent(branch, this);
   }

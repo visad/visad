@@ -168,6 +168,8 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       else {
         throw new BadMappingException("image values must be mapped to RGB or RGBA");
       }
+      constant_alpha =
+        default_values[display.getDisplayScalarIndex(Display.Alpha)];
 
       // build texture colors in color_ints array
       BaseColorControl control = (BaseColorControl) cmap.getControl();
@@ -198,8 +200,10 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       if (table != null) {
         // combine color table RGB components into ints
         int[] itable = new int[table[0].length];
-        int r, g, b, a = 255;
-        int c;
+        // int r, g, b, a = 255;
+        int r, g, b;
+        int c = (int) (255.0 * (1.0f - constant_alpha));
+        int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
         for (int j=0; j<table[0].length; j++) {
           c = (int) (255.0 * table[0][j]);
           r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
@@ -287,8 +291,10 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         // call lookupValues which will use function since table == null
         float[][] color_values = control.lookupValues(values[0]);
         // combine color RGB components into ints
-        int r, g, b, a = 255;
-        int c;
+        // int r, g, b, a = 255;
+        int r, g, b;
+        int c = (int) (255.0 * (1.0f - constant_alpha));
+        int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
         for (int i=0; i<domain_length; i++) {
           if (values[0][i] != values[0][i]) {
             color_ints[i] = 0; // missing
