@@ -7,7 +7,7 @@ VisAD system for interactive analysis and visualization of numerical
 data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -30,14 +30,21 @@ import java.util.EventListener;
 import java.rmi.*;
 
 /**
-   ScalarMapListener is the EventListener interface for
-   ScalarMapEvents.<P>
-*/
-public interface ScalarMapListener extends EventListener {
+ * <CODE>ScalarMapListener</CODE> is the EventListener interface for
+ * <CODE>ScalarMapEvents</CODE>.<P>
+ */
+public interface ScalarMapListener
+  extends EventListener
+{
 
-  /** send a ScalarMapEvent to this ScalarMapListener */
-  void mapChanged(ScalarMapEvent e)
-         throws VisADException, RemoteException;
- 
+  /**
+   * Receive a <CODE>ScalarMapEvent</CODE> when the map data changes.
+   *
+   * @param evt the event
+   *
+   * @exception VisADException If there is a problem notifying this listener.
+   * @exception RemoteException If there was an RMI-related problem.
+   */
+  void mapChanged(ScalarMapEvent evt)
+    throws VisADException, RemoteException;
 }
-
