@@ -32,6 +32,7 @@ import java.awt.geom.*;
 import java.util.Vector;
 
 import visad.browser.Convert;
+import visad.util.HersheyFont;
 
 /**
    PlotText calculates an array of points to be plotted to
@@ -360,6 +361,182 @@ public class PlotText extends Object {
   public static String shortString(double val)
   {
     return Convert.shortString(val);
+  }
+
+  /**
+   * Convert a string of characters (ASCII collating sequence) into a
+   *  series of lines for drawing.
+   *
+   * @param str  String to use
+   * @param  font  non-null HersheyFont font
+   * @param  start point (x,y,z)
+   * @param  base  (x,y,z) of baseline vector
+   * @param  up  (x,y,z) of "up" direction vector
+   * @param  center is <CODE>true</CODE> if string is to be centered
+   *
+   * @return VisADLineArray of all the lines needed to draw the
+   * characters in this string
+  */
+  public static VisADLineArray render_font(String str, HersheyFont font,
+           double[] start, double[] base, double[] up, boolean center) {
+    return render_font(str, font, start, base, up,
+                       (center ? TextControl.Justification.CENTER :
+                                 TextControl.Justification.LEFT));
+  }
+
+  /**
+   * Convert a string of characters (ASCII collating sequence) into a
+   *  series of lines for drawing.
+   *
+   * @param str  String to use
+   * @param  font  non-null HersheyFont name
+   * ?param  start
+   * ?param  base
+   * ?param  up
+   * @param  justification is one of:<ul>
+   * <li> TextControl.Justification.LEFT - Left justified text (ie: normal text)
+   * <li> TextControl.Justification.CENTER - Centered text
+   * <li> TextControl.Justification.RIGHT - Right justified text
+   * </ul>
+   *
+   * @return VisADLineArray of all the lines needed to draw the
+   * characters in this string
+   */
+  public static VisADLineArray render_font(String str, HersheyFont font,
+            double[] start, double[] base, double[] up,
+            TextControl.Justification justification) {
+
+    int maxChars = font.getCharactersInSet();
+
+    double width = 0;
+    double startx = 0.0;
+    double starty = 0.0;
+    double startz = 0.0;
+
+    double cx = start[0];
+    double cy = start[1];
+    double cz = start[2];
+    int len = str.length();
+
+    // allow 100 2-point 3-component strokes per character
+    float[] plot = new float[600 * len];
+
+    int plot_index = 0;
+    int [] charMinX = font.getCharacterMinX();
+    int [] charMaxX = font.getCharacterMaxX();
+    int charMinY = font.getCharacterSetMinY();
+    int charMaxY = font.getCharacterSetMaxY();
+    int charSetMinX = font.getCharacterSetMinX();
+    int charSetMaxX = font.getCharacterSetMaxX();
+    boolean isCursive = font.getIsCursive();
+
+    float oldpx = 0.f;
+    float oldpy = 0.f;
+    float oldpz = 0.f;
+    float x,y, px, py, pz;
+
+    // look at each character in the string
+    for (int i=0; i<len; i++) {
+
+      int k = str.charAt(i) - (int) ' ';
+      if (k < 0 || k > maxChars) continue; // invalid - just skip
+
+      char [][] charVector = font.getCharacterVector(k);
+      int verts = font.getNumberOfPoints(k);
+
+      /* calculate position for start of this char - about .08 seems right*/
+      if (i > 0) {
+
+        width = .08;
+        if (isCursive) width = -.08;
+        cx += width * base[0];
+        cy += width * base[1];
+        cz += width * base[2];
+      }
+
+      boolean skip = true;
+      float maxX = 0.f;
+
+      for (int j=1; j<verts; j++) {
+
+        if (charVector[0][j] == (int) ' ') {
+          skip = true;
+
+        } else {
+          // make the coordinates relative to 0
+          x = (float)(charVector[0][j] - charMinX[k]) /
+                            (float)(charMaxX[k] - charMinX[k]);
+
+          if (x > maxX) maxX = x;
+
+          // invert y coordinate
+          y = (float) (charMaxY - charVector[1][j] )/ (charMaxY - charMinY);
+
+          px = (float) (cx + x * base[0] + y * up[0]);
+          py = (float) (cy + x * base[1] + y * up[1]);
+          pz = (float) (cz + x * base[2] + y * up[2]);
+
+          // need pairs of points
+          if (!skip) {
+            plot[plot_index] = oldpx;
+            plot[plot_index + 1] = oldpy;
+            plot[plot_index + 2] = oldpz;
+            plot[plot_index + 3] = px;
+            plot[plot_index + 4] = py; 
+            plot[plot_index + 5] = pz;
+            plot_index += 6;
+          }
+          skip = false;
+          oldpx = px;
+          oldpy = py;
+          oldpz = pz;
+        }
+      }
+
+      if (verts == 1) maxX = .5f;
+
+      // move pointer to the end position of this character
+      width = width + maxX;
+      cx += width * base[0];
+      cy += width * base[1];
+      cz += width * base[2];
+
+    } // end for (i=0; i<len; i++)
+
+
+    if (plot_index <= 0) return null;
+
+    // now re-justify text along x-axis if need be.
+    float cxoff = Float.NaN;
+    float cyoff = Float.NaN;
+    float czoff = Float.NaN;
+    if (justification == TextControl.Justification.CENTER) {
+      cxoff = (float)((cx - start[0])/2.);
+      cyoff = (float)((cy - start[1])/2.);
+      czoff = (float)((cz - start[2])/2.);
+
+    } else if (justification == TextControl.Justification.RIGHT) {
+      cxoff = (float)cx;
+      cyoff = (float)cy;
+      czoff = (float)cz;
+    }
+
+    if (cxoff == cxoff) {
+      for (int i=0; i<plot_index; i=i+3) {
+        plot[i] = plot[i] - cxoff;
+        plot[i+1] = plot[i+1] - cyoff;
+        plot[i+2] = plot[i+2] - czoff;
+      }
+    }
+
+    // finally, make the VisADLineArray
+    VisADLineArray array = new VisADLineArray();
+    float[] coordinates = new float[plot_index];
+    System.arraycopy(plot, 0, coordinates, 0, plot_index);
+    array.coordinates = coordinates;
+    array.vertexCount = plot_index / 3;
+
+    return array;
   }
 
   /**

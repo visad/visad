@@ -91,6 +91,7 @@ visad\browser\*.java \
 visad\browser\*.html \
 visad\browser\README.browser \
 visad\util\*.java \
+visad\util\*.jhf \
 visad\matrix\*.java \
 visad\math\*.java \
 visad\formula\*.java \
@@ -247,6 +248,7 @@ visad\browser\*.java \
 visad\browser\*.html \
 visad\browser\README.browser \
 visad\util\*.java \
+visad\util\*.jhf \
 visad\matrix\*.java \
 visad\math\*.java \
 visad\formula\*.java \
@@ -389,6 +391,8 @@ save:
 		$(DEL) $(BACKUP)\visad\browser\*.java
 	if exist $(BACKUP)\visad\util\*.java \
 		$(DEL) $(BACKUP)\visad\util\*.java
+	if exist $(BACKUP)\visad\util\*.jhf \
+		$(DEL) $(BACKUP)\visad\util\*.jhf
 	if exist $(BACKUP)\visad\formula\*.java \
 		$(DEL) $(BACKUP)\visad\formula\*.java
 	if exist $(BACKUP)\visad\ss\*.java \
@@ -513,6 +517,7 @@ visad\java2d\*.class \
 visad\python\*.class \
 visad\browser\*.class \
 visad\util\*.class \
+visad\util\*.jhf \
 visad\matrix\*.class \
 visad\math\*.class \
 visad\formula\*.class \
@@ -611,6 +616,7 @@ clear:
 	if exist python\*.java $(DEL) python\*.java
 	if exist browser\*.java $(DEL) browser\*.java
 	if exist util\*.java $(DEL) util\*.java
+	if exist util\*.jhf $(DEL) util\*.jhf
 	if exist matrix\*.java $(DEL) matrix\*.java
 	if exist math\*.java $(DEL) math\*.java
 	if exist formula\*.java $(DEL) formula\*.java

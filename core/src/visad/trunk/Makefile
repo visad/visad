@@ -172,6 +172,7 @@ SAVE_FILES = \
 	visad/browser/*.html				\
 	visad/browser/README.browser			\
 	visad/util/*.java				\
+	visad/util/*.jhf				\
 	visad/matrix/*.java				\
 	visad/math/*.java				\
 	visad/formula/*.java				\
@@ -380,10 +381,12 @@ CLASS_FILES=	\
 	DATE \
 	`echo $(ALL_PACKAGES)' ' | sed -e 's/\./\//g' -e 's/ /\/\*\.class /g'` \
 	visad/ss/*.gif
+	visad/util/*.jhf
 
 JAVA_FILES=	\
 	`echo $(ALL_PACKAGES)' ' | sed -e 's/\./\//g' -e 's/ /\/\*\.java /g'` \
 	visad/ss/*.gif
+	visad/util/*.jhf
 
 tar:
 	date > DATE ; \
