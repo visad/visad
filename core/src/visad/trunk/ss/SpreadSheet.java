@@ -107,6 +107,12 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
    */
   protected static final boolean SHOW_CONNECT_MESSAGES = true;
 
+  /**
+   * Header for first line of spreadsheet files.
+   */
+  protected static final String SSFileHeader =
+    "# VisAD Visualization SpreadSheet spreadsheet file";
+
 
   /**
    * Whether Java3D is possible on this JVM.
@@ -365,25 +371,40 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
   public static void main(String[] argv) {
     String usage = "\n" +
       "Usage: java [-mx###m] visad.ss.SpreadSheet [cols rows]\n" +
-      "       [-server server_name] [-client rmi_address]\n" +
-      "       [-slave rmi_address] [-gui] [-no3d] [-debug]\n\n" +
-      "### = Maximum megabytes of memory to use\n" +
-      "cols = Number of columns in this SpreadSheet\n" +
-      "rows = Number of rows in this SpreadSheet\n" +
-      "-server server_name = Initialize this SpreadSheet as an RMI\n" +
-      "                      server named server_name\n" +
-      "-client rmi_address = Initialize this SpreadSheet as a clone\n" +
-      "                      of the SpreadSheet at rmi_address\n" +
-      "-slave rmi_address = Initialize this SpreadSheet as a slaved\n" +
-      "                     clone of the SpreadSheet at rmi_address\n" +
-      "-gui = Pop up an options window so that the user can\n" +
-      "       select SpreadSheet settings graphically\n" +
-      "-no3d = Disable Java3D\n" +
-      "-bugfix = Disable toolbar; for some systems, will prevent\n" +
-      "          lockups on spreadsheet start\n" +
-      "-debug = Print stack traces for all errors\n";
+      "       [-file filename] [-gui] [-no3d] [-debug] [-bugfix]\n" +
+      "       [-server name] [-client address] [-slave address]\n\n" +
+      "###\n" +
+      "     Maximum megabytes of memory to use.\n" +
+      "cols\n" +
+      "     Number of columns in this SpreadSheet.\n" +
+      "rows\n" +
+      "     Number of rows in this SpreadSheet.\n" +
+      "-file filename\n" +
+      "     Load the given filename at launch. If file is a\n" +
+      "     spreadsheet file, the layout is configured accordingly.\n" +
+      "     If file is data, it is loaded into cell A1.\n" +
+      "-gui\n" +
+      "     Pop up an options window so that the user can\n" +
+      "     select SpreadSheet settings graphically.\n" +
+      "-no3d\n" +
+      "     Disable Java3D.\n" +
+      "-debug\n" +
+      "     Print stack traces for all errors.\n" +
+      "-bugfix\n" +
+      "     Disable toolbar. For some systems, will prevent\n" +
+      "     lockups on spreadsheet start.\n" +
+      "-server name\n" +
+      "     Initialize this SpreadSheet as an RMI server\n" +
+      "     with the given name.\n" +
+      "-client address\n" +
+      "     Initialize this SpreadSheet as a clone of\n" +
+      "     the server at the given RMI address.\n" +
+      "-slave address\n" +
+      "     Initialize this SpreadSheet as a slaved clone\n" +
+      "     of the server at the given RMI address.";
     int cols = 2;
     int rows = 2;
+    String dfile = null;
     String servname = null;
     String clonename = null;
     boolean guiOptions = false;
@@ -394,7 +415,8 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
       // parse command line flags
       while (ix < len) {
         if (argv[ix].charAt(0) == '-') {
-          if (argv[ix].equals("-server")) {
+          if (argv[ix].equals("-file")) dfile = argv[++ix];
+          else if (argv[ix].equals("-server")) {
             if (clonename != null) {
               System.out.println("A spreadsheet cannot be both a server " +
                 "and a clone!");
@@ -475,9 +497,44 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
         ix++;
       }
     }
-    SpreadSheet ss = new SpreadSheet(WIDTH_PERCENT, HEIGHT_PERCENT,
-      cols, rows, servname, clonename, "VisAD SpreadSheet", null,
-      guiOptions);
+    final SpreadSheet ss = new SpreadSheet(WIDTH_PERCENT, HEIGHT_PERCENT,
+      cols, rows, servname, clonename, "VisAD SpreadSheet", null, guiOptions);
+    if (dfile != null) {
+      File f = new File(dfile);
+      String line = null;
+      try {
+        BufferedReader fin = new BufferedReader(new FileReader(f));
+        line = fin.readLine();
+        fin.close();
+      }
+      catch (IOException exc) {
+        System.out.println("Could not read file " + dfile);
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+      }
+      if (line != null) {
+        final boolean ssfile = line.equals(SSFileHeader);
+        final String filename = dfile;
+        BasicSSCell.invoke(false, new Runnable() {
+          public void run() {
+            try {
+              if (ssfile) {
+                // file is a spreadsheet file
+                ss.openFile(filename);
+              }
+              else {
+                // file is a data file
+                ss.DisplayCells[0][0].addDataSource(filename);
+              }
+            }
+            catch (Exception exc) {
+              System.out.println("Could not load file " + filename +
+                "into the SpreadSheet");
+              if (BasicSSCell.DEBUG) exc.printStackTrace();
+            }
+          }
+        });
+      }
+    }
   }
 
 
@@ -1419,7 +1476,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
   }
 
   /**
-   * Opens an existing spreadsheet file.
+   * Opens an existing spreadsheet file chosen by the user.
    */
   public void openFile() {
     SSFileDialog.setDialogType(JFileChooser.OPEN_DIALOG);
@@ -1430,12 +1487,19 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
 
     // make sure file exists
     File f = SSFileDialog.getSelectedFile();
-    String file = f.getName();
     if (!f.exists()) {
-      displayErrorMessage("The file " + file + " does not exist", null,
+      displayErrorMessage("The file " + f.getName() + " does not exist", null,
         "VisAD SpreadSheet error");
       return;
     }
+    openFile(f.getPath());
+  }
+
+  /**
+   * Opens the specified spreadsheet file.
+   */
+  public void openFile(String file) {
+    File f = new File(file);
 
     // disable auto-switch, auto-detect and auto-show
     boolean origSwitch = AutoSwitch;
@@ -1785,7 +1849,8 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
     else {
       // construct file header
       StringBuffer sb = new StringBuffer(1024 * NumVisX * NumVisY + 1024);
-      sb.append("# VisAD Visualization SpreadSheet spreadsheet file\n");
+      sb.append(SSFileHeader);
+      sb.append("\n");
       Calendar cal = Calendar.getInstance();
       int year = cal.get(Calendar.YEAR);
       int month = cal.get(Calendar.MONTH);

@@ -1,5 +1,5 @@
                     VisAD SpreadSheet User Interface README file
-                                  1 November 2000
+                                  24 January 2001
  
                                  Table of Contents
 
@@ -91,6 +91,13 @@ The SpreadSheet user interface requires a lot of memory (at least 32 MB),
 especially if you want to work with large data sets.  If you receive an
 OutOfMemoryError, you should increase the amount of memory allocated to
 the program (increase the # in "-mx#m").
+
+To load a spreadsheet file or data file into the SpreadSheet automatically
+upon launch, use:
+
+    java -mx64m visad.ss.SpreadSheet -file (filename)
+
+where (filename) is the name of the spreadsheet file or data file to be loaded.
 
 Other useful command line parameters include:
   -debug   Runs the SpreadSheet in "debug mode" (all errors will print stack
