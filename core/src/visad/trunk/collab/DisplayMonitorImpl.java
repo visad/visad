@@ -20,6 +20,91 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
+/* Dave's design comments, inserted as a comment by Bill
+
+VisAD collaboration
+
+Collaboration is implemented within two classes, DisplayMonitor
+and DisplaySync.  DisplayMonitor listens to the local Display
+and notifies remote listeners of significant changes.
+DisplaySync receives those notifications and makes them
+happen on the local Display.
+
+The notification takes the form of the various MonitorEvents:
+ * a ControlMonitorEvent is sent when a Control is initialized
+   or changed.
+ * a MapMonitorEvents is sent when a ControlMap or ScalarMap
+   is added or changed, or when all the ControlMaps and
+   ScalarMaps are cleared from a Display.
+ * a ReferenceMonitorEvent is sent when a Data reference is
+   added to or removed from a Display.
+
+All Displays can be collaborative servers, since a
+DisplayMonitor and DisplaySync object are created for every
+Display.
+
+When a collaborative Display is constructed, the following
+steps take place:
+ * The client Display constructor uses its RemoteDisplay
+   parameter to fetch the remote Display's ScalarMaps,
+   ConstantMaps and remote Data references.
+ * The remote Display is connected to the client Display
+   via the client Display's DisplayMonitor and DisplaySync
+   objects.
+ * The client's Controls are synchronized with the
+   remote Display's Controls
+ * From this point, MonitorEvents are used to keep the
+   two Displays synchronized.
+
+MonitorEvent transmission happens in several steps.
+ * DisplayMonitor is notified that the Display has changed.
+ * It builds a MonitorEvent which is forwarded to each of
+   its MonitorSyncer listeners, which are each connected to
+   a remote DisplaySync object.
+ * If the MonitorSyncer is already trying to deliver one
+   or more events, the forwarded event will be added to
+   a queue which will be delivered as soon as the current
+   events have been delivered.
+ * To deliver on or more events, the MonitorSyncer sends a
+   "key" for each event to the remote DisplaySync.
+ * The remote DisplaySync gathers all the event keys,
+   then uses them to request the actual events from the
+   MonitorSyncer.
+ * The MonitorSyncer removes each requested event from its
+   list, then sends the event back to the remote DisplaySync.
+ * The remote DisplaySync receives the event and uses it to
+   synchronize its Display.
+
+This is somewhat complicated but necessary, mainly due to
+networking and execution delays and ordering problems.
+
+The original implementation simply sent each event.  This
+caused problems due to events being delivered out of order.
+For instance, a Control might move from state A to state B
+to state C, but the event for state C would occasionally
+be delivered before state B.
+
+This was fixed by only allowing one set of events to be
+delivered at a time, and forcing events to be delivered
+in the order in which they were received.  This ran into
+problems because if, as above, a Control moved from state A
+through state B to state C, the event for state B might be
+delivered after the local Control moved to state C, but then
+the remote Display might forward the event for state B back
+to the local Display, causing a loop which might eventually
+settle on state B rather than state C.
+
+The current solution causes events to accumulate in a
+single cache, which uses keys which are unique to a given
+Control, ScalarMap, etc. and only the keys are forwarded.
+Events can be superceded up to the point where the remote
+DisplaySync actually requests the event using the key.
+The event for state C would overwrite the event for state B
+in the MonitorSyncer's cache as long as the MonitorSyncer
+received that event before it received the DisplaySync
+request for the event.
+*/
+
 package visad.collab;
 
 import java.rmi.RemoteException;
