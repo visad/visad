@@ -67,11 +67,11 @@ public class VisADForm extends Form implements FormFileInformer {
   }
 
   public boolean isThisType(String name) {
-    return name.endsWith(".vad");
+    return name.endsWith(".vad") || name.endsWith(".VAD");
   }
 
   public boolean isThisType(byte[] block) {
-    return false;
+    return BinaryReader.isMagic(block);
   }
 
   public String[] getDefaultSuffixes() {
@@ -79,61 +79,59 @@ public class VisADForm extends Form implements FormFileInformer {
     return suff;
   }
 
-  public synchronized void save(String id, Data data, boolean replace)
-         throws BadFormException, IOException, RemoteException, VisADException {
-    FileOutputStream fileStream = null;
-    if (replace) {
-      fileStream = new FileOutputStream(id);
-    }
-    else {
-      File file = new File(id);
-      if (file.exists()) {
-        throw new BadFormException("VisADForm.save(" + id + "): exists");
-      }
-      fileStream = new FileOutputStream(file);
-    }
-    BufferedOutputStream bufferedStream = new BufferedOutputStream(fileStream);
-    ObjectOutputStream objectStream = new ObjectOutputStream(bufferedStream);
-    DataImpl local_data = data.local();
-    objectStream.writeObject(local_data);
-    objectStream.flush();
-    fileStream.close();
-  }
-
   public synchronized void add(String id, Data data, boolean replace)
          throws BadFormException {
     throw new BadFormException("VisADForm.add");
   }
 
+  public synchronized FormNode getForms(Data data) {
+    return null;
+  }
+
   public synchronized DataImpl open(String id)
-         throws BadFormException, IOException, VisADException {
-    FileInputStream fileStream = new FileInputStream(id);
-    BufferedInputStream bufferedStream = new BufferedInputStream(fileStream);
-    ObjectInputStream objectStream = new ObjectInputStream(bufferedStream);
-    DataImpl data = null;
+    throws BadFormException
+  {
+    String errMsg = null;
+
+    BinaryReader rdr;
     try {
-      data = (DataImpl) objectStream.readObject();
+      return readData(new BinaryReader(id));
+    } catch (Exception ioe) {
+ioe.printStackTrace();
+      errMsg = ioe.getMessage();
     }
-    catch (OptionalDataException e) {
-      throw new BadFormException(e.toString());
+
+    try {
+      FileInputStream fileStream = new FileInputStream(id);
+      BufferedInputStream bufferedStream =
+        new BufferedInputStream(fileStream);
+      ObjectInputStream objectStream = new ObjectInputStream(bufferedStream);
+      return (DataImpl) objectStream.readObject();
     }
-    catch (ClassNotFoundException e) {
-      throw new BadFormException(e.toString());
+    catch (Exception e) {
+e.printStackTrace();
+      throw new BadFormException(errMsg);
     }
-    catch (IOException e) {
-      throw new BadFormException(e.toString());
-    }
-    return data;
   }
 
   public synchronized DataImpl open(URL url)
-         throws BadFormException, VisADException, IOException {
-    InputStream inputStream = url.openStream();
-    BufferedInputStream bufferedStream = new BufferedInputStream(inputStream);
-    ObjectInputStream objectStream = new ObjectInputStream(bufferedStream);
-    DataImpl data = null;
+    throws BadFormException
+  {
+    String errMsg = null;
+
+    BinaryReader rdr;
     try {
-      data = (DataImpl) objectStream.readObject();
+      return readData(new BinaryReader(url.openStream()));
+    } catch (Exception ioe) {
+      errMsg = ioe.getMessage();
+    }
+
+    try {
+      InputStream inputStream = url.openStream();
+      BufferedInputStream bufferedStream =
+        new BufferedInputStream(inputStream);
+      ObjectInputStream objectStream = new ObjectInputStream(bufferedStream);
+      return (DataImpl) objectStream.readObject();
     }
     catch (OptionalDataException e) {
       throw new BadFormException(e.toString());
@@ -144,11 +142,26 @@ public class VisADForm extends Form implements FormFileInformer {
     catch (IOException e) {
       throw new BadFormException(e.toString());
     }
-    return data;
   }
 
-  public synchronized FormNode getForms(Data data) {
-    return null;
+  private DataImpl readData(BinaryReader rdr)
+    throws IOException, VisADException
+  {
+    DataImpl di = rdr.getData();
+    try { rdr.close(); } catch (IOException ioe) { }
+    return di;
+  }
+
+  public synchronized void save(String id, Data data, boolean replace)
+         throws BadFormException, IOException, RemoteException, VisADException {
+    File file = new File(id);
+    if (!replace && file.exists()) {
+      throw new IllegalArgumentException("File \"" + id + "\" exists");
+    }
+
+    BinaryWriter writer = new BinaryWriter(file);
+    writer.process((DataImpl )data);
+    writer.close();
   }
 
   /** run 'java visad.data.visad.VisADForm in_file out_file' to
@@ -156,9 +169,9 @@ public class VisADForm extends Form implements FormFileInformer {
   public static void main(String args[])
          throws VisADException, RemoteException, IOException {
     if (args == null || args.length < 1 || args.length > 2) {
-      System.out.println("to convert a file to serial VisAD, run:");
+      System.out.println("to convert a file to a VisAD binary file, run:");
       System.out.println("  java visad.data.visad.VisADForm in_file out_file");
-      System.out.println("to test read a serial VisAD file, run:");
+      System.out.println("to test read a binary or serial VisAD file, run:");
       System.out.println("or  'java visad.data.visad.VisADForm in_file'");
     }
     else if (args.length == 1) {
