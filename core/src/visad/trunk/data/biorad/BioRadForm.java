@@ -404,10 +404,16 @@ public class BioRadForm extends Form implements FormFileInformer {
       }
       FlatField d = (FlatField) o;
       Set set = d.getDomainSet();
-      if (!(set instanceof Gridded2DSet)) {
+      if (!(set instanceof GriddedSet)) {
         throw new BadFormException("Invalid image set");
       }
-      Gridded2DSet gset = (Gridded2DSet) set;
+      GriddedSet gset = (GriddedSet) set;
+      if (gset.getDimension() != 2) {
+        throw new BadFormException("Invalid domain dimension");
+      }
+      if (gset.getManifoldDimension() != 2) {
+        throw new BadFormException("Invalid manifold dimension");
+      }
       int[] l = gset.getLengths();
       if (xlen < 0) {
         xlen = l[0];
