@@ -57,7 +57,7 @@ public class GMCWidget extends JPanel implements ActionListener,
   float gmcLineWidth;
   float gmcPointSize;
 
-  /** Constructs a ContourWidget linked to the GraphicsModeControl gmc */
+  /** Constructs a GMCWidget linked to the GraphicsModeControl gmc */
   public GMCWidget(GraphicsModeControl gmc) {
     control = gmc;
 
