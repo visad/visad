@@ -45,36 +45,76 @@ public class RemoteDisplayImpl extends RemoteActionImpl
   /* CTR 21 Sep 1999 - begin code for slaved displays */
 
   /** links a slave display to this display */
-  void addSlave(RemoteSlaveDisplayImpl display) {
-    if (AdaptedAction != null) {
-      ((DisplayImpl) AdaptedAction).addSlave(display);
+  public void addSlave(RemoteSlaveDisplay display)
+              throws VisADException, RemoteException {
+    if (AdaptedAction == null) {
+      throw new VisADException("RemoteDisplayImpl.addSlave(): " +
+                               "AdaptedAction is null");
     }
+    if (!(AdaptedAction instanceof DisplayImpl)) {
+      throw new VisADException("RemoteDisplayImpl.addSlave(): " +
+                               "AdaptedAction must be DisplayImpl");
+    }
+    DisplayImpl d = (DisplayImpl) AdaptedAction;
+    ((DisplayImpl) AdaptedAction).addSlave(display);
   }
 
   /** removes a link between a slave display and this display */
-  void removeSlave(RemoteSlaveDisplayImpl display) {
-    if (AdaptedAction != null) {
-      ((DisplayImpl) AdaptedAction).removeSlave(display);
+  public void removeSlave(RemoteSlaveDisplay display)
+              throws VisADException, RemoteException {
+    if (AdaptedAction == null) {
+      throw new VisADException("RemoteDisplayImpl.removeSlave(): " +
+                               "AdaptedAction is null");
     }
+    if (!(AdaptedAction instanceof DisplayImpl)) {
+      throw new VisADException("RemoteDisplayImpl.removeSlave(): " +
+                               "AdaptedAction must be DisplayImpl");
+    }
+    DisplayImpl d = (DisplayImpl) AdaptedAction;
+    d.removeSlave(display);
   }
 
   /** removes all links between slave displays and this display */
-  void removeAllSlaves() {
-    if (AdaptedAction != null) {
-      ((DisplayImpl) AdaptedAction).removeAllSlaves();
+  public void removeAllSlaves() throws VisADException, RemoteException {
+    if (AdaptedAction == null) {
+      throw new VisADException("RemoteDisplayImpl.removeAllSlaves(): " +
+                               "AdaptedAction is null");
     }
+    if (!(AdaptedAction instanceof DisplayImpl)) {
+      throw new VisADException("RemoteDisplayImpl.removeAllSlaves(): " +
+                               "AdaptedAction must be DisplayImpl");
+    }
+    DisplayImpl d = (DisplayImpl) AdaptedAction;
+    d.removeAllSlaves();
   }
 
   /** whether there are any slave displays linked to this display */
-  public boolean hasSlaves() {
-    if (AdaptedAction == null) return false;
-    return ((DisplayImpl) AdaptedAction).hasSlaves();
+  public boolean hasSlaves() throws VisADException, RemoteException {
+    if (AdaptedAction == null) {
+      throw new VisADException("RemoteDisplayImpl.hasSlaves(): " +
+                               "AdaptedAction is null");
+    }
+    if (!(AdaptedAction instanceof DisplayImpl)) {
+      throw new VisADException("RemoteDisplayImpl.removeAllSlaves(): " +
+                               "AdaptedAction must be DisplayImpl");
+    }
+    DisplayImpl d = (DisplayImpl) AdaptedAction;
+    return d.hasSlaves();
   }
 
   /** get this display's MouseBehavior */
-  public MouseBehavior getMouseBehavior() {
-    if (AdaptedAction == null) return null;
-    return ((DisplayImpl) AdaptedAction).getMouseBehavior();
+  public MouseBehavior getMouseBehavior()
+                       throws VisADException, RemoteException {
+    if (AdaptedAction == null) {
+      throw new VisADException("RemoteDisplayImpl.getMouseBehavior(): " +
+                               "AdaptedAction is null");
+    }
+    if (!(AdaptedAction instanceof DisplayImpl)) {
+      throw new VisADException("RemoteDisplayImpl.removeAllSlaves(): " +
+                               "AdaptedAction must be DisplayImpl");
+    }
+    DisplayImpl d = (DisplayImpl) AdaptedAction;
+    return d.getMouseBehavior();
   }
 
   /* CTR 21 Sep 1999 - end code for slaved displays */

@@ -46,5 +46,17 @@ public interface RemoteDisplay extends Remote, Display {
 	throws VisADException, RemoteException;
   Vector getReferenceLinks()
 	throws VisADException, RemoteException;
+
+  /* CTR 5 Oct 1999 - begin code for slaved displays */
+  void addSlave(RemoteSlaveDisplay display)
+        throws VisADException, RemoteException;
+  void removeSlave(RemoteSlaveDisplay display)
+        throws VisADException, RemoteException;
+  void removeAllSlaves() throws VisADException, RemoteException;
+  public boolean hasSlaves() throws VisADException, RemoteException;
+  public MouseBehavior getMouseBehavior()
+        throws VisADException, RemoteException;
+  /* CTR 5 Oct 1999 - end code for slaved displays */
+
 }
 

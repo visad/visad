@@ -34,16 +34,17 @@ import java.rmi.server.UnicastRemoteObject;
 import javax.swing.JComponent;
 
 /** RemoteSlaveDisplayImpl is an implementation of a slaved display that
-    receives its images from a RemoteDisplayImpl.<P> */
+    receives its images from a RemoteDisplay.<P> */
 public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
        implements RemoteSlaveDisplay, MouseListener, MouseMotionListener {
 
-  private RemoteDisplayImpl display;
+  private RemoteDisplay display;
   private BufferedImage image;
   private JComponent component;
 
-  /** Construct a new slaved display linked to the given RemoteDisplayImpl */
-  public RemoteSlaveDisplayImpl(RemoteDisplayImpl d) throws RemoteException {
+  /** Construct a new slaved display linked to the given RemoteDisplay */
+  public RemoteSlaveDisplayImpl(RemoteDisplay d) throws VisADException,
+                                                        RemoteException {
     display = d;
     if (display != null) {
       display.addSlave(this);
@@ -112,8 +113,12 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
 
   /** feed MouseEvents to this display's MouseHelper */
   private void sendMouseEvent(MouseEvent e) {
-    MouseBehavior mb = display.getMouseBehavior();
-    if (mb != null) mb.getMouseHelper().processEvent(e);
+    try {
+      MouseBehavior mb = display.getMouseBehavior();
+      if (mb != null) mb.getMouseHelper().processEvent(e);
+    }
+    catch (VisADException exc) { }
+    catch (RemoteException exc) { }
   }
 
 }

@@ -433,12 +433,12 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   private Vector Slaves = new Vector();
 
   /** links a slave display to this display */
-  void addSlave(RemoteSlaveDisplayImpl display) {
+  void addSlave(RemoteSlaveDisplay display) {
     if (!Slaves.contains(display)) Slaves.add(display);
   }
 
   /** removes a link between a slave display and this display */
-  void removeSlave(RemoteSlaveDisplayImpl display) {
+  void removeSlave(RemoteSlaveDisplay display) {
     if (Slaves.contains(display)) Slaves.remove(display);
   }
 
@@ -454,9 +454,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
   /** updates all linked slave displays with the given image */
   public void updateSlaves(BufferedImage img) {
-    RemoteSlaveDisplayImpl d;
+    RemoteSlaveDisplay d;
     for (int i=0; i<Slaves.size(); i++) {
-      d = (RemoteSlaveDisplayImpl) Slaves.elementAt(i);
+      d = (RemoteSlaveDisplay) Slaves.elementAt(i);
       try {
         d.sendImage(img);
       }
