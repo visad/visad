@@ -196,6 +196,7 @@ public abstract class JPythonMethods {
         pane.add(buttons);
         final FancySSCell fdisp = (FancySSCell) display;
         fdisp.setAutoShowControls(false);
+        fdisp.setAutoDetect(!editMaps);
 
         maps.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent e) {
@@ -236,6 +237,7 @@ public abstract class JPythonMethods {
       new ConstantMap(blue, Display.Blue)
     };
     display.addData(data, cmaps);
+    if (editMaps) ((FancySSCell)display).addMapDialog();
   }
 
   /**
@@ -1481,6 +1483,8 @@ public abstract class JPythonMethods {
   * @param length is the number of values in the set
   *
   * @return the created visad.Linear1DSet
+  *
+  * Note: this is for testing ONLY and may not remain!
   */
   public static Linear1DSet makeDomain 
                        (double first, double last, int length) 
@@ -1496,6 +1500,8 @@ public abstract class JPythonMethods {
   * @param length is the number of values in the set
   *
   * @return the created visad.Linear1DSet
+  *
+  * Note: this is for testing ONLY and may not remain!
   */
   public static Linear1DSet makeDomain
            (MathType type, double first, double last, int length) 
@@ -1503,6 +1509,7 @@ public abstract class JPythonMethods {
     return new Linear1DSet(type, first, last, length);
   }
 
+  /*
   public static Linear1DSet makeDomain(double[] vals) {
     //if vals is sorted, make a Gridded1DSet; otherwise, Irregular1DSet
     return (Linear1DSet) null;
@@ -1511,6 +1518,7 @@ public abstract class JPythonMethods {
     //if vals is sorted, make a Gridded1DSet; otherwise, Irregular1DSet
     return (Linear1DSet) null;
   }
+  */
 
 
   /** create a Linear2DSet for domain samples
@@ -1523,6 +1531,8 @@ public abstract class JPythonMethods {
   * @param length2 is the number of values in the set's 2nd dimension
   *
   * @return the created visad.Linear2DSet
+  *
+  * Note: this is for testing ONLY and may not remain!
   */
   public static Linear2DSet makeDomain
                     (double first1, double last1, int length1,
@@ -1543,6 +1553,8 @@ public abstract class JPythonMethods {
   * @param length2 is the number of values in the set's 2nd dimension
   *
   * @return the created visad.Linear2DSet
+  *
+  * Note: this is for testing ONLY and may not remain!
   */
   public static Linear2DSet makeDomain (MathType type, 
                          double first1, double last1, int length1, 
@@ -1564,6 +1576,8 @@ public abstract class JPythonMethods {
   * @param last3 is the last value in the linear set's 3rd dimension
   * @param length3 is the number of values in the set's 3rd dimension
   * @return the created visad.Linear3DSet
+  *
+  * Note: this is for testing ONLY and may not remain!
   */
   public static Linear3DSet makeDomain 
                     (double first1, double last1, int length1,
@@ -1588,6 +1602,8 @@ public abstract class JPythonMethods {
   * @param last3 is the last value in the linear set's 3rd dimension
   * @param length3 is the number of values in the set's 3rd dimension
   * @return the created visad.Linear3DSet
+  *
+  * Note: this is for testing ONLY and may not remain!
   */
   public static Linear3DSet makeDomain (MathType type, 
                          double first1, double last1, int length1, 
@@ -1612,6 +1628,8 @@ public abstract class JPythonMethods {
   *   to data's original
   *
   * @return the new Field
+  *
+  * Note: this is for testing ONLY and may not remain!
   */
   public static Field resample(Field data, Set s) 
              throws VisADException, RemoteException {
@@ -1624,6 +1642,8 @@ public abstract class JPythonMethods {
   * @param t the MathType of the field to extract
   *
   * @return the new Field
+  *
+  * Note: this is for testing ONLY and may not remain!
   */
   public static Field extract(Field data, MathType t) 
              throws VisADException, RemoteException {
@@ -1637,6 +1657,8 @@ public abstract class JPythonMethods {
   * @param s the name of the components to extract
   *
   * @return the new Field
+  *
+  * Note: this is for testing ONLY and may not remain!
   */
   public static Field extract(Field data, String s) 
              throws VisADException, RemoteException {
@@ -1650,6 +1672,8 @@ public abstract class JPythonMethods {
   * @param comp the index of the component to extract
   *
   * @return the new Field
+  *
+  * Note: this is for testing ONLY and may not remain!
   */
   public static Field extract(Field data, int comp) 
              throws VisADException, RemoteException {
@@ -1666,6 +1690,8 @@ public abstract class JPythonMethods {
   * @param factor is the domain component Type to factor out
   *
   * @return the new Field
+  *
+  * Note: this is for testing ONLY and may not remain!
   */
   public static Field domainFactor(Field data, RealType factor) 
              throws VisADException, RemoteException {
