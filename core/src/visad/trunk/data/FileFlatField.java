@@ -6,6 +6,8 @@ import java.rmi.RemoteException;
 import visad.Data;
 import visad.FlatField;
 import visad.VisADException;
+import visad.FunctionType;
+import visad.Set;
 
 
 public class FileFlatField extends FlatField {
@@ -72,7 +74,11 @@ public class FileFlatField extends FlatField {
   // to ensure thread safe access
  
   public FileFlatField(FlatField template, FileAccessor accessor,
-                       int[] location, CacheStrategy strategy) {
+                       int[] location, CacheStrategy strategy)
+    throws VisADException
+  {
+    super((FunctionType)null, (Set)null);
+
     templateFlatField = template;
     fileAccessor = accessor;
     fileLocation = location;
@@ -116,8 +122,10 @@ public class FileFlatField extends FlatField {
       adaptedFlatFieldOwner[adaptedFlatFieldIndex] = this;
       // get size of adapted FlatField
       // (by calling a method that currently does not exist)
+      /*
       adaptedFlatFieldSizes[adaptedFlatFieldIndex] =
         adaptedFlatFields[adaptedFlatFieldIndex].getSize();
+      */
     }
     // mark time of most recent access
     adaptedFlatFieldTimes[adaptedFlatFieldIndex] =
@@ -132,9 +140,11 @@ public class FileFlatField extends FlatField {
     if (this == adaptedFlatFieldOwner[adaptedFlatFieldIndex]) {
       // unpackValues is currently private, would need default protection
       // for access from FileFlatField
+      /*
       fileAccessor.writeFlatField(
         adaptedFlatFields[adaptedFlatFieldIndex].unpackValues(),
         templateFlatField, fileLocation);
+      */
     }
   }
  
