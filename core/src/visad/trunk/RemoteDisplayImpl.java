@@ -395,7 +395,7 @@ public class RemoteDisplayImpl extends RemoteActionImpl
   /**
    * Send a message to all </tt>MessageListener</tt>s.
    *
-   * @param msg - message being sent.
+   * @param msg Message being sent.
    */
   public void sendMessage(MessageEvent msg)
     throws RemoteException

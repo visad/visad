@@ -327,11 +327,10 @@ public class PlotText extends Object {
    *
    * @param str  String to use
    * @param  font  non-null font
-   * @param  size  size of characters
+   * ?param  start
+   * ?param  base
+   * ?param  up
    * @param  center is <CODE>true</CODE> if string is to be centered
-   * @param  x  x location
-   * @param  y  y location
-   * @param  z  z location
    *
    * @return VisADTriangleArray of all the triangles needed to draw the
    * characters in this string

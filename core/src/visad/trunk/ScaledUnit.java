@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ScaledUnit.java,v 1.10 2000-04-26 14:59:52 dglo Exp $
+ * $Id: ScaledUnit.java,v 1.11 2000-08-22 18:17:01 dglo Exp $
  */
 
 package visad;
@@ -69,7 +69,7 @@ public final class ScaledUnit
      * @param amount	The given amount of the base unit (e.g. 0.9144 to
      *			create a yard unit if <code>unit</code> represents a
      *			meter).
-     * @param unit	The given base unit.
+     * @param that	The given base unit.
      */
     public ScaledUnit(double amount, BaseUnit that)
     {
@@ -82,7 +82,7 @@ public final class ScaledUnit
      * @param amount            The given amount of the base unit (e.g. 0.9144
      *                          to create a yard unit if <code>unit</code>
      *                          represents a meter).
-     * @param unit		The given base unit.
+     * @param that		The given base unit.
      * @param identifier	Name or abbreviation for the unit.  May be
      *				<code>null</code> or empty.
      */
@@ -101,7 +101,7 @@ public final class ScaledUnit
      * @param amount	The given amount of the derived unit (e.g. 0.44704 to
      *			create a mile/hour unit if <code>unit</code> represents
      *			a meter/second.
-     * @param unit	The given derived unit.
+     * @param that	The given derived unit.
      */
     public ScaledUnit(double amount, DerivedUnit that)
     {
@@ -114,7 +114,7 @@ public final class ScaledUnit
      * @param amount            The given amount of the derived unit
      *                          (e.g. 0.44704 to create a mile/hour unit if
      *                          <code>unit</code> represents a meter/second.
-     * @param unit		The given derived unit.
+     * @param that		The given derived unit.
      * @param identifier	Name or abbreviation for the unit.  May be
      *				<code>null</code> or empty.
      */
@@ -147,7 +147,7 @@ public final class ScaledUnit
      * @param amount            The given amount of the scaled unit (e.g. 3.0
      *                          to create a yard unit if <code>unit</code>
      *                          represents a foot.
-     * @param unit		The given scaled unit.
+     * @param that		The given scaled unit.
      * @param identifier	Name or abbreviation for the unit.  May be
      *				<code>null</code> or empty.
      */
@@ -305,7 +305,7 @@ public final class ScaledUnit
      * @return          The converted values in units of this unit.
      * @require		The units are convertible.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     public double[] toThis(double[] values, Unit that)
 	throws UnitException
@@ -324,7 +324,7 @@ public final class ScaledUnit
      * @return          The converted values in units of this unit.
      * @require		The units are convertible.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     public float[] toThis(float[] values, Unit that)
         throws UnitException
@@ -343,7 +343,7 @@ public final class ScaledUnit
      * @return          The converted values.
      * @require		The units are convertible.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     public double[] toThat(double values[], Unit that)
 	throws UnitException
@@ -362,7 +362,7 @@ public final class ScaledUnit
      * @return          The converted values.
      * @require		The units are convertible.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     public float[] toThat(float values[], Unit that)
         throws UnitException

@@ -191,7 +191,7 @@ public class Contour2D extends Applet implements MouseListener {
    * @param    g         the 2-D array to contour.
    * @param    nr        size of 2-D array in rows
    * @param    nc        size of 2-D array in columns.
-   * @param    values[]  the values to be plotted
+   * @param    values    the values to be plotted
    * @param    lowlimit  the lower limit on values to contour.
    * @param    highlimit the upper limit on values to contour.
    * @param    base      base value to start contouring at.

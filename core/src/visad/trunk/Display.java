@@ -341,7 +341,7 @@ public interface Display extends Action {
   /**
    * Send a message to all </tt>MessageListener</tt>s.
    *
-   * @param msg - message being sent.
+   * @param msg Message being sent.
    */
   void sendMessage(MessageEvent msg)
     throws RemoteException;

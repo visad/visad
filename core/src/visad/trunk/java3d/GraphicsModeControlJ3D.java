@@ -525,8 +525,8 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
    *
    * @param   o   object in question
    *
-   * @returns  false if the objects are not the same and/or their states
-   *           are not equal.
+   * @return  false if the objects are not the same and/or their states
+   *          are not equal.
    */
   public boolean equals(Object o)
   {

@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DerivedUnit.java,v 1.13 2000-04-26 14:59:23 dglo Exp $
+ * $Id: DerivedUnit.java,v 1.14 2000-08-22 18:16:58 dglo Exp $
  */
 
 package visad;
@@ -632,7 +632,7 @@ public final class DerivedUnit
      * @return          The converted values in units of this unit.
      * @require		The units are convertible.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     public double[] toThis(double[] values, Unit that)
 	throws UnitException
@@ -651,7 +651,7 @@ public final class DerivedUnit
      * @return          The converted values in units of this unit.
      * @require		The units are convertible.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     public float[] toThis(float[] values, Unit that)
         throws UnitException
@@ -670,7 +670,7 @@ public final class DerivedUnit
      * @return          The converted values in units of this unit.
      * @require		The units are convertible.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     double[] toThis(double[] values, DerivedUnit that)
 	throws UnitException
@@ -706,7 +706,7 @@ public final class DerivedUnit
      * @return          The converted values in units of this unit.
      * @require		The units are convertible.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     float[] toThis(float[] values, DerivedUnit that)
         throws UnitException
@@ -742,7 +742,7 @@ public final class DerivedUnit
      * @return          The converted values.
      * @require		The units are convertible.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     public double[] toThat(double values[], Unit that)
 	throws UnitException
@@ -761,7 +761,7 @@ public final class DerivedUnit
      * @return          The converted values.
      * @require		The units are convertible.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     public float[] toThat(float values[], Unit that)
         throws UnitException
@@ -780,7 +780,7 @@ public final class DerivedUnit
      * @return          The converted values.
      * @require		The units are convertible.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     double[] toThat(double values[], DerivedUnit that)
 	throws UnitException
@@ -796,7 +796,7 @@ public final class DerivedUnit
      * @return          The converted values.
      * @require		The units are convertible.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     float[] toThat(float values[], DerivedUnit that)
         throws UnitException

@@ -210,7 +210,7 @@ public class DisplayMonitorImpl
    * If the <TT>ControlEvent</TT> is not ignored, a
    * <TT>ControlMonitorEvent</TT> will be sent to all listeners.
    *
-   * @param e The details of the <TT>Control</TT> change.
+   * @param evt The details of the <TT>Control</TT> change.
    */
   public void controlChanged(ControlEvent evt)
   {
@@ -262,7 +262,7 @@ public class DisplayMonitorImpl
    * Handles ScalarMap control changes.<BR>
    * <FONT SIZE="-1">This is just a stub which ignores the event.</FONT>
    *
-   * @param e The details of the <TT>ScalarMap</TT> change.
+   * @param evt The details of the <TT>ScalarMap</TT> change.
    */
   public void controlChanged(ScalarMapControlEvent evt)
   {
@@ -301,7 +301,7 @@ public class DisplayMonitorImpl
    * <TT>MapMonitorEvent</TT> or <TT>ReferenceMonitorEvent</TT>
    * will be sent to all listeners.
    *
-   * @param e The details of the <TT>Display</TT> change.
+   * @param evt The details of the <TT>Display</TT> change.
    */
   public void displayChanged(DisplayEvent evt)
   {
@@ -515,7 +515,7 @@ public class DisplayMonitorImpl
    * If the <TT>ScalarMapEvent</TT> is not ignored, a
    * <TT>MapMonitorEvent</TT> will be sent to all listeners.
    *
-   * @param e The details of the <TT>ScalarMap</TT> change.
+   * @param evt The details of the <TT>ScalarMap</TT> change.
    */
   public void mapChanged(ScalarMapEvent evt)
   {

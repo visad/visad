@@ -51,8 +51,8 @@ public interface DisplayMonitor
    * Adds the specified listener to receive <CODE>MonitorEvent</CODE>s
    * when the monitored <CODE>Display</CODE>'s state changes.
    *
-   * @param listener The listener to add.
-   * @param id The unique listener identifier.
+   * @param callback The object to which events are delivered.
+   * @param id The unique identifier.
    *
    * @exception RemoteException If there was an RMI-related problem.
    * @exception VisADException If the listener <CODE>Vector</CODE>

@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: OffsetUnit.java,v 1.10 2000-04-25 20:14:36 steve Exp $
+ * $Id: OffsetUnit.java,v 1.11 2000-08-22 18:17:00 dglo Exp $
  */
 
 package visad;
@@ -119,7 +119,7 @@ public final class OffsetUnit
      * be <code>null</code>.
      *
      * @param offset	The amount of offset.
-     * @param unit	The base unit.
+     * @param that	The base unit.
      */
     public OffsetUnit(double offset, BaseUnit that)
     {
@@ -130,7 +130,7 @@ public final class OffsetUnit
      * Construct an offset unit from a base unit and an identifier.
      *
      * @param offset		The amount of offset.
-     * @param unit		The base unit.
+     * @param that		The base unit.
      * @param identifier	The name or abbreviation for the cloned unit.
      *				May be <code>null</code> or empty.
      */
@@ -147,7 +147,7 @@ public final class OffsetUnit
      * will be <code>null</code>.
      *
      * @param offset	The amount of offset.
-     * @param unit	The derived unit.
+     * @param that	The derived unit.
      */
     public OffsetUnit(double offset, DerivedUnit that)
     {
@@ -158,7 +158,7 @@ public final class OffsetUnit
      * Construct an offset unit from a derived unit and an identifier.
      *
      * @param offset		The amount of offset.
-     * @param unit		The derived unit.
+     * @param that		The derived unit.
      * @param identifier	The name or abbreviation for the cloned unit.
      *				May be <code>null</code> or empty.
      */
@@ -175,7 +175,7 @@ public final class OffsetUnit
      * will be <code>null</code>.
      *
      * @param offset	The amount of offset.
-     * @param unit	The scaled unit.
+     * @param that	The scaled unit.
      */
     public OffsetUnit(double offset, ScaledUnit that)
     {
@@ -186,7 +186,7 @@ public final class OffsetUnit
      * Construct an offset unit from a scaled unit and an identifier.
      *
      * @param offset		The amount of offset.
-     * @param unit		The scaled unit.
+     * @param that		The scaled unit.
      * @param identifier	The name or abbreviation for the cloned unit.
      *				May be <code>null</code> or empty.
      */
@@ -203,7 +203,7 @@ public final class OffsetUnit
      * will be <code>null</code>.
      *
      * @param offset	The amount of offset.
-     * @param unit	The given unit.
+     * @param that	The given unit.
      */
     public OffsetUnit(double offset, OffsetUnit that)
     {
@@ -214,7 +214,7 @@ public final class OffsetUnit
      * Construct an offset unit from an offset unit and an identifier..
      *
      * @param offset		The amount of offset.
-     * @param unit		The given unit.
+     * @param that		The given unit.
      * @param identifier	The name or abbreviation for the cloned unit.
      *				May be <code>null</code> or empty.
      */
@@ -303,7 +303,7 @@ public final class OffsetUnit
      * Multiply an offset unit by another unit.
      *
      * @param that		The unit with which to multiply this unit.
-     * @exception UnitExcepting	Can't multiply units.
+     * @exception UnitException	Can't multiply units.
      */
     public Unit multiply(Unit that)
 	throws UnitException
@@ -345,7 +345,7 @@ public final class OffsetUnit
      * @return          The converted values in units of this unit.
      * @require		The units are convertible.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     public double[] toThis(double[] values, Unit that)
 	throws UnitException
@@ -364,7 +364,7 @@ public final class OffsetUnit
      * @return          The converted values in units of this unit.
      * @require		The units are convertible.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     public float[] toThis(float[] values, Unit that)
         throws UnitException
@@ -383,7 +383,7 @@ public final class OffsetUnit
      * @return          The converted values.
      * @require		The units are convertible.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     public double[] toThat(double values[], Unit that)
 	throws UnitException
@@ -402,7 +402,7 @@ public final class OffsetUnit
      * @return          The converted values.
      * @require		The units are convertible.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     public float[] toThat(float values[], Unit that)
         throws UnitException

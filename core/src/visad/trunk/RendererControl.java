@@ -246,7 +246,7 @@ public class RendererControl
 
   /**
    * Compare this object to another object.
-   * @param obj Object to compare.
+   * @param o Object to compare.
    * @return <CODE>true</CODE> if this  object is "equal" to the
    *         specified object.
    */

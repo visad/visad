@@ -154,7 +154,7 @@ class MonitorSyncer
   /**
    * Get a key for the specified <TT>Control</TT>
    *
-   * @param evt The event.
+   * @param ctl The control.
    */
   private String getKey(Control ctl)
   {

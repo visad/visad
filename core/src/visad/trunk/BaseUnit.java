@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: BaseUnit.java,v 1.11 2000-04-26 14:59:15 dglo Exp $
+ * $Id: BaseUnit.java,v 1.12 2000-08-22 18:16:57 dglo Exp $
  */
 
 package visad;
@@ -198,7 +198,7 @@ public final class BaseUnit
     /**
      * Find the base unit for the given quantity.
      *
-     * @param unitName		The name of the quantity (e.g. "Length").
+     * @param quantityName	The name of the quantity (e.g. "Length").
      * @return          	The existing base unit for the given quantity
      *				or <code>null</code> if no such unit exists.
      * @require			The argument is non-null.
@@ -221,7 +221,7 @@ public final class BaseUnit
      * Test this class.
      *
      * @param args		Arguments (ignored).
-     * @exception UnitException	A problem occurred.
+     * @throws UnitException	A problem occurred.
      */
     public static void main(String[] args)
 	throws	UnitException
@@ -308,7 +308,7 @@ public final class BaseUnit
      * @return          The converted values in units of this unit.
      * @require		The units are identical.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     double[] toThis(double[] values, BaseUnit that)
 	throws UnitException
@@ -352,7 +352,7 @@ public final class BaseUnit
      * @return          The converted values in units of this unit.
      * @require		The units are identical.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     public double[] toThis(double[] values, Unit that)
 	throws UnitException
@@ -368,7 +368,7 @@ public final class BaseUnit
      * @return          The converted values in units of this unit.
      * @require		The units are identical.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     public float[] toThis(float[] values, Unit that)
         throws UnitException
@@ -384,7 +384,7 @@ public final class BaseUnit
      * @return          The converted values.
      * @require		The units are identical.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     double[] toThat(double[] values, BaseUnit that)
 	throws UnitException
@@ -411,7 +411,7 @@ public final class BaseUnit
      * @return          The converted values.
      * @require		The units are identical.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     float[] toThat(float[] values, BaseUnit that)
         throws UnitException
@@ -438,7 +438,7 @@ public final class BaseUnit
      * @return          The converted values.
      * @require		The units are identical.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     public double[] toThat(double[] values, Unit that)
 	throws UnitException
@@ -454,7 +454,7 @@ public final class BaseUnit
      * @return          The converted values.
      * @require		The units are identical.
      * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
+     * @throws UnitException	The units are not convertible.
      */
     public float[] toThat(float[] values, Unit that)
         throws UnitException

@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ColorChangeEvent.java,v 1.5 2000-03-14 16:56:47 dglo Exp $
+@(#) $Id: ColorChangeEvent.java,v 1.6 2000-08-22 18:17:09 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -32,7 +32,7 @@ import java.io.Serializable;
  * An event to be dispatched when the color widget has been changed
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.5 $, $Date: 2000-03-14 16:56:47 $
+ * @version $Revision: 1.6 $, $Date: 2000-08-22 18:17:09 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -44,7 +44,7 @@ public class ColorChangeEvent extends EventObject implements Serializable {
   private float end;
 
   /** Construct a colorChangeEvent object to notify any ColorChangeListeners
-   * @param object the map that generated the event
+   * @param source the map that generated the event
    * @param start the start of the region of the map that has been modified
    * @param end the end of the region of the map that has been modified
    */

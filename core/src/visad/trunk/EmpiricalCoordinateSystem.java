@@ -133,7 +133,7 @@ EmpiricalCoordinateSystem
    */
   public static EmpiricalCoordinateSystem
   create(FlatField field)
-    throws VisADException
+    throws SetException, VisADException
   {
     Set		domainSet = field.getDomainSet();
     float[][]	samples = field.getFloats(false);	// in default units
@@ -189,7 +189,7 @@ EmpiricalCoordinateSystem
    */
   public double[][]
   fromReference(double[][] values)
-    throws VisADException
+    throws SetException, VisADException
   {
     return worldCS.toReference(referenceCS.fromReference(values));
   }
@@ -212,7 +212,7 @@ EmpiricalCoordinateSystem
    */
   public double[][]
   toReference(double[][] values)
-    throws VisADException
+    throws SetException, VisADException
   {
     return referenceCS.toReference(worldCS.fromReference(values));
   }

@@ -44,7 +44,7 @@ public class MetUnits {
 
   /** create a 'proper' unit symbol from a common one
   *
-  * @parameter s is the String of the original unit name
+  * @param s is the String of the original unit name
   *
   * @return possibly converted String to standard name
   *

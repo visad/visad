@@ -72,7 +72,7 @@ public class CylindricalCoordinateSystem
      *                                     dimension.
      */
     public double[][] toReference(double[][] tuples)
-        throws VisADException
+        throws CoordinateSystemException
     {
         if (tuples == null || tuples.length != 3)
         {
@@ -117,7 +117,7 @@ public class CylindricalCoordinateSystem
      *                                     dimension.
      */
     public double[][] fromReference(double[][] tuples)
-        throws VisADException
+        throws CoordinateSystemException
     {
         if (tuples == null || tuples.length != 3)
         {
@@ -153,7 +153,7 @@ public class CylindricalCoordinateSystem
      *                                     dimension.
      */
     public float[][] toReference(float[][] tuples)
-        throws VisADException
+        throws CoordinateSystemException
     {
         if (tuples == null || tuples.length != 3)
         {
@@ -198,7 +198,7 @@ public class CylindricalCoordinateSystem
      *                                     dimension.
      */
     public float[][] fromReference(float[][] tuples)
-        throws VisADException
+        throws CoordinateSystemException
     {
         if (tuples == null || tuples.length != 3)
         {

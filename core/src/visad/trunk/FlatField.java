@@ -532,7 +532,7 @@ public class FlatField extends FieldImpl {
    *				RealTupleType.
    */
   public CoordinateSystem[] getRangeCoordinateSystem()
-         throws VisADException {
+         throws TypeException {
     MathType RangeType = ((FunctionType) Type).getRange();
     if (!((FunctionType) Type).getReal()) {
       throw new TypeException("FlatField.getRangeCoordinateSystem: " +
@@ -568,7 +568,7 @@ public class FlatField extends FieldImpl {
    *				RealTupleType.
    */
   public CoordinateSystem[] getRangeCoordinateSystem(int i)
-         throws VisADException {
+         throws TypeException {
     if (((FunctionType) Type).getReal()) {
       throw new TypeException("FlatField.getRangeCoordinateSystem: " +
         "Range is Real, cannot specify CoordinateSystem index");

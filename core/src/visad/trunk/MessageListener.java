@@ -11,7 +11,7 @@ public interface MessageListener
    * Receive a general VisAD message broadcast via
    * <tt>DisplayImpl.sendMessage()</tt>
    *
-   * @param msg - the message
+   * @param msg The message
    */
   void receiveMessage(MessageEvent msg)
     throws RemoteException;

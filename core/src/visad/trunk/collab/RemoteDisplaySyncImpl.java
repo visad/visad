@@ -67,7 +67,7 @@ public class RemoteDisplaySyncImpl
   /**
    * Notifies remote event consumer that an event is ready.
    *
-   * @param consumer Event consumer
+   * @param provider Object from which event should be fetched.
    * @param key Key used to access event.
    *
    * @exception RemoteException If there was an RMI-related problem.

@@ -257,7 +257,7 @@ public class FileFlatField extends FlatField {
   }
 
   public CoordinateSystem[] getRangeCoordinateSystem()
-         throws VisADException
+         throws TypeException
   {
      synchronized (adaptedFlatFields)
      {
@@ -266,7 +266,7 @@ public class FileFlatField extends FlatField {
   }
 
   public CoordinateSystem[] getRangeCoordinateSystem( int component )
-         throws VisADException
+         throws TypeException
   {
      synchronized (adaptedFlatFields)
      {

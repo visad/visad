@@ -979,7 +979,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
    * Compares this ScalarMap with another ScalarMap.  The ScalarType-s are
    * first compared; if they compare equal, then the DisplayRealType-s are
    * compared.
-   * @param o		The other ScalarMap.
+   * @param that		The other ScalarMap.
    * @return            A value that is negative, zero, or positive depending on
    *                    whether this ScalarMap is considered less than, equal
    *                    to, or greater than the other ScalarMap, respectively.

@@ -68,7 +68,7 @@ public class GIFAdapter
   }
 
   /** Create a VisAD FlatField from a GIF, JPEG or PNG on the Web.
-    * @param filename name of local file.
+    * @param url File URL.
     * @exception IOException if there was a problem reading the file.
     * @exception VisADException if an unexpected problem occurs.
     */
@@ -105,7 +105,9 @@ public class GIFAdapter
   }
 
   /** Build a FlatField from the image pixels
-    * @param pixels image pixels.
+    * @param red_pix red image pixels.
+    * @param green_pix green image pixels.
+    * @param blue_pix blue image pixels.
     * @param width image width.
     * @param height image height.
     * @exception VisADException if an unexpected problem occurs.

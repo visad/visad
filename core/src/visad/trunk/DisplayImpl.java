@@ -1545,7 +1545,7 @@ if (initialize) {
 
   /**
    * Returns the list of DataRenderer-s.  NOTE: The actual list is returned
-   * rather than a copy.  If a copy is desired, then use 
+   * rather than a copy.  If a copy is desired, then use
    * <code>getRendererVector()</code>.
    * @return			The list of DataRenderer-s.
    * @see #getRendererVector()
@@ -1768,16 +1768,31 @@ if (initialize) {
     }
   }
 
+  /**
+   * Inform <tt>listener</tt> of deleted <tt>DataRenderer</tt>s.
+   *
+   * @param listener Object to add.
+   */
   public void addRendererSourceListener(RendererSourceListener listener)
   {
     RendererSourceListeners.addElement(listener);
   }
 
+  /**
+   * Remove <tt>listener</tt> from the <tt>DataRenderer</tt> deletion list.
+   *
+   * @param listener Object to remove.
+   */
   public void removeRendererSourceListener(RendererSourceListener listener)
   {
     RendererSourceListeners.removeElement(listener);
   }
 
+  /**
+   * Stop using a <tt>DataRenderer</tt>.
+   *
+   * @param renderer Renderer to delete
+   */
   private void deleteRenderer(DataRenderer renderer)
   {
     RendererVector.removeElement(renderer);
@@ -1798,11 +1813,21 @@ if (initialize) {
     DataSourceListeners.removeElement(listener);
   }
 
+  /**
+   * Forward messages to the specified <tt>listener</tt>
+   *
+   * @param listener New message receiver.
+   */
   public void addMessageListener(MessageListener listener)
   {
     MessageListeners.addElement(listener);
   }
 
+  /**
+   * Remove <tt>listener</tt> from the message list.
+   *
+   * @param listener Object to remove.
+   */
   public void removeMessageListener(MessageListener listener)
   {
     MessageListeners.removeElement(listener);
@@ -1811,7 +1836,7 @@ if (initialize) {
   /**
    * Send a message to all </tt>MessageListener</tt>s.
    *
-   * @param msg - message being sent.
+   * @param msg Message being sent.
    */
   public void sendMessage(MessageEvent msg)
     throws RemoteException

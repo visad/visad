@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ColorMap.java,v 1.10 2000-03-13 20:20:09 dglo Exp $
+@(#) $Id: ColorMap.java,v 1.11 2000-08-22 18:17:09 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -36,7 +36,7 @@ import javax.swing.JPanel;
  * class manages all of the listener notification for the ColorMaps.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.10 $, $Date: 2000-03-13 20:20:09 $
+ * @version $Revision: 1.11 $, $Date: 2000-08-22 18:17:09 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -121,9 +121,9 @@ public abstract class ColorMap extends JPanel {
    * for <TT>start</TT>, the midpoint between <TT>start</TT> and
    * <TT>end, and for <TT>end</TT>.
    *
-   * @param start - the first value to translate
-   * @param end - the last value to translate
-   * @param num - the number of values (including the two endpoints)
+   * @param start the first value to translate
+   * @param end the last value to translate
+   * @param count the number of values (including the two endpoints)
    *              to be returned.
    */
   public abstract float[][] getRGBTuples(float start, float end, int count);
@@ -146,9 +146,9 @@ public abstract class ColorMap extends JPanel {
    * for <TT>start</TT>, the midpoint between <TT>start</TT> and
    * <TT>end, and for <TT>end</TT>.
    *
-   * @param start - the first value to translate
-   * @param end - the last value to translate
-   * @param num - the number of values (including the two endpoints)
+   * @param start The first value to translate
+   * @param end The last value to translate
+   * @param count The number of values (including the two endpoints)
    *              to be returned.
    */
   public abstract float[][] getTuples(float start, float end, int count);

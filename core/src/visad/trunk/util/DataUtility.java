@@ -305,7 +305,7 @@ public class DataUtility {
 
   /**
    * Gets the MathType of the domain of a Set.
-   * @param function		A function.
+   * @param set			A set.
    * @return			The MathType of the domain of the Set.
    */
   public static RealTupleType

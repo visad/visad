@@ -1003,7 +1003,7 @@ public abstract class JPythonMethods {
    * 
    * @param   field           VisAD Field data object whose range values
    *                          are analyzed in histogram
-   * @param   range           int[] array whose elements are indices of into
+   * @param   ranges          int[] array whose elements are indices of into
    *                          the range Tuple of field, selecting range
    *                          components as dimesnions of the histogram
    * 
@@ -1028,7 +1028,7 @@ public abstract class JPythonMethods {
    * 
    * @param   field           VisAD Field data object whose range values
    *                          are analyzed in histogram
-   * @param   range           int[] array whose elements are indices of into
+   * @param   ranges          int[] array whose elements are indices of into
    *                          the range Tuple of field, selecting range
    *                          components as dimesnions of the histogram
    * @param   sizes           int[] array whose elements are numbers of

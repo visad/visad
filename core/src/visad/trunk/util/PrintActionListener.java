@@ -85,7 +85,7 @@ public class PrintActionListener
   /**
    * Set the display to which this action will listen
    *
-   * @param display  DisplayImpl to be printed
+   * @param dim  DisplayImpl to be printed
    */
   public void setDisplay(DisplayImpl dim)
   {
