@@ -291,6 +291,7 @@ public class Vis5DForm extends Form {
       contour_maps[i] = new ScalarMap(range_types[i], Display.IsoContour);
       display.addMap(contour_maps[i]);
       contour_controls[i] = (ContourControl) contour_maps[i].getControl();
+      contour_controls[i].enableContours(false);
       range_refs[i] = new DataReferenceImpl(range_types[i].getName() + "_ref");
     }
 

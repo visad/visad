@@ -54,7 +54,7 @@ public class ContourControl extends Control {
 
   public ContourControl(DisplayImpl d) {
     super(d);
-    mainContours = false;
+    mainContours = true;
     labels = false;
     surfaceValue = Float.NaN;
     contourInterval = Float.NaN;
