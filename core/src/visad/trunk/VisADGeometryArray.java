@@ -191,9 +191,8 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
       DisplayRealType dreal = map.getDisplayScalar();
       DisplayTupleType tuple = dreal.getTuple();
       if (!RealType.Longitude.equals(map.getScalar())) continue;
-      if (Display.Longitude.equals(dreal) ||
-          Display.CylAzimuth.equals(dreal)) return null; // do nothing!
-      // if (Display.DisplaySpatialCartesianTuple.equals(tuple)) {
+      // getCircular() true for Latitude, Longitude, CylAzimuth, etc
+      if (dreal.getCircular()) return null; // do nothing!
       if (tuple != null &&
           (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
            (tuple.getCoordinateSystem() != null &&

@@ -43,10 +43,11 @@ public class DisplayRealType extends RealType {
   private int tupleIndex;         // index within tuple
   private boolean Single;   // true if only one instance allowed in a display type
 
-  private boolean System;   // true if this is a system intrinsic
+  private boolean system;   // true if this is a system intrinsic
 
   // true if this is actually a text type, false if it is really real
   private boolean text;     // admitedly a kludge
+  private boolean circular;
 
   // this is tricky, since DisplayRealType is Serializable
   // this may also be unnecessary
@@ -75,7 +76,7 @@ public class DisplayRealType extends RealType {
   DisplayRealType(String name, boolean single, double low, double hi,
                   double def, Unit unit, boolean b) {
     super("Display" + name, unit, b);
-    System = true;
+    system = true;
     Single = single;
     LowValue = low;
     HiValue = hi;
@@ -85,6 +86,7 @@ public class DisplayRealType extends RealType {
     tuple = null;
     tupleIndex = -1;
     text = false;
+    circular = false;
     synchronized (DisplayRealTypeVector) {
       Count++;
       Index = Count;
@@ -95,9 +97,10 @@ public class DisplayRealType extends RealType {
   /** trusted constructor for intrinsic text DisplayRealType */
   DisplayRealType(String name, boolean single,  boolean b) {
     super("Display" + name, null, b);
-    System = true;
+    system = true;
     Single = single;
     text = true;
+    circular = false;
     synchronized (DisplayRealTypeVector) {
       Count++;
       Index = Count;
@@ -114,7 +117,7 @@ public class DisplayRealType extends RealType {
                          double def, Unit unit)
          throws VisADException {
     super("Display" + name, unit, false);
-    System = false;
+    system = false;
     Single = single;
     LowValue = low;
     HiValue = hi;
@@ -124,6 +127,7 @@ public class DisplayRealType extends RealType {
     tuple = null;
     tupleIndex = -1;
     text = false;
+    circular = false;
     synchronized (DisplayRealTypeVector) {
       Count++;
       Index = Count;
@@ -200,9 +204,15 @@ public class DisplayRealType extends RealType {
    * @param i			The 0-based component-index for this
    *				DisplayRealType.
    */
-  public void setTuple(DisplayTupleType t, int i) {
+  public void setTuple(DisplayTupleType t, int i, boolean c)
+         throws VisADException {
+    if (tuple != null) {
+      throw new DisplayException("DisplayRealType " + getName() +
+        " already has DisplayTupleType " + tuple);
+    }
     tuple = t;
     tupleIndex = i;
+    circular = c;
   }
 
   /** return true if this DisplayRealType is 'single' */
@@ -229,6 +239,10 @@ public class DisplayRealType extends RealType {
 
   public boolean getText() {
     return text;
+  }
+
+  public boolean getCircular() {
+    return circular;
   }
 
 }

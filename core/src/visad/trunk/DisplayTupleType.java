@@ -54,6 +54,7 @@ public class DisplayTupleType extends RealTupleType {
         throw new CoordinateSystemException("DisplayTupleType: " +
                "CoordinateSystem.Reference cannot be DisplaySpatialOffsetTuple");
       }
+/*
       else if (Display.DisplayFlow1Tuple.equals(ref)) {
         throw new CoordinateSystemException("DisplayTupleType: " +
                "CoordinateSystem.Reference cannot be DisplayFlow1Tuple");
@@ -62,6 +63,7 @@ public class DisplayTupleType extends RealTupleType {
         throw new CoordinateSystemException("DisplayTupleType: " +
                "CoordinateSystem.Reference cannot be DisplayFlow2Tuple");
       }
+*/
       Unit[] default_units = getDefaultUnits();
       Unit[] coord_sys_units = coord_sys.getCoordinateSystemUnits();
       int n = default_units.length;
@@ -78,14 +80,8 @@ public class DisplayTupleType extends RealTupleType {
         throw new UnitException("RealTupleType: CoordinateSystem Units must " +
                                 "equal default Units");
       }
-    }
-    for (int i=0; i<types.length; i++) {
-      if (types[i].getTuple() != null) {
-        throw new DisplayException("DisplayTupleType: DisplayRealType already " +
-                                   "part of a DisplayTupleType");
-      }
-      types[i].setTuple(this, i);
-    }
+    } // end if (coord_sys != null)
+    setTuples(types, coord_sys);
   }
 
   /** trusted constructor for initializers */
@@ -97,10 +93,57 @@ public class DisplayTupleType extends RealTupleType {
   DisplayTupleType(DisplayRealType[] types, CoordinateSystem coord_sys,
                    boolean b) {
     super(types, coord_sys, b);
-    for (int i=0; i<types.length; i++) {
-      types[i].setTuple(this, i);
+    try {
+      setTuples(types, coord_sys);
+    }
+    catch (VisADException e) {
+      System.out.println(e);
     }
   }
 
+  private void setTuples(DisplayRealType[] types, CoordinateSystem coord_sys)
+          throws VisADException {
+    int n = types.length;
+    boolean[] circulars = new boolean[n];
+    for (int i=0; i<n; i++) circulars[i] = false;
+    if (coord_sys != null && coord_sys.getReference().equals(
+          Display.DisplaySpatialCartesianTuple)) {
+      double[] defaults = new double[n];
+      for (int i=0; i<n; i++) {
+        defaults[i] = types[i].getDefaultValue();
+      }
+      for (int i=0; i<n; i++) {
+        Unit u = types[i].getDefaultUnit();
+        if (u != null && Unit.canConvert(CommonUnit.degree, u)) {
+          double[][] test = new double[n][3];
+          for (int j=0; j<n; j++) {
+            if (j == i) {
+              test[j][0] = u.toThis(0.0, CommonUnit.degree);
+              test[j][1] = u.toThis(180.0, CommonUnit.degree);
+              test[j][2] = u.toThis(360.0, CommonUnit.degree);
+            }
+            else {
+              test[j][0] = defaults[j];
+              test[j][1] = defaults[j];
+              test[j][2] = defaults[j];
+            }
+          }
+          double[][] tt = coord_sys.toReference(test);
+          double diff180 = Math.sqrt(
+            (tt[0][1] - tt[0][0]) * (tt[0][1] - tt[0][0]) +
+            (tt[1][1] - tt[1][0]) * (tt[1][1] - tt[1][0]) +
+            (tt[2][1] - tt[2][0]) * (tt[2][1] - tt[2][0]));
+          double diff360 = Math.sqrt(
+            (tt[0][2] - tt[0][0]) * (tt[0][2] - tt[0][0]) +
+            (tt[1][2] - tt[1][0]) * (tt[1][2] - tt[1][0]) +
+            (tt[2][2] - tt[2][0]) * (tt[2][2] - tt[2][0]));
+          if (diff360 < 0.01 * diff180) circulars[i] = true;
+        } // end if (u != null && Unit.canConvert(CommonUnit.degree, u))
+      } // end for (int i=0; i<n; i++)
+    }
+    for (int i=0; i<n; i++) {
+      types[i].setTuple(this, i, circulars[i]);
+    }
+  }
 }
 
