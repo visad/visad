@@ -39,7 +39,7 @@ default:
 .SUFFIXES : .java .class
 
 JC = javac
-JFLAGS = -J-mx32m
+JFLAGS = -J-mx40m
 
 # to always use IBM's 'jikes' compiler, uncomment the following two lines
 #JC = jikes
@@ -686,7 +686,7 @@ compile: clean
 
 debug:
 	@nmake /nologo -f Makefile.WinNT compile \
-	"JFLAGS = -J-mx32m -g"
+	"JFLAGS = -J-mx40m -g"
 
 VISAD_PACKAGES = \
 visad \
