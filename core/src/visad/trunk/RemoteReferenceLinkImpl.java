@@ -53,7 +53,8 @@ public class RemoteReferenceLinkImpl extends UnicastRemoteObject
     DataReference ref;
     ref = ddl.getDataReference();
     if (!(ref instanceof DataReferenceImpl)) {
-      throw new RemoteException("Cannot link to non-DataReferenceImpl");
+      throw new RemoteException("Cannot link to non-DataReferenceImpl (" +
+                                ref.getClass().getName() + ")");
     }
 
     link = ddl;
