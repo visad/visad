@@ -101,32 +101,21 @@ class FormulaCell extends CellImpl {
         catch (NumberFormatException exc) { }
 
         if (d == null) {
-          // token is the name of an BasicSSCell
+          // token is the name of a BasicSSCell
           BasicSSCell panel = BasicSSCell.getSSCellByName(token);
           if (panel != null) {
             DataReferenceImpl dataRef = panel.getDataRef();
-            if (dataRef != null && dataRef.getData() != null) {
-              try {
-                addReference(dataRef);
-              }
-              // addReference throws a TypeException if the reference was
-              // added previously; i.e., no need to add a reference twice.
-              catch (TypeException exc) { }
+            try {
+              addReference(dataRef);
             }
-            else {
-              Illegal = true;
-              setX(true);
-              return;
-            }
+            catch (TypeException exc) { }
           }
-          else {
-            Illegal = true;
-            setX(true);
-            return;
-          }
+          else Illegal = true;
         }
       }
     }
+
+    if (Illegal) setX(true);
   }
 
   public String getFormula() {
@@ -223,20 +212,11 @@ class FormulaCell extends CellImpl {
             else {
               // token is the name of an BasicSSCell
               BasicSSCell panel = BasicSSCell.getSSCellByName(token);
-              if (panel == null) {
-                System.out.println("COULDN'T FIND TOKEN: "+token); /* CTR: TEMP */
-                throw new VisADException(token);
-              }
+              if (panel == null) throw new VisADException(token);
               DataReferenceImpl dataRef = panel.getDataRef();
-              if (dataRef == null) {
-                System.out.println("CELL "+token+" HAS NO DATA REFERENCE"); /* CTR: TEMP */
-                throw new VisADException(token);
-              }
+              if (dataRef == null) throw new VisADException(token);
               value = dataRef.getData();
-              if (value == null) {
-                System.out.println("DATA REFERENCE FOR CELL "+token+" POINTS TO NULL DATA"); /* CTR: TEMP */
-                throw new VisADException(token);
-              }
+              if (value == null) throw new VisADException(token);
             }
             stack[sp++] = value;
           }
@@ -244,11 +224,9 @@ class FormulaCell extends CellImpl {
       }
       catch (VisADException exc) {
         value = null;
-        System.out.println("VisADException: "+exc.toString()); /* CTR: TEMP */
       }
       catch (RemoteException exc) {
         value = null;
-        System.out.println("RemoteException: "+exc.toString()); /* CTR: TEMP */
       }
     }
 
@@ -269,15 +247,12 @@ class FormulaCell extends CellImpl {
         value = null;
         setX(true);
       }
-      if (sp != 0) System.out.println("WARNING: STACK NOT EMPTY"); /* CTR: TEMP */
 
       try {
         // update SSCell's Data
         SSCell.setData(value);
       }
-      catch (VisADException exc) {
-        System.out.println("VisADException: "+exc.toString()); /* CTR: TEMP */
-      }
+      catch (VisADException exc) { }
       catch (RemoteException exc) { }
     }
   }

@@ -230,11 +230,17 @@ public class BasicSSCell extends JPanel {
   /** Maps Reals to the display according to the specified ScalarMaps. */
   public void setMaps(ScalarMap[] maps) throws VisADException,
                                                RemoteException {
+    System.out.println("setMaps called"); /* CTR: TEMP */
     if (maps == null) return;
+    System.out.println("okay"); /* CTR: TEMP */
+    System.out.println("nummaps = "+maps.length); /* CTR: TEMP */
+    clearDisplay();
     for (int i=0; i<maps.length; i++) {
       VDisplay.addMap(maps[i]);
     }
+    System.out.println("added maps"); /* CTR: TEMP */
     VDisplay.addReference(DataRef);
+    System.out.println("added ref"); /* CTR: TEMP */
     HasMappings = true;
   }
 
@@ -262,6 +268,8 @@ public class BasicSSCell extends JPanel {
 
   /** Links the Data object to the BasicSSCell using the DataReferenceImpl. */
   public void setData(Data data) throws VisADException, RemoteException {
+    if (DataRef.getData() == data) return;
+    clearDisplay();
     DataRef.setData(data);
     if (data == null) {
       if (HasData) {
@@ -365,6 +373,7 @@ public class BasicSSCell extends JPanel {
     if (f == null || f.equals("")) {
       if (VCell != null) {
         VCell.setX(false);
+        VCell.removeAllReferences();
         VCell = null;
         setData(null);
       }

@@ -147,10 +147,6 @@ the note about highlighting cells with the mouse in section 3, Known Bugs).
       Copy -     Copies the current cell to the clipboard.
       Paste -    Copies the cell in the clipboard to the current cell.
       Clear -    Clears the current cell.
-      Mappings - Brings up a dialog box which lets you change how the Data
-                 object is mapped to the Display.  Click a Display object
-                 on the left, such as DisplayXAxis for the X axis, then
-                 click a 
 
 2.2.3 Cell Menu
     Here are the commands from the Cell menu:
@@ -158,8 +154,9 @@ the note about highlighting cells with the mouse in section 3, Known Bugs).
                      file for the spreadsheet to import to the current cell.
                      Currently, VisAD supports the following file types:
                          GIF, JPEG, netCDF, HDF-EOS, FITS, and Vis5D.
-                     Note that HDF-EOS and Vis5D require native C code in
-                     order to be imported.
+                     Note that you must have the HDF-EOS and Vis5D file
+                     adapter native C code compiled in order to import data
+                     sets of those types.
       3-D (Java3D) - Sets the current cell's display dimension to 3-D.  This
                      setting is the default, and requires Java3D.
       2-D (Java2D) - Sets the current cell's display dimension to 2-D.  This
@@ -174,6 +171,24 @@ the note about highlighting cells with the mouse in section 3, Known Bugs).
                      On computers with OpenGL 3-D acceleration, this mode will
                      probably provide better performance than 2-D (Java2D).
                      It also has better display quality than 2-D (Java2D).
+
+2.2.4 Mappings Menu
+    Here are the commands from the Mappings menu:
+      Edit Mappings - Brings up a dialog box which lets you change how the Data
+                      object is mapped to the Display.  Click a Display object
+                      on the left, such as DisplayXAxis for the X axis, then
+                      click a leaf on the MathType tree on the right.  The
+                      "Current Mappings" box on the lower right will change to
+                      reflect which mappings you've currently set up.  When
+                      you've set up all the mappings to your liking, click the
+                      Done button and the spreadsheet will try to display the
+                      data object.
+      ** The rest of the commands from the Mappings menu are "quick-maps."
+         They scan the current cell's data object for a valid flat function
+         and map it in a preset fashion.  These built-in "mapping schemes"
+         provide common visualization ScalarMap combinations.  If for some
+         reason the quick-maps do not work, you will have to edit the mappings
+         manually with the "Edit Mappings" option in the Mappings menu.
 
 2.3 Toolbars
 
@@ -231,30 +246,27 @@ Cell menu's Import Data menu item.
 
 3. Known Bugs
     The following bugs have been discovered and have not yet been fixed:
-      1) Spreadsheet cells do not have labels (i.e., the cell in the top-left
+      1) The spreadsheet does not start in the center of the screen like it
+         should.  Changing the WIDTH and HEIGHT variables in SpreadSheet.java
+         has no effect on the window's starting size.  This bug is somehow
+         caused by the use of an AWT MenuBar instead of a Swing JMenuBar.
+      2) Spreadsheet cells do not have labels (i.e., the cell in the top-left
          is A1, the one directory to its right is B1, the one directly below
          that is B2, etc., but the cells are not labeled in any way).
-      2) When a cell is not empty (it is displaying something), clicking on
+      3) When a cell is not empty (it is displaying something), clicking on
          the cell will not highlight it.  Instead, the arrow keys must be
          used to select the cell.
-      3) Hitting enter after entering a formula doesn't do anything.  To apply
+      4) Hitting enter after entering a formula doesn't do anything.  To apply
          the formula, you have to click the green check box, which is a pain.
-      4) Error messages are displayed when the user clicks on a button that
+      5) Error messages are displayed when the user clicks on a button that
          doesn't make sense (such as trying to set up mappings for an empty
          cell).  These buttons should just be grayed out.
-      5) When a cell gets data, either through a file or a formula, there are
-         no default display mappings (i.e., the cell is just an empty box
-         until the user sets up some mappings).
-      6) A cell with a formula pointing to a blank cell does not update when
-         that blank cell later has data loaded into it.
-      7) Loading a spreadsheet file that has formulas currently works very
-         poorly, as a result of the previously mentioned bug.
-      8) In rare cases, a spreadsheet cell which used to have data, but now
-         has an "illegal" formula (with a large X displayed in the cell)
-         will display both a box for the data AND the X.
-      9) The spreadsheet will not import certain data sets correctly, due to
+      6) In rare cases, the spreadsheet will lock up when strange formula
+         cases occur.  For example, setting cell A1 = A1, cell B1 = A1, then
+         trying to clear cell A1 will sometimes lock up the spreadsheet.
+      7) The spreadsheet will not import certain data sets correctly, due to
          incomplete implementations in VisAD file adapter forms.
-     10) Sometimes the SpreadSheet crashes with an "Invalid instruction"
+      8) Sometimes the SpreadSheet crashes with an "Invalid instruction"
          error in Windows NT (and possibly other operating systems).  This
          problem is probably due to bugs in Java3D or JDK 1.2beta3 rather
          than VisAD or SpreadSheet.
@@ -277,8 +289,9 @@ preferably with a detailed description of how to recreate the problem.
          a Data object (such as a single function from a multi-function file),
          and composition of multiple Data objects (such as creating an
          animation from multiple spreadsheet cells)
-     10) Misc. user interface enhancements
-     11) And of course, bug fixes.
+     10) More "quick-maps," such as contour and animation combinations.
+     11) Misc. user interface enhancements
+     12) And of course, bug fixes.
 
     If you have any suggestions for features that you would find useful,
 please send e-mail to curtis@ssec.wisc.edu describing the feature.

@@ -54,11 +54,12 @@ import visad.data.BadFormException;
     multiple 3-D displays (FancySSCells).<P>*/
 public class SpreadSheet extends JFrame implements ActionListener,
                                                    KeyListener,
+                                                   ItemListener,
                                                    MouseListener {
 
   // starting size of the application
-  static final int WIDTH = 700;
-  static final int HEIGHT = 550;
+  static final int WIDTH = 1000;
+  static final int HEIGHT = 900;
 
   // minimum VisAD display size, including display border
   static final int MIN_VIS_WIDTH = 200;
@@ -85,13 +86,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
   JPanel ScrollPanel;
   FancySSCell[] DisplayCells;
   JTextField FormulaField;
-  JMenuItem EditPaste;
+  MenuItem EditPaste;
   JButton ToolPaste;
   JButton FormulaOk;
-  ButtonGroup DimensionGroup;
-  JRadioButtonMenuItem CellDim3D3D;
-  JRadioButtonMenuItem CellDim2D2D;
-  JRadioButtonMenuItem CellDim2D3D;
+  CheckboxMenuItem CellDim3D3D;
+  CheckboxMenuItem CellDim2D2D;
+  CheckboxMenuItem CellDim2D3D;
   int CurDisplay = 0;
 
   String Clipboard = null;
@@ -124,182 +124,139 @@ public class SpreadSheet extends JFrame implements ActionListener,
     pane.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     setContentPane(pane);
 
-    // J3D display is heavyweight, so menus can't be
-    JPopupMenu.setDefaultLightWeightPopupEnabled(false);
-
     // set up menus
-    JMenuBar menubar = new JMenuBar();
-    setJMenuBar(menubar);
+    MenuBar menubar = new MenuBar();
+    setMenuBar(menubar);
 
     // file menu
-    JMenu file = new JMenu("File", true);
-    file.setMnemonic('f');
+    Menu file = new Menu("File");
     menubar.add(file);
 
-    JMenuItem fileNew = new JMenuItem("New");
+    MenuItem fileNew = new MenuItem("New");
     fileNew.addActionListener(this);
     fileNew.setActionCommand("fileNew");
-    fileNew.setHorizontalTextPosition(JMenuItem.RIGHT);
-    ImageIcon fileNewIcon = new ImageIcon("new.gif");
-    if (fileNewIcon != null) fileNew.setIcon(fileNewIcon);
-    fileNew.setMnemonic('n');
     file.add(fileNew);
 
-    JMenuItem fileOpen = new JMenuItem("Open...");
+    MenuItem fileOpen = new MenuItem("Open...");
     fileOpen.addActionListener(this);
     fileOpen.setActionCommand("fileOpen");
-    fileOpen.setHorizontalTextPosition(JMenuItem.RIGHT);
-    ImageIcon fileOpenIcon = new ImageIcon("open.gif");
-    if (fileOpenIcon != null) fileOpen.setIcon(fileOpenIcon);
-    fileOpen.setMnemonic('o');
     file.add(fileOpen);
 
-    JMenuItem fileSave = new JMenuItem("Save");
+    MenuItem fileSave = new MenuItem("Save");
     fileSave.addActionListener(this);
     fileSave.setActionCommand("fileSave");
-    fileSave.setHorizontalTextPosition(JMenuItem.RIGHT);
-    ImageIcon fileSaveIcon = new ImageIcon("save.gif");
-    if (fileSaveIcon != null) fileSave.setIcon(fileSaveIcon);
-    fileSave.setMnemonic('s');
     file.add(fileSave);
 
-    JMenuItem fileSaveas = new JMenuItem("Save as...");
+    MenuItem fileSaveas = new MenuItem("Save as...");
     fileSaveas.addActionListener(this);
     fileSaveas.setActionCommand("fileSaveas");
-    fileSaveas.setHorizontalTextPosition(JMenuItem.RIGHT);
-    fileSaveas.setMnemonic('a');
     file.add(fileSaveas);
 
     file.addSeparator();
 
-    JMenuItem fileExit = new JMenuItem("Exit");
+    MenuItem fileExit = new MenuItem("Exit");
     fileExit.addActionListener(this);
     fileExit.setActionCommand("fileExit");
-    fileExit.setHorizontalTextPosition(JMenuItem.RIGHT);
-    fileExit.setMnemonic('x');
     file.add(fileExit);
 
     // edit menu
-    JMenu edit = new JMenu("Edit", true);
-    edit.setMnemonic('e');
+    Menu edit = new Menu("Edit");
     menubar.add(edit);
 
-    JMenuItem editCut = new JMenuItem("Cut");
+    MenuItem editCut = new MenuItem("Cut");
     editCut.addActionListener(this);
     editCut.setActionCommand("editCut");
-    editCut.setHorizontalTextPosition(JMenuItem.RIGHT);
-    ImageIcon editCutIcon = new ImageIcon("cut.gif");
-    if (editCutIcon != null) editCut.setIcon(editCutIcon);
-    editCut.setMnemonic('t');
     edit.add(editCut);
 
-    JMenuItem editCopy = new JMenuItem("Copy");
+    MenuItem editCopy = new MenuItem("Copy");
     editCopy.addActionListener(this);
     editCopy.setActionCommand("editCopy");
-    editCopy.setHorizontalTextPosition(JMenuItem.RIGHT);
-    ImageIcon editCopyIcon = new ImageIcon("copy.gif");
-    if (editCopyIcon != null) editCopy.setIcon(editCopyIcon);
-    editCopy.setMnemonic('c');
     edit.add(editCopy);
 
-    EditPaste = new JMenuItem("Paste");
+    EditPaste = new MenuItem("Paste");
     EditPaste.addActionListener(this);
     EditPaste.setActionCommand("editPaste");
-    EditPaste.setHorizontalTextPosition(JMenuItem.RIGHT);
-    ImageIcon editPasteIcon = new ImageIcon("paste.gif");
-    if (editPasteIcon != null) EditPaste.setIcon(editPasteIcon);
-    EditPaste.setMnemonic('p');
     EditPaste.setEnabled(false);
     edit.add(EditPaste);
 
-    JMenuItem editClear = new JMenuItem("Clear");
+    MenuItem editClear = new MenuItem("Clear");
     editClear.addActionListener(this);
     editClear.setActionCommand("editClear");
-    editClear.setHorizontalTextPosition(JMenuItem.RIGHT);
-    editClear.setMnemonic('a');
     edit.add(editClear);
 
-    edit.addSeparator();
-
-    JMenuItem editMappings = new JMenuItem("Mappings...");
-    editMappings.addActionListener(this);
-    editMappings.setActionCommand("editMappings");
-    editMappings.setHorizontalTextPosition(JMenuItem.RIGHT);
-    editMappings.setMnemonic('m');
-    edit.add(editMappings);
-
     // cell menu
-    JMenu cell = new JMenu("Cell", true);
-    cell.setMnemonic('c');
+    Menu cell = new Menu("Cell");
     menubar.add(cell);
 
-    JMenuItem cellImport = new JMenuItem("Import data...");
+    MenuItem cellImport = new MenuItem("Import data...");
     cellImport.addActionListener(this);
     cellImport.setActionCommand("cellImport");
-    cellImport.setHorizontalTextPosition(JMenuItem.RIGHT);
-    cellImport.setMnemonic('i');
     cell.add(cellImport);
     cell.addSeparator();
 
-    CellDim3D3D = new JRadioButtonMenuItem("3-D (Java3D)");
-    CellDim3D3D.addActionListener(this);
-    CellDim3D3D.setActionCommand("cellDim3D3D");
-    CellDim3D3D.setHorizontalTextPosition(JMenuItem.RIGHT);
+    CellDim3D3D = new CheckboxMenuItem("3-D (Java3D)", true);
+    CellDim3D3D.addItemListener(this);
     cell.add(CellDim3D3D);
 
-    CellDim2D2D = new JRadioButtonMenuItem("2-D (Java2D)");
-    CellDim2D2D.addActionListener(this);
-    CellDim2D2D.setActionCommand("cellDim2D2D");
-    CellDim2D2D.setHorizontalTextPosition(JMenuItem.RIGHT);
+    CellDim2D2D = new CheckboxMenuItem("2-D (Java2D)");
+    CellDim2D2D.addItemListener(this);
     cell.add(CellDim2D2D);
 
-    CellDim2D3D = new JRadioButtonMenuItem("2-D (Java3D)");
-    CellDim2D3D.addActionListener(this);
-    CellDim2D3D.setActionCommand("cellDim2D3D");
-    CellDim2D3D.setHorizontalTextPosition(JMenuItem.RIGHT);
+    CellDim2D3D = new CheckboxMenuItem("2-D (Java3D)");
+    CellDim2D3D.addItemListener(this);
     cell.add(CellDim2D3D);
 
-    // group radio button menu items together
-    DimensionGroup = new ButtonGroup();
-    DimensionGroup.add(CellDim3D3D);
-    DimensionGroup.add(CellDim2D2D);
-    DimensionGroup.add(CellDim2D3D);
-    DimensionGroup.setSelected(CellDim3D3D.getModel(), true);
-    
-    /* CTR: SPREADSHEET RESIZE FUNCTIONALITY WILL BE ADDED LATER
-    // grid menu
-    JMenu grid = new JMenu("Grid", true);
-    grid.setMnemonic('g');
-    menubar.add(grid);
+    // mappings menu
+    Menu map = new Menu("Mappings");
+    menubar.add(map);
 
-    JMenuItem gridAddcol = new JMenuItem("Add column");
-    gridAddcol.addActionListener(this);
-    gridAddcol.setActionCommand("gridAddcol");
-    gridAddcol.setHorizontalTextPosition(JMenuItem.RIGHT);
-    gridAddcol.setMnemonic('c');
-    grid.add(gridAddcol);
+    MenuItem mapEdit = new MenuItem("Edit map...");
+    mapEdit.addActionListener(this);
+    mapEdit.setActionCommand("mapEdit");
+    map.add(mapEdit);
+    map.addSeparator();
 
-    JMenuItem gridAddrow = new JMenuItem("Add row");
-    gridAddrow.addActionListener(this);
-    gridAddrow.setActionCommand("gridAddrow");
-    gridAddrow.setHorizontalTextPosition(JMenuItem.RIGHT);
-    gridAddrow.setMnemonic('r');
-    grid.add(gridAddrow);
-    
-    JMenuItem gridDelcol = new JMenuItem("Delete column");
-    gridDelcol.addActionListener(this);
-    gridDelcol.setActionCommand("gridDelcol");
-    gridDelcol.setHorizontalTextPosition(JMenuItem.RIGHT);
-    gridDelcol.setMnemonic('l');
-    grid.add(gridDelcol);
-    
-    JMenuItem gridDelrow = new JMenuItem("Delete row");
-    gridDelrow.addActionListener(this);
-    gridDelrow.setActionCommand("gridDelrow");
-    gridDelrow.setHorizontalTextPosition(JMenuItem.RIGHT);
-    gridDelrow.setMnemonic('w');
-    grid.add(gridDelrow);
-    */
+    MenuItem mapColorImage = new MenuItem("Color image");
+    mapColorImage.addActionListener(this);
+    mapColorImage.setActionCommand("mapColorImage");
+    map.add(mapColorImage);
+
+    MenuItem mapGrayImage = new MenuItem("Grayscale image");
+    mapGrayImage.addActionListener(this);
+    mapGrayImage.setActionCommand("mapGrayImage");
+    map.add(mapGrayImage);
+
+    MenuItem mapSphereColorImage = new MenuItem("Spherical color image");
+    mapSphereColorImage.addActionListener(this);
+    mapSphereColorImage.setActionCommand("mapSphereColorImage");
+    map.add(mapSphereColorImage);
+
+    MenuItem mapSphereGrayImage = new MenuItem("Spherical grayscale image");
+    mapSphereGrayImage.addActionListener(this);
+    mapSphereGrayImage.setActionCommand("mapSphereGrayImage");
+    map.add(mapSphereGrayImage);
+
+    MenuItem mapColor3DSurface = new MenuItem("Color 3-D surface");
+    mapColor3DSurface.addActionListener(this);
+    mapColor3DSurface.setActionCommand("mapColor3DSurface");
+    map.add(mapColor3DSurface);
+
+    MenuItem mapGray3DSurface = new MenuItem("Grayscale 3-D surface");
+    mapGray3DSurface.addActionListener(this);
+    mapGray3DSurface.setActionCommand("mapGray3DSurface");
+    map.add(mapGray3DSurface);
+
+    MenuItem mapColorSphere3DSurface = new MenuItem(
+                                       "Color spherical 3-D surface");
+    mapColorSphere3DSurface.addActionListener(this);
+    mapColorSphere3DSurface.setActionCommand("mapColorSphere3DSurface");
+    map.add(mapColorSphere3DSurface);
+
+    MenuItem mapGraySphere3DSurface = new MenuItem(
+                                      "Grayscale spherical 3-D surface");
+    mapGraySphere3DSurface.addActionListener(this);
+    mapGraySphere3DSurface.setActionCommand("mapGraySphere3DSurface");
+    map.add(mapGraySphere3DSurface);
 
     // set up toolbar
     JToolBar toolbar = new JToolBar();
@@ -363,12 +320,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
       ToolPaste.setEnabled(false);
       toolbar.add(ToolPaste);
     }
-    ImageIcon toolEditMappings = new ImageIcon("mappings.gif");
-    if (toolEditMappings != null) {
-      JButton b = new JButton(toolEditMappings);
+    toolbar.addSeparator();
+
+    // mappings menu toolbar icons
+    ImageIcon toolMappingsEdit = new ImageIcon("mappings.gif");
+    if (toolMappingsEdit != null) {
+      JButton b = new JButton(toolMappingsEdit);
       b.setToolTipText("Edit mappings");
       b.addActionListener(this);
-      b.setActionCommand("editMappings");
+      b.setActionCommand("mappingsEdit");
       toolbar.add(b);
     }
     toolbar.add(Box.createHorizontalGlue());
@@ -483,11 +443,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
 
     // display window on screen
+    setTitle(sTitle);
     setSize(sWidth, sHeight);
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     setLocation(screenSize.width/2 - sWidth/2,
                 screenSize.height/2 - sHeight/2);
-    setTitle(sTitle);
     setVisible(true);
   }
 
@@ -507,21 +467,40 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else if (cmd.equals("editCopy")) copyCell();
     else if (cmd.equals("editPaste")) pasteCell();
     else if (cmd.equals("editClear")) clearCell(true);
-    else if (cmd.equals("editMappings")) createMappings();
 
     // cell menu commands
     else if (cmd.equals("cellImport")) loadDataSet();
-    else if (cmd.equals("cellDim3D3D")) setDimension(BasicSSCell.JAVA3D_3D);
-    else if (cmd.equals("cellDim2D2D")) setDimension(BasicSSCell.JAVA2D_2D);
-    else if (cmd.equals("cellDim2D3D")) setDimension(BasicSSCell.JAVA3D_2D);
 
-    /* CTR: SPREADSHEET RESIZE FUNCTIONALITY WILL BE ADDED LATER
-    // grid menu commands
-    else if (cmd.equals("gridAddcol")) addColumn();
-    else if (cmd.equals("gridAddrow")) addRow();
-    else if (cmd.equals("gridDelcol")) delColumn();
-    else if (cmd.equals("gridDelrow")) delRow();
-    */
+    // mappings menu commands
+    else if (cmd.equals("mappingsEdit")) createMappings();
+    else if (cmd.equals("mapColorImage")) {
+      DisplayCells[CurDisplay].setMappingScheme(FancySSCell.COLOR_IMAGE);
+    }
+    else if (cmd.equals("mapGrayImage")) {
+      DisplayCells[CurDisplay].setMappingScheme(FancySSCell.GRAYSCALE_IMAGE);
+    }
+    else if (cmd.equals("mapSphereColorImage")) {
+      DisplayCells[CurDisplay].setMappingScheme(
+                               FancySSCell.COLOR_SPHERICAL_IMAGE);
+    }
+    else if (cmd.equals("mapSphereGrayImage")) {
+      DisplayCells[CurDisplay].setMappingScheme(FancySSCell.GRAYSCALE_IMAGE);
+    }
+    else if (cmd.equals("mapColor3DSurface")) {
+      DisplayCells[CurDisplay].setMappingScheme(FancySSCell.COLOR_3DSURFACE);
+    }
+    else if (cmd.equals("mapGray3DSurface")) {
+      DisplayCells[CurDisplay].setMappingScheme(
+                               FancySSCell.GRAYSCALE_3DSURFACE);
+    }
+    else if (cmd.equals("mapColorSphere3DSurface")) {
+      DisplayCells[CurDisplay].setMappingScheme(
+                               FancySSCell.COLOR_SPHERICAL_3DSURFACE);
+    }
+    else if (cmd.equals("mapGraySphere3DSurface")) {
+      DisplayCells[CurDisplay].setMappingScheme(
+                               FancySSCell.GRAYSCALE_SPHERICAL_3DSURFACE);
+    }
 
     // formula bar commands
     else if (cmd.equals("formulaCancel")) refreshFormulaBar();
@@ -698,32 +677,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
     DisplayCells[CurDisplay].loadDataDialog();
   }
 
-  /** Sets the display dimension to 2-D or 3-D with Java2D or Java3D. */
-  void setDimension(int value) {
-    try {
-      if (value == BasicSSCell.JAVA3D_3D) {
-        DisplayCells[CurDisplay].setDimension(false, false);
-      }
-      else if (value == BasicSSCell.JAVA2D_2D) {
-        DisplayCells[CurDisplay].setDimension(true, true);
-      }
-      else if (value == BasicSSCell.JAVA3D_2D) {
-        DisplayCells[CurDisplay].setDimension(true, false);
-      }
-    }
-    catch (VisADException exc) {
-      ErrorBox.showError("Cannot alter display dimension.");
-    }
-    catch (RemoteException exc) { }
-  }
-
-  /* CTR: DISABLED FOR NOW
-  void addColumn() { }
-  void addRow() { }
-  void delColumn() { }
-  void delRow() { }
-  */
-
   /** Makes sure the formula bar is displaying up-to-date info. */
   void refreshFormulaBar() {
     if (DisplayCells[CurDisplay].hasFormula()) {
@@ -772,22 +725,51 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** Update spreadsheet info when selected cell changes. */
-  void updateInfo() {
-    // update formula bar
-    refreshFormulaBar();
-
-    // update dimension radio buttons in Cell menu
+  /** Update dimension checkbox menu items in Cell menu. */
+  void refreshDimensionMenuItems() {
     int dim = DisplayCells[CurDisplay].getDimension();
     if (dim == BasicSSCell.JAVA3D_3D) {
-      DimensionGroup.setSelected(CellDim3D3D.getModel(), true);
+      CellDim3D3D.setState(true);
+      CellDim2D2D.setState(false);
+      CellDim2D3D.setState(false);
     }
     else if (dim == BasicSSCell.JAVA2D_2D) {
-      DimensionGroup.setSelected(CellDim2D2D.getModel(), true);
+      CellDim3D3D.setState(false);
+      CellDim2D2D.setState(true);
+      CellDim2D3D.setState(false);
     }
     else {  // dim == BasicSSCell.JAVA3D_2D
-      DimensionGroup.setSelected(CellDim2D3D.getModel(), true);
+      CellDim3D3D.setState(false);
+      CellDim2D2D.setState(false);
+      CellDim2D3D.setState(true);
     }
+  }
+
+  /** Update spreadsheet info when selected cell changes. */
+  void refreshInfo() {
+    refreshFormulaBar();
+    refreshDimensionMenuItems();
+  }
+
+  /** Handles checkbox menu item changes (dimension checkboxes). */
+  public void itemStateChanged(ItemEvent e) {
+    String i = (String) e.getItem();
+    try {
+      if (i.equals("3-D (Java3D)")) {
+        DisplayCells[CurDisplay].setDimension(false, false);
+      }
+      else if (i.equals("2-D (Java2D)")) {
+        DisplayCells[CurDisplay].setDimension(true, true);
+      }
+      else {  // i.equals("2-D (Java3D)")
+        DisplayCells[CurDisplay].setDimension(true, false);
+      }
+      refreshDimensionMenuItems();
+    }
+    catch (VisADException exc) {
+      ErrorBox.showError("Cannot alter display dimension.");
+    }
+    catch (RemoteException exc) { }
   }
 
   /** Handles key presses. */
@@ -818,8 +800,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
         DisplayCells[CurDisplay].setSelected(true);
       }
 
-      // update spreadsheet info
-      updateInfo();
+      // refresh spreadsheet info
+      refreshInfo();
     }
   }
 
@@ -841,8 +823,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
     DisplayCells[cnum].setSelected(true);
     CurDisplay = cnum;
 
-    // update spreadsheet info
-    updateInfo();
+    // refresh spreadsheet info
+    refreshInfo();
   }
 
   public void mouseReleased(MouseEvent e) { }

@@ -31,14 +31,27 @@ import visad.data.BadFormException;
     provides an example of GUI extensions to BasicSSCell. */
 public class FancySSCell extends BasicSSCell implements FilenameFilter {
 
+  // Default display mapping types
+  static final int COLOR_IMAGE = 1;
+  static final int GRAYSCALE_IMAGE = 2;
+  static final int COLOR_SPHERICAL_IMAGE = 3;
+  static final int GRAYSCALE_SPHERICAL_IMAGE = 4;
+  static final int COLOR_3DSURFACE = 5;
+  static final int GRAYSCALE_3DSURFACE = 6;
+  static final int COLOR_SPHERICAL_3DSURFACE = 7;
+  static final int GRAYSCALE_SPHERICAL_3DSURFACE = 8;
+
   /** unselected border */
-  static final Border Gray3 = new LineBorder(Color.gray, 3);
+  static final Border GRAY3 = new LineBorder(Color.gray, 3);
 
   /** selected border */
-  static final Border Blue3 = new LineBorder(new Color(0, 127, 255), 3);
+  static final Border BLUE3 = new LineBorder(new Color(0, 127, 255), 3);
 
   /** This cell's parent frame. */
   Frame Parent;
+
+  /** default mapping type */
+  int DefaultMappingType = COLOR_3DSURFACE;
 
   /** Specifies whether this cell is selected. */
   boolean Selected = false;
@@ -81,7 +94,7 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
                                 throws VisADException, RemoteException {
     super(name, info);
     Parent = parent;
-    setBorder(Gray3);
+    setBorder(GRAY3);
     ErrorBox = new ErrorDialog(Parent);
   }
 
@@ -94,12 +107,240 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
     this(name, null, null);
   }
 
+  /** Sets the Data for this cell, and applies the default ScalarMaps. */
+  public void setData(Data data) throws VisADException, RemoteException {
+    System.out.println("setData called"); /* CTR: TEMP */
+
+    super.setData(data);
+    setMappingScheme(DefaultMappingType);
+  }
+
+  public void setMappingScheme(int mappingType) {
+    System.out.println("setMappingScheme called"); /* CTR: TEMP */
+
+    // parse data's MathType;  find FunctionType of form:
+    // ((RealType, ..., RealType) -> (RealType, ..., RealType))
+    Data data = DataRef.getData();
+    if (data == null) return;
+    MathType mathType;
+    try {
+      mathType = data.getType();
+    }
+    catch (VisADException exc) {
+      return;
+    }
+    catch (RemoteException exc) {
+      return;
+    }
+
+    System.out.println("passed initial stuff"); /* CTR: TEMP */
+
+    FunctionType function = findFunction(mathType);
+    if (function == null) return;
+
+    System.out.println("found flat function"); /* CTR: TEMP */
+
+    MathType domain = function.getDomain();
+    MathType range = function.getRange();
+    RealType[] dlist;
+    if (domain instanceof TupleType) {
+      dlist = ((TupleType) domain).getRealComponents();
+    }
+    else {
+      dlist = new RealType[1];
+      dlist[0] = (RealType) domain;
+    }
+    RealType[] rlist;
+    if (range instanceof TupleType) {
+      rlist = ((TupleType) range).getRealComponents();
+    }
+    else {
+      rlist = new RealType[1];
+      rlist[0] = (RealType) range;
+    }
+    DisplayRealType[] d = null;
+    DisplayRealType[] r = null;
+
+    System.out.println("set up domain and range"); /* CTR: TEMP */
+
+    // set up default ScalarMaps
+    if (mappingType == COLOR_IMAGE) {
+      d = new DisplayRealType[2];
+      d[0] = Display.XAxis;
+      d[1] = Display.YAxis;
+      r = new DisplayRealType[3];
+      r[0] = Display.Red;
+      r[1] = Display.Green;
+      r[2] = Display.Blue;
+    }
+    else if (mappingType == GRAYSCALE_IMAGE) {
+      d = new DisplayRealType[2];
+      d[0] = Display.XAxis;
+      d[1] = Display.YAxis;
+      r = new DisplayRealType[3];
+      r[0] = Display.RGB;
+      r[1] = Display.RGB;
+      r[2] = Display.RGB;
+    }
+    else if (mappingType == COLOR_SPHERICAL_IMAGE) {
+      d = new DisplayRealType[2];
+      d[0] = Display.Latitude;
+      d[1] = Display.Longitude;
+      r = new DisplayRealType[3];
+      r[0] = Display.Red;
+      r[1] = Display.Green;
+      r[2] = Display.Blue;
+    }
+    else if (mappingType == GRAYSCALE_SPHERICAL_IMAGE) {
+      d = new DisplayRealType[2];
+      d[0] = Display.Latitude;
+      d[1] = Display.Longitude;
+      r = new DisplayRealType[3];
+      r[0] = Display.RGB;
+      r[1] = Display.RGB;
+      r[2] = Display.RGB;
+    }
+    else if (mappingType == COLOR_3DSURFACE) {
+      d = new DisplayRealType[3];
+      d[0] = Display.XAxis;
+      d[1] = Display.YAxis;
+      d[2] = Display.ZAxis;
+      r = new DisplayRealType[3];
+      r[0] = Display.Red;
+      r[1] = Display.Green;
+      r[2] = Display.Blue;
+    }
+    else if (mappingType == GRAYSCALE_3DSURFACE) {
+      d = new DisplayRealType[3];
+      d[0] = Display.XAxis;
+      d[1] = Display.YAxis;
+      d[2] = Display.ZAxis;
+      r = new DisplayRealType[3];
+      r[0] = Display.RGB;
+      r[1] = Display.RGB;
+      r[2] = Display.RGB;
+    }
+    else if (mappingType == COLOR_SPHERICAL_3DSURFACE) {
+      d = new DisplayRealType[3];
+      d[0] = Display.Latitude;
+      d[1] = Display.Longitude;
+      d[2] = Display.Radius;
+      r = new DisplayRealType[3];
+      r[0] = Display.Red;
+      r[1] = Display.Green;
+      r[2] = Display.Blue;
+    }
+    else if (mappingType == GRAYSCALE_SPHERICAL_3DSURFACE) {
+      d = new DisplayRealType[3];
+      d[0] = Display.Latitude;
+      d[1] = Display.Longitude;
+      d[2] = Display.Radius;
+      r = new DisplayRealType[3];
+      r[0] = Display.RGB;
+      r[1] = Display.RGB;
+      r[2] = Display.RGB;
+    }
+    if (d == null || r == null) return;
+
+    System.out.println("Set up scalar maps"); /* CTR: TEMP */
+
+    // apply ScalarMaps
+    int dlen = dlist.length > d.length ? d.length : dlist.length;
+    int rlen = rlist.length > r.length ? r.length : rlist.length;
+    ScalarMap[] smaps = new ScalarMap[dlen+rlen];
+    for (int i=0; i<dlen; i++) {
+      try {
+        smaps[i] = new ScalarMap(dlist[i], d[i]);
+      }
+      catch (VisADException exc) {
+        return;
+      }
+    }
+    for (int i=0; i<rlen; i++) {
+      try {
+        smaps[i+dlen] = new ScalarMap(rlist[i], r[i]);
+      }
+      catch (VisADException exc) {
+        return;
+      }
+    }
+
+    System.out.println("created scalarmaps"); /* CTR: TEMP */
+
+    try {
+      setMaps(smaps);
+    }
+    catch (VisADException exc) { }
+    catch (RemoteException exc) { }
+
+    System.out.println("mapped scalarmaps"); /* CTR: TEMP */
+  }
+
+  /** Used by setData's default ScalarMap logic, to find a valid function. */
+  FunctionType findFunction(MathType mathType) {
+    if (mathType instanceof ScalarType) return null;
+    if (mathType instanceof SetType) return null;
+    if (mathType instanceof TupleType) {
+      for (int i=0; i<((TupleType) mathType).getDimension(); i++) {
+        FunctionType f = null;
+        try {
+          f = findFunction(((TupleType) mathType).getComponent(i));
+        }
+        catch (VisADException exc) { }
+        if (f != null) return f;
+      }
+    }
+    if (mathType instanceof FunctionType) {
+      MathType domain = ((FunctionType) mathType).getDomain();
+      MathType range = ((FunctionType) mathType).getRange();
+      if (domain instanceof FunctionType) return null;
+      if (domain instanceof SetType) return null;
+      if (domain instanceof TextType) return null;
+      if (range instanceof FunctionType) return null;
+      if (range instanceof SetType) return null;
+      if (range instanceof TextType) return null;
+
+      if (!(domain instanceof RealType)) {
+        // test domain
+        int dlen = ((TupleType) domain).getDimension();
+        for (int i=0; i<dlen; i++) {
+          try {
+            if (!(((TupleType) domain).getComponent(i) instanceof RealType)) {
+              return null;
+            }
+          }
+          catch (VisADException exc) {
+            return null;
+          }
+        }
+      }
+
+      if (!(range instanceof RealType)) {
+        // test range
+        int rlen = ((TupleType) range).getDimension();
+        for (int i=0; i<rlen; i++) {
+          try {
+            if (!(((TupleType) range).getComponent(i) instanceof RealType)) {
+              return null;
+            }
+          }
+          catch (VisADException exc) {
+            return null;
+          }
+        }
+      }
+
+      return (FunctionType) mathType;
+    }
+    return null;
+  }
+
   /** Specifies whether the FancySSCell has a blue border or a gray border. */
   public void setSelected(boolean value) {
     if (Selected == value) return;
     Selected = value;
-    if (Selected) setBorder(Blue3);
-    else setBorder(Gray3);
+    if (Selected) setBorder(BLUE3);
+    else setBorder(GRAY3);
     paint(getGraphics());
   }
 
@@ -128,6 +369,10 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
     if (confirmClear()) clearCell();
   }
 
+  public void setDefaultMappings(int mappingType) {
+    DefaultMappingType = mappingType;
+  }
+
   /** Lets the user create ScalarMaps from the current SSPanel's Data
       to its Display. */
   public void addMapDialog() {
@@ -150,7 +395,7 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
 
     // clear old mappings
     try {
-      if (HasMappings) clearDisplay();
+      clearDisplay();
     }
     catch (VisADException exc) { }
     catch (RemoteException exc) { }
