@@ -1514,9 +1514,9 @@ public abstract class JPythonMethods {
    *
    */
   public static Unit makeUnit(String name) 
-    throws visad.data.netcdf.units.NoSuchUnitException, 
-    visad.data.netcdf.units.ParseException {
-    return (visad.data.netcdf.units.Parser.parse(name));
+         throws visad.data.units.NoSuchUnitException,
+         visad.data.units.ParseException {
+    return (visad.data.units.Parser.parse(name));
   }
 
   /** create a Linear1DSet for domain samples
@@ -1762,6 +1762,11 @@ public abstract class JPythonMethods {
   public static RealType getRealType(String name) {
     return (visad.RealType.getRealType(name));
   }
+
+  public static RealType getRealType(String name, Unit u) {
+    return (visad.RealType.getRealType(name, u));
+  }
+
 
   /** get the MathType of the named VisAD data object
   *
