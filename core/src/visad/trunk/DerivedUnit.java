@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DerivedUnit.java,v 1.4 1998-03-14 12:56:59 billh Exp $
+ * $Id: DerivedUnit.java,v 1.5 1998-06-04 20:07:07 steve Exp $
  */
 
 package visad;
@@ -35,7 +35,7 @@ public final class DerivedUnit
      * javac(1) compiler on our SunOS 5.5 systems doesn't recognize this
      * fact; hence, the "final" is commented-out.
      */
-    private /*final*/ Factor[]	factors;
+    /*final*/ Factor[]	factors;
 
 
     /**
@@ -246,7 +246,7 @@ public final class DerivedUnit
 	return vector;
     }
 
-    private static abstract class Op
+    static abstract class Op
     {
 	public DerivedUnit multOp(DerivedUnit d1, DerivedUnit d2)
 	{

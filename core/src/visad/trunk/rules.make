@@ -4,13 +4,13 @@ all:		classes
 
 classes:	FORCE
 	@case "$(JAVASRCS)" in \
-	    '') $(MAKE) `ls *.java | sed 's/\.java/.class/'` ;; \
-	    *) $(MAKE) $(JAVASRCS:.java=.class) ;; \
+	    '') set -x; $(JAVAC) *.java ;; \
+	    *)  set -x; $(JAVAC) $(JAVASRCS) ;; \
 	esac
 
 test:		classes
 
-jar:		$(JARDIR)/$(JARFILE)
+#jar:		$(JARDIR)/$(JARFILE)
 
 $(JARDIR)/$(JARFILE):	classes $(JARDIR)
 	case "$(JARFILE)" in \
@@ -19,14 +19,12 @@ $(JARDIR)/$(JARFILE):	classes $(JARDIR)
 	esac
 
 $(DOCDIR) \
-$(JARDIR):
-	mkdir $@
+$(JARDIR) \
+$(FTPDIR):
+	mkdir -p $@
 
 clean:
 	rm -f $(GARBAGE) *.class;
-
-#	subdir=`pwd | sed 's:$(SRCDIR)::'`; \
-#	    echo rm $(CLASSDIR)$$subdir/*.class
 
 $(SUBDIR_TARGETS):	FORCE
 	@subdir=`echo $@ | sed 's,/.*,,'`; \
@@ -49,19 +47,12 @@ subdir_target:
 
 .jj.java:
 	$(JAVACC) $<
-
-# The "CLASSPATH=" settings in the following ensure that the package
-# sources are used before any installed .class files.
-#
 .java.class:
-	CLASSPATH=$(ROOTDIR):$$CLASSPATH $(JAVAC) $<
-#	CLASSPATH=$(CLASSDIR):$$CLASSPATH $(JAVAC) -d $(CLASSDIR) $<
+	$(JAVAC) $<
 .class.test:
-	CLASSPATH=$(ROOTDIR):$$CLASSPATH $(JAVA) $(PACKAGE_PREFIX)$*
-#	CLASSPATH=$(CLASSDIR):$$CLASSPATH $(JAVA) $(PACKAGE_PREFIX)$*
+	$(JAVA) $(PACKAGE).$*
 .class.debug:
-	CLASSPATH=$(ROOTDIR):$$CLASSPATH $(JDB) $(PACKAGE_PREFIX)$*
-#	CLASSPATH=$(CLASSDIR):$$CLASSPATH $(JDB) $(PACKAGE_PREFIX)$*
+	$(JDB) $(PACKAGE).$*
 
 # The following entry may be used as a dependency in order to force
 # execution of the associated rule.

@@ -41,6 +41,13 @@ public class LinearLatLonSet extends Linear2DSet {
 
   private boolean LongitudeWrap;
   private double WrapStep, WrapFactor;
+  private int latI;		// index of latitude component
+  private int lonI;		// index of longitude component
+  private double halfPiLat;	// 0.5*pi in set lat units
+  private double halfPiLon;	// 0.5*pi in set lon units
+  private double twoPiLon;	// 2*pi in set lon units
+  private Linear1DSet lat;	// references X or Y in super
+  private Linear1DSet lon;	// references Y or X in super
 
   public LinearLatLonSet(MathType type, Linear1DSet[] sets) throws VisADException {
     this(type, sets, null, null, null);
@@ -56,7 +63,33 @@ public class LinearLatLonSet extends Linear2DSet {
                          CoordinateSystem coord_sys, Unit[] units,
                          ErrorEstimate[] errors) throws VisADException {
     super(type, sets, coord_sys, units, errors);
+    setParameters();
     checkWrap();
+  }
+
+  private void setParameters() throws VisADException, UnitException {
+    MathType	type0 = ((SetType)getType()).getDomain().getComponent(0);
+
+    latI = RealType.Latitude.equals(type0) ? 0 : 1;
+
+    if (latI == 0) {
+      lonI = 1;
+      lat = X;
+      lon = Y;
+    } else {
+      lonI = 0;
+      lat = Y;
+      lon = X;
+    }
+
+    Unit[] units = getSetUnits();
+    halfPiLat = SI.radian.toThat(0.5*Math.PI, units[latI]);
+    halfPiLon = SI.radian.toThat(0.5*Math.PI, units[lonI]);
+    twoPiLon = 4.0 * halfPiLon;
+  }
+
+  private void setLatLonUnits()
+  {
   }
 
   public LinearLatLonSet(MathType type, double first1, double last1, int length1,
@@ -65,22 +98,25 @@ public class LinearLatLonSet extends Linear2DSet {
                          ErrorEstimate[] errors) throws VisADException {
     super(type, first1, last1, length1, first2, last2, length2, coord_sys,
           units, errors);
+    setParameters();
     checkWrap();
   }
 
   void checkWrap() throws VisADException {
-    if (Low[0] < -0.5 * Math.PI || Hi[0] > 0.5 * Math.PI ||
-        Low[1] < -2.0 * Math.PI || Hi[1] > 2.0 * Math.PI ||
-        (Hi[1] - Low[1]) > 2.0 * Math.PI) {
+    Unit[] units = getSetUnits();
+
+    if (Low[latI] < -halfPiLat || Hi[latI] > halfPiLat ||
+        Low[lonI] < -twoPiLon || Hi[lonI] > twoPiLon ||
+        (Hi[lonI] - Low[lonI]) > twoPiLon) {
       throw new SetException("LinearLatLonSet: out of bounds " +
                              "(note Lat and Lon in Radians)");
     }
     LongitudeWrap =
-        (Hi[1] - Low[1]) + 2.0 * Math.abs(Y.getStep()) >= 2.0 * Math.PI &&
-        Y.getLength() > 1;
+        (Hi[1] - Low[1]) + 2.0 * Math.abs(lon.getStep()) >= twoPiLon &&
+        lon.getLength() > 1;
     if (LongitudeWrap) {
-      WrapStep = 2.0 * Math.PI - (Hi[1] - Low[1]);
-      WrapFactor = Math.abs(Y.getStep()) / WrapStep;
+      WrapStep = twoPiLon - (Hi[lonI] - Low[lonI]);
+      WrapFactor = Math.abs(lon.getStep()) / WrapStep;
     }
   }
 
@@ -95,30 +131,30 @@ public class LinearLatLonSet extends Linear2DSet {
                              "dimensions to be > 1");
     }
     int length = grid[0].length;
-    float[][] gridX = new float[1][];
-    gridX[0] = grid[0];
-    float[][] gridY = new float[1][];
-    gridY[0] = grid[1];
+    float[][] gridLat = new float[1][];
+    gridLat[0] = grid[latI];
+    float[][] gridLon = new float[1][];
+    gridLon[0] = grid[lonI];
     if (LongitudeWrap) {
-      float len = (float) Y.getLength();
+      float len = (float) lon.getLength();
       float lenh = len - 0.5f;
       float lenm = len - 1.0f;
       for (int i=0; i<length; i++) {
-        if (gridY[0][i] > lenm) {
-          gridY[0][i] = (float) (lenm + (gridY[0][i] - lenm) / WrapFactor);
-          if (gridY[0][i] > lenh) gridY[0][i] -= len;
+        if (gridLon[0][i] > lenm) {
+          gridLon[0][i] = (float) (lenm + (gridLon[0][i] - lenm) / WrapFactor);
+          if (gridLon[0][i] > lenh) gridLon[0][i] -= len;
         }
-        else if (gridY[0][i] < 0.0) {
-          gridY[0][i] = (float) (gridY[0][i] / WrapFactor);
-          if (gridY[0][i] < -0.5) gridY[0][i] += len;
+        else if (gridLon[0][i] < 0.0) {
+          gridLon[0][i] = (float) (gridLon[0][i] / WrapFactor);
+          if (gridLon[0][i] < -0.5) gridLon[0][i] += len;
         }
       }
     }
-    float[][] valueX = X.gridToValue(gridX);
-    float[][] valueY = Y.gridToValue(gridY);
+    float[][] valueLat = lat.gridToValue(gridLat);
+    float[][] valueLon = lon.gridToValue(gridLon);
     float[][] value = new float[2][];
-    value[0] = valueX[0];
-    value[1] = valueY[0];
+    value[latI] = valueLat[0];
+    value[lonI] = valueLon[0];
     return value;
   }
 
@@ -133,48 +169,48 @@ public class LinearLatLonSet extends Linear2DSet {
                              "dimensions to be > 1");
     }
     int length = value[0].length;
-    float[][] valueX = new float[1][];
-    valueX[0] = value[0];
-    float[] valueY = value[1];
-    float[][] gridX = X.valueToGrid(valueX); // Latitude-s
+    float[][] valueLat = new float[1][];
+    valueLat[0] = value[latI];
+    float[] valueLon = value[lonI];
+    float[][] gridLat = lat.valueToGrid(valueLat); // Latitude-s
 
-    float[] gridY = new float[length];
-    float l = (float) (Y.getFirst() - 0.5 * Y.getStep());
-    float h = (float) (Y.getFirst() + (((float) Y.getLength()) - 0.5) * Y.getStep());
+    float[] gridLon = new float[length];
+    float l = (float) (lon.getFirst() - 0.5 * lon.getStep());
+    float h = (float) (lon.getFirst() + (((float) lon.getLength()) - 0.5) * lon.getStep());
     if (h < l) {
       float temp = l;
       l = h;
       h = temp;
     }
     if (LongitudeWrap) {
-      l = (float) (l + 0.5 * Math.abs(Y.getStep()) - 0.5 * WrapStep);
-      h = (float) (l + 2.0 * Math.PI);
+      l = (float) (l + 0.5 * Math.abs(lon.getStep()) - 0.5 * WrapStep);
+      h = (float) (l + twoPiLon);
     }
     for (int i=0; i<length; i++) {
-      float v = (float) (valueY[i] % (2.0 * Math.PI));
-      if (v <= l ) v += 2.0 * Math.PI;
-      else if (h <= v) v -= 2.0 * Math.PI;
-      gridY[i] = (float)
-        ((l < v && v < h) ? (v - Y.getFirst()) * Y.getInvstep() : Double.NaN);
+      float v = (float) (valueLon[i] % (twoPiLon));
+      if (v <= l ) v += twoPiLon;
+      else if (h <= v) v -= twoPiLon;
+      gridLon[i] = (float)
+        ((l < v && v < h) ? (v - lon.getFirst()) * lon.getInvstep() : Double.NaN);
     }
     if (LongitudeWrap) {
-      float len = (float) Y.getLength();
+      float len = (float) lon.getLength();
       float lenh = len - 0.5f;
       float lenm = len - 1.0f;
       for (int i=0; i<length; i++) {
-        if (gridY[i] > lenm) {
-          gridY[i] = (float) (lenm + (gridY[i] - lenm) * WrapFactor);
-          if (gridY[i] > lenh) gridY[i] -= len;
+        if (gridLon[i] > lenm) {
+          gridLon[i] = (float) (lenm + (gridLon[i] - lenm) * WrapFactor);
+          if (gridLon[i] > lenh) gridLon[i] -= len;
         }
-        else if (gridY[i] < 0.0) {
-          gridY[i] = (float) (gridY[i] * WrapFactor);
-          if (gridY[i] < -0.5) gridY[i] += len;
+        else if (gridLon[i] < 0.0) {
+          gridLon[i] = (float) (gridLon[i] * WrapFactor);
+          if (gridLon[i] < -0.5) gridLon[i] += len;
         }
       }
     }
     float[][] grid = new float[2][];
-    grid[0] = gridX[0];
-    grid[1] = gridY;
+    grid[latI] = gridLat[0];
+    grid[lonI] = gridLon;
     return grid;
   }
 
@@ -194,7 +230,7 @@ public class LinearLatLonSet extends Linear2DSet {
       throw new SetException("LinearLatLonSet.valueToInterp: lengths don't match");
     }
     float[][] grid = valueToGrid(value); // convert value array to grid coord array
-    /* if LongitudeWrap, grid[1][i] should be between -0.5 and Y.Length-0.5 */
+    /* if LongitudeWrap, grid[lonI][i] should be between -0.5 and lon.Length-0.5 */
 
     int i, j, k; // loop indices
     int lis; // temporary length of is & cs
@@ -210,43 +246,43 @@ public class LinearLatLonSet extends Linear2DSet {
 
     // array of index offsets by grid dimension
     int[] off = new int[2];
-    off[0] = 1;
-    off[1] = off[0] * Lengths[0];
+    off[latI] = 1;
+    off[lonI] = off[latI] * Lengths[latI];
 
     for (i=0; i<length; i++) {
       boolean WrapThis = false;
       // compute length_is, base, l & c
       length_is = 1;
-      if (Double.isNaN(grid[1][i])) {
+      if (Double.isNaN(grid[lonI][i])) {
         base = -1;
       }
       else {
-        l[1] = (int) (grid[1][i] + 0.5);
-        c[1] = grid[1][i] - ((float) l[1]);
-        if (!((l[1] == 0 && c[1] <= 0.0) ||
-              (l[1] == Lengths[1] - 1 && c[1] >= 0.0))) {
-          // interp along Longitude (dim 1) if between two valid grid coords
+        l[lonI] = (int) (grid[lonI][i] + 0.5);
+        c[lonI] = grid[lonI][i] - ((float) l[lonI]);
+        if (!((l[lonI] == 0 && c[lonI] <= 0.0) ||
+              (l[lonI] == Lengths[lonI] - 1 && c[lonI] >= 0.0))) {
+          // interp along Longitude (dim lonI) if between two valid grid coords
           length_is *= 2;
         }
         else if (LongitudeWrap) {
           length_is *= 2;
           WrapThis = true;
         }
-        base = l[1];
+        base = l[lonI];
       }
       if (base>=0) {
-        if (Double.isNaN(grid[0][i])) {
+        if (Double.isNaN(grid[latI][i])) {
           base = -1;
         }
         else {
-          l[0] = (int) (grid[0][i] + 0.5);
-          c[0] = grid[0][i] - ((float) l[0]);
-          if (!((l[0] == 0 && c[0] <= 0.0) ||
-                (l[0] == Lengths[0] - 1 && c[0] >= 0.0))) {
-            // interp along Latitude (dim 0) if between two valid grid coords
+          l[latI] = (int) (grid[latI][i] + 0.5);
+          c[latI] = grid[latI][i] - ((float) l[latI]);
+          if (!((l[latI] == 0 && c[latI] <= 0.0) ||
+                (l[latI] == Lengths[latI] - 1 && c[latI] >= 0.0))) {
+            // interp along Latitude (dim latI) if between two valid grid coords
             length_is *= 2;
           }
-          base = l[0] + Lengths[0] * base;
+          base = l[latI] + Lengths[latI] * base;
         }
       }
 
@@ -259,25 +295,25 @@ public class LinearLatLonSet extends Linear2DSet {
         // create is & cs of proper length, and init first element
         is = new int[length_is];
         cs = new float[length_is];
-        is[0] = base;
-        cs[0] = 1.0f;
+        is[latI] = base;
+        cs[latI] = 1.0f;
         lis = 1;
 
         // unroll loop over dimension = 0, 1
-        if (WrapThis || !((l[0] == 0 && c[0] <= 0.0) ||
-              (l[0] == Lengths[0] - 1 && c[0] >= 0.0)) ) {
-          // interp along Latitude (dim 0) if between two valid grid coords
-          if (c[0] >= 0.0) {
+        if (WrapThis || !((l[latI] == 0 && c[latI] <= 0.0) ||
+              (l[latI] == Lengths[latI] - 1 && c[latI] >= 0.0)) ) {
+          // interp along Latitude (dim latI) if between two valid grid coords
+          if (c[latI] >= 0.0) {
             // grid coord above base
-            isoff = off[0];
-            a = 1.0f - c[0];
-            b = c[0];
+            isoff = off[latI];
+            a = 1.0f - c[latI];
+            b = c[latI];
           }
           else {
             // grid coord below base
-            isoff = -off[0];
-            a = 1.0f + c[0];
-            b = -c[0];
+            isoff = -off[latI];
+            a = 1.0f + c[latI];
+            b = -c[latI];
           }
           // float is & cs; adjust new offsets; split weights
           for (k=0; k<lis; k++) {
@@ -287,32 +323,32 @@ public class LinearLatLonSet extends Linear2DSet {
           }
           lis *= 2;
         }
-        if (WrapThis || !((l[1] == 0 && c[1] <= 0.0) ||
-              (l[1] == Lengths[1] - 1 && c[1] >= 0.0)) ) {
-          // interp along Longitude (dim 1) if between two valid grid coords
-          if (WrapThis && l[1] == 0) {
-            // c[1] <= 0.0; grid coord below base
-            isoff = off[1] * (Lengths[1] - 1); // so Wrap to top
-            a = 1.0f + c[1];
-            b = -c[1];
+        if (WrapThis || !((l[lonI] == 0 && c[lonI] <= 0.0) ||
+              (l[lonI] == Lengths[lonI] - 1 && c[lonI] >= 0.0)) ) {
+          // interp along Longitude (dim lonI) if between two valid grid coords
+          if (WrapThis && l[lonI] == 0) {
+            // c[lonI] <= 0.0; grid coord below base
+            isoff = off[lonI] * (Lengths[lonI] - 1); // so Wrap to top
+            a = 1.0f + c[lonI];
+            b = -c[lonI];
           }
-          else if (WrapThis && l[1] == Lengths[1] - 1) {
-            // c[1] >= 0.0; grid coord above base
-            isoff = -off[1] * (Lengths[1] - 1); // so Wrap to bottom
-            a = 1.0f - c[1];
-            b = c[1];
+          else if (WrapThis && l[lonI] == Lengths[lonI] - 1) {
+            // c[lonI] >= 0.0; grid coord above base
+            isoff = -off[lonI] * (Lengths[lonI] - 1); // so Wrap to bottom
+            a = 1.0f - c[lonI];
+            b = c[lonI];
           }
-          else if (c[1] >= 0.0) {
+          else if (c[lonI] >= 0.0) {
             // grid coord above base
-            isoff = off[1];
-            a = 1.0f - c[1];
-            b = c[1];
+            isoff = off[lonI];
+            a = 1.0f - c[lonI];
+            b = c[lonI];
           }
           else {
             // grid coord below base
-            isoff = -off[1];
-            a = 1.0f + c[1];
-            b = -c[1];
+            isoff = -off[lonI];
+            a = 1.0f + c[lonI];
+            b = -c[lonI];
           }
           // float is & cs; adjust new offsets; split weights
           for (k=0; k<lis; k++) {

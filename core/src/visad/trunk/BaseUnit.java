@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: BaseUnit.java,v 1.3 1998-02-20 16:53:28 billh Exp $
+ * $Id: BaseUnit.java,v 1.4 1998-06-04 20:07:06 steve Exp $
  */
 
 package visad;
@@ -39,10 +39,10 @@ public final class BaseUnit
     /**
      * Derived unit associated with base unit (for computational efficiency).
      */
-    private final DerivedUnit		derivedUnit;
+    final DerivedUnit			derivedUnit;
 
     /**
-     * Global database of base units (to prevent multiply base units for the
+     * Global database of base units (to prevent multiple base units for the
      * same quantity).
      */
     private static final Vector	baseUnits = new Vector(8);
