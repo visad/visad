@@ -8,13 +8,21 @@ all::
 
 # this should point to the directory holding the TrackD header file
 #
-# TRACKD_INC = /path/to/trackd/incs
-# e.g. TRACKD_INC = .
+# TRACKD_INCDIR = .
 
 # this should point to the TrackD library
 #
-# TRACKD_LIB = -lc
-# e.g. TRACKD_LIB = -ltrackdAPI -lstdc++
+# TRACKD_LIBDIR=/home3/billh/trackd/trackdAPI/lib
+
+# this should point to the GCC standard library directory
+#
+# GCC_LIBDIR=`gcc -print-libgcc-file-name | sed 's/\/[^\/]*$$//'`
+
+# this is the list of libraries needed for the TrackD JNI shim
+#
+TRACKD_LIB = -L$(TRACKD_LIBDIR) -ltrackdAPI \
+	-L$(GCC_LIBDIR) -lstdc++ -lgcc \
+	-lm -lc
 
 # base name for shared library
 #
@@ -40,12 +48,12 @@ TrackdAPI.o: visad_java3d_TrackdJNI.h
 # rule to stop Makefile if information is missing
 #
 required_macros::
-	@if [ -z "$(TRACKD_INC)" ]; then echo "TRACKD_INC is undefined"; exit 1; fi
-	@if [ -z "$(TRACKD_LIB)" ]; then echo "TRACKD_LIB is undefined"; exit 1; fi
+	@if [ -z "$(TRACKD_INCDIR)" ]; then echo "TRACKD_INCDIR is undefined"; exit 1; fi
+	@if [ -z "$(TRACKD_LIBDIR)" ]; then echo "TRACKD_LIBDIR is undefined"; exit 1; fi
 
 # special header/library files needed by this package
 #
-PKGINCS = -I$(TRACKD_INC)
+PKGINCS = -I$(TRACKD_INCDIR)
 PKGLIBS = $(TRACKD_LIB)
 
 # set LINK_F77 to 'true' if any Fortran .o files are
@@ -197,13 +205,14 @@ solaris_gcc: required_macros
 		JAVAARCH=solaris \
 		CC="gcc" \
 		SHCFLAGS="-fPIC -DPIC" \
-		SHLDFLAGS="-shared" \
+		SHLD="$(CC)" \
+		SHLDFLAGS="-G -z defs" \
 		SHFLD="$(FC)" \
 		SHFLDFLAGS="-G -Qoption ld -z,defs" \
-		SYSLIBS="-lM77 -lF77 -lsunmath -lnsl -lm -lc" \
 		JAVADIR="$(JAVADIR)" \
 		JC="$(JC)" \
 		JFLAGS="$(JFLAGS)" \
+		shared_library
 
 irix: required_macros
 	@make \
