@@ -47,10 +47,10 @@ public class MeasureLine {
   int id;
 
   /** Data reference for first endpoint. */
-  private DataReferenceImpl ref_p1;
+  DataReferenceImpl ref_p1;
 
   /** Data reference for second endpoint. */
-  private DataReferenceImpl ref_p2;
+  DataReferenceImpl ref_p2;
 
   /** Data reference for connecting line. */
   private DataReferenceImpl ref_line;

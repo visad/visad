@@ -43,6 +43,9 @@ public class LinePool implements DisplayListener {
   /** Associated VisAD display. */
   private DisplayImpl display;
 
+  /** Associated measurement toolbar. */
+  private MeasureToolbar toolbar;
+
   /** Associated selection box. */
   private SelectionBox box;
 
@@ -56,9 +59,10 @@ public class LinePool implements DisplayListener {
   private int used;
 
   /** Constructs a pool of lines. */
-  public LinePool(DisplayImpl display, int blockSize) {
+  public LinePool(DisplayImpl display, MeasureToolbar toolbar, int blockSize) {
     lines = new Vector();
     this.display = display;
+    this.toolbar = toolbar;
     this.blockSize = blockSize;
     size = 0;
     used = 0;
@@ -192,10 +196,14 @@ public class LinePool implements DisplayListener {
       }
 
       // highlight picked line
-      if (mindist > threshold) box.select(null);
+      if (mindist > threshold) {
+        box.select(null);
+        if (toolbar != null) toolbar.select(null);
+      }
       else {
         MeasureLine line = (MeasureLine) lines.elementAt(index);
         box.select(line);
+        if (toolbar != null) toolbar.select(line);
       }
     }
   }

@@ -45,10 +45,12 @@ public class MeasureMatrix {
   private int index;
 
   /** Constructs a list of measurements. */
-  public MeasureMatrix(int length, DisplayImpl display) {
+  public MeasureMatrix(int length,
+    DisplayImpl display, MeasureToolbar toolbar)
+  {
     matrix = new MeasureList[length][];
     this.display = display;
-    pool = new LinePool(display, MeasureList.MIN_POOL_SIZE / 2);
+    pool = new LinePool(display, toolbar, MeasureList.MIN_POOL_SIZE / 2);
   }
 
   /** Initializes the given index and sets it as the current index. */

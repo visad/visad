@@ -45,6 +45,7 @@ public class FileSeriesWidget extends StepWidget {
   private int curFile;
   private DisplayImpl display;
   private ImageStackWidget isw;
+  private MeasureToolbar toolbar;
   private ScalarMap animMap;
   private ScalarMap xMap;
   private ScalarMap yMap;
@@ -65,7 +66,7 @@ public class FileSeriesWidget extends StepWidget {
   /** Links the FileSeriesWidget with the given series of files. */
   public void setSeries(File[] files) {
     this.files = files;
-    mm = new MeasureMatrix(files.length, display);
+    mm = new MeasureMatrix(files.length, display, toolbar);
     isw.setMatrix(mm);
     loadFile(true);
     updateSlider();
@@ -75,9 +76,10 @@ public class FileSeriesWidget extends StepWidget {
   public void setDisplay(DisplayImpl display) { this.display = display; }
 
   /** Links the FileSeriesWidget with the given ImageStackWidget. */
-  public void setWidget(ImageStackWidget widget) {
-    isw = widget;
-  }
+  public void setWidget(ImageStackWidget widget) { isw = widget; }
+
+  /** Links the FileSeriesWidget with the given MeasureToolbar. */
+  public void setToolbar(MeasureToolbar toolbar) { this.toolbar = toolbar; }
 
   /** Updates the current file of the image series. */
   public void updateStep() {
@@ -89,8 +91,12 @@ public class FileSeriesWidget extends StepWidget {
 
   private void updateSlider() {
     int max = 1;
-    if (files == null) setEnabled(false);
+    if (files == null) {
+      toolbar.setEnabled(false);
+      setEnabled(false);
+    }
     else {
+      toolbar.setEnabled(true);
       setEnabled(true);
       max = files.length;
       curFile = 0;

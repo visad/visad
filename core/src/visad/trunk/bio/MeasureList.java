@@ -46,8 +46,11 @@ public class MeasureList {
   /** Associated display. */
   private DisplayImpl display;
 
-  /** Default endpoint values. */
-  private RealTuple[] values;
+  /** Default endpoint values for line. */
+  private RealTuple[] lnVals;
+
+  /** Default endpoint values for point. */
+  private RealTuple[] ptVals;
 
   /** Pool of lines. */
   private LinePool pool;
@@ -63,6 +66,7 @@ public class MeasureList {
     final int len = domain.getDimension();
     Real[] p1r = new Real[len];
     Real[] p2r = new Real[len];
+    Real[] pxr = new Real[len];
     for (int i=0; i<len; i++) {
       RealType rt = (RealType) domain.getComponent(i);
       float s1 = samples[i][0];
@@ -74,19 +78,27 @@ public class MeasureList {
       }
       p1r[i] = new Real(rt, s1);
       p2r[i] = new Real(rt, s2);
+      pxr[i] = new Real(rt, (s1 + s2) / 2);
     }
     measureList = new Vector();
     this.display = display;
-    values = new RealTuple[2];
-    values[0] = new RealTuple(p1r);
-    values[1] = new RealTuple(p2r);
+    lnVals = new RealTuple[2];
+    lnVals[0] = new RealTuple(p1r);
+    lnVals[1] = new RealTuple(p2r);
+    ptVals = new RealTuple[1];
+    ptVals[0] = new RealTuple(pxr);
     this.pool = pool;
     pool.expand(MIN_POOL_SIZE, domain);
   }
 
-  /** Adds a measurement to the measurement list. */
+  /** Adds a measurement line to the measurement list. */
   public void addMeasurement() {
-    Measurement m = new Measurement(values, defaultGroup);
+    addMeasurement(false);
+  }
+
+  /** Adds a measurement line or point to the measurement list. */
+  public void addMeasurement(boolean point) {
+    Measurement m = new Measurement(point ? ptVals : lnVals, defaultGroup);
     measureList.add(m);
     pool.addLine(m);
   }

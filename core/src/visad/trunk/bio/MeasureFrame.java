@@ -73,6 +73,9 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
   /** Widget for stepping through data from the series of files. */
   private FileSeriesWidget horizWidget;
 
+  /** Toolbar for performing various operations. */
+  private MeasureToolbar toolbar;
+
   /** Prefix of current data series. */
   private String prefix;
 
@@ -117,18 +120,8 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
     pane.add(horizWidget, BorderLayout.SOUTH);
 
     // custom toolbar
-    JPanel toolbar = new JPanel();
-    toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.Y_AXIS));
-    JButton addLine = new JButton("Add line");
-    addLine.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        int index = horizWidget.getValue() - 1;
-        int slice = vertWidget.getValue() - 1;
-        MeasureList list = matrix.getMeasureList(index, slice);
-        list.addMeasurement();
-      }
-    });
-    toolbar.add(addLine);
+    toolbar = new MeasureToolbar(horizWidget, vertWidget);
+    horizWidget.setToolbar(toolbar);
     pane.add(toolbar, BorderLayout.EAST);
   }
 

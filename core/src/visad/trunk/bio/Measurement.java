@@ -30,7 +30,7 @@ import java.awt.Color;
 import java.rmi.RemoteException;
 import visad.*;
 
-/** Measurement represents a possible grouping for measurement lines. */
+/** Measurement represents the values of a measurement line or point. */
 public class Measurement {
 
   /** Endpoint values of the measurement. */
@@ -42,7 +42,7 @@ public class Measurement {
   /** Group of the measurement. */
   private LineGroup group;
 
-  /** Constructs a pool of lines. */
+  /** Constructs a measurement. */
   public Measurement(RealTuple[] values, LineGroup group) {
     this.values = values;
     this.group = group;
@@ -65,6 +65,9 @@ public class Measurement {
 
   /** Gets the measurement line color. */
   public Color getColor() { return color; }
+
+  /** Gets whether this measurement is a point (rather than a line). */
+  public boolean isPoint() { return values.length == 1; }
 
   /** Gets the current distance between the endpoints. */
   public double getDistance() {
