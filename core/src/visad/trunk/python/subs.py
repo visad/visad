@@ -276,7 +276,11 @@ def drawLine(display, points, color=None, mathtype=None):
   # drawLine(display, domainType, points[])
   maps = None
   if mathtype is not None:
-    lineseg = Gridded2DSet(RealTupleType(mathtype), points, len(points[0]))
+    if len(points == 2):
+      lineseg = Gridded2DSet(RealTupleType(mathtype), points, len(points[0]))
+    else:
+      lineseg = Gridded3DSet(RealTupleType(mathtype), points, len(points[0]))
+
     linref = addData("linesegment", lineseg, display, constmap)
     return linref
 
@@ -286,10 +290,11 @@ def drawLine(display, points, color=None, mathtype=None):
 
     if len(points) == 2:
       dom = RealTupleType(x,y)
+      lineseg = Gridded2DSet(dom, points, len(points[0]))
     else:
       dom = RealTupleType(x,y,z)
+      lineseg = Gridded3DSet(dom, points, len(points[0]))
 
-    lineseg = Gridded2DSet(dom, points, len(points[0]))
     linref = addData("linesegment", lineseg, disp, constmap)
     return linref 
 
