@@ -38,7 +38,12 @@ public abstract class ProjectionControl extends Control {
   protected double[] matrix = null;
 
   public static final int MATRIX2D_LENGTH = 6;
+  public static final int MATRIX2D_MAJOR = 3;
+  public static final int MATRIX2D_MINOR = 2;
+
   public static final int MATRIX3D_LENGTH = 16;
+  public static final int MATRIX3D_MAJOR = 4;
+  public static final int MATRIX3D_MINOR = 4;
 
   public ProjectionControl(DisplayImpl d) throws VisADException {
     super(d);
@@ -69,38 +74,38 @@ public abstract class ProjectionControl extends Control {
   /** get a String that can be used to reconstruct this
       ProjectionControl later */
   public String getSaveString() {
-    int len = matrix.length;
+    final int len = matrix.length;
+
+    final int major, minor;
+    if (len == MATRIX2D_LENGTH) {
+      major = MATRIX2D_MAJOR;
+      minor = MATRIX2D_MINOR;
+    } else if (len == MATRIX3D_LENGTH) {
+      major = MATRIX3D_MAJOR;
+      minor = MATRIX3D_MINOR;
+    } else {
+      major = len;
+      minor = 1;
+    }
+
     StringBuffer sb = new StringBuffer(20 * len);
-    if (len == 6) {
-      sb.append("3 x 2\n");
-      for (int j=0; j<2; j++) {
-        for (int i=0; i<2; i++) {
-          sb.append(matrix[3 * j + i]);
+    sb.append(major);
+    if (minor > 1) {
+      sb.append(" x ");
+      sb.append(minor);
+    }
+    sb.append('\n');
+
+    for (int j=0; j<minor; j++) {
+      for (int i=0; i<major; i++) {
+        if (i > 0) {
           sb.append(' ');
         }
-        sb.append(matrix[3 * j + 2]);
-        sb.append('\n');
+        sb.append(matrix[major * j + i]);
       }
-    }
-    else if (len == 16) {
-      sb.append("4 x 4\n");
-      for (int j=0; j<4; j++) {
-        for (int i=0; i<3; i++) {
-          sb.append(matrix[4 * j + i]);
-          sb.append(' ');
-        }
-        sb.append(matrix[4 * j + 3]);
-        sb.append('\n');
-      }
-    }
-    else {
-      sb.append(len);
       sb.append('\n');
-      for (int i=0; i<len; i++) {
-        sb.append(' ');
-        sb.append(matrix[i]);
-      }
     }
+
     return sb.toString();
   }
 
@@ -307,11 +312,11 @@ public abstract class ProjectionControl extends Control {
     } else {
       int major, minor;
       if (matrix.length == MATRIX2D_LENGTH) {
-        major = 3;
-        minor = 2;
+        major = MATRIX2D_MAJOR;
+        minor = MATRIX2D_MINOR;
       } else if (matrix.length == MATRIX3D_LENGTH) {
-        major = 4;
-        minor = 4;
+        major = MATRIX3D_MAJOR;
+        minor = MATRIX3D_MINOR;
       } else {
         major = 1;
         minor = matrix.length;
