@@ -459,6 +459,16 @@ public class FileFlatField extends FlatField {
     return fld.unary( op, sampling_mode, error_mode );
   }
 
+  public Data unary(int op, MathType new_type, int sampling_mode, int error_mode)
+         throws VisADException
+  {
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
+      throw new VisADException("Cannot get cached FlatField");
+    }
+    return fld.unary(op, new_type, sampling_mode, error_mode);
+  }
+
   /** unpack an array of doubles from field sample values according to the
       RangeSet-s; returns a copy */
   public double[][] unpackValues() throws VisADException {
