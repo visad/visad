@@ -120,8 +120,10 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
 
     float[] vx = new float[NUM];
     float[] vy = new float[NUM];
+    float[] vz = new float[NUM];
     float[] tx = new float[NUM];
     float[] ty = new float[NUM];
+    float[] tz = new float[NUM];
     byte[] vred = null;
     byte[] vgreen = null;
     byte[] vblue = null;
@@ -161,11 +163,14 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
         if (numv[0] + NUM/4 > vx.length) {
           float[] cx = vx;
           float[] cy = vy;
+          float[] cz = vz;
           int l = 2 * vx.length;
           vx = new float[l];
           vy = new float[l];
+          vz = new float[l];
           System.arraycopy(cx, 0, vx, 0, cx.length);
           System.arraycopy(cy, 0, vy, 0, cy.length);
+          System.arraycopy(cz, 0, vz, 0, cz.length);
           if (color_values != null) {
             byte[] cred = vred;
             byte[] cgreen = vgreen;
@@ -181,11 +186,14 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
         if (numt[0] + NUM/4 > tx.length) {
           float[] cx = tx;
           float[] cy = ty;
+          float[] cz = tz;
           int l = 2 * tx.length;
           tx = new float[l];
           ty = new float[l];
+          tz = new float[l];
           System.arraycopy(cx, 0, tx, 0, cx.length);
           System.arraycopy(cy, 0, ty, 0, cy.length);
+          System.arraycopy(cz, 0, tz, 0, cz.length);
           if (color_values != null) {
             byte[] cred = tred;
             byte[] cgreen = tgreen;
@@ -202,7 +210,8 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
         int oldnt = numt[0];
         float mbarb[] =
           makeBarb(south[j], spatial_values[0][j], spatial_values[1][j],
-                   scale, pt_size, f0, f1, vx, vy, numv, tx, ty, numt);
+                   spatial_values[2][j], scale, pt_size, f0, f1, vx, vy, vz,
+                   numv, tx, ty, tz, numt);
         if (direct) {
           ((BarbManipulationRendererJ3D) renderer).
             setBarbSpatialValues(mbarb, which);
@@ -252,7 +261,7 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
     for (int i=0; i<nv; i++) {
       coordinates[m++] = vx[i];
       coordinates[m++] = vy[i];
-      coordinates[m++] = 0.0f;
+      coordinates[m++] = vz[i];
     }
     array.coordinates = coordinates;
 
@@ -280,7 +289,7 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
       for (int i=0; i<nt; i++) {
         coordinates[m++] = tx[i];
         coordinates[m++] = ty[i];
-        coordinates[m++] = 0.0f;
+        coordinates[m++] = tz[i];
       }
       tarray.coordinates = coordinates;
    
@@ -315,10 +324,10 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
   /** adapted from Justin Baker's WindBarb, which is adapted from
       Mark Govett's barbs.pro IDL routine
   */
-  static float[] makeBarb(boolean south, float x, float y, float scale,
-                          float pt_size, float f0, float f1,
-                          float[] vx, float[] vy, int[] numv,
-                          float[] tx, float[] ty, int[] numt) {
+  static float[] makeBarb(boolean south, float x, float y, float z,
+                          float scale, float pt_size, float f0, float f1,
+                          float[] vx, float[] vy, float[] vz, int[] numv,
+                          float[] tx, float[] ty, float[] tz, int[] numt) {
 
     float wsp25,slant,barb,d,c195,s195;
     float x0,y0;
@@ -360,9 +369,11 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
       // commented out in original BOM code
       vx[nv] = x;
       vy[nv] = y;
+      vz[nv] = z;
       nv++;
       vx[nv] = x1;
       vy[nv] = y1;
+      vz[nv] = z;
       nv++;
       // g.drawLine(x,y,x1,y1);
 */
@@ -390,9 +401,11 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
 
         vx[nv] = x1;
         vy[nv] = y1;
+        vz[nv] = z;
         nv++;
         vx[nv] = x2;
         vy[nv] = y2;
+        vz[nv] = z;
         nv++;
 // System.out.println("barb5 " + x1 + " " + y1 + "" + x2 + " " + y2);
         // g.drawLine(x1, y1, x2, y2);
@@ -406,9 +419,11 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
 /* WLH 24 April 99
         vx[nv] = x;
         vy[nv] = y;
+        vz[nv] = z;
         nv++;
         vx[nv] = x1;
         vy[nv] = y1;
+        vz[nv] = z;
         nv++;
 */
 // System.out.println("wsp25 " + x + " " + y + "" + x1 + " " + y1);
@@ -433,9 +448,11 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
  
         vx[nv] = x1;
         vy[nv] = y1;
+        vz[nv] = z;
         nv++;
         vx[nv] = x2;
         vy[nv] = y2;
+        vz[nv] = z;
         nv++;
 // System.out.println("barb10 " + j + " " + x1 + " " + y1 + "" + x2 + " " + y2);
         // g.drawLine(x1,y1,x2,y2);
@@ -443,9 +460,11 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
 /* WLH 24 April 99
       vx[nv] = x;
       vy[nv] = y;
+      vz[nv] = z;
       nv++;
       vx[nv] = x1;
       vy[nv] = y1;
+      vz[nv] = z;
       nv++;
 */
 // System.out.println("line " + x + " " + y + "" + x1 + " " + y1);
@@ -459,9 +478,11 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
 /* WLH 24 April 99
         vx[nv] = x;
         vy[nv] = y;
+        vz[nv] = z;
         nv++;
         vx[nv] = x1;
         vy[nv] = y1;
+        vz[nv] = z;
         nv++;
 */
 // System.out.println("line50 " + x + " " + y + "" + x1 + " " + y1);
@@ -503,12 +524,15 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
 
         tx[nt] = x1;
         ty[nt] = y1;
+        tz[nt] = z;
         nt++;
         tx[nt] = x2;
         ty[nt] = y2;
+        tz[nt] = z;
         nt++;
         tx[nt] = x3;
         ty[nt] = y3;
+        tz[nt] = z;
         nt++;
 /*
 System.out.println("barb50 " + x1 + " " + y1 + "" + x2 + " " + y2 +
@@ -523,9 +547,11 @@ System.out.println("barb50 " + x1 + " " + y1 + "" + x2 + " " + y2 +
       // WLH 24 April 99 - now plot the pole
       vx[nv] = x;
       vy[nv] = y;
+      vz[nv] = z;
       nv++;
       vx[nv] = x1;
       vy[nv] = y1;
+      vz[nv] = z;
       nv++;
 
       mbarb[2] = x1;
@@ -540,58 +566,74 @@ System.out.println("barb50 " + x1 + " " + y1 + "" + x2 + " " + y2 +
       // 1st segment
       vx[nv] = x - rad;
       vy[nv] = y;
+      vz[nv] = z;
       nv++;
       vx[nv] = x - 0.7f * rad;
       vy[nv] = y + 0.7f * rad;
+      vz[nv] = z;
       nv++;
       // 2nd segment
       vx[nv] = x - 0.7f * rad;
       vy[nv] = y + 0.7f * rad;
+      vz[nv] = z;
       nv++;
       vx[nv] = x;
       vy[nv] = y + rad;
+      vz[nv] = z;
       nv++;
       // 3rd segment
       vx[nv] = x;
       vy[nv] = y + rad;
+      vz[nv] = z;
       nv++;
       vx[nv] = x + 0.7f * rad;
       vy[nv] = y + 0.7f * rad;
+      vz[nv] = z;
       nv++;
       // 4th segment
       vx[nv] = x + 0.7f * rad;
       vy[nv] = y + 0.7f * rad;
+      vz[nv] = z;
       nv++;
       vx[nv] = x + rad;
       vy[nv] = y;
+      vz[nv] = z;
       nv++;
       // 5th segment
       vx[nv] = x + rad;
       vy[nv] = y;
+      vz[nv] = z;
       nv++;
       vx[nv] = x + 0.7f * rad;
       vy[nv] = y - 0.7f * rad;
+      vz[nv] = z;
       nv++;
       // 6th segment
       vx[nv] = x + 0.7f * rad;
       vy[nv] = y - 0.7f * rad;
+      vz[nv] = z;
       nv++;
       vx[nv] = x;
       vy[nv] = y - rad;
+      vz[nv] = z;
       nv++;
       // 7th segment
       vx[nv] = x;
       vy[nv] = y - rad;
+      vz[nv] = z;
       nv++;
       vx[nv] = x - 0.7f * rad;
       vy[nv] = y - 0.7f * rad;
+      vz[nv] = z;
       nv++;
       // 8th segment
       vx[nv] = x - 0.7f * rad;
       vy[nv] = y - 0.7f * rad;
+      vz[nv] = z;
       nv++;
       vx[nv] = x - rad;
       vy[nv] = y;
+      vz[nv] = z;
       nv++;
 // System.out.println("circle " + x + " " + y + "" + rad);
       // g.drawOval(x-rad,y-rad,2*rad,2*rad);
