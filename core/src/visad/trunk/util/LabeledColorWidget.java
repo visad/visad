@@ -291,6 +291,46 @@ public class LabeledColorWidget
     wrappedWidget.setMaximumSize(size);
   }
 
+  /**
+   * Stub routine which calls <CODE>ColorMapWidget.getMinimumSize()</CODE>.
+   *
+   * @return Minimum size in <CODE>Dimension</CODE>.
+   */
+  public Dimension getMinimumSize()
+  {
+    return wrappedWidget.getMinimumSize();
+  }
+
+  /**
+   * Stub routine which calls <CODE>ColorMapWidget.setMinimumSize()</CODE>.
+   *
+   * @param size Minimum size.
+   */
+  public void setMinimumSize(Dimension size)
+  {
+    wrappedWidget.setMinimumSize(size);
+  }
+
+  /**
+   * Stub routine which calls <CODE>ColorMapWidget.getPreferredSize()</CODE>.
+   *
+   * @return Preferred size in <CODE>Dimension</CODE>.
+   */
+  public Dimension getPreferredSize()
+  {
+    return wrappedWidget.getPreferredSize();
+  }
+
+  /**
+   * Stub routine which calls <CODE>ColorMapWidget.setPreferredSize()</CODE>.
+   *
+   * @param size Preferred size.
+   */
+  public void setPreferredSize(Dimension size)
+  {
+    wrappedWidget.setPreferredSize(size);
+  }
+
   public static void main(String[] args)
   {
     try {
