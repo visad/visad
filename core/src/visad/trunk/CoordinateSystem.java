@@ -157,15 +157,43 @@ public abstract class CoordinateSystem extends Object
     return ref_out.equals(ref_in);
   }
 
-  /** transform coordinates between two RealTupleType-s;
-      in, coord_in, units_in and errors_in are the Type, CoordinateSystem, Units
-      and ErrorEstimates associated with value;
-      out, coord_out and units_out and are the target type, CoordinateSystem and
-      Units;
-      value is the array of values to transform;
-      return new value array;
-      return transformed ErrorEstimates in errors_out array;
-      do Unit conversion even if no coordinate transform needed */
+  /**
+   * <p>Transforms double-valued coordinates between two {@link RealTupleType}s.
+   * Unit conversion is always performed even if no coordinate transformation
+   * is done.</p>
+   *
+   * <p>This implementation uses {@link #transformCoordinatesFreeUnits} to do
+   * most of the transformation.</p>
+   *
+   * <p>If both {@link RealTupleType}s have a reference coordinate system, then
+   * this implementation <em>always</em> transforms the input domain values by
+   * first transforming them according to the input reference coordinate system
+   * and then inverse transforming them according to the output reference
+   * coordinate system -- even if the input and output {@link RealTupleType}s
+   * are equal.</p>
+   *
+   * @param out              The output {@link RealTupleType}.
+   * @param coord_out        The coordinate system transformation associated
+   *                         with the output {@link RealTupleType} or <code>
+   *                         null</code>.
+   * @param units_out        The output units.
+   * @param errors_out       The output error estimates or <code>null</code>.
+   * @param in               The input {@link RealTupleType}.
+   * @param coord_in         The coordinate system transformation associated
+   *                         with the output {@link RealTupleType} or <code>
+   *                         null</code>.
+   * @param units_in         The input units or <code>null</code>.
+   * @param errors_in        The input error estimates or <code>null</code>.
+   * @param value            The input coordinate values.  <code>value[i][j]
+   *                         </code> is the <code>j</code>-th sample of the
+   *                         <code>i</code>-th component.  The values might
+   *                         be modified upon return from this method.
+   * @return                 The transformed coordinate values not in the input
+   *                         array.
+   * @throws VisADException  if a VisAD failure occurs.
+   * @throws NullPointerException if <code>units_out</code> is 
+   *                         <code>null</code>.
+   */
   public static double[][] transformCoordinates(
                         RealTupleType out, CoordinateSystem coord_out,
                         Unit[] units_out, ErrorEstimate[] errors_out,
@@ -201,9 +229,39 @@ public abstract class CoordinateSystem extends Object
     return value;
   }
 
-  /** this is just like Unit.transformCoordinates, except that
-      final Unit conversion to units_out is not done;
-      rather, units_out[i] is set to the final Unit of value[i] */
+  /**
+   * <p>Transforms double-valued coordinates between two {@link RealTupleType}s.
+   * This is just like {@link #transformCoordinates}, except that final Unit
+   * conversion to <code>units_out</code> is not done; rather, 
+   * <code>units_out[i]</code> is set to the final {@link Unit} of 
+   * <code>value[i]</code>.</p>
+   *
+   * <p>If both {@link RealTupleType}s have a reference coordinate system, then
+   * this implementation <em>always</em> transforms the input domain values by
+   * first transforming them according to the input reference coordinate system
+   * and then inverse transforming them according to the output reference
+   * coordinate system -- even if the input and output {@link RealTupleType}s
+   * are equal.</p>
+   *
+   * @param out              The output {@link RealTupleType}.
+   * @param coord_out        The coordinate system transformation associated
+   *                         with the output {@link RealTupleType} or <code>
+   *                         null</code>.
+   * @param units_out        The output units or <code>null</code>.
+   * @param errors_out       The output error estimates or <code>null</code>.
+   * @param in               The input {@link RealTupleType}.
+   * @param coord_in         The coordinate system transformation associated
+   *                         with the output {@link RealTupleType} or <code>
+   *                         null</code>.
+   * @param units_in         The input units or <code>null</code>.
+   * @param errors_in        The input error estimates or <code>null</code>.
+   * @param value            The input coordinate values.  <code>value[i][j]
+   *                         </code> is the <code>j</code>-th sample of the
+   *                         <code>i</code>-th component.
+   * @return                 The transformed coordinate values. Possibly
+   *                         in the input array.
+   * @throws VisADException  if a VisAD failure occurs.
+   */
   public static double[][] transformCoordinatesFreeUnits(
                         RealTupleType out, CoordinateSystem coord_out,
                         Unit[] units_out, ErrorEstimate[] errors_out,
@@ -333,7 +391,43 @@ public abstract class CoordinateSystem extends Object
     return value;
   }
 
-  /** float version of transformCoordinates */
+  /**
+   * <p>Transforms float-valued coordinates between two {@link RealTupleType}s.
+   * Unit conversion is always performed even if no coordinate transformation
+   * is done.</p>
+   *
+   * <p>This implementation uses {@link #transformCoordinatesFreeUnits} to do
+   * most of the transformation.</p>
+   *
+   * <p>If both {@link RealTupleType}s have a reference coordinate system, then
+   * this implementation <em>always</em> transforms the input domain values by
+   * first transforming them according to the input reference coordinate system
+   * and then inverse transforming them according to the output reference
+   * coordinate system -- even if the input and output {@link RealTupleType}s
+   * are equal.</p>
+   *
+   * @param out              The output {@link RealTupleType}.
+   * @param coord_out        The coordinate system transformation associated
+   *                         with the output {@link RealTupleType} or <code>
+   *                         null</code>.
+   * @param units_out        The output units.
+   * @param errors_out       The output error estimates or <code>null</code>.
+   * @param in               The input {@link RealTupleType}.
+   * @param coord_in         The coordinate system transformation associated
+   *                         with the output {@link RealTupleType} or <code>
+   *                         null</code>.
+   * @param units_in         The input units or <code>null</code>.
+   * @param errors_in        The input error estimates or <code>null</code>.
+   * @param value            The input coordinate values.  <code>value[i][j]
+   *                         </code> is the <code>j</code>-th sample of the
+   *                         <code>i</code>-th component.  The values might
+   *                         be modified upon return from this method.
+   * @return                 The transformed coordinate values not in the input
+   *                         array.
+   * @throws VisADException  if a VisAD failure occurs.
+   * @throws NullPointerException if <code>units_out</code> is 
+   *                         <code>null</code>.
+   */
   public static float[][] transformCoordinates(
                         RealTupleType out, CoordinateSystem coord_out,
                         Unit[] units_out, ErrorEstimate[] errors_out,
@@ -364,7 +458,39 @@ public abstract class CoordinateSystem extends Object
     return value;
   }
 
-  /** float version of transformCoordinatesFreeUnits */
+  /**
+   * <p>Transforms float-valued coordinates between two {@link RealTupleType}s.
+   * This is just like {@link #transformCoordinates}, except that final Unit
+   * conversion to <code>units_out</code> is not done; rather, 
+   * <code>units_out[i]</code> is set to the final {@link Unit} of 
+   * <code>value[i]</code>.</p>
+   *
+   * <p>If both {@link RealTupleType}s have a reference coordinate system, then
+   * this implementation <em>always</em> transforms the input domain values by
+   * first transforming them according to the input reference coordinate system
+   * and then inverse transforming them according to the output reference
+   * coordinate system -- even if the input and output {@link RealTupleType}s
+   * are equal.</p>
+   *
+   * @param out              The output {@link RealTupleType}.
+   * @param coord_out        The coordinate system transformation associated
+   *                         with the output {@link RealTupleType} or <code>
+   *                         null</code>.
+   * @param units_out        The output units or <code>null</code>.
+   * @param errors_out       The output error estimates or <code>null</code>.
+   * @param in               The input {@link RealTupleType}.
+   * @param coord_in         The coordinate system transformation associated
+   *                         with the output {@link RealTupleType} or <code>
+   *                         null</code>.
+   * @param units_in         The input units or <code>null</code>.
+   * @param errors_in        The input error estimates or <code>null</code>.
+   * @param value            The input coordinate values.  <code>value[i][j]
+   *                         </code> is the <code>j</code>-th sample of the
+   *                         <code>i</code>-th component.
+   * @return                 The transformed coordinate values. Possibly
+   *                         in the input array.
+   * @throws VisADException  if a VisAD failure occurs.
+   */
   public static float[][] transformCoordinatesFreeUnits(
                         RealTupleType out, CoordinateSystem coord_out,
                         Unit[] units_out, ErrorEstimate[] errors_out,
