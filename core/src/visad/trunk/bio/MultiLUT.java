@@ -68,6 +68,7 @@ public class MultiLUT extends Object implements ActionListener {
 
   ScalarMap vmap = null;
   ScalarMap hmap = null;
+  ScalarMap huexmap = null;
 
   private DataReferenceImpl line_ref = null;
   /**
@@ -135,6 +136,7 @@ set = Linear2DSet: Length = 393216
 
     // RealType value = RealType.getRealType("value");
     RealType hue = RealType.getRealType("hue");
+    RealType HUE = RealType.getRealType("HUE");
     RealTupleType new_range = new RealTupleType(value, hue);
     FunctionType new_func = new FunctionType(domain, new_range);
     data = new FlatField(new_func, set);
@@ -168,6 +170,8 @@ set = Linear2DSet: Length = 393216
       new DisplayImplJ3D("display1", new TwoDDisplayRendererJ3D());
     ScalarMap xmap = new ScalarMap(element, Display.XAxis);
     display1.addMap(xmap);
+    huexmap = new ScalarMap(HUE, Display.XAxis);
+    display1.addMap(huexmap);
     ScalarMap ymap = new ScalarMap(line, Display.YAxis);
     display1.addMap(ymap);
     ymap.setRange(0.0, 511.0);
@@ -246,6 +250,7 @@ set = Linear2DSet: Length = 393216
 
         double dist = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
         int nsamp = (int) dist;
+        if (nsamp < 2) nsamp = 2;
         float[][] ss = new float[2][nsamp];
         for (int i=0; i<nsamp; i++) {
           float a = ((float) i) / (nsamp - 1.0f);
@@ -255,7 +260,8 @@ set = Linear2DSet: Length = 393216
         Gridded2DSet line = new Gridded2DSet(fdomain, ss, nsamp);
         xref.setData(line);
         FlatField line_field = (FlatField)
-          big_data.resample(line, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS);
+        //   big_data.resample(line, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS);
+          big_data.resample(line, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
         float[][] line_samples = line_field.getFloats(false); // [NFILES][nsamp]
         Linear1DSet point_set = new Linear1DSet(point, 0.0, 1.0, nsamp);
         Integer1DSet channel_set = new Integer1DSet(channel, NFILES);
@@ -284,13 +290,6 @@ set = Linear2DSet: Length = 393216
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
 
-    int WIDTH = 1200;
-    int HEIGHT = 1000;
-
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    frame.setLocation(screenSize.width/2 - WIDTH/2,
-                      screenSize.height/2 - HEIGHT/2);
-
     // create JPanel in frame
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
@@ -316,6 +315,10 @@ set = Linear2DSet: Length = 393216
     panel.add(left);
     panel.add(center);
     panel.add(right);
+
+    Dimension d = new Dimension(300, 1000);
+    left.setMaximumSize(d);
+    center.setMaximumSize(d);
 
     for (int i=0; i<NFILES; i++) {
       value_refs[i] = new DataReferenceImpl("value" + i);
@@ -371,6 +374,13 @@ set = Linear2DSet: Length = 393216
     compute.setActionCommand("compute");
     left.add(Box.createVerticalStrut(10));
     left.add(compute);
+
+    int WIDTH = 1200;
+    int HEIGHT = 1000;
+
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    frame.setLocation(screenSize.width/2 - WIDTH/2,
+                      screenSize.height/2 - HEIGHT/2);
 
     frame.setSize(WIDTH, HEIGHT);
     frame.setVisible(true);
@@ -470,6 +480,7 @@ set = Linear2DSet: Length = 393216
       display1.disableAction();
       vmap.setRange(vmin, vmax);
       hmap.setRange(hmin, hmax);
+      huexmap.setRange(hmin, hmax);
       data.setSamples(data_values, false);
       wedge.setSamples(wedge_samples, false);
       display1.enableAction();
