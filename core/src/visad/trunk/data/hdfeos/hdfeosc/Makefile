@@ -7,12 +7,15 @@ SLIBDIR = .
 JAVADIR = /opt/java
 J_INC =  ${JAVADIR}/include
 JAVAINCS = -I${J_INC} -I${J_INC}/${ARCH}
+JH = javah
 
 HDFINCS = -I${HDF_INC}
 HDFEOSINCS = -I${HDFEOS_INC}
 
 HDFLIBS = $(HDF_LIB)/libmfhdf.a $(HDF_LIB)/libdf.a $(HDF_LIB)/libjpeg.a $(HDF_LIB)/libz.a
 HDFEOSLIBS = $(HDFEOS_LIB)/libhdfeos.a $(HDFEOS_LIB)/libGctp.a ./libhdfeos_ext.a
+
+SHOPT =
 
 CC = cc
 AR = ar -r
@@ -42,13 +45,14 @@ all:: HdfeosLib.class
 all:: visad_data_hdfeos_hdfeosc_HdfeosLib.h
 
 visad_data_hdfeos_hdfeosc_HdfeosLib.h:
-	javah -jni visad.data.hdfeos.hdfeosc.HdfeosLib
+	$(JH) -jni visad.data.hdfeos.hdfeosc.HdfeosLib
 
 all::
 	@UNAME=`uname -s`; \
 	case "$$UNAME" in \
 	IRIX*) make irix;; \
 	SunOS*) make solaris;; \
+	Linux*) make linux;; \
 	*) echo "Unknown system type $$UNAME"; exit 1;; \
 	esac
 
@@ -56,21 +60,23 @@ hdfeos_ext: SWfdims.o GDfdims.o
 	$(AR) libhdfeos_ext.a SWfdims.o GDfdims.o
 
 SWfdims.o: SWfdims.c
-	$(CC) -c SWfdims.c $(HDFINCS) $(HDFEOSINCS)
+	$(CC) $(SHOPT) -c SWfdims.c $(HDFINCS) $(HDFEOSINCS)
 
 GDfdims.o: GDfdims.c
-	$(CC) -c GDfdims.c $(HDFINCS) $(HDFEOSINCS)
+	$(CC) $(SHOPT) -c GDfdims.c $(HDFINCS) $(HDFEOSINCS)
 
 .c.o:
-	$(CC) -c $*.c $(JAVAINCS) $(HDFINCS) $(HDFEOSINCS)
+	$(CC) $(SHOPT) -c $*.c $(JAVAINCS) $(HDFINCS) $(HDFEOSINCS)
 
 hdfeosLib: $(OBJECTS) hdfeos_ext
 	$(LD) $(LDOPT) $(OBJECTS) $(HDFEOSLIBS) $(HDFLIBS) $(SYSLIBS) -o $(SLIBDIR)/lib$(SLIB).so
+
 clean:
 	rm -f so_locations
 	rm -f $(SLIBDIR)/lib$(SLIB).so
 	rm -f libhdfeos_ext.a
 	rm -f *.o
+	rm -f *.class
 
 required_macros:
 	@if [ -z "$(HDF_INC)" ]; then echo "HDF_INC is undefined"; exit 1; fi
@@ -83,3 +89,6 @@ solaris: required_macros
 
 irix: required_macros
 	@make ARCH=irix SYSLIBS="-lm" LDOPT="-shared -Wl,-x" hdfeosLib
+
+linux: required_macros
+	@make ARCH=linux SYSLIBS="-lm" SHOPT="-fPIC -DPIC" LDOPT="-shared" hdfeosLib

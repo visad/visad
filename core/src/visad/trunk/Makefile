@@ -20,8 +20,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-
 default:
+	@clear
+	@echo ""
 	@echo "Type one of the following:"
 	@echo "	make compile		to compile .java files"
 	@echo "	make debug		to compile .java files for debugging"
@@ -31,36 +32,112 @@ default:
 	@echo "	make classes		to make jar and tar files containing classes"
 	@echo "	make clear		to clear source files"
 	@echo "	make clean		to clean class files"
-	@echo " make docs               to create javadoc documentation"
+	@echo "	make docs		to create javadoc documentation"
+	@echo ""
+	@echo "You may want to uncomment one or more lines in the"
+	@echo "'Customizations' section of the top-level Makefile"
+	@echo "if you're running on a non-Solaris platform or want"
+	@echo "to use something other than the standard JDK tools"
+	@echo ""
 
-.SUFFIXES : .java .class
+############################################################################
+# Standard definitions -- don't change these
+############################################################################
 
-.java.class:
-	$(JC) $(JFLAGS) $<
-
+# JC is the Java compiler
+# JFLAGS specifies special flags for the Java compiler
+# JH is the Java header file generator (javah)
+#
 JC = javac
 JFLAGS = -J-mx32m
+JH = javah
+
+# RMIC is the Remote Method Invokation compiler
+#
+RMIC=rmic
+
+# JAVADIR should be the top-level JDK1.2 directory
+# JAVAARCH should be the local machine architecture
+# JAVAINCS should list all the necessary include files under JAVADIR
+#
+JAVADIR = /opt/java
+JAVAARCH = solaris
+JAVAINCS = -I${JAVADIR}/include -I${JAVADIR}/include/${JAVAARCH}
+
+# these hold the flags needed to tell the C and Fortran compilers
+# to build shared object files
+#
+SHCFLAGS =
+SHFFLAGS =
+
+# this is the list of Fortran libraries commonly referenced
+# by objects in shared library
+#
+SHFLIBS = -lM77 -lF77 -lsunmath -lm -lc
+
+# SHLD is the shared library loader
+# SHLDFLAGS are the flags needed to tell SHLD to build a shared library
+#
+SHLD = $(CC)
+SHLDFLAGS = -G -z defs
+
+# SHFLD is the Fortran shared library loader
+# SHFLDFLAGS are the flags needed to tell SHFLD to build a shared library
+#
+SHFLD = $(FC)
+SHFLDFLAGS = -G -Qoption ld -z,defs
+
+# program used to clean up the results of previous builds
+#
+RM = rm -f
+
+# DOCS_DIR is the top-level directory where generated documentation is stored
+# DOC is the program used to generate the documentation
+# DOCFLAGS are any flags needed to run the documentation generator
+#
+DOCS_DIR = ../docs
+DOC = javadoc
+DOCFLAGS = -d $(DOCS_DIR) -J-Xmx64m -package -doctitle 'VisAD Documentation'
+
+# FITS, UCAR, and SSEC are paths to other class hierarchies needed by VisAD
+#
+FITS = ../nom/tam
+UCAR = ../ucar
+SSEC = ../edu/wisc/ssec
+
+############################################################################
+# Customizations
+############################################################################
+
+# set this if your JDK/JRE is installed somewhere other than /opt/java
+#JAVADIR = /usr/local/java
 
 # to always use IBM's 'jikes' compiler, uncomment the following two lines
 #JC = jikes
 #JFLAGS = +P
 
-RMIC=rmic
-
 # to always use the Nexus RMI compiler, uncomment the next line
 #RMIC=nexusrmic
 
-JAVADIR = /opt/java
+# to build for Linux, uncomment the next few lines (UNTESTED!)
+#JAVAARCH = linux
+#SHCFLAGS = -fPIC -DPIC
+#SHLDFLAGS = -shared
+#SHFLDFLAGS = -shared
 
-RM = rm -f
+# to build for Irix, uncomment the next few lines (UNTESTED!)
+#JAVAARCH = irix
+#SHLDFLAGS = -shared
+#SHFLDFLAGS = -shared
 
-DOCS_DIR = ../docs
-DOC = javadoc
-DOCFLAGS = -d $(DOCS_DIR) -J-Xmx64m -package -doctitle 'VisAD Documentation'
+############################################################################
+# You shouldn't need to change anything beyond this point
+############################################################################
 
-FITS = ../nom/tam
-UCAR = ../ucar
-SSEC = ../edu/wisc/ssec
+.SUFFIXES : .java .class
+
+.java.class:
+	$(JC) $(JFLAGS) $<
 
 TAR_FILES = \
 	visad/README					\
@@ -435,8 +512,21 @@ recompile:
 	    else							\
 	      echo "*** Building in $$dir";				\
 	      if [ -f $$dir/Makefile -a "$$dir" != "." ]; then		\
-		(cd $$dir && make JAVADIR=${JAVADIR} JC=${JC}		\
-				JFLAGS="${JFLAGS}") || true;		\
+		(cd $$dir && make					\
+				JAVADIR="${JAVADIR}"			\
+				JAVAARCH="${JAVAARCH}"			\
+				JC="${JC}"				\
+				JFLAGS="${JFLAGS}"			\
+				JH="${JH}"				\
+				SHCFLAGS="${SHCFLAGS}"			\
+				SHFFLAGS="${SHFFLAGS}"			\
+				SHLD="${SHLD}"				\
+				SHLDFLAGS="${SHLDFLAGS}"		\
+				SHFLD="${SHFLD}"			\
+				SHFLDFLAGS="${SHFLDFLAGS}"		\
+				SHFLIBS="${SHFLIBS}"			\
+				RM="${RM}"				\
+							) || true;	\
 	      else							\
 		(cd $$dir &&						\
 		 for j in *.java; do					\
