@@ -61,8 +61,8 @@ public class BasicSSCell extends JPanel {
   public static final int JAVA3D_2D = 3;
 
 
-  /** FormulaManager object used by all BasicSSCells with formulas */
-  static final FormulaManager fm = FormulaUtil.createStandardManager();
+  /** default FormulaManager object used by BasicSSCells */
+  static final FormulaManager defaultFM = FormulaUtil.createStandardManager();
 
   /** list of SSCells on this JVM */
   static final Vector SSCellVector = new Vector();
@@ -73,6 +73,9 @@ public class BasicSSCell extends JPanel {
 
   /** name of this BasicSSCell */
   String Name;
+
+  /** formula manager for this BasicSSCell */
+  FormulaManager fm;
 
   /** associated VisAD DisplayPanel */
   JPanel VDPanel;
@@ -151,22 +154,42 @@ public class BasicSSCell extends JPanel {
   private Object Lock = new Object();
 
 
-  /** construct a 2-D BasicSSCell with the given name */
+  /** construct a new BasicSSCell with the given name */
   public BasicSSCell(String name) throws VisADException, RemoteException {
-    this(name, (RemoteServer) null);
+    this(name, null, null, null);
   }
 
-  /** construct a BasicSSCell with the given name and dimension */
-  public BasicSSCell(String name, int dim) throws VisADException,
-                                                  RemoteException {
-    this(name, (RemoteServer) null);
+  /** construct a new BasicSSCell with the given name and non-default
+      formula manager, to allow for custom formulas */
+  public BasicSSCell(String name, FormulaManager fman)
+    throws VisADException, RemoteException
+  {
+    this(name, fman, null, null);
   }
 
   /** construct a new BasicSSCell with the given name, that gets its
       information from the given RemoteServer. The associated SSCell on the
       server end must have already invoked its addToRemoteServer method */
-  public BasicSSCell(String name, RemoteServer rs) throws VisADException,
-                                                          RemoteException {
+  public BasicSSCell(String name, RemoteServer rs)
+    throws VisADException, RemoteException
+  {
+    this(name, null, rs, null);
+  }
+
+  /** construct a new BasicSSCell with the given name and data string, used to
+      reconstruct the cell's configuration */
+  public BasicSSCell(String name, String info)
+    throws VisADException, RemoteException
+  {
+    this(name, null, null, info);
+  }
+
+  /** construct a new BasicSSCell with the given name, formula manager, and
+      remote server */
+  public BasicSSCell(String name, FormulaManager fman, RemoteServer rs,
+    String info) throws VisADException, RemoteException
+  {
+    // set name
     if (name == null) {
       throw new VisADException("BasicSSCell: name cannot be null");
     }
@@ -180,6 +203,10 @@ public class BasicSSCell extends JPanel {
     Name = name;
     SSCellVector.add(this);
 
+    // set formula manager
+    fm = (fman == null ? defaultFM : fman);
+
+    // set remote server
     if (rs != null) {
       RemoteVServer = rs;
       RemoteVDisplay = rs.getDisplay(Name);
@@ -218,6 +245,7 @@ public class BasicSSCell extends JPanel {
     }
     else {
       // redisplay this cell's data when it changes
+      final FormulaManager ffm = fm;
       CellImpl ucell = new CellImpl() {
         public void doAction() {
           // clear old errors
@@ -226,7 +254,7 @@ public class BasicSSCell extends JPanel {
           // get new data
           Data value = null;
           try {
-            value = (Data) fm.getThing(Name);
+            value = (Data) ffm.getThing(Name);
           }
           catch (ClassCastException exc) {
             if (DEBUG) exc.printStackTrace();
@@ -257,7 +285,7 @@ public class BasicSSCell extends JPanel {
           }
 
           // display new errors, if any
-          String[] es = fm.getErrors(Name);
+          String[] es = ffm.getErrors(Name);
           if (es != null) setErrors(es);
 
           // broadcast data change event
@@ -472,6 +500,9 @@ public class BasicSSCell extends JPanel {
       else throw exc;
     }
 
+    // setup info string
+    if (info != null) setSSCellString(info);
+
     // finish GUI setup
     VDPanel = (JPanel) VDisplay.getComponent();
     setPreferredSize(new Dimension(0, 0));
@@ -612,6 +643,12 @@ public class BasicSSCell extends JPanel {
     return RemoteVDisplay;
   }
 
+  /** refresh this SSCell's display */
+  public void refresh() {
+    validate();
+    repaint();
+  }
+
   /** add or remove VDPanel from this BasicSSCell */
   void setVDPanel(boolean value) {
     HasDisplay = false;
@@ -620,8 +657,7 @@ public class BasicSSCell extends JPanel {
     synchronized (Lock) {
       removeAll();
       if (value) add(VDPanel);
-      validate();
-      repaint();
+      refresh();
     }
 
     HasDisplay = value;
@@ -669,8 +705,7 @@ public class BasicSSCell extends JPanel {
     synchronized (Lock) {
       removeAll();
       if (ErrorCanvas != null) add(ErrorCanvas);
-      validate();
-      repaint();
+      refresh();
     }
   }
 
@@ -745,13 +780,6 @@ public class BasicSSCell extends JPanel {
       SSCellListener l = (SSCellListener) list.elementAt(i);
       l.ssCellChanged(e);
     }
-  }
-
-  /** construct a BasicSSCell with the given name and data string */
-  public BasicSSCell(String name, String info) throws VisADException,
-                                                      RemoteException {
-    this(name);
-    if (info != null) setSSCellString(info);
   }
 
   /** return the BasicSSCell object with the specified display */
@@ -1384,8 +1412,7 @@ public class BasicSSCell extends JPanel {
         synchronized (Lock) {
           removeAll();
           add(errorCanvas);
-          validate();
-          repaint();
+          refresh();
         }
       }
 
@@ -1483,8 +1510,7 @@ public class BasicSSCell extends JPanel {
         add(pWait);
         waiting = true;
       }
-      validate();
-      repaint();
+      refresh();
     }
   }
 
@@ -1639,7 +1665,7 @@ public class BasicSSCell extends JPanel {
     synchRMIAddress();
   }
 
-  /** @deprecated */
+  /** @deprecated use saveData(File, Form) instead */
   public void saveData(File f, boolean netcdf) throws BadFormException,
                                                       IOException,
                                                       VisADException,
@@ -1727,9 +1753,15 @@ public class BasicSSCell extends JPanel {
     else return HasMappings;
   }
 
-  /** add a variable */
+  /** @deprecated use addVar(String, ThingReference) instead */
   public static void createVar(String name, ThingReference tr)
-                                            throws VisADException {
+    throws VisADException
+  {
+    defaultFM.createVar(name, tr);
+  }
+
+  /** add a variable to this cell's formula manager */
+  public void addVar(String name, ThingReference tr) throws VisADException {
     fm.createVar(name, tr);
   }
 

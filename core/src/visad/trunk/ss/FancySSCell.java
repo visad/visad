@@ -35,6 +35,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import visad.*;
 import visad.data.*;
+import visad.formula.FormulaManager;
 import visad.util.*;
 
 /** FancySSCell is an extension of BasicSSCell with extra options, such
@@ -79,36 +80,48 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   boolean AutoShowControls = true;
 
 
-  /** constructor for non-null RemoteServer */
-  public FancySSCell(String name, RemoteServer rs, Frame parent)
-                                  throws VisADException, RemoteException {
-    super(name, rs);
-    finishConstruction(name, parent);
-  }
-
-  /** constructor for non-null info string */
-  public FancySSCell(String name, String info, Frame parent)
-                                  throws VisADException, RemoteException {
-    super(name, info);
-    finishConstruction(name, parent);
-  }
-
-  /** constructor for null RemoteServer and null info string */
-  public FancySSCell(String name, Frame parent) throws VisADException,
-                                                       RemoteException {
-    super(name);
-    finishConstruction(name, parent);
-  }
-
-  /** constructor for null RemoteServer, info string, and parent Frame */
+  /** construct a new FancySSCell with the given name */
   public FancySSCell(String name) throws VisADException, RemoteException {
-    super(name);
-    finishConstruction(name, null);
+    this(name, null, null, null, null);
   }
 
-  /** used by constructors */
-  private void finishConstruction(String name, Frame parent)
-                                  throws VisADException, RemoteException {
+  /** construct a new FancySSCell with the given name and parent Frame */
+  public FancySSCell(String name, Frame parent)
+    throws VisADException, RemoteException
+  {
+    this(name, null, null, null, parent);
+  }
+
+  /** construct a new FancySSCell with the given name, formula manager,
+      and parent Frame */
+  public FancySSCell(String name, FormulaManager fman, Frame parent)
+    throws VisADException, RemoteException
+  {
+    this(name, fman, null, null, parent);
+  }
+
+  /** construct a new FancySSCell with the given name, remote server,
+      and parent Frame */
+  public FancySSCell(String name, RemoteServer rs, Frame parent)
+    throws VisADException, RemoteException
+  {
+    this(name, null, rs, null, parent);
+  }
+
+  /** construct a new FancySSCell with the given name, data string, and
+      parent Frame */
+  public FancySSCell(String name, String info, Frame parent)
+    throws VisADException, RemoteException
+  {
+    this(name, null, null, info, parent);
+  }
+
+  /** construct a new FancySSCell with the given name, formula manager,
+      remote server, data string, and parent Frame */
+  public FancySSCell(String name, FormulaManager fman, RemoteServer rs,
+    String info, Frame parent) throws VisADException, RemoteException
+  {
+    super(name, fman, rs, info);
     Parent = parent;
     setHighlighted(false);
     addSSCellChangeListener(this);
@@ -247,8 +260,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     setHighlighted(Selected);
     if (!Selected) hideWidgetFrame();
     else if (AutoShowControls) showWidgetFrame();
-    validate();
-    repaint();
+    refresh();
   }
 
   /** specify whether this FancySSCell should auto-switch to 3-D */
@@ -439,7 +451,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     if (u != null) loadDataURL(u);
   }
 
-  /** @deprecated */
+  /** @deprecated use saveDataDialog(Form) instead */
   public void saveDataDialog(boolean netcdf) {
      try {
        Form f;

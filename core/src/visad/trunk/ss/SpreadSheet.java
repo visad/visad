@@ -37,7 +37,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 import visad.*;
-import visad.formula.FormulaVar;
+import visad.formula.*;
 import visad.java3d.*;
 
 /** SpreadSheet is a user interface for VisAD that supports
@@ -88,6 +88,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** number of display rows */
   int NumVisY;
+
+  /** formula manager */
+  FormulaManager fm;
 
 
   /** server for spreadsheet cells, if any */
@@ -314,12 +317,21 @@ public class SpreadSheet extends JFrame implements ActionListener,
                                      "VisAD Spread Sheet");
   }
 
+  /** constructor with default formula manager */
+  public SpreadSheet(int sWidth, int sHeight, int cols, int rows,
+    String server, String clone, String sTitle)
+  {
+    this(sWidth, sHeight, cols, rows, server, clone, sTitle, null);
+  }
+
   /** constructor */
   public SpreadSheet(int sWidth, int sHeight, int cols, int rows,
-                     String server, String clone, String sTitle) {
+    String server, String clone, String sTitle, FormulaManager fm)
+  {
     bTitle = sTitle;
     NumVisX = cols;
     NumVisY = rows;
+    this.fm = fm;
     MappingDialog.initDialog();
     addKeyListener(this);
     addWindowListener(new WindowAdapter() {
@@ -1620,9 +1632,20 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   // *** Methods for refreshing GUI components when things change ***
 
+  /** refresh spreadsheet cells */
+  private void refreshCells() {
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        for (int i=0; i<NumVisX; i++) {
+          for (int j=0; j<NumVisY; j++) DisplayCells[i][j].refresh();
+        }
+      }
+    });
+  }
+
   /** enable or disable certain menu items depending on whether
       this cell has data */
-  void refreshMenuCommands() {
+  private void refreshMenuCommands() {
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
         boolean b = DisplayCells[CurX][CurY].hasData();
@@ -1639,7 +1662,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   /** make sure the formula bar is displaying up-to-date info */
-  void refreshFormulaBar() {
+  private void refreshFormulaBar() {
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
         if (DisplayCells[CurX][CurY].hasFormula()) {
@@ -1656,7 +1679,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   /** update dimension checkbox menu items in Cell menu */
-  void refreshDisplayMenuItems() {
+  private void refreshDisplayMenuItems() {
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
         // update dimension check marks
@@ -1979,6 +2002,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       for (int j=0; j<NumVisY; j++) VertLabel[j].doLayout();
       DisplayPanel.doLayout();
       SCPane.doLayout();
+      refreshCells();
     }
   }
 
@@ -2008,6 +2032,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       for (int i=0; i<NumVisX; i++) HorizLabel[i].doLayout();
       DisplayPanel.doLayout();
       SCPane.doLayout();
+      refreshCells();
     }
 
     synchColRow();
@@ -2039,6 +2064,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       for (int j=0; j<NumVisY; j++) VertLabel[j].doLayout();
       DisplayPanel.doLayout();
       SCPane.doLayout();
+      refreshCells();
     }
 
     synchColRow();
@@ -2236,6 +2262,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         DisplayCells[0][j].setPreferredSize(d);
       }
       DisplayPanel.doLayout();
+      refreshCells();
     }
   }
 
