@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad.python;
 
 import java.awt.event.*;
+import javax.swing.*;
 import visad.VisADException;
 import visad.util.CodeFrame;
 
@@ -46,6 +47,7 @@ public class JPythonFrame extends CodeFrame {
   /** constructs a JPythonFrame from the given JPythonEditor object */
   public JPythonFrame(JPythonEditor editor) throws VisADException {
     super(editor);
+    getMenuItem("Command", "Run").setAccelerator( KeyStroke.getKeyStroke(KeyEvent.VK_R, java.awt.Event.ALT_MASK));
   }
 
   /** sets whether editor should warn user before auto-saving */
@@ -71,7 +73,7 @@ public class JPythonFrame extends CodeFrame {
       });
 
       // display frame onscreen
-      frame.setBounds(100, 100, 500, 800);
+      frame.setBounds(100, 100, 400, 500);
       frame.setVisible(true);
     }
     catch (VisADException exc) {

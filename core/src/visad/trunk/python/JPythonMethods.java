@@ -204,6 +204,7 @@ public abstract class JPythonMethods {
     if (namxe == null) namxe = DEFAULT_NAME;
     final String name = namxe;
     BasicSSCell display;
+
     synchronized (frames) {
       display = BasicSSCell.getSSCellByName(name);
       JFrame frame;
@@ -1741,6 +1742,26 @@ public abstract class JPythonMethods {
     return ((FieldImpl)data).domainFactor(factor);
   }
 
+
+  /** creates a VisAD Data by evaluating the Field at the
+  * point given in the domain.
+  *
+  * @param data is the field
+  * @param domain is the Real domain where the field should be evaluated
+  *
+  */
+
+  public static Data evaluate(Field data, Real domain) 
+             throws VisADException, RemoteException {
+    return( data.evaluate(domain) );
+  }
+
+  public static Data evaluate(Field data, double domain) 
+             throws VisADException, RemoteException {
+    return( data.evaluate(new Real(domain) ) );
+  }
+
+
   /** creates a VisAD MathType from the given string
   *
   * @param s is the string describing the names in
@@ -1777,6 +1798,18 @@ public abstract class JPythonMethods {
              throws VisADException, RemoteException {
     return (data.getType());
   }
+
+  /** Turn on/off the axes labels & scales on a Display
+  *
+  * @param d the DisplayImpl to address
+  * @param onoff whether to turn the axes labels on (true)
+  *
+  */
+  public static void showAxesScales(DisplayImpl d, boolean on)
+             throws VisADException, RemoteException {
+    d.getDisplayRenderer().setScaleOn(on);
+  }
+  
   
   /** helper method for the dump(Data|Math)Type() methods
   *   this will list both the MathType and DataType information
