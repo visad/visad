@@ -27,44 +27,48 @@ import visad.*;
 import visad.CoordinateSystem;
 
 /**
-   GVARCoordinateSystem is the VisAD CoordinateSystem class
-   for conversions to (Latitude, Longitude) from a Cartesian (line,element),
-   and with Latitude and Longitude in degrees.<P>
-*/
+  * GVARCoordinateSystem is the VisAD CoordinateSystem class
+  * for conversions to (Latitude, Longitude) from a Cartesian (element,line),
+  * and with Latitude and Longitude in degrees.  And vice-versa.
+  */
+
 public class GVARCoordinateSystem extends CoordinateSystem {
   private GVARnav ng = null;
 
   private static Unit[] coordinate_system_units =
     {null, null};
 
+  /** create a GVAR coordinate system from the Area file's
+    * directory and navigation blocks.
+    *
+    * This routine uses a flipped Y axis (first line of
+    * the image file is number 0)
+    *
+    * @param reference is the CoordinateSystem reference
+    * @param dir[] is the AREA file directory block
+    * @param nav[] is the AREA file navigation block
+    *
+    */
   public GVARCoordinateSystem(RealTupleType reference, int[] dir,
                                  int[] nav) throws VisADException {
 
     super(reference, coordinate_system_units);
-    setNav(dir, nav);
-  }
 
-  /** trusted constructor for initializers */
-  /*
-  GVARCoordinateSystem(RealTupleType reference, boolean b,
-                                      int[]dir, int[] nav) {
-
-    super(reference, coordinate_system_units, b);
-    setNav(dir, nav);
-  }
-  */
-
-  private void setNav(int[] dir, int[] nav) {
     ng = new GVARnav(1, nav);
     ng.setImageStart(dir[5], dir[6]);
     ng.setRes(dir[11], dir[12]);
     ng.setStart(1,1);
     ng.setMag(1,1);
-    ng.setFlipLineCoordinates(dir[8]);
+    ng.setFlipLineCoordinates(dir[8]); // invert Y axis coordinates
     return;
   }
 
 
+  /** convert from image element,line to latitude,longitude
+    *
+    * @param tuples contains the element,line pairs to convert
+    *
+    */
   public double[][] toReference(double[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 2) {
       throw new CoordinateSystemException("GVARCoordinateSystem." +
@@ -79,6 +83,11 @@ public class GVARCoordinateSystem extends CoordinateSystem {
 
   }
 
+  /** convert from latitude,longitude to image element,line
+    *
+    * @param tuples contains the element,line pairs to convert
+    *
+    */
   public double[][] fromReference(double[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 2) {
       throw new CoordinateSystemException("GVARCoordinateSystem." +
@@ -93,6 +102,11 @@ public class GVARCoordinateSystem extends CoordinateSystem {
 
   }
 
+  /** convert from image element,line to latitude,longitude
+    *
+    * @param tuples contains the element,line pairs to convert
+    *
+    */
   public float[][] toReference(float[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 2) {
       throw new CoordinateSystemException("GVARCoordinateSystem." +
@@ -109,6 +123,11 @@ public class GVARCoordinateSystem extends CoordinateSystem {
 
   }
  
+  /** convert from latitude,longitude to image element,line
+    *
+    * @param tuples contains the element,line pairs to convert
+    *
+    */
   public float[][] fromReference(float[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 2) {
       throw new CoordinateSystemException("GVARCoordinateSystem." +
@@ -125,6 +144,11 @@ public class GVARCoordinateSystem extends CoordinateSystem {
 
   }
 
+  /** determine if the CoordinateSystem in question is a GVAR one
+  *
+  * @param cs the CoordinateSystem in question
+  *
+  */
   public boolean equals(Object cs) {
     return (cs instanceof GVARCoordinateSystem);
   }

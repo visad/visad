@@ -27,6 +27,8 @@ import visad.data.vis5d.Vis5DForm;
 
 import visad.data.visad.VisADForm;
 
+import visad.data.mcidas.AreaForm;
+
 /**
   * A container for all the officially supported VisAD datatypes.
   */
@@ -339,6 +341,11 @@ public class DefaultFamily
     }
     try {
       list[i] = new VisADForm();
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
+      list[i] = new AreaForm();
       i++;
     } catch (Throwable t) {
     }

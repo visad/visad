@@ -51,6 +51,7 @@ public class AreaAdapter {
   private FlatField field = null;
   private GVARCoordinateSystem cs;
   private int numLines, numEles, numBands;
+  final int GVAR =  1196835154;    
 
   /** Create a VisAD FlatField from a local McIDAS AREA file
     * @param filename name of local file.
@@ -68,7 +69,7 @@ public class AreaAdapter {
 
 
   /** Create a VisAD FlatField from a McIDAS AREA on the Web.
-    * @param URL & filename name of remote file
+    * @param URL (including filename) of remote file
     * @exception IOException if there was a problem reading the file.
     * @exception VisADException if an unexpected problem occurs.
     */
@@ -98,9 +99,11 @@ public class AreaAdapter {
 	throw new VisADException("Problem getting Area file directory"); 
     }
 
+    // extract the size of each dimension from the directory
     numLines = dir[8];
     numEles = dir[9];
 
+    // make the VisAD RealTypes for the dimension variables
     RealType line;
     try {
       line = new RealType("ImageLine",null,null);
@@ -115,13 +118,12 @@ public class AreaAdapter {
       element =  RealType.getRealTypeByName("ImageElement");
     }
 
-    // when it comes time to deal with multiple bands, change this...
-
+    // extract the number of bands (sensors) and make the VisAD type
     numBands = dir[13];
-
     RealType[] bands = new RealType[numBands];
 
-    // do we want to 'name' the bands something else?
+    // first cut: the bands are named "Band##" where ## is the
+    // band number from the AREA file bandmap
     int bmap = dir[18];
     int bcount = 0;
     for (int i=1; i<33; i++) {
@@ -141,13 +143,32 @@ public class AreaAdapter {
       bmap = bmap >>> 1;
     }
 
+    // the range of the FunctionType is the band(s)
     RealTupleType radiance = new RealTupleType(bands);
+
+    // the domain is (element,line) since elements (X) vary
+    // fastest
+
     RealType[] domain_components = {element,line};
+
+    // Create the appropriate CoordinateSystem and attach it to
+    // the domain of the FlatField
+
     RealTupleType ref = new RealTupleType
 		  (RealType.Latitude, RealType.Longitude);
-    cs = new GVARCoordinateSystem(ref, dir, nav);
+    cs = null;
+    if (nav[0] == GVAR) {
+      cs = new GVARCoordinateSystem(ref, dir, nav);
+    } else {
+      System.out.println("AreaAdapter: unsupported navigation type = "+nav[0]);
+    }
+
     RealTupleType image_domain = 
 		new RealTupleType(domain_components, cs, null);
+
+    // Image numbering is usually the first line is at the "top"
+    //  whereas in VisAD, it is at the bottom.  So define the
+    //  domain set of the FlatField to map the Y axis accordingly
 
     Linear2DSet domain_set = new Linear2DSet(image_domain,
 				0.0, (float) (numEles - 1), numEles,
@@ -155,6 +176,8 @@ public class AreaAdapter {
     FunctionType image_type =
 			new FunctionType(image_domain, radiance);
     field = new FlatField(image_type,domain_set);
+
+    // get the data
 
     int[][][] int_samples;
     try {
@@ -164,6 +187,8 @@ public class AreaAdapter {
 	throw new VisADException("Problem reading AREA file: "+samp);
     }
       
+    // for each band, create a sample array for the FlatField
+
     try {
       float[][] samples = new float[numBands][numEles*numLines];
 

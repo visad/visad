@@ -91,6 +91,8 @@ visad\data\vis5d\*.java \
 visad\data\vis5d\*.c \
 visad\data\vis5d\*.h \
 visad\data\vis5d\Makefile \
+visad\data\mcidas\*.java \
+visad\data\mcidas\README.mcidas \
 visad\data\gif\*.java \
 visad\data\gif\sseclogo.gif \
 visad\data\visad\*.java \
@@ -178,6 +180,8 @@ visad\data\vis5d\*.c \
 visad\data\vis5d\*.h \
 visad\data\vis5d\Makefile \
 visad\data\gif\*.java \
+visad\data\mcidas\*.java \
+visad\data\mcidas\README.mcidas \
 visad\data\visad\*.java \
 visad\paoloa\README.paoloa \
 visad\paoloa\Makefile \
@@ -254,6 +258,8 @@ save:
 		$(DEL) $(BACKUP)\visad\data\hdfeos\hdfeosc\*.java
 	if exist $(BACKUP)\visad\data\vis5d\*.java                 \
 		$(DEL) $(BACKUP)\visad\data\vis5d\*.java
+	if exist $(BACKUP)\visad\data\mcidas\*.java                \
+		$(DEL) $(BACKUP)\visad\data\mcidas\*.java
 	if exist $(BACKUP)\visad\data\gif\*.java                   \
 		$(DEL) $(BACKUP)\visad\data\gif\*.java
 	if exist $(BACKUP)\visad\data\visad\*.java                 \
@@ -292,6 +298,7 @@ visad\$(FITS)\test\*.class \
 visad\data\hdfeos\*.class \
 visad\data\hdfeos\hdfeosc\*.class \
 visad\data\vis5d\*.class \
+visad\data\mcidas\*.class \
 visad\data\gif\*.class \
 visad\data\visad\*.class
 
@@ -325,6 +332,7 @@ clear:
 	if exist data\hdfeos\hdfeosc\*.java $(DEL) data\hdfeos\hdfeosc\*.java
 	if exist data\vis5d\*.java $(DEL) data\vis5d\*.java
 	if exist data\gif\*.java $(DEL) data\gif\*.java
+	if exist data\mcidas\*.java $(DEL) data\mcidas\*.java
 	if exist data\visad\*.java $(DEL) data\visad\*.java
 	if exist paoloa\*.java $(DEL) paoloa\*.java
 	if exist aune\*.java $(DEL) aune\*.java
@@ -366,6 +374,7 @@ compile: clean
 	-$(JC) $(JFLAGS) $(FITS)\test\*.java
 	$(JC) $(JFLAGS) data\fits\*.java
 	$(JC) $(JFLAGS) data\vis5d\*.java
+	$(JC) $(JFLAGS) data\mcidas\*.java
 	$(JC) $(JFLAGS) data\gif\*.java
 	$(JC) $(JFLAGS) data\visad\*.java
 	$(JC) $(JFLAGS) data\hdfeos\hdfeosc\*.java
@@ -397,6 +406,7 @@ clean:
 	if exist data\hdfeos\*.class $(DEL) data\hdfeos\*.class
 	if exist data\hdfeos\hdfeosc\*.class $(DEL) data\hdfeos\hdfeosc\*.class
 	if exist data\vis5d\*.class $(DEL) data\vis5d\*.class
+	if exist data\mcidas\*.class $(DEL) data\mcidas\*.class
 	if exist data\gif\*.class $(DEL) data\gif\*.class
 	if exist data\visad\*.class $(DEL) data\visad\*.class
 	if exist paoloa\*.class $(DEL) paoloa\*.class
@@ -426,6 +436,7 @@ visad.data.hdfeos \
 visad.data.hdfeos.hdfeosc \
 visad.data.vis5d \
 visad.data.gif \
+visad.data.mcidas \
 visad.data.visad \
 visad.paoloa \
 visad.aune \

@@ -34,6 +34,7 @@ import java.rmi.RemoteException;
 
 import visad.data.mcidas.*;
 import visad.*;
+import visad.Set;
 
 /** this is an adapter for McIDAS Base Map files */
 
@@ -82,7 +83,18 @@ public class BaseMapAdapter {
 
 
   /** set the limits of Lats and Lons; without this, the getData()
-   * will return ALL the points in the file.
+   * will return ALL the points in the file.  When this method is
+   * used, the feature of the McIDAS map files that has the
+   * lat/lon extremes for each line segment will be used to
+   * coarsely cull points out of the returned VisAD UnionSet.
+   *
+   * This may be used along with any other domain-setting routine,
+   * but should be invoked last.
+   *
+   * @param latmin the minimum Latitude value
+   * @param latmax the maximum Latitude value
+   * @param lonmin the minimum Longitude value (-180 -- 180)
+   * @param lonmax the maximum Longitude value
    *
    */
   public void setLatLonLimits(float latmin, float latmax, float lonmin, 
@@ -111,6 +123,47 @@ public class BaseMapAdapter {
     return;
   }
 
+  /** using the domain_set of the FlatField of an image (when
+   *  one is available), extract the elements required.  This
+   *  implies that a CoordinateSystem is available with a 
+   *  reference coordinate of Latitude,Longitude.
+   *
+   * @param domainSet The VisAD domain_set used when the
+   * associated image FlatField was created
+   *
+   */
+
+  public void setDomainSet(Set domainSet) throws VisADException {
+    if (domainSet instanceof Linear2DSet) {
+      coordMathType = domainSet.getType();
+      cs = domainSet.getCoordinateSystem();
+      numEles = ((Linear2DSet) domainSet).getX().getLength();
+      numLines = ((Linear2DSet) domainSet).getY().getLength();
+
+      int xfirst = (int) ((Linear2DSet) domainSet).getX().getFirst();
+      int xlast = (int) ((Linear2DSet) domainSet).getX().getLast();
+      int yfirst = (int) ((Linear2DSet) domainSet).getY().getFirst();
+      int ylast = (int) ((Linear2DSet) domainSet).getX().getFirst();
+
+      /*
+      System.out.println("coordMathType="+coordMathType);
+      System.out.println("cs="+cs);
+      System.out.println("numEles="+numEles);
+      System.out.println("numLines="+numLines);
+      System.out.println("xfirst="+xfirst);
+      System.out.println("xlast="+xlast);
+      System.out.println("yfirst="+yfirst);
+      System.out.println("ylast="+ylast);
+      */
+
+      computeLimits();
+
+
+    } else {
+      throw new VisADException("BaseMap: unknown domain type");
+    }
+  }
+
   /** define a CoordinateSystem whose fromReference() will
    *  be used to transform points from latitude/longitude
    *  into element,line.
@@ -121,13 +174,19 @@ public class BaseMapAdapter {
    * @param domain is the desired domain (ordered element, line)
    */
   public void setCoordinateSystem(CoordinateSystem cs, int numEles, 
-			   int numLines, MathType domain) 
+			   int numLines, RealTupleType domain) 
 			   throws VisADException {
 
     this.numEles = numEles;
     this.numLines = numLines;
     this.cs = cs;
     coordMathType = domain;
+
+    computeLimits();
+  }
+
+  // compute the lat/long limits for fetching data; invert the Y axis, too.
+  private void computeLimits() {
 
     // Now set lat/lon limits...
 
@@ -153,10 +212,12 @@ public class BaseMapAdapter {
       if (Float.isNaN(latlon[1][3])) latlon[1][3] = -180.f;
 
 
+    /*
       for (int i=0; i<4; i++) {
 	System.out.println("Point "+i+" Lat/long="+
 			latlon[0][i]+" "+latlon[1][i]);
       }
+    */
 
       setLatLonLimits(
 
@@ -257,6 +318,14 @@ public class BaseMapAdapter {
     return lalo;
   }
 
+  /** getData creates a VisAD UnionSet type with the MathType
+    * specified thru one of the other methods.  By default,
+    * the MathType is a RealTupleType of Latitude,Longitude,
+    * so the UnionSet (a union of Gridded2DSets) will have
+    * lat/lon values.  Each Gridded2DSet is a line segment that
+    * is supposed to be drawn as a continuous line.
+    *
+    */
   public UnionSet getData() {
 
     UnionSet maplines=null;
@@ -267,8 +336,6 @@ public class BaseMapAdapter {
     int st=1;
     float[][] lalo, linele;
     int ll;
-
-    System.out.println("Start constructing map");
 
     Vector sets = new Vector();
     try {
@@ -307,8 +374,6 @@ public class BaseMapAdapter {
     maplines = new UnionSet(coordMathType,basemaplines);
 
     } catch (Exception em) {System.out.println(em); return null;}
-
-    System.out.println("Stop constructing map = "+sets.size());
 
     return maplines;
 
