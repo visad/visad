@@ -73,10 +73,13 @@ public class GridVariableMapAdapter
     /**
      * Returns a VisAD data object corresponding to a map vector of a DODS grid.
      *
+     * @param array	An array that contains data and is compatible with
+     *			the array used during construction.
+     * @param copy	If true, then data values are copied.
      * @return		The VisAD data object corresponding to the adapted
      *			map vector.
      */
-    public DataImpl data(DArray array)
+    public DataImpl data(DArray array, boolean copy)
 	throws VisADException, RemoteException
     {
 	SampledSet	newSet =
