@@ -857,19 +857,17 @@ class CurveDelete implements ActionListener {
       try {
         // Irregular2DSet new_set = DelaunayCustom.fill(set);
         Irregular2DSet new_set = DelaunayCustom.fillCheck(set, false);
-        // if (new_set != null) { // avoid "data is null", but get vestage fill
-          if (new_ref == null) {
-            new_ref = new DataReferenceImpl("fill");
-            ConstantMap[] cmaps = new ConstantMap[]
-              {new ConstantMap(1.0, Display.Blue),
-               new ConstantMap(1.0, Display.Red),
-               new ConstantMap(0.0, Display.Green)};
-            DefaultRendererJ3D renderer = new DefaultRendererJ3D();
-            renderer.suppressExceptions(true);
-            display.addReferences(renderer, new_ref, cmaps);
-          }
-          new_ref.setData(new_set);
-        // }
+        if (new_ref == null) {
+          new_ref = new DataReferenceImpl("fill");
+          ConstantMap[] cmaps = new ConstantMap[]
+            {new ConstantMap(1.0, Display.Blue),
+             new ConstantMap(1.0, Display.Red),
+             new ConstantMap(0.0, Display.Green)};
+          DefaultRendererJ3D renderer = new DefaultRendererJ3D();
+          renderer.suppressExceptions(true);
+          display.addReferences(renderer, new_ref, cmaps);
+        }
+        new_ref.setData(new_set);
       }
       catch (VisADException ex) {
         System.out.println(ex.getMessage());

@@ -56,10 +56,13 @@ Shapes
 */
 public class FrontDrawer extends Object {
 
+  private static boolean debug = true;
+
   private Object data_lock = new Object();
 
 
   private DataReferenceImpl front_ref;
+  private DefaultRendererJ3D front_renderer;
   private DataReferenceImpl curve_ref;
   private FrontManipulationRendererJ3D front_manipulation_renderer;
   private CurveMonitor curve_monitor;
@@ -74,17 +77,23 @@ public class FrontDrawer extends Object {
   private Gridded2DSet front = null; // manifold dimension = 2
 
   private SetType front_type = null;
+  private int lat_index = 0;
+  private int lon_index = 1;
 
   private int profile_length = -1;
   private float[] front_profile_bot = null;
   private float[] front_profile_top = null;
+  private float segment_length;
+
+  private int filter_window = 1;
 
   /**
      cr should be null or cr.getData() should have MathType:
        Set(RealType.Latitude, RealType.Longitude)
   */
   public FrontDrawer(DataReferenceImpl cr, DisplayImplJ3D d,
-                     float[] profile_bot, float[] profile_top)
+                     float[] profile_bot, float[] profile_top, float segment,
+                     int fw)
          throws VisADException, RemoteException {
     front_type =
       new SetType(new RealTupleType(RealType.Latitude, RealType.Longitude));
@@ -95,17 +104,39 @@ public class FrontDrawer extends Object {
       curve_ref = cr;
     }
     Data data = curve_ref.getData();
-    Gridded2DSet curve_set = null;
-    if (data != null && data instanceof Gridded2DSet) {
-      curve_set = (Gridded2DSet) data;
-    }
-    else {
-      curve_set =
+    if (data == null || !(data instanceof Gridded2DSet)) {
+      Gridded2DSet curve_set =
         new Gridded2DSet(front_type, new float[][] {{0.0f}, {0.0f}}, 1); // ??
       curve_ref.setData(curve_set);
     }
+    else {
+      Gridded2DSet curve_set = (Gridded2DSet) data;
+      SetType st = (SetType) curve_set.getType();
+      if (!st.equals(front_type)) {
+        SetType rft =
+          new SetType(new RealTupleType(RealType.Longitude, RealType.Latitude));
+        if (!st.equals(rft)) {
+          throw new SetException("cr data bad MathType");
+        }
+        lat_index = 1;
+        lon_index = 0;
+      }
+    }
 
     display = d;
+
+    if (profile_bot == null || profile_top == null ||
+        profile_bot.length != profile_top.length) {
+      throw new VisADException("bad profile");
+    }
+    segment_length = segment;
+    profile_length = profile_bot.length;
+    front_profile_bot = new float[profile_length];
+    front_profile_top = new float[profile_length];
+    System.arraycopy(profile_bot, 0, front_profile_bot, 0, profile_length);
+    System.arraycopy(profile_top, 0, front_profile_top, 0, profile_length);
+
+    filter_window = fw;
 
     pcontrol = display.getProjectionControl();
     ProjectionControlListener pcl = new ProjectionControlListener();
@@ -140,18 +171,138 @@ public class FrontDrawer extends Object {
     int mmm = 0;
     int mmv = 0;
     front_manipulation_renderer =
-      new FrontManipulationRendererJ3D(mmm, mmv, this);
+      new FrontManipulationRendererJ3D(this, mmm, mmv);
     display.addReferences(front_manipulation_renderer, curve_ref);
 
-// "Data is null: DataDisplayLink.prepareData"
+    front_ref = new DataReferenceImpl("front");
+    front_renderer = new DefaultRendererJ3D();
+    front_renderer.suppressExceptions(true);
 
   }
 
   // FrontManipulationRendererJ3D button release
   public void release() {
+    Data data = curve_ref.getData();
+    if (data == null || !(data instanceof Gridded2DSet)) {
+      if (debug) System.out.println("data null or not Gridded2DSet");
+      return;
+    }
+    Gridded2DSet curve_set = (Gridded2DSet) data;
+    if (curve_set.getManifoldDimension() != 1) {
+      if (debug) System.out.println("ManifoldDimension != 1");
+      return;
+    }
+    float[][] curve_samples = null;
+    try {
+      curve_samples = curve_set.getSamples(false);
+    }
+    catch (VisADException e) {
+      if (debug) System.out.println("release " + e);
+      return;
+    }
+
+    boolean flip = false;
     double[] lat_range = lat_map.getRange();
     double[] lon_range = lon_map.getRange();
-    
+    if (lat_range[1] < lat_range[0]) flip = !flip;
+    if (lon_range[1] < lon_range[0]) flip = !flip;
+    if (curve_samples[lat_index][0] < 0.0) flip = !flip;
+    if (lon_index < lat_index) flip = !flip;
+/* ??
+    float lat_mul = (float) ((lat_range[1] - lat_range[0]) / 2.0);
+    float lon_mul = (float) ((lon_range[1] - lon_range[0]) / 2.0);
+*/
+
+    // transform curve to graphics coordinates
+    // in order to "draw" front in graphics coordinates, then
+    // transform back to (lat, lon)
+    float[][] curve = new float[2][];
+    curve[0] = lat_map.scaleValues(curve_samples[lat_index]);
+    curve[1] = lon_map.scaleValues(curve_samples[lon_index]);
+    // inverseScaleValues
+
+    // resample curve uniformly along length
+    float increment = segment_length / profile_length;
+    curve = resample_curve(curve, increment);
+
+    // lowpass filter curve
+    curve = smooth_curve(curve, filter_window);
+
+    // resample smoothed curve
+    curve = resample_curve(curve, increment);
+
+
+
+/*
+  private int profile_length = -1;
+  private float[] front_profile_bot = null;
+  private float[] front_profile_top = null;
+  private float segment_length;
+*/
+  }
+
+  public float[][] smooth_curve(float[][] curve, int window) {
+    int len = curve[0].length;
+    float[][] newcurve = new float[2][len];
+    for (int i=0; i<len; i++) {
+      int win = window;
+      if (i < win) win = i;
+      int ii = (len - 1) - i;
+      if (ii < win) win = ii;
+      float runx = 0.0f;
+      float runy = 0.0f;
+      for (int j=i-win; j<=i+win; j++) {
+        runx += curve[0][j];
+        runy += curve[1][j];
+      }
+      newcurve[0][i] = runx / (2 * win + 1);
+      newcurve[1][i] = runy / (2 * win + 1);
+    }
+    return newcurve;
+  }
+
+  /** resmaple curve into segments approximately increment in length */
+  public float[][] resample_curve(float[][] curve, float increment) {
+    int len = curve[0].length;
+    float curve_length = 0.0f;
+    float[] seg_length = new float[len-1];
+    for (int i=0; i<len-1; i++) {
+      seg_length[i] = (float) Math.sqrt( 
+        ((curve[0][i+1] - curve[0][i]) * (curve[0][i+1] - curve[0][i])) +
+        ((curve[1][i+1] - curve[1][i]) * (curve[1][i+1] - curve[1][i])));
+      curve_length += seg_length[i];
+    }
+    int npoints = 1 + (int) (curve_length / increment);
+    float delta = curve_length / (npoints - 1);
+    float[][] newcurve = new float[2][npoints];
+    newcurve[0][0] = curve[0][0];
+    newcurve[1][0] = curve[1][0];
+    if (npoints < 2) return newcurve;
+    int k = 0;
+    float old_seg = seg_length[k];
+    for (int i=1; i<npoints-1; i++) {
+      float new_seg = delta;
+      while (true) {
+        if (old_seg < new_seg) {
+          new_seg -= old_seg;
+          k++;
+          if (k > len-2) {
+            throw new VisADError("k = " + k + " i = " + i);
+          }
+          old_seg = seg_length[k];
+        }
+        else {
+          old_seg -= new_seg;
+          float a = old_seg / seg_length[k];
+          newcurve[0][i] = a * curve[0][k] + (1.0f - a) * curve[0][k+1];
+          newcurve[1][i] = a * curve[1][k] + (1.0f - a) * curve[1][k+1];
+          break;
+        }
+      }
+    }
+    newcurve[0][npoints-1] = curve[0][len-1];
+    newcurve[1][npoints-1] = curve[1][len-1];
+    return newcurve;
   }
 
   private boolean pfirst = true;
@@ -243,8 +394,10 @@ public class FrontDrawer extends Object {
     // add display to JPanel
     panel.add(display.getComponent());
 
+    float[] bot_profile = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+    float[] top_profile = {0.025f, 0.025f, 0.050f, 0.025f, 0.025f};
     FrontDrawer fd =
-      new FrontDrawer(curve_ref, display, null, null); // change
+      new FrontDrawer(curve_ref, display, bot_profile, top_profile, 0.1f, 2);
 
     JPanel button_panel = new JPanel();
     button_panel.setLayout(new BoxLayout(button_panel, BoxLayout.X_AXIS));
