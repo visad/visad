@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Parser.java,v 1.3 1998-02-23 15:58:59 steve Exp $
+ * $Id: Parser.java,v 1.4 1998-03-13 20:20:33 steve Exp $
  */
 
 package visad.data.netcdf.units;
@@ -61,7 +61,14 @@ Parser
     {
 	unitParser.ReInit(new ByteArrayInputStream(spec.getBytes()));
 
-	return unitParser.unitSpec();
+	try
+	{
+	    return unitParser.unitSpec();
+	}
+	catch (TokenMgrError e)
+	{
+	    throw new ParseException(e.getMessage());
+	}
     }
 
 
