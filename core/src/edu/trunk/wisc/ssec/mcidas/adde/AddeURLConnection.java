@@ -239,9 +239,6 @@ public class AddeURLConnection extends URLConnection
   /** Size of an ADDE error message offset */
   private final static int ERRMSG_OFFS = 8;
 
-  /** Default port. TODO: Update this to be 112 */
-  private final static int PORT = 500;
-
   /** Flag for "compress" compression.  Used to be synonymous 
       with the port used for compress transfer */
   private final static int COMPRESS = 503;
@@ -300,10 +297,10 @@ public class AddeURLConnection extends URLConnection
   private boolean debug = false;
 
   /** port to use for compression */
-  private int portToUse = PORT;   // DRM 03-Mar-2001
+  private int portToUse = GZIP;   // DRM 03-Mar-2001
 
   /** compression type */
-  private int compressionType = NO_COMPRESS; 
+  private int compressionType = GZIP; 
 
   /**
    *
@@ -519,7 +516,7 @@ public class AddeURLConnection extends URLConnection
       // default to the compression type
       portToUse = compressionType;
 
-      // if localhost, force the compressionType to "off" 
+      // if local ADDE host, force the compressionType to "off" 
       if (ipa[0]==127 && ipa[1]==0 && ipa[2]==0 && ipa[3]==1) {
         compressionType = NO_COMPRESS;
       }
