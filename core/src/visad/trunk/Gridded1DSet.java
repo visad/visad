@@ -68,6 +68,12 @@ public class Gridded1DSet extends GriddedSet {
 
     if (Samples != null && Lengths[0] > 1) {
       // samples consistency test
+      for (int i=0; i<Length; i++) {
+        if (Samples[0][i] != Samples[0][i]) {
+          throw new SetException(
+           "Gridded1DSet: samples values may not be missing");
+        }
+      }
       Ascending = (Samples[0][LengthX-1] > Samples[0][0]);
       if (Ascending) {
         for (int i=1; i<LengthX; i++) {

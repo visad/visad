@@ -78,6 +78,12 @@ public class Gridded3DSet extends GriddedSet {
 
     if (Samples != null &&
         Lengths[0] > 1 && Lengths[1] > 1 && Lengths[2] > 1) {
+      for (int i=0; i<Length; i++) {
+        if (Samples[0][i] != Samples[0][i]) {
+          throw new SetException(
+           "Gridded3DSet: samples values may not be missing");
+        }
+      }
       // Samples consistency test
       float[] t000 = new float[3];
       float[] t100 = new float[3];

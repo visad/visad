@@ -98,19 +98,25 @@ public abstract class SampledSet extends SimpleSet {
       Hi[j] = Float.NEGATIVE_INFINITY;
       float sum = 0.0f;
       for (int i=0; i<Length; i++) {
-/* WLH 24 Oct 97
-        if (Double.isNaN(SamplesJ[i])) {
-*/
+/* WLH 4 May 99
         if (SamplesJ[i] != SamplesJ[i]) {
           throw new SetException(
                      "SampledSet.init_samples: sample values cannot be missing");
         }
-        if (Double.isInfinite(SamplesJ[i])) {
+        if (Float.isInfinite(SamplesJ[i])) {
           throw new SetException(
                      "SampledSet.init_samples: sample values cannot be infinite");
         }
         if (SamplesJ[i] < Low[j]) Low[j] = SamplesJ[i];
         if (SamplesJ[i] > Hi[j]) Hi[j] = SamplesJ[i];
+*/
+        if (SamplesJ[i] == SamplesJ[i] && !Float.isInfinite(SamplesJ[i])) {
+          if (SamplesJ[i] < Low[j]) Low[j] = SamplesJ[i];
+          if (SamplesJ[i] > Hi[j]) Hi[j] = SamplesJ[i];
+        }
+        else {
+          SamplesJ[i] = Float.NaN;
+        }
         sum += SamplesJ[i];
       }
       if (SetErrors[j] != null ) {

@@ -1490,6 +1490,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     } // end for (int i=0; i<3; i++)
 
     if (set_needed) {
+/* WLH 4 May 99
       float[][] samples = null;
       if (range_select[0] == null) {
         samples = spatial_values;
@@ -1503,10 +1504,14 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           }
         }
       }
+*/
       try {
         if (spatialDimension == 0) {
           double[] values = new double[3];
+/* WLH 4 May 99
           for (int i=0; i<3; i++) values[i] = samples[i][0];
+*/
+          for (int i=0; i<3; i++) values[i] = spatial_values[i][0];
           RealTuple tuple =
             new RealTuple(Display.DisplaySpatialCartesianTuple, values);
           return new SingletonSet(tuple);
@@ -1514,12 +1519,15 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
         else {
           SetType type = new SetType(Display.DisplaySpatialCartesianTuple);
           // MEM
+/* WLH 4 May 99
           Set new_set = domain_set.makeSpatial(type, samples);
           if (range_select[0] != null) {
             // a real hack - fix this someday
             new_set.cram_samples(spatial_values);
           }
           return new_set;
+*/
+          return domain_set.makeSpatial(type, spatial_values);
         }
       }
       catch (VisADException e) {
