@@ -51,7 +51,7 @@ default:
 # JH is the Java header file generator (javah)
 #
 JC = javac
-JFLAGS = -J-mx32m
+JFLAGS = -J-mx64m
 JH = javah
 
 # RMIC is the Remote Method Invokation compiler
@@ -460,7 +460,7 @@ clear:
 
 debug:
 	make compile \
-	"JFLAGS = -J-mx32m -g"
+	"JFLAGS = ${JFLAGS} -g"
 
 
 clean:
