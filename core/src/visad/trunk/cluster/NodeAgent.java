@@ -72,14 +72,14 @@ public abstract class NodeAgent extends Object
 
   // message from client
   public synchronized void sendToNode(Serializable me) {
-System.out.println("NodeAgent.sendToNode " + me);
+// System.out.println("NodeAgent.sendToNode " + me);
     message = me;
     notify();
   }
 
   // called from run() methods of sub-classes
   public synchronized Serializable getMessage() {
-System.out.println("NodeAgent.getMessage enter");
+// System.out.println("NodeAgent.getMessage enter");
     while (message == null) {
       try {
         wait();
@@ -89,7 +89,7 @@ System.out.println("NodeAgent.getMessage enter");
     }
     Serializable me = message;
     message = null;
-System.out.println("NodeAgent.getMessage " + me);
+// System.out.println("NodeAgent.getMessage " + me);
     return me;
   }
 
@@ -104,7 +104,7 @@ System.out.println("NodeAgent.getMessage " + me);
 
   /** create and start Thread, and return contact */
   public RemoteAgentContactImpl getRemoteAgentContact(Object obj) {
-System.out.println("NodeAgent.getRemoteAgentContact start Thread");
+// System.out.println("NodeAgent.getRemoteAgentContact start Thread");
     object = obj;
     agentThread = new Thread(this);
     agentThread.start();

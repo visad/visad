@@ -123,6 +123,24 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
         }
       }
     }
+
+
+
+// WLH new 16 April 2001
+    Vector message = new Vector();
+    Vector map_vector = display.getMapVector();
+    Enumeration maps = map_vector.elements();
+    while (maps.hasMoreElements()) {
+      ScalarMap map = (ScalarMap) maps.nextElement();
+      message.addElement(map);
+      message.addElement(map.getControl());
+    }
+    Serializable[] responses =
+      focus_agent.broadcastWithResponses(message, contacts);
+System.out.println("ClientRendererJ3D.prepareAction messages received");
+
+
+
     // now do usual prepareAction()
     return super.prepareAction(go, initialize, shadow);
   }
@@ -139,13 +157,29 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
       return super.doTransform();
     }
 
+
+/* WLH 16 April 2001
     DisplayMonitor dm = display.getDisplayMonitor();
     while (!dm.isEmpty()) {
       System.out.println("wait for DisplayMonitor");
       new Delay(10);
     }
+*/
 
-    String message = "transform";
+
+    // String message = "transform";
+    Vector message = new Vector();
+    message.addElement("transform");
+
+
+    Vector map_vector = display.getMapVector();
+    Enumeration maps = map_vector.elements();
+    while (maps.hasMoreElements()) {
+      ScalarMap map = (ScalarMap) maps.nextElement();
+      message.addElement(map);
+    }
+
+
     // responses are VisADGroups
     Serializable[] responses =
       focus_agent.broadcastWithResponses(message, contacts);

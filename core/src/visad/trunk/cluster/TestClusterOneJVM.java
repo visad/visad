@@ -198,7 +198,8 @@ public class TestClusterOneJVM extends Object {
   public static void main(String[] args)
          throws RemoteException, VisADException {
 
-    int node_divide = 2;
+    // int node_divide = 2;
+    int node_divide = 1;
     int number_of_nodes = node_divide * node_divide;
 
     if (args == null || args.length < 1) {
@@ -355,4 +356,21 @@ MathType.stringToType("((ImageElement, ImageLine) -> ImageRadiance)");
 */
 
 }
+
+
+/*
+to test:
+wait for DisplayMonitor
+wait for DisplayMonitor
+wait for DisplayMonitor
+jdb stop in isEmpty() and find out what's in there
+
+only three of four image sections
+  so sync is not good enough
+hack is for NodeRendererJ3D.doTransform() to wait
+  for all ScalarMaps to have good ranges
+
+perhaps NodeRendererJ3D.doTransform() can wait for quiet incoming events
+  sort of a node version of isEmpty()
+*/
 

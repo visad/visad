@@ -30,6 +30,7 @@ import visad.*;
 import visad.java3d.*;
 import java.rmi.*;
 import java.util.Vector;
+import java.util.Enumeration;
 import java.io.Serializable;
 
 /**
@@ -51,6 +52,7 @@ public class DefaultNodeRendererAgent extends NodeAgent {
   private NodeDisplayRendererJ3D ndr = null;
   private DataReferenceImpl ref = null;
   private NodeRendererJ3D nr = null;
+  private RemoteDisplayImpl remote_display = null;
 
   public DefaultNodeRendererAgent(RemoteClientAgent source, RemoteDisplay rd,
                                   ConstantMap[] cms) {
@@ -81,7 +83,11 @@ public class DefaultNodeRendererAgent extends NodeAgent {
       // nodes do listen to AUTO_SCALE events
       ndr = new NodeDisplayRendererJ3D();
 // System.out.println("DefaultNodeRendererAgent.run after new NodeDisplayRendererJ3D");
-      display = new DisplayImplJ3D(rmtDpy, ndr, null);
+
+      // WLH 16 April 2001
+      // display = new DisplayImplJ3D(rmtDpy, ndr, null);
+      String name = rmtDpy.getName() + ".remote";
+      display = new DisplayImplJ3D(name, ndr, DisplayImplJ3D.TRANSFORM_ONLY);
 // System.out.println("DefaultNodeRendererAgent.run after new DisplayImplJ3D");
 
       ref = new DataReferenceImpl("dummy");
@@ -89,17 +95,21 @@ public class DefaultNodeRendererAgent extends NodeAgent {
       remote_ref.setData(data);
 // System.out.println("DefaultNodeRendererAgent.run after setData");
       nr = new NodeRendererJ3D(this);
-      RemoteDisplayImpl remote_display = new RemoteDisplayImpl(display);
+      remote_display = new RemoteDisplayImpl(display);
 // System.out.println("DefaultNodeRendererAgent.run after new RemoteDisplayImpl");
+
+
       remote_display.addReferences(nr, ref, cmaps);
 // System.out.println("DefaultNodeRendererAgent.run after addReferences");
+
+
     }
     catch (VisADException e) {
-      System.out.println("DefaultNodeRendererAgent cannot run: " + e.toString());
+      DisplayImpl.printStack("ex " + e);
       return;
     }
     catch (RemoteException e) {
-      System.out.println("DefaultNodeRendererAgent cannot run: " + e.toString());
+      DisplayImpl.printStack("ex " + e);
       return;
     }
 
@@ -116,8 +126,7 @@ public class DefaultNodeRendererAgent extends NodeAgent {
           return;
         }
         else if (smessage.equals("transform")) {
-System.out.println("DefaultNodeRendererAgent.run trigger " +
-                   display.getName());
+// System.out.println("DefaultNodeRendererAgent.run trigger " + display.getName());
           nr.enableTransform();
           display.reDisplayAll();
           // NodeRendererJ3D.doTransform() calls
@@ -143,8 +152,78 @@ System.out.println("DefaultNodeRendererAgent.run trigger " +
             }
           }
           catch (VisADException e) {
+            DisplayImpl.printStack("ex " + e);
+            return;
           }
           catch (RemoteException e) {
+            DisplayImpl.printStack("ex " + e);
+            return;
+          }
+        }
+        else if (first instanceof ScalarMap) {
+          try {
+            display.removeReference(ref);
+            display.clearMaps();
+            int m = vmessage.size();
+            for (int i=0; i<m; i+=2) {
+              ScalarMap map = (ScalarMap) vmessage.elementAt(i);
+              Control control = (Control) vmessage.elementAt(i + 1);
+              ScalarMap new_map =
+                new ScalarMap(map.getScalar(), map.getDisplayScalar());
+              display.addMap(new_map);
+              double[] range = map.getRange();
+              new_map.setRange(range[0], range[1]);
+              Control new_control = new_map.getControl();
+              if (new_control != null) new_control.syncControl(control);
+            }
+            nr = new NodeRendererJ3D(this);
+            remote_display.addReferences(nr, ref, cmaps);
+          }
+          catch (VisADException e) {
+            DisplayImpl.printStack("ex " + e);
+            return;
+          }
+          catch (RemoteException e) {
+            DisplayImpl.printStack("ex " + e);
+            return;
+          }
+          response = "normal";
+        }
+        else if (first instanceof String) {
+          String sfirst = (String) first;
+          if (sfirst.equals("transform")) {
+            int m = vmessage.size();
+            Vector map_vector = display.getMapVector();
+            if (map_vector.size() != (m - 1)) {
+              System.out.println("ERROR1 " + map_vector.size() + " != " + (m - 1));
+              return;
+            }
+            Enumeration maps = map_vector.elements();
+            for (int i=1; i<m; i++) {
+              ScalarMap map1 = (ScalarMap) vmessage.elementAt(i);
+              ScalarMap map2 = (ScalarMap) maps.nextElement();
+              if (!map1.getScalar().equals(map2.getScalar()) ||
+                  !map1.getDisplayScalar().equals(map2.getDisplayScalar()) ) {
+                System.out.println("ERROR2 " + map1 + " != " + map2);
+              }
+              double[] range = map1.getRange();
+              try {
+                map2.setRange(range[0], range[1]);
+              }
+              catch (VisADException e) {
+                DisplayImpl.printStack("ex " + e);
+                return;
+              }
+              catch (RemoteException e) {
+                DisplayImpl.printStack("ex " + e);
+                return;
+              }
+            }
+            nr.enableTransform();
+            display.reDisplayAll();
+            // NodeRendererJ3D.doTransform() calls
+            // sendToClient(branch) for this, so just return
+            return;
           }
         }
       }

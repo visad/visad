@@ -27,6 +27,8 @@ MA 02111-1307, USA
 package visad.cluster;
 
 import visad.*;
+import visad.util.Delay;
+import visad.collab.*;
 import visad.java3d.*;
 import visad.java2d.*;
 
@@ -108,12 +110,21 @@ System.out.println("NodeRendererJ3D.enableTransform");
 
   /** create a VisADGroup scene graph for Data in links[0] */
   public BranchGroup doTransform() throws VisADException, RemoteException {
-System.out.println("NodeRendererJ3D.doTransform enter");
 
 /*
 should wait until all collab events are quiet
 especially ScalarMapEvent.AUTO_SCALE
 */
+
+
+/* WLH 16 April 2001
+DisplaySyncImpl ds = (DisplaySyncImpl) getDisplay().getDisplaySync();
+while (ds.isThreadRunning()) {
+  System.out.println("wait for DisplaySync");
+  new Delay(10);
+}
+*/
+
 
     // RendererJ3D.doAction is expecting a BranchGroup
     // so fake it
@@ -122,9 +133,23 @@ especially ScalarMapEvent.AUTO_SCALE
     fake_branch.setCapability(Group.ALLOW_CHILDREN_READ);
     fake_branch.setCapability(Group.ALLOW_CHILDREN_WRITE);
     fake_branch.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+
+System.out.println("NodeRendererJ3D.doTransform enabled = " + enable_transform);
+
     // don't do work unless requested by the client
     if (!enable_transform) return fake_branch;
     enable_transform = false;
+
+
+Vector map_vector = getDisplay().getMapVector();
+Enumeration maps = map_vector.elements();
+while (maps.hasMoreElements()) {
+  ScalarMap map = (ScalarMap) maps.nextElement();
+  double[] range = map.getRange();
+  Control control = map.getControl();
+  System.out.println(map + " " + ((float) range[0]) + " " + ((float) range[1]));
+  System.out.println("  " + control);
+}
 
     VisADGroup branch = new VisADGroup();
 
