@@ -97,6 +97,8 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
     wandThread = null;
   }
 
+
+  // QUESTION? values of these BOLD variables QUESTION?
   private static int DELAY = 50; // ms
   private static int NSENSORS = 4;
   private static int NBUTTONS = 3;
@@ -115,7 +117,11 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
   private static int AZIMUTH = 1;
   private static int ROLL = 2;
 
-  private float TRAVEL_SPEED = 0.3f; // graphics distance (feet?) per second
+  // graphics distance (feet?) per second
+  private float TRAVEL_SPEED = 0.3f;
+
+  // scale factor for head translation (negative?)
+  private float TRANS_SCALE = 1.0f;
 
   public void run() {
     Thread me = Thread.currentThread();
@@ -175,7 +181,7 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
       float y = 0.0f;
       float z = -1.0f;
 
-      // QUESTION? is order of rotation x, y, z QUESTION?
+      // QUESTION? is order of rotations: x, y then z QUESTION?
       // rotate around x
       float xx = x;
       float yy = (float) (Math.cos(elevation) * y - Math.sin(elevation) * z);
@@ -189,12 +195,23 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
       wand_vector[1] = (float) (Math.sin(elevation) * x + Math.cos(elevation) * y);
       wand_vector[2] = z;
 
+      // move along wand direction when left button pressed
       if (left) {
         float increment = TRAVEL_SPEED * DELAY / 1000.0f;
         travel_position[0] += increment * wand_vector[0];
         travel_position[1] += increment * wand_vector[1];
         travel_position[2] += increment * wand_vector[2];
       }
+
+      // change vpTrans based on head_position and travel_position
+      double transx = TRANS_SCALE * (head_position[0] + travel_position[0]);
+      double transy = TRANS_SCALE * (head_position[1] + travel_position[1]);
+      double transz = TRANS_SCALE * (head_position[2] + travel_position[2]);
+      double[] matrix =
+        MouseBehaviorJ3D.static_make_matrix(0.0, 0.0, 0.0, 1.0,
+                                            transx, transy, transz);
+      vpTrans.setTransform(new Transform3D(matrix));
+
 
 
     } // end while (wandThread == me)

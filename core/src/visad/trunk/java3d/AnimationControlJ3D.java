@@ -105,7 +105,12 @@ public class AnimationControlJ3D extends AVControlJ3D
       }
       try {
         synchronized (this) {
-          wait(stepValues[current]);
+          if (0 <= current && current < stepValues.length) {
+            wait(stepValues[current]);
+          }
+          else {
+            wait(500);
+          }
         }
       }
       catch(InterruptedException e) {

@@ -108,7 +108,12 @@ public class AnimationControlJ2D extends AVControlJ2D
       }
       try {
         synchronized (this) {
-          wait(stepValues[current]);
+          if (0 <= current && current < stepValues.length) {
+            wait(stepValues[current]);
+          }
+          else {
+            wait(500);
+          }
         }
       }
       catch(InterruptedException e) {

@@ -176,12 +176,12 @@ public class AnimationWidget
     getControlSettings((AnimationControl )smap.getControl());
     if (st > 0) {
       aMs = st;
-      control.setStep(aMs);
+      if (control != null) control.setStep(aMs);
     }
     fixControlUI();
 
     // add listeners
-    control.addControlListener(this);
+    if (control != null) control.addControlListener(this);
     smap.addScalarMapListener(this);
     forward.addActionListener(this);
     forward.setActionCommand("forward");
@@ -199,9 +199,11 @@ public class AnimationWidget
   private void getControlSettings(AnimationControl ctl)
   {
     control = ctl;
-    aDir = control.getDirection();
-    aAnim = control.getOn();
-    aMs = (int )control.getStep();
+    if (control != null) {
+      aDir = control.getDirection();
+      aAnim = control.getOn();
+      aMs = (int )control.getStep();
+    }
   }
 
   private void fixAnimUI()
@@ -283,6 +285,11 @@ public class AnimationWidget
    * ActionListener method used with JTextField and JButtons 
    */
   public void actionPerformed(ActionEvent e) {
+    // WLH 28 March 2000
+    if (control == null) {
+      System.out.println("control == null in AnimationWidget.actionPerformed");
+      return;
+    }
     String cmd = e.getActionCommand();
     if (cmd.equals("forward")) {
       try {
@@ -346,7 +353,8 @@ public class AnimationWidget
   public void stateChanged(ChangeEvent e) {
     if (!TimeSlider.getValueIsAdjusting()) {
       try {
-        control.setCurrent(TimeSlider.getValue()-1);  /* DRM 1999-05-19 */
+        /* DRM 1999-05-19 */
+        if (control != null) control.setCurrent(TimeSlider.getValue()-1);
       }
       catch (VisADException exc) { }
       catch (RemoteException exc) { }
@@ -357,7 +365,9 @@ public class AnimationWidget
    * ControlListener method used for programmatically moving JSlider 
    */
   public void controlChanged(ControlEvent e) {
-    TimeSlider.setValue(control.getCurrent()+1);  /* DRM 1999-05-19 */
+    if (control != null) {
+      TimeSlider.setValue(control.getCurrent()+1);  /* DRM 1999-05-19 */
+    }
   }
 
   /** 
@@ -388,7 +398,7 @@ public class AnimationWidget
       control = (AnimationControl )(evt.getScalarMap().getControl());
       getControlSettings((AnimationControl )(evt.getScalarMap().getControl()));
       fixControlUI();
-      control.addControlListener(this);
+      if (control != null) control.addControlListener(this);
     }
   }
 
