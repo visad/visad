@@ -568,14 +568,14 @@ public class MeasurePool implements DisplayListener {
     // ignore CTRL events
     if (ctrl) return;
 
-    if (left && id == DisplayEvent.MOUSE_PRESSED) {
-      // left press - remember mouse click location for line selection
+    if (left && id == DisplayEvent.MOUSE_PRESSED) { // left press
+      // remember mouse click location for line selection
       mx = x;
       my = y;
       m_shift = shift;
     }
-    else if (left && id == DisplayEvent.MOUSE_RELEASED) {
-      // left release - determine line selection
+    else if (left && id == DisplayEvent.MOUSE_RELEASED) { // left release
+      // determine line selection
       if (x == mx && y == my) {
         if (list == null || dim != 2) return;
         Vector lines = list.getLines();
@@ -657,8 +657,17 @@ public class MeasurePool implements DisplayListener {
         }
       }
     }
-    else if (right && id == DisplayEvent.MOUSE_RELEASED) {
-      // right release - save measurements if necessary
+    else if (right && id == DisplayEvent.MOUSE_RELEASED) { // right release
+      if (dim == 3) {
+        // snap pool points to measurement values
+        int size = used.size();
+        for (int i=0; i<size; i++) {
+          PoolPoint pt = (PoolPoint) used.elementAt(i);
+          pt.refresh();
+        }
+      }
+
+      // save measurements if necessary
       if (needMeasureSave) {
         bio.state.saveState();
         needMeasureSave = false;

@@ -105,7 +105,7 @@ public class MeasurePoint extends MeasureThing {
     if (this.x == x && this.y == y && this.z == z) return;
     this.x = x;
     this.y = y;
-    this.z = z;
+    if (stdType != STD_2D) this.z = z;
     for (int i=0; i<pt.length; i++) {
       if (pt[i] != null && pt[i] != p) pt[i].refresh();
     }
@@ -131,6 +131,7 @@ public class MeasurePoint extends MeasureThing {
 
   // -- HELPER METHODS --
 
+  /** Initializes the measurement point with the given values. */
   private void init(double x, double y, double z, Color preferredColor,
     Color color, MeasureGroup group, int stdType, int stdId)
   {
