@@ -47,6 +47,10 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
 
   private static final double  RADIUS = 6371.23;  /* KM */
 
+  /*- negate Vis5D/McIDAS longitude west positive
+      convention */
+  private static final double WEST_POSITIVE = -1.0;
+
   private int    Projection;
   int     REVERSE_POLES = 1;
   double  NorthBound;
@@ -240,6 +244,7 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
                     / (double) (Nr-1);
           latlon[1][kk] = WestBound - rowcol[1][kk] * (WestBound-EastBound)
                     / (double) (Nc-1);
+          latlon[1][kk] *= WEST_POSITIVE;
         }
         break;
       case PROJ_LAMBERT:
@@ -266,7 +271,7 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
                          Data.RADIANS_TO_DEGREES);
 
              latlon[0][kk] = lat;
-             latlon[1][kk] = lon;
+             latlon[1][kk] = WEST_POSITIVE*lon;
            }
          }
          break;
@@ -296,7 +301,7 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
                 else if (lon > 180.0)  lon -= 360.0;
             }
             latlon[0][kk] = lat;
-            latlon[1][kk] = lon;
+            latlon[1][kk] = WEST_POSITIVE*lon;
            }
          }
          break;
@@ -307,8 +312,8 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
                      * (NorthBound-SouthBound) / (double) (Nr-1);
              latlon[1][kk] = WestBound - rowcol[0][kk]
                      * (WestBound-EastBound) / (double) (Nc-1);
-             pandg_back(latlon, CentralLat, CentralLon, Rotation);
            }
+           pandg_back(latlon, CentralLat, CentralLon, Rotation);
          }
          break;
       default:
@@ -331,7 +336,7 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
       case PROJ_SPHERICAL:
          for ( int kk = 0; kk < length; kk++ ) {
            rowcol[0][kk] = (NorthBound - latlon[0][kk])/RowInc;
-           rowcol[1][kk] = (WestBound - latlon[1][kk])/ColInc;
+           rowcol[1][kk] = (WestBound - latlon[1][kk]*WEST_POSITIVE)/ColInc;
          }
          break;
       case PROJ_LAMBERT:
@@ -339,7 +344,7 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
             double rlon, rlat, r, lat, lon;
             for (int kk = 0; kk < length; kk++) {
               lat = latlon[0][kk];
-              lon = latlon[1][kk];
+              lon = latlon[1][kk]*WEST_POSITIVE;
 
               rlon = lon - CentralLon;
               rlon = rlon * Cone * Data.DEGREES_TO_RADIANS;
@@ -363,7 +368,7 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
             
             for (int kk = 0; kk < length; kk++) {
               lat = latlon[0][kk];
-              lon = latlon[1][kk];
+              lon = latlon[1][kk]*WEST_POSITIVE;
 
               rlat = Data.DEGREES_TO_RADIANS * lat;
               rlon = Data.DEGREES_TO_RADIANS * (CentralLon - lon);
@@ -425,6 +430,7 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
       latlon[1][kk] =
         -Data.RADIANS_TO_DEGREES * (-b + Math.atan2(Math.cos(pm) * Math.sin(gm - r),
            Math.sin(a) * Math.cos(pm) * Math.cos(gm - r) + Math.cos(a) * Math.sin(pm)));
+      latlon[1][kk] *= WEST_POSITIVE;
     }
     return;
   }
@@ -439,14 +445,14 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
     for (int kk = 0; kk < latlon[0].length; kk++) {
 
       p1 = Data.DEGREES_TO_RADIANS * latlon[0][kk];
-      g1 = -Data.DEGREES_TO_RADIANS * latlon[1][kk];
+      g1 = -Data.DEGREES_TO_RADIANS * latlon[1][kk]*WEST_POSITIVE;
       p = Math.asin( Math.sin(a) * Math.sin(p1) + Math.cos(a) * Math.cos(p1) * Math.cos(g1 + b) );
       g = r + Math.atan2(Math.cos(p1) * Math.sin (g1 + b),
               Math.sin(a) * Math.cos(p1) * Math.cos(g1 + b) - Math.cos(a) * Math.sin(p1) );
 
-      latlon[0][kk] = 
+      latlon[0][kk] =
         Data.RADIANS_TO_DEGREES * Math.asin( -Math.cos(p) * Math.cos(g) );
-      latlon[1][kk] = 
+      latlon[1][kk] =
        -Data.RADIANS_TO_DEGREES * Math.atan2(Math.cos(p) * Math.sin(g), Math.sin(p) );
     }
     return;
@@ -467,8 +473,36 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
     return (cs instanceof Vis5DCoordinateSystem);
   }
 
-  public static void main(String args[]) throws VisADException 
+  public static void main(String args[]) throws VisADException
   {
+    int proj = 3;
+    double[] projargs =
+     {90, 100, 50, 50, 100};
 
+    Vis5DCoordinateSystem v5dcs =
+      new Vis5DCoordinateSystem(proj, projargs, 100, 100);
+
+    double[][] latlon =
+     {{89, 42, 60}, {-100, -100, -180}};
+
+    double[][] rowcol = v5dcs.fromReference(latlon);
+    System.out.println(rowcol[0][0]+", "+rowcol[1][0]+" : "+rowcol[0][2]+", "+rowcol[1][2]);
+
+    double[][] latlon_t = v5dcs.toReference(rowcol);
+    System.out.println(latlon_t[0][0]+", "+latlon_t[1][0]+" : "+latlon_t[0][2]+", "+latlon_t[1][2]);
+
+    proj = 2;
+    double[] projargs_lam =
+     {60, 30, 0, 50, 100, 100};
+    
+    v5dcs =
+      new Vis5DCoordinateSystem(proj, projargs_lam, 100, 100);
+
+    double[][] latlon2 =
+     {{90, 40, 50}, {-100, -100, -180}};
+    rowcol = v5dcs.fromReference(latlon2);
+    System.out.println(rowcol[0][0]+", "+rowcol[1][0]+" : "+rowcol[0][2]+", "+rowcol[1][2]);
+    latlon_t = v5dcs.toReference(rowcol);
+    System.out.println(latlon_t[0][0]+", "+latlon_t[1][0]+" : "+latlon_t[0][2]+", "+latlon_t[1][2]);
   }
 }
