@@ -28,6 +28,7 @@ package visad.data.bio;
 
 import java.io.*;
 import java.net.URL;
+import java.util.Vector;
 
 import visad.*;
 import visad.data.*;
@@ -44,18 +45,27 @@ public class ZVIForm extends Form
     -48, -49, 17, -32, -95, -79, 26, -31
   };
 
-  /** Block identifying start of useful header information and pixel data. */
-  private static final byte[] ZVI_MAGIC_BLOCK = { // S.c.a.l.i.n.g....
-    83, 0, 99, 0, 97, 0, 108, 0, 105, 0, 110, 0, 103, 0, 0, 0, 9
+  /** Block identifying start of useful header information. */
+  private static final byte[] ZVI_MAGIC_BLOCK_1 = { // 41 00 10
+    65, 0, 16
+  };
+
+  /** Block identifying second part of useful heading information. */
+  private static final byte[] ZVI_MAGIC_BLOCK_2 = { // 41 00 80
+    65, 0, -128
+  };
+
+  /** Block identifying third part of useful header information. */
+  private static final byte[] ZVI_MAGIC_BLOCK_3 = { // 20 00 10
+    32, 0, 16
   };
 
   /** Memory buffer size in bytes, for reading from disk. */
   private static final int BUFFER_SIZE = 8192;
 
-  /** String begging user to send unsupported ZVI files in for examination. */
-  private static final String WHINING =
-    "Perhaps you'd be willing to send your ZVI file to the author " +
-    "to help improve this hacked-together ZVI support?";
+  /** String apologizing for the fact that this ZVI support still sucks. */
+  private static final String WHINING = "Sorry, " +
+    "ZVI support is still preliminary. It will be improved as time permits.";
 
   /** Debugging flag. */
   private static final boolean DEBUG = false;
@@ -75,29 +85,8 @@ public class ZVIForm extends Form
   /** Input stream for current file. */
   private RandomAccessFile in;
  
-  /** Width of each image within the current file. */
-  private int width;
-
-  /** Height of each image within the current file. */
-  private int height;
-
-  /** Number of images within the current file. */
-  private int numImages;
-
-  /** Offset of image data within the current file. */
-  private int offset;
-
-  /** Number of pixels per image within the current file. */
-  private int numPixels;
-
-  /** Size of each image in bytes within the current file. */
-  private int imageSize;
-
-  /** Number of channels at each pixel within the current file. */
-  private int numChannels;
-
-  /** Number of bytes per channel within the current file. */
-  private int bytesPerChannel;
+  /** List of image blocks. */
+  private Vector blockList;
 
   /** Percent complete with current operation. */
   private double percent;
@@ -194,71 +183,14 @@ public class ZVIForm extends Form
   {
     if (!id.equals(currentId)) initFile(id);
 
-    if (block_number < 0 || block_number >= numImages) {
+    if (block_number < 0 || block_number >= blockList.size()) {
       throw new BadFormException("Invalid image number: " + block_number);
     }
 
-    if (DEBUG) System.out.print("Reading image #" + block_number + "...");
+    if (DEBUG) System.out.println("Reading image #" + block_number + "...");
 
-    // read image - should probably be buffered, but I'm too lazy for now
-    byte[] imageBytes = new byte[imageSize];
-    in.seek(offset + block_number * imageSize);
-    in.readFully(imageBytes);
-
-    if (DEBUG) {
-      System.out.println("Done.");
-      System.out.print("Converting to VisAD format...");
-    }
-
-    // convert image bytes into VisAD-compatible floating point values
-    int index = 0;
-    float[][] samples = new float[numChannels][numPixels];
-    for (int i=0; i<numPixels; i++) {
-      for (int c=numChannels-1; c>=0; c--) {
-        byte[] b = new byte[bytesPerChannel];
-        System.arraycopy(imageBytes, index, b, 0, bytesPerChannel);
-        index += bytesPerChannel;
-        samples[c][i] = batoi(b);
-      }
-    }
-
-    if (DEBUG) {
-      System.out.println("Done.");
-      System.out.print("Constructing FlatField...");
-    }
-
-    // wrap image in a FlatField object
-    RealType xtype = RealType.getRealType("ImageElement");
-    RealType ytype = RealType.getRealType("ImageLine");
-    RealTupleType xy = new RealTupleType(xtype, ytype);
-    RealType[] rtypes;
-    if (numChannels == 1) {
-      rtypes = new RealType[] {
-        RealType.getRealType("value")
-      };
-    }
-    else if (numChannels == 3) {
-      rtypes = new RealType[] {
-        RealType.getRealType("Red"),
-        RealType.getRealType("Green"),
-        RealType.getRealType("Blue")
-      };
-    }
-    else {
-      rtypes = new RealType[numChannels];
-      for (int i=0; i<numChannels; i++) {
-        rtypes[i] = RealType.getRealType("value" + (i + 1));
-      }
-    }
-    RealTupleType range = new RealTupleType(rtypes);
-    FunctionType ftype = new FunctionType(xy, range);
-    Integer2DSet fset = new Integer2DSet(xy, width, height);
-    FlatField ff = new FlatField(ftype, fset);
-    ff.setSamples(samples, false);
-
-    if (DEBUG) System.out.println("Done.");
-
-    return ff;
+    ZVIBlock zviBlock = (ZVIBlock) blockList.elementAt(block_number);
+    return zviBlock.readImage(in);
   }
 
   /**
@@ -269,7 +201,7 @@ public class ZVIForm extends Form
     throws BadFormException, IOException, VisADException
   {
     if (!id.equals(currentId)) initFile(id);
-    return numImages;
+    return blockList.size();
   }
 
   /** Closes any open files. */
@@ -335,6 +267,58 @@ public class ZVIForm extends Form
     return batoi(b);
   }
 
+  /**
+   * Finds the first occurrence of the given byte block within the file,
+   * starting from the given file position.
+   */
+  private static long findBlock(RandomAccessFile in, byte[] block, long start)
+    throws IOException
+  {
+    long filePos = start;
+    long fileSize = in.length();
+    byte[] buf = new byte[BUFFER_SIZE];
+    long spot = -1;
+    int step = 0;
+    boolean found = false;
+    in.seek(start);
+
+    while (true) {
+      int len = (int) (fileSize - filePos);
+      if (len < 0) break;
+      if (len > buf.length) len = buf.length;
+      in.readFully(buf, 0, len);
+
+      for (int i=0; i<len; i++) {
+        if (buf[i] == block[step]) {
+          if (step == 0) {
+            // could be a match; flag this spot
+            spot = filePos + i;
+          }
+          step++;
+          if (step == block.length) {
+            // found complete match; done searching
+            found = true;
+            break;
+          }
+        }
+        else {
+          // no match; reset step indicator
+          spot = -1;
+          step = 0;
+        }
+      }
+      if (found) break; // found a match; we're done
+      if (len < buf.length) break; // EOF reached; we're done
+
+      filePos += len;
+    }
+
+    // set file pointer to byte immediately following pattern
+    if (spot >= 0) in.seek(spot + block.length);
+
+    return spot;
+  }
+
 
   // -- Helper methods --
 
@@ -346,129 +330,260 @@ public class ZVIForm extends Form
     currentId = id;
     in = new RandomAccessFile(id, "r");
 
-    // Current highly questionable decoding strategy:
+    // Highly questionable decoding strategy:
     //
-    // 1) Find the following 17-byte sequence:
-    //   53 00 63 00 61 00 6c 00 69 00 6e 00 67 00 00 00 09 (S.c.a.l.i.n.g....)
-    // This sequence is typically ~32000 bytes into the ZVI file.
+    // Note that all byte ordering is little endian, including 4-byte header
+    // fields. Other examples: 16-bit data is LSB MSB, and 3-channel data is
+    // BGR instead of RGB.
     //
-    // 2) Skip the next 56 bytes (including the 17-byte sequence).
+    // 1) Find image header byte sequence:
+    //    A) Find 41 00 10. (ZVI_MAGIC_BLOCK_1)
+    //    B) Skip 19 bytes of stuff.
+    //    C) Read 41 00 80. (ZVI_MAGIC_BLOCK_2)
+    //    D) Read 11 bytes of 00.
+    //    E) Read potential header information:
+    //       - Z-slice (4 bytes)
+    //       - channel (4 bytes)
+    //       - timestep (4 bytes)
+    //    F) Read 108 bytes of 00.
     //
-    // 3) Read the following parameters (little endian):
-    //   - width (4 bytes)
-    //   - height (4 bytes)
-    //   - numImages (4 bytes; this is a wild guess)
-    //   - bytes per pixel (4 bytes)
-    //   - ? (4 bytes; 1 for 8-bit RGB; 4 for 16-bit grayscale -- no clue)
-    //   - bit depth (4 bytes -- same as bytes per pixel * 8)
+    // 2) If byte sequence is not as expected at any point (e.g.,
+    //    stuff that is supposed to be 00 isn't), start over at 1A.
     //
-    // 4) For each image, read (width * height * bytes per pixel) bytes into
-    //    samples. Note that all byte ordering is little endian, so 16-bit data
-    //    is LSB MSB, and 3-channel data is BGR instead of RGB.
+    // 3) Find 20 00 10. (ZVI_MAGIC_BLOCK_3)
+    //
+    // 4) Read more header information:
+    //    - width (4 bytes)
+    //    - height (4 bytes)
+    //    - ? (4 bytes; always 1)
+    //    - bytesPerPixel (4 bytes)
+    //    - pixelType (this is what the AxioVision software calls it)
+    //       - 1=24-bit (3 color components, 8-bit each)
+    //       - 3=8-bit (1 color component, 8-bit)
+    //       - 4=16-bit (1 color component, 16-bit)
+    //    - bitDepth (4 bytes--usually, but not always, bytesPerPixel * 8)
+    //
+    // 5) Read image data (width * height * bytesPerPixel)
+    //
+    // 6) Repeat the entire process until no more headers are identified.
 
-    int fileSize = (int) new File(id).length();
-
-    // search for magic ZVI block identifying start of interesting data
-    int filePos = 0;
-    byte[] buf = new byte[BUFFER_SIZE];
-    int header = -1;
-    int step = 0;
-    boolean found = false;
+    long pos = 0;
+    blockList = new Vector();
+    int numZ = 0, numC = 0, numT = 0;
     while (true) {
-      int len = fileSize - filePos;
-      if (len > buf.length) len = buf.length;
-      in.readFully(buf, 0, len);
+      // search for start of next image header
+      long header = findBlock(in, ZVI_MAGIC_BLOCK_1, pos);
 
-      for (int i=0; i<len; i++) {
-        if (buf[i] == ZVI_MAGIC_BLOCK[step]) {
-          if (step == 0) {
-            // could be a match; flag this spot
-            header = filePos + i;
-          }
-          step++;
-          if (step == ZVI_MAGIC_BLOCK.length) {
-            // found complete match; done searching
-            found = true;
-            break;
-          }
+      if (header < 0) {
+        // no more potential headers found; we're done
+        break;
+      }
+      pos = header + ZVI_MAGIC_BLOCK_1.length;
+
+      if (DEBUG) System.err.println("Found potential image block: " + header);
+
+      // these bytes don't matter
+      in.skipBytes(19);
+      pos += 19;
+
+      // these bytes should match ZVI_MAGIC_BLOCK_2
+      byte[] b = new byte[ZVI_MAGIC_BLOCK_2.length];
+      in.readFully(b);
+      boolean ok = true;
+      for (int i=0; i<b.length; i++) {
+        if (b[i] != ZVI_MAGIC_BLOCK_2[i]) {
+          ok = false;
+          break;
         }
-        else {
-          // no match; reset step indicator
-          header = -1;
-          step = 0;
+        pos++;
+      }
+      if (!ok) continue;
+
+      // these bytes should be 00
+      b = new byte[11];
+      in.readFully(b);
+      for (int i=0; i<b.length; i++) {
+        if (b[i] != 0) {
+          ok = false;
+          break;
+        }
+        pos++;
+      }
+      if (!ok) continue;
+
+      // read potential header information
+      int theZ = readInt(in);
+      int theC = readInt(in);
+      int theT = readInt(in);
+      pos += 12;
+
+      // these bytes should be 00
+      b = new byte[108];
+      in.readFully(b);
+      for (int i=0; i<b.length; i++) {
+        if (b[i] != 0) {
+          ok = false;
+          break;
+        }
+        pos++;
+      }
+      if (!ok) continue;
+
+      // everything checks out; looks like an image header to me
+      long magic3 = findBlock(in, ZVI_MAGIC_BLOCK_3, pos);
+      if (magic3 < 0) {
+        throw new BadFormException("Error parsing image header. " + WHINING);
+      }
+      pos = magic3 + ZVI_MAGIC_BLOCK_3.length;
+
+      // read more header information
+      int width = readInt(in);
+      int height = readInt(in);
+      int alwaysOne = readInt(in); // don't know what this is for
+      int bytesPerPixel = readInt(in);
+      int pixelType = readInt(in); // not clear what this value signifies
+      int bitDepth = readInt(in); // doesn't always equal bytesPerPixel * 8
+      pos += 24;
+
+      ZVIBlock zviBlock = new ZVIBlock(theZ, theC, theT,
+        width, height, alwaysOne, bytesPerPixel, pixelType, bitDepth, pos);
+      if (DEBUG) System.out.println(zviBlock);
+
+      // perform some checks on the header info
+      if (theZ >= numZ) numZ = theZ + 1;
+      if (theC >= numC) numC = theC + 1;
+      if (theT >= numT) numT = theT + 1;
+
+      // save this image block's position
+      blockList.add(zviBlock);
+      pos += width * height * bytesPerPixel;
+    }
+
+    if (blockList.isEmpty()) {
+      throw new BadFormException("No image data found. " + WHINING);
+    }
+    if (numZ * numC * numT != blockList.size()) {
+      System.err.println("Warning: image counts do not match. " + WHINING);
+    }
+  }
+
+
+  // -- Helper classes --
+
+  /** Contains information collected from a ZVI image header. */
+  private class ZVIBlock {
+    private int theZ, theC, theT;
+    private int width, height;
+    private int alwaysOne;
+    private int bytesPerPixel;
+    private int pixelType;
+    private int bitDepth;
+    private long imagePos;
+
+    private int numPixels;
+    private int imageSize;
+    private int numChannels;
+    private int bytesPerChannel;
+
+    public ZVIBlock(int theZ, int theC, int theT, int width, int height,
+      int alwaysOne, int bytesPerPixel, int pixelType, int bitDepth,
+      long imagePos)
+    {
+      this.theZ = theZ;
+      this.theC = theC;
+      this.theT = theT;
+      this.width = width;
+      this.height = height;
+      this.alwaysOne = alwaysOne;
+      this.bytesPerPixel = bytesPerPixel;
+      this.pixelType = pixelType;
+      this.bitDepth = bitDepth;
+      this.imagePos = imagePos;
+
+      numPixels = width * height;
+      imageSize = numPixels * bytesPerPixel;
+      numChannels = pixelType == 1 ? 3 : 1; // a total shot in the dark
+      if (bytesPerPixel % numChannels != 0) {
+        System.err.println("Warning: incompatible bytesPerPixel (" +
+          bytesPerPixel + ") and numChannels (" + numChannels +
+          "). Assuming grayscale data. " + WHINING);
+        numChannels = 1;
+      }
+      bytesPerChannel = bytesPerPixel / numChannels;
+    }
+
+    /** Reads in this block's image data from the given file. */
+    public FlatField readImage(RandomAccessFile in)
+      throws IOException, VisADException
+    {
+      long fileSize = in.length();
+      if (imagePos + imageSize > fileSize) {
+        throw new BadFormException("File is not big enough to contain the " +
+          "pixels (width=" + width + "; height=" + height +
+          "; bytesPerPixel=" + bytesPerPixel + "; imagePos=" + imagePos +
+          "; fileSize=" + fileSize + "). " + WHINING);
+      }
+
+      // read image (should be buffered, but I'm too lazy for now)
+      byte[] imageBytes = new byte[imageSize];
+      in.seek(imagePos);
+      in.readFully(imageBytes);
+
+      // convert image bytes into VisAD-compatible floating point values
+      int index = 0;
+      float[][] samples = new float[numChannels][numPixels];
+      for (int i=0; i<numPixels; i++) {
+        for (int c=numChannels-1; c>=0; c--) {
+          byte[] b = new byte[bytesPerChannel];
+          System.arraycopy(imageBytes, index, b, 0, bytesPerChannel);
+          index += bytesPerChannel;
+          samples[c][i] = batoi(b);
         }
       }
-      if (found) break; // found a match; we're done
-      if (len < buf.length) break; // EOF reached; we're done
 
-      filePos += len;
+      // wrap image in a FlatField object
+      RealType xtype = RealType.getRealType("ImageElement");
+      RealType ytype = RealType.getRealType("ImageLine");
+      RealTupleType xy = new RealTupleType(xtype, ytype);
+      RealType[] rtypes;
+      if (numChannels == 1) {
+        rtypes = new RealType[] {
+          RealType.getRealType("value")
+        };
+      }
+      else if (numChannels == 3) {
+        rtypes = new RealType[] {
+          RealType.getRealType("Red"),
+          RealType.getRealType("Green"),
+          RealType.getRealType("Blue")
+        };
+      }
+      else {
+        rtypes = new RealType[numChannels];
+        for (int i=0; i<numChannels; i++) {
+          rtypes[i] = RealType.getRealType("value" + (i + 1));
+        }
+      }
+      RealTupleType range = new RealTupleType(rtypes);
+      FunctionType ftype = new FunctionType(xy, range);
+      Integer2DSet fset = new Integer2DSet(xy, width, height);
+      FlatField ff = new FlatField(ftype, fset);
+      ff.setSamples(samples, false);
+
+      return ff;
     }
 
-    if (header < 0) {
-      throw new BadFormException("Could not locate header information. " +
-        WHINING);
-    }
-
-    // read in the useful header information
-    in.seek(header + 56);
-    width = readInt(in);
-    height = readInt(in);
-    numImages = readInt(in); // not at all sure about this...
-    int bytesPerPixel = readInt(in);
-    int noClue = readInt(in); // no idea what this value signifies
-    int bitDepth = readInt(in);
-
-    if (DEBUG) {
-      System.out.println("header = " + header);
-      System.out.println("width = " + width);
-      System.out.println("height = " + height);
-      System.out.println("numImages = " + numImages);
-      System.out.println("bytesPerPixel = " + bytesPerPixel);
-      System.out.println("noClue = " + noClue);
-      System.out.println("bitDepth = " + bitDepth);
-    }
-
-    if (bitDepth != bytesPerPixel * 8) {
-      System.err.println("Warning: bitDepth and bytesPerPixel do not match. " +
-        WHINING);
-    }
-    if (noClue != 1 && noClue != 4) {
-      System.err.println("Warning: unknown noClue value (" + noClue + "). " +
-        WHINING);
-    }
-
-    // guess at number of channel components at each pixel
-    offset = header + 80;
-    numPixels = width * height;
-    imageSize = numPixels * bytesPerPixel;
-    numChannels = noClue == 1 ? 3 : 1; // a total shot in the dark
-
-    if (DEBUG) {
-      System.out.println("offset = " + offset);
-      System.out.println("numPixels = " + numPixels);
-      System.out.println("imageSize = " + imageSize);
-      System.out.println("numChannels = " + numChannels);
-    }
-
-    // compute number of bytes per pixel channel
-    bytesPerChannel = bytesPerPixel / numChannels;
-    if (DEBUG) {
-      System.out.println("bytesPerChannel = " + bytesPerChannel);
-    }
-
-    if (bytesPerPixel % numChannels != 0) {
-      System.err.println("Warning: incompatible bytesPerPixel (" +
-        bytesPerPixel + ") and numChannels (" + numChannels +
-        "). Assuming grayscale data. " + WHINING);
-      numChannels = 1;
-      bytesPerChannel = bytesPerPixel;
-    }
-    if (offset + numImages * imageSize > fileSize || numChannels < 1) {
-      throw new BadFormException("File is not big enough to contain the " +
-        "pixels (width=" + width + "; height=" + height +
-        "; numImages=" + numImages + "; bytesPerPixel=" + bytesPerPixel +
-        "; numChannels=" + numChannels + "; offset=" + offset +
-        "; fileSize=" + fileSize + "). " + WHINING);
+    public String toString() {
+      return "Image header block:\n" +
+        "  theZ = " + theZ + "\n" +
+        "  theC = " + theC + "\n" +
+        "  theT = " + theT + "\n" +
+        "  width = " + width + "\n" +
+        "  height = " + height + "\n" +
+        "  alwaysOne = " + alwaysOne + "\n" +
+        "  bytesPerPixel = " + bytesPerPixel + "\n" +
+        "  pixelType = " + pixelType + "\n" +
+        "  bitDepth = " + bitDepth;
     }
   }
 
