@@ -73,6 +73,10 @@ public class VisADCanvasJ3D extends Canvas3D {
     return c;
   }
 
+  public static GraphicsConfiguration getDefaultConfig() {
+    return defaultConfig;
+  }
+
   VisADCanvasJ3D(DisplayRendererJ3D renderer) {
       this(renderer, null);
   }
