@@ -345,10 +345,10 @@ public abstract class Set extends DataImpl {
 
   /** return basic lines in array[0], fill-ins in array[1]
       and labels in array[2] */
-  public VisADGeometryArray[] makeIsoLines(float interval, float low,
-                float hi, float base, float[] fieldValues,
-                byte[][] color_values, boolean[] swap)
-         throws VisADException {
+  public VisADGeometryArray[] makeIsoLines(float[] intervals,
+                  float lowlimit, float highlimit, float base,
+                  float[] fieldValues, byte[][] color_values,
+                  boolean[] swap, boolean dash) throws VisADException {
     throw new SetException("Set.makeIsoLines: not valid for this Set");
   }
 

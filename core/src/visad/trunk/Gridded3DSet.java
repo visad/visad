@@ -1590,10 +1590,10 @@ public class Gridded3DSet extends GriddedSet {
 
   /** return basic lines in array[0], fill-ins in array[1]
       and labels in array[2] */
-  public VisADGeometryArray[] makeIsoLines(float interval,
+  public VisADGeometryArray[] makeIsoLines(float[] intervals,
                   float lowlimit, float highlimit, float base,
                   float[] fieldValues, byte[][] color_values,
-                  boolean[] swap) throws VisADException {
+                  boolean[] swap, boolean dash) throws VisADException {
     if (ManifoldDimension != 2) {
       throw new DisplayException("Gridded3DSet.makeIsoLines: " +
                                  "ManifoldDimension must be 2");
@@ -1635,7 +1635,7 @@ public class Gridded3DSet extends GriddedSet {
     int[] numv3 = new int[1];
     int[] numv4 = new int[1];
 
-    Contour2D.contour( g, nr, nc, interval, lowlimit, highlimit, base,
+    Contour2D.contour( g, nr, nc, intervals, lowlimit, highlimit, base, dash,
                       vx1, vy1,  maxv1, numv1, vx2, vy2,  maxv2, numv2,
                       vx3, vy3,  maxv3, numv3, vx4, vy4,  maxv4, numv4,
                       color_values, color_levels1, color_levels2,

@@ -431,14 +431,17 @@ public class Irregular3DSet extends IrregularSet {
 
   /** return basic lines in array[0], fill-ins in array[1]
       and labels in array[2] */
-  public VisADGeometryArray[] makeIsoLines(float interval,
+  public VisADGeometryArray[] makeIsoLines(float[] intervals,
                   float lowlimit, float highlimit, float base,
                   float[] fieldValues, byte[][] color_values,
-                  boolean[] swap) throws VisADException {
+                  boolean[] swap, boolean dash) throws VisADException {
     if (ManifoldDimension != 2) {
       throw new DisplayException("Irregular3DSet.makeIsoLines: " +
                                  "ManifoldDimension must be 2");
     }
+
+    // WLH 21 May 99
+    if (intervals == null) return null;
 
     int[][] Tri = Delan.Tri;
     float[][] samples = getSamples(false);
@@ -509,6 +512,7 @@ public class Irregular3DSet extends IrregularSet {
       float gx = ga > gb ? ga : gb;
       gx = gc > gx ? gc : gx;
 
+/* WLH 21 May 99
       // compute clow and chi, low and high contour values in the box
       float tmp1 = (gn-base) / interval;
       float clow = base + interval * (( (tmp1) >= 0 ? (int) ((tmp1) + 0.5)
@@ -532,6 +536,10 @@ public class Irregular3DSet extends IrregularSet {
       float gg = clow;
 
       for (int il=0; il<numc; il++, gg += interval) {
+*/
+      for (int il=0; il<intervals.length; il++) {
+        float gg = intervals[il];
+
         if (numv+8 >= maxv) {
           // allocate more space
           maxv = 2 * maxv;

@@ -36,11 +36,21 @@ public class ContourControl extends Control {
   // for 3-D mainContours
   private float surfaceValue;
   // for 2-D mainContours
+  // these are the 'old' descriptors for 2-D contour lines
   private float contourInterval;
   private float lowLimit;
   private float hiLimit;
   private float base;
   private boolean labels;
+
+  //
+  // these are the 'new' descriptors for 2-D contour lines
+  // includes lowLimit, hiLimit and base from the 'old' descriptors
+  // true if contourInterval is valid
+  private boolean arithmeticProgression = true;
+  // contour line levels
+  private float[] levels = null;
+  private boolean dash = false;
 
   private boolean horizontalContourSlice;
   private boolean verticalContourSlice;
@@ -94,6 +104,23 @@ public class ContourControl extends Control {
     if (lowLimit != lowLimit) lowLimit = fvalues[2];
     if (hiLimit != hiLimit) hiLimit = fvalues[3];
     if (base != base) base = fvalues[4];
+
+    // adapt to 'new' descriptors
+    if (arithmeticProgression) {
+      if (contourInterval == contourInterval && base == base &&
+          lowLimit == lowLimit && hiLimit == hiLimit) {
+        boolean[] dashes = {false};
+        float[] levs =
+          Contour2D.intervalToLevels(contourInterval, lowLimit, hiLimit, base, dashes);
+        setLevels(levs, base, dashes[0], false);
+        arithmeticProgression = true;
+      }
+      else {
+        dash = false;
+        levels = null;
+      }
+    }
+
     changeControl(!noChange);
   }
 
@@ -120,17 +147,101 @@ public class ContourControl extends Control {
     lowLimit = low;
     hiLimit = hi;
     base = ba;
+
+    // adapt to 'new' descriptors
+    boolean[] dashes = {false};
+    float[] levs =
+      Contour2D.intervalToLevels(contourInterval, lowLimit, hiLimit, base, dashes);
+    setLevels(levs, base, dashes[0], false);
+    arithmeticProgression = true;
+
     if (change) changeControl(true);
   }
+
+  private boolean in = false;
 
   /** set low and high iso-line levels */
   public void setContourLimits(float low, float hi)
          throws VisADException, RemoteException {
-    boolean change = (Math.abs(lowLimit - low) > 0.0001) ||
-                     (Math.abs(hiLimit - hi) > 0.0001);
-    lowLimit = low;
-    hiLimit = hi;
-    if (change) changeControl(true);
+    if (!in) {
+      in = true;
+      boolean change = (Math.abs(lowLimit - low) > 0.0001) ||
+                       (Math.abs(hiLimit - hi) > 0.0001);
+      lowLimit = low;
+      hiLimit = hi;
+  
+      // adapt to 'new' descriptors
+      if (arithmeticProgression) {
+        boolean[] dashes = {false};
+        float[] levs =
+          Contour2D.intervalToLevels(contourInterval, lowLimit, hiLimit, base, dashes);
+        setLevels(levs, base, dashes[0], false);
+      }
+      else {
+        int n = 0;
+        for (int i=0; i<levels.length; i++) {
+          if (lowLimit < levels[i] && levels[i] < hiLimit) n++;
+        }
+        if (n != levels.length) {
+          float[] levs = new float[n];
+          int k = 0;
+          for (int i=0; i<levels.length; i++) {
+            if (lowLimit < levels[i] && levels[i] < hiLimit) levs[k++] = levels[i];
+          }
+          levels = levs;
+        }
+        else {
+          change = false;
+        }
+      }
+  
+      if (change) changeControl(true);
+      in = false;
+    }
+  }
+
+  /** set unevenly spaced levels for 2-D contour lines;
+      levels below base are dashed if dash == true */
+  public void setLevels(float[] levs, float ba, boolean da)
+         throws VisADException, RemoteException {
+    setLevels(levs, ba, da, true);
+  }
+
+  private void setLevels(float[] levs, float ba, boolean da,
+                         boolean by_user)
+          throws VisADException, RemoteException {
+    if (levs == null) return;
+    levels = new float[levs.length];
+    float min = Float.MAX_VALUE;
+    float max = Float.MIN_VALUE;
+    for (int i=0; i<levs.length; i++) {
+      if (levs[i] < min) min = levs[i];
+      if (levs[i] > max) max = levs[i];
+      levels[i] = levs[i];
+    }
+    dash = da;
+    base = ba;
+    if (by_user) {
+      lowLimit = min - 0.1f;
+      hiLimit = max + 0.1f;
+      arithmeticProgression = false;
+      changeControl(true);
+    }
+  }
+
+  /** get 'new' descriptors for 2-D contour lines;
+      lowhibase must be float[3], dashes must be boolean[1] */
+  public float[] getLevels(float[] lowhibase, boolean[] dashes) {
+    float[] levs = null;
+    if (levels != null) {
+      levs = new float[levels.length];
+      System.arraycopy(levels, 0, levs, 0, levels.length);
+    }
+    lowhibase[0] = lowLimit;
+    lowhibase[1] = hiLimit;
+    lowhibase[2] = base;
+    dashes[0] = dash;
+    return levs;
   }
 
   /** set label enable to 'on' */

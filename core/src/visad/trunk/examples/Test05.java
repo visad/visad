@@ -1,4 +1,11 @@
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+import java.awt.BorderLayout;
 import java.awt.Component;
+
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import java.rmi.RemoteException;
 
@@ -10,12 +17,19 @@ import visad.util.ContourWidget;
 public class Test05
 	extends UISkeleton
 {
+  private boolean uneven = false;
+
   public Test05() { }
 
   public Test05(String args[])
 	throws VisADException, RemoteException
   {
     super(args);
+  }
+
+  int checkExtraKeyword(int argc, String args[]) {
+    uneven = true;
+    return 1;
   }
 
   DisplayImpl[] setupData()
@@ -33,7 +47,7 @@ public class Test05
     FlatField imaget1 = FlatField.makeField(image_tuple, size, false);
 
     DisplayImpl display1;
-    display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
+    display1 = new DisplayImplJ3D("display1");
     display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
     display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
     display1.addMap(new ScalarMap(ir_radiance, Display.Green));
@@ -43,6 +57,12 @@ public class Test05
     ScalarMap map1contour;
     map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
     display1.addMap(map1contour);
+    if (uneven) {
+      ContourControl control = (ContourControl) map1contour.getControl();
+      float[] levs = {10.0f, 12.0f, 14.0f, 16.0f, 24.0f, 32.0f, 40.0f};
+      control.setLevels(levs, 15.0f, true);
+      control.enableLabels(true);
+    }
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
@@ -54,18 +74,44 @@ public class Test05
     return dpys;
   }
 
-  String getFrameTitle() { return "VisAD contour controls"; }
+  private String getFrameTitle0() { return "regular contours in Java3D"; }
 
-  Component getSpecialComponent(DisplayImpl[] dpys)
-	throws VisADException, RemoteException
+  private String getFrameTitle1() { return "VisAD contour controls"; }
+
+  void setupUI(DisplayImpl[] dpys)
+        throws VisADException, RemoteException
   {
-    ScalarMap map1contour = (ScalarMap )dpys[0].getMapVector().lastElement();
-    return new ContourWidget(map1contour);
+    JFrame jframe  = new JFrame(getFrameTitle0() + getClientServerTitle());
+    jframe.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {System.exit(0);}
+    });
+
+    jframe.setContentPane((JPanel) dpys[0].getComponent());
+    jframe.pack();
+    jframe.setVisible(true);
+
+    if (!uneven) {
+      ScalarMap map1contour = (ScalarMap )dpys[0].getMapVector().lastElement();
+      ContourWidget cw = new ContourWidget(map1contour);
+  
+      JPanel big_panel = new JPanel();
+      big_panel.setLayout(new BorderLayout());
+      big_panel.add("Center", cw);
+  
+      JFrame jframe2  = new JFrame(getFrameTitle1());
+      jframe2.addWindowListener(new WindowAdapter() {
+        public void windowClosing(WindowEvent e) {System.exit(0);}
+      });
+  
+      jframe2.setContentPane(big_panel);
+      jframe2.pack();
+      jframe2.setVisible(true);
+    }
   }
 
   public String toString()
   {
-    return ": colored 2-D contours from regular grids and ContourWidget";
+    return " uneven: colored 2-D contours from regular grids and ContourWidget";
   }
 
   public static void main(String args[])

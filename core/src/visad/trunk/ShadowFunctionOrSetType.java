@@ -1510,10 +1510,21 @@ if (range_select[0] != null) {
                 }
                 else if (spatialManifoldDimension == 2) {
                   if (spatial_set != null) {
+
+/* WLH 21 May 99
                     arrays =
                       spatial_set.makeIsoLines(fvalues[1], fvalues[2], fvalues[3],
                                                fvalues[4], display_values[i],
                                                color_values, swap);
+*/
+                    float[] lowhibase = new float[3];
+                    boolean[] dashes = {false};
+                    float[] levs = control.getLevels(lowhibase, dashes);
+                    arrays =
+                      spatial_set.makeIsoLines(levs, lowhibase[0], lowhibase[1],
+                                               lowhibase[2], display_values[i],
+                                               color_values, swap, dashes[0]);
+
 // System.out.println("makeIsoLines");
                     if (arrays != null && arrays.length > 0 && arrays[0] != null &&
                         arrays[0].vertexCount > 0) {

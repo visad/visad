@@ -42,33 +42,38 @@ public class Contour2D extends Applet implements MouseListener {
   protected int[] num1, num2, num3, num4;
   protected float[][] vx1, vy1, vx2, vy2, vx3, vy3, vx4, vy4;
 
-  /*
+  /**
    * Compute contour lines for a 2-D array.  If the interval is negative,
-   * then negative contour lines will be drawn as dashed lines.
-   * The contour lines will be computed for all V such that:
-   *           lowlimit <= V <= highlimit
-   *     and   V = base + n*interval  for some integer n
+   * then contour lines less than base will be drawn as dashed lines.
+   * The contour lines will be computed for all V such that:<br>
+   *           lowlimit <= V <= highlimit<br>
+   *     and   V = base + n*interval  for some integer n<br>
    * Note that the input array, g, should be in column-major (FORTRAN) order.
    *
-   * Input:  g - the 2-D array to contour.
-   *         nr, nc - size of 2-D array in rows and columns.
-   *         interval - the interval between contour lines.
-   *         lowlimit - the lower limit on values to contour.
-   *         highlimit - the upper limit on values to contour.
-   *         base - base value to start contouring at.
-   *         vx1, vy1 - arrays to put contour line vertices
-   *         maxv1 - size of vx1, vy1 arrays
-   *         numv1 - pointer to int to return number of vertices in vx1,vy1
-   *         vx2, vy2 - arrays to put 'hidden' contour line vertices
-   *         maxv2 - size of vx2, vy2 arrays
-   *         numv2 - pointer to int to return number of vertices in vx2,vy2
-   *         vx3, vy3 - arrays to put contour label vertices
-   *         maxv3 - size of vx3, vy3 arrays
-   *         numv3 - pointer to int to return number of vertices in vx3,vy3
-   *         vx4, vy4 - arrays to put contour label vertices, inverted
-   *                    ** see note for VxB and VyB in PlotDigits.java **
-   *         maxv4 - size of vx4, vy4 arrays
-   *         numv4 - pointer to int to return number of vertices in vx4,vy4
+   * @param    g         the 2-D array to contour.
+   * @param    nr        size of 2-D array in rows
+   * @param    nc        size of 2-D array in columns.
+   * @param    interval  contour interval
+   * @param    lowlimit  the lower limit on values to contour.
+   * @param    highlimit the upper limit on values to contour.
+   * @param    base      base value to start contouring at.
+   * @param    vx1       array to put contour line vertices (x value)
+   * @param    vy1       array to put contour line vertices (y value)
+   * @param    maxv1     size of vx1, vy1 arrays
+   * @param    numv1     pointer to int to return number of vertices in vx1,vy1
+   * @param    vx2       array to put 'hidden' contour line vertices (x value)
+   * @param    vy2       array to put 'hidden' contour line vertices (y value)
+   * @param    maxv2     size of vx2, vy2 arrays
+   * @param    numv2     pointer to int to return number of vertices in vx2,vy2
+   * @param    vx3       array to put contour label vertices (x value)
+   * @param    vy3       array to put contour label vertices (y value)
+   * @param    maxv3     size of vx3, vy3 arrays
+   * @param    numv3     pointer to int to return number of vertices in vx3,vy3
+   * @param    vx4       array to put contour label vertices, inverted (x value)
+   * @param    vy4       array to put contour label vertices, inverted (y value)
+   *                     <br>** see note for VxB and VyB in PlotDigits.java **
+   * @param    maxv4     size of vx4, vy4 arrays
+   * @param    numv4     pointer to int to return number of vertices in vx4,vy4
    */
   public static void contour( float g[], int nr, int nc, float interval,
                       float lowlimit, float highlimit, float base,
@@ -78,21 +83,126 @@ public class Contour2D extends Applet implements MouseListener {
                       float vx4[][], float vy4[][],  int maxv4, int[] numv4,
                       byte[][] auxValues, byte[][] auxLevels1,
                       byte[][] auxLevels2, byte[][] auxLevels3, boolean[] swap )
-                          throws VisADException {
+                          throws VisADException 
+  {
+    boolean[] dashes = {false};
+    float[] intervals =
+      intervalToLevels(interval, lowlimit, highlimit, base, dashes);
+    boolean dash = dashes[0];
+
+    contour( g, nr, nc, intervals, 
+             lowlimit, highlimit, base, dash,
+             vx1, vy1,  maxv1, numv1,
+             vx2, vy2,  maxv2, numv2,
+             vx3, vy3,  maxv3, numv3,
+             vx4, vy4,  maxv4, numv4,
+             auxValues, auxLevels1,
+             auxLevels2, auxLevels3, swap );
+  }
+
+  public static float[] intervalToLevels(float interval, float low,
+                                         float high, float ba, boolean[] dash) {
+    float clow, chi;
+    float tmp1;
+    float[] levs = null;
+    dash[0] = false;
+    if (interval < 0) {
+        dash[0] = true;
+        interval = -interval;
+    }
+
+    // compute list of contours
+    // compute clow and chi, low and high contour values in the box
+    tmp1 = (low - ba) / interval;
+    clow = ba + interval * (( (tmp1) >= 0 ? (int) ((tmp1) + 0.5)
+                                          : (int) ((tmp1)-0.5) )-1);
+    while (clow<low) {
+      clow += interval;
+    }
+
+    tmp1 = (high - ba) / interval;
+    chi = ba + interval * (( (tmp1) >= 0 ? (int) ((tmp1) + 0.5)
+                                             : (int) ((tmp1)-0.5) )+1);
+    while (chi>high) {
+      chi -= interval;
+    }
+
+    // how many contour lines are needed.
+    tmp1 = (chi-clow) / interval;
+    int numc = 1+( (tmp1) >= 0 ? (int) ((tmp1) + 0.5) : (int) ((tmp1)-0.5) );
 /*
-System.out.println("interval = " + interval + " lowlimit = " + lowlimit +
+    System.out.println("clow = " + clow + "chigh = " + chi +
+                       "tmp1 = " + tmp1 + "numc = " + numc);
+*/
+    if (numc < 1) return levs;
+    levs = new float[numc];
+
+    levs[0] = clow;
+    for (int i = 1; i < numc; i++) {
+      levs[i] = levs[i-1] + interval;
+    }
+    return levs;
+  }
+
+  /**
+   * Compute contour lines for a 2-D array.  If the interval is negative,
+   * then contour lines less than base will be drawn as dashed lines.
+   * The contour lines will be computed for all V such that:<br>
+   *           lowlimit <= V <= highlimit<br>
+   *     and   V = base + n*interval  for some integer n<br>
+   * Note that the input array, g, should be in column-major (FORTRAN) order.
+   *
+   * @param    g         the 2-D array to contour.
+   * @param    nr        size of 2-D array in rows
+   * @param    nc        size of 2-D array in columns.
+   * @param    values[]  the values to be plotted
+   * @param    lowlimit  the lower limit on values to contour.
+   * @param    highlimit the upper limit on values to contour.
+   * @param    base      base value to start contouring at.
+   * @param    dash      boolean to dash contours below base or not
+   * @param    vx1       array to put contour line vertices (x value)
+   * @param    vy1       array to put contour line vertices (y value)
+   * @param    maxv1     size of vx1, vy1 arrays
+   * @param    numv1     pointer to int to return number of vertices in vx1,vy1
+   * @param    vx2       array to put 'hidden' contour line vertices (x value)
+   * @param    vy2       array to put 'hidden' contour line vertices (y value)
+   * @param    maxv2     size of vx2, vy2 arrays
+   * @param    numv2     pointer to int to return number of vertices in vx2,vy2
+   * @param    vx3       array to put contour label vertices (x value)
+   * @param    vy3       array to put contour label vertices (y value)
+   * @param    maxv3     size of vx3, vy3 arrays
+   * @param    numv3     pointer to int to return number of vertices in vx3,vy3
+   * @param    vx4       array to put contour label vertices, inverted (x value)
+   * @param    vy4       array to put contour label vertices, inverted (y value)
+   *                     <br>** see note for VxB and VyB in PlotDigits.java **
+   * @param    maxv4     size of vx4, vy4 arrays
+   * @param    numv4     pointer to int to return number of vertices in vx4,vy4
+   */
+  public static void contour( float g[], int nr, int nc, float[] values,
+                      float lowlimit, float highlimit, float base, boolean dash,
+                      float vx1[][], float vy1[][],  int maxv1, int[] numv1,
+                      float vx2[][], float vy2[][],  int maxv2, int[] numv2,
+                      float vx3[][], float vy3[][],  int maxv3, int[] numv3,
+                      float vx4[][], float vy4[][],  int maxv4, int[] numv4,
+                      byte[][] auxValues, byte[][] auxLevels1,
+                      byte[][] auxLevels2, byte[][] auxLevels3, boolean[] swap )
+                          throws VisADException {
+
+/*
+System.out.println("interval = " + values[0] + " lowlimit = " + lowlimit +
                    " highlimit = " + highlimit + " base = " + base);
 boolean any = false;
 boolean anymissing = false;
 boolean anynotmissing = false;
 */
+
     PlotDigits plot = new PlotDigits();
     int ir, ic;
-    int nrm, ncm, idash;
+    int nrm, ncm;
     int numc, il;
     int lr, lc, lc2, lrr, lr2, lcc;
     float xd, yd ,xx, yy;
-    float clow, chi;
+//  float clow, chi;
     float gg;
     int maxsize = maxv1+maxv2;
     float[] vx = new float[maxsize];
@@ -100,6 +210,12 @@ boolean anynotmissing = false;
     int[] ipnt = new int[2*maxsize];
     int nump, ip;
     int numv;
+
+/* DRM 1999-05-18 */
+    float[] myvals = (float[]) values.clone();
+    java.util.Arrays.sort(myvals);
+    int low;
+    int hi;
 
     int t;
 
@@ -134,11 +250,12 @@ boolean anynotmissing = false;
     numv4[0] = 0;
 
 
+/*  DRM: 1999-05-19 - Not needed since dash is a boolean
     // check for bad contour interval
     if (interval==0.0) {
       throw new DisplayException("Contour2D.contour: interval cannot be 0");
     }
-    if (interval<0.0) {
+    if (!dash) {
       // draw negative contour lines as dashed lines
       interval = -interval;
       idash = 1;
@@ -146,6 +263,7 @@ boolean anynotmissing = false;
     else {
       idash = 0;
     }
+*/
   
     nrm = nr-1;
     ncm = nc-1;
@@ -272,6 +390,7 @@ else {
         tmp2 = ( (gc) > (gd) ? (gc) : (gd) );
         gx = ( (tmp1) > (tmp2) ? (tmp1) : (tmp2) );
   
+/*  remove for new signature, replace with code below
         // compute clow and chi, low and high contour values in the box
         tmp1 = (gn-base) / interval;
         clow = base + interval * (( (tmp1) >= 0 ? (int) ((tmp1) + 0.5)
@@ -293,15 +412,36 @@ else {
   
         // gg is current contour line value
         gg = clow;
+*/
+        
+        low = 0;
+        hi = myvals.length - 1;
+        if (myvals[low] > gx || myvals[hi] < gn) // no contours
+        {
+            numc = 1;
+        }
+        else   // some inside the box
+        {
+            for (int i = 0; i < myvals.length; i++)
+            {
+                 if (i == 0 && myvals[i] >= gn) { low = i; }
+                 else if (myvals[i] >= gn && myvals[i-1] < gn) { low = i; }
+                 else if (myvals[i] > gx && myvals[i-1] < gn) { hi = i; }
+            }
+            numc = hi - low + 1;
+        }
+        gg = myvals[low];
+
 /*
 if (!any && numc > 0) {
-  System.out.println("numc = " + numc + " tmp1 = " + tmp1 + " clow = " + clow +
-                     " chi = " + chi + " interval = " + interval);
+  System.out.println("numc = " + numc + " clow = " + myvals[low] + 
+                     " chi = " + myvals[hi]);
   any = true;
 }
 */
-        for (il=0; il<numc; il++, gg += interval) {
+        for (il=0; il<numc; il++) {
 
+          gg = myvals[low+il];
           if (numv+8 >= maxsize || nump+4 >= 2*maxsize) {
             // allocate more space
             maxsize = 2 * maxsize;
@@ -799,7 +939,7 @@ if (!any && numc > 0) {
           } // switch
 
           // If contour level is negative, make dashed line
-          if (gg < base && idash==1) {
+          if (gg < base && dash) {           /* DRM: 1999-05-19 */
             float vxa, vya, vxb, vyb;
             vxa = vx[numv-2];
             vya = vy[numv-2];
@@ -953,6 +1093,8 @@ if (!any && numc > 0) {
     con.vy4 = new float[1][mxv4];
     try {
       boolean[] swap = {false, false, false};
+      float[] intervals = {.25f, .5f, 1.0f, 2.0f, 2.5f, 5.f, 10.f};
+//    con.contour(g, con.rows, con.cols, intervals, low, high, base, true,
       con.contour(g, con.rows, con.cols, intv, low, high, base,
                   con.vx1, con.vy1, mxv1, con.num1,
                   con.vx2, con.vy2, mxv2, con.num2,
