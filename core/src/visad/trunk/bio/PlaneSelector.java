@@ -25,6 +25,7 @@ MA 02111-1307, USA
 
 package visad.bio;
 
+import java.awt.event.*;
 import java.io.*;
 import java.rmi.RemoteException;
 import java.util.Vector;
@@ -35,7 +36,7 @@ import visad.java3d.DirectManipulationRendererJ3D;
  * PlaneSelector maintains a data structure that can be
  * manipulated by the user to specify an arbitrary plane.
  */
-public class PlaneSelector {
+public class PlaneSelector implements DisplayListener {
 
   // -- CONSTANTS --
 
@@ -65,6 +66,21 @@ public class PlaneSelector {
 
   /** Whether to snap endpoints to plane's bounding box. */
   protected boolean snap;
+
+  /** Flag for whether selection plane is visible. */
+  protected boolean visible;
+
+  /** Flag for endpoint mode versus rotatable mode. */
+  protected boolean endpointMode;
+
+  /** Position of plane selector for each timestep. */
+  protected double[][][] pos;
+
+  /** Number of timesteps. */
+  protected int numIndices;
+
+  /** Current timestep value. */
+  protected int index;
 
   /** Set representing the plane's 2-D slice through the bounding box. */
   protected Gridded3DSet lines;
@@ -294,10 +310,23 @@ public class PlaneSelector {
           double[] values = tuple[0].getValues();
           for (int j=0; j<3; j++) {
             samples[j][0] = samples[j][vcount] = (float) values[j];
+            pos[index][0][j] = values[j];
           }
           for (int i=1; i<len; i++) {
             values = tuple[i].getValues();
-            for (int j=0; j<3; j++) samples[j][i] = (float) values[j];
+            for (int j=0; j<3; j++) {
+              samples[j][i] = (float) values[j];
+              pos[index][i][j] = values[j];
+            }
+          }
+          if (endpointMode) {
+            // set all indices to match the current one
+            for (int ndx=0; ndx<numIndices; ndx++) {
+              if (ndx == index) continue;
+              for (int i=0; i<3; i++) {
+                for (int j=0; j<3; j++) pos[ndx][i][j] = pos[index][i][j];
+              }
+            }
           }
           try {
             lines = new Gridded3DSet(type, samples,
@@ -392,14 +421,18 @@ public class PlaneSelector {
 
   /** Toggles the plane selector's visibility. */
   public void toggle(boolean visible) {
-    for (int i=0; i<renderers.length; i++) renderers[i].toggle(visible);
+    this.visible = visible;
+    for (int i=0; i<2; i++) renderers[i].toggle(visible);
+    for (int i=2; i<renderers.length; i++) {
+      renderers[i].toggle(visible && endpointMode);
+    }
   }
 
   /**
    * Adds the plane selector to its display, bounding it with the given
    * minimum and maximum x, y and z values (typically your data's range).
    */
-  public void init(RealType xtype, RealType ytype, RealType ztype,
+  public void init(RealType xtype, RealType ytype, RealType ztype, int numTime,
     float lox, float loy, float loz, float hix, float hiy, float hiz)
     throws VisADException, RemoteException
   {
@@ -457,6 +490,11 @@ public class PlaneSelector {
       renderers[i].toggle(false);
       display.addReferences(renderers[i], refs[i], maps);
     }
+    visible = false;
+    endpointMode = true;
+    numIndices = numTime;
+    pos = new double[numIndices][3][3];
+    index = snap ? -1 : 0;
   }
 
   /** Extracts a field using the current plane, at the given resolution. */
@@ -561,8 +599,67 @@ public class PlaneSelector {
   /** Removes a PlaneListener. */
   public void removeListener(PlaneListener l) { listeners.remove(l); }
 
+  /** Toggles the plane's mode between manipulable endpoints and rotatable. */
+  public void setMode(boolean endpoints) {
+    if (endpointMode == endpoints) return;
+    endpointMode = endpoints;
+    if (endpointMode) display.removeDisplayListener(this);
+    else display.addDisplayListener(this);
+    toggle(visible);
+  }
+
+  /** Sets the current timestep. */
+  public void setIndex(int index) {
+    if (this.index == index) return;
+    this.index = index;
+    // set endpoint values to match those at current index
+    for (int i=0; i<3; i++) {
+      setData(i, pos[index][i][0], pos[index][i][1], pos[index][i][2]);
+    }
+  }
+
+  /** Gets whether the plane selector is visible. */
+  public boolean isVisible() { return visible; }
+
 
   // -- INTERNAL API METHODS --
+
+  private int mx, my;
+  private boolean m_ctrl;
+
+  /** Listens for mouse events in the display. */
+  public void displayChanged(DisplayEvent e) {
+    int id = e.getId();
+    InputEvent event = e.getInputEvent();
+
+    // ignore non-mouse display events
+    if (event == null || !(event instanceof MouseEvent)) return;
+
+    int x = e.getX();
+    int y = e.getY();
+    int mods = e.getModifiers();
+    boolean right = (mods & InputEvent.BUTTON3_MASK) != 0;
+    boolean ctrl = (mods & InputEvent.CTRL_MASK) != 0;
+
+    // ignore non-right button events
+    if (!right) return;
+
+    if (id == DisplayEvent.MOUSE_PRESSED) {
+      mx = x;
+      my = y;
+      m_ctrl = ctrl;
+    }
+    else if (id == DisplayEvent.MOUSE_DRAGGED) {
+      if (m_ctrl) {
+        // move plane
+        // CTR - TODO - move plane
+      }
+      else {
+        // rotate plane
+        // CTR - TODO - rotate plane
+      }
+    }
+  }
 
   /** Writes the current program state to the given output stream. */
   void saveState(PrintWriter fout) throws IOException, VisADException {

@@ -111,7 +111,7 @@ public class SliceManager
   PlaneSelector ps;
 
   /** Image stack alignment plane. */
-  private PlaneSelector align;
+  PlaneSelector align;
 
   /** Is arbitrary plane selection on? */
   private boolean planeSelect;
@@ -316,6 +316,12 @@ public class SliceManager
       updateList();
       updateAnimationControls();
     }
+    if (align.isVisible()) {
+      // auto-switch to drift correction locked mode
+      bio.toolAlign.setDriftLock(true);
+      align.setMode(false);
+    }
+    align.setIndex(index);
   }
 
   /** Sets the currently displayed image slice. */
@@ -958,14 +964,14 @@ public class SliceManager
         ps = new PlaneSelector(bio.display3);
         ps.addListener(this);
       }
-      ps.init(dtypes[0], dtypes[1], dtypes[2],
+      ps.init(dtypes[0], dtypes[1], dtypes[2], 0,
         min_x, min_y, min_z, max_x, max_y, max_z);
 
       // initialize alignment plane
       if (align == null) {
         align = new PlaneSelector(bio.display3);
       }
-      align.init(dtypes[0], dtypes[1], dtypes[2],
+      align.init(dtypes[0], dtypes[1], dtypes[2], timesteps,
         Float.NaN, Float.NaN, Float.NaN, Float.NaN, Float.NaN, Float.NaN);
     }
 

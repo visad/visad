@@ -150,6 +150,7 @@ public class ViewToolPanel extends ToolPanel {
         zoomIn3.setEnabled(b);
         zoomReset3.setEnabled(b);
         zoomOut3.setEnabled(b);
+        bio.toolRender.volume.setEnabled(b);
       }
     });
     threeD.setEnabled(okay3d);

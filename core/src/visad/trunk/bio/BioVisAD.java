@@ -111,6 +111,9 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   /** Tool panel for manipulating colors. */
   ColorToolPanel toolColor;
 
+  /** Tool panel for doing 3-D volume rendering. */
+  RenderToolPanel toolRender;
+
   /** Tool panel for managing image alignment, spacing and drift correction. */
   AlignToolPanel toolAlign;
 
@@ -250,6 +253,10 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     toolColor = new ColorToolPanel(this);
     tabs.addTab("Color", toolColor);
 
+    // rendering tool panel
+    toolRender = new RenderToolPanel(this);
+    tabs.addTab("Render", toolRender);
+
     // alignment tool panel
     toolAlign = new AlignToolPanel(this);
     tabs.addTab("Align", toolAlign);
@@ -271,6 +278,12 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   public void set3D(boolean threeD) {
     if (display3 == null) return;
     display3.getComponent().setVisible(threeD);
+  }
+
+  /** Toggles the 3-D display between image stack and volume render modes. */
+  public void setVolume(boolean volume) {
+    if (display3 == null) return;
+    // CTR - TODO - volume rendering
   }
 
   /** Toggles the visibility of the preview displays. */

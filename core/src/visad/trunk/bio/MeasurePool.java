@@ -27,7 +27,7 @@ MA 02111-1307, USA
 package visad.bio;
 
 import java.awt.*;
-import java.awt.event.InputEvent;
+import java.awt.event.*;
 import java.rmi.RemoteException;
 import java.util.*;
 import javax.swing.JOptionPane;
@@ -536,16 +536,16 @@ public class MeasurePool implements DisplayListener {
 
   // -- INTERNAL API METHODS --
 
-  private int mx_left, my_left;
-  private boolean m_shift_left;
+  private int mx, my;
+  private boolean m_shift;
 
-  /** Listens for mouse clicks in the display. */
+  /** Listens for mouse events in the display. */
   public void displayChanged(DisplayEvent e) {
     int id = e.getId();
     InputEvent event = e.getInputEvent();
 
-    // ignore non-input display events
-    if (event == null) return;
+    // ignore non-mouse display events
+    if (event == null || !(event instanceof MouseEvent)) return;
 
     int x = e.getX();
     int y = e.getY();
@@ -554,16 +554,16 @@ public class MeasurePool implements DisplayListener {
     boolean shift = (mods & InputEvent.SHIFT_MASK) != 0;
     boolean ctrl = (mods & InputEvent.CTRL_MASK) != 0;
 
-    // ignore CTRL clicks and non-left button clicks
+    // ignore CTRL events and non-left button events
     if (ctrl || !left) return;
 
     if (id == DisplayEvent.MOUSE_PRESSED) {
-      mx_left = x;
-      my_left = y;
-      m_shift_left = shift;
+      mx = x;
+      my = y;
+      m_shift = shift;
     }
     else if (id == DisplayEvent.MOUSE_RELEASED) {
-      if (x == mx_left && y == my_left) {
+      if (x == mx && y == my) {
         if (list == null || dim != 2) return;
         Vector lines = list.getLines();
         Vector points = list.getPoints();
@@ -613,7 +613,7 @@ public class MeasurePool implements DisplayListener {
           }
         }
 
-        if (m_shift_left) {
+        if (m_shift) {
           // add or remove picked line or point from the selection
           if (mindist <= threshold && index >= 0) {
             if (isLine) {

@@ -26,6 +26,7 @@ MA 02111-1307, USA
 
 package visad.bio;
 
+import java.awt.event.*;
 import javax.swing.*;
 
 /**
@@ -34,10 +35,33 @@ import javax.swing.*;
  */
 public class RenderToolPanel extends ToolPanel {
 
+  // -- GUI COMPONENTS --
+
+  /** Toggle for 3-D volume rendering. */
+  JCheckBox volume;
+
+
+  // -- CONSTRUCTOR --
+
   /** Constructs a rendering tool panel. */
   public RenderToolPanel(BioVisAD biovis) {
     super(biovis);
+
+    // 3-D volume rendering checkbox
+    boolean okay3d = bio.display3 != null;
+    volume = new JCheckBox("Render 3-D image stack as a volume", false);
+    volume.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        boolean b = volume.isSelected();
+        bio.setVolume(b);
+      }
+    });
+    volume.setEnabled(okay3d);
+    controls.add(pad(volume));
   }
+
+
+  // -- API METHODS --
 
   /** Enables or disables this tool panel. */
   public void setEnabled(boolean enabled) { }

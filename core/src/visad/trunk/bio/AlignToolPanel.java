@@ -62,6 +62,9 @@ public class AlignToolPanel extends ToolPanel {
   /** Toggle for drift correction. */
   private JCheckBox drift;
 
+  /** Toggle for drift correction size and shape lock. */
+  private JToggleButton driftLock;
+
 
   // -- CONSTRUCTOR --
 
@@ -132,6 +135,16 @@ public class AlignToolPanel extends ToolPanel {
     });
     drift.setEnabled(false);
     controls.add(pad(drift));
+
+    // drift correction size & shape lock
+    driftLock = new JToggleButton("Lock size and shape", false);
+    driftLock.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        bio.sm.align.setMode(!driftLock.isSelected());
+      }
+    });
+    driftLock.setEnabled(false);
+    controls.add(pad(driftLock));
   }
 
 
@@ -144,6 +157,7 @@ public class AlignToolPanel extends ToolPanel {
       zAspect.setEnabled(true);
       bio.toolMeasure.updateFileButtons();
       drift.setEnabled(true);
+      driftLock.setEnabled(true);
     }
     else {
       useMicrons.setEnabled(false);
@@ -151,6 +165,7 @@ public class AlignToolPanel extends ToolPanel {
       sliceDistance.setEnabled(false);
       zAspect.setEnabled(false);
       drift.setEnabled(false);
+      driftLock.setEnabled(true);
     }
   }
 
@@ -196,6 +211,8 @@ public class AlignToolPanel extends ToolPanel {
     if (dist.equals(sliceDistance.getText())) return;
     sliceDistance.setText(dist);
   }
+
+  void setDriftLock(boolean lock) { driftLock.setSelected(lock); }
 
 
   // -- HELPER METHODS --
