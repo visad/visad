@@ -470,9 +470,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
                     VisADGeometryArray arrayXrev,
                     VisADGeometryArray arrayYrev,
                     VisADGeometryArray arrayZrev,
-                    BufferedImage[] images2,
-                    BufferedImage[] images1,
-                    BufferedImage[] images0,
+                    BufferedImage[] imagesX,
+                    BufferedImage[] imagesY,
+                    BufferedImage[] imagesZ,
                     GraphicsModeControl mode,
                     float constant_alpha, float[] constant_color,
                     int texture_width, int texture_height,
@@ -517,10 +517,12 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     int data_depth = geometryX.length;
     Shape3D[] shapeX = new Shape3D[data_depth];
     for (int i=0; i<data_depth; i++) {
+      int width = imagesX[i].getWidth();
+      int height = imagesX[i].getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
-                                        texture_width, texture_height);
+                                        width, height);
       ImageComponent2D image2d =
-        new ImageComponent2D(ImageComponent.FORMAT_RGBA, images0[i]);
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, imagesX[i]);
       texture.setImage(0, image2d);
       Appearance appearance =
         makeAppearance(mode, c_alpha, null, geometryX[i], true);
@@ -534,10 +536,12 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     }
     OrderedGroup branchXrev = new OrderedGroup();
     for (int i=data_depth-1; i>=0; i--) {
+      int width = imagesX[i].getWidth();
+      int height = imagesX[i].getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
-                                        texture_width, texture_height);
+                                        width, height);
       ImageComponent2D image2d =
-        new ImageComponent2D(ImageComponent.FORMAT_RGBA, images0[i]);
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, imagesX[i]);
       texture.setImage(0, image2d);
       Appearance appearance =
         makeAppearance(mode, c_alpha, null, geometryX[i], true);
@@ -555,12 +559,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     int data_height = geometryY.length;
     Shape3D[] shapeY = new Shape3D[data_height];
     for (int i=0; i<data_height; i++) {
+      int width = imagesY[i].getWidth();
+      int height = imagesY[i].getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
-                                        texture_width, texture_depth);
+                                        width, height);
       // flip texture on Y axis
       ImageComponent2D image2d =
-        new ImageComponent2D(ImageComponent.FORMAT_RGBA,
-                             images1[(data_height - 1) - i]);
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, imagesY[i]);
       texture.setImage(0, image2d);
       Appearance appearance =
         makeAppearance(mode, c_alpha, null, geometryY[i], true);
@@ -574,12 +579,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     }
     OrderedGroup branchYrev = new OrderedGroup();
     for (int i=data_height-1; i>=0; i--) {
+      int width = imagesY[i].getWidth();
+      int height = imagesY[i].getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
-                                        texture_width, texture_depth);
+                                        width, height);
       // flip texture on Y axis
       ImageComponent2D image2d =
-        new ImageComponent2D(ImageComponent.FORMAT_RGBA,
-                             images1[(data_height - 1) - i]);
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, imagesY[i]);
       texture.setImage(0, image2d);
       Appearance appearance =
         makeAppearance(mode, c_alpha, null, geometryY[i], true);
@@ -597,10 +603,12 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     int data_width = geometryZ.length;
     Shape3D[] shapeZ = new Shape3D[data_width];
     for (int i=0; i<data_width; i++) {
+      int width = imagesZ[i].getWidth();
+      int height = imagesZ[i].getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
-                                        texture_height, texture_depth);
+                                        width, height);
       ImageComponent2D image2d =
-        new ImageComponent2D(ImageComponent.FORMAT_RGBA, images2[i]);
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, imagesZ[i]);
       texture.setImage(0, image2d);
       Appearance appearance =
         makeAppearance(mode, c_alpha, null, geometryZ[i], true);
@@ -614,10 +622,12 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     }
     OrderedGroup branchZrev = new OrderedGroup();
     for (int i=data_width-1; i>=0; i--) {
+      int width = imagesZ[i].getWidth();
+      int height = imagesZ[i].getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
-                                        texture_height, texture_depth);
+                                        width, height);
       ImageComponent2D image2d =
-        new ImageComponent2D(ImageComponent.FORMAT_RGBA, images2[i]);
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, imagesZ[i]);
       texture.setImage(0, image2d);
       Appearance appearance =
         makeAppearance(mode, c_alpha, null, geometryZ[i], true);

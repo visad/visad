@@ -43,8 +43,8 @@ public class Test61
         double y = -1.0 + 2.0 * iy / (NY - 1.0);
         for (int ix=0; ix<NX; ix++) {
           double x = -1.0 + 2.0 * ix / (NX - 1.0);
-          double r = 2.0 * Math.sqrt(x * x + y * y) - 1.0;
-          double s = z - Math.atan2(y, x);
+          double r = x - 0.5 * Math.cos(z);
+          double s = y - 0.5 * Math.sin(z);
           double dist = Math.sqrt(r * r + s * s);
           values[0][k] = (float) ((dist < 0.1) ? 10.0 : 1.0 / dist);
           k++;

@@ -2175,18 +2175,32 @@ if (size < 0.2) {
             qarray[2].colors = colorsZ;
             qarray[2].normals = normalsZ;
 
+            // WLH 3 June 99 - until Texture3D works on NT (etc)
+            BufferedImage[][] images = new BufferedImage[3][];
+            for (int i=0; i<3; i++) {
+              images[i] = createImages(i, data_width, data_height, data_depth,
+                               texture_width, texture_height, texture_depth,
+                               color_values);
+            }
+            BufferedImage[] imagesX = null;
+            BufferedImage[] imagesY = null;
+            BufferedImage[] imagesZ = null;
+
             VisADQuadArray qarrayX = null;
             VisADQuadArray qarrayY = null;
             VisADQuadArray qarrayZ = null;
             for (int i=0; i<3; i++) {
               if (volume_tuple_index[i] == 0) {
-                 qarrayX = qarray[i];
+                qarrayX = qarray[i];
+                imagesX = images[i];
               }
               else if (volume_tuple_index[i] == 1) {
-                 qarrayY = qarray[i];
+                qarrayY = qarray[i];
+                imagesY = images[i];
               }
               else if (volume_tuple_index[i] == 2) {
-                 qarrayZ = qarray[i];
+                qarrayZ = qarray[i];
+                imagesZ = images[i];
               }
             }
             VisADQuadArray qarrayXrev = reverse(qarrayX);
@@ -2205,21 +2219,9 @@ if (size < 0.2) {
                                         texture_height, texture_depth, renderer);
 */
 
-            BufferedImage[] images2 =
-              createImages(2, data_width, data_height, data_depth,
-                           texture_width, texture_height, texture_depth,
-                           color_values);
-            BufferedImage[] images1 =
-              createImages(1, data_width, data_height, data_depth,
-                           texture_width, texture_height, texture_depth,
-                           color_values);
-            BufferedImage[] images0 =
-              createImages(0, data_width, data_height, data_depth,
-                           texture_width, texture_height, texture_depth,
-                           color_values);
             shadow_api.textureStackToGroup(group, qarrayX, qarrayY, qarrayZ,
                                     qarrayXrev, qarrayYrev, qarrayZrev,
-                                    images2, images1, images0,
+                                    imagesX, imagesY, imagesZ,
                                     mode, constant_alpha, constant_color,
                                     texture_width, texture_height, texture_depth,
                                     renderer);
@@ -2740,7 +2742,13 @@ if (size < 0.2) {
         ColorModel colorModel = ColorModel.getRGBdefault();
         WritableRaster raster =
           colorModel.createCompatibleWritableRaster(texture_width, texture_height);
-        images[d] = new BufferedImage(colorModel, raster, false, null);
+        if (axis == 1) {
+          images[(data_depth-1) - d] =
+            new BufferedImage(colorModel, raster, false, null);
+        }
+        else {
+          images[d] = new BufferedImage(colorModel, raster, false, null);
+        }
         int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
         // int k = d * data_width * data_height;
         int kk = d * kdepth;
@@ -2775,7 +2783,13 @@ if (size < 0.2) {
         ColorModel colorModel = ColorModel.getRGBdefault();
         WritableRaster raster =
           colorModel.createCompatibleWritableRaster(texture_width, texture_height);
-        images[d] = new BufferedImage(colorModel, raster, false, null);
+        if (axis == 1) {
+          images[(data_depth-1) - d] = 
+            new BufferedImage(colorModel, raster, false, null);
+        }
+        else {
+          images[d] = new BufferedImage(colorModel, raster, false, null);
+        }
         int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
         // int k = d * data_width * data_height;
         int kk = d * kdepth;
