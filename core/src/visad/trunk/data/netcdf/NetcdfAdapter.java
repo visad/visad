@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.7 1998-03-12 23:25:47 steve Exp $
+ * $Id: NetcdfAdapter.java,v 1.8 1998-03-17 15:54:56 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -108,9 +108,10 @@ NetcdfAdapter
 	{
 	    Domain	domain = domEnum.nextElement();
 	    NcDim[]	dims = domain.getDimensions();
-	    NcFunction	function = (domain.getRank() <= 1 || !dims[0].isTime())
-			    ? new NcFunction(domain.getVariables())
-			    : new NcNestedFunction(domain.getVariables());
+	    NcFunction	function =
+		(domain.getRank() <= 1 || !dims[0].isTime())
+		    ? new NcFunction(domain.getVariables())
+		    : new NcNestedFunction(domain.getVariables());
 
 	    table.put(function.getMathType(), function);
 	}
