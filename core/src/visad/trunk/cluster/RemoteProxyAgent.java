@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad.cluster;
 
 import visad.*;
+import java.util.Vector;
 import java.rmi.*;
 import java.io.Serializable;
 
@@ -37,14 +38,18 @@ public interface RemoteProxyAgent extends Remote {
 
   public RemoteClientData getRemoteClientData() throws RemoteException;
 
+  public void setResolutions(int[] rs) throws RemoteException;
+
   public Serializable[] prepareAction(boolean go, boolean initialize,
                                   DataShadow shadow, ConstantMap[] cmaps,
                                   ScalarMap[] maps, Control[] controls,
                                   String name)
          throws VisADException, RemoteException;
 
+  public Serializable[] doTransform() throws VisADException, RemoteException;
 
-  void sendToProxy(Serializable message) throws RemoteException;
+  public Serializable[] computeRanges(Vector message)
+         throws VisADException, RemoteException;
 
 }
 

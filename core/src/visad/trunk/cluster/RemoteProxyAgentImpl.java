@@ -50,6 +50,9 @@ public class RemoteProxyAgentImpl extends UnicastRemoteObject
 
   private int[] resolutions = null;
 
+  private ConstantMap[] cmaps = null;
+  private ScalarMap[] maps = null;
+  private Control[] controls = null;
 
   public RemoteProxyAgentImpl(RemoteClientDataImpl r) throws RemoteException {
     rcdi = r;
@@ -67,10 +70,14 @@ public class RemoteProxyAgentImpl extends UnicastRemoteObject
   }
 
   public Serializable[] prepareAction(boolean go, boolean initialize,
-                                  DataShadow shadow, ConstantMap[] cmaps,
-                                  ScalarMap[] maps, Control[] controls,
+                                  DataShadow shadow, ConstantMap[] cms,
+                                  ScalarMap[] ms, Control[] cos,
                                   String name)
          throws VisADException, RemoteException {
+
+    cmaps = cms;
+    maps = ms;
+    controls = cos;
 
     if (!sent_node_agents) {
       // send agents to nodes if data changed
@@ -100,12 +107,48 @@ public class RemoteProxyAgentImpl extends UnicastRemoteObject
   }
 
 
+  public Serializable[] doTransform() throws VisADException, RemoteException {
 
+    if (rcdi == null) {
+      throw new DisplayException("Data is null");
+    }
 
+    int n = contacts.length;
+    Vector[] messages = new Vector[n];
 
+    if (resolutions == null || resolutions.length != n) {
+      resolutions = new int[n];
+      for (int i=0; i<n; i++) resolutions[i] = 1;
+    }
 
+    for (int i=0; i<n; i++) {
+      // String message = "transform";
+      messages[i] = new Vector();
+      messages[i].addElement("transform");
 
-  public void sendToProxy(Serializable message) throws RemoteException {
+      messages[i].addElement(new Integer(resolutions[i]));
+
+      int m = maps.length;
+      for (int j=0; j<m; j++) {
+        messages[i].addElement(maps[j]);
+      }
+    }
+
+    // responses are VisADGroups
+    Serializable[] responses =
+      focus_agent.broadcastWithResponses(messages, contacts);
+// System.out.println("ProxyRendererJ3D.doTransform messages received");
+
+    return responses;
+  }
+
+  public Serializable[] computeRanges(Vector message)
+         throws VisADException, RemoteException {
+
+    Serializable[] responses =
+      focus_agent.broadcastWithResponses(message, contacts);
+// System.out.println("RemoteProxyAgentImpl.computeRanges messages received");
+    return responses;
   }
 
 }

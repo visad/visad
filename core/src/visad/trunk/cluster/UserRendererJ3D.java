@@ -74,11 +74,13 @@ import java.io.Serializable;
 */
 public class UserRendererJ3D extends DefaultRendererJ3D {
 
+  private RemoteProxyAgent agent = null;
+
   private DisplayImpl display = null;
   private ConstantMap[] cmaps = null;
 
   private DataDisplayLink link = null;
-  private Data data = null;
+  private UserDummyDataImpl data = null;
   private boolean cluster = true;
 
   private RemoteClientAgentImpl[] agents = null;
@@ -97,18 +99,25 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
     time_out = to;
   }
 
-  public void setResolutions(int[] rs) {
-    if (rs == null) return;
-    int n = rs.length;
-    resolutions = new int[n];
-    for (int i=0; i<n; i++) resolutions[i] = rs[i];
+  public void setResolutions(int[] rs) throws RemoteException {
+    try {
+      agent.setResolutions(rs);
+    }
+    catch (RemoteException re) {
+      if (visad.collab.CollabUtil.isDisconnectException(re)) {
+        getDisplay().connectionFailed(this, link);
+        removeLink(link);
+        return;
+      }
+      throw re;
+    }
   }
 
   public DataShadow prepareAction(boolean go, boolean initialize,
                                   DataShadow shadow)
          throws VisADException, RemoteException {
 
-    Data old_data = data;
+    UserDummyDataImpl old_data = data;
     DataDisplayLink[] Links = getLinks();
     if (Links != null && Links.length > 0) {
       link = Links[0];
@@ -127,8 +136,9 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
       }
 
       // get the data
+      Data d = null;
       try {
-        data = link.getData(); // PROXY
+        d = link.getData(); // PROXY
       } catch (RemoteException re) {
         if (visad.collab.CollabUtil.isDisconnectException(re)) {
           getDisplay().connectionFailed(this, link);
@@ -137,49 +147,29 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
         }
         throw re;
       }
-      if (data == null) {
+      if (d == null) {
         addException(
-          new DisplayException("Data is null: UserRendererJ3D.doTransform"));
+          new DisplayException("Data is null"));
       }
-  
-/* PROXY
-      // is this cluster data?
-      cluster = (data instanceof RemoteClientDataImpl);
-
-      if (cluster && data != old_data) { // PROXY
-        // send agents to nodes if data changed
-        RemoteClientDataImpl rcdi = (RemoteClientDataImpl) data;
-        focus_agent = new RemoteClientAgentImpl(null, -1, time_out);
-        RemoteClusterData[] jvmTable = rcdi.getTable();
-        int nagents = jvmTable.length - 1;
-        agents = new RemoteClientAgentImpl[nagents];
-        contacts = new RemoteAgentContact[nagents];
-        for (int i=0; i<nagents; i++) {
-          agents[i] = new RemoteClientAgentImpl(focus_agent, i);
-          DefaultNodeRendererAgent node_agent =
-            new DefaultNodeRendererAgent(agents[i], display.getName(), cmaps);
-          contacts[i] = ((RemoteNodeData) jvmTable[i]).sendAgent(node_agent);
-        }
+      if (!(d instanceof UserDummyDataImpl)) {
+        addException(
+          new DisplayException("Data must be UserDummyDataImpl"));
       }
-*/
-
+      data = (UserDummyDataImpl) d;
     }
 
-
-// WLH new 16 April 2001
-    Vector message = new Vector();
     Vector map_vector = display.getMapVector();
-    Enumeration maps = map_vector.elements();
-    while (maps.hasMoreElements()) {
-      ScalarMap map = (ScalarMap) maps.nextElement();
-      message.addElement(map);
-      message.addElement(map.getControl());
+    int n = map_vector.size();
+    ScalarMap[] maps = new ScalarMap[n];
+    Control[] controls = new Control[n];
+    for (int i=0; i<n; i++) {
+      maps[i] = (ScalarMap) map_vector.elementAt(i);
+      controls[i] = maps[i].getControl();
     }
-// PROXY: Vector of ScalarMaps and Controls
-    Serializable[] responses =
-      focus_agent.broadcastWithResponses(message, contacts);
-// System.out.println("UserRendererJ3D.prepareAction messages received");
 
+    Serializable[] responses =
+      agent.prepareAction(go, initialize, shadow, cmaps, maps, controls,
+                          display.getName());
 
     // now do usual prepareAction()
     return super.prepareAction(go, initialize, shadow);
@@ -192,38 +182,8 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
         new DisplayException("Data is null: UserRendererJ3D.doTransform"));
     }
 
-    if (!cluster) {
-      // not cluster data, so just do the usual
-      return super.doTransform(); // PROXY (do this on user but not on client)
-    }
-
-    int n = contacts.length;
-    Vector[] messages = new Vector[n];
-
-    if (resolutions == null || resolutions.length != n) {
-      resolutions = new int[n];
-      for (int i=0; i<n; i++) resolutions[i] = 1;
-    }
-
-    for (int i=0; i<n; i++) {
-      // String message = "transform";
-      messages[i] = new Vector();
-      messages[i].addElement("transform");
-
-      messages[i].addElement(new Integer(resolutions[i]));
-
-      Vector map_vector = display.getMapVector();
-      Enumeration maps = map_vector.elements();
-      while (maps.hasMoreElements()) {
-        ScalarMap map = (ScalarMap) maps.nextElement();
-        messages[i].addElement(map);
-      }
-    }
-
-// PROXY: Vector of "transform", Integer and ScalarMaps
     // responses are VisADGroups
-    Serializable[] responses =
-      focus_agent.broadcastWithResponses(messages, contacts);
+    Serializable[] responses = agent.doTransform();
 // System.out.println("UserRendererJ3D.doTransform messages received");
 
     // responses are VisADGroups
@@ -241,7 +201,7 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
     branch.setCapability(Group.ALLOW_CHILDREN_WRITE);
     branch.setCapability(Group.ALLOW_CHILDREN_EXTEND);
 
-    n = responses.length;
+    int n = responses.length;
     for (int i=0; i<n; i++) {
       if (responses[i] != null) {
         VisADSceneGraphObject vsgo = (VisADSceneGraphObject) responses[i];
@@ -252,10 +212,8 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
     return branch;
   }
 
-  private boolean enable_spatial = true;
-
-  public synchronized void setSpatialValues(float[][] spatial_values) {
-    if (enable_spatial) super.setSpatialValues(spatial_values);
+  public void setSpatialValues(float[][] spatial_values) {
+    super.setSpatialValues(spatial_values);
   }
 
   /* convert from VisAD scene graph to Java3D scene graph
@@ -534,25 +492,18 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
 
   public DataShadow computeRanges(Data data, ShadowType type, DataShadow shadow) 
          throws VisADException, RemoteException {
-    if (!cluster) {
-      return super.computeRanges(data, type, shadow);
-    }
 
-    DataShadow[] shadows = null;
     Vector message = new Vector();
     message.addElement(type);
     if (shadow == null) {
       message.addElement(new Integer(getDisplay().getScalarCount()));
-      // shadow =
-      //   data.computeRanges(type, getDisplay().getScalarCount());
     }
     else {
       message.addElement(shadow);
-      // shadow = data.computeRanges(type, shadow);
     }
 // PROXY: Vector of ShadowType, (Integer or DataShadow)
     Serializable[] responses =
-      focus_agent.broadcastWithResponses(message, contacts);
+      agent.computeRanges(message);
 // System.out.println("UserRendererJ3D.computeRanges messages received");
     DataShadow new_shadow = null;
     int n = responses.length;
