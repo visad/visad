@@ -114,6 +114,9 @@ public class PointDataAdapter {
       if (units[i].equalsIgnoreCase("CHAR"))
       {
         noText = false;
+        if (debug) {
+          System.out.println(params[i] + " has units of CHAR");
+        }
         types[i] = TextType.getTextType(params[i]);
       } 
       else
@@ -128,7 +131,8 @@ public class PointDataAdapter {
                    : Parser.parse("degrees_west");  // fix McIDAS conv.
         }
         catch (NoSuchUnitException ne) {
-           System.out.println("Unknown unit: " + units[i] + " for " + name);
+           if (debug) 
+             System.out.println("Unknown unit: " + units[i] + " for " + name);
            unit = null;
         }
         catch (ParseException pe) { unit = null;}
@@ -162,6 +166,8 @@ public class PointDataAdapter {
             ? new FlatField(functionType, domain)
             : new FieldImpl(functionType, domain); 
 
+    if (debug) System.out.println("filling in data" );
+    long millis = System.currentTimeMillis();
     // now, fill in the data
     for (int i = 0; i < numObs; i++)
     {
@@ -204,6 +210,10 @@ public class PointDataAdapter {
       }
       catch (VisADException e) {e.printStackTrace();} 
       catch (java.rmi.RemoteException e) {;}
+    }
+    if (debug) {
+      System.out.println("data fill took " + 
+        (System.currentTimeMillis() - millis) + " ms");
     }
   }
 
@@ -276,7 +286,7 @@ public class PointDataAdapter {
       }
     }
     if (RealType.getRealTypeByName(name) == null) {
-      type.alias(name);
+        type.alias(name);
     } else if (!RealType.getRealTypeByName(name).equals(type)) { // alias used
         throw new VisADException(
           "getQuanity(): Two different variables can't have the same alias");
