@@ -232,6 +232,13 @@ public class Util
       filters.add(pnm);
     }
 
+    // QuickTime - qt/QTForm
+    if (canDoQuickTime()) {
+      FileFilter qt = new ExtensionFileFilter("mov", "QuickTime movies");
+      dialog.addChoosableFileFilter(qt);
+      filters.add(qt);
+    }
+
     // ROI - ij/ImageJForm
     FileFilter roi = new ExtensionFileFilter("roi", "ROI data");
     dialog.addChoosableFileFilter(roi);
