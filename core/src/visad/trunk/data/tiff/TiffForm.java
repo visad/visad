@@ -31,13 +31,12 @@ import ij.io.*;
 import ij.process.*;
 import java.awt.Image;
 import java.awt.image.*;
-import java.lang.reflect.*;
 import java.io.*;
 import java.net.URL;
 import java.rmi.RemoteException;
 import visad.*;
 import visad.data.*;
-import visad.util.DataUtility;
+import visad.util.*;
 
 /**
  * TiffForm is the VisAD data form for the TIFF file format.
@@ -77,30 +76,19 @@ public class TiffForm extends Form implements FormFileInformer {
 
   private static boolean noJai = false;
 
-  private static final Method[] methods = createMethods();
+  private static ReflectedUniverse r = createReflectedUniverse();
 
-  private static final Method[] createMethods() {
-    Method[] m = new Method[3];
-    for (int i=0; i<3; i++) m[i] = null;
+  private static ReflectedUniverse createReflectedUniverse() {
+    ReflectedUniverse r = null;
     try {
-      Class idp = Class.forName("com.sun.media.jai.codec.ImageDecodeParam");
-      Class id = Class.forName("com.sun.media.jai.codec.ImageDecoder");
-      Class ic = Class.forName("com.sun.media.jai.codec.ImageCodec");
-
-      m = new Method[3];
-      m[0] = ic.getMethod("createImageDecoder",
-        new Class[] {String.class, File.class, idp});
-      m[1] = id.getMethod("getNumPages", new Class[0]);
-      m[2] = id.getMethod("decodeAsRenderedImage", new Class[] {int.class});
+      r = new ReflectedUniverse();
+      r.exec("import com.sun.media.jai.codec.ImageDecodeParam");
+      r.exec("import com.sun.media.jai.codec.ImageDecoder");
+      r.exec("import com.sun.media.jai.codec.ImageCodec");
     }
-    catch (ClassNotFoundException exc) { noJai = true; }
-    catch (NoSuchMethodException exc) { noJai = true; }
-    return m;
+    catch (VisADException exc) { noJai = true; }
+    return r;
   }
-
-  private static final Method icCreateDec = methods[0];
-  private static final Method idNumPages = methods[1];
-  private static final Method idDecode = methods[2];
 
   private static BufferedImage[] jaiGetImages(String filename)
     throws BadFormException, IOException
@@ -108,29 +96,23 @@ public class TiffForm extends Form implements FormFileInformer {
     if (noJai) throw new BadFormException(NO_JAI);
     BufferedImage[] bi = null;
     try {
-      File file = new File(filename);
-      Object id = icCreateDec.invoke(null, new Object[] {"tiff", file, null});
-      Object ni = idNumPages.invoke(id, new Object[0]);
+      r.setVar("tiff", "tiff");
+      r.setVar("file", new File(filename));
+      r.exec("id = ImageCodec.createImageDecoder(tiff, file, null)");
+      Object ni = r.exec("id.getNumPages()");
       int numImages = ((Integer) ni).intValue();
       bi = new BufferedImage[numImages];
       for (int i=0; i<numImages; i++) {
-        Object o = idDecode.invoke(id, new Object[] {new Integer(i)});
-        RenderedImage ri = (RenderedImage) o;
+        r.setVar("i", new Integer(i));
+        RenderedImage ri =
+          (RenderedImage) r.exec("id.decodeAsRenderedImage(i)");
         WritableRaster wr = ri.copyData(null);
         ColorModel cm = ri.getColorModel();
         bi[i] = new BufferedImage(cm, wr, false, null);
       }
     }
-    catch (IllegalAccessException exc) {
+    catch (VisADException exc) {
       throw new BadFormException(exc.getMessage());
-    }
-    catch (IllegalArgumentException exc) {
-      throw new BadFormException(exc.getMessage());
-    }
-    catch (InvocationTargetException exc) {
-      Throwable t = exc.getTargetException();
-      if (t instanceof IOException) throw (IOException) t;
-      else throw new BadFormException(t.getMessage());
     }
     return bi;
   }
@@ -202,22 +184,16 @@ public class TiffForm extends Form implements FormFileInformer {
     throws BadFormException, IOException, RemoteException, VisADException
   {
     // determine data type
-    String pcImageType = "((e, l) -> v)";
-    String rgbImageType = "((e, l) -> (r, g, b))";
-    String pcTimeType = "(t -> " + pcImageType + ")";
-    String rgbTimeType = "(t -> " + rgbImageType + ")";
-    MathType type = data.getType();
-    if (type.equalsExceptName(MathType.stringToType(pcTimeType)) ||
-      type.equalsExceptName(MathType.stringToType(rgbTimeType)))
-    {
+    FlatField[] fields = DataUtility.getImageFields(data);
+    if (fields == null) {
+      throw new BadFormException(
+        "Data type must be image or time sequence of images");
+    }
+    if (fields.length > 1) {
       // save as multi-page TIFF
-      FieldImpl fi = (FieldImpl) data;
-      int len = fi.getLength();
+      int len = fields.length;
       ImageProcessor[] ips = new ImageProcessor[len];
-      for (int i=0; i<len; i++) {
-        FlatField field = (FlatField) fi.getSample(i);
-        ips[i] = extractImage(field);
-      }
+      for (int i=0; i<len; i++) ips[i] = extractImage(fields[i]);
       ImageStack is = new ImageStack(ips[0].getWidth(),
         ips[0].getHeight(), ips[0].getColorModel());
       for (int i=0; i<len; i++) is.addSlice("" + i, ips[i]);
@@ -225,19 +201,12 @@ public class TiffForm extends Form implements FormFileInformer {
       FileSaver sav = new FileSaver(image);
       sav.saveAsTiffStack(id);
     }
-    else if (type.equalsExceptName(MathType.stringToType(pcImageType)) ||
-      type.equalsExceptName(MathType.stringToType(rgbImageType)))
-    {
+    else {
       // save as single image TIFF
-      FlatField field = (FlatField) data;
-      ImageProcessor ip = extractImage(field);
+      ImageProcessor ip = extractImage(fields[0]);
       ImagePlus image = new ImagePlus(id, ip);
       FileSaver sav = new FileSaver(image);
       sav.saveAsTiff(id);
-    }
-    else {
-      throw new BadFormException(
-        "Data type must be image or time sequence of images");
     }
   }
 
