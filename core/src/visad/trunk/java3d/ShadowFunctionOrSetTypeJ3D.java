@@ -422,7 +422,12 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     shape.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
     appearance.setTexture(texture);
     appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
-    ((Group) group).addChild(shape);
+
+    // WLH 6 April 2000
+    // ((Group) group).addChild(shape);
+    BranchGroup branch = new BranchGroup();
+    branch.addChild(shape);
+    ((Group) group).addChild(branch);
   }
 
   public void texture3DToGroup(Object group, VisADGeometryArray arrayX,
@@ -530,7 +535,12 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     swit.addChild(shapeXrev);
     swit.addChild(shapeYrev);
     swit.addChild(shapeZrev);
-    ((Group) group).addChild(swit);
+
+    // WLH 6 April 2000
+    // ((Group) group).addChild(swit);
+    BranchGroup branch = new BranchGroup();
+    branch.addChild(swit);
+    ((Group) group).addChild(branch);
 
     ProjectionControlJ3D control =
       (ProjectionControlJ3D) display.getProjectionControl();
@@ -810,7 +820,12 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     swit.addChild(branchXrev);
     swit.addChild(branchYrev);
     swit.addChild(branchZrev);
-    ((Group) group).addChild(swit);
+
+    // WLH 6 April 2000
+    // ((Group) group).addChild(swit);
+    BranchGroup branch = new BranchGroup();
+    branch.addChild(swit);
+    ((Group) group).addChild(branch);
 
     ProjectionControlJ3D control =
       (ProjectionControlJ3D) display.getProjectionControl();
