@@ -66,7 +66,7 @@ GDfdims.o: GDfdims.c
 	$(CC) $(SHCFLAGS) -c GDfdims.c $(HDFINCS) $(HDFEOSINCS)
 
 .c.o:
-	$(CC) $(SHCFLAGS) -c $*.c $(JAVAINCS) $(PKGINCS)
+	$(CC) $(SHCFLAGS) -c $*.c $(JAVAINCS) $(HDFINCS) $(HDFEOSINCS)
 
 hdfeosLib: $(OBJECTS) hdfeos_ext
 	$(LD) $(LDOPT) $(OBJECTS) $(HDFEOSLIBS) $(HDFLIBS) $(SYSLIBS) -o $(SLIBDIR)/lib$(SLIB).so
