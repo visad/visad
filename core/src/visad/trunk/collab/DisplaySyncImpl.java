@@ -241,14 +241,24 @@ public class DisplaySyncImpl
     // sort events by order of creation
     Arrays.sort(list, this);
 
-    for (int i = 0; i < list.length; i++) {
+    int i, attempts;
+    i = attempts = 0;
+    while (i < list.length) {
       try {
         processOneEvent(list[i]);
+        i++;
       } catch (RemoteException re) {
-        System.err.println("While processing " + list[i] + ":");
-        re.printStackTrace();
+        if (attempts++ < 5) {
+          // wait a bit, then try again to request the events
+          try { Thread.sleep(500); } catch (InterruptedException ie) { }
+        } else {
+          // if we failed to connect for 10 times, give up
+          dead = true;
+          break;
+        }
       } catch (RemoteVisADException rve) {
         System.err.println("While processing " + list[i] + ":");
+        i++;
         rve.printStackTrace();
       }
     }
