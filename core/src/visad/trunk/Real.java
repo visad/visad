@@ -215,8 +215,10 @@ public class Real extends Scalar {
 
       Unit u;	// output unit
       Unit data_unit = ((Real) data).getUnit();
-      double thatValue = ((Real) data).getValue();
-      double thisValue = Value;
+      Unit thisUnit = unit == null ? null : unit.getAbsoluteUnit();
+      Unit thatUnit = data_unit == null ? null : data_unit.getAbsoluteUnit();
+      double thatValue = ((Real) data).getValue(thatUnit);
+      double thisValue = getValue(thisUnit);
       double opValue;
       ErrorEstimate dError = ((Real) data).getError();
       switch (op) {
@@ -225,25 +227,24 @@ public class Real extends Scalar {
         case INV_SUBTRACT:
         case MAX:
         case MIN:
-          if (unit == null || data_unit == null) {
+          if (thisUnit == null || thatUnit == null) {
             u = null;
           }
-          else if (unit == CommonUnit.promiscuous) {
-            u = data_unit;
+          else if (thisUnit == CommonUnit.promiscuous) {
+            u = thatUnit;
           }
-          else if (data_unit == CommonUnit.promiscuous) {
-            u = unit;
+          else if (thatUnit == CommonUnit.promiscuous) {
+            u = thisUnit;
           }
           else {
 	    try {
-	      u = unit.getAbsoluteUnit();
-	      thisValue = u.toThis(thisValue, unit);
-	      thatValue = u.toThis(thatValue, data_unit);
+	      u = thisUnit;
+	      thatValue = u.toThis(thatValue, thatUnit);
 	      // scale data.ErrorEstimate for Unit.toThis
 	      if (error_mode != NO_ERRORS && dError != null) {
 		Unit	errorUnit = dError.getUnit();
 		if (errorUnit == null)
-		  errorUnit = data_unit;
+		  errorUnit = thatUnit;
 		double new_error = u.toThis(dError.getErrorValue(), errorUnit);
 		dError = new ErrorEstimate(thatValue, new_error, u);
 	      }
@@ -273,34 +274,35 @@ public class Real extends Scalar {
           break;
         case MULTIPLY:
           opValue = thisValue * thatValue;
-          if (unit == null || data_unit == null) {
+          if (thisUnit == null || thatUnit == null) {
             u = null;
           }
           else {
-            u = unit.multiply(data_unit);
+            u = thisUnit.multiply(thatUnit);
           }
           break;
         case DIVIDE:
           opValue = thisValue / thatValue;
-          if (unit == null || data_unit == null) {
+          if (thisUnit == null || thatUnit == null) {
             u = null;
           }
           else {
-            u = unit.divide(data_unit);
+            u = thisUnit.divide(thatUnit);
           }
           break;
         case INV_DIVIDE:
           opValue = thatValue / thisValue;
-          if (unit == null || data_unit == null) {
+          if (thisUnit == null || thatUnit == null) {
             u = null;
           }
           else {
-            u = data_unit.divide(unit);
+            u = thatUnit.divide(thisUnit);
           }
           break;
         case POW:
           opValue = Math.pow(thisValue, thatValue);
-          u = null;
+          u = thisUnit.equals(CommonUnit.dimensionless) 
+	    ? CommonUnit.dimensionless : null;
           break;
         case INV_POW:
           opValue = Math.pow(thatValue, thisValue);
@@ -324,11 +326,11 @@ public class Real extends Scalar {
           break;
         case REMAINDER:
           opValue = thisValue % thatValue;
-          u = unit;
+          u = thisUnit;
           break;
         case INV_REMAINDER:
           opValue = thatValue % thisValue;
-          u = data_unit;
+          u = thatUnit;
           break;
         default:
           throw new ArithmeticException("Real.binary: illegal operation");
