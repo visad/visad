@@ -1,5 +1,5 @@
                    VisAD Spread Sheet User Interface README file
-                                 27 January 1999
+                                  9 March 1999
  
                                 Table of Contents
 
@@ -9,10 +9,13 @@
   1.3 Source Files
     1.3.1 BasicSSCell
     1.3.2 FancySSCell
-    1.3.3 FormulaCell
-    1.3.4 MappingDialog
-    1.3.5 SpreadSheet
-    1.3.6 SSLayout
+    1.3.3 MappingDialog
+    1.3.4 SpreadSheet
+    1.3.5 SSCellChangeEvent
+    1.3.6 SSCellListener
+    1.3.7 SSLayout
+    1.3.8 SSMethod
+    1.3.9 SSRealType
 2. Features of the SpreadSheet User Interface
   2.1 Basic Commands
   2.2 Menu Commands
@@ -75,10 +78,13 @@ at http://www.ssec.wisc.edu/~billh/visad.html
     The following source files are part of the visad.ss package:
       - BasicSSCell.java
       - FancySSCell.java
-      - FormulaCell.java
       - MappingDialog.java
       - SpreadSheet.java
+      - SSCellChangeEvent.java
+      - SSCellListener.java
       - SSLayout.java
+      - SSMethod.java
+      - SSRealType.java
 
     The following included GIF files are needed by the package:
       - cancel.gif
@@ -106,21 +112,30 @@ BasicSSCell, plus some additional, "fancy" capabilities.  It is designed to
 be "loud" (i.e., it displays errors in error message dialog boxes rather
 than throwing exceptions).
 
-1.3.3 FormulaCell
-    This class implements the visad.formula package's FormulaListener
-    interface and provides methods to evaluate different operators supported
-    in the Spread Sheet's formulas.
-
-1.3.4 MappingDialog
+1.3.3 MappingDialog
     This class is a dialog box allowing the user to specify ScalarMaps for
 the current data set.
 
-1.3.5 SpreadSheet
+1.3.4 SpreadSheet
     This is the main Spread Sheet user interface class.  It manages
     multiple FancySSCells.
 
-1.3.6 SSLayout
+1.3.5 SSCellChangeEvent
+    An event signifying a data or dimension change in an SSCell.
+
+1.3.6 SSCellChangeListener
+    An interface for classes that wish to be informed when an SSCell changes.
+
+1.3.7 SSLayout
     This is the layout manager for the spreadsheet cells and their labels.
+
+1.3.8 SSMethod
+    A wrapper for java.lang.reflect.Method so that it may be used in the
+visad.formula package.
+
+1.3.9 SSRealType
+    A wrapper for visad.RealType so that it may be used in the
+visad.formula package.
 
 2. Features of the SpreadSheet User Interface
 
@@ -297,8 +312,8 @@ the right of the formula entry text box is a shortcut to the File menu's Import
 Data menu item.
 
 2.3.2.3 Formula Syntax
-    Formulas are case sensitive, except for cell names.  Any of the following
-can be used in formula construction:
+    Formulas are case insensitive.
+Any of the following can be used in formula construction:
 
 1) Formulas can use any of the basic operators:
        + add,  - subtract,  * multiply,  / divide,  % remainder,  ^ power
@@ -308,8 +323,8 @@ can be used in formula construction:
 
 3) Formulas can use any of the following unary functions:
        abs, acos, acosDegrees, asin, asinDegrees, atan, atanDegrees, ceil,
-       cos, cosDegrees, exp, floor, log, rint, round, sin, sinDegrees, sqrt,
-       tan, tanDegrees, negate
+       cos, cosDegrees, domainMultiply, exp, floor, log, rint, round, sin,
+       sinDegrees, sqrt, tan, tanDegrees, negate
 
 4) Unary minus syntax (e.g., B2 * -A1) is supported.
 
@@ -329,9 +344,9 @@ can be used in formula construction:
    This syntax calls Function's evaluate() method.
 
 7) You can obtain an individual sample from a Field with the syntax:
-       DATA(N)
+       DATA[N]
    where DATA is the Field, and N is a literal integer.
-   Use DATA(0) for the first sample of DATA.
+   Use DATA[0] for the first sample of DATA.
    This syntax calls Field's getSample() method.
 
 8) You can obtain one component of a Tuple with the syntax:
@@ -349,6 +364,12 @@ can be used in formula construction:
        combine(DATA1, DATA2, ..., DATAN)
     where DATA1 through DATAN are Fields.
     This syntax calls FieldImpl's combine() method.
+
+11) You can perform a domain factoring with the syntax:
+       domainFactor(DATA, TYPE)
+    where DATA is a FieldImpl, and TYPE is the name of a RealType present
+    in the FieldImpl's domain.
+    This syntax calls FieldImpl's domainFactor() method.
 
 2.3.2.4 Linking to External Java Code
     You can link to an external Java method with the syntax:
@@ -380,7 +401,7 @@ Here are some examples of valid formulas for cell A1:
     sqrt(A2 + B2^5 - min(B1, -C1))
     d(A2 + B2)/d(ImageElement)
     A2(A3)
-    C2.6
+    C2.6[0]
     (B1 * C1)(A3).1
     C2 - 5*link(com.happyjava.vis.Linked.crunch(A6, C3, B5))
 
@@ -404,9 +425,6 @@ by the Spread Sheet.
       4) When resizing cells, if a cell is made to be as small as it can be
          in one or more dimensions, some extra space or a scroll bar will
          appear in the bottom or right-hand corners of the Spread Sheet window.
-      5) When a cell auto-dimension-switches, the Display menu's dimension
-         indicator check-boxes don't update until you select a different cell,
-         then reselect the original cell.
 
     If you find a bug in the Spread Sheet user interface not listed above,
 please send e-mail to curtis@ssec.wisc.edu describing the problem, preferably

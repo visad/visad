@@ -1,6 +1,6 @@
 
 //
-// FormulaException.java
+// SSCellChangeEvent.java
 //
 
 /*
@@ -23,12 +23,31 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.formula;
+package visad.ss;
 
-/** The type of exception thrown by the formula package.<P> */
-public class FormulaException extends visad.VisADException {
-  public FormulaException(String s) {
-    super(s);
+/** Event class for SSCell changes.<P> */
+public class SSCellChangeEvent {
+
+  public static int DATA_CHANGE = 0;
+  public static int DIMENSION_CHANGE = 1;
+
+  private BasicSSCell SSCell;
+  private int ChangeType;
+
+  /** constructor */
+  public SSCellChangeEvent(BasicSSCell ssCell, int changeType) {
+    SSCell = ssCell;
+    ChangeType = changeType;
   }
+
+  /** get this event's SSCell */
+  public BasicSSCell getSSCell() {
+    return SSCell;
+  }
+
+  public int getChangeType() {
+    return ChangeType;
+  }
+
 }
 

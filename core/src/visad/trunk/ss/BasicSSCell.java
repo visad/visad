@@ -25,36 +25,22 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.ss;
 
-// AWT package
 import java.awt.*;
-
-// JFC packages
+import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.*;
+import java.rmi.RemoteException;
+import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
-
-// I/O package
-import java.io.*;
-
-// Net package
-import java.net.*;
-
-// RMI class
-import java.rmi.RemoteException;
-
-// utility classes
-import java.util.Enumeration;
-import java.util.Vector;
-
-// VisAD packages
 import visad.*;
 import visad.data.*;
+import visad.data.netcdf.Plain;
+import visad.data.visad.VisADForm;
 import visad.formula.*;
 import visad.java2d.*;
 import visad.java3d.*;
-
-// VisAD classes
-import visad.data.netcdf.Plain;
-import visad.data.visad.VisADForm;
 
 /** BasicSSCell represents a single spreadsheet display cell.  BasicSSCells
     can be added to a VisAD user interface to provide some of the capabilities
@@ -63,20 +49,23 @@ import visad.data.visad.VisADForm;
     FancySSCell.<P> */
 public class BasicSSCell extends JPanel {
 
-  /** A list of SSCells on this machine */
+  /** list of SSCells on this JVM */
   static Vector SSCellVector = new Vector();
 
-  /** Name of this BasicSSCell */
+  /** counter for the number of cells currently saving data */
+  static int Saving = 0;
+
+  /** name of this BasicSSCell */
   String Name;
 
   /** URL from where data was imported, if any */
   URL Filename = null;
 
+  /** formula of this BasicSSCell, if any */
+  String Formula = "";
+
   /** BasicSSCell's associated VisAD Display */
   DisplayImpl VDisplay;
-
-  /** BasicSSCell's associated VisAD Cell, if any, for evaluating formula */
-  FormulaCell VCell = null;
 
   /** BasicSSCell's associated VisAD DataReference */
   DataReferenceImpl DataRef;
@@ -84,78 +73,228 @@ public class BasicSSCell extends JPanel {
   /** BasicSSCell's associated VisAD DisplayPanel */
   JPanel VDPanel;
 
-  /** Constant for use with Dimension2D variable */
+  /** constant for use with Dimension2D variable */
   static final int JAVA3D_3D = 1;
 
-  /** Constant for use with Dimension2D variable */
+  /** constant for use with Dimension2D variable */
   static final int JAVA2D_2D = 2;
 
-  /** Constant for use with Dimension2D variable */
+  /** constant for use with Dimension2D variable */
   static final int JAVA3D_2D = 3;
 
-  /** Specifies whether the DisplayPanel is 2-D or 3-D, Java2D or Java3D */
+  /** FormulaManager object used by all BasicSSCells with formulas */
+  static final FormulaManager fm = createManager();
+
+  /** creates the global FormulaManager object */
+  private static FormulaManager createManager() {
+    String[] binOps = {".", "^", "*", "/", "%", "+", "-"};
+    int[] binPrec =   {200, 400, 600, 600, 600, 800, 800};
+    String[] binMethods = {"visad.ss.BasicSSCell.dot(visad.Tuple, visad.Real)",
+                           "visad.Data.pow(visad.Data)",
+                           "visad.Data.multiply(visad.Data)",
+                           "visad.Data.divide(visad.Data)",
+                           "visad.Data.remainder(visad.Data)",
+                           "visad.Data.add(visad.Data)",
+                           "visad.Data.subtract(visad.Data)"};
+    String[] unaryOps = {"-"};
+    int[] unaryPrec =   {500};
+    String[] unaryMethods = {"visad.Data.negate()"};
+    String[] functions = {"abs", "acos", "acosDegrees", "asin", "asinDegrees",
+                          "atan", "atan2", "atanDegrees", "atan2Degrees",
+                          "ceil", "combine", "cos", "cosDegrees", "derive",
+                          "domainMultiply", "domainFactor", "exp", "extract",
+                          "floor", "getSample", "linkx", "log", "max", "min",
+                          "negate", "rint", "round", "sin", "sinDegrees",
+                          "sqrt", "tan", "tanDegrees"};
+    String[] funcMethods = {"visad.Data.abs()", "visad.Data.acos()",
+                            "visad.Data.acosDegrees()", "visad.Data.asin()",
+                            "visad.Data.asinDegrees()", "visad.Data.atan()",
+                            "visad.Data.atan2(visad.Data)",
+                            "visad.Data.atanDegrees()",
+                            "visad.Data.atan2Degrees(visad.Data)",
+                            "visad.Data.ceil()",
+                            "visad.FieldImpl.combine(visad.Field[])",
+                            "visad.Data.cos()", "visad.Data.cosDegrees()",
+                            "visad.ss.BasicSSCell.derive(visad.Function," +
+                                                        "visad.ss.SSRealType)",
+                            "visad.FieldImpl.domainMultiply()",
+                            "visad.ss.BasicSSCell.factor(visad.FieldImpl,"
+                                                       +"visad.ss.SSRealType)",
+                            "visad.Data.exp()",
+                            "visad.ss.BasicSSCell.extract(visad.Field," +
+                                                         "visad.Real)",
+                            "visad.Data.floor()",
+                            "visad.ss.BasicSSCell.brackets(visad.Field," +
+                                                          "visad.Real)",
+                            "visad.ss.BasicSSCell.link(visad.ss.SSMethod," +
+                                                      "java.lang.Object[])",
+                            "visad.Data.log()",
+                            "visad.Data.max(visad.Data)",
+                            "visad.Data.min(visad.Data)",
+                            "visad.Data.negate()", "visad.Data.rint()",
+                            "visad.Data.round()", "visad.Data.sin()",
+                            "visad.Data.sinDegrees()", "visad.Data.sqrt()",
+                            "visad.Data.tan()", "visad.Data.tanDegrees()"};
+    int implicitPrec = 200;
+    String[] implicitMethods = {"visad.ss.BasicSSCell.implicit(" +
+                                "visad.Function, visad.Real)",
+                                "visad.Function.evaluate(visad.RealTuple)"};
+    FormulaManager f;
+    try {
+      f = new FormulaManager(binOps, binPrec, binMethods, unaryOps, unaryPrec,
+                             unaryMethods, functions, funcMethods,
+                             implicitPrec, implicitMethods);
+    }
+    catch (FormulaException exc) {
+      return null;
+    }
+    return f;
+  }
+
+  /** whether the DisplayPanel is 2-D or 3-D, Java2D or Java3D */
   int Dimension2D = -1;
 
-  /** Specifies this SSCell's DisplayListener */
+  /** this BasicSSCell's DisplayListener */
   DisplayListener DListen = null;
 
-  /** A counter for the number of cells currently saving data */
-  static int Saving = 0;
-
-  /** Specifies whether the BasicSSCell contains any data */
+  /** whether the BasicSSCell contains any data */
   boolean HasData = false;
 
-  /** Specifies whether the BasicSSCell is busy loading data; the
-      BasicSSCell's Data cannot be changed when the BasicSSCell is busy */
-  boolean IsBusy = false;
+  /** whether the display panel is currently onscreen */
+  boolean HasDisplay = false;
 
-  /** Specifies whether the BasicSSCell has an associated formula */
+  /** whether the BasicSSCell has an associated formula */
   boolean HasFormula = false;
 
-  /** Specifies whether the BasicSSCell has mappings from Data to Display */
+  /** whether the BasicSSCell has mappings from Data to Display */
   boolean HasMappings = false;
 
-  /** Specifies whether formula errors are reported in a dialog box */
+  /** whether formula errors are reported in a dialog box */
   boolean ShowFormulaErrors = true;
 
-  /** Constructs a new BasicSSCell with the given name */
+  /** whether this cell has a big X through it */
+  boolean BigX = false;
+
+  /** construct a new BasicSSCell with the given name */
   public BasicSSCell(String name) throws VisADException, RemoteException {
     if (name == null) {
-      throw new TypeException("BasicSSCell: name cannot be null");
+      throw new VisADException("BasicSSCell: name cannot be null");
     }
     Enumeration panels = SSCellVector.elements();
     while (panels.hasMoreElements()) {
       BasicSSCell panel = (BasicSSCell) panels.nextElement();
       if (name.equalsIgnoreCase(panel.Name)) {
-        throw new TypeException("BasicSSCell: name already used");
+        throw new VisADException("BasicSSCell: name already used");
       }
     }
     Name = name;
     SSCellVector.addElement(this);
-    try {
-      FormulaCell.fm.setValue(Name, null);
-    }
-    catch (FormulaException exc) {
-      throw new VisADException(exc.toString());
-    }
+    CellImpl ucell = new CellImpl() {
+      public void doAction() {
+        // redisplay this cell's data when it changes
+        Data value = null;
+        try {
+          value = (Data) fm.getThing(Name);
+        }
+        catch (ClassCastException exc) {
+          if (ShowFormulaErrors) {
+            showMsg("Formula evaluation error",
+                    "Final value is not of the correct type.");
+          }
+        }
+        catch (FormulaException exc) {
+          if (ShowFormulaErrors) {
+            showMsg("Formula evaluation error",
+                    "The formula could not be evaluated.");
+          }
+        }
 
-    DataRef = new DataReferenceImpl(Name);
+        if (value == null) {
+          // no value; clear display
+          HasData = false;
+          try {
+            clearDisplay();
+          }
+          catch (VisADException exc) {
+            if (ShowFormulaErrors) {
+              showMsg("Formula evaluation error",
+                      "Unable to clear old data.");
+            }
+            setX(true);
+          }
+          catch (RemoteException exc) {
+            if (ShowFormulaErrors) {
+              showMsg("Formula evaluation error",
+                      "Unable to clear old data.");
+            }
+            setX(true);
+          }
+        }
+        else {
+          // update cell's data
+          HasData = true;
+          setX(false);
+          if (!HasDisplay) {
+            add(VDPanel);
+            validate();
+            HasDisplay = true;
+          }
+        }
+        String[] es = fm.getErrors(Name);
+        if (ShowFormulaErrors && es != null) {
+          for (int i=0; i<es.length; i++) {
+            showMsg("Formula evaluation error", es[i]);
+          }
+          setX(true);
+        }
+        notifyListeners(SSCellChangeEvent.DATA_CHANGE);
+      }
+    };
+    DataRef = new DataReferenceImpl(name);
+    fm.createVar(Name, DataRef);
+    ucell.addReference(DataRef);
     setDimension(JAVA2D_2D);
     VDPanel = (JPanel) VDisplay.getComponent();
-
     setPreferredSize(new Dimension(0, 0));
     setBackground(Color.black);
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
   }
 
-  /** Constructs a BasicSSCell with the given name and data string */
+  /** list of SSCellListeners to be notified of changes */
+  private Vector list = new Vector();
+
+  /** add an SSCellListener to be notified of changes */
+  public void addSSCellChangeListener(SSCellListener l) {
+    if (!list.contains(l)) list.add(l);
+  }
+
+  /** remove an SSCellListener */
+  public void removeListener(SSCellListener l) {
+    if (list.contains(l)) list.remove(l);
+  }
+
+  /** remove all SSCellListeners */
+  public void removeAllListeners() {
+    list.removeAllElements();
+  }
+
+  /** notify SSCellListeners that change occurred */
+  private void notifyListeners(int changeType) {
+    SSCellChangeEvent e = new SSCellChangeEvent(this, changeType);
+    for (int i=0; i<list.size(); i++) {
+      SSCellListener l = (SSCellListener) list.elementAt(i);
+      l.ssCellChanged(e);
+    }
+  }
+
+  /** construct a BasicSSCell with the given name and data string */
   public BasicSSCell(String name, String info) throws VisADException,
                                                       RemoteException {
     this(name);
     if (info != null) setSSCellString(info);
   }
 
-  /** Returns the BasicSSCell object with the specified display */
+  /** return the BasicSSCell object with the specified display */
   public static BasicSSCell getSSCellByDisplay(Display d) {
     Enumeration panels = SSCellVector.elements();
     while (panels.hasMoreElements()) {
@@ -165,7 +304,7 @@ public class BasicSSCell extends JPanel {
     return null;
   }
 
-  /** Returns the BasicSSCell object with the specified name */
+  /** return the BasicSSCell object with the specified name */
   public static BasicSSCell getSSCellByName(String name) {
     Enumeration panels = SSCellVector.elements();
     while (panels.hasMoreElements()) {
@@ -175,9 +314,9 @@ public class BasicSSCell extends JPanel {
     return null;
   }
 
-  /** Obtains a Vector of RealTypes consisting of all ScalarTypes
-      present in data's MathType.  Returns the number of duplicate
-      ScalarTypes found. */
+  /** obtain a Vector of RealTypes consisting of all ScalarTypes
+      present in data's MathType; return the number of duplicate
+      ScalarTypes found */
   public static int getRealTypes(Data data, Vector v) {
     MathType dataType;
     try {
@@ -206,7 +345,7 @@ public class BasicSSCell extends JPanel {
     return i[0];
   }
 
-  /** Used by getRealTypes */
+  /** used by getRealTypes */
   private static void parseFunction(FunctionType mathType, Vector v, int[] i) {
     // extract domain
     RealTupleType domain = mathType.getDomain();
@@ -228,7 +367,7 @@ public class BasicSSCell extends JPanel {
     return;
   }
 
-  /** Used by getRealTypes */
+  /** used by getRealTypes */
   private static void parseSet(SetType mathType, Vector v, int[] i) {
     // extract domain
     RealTupleType domain = mathType.getDomain();
@@ -237,7 +376,7 @@ public class BasicSSCell extends JPanel {
     return;
   }
 
-  /** Used by getRealTypes */
+  /** used by getRealTypes */
   private static void parseTuple(TupleType mathType, Vector v, int[] i) {
     // extract components
     for (int j=0; j<mathType.getDimension(); j++) {
@@ -263,7 +402,7 @@ public class BasicSSCell extends JPanel {
     return;
   }
 
-  /** Used by getRealTypes */
+  /** used by getRealTypes */
   private static void parseScalar(ScalarType mathType, Vector v, int[] i) {
     if (mathType instanceof RealType) {
       if (v.contains(mathType)) i[0]++;
@@ -271,22 +410,269 @@ public class BasicSSCell extends JPanel {
     }
   }
 
-  /** Changes the BasicSSCell's name */
+  /** return true if any BasicSSCell is currently saving data */
+  public static boolean isSaving() {
+    return Saving > 0;
+  }
+
+  /** evaluates the dot operator */
+  public static Data dot(Tuple t, Real r) {
+    Data d = null;
+    try {
+      d = t.getComponent((int) r.getValue());
+    }
+    catch (VisADException exc) { }
+    catch (RemoteException exc) { }
+    return d;
+  }
+
+  /** evaluate the derive function */
+  public static Data derive(Function f, SSRealType rt) {
+    Data val = null;
+    try {
+      val = f.derivative(rt.getRealType(), Data.NO_ERRORS);
+    }
+    catch (VisADException exc) { }
+    catch (RemoteException exc) { }
+    return val;
+  }
+
+  /** evaluate the domainFactor function */
+  public static Field factor(FieldImpl f, SSRealType rt) {
+    Field val = null;
+    try {
+      val = f.domainFactor(rt.getRealType());
+    }
+    catch (VisADException exc) { }
+    catch (RemoteException exc) { }
+    return val;
+  }
+
+  /** evaluate the extract function */
+  public static Data extract(Field f, Real r) {
+    Data d = null;
+    try {
+      d = f.extract((int) r.getValue());
+    }
+    catch (VisADException exc) { }
+    catch (RemoteException exc) { }
+    return d;
+  }
+
+  /** evaluate the link function */
+  public static Data link(SSMethod m, Object[] o) {
+    Data ans = null;
+    if (o != null) {
+      for (int i=0; i<o.length; i++) {
+        // convert SSRealTypes to RealTypes
+        if (o[i] instanceof SSRealType) {
+          o[i] = ((SSRealType) o[i]).getRealType();
+        }
+      }
+    }
+    try {
+      ans = (Data) FormulaUtil.invokeMethod(m.getMethod(), o);
+    }
+    catch (ClassCastException exc) { }
+    catch (IllegalAccessException exc) { }
+    catch (IllegalArgumentException exc) { }
+    catch (InvocationTargetException exc) { }
+    return ans;
+  }
+
+  /** evaluate implicit function syntax; e.g., A1(5) or A1(A2) */
+  public static Data implicit(Function f, Real r) {
+    Data value = null;
+    try {
+      value = f.evaluate(r);
+    }
+    catch (VisADException exc) { }
+    catch (RemoteException exc) { }
+    return value;
+  }
+
+  /** evaluate the bracket function; e.g., A1[5] or A1[A2] */
+  public static Data brackets(Field f, Real r) {
+    Data value = null;
+    try {
+      RealType rt = (RealType) r.getType();
+      value = f.getSample((int) r.getValue());
+    }
+    catch (VisADException exc) { }
+    catch (RemoteException exc) { }
+    return value;
+  }
+
+  /** number of link variables that have been created */
+  private static int linkNum = 0;
+
+  /** do some pre-computation parsing to a formula */
+  private static String preParse(String f) {
+    // remove spaces
+    StringTokenizer t = new StringTokenizer(f, " ", false);
+    String s = "";
+    while (t.hasMoreTokens()) s = s + t.nextToken();
+    if (s.equals("")) return s;
+
+    // multi-pass pre-parse sequence
+    String os;
+    do {
+      os = s;
+      s = preParseOnce(os);
+    }
+    while (!s.equals(os));
+    return s;
+  }
+
+  /** used by preParse */
+  private static String preParseOnce(String s) {
+    // convert to lower case
+    String l = s.toLowerCase();
+
+    // scan entire string
+    int len = l.length();
+    boolean letter = false;
+    String ns = "";
+    for (int i=0; i<len; i++) {
+      if (!letter && i < len - 1 && l.substring(i, i+2).equals("d(")) {
+        // convert d(x)/d(y) notation to standard derive(x, y) notation
+        i += 2;
+        int s1 = i;
+        for (int paren=1; paren>0; i++) {
+          // check for correct syntax
+          if (i >= len) return s;
+          char c = l.charAt(i);
+          if (c == '(') paren++;
+          if (c == ')') paren--;
+        }
+        int e1 = i-1;
+        // check for correct syntax
+        if (i > len - 3 || !l.substring(i, i+3).equals("/d(")) return s;
+        i += 3;
+        int s2 = i;
+        for (int paren=1; paren>0; i++) {
+          // check for correct syntax
+          if (i >= len) return s;
+          char c = l.charAt(i);
+          if (c == '(') paren++;
+          if (c == ')') paren--;
+        }
+        int e2 = i-1;
+        ns = ns + "derive(" + s.substring(s1, e1) +
+                        "," + s.substring(s2, e2) + ")";
+        i--;
+      }
+      else if (!letter && i < len - 4 && l.substring(i, i+5).equals("link(")) {
+        // evaluate link(code) notation and replace with link variable
+        i += 5;
+        int s1 = i;
+        try {
+          while (l.charAt(i) != '(') i++;
+        }
+        catch (ArrayIndexOutOfBoundsException exc) {
+          // incorrect syntax
+          return s;
+        }
+        i++;
+        int e1 = i-1;
+        int s2 = i;
+        for (int paren=2; paren>1; i++) {
+          // check for correct syntax
+          if (i >= len) return s;
+          char c = l.charAt(i);
+          if (c == '(') paren++;
+          if (c == ')') paren--;
+        }
+        int e2 = i-1;
+        // check for correct syntax
+        if (i >= len || l.charAt(i) != ')') return s;
+        String[] strs = new String[1];
+        strs[0] = s.substring(s1, e1) + "(";
+
+        // parse method's arguments; determine if they are Data or RealType
+        String sub = s.substring(s2, e2);
+        StringTokenizer st = new StringTokenizer(sub, ",", false);
+        boolean first = true;
+        while (st.hasMoreTokens()) {
+          String token = st.nextToken();
+          if (first) first = false;
+          else strs[0] = strs[0] + ",";
+          RealType rt = RealType.getRealTypeByName(token);
+          strs[0] = strs[0] + (rt == null ? "visad.Data"
+                                          : "visad.RealType");
+        }
+        strs[0] = strs[0] + ")";
+
+        // obtain Method object and store it in a link variable
+        Method[] meths = FormulaUtil.stringsToMethods(strs);
+        String link = "link" + (++linkNum);
+        // make sure linked method actually exists
+        if (meths[0] == null) return s;
+        try {
+          fm.setThing(link, new SSMethod(meths[0]));
+        }
+        // catch any errors setting the link variable
+        catch (FormulaException exc) {
+          return s;
+        }
+        catch (VisADException exc) {
+          return s;
+        }
+        catch (RemoteException exc) {
+          return s;
+        }
+        ns = ns + "linkx(" + link + "," + s.substring(s2, e2) + ")";
+      }
+      else if (!letter) {
+        int j = i;
+        char c = l.charAt(j++);
+        while (j < len && ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'))) {
+          c = l.charAt(j++);
+        }
+        // check for end-of-string
+        if (j == len) return ns + s.substring(i, len);
+        if (c == '[') {
+          // convert x[y] notation to standard getSample(x, y) notation
+          int k = j;
+          for (int paren=1; paren>0; k++) {
+            // check for correct syntax
+            if (k >= len) return s;
+            c = l.charAt(k);
+            if (c == '[') paren++;
+            if (c == ']') paren--;
+          }
+          ns = ns + "getSample(" + s.substring(i, j-1) +
+                             "," + s.substring(j, k-1) + ")";
+          i = k-1;
+        }
+        else ns = ns + s.charAt(i);
+      }
+      else {
+        // append character to new string
+        ns = ns + s.charAt(i);
+      }
+      char c = (i < len) ? l.charAt(i) : '\0';
+      letter = (c >= 'a' && c <= 'z');
+    }
+    return ns;
+  }
+
+  /** change the BasicSSCell's name */
   public void setCellName(String name) throws VisADException {
     if (name == null) {
-      throw new TypeException("BasicSSCell: name cannot be null");
+      throw new VisADException("BasicSSCell: name cannot be null");
     }
     Enumeration panels = SSCellVector.elements();
     while (panels.hasMoreElements()) {
       BasicSSCell panel = (BasicSSCell) panels.nextElement();
       if (name.equalsIgnoreCase(panel.Name) && panel != this) {
-        throw new TypeException("BasicSSCell: name already used");
+        throw new VisADException("BasicSSCell: name already used");
       }
     }
     Name = name;
   }
 
-  /** Reconstructs this SSCell using the specified info string */
+  /** reconstruct this BasicSSCell using the specified info string */
   public void setSSCellString(String info) throws VisADException,
                                                   RemoteException {
     // extract filename from info string
@@ -330,7 +716,7 @@ public class BasicSSCell extends JPanel {
       throw new VisADException("Invalid info string!");
     }
 
-    // construct Data
+    // set up data
     try {
       if (filename != null) {
         URL u = null;
@@ -345,30 +731,29 @@ public class BasicSSCell extends JPanel {
       throw new VisADException(exc.toString());
     }
 
-    // construct VCell
+    // set up formula
     setFormula(formula);
   }
 
-  /** Returns the data string necessary to reconstruct this cell */
+  /** return the data string necessary to reconstruct this cell */
   public String getSSCellString() {
-    String s = "filename = " +
-               (Filename == null ? "null" : Filename.toString()) + "\n";
+    String s = "filename = " + Filename.toString() + "\n";
     s = s + "formula = " + getFormula() + "\n";
     s = s + "dim = " + Dimension2D + "\n";
     return s;
   }
 
-  /** Sets up the DisplayListener for this cell */
+  /** set up the DisplayListener for this cell */
   public void setDisplayListener(DisplayListener d) {
     DListen = d;
     if (d != null) VDisplay.addDisplayListener(d);
   }
 
-  /** Maps Reals to the display according to the specified ScalarMaps */
+  /** map RealTypes to the display according to the specified ScalarMaps */
   public void setMaps(ScalarMap[] maps) throws VisADException,
                                                RemoteException {
     if (maps == null) return;
-    clearDisplay();
+    clearMaps();
     for (int i=0; i<maps.length; i++) {
       VDisplay.addMap(maps[i]);
     }
@@ -376,13 +761,18 @@ public class BasicSSCell extends JPanel {
     HasMappings = true;
   }
 
-  /** Whether other cells are dependent on this one */
+  /** whether other cells are dependent on this one */
   public boolean othersDepend() {
-    return FormulaCell.fm.canBeRemoved(Name);
+    try {
+      return !fm.canBeRemoved(Name);
+    }
+    catch (FormulaException exc) {
+      return false;
+    }
   }
 
-  /** Removes the data reference and all mappings from the display */
-  public void clearDisplay() throws VisADException, RemoteException {
+  /** clear this cell's mappings */
+  public void clearMaps() throws VisADException, RemoteException {
     if (HasMappings) {
       VDisplay.removeReference(DataRef);
       VDisplay.clearMaps();
@@ -390,62 +780,44 @@ public class BasicSSCell extends JPanel {
     }
   }
 
-  /** Clears this cell's display and data */
-  public void clearData() throws VisADException, RemoteException {
-    setData(null);
-    Filename = null;
+  /** clear this cell's display */
+  public void clearDisplay() throws VisADException, RemoteException {
+    clearMaps();
+    setX(false);
+    if (HasDisplay) {
+      remove(VDPanel);
+      validate();
+      HasDisplay = false;
+    }
   }
 
-  /** Clears this cell's formula, display and data */
+  /** clear this cell completely */
   public void clearCell() throws VisADException, RemoteException {
     setFormula(null);
-    clearData();
+    Filename = null;
+    clearDisplay();
+    setData(null);
   }
 
-  /** Links the Data object to the BasicSSCell using the DataReferenceImpl */
+  /** set this cell's Data to data */
   public void setData(Data data) throws VisADException, RemoteException {
-    if (DataRef.getData() == data) return;
-    clearDisplay();
-    DataRef.setData(data);
-    if (data == null) {
-      if (HasData) {
-        remove(VDPanel);
-        validate();
-        HasData = false;
-      }
-    }
+    fm.setThing(Name, data);
+
+    if (data == null) HasData = false;
     else {
-      if (!HasData) {
-        add(VDPanel);
-        validate();
-        HasData = true;
-      }
-    }
-
-    // update FormulaManager reference
-    try {
-      FormulaCell.fm.setValue(Name, data);
-    }
-    catch (FormulaException exc) {
-      throw new VisADException(exc.toString());
-    }
-
-    // add this Data's RealTypes to FormulaManager variable registry
-    if (data != null) {
+      HasData = true;
+      // add this Data's RealTypes to FormulaManager variable registry
       Vector v = new Vector();
       getRealTypes(data, v);
       int len = v.size();
       for (int i=0; i<len; i++) {
         RealType rt = (RealType) v.elementAt(i);
-        try {
-          FormulaCell.fm.setValue(rt.getName(), rt);
-        }
-        catch (FormulaException exc) { }
+        fm.setThing(rt.getName(), new SSRealType(rt));
       }
     }
   }
 
-  /** Sets the BasicSSCell to 2-D or 3-D display with Java2D or Java3D */
+  /** set the BasicSSCell to 2-D or 3-D display with Java2D or Java3D */
   public void setDimension(boolean twoD, boolean java2d)
                            throws VisADException, RemoteException {
     int dim;
@@ -470,7 +842,6 @@ public class BasicSSCell extends JPanel {
         }
       }
     }
-    clearDisplay();
 
     if (DListen != null) VDisplay.removeDisplayListener(DListen);
     if (Dimension2D == JAVA3D_3D) {
@@ -484,11 +855,12 @@ public class BasicSSCell extends JPanel {
     }
     if (DListen != null) VDisplay.addDisplayListener(DListen);
 
-    if (HasData) remove(VDPanel);
+    clearDisplay();
     VDPanel = (JPanel) VDisplay.getComponent();
     if (HasData) {
       add(VDPanel);
       validate();
+      HasDisplay = true;
     }
     if (maps != null) {
       try {
@@ -496,65 +868,50 @@ public class BasicSSCell extends JPanel {
       }
       catch (VisADException exc) { }
     }
+    notifyListeners(SSCellChangeEvent.DIMENSION_CHANGE);
   }
 
-  /** Sets the BasicSSCell's formula */
+  /** set the BasicSSCell's formula */
   public void setFormula(String f) throws VisADException, RemoteException {
-    if (f == null || f.equals("")) {
-      if (VCell != null) {
-        VCell.dispose();
-        VCell = null;
-        setData(null);
-      }
-    }
-    else if (VCell == null || !f.equals(VCell.getFormula())) {
-      clearCell();
-      try {
-        VCell = new FormulaCell(this, f, ShowFormulaErrors);
-      }
-      catch (FormulaException exc) {
-        throw new VisADException(exc.toString());
-      }
-    }
-    if (VCell == null) HasFormula = false;
-    else HasFormula = true;
+    String nf = (f == null ? "" : f);
+    if (Formula.equals(nf)) return;
+    HasData = false;
+    HasFormula = false;
+    Formula = "";
+    String formula = preParse(nf);
+    fm.assignFormula(Name, formula);
+    HasFormula = !formula.equals("");
+    Formula = nf;
   }
 
-  /** Returns the BasicSSCell's formula in infix notation */
-  public String getFormula() {
-    if (VCell == null) return "";
-    else return VCell.getFormula();
-  }
-
-  /** Returns whether the BasicSSCell is in 2-D display mode */
+  /** return whether the BasicSSCell is in 2-D display mode */
   public int getDimension() {
     return Dimension2D;
   }
 
-  /** Returns the associated DataReferenceImpl object */
+  /** return the associated DataReference object */
   public DataReferenceImpl getDataRef() {
     return DataRef;
   }
 
-  /** Returns the file name from which the associated Data came, if any */
+  /** return the file name from which the associated Data came, if any */
   public URL getFilename() {
     return Filename;
   }
 
-  /** Imports a data object from a given URL */
+  /** return the formula for this BasicSSCell, if any */
+  public String getFormula() {
+    return Formula;
+  }
+
+  /** import a data object from a given URL */
   public void loadData(URL u) throws BadFormException, IOException,
                                      VisADException, RemoteException {
     if (u == null) return;
     clearDisplay();
-    if (HasData) {
-      remove(VDPanel);
-      validate();
-      HasData = false;
-    }
     Filename = null;
 
     final URL url = u;
-    IsBusy = true;
     JPanel pleaseWait = new JPanel();
     pleaseWait.setBackground(Color.black);
     pleaseWait.setLayout(new BoxLayout(pleaseWait, BoxLayout.X_AXIS));
@@ -570,8 +927,8 @@ public class BasicSSCell extends JPanel {
     boolean error = false;
     Data data = null;
     try {
-      // file detection -- note that it will eventually be removed
-      //                   when all Data Forms have open(URL) capability
+      // file detection -- only necessary because some Data Forms
+      //                   lack open(URL) capability
       String s = url.toString();
       boolean f = false;
       String file = null;
@@ -593,10 +950,9 @@ public class BasicSSCell extends JPanel {
       Filename = url;
     }
     else setData(null);
-    IsBusy = false;
   }
 
-  /** Exports a data object to a given file name, in netCDF format */
+  /** export a data object to a given file name, in netCDF format */
   public void saveData(File f, boolean netcdf) throws BadFormException,
                                                       IOException,
                                                       VisADException,
@@ -620,10 +976,6 @@ public class BasicSSCell extends JPanel {
     return HasData;
   }
 
-  public boolean isBusy() {
-    return IsBusy;
-  }
-
   public boolean hasFormula() {
     return HasFormula;
   }
@@ -632,15 +984,49 @@ public class BasicSSCell extends JPanel {
     return HasMappings;
   }
 
-  /** Specifies whether formula errors should be reported in a dialog box */
+  /** specify whether formula errors should be reported in a dialog box */
   public void setShowFormulaErrors(boolean sfe) {
     ShowFormulaErrors = sfe;
-    if (VCell != null) VCell.ShowErrors = ShowFormulaErrors;
   }
 
-  /** Returns true if any BasicSSCell is currently saving data */
-  public static boolean isSaving() {
-    return Saving > 0;
+  /** component that contains the large X */
+  final JComponent BigXCanvas = new JComponent() {
+    public void paint(Graphics g) {
+      Dimension s = getSize();
+      g.setColor(Color.white);
+      g.drawLine(0, 0, s.width, s.height);
+      g.drawLine(s.width, 0, 0, s.height);
+    }
+  };
+
+  /** turns the large X on or off */
+  void setX(boolean value) {
+    if (BigX == value) return;
+    BigX = value;
+
+    // queue up action in event dispatch thread
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        if (BigX) add(BigXCanvas);
+        else remove(BigXCanvas);
+        validate();
+        repaint();
+      }
+    });
+  }
+
+  /** pop up a message in a dialog box */
+  void showMsg(String title, String msg) {
+    final BasicSSCell c = this;
+    final String t = title;
+    final String m = msg;
+
+    // queue up action in event dispatch thread
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        JOptionPane.showMessageDialog(c, m, t, JOptionPane.ERROR_MESSAGE);
+      }
+    });
   }
 
 }

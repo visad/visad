@@ -25,24 +25,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.ss;
 
-// JFC packages
-import javax.swing.*;
-import javax.swing.event.*;
-
-// AWT packages
 import java.awt.*;
 import java.awt.event.*;
-
-// Net class
 import java.net.URL;
-
-// RMI classes
 import java.rmi.RemoteException;
-
-// Utility classes
 import java.util.Vector;
-
-// VisAD packages
+import javax.swing.*;
+import javax.swing.event.*;
 import visad.*;
 
 /** MappingDialog is a dialog that lets the user create ScalarMaps */

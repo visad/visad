@@ -3,37 +3,43 @@
 // FancySSCell.java
 //
 
+/*
+VisAD system for interactive analysis and visualization of numerical
+data.  Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
+Rink and Dave Glowacki.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 1, or (at your option)
+any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License in file NOTICE for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+*/
+
 package visad.ss;
 
-// AWT packages
 import java.awt.*;
+import java.io.*;
+import java.net.*;
+import java.rmi.RemoteException;
+import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
-
-// I/O package
-import java.io.*;
-
-// Net package
-import java.net.*;
-
-// RMI class
-import java.rmi.RemoteException;
-
-// Utility classes
-import java.util.Vector;
-import java.util.Enumeration;
-
-// VisAD packages
 import visad.*;
-import visad.util.*;
-
-// VisAD class
 import visad.data.BadFormException;
+import visad.util.*;
 
 /** FancySSCell is an extension of BasicSSCell with extra options, such
     as a file loader dialog and a dialog to set up ScalarMaps.  It
     provides an example of GUI extensions to BasicSSCell.<P> */
-public class FancySSCell extends BasicSSCell {
+public class FancySSCell extends BasicSSCell implements SSCellListener {
 
   /** unselected border */
   static final Border NORM = new LineBorder(Color.gray, 3);
@@ -50,33 +56,53 @@ public class FancySSCell extends BasicSSCell {
   /** This cell's associated JFrame, for use with VisAD Controls */
   JFrame WidgetFrame = null;
 
-  /** Specifies whether this cell is selected */
+  /** Specify whether this cell is selected */
   boolean Selected = false;
 
-  /** Specifies whether this cell should auto-switch to 3-D */
+  /** Specify whether this cell should auto-switch to 3-D */
   boolean AutoSwitch = true;
 
-  /** Specifies whether this cell should auto-detect mappings for data */
+  /** Specify whether this cell should auto-detect mappings for data */
   boolean AutoDetect = true;
 
   /** constructor */
   public FancySSCell(String name, String info, Frame parent)
-                                throws VisADException, RemoteException {
+                                  throws VisADException, RemoteException {
     super(name, info);
     Parent = parent;
     setBorder(NORM);
+    addSSCellChangeListener(this);
   }
 
+  /** shortcut constructor */
   public FancySSCell(String name, Frame parent) throws VisADException,
                                                        RemoteException {
     this(name, null, parent);
   }
 
+  /** shortcut constructor */
   public FancySSCell(String name) throws VisADException, RemoteException {
     this(name, null, null);
   }
 
-  /** Switches to 3-D mode if necessary and available, then calls setMaps() */
+  /** Re-auto-detect mappings when this cell's data changes */
+  public void ssCellChanged(SSCellChangeEvent e) {
+    if (e.getChangeType() == SSCellChangeEvent.DATA_CHANGE) {
+      Data value = null;
+      try {
+        value = (Data) fm.getThing(Name);
+      }
+      catch (ClassCastException exc) { }
+      catch (VisADException exc) { }
+      try {
+        if (value != null) autoDetectMappings();
+      }
+      catch (VisADException exc) { }
+      catch (RemoteException exc) { }
+    }
+  }
+
+  /** Switch to 3-D mode if necessary and available, then call setMaps() */
   public void setMapsAuto(ScalarMap[] maps) throws VisADException,
                                                    RemoteException {
     if (AutoSwitch && maps != null) {
@@ -96,7 +122,7 @@ public class FancySSCell extends BasicSSCell {
     setMaps(maps);
   }
 
-  /** Sets the ScalarMaps for this cell and creates needed control widgets */
+  /** Set the ScalarMaps for this cell and creates needed control widgets */
   public void setMaps(ScalarMap[] maps) throws VisADException,
                                                RemoteException {
     super.setMaps(maps);
@@ -112,29 +138,29 @@ public class FancySSCell extends BasicSSCell {
     // create any other necessary widgets
     for (int i=0; i<maps.length; i++) {
       DisplayRealType drt = maps[i].getDisplayScalar();
-      if (drt == Display.RGB) {
+      if (drt.equals(Display.RGB)) {
         LabeledRGBWidget lw = new LabeledRGBWidget(maps[i]);
         addToFrame(lw);
       }
-      else if (drt == Display.RGBA) {
+      else if (drt.equals(Display.RGBA)) {
         LabeledRGBAWidget lw = new LabeledRGBAWidget(maps[i]);
         addToFrame(lw);
       }
-      else if (drt == Display.SelectValue) {
+      else if (drt.equals(Display.SelectValue)) {
         VisADSlider vs = new VisADSlider(maps[i]);
         vs.setAlignmentX(JPanel.CENTER_ALIGNMENT);
         addToFrame(vs);
       }
-      else if (drt == Display.SelectRange) {
+      else if (drt.equals(Display.SelectRange)) {
         SelectRangeWidget srs = new SelectRangeWidget(maps[i]);
         addToFrame(srs);
       }
-      else if (drt == Display.IsoContour) {
+      else if (drt.equals(Display.IsoContour)) {
         ContourWidget cw = new ContourWidget(maps[i]);
         WidgetFrame.getContentPane().add(cw);
         addToFrame(cw);
       }
-      else if (drt == Display.Animation) {
+      else if (drt.equals(Display.Animation)) {
         AnimationWidget aw = new AnimationWidget(maps[i]);
         addToFrame(aw);
       }
@@ -162,22 +188,21 @@ public class FancySSCell extends BasicSSCell {
     first = false;
   }
 
-  /** Shows the widgets for altering controls */
+  /** Show the widgets for altering controls */
   public void showWidgetFrame() {
     if (WidgetFrame != null) WidgetFrame.setVisible(true);
   }
 
-  /** Hides the widgets for altering controls */
+  /** Hide the widgets for altering controls */
   public void hideWidgetFrame() {
     if (WidgetFrame != null) WidgetFrame.setVisible(false);
   }
 
-  /** Sets the Data for this cell, and applies the default ScalarMaps */
-  public void setData(Data data) throws VisADException, RemoteException {
-    super.setData(data);
-    hideWidgetFrame();
-    WidgetFrame = null;
+  /** Guess a good set of mappings for this cell's Data and apply them */
+  void autoDetectMappings() throws VisADException, RemoteException {
     if (AutoDetect) {
+      Data data = null;
+      data = DataRef.getData();
       MathType mt = null;
       try {
         if (data != null) mt = data.getType();
@@ -191,13 +216,19 @@ public class FancySSCell extends BasicSSCell {
     }
   }
 
-  /** Sets the dimension for this cell */
-  public void setDimension(boolean twoD, boolean java2d)
-                           throws VisADException, RemoteException {
-    super.setDimension(twoD, java2d);
+  /** Set the Data for this cell, and apply the default ScalarMaps */
+  public void setData(Data data) throws VisADException, RemoteException {
+    super.setData(data);
+    hideWidgetFrame();
+    WidgetFrame = null;
   }
 
-  /** Specifies whether the FancySSCell has a blue border or a gray border */
+  /** Set this cell's formula */
+  public void setFormula(String f) throws VisADException, RemoteException {
+    super.setFormula(f);
+  }
+
+  /** Specify whether the FancySSCell has a blue border or a gray border */
   public void setSelected(boolean value) {
     if (Selected == value) return;
     Selected = value;
@@ -213,27 +244,27 @@ public class FancySSCell extends BasicSSCell {
     repaint();
   }
 
-  /** Specifies whether this FancySSCell should auto-switch to 3-D */
+  /** Specify whether this FancySSCell should auto-switch to 3-D */
   public void setAutoSwitch(boolean value) {
     AutoSwitch = value;
   }
 
-  /** Returns whether this FancySSCell auto-switches to 3-D */
+  /** Return whether this FancySSCell auto-switches to 3-D */
   public boolean getAutoSwitch() {
     return AutoSwitch;
   }
 
-  /** Specifies whether this FancySSCell should auto-detect its mappings */
+  /** Specify whether this FancySSCell should auto-detect its mappings */
   public void setAutoDetect(boolean value) {
     AutoDetect = value;
   }
 
-  /** Returns whether this FancySSCell auto-detects its mappings */
+  /** Return whether this FancySSCell auto-detects its mappings */
   public boolean getAutoDetect() {
     return AutoDetect;
   }
 
-  /** Asks user to confirm clearing the cell if any other cell depends on it */
+  /** Ask user to confirm clearing the cell if any other cell depends on it */
   public boolean confirmClear() {
     if (othersDepend()) {
       int ans = JOptionPane.showConfirmDialog(null, "Other cells depend on "
@@ -249,7 +280,7 @@ public class FancySSCell extends BasicSSCell {
     super.clearCell();
   }
 
-  /** Clears the cell if no other cell depends it;  otherwise, asks the
+  /** Clear the cell if no other cell depends it;  otherwise, ask the
       user "Are you sure?" */
   public void smartClear() throws VisADException, RemoteException {
     if (confirmClear()) {
@@ -259,7 +290,7 @@ public class FancySSCell extends BasicSSCell {
     }
   }
 
-  /** Lets the user create ScalarMaps from the current SSPanel's Data
+  /** Let the user create ScalarMaps from the current SSPanel's Data
       to its Display */
   public void addMapDialog() {
     // check whether this cell has data
@@ -293,7 +324,7 @@ public class FancySSCell extends BasicSSCell {
 
     // clear old mappings
     try {
-      clearDisplay();
+      clearMaps();
     }
     catch (VisADException exc) { }
     catch (RemoteException exc) { }
@@ -310,7 +341,7 @@ public class FancySSCell extends BasicSSCell {
     catch (RemoteException exc) { }
   }
 
-  /** Imports a data object from a given URL, in a separate thread */
+  /** Import a data object from a given URL, in a separate thread */
   public void loadDataURL(URL u) {
     final URL url = u;
     final BasicSSCell cell = this;
@@ -320,9 +351,9 @@ public class FancySSCell extends BasicSSCell {
                      url.toString() + "\"\n";
         try {
           cell.loadData(url);
-          // WLH 5 Feb 99
           if (!cell.hasData()) {
-            JOptionPane.showMessageDialog(Parent, "unable to import data",
+            System.out.println("Cell \"has no data.\"  Ugh.");
+            JOptionPane.showMessageDialog(Parent, "Unable to import data",
                                           "Error importing data",
                                           JOptionPane.ERROR_MESSAGE);
           }
@@ -347,18 +378,13 @@ public class FancySSCell extends BasicSSCell {
           JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
                                         JOptionPane.ERROR_MESSAGE);
         }
-        catch (OutOfMemoryError exc) { // WLH 5 Feb 99
-          msg = msg + "An error occurred:\n" + exc.toString();
-          JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
-                                        JOptionPane.ERROR_MESSAGE);
-        }
       }
     };
     Thread t = new Thread(loadFile);
     t.start();
   }
 
-  /** Loads a file selected by the user */
+  /** Load a file selected by the user */
   public void loadDataDialog() {
     // get file name from file dialog
     if (FileBox == null) FileBox = new FileDialog(Parent);
@@ -387,7 +413,7 @@ public class FancySSCell extends BasicSSCell {
     if (u != null) loadDataURL(u);
   }
 
-  /** Saves to a file selected by the user, in netCDF format */
+  /** Save to a file selected by the user, in netCDF or serialized format */
   public void saveDataDialog(boolean netcdf) {
     if (!HasData) {
       JOptionPane.showMessageDialog(Parent, "This cell is empty.",
@@ -445,7 +471,7 @@ public class FancySSCell extends BasicSSCell {
     t.start();
   }
 
-  /** A thin, horizontal divider */
+  /** A thin, horizontal divider for separating widget frame components */
   private class Divider extends JComponent {
 
     public void paint(Graphics g) {

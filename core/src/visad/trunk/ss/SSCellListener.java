@@ -1,6 +1,6 @@
 
 //
-// FormulaException.java
+// SSCellListener.java
 //
 
 /*
@@ -23,12 +23,13 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.formula;
+package visad.ss;
 
-/** The type of exception thrown by the formula package.<P> */
-public class FormulaException extends visad.VisADException {
-  public FormulaException(String s) {
-    super(s);
-  }
+/** Interface for listeners of SSCell changes.<P> */
+public interface SSCellListener {
+
+  /** called when an SSCell's data changes */
+  public abstract void ssCellChanged(SSCellChangeEvent e);
+
 }
 

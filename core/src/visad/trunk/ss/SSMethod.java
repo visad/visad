@@ -1,6 +1,6 @@
 
 //
-// FormulaException.java
+// SSMethod.java
 //
 
 /*
@@ -23,12 +23,25 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.formula;
+package visad.ss;
 
-/** The type of exception thrown by the formula package.<P> */
-public class FormulaException extends visad.VisADException {
-  public FormulaException(String s) {
-    super(s);
+import java.lang.reflect.Method;
+import visad.ThingImpl;
+
+/** Thing wrapper for java.lang.reflect.Method.<P> */
+public class SSMethod extends ThingImpl {
+
+  private Method method;
+
+  /** constructor */
+  public SSMethod(Method rt) {
+    method = rt;
   }
+
+  /** return the wrapper's Method */
+  public Method getMethod() {
+    return method;
+  }
+
 }
 

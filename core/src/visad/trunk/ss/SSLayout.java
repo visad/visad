@@ -25,12 +25,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.ss;
 
-// JFC packages
-import javax.swing.*;
-
-// AWT packages
 import java.awt.*;
 import java.awt.event.*;
+import javax.swing.*;
 
 /** SSLayout is the layout manager for the SpreadSheet's cells
     and their labels.  It sets up components in a rectangular

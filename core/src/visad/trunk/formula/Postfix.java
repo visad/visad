@@ -27,7 +27,7 @@ package visad.formula;
 
 import java.util.*;
 
-/** represents a formula in postfix notation */
+/** represents a formula in postfix notation.<P> */
 class Postfix {
 
   /** code for binary operator */

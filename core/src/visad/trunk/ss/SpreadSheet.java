@@ -25,33 +25,18 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.ss;
 
-// AWT packages
 import java.awt.*;
 import java.awt.event.*;
-
-// JFC packages
+import java.io.*;
+import java.net.*;
+import java.rmi.*;
+import java.util.Vector;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
-
-// I/O package
-import java.io.*;
-
-// Net package
-import java.net.*;
-
-// RMI class
-import java.rmi.RemoteException;
-
-// Utility class
-import java.util.Vector;
-
-// VisAD packages
 import visad.*;
-import visad.java3d.*;
-
-// VisAD class
 import visad.data.BadFormException;
+import visad.java3d.*;
 
 /** SpreadSheet is a user interface for VisAD that supports
     multiple 3-D displays (FancySSCells).<P>*/
@@ -61,7 +46,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
                                                    KeyListener,
                                                    ItemListener,
                                                    MouseListener,
-                                                   MouseMotionListener {
+                                                   MouseMotionListener,
+                                                   SSCellListener {
 
   // starting size of the application, in percentage of screen size
   static final int WIDTH_PERCENT = 60;
@@ -108,15 +94,42 @@ public class SpreadSheet extends JFrame implements ActionListener,
   String Clipboard = null;
   File CurrentFile = null;
 
+  /** main method; gateway into Spread Sheet user interface */
   public static void main(String[] argv) { 
+    String usage = "\n" +
+                   "Usage: java [-mx###m] visad.ss.SpreadSheet " +
+                   "[cols rows]\n\n" +
+                   "### = Maximum megabytes of memory to use\n" +
+                   "cols = Number of columns in this Spread Sheet\n" +
+                   "rows = Number of rows in this Spread Sheet\n";
     int cols = 2;
     int rows = 2;
-    if (argv.length > 1) {
-      try {
-        cols = Integer.parseInt(argv[0]);
-        rows = Integer.parseInt(argv[1]);
+    int len = argv.length;
+    if (len > 0) {
+      int ix = 0;
+
+      // parse command line flags
+      while (ix < len && argv[ix].charAt(0) == '-') {
+        // unknown flag
+        System.out.println("Unknown option: " + argv[ix]);
+        System.out.println(usage);
+        System.exit(1);
+        ix++;
       }
-      catch (NumberFormatException exc) { }
+
+      // parse number of rows and columns
+      if (len > ix+1) {
+        try {
+          cols = Integer.parseInt(argv[ix]);
+          rows = Integer.parseInt(argv[ix+1]);
+        }
+        catch (NumberFormatException exc) {
+          System.out.println("Invalid number of columns and rows: " +
+                             argv[ix] + " x " + argv[ix+1]);
+          System.out.println(usage);
+          System.exit(2);
+        }
+      }
     }
     if (cols > Letters.length()) cols = Letters.length();
     if (cols < 1) cols = 1;
@@ -125,7 +138,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
                                      cols, rows, "VisAD SpreadSheet");
   }
 
-  /** This is the constructor for the SpreadSheet class */
+  /** constructor for the SpreadSheet class */
   public SpreadSheet(int sWidth, int sHeight,
                      int cols, int rows, String sTitle) {
     NumVisX = cols;
@@ -312,7 +325,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       b.setAlignmentY(JButton.CENTER_ALIGNMENT);
       b.setToolTipText("Export data to netCDF");
       b.addActionListener(this);
-      b.setActionCommand("fileSave");
+      b.setActionCommand("fileSaveNetcdf");
       toolbar.add(b);
     }
     toolbar.addSeparator();
@@ -593,11 +606,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
                     String.valueOf(i / NumVisX + 1);
       try {
         DisplayCells[i] = new FancySSCell(name, this);
-        try {
-          // make cell names case-insensitive
-          FormulaCell.fm.assignFormula(name.toLowerCase(), name);
-        }
-        catch (visad.formula.FormulaException exc) { }
+        DisplayCells[i].addSSCellChangeListener(this);
         DisplayCells[i].addMouseListener(this);
         DisplayCells[i].setAutoSwitch(CanDo3D);
         DisplayCells[i].setDimension(!CanDo3D, !CanDo3D);
@@ -1178,6 +1187,17 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   // unused MouseMotionListener method
   public void mouseMoved(MouseEvent e) { }
+
+  /** Handles changes in a cell's data */
+  public void ssCellChanged(SSCellChangeEvent e) {
+    FancySSCell f = (FancySSCell) e.getSSCell();
+    if (DisplayCells[CurDisplay] == f) {
+      if (e.getChangeType() == SSCellChangeEvent.DATA_CHANGE) {
+        refreshFormulaBar();
+      }
+      else refreshDisplayMenuItems();
+    }
+  }
 
 }
 

@@ -25,8 +25,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.formula;
 
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.Method;
+import java.rmi.RemoteException;
+import java.util.Vector;
+import visad.*;
 
 /*
    Note: The FormulaManager class does not support strange and unique syntaxes,
@@ -39,15 +41,9 @@ import java.util.*;
 */
 
 /** The FormulaManager class is the gateway into the visad.formula package,
-    a general-purpose formula parser and evaluator.  After creating a
-    FormulaManager object, programs can call the assignFormula, setValue,
-    getValue, and remove methods to create, modify, and delete variables,
-    respectively.  Variables update automatically when the variables upon which
-    they depend change.  For examples of usage, see the FormulaTest class and
-    the visad.ss.FormulaCell class.  Note that the visad.formula package is not
-    dependent on other VisAD-related classes in any way, so that the package
-    can be used in any Java-based program, not just those that utilize
-    VisAD.<P> */
+    a general-purpose formula parser and evaluator.  Variables update
+    automatically when the variables upon which they depend change.
+    For an example of usage, see the visad.ss package.<P> */
 public class FormulaManager {
 
   /** binary operators */
@@ -80,108 +76,23 @@ public class FormulaManager {
   /** implicit function methods */
   Method[] iMethods;
   
-  /** constant conversion method */
-  Method cMethod;
-
-  /** converts an array of strings of the form
-      &quot;package.Class.method(Class, Class, ...)&quot;
-      to an array of Method objects */
-  public static Method[] stringsToMethods(String[] strings) {
-    int len = strings.length;
-    Method[] methods = new Method[len];
-    for (int j=0; j<len; j++) {
-      // remove spaces
-      StringTokenizer t = new StringTokenizer(strings[j], " ", false);
-      String s = "";
-      while (t.hasMoreTokens()) s = s + t.nextToken();
-
-      // separate into two strings
-      t = new StringTokenizer(s, "(", false);
-      String pre = t.nextToken();
-      String post = t.nextToken();
-
-      // separate first string into class and method strings
-      t = new StringTokenizer(pre, ".", false);
-      String c = t.nextToken();
-      int count = t.countTokens();
-      for (int i=0; i<count-1; i++) c = c + "." + t.nextToken();
-      String m = t.nextToken();
-
-      // get argument array of strings
-      t = new StringTokenizer(post, ",)", false);
-      count = t.countTokens();
-      String[] a;
-      if (count == 0) a = null;
-      else a = new String[count];
-      int x = 0;
-      while (t.hasMoreTokens()) a[x++] = t.nextToken();
-
-      // convert result to Method object
-      Class clas = null;
-      try {
-        clas = Class.forName(c);
-      }
-      catch (ClassNotFoundException exc) {
-        // ERROR: Class c does not exist!
-        methods[j] = null;
-        continue;
-      }
-      Class[] param;
-      if (a == null) param = null;
-      else param = new Class[a.length];
-      for (int i=0; i<count; i++) {
-        // hack to convert array arguments to correct form
-        if (a[i].endsWith("[]")) {
-          a[i] = "[L" + a[i].substring(0, a[i].length()-2);
-          while (a[i].endsWith("[]")) {
-            a[i] = "[" + a[i].substring(0, a[i].length()-2);
-          }
-          a[i] = a[i] + ";";
-        }
-
-        try {
-          param[i] = Class.forName(a[i]);
-        }
-        catch (ClassNotFoundException exc) {
-          // ERROR: Class a[i] does not exist!
-          methods[j] = null;
-          continue;
-        }
-      }
-      Method method = null;
-      try {
-        method = clas.getMethod(m, param);
-      }
-      catch (NoSuchMethodException exc) {
-        // ERROR: Method m does not exist!
-        methods[j] = null;
-        continue;
-      }
-      methods[j] = method;
-    }
-    return methods;
-  }
-
   /** construct a new FormulaManager object */
   public FormulaManager(String[] binOps, int[] binPrec, String[] binMethods,
                         String[] unaryOps, int[] unaryPrec,
                         String[] unaryMethods, String[] functions,
                         String[] funcMethods, int implicitPrec,
-                        String[] implicitMethods, String constantMethod)
-                        throws FormulaException {
+                        String[] implicitMethods) throws FormulaException {
     bOps = binOps;
     bPrec = binPrec;
-    bMethods = stringsToMethods(binMethods);
+    bMethods = FormulaUtil.stringsToMethods(binMethods);
     uOps = unaryOps;
     uPrec = unaryPrec;
-    uMethods = stringsToMethods(unaryMethods);
+    uMethods = FormulaUtil.stringsToMethods(unaryMethods);
     funcs = functions;
-    fMethods = stringsToMethods(funcMethods);
+    fMethods = FormulaUtil.stringsToMethods(funcMethods);
     iPrec = implicitPrec;
-    iMethods = stringsToMethods(implicitMethods);
+    iMethods = FormulaUtil.stringsToMethods(implicitMethods);
     String[] s = new String[1];
-    s[0] = constantMethod;
-    cMethod = stringsToMethods(s)[0];
 
     // check that parallel arrays are really parallel
     int l1 = bOps.length;
@@ -276,46 +187,32 @@ public class FormulaManager {
                                    "\" is not valid");
       }
     }
-    if (cMethod == null) {
-      throw new FormulaException("The method \"" + constantMethod +
-                                 "\" is not valid");
-    }
   }
 
-  /** list of all variables in this FormulaManager object */
-  private Vector Vars = new Vector();
-
-  /** returns the variable &quot;name&quot; */
-  FormulaVar getVarByName(String name) throws FormulaException {
-    for (int i=0; i<Vars.size(); i++) {
-      FormulaVar v = (FormulaVar) Vars.elementAt(i);
-      if (v.name.equals(name)) return v;
-    }
-    throw new FormulaException("No variable called " + name + " exists!");
-  }
-
-  /** returns the variable &quot;name&quot;, creating it if necessary */
-  FormulaVar getVarByNameOrCreate(String name) throws FormulaException {
+  /** add a variable to the database that uses tr as its ThingReference */
+  public void createVar(String name, ThingReference tr) throws VisADException {
     FormulaVar v;
     try {
       v = getVarByName(name);
     }
     catch (FormulaException exc) {
-      v = new FormulaVar(name, this);
-      Vars.add(v);
+      v = null;
     }
-    return v;
+    if (v != null) {
+      throw new FormulaException("The variable " + name + " already exists.");
+    }
+    Vars.add(new FormulaVar(name, this, tr));
   }
 
   /** assign a formula to a variable */
   public void assignFormula(String name, String formula)
-                                         throws FormulaException {
+                            throws FormulaException, VisADException {
     FormulaVar v = getVarByNameOrCreate(name);
     v.setFormula(formula);
   }
 
-  /** gets the current list of errors that occurred when evaluating
-      &quot;name&quot; and clears the list */
+  /** get the current list of errors that occurred when evaluating
+      &quot;name&quot; and clear the list */
   public String[] getErrors(String name) {
     try {
       FormulaVar v = getVarByNameOrCreate(name);
@@ -326,26 +223,24 @@ public class FormulaManager {
     catch (FormulaException exc) {
       return null;
     }
+    catch (VisADException exc) {
+      return null;
+    }
   }
 
-  /** checks whether it is safe to remove a variable from the database */
-  public boolean canBeRemoved(String name) {
-    FormulaVar v = null;
-    try {
-      getVarByName(name);
+  /** check whether it is safe to remove a variable from the database */
+  public boolean canBeRemoved(String name) throws FormulaException {
+    FormulaVar v = getVarByName(name);
+    for (int i=0; i<Vars.size(); i++) {
+      FormulaVar q = (FormulaVar) Vars.elementAt(i);
+      if (q != v && q.isDependentOn(v)) return false;
     }
-    catch (FormulaException exc) { }
-    if (v == null) return false;
-    else return v.isSafeToDelete();
+    return true;
   }
 
   /** remove a variable from the database */
   public void remove(String name) throws FormulaException {
-    FormulaVar v = getVarByName(name);
-    if (v.isSafeToDelete()) {
-      v.setValue(null);
-      Vars.remove(v);
-    }
+    if (canBeRemoved(name)) Vars.remove(getVarByName(name));
     else {
       throw new FormulaException("Cannot remove variable " + name + " " +
                                  "because other variables depend on it!");
@@ -353,15 +248,23 @@ public class FormulaManager {
   }
 
   /** set a variable's value directly */
-  public void setValue(String name, Object value) throws FormulaException {
+  public void setThing(String name, Thing t) throws FormulaException,
+                                                    VisADException,
+                                                    RemoteException {
     FormulaVar v = getVarByNameOrCreate(name);
-    v.setValue(value);
+    v.setThing(t);
   }
 
   /** get a variable's current value */
-  public Object getValue(String name) throws FormulaException {
+  public Thing getThing(String name) throws FormulaException {
     FormulaVar v = getVarByName(name);
-    return v.getValue();
+    return v.getThing();
+  }
+
+  /** get a variable's associated ThingReference */
+  public ThingReference getReference(String name) throws FormulaException {
+    FormulaVar v = getVarByName(name);
+    return v.getReference();
   }
 
   /** get a variable's current formula */
@@ -370,17 +273,30 @@ public class FormulaManager {
     return v.getFormula();
   }
 
-  /** add a listener for when a variable changes */
-  public void addVarChangeListener(String name, FormulaListener f)
-                                   throws FormulaException {
-    FormulaVar v = getVarByName(name);
-    v.addListener(f);
+  /** list of all variables in this FormulaManager object */
+  private Vector Vars = new Vector();
+
+  /** return the variable &quot;name&quot; */
+  FormulaVar getVarByName(String name) throws FormulaException {
+    for (int i=0; i<Vars.size(); i++) {
+      FormulaVar v = (FormulaVar) Vars.elementAt(i);
+      if (v.name.equalsIgnoreCase(name)) return v;
+    }
+    throw new FormulaException("The variable " + name + " does not exist.");
   }
 
-  public void removeVarChangeListener(String name, FormulaListener f)
-                                      throws FormulaException {
-    FormulaVar v = getVarByName(name);
-    v.removeListener(f);
+  /** return the variable &quot;name&quot;, creating it if necessary */
+  FormulaVar getVarByNameOrCreate(String name) throws FormulaException,
+                                                      VisADException {
+    FormulaVar v;
+    try {
+      v = getVarByName(name);
+    }
+    catch (FormulaException exc) {
+      v = new FormulaVar(name, this);
+      Vars.add(v);
+    }
+    return v;
   }
 
   /** identify whether a given token is a unary operator */
@@ -402,7 +318,7 @@ public class FormulaManager {
   /** identify whether a given token is a defined function */
   boolean isFunction(String token) {
     for (int i=0; i<funcs.length; i++) {
-      if (funcs[i].equals(token)) return true;
+      if (funcs[i].equalsIgnoreCase(token)) return true;
     }
     return false;
   }
