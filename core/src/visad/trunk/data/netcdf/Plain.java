@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Plain.java,v 1.25 2001-12-19 16:48:10 steve Exp $
+ * $Id: Plain.java,v 1.26 2001-12-19 21:08:19 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -165,8 +165,8 @@ Plain
      * Returns a VisAD data object corresponding to a netCDF dataset
      * and imported according to a given strategy.  Among the
      * pre-defined import strategies are {@link Strategy#DEFAULT},
-     * {@link Strategy#MERGED_FILE_FLAT_FIELDS}, and {@link
-     * Strategy#UNMERGED_FILE_FLAT_FIELDS}.
+     * {@link Strategy#MERGED_FILE_FLAT_FIELDS}, {@link
+     * Strategy#UNMERGED_FILE_FLAT_FIELDS}, and {@link Strategy#IN_MEMORY}.
      *
      * @param spec	        Specification of the existing netCDF dataset.
      * @param strategy          The data-import strategy.
