@@ -108,6 +108,7 @@ public class Test52
       }
       catch (InterruptedException e) {
       }
+      System.out.println("delay");
     }
   }
 
