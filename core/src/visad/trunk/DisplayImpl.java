@@ -1579,9 +1579,6 @@ if (initialize) {
           }
           ConstantMapVector.addElement(map);
         }
-        if (!RendererVector.isEmpty()) {
-          reDisplayAll(); // WLH 1 March 2002
-        }
       }
       else { // !(map instanceof ConstantMap)
         // add to RealTypeVector and set ScalarIndex
@@ -1616,6 +1613,9 @@ if (initialize) {
         map.setScalarIndex(index);
         map.setControl();
       } // end !(map instanceof ConstantMap)
+      if (!RendererVector.isEmpty()) {
+        reDisplayAll(); // WLH 2 April 2002
+      }
       addDisplayScalar(map);
       notifyListeners(new DisplayMapEvent(this, DisplayEvent.MAP_ADDED, map,
                                           remoteId));
