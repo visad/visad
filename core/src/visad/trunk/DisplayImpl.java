@@ -561,8 +561,19 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   // CTR - end code for slaved displays
 
 
-  /** link ref to this Display; this method may only be invoked
-      after all links to ScalarMaps have been made */
+  /**
+   * Link a reference to this Display.
+   * This method may only be invoked after all links to
+   * {@link visad.ScalarMap ScalarMaps}
+   * have been made.
+   *
+   * @param ref data reference
+   *
+   * @exception VisADException if there was a problem with one or more
+   *                           parameters.
+   * @exception RemoteException if there was a problem adding the
+   *                            data reference to the remote display.
+   */
   public void addReference(ThingReference ref)
          throws VisADException, RemoteException {
     if (!(ref instanceof DataReference)) {
@@ -572,19 +583,46 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     addReference((DataReference) ref, null);
   }
 
-  /** add a link to a DataReference object */
+  /**
+   * Add a link to a DataReference object
+   *
+   * @param link The link to the DataReference.
+   *
+   * @exception VisADException If referenced data is null
+   *                           or if a link already exists.
+   * @exception RemoteException If a link could not be made
+   *                            within the remote display.
+   */
   void addLink(DataDisplayLink link)
         throws VisADException, RemoteException
   {
     super.addLink((ReferenceActionLink )link);
     notifyListeners(new DisplayReferenceEvent(this,
-                                             DisplayEvent.REFERENCE_ADDED,
-                                             link));
+                                              DisplayEvent.REFERENCE_ADDED,
+                                              link));
   }
 
-  /** link ref to this Display; must be local DataReferenceImpl; this
-      method may only be invoked after all links to ScalarMaps have
-      been made; the ConstantMap array applies only to rendering ref */
+  /**
+   * Link a reference to this Display.
+   * <tt>ref</tt> must be a local
+   * {@link visad.DataReferenceImpl DataReferenceImpl}.
+   * This method may only be invoked after all links to
+   * {@link visad.ScalarMap ScalarMaps}
+   * have been made.
+   * The {@link visad.ConstantMap ConstantMap} array applies only
+   * to the rendering reference.
+   *
+   * @param ref data reference
+   * @param constant_maps array of {@link visad.ConstantMap ConstantMaps}
+   *                      associated with the data reference
+   *
+   * @exception VisADException if there was a problem with one or more
+   *                           parameters.
+   * @exception RemoteException if there was a problem adding the
+   *                            data reference to the remote display.
+   *
+   * @see <a href="http://www.ssec.wisc.edu/~billh/guide.html#6.1">Section 6.1 of the Developer's Guide</a>
+   */
   public void addReference(DataReference ref,
          ConstantMap[] constant_maps) throws VisADException, RemoteException {
     if (!(ref instanceof DataReferenceImpl)) {
@@ -655,26 +693,55 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     notifyAction();
   }
 
-  /** link ref to this Display using the non-default renderer;
-      must be local DataRendererImpls;
-      this method may only be invoked after all links to ScalarMaps
-      have been made;
-      this is a method of DisplayImpl and RemoteDisplayImpl rather
-      than Display - see Section 6.1 of the Developer's Guide for
-      more information */
+  /**
+   * Link a reference to this Display using a non-default renderer.
+   * <tt>ref</tt> must be a local
+   * {@link visad.DataReferenceImpl DataReferenceImpl}.
+   * This method may only be invoked after all links to
+   * {@link visad.ScalarMap ScalarMaps}
+   * have been made.
+   * This is a method of {@link visad.DisplayImpl DisplayImpl} and
+   * {@link visad.RemoteDisplayImpl RemoteDisplayImpl} rather
+   * than {@link visad.Display Display}
+   *
+   * @param renderer logic to render this data
+   * @param ref data reference
+   *
+   * @exception VisADException if there was a problem with one or more
+   *                           parameters.
+   * @exception RemoteException if there was a problem adding the
+   *                            data reference to the remote display.
+   *
+   * @see <a href="http://www.ssec.wisc.edu/~billh/guide.html#6.1">Section 6.1 of the Developer's Guide</a>
+   */
   public void addReferences(DataRenderer renderer, DataReference ref)
          throws VisADException, RemoteException {
     addReferences(renderer, new DataReference[] {ref}, null);
   }
 
-  /** link ref to this Display using the non-default renderer;
-      must be local DataRendererImpls;
-      this method may only be invoked after all links to ScalarMaps
-      have been made;
-      the maps array applies only to rendering ref;
-      this is a method of DisplayImpl and RemoteDisplayImpl rather
-      than Display - see Section 6.1 of the Developer's Guide for
-      more information */
+  /**
+   * Link a reference to this Display using a non-default renderer.
+   * <tt>ref</tt> must be a local
+   * {@link visad.DataReferenceImpl DataReferenceImpl}.
+   * This method may only be invoked after all links to
+   * {@link visad.ScalarMap ScalarMaps}
+   * have been made.
+   * This is a method of {@link visad.DisplayImpl DisplayImpl} and
+   * {@link visad.RemoteDisplayImpl RemoteDisplayImpl} rather
+   * than {@link visad.Display Display}
+   *
+   * @param renderer logic to render this data
+   * @param ref data reference
+   * @param constant_maps array of {@link visad.ConstantMap ConstantMaps}
+   *                      associated with the data reference
+   *
+   * @exception VisADException if there was a problem with one or more
+   *                           parameters.
+   * @exception RemoteException if there was a problem adding the
+   *                            data reference to the remote display.
+   *
+   * @see <a href="http://www.ssec.wisc.edu/~billh/guide.html#6.1">Section 6.1 of the Developer's Guide</a>
+   */
   public void addReferences(DataRenderer renderer, DataReference ref,
                             ConstantMap[] constant_maps)
          throws VisADException, RemoteException {
@@ -682,25 +749,55 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
                   new ConstantMap[][] {constant_maps});
   }
 
-  /** link refs to this Display using the non-default renderer;
-      must be local DataRendererImpls;
-      this method may only be invoked after all links to ScalarMaps
-      have been made; this is a method of DisplayImpl and
-      RemoteDisplayImpl rather than Display - see Section 6.1 of the
-      Developer's Guide for more information */
+  /**
+   * Link references to this display using a non-default renderer.
+   * <tt>refs</tt> must be local
+   * {@link visad.DataReferenceImpl DataReferenceImpls}.
+   * This method may only be invoked after all links to
+   * {@link visad.ScalarMap ScalarMaps}
+   * have been made.
+   * This is a method of {@link visad.DisplayImpl DisplayImpl} and
+   * {@link visad.RemoteDisplayImpl RemoteDisplayImpl} rather
+   * than {@link visad.Display Display}
+   *
+   * @param renderer logic to render this data
+   * @param refs array of data references
+   *
+   * @exception VisADException if there was a problem with one or more
+   *                           parameters.
+   * @exception RemoteException if there was a problem adding the
+   *                            data references to the remote display.
+   *
+   * @see <a href="http://www.ssec.wisc.edu/~billh/guide.html#6.1">Section 6.1 of the Developer's Guide</a>
+   */
   public void addReferences(DataRenderer renderer, DataReference[] refs)
          throws VisADException, RemoteException {
     addReferences(renderer, refs, null);
   }
 
-  /** link refs to this Display using the non-default renderer;
-      must be local DataRendererImpls;
-      this method may only be invoked after all links to ScalarMaps
-      have been made;
-      the maps[i] array applies only to rendering refs[i];
-      this is a method of DisplayImpl and RemoteDisplayImpl rather
-      than Display - see Section 6.1 of the Developer's Guide for
-      more information */
+  /**
+   * Link references to this display using the non-default renderer.
+   * <tt>refs</tt> must be local
+   * {@link visad.DataReferenceImpl DataReferenceImpls}.
+   * This method may only be invoked after all links to ScalarMaps
+   * have been made.
+   * The <tt>maps[i]</tt> array applies only to rendering <tt>refs[i]</tt>.
+   * This is a method of {@link visad.DisplayImpl DisplayImpl} and
+   * {@link visad.RemoteDisplayImpl RemoteDisplayImpl} rather
+   * than {@link visad.Display Display}
+   *
+   * @param renderer logic to render this data
+   * @param refs array of data references
+   * @param constant_maps array of {@link visad.ConstantMap ConstantMaps}
+   *                      associated with data references
+   *
+   * @exception VisADException if there was a problem with one or more
+   *                           parameters.
+   * @exception RemoteException if there was a problem adding the
+   *                            data references to the remote display.
+   *
+   * @see <a href="http://www.ssec.wisc.edu/~billh/guide.html#6.1">Section 6.1 of the Developer's Guide</a>
+   */
   public void addReferences(DataRenderer renderer, DataReference[] refs,
                             ConstantMap[][] constant_maps)
          throws VisADException, RemoteException {
