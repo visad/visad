@@ -110,7 +110,7 @@ public class Main
     return 0;
   }
 
-  private void clusterPush(String source, String target)
+  private void clusterPush(ProgressMonitor mon, String source, String target)
   {
     Process p;
     try {
@@ -138,6 +138,8 @@ public class Main
           if (line == null) {
             in = null;
             looping = (err != null);
+          } else if (mon != null) {
+            mon.setDetail(line);
           }
         } catch (IOException ioe) {
           ioe.printStackTrace();
@@ -152,6 +154,8 @@ public class Main
             if (line == null) {
               err = null;
               looping = (in != null);
+            } else if (mon != null) {
+              mon.setDetail(line);
             }
           }
         } catch (IOException ioe) {
@@ -512,35 +516,48 @@ public class Main
    */
   private void install()
   {
+    ProgressMonitor mon = new ProgressMonitor();
+    mon.setPhase("Starting install");
+    mon.setVisible(true);
+
     // install JVM
     if (useSuppliedJava) {
       if (javaInstallDir.exists()) {
         javaInstallDir = new File(javaInstallDir, installerJavaDir.getName());
       }
 
-      Util.copyDirectory(installerJavaDir, javaInstallDir);
+      mon.setPhase("Copying JVM");
+      Util.copyDirectory(mon, installerJavaDir, javaInstallDir);
 
+      mon.setPhase("Setting JVM executable bits");
       makeJVMBinariesExecutable();
 
       // if they want a cluster install, push the JVM out to the nodes
       if (clusterInstaller != null) {
-        clusterPush(javaInstallDir.toString(),
+        mon.setPhase("Pushing JVM to cluster");
+        clusterPush(mon, javaInstallDir.toString(),
                     javaInstallDir.getParent().toString());
       }
     }
 
     // install jar
     if (downloadLatestJar) {
+      mon.setPhase("Downloading jar file");
       new Download(jarURL, jarInstallDir);
     } else {
-      Util.copyFile(installerJar, jarInstallDir, ".old");
+      mon.setPhase("Copying jar file");
+      Util.copyFile(mon, installerJar, jarInstallDir, ".old");
     }
 
     // if they want a cluster install, push the jar file out to the nodes
     if (clusterInstaller != null) {
-      clusterPush(getPath(new File(jarInstallDir, JAR_NAME)),
+        mon.setPhase("Pushing jar file to cluster");
+      clusterPush(null, getPath(new File(jarInstallDir, JAR_NAME)),
                   getPath(jarInstallDir));
     }
+
+    mon.setPhase("Install finished!");
+    try { Thread.sleep(2000); } catch (InterruptedException ie) { }
   }
 
   /**

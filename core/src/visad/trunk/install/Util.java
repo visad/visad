@@ -5,52 +5,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import javax.swing.JProgressBar;
-import javax.swing.SwingUtilities;
-
-class CopyProgress
-  implements Runnable
-{
-  private JProgressBar bar;
-  private int value;
-
-  public CopyProgress(JProgressBar bar, int value)
-  {
-    this.bar = bar;
-    this.value = value;
-  }
-
-  public void run()
-  {
-    bar.setValue(value);
-  }
-}
-
-class InitProgress
-  implements Runnable
-{
-  private JProgressBar bar;
-  private int min, max;
-
-  public InitProgress(JProgressBar bar, int min, int max)
-  {
-    this.bar = bar;
-    this.min = min;
-    this.max = max;
-  }
-
-  public void run()
-  {
-    bar.setMinimum(min);
-    bar.setMaximum(max);
-    bar.setValue(min);
-  }
-}
-
 public class Util
 {
-  private static final long PROGRESS_SCALE = 1000;
-
   public static final String getPath(File f)
   {
     try {
@@ -65,7 +21,7 @@ public class Util
     return copyFile(null, source, target, null);
   }
 
-  public static final boolean copyFile(JProgressBar progress,
+  public static final boolean copyFile(ProgressMonitor progress,
                                        File source, File target)
   {
     return copyFile(progress, source, target, null);
@@ -77,7 +33,7 @@ public class Util
     return copyFile(null, source, target, saveSuffix);
   }
 
-  public static final boolean copyFile(JProgressBar progress,
+  public static final boolean copyFile(ProgressMonitor progress,
                                        File source, File target,
                                        String saveSuffix)
   {
@@ -94,9 +50,17 @@ public class Util
     // if the target already exists and we need to save the existing file...
     if (target.exists()) {
       if (saveSuffix == null) {
+        if (progress != null) {
+          progress.setDetail("Deleting existing " + target);
+        }
+
         // out with the old...
         target.delete();
       } else {
+        if (progress != null) {
+          progress.setDetail("Backing up existing " + target);
+        }
+
         File saveFile = new File(target.getPath() + saveSuffix);
 
         // delete the old savefile
@@ -110,8 +74,7 @@ public class Util
     }
 
     if (progress != null) {
-      SwingUtilities.invokeLater(new InitProgress(progress, 0,
-                                                  (int )PROGRESS_SCALE));
+      progress.setDetail("Installing " + target);
     }
 
     FileInputStream  in;
@@ -144,13 +107,6 @@ public class Util
         }
 
         out.write(buffer, 0, n);
-
-        if (progress != null) {
-          totalBytes += n;
-
-          int pos = (int )((totalBytes * PROGRESS_SCALE) / fileLength);
-          SwingUtilities.invokeLater(new CopyProgress(progress, pos));
-        }
       }
     } catch (IOException ioe) {
       ioe.printStackTrace();
@@ -158,12 +114,6 @@ public class Util
     } finally {
       try { in.close(); } catch (Exception e) { ; }
       try { out.close(); } catch (Exception e) { ; }
-    }
-
-    if (progress != null) {
-      // set progress bar to 100%
-      SwingUtilities.invokeLater(new CopyProgress(progress,
-                                                  (int )PROGRESS_SCALE));
     }
 
     // if source was read-only, the target should be as well
@@ -182,7 +132,7 @@ public class Util
     return copyDirectory(null, source, target, null);
   }
 
-  public static final boolean copyDirectory(JProgressBar progress,
+  public static final boolean copyDirectory(ProgressMonitor progress,
                                             File source, File target)
   {
     return copyDirectory(progress, source, target, null);
@@ -194,7 +144,7 @@ public class Util
     return copyDirectory(null, source, target, saveSuffix);
   }
 
-  public static final boolean copyDirectory(JProgressBar progress,
+  public static final boolean copyDirectory(ProgressMonitor progress,
                                             File source, File target,
                                             String saveSuffix)
   {
