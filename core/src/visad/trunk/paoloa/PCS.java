@@ -386,7 +386,6 @@ public class PCS
 
     GraphicsModeControl modeb1 = displayb1.getGraphicsModeControl();
     modeb1.setScaleEnable(true);
-    modeb1.setPointSize(2);
 
     ConstantMap[] yellow =
       new ConstantMap[] {new ConstantMap(0.0, Display.Blue)};
@@ -417,7 +416,6 @@ public class PCS
 
     GraphicsModeControl modeb2 = displayb2.getGraphicsModeControl();
     modeb2.setScaleEnable(true);
-    modeb2.setPointSize(2);
 
     yellow = new ConstantMap[] {new ConstantMap(0.0, Display.Blue)};
     cyan = new ConstantMap[] {new ConstantMap(0.0, Display.Red)};
@@ -446,7 +444,6 @@ public class PCS
 
     GraphicsModeControl modeb3 = displayb3.getGraphicsModeControl();
     modeb3.setScaleEnable(true);
-    modeb3.setPointSize(2);
 
     yellow = new ConstantMap[] {new ConstantMap(0.0, Display.Blue)};
     cyan = new ConstantMap[] {new ConstantMap(0.0, Display.Red)};
@@ -512,11 +509,12 @@ public class PCS
     displayll.addMap(latmap);
     GraphicsModeControl modell = displayll.getGraphicsModeControl();
     modell.setScaleEnable(true);
-    modell.setPointSize(5);
-    yellow = new ConstantMap[] {new ConstantMap(0.0, Display.Blue)};
+    yellow = new ConstantMap[] {new ConstantMap(0.0, Display.Blue),
+                                new ConstantMap(5.0, Display.PointSize)};
     cyan = new ConstantMap[] {new ConstantMap(0.0, Display.Red),
                               new ConstantMap(0.5, Display.Green),
-                              new ConstantMap(0.5, Display.Blue)};
+                              new ConstantMap(0.5, Display.Blue),
+                              new ConstantMap(5.0, Display.PointSize)};
     displayll.addReference(select_ll_ref, yellow);
     displayll.addReference(ll_ref, cyan);
     displayll.addReference(map_ref);
