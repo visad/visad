@@ -351,7 +351,7 @@ public class Gridded2DDoubleSet extends Gridded2DSet
       throw new SetException("Gridded2DDoubleSet.gridToDouble: ManifoldDimension " +
                              "must be 2");
     }
-    if (Lengths[0] < 2 || Lengths[1] < 2) {
+    if (Length > 1 && (Lengths[0] < 2 || Lengths[1] < 2)) {
       throw new SetException("Gridded2DDoubleSet.gridToDouble: requires all grid " +
                              "dimensions to be > 1");
     }
@@ -365,35 +365,38 @@ public class Gridded2DDoubleSet extends Gridded2DSet
       if ( (gx < -0.5)        || (gy < -0.5) ||
            (gx > LengthX-0.5) || (gy > LengthY-0.5) ) {
         value[0][i] = value[1][i] = Double.NaN;
-        continue;
-      }
-      // calculate closest integer variables
-      int igx = (int) gx;
-      int igy = (int) gy;
-      if (igx < 0) igx = 0;
-      if (igx > LengthX-2) igx = LengthX-2;
-      if (igy < 0) igy = 0;
-      if (igy > LengthY-2) igy = LengthY-2;
-
-      // set up conversion to 1D Samples array
-      int[][] s = { {LengthX*igy+igx,           // (0, 0)
-                     LengthX*(igy+1)+igx},      // (0, 1)
-                    {LengthX*igy+igx+1,         // (1, 0)
-                     LengthX*(igy+1)+igx+1} };  // (1, 1)
-      if (gx+gy-igx-igy-1 <= 0) {
-        // point is in LOWER triangle
-        for (int j=0; j<2; j++) {
-          value[j][i] = Samples[j][s[0][0]]
-            + (gx-igx)*(Samples[j][s[1][0]]-Samples[j][s[0][0]])
-            + (gy-igy)*(Samples[j][s[0][1]]-Samples[j][s[0][0]]);
+      } else if (Length == 1) {
+        value[0][i] = Samples[0][0];
+        value[1][i] = Samples[1][0];
+      } else {
+        // calculate closest integer variables
+        int igx = (int) gx;
+        int igy = (int) gy;
+        if (igx < 0) igx = 0;
+        if (igx > LengthX-2) igx = LengthX-2;
+        if (igy < 0) igy = 0;
+        if (igy > LengthY-2) igy = LengthY-2;
+  
+        // set up conversion to 1D Samples array
+        int[][] s = { {LengthX*igy+igx,           // (0, 0)
+                       LengthX*(igy+1)+igx},      // (0, 1)
+                      {LengthX*igy+igx+1,         // (1, 0)
+                       LengthX*(igy+1)+igx+1} };  // (1, 1)
+        if (gx+gy-igx-igy-1 <= 0) {
+          // point is in LOWER triangle
+          for (int j=0; j<2; j++) {
+            value[j][i] = Samples[j][s[0][0]]
+              + (gx-igx)*(Samples[j][s[1][0]]-Samples[j][s[0][0]])
+              + (gy-igy)*(Samples[j][s[0][1]]-Samples[j][s[0][0]]);
+          }
         }
-      }
-      else {
-        // point is in UPPER triangle
-        for (int j=0; j<2; j++) {
-          value[j][i] = Samples[j][s[1][1]]
-            + (1+igx-gx)*(Samples[j][s[0][1]]-Samples[j][s[1][1]])
-            + (1+igy-gy)*(Samples[j][s[1][0]]-Samples[j][s[1][1]]);
+        else {
+          // point is in UPPER triangle
+          for (int j=0; j<2; j++) {
+            value[j][i] = Samples[j][s[1][1]]
+              + (1+igx-gx)*(Samples[j][s[0][1]]-Samples[j][s[1][1]])
+              + (1+igy-gy)*(Samples[j][s[1][0]]-Samples[j][s[1][1]]);
+          }
         }
       }
     }
@@ -414,7 +417,7 @@ public class Gridded2DDoubleSet extends Gridded2DSet
       throw new SetException("Gridded2DDoubleSet.doubleToGrid: ManifoldDimension " +
                              "must be 2");
     }
-    if (Lengths[0] < 2 || Lengths[1] < 2) {
+    if (Length > 1 && (Lengths[0] < 2 || Lengths[1] < 2)) {
       throw new SetException("Gridded2DDoubleSet.doubleToGrid: requires all grid " +
                              "dimensions to be > 1");
     }
@@ -438,11 +441,23 @@ public class Gridded2DDoubleSet extends Gridded2DSet
 /* WLH 24 Oct 97
       if ( (i != 0) && (Double.isNaN(grid[0][i-1])) )
 */
+
+      if (Length == 1) {
+        if (Double.isNaN(value[0][i]) || Double.isNaN(value[1][i])) {
+           grid[0][i] = grid[1][i] = Double.NaN;
+        } else {
+           grid[0][i] = 0;
+           grid[1][i] = 0;
+        }
+        continue;
+      }
+
       // test for missing
       if ( (i != 0) && grid[0][i-1] != grid[0][i-1] ) {
         gx = (LengthX-1)/2;
         gy = (LengthY-1)/2;
       }
+
       // if the loop doesn't find the answer, the result should be NaN
       grid[0][i] = grid[1][i] = Double.NaN;
       for (int itnum=0; itnum<2*(LengthX+LengthY); itnum++) {

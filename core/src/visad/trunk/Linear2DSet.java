@@ -300,7 +300,7 @@ public class Linear2DSet extends Gridded2DSet
       throw new SetException("Linear2DSet.gridToValue: Manifold dimension " +
                              "must be 2, not " + ManifoldDimension);
     }
-    if (Lengths[0] < 2 || Lengths[1] < 2) {
+    if (Length > 1 && (Lengths[0] < 2 || Lengths[1] < 2)) {
       throw new SetException("Linear2DSet.gridToValue: requires all grid " +
                              "dimensions to be > 1");
     }
@@ -324,7 +324,7 @@ public class Linear2DSet extends Gridded2DSet
       throw new SetException("Linear2DSet.valueToGrid: value dimension" +
                              " must be 2, not " + value.length);
     }
-    if (Lengths[0] < 2 || Lengths[1] < 2) {
+    if (Length > 1 && (Lengths[0] < 2 || Lengths[1] < 2)) {
       throw new SetException("Linear2DSet.valueToGrid: requires all grid " +
                              "dimensions to be > 1");
     }

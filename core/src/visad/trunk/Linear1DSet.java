@@ -122,7 +122,7 @@ public class Linear1DSet extends Gridded1DSet
     Last = last;
     Length = length;
     if (Length < 1) throw new SetException("Linear1DSet: number of samples (" +
-                                           Length + " must be greater than 1");
+                                           Length + " must be greater than 0");
     Step = (Length < 2) ? 1.0 : (Last - First) / (Length - 1);
     Invstep = 1.0 / Step;
     LowX = (float) Math.min(First, First + Step * (Length - 1));
@@ -203,10 +203,12 @@ public class Linear1DSet extends Gridded1DSet
       throw new SetException("Linear1DSet.gridToValue: grid dimension" +
                              " should be 1, not " + grid.length);
     }
-    if (Lengths[0] < 2) {
+    /* remove DRM: 2004-09-14
+    if (Length < 2) {
       throw new SetException("Linear1DSet.gridToValue: requires all grid " +
                              "dimensions to be > 1");
     }
+    */
     int length = grid[0].length;
     float[][] value = new float[1][length];
     float[] value0 = value[0];
@@ -229,10 +231,12 @@ public class Linear1DSet extends Gridded1DSet
       throw new SetException("Linear1DSet.valueToGrid: value dimension" +
                              " should be 1, not " + value.length);
     }
+    /* remove DRM: 2004-09-14
     if (Lengths[0] < 2) {
       throw new SetException("Linear1DSet.valueToGrid: requires all grid " +
                              "dimensions to be > 1");
     }
+    */
     int length = value[0].length;
     float[][] grid = new float[1][length];
     float[] grid0 = grid[0];

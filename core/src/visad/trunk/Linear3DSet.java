@@ -319,7 +319,7 @@ public class Linear3DSet extends Gridded3DSet
       throw new SetException("Linear3DSet.gridToValue: ManifoldDimension " +
                              "must be 3, not " + ManifoldDimension);
     }
-    if (Lengths[0] < 2 || Lengths[1] < 2 || Lengths[2] < 2) {
+    if (Length > 1 && (Lengths[0] < 2 || Lengths[1] < 2 || Lengths[2] < 2)) {
       throw new SetException("Linear3DSet.gridToValue: requires all grid " +
                              "dimensions to be > 1");
     }
@@ -347,7 +347,7 @@ public class Linear3DSet extends Gridded3DSet
       throw new SetException("Linear3DSet.valueToGrid: value dimension" +
                              " must be 3, not " + value.length);
     }
-    if (Lengths[0] < 2 || Lengths[1] < 2 || Lengths[2] < 2) {
+    if (Length > 1 && (Lengths[0] < 2 || Lengths[1] < 2 || Lengths[2] < 2)) {
       throw new SetException("Linear3DSet.valueToGrid: requires all grid " +
                              "dimensions to be > 1");
     }

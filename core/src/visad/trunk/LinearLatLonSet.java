@@ -254,7 +254,7 @@ public class LinearLatLonSet extends Linear2DSet {
       throw new SetException("LinearLatLonSet.gridToValue: grid dimension" +
                              " should be 2, not " + grid.length);
     }
-    if (Lengths[0] < 2 || Lengths[1] < 2) {
+    if (Length > 1 && (Lengths[0] < 2 || Lengths[1] < 2)) {
       throw new SetException("LinearLatLonSet.gridToValue: requires all grid " +
                              "dimensions to be > 1");
     }
@@ -293,7 +293,7 @@ public class LinearLatLonSet extends Linear2DSet {
       throw new SetException("LinearLatLonSet.valueToGrid: value dimension" +
                              " should be 2, not " + value.length);
     }
-    if (Lengths[0] < 2 || Lengths[1] < 2) {
+    if (Length > 1 && (Lengths[0] < 2 || Lengths[1] < 2)) {
       throw new SetException("LinearLatLonSet.valueToGrid: requires all grid " +
                              "dimensions to be > 1");
     }

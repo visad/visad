@@ -369,10 +369,12 @@ public class LinearNDSet extends GriddedSet
                              grid.length + " not equal to Domain dimension " +
                              DomainDimension);
     }
-    for (j=0; j<DomainDimension; j++) {
-      if (Lengths[j] < 2) {
-        throw new SetException("LinearNDSet.gridToValue: requires all grid " +
-                               "dimensions to be > 1");
+    if (Length > 1) {
+      for (j=0; j<DomainDimension; j++) {
+        if (Lengths[j] < 2) {
+          throw new SetException("LinearNDSet.gridToValue: requires all grid " +
+                                 "dimensions to be > 1");
+        }
       }
     }
     int length = grid[0].length;
@@ -396,10 +398,12 @@ public class LinearNDSet extends GriddedSet
                              value.length + " not equal to Domain dimension " +
                              DomainDimension);
     }
-    for (j=0; j<DomainDimension; j++) {
-      if (Lengths[j] < 2) {
-        throw new SetException("LinearNDSet.valueToGrid: requires all grid " +
-                               "dimensions to be > 1");
+    if (Length > 1) {
+      for (j=0; j<DomainDimension; j++) {
+        if (Lengths[j] < 2) {
+          throw new SetException("LinearNDSet.valueToGrid: requires all grid " +
+                                 "dimensions to be > 1");
+        }
       }
     }
     int length = value[0].length;

@@ -269,7 +269,7 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
       throw new SetException("Gridded2DSet.gridToValue: Manifold dimension " +
                              "must be 2, not " + ManifoldDimension);
     }
-    if (Lengths[0] < 2 || Lengths[1] < 2) {
+    if (Length > 1 && (Lengths[0] < 2 || Lengths[1] < 2)) {
       throw new SetException("Gridded2DSet.gridToValue: requires all grid " +
                              "dimensions to be > 1");
     }
@@ -283,35 +283,38 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
       if ( (gx < -0.5)        || (gy < -0.5) ||
            (gx > LengthX-0.5) || (gy > LengthY-0.5) ) {
         value[0][i] = value[1][i] = Float.NaN;
-        continue;
-      }
-      // calculate closest integer variables
-      int igx = (int) gx;
-      int igy = (int) gy;
-      if (igx < 0) igx = 0;
-      if (igx > LengthX-2) igx = LengthX-2;
-      if (igy < 0) igy = 0;
-      if (igy > LengthY-2) igy = LengthY-2;
-
-      // set up conversion to 1D Samples array
-      int[][] s = { {LengthX*igy+igx,           // (0, 0)
-                     LengthX*(igy+1)+igx},      // (0, 1)
-                    {LengthX*igy+igx+1,         // (1, 0)
-                     LengthX*(igy+1)+igx+1} };  // (1, 1)
-      if (gx+gy-igx-igy-1 <= 0) {
-        // point is in LOWER triangle
-        for (int j=0; j<2; j++) {
-          value[j][i] = Samples[j][s[0][0]]
-            + (gx-igx)*(Samples[j][s[1][0]]-Samples[j][s[0][0]])
-            + (gy-igy)*(Samples[j][s[0][1]]-Samples[j][s[0][0]]);
+      } else if (Length == 1) {
+        value[0][i] = Samples[0][0];
+        value[1][i] = Samples[1][0];
+      } else {
+        // calculate closest integer variables
+        int igx = (int) gx;
+        int igy = (int) gy;
+        if (igx < 0) igx = 0;
+        if (igx > LengthX-2) igx = LengthX-2;
+        if (igy < 0) igy = 0;
+        if (igy > LengthY-2) igy = LengthY-2;
+  
+        // set up conversion to 1D Samples array
+        int[][] s = { {LengthX*igy+igx,           // (0, 0)
+                       LengthX*(igy+1)+igx},      // (0, 1)
+                      {LengthX*igy+igx+1,         // (1, 0)
+                       LengthX*(igy+1)+igx+1} };  // (1, 1)
+        if (gx+gy-igx-igy-1 <= 0) {
+          // point is in LOWER triangle
+          for (int j=0; j<2; j++) {
+            value[j][i] = Samples[j][s[0][0]]
+              + (gx-igx)*(Samples[j][s[1][0]]-Samples[j][s[0][0]])
+              + (gy-igy)*(Samples[j][s[0][1]]-Samples[j][s[0][0]]);
+          }
         }
-      }
-      else {
-        // point is in UPPER triangle
-        for (int j=0; j<2; j++) {
-          value[j][i] = Samples[j][s[1][1]]
-            + (1+igx-gx)*(Samples[j][s[0][1]]-Samples[j][s[1][1]])
-            + (1+igy-gy)*(Samples[j][s[1][0]]-Samples[j][s[1][1]]);
+        else {
+          // point is in UPPER triangle
+          for (int j=0; j<2; j++) {
+            value[j][i] = Samples[j][s[1][1]]
+              + (1+igx-gx)*(Samples[j][s[0][1]]-Samples[j][s[1][1]])
+              + (1+igy-gy)*(Samples[j][s[1][0]]-Samples[j][s[1][1]]);
+          }
         }
       }
     }
@@ -334,7 +337,7 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
       throw new SetException("Gridded2DSet.valueToGrid: Manifold dimension " +
                              "must be 2, not " + ManifoldDimension);
     }
-    if (Lengths[0] < 2 || Lengths[1] < 2) {
+    if (Length > 1 && (Lengths[0] < 2 || Lengths[1] < 2)) {
       throw new SetException("Gridded2DSet.valueToGrid: requires all grid " +
                              "dimensions to be > 1");
     }
@@ -358,6 +361,16 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
 /* WLH 24 Oct 97
       if ( (i != 0) && (Float.isNaN(grid[0][i-1])) )
 */
+      if (Length == 1) {
+        if (Float.isNaN(value[0][i]) || Float.isNaN(value[1][i])) {
+           grid[0][i] = grid[1][i] = Float.NaN;
+        } else {
+           grid[0][i] = 0;
+           grid[1][i] = 0;
+        }
+        continue;
+      }
+
       // test for missing
       if ( (i != 0) && grid[0][i-1] != grid[0][i-1] ) {
         gx = (LengthX-1)/2;

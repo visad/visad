@@ -47,7 +47,7 @@ public class Gridded1DDoubleSet extends Gridded1DSet
    * {@link WeakHashMap}, this can be accomplished without the technique itself
    * adversely affecting memory usage.
    */
-  private static final WeakHashMap	cache = new WeakHashMap();
+  private static final WeakHashMap      cache = new WeakHashMap();
 
 
   // Overridden Gridded1DSet constructors (float[][])
@@ -145,37 +145,37 @@ public class Gridded1DDoubleSet extends Gridded1DSet
    * Returns an instance of this class.  This method uses a weak cache of
    * previously-created instances to reduce memory usage.
    *
-   * @param type		The type of the set.  Must be a {@link 
-   *				RealType} or a single-component {@link
-   *				RealTupleType} or {@link SetType}.
+   * @param type                The type of the set.  Must be a {@link 
+   *                            RealType} or a single-component {@link
+   *                            RealTupleType} or {@link SetType}.
    * @param samples             The values in the set.
    *                            <code>samples[i]</code> is the value of
    *                            the ith sample point.  Must be sorted (either
    *                            increasing or decreasing).  May be
    *                            <code>null</code>.  The array is not copied, so
-   *				either don't modify it or clone it first.
+   *                            either don't modify it or clone it first.
    * @param coord_sys           The coordinate system for this, particular, set.
    *                            Must be compatible with the default coordinate
    *                            system.  May be <code>null</code>.
    * @param unit                The unit for the samples.  Must be compatible
-   *				with the default unit.  May be 
-   *				<code>null</code>.
-   * @param error		The error estimate of the samples.  May be
-   *				<code>null</code>.
+   *                            with the default unit.  May be 
+   *                            <code>null</code>.
+   * @param error               The error estimate of the samples.  May be
+   *                            <code>null</code>.
    */
   public static synchronized Gridded1DDoubleSet create(
-      MathType		type,
-      double[]		samples,
-      CoordinateSystem	coordSys,
-      Unit		unit,
-      ErrorEstimate	error)
+      MathType          type,
+      double[]          samples,
+      CoordinateSystem  coordSys,
+      Unit              unit,
+      ErrorEstimate     error)
     throws VisADException
   {
-    Gridded1DDoubleSet	newSet =
+    Gridded1DDoubleSet  newSet =
       new Gridded1DDoubleSet(
-	type, new double[][] {samples}, samples.length, coordSys,
-	new Unit[] {unit}, new ErrorEstimate[] {error}, false);
-    WeakReference	ref = (WeakReference)cache.get(newSet);
+        type, new double[][] {samples}, samples.length, coordSys,
+        new Unit[] {unit}, new ErrorEstimate[] {error}, false);
+    WeakReference       ref = (WeakReference)cache.get(newSet);
     if (ref == null)
     {
       /*
@@ -193,16 +193,16 @@ public class Gridded1DDoubleSet extends Gridded1DSet
       /*
        * The new instance is a duplicate of a previously-created one.
        */
-      Gridded1DDoubleSet	oldSet = (Gridded1DDoubleSet)ref.get();
+      Gridded1DDoubleSet        oldSet = (Gridded1DDoubleSet)ref.get();
       if (oldSet == null)
       {
-	/* The previous instance no longer exists.  Save the new instance. */
-	cache.put(newSet, new WeakReference(newSet));
+        /* The previous instance no longer exists.  Save the new instance. */
+        cache.put(newSet, new WeakReference(newSet));
       }
       else
       {
-	/* The previous instance still exists.  Reuse it to save memory. */
-	newSet = oldSet;
+        /* The previous instance still exists.  Reuse it to save memory. */
+        newSet = oldSet;
       }
     }
     return newSet;
@@ -229,13 +229,13 @@ public class Gridded1DDoubleSet extends Gridded1DSet
    * Convert an array of values in R^DomainDimension to an array of
    * 1-D indices.  This Gridded1DDoubleSet must have at least two points in the
    * set.
-   * @param value	An array of coordinates.  <code>value[i][j]
-   *			<code> contains the <code>i</code>th component of the
-   *			<code>j</code>th point.
-   * @return		Indices of nearest points.  RETURN_VALUE<code>[i]</code>
-   *			will contain the index of the point in the set closest
-   *			to <code>value[][i]</code> or <code>-1</code> if
-   *			<code>value[][i]</code> lies outside the set.
+   * @param value       An array of coordinates.  <code>value[i][j]
+   *                    <code> contains the <code>i</code>th component of the
+   *                    <code>j</code>th point.
+   * @return            Indices of nearest points.  RETURN_VALUE<code>[i]</code>
+   *                    will contain the index of the point in the set closest
+   *                    to <code>value[][i]</code> or <code>-1</code> if
+   *                    <code>value[][i]</code> lies outside the set.
    */
   public int[] valueToIndex(float[][] value) throws VisADException {
     return doubleToIndex(Set.floatToDouble(value));
@@ -348,10 +348,12 @@ public class Gridded1DDoubleSet extends Gridded1DSet
                              grid.length + " not equal to Domain dimension " +
                              DomainDimension);
     }
+    /* remove DRM: 2004-09-14
     if (Lengths[0] < 2) {
       throw new SetException("Gridded1DDoubleSet.gridToDouble: " +
         "requires all grid dimensions to be > 1");
     }
+    */
     int length = grid[0].length;
     double[][] value = new double[1][length];
     for (int i=0; i<length; i++) {
@@ -359,16 +361,18 @@ public class Gridded1DDoubleSet extends Gridded1DSet
       double g = grid[0][i];
       if ( (g < -0.5) || (g > LengthX-0.5) ) {
         value[0][i] = Double.NaN;
-        continue;
+      } else if (Length == 1) {
+        value[0][i] = Samples[0][0];
+      } else {
+        // calculate closest integer variable
+        int ig;
+        if (g < 0) ig = 0;
+        else if (g >= LengthX-1) ig = LengthX - 2;
+        else ig = (int) g;
+        double A = g - ig;  // distance variable
+        // do the linear interpolation
+        value[0][i] = (1-A)*Samples[0][ig] + A*Samples[0][ig+1];
       }
-      // calculate closest integer variable
-      int ig;
-      if (g < 0) ig = 0;
-      else if (g >= LengthX-1) ig = LengthX - 2;
-      else ig = (int) g;
-      double A = g - ig;  // distance variable
-      // do the linear interpolation
-      value[0][i] = (1-A)*Samples[0][ig] + A*Samples[0][ig+1];
     }
     return value;
   }
@@ -384,10 +388,12 @@ public class Gridded1DDoubleSet extends Gridded1DSet
                              value.length + " not equal to Domain dimension " +
                              DomainDimension);
     }
+    /*
     if (Lengths[0] < 2) {
       throw new SetException("Gridded1DDoubleSet.doubleToGrid: " +
         "requires all grid dimensions to be > 1");
     }
+    */
     double[] vals = value[0];
     int length = vals.length;
     double[] samps = Samples[0];
@@ -402,22 +408,25 @@ public class Gridded1DDoubleSet extends Gridded1DSet
     }
 
     for (int i=0; i<length; i++) {
-      if (Double.isNaN(vals[i])) grid[0][i] = Double.NaN;
-      else {
-	int lower = 0;
-	int upper = LengthX-1;
-	while (lower < upper) {
-	  if ((vals[i] - samps[ig]) * (vals[i] - samps[ig+1]) <= 0) break;
-	  if (Ascending ? samps[ig+1] < vals[i] : samps[ig+1] > vals[i]) {
-	    lower = ig+1;
+      if (Double.isNaN(vals[i])) {
+        grid[0][i] = Double.NaN;
+      } else if (Length == 1) {
+        grid[0][i] = 0;
+      } else {
+        int lower = 0;
+        int upper = LengthX-1;
+        while (lower < upper) {
+          if ((vals[i] - samps[ig]) * (vals[i] - samps[ig+1]) <= 0) break;
+          if (Ascending ? samps[ig+1] < vals[i] : samps[ig+1] > vals[i]) {
+            lower = ig+1;
           }
-	  else if (Ascending ? samps[ig] > vals[i] : samps[ig] < vals[i]) {
-	    upper = ig;
+          else if (Ascending ? samps[ig] > vals[i] : samps[ig] < vals[i]) {
+            upper = ig;
           }
-	  if (lower < upper) ig = (lower + upper) / 2;
-	}
+          if (lower < upper) ig = (lower + upper) / 2;
+        }
         // Newton's method
-	double solv = ig + (vals[i] - samps[ig]) / (samps[ig+1] - samps[ig]);
+        double solv = ig + (vals[i] - samps[ig]) / (samps[ig+1] - samps[ig]);
         if (solv > -0.5 && solv < LengthX - 0.5) grid[0][i] = solv;
         else {
           grid[0][i] = Double.NaN;
@@ -701,8 +710,8 @@ public class Gridded1DDoubleSet extends Gridded1DSet
   /**
    * Returns the hash code of this instance. {@link Object#hashCode()} should be
    * overridden whenever {@link Object#equals(Object)} is.
-   * @return			The hash code of this instance (includes the
-   *				values).
+   * @return                    The hash code of this instance (includes the
+   *                            values).
    */
   public int hashCode()
   {
@@ -711,11 +720,11 @@ public class Gridded1DDoubleSet extends Gridded1DSet
       hashCode = unitAndCSHashCode();
       hashCode ^= DomainDimension ^ ManifoldDimension ^ Length;
       for (int j=0; j<ManifoldDimension; j++)
-	hashCode ^= Lengths[j];
+        hashCode ^= Lengths[j];
       if (Samples != null)
-	for (int j=0; j<DomainDimension; j++)
-	  for (int i=0; i<Length; i++)
-	    hashCode ^= new Double(Samples[j][i]).hashCode();
+        for (int j=0; j<DomainDimension; j++)
+          for (int i=0; i<Length; i++)
+            hashCode ^= new Double(Samples[j][i]).hashCode();
       hashCodeSet = true;
     }
     return hashCode;

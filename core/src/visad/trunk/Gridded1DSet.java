@@ -303,10 +303,12 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
                              grid.length + " not equal to Domain dimension " +
                              DomainDimension);
     }
+    /* remove DRM 2004-09-14
     if (Lengths[0] < 2) {
       throw new SetException("Gridded1DSet.gridToValue: requires all grid " +
                              "dimensions to be > 1");
     }
+    */
     int length = grid[0].length;
     float[][] value = new float[1][length];
     for (int i=0; i<length; i++) {
@@ -314,16 +316,18 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
       float g = grid[0][i];
       if ( (g < -0.5) || (g > LengthX-0.5) ) {
         value[0][i] = Float.NaN;
-        continue;
+      } else if (Length == 1) {  // just return the value if that's all we have
+        value[0][i] = Samples[0][0];
+      } else {
+        // calculate closest integer variable
+        int ig;
+        if (g < 0) ig = 0;
+        else if (g >= LengthX-1) ig = LengthX - 2;
+        else ig = (int) g;
+        float A = g - ig;  // distance variable
+        // do the linear interpolation
+        value[0][i] = (1-A)*Samples[0][ig] + A*Samples[0][ig+1];
       }
-      // calculate closest integer variable
-      int ig;
-      if (g < 0) ig = 0;
-      else if (g >= LengthX-1) ig = LengthX - 2;
-      else ig = (int) g;
-      float A = g - ig;  // distance variable
-      // do the linear interpolation
-      value[0][i] = (1-A)*Samples[0][ig] + A*Samples[0][ig+1];
     }
     return value;
   }
@@ -339,14 +343,17 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
                              value.length + " not equal to Domain dimension " +
                              DomainDimension);
     }
+    /* remove DRM 2004-09-14
     if (Lengths[0] < 2) {
       throw new SetException("Gridded1DSet.valueToGrid: requires all grid " +
                              "dimensions to be > 1");
     }
+    */
     float[] vals = value[0];
     int length = vals.length;
     float[] samps = Samples[0];
     float[][] grid = new float[1][length];
+
 
 /* WLH 6 Dec 2001
     int ig = (LengthX - 1)/2;
@@ -357,8 +364,11 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
     }
 
     for (int i=0; i<length; i++) {
-      if (Float.isNaN(vals[i])) grid[0][i] = Float.NaN;
-      else {
+      if (Float.isNaN(vals[i])) {
+        grid[0][i] = Float.NaN;
+      } else if (Length == 1) {  // just return 0 if that's all we have
+        grid[0][i] = 0;
+      } else {
 	int lower = 0;
 	int upper = LengthX-1;
 	while (lower < upper) {

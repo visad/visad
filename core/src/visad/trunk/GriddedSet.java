@@ -331,10 +331,12 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
   /** transform an array of non-integer grid coordinates to an array
       of values in R^DomainDimension */
   public float[][] gridToValue(float[][] grid) throws VisADException {
-    for (int j=0; j<DomainDimension; j++) {
-      if (Lengths[j] < 2) {
-        throw new SetException("GriddedSet.gridToValue: requires all grid " +
-                               "dimensions to be > 1");
+    if (Length > 1) {
+      for (int j=0; j<DomainDimension; j++) {
+        if (Lengths[j] < 2) {
+          throw new SetException("GriddedSet.gridToValue: requires all grid " +
+                                 "dimensions to be > 1");
+        }
       }
     }
     throw new UnimplementedException("GriddedSet.gridToValue");
@@ -343,10 +345,12 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
   /** transform an array of values in R^DomainDimension to an array
       of non-integer grid coordinates */
   public float[][] valueToGrid(float[][] value) throws VisADException {
-    for (int j=0; j<DomainDimension; j++) {
-      if (Lengths[j] < 2) {
-        throw new SetException("GriddedSet.valueToGrid: requires all grid " +
-                               "dimensions to be > 1");
+    if (Length > 1) {
+      for (int j=0; j<DomainDimension; j++) {
+        if (Lengths[j] < 2) {
+          throw new SetException("GriddedSet.valueToGrid: requires all grid " +
+                                 "dimensions to be > 1");
+        }
       }
     }
     throw new UnimplementedException("GriddedSet.valueToGrid");
