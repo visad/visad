@@ -303,6 +303,10 @@ public abstract class BaseTrack
 
   final FieldImpl makeTimeSequence(float[] timeSteps)
   {
+    if (timeSteps == null || timeSteps.length == 0) {
+      return null;
+    }
+
     final double degrees2radians = Data.DEGREES_TO_RADIANS;
 
     final double sinZenith = Math.sin(zenith * degrees2radians);
@@ -317,13 +321,8 @@ public abstract class BaseTrack
     Gridded3DSet[] sets = new Gridded3DSet[timeSteps.length];
     Gridded3DSet missingSet = null;
 
-    final float timeOrigin, timeFinal;
-    if (timeSteps.length == 0) {
-      timeOrigin = timeFinal = time;
-    } else {
-      timeOrigin = timeSteps[0];
-      timeFinal = timeSteps[timeSteps.length - 1];
-    }
+    final float timeOrigin = timeSteps[0];
+    final float timeFinal = timeSteps[timeSteps.length - 1];
 
     final double baseLength = (timeFinal - time) * SPEED_OF_LIGHT;
 
