@@ -940,4 +940,75 @@ public class DataUtility {
     }
   }
 
+  /**
+   * Verify that an object is Serializable by attempting to
+   * serializing it (and 
+   *
+   * @param obj An object which needs to be serialized
+   * @param printStackTraces <tt>true</tt> if the stack trace for
+   *                         any exception should be printed.
+   *
+   * @return <tt>true</tt> if the object is Serializable, false otherwise.
+   */
+  public boolean isSerializable(Object obj, boolean printStackTraces)
+  {
+    java.io.ByteArrayOutputStream outBytes;
+    outBytes = new java.io.ByteArrayOutputStream();
+
+    java.io.ObjectOutputStream outStream;
+    try {
+      outStream = new java.io.ObjectOutputStream(outBytes);
+    } catch (java.io.IOException ioe) {
+      if (printStackTraces) ioe.printStackTrace();
+      return false;
+    }
+
+    try {
+      outStream.writeObject(obj);
+      outStream.flush();
+    } catch (java.io.IOException ioe) {
+      if (printStackTraces) ioe.printStackTrace();
+      return false;
+    }
+
+    java.io.ByteArrayInputStream inBytes;
+    inBytes = new java.io.ByteArrayInputStream(outBytes.toByteArray());
+
+    try {
+      outStream.close();
+      outBytes.close();
+    } catch (java.io.IOException ioe) {
+      if (printStackTraces) ioe.printStackTrace();
+      return false;
+    }
+
+    java.io.ObjectInputStream inStream;
+    try {
+      inStream = new java.io.ObjectInputStream(inBytes);
+    } catch (java.io.IOException ioe) {
+      if (printStackTraces) ioe.printStackTrace();
+      return false;
+    }
+
+    Object obj2;
+    try {
+      obj2 = inStream.readObject();
+    } catch (java.io.IOException ioe) {
+      if (printStackTraces) ioe.printStackTrace();
+      return false;
+    } catch (ClassNotFoundException cnfe) {
+      if (printStackTraces) cnfe.printStackTrace();
+      return false;
+    }
+
+    try {
+      inStream.close();
+      inBytes.close();
+    } catch (java.io.IOException ioe) {
+      if (printStackTraces) ioe.printStackTrace();
+      return false;
+    }
+
+    return true;
+  }
 }
