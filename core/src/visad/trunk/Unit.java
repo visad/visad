@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.8 1998-11-30 19:04:26 billh Exp $
+ * $Id: Unit.java,v 1.9 1999-04-19 17:30:07 dglo Exp $
  */
 
 package visad;
@@ -74,8 +74,8 @@ public abstract class Unit
       thus this method does not reflect open convertability
       of Unit.promiscuous */
   public static boolean canConvert(Unit unita, Unit unitb) {
-    if (unita == CommonUnit.promiscuous) unita = null;
-    if (unitb == CommonUnit.promiscuous) unitb = null;
+    if (CommonUnit.promiscuous.equals(unita)) unita = null;
+    if (CommonUnit.promiscuous.equals(unitb)) unitb = null;
     if (unita == null && unitb == null) return true;
     if (unita == null || unitb == null) return false;
     // WLH - real logic goes here
