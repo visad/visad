@@ -1458,7 +1458,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       cnt = 0;
       for ( kk = 0; kk < n_sets; kk++ ) {
         SetType s_type = (SetType) sets[kk].getType();
-        if ((sub_factor_index = s_type.getDomain().getIndex((MathType)factor)) > 0 ) {
+        if ((sub_factor_index = s_type.getDomain().getIndex((MathType)factor)) >= 0 ) {
           factor_set = sets[kk];
           fac_set_idx = kk;
           fac_set_len = factor_set.getLength();
@@ -1493,6 +1493,9 @@ public class FieldImpl extends FunctionImpl implements Field {
           dim_lengths[sub_set_idx[ii]] = sub_set_lengths[ii];
         }
         dim_lengths[fac_set_idx] = fac_set_len;
+	new_type =
+	  new FunctionType(
+	    ((SetType)new_domain.getType()).getDomain(), rangeType );
       }
       else if (!(factor_set instanceof LinearNDSet ))
       {
@@ -1527,6 +1530,10 @@ public class FieldImpl extends FunctionImpl implements Field {
                          (n_sub_sets - fac_set_idx));
         System.arraycopy(sub_set_idx, fac_set_idx, sub_domain, cnt,
                          (n_sub_sets - fac_set_idx));
+	new_type =
+	  new FunctionType(
+	    ((SetType)new_set.getType()).getDomain(), rangeType );
+	new_domain = new_set;
       }
     }
     else if ( DomainSet instanceof UnionSet )
