@@ -553,11 +553,6 @@ public class FieldImpl extends FunctionImpl implements Field {
                           MathType[] derivType_s, int error_mode )
          throws VisADException, RemoteException
   {
-    if ( this.isMissing() )
-    {
-      throw new VisADException("derivative: FieldImpl should not be missing ");
-    }
-
     int ii, jj, kk, dd, rr, tt, pp, ss;
     Set domainSet = this.getDomainSet();
     int domainDim = domainSet.getDimension();
@@ -724,7 +719,6 @@ public class FieldImpl extends FunctionImpl implements Field {
     float f_sum;
     double d_sum;
     Data[] p_derivatives = new Data[ n_partials ];
- //-ErrorEstimate[][] rangeErrors_out = new ErrorEstimate[ n_partials ][ TupleDimension ];
     ErrorEstimate[] domainErrors = domainSet.getSetErrors();
     Real deltaDomain;
     FieldImpl[] new_fields = new FieldImpl[ n_partials ];
@@ -737,6 +731,9 @@ public class FieldImpl extends FunctionImpl implements Field {
     for ( pp = 0; pp < n_partials; pp++ ) {
       new_fields[pp] = new FieldImpl( (FunctionType)derivType_s[pp], domainSet );
     }
+
+    if ( isMissing() )   //- Bypass computations and return missing field -*
+    {
 
   //- Handle LinearSet case separately for efficiency   -*
     if(( domainSet instanceof LinearSet )&&( thisDomainFlag ))
@@ -773,7 +770,6 @@ public class FieldImpl extends FunctionImpl implements Field {
 
           data_1 = getSample(n_index);
           data_0 = getSample(index);
-        //deltaDomain = new Real( d_partial_s[kk], distance );
           deltaDomain = new Real( d_partial_s[kk], distance, D_units[m_index] );
 
           rangeDiff = data_1.binary( data_0, Data.SUBTRACT, sampling_mode, error_mode);
@@ -928,6 +924,7 @@ public class FieldImpl extends FunctionImpl implements Field {
         }
       }
     }
+    } //- missing range branch --*
 
     if ( n_partials == 1 )
     {

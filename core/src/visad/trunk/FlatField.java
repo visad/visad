@@ -2018,11 +2018,6 @@ public class FlatField extends FieldImpl {
                           MathType[] derivType_s, int error_mode )
          throws VisADException, RemoteException
   {
-    if ( this.isMissing() )
-    {
-      throw new VisADException("derivative: FlatField should not be missing ");
-    }
-
     int ii, jj, kk, dd, rr, tt, pp, ss;
     Set domainSet = this.getDomainSet();
     int domainDim = domainSet.getDimension();
@@ -2185,6 +2180,43 @@ public class FlatField extends FieldImpl {
       }
     }
 
+    double[][][] p_derivatives = null;
+    DataImpl[] datums = new DataImpl[ n_partials ];
+    ErrorEstimate[][] rangeErrors_out = new ErrorEstimate[ n_partials ][ TupleDimension ];
+    if ( thisDomainFlag ) 
+    {
+      p_derivatives = new double[ n_partials ][ TupleDimension ][ n_samples ];
+      for ( ii = 0; ii < n_partials; ii++ ) {
+        datums[ii] = (DataImpl) cloneDouble( derivType_s[ii], derivUnits[ii], null ); 
+      }
+      if ( isMissing() ) {
+        if ( n_partials == 1 )
+        {
+          return datums[0];
+        }
+        else
+        {
+          return new Tuple( datums );
+        }
+      }
+    }
+    else 
+    {
+      p_derivatives = new double[ n_partials ][ TupleDimension ][ 1 ];
+      if ( isMissing() ) {
+        for ( ii = 0; ii < n_partials; ii++ ) {
+          for ( jj = 0; jj < TupleDimension; jj++ ) {
+            p_derivatives[ii][jj][0] = Double.NaN;
+            rangeErrors_out[ii][jj] = null;
+          }
+        }
+      }
+    }
+  
+    if ( !isMissing() )  //- skip computations. if thisDoimainFlag is also set, then
+                         //- method would have already returned.
+    {
+
   //- compute derivative-s, return FlatField or Tuple of FlatFields, or Data --*
 
     double[][] rangeValues = null;
@@ -2197,9 +2229,8 @@ public class FlatField extends FieldImpl {
     float step;
     float f_sum;
     double d_sum;
-    double[][][] p_derivatives = new double[ n_partials ][ TupleDimension ][ n_samples ];
-    ErrorEstimate[][] rangeErrors_out = new ErrorEstimate[ n_partials ][ TupleDimension ];
     ErrorEstimate[] domainErrors = domainSet.getSetErrors();
+
 
   //- Handle LinearSet case separately for efficiency   -*
     if(( domainSet instanceof LinearSet )&&( thisDomainFlag ))
@@ -2401,19 +2432,17 @@ public class FlatField extends FieldImpl {
 
     }
 
-    DataImpl[] datums = new DataImpl[ n_partials ];
+    } //-not missing branch  -* 
 
-    FlatField f_field = null;
+
     double[][] s_samples = null;
     for ( pp = 0; pp < n_partials; pp++ )
     {
       s_samples = p_derivatives[pp];
       if ( thisDomainFlag )
       {
-        f_field = this.cloneDouble( derivType_s[pp], derivUnits[pp], null );
-        f_field.setSamples( s_samples );
-        f_field.setRangeErrors( rangeErrors_out[pp] );
-        datums[pp] = (DataImpl) f_field;
+        ((FlatField)datums[pp]).setSamples( s_samples );
+        ((FlatField)datums[pp]).setRangeErrors( rangeErrors_out[pp] );
       }
       else
       {
