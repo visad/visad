@@ -44,7 +44,7 @@ This README file explains what the visad.ss package is, what it does,
 and how to use it.
 
 The visad.ss package is a "generic" spreadsheet user interface for VisAD.
-It is intended to be poweful and flexible, and it can be used to visualize
+It is intended to be powerful and flexible, and it can be used to visualize
 many types of data, without any programming.  It supports many features of a
 traditional spreadsheet, such as formulas.  The package also provides a class
 structure such that developers can easily create their own user interfaces
@@ -286,7 +286,7 @@ the controls.  This option is checked by default.
 
 Show VisAD controls - Displays the set of controls relevant to the current cell
 (these controls are displayed by default, but could become hidden at a later
-time).  This option is not a checkbox, but rather just redisplays the Controls
+time).  This option is not a checkbox, but rather just redisplays the controls
 for the current cell if they have been closed by the user.
 
 2.3 Toolbars
@@ -294,8 +294,8 @@ for the current cell if they have been closed by the user.
 2.3.1 Main Toolbar
 
 The main toolbar provides shortcuts to the following menu items:
-    File Import, Edit Cut, Edit Copy, Edit Paste, Display Edit Mappings,
-    and Options Show VisAD Controls.
+    File Import, File Export (netCDF), Edit Cut, Edit Copy, Edit Paste,
+    Display Edit Mappings, and Options Show VisAD controls.
 
 The main toolbar has tool tips so each button can be easily identified.
 
@@ -498,7 +498,7 @@ The following bugs have been discovered and have not yet been fixed:
    netCDF data set correctly (i.e., these warnings can be safely ignored).
 
 If you find a bug in the Spread Sheet user interface not listed above,
-please send e-mail to curtis@ssec.wisc.edu and whibbard@macc.wisc.edu
+please send e-mail to curtis@ssec.wisc.edu and hibbard@facstaff.wisc.edu
 describing the problem, preferably with a detailed description of how to
 recreate the problem.
 
@@ -517,5 +517,5 @@ Here's what's coming in the future:
 5) And of course, bug fixes
 
 If you have any suggestions for features that you would find useful,
-please send e-mail to curtis@ssec.wisc.edu and whibbard@macc.wisc.edu
+please send e-mail to curtis@ssec.wisc.edu and hibbard@facstaff.wisc.edu
 describing the feature.
