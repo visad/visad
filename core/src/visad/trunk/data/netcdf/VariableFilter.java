@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VariableFilter.java,v 1.2 2001-08-29 19:57:42 dglo Exp $
+ * $Id: VariableFilter.java,v 1.3 2001-09-11 16:39:09 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -27,7 +27,7 @@ import ucar.netcdf.VariableIterator;
  * {@link Netcdf#contains(Object) Netcdf.contains(Object)}).
  *
  * @author Steven R. Emmerson
- * @version $Revision: 1.2 $ $Date: 2001-08-29 19:57:42 $
+ * @version $Revision: 1.3 $ $Date: 2001-09-11 16:39:09 $
  */
 final class VariableFilter
     extends NetcdfWrapper
@@ -36,7 +36,7 @@ final class VariableFilter
      * The set of variables to reveal.  Every name corresponds to a variable 
      * that exists in the wrapped netCDF database.
      */
-    private final Set names;
+    private Set names;  // not "final" to accomodate JDK 1.2 bug
 
     /**
      * Constructs from a netCDF dataset and a set of variable names.  The
