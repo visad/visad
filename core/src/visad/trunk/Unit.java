@@ -63,9 +63,9 @@ public abstract class Unit
 
 
   /**
-   * <p>Converts a tuple of double value arrays.</p>
+   * <p>Converts a tuple of double value arrays; returning a new tuple.</p>
    *
-   * <p>This implementation uses {@link #toThis(double[], unit) to convert the
+   * <p>This implementation uses {@link #toThis(double[], Unit)} to convert the
    * individual arrays.</p>
    *
    * @param value              The tuple of numeric value arrays to convert.
@@ -78,8 +78,49 @@ public abstract class Unit
    * @param units_out          The units of the output numeric values.
    *                           <code>units_out[i]</code> is the unit for the
    *                           <code>i</code>th conponent.
-   * @return                   If the input array of units equals the output 
-   *                           array then this just returns the value argument.
+   * @return                   Returns the converted values 
+   *                           in a new array where RETURN_VALUE
+   *                           <code>[i][j]</code> is the converted
+   *                           value of <code>value[i][j]</code>.
+   * @throws UnitException     If an ouput unit is <code>null</code> 
+   *                           and the corresponding input unit is neither 
+   *                           <code>null</code> nor a {@link PromiscuousUnit},
+   *                           or if an input unit is not convertible with its
+   *                           corresponding output unit.
+   * @throws VisADException    if a VisAD failure occurs.
+   */
+  public static double[][] convertTuple(double[][] value, Unit[] units_in,
+                                       Unit[] units_out) 
+                                       throws UnitException, VisADException {
+    return convertTuple(value, units_in, units_out, true);
+  }
+
+  /**
+   * <p>Converts a tuple of double value arrays, optionally returning
+   * a new tuple depending on the value of <code>copy</code>.</p>
+   *
+   * <p>This implementation uses {@link #toThis(double[], Unit)} to convert the
+   * individual arrays.</p>
+   *
+   * @param value              The tuple of numeric value arrays to convert.
+   *                           <code> value[i][j]</code> is the value of the
+   *                           <code> i</code>th component of sample-point
+   *                           <code>j </code>.
+   * @param units_in           The units of the input numeric values.
+   *                           <code>units_in[i]</code> is the unit of the
+   *                           <code>i</code>th conponent.
+   * @param units_out          The units of the output numeric values.
+   *                           <code>units_out[i]</code> is the unit for the
+   *                           <code>i</code>th conponent.
+   * @param copy               If true, a new array is created, otherwise if
+   *                           a unit in <code>units_in</code> equals the 
+   *                           unit at the corresponding index in the 
+   *                           <code>units_out</code>, the input value 
+   *                           array at that index is returned instead of
+   *                           a new array.
+   * @return                   If <code>units_in</code> equals <code>units_out
+   *                           </code> copy is false, then this 
+   *                           just returns the value argument.
    *                           Otherwise, returns the the converted values 
    *                           in a new array where RETURN_VALUE
    *                           <code>[i][j]</code> is the converted
@@ -92,14 +133,13 @@ public abstract class Unit
    * @throws VisADException    if a VisAD failure occurs.
    */
   public static double[][] convertTuple(double[][] value, Unit[] units_in,
-                                       Unit[] units_out) throws UnitException, VisADException {
+                                       Unit[] units_out, boolean copy) 
+                                       throws UnitException, VisADException {
 
       //If the input array equals the output array then simply return the value array
-      /*
-      if (java.util.Arrays.equals (units_in, units_out)) {
+      if (java.util.Arrays.equals (units_in, units_out) && !copy) {
           return value;
       }
-      */
       double[][] new_value = new double[value.length][];
       for (int i=0; i<value.length; i++) {
           if (units_out[i] == null) {
@@ -110,10 +150,10 @@ public abstract class Unit
           }
           else {
               //If they are equal just do an assignment
-              if (units_out[i].equals (units_in[i])) {
+              if (units_out[i].equals (units_in[i]) && !copy) {
                   new_value[i] = value[i];
               } else {
-                  //else do the conversion
+                  //else do the conversion (creates a new array)
                   new_value[i] = units_out[i].toThis(value[i], units_in[i]);
               }
           }
@@ -122,9 +162,9 @@ public abstract class Unit
   }
 
   /**
-   * <p>Converts a tuple of float value arrays.</p>
+   * <p>Converts a tuple of float value arrays; returning a new tuple.</p>
    *
-   * <p>This implementation uses {@link #toThis(float[], unit) to convert the
+   * <p>This implementation uses {@link #toThis(float[], Unit)} to convert the
    * individual arrays.</p>
    *
    * @param value              The tuple of numeric value arrays to convert.
@@ -137,8 +177,49 @@ public abstract class Unit
    * @param units_out          The units of the output numeric values.
    *                           <code>units_out[i]</code> is the unit for the
    *                           <code>i</code>th conponent.
-   * @return                   If the input array of units equals the output 
-   *                           array then this just returns the value argument.
+   * @return                   Returns the converted values 
+   *                           in a new array where RETURN_VALUE
+   *                           <code>[i][j]</code> is the converted
+   *                           value of <code>value[i][j]</code>.
+   * @throws UnitException     If an ouput unit is <code>null</code> 
+   *                           and the corresponding input unit is neither 
+   *                           <code>null</code> nor a {@link PromiscuousUnit},
+   *                           or if an input unit is not convertible with its
+   *                           corresponding output unit.
+   * @throws VisADException    if a VisAD failure occurs.
+   */
+  public static float[][] convertTuple(float[][] value, Unit[] units_in,
+                                       Unit[] units_out) 
+                                       throws UnitException, VisADException {
+    return convertTuple(value, units_in, units_out, true);
+  }
+
+  /**
+   * <p>Converts a tuple of float value arrays, optionally returning
+   * a new tuple depending on the value of <code>copy</code>.</p>
+   *
+   * <p>This implementation uses {@link #toThis(float[], Unit)} to convert the
+   * individual arrays.</p>
+   *
+   * @param value              The tuple of numeric value arrays to convert.
+   *                           <code> value[i][j]</code> is the value of the
+   *                           <code> i</code>th component of sample-point
+   *                           <code>j </code>.
+   * @param units_in           The units of the input numeric values.
+   *                           <code>units_in[i]</code> is the unit of the
+   *                           <code>i</code>th conponent.
+   * @param units_out          The units of the output numeric values.
+   *                           <code>units_out[i]</code> is the unit for the
+   *                           <code>i</code>th conponent.
+   * @param copy               If true, a new array is created, otherwise if
+   *                           a unit in <code>units_in</code> equals the 
+   *                           unit at the corresponding index in the 
+   *                           <code>units_out</code>, the input value 
+   *                           array at that index is returned instead of
+   *                           a new array.
+   * @return                   If <code>units_in</code> equals <code>units_out
+   *                           </code> copy is false, then this 
+   *                           just returns the value argument.
    *                           Otherwise, returns the the converted values 
    *                           in a new array where RETURN_VALUE
    *                           <code>[i][j]</code> is the converted
@@ -151,14 +232,13 @@ public abstract class Unit
    * @throws VisADException    if a VisAD failure occurs.
    */
   public static float[][] convertTuple(float[][] value, Unit[] units_in,
-                                       Unit[] units_out) throws UnitException, VisADException {
+                                       Unit[] units_out, boolean copy) 
+                                       throws UnitException, VisADException {
 
       //If the input array equals the output array then simply return the value array
-      /*
-      if (java.util.Arrays.equals (units_in, units_out)) {
+      if (java.util.Arrays.equals (units_in, units_out) && !copy) {
           return value;
       }
-      */
       float[][] new_value = new float[value.length][];
       for (int i=0; i<value.length; i++) {
           if (units_out[i] == null) {
@@ -169,7 +249,7 @@ public abstract class Unit
           }
           else {
               //If they are equal just do an assignment
-              if (units_out[i].equals (units_in[i])) {
+              if (units_out[i].equals (units_in[i]) && !copy) {
                   new_value[i] = value[i];
               } else {
                   //else do the conversion
@@ -490,7 +570,7 @@ public abstract class Unit
      * @param identifier        The name or abbreviation for the cloned unit.
      *                          May be <code>null</code> or empty.  It shall
      *                          have already passed the
-     *                          {@link #adjustCheckAndCache()} method.
+     *                          {@link #adjustCheckAndCache(String)} method.
      * @return                  A unit equal to this instance but with the given
      *                          identifier.
      * @throws UnitException    if the unit may not be cloned.  This will only
