@@ -151,10 +151,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     catch (UnsatisfiedLinkError err) {
       CanDo3D = false;
     }
-    catch (VisADException exc) {
-      CanDo3D = false;
-    }
-    catch (RemoteException exc) {
+    catch (Exception exc) {
       CanDo3D = false;
     }
 
