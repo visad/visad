@@ -79,6 +79,15 @@ public class Hit
     this.data = null;
   }
 
+  private static final int compareFloat(float f0, float f1)
+  {
+    if (Util.isApproximatelyEqual(f0, f1)) {
+      return 0;
+    }
+
+    return (f0 < f1 ? -1 : 1);
+  }
+
   public int compareTo(Object obj)
   {
     if (!(obj instanceof Hit)) {
@@ -90,31 +99,18 @@ public class Hit
 
   public int compareTo(Hit h)
   {
-    if (!Util.isApproximatelyEqual(leadEdgeTime, h.leadEdgeTime)) {
-      if (leadEdgeTime < h.leadEdgeTime) {
-        return -1;
+    int cmp = compareFloat(leadEdgeTime, h.leadEdgeTime);
+    if (cmp == 0) {
+      cmp = compareFloat(timeOverThreshold, h.timeOverThreshold);
+      if (cmp == 0) {
+        cmp = compareFloat(amplitude, h.amplitude);
+        if (cmp == 0) {
+          cmp = mod.compareTo(h.mod);
+        }
       }
-
-      return 1;
     }
 
-    if (!Util.isApproximatelyEqual(timeOverThreshold, h.timeOverThreshold)) {
-      if (timeOverThreshold < h.timeOverThreshold) {
-        return -1;
-      }
-
-      return 1;
-    }
-
-    if (!Util.isApproximatelyEqual(amplitude, h.amplitude)) {
-      if (amplitude < h.amplitude) {
-        return -1;
-      }
-
-      return 1;
-    }
-
-    return mod.compareTo(h.mod);
+    return cmp;
   }
 
   public boolean equals(Object obj) { return (compareTo(obj) == 0); }
