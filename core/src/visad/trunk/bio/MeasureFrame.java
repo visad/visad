@@ -45,10 +45,13 @@ import visad.util.*;
 public class MeasureFrame extends GUIFrame {
 
   /**
-   * File chooser for loading and saving data. This variable is static so
-   * that the directory is remembered between each load command.
+   * File chooser for loading and saving data.
+   * Static so that the directory is remembered between each load command.
    */
   private static JFileChooser fileBox = Util.getVisADFileChooser();
+
+  /** Series chooser for loading a series of data files. */
+  private static SeriesChooser seriesBox = new SeriesChooser();
 
   static {
     MathType.addTimeAlias("index");
@@ -87,6 +90,7 @@ public class MeasureFrame extends GUIFrame {
     }
     pane.add(display.getComponent());
     addMenuItem("File", "Open...", "fileOpen", 'o');
+    addMenuItem("File", "Open series...", "fileOpenSeries", 's');
     addMenuItem("File", "Exit", "fileExit", 'x');
     addMenuItem("Measure", "Restore...", "measureRestore", 'r');
     addMenuItem("Measure", "Save...", "measureSave", 's');
@@ -142,6 +146,82 @@ public class MeasureFrame extends GUIFrame {
             if (field == null) {
               JOptionPane.showMessageDialog(frame,
                 f.getName() + " does not contain an image stack",
+                "Cannot load file", JOptionPane.ERROR_MESSAGE);
+              setCursor(Cursor.getDefaultCursor());
+              return;
+            }
+
+            // clear old display
+            display.removeAllReferences();
+            display.clearMaps();
+
+            // set up mappings
+            ScalarMap animMap = null;
+            ScalarMap[] maps = field.getType().guessMaps(false);
+            for (int i=0; i<maps.length; i++) {
+              ScalarMap smap = maps[i];
+              display.addMap(smap);
+              if (Display.Animation.equals(smap.getDisplayScalar())) {
+                animMap = smap;
+              }
+            }
+            DataReferenceImpl ref = new DataReferenceImpl("ref");
+            ref.setData(field);
+            display.addReference(ref);
+            ism = new ImageStackMeasure(field);
+            ism.setDisplay(display);
+            if (animMap != null) {
+              spane.removeAll();
+              sw = new StepWidget(animMap);
+              spane.add(sw);
+              sf.pack();
+              sf.show();
+            }
+          }
+          catch (Throwable t) { t.printStackTrace(); }
+          setCursor(Cursor.getDefaultCursor());
+        }
+      }
+    });
+    t.start();
+  }
+
+  public void fileOpenSeries() {
+    final JFrame frame = this;
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        synchronized (lock) {
+          setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+          // get file name from file dialog
+          if (seriesBox.showDialog(frame) != SeriesChooser.APPROVE_OPTION) {
+            setCursor(Cursor.getDefaultCursor());
+            return;
+          }
+
+          // make sure file exists
+          File[] f = seriesBox.getFileSeries();
+
+          // CTR: TODO: fix this code!!
+          try {
+            // load data
+            DefaultFamily loader = new DefaultFamily("loader");
+            Data data = loader.open(f[0].getPath());
+            FieldImpl field = null;
+            if (data instanceof FieldImpl) field = (FieldImpl) data;
+            else if (data instanceof Tuple) {
+              Tuple tuple = (Tuple) data;
+              int len = tuple.getDimension();
+              for (int i=0; i<len; i++) {
+                Data d = tuple.getComponent(i);
+                if (d instanceof FieldImpl) {
+                  field = (FieldImpl) d;
+                  break;
+                }
+              }
+            }
+            if (field == null) {
+              JOptionPane.showMessageDialog(frame,
+                f[0].getName() + " does not contain an image stack",
                 "Cannot load file", JOptionPane.ERROR_MESSAGE);
               setCursor(Cursor.getDefaultCursor());
               return;

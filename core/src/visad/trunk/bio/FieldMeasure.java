@@ -145,6 +145,7 @@ public class FieldMeasure {
   {
     boolean j3d = d instanceof DisplayImplJ3D;
     d.getGraphicsModeControl().setPointSize(5.0f);
+    d.getDisplayRenderer().setPickThreshhold(Float.MAX_VALUE);
 
     // add first endpoint
     DataRenderer renderer = j3d ?
