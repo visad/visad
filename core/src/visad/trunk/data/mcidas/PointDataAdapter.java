@@ -39,8 +39,8 @@ public class PointDataAdapter
 
     AddePointDataReader reader;
     FieldImpl field = null;
-    long millies;
-    long elapsed;
+    private boolean debug = false;
+
 
     /**
      * Construct a PointDataAdapter using the adde request passed as a string.
@@ -54,6 +54,7 @@ public class PointDataAdapter
         try
         {
             reader = new AddePointDataReader(addePointRequest);
+	    debug = addePointRequest.indexOf("debug=true") > 0;
         }
         catch (AddeException excp)
         {
@@ -90,7 +91,7 @@ public class PointDataAdapter
         int numObs = data[0].length;
         if (numObs == 0)
             throw new VisADException("No data available");
-	System.out.println("Number of observations = " + numObs);
+	if (debug) System.out.println("Number of observations = " + numObs);
 
         RealType domainType = RealType.getRealType("index");
         Integer1DSet domain = new Integer1DSet(domainType, numObs);
@@ -98,6 +99,7 @@ public class PointDataAdapter
         // now make range (Tuple) type
         MetUnits unitTranslator = new MetUnits();
         int numParams = params.length;
+	if (debug) System.out.println("Number of parameters = " + numParams);
         ScalarType[] types = new ScalarType[numParams];
 	defaultUnits = new Unit[numParams];
         boolean noText = true;
@@ -106,21 +108,30 @@ public class PointDataAdapter
             // get the name
             String name = params[i];
 
-            // make the unit
-            Unit unit = null;
-            try
+            if (units[i].equalsIgnoreCase("CHAR"))
             {
-               unit = (!name.equalsIgnoreCase("LON") )
-	                 ? Parser.parse(unitTranslator.makeSymbol(units[i]))
-	                 : Parser.parse("degrees_west");  // fix McIDAS conv.
-            }
-            catch (NoSuchUnitException ne) {
-               System.out.println("Unknown unit: " + units[i] + " for " + name);
-	       unit = null;
-            }
-            catch (ParseException pe) { unit = null;}
-	    defaultUnits[i] = unit;
-
+                noText = false;
+                types[i] = TextType.getTextType(params[i]);
+            } 
+	    else
+	    {
+                // make the unit
+                Unit unit = null;
+                try
+                {
+                   unit = 
+		       (!name.equalsIgnoreCase("LON") )
+	                   ? Parser.parse(unitTranslator.makeSymbol(units[i]))
+	                   : Parser.parse("degrees_west");  // fix McIDAS conv.
+                }
+                catch (NoSuchUnitException ne) {
+                   System.out.println("Unknown unit: " + units[i] + " for " + name);
+	           unit = null;
+                }
+                catch (ParseException pe) { unit = null;}
+	        defaultUnits[i] = unit;
+  
+            /*
             if (units[i].equalsIgnoreCase("CHAR"))
             {
                 noText = false;
@@ -128,9 +139,13 @@ public class PointDataAdapter
             }
             else
             {
-                types[i] = 
-		getQuantity(params[i], unit);
-		//RealType.getRealType(params[i], unit, (Set) null);
+	    */
+	        if (debug) System.out.println(params[i] + " has units " + unit);
+	        if (debug) {
+		  System.out.println("scaling factor = " + scalingFactors[i]);
+		}
+                types[i] = getQuantity(params[i], unit);
+		//types[i] = RealType.getRealType(params[i], unit, (Set) null);
             }
         }
         TupleType rangeType;
@@ -174,6 +189,10 @@ public class PointDataAdapter
                         scalars[j] =
                             new Real(
 			        (RealType) types[j], value, defaultUnits[j]);
+		        if ((j == 0 || j == 1) && (Math.abs(value) > 180))
+			{
+			    System.out.println("bad data = " + scalars[j]);
+			}
                     }
                 }
                 catch (VisADException e) {;}
