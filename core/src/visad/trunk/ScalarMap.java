@@ -716,20 +716,31 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     }
     else if (DisplayScalar.equals(Display.IsoContour)) {
       if (control != null) {
-        boolean[] bvalues = new boolean[2];
-        float[] values = new float[5];
-        ((ContourControl) control).getMainContours(bvalues, values);
-        if (shadow == null) {
-          // don't set surface value for auto-scale
-          values[0] = (float) dataRange[0]; // surfaceValue
+
+        // WLH 10 July 2002
+        // don't set if application has called control.setLevels()
+        float[] lowhibase = new float[3];
+        boolean[] dashes = new boolean[1];
+        float[] levs =
+          ((ContourControl) control).getLevels(lowhibase, dashes);
+        if (levs == null) {
+
+          boolean[] bvalues = new boolean[2];
+          float[] values = new float[5];
+          ((ContourControl) control).getMainContours(bvalues, values);
+          if (shadow == null) {
+            // don't set surface value for auto-scale
+            values[0] = (float) dataRange[0]; // surfaceValue
+          }
+          // CTR: 29 Jul 1999: interval should never be zero
+          float f = (float) (dataRange[1] - dataRange[0]) / 10.0f;
+          if (f != 0.0f) values[1] = f; // contourInterval
+          values[2] = (float) dataRange[0]; // lowLimit
+          values[3] = (float) dataRange[1]; // hiLimit
+          values[4] = (float) dataRange[0]; // base
+          ((ContourControl) control).setMainContours(bvalues, values, true);
+
         }
-        // CTR: 29 Jul 1999: interval should never be zero
-        float f = (float) (dataRange[1] - dataRange[0]) / 10.0f;
-        if (f != 0.0f) values[1] = f; // contourInterval
-        values[2] = (float) dataRange[0]; // lowLimit
-        values[3] = (float) dataRange[1]; // hiLimit
-        values[4] = (float) dataRange[0]; // base
-        ((ContourControl) control).setMainContours(bvalues, values, true);
       }
     }
     else if (DisplayScalar.equals(Display.XAxis) ||
