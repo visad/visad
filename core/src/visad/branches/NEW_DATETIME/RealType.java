@@ -41,12 +41,36 @@ public class RealType extends ScalarType {
   private Set DefaultSet;
   private boolean DefaultSetEverAccessed;
 
-  /*
-   * Whether or not this RealType refers to an interval (e.g. length difference,
-   * delta temperature).
+  /**
+   * The attribute mask of this RealType.
    * @serial
    */
-  private final boolean	isInterval;
+  private final int	attrMask;
+
+  /**
+   * The interval attribute.  This attribute should be used during construction
+   * of a RealType if the RealType refers to an interval (e.g. length 
+   * difference, delta temperature).  In general, RealType-s that are temporal
+   * in nature should have this attribute because the "time" variable in most
+   * formulae actually refer to time differences (e.g. "time since the beginning
+   * of the experiment").  One obvious exception to this lies with cosmology,
+   * where "time" is absolute rather than an interval.
+   */
+  public static final int	INTERVAL = 1;
+
+  /**
+   * The negative attribute.  This attribute should be used during construction
+   * of a RealType if the RealType refers to the negative of a quantity.  In
+   * general, this attribute probably won't be used all that much (why create
+   * a negative length, for example).  It's envisioned use is to keep track of
+   * the "sign" of a RealType.  For example, in the expression <code>deltaTemp =
+   * temp2.add(temp1.negate())</code>, where all variables refer to temperature
+   * and <code>temp1</code> and <code>temp2</code> are measured in degrees
+   * celsius, the NEGATIVE attribute is set in the RealType returned by <code>
+   * temp1.negate()</code> so that the result of the addition will be recognized
+   * as an interval.
+   */
+  public static final int	NEGATIVE = 2;
 
   /** Cartesian spatial coordinate - X axis */
   public final static RealType XAxis = new RealType("XAxis", null, true);
@@ -85,7 +109,7 @@ public class RealType extends ScalarType {
    * @throws VisADException	Couldn't create necessary VisAD object.
    */
   public RealType(String name) throws VisADException {
-    this(name, false);
+    this(name, 0);
   }
  
   /**
@@ -94,12 +118,13 @@ public class RealType extends ScalarType {
    * difference, delta temperature).  Assumes <code>null</code> for the default
    * Unit and default Set.
    * @param name		The name for the RealType.
-   * @param isInterval		Whether or not the RealType refers to an
-   *				interval.
+   * @param attrMask		The attribute mask formed from the bitwise
+   *				oring of any combination of INTERVAL and
+   *				NEGATIVE.
    * @throws VisADException	Couldn't create necessary VisAD object.
    */
-  public RealType(String name, boolean isInterval) throws VisADException {
-    this(name, null, null, isInterval);
+  public RealType(String name, int attrMask) throws VisADException {
+    this(name, null, null, attrMask);
   }
 
   /**
@@ -108,17 +133,14 @@ public class RealType extends ScalarType {
    * <em>not</em> refer to an interval.
    * @param name		The name for the RealType.
    * @param u                   The default unit for the RealType.  May be
-   *                            <code>null</code>.  If non-<code>null</code>
-   *                            and <code>isInterval</code> is
-   *                            <code>true</code>, then the default unit will 
-   *				actually be <code>u.getAbsoluteUnit()</code>.
+   *                            <code>null</code>.
    * @param set			The default sampling set for the RealType.
    *				Used when this type is a FunctionType domain.
    *				May be <code>null</code>.
    * @throws VisADException	Couldn't create necessary VisAD object.
    */
   public RealType(String name, Unit u, Set set) throws VisADException {
-    this(name, u, set, false);
+    this(name, u, set, 0);
   }
 
   /**
@@ -129,22 +151,24 @@ public class RealType extends ScalarType {
    * @param name		The name for the RealType.
    * @param u                   The default unit for the RealType.  May be
    *                            <code>null</code>.  If non-<code>null</code>
-   *                            and <code>isInterval</code> is
-   *                            <code>true</code>, then the default unit will
-   *				actually be <code>u.getAbsoluteUnit()</code>.
+   *                            and the RealType refers to an interval,
+   *                            then the default unit will actually be
+   *                            <code>u.getAbsoluteUnit()</code>.
    * @param set			The default sampling set for the RealType.
    *				Used when this type is a FunctionType domain.
    *				May be <code>null</code>.
-   * @param isInterval		Whether or not the RealType refers to an
-   *				interval.
+   * @param attrMask		The attribute mask formed from the bitwise
+   *				oring of any combination of INTERVAL and
+   *				NEGATIVE.
    * @throws VisADException	Couldn't create necessary VisAD object.
    */
-  public RealType(String name, Unit u, Set set, boolean isInterval) throws VisADException {
+  public RealType(String name, Unit u, Set set, int attrMask) throws VisADException {
     super(name);
     if (set != null && set.getDimension() != 1) {
       throw new SetException("RealType: default set dimension != 1");
     }
-    DefaultUnit = u != null && isInterval ? u.getAbsoluteUnit() : u;
+    DefaultUnit = 
+      u != null && isSet(attrMask, INTERVAL) ? u.getAbsoluteUnit() : u;
     DefaultSet = set;
     DefaultSetEverAccessed = false;
     if (DefaultUnit != null && DefaultSet != null) {
@@ -154,21 +178,30 @@ public class RealType extends ScalarType {
                                 "with Set default Unit");
       }
     }
-    this.isInterval = isInterval;
+    this.attrMask = attrMask;
   }
 
   /** trusted constructor for initializers */
   protected RealType(String name, Unit u, boolean b) {
-    this(name, u, false, b);
+    this(name, u, 0, b);
   }
 
   /** trusted constructor for initializers */
-  protected RealType(String name, Unit u, boolean isInterval, boolean b) {
+  protected RealType(String name, Unit u, int attrMask, boolean b) {
     super(name, b);
-    DefaultUnit = u != null && isInterval ? u.getAbsoluteUnit() : u;
+    DefaultUnit =
+      u != null && isSet(attrMask, INTERVAL) ? u.getAbsoluteUnit() : u;
     DefaultSet = null;
     DefaultSetEverAccessed = false;
-    this.isInterval = isInterval;
+    this.attrMask = attrMask;
+  }
+
+  /**
+   * Gets the attribute mask of this RealType.
+   * @return			The attribute mask of this RealType.
+   */
+  public final int getAttributeMask() {
+    return attrMask;
   }
 
   /**
@@ -178,7 +211,24 @@ public class RealType extends ScalarType {
    *				interval.
    */
   public final boolean isInterval() {
-    return isInterval;
+    return isSet(getAttributeMask(), INTERVAL);
+  }
+
+  /**
+   * Indicates whether or not this RealType refers to a negative quantity.
+   * @return			Whether or not this RealType refers to a 
+   *				negative quantity.
+   */
+  public final boolean isNegative() {
+    return isSet(getAttributeMask(), NEGATIVE);
+  }
+
+  /**
+   * Indicates if the given bits are set in an integer.
+   */
+  private static boolean
+  isSet(int value, int mask) {
+    return (value & mask) == mask;
   }
 
   /** get default Unit */
@@ -283,9 +333,77 @@ public class RealType extends ScalarType {
     MathType newType = null;
     String newName = null;
     if (type instanceof RealType) {
+      RealType that = (RealType)type;
       Unit unit = ((RealType)type).getDefaultUnit();
       Unit thisUnit = DefaultUnit;
+      int newAttrMask = 0;
 
+      /*
+       * Determine the attributes of the RealType that will result from the
+       * operation.
+       */
+      switch (op)
+      {
+        case Data.ADD:
+	  if ((isInterval() == that.isInterval()) &&
+	      (isInterval() || (issegative() != that.isNegative())))
+	    newAttrMask |= INTERVAL;
+	  if (isNegative() && that.isNegative())
+	    newAttrMask |= NEGATIVE;
+	  break;
+        case Data.SUBTRACT:
+	  if ((isInterval() == that.isInterval()) &&
+	      (isInterval() || (isNegative() == that.isNegative())))
+	    newAttrMask |= INTERVAL;
+	  if (isNegative() && !that.isNegative())
+	    newAttrMask |= NEGATIVE;
+	  break;
+        case Data.INV_SUBTRACT:
+	  if ((isInterval() == that.isInterval()) &&
+	      (isInterval() || (isNegative() == that.isNegative())))
+	    newAttrMask |= INTERVAL;
+	  if (that.isNegative() && !isNegative())
+	    newAttrMask |= NEGATIVE;
+	  break;
+        case Data.MAX:
+        case Data.MIN:
+	  if (isInterval() && that.isInterval())
+	    newAttrMask |= INTERVAL;
+	  if (isNegative() && that.isNegative())
+	    newAttrMask |= NEGATIVE;
+	  break;
+        case Data.MULTIPLY:
+	  if (isInterval() || that.isInterval())
+	    newAttrMask |= INTERVAL;
+	  if (isNegative() != that.isNegative())
+	    newAttrMask |= NEGATIVE;
+	  break;
+        case Data.DIVIDE:
+        case Data.REMAINDER:
+        case Data.INV_DIVIDE:
+        case Data.INV_REMAINDER:
+	  if (isInterval() != that.isInterval())
+	    newAttrMask |= INTERVAL;
+	  if (isNegative() != that.isNegative())
+	    newAttrMask |= NEGATIVE;
+	  break;
+        case Data.POW:
+	  newAttrMask = getAttributeMask();
+	  break;
+        case Data.INV_POW:
+	  newAttrMask = that.getAttributeMask();
+	  break;
+        case Data.ATAN2:
+        case Data.INV_ATAN2:
+        case Data.ATAN2_DEGREES:
+        case Data.INV_ATAN2_DEGREES: 
+        default:
+      }
+
+      /*
+       * Determine the RealType that will result from the operation.  Use the
+       * previously-determined attributes.
+       */
       switch (op)
       {
         case Data.ADD:
@@ -293,40 +411,32 @@ public class RealType extends ScalarType {
         case Data.INV_SUBTRACT:
         case Data.MAX:
         case Data.MIN:
-          if ( unit == null || thisUnit == null ) {
-            if ( thisUnit == null ) {
-              newType = this;
-              break;
-            }
-            if ( unit == null ) { 
-              newName = getUniqueGenericName( names, "nullUnit" );
-              newUnit = null;
-              try {
-                newType = new RealType( newName, newUnit, null );
-              }
-              catch ( TypeException e ) {
-                newType = RealType.getRealTypeByName( newName );
-              }
-              break;
-            }
-          }
+	  if ( thisUnit == null ) {
+	    newName = newName(getName(), newAttrMask);
+	    newUnit = null;
+	  }
+	  else if ( unit == null ) { 
+	    newName = newName(((RealType)type).getName(), newAttrMask);
+	    newUnit = null;
+	  }
           else if ( thisUnit.equals( CommonUnit.promiscuous ) ) {
-            newType = type;
+	    newName = newName(((RealType)type).getName(), newAttrMask);
+	    newUnit = ((RealType)type).getDefaultUnit();
           }
-          else if ( unit.equals( CommonUnit.promiscuous ) ) {
-            newType = this;
+          else if ( unit.equals( CommonUnit.promiscuous ) ||
+		    Unit.canConvert( thisUnit, unit ) ) {
+	    newName = newName(getName(), newAttrMask);
+	    newUnit = getDefaultUnit();
           }
-          else {
-            if ( thisUnit.equals( unit ) ) {
-              newType = this;
-            }
-            else if ( Unit.canConvert( thisUnit, unit ) ) {
-              newType = this;
-            }
-            else {
-              throw new UnitException();
-            }
-          }
+	  else {
+	    throw new UnitException();
+	  }
+	  try {
+	    newType = new RealType( newName, newUnit, null, newAttrMask );
+	  }
+	  catch ( TypeException e ) {
+	    newType = RealType.getRealTypeByName( newName );
+	  }
           break;
 
         case Data.MULTIPLY:
@@ -358,7 +468,7 @@ public class RealType extends ScalarType {
           }
 
           try {
-            newType = new RealType( newName, newUnit, null );
+            newType = new RealType( newName, newUnit, null, newAttrMask );
           }
           catch ( TypeException e ) {
             newType = RealType.getRealTypeByName( newName );
@@ -374,7 +484,7 @@ public class RealType extends ScalarType {
           newUnit = null;
           newName = getUniqueGenericName( names, "nullUnit" );
           try {
-            newType = new RealType( newName, newUnit, null );
+            newType = new RealType( newName, newUnit, null, newAttrMask );
           }
           catch ( TypeException e ) {
             newType = RealType.getRealTypeByName( newName );
@@ -387,7 +497,7 @@ public class RealType extends ScalarType {
           newUnit = CommonUnit.radian;
           newName = getUniqueGenericName( names, newUnit.toString() );
           try {
-            newType = new RealType( newName, newUnit, null );
+            newType = new RealType( newName, newUnit, null, newAttrMask );
           }
           catch ( TypeException e ) {
             newType = RealType.getRealTypeByName( newName );
@@ -400,7 +510,7 @@ public class RealType extends ScalarType {
           newUnit = CommonUnit.degree;
           newName = getUniqueGenericName( names, "deg" );
           try {
-            newType = new RealType( newName, newUnit, null );
+            newType = new RealType( newName, newUnit, null, newAttrMask );
           }
           catch ( TypeException e ) {
             newType = RealType.getRealTypeByName( newName );
@@ -464,6 +574,14 @@ public class RealType extends ScalarType {
     return newType;
   }
 
+  private static String newName( String oldName, int attrMask ) {
+    String	newName = oldName;
+    String	intervalSuffix = "Interval";
+    if ( isSet( attrMask, INTERVAL ) && !newName.endsWith( intervalSuffix ) )
+      newName += intervalSuffix;
+    return newName;
+  }
+
   /*- TDR July 1998 */
   public MathType unary( int op, Vector names )
          throws VisADException
@@ -471,14 +589,64 @@ public class RealType extends ScalarType {
     MathType newType;
     Unit newUnit;
     String newName;
+
+    /*
+     * Determine the attributes of the RealType that will result from the
+     * operation.
+     */
+    int newAttrMask = getAttributeMask();
     switch (op)
     {
-      case Data.ABS:
       case Data.CEIL:
       case Data.FLOOR:
       case Data.RINT:
       case Data.ROUND:
+      case Data.NOP:
+	break;				// do nothing
+      case Data.ABS:
+	newAttrMask &= ~NEGATIVE;	// clear negative attribute
+	break;
       case Data.NEGATE:
+	newAttrMask ^= NEGATIVE;	// toggle negative attribute
+	break;
+      case Data.ACOS:
+      case Data.ASIN:
+      case Data.ATAN:
+      case Data.ACOS_DEGREES:
+      case Data.ASIN_DEGREES:
+      case Data.ATAN_DEGREES:
+      case Data.COS:
+      case Data.COS_DEGREES:
+      case Data.SIN:
+      case Data.SIN_DEGREES:
+      case Data.TAN:
+      case Data.TAN_DEGREES:
+      case Data.SQRT:
+      case Data.EXP:
+      case Data.LOG:
+      default:
+	newAttrMask = 0;		// clear all attributes
+    }
+
+    newName = newName(getName(), newAttrMask);
+
+    switch (op)
+    {
+      case Data.ABS:
+      case Data.NEGATE:
+	newUnit = getDefaultUnit();
+	try {
+	  newType = new RealType( newName, newUnit, null, newAttrMask );
+	}
+	catch ( TypeException e ) {
+	  newType = RealType.getRealTypeByName( newName );
+	}
+	break;
+
+      case Data.CEIL:
+      case Data.FLOOR:
+      case Data.RINT:
+      case Data.ROUND:
       case Data.NOP:
         newType = this;
         break;
@@ -489,7 +657,7 @@ public class RealType extends ScalarType {
         newUnit = CommonUnit.radian;
         newName = getUniqueGenericName( names, newUnit.toString() );
         try {
-          newType = new RealType( newName, newUnit, null );
+          newType = new RealType( newName, newUnit, null, newAttrMask );
         }
         catch ( TypeException e ) {
           newType = RealType.getRealTypeByName( newName );
@@ -502,7 +670,7 @@ public class RealType extends ScalarType {
         newUnit = CommonUnit.degree;
         newName = getUniqueGenericName( names, "deg" );
         try {
-          newType = new RealType( newName, newUnit, null );
+          newType = new RealType( newName, newUnit, null, newAttrMask );
         }
         catch ( TypeException e ) {
           newType = RealType.getRealTypeByName( newName );
@@ -527,7 +695,7 @@ public class RealType extends ScalarType {
           String ext = (newUnit == null) ? "nullUnit" : newUnit.toString();
           newName = getUniqueGenericName( names, ext );
           try {
-            newType = new RealType( newName, newUnit, null );
+            newType = new RealType( newName, newUnit, null, newAttrMask );
           }
           catch ( TypeException e ) {
             newType = RealType.getRealTypeByName( newName );
@@ -536,7 +704,7 @@ public class RealType extends ScalarType {
         break;
 
       default:
-        throw new ArithmeticException("RealType.binary: illegal operation");
+        throw new ArithmeticException("RealType.unary: illegal operation");
     }
 
     return newType;
