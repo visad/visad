@@ -72,7 +72,7 @@ public class ContourControl extends Control {
   boolean contourFill;
 
   private static double init_scale = Double.NaN;
-  private boolean autoSizeLabels = true;
+  private boolean autoSizeLabels = false;
   private double labelSizeFactor = 1;
   private ZoomDoneListener zoom;
   private ProjectionControl pcntrl;
@@ -485,8 +485,7 @@ public class ContourControl extends Control {
     return init_scale;
   }
 
-  public void setAutoScaleLabels(boolean flag)
-         throws VisADException, RemoteException {
+  public void setAutoScaleLabels(boolean flag) {
     synchronized(this) {
       autoSizeLabels = flag;
     }
@@ -855,7 +854,7 @@ public class ContourControl extends Control {
         mouse.instance_unmake_matrix(rot, scale, trans, matrix);
         if (scale[0]/last_scale > ratio ||
             scale[0]/last_scale < 1/ratio) { //- re-label
-          c_cntrl.changeControl(true);
+          if (labels) c_cntrl.changeControl(true);
           last_scale = scale[0];
         }
       }

@@ -3525,6 +3525,7 @@ try {
           }
           else if (spatialManifoldDimension == 2) {
             if (spatial_set != null) {
+              control.setAutoScaleLabels(true);
 
               float[] lowhibase = new float[3];
               boolean[] dashes  = {false};
