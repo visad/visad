@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: SimpleColorMapWidget.java,v 1.25 1999-09-20 19:42:43 dglo Exp $
+@(#) $Id: SimpleColorMapWidget.java,v 1.26 1999-11-15 20:04:42 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -40,7 +40,7 @@ import javax.swing.*;
  * RGB/RGBA tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.25 $, $Date: 1999-09-20 19:42:43 $
+ * @version $Revision: 1.26 $, $Date: 1999-11-15 20:04:42 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledColorWidget
@@ -286,20 +286,23 @@ public class LabeledColorWidget
     }
     else if (e.getActionCommand().equals("grey")) {
       // reset color table to grey wedge
-      try {
-        float[][] table = copy_table(orig_table);
-        float a = 1.0f / (table[0].length - 1.0f);
-        for (int j=0; j<table[0].length; j++) {
+      if (orig_table != null && orig_table[0] != null) {
+        int len = orig_table[0].length;
+        float[][] table = new float[orig_table.length][len];
+        float a = 1.0f / (len - 1.0f);
+        for (int j=0; j<len; j++) {
           table[0][j] = table[1][j] = table[2][j] = j * a;
           if (components > 3) {
             table[3][j] = 1.0f;
           }
         }
-        control.setTable(table);
-        ((BaseRGBMap) widget.getColorMap()).setValues(table_reorg(table));
+        try {
+          control.setTable(table);
+          ((BaseRGBMap) widget.getColorMap()).setValues(table_reorg(table));
+        }
+        catch (VisADException exc) { }
+        catch (RemoteException exc) { }
       }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
     }
   }
 
