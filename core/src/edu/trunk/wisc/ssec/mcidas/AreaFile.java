@@ -113,8 +113,25 @@ public class AreaFile {
   public static final int AD_DIRSIZE    = 64;
 
   // load protocol handler for ADDE URLs
-  static {
-    URL.setURLStreamHandlerFactory(new AddeURLStreamHandlerFactory());
+  // See java.net.URL for explanation of URL handling
+  static 
+  {
+      try 
+      {
+          String handlers = System.getProperty("java.protocol.handler.pkgs");
+          String newProperty = null;
+          if (handlers == null)
+              newProperty = "edu.wisc.ssec.mcidas";
+          else if (handlers.indexOf("edu.wisc.ssec.mcidas") < 0)
+              newProperty = "edu.wisc.ssec.mcidas | " + handlers;
+          if (newProperty != null)  // was set above
+              System.setProperty("java.protocol.handler.pkgs", newProperty);
+      }
+      catch (Exception e)
+      {
+          System.out.println(
+              "Unable to set System Property: java.protocol.handler.pkgs"); 
+      }
   }
 
   private boolean flipwords;
