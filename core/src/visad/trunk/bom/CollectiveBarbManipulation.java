@@ -855,29 +855,45 @@ public class CollectiveBarbManipulation extends Object
   }
 
   class Stepper extends CellImpl { // NEW
+int old_current = -1;
     public void doAction() throws VisADException, RemoteException {
       if (first || control == null) return;
       synchronized (data_lock) {
         which_time = -1;
-        if (barb_manipulation_renderers == null) return;
-        for (int i=0; i<nindex; i++) {
-          which_times[i] = -1;
-          if (barb_manipulation_renderers[i] == null) return;
-          barb_manipulation_renderers[i].stop_direct();
-        }
- 
+
         int current = control.getCurrent();
         if (current < 0) return;
         which_time = current;
- 
+
+if (current != old_current) {
+        if (barb_manipulation_renderers == null) return;
+        for (int i=0; i<nindex; i++) {
+          which_times[i] = -1;
+if (barb_manipulation_renderers[i] != null) {
+  barb_manipulation_renderers[i].stop_direct();
+}
+          // if (barb_manipulation_renderers[i] == null) return;
+          // barb_manipulation_renderers[i].stop_direct();
+        }
+}
+/*
+        int current = control.getCurrent();
+        if (current < 0) return;
+        which_time = current;
+*/
+if (current != old_current) {
         for (int i=0; i<nindex; i++) {
           int index = global_to_station[i][current];
           if (index < tuples[i].length) {
+if (station_refs[i] != null) {
             station_refs[i].setData(tuples[i][index]);
             which_times[i] = index;
+}
           }
           // System.out.println("station " + i + " ref " + index);
         } // end for (int i=0; i<nindex; i++)
+}
+old_current = current;
  
         if (first_real) {
           first_real = false;
@@ -1205,6 +1221,7 @@ public class CollectiveBarbManipulation extends Object
     }
   
     public void doAction() throws VisADException, RemoteException {
+// System.out.println("BarbMonitor.doAction " + ref.getName());
       synchronized (data_lock) {
         int time_index = which_times[sta_index];
         if (time_index < 0) return;
@@ -1343,7 +1360,7 @@ public class CollectiveBarbManipulation extends Object
         cbm.circleEnable();
         current_index = index;
       }
-  
+// System.out.println("CBarbManipulationRendererJ3D " + index);
       super.drag_direct(ray, first, mouseModifiers);
     }
   }
