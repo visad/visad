@@ -181,7 +181,6 @@ SAVE_FILES = \
 	visad/data/in/package.html			\
 	visad/data/dods/*.java				\
 	visad/data/dods/package.html			\
-	visad/data/dods/Makefile			\
 	visad/data/netcdf/*.java			\
 	visad/data/netcdf/units/*.java			\
 	visad/data/netcdf/in/*.java			\
@@ -198,6 +197,13 @@ SAVE_FILES = \
 	ucar/tests/*.java				\
 	ucar/tests/test.nc				\
 	ucar/tests/test.out				\
+	dods/dap/*.java					\
+	dods/dap/Server/*.java				\
+	dods/dap/functions/*.java			\
+	dods/dap/parser/*.java				\
+	dods/dap/test/*.java				\
+	dods/util/*.java				\
+	dods/util/gui/*.java				\
 	visad/data/hdfeos/*.java			\
 	visad/data/hdfeos/hdfeosc/*.java		\
 	visad/data/hdfeos/hdfeosc/*.c			\
@@ -291,6 +297,8 @@ DOC_PACKAGES = \
 		ucar.util \
 		ucar.netcdf \
 		ucar.tests \
+		dods.dap \
+		dods.util \
 		visad.data \
 		visad.data.in \
 		visad.data.dods \
@@ -564,12 +572,14 @@ nexusrmi_compile:
 tonexus:
 	java2nexus `find . -name "*.java"`
 	java2nexus `find ../ucar -name "*.java"`
+	java2nexus `find ../dods -name "*.java"`
 	java2nexus `find ../nom -name "*.java"`
 	java2nexus `find ../edu -name "*.java"`
 
 tojava:
 	nexus2java `find . -name "*.java"`
 	nexus2java `find ../ucar -name "*.java"`
+	nexus2java `find ../dods -name "*.java"`
 	nexus2java `find ../nom -name "*.java"`
 	nexus2java `find ../edu -name "*.java"`
 

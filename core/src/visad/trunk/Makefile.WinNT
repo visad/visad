@@ -106,8 +106,6 @@ visad\data\in\*.java \
 visad\data\in\package.html \
 visad\data\dods\*.java \
 visad\data\dods\package.html \
-visad\data\dods\Makefile \
-visad\data\dods\Makefile.WinNT \
 visad\data\netcdf\*.java \
 visad\data\netcdf\units\*.java \
 visad\data\netcdf\in\*.java \
@@ -123,6 +121,13 @@ ucar\netcdf\*.java \
 ucar\tests\*.java \
 ucar\tests\test.nc \
 ucar\tests\test.out \
+dods\dap\*.java \
+dods\dap\Server\*.java \
+dods\dap\functions\*.java \
+dods\dap\parser\*.java \
+dods\dap\test\*.java \
+dods\util\*.java \
+dods\util\gui\*.java \
 visad\data\hdfeos\*.java \
 visad\data\hdfeos\README.hdfeos \
 visad\data\hdfeos\hdfeosc\*.java \
@@ -249,8 +254,6 @@ visad\data\in\*.java \
 visad\data\in\package.html \
 visad\data\dods\*.java \
 visad\data\dods\package.html \
-visad\data\dods\Makefile \
-visad\data\dods\Makefile.WinNT \
 visad\data\netcdf\*.java \
 visad\data\netcdf\units\*.java \
 visad\data\netcdf\in\*.java \
@@ -266,6 +269,13 @@ ucar\netcdf\*.java \
 ucar\tests\*.java \
 ucar\tests\test.nc \
 ucar\tests\test.out \
+dods\dap\*.java \
+dods\dap\Server\*.java \
+dods\dap\functions\*.java \
+dods\dap\parser\*.java \
+dods\dap\test\*.java \
+dods\util\*.java \
+dods\util\gui\*.java \
 visad\data\hdfeos\*.java \
 visad\data\hdfeos\hdfeosc\*.java \
 visad\data\hdfeos\hdfeosc\*.c \
@@ -402,6 +412,20 @@ save:
 		$(DEL) $(BACKUP)\ucar\netcdf\*.java
 	if exist $(BACKUP)\ucar\tests\*.java \
 		$(DEL) $(BACKUP)\ucar\tests\*.java
+	if exist $(BACKUP)\dods\dap\*.java \
+		$(DEL) $(BACKUP)\dods\dap\*.java
+	if exist $(BACKUP)\dods\dap\Server\*.java \
+		$(DEL) $(BACKUP)\dods\dap\Server\*.java
+	if exist $(BACKUP)\dods\dap\functions\*.java \
+		$(DEL) $(BACKUP)\dods\dap\functions\*.java
+	if exist $(BACKUP)\dods\dap\parser\*.java \
+		$(DEL) $(BACKUP)\dods\dap\parser\*.java
+	if exist $(BACKUP)\dods\dap\test\*.java \
+		$(DEL) $(BACKUP)\dods\dap\test\*.java
+	if exist $(BACKUP)\dods\util\*.java \
+		$(DEL) $(BACKUP)\dods\util\*.java
+	if exist $(BACKUP)\dods\util\gui\*.java \
+		$(DEL) $(BACKUP)\dods\util\gui\*.java
 	if exist $(BACKUP)\visad\data\hdfeos\*.java \
 		$(DEL) $(BACKUP)\visad\data\hdfeos\*.java
 	if exist $(BACKUP)\visad\data\hdfeos\hdfeosc\*.java \
@@ -490,6 +514,13 @@ visad\data\netcdf\out\*.class \
 ucar\multiarray\*.class \
 ucar\netcdf\*.class \
 ucar\tests\*.class \
+dods\dap\*.class \
+dods\dap\Server\*.class \
+dods\dap\functions\*.class \
+dods\dap\parser\*.class \
+dods\dap\test\*.class \
+dods\util\*.class \
+dods\util\gui\*.class \
 visad\data\fits\*.class \
 nom\tam\fits\*.class \
 nom\tam\util\*.class \
@@ -581,6 +612,13 @@ clear:
 	if exist ..\ucar\multiarray\*.java $(DEL) ..\ucar\multiarray\*.java
 	if exist ..\ucar\netcdf\*.java $(DEL) ..\ucar\netcdf\*.java
 	if exist ..\ucar\tests\*.java $(DEL) ..\ucar\tests\*.java
+	if exist ..\dods\dap\*.java $(DEL) ..\dods\dap\*.java 
+	if exist ..\dods\dap\Server\*.java $(DEL) ..\dods\dap\Server\*.java 
+	if exist ..\dods\dap\functions\*.java $(DEL) ..\dods\dap\functions\*.java 
+	if exist ..\dods\dap\parser\*.java $(DEL) ..\dods\dap\parser\*.java 
+	if exist ..\dods\dap\test\*.java $(DEL) ..\dods\dap\test\*.java 
+	if exist ..\dods\util\*.java $(DEL) ..\dods\util\*.java 
+	if exist ..\dods\util\gui\*.java $(DEL) ..\dods\util\gui\*.java 
 	if exist data\hdfeos\*.java $(DEL) data\hdfeos\*.java
 	if exist data\hdfeos\hdfeosc\*.java $(DEL) data\hdfeos\hdfeosc\*.java
 	if exist data\vis5d\*.java $(DEL) data\vis5d\*.java
@@ -649,6 +687,13 @@ clean:
 	if exist ..\ucar\multiarray\*.class $(DEL) ..\ucar\multiarray\*.class
 	if exist ..\ucar\netcdf\*.class $(DEL) ..\ucar\netcdf\*.class
 	if exist ..\ucar\tests\*.class $(DEL) ..\ucar\tests\*.class
+	if exist ..\dods\dap\*.class $(DEL) ..\dods\dap\*.class 
+	if exist ..\dods\dap\Server\*.class $(DEL) ..\dods\dap\Server\*.class 
+	if exist ..\dods\dap\functions\*.class $(DEL) ..\dods\dap\functions\*.class 
+	if exist ..\dods\dap\parser\*.class $(DEL) ..\dods\dap\parser\*.class 
+	if exist ..\dods\dap\test\*.class $(DEL) ..\dods\dap\test\*.class 
+	if exist ..\dods\util\*.class $(DEL) ..\dods\util\*.class 
+	if exist ..\dods\util\gui\*.class $(DEL) ..\dods\util\gui\*.class 
 	if exist data\hdfeos\*.class $(DEL) data\hdfeos\*.class
 	if exist data\hdfeos\hdfeosc\*.class $(DEL) data\hdfeos\hdfeosc\*.class
 	if exist data\vis5d\*.class $(DEL) data\vis5d\*.class
@@ -722,6 +767,13 @@ data\*.class \
 ..\ucar\multiarray\*.class \
 ..\ucar\netcdf\*.class \
 ..\ucar\tests\*.class \
+..\dods\dap\*.class \
+..\dods\dap\Server\*.class \
+..\dods\dap\functions\*.class \
+..\dods\dap\parser\*.class \
+..\dods\dap\test\*.class \
+..\dods\util\*.class \
+..\dods\util\gui\*.class \
 data\units\*.class \
 data\in\*.class \
 data\dods\*.class \
@@ -897,6 +949,13 @@ ucar.multiarray \
 ucar.util \
 ucar.netcdf \
 ucar.tests \
+dods.dap \
+dods.dap.Server \
+dods.dap.functions \
+dods.dap.parser \
+dods.dap.test \
+dods.util \
+dods.util.gui \
 visad.data.hdfeos \
 visad.data.hdfeos.hdfeosc \
 visad.data.vis5d \
