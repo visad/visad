@@ -201,6 +201,7 @@ public class VisBio extends GUIFrame implements ChangeListener {
     addMenuItem("File", "Exit", "fileExit", 'x');
     fileExport.setEnabled(false);
     addMenuItem("Help", "Overview", "helpOverview", 'o');
+    addMenuItem("Help", "About", "helpAbout", 'a');
 
     // lay out components
     JPanel pane = new JPanel();
@@ -590,6 +591,13 @@ public class VisBio extends GUIFrame implements ChangeListener {
     final JFrame frame = this;
     Util.invoke(false, new Runnable() {
       public void run() { help.showWindow(frame); }
+    });
+  }
+
+  public void helpAbout() {
+    final JFrame frame = this;
+    Util.invoke(false, new Runnable() {
+      public void run() { help.showWindow(frame, 1); }
     });
   }
 

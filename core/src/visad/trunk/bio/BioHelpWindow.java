@@ -47,6 +47,9 @@ public class BioHelpWindow extends JPanel implements ActionListener {
   /** Ok button. */
   private JButton ok;
 
+  /** Information tabs. */
+  private JTabbedPane tabs;
+
   /** Currently visible window. */
   private JFrame window;
 
@@ -56,10 +59,10 @@ public class BioHelpWindow extends JPanel implements ActionListener {
   /** Creates a file series import dialog. */
   public BioHelpWindow() {
     // create components
-    JTabbedPane tabs = new JTabbedPane();
+    tabs = new JTabbedPane();
 
-    addTab(tabs, "Overview", "overview.html");
-    addTab(tabs, "About", "about.html");
+    addTab("Overview", "overview.html");
+    addTab("About", "about.html");
 
     ok = new JButton("Close");
     ok.setMnemonic('c');
@@ -81,10 +84,16 @@ public class BioHelpWindow extends JPanel implements ActionListener {
   // -- API METHODS --
 
   /** Displays the dialog onscreen. */
-  public void showWindow(Frame parent) {
-    window = new JFrame("VisBio Help");
-    window.getRootPane().setDefaultButton(ok);
-    window.setContentPane(this);
+  public void showWindow(Frame parent) { showWindow(parent, 0); }
+
+  /** Displays the dialog onscreen, with the given tab in front. */
+  public void showWindow(Frame parent, int tab) {
+    tabs.setSelectedIndex(tab);
+    if (window == null) {
+      window = new JFrame("VisBio Help");
+      window.getRootPane().setDefaultButton(ok);
+      window.setContentPane(this);
+    }
     Point loc = parent.getLocation();
     Dimension size = parent.getSize();
     Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
@@ -108,7 +117,7 @@ public class BioHelpWindow extends JPanel implements ActionListener {
    * Adds a tab to the given JTabbedPane with the given title,
    * with content from the specified file.
    */
-  private static void addTab(JTabbedPane tabs, String title, String file) {
+  private void addTab(String title, String file) {
     JEditorPane editor = null;
     try { editor = new JEditorPane(new File(file).toURL()); }
     catch (IOException exc) { exc.printStackTrace(); }
