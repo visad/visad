@@ -1056,6 +1056,16 @@ public class AddeURLConnection extends URLConnection
           subsetString = subBuf.toString();
           if (debug) System.out.println(subsetString);
       }
+      else if (skip != null) {  // only skip specified
+          StringBuffer subBuf = new StringBuffer();
+          subBuf.append("subset=1 99999 1 99999");
+          subBuf.append(" ");
+          subBuf.append(skip);
+          subBuf.append(" ROWCOL");
+          subsetString = subBuf.toString();
+          if (debug) System.out.println(subsetString);
+      }
+
       if (subsetString != null) buf.append(subsetString);
 
       // create command string
