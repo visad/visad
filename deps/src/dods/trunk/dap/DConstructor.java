@@ -19,7 +19,7 @@ import java.io.PrintWriter;
  * (<code>DStructure</code>, <code>DSequence</code>, <code>DGrid</code>, and
  * <code>DList</code>).
  *
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @author jehamby
  * @see DStructure
  * @see DSequence

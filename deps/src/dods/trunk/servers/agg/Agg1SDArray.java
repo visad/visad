@@ -1,4 +1,4 @@
-// $Id: Agg1SDArray.java,v 1.2 2003-12-03 08:30:30 donm Exp $
+// $Id: Agg1SDArray.java,v 1.3 2004-02-06 15:23:49 donm Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -31,7 +31,7 @@ import java.util.*;
  * Aggregates an SDArray distributed across multiple datasets (type 1), where
  * the outer dimension is synthesized, and there is one AggFile per step.
  *
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @author jcaron
  */
 public class Agg1SDArray extends SDArray  {

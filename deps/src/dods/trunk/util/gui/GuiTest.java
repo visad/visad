@@ -23,7 +23,7 @@ import dods.util.gui.error_box;
 /**
  * Test routine for the dods/util/gui classes
  *
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @author ndp
  */
 

@@ -19,7 +19,7 @@ import java.io.*;
  * deserialize it, thus allowing more efficient storage to be used for the
  * primitive types.
  *
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @author jehamby
  * @see BaseType
  * @see DArray

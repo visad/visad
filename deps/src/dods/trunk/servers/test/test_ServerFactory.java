@@ -33,7 +33,7 @@ package dods.servers.test;
 import dods.dap.*;
 
 /** The default server-side Factory for BaseType objects.
-    @version $Revision: 1.2 $
+    @version $Revision: 1.3 $
     @author jhrg
     @see BaseTypeFactory */
 public class test_ServerFactory implements BaseTypeFactory {

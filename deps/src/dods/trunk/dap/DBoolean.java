@@ -35,7 +35,7 @@ import dods.dap.*;
 /**
  * Holds a DODS <code>Boolean</code> value.
  *
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @author npotter
  * @see BaseType
  */

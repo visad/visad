@@ -51,7 +51,7 @@ import dods.dap.BaseType;
   * @see dods.dap.Server.ServerMethods
   * @see dods.dap.Server.Operator
     
-  * @version $Revision: 1.2 $
+  * @version $Revision: 1.3 $
   * @author jhrg & ndp */
 
 

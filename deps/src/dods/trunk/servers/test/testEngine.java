@@ -23,7 +23,7 @@ import dods.dap.Server.*;
  * Used by the test server to reset the server output
  * for each new client request.
  *
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @author ndp
  * @see BaseType
  */

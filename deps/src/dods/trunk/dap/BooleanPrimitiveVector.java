@@ -33,7 +33,7 @@ import java.io.*;
 /**
  * A vector of booleans.
  *
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @author ndp
  * @see PrimitiveVector
  */

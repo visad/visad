@@ -22,7 +22,7 @@ import java.io.*;
 /**
  * Holds a DODS Server <code>Structure</code> value.
  *
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @author ndp
  * @see BaseType
  */

@@ -1,6 +1,6 @@
 
 
-/* $Id: BTFunction.java,v 1.2 2003-12-03 08:30:29 donm Exp $
+/* $Id: BTFunction.java,v 1.3 2004-02-06 15:23:48 donm Exp $
 *
 */
 

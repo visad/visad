@@ -1,4 +1,4 @@
-// $Id: NcSDFloat64.java,v 1.2 2003-12-03 08:30:31 donm Exp $
+// $Id: NcSDFloat64.java,v 1.3 2004-02-06 15:23:49 donm Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -33,7 +33,7 @@ import ucar.nc2.*;
 
 /**
  * Wraps a netcdf scalar double variable.
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @author jcaron
  */
 public class NcSDFloat64 extends SDFloat64 implements HasProxyObject {

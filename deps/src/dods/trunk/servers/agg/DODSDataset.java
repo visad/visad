@@ -1,4 +1,4 @@
-// $Id: DODSDataset.java,v 1.2 2003-12-03 08:30:30 donm Exp $
+// $Id: DODSDataset.java,v 1.3 2004-02-06 15:23:49 donm Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -29,7 +29,7 @@ import dods.dap.Server.ServerDDS;
 * This is a proxy for a dataset on another DODS server.
 *
 * @author John Caron
-* @version $Id: DODSDataset.java,v 1.2 2003-12-03 08:30:30 donm Exp $
+* @version $Id: DODSDataset.java,v 1.3 2004-02-06 15:23:49 donm Exp $
 */
 
 public class DODSDataset extends Dataset {

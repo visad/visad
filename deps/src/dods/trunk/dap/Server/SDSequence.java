@@ -39,7 +39,7 @@ import dods.dap.Server.SBHException;
 /**
  * Holds a DODS Server <code>Sequence</code> value.
  *
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @author ndp
  * @see BaseType
  */

@@ -1,4 +1,4 @@
-// $Id: CacheDataset.java,v 1.2 2003-12-03 08:30:30 donm Exp $
+// $Id: CacheDataset.java,v 1.3 2004-02-06 15:23:49 donm Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -31,7 +31,7 @@ import dods.util.Debug;
  * The dataset mutex lock is acquired if successful.
  *
  * @author John Caron
- * @version $Id: CacheDataset.java,v 1.2 2003-12-03 08:30:30 donm Exp $
+ * @version $Id: CacheDataset.java,v 1.3 2004-02-06 15:23:49 donm Exp $
  */
 
 public class CacheDataset {

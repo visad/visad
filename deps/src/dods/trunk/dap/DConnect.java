@@ -24,7 +24,7 @@ import java.util.zip.InflaterInputStream;
  * DDS, etc. objects. Rather, the methods <code>getDAS</code>, etc. return
  * instances of those objects.
  *
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @author jehamby
  */
 public class DConnect {

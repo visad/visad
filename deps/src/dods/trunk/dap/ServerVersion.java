@@ -17,7 +17,7 @@ package dods.dap;
  * It is used so that classes which implement ClientIO don't need any knowledge
  * of the DDS class.
  *
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @author jehamby
  * @see ClientIO
  * @see DDS

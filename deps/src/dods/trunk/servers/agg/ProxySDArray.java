@@ -1,4 +1,4 @@
-// $Id: ProxySDArray.java,v 1.2 2003-12-03 08:30:30 donm Exp $
+// $Id: ProxySDArray.java,v 1.3 2004-02-06 15:23:49 donm Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -31,7 +31,7 @@ import java.util.*;
  * Proxy for an array in another (DODS) dataset.
  * If its 1D, read the entire array the first time and cache it.
  *
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @author jcaron
  */
 public class ProxySDArray extends SDArray implements HasProxyObject {
