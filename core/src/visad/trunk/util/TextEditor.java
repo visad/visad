@@ -92,7 +92,7 @@ public class TextEditor extends JScrollPane implements UndoableEditListener {
   /** starts from scratch with a blank document */
   public void newFile() {
     currentFile = null;
-    text.setText("");
+    setText("");
     undo.discardAllEdits();
     changed = false;
   }
@@ -116,7 +116,7 @@ public class TextEditor extends JScrollPane implements UndoableEditListener {
       fileText = new String(bytes);
     }
     currentFile = file;
-    text.setText(fileText);
+    setText(fileText);
     changed = false;
   }
 
@@ -200,6 +200,11 @@ public class TextEditor extends JScrollPane implements UndoableEditListener {
   /** returns a string containing the text of the document */
   public String getText() {
     return text.getText();
+  }
+
+  /** sets the text of this document to the current string */
+  public void setText(String text) {
+    this.text.setText(text);
   }
   
   /** returns the filename being edited */

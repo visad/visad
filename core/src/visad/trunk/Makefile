@@ -159,6 +159,8 @@ SAVE_FILES = \
 	visad/examples/*.java				\
 	visad/java3d/*.java				\
 	visad/java2d/*.java				\
+	visad/python/*.java				\
+	visad/python/*.py				\
 	visad/browser/*.java				\
 	visad/browser/*.html				\
 	visad/util/*.java				\
@@ -256,6 +258,7 @@ DOC_PACKAGES = \
 		visad.collab \
 		visad.java3d \
 		visad.java2d \
+		visad.python \
                 visad.browser \
 		visad.util \
 		ucar.multiarray \

@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad.ss;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.awt.event.*;
 import java.net.URL;
 import java.rmi.RemoteException;
@@ -314,9 +315,12 @@ public class MappingDialog extends JDialog
     contentPane.add(Box.createRigidArea(new Dimension(0, 5)));
 
     // draw the "pretty-print" MathType to an Image (slow!)
-    final Image ppImg = parent.createImage(StrWidth[0], StrHeight[0]);
+    final BufferedImage ppImg = new BufferedImage(
+      StrWidth[0], StrHeight[0], BufferedImage.TYPE_INT_RGB);
     Graphics g = ppImg.getGraphics();
     g.setFont(Mono);
+    g.setColor(Color.white);
+    g.fillRect(0, 0, StrWidth[0], StrHeight[0]);
     g.setColor(Color.black);
     for (int i=0; i<mtype[0].length; i++) {
       g.drawString(mtype[0][i], 5, (ScH+2)*(i+1));
@@ -391,9 +395,12 @@ public class MappingDialog extends JDialog
     // only do CoordSys stuff if there are CoordinateSystem references
     if (CoordRefs) {
       // draw the pretty-print CoordinateSystem references to an Image (slow!)
-      final Image csImg = parent.createImage(StrWidth[1], StrHeight[1]);
+      final BufferedImage csImg = new BufferedImage(
+        StrWidth[1], StrHeight[1], BufferedImage.TYPE_INT_RGB);
       g = csImg.getGraphics();
       g.setFont(Mono);
+      g.setColor(Color.white);
+      g.fillRect(0, 0, StrWidth[1], StrHeight[1]);
       g.setColor(Color.black);
       for (int i=0; i<mtype[1].length; i++) {
         g.drawString(mtype[1][i], 5, (ScH+2)*(i+1));
@@ -522,7 +529,7 @@ public class MappingDialog extends JDialog
     catch (InterruptedException exc) { }
 
     // copy DRT into MapTo and black out icons of illegal DisplayRealTypes
-    MapTo = parent.createImage(280, 200);
+    MapTo = new BufferedImage(280, 200, BufferedImage.TYPE_INT_RGB);
     Graphics gr = MapTo.getGraphics();
     gr.drawImage(DRT, 0, 0, this);
     if (!AllowAlpha) {
