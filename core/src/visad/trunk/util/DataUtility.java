@@ -847,7 +847,7 @@ public class DataUtility {
   public static int getRealTypes(Data data, Vector v)
     throws VisADException, RemoteException
   {
-    return getRealTypes(new Data[] {data}, v);
+    return getRealTypes(new Data[] {data}, v, true, false);
   }
 
   /**
@@ -856,108 +856,121 @@ public class DataUtility {
    * @param data                The array of Data from which to extract the
    *                            ScalarTypes.
    * @param v                   The Vector in which to store the ScalarTypes.
+   * @param keepDupl            Whether to add a RealType to the Vector when
+   *                            it is already present there.
+   * @param doCoordSys          Whether to include RealTypes from
+   *                            CoordinateSystem references.
    * @throws VisADException     Couldn't parse a Data's MathType.
    * @throws RemoteException    Couldn't obtain a remote Data's MathType.
    * @return                    The number of duplicate ScalarTypes found.
    */
-  public static int getRealTypes(Data[] data, Vector v)
-    throws VisADException, RemoteException
+  public static int getRealTypes(Data[] data, Vector v, boolean keepDupl,
+    boolean doCoordSys) throws VisADException, RemoteException
   {
+    Vector coord = (doCoordSys ? new Vector() : null);
     int[] dupl = new int[1];
     dupl[0] = 0;
     for (int i=0; i<data.length; i++) {
       Data d = data[i];
       if (d != null) {
-        MathType dataType = d.getType();
-
-        if (dataType instanceof FunctionType) {
-          parseFunction((FunctionType) dataType, v, dupl);
-        }
-        else if (dataType instanceof SetType) {
-          parseSet((SetType) dataType, v, dupl);
-        }
-        else if (dataType instanceof TupleType) {
-          parseTuple((TupleType) dataType, v, dupl);
-        }
-        else parseScalar((ScalarType) dataType, v, dupl);
+        MathType type = d.getType();
+        parse(type, v, dupl, keepDupl, coord);
       }
     }
-
+    if (coord != null) {
+      // append coordinate system reference RealTypes to vector
+      for (int i=0; i<coord.size(); i++) {
+        Object o = coord.elementAt(i);
+        boolean c = v.contains(o);
+        if (c) dupl[0]++;
+        if (keepDupl || !c) v.add(o);
+      }
+    }
     return dupl[0];
   }
 
   /**
-   * getRealTypes() helper method.
+   * getRealTypes helper method.
    */
-  private static void parseFunction(FunctionType mathType, Vector v, int[] i)
-    throws VisADException
+  private static void parse(MathType mathType, Vector v, int[] i,
+    boolean keepDupl, Vector coord) throws VisADException
+  {
+    if (mathType instanceof FunctionType) {
+      parseFunction((FunctionType) mathType, v, i, keepDupl, coord);
+    }
+    else if (mathType instanceof SetType) {
+      parseSet((SetType) mathType, v, i, keepDupl, coord);
+    }
+    else if (mathType instanceof TupleType) {
+      parseTuple((TupleType) mathType, v, i, keepDupl, coord);
+    }
+    else parseScalar((ScalarType) mathType, v, i, keepDupl);
+  }
+
+  /**
+   * getRealTypes helper method.
+   */
+  private static void parseFunction(FunctionType mathType, Vector v, int[] i,
+    boolean keepDupl, Vector coord) throws VisADException
   {
     // extract domain
     RealTupleType domain = mathType.getDomain();
-    parseTuple((TupleType) domain, v, i);
+    parseTuple((TupleType) domain, v, i, keepDupl, coord);
 
     // extract range
     MathType range = mathType.getRange();
-    if (range instanceof FunctionType) {
-      parseFunction((FunctionType) range, v, i);
-    }
-    else if (range instanceof SetType) {
-      parseSet((SetType) range, v, i);
-    }
-    else if (range instanceof TupleType) {
-      parseTuple((TupleType) range, v, i);
-    }
-    else parseScalar((ScalarType) range, v, i);
-
-    return;
+    parse(range, v, i, keepDupl, coord);
   }
 
   /**
-   * getRealTypes() helper method.
+   * getRealTypes helper method.
    */
-  private static void parseSet(SetType mathType, Vector v, int[] i)
-    throws VisADException
+  private static void parseSet(SetType mathType, Vector v, int[] i,
+    boolean keepDupl, Vector coord) throws VisADException
   {
     // extract domain
     RealTupleType domain = mathType.getDomain();
-    parseTuple((TupleType) domain, v, i);
-
-    return;
+    parseTuple((TupleType) domain, v, i, keepDupl, coord);
   }
 
   /**
-   * getRealTypes() helper method.
+   * getRealTypes helper method.
    */
-  private static void parseTuple(TupleType mathType, Vector v, int[] i)
-    throws VisADException
+  private static void parseTuple(TupleType mathType, Vector v, int[] i,
+    boolean keepDupl, Vector coord) throws VisADException
   {
     // extract components
     for (int j=0; j<mathType.getDimension(); j++) {
       MathType cType = mathType.getComponent(j);
-
-      if (cType != null) {
-        if (cType instanceof FunctionType) {
-          parseFunction((FunctionType) cType, v, i);
+      if (cType != null) parse(cType, v, i, keepDupl, coord);
+    }
+    if (mathType instanceof RealTupleType && coord != null) {
+      // add coordinate system references
+      RealTupleType realTupleType = (RealTupleType) mathType;
+      CoordinateSystem coordSys = realTupleType.getCoordinateSystem();
+      if (coordSys != null) {
+        RealTupleType ref = coordSys.getReference();
+        for (int j=0; j<realTupleType.getDimension(); j++) {
+          RealType rType = (RealType) realTupleType.getComponent(j);
+          parseScalar(rType, coord, new int[1], keepDupl);
         }
-        else if (cType instanceof SetType) {
-          parseSet((SetType) cType, v, i);
+        for (int j=0; j<ref.getDimension(); j++) {
+          RealType rType = (RealType) ref.getComponent(j);
+          parseScalar(rType, coord, new int[1], keepDupl);
         }
-        else if (cType instanceof TupleType) {
-          parseTuple((TupleType) cType, v, i);
-        }
-        else parseScalar((ScalarType) cType, v, i);
       }
     }
-    return;
   }
 
   /**
-   * getRealTypes() helper method.
+   * getRealTypes helper method.
    */
-  private static void parseScalar(ScalarType mathType, Vector v, int[] i) {
+  private static void parseScalar(ScalarType mathType, Vector v, int[] i,
+    boolean keepDupl)
+  {
     if (mathType instanceof RealType) {
       if (v.contains(mathType)) i[0]++;
-      v.add(mathType);
+      if (keepDupl) v.add(mathType);
     }
   }
 
