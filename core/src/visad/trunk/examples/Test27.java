@@ -48,7 +48,7 @@ public class Test27
   DisplayImpl[] setupData()
 	throws VisADException, RemoteException
   {
-    RealType[] types = {RealType.Latitude, RealType.Longitude};
+    RealType[] types = {RealType.Latitude, RealType.Altitude};
     RealTupleType earth_location = new RealTupleType(types);
     vis_radiance = new RealType("vis_radiance", null, null);
     RealType ir_radiance = new RealType("ir_radiance", null, null);
@@ -64,7 +64,7 @@ public class Test27
     display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
     final ScalarMap map2lat = new ScalarMap(RealType.Latitude, Display.YAxis);
     display1.addMap(map2lat);
-    final ScalarMap map2lon = new ScalarMap(RealType.Longitude, Display.XAxis);
+    final ScalarMap map2lon = new ScalarMap(RealType.Altitude, Display.XAxis);
     display1.addMap(map2lon);
     final ScalarMap map2vis = new ScalarMap(vis_radiance, Display.ZAxis);
     display1.addMap(map2vis);
@@ -94,11 +94,11 @@ public class Test27
 
     RealTuple direct_low = new RealTuple(new Real[]
                      {new Real(RealType.Latitude, range1lat[0]),
-                      new Real(RealType.Longitude, range1lon[0]),
+                      new Real(RealType.Altitude, range1lon[0]),
                       new Real(vis_radiance, range1vis[0])});
     RealTuple direct_hi = new RealTuple(new Real[]
                      {new Real(RealType.Latitude, range1lat[1]),
-                      new Real(RealType.Longitude, range1lon[1]),
+                      new Real(RealType.Altitude, range1lon[1]),
                       new Real(vis_radiance, range1vis[1])});
 
     final DataReferenceImpl ref_direct_low =
@@ -147,11 +147,11 @@ public class Test27
         if (changed) {
           RealTuple dlow = new RealTuple(new Real[]
                      {new Real(RealType.Latitude, lows[0]),
-                      new Real(RealType.Longitude, lows[1]),
+                      new Real(RealType.Altitude, lows[1]),
                       new Real(vis_radiance, lows[2])});
           RealTuple dhi = new RealTuple(new Real[]
                      {new Real(RealType.Latitude, his[0]),
-                      new Real(RealType.Longitude, his[1]),
+                      new Real(RealType.Altitude, his[1]),
                       new Real(vis_radiance, his[2])});
           ref_direct_low.setData(dlow);
           ref_direct_hi.setData(dhi);
