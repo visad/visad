@@ -448,6 +448,17 @@ public class FileFlatField extends FlatField {
     return fld.binary( data, op, sampling_mode, error_mode);
   }
 
+  public Data binary( Data data, int op, MathType new_type, int sampling_mode, int error_mode )
+         throws VisADException, RemoteException
+  {
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
+      throw new VisADException("Cannot get cached FlatField");
+    }
+
+    return fld.binary( data, op, new_type, sampling_mode, error_mode);
+  }
+
   public Data unary( int op, int sampling_mode, int error_mode )
          throws VisADException, RemoteException
   {
