@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitTable.java,v 1.4 1998-09-23 22:17:24 steve Exp $
+ * $Id: UnitTable.java,v 1.5 1998-12-16 16:08:28 steve Exp $
  */
 
 package visad.data.netcdf.units;
@@ -19,9 +19,9 @@ import visad.UnitException;
 
 
 /**
- * Table of units.
+ * Provides support for a table of units.
  *
- * This is a helper class for DefaultUnitsDB.
+ * @author Steven R. Emmerson
  */
 public class
 UnitTable

@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Parser.java,v 1.4 1998-03-13 20:20:33 steve Exp $
+ * $Id: Parser.java,v 1.5 1998-12-16 16:08:27 steve Exp $
  */
 
 package visad.data.netcdf.units;
@@ -59,7 +59,7 @@ Parser
     parse(String spec)
 	throws ParseException, NoSuchUnitException
     {
-	unitParser.ReInit(new ByteArrayInputStream(spec.getBytes()));
+	unitParser.ReInit(new ByteArrayInputStream(spec.trim().getBytes()));
 
 	try
 	{
@@ -80,15 +80,24 @@ Parser
     {
 	String[]	specs =
 	{
-	    "furlongs",
-	    "furlongs/fortnight",
-	    "megaparsec barn"
+	    "m",
+	    "2 m s",
+	    "3.14 m.s",
+	    "1e9 (m)",
+	    "(m s)2",
+	    "m2.s-1",
+	    "m2 s^-1",
+	    "(m/s)2",
+	    "m2/s-1",
+	    "m2/s^-1",
+	    ".5 m/(.25 s)2",
 	};
 
 	for (int i = 0; i < specs.length; ++i)
 	{
-	    System.out.print(specs[i] + ": ");
-	    System.out.println(Parser.parse(specs[i]));
+	    String	spec = specs[i];
+	    System.out.print(spec + ": ");
+	    System.out.println(Parser.parse(spec));
 	}
 	try
 	{
@@ -97,7 +106,7 @@ Parser
 	}
 	catch (ParseException e)
 	{
-	    System.out.print(e);
+	    System.out.println(e);
 	}
     }
 }

@@ -6,6 +6,7 @@
     import java.io.LineNumberReader;
     import java.util.StringTokenizer;
     import visad.DerivedUnit;
+    import visad.SI;
     import visad.ScaledUnit;
     import visad.Unit;
     import visad.UnitException;
@@ -30,7 +31,7 @@
          /**
 	 * The canonical time unit.
 	 */
-         protected static final Unit     second = unitsDB.get("second");
+         protected static final Unit     second = SI.second;
 
          /**
 	 * Whether or not we're decoding a time unit.
@@ -153,38 +154,8 @@
                      }
                  }
              }
+             System.out.println("");
          }
-
-  final public void unitSpecList() throws ParseException {
-    String      prompt =
-    "Please type in a unit specification followed by a \";\" or ^D to quit:";
-    Unit        unit;
-            System.out.println("");
-            System.out.println(prompt);
-    label_1:
-    while (true) {
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case INTEGER:
-      case REAL:
-      case SHIFT:
-      case NAME:
-      case 29:
-      case 30:
-      case 32:
-        ;
-        break;
-      default:
-        jj_la1[0] = jj_gen;
-        break label_1;
-      }
-      unit = unitSpec();
-      jj_consume_token(29);
-            System.out.println(unit.toString());
-            System.out.println("");
-            System.out.println(prompt);
-    }
-    jj_consume_token(0);
-  }
 
   final public Unit unitSpec() throws ParseException {
     Unit         unit = null;
@@ -196,31 +167,25 @@
     case INTEGER:
     case REAL:
     case NAME:
-    case 32:
-      unit = unitExpression();
+    case 23:
+    case 25:
+      unit = unitProductList();
+             isTime = Unit.canConvert(unit, second);
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case SHIFT:
+        origin = shiftExpression();
+                 originSpecified = true;
+        break;
+      default:
+        jj_la1[0] = jj_gen;
+        ;
+      }
       break;
     default:
       jj_la1[1] = jj_gen;
       ;
     }
-             isTime = Unit.canConvert(unit, second);
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case SHIFT:
-      origin = shiftExpression();
-             originSpecified = true;
-      break;
-    default:
-      jj_la1[2] = jj_gen;
-      ;
-    }
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case 30:
-      jj_consume_token(30);
-      break;
-    default:
-      jj_la1[3] = jj_gen;
-      ;
-    }
+    jj_consume_token(0);
          try
          {
              if (unit == null)
@@ -237,49 +202,52 @@
     throw new Error("Missing return statement in function");
   }
 
-  final public Unit unitExpression() throws ParseException {
+  final public Unit unitProductList() throws ParseException {
     double       value;
     Unit         unit1, unit2;
-    unit1 = termExpression();
-    label_2:
+    unit1 = powerExpression();
+    label_1:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case WHITESPACE:
       case DIVIDE:
-      case NAME:
-      case 32:
+      case 23:
+      case 24:
         ;
         break;
       default:
-        jj_la1[4] = jj_gen;
-        break label_2;
+        jj_la1[2] = jj_gen;
+        break label_1;
       }
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case NAME:
-      case 32:
+      case WHITESPACE:
+      case 23:
+      case 24:
+        multiply();
         unit2 = powerExpression();
-             try
-             {
-                 unit1 = unit1.multiply(unit2);
-             }
-             catch (UnitException e)
-             {
-                 {if (true) throw new ParseException("Couldn't multiply units");}
-             }
+                 try
+                 {
+                     unit1 = unit1.multiply(unit2);
+                 }
+                 catch (UnitException e)
+                 {
+                     {if (true) throw new ParseException("Couldn't multiply units");}
+                 }
         break;
       case DIVIDE:
         jj_consume_token(DIVIDE);
-        unit2 = termExpression();
-             try
-             {
-                 unit1 = unit1.divide(unit2);
-             }
-             catch (UnitException e)
-             {
-                 {if (true) throw new ParseException("Couldn't divide units");}
-             }
+        unit2 = powerExpression();
+                 try
+                 {
+                     unit1 = unit1.divide(unit2);
+                 }
+                 catch (UnitException e)
+                 {
+                     {if (true) throw new ParseException("Couldn't divide units");}
+                 }
         break;
       default:
-        jj_la1[5] = jj_gen;
+        jj_la1[3] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -288,75 +256,80 @@
     throw new Error("Missing return statement in function");
   }
 
-  final public Unit termExpression() throws ParseException {
-    Unit         unit;
-    double       value;
+  final public void multiply() throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case NAME:
-    case 32:
-      unit = powerExpression();
+    case 23:
+      jj_consume_token(23);
       break;
-    case INTEGER:
-    case REAL:
-      value = numberExpression();
-             unit=new ScaledUnit(value);
+    case 24:
+      jj_consume_token(24);
+      break;
+    case WHITESPACE:
+      jj_consume_token(WHITESPACE);
       break;
     default:
-      jj_la1[6] = jj_gen;
+      jj_la1[4] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
-         {if (true) return unit;}
-    throw new Error("Missing return statement in function");
   }
 
   final public Unit powerExpression() throws ParseException {
     double       value;
     Unit         unit;
     Token        t;
-    unit = factorExpression();
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case INTEGER:
-    case 31:
+    case REAL:
+    case 23:
+      value = numberExpression();
+                 unit=new ScaledUnit(value);
+      break;
+    case NAME:
+    case 25:
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case 31:
-        jj_consume_token(31);
+      case NAME:
+        unit = nameExpression();
+        break;
+      case 25:
+        jj_consume_token(25);
+        unit = unitProductList();
+        jj_consume_token(26);
+        break;
+      default:
+        jj_la1[5] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case INTEGER:
+      case 27:
+        switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+        case 27:
+          jj_consume_token(27);
+          break;
+        default:
+          jj_la1[6] = jj_gen;
+          ;
+        }
+        t = jj_consume_token(INTEGER);
+                     try
+                     {
+                         unit = unit.pow(Integer.parseInt(t.image));
+                     }
+                     catch (UnitException e)
+                     {
+                         {if (true) throw new ParseException(
+                             "Couldn't raise unit to a power");}
+                     }
         break;
       default:
         jj_la1[7] = jj_gen;
         ;
       }
-      t = jj_consume_token(INTEGER);
-             try
-             {
-                 unit = unit.pow(Integer.parseInt(t.image));
-             }
-             catch (UnitException e)
-             {
-                 {if (true) throw new ParseException("Couldn't raise unit to a power");}
-             }
       break;
     default:
       jj_la1[8] = jj_gen;
-      ;
-    }
-         {if (true) return unit;}
-    throw new Error("Missing return statement in function");
-  }
-
-  final public Unit factorExpression() throws ParseException {
-    Unit         unit;
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case NAME:
-      unit = nameExpression();
-      break;
-    case 32:
-      jj_consume_token(32);
-      unit = unitSpec();
-      jj_consume_token(33);
-      break;
-    default:
-      jj_la1[9] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -383,15 +356,44 @@
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case INTEGER:
       t = jj_consume_token(INTEGER);
-             value = Integer.parseInt(t.image);
+                 value = Integer.parseInt(t.image);
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case 23:
+        jj_consume_token(23);
+        switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+        case INTEGER:
+          // default algorithm is OK
+                               t = jj_consume_token(INTEGER);
+                         value += new Double("." + t.image).doubleValue();
+                         if (value < 0)
+                             {if (true) throw new ParseException(
+                                 "negative sign follows decimal point");}
+          break;
+        default:
+          jj_la1[9] = jj_gen;
+          ;
+        }
+        break;
+      default:
+        jj_la1[10] = jj_gen;
+        ;
+      }
+      break;
+    case 23:
+      jj_consume_token(23);
+      t = jj_consume_token(INTEGER);
+                 value = new Double("." + t.image).doubleValue();
+                 if (value < 0)
+                     {if (true) throw new ParseException(
+                         "negative sign follows decimal point");}
       break;
     case REAL:
       t = jj_consume_token(REAL);
-             // Double.parseDouble() *should* exist but doesn't (sigh).
-             value = new Double(t.image).doubleValue();
+                 // Double.parseDouble() *should* exist but doesn't (sigh).
+                 value = new Double(t.image).doubleValue();
       break;
     default:
-      jj_la1[10] = jj_gen;
+      jj_la1[11] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -411,14 +413,16 @@
       break;
     case INTEGER:
     case REAL:
-    case 32:
+    case 23:
+    case 25:
       origin = valueExpression();
                  if (isTime)
-                     {if (true) throw new ParseException("time unit with non-timestamp");}
+                     {if (true) throw new ParseException(
+                         "time unit with non-timestamp origin");}
                  {if (true) return origin;}
       break;
     default:
-      jj_la1[11] = jj_gen;
+      jj_la1[12] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -430,15 +434,16 @@
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case INTEGER:
     case REAL:
+    case 23:
       value = numericalTerm();
       break;
-    case 32:
-      jj_consume_token(32);
+    case 25:
+      jj_consume_token(25);
       value = valueExpression();
-      jj_consume_token(33);
+      jj_consume_token(26);
       break;
     default:
-      jj_la1[12] = jj_gen;
+      jj_la1[13] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -449,31 +454,33 @@
   final public double numericalTerm() throws ParseException {
     double       value1, value2;
     value1 = numberExpression();
-    label_3:
+    label_2:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case INTEGER:
       case REAL:
       case DIVIDE:
+      case 23:
         ;
         break;
       default:
-        jj_la1[13] = jj_gen;
-        break label_3;
+        jj_la1[14] = jj_gen;
+        break label_2;
       }
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case INTEGER:
       case REAL:
+      case 23:
         value2 = numberExpression();
-             value1 *= value2;
+                 value1 *= value2;
         break;
       case DIVIDE:
         jj_consume_token(DIVIDE);
         value2 = numberExpression();
-             value1 /= value2;
+                 value1 /= value2;
         break;
       default:
-        jj_la1[14] = jj_gen;
+        jj_la1[15] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -502,77 +509,101 @@
          day = Integer.parseInt(dateSpec.nextToken());
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case INTEGER:
+    case WHITESPACE:
     case TIME:
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case WHITESPACE:
+        jj_consume_token(WHITESPACE);
+        break;
+      default:
+        jj_la1[16] = jj_gen;
+        ;
+      }
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case INTEGER:
         t = jj_consume_token(INTEGER);
-                 hour = Integer.parseInt(t.image);
+                     hour = Integer.parseInt(t.image);
         break;
       case TIME:
         t = jj_consume_token(TIME);
-                 StringTokenizer         timeSpec = new StringTokenizer(t.image, ":");
+                     StringTokenizer     timeSpec =
+                         new StringTokenizer(t.image, ":");
 
-                 hour = Integer.parseInt(timeSpec.nextToken());
-                 minute = Integer.parseInt(timeSpec.nextToken());
-                 if (timeSpec.hasMoreTokens())
-                     second = new Float(timeSpec.nextToken()).floatValue();
+                     hour = Integer.parseInt(timeSpec.nextToken());
+                     minute = Integer.parseInt(timeSpec.nextToken());
+                     if (timeSpec.hasMoreTokens())
+                         second = new Float(timeSpec.nextToken()).floatValue();
         break;
       default:
-        jj_la1[15] = jj_gen;
+        jj_la1[17] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case INTEGER:
+      case WHITESPACE:
+      case NAME:
       case TIME:
-      case UTC:
+        switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+        case WHITESPACE:
+          jj_consume_token(WHITESPACE);
+          break;
+        default:
+          jj_la1[18] = jj_gen;
+          ;
+        }
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case INTEGER:
           t = jj_consume_token(INTEGER);
-                     zoneMinute = 0;
+                         zoneMinute = 0;
 
-                     zoneHour = Integer.parseInt(t.image);
+                         zoneHour = Integer.parseInt(t.image);
 
-                     if (zoneHour <= -100 || zoneHour >= 100)
-                     {
-                         zoneMinute = zoneHour % 100;
-                         zoneHour /= 100;
-                     }
+                         if (zoneHour <= -100 || zoneHour >= 100)
+                         {
+                             zoneMinute = zoneHour % 100;
+                             zoneHour /= 100;
+                         }
 
-                     zone = zoneHour * 60 + zoneMinute;
+                         zone = zoneHour * 60 + zoneMinute;
           break;
         case TIME:
           t = jj_consume_token(TIME);
-                     StringTokenizer     zoneSpec =
-                         new StringTokenizer(t.image, ":");
-                     int         sign = t.image.startsWith("-") ? -1 : 1;
+                         StringTokenizer         zoneSpec =
+                             new StringTokenizer(t.image, ":");
+                         int     sign = t.image.startsWith("-") ? -1 : 1;
 
-                     zoneHour = Integer.parseInt(zoneSpec.nextToken());
-                     zoneMinute = Integer.parseInt(zoneSpec.nextToken());
+                         zoneHour = Integer.parseInt(zoneSpec.nextToken());
+                         zoneMinute = Integer.parseInt(zoneSpec.nextToken());
 
-                     zone = zoneHour*60 + zoneMinute*sign;
+                         zone = zoneHour*60 + zoneMinute*sign;
           break;
-        case UTC:
-          jj_consume_token(UTC);
+        case NAME:
+          t = jj_consume_token(NAME);
+                         if (!t.image.equals("UTC") &&
+                             !t.image.equals("GMT"))
+                         {
+                             {if (true) throw new ParseException("invalid time zone");}
+                         }
           break;
         default:
-          jj_la1[16] = jj_gen;
+          jj_la1[19] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
         break;
       default:
-        jj_la1[17] = jj_gen;
+        jj_la1[20] = jj_gen;
         ;
       }
       break;
     default:
-      jj_la1[18] = jj_gen;
+      jj_la1[21] = jj_gen;
       ;
     }
          if (month < 1 || month > 12 ||
              day < 1 || day > 31 ||
-             hour < 0 || hour > 24 ||
+             hour < 0 || hour > 23 ||
              minute < 0 || minute > 59 ||
              second < 0 || second > 61 ||
              zone < -1440 || zone > 1440)
@@ -590,9 +621,8 @@
   public Token token, jj_nt;
   private int jj_ntk;
   private int jj_gen;
-  final private int[] jj_la1 = new int[19];
-  final private int[] jj_la1_0 = {0x60092400,0x82400,0x10000,0x40000000,0xa0000,0xa0000,0x82400,0x80000000,0x80000400,0x80000,0x2400,0x802400,0x2400,0x22400,0x22400,0x8000400,0x18000400,0x18000400,0x8000400,};
-  final private int[] jj_la1_1 = {0x1,0x1,0x0,0x0,0x1,0x1,0x1,0x0,0x0,0x1,0x0,0x1,0x1,0x0,0x0,0x0,0x0,0x0,0x0,};
+  final private int[] jj_la1 = new int[22];
+  final private int[] jj_la1_0 = {0x800,0x2804090,0x1801100,0x1801100,0x1800100,0x2004000,0x8000000,0x8000010,0x2804090,0x10,0x800000,0x800090,0x2840090,0x2800090,0x801090,0x801090,0x100,0x400010,0x100,0x404010,0x404110,0x400110,};
 
   public UnitParser(java.io.InputStream stream) {
     jj_input_stream = new ASCII_CharStream(stream, 1, 1);
@@ -600,7 +630,7 @@
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 19; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
   }
 
   public void ReInit(java.io.InputStream stream) {
@@ -609,7 +639,7 @@
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 19; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
   }
 
   public UnitParser(UnitParserTokenManager tm) {
@@ -617,7 +647,7 @@
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 19; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
   }
 
   public void ReInit(UnitParserTokenManager tm) {
@@ -625,7 +655,7 @@
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 19; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
   }
 
   final private Token jj_consume_token(int kind) throws ParseException {
@@ -672,27 +702,24 @@
 
   final public ParseException generateParseException() {
     jj_expentries.removeAllElements();
-    boolean[] la1tokens = new boolean[34];
-    for (int i = 0; i < 34; i++) {
+    boolean[] la1tokens = new boolean[28];
+    for (int i = 0; i < 28; i++) {
       la1tokens[i] = false;
     }
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 19; i++) {
+    for (int i = 0; i < 22; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {
             la1tokens[j] = true;
           }
-          if ((jj_la1_1[i] & (1<<j)) != 0) {
-            la1tokens[32+j] = true;
-          }
         }
       }
     }
-    for (int i = 0; i < 34; i++) {
+    for (int i = 0; i < 28; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

@@ -23,7 +23,8 @@ JAVASRCS	= \
 include ../../../rules.make
 
 test:	classes	\
-	UnitParser.test
+	Parser.test \
+	DefaultUnitsDB.test
 
 .SUFFIXES:	.save .run .class
 .class.run:	FORCE
@@ -35,9 +36,11 @@ test:	classes	\
 .class.test:
 	$(MAKE) -s $*.run 2>&1 | diff -cw $*.save -
 
-UnitParser.java:	UnitParser.jj
-classes:		UnitParser.java
-ASCII_CharStream.java:	UnitParser.java
-ParseException.java:	UnitParser.java
-Token.java:		UnitParser.java
-TokenMgrError.java:	UnitParser.java
+#UnitParser.java:	UnitParser.jj
+#classes:		UnitParser.java
+#ASCII_CharStream.java:	UnitParser.java
+#ParseException.java:	UnitParser.java
+#Token.java:		UnitParser.java
+#TokenMgrError.java:	UnitParser.java
+
+include depend

@@ -4,39 +4,33 @@ package visad.data.netcdf.units;
 public interface UnitParserConstants {
 
   int EOF = 0;
-  int SIGN = 7;
-  int DIGIT = 8;
-  int INT = 9;
-  int INTEGER = 10;
-  int EXP = 11;
-  int DECIMAL = 12;
-  int REAL = 13;
-  int SINCE = 14;
-  int FROM = 15;
-  int SHIFT = 16;
-  int DIVIDE = 17;
-  int LETTER = 18;
-  int NAME = 19;
-  int YEAR = 20;
-  int MONTH = 21;
-  int DAY = 22;
-  int DATE = 23;
-  int HOUR = 24;
-  int MINUTE = 25;
-  int SECOND = 26;
-  int TIME = 27;
-  int UTC = 28;
+  int SIGN = 1;
+  int DIGIT = 2;
+  int INT = 3;
+  int INTEGER = 4;
+  int EXP = 5;
+  int DECIMAL = 6;
+  int REAL = 7;
+  int WHITESPACE = 8;
+  int SINCE = 9;
+  int FROM = 10;
+  int SHIFT = 11;
+  int DIVIDE = 12;
+  int LETTER = 13;
+  int NAME = 14;
+  int YEAR = 15;
+  int MONTH = 16;
+  int DAY = 17;
+  int DATE = 18;
+  int HOUR = 19;
+  int MINUTE = 20;
+  int SECOND = 21;
+  int TIME = 22;
 
   int DEFAULT = 0;
 
   String[] tokenImage = {
     "<EOF>",
-    "\" \"",
-    "\"*\"",
-    "\".\"",
-    "\"\\t\"",
-    "\"\\n\"",
-    "\"\\r\"",
     "<SIGN>",
     "<DIGIT>",
     "<INT>",
@@ -44,6 +38,7 @@ public interface UnitParserConstants {
     "<EXP>",
     "<DECIMAL>",
     "<REAL>",
+    "<WHITESPACE>",
     "<SINCE>",
     "<FROM>",
     "<SHIFT>",
@@ -58,12 +53,11 @@ public interface UnitParserConstants {
     "<MINUTE>",
     "<SECOND>",
     "<TIME>",
-    "<UTC>",
-    "\";\"",
-    "\"\\u0000\"",
-    "\"^\"",
+    "\".\"",
+    "\"*\"",
     "\"(\"",
     "\")\"",
+    "\"^\"",
   };
 
 }

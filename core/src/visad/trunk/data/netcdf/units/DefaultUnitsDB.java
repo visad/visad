@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultUnitsDB.java,v 1.8 1998-09-23 22:17:23 steve Exp $
+ * $Id: DefaultUnitsDB.java,v 1.9 1998-12-16 16:08:26 steve Exp $
  */
 
 package visad.data.netcdf.units;
@@ -129,7 +129,7 @@ DefaultUnitsDB
 	 *     :.,$w !egrep 'PluralUnit|SingleUnit' | wc -l
 	 *     :.,$w !egrep 'UnitSymbol' | wc -l
 	 */
-	table = new UnitTable(396, 91);
+	table = new UnitTable(408, 90);
 
 
 	/*
@@ -209,6 +209,7 @@ DefaultUnitsDB
 	put(new SingleUnit("degreeC",		get("Celsius")));
 	put(new SingleUnit("degree_C",		get("Celsius")));
 	put(new SingleUnit("deg_C",		get("Celsius")));
+	put(new SingleUnit("Cel",		get("Celsius")));
 	//put(new UnitSymbol("C",		get("degree_Celsius")));
 						// `C' means `coulomb'
 
@@ -245,6 +246,7 @@ DefaultUnitsDB
 						// exact
 	put(new PluralUnit("gram",	get("kilogram").scale(1e-3)));
 						// exact
+	put(new SingleUnit("g",		get("gram")));	// was "gravity"
 	put(new UnitSymbol("kg",	get("kilogram")));
 	put(new PluralUnit("long_hundredweight",
 	    get("kilogram").scale(5.080235e1)));
@@ -260,6 +262,7 @@ DefaultUnitsDB
 	    get("kilogram").scale(1.66054e-27)));
 
 	put(new PluralUnit("tonne",	get("metric_ton")));
+	put(new SingleUnit("tne",	get("metric_ton")));
 	put(new PluralUnit("apothecary_ounce",	get("troy_ounce")));
 	put(new PluralUnit("apothecary_pound",	get("avoirdupois_pound")));
 	put(new PluralUnit("pound",	get("avoirdupois_pound")));
@@ -299,6 +302,7 @@ DefaultUnitsDB
 	put(new PluralUnit("nautical_mile",
 	    get("meter").scale(1.852000e3)));		// exact
 	put(new PluralUnit("parsec",	get("meter").scale(3.085678e16)));
+	put(new SingleUnit("prs",	get("parsec")));
 	put(new PluralUnit("printers_point",
 	    get("meter").scale(3.514598e-4)));
 
@@ -364,6 +368,7 @@ DefaultUnitsDB
 	    get("printers_point").scale(12)));		// exact
 	put(new PluralUnit("astronomicalunit",	get("astronomical_unit")));
 	put(new UnitSymbol("au",	get("astronomical_unit")));
+	put(new SingleUnit("asu",	get("astronomical_unit")));
 	put(new PluralUnit("nmile",	get("nautical_mile")));
 	put(new UnitSymbol("nmi",	get("nautical_mile")));
 
@@ -389,7 +394,7 @@ DefaultUnitsDB
 	put(new PluralUnit("minute",	get("second").scale(60)));
 							// exact
 	put(new UnitSymbol("s",		get("second")));
-	put(new PluralUnit("sec",	get("second")));
+	put(new PluralUnit("sec",	get("second")));	// avoid
 	put(new PluralUnit("shake",	get("second").scale(1e-8)));
 							// exact
 	put(new PluralUnit("sidereal_day",
@@ -443,6 +448,7 @@ DefaultUnitsDB
 
 	put(new PluralUnit("yr",	get("year")));
 	put(new UnitSymbol("a",		get("year")));		// "anno"
+	put(new SingleUnit("ann",	get("year")));		// "anno"
 	put(new PluralUnit("eon",	get("gigayear")));	// fuzzy
 	put(new PluralUnit("month",	get("year").scale(1./12)));
 						    // on average
@@ -450,8 +456,8 @@ DefaultUnitsDB
 	/*
 	 * UNITS OF PLANE ANGLE
 	 */
-	//put(new PluralUnit("rad", get("radian")));
-	    // "rad" means "centigray"
+	put(new SingleUnit("rad", get("radian")));
+	    // was: "rad" means "centigray".  avoid.
 		
 	put(new PluralUnit("circle",		
 	    get("radian").scale(2*Math.PI)));
@@ -464,12 +470,14 @@ DefaultUnitsDB
 	put(new SingleUnit("degree_east",	get("angular_degree")));
 	put(new SingleUnit("degree_true",	get("angular_degree")));
 	put(new PluralUnit("arcdeg",		get("angular_degree")));
+	put(new SingleUnit("deg",		get("angular_degree")));
 	put(new PluralUnit("angular_minute",
 	    get("angular_degree").scale(1./60)));
 	put(new PluralUnit("angular_second",
 	    get("angular_minute").scale(1./60)));
 	put(new PluralUnit("grade",		
 	    get("angular_degree").scale(0.9)));	// exact
+	put(new SingleUnit("gon",		get("grade")));
 
 	put(new SingleUnit("degrees_north",	get("degree_north")));
 	put(new SingleUnit("degreeN",		get("degree_north")));
@@ -498,7 +506,10 @@ DefaultUnitsDB
 	put(new SingleUnit("degrees_T",		get("degree_true")));
 
 	put(new PluralUnit("arcminute",		get("angular_minute")));
+	put(new SingleUnit("mnt",		get("angular_minute")));
 	put(new PluralUnit("arcsecond",		get("angular_second")));
+	// put(new SingleUnit("sec",		get("angular_second")));
+							// avoid
 
 	put(new PluralUnit("arcmin",		get("arcminute")));
 	put(new PluralUnit("arcsec",		get("arcsecond")));
@@ -550,8 +561,9 @@ DefaultUnitsDB
 	    get("kilogram").divide(get("meter").pow(3))).scale(999.972)));
 	put(new SingleUnit("water_60F", 	get("gravity").multiply(
 	    get("kilogram").divide(get("meter").pow(3))).scale(999.001)));
-	put(new UnitSymbol("g",	get("gravity")));	// approx.
-							// should be `local'
+	// put(new UnitSymbol("g",	get("gravity")));	// approx.
+							// should be `local'.
+							// avoid.
 
 	put(new PluralUnit("volt",	get("watt").divide(get("ampere"))));
 	put(new SingleUnit("mercury_32F",	get("mercury_0C")));
@@ -596,6 +608,7 @@ DefaultUnitsDB
 	put(new PluralUnit("darcy",	get("meter").pow(2).scale(
 	    9.869233e-13)));			// permeability of porous solids
 	put(new PluralUnit("hectare",	get("hectoare")));	// exact
+	put(new SingleUnit("har",	get("hectoare")));	// exact
 	put(new PluralUnit("acre",	get("rod").pow(2).scale(160)));
 						// exact
 
@@ -809,6 +822,7 @@ DefaultUnitsDB
 	put(new UnitSymbol("cmH2O",	
 	    get("centimeter").multiply(get("water"))));
 	put(new UnitSymbol("Pa",	get("pascal")));
+	put(new SingleUnit("pal",	get("pascal")));
 	put(new SingleUnit("inch_Hg",	get("inch").multiply(get("Hg"))));
 	put(new SingleUnit("inch_hg",	get("inch_Hg")));
 	put(new UnitSymbol("inHg",	get("inch_Hg")));
@@ -839,16 +853,19 @@ DefaultUnitsDB
 						// exact
 	put(new PluralUnit("rem",	get("centisievert")));
 						// dose equivalent.  exact
-	put(new PluralUnit("rad",	get("centigray")));
-						// absorbed dose. exact
+	put(new SingleUnit("rads",	get("centigray")));
+						// "rad" means "radian". avoid.
 	put(new PluralUnit("roentgen",	get("coulomb").divide(
 	    get("kilogram")).scale(2.58e-4)));
 	put(new UnitSymbol("Sv",	get("sievert")));
+	put(new SingleUnit("sie",	get("sievert")));
 	put(new UnitSymbol("Gy",	get("gray")));
 
 	put(new UnitSymbol("Ci",	get("curie")));
 	put(new UnitSymbol("R",		get("roentgen")));
-	put(new UnitSymbol("rd",	get("rad")));
+	put(new SingleUnit("rd",	get("centigray")));
+						// absorbed dose. exact.
+						// use instead of "rad"
 
 	/*
 	 * VELOCITY (INCLUDES SPEED)
@@ -873,6 +890,7 @@ DefaultUnitsDB
 	put(new UnitSymbol("rhe",
 	    get("pascal").multiply(get("second")).pow(-1).scale(10)));
 
+	put(new UnitSymbol("P",		get("poise")));
 	put(new UnitSymbol("St",	get("stokes")));
 
 	/*
