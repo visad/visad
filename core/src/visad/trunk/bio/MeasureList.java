@@ -49,9 +49,12 @@ public class MeasureList {
   /** Pool of lines. */
   private LinePool pool;
 
+  /** Pool of lines for 3-D display. */
+  private LinePool pool3d;
+
   /** Constructs a list of measurements. */
-  public MeasureList(Real[] p1r, Real[] p2r, Real[] pxr, LinePool pool)
-    throws VisADException, RemoteException
+  public MeasureList(Real[] p1r, Real[] p2r, Real[] pxr,
+    LinePool pool, LinePool pool3d) throws VisADException, RemoteException
   {
     measureList = new Vector();
     types = new RealType[p1r.length];
@@ -62,6 +65,7 @@ public class MeasureList {
     ptVals = new RealTuple[1];
     ptVals[0] = new RealTuple(pxr);
     this.pool = pool;
+    this.pool3d = pool3d;
   }
 
   /** Adds a measurement line to the measurement list. */
@@ -81,7 +85,10 @@ public class MeasureList {
 
   void addMeasurement(Measurement m, boolean updatePool) {
     measureList.add(m);
-    if (updatePool) pool.add(m);
+    if (updatePool) {
+      pool.add(m);
+      if (pool3d != null) pool3d.add(m);
+    }
   }
 
   /** Removes a measurement line or point from the measurement list. */
@@ -89,12 +96,20 @@ public class MeasureList {
 
   void removeMeasurement(Measurement m, boolean updatePool) {
     measureList.remove(m);
-    if (updatePool) pool.set(getMeasurements());
+    if (updatePool) {
+      Measurement[] mm = getMeasurements();
+      pool.set(mm);
+      if (pool3d != null) pool3d.set(mm);
+    }
   }
 
   void removeAllMeasurements(boolean updatePool) {
     measureList.removeAllElements();
-    if (updatePool) pool.set(getMeasurements());
+    if (updatePool) {
+      Measurement[] mm = getMeasurements();
+      pool.set(mm);
+      if (pool3d != null) pool3d.set(mm);
+    }
   }
 
   /** Gets the list of measurements in array form. */

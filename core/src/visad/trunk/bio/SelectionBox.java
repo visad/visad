@@ -176,13 +176,15 @@ public class SelectionBox {
     if (d == null) return;
 
     // add selection box to new display
-    final ConstantMap[] maps = {
-      new ConstantMap(1.0f, Display.Red),
-      new ConstantMap(1.0f, Display.Green),
-      new ConstantMap(0.0f, Display.Blue),
-      new ConstantMap(3.0f, Display.PointSize)
-    };
-    for (int i=0; i<refs.length; i++) d.addReference(refs[i], maps);
+    for (int i=0; i<refs.length; i++) {
+      ConstantMap[] maps = {
+        new ConstantMap(1.0f, Display.Red),
+        new ConstantMap(1.0f, Display.Green),
+        new ConstantMap(0.0f, Display.Blue),
+        new ConstantMap(3.0f, Display.PointSize)
+      };
+      d.addReference(refs[i], maps);
+    }
   }
 
   /** Selects the given measurement object. */

@@ -42,6 +42,17 @@ public class MeasureDataFile {
 
   /** Writes the specified measurement matrix to the data file. */
   public void writeMatrix(MeasureMatrix mm) throws IOException {
+    writeMatrix(mm, Double.NaN, Double.NaN);
+  }
+
+  /**
+   * Writes the specified measurement matrix to the data file,
+   * using the given conversion values between pixels and microns.
+   */
+  public void writeMatrix(MeasureMatrix mm, double mpp, double sd)
+    throws IOException
+  {
+    // CTR - TODO - mpp and sd
     MeasureList[][] lists = mm.getMeasureLists();
     Vector lines = new Vector();
     Vector points = new Vector();
@@ -182,6 +193,17 @@ public class MeasureDataFile {
 
   /** Sets the given measurement matrix to match data from the data file. */
   public void readMatrix(MeasureMatrix mm) throws IOException, VisADException {
+    readMatrix(mm, Double.NaN, Double.NaN);
+  }
+
+  /**
+   * Sets the given measurement matrix to match data from the data file,
+   * using the given conversion values between pixels and microns.
+   */
+  public void readMatrix(MeasureMatrix mm, double mpp, double sd)
+    throws IOException, VisADException
+  {
+    // CTR - TODO - mpp and sd
     BufferedReader fin = new BufferedReader(new FileReader(file));
     String line = "";
 

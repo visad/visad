@@ -40,11 +40,11 @@ public class MeasureLine extends MeasureThing {
   /** List of all measurement lines. */
   private static final Vector lines = new Vector();
 
-  /** First free id number for lines. */
-  private static int maxId = 0;
-
   /** Id number for the line. */
   private int id;
+
+  /** Associated line pool. */
+  private LinePool pool;
 
   /** Data reference for connecting line. */
   private DataReferenceImpl ref_line;
@@ -53,14 +53,18 @@ public class MeasureLine extends MeasureThing {
   private CellImpl lineCell;
 
   /** Constructs a measurement line. */
-  public MeasureLine() throws VisADException, RemoteException {
-    super(2, 2);
+  public MeasureLine(int dim, LinePool pool)
+    throws VisADException, RemoteException
+  {
+    super(2, dim);
     ref_line = new DataReferenceImpl("line");
+    this.pool = pool;
+    id = pool.maxLnId++;
 
+    final int fdim = dim;
     lineCell = new CellImpl() {
       public void doAction() {
         if (dtype == null) return;
-        float[][] vals = null;
         RealTuple p1, p2;
         synchronized (dataLock) {
           p1 = (RealTuple) refs[0].getData();
@@ -69,10 +73,9 @@ public class MeasureLine extends MeasureThing {
         if (p1 == null || p2 == null) return;
 
         // extract samples
-        int dim = p1.getDimension();
-        float[][] samps = new float[dim][2];
+        float[][] samps = new float[fdim][2];
         try {
-          for (int i=0; i<dim; i++) {
+          for (int i=0; i<fdim; i++) {
             Real r1 = (Real) p1.getComponent(i);
             Real r2 = (Real) p2.getComponent(i);
             samps[i][0] = (float) r1.getValue();
@@ -93,7 +96,10 @@ public class MeasureLine extends MeasureThing {
         try {
           FunctionType ftype =
             new FunctionType(dtype, FileSeriesWidget.COLOR_TYPE);
-          Gridded2DSet set = new Gridded2DSet(dtype, samps, 2);
+          GriddedSet set;
+          if (fdim == 2) set = new Gridded2DSet(dtype, samps, 2);
+          else if (fdim == 3) set = new Gridded3DSet(dtype, samps, 2);
+          else set = new GriddedSet(dtype, samps, new int[] {2});
           FlatField field = new FlatField(ftype, set);
           field.setSamples(new double[][] {{id, id}});
           ref_line.setData(field);
@@ -105,7 +111,6 @@ public class MeasureLine extends MeasureThing {
     lineCell.addReference(refs[0]);
     lineCell.addReference(refs[1]);
 
-    id = maxId++;
     lines.add(this);
   }
 
@@ -145,13 +150,16 @@ public class MeasureLine extends MeasureThing {
     if (cc == null) return;
     float[][] table = cc.getTable();
     int len = table[0].length;
-    if (len != maxId) {
+    if (len < pool.maxLnId) {
+      if (pool.maxLnId >= 256) {
+        System.err.println("Warning: cannot handle more than 256 lines.");
+        return;
+      }
       // adjust table as necessary
-      float[][] t = new float[3][maxId];
-      int s = len < maxId ? len : maxId;
-      System.arraycopy(table[0], 0, t[0], 0, s);
-      System.arraycopy(table[1], 0, t[1], 0, s);
-      System.arraycopy(table[2], 0, t[2], 0, s);
+      float[][] t = new float[3][pool.maxLnId];
+      System.arraycopy(table[0], 0, t[0], 0, len);
+      System.arraycopy(table[1], 0, t[1], 0, len);
+      System.arraycopy(table[2], 0, t[2], 0, len);
       table = t;
     }
     float[] cvals = color.getColorComponents(null);

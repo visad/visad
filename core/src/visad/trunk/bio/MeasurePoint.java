@@ -36,16 +36,19 @@ public class MeasurePoint extends MeasureThing {
   /** List of all measurement points. */
   private static final Vector points = new Vector();
 
-  /** First free id number for points. */
-  private static int maxId = 0;
-  
   /** Id number for the point. */
   private int id;
 
+  /** Associated line pool. */
+  private LinePool pool;
+
   /** Constructs a measurement point. */
-  public MeasurePoint() throws VisADException, RemoteException {
-    super(1, 2);
-    id = maxId++;
+  public MeasurePoint(int dim, LinePool pool)
+    throws VisADException, RemoteException
+  {
+    super(1, dim);
+    this.pool = pool;
+    id = pool.maxPtId++;
     points.add(this);
   }
 

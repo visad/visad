@@ -32,11 +32,17 @@ import visad.*;
 /** MeasureMatrix maintains a 2-D matrix of measurements. */
 public class MeasureMatrix {
 
+  /** Z-axis RealType. */
+  static final RealType ZAXIS_TYPE = RealType.getRealType("bio_line_z");
+
   /** 2-D matrix of measurements. */
   private MeasureList[][] matrix;
 
   /** Associated VisAD display. */
-  private DisplayImpl display;
+  private DisplayImpl display2;
+
+  /** Associated VisAD display for 3-D window. */
+  private DisplayImpl display3;
 
   /** Associated measurement toolbar. */
   private MeasureToolbar toolbar;
@@ -44,37 +50,46 @@ public class MeasureMatrix {
   /** Pool of lines. */
   private LinePool pool;
 
+  /** Pools of lines for 3-D display. */
+  private LinePool[] pool3d;
+
   /** Current matrix index. */
-  private int index;
+  private int index = -1;
 
   /** Current matrix slice. */
-  private int slice;
+  private int slice = -1;
 
   /** Whether matrix has been initialized. */
   private boolean inited = false;
 
   /** Constructs a list of measurements. */
-  public MeasureMatrix(int length,
-    DisplayImpl display, MeasureToolbar toolbar)
+  public MeasureMatrix(int length, DisplayImpl display2,
+    DisplayImpl display3, MeasureToolbar toolbar)
   {
     matrix = new MeasureList[length][];
-    this.display = display;
+    this.display2 = display2;
+    this.display3 = display3;
     this.toolbar = toolbar;
-    pool = new LinePool(display, toolbar, LinePool.MINIMUM_SIZE / 2);
   }
 
-  /** Initializes the measure matrix. */
-  public void init(FieldImpl field, ScalarMap[] xyzMaps)
+  /** Initializes the measurement matrix. */
+  public void init(FieldImpl field, ScalarMap[][] xyzMaps)
     throws VisADException, RemoteException
   {
+    // The FieldImpl must be of the form:
+    //     (time -> ((x, y) -> range))
+    // where time, x and y are RealTypes,
+    // and range is a RealTupleType or RealType.
+
     if (inited) return;
     
     // extract needed information from FieldImpl image stack
     FunctionType type = (FunctionType) field.getType();
-    RealTupleType domain = type.getDomain();
-    if (domain.getDimension() > 1) {
+    RealTupleType timeDomain = type.getDomain();
+    if (timeDomain.getDimension() > 1) {
       throw new VisADException("Field not an image stack");
     }
+    RealType time = (RealType) timeDomain.getComponent(0);
     Set set = field.getDomainSet();
     if (!(set instanceof GriddedSet)) {
       throw new VisADException("Image stack not ordered");
@@ -89,16 +104,24 @@ public class MeasureMatrix {
       }
     }
 
-    // extract needed information from single FieldImpl image
+    // construct MathType with 3-D domain for display lines on image stack
     FieldImpl image = (FieldImpl) field.getSample(0);
     type = (FunctionType) image.getType();
-    domain = type.getDomain();
+    RealTupleType domain = type.getDomain();
+    int len = domain.getDimension();
+    RealType[] types = new RealType[len + 1];
+    for (int i=0; i<len; i++) types[i] = (RealType) domain.getComponent(i);
+    types[len] = time;
+    RealTupleType domain3d = new RealTupleType(types);
+    types[len] = ZAXIS_TYPE;
+    RealTupleType domain2d = new RealTupleType(types);
+
+    // extract minimum and maximum values for image
     set = image.getDomainSet();
     float[][] samples = set.getSamples(false);
-    int len = domain.getDimension();
-    Real[] p1r = new Real[len];
-    Real[] p2r = new Real[len];
-    Real[] pxr = new Real[len];
+    Real[] p1r = new Real[len + 1];
+    Real[] p2r = new Real[len + 1];
+    Real[] pxr = new Real[len + 1];
     for (int i=0; i<len; i++) {
       RealType rt = (RealType) domain.getComponent(i);
       float s1 = samples[i][0];
@@ -106,22 +129,47 @@ public class MeasureMatrix {
       if (s1 != s1) s1 = 0;
       if (s2 != s2) s2 = 0;
       if (xyzMaps != null && xyzMaps.length > i && xyzMaps[i] != null) {
-        xyzMaps[i].setRange(s1, s2);
+        for (int j=0; j<xyzMaps[i].length; j++) {
+          if (xyzMaps[i][j] != null) xyzMaps[i][j].setRange(s1, s2);
+        }
       }
       p1r[i] = new Real(rt, s1);
       p2r[i] = new Real(rt, s2);
       pxr[i] = new Real(rt, (s1 + s2) / 2);
     }
+    if (xyzMaps != null && xyzMaps.length > len && xyzMaps[len] != null) {
+      for (int j=0; j<xyzMaps[len].length; j++) {
+        if (xyzMaps[len][j] != null) {
+          xyzMaps[len][j].setRange(0, numSlices - 1);
+        }
+      }
+    }
 
-    // initialize all new indices within the specified range
+    // initialize line pools
+    pool = new LinePool(display2, toolbar, 2, -1, LinePool.MINIMUM_SIZE / 2);
     pool.expand(LinePool.MINIMUM_SIZE, domain);
+    pool3d = new LinePool[numSlices];
+    if (display3 != null) {
+      display3.disableAction();
+      for (int i=0; i<numSlices; i++) {
+        pool3d[i] =
+          new LinePool(display3, null, 3, i, LinePool.MINIMUM_SIZE / 2);
+        pool3d[i].expand(LinePool.MINIMUM_SIZE, domain3d, false);
+      }
+      display3.enableAction();
+    }
+
+    // initialize all measurement lists
     for (int j=0; j<matrix.length; j++) {
       matrix[j] = new MeasureList[numSlices];
       for (int i=0; i<numSlices; i++) {
-        matrix[j][i] = new MeasureList(p1r, p2r, pxr, pool);
+        p1r[len] = p2r[len] = pxr[len] = new Real(ZAXIS_TYPE, i);
+        matrix[j][i] = new MeasureList(p1r, p2r, pxr, pool, pool3d[i]);
       }
     }
+
     inited = true;
+    setEntry(0, 0);
   }
 
   /** Refreshes the onscreen measurements to match the current matrix entry. */
@@ -139,10 +187,14 @@ public class MeasureMatrix {
   /** Sets the line pool to match the given matrix entry. */
   public void setEntry(int index, int slice) {
     if (!inited) System.err.println("Warning: matrix not inited!");
-    if (this.index != index) {
-      // set 3-D window to match given matrix index
-      MeasureList[] lists = matrix[index];
-      // CTR - TODO - set 3-D window appropriately
+    if (display3 != null) {
+      if (this.index != index) {
+        // set 3-D window to match given matrix index
+        MeasureList[] lists = matrix[index];
+        for (int i=0; i<lists.length; i++) {
+          pool3d[i].set(lists[i].getMeasurements());
+        }
+      }
     }
     this.index = index;
     this.slice = slice;
@@ -151,7 +203,10 @@ public class MeasureMatrix {
   }
 
   /** Gets the display linked to the matrix. */
-  public DisplayImpl getDisplay() { return display; }
+  public DisplayImpl getDisplay() { return display2; }
+
+  /** Gets the 3-D display linked to the matrix. */
+  public DisplayImpl getDisplay3d() { return display3; }
 
   /** Gets the measurement list for the given slice of the specified index. */
   public MeasureList getMeasureList(int index, int slice) {

@@ -28,6 +28,8 @@ package visad.bio;
 
 import java.awt.Color;
 import java.rmi.RemoteException;
+import java.util.Vector;
+import javax.swing.SwingUtilities;
 import visad.*;
 
 /** Measurement represents the values of a measurement line or point. */
@@ -35,6 +37,9 @@ public class Measurement {
 
   /** Endpoint values of the measurement. */
   private RealTuple[] values;
+
+  /** Linked MeasureThing objects. */
+  private Vector things;
 
   /** Color of the measurement line. */
   private Color color = Color.white;
@@ -48,6 +53,7 @@ public class Measurement {
   /** Constructs a measurement. */
   public Measurement(RealTuple[] values, Color color, LineGroup group) {
     this.values = values;
+    this.things = new Vector();
     this.color = color;
     this.group = group;
     this.stdId = -1;
@@ -55,7 +61,64 @@ public class Measurement {
 
   /** Sets the measurement endpoint values. */
   public void setValues(RealTuple[] values) {
+    if (values.length != this.values.length) {
+      System.err.println("Warning: measurement lengths don't match!");
+      return;
+    }
+    // verify that new values are distinct from old ones
+    boolean equal = true;
+    double[][] vals1 = doubleValues(values);
+    double[][] vals2 = doubleValues(this.values);
+    int dim, len;
+    if (vals1.length < vals2.length) {
+      dim = vals1.length;
+      len = vals1[0].length;
+    }
+    else {
+      dim = vals2.length;
+      len = vals2[0].length;
+    }
+    for (int i=0; i<dim && equal; i++) {
+      for (int j=0; j<len; j++) {
+        if (vals1[i][j] != vals2[i][j]) {
+          equal = false;
+          break;
+        }
+      }
+    }
+    if (equal) return;
+
     this.values = values;
+    synchronized (things) {
+      final MeasureThing[] t = new MeasureThing[things.size()];
+      things.copyInto(t);
+      SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          for (int i=0; i<t.length; i++) t[i].refresh();
+        }
+      });
+    }
+  }
+
+  /** Links the given MeasureThings to the measurement. */
+  void addThing(MeasureThing thing) {
+    synchronized (things) {
+      things.add(thing);
+    }
+  }
+
+  /** Unlinks the given MeasureThing from the measurement. */
+  void removeThing(MeasureThing thing) {
+    synchronized (things) {
+      things.remove(thing);
+    }
+  }
+
+  /** Unlinks all MeasureThings from the measurement. */
+  void removeAllThings() {
+    synchronized (things) {
+      things.removeAllElements();
+    }
   }
 
   /** Sets the measurement group. */
@@ -94,7 +157,10 @@ public class Measurement {
   }
 
   /** Gets the current endpoint values as an array of doubles. */
-  public double[][] doubleValues() {
+  public double[][] doubleValues() { return doubleValues(values); }
+
+  /** Converts the given RealTuple array to an array of doubles. */
+  private static double[][] doubleValues(RealTuple[] values) {
     int len = values.length;
     if (len < 1) return null;
     for (int i=0; i<len; i++) if (values[i] == null) return null;

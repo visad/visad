@@ -52,6 +52,9 @@ public abstract class MeasureThing {
   /** Associated measurement. */
   protected Measurement m;
 
+  /** Associated slice number. */
+  protected int slice;
+
   /** Cell that ties endpoint values to measurement values. */
   protected CellImpl cell;
 
@@ -161,13 +164,32 @@ public abstract class MeasureThing {
   }
 
   /** Links the given measurement. */
-  public void setMeasurement(Measurement m) {
-    this.m = null;
+  public void setMeasurement(Measurement m) { setMeasurement(m, -1); }
+
+  /** Links the given measurement. */
+  public void setMeasurement(Measurement m, int slice) {
+    if (this.m != m && this.m != null) this.m.removeThing(this);
+    if (m != null) m.addThing(this);
+    this.m = m;
+    this.slice = slice;
+    refresh();
+  }
+
+  /** Updates the endpoint values to match the linked measurement. */
+  public void refresh() {
     if (m == null) setVisible(false);
     else {
-      setValues(m.getValues());
+      double[][] values = m.doubleValues();
+      double[][] vals = new double[dim][len];
+      int size = values.length < dim ? values.length : dim;
+      for (int i=0; i<size; i++) {
+        System.arraycopy(values[i], 0, vals[i], 0, len);
+      }
+      if (slice >= 0) {
+        for (int j=0; j<len; j++) vals[dim - 1][j] = slice;
+      }
+      setValues(vals);
       setVisible(true);
-      this.m = m;
     }
   }
 
@@ -206,11 +228,29 @@ public abstract class MeasureThing {
       System.err.println("MeasureThing.setValues: invalid length");
       return;
     }
+
+    // verify that new data is distinct from old data
+    boolean equal = true;
+    for (int i=0; i<len; i++) {
+      if (!v[i].equals(values[i])) {
+        equal = false;
+        break;
+      }
+    }
+    if (equal) return;
+
     try {
       if (getTypes) setType((RealTupleType) v[0].getType(), false);
       cell.disableAction();
       synchronized (dataLock) {
-        for (int i=0; i<len; i++) refs[i].setData(v[i]);
+        for (int i=0; i<len; i++) {
+          int vdim = v[i].getDimension();
+          if (vdim != dim) {
+            System.err.println("MeasureThing.setValues: " +
+              "dimension doesn't match (" + vdim + " != " + dim + ")");
+          }
+          refs[i].setData(v[i]);
+        }
       }
       cell.enableAction();
     }

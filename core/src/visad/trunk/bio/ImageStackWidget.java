@@ -96,13 +96,18 @@ public class ImageStackWidget extends StepWidget
       table[2][i] = (float) Math.pow(table[2][i], gamma);
     }
 
-    // get color control
-    DisplayImpl display = mm.getDisplay();
-    ColorControl cc = (ColorControl) display.getControl(ColorControl.class);
-    if (cc == null) return;
+    // get color controls
+    DisplayImpl display2 = mm.getDisplay();
+    DisplayImpl display3 = mm.getDisplay3d();
+    ColorControl cc2 = (ColorControl) display2.getControl(ColorControl.class);
+    ColorControl cc3 = display3 == null ? null :
+      (ColorControl) display3.getControl(ColorControl.class);
 
-    // set color table
-    try { cc.setTable(table); }
+    // set color tables
+    try {
+      if (cc2 != null) cc2.setTable(table);
+      if (cc3 != null) cc3.setTable(table);
+    }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
   }

@@ -59,8 +59,11 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
   /** Matrix of measurements. */
   private MeasureMatrix matrix;
 
-  /** VisAD Display. */
-  private DisplayImpl display;
+  /** VisAD 2-D display. */
+  private DisplayImpl display2;
+
+  /** VisAD 3-D display. */
+  private DisplayImpl display3;
 
   /** Widget for stepping through the image stack. */
   private ImageStackWidget vertWidget;
@@ -97,15 +100,16 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
     setContentPane(pane);
 
     // main display
-    display = null;
+    display2 = null;
     if (!twoD) {
       try {
-        display = new DisplayImplJ3D("display", new TwoDDisplayRendererJ3D());
+        display2 = new DisplayImplJ3D("display2",
+          new TwoDDisplayRendererJ3D());
       }
-      catch (Throwable t) { }
+      catch (Throwable t) { twoD = true; }
     }
-    if (display == null) display = new DisplayImplJ2D("display");
-    pane.add(display.getComponent(), BorderLayout.CENTER);
+    if (display2 == null) display2 = new DisplayImplJ2D("display2");
+    pane.add(display2.getComponent(), BorderLayout.CENTER);
 
     // vertical slider
     vertWidget = new ImageStackWidget(false);
@@ -114,7 +118,7 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
 
     // horizontal slider
     horizWidget = new FileSeriesWidget(true);
-    horizWidget.setDisplay(display);
+    horizWidget.setDisplay(display2);
     horizWidget.setWidget(vertWidget);
     horizWidget.addChangeListener(this);
     pane.add(horizWidget, BorderLayout.SOUTH);
@@ -123,6 +127,21 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
     toolbar = new MeasureToolbar(this, horizWidget, vertWidget);
     horizWidget.setToolbar(toolbar);
     pane.add(toolbar, BorderLayout.EAST);
+
+    // 3-D display frame
+    if (!twoD) {
+      JFrame frame = new JFrame("BioVisAD - Image stack");
+      JPanel fpane = new JPanel();
+      fpane.setLayout(new BorderLayout());
+      frame.setContentPane(fpane);
+
+      // main 3-D display
+      display3 = new DisplayImplJ3D("display3");
+      fpane.add(display3.getComponent(), BorderLayout.CENTER);
+      horizWidget.setDisplay3d(display3);
+      frame.pack();
+      frame.show();
+    }
   }
 
   /** Loads a series of datasets specified by the user. */
@@ -154,9 +173,10 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
     });
   }
 
-  /** Restores a saved set of measurements (using pixel units). */
-  public void fileRestoreLines() {
+  /** Restores a saved set of measurements. */
+  public void fileRestore(boolean microns) {
     final JFrame frame = this;
+    final boolean fmicrons = microns;
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -180,7 +200,12 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
         // restore measurements
         try {
           MeasureDataFile mdf = new MeasureDataFile(f);
-          mdf.readMatrix(matrix);
+          if (fmicrons) {
+            double mpp = toolbar.getMicronsPerPixel();
+            double sd = toolbar.getSliceDistance();
+            mdf.readMatrix(matrix, mpp, sd);
+          }
+          else mdf.readMatrix(matrix);
         }
         catch (IOException exc) { exc.printStackTrace(); }
         catch (VisADException exc) { exc.printStackTrace(); }
@@ -189,9 +214,10 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
     });
   }
 
-  /** Saves a set of measurements (using pixel units). */
-  public void fileSaveLines() {
+  /** Saves a set of measurements. */
+  public void fileSave(boolean microns) {
     final JFrame frame = this;
+    final boolean fmicrons = microns;
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -206,7 +232,12 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
         File f = fileBox.getSelectedFile();
         try {
           MeasureDataFile mdf = new MeasureDataFile(f);
-          mdf.writeMatrix(matrix);
+          if (fmicrons) {
+            double mpp = toolbar.getMicronsPerPixel();
+            double sd = toolbar.getSliceDistance();
+            mdf.writeMatrix(matrix, mpp, sd);
+          }
+          else mdf.writeMatrix(matrix);
         }
         catch (IOException exc) { exc.printStackTrace(); }
         setCursor(Cursor.getDefaultCursor());
@@ -214,20 +245,20 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
     });
   }
 
+  /** Restores a saved set of measurements (using pixel units). */
+  public void fileRestoreLines() { fileRestore(false); }
+
+  /** Saves a set of measurements (using pixel units). */
+  public void fileSaveLines() { fileSave(false); }
+
   /** Restores a saved set of measurements (using micron units). */
-  public void fileRestoreMicrons() {
-    // CTR: TODO: fileRestoreMicrons
-  }
+  public void fileRestoreMicrons() { fileRestore(true); }
 
   /** Saves a set of measurements (using micron units). */
-  public void fileSaveMicrons() {
-    // CTR: TODO: fileSaveMicrons
-  }
+  public void fileSaveMicrons() { fileSave(true); }
 
   /** Exits the application. */
-  public void fileExit() {
-    System.exit(0);
-  }
+  public void fileExit() { System.exit(0); }
 
   /** Listens for file series widget changes. */
   public void stateChanged(ChangeEvent e) {

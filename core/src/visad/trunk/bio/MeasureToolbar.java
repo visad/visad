@@ -509,6 +509,26 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     }
   }
 
+  /** Gets the micron distance between pixels entered by the user. */
+  public double getMicronsPerPixel() {
+    double d;
+    try {
+      d = Double.parseDouble(micronsPerPixel.getText());
+    }
+    catch (NumberFormatException exc) { d = Double.NaN; }
+    return d;
+  }
+
+  /** Gets the micron distance between slices entered by the user. */
+  public double getSliceDistance() {
+    double d;
+    try {
+      d = Double.parseDouble(sliceDistance.getText());
+    }
+    catch (NumberFormatException exc) { d = Double.NaN; }
+    return d;
+  }
+
   /** Updates the group list to match the static LineGroup list. */
   void updateGroupList() {
     ignoreGroup = true;

@@ -49,6 +49,12 @@ public class LinePool implements DisplayListener {
   /** Associated selection box. */
   private SelectionBox box;
 
+  /** Dimensionality of line pool's display. */
+  private int dim;
+
+  /** Current slice of lines in pool. */
+  private int slice;
+
   /** Number of lines/points in a block. */
   private int blockSize;
 
@@ -61,18 +67,29 @@ public class LinePool implements DisplayListener {
   /** Number of lines allocated. */
   private int lnUsed;
 
+  /** Line ID counter. */
+  int maxLnId = 0;
+
   /** Internal list of MeasurePoint objects. */
   private Vector points;
 
   /** Number of points allocated. */
   private int ptUsed;
 
+  /** Point ID counter. */
+  int maxPtId = 0;
+
+
   /** Constructs a pool of lines. */
-  public LinePool(DisplayImpl display, MeasureToolbar toolbar, int blockSize) {
+  public LinePool(DisplayImpl display, MeasureToolbar toolbar,
+    int dim, int slice, int blockSize)
+  {
     lines = new Vector();
     points = new Vector();
     this.display = display;
     this.toolbar = toolbar;
+    this.dim = dim;
+    this.slice = slice;
     this.blockSize = blockSize;
     size = 0;
     lnUsed = 0;
@@ -81,7 +98,10 @@ public class LinePool implements DisplayListener {
   }
 
   /** Ensures the line pool is at least the given size. */
-  public void expand(int size) {
+  public void expand(int size) { expand(size, true); }
+
+  /** Ensures the line pool is at least the given size. */
+  public void expand(int size, boolean handleDisplay) {
     if (this.size == 0) {
       System.err.println("LinePool.expand: warning: " +
         "Cannot expand from zero without domain type");
@@ -89,11 +109,16 @@ public class LinePool implements DisplayListener {
     }
     MeasureLine line = (MeasureLine) lines.elementAt(0);
     RealTupleType domain = line.getDomain();
-    expand(size, domain);
+    expand(size, domain, handleDisplay);
   }
 
   /** Ensures the line pool is at least the given size. */
   public void expand(int size, RealTupleType domain) {
+    expand(size, domain, true);
+  }
+
+  /** Ensures the line pool is at least the given size. */
+  public void expand(int size, RealTupleType domain, boolean handleDisplay) {
     if (size <= this.size) return;
     int n = size - this.size;
     if (n % blockSize > 0) n += blockSize - n % blockSize;
@@ -101,20 +126,22 @@ public class LinePool implements DisplayListener {
     MeasurePoint[] p = new MeasurePoint[n];
     try {
       for (int i=0; i<n; i++) {
-        l[i] = new MeasureLine();
+        l[i] = new MeasureLine(dim, this);
         l[i].setType(domain);
         l[i].hide();
         lines.add(l[i]);
-        p[i] = new MeasurePoint();
+        p[i] = new MeasurePoint(dim, this);
         p[i].setType(domain);
         p[i].hide();
         points.add(p[i]);
       }
       synchronized (this) {
-        display.disableAction();
-        if (box == null) {
-          box = new SelectionBox();
-          box.setDisplay(display);
+        if (handleDisplay) {
+          display.disableAction();
+          if (box == null) {
+            box = new SelectionBox();
+            box.setDisplay(display);
+          }
         }
         for (int i=0; i<n; i++) {
           try {
@@ -124,7 +151,7 @@ public class LinePool implements DisplayListener {
           catch (VisADException exc) { exc.printStackTrace(); }
           catch (RemoteException exc) { exc.printStackTrace(); }
         }
-        display.enableAction();
+        if (handleDisplay) display.enableAction();
       }
       this.size += n;
     }
@@ -140,7 +167,7 @@ public class LinePool implements DisplayListener {
     int size = m.length;
 
     // deselect
-    box.select(null);
+    if (box != null) box.select(null);
     if (toolbar != null) toolbar.select(null);
 
     // set each reference accordingly
@@ -151,12 +178,12 @@ public class LinePool implements DisplayListener {
       if (m[i].isPoint()) {
         // measurement is a point
         MeasurePoint point = (MeasurePoint) points.elementAt(ptUsed++);
-        point.setMeasurement(m[i]);
+        point.setMeasurement(m[i], slice);
       }
       else {
         // measurement is a line
         MeasureLine line = (MeasureLine) lines.elementAt(lnUsed++);
-        line.setMeasurement(m[i]);
+        line.setMeasurement(m[i], slice);
       }
     }
 
@@ -248,17 +275,17 @@ public class LinePool implements DisplayListener {
 
       // highlight picked line or point
       if (mindist > threshold) {
-        box.select(null);
+        if (box != null) box.select(null);
         if (toolbar != null) toolbar.select(null);
       }
       else if (pt) {
         MeasurePoint point = (MeasurePoint) points.elementAt(index);
-        box.select(point);
+        if (box != null) box.select(point);
         if (toolbar != null) toolbar.select(point);
       }
       else {
         MeasureLine line = (MeasureLine) lines.elementAt(index);
-        box.select(line);
+        if (box != null) box.select(line);
         if (toolbar != null) toolbar.select(line);
       }
     }
@@ -268,30 +295,43 @@ public class LinePool implements DisplayListener {
   private double[] pixelToCursor(int x, int y) {
     MouseBehavior mb = display.getDisplayRenderer().getMouseBehavior();
     VisADRay ray = mb.findRay(x, y);
-    return new double[] {ray.position[0], ray.position[1]};
+    return ray.position;
   }
 
   /** Converts the given cursor coordinates to domain coordinates. */
   private double[] cursorToDomain(double[] cursor) {
-    // locate x and y mappings
+    // locate x, y and z mappings
     Vector maps = display.getMapVector();
     int numMaps = maps.size();
-    ScalarMap map_x = null, map_y = null;
-    for (int i=0; i<numMaps && (map_x == null || map_y == null); i++) {
+    ScalarMap map_x = null, map_y = null, map_z = null;
+    for (int i=0; i<numMaps; i++) {
+      if (map_x != null && map_y != null && map_z != null) break;
       ScalarMap map = (ScalarMap) maps.elementAt(i);
-      if (map.getDisplayScalar().equals(Display.XAxis)) map_x = map;
-      else if (map.getDisplayScalar().equals(Display.YAxis)) map_y = map;
+      DisplayRealType drt = map.getDisplayScalar();
+      if (drt.equals(Display.XAxis)) map_x = map;
+      else if (drt.equals(Display.YAxis)) map_y = map;
+      else if (drt.equals(Display.ZAxis)) map_z = map;
     }
-    if (map_x == null || map_y == null) return null;
 
     // adjust for scale
     double[] scale_offset = new double[2];
     double[] dummy = new double[2];
-    double[] values = new double[2];
-    map_x.getScale(scale_offset, dummy, dummy);
-    values[0] = (cursor[0] - scale_offset[1]) / scale_offset[0];
-    map_y.getScale(scale_offset, dummy, dummy);
-    values[1] = (cursor[1] - scale_offset[1]) / scale_offset[0];
+    double[] values = new double[3];
+    if (map_x == null) values[0] = Double.NaN;
+    else {
+      map_x.getScale(scale_offset, dummy, dummy);
+      values[0] = (cursor[0] - scale_offset[1]) / scale_offset[0];
+    }
+    if (map_y == null) values[1] = Double.NaN;
+    else {
+      map_y.getScale(scale_offset, dummy, dummy);
+      values[1] = (cursor[1] - scale_offset[1]) / scale_offset[0];
+    }
+    if (map_z == null) values[2] = Double.NaN;
+    else {
+      map_z.getScale(scale_offset, dummy, dummy);
+      values[2] = (cursor[2] - scale_offset[1]) / scale_offset[0];
+    }
 
     return values;
   }

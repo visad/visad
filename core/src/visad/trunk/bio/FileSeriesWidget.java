@@ -47,11 +47,11 @@ public class FileSeriesWidget extends StepWidget {
   private int curFile;
   private ImageStackWidget isw;
   private MeasureToolbar toolbar;
-  private ScalarMap animMap;
-  private ScalarMap xMap;
-  private ScalarMap yMap;
+  private ScalarMap animMap2, xMap2, yMap2;
+  private ScalarMap xMap3, yMap3, zMap3, zMap3b;
   private MeasureMatrix matrix;
-  private DisplayImpl display;
+  private DisplayImpl display2;
+  private DisplayImpl display3;
 
   /** Constructs a new FileSeriesWidget. */
   public FileSeriesWidget(boolean horizontal) {
@@ -68,14 +68,17 @@ public class FileSeriesWidget extends StepWidget {
   /** Links the FileSeriesWidget with the given series of files. */
   public void setSeries(File[] files) {
     this.files = files;
-    matrix = new MeasureMatrix(files.length, display, toolbar);
+    matrix = new MeasureMatrix(files.length, display2, display3, toolbar);
     isw.setMatrix(matrix);
     loadFile(true);
     updateSlider();
   }
 
   /** Links the FileSeriesWidget with the given display. */
-  public void setDisplay(DisplayImpl display) { this.display = display; }
+  public void setDisplay(DisplayImpl display2) { this.display2 = display2; }
+
+  /** Links the FileSeriesWidget with the given 3-D display. */
+  public void setDisplay3d(DisplayImpl display3) { this.display3 = display3; }
 
   /** Links the FileSeriesWidget with the given ImageStackWidget. */
   public void setWidget(ImageStackWidget widget) { isw = widget; }
@@ -149,37 +152,64 @@ public class FileSeriesWidget extends StepWidget {
       return;
     }
 
-    if (doMaps && display != null) {
+    if (doMaps && display2 != null) {
       try {
-        // clear old display
-        display.removeAllReferences();
-        display.clearMaps();
+        // clear old displays
+        display2.removeAllReferences();
+        display2.clearMaps();
+        if (display3 != null) {
+          display3.removeAllReferences();
+          display3.clearMaps();
+        }
       }
       catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
       catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
 
       // set up mappings
-      animMap = null;
-      xMap = null;
-      yMap = null;
+      animMap2 = xMap2 = yMap2 = null;
+      xMap3 = yMap3 = zMap3 = null;
       ScalarMap[] maps = field.getType().guessMaps(false);
       for (int i=0; i<maps.length; i++) {
-        ScalarMap smap = maps[i];
+        ScalarMap smap2 = maps[i];
+        DisplayRealType drt = smap2.getDisplayScalar();
+        boolean anim = Display.Animation.equals(drt);
+        ScalarMap smap3 = anim ? null : (ScalarMap) smap2.clone();
+        if (anim) {
+          animMap2 = smap2;
+          if (display3 != null) {
+            try {
+              smap3 = zMap3 = new ScalarMap(smap2.getScalar(), Display.ZAxis);
+            }
+            catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
+          }
+        }
+        else if (Display.XAxis.equals(drt)) {
+          xMap2 = smap2;
+          if (display3 != null) xMap3 = smap3;
+        }
+        else if (Display.YAxis.equals(drt)) {
+          yMap2 = smap2;
+          if (display3 != null) yMap3 = smap3;
+        }
         try {
-          display.addMap(smap);
+          display2.addMap(smap2);
+          if (display3 != null) display3.addMap(smap3);
         }
         catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
         catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
-        DisplayRealType drt = smap.getDisplayScalar();
-        if (Display.Animation.equals(drt)) animMap = smap;
-        else if (Display.XAxis.equals(drt)) xMap = smap;
-        else if (Display.YAxis.equals(drt)) yMap = smap;
       }
       isw.setGrayscale(true); // default to grayscale color mode
       try {
         ScalarMap colorMap = new ScalarMap(COLOR_TYPE, Display.RGB);
-        display.addMap(colorMap);
-        display.addReference(ref);
+        colorMap.setRange(0, 255);
+        display2.addMap(colorMap);
+        display2.addReference(ref);
+        if (display3 != null) {
+          display3.addMap((ScalarMap) colorMap.clone());
+          zMap3b = new ScalarMap(MeasureMatrix.ZAXIS_TYPE, Display.ZAxis);
+          display3.addMap(zMap3b);
+          display3.addReference(ref);
+        }
       }
       catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
       catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
@@ -187,9 +217,11 @@ public class FileSeriesWidget extends StepWidget {
 
     try {
       ref.setData(field);
-      matrix.init(field, new ScalarMap[] {xMap, yMap});
+      matrix.init(field, new ScalarMap[][] {
+        {xMap2, xMap3}, {yMap2, yMap3}, {zMap3, zMap3b}
+      });
       matrix.setIndex(curFile);
-      if (isw != null && animMap != null) isw.setMap(animMap);
+      if (isw != null && animMap2 != null) isw.setMap(animMap2);
     }
     catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
     catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
