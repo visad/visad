@@ -86,6 +86,7 @@ public class Rain implements ActionListener, ControlListener {
 
   static final double MIN = 0.0;
   static final double MAX = 300.0;
+  static final double MAXH2 = 10.0;
 
   /** remoted DataReferences */
   DataReference ref300 = null;
@@ -473,12 +474,18 @@ public class Rain implements ActionListener, ControlListener {
                       ScalarMap sm = new ScalarMap(rt, Display.RGB);
                       maps[k] = sm;
                       ColorControl cc = null;
-                      if (fi == 3 && fj == 2) cc = color_controlH2;
-                      else cc = color_controlH1;
+                      double max;
+                      if (fi == 3 && fj == 2) {
+                        cc = color_controlH2;
+                        max = MAXH2;
+                      }
+                      else {
+                        cc = color_controlH1;
+                        max = ((Real) refMAX.getData()).getValue();
+                      }
                       if (cc != null) {
                         float[][] table = cc.getTable();
                         color_maps[fi][fj] = sm;
-                        double max = ((Real) refMAX.getData()).getValue();
                         color_maps[fi][fj].setRange(MIN, max);
                         displays[fi][fj].addMap(sm);
                         done = true;
@@ -642,11 +649,11 @@ public class Rain implements ActionListener, ControlListener {
     DisplayImpl displayH2 = newDisplay("display_hidden_2");
     displayH2.addMap(color_mapH2);
     color_widgetH2 = new LabeledRGBWidget(color_mapH2, (float) MIN,
-                                                       (float) MAX);
+                                                       (float) MAXH2);
 
     Dimension dH2 = new Dimension(500, 170);
     color_widgetH2.setMaximumSize(dH2);
-    color_mapH2.setRange(MIN, MAX);
+    color_mapH2.setRange(MIN, MAXH2);
     color_controlH2 = (ColorControl) color_mapH2.getControl();
     color_controlH2.addControlListener(this);
 
@@ -845,10 +852,9 @@ public class Rain implements ActionListener, ControlListener {
       public void doAction() throws VisADException, RemoteException {
         double max = ((Real) refMAX.getData()).getValue();
         color_mapH1.setRange(MIN, max);
-        color_mapH2.setRange(MIN, max);
         for (int i=0; i<N_ROWS; i++) {
           for (int j=0; j<N_COLUMNS; j++) {
-            if (color_maps[i][j] != null) {
+            if (color_maps[i][j] != null && !(i == 3 && j == 2)) {
               color_maps[i][j].setRange(MIN, max);
             }
           }
@@ -982,7 +988,7 @@ public class Rain implements ActionListener, ControlListener {
          throws VisADException, RemoteException {
     Control control = e.getControl();
     if (control.equals(color_controlH1)) {
-      float[][] table = ((ColorControl) control).getTable();
+      float[][] table = color_controlH1.getTable();
       if (table != null) {
         for (int i=0; i<N_ROWS; i++) {
           for (int j=0; j<N_COLUMNS; j++) {
@@ -996,7 +1002,7 @@ public class Rain implements ActionListener, ControlListener {
       if (field != null) field.setSamples(table);
     }
     else if (control.equals(color_controlH2)) {
-      float[][] table = ((ColorControl) control).getTable();
+      float[][] table = color_controlH2.getTable();
       if (table != null) color_controls[3][2].setTable(table);
     }
     else if (!in_proj && control != null &&
