@@ -469,14 +469,17 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
       }
  
       //plot the 50 kt wind barbs
+/* WLH 5 Nov 99
       s195 = (float) Math.sin(195 * Data.DEGREES_TO_RADIANS);
       c195 = (float) Math.cos(195 * Data.DEGREES_TO_RADIANS);
+*/
       for (int j=0; j<nbarb50; j++) {
-        x1 = (x + x0*d);
-        y1 = (y + y0*d);
+        x1 = (x + x0 * d);
+        y1 = (y + y0 * d);
         d = d + 0.3f * scale;
-        x3 = (x+x0*d);
-        y3 = (y+y0*d);
+        x3 = (x + x0 * d);
+        y3 = (y + y0 * d);
+/* WLH 5 Nov 99
         if (south) {
           x2 = (x3+barb*(x0*s195+y0*c195));
           y2 = (y3-barb*(x0*c195-y0*s195));
@@ -485,6 +488,16 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
           x2 = (x3-barb*(x0*s195+y0*c195));
           y2 = (y3+barb*(x0*c195-y0*s195));
         }
+*/
+        if (south) {
+          x2 = (x + x0 * (d + slant) - y0 * barb);
+          y2 = (y + y0 * (d + slant) + x0 * barb);
+        }
+        else {
+          x2 = (x + x0 * (d + slant) + y0 * barb);
+          y2 = (y + y0 * (d + slant) - x0 * barb);
+        }
+
         float[] xp = {x1,x2,x3};
         float[] yp = {y1,y2,y3};
 
