@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTDisplay.java,v 1.8 1998-08-24 15:04:39 steve Exp $
+ * $Id: SkewTDisplay.java,v 1.9 1998-08-24 15:24:47 steve Exp $
  */
 
 package visad.meteorology;
@@ -109,19 +109,26 @@ SkewTDisplay
     private final SkewTDisplayRenderer		displayRenderer;
 
     /**
-     * The color of the temperature sounding.
+     * Temperature sounding constant maps.
      */
-    private ConstantMap[]			temperatureColor;
+    private ConstantMap[]			soundingConstantMaps;
 
     /**
-     * The width of the temperature sounding.
+     * Temperature field constant maps
      */
-    private double				temperatureWidth = 3.0;
+    private ConstantMap[]			temperatureConstantMaps =
+	new ConstantMap[0];
 
     /**
-     * The color of the saturation equivalent potential temperature isopleths.
+     * Potential temperature field constant maps
      */
-    private ConstantMap[]			thetaESColor;
+    private ConstantMap[]			thetaConstantMaps =
+	new ConstantMap[0];
+
+    /**
+     * Saturation equivalent potential temperature constant maps.
+     */
+    private ConstantMap[]			thetaESConstantMaps;
 
 
     /**
@@ -151,13 +158,13 @@ SkewTDisplay
 	jframe.setSize(256, 256);
 	jframe.setVisible(true);
 
-	temperatureColor = new ConstantMap[] {
+	soundingConstantMaps = new ConstantMap[] {
 	    new ConstantMap(1., Display.Red),
 	    new ConstantMap(0., Display.Blue),
-	    new ConstantMap(0., Display.Green)
-	};
+	    new ConstantMap(0., Display.Green),
+	    new ConstantMap(3.0, Display.LineWidth)};
 
-	thetaESColor = new ConstantMap[] {
+	thetaESConstantMaps = new ConstantMap[] {
 	    new ConstantMap(0., Display.Red),
 	    new ConstantMap(0., Display.Blue),
 	    new ConstantMap(1., Display.Green)
@@ -253,12 +260,10 @@ SkewTDisplay
 	    /*
 	     * Add the temperature fields to the display.
 	     */
-	    display.addReference(thetaESRef, thetaESColor);
-	    display.addReference(thetaRef);
-	    display.addReference(temperatureRef);
-	    display.addReference(soundingRef, new ConstantMap[] {
-		temperatureColor[0], temperatureColor[1], temperatureColor[2],
-		new ConstantMap (temperatureWidth, Display.LineWidth)});
+	    display.addReference(thetaESRef, thetaESConstantMaps);
+	    display.addReference(thetaRef, thetaConstantMaps);
+	    display.addReference(temperatureRef, temperatureConstantMaps);
+	    display.addReference(soundingRef, soundingConstantMaps);
 
 	    displayInitialized = true;
 	}
