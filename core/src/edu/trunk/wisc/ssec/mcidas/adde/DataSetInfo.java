@@ -91,6 +91,7 @@ public class DataSetInfo
     private URLConnection urlc;           // URL connection
     private char[] data;                  // data returned from server
     private Hashtable descriptorTable;
+    private boolean debug = false;         // debug
     
     /**
      * creates a DataSetInfo object that allows reading
@@ -146,16 +147,24 @@ public class DataSetInfo
             }
             int numNames = data.length/80;
             descriptorTable = new Hashtable(numNames);
+            if (debug) 
+                System.out.println("Number of descriptors = " + numNames);
             for (int i = 0; i < numNames; i++)
             {
                 String temp = new String(data, i*80, 80);
+                if (debug) System.out.println("Parsing: >"+temp+"<");
                 if (temp.trim().equals("")) continue;
                 String descriptor = temp.substring(0,12).trim();
-                String comment;
-                if (temp.indexOf('"') <= 21)   // no comment
-                    comment = descriptor;
-                else
-                    comment = temp.substring(temp.indexOf('"')+ 1).trim();
+                if (debug) System.out.println("Descriptor = " + descriptor);
+                String comment = descriptor;
+                int pos = temp.indexOf('"');
+                if (debug) System.out.println("Found quote at " + pos);
+                if (pos >= 23)   
+                {
+                    comment = temp.substring(pos + 1).trim();
+                    if (comment.equals("")) comment = descriptor;
+                }
+                if (debug) System.out.println("Comment = " + comment);
                 descriptorTable.put(comment, descriptor);
             }
         } 
@@ -273,7 +282,7 @@ public class DataSetInfo
         System.out.println("\nDataset Names:\n");
 
         String request = (args.length == 0)
-          ? "adde://zero.unidata.ucar.edu/datasetinfo?group=blizzard&type=image"
+          ? "adde://adde.unidata.ucar.edu/datasetinfo?group=blizzard&type=image"
           : args[0];
         DataSetInfo dsinfo = new DataSetInfo(request);
         System.out.println(dsinfo.toString());
