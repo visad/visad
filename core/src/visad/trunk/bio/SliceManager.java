@@ -335,7 +335,14 @@ public class SliceManager
   public void setVolumeRender(boolean volume) { this.volume = volume; }
 
   /** Links the data series to the given list of files. */
-  public void setSeries(File[] files) {
+  public void setSeries(File[] files) { setSeries(files, false); }
+  
+  /**
+   * Links the data series to the given list of files, treating
+   * each file as a slice (instead of a timestep) if specified.
+   */
+  public void setSeries(File[] files, boolean filesAsSlices) {
+    // CTR - FIXME - implement filesAsSlices option
     this.files = files;
     index = 0;
     setFile(true);

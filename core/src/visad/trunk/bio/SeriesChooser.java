@@ -59,6 +59,15 @@ public class SeriesChooser extends JPanel implements ActionListener {
   /** Text field containing file extension. */
   private JComboBox type;
 
+  /** Label for how files should be interpreted. */
+  private JLabel treatLabel;
+
+  /** Radio button for treating each file as a timestep. */
+  private JRadioButton treatTimestep;
+
+  /** Radio button for treating each file as a slice. */
+  private JRadioButton treatSlice;
+
   /** Toggle for creation of low-resolution thumbnails. */
   private JCheckBox thumbs;
 
@@ -86,6 +95,7 @@ public class SeriesChooser extends JPanel implements ActionListener {
     JPanel top = new JPanel();
     JPanel mid1 = new JPanel();
     JPanel mid2 = new JPanel();
+    JPanel mid3 = new JPanel();
     JPanel bottom = new JPanel();
     JPanel mid1Left = new JPanel();
     JPanel mid1Right = new JPanel();
@@ -93,22 +103,26 @@ public class SeriesChooser extends JPanel implements ActionListener {
     top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
     mid1.setLayout(new BoxLayout(mid1, BoxLayout.X_AXIS));
     mid2.setLayout(new BoxLayout(mid2, BoxLayout.X_AXIS));
+    mid3.setLayout(new BoxLayout(mid3, BoxLayout.X_AXIS));
     bottom.setLayout(new BoxLayout(bottom, BoxLayout.X_AXIS));
     mid1Left.setLayout(new BoxLayout(mid1Left, BoxLayout.Y_AXIS));
     mid1Right.setLayout(new BoxLayout(mid1Right, BoxLayout.Y_AXIS));
     top.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     mid1.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     mid2.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    mid3.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     bottom.setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
     // create labels
     JLabel l1 = new JLabel("File prefix");
     JLabel l2 = new JLabel("Count");
     JLabel l3 = new JLabel("Type");
+    treatLabel = new JLabel("Treat each file as a:");
     thumbLabel = new JLabel(" by ");
     l1.setForeground(Color.black);
     l2.setForeground(Color.black);
     l3.setForeground(Color.black);
+    treatLabel.setForeground(Color.black);
     thumbLabel.setForeground(Color.black);
 
     // create text fields
@@ -126,6 +140,17 @@ public class SeriesChooser extends JPanel implements ActionListener {
     Util.adjustTextField(thumbResX);
     Util.adjustTextField(thumbResY);
     type.setEditable(true);
+
+    // create radio buttons
+    treatTimestep = new JRadioButton("timestep");
+    treatSlice = new JRadioButton("slice");
+    treatTimestep.setForeground(Color.black);
+    treatSlice.setForeground(Color.black);
+    treatTimestep.setSelected(true);
+    ButtonGroup group = new ButtonGroup();
+    group.add(treatTimestep);
+    group.add(treatSlice);
+
 
     // create check box
     thumbs = new JCheckBox("Create low-resolution thumbnails", true);
@@ -158,15 +183,23 @@ public class SeriesChooser extends JPanel implements ActionListener {
     add(top);
     add(mid1);
     add(mid2);
+    add(mid3);
     add(bottom);
     top.add(l1);
     top.add(prefix);
     mid1.add(mid1Left);
     mid1.add(mid1Right);
-    mid2.add(thumbs);
-    mid2.add(thumbResX);
-    mid2.add(thumbLabel);
-    mid2.add(thumbResY);
+    mid2.add(treatLabel);
+    mid2.add(Box.createHorizontalGlue());
+    mid2.add(treatTimestep);
+    mid2.add(treatSlice);
+    mid2.add(Box.createHorizontalGlue());
+    mid3.add(thumbs);
+    mid3.add(Box.createHorizontalGlue());
+    mid3.add(thumbResX);
+    mid3.add(thumbLabel);
+    mid3.add(thumbResY);
+    mid3.add(Box.createHorizontalGlue());
     bottom.add(Box.createHorizontalGlue());
     bottom.add(select);
     bottom.add(ok);
@@ -235,6 +268,9 @@ public class SeriesChooser extends JPanel implements ActionListener {
 
   /** Gets the prefix of the selected file series. */
   public String getPrefix() { return prefix.getText(); }
+
+  /** Gets whether to treat each file as a slice instead of as a timestep. */
+  public boolean getFilesAsSlices() { return treatSlice.isSelected(); }
 
   /** Gets whether to make low-resolution thumbnails. */
   public boolean getThumbs() { return thumbs.isSelected(); }

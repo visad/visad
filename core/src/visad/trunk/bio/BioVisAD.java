@@ -312,7 +312,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
             JOptionPane.ERROR_MESSAGE);
           return;
         }
-        sm.setSeries(f);
+        sm.setSeries(f, seriesBox.getFilesAsSlices());
         exportTIFF.setEnabled(true);
         exportQT.setEnabled(Util.canDoQuickTime());
       }
