@@ -2438,13 +2438,14 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
         b1 = a1 = BACK_SCALE * f1;
         b2 = a2 = BACK_SCALE * f2;
 
-        if (mode2d || (f2 <= f0 && f2 <= f1)) {
+        if (mode2d || (Math.abs(f2) <= Math.abs(f0) &&
+                       Math.abs(f2) <= Math.abs(f1))) {
           a0 += PERP_SCALE * f1;
           a1 -= PERP_SCALE * f0;
           b0 -= PERP_SCALE * f1;
           b1 += PERP_SCALE * f0;
         }
-        else if (f1 <= f0) {
+        else if (Math.abs(f1) <= Math.abs(f0)) {
           a0 += PERP_SCALE * f2;
           a2 -= PERP_SCALE * f0;
           b0 -= PERP_SCALE * f2;
