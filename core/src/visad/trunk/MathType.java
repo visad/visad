@@ -1293,6 +1293,37 @@ public abstract class MathType extends Object implements java.io.Serializable {
     return;
   }
 
+  /** return true if st occurs in mt */
+  public static boolean findScalarType(MathType mt, ScalarType st)
+         throws VisADException {
+    if (mt == null || st == null) return false;
+    if (mt instanceof TupleType) {
+      TupleType tt = (TupleType) mt;
+      // search each element of the tuple
+      for (int i=0; i<tt.getDimension(); i++) {
+        MathType tc = tt.getComponent(i);
+        if (findScalarType(tc, st)) return true;
+      }
+      return false;
+    }
+    else if (mt instanceof SetType) {
+      SetType et = (SetType) mt;
+      // search set's domain
+      return findScalarType(et.getDomain(), st);
+    }
+    else if (mt instanceof FunctionType) {
+      FunctionType ft = (FunctionType) mt;
+      RealTupleType domain = ft.getDomain();
+      MathType range = ft.getRange();
+      return findScalarType(domain, st) || findScalarType(range, st);
+    }
+    else if (mt instanceof ScalarType) {
+      return (mt.equals(st));
+    }
+    return false;
+  }
+
+
   /** run 'java visad.MathType' to test MathType.prettyString()
       and MathType.guessMaps() */
   public static void main(String args[])
