@@ -110,6 +110,7 @@ public class DataSetInfo
    
         URLConnection urlc;           
         BufferedReader reader;
+        debug = debug || request.indexOf("debug=true") >= 0;
         try 
         {
             URL url = new URL(request);
@@ -121,10 +122,12 @@ public class DataSetInfo
         }
         catch (AddeURLException ae) 
         {
+            status = -1;
             throw new AddeURLException("No datasets found");
         }
         catch (Exception e) 
         {
+            status = -1;
             throw new AddeURLException("Error opening connection: " + e);
         }
         int numBytes = ((AddeURLConnection) urlc).getInitialRecordSize();
@@ -255,16 +258,14 @@ public class DataSetInfo
                 new StringBuffer("                                          ");
             String line = new String(data, i*80, 80);
             sb.insert(0,line.substring(0,12));
-            int brange = Integer.parseInt(line.substring(12,18).trim());
+            int brange = 0;
             int erange = 0;
-            try
-            {
+            try {
+                brange = Integer.parseInt(line.substring(12,18).trim());
+            } catch (NumberFormatException ne) { brange = 0; }
+            try {
                 erange = Integer.parseInt(line.substring(18,23).trim());
-            }
-            catch (NumberFormatException ne)
-            {
-               erange = 0;
-            }
+            } catch (NumberFormatException ne) { erange = 0; }
             if (erange == 0) erange = brange;
             int numPos = (erange-brange) + 1;
             int insertPos = 17;
