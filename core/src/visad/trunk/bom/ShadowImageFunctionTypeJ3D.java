@@ -30,6 +30,7 @@ import visad.*;
 import visad.java3d.*;
 import visad.data.mcidas.BaseMapAdapter;
 import visad.data.mcidas.AreaAdapter;
+import visad.data.gif.GIFForm;
 import visad.util.Delay;
 
 import javax.media.j3d.*;
@@ -185,13 +186,13 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             throw new BadMappingException("image values must be mapped to color only");
           }
           cmaps[i] = (ScalarMap) mvector.elementAt(0);
-          if (Display.Red.equals(cmap.getDisplayScalar())) {
+          if (Display.Red.equals(cmaps[i].getDisplayScalar())) {
             permute[0] = i;
           }
-          else if (Display.Green.equals(cmap.getDisplayScalar())) {
+          else if (Display.Green.equals(cmaps[i].getDisplayScalar())) {
             permute[1] = i;
           }
-          else if (Display.Blue.equals(cmap.getDisplayScalar())) {
+          else if (Display.Blue.equals(cmaps[i].getDisplayScalar())) {
             permute[2] = i;
           }
           else {
@@ -1041,7 +1042,8 @@ if (i == (len / 2)) {
        remap = (args[1].indexOf("2") >= 0) ? false : true;
     }
 
-    // SatDisplay map = new SatDisplay(mapFile, areaFile, threeD, remap);
+    boolean gif = areaFile.endsWith("gif") || areaFile.endsWith("GIF") ||
+                  areaFile.endsWith("jpg") || areaFile.endsWith("JPG");
 
     try {
 
@@ -1052,7 +1054,13 @@ if (i == (len / 2)) {
       }
 
       //--- map data to display ---//
-      if (threeD)
+      if (gif) {
+        display = new DisplayImplJ3D("display",
+                                     new TwoDDisplayRendererJ3D());
+        lat_map = new ScalarMap(RealType.getRealType("ImageLine"), Display.YAxis);
+        lon_map = new ScalarMap(RealType.getRealType("ImageElement"), Display.XAxis);
+      }
+      else if (threeD)
       {
         display = new DisplayImplJ3D("display");
         lat_map = new ScalarMap(RealType.Latitude, Display.Latitude);
@@ -1069,8 +1077,10 @@ if (i == (len / 2)) {
       display.addMap(lat_map);
       display.addMap(lon_map);
 
-      lat_map.setRange(-90.0, 90.0);
-      lon_map.setRange(-180.0, 180.0);
+      if (!gif) {
+        lat_map.setRange(-90.0, 90.0);
+        lon_map.setRange(-180.0, 180.0);
+      }
 
       DataReference maplines_ref = new DataReferenceImpl("MapLines");
       maplines_ref.setData(baseMap.getData());
@@ -1082,9 +1092,15 @@ if (i == (len / 2)) {
       colMap[2] = new ConstantMap(0., Display.Green);
       colMap[3] = new ConstantMap(1.001, Display.Radius); // map lines above image
 
-      AreaAdapter aa = new AreaAdapter(areaFile);
-
-      FlatField imaget = aa.getData();
+      FlatField imaget = null;
+      if (gif) {
+        GIFForm gif_form = new GIFForm();
+        imaget = (FlatField) gif_form.open(areaFile);
+      }
+      else {
+        AreaAdapter aa = new AreaAdapter(areaFile);
+        imaget = aa.getData();
+      }
 
       FunctionType ftype = (FunctionType) imaget.getType();
       RealTupleType dtype = ftype.getDomain();
@@ -1100,24 +1116,40 @@ if (i == (len / 2)) {
           imaget.resample(dset, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
       }
 
-      // select which band to show...
-      ScalarMap rgbmap = new ScalarMap( (RealType) rtype.getComponent(0),
-                                        Display.RGBA);
-      display.addMap(rgbmap);
-      BaseColorControl control = (BaseColorControl) rgbmap.getControl();
-      control.initGreyWedge();
-/* test for RGBA */
-      float[][] table = control.getTable();
-      for (int i=0; i<table[3].length; i++) {
-        table[3][i] = table[0][i];
+      if (gif) {
+        ScalarMap rmap = new ScalarMap( (RealType) rtype.getComponent(0),
+                                        Display.Red);
+        display.addMap(rmap);
+        ScalarMap gmap = new ScalarMap( (RealType) rtype.getComponent(1),
+                                        Display.Green);
+        display.addMap(gmap);
+        ScalarMap bmap = new ScalarMap( (RealType) rtype.getComponent(2),
+                                        Display.Blue);
+        display.addMap(bmap);
       }
-      control.setTable(table);
+      else {
+        // select which band to show...
+        ScalarMap rgbmap = new ScalarMap( (RealType) rtype.getComponent(0),
+                                          Display.RGBA);
+        display.addMap(rgbmap);
+        BaseColorControl control = (BaseColorControl) rgbmap.getControl();
+        control.initGreyWedge();
+/* test for RGBA */
+        float[][] table = control.getTable();
+        for (int i=0; i<table[3].length; i++) {
+          table[3][i] = table[0][i];
+        }
+        control.setTable(table);
 /* end test for RGBA */
+      }
 
       DataReferenceImpl ref_image = new DataReferenceImpl("ref_image");
 
 /* start modify imaget to be packed bytes */
-      Set[] range_sets = {new Integer1DSet(255)};
+      Set[] range_sets = gif ? new Set[] {new Linear1DSet(0.0, 255.0, 255),
+                                          new Linear1DSet(0.0, 255.0, 255),
+                                          new Linear1DSet(0.0, 255.0, 255)} :
+                               new Set[] {new Integer1DSet(255)};
       FlatField new_field =
         new FlatField(ftype, imaget.getDomainSet(), null, null, range_sets, null);
       float[][] values = imaget.getFloats(false);
