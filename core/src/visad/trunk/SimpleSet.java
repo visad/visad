@@ -102,7 +102,7 @@ public abstract class SimpleSet extends Set {
     Enumeration maps = real.getSelectedMapVector().elements();
     while (maps.hasMoreElements()) {
       ScalarMap map = (ScalarMap) maps.nextElement();
-      if (map.getDisplayScalar() == Display.Animation) {
+      if (map.getDisplayScalar().equals(Display.Animation)) {
         shadow.setAnimationSampling(this, domain);
         return;
       }
