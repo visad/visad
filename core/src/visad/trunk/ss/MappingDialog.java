@@ -776,6 +776,9 @@ public class MappingDialog extends JDialog implements ActionListener,
         int i = ScW[lo];
         ScW[lo] = ScW[hi];
         ScW[hi] = i;
+        i = ScB[lo];
+        ScB[lo] = ScB[hi];
+        ScB[hi] = i;
         lo++;
         hi--;
       }
