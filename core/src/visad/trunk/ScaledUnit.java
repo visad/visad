@@ -181,6 +181,7 @@ public final class ScaledUnit
      *			create a yard unit if <code>unit</code> represents
      *			a foot.
      * @param unit	The given unit.
+     * @return          A corresponding scaled unit.
      * @throws UnitException	Can't create Scaled Unit from <code>unit</code>.
      */
     public static ScaledUnit
@@ -200,9 +201,24 @@ public final class ScaledUnit
     }
 
     /**
+     * <p>Indicates if this instance is dimensionless.  A unit is dimensionless
+     * if it is a measure of a dimensionless quantity like angle or 
+     * concentration.  Examples of dimensionless units include radian, degree,
+     * steradian, and "g/kg".</p>
+     *
+     * @return                  True if an only if this unit is dimensionless.
+     */
+    public boolean isDimensionless() {
+      return derivedUnit.isDimensionless();
+    }
+
+    /**
      * Clones this unit, changing the identifier.
+     *
      * @param identifier	The name or abbreviation for the cloned unit.
      *				May be <code>null</code> or empty.
+     * @return                  A unit equal to this instance but with the given
+     *                          identifier.
      */
     protected Unit protectedClone(String identifier)
     {
@@ -489,6 +505,13 @@ public final class ScaledUnit
 	}
     }
 
+  /**
+   * Indicates if this instance is equal to a unit.
+   *
+   * @param unit             The unit.
+   * @return                 <code>true</code> if and only if this instance
+   *                         equals the unit.
+   */
   public boolean equals(Unit unit) {
     if (unit == null) return false;
 

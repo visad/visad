@@ -54,12 +54,52 @@ public final class BaseUnit
      * Derived unit associated with base unit (for computational efficiency).
      */
     final DerivedUnit			derivedUnit;
+    
+    final boolean                       isDimless;
 
     /**
      * Global database of base units (to prevent multiple base units for the
      * same quantity).
      */
     private static final Vector	baseUnits = new Vector(9);
+
+    /**
+     * Constructs a base unit from the names for the quantity and unit, a
+     * the unit abbreviation, and whether or not the unit is dimensionless.
+     *
+     * @param unitName		Name of the unit (e.g. "meter").
+     * @param abbreviation	The abbreviation for the unit (e.g. "m").
+     * @param quantityName	Name of the quantity (e.g. "Length").
+     * @param isDimless         Whether or not the unit is dimensionless.
+     * @throws UnitException	Name, abbreviation, or quantity name is <code>
+     *				null</code>.
+     */
+    private BaseUnit(String unitName, String abbreviation, String quantityName,
+	boolean isDimless)
+	  throws UnitException
+    {
+	super(abbreviation);
+	if (unitName == null || abbreviation == null || quantityName == null)
+	  throw new UnitException(
+	    "Base unit name, abbreviation, or quantity name is null");
+	this.unitName = unitName;
+	this.quantityName = quantityName;
+	baseUnits.addElement(this);
+	derivedUnit = new DerivedUnit(this);
+	this.isDimless = isDimless;
+    }
+
+    /**
+     * <p>Indicates if this instance is dimensionless.  A unit is dimensionless
+     * if it is a measure of a dimensionless quantity like angle or
+     * concentration.  Examples of dimensionless base units include radian,
+     * degree, and steradian.</p>
+     *
+     * @return                  True if an only if this unit is dimensionless.
+     */
+    public boolean isDimensionless() {
+      return isDimless;
+    }
 
     /**
      * Raise a base unit to a power.
@@ -141,8 +181,9 @@ public final class BaseUnit
     }
 
     /**
-     * Create a new base unit from the name of a quantity and the name
-     * of a unit.  The unit abbreviation will be the same as the unit name.
+     * Create a new base unit from the name of a quantity and the name of a
+     * unit.  The unit abbreviation will be the same as the unit name.  The unit
+     * will not be dimensionless.
      *
      * @param quantityName	The name of the associated quantity (e.g.
      *				"Length").
@@ -166,7 +207,7 @@ public final class BaseUnit
 
     /**
      * Create a new base unit from from the name of a quantity, the name of
-     * a unit, and the unit's abbreviation.
+     * a unit, and the unit's abbreviation.  The unit will not be dimensionless.
      *
      * @param quantityName	The name of the associated quantity (e.g.
      *				"Length").
@@ -188,13 +229,45 @@ public final class BaseUnit
 						    String abbreviation)
 	throws UnitException
     {
+	return addBaseUnit(quantityName, unitName, abbreviation, false);
+    }
+
+    /**
+     * Create a new base unit from from the name of a quantity, the name of
+     * a unit, the unit's abbreviation, and whether or not the unit is
+     * dimensionless.
+     *
+     * @param quantityName	The name of the associated quantity (e.g.
+     *				"Length").
+     * @param unitName		The name for the unit (e.g. "meter").
+     * @param abbreviation	The abbreviation for the unit (e.g. "m").
+     * @param isDimless         Whether or not the unit is dimensionless.
+     * @return          	A new base unit or the previously created one
+     *				with the same names.
+     * @require			The arguments are non-null.  The quantity
+     *				name has not been used before or the unit name
+     *				is the same as before.
+     * @promise			The new quantity and unit has been added to the
+     *				database.
+     * @throws UnitException	Name, abbreviation, or quantity name is <code>
+     *				null</code> or attempt to redefine the base unit
+     *				associated with <code>quantityName</code>.
+     */
+    public static synchronized BaseUnit addBaseUnit(String quantityName,
+						    String unitName,
+						    String abbreviation,
+						    boolean isDimless)
+	throws UnitException
+    {
 	BaseUnit	baseUnit = quantityNameToUnit(quantityName);
 
 	if (baseUnit == null)
-	    return new BaseUnit(unitName, abbreviation, quantityName);
+	    return
+		new BaseUnit(unitName, abbreviation, quantityName, isDimless);
 
 	if (baseUnit.unitName.equals(unitName) &&
-	    baseUnit.getIdentifier().equals(abbreviation))
+	    baseUnit.getIdentifier().equals(abbreviation) &&
+	    baseUnit.isDimless == isDimless)
 	{
 	    return baseUnit;
 	}
@@ -496,29 +569,6 @@ public final class BaseUnit
     }
 
     /**
-     * Construct a base unit from the names for the quantity and unit, and
-     * from the unit abbreviation.
-     *
-     * @param unitName		Name of the unit (e.g. "meter").
-     * @param abbreviation	The abbreviation for the unit (e.g. "m").
-     * @param quantityName	Name of the quantity (e.g. "Length").
-     * @throws UnitException	Name, abbreviation, or quantity name is <code>
-     *				null</code>.
-     */
-    private BaseUnit(String unitName, String abbreviation, String quantityName)
-	throws UnitException
-    {
-	super(abbreviation);
-	if (unitName == null || abbreviation == null || quantityName == null)
-	  throw new UnitException(
-	    "Base unit name, abbreviation, or quantity name is null");
-	this.unitName = unitName;
-	this.quantityName = quantityName;
-	baseUnits.addElement(this);
-	derivedUnit = new DerivedUnit(this);
-    }
-
-    /**
      * Returns the definition of this unit.  The definition of a BaseUnit is the
      * same as the BaseUnit's identifier.
      *
@@ -533,8 +583,11 @@ public final class BaseUnit
     /**
      * Clones this unit, changing the identifier.  This method always throws
      * an exception because base units may not be cloned.
+     *
      * @param identifier	The name or abbreviation for the cloned unit.
      *				May be <code>null</code> or empty.
+     * @return                  A unit equal this this instance but with the
+     *                          given identifier.
      * @throws UnitException	Base units may not be cloned.  Always thrown.
      */
     protected Unit protectedClone(String identifier)
@@ -544,11 +597,19 @@ public final class BaseUnit
     }
 
 
-  /** added by WLH 11 Feb 98 */
+  // added by WLH 11 Feb 98
+  /**
+   * Indicates whether or not this instance equals a unit.
+   *
+   * @param unit                A unit.
+   * @return                    <code>true</code> if and only if this instance
+   *                            is equal to the unit.
+   */
   public boolean equals(Unit unit) {
     return (unit instanceof BaseUnit) &&
            unitName.equals(((BaseUnit) unit).unitName) &&
-           quantityName.equals(((BaseUnit) unit).quantityName);
+           quantityName.equals(((BaseUnit) unit).quantityName) &&
+	   isDimless == ((BaseUnit)unit).isDimless;
   }
 
     /**

@@ -55,9 +55,34 @@ public abstract class Unit
    added by Bill Hibbard for VisAD
 */
 
-  /** convert a tuple of value arrays (a double[][]) */
+  /**
+   * Converts a tuple of double value arrays.
+   *
+   * <p>This implementation uses {@link #toThis(double[], unit) to convert the
+   * individual arrays.</p>
+   *
+   * @param value              The tuple of numeric value arrays to convert.
+   *                           <code> value[i][j]</code> is the value of the
+   *                           <code> i</code>th component of sample-point
+   *                           <code>j </code>.
+   * @param units_in           The units of the input numeric values.
+   *                           <code>units_in[i]</code> is the unit of the
+   *                           <code>i</code>th conponent.
+   * @param units_out          The units of the output numeric values.
+   *                           <code>units_out[i]</code> is the unit for the
+   *                           <code>i</code>th conponent.
+   * @return                   The converted values in a new array. 
+   *                           RETURN_VALUE<code>[i][j]</code> is the converted
+   *                           value of <code>value[i][j]</code>.
+   * @throws UnitException     If an ouput unit is <code>null</code> 
+   *                           and the corresponding input unit is neither 
+   *                           <code>null</code> nor a {@link PromiscuousUnit},
+   *                           or if an input unit is not convertible with its
+   *                           corresponding output unit.
+   * @throws VisADException    if a VisAD failure occurs.
+   */
   public static double[][] convertTuple(double[][] value, Unit[] units_in,
-         Unit[] units_out) throws VisADException {
+         Unit[] units_out) throws UnitException, VisADException {
     double[][] new_value = new double[value.length][];
     for (int i=0; i<value.length; i++) {
       if (units_out[i] == null) {
@@ -73,9 +98,34 @@ public abstract class Unit
     return new_value;
   }
 
-  /** convert a tuple of value arrays (a float[][]) */
+  /**
+   * <p>Converts a tuple of float value arrays.</p>
+   *
+   * <p>This implementation uses {@link #toThis(float[], unit) to convert the
+   * individual arrays.</p>
+   *
+   * @param value              The tuple of numeric value arrays to convert.
+   *                           <code> value[i][j]</code> is the value of the
+   *                           <code> i</code>th component of sample-point
+   *                           <code>j </code>.
+   * @param units_in           The units of the input numeric values.
+   *                           <code>units_in[i]</code> is the unit of the
+   *                           <code>i</code>th conponent.
+   * @param units_out          The units of the output numeric values.
+   *                           <code>units_out[i]</code> is the unit for the
+   *                           <code>i</code>th conponent.
+   * @return                   The converted values in a new array. 
+   *                           RETURN_VALUE<code>[i][j]</code> is the converted
+   *                           value of <code>value[i][j]</code>.
+   * @throws UnitException     If an ouput unit is <code>null</code> 
+   *                           and the corresponding input unit is neither 
+   *                           <code>null</code> nor a {@link PromiscuousUnit},
+   *                           or if an input unit is not convertible with its
+   *                           corresponding output unit.
+   * @throws VisADException    if a VisAD failure occurs.
+   */
   public static float[][] convertTuple(float[][] value, Unit[] units_in,
-         Unit[] units_out) throws VisADException {
+         Unit[] units_out) throws UnitException, VisADException {
     float[][] new_value = new float[value.length][];
     for (int i=0; i<value.length; i++) {
       if (units_out[i] == null) {
@@ -125,7 +175,21 @@ public abstract class Unit
    */
   public abstract boolean isConvertible(Unit unit);
 
-  /** apply canConvert elementwise to two Unit arrays */
+  /**
+   * <p>Indicates whether or not two unit arrays are convertible.  Two such
+   * arrays are convertible if and only if the units of their corresponding
+   * elements are convertible.</p>
+   *
+   * <p>This implementation uses {@link #canConvert(Unit, Unit)} to determine
+   * convertibility of the element pairs.
+   *
+   * @param unita              One array of units.  May be <code>null</code>.
+   * @param unitb              The other array of units.  May be 
+   *                           <code>null</code>.
+   * @return                   <code>true</code> if and only if both unit arrays
+   *                           are <code>null</code> or the two unit
+   *                           arrays are element-by-element convertible.
+   */
   public static boolean canConvertArray(Unit[] unita, Unit[] unitb) {
     if (unita == null && unitb == null) return true;
     if (unita == null) unita = new Unit[unitb.length];
@@ -141,22 +205,51 @@ public abstract class Unit
     return true;
   }
 
-  /** copy a Unit[] array;
-      this is a helper for Set, RealTupleType, CoordinateSystem, etc */
+  /**
+   * Copys an array of units.  This is a helper method for {@link Set}, {@link
+   * RealTupleType}, {@link CoordinateSystem}, etc.
+   *
+   * @param units             The array of units or <code>null</code>.
+   * @return                  A copy of the array of units or <code>null</code>.
+   *                          if the input array is <code>null</code>.
+   */
   public static Unit[] copyUnitsArray(Unit[] units) {
     return units == null ? null : (Unit[])units.clone();
   }
 
+  /**
+   * Indicates whether or not this instance is equal to a unit.
+   *
+   * @param unit              The unit.
+   * @return                  <code>true</code> if and only if this instance
+   *                          equals the unit.
+   */
   public abstract boolean equals(Unit unit);
 
-  /** transform Units; unit_in and error_in are the Unit and ErrorEstimate
-      associated with value; unit_out is the target Unit;
-      value is the array of values to transform; return new value array;
-      return transformed ErrorEstimates in errors_out array; */
+  /**
+   * Transform double values and (optionally) error estimates.
+   *
+   * @param unit_out          The unit of the output numeric values or
+   *                          <code>null</code>.
+   * @param errors_out        The output error estimate.  <code>errors_out[0]
+   *                          </code> will contain the output error estimate,
+   *                          which may be <code>null</code>.
+   * @param unit_in           The unit of the input numeric values.
+   * @param error_in          The input error estimate or <code>null</code>.
+   * @param value             The input numeric value.
+   * @return                  The corresponding, transformed numeric values in
+   *                          the same array only if the input and output units
+   *                          were <code>null</code>; otherwise, a new array
+   *                          is returned.
+   * @throws NullPointerException if <code>errors_out</code> is <code>null
+   *                              </code>.
+   * @throws UnitException    if the input and output unit aren't convertible.
+   * @throws VisADException   if a VisAD failure occurs.
+   */
   public static double[] transformUnits(
                         Unit unit_out, ErrorEstimate[] errors_out,
                         Unit unit_in, ErrorEstimate error_in,
-                        double[] value) throws VisADException {
+                        double[] value) throws UnitException, VisADException {
 
     if (unit_out == null || unit_in == null) {
       errors_out[0] = error_in;
@@ -185,10 +278,30 @@ public abstract class Unit
     }
   }
 
+  /**
+   * Transform float values and (optionally) error estimates.
+   *
+   * @param unit_out          The unit of the output numeric values or
+   *                          <code>null</code>.
+   * @param errors_out        The output error estimate.  <code>errors_out[0]
+   *                          </code> will contain the output error estimate,
+   *                          which may be <code>null</code>.
+   * @param unit_in           The unit of the input numeric values.
+   * @param error_in          The input error estimate or <code>null</code>.
+   * @param value             The input numeric value.
+   * @return                  The corresponding, transformed numeric values in
+   *                          the same array only if the input and output units
+   *                          were <code>null</code>; otherwise, a new array
+   *                          is returned.
+   * @throws NullPointerException if <code>errors_out</code> is <code>null
+   *                              </code>.
+   * @throws UnitException    if the input and output unit aren't convertible.
+   * @throws VisADException   if a VisAD failure occurs.
+   */
   public static float[] transformUnits(
                         Unit unit_out, ErrorEstimate[] errors_out,
                         Unit unit_in, ErrorEstimate error_in,
-                        float[] value) throws VisADException {
+                        float[] value) throws UnitException, VisADException {
 
     if (unit_out == null || unit_in == null) {
       errors_out[0] = error_in;
@@ -253,9 +366,11 @@ public abstract class Unit
 
     /**
      * Adjusts, checks, and caches a unit identifier and its unit.
+     *
      * @param identifier	Name or abbreviation for the unit.  May be
      *				<code>null</code> or empty.
-     * @param unit		The unit to be associated with the identifier.
+     * @return                  The identifier adjusted as necessary in order
+     *                          to be valid (e.g. whitespace replacement).
      * @throws UnitExistsException
      *				A different unit with the same, non-null and
      *				non-empty identifier already exists.  The
@@ -282,11 +397,28 @@ public abstract class Unit
     }
 
     /**
-     * Clones this unit, changing the identifier.
+     * <p>Indicates if this instance is dimensionless.  A unit is dimensionless
+     * if it is a measure of a dimensionless quantity like angle or 
+     * concentration.  Examples of dimensionless units include radian, degree,
+     * steradian, and "g/kg".</p>
+     *
+     * @return                  True if an only if this unit is dimensionless.
+     */
+    public abstract boolean isDimensionless();
+
+    /**
+     * <p>Clones this unit, changing the identifier.</p>
+     *
+     * <p>This implementation uses the {@link #protectedClone(String)} 
+     * method.</p>
+     *
      * @param identifier	The name or abbreviation for the cloned unit.
      *				May be <code>null</code> or empty.
+     * @return                  A unit equal to this instance but with the given
+     *                          identifier (adjusted if necessary).
      * @throws UnitException	The unit may not be cloned.  This will only
      *				occur if <code>getIdentifier()!=null</code>.
+     * @see #adjustCheckAndCache(String)
      */
     public Unit clone(String identifier)
       throws UnitException
@@ -296,11 +428,14 @@ public abstract class Unit
 
     /**
      * Clones this unit, changing the identifier.
+     *
      * @param identifier	The name or abbreviation for the cloned unit.
      *				May be <code>null</code> or empty.  It shall
      *				have already passed the
-     *				adjustCheckAndCache() method.
-     * @throws UnitException	The unit may not be cloned.  This will only
+     *				{@link #adjustCheckAndCache()} method.
+     * @return                  A unit equal to this instance but with the given
+     *                          identifier.
+     * @throws UnitException	if the unit may not be cloned.  This will only
      *				occur if <code>getIdentifier()!=null</code>.
      */
     protected abstract Unit protectedClone(String identifier)
@@ -376,6 +511,8 @@ public abstract class Unit
      *
      * @param amount	The amount by which to scale this unit.  E.g.
      *			Unit yard = meter.scale(0.9144);
+     * @return          A unit equal to this instance scaled by the given
+     *                  amount.
      * @exception	UnitException	This unit cannot be scaled.
      */
     public Unit scale(double amount)
@@ -399,6 +536,8 @@ public abstract class Unit
      *
      * @param offset	The amount by which to shift this unit.  E.g.
      *			Unit celsius = kelvin.shift(273.15);
+     * @return          A unit equal to this instance with the origin shifted
+     *                  by the given amount.
      * @exception	UnitException	The unit subclass is unknown.
      */
     public Unit shift(double offset)

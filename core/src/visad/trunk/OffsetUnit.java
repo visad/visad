@@ -240,7 +240,22 @@ public final class OffsetUnit
     }
 
     /**
+     * <p>Indicates if this instance is dimensionless.  A unit is dimensionless
+     * if it is a measure of a dimensionless quantity like angle or 
+     * concentration.  Examples of dimensionless units include radian, degree,
+     * steradian, and "g/kg".</p>
+     *
+     * @return                  True if an only if this unit is dimensionless.
+     */
+    public boolean isDimensionless() {
+      return scaledUnit.isDimensionless();
+    }
+
+    /**
      * Indicates if this instance is a unit of time.
+     *
+     * @return                 <code>true</code> if and only if this instance
+     *                         is a unit of time.
      */
     protected boolean isTime()
     {
@@ -249,8 +264,11 @@ public final class OffsetUnit
 
     /**
      * Clones this unit, changing the identifier.
+     *
      * @param identifier        The name or abbreviation for the cloned unit.
      *                          May be <code>null</code> or empty.
+     * @return                  A unit equal to this unit but with the given
+     *                          identifier.
      */
     protected Unit protectedClone(String identifier)
     {
@@ -258,9 +276,12 @@ public final class OffsetUnit
     }
 
     /**
-     * Raise an offset unit to a power.
+     * Raises an offset unit to a power.  Raising an offset unit to a power is
+     * equivalent to first stripping-off the offset amount and then raising
+     * the resulting non-offset unit to the power.
      *
      * @param power             The power to raise this unit by.
+     * @return                  A corresponding unit.
      */
     public Unit pow(int power)
     {
@@ -268,7 +289,9 @@ public final class OffsetUnit
     }
 
     /**
-     * Returns the N-th root of this unit.
+     * Returns the N-th root of this unit.  Taking the root of an offset unit
+     * is equivalent to first stripping-off the offset amount and then taking
+     * the root of the resulting non-offset unit.
      *
      * @param root      The root to take (e.g. 2 means square root).  May not
      *                  be zero.
@@ -285,9 +308,12 @@ public final class OffsetUnit
     }
 
     /**
-     * Raise an offset unit to a power.
+     * Raises an offset unit to a power.  Raising an offset unit to a power is
+     * equivalent to first stripping-off the offset amount and then raising
+     * the resulting non-offset unit to the power.
      *
      * @param power             The power to raise this unit by.
+     * @return                  A corresponding unit.
      */
     public Unit pow(double power)
     {
@@ -334,6 +360,8 @@ public final class OffsetUnit
      * Multiply an offset unit by another unit.
      *
      * @param that              The unit with which to multiply this unit.
+     * @return                  A unit equal to this instance multiplied by
+     *                          the given unit.
      * @exception UnitException Can't multiply units.
      */
     public Unit multiply(Unit that)
@@ -346,6 +374,8 @@ public final class OffsetUnit
      * Divide an offset unit by another unit.
      *
      * @param that              The unit to divide into this unit.
+     * @return                  A unit equal to this instance divided by the
+     *                          given unit.
      * @exception UnitException Can't divide units.
      */
     public Unit divide(Unit that)
@@ -525,6 +555,13 @@ public final class OffsetUnit
             new OffsetUnit(-1.8e9,SI.second).toString());
     }
 
+  /**
+   * Indicates if this instance equals a unit.
+   *
+   * @param unit          The unit.
+   * @return              <code>true</code> if and only if this instance equals
+   *                      the unit.
+   */
   public boolean equals(Unit unit) {
     return (unit instanceof OffsetUnit) &&
            scaledUnit.equals(((OffsetUnit) unit).scaledUnit) &&

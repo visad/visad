@@ -120,6 +120,8 @@ public final class DerivedUnit
      * @param baseUnits		The array of base units (e.g. {m, s}).
      * @param powers		The array of powers (e.g. {1, -1} to create a
      *				m/s unit).
+     * @return                  An array of {@link Factor}s equivalent to the
+     *                          given base units and powers.
      */
     protected static Factor[]
     newFactors(BaseUnit[] baseUnits, int[] powers)
@@ -183,9 +185,28 @@ public final class DerivedUnit
     }
 
     /**
+     * <p>Indicates if this instance is dimensionless.  A unit is dimensionless
+     * if it is a measure of a dimensionless quantity like angle or 
+     * concentration.  Examples of dimensionless units include radian, degree,
+     * steradian, and "g/kg".</p>
+     *
+     * @return                  True if an only if this unit is dimensionless.
+     */
+    public boolean isDimensionless() {
+      for (int i = 0; i < factors.length; i++) {
+	if (factors[i].power != 0 && !factors[i].baseUnit.isDimensionless())
+	  return false;
+      }
+      return true;
+    }
+
+    /**
      * Clones this unit, changing the identifier.
+     *
      * @param identifier	The name or abbreviation for the cloned unit.
      *				May be <code>null</code> or empty.
+     * @return                  A unit equal to this unit but with the given
+     *                          identifier.
      */
     protected Unit protectedClone(String identifier)
     {
@@ -318,6 +339,7 @@ public final class DerivedUnit
      *
      * @param amount	The amount by which to scale this unit.  E.g.
      *			Unit yard = meter.scale(0.9144);
+     * @return          A unit equal this this unit scaled by the given amount.
      * @exception	UnitException	This unit cannot be scaled.
      */
     public Unit scale(double amount)
@@ -331,6 +353,8 @@ public final class DerivedUnit
      *
      * @param offset	The amount by which to shift this unit.  E.g.
      *			Unit celsius = kelvin.shift(273.15);
+     * @return          A unit equal to this unit with the origin shifted to
+     *                  the given point.
      * @exception	UnitException	The unit subclass is unknown.
      */
     public Unit shift(double offset)
@@ -465,7 +489,9 @@ public final class DerivedUnit
     }
 
     /*
-     * PROMISE: None of the returned factors will have a power of zero.
+     * PROMISE: None of the returned factors will have a power of zero and
+     * input dimensionless factors will be ignored and not appear in the
+     * output.
      */
     private Vector[] common(DerivedUnit that)
     {
@@ -478,7 +504,8 @@ public final class DerivedUnit
 
 	for (int i = 0; i < factors.length; ++i)
 	{
-	    if (factors[i].power != 0)
+	    if (factors[i].power != 0 &&
+                !factors[i].baseUnit.isDimensionless())
 	    {
 		int	j;
 
@@ -499,7 +526,8 @@ public final class DerivedUnit
 
 	for (int j = 0; j < that.factors.length; ++j)
 	{
-	    if (that.factors[j].power != 0)
+	    if (that.factors[j].power != 0 &&
+                !factors[j].baseUnit.isDimensionless())
 	    {
 		int	i;
 
@@ -927,7 +955,14 @@ public final class DerivedUnit
       return isConvertible;
     }
 
-  /** added by WLH 11 Feb 98 */
+  // added by WLH 11 Feb 98
+  /**
+   * Indicates if this instance equals a unit.
+   *
+   * @param unit              The unit.
+   * @return                  <code>true</code> if and only if this instance
+   *                          equals the unit.
+   */
   public boolean equals(Unit unit) {
     if (unit == null)
       return false;
