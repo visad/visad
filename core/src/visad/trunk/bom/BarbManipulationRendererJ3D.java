@@ -259,7 +259,10 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
     // System.out.println("drag_direct " + first + " " + type);
     if (barbValues == null || ref == null || shadow == null) return;
     // modify direction if mshift != 0
+    // modify speed if mctrl != 0
+    // modify speed and direction if neither
     int mshift = mouseModifiers & InputEvent.SHIFT_MASK;
+    int mctrl = mouseModifiers & InputEvent.CTRL_MASK;
 
     float o_x = (float) ray.position[0];
     float o_y = (float) ray.position[1];
@@ -410,7 +413,7 @@ System.out.println("direction, ratio = " + ratio + " " +
 System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
 */
       }
-      else {
+      else if (mctrl != 0) {
         // only modify data_flow speed
         float ratio = x_speed / display_speed;
         x[0] = ratio * data_flow[0];
@@ -421,6 +424,13 @@ System.out.println("speed, ratio = " + ratio + " " +
                    x_speed + " " + display_speed);
 System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
 */
+      }
+      else {
+        // modify data_flow speed and direction
+        float ratio = data_speed / display_speed;
+        x[0] *= ratio;
+        x[1] *= ratio;
+        x[2] *= ratio;
       }
 
       // now replace flow values
