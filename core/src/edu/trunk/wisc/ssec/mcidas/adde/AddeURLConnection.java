@@ -382,7 +382,7 @@ public class AddeURLConnection extends URLConnection
     byte [] usr; 
     String userStr;
     startIdx = request.indexOf("user=");
-    if (startIdx > 0) {
+    if (startIdx >= 0) {
       endIdx = request.indexOf('&', startIdx);
       if (endIdx == -1)   // last on line
          endIdx = request.length();
@@ -397,7 +397,7 @@ public class AddeURLConnection extends URLConnection
     startIdx = uCmd.indexOf("proj=");
     String projStr;
     int proj;
-    if (startIdx > 0) {
+    if (startIdx >= 0) {
       endIdx = uCmd.indexOf('&', startIdx);
       if (endIdx == -1)   // last on line
          endIdx = uCmd.length();
@@ -414,7 +414,7 @@ public class AddeURLConnection extends URLConnection
     // compression 
     startIdx = uCmd.indexOf("compress=");
     String compType = "";
-    if (startIdx > 0) {
+    if (startIdx >= 0) {
       endIdx = uCmd.indexOf('&', startIdx);
       if (endIdx == -1)   // last on line
          endIdx = uCmd.length();
@@ -454,7 +454,7 @@ public class AddeURLConnection extends URLConnection
       // default to the compression type
       portToUse = compressionType;
       startIdx = uCmd.indexOf("port=");
-      if (startIdx > 0) {
+      if (startIdx >= 0) {
         String portStr;
         endIdx = uCmd.indexOf('&', startIdx);
         if (endIdx == -1)   // last on line
