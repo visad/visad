@@ -100,7 +100,10 @@ public class RemoteDataReferenceImpl extends UnicastRemoteObject
       throw new RemoteVisADException("RemoteDataReferenceImpl.incTick: " +
                                      "AdaptedDataReference is null");
     }
+    return AdaptedDataReference.incTick(this);
+/* WLH 10 Feb 98
     return AdaptedDataReference.incTick();
+*/
   }
 
   public String getName() throws VisADException, RemoteException {

@@ -555,27 +555,46 @@ public abstract class DataImpl extends Object
     RealTupleType ref = (RealTupleType) shad_ref.Type;
     int n = ranges[0].length;
     int len = 1;
-    // indices is a 'base-2 integer' with n bits
+    // indices is a 'base-5 integer' with n quints
     int[] indices = new int[n];
     for (int i=0; i<n; i++) {
-      len = len + len;
+      len = 5 * len;
       indices[i] = 0;
     }
-    // len = 2 ^ n;
+    // len = 5 ^ n;
     double[][] vals = new double[n][len];
     for (int j=0; j<len; j++) {
-      for (int i=0; i<n; i++) vals[i][j] = ranges[i][indices[i]];
-      // increment 'base-2 integer' in indices array
       for (int i=0; i<n; i++) {
-        if (indices[i] == 0) {
-          indices[i] = 1;
-          break;
+        switch( indices[i]) {
+          case 0:
+            vals[i][j] = ranges[0][i];
+            break;
+          case 1:
+            vals[i][j] = 0.75 * ranges[0][i] + 0.25 * ranges[1][i];
+            break;
+          case 2:
+            vals[i][j] = 0.5 * (ranges[0][i] + ranges[1][i]);
+            break;
+          case 3:
+            vals[i][j] = 0.25 * ranges[0][i] + 0.75 * ranges[1][i];
+            break;
+          case 4:
+            vals[i][j] = ranges[1][i];
+            break;
+        }
+      }
+      // increment 'base-5 integer' in indices array
+      for (int i=0; i<n; i++) {
+        indices[i]++;
+        if (indices[i] == 5) {
+          indices[i] = 0;
         }
         else {
-          indices[i] = 0;
+          break;
         }
       }
     }
+
     // vals are the vertices of the n-dimensional box defined by ranges;
     // tranform them
     vals = CoordinateSystem.transformCoordinates(

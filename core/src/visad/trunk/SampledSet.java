@@ -171,20 +171,20 @@ public abstract class SampledSet extends SimpleSet {
  
     for (int i=0; i<DomainDimension; i++) {
       int k = indices[i];
+      double min = Low[i];
+      double max = Hi[i];
+      Unit dunit =
+        ((RealType) ((SetType) Type).getDomain().getComponent(i)).
+          getDefaultUnit();
+      if (dunit != null && !dunit.equals(SetUnits[i])) {
+        min = dunit.toThis(min, SetUnits[i]);
+        max = dunit.toThis(max, SetUnits[i]);
+      }
+      if (ranges != null) {
+        ranges[0][i] = min;
+        ranges[1][i] = max;
+      }
       if (k >= 0) {
-        double min = Low[i];
-        double max = Hi[i];
-        Unit dunit =
-          ((RealType) ((SetType) Type).getDomain().getComponent(i)).
-            getDefaultUnit();
-        if (dunit != null && !dunit.equals(SetUnits[i])) {
-          min = dunit.toThis(min, SetUnits[i]);
-          max = dunit.toThis(max, SetUnits[i]);
-        }
-        if (ranges != null) {
-          ranges[0][i] = min;
-          ranges[1][i] = max;
-        }
         shadow.ranges[0][k] = Math.min(shadow.ranges[0][k], min);
         shadow.ranges[1][k] = Math.max(shadow.ranges[1][k], max);
       }

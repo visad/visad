@@ -99,10 +99,19 @@ public class DataReferenceImpl extends Object implements DataReference {
     return Tick;
   }
 
-  /** synchronized to because incTick, setData, and adaptedSetData
+  /** synchronized because incTick, setData, and adaptedSetData
       share access to data and ref */
-  public synchronized long incTick()
+  public long incTick()
          throws VisADException, RemoteException {
+    return incTick(this);
+  }
+
+  synchronized long incTick(DataReference r)
+               throws VisADException, RemoteException {
+/* WLH 10 Feb 98
+  public synchronized incTick()
+         throws VisADException, RemoteException {
+*/
     Tick += 1;
     if (Tick == Long.MAX_VALUE) Tick = Long.MIN_VALUE + 1;
     if (ListenerVector == null) return Tick;

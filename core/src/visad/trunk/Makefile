@@ -36,6 +36,7 @@ TAR_FILES = \
 	visad/docs/DESIGN5				\
 	visad/*.java					\
 	visad/java3d/*.java				\
+	visad/java3d/rmic_script			\
 	visad/util/*.java				\
 	visad/data/*.java				\
 	visad/data/netcdf/*.java			\

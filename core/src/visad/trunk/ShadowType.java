@@ -1652,7 +1652,8 @@ public abstract class ShadowType extends Object
   }
 
   public String toString() {
-    return " LevelOfDifficulty = " + LevelOfDifficulty;
+    return getClass() + " for \n  " + Type.toString();
+    // return " LevelOfDifficulty = " + LevelOfDifficulty;
   }
 
 }
