@@ -158,9 +158,7 @@ public class Hits
         Hit hit = (Hit )internalGet(i);
 
         final float leadTime = hit.getLeadingEdgeTime();
-        if (timeSteps[a] < leadTime ||
-            timeSteps[a] >= leadTime + hit.getTimeOverThreshold())
-        {
+        if (timeSteps[a] < leadTime) {
           rt[i] = Hit.missing;
         } else {
           rt[i] = hit.makeData();

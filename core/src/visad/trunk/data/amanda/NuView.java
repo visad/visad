@@ -40,6 +40,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import visad.BaseColorControl;
 import visad.DataReferenceImpl;
 import visad.Display;
 import visad.DisplayImpl;
@@ -111,35 +112,37 @@ public class NuView
       display.addMap(trackMap);
     }
 
-    ScalarType shapeType;
-    if (timeSequence) {
-      shapeType = Hit.moduleType;
-    } else {
-      shapeType = Hit.amplitudeType;
-    }
-
-    ScalarMap shapeMap = new ScalarMap(shapeType, Display.Shape);
+    ScalarMap shapeMap = new ScalarMap(Hit.amplitudeType, Display.Shape);
     display.addMap(shapeMap);
 
     ShapeControl sctl = (ShapeControl )shapeMap.getControl();
-    sctl.setShapeSet(new Integer1DSet(shapeType, 1));
+    sctl.setShapeSet(new Integer1DSet(Hit.amplitudeType, 1));
     sctl.setShapes(F2000Util.getCubeArray());
 
     if (!timeSequence) {
-      ScalarMap shapeScaleMap = new ScalarMap(shapeType, Display.ShapeScale);
+      ScalarMap shapeScaleMap =
+        new ScalarMap(Hit.amplitudeType, Display.ShapeScale);
       display.addMap(shapeScaleMap);
       shapeScaleMap.setRange(-20.0, 50.0);
     }
 
-    ScalarType colorType;
-    if (timeSequence) {
-      colorType = Hit.amplitudeType;
-    } else {
-      colorType = Hit.leadingEdgeTimeType;
-    }
-
-    ScalarMap colorMap = new ScalarMap(colorType, Display.RGB);
+    ScalarMap colorMap = new ScalarMap(Hit.leadingEdgeTimeType, Display.RGB);
     display.addMap(colorMap);
+
+    // invert color table so colors match is expected
+    BaseColorControl colorCtl = (BaseColorControl )colorMap.getControl();
+    final int numColors = colorCtl.getNumberOfColors();
+    final int numComps = colorCtl.getNumberOfComponents();
+    float[][] table = colorCtl.getTable();
+    for (int i = 0; i < numColors / 2; i++) {
+      final int swaploc = numColors - (i + 1);
+      for (int j = 0; j < numComps; j++) {
+        float tmp = table[j][i];
+        table[j][i] = table[j][swaploc];
+        table[j][swaploc] = tmp;
+      }
+    }
+    colorCtl.setTable(table);
 
     ScalarMap animMap;
     if (timeSequence) {
