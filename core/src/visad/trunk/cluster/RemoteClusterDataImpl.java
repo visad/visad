@@ -38,13 +38,14 @@ interfaces:
       RemoteData (extends Remote, Data, RemoteThing)
         RemoteClusterData
           RemoteClientData
-            RemoteClientTuple (extends TupleIface)
-            RemoteClientField (extends Field)
-            RemoteClientPartitionedField (extends Field)
+            RemoteClientTuple (extends RemoteTupleIface)
+            RemoteClientFunction (extends RemoteFunction)
+              RemoteClientField (extends RemoteField)
+            RemoteClientPartitionedField (extends RemoteField)
           RemoteNodeData
-            RemoteNodeTuple (extends TupleIface)
-            RemoteNodeField (extends Field)
-            RemoteNodePartitionedField (extends Field)
+            RemoteNodeTuple (extends RemoteTupleIface)
+            RemoteNodeField (extends RemoteField)
+            RemoteNodePartitionedField (extends RemoteField)
 
 classes:
   UnicastRemoteObject
@@ -54,23 +55,19 @@ classes:
           RemoteClientDataImpl
             RemoteClientTupleImpl
             RemoteClientFieldImpl
-            RemoteClientPartitionedFieldImpl
+            RemoteClientPartitionedFunctionImpl
+              RemoteClientPartitionedFieldImpl
           RemoteNodeDataImpl
             RemoteNodeTupleImpl
             RemoteNodeFieldImpl
             RemoteNodePartitionedFieldImpl
 
-  ThingImpl
-    DataImpl
-      Set
-        SimpleSet
-          SampledSet
-            GriddedSet
-              PartitionedGriddedSet      **
-            IrregularSet
-              PartitionedIrregularSet    **
+
+RemoteClientPartitionedFieldImpl.getDomainSet() return UnionSet
+of getDomainSet() returns from each node
 
 add TupleIface extends Data (Tuple implements TupleIface)
+and RemoteTupleIface extends TupleIface
 
 a non-partitioned Data object is local on the client
   that is, a DataImpl
@@ -78,9 +75,13 @@ a non-partitioned Data object is local on the client
 a partitioned Data object is a RemoteClientDataImpl on the
 cient connected to RemodeNodeDataImpl's on the nodes
 
-RemoteNodeDataImpl have Actions (i.e., Threads from the
-thread pool) for doing methods of correesponding
-RemoteClientDataImpl in parallel
+ClusterAgent, Serializable class sent from client to each node
+gets a Thread on arrival at node, return value from send of
+ClusterAgent is RemoteClusterContact (and Impl)
+values from ClusterAgent back declared Serializable
+
+see page 60 of Java Enterprise in a Nutshell
+no easy way to load RMI classes - security issues
 
 
 partitioned data on client has similar data trees on
