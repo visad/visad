@@ -65,6 +65,7 @@ visad\util\*.java \
 visad\ss\*.java \
 visad\ss\*.gif \
 visad\ss\README.ss \
+visad\ss\*.java \
 visad\data\*.java \
 visad\data\netcdf\*.java \
 visad\data\netcdf\units\*.java \
@@ -149,6 +150,7 @@ visad\examples\*.java \
 visad\java3d\*.java \
 visad\java2d\*.java \
 visad\util\*.java \
+visad\formula\*.java \
 visad\ss\*.java \
 visad\ss\*.gif \
 visad\ss\README.ss \
@@ -222,10 +224,12 @@ save:
 		$(DEL) $(BACKUP)\visad\java2d\*.java
 	if exist $(BACKUP)\visad\util\*.java                       \
 		$(DEL) $(BACKUP)\visad\util\*.java
+	if exist $(BACKUP)\visad\formula\*.java                    \
+		$(DEL) $(BACKUP)\visad\formula\*.java
 	if exist $(BACKUP)\visad\ss\*.java                         \
 		$(DEL) $(BACKUP)\visad\ss\*.java
 	if exist $(BACKUP)\visad\ss\*.gif                          \
-		$(DEL) $(BACKUP)\visad\ss\*.gif 
+		$(DEL) $(BACKUP)\visad\ss\*.gif
 	if exist $(BACKUP)\visad\data\*.java                       \
 		$(DEL) $(BACKUP)\visad\data\*.java
 	if exist $(BACKUP)\visad\data\netcdf\*.java                \
@@ -279,6 +283,7 @@ visad\*.class \
 visad\java3d\*.class \
 visad\java2d\*.class \
 visad\util\*.class \
+visad\formula\*.class \
 visad\ss\*.class \
 visad\ss\*.gif \
 visad\data\*.class \
@@ -312,6 +317,7 @@ clear:
 	if exist java3d\*.java $(DEL) java3d\*.java
 	if exist java2d\*.java $(DEL) java2d\*.java
 	if exist util\*.java $(DEL) util\*.java
+	if exist formula\*.java $(DEL) formula\*.java
 	if exist ss\*.java $(DEL) ss\*.java
 	if exist ss\*.gif $(DEL) ss\*.gif
 	if exist data\*.java $(DEL) data\*.java
@@ -377,6 +383,7 @@ recompile:
 	$(JC) $(JFLAGS) data\visad\*.java
 	$(JC) $(JFLAGS) data\hdfeos\hdfeosc\*.java
 	$(JC) $(JFLAGS) data\hdfeos\*.java
+	$(JC) $(JFLAGS) formula\*.java
 	$(JC) $(JFLAGS) ss\*.java
 	-$(JC) $(JFLAGS) paoloa\*.java
 	-$(JC) $(JFLAGS) aune\*.java
@@ -388,6 +395,7 @@ clean:
 	if exist java3d\*.class $(DEL) java3d\*.class
 	if exist java2d\*.class $(DEL) java2d\*.class
 	if exist util\*.class $(DEL) util\*.class
+	if exist formula\*.class $(DEL) formula\*.class
 	if exist ss\*.class $(DEL) ss\*.class
 	if exist data\*.class $(DEL) data\*.class
 	if exist data\netcdf\*.class $(DEL) data\netcdf\*.class
@@ -419,6 +427,7 @@ visad \
 visad.java3d \
 visad.java2d \
 visad.util \
+visad.formula \
 visad.ss \
 visad.data \
 visad.data.netcdf \
