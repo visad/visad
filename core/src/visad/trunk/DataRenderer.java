@@ -2208,7 +2208,7 @@ System.out.println("checkClose: distance = " + distance);
     Links = newLinks;
   }
 
-  public abstract Object clone();
+  public abstract Object clone() throws CloneNotSupportedException;
 
 }
 
