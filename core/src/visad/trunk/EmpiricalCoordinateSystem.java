@@ -29,7 +29,7 @@ package visad;
 import java.rmi.RemoteException;
 
 /**
- * Provides support for empirically-defined CordinateSystem-s.  This is useful
+ * Provides support for empirically-defined CoordinateSystem-s.  This is useful
  * for data-dependent coordinate transformations that must be determined
  * empirically rather than analytically (e.g. pressure <-> height).</p>
  *

@@ -31,7 +31,7 @@ import visad.*;
 /**
  * A CoordinateSystem that will
  * return the input values when <CODE>toReference()</CODE> and
- * <CODE>fromReference()</CODE) are called.  Useful in constructing
+ * <CODE>fromReference()</CODE> are called.  Useful in constructing
  * <CODE>CartesianProductCoordinateSystem</CODE>s.
  * @see visad.CartesianProductCoordinateSystem
  */
