@@ -19,37 +19,23 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: Consolidator.java,v 1.6 2001-03-08 21:25:50 steve Exp $
+$Id: DataInputStream.java,v 1.1 2001-03-08 21:25:51 steve Exp $
 */
 
 package visad.data.in;
 
 import java.rmi.RemoteException;
-import java.util.*;
 import visad.*;
 
 /**
- * Consolidates VisAD data objects together.  In general, an instance of this
- * class will be the final module in a data-import pipe.
+ * Interface for a filter-module in a data-import pipe.  In general, such
+ * a filter-module obtains VisAD data objects its upstream data source and
+ * transforms them in some way before passing them on.
  *
  * @author Steven R. Emmerson
  */
-public final class Consolidator
-    extends	DataInputFilter
+public interface DataInputStream 
 {
-    /**
-     * Constructs with a particular upstream data source.
-     *
-     * @param source		The upstream data source.  May not be
-     *				<code>null</code>.
-     * @throws VisADException	The upstream data source is <code>null</code>.
-     */
-    public Consolidator(DataInputStream source)
-	throws VisADException
-    {
-        super(source);
-    }
-
     /**
      * Returns the next VisAD data object in the input stream. Returns 
      * <code>null</code> if there is no next object.
@@ -59,38 +45,6 @@ public final class Consolidator
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public synchronized DataImpl readData()
-	throws VisADException, RemoteException
-    {
-	System.gc();
-	DataInputStream	source = getSource();
-	boolean		allReals = true;
-	DataImpl	data;
-	List		datums = new ArrayList();
-	while ((data = source.readData()) != null)
-	{
-	    allReals &= data instanceof Real;
-	    datums.add(data);
-	}
-	int	count = datums.size();
-	if (count == 0)
-	{
-	    data = null;
-	}
-	else if (count == 1)
-	{
-	    data = (DataImpl)datums.get(0);
-	}
-	else
-	{
-	    data =
-		allReals
-		    ? (DataImpl)
-			new RealTuple((Real[])datums.toArray(new Real[0]))
-		    : new Tuple(
-			(DataImpl[])datums.toArray(new DataImpl[0]),
-			/*copy=*/false);
-	}
-	return data;
-    }
+    DataImpl readData()
+	throws VisADException, RemoteException;
 }

@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: TimeFactorer.java,v 1.4 2001-03-02 18:09:23 steve Exp $
+$Id: TimeFactorer.java,v 1.5 2001-03-08 21:25:51 steve Exp $
 */
 
 package visad.data.in;
@@ -30,7 +30,7 @@ import visad.*;
 /**
  * Converts incoming VisAD Fields whose outermost dimension is time and
  * can be factored out into a field-of-fields.  Sends the field-of-fields to the
- * downstream data sink.  Sends all other VisAD data objects to the downstream
+ * downstream data sink.  Passes all other VisAD data objects to the downstream
  * data sink unchanged.
  *
  * <P>Instances are immutable.</P>
@@ -38,47 +38,58 @@ import visad.*;
  * @author Steven R. Emmerson
  */
 public class TimeFactorer
-    extends DataFilter
+    extends	DataInputFilter
 {
     /**
-     * Constructs from a downstream data sink.
+     * Constructs from a upstream data source.
      *
-     * @param downstream	Th downstream data sink.
+     * @param source		The upstream data source.  May not be
+     *				<code>null</code>.
+     * @throws VisADException	The upstream data source is <code>null</code>.
      */
-    public TimeFactorer(DataSink downstream)
+    public TimeFactorer(DataInputStream source)
+	throws VisADException
     {
-	super(downstream);
+	super(source);
     }
 
     /**
-     * Received a VisAD field.  If the field's outermost dimension is time and
-     * can be factored out, then the field will be converted into a 
-     * field-of-fields (with time as the single dimension of the outermost
-     * field) before being sent to the downstream data sink.
+     * Returns the next VisAD data object in the input stream.	If the next
+     * object is a field and the field's outermost dimension is time and can be
+     * factored out, then the field will be converted into a field-of-fields
+     * (with time as the single dimension of the outermost field) before being
+     * returned.  Returns <code>null</code> if there are no more objects.
      *
-     * @param field		The field to be (possibly) converted before
-     *				being sent to the downstream data sink.
+     * @return			A VisAD data object or <code>null</code> if 
+     *				there are no more such objects.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public void receive(Field field)
+    public synchronized DataImpl readData()
 	throws VisADException, RemoteException
     {
-	RealTupleType	domainType =
-	    ((FunctionType)field.getType()).getDomain();
-	int		dimensionCount = domainType.getDimension();
-	if (dimensionCount > 1)
+	DataImpl	data = getSource().readData();
+	if (data instanceof FieldImpl)
 	{
-	    RealType	outerDimensionType = (RealType)
-		domainType.getComponent(dimensionCount - 1);
-	    if ((RealType.Time.equalsExceptNameButUnits(outerDimensionType) ||
-		  RealType.TimeInterval.equalsExceptNameButUnits(
-		    outerDimensionType)) &&
-		 field.getDomainSet() instanceof ProductSet)
+	    FieldImpl	field = (FieldImpl)data;
+	    RealTupleType	domainType =
+		((FunctionType)field.getType()).getDomain();
+	    int		dimensionCount = domainType.getDimension();
+	    if (dimensionCount > 1)
 	    {
-		field = field.domainFactor(outerDimensionType);
+		RealType	outerDimensionType = (RealType)
+		    domainType.getComponent(dimensionCount - 1);
+		if ((RealType.Time.equalsExceptNameButUnits(
+			outerDimensionType) ||
+		      RealType.TimeInterval.equalsExceptNameButUnits(
+			outerDimensionType)) &&
+		     field.getDomainSet() instanceof ProductSet)
+		{
+		    field = (FieldImpl)field.domainFactor(outerDimensionType);
+		}
 	    }
+	    data = field;
 	}
-	send(field);
+	return data;
     }
 }

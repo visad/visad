@@ -50,7 +50,6 @@ public class DODSForm
 
     private final static String		periodSuffix = "." + SUFFIX;
     private final static DODSForm	instance = new DODSForm();
-    private final Consolidator		consolidator;
     private final static String		sourceMessage =
 	"DODS data-import capability is not available -- " +
 	"probably because the DODS package wasn't available when " +
@@ -68,7 +67,6 @@ public class DODSForm
     protected DODSForm()
     {
 	super("DODS");
-	consolidator = new Consolidator();
     }
 
     /**
@@ -120,7 +118,8 @@ public class DODSForm
      * @param id		The URL for a DODS dataset.  The path component
      *				should have a {@link #SUFFIX} suffix.
      * @return			The VisAD data object corresponding to the 
-     *				specified DODS dataset.
+     *				specified DODS dataset.  Might be 
+     *				<code>null</code>.
      * @throws BadFormException	The DODS dataset is corrupt.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
@@ -132,18 +131,15 @@ public class DODSForm
 	DataImpl	data;
 	try
 	{
-	    Class	sourceClass = 
+	    Class		sourceClass = 
 		Class.forName(
 		    getClass().getPackage().getName() + ".DODSSource");
-	    Object	source =
-		sourceClass.getConstructor(
-		    new Class[] {DataSink.class})
-		    .newInstance(new Object[] {new TimeFactorer(consolidator)});
+	    DataInputStream	source = (DataInputStream)
+		sourceClass.getConstructor(new Class[0])
+		    .newInstance(new Object[0]);
 	    sourceClass.getMethod("open", new Class[] {String.class})
 		.invoke(source, new Object[] {id});
-	    data = consolidator.getData();
-	    /* Clears consolidator. */
-	    sourceClass.getMethod("close", null).invoke(source, null);
+	    data = new Consolidator(new TimeFactorer(source)).readData();
 	}
 	catch (ClassNotFoundException e)
 	{
@@ -172,10 +168,6 @@ public class DODSForm
 	catch (InvocationTargetException e)
 	{
 	    throw new VisADException(header + e + contactMessage);
-	}
-	finally
-	{
-	    consolidator.clear();
 	}
 	return data;
     }

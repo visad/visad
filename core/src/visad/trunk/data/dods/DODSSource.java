@@ -41,31 +41,31 @@ import visad.data.in.*;
  * @author Steven R. Emmerson
  */
 public class DODSSource
-    extends DataSource
+    implements	DataInputSource
 {
-    private DataFactory	dataFactory;
+    private DataFactory		dataFactory;
+    private DConnect		dConnect;
+    private DAS			das;
+    private AttributeTable	globalTable;
+    private Enumeration		attrEnum;
+    private Enumeration		varEnum;
 
     /**
-     * Constructs from a downstream data sink.  The default factory for creating
-     * VisAD data objects will be used.
-     *
-     * @param downstream	The downstream data sink.
+     * Constructs from nothing.  The default factory for creating VisAD data
+     * objects will be used.
      */
-    public DODSSource(DataSink downstream)
+    public DODSSource()
     {
-	this(downstream, DataFactory.dataFactory());
+	this(DataFactory.dataFactory());
     }
 
     /**
-     * Constructs from a downstream data sink and a factory for creating VisAD
-     * data objects.
+     * Constructs from a factory for creating VisAD data objects.
      *
-     * @param downstream	The downstream data sink.
      * @param factory		A factory for creating VisAD data objects.
      */
-    public DODSSource(DataSink downstream, DataFactory factory)
+    public DODSSource(DataFactory factory)
     {
-	super(downstream);
 	dataFactory = factory;
     }
 
@@ -80,10 +80,9 @@ public class DODSSource
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public void open(String spec)
+    public synchronized void open(String spec)
 	throws BadFormException, RemoteException, VisADException
     {
-	System.gc();
 	try
 	{
 	    URL		url = new URL(spec);
@@ -106,10 +105,20 @@ public class DODSSource
 			query == null ? path : path + "?" + query)
 		    .toString();
 	    }
-	    DConnect	dConnect = new DConnect(spec);
-	    DAS		das = dConnect.getDAS();
-	    handleGlobalAttributes(das);
-	    handleVariables(dConnect.getData(null), das);
+	    dConnect = new DConnect(spec);
+	    das = dConnect.getDAS();
+	    globalTable = das.getAttributeTable("NC_GLOBAL");
+	    if (globalTable == null)
+		globalTable = das.getAttributeTable("nc_global");
+	    if (globalTable != null)
+	    {
+		attrEnum = globalTable.getNames();
+	    }
+	    else
+	    {
+		attrEnum = null;
+		varEnum = dConnect.getData(null).getVariables();
+	    }
 	}
 	catch (MalformedURLException e)
 	{
@@ -139,65 +148,123 @@ public class DODSSource
     }
 
     /**
-     * Closes the currently open DODS dataset.
+     * Returns the next VisAD data object from the DODS dataset.  Returns
+     * <code>null</code> if there is no more objects.
      *
+     * @return			A VisAD data object or <code>null</code> if 
+     *				there are no more such objects.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public synchronized void close()
-	throws VisADException, RemoteException
+    public synchronized DataImpl readData()
+	throws VisADException, RemoteException, BadFormException
     {
-	flush();
-	System.gc();
-    }
-
-    /**
-     * Generates a stream of VisAD data objects corresponding to the DODS
-     * global attributes in the currently open dataset.
-     *
-     * @param das		The DODS DAS of the open dataset.
-     * @throws BadFormException	The DODS datset is corrupt.
-     * @throws VisADException	VisAD failure.
-     * @throws RemoteException	Java RMI failure.
-     */
-    protected void handleGlobalAttributes(DAS das)
-	throws BadFormException, VisADException, RemoteException
-    {
-	AttributeTable	globalTable = das.getAttributeTable("NC_GLOBAL");
-	if (globalTable == null)
-	    globalTable = das.getAttributeTable("nc_global");
-	if (globalTable != null)
+	DataImpl	data;
+	if (attrEnum != null)
 	{
-	    for (Enumeration enum = globalTable.getNames();
-		enum.hasMoreElements(); )
+	    if (attrEnum.hasMoreElements())
 	    {
-		String		name = (String)enum.nextElement();
-		DataImpl	data =
-		    dataFactory.data(name, globalTable.getAttribute(name));
-		if (data != null)
-		    send(data);
+		String	name = (String)attrEnum.nextElement();
+		data = dataFactory.data(name, globalTable.getAttribute(name));
+	    }
+	    else
+	    {
+		attrEnum = null;
+		try
+		{
+		    varEnum = dConnect.getData(null).getVariables();
+		}
+		catch (DODSException e)
+		{
+		    throw new RemoteException(
+			getClass().getName() + ".readData(): " +
+			"Couldn't get DDS of DODS dataset: " + e);
+		}
+		catch (ParseException e)
+		{
+		    throw new RemoteException(
+			getClass().getName() + ".readData(): " +
+			"Couldn't get DDS of DODS dataset: " + e);
+		}
+		catch (IOException e)
+		{
+		    throw new RemoteException(
+			getClass().getName() + ".readData(): " +
+			"Couldn't get DDS of DODS dataset: " + e);
+		}
+		data = readData();
 	    }
 	}
+	else if (varEnum != null)
+	{
+	    if (varEnum.hasMoreElements())
+	    {
+		data = dataFactory.data((BaseType)varEnum.nextElement(), das);
+	    }
+	    else
+	    {
+		data = null;
+		varEnum = null;
+		dConnect = null;
+		das = null;
+		globalTable = null;
+	    }
+	}
+	else
+	{
+	    data = null;
+	}
+	return data;
     }
 
     /**
-     * Generates a stream of VisAD data objects corresponding to the DODS
-     * variables in the currently open dataset.
+     * Returns a VisAD data object corresponding to the next DODS global
+     * attribute in the currently open dataset.  Returns <code>null</code> if
+     * there isn't another attribute.
      *
-     * @param dataDDS		The DODS dataset.
-     * @param das		The associated DAS of the dataset.
+     * @param name		The name of the attribute.
+     * @return			A VisAD data object corresponding to the next
+     *				DODS global attribute or <code>null</code> if
+     *				no more attributes.
      * @throws BadFormException	The DODS datset is corrupt.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    protected void handleVariables(DataDDS dataDDS, DAS das)
+    protected synchronized DataImpl readAttribute(String name)
 	throws BadFormException, VisADException, RemoteException
     {
-	for (Enumeration enum = dataDDS.getVariables();
-	    enum.hasMoreElements(); )
+	return dataFactory.data(name, globalTable.getAttribute(name));
+    }
+
+    /**
+     * Returns a VisAD data object corresponding to the next DODS variable in
+     * the currently open dataset.  Returns <code>null</code> if there isn't
+     * another variable.
+     *
+     * @return			A VisAD data object corresponding to the next
+     *				DODS variable or <code>null</code> if no more
+     *				variables.
+     * @throws BadFormException	The DODS datset is corrupt.
+     * @throws VisADException	VisAD failure.
+     * @throws RemoteException	Java RMI failure.
+     */
+    protected synchronized DataImpl readVariable()
+	throws BadFormException, VisADException, RemoteException
+    {
+	DataImpl	data;
+	if (varEnum == null)
 	{
-	    BaseType	baseType = (BaseType)enum.nextElement();
-	    send(dataFactory.data(baseType, das));
+	    data = null;
 	}
+	else if (!varEnum.hasMoreElements())
+	{
+	    varEnum = null;
+	    data = null;
+	}
+	else
+	{
+	    data = dataFactory.data((BaseType)varEnum.nextElement(), das);
+	}
+	return data;
     }
 }

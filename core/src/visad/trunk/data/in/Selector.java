@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: Selector.java,v 1.6 2001-02-23 17:23:28 steve Exp $
+$Id: Selector.java,v 1.7 2001-03-08 21:25:51 steve Exp $
 */
 
 package visad.data.in;
@@ -37,19 +37,22 @@ import visad.*;
  * @author Steven R. Emmerson
  */
 public class Selector
-    extends DataFilter
+    extends DataInputFilter
 {
     private Condition	condition;
 
     /**
-     * Constructs from a downstream data sink.  The initial condition is set
+     * Constructs from an upstream data source.  The initial condition is set
      * to the trivial condition {@link Condition#TRIVIAL_CONDITION}.
      *
-     * @param downstream	The downstream data sink.
+     * @param source		The upstream data source.  May not be
+     *				<code>null</code>.
+     * @throws VisADException	The upstream data source is <code>null</code>.
      */
-    public Selector(DataSink downstream)
+    public Selector(DataInputStream source)
+	throws VisADException
     {
-	super(downstream);
+	super(source);
 	condition = Condition.TRIVIAL_CONDITION;
     }
 
@@ -66,16 +69,23 @@ public class Selector
     }
 
     /**
-     * Receives a VisAD {@link DataImpl}.
+     * Returns the next VisAD data object in the input stream that satisfies
+     * the selection condition. Returns <code>null</code> if there is no such
+     * object.
      *
-     * @param data		The VisAD data object to be received.
+     * @return			A VisAD data object or <code>null</code> if 
+     *				there are no more such objects.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public void receive(DataImpl data)
+    public synchronized DataImpl readData()
 	throws VisADException, RemoteException
     {
-        if (condition.isSatisfied(data))
-	    send(data);
+	DataInputStream	source = getSource();
+	DataImpl	data;
+	while ((data = source.readData()) != null)
+	    if (condition.isSatisfied(data))
+		break;
+	return data;
     }
 }
