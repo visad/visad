@@ -73,16 +73,20 @@ public class VisADCanvasJ3D extends Canvas3D {
     return c;
   }
 
-  VisADCanvasJ3D(DisplayRendererJ3D renderer, Component c) {
-      this(renderer, c, null);
+  VisADCanvasJ3D(DisplayRendererJ3D renderer) {
+      this(renderer, null);
   }
 
-  VisADCanvasJ3D(DisplayRendererJ3D renderer, Component c,
+  VisADCanvasJ3D(DisplayRendererJ3D renderer,
                  GraphicsConfiguration config) {
     super(config == null ? defaultConfig : config);
     // super(config == null ? null : config);
     displayRenderer = renderer;
     display = (DisplayImplJ3D) renderer.getDisplay();
+    component = null;
+  }
+
+  void setComponent(Component c) {
     component = c;
   }
 

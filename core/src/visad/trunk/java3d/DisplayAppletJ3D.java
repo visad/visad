@@ -49,7 +49,8 @@ public class DisplayAppletJ3D extends Applet {
     display = d;
     renderer = (DisplayRendererJ3D) display.getDisplayRenderer();
     setLayout(new BorderLayout());
-    VisADCanvasJ3D canvas = new VisADCanvasJ3D(renderer, this, config);
+    VisADCanvasJ3D canvas = new VisADCanvasJ3D(renderer, config);
+    canvas.setComponent(this);
     add("Center", canvas);
 
     UniverseBuilderJ3D universe = new UniverseBuilderJ3D(canvas);

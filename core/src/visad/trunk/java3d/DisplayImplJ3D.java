@@ -186,9 +186,19 @@ public class DisplayImplJ3D extends DisplayImpl {
   public DisplayImplJ3D(String name, DisplayRendererJ3D renderer, int api,
                         GraphicsConfiguration config)
          throws VisADException, RemoteException {
+    this(name, renderer, api, config, null);
+  }
+
+  /** the 'c' argument is intended to be an extension class of
+      VisADCanvasJ3D (or null); if it is non-null, then api must
+      be JPANEL and its super() constructor for VisADCanvasJ3D
+      must be 'super(renderer, config)' */
+  public DisplayImplJ3D(String name, DisplayRendererJ3D renderer, int api,
+                        GraphicsConfiguration config, VisADCanvasJ3D c)
+         throws VisADException, RemoteException {
     super(name, renderer);
 
-    initialize(api, config);
+    initialize(api, config, c);
   }
 
   /** constructor for off screen */
@@ -201,9 +211,20 @@ public class DisplayImplJ3D extends DisplayImpl {
   public DisplayImplJ3D(String name, DisplayRendererJ3D renderer,
                         int width, int height)
          throws VisADException, RemoteException {
+    this(name, renderer, width, height, null);
+  }
+
+  /** constructor for off screen;
+      the 'c' argument is intended to be an extension class of
+      VisADCanvasJ3D (or null); if it is non-null, then its super()
+      constructor for VisADCanvasJ3D must be
+      'super(renderer, width, height)' */
+  public DisplayImplJ3D(String name, DisplayRendererJ3D renderer,
+                        int width, int height, VisADCanvasJ3D c)
+         throws VisADException, RemoteException {
     super(name, renderer);
 
-    initialize(OFFSCREEN, null, width, height);
+    initialize(OFFSCREEN, null, width, height, c);
   }
 
   public DisplayImplJ3D(RemoteDisplay rmtDpy)
@@ -247,6 +268,17 @@ public class DisplayImplJ3D extends DisplayImpl {
   public DisplayImplJ3D(RemoteDisplay rmtDpy, DisplayRendererJ3D renderer,
                         int api, GraphicsConfiguration config)
          throws VisADException, RemoteException {
+    this(rmtDpy, renderer, api, config, null);
+  }
+
+  /** the 'c' argument is intended to be an extension class of
+      VisADCanvasJ3D (or null); if it is non-null, then api must
+      be JPANEL and its super() constructor for VisADCanvasJ3D
+      must be 'super(renderer, config)' */
+  public DisplayImplJ3D(RemoteDisplay rmtDpy, DisplayRendererJ3D renderer,
+                        int api, GraphicsConfiguration config,
+                        VisADCanvasJ3D c)
+         throws VisADException, RemoteException {
     super(rmtDpy,
           ((renderer == null && api == TRANSFORM_ONLY) ?
              new TransformOnlyDisplayRendererJ3D() : renderer));
@@ -256,7 +288,7 @@ public class DisplayImplJ3D extends DisplayImpl {
     //       ((renderer == null && api == TRANSFORM_ONLY) ?
     //          new TransformOnlyDisplayRendererJ3D() : renderer), true);
 
-    initialize(api, config);
+    initialize(api, config, c);
 
     syncRemoteData(rmtDpy);
   }
@@ -275,11 +307,23 @@ public class DisplayImplJ3D extends DisplayImpl {
 
   private void initialize(int api, GraphicsConfiguration config)
           throws VisADException, RemoteException {
-    initialize(api, config, -1, -1);
+    initialize(api, config, -1, -1, null);
+  }
+
+  private void initialize(int api, GraphicsConfiguration config,
+                          VisADCanvasJ3D c)
+          throws VisADException, RemoteException {
+    initialize(api, config, -1, -1, c);
   }
 
   private void initialize(int api, GraphicsConfiguration config,
                           int width, int height)
+          throws VisADException, RemoteException {
+    initialize(api, config, width, height, null);
+  }
+
+  private void initialize(int api, GraphicsConfiguration config,
+                          int width, int height, VisADCanvasJ3D c)
           throws VisADException, RemoteException {
     // a ProjectionControl always exists
     projection = new ProjectionControlJ3D(this);
@@ -294,7 +338,7 @@ public class DisplayImplJ3D extends DisplayImpl {
       apiValue = api;
     }
     else if (api == JPANEL) {
-      Component component = new DisplayPanelJ3D(this, config);
+      Component component = new DisplayPanelJ3D(this, config, c);
       setComponent(component);
       apiValue = api;
     }
@@ -308,7 +352,8 @@ public class DisplayImplJ3D extends DisplayImpl {
     }
     else if (api == OFFSCREEN) {
       DisplayRendererJ3D renderer = (DisplayRendererJ3D) getDisplayRenderer();
-      VisADCanvasJ3D canvas = new VisADCanvasJ3D(renderer, width, height);
+      VisADCanvasJ3D canvas = (c != null) ? c :
+                              new VisADCanvasJ3D(renderer, width, height);
       UniverseBuilderJ3D universe = new UniverseBuilderJ3D(canvas);
       BranchGroup scene =
         renderer.createSceneGraph(universe.view, universe.vpTrans, canvas);

@@ -41,10 +41,11 @@ public class DisplayPanelJ3D extends JPanel {
   private UniverseBuilderJ3D universe;
 
   public DisplayPanelJ3D(DisplayImplJ3D d) {
-    this(d, null);
+    this(d, null, null);
   }
 
-  public DisplayPanelJ3D(DisplayImplJ3D d, GraphicsConfiguration config) {
+  public DisplayPanelJ3D(DisplayImplJ3D d, GraphicsConfiguration config,
+                         VisADCanvasJ3D c) {
     display = d;
     renderer = (DisplayRendererJ3D) display.getDisplayRenderer();
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -52,7 +53,9 @@ public class DisplayPanelJ3D extends JPanel {
     setAlignmentY(TOP_ALIGNMENT);
     setAlignmentX(LEFT_ALIGNMENT);
 */
-    VisADCanvasJ3D canvas = new VisADCanvasJ3D(renderer, this, config);
+    VisADCanvasJ3D canvas = (c != null) ? c :
+                            new VisADCanvasJ3D(renderer, config);
+    canvas.setComponent(this);
     add(canvas);
 
     universe = new UniverseBuilderJ3D(canvas);
