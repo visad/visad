@@ -67,7 +67,7 @@ public class MapMonitorEvent
     throws VisADException
   {
     super(type, originator);
-    if (type != MAP_ADDED && type != MAPS_CLEARED) {
+    if (type != MAP_ADDED && type != MAP_CHANGED && type != MAPS_CLEARED) {
       throw new VisADException("Bad type for MapMonitorEvent");
     }
     this.map = map;

@@ -216,7 +216,13 @@ public class DisplaySyncImpl
       if (lclMap == null) {
         throw new RemoteVisADException("ScalarMap " + rmtMap + " not found");
       }
-      throw new RemoteVisADException("MAP_CHANGED operation unimplemented");
+      double[] rng = rmtMap.getRange();
+      try {
+        lclMap.setRange(rng[0], rng[1]);
+      } catch (VisADException ve) {
+        throw new RemoteVisADException("Map not changed: " + ve);
+      }
+      break;
     case MonitorEvent.MAPS_CLEARED:
       // forward to any listeners
       monitor.notifyListeners(evt);
