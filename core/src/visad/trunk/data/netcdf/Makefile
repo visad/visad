@@ -21,3 +21,6 @@ test:		small.test big.test pmsl.test #time.test
 .SUFFIXES:	.nc
 .nc.test:	FORCE
 	CLASSPATH=$(ROOTDIR):$$CLASSPATH $(JAVA) $(PACKAGE).Plain $<
+
+.nc.debug:	FORCE
+	$(JDB) -classpath $(ROOTDIR):$(NETCDF_JAR) $(PACKAGE_PREFIX)Plain $<
