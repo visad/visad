@@ -214,8 +214,8 @@ public abstract class DisplayRenderer extends Object {
                 tuple.getCoordinateSystem().fromReference(cursor);
               fval[0] = new_cursor[index][0];
             }
-            double[] dval = map.inverseScaleValues(fval);
-            float f = (float) dval[0];
+            float[] dval = map.inverseScaleValues(fval);
+            float f = dval[0];
             RealType real = (RealType) map.getScalar();
             String s = real.getName() + " = " + f;
             Unit unit = real.getDefaultUnit();
