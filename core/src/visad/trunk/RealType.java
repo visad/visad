@@ -85,6 +85,12 @@ public class RealType extends ScalarType {
   public final static RealType Time =
     new RealType("Time", CommonUnit.secondsSinceTheEpoch, true);
 
+  /** astronomical coordinates */
+  public final static RealType Declination =
+    new RealType("Declination", CommonUnit.degree, true);
+  public final static RealType RightAscension =
+    new RealType("RightAscension", CommonUnit.degree, true);
+
   /** generic RealType */
   public final static RealType Generic =
     new RealType("GENERIC_REAL", CommonUnit.promiscuous, true);
