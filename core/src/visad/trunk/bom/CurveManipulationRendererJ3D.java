@@ -340,7 +340,10 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
                       {(float) (origin[1] + r * direction[1])},
                       {(float) (origin[2] + r * direction[2])}};
       float[] xx = {xcs[0][0], xcs[1][0], xcs[2][0]};
-      if (tuple != null) xcs = tuplecs.fromReference(xcs);
+      if (tuple != null) {
+        if (tuplecs == null) return;
+        xcs = tuplecs.fromReference(xcs);
+      }
       float[] x = {xcs[0][0], xcs[1][0], xcs[2][0]};
 
       addPoint(xx);
