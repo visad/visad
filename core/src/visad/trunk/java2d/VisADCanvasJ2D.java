@@ -1229,5 +1229,29 @@ System.out.println(" " + newcoords[i] + " " + newcoords[i+1] + " " +
     prefSize = size;
   }
 
+  /* CTR 14 Nov 2000 - support for auto-aspect to canvas size */
+
+  private boolean autoAspect = false;
+
+  public boolean getAutoAspect() {
+    return autoAspect;
+  }
+
+  public void setAutoAspect(boolean auto) {
+    autoAspect = auto;
+  }
+
+  public void setBounds(int x, int y, int width, int height) {
+    super.setBounds(x, y, width, height);
+    if (autoAspect) {
+      ProjectionControl pc = display.getProjectionControl();
+      try {
+        pc.setAspect(new double[] {1.0, (double) height / width});
+      }
+      catch (VisADException exc) { }
+      catch (RemoteException exc) { }
+    }
+  }
+
 }
 

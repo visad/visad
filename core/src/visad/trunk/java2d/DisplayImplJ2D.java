@@ -316,5 +316,19 @@ System.out.println("DisplayImplJ2D.doAction: scratch = " + scratch);
     }
   }
 
+  /* CTR 14 Nov 2000 - support for auto-aspect to canvas size */
+
+  public boolean getAutoAspect() {
+    DisplayRendererJ2D dr = (DisplayRendererJ2D) getDisplayRenderer();
+    VisADCanvasJ2D canvas = dr.getCanvas();
+    return canvas.getAutoAspect();
+  }
+
+  public void setAutoAspect(boolean auto) {
+    DisplayRendererJ2D dr = (DisplayRendererJ2D) getDisplayRenderer();
+    VisADCanvasJ2D canvas = dr.getCanvas();
+    canvas.setAutoAspect(auto);
+  }
+
 }
 

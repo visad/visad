@@ -29,6 +29,8 @@ import visad.java2d.DisplayImplJ2D;
 public class Test41
   extends UISkeleton
 {
+  private boolean autoAspect = false;
+
   public Test41() { }
 
   public Test41(String[] args)
@@ -37,12 +39,21 @@ public class Test41
     super(args);
   }
 
+  int checkExtraKeyword(String testName, int argc, String[] args) {
+    autoAspect = true;
+    return 1;
+  }
+
   DisplayImpl[] setupServerDisplays()
     throws RemoteException, VisADException
   {
+    DisplayImplJ2D dpys1 = new DisplayImplJ2D("display1");
+    DisplayImplJ2D dpys2 = new DisplayImplJ2D("display2");
+    dpys1.setAutoAspect(autoAspect);
+    dpys2.setAutoAspect(autoAspect);
     DisplayImpl[] dpys = new DisplayImpl[2];
-    dpys[0] = new DisplayImplJ2D("display1");
-    dpys[1] = new DisplayImplJ2D("display2");
+    dpys[0] = dpys1;
+    dpys[1] = dpys2;
     return dpys;
   }
 
@@ -112,7 +123,10 @@ public class Test41
 
   String getFrameTitle() { return "image / contour alignment in Java2D"; }
 
-  public String toString() { return ": image / contour alignment in Java2D"; }
+  public String toString()
+  {
+    return " auto: image / contour alignment & autoAspect in Java2D";
+  }
 
   public static void main(String[] args)
     throws RemoteException, VisADException
