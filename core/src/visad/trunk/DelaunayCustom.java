@@ -116,6 +116,16 @@ public class DelaunayCustom extends Delaunay {
   }
 
   /** return true if closed path in samples self-intersects */
+  public static boolean checkSelfIntersection(Gridded2DSet set)
+         throws VisADException {
+    if (set == null) return false;
+    if (set.getManifoldDimension() != 1) {
+      throw new SetException("Gridded2DSet musy have manifold dimension = 1");
+    }
+    return checkSelfIntersection(set.getSamples());
+  }
+
+  /** return true if closed path in samples self-intersects */
   public static boolean checkSelfIntersection(float[][] samples)
          throws VisADException {
     if (samples == null) return false;
@@ -153,6 +163,16 @@ public class DelaunayCustom extends Delaunay {
     return false;
   }
 
+  /** compute area inside closed path */
+  public static float computeArea(Gridded2DSet set) throws VisADException {
+    if (set == null) return 0.0f;
+    if (set.getManifoldDimension() != 1) {
+      throw new SetException("Gridded2DSet musy have manifold dimension = 1");
+    }
+    return computeArea(set.getSamples());
+  }
+
+  /** compute area inside closed path */
   public static float computeArea(float[][] samples) throws VisADException {
     if (samples == null) return 0.0f;
     if (samples.length != 2 || samples[0].length != samples[1].length) {
@@ -179,7 +199,24 @@ public class DelaunayCustom extends Delaunay {
     return (float) Math.abs(0.5 * area);
   }
 
-  /** assume that float[2][number_of_points] samples describes the
+  /** check that set describes the boundary of a simply connected plane
+      region; return a decomposition of that region into triangles whose
+      vertices are all boundary points from samples, as an Irregular2DSet */
+  public static Irregular2DSet fill(Gridded2DSet set) throws VisADException {
+    if (set == null) return null;
+    if (set.getManifoldDimension() != 1) {
+      throw new SetException("Gridded2DSet musy have manifold dimension = 1");
+    }
+    float[][] samples = set.getSamples();
+    int[][] tris = fill(samples);
+    if (tris == null || tris[0].length == 0) return null;
+    DelaunayCustom delaunay = new DelaunayCustom(samples, tris);
+    if (delaunay == null) return null;
+    return new Irregular2DSet(set.getType(), samples,
+                              null, null, null, delaunay);
+  }
+
+  /** check that float[2][number_of_points] samples describes the
       boundary of a simply connected plane region; return a decomposition
       of that region into triangles whose vertices are all boundary
       points from samples;

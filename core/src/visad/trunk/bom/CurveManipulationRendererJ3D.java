@@ -801,16 +801,10 @@ class CurveDelete implements ActionListener {
         float area = 0.0f;
         int k = 0;	
         for (int i=0; i<sets.length; i++) {
-          float[][] samples = sets[i].getSamples();
-          if (samples == null || samples[0].length < 3) continue;
           try {
-            area += DelaunayCustom.computeArea(samples);
-            int[][] tris = DelaunayCustom.fill(samples);
-            if (tris == null || tris[0].length == 0) continue;
-            DelaunayCustom delaunay = new DelaunayCustom(samples, tris);
-            if (delaunay == null) continue;
-            new_sets[k++] = new Irregular2DSet(set.getType(), samples,
-                                               null, null, null, delaunay);
+            area += DelaunayCustom.computeArea((Gridded2DSet) sets[i]);
+            new_sets[k] = DelaunayCustom.fill((Gridded2DSet) sets[i]);
+            if (new_sets[k] != null) k++;
           }
           catch (VisADException ex) {
             System.out.println(ex.getMessage());
