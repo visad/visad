@@ -347,6 +347,11 @@ public class Util
       dialog.addChoosableFileFilter(zip);
       filters.add(zip);
 
+      // Zeiss LSM - bio/ZeissForm
+      FileFilter lsm = new ExtensionFileFilter("lsm", "Zeiss LSM images");
+      dialog.addChoosableFileFilter(lsm);
+      filters.add(lsm);
+
       // Zeiss ZVI - bio/ZVIForm
       FileFilter zvi = new ExtensionFileFilter("zvi", "Zeiss ZVI images");
       dialog.addChoosableFileFilter(zvi);
