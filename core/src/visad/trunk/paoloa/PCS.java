@@ -240,6 +240,7 @@ public class PCS {
 
     // System.out.println(ntimes + " " + nbands + " " + npcs + " " + nlevels);
 
+    // construct DataReferences for links to displays
     b1_ref = new DataReferenceImpl("b1_ref");
     b1r_ref = new DataReferenceImpl("b1r_ref");
     b2_ref = new DataReferenceImpl("b2_ref");
@@ -260,7 +261,7 @@ public class PCS {
     time_ref =  new DataReferenceImpl("time_ref");
     num_eigen_ref =  new DataReferenceImpl("num_eigen_ref");
 
-
+    // construct displays
     DisplayImpl displayb1 =
       new DisplayImplJ3D("displayb1", new TwoDDisplayRendererJ3D());
     final ScalarMap bmapb1 = new ScalarMap(band, Display.XAxis);
@@ -335,12 +336,9 @@ public class PCS {
 
     DisplayImpl displayll =
       new DisplayImplJ3D("displayll", new TwoDDisplayRendererJ3D());
-      // new DisplayImplJ3D("displayll");
     ScalarMap lonmap = new ScalarMap(longitude, Display.XAxis);
-    // ScalarMap lonmap = new ScalarMap(longitude, Display.Longitude);
     displayll.addMap(lonmap);
     ScalarMap latmap = new ScalarMap(latitude, Display.YAxis);
-    // ScalarMap latmap = new ScalarMap(latitude, Display.Latitude);
     displayll.addMap(latmap);
     GraphicsModeControl modell = displayll.getGraphicsModeControl();
     modell.setScaleEnable(true);
@@ -400,14 +398,16 @@ public class PCS {
     // in sliders JPanel
     sliders.add(new VisADSlider("time", 1, ntimes, 1, 1.0, time_ref,
                                  time));
-    // sliders.add(new JLabel("  "));
     sliders.add(new VisADSlider("neigen", 0, npcs, 0, 1.0,
                                  num_eigen_ref,  numpcs));
+    // construct RangeSlider for selecting band range for display
     RangeSlider rs = new RangeSlider("band range", 0.0f, (float) nbands) {
       public void valuesUpdated() {
+        // called whenever user changes range
         float[] minmax = getMinMaxValues();
         float min = minmax[0];
         float max = minmax[1];
+        // apply range to six spectra displays
         try {
           bmapb1.setRange(min, max);
           bmapb2.setRange(min, max);
@@ -477,34 +477,39 @@ public class PCS {
     bottom.add(panel8);
 
     // precompute some values
-    // compute mean_values
+    // get mean_values
     float[][] values = means.getFloats(false);
     mean_values = new float[3][nbands];
     mean_values[0] = values[3];
     mean_values[1] = values[4];
     mean_values[2] = values[5];
-    // compute eigen_values
+
+    // get eigen_values
     values = eigen_vectors.getFloats(false);
     eigen_values = new float[npcs][nchannels];
     for (int j=0; j<npcs; j++) {
-      double mag = 0.0;
+      // double mag = 0.0;
       double m = 0;
       for (int i=0; i<nchannels; i++) {
         eigen_values[j][i] = values[0][j + npcs * i];
         m += npcs;
-        mag += eigen_values[j][i] * eigen_values[j][i];
+        // mag += eigen_values[j][i] * eigen_values[j][i];
       }
+/*
       float invmag = (float) (1.0 / Math.sqrt(mag));
       for (int i=0; i<nchannels; i++) {
         eigen_values[j][i] *= invmag;
       }
       // System.out.println("mag eigen[" + j + "] = " + mag);
+*/
     }
 
     // compute pressureSet
     values = pressures.getFloats(false);
     Gridded1DSet pressureSet = new Gridded1DSet(pressure, values, nlevels);
+
     // compute ll_field and ll_select
+    // and lat and lon ranges
     float latmin = Float.MAX_VALUE;
     float latmax = Float.MIN_VALUE;
     float lonmin = Float.MAX_VALUE;
@@ -518,32 +523,26 @@ public class PCS {
       FlatField ll = (FlatField) tup.getComponent(1);
       values = ll.getFloats(false);
       lls[0][i] = values[0][0];
-      lls[1][i] = values[1][0];
+      lls[1][i] = -values[1][0]; // convert longitude to positive east
       if (lls[0][i] < latmin) latmin = lls[0][i];
       if (lls[0][i] > latmax) latmax = lls[0][i];
       if (lls[1][i] < lonmin) lonmin = lls[1][i];
       if (lls[1][i] > lonmax) lonmax = lls[1][i];
-      double[] vals = {values[0][0], values[1][0]};
+      double[] vals = {values[0][0], -values[1][0]}; // lon pos east
       ll_select[i] = new RealTuple(latlon, vals);
     }
     ll_field = new FlatField(latlon_func, new Integer1DSet(time, ntimes));
     ll_field.setSamples(lls);
     ll_ref.setData(ll_field);
-    // adjust map boundaries
-    lonmap.setRange(lonmax, lonmin);
-    latmap.setRange(latmin, latmax);
+
     // get map
     BaseMapAdapter baseMap = new BaseMapAdapter("OUTLSUPW");
-    if ( baseMap.isEastPositive() ) {
-      baseMap.setEastPositive(false);
-    }
-
     baseMap.setLatLonLimits(latmin-del_lat, latmax+del_lat,
                             lonmin-del_lon, lonmax+del_lon);
     DataImpl map = baseMap.getData();
     map_ref.setData(map);
 
-    // compute tp and wvp
+    // compute tp and wvp profiles
     tp = new FlatField[ntimes];
     wvp = new FlatField[ntimes];
     for (int i=0; i<ntimes; i++) {
@@ -558,10 +557,10 @@ public class PCS {
       wvp[i].setSamples(wv_values, false);
     }
 
-
     // CellImpl to change displays when user moves sliders
     CellImpl slider_cell = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
+        // get selected time and number of eigen vectors
         int t = (int) ((Real) time_ref.getData()).getValue() - 1;
         int ne = (int) ((Real) num_eigen_ref.getData()).getValue();
         if (t < 0 || ntimes <= t || ne < 0 || npcs < ne) {
@@ -570,6 +569,8 @@ public class PCS {
           return;
         }
 
+        // get selected band and noise spectra, and mean
+        // assemble from 3 bands
         Tuple tup = (Tuple) time_series.getSample(t);
         FlatField bn = (FlatField) tup.getComponent(0);
         float[][] cvalues = bn.getFloats(false);
@@ -585,6 +586,7 @@ public class PCS {
           }
         }
 
+        // project band and noise onto eigen vectors
         float[] bcoefs = new float[ne];
         float[] ncoefs = new float[ne];
         for (int j=0; j<ne; j++) {
@@ -598,6 +600,9 @@ public class PCS {
           bcoefs[j] = (float) bcoef;
           ncoefs[j] = (float) ncoef;
         }
+
+        // reconstruct band and noise from projections
+        // onto eigen vectors
         float[] rb = new float[nchannels];
         float[] rn = new float[nchannels];
         for (int i=0; i<nchannels; i++) {
@@ -610,6 +615,8 @@ public class PCS {
           rb[i] = bv;
           rn[i] = nv;
         }
+
+        // split reconstructions into 3 bands
         float[][] rvalues = new float[6][nbands];
         for (int k=0; k<3; k++) {
           int kb = k * nbands;
@@ -619,6 +626,7 @@ public class PCS {
           }
         }
 
+        // build FlatFields for band and noise displays
         float[][] vals = {cvalues[0]};
         FlatField b1 = new FlatField(b1_func, band_set);
         b1.setSamples(vals, false);
@@ -673,8 +681,10 @@ public class PCS {
         n3r.setSamples(vals, false);
         n3r_ref.setData(n3r);
 
+        // show selected location on map
         select_ll_ref.setData(ll_select[t]);
 
+        // show selected temp and wv profiles
         temp_ref.setData(tp[t]);
         wv_ref.setData(wvp[t]);
       }
