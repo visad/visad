@@ -32,6 +32,7 @@ import java.awt.event.*;
 import java.lang.reflect.InvocationTargetException;
 import java.rmi.RemoteException;
 import java.util.Hashtable;
+import java.util.Vector;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
@@ -60,6 +61,9 @@ public abstract class JPythonMethods {
 
   private static DefaultFamily form = new DefaultFamily(ID);
 
+  private static final String[] ops = {"gt","ge","lt","le","eq","ne","ne"};
+  private static final String[] ops_sym = {">",">=","<","<=","==","!=","<>"};
+
   /**
    * Reads in data from the given location (filename or URL).
    */
@@ -73,11 +77,24 @@ public abstract class JPythonMethods {
   /**
    * Displays the given data onscreen.
    *
-   * @param   data            VisAD data object to plot
+   * @param   data            VisAD data object to plot; alternatively
+   *                          this may be a float[] or float[][].
    *
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
+  public static void plot(float[] data)
+    throws VisADException, RemoteException
+  {
+    plot(null, field(data), false, 1.0, 1.0, 1.0);
+  }
+
+  public static void plot(float[][] data)
+    throws VisADException, RemoteException
+  {
+    plot(null, field(data), false, 1.0, 1.0, 1.0);
+  }
+
   public static void plot(DataImpl data)
     throws VisADException, RemoteException
   {
@@ -87,12 +104,23 @@ public abstract class JPythonMethods {
   /**
    * Displays the given data onscreen.
    *
-   * @param   data            VisAD data object to plot
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
    * @param   maps            ScalarMaps for the display
    *
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
+  public static void plot(float[] data, ScalarMap[] maps)
+    throws VisADException, RemoteException {
+    plot(null, field(data), false, 1.0, 1.0, 1.0, maps);
+  }
+
+  public static void plot(float[][] data, ScalarMap[] maps)
+    throws VisADException, RemoteException {
+    plot(null, field(data), false, 1.0, 1.0, 1.0, maps);
+  }
+
   public static void plot(DataImpl data, ScalarMap[] maps)
     throws VisADException, RemoteException {
     plot(null, data, false, 1.0, 1.0, 1.0, maps);
@@ -102,12 +130,25 @@ public abstract class JPythonMethods {
    * Displays the given data onscreen,
    * displaying the edit mappings dialog if specified.
    *
-   * @param   data            VisAD data object to plot
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
    * @param   editMaps        whether to initially display edit mappings dialog
    *
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
+  public static void plot(float[] data, boolean editMaps)
+    throws VisADException, RemoteException
+  {
+    plot(null, field(data), editMaps, 1.0, 1.0, 1.0);
+  }
+  
+  public static void plot(float[][] data, boolean editMaps)
+    throws VisADException, RemoteException
+  {
+    plot(null, field(data), editMaps, 1.0, 1.0, 1.0);
+  }
+  
   public static void plot(DataImpl data, boolean editMaps)
     throws VisADException, RemoteException
   {
@@ -118,11 +159,24 @@ public abstract class JPythonMethods {
    * Displays the given data onscreen.
    *
    * @param   name            name of display in which to plot data
-   * @param   data            VisAD data object to plot
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
    *
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
+  public static void plot(String name, float[] data)
+    throws VisADException, RemoteException
+  {
+    plot(name, field(data), false, 1.0, 1.0, 1.0);
+  }
+
+  public static void plot(String name, float[][] data)
+    throws VisADException, RemoteException
+  {
+    plot(name, field(data), false, 1.0, 1.0, 1.0);
+  }
+
   public static void plot(String name, DataImpl data)
     throws VisADException, RemoteException
   {
@@ -133,12 +187,25 @@ public abstract class JPythonMethods {
    * Displays the given data onscreen.
    *
    * @param   name            name of display in which to plot data
-   * @param   data            VisAD data object to plot
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
    * @param   maps            ScalarMaps for display
    *
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
+  public static void plot(String name, float[] data, ScalarMap[] maps)
+    throws VisADException, RemoteException
+  {
+    plot(name, field(data), false, 1.0, 1.0, 1.0, maps);
+  }
+
+  public static void plot(String name, float[][] data, ScalarMap[] maps)
+    throws VisADException, RemoteException
+  {
+    plot(name, field(data), false, 1.0, 1.0, 1.0, maps);
+  }
+
   public static void plot(String name, DataImpl data, ScalarMap[] maps)
     throws VisADException, RemoteException
   {
@@ -150,12 +217,25 @@ public abstract class JPythonMethods {
    * displaying the edit mappings dialog if specified.
    *
    * @param   name            name of display in which to plot data
-   * @param   data            VisAD data object to plot
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
    * @param   editMaps        whether to initially display edit mappings dialog
    *
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
+  public static void plot(String name, float[] data, boolean editMaps)
+    throws VisADException, RemoteException
+  {
+    plot(name, field(data), editMaps, 1.0, 1.0, 1.0);
+  }
+
+  public static void plot(String name, float[][] data, boolean editMaps)
+    throws VisADException, RemoteException
+  {
+    plot(name, field(data), editMaps, 1.0, 1.0, 1.0);
+  }
+
   public static void plot(String name, DataImpl data, boolean editMaps)
     throws VisADException, RemoteException
   {
@@ -165,7 +245,8 @@ public abstract class JPythonMethods {
   /**
    * Displays the given data onscreen, using given color default.
    *
-   * @param   data            VisAD data object to plot
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
    * @param   red             red component of default color to use if there
    *                          are no color mappings from data's RealTypes;
    *                          color component values between 0.0 and 1.0
@@ -175,6 +256,18 @@ public abstract class JPythonMethods {
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
+  public static void plot(float[] data, double red, double green, double blue)
+    throws VisADException, RemoteException
+  {
+    plot(null, field(data), false, red, green, blue);
+  }
+
+  public static void plot(float[][] data, double red, double green, double blue)
+    throws VisADException, RemoteException
+  {
+    plot(null, field(data), false, red, green, blue);
+  }
+
   public static void plot(DataImpl data, double red, double green, double blue)
     throws VisADException, RemoteException
   {
@@ -187,7 +280,8 @@ public abstract class JPythonMethods {
    * specified.
    *
    * @param   name            name of display in which to plot data
-   * @param   data            VisAD data object to plot
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
    * @param   editMaps        whether to initially display edit mappings dialog
    * @param   red             red component of default color to use if there
    *                          are no color mappings from data's RealTypes;
@@ -198,11 +292,25 @@ public abstract class JPythonMethods {
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
+  public static void plot(String namxe, float[] data,
+    boolean editMaps, double red, double green, double blue)
+    throws VisADException, RemoteException {
+       plot(namxe, field(data), editMaps,red, green, blue, null);
+  }
+
+  public static void plot(String namxe, float[][] data,
+    boolean editMaps, double red, double green, double blue)
+    throws VisADException, RemoteException {
+       plot(namxe, field(data), editMaps,red, green, blue, null);
+  }
+
   public static void plot(String namxe, DataImpl data,
     boolean editMaps, double red, double green, double blue)
     throws VisADException, RemoteException {
        plot(namxe, data, editMaps,red, green, blue, null);
   }
+
+
 
   public static void plot(String namxe, DataImpl data,
     boolean editMaps, double red, double green, double blue, ScalarMap[] maps)
@@ -1902,6 +2010,190 @@ public abstract class JPythonMethods {
              throws VisADException, RemoteException {
     return (Set) ((Field)data).getDomainSet();
   }
+
+
+  /**
+  * Mask out values outside testing limits
+  *
+  * @param f  VisAD data object (usually FlatField) as source
+  * @param op  Comparison operator as string ('gt','le',...)
+  * @param v  Numeric operand for comparison
+  *
+  * @return a FieldImpl with values of either 0 (did not meet
+  * criterion) or 1 (met criteron).
+  *
+  * Example:  b = mask(a, 'gt', 100)
+  * if 'a' is an image, 'b' will be an image with values of
+  * 1 where 'a' was > 100, and zero elsewhere.
+  *
+  */
+  public static FieldImpl mask(Data f, String op, double v) 
+             throws VisADException, RemoteException {
+    return mask(f, op, new Real(v));
+  }
+
+  /**
+  * Mask out values outside testing limits
+  *
+  * @param f  VisAD data object (usually FlatField) as source
+  * @param op  Comparison operator as string ('gt','le',...)
+  * @param v  VisAd operand for comparison.
+  *
+  * If the value of 'v' is a Field, then it will be resampled
+  * to the domain of 'f' is possible before the comparison.
+  *
+  * @return a FieldImpl with values of either 0 (did not meet
+  * criterion) or 1 (met criteron).
+  *
+  * Example:  b = mask(a, 'gt', c)
+  * if 'a' is an image, 'b' will be an image with values of
+  * 1 where 'a' was > the corresponding value of 'c', and zero 
+  * elsewhere.
+  *
+  */
+  public static FieldImpl mask(Data f, String op, Data v)
+             throws VisADException, RemoteException {
+    FieldImpl fv = (FieldImpl) f.subtract(v);
+    double [][] dv = fv.getValues(false);
+    int oper = -1;
+    for (int i=0; i<ops.length; i++) {
+      if (ops[i].equalsIgnoreCase(op)) oper = i;
+      if (ops_sym[i].equalsIgnoreCase(op)) oper = i;
+    }
+    if (oper < 0) throw new VisADException("Invalid operator: "+op);
+    for (int i=0; i<dv.length; i++) {
+      for (int k=0; k<dv[i].length; k++) {
+        if (oper == 0) {
+          if (dv[i][k] > 0.0) {
+            dv[i][k] = 1.0;
+          } else {
+            dv[i][k] = 0.0;
+          }
+        } else if (oper == 1) {
+          if (dv[i][k] >= 0.0) {
+            dv[i][k] = 1.0;
+          } else {
+            dv[i][k] = 0.0;
+          }
+        } else if (oper == 2) {
+          if (dv[i][k] < 0.0) {
+            dv[i][k] = 1.0;
+          } else {
+            dv[i][k] = 0.0;
+          }
+        } else if (oper == 3) {
+          if (dv[i][k] <= 0.0) {
+            dv[i][k] = 1.0;
+          } else {
+            dv[i][k] = 0.0;
+          }
+        } else if (oper == 4) {
+          if (dv[i][k] == 0.0) {
+            dv[i][k] = 1.0;
+          } else {
+            dv[i][k] = 0.0;
+          }
+        } else if (oper == 5) {
+          if (dv[i][k] != 0.0) {
+            dv[i][k] = 1.0;
+          } else {
+            dv[i][k] = 0.0;
+          }
+        } else {
+          if (dv[i][k] != 0.0) {
+            dv[i][k] = 1.0;
+          } else {
+            dv[i][k] = 0.0;
+          }
+        }
+      }
+    }
+    fv.setSamples(dv);
+    return fv;
+
+  }
+
+
+  /**
+  * Get a list of points where a comparison is true.
+  *
+  * @param f  VisAD data object (usually FlatField) as source
+  * @param op  Comparison operator as string ('gt','le',...)
+  * @param v  Numeric operand for comparison
+  *
+  * @return an int[] containing the sampling indecies where
+  * the criterion was met.
+  *
+  * Example:  b = find(a, 'gt', 100)
+  * if 'a' is an image, 'b' will be a list of indecies in
+  * 'a' where the values are > 100.
+  *
+  */
+  public static int[] find(Data f, String op, double v) 
+             throws VisADException, RemoteException {
+    return find(f, op, new Real(v));
+  }
+
+  /**
+  * Get a list of points where a comparison is true.
+  *
+  * @param f  VisAD data object (usually FlatField) as source
+  * @param op  Comparison operator as string ('gt','le',...)
+  * @param v  VisAd operand for comparison.
+  *
+  * @return an int[] containing the sampling indecies where
+  * the criterion was met.
+  *
+  * If the value of 'v' is a Field, then it will be resampled
+  * to the domain of 'f' is possible before the comparison.
+  *
+  * Example:  b = find(a, 'gt', c)
+  * if 'a' is an image, 'b' will be a list of indecies in
+  * 'a' where the values are greater than the corresponding
+  * values of 'c'.
+  *
+  */
+  public static int[] find(Data f, String op, Data v)
+             throws VisADException, RemoteException {
+    FieldImpl fv = (FieldImpl) f.subtract(v);
+    double [][] dv = fv.getValues(false);
+    Vector z = new Vector();
+    int oper = -1;
+    for (int i=0; i<ops.length; i++) {
+      if (ops[i].equalsIgnoreCase(op)) oper = i;
+      if (ops_sym[i].equalsIgnoreCase(op)) oper = i;
+    }
+    if (oper < 0) throw new VisADException("Invalid operator: "+op);
+
+    for (int i=0; i<1; i++) {
+      for (int k=0; k<dv[i].length; k++) {
+
+        if (oper == 0) {
+            if (dv[i][k] > 0.0) z.addElement(new Integer(k));
+        } else if (oper == 1) {
+            if (dv[i][k] >= 0.0) z.addElement(new Integer(k));
+        } else if (oper == 2) {
+            if (dv[i][k] < 0.0) z.addElement(new Integer(k));
+        } else if (oper == 3) {
+            if (dv[i][k] <= 0.0) z.addElement(new Integer(k));
+        } else if (oper == 4) {
+            if (dv[i][k] == 0.0) z.addElement(new Integer(k));
+        } else if (oper == 5) {
+            if (dv[i][k] != 0.0) z.addElement(new Integer(k));
+        } else {
+            if (dv[i][k] != 0.0) z.addElement(new Integer(k));
+        }
+      }
+    }
+
+    int m = z.size();
+    int [] rv = new int[m];
+    for (int i=0; i<m; i++) {
+      rv[i] = ((Integer)z.elementAt(i)).intValue();
+    }
+    return rv;
+  }
+
 
 
   /** resample the data field into the defined domain set
