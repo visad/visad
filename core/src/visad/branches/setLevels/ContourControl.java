@@ -145,7 +145,6 @@ public class ContourControl extends Control {
         float[] levs =
           Contour2D.intervalToLevels(contourInterval, lowLimit, hiLimit, base, dashes);
         setLevels(levs, base, dashes[0], false);
-        arithmeticProgression = true;
       }
       else {
         dash = false;
@@ -205,11 +204,8 @@ public class ContourControl extends Control {
     boolean[] dashes = {false};
     float[] levs =
       Contour2D.intervalToLevels(contourInterval, lowLimit, hiLimit, base, dashes);
-    // setLevels(levs, base, dashes[0], false);
-    setLevels(levs, base, dashes[0], change);
     arithmeticProgression = true;
-
-    if (change) changeControl(true);
+    setLevels(levs, base, dashes[0], change);
   }
 
   private boolean in = false;
@@ -297,7 +293,6 @@ public class ContourControl extends Control {
     if (by_user) {
       lowLimit = min - Math.abs(.01f * min);  // DRM 25-APR-2001
       hiLimit  = max + Math.abs(.01f * max);  // DRM 25-APR-2001
-      arithmeticProgression = false;
       changeControl(true);
     }
   }
