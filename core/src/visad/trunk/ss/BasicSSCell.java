@@ -1064,12 +1064,7 @@ public class BasicSSCell extends JPanel {
           }
 
           // switch display dimension
-          if (Dim == JAVA3D_3D) VDisplay = new DisplayImplJ3D(Name);
-          else if (Dim == JAVA2D_2D) VDisplay = new DisplayImplJ2D(Name);
-          else { // Dim == JAVA3D_2D
-            TwoDDisplayRendererJ3D tdr = new TwoDDisplayRendererJ3D();
-            VDisplay = new DisplayImplJ3D(Name, tdr);
-          }
+          constructDisplay();
           RemoteVDisplay = new RemoteDisplayImpl(VDisplay);
 
           // add new display to all RemoteServers
@@ -1135,30 +1130,7 @@ public class BasicSSCell extends JPanel {
       else if (s.equals(j32)) Dim = JAVA3D_2D;
 
       // construct new display from server's display
-      boolean success = true;
-      if (Dim == JAVA2D_2D) {
-        VDisplay = new DisplayImplJ2D(RemoteVDisplay);
-      }
-      else {
-        try {
-          if (Dim == JAVA3D_3D) {
-            VDisplay = new DisplayImplJ3D(RemoteVDisplay);
-          }
-          else { // Dim == JAVA3D_2D
-            TwoDDisplayRendererJ3D tdr = new TwoDDisplayRendererJ3D();
-            VDisplay = new DisplayImplJ3D(RemoteVDisplay, tdr);
-          }
-        }
-        catch (NoClassDefFoundError err) {
-          success = false;
-        }
-        catch (UnsatisfiedLinkError err) {
-          success = false;
-        }
-        catch (Exception exc) {
-          success = false;
-        }
-      }
+      boolean success = constructDisplay();
 
       if (!success) {
         // set up error message canvas
@@ -1486,6 +1458,61 @@ public class BasicSSCell extends JPanel {
   public static void createVar(String name, ThingReference tr)
                                             throws VisADException {
     fm.createVar(name, tr);
+  }
+
+  /** reconstruct this cell's display; called when dimension changes */
+  public boolean constructDisplay() {
+    boolean success = true;
+    if (IsRemote) {
+      if (Dim == JAVA2D_2D) {
+        try {
+          VDisplay = new DisplayImplJ2D(RemoteVDisplay);
+        }
+        catch (VisADException exc) {
+          success = false;
+        }
+        catch (RemoteException exc) {
+          success = false;
+        }
+      }
+      else {
+        try {
+          if (Dim == JAVA3D_3D) {
+            VDisplay = new DisplayImplJ3D(RemoteVDisplay);
+          }
+          else { // Dim == JAVA3D_2D
+            TwoDDisplayRendererJ3D tdr = new TwoDDisplayRendererJ3D();
+            VDisplay = new DisplayImplJ3D(RemoteVDisplay, tdr);
+          }
+        }
+        catch (NoClassDefFoundError err) {
+          success = false;
+        }
+        catch (UnsatisfiedLinkError err) {
+          success = false;
+        }
+        catch (Exception exc) {
+          success = false;
+        }
+      }
+    }
+    else {
+      try {
+        if (Dim == JAVA3D_3D) VDisplay = new DisplayImplJ3D(Name);
+        else if (Dim == JAVA2D_2D) VDisplay = new DisplayImplJ2D(Name);
+        else { // Dim == JAVA3D_2D
+          TwoDDisplayRendererJ3D tdr = new TwoDDisplayRendererJ3D();
+          VDisplay = new DisplayImplJ3D(Name, tdr);
+        }
+      }
+      catch (VisADException exc) {
+        success = false;
+      }
+      catch (RemoteException exc) {
+        success = false;
+      }
+    }
+    return success;
   }
 
 }
