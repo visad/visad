@@ -61,11 +61,9 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
     return array;
   }
 
-  private final static int TEST = 1;
-  private final static float LIMIT = 4.0f; // constant for TEST = 0
-  private final static float ALPHA = 0.1f; // constant for TEST = 1
+  private final static float LIMIT = 1.0f; // constant for TEST = 0
+  private final static float ALPHA = 0.01f; // constant for TEST = 1
 
-/* WLH */
   public VisADGeometryArray adjustSeam(DataRenderer renderer)
          throws VisADException {
     CoordinateSystem coord_sys = renderer.getDisplayCoordinateSystem();
@@ -87,46 +85,117 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
     boolean[] test = new boolean[len];
     int last_i;
 
-    if (TEST == 0) {
-      return this;
+    // for TEST 0
+    float[] lengths = new float[len];
+    for (int i=0; i<len;  i++) lengths[i] = 0.0f;
+    float mean_length = 0.0f;
+    float var_length = 0.0f;
+    float max_length = 0.0f;
+    int num_length = 0;
+
+    boolean any_split = false;
+
+    // TEST 1
+    if (len < 2) return this;
+    float[][] bs = new float[3][len-1];
+    float[][] ss = new float[3][len-1];
+    float ALPHA1 = 1.0f + ALPHA;
+    float ALPHA1m = 1.0f - ALPHA;
+    for (int i=0; i<len-1; i++) {
+      // BS = point ALPHA * opposite direction
+      bs[0][i] = ALPHA1 * rs[0][i] - ALPHA * rs[0][i+1];
+      bs[1][i] = ALPHA1 * rs[1][i] - ALPHA * rs[1][i+1];
+      bs[2][i] = ALPHA1 * rs[2][i] - ALPHA * rs[2][i+1];
+      // SS = point ALPHA * same direction
+      ss[0][i] = ALPHA1 * rs[0][i+1] - ALPHA * rs[0][i];
+      ss[1][i] = ALPHA1 * rs[1][i+1] - ALPHA * rs[1][i];
+      ss[2][i] = ALPHA1 * rs[2][i+1] - ALPHA * rs[2][i];
     }
-    else if (TEST == 1) {
-      if (len < 2) return this;
-      float[][] bs = new float[3][len-1];
-      float ALPHA1 = 1.0f + ALPHA;
-      for (int i=0; i<len-1; i++) {
-        bs[0][i] = ALPHA1 * rs[0][i] - ALPHA * rs[0][i+1];
-        bs[1][i] = ALPHA1 * rs[1][i] - ALPHA * rs[1][i+1];
-        bs[2][i] = ALPHA1 * rs[2][i] - ALPHA * rs[2][i+1];
-      }
-      float[][] ds = coord_sys.toReference(bs);
-      float IALPHA = 1.0f / ALPHA;
-      last_i = 0; // start i for each vertex strip
+    float[][] ds = coord_sys.toReference(bs);
+    float[][] es = coord_sys.toReference(ss);
+    float IALPHA = 1.0f / ALPHA;
 
-      for (int i_svc=0; i_svc<stripVertexCounts.length; i_svc++) {
-        for (int i=last_i; i<last_i+stripVertexCounts[i_svc]-1; i++) {
+    last_i = 0; // start i for each vertex strip
+    for (int i_svc=0; i_svc<stripVertexCounts.length; i_svc++) {
+      for (int i=last_i; i<last_i+stripVertexCounts[i_svc]-1; i++) {
+        // A = original line segment
+        float a0 = cs[0][i+1] - cs[0][i];
+        float a1 = cs[1][i+1] - cs[1][i];
+        float a2 = cs[2][i+1] - cs[2][i];
+        // B = estimate of vector using ALPHA * opposite direction
+        float b0 = IALPHA * (cs[0][i] - ds[0][i]);
+        float b1 = IALPHA * (cs[1][i] - ds[1][i]);
+        float b2 = IALPHA * (cs[2][i] - ds[2][i]);
+        float aa = (a0 * a0 + a1 * a1 + a2 * a2);
+        float aminusb =
+          (b0 - a0) * (b0 - a0) +
+          (b1 - a1) * (b1 - a1) +
+          (b2 - a2) * (b2 - a2);
+        float abratio = aminusb / aa;
 
-          float a0 = cs[0][i+1] - cs[0][i];
-          float a1 = cs[1][i+1] - cs[1][i];
-          float a2 = cs[2][i+1] - cs[2][i];
-          float b0 = IALPHA * (cs[0][i] - ds[0][i]);
-          float b1 = IALPHA * (cs[1][i] - ds[1][i]);
-          float b2 = IALPHA * (cs[2][i] - ds[2][i]);
-          float aa = (a0 * a0 + a1 * a1 + a2 * a2);
-          float bb = (b0 * b0 + b1 * b1 + b2 * b2);
-          float ab = (b0 * a0 + b1 * a1 + b2 * a2);
-          // b = A projected onto B, as a signed fraction of B
-          float b = ab / bb;
-          // c = (norm(A projected onto B) / norm(A)) ^ 2
-          float c = (ab * ab) / (aa * bb);
-          test[i] = !(0.5f < b && b < 2.0f && 0.5f < c);
-        } // end for (int i=last_i; i<last_i+stripVertexCounts[i_svc]*3; i+=3)
-        last_i += stripVertexCounts[i_svc];
-      } // end for (int i_svc=0; i_svc<stripVertexCounts.length; i_svc++)
-    } // end TEST == 1
+        // C = estimate of vector using ALPHA * opposite direction
+        float c0 = IALPHA * (cs[0][i+1] - es[0][i]);
+        float c1 = IALPHA * (cs[1][i+1] - es[1][i]);
+        float c2 = IALPHA * (cs[2][i+1] - es[2][i]);
+        float aminusc =
+          (c0 + a0) * (c0 + a0) +
+          (c1 + a1) * (c1 + a1) +
+          (c2 + a2) * (c2 + a2);
+        float acratio = aminusc / aa;
+
+        // true for bad segment
+        test[i] = (0.01f < abratio) || (0.01f < acratio);
+/*
+        float bb = (b0 * b0 + b1 * b1 + b2 * b2);
+        float ab = (b0 * a0 + b1 * a1 + b2 * a2);
+        // b = A projected onto B, as a signed fraction of B
+        float b = ab / bb;
+        // c = (norm(A projected onto B) / norm(A)) ^ 2
+        float c = (ab * ab) / (aa * bb);
+        test[i] = !(0.5f < b && b < 2.0f && 0.5f < c);
+*/
+        // TEST 0
+        float cd = (cs[0][i+1] - cs[0][i]) * (cs[0][i+1] - cs[0][i]) +
+                   (cs[1][i+1] - cs[1][i]) * (cs[1][i+1] - cs[1][i]) +
+                   (cs[2][i+1] - cs[2][i]) * (cs[2][i+1] - cs[2][i]);
+        if (!test[i]) {
+          lengths[i] = cd;
+          num_length++;
+          mean_length += lengths[i];
+          var_length += lengths[i] * lengths[i];
+          if (lengths[i] > max_length) max_length = lengths[i];
+        }
+
+      } // end for (int i=last_i; i<last_i+stripVertexCounts[i_svc]*3; i+=3)
+      last_i += stripVertexCounts[i_svc];
+    } // end for (int i_svc=0; i_svc<stripVertexCounts.length; i_svc++)
+
     cs = null;
     rs = null;
 
+    // TEST 0
+    if (num_length < 2) return this;
+    mean_length = mean_length / num_length;
+    var_length = (float)
+      Math.sqrt((var_length - mean_length * mean_length) / num_length);
+    float limit_length = mean_length + LIMIT * var_length;
+
+    if (max_length >= limit_length) {
+      last_i = 0; // start i for each vertex strip
+      for (int i_svc=0; i_svc<stripVertexCounts.length; i_svc++) {
+        for (int i=last_i; i<last_i+stripVertexCounts[i_svc]-1; i++) {
+          test[i] = test[i] || (lengths[i] > limit_length);
+          if (test[i]) any_split = true;
+        } // end for (int i=last_i; i<last_i+stripVertexCounts[i_svc]*3; i+=3)
+        last_i += stripVertexCounts[i_svc];
+      } // end for (int i_svc=0; i_svc<stripVertexCounts.length; i_svc++)
+    }
+
+// System.out.println("any_split = " + any_split);
+
+    if (!any_split) {
+      return this;
+    }
 
     // most recent point
     float[] lastcoord = null;
@@ -173,7 +242,7 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
     int[] kmr = {0, 0, 0};
     int t = 0;
     j = 0;
-    boolean any_split = false;
+    any_split = false;
     for (int i_svc=0; i_svc<stripVertexCounts.length; i_svc++) {
       boolean this_split = false;
       int accum = 0; // strip counter

@@ -81,7 +81,6 @@ public class VisADLineArray extends VisADGeometryArray {
     return array;
   }
 
-  private final static int TEST = 0;
   private final static float LIMIT = 1.0f; // constant for TEST = 0
   private final static float ALPHA = 0.01f; // constant for TEST = 1
 
@@ -161,7 +160,7 @@ public class VisADLineArray extends VisADGeometryArray {
       float acratio = aminusc / aa;
 
       // true for bad segment
-      test[i] = test[i] || (0.01f < abratio) || (0.01f < acratio);
+      test[i] = (0.01f < abratio) || (0.01f < acratio);
 /*
 if ((0.01f < abratio) != (0.01f < acratio)) {
 System.out.println("test[" + i + "] " + abratio + " " + acratio);
@@ -189,7 +188,7 @@ System.out.println("test[" + i + "] " + abratio + " " + acratio);
       float cd = (cs[0][i+1] - cs[0][i]) * (cs[0][i+1] - cs[0][i]) +
                  (cs[1][i+1] - cs[1][i]) * (cs[1][i+1] - cs[1][i]) +
                  (cs[2][i+1] - cs[2][i]) * (cs[2][i+1] - cs[2][i]);
-     if (!test[i]) {
+      if (!test[i]) {
         lengths[i] = cd;
         num_length++;
         mean_length += lengths[i];
