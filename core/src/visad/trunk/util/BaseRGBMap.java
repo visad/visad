@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: BaseRGBMap.java,v 1.5 1999-11-16 17:58:09 dglo Exp $
+@(#) $Id: BaseRGBMap.java,v 1.6 1999-11-17 21:44:53 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -35,7 +35,7 @@ import java.awt.*;
  * mouse button to alternate between the color curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.5 $, $Date: 1999-11-16 17:58:09 $
+ * @version $Revision: 1.6 $, $Date: 1999-11-17 21:44:53 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -74,6 +74,8 @@ public class BaseRGBMap
   private boolean hasAlpha;
 
   private static Cursor[] cursor = null;
+  /** a slightly brighter blue */
+  private static final Color bluish = new Color(80, 80, 255);
 
   /** Construct a BaseRGBMap with the default resolution of 256
    * @param hasAlpha set to <TT>true</TT> is this map has
@@ -612,7 +614,7 @@ public class BaseRGBMap
         g.setColor(Color.green);
         g.drawLine(prevEnd, prevGreen, lineEnd, green);
 
-        g.setColor(Color.blue);
+        g.setColor(bluish);
         g.drawLine(prevEnd, prevBlue, lineEnd, blue);
 
         if (hasAlpha) {
