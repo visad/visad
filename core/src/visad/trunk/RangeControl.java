@@ -38,8 +38,8 @@ import visad.util.Util;
 public class RangeControl extends Control {
 
   private boolean initialized = false;
-  private float RangeLow = Float.NaN;
-  private float RangeHi = Float.NaN;
+  private double RangeLow = Double.NaN;
+  private double RangeHi = Double.NaN;
 
   public RangeControl(DisplayImpl d) {
     super(d);
@@ -49,11 +49,24 @@ public class RangeControl extends Control {
   public void initializeRange(float[] range)
     throws VisADException, RemoteException
   {
+    initializeRange(new double[] {(double) range[0], (double) range[1]});
+  }
+
+  /** initialize the range of selected values as (range[0], range[1]) */
+  public void initializeRange(double[] range)
+    throws VisADException, RemoteException
+  {
     changeRange(range, initialized);
   }
 
   /** set the range of selected values as (range[0], range[1]) */
   public void setRange(float[] range)
+         throws VisADException, RemoteException {
+    setRange(new double[] {(double) range[0], (double) range[1]});
+  }
+
+  /** set the range of selected values as (range[0], range[1]) */
+  public void setRange(double[] range)
          throws VisADException, RemoteException {
     if (RangeLow != RangeLow ||
         !Util.isApproximatelyEqual(RangeLow, range[0]) ||
@@ -64,7 +77,7 @@ public class RangeControl extends Control {
     }
   }
 
-  private void changeRange(float[] range, boolean notify)
+  private void changeRange(double[] range, boolean notify)
     throws VisADException, RemoteException
   {
     RangeLow = range[0];
@@ -78,6 +91,14 @@ public class RangeControl extends Control {
   /** return the range of selected values */
   public float[] getRange() {
     float[] range = new float[2];
+    range[0] = (float) RangeLow;
+    range[1] = (float) RangeHi;
+    return range;
+  }
+
+  /** return the range of selected values */
+  public double[] getDoubleRange() {
+    double[] range = new double[2];
     range[0] = RangeLow;
     range[1] = RangeHi;
     return range;
@@ -95,8 +116,8 @@ public class RangeControl extends Control {
     if (save == null) throw new VisADException("Invalid save string");
     StringTokenizer st = new StringTokenizer(save);
     if (st.countTokens() < 2) throw new VisADException("Invalid save string");
-    float[] r = new float[2];
-    for (int i=0; i<2; i++) r[i] = Convert.getFloat(st.nextToken());
+    double[] r = new double[2];
+    for (int i=0; i<2; i++) r[i] = Convert.getDouble(st.nextToken());
     initializeRange(r);
   }
 
