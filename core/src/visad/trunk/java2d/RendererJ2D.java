@@ -156,7 +156,13 @@ public abstract class RendererJ2D extends DataRenderer {
     if (scratch) {
       ((DisplayImplJ2D) getDisplay()).setScratch();
     }
+
+/* WLH 28 Oct 98
     return all_feasible;
+*/
+    /* WLH 28 Oct 98 */
+    return all_feasible && (any_changed || any_transform_control);
+
   }
 
   public void clearScene() {

@@ -504,11 +504,20 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
         ScalarMap.equalizeFlow(tmap, Display.DisplayFlow1Tuple);
         ScalarMap.equalizeFlow(tmap, Display.DisplayFlow2Tuple);
     
+        /* WLH 28 Oct 98 */
+        boolean transform_done = false;
+
         renderers = temp.elements();
         while (renderers.hasMoreElements()) {
           DataRenderer renderer = (DataRenderer) renderers.nextElement();
-          renderer.doAction();
+          /* WLH 28 Oct 98 */
+          transform_done |= renderer.doAction();
         }
+        /* WLH 28 Oct 98 */
+        if (transform_done) {
+          notifyListeners(DisplayEvent.TRANSFORM_DONE);
+        }
+
       }
 
       // clear tickFlag-s in Control-s

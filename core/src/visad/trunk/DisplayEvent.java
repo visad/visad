@@ -37,6 +37,8 @@ public class DisplayEvent extends Event {
 
   /** values for id */
   public final static int MOUSE_PRESSED = 1;
+  /* WLH 28 Oct 98 */
+  public final static int TRANSFORM_DONE = 2;
 
   private int id = 0;
 

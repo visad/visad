@@ -238,7 +238,13 @@ System.out.println("doAction2: branches[" + nextIndex + "].addChild( )");
         links[i].clearData();
       }
     }
+
+/* WLH 28 Oct 98
     return all_feasible;
+*/
+    /* WLH 28 Oct 98 */
+    return all_feasible && (any_changed || any_transform_control);
+
   }
 
   synchronized boolean switchTransition(int index) {
