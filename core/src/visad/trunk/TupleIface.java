@@ -34,35 +34,35 @@ import java.util.Vector;
 */
 public interface TupleIface extends Data {
 
-  public Real[] getRealComponents() throws VisADException, RemoteException;
+  Real[] getRealComponents() throws VisADException, RemoteException;
 
   /** return number of components */
-  public int getDimension();
+  int getDimension();
 
   /** return component for i between 0 and getDimension() - 1 */
-  public Data getComponent(int i) throws VisADException, RemoteException;
+  Data getComponent(int i) throws VisADException, RemoteException;
 
-  public boolean isMissing();
+  boolean isMissing();
 
-  public Data binary(Data data, int op, MathType new_type,
+  Data binary(Data data, int op, MathType new_type,
                      int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
-  public Data unary(int op, MathType new_type,
+  Data unary(int op, MathType new_type,
                     int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
-  public DataShadow computeRanges(ShadowType type, DataShadow shadow)
+  DataShadow computeRanges(ShadowType type, DataShadow shadow)
          throws VisADException, RemoteException;
 
   /** return a Tuple that clones this, except its ErrorEstimate-s
       are adjusted for sampling errors in error */
-  public Data adjustSamplingError(Data error, int error_mode)
+  Data adjustSamplingError(Data error, int error_mode)
          throws VisADException, RemoteException;
 
-  public Object clone();
+  Object clone();
 
-  public String longString(String pre)
+  String longString(String pre)
          throws VisADException, RemoteException;
 
   /**
@@ -72,13 +72,13 @@ public interface TupleIface extends Data {
    *			a Tuple and both Tuple-s have identical component
    *			sequences.
    */
-  public boolean equals(Object obj);
+  boolean equals(Object obj);
 
   /**
    * Returns the hash code of this object.
    * @return		The hash code of this object.
    */
-  public int hashCode();
+  int hashCode();
 
 }
 
