@@ -757,9 +757,9 @@ public class BioRadForm extends Form implements FormFileInformer {
     double horizOffset = 0, vertOffset = 0;
     double horizStep = 0, vertStep = 0;
     Unit horizUnit = null, vertUnit = null;
-    int i = 0;
-    while (i < noteList.size()) {
-      BioRadNote note = (BioRadNote) noteList.elementAt(i);
+    int n = 0;
+    while (n < noteList.size()) {
+      BioRadNote note = (BioRadNote) noteList.elementAt(n);
       if (note.hasUnitInfo()) {
         int rval = note.analyze();
         if (rval == BioRadNote.HORIZ_UNIT) {
@@ -771,7 +771,7 @@ public class BioRadForm extends Form implements FormFileInformer {
           else if (DEBUG && DEBUG_LEVEL >= 1) {
             System.err.println("Warning: ignoring extra AXIS_2 note");
           }
-          noteList.remove(i);
+          noteList.remove(n);
         }
         else if (rval == BioRadNote.VERT_UNIT) {
           if (vertStep == 0) {
@@ -782,16 +782,16 @@ public class BioRadForm extends Form implements FormFileInformer {
           else if (DEBUG && DEBUG_LEVEL >= 1) {
             System.err.println("Warning: ignoring extra AXIS_3 note");
           }
-          noteList.remove(i);
+          noteList.remove(n);
         }
         else if (rval == BioRadNote.INVALID_NOTE ||
           rval == BioRadNote.NO_INFORMATION)
         {
-          noteList.remove(i);
+          noteList.remove(n);
         }
-        else i++;
+        else n++;
       }
-      else i++;
+      else n++;
     }
     if (horizStep == 0) horizStep = 1;
     if (vertStep == 0) vertStep = 1;
@@ -800,7 +800,7 @@ public class BioRadForm extends Form implements FormFileInformer {
     float[][][] samples = new float[npic][1][image_len];
     if (byte_format) {
       // each pixel is 8 bits
-      for (i=0; i<npic; i++) {
+      for (int i=0; i<npic; i++) {
         for (int l=0; l<image_len; l++) {
           int q = 0x000000ff & image_data[i][l];
           samples[i][0][l] = (float) q;
@@ -809,7 +809,7 @@ public class BioRadForm extends Form implements FormFileInformer {
     }
     else {
       // each pixel is 16 bits
-      for (i=0; i<npic; i++) {
+      for (int i=0; i<npic; i++) {
         for (int l=0; l<image_len; l++) {
           int q = getUnsignedShort(
             image_data[i][2 * l], image_data[i][2 * l + 1]);
@@ -820,7 +820,7 @@ public class BioRadForm extends Form implements FormFileInformer {
 
     // convert color table bytes to floats
     float[][][] colors = new float[numLuts][3][256];
-    for (i=0; i<numLuts; i++) {
+    for (int i=0; i<numLuts; i++) {
       for (int l=0; l<256; l++) {
         int qr = 0x000000ff & lut[i][l];
         int qg = 0x000000ff & lut[i][l + 256];
@@ -849,7 +849,7 @@ public class BioRadForm extends Form implements FormFileInformer {
 
     // set up image fields
     FlatField[] imageFields = new FlatField[npic];
-    for (i=0; i<npic; i++) {
+    for (int i=0; i<npic; i++) {
       imageFields[i] = new FlatField(imageFunction, imageSet);
       imageFields[i].setSamples(samples[i], false);
     }
@@ -873,7 +873,7 @@ public class BioRadForm extends Form implements FormFileInformer {
 
       // set up color table fields
       FlatField[] rgbFields = new FlatField[numLuts];
-      for (i=0; i<numLuts; i++) {
+      for (int i=0; i<numLuts; i++) {
         rgbFields[i] = new FlatField(rgbFunction, rgbSet);
         rgbFields[i].setSamples(colors[i], false);
       }
@@ -907,7 +907,7 @@ public class BioRadForm extends Form implements FormFileInformer {
 
     // parse remaining notes
     len = noteList.size();
-    for (i=0; i<len; i++) {
+    for (int i=0; i<len; i++) {
       BioRadNote note = (BioRadNote) noteList.elementAt(i);
       int rval = note.analyze();
       if (rval == BioRadNote.METADATA) data.add(note.metadata);
