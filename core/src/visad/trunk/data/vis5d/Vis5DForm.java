@@ -118,7 +118,8 @@ public class Vis5DForm extends Form implements FormFileInformer {
     int[] n_levels = new int[MAXVARS];
     int[]  vert_sys = new int[1];
     float[]  vertargs = new float[MAXVERTARGS];
-    float[] times = new float[MAXTIMES];
+ //-float[] times = new float[MAXTIMES];
+    double[] times = new double[MAXTIMES];
     float[] projargs = new float[MAXPROJARGS];
 
     vv = V5DStruct.v5d_open(name,
@@ -317,7 +318,8 @@ public class Vis5DForm extends Form implements FormFileInformer {
     }
     v5d_type = new FunctionType(time_domain, v5d_range);
 
-    float[][] timeses = new float[1][ntimes];
+ //-float[][] timeses = new float[1][ntimes];
+    double[][] timeses = new double[1][ntimes];
     for (int i=0; i<ntimes; i++)  {
       timeses[0][i] = times[i];
     }
@@ -325,9 +327,9 @@ public class Vis5DForm extends Form implements FormFileInformer {
     Unit v5d_time_unit = new OffsetUnit(
                              visad.data.units.UnitParser.encodeTimestamp(
                                 1900, 1, 1, 0, 0, 0, 0), SI.second);
-    Gridded1DSet time_set =
-      new Gridded1DSet(time, timeses, ntimes,
-                       null, new Unit[] {v5d_time_unit}, null);
+    Gridded1DDoubleSet time_set =
+      new Gridded1DDoubleSet(time, timeses, ntimes,
+                             null, new Unit[] {v5d_time_unit}, null);
 
 
     FieldImpl v5d = new FieldImpl(v5d_type, time_set);

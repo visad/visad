@@ -447,11 +447,11 @@ public class V5DStruct {
   /** Open a Vis5D file */
   public 
     static 
-      V5DStruct v5d_open(byte[] name, int name_length, int[] sizes,
-                         int[] n_levels,
-                         String[] var_names, String[] var_units,
-                         int[] map_proj, float[] projargs,
-                         int[] vert_sys, float[] vert_args, float[] times)
+      V5DStruct v5d_open( byte[] name, int name_length, int[] sizes,
+                          int[] n_levels,
+                          String[] var_names, String[] var_units,
+                          int[] map_proj, float[] projargs,
+                          int[] vert_sys, float[] vert_args, double[] times)
     throws IOException, BadFormException
   {
     int i, j, k, k2, m, m2;
@@ -541,7 +541,8 @@ public class V5DStruct {
         /*-TDR
         times[i] = (day - first_day) * 24 * 60 * 60 + (time - first_time);
          */
-        float ff = (((float)day)*24f*60f*60f + (float)time);
+     //-float ff = (((float)day)*24f*60f*60f + (float)time);
+        double ff = (((double)day)*24.0*60.0*60.0 + (double)time);
         times[i] = ff;
       }
 
