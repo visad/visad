@@ -50,9 +50,14 @@ public interface AnimationControl extends AVControl {
   /** get the current ordinal step number */
   int getCurrent();
 
-  /** Set the animation direction.
+  /** 
+   * Set the animation direction.
    *
-   *  @param    dir     true for forward, false for backward
+   * @param    dir     true for forward, false for backward
+   *
+   * @throws  VisADException   Couldn't create necessary VisAD object.  The
+   *                           direction remains unchanged.
+   * @throws  RemoteException  Java RMI exception
    */
   void setDirection(boolean dir)
          throws VisADException, RemoteException;
@@ -63,13 +68,50 @@ public interface AnimationControl extends AVControl {
    */
   boolean getDirection();
 
+  /**
+   * Return the dwell time for the current step
+   */
   long getStep();
 
-  /** set the dwell time for each step, in milliseconds */
+  /**
+   * return an array of the dwell times for all the steps.
+   */
+  long[] getSteps();
+
+  /** 
+   * Set the dwell rate between animation steps to a constant value
+   *
+   * @param  st   dwell time in milliseconds
+   *
+   * @throws  VisADException   Couldn't create necessary VisAD object.  The
+   *                           dwell time remains unchanged.
+   * @throws  RemoteException  Java RMI exception
+   */
   void setStep(int st)
          throws VisADException, RemoteException;
 
-  /** advance one step (forward or backward) */
+  /** 
+   * set the dwell time for individual steps.
+   *
+   * @param   steps   an array of dwell rates for each step in the animation
+   *                  If the length of the array is less than the number of 
+   *                  frames in the animation, the subsequent step values will 
+   *                  be set to the value of the last step.
+   *
+   * @throws  VisADException   Couldn't create necessary VisAD object.  The
+   *                           dwell times remain unchanged.
+   * @throws  RemoteException  Java RMI exception
+   */
+  void setSteps(int[] steps)
+         throws VisADException, RemoteException;
+
+  /** 
+   * advance one step (forward or backward) 
+   *
+   * @throws  VisADException   Couldn't create necessary VisAD object.  No
+   *                           step is taken.
+   * @throws  RemoteException  Java RMI exception
+   */
   void takeStep()
          throws VisADException, RemoteException;
 
@@ -89,14 +131,26 @@ public interface AnimationControl extends AVControl {
   /** return true if automatic stepping is on */
   boolean getOn();
 
-  /** turn on automatic stepping if on = true, turn it
-      off if on = false */
+  /** 
+   * Set automatic stepping on or off.
+   *
+   * @param  o  true = turn stepping on, false = turn stepping off
+   *
+   * @throws  VisADException   Couldn't create necessary VisAD object.  No
+   *                           change in automatic stepping occurs.
+   * @throws  RemoteException  Java RMI exception
+   */
   void setOn(boolean o)
          throws VisADException, RemoteException;
 
-  /** toggle automatic stepping between off and on */
+  /** 
+   * toggle automatic stepping between off and on 
+   *
+   * @throws  VisADException   Couldn't create necessary VisAD object.  No
+   *                           change in automatic stepping occurs.
+   * @throws  RemoteException  Java RMI exception
+   */
   void toggle()
          throws VisADException, RemoteException;
 
 }
-

@@ -42,6 +42,7 @@ public class AnimationControlJ3D extends AVControlJ3D
   private int current;
   private boolean direction; // true = forward
   private long step; // time in milleseconds between animation steps
+  private long[] stepValues; // times in milleseconds between animation steps
   private AnimationSetControl animationSet;
   private ToggleControl animate;
   private RealType real;
@@ -55,7 +56,19 @@ public class AnimationControlJ3D extends AVControlJ3D
     current = 0;
     direction = true;
     step = 500;
+    stepValues = new long[] {step};
     animationSet = new AnimationSetControl(d, this);
+    // initialize the stepValues array
+    try
+    {
+        Set set = animationSet.getSet();
+        if (set != null) stepValues = new long[set.getLength()];
+    }
+    catch (VisADException v) {;} 
+    for (int i = 0; i<stepValues.length; i++)
+    {
+        stepValues[i] = step;
+    }
     d.addControl(animationSet);
     animate = new ToggleControl(d, this);
     d.addControl(animate);
@@ -91,7 +104,7 @@ public class AnimationControlJ3D extends AVControlJ3D
       }
       try {
         synchronized (this) {
-          wait(step);
+          wait(stepValues[current]);
         }
       }
       catch(InterruptedException e) {
@@ -104,6 +117,7 @@ public class AnimationControlJ3D extends AVControlJ3D
     return current;
   }
 
+  /** set the current ordinal step number = c */
   public void setCurrent(int c)
          throws VisADException, RemoteException {
     if (animationSet != null) {
@@ -116,6 +130,8 @@ public class AnimationControlJ3D extends AVControlJ3D
     changeControl(true);
   }
  
+  /** set the current step by the value of the RealType
+      mapped to Display.Animation */
   public void setCurrent(double value)
          throws VisADException, RemoteException {
     if (animationSet != null) {
@@ -128,9 +144,14 @@ public class AnimationControlJ3D extends AVControlJ3D
     changeControl(true);
   }
 
-  /** Set the animation direction.
+  /** 
+   * Set the animation direction.
    *
-   *  @param    dir     true for forward, false for backward
+   * @param    dir     true for forward, false for backward
+   *
+   * @throws  VisADException   Couldn't create necessary VisAD object.  The
+   *                           direction remains unchanged.
+   * @throws  RemoteException  Java RMI exception
    */
   public void setDirection(boolean dir)
          throws VisADException, RemoteException {
@@ -147,19 +168,77 @@ public class AnimationControlJ3D extends AVControlJ3D
     return direction;
   }
 
+  /**
+   * Return the dwell time for the current step
+   */
   public long getStep() {
-    return step;
+    return stepValues[current];
   }
 
+  /**
+   * return an array of the dwell times for all the steps.
+   */
+  public long[] getSteps()
+  {
+      return stepValues;
+  }
+
+  /** 
+   * set the dwell time for all steps
+   *
+   * @param  st   dwell time in milliseconds
+   *
+   * @throws  VisADException   Couldn't create necessary VisAD object.  The
+   *                           dwell time remains unchanged.
+   * @throws  RemoteException  Java RMI exception
+   */
   public void setStep(int st) throws VisADException, RemoteException {
-    if (st < 0) {
+    if (st <= 0) {
       throw new DisplayException("AnimationControlJ3D.setStep: " +
                                  "step must be > 0");
     }
     step = st;
+    for (int i=0; i < stepValues.length; i++)
+    {
+        stepValues[i] = st;
+    }
     changeControl(true);
   }
 
+  /** 
+   * set the dwell time for individual steps.
+   *
+   * @param   steps   an array of dwell rates for each step in the animation
+   *                  If the length of the array is less than the number of 
+   *                  frames in the animation, the subsequent step values will 
+   *                  be set to the value of the last step.
+   *
+   * @throws  VisADException   Couldn't create necessary VisAD object.  The
+   *                           dwell times remain unchanged.
+   * @throws  RemoteException  Java RMI exception
+   */
+  public void setSteps(int[] steps) 
+  throws VisADException, RemoteException
+  {
+    // verify that the values are valid
+    for (int i = 0; i < stepValues.length; i++)
+    {
+        stepValues[i] = 
+	    (i < steps.length) ? steps[i] : steps[steps.length-1];
+        if (stepValues[i] <= 0) 
+            throw new DisplayException("AnimationControlJ3D.setSteps: " +
+                                 "step " + i + " must be > 0");
+    }
+    changeControl(true);
+  }
+
+  /** 
+   * advance one step (forward or backward) 
+   *
+   * @throws  VisADException   Couldn't create necessary VisAD object.  No
+   *                           step is taken.
+   * @throws  RemoteException  Java RMI exception
+   */
   public void takeStep() throws VisADException, RemoteException {
     if (direction) current++;
     else current--;
@@ -193,6 +272,14 @@ public class AnimationControlJ3D extends AVControlJ3D
   public void setSet(Set s)
          throws VisADException, RemoteException {
     setSet(s, false);
+    if (s.getLength() != stepValues.length)
+    {
+        stepValues = new long[s.getLength()];
+        for (int i = 0; i < stepValues.length; i++)
+        {
+            stepValues[i] = step;
+        }
+    }
   }
  
   /** changeControl(!noChange) to not trigger re-transform,
@@ -201,9 +288,18 @@ public class AnimationControlJ3D extends AVControlJ3D
          throws VisADException, RemoteException {
     if (animationSet != null) {
       animationSet.setSet(s, noChange);
+      if (s.getLength() != stepValues.length)
+      {
+          stepValues = new long[s.getLength()];
+          for (int i = 0; i < stepValues.length; i++)
+          {
+              stepValues[i] = step;
+          }
+      }
     }
   }
 
+  /** return true if automatic stepping is on */
   public boolean getOn() {
     if (animate != null) {
       return animate.getOn();
@@ -213,6 +309,15 @@ public class AnimationControlJ3D extends AVControlJ3D
     }
   }
 
+  /** 
+   * Set automatic stepping on or off.
+   *
+   * @param  o  true = turn stepping on, false = turn stepping off
+   *
+   * @throws  VisADException   Couldn't create necessary VisAD object.  No
+   *                           change in automatic stepping occurs.
+   * @throws  RemoteException  Java RMI exception
+   */
   public void setOn(boolean o)
          throws VisADException, RemoteException {
     if (animate != null) {
@@ -220,6 +325,13 @@ public class AnimationControlJ3D extends AVControlJ3D
     }
   }
 
+  /** 
+   * toggle automatic stepping between off and on 
+   *
+   * @throws  VisADException   Couldn't create necessary VisAD object.  No
+   *                           change in automatic stepping occurs.
+   * @throws  RemoteException  Java RMI exception
+   */
   public void toggle()
          throws VisADException, RemoteException {
     if (animate != null) {
