@@ -72,7 +72,6 @@ public class ShadowTextureFillSetTypeJ3D extends ShadowSetTypeJ3D {
 
     DataDisplayLink link = renderer.getLink();
 
-System.out.println("ShadowTextureFillSetTypeJ3D.doTransform");
 // System.out.println("start doTransform " + (System.currentTimeMillis() - link.start_time));
 
     // return if data is missing or no ScalarMaps
@@ -150,11 +149,7 @@ System.out.println("ShadowTextureFillSetTypeJ3D.doTransform");
       throw new BadMappingException("domain must be only spatial");
     }
 
-
-    // curvedTexture
-
-// System.out.println("start curved texture " + (System.currentTimeMillis() - link.start_time));
-
+    // get and process domain values
     float[][] spline_domain = domain_set.getSamples();
 
     spline_domain = 
@@ -241,7 +236,7 @@ System.out.println("ShadowTextureFillSetTypeJ3D.doTransform");
     }
 
     float scale = ((TextureFillRendererJ3D) renderer).getScale();
-    // for textures
+    // compute texture coordinates from Cartesian spatial coordinates
     float[][] tex_values = new float[3][domain_length];
     for (int i = 0; i<domain_length; i++) {
       tex_values[0][i] = scale * spatial_values[tuple_index[0]][i];
@@ -265,10 +260,12 @@ System.out.println("ShadowTextureFillSetTypeJ3D.doTransform");
                spatial_value_indices, default_values, null);
     }
 
+    // make spatial set for making VisADGeometryArray using make2DGeometry()
     SetType type = new SetType(Display.DisplaySpatialCartesianTuple);
     Set spatial_set = makeSpatialSet(domain_set, type, spatial_values);
 
-// must make texCoords
+    // make spatial set with texture coordinates for making a VisADGeometryArray
+    // so texture coordinates can line up with coordinates
     Set tex_set = makeSpatialSet(domain_set, type, tex_values);
 
     boolean indexed = wantIndexed();
@@ -279,7 +276,6 @@ System.out.println("ShadowTextureFillSetTypeJ3D.doTransform");
     float[] coordinates = array.coordinates;
     float[] tex = tex_array.coordinates;
     int nn = coordinates.length / 3;
-System.out.println("nn = " + nn);
     float[] texCoords = new float[2 * nn];
     boolean spatial_all_select = true;
     for (int i=0; i<3*nn; i++) {
@@ -289,9 +285,6 @@ System.out.println("nn = " + nn);
     for (int i=0; i<3*nn; i+=3) {
       texCoords[j] = tex[i];
       texCoords[j+1] = tex[i+1];
-System.out.println("texCoords = " + texCoords[j] + " " + texCoords[j+1] +
-                   " coordinates = " + coordinates[i] + " " + coordinates[i+1] + " " +
-                   coordinates[i+2]);
       j += 2;
     }
     array.texCoords = texCoords;

@@ -58,14 +58,18 @@ public class TextureFillRendererJ3D extends DefaultRendererJ3D {
     }
   }
 
+  // texture pattern will repeat 2 * scale times across box
   private float scale = 10.0f;
 
+  // texture data defining repeating pattern
   private int texture_width = 0;
   private int texture_height = 0;
   private int[] texture = null;
 
+  // true for smooth texture
   private boolean smooth = false;
 
+  /** texture pattern will repreat 2 * s times across box */
   public void setScale(float s) {
     scale = s;
   }
@@ -74,6 +78,8 @@ public class TextureFillRendererJ3D extends DefaultRendererJ3D {
     return scale;
   }
 
+  /** define texture pattern as a w * h rectangle of ints (RGB values);
+      note w and h must be powers of 2, and t.length must be w * h */
   public void setTexture(int w, int h, int[] t) throws VisADException {
     int ww = 1;
     while (ww < w) ww *= 2;
@@ -99,6 +105,7 @@ public class TextureFillRendererJ3D extends DefaultRendererJ3D {
     return texture;
   }
 
+  /** set s = true to smooth texture */
   public void setSmooth(boolean s) {
     smooth = s;
   }
@@ -225,7 +232,6 @@ public class TextureFillRendererJ3D extends DefaultRendererJ3D {
   }
 
   public BranchGroup doTransform() throws VisADException, RemoteException {
-System.out.println("TextureFillRendererJ3D.doTransform");
     BranchGroup branch = getBranch();
     if (branch == null) {
       branch = new BranchGroup();
@@ -278,7 +284,6 @@ System.out.println("TextureFillRendererJ3D.doTransform");
       link.time_flag = false;
       // transform data into a depiction under branch
       try {
-System.out.println("call type.doTransform type = " + type);
         type.doTransform(branch, data, valueArray,
                          link.getDefaultValues(), this);
       } catch (RemoteException re) {
