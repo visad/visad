@@ -149,11 +149,20 @@ public abstract class DisplayRenderer
    * (When the <I>wait flag</I> is enabled, the user is informed
    *  that the application is busy, typically by displaying a
    *  <B><TT>Please wait . . .</TT></B> message at the bottom of
-   *  the <CODE>Display</CODE>.)
+   *  the <CODE>Display</CODE>.)  DisplayEvent.WAIT_ON and
+   *  DisplayEvent.WAIT_OFF events are fired based on value of b.
    * @param b Boolean value to which <I>wait flag</I> is set.
    */
   public void setWaitFlag(boolean b) {
     waitFlag = b;
+    try {
+      DisplayEvent e = new DisplayEvent(display,
+        (b == true) ? DisplayEvent.WAIT_ON 
+                    : DisplayEvent.WAIT_OFF);
+      display.notifyListeners(e);
+    } 
+    catch (VisADException e) { }
+    catch (RemoteException e) { }
   }
 
   /**

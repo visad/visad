@@ -627,7 +627,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     false, // MOUSE_DRAGGED
     false, // MOUSE_ENTERED
     false, // MOUSE_EXITED
-    false  // MOUSE_MOVED
+    false, // MOUSE_MOVED
+    false, // WAIT_ON
+    false  // WAIT_OFF
   };
 
   /**
@@ -656,6 +658,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    *          <LI>DisplayEvent.MOUSE_ENTERED
    *          <LI>DisplayEvent.MOUSE_EXITED
    *          <LI>DisplayEvent.MOUSE_MOVED
+   *          <LI>DisplayEvent.WAIT_ON
+   *          <LI>DisplayEvent.WAIT_OFF
    *          </UL>
    */
   public void enableEvent(int id) {
@@ -689,6 +693,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    *          <LI>DisplayEvent.MOUSE_ENTERED
    *          <LI>DisplayEvent.MOUSE_EXITED
    *          <LI>DisplayEvent.MOUSE_MOVED
+   *          <LI>DisplayEvent.WAIT_ON
+   *          <LI>DisplayEvent.WAIT_OFF
    *          </UL>
    */
   public void disableEvent(int id) {

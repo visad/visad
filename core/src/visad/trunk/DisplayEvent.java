@@ -43,7 +43,8 @@ public class DisplayEvent extends VisADEvent {
 
   // If you add more events, be sure to add them to the Javadoc for
   // DisplayEvent.getId(), DisplayImpl.enableEvent(), and
-  // DisplayImpl.disableEvent(). Also update DisplayEvent.main()'s ids array.
+  // DisplayImpl.disableEvent() and DisplayImpl.eventStatus. Also 
+  // update DisplayEvent.main()'s ids array.
 
   /**
    * The "mouse pressed" event.  This event occurs when any
@@ -198,13 +199,34 @@ public class DisplayEvent extends VisADEvent {
    */
   public final static int MOUSE_MOVED = 21;
 
+  /**
+   * The "display wait on" event.  This event occurs when
+   * a display's renderer is told to "wait"
+   *
+   * Note that you must call
+   * DisplayImpl.enableEvent(DisplayEvent.WAIT_ON)
+   * to enable reporting of this type of event.
+   */
+  public final static int WAIT_ON = 22;
+
+  /**
+   * The "display wait off" event.  This event occurs when
+   * a display's renderer is told to "stop waiting"
+   *
+   * Note that you must call
+   * DisplayImpl.enableEvent(DisplayEvent.WAIT_OFF)
+   * to enable reporting of this type of event.
+   */
+  public final static int WAIT_OFF = 23;
+
   private final static String[] ids = {
       "?", "MOUSE_PRESSED", "TRANSFORM_DONE", "FRAME_DONE",
       "MOUSE_PRESSED_CENTER", "MOUSE_PRESSED_LEFT",  "MOUSE_PRESSED_RIGHT",
       "MOUSE_RELEASED", "MOUSE_RELEASED_CENTER", "MOUSE_RELEASED_LEFT",
       "MOUSE_RELEASED_RIGHT", "MAP_ADDED", "MAPS_CLEARED", "REFERENCE_ADDED",
       "REFERENCE_REMOVED", "DESTROYED", "KEY_PRESSED", "KEY_RELEASED",
-      "MOUSE_DRAGGED", "MOUSE_ENTERED", "MOUSE_EXITED", "MOUSE_MOVED"
+      "MOUSE_DRAGGED", "MOUSE_ENTERED", "MOUSE_EXITED", "MOUSE_MOVED",
+      "WAIT_ON", "WAIT_OFF"
     };
 
   /** Dummy AWT component. */
@@ -376,6 +398,8 @@ public class DisplayEvent extends VisADEvent {
    *          <LI>DisplayEvent.MOUSE_ENTERED
    *          <LI>DisplayEvent.MOUSE_EXITED
    *          <LI>DisplayEvent.MOUSE_MOVED
+   *          <LI>DisplayEvent.WAIT_ON
+   *          <LI>DisplayEvent.WAIT_OFF
    *          </UL>
    */
   public int getId() {
@@ -492,7 +516,8 @@ public class DisplayEvent extends VisADEvent {
       "MOUSE_RELEASED", "MOUSE_RELEASED_CENTER", "MOUSE_RELEASED_LEFT",
       "MOUSE_RELEASED_RIGHT", "MAP_ADDED", "MAPS_CLEARED", "REFERENCE_ADDED",
       "REFERENCE_REMOVED", "DESTROYED", "KEY_PRESSED", "KEY_RELEASED",
-      "MOUSE_DRAGGED", "MOUSE_ENTERED", "MOUSE_EXITED", "MOUSE_MOVED"
+      "MOUSE_DRAGGED", "MOUSE_ENTERED", "MOUSE_EXITED", "MOUSE_MOVED",
+      "WAIT_ON", "WAIT_OFF"
     };
 
     // enable extra mouse event handling
@@ -500,6 +525,8 @@ public class DisplayEvent extends VisADEvent {
     display.enableEvent(DisplayEvent.MOUSE_ENTERED); 
     display.enableEvent(DisplayEvent.MOUSE_EXITED);
     display.enableEvent(DisplayEvent.MOUSE_MOVED);
+    display.enableEvent(DisplayEvent.WAIT_ON);
+    display.enableEvent(DisplayEvent.WAIT_OFF);
 
     // enable extra keyboard event handling
     if (j2d) {
