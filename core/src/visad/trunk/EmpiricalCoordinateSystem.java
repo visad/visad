@@ -57,7 +57,9 @@ EmpiricalCoordinateSystem
 
   /**
    * Constructs from two GriddedSet-s.  The dimensionality (i.e. rank and
-   * lengths) of the two sets must be identical.
+   * lengths) of the two sets must be identical.  The RealTupleType of the
+   * reference will be that of the reference set.  The units of the world
+   * coordinates will be the actual units of the world set.
    * @param world               A set of world coordinates.
    *                            <code>world.getLengths()</code> shall equal
    *                            <code>reference.getLengths()</code>.  Determines
@@ -65,9 +67,7 @@ EmpiricalCoordinateSystem
    *                            the default units will be those of <code>
    *                            world.getSetUnits()</code>.
    * @param reference           A set of reference coordinates.  Determines
-   *                            the default units of reference coordinates:
-   *                            the default units will be those of <code>
-   *                            reference.getSetUnits()</code>.
+   *                            the reference RealTupleType.
    * @throws VisADException	Couldn't create necessary VisAD object.
    */
   public
@@ -115,21 +115,19 @@ EmpiricalCoordinateSystem
   }
 
   /**
-   * Constructs an EmpiricalCoordinateSystem from a FlatField.
+   * Constructs an EmpiricalCoordinateSystem from a FlatField.  The
+   * <code>toReference()</code> method of the resulting CoordinateSystem will
+   * transform numeric values in actual units of the domain of the field to
+   * numeric values in default units of the range of the field.  Similarly,
+   * the <code>fromReference()</code> method will transform numeric values in
+   * default units of the range of the field to numeric values in the actual
+   * units of the domain of the field.
    *
    * @param field               The FlatField comprising a coordinate system
    *                            transformation from the domain to the range.
-   *                            The <code>toReference()</code> method of the
-   *                            resulting CoordinateSystem will transform
-   *                            numeric values in units of the domain of
-   *                            the field to numeric values in units of
-   *                            the range of the field.  Similarly, the
-   *                            <code>fromReference()</code> method will
-   *                            transform numeric values in units of the range
-   *                            of the field to numeric values in units of the
-   *                            domain of the field.  The rank of the domain and
-   *                            range shall be the same.  The domain set of the
-   *                            field shall be a GriddedSet.
+   *                            The rank of the domain and range shall be the
+   *                            same.  The domain set of the field shall be a
+   *                            GriddedSet.
    * @throws SetException	The field's domain set isn't a GriddedSet.
    * @throws VisADException	Couldn't create necessary VisAD object.
    */
@@ -137,24 +135,19 @@ EmpiricalCoordinateSystem
   create(FlatField field)
     throws VisADException
   {
-    float[][]		samples = field.getFloats(false);// in default units
-    Set			domainSet = field.getDomainSet();
+    Set		domainSet = field.getDomainSet();
+    float[][]	samples = field.getFloats(false);	// in default units
     if (!(domainSet instanceof GriddedSet))
       throw new SetException("Domain set must be GriddedSet");
-    Unit[][]		rangeUnits = field.getRangeUnits();
-    Unit[]		rangeSetUnits = new Unit[rangeUnits.length];
-    for (int i = rangeUnits.length; --i >= 0; )
-      rangeSetUnits[i] = rangeUnits[i][0];
     return
       new EmpiricalCoordinateSystem(
 	(GriddedSet)domainSet,
 	GriddedSet.create(
 	  ((FunctionType)field.getType()).getFlatRange(),
-	  Unit.convertTuple(
-	    samples, field.getDefaultRangeUnits(), rangeSetUnits),
+	  samples,
 	  new int[] {samples[0].length},
 	  (CoordinateSystem)null,
-	  rangeSetUnits,
+	  (Unit[])null,
 	  (ErrorEstimate[])null));
   }
 
@@ -179,22 +172,9 @@ EmpiricalCoordinateSystem
   }
 
   /**
-   * Gets the units of the reference coordinate system.  In general, these
-   * units may differ from the default units of the RealTupleType returned by
-   * <code>getReference()</code>.  In this aspect, this class differs from its
-   * parent class.  Numeric values in the reference coordinate system shall be
-   * in units of <code>getReferenceUnits()</code> unless specified otherwise.
-   * @return			The units of the reference coordinate system.
-   */
-  public Unit[]
-  getReferenceUnits()
-  {
-    return getReferenceSet().getSetUnits();
-  }
-
-  /**
    * Converts reference coordinates to world coordinates.
-   * @param values              Numeric reference coordinates to be
+   * @param values              Numeric reference coordinates in default units
+   *				of the reference RealTupleType to be
    *                            converted to numeric world coordinates.
    *                            <code>values.length</code> shall
    *                            equal <code>getDimension()</code> and
@@ -217,7 +197,8 @@ EmpiricalCoordinateSystem
   /**
    * Convert world coordinates to reference coordinates.
    * @param values              Numeric world coordinates to be converted
-   *                            to numeric reference coordinates.
+   *                            to numeric reference coordinates in default
+   *                            units of the reference RealTupleType.
    *                            <code>values.length</code> shall
    *                            equal <code>getDimension()</code> and
    *                            <code>values[i].length</code> shall be the same
