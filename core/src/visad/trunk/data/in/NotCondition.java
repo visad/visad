@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: NotCondition.java,v 1.1 2001-02-23 17:04:50 steve Exp $
+$Id: NotCondition.java,v 1.2 2001-02-23 17:23:28 steve Exp $
 */
 
 package visad.data.in;
@@ -40,7 +40,7 @@ public class NotCondition
 
     /**
      * Constructs from a condition for a VisAD data object.  VisAD data objects
-     * that do not satisfy the given condision will satisfy this condition.
+     * that do not satisfy the given condition will satisfy this condition.
      *
      * @param condition		A condition for a VisAD data object.
      */
@@ -52,9 +52,9 @@ public class NotCondition
     /**
      * Returns an instance of this class.  Constructs from a condition for a
      * VisAD data object.  VisAD data objects that do not satisfy the given
-     * condision will satisfy this condition.
+     * condition will satisfy this condition.
      *
-     * @param condition		A condision for a VisAD data object.
+     * @param condition		A condition for a VisAD data object.
      * @return			An instance of this class.
      */
     public static NotCondition notCondition(Condition condition)
@@ -68,7 +68,7 @@ public class NotCondition
      * @param data		A VisAD data object.
      * @return			<code>true</code> if and only if the VisAD data
      *				object doesn't satisfy the condition used during
-     *				this instances construction.
+     *				this instance's construction.
      */
     public boolean isSatisfied(DataImpl data)
     {

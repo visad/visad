@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: Selector.java,v 1.5 2001-02-23 17:04:50 steve Exp $
+$Id: Selector.java,v 1.6 2001-02-23 17:23:28 steve Exp $
 */
 
 package visad.data.in;
@@ -42,13 +42,15 @@ public class Selector
     private Condition	condition;
 
     /**
-     * Constructs from a downstream data sink.
+     * Constructs from a downstream data sink.  The initial condition is set
+     * to the trivial condition {@link Condition#TRIVIAL_CONDITION}.
      *
      * @param downstream	The downstream data sink.
      */
     public Selector(DataSink downstream)
     {
 	super(downstream);
+	condition = Condition.TRIVIAL_CONDITION;
     }
 
     /**

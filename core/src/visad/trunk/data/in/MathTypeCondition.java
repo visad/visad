@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: MathTypeCondition.java,v 1.1 2001-02-23 17:04:50 steve Exp $
+$Id: MathTypeCondition.java,v 1.2 2001-02-23 17:23:28 steve Exp $
 */
 
 package visad.data.in;
@@ -39,8 +39,8 @@ public class MathTypeCondition
     private final MathType	mathType;
 
     /**
-     * Constructs from a VisAD math-type.  VisAD data objects of the given 
-     * math-type will satisfy this condition.
+     * Constructs from a VisAD math-type.  VisAD data objects whose math-type
+     * equals the given one will satisfy this condition.
      *
      * @param mathType		The VisAD math-type to match against VisAD data
      *				objects.
@@ -52,7 +52,8 @@ public class MathTypeCondition
 
     /**
      * Returns an instance of this class.  Constructs from a VisAD math-type.
-     * VisAD data objects of the given math-type will satisfy this condition.
+     * VisAD data objects whose math-type equals the given one will satisfy this
+     * condition.
      *
      * @param mathType		The VisAD math-type to match against VisAD data
      *				objects.
@@ -69,7 +70,7 @@ public class MathTypeCondition
      * @param data		A VisAD data object.
      * @return			<code>true</code> if and only if the math-type
      *				of the VisAD data object equals the math-type
-     *				used during this instances construction.
+     *				used during this instance's construction.
      */
     public boolean isSatisfied(DataImpl data)
     {

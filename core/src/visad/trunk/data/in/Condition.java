@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: Condition.java,v 1.1 2001-02-23 17:04:50 steve Exp $
+$Id: Condition.java,v 1.2 2001-02-23 17:23:28 steve Exp $
 */
 
 package visad.data.in;
@@ -28,6 +28,7 @@ import visad.*;
 
 /**
  * Provides support for applying arbitrary conditions to VisAD data objects.
+ * This class supports data filters like {@link Selector}.
  *
  * <P>Instances are immutable.</P>
  *
@@ -35,6 +36,19 @@ import visad.*;
  */
 public abstract class Condition
 {
+    /**
+     * The trivial condition.  The {@link #isSatisfied} method of this condition
+     * always returns <code>true</code>.
+     */
+    public static Condition	TRIVIAL_CONDITION = 
+	new Condition()
+	{
+	    public boolean isSatisfied(DataImpl data)
+	    {
+		return true;
+	    }
+	};
+
     /**
      * Indicates if a VisAD data object satisfies this condition.
      *

@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: AndCondition.java,v 1.1 2001-02-23 17:04:50 steve Exp $
+$Id: AndCondition.java,v 1.2 2001-02-23 17:23:27 steve Exp $
 */
 
 package visad.data.in;
@@ -27,7 +27,7 @@ package visad.data.in;
 import visad.*;
 
 /**
- * Provides support for alternative conditions for a VisAD data object.
+ * Provides support for complementary conditions for a VisAD data object.
  *
  * <P>Instances are immutable.</P>
  *
@@ -73,8 +73,8 @@ public class AndCondition
      *
      * @param data		A VisAD data object.
      * @return			<code>true</code> if and only if the VisAD data
-     *				object satisfies one of the conditions used
-     *				during this instances construction.
+     *				object satisfies both the conditions used
+     *				during this instance's construction.
      */
     public boolean isSatisfied(DataImpl data)
     {
