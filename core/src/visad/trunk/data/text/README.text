@@ -1,7 +1,21 @@
                           The VisAD TextAdapter
                              January, 2001
-                           update: May, 2003
 
+                         updated: December, 2004
+
+Contents.
+
+Introduction
+   I. Text File Formats
+  II. Line 1
+ IIa. 2-D arrays
+ IIb. 1,2, or 3-D points
+ III. Line2
+IIIa. for 2-D arrays
+IIIb. for 1,2,or 3-D points
+  IV. Examples
+
+Introduction
 
 The VisAD TextAdapter is designed to allow you to quickly read in data
 that are in the form of an ASCII text file.  We fully expect this
@@ -61,7 +75,8 @@ Line 1:  functional description of the data in "VisAD" lingo (aka the
          "MathType")
 
 Line 2:  column headers, which name each parameter and possibly give
-         them a physical unit, using delimiters defined above.  
+         them a physical unit, using the delimiter defined above  
+         (tab, semicolon, comma or blank).
 
 Line 3-n: the data values (with delimiters as define above; for
           filenames without recognized extensions, the delimiter 
@@ -187,11 +202,14 @@ to invert the sign of the values read from the file).
 (You might also note that "C" is not the VisAD unit name for degrees
 Celcius..."C" means Coulomb...)
 
-
-
+For some 'values' you might need to imbed a space.  You may do this
+by enclosing the entire 'value' in double quote marks, as in:  
+unit="international inch".  If you do this, however, you must be
+careful about ambiguities using "blank separated values" formats.
 
 As with Line 1, there are two cases to consider when defining the contents of
 this Line:
+
 
 IIIa. 2-D arrays
 
@@ -299,7 +317,7 @@ skip  value1  skip  skip  skip  skip  value2
 Example #4 - CSV file of two range components located at 2-d coordinates <==
 
 (x,y)->(value_a, value_b)
-y,x,p,value_a[unit=degC],p,p,p,value_b[unit=degF]
+y,x,p,value_a[unit="degC"],p,p,p,value_b[unit=degF]
 0 , 0 , 17 , 34 , 50 , 64 , 76 , 86 , 93 , 98 , 99 
 1 , 17 , 34 , 50 , 64 , 76 , 86 , 93 , 98 , 99 , 98 
 

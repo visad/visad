@@ -76,6 +76,7 @@ public class TextAdapter {
   private final String SEMICOLON = ";";
   private final String TAB = "\t";
   private final String BLANK = " ";
+  private boolean DOQUOTE = true;
 
 
   String[] hdrNames;
@@ -174,6 +175,8 @@ public class TextAdapter {
 
     ff = null;
     field = null;
+
+    if (debug) System.out.println("####   Text Adapter v2.x running");
 
     BufferedReader bis = new BufferedReader(new InputStreamReader(is));
 
@@ -302,14 +305,39 @@ public class TextAdapter {
           hdrUnitString = cl;  // backward compatible...
 
         } else {
-          for (int j=0; j<ncl; j++) {
+          while (stcl.hasMoreTokens()) {
             String s = stcl.nextToken().trim();
             StringTokenizer sts = new StringTokenizer(s,"=");
             if (sts.countTokens() != 2) {
               throw new VisADException("TextAdapter: Invalid clause in: "+s);
             }
             String tok = sts.nextToken().trim();
-            String val = sts.nextToken().trim();
+            String val = sts.nextToken();
+            
+            // check for quoted strings
+            if (val.startsWith("\"")) {
+
+              // see if ending quote also fetched
+              if (val.endsWith("\"")) {
+                String v2 = val.substring(1,val.length()-1);
+                val = v2;
+
+              } else {
+                // if not, then reparse stcl to suck up spaces...
+                try {
+                  String v2 = stcl.nextToken("\"");
+                  stcl.nextToken(" ");
+                  String v3 = val.substring(1)+v2;
+                  val = v3;
+
+                } catch (NoSuchElementException nse2) {
+                  val="";
+                }
+              }
+            }
+
+            if (debug) System.out.println("####   tok = "+tok+ " val = '"+val+"'");
+
             if (tok.toLowerCase().startsWith("unit")) {
               hdrUnitString = val;
 
@@ -367,9 +395,10 @@ public class TextAdapter {
              hdrColumns[1][i]);
 
       Unit u = null;
-      if (hdrUnitString != null) {
+      if (hdrUnitString != null && 
+                !hdrUnitString.trim().equalsIgnoreCase("null") ) {
         try {
-          u = visad.data.units.Parser.parse(hdrUnitString);
+          u = visad.data.units.Parser.parse(hdrUnitString.trim().replace(' ','_'));
         } catch (Exception ue) {
           System.out.println("Unit name problem:"+ue+" with: "+hdrUnitString);
           u = null;
@@ -399,6 +428,7 @@ public class TextAdapter {
         // get a compatible unit, if necessary
 
         if (u == null) u = rt.getDefaultUnit();
+        if(debug) System.out.println("####  retrieve units from RealType = "+u);
       }
 
       hdrUnits[i] = u;
@@ -715,15 +745,35 @@ public class TextAdapter {
             dValues[values_to_index[0][i]] = getVal(sa, i);
 
           } else if (values_to_index[1][i] != -1) {
+
             thisMT = rngType.getComponent(values_to_index[1][i]);
-            if (sa.startsWith("\"")) {
-              StringTokenizer stText = new StringTokenizer(sa, "\"");
-              if (stText.countTokens() == 0) {;
-                // allow for empty string
-                sThisText = "";
+            
+            if (thisMT instanceof TextType) {
+
+              // if Text, then check for quoted string
+              if (sa.startsWith("\"")) {
+                if (sa.endsWith("\"")) {  // if single token ends with quote
+                  String sa2 = sa.substring(1,sa.length()-1);
+                  sThisText = sa2;
+                } else {
+
+                  try {
+                    String sa2 = st.nextToken("\"");
+                    sThisText = sa.substring(1)+sa2;
+                  } catch (NoSuchElementException nse) {
+                    sThisText = "";
+                  }
+                }
+
+                if (debug) System.out.println("####   Text value='"+sThisText+"'");
+
+              // if not quoted, then take "as is"
               } else {
-                sThisText = stText.nextToken().trim();
+                sThisText = sa;
               }
+
+
+              // now make the VisAD Data 
               try {
                 tValues[values_to_index[1][i]] = 
                         new Text((TextType) thisMT, sThisText);
@@ -734,7 +784,9 @@ public class TextAdapter {
                 System.out.println(" Exception converting " + 
                                        thisMT + " to TextType " + e);
               }
+
               
+            // if not Text, then treat as numeric
             } else {
               rValues[values_to_index[1][i]] = getVal(sa,i);
               try {
