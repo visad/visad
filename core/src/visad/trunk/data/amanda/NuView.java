@@ -39,6 +39,7 @@ import java.rmi.RemoteException;
 import javax.swing.Box;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 
 import visad.AnimationControl;
 import visad.BaseColorControl;
@@ -124,6 +125,18 @@ public class NuView
     frame.setVisible(true);
   }
 
+  private static final Component buildHelp()
+  {
+    String text =
+      "To rotate, hold down the left mouse button and move the mouse in the right-hand display window\n\nTo zoom, move the mouse while holding down the left mouse button and Shift key\n\nTo pan, move the mouse while holding down the left mouse button and Control key";
+    JTextArea textArea = new JTextArea(text);
+    textArea.setLineWrap(true);
+    textArea.setWrapStyleWord(true);
+    textArea.setEditable(false);
+    return textArea;
+
+  }
+
   private static final JPanel buildMainDisplay(DisplayImpl dpy,
                                                AmandaFile file,
                                                HistogramWidget histoWidget)
@@ -195,6 +208,8 @@ public class NuView
     EventWidget eventWidget = new EventWidget(file, eventRef, trackRef,
                                               animCtl, trackMap, histoWidget);
 
+    Component helpText = buildHelp();
+
     AnimationWidget animWidget;
     try {
       animWidget = new AnimationWidget(animMap);
@@ -211,12 +226,22 @@ public class NuView
 
     panel.add(eventWidget, BorderLayout.NORTH);
     if (animWidget != null) {
-      panel.add(animWidget, BorderLayout.SOUTH);
+      panel.add(animWidget, BorderLayout.CENTER);
     }
+    panel.add(helpText, BorderLayout.SOUTH);
 
 //    panel.add(Box.createHorizontalGlue());
 
     return panel;
+  }
+
+  private static final Component buildText(String text)
+  {
+    JTextArea textArea = new JTextArea(text);
+    textArea.setLineWrap(true);
+    textArea.setWrapStyleWord(true);
+    textArea.setEditable(false);
+    return textArea;
   }
 
   public int checkKeyword(String mainName, int thisArg, String[] args)
