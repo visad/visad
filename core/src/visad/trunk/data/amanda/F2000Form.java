@@ -34,8 +34,9 @@ import java.io.InputStreamReader;
 
 import java.net.URL;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 import java.rmi.RemoteException;
 
@@ -60,29 +61,108 @@ import visad.data.Form;
 import visad.data.FormNode;
 import visad.data.FormFileInformer;
 
+
+abstract class BaseCache
+{
+  private static ArrayList allCache = new ArrayList();
+
+  BaseCache() { allCache.add(this); }
+  abstract void clearValue();
+
+  static void clearAll()
+  {
+    final int len = allCache.size();
+    for (int i = 0; i < len; i++) {
+      ((BaseCache )allCache.get(i)).clearValue();
+    }
+  }
+}
+
+class DoubleCache
+  extends BaseCache
+{
+  private double value;
+
+  DoubleCache() { this(Double.NaN); }
+  DoubleCache(double v) { value = v; }
+  void clearValue() { value = Double.NaN; }
+  double getValue() { return value; }
+  void setValue(double v) { value = v; }
+}
+
+class FloatCache
+  extends BaseCache
+{
+  private float value;
+
+  FloatCache() { this(Float.NaN); }
+  FloatCache(float v) { value = v; }
+  void clearValue() { value = Float.NaN; }
+  float getValue() { return value; }
+  void setValue(float v) { value = v; }
+}
+
+class IntCache
+  extends BaseCache
+{
+  private int value;
+
+  IntCache() { this(-1); }
+  IntCache(int v) { value = v; }
+  void clearValue() { value = -1; }
+  int getValue() { return value; }
+  void setValue(int v) { value = v; }
+}
+
+class Module
+{
+  private float x, y, z;
+  private int string, stringOrder;
+
+  Module(float x, float y, float z, int string, int stringOrder)
+  {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+    this.string = string;
+    this.stringOrder = stringOrder;
+  }
+
+  float getX() { return x; }
+  float getY() { return y; }
+  float getZ() { return z; }
+}
+
 /**
    F2000Form is the VisAD data format adapter for
    F2000 files for Amanda events.<P>
 */
-public class F2000Form extends Form implements FormFileInformer {
-
+public class F2000Form
+  extends Form
+  implements FormFileInformer
+{
   private static final float LENGTH_SCALE = 1000.0f;
   private static final float CUBE = 0.05f;
 
   private static int num = 0;
 
-  private static RealType x = null;
-  private static RealType y = null;
-  private static RealType z = null;
-  private static RealType time = null;
-  private static RealType track_index = null;
-  private static RealType energy = null;
-  private static RealType hit_index = null;
-  private static RealType amplitude = null;
-  private static RealType tot = null;
-  private static RealType let = null;
-  private static RealType event_index = null;
-  private static RealType module_index = null;
+  private static boolean typesCreated = false;
+  private static RealType xType, yType, zType;
+  private static RealType trackIndexType;
+  private static RealType hitIndexType;
+  private static RealType amplitudeType;
+  private static RealType totType;
+  private static RealType letType;
+  private static RealType eventIndexType;
+  private static RealType moduleIndexType;
+
+  private static RealTupleType xyz, hitType;
+
+  private static FunctionType trackFunctionType;
+  private static FunctionType tracksFunctionType;
+  private static FunctionType hitsFunctionType;
+  private static FunctionType eventsFunctionType;
+  private static FunctionType moduleFunctionType;
 
   private double xmin = Double.MAX_VALUE;
   private double xmax = Double.MIN_VALUE;
@@ -91,528 +171,724 @@ public class F2000Form extends Form implements FormFileInformer {
   private double zmin = Double.MAX_VALUE;
   private double zmax = Double.MIN_VALUE;
 
-  public F2000Form() {
-    super("F2000Form" + num++);
+  private HashMap lastCache = new HashMap();
+
+  public F2000Form()
+  {
+    super("F2000Form#" + num++);
   }
 
-  public boolean isThisType(String name) {
+  public boolean isThisType(String name)
+  {
     return name.endsWith(".r");
   }
 
-  public boolean isThisType(byte[] block) {
+  public boolean isThisType(byte[] block)
+  {
     return false;
   }
 
-  public String[] getDefaultSuffixes() {
+  public String[] getDefaultSuffixes()
+  {
     String[] suff = { "r" };
     return suff;
   }
 
   public synchronized void save(String id, Data data, boolean replace)
-         throws BadFormException, IOException, RemoteException, VisADException {
+    throws BadFormException, IOException, RemoteException, VisADException
+  {
     throw new BadFormException("F2000Form.save");
   }
 
   public synchronized void add(String id, Data data, boolean replace)
-         throws BadFormException {
+    throws BadFormException
+  {
     throw new BadFormException("F2000Form.add");
   }
 
   public synchronized DataImpl open(String id)
-         throws BadFormException, IOException, VisADException {
+    throws BadFormException, IOException, VisADException
+  {
     FileInputStream fileStream = new FileInputStream(id);
     return open(fileStream);
   }
 
   public synchronized DataImpl open(URL url)
-         throws BadFormException, VisADException, IOException {
+    throws BadFormException, VisADException, IOException
+  {
     InputStream inputStream = url.openStream();
     return open(inputStream);
   }
 
-  private synchronized DataImpl open(InputStream is)
-         throws BadFormException, VisADException, IOException {
+  private final void clearCachedValues()
+  {
+    BaseCache.clearAll();
+  }
 
-    // construct MathTypes
-    if (x == null) {
-      // right handed coordinate system
-      x = RealType.XAxis; // positive eastward (along 0 longitude?)
-      y = RealType.YAxis; // positive along -90 longitude (?)
-      z = RealType.ZAxis; // positive up
-      // zenith = 0.0f toward -z (this is the "latitude")
-      // azimuth = 0.0f toward +x (this is the "longitude")
-      time = RealType.Time;
-      track_index = RealType.getRealType("track_index");
-      energy = RealType.getRealType("energy"); // track energy
-      hit_index = RealType.getRealType("hit_index");
-      amplitude = RealType.getRealType("amplitude"); // hit amplitude
-      tot = RealType.getRealType("tot"); // hit time-over-threshold
-      let = RealType.getRealType("let"); // hit leading-edge-time
-      event_index = RealType.getRealType("event_index");
-      module_index = RealType.getRealType("module_index");
+  private String nextLine(BufferedReader rdr)
+    throws IOException
+  {
+    String line = rdr.readLine();
+    if (line != null) {
+      line = line.trim().toLowerCase();
     }
 
-    RealTupleType xyz = new RealTupleType(x, y, z);
-    RealTupleType track_range = new RealTupleType(time, energy);
-    FunctionType track_function_type = new FunctionType(xyz, track_range);
-    RealType[] hit_reals = {x, y, z, amplitude, let, tot};
-    RealTupleType hit_type = new RealTupleType(hit_reals);
-    FunctionType tracks_function_type =
-      new FunctionType(track_index, track_function_type);
-    FunctionType hits_function_type = 
-      new FunctionType(hit_index, hit_type);
+    return line;
+  }
 
-    TupleType events_function_range = new TupleType(new MathType[]
-      {tracks_function_type, hits_function_type});
-    FunctionType events_function_type =
-      new FunctionType(event_index, events_function_range);
+  private double getDouble(String tokenName, String token)
+    throws NumberFormatException
+  {
+    double value;
+    if (token == null) {
+      value = Double.NaN;
+    } else if (token.equals("inf")) {
+      value = Double.POSITIVE_INFINITY;
+    } else if (token.equals("-inf")) {
+      value = Double.NEGATIVE_INFINITY;
+    } else if (token.equals("?")) {
+      value = Double.NaN;
+    } else if (token.equals("nan")) {
+      value = Double.NaN;
+    } else if (token.equals("*")) {
+      value = ((DoubleCache )lastCache.get(tokenName)).getValue();
+    } else {
+      value = Double.parseDouble(token);
+    }
 
-    FunctionType module_function_type =
-      new FunctionType(module_index, xyz);
+    // save value in case next reference uses '*' to access it
+    DoubleCache cache = (DoubleCache )lastCache.get(tokenName);
+    if (cache == null) {
+      lastCache.put(tokenName, new DoubleCache(value));
+    } else {
+      cache.setValue(value);
+    }
 
-    // array for saving 'last' values for F2000 '*' notation
-    int NLAST = 100;
-    last_values = new double[NLAST];
-    for (int i=0; i<NLAST; i++) last_values[i] = Double.NaN;
+    return value;
+  }
 
-    InputStreamReader isr = new InputStreamReader(is);
-    BufferedReader br = new BufferedReader(isr);
+  private float getFloat(String tokenName, String token)
+    throws NumberFormatException
+  {
+    float value;
+    if (token == null) {
+      value = Float.NaN;
+    } else if (token.equals("inf")) {
+      value = Float.POSITIVE_INFINITY;
+    } else if (token.equals("-inf")) {
+      value = Float.NEGATIVE_INFINITY;
+    } else if (token.equals("?")) {
+      value = Float.NaN;
+    } else if (token.equals("nan")) {
+      value = Float.NaN;
+    } else if (token.equals("*")) {
+      value = ((FloatCache )lastCache.get(tokenName)).getValue();
+    } else {
+      value = Float.parseFloat(token);
+    }
 
-    String detector = null;
-    float longitude = Float.NaN;
-    float latitude = Float.NaN;
-    float depth = Float.NaN;
-    int nstrings = -1;
-    int nmodule = -1;
+    // save value in case next reference uses '*' to access it
+    FloatCache cache = (FloatCache )lastCache.get(tokenName);
+    if (cache == null) {
+      lastCache.put(tokenName, new FloatCache(value));
+    } else {
+      cache.setValue(value);
+    }
 
-    float[] om_x = null;
-    float[] om_y = null;
-    float[] om_z = null;
-    int[] om_string = null;
-    int[] om_ordinal_on_string = null;
+    return value;
+  }
 
-    Vector em_events = new Vector();
-    int event_number = 0;
+  private int getInt(String tokenName, String token)
+    throws NumberFormatException
+  {
+    int value;
+    if (token == null) {
+      value = -1;
+    } else if (token.equals("inf")) {
+      value = Integer.MAX_VALUE;
+    } else if (token.equals("-inf")) {
+      value = Integer.MIN_VALUE;
+    } else if (token.equals("?")) {
+      value = -1;
+    } else if (token.equals("nan")) {
+      value = -1;
+    } else if (token.equals("*")) {
+      value = ((IntCache )lastCache.get(tokenName)).getValue();
+    } else {
+      value = Integer.parseInt(token);
+    }
+
+    // save value in case next reference uses '*' to access it
+    IntCache cache = (IntCache )lastCache.get(tokenName);
+    if (cache == null) {
+      lastCache.put(tokenName, new IntCache(value));
+    } else {
+      cache.setValue(value);
+    }
+
+    return value;
+  }
+
+  private void createTypes()
+    throws VisADException
+  {
+    if (typesCreated) {
+      return;
+    }
+
+    // right handed coordinate system
+    xType = RealType.XAxis; // positive eastward (along 0 longitude?)
+    yType = RealType.YAxis; // positive along -90 longitude (?)
+    zType = RealType.ZAxis; // positive up
+    // zenith = 0.0f toward -z (this is the "latitude")
+    // azimuth = 0.0f toward +x (this is the "longitude")
+    RealType timeType = RealType.Time;
+    trackIndexType = RealType.getRealType("track_index");
+    RealType energyType = RealType.getRealType("energy"); // track energy
+    hitIndexType = RealType.getRealType("hit_index");
+    amplitudeType = RealType.getRealType("amplitude"); // hit amplitude
+    totType = RealType.getRealType("tot"); // hit time-over-threshold
+    letType = RealType.getRealType("let"); // hit leading-edge-time
+    eventIndexType = RealType.getRealType("event_index");
+    moduleIndexType = RealType.getRealType("module_index");
+
+    xyz = new RealTupleType(xType, yType, zType);
+    RealTupleType trackRange = new RealTupleType(timeType, energyType);
+    trackFunctionType = new FunctionType(xyz, trackRange);
+    RealType[] hitReals =
+      {xType, yType, zType, amplitudeType, letType, totType};
+    hitType = new RealTupleType(hitReals);
+    tracksFunctionType =
+      new FunctionType(trackIndexType, trackFunctionType);
+    hitsFunctionType = 
+      new FunctionType(hitIndexType, hitType);
+
+    TupleType eventsFunctionRange = new TupleType(new MathType[]
+      {tracksFunctionType, hitsFunctionType});
+    eventsFunctionType =
+      new FunctionType(eventIndexType, eventsFunctionRange);
+
+    moduleFunctionType =
+      new FunctionType(moduleIndexType, xyz);
+
+    typesCreated = true;
+  }
+
+  private int readArrayLine(String line, StringTokenizer tok)
+    throws BadFormException
+  {
+    String detector = tok.nextToken();
+    int nstrings, nmodules;
+    try {
+      float longitude = getFloat("raLon", tok.nextToken());
+      float latitude = getFloat("raLat", tok.nextToken());
+      float depth = getFloat("raDepth", tok.nextToken());
+      nstrings = getInt("raNStr", tok.nextToken());
+      nmodules = getInt("raNMod", tok.nextToken());
+    } catch(NumberFormatException e) {
+      throw new BadFormException("Bad ARRAY line \"" + line + "\": " +
+                                 e.getMessage());
+    }
+
+    if (nstrings < 1 || nmodules < 1) {
+      throw new BadFormException("Bad ARRAY line \"" + line + "\": " +
+                                 (nstrings < 1 ? "nstrings < 1" :
+                                  "nmodule < 1"));
+    }
+
+    return nmodules;
+  }
+
+  private final Module readOMLine(String line, StringTokenizer tok, Module[] om)
+    throws BadFormException
+  {
+    String numStr = tok.nextToken();
+
+    int number;
+    try {
+      number = getInt("omNum", numStr) - 1;
+    } catch(NumberFormatException e) {
+      throw new BadFormException("unparseable module number \"" + numStr +
+                                 "\" in \"" + line + "\"");
+    }
+
+    if (number < 0 || number >= om.length) {
+      throw new BadFormException("bad module number \"" + numStr +
+                                 "\" in \"" + line + "\"");
+    } else if (om[number] != null) {
+      System.err.println("Warning: Ignoring duplicate module #" + number +
+                         " in \"" + line + "\"");
+      return null;
+    }
+
+    int stringOrder, string;
+    float x, y, z;
+    try {
+      stringOrder = getInt("modOrd", tok.nextToken());
+      string = getInt("modStr", tok.nextToken());
+      x = getFloat("modX", tok.nextToken());
+      y = getFloat("modY", tok.nextToken());
+      z = getFloat("modZ", tok.nextToken());
+    } catch(NumberFormatException e) {
+      throw new BadFormException("Bad OM line \"" + line + "\": " +
+                                 e.getMessage());
+    }
+
+    om[number] = new Module(x, y, z, string, stringOrder);
+
+    return om[number];
+  }
+
+  private final FlatField makeField(float xstart, float ystart, float zstart,
+                                    float zenith, float azimuth, float length,
+                                    float energy, float time, float maxLength)
+    throws VisADException
+  {
+    if (length > maxLength) {
+      length = maxLength;
+    } else if (length != length) {
+      length = -1.0f;
+    }
+    if (energy != energy) {
+      energy = 1.0f;
+    }
+
+    float zs = (float) Math.sin(zenith * Data.DEGREES_TO_RADIANS);
+    float zc = (float) Math.cos(zenith * Data.DEGREES_TO_RADIANS);
+    float as = (float) Math.sin(azimuth * Data.DEGREES_TO_RADIANS);
+    float ac = (float) Math.cos(azimuth * Data.DEGREES_TO_RADIANS);
+    float zinc = length * zc;
+    float xinc = length * zs * ac;
+    float yinc = length * zs * as;
+
+    float[][] locs = {{xstart - LENGTH_SCALE * xinc,
+                       xstart + LENGTH_SCALE * xinc},
+                      {ystart - LENGTH_SCALE * yinc,
+                       ystart + LENGTH_SCALE * yinc},
+                      {zstart - LENGTH_SCALE * zinc,
+                       zstart + LENGTH_SCALE * zinc}};
+    // construct Field for fit
+    Gridded3DSet set = new Gridded3DSet(xyz, locs, 2);
+    FlatField field =
+      new FlatField(trackFunctionType, set);
+    float[][] values = {{time, time}, {energy, energy}};
 
     try {
-
-      // read V record
-      String[] tokens = getNext(br, false);
-      if (!tokens[0].equals("v")) {
-        throw new BadFormException("first line must start with v\n" + line);
-      }
-
-      // read ARRAY record
-      while (true) {
-        tokens = getNext(br, false);
-        if (tokens[0].equals("array")) {
-          try {
-            detector = tokens[1];
-            longitude = getFloat(tokens[2], 2);
-            latitude = getFloat(tokens[3], 3);
-            depth = getFloat(tokens[4], 4);
-            nstrings = getInt(tokens[5], 5);
-            nmodule = getInt(tokens[6], 6);
-            if (nstrings < 1 || nmodule < 1) {
-              throw new BadFormException("bad nstrings or nmodule\n" + line);
-            }
-// System.out.println("array " + detector + " " + longitude + " " + latitude + " " +
-//                    depth + " " + nstrings + " " + nmodule + "\n" + line);
-            om_x = new float[nmodule];
-            om_y = new float[nmodule];
-            om_z = new float[nmodule];
-            om_string = new int[nmodule];
-            om_ordinal_on_string = new int[nmodule];
-            // initialize modules
-            for (int i=0; i<nmodule; i++) {
-              om_string[i] = -1;
-              om_ordinal_on_string[i] = -1;
-              om_x[i] = Float.NaN;
-              om_y[i] = Float.NaN;
-              om_z[i] = Float.NaN;
-            }
-          }
-          catch(NumberFormatException e) {
-            throw new BadFormException("bad number format with array\n" + line);
-          }
-          break;
-        }
-      }
-
-      // read OM records
-      while (true) {
-        tokens = getNext(br, true); // mark to allow backspace
-        // first ES or EM marks end of OMs
-        if (tokens[0].equals("es") || tokens[0].equals("em")) {
-          br.reset(); // backspace
-          break;
-        }
-        if (tokens[0].equals("om")) {
-          int number = 0;
-          try {
-            // convert 1-based to 0-based
-            number = getInt(tokens[1], 11) - 1;
-            if (number < 0 || number >= om_x.length) {
-              throw new BadFormException("bad number value\n" + line);
-            }
-            om_ordinal_on_string[number] = getInt(tokens[2], 12);
-            om_string[number] = getInt(tokens[3], 13);
-            om_x[number] = getFloat(tokens[4], 14);
-            om_y[number] = getFloat(tokens[5], 15);
-            om_z[number] = getFloat(tokens[6], 16);
-          }
-          catch(NumberFormatException e) {
-            throw new BadFormException("bad number format with om\n" + line);
-          }
-// System.out.println("om " + number + " " + om_ordinal_on_string[number] + " " +
-//                    om_string[number] + " " + om_x[number] + " " +
-//                    om_y[number] + " " + om_z[number] + "\n" + line);
-        }
-      }
-/*
-int nxmiss = 0;
-int nymiss = 0;
-int nzmiss = 0;
-for (int i=0; i<nmodule; i++) {
-  if (om_x[i] != om_x[i]) nxmiss++;
-  if (om_y[i] != om_y[i]) nymiss++;
-  if (om_z[i] != om_z[i]) nzmiss++;
-}
-System.out.println("nmodule = " + nmodule + " " + nxmiss + " " +
-                   nymiss + " " + nzmiss);
-*/
-      // compute spatial extents of modules in x, y and z
-      for (int i=0; i<nmodule; i++) {
-        if (om_x[i] == om_x[i]) {
-          if (om_x[i] < xmin) xmin = om_x[i];
-          if (om_x[i] > xmax) xmax = om_x[i];
-        }
-        if (om_y[i] == om_y[i]) {
-          if (om_y[i] < ymin) ymin = om_y[i];
-          if (om_y[i] > ymax) ymax = om_y[i];
-        }
-        if (om_z[i] == om_z[i]) {
-          if (om_z[i] < zmin) zmin = om_z[i];
-          if (om_z[i] > zmax) zmax = om_z[i];
-        }
-      }
-
-      // read ES and EM events
-      while (true) {
-        tokens = getNext(br, false);
-        if (tokens[0].equals("es")) {
-          // ignore ES events for now
-// System.out.println("es IGNORE \n" + line);
-        }
-        else if (tokens[0].equals("em")) {
-// System.out.println(line);
-          // assemble EM event
-          try {
-            int enr = getInt(tokens[1], 21);
-            int year = getInt(tokens[2], 22);
-            int day = getInt(tokens[3], 23);
-            double em_time = getDouble(tokens[4], 24);
-            // time shift in nsec of all times in event
-            double em_time_shift = getDouble(tokens[5], 25) * 0.000000001;
-          }
-          catch(NumberFormatException e) {
-            throw new BadFormException("bad number format with em\n" + line);
-          }
-
-          // initialize tracks and hits to empty
-          Vector tracks = new Vector();
-          Vector hits = new Vector();
-
-          // read TR and HT records
-          while (true) {
-            tokens = getNext(br, false);
-
-            if (tokens[0].equals("tr")) {
-// TR nr parent type xstart ystart zstart zenith azimuth length energy time
-              try {
-                float xstart = getFloat(tokens[4], 34);
-                float ystart = getFloat(tokens[5], 35);
-                float zstart = getFloat(tokens[6], 36);
-                float zenith = getFloat(tokens[7], 37); // 0.0f toward -z
-                float azimuth = getFloat(tokens[8], 38); // 0.0f toward +x
-                float length = getFloat(tokens[9], 39);
-                float tr_energy = getFloat(tokens[10], 40);
-                float tr_time = getFloat(tokens[11], 41);
-
-                if (length > 1000.0f) length = 1000.0f;
-                if (length != length) length = -1.0f;
-                if (tr_energy != tr_energy) tr_energy = 1.0f;
-
-                float zs = (float) Math.sin(zenith * Data.DEGREES_TO_RADIANS);
-                float zc = (float) Math.cos(zenith * Data.DEGREES_TO_RADIANS);
-                float as = (float) Math.sin(azimuth * Data.DEGREES_TO_RADIANS);
-                float ac = (float) Math.cos(azimuth * Data.DEGREES_TO_RADIANS);
-                // float zinc = -length * zc; ??
-                float zinc = length * zc;
-                float xinc = length * zs * ac;
-                float yinc = length * zs * as;
-
-/*
-                float[][] locs = {{xstart, xstart + xinc},
-                                  {ystart, ystart + yinc},
-                                  {zstart, zstart + zinc}};
-*/
-                float[][] locs = {{xstart - LENGTH_SCALE * xinc,
-                                   xstart + LENGTH_SCALE * xinc},
-                                  {ystart - LENGTH_SCALE * yinc,
-                                   ystart + LENGTH_SCALE * yinc},
-                                  {zstart - LENGTH_SCALE * zinc,
-                                   zstart + LENGTH_SCALE * zinc}};
-// System.out.println("tr (" + xstart + ", " + ystart + ", " +
-//                    zstart + "), (" + xinc + ", " +
-//                    yinc + ", " + zinc + ")\n" + line);
-                // construct Field for track
-                Gridded3DSet track_set = new Gridded3DSet(xyz, locs, 2);
-                FlatField track_field =
-                  new FlatField(track_function_type, track_set);
-                float[][] values = {{tr_time, tr_time}, {tr_energy, tr_energy}};
-                track_field.setSamples(values, false);
-                tracks.addElement(track_field);
-              }
-              catch(NumberFormatException e) {
-                throw new BadFormException("bad number format with tr\n" + line);
-              }
-            }
-            else if (tokens[0].equals("fit")) {
-// FIT id type xstart ystart zstart zenith azimuth time length energy
-              try {
-                float xstart = getFloat(tokens[3], 54);
-                float ystart = getFloat(tokens[4], 55);
-                float zstart = getFloat(tokens[5], 56);
-                float zenith = getFloat(tokens[6], 57); // 0.0f toward -z
-                float azimuth = getFloat(tokens[7], 58); // 0.0f toward +x
-                float length = getFloat(tokens[9], 59);
-                float tr_energy = getFloat(tokens[10], 60);
-                float tr_time = getFloat(tokens[8], 61);
-
-                // if (length > 1000.0f) length = 1000.0f;
-                if (length > 10000.0f) length = 10000.0f;
-                if (length != length) length = -1.0f;
-                if (tr_energy != tr_energy) tr_energy = 1.0f;
-
-                float zs = (float) Math.sin(zenith * Data.DEGREES_TO_RADIANS);
-                float zc = (float) Math.cos(zenith * Data.DEGREES_TO_RADIANS);
-                float as = (float) Math.sin(azimuth * Data.DEGREES_TO_RADIANS);
-                float ac = (float) Math.cos(azimuth * Data.DEGREES_TO_RADIANS);
-                // float zinc = -length * zc; ??
-                float zinc = length * zc;
-                float xinc = length * zs * ac;
-                float yinc = length * zs * as;
-
-/*
-                float[][] locs = {{xstart, xstart + xinc},
-                                  {ystart, ystart + yinc},
-                                  {zstart, zstart + zinc}};
-*/
-                float[][] locs = {{xstart - LENGTH_SCALE * xinc,
-                                   xstart + LENGTH_SCALE * xinc},
-                                  {ystart - LENGTH_SCALE * yinc,
-                                   ystart + LENGTH_SCALE * yinc},
-                                  {zstart - LENGTH_SCALE * zinc,
-                                   zstart + LENGTH_SCALE * zinc}};
-// System.out.println("fit length = " + length + " azimuth = " + azimuth +
-//                    " zenith = " + zenith);
-// System.out.println("fit (" + xstart + ", " + ystart + ", " +
-//                    zstart + "), (" + xinc + ", " +
-//                    yinc + ", " + zinc + ") " + length + " " +
-//                    event_number + "\n" + line);
-                // construct Field for fit
-                Gridded3DSet track_set = new Gridded3DSet(xyz, locs, 2);
-                FlatField track_field =
-                  new FlatField(track_function_type, track_set);
-                float[][] values = {{tr_time, tr_time}, {tr_energy, tr_energy}};
-                track_field.setSamples(values, false);
-                tracks.addElement(track_field);
-              }
-              catch(NumberFormatException e) {
-                throw new BadFormException("bad number format with fit\n" + line);
-              }
-            }
-            else if (tokens[0].equals("ht")) {
-              try {
-                // convert 1-based to 0-based
-                int number = getInt(tokens[1], 71) - 1;
-                float ht_amplitude = getFloat(tokens[2], 72);
-                float ht_let = getFloat(tokens[5], 75);
-                float ht_tot = getFloat(tokens[6], 76);
-                double[] values = {om_x[number], om_y[number], om_z[number],
-                                   ht_amplitude, ht_let, ht_tot};
-                // construct Tuple for hit
-                RealTuple hit_tuple = new RealTuple(hit_type, values);
-                hits.addElement(hit_tuple);
-              }
-              catch(NumberFormatException e) {
-                throw new BadFormException("bad number format with ht\n" + line);
-              }
-            }
-            else if (tokens[0].equals("ee")) {
-// System.out.println("ee");
-              // finish EM event
-              int ntracks = tracks.size();
-              int nhits = hits.size();
-              if (ntracks == 0 && nhits == 0) break;
-              // construct parent Field for all tracks
-              Integer1DSet tracks_set = (ntracks == 0) ?
-                new Integer1DSet(track_index, 1) :
-                new Integer1DSet(track_index, ntracks);
-              FieldImpl tracks_field =
-                new FieldImpl(tracks_function_type, tracks_set);
-              if (ntracks > 0) {
-                FlatField[] track_fields = new FlatField[ntracks];
-                for (int i=0; i<ntracks; i++) {
-                  track_fields[i] = (FlatField) tracks.elementAt(i);
-                }
-                tracks_field.setSamples(track_fields, false);
-              }
-// System.out.println("tracks_field " + event_number + "\n" +
-//                    tracks_field);
-              // construct parent Field for all hits
-              Integer1DSet hits_set = (nhits == 0) ?
-                new Integer1DSet(hit_index, 1) :
-                new Integer1DSet(hit_index, nhits);
-              FlatField hits_field =
-                new FlatField(hits_function_type, hits_set);
-              if (nhits > 0) {
-                RealTuple[] hit_tuples = new RealTuple[nhits];
-                for (int i=0; i<nhits; i++) {
-                  hit_tuples[i] = (RealTuple) hits.elementAt(i);
-                }
-                hits_field.setSamples(hit_tuples, true);
-              }
-
-              // construct Tuple of all tracks and hits
-              Tuple em_tuple =
-                new Tuple(new Data[] {tracks_field, hits_field});
-              em_events.addElement(em_tuple);
-              event_number++;
-              break;
-            }
-          } // end while (true) { // read TR and HT records
-        } // end else if (tokens[0].equals("em"))
-      } // end while (true) { // read ES and EM events
-
+      field.setSamples(values, false);
+    } catch (RemoteException re) {
+      re.printStackTrace();
+      return null;
     }
-    catch (IOException e) {
-System.out.println("IOException " + e.getMessage());
-      // end of file - build Data object
-      // Field of Tuples of track and hit Fields
-      int nevents = em_events.size();
-      Integer1DSet events_set = (nevents == 0) ? 
-        new Integer1DSet(event_index, 1) :
-        new Integer1DSet(event_index, nevents); 
-      FieldImpl events_field =
-        new FieldImpl(events_function_type, events_set);
-      if (nevents > 0) {
-        Tuple[] event_tuples = new Tuple[nevents];
-        for (int i=0; i<nevents; i++) {
-          event_tuples[i] = (Tuple) em_events.elementAt(i);
-        }
+
+    return field;
+  }
+
+  private final FlatField readTrack(String line, StringTokenizer tok)
+    throws VisADException
+  {
+    // TR nr parent type xstart ystart zstart zenith azimuth length energy time
+    // skip first three fields
+    for (int i = 0; i < 3; i++) {
+      tok.nextToken();
+    }
+
+    float xstart, ystart, zstart, zenith, azimuth, length, energy, time;
+    try {
+      xstart = getFloat("trXStart", tok.nextToken());
+      ystart = getFloat("trYStart", tok.nextToken());
+      zstart = getFloat("trZStart", tok.nextToken());
+      zenith = getFloat("trZenith", tok.nextToken()); // 0.0f toward -z
+      azimuth = getFloat("trAzimuth", tok.nextToken()); // 0.0f toward +x
+      length = getFloat("trLength", tok.nextToken());
+      energy = getFloat("trEnergy", tok.nextToken());
+      time = getFloat("trTime", tok.nextToken());
+    } catch(NumberFormatException e) {
+      throw new BadFormException("bad TRACK line \"" + line + "\": " +
+                                 e.getMessage());
+    }
+
+    return makeField(xstart, ystart, zstart, zenith, azimuth, length,
+                     energy, time, 1000.f);
+  }
+
+  private final FlatField readFit(String line, StringTokenizer tok)
+    throws VisADException
+  {
+    // FIT id type xstart ystart zstart zenith azimuth time length energy
+    float xstart, ystart, zstart, zenith, azimuth, length, energy, time;
+
+    // skip ID field
+    tok.nextToken();
+    tok.nextToken();
+
+    try {
+      xstart = getFloat("fitXStart", tok.nextToken());
+      ystart = getFloat("fitYStart", tok.nextToken());
+      zstart = getFloat("fitZStart", tok.nextToken());
+      zenith = getFloat("fitZenith", tok.nextToken()); // 0.0f toward -z
+      azimuth = getFloat("fitAzimuth", tok.nextToken()); // 0.0f toward +x
+      time = getFloat("fitTime", tok.nextToken());
+      length = getFloat("fitLength", tok.nextToken());
+      energy = getFloat("fitEnergy", tok.nextToken());
+    } catch(NumberFormatException e) {
+      throw new BadFormException("Bad FIT line \"" + line + "\": " +
+                                 e.getMessage());
+    }
+
+    return makeField(xstart, ystart, zstart, zenith, azimuth, length,
+                     energy, time, 10000.f);
+  }
+
+  private int getChannel(String tokenName, String token)
+    throws NumberFormatException
+  {
+    final int dotIdx = token.indexOf('.');
+    if (dotIdx >= 0) {
+      token = "-" + token.substring(dotIdx + 1);
+    }
+
+    return getInt(tokenName, token);
+  }
+
+  private final RealTuple readHit(String line, StringTokenizer tok,
+                                  Module[] om)
+    throws VisADException
+  {
+    String chanStr = tok.nextToken();
+    int number = getChannel("htNum", chanStr);
+    if (number < 0) {
+      System.err.println("Warning: Ignoring HIT for secondary channel \"" +
+                         chanStr + "\"");
+      return null;
+    }
+
+    // convert module index (1-based) to array index (0-based)
+    number--;
+
+    float amplitude, let, tot;
+    try {
+      amplitude = getFloat("htAmp", tok.nextToken());
+
+      // skip next two tokens
+      tok.nextToken();
+      tok.nextToken();
+
+      let = getFloat("htLet", tok.nextToken());
+      tot = getFloat("htTot", tok.nextToken());
+    } catch(NumberFormatException e) {
+      throw new BadFormException("Bad HIT line \"" + line + "\": " +
+                                 e.getMessage());
+    }
+
+    RealTuple rt;
+    if (om[number] == null) {
+      System.err.println("Warning: Module not found for HIT line \"" +
+                         line + "\"");
+      rt = null;
+    } else {
+      double[] values = {om[number].getX(), om[number].getY(),
+                         om[number].getZ(),
+                         amplitude, let, tot};
+
+      // construct Tuple for hit
+      try {
+        rt = new RealTuple(hitType, values);
+      } catch (RemoteException re) {
+        re.printStackTrace();
+        rt = null;
+      }
+    }
+
+    return rt;
+  }
+
+  private final void startEvent(String line, StringTokenizer tok)
+    throws BadFormException
+  {
+    // assemble EM event
+/* XXX don't do anything, since it's all thrown away
+    try {
+      int number = getInt("emNum", tok.nextToken());
+      int year = getInt("emYear", tok.nextToken());
+      int day = getInt("emDay", tok.nextToken());
+      double em_time = getDouble("emTime", tok.nextToken());
+      // time shift in nsec of all times in event
+      double em_time_shift = getDouble("emTimeShift", tok.nextToken()) * 0.000000001;
+    } catch(NumberFormatException e) {
+      throw new BadFormException("Bad EM line \"" + line + "\": " +
+                                 e.getMessage());
+    }
+*/
+  }
+
+  private final Tuple finishEvent(ArrayList emTracks, ArrayList emHits)
+    throws VisADException
+  {
+    // finish EM event
+    final int ntracks = emTracks.size();
+    final int nhits = emHits.size();
+
+    // if no tracks or hits were found, we're done
+    if (ntracks == 0 && nhits == 0) {
+      return null;
+    }
+
+    // construct parent Field for all tracks
+    Integer1DSet tracksSet =
+      new Integer1DSet(trackIndexType, (ntracks == 0 ? 1 : ntracks));
+    FieldImpl tracks_field =
+      new FieldImpl(tracksFunctionType, tracksSet);
+    if (ntracks > 0) {
+      FlatField[] track_fields =
+        (FlatField[] )emTracks.toArray(new FlatField[ntracks]);
+      try {
+        tracks_field.setSamples(track_fields, false);
+      } catch (RemoteException re) {
+        re.printStackTrace();
+      }
+
+      emTracks.clear();
+    }
+
+    // construct parent Field for all hits
+    Integer1DSet hitsSet =
+      new Integer1DSet(hitIndexType, (nhits == 0 ? 1 : nhits));
+    FlatField hits_field =
+      new FlatField(hitsFunctionType, hitsSet);
+    if (nhits > 0) {
+      RealTuple[] hit_tuples =
+        (RealTuple[] )emHits.toArray(new RealTuple[nhits]);
+      try {
+        hits_field.setSamples(hit_tuples, true);
+      } catch (RemoteException re) {
+        re.printStackTrace();
+      }
+
+      emHits.clear();
+    }
+
+    // construct Tuple of all tracks and hits
+    Tuple t;
+    try {
+      t = new Tuple(new Data[] {tracks_field, hits_field});
+    } catch (RemoteException re) {
+      re.printStackTrace();
+      t = null;
+    }
+
+    return t;
+  }
+
+  private final Tuple buildData(ArrayList emEvents, Module[] om)
+    throws VisADException
+  {
+    // Field of Tuples of track and hit Fields
+    final int nevents = emEvents.size();
+    Integer1DSet eventsSet =
+      new Integer1DSet(eventIndexType, (nevents == 0 ? 1 : nevents));
+    FieldImpl events_field =
+      new FieldImpl(eventsFunctionType, eventsSet);
+    if (nevents > 0) {
+      Tuple[] event_tuples = (Tuple[] )emEvents.toArray(new Tuple[nevents]);
+      try {
         events_field.setSamples(event_tuples, false);
+      } catch (RemoteException re) {
+        re.printStackTrace();
       }
-      // return events_field;
+    }
+    // return events_field;
 
-      Integer1DSet module_set = new Integer1DSet(module_index, nmodule);
-      FlatField module_field =
-        new FlatField(module_function_type, module_set);
-      float[][] msamples = new float[3][nmodule];
-      for (int i=0; i<nmodule; i++) {
-        msamples[0][i] = om_x[i];
-        msamples[1][i] = om_y[i];
-        msamples[2][i] = om_z[i];
+    final int nmodules = om.length;
+    Integer1DSet moduleSet = new Integer1DSet(moduleIndexType, nmodules);
+    FlatField module_field =
+      new FlatField(moduleFunctionType, moduleSet);
+    float[][] msamples = new float[3][nmodules];
+    for (int i = 0; i < nmodules; i++) {
+      if (om[i] == null) {
+        msamples[0][i] = msamples[1][i] = msamples[2][i] = Float.NaN;
+      } else {
+        msamples[0][i] = om[i].getX();
+        msamples[1][i] = om[i].getY();
+        msamples[2][i] = om[i].getZ();
       }
+    }
+    try {
       module_field.setSamples(msamples);
-
-      return new Tuple(new Data[] {events_field, module_field});
+    } catch (RemoteException re) {
+      re.printStackTrace();
+      return null;
     }
+
+    Tuple t;
+    try {
+      t = new Tuple(new Data[] {events_field, module_field});
+    } catch (RemoteException re) {
+      re.printStackTrace();
+      t = null;
+    }
+
+    return t;
   }
 
-  private double[] last_values = null;
+  private synchronized DataImpl open(InputStream is)
+    throws BadFormException, VisADException, IOException
+  {
+    BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
-  // get a float from file stream, with F2000 conventions
-  private float getFloat(String token, int index)
-          throws NumberFormatException {
-    float value = Float.NaN;
-    if (token != null) {
-      if (token.equals("inf")) value = Float.POSITIVE_INFINITY;
-      else if (token.equals("-inf")) value = Float.NEGATIVE_INFINITY;
-      else if (token.equals("?")) value = Float.NaN;
-      else if (token.equals("nan")) value = Float.NaN;
-      else if (token.equals("*")) value = (float) last_values[index];
-      else value = Float.parseFloat(token);
+    // read V record
+    String firstLine;
+    try {
+      firstLine = nextLine(br);
+    } catch (IOException ioe) {
+      throw new BadFormException("Unreadable file");
     }
-    last_values[index] = value;
-    return value;
-  }
 
-  // get a double from file stream, with F2000 conventions
-  private double getDouble(String token, int index)
-          throws NumberFormatException {
-    double value = Float.NaN;
-    if (token != null) {
-      if (token.equals("inf")) value = Double.POSITIVE_INFINITY;
-      else if (token.equals("-inf")) value = Double.NEGATIVE_INFINITY;
-      else if (token.equals("?")) value = Double.NaN;
-      else if (token.equals("nan")) value = Double.NaN;
-      else if (token.equals("*")) value = last_values[index];
-      else value = Double.parseDouble(token);
+    if (firstLine == null || firstLine.length() <= 1 ||
+        firstLine.charAt(0) != 'v' ||
+        !Character.isSpaceChar(firstLine.charAt(1)))
+    {
+      throw new BadFormException("Bad first line \"" + firstLine + "\"");
     }
-    last_values[index] = value;
-    return value;
-  }
 
-  // get an int from file stream, with F2000 conventions
-  private int getInt(String token, int index)
-          throws NumberFormatException {
-    int value = -1;
-    if (token != null) {
-      if (token.equals("inf")) value = Integer.MAX_VALUE;
-      else if (token.equals("-inf")) value = Integer.MIN_VALUE;
-      else if (token.equals("?")) value = -1;
-      else if (token.equals("nan")) value = -1;
-      else if (token.equals("*")) value = (int) last_values[index];
-      else value = Integer.parseInt(token);
-    }
-    last_values[index] = value;
-    return value;
-  }
+    createTypes();
 
-  private String line = null;
+    BaseCache.clearAll();
 
-  // get next non-null line from file stream, parsed into tokens
-  // throw IOException for end of file
-  private String[] getNext(BufferedReader br, boolean mark)
-          throws IOException {
+    Module[] om = null;
+
+    ArrayList emEvents = new ArrayList();
+
+    // initialize tracks and hits to empty
+    ArrayList emTracks = new ArrayList();
+    ArrayList emHits = new ArrayList();
+
     while (true) {
-      if (mark) {
-        // mark br position in order to be able to backspace
-        br.mark(1024);
+      String line;
+      try {
+        line = nextLine(br);
+      } catch (IOException ioe) {
+        throw new BadFormException("Unreadable file");
       }
-      line = br.readLine();
-      if (line == null) throw new IOException("EOF");
-      if (line.length() == 0) continue;
-      line = line.toLowerCase();
-      char fchar = line.charAt(0);
-      if (fchar < 'a' || 'z' < fchar) continue; // skip comments
-      StringTokenizer st = new StringTokenizer(line);
-      int n = st.countTokens();
-      if (n == 0) continue; // skip lines with zero tokens
-      String[] tokens = new String[n];
-      int i = 0;
-      while (st.hasMoreTokens()) {
-        tokens[i] = st.nextToken();
-        i++;
+
+      // end loop if we've reached the end of the file
+      if (line == null) {
+        break;
       }
-      if (tokens[0].equals("end")) throw new IOException("EOF");
-      return tokens;
+
+      // ignore blank lines
+      if (line.length() == 0) {
+        continue;
+      }
+
+      StringTokenizer tok = new StringTokenizer(line);
+
+      String keyword = tok.nextToken();
+
+      if (keyword.equals("array")) {
+        if (om != null) {
+          System.err.println("Warning: Multiple ARRAY lines found," +
+                             " some EM data will be lost");
+        }
+
+        int nmodules = readArrayLine(line, tok);
+
+        om = new Module[nmodules];
+
+        // initialize modules
+        for (int i = 0; i < nmodules; i++) {
+          om[i] = null;
+        }
+
+        continue;
+      }
+
+      if (keyword.equals("om")) {
+        Module module = readOMLine(line, tok, om);
+        if (module == null) {
+          continue;
+        }
+
+        final float x = module.getX();
+        if (x == x) {
+          if (x < xmin) xmin = x;
+          if (x > xmax) xmax = x;
+        }
+        final float y = module.getY();
+        if (y == y) {
+          if (y < ymin) ymin = y;
+          if (y > ymax) ymax = y;
+        }
+        final float z = module.getZ();
+        if (z == z) {
+          if (z < zmin) zmin = z;
+          if (z > zmax) zmax = x;
+        }
+
+        continue;
+      }
+
+      if (keyword.equals("es")) {
+        // ignore ES events for now
+        continue;
+      }
+
+      if (keyword.equals("em")) {
+        if (emTracks.size() != 0 || emHits.size() != 0) {
+          System.err.println("Warning: EM data discarded!");
+          emTracks.clear();
+          emHits.clear();
+        }
+
+        startEvent(line, tok);
+
+        continue;
+      }
+
+      // read TR and HT records
+      if (keyword.equals("tr")) {
+        FlatField track = readTrack(line, tok);
+        if (track != null) {
+          emTracks.add(track);
+        }
+
+        continue;
+      }
+
+      if (keyword.equals("fit")) {
+        FlatField fit = readFit(line, tok);
+        if (fit != null) {
+          emTracks.add(fit);
+        }
+
+        continue;
+      }
+
+      if (keyword.equals("ht")) {
+        RealTuple hit = readHit(line, tok, om);
+        if (hit != null) {
+          emHits.add(hit);
+        }
+
+        continue;
+      }
+
+      if (keyword.equals("ee")) {
+        Tuple event = finishEvent(emTracks, emHits);
+        if (event != null) {
+          emEvents.add(event);
+        }
+
+        continue;
+      }
     }
+
+    try { br.close(); } catch (IOException ioe) { }
+
+    return buildData(emEvents, om);
   }
 
-  public synchronized FormNode getForms(Data data) {
+  public synchronized FormNode getForms(Data data)
+  {
     return null;
   }
 
@@ -622,33 +898,33 @@ System.out.println("IOException " + e.getMessage());
     cube.coordinates = new float[]
       {CUBE,  CUBE, -CUBE,     CUBE, -CUBE, -CUBE,
        CUBE, -CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
-      -CUBE, -CUBE, -CUBE,    -CUBE,  CUBE, -CUBE,
-      -CUBE,  CUBE, -CUBE,     CUBE,  CUBE, -CUBE,
+       -CUBE, -CUBE, -CUBE,    -CUBE,  CUBE, -CUBE,
+       -CUBE,  CUBE, -CUBE,     CUBE,  CUBE, -CUBE,
 
        CUBE,  CUBE,  CUBE,     CUBE, -CUBE,  CUBE,
        CUBE, -CUBE,  CUBE,    -CUBE, -CUBE,  CUBE,
-      -CUBE, -CUBE,  CUBE,    -CUBE,  CUBE,  CUBE,
-      -CUBE,  CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
+       -CUBE, -CUBE,  CUBE,    -CUBE,  CUBE,  CUBE,
+       -CUBE,  CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
 
        CUBE,  CUBE,  CUBE,     CUBE,  CUBE, -CUBE,
        CUBE,  CUBE, -CUBE,     CUBE, -CUBE, -CUBE,
        CUBE, -CUBE, -CUBE,     CUBE, -CUBE,  CUBE,
        CUBE, -CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
 
-      -CUBE,  CUBE,  CUBE,    -CUBE,  CUBE, -CUBE,
-      -CUBE,  CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
-      -CUBE, -CUBE, -CUBE,    -CUBE, -CUBE,  CUBE,
-      -CUBE, -CUBE,  CUBE,    -CUBE,  CUBE,  CUBE,
+       -CUBE,  CUBE,  CUBE,    -CUBE,  CUBE, -CUBE,
+       -CUBE,  CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
+       -CUBE, -CUBE, -CUBE,    -CUBE, -CUBE,  CUBE,
+       -CUBE, -CUBE,  CUBE,    -CUBE,  CUBE,  CUBE,
 
        CUBE,  CUBE,  CUBE,     CUBE,  CUBE, -CUBE,
        CUBE,  CUBE, -CUBE,    -CUBE,  CUBE, -CUBE,
-      -CUBE,  CUBE, -CUBE,    -CUBE,  CUBE,  CUBE,
-      -CUBE,  CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
+       -CUBE,  CUBE, -CUBE,    -CUBE,  CUBE,  CUBE,
+       -CUBE,  CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
 
        CUBE, -CUBE,  CUBE,     CUBE, -CUBE, -CUBE,
        CUBE, -CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
-      -CUBE, -CUBE, -CUBE,    -CUBE, -CUBE,  CUBE,
-      -CUBE, -CUBE,  CUBE,     CUBE, -CUBE,  CUBE};
+       -CUBE, -CUBE, -CUBE,    -CUBE, -CUBE,  CUBE,
+       -CUBE, -CUBE,  CUBE,     CUBE, -CUBE,  CUBE};
 
     cube.vertexCount = cube.coordinates.length / 3;
     cube.normals = new float[144];
@@ -682,20 +958,20 @@ System.out.println("IOException " + e.getMessage());
     return new VisADQuadArray[] {cube};
   }
 
-  public final RealType getAmplitude() { return amplitude; }
-  public final RealType getLet() { return let; }
-  public final RealType getEventIndex() { return event_index; }
-  public final RealType getTrackIndex() { return track_index; }
+  public final RealType getAmplitude() { return amplitudeType; }
+  public final RealType getLet() { return letType; }
+  public final RealType getEventIndex() { return eventIndexType; }
+  public final RealType getTrackIndex() { return trackIndexType; }
 
-  public final RealType getX() { return x; }
+  public final RealType getX() { return xType; }
   public final double getXMax() { return xmax; }
   public final double getXMin() { return xmin; }
 
-  public final RealType getY() { return y; }
+  public final RealType getY() { return yType; }
   public final double getYMax() { return ymax; }
   public final double getYMin() { return ymin; }
 
-  public final RealType getZ() { return z; }
+  public final RealType getZ() { return zType; }
   public final double getZMax() { return zmax; }
   public final double getZMin() { return zmin; }
 }
