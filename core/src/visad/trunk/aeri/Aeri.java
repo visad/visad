@@ -118,7 +118,7 @@ public class Aeri
     }
     wvmr.alias("MR");
 
-    JFrame frame = new JFrame("VisAD HSV Color Coordinates");
+    JFrame frame = new JFrame("VisAD AERI Viewer");
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
@@ -268,7 +268,7 @@ public class Aeri
       cmap = new ScalarMap(wvmr, Display.RGB);
     }
     display.addMap(cmap);
-    ColorMapWidget cmw = new ColorMapWidget(cmap, null, false, false);
+    ColorMapWidget cmw = new ColorMapWidget(cmap, null, true, false);
     LabeledColorWidget cwidget = new LabeledColorWidget(cmw);
     ScalarMap tmap = new ScalarMap(time, Display.Animation);
     display.addMap(tmap);
