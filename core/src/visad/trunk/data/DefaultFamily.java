@@ -157,6 +157,11 @@ public class DefaultFamily
     } catch (Throwable t) {
     }
     try {
+      list[i] = new DemFamily("Dem Data");
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
       list[i] = new TextForm();
       i++;
     } catch (Throwable t) {
@@ -168,11 +173,6 @@ public class DefaultFamily
     }
     try {
       list[i] = new JAIForm();
-      i++;
-    } catch (Throwable t) {
-    }
-    try {
-      list[i] = new DemFamily("Dem Data");
       i++;
     } catch (Throwable t) {
     }
