@@ -183,25 +183,27 @@ public class BioRadNote {
   // MathTypes
 
   /** RealType for level note element. */
-  private static final RealType rt_level = RealType.getRealType("level");
+  private static final RealType rt_level =
+    RealType.getRealType("biorad_level");
 
   /** RealType for num note element. */
-  private static final RealType rt_num = RealType.getRealType("num");
+  private static final RealType rt_num = RealType.getRealType("biorad_num");
 
   /** RealType for status note element. */
-  private static final RealType rt_status = RealType.getRealType("status");
+  private static final RealType rt_status =
+    RealType.getRealType("biorad_status");
 
   /** RealType for type note element. */
-  private static final RealType rt_type = RealType.getRealType("type");
+  private static final RealType rt_type = RealType.getRealType("biorad_type");
 
   /** RealType for x note element. */
-  private static final RealType rt_x = RealType.getRealType("x");
+  private static final RealType rt_x = RealType.getRealType("biorad_x");
 
   /** RealType for y note element. */
-  private static final RealType rt_y = RealType.getRealType("y");
+  private static final RealType rt_y = RealType.getRealType("biorad_y");
 
   /** TextType for text note element. */
-  private static final TextType tt_text = TextType.getTextType("text");
+  private static final TextType tt_text = TextType.getTextType("biorad_text");
 
   /** MathType of a BioRad note. */
   static final TupleType noteTuple = makeNoteTuple();
@@ -209,13 +211,13 @@ public class BioRadNote {
   /** Creates BioRad note MathType. */
   private static TupleType makeNoteTuple() {
     try {
-      if (rt_level == null) System.out.println("rt_level is NULL!");
-      if (rt_num == null) System.out.println("rt_num is NULL!");
-      if (rt_status == null) System.out.println("rt_status is NULL!");
-      if (rt_type == null) System.out.println("rt_type is NULL!");
-      if (rt_x == null) System.out.println("rt_x is NULL!");
-      if (rt_y == null) System.out.println("rt_y is NULL!");
-      if (tt_text == null) System.out.println("tt_text is NULL!");
+      if (rt_level == null) System.out.println("level is null");
+      if (rt_num == null) System.out.println("num is null");
+      if (rt_status == null) System.out.println("status is null");
+      if (rt_type == null) System.out.println("type is null");
+      if (rt_x == null) System.out.println("x is null");
+      if (rt_y == null) System.out.println("y is null");
+      if (tt_text == null) System.out.println("text is null");
       return new TupleType(new MathType[] {
         rt_level, rt_num, rt_status, rt_type, rt_x, rt_y, tt_text
       });
