@@ -173,6 +173,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
         saveMeasurements(useMicrons.isSelected());
       }
     });
+    saveLines.setEnabled(false);
     p.add(saveLines);
     p.add(Box.createHorizontalStrut(5));
 
@@ -183,6 +184,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
         restoreMeasurements(useMicrons.isSelected());
       }
     });
+    restoreLines.setEnabled(false);
     p.add(restoreLines);
     controls.add(pad(p));
 
@@ -190,15 +192,9 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     useMicrons = new JCheckBox("Use microns instead of pixels", false);
     final MeasureToolPanel tool = this;
     useMicrons.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
-        boolean microns = useMicrons.isSelected();
-        mPixLabel.setEnabled(microns);
-        micronsPerPixel.setEnabled(microns);
-        sliceDistLabel.setEnabled(microns);
-        sliceDistance.setEnabled(microns);
-        tool.updateFileButtons();
-      }
+      public void itemStateChanged(ItemEvent e) { tool.updateFileButtons(); }
     });
+    useMicrons.setEnabled(false);
     controls.add(pad(useMicrons));
 
     // microns per pixel label
@@ -210,12 +206,12 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
 
     // microns per pixel text box
     micronsPerPixel = new JTextField();
-    micronsPerPixel.setEnabled(false);
     micronsPerPixel.getDocument().addDocumentListener(new DocumentListener() {
       public void changedUpdate(DocumentEvent e) { tool.updateFileButtons(); }
       public void insertUpdate(DocumentEvent e) { tool.updateFileButtons(); }
       public void removeUpdate(DocumentEvent e) { tool.updateFileButtons(); }
     });
+    micronsPerPixel.setEnabled(false);
     p.add(micronsPerPixel);
     controls.add(pad(p));
 
@@ -228,12 +224,12 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
 
     // distance between slices text box
     sliceDistance = new JTextField();
-    sliceDistance.setEnabled(false);
     sliceDistance.getDocument().addDocumentListener(new DocumentListener() {
       public void changedUpdate(DocumentEvent e) { tool.updateFileButtons(); }
       public void insertUpdate(DocumentEvent e) { tool.updateFileButtons(); }
       public void removeUpdate(DocumentEvent e) { tool.updateFileButtons(); }
     });
+    sliceDistance.setEnabled(false);
     p.add(sliceDistance);
     controls.add(pad(p));
 
@@ -395,6 +391,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     groupList.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         MeasureGroup group = (MeasureGroup) groupList.getSelectedItem();
+        if (thing == null || group == null) return;
         thing.setGroup(group);
         descriptionBox.setText(group.getDescription());
       }
@@ -448,7 +445,20 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
 
   /** Enables or disables this tool panel. */
   public void setEnabled(boolean enabled) {
-    // CTR: TODO: file IO stuff should be affected by this
+    if (enabled) {
+      useMicrons.setEnabled(true);
+      restoreLines.setEnabled(true);
+      updateFileButtons();
+    }
+    else {
+      useMicrons.setEnabled(false);
+      saveLines.setEnabled(false);
+      restoreLines.setEnabled(false);
+      mPixLabel.setEnabled(false);
+      micronsPerPixel.setEnabled(false);
+      sliceDistLabel.setEnabled(false);
+      sliceDistance.setEnabled(false);
+    }
     addLine.setEnabled(enabled);
     addMarker.setEnabled(enabled);
     clearAll.setEnabled(enabled);
@@ -580,19 +590,41 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
   }
 
 
+  // -- INTERNAL API METHODS --
+
+  /** Updates GUI to match internal information. */
+  void updateInfo(boolean microns, double mpp, double sd) {
+    // update micron info
+    micronsPerPixel.setText(microns ? "" + mpp : "");
+    sliceDistance.setText(microns ? "" + sd : "");
+    useMicrons.setSelected(microns);
+
+    // update groups
+    groupList.removeAllItems();
+    for (int i=0; i<bio.groups.size(); i++) {
+      groupList.addItem(bio.groups.elementAt(i));
+    }
+    descriptionBox.setText("");
+  }
+
+
   // -- HELPER METHODS --
 
-  /** Updates the micron-related menu items. */
+  /** Updates the micron-related GUI components. */
   private void updateFileButtons() {
+    boolean microns = useMicrons.isSelected();
+    mPixLabel.setEnabled(microns);
+    micronsPerPixel.setEnabled(microns);
+    sliceDistLabel.setEnabled(microns);
+    sliceDistance.setEnabled(microns);
     boolean b;
-    if (useMicrons.isSelected()) {
+    if (microns) {
       double mpp = getMicronsPerPixel();
       double sd = getSliceDistance();
       b = mpp == mpp && sd == sd;
     }
     else b = true;
     saveLines.setEnabled(b);
-    restoreLines.setEnabled(b);
     updateMeasureInfo();
   }
 

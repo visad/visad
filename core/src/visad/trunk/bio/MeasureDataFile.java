@@ -222,6 +222,7 @@ public class MeasureDataFile {
   /** Reads data from the data file into an array of measurement lists. */
   public void read() throws IOException, VisADException {
     double mpp = 1, sd = 1;
+    boolean microns = false;
     BufferedReader fin = new BufferedReader(new FileReader(file));
     String line = "";
 
@@ -233,6 +234,7 @@ public class MeasureDataFile {
       int right = line.indexOf(")");
       mpp = Double.parseDouble(line.substring(left + 1, comma).trim());
       sd = Double.parseDouble(line.substring(comma + 1, right).trim());
+      microns = true;
     }
 
     // read in group data
@@ -324,10 +326,10 @@ public class MeasureDataFile {
       m.stdId = data.stdId;
       list.addMeasurement(m, data.index == index);
     }
-/*
-    bio.pool2.refresh();
-    if (bio.pool3 != null) bio.pool3.refresh();
-*/
+
+    // refresh GUI components
+    //
+    bio.toolMeasure.updateInfo(microns, mpp, sd);
   }
 
 
