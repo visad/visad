@@ -368,9 +368,10 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
         // set = shadow.animationRangeSampling;
         // throw new DisplayException("ScalarMap.setRange: animationRangeSampling");
       }
-      if (set == null) {
-        set = new Linear1DSet(Scalar, dataRange[0], dataRange[1], 100);
-      }
+      // dglo 24 Nov 1998 -- Dead code
+      // if (set == null) {
+      //   set = new Linear1DSet(Scalar, dataRange[0], dataRange[1], 100);
+      // }
       ((AnimationControl) control).setSet(set, true);
     }
     else if (DisplayScalar.equals(Display.IsoContour)) {
