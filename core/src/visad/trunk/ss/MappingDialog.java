@@ -566,6 +566,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     if (cmd.equals("all")) { // clear all
       if (CurMaps.getSize() > 0) {
         // take all maps off list
+        CurrentMaps.clearSelection(); // work-around for nasty swing bug
         CurMaps.removeAllElements();
         for (int i=0; i<CurMapLabel.length; i++) {
           for (int j=0; j<7; j++) {
