@@ -110,23 +110,16 @@ DOC_MEM = 150m
 DOCFLAGS = -d $(DOC_DIR) -J-Xmx$(DOC_MEM) -package \
 	-doctitle 'VisAD Documentation'
 
-# FITS, UCAR, and SSEC are paths to other class hierarchies needed by VisAD
-#
-FITS = ../nom/tam
-UCAR = ../ucar
-SSEC = ../edu/wisc/ssec
-NCSA = ../ncsa/hdf/hdf5lib
-
 ############################################################################
 # Customizations
 ############################################################################
 
 # set this if your JDK/JRE is installed somewhere other than /opt/java
-JAVADIR = /usr/java
+#JAVADIR = /usr/local/java
 
 # to always use IBM's 'jikes' compiler, uncomment the following two lines
-JC = jikes
-JFLAGS = +P -deprecation
+#JC = jikes
+#JFLAGS = +P -deprecation
 
 # to always use the Nexus RMI compiler, uncomment the next line
 #RMIC=nexusrmic
@@ -211,6 +204,16 @@ SAVE_FILES = \
 	visad/data/jai/*.java				\
 	visad/data/vis5d/*.java				\
 	visad/data/gif/*.java				\
+	ij/*.java					\
+	ij/gui/*.java					\
+	ij/io/*.java					\
+	ij/measure/*.java				\
+	ij/plugin/*.java				\
+	ij/plugin/filter/*.java				\
+	ij/plugin/frame/*.java				\
+	ij/process/*.java				\
+	ij/text/*.java					\
+	ij/util/*.java					\
 	visad/data/tiff/*.java				\
 	visad/data/visad/*.java				\
 	visad/data/hdf5/*.java				\
@@ -292,6 +295,16 @@ DOC_PACKAGES = \
 		visad.data.biorad \
 		visad.data.jai \
 		visad.data.gif \
+		ij \
+		ij.gui \
+		ij.io \
+		ij.measure \
+		ij.plugin \
+		ij.plugin.filter \
+		ij.plugin.frame \
+		ij.process \
+		ij.text \
+		ij.util \
 		visad.data.tiff \
 		visad.data.visad \
 		visad.data.hdfeos.hdfeosc \

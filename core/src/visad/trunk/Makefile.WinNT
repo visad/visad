@@ -66,11 +66,6 @@ DOC = javadoc
 DOC_DIR = ..\docs
 DOCFLAGS = -d $(DOC_DIR)
 
-FITS = ..\nom\tam
-UCAR = ..\ucar
-SSEC = ..\edu\wisc\ssec
-NCSA = ..\ncsa\hdf\hdf5lib
-
 JAR_FILES1 = \
 visad\README \
 visad\DEDICATION \
@@ -110,16 +105,16 @@ visad\data\netcdf\units\*.jj \
 visad\data\netcdf\in\*.java \
 visad\data\netcdf\out\*.java \
 visad\data\fits\*.java \
-visad\$(FITS)\fits\*.java \
-visad\$(FITS)\util\*.java \
-visad\$(FITS)\test\*.java \
-visad\$(UCAR)\COPYRIGHT \
-visad\$(UCAR)\VERSION \
-visad\$(UCAR)\multiarray\*.java \
-visad\$(UCAR)\netcdf\*.java \
-visad\$(UCAR)\tests\*.java \
-visad\$(UCAR)\tests\test.nc \
-visad\$(UCAR)\tests\test.out \
+nom\tam\fits\*.java \
+nom\tam\util\*.java \
+nom\tam\test\*.java \
+ucar\COPYRIGHT \
+ucar\VERSION \
+ucar\multiarray\*.java \
+ucar\netcdf\*.java \
+ucar\tests\*.java \
+ucar\tests\test.nc \
+ucar\tests\test.out \
 visad\data\hdfeos\*.java \
 visad\data\hdfeos\README.hdfeos \
 visad\data\hdfeos\hdfeosc\*.java \
@@ -127,8 +122,8 @@ visad\data\hdfeos\hdfeosc\*.c \
 visad\data\hdfeos\hdfeosc\*.h \
 visad\data\hdfeos\hdfeosc\Makefile \
 visad\data\vis5d\*.java \
-visad\$(SSEC)\mcidas\*.java \
-visad\$(SSEC)\mcidas\adde\*.java \
+edu\wisc\ssec\mcidas\*.java \
+edu\wisc\ssec\mcidas\adde\*.java \
 visad\data\mcidas\*.java \
 visad\data\mcidas\README.mcidas \
 visad\data\biorad\*.java \
@@ -140,10 +135,20 @@ visad\data\visad\*.java \
 visad\data\hdf5\*.java \
 visad\data\hdf5\COPYING \
 visad\data\hdf5\hdf5objects\*.java \
-visad\$(NCSA)\*.java \
-visad\$(NCSA)\exceptions\*.java
+ncsa\hdf\hdf5lib\*.java \
+ncsa\hdf\hdf5lib\exceptions\*.java
 
 JAR_FILES2 = \
+ij\*.java \
+ij\gui\*.java \
+ij\io\*.java \
+ij\measure\*.java \
+ij\plugin\*.java \
+ij\plugin\filter\*.java \
+ij\plugin\frame\*.java \
+ij\process\*.java \
+ij\text\*.java \
+ij\util\*.java \
 visad\jmet\*.java \
 visad\paoloa\README.paoloa \
 visad\paoloa\Makefile \
@@ -186,8 +191,8 @@ jar:
 	date /t > DATE
 	time /t >> DATE
 	cd ..
-	${JAR} ${JARVERBOSE}cf visad_src-2.0.jar $(JAR_FILES1)
-	${JAR} ${JARVERBOSE}uf visad_src-2.0.jar $(JAR_FILES2)
+	$(JAR) $(JARVERBOSE)cf visad_src-2.0.jar $(JAR_FILES1)
+	$(JAR) $(JARVERBOSE)uf visad_src-2.0.jar $(JAR_FILES2)
 	move visad_src-2.0.jar visad
 	cd visad
 	copy visad_src-2.0.jar visadsrc.jar
@@ -230,16 +235,16 @@ visad\data\netcdf\units\*.jj \
 visad\data\netcdf\in\*.java \
 visad\data\netcdf\out\*.java \
 visad\data\fits\*.java \
-visad\$(FITS)\fits\*.java \
-visad\$(FITS)\util\*.java \
-visad\$(FITS)\test\*.java \
-visad\$(UCAR)\COPYRIGHT \
-visad\$(UCAR)\VERSION \
-visad\$(UCAR)\multiarray\*.java \
-visad\$(UCAR)\netcdf\*.java \
-visad\$(UCAR)\tests\*.java \
-visad\$(UCAR)\tests\test.nc \
-visad\$(UCAR)\tests\test.out \
+nom\tam\fits\*.java \
+nom\tam\util\*.java \
+nom\tam\test\*.java \
+ucar\COPYRIGHT \
+ucar\VERSION \
+ucar\multiarray\*.java \
+ucar\netcdf\*.java \
+ucar\tests\*.java \
+ucar\tests\test.nc \
+ucar\tests\test.out \
 visad\data\hdfeos\*.java \
 visad\data\hdfeos\hdfeosc\*.java \
 visad\data\hdfeos\hdfeosc\*.c \
@@ -248,8 +253,8 @@ visad\data\hdfeos\hdfeosc\Makefile \
 visad\data\vis5d\*.java \
 visad\data\gif\*.java \
 visad\data\tiff\*.java \
-visad\$(SSEC)\mcidas\*.java \
-visad\$(SSEC)\mcidas\adde\*.java \
+edu\wisc\ssec\mcidas\*.java \
+edu\wisc\ssec\mcidas\adde\*.java \
 visad\data\mcidas\*.java \
 visad\data\mcidas\README.mcidas \
 visad\data\biorad\*.java \
@@ -257,10 +262,20 @@ visad\data\jai\*.java \
 visad\data\visad\*.java \
 visad\data\hdf5\*.java \
 visad\data\hdf5\hdf5objects\*.java \
-visad\$(NCSA)\*.java \
-visad\$(NCSA)\exceptions\*.java
+ncsa\hdf\hdf5lib\*.java \
+ncsa\hdf\hdf5lib\exceptions\*.java
 
 SAVE_FILES2 = \
+ij\*.java \
+ij\gui\*.java \
+ij\io\*.java \
+ij\measure\*.java \
+ij\plugin\*.java \
+ij\plugin\filter\*.java \
+ij\plugin\frame\*.java \
+ij\process\*.java \
+ij\text\*.java \
+ij\util\*.java \
 visad\jmet\*.java \
 visad\paoloa\README.paoloa \
 visad\paoloa\Makefile \
@@ -342,28 +357,28 @@ save:
 		$(DEL) $(BACKUP)\visad\data\netcdf\out\*.java
 	if exist $(BACKUP)\visad\data\fits\*.java \
 		$(DEL) $(BACKUP)\visad\data\fits\*.java
-	if exist $(BACKUP)\visad\$(FITS)\fits\*.java \
-		$(DEL) $(BACKUP)\visad\$(FITS)\fits\*.java
-	if exist $(BACKUP)\visad\$(FITS)\util\*.java \
-		$(DEL) $(BACKUP)\visad\$(FITS)\util\*.java
-	if exist $(BACKUP)\visad\$(FITS)\test\*.java \
-		$(DEL) $(BACKUP)\visad\$(FITS)\test\*.java
-	if exist $(BACKUP)\visad\$(UCAR)\multiarray\*.java \
-		$(DEL) $(BACKUP)\visad\$(UCAR)\multiarray\*.java
-	if exist $(BACKUP)\visad\$(UCAR)\netcdf\*.java \
-		$(DEL) $(BACKUP)\visad\$(UCAR)\netcdf\*.java
-	if exist $(BACKUP)\visad\$(UCAR)\tests\*.java \
-		$(DEL) $(BACKUP)\visad\$(UCAR)\tests\*.java
+	if exist $(BACKUP)\nom\tam\fits\*.java \
+		$(DEL) $(BACKUP)\nom\tam\fits\*.java
+	if exist $(BACKUP)\nom\tam\util\*.java \
+		$(DEL) $(BACKUP)\nom\tam\util\*.java
+	if exist $(BACKUP)\nom\tam\test\*.java \
+		$(DEL) $(BACKUP)\nom\tam\test\*.java
+	if exist $(BACKUP)\ucar\multiarray\*.java \
+		$(DEL) $(BACKUP)\ucar\multiarray\*.java
+	if exist $(BACKUP)\ucar\netcdf\*.java \
+		$(DEL) $(BACKUP)\ucar\netcdf\*.java
+	if exist $(BACKUP)\ucar\tests\*.java \
+		$(DEL) $(BACKUP)\ucar\tests\*.java
 	if exist $(BACKUP)\visad\data\hdfeos\*.java \
 		$(DEL) $(BACKUP)\visad\data\hdfeos\*.java
 	if exist $(BACKUP)\visad\data\hdfeos\hdfeosc\*.java \
 		$(DEL) $(BACKUP)\visad\data\hdfeos\hdfeosc\*.java
 	if exist $(BACKUP)\visad\data\vis5d\*.java \
 		$(DEL) $(BACKUP)\visad\data\vis5d\*.java
-	if exist $(BACKUP)\visad\$(SSEC)\mcidas\*.java \
-		$(DEL) $(BACKUP)\visad\$(SSEC)\mcidas\*.java
-	if exist $(BACKUP)\visad\$(SSEC)\mcidas\adde\*.java \
-		$(DEL) $(BACKUP)\visad\$(SSEC)\mcidas\adde\*.java
+	if exist $(BACKUP)\edu\wisc\ssec\mcidas\*.java \
+		$(DEL) $(BACKUP)\edu\wisc\ssec\mcidas\*.java
+	if exist $(BACKUP)\edu\wisc\ssec\mcidas\adde\*.java \
+		$(DEL) $(BACKUP)\edu\wisc\ssec\mcidas\adde\*.java
 	if exist $(BACKUP)\visad\data\mcidas\*.java \
 		$(DEL) $(BACKUP)\visad\data\mcidas\*.java
 	if exist $(BACKUP)\visad\data\biorad\*.java \
@@ -380,10 +395,10 @@ save:
 		$(DEL) $(BACKUP)\visad\data\hdf5\*.java
 	if exist $(BACKUP)\visad\data\hdf5\hdf5objects\*.java \
 		$(DEL) $(BACKUP)\visad\data\hdf5\hdf5objects\*.java
-	if exist $(BACKUP)\visad\$(NCSA)\*.java \
-		$(DEL) $(BACKUP)\visad\$(NCSA)\*.java
-	if exist $(BACKUP)\visad\$(NCSA)\exceptions\*.java \
-		$(DEL) $(BACKUP)\visad\$(NCSA)\exceptions\*.java
+	if exist $(BACKUP)\ncsa\hdf\hdf5lib\*.java \
+		$(DEL) $(BACKUP)\ncsa\hdf\hdf5lib\*.java
+	if exist $(BACKUP)\ncsa\hdf\hdf5lib\exceptions\*.java \
+		$(DEL) $(BACKUP)\ncsa\hdf\hdf5lib\exceptions\*.java
 	if exist $(BACKUP)\visad\jmet\*.java \
 		$(DEL) $(BACKUP)\visad\jmet\*.java
 	if exist $(BACKUP)\visad\paoloa\*.java \
@@ -406,10 +421,10 @@ save:
 		$(DEL) $(BACKUP)\visad\georef\*.java
 	if exist $(BACKUP)\visad\meteorology\*.java \
 		$(DEL) $(BACKUP)\visad\meteorology\*.java
-	${JAR} ${JARVERBOSE}cf $(BACKUP)\save.jar $(SAVE_FILES1)
-	${JAR} ${JARVERBOSE}uf $(BACKUP)\save.jar $(SAVE_FILES2)
+	$(JAR) $(JARVERBOSE)cf $(BACKUP)\save.jar $(SAVE_FILES1)
+	$(JAR) $(JARVERBOSE)uf $(BACKUP)\save.jar $(SAVE_FILES2)
 	cd $(BACKUP)
-	${JAR} ${JARVERBOSE}xf save.jar
+	$(JAR) $(JARVERBOSE)xf save.jar
 	$(DEL) save.jar
 
 CLASS_FILES = \
@@ -432,28 +447,38 @@ visad\data\netcdf\*.class \
 visad\data\netcdf\units\*.class \
 visad\data\netcdf\in\*.class \
 visad\data\netcdf\out\*.class \
-visad\$(UCAR)\multiarray\*.class \
-visad\$(UCAR)\netcdf\*.class \
-visad\$(UCAR)\tests\*.class \
+ucar\multiarray\*.class \
+ucar\netcdf\*.class \
+ucar\tests\*.class \
 visad\data\fits\*.class \
-visad\$(FITS)\fits\*.class \
-visad\$(FITS)\util\*.class \
-visad\$(FITS)\test\*.class \
+nom\tam\fits\*.class \
+nom\tam\util\*.class \
+nom\tam\test\*.class \
 visad\data\hdfeos\*.class \
 visad\data\hdfeos\hdfeosc\*.class \
 visad\data\vis5d\*.class \
-visad\$(SSEC)\mcidas\*.class \
-visad\$(SSEC)\mcidas\adde\*.class \
+edu\wisc\ssec\mcidas\*.class \
+edu\wisc\ssec\mcidas\adde\*.class \
 visad\data\mcidas\*.class \
 visad\data\biorad\*.class \
 visad\data\jai\*.class \
 visad\data\gif\*.class \
+ij\*.class \
+ij\gui\*.class \
+ij\io\*.class \
+ij\measure\*.class \
+ij\plugin\*.class \
+ij\plugin\filter\*.class \
+ij\plugin\frame\*.class \
+ij\process\*.class \
+ij\text\*.class \
+ij\util\*.class \
 visad\data\tiff\*.class \
 visad\data\visad\*.class \
 visad\data\hdf5\*.class \
 visad\data\hdf5\hdf5objects\*.class \
-visad\$(NCSA)\*.class \
-visad\$(NCSA)\exceptions\*.class \
+ncsa\hdf\hdf5lib\*.class \
+ncsa\hdf\hdf5lib\exceptions\*.class \
 visad\jmet\*.class \
 visad\paoloa\*.class \
 visad\paoloa\spline\*.class \
@@ -471,7 +496,7 @@ classes:
 	cd ..
 	date /t > DATE
 	time /t >> DATE
-	${JAR} ${JARVERBOSE}cf visad.jar $(CLASS_FILES)
+	$(JAR) $(JARVERBOSE)cf visad.jar $(CLASS_FILES)
 	dir /-w visad.jar
 
 EXAMPLES_TAR_FILES = \
@@ -481,7 +506,7 @@ visad\examples\*.class
 
 examplesjar:
 	cd ..
-	${JAR} ${JARVERBOSE}cf visad_examples.jar $(EXAMPLES_TAR_FILES)
+	$(JAR) $(JARVERBOSE)cf visad_examples.jar $(EXAMPLES_TAR_FILES)
 	dir /-w visad_examples.jar
 
 clear:
@@ -504,27 +529,37 @@ clear:
 	if exist data\netcdf\in\*.java $(DEL) data\netcdf\in\*.java
 	if exist data\netcdf\out\*.java $(DEL) data\netcdf\out\*.java
 	if exist data\fits\*.java $(DEL) data\fits\*.java
-	if exist $(FITS)\fits\*.java $(DEL) $(FITS)\fits\*.java
-	if exist $(FITS)\util\*.java $(DEL) $(FITS)\util\*.java
-	if exist $(FITS)\test\*.java $(DEL) $(FITS)\test\*.java
-	if exist $(UCAR)\multiarray\*.java $(DEL) $(UCAR)\multiarray\*.java
-	if exist $(UCAR)\netcdf\*.java $(DEL) $(UCAR)\netcdf\*.java
-	if exist $(UCAR)\tests\*.java $(DEL) $(UCAR)\tests\*.java
+	if exist ..\nom\tam\fits\*.java $(DEL) ..\nom\tam\fits\*.java
+	if exist ..\nom\tam\util\*.java $(DEL) ..\nom\tam\util\*.java
+	if exist ..\nom\tam\test\*.java $(DEL) ..\nom\tam\test\*.java
+	if exist ..\ucar\multiarray\*.java $(DEL) ..\ucar\multiarray\*.java
+	if exist ..\ucar\netcdf\*.java $(DEL) ..\ucar\netcdf\*.java
+	if exist ..\ucar\tests\*.java $(DEL) ..\ucar\tests\*.java
 	if exist data\hdfeos\*.java $(DEL) data\hdfeos\*.java
 	if exist data\hdfeos\hdfeosc\*.java $(DEL) data\hdfeos\hdfeosc\*.java
 	if exist data\vis5d\*.java $(DEL) data\vis5d\*.java
 	if exist data\gif\*.java $(DEL) data\gif\*.java
+	if exist ..\ij\*.java $(DEL) ..\ij\*.java
+	if exist ..\ij\gui\*.java $(DEL) ..\ij\gui\*.java
+	if exist ..\ij\io\*.java $(DEL) ..\ij\io\*.java
+	if exist ..\ij\measure\*.java $(DEL) ..\ij\measure\*.java
+	if exist ..\ij\plugin\*.java $(DEL) ..\ij\plugin\*.java
+	if exist ..\ij\plugin\filter\*.java $(DEL) ..\ij\plugin\filter\*.java
+	if exist ..\ij\plugin\frame\*.java $(DEL) ..\ij\plugin\frame\*.java
+	if exist ..\ij\process\*.java $(DEL) ..\ij\process\*.java
+	if exist ..\ij\text\*.java $(DEL) ..\ij\text\*.java
+	if exist ..\ij\util\*.java $(DEL) ..\ij\util\*.java
 	if exist data\tiff\*.java $(DEL) data\tiff\*.java
-	if exist $(SSEC)\mcidas\*.java $(DEL) $(SSEC)\mcidas\*.java
-	if exist $(SSEC)\mcidas\adde\*.java $(DEL) $(SSEC)\mcidas\adde\*.java
+	if exist ..\edu\wisc\ssec\mcidas\*.java $(DEL) ..\edu\wisc\ssec\mcidas\*.java
+	if exist ..\edu\wisc\ssec\mcidas\adde\*.java $(DEL) ..\edu\wisc\ssec\mcidas\adde\*.java
 	if exist data\mcidas\*.java $(DEL) data\mcidas\*.java
 	if exist data\biorad\*.java $(DEL) data\biorad\*.java
 	if exist data\jai\*.java $(DEL) data\jai\*.java
 	if exist data\visad\*.java $(DEL) data\visad\*.java
 	if exist data\hdf5\*.java $(DEL) data\hdf5\*.java
 	if exist data\hdf5\hdf5objects\*.java $(DEL) data\hdf5\hdf5objects\*.java
-	if exist $(NCSA)\*.java $(DEL) $(NCSA)\*.java
-	if exist $(NCSA)\exceptions\*.java $(DEL) $(NCSA)\exceptions\*.java
+	if exist ..\ncsa\hdf\hdf5lib\*.java $(DEL) ..\ncsa\hdf\hdf5lib\*.java
+	if exist ..\ncsa\hdf\hdf5lib\exceptions\*.java $(DEL) ..\ncsa\hdf\hdf5lib\exceptions\*.java
 	if exist jmet\*.java $(DEL) jmet\*.java
 	if exist paoloa\*.java $(DEL) paoloa\*.java
 	if exist paoloa\spline\*.java $(DEL) paoloa\spline\*.java
@@ -557,27 +592,37 @@ clean:
 	if exist data\netcdf\in\*.class $(DEL) data\netcdf\in\*.class
 	if exist data\netcdf\out\*.class $(DEL) data\netcdf\out\*.class
 	if exist data\fits\*.class $(DEL) data\fits\*.class
-	if exist $(FITS)\fits\*.class $(DEL) $(FITS)\fits\*.class
-	if exist $(FITS)\util\*.class $(DEL) $(FITS)\util\*.class
-	if exist $(FITS)\test\*.class $(DEL) $(FITS)\test\*.class
-	if exist $(UCAR)\multiarray\*.class $(DEL) $(UCAR)\multiarray\*.class
-	if exist $(UCAR)\netcdf\*.class $(DEL) $(UCAR)\netcdf\*.class
-	if exist $(UCAR)\tests\*.class $(DEL) $(UCAR)\tests\*.class
+	if exist ..\nom\tam\fits\*.class $(DEL) ..\nom\tam\fits\*.class
+	if exist ..\nom\tam\util\*.class $(DEL) ..\nom\tam\util\*.class
+	if exist ..\nom\tam\test\*.class $(DEL) ..\nom\tam\test\*.class
+	if exist ..\ucar\multiarray\*.class $(DEL) ..\ucar\multiarray\*.class
+	if exist ..\ucar\netcdf\*.class $(DEL) ..\ucar\netcdf\*.class
+	if exist ..\ucar\tests\*.class $(DEL) ..\ucar\tests\*.class
 	if exist data\hdfeos\*.class $(DEL) data\hdfeos\*.class
 	if exist data\hdfeos\hdfeosc\*.class $(DEL) data\hdfeos\hdfeosc\*.class
 	if exist data\vis5d\*.class $(DEL) data\vis5d\*.class
-	if exist $(SSEC)\mcidas\*.class $(DEL) $(SSEC)\mcidas\*.class
-	if exist $(SSEC)\mcidas\adde\*.class $(DEL) $(SSEC)\mcidas\adde\*.class
+	if exist ..\edu\wisc\ssec\mcidas\*.class $(DEL) ..\edu\wisc\ssec\mcidas\*.class
+	if exist ..\edu\wisc\ssec\mcidas\adde\*.class $(DEL) ..\edu\wisc\ssec\mcidas\adde\*.class
 	if exist data\mcidas\*.class $(DEL) data\mcidas\*.class
 	if exist data\biorad\*.class $(DEL) data\biorad\*.class
 	if exist data\jai\*.class $(DEL) data\jai\*.class
 	if exist data\gif\*.class $(DEL) data\gif\*.class
+	if exist ..\ij\*.class $(DEL) ..\ij\*.class
+	if exist ..\ij\gui\*.class $(DEL) ..\ij\gui\*.class
+	if exist ..\ij\io\*.class $(DEL) ..\ij\io\*.class
+	if exist ..\ij\measure\*.class $(DEL) ..\ij\measure\*.class
+	if exist ..\ij\plugin\*.class $(DEL) ..\ij\plugin\*.class
+	if exist ..\ij\plugin\filter\*.class $(DEL) ..\ij\plugin\filter\*.class
+	if exist ..\ij\plugin\frame\*.class $(DEL) ..\ij\plugin\frame\*.class
+	if exist ..\ij\process\*.class $(DEL) ..\ij\process\*.class
+	if exist ..\ij\text\*.class $(DEL) ..\ij\text\*.class
+	if exist ..\ij\util\*.class $(DEL) ..\ij\util\*.class
 	if exist data\tiff\*.class $(DEL) data\tiff\*.class
 	if exist data\visad\*.class $(DEL) data\visad\*.class
 	if exist data\hdf5\*.class $(DEL) data\hdf5\*.class
 	if exist data\hdf5\hdf5objects\*.class $(DEL) data\hdf5\hdf5objects\*.class
-	if exist $(NCSA)\*.class $(DEL) $(NCSA)\*.class
-	if exist $(NCSA)\exceptions\*.class $(DEL) $(NCSA)\exceptions\*.class
+	if exist ..\ncsa\hdf\hdf5lib\*.class $(DEL) ..\ncsa\hdf\hdf5lib\*.class
+	if exist ..\ncsa\hdf\hdf5lib\exceptions\*.class $(DEL) ..\ncsa\hdf\hdf5lib\exceptions\*.class
 	if exist jmet\*.class $(DEL) jmet\*.class
 	if exist paoloa\*.class $(DEL) paoloa\*.class
 	if exist paoloa\spline\*.class $(DEL) paoloa\spline\*.class
@@ -621,30 +666,40 @@ java2d\*.class \
 cluster\*.class \
 collab\*.class \
 data\*.class \
-$(UCAR)\multiarray\*.class \
-$(UCAR)\netcdf\*.class \
-$(UCAR)\tests\*.class \
+..\ucar\multiarray\*.class \
+..\ucar\netcdf\*.class \
+..\ucar\tests\*.class \
 data\netcdf\units\*.class \
 data\netcdf\in\*.class \
 data\netcdf\out\*.class \
 data\netcdf\*.class \
-$(FITS)\util\*.class \
-$(FITS)\fits\*.class \
-$(FITS)\test\*.class \
+..\nom\tam\util\*.class \
+..\nom\tam\fits\*.class \
+..\nom\tam\test\*.class \
 data\fits\*.class \
 data\vis5d\*.class \
-$(SSEC)\mcidas\*.class \
-$(SSEC)\mcidas\adde\*.class \
+..\edu\wisc\ssec\mcidas\*.class \
+..\edu\wisc\ssec\mcidas\adde\*.class \
 data\mcidas\*.class \
 data\biorad\*.class \
 data\jai\*.class \
 data\gif\*.class \
+..\ij\*.class \
+..\ij\gui\*.class \
+..\ij\io\*.class \
+..\ij\measure\*.class \
+..\ij\plugin\*.class \
+..\ij\plugin\filter\*.class \
+..\ij\plugin\frame\*.class \
+..\ij\process\*.class \
+..\ij\text\*.class \
+..\ij\util\*.class \
 data\tiff\*.class \
 data\visad\*.class \
 data\hdfeos\hdfeosc\*.class \
 data\hdfeos\*.class \
-$(NCSA)\*.class \
-$(NCSA)\exceptions\*.class \
+..\ncsa\hdf\hdf5lib\*.class \
+..\ncsa\hdf\hdf5lib\exceptions\*.class \
 data\hdf5\hdf5objects\*.class \
 data\hdf5\*.class \
 python\*.class \
@@ -682,30 +737,40 @@ compile: clean
 	$(JC) $(JFLAGS) cluster\*.java
 	$(JC) $(JFLAGS) collab\*.java
 	$(JC) $(JFLAGS) data\*.java
-	$(JC) $(JFLAGS) $(UCAR)\multiarray\*.java
-	$(JC) $(JFLAGS) $(UCAR)\netcdf\*.java
-	$(JC) $(JFLAGS) $(UCAR)\tests\*.java
+	$(JC) $(JFLAGS) ..\ucar\multiarray\*.java
+	$(JC) $(JFLAGS) ..\ucar\netcdf\*.java
+	$(JC) $(JFLAGS) ..\ucar\tests\*.java
 	$(JC) $(JFLAGS) data\netcdf\units\*.java
 	$(JC) $(JFLAGS) data\netcdf\in\*.java
 	$(JC) $(JFLAGS) data\netcdf\out\*.java
 	$(JC) $(JFLAGS) data\netcdf\*.java
-	$(JC) $(JFLAGS) $(FITS)\util\*.java
-	$(JC) $(JFLAGS) $(FITS)\fits\*.java
-	$(JC) $(JFLAGS) $(FITS)\test\*.java
+	$(JC) $(JFLAGS) ..\nom\tam\util\*.java
+	$(JC) $(JFLAGS) ..\nom\tam\fits\*.java
+	$(JC) $(JFLAGS) ..\nom\tam\test\*.java
 	$(JC) $(JFLAGS) data\fits\*.java
 	$(JC) $(JFLAGS) data\vis5d\*.java
-	$(JC) $(JFLAGS) $(SSEC)\mcidas\*.java
-	$(JC) $(JFLAGS) $(SSEC)\mcidas\adde\*.java
+	$(JC) $(JFLAGS) ..\edu\wisc\ssec\mcidas\*.java
+	$(JC) $(JFLAGS) ..\edu\wisc\ssec\mcidas\adde\*.java
 	$(JC) $(JFLAGS) data\mcidas\*.java
 	$(JC) $(JFLAGS) data\biorad\*.java
 	$(JC) $(JFLAGS) data\jai\*.java
 	$(JC) $(JFLAGS) data\gif\*.java
+	$(JC) $(JFLAGS) ..\ij\*.java
+	$(JC) $(JFLAGS) ..\ij\gui\*.java
+	$(JC) $(JFLAGS) ..\ij\io\*.java
+	$(JC) $(JFLAGS) ..\ij\measure\*.java
+	$(JC) $(JFLAGS) ..\ij\plugin\*.java
+	$(JC) $(JFLAGS) ..\ij\plugin\filter\*.java
+	$(JC) $(JFLAGS) ..\ij\plugin\frame\*.java
+	$(JC) $(JFLAGS) ..\ij\process\*.java
+	$(JC) $(JFLAGS) ..\ij\text\*.java
+	$(JC) $(JFLAGS) ..\ij\util\*.java
 	$(JC) $(JFLAGS) data\tiff\*.java
 	$(JC) $(JFLAGS) data\visad\*.java
 	$(JC) $(JFLAGS) data\hdfeos\hdfeosc\*.java
 	$(JC) $(JFLAGS) data\hdfeos\*.java
-	$(JC) $(JFLAGS) $(NCSA)\exceptions\*.java
-	$(JC) $(JFLAGS) $(NCSA)\*.java
+	$(JC) $(JFLAGS) ..\ncsa\hdf\hdf5lib\exceptions\*.java
+	$(JC) $(JFLAGS) ..\ncsa\hdf\hdf5lib\*.java
 	$(JC) $(JFLAGS) data\hdf5\hdf5objects\*.java
 	$(JC) $(JFLAGS) data\hdf5\*.java
 	$(JC) $(JFLAGS) python\*.java
@@ -770,6 +835,16 @@ visad.data.hdfeos \
 visad.data.hdfeos.hdfeosc \
 visad.data.vis5d \
 visad.data.gif \
+ij \
+ij.gui \
+ij.io \
+ij.measure \
+ij.plugin \
+ij.plugin.filter \
+ij.plugin.frame \
+ij.process \
+ij.text \
+ij.util \
 visad.data.tiff \
 edu.wisc.ssec.mcidas \
 visad.data.mcidas \
