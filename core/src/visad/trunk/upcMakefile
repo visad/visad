@@ -12,9 +12,6 @@ SUBDIR_TARGETS	=  \
 		      java2d/ftpable_subjars java2d/clean \
 		  data/default   data/all   data/classes   data/jar \
 		      data/ftpable_subjars data/clean \
-		  meteorology/default   meteorology/all   meteorology/classes \
-		      meteorology/jar meteorology/ftpable_subjars \
-		      meteorology/clean \
 		  ss/default   ss/all   ss/classes   ss/jar \
 		      ss/ftpable_subjars ss/clean \
 		  examples/default   examples/all   examples/classes \
@@ -26,13 +23,11 @@ default:	util/default \
 		java2d/default \
 		data/default \
 		examples/default
-#		meteorology/default \
 #		ss/default \
 all:		util/all \
 		java3d/all \
 		java2d/all \
 		data/all \
-		meteorology/all \
 		ss/all \
 		examples/all
 install:	jar doc
@@ -41,7 +36,6 @@ clean:		util/clean \
 		java3d/clean \
 		java2d/clean \
 		data/clean \
-		meteorology/clean \
 		ss/clean \
 		examples/clean
 
@@ -67,6 +61,7 @@ javadocs:	$(DOCDIR) FORCE
 	    -overview overview.html \
 	    -doctitle 'VisAD API Specification' \
 	    -windowtitle 'VisAD API Specification' \
+	    -package \
 	    -use \
 	    visad \
 	    visad.data \
@@ -81,7 +76,6 @@ javadocs:	$(DOCDIR) FORCE
 	    visad.data.vis5d \
 	    visad.java2d \
 	    visad.java3d \
-	    visad.meteorology \
 	    visad.paoloa \
 	    visad.ss \
 	    visad.util
