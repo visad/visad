@@ -24,7 +24,7 @@ package visad.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.ListIterator;
+import java.util.Iterator;
 
 /**
  * A write-only cache of objects which are slowly purged over time.
@@ -61,7 +61,6 @@ public class ObjectCache
   /**
    * The list of objects in this cache.
    */
-  private transient ArrayList cache = new ArrayList();
   private transient HashMap hash = new HashMap();
   /**
    * The current generation number for objects added to the cache.
@@ -132,20 +131,26 @@ public class ObjectCache
     }
 
     QueueMember qm = new QueueMember(cacheGeneration, obj);
-    cache.add(qm);
     hash.put(obj.getClass(), qm);
   }
 
 /*
   public void dump()
   {
-    java.util.ListIterator iter = cache.listIterator();
-    System.err.println(name + " CACHE DUMP:");
-    while (iter.hasNext()) {
-      System.err.println("\t" + ((QueueMember )iter.next()).object);
+    synchronized (hash) {
+      Iterator iter = hash.keySet().iterator();
+      System.err.println(name + " CACHE DUMP:");
+      while (iter.hasNext()) {
+        System.err.println("\t" + ((QueueMember )hash.get(iter.next())).object);
+      }
     }
   }
 */
+
+  public Object get(Object key)
+  {
+    return hash.get(key);
+  }
 
   /**
    * Returns <CODE>true</CODE> if this object is in the cache.
@@ -174,6 +179,11 @@ public class ObjectCache
     return false;
   }
 
+  public Iterator keys()
+  {
+    return hash.keySet().iterator();
+  }
+
   /**
    * Removes all objects of a given generation.
    *
@@ -181,17 +191,21 @@ public class ObjectCache
    */
   private synchronized void purge(int generation)
   {
-    ListIterator iter = cache.listIterator();
-    while (iter.hasNext()) {
-      QueueMember member = (QueueMember )iter.next();
-      if (member.generation == generation) {
-        Class mClass = member.object.getClass();
-        if (member == hash.get(mClass)) {
-          hash.remove(mClass);
+    synchronized (hash) {
+      Iterator iter = hash.keySet().iterator();
+      while (iter.hasNext()) {
+        QueueMember member = (QueueMember )hash.get(iter.next());
+        if (member.generation == generation) {
+          iter.remove();
         }
-
-        iter.remove();
       }
+    }
+  }
+
+  public Object remove(Object key)
+  {
+    synchronized (hash) {
+      return hash.remove(key);
     }
   }
 
@@ -230,5 +244,5 @@ public class ObjectCache
   /**
    * Gets the cache size.
    */
-  private int size() { return cache.size(); }
+  private int size() { return hash.size(); }
 }
