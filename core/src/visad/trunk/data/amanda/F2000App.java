@@ -200,7 +200,7 @@ public class F2000App
     // amanda = ((FieldImpl )amanda).getSample(99);
 
     final DataReferenceImpl amandaRef = new DataReferenceImpl("amanda");
-    // amandaRef.setData(amanda);
+    // data set by eventWidget below
     display.addReference(amandaRef);
 
     final DataReferenceImpl modulesRef = new DataReferenceImpl("modules");
@@ -208,26 +208,6 @@ public class F2000App
     display.addReference(modulesRef);
 
 System.out.println("amanda MathType\n" + amanda.getType());
-
-    final DataReferenceImpl eventRef = new DataReferenceImpl("event");
-
-    CellImpl cell = new CellImpl() {
-      public void doAction() throws VisADException, RemoteException {
-        Real r = (Real )eventRef.getData();
-        if (r != null) {
-          int index = (int )r.getValue();
-          if (index < 0) {
-            index = 0;
-          } else if (index > nevents) {
-            index = nevents;
-          }
-          amandaRef.setData(amanda.getSample(index));
-        }
-      }
-    };
-    // link cell to hourRef to trigger doAction whenever
-    // 'hour' value changes
-    cell.addReference(eventRef);
 
 /*
     LabeledColorWidget energyWidget = new LabeledColorWidget(energymap);
@@ -239,11 +219,7 @@ System.out.println("amanda MathType\n" + amanda.getType());
     //   (if we don't left-align, BoxLayout hoses everything)
     letWidget.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-    VisADSlider eventSlider = new VisADSlider("event", 0, nevents - 1,
-                                               0, 1.0, eventRef,
-                                               AmandaFile.getEventIndexType(),
-                                               true);
-    eventSlider.hardcodeSizePercent(110); // leave room for label changes
+    EventWidget eventWidget = new EventWidget(file, amanda, amandaRef);
 
     VisADSlider trackSlider = new VisADSlider(maps.trackmap, true, true);
     trackSlider.hardcodeSizePercent(110); // leave room for label changes
@@ -254,8 +230,8 @@ System.out.println("amanda MathType\n" + amanda.getType());
 
     widgetPanel.add(letWidget);
     // widgetPanel.add(new VisADSlider(eventmap));
+    widgetPanel.add(eventWidget);
     widgetPanel.add(trackSlider);
-    widgetPanel.add(eventSlider);
 
     JPanel displayPanel = (JPanel )display.getComponent();
     Dimension dim = new Dimension(800, 800);
