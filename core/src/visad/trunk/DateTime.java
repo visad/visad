@@ -455,7 +455,7 @@ DateTime
         Arrays.sort(times);
         double[][] timeValues = new double[1][times.length];
         for (int i = 0; i < times.length; i++) 
-            timeValues[0][i] = times[i].getValue();
+            timeValues[0][i] = times[i].getValue(CommonUnit.secondsSinceTheEpoch);
         return new Gridded1DDoubleSet(RealType.Time, timeValues, times.length);
     }
 
