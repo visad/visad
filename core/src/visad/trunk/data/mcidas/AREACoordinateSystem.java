@@ -23,15 +23,20 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
 package visad.data.mcidas;
+
+import edu.wisc.ssec.mcidas.AREAnav;
+import edu.wisc.ssec.mcidas.McIDASException;
+
+import java.awt.geom.Rectangle2D;
+
+import visad.CoordinateSystem;
+import visad.CoordinateSystemException;
+import visad.Gridded2DSet;
+import visad.QuickSort;
 import visad.RealTupleType;
 import visad.Set;
 import visad.Unit;
 import visad.VisADException;
-import visad.CoordinateSystem;
-import visad.CoordinateSystemException;
-import visad.QuickSort;
-import edu.wisc.ssec.mcidas.*;
-import java.awt.geom.Rectangle2D;
 
 /**
  * AREACoordinateSystem is the VisAD CoordinateSystem class
@@ -64,51 +69,11 @@ public class AREACoordinateSystem
                                  int[] nav) throws VisADException {
 
     super(reference, coordinate_system_units);
-
-    try
-    {
-        switch (nav[0]) {
-            case AREAnav.GVAR:
-                anav = new GVARnav(nav);
-                break;
-            case AREAnav.MOLL:
-                anav = new MOLLnav(nav);
-                break;
-            case AREAnav.MSAT:
-                anav = new MSATnav(nav);
-                break;
-            case AREAnav.RADR:
-                anav = new RADRnav(nav);
-                break;
-            case AREAnav.RECT:
-                anav = new RECTnav(nav);
-                break;
-            case AREAnav.GMSX:
-                anav = new GMSXnav(nav);
-                break;
-            case AREAnav.GOES:
-                anav = new GOESnav(nav);
-                break;
-            case AREAnav.PS:
-                anav = new PSnav(nav);
-                break;
-            case AREAnav.MERC:
-                anav = new MERCnav(nav);
-                break;
-            case AREAnav.LAMB:
-                anav = new LAMBnav(nav);
-                break;
-            case AREAnav.TANC:
-                anav = new TANCnav(nav);
-                break;
-            default:
-                throw new CoordinateSystemException(
-                     "AREACoordinateSystem: Unknown navigation type" + nav[0]);
-        }
-    }
-    catch (IllegalArgumentException excp)
-    {
-        throw new VisADException( "Wrong nav block passed to AREAnav module");
+    try {
+      anav = AREAnav.makeAreaNav(nav);
+    } catch (McIDASException excp) {
+      throw new CoordinateSystemException(
+          "AREACoordinateSystem: problem creating navigation" + excp);
     }
     anav.setImageStart(dir[5], dir[6]);
     anav.setRes(dir[11], dir[12]);
