@@ -41,11 +41,20 @@ import visad.util.*;
     provides an example of GUI extensions to BasicSSCell.<P> */
 public class FancySSCell extends BasicSSCell implements SSCellListener {
 
-  /** unselected border */
-  static final Border NORM = new LineBorder(Color.gray, 3);
+  /** border for cell with no data */
+  static final Border B_EMPTY = new LineBorder(Color.gray, 3);
 
-  /** selected border */
-  static final Border HIGH = new LineBorder(Color.yellow, 3);
+  /** border for selected cell */
+  static final Border B_HIGH = new LineBorder(Color.yellow, 3);
+
+  /** border for cell with formula */
+  static final Border B_FORM = new LineBorder(new Color(0.5f, 0f, 0f), 3);
+
+  /** border for cell with RMI address */
+  static final Border B_RMI = new LineBorder(new Color(0f, 0f, 0.5f), 3);
+
+  /** border for cell with file or URL */
+  static final Border B_URL = new LineBorder(new Color(0f, 0.5f, 0f), 3);
 
   /** This variable is static so that the previous directory is remembered */
   static FileDialog FileBox = null;
@@ -73,7 +82,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
                                   throws VisADException, RemoteException {
     super(name, info);
     Parent = parent;
-    setBorder(NORM);
+    setHighlighted(false);
     WidgetFrame = new JFrame("Controls (" + name + ")");
     JPanel pane = new JPanel();
     pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
@@ -101,6 +110,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   /** Re-auto-detect mappings when this cell's data changes */
   public void ssCellChanged(SSCellChangeEvent e) {
     if (e.getChangeType() == SSCellChangeEvent.DATA_CHANGE) {
+      // attempt to auto-detect mappings for new data
       Data value = null;
       try {
         value = (Data) fm.getThing(Name);
@@ -112,6 +122,9 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
       }
       catch (VisADException exc) { }
       catch (RemoteException exc) { }
+
+      // refresh border color
+      setHighlighted(Selected);
     }
   }
 
@@ -236,14 +249,9 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   public void setSelected(boolean value) {
     if (Selected == value) return;
     Selected = value;
-    if (Selected) {
-      setBorder(HIGH);
-      if (AutoShowControls) showWidgetFrame();
-    }
-    else {
-      setBorder(NORM);
-      hideWidgetFrame();
-    }
+    setHighlighted(Selected);
+    if (!Selected) hideWidgetFrame();
+    else if (AutoShowControls) showWidgetFrame();
     validate();
     repaint();
   }
@@ -520,6 +528,17 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     };
     Thread t = new Thread(saveFile);
     t.start();
+  }
+
+  /** set whether this cell is highlighted */
+  private void setHighlighted(boolean hl) {
+    if (hl) setBorder(B_HIGH);
+    else {
+      if (HasFormula) setBorder(B_FORM);
+      else if (RMIAddress != null) setBorder(B_RMI);
+      else if (HasData) setBorder(B_URL);
+      else setBorder(B_EMPTY);
+    }
   }
 
   /** A thin, horizontal divider for separating widget frame components */

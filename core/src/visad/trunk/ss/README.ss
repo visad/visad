@@ -159,10 +159,13 @@ visad.formula package.
 
 The spreadsheet cell with the yellow border is the current, highlighted
 cell.  Any operation you perform (such as importing a data set), will affect
-the highlighted cell.  To change which cell is highlighted, click inside the
-desired cell with a mouse button, or press the arrow keys.  You can also
-resize the spreadsheet cells, to allow some cells to be larger than others,
-by dragging the yellow block between cell labels.
+the highlighted cell.  Cells that are not highlighted will be one of four
+colors: dim red (meaning the cell contains a formula), dim blue (meaning the
+cell contains an RMI address), dim green (meaning the cell contains a filename
+or URL), or dim gray (meaning the cell contains no data).  To change which cell
+is highlighted, click inside the desired cell with a mouse button, or press
+the arrow keys.  You can also resize the spreadsheet cells, to allow some cells
+to be larger than others, by dragging the yellow blocks between cell labels.
 
 2.2 Menu Commands
 
@@ -173,7 +176,7 @@ Here are the commands from the File menu:
 Import data - Brings up a dialog box that allows the user to select a file for
 the Spread Sheet to import to the current cell.  Currently, VisAD supports the
 following file types:
-    GIF, JPEG, netCDF, HDF-EOS, FITS, Vis5D, McIDAS, and serialized data.
+    GIF, JPEG, netCDF, HDF-EOS, FITS, Vis5D, McIDAS area, and serialized data.
 -------------------------------------------------------------------------------
 Note: You must have the HDF-EOS and Vis5D file adapter native C code compiled
       in order to import data sets of those types.  See the Spread Sheet web
