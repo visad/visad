@@ -187,10 +187,10 @@ public class Aeri
     rtvl_files[4] = "./data/vici_" + truncatedDate + "AG.cdf";
 
     FieldImpl[] winds = makeWinds(wind_files);
-    System.out.println(winds[0].getType().prettyString());
+    // System.out.println(winds[0].getType().prettyString());
 
     FieldImpl[] rtvls = makeAeri(rtvl_files);
-    System.out.println(rtvls[0].getType().prettyString());
+    // System.out.println(rtvls[0].getType().prettyString());
 
     spatial_domain = new RealTupleType(longitude, latitude, altitude);
     advect_range = new RealTupleType(temp, dwpt, wvmr, RH);
@@ -212,7 +212,7 @@ public class Aeri
     vad_form.save("aeri_winds_" + baseDate + "." +
                   height_limit + ".vad", stations_field, true);
 
-    System.out.println(stations_field.getType().prettyString());
+    // System.out.println(stations_field.getType().prettyString());
   }
 
   void init_from_vad( String vad_file )
