@@ -168,7 +168,7 @@ public class Convert {
   public static double getDouble(String s) {
     double d = Double.NaN;
     try {
-      d = Double.parseDouble(s);
+      d = Double.valueOf(s).doubleValue();
     }
     catch (NumberFormatException exc) { }
     return d;
@@ -181,7 +181,7 @@ public class Convert {
     float f = Float.NaN;
     if (s != null) {
       try {
-        f = Float.parseFloat(s);
+        f = Float.valueOf(s).floatValue();
       }
       catch (NumberFormatException exc) { }
     }
