@@ -1905,7 +1905,7 @@ public class DisplayTest extends Object {
         display2.addReference(ref_imaget1, null);
         display2.addReference(ref_imaget2, omaps2);
 
-        jframe = new JFrame("Java3D -- Java2D direct manipulation");
+        jframe = new JFrame("image / contour alignment in Java2D");
         jframe.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
@@ -1948,7 +1948,8 @@ public class DisplayTest extends Object {
         imaget2 = new FlatField(ftype2, imaget1.getDomainSet());
         imaget2.setSamples(vals, false);
 
-        display1 = new DisplayImplJ3D("display1");
+        display1 = new DisplayImplJ3D("display1", new TwoDDisplayRendererJ3D());
+        // display1 = new DisplayImplJ3D("display1");
         display1.addMap(new ScalarMap(dom0, Display.XAxis));
         display1.addMap(new ScalarMap(dom1, Display.YAxis));
         display1.addMap(new ScalarMap(ran, Display.Green));
@@ -1971,7 +1972,8 @@ public class DisplayTest extends Object {
         ref_imaget2.setData(imaget2);
         display1.addReference(ref_imaget2, omaps1);
 
-        display2 = new DisplayImplJ3D("display2");
+        display2 = new DisplayImplJ3D("display2", new TwoDDisplayRendererJ3D());
+        // display2 = new DisplayImplJ3D("display2");
         display2.addMap(new ScalarMap(dom0, Display.XAxis));
         display2.addMap(new ScalarMap(dom1, Display.YAxis));
         display2.addMap(new ScalarMap(ran, Display.Green));
@@ -1986,7 +1988,7 @@ public class DisplayTest extends Object {
         display2.addReference(ref_imaget1, null);
         display2.addReference(ref_imaget2, omaps2);
 
-        jframe = new JFrame("Java3D -- Java2D direct manipulation");
+        jframe = new JFrame("image / contour alignment in Java3D");
         jframe.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
@@ -2002,20 +2004,6 @@ public class DisplayTest extends Object {
         jframe.setVisible(true);
 
         break;
-/*
-  J2D and J3D behave the same.
-  ImageElement = 0 at bottom and 224 at top
-  ImageLine = 0 at left and 193 at right
-    (xv thinks 0,0 is top left)
-  image seen right side up
-  contours seen upside down
-  image and contour agree left to right,
-    and are oriented correctly (words readable)
- - - - - - - - - -
-  J2D, if mode.setTextureEnable(false)
-       then image matches contours
-  J3D, I recall (?) that texture true matches texture false
-*/
 
     } // end switch(test_case)
 
