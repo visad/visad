@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: TimeFactorer.java,v 1.3 2001-02-22 18:10:41 steve Exp $
+$Id: TimeFactorer.java,v 1.4 2001-03-02 18:09:23 steve Exp $
 */
 
 package visad.data.in;
@@ -31,7 +31,7 @@ import visad.*;
  * Converts incoming VisAD Fields whose outermost dimension is time and
  * can be factored out into a field-of-fields.  Sends the field-of-fields to the
  * downstream data sink.  Sends all other VisAD data objects to the downstream
- * data sink unchaned.
+ * data sink unchanged.
  *
  * <P>Instances are immutable.</P>
  *

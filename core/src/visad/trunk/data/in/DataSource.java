@@ -1,7 +1,7 @@
 package visad.data.in;
 
 /**
- * Interface for sources of VisAD data objects.
+ * Supports sources of VisAD data objects.
  *
  * @author Steven R. Emmerson
  */
