@@ -1,4 +1,5 @@
 import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 
 import visad.DisplayImpl;
@@ -170,9 +171,13 @@ public abstract class TestSkeleton
         try {
           String domain = "//" + hostName + "/" + getClass().getName();
           client = (RemoteServer )Naming.lookup(domain);
+        } catch (NotBoundException nbe) {
+          client = null;
         } catch (Exception e) {
           throw new VisADException ("Cannot connect to server on \"" +
-                                    hostName + "\"");
+                                    hostName + "\" (" +
+                                    e.getClass().getName() + ": " +
+                                    e.getMessage() + ")");
         }
       }
 
