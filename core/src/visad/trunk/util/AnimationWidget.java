@@ -26,10 +26,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad.util;
 
 /* AWT packages */
+import java.awt.*;
 import java.awt.event.*;
 
 /* JFC packages */
 import com.sun.java.swing.*;
+import com.sun.java.swing.event.*;
 
 /* RMI classes */
 import java.rmi.RemoteException;
@@ -37,8 +39,11 @@ import java.rmi.RemoteException;
 /* VisAD packages */
 import visad.*;
 
-/** A widget that allows users to control animation. */
-public class AnimationWidget extends JPanel implements ActionListener {
+/** A widget that allows users to control animation */
+public class AnimationWidget extends JPanel implements ActionListener,
+                                                       ChangeListener,
+                                                       ControlListener,
+                                                       ScalarMapListener {
 
   private boolean aDir;
   private boolean aAnim;
@@ -49,18 +54,19 @@ public class AnimationWidget extends JPanel implements ActionListener {
   private JButton onOff;
   private JButton step;
   private JTextField ms;
+  private JSlider TimeSlider;
 
   private AnimationControl control;
 
   /** construct an AnimationWidget linked to the Control in the map
-      (which must be to Display.Animation) with auto-detecting ms/frame. */
+      (which must be to Display.Animation) with auto-detecting ms/frame */
   public AnimationWidget(ScalarMap smap) throws VisADException,
                                                 RemoteException {
     this(smap, -1);
   }
 
   /** construct an AnimationWidget linked to the Control in the map
-      (which must be to Display.Animation) with specified ms/frame. */
+      (which must be to Display.Animation) with specified ms/frame */
   public AnimationWidget(ScalarMap smap, int st) throws VisADException,
                                                         RemoteException {
     // verify scalar map
@@ -96,9 +102,21 @@ public class AnimationWidget extends JPanel implements ActionListener {
     reverse = new JRadioButton("Reverse");
     onOff = new JButton("Stop");
     step = new JButton("Step");
-    step.setEnabled(false);
     ms = new JTextField(""+aMs);
     JLabel msLabel = new JLabel("ms/frame");
+    TimeSlider = new JSlider(0, 1, 0);
+
+    // set up JComponents
+    Color fore = msLabel.getForeground();
+    forward.setForeground(fore);
+    reverse.setForeground(fore);
+    onOff.setForeground(fore);
+    // make sure onOff button stays the same size to avoid ...'s
+    onOff.setMaximumSize(onOff.getMaximumSize());
+    step.setForeground(fore);
+    step.setEnabled(false);
+    ms.setForeground(fore);
+    TimeSlider.setPaintTicks(true);
 
     // group JRadioButtons
     ButtonGroup group = new ButtonGroup();
@@ -106,6 +124,8 @@ public class AnimationWidget extends JPanel implements ActionListener {
     group.add(reverse);
 
     // add listeners
+    control.addControlListener(this);
+    smap.addScalarMapListener(this);
     forward.addActionListener(this);
     forward.setActionCommand("forward");
     reverse.addActionListener(this);
@@ -116,6 +136,7 @@ public class AnimationWidget extends JPanel implements ActionListener {
     step.setActionCommand("step");
     ms.addActionListener(this);
     ms.setActionCommand("ms");
+    TimeSlider.addChangeListener(this);
 
     // align JComponents
     left.setAlignmentX(JPanel.CENTER_ALIGNMENT);
@@ -138,9 +159,10 @@ public class AnimationWidget extends JPanel implements ActionListener {
     bottom.add(ms);
     bottom.add(msLabel);
     add(bottom);
+    add(TimeSlider);
   }
 
-  /** ActionListener method used with JTextField and JButtons. */
+  /** ActionListener method used with JTextField and JButtons */
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
     if (cmd.equals("forward")) {
@@ -201,11 +223,54 @@ public class AnimationWidget extends JPanel implements ActionListener {
     }
     if (cmd.equals("step")) {
       try {
+        // slider will adjust automatically with ControlListener
         control.takeStep();
       }
       catch (VisADException exc) { }
       catch (RemoteException exc) { }
     }
+  }
+
+  /** ChangeListener method used with JSlider */
+  public void stateChanged(ChangeEvent e) {
+    if (!TimeSlider.getValueIsAdjusting()) {
+      try {
+        control.setCurrent(TimeSlider.getValue());
+      }
+      catch (VisADException exc) { }
+      catch (RemoteException exc) { }
+    }
+  }
+
+  /** ControlListener method used for programmatically moving JSlider */
+  public void controlChanged(ControlEvent e) {
+    TimeSlider.setValue(control.getCurrent());
+  }
+
+  /** ScalarMapListener method used to recompute JSlider bounds */
+  public void mapChanged(ScalarMapEvent e) {
+    if (control.getSet() != null) {
+      try {
+        int max = control.getSet().getLength()-1;
+        TimeSlider.setMaximum(max);
+        
+        int maj;
+        if (max < 20) maj = max/4;
+        else if (max < 30) maj = max/6;
+        else maj = max/8;
+        TimeSlider.setMajorTickSpacing(maj);
+        TimeSlider.setMinorTickSpacing(maj/4);
+        TimeSlider.setPaintLabels(true);
+      }
+      catch (VisADException exc) { }
+    }
+  }
+
+  /** Work-around for Swing bug where pack() doesn't display slider labels;
+      actually, it still won't, but window will be the right size */
+  public Dimension getPreferredSize() {
+    Dimension d = super.getPreferredSize();
+    return new Dimension(d.width, d.height+18);
   }
 
 }

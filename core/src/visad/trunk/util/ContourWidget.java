@@ -115,11 +115,13 @@ public class ContourWidget extends JPanel implements ActionListener,
     // create JPanels
     JPanel top = new JPanel();
     JPanel mid = new JPanel();
+    JPanel low = new JPanel();
 
     // set up layouts
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     top.setLayout(new BoxLayout(top, BoxLayout.X_AXIS));
     mid.setLayout(new BoxLayout(mid, BoxLayout.X_AXIS));
+    low.setLayout(new BoxLayout(low, BoxLayout.X_AXIS));
 
     // create JComponents
     Contours = new JCheckBox("contours", true);
@@ -129,10 +131,7 @@ public class ContourWidget extends JPanel implements ActionListener,
     Interval = new JTextField("---");
     JLabel baseLabel = new JLabel("base:");
     Base = new JTextField("---");
-/* WLH 20 Aug 98
-    SurfaceLabel = new JLabel("surface value: ------------");
-*/
-    SurfaceLabel = new JLabel(name + " = 0.0                           ");
+    SurfaceLabel = new JLabel(name + " = ---");
     Surface = new JSlider();
     ContourRangeWidget crw = new ContourRangeWidget(smap, cLo, cHi,
                                                     this, update);
@@ -152,6 +151,10 @@ public class ContourWidget extends JPanel implements ActionListener,
     Interval.setActionCommand("interval");
     Base.addActionListener(this);
     Base.setActionCommand("base");
+    Dimension d = new Dimension(Integer.MAX_VALUE,
+                                SurfaceLabel.getMaximumSize().height);
+    SurfaceLabel.setMaximumSize(d);
+    SurfaceLabel.setPreferredSize(d);
     Surface.addChangeListener(this);
     Labels.addItemListener(this);
     Contours.addItemListener(this);
@@ -165,10 +168,12 @@ public class ContourWidget extends JPanel implements ActionListener,
     mid.add(Box.createRigidArea(new Dimension(10, 0)));
     mid.add(baseLabel);
     mid.add(Base);
+    low.add(Box.createRigidArea(new Dimension(10, 0)));
+    low.add(SurfaceLabel);
     add(top);
     add(Dashed);
     add(mid);
-    add(SurfaceLabel);
+    add(low);
     add(Surface);
     add(crw);
   }
@@ -198,9 +203,6 @@ public class ContourWidget extends JPanel implements ActionListener,
     cHi = fval[3];
     cBase = fval[4];
     if (cSurface != cSurface) cSurface = (float) range[0];
-    if (cSurface == cSurface) cSurface = Math.round(1000*cSurface)/1000;
-    if (cInterval == cInterval) cInterval = Math.round(1000*cInterval)/1000;
-    if (cBase == cBase) cBase = Math.round(1000*cBase)/1000;
   }
 
   synchronized void updateWidget() throws VisADException, RemoteException {
@@ -208,27 +210,18 @@ public class ContourWidget extends JPanel implements ActionListener,
       control.setSurfaceValue(cSurface);
       Surface.setEnabled(true);
       Surface.setValue((int) (sliderScale*cSurface));
-
-/*
-      String surfString;
-      if (cSurface < 10000000 && cSurface > -1000000) {
-        surfString = ""+cSurface;
-        int maxLen = surfString.length();
-        maxLen = maxLen < 8 ? maxLen : 8;
-        surfString = surfString.substring(0, maxLen);
-      }
-      else surfString = ""+Math.round(cSurface);
-*/
-      String surfString = PlotText.shortString((double) cSurface);
-      SurfaceLabel.setText(name + " = " + surfString);
+      SurfaceLabel.setText(name + " = " + PlotText.shortString(cSurface));
     }
-    else Surface.setEnabled(false);
+    else {
+      Surface.setEnabled(false);
+      SurfaceLabel.setText(name + " = ---");
+    }
     if (cInterval == cInterval && cLo == cLo && cHi == cHi && cBase == cBase) {
       control.setContourInterval(cInterval, cLo, cHi, cBase);
       Interval.setEnabled(true);
-      Interval.setText(""+Math.abs(cInterval));
+      Interval.setText(PlotText.shortString(Math.abs(cInterval)));
       Base.setEnabled(true);
-      Base.setText(""+cBase);
+      Base.setText("" + PlotText.shortString(cBase));
     }
     else {
       Interval.setEnabled(false);
@@ -247,7 +240,7 @@ public class ContourWidget extends JPanel implements ActionListener,
         interv = Float.valueOf(Interval.getText()).floatValue();
       }
       catch (NumberFormatException exc) {
-        Interval.setText(""+Math.abs(cInterval));
+        Interval.setText(PlotText.shortString(Math.abs(cInterval)));
       }
       if (interv == interv && interv >= 0.0f) {
         if (cInterval < 0.0f) interv = -interv;
@@ -256,13 +249,13 @@ public class ContourWidget extends JPanel implements ActionListener,
           cInterval = interv;
         }
         catch (VisADException exc) {
-          Interval.setText(""+Math.abs(cInterval));
+          Interval.setText(PlotText.shortString(Math.abs(cInterval)));
         }
         catch (RemoteException exc) {
-          Interval.setText(""+Math.abs(cInterval));
+          Interval.setText(PlotText.shortString(Math.abs(cInterval)));
         }
       }
-      else Interval.setText(""+Math.abs(cInterval));
+      else Interval.setText(PlotText.shortString(Math.abs(cInterval)));
     }
     if (cmd.equals("base")) {
       float ba = Float.NaN;
@@ -270,7 +263,7 @@ public class ContourWidget extends JPanel implements ActionListener,
         ba = Float.valueOf(Base.getText()).floatValue();
       }
       catch (NumberFormatException exc) {
-        Base.setText(""+cBase);
+        Base.setText(PlotText.shortString(cBase));
       }
       if (ba == ba) {
         try {
@@ -278,10 +271,10 @@ public class ContourWidget extends JPanel implements ActionListener,
           cBase = ba;
         }
         catch (VisADException exc) {
-          Base.setText(""+cBase);
+          Base.setText(PlotText.shortString(cBase));
         }
         catch (RemoteException exc) {
-          Base.setText(""+cBase);
+          Base.setText(PlotText.shortString(cBase));
         }
       }
     }
@@ -290,19 +283,7 @@ public class ContourWidget extends JPanel implements ActionListener,
   /** ChangeListener method for JSlider. */
   public void stateChanged(ChangeEvent e) {
     cSurface = (float) (Surface.getValue()/sliderScale);
-/*
-    String surfString;
-    if (cSurface < 10000000 && cSurface > -1000000) {
-      surfString = ""+cSurface;
-      int maxLen = surfString.length();
-      maxLen = maxLen < 8 ? maxLen : 8;
-      surfString = surfString.substring(0, maxLen);
-    }
-    else surfString = ""+Math.round(cSurface);
-    SurfaceLabel.setText(name + " = " + surfString);
-*/
-    String surfString = PlotText.shortString((double) cSurface);
-    SurfaceLabel.setText(name + " = " + surfString);
+    SurfaceLabel.setText(name + " = " + PlotText.shortString(cSurface));
 
     try {
       control.setSurfaceValue(cSurface);
@@ -339,6 +320,11 @@ public class ContourWidget extends JPanel implements ActionListener,
     }
   }
 
+  /** Make ContourWidget appear decent-sized */
+  public Dimension getPreferredSize() {
+    return new Dimension(300, super.getPreferredSize().height);
+  }
+
   /** Subclass of RangeSlider for selecting min and max values.<P> */
   class ContourRangeWidget extends RangeSlider implements ScalarMapListener {
 
@@ -346,7 +332,7 @@ public class ContourWidget extends JPanel implements ActionListener,
 
     ContourRangeWidget(ScalarMap smap, float min, float max, ContourWidget dad,
                        boolean update) throws VisADException, RemoteException {
-      super(smap, Math.round(100*min)/100, Math.round(100*max)/100);
+      super(smap, min, max);
       pappy = dad;
 
       // set auto-scaling enabled (listen for new min and max)
@@ -373,8 +359,8 @@ public class ContourWidget extends JPanel implements ActionListener,
     void percPaint() {
       super.percPaint();
       try {
-        pappy.setMinMax(0.01f*minPercent*(maxVal-minVal)+minVal,
-                        0.01f*maxPercent*(maxVal-minVal)+minVal);
+        pappy.setMinMax(minPercent * (maxVal - minVal) / 100 + minVal,
+                        maxPercent * (maxVal - minVal) / 100 + minVal);
       }
       catch (VisADException exc) { }
       catch (RemoteException exc) { }

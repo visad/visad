@@ -244,7 +244,7 @@ public class DisplayTest extends Object {
         big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
         big_panel.add(display1.getComponent());
         big_panel.add(display2.getComponent());
-        jframe.getContentPane().add(big_panel);
+        jframe.setContentPane(big_panel);
         jframe.setSize(512, 256);
         jframe.setVisible(true);
 
@@ -282,7 +282,7 @@ public class DisplayTest extends Object {
         jframe.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
-        jframe.getContentPane().add(big_panel);
+        jframe.setContentPane(big_panel);
         jframe.pack();
         jframe.setVisible(true);
 
@@ -320,7 +320,7 @@ public class DisplayTest extends Object {
         jframe.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
-        jframe.getContentPane().add(big_panel);
+        jframe.setContentPane(big_panel);
         jframe.pack();
         jframe.setVisible(true);
 
@@ -386,7 +386,7 @@ public class DisplayTest extends Object {
         jframe.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
-        jframe.getContentPane().add(big_panel);
+        jframe.setContentPane(big_panel);
         jframe.pack();
         jframe.setVisible(true);
 
@@ -440,7 +440,7 @@ public class DisplayTest extends Object {
         jframe.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
-        jframe.getContentPane().add(big_panel);
+        jframe.setContentPane(big_panel);
         jframe.pack();
         jframe.setVisible(true);
 
@@ -554,7 +554,7 @@ public class DisplayTest extends Object {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
  
-        jframe.getContentPane().add(display1.getComponent());
+        jframe.setContentPane((JPanel) display1.getComponent());
         jframe.setSize(256, 256);
         jframe.setVisible(true);
  
@@ -675,13 +675,16 @@ public class DisplayTest extends Object {
         LabeledRGBWidget lw =
           new LabeledRGBWidget(color1map, 0.0f, 32.0f);
 
-        Frame frame = new Frame("VisAD Color Widget");
-        frame.addWindowListener(new WindowAdapter() {
+        jframe = new JFrame("VisAD Color Widget");
+        jframe.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
-        frame.add(lw);
-        frame.setSize(lw.getPreferredSize());
-        frame.setVisible(true);
+        big_panel = new JPanel();
+        big_panel.setLayout(new BorderLayout());
+        big_panel.add("Center", lw);
+        jframe.setContentPane(big_panel);
+        jframe.pack();
+        jframe.setVisible(true);
 
         ref_imaget1 = new DataReferenceImpl("ref_imaget1");
         ref_imaget1.setData(imaget1);
@@ -1008,13 +1011,16 @@ public class DisplayTest extends Object {
         };
         cell.addReference(value_ref);
 
-        frame = new Frame("VisAD select slider");
-        frame.addWindowListener(new WindowAdapter() {
+        jframe = new JFrame("VisAD select slider");
+        jframe.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
-        frame.add(slider);
-        frame.setSize(300, 60);
-        frame.setVisible(true);
+        big_panel = new JPanel();
+        big_panel.setLayout(new BorderLayout());
+        big_panel.add("Center", slider);
+        jframe.setContentPane(big_panel);
+        jframe.setSize(300, 60);
+        jframe.setVisible(true);
 
         break;
 
@@ -1037,13 +1043,16 @@ public class DisplayTest extends Object {
         LabeledRGBAWidget lwa =
           new LabeledRGBAWidget(color1map, 0.0f, 32.0f);
  
-        frame = new Frame("VisAD Color Alpha Widget");
-        frame.addWindowListener(new WindowAdapter() {
+        jframe = new JFrame("VisAD Color Alpha Widget");
+        jframe.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
-        frame.add(lwa);
-        frame.setSize(lwa.getPreferredSize());
-        frame.setVisible(true);
+        big_panel = new JPanel();
+        big_panel.setLayout(new BorderLayout());
+        big_panel.add("Center", lwa);
+        jframe.setContentPane(big_panel);
+        jframe.pack();
+        jframe.setVisible(true);
  
         ref_imaget1 = new DataReferenceImpl("ref_imaget1");
         ref_imaget1.setData(imaget1);
@@ -1082,7 +1091,7 @@ public class DisplayTest extends Object {
         big_panel = new JPanel();
         big_panel.setLayout(new BorderLayout());
         big_panel.add("Center", srw);
-        jframe.getContentPane().add(big_panel);
+        jframe.setContentPane(big_panel);
         jframe.pack();
         jframe.setVisible(true);
 
@@ -1515,13 +1524,16 @@ public class DisplayTest extends Object {
 
         lw = new LabeledRGBWidget(color1map, 0.0f, 32.0f, table);
  
-        frame = new Frame("VisAD Color Widget");
-        frame.addWindowListener(new WindowAdapter() {
+        jframe = new JFrame("VisAD Color Widget");
+        jframe.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
-        frame.add(lw);
-        frame.setSize(lw.getPreferredSize());
-        frame.setVisible(true);
+        big_panel = new JPanel();
+        big_panel.setLayout(new BorderLayout());
+        big_panel.add("Center", lw);
+        jframe.setContentPane(big_panel);
+        jframe.pack();
+        jframe.setVisible(true);
  
         ref_imaget1 = new DataReferenceImpl("ref_imaget1");
         ref_imaget1.setData(imaget1);
@@ -1587,7 +1599,7 @@ public class DisplayTest extends Object {
         big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
         big_panel.add(display1.getComponent());
         big_panel.add(display2.getComponent());
-        jframe.getContentPane().add(big_panel);
+        jframe.setContentPane(big_panel);
         jframe.setSize(512, 256);
         jframe.setVisible(true);
 
@@ -1653,7 +1665,7 @@ public class DisplayTest extends Object {
         big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
         big_panel.add(display1.getComponent());
         big_panel.add(display2.getComponent());
-        jframe.getContentPane().add(big_panel);
+        jframe.setContentPane(big_panel);
         jframe.setSize(512, 256);
         jframe.setVisible(true);
 
@@ -1678,7 +1690,7 @@ public class DisplayTest extends Object {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
  
-        jframe.getContentPane().add(display1.getComponent());
+        jframe.setContentPane((JPanel) display1.getComponent());
         jframe.setSize(256, 256);
         jframe.setVisible(true);
 
@@ -1719,7 +1731,7 @@ public class DisplayTest extends Object {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
  
-        jframe.getContentPane().add(display1.getComponent());
+        jframe.setContentPane((JPanel) display1.getComponent());
         jframe.setSize(256, 256);
         jframe.setVisible(true);
 
@@ -1731,7 +1743,7 @@ public class DisplayTest extends Object {
         jframe2.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
-        jframe2.getContentPane().add(big_panel);
+        jframe2.setContentPane(big_panel);
         jframe2.pack();
         jframe2.setVisible(true);
 
@@ -1764,7 +1776,7 @@ public class DisplayTest extends Object {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
  
-        jframe.getContentPane().add(display1.getComponent());
+        jframe.setContentPane((JPanel) display1.getComponent());
         jframe.setSize(256, 256);
         jframe.setVisible(true);
 
@@ -1801,12 +1813,14 @@ public class DisplayTest extends Object {
  
         big_panel = new JPanel();
         big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.Y_AXIS));
-        big_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
-        big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
         big_panel.add(lw);
-        big_panel.add(display1.getComponent());
-        jframe.getContentPane().add(big_panel);
-        jframe.setSize(400, 400);
+        JPanel lil_panel = new JPanel();
+        lil_panel.setAlignmentX(JPanel.CENTER_ALIGNMENT);
+        lil_panel.setLayout(new BorderLayout());
+        lil_panel.add("Center", display1.getComponent());
+        big_panel.add(lil_panel);
+        jframe.setContentPane(big_panel);
+        jframe.setSize(400, 600);
         jframe.setVisible(true);
 
         ref_imaget1 = new DataReferenceImpl("ref_imaget1");
@@ -1866,7 +1880,7 @@ public class DisplayTest extends Object {
         big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
         big_panel.add(display1.getComponent());
         big_panel.add(display2.getComponent());
-        jframe.getContentPane().add(big_panel);
+        jframe.setContentPane(big_panel);
         jframe.setSize(512, 256);
         jframe.setVisible(true);
 
@@ -1947,7 +1961,7 @@ public class DisplayTest extends Object {
         big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
         big_panel.add(display1.getComponent());
         big_panel.add(display2.getComponent());
-        jframe.getContentPane().add(big_panel);
+        jframe.setContentPane(big_panel);
         jframe.setSize(800, 400);
         jframe.setVisible(true);
 
@@ -2030,7 +2044,7 @@ public class DisplayTest extends Object {
         big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
         big_panel.add(display1.getComponent());
         big_panel.add(display2.getComponent());
-        jframe.getContentPane().add(big_panel);
+        jframe.setContentPane(big_panel);
         jframe.setSize(800, 400);
         jframe.setVisible(true);
 
@@ -2162,7 +2176,7 @@ public class DisplayTest extends Object {
         big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
         big_panel.add(display1.getComponent());
         big_panel.add(display2.getComponent());
-        jframe.getContentPane().add(big_panel);
+        jframe.setContentPane(big_panel);
         jframe.setSize(800, 400);
         jframe.setVisible(true);
 

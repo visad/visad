@@ -25,7 +25,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.util;
 
-import visad.*;
+/* VisAD classes */
+import visad.PlotText;
+import visad.ScalarMap;
 
 /* AWT packages */
 import java.awt.*;
@@ -181,7 +183,7 @@ public class RangeSlider extends Canvas implements MouseListener,
     return new Dimension(0, 42);
   }
   public Dimension getPreferredSize() {
-    return new Dimension(200, 42);
+    return new Dimension(300, 42);
   }
   public Dimension getMaximumSize() {
     return new Dimension(Integer.MAX_VALUE, 42);
@@ -235,7 +237,7 @@ public class RangeSlider extends Canvas implements MouseListener,
     int[] ypts = {12, 4, 21};
     g.fillPolygon(xpts, ypts, 3);
     // Note: these coordinates are shifted up and left
-    //       by one, to work around a misalignment bug
+    //       by one, to work around a misalignment problem
     xpts = new int[] {maxGrip+7, maxGrip-1, maxGrip-1};
     ypts = new int[] {13, 5, 20};
     g.fillPolygon(xpts, ypts, 3);
@@ -263,26 +265,10 @@ public class RangeSlider extends Canvas implements MouseListener,
       g.fillRect(lastW - 4 - sw, 27, sw, 15);
       lastMax = maxVal;
     }
-    String minS = ""+Math.round(minPercent*(maxVal-minVal)+100*minVal);
-    String maxS = ""+Math.round(maxPercent*(maxVal-minVal)+100*minVal);
-    if (minS.charAt(0) != '0') {
-      if (minS.endsWith("00")) minS = minS.substring(0, minS.length()-2);
-      else {
-        if (minS.length() == 1) minS = "0"+minS;
-        minS = minS.substring(0, minS.length()-2)+"."
-              +minS.substring(minS.length()-2);
-        if (minS.endsWith("0")) minS = minS.substring(0, minS.length()-1);
-      }
-    }
-    if (maxS.charAt(0) != '0') {
-      if (maxS.endsWith("00")) maxS = maxS.substring(0, maxS.length()-2);
-      else {
-        if (maxS.length() == 1) maxS = "0"+maxS;
-        maxS = maxS.substring(0, maxS.length()-2)+"."
-              +maxS.substring(maxS.length()-2);
-        if (maxS.endsWith("0")) maxS = maxS.substring(0, maxS.length()-1);
-      }
-    }
+    String minS = "" + PlotText.shortString(minPercent
+                     * (maxVal - minVal) / 100 + minVal);
+    String maxS = "" + PlotText.shortString(maxPercent
+                     * (maxVal - minVal) / 100 + minVal);
     String curStr = name + "(" + minS + ", " + maxS + ")";
     if (!curStr.equals(lastCurStr) || lastW != w) {
       g.setColor(Color.black);
@@ -291,8 +277,8 @@ public class RangeSlider extends Canvas implements MouseListener,
       lastCurStr = curStr;
     }
     g.setColor(Color.white);
-    g.drawString(""+minVal, 1, 40);
-    String maxStr = ""+maxVal;
+    g.drawString(""+PlotText.shortString(minVal), 1, 40);
+    String maxStr = ""+PlotText.shortString(maxVal);
     g.drawString(maxStr, w - 4 - fm.stringWidth(maxStr), 40);
     g.drawString(curStr, (w - fm.stringWidth(curStr))/2, 40);
   }
