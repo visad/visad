@@ -34,6 +34,7 @@ import visad.util.Delay;
 
 public class Test35
   extends UISkeleton
+  implements DisplayListener
 {
   public Test35() { }
 
@@ -115,6 +116,32 @@ public class Test35
     dpys[1].addReferences(new DirectManipulationRendererJ2D(), refs1, null);
     dpys[1].addReferences(new DirectManipulationRendererJ2D(), refs2, null);
     dpys[1].addReferences(new DirectManipulationRendererJ2D(), refs3, null);
+
+    dpys[0].addDisplayListener(this);
+    dpys[1].addDisplayListener(this);
+  }
+
+  public void displayChanged(DisplayEvent e)
+    throws RemoteException, VisADException {
+    if (e.getId() == DisplayEvent.FRAME_DONE) {
+      DisplayImpl display = (DisplayImpl) e.getDisplay();
+      DisplayRenderer dr = display.getDisplayRenderer();
+      MouseBehavior mb = dr.getMouseBehavior();
+      double[] position1 = null;
+      double[] position2 = null;
+      if (display instanceof DisplayImplJ3D) {
+        position1 = new double[] { 1.0,  1.0,  1.0};
+        position2 = new double[] {-1.0, -1.0, -1.0};
+      }
+      else {
+        position1 = new double[] { 1.0,  1.0};
+        position2 = new double[] {-1.0, -1.0};
+      }
+      int[] screen1 = mb.getScreenCoords(position1);
+      int[] screen2 = mb.getScreenCoords(position2);
+      System.out.println("screen1 = (" + screen1[0] + ", " + screen1[1] +")");
+      System.out.println("screen2 = (" + screen2[0] + ", " + screen2[1] +")");
+    }
   }
 
   String getFrameTitle() { return "clipped Java3D -- Java2D direct manipulation"; }
