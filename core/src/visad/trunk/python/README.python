@@ -67,12 +67,15 @@ for a tutorial on the Python language.
 4. The VisAD Python Library Functions
 
 This is a list of functions specially designed for accessing VisAD
-from Python scripts.  For a more complete description, see the VisAD
-JavaDoc, available on-line at: http://www.ssec.wisc.edu/~dglo/visad/
+from Python scripts.  For a more complete description, see
+visad.python.JPythonMethods in the VisAD JavaDoc, available on-line at:
 
-Note however that any VisAD class or method is accessible from Python
-scripts.
+  http://www.ssec.wisc.edu/~dglo/visad/
 
+Note that any VisAD class or method is accessible from Python scripts,
+so you are not restricted to just these.
+
+The library functions are:
 
   abs(data) - return pointwise absolute value of data
 
@@ -186,6 +189,4 @@ scripts.
   trace(data) - return matrix trace of data (sum of the diagonal elements)
   
   transpose(data) - return matrix transpose of data
-
-
 
