@@ -923,6 +923,8 @@ public class BasicSSCell extends JPanel {
     int dim = -1;
     Vector rnames = null;
     Vector dnames = null;
+    Vector mapMins = null;
+    Vector mapMaxs = null;
     String proj = null;
     String mode = null;
     Vector color = new Vector();
@@ -1065,6 +1067,44 @@ public class BasicSSCell extends JPanel {
         }
       }
 
+      // mapping ranges
+      else if (keyword.equalsIgnoreCase("map ranges") ||
+        keyword.equalsIgnoreCase("map_ranges") ||
+        keyword.equalsIgnoreCase("mapranges"))
+      {
+        st = new StringTokenizer(surplus);
+        mapMins = new Vector();
+        mapMaxs = new Vector();
+        while (true) {
+          if (!st.hasMoreTokens()) break;
+          String s1 = st.nextToken();
+          if (!st.hasMoreTokens()) {
+            System.err.println("Warning: trailing map range min value " +
+              s1 + " has no corresponding max value and will be ignored");
+            break;
+          }
+          String s2 = st.nextToken();
+          Double d1 = null, d2 = null;
+          try {
+            d1 = new Double(Double.parseDouble(s1));
+            d2 = new Double(Double.parseDouble(s2));
+          }
+          catch (NumberFormatException exc) {
+            if (DEBUG) exc.printStackTrace();
+          }
+          if (d1 == null || d2 == null ||
+            d1.doubleValue() > d2.doubleValue())
+          {
+            System.err.println("Warning: map range min/max pair (" +
+              s1 + ", " + s2 + ") is not valid and will be ignored");
+          }
+          else {
+            mapMins.add(d1);
+            mapMaxs.add(d2);
+          }
+        }
+      }
+
       // projection matrix
       else if (keyword.equalsIgnoreCase("projection") ||
         keyword.equalsIgnoreCase("proj"))
@@ -1165,6 +1205,9 @@ public class BasicSSCell extends JPanel {
     // set up mappings
     if (dnames != null) {
       int len = dnames.size();
+      int lmin = mapMins == null ? -1 : mapMins.size();
+      int lmax = mapMaxs == null ? -1 : mapMaxs.size();
+      int cmin = 0, cmax = 0;
       if (len > 0) {
         // get Vector of all ScalarTypes in this data object
         Vector types = new Vector();
@@ -1199,7 +1242,17 @@ public class BasicSSCell extends JPanel {
               q + ") is not a valid ScalarMap and will be ignored");
             maps[j] = null;
           }
-          else maps[j] = new ScalarMap(mapDomain, mapRange);
+          else {
+            // set map's minimum and maximum range value, if applicable
+            ScalarMap sm = new ScalarMap(mapDomain, mapRange);
+            boolean scale = sm.getScale(
+              new double[2], new double[2], new double[2]);
+            if (scale && cmin < lmin && cmax < lmax) {
+              sm.setRange(((Double) mapMins.elementAt(cmin++)).doubleValue(),
+                ((Double) mapMaxs.elementAt(cmax++)).doubleValue());
+            }
+            maps[j] = sm;
+          }
         }
         setMaps(maps);
       }
@@ -1319,11 +1372,11 @@ public class BasicSSCell extends JPanel {
       s = s + "dim = " + Dim + '\n';
 
       if (hasMappings()) {
-        // add mappings to save string
         Vector mapVector = VDisplay.getMapVector();
         int mvs = mapVector.size();
         if (mvs > 0) {
-          s = s + "maps = ";
+          // add mappings to save string
+          s = s + "maps =";
           for (int i=0; i<mvs; i++) {
             ScalarMap m = (ScalarMap) mapVector.elementAt(i);
             ScalarType domain = m.getScalar();
@@ -1332,8 +1385,17 @@ public class BasicSSCell extends JPanel {
             for (int j=0; j<Display.DisplayRealArray.length; j++) {
               if (range.equals(Display.DisplayRealArray[j])) q = j;
             }
-            if (i > 0) s = s + " ";
-            s = s + domain.getName() + " " + q;
+            s = s + ' ' + domain.getName() + ' ' + q;
+          }
+          s = s + '\n';
+
+          // add map ranges to save string
+          s = s + "map ranges =";
+          for (int i=0; i<mvs; i++) {
+            ScalarMap m = (ScalarMap) mapVector.elementAt(i);
+            double[] range = new double[2];
+            boolean scale = m.getScale(new double[2], range, new double[2]);
+            if (scale) s = s + ' ' + range[0] + ' ' + range[1];
           }
           s = s + '\n';
         }

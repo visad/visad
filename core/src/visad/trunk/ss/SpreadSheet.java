@@ -920,7 +920,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
           else {
             NumVisX = cellNames.length;
             NumVisY = cellNames[0].length;
-            reconstructLabels(cellNames);
+            reconstructLabels(cellNames, null, null);
             constructSpreadsheetCells(cellNames, rs);
           }
         }
@@ -962,7 +962,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
             NumVisY = cellNames[0].length;
             if (NumVisX != oldNVX || NumVisY != oldNVY) {
               // reconstruct spreadsheet cells and labels
-              reconstructSpreadsheet(cellNames, frs);
+              reconstructSpreadsheet(cellNames, null, null, frs);
               if (!IsRemote) synchColRow();
             }
           }
@@ -1090,8 +1090,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     st = null;
 
     // get global information
-    int dimX = -1, dimY = -1;
     int sizeX = -1, sizeY = -1;
+    int dimX = -1, dimY = -1;
+    Vector colWidths = new Vector(), rowHeights = new Vector();
     boolean autoSwitch = true, autoDetect = true, autoShow = true;
     int tokenNum = 0;
     String line;
@@ -1146,6 +1147,26 @@ public class SpreadSheet extends JFrame implements ActionListener,
           }
           String keyword = line.substring(0, eq).trim();
 
+          // sheet size
+          if (keyword.equalsIgnoreCase("sheet size") ||
+            keyword.equalsIgnoreCase("sheet_size") ||
+            keyword.equalsIgnoreCase("sheetsize") ||
+            keyword.equalsIgnoreCase("size"))
+          {
+            int x = line.indexOf('x', eq);
+            if (x >= 0) {
+              String sX = line.substring(eq + 1, x).trim();
+              String sY = line.substring(x + 1).trim();
+              try {
+                sizeX = Integer.parseInt(sX);
+                sizeY = Integer.parseInt(sY);
+              }
+              catch (NumberFormatException exc) {
+                if (BasicSSCell.DEBUG) exc.printStackTrace();
+              }
+            }
+          }
+
           // cell dimension
           if (keyword.equalsIgnoreCase("dimension") ||
             keyword.equalsIgnoreCase("dimensions") ||
@@ -1165,23 +1186,51 @@ public class SpreadSheet extends JFrame implements ActionListener,
             }
           }
 
-          // sheet size
-          if (keyword.equalsIgnoreCase("sheet size") ||
-            keyword.equalsIgnoreCase("sheet_size") ||
-            keyword.equalsIgnoreCase("sheetsize") ||
-            keyword.equalsIgnoreCase("size"))
+          // column widths
+          if (keyword.equalsIgnoreCase("columns") ||
+            keyword.equalsIgnoreCase("column") ||
+            keyword.equalsIgnoreCase("column widths") ||
+            keyword.equalsIgnoreCase("column_widths") ||
+            keyword.equalsIgnoreCase("columnwidths") ||
+            keyword.equalsIgnoreCase("column width") ||
+            keyword.equalsIgnoreCase("column_width") ||
+            keyword.equalsIgnoreCase("columnwidth"))
           {
-            int x = line.indexOf('x', eq);
-            if (x >= 0) {
-              String sX = line.substring(eq + 1, x).trim();
-              String sY = line.substring(x + 1).trim();
+            StringTokenizer ln = new StringTokenizer(line.substring(eq + 1));
+            int nt = ln.countTokens();
+            for (int z=0; z<nt; z++) {
+              int cw = 0;
               try {
-                sizeX = Integer.parseInt(sX);
-                sizeY = Integer.parseInt(sY);
+                cw = Integer.parseInt(ln.nextToken());
               }
               catch (NumberFormatException exc) {
                 if (BasicSSCell.DEBUG) exc.printStackTrace();
               }
+              if (cw >= MIN_VIS_WIDTH) colWidths.add(new Integer(cw));
+            }
+          }
+
+          // rows heights
+          if (keyword.equalsIgnoreCase("rows") ||
+            keyword.equalsIgnoreCase("row") ||
+            keyword.equalsIgnoreCase("row heights") ||
+            keyword.equalsIgnoreCase("row_heights") ||
+            keyword.equalsIgnoreCase("rowheights") ||
+            keyword.equalsIgnoreCase("row height") ||
+            keyword.equalsIgnoreCase("row_height") ||
+            keyword.equalsIgnoreCase("rowheight"))
+          {
+            StringTokenizer ln = new StringTokenizer(line.substring(eq + 1));
+            int nt = ln.countTokens();
+            for (int z=0; z<nt; z++) {
+              int rh = 0;
+              try {
+                rh = Integer.parseInt(ln.nextToken());
+              }
+              catch (NumberFormatException exc) {
+                if (BasicSSCell.DEBUG) exc.printStackTrace();
+              }
+              if (rh >= MIN_VIS_WIDTH) rowHeights.add(new Integer(rh));
             }
           }
 
@@ -1238,6 +1287,20 @@ public class SpreadSheet extends JFrame implements ActionListener,
       return;
     }
 
+    // create label width and height arrays
+    len = colWidths.size();
+    int[] cw = new int[dimX];
+    for (int i=0; i<dimX; i++) {
+      if (i < len) cw[i] = ((Integer) colWidths.elementAt(i)).intValue();
+      else cw[i] = DEFAULT_VIS_WIDTH;
+    }
+    len = rowHeights.size();
+    int[] rh = new int[dimY];
+    for (int i=0; i<dimY; i++) {
+      if (i < len) rh[i] = ((Integer) rowHeights.elementAt(i)).intValue();
+      else rh[i] = DEFAULT_VIS_HEIGHT;
+    }
+
     // examine each cell entry
     String[][] cellNames = new String[dimX][dimY];
     String[][] fileStrings = new String[dimX][dimY];
@@ -1285,7 +1348,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     // reconstruct spreadsheet cells and labels
     NumVisX = dimX;
     NumVisY = dimY;
-    reconstructSpreadsheet(cellNames, null);
+    reconstructSpreadsheet(cellNames, cw, rh, null);
     synchColRow();
 
     // set each cell's string
@@ -1364,8 +1427,18 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
       // compile global information
       String global = "[Global]\n" + 
-        "dimension = " + NumVisX + " x " + NumVisY + '\n' +
         "sheet size = " + getWidth() + " x " + getHeight() + '\n' +
+        "dimension = " + NumVisX + " x " + NumVisY + '\n' +
+        "columns =";
+      for (int j=0; j<NumVisY; j++) {
+        global = global + ' ' + HorizLabel[j].getSize().width;
+      }
+      global = global + '\n' +
+        "rows =";
+      for (int i=0; i<NumVisX; i++) {
+        global = global + ' ' + VertLabel[i].getSize().height;
+      }
+      global = global + '\n' +
         "auto switch = " + AutoSwitch + '\n' +
         "auto detect = " + AutoDetect + '\n' +
         "auto show = " + AutoShowControls + '\n';
@@ -2111,7 +2184,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
       DisplayPanel.setLayout(new SSLayout(NumVisX, NumVisY, 5, 5));
       DisplayCells = new FancySSCell[NumVisX][NumVisY];
       for (int j=0; j<NumVisY; j++) {
+        int ph = VertLabel[j].getPreferredSize().height;
         for (int i=0; i<NumVisX; i++) {
+          int pw = HorizLabel[i].getPreferredSize().width;
           try {
             FancySSCell f = (FancySSCell) BasicSSCell.getSSCellByName(l[i][j]);
             if (f == null) {
@@ -2123,13 +2198,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
               f.setAutoShowControls(AutoShowControls);
               if (rs == null) f.setDimension(!CanDo3D, !CanDo3D);
               f.addDisplayListener(this);
-              f.setPreferredSize(
-                new Dimension(DEFAULT_VIS_WIDTH, DEFAULT_VIS_HEIGHT));
               if (rsi != null) {
                 // add new cell to server
                 f.addToRemoteServer(rsi);
               }
             }
+            f.setPreferredSize(new Dimension(pw, ph));
             DisplayCells[i][j] = f;
 
             if (i == 0 && j == 0) selectCell(i, j);
@@ -2151,22 +2225,27 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   private void constructHorizontalLabels() {
-    String[] labels = new String[NumVisX];
-    for (int i=0; i<NumVisX; i++) labels[i] = "" + Letters.charAt(i);
-    constructHorizontalLabels(labels);
+    constructHorizontalLabels(null, null);
   }
 
-  private void constructHorizontalLabels(String[] l) {
+  private void constructHorizontalLabels(String[] l, int[] widths) {
+    if (l == null) {
+      l = new String[NumVisX];
+      for (int i=0; i<NumVisX; i++) l[i] = "" + Letters.charAt(i);
+    }
+    if (widths == null) {
+      widths = new int[NumVisX];
+      for (int i=0; i<NumVisX; i++) widths[i] = DEFAULT_VIS_WIDTH;
+    }
     synchronized (Lock) {
-      HorizPanel.setLayout(new SSLayout(2*NumVisX, 1, 0, 0));
+      HorizPanel.setLayout(new SSLayout(2 * NumVisX, 1, 0, 0));
       HorizLabel = new JPanel[NumVisX];
       HorizDrag = new JComponent[NumVisX];
       for (int i=0; i<NumVisX; i++) {
         HorizLabel[i] = new JPanel();
         HorizLabel[i].setBorder(new LineBorder(Color.black, 1));
         HorizLabel[i].setLayout(new BorderLayout());
-        HorizLabel[i].setPreferredSize(
-          new Dimension(DEFAULT_VIS_WIDTH, LABEL_HEIGHT));
+        HorizLabel[i].setPreferredSize(new Dimension(widths[i], LABEL_HEIGHT));
         HorizLabel[i].add("Center", new JLabel(l[i], SwingConstants.CENTER));
         HorizPanel.add(HorizLabel[i]);
         HorizDrag[i] = new JComponent() {
@@ -2190,22 +2269,27 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   private void constructVerticalLabels() {
-    String[] labels = new String[NumVisY];
-    for (int i=0; i<NumVisY; i++) labels[i] = "" + (i+1);
-    constructVerticalLabels(labels);
+    constructVerticalLabels(null, null);
   }
 
-  private void constructVerticalLabels(String[] l) {
+  private void constructVerticalLabels(String[] l, int[] heights) {
+    if (l == null) {
+      l = new String[NumVisY];
+      for (int i=0; i<NumVisY; i++) l[i] = "" + (i+1);
+    }
+    if (heights == null) {
+      heights = new int[NumVisY];
+      for (int i=0; i<NumVisY; i++) heights[i] = DEFAULT_VIS_HEIGHT;
+    }
     synchronized (Lock) {
-      VertPanel.setLayout(new SSLayout(1, 2*NumVisY, 0, 0));
+      VertPanel.setLayout(new SSLayout(1, 2 * NumVisY, 0, 0));
       VertLabel = new JPanel[NumVisY];
       VertDrag = new JComponent[NumVisY];
       for (int i=0; i<NumVisY; i++) {
         VertLabel[i] = new JPanel();
         VertLabel[i].setBorder(new LineBorder(Color.black, 1));
         VertLabel[i].setLayout(new BorderLayout());
-        VertLabel[i].setPreferredSize(
-          new Dimension(LABEL_WIDTH, DEFAULT_VIS_HEIGHT));
+        VertLabel[i].setPreferredSize(new Dimension(LABEL_WIDTH, heights[i]));
         VertLabel[i].add("Center", new JLabel(l[i], SwingConstants.CENTER));
         VertPanel.add(VertLabel[i]);
         VertDrag[i] = new JComponent() {
@@ -2229,7 +2313,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  private void reconstructLabels(String[][] cellNames) {
+  private void reconstructLabels(String[][] cellNames, int[] w, int[] h) {
     // reconstruct horizontal labels
     String[] hLabels = new String[NumVisX];
     synchronized (Lock) {
@@ -2238,7 +2322,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         hLabels[i] = "" + cellNames[i][0].charAt(0);
       }
     }
-    constructHorizontalLabels(hLabels);
+    constructHorizontalLabels(hLabels, w);
 
     // reconstruct vertical labels
     String[] vLabels = new String[NumVisY];
@@ -2246,13 +2330,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
       VertPanel.removeAll();
       for (int j=0; j<NumVisY; j++) vLabels[j] = cellNames[0][j].substring(1);
     }
-    constructVerticalLabels(vLabels);
+    constructVerticalLabels(vLabels, h);
   }
 
-  private void reconstructSpreadsheet(String[][] cellNames,
-                                      RemoteServer rs) {
+  private void reconstructSpreadsheet(String[][] cellNames, int[] w, int[] h,
+    RemoteServer rs)
+  {
     // reconstruct labels
-    reconstructLabels(cellNames);
+    reconstructLabels(cellNames, w, h);
 
     // reconstruct spreadsheet cells
     synchronized (Lock) {
@@ -2501,8 +2586,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** unused KeyListener method */
   public void keyTyped(KeyEvent e) { }
 
-  // used with cell resizing logic
+  /** old x value used with cell resizing logic */
   private int oldX;
+
+  /** old y value used with cell resizing logic */
   private int oldY;
 
   /** handle mouse presses */

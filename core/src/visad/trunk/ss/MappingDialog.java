@@ -693,7 +693,7 @@ public class MappingDialog extends JDialog implements ActionListener,
           // fill in array of strings
           if (q == len || pStr[j].charAt(q) == '\n') {
             String lnStr = pStr[j].substring(lastLine, q);
-            lnStr = lnStr + " "; // FontMetrics bug work-around
+            lnStr = lnStr + ' '; // FontMetrics bug work-around
             int lnStrLen = fm.stringWidth(lnStr);
             if (lnStrLen > StrWidth[j]) StrWidth[j] = lnStrLen;
             lineNum++;
