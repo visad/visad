@@ -96,9 +96,7 @@ public class FileSeriesWidget extends BioStepWidget {
     bio.setWaitCursor(true);
     File f = files[curFile];
     Data data = null;
-    try {
-      data = loader.open(f.getPath());
-    }
+    try { data = loader.open(f.getPath()); }
     catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
     if (data == null) {
       bio.setWaitCursor(false);
@@ -109,7 +107,7 @@ public class FileSeriesWidget extends BioStepWidget {
     }
     try {
       boolean success = initialize ?
-        bio.init(data, files.length) : bio.setData(data) != null;
+        bio.init(data, files.length) : bio.setData(data);
       if (!success) {
         bio.setWaitCursor(false);
         JOptionPane.showMessageDialog(this,

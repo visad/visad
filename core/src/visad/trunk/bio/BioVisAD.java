@@ -226,20 +226,6 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   // -- API METHODS --
 
-  /** Helper method for set2D and set3D. */
-  private void setComponent(boolean on, Component c) {
-    if (on) {
-      if (displayPane.isAncestorOf(c)) return;
-      displayPane.add(c);
-    }
-    else {
-      if (!displayPane.isAncestorOf(c)) return;
-      displayPane.remove(c);
-    }
-    displayPane.validate();
-    displayPane.repaint();
-  }
-
   /** Toggles the visibility of the 2-D display. */
   public void set2D(boolean twoD) {
     setComponent(twoD, display2.getComponent());
@@ -252,30 +238,18 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   }
 
   /** Sets the displays to use the given image stack timestep. */
-  public FieldImpl setData(Data data)
-    throws VisADException, RemoteException
-  {
-    FieldImpl field = null;
-    if (data instanceof FieldImpl) field = (FieldImpl) data;
-    else if (data instanceof Tuple) {
-      Tuple tuple = (Tuple) data;
-      Data[] d = tuple.getComponents();
-      for (int i=0; i<d.length; i++) {
-        if (d[i] instanceof FieldImpl) {
-          field = (FieldImpl) d[i];
-          break;
-        }
-      }
-    }
-    if (field != null) ref.setData(field);
-    return field;
+  public boolean setData(Data data) throws VisADException, RemoteException {
+    FieldImpl field = analyzeData(data);
+    if (field == null) return false;
+    ref.setData(field);
+    return true;
   }
 
   /** Initializes the displays to use the given image stack data. */
   public boolean init(Data data, int timesteps)
     throws VisADException, RemoteException
   {
-    FieldImpl field = setData(data);
+    FieldImpl field = analyzeData(data);
     if (field == null) return false;
 
     // clear old displays
@@ -289,11 +263,8 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     // reset measurements
     if (lists != null) clear();
 
-    /*
-    // reset measurement pools
-    pool2.releaseAll();
-    if (pool3 != null) pool3.releaseAll();
-    */
+    // set new data
+    ref.setData(field);
 
     // The FieldImpl must be in one of the following forms:
     //     (index -> ((x, y) -> range))
@@ -482,6 +453,40 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   /** Gets measurement list for current index. */
   public MeasureList getList() { return lists[horiz.getValue() - 1]; }
+
+
+  // -- HELPER METHODS --
+
+  /** Toggles the given component on or off in the left side panel. */
+  private void setComponent(boolean on, Component c) {
+    if (on) {
+      if (displayPane.isAncestorOf(c)) return;
+      displayPane.add(c);
+    }
+    else {
+      if (!displayPane.isAncestorOf(c)) return;
+      displayPane.remove(c);
+    }
+    displayPane.validate();
+    displayPane.repaint();
+  }
+
+  /** Ensures that the given data object is of the proper form. */
+  public FieldImpl analyzeData(Data data) {
+    FieldImpl field = null;
+    if (data instanceof FieldImpl) field = (FieldImpl) data;
+    else if (data instanceof Tuple) {
+      Tuple tuple = (Tuple) data;
+      Data[] d = tuple.getComponents();
+      for (int i=0; i<d.length; i++) {
+        if (d[i] instanceof FieldImpl) {
+          field = (FieldImpl) d[i];
+          break;
+        }
+      }
+    }
+    return field;
+  }
 
 
   // -- MENU COMMANDS --
