@@ -64,7 +64,6 @@ public class VisADLineStripArray extends VisADGeometryArray {
   private final static float LIMIT = 4.0f; // constant for TEST = 0
   private final static float ALPHA = 0.1f; // constant for TEST = 1
 
-/* WLH 8 March 2000
   public VisADGeometryArray adjustSeam(DataRenderer renderer)
          throws VisADException {
     CoordinateSystem coord_sys = renderer.getDisplayCoordinateSystem();
@@ -150,7 +149,7 @@ public class VisADLineStripArray extends VisADGeometryArray {
           float b = ab / bb;
           // c = (norm(A projected onto B) / norm(A)) ^ 2
           float c = (ab * ab) / (aa * bb);
-          test[i] = (0.5f < b && b < 2.0f && 0.5f < c);
+          test[i] = !(0.5f < b && b < 2.0f && 0.5f < c);
         } // end for (int i=last_i; i<last_i+stripVertexCounts[i_svc]*3; i+=3)
         last_i += stripVertexCounts[i_svc];
       } // end for (int i_svc=0; i_svc<stripVertexCounts.length; i_svc++)
@@ -202,7 +201,7 @@ public class VisADLineStripArray extends VisADGeometryArray {
                     lastcoord, lastcol, km);
         }
         if (i == last_i+stripVertexCounts[i_svc]*3-3) continue; // last point
-        if (test[i]) {
+        if (test[i/3]) {
           any_split = true;
           // treat split as a break
           if (accum >= 2) {
@@ -236,7 +235,6 @@ public class VisADLineStripArray extends VisADGeometryArray {
       return array;
     }
   }
-*/
 
   public VisADGeometryArray adjustLongitude(DataRenderer renderer)
          throws VisADException {
