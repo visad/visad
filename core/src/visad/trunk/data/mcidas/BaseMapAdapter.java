@@ -28,6 +28,7 @@ import edu.wisc.ssec.mcidas.McIDASUtil;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -42,6 +43,7 @@ import visad.RealTupleType;
 import visad.RealType;
 import visad.UnionSet;
 import visad.VisADException;
+import java.awt.geom.Rectangle2D;
 
 /** this is an adapter for McIDAS Base Map files */
 
@@ -73,37 +75,107 @@ public class BaseMapAdapter {
    * @exception VisADException if an unexpected problem occurs.
    */
   public BaseMapAdapter(String filename) throws IOException, VisADException {
-    din = new DataInputStream ( 
-        new BufferedInputStream(new FileInputStream(filename)) );
-    isFileOK = true;
-    isFileInitialized = false;
-    InitFile();
-
+    this(new FileInputStream(filename), null);
   }
 
 
   /** 
    * Create a VisAD UnionSet from a McIDAS Base Map file on the Web
    *
-   * @param URL & filename name of remote file
+   * @param filename name of local file.
+   * @param bbox  lat/lon bounding box of map lines to include
+   *
+   * @exception IOException if there was a problem reading the URL.
+   * @exception VisADException if an unexpected problem occurs.
+   */
+  public BaseMapAdapter(String filename, Rectangle2D bbox) 
+    throws IOException, VisADException {
+      this(new FileInputStream(filename), null);
+  }
+
+  /** 
+   * Create a VisAD UnionSet from a McIDAS Base Map file on the Web
+   *
+   * @param url URL & filename name of remote file
    *
    * @exception IOException if there was a problem reading the URL.
    * @exception VisADException if an unexpected problem occurs.
    */
   public BaseMapAdapter(URL url) throws IOException, VisADException {
+    this (url.openStream(), null);
+  }
 
-    din = new DataInputStream ( url.openStream() );
+  /** 
+   * Create a VisAD UnionSet from a McIDAS Base Map file on the Web
+   *
+   * @param url  URL of remote file
+   * @param bbox  lat/lon bounding box of map lines to include
+   *
+   * @exception IOException if there was a problem reading the URL.
+   * @exception VisADException if an unexpected problem occurs.
+   */
+  public BaseMapAdapter(URL url, Rectangle2D bbox) 
+    throws IOException, VisADException {
+      this (url.openStream(), bbox);
+  }
+
+  /** 
+   * Create a VisAD UnionSet from a McIDAS Base Map file inputstream
+   *
+   * @param is input stream of mapfile
+   *
+   * @exception IOException if there was a problem reading the inputstream
+   * @exception VisADException if an unexpected problem occurs.
+   */
+  public BaseMapAdapter(InputStream is)
+    throws IOException, VisADException {
+    this(is, null);
+  }
+
+  /** 
+   * Create a VisAD UnionSet from a McIDAS Base Map file inputstream
+   *
+   * @param is input stream of mapfile
+   * @param bbox  lat/lon bounding box
+   *
+   * @exception IOException if there was a problem reading the inputstream
+   * @exception VisADException if an unexpected problem occurs.
+   */
+  public BaseMapAdapter(InputStream is, Rectangle2D bbox) 
+    throws IOException, VisADException {
+
+    din = new DataInputStream (new BufferedInputStream(is));
     isFileOK = true;
     isFileInitialized = false;
     InitFile();
+    if (bbox != null)
+        setLatLonLimits((float) bbox.getMinY(), (float) bbox.getMaxY(), 
+                        (float) bbox.getMinX(), (float) bbox.getMaxX());
   }
-
 
   /** set the limits of Lats and Lons; without this, the getData()
    * will return ALL the points in the file.  When this method is
    * used, the feature of the McIDAS map files that has the
    * lat/lon extremes for each line segment will be used to
-   * coarsely cull points out of the returned VisAD UnionSet.
+   * coarsely cull points out of the returned VisAD UnionSet.<P>
+   *
+   * This may be used along with any other domain-setting routine,
+   * but should be invoked last.  Alternatively, pass in the 
+   * bounding box in the constructor.
+   *
+   * @param bbox Rectangle2D representing the bounding box
+   */
+  public void setLatLonLimits(Rectangle2D bbox)
+  {
+      setLatLonLimits((float) bbox.getMinY(), (float) bbox.getMaxY(), 
+                      (float) bbox.getMinX(), (float) bbox.getMaxX());
+  }
+
+  /** set the limits of Lats and Lons; without this, the getData()
+   * will return ALL the points in the file.  When this method is
+   * used, the feature of the McIDAS map files that has the
+   * lat/lon extremes for each line segment will be used to
+   * coarsely cull points out of the returned VisAD UnionSet.<P>
    *
    * This may be used along with any other domain-setting routine,
    * but should be invoked last.
@@ -373,7 +445,8 @@ public class BaseMapAdapter {
     * the MathType is a RealTupleType of Latitude,Longitude,
     * so the UnionSet (a union of Gridded2DSets) will have
     * lat/lon values.  Each Gridded2DSet is a line segment that
-    * is supposed to be drawn as a continuous line.
+    * is supposed to be drawn as a continuous line.  This should
+    * only be called once after construction.
     *
     * @return  UnionSet of maplines or null if there are no maplines 
     *          in the domain of the display.
