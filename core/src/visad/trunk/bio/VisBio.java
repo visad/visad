@@ -295,9 +295,9 @@ public class VisBio extends GUIFrame implements ChangeListener {
           double free = (double) Runtime.getRuntime().freeMemory();
           double used = total - free;
           int percent = (int) (100 * (used / total));
-          int t = (int) (total / 1000000);
+          int tt = (int) (total / 1000000);
           int u = (int) (used / 1000000);
-          final String s = "Memory: total " + t + " MB; " +
+          final String s = "Memory: total " + tt + " MB; " +
             "used " + u + " MB (" + percent + "%)";
           Util.invoke(false, new Runnable() {
             public void run() { memoryLabel.setText(s); }

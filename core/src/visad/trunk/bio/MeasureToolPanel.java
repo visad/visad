@@ -461,16 +461,16 @@ public class MeasureToolPanel extends ToolPanel {
     groupList.addItem(bio.noneGroup);
     groupList.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
-        MeasureGroup group = (MeasureGroup) groupList.getSelectedItem();
+        MeasureGroup mgroup = (MeasureGroup) groupList.getSelectedItem();
         MeasureThing[] things = bio.mm.pool2.getSelection();
         boolean changed = false;
         for (int i=0; i<things.length; i++) {
-          if (things[i].group != group) {
+          if (things[i].group != mgroup) {
             changed = true;
-            things[i].group = group;
+            things[i].group = mgroup;
           }
         }
-        if (group != null) descriptionBox.setText(group.getDescription());
+        if (mgroup != null) descriptionBox.setText(mgroup.getDescription());
         if (changed) {
           bio.mm.changed = true;
           bio.state.saveState();
@@ -489,9 +489,9 @@ public class MeasureToolPanel extends ToolPanel {
         int rval = groupBox.showDialog(bio);
         if (rval == GroupDialog.APPROVE_OPTION) {
           String name = groupBox.getGroupName();
-          MeasureGroup group = new MeasureGroup(bio, name);
-          groupList.addItem(group);
-          groupList.setSelectedItem(group);
+          MeasureGroup mgroup = new MeasureGroup(bio, name);
+          groupList.addItem(mgroup);
+          groupList.setSelectedItem(mgroup);
           bio.mm.changed = true;
           bio.state.saveState();
         }
@@ -524,8 +524,8 @@ public class MeasureToolPanel extends ToolPanel {
       public void insertUpdate(DocumentEvent e) { update(e); }
       public void removeUpdate(DocumentEvent e) { update(e); }
       public void update(DocumentEvent e) {
-        MeasureGroup group = (MeasureGroup) groupList.getSelectedItem();
-        group.setDescription(descriptionBox.getText());
+        MeasureGroup mgroup = (MeasureGroup) groupList.getSelectedItem();
+        mgroup.setDescription(descriptionBox.getText());
         bio.state.saveState();
       }
     });
