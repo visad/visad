@@ -659,9 +659,8 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise tan value of data1 / data2 over full (-pi, pi) range, 
-   * assuming input values are in radians unless they have units convertable 
-   * with radians, in which case those units are converted to radians
+   * return pointwise arc tangent value of data1 / data2 over 
+   * full (-pi, pi) range, returned in radians.
    * 
    * @param   data1           VisAD data object
    * @param   data2           VisAD data object
@@ -675,9 +674,8 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise tan value of data1 / data2 over full (-pi, pi) range,
-   * assuming input values are in degrees unless they have units convertable
-   * with degrees, in which case those units are converted to degrees
+   * return pointwise arc tangent value of data1 / data2 over 
+   * full (-pi, pi) range, returned in degrees.
    *
    * @param   data1           VisAD data object
    * @param   data2           VisAD data object
@@ -721,9 +719,8 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise tan value of data1 / data2 over full (-pi, pi) range,
-   * assuming input values are in radians unless they have units convertable
-   * with radians, in which case those units are converted to radians
+   * return pointwise arc tangent value of data1 / data2 over 
+   * full (-pi, pi) range, returned in radians.
    *
    * @param   data1           VisAD data object
    * @param   data2           double value
@@ -737,9 +734,8 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise tan value of data1 / data2 over full (-pi, pi) range,
-   * assuming input values are in degrees unless they have units convertable
-   * with degrees, in which case those units are converted to degrees
+   * return pointwise arc tangent value of data1 / data2 over 
+   * full (-pi, pi) range, returned in degrees.
    *
    * @param   data1           VisAD data object
    * @param   data2           double value
@@ -783,9 +779,8 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise tan value of data1 / data2 over full (-pi, pi) range,
-   * assuming input values are in radians unless they have units convertable
-   * with radians, in which case those units are converted to radians
+   * return pointwise arc tangent value of data1 / data2 over 
+   * full (-pi, pi) range, returned in radians.
    *
    * @param   data1           double value
    * @param   data2           VisAD data object
@@ -799,9 +794,8 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise tan value of data1 / data2 over full (-pi, pi) range,
-   * assuming input values are in degrees unless they have units convertable
-   * with degrees, in which case those units are converted to degrees
+   * return pointwise arc tangent value of data1 / data2 over 
+   * full (-pi, pi) range, returned in degrees.
    *
    * @param   data1           double value
    * @param   data2           VisAD data object
