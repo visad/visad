@@ -27,7 +27,7 @@ public class TestDownload
 
     if (urlList != null) {
       for (int i = 0; i < urlList.size(); i++) {
-        getFile((URL )urlList.get(i), saveDir);
+        getFile((URL )urlList.get(i), saveDir, true);
       }
     }
   }

@@ -670,7 +670,7 @@ public class Main
     // install jar
     if (downloadLatestJar) {
       mon.setPhase("Downloading jar file");
-      new Download(jarURL, jarInstallDir);
+      Download.getFile(jarURL, jarInstallDir, false);
     } else {
       mon.setPhase("Copying jar file");
       Util.copyFile(mon, installerJar, jarInstallDir, ".old");
