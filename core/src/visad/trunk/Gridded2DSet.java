@@ -316,7 +316,7 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
     return value;
   }
 
-  // WLH Dec 2001
+  // WLH 6 Dec 2001
   private int gx = -1;
   private int gy = -1;
 
@@ -340,7 +340,7 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
     float[][] grid = new float[ManifoldDimension][length];
 
     // (gx, gy) is the current grid box guess
-/* WLH Dec 2001
+/* WLH 6 Dec 2001
     int gx = (LengthX-1)/2;
     int gy = (LengthY-1)/2;
 */

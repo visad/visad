@@ -396,6 +396,10 @@ public class Gridded2DDoubleSet extends Gridded2DSet
     return value;
   }
 
+  // WLH 6 Dec 2001
+  private int gx = -1;
+  private int gy = -1;
+
   /** transform an array of values in R^DomainDimension to an array
       of non-integer grid coordinates */
   public double[][] doubleToGrid(double[][] value) throws VisADException {
@@ -412,9 +416,18 @@ public class Gridded2DDoubleSet extends Gridded2DSet
     }
     int length = Math.min(value[0].length, value[1].length);
     double[][] grid = new double[ManifoldDimension][length];
+
     // (gx, gy) is the current grid box guess
+/* WLH 6 Dec 2001
     int gx = (LengthX-1)/2;
     int gy = (LengthY-1)/2;
+*/
+    // use value from last call as first guess, if reasonable
+    if (gx < 0 || gx >= LengthX || gy < 0 || gy >= LengthY) {
+      gx = (LengthX-1)/2;
+      gy = (LengthY-1)/2;
+    }
+
     boolean lowertri = true;
     for (int i=0; i<length; i++) {
       // grid box guess starts at previous box unless there was no solution

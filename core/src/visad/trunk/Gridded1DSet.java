@@ -328,6 +328,9 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
     return value;
   }
 
+  // WLH 6 Dec 2001
+  private int ig = -1;
+
   /** transform an array of values in R^DomainDimension to an array
       of non-integer grid coordinates */
   public float[][] valueToGrid(float[][] value) throws VisADException {
@@ -344,7 +347,15 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
     int length = vals.length;
     float[] samps = Samples[0];
     float[][] grid = new float[1][length];
+
+/* WLH 6 Dec 2001
     int ig = (LengthX - 1)/2;
+*/
+    // use value from last call as first guess, if reasonable
+    if (ig < 0 || ig >= LengthX) {
+      ig = (LengthX - 1)/2;
+    }
+
     for (int i=0; i<length; i++) {
       if (Float.isNaN(vals[i])) grid[0][i] = Float.NaN;
       else {
