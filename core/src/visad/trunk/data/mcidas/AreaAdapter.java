@@ -40,7 +40,6 @@ import visad.Set;
 import visad.TypeException;
 import visad.Unit;
 import visad.VisADException;
-import visad.meteorology.*;
 
 /** this is an adapter for McIDAS AREA images */
 
