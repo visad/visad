@@ -488,6 +488,7 @@ public class DelaunayCustom extends Delaunay {
           else {
             bug = true;
             bad = 0;
+            pos = !pos; // WLH 16 May 2003
           }
         }
       }
