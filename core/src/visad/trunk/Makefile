@@ -354,7 +354,7 @@ tar:
 	ls -l visad_src-2.0.tar.Z visadsrc.taz
 
 jar:
-	date > DATE ; \
+	@date > DATE ; \
 	cd .. ; \
 	${JAR} ${JARVERBOSE}cf visad_src-2.0.jar $(TAR_FILES) ; \
 	mv visad_src-2.0.jar visad ; \
@@ -364,7 +364,7 @@ jar:
 	ls -l visad_src-2.0.jar visadsrc.jar
 
 jar_split:
-	date > DATE ; \
+	@date > DATE ; \
 	cd .. ; \
 	${JAR} ${JARVERBOSE}cf visad_src-2.0.jar $(TAR_FILES) ; \
 	mv visad_src-2.0.jar visad ; \
@@ -373,13 +373,13 @@ jar_split:
 	ls -l visad_a*
 
 unjar_split:
-	cd .. ; \
+	@cd .. ; \
 	cat visad_a* > visad_src-2.0.jar ;
 	${JAR} ${JARVERBOSE}xf visad_src-2.0.jar
 
 
 classes:
-	cd .. ; \
+	@cd .. ; \
 	date > DATE ; \
 	${JAR} ${JARVERBOSE}cf visad.jar $(CLASS_FILES) ; \
 	tar -cvf visad.tar visad.jar
@@ -391,7 +391,7 @@ EXAMPLES_TAR_FILES = \
 	visad/examples/*.class
 
 examplesjar:
-	cd .. ; \
+	@cd .. ; \
 	${JAR} ${JARVERBOSE}cf visad_examples.jar $(EXAMPLES_TAR_FILES) ; \
 	mv visad_examples.jar visad ; \
 	cd visad ; \
@@ -532,7 +532,7 @@ tardocs: docs
 	ls -l visad_doc-2.0.tar.Z visaddoc.taz
 
 jardocs: docs
-	(cd $(DOC_DIR)/.. &&						\
+	@(cd $(DOC_DIR)/.. &&						\
 	 DNAME=`basename $(DOC_DIR)` &&					\
 	 date > $$DNAME/DATE &&						\
 	 ${JAR} ${JARVERBOSE}c $$DNAME) > visad_doc-2.0.jar;		\
