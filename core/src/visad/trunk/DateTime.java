@@ -32,6 +32,8 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import java.text.SimpleDateFormat;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.FieldPosition;
 
 /**
@@ -376,6 +378,60 @@ DateTime
     }
 
     /**
+     * Create a DateTime object from a string specification
+     * @param  dateString  date string specification in format pattern
+     *                     defined for DateTime in this JVM
+     *
+     * @throws  VisADException  formatting problem
+     * @see #setFormatPattern
+     */
+    public static DateTime createDateTime(String dateString)
+        throws VisADException
+    {
+        return createDateTime(dateString, formatPattern, defaultTimeZone);
+    }
+
+    /**
+     * Create a DateTime object from a string specification using the
+     * supplied pattern and default timezone.
+     * @param  dateString  date string specification
+     * @param  format string
+     *
+     * @throws  VisADException  formatting problem
+     */
+    public static DateTime createDateTime(String dateString, String format)
+        throws VisADException
+    {
+        return createDateTime(dateString, format, defaultTimeZone);
+    }
+
+    /**
+     * Create a DateTime object from a string specification using the
+     * supplied pattern and timezone.
+     * @param  dateString     date string specification
+     * @param  formatPattern  format string
+     * @param  timezone       TimeZone to use
+     *
+     * @throws  VisADException  formatting problem
+     */
+    public static DateTime createDateTime(String dateString, 
+                                        String format, 
+					TimeZone timezone)
+        throws VisADException
+    {
+        Date d;
+        try {
+          SimpleDateFormat sdf = new SimpleDateFormat();
+          sdf.setTimeZone(timezone);
+          sdf.applyPattern(format);
+	  d = sdf.parse(dateString);
+	} catch (ParseException pe) {
+	    throw new VisADException("invalid date string: " + dateString);
+	}
+	return new DateTime(d);
+    }
+
+    /**
      *  Implement Comparable interface
      *
      * @param   oo      Object for comparison - should be DateTime
@@ -519,6 +575,8 @@ DateTime
         System.out.println(
                   "\nInitialized with current seconds since the epoch: "
                             + a + "\n");
+        a = DateTime.createDateTime(a.toString());
+        System.out.println("\nUsing createDateTime with string of current Date(): " + a);
 
     }
 
