@@ -487,7 +487,7 @@ if(DEBUG_WR_DATA)System.err.println("wrFlFld: FLD_SET (" + FLD_SET + ")");
       BinaryGeneric.write(writer, domainSet, token);
     }
 
-    if (fld.isMissing() || fld.getLength() <= 0) {
+    if (!fld.isMissing() && fld.getLength() > 0) {
       double[][] dblSamples;
       try {
         dblSamples = fld.unpackValues();
