@@ -1033,11 +1033,6 @@ double[] range = map.getRange();
 System.out.println(map.getScalar() + " -> " + map.getDisplayScalar() + " : " +
                    range[0] + " " + range[1] + "  value_index = " + value_index);
 */
-/* WLH 25 JUne 99
-        if (RealType.Longitude.equals(map.getScalar())) {
-          adjustLongitudes(map, i, values);
-        }
-*/
         // MEM
         display_values[value_index] = map.scaleValues(values[i]);
 /*
@@ -1077,11 +1072,6 @@ double[] range = map.getRange();
 System.out.println(map.getScalar() + " -> " + map.getDisplayScalar() + " : " +
                    range[0] + " " + range[1] + "  value_index = " + value_index);
 */
-/* WLH 25 JUne 99
-        if (RealType.Longitude.equals(map.getScalar())) {
-          adjustLongitudes(map, i, values);
-        }
-*/
         // MEM
         display_values[value_index] = map.scaleValues(values[i]);
 /*
@@ -1098,34 +1088,6 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       }
       System.out.println("  total = " + total + " missing = " + missing);
 */
-      }
-    }
-  }
-
-  private static void adjustLongitudes(ScalarMap map, int i, float[][] values) {
-    if (values[i] == null) return;
-    float[] valuesi = values[i];
-    double[] lons = map.getRange();
-    if (lons[0] == lons[0] && lons[1] == lons[1]) {
-      float lonlow = (float) lons[0];
-      float lonhi = (float) lons[1];
-      for (int j=0; j<valuesi.length; j++) {
-        if (valuesi[j] < lonlow) valuesi[j] += 360.0f;
-        else if (valuesi[j] > lonhi) valuesi[j] -= 360.0f;
-      }
-    }
-  }
-
-  private static void adjustLongitudes(ScalarMap map, int i, double[][] values) {
-    if (values[i] == null) return;
-    double[] valuesi = values[i];
-    double[] lons = map.getRange();
-    if (lons[0] == lons[0] && lons[1] == lons[1]) {
-      double lonlow = lons[0];
-      double lonhi = lons[1];
-      for (int j=0; j<valuesi.length; j++) {
-        if (valuesi[j] < lonlow) valuesi[j] += 360.0;
-        else if (valuesi[j] > lonhi) valuesi[j] -= 360.0;
       }
     }
   }
@@ -1672,6 +1634,22 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
 
       // transform spatial_values
       float[][] new_spatial_values = coord.toReference(spatial_values);
+/*
+System.out.println("in length = " + spatial_values[0].length +
+                   " out length = " + new_spatial_values[0].length);
+if (spatial_values[0].length == 5329) {
+  // System.out.println(domain_set); // 73 * 73
+  for (int i=0; i<spatial_values[0].length; i+=71) {
+    System.out.println("out " + new_spatial_values[0][i] + " " +
+                       new_spatial_values[1][i] + " " +
+                       new_spatial_values[2][i] + " in " +
+                       spatial_values[0][i] + " " +
+                       spatial_values[1][i] + " " +
+                       spatial_values[2][i] + " (i,j) = " +
+                       i/73 + " " + i%73);
+  }
+}
+*/
       for (int i=0; i<3; i++) spatial_values[i] = new_spatial_values[i];
 
       if (spatial_flow) {
