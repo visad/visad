@@ -1137,9 +1137,15 @@ public class BasicSSCell extends JPanel {
       DisplayImplJ3D test = new DisplayImplJ3D("test");
       CanDo3D = true;
     }
-    catch (NoClassDefFoundError err) { }
-    catch (UnsatisfiedLinkError err) { }
-    catch (Exception exc) { }
+    catch (NoClassDefFoundError err) {
+      if (DEBUG) err.printStackTrace();
+    }
+    catch (UnsatisfiedLinkError err) {
+      if (DEBUG) err.printStackTrace();
+    }
+    catch (Exception exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
     return CanDo3D;
   }
 

@@ -36,6 +36,7 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
+import ncsa.hdf.hdf5lib.H5;
 import visad.*;
 import visad.data.Form;
 import visad.data.netcdf.Plain;
@@ -379,20 +380,19 @@ public class SpreadSheet extends JFrame implements ActionListener,
     // test whether HDF5 native library is present
     CanDoHDF5 = false;
     try {
-      ncsa.hdf.hdf5lib.H5.J2C(0); // HDF5 call initializes HDF5 native library
+      H5.J2C(0); // HDF5 call initializes HDF5 native library
       CanDoHDF5 = true;
     }
     catch (NoClassDefFoundError err) {
-      // err.printStackTrace();
+      if (BasicSSCell.DEBUG) err.printStackTrace();
     }
     catch (UnsatisfiedLinkError err) {
-      // err.printStackTrace();
+      if (BasicSSCell.DEBUG) err.printStackTrace();
     }
     catch (Exception exc) {
-      // exc.printStackTrace();
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
     }
 
-// 
     // determine information for spreadsheet cloning
     RemoteServer rs = null;
     String[][] cellNames = null;
