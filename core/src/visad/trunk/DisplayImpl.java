@@ -295,7 +295,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   }
 
   // suck in any remote DataReferences
-  void copyRefLinks(RemoteDisplay rmtDpy)
+  private void copyRefLinks(RemoteDisplay rmtDpy, DataReference[] localRefs)
   {
     Vector ml;
     try {
@@ -311,6 +311,22 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       return;
     }
 
+    String[] refNames;
+    if (localRefs == null) {
+      refNames = null;
+    } else {
+      refNames = new String[localRefs.length];
+      for (int i = 0; i < refNames.length; i++) {
+        try {
+          refNames[i] = localRefs[i].getName();
+        } catch (VisADException ve) {
+          refNames[i] = null;
+        } catch (RemoteException re) {
+          refNames[i] = null;
+        }
+      }
+    }
+
     Enumeration mle = ml.elements();
     if (mle.hasMoreElements()) {
 
@@ -319,22 +335,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
       while (mle.hasMoreElements()) {
         RemoteReferenceLink link = (RemoteReferenceLink )mle.nextElement();
-
-        // build array of ConstantMap values
-        ConstantMap[] cm = null;
-        try {
-          Vector v = link.getConstantMapVector();
-          int len = v.size();
-          if (len > 0) {
-            cm = new ConstantMap[len];
-            for (int i = 0; i < len; i++) {
-              cm[i] = (ConstantMap )v.elementAt(i);
-            }
-          }
-        } catch (Exception e) {
-          System.err.println("Couldn't copy ConstantMaps" +
-                             " for remote DataReference");
-        }
 
         // get reference to Data object
         RemoteDataReference ref;
@@ -345,7 +345,45 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
           ref = null;
         }
 
+        if (ref != null && refNames != null) {
+          String rName;
+          try {
+            rName = ref.getName();
+          } catch (VisADException ve) {
+            System.err.println("Couldn't get DataReference name");
+            rName = null;
+          } catch (RemoteException re) {
+            System.err.println("Couldn't get remote DataReference name");
+            rName = null;
+          }
+
+          if (rName != null) {
+            for (int i = 0; i < refNames.length; i++) {
+              if (rName.equals(refNames[i])) {
+                ref = null;
+                break;
+              }
+            }
+          }
+        }
+
         if (ref != null) {
+
+          // build array of ConstantMap values
+          ConstantMap[] cm = null;
+          try {
+            Vector v = link.getConstantMapVector();
+            int len = v.size();
+            if (len > 0) {
+              cm = new ConstantMap[len];
+              for (int i = 0; i < len; i++) {
+                cm[i] = (ConstantMap )v.elementAt(i);
+              }
+            }
+          } catch (Exception e) {
+            System.err.println("Couldn't copy ConstantMaps" +
+                               " for remote DataReference");
+          }
 
           // get proper DataRenderer
           DataRenderer renderer;
@@ -388,7 +426,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     copyScalarMaps(rmtDpy);
     copyConstantMaps(rmtDpy);
     copyGraphicsModeControl(rmtDpy);
-    if (!cluster) copyRefLinks(rmtDpy); // WLH 7 Dec 2000
+    if (!cluster) copyRefLinks(rmtDpy, null); // WLH 7 Dec 2000
 
     notifyAction();
 
@@ -584,6 +622,31 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   }
 
   /**
+   * Replace remote reference with local reference.
+   *
+   * @param rDpy Remote display.
+   * @param ref Local reference which will replace the previous
+   *            reference.
+   *
+   * @exception VisADException if there was a problem with one or more
+   *                           parameters.
+   * @exception RemoteException if there was a problem adding the
+   *                            data reference to the remote display.
+   *
+   * @see visad.DisplayImpl#addReference(visad.ThingReference)
+   */
+  public void replaceReference(RemoteDisplay rDpy, ThingReference ref)
+    throws VisADException, RemoteException
+  {
+    if (!(ref instanceof DataReference)) {
+      throw new ReferenceException("DisplayImpl.replaceReference: ref " +
+                                   "must be DataReference");
+    }
+
+    replaceReference(rDpy, (DataReference )ref, null);
+  }
+
+  /**
    * Add a link to a DataReference object
    *
    * @param link The link to the DataReference.
@@ -596,10 +659,30 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   void addLink(DataDisplayLink link)
         throws VisADException, RemoteException
   {
+    addLink(link, true);
+  }
+
+  /**
+   * Add a link to a DataReference object
+   *
+   * @param link The link to the DataReference.
+   * @param syncRemote <tt>true</tt> if this is not just
+   *                   a local link.
+   *
+   * @exception VisADException If referenced data is null
+   *                           or if a link already exists.
+   * @exception RemoteException If a link could not be made
+   *                            within the remote display.
+   */
+  private void addLink(DataDisplayLink link, boolean syncRemote)
+        throws VisADException, RemoteException
+  {
     super.addLink((ReferenceActionLink )link);
-    notifyListeners(new DisplayReferenceEvent(this,
-                                              DisplayEvent.REFERENCE_ADDED,
-                                              link));
+    if (syncRemote) {
+      notifyListeners(new DisplayReferenceEvent(this,
+                                                DisplayEvent.REFERENCE_ADDED,
+                                                link));
+    }
   }
 
   /**
@@ -648,6 +731,30 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
 // printStack("addReference");
     notifyAction();
+  }
+
+  /**
+   * Replace remote reference with local reference.
+   *
+   * @param rDpy Remote display.
+   * @param ref Local reference which will replace the previous
+   *            reference.
+   * @param constant_maps array of {@link visad.ConstantMap ConstantMaps}
+   *                      associated with the data reference
+   *
+   * @exception VisADException if there was a problem with one or more
+   *                           parameters.
+   * @exception RemoteException if there was a problem adding the
+   *                            data reference to the remote display.
+   *
+   * @see visad.DisplayImpl#addReference(visad.DataReference, visad.ConstantMap[])
+   */
+  public void replaceReference(RemoteDisplay rDpy, DataReference ref,
+                               ConstantMap[] constant_maps)
+    throws VisADException, RemoteException
+  {
+    replaceReferences(rDpy, null, new DataReference[] {ref},
+                      new ConstantMap[][] {constant_maps});
   }
 
   /** decide whether an autoscale is needed */
@@ -720,6 +827,29 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   }
 
   /**
+   * Replace remote reference with local reference using
+   * non-default renderer.
+   *
+   * @param rDpy Remote display.
+   * @param renderer logic to render this data
+   * @param ref Local reference which will replace the previous
+   *            reference.
+   *
+   * @exception VisADException if there was a problem with one or more
+   *                           parameters.
+   * @exception RemoteException if there was a problem adding the
+   *                            data reference to the remote display.
+   *
+   * @see visad.DisplayImpl#addReferences(visad.DataRenderer, visad.DataReference)
+   */
+  public void replaceReferences(RemoteDisplay rDpy, DataRenderer renderer,
+                                DataReference ref)
+    throws VisADException, RemoteException
+  {
+    replaceReferences(rDpy, renderer, new DataReference[] {ref}, null);
+  }
+
+  /**
    * Link a reference to this Display using a non-default renderer.
    * <tt>ref</tt> must be a local
    * {@link visad.DataReferenceImpl DataReferenceImpl}.
@@ -750,6 +880,32 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   }
 
   /**
+   * Replace remote reference with local reference using
+   * non-default renderer.
+   *
+   * @param rDpy Remote display.
+   * @param renderer logic to render this data
+   * @param ref Local reference which will replace the previous
+   *            reference.
+   * @param constant_maps array of {@link visad.ConstantMap ConstantMaps}
+   *                      associated with the data reference
+   *
+   * @exception VisADException if there was a problem with one or more
+   *                           parameters.
+   * @exception RemoteException if there was a problem adding the
+   *                            data reference to the remote display.
+   *
+   * @see visad.DisplayImpl#addReferences(visad.DataRenderer, visad.DataReference, visad.ConstantMap[])
+   */
+  public void replaceReferences(RemoteDisplay rDpy, DataRenderer renderer,
+                                DataReference ref, ConstantMap[] constant_maps)
+    throws VisADException, RemoteException
+  {
+    replaceReferences(rDpy, renderer, new DataReference[] {ref},
+                      new ConstantMap[][] {constant_maps});
+  }
+
+  /**
    * Link references to this display using a non-default renderer.
    * <tt>refs</tt> must be local
    * {@link visad.DataReferenceImpl DataReferenceImpls}.
@@ -773,6 +929,27 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   public void addReferences(DataRenderer renderer, DataReference[] refs)
          throws VisADException, RemoteException {
     addReferences(renderer, refs, null);
+  }
+
+  /**
+   * Replace remote references with local references.
+   *
+   * @param rDpy Remote display.
+   * @param renderer logic to render this data
+   * @param refs array of local data references
+   *
+   * @exception VisADException if there was a problem with one or more
+   *                           parameters.
+   * @exception RemoteException if there was a problem adding the
+   *                            data references to the remote display.
+   *
+   * @see visad.DisplayImpl#addReferences(visad.DataRenderer, visad.DataReference[])
+   */
+  public void replaceReferences(RemoteDisplay rDpy, DataRenderer renderer,
+                                DataReference[] refs)
+    throws VisADException, RemoteException
+  {
+    replaceReferences(rDpy, renderer, refs, null);
   }
 
   /**
@@ -801,6 +978,39 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   public void addReferences(DataRenderer renderer, DataReference[] refs,
                             ConstantMap[][] constant_maps)
          throws VisADException, RemoteException {
+    addReferences(renderer, refs, constant_maps, true);
+  }
+
+  /**
+   * Link references to this display using the non-default renderer.
+   * <tt>refs</tt> must be local
+   * {@link visad.DataReferenceImpl DataReferenceImpls}.
+   * This method may only be invoked after all links to ScalarMaps
+   * have been made.
+   * The <tt>maps[i]</tt> array applies only to rendering <tt>refs[i]</tt>.
+   * This is a method of {@link visad.DisplayImpl DisplayImpl} and
+   * {@link visad.RemoteDisplayImpl RemoteDisplayImpl} rather
+   * than {@link visad.Display Display}
+   *
+   * @param renderer logic to render this data
+   * @param refs array of data references
+   * @param constant_maps array of {@link visad.ConstantMap ConstantMaps}
+   *                      associated with data references.
+   * @param syncRemote <tt>true</tt> if this data should be forwarded
+   *                   to the remote display.
+   *
+   * @exception VisADException if there was a problem with one or more
+   *                           parameters
+   * @exception RemoteException if there was a problem adding the
+   *                            data references to the remote display.
+   *
+   * @see <a href="http://www.ssec.wisc.edu/~billh/guide.html#6.1">Section 6.1 of the Developer's Guide</a>
+   */
+  private void addReferences(DataRenderer renderer, DataReference[] refs,
+                             ConstantMap[][] constant_maps,
+                             boolean syncRemote)
+         throws VisADException, RemoteException {
+    // N.B. This method is called by all replaceReference() methods
     if (refs.length < 1) {
       throw new DisplayException("DisplayImpl.addReferences: must have at " +
                                  "least one DataReference");
@@ -830,7 +1040,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
         links[i] = new DataDisplayLink(refs[i], this, this, constant_maps[i],
                                        renderer, getLinkId());
       }
-      addLink(links[i]);
+      addLink(links[i], syncRemote);
     }
     renderer.setLinks(links, this);
     synchronized (mapslock) {
@@ -844,6 +1054,36 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
 // printStack("addReferences");
     notifyAction();
+  }
+
+  /**
+   * Replace remote references with local references.
+   *
+   * @param rDpy Remote display.
+   * @param renderer logic to render this data
+   * @param refs array of data references
+   * @param constant_maps array of {@link visad.ConstantMap ConstantMaps}
+   *                      associated with data references.
+   *
+   * @exception VisADException if there was a problem with one or more
+   *                           parameters.
+   * @exception RemoteException if there was a problem adding the
+   *                            data references to the remote display.
+   *
+   * @see visad.DisplayImpl#addReferences(visad.DataRenderer, visad.DataReference[], visad.ConstantMap[][])
+   */
+  public void replaceReferences(RemoteDisplay rDpy, DataRenderer renderer,
+                                DataReference[] refs,
+                                ConstantMap[][] constant_maps)
+    throws VisADException, RemoteException
+  {
+    if (renderer == null) {
+      renderer = displayRenderer.makeDefaultRenderer();
+    }
+
+    removeAllReferences();
+    addReferences(renderer, refs, constant_maps, false);
+    copyRefLinks(rDpy, refs);
   }
 
   /** method for use by RemoteActionImpl.addReferences that adapts this
