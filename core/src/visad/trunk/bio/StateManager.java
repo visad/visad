@@ -1,0 +1,120 @@
+//
+// StateManager.java
+//
+
+/*
+VisAD system for interactive analysis and visualization of numerical
+data.  Copyright (C) 1996 - 2002 Bill Hibbard, Curtis Rueden, Tom
+Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
+Tommy Jasmin.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Library General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Library General Public License for more details.
+
+You should have received a copy of the GNU Library General Public
+License along with this library; if not, write to the Free
+Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+MA 02111-1307, USA
+*/
+
+package visad.bio;
+
+import java.io.*;
+import javax.swing.JOptionPane;
+import visad.VisADException;
+
+/**
+ * StateManager contains information needed to recreate a BioVisAD
+ * program state, in the case of a program crash or other error.
+ */
+public class StateManager {
+
+  // -- FIELDS --
+
+  /** BioVisAD frame. */
+  private BioVisAD bio;
+
+  /** Temp file for storing temporary state information. */
+  private File state;
+
+  /** Temp file for storing temporary measurement information. */
+  private File lines;
+
+  /** Is state currently being restored? */
+  private boolean restoring = false;
+
+
+  // -- CONSTRUCTORS --
+
+  /** Constructs a BioVisAD state management object. */
+  public StateManager(BioVisAD biovis) {
+    this(biovis, new File("biovisad.tmp"), new File("lines.tmp"));
+  }
+
+  /** Constructs a BioVisAD state management object. */
+  public StateManager(BioVisAD biovis, File state, File lines) {
+    bio = biovis;
+    this.state = state;
+    this.lines = lines;
+  }
+
+
+  // -- API METHODS --
+
+  /** Restores the last state written to the temp file. */
+  public void restoreState() {
+    restoring = true;
+    try {
+      BufferedReader fin = new BufferedReader(new FileReader(state));
+      bio.restoreState(fin);
+      fin.close();
+      if (lines.exists()) new MeasureDataFile(bio, lines).read();
+    }
+    catch (IOException exc) { exc.printStackTrace(); }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    restoring = false;
+  }
+
+  /** Saves the current state to the temp file. */
+  public void saveState(boolean doState, boolean doLines) {
+    if (restoring) return;
+    try {
+      if (doState) {
+        PrintWriter fout = new PrintWriter(new FileWriter(state));
+        bio.saveState(fout);
+        fout.close();
+      }
+      if (doLines) new MeasureDataFile(bio, lines).write();
+    }
+    catch (IOException exc) { exc.printStackTrace(); }
+    catch (VisADException exc) { exc.printStackTrace(); }
+  }
+
+  /**
+   * Checks whether the state file already exists, and if so,
+   * asks the user whether to restore the previous state.
+   */
+  public void checkState() {
+    if (!state.exists() && !lines.exists()) return;
+    int ans = JOptionPane.showConfirmDialog(bio,
+      "It appears that BioVisAD crashed last time. " +
+      "Attempt to restore the previous state?", "BioVisAD",
+      JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+    if (ans != JOptionPane.YES_OPTION) return;
+    restoreState();
+  }
+
+  /** Deletes state-related temp files. */
+  public void destroy() {
+    state.delete();
+    lines.delete();
+  }
+
+}
