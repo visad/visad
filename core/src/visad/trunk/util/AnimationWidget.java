@@ -395,7 +395,7 @@ public class AnimationWidget
         id == ScalarMapEvent.CONTROL_ADDED)
     {
       control = (AnimationControl )(evt.getScalarMap().getControl());
-      getControlSettings((AnimationControl )(evt.getScalarMap().getControl()));
+      getControlSettings(control);
       fixControlUI();
       if (control != null) control.addControlListener(this);
     }
