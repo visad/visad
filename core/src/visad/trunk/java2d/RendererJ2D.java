@@ -118,6 +118,30 @@ public abstract class RendererJ2D extends DataRenderer {
         // doTransform creates a VisADGroup from a Data object
         branch = doTransform();
       }
+      catch (OutOfMemoryError e) {
+        // System.out.println("OutOfMemoryError, try again ...");
+        try {   
+          if (swParent.numChildren() > 0) {
+            swParent.removeChild(0);
+          }
+          branch = doTransform();
+        }
+        catch (BadMappingException ee) {
+          addException(ee);
+          branch = null; 
+        }       
+        catch (UnimplementedException ee) {
+          addException(ee);
+          branch = null; 
+        }       
+        catch (RemoteException ee) {
+          addException(ee);
+          branch = null; 
+        }       
+        catch (DisplayInterruptException ee) {
+          branch = null; 
+        }       
+      }
       catch (BadMappingException e) {
         addException(e);
         branch = null;

@@ -45,9 +45,13 @@ public class ProjectionControlJ2D extends ProjectionControl {
 
   public ProjectionControlJ2D(DisplayImpl d) throws VisADException {
     super(d);
+/* WLH 5 April 99
     Matrix = new AffineTransform();
+*/
+    Matrix = init();
     matrix = new double[6];
     Matrix.getMatrix(matrix);
+    ((DisplayRendererJ2D) getDisplayRenderer()).setTransform2D(Matrix);
     canvas = null;
   }
  
@@ -79,7 +83,18 @@ public class ProjectionControlJ2D extends ProjectionControl {
     transform.setToScale(aspect[0], aspect[1]);
     double[] mult = new double[6];
     transform.getMatrix(mult);
-    setMatrix(getDisplay().multiply_matrix(mult, matrix));
+    AffineTransform mat = init();
+    double[] m = new double[6];
+    mat.getMatrix(m);
+    setMatrix(getDisplay().multiply_matrix(mult, m));
+  }
+
+  private AffineTransform init() {
+    AffineTransform mat = new AffineTransform();
+    // SWAP flip y
+    AffineTransform t1 = new AffineTransform(1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
+    mat.concatenate(t1);
+    return mat;
   }
 
 }

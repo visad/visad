@@ -225,12 +225,15 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     root = new BranchGroup();
     // create the TransformGroup that is the parent of
     // Data object Group objects
+    setTransform3D(null);
+/* WLH 5 April 99
     trans = new TransformGroup();
     trans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
     trans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
     trans.setCapability(Group.ALLOW_CHILDREN_READ);
     trans.setCapability(Group.ALLOW_CHILDREN_WRITE);
     trans.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+*/
     root.addChild(trans);
 
     // create background
@@ -241,6 +244,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     background.setApplicationBounds(bound2);
     root.addChild(background);
 
+/* WLH 5 April 99 - moved to ProjectionControlJ3D.java
     // initialize scale
     double scale = 0.5;
     ProjectionControl proj = getDisplay().getProjectionControl();
@@ -257,6 +261,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     }
     catch (RemoteException e) {
     }
+*/
  
     // create the BranchGroup that is the parent of direct
     // manipulation Data object BranchGroup objects
@@ -628,7 +633,15 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
   }
 
   public void setTransform3D(Transform3D t) {
-    trans.setTransform(t);
+    if (trans == null) {
+      trans = new TransformGroup();
+      trans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+      trans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+      trans.setCapability(Group.ALLOW_CHILDREN_READ);
+      trans.setCapability(Group.ALLOW_CHILDREN_WRITE);
+      trans.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+    }
+    if (t != null) trans.setTransform(t);
   }
 
   public Control makeControl(ScalarMap map) {

@@ -188,6 +188,10 @@ public class MouseBehaviorJ3D extends Behavior
   }
 
   public double[] multiply_matrix(double[] a, double[] b) {
+    return static_multiply_matrix(a, b);
+  }
+
+  public static double[] static_multiply_matrix(double[] a, double[] b) {
     Transform3D ta = new Transform3D(a);
     Transform3D tb = new Transform3D(b);
     ta.mul(tb);
@@ -202,6 +206,11 @@ public class MouseBehaviorJ3D extends Behavior
      techniques from Graphics Gems.
   **********************************************************************/
   public double[] make_matrix(double rotx, double roty, double rotz,
+         double scale, double transx, double transy, double transz) {
+    return static_make_matrix(rotx, roty, rotz, scale, transx, transy, transz);
+  }
+
+  public static double[] static_make_matrix(double rotx, double roty, double rotz,
          double scale, double transx, double transy, double transz) {
     double sx, sy, sz, cx, cy, cz, t;
     int i, j, k;

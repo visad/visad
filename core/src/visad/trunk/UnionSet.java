@@ -228,8 +228,8 @@ public class UnionSet extends SampledSet {
   }
 
   /** create a 2-D GeometryArray from this Set and color_values */
-  public VisADGeometryArray make2DGeometry(byte[][] color_values)
-         throws VisADException {
+  public VisADGeometryArray make2DGeometry(byte[][] color_values,
+         boolean indexed) throws VisADException {
     if (DomainDimension != 3) {
       throw new SetException("UnionSet.make2DGeometry: " +
                               "DomainDimension must be 3");
@@ -243,28 +243,54 @@ public class UnionSet extends SampledSet {
     if (color_values != null && dim != color_values.length) {
       throw new SetException("UnionSet.make2DGeometry: color_values bad dimension");
     }
-    VisADIndexedTriangleStripArray[] arrays =
-      new VisADIndexedTriangleStripArray[n];
-    int base = 0;
-    for (int i=0; i<n; i++) {
-      int len = Sets[i].Length;
-      byte[][] c = null;
-      if (color_values != null) {
-        c = new byte[dim][len];
-        for (int j=0; j<dim; j++) {
-          for (int k=0; k<len; k++) c[j][k] = color_values[j][base + k];
+    if (indexed) {
+      VisADIndexedTriangleStripArray[] arrays =
+        new VisADIndexedTriangleStripArray[n];
+      int base = 0;
+      for (int i=0; i<n; i++) {
+        int len = Sets[i].Length;
+        byte[][] c = null;
+        if (color_values != null) {
+          c = new byte[dim][len];
+          for (int j=0; j<dim; j++) {
+            for (int k=0; k<len; k++) c[j][k] = color_values[j][base + k];
+          }
         }
+        VisADGeometryArray array = Sets[i].make2DGeometry(c, indexed);
+        if (array instanceof VisADIndexedTriangleStripArray) {
+          arrays[i] = (VisADIndexedTriangleStripArray) array;
+        }
+        else {
+          arrays[i] = null;
+        }
+        base += len;
       }
-      VisADGeometryArray array = Sets[i].make2DGeometry(c);
-      if (array instanceof VisADIndexedTriangleStripArray) {
-        arrays[i] = (VisADIndexedTriangleStripArray) array;
-      }
-      else {
-        arrays[i] = null;
-      }
-      base += len;
+      return VisADIndexedTriangleStripArray.merge(arrays);
     }
-    return VisADIndexedTriangleStripArray.merge(arrays);
+    else { // if (!indexed)
+      VisADTriangleStripArray[] arrays =
+        new VisADTriangleStripArray[n];
+      int base = 0;
+      for (int i=0; i<n; i++) {
+        int len = Sets[i].Length;
+        byte[][] c = null;
+        if (color_values != null) {
+          c = new byte[dim][len];
+          for (int j=0; j<dim; j++) {
+            for (int k=0; k<len; k++) c[j][k] = color_values[j][base + k];
+          }
+        }
+        VisADGeometryArray array = Sets[i].make2DGeometry(c, indexed);
+        if (array instanceof VisADTriangleStripArray) {
+          arrays[i] = (VisADTriangleStripArray) array;
+        }
+        else {
+          arrays[i] = null;
+        }
+        base += len;
+      }
+      return VisADTriangleStripArray.merge(arrays);
+    }
   }
 
   /** create a 1-D GeometryArray from this Set and color_values */
@@ -354,7 +380,7 @@ public class UnionSet extends SampledSet {
   }
  
   public VisADGeometryArray makeIsoSurface(float isolevel,
-         float[] fieldValues, byte[][] color_values)
+         float[] fieldValues, byte[][] color_values, boolean indexed)
          throws VisADException {
     if (DomainDimension != 3) {
       throw new DisplayException("UnionSet.makeIsoSurface: " +
@@ -370,22 +396,42 @@ public class UnionSet extends SampledSet {
       throw new DisplayException("UnionSet.makeIsoSurface: " +
                                  "color_values bad dimension");
     }
-    VisADIndexedTriangleStripArray[] arrays =
-      new VisADIndexedTriangleStripArray[n];
-    int base = 0;
-    for (int i=0; i<n; i++) {
-      int len = Sets[i].Length;
-      byte[][] c = new byte[dim][len];
-      float[] f = new float[len];
-      for (int j=0; j<dim; j++) {
-        for (int k=0; k<len; k++) c[j][k] = color_values[j][base + k];
+    if (indexed) {
+      VisADIndexedTriangleStripArray[] arrays =
+        new VisADIndexedTriangleStripArray[n];
+      int base = 0;
+      for (int i=0; i<n; i++) {
+        int len = Sets[i].Length;
+        byte[][] c = new byte[dim][len];
+        float[] f = new float[len];
+        for (int j=0; j<dim; j++) {
+          for (int k=0; k<len; k++) c[j][k] = color_values[j][base + k];
+        }
+        for (int k=0; k<len; k++) f[k] = fieldValues[base + k];
+        arrays[i] = (VisADIndexedTriangleStripArray)
+          Sets[i].makeIsoSurface(isolevel, f, c, indexed);
+        base += len;
       }
-      for (int k=0; k<len; k++) f[k] = fieldValues[base + k];
-      arrays[i] =
-        (VisADIndexedTriangleStripArray) Sets[i].makeIsoSurface(isolevel, f, c);
-      base += len;
+      return VisADIndexedTriangleStripArray.merge(arrays);
     }
-    return VisADIndexedTriangleStripArray.merge(arrays);
+    else { // if (!indexed)
+      VisADTriangleStripArray[] arrays =
+        new VisADTriangleStripArray[n];
+      int base = 0;
+      for (int i=0; i<n; i++) {
+        int len = Sets[i].Length;
+        byte[][] c = new byte[dim][len];
+        float[] f = new float[len];
+        for (int j=0; j<dim; j++) {
+          for (int k=0; k<len; k++) c[j][k] = color_values[j][base + k];
+        }
+        for (int k=0; k<len; k++) f[k] = fieldValues[base + k];
+        arrays[i] = (VisADTriangleStripArray)
+          Sets[i].makeIsoSurface(isolevel, f, c, indexed);
+        base += len;
+      }
+      return VisADTriangleStripArray.merge(arrays);
+    } // end if (!indexed)
   }
 
   /** copied from Set */

@@ -312,6 +312,15 @@ public class DisplayImplJ3D extends DisplayImpl {
       return array;
 */
     }
+    if (vga instanceof VisADTriangleStripArray) {
+      VisADTriangleStripArray vgb = (VisADTriangleStripArray) vga;
+      if (vga.vertexCount == 0) return null;
+      TriangleStripArray array =
+        new TriangleStripArray(vga.vertexCount, makeFormat(vga),
+                               vgb.stripVertexCounts);
+      basicGeometry(vga, array, mode2d);
+      return array;
+    }
     else if (vga instanceof VisADLineArray) {
       if (vga.vertexCount == 0) return null;
       LineArray array = new LineArray(vga.vertexCount, makeFormat(vga));

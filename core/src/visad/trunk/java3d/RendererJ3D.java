@@ -159,6 +159,28 @@ System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
         // doTransform creates a BranchGroup from a Data object
         branch = doTransform();
       }
+      catch (OutOfMemoryError e) {
+System.out.println("OutOfMemoryError, try again ...");
+        clearBranch();
+        try {
+          branch = doTransform();
+        }
+        catch (BadMappingException ee) {
+          addException(ee);
+          branch = null;
+        }
+        catch (UnimplementedException ee) {
+          addException(ee);
+          branch = null;
+        }
+        catch (RemoteException ee) {
+          addException(ee);
+          branch = null;
+        }
+        catch (DisplayInterruptException ee) {
+          branch = null;
+        }
+      }
       catch (BadMappingException e) {
         addException(e);
         branch = null;
@@ -255,16 +277,17 @@ System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
       if (branchNonEmpty[currentIndex]) {
 // System.out.println("branch " + currentIndex + " not empty, clearBranch");
 
-/* WLH 1 April 99 - doesn't help memory
+/* WLH 1 April 99 - doesn't help memory */
         Enumeration ch = branches[currentIndex].getAllChildren();
         while(ch.hasMoreElements()) {
           BranchGroup b = (BranchGroup) ch.nextElement();
           b.detach();
         }
-*/
+/*
         for (int m=0; m<branches[currentIndex].numChildren(); m++) {
           branches[currentIndex].removeChild(m);
         }
+*/
       }
     }
     branchNonEmpty[currentIndex] = false;

@@ -210,10 +210,8 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     canvas.addMouseBehavior(mouse);
     // Create the root of the branch graph
     root = new VisADGroup();
-    // create the AffineTransform that is applied to
-    // Data object Group objects
-    trans = new AffineTransform();
 
+/* WLH 5 April 99 - moved to ProjectionControlJ2D.java
     // initialize scale
     // XXX - for Java2D, scale is controlled in VisADCanvasJ2D
     ProjectionControl proj = getDisplay().getProjectionControl();
@@ -224,12 +222,14 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     double[] matrix = new double[6];
     t1.getMatrix(matrix);
     try {
+      // sets trans
       proj.setMatrix(matrix);
     }
     catch (VisADException e) {
     }
     catch (RemoteException e) {
     }
+*/
  
     // create the VisADGroup that is the parent of direct
     // manipulation Data object VisADGroup objects

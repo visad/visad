@@ -182,6 +182,10 @@ public class ShadowFunctionOrSetTypeJ2D extends ShadowTypeJ2D {
                              default_values, renderer);
   }
 
+  public boolean wantIndexed() {
+    return true;
+  }
+
 
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */

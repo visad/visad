@@ -61,6 +61,8 @@ public class Test35
     DataReference[] refs3 = new DataReference[] {ref_histogram1};
     display1.addReferences(new DirectManipulationRendererJ3D(), refs3, null);
 
+    DisplayImpl.delay(500);
+
     DisplayImpl display2 = new DisplayImplJ2D("display2");
     display2.addMap(new ScalarMap(ir_radiance, Display.XAxis));
     display2.addMap(new ScalarMap(count, Display.YAxis));

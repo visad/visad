@@ -2245,6 +2245,10 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
     return false;
   }
 
+  public boolean wantIndexed() {
+    return false;
+  }
+
   public TextControl getParentTextControl() {
     return null;
   }

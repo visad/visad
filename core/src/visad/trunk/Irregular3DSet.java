@@ -725,7 +725,7 @@ public class Irregular3DSet extends IrregularSet {
   }
 
   public VisADGeometryArray makeIsoSurface(float isolevel,
-         float[] fieldValues, byte[][] color_values)
+         float[] fieldValues, byte[][] color_values, boolean indexed)
          throws VisADException {
 
     if (ManifoldDimension != 3) {
@@ -824,28 +824,84 @@ public class Irregular3DSet extends IrregularSet {
     vertToPoly = null;
     polyToVert = null;
 
-    VisADIndexedTriangleStripArray array =
-      new VisADIndexedTriangleStripArray();
- 
-    // set up indices
-    array.indexCount = size_stripe;
-    array.indices = new int[size_stripe];
-    System.arraycopy(stripe, 0, array.indices, 0, size_stripe);
-    array.stripVertexCounts = new int[1];
-    array.stripVertexCounts[0] = size_stripe;
-    // take the garbage out
-    stripe = null;
- 
-    // set coordinates and colors
-    setGeometryArray(array, fieldVertices, 4, color_levels);
-    // take the garbage out
-    fieldVertices = null;
-    color_levels = null;
- 
-    // array.vertexFormat |= NORMALS;
-    array.normals = normals;
-
-    return array;
+    if (indexed) {
+      VisADIndexedTriangleStripArray array =
+        new VisADIndexedTriangleStripArray();
+  
+      // set up indices
+      array.indexCount = size_stripe;
+      array.indices = new int[size_stripe];
+      System.arraycopy(stripe, 0, array.indices, 0, size_stripe);
+      array.stripVertexCounts = new int[1];
+      array.stripVertexCounts[0] = size_stripe;
+      // take the garbage out
+      stripe = null;
+  
+      // set coordinates and colors
+      setGeometryArray(array, fieldVertices, 4, color_levels);
+      // take the garbage out
+      fieldVertices = null;
+      color_levels = null;
+  
+      // array.vertexFormat |= NORMALS;
+      array.normals = normals;
+      return array;
+    }
+    else { // if (!indexed)
+      VisADTriangleStripArray array = new VisADTriangleStripArray();
+      array.stripVertexCounts = new int[] {size_stripe};
+      array.vertexCount = size_stripe;
+   
+      array.normals = new float[3 * size_stripe];
+      int k = 0;
+      for (int i=0; i<3*size_stripe; i+=3) {
+        j = 3 * stripe[k];
+        array.normals[i] = normals[j];
+        array.normals[i+1] = normals[j+1];
+        array.normals[i+2] = normals[j+2];
+        k++;
+      }
+      normals = null;
+   
+      array.coordinates = new float[3 * size_stripe];
+      k = 0;
+      for (int i=0; i<3*size_stripe; i+=3) {
+        j = stripe[k];
+        array.coordinates[i] = fieldVertices[0][j];
+        array.coordinates[i+1] = fieldVertices[1][j];
+        array.coordinates[i+2] = fieldVertices[2][j];
+        k++;
+      }
+      fieldVertices = null;
+   
+      if (color_levels != null) {
+        int color_length = color_levels.length;
+        array.colors = new byte[color_length * size_stripe];
+        k = 0;
+        if (color_length == 4) {
+          for (int i=0; i<color_length*size_stripe; i+=color_length) {
+            j = stripe[k];
+            array.colors[i] = color_levels[0][j];
+            array.colors[i+1] = color_levels[1][j];
+            array.colors[i+2] = color_levels[2][j];
+            array.colors[i+3] = color_levels[3][j];
+            k++;
+          }
+        }
+        else { // if (color_length == 3)
+          for (int i=0; i<color_length*size_stripe; i+=color_length) {
+            j = stripe[k];
+            array.colors[i] = color_levels[0][j];
+            array.colors[i+1] = color_levels[1][j];
+            array.colors[i+2] = color_levels[2][j];
+            k++;
+          }
+        }
+      }
+      color_levels = null;
+      stripe = null;
+      return array;
+    }
   }
 
   /** compute an Isosurface through the Irregular3DSet
@@ -2422,8 +2478,8 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
   }
 
   /** create a 2-D GeometryArray from this Set and color_values */
-  public VisADGeometryArray make2DGeometry(byte[][] color_values)
-         throws VisADException {
+  public VisADGeometryArray make2DGeometry(byte[][] color_values,
+         boolean indexed) throws VisADException {
     if (DomainDimension != 3) {
       throw new SetException("Irregular3DSet.make2DGeometry: " +
                               "DomainDimension must be 3");
@@ -2543,35 +2599,91 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
     // take the garbage out
     NX = NY = NZ = null;
 
-    VisADIndexedTriangleStripArray array =
-      new VisADIndexedTriangleStripArray();
- 
-    // array.vertexFormat |= NORMALS;
-    array.normals = normals;
-    // take the garbage out
-    normals = null;
-
     // temporary array to hold maximum possible polytriangle strip
     int[] stripe = new int[6 * npolygons];
     int size_stripe =
       poly_triangle_stripe(stripe, nvertex, npolygons,
                            Delan.Vertices, Delan.Tri);
  
-    // set up indices
-    array.indexCount = size_stripe;
-    array.indices = new int[size_stripe];
-    System.arraycopy(stripe, 0, array.indices, 0, size_stripe);
-    array.stripVertexCounts = new int[1];
-    array.stripVertexCounts[0] = size_stripe;
-    // take the garbage out
-    stripe = null;
+    if (indexed) {
+      VisADIndexedTriangleStripArray array =
+        new VisADIndexedTriangleStripArray();
 
-    // set coordinates and colors
-    setGeometryArray(array, samples, 4, color_values);
-    // take the garbage out
-    samples = null;
+      // array.vertexFormat |= NORMALS;
+      array.normals = normals;
+      // take the garbage out
+      normals = null;
 
-    return array;
+      // set up indices
+      array.indexCount = size_stripe;
+      array.indices = new int[size_stripe];
+      System.arraycopy(stripe, 0, array.indices, 0, size_stripe);
+      array.stripVertexCounts = new int[1];
+      array.stripVertexCounts[0] = size_stripe;
+      // take the garbage out
+      stripe = null;
+
+      // set coordinates and colors
+      setGeometryArray(array, samples, 4, color_values);
+      // take the garbage out
+      samples = null;
+      return array;
+    }
+    else { // if (!indexed)
+      VisADTriangleStripArray array = new VisADTriangleStripArray();
+      array.stripVertexCounts = new int[] {size_stripe};
+      array.vertexCount = size_stripe;
+   
+      array.normals = new float[3 * size_stripe];
+      int k = 0;
+      for (int i=0; i<3*size_stripe; i+=3) {
+        j = 3 * stripe[k];
+        array.normals[i] = normals[j];
+        array.normals[i+1] = normals[j+1];
+        array.normals[i+2] = normals[j+2];
+        k++;
+      }
+      normals = null;
+   
+      array.coordinates = new float[3 * size_stripe];
+      k = 0;
+      for (int i=0; i<3*size_stripe; i+=3) {
+        j = stripe[k];
+        array.coordinates[i] = samples[0][j];
+        array.coordinates[i+1] = samples[1][j];
+        array.coordinates[i+2] = samples[2][j];
+        k++;
+      }
+      samples = null;
+   
+      if (color_values != null) {
+        int color_length = color_values.length;
+        array.colors = new byte[color_length * size_stripe];
+        k = 0;
+        if (color_length == 4) {
+          for (int i=0; i<color_length*size_stripe; i+=color_length) {
+            j = stripe[k];
+            array.colors[i] = color_values[0][j];
+            array.colors[i+1] = color_values[1][j];
+            array.colors[i+2] = color_values[2][j];
+            array.colors[i+3] = color_values[3][j];
+            k++;
+          }
+        }
+        else { // if (color_length == 3)
+          for (int i=0; i<color_length*size_stripe; i+=color_length) {
+            j = stripe[k];
+            array.colors[i] = color_values[0][j];
+            array.colors[i+1] = color_values[1][j];
+            array.colors[i+2] = color_values[2][j];
+            k++;
+          }
+        }
+      }
+      color_values = null;
+      stripe = null;
+      return array;
+    } // end if (!indexed)
   }
 
   public Object clone() {

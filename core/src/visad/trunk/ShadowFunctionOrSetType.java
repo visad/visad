@@ -487,6 +487,8 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
     boolean anyShape = getAnyShape();
     boolean anyText = getAnyText();
 
+    boolean indexed = wantIndexed();
+
     // get some precomputed values useful for transform
     // length of ValueArray
     int valueArrayLength = display.getValueArrayLength();
@@ -1291,7 +1293,7 @@ END MISSING TEST */
                     if (spatial_set != null) {
                       // System.out.println("makeIsoSurface at " + fvalues[0]);
                       array = spatial_set.makeIsoSurface(fvalues[0],
-                                  display_values[i], color_values);
+                                  display_values[i], color_values, indexed);
                       // System.out.println("makeIsoSurface " + array.vertexCount);
                       shadow_api.addToGroup(group, array, mode,
                                             constant_alpha, constant_color);
@@ -1539,7 +1541,7 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
             // System.out.println("make1DGeometry");
           }
           else if (spatialManifoldDimension == 2) {
-            array = spatial_set.make2DGeometry(color_values);
+            array = spatial_set.make2DGeometry(color_values, indexed);
             // System.out.println("make2DGeometry  vertexCount = " +
             //                    array.vertexCount);
           }

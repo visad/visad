@@ -80,7 +80,9 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
       texCoords = new float[3 * count];
     }
     int k = 0;
-    int m = 0;
+    int kc = 0;
+    int kn = 0;
+    int kt = 0;
     for (int i=0; i<n; i++) {
       float[] c = arrays[i].coordinates;
       for (int j=0; j<3*arrays[i].vertexCount; j++) {
@@ -89,19 +91,19 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
       if (color_flag) {
         byte[] b = arrays[i].colors;
         for (int j=0; j<3*arrays[i].vertexCount; j++) {
-          colors[m++] = b[j];
+          colors[kc++] = b[j];
         }
       }
       if (normal_flag) {
         c = arrays[i].normals;
         for (int j=0; j<3*arrays[i].vertexCount; j++) {
-          normals[m++] = c[j];
+          normals[kn++] = c[j];
         }
       }
       if (texCoord_flag) {
         c = arrays[i].texCoords;
         for (int j=0; j<3*arrays[i].vertexCount; j++) {
-          texCoords[m++] = c[j];
+          texCoords[kt++] = c[j];
         }
       }
     }

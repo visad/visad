@@ -309,6 +309,10 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
                              default_values, renderer);
   }
 
+  public boolean wantIndexed() {
+    return false;
+  }
+
 
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */

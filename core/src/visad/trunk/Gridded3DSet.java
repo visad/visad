@@ -835,6 +835,25 @@ public class Gridded3DSet extends GriddedSet {
             }
             float s, t, u;
             // these if statements handle skewed grids
+            float d0 = M[0]*P[0] - N[0]*O[0];
+            float d1 = M[1]*P[1] - N[1]*O[1];
+            float d2 = M[2]*P[2] - N[2]*O[2];
+            float ad0 = Math.abs(d0);
+            float ad1 = Math.abs(d1);
+            float ad2 = Math.abs(d2);
+            if (ad0 > ad1 && ad0 > ad2) {
+              s = (N[0]*X[0] + P[0]*Y[0])/d0;
+              t = -(M[0]*X[0] + O[0]*Y[0])/d0;
+            }
+            else if (ad1 > ad2) {
+              s = (N[1]*X[1] + P[1]*Y[1])/d1;
+              t = -(M[1]*X[1] + O[1]*Y[1])/d1;
+            }
+            else {
+              s = (N[2]*X[2] + P[2]*Y[2])/d2;
+              t = -(M[2]*X[2] + O[2]*Y[2])/d2;
+            }
+/* WLH 5 April 99
             if (M[0]*P[0] != N[0]*O[0]) {
               s = (N[0]*X[0] + P[0]*Y[0])/(M[0]*P[0] - N[0]*O[0]); 
               t = (M[0]*X[0] + O[0]*Y[0])/(N[0]*O[0] - M[0]*P[0]);
@@ -847,6 +866,26 @@ public class Gridded3DSet extends GriddedSet {
               s = (N[2]*X[2] + P[2]*Y[2])/(M[2]*P[2] - N[2]*O[2]); 
               t = (M[2]*X[2] + O[2]*Y[2])/(N[2]*O[2] - M[2]*P[2]);
             } 
+*/
+            d0 = A[0]-E[0];
+            d1 = A[1]-E[1];
+            d2 = A[2]-E[2];
+            ad0 = Math.abs(d0);
+            ad1 = Math.abs(d1);
+            ad2 = Math.abs(d2);
+            if (ad0 > ad1 && ad0 > ad2) {
+              u = ( value[0][i] - E[0] - s*(F[0]-E[0])
+                - t*(H[0]-E[0]) ) / d0;
+            }
+            else if (ad1 > ad2) {
+              u = ( value[1][i] - E[1] - s*(F[1]-E[1])
+                - t*(H[1]-E[1]) ) / d1;
+            }
+            else {
+              u = ( value[2][i] - E[2] - s*(F[2]-E[2])
+                - t*(H[2]-E[2]) ) / d2;
+            }
+/* WLH 5 April 99
             if (A[0] != E[0]) {
               u = ( value[0][i] - E[0] - s*(F[0]-E[0])
                 - t*(H[0]-E[0]) ) / (A[0]-E[0]);
@@ -859,6 +898,7 @@ public class Gridded3DSet extends GriddedSet {
               u = ( value[2][i] - E[2] - s*(F[2]-E[2])
                 - t*(H[2]-E[2]) ) / (A[2]-E[2]);
             }
+*/
             if (evencube) {
               grid[0][i] = gx+s;
               grid[1][i] = gy+t;
@@ -946,6 +986,25 @@ public class Gridded3DSet extends GriddedSet {
             }
             float s, t, u;
             // these if statements handle skewed grids
+            float d0 = M[0]*P[0] - N[0]*O[0];
+            float d1 = M[1]*P[1] - N[1]*O[1];
+            float d2 = M[2]*P[2] - N[2]*O[2];
+            float ad0 = Math.abs(d0);
+            float ad1 = Math.abs(d1);
+            float ad2 = Math.abs(d2);
+            if (ad0 > ad1 && ad0 > ad2) {
+              s = 1 - (N[0]*X[0] + P[0]*Y[0])/d0;
+              t = -(M[0]*X[0] + O[0]*Y[0])/d0;
+            }
+            else if (ad1 > ad2) {
+              s = 1 - (N[1]*X[1] + P[1]*Y[1])/d1;
+              t = -(M[1]*X[1] + O[1]*Y[1])/d1;
+            }
+            else {
+              s = 1 - (N[2]*X[2] + P[2]*Y[2])/d2;
+              t = -(M[2]*X[2] + O[2]*Y[2])/d2;
+            }
+/* WLH 5 April 99
             if (M[0]*P[0] != N[0]*O[0]) {
               s = 1 - (N[0]*X[0] + P[0]*Y[0])/(M[0]*P[0] - N[0]*O[0]); 
               t = (M[0]*X[0] + O[0]*Y[0])/(N[0]*O[0] - M[0]*P[0]);
@@ -958,6 +1017,26 @@ public class Gridded3DSet extends GriddedSet {
               s = 1 - (N[2]*X[2] + P[2]*Y[2])/(M[2]*P[2] - N[2]*O[2]); 
               t = (M[2]*X[2] + O[2]*Y[2])/(N[2]*O[2] - M[2]*P[2]);
             } 
+*/
+            d0 = F[0]-B[0];
+            d1 = F[1]-B[1];
+            d2 = F[2]-B[2];
+            ad0 = Math.abs(d0);
+            ad1 = Math.abs(d1);
+            ad2 = Math.abs(d2);
+            if (ad0 > ad1 && ad0 > ad2) {
+              u = 1 - ( value[0][i] - B[0] - (1-s)*(A[0]-B[0])
+                - t*(C[0]-B[0]) ) / d0;
+            }
+            else if (ad1 > ad2) {
+              u = 1 - ( value[1][i] - B[1] - (1-s)*(A[1]-B[1])
+                - t*(C[1]-B[1]) ) / d1;
+            }
+            else {
+              u = 1 - ( value[2][i] - B[2] - (1-s)*(A[2]-B[2])
+                - t*(C[2]-B[2]) ) / d2;
+            }
+/* WLH 5 April 99
             if (F[0] != B[0]) {
               u = 1 - ( value[0][i] - B[0] - (1-s)*(A[0]-B[0])
                 - t*(C[0]-B[0]) ) / (F[0]-B[0]);
@@ -970,6 +1049,7 @@ public class Gridded3DSet extends GriddedSet {
               u = 1 - ( value[2][i] - B[2] - (1-s)*(A[2]-B[2])
                 - t*(C[2]-B[2]) ) / (F[2]-B[2]);
             }
+*/
             if (evencube) {
               grid[0][i] = gx+s;
               grid[1][i] = gy+t;
@@ -1057,6 +1137,25 @@ public class Gridded3DSet extends GriddedSet {
             }
             float s, t, u;
             // these if statements handle skewed grids
+            float d0 = M[0]*P[0] - N[0]*O[0];
+            float d1 = M[1]*P[1] - N[1]*O[1];
+            float d2 = M[2]*P[2] - N[2]*O[2];
+            float ad0 = Math.abs(d0);
+            float ad1 = Math.abs(d1);
+            float ad2 = Math.abs(d2);
+            if (ad0 > ad1 && ad0 > ad2) {
+              s = (N[0]*X[0] + P[0]*Y[0])/d0;
+              t = 1 + (M[0]*X[0] + O[0]*Y[0])/d0;
+            }
+            else if (ad1 > ad2) {
+              s = (N[1]*X[1] + P[1]*Y[1])/d1;
+              t = 1 + (M[1]*X[1] + O[1]*Y[1])/d1;
+            }
+            else {
+              s = (N[2]*X[2] + P[2]*Y[2])/d2;
+              t =  1 + (M[2]*X[2] + O[2]*Y[2])/d2;
+            }
+/* WLH 5 April 99
             if (M[0]*P[0] != N[0]*O[0]) {
               s = (N[0]*X[0] + P[0]*Y[0])/(M[0]*P[0] - N[0]*O[0]); 
               t = 1 - (M[0]*X[0] + O[0]*Y[0])/(N[0]*O[0] - M[0]*P[0]);
@@ -1069,6 +1168,26 @@ public class Gridded3DSet extends GriddedSet {
               s = (N[2]*X[2] + P[2]*Y[2])/(M[2]*P[2] - N[2]*O[2]); 
               t = 1 - (M[2]*X[2] + O[2]*Y[2])/(N[2]*O[2] - M[2]*P[2]);
             }
+*/
+            d0 = H[0]-D[0];
+            d1 = H[1]-D[1];
+            d2 = H[2]-D[2];
+            ad0 = Math.abs(d0);
+            ad1 = Math.abs(d1);
+            ad2 = Math.abs(d2);
+            if (ad0 > ad1 && ad0 > ad2) {
+              u = 1 - ( value[0][i] - D[0] - s*(C[0]-D[0])
+                - (1-t)*(A[0]-D[0]) ) / d0;
+            }
+            else if (ad1 > ad2) {
+              u = 1 - ( value[1][i] - D[1] - s*(C[1]-D[1])
+                - (1-t)*(A[1]-D[1]) ) / d1;
+            }
+            else {
+              u = 1 - ( value[2][i] - D[2] - s*(C[2]-D[2])
+                - (1-t)*(A[2]-D[2]) ) / d2;
+            }
+/* WLH 5 April 99
             if (H[0] != D[0]) {
               u = 1 - ( value[0][i] - D[0] - s*(C[0]-D[0])
                 - (1-t)*(A[0]-D[0]) ) / (H[0]-D[0]);
@@ -1081,6 +1200,7 @@ public class Gridded3DSet extends GriddedSet {
               u = 1 - ( value[2][i] - D[2] - s*(C[2]-D[2])
                 - (1-t)*(A[2]-D[2]) ) / (H[2]-D[2]);
             }
+*/
             if (evencube) {
               grid[0][i] = gx+s;
               grid[1][i] = gy+t;
@@ -1168,6 +1288,25 @@ public class Gridded3DSet extends GriddedSet {
             }
             float s, t, u;
             // these if statements handle skewed grids
+            float d0 = M[0]*P[0] - N[0]*O[0];
+            float d1 = M[1]*P[1] - N[1]*O[1];
+            float d2 = M[2]*P[2] - N[2]*O[2];
+            float ad0 = Math.abs(d0);
+            float ad1 = Math.abs(d1);
+            float ad2 = Math.abs(d2);
+            if (ad0 > ad1 && ad0 > ad2) {
+              s = 1 - (N[0]*X[0] + P[0]*Y[0])/d0;
+              t = 1 + (M[0]*X[0] + O[0]*Y[0])/d0;
+            }
+            else if (ad1 > ad2) {
+              s = 1 - (N[1]*X[1] + P[1]*Y[1])/d1;
+              t = 1 + (M[1]*X[1] + O[1]*Y[1])/d1;
+            }
+            else {
+              s = 1 - (N[2]*X[2] + P[2]*Y[2])/d2;
+              t = 1 + (M[2]*X[2] + O[2]*Y[2])/d2;
+            }
+/* WLH 5 April 99
             if (M[0]*P[0] != N[0]*O[0]) {
               s = 1 - (N[0]*X[0] + P[0]*Y[0])/(M[0]*P[0] - N[0]*O[0]); 
               t = 1 - (M[0]*X[0] + O[0]*Y[0])/(N[0]*O[0] - M[0]*P[0]);
@@ -1180,6 +1319,26 @@ public class Gridded3DSet extends GriddedSet {
               s = 1 - (N[2]*X[2] + P[2]*Y[2])/(M[2]*P[2] - N[2]*O[2]); 
               t = 1 - (M[2]*X[2] + O[2]*Y[2])/(N[2]*O[2] - M[2]*P[2]);
             }
+*/
+            d0 = C[0]-G[0];
+            d1 = C[1]-G[1];
+            d2 = C[2]-G[2];
+            ad0 = Math.abs(d0);
+            ad1 = Math.abs(d1);
+            ad2 = Math.abs(d2);
+            if (ad0 > ad1 && ad0 > ad2) {
+              u = ( value[0][i] - G[0] - (1-s)*(H[0]-G[0])
+                - (1-t)*(F[0]-G[0]) ) / d0;
+            }
+            else if (ad1 > ad2) {
+              u = ( value[1][i] - G[1] - (1-s)*(H[1]-G[1])
+                - (1-t)*(F[1]-G[1]) ) / d1;
+            }
+            else {
+              u = ( value[2][i] - G[2] - (1-s)*(H[2]-G[2])
+                - (1-t)*(F[2]-G[2]) ) / d2;
+            }
+/* WLH 5 April 99
             if (C[0] != G[0]) {
               u = ( value[0][i] - G[0] - (1-s)*(H[0]-G[0])
                 - (1-t)*(F[0]-G[0]) ) / (C[0]-G[0]);
@@ -1192,6 +1351,7 @@ public class Gridded3DSet extends GriddedSet {
               u = ( value[2][i] - G[2] - (1-s)*(H[2]-G[2])
                 - (1-t)*(F[2]-G[2]) ) / (C[2]-G[2]);
             }
+*/
             if (evencube) {
               grid[0][i] = gx+s;
               grid[1][i] = gy+t;
@@ -1342,15 +1502,15 @@ public class Gridded3DSet extends GriddedSet {
             float ad2 = Math.abs(d2);
             if (ad0 > ad1 && ad0 > ad2) {
               s = (N[0]*X[0] + P[0]*Y[0])/d0;
-              t = (M[0]*X[0] + O[0]*Y[0])/d0;
+              t = -(M[0]*X[0] + O[0]*Y[0])/d0;
             }
             else if (ad1 > ad2) {
               s = (N[1]*X[1] + P[1]*Y[1])/d1;
-              t = (M[1]*X[1] + O[1]*Y[1])/d1;
+              t = -(M[1]*X[1] + O[1]*Y[1])/d1;
             }
             else {
               s = (N[2]*X[2] + P[2]*Y[2])/d2;
-              t = (M[2]*X[2] + O[2]*Y[2])/d2;
+              t = -(M[2]*X[2] + O[2]*Y[2])/d2;
             }
 /* WLH 3 April 99
             if (M[0]*P[0] != N[0]*O[0]) {
@@ -1452,19 +1612,6 @@ public class Gridded3DSet extends GriddedSet {
     if (color_length > 0) {
       color_levels1 = new byte[color_length][maxv1];
       color_levels2 = new byte[color_length][maxv2];
-/* MEM_WLH
-      cfloat = new float[color_values.length][];
-      for (int i = 0; i< color_values.length; i++) {
-        if (color_values[i] != null) {
-          cfloat[i] = new float[color_values[i].length];
-          for (int j=0; j<color_values[i].length; j++) {
-            int k = color_values[i][j];
-            if (k < 0) k += 256;
-            cfloat[i][j] = (k / 255.0f);
-          }
-        }
-      }
-*/
     }
 
     float[][] vx1 = new float[1][maxv1];
@@ -1497,21 +1644,6 @@ public class Gridded3DSet extends GriddedSet {
         System.arraycopy(color_levels1[i], 0, a[i], 0, numv1[0]);
       }
       color_levels1 = a;
-/* MEM_WLH
-      c1 = new byte[color_levels1.length][];
-      for (int i = 0; i< color_levels1.length; i++) {
-        if (color_levels1[i] != null) {
-          c1[i] = new byte[color_levels1[i].length];
-          for (int j=0; j<color_levels1[i].length; j++) {
-            int k = (int) (color_levels1[i][j] * 255.0);
-            k = (k < 0) ? 0 : (k > 255) ? 255 : k;
-            c1[i][j] = (byte) ((k < 128) ? k : k - 256);
-          }
-        }
-      }
-      // FREE
-      color_levels1 = null;
-*/
     }
 
     float[][] grid2 = new float[2][numv2[0]];
@@ -1526,21 +1658,6 @@ public class Gridded3DSet extends GriddedSet {
         System.arraycopy(color_levels2[i], 0, a[i], 0, numv2[0]);
       }
       color_levels2 = a;
-/* MEM_WLH
-      c2 = new byte[color_levels2.length][];
-      for (int i = 0; i< color_levels2.length; i++) {
-        if (color_levels2[i] != null) {
-          c2[i] = new byte[color_levels2[i].length];
-          for (int j=0; j<color_levels2[i].length; j++) {
-            int k = (int) (color_levels2[i][j] * 255.0);
-            k = (k < 0) ? 0 : (k > 255) ? 255 : k;
-            c2[i][j] = (byte) ((k < 128) ? k : k - 256);
-          }
-        }
-      }
-      // FREE
-      color_levels2 = null;
-*/
     }
 
     // temporary label orientation hack
@@ -1999,7 +2116,7 @@ public class Gridded3DSet extends GriddedSet {
 
 
   public VisADGeometryArray makeIsoSurface(float isolevel,
-                float[] fieldValues, byte[][] color_values)
+         float[] fieldValues, byte[][] color_values, boolean indexed)
          throws VisADException {
     boolean debug = false;
 
@@ -2055,19 +2172,6 @@ public class Gridded3DSet extends GriddedSet {
     byte[][] color_temps = null;
     if (color_values != null) {
       color_temps = new byte[color_values.length][];
-/* MEM_WLH
-      cfloat = new float[color_values.length][];
-      for (int t = 0; t< color_values.length; t++) {
-        if (color_values[t] != null) {
-          cfloat[t] = new float[color_values[t].length];
-          for (int j=0; j<color_values[t].length; j++) {
-            int k = color_values[t][j];
-            if (k < 0) k += 256;
-            cfloat[t][j] = (k / 255.0f);
-          }
-        }
-      }
-*/
     }
 
     int[] Pol_f_Vert = new int[ix];
@@ -2109,16 +2213,6 @@ for (int j=0; j<nvertex; j++) {
       if (color_temps.length > 3) {
         System.arraycopy(color_temps[3], 0, color_levels[3], 0, nvertex);
       }
-/* MEM_WLH
-      color_levels = new byte[color_values.length][nvertex];
-      for (int t=0; t<color_values.length; t++) {
-        for (int j=0; j<nvertex; j++) {
-          int k = (int) (color_temps[t][j] * 255.0);
-          k = (k < 0) ? 0 : (k > 255) ? 255 : k;
-          color_levels[t][j] = (byte) ((k < 128) ? k : k - 256);
-        }
-      }
-*/
       // take the garbage out
       color_temps = null;
     }
@@ -2168,33 +2262,89 @@ for (int j=0; j<nvertex; j++) {
     Pol_f_Vert = null;
     Vert_f_Pol = null;
 
-    VisADIndexedTriangleStripArray array =
-      new VisADIndexedTriangleStripArray();
-
-    // set up indices
-    array.indexCount = size_stripe;
-    array.indices = new int[size_stripe];
-    System.arraycopy(stripe, 0, array.indices, 0, size_stripe);
-    array.stripVertexCounts = new int[1];
-    array.stripVertexCounts[0] = size_stripe;
-    // take the garbage out
-    stripe = null;
- 
-    // set coordinates and colors
-    setGeometryArray(array, fieldVertices, 4, color_levels);
-    // take the garbage out
-    fieldVertices = null;
-    color_levels = null;
-
-    // array.vertexFormat |= NORMALS;
-    array.normals = normals;
-
-    if (debug) {
-      System.out.println("size_stripe= "+size_stripe);
-      for(ii=0;ii<size_stripe;ii++) System.out.println(+array.indices[ii]);
+    if (indexed) {
+      VisADIndexedTriangleStripArray array =
+        new VisADIndexedTriangleStripArray();
+  
+      // set up indices
+      array.indexCount = size_stripe;
+      array.indices = new int[size_stripe];
+      System.arraycopy(stripe, 0, array.indices, 0, size_stripe);
+      array.stripVertexCounts = new int[1];
+      array.stripVertexCounts[0] = size_stripe;
+      // take the garbage out
+      stripe = null;
+  
+      // set coordinates and colors
+      setGeometryArray(array, fieldVertices, 4, color_levels);
+      // take the garbage out
+      fieldVertices = null;
+      color_levels = null;
+  
+      // array.vertexFormat |= NORMALS;
+      array.normals = normals;
+  
+      if (debug) {
+        System.out.println("size_stripe= "+size_stripe);
+        for(ii=0;ii<size_stripe;ii++) System.out.println(+array.indices[ii]);
+      }
+      return array;
     }
-
-    return array;
+    else { // if (!indexed)
+      VisADTriangleStripArray array = new VisADTriangleStripArray();
+      array.stripVertexCounts = new int[] {size_stripe};
+      array.vertexCount = size_stripe;
+  
+      array.normals = new float[3 * size_stripe];
+      int k = 0;
+      for (i=0; i<3*size_stripe; i+=3) {
+        j = 3 * stripe[k];
+        array.normals[i] = normals[j];
+        array.normals[i+1] = normals[j+1];
+        array.normals[i+2] = normals[j+2];
+        k++;
+      }
+      normals = null;
+  
+      array.coordinates = new float[3 * size_stripe];
+      k = 0;
+      for (i=0; i<3*size_stripe; i+=3) {
+        j = stripe[k];
+        array.coordinates[i] = fieldVertices[0][j];
+        array.coordinates[i+1] = fieldVertices[1][j];
+        array.coordinates[i+2] = fieldVertices[2][j];
+        k++;
+      }
+      fieldVertices = null;
+  
+      if (color_levels != null) {
+        int color_length = color_levels.length;
+        array.colors = new byte[color_length * size_stripe];
+        k = 0;
+        if (color_length == 4) {
+          for (i=0; i<color_length*size_stripe; i+=color_length) {
+            j = stripe[k];
+            array.colors[i] = color_levels[0][j];
+            array.colors[i+1] = color_levels[1][j];
+            array.colors[i+2] = color_levels[2][j];
+            array.colors[i+3] = color_levels[3][j];
+            k++;
+          }
+        }
+        else { // if (color_length == 3)
+          for (i=0; i<color_length*size_stripe; i+=color_length) {
+            j = stripe[k];
+            array.colors[i] = color_levels[0][j];
+            array.colors[i+1] = color_levels[1][j];
+            array.colors[i+2] = color_levels[2][j];
+            k++;
+          }
+        }
+      }
+      color_levels = null;
+      stripe = null;
+      return array;
+    } // end if (!indexed)
   }
 
   private static int flags( float isovalue, int[] ptFLAG, int[] ptAUX, int[] pcube,
@@ -3778,8 +3928,8 @@ void debug(float[][] VX, float[][] VY, float[][] VZ, int nvet, int c) {
   }
 
   /** create a 2-D GeometryArray from this Set and color_values */
-  public VisADGeometryArray make2DGeometry(byte[][] color_values)
-         throws VisADException {
+  public VisADGeometryArray make2DGeometry(byte[][] color_values,
+         boolean indexed) throws VisADException {
     if (DomainDimension != 3) {
       throw new SetException("Gridded3DSet.make2DGeometry: " +
                               "DomainDimension must be 3");
@@ -3797,82 +3947,225 @@ void debug(float[][] VX, float[][] VY, float[][] VZ, int nvet, int c) {
       setGeometryArray(array, 4, color_values);
       return array;
     }
-    VisADIndexedTriangleStripArray array =
-      new VisADIndexedTriangleStripArray();
 
-    // set up indices into 2-D grid
-    array.indexCount = (LengthY - 1) * (2 * LengthX);
-    int[] indices = new int[array.indexCount];
-    array.stripVertexCounts = new int[LengthY - 1];
-    int k = 0;
-    for (int i=0; i<LengthY-1; i++) {
-      int m = i * LengthX;
-      array.stripVertexCounts[i] = 2 * LengthX;
-      for (int j=0; j<LengthX; j++) {
-        indices[k++] = m;
-        indices[k++] = m + LengthX;
-        m++;
+    if (indexed) {
+      VisADIndexedTriangleStripArray array =
+        new VisADIndexedTriangleStripArray();
+  
+      // set up indices into 2-D grid
+      array.indexCount = (LengthY - 1) * (2 * LengthX);
+      int[] indices = new int[array.indexCount];
+      array.stripVertexCounts = new int[LengthY - 1];
+      int k = 0;
+      for (int i=0; i<LengthY-1; i++) {
+        int m = i * LengthX;
+        array.stripVertexCounts[i] = 2 * LengthX;
+        for (int j=0; j<LengthX; j++) {
+          indices[k++] = m;
+          indices[k++] = m + LengthX;
+          m++;
+        }
       }
-    }
-    array.indices = indices;
-    // take the garbage out
-    indices = null;
-
-    // set coordinates and colors
-    setGeometryArray(array, 4, color_values);
-
-    // calculate normals
-    float[] coordinates = array.coordinates;
-    float[] normals = new float[3 * Length];
-    k = 0;
-    int ki, kj;
-    int LengthX3 = 3 * LengthX;
-    for (int i=0; i<LengthY; i++) {
-      for (int j=0; j<LengthX; j++) {
-        float c0 = coordinates[k];
-        float c1 = coordinates[k+1];
-        float c2 = coordinates[k+2];
-        float n0 = 0.0f;
-        float n1 = 0.0f;
-        float n2 = 0.0f;
-        float n, m, m0, m1, m2;
-        for (int ip = -1; ip<=1; ip += 2) {
-          for (int jp = -1; jp<=1; jp += 2) {
-            int ii = i + ip;
-            int jj = j + jp;
-            if (0 <= ii && ii < LengthY && 0 <= jj && jj < LengthX) {
-              ki = k + ip * LengthX3;
-              kj = k + jp * 3;
-              m0 = (coordinates[kj+2] - c2) * (coordinates[ki+1] - c1) -
-                   (coordinates[kj+1] - c1) * (coordinates[ki+2] - c2);
-              m1 = (coordinates[kj] - c0) * (coordinates[ki+2] - c2) -
-                   (coordinates[kj+2] - c2) * (coordinates[ki] - c0);
-              m2 = (coordinates[kj+1] - c1) * (coordinates[ki] - c0) -
-                   (coordinates[kj] - c0) * (coordinates[ki+1] - c1);
-              m = (float) Math.sqrt(m0 * m0 + m1 * m1 + m2 * m2);
-              if (ip == jp) {
-                n0 += m0 / m;
-                n1 += m1 / m;
-                n2 += m2 / m;
-              }
-              else {
-                n0 -= m0 / m;
-                n1 -= m1 / m;
-                n2 -= m2 / m;
+      array.indices = indices;
+      // take the garbage out
+      indices = null;
+  
+      // set coordinates and colors
+      setGeometryArray(array, 4, color_values);
+  
+      // calculate normals
+      float[] coordinates = array.coordinates;
+      float[] normals = new float[3 * Length];
+      k = 0;
+      int ki, kj;
+      int LengthX3 = 3 * LengthX;
+      for (int i=0; i<LengthY; i++) {
+        for (int j=0; j<LengthX; j++) {
+          float c0 = coordinates[k];
+          float c1 = coordinates[k+1];
+          float c2 = coordinates[k+2];
+          float n0 = 0.0f;
+          float n1 = 0.0f;
+          float n2 = 0.0f;
+          float n, m, m0, m1, m2;
+          for (int ip = -1; ip<=1; ip += 2) {
+            for (int jp = -1; jp<=1; jp += 2) {
+              int ii = i + ip;
+              int jj = j + jp;
+              if (0 <= ii && ii < LengthY && 0 <= jj && jj < LengthX) {
+                ki = k + ip * LengthX3;
+                kj = k + jp * 3;
+                m0 = (coordinates[kj+2] - c2) * (coordinates[ki+1] - c1) -
+                     (coordinates[kj+1] - c1) * (coordinates[ki+2] - c2);
+                m1 = (coordinates[kj] - c0) * (coordinates[ki+2] - c2) -
+                     (coordinates[kj+2] - c2) * (coordinates[ki] - c0);
+                m2 = (coordinates[kj+1] - c1) * (coordinates[ki] - c0) -
+                     (coordinates[kj] - c0) * (coordinates[ki+1] - c1);
+                m = (float) Math.sqrt(m0 * m0 + m1 * m1 + m2 * m2);
+                if (ip == jp) {
+                  n0 += m0 / m;
+                  n1 += m1 / m;
+                  n2 += m2 / m;
+                }
+                else {
+                  n0 -= m0 / m;
+                  n1 -= m1 / m;
+                  n2 -= m2 / m;
+                }
               }
             }
           }
+          n = (float) Math.sqrt(n0 * n0 + n1 * n1 + n2 * n2);
+          normals[k] = n0 / n;
+          normals[k+1] = n1 / n;
+          normals[k+2] = n2 / n;
+          k += 3;
+        } // end for (int j=0; j<LengthX; j++)
+      } // end for (int i=0; i<LengthY; i++)
+      // array.vertexFormat |= NORMALS;
+      array.normals = normals;
+      return array;
+    }
+    else { // if (!indexed)
+      VisADTriangleStripArray array = new VisADTriangleStripArray();
+      float[][] samples = getSamples(false);
+  
+      array.stripVertexCounts = new int[LengthY - 1];
+      for (int i=0; i<LengthY-1; i++) {
+        array.stripVertexCounts[i] = 2 * LengthX;
+      }
+      int len = (LengthY - 1) * (2 * LengthX);
+      array.vertexCount = len;
+  
+      // calculate normals
+      float[] normals = new float[3 * Length];
+      int k = 0;
+      int k3 = 0;
+      int ki, kj;
+      for (int i=0; i<LengthY; i++) {
+        for (int j=0; j<LengthX; j++) {
+          float c0 = samples[0][k3];
+          float c1 = samples[1][k3];
+          float c2 = samples[2][k3];
+          float n0 = 0.0f;
+          float n1 = 0.0f;
+          float n2 = 0.0f;
+          float n, m, m0, m1, m2;
+          for (int ip = -1; ip<=1; ip += 2) {
+            for (int jp = -1; jp<=1; jp += 2) {
+              int ii = i + ip;
+              int jj = j + jp;
+              if (0 <= ii && ii < LengthY && 0 <= jj && jj < LengthX) {
+                ki = k3 + ip * LengthX;
+                kj = k3 + jp;
+                m0 = (samples[2][kj] - c2) * (samples[1][ki] - c1) -
+                     (samples[1][kj] - c1) * (samples[2][ki] - c2);
+                m1 = (samples[0][kj] - c0) * (samples[2][ki] - c2) -
+                     (samples[2][kj] - c2) * (samples[0][ki] - c0);
+                m2 = (samples[1][kj] - c1) * (samples[0][ki] - c0) -
+                     (samples[0][kj] - c0) * (samples[1][ki] - c1);
+                m = (float) Math.sqrt(m0 * m0 + m1 * m1 + m2 * m2);
+                if (ip == jp) {
+                  n0 += m0 / m;
+                  n1 += m1 / m;
+                  n2 += m2 / m;
+                }
+                else {
+                  n0 -= m0 / m;
+                  n1 -= m1 / m;
+                  n2 -= m2 / m;
+                }
+              }
+            }
+          }
+          n = (float) Math.sqrt(n0 * n0 + n1 * n1 + n2 * n2);
+          normals[k] = n0 / n;
+          normals[k+1] = n1 / n;
+          normals[k+2] = n2 / n;
+          k += 3;
+          k3++;
+        } // end for (int j=0; j<LengthX; j++)
+      } // end for (int i=0; i<LengthY; i++)
+  
+      array.normals = new float[3 * len];
+  
+      // shuffle normals into array.normals
+      k = 0;
+      int LengthX3 = 3 * LengthX;
+      for (int i=0; i<LengthY-1; i++) {
+        int m = i * LengthX3;
+        for (int j=0; j<LengthX; j++) {
+          array.normals[k] = normals[m];
+          array.normals[k+1] = normals[m+1];
+          array.normals[k+2] = normals[m+2];
+          array.normals[k+3] = normals[m+LengthX3];
+          array.normals[k+4] = normals[m+LengthX3+1];
+          array.normals[k+5] = normals[m+LengthX3+2];
+          k += 6;
+          m += 3;
         }
-        n = (float) Math.sqrt(n0 * n0 + n1 * n1 + n2 * n2);
-        normals[k] = n0 / n;
-        normals[k+1] = n1 / n;
-        normals[k+2] = n2 / n;
-        k += 3;
-      } // end for (int j=0; j<LengthX; j++)
-    } // end for (int i=0; i<LengthY; i++)
-    // array.vertexFormat |= NORMALS;
-    array.normals = normals;
-    return array;
+      }
+      normals = null;
+  
+      array.coordinates = new float[3 * len];
+      // shuffle samples into array.coordinates
+      k = 0;
+      for (int i=0; i<LengthY-1; i++) {
+        int m = i * LengthX;
+        for (int j=0; j<LengthX; j++) {
+          array.coordinates[k] = samples[0][m];
+          array.coordinates[k+1] = samples[1][m];
+          array.coordinates[k+2] = samples[2][m];
+          array.coordinates[k+3] = samples[0][m+LengthX];
+          array.coordinates[k+4] = samples[1][m+LengthX];
+          array.coordinates[k+5] = samples[2][m+LengthX];
+          k += 6;
+          m++;
+        }
+      }
+  
+      if (color_values != null) {
+        int color_length = color_values.length;
+        array.colors = new byte[color_length * len];
+        // shuffle samples into array.coordinates
+        k = 0;
+        if (color_length == 4) {
+          for (int i=0; i<LengthY-1; i++) {
+            int m = i * LengthX;
+            for (int j=0; j<LengthX; j++) {
+              array.colors[k] = color_values[0][m];
+              array.colors[k+1] = color_values[1][m];
+              array.colors[k+2] = color_values[2][m];
+              array.colors[k+3] = color_values[3][m];
+              k += color_length;
+              array.colors[k] = color_values[0][m+LengthX];
+              array.colors[k+1] = color_values[1][m+LengthX];
+              array.colors[k+2] = color_values[2][m+LengthX];
+              array.colors[k+3] = color_values[3][m+LengthX];
+              k += color_length;
+              m++;
+            }
+          }
+        }
+        else { // if (color_length == 3)
+          for (int i=0; i<LengthY-1; i++) {
+            int m = i * LengthX;
+            for (int j=0; j<LengthX; j++) {
+              array.colors[k] = color_values[0][m];
+              array.colors[k+1] = color_values[1][m];
+              array.colors[k+2] = color_values[2][m];
+              k += color_length;
+              array.colors[k] = color_values[0][m+LengthX];
+              array.colors[k+1] = color_values[1][m+LengthX];
+              array.colors[k+2] = color_values[2][m+LengthX];
+              k += color_length;
+              m++;    
+            }
+          }
+        }
+      }
+      return array;
+    } // end if (!indexed)
   }
 
   public Object clone() {

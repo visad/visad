@@ -621,6 +621,8 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
             int[] stripVertexCounts =
                ((VisADLineStripArray) array).stripVertexCounts;
             int base = 0;
+            int basec = 0;
+            int jinc = (colors.length == coordinates.length) ? 3 : 4;
             for (int strip=0; strip<stripVertexCounts.length; strip++) {
               count = stripVertexCounts[strip];
 
@@ -629,16 +631,16 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
               int lastr = 0, lastg = 0, lastb = 0;
               int thisr, thisg, thisb;
               if (colors != null) {
-                lastr = (colors[base] < 0) ? (((int) colors[base]) + 256) :
-                                             ((int) colors[base]);
-                lastg = (colors[base+1] < 0) ? (((int) colors[base+1]) + 256) :
-                                               ((int) colors[base+1]);
-                lastb = (colors[base+2] < 0) ? (((int) colors[base+2]) + 256) :
-                                               ((int) colors[base+2]);
+                lastr = (colors[basec] < 0) ? (((int) colors[basec]) + 256) :
+                                             ((int) colors[basec]);
+                lastg = (colors[basec+1] < 0) ? (((int) colors[basec+1]) + 256) :
+                                               ((int) colors[basec+1]);
+                lastb = (colors[basec+2] < 0) ? (((int) colors[basec+2]) + 256) :
+                                               ((int) colors[basec+2]);
 /* MEM_WLH
-                lastr = ShadowType.byteToFloat(colors[base]);
-                lastg = ShadowType.byteToFloat(colors[base+1]);
-                lastb = ShadowType.byteToFloat(colors[base+2]);
+                lastr = ShadowType.byteToFloat(colors[basec]);
+                lastg = ShadowType.byteToFloat(colors[basec+1]);
+                lastb = ShadowType.byteToFloat(colors[basec+2]);
 */
               }
               if (colors == null) {
@@ -651,19 +653,18 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                 }
               }
               else {
-                int jinc = (colors.length == coordinates.length) ? 3 : 4;
                 int j = jinc;
                 for (int i=3; i<3*count; i += 3) {
-                  thisr = (colors[base+j] < 0) ? (((int) colors[base+j]) + 256) :
-                                               ((int) colors[base+j]);
-                  thisg = (colors[base+j+1] < 0) ? (((int) colors[base+j+1]) + 256) :
-                                                 ((int) colors[base+j+1]);
-                  thisb = (colors[base+j+2] < 0) ? (((int) colors[base+j+2]) + 256) :
-                                                 ((int) colors[base+j+2]);
+                  thisr = (colors[basec+j] < 0) ? (((int) colors[basec+j]) + 256) :
+                                               ((int) colors[basec+j]);
+                  thisg = (colors[basec+j+1] < 0) ? (((int) colors[basec+j+1]) + 256) :
+                                                 ((int) colors[basec+j+1]);
+                  thisb = (colors[basec+j+2] < 0) ? (((int) colors[basec+j+2]) + 256) :
+                                                 ((int) colors[basec+j+2]);
 /* MEM_WLH
-                  thisr = ShadowType.byteToFloat(colors[base+j]);
-                  thisg = ShadowType.byteToFloat(colors[base+j+1]);
-                  thisb = ShadowType.byteToFloat(colors[base+j+2]);
+                  thisr = ShadowType.byteToFloat(colors[basec+j]);
+                  thisg = ShadowType.byteToFloat(colors[basec+j+1]);
+                  thisb = ShadowType.byteToFloat(colors[basec+j+2]);
 */
                   g2.setColor(new Color((lastr + thisr) / 2,
                                         (lastg + thisg) / 2,
@@ -680,6 +681,7 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                 }
               }
               base += 3 * count;
+              basec += jinc * count;
             } // end for (int strip=0; strip<stripVertexCounts.length; strip++)
           } // end if (array instanceof VisADLineStripArray)
         }
@@ -882,7 +884,101 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
             }
             base += count;
           }
-        }
+        } // end if (array instanceof VisADIndexedTriangleStripArray)
+        else if (array instanceof VisADTriangleStripArray) {
+          g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
+                              RenderingHints.VALUE_ANTIALIAS_OFF);
+          int[] stripVertexCounts =
+             ((VisADTriangleStripArray) array).stripVertexCounts;
+          int base = 0;
+          int basec = 0;
+          int jinc = (colors.length == coordinates.length) ? 3 : 4;
+          for (int strip=0; strip<stripVertexCounts.length; strip++) {
+            count = stripVertexCounts[strip];
+
+            float oldx = coordinates[base];
+            float oldy = coordinates[base+1];
+            float lastx = coordinates[base+3];
+            float lasty = coordinates[base+4];
+            int oldr = 0, oldg = 0, oldb = 0;
+            int lastr = 0, lastg = 0, lastb = 0;
+            int thisr, thisg, thisb;
+
+            if (colors != null) {
+              oldr = (colors[basec] < 0) ? (((int) colors[basec]) + 256) :
+                                           ((int) colors[basec]);
+              oldg = (colors[basec+1] < 0) ? (((int) colors[basec+1]) + 256) :
+                                             ((int) colors[basec+1]);
+              oldb = (colors[basec+2] < 0) ? (((int) colors[basec+2]) + 256) :
+                                             ((int) colors[basec+2]);
+              lastr = (colors[basec+jinc] < 0) ? (((int) colors[basec+jinc]) + 256) :
+                                           ((int) colors[basec+jinc]);
+              lastg = (colors[basec+jinc+1] < 0) ? (((int) colors[basec+jinc+1]) + 256) :
+                                             ((int) colors[basec+jinc+1]);
+              lastb = (colors[basec+jinc+2] < 0) ? (((int) colors[basec+jinc+2]) + 256) :
+                                             ((int) colors[basec+jinc+2]);
+            }
+
+            if (colors == null) {
+              for (int i=6; i<3*count; i+=3) {
+                GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
+                path.moveTo(oldx, oldy);
+                path.lineTo(lastx, lasty);
+                path.lineTo(coordinates[base+i], coordinates[base+i+1]);
+                path.closePath();
+                g2.fill(path);
+                oldx = lastx;
+                oldy = lasty;
+                lastx = coordinates[base+i];
+                lasty = coordinates[base+i+1];
+              } // end for (int i=6; i<3*count; i+=3)
+            }
+            else { // colors != null
+              int j = 2 * jinc;
+/*
+System.out.println(j + " " + jinc + " " + basec);
+*/
+              for (int i=6; i<3*count; i+=3) {
+                thisr = (colors[basec+j] < 0) ? (((int) colors[basec+j]) + 256) :
+                                                ((int) colors[basec+j]);
+                thisg = (colors[basec+j+1] < 0) ? (((int) colors[basec+j+1]) + 256) :
+                                                  ((int) colors[basec+j+1]);
+                thisb = (colors[basec+j+2] < 0) ? (((int) colors[basec+j+2]) + 256) :
+                                                  ((int) colors[basec+j+2]);
+                g2.setColor(new Color((thisr + lastr + oldr)/3,
+                                      (thisg + lastg + oldg)/3,
+                                      (thisb + lastb + oldb)/3));
+/*
+System.out.println(i + " " + oldr + " " + oldg + " " + oldb + " " + lastr + " " +
+                   lastg + " " + lastb + " " + thisr + " " + thisg + " " + thisb);
+*/
+                oldr = lastr;
+                oldg = lastg;
+                oldb = lastb;
+                lastr = thisr;
+                lastg = thisg;
+                lastb = thisb;
+                j += jinc;
+                GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
+                path.moveTo(oldx, oldy);
+                path.lineTo(lastx, lasty);
+                path.lineTo(coordinates[base+i], coordinates[base+i+1]);
+                path.closePath();
+                g2.fill(path);
+/*
+System.out.println(i + " " + oldx + " " + oldy + " " + lastx + " " + lasty +
+                   " " + coordinates[base+i] + " " + coordinates[base+i+1]);
+*/
+                oldx = lastx;
+                oldy = lasty;
+                lastx = coordinates[base+i];
+                lasty = coordinates[base+i+1];
+              } // end for (int i=6; i<3*count; i+=3)
+            }
+            base += 3 * count;
+            basec += jinc * count;
+          } // end for (int strip=0; strip<stripVertexCounts.length; strip++)
+        } // end if (array instanceof VisADTriangleStripArray)
         else {
           throw new VisADError("VisADCanvasJ2D.render: bad array class");
         }

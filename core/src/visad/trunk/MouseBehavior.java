@@ -40,8 +40,8 @@ public interface MouseBehavior {
 
   public abstract double[] multiply_matrix(double[] a, double[] b);
 
-  public abstract double[] make_matrix(double rotx, double roty, double rotz,
-         double scale, double transx, double transy, double transz);
+  public abstract double[] make_matrix(double rotx, double roty,
+         double rotz, double scale, double transx, double transy, double transz);
 
   public abstract double[] make_translate(double transx, double transy);
 
