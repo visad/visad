@@ -72,22 +72,28 @@ showDisplay(display, width=300, height=300, title=, bottom=, top=)
   and top= keywords to add these componenets (or panels) to the bottom
   and top of the VisAD display (which always is put in the Center).
 
-Shapes(display)
-  a Class that allows you to do some easy displays of Shapes
-
-  addShape(type, scale=.1, color=None, index=None)
+addShape(type, scale=.1, color=None, index=None, autoScale=1)
     type is a string that names a pre-defined type of shape 
     ("cross", "triangle", "square", "solid_square", "solid_triangle")
     or a VisADGeometryArray.  This will add  the shape for
     the display.  If 'index=' is given, it is assumed you
-    are simply replacing that shape with a different one.
+    are simply replacing that shape with a different one. If
+    'autoScale=' is true (the default) then shapes will not be resized
+    as the user zooms in and out.
 
     Returns the shape index (see next method).
 
-  moveShape(index, coordinates)
+moveShape(index, coordinates)
     this will reposition the shape numbered 'index'.  The coordinates
     must be in the order of the x,y,z axes mappings, and should be
     the types of values defined by the call to 'getDisplayMaps()'. 
+
+Shapes(display, shapeMap)
+  a Class that allows you to do some easy displays of Shapes. The
+  display is the display, and the shapeMap is the ScalarMap you
+  created that maps to Display.Shape; this gives you control over the
+  autoScaling for a group of shapes.  This class has two methods:
+  addShape() and moveShape() - they are identical to the ones above.
 
 """
 
@@ -101,47 +107,48 @@ from visad.ss import BasicSSCell
 from visad.java2d import DisplayImplJ2D
 
 # try to get 3D
-ok3d = 1
+__ok3d = 1
 try:
   from visad.java3d import DisplayImplJ3D, TwoDDisplayRendererJ3D
 except:
-  ok3d = 0
+  __ok3d = 0
 
-py_text_type = RealType.getRealType("py_text_type")
-py_text_map = ScalarMap(py_text_type, Display.Text)
-py_shape_type = RealType.getRealType("py_shape_type")
-py_shape_map = ScalarMap(py_shape_type, Display.Shape)
-py_shapes = None 
+# define private fields for certains types and scalar mappings
+__py_text_type = RealType.getRealType("py_text_type")
+__py_text_map = ScalarMap(__py_text_type, Display.Text)
+__py_shape_type = RealType.getRealType("py_shape_type")
+__py_shape_map = ScalarMap(__py_shape_type, Display.Shape)
+__py_shapes = None 
 
 # create (and return) a VisAD DisplayImplJ3D and add the ScalarMaps, if any
 # the VisAD box is resized to about 95% of the window
 def makeDisplay3D(maps):
-  global py_shapes
+  global __py_shapes
   disp = DisplayImplJ3D("Jython3D")
-  disp.addMap(py_text_map)
-  disp.addMap(py_shape_map)
+  disp.addMap(__py_text_map)
+  disp.addMap(__py_shape_map)
 
   if maps != None:  addMaps(disp, maps)
-  py_shapes = Shapes(disp)
+  __py_shapes = Shapes(disp, __py_shape_map)
   return disp
 
 # create (and return) a VisAD DisplayImplJ2D and add the ScalarMaps, if any
 # the VisAD box is resized to about 95% of the window
 def makeDisplay2D(maps):
-  global py_shapes
+  global __py_shapes
   disp = DisplayImplJ2D("Jython2D")
-  disp.addMap(py_text_map)
-  disp.addMap(py_shape_map)
+  disp.addMap(__py_text_map)
+  disp.addMap(__py_shape_map)
 
   print "Using 2D"
   if maps != None:  addMaps(disp, maps)
-  py_shapes = Shapes(disp)
+  __py_shapes = Shapes(disp, __py_shape_map)
   return disp
 
 # create (and return) a VisAD DisplayImpl and add the ScalarMaps, if any
 # the VisAD box is resized to about 95% of the window
 def makeDisplay(maps):
-  global py_shapes
+  global __py_shapes
   is3d = 0
   if maps == None:
     is3d = 1
@@ -149,16 +156,16 @@ def makeDisplay(maps):
     for m in maps:
       if m.getDisplayScalar().toString() == "DisplayZAxis": is3d = 1
 
-  if is3d == 1 and ok3d == 1:
+  if is3d == 1 and __ok3d == 1:
     disp = makeDisplay3D(maps)
   else:
-    if ok3d:
+    if __ok3d:
       tdr = TwoDDisplayRendererJ3D() 
       disp = DisplayImplJ3D("Jython3D",tdr)
       addMaps(disp, maps)
-      disp.addMap(py_text_map)
-      disp.addMap(py_shape_map)
-      py_shapes = Shapes(disp)
+      disp.addMap(__py_text_map)
+      disp.addMap(__py_shape_map)
+      __py_shapes = Shapes(disp, __py_shape_map)
     else:
       disp =  makeDisplay2D(maps)
   
@@ -225,7 +232,7 @@ def setBoxSize(display, percent=.70, clip=1):
     pcMatrix[3]=-percent/.64
     
   pc.setMatrix(pcMatrix)
-  if clip & ok3d:
+  if clip & __ok3d:
     try:
        dr = display.getDisplayRenderer();
        if isinstance(dr, DisplayRendererJ3D):
@@ -385,10 +392,10 @@ def drawString(display, string, point, color=None, center=0, font="futural",
                  start=[0.,0.,0.], base=[.1,0.,0.], up=[0.,.1,0.],size=None ):
 
   textfs = textShape(string, center, font, start, base, up, size)
-  i = py_shapes.addShape(textfs, color=color)
-  py_shapes.moveShape(i, point)
+  i = __py_shapes.addShape(textfs, color=color)
+  __py_shapes.moveShape(i, point)
 
-  return py_shapes 
+  return __py_shapes 
   
 # add an array of ScalarMaps to a Display
 def addMaps(display, maps):
@@ -495,12 +502,12 @@ def textShape(string, center=0, font="futural",
                                           start, base, up, center))
 
 # local shadow methods for addShape and moveShape
-def addShape(type, scale=.1, color=None, index=None):
-  return (py_shapes.addShape(type, scale, color, index))
+def addShape(type, scale=.1, color=None, index=None, autoScale=1):
+  return (__py_shapes.addShape(type, scale, color, index, autoScale))
 
 
 def moveShape(index, coord):
-  py_shapes.moveShape(index, coord)
+  __py_shapes.moveShape(index, coord)
 
 
 # defines Shapes for a display
@@ -509,9 +516,9 @@ def moveShape(index, coord):
 
 class Shapes:
 
-  def __init__(self, display):
+  def __init__(self, display, shapemap):
 
-    self.x, self.y, self.z, self.disp = getDisplayMaps(display)
+    self.x, self.y, self.z, self.disp, self.shapetype = getDisplayMaps(display,1)
     self.doing3D = 1
     if self.z == None:
       self.doing3D = 0
@@ -519,8 +526,7 @@ class Shapes:
     self.count = -1 
     self.shapeList = []
     self.shapeRef = []
-
-    py_shapes = self
+    self.shapeMap = shapemap
 
   # type = type of shape ('cross','triangle','square',
   #  'solid_square','solid_triangle'
@@ -528,7 +534,7 @@ class Shapes:
   # scale = relative size for the shape
   # color = color name (e.g., "green")
   # index = the index of the shape to replace with this one
-  def addShape(self, type, scale=.1, color=None, index=None):
+  def addShape(self, type, scale=.1, color=None, index=None, autoScale=1):
 
     if isinstance(type,VisADGeometryArray): 
 
@@ -563,7 +569,7 @@ class Shapes:
       self.shape.vertexCount = len(self.shape.coordinates)/3
 
 
-    shape_control = py_shape_map.getControl()
+    shape_control = self.shapeMap.getControl()
 
     if index != None:
       shape_control.setShape(index, self.shape)
@@ -574,12 +580,14 @@ class Shapes:
 
     shape_control.setShapeSet(Integer1DSet(self.count+1))
     shape_control.setShapes( self.shapeList )
+    if autoScale:  
+      shape_control.setAutoScale(1)
 
     if self.doing3D:
-      self.shape_coord = RealTupleType(self.x,self.y,self.z,py_shape_type)
+      self.shape_coord = RealTupleType(self.x,self.y,self.z,self.shapetype)
       shapeLoc = RealTuple(self.shape_coord, (0., 0., 0., self.count))
     else:
-      self.shape_coord = RealTupleType(self.x,self.y,py_shape_type)
+      self.shape_coord = RealTupleType(self.x,self.y,self.shapetype)
       shapeLoc = RealTuple(self.shape_coord, (0., 0., self.count))
 
     constmap = makeColorMap(color)
