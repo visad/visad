@@ -1,5 +1,5 @@
 //
-// DiscoverableZoomProjectionControlListener.java
+// DiscoverableZoom.java
 //
 
 /*
@@ -42,10 +42,10 @@ import java.rmi.*;
 
 
 /**
-   DiscoverableZoomProjectionControlListener is the VisAD class for
+   DiscoverableZoom is the VisAD class for
    discoverable zoom of displayed data.
 */
-public class DiscoverableZoomProjectionControlListener extends Object
+public class DiscoverableZoom extends Object
        implements ControlListener {
 
   private boolean pfirst = true;

@@ -402,8 +402,7 @@ public class CollectiveBarbManipulation extends Object {
       acontrol.addControlListener(acl);
 
       pcontrol = display1.getProjectionControl();
-      DiscoverableZoomProjectionControlListener pcl =
-        new DiscoverableZoomProjectionControlListener();
+      DiscoverableZoom pcl = new DiscoverableZoom();
       pcontrol.addControlListener(pcl);
 
       stations_ref = new DataReferenceImpl("stations_ref");
