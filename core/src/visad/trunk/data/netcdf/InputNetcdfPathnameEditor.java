@@ -3,13 +3,13 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: InputNetcdfPathnameEditor.java,v 1.1 1998-06-26 14:31:12 visad Exp $
+ * $Id: InputNetcdfPathnameEditor.java,v 1.2 1998-06-26 18:39:20 visad Exp $
  */
 
 package visad.data.netcdf;
 
 
-public class
+public abstract class
 InputNetcdfPathnameEditor
     extends	InputPathnameEditor
 {
