@@ -40,11 +40,14 @@ import java.rmi.*;
 */
 public class DirectManipulationRendererJ3D extends RendererJ3D {
 
+  BranchGroup branch = null;
+
   private float[][] spatialValues = null;
 
   /** if Function, last domain index and range values */
   private int lastIndex = -1;
   double[] lastD = null;
+  float[] lastX = new float[6];
 
   /** index into spatialValues found by checkClose */
   private int closeIndex = -1;
@@ -114,7 +117,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     super.setLinks(links, d);
   }
 
-  public void checkDirect() throws VisADException, RemoteException {
+  public synchronized void checkDirect() throws VisADException, RemoteException {
     setIsDirectManipulation(false);
 
     link = getLinks()[0];
@@ -272,7 +275,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
 
   /** set domainAxis and axisToComponent (domain = false) or
       directMap (domain = true) from real; called by checkDirect */
-  int setDirectMap(ShadowRealType real, int component, boolean domain) {
+  synchronized int setDirectMap(ShadowRealType real, int component, boolean domain) {
     Enumeration maps = real.getSelectedMapVector().elements();
     while(maps.hasMoreElements()) {
       ScalarMap map = (ScalarMap) maps.nextElement();
@@ -313,12 +316,12 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
   }
 
   /** set spatialValues from ShadowType.doTransform */
-  void setSpatialValues(float[][] spatial_values) {
+  synchronized void setSpatialValues(float[][] spatial_values) {
     spatialValues = spatial_values;
   }
 
   /** find minimum distance from ray to spatialValues */
-  float checkClose(Point3d origin, Vector3d direction) {
+  synchronized float checkClose(Point3d origin, Vector3d direction) {
     float distance = Float.MAX_VALUE;
     lastIndex = -1;
     if (spatialValues == null) return distance;
@@ -345,7 +348,32 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     return distance;
   }
 
-  void drag_direct(PickRay ray, boolean first) {
+  public void addPoint(float[] x) throws VisADException {
+    int count = x.length / 3;
+    VisADGeometryArray array = null;
+    if (count == 1) {
+      array = new VisADPointArray();
+    }
+    else if (count == 2) {
+      array = new VisADLineArray();
+    }
+    else {
+      return;
+    }
+    array.coordinates = x;
+    array.vertexCount = count;
+    DisplayImplJ3D display = (DisplayImplJ3D) getDisplay();
+    GeometryArray geometry = display.makeGeometry(array);
+    Appearance appearance =
+      ShadowTypeJ3D.makeAppearance(display.getGraphicsModeControl(),
+                                   null, null, geometry);
+    Shape3D shape = new Shape3D(geometry, appearance);
+    BranchGroup group = new BranchGroup();
+    group.addChild(shape);
+    branch.addChild(group);
+  }
+
+  synchronized void drag_direct(PickRay ray, boolean first) {
     // System.out.println("drag_direct " + first);
     if (spatialValues == null || ref == null || type == null) return;
     Point3d origin = new Point3d();
@@ -427,6 +455,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
       Data newData = null;
       Data data = link.getData();
       if (type instanceof ShadowRealTypeJ3D) {
+        addPoint(x);
         for (int i=0; i<3; i++) {
           if (getAxisToComponent(i) >= 0) {
             f[0] = x[i];
@@ -444,6 +473,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
         ref.setData(newData);
       }
       else if (type instanceof ShadowRealTupleTypeJ3D) {
+        addPoint(x);
         int n = ((RealTuple) data).getDimension();
         Real[] reals = new Real[n];
         Vector vect = new Vector();
@@ -472,6 +502,18 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
       else if (type instanceof ShadowFunctionTypeJ3D) {
         Vector vect = new Vector();
         if (first) lastIndex = -1;
+        if (lastIndex < 0) {
+          addPoint(x);
+        }
+        else {
+          lastX[3] = x[0];
+          lastX[4] = x[1];
+          lastX[5] = x[2];
+          addPoint(lastX);
+        }
+        lastX[0] = x[0];
+        lastX[1] = x[1];
+        lastX[2] = x[2];
         int k = getDomainAxis();
         f[0] = x[k]; 
         d = getDirectMap(k).inverseScaleValues(f);
@@ -589,9 +631,13 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
   }
 
   /** create a BranchGroup scene graph for Data in links[0] */
-  public BranchGroup doTransform() throws VisADException, RemoteException { // J3D
-    BranchGroup branch = new BranchGroup(); // J3D
-    branch.setCapability(BranchGroup.ALLOW_DETACH); // J3D
+  public synchronized BranchGroup doTransform()
+         throws VisADException, RemoteException {
+    branch = new BranchGroup();
+    branch.setCapability(BranchGroup.ALLOW_DETACH);
+    branch.setCapability(Group.ALLOW_CHILDREN_READ);
+    branch.setCapability(Group.ALLOW_CHILDREN_WRITE);
+    branch.setCapability(Group.ALLOW_CHILDREN_EXTEND);
 
     // values needed by drag_direct, which cannot throw Exceptions
     type = (ShadowTypeJ3D) link.getShadow();
