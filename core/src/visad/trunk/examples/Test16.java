@@ -29,12 +29,28 @@ import visad.java3d.DisplayImplJ3D;
 public class Test16
   extends TestSkeleton
 {
+  private int size = 47;
+
   public Test16() { }
 
   public Test16(String[] args)
     throws RemoteException, VisADException
   {
     super(args);
+  }
+
+  public void initializeArgs() { size = 47; }
+
+  public int checkKeyword(String testName, int argc, String[] args)
+  {
+    try {
+      size = Integer.parseInt(args[0]);
+      if (size < 1) size = 47;
+    }
+    catch(NumberFormatException e) {
+      size = 47;
+    }
+    return 1;
   }
 
   DisplayImpl[] setupServerDisplays()
@@ -56,7 +72,7 @@ public class Test16
     RealTupleType radiance = new RealTupleType(types2);
     FunctionType image_tuple = new FunctionType(earth_location, radiance);
 
-    int size = 47;
+    // int size = 47;
     FlatField imaget1 = FlatField.makeField(image_tuple, size, false);
 
     dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.YAxis));

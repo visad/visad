@@ -769,14 +769,24 @@ System.out.println("doTransform.curvedTexture = " + curvedTexture + " " +
       limits[1][0] = (float) Y.getFirst();
       limits[1][1] = (float) Y.getLast();
 
-      // convert values to default units (used in display)
-      limits = Unit.convertTuple(limits, dataUnits, domain_units);
-
       // get domain_set sizes
       data_width = X.getLength();
       data_height = Y.getLength();
       texture_width = shadow_api.textureWidth(data_width);
       texture_height = shadow_api.textureHeight(data_height);
+
+      // WLH 27 Jan 2003
+      float half_width = 0.5f / ((float) (data_width - 1));
+      float half_height = 0.5f / ((float) (data_height - 1));
+      half_width = (limits[0][1] - limits[0][0]) * half_width;
+      half_height = (limits[1][1] - limits[1][0]) * half_height;
+      limits[0][0] -= half_width;
+      limits[0][1] += half_width;
+      limits[1][0] -= half_height;
+      limits[1][1] += half_height;
+
+      // convert values to default units (used in display)
+      limits = Unit.convertTuple(limits, dataUnits, domain_units);
 
       int[] tuple_index = new int[3];
       if (DomainComponents.length != 2) {
