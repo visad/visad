@@ -23,47 +23,38 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-import edu.wisc.ssec.mcidas.*;
-
-import visad.java2d.DisplayImplJ2D;
-import visad.java2d.DefaultRendererJ2D;
-import visad.java3d.DisplayImplJ3D;
-import visad.java3d.DefaultRendererJ3D;
-import visad.Set;
-
-import visad.*;
-import visad.util.*;  
-import visad.ColorControl;
-import visad.DataReferenceImpl;
-import visad.DataReference;
-import visad.DataRenderer;
-import visad.DisplayImpl;
-import visad.FunctionType;
-import visad.RealTupleType;
-import visad.RealType;
-import visad.Display;
-import visad.ScalarMap;
-import visad.ConstantMap;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-
-import javax.swing.*;
-import javax.swing.border.*; 
-
+import edu.wisc.ssec.mcidas.AreaFile;
+import edu.wisc.ssec.mcidas.AreaFileException;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.IOException;
-
 import java.net.MalformedURLException;
 import java.net.URL;
-
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import visad.ColorControl;
+import visad.ConstantMap;
+import visad.DataReference;
+import visad.DataReferenceImpl;
+import visad.DataRenderer;
+import visad.Display;
+import visad.DisplayImpl;
 import visad.FlatField;
+import visad.FunctionType;
+import visad.Linear2DSet;
+import visad.RealTupleType;
+import visad.RealType;
+import visad.ScalarMap;
+import visad.Set;
 import visad.VisADException;
-
-import visad.data.mcidas.*;
 import visad.data.mcidas.AreaAdapter;
 import visad.data.mcidas.AreaForm;
 import visad.data.mcidas.BaseMapAdapter;
+import visad.java2d.DefaultRendererJ2D;
+import visad.java2d.DisplayImplJ2D;
+import visad.java3d.DefaultRendererJ3D;
+import visad.java3d.DisplayImplJ3D;
 
 /** This will test the Area File Adapter and Base Map (McIDAS
  *  formats) Adapter for VisAD.  You need a sample AREA file,
@@ -269,7 +260,7 @@ public class TestArea {
         bma = new BaseMapAdapter(mapfile);
       }
 
-      bma.setDomainSet( imaget.getDomainSet());
+      bma.setDomainSet( (Linear2DSet) imaget.getDomainSet());
 
       // other possible form of getting info into BaseMapAdapter:
       // bma.setCoordinateSystem(dics, numEles, numLines, idom);
