@@ -189,7 +189,9 @@ System.out.println(getLinks()[0].getThingReference().getName());
     return (all_feasible && (any_changed || any_transform_control));
   }
 
-  /** create a VisADGroup scene graph for Data in links[0] */
+  /** create a VisADGroup scene graph for Data in links[0];
+      a substitute for doTransform() without and Java3D classes
+      in its signature */
   public boolean fakeTransform() throws VisADException, RemoteException {
 
 // System.out.println("NodeRendererJ3D.doTransform enabled = " + enable_transform);

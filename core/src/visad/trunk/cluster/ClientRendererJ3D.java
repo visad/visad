@@ -24,20 +24,28 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-/*      USER
+/*      PROXY
 
-if (proxy) {
-  user <--> client <--> nodes
-}
-else {
-  client <--> nodes
-}
+ProxyRendererJ3D like ClientRendererJ3D, but without any Java3D
+UserRendererJ3D like ClientRendererJ3D, but ?
 
-no Java3D on nodes or proxy client (?? but import javax.media.j3d.*; ??)
-no data on user
+  ClientRendererJ3D <--> nodes
 
-NodeRendererJ3D.java should override RendererJ3D.doAction()
-and avoid instantiating any Java3D classes
+or
+
+  UserRendererJ3D     <--> ProxyRendererJ3D     <--> nodes
+  RemoteUserAgentImpl <--> RemoteProxyAgentImpl
+
+no Java3D on nodes or ProxyRendererJ3D
+  but ProxyRendererJ3D extends DefaultRendererJ3D and that
+  imports Java3D
+RemoteClientDataImpl on Client or Proxy, not on User
+
+ProxyDisplayImplJ3D extends DisplayImplJ3D
+  its doAction() only notifies RemoteUserAgentImpl to
+  trigger DisplayImplJ3D.doAction() on User
+
+UserDummyData
 
 */
 
@@ -122,7 +130,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
 
       // get the data
       try {
-        data = link.getData(); // USER
+        data = link.getData(); // PROXY
       } catch (RemoteException re) {
         if (visad.collab.CollabUtil.isDisconnectException(re)) {
           getDisplay().connectionFailed(this, link);
@@ -145,7 +153,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
       }
 */
 
-      if (cluster && data != old_data) { // USER
+      if (cluster && data != old_data) { // PROXY
         // send agents to nodes if data changed
         RemoteClientDataImpl rcdi = (RemoteClientDataImpl) data;
         focus_agent = new RemoteClientAgentImpl(null, -1, time_out);
@@ -174,7 +182,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
       message.addElement(map.getControl());
     }
     Serializable[] responses =
-      focus_agent.broadcastWithResponses(message, contacts); // USER
+      focus_agent.broadcastWithResponses(message, contacts); // PROXY
 // System.out.println("ClientRendererJ3D.prepareAction messages received");
 
 
@@ -191,7 +199,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
 
     if (!cluster) {
       // not cluster data, so just do the usual
-      return super.doTransform(); // USER (do this on user but not on client)
+      return super.doTransform(); // PROXY (do this on user but not on client)
     }
 
     int n = contacts.length;
