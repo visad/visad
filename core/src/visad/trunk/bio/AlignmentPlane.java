@@ -75,11 +75,13 @@ public class AlignmentPlane extends PlaneSelector implements DisplayListener {
     if (this.index == index) return;
     this.index = index;
     if (index >= maxIndex) {
-      int ndx = index + 1;
+      int ndx = 2 * index + 1;
       boolean[][] nlock = new boolean[ndx][3];
       double[][][] npos = new double[ndx][3][3];
       System.arraycopy(locked, 0, nlock, 0, maxIndex);
       System.arraycopy(pos, 0, npos, 0, maxIndex);
+      locked = nlock;
+      pos = npos;
       maxIndex = ndx;
     }
     // set endpoint values to match those at current index
@@ -159,6 +161,7 @@ public class AlignmentPlane extends PlaneSelector implements DisplayListener {
     if (!super.refresh()) return false;
     for (int i=0; i<3; i++) {
       RealTuple tuple = (RealTuple) refs[i + 2].getData();
+      if (tuple == null) continue;
       try {
         Real[] r = tuple.getRealComponents();
         for (int j=0; j<3; j++) pos[index][i][j] = r[j].getValue();

@@ -119,7 +119,8 @@ public class BioHelpWindow extends JPanel implements ActionListener {
    */
   private void addTab(String title, String file) {
     JEditorPane editor = null;
-    try { editor = new JEditorPane(new File(file).toURL()); }
+
+    try { editor = new JEditorPane(getClass().getResource(file)); }
     catch (IOException exc) { exc.printStackTrace(); }
     editor.setEditable(false);
     JScrollPane scroll = new JScrollPane(editor);
