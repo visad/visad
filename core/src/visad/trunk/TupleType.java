@@ -139,6 +139,15 @@ public class TupleType extends MathType {
     return realComponents.length;
   }
 
+  /**
+   * A wrapper around {@link #getComponent(int) getComponent} for JPython.
+   *
+   * @return The requested Data object.
+   */
+  public MathType __getitem__(int index) throws VisADException {
+    return getComponent(index);
+  }
+
   /** return component for i between 0 and getDimension() - 1 */
   public MathType getComponent(int i) throws VisADException {
     if (0 <= i && i < tupleComponents.length) {
