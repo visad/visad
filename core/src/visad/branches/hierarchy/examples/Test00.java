@@ -76,6 +76,7 @@ public class Test00
 dpys[0].addMap(new ScalarMap(specific_ir_radiance, Display.ZAxis));
     dpys[0].addMap(new ScalarMap(abstract_vis_radiance, Display.ZAxis));
     ScalarMap irmap = new ScalarMap(abstract_ir_radiance, Display.XAxis);
+// ScalarMap irmap = new ScalarMap(specific_ir_radiance, Display.XAxis);
     dpys[0].addMap(irmap);
     irmap.setOverrideUnit(CommonUnit.radian);
     dpys[0].addMap(new ScalarMap(count, Display.YAxis));
@@ -102,8 +103,8 @@ dpys[0].addMap(new ScalarMap(specific_ir_radiance, Display.ZAxis));
     DataReferenceImpl ref_histogram1 = new DataReferenceImpl("ref_histogram1");
     ref_histogram1.setData(histogram1);
     DataReference[] refs3 = {ref_histogram1};
-    dpys[0].addReferences(new DirectManipulationRendererJ3D(), refs3, null);
-    // dpys[0].addReference(ref_histogram1);
+    // dpys[0].addReferences(new DirectManipulationRendererJ3D(), refs3, null);
+    dpys[0].addReference(ref_histogram1);
 
     // MathTypes:
     // (specific_ir_radiance -> count)
