@@ -447,18 +447,19 @@ public class GridEdit extends Object implements ActionListener {
   /**
    * warpGrid is the workhorse of GridEdit and can be used independently
    * of any instances of the class
-   * @param ff              A FlatField containing the 2-D grid to be warped.
-   * @param set_samples     The move vectors, dimensioned [number_of_moves][2][2]
-   *                        where the second index enumerates x and y and the third
-   *                        index enumerates the "from" and "to" ends of the move.
-   *                        These values are x and y data values
-   * @param deltas          Increments for moved values, to be interpolated over the
-   *                        grid, dimensioned [number_of_grid_range_values][number_of_moves].
-   *                        May be null.
-   * @return                Warped grid, with motion vectors and deltas applied.
+   * @param ff          A FlatField containing the 2-D grid to be warped.
+   * @param set_samples The move vectors, dimensioned [number_of_moves][2][2]
+   *                 where the second index enumerates x and y and the third
+   *                 index enumerates the "from" and "to" ends of the move.
+   *                 These values are x and y data values
+   * @param deltas   Increments for moved values, to be interpolated over the
+   *       grid, dimensioned [number_of_grid_range_values][number_of_moves].
+   *                 May be null.
+   * @return         Warped grid, with motion vectors and deltas applied.
    * @throws VisADException bad parameters
    */
-  public static FlatField warpGrid(FlatField ff, float[][][] set_samples, float[][] deltas)
+  public static FlatField warpGrid(FlatField ff, float[][][] set_samples,
+                                   float[][] deltas)
          throws VisADException, RemoteException {
 
     if (ff == null || set_samples == null || set_samples.length == 0) {
