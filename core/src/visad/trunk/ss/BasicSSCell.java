@@ -1178,7 +1178,7 @@ public class BasicSSCell extends JPanel {
       if (RMIAddress != null) s = s + "rmi = " + RMIAddress + "\n";
       if (!Formula.equals("")) s = s + "formula = " + Formula + "\n";
       s = s + "dim = " + Dim + "\n";
-      if (VDisplay != null) {
+      if (hasMappings()) {
         Vector mapVector = VDisplay.getMapVector();
         int mvs = mapVector.size();
         if (mvs > 0) {
@@ -1197,7 +1197,7 @@ public class BasicSSCell extends JPanel {
           s = s + "\n";
         }
       }
-      if (VDisplay != null) {
+      if (hasDisplay()) {
         ProjectionControl pc = VDisplay.getProjectionControl();
         if (pc != null) s = s + "projection = " + pc.getSaveString();
         ColorControl cc = (ColorControl)
