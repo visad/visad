@@ -256,13 +256,13 @@ public class PointDataAdapter {
     RealType type = null;
     if (name.equalsIgnoreCase("lat")) {
       type = RealType.Latitude;
-      type.alias(name);
+      //type.alias(name);
     } else if (name.equalsIgnoreCase("lon")) {
       type = RealType.Longitude;
-      type.alias(name);
+      //type.alias(name);
     } else if (name.equalsIgnoreCase("z")) {
       type = RealType.Altitude;
-      type.alias(name);
+      //type.alias(name);
     } else {
       type = RealType.getRealType(name, unit);
       if (type == null) {
@@ -275,6 +275,12 @@ public class PointDataAdapter {
         }
         System.err.println("Using RealType with name " + name);
       }
+    }
+    if (RealType.getRealTypeByName(name) == null) {
+      type.alias(name);
+    } else if (!RealType.getRealTypeByName(name).equals(type)) { // alias used
+        throw new VisADException(
+          "getQuanity(): Two different variables can't have the same alias");
     }
     return type;
   }
