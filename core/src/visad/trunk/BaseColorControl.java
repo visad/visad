@@ -7,7 +7,7 @@ VisAD system for interactive analysis and visualization of numerical
 data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -33,7 +33,22 @@ import java.util.StringTokenizer;
    BaseColorControl is the VisAD class for controlling N-component Color
    DisplayRealType-s.<P>
 */
-public abstract class BaseColorControl extends Control {
+public abstract class BaseColorControl
+  extends Control
+{
+
+  /** The index of the color red */
+  public static final int RED = 0;
+  /** The index of the color green */
+  public static final int GREEN = 1;
+  /** The index of the color blue */
+  public static final int BLUE = 2;
+  /**
+   * The index of the alpha channel.
+   * <P>
+   * <B>NOTE:</B> ALPHA will always be the last index.
+   */
+  public static final int ALPHA = 3;
 
   // color map represented by either table or function
   private float[][] table;
@@ -49,29 +64,57 @@ public abstract class BaseColorControl extends Control {
 
   private final int components;
 
-  public BaseColorControl(DisplayImpl d, int components) {
+  /**
+   * Create a basic color control.
+   *
+   * @param d The display with which this control is associated.
+   * @param components Either 3 (if this is a red/green/blue control)
+   *        or 4 (if there is also an alpha component).
+   */
+  public BaseColorControl(DisplayImpl d, int components)
+  {
     super(d);
+
+    // constrain number of components to known range
+    if (components < 3) {
+      components = 3;
+    } else if (components > 4) {
+      components = 4;
+    }
     this.components = components;
+
     tableLength = DEFAULT_TABLE_LENGTH;
     table = new float[components][tableLength];
     initTableVis5D(table, components);
   }
- 
-  // initialize table to a grey wedge
+
+  /**
+   * Initialize table to a grey wedge.
+   *
+   * @param table Table to be initialized.
+   * @param components Number of components
+   *        (4 if there is an alpha, 3 otherwise).
+   */
   private static void initTableGreyWedge(float[][] table, int components)
   {
     float scale = (float) (1.0f / (float) (DEFAULT_TABLE_LENGTH - 1));
     for (int i=0; i<DEFAULT_TABLE_LENGTH; i++) {
-      table[0][i] = scale * i;
-      table[1][i] = scale * i;
-      table[2][i] = scale * i;
-      if (components > 3) {
-        table[3][i] = scale * i;
+      table[RED][i] = scale * i;
+      table[GREEN][i] = scale * i;
+      table[BLUE][i] = scale * i;
+      if (components > ALPHA) {
+        table[ALPHA][i] = scale * i;
       }
     }
   }
 
-  // initialize table to the Vis5D colormap
+  /**
+   * Initialize table to the Vis5D colormap.
+   *
+   * @param table Table to be initialized.
+   * @param components Number of components
+   *        (4 if there is an alpha, 3 otherwise).
+   */
   private static void initTableVis5D(float[][] table, int components)
   {
     float curve = 1.4f;
@@ -84,31 +127,50 @@ public abstract class BaseColorControl extends Control {
       float s = (float) i / (float) (DEFAULT_TABLE_LENGTH-1);
       float t = curve * (s - rfact);   /* t in [curve*-0.5,curve*0.5) */
 
-      table[0][i] = (float) (0.5 + 0.5 * Math.atan( 7.0*t ) / 1.57);
-      table[1][i] = (float) (0.5 + 0.5 * (2 * Math.exp(-7*t*t) - 1));
-      table[2][i] = (float) (0.5 + 0.5 * Math.atan( -7.0*t ) / 1.57);
-      if (components > 3) {
-        table[3][i] = 1.0f;
+      table[RED][i] = (float) (0.5 + 0.5 * Math.atan( 7.0*t ) / 1.57);
+      table[GREEN][i] = (float) (0.5 + 0.5 * (2 * Math.exp(-7*t*t) - 1));
+      table[BLUE][i] = (float) (0.5 + 0.5 * Math.atan( -7.0*t ) / 1.57);
+      if (components > ALPHA) {
+        table[ALPHA][i] = 1.0f;
       }
     }
   }
 
-  public void initGreyWedge() {
+  /**
+   */
+  public void initGreyWedge()
+  {
     initTableGreyWedge(table, components);
   }
 
-  public void initVis5D() {
+  /**
+   */
+  public void initVis5D()
+  {
     initTableVis5D(table, components);
   }
 
-  /** Get the number of components of the range */
+  /**
+   * Get the number of components of the range.
+   *
+   * @return Either 3 or 4
+   */
   public int getNumberOfComponents() { return components; }
 
-  /** define the color lookup by a Function, whose MathType must
-      have a 1-D domain and an N-D RealTupleType range; the domain
-      and range Reals must vary over the range (0.0, 1.0) */
+  /**
+   * Define the color lookup by a <CODE>Function</CODE>, whose
+   * <CODE>MathType</CODE> must have a 1-D domain and an N-D
+   * <CODE>RealTupleType</CODE> range; the domain and range
+   * <CODE>Real</CODE>s must vary over the range (0.0, 1.0)
+   *
+   * @param func The new <CODE>Function</CODE>.
+   *
+   * @exception RemoteException If there was an RMI-related problem.
+   * @exception VisADException If there was a problem with the function.
+   */
   public void setFunction(Function func)
-         throws VisADException, RemoteException {
+    throws RemoteException, VisADException
+  {
     FunctionType baseType;
     if (components == 4) {
       baseType = FunctionType.REAL_1TO4_FUNCTION;
@@ -130,18 +192,31 @@ public abstract class BaseColorControl extends Control {
     changeControl(true);
   }
 
-  /** return the color lookup Function */
+  /**
+   * Return the color lookup <CODE>Function</CODE>.
+   *
+   * @return The function which defines this object's colors.
+   */
   public Function getFunction() { return function; }
 
-  /** define the color lookup by an array of floats which must
-      have the form float[components][table_length]; values should be in
-      the range (0.0, 1.0) */
-  public void setTable(float[][] t) throws VisADException, RemoteException {
+  /**
+   * Define the color lookup by an array of <CODE>float</CODE>s
+   * which must have the form <CODE>float[components][table_length]</CODE>;
+   * values should be in the range (0.0, 1.0)
+   *
+   * @param t The new table of colors.
+   *
+   * @exception RemoteException If there was a problem changing the control.
+   * @exception VisADException If there is a problem with the table.
+   */
+  public void setTable(float[][] t)
+    throws RemoteException, VisADException
+  {
     if (t == null || t.length != components ||
-        t[0] == null || t[1] == null || t[2] == null ||
-        (components > 3 && t[3] == null) ||
-        t[0].length != t[1].length || t[0].length != t[2].length ||
-        (components > 3 && t[0].length != t[3].length)) {
+        t[RED] == null || t[GREEN] == null || t[BLUE] == null ||
+        (components > ALPHA && t[ALPHA] == null) ||
+        t[RED].length != t[GREEN].length || t[RED].length != t[BLUE].length ||
+        (components > ALPHA && t[RED].length != t[ALPHA].length)) {
       throw new DisplayException("BaseColorControl.setTable: " +
                                  "table must be float[" + components +
                                  "][Length]");
@@ -157,7 +232,13 @@ public abstract class BaseColorControl extends Control {
     changeControl(true);
   }
 
-  public float[][] getTable() {
+  /**
+   * Get the table of colors.
+   *
+   * @return The color table.
+   */
+  public float[][] getTable()
+  {
     if (table == null) return null;
     float[][] t = new float[components][tableLength];
     for (int j=0; j<components; j++) {
@@ -166,11 +247,16 @@ public abstract class BaseColorControl extends Control {
     return t;
   }
 
-  /** if this BaseColorControl is defined using a color table, get
-      a String that can be used to reconstruct this BaseColorControl
-      later. If this BaseColorControl is defined using a Function,
-      return null */
-  public String getSaveString() {
+  /**
+   * If the colors are defined using a color table, get a
+   * <CODE>String</CODE> that can be used to reconstruct this
+   * object later. If the colors are defined using a
+   * <CODE>Function</CODE>, return null.
+   *
+   * @return The save string describing this object.
+   */
+  public String getSaveString()
+  {
     if (table == null) return null;
     int len = table.length;
     int len0 = table[0].length;
@@ -180,7 +266,7 @@ public abstract class BaseColorControl extends Control {
     sb.append(len0);
     sb.append('\n');
     for (int j=0; j<len0; j++) {
-      sb.append(table[0][j]);
+      sb.append(table[RED][j]);
       for (int i=1; i<len; i++) {
         sb.append(' ');
         sb.append(table[i][j]);
@@ -190,9 +276,16 @@ public abstract class BaseColorControl extends Control {
     return sb.toString();
   }
 
-  /** reconstruct this BaseColorControl using the specified save string */
+  /**
+   * Reconstruct this object using the specified save string.
+   *
+   * @param save The save string.
+   *
+   * @exception VisADException If the save string is not valid.
+   * @exception RemoteException If there was a problem setting the table.
+   */
   public void setSaveString(String save)
-    throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     if (save == null) throw new VisADException("Invalid save string");
     StringTokenizer st = new StringTokenizer(save);
@@ -223,8 +316,19 @@ public abstract class BaseColorControl extends Control {
     setTable(t);
   }
 
+  /**
+   * Return a list of colors for the specified values.
+   *
+   * @param values The values to look up.
+   *
+   * @return The list of colors.
+   *
+   * @exception RemoteException If there was an RMI-related problem.
+   * @exception VisADException If the function encountered a problem.
+   */
   public float[][] lookupValues(float[] values)
-         throws VisADException, RemoteException {
+    throws RemoteException, VisADException
+  {
     if (values == null) {
       return null;
     }
@@ -239,11 +343,11 @@ public abstract class BaseColorControl extends Control {
         float scale = (float) tableLength;
         for (int i=0; i<valLen; i++) {
           if (values[i] != values[i]) {
-            colors[0][i] = Float.NaN;
-            colors[1][i] = Float.NaN;
-            colors[2][i] = Float.NaN;
-            if (components > 3) {
-              colors[3][i] = Float.NaN;
+            colors[RED][i] = Float.NaN;
+            colors[GREEN][i] = Float.NaN;
+            colors[BLUE][i] = Float.NaN;
+            if (components > ALPHA) {
+              colors[ALPHA][i] = Float.NaN;
             }
           }
           else {
@@ -251,27 +355,27 @@ public abstract class BaseColorControl extends Control {
             // note actual table length is tableLength + 1
             // extend first and last table entries to 'infinity'
             if (j < 0) {
-              colors[0][i] = table[0][0];
-              colors[1][i] = table[1][0];
-              colors[2][i] = table[2][0];
-              if (components > 3) {
-                colors[3][i] = table[3][0];
+              colors[RED][i] = table[RED][0];
+              colors[GREEN][i] = table[GREEN][0];
+              colors[BLUE][i] = table[BLUE][0];
+              if (components > ALPHA) {
+                colors[ALPHA][i] = table[ALPHA][0];
               }
             }
             else if (tableLength <= j) {
-              colors[0][i] = table[0][tblEnd];
-              colors[1][i] = table[1][tblEnd];
-              colors[2][i] = table[2][tblEnd];
-              if (components > 3) {
-                colors[3][i] = table[3][tblEnd];
+              colors[RED][i] = table[RED][tblEnd];
+              colors[GREEN][i] = table[GREEN][tblEnd];
+              colors[BLUE][i] = table[BLUE][tblEnd];
+              if (components > ALPHA) {
+                colors[ALPHA][i] = table[ALPHA][tblEnd];
               }
             }
             else {
-              colors[0][i] = table[0][j];
-              colors[1][i] = table[1][j];
-              colors[2][i] = table[2][j];
-              if (components > 3) {
-                colors[3][i] = table[3][j];
+              colors[RED][i] = table[RED][j];
+              colors[GREEN][i] = table[GREEN][j];
+              colors[BLUE][i] = table[BLUE][j];
+              if (components > ALPHA) {
+                colors[ALPHA][i] = table[ALPHA][j];
               }
             }
           }
@@ -289,6 +393,14 @@ public abstract class BaseColorControl extends Control {
     return colors;
   }
 
+  /**
+   * Compare the specified table to this object's table.
+   *
+   * @param newTable Table to compare.
+   *
+   * @return <CODE>true</CODE> if <CODE>newTable</CODE> is the
+   *         same as this object's table.
+   */
   private boolean tableEquals(float[][] newTable)
   {
     if (table == null) {
@@ -320,6 +432,14 @@ public abstract class BaseColorControl extends Control {
     return true;
   }
 
+  /**
+   * Compare the specified function to this object's function.
+   *
+   * @param newFunc Function to compare.
+   *
+   * @return <CODE>true</CODE> if <CODE>newFunc</CODE> is the
+   *         same as this object's function.
+   */
   private boolean functionEquals(Function newFunc)
   {
     if (function == null) {
@@ -335,7 +455,13 @@ public abstract class BaseColorControl extends Control {
     return true;
   }
 
-  /** copy the state of a remote control to this control */
+  /**
+   * Copy the state of a remote control to this control.
+   *
+   * @param rmt The control to be copied.
+   *
+   * @exception VisADException If the remote control cannot be copied.
+   */
   public void syncControl(Control rmt)
     throws VisADException
   {
@@ -402,6 +528,13 @@ public abstract class BaseColorControl extends Control {
     }
   }
 
+  /**
+   * Return <CODE>true</CODE> if this object is "equal" to the parameter.
+   *
+   * @param o Object to compare.
+   *
+   * @return <CODE>true</CODE> if this object "equals" <CODE>o</CODE>.
+   */
   public boolean equals(Object o)
   {
     if (!super.equals(o)) {
