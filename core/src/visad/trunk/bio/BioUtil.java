@@ -222,6 +222,12 @@ public class BioUtil {
         (ax >= x1 && bx <= x1) || (ax >= x2 && bx <= x2);
     }
 
+    if ((ax <= x1 && bx <= x1) || (ax >= x2 && bx >= x2) ||
+      (ay <= y1 && by <= y1) || (ay >= y2 && by >= y2))
+    {
+      return false;
+    }
+
     double m = (by - ay) / (bx - ax);
     double b = ay - m * ax;
 

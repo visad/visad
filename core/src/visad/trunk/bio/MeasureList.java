@@ -118,17 +118,17 @@ public class MeasureList {
     if (!points.contains(line.ep2)) points.add(line.ep2);
     lines.add(line);
     if (updatePools) refreshPools(false);
-    boolean selection = bio.mm.pool2.hasSelection();
-    setEndpointEnabled(line.ep1, !selection || line.ep1.selected > 0);
-    setEndpointEnabled(line.ep2, !selection || line.ep2.selected > 0);
+    //boolean selection = bio.mm.pool2.hasSelection();
+    //setEndpointEnabled(line.ep1, !selection || line.ep1.selected > 0);
+    //setEndpointEnabled(line.ep2, !selection || line.ep2.selected > 0);
   }
 
   /** Adds the given measurement marker to the measurement list. */
   public void addMarker(MeasurePoint point, boolean updatePools) {
     points.add(point);
     if (updatePools) refreshPools(false);
-    setEndpointEnabled(point,
-      !bio.mm.pool2.hasSelection() || point.selected > 0);
+    //setEndpointEnabled(point,
+    //  !bio.mm.pool2.hasSelection() || point.selected > 0);
   }
 
   /** Removes the given measurement line from the measurement list. */
