@@ -187,6 +187,15 @@ public class BasicSSCell extends JPanel {
       RemoteErrors = rs.getDataReference(name + "_Errors");
 
       setDimClone();
+
+      VDisplay.addDisplayListener(new DisplayListener() {
+        public void displayChanged(DisplayEvent e) {
+          if (e.getId() == DisplayEvent.TRANSFORM_DONE) {
+            // broadcast data change event when remote data changes
+            notifyListeners(SSCellChangeEvent.DATA_CHANGE);
+          }
+        }
+      });
     }
     else {
       // redisplay this cell's data when it changes
@@ -1389,8 +1398,8 @@ public class BasicSSCell extends JPanel {
         rs = (RemoteServer) Naming.lookup(server);
         RemoteDataReference ref = rs.getDataReference(object);
         if (ref == null) {
-          throw new VisADException("Could not import remote object called " +
-                                   "\"" + object + "\"");
+          throw new VisADException("The remote object called " +
+                                   "\"" + object + "\" does not exist");
         }
         final RemoteDataReference rref = ref;
         final BasicSSCell cell = this;
@@ -1444,7 +1453,8 @@ public class BasicSSCell extends JPanel {
     synchRMIAddress();
   }
 
-  /** export a data object to a given file name, in netCDF format */
+  /** export a data object to a given file name, in netCDF (netcdf == true)
+      or serialized (netcdf == false) format */
   public void saveData(File f, boolean netcdf) throws BadFormException,
                                                       IOException,
                                                       VisADException,

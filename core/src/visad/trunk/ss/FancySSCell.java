@@ -137,6 +137,13 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
       // refresh border color
       setHighlighted(Selected);
     }
+    if (IsRemote) {
+      try {
+        constructWidgetFrame(getMaps());
+      }
+      catch (VisADException exc) { }
+      catch (RemoteException exc) { }
+    }
   }
 
   /** switch to 3-D mode if necessary and available, then call setMaps() */
@@ -228,15 +235,6 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
 
   /** show the widgets for altering controls (if there are any) */
   public void showWidgetFrame() {
-    if (IsRemote) {
-      // temporary hack until auto-detection of
-      // remote data changes is implemented
-      try {
-        constructWidgetFrame(getMaps());
-      }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
-    }
     if (hasControls()) WidgetFrame.setVisible(true);
   }
 
