@@ -283,6 +283,30 @@ public class CollectiveBarbManipulation extends Object
     frame.setSize(500, 500);
     frame.setVisible(true);
 
+    ScalarMap amap = new ScalarMap(RealType.Time, Display.Animation);
+    display.addMap(amap);
+    AnimationControl acontrol = (AnimationControl) amap.getControl();
+    acontrol.setStep(2000);
+
+    FunctionType ftype = new FunctionType(RealType.Time, lat);
+    Integer1DSet fset = new Integer1DSet(RealType.Time, N * N);
+    FlatField field = new FlatField(ftype, fset);
+    float[][] samples = new float[1][N * N];
+    for (int i=0; i<N*N; i++) {
+      samples[0][i] = i - 10.0f;
+    }
+    field.setSamples(samples);
+    DataReferenceImpl aref = new DataReferenceImpl("field");
+    aref.setData(field);
+    display.addReference(aref);
+
+    DataReferenceImpl ref = new DataReferenceImpl("wind");
+    ref.setData(refs[0].getData());
+    display.addReferences(new BarbManipulationRendererJ3D(), ref);
+
+    Hey hey = new Hey(acontrol, display, refs, ref);
+    acontrol.addControlListener(hey);
+/*
     int oldk = 0;
     while (true) {
       for (k=0; k<N*N; k++) {
@@ -293,7 +317,35 @@ public class CollectiveBarbManipulation extends Object
         new visad.util.Delay(2000);
       }
     }
+*/
+  }
+}
 
+class Hey implements ControlListener {
+  AnimationControl control;
+  DisplayImpl display;
+  DataReferenceImpl[] refs;
+  DataReferenceImpl ref;
+  int oldk = -1;
+
+  Hey(AnimationControl c, DisplayImpl d, DataReferenceImpl[] rs,
+      DataReferenceImpl r) {
+    control = c;
+    display = d;
+    refs = rs;
+    ref = r;
+  }
+
+  public void controlChanged(ControlEvent e)
+         throws VisADException, RemoteException {
+    int num = control.getCurrent();
+    ref.setData(refs[num].getData());
+/*
+    if (oldk >= 0) display.removeReference(refs[oldk]);
+    display.removeReference(refs[num]);
+    display.addReferences(new BarbManipulationRendererJ3D(), refs[num]);
+    oldk = num;
+*/
   }
 }
 

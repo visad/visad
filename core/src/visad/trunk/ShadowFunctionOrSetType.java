@@ -2588,7 +2588,12 @@ WLH 15 March 2000 */
               sp[2][0] = spatial_values[2][0];
             }
             byte[][] co = new byte[3][1];
-            if (color_values[0].length > 1) {
+            if (color_values == null) {
+              co[0][0] = floatToByte(constant_color[0]);
+              co[1][0] = floatToByte(constant_color[1]);
+              co[2][0] = floatToByte(constant_color[2]);
+            }
+            else if (color_values[0].length > 1) {
               co[0][0] = color_values[0][i];
               co[1][0] = color_values[1][i];
               co[2][0] = color_values[2][i];
