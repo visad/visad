@@ -50,11 +50,27 @@ public class DisplayTupleType extends RealTupleType {
       }
       else if (Display.DisplayFlow1Tuple.equals(ref)) {
         throw new CoordinateSystemException("DisplayTupleType: " +
-               "CoordinateSystem.Reference cannot be DisplaySpatialOffsetTuple");
+               "CoordinateSystem.Reference cannot be DisplayFlow1Tuple");
       }
       else if (Display.DisplayFlow2Tuple.equals(ref)) {
         throw new CoordinateSystemException("DisplayTupleType: " +
-               "CoordinateSystem.Reference cannot be DisplaySpatialOffsetTuple");
+               "CoordinateSystem.Reference cannot be DisplayFlow2Tuple");
+      }
+      Unit[] default_units = getDefaultUnits();
+      Unit[] coord_sys_units = coord_sys.getCoordinateSystemUnits();
+      int n = default_units.length;     
+      boolean match = true;
+      for (int i=0; i<n; i++) {
+        if (default_units[i] == null) {
+          if (coord_sys_units[i] != null) match = false;
+        }
+        else {
+          if (!default_units[i].equals(coord_sys_units[i])) match = false;
+        }
+      }
+      if (!match) {
+        throw new UnitException("RealTupleType: CoordinateSystem Units must " +
+                                "equal default Units");
       }
     }
     for (int i=0; i<types.length; i++) {

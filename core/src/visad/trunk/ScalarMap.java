@@ -244,12 +244,25 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     return range;
   }
 
+  /** set range by Units */
+  public void setRangeByUnits()
+         throws VisADException, RemoteException {
+    isManual = true;
+    setRange(null, 0.0, 0.0, true);
+    if (scale == scale && offset == offset) {
+      incTick(); // did work, so wake up Display
+    }
+    else {
+      isManual = false; // didn't work, so don't lock out auto-scaling
+    }
+  }
+
   /** set range used for linear map from Scalar to DisplayScalar values; 
       this is the call for applications */
   public void setRange(double low, double hi)
          throws VisADException, RemoteException {
     isManual = true;
-    setRange(null, low, hi);
+    setRange(null, low, hi, false);
     if (scale == scale && offset == offset) {
       incTick(); // did work, so wake up Display
     }
@@ -262,17 +275,26 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
       this is the call for automatic scaling */
   void setRange(DataShadow shadow)
          throws VisADException, RemoteException {
-    if (!isManual) setRange(shadow, 0.0, 0.0);
+    if (!isManual) setRange(shadow, 0.0, 0.0, false);
   }
 
   /** set range used for linear map from Scalar to
       DisplayScalar values */
-  private synchronized void setRange(DataShadow shadow, double low, double hi)
-          throws VisADException, RemoteException {
+  private synchronized void setRange(DataShadow shadow, double low, double hi,
+          boolean unit_flag) throws VisADException, RemoteException {
     int i = ScalarIndex;
     if (shadow != null) {
       dataRange[0] = shadow.ranges[0][i];
       dataRange[1] = shadow.ranges[1][i];
+    }
+    else if (unit_flag) {
+      Unit data_unit = Scalar.getDefaultUnit();
+      Unit display_unit = DisplayScalar.getDefaultUnit();
+      if (data_unit == null || display_unit == null) {
+        throw new UnitException("ScalarMap.setRangeByUnits: null Unit");
+      }
+      dataRange[0] = data_unit.toThis(displayRange[0], display_unit);
+      dataRange[1] = data_unit.toThis(displayRange[1], display_unit);
     }
     else {
       dataRange[0] = low;
@@ -617,7 +639,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       DisplayTupleType tuple = dtype.getTuple();
       if (flow_tuple.equals(tuple) && !map.isManual &&
           !map.badRange()) {
-        map.setRange(null, low, hi);
+        map.setRange(null, low, hi, false);
       }
     }
   }
