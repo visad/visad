@@ -248,22 +248,33 @@ public class MeasureDataFile {
     // read in measurement data
     while (!line.equals(ALL_LABEL)) line = fin.readLine().trim();
     Vector v = new Vector();
-    int dim = 0;
+    int dim = 0, len = 0;
     while (true) {
       line = fin.readLine();
       if (line == null) break;
       line = line.trim();
       if (line.startsWith("Timestep")) {
-        int v1 = line.lastIndexOf(VARIABLES[0] + "1");
-        StringTokenizer st = new StringTokenizer(line.substring(v1), "\t");
-        dim = st.countTokens();
+        dim = 0;
+        // determine dimensionality
+        while (true) {
+          int ndx = line.lastIndexOf(VARIABLES[dim] + "1");
+          if (ndx >= 0) dim++;
+          else break;
+        }
+        // determine number of endpoints
+        len = 0;
+        while (true) {
+          int ndx = line.lastIndexOf(VARIABLES[0] + (len + 1));
+          if (ndx >= 0) len++;
+          else break;
+        }
       }
       if (line.equals("") || line.startsWith("#") ||
         line.startsWith("Timestep"))
       {
         continue;
       }
-      v.add(new MData(line, dim));
+      v.add(new MData(line, dim, len, mpp, sd));
     }
     fin.close();
 
@@ -286,16 +297,17 @@ public class MeasureDataFile {
 
     // clear old measurements
     for (int i=0; i<bio.lists.length; i++) {
-      bio.lists[i].removeAllMeasurements(false);
+      bio.lists[i].removeAllMeasurements(true);
     }
 
     // set up measurements
     size = v.size();
+    int index = bio.getIndex();
     for (int k=0; k<size; k++) {
       MData data = (MData) v.elementAt(k);
       MeasureList list = bio.lists[data.index];
       dim = data.values.length;
-      int len = data.values[0].length;
+      len = data.values[0].length;
       RealTuple[] values = new RealTuple[len];
       for (int j=0; j<len; j++) {
         Real[] reals = new Real[dim];
@@ -310,11 +322,12 @@ public class MeasureDataFile {
         (MeasureGroup) bio.groups.elementAt(data.groupId);
       Measurement m = new Measurement(values, color, group);
       m.stdId = data.stdId;
-      list.addMeasurement(m, false);
+      list.addMeasurement(m, data.index == index);
     }
-
+/*
     bio.pool2.refresh();
     if (bio.pool3 != null) bio.pool3.refresh();
+*/
   }
 
 
@@ -348,21 +361,22 @@ public class MeasureDataFile {
     public double dist;
 
     /** Constructor from line of text. */
-    public MData(String line, int dim) {
+    public MData(String line, int dim, int len, double mpp, double sd) {
+      int ndx = dim - 1;
       StringTokenizer st = new StringTokenizer(line, "\t");
-      int count = st.countTokens();
       index = Integer.parseInt(st.nextToken());
       stdId = Integer.parseInt(st.nextToken());
       groupId = Integer.parseInt(st.nextToken());
       r = Integer.parseInt(st.nextToken());
       g = Integer.parseInt(st.nextToken());
       b = Integer.parseInt(st.nextToken());
-      dist = Double.parseDouble(st.nextToken());
-      int len = (count - 8) / dim;
+      if (len == 2) dist = Double.parseDouble(st.nextToken());
       values = new double[dim][len];
       for (int i=0; i<dim; i++) {
         for (int j=0; j<len; j++) {
           values[i][j] = Double.parseDouble(st.nextToken());
+          // convert values from microns to pixels
+          if (i < ndx) values[i][j] /= mpp;
         }
       }
     }
