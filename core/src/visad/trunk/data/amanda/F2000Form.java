@@ -534,7 +534,7 @@ public class F2000Form
                      energy, time, 10000.f);
   }
 
-  private int getChannel(String tokenName, String token)
+  private int parseChannel(String tokenName, String token)
     throws NumberFormatException
   {
     final int dotIdx = token.indexOf('.');
@@ -550,7 +550,7 @@ public class F2000Form
     throws VisADException
   {
     String chanStr = tok.nextToken();
-    int number = getChannel("htNum", chanStr);
+    int number = parseChannel("htNum", chanStr);
     if (number < 0) {
       System.err.println("Warning: Ignoring HIT for secondary channel \"" +
                          chanStr + "\"");
