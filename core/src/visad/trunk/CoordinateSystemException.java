@@ -34,5 +34,12 @@ public class CoordinateSystemException extends VisADException {
   public CoordinateSystemException() { super(); }
   public CoordinateSystemException(String s) { super(s); }
 
+  public CoordinateSystemException(CoordinateSystem cs1, CoordinateSystem cs2) {
+
+    this("Coordinate system mismatch: " +
+      (cs1 == null ? "null" : cs1.getReference().toString()) + " != " +
+      (cs2 == null ? "null" : cs2.getReference().toString()));
+  }
+
 }
 
