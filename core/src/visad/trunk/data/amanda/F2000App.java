@@ -244,10 +244,10 @@ System.out.println("amanda MathType\n" + amanda.getType());
                                                0, 1.0, event_ref,
                                                AmandaFile.getEventIndexType(),
                                                true);
-    event_slider.hardcodeSize(10); // leave some room for label changes
+    event_slider.hardcodeSizePercent(110); // leave room for label changes
 
     VisADSlider track_slider = new VisADSlider(maps.trackmap, true, true);
-    track_slider.hardcodeSize(10); // leave some room for label changes
+    track_slider.hardcodeSizePercent(110); // leave room for label changes
 
     JPanel widget_panel = new JPanel();
     widget_panel.setLayout(new BoxLayout(widget_panel, BoxLayout.Y_AXIS));
