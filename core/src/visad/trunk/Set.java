@@ -55,8 +55,8 @@ public abstract class Set extends DataImpl implements SetIface {
   int DomainDimension; // this is a subset of R^DomainDimension
   int Length;          // number of samples
   CoordinateSystem DomainCoordinateSystem;
-  boolean hashCodeSet = false;
-  int hashCode = 0;
+  transient boolean hashCodeSet = false;
+  transient int hashCode = 0;
 
   Unit[] SetUnits;
   ErrorEstimate[] SetErrors;
