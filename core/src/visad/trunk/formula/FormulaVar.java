@@ -408,7 +408,7 @@ public class FormulaVar {
           }
           Object[] o = new Object[num];
           boolean eflag = false;
-          for (int j=0; j<num; j++) {
+          for (int j=num-1; j>=0; j--) {
             o[j] = popStack(stack);
             if (o[j] instanceof NullObject) eflag = true;
           }
