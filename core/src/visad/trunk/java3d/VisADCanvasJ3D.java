@@ -39,6 +39,7 @@ public class VisADCanvasJ3D extends Canvas3D { // J3D
 
   private DisplayRendererJ3D displayRenderer;
   private Component component;
+  Dimension prefSize = new Dimension(0, 0);
 
   VisADCanvasJ3D(DisplayRendererJ3D renderer, Component c) {
     super(null);
@@ -48,6 +49,10 @@ public class VisADCanvasJ3D extends Canvas3D { // J3D
 
   public void renderField(int i) {
     displayRenderer.drawCursorStringVector(this);
+  }
+
+  public Dimension getPreferredSize() {
+    return prefSize;
   }
 
 }

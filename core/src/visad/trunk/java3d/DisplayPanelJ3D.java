@@ -28,20 +28,12 @@ package visad.java3d;
 import visad.*;
  
 // GUI handling
+import java.awt.*;
 import java.awt.swing.*;
-import java.awt.swing.border.*;
 // import com.sun.java.swing.*;
 // import com.sun.java.swing.border.*;
 
-import java.awt.BorderLayout;
-import java.awt.event.*;
-
 import javax.media.j3d.*;
-
-import java.util.*;
-import java.awt.*;
-import java.awt.image.*;
-import java.net.*;
 
 public class DisplayPanelJ3D extends JPanel {
 
@@ -51,15 +43,15 @@ public class DisplayPanelJ3D extends JPanel {
   public DisplayPanelJ3D(DisplayImplJ3D d) {
     display = d;
     renderer = (DisplayRendererJ3D) display.getDisplayRenderer();
-    setLayout(new BorderLayout());
+    setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+    setAlignmentY(TOP_ALIGNMENT);
+    setAlignmentX(LEFT_ALIGNMENT);
     Canvas3D canvas = new VisADCanvasJ3D(renderer, this);
-    add("Center", canvas);
+    add(canvas);
  
     UniverseBuilderJ3D universe = new UniverseBuilderJ3D(canvas);
     BranchGroup scene = renderer.createSceneGraph(universe.view, canvas); // J3D
     universe.addBranchGraph(scene);
-    setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-    setAlignmentX(LEFT_ALIGNMENT);
 
   }
 
