@@ -3,400 +3,538 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultView.java,v 1.5 2000-06-08 19:13:44 steve Exp $
+ * $Id: DefaultView.java,v 1.5.2.1 2001-09-17 19:24:45 steve Exp $
  */
 
 package visad.data.netcdf.in;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.WeakHashMap;
 import ucar.netcdf.Dimension;
 import ucar.netcdf.DimensionIterator;
 import ucar.netcdf.DimensionSet;
 import ucar.netcdf.Netcdf;
 import ucar.netcdf.Variable;
 import ucar.netcdf.VariableIterator;
+import visad.data.BadFormException;
+import visad.data.netcdf.QuantityDB;
+import visad.CoordinateSystem;
+import visad.ErrorEstimate;
 import visad.FunctionType;
+import visad.Gridded1DSet;
+import visad.GriddedSet;
+import visad.Integer1DSet;
+import visad.IntegerNDSet;
+import visad.Linear1DSet;
+import visad.LinearLatLonSet;
+import visad.LinearNDSet;
+import visad.LinearSet;
 import visad.MathType;
+import visad.RealTupleType;
+import visad.RealType;
 import visad.SampledSet;
 import visad.ScalarType;
 import visad.SimpleSet;
+import visad.TypeException;
 import visad.Unit;
 import visad.VisADException;
-import visad.data.BadFormException;
-import visad.data.netcdf.QuantityDB;
-
 
 /**
  * Provides support for the default view of a netCDF dataset as documented
  * in the netCDF User's Guide.
+ *
+ * @author Steven R. Emmerson
+ * @version $Revision: 1.5.2.1 $ $Date: 2001-09-17 19:24:45 $
  */
-public class
-DefaultView
-    extends	View
+public class DefaultView
+    extends     View
 {
-    /**
-     * NetCDF dataset-specific utility methods.
-     */
-    private /*final*/ Util	util;
-
+    private final DimsToSet dimsToSet;
 
     /**
      * Constructs from a netCDF dataset and a quantity database.
      *
-     * @param netcdf		The netCDF dataset.
-     * @param quantityDB	The quantity database to use to map netCDF
-     *				variables to VisAD Quantity-s.
+     * @param netcdf            The netCDF dataset.
+     * @param quantityDB        The quantity database to use to map netCDF
+     *                          variables to VisAD Quantity-s.
      */
-    public
-    DefaultView(Netcdf netcdf, QuantityDB quantityDB)
+    public DefaultView(Netcdf netcdf, QuantityDB quantityDB)
     {
-	super(netcdf);
-	util = Util.newUtil(netcdf, quantityDB);
+        super(netcdf, quantityDB);
+        dimsToSet = new DimsToSet();
     }
 
-
     /**
-     * Gets an iterator over the virtual VisAD data objects determined by
-     * this view.
+     * <p>Indicates if a given variable should be ignored during iteration.</p>
      *
-     * @return			An iterator for the virtual VisAD data objects
-     *				in the view.
-     */
-    public VirtualDataIterator
-    getVirtualDataIterator()
-    {
-	return new DefaultVirtualDataIterator();
-    }
-
-
-    /**
-     * Gets the type of the values of a netCDF variable.
+     * <p>This implementation returns the value of {@link 
+     * #isCoordinateVariable(Variable)}.</p>
      *
-     * @param var		A netCDF variable.
-     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @return                    <code>true</code> if and only if the variable
+     *                            should be ignored.
      */
-    protected ScalarType
-    getRangeType(Variable var)
-	throws VisADException
+    protected boolean isIgnorable(Variable var)
     {
-	return util.getScalarType(var);
+        return isCoordinateVariable(var);
     }
 
-
     /**
-     * Gets the sampling set of the values of a netCDF variable.
+     * Returns the domain of a netCDF variable.
      *
-     * @param var		A netCDF variable.
-     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @param var               A netCDF variable.
+     * @return                  The domain of the given variable.
+     * @throws IllegalArgumentException
+     *                          if the rank of the variable is zero.
+     * @throws TypeException    if a {@link RealType} needed to be created but
+     *                          couldn't.
+     * @throws IOException      if a netCDF read-error occurs.
      */
-    protected SimpleSet
-    getRangeSet(Variable var)
-	throws VisADException
+    protected Domain getDomain(Variable var)
+        throws TypeException, IOException
     {
-	return util.getValueSet(var);
+        return new DefaultDomain(var);
     }
 
-
     /**
-     * Gets the unit of the values of a netCDF variable.
+     * <p>Returns the VisAD domain set corresponding to an array of netCDF 
+     * dimension in netCDF order (outermost dimension first).</p>
      *
-     * @param var		A netCDF variable.
-     * @return			The unit of the values of <code>var</code>.
-     * @throws VisADException	Couldn't create necessary VisAD object.
-     */
-    protected Unit
-    getUnit(Variable var)
-	throws VisADException
-    {
-	return util.getUnit(var);
-    }
-
-
-    /**
-     * Gets the value-vetter of a netCDF variable.
+     * <p>This implementation supports 1-dimensional coordinate variables,
+     * 1-dimensional longitude, and 2-dimensional latitude/longitude domains
+     * and assumes that each netCDF dimension is independent of all others.
+     * This implementation uses {@link #getDomainSet(Dimension)}, {@link
+     * #getDomainSet(Dimension)}, and {@link #getDomainType(Dimension[])}. </p>
      *
-     * @param var		A netCDF variable.
+     * @param dims              A netCDF domain.  Must be in netCDF order
+     *                          (outer dimension first).
+     * @return                  The VisAD domain set corresponding to
+     *                          <code>dims</code>.
+     * @throws VisADException   Couldn't create necessary VisAD object.
+     * @exception IOException   if a netCDF read-error occurs.
      */
-    protected Vetter
-    getVetter(Variable var)
+    protected SampledSet getDomainSet(Dimension[] dims)
+        throws IOException, VisADException
     {
-	return new Vetter(var);
+        if (dims.length == 0)
+            return getDomainSet(dims[0]);
+        /*
+         * This implementation caches earlier results because this operation
+         * is potentially expensive and multiple netCDF variables can have the
+         * same domain.
+         */
+        GriddedSet      set;
+        synchronized(dimsToSet)
+        {
+            set = dimsToSet.get(dims);
+            if (set == null)
+            {
+                Gridded1DSet[] sets = new Gridded1DSet[dims.length];
+                int            j = dims.length;
+                for (int i = 0; i < dims.length; ++i)
+                    sets[--j] = getDomainSet(dims[i]);      // reverse order
+                boolean     allInteger1DSets = true;
+                for (int i = 0; allInteger1DSets && i < sets.length; ++i)
+                    allInteger1DSets = sets[i] instanceof Integer1DSet;
+                MathType    type = getDomainType(dims);
+                if (allInteger1DSets)
+                {
+                    set = (GriddedSet)getIntegerSet(sets, type);
+                }
+                else
+                {
+                    boolean allLinear1DSets = true;
+                    for (int i = 0; allLinear1DSets && i < sets.length; ++i)
+                        allLinear1DSets = sets[i] instanceof Linear1DSet;
+                    if (allLinear1DSets)
+                    {
+                        set = (GriddedSet)getLinearSet(sets, type);
+                    }
+                    else
+                    {
+                        set = getGriddedSet(sets, type);
+                    }
+                }
+                dimsToSet.put(dims, set);
+            }
+        }
+        return set;
     }
 
-
     /**
-     * Gets the outer dimension of a netCDF variable.
+     * Returns an {@link IntegerSet} corresponding to the product of one or more
+     * {@link Integer1DSet}s.
      *
-     * @param var		A netCDF variable.
+     * @param sets              The {@link Integer1DSet}s to be multiplied
+     *                          together.
+     * @param type              The {@link MathType} for the result.
+     * @return                  The {@link IntegerSet} corresponding to the
+     *                          input.
+     * @throws VisADException   if a VisAD object couldn't be created.
      */
-    protected Dimension
-    getOuterDimension(Variable var)
+    private static GriddedSet getIntegerSet(Gridded1DSet[] sets, MathType type)
+        throws VisADException
     {
-	return var.getDimensionIterator().next();
+        int     rank = sets.length;
+        int[]   lengths = new int[rank];
+        for (int idim = 0; idim < rank; ++idim)
+            lengths[idim] = ((Integer1DSet)sets[idim]).getLength(0);
+        // TODO: add CoordinateSystem argument
+        return IntegerNDSet.create(type, lengths, (CoordinateSystem)null,
+                (Unit[])null, (ErrorEstimate[])null);
     }
 
-
     /**
-     * Gets the type of the inner domain of a netCDF variable.
+     * <p>Returns a {@link LinearSet} corresponding to the product of one or 
+     * more {@link Linear1DSet}s.</p>
      *
-     * @param var		A netCDF variable.
-     * @throws VisADException	Couldn't create necessary VisAD object.
-     */
-    protected MathType
-    getInnerDomainType(Variable var)
-	throws VisADException
-    {
-	return util.getDomainType(getInnerDimensions(var));
-    }
-
-
-    /**
-     * Gets the domain set of the inner domain of a netCDF variable.
+     * <p>This implementation uses {@link #isLongitude(RealType)} and {@link
+     * #isLatitude(RealType)}.
      *
-     * @param var		A netCDF variable.
-     * @throws VisADException	Couldn't create necessary VisAD object.
-     * @throws IOException	I/O failure.
+     * @param sets              The {@link Linear1DSet}s to be multiplied
+     *                          together.
+     * @param type              The {@link MathType} for the result.
+     *                          NB: The units in the sets needn't be the
+     *                          same as the units in <code>type</code>.
+     * @return                  The {@link LinearSet} corresponding to the
+     *                          input.
+     * @throws VisADException   if a VisAD object couldn't be created.
      */
-    protected SampledSet
-    getInnerDomainSet(Variable var)
-	throws VisADException, IOException
+    private LinearSet getLinearSet(Gridded1DSet[] sets, MathType type)
+        throws VisADException
     {
-	return util.getDomainSet(getInnerDimensions(var));
+        LinearSet       set = null;
+        int             rank = sets.length;
+        double[]        firsts = new double[rank];
+        double[]        lasts = new double[rank];
+        int[]           lengths = new int[rank];
+        Unit[]          units = new Unit[rank];
+        for (int idim = 0; idim < rank; ++idim)
+        {
+            Linear1DSet linear1DSet = (Linear1DSet)sets[idim];
+            firsts[idim] = linear1DSet.getFirst();
+            lengths[idim] = linear1DSet.getLength(0);
+            lasts[idim] = linear1DSet.getLast();
+            units[idim] = linear1DSet.getSetUnits()[0];
+        }
+        // TODO: add CoordinateSystem argument
+        if (rank == 2)
+        {
+            RealType[]  types = ((RealTupleType)type).getRealComponents();
+            if ((isLongitude(types[0]) && isLatitude(types[1])) ||
+                (isLongitude(types[1]) && isLatitude(types[0])))
+            {
+                set = new LinearLatLonSet(type,
+                                        firsts[0], lasts[0], lengths[0],
+                                        firsts[1], lasts[1], lengths[1],
+                                        (CoordinateSystem)null,
+                                        units,
+                                        (ErrorEstimate[])null);
+            }
+        }
+        if (set == null)
+        {
+            set = LinearNDSet.create(type,
+                                      firsts, lasts, lengths,
+                                      (CoordinateSystem)null,
+                                      units,
+                                      (ErrorEstimate[])null);
+        }
+        return set;
     }
 
-
     /**
-     * Gets the type of the outer domain of a netCDF variable.
+     * Returns a {@link GriddedSet} corresponding to one or more {@link
+     * Gridded1DSet}s.
      *
-     * @param var		A netCDF variable.
-     * @return			The VisAD MathType of the outer domain of
-     *				<code>var</code>.
-     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @param sets              The {@link Gridded1DSet}s to be multiplied
+     *                          together.
+     * @param type              The {@link MathType} for the result.
+     *                          NB: The units in the sets needn't be the
+     *                          same as the units in <code>type</code>.
+     * @return                  The {@link GriddedSet} corresponding to the
+     *                          input.
+     * @throws VisADException   if a VisAD object couldn't be created.
+     * @throws IOException      if a netCDF read-error occurs.
      */
-    protected MathType
-    getOuterDomainType(Variable var)
-	throws VisADException
+    private static GriddedSet getGriddedSet(Gridded1DSet[] sets, MathType type)
+        throws VisADException, IOException
     {
-	return util.getRealType(getOuterDimension(var));
+        int             rank = sets.length;
+        int[]           lengths = new int[rank];
+        float[][]       values = new float[rank][];
+        int             ntotal = 1;
+        for (int idim = 0; idim < rank; ++idim)
+        {
+            lengths[idim] = sets[idim].getLength(0);
+            ntotal *= lengths[idim];
+        }
+        int step = 1;
+        int laststep = 1;
+        for (int idim = 0; idim < rank; ++idim)
+        {
+            float[]     vals = sets[idim].getSamples(false)[0];
+            values[idim] = new float[ntotal];
+            step *= lengths[idim];
+            for (int i=0; i<lengths[idim]; i++) {
+              int istep = i * laststep;
+              for (int j=0; j<ntotal; j+=step) {
+                for (int k=0; k<laststep; k++) {
+                  values[idim][istep+j+k] = vals[i];
+                }
+              }
+            }
+            laststep = step;
+        }
+        Unit[]  units = new Unit[rank];
+        for (int idim = 0; idim < rank; ++idim)
+            units[idim] = sets[idim].getSetUnits()[0];
+        // TODO: add CoordinateSystem argument
+        return GriddedSet.create(type, values, lengths,
+                 (CoordinateSystem)null, units, (ErrorEstimate[])null);
     }
 
-
     /**
-     * Gets the domain set of the outer domain of a netCDF variable.
+     * <p>Returns the VisAD {@link MathType} corresponding to an array of netCDF
+     * dimensions.  If the array has zero length, then <code>null</code> is
+     * returned.</p>
      *
-     * @param var		A netCDF variable.
-     * @throws VisADException	Couldn't create necessary VisAD object.
-     * @throws IOException	I/O failure.
-     */
-    protected SampledSet
-    getOuterDomainSet(Variable var)
-	throws VisADException, IOException
-    {
-	return util.getDomainSet(getOuterDimension(var));
-    }
-
-
-    /**
-     * Gets the type of the domain of a netCDF variable.
+     * <p>This implementation uses {@link #getRealType(Dimension)}.</p>
      *
-     * @param var		A netCDF variable.
-     * @return			The VisAD MathType of the domain of
-     *				<code>var</code>.
-     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @param dims              netCDF dimensions in netCDF order (outermost
+     *                          dimension first).
+     * @return                  The type of the domain corresponding to
+     *                          <code>dims</code>.  RETURN_VALUE is
+     *                          <code>null</code>, a <code>RealType</code>,
+     *                          or a <code>RealTupleType</code> if
+     *                          <code>dims.length</code> is 0, 1, or greater
+     *                          than 1, respectively.
+     * @throws VisADException   Couldn't create necessary VisAD object.
      */
-    protected MathType
-    getDomainType(Variable var)
-	throws VisADException
+    protected MathType getDomainType(Dimension[] dims)
+        throws VisADException
     {
-	return util.getDomainType(getDimensions(var));
+        MathType        type;
+        int             rank = dims.length;
+        if (rank == 0)
+        {
+            type = null;        // means scalar domain
+        }
+        else if ( rank == 1)
+        {
+            type = (MathType)getRealType(dims[0]);
+        }
+        else
+        {
+            RealType[]  types = new RealType[dims.length];
+            int j = dims.length;
+            for (int i = 0; i < dims.length; ++i)
+                types[--j] = getRealType(dims[i]);      // reverse order
+            type = new RealTupleType(types);
+        }
+        return type;
     }
 
-
     /**
-     * Gets the domain set of a netCDF variable.
-     *
-     * @param var		A netCDF variable.
-     * @throws VisADException	Couldn't create necessary VisAD object.
-     * @throws IOException	I/O failure.
+     * Iterates over the virtual VisAD data objects in a netCDF dataset.
      */
-    protected SampledSet
-    getDomainSet(Variable var)
-	throws VisADException, IOException
+    final class DefaultDataIterator
+        extends VirtualDataIterator
     {
-	return util.getDomainSet(getDimensions(var));
-    }
+        /**
+         * The netCDF variable iterator.
+         */
+        private final VariableIterator  varIter;
 
+        /**
+         * Constructs from nothing.
+         */
+        DefaultDataIterator()
+        {
+            super(DefaultView.this);
+            varIter = DefaultView.this.getNetcdf().iterator();
+        }
 
-    /**
-     * Indicates whether or not a netCDF dimension refers to time.
-     *
-     * @param dim		A netCDF dimension.
-     * @throws VisADException	Couldn't create necessary VisAD object.
-     * @throws IOException	I/O failure.
-     */
-    protected boolean
-    isTime(Dimension dim)
-	throws VisADException, IOException
-    {
-	return util.isTime(dim);
-    }
-
-
-    /**
-     * Gets the inner dimensions of a netCDF variable.
-     *
-     * @param var		A netCDF variable.
-     * @return			The inner dimensions of <code>var</code> in
-     *				netCDF order.
-     */
-    protected Dimension[]
-    getInnerDimensions(Variable var)
-    {
-	Dimension[]	dims = getDimensions(var);
-	int		rank = var.getRank();
-	Dimension[]	innerDims = new Dimension[rank-1];
-
-	System.arraycopy(dims, 1, innerDims, 0, innerDims.length);
-
-	return innerDims;
-    }
-
-
-    /**
-     * Gets the dimensions of a netCDF variable.
-     *
-     * @param var		A netCDF variable.
-     * @return			The dimensions of <code>var</code> in
-     *				netCDF order.
-     */
-    protected Dimension[]
-    getDimensions(Variable var)
-    {
-	int			rank = var.getRank();
-	Dimension[]		dims = new Dimension[rank];
-	DimensionIterator	iter = var.getDimensionIterator();
-
-	for (int i = 0; i < rank; ++i)
-	    dims[i] = iter.next();
-
-	return dims;
-    }
-
-
-    /**
-     * Supports iteration over the default virtual VisAD data objects in
-     * a netCDF dataset.
-     */
-    public class
-    DefaultVirtualDataIterator
-	extends	VirtualDataIterator
-    {
-	/**
-	 * The netCDF variable iterator.
-	 */
-	private final VariableIterator	varIter;
-
-
-	/**
-	 * Constructs from a view of a netCDF dataset.
-	 *
-	 * @param view		A view of a netCDF dataset.
-	 */
-	public
-	DefaultVirtualDataIterator()
-	{
-	    super(DefaultView.this);
-
-	    varIter = netcdf.iterator();
-	}
-
-
-	/**
-	 * Returns a clone of the next virtual VisAD data object.
-	 *
+        /**
+         * Returns a clone of the next virtual VisAD data object.
+         *
          * @return                      A clone of the next virtual VisAD data
          *                              object or <code> null</code> if there is
-         *                              none.
-	 * @throws VisADException	Couldn't create necessary VisAD object.
-	 */
-	protected VirtualData
-	getData()
-	    throws VisADException, IOException
-	{
-	    VirtualData	data = null;
+         *                              no more data.
+         * @throws TypeException        if a {@link RealType} needed
+         *                              to be created but couldn't.
+         * @throws VisADException       Couldn't create necessary VisAD object.
+         */
+        protected VirtualData getData()
+            throws TypeException, VisADException, IOException
+        {
+            while (varIter.hasNext())
+            {
+                Variable        var = varIter.next();
+                if (!isNumeric(var))
+                    continue;  // TODO: support text
+                if (isCoordinateVariable(var))
+                    continue;  // ignore coordinate variables
+                VirtualScalar   scalar =
+                    new VirtualScalar(getRealType(var),
+                                      var,
+                                      getRangeSet(var),
+                                      getUnitFromAttribute(var),
+                                      getVetter(var));
+                return
+                    var.getRank() == 0
+                        ? (VirtualData)scalar
+                        : getDomain(var).getVirtualField(
+                            new VirtualTuple(scalar));
+            }
+            return null;        // no more data
+        }
+    }
 
-	    while (varIter.hasNext())
-	    {
-		Variable	var = varIter.next();
+    /**
+     * The default domain of a netCDF variable.  A default domain comprises
+     * the variable's netCDF dimensions.
+     */
+    private final class DefaultDomain
+        extends Domain
+    {
+        /**
+         * Outermost dimension first; at least one element.
+         */
+        private final Dimension[]   dims;
+        private volatile int        hashCode;
+        private volatile SampledSet domainSet;
 
-		// TODO: support text
-		if (var.getComponentType().equals(char.class))
-		    continue;
+        /**
+         * @throws IllegalArgumentException if the rank of the variable is 0.
+         */
+        DefaultDomain(Variable var)
+            throws TypeException
+        {
+            super(var);
+            dims = getDimensions(var);
+        }
 
-		int		rank = var.getRank();
+        /**
+         * Returns a {@link VirtualField} corresponding to this domain and
+         * a given range.
+         *
+         * @param range                 The range for the {@link VirtualField}.
+         * @throws NullPointerException if the argument is <code>null</code>.
+         * @throws IOException          if a read error occurs.
+         * @throws VisADException       if a VisAD object can't be created.
+         */
+        protected VirtualField getVirtualField(VirtualTuple range)
+            throws VisADException, IOException
+        {
+            VirtualField field;
+            int          rank = dims.length;
+            if (rank == 1 || !DefaultView.this.isTime(dims[0]))
+            {
+                field =
+                    VirtualField.newVirtualField(
+                        DefaultView.this.getDomainSet(dims), range);
+            }
+            else
+            {
+                Dimension[] innerDims = new Dimension[rank-1];
+                System.arraycopy(dims, 1, innerDims, 0, innerDims.length);
+                field =
+                    VirtualField.newVirtualField(
+                        DefaultView.this.getDomainSet(dims[0]),
+                        new VirtualTuple(
+                            VirtualField.newVirtualField(
+                                DefaultView.this.getDomainSet(innerDims),
+                                range)));
+            }
+            return field;
+        }
 
-		if (util.isCoordinateVariable(var))
-		    continue;
+        public boolean equals(Object obj)
+        {
+            if (obj == this)
+                return true;
+            if (!(obj instanceof DefaultDomain))
+                return false;
+            return Arrays.equals(dims, ((DefaultDomain)obj).dims);
+        }
 
-		/*
-		 * The netCDF variable is not a coordinate variable.
-		 */
+        public int hashCode()
+        {
+            int hash = hashCode;
+            if (hash == 0)
+            {
+                hash = 1;
+                for (int i = 0; i < dims.length; i++)
+                    hash = hash*31 + dims[i].hashCode();
+                hashCode = hash;
+            }
+            return hash;
+        }
+    }
 
-		VirtualScalar	scalar =
-		    new VirtualScalar(getRangeType(var),
-				      var,
-				      getRangeSet(var),
-				      getUnit(var),
-				      getVetter(var));
+    /**
+     * Cache of netCDF dimensions and their corresponding VisAD domain sets.
+     */
+    private static class DimsToSet
+    {
+        private Map map;
 
-		if (rank == 0)
-		{
-		    /*
-		     * The variable represents a true scalar.
-		     */
-		    data = scalar;
-		}
-		else if (rank == 1 || !isTime(getOuterDimension(var)))
-		{
-		    /*
-		     * There's nothing special about the variable.
-		     * Construct a simple Field.
-		     */
-		    data = new VirtualFlatField(
-			new FunctionType(getDomainType(var),
-					 getRangeType(var)),
-			getDomainSet(var),
-			new VirtualTuple(scalar));
-		}
-		else
-		{
-		    /*
-                     * The variable represents a time series of array
-                     * data.  Facilitate annimation by factoring out the
-                     * time dimension through construction of a Field of
-                     * Fields.
-		     */
-		    FunctionType	innerFieldType =
-			new FunctionType(getInnerDomainType(var),
-					 getRangeType(var));
-		    VirtualField	innerField =
-			VirtualField.newVirtualField(
-			    innerFieldType,
-			    getInnerDomainSet(var),
-			    new VirtualTuple(scalar));
+        DimsToSet()
+        {
+            map = Collections.synchronizedMap(new WeakHashMap());
+        }
 
-		    data = VirtualField.newVirtualField(
-			new FunctionType(getOuterDomainType(var),
-					 innerFieldType),
-			getOuterDomainSet(var),
-			new VirtualTuple(innerField));
-		}
+        void put(Dimension[] dims, GriddedSet set)
+        {
+            if (dims.length == 1)
+                map.put(dims[0], set);
+            else
+                map.put(new DimArray(dims), set);
+        }
 
-		break;
-	    }			// variable iteration loop
+        GriddedSet get(Dimension[] dims)
+        {
+            return
+                dims.length == 1
+                    ? (GriddedSet)map.get(dims[0])
+                    : (GriddedSet)map.get(new DimArray(dims));
+        }
 
-	    return data;
-	}
+        private static class DimArray
+        {
+            private Dimension[]  dims;
+            private volatile int hashCode;
+
+            DimArray(Dimension[] dims)
+            {
+                this.dims = (Dimension[])dims.clone();  // defensive copy
+            }
+
+            public boolean equals(Object obj)
+            {
+                if (obj == this)
+                    return true;
+                if (!(obj instanceof DimArray))
+                    return false;
+                return Arrays.equals(dims, ((DimArray)obj).dims);
+            }
+
+            public int hashCode()
+            {
+                int hash = hashCode;
+                if (hash == 0)
+                {
+                    hash = 1;
+                    for (int i = 0; i < dims.length; i++)
+                        hash = hash*31 + dims[i].hashCode();
+                    hashCode = hash;
+                }
+                return hash;
+            }
+        }
     }
 }
