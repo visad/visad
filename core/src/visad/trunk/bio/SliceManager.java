@@ -34,7 +34,7 @@ import visad.data.DefaultFamily;
 import visad.util.DualRes;
 
 /** SliceManager is the class encapsulating BioVisAD's slice logic. */
-public class SliceManager implements ControlListener {
+public class SliceManager implements ControlListener, PlaneListener {
 
   // -- DATA TYPE CONSTANTS --
 
@@ -86,8 +86,11 @@ public class SliceManager implements ControlListener {
   /** X, Y and Z bounds for the data. */
   float min_x, max_x, min_y, max_y, min_z, max_z;
 
+  /** X and Y resolution of image data. */
+  int res_x, res_y;
 
-  // -- SLICE CONTROLS --
+
+  // -- SLICE-RELATED FIELDS --
 
   /** Animation control associated with 2-D animation mapping. */
   AnimationControl anim_control2;
@@ -98,10 +101,16 @@ public class SliceManager implements ControlListener {
   /** Value control associated with 2-D select value mapping. */
   ValueControl value_control2;
 
+  /** Plane selection object. */
+  private PlaneSelector ps;
+
+  /** Is arbitrary plane selection on? */
+  private boolean planeSelect;
+
 
   // -- DISPLAY MAPPING INFORMATION --
 
-  /** High-resolution field for current timestep and slice number. */
+  /** High-resolution field for current timestep. */
   private FieldImpl field;
 
   /** List of range component mappings for 2-D display. */
@@ -122,7 +131,13 @@ public class SliceManager implements ControlListener {
   /** Data renderer for 3-D image stack data. */
   private DataRenderer renderer3;
 
-  /** References for low-resolution image timestack data. */
+  /** Reference for arbitrary plane data. */
+  private DataReferenceImpl planeRef;
+
+  /** Data renderer for arbitrary plane data in 2-D. */
+  private DataRenderer planeRenderer2;
+
+  /** Reference for low-resolution image timestack data. */
   private DataReferenceImpl lowresRef;
 
   /** Data renderer for low-resolution image timestack data in 2-D. */
@@ -130,7 +145,6 @@ public class SliceManager implements ControlListener {
 
   /** Data renderer for low-resolution image timestack data in 3-D. */
   private DataRenderer lowresRenderer3;
-
 
 
   // -- THUMBNAIL-RELATED FIELDS --
@@ -156,9 +170,6 @@ public class SliceManager implements ControlListener {
 
   /** BioVisAD frame. */
   private BioVisAD bio;
-
-  /** Plane selection object. */
-  private PlaneSelector ps;
 
   /** Loader for opening data series. */
   private DefaultFamily loader;
@@ -196,14 +207,16 @@ public class SliceManager implements ControlListener {
     lowres = false;
     doThumbs = true;
     autoSwitch = true;
+    planeSelect = false;
     colorRange = new RealTupleType(
       new RealType[] {RED_TYPE, GREEN_TYPE, BLUE_TYPE});
 
     loader = new DefaultFamily("bio_loader");
 
-    // image stack references
+    // data references
     ref = new DataReferenceImpl("bio_ref");
-    lowresRef = new DataReferenceImpl("bio_lowres");
+    lowresRef = new DataReferenceImpl("bio_lowresRef");
+    planeRef = new DataReferenceImpl("bio_planeRef");
   }
 
 
@@ -268,8 +281,12 @@ public class SliceManager implements ControlListener {
   /** Sets whether to create low-resolution thumbnails of the data. */
   public void setThumbnails(boolean thumbnails) { doThumbs = thumbnails; }
 
-  /** Sets whether plane selection object is visible. */
-  public void setPlaneSelect(boolean value) { ps.toggle(value); }
+  /** Sets whether to do arbitrary plane selection. */
+  public void setPlaneSelect(boolean value) {
+    planeSelect = value;
+    ps.toggle(value);
+    renderer2.toggle(!value);
+  }
 
   /** Links the data series to the given list of files. */
   public void setSeries(File[] files) {
@@ -291,6 +308,19 @@ public class SliceManager implements ControlListener {
     }
     int slice = (int) value_control2.getValue();
     if (this.slice != slice) bio.vert.setValue(slice + 1);
+  }
+
+  /** PlaneListener method used for detecting PlaneSelector changes. */
+  public void planeChanged() {
+    /*
+    try {
+      FieldImpl f = (FieldImpl) field.domainMultiply();
+      Data d = ps.extractSlice(f, res_x, res_y); }
+      planeRef.setData(d);
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+    */
   }
 
   /** Ensures slices are set up properly for animation. */
@@ -380,16 +410,6 @@ public class SliceManager implements ControlListener {
                 // compute scale-down factor
                 GriddedSet set = (GriddedSet) image.getDomainSet();
                 int[] len = set.getLengths();
-                /* CTR - FIXME - determine whether this logic will work
-                long tsBytes = BYTES_PER_PIXEL * slices * len[0] * len[1];
-                long freeBytes = MEGA * (heapSize - RESERVED) - tsBytes;
-                freeBytes /= 4; // use quarter available, for safety (TEMP?)
-                if (freeBytes < BYTES_PER_PIXEL * timesteps * slices) {
-                  throw new VisADException("Insufficient memory " +
-                    "to compute image slice thumbnails");
-                }
-                scale = Math.sqrt((double) freeBytes / (timesteps * tsBytes));
-                */
                 long freeBytes = MEGA * thumbSize;
                 long fullBytes = BYTES_PER_PIXEL *
                   slices * timesteps * len[0] * len[1];
@@ -592,6 +612,10 @@ public class SliceManager implements ControlListener {
     renderer2 = dr.makeDefaultRenderer();
     renderer2.toggle(on);
     bio.display2.addReferences(renderer2, ref);
+    on = planeRenderer2 == null ? false : planeRenderer2.getEnabled();
+    planeRenderer2 = dr.makeDefaultRenderer();
+    planeRenderer2.toggle(on);
+    bio.display2.addReferences(planeRenderer2, planeRef);
     if (hasThumbs) {
       on = lowresRenderer2 == null ? false : lowresRenderer2.getEnabled();
       lowresRenderer2 = dr.makeDefaultRenderer();
@@ -649,10 +673,13 @@ public class SliceManager implements ControlListener {
     }
 
     // set up 2-D ranges
-    SampledSet set = (SampledSet)
+    GriddedSet set = (GriddedSet)
       ((FieldImpl) field.getSample(0)).getDomainSet();
     float[] lo = set.getLow();
     float[] hi = set.getHi();
+    int[] lengths = set.getLengths();
+    res_x = lengths[0];
+    res_y = lengths[1];
 
     // x-axis range
     min_x = lo[0];
@@ -709,8 +736,14 @@ public class SliceManager implements ControlListener {
     value_control2.addControlListener(this);
 
     // initialize plane selector
-    if (ps == null) ps = new PlaneSelector(bio);
-    ps.init();
+    if (bio.display3 != null) {
+      if (ps == null) {
+        ps = new PlaneSelector(bio.display3);
+        ps.addListener(this);
+      }
+      ps.init(dtypes[0], dtypes[1], dtypes[2],
+        min_x, min_y, min_z, max_x, max_y, max_z);
+    }
 
     // set up color table characteristics
     bio.toolView.doColorTable();

@@ -38,41 +38,47 @@ public class PlaneSelector {
 
   // -- FIELDS --
 
-  /** BioVisAD frame. */
-  private BioVisAD bio;
+  /** Associated display. */
+  protected DisplayImpl display;
 
   /** Data references for the endpoints and linked plane. */
-  private DataReferenceImpl[] refs = new DataReferenceImpl[5];
+  protected DataReferenceImpl[] refs = new DataReferenceImpl[5];
 
   /** Data renderers for the endpoints and linked plane. */
-  private DataRenderer[] renderers = new DataRenderer[5];
+  protected DataRenderer[] renderers = new DataRenderer[5];
 
   /** Computation cell for linking plane with endpoints. */
-  private CellImpl cell;
+  protected CellImpl cell;
+
+  /** Data type for the plane. */
+  protected RealType xtype, ytype, ztype;
+
+  /** Bounding box for the plane. */
+  protected float lox, loy, loz, hix, hiy, hiz;
+
+  /** Set representing the plane's 2-D slice through the bounding box. */
+  protected Gridded3DSet plane;
+
+  /** List of PlaneListeners to notify when plane changes. */
+  protected Vector listeners = new Vector();
 
 
   // -- CONSTRUCTOR --
 
   /** Constructs a selection box. */
-  public PlaneSelector(BioVisAD biovis) {
-    bio = biovis;
+  public PlaneSelector(DisplayImpl display) {
+    this.display = display;
 
     // set up cell that links plane with endpoints
     cell = new CellImpl() {
       public void doAction() {
-        // snap out-of-bounds values (must lie within the box)
-        double lox = bio.sm.min_x;
-        double hix = bio.sm.max_x;
-        double loy = bio.sm.min_y;
-        double hiy = bio.sm.max_y;
-        double loz = bio.sm.min_z;
-        double hiz = bio.sm.max_z;
+        // start the plane in a reasonable location if the data is missing
         int len = refs.length - 2;
         RealTuple[] tuple = new RealTuple[len];
         for (int i=0; i<len; i++) {
           tuple[i] = (RealTuple) refs[i + 2].getData();
           if (tuple[i] == null) {
-            if (bio.sm.dtypes == null) return;
+            if (xtype == null) return;
             double vx = i < 2 ? lox : hix;
             double vy = i < 2 ? loy : hiy;
             double vz = i == 0 ? loz : hiz;
@@ -152,8 +158,9 @@ public class PlaneSelector {
         //   = y0 + y20 * (x - x0) / x20 + s * (y10 - y20 * x10 / x20)
         // s = [y - y0 - y20 * (x - x0) / x20] / (y10 - y20 * x10 / x20)
         //   = [x20 * (y - y0) - y20 * (x - x0)] / (x20 * y10 - y20 * x10)
+        //
         double NaN = Double.NaN;
-        double[][] p = {
+        double[][] p = { // this sequence ensures the hull is ordered properly
           {NaN, lox, lox, lox, lox, NaN, hix, NaN, hix, NaN, hix, hix},
           {loy, NaN, loy, NaN, hiy, hiy, hiy, hiy, NaN, loy, loy, NaN},
           {loz, loz, NaN, hiz, NaN, loz, NaN, hiz, hiz, hiz, NaN, loz}
@@ -216,7 +223,8 @@ public class PlaneSelector {
         // analyze x, y, z for valid box edge intersections
         // there could be as few as 3 or as many as 6
         try {
-          Gridded3DSet lines = null, plane = null;
+          Gridded3DSet lines = null;
+          plane = null;
           if (vcount > 0) {
             // extract valid box edge intersection points
             float[] ux = new float[vcount];
@@ -318,6 +326,7 @@ public class PlaneSelector {
         }
         catch (VisADException exc) { exc.printStackTrace(); }
         catch (RemoteException exc) { exc.printStackTrace(); }
+        notifyListeners();
       }
     };
 
@@ -347,9 +356,24 @@ public class PlaneSelector {
     for (int i=0; i<renderers.length; i++) renderers[i].toggle(visible);
   }
 
-  /** Adds the plane selector to its display. */
-  public void init() throws VisADException, RemoteException {
-    DisplayRenderer displayRenderer = bio.display3.getDisplayRenderer();
+  /**
+   * Adds the plane selector to its display, bounding it with the given
+   * minimum and maximum x, y and z values (typically your data's range).
+   */
+  public void init(RealType xtype, RealType ytype, RealType ztype,
+    float lox, float loy, float loz, float hix, float hiy, float hiz)
+    throws VisADException, RemoteException
+  {
+    this.xtype = xtype;
+    this.ytype = ytype;
+    this.ztype = ztype;
+    this.lox = lox;
+    this.loy = loy;
+    this.loz = loz;
+    this.hix = hix;
+    this.hiy = hiy;
+    this.hiz = hiz;
+    DisplayRenderer displayRenderer = display.getDisplayRenderer();
     for (int i=0; i<refs.length; i++) {
       ConstantMap[] maps;
       if (i == 0) {
@@ -385,24 +409,62 @@ public class PlaneSelector {
       }
       renderers[i].suppressExceptions(true);
       renderers[i].toggle(false);
-      bio.display3.addReferences(renderers[i], refs[i], maps);
+      display.addReferences(renderers[i], refs[i], maps);
     }
   }
+
+  /** Extracts a field using the current plane, at the given resolution. */
+  public Field extractSlice(FieldImpl field, int resx, int resy)
+    throws VisADException, RemoteException
+  {
+    if (plane == null) return null;
+    int rx = resx - 1;
+    int ry = resy - 1;
+    int[] lengths = plane.getLengths();
+    int lx = lengths[0] - 1;
+    int ly = lengths[1] - 1;
+    float[][] grid = new float[2][resx * resy];
+    for (int y=0; y<resy; y++) {
+      for (int x=0; x<resx; x++) {
+        int index = y * resx + x;
+        grid[0][index] = (float) lx * x / rx;
+        grid[1][index] = (float) ly * y / ry;
+      }
+    }
+    Gridded3DSet nset = new Gridded3DSet(plane.getType(),
+      plane.gridToValue(grid), resx, resy);
+    return field.resample(nset, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS);
+  }
+
+  /** Adds a PlaneListener to be notified when plane changes. */
+  public void addListener(PlaneListener l) { listeners.add(l); }
+
+  /** Removes a PlaneListener. */
+  public void removeListener(PlaneListener l) { listeners.remove(l); }
 
 
   // -- HELPER METHODS --
 
   /** Moves the given reference point. */
-  private void setData(int i, double x, double y, double z) {
+  protected void setData(int i, double x, double y, double z) {
     try {
       refs[i + 2].setData(new RealTuple(new Real[] {
-        new Real(bio.sm.dtypes[0], x),
-        new Real(bio.sm.dtypes[1], y),
-        new Real(bio.sm.dtypes[2], z)
+        new Real(xtype, x),
+        new Real(ytype, y),
+        new Real(ztype, z)
       }));
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
+  }
+
+  /** Notifies all PlaneListeners that plane has changed. */
+  protected void notifyListeners() {
+    int size = listeners.size();
+    for (int i=0; i<size; i++) {
+      PlaneListener l = (PlaneListener) listeners.elementAt(i);
+      l.planeChanged();
+    }
   }
 
 }

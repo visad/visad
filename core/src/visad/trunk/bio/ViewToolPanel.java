@@ -243,7 +243,9 @@ public class ViewToolPanel extends ToolPanel {
     planeSelect = new JCheckBox("Arbitrary data slice", false);
     planeSelect.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
-        bio.sm.setPlaneSelect(planeSelect.isSelected());
+        boolean ps = planeSelect.isSelected();
+        bio.sm.setPlaneSelect(ps);
+        bio.vert.setEnabled(!ps);
       }
     });
     planeSelect.setEnabled(false);
