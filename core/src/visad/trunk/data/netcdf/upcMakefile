@@ -18,11 +18,7 @@ test:		small.test big.test pmsl.test #time.test
 
 include ../../rules.make
 
-.SUFFIXES:	.test .save .class .java .run .nc
-.nc.run:
-	CLASSPATH=$(ROOTDIR):$$CLASSPATH $(JAVA) \
-	    $(PACKAGE_PREFIX)Plain $<
-
+.SUFFIXES:	.test .save .nc
 .nc.save:
 	$(MAKE) -s $*.run >$@ 2>&1
 
@@ -31,15 +27,6 @@ include ../../rules.make
 
 .nc.debug:
 	$(JDB) -classpath $(ROOTDIR):$(NETCDF_JAR) $(PACKAGE_PREFIX)Plain $<
-
-.class.save:
-	$(MAKE) -s $*.run >$@ 2>&1
-
-.class.test:
-	$(MAKE) -s $*.run 2>&1 | diff -cw $*.save -
-
-.class.run:
-	CLASSPATH=$(ROOTDIR):$$CLASSPATH $(JAVA) $(PACKAGE_PREFIX)$* $<
 
 StandardQuantityDB.class:	QuantityDBImpl.java
 
