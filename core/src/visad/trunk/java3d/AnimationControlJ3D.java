@@ -172,7 +172,9 @@ public class AnimationControlJ3D extends AVControlJ3D
    * Return the dwell time for the current step
    */
   public long getStep() {
-    return stepValues[current];
+    if (stepValues == null || current < 0 || 
+        stepValues.length <= current) return 500;
+    else return stepValues[current];
   }
 
   /**

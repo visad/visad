@@ -32,7 +32,9 @@ package visad;
 //
 
 /**
-   UnionSet is the union of an array of SampledSets.<P>
+   UnionSet is the union of an array of SampledSets.  They
+   must match in domain dimension, manifold dimension,
+   CoordinateSystem, and Units.<P>
 */
 public class UnionSet extends SampledSet {
 
@@ -91,6 +93,8 @@ public class UnionSet extends SampledSet {
     }
     int dim = sets[0].DomainDimension;
     int mdim = sets[0].ManifoldDimension;
+    CoordinateSystem cs0 = sets[0].getCoordinateSystem();
+    Unit[] units0 = sets[0].getSetUnits();
     for (int i=1; i<sets.length; i++) {
       if (sets[i] == null) {
         throw new SetException("UnionSet: Sets cannot be missing");
@@ -98,6 +102,27 @@ public class UnionSet extends SampledSet {
       if (sets[i].DomainDimension != dim
        || sets[i].ManifoldDimension != mdim) {
         throw new SetException("UnionSet: dimensions do not match!");
+      }
+      CoordinateSystem cs = sets[i].getCoordinateSystem();
+      if (cs0 != null || cs != null) {
+        if (cs0 == null || cs == null || !cs0.equals(cs)) {
+          throw new SetException("UnionSet: CoordinateSystems do not match!");
+        }
+      }
+      Unit[] units = sets[i].getSetUnits();
+      if (units0 != null || units != null) {
+        if (units0 == null || units == null ||
+            units0.length != units.length) {
+          throw new SetException("UnionSet: Units do not match!");
+        }
+        for (int j=0; j<units0.length; j++) {
+          if (units0[j] != null || units[j] != null) {
+            if (units0[j] == null || units[j] == null ||
+                !units0[j].equals(units[j])) {
+              throw new SetException("UnionSet: Units do not match!");
+            }
+          }
+        }
       }
     }
     return mdim;
