@@ -52,16 +52,6 @@ public class TestSSCluster extends FancySSCell implements ActionListener {
     super(name, parent);
   }
 
-/*
-from BasicSSCell:
-   * Indicates that the data was added to this cell directly
-   * using addData() or addReference().
-  public static final int DIRECT_SOURCE = 0;
-
-  public String addData(Data data) throws VisADException, RemoteException;
-
-*/
-
 
   /**
    * override method from BasicSSCell
@@ -249,7 +239,7 @@ else {
         else {
           // SERVER: construct new display and make a remote copy
           if (Dim == JAVA3D_3D) {
-            ClientDisplayRendererJ3D cdr = new ClientDisplayRendererJ3D(10000);
+            ClientDisplayRendererJ3D cdr = new ClientDisplayRendererJ3D(100000);
             newDisplay = new DisplayImplJ3D(Name, cdr);
           }
           else if (Dim == JAVA2D_2D) newDisplay = new DisplayImplJ2D(Name);

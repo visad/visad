@@ -150,7 +150,7 @@ MathType.stringToType("((ImageElement, ImageLine) -> ImageRadiance)");
 
     DisplayImpl display =
       // new DisplayImplJ3D("main_display");
-      new DisplayImplJ3D("main_display", new ClientDisplayRendererJ3D(2000));
+      new DisplayImplJ3D("main_display", new ClientDisplayRendererJ3D(100000));
 
 /*
     // get a list of decent mappings for this data
