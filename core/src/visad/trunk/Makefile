@@ -29,6 +29,7 @@ default:
 	@echo "	make classes		to make jar and tar files containing classes"
 	@echo "	make clear		to clear source files"
 	@echo "	make clean		to clean class files"
+	@echo " make docs               to create javadoc documentation"
 
 .SUFFIXES : .java .class
 
@@ -38,6 +39,8 @@ default:
 JC = javac
 JFLAGS = -J-mx32m
 RM = rm -f
+DOC = javadoc -d
+DOCS_DIR = ../docs
 FITS = ../nom/tam
 
 TAR_FILES = \
@@ -302,7 +305,32 @@ clean:
 	$(RM) data/vis5d/*.class data/gif/*.class
 	$(RM) paoloa/*.class aune/*.class benjamin/*.class examples/*.class
 
+VISAD_PACKAGES = \
+visad \
+visad.java3d \
+visad.java2d \
+visad.util \
+visad.ss \
+visad.data \
+visad.data.netcdf \
+visad.data.netcdf.units \
+visad.data.netcdf.in \
+visad.data.netcdf.out \
+visad.data.fits \
+nom.tam.fits \
+nom.tam.util \
+nom.tam.test \
+visad.data.hdfeos \
+visad.data.hdfeos.hdfeosc \
+visad.data.vis5d \
+visad.data.gif \
+visad.paoloa \
+visad.aune \
+visad.benjamin
 
+docs:
+	@if [ ! -d $(DOCS_DIR) ]; then mkdir $(DOCS_DIR); fi   
+	$(DOC) $(DOCS_DIR) $(VISAD_PACKAGES)
 
 
 JAVAONE_FILES = \

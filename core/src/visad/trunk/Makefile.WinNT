@@ -26,12 +26,13 @@
 default:
 	@echo Type one of the following:
 	@echo nmake -f Makefile.WinNT compile (compile .java files)
-        @echo nmake -f Makefile.WinNT debug (compile .java files for debugging)
+	@echo nmake -f Makefile.WinNT debug (compile .java files for debugging)
 	@echo nmake -f Makefile.WinNT jar (make visad_src-2.0.jar)
 	@echo nmake -f Makefile.WinNT save (save files to a backup directory)
 	@echo nmake -f Makefile.WinNT classes (make jar files containing classes)
 	@echo nmake -f Makefile.WinNT clear (clear source files)
 	@echo nmake -f Makefile.WinNT clean (clean class files)
+	@echo nmake -f Makefile.WinNT docs (create javadoc documentation)
 
 .SUFFIXES : .java .class
 
@@ -41,6 +42,8 @@ default:
 JC = javac
 JFLAGS = -J-mx32m
 DEL = del
+DOC = javadoc -d
+DOCS_DIR = ..\docs
 FITS = ..\nom\tam
 
 JAR_FILES = \
@@ -364,3 +367,31 @@ clean:
 	if exist aune\*.class $(DEL) aune\*.class
 	if exist benjamin\*.class $(DEL) benjamin\*.class
 	if exist examples\*.class $(DEL) examples\*.class
+
+VISAD_PACKAGES = \
+visad \
+visad.java3d \
+visad.java2d \
+visad.util \
+visad.ss \
+visad.data \
+visad.data.netcdf \
+visad.data.netcdf.units \
+visad.data.netcdf.in \
+visad.data.netcdf.out \
+visad.data.fits \
+nom.tam.fits \
+nom.tam.util \
+nom.tam.test \
+visad.data.hdfeos \
+visad.data.hdfeos.hdfeosc \
+visad.data.vis5d \
+visad.data.gif \
+visad.paoloa \
+visad.aune \
+visad.benjamin
+
+docs:
+	if not exist $(DOCS_DIR) mkdir $(DOCS_DIR)
+	$(DOC) $(DOCS_DIR) $(VISAD_PACKAGES)
+
