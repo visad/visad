@@ -29,7 +29,6 @@ package visad.util;
 import java.awt.event.*;
 import javax.swing.*;
 import visad.VisADException;
-import visad.ss.SpreadSheet;
 
 /** A GUI frame for editing source code in Java runtime. */
 public class CodeFrame extends TextFrame {
@@ -54,7 +53,7 @@ public class CodeFrame extends TextFrame {
     JPanel immediate = new JPanel();
     immediate.setLayout(new BoxLayout(immediate, BoxLayout.X_AXIS));
     final JTextField textLine = new JTextField();
-    SpreadSheet.adjustTextField(textLine);
+    Util.adjustTextField(textLine);
     textLine.setToolTipText(
       "Enter a command and press enter to execute it immediately");
     final CodeEditor fTextPane = (CodeEditor) textPane;
