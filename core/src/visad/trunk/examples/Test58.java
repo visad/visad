@@ -73,22 +73,21 @@ public class Test58
  
     control = dpys[0].getProjectionControl();
     dpys[0].addDisplayListener(this);
-    rotate();
+    rotate(dpys[0]);
   }
 
   public void displayChanged(DisplayEvent e)
          throws VisADException, RemoteException {
     if (e.getId() == DisplayEvent.FRAME_DONE) {
-      rotate();
+      rotate((DisplayImpl) e.getDisplay());
     }
   }
 
-  public void rotate()
+  public void rotate(DisplayImpl display)
          throws VisADException, RemoteException {
     double[] matrix = control.getMatrix();
-    double[] mult =
-      MouseBehaviorJ2D.makeMatrix(0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0);
-    control.setMatrix(MouseBehaviorJ2D.multiplyMatrix(mult, matrix));
+    double[] mult = display.make_matrix(0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0);
+    control.setMatrix(display.multiply_matrix(mult, matrix));
   }
 
   public String toString() { return ": scripted fly-through in Java2D"; }

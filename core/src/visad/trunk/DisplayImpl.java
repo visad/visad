@@ -100,6 +100,9 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
 
   private Vector mapslock = new Vector();
 
+  // WLH 16 March 99
+  private MouseBehavior mouse = null;
+
   /** constructor with non-default DisplayRenderer */
   public DisplayImpl(String name, DisplayRenderer renderer)
          throws VisADException, RemoteException {
@@ -1016,6 +1019,29 @@ System.out.println("badScale = " + badScale);
 	throws VisADException
   {
     throw new VisADException("No API specified");
+  }
+
+  public void setMouseBehavior(MouseBehavior m) {
+    mouse = m;
+  }
+
+  public double[] make_matrix(double rotx, double roty, double rotz,
+         double scale, double transx, double transy, double transz) {
+    if (mouse != null) {
+      return mouse.make_matrix(rotx, roty, rotz, scale, transx, transy, transz);
+    }
+    else {
+      return null;
+    }
+  }
+
+  public double[] multiply_matrix(double[] a, double[] b) {
+    if (mouse != null && a != null && b != null) {
+      return mouse.multiply_matrix(a, b);
+    }
+    else {
+      return null;
+    }
   }
 
   public String toString() {

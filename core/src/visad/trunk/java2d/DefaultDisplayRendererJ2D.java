@@ -109,6 +109,7 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
 
     // create MouseBehaviorJ2D for mouse interactions
     mouse = new MouseBehaviorJ2D(this);
+    getDisplay().setMouseBehavior(mouse);
     root = createBasicSceneGraph(c, mouse);
 
     // create the box containing data depictions

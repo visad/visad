@@ -92,6 +92,7 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
  
     // create MouseBehaviorJ3D for mouse interactions
     mouse = new MouseBehaviorJ3D(this);
+    getDisplay().setMouseBehavior(mouse);
     root = createBasicSceneGraph(v, c, mouse);
     TransformGroup trans = getTrans();
 
