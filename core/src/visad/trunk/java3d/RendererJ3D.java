@@ -328,14 +328,14 @@ System.out.println(getLinks()[0].getThingReference().getName());
               if (ic instanceof ImageComponent2D) {
                 Image image = ((ImageComponent2D) ic).getImage();
                 if (image != null) image.flush();
-System.out.println("flush");
+// System.out.println("flush");
               }
               else if (ic instanceof ImageComponent3D) {
                 Image[] images = ((ImageComponent3D) ic).getImage();
                 if (images != null) {
                   for (int j=0; j<images.length; j++) {
                     if (images[j] != null) images[j].flush();
-System.out.println("flush");
+// System.out.println("flush");
                   }
                 }
               }
