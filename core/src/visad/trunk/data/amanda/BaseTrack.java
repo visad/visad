@@ -301,64 +301,6 @@ public abstract class BaseTrack
     return field;
   }
 
-  final FieldImpl makeTimeSequence()
-  {
-    Gridded3DSet[] sets = new Gridded3DSet[timeSteps.length];
-    Gridded3DSet missingSet = null;
-
-    for (int i = 0; i < timeSteps.length; i++) {
-
-      float[][] locs = {
-        { samples[0][X_SAMPLE], samples[i][X_SAMPLE] },
-        { samples[0][Y_SAMPLE], samples[i][Y_SAMPLE] },
-        { samples[0][Z_SAMPLE], samples[i][Z_SAMPLE] },
-      };
-
-      Gridded3DSet subSet;
-      try {
-        subSet = new Gridded3DSet(AmandaFile.xyzType, locs, 2);
-      } catch (VisADException ve) {
-        ve.printStackTrace();
-
-        if (missingSet == null) {
-          try {
-            missingSet =
-              new Gridded3DSet(AmandaFile.xyzType, new float[3][1], 1);
-          } catch (VisADException ve2) {
-            ve2.printStackTrace();
-          }
-        }
-        subSet = missingSet;
-      }
-
-      sets[i] = subSet;
-    }
-
-    Gridded1DSet set;
-    try {
-      set = new Gridded1DSet(RealType.Time,
-                             new float[][] { timeSteps },
-                             timeSteps.length);
-    } catch (VisADException ve) {
-      ve.printStackTrace();
-      set = null;
-    }
-
-    FieldImpl fld;
-    try {
-      fld = new FieldImpl(timeSequenceType, set);
-      fld.setSamples(sets, false);
-    } catch (VisADException ve) {
-      ve.printStackTrace();
-      fld = missing;
-    } catch (RemoteException re) {
-      re.printStackTrace();
-      fld = missing;
-    }
-
-    return fld;
-  }
-
   final FieldImpl makeTimeSequence(float[] timeSteps)
   {
     final double degrees2radians = Data.DEGREES_TO_RADIANS;
@@ -378,11 +320,9 @@ public abstract class BaseTrack
     final float timeOrigin, timeFinal;
     if (timeSteps.length == 0) {
       timeOrigin = timeFinal = time;
-      samples = null;
     } else {
       timeOrigin = timeSteps[0];
       timeFinal = timeSteps[timeSteps.length - 1];
-      samples = new float[timeSteps.length + 1][3];
     }
 
     final double baseLength = (timeFinal - time) * SPEED_OF_LIGHT;
@@ -395,12 +335,6 @@ public abstract class BaseTrack
     xOrigin = xstart + xBaseDelta;
     yOrigin = ystart + yBaseDelta;
     zOrigin = zstart + zBaseDelta;
-
-    if (samples != null) {
-      samples[0][X_SAMPLE] = xOrigin;
-      samples[0][Y_SAMPLE] = yOrigin;
-      samples[0][Z_SAMPLE] = zOrigin;
-    }
 
     for (int i = 0; i < timeSteps.length; i++) {
 
