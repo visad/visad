@@ -359,9 +359,15 @@ public final class ScaledUnit
     public double[] toThis(double[] values, Unit that)
 	throws UnitException
     {
-	double[]	newValues = that.toThat(values, derivedUnit);
-	for (int i = 0; i < newValues.length; ++i)
-	    newValues[i] /= amount;
+        double[] newValues;
+        if (equals(that)) {
+            newValues = (double[])values.clone();
+        }
+        else {
+	    newValues = that.toThat(values, derivedUnit);
+	    for (int i = 0; i < newValues.length; ++i)
+	        newValues[i] /= amount;
+        }
 	return newValues;
     }
 
@@ -378,9 +384,15 @@ public final class ScaledUnit
     public float[] toThis(float[] values, Unit that)
         throws UnitException
     {
-	float[]	newValues = that.toThat(values, derivedUnit);
-	for (int i = 0; i < newValues.length; ++i)
-	    newValues[i] /= amount;
+        float[] newValues;
+        if (equals(that)) {
+            newValues = (float[])values.clone();
+        }
+        else {
+	    newValues = that.toThat(values, derivedUnit);
+	    for (int i = 0; i < newValues.length; ++i)
+	        newValues[i] /= amount;
+        }
 	return newValues;
     }
 
@@ -397,10 +409,13 @@ public final class ScaledUnit
     public double[] toThat(double values[], Unit that)
 	throws UnitException
     {
-	double[]	newValues = (double[])values.clone();
-	for (int i = 0; i < newValues.length; ++i)
-	    newValues[i] *= amount;
-	return that.toThis(newValues, derivedUnit);
+        double[] newValues = (double[])values.clone();
+        if (!equals(that)) {
+	    for (int i = 0; i < newValues.length; ++i)
+	        newValues[i] *= amount;
+	    newValues = that.toThis(newValues, derivedUnit);
+        }
+        return newValues;
     }
 
     /**
@@ -416,10 +431,13 @@ public final class ScaledUnit
     public float[] toThat(float values[], Unit that)
         throws UnitException
     {
-	float[]	newValues = (float[])values.clone();
-	for (int i = 0; i < newValues.length; ++i)
-	    newValues[i] *= amount;
-	return that.toThis(newValues, derivedUnit);
+        float[] newValues = (float[])values.clone();
+        if (!equals(that)) {
+	    for (int i = 0; i < newValues.length; ++i)
+	        newValues[i] *= amount;
+	    newValues = that.toThis(newValues, derivedUnit);
+        }
+        return newValues;
     }
 
     /**
