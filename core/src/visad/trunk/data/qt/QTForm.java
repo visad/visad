@@ -115,13 +115,13 @@ public class QTForm extends Form
       r.exec("import quicktime.util.QTHandle");
       r.exec("import quicktime.util.RawEncodedImage");
     }
-    catch (VisADException exc) {
+    catch (Throwable t) {
       noQT = true;
     }
     finally {
       if (needClose) {
         try { r.exec("QTSession.close()"); }
-        catch (VisADException exc) { }
+        catch (Throwable t) { }
       }
     }
     return r;
