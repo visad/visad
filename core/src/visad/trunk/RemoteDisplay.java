@@ -52,21 +52,13 @@ public interface RemoteDisplay extends Remote, Display {
 	throws VisADException, RemoteException;
   Vector getReferenceLinks()
 	throws VisADException, RemoteException;
-
-  /* CTR 5 Oct 1999 - begin code for slaved displays */
-  void addSlave(RemoteSlaveDisplay display)
-        throws VisADException, RemoteException;
-  void removeSlave(RemoteSlaveDisplay display)
-        throws VisADException, RemoteException;
-  void removeAllSlaves() throws VisADException, RemoteException;
-  boolean hasSlaves() throws VisADException, RemoteException;
-  void sendMouseEvent(MouseEvent e) throws VisADException, RemoteException;
-  /* CTR 5 Oct 1999 - end code for slaved displays */
-
   RemoteDisplayMonitor getRemoteDisplayMonitor()
         throws RemoteException;
   DisplaySync getDisplaySync()
         throws RemoteException;
   RemoteDisplaySync getRemoteDisplaySync()
         throws RemoteException;
+  void sendMouseEvent(MouseEvent e)
+        throws VisADException, RemoteException;
+
 }

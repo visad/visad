@@ -26,6 +26,7 @@ MA 02111-1307, USA
 
 package visad;
 
+import java.awt.event.MouseEvent;
 import java.util.*;
 import java.rmi.*;
 
@@ -347,5 +348,19 @@ public interface Display extends Action {
    */
   void sendMessage(MessageEvent msg)
     throws RemoteException;
-}
 
+  /** links a slave display to this display */
+  void addSlave(RemoteSlaveDisplay display)
+        throws VisADException, RemoteException;
+
+  /** removes a link between a slave display and this display */
+  void removeSlave(RemoteSlaveDisplay display)
+        throws VisADException, RemoteException;
+
+  /** removes all links between slave displays and this display */
+  void removeAllSlaves() throws VisADException, RemoteException;
+
+  /** whether there are any slave displays linked to this display */
+  boolean hasSlaves() throws VisADException, RemoteException;
+
+}

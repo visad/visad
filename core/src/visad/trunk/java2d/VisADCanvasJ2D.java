@@ -216,6 +216,9 @@ public class VisADCanvasJ2D extends JPanel
       public void mouseDragged(MouseEvent e) {
         helper.processEvent(e);
       }
+      public void mouseMoved(MouseEvent e) {
+        helper.processEvent(e);
+      }
     };
     addMouseMotionListener(mml);
   }
@@ -230,6 +233,9 @@ public class VisADCanvasJ2D extends JPanel
   public void addKeyboardBehavior(final KeyboardBehaviorJ2D behavior) {
     KeyListener kl = new KeyAdapter() {
         public void keyPressed(KeyEvent e) {
+          behavior.processKeyEvent(e);
+        }
+        public void keyReleased(KeyEvent e) {
           behavior.processKeyEvent(e);
         }
       };

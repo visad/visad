@@ -127,15 +127,33 @@ public class KeyboardBehaviorJ2D
    *  @param  even  KeyEvent stimulus
    */
   public void processKeyEvent(KeyEvent event) {
-    int modifiers = event.getModifiers();
-    int keyCode = event.getKeyCode();
+    int id = event.getID();
 
-    // determine whether a meaningful key was pressed
-    for (int i=0; i<MAX_FUNCTIONS; i++) {
-       if (functionKeys[i] == keyCode && (modifiers == functionMods[i])) {
-        execFunction(i);
-        break;
-       }
+    if (id == KeyEvent.KEY_PRESSED) {
+      int modifiers = event.getModifiers();
+      int keyCode = event.getKeyCode();
+
+      // determine whether a meaningful key was pressed
+      for (int i=0; i<MAX_FUNCTIONS; i++) {
+        if (functionKeys[i] == keyCode && (modifiers == functionMods[i])) {
+          execFunction(i);
+          break;
+        }
+      }
+    }
+
+    // notify DisplayListeners of key event
+    int d_id = -1;
+    if (id == KeyEvent.KEY_PRESSED) d_id = DisplayEvent.KEY_PRESSED;
+    else if (id == KeyEvent.KEY_RELEASED) d_id = DisplayEvent.KEY_RELEASED;
+    if (d_id != -1) {
+      try {
+        DisplayImpl display = displayRenderer.getDisplay();
+        DisplayEvent e = new DisplayEvent(display, d_id, event);
+        display.notifyListeners(e);
+      }
+      catch (VisADException exc) { }
+      catch (RemoteException exc) { }
     }
   }
 

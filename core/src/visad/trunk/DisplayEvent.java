@@ -30,7 +30,8 @@ import java.awt.Component;
 import java.awt.event.*;
 import javax.swing.*;
 
-import visad.java3d.DisplayImplJ3D;
+import visad.java2d.*;
+import visad.java3d.*;
 import visad.util.Util;
 
 /**
@@ -40,7 +41,9 @@ import visad.util.Util;
 */
 public class DisplayEvent extends VisADEvent {
 
-  // <<<< if you add more events, be sure to add them to the getID javadoc >>>
+  // If you add more events, be sure to add them to the Javadoc for
+  // DisplayEvent.getId(), DisplayImpl.enableEvent(), and
+  // DisplayImpl.disableEvent(). Also update DisplayEvent.main()'s ids array.
 
   /**
    * The "mouse pressed" event.  This event occurs when any
@@ -136,6 +139,64 @@ public class DisplayEvent extends VisADEvent {
    * a display's destroy() method is called.
    */
   public final static int DESTROYED = 15;
+
+  /**
+   * The "key pressed" event.  This event occurs when the display
+   * has the focus and a key on the keyboard is pressed.
+   *
+   * Note that a KeyboardBehavior must be attached to the display
+   * before this type of event will be reported.
+   */
+  public final static int KEY_PRESSED = 16;
+
+  /**
+   * The "key released" event.  This event occurs when the display
+   * has the focus and a key on the keyboard is released.
+   *
+   * Note that a KeyboardBehavior must be attached to the display
+   * before this type of event will be reported.
+   */
+  public final static int KEY_RELEASED = 17;
+
+  /**
+   * The "mouse dragged" event.  This event occurs when
+   * the mouse is dragged across the display.
+   *
+   * Note that you must call
+   * DisplayImpl.enableEvent(DisplayEvent.MOUSE_DRAGGED)
+   * to enable reporting of this type of event.
+   */
+  public final static int MOUSE_DRAGGED = 18;
+
+  /**
+   * The "mouse entered" event.  This event occurs when
+   * the mouse cursor enters the region of the display.
+   *
+   * Note that you must call
+   * DisplayImpl.enableEvent(DisplayEvent.MOUSE_ENTERED)
+   * to enable reporting of this type of event.
+   */
+  public final static int MOUSE_ENTERED = 19;
+
+  /**
+   * The "mouse exited" event.  This event occurs when
+   * the mouse cursor leaves the region of the display.
+   *
+   * Note that you must call
+   * DisplayImpl.enableEvent(DisplayEvent.MOUSE_EXITED)
+   * to enable reporting of this type of event.
+   */
+  public final static int MOUSE_EXITED = 20;
+
+  /**
+   * The "mouse moved" event.  This event occurs when
+   * the mouse is moved across the display.
+   *
+   * Note that you must call
+   * DisplayImpl.enableEvent(DisplayEvent.MOUSE_MOVED)
+   * to enable reporting of this type of event.
+   */
+  public final static int MOUSE_MOVED = 21;
 
   /** Dummy AWT component. */
   private static final Component DUMMY = new JPanel();
@@ -275,6 +336,12 @@ public class DisplayEvent extends VisADEvent {
    *          <LI>DisplayEvent.REFERENCE_ADDED
    *          <LI>DisplayEvent.REFERENCE_REMOVED
    *          <LI>DisplayEvent.DESTROYED
+   *          <LI>DisplayEvent.KEY_PRESSED
+   *          <LI>DisplayEvent.KEY_RELEASED
+   *          <LI>DisplayEvent.MOUSE_DRAGGED
+   *          <LI>DisplayEvent.MOUSE_ENTERED
+   *          <LI>DisplayEvent.MOUSE_EXITED
+   *          <LI>DisplayEvent.MOUSE_MOVED
    *          </UL>
    */
   public int getId() {
@@ -348,9 +415,16 @@ public class DisplayEvent extends VisADEvent {
     return buf.toString();
   }
 
-  /** Run 'java visad.DisplayEvent' to test DisplayEvents. */
+  /**
+   * Run 'java visad.DisplayEvent' to test DisplayEvents in Java3D,
+   * or 'java visad.DisplayEvent x' to test them in Java2D.
+   */
   public static void main(String[] args) throws Exception {
-    DisplayImpl display = new DisplayImplJ3D("display");
+    boolean j2d = args.length > 0;
+
+    DisplayImpl display = j2d ?
+      (DisplayImpl) new DisplayImplJ2D("display") :
+      (DisplayImpl) new DisplayImplJ3D("display");
 
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -365,7 +439,7 @@ public class DisplayEvent extends VisADEvent {
 
     display.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
     display.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
-    display.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
+    if (!j2d) display.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
 
     display.addMap(new ScalarMap(RealType.Latitude, Display.Red));
     display.addMap(new ScalarMap(RealType.Longitude, Display.Green));
@@ -383,8 +457,29 @@ public class DisplayEvent extends VisADEvent {
       "MOUSE_PRESSED_CENTER", "MOUSE_PRESSED_LEFT",  "MOUSE_PRESSED_RIGHT",
       "MOUSE_RELEASED", "MOUSE_RELEASED_CENTER", "MOUSE_RELEASED_LEFT",
       "MOUSE_RELEASED_RIGHT", "MAP_ADDED", "MAPS_CLEARED", "REFERENCE_ADDED",
-      "REFERENCE_REMOVED", "DESTROYED"
+      "REFERENCE_REMOVED", "DESTROYED", "KEY_PRESSED", "KEY_RELEASED",
+      "MOUSE_DRAGGED", "MOUSE_ENTERED", "MOUSE_EXITED", "MOUSE_MOVED"
     };
+
+    // enable extra mouse event handling
+    display.enableEvent(DisplayEvent.MOUSE_DRAGGED);
+    display.enableEvent(DisplayEvent.MOUSE_ENTERED); 
+    display.enableEvent(DisplayEvent.MOUSE_EXITED);
+    display.enableEvent(DisplayEvent.MOUSE_MOVED);
+
+    // enable extra keyboard event handling
+    if (j2d) {
+      DisplayRendererJ2D dr =
+        (DisplayRendererJ2D) display.getDisplayRenderer();
+      KeyboardBehaviorJ2D kb = new KeyboardBehaviorJ2D(dr);
+      dr.addKeyboardBehavior(kb);
+    }
+    else {
+      DisplayRendererJ3D dr =
+        (DisplayRendererJ3D) display.getDisplayRenderer();
+      KeyboardBehaviorJ3D kb = new KeyboardBehaviorJ3D(dr);
+      dr.addKeyboardBehavior(kb);
+    }
 
     display.addDisplayListener(new DisplayListener() {
       public void displayChanged(DisplayEvent e) {
@@ -399,6 +494,11 @@ public class DisplayEvent extends VisADEvent {
             int x = me.getX();
             int y = me.getY();
             System.out.print("(" + x + ", " + y + ") ");
+          }
+          else if (ie instanceof KeyEvent) {
+            KeyEvent ke = (KeyEvent) ie;
+            char key = ke.getKeyChar();
+            System.out.print("'" + key + "' ");
           }
           int mods = ie.getModifiers();
           if ((mods & InputEvent.CTRL_MASK) != 0) System.out.print("CTRL ");
@@ -420,6 +520,8 @@ public class DisplayEvent extends VisADEvent {
     frame.pack();
     Util.centerWindow(frame);
     frame.show();
+
+    display.getComponent().requestFocus();
   }
 
 }

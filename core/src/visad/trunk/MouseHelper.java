@@ -166,9 +166,27 @@ event_switch:
     switch (event.getID()) {
       case MouseEvent.MOUSE_ENTERED:
         mouseEntered = true;
+        try {
+          DisplayEvent e = new DisplayEvent(display,
+            DisplayEvent.MOUSE_ENTERED, mouse_event, remoteId);
+          display.notifyListeners(e);
+        }
+        catch (VisADException e) {
+        }
+        catch (RemoteException e) {
+        }
         break;
       case MouseEvent.MOUSE_EXITED:
         mouseEntered = false;
+        try {
+          DisplayEvent e = new DisplayEvent(display,
+            DisplayEvent.MOUSE_EXITED, mouse_event, remoteId);
+          display.notifyListeners(e);
+        }
+        catch (VisADException e) {
+        }
+        catch (RemoteException e) {
+        }
         break;
       case MouseEvent.MOUSE_PRESSED:
         if (mouseEntered &&
@@ -656,6 +674,26 @@ event_switch:
               }
             }
           }
+          try {
+            DisplayEvent e = new DisplayEvent(display,
+              DisplayEvent.MOUSE_DRAGGED, mouse_event, remoteId);
+            display.notifyListeners(e);
+          }
+          catch (VisADException e) {
+          }
+          catch (RemoteException e) {
+          }
+        }
+        break;
+      case MouseEvent.MOUSE_MOVED:
+        try {
+          DisplayEvent e = new DisplayEvent(display,
+            DisplayEvent.MOUSE_MOVED, mouse_event, remoteId);
+          display.notifyListeners(e);
+        }
+        catch (VisADException e) {
+        }
+        catch (RemoteException e) {
         }
         break;
       default:

@@ -53,7 +53,7 @@ public class RemoteDisplayImpl extends RemoteActionImpl
   }
 
 
-  /* CTR 21 Sep 1999 - begin code for slaved displays */
+  // CTR - begin code for slaved displays
 
   /** links a slave display to this display */
   public void addSlave(RemoteSlaveDisplay display)
@@ -151,7 +151,7 @@ public class RemoteDisplayImpl extends RemoteActionImpl
     mh.processEvent(ne, VisADEvent.UNKNOWN_REMOTE_SOURCE);
   }
 
-  /* CTR 21 Sep 1999 - end code for slaved displays */
+  // CTR - end code for slaved displays
 
 
   /** link ref to this Display; this method may only be invoked

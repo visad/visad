@@ -468,6 +468,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
   public void notifyListeners(DisplayEvent evt)
          throws VisADException, RemoteException {
+    if (!eventStatus[evt.getId()]) return;  // ignore disabled events
     if (ListenerVector != null) {
       synchronized (ListenerVector) {
         Enumeration listeners = ListenerVector.elements();
@@ -531,20 +532,21 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
   // CTR - begin code for slaved displays
 
+  /** Internal list of slaves linked to this display. */
   private Vector Slaves = new Vector();
 
   /** links a slave display to this display */
-  void addSlave(RemoteSlaveDisplay display) {
+  public void addSlave(RemoteSlaveDisplay display) {
     if (!Slaves.contains(display)) Slaves.add(display);
   }
 
   /** removes a link between a slave display and this display */
-  void removeSlave(RemoteSlaveDisplay display) {
+  public void removeSlave(RemoteSlaveDisplay display) {
     if (Slaves.contains(display)) Slaves.remove(display);
   }
 
   /** removes all links between slave displays and this display */
-  void removeAllSlaves() {
+  public void removeAllSlaves() {
     Slaves.removeAllElements();
   }
 
@@ -601,6 +603,106 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
   // CTR - end code for slaved displays
 
+
+  /** Enabled status flag for each DisplayEvent type. */
+  private boolean[] eventStatus = {
+    true,  // (not used)
+    true,  // MOUSE_PRESSED
+    true,  // FRAME_DONE
+    true,  // TRANSFORM_DONE
+    true,  // MOUSE_PRESSED_LEFT
+    true,  // MOUSE_PRESSED_CENTER
+    true,  // MOUSE_PRESSED_RIGHT
+    true,  // MOUSE_RELEASED
+    true,  // MOUSE_RELEASED_LEFT
+    true,  // MOUSE_RELEASED_CENTER
+    true,  // MOUSE_RELEASED_RIGHT
+    true,  // MAP_ADDED
+    true,  // MAPS_CLEARED
+    true,  // REFERENCE_ADDED
+    true,  // REFERENCE_REMOVED
+    true,  // DESTROYED
+    true,  // KEY_PRESSED
+    true,  // KEY_RELEASED
+    false, // MOUSE_DRAGGED
+    false, // MOUSE_ENTERED
+    false, // MOUSE_EXITED
+    false  // MOUSE_MOVED
+  };
+
+  /**
+   * Enables reporting of a DisplayEvent of a given type
+   * when it occurs in this display.
+   *
+   * @param id DisplayEvent type to enable.  Valid types are:
+   *          <UL>
+   *          <LI>DisplayEvent.FRAME_DONE
+   *          <LI>DisplayEvent.TRANSFORM_DONE
+   *          <LI>DisplayEvent.MOUSE_PRESSED
+   *          <LI>DisplayEvent.MOUSE_PRESSED_LEFT
+   *          <LI>DisplayEvent.MOUSE_PRESSED_CENTER
+   *          <LI>DisplayEvent.MOUSE_PRESSED_RIGHT
+   *          <LI>DisplayEvent.MOUSE_RELEASED_LEFT
+   *          <LI>DisplayEvent.MOUSE_RELEASED_CENTER
+   *          <LI>DisplayEvent.MOUSE_RELEASED_RIGHT
+   *          <LI>DisplayEvent.MAP_ADDED
+   *          <LI>DisplayEvent.MAPS_CLEARED
+   *          <LI>DisplayEvent.REFERENCE_ADDED
+   *          <LI>DisplayEvent.REFERENCE_REMOVED
+   *          <LI>DisplayEvent.DESTROYED
+   *          <LI>DisplayEvent.KEY_PRESSED
+   *          <LI>DisplayEvent.KEY_RELEASED
+   *          <LI>DisplayEvent.MOUSE_DRAGGED
+   *          <LI>DisplayEvent.MOUSE_ENTERED
+   *          <LI>DisplayEvent.MOUSE_EXITED
+   *          <LI>DisplayEvent.MOUSE_MOVED
+   *          </UL>
+   */
+  public void enableEvent(int id) {
+    if (id < 1 || id >= eventStatus.length) return;
+    eventStatus[id] = true;
+  }
+
+  /**
+   * Disables reporting of a DisplayEvent of a given type
+   * when it occurs in this display.
+   *
+   * @param id DisplayEvent type to disable.  Valid types are:
+   *          <UL>
+   *          <LI>DisplayEvent.FRAME_DONE
+   *          <LI>DisplayEvent.TRANSFORM_DONE
+   *          <LI>DisplayEvent.MOUSE_PRESSED
+   *          <LI>DisplayEvent.MOUSE_PRESSED_LEFT
+   *          <LI>DisplayEvent.MOUSE_PRESSED_CENTER
+   *          <LI>DisplayEvent.MOUSE_PRESSED_RIGHT
+   *          <LI>DisplayEvent.MOUSE_RELEASED_LEFT
+   *          <LI>DisplayEvent.MOUSE_RELEASED_CENTER
+   *          <LI>DisplayEvent.MOUSE_RELEASED_RIGHT
+   *          <LI>DisplayEvent.MAP_ADDED
+   *          <LI>DisplayEvent.MAPS_CLEARED
+   *          <LI>DisplayEvent.REFERENCE_ADDED
+   *          <LI>DisplayEvent.REFERENCE_REMOVED
+   *          <LI>DisplayEvent.DESTROYED
+   *          <LI>DisplayEvent.KEY_PRESSED
+   *          <LI>DisplayEvent.KEY_RELEASED
+   *          <LI>DisplayEvent.MOUSE_DRAGGED
+   *          <LI>DisplayEvent.MOUSE_ENTERED
+   *          <LI>DisplayEvent.MOUSE_EXITED
+   *          <LI>DisplayEvent.MOUSE_MOVED
+   *          </UL>
+   */
+  public void disableEvent(int id) {
+    if (id < 1 || id >= eventStatus.length) return;
+    eventStatus[id] = false;
+  }
+
+  /**
+   * Gets whether a DisplayEvent of a given type is
+   * reported when it occurs in this display.
+   */
+  public boolean isEventEnabled(int id) {
+    return id < 1 || id >= eventStatus.length ? false : eventStatus[id];
+  }
 
   /**
    * Link a reference to this Display.
