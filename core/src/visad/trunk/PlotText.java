@@ -372,8 +372,11 @@ public class PlotText extends Object {
       if (ng == 0) continue;
       int path_count = 0;
       Vector samples_vector = new Vector();
-      float x_plus = (float) (fsize_inv * gv.getLogicalBounds().getWidth());
-      if (x_plus < 0.01f) x_plus = 0.25f;
+
+      // abcd - 1 February 2001
+      // Get x increment from the fonts 'advance' property
+      float x_plus = (float) (fsize_inv * gv.getGlyphMetrics(0).getAdvance());
+
 // System.out.println(str_index + " " + chars[0] + " " + x_plus + " " + fsize_inv);
       for (int ig=0; ig<ng; ig++) {
         Shape sh = gv.getGlyphOutline(ig);

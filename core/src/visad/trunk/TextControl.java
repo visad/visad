@@ -49,6 +49,10 @@ public class TextControl extends Control {
 
   private NumberFormat format = null;
 
+  // abcd 1 February 2001
+  // Rotation, in degrees, clockwise along positive x axis
+  private double rotation = 0.0;
+
   public TextControl(DisplayImpl d) {
     super(d);
   }
@@ -146,6 +150,30 @@ public class TextControl extends Control {
     return true;
   }
 
+  /**
+   * Set the rotation
+   *
+   * abcd 1 February 2001
+   */
+  public void setRotation(double newRotation)
+         throws VisADException, RemoteException
+  {
+    // Store the new rotation
+    rotation = newRotation;
+    // Tell the control it's changed
+    changeControl(true);
+  }
+
+  /**
+   * Get the rotation
+   *
+   * abcd 1 February 2001
+   */
+  public double getRotation()
+  {
+    return rotation;
+  }
+
   /** get a string that can be used to reconstruct this control later */
   public String getSaveString() {
     return null;
@@ -204,6 +232,12 @@ public class TextControl extends Control {
       format = tc.format;
     }
 
+    // abcd 1 February 2001
+    if (!Util.isApproximatelyEqual(rotation, tc.rotation)) {
+      changed = true;
+      rotation = tc.rotation;
+    }
+
     if (changed) {
       try {
         changeControl(true);
@@ -237,6 +271,11 @@ public class TextControl extends Control {
 
     // WLH 16 June 2000
     if (!formatEquals(tc.format)) {
+      return false;
+    }
+
+    // abcd 1 February 2001
+    if (!Util.isApproximatelyEqual(rotation, tc.rotation)) {
       return false;
     }
 

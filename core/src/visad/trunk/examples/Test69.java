@@ -70,6 +70,13 @@ public class Test69
                                    "A B C D E F G H I J K L M",
                                    "NOPQRSTUVWXYZ",
                                    "0123456789  - + = / [ ] ( ) { }"};
+    if (sphere) {
+      names = new String[] {"", "", "a b c d e f g h i j k l m n o p q " +
+                            "r s t u v w x y z A B C D E F G H I J K L " +
+                            "M N O P Q R S T U V W X Y Z 0 1 2 3 4 5 6 " +
+                            "7 8 9   T H I S   I S N ' T   Y O U R   G " +
+                            "R A N D F A T H E R ' S   M C I D A S", "", ""};
+    }
     int ntimes1 = names.length;
     Set time_set =
       new Linear1DSet(time_type, 0.0, (double) (ntimes1 - 1.0), ntimes1);
@@ -94,6 +101,7 @@ public class Test69
     tcontrol.setCenter(true);
     tcontrol.setSize(2.0);
     if (sphere) {
+      tcontrol.setRotation(10.0);
       dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
       dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
     }

@@ -86,6 +86,7 @@ public class Test70
     tcontrol.setSphere(sphere);
     tcontrol.setCenter(true);
     tcontrol.setNumberFormat(new DecimalFormat());
+    // tcontrol.setRotation(10.0);
     if (sphere) {
       dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
       dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.Longitude));

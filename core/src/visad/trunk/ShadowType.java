@@ -2330,6 +2330,39 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
 
   private static final double FONT_SCALE = 0.07;
 
+
+  /**
+   * abcd - 2 February 2001
+   * Rotate the base and up vectors
+   *
+   * Rotation is in degrees clockwise from positive X axis
+   */
+  static void rotateVectors(double[] base, double[] up, double rotationDegrees)
+  {
+    double rotation = Data.DEGREES_TO_RADIANS * rotationDegrees;
+    double sinRotation = Math.sin(rotation);
+    double cosRotation = Math.cos(rotation);
+    double[] newBase = new double[3];
+    double[] newUp = new double[3];
+
+    // Check if no rotation is needed
+    if (rotationDegrees == 0.0) {
+      return;
+    }
+
+    // For each axis
+    for (int i=0; i<3; i++) {
+      // Rotate the point
+      newBase[i] = cosRotation * base[i] - sinRotation * up[i];
+      newUp[i] = sinRotation * base[i] + cosRotation * up[i];
+    }
+
+    // Copy data back to arrays
+    System.arraycopy(newBase, 0, base, 0, 3);
+    System.arraycopy(newUp, 0, up, 0, 3);
+  }
+
+
   public VisADGeometryArray makeText(String[] text_values,
                 TextControl text_control, float[][] spatial_values,
                 byte[][] color_values, boolean[][] range_select)
@@ -2369,6 +2402,11 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
     double[] start = new double[3];
     double[] base = new double[] {size * FONT_SCALE, 0.0, 0.0};
     double[] up = new double[] {0.0, size * FONT_SCALE, 0.0};
+
+    // abcd 2 February 2001
+    // This cannot be moved outside the for loop
+    rotateVectors(base, up, text_control.getRotation());
+
     int k = 0;
     for (int i=0; i<n; i++) {
       if (range_select[0] == null || range_select[0].length == 1 ||
@@ -2388,6 +2426,11 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
                                 spatial_sphere[2][i]};
           base = new double[] {0.0, lon_size_in_degrees, 0.0};
           up = new double[] {size_in_degrees, 0.0, 0.0};
+
+          // abcd 2 February 2001
+          // This cannot be moved outside the for loop
+          rotateVectors(base, up, text_control.getRotation());
+
           if (font == null) {
             as[k] = PlotText.render_label(text_values[i], start, base, up, center);
           }
@@ -2462,11 +2505,15 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
     if (k == 0) return null;
     VisADGeometryArray[] arrays = new VisADGeometryArray[k];
     System.arraycopy(as, 0, arrays, 0, k);
-    // for (int i=0; i<k; i++) arrays[i] = as[i];
-    VisADGeometryArray array = (VisADGeometryArray) arrays[0].clone();
-    VisADGeometryArray.merge(arrays, array);
+    VisADGeometryArray array = null;
+    for (int i=0; i<k; i++) {
+      if (arrays[i] != null) {
+        array = (VisADGeometryArray) arrays[i].clone();
+        break;
+      }
+    }
+    if (array != null) VisADGeometryArray.merge(arrays, array);
     return array;
-    // return VisADLineArray.merge(arrays);
   }
 
   /** composite and transform color and Alpha DisplayRealType values

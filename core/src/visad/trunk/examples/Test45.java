@@ -88,6 +88,7 @@ public class Test45
     TextControl tcontrol = (TextControl) tmap.getControl();
     tcontrol.setSphere(sphere);
     tcontrol.setCenter(true);
+    // tcontrol.setRotation(10.0);
     if (sphere) {
       dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
       dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.Longitude));

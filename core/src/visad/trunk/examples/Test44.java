@@ -104,6 +104,7 @@ public class Test44
         TextControl text_control = (TextControl )ctrl;
         text_control.setSize(0.75);
         text_control.setCenter(true);
+        text_control.setRotation(10.0);
         foundCtrl = true;
       }
     }
