@@ -33,7 +33,7 @@ import java.net.*;
 import java.io.*;
 import java.rmi.RemoteException;
 import java.util.Vector;
-import visad.util.Util;
+import visad.browser.Convert;
 
 /** A SocketSlaveDisplay server wraps around a VisAD display, providing support
     for stand-alone remote displays (i.e., not dependent on the VisAD packages)
@@ -236,7 +236,7 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
     // Note: The pixels array is RLE-encoded. The client applet decodes it.
 
     // convert pixels to byte array
-    pix = Util.intToBytes(pixels);
+    pix = Convert.intToBytes(pixels);
     w = width;
     h = height;
 

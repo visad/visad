@@ -1,5 +1,5 @@
 //
-// RemoteSlaveDisplay.java
+// WidgetListener.java
 //
 
 /*
@@ -24,22 +24,14 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-package visad;
+package visad.browser;
 
-import java.awt.image.BufferedImage;
-import java.rmi.*;
+import java.util.EventListener;
 
-/** RemoteSlaveDisplay is the interface for &quot;slave&quot; displays
-    that receive their images from another source, instead of doing the
-    rendering themselves.<P> */
-public interface RemoteSlaveDisplay extends Remote {
+/** WidgetListener is the EventListener interface for WidgetEvents. */
+public interface WidgetListener extends EventListener {
 
-  /** Update this slave display with the given RLE-encoded image pixels */
-  void sendImage(int[] pixels, int width, int height, int type)
-       throws RemoteException;
-
-  /** */
-  //void sendEvent(
+  /** send a WidgetEvent to this WidgetListener */
+  void widgetChanged(WidgetEvent e);
 
 }
-

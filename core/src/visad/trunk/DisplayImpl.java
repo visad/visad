@@ -26,16 +26,18 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.util.*;
-import java.rmi.*;
 import java.io.*;
+import java.rmi.*;
+import java.util.*;
 
 import java.awt.*;
 import java.awt.image.*;
-import java.net.*;
 import java.awt.print.*;
+import java.net.*;
 
 import javax.swing.*;
+
+import visad.browser.Convert;
 import visad.util.*;
 
 import visad.collab.ControlMonitorEvent;
@@ -489,7 +491,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     img.getRGB(0, 0, width, height, pixels, 0, width);
 
     // encode pixels with RLE
-    int[] encoded = Util.encodeRLE(pixels);
+    int[] encoded = Convert.encodeRLE(pixels);
 
     // send encoded pixels to each slave
     for (int i=0; i<Slaves.size(); i++) {

@@ -33,7 +33,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
 import javax.swing.*;
-import visad.util.Util;
+import visad.browser.Convert;
 
 /** RemoteSlaveDisplayImpl is an implementation of a slaved display that
     receives its images from a RemoteDisplay.<P> */
@@ -112,7 +112,7 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
     throws RemoteException
   {
     // decode pixels
-    int[] decoded = Util.decodeRLE(pixels);
+    int[] decoded = Convert.decodeRLE(pixels);
 
     // build image from decoded pixels
     BufferedImage img = new BufferedImage(width, height, type);
