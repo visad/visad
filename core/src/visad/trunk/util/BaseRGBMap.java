@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: BaseRGBMap.java,v 1.21 2000-08-17 12:47:56 billh Exp $
+@(#) $Id: BaseRGBMap.java,v 1.22 2002-09-19 21:08:42 curtis Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -50,7 +50,7 @@ import visad.VisADException;
  * mouse button to alternate between the color curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.21 $, $Date: 2000-08-17 12:47:56 $
+ * @version $Revision: 1.22 $, $Date: 2002-09-19 21:08:42 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -696,9 +696,6 @@ public class BaseRGBMap
     else if (oldy >= height)
       oldy = height - 1;
 
-    int notelow = -1;
-    int notehi = -1;
-
     float step = (float )(resolution - 1) / (float )width;
 
     int oldPos = (int )Math.floor((float )oldx * step + 0.5);
@@ -708,12 +705,13 @@ public class BaseRGBMap
     float newVal = 1 - (float )y / (float )height;
 
     final int start, finish;
+    final int len = ctl.getNumberOfColors() - 1;
     if (newPos > oldPos) {
-      start = oldPos;
-      finish = newPos;
+      start = oldx < width - 1 ? oldPos : len;
+      finish = x < width - 1 ? newPos : len;
     } else {
-      start = newPos;
-      finish = oldPos;
+      start = x < width - 1 ? newPos : len;
+      finish = oldx < width - 1 ? oldPos : len;
     }
 
     float[][] colors;
@@ -725,33 +723,21 @@ public class BaseRGBMap
       return;
     }
 
-    if (x == oldx) {
-      colors[state][0] = newVal;
-      notelow = notehi = newPos;
+    final float loVal, hiVal;
+
+    if (newPos > oldPos) {
+      loVal = newVal;
+      hiVal = oldVal;
     } else {
+      loVal = oldVal;
+      hiVal = newVal;
+    }
 
-      final float loVal, hiVal;
-      final int adj;
-
-      if (newPos > oldPos) {
-        loVal = newVal;
-        hiVal = oldVal;
-        adj = 1;
-      } else {
-        loVal = oldVal;
-        hiVal = newVal;
-        adj = 0;
-      }
-
-      final int total = finish - start;
-      for (int i = adj; i < total + adj; i++) {
-        float v = ((hiVal * (float )(total - i) + loVal * (float )i) /
-                   (float )total);
-        colors[state][i] = v;
-      }
-
-      notelow = start + adj;
-      notehi = finish + (1 - adj);
+    final int total = finish - start + 1;
+    for (int i = 0; i < total; i++) {
+      float v = ((hiVal * (float )(total - i) + loVal * (float )i) /
+                 (float )total);
+      colors[state][i] = v;
     }
 
     try {
@@ -762,8 +748,7 @@ public class BaseRGBMap
       return;
     }
 
-    if (notelow > -1 && notehi > -1)
-      sendUpdate(notelow, notehi);
+    sendUpdate(start, finish);
   }
 
   /**
