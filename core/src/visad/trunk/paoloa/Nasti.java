@@ -338,8 +338,9 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       ScalarMap line_map = new ScalarMap(image_line, Display.YAxis);
       display1.addMap(line_map);
       line_map.setRange(12.5, -0.5);
-      // line_map.setRange((double) (nlines - 0.5), -0.5);
-      display1.addMap(new ScalarMap(image_element, Display.XAxis));
+      ScalarMap element_map = new ScalarMap(image_element, Display.XAxis);
+      display1.addMap(element_map);
+      element_map.setRange(-48.75, 48.75);
       ScalarMap radiance_map1 = new ScalarMap(atmosphericRadiance, Display.RGB);
       display1.addMap(radiance_map1);
 
