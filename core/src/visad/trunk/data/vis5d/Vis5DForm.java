@@ -748,7 +748,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
       cell.addReference(range_refs[i]);
     }
 
-    final JToggleButton button = new JToggleButton("Animate", true);
+    final JToggleButton button = new JToggleButton("Animate", false);
     button.addChangeListener(new ChangeListener() {
       public void stateChanged(ChangeEvent e) {
         try {
