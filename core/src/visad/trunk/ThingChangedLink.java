@@ -68,7 +68,9 @@ class ThingChangedLink extends Object {
   /** acknowledge the last event from the ThingReference,
    *  and possibly return a new event to the Action
    */
-  public ThingChangedEvent acknowledgeThingChangedEvent()
+/* WLH 27 July 99 synchronized helps but does not fix */
+  // public ThingChangedEvent acknowledgeThingChangedEvent()
+  public synchronized ThingChangedEvent acknowledgeThingChangedEvent()
   {
     // if there is an event queued...
     if (event != null) {
@@ -81,6 +83,15 @@ class ThingChangedLink extends Object {
 
     // remember that Action is ready for another event
     Ball = true;
+/*
+if (action instanceof ActionImpl) {
+  System.out.println("ThingChangedLink.acknowledgeThingChangedEvent Ball = true");
+}
+else {
+  System.out.println("ThingChangedLink.acknowledgeThingChangedEvent Ball = true" +
+                   " REMOTE");
+}
+*/
     return null;
   }
 
@@ -88,12 +99,28 @@ class ThingChangedLink extends Object {
    *  or, if the Action isn't ready yet, queue the event for
    *  later delivery
    */
-  public void queueThingChangedEvent(ThingChangedEvent e)
+/* WLH 27 July 99 synchronized helps but does not fix */
+  // public void queueThingChangedEvent(ThingChangedEvent e)
+  public synchronized void queueThingChangedEvent(ThingChangedEvent e)
         throws RemoteException, VisADException
   {
     if (Ball) {
       // if Action is ready for another event, pass it on
+/* WLH 27 July 99
       Ball = action.thingChanged(e);
+*/
+      Ball = false;
+      boolean temp_ball = action.thingChanged(e);
+      if (temp_ball) Ball = true;
+/*
+if (action instanceof ActionImpl) {
+  System.out.println("ThingChangedLink.queueThingChangedEvent Ball = " + Ball);
+}
+else {
+  System.out.println("ThingChangedLink.queueThingChangedEvent Ball = " + Ball +
+                   " REMOTE");
+}
+*/
     }
     else {
       // Action hasn't acknowledged previous event, queue this one

@@ -1541,6 +1541,7 @@ System.out.println("checkClose: distance = " + distance);
       }
       Data newData = null;
       Data data = link.getData();
+
       if (type instanceof RealType) {
         addPoint(xx);
         for (int i=0; i<3; i++) {
@@ -1564,6 +1565,7 @@ System.out.println("checkClose: distance = " + distance);
           }
         }
         ref.setData(newData);
+        link.clearData(); // WLH 27 July 99
       }
       else if (type instanceof RealTupleType) {
         addPoint(xx);
@@ -1597,6 +1599,7 @@ System.out.println("checkClose: distance = " + distance);
         newData = new RealTuple((RealTupleType) type, reals,
                                 ((RealTuple) data).getCoordinateSystem());
         ref.setData(newData);
+        link.clearData(); // WLH 27 July 99
       }
       else if (type instanceof FunctionType) {
         Vector vect = new Vector();
@@ -1721,6 +1724,7 @@ System.out.println("checkClose: distance = " + distance);
           // ref is Remote and data is local, so we have only modified
           // a local copy and must send it back to ref
           ref.setData(data);
+          link.clearData(); // WLH 27 July 99
         }
         // set last index to this, and component values
         lastIndex = thisIndex;

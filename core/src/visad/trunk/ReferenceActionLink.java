@@ -129,11 +129,21 @@ System.out.println(s + ":  tickFlag = " + tickFlag + "  OldTick = " + OldTick +
     // if the reference has an event waiting...
     if (Ball) {
 
+/* WLH 27 July 99
       // get the event
       event = ref.acknowledgeThingChanged(action);
 
       // remember that we picked up the event
       Ball = false;
+*/
+      // remember that we picked up the event
+      Ball = false;
+      // get the event
+      event = ref.acknowledgeThingChanged(action);
+/*
+System.out.println("ReferenceActionLink.getThingChangedEvent Ball = false " +
+                   "event non null = " + (event != null));
+*/
     }
 
     return event;
@@ -142,6 +152,9 @@ System.out.println(s + ":  tickFlag = " + tickFlag + "  OldTick = " + OldTick +
   void acknowledgeThingChangedEvent(long actionTick) {
     NewTick = actionTick;
     Ball = true;
+/*
+System.out.println("ReferenceActionLink.acknowledgeThingChangedEvent Ball = true");
+*/
   }
 
 }
