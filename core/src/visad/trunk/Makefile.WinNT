@@ -216,8 +216,8 @@ save:
 		$(DEL) $(BACKUP)\visad\examples\*.java
 	if exist $(BACKUP)\visad\java3d\*.java                     \
 		$(DEL) $(BACKUP)\visad\java3d\*.java
-        if exist $(BACKUP)\visad\java2d\*.java                     \
-                $(DEL) $(BACKUP)\visad\java2d\*.java
+	if exist $(BACKUP)\visad\java2d\*.java                     \
+		$(DEL) $(BACKUP)\visad\java2d\*.java
 	if exist $(BACKUP)\visad\util\*.java                       \
 		$(DEL) $(BACKUP)\visad\util\*.java
 	if exist $(BACKUP)\visad\ss\*.java                         \
@@ -305,7 +305,7 @@ classes:
 clear:
 	if exist *.java $(DEL) *.java
 	if exist java3d\*.java $(DEL) java3d\*.java
-        if exist java2d\*.java $(DEL) java2d\*.java
+	if exist java2d\*.java $(DEL) java2d\*.java
 	if exist util\*.java $(DEL) util\*.java
 	if exist ss\*.java $(DEL) ss\*.java
 	if exist ss\*.gif $(DEL) ss\*.gif
@@ -379,7 +379,7 @@ compile: clean
 clean:
 	if exist *.class $(DEL) *.class
 	if exist java3d\*.class $(DEL) java3d\*.class
-        if exist java2d\*.class $(DEL) java2d\*.class
+	if exist java2d\*.class $(DEL) java2d\*.class
 	if exist util\*.class $(DEL) util\*.class
 	if exist ss\*.class $(DEL) ss\*.class
 	if exist data\*.class $(DEL) data\*.class
