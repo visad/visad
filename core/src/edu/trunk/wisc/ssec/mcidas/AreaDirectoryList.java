@@ -353,7 +353,11 @@ public class AreaDirectoryList
                   band = Integer.parseInt(st.nextToken().trim());
                   st.nextToken();  // skip = sign
                   calname = st.nextToken();
-                  caldesc = st.nextToken();
+                  if (st.hasMoreTokens()) {
+                    caldesc = st.nextToken();
+                  } else {
+                    caldesc = calname;
+                  }
                   for (int k=0; k<numBands; k++) {
                     if (band == bands[k]) {
                       calInfo[k].addElement(calname);
