@@ -71,7 +71,7 @@ public abstract class AVControlJ3D extends Control implements AVControl {
                              fvalues);
       // compute set index from converted value
       int [] indices = set.valueToIndex(values);
-      ss.swit.setWhichChild(indices[0]); // J3D
+      ss.swit.setWhichChild(indices[0]);
     }
   }
 

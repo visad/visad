@@ -178,9 +178,6 @@ System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
         synchronized (this) {
           if (!branchNonEmpty[currentIndex]) {
             synchronized (branches[currentIndex]) {
-if (branch == null) {
-  System.out.println("branch = null");
-}
               branches[currentIndex].addChild(branch);
             }
             sw.setWhichChild(currentIndex);

@@ -292,14 +292,14 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string);
     if (scene instanceof VisADSwitch) {
       VisADSceneGraphObject child =
         ((VisADSwitch) scene).getSelectedChild();
-      render(g2, child, pass);
+      if (child != null) render(g2, child, pass);
     }
     else if (scene instanceof VisADGroup) {
       Vector children = ((VisADGroup) scene).getChildren();
       for (int i=children.size()-1; i>=0; i--) {
         VisADSceneGraphObject child =
           (VisADSceneGraphObject) children.elementAt(i);
-        render(g2, child, pass);
+        if (child != null) render(g2, child, pass);
       }
     }
     else { // scene instanceof VisADAppearance

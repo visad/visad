@@ -1360,7 +1360,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             Shape3D shape = new Shape3D(geometry, appearance);
             branch.addChild(shape);
             swit.addChild(branch);
-            System.out.println("addChild " + i + " of " + domain_length);
+            // System.out.println("addChild " + i + " of " + domain_length);
           }
           else { // (range_select[0][i] != range_select[0][i])
             // add null BranchGroup as child to maintain order
@@ -1368,8 +1368,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             branch.setCapability(BranchGroup.ALLOW_DETACH);
             branch.addChild(new Shape3D());
             swit.addChild(branch);
-            System.out.println("addChild " + i + " of " + domain_length +
-                               " MISSING");
+            // System.out.println("addChild " + i + " of " + domain_length +
+            //                    " MISSING");
           }
         } // end for (int i=0; i<domain_length; i++)
   
