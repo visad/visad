@@ -155,7 +155,7 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
     // 2-D zoom in button
     zoomIn2 = new JButton("Zoom in");
     zoomIn2.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) { bio.setZoom(false, 2); }
+      public void actionPerformed(ActionEvent e) { bio.setZoom(false, 1.5); }
     });
     p.add(zoomIn2);
 
@@ -169,7 +169,7 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
     // 2-D zoom out button
     zoomOut2 = new JButton("Zoom out");
     zoomOut2.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) { bio.setZoom(false, 0.5); }
+      public void actionPerformed(ActionEvent e) { bio.setZoom(false, 0.667); }
     });
     p.add(zoomOut2);
     controls.add(pad(p));
