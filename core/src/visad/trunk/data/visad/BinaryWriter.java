@@ -2108,17 +2108,6 @@ if(DEBUG_MATH)System.err.println("wrQuant: serialized Quantity (" + qt.getClass(
 
       Set dfltSet = qt.getDefaultSet();
 
-      boolean setFollowsType = false;
-      if (dfltSet != null) {
-        RealTupleType rtt = ((SetType )dfltSet.getType()).getDomain();
-
-        if (rtt.getDimension() == 1 &&
-            qt.equals(rtt.getComponent(0)))
-        {
-          setFollowsType = true;
-        }
-      }
-
 if(DEBUG_MATH)System.err.println("wrQuant: OBJ_MATH (" + OBJ_MATH + ")");
       file.writeByte(OBJ_MATH);
 if(DEBUG_MATH)System.err.println("wrQuant: index (" + index + ")");
@@ -2132,20 +2121,15 @@ if(DEBUG_MATH)System.err.println("wrQuant: name (" + qt.getName() + ")");
 if(DEBUG_MATH)System.err.println("wrQuant: unitSpec (" + qt.getDefaultUnitString() + ")");
       writeString(qt.getDefaultUnitString());
 
-      if (setFollowsType) {
+      if (dfltSet != null) {
 if(DEBUG_MATH)System.err.println("wrQuant: FLD_SET_FOLLOWS_TYPE (" + FLD_SET_FOLLOWS_TYPE + ")");
         file.writeByte(FLD_SET_FOLLOWS_TYPE);
-      } else if (dfltSet != null) {
-if(DEBUG_MATH)System.err.println("wrQuant: FLD_SET (" + FLD_SET + ")");
-        file.writeByte(FLD_SET);
-if(DEBUG_MATH)System.err.println("wrQuant: Set (" + dfltSet + ")");
-        process(dfltSet);
       }
 
 if(DEBUG_MATH)System.err.println("wrQuant: FLD_END (" + FLD_END + ")");
       file.writeByte(FLD_END);
 
-      if (setFollowsType) {
+      if (dfltSet != null) {
         process(dfltSet);
       }
     }
@@ -2175,13 +2159,6 @@ if(DEBUG_MATH)System.err.println("wrRlTuTy: serialized RealTupleType (" + rtt.ge
       final int dim = rtt.getDimension();
 
       Set dfltSet = rtt.getDefaultSet();
-
-      boolean setFollowsType = false;
-      if (dfltSet != null) {
-        if (rtt.equals(((SetType )dfltSet.getType()).getDomain())) {
-          setFollowsType = true;
-        }
-      }
 
       int[] types = new int[dim];
       for (int i = 0; i < dim; i++) {
@@ -2219,20 +2196,15 @@ if(DEBUG_MATH)System.err.println("wrRlTuTy: coordSys index (" + csIndex + ")");
         file.writeInt(csIndex);
       }
 
-      if (setFollowsType) {
+      if (dfltSet != null) {
 if(DEBUG_MATH)System.err.println("wrRlTuTy: FLD_SET_FOLLOWS_TYPE (" + FLD_SET_FOLLOWS_TYPE + ")");
         file.writeByte(FLD_SET_FOLLOWS_TYPE);
-      } else if (dfltSet != null) {
-if(DEBUG_MATH)System.err.println("wrRlTuTy: FLD_SET (" + FLD_SET + ")");
-        file.writeByte(FLD_SET);
-if(DEBUG_MATH)System.err.println("wrRlTuTy: Set (" + dfltSet + ")");
-        process(dfltSet);
       }
 
 if(DEBUG_MATH)System.err.println("wrRlTuTy: FLD_END (" + FLD_END + ")");
       file.writeByte(FLD_END);
 
-      if (setFollowsType) {
+      if (dfltSet != null) {
         process(dfltSet);
       }
     }
@@ -2261,17 +2233,6 @@ if(DEBUG_MATH)System.err.println("wrRlTy: serialized RealType (" + rt.getClass()
 
       Set dfltSet = rt.getDefaultSet();
 
-      boolean setFollowsType = false;
-      if (dfltSet != null) {
-        RealTupleType rtt = ((SetType )dfltSet.getType()).getDomain();
-
-        if (rtt.getDimension() == 1 &&
-            rt.equals(rtt.getComponent(0)))
-        {
-          setFollowsType = true;
-        }
-      }
-
       int uIndex = -1;
       Unit u = rt.getDefaultUnit();
       if (u != null) {
@@ -2299,20 +2260,15 @@ if(DEBUG_MATH)System.err.println("wrRlTy: unit index ("+uIndex+"="+u+")");
         file.writeInt(uIndex);
       }
 
-      if (setFollowsType) {
+      if (dfltSet != null) {
 if(DEBUG_MATH)System.err.println("wrRlTy: FLD_SET_FOLLOWS_TYPE (" + FLD_SET_FOLLOWS_TYPE + ")");
         file.writeByte(FLD_SET_FOLLOWS_TYPE);
-      } else if (dfltSet != null) {
-if(DEBUG_MATH)System.err.println("wrRlTy: FLD_SET (" + FLD_SET + ")");
-        file.writeByte(FLD_SET);
-if(DEBUG_MATH)System.err.println("wrRlTy: Set (" + dfltSet + ")");
-        process(dfltSet);
       }
 
 if(DEBUG_MATH)System.err.println("wrRlTy: FLD_END (" + FLD_END + ")");
       file.writeByte(FLD_END);
 
-      if (setFollowsType) {
+      if (dfltSet != null) {
         process(dfltSet);
       }
     }

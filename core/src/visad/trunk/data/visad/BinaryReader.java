@@ -1622,7 +1622,6 @@ if(DEBUG_MATH&&!DEBUG_STR)System.err.println("rdQuant: name (" + name + ")");
     String unitSpec = readString();
 if(DEBUG_MATH&&!DEBUG_STR)System.err.println("rdQuant: unitSpec (" + unitSpec + ")");
 
-    SimpleSet set = null;
     boolean setFollowsType = false;
 
     boolean reading = true;
@@ -1635,11 +1634,6 @@ if(DEBUG_MATH&&!DEBUG_STR)System.err.println("rdQuant: unitSpec (" + unitSpec + 
       }
 
       switch (directive) {
-      case FLD_SET:
-if(DEBUG_MATH)System.err.println("rdQuant: FLD_SET (" + FLD_SET + ")");
-        set = (SimpleSet )getData();
-if(DEBUG_MATH)System.err.println("rdQuant: Set (" + set + ")");
-        break;
       case FLD_SET_FOLLOWS_TYPE:
 if(DEBUG_MATH)System.err.println("rdQuant: FLD_SET_FOLLOWS_TYPE (" + FLD_SET_FOLLOWS_TYPE + ")");
         setFollowsType = true;
@@ -1655,7 +1649,7 @@ if(DEBUG_MATH)System.err.println("rdQuant: FLD_END (" + FLD_END + ")");
 
     Quantity q;
     try {
-      q = Quantity.getQuantity(name, unitSpec, set);
+      q = Quantity.getQuantity(name, unitSpec, null);
     } catch (visad.data.units.ParseException pe) {
       throw new VisADException("Couldn't parse Quantity unitSpec \"" +
                                unitSpec + "\"");
@@ -1664,7 +1658,7 @@ if(DEBUG_MATH)System.err.println("rdQuant: FLD_END (" + FLD_END + ")");
     typeCache.add(index, q);
 
     if (setFollowsType) {
-      set = (SimpleSet )getData();
+      SimpleSet set = (SimpleSet )getData();
       try {
         q.setDefaultSet(set);
       } catch (TypeException te) {
@@ -1825,7 +1819,6 @@ if(DEBUG_MATH)System.err.println("rdRlTuTy: dim (" + dim + ")");
     }
 
     CoordinateSystem cs = null;
-    Set set = null;
     boolean setFollowsType = false;
 
     boolean reading = true;
@@ -1845,11 +1838,6 @@ if(DEBUG_MATH&&DEBUG_CSYS)System.err.println("rdRlTuTy: cSys index (" + csIndex 
         cs = (CoordinateSystem )cSysCache.get(csIndex);
 if(DEBUG_MATH&&!DEBUG_CSYS)System.err.println("rdRlTuTy: cSys index (" + csIndex + "=" + cs + ")");
         break;
-      case FLD_SET:
-if(DEBUG_MATH)System.err.println("rdRlTuTy: FLD_SET (" + FLD_SET + ")");
-        set = (Set )getData();
-if(DEBUG_MATH)System.err.println("rdRlTuTy: Set (" + set + ")");
-        break;
       case FLD_SET_FOLLOWS_TYPE:
 if(DEBUG_MATH)System.err.println("rdRlYuTy: FLD_SET_FOLLOWS_TYPE (" + FLD_SET_FOLLOWS_TYPE + ")");
         setFollowsType = true;
@@ -1863,13 +1851,17 @@ if(DEBUG_MATH)System.err.println("rdRlTuTy: FLD_END (" + FLD_END + ")");
       }
     }
 
-    RealTupleType rtt = new RealTupleType(list, cs, set);
+    RealTupleType rtt = new RealTupleType(list, cs, null);
 
     typeCache.add(index, rtt);
 
     if (setFollowsType) {
-      set = (Set )getData();
-      rtt.setDefaultSet(set);
+      Set set = (Set )getData();
+      try {
+        rtt.setDefaultSet(set);
+      } catch (TypeException te) {
+        // ignore failure to set type
+      }
     }
 
     return rtt;
@@ -1886,7 +1878,6 @@ if(DEBUG_MATH)System.err.println("rdRlTy: attrMask (" + attrMask + ")");
 if(DEBUG_MATH&&!DEBUG_STR)System.err.println("rdRlTy: name (" + name + ")");
 
     Unit u = null;
-    Set set = null;
     boolean setFollowsType = false;
 
     boolean reading = true;
@@ -1906,11 +1897,6 @@ if(DEBUG_MATH&&DEBUG_UNIT)System.err.println("rdRlTy: unit index (" + index + ")
         u = (Unit )unitCache.get(uIndex);
 if(DEBUG_MATH&&!DEBUG_UNIT)System.err.println("rdRlTy: unit index (" + index + "=" + u + ")");
         break;
-      case FLD_SET:
-if(DEBUG_MATH)System.err.println("rdRlTy: FLD_SET (" + FLD_SET + ")");
-        set = (Set )getData();
-if(DEBUG_MATH)System.err.println("rdRlTy: Set (" + set + ")");
-        break;
       case FLD_SET_FOLLOWS_TYPE:
 if(DEBUG_MATH)System.err.println("rdRlTy: FLD_SET_FOLLOWS_TYPE (" + FLD_SET_FOLLOWS_TYPE + ")");
         setFollowsType = true;
@@ -1924,12 +1910,12 @@ if(DEBUG_MATH)System.err.println("rdRlTy: FLD_END (" + FLD_END + ")");
       }
     }
 
-    RealType rt = RealType.getRealType(name, u, set, attrMask);
+    RealType rt = RealType.getRealType(name, u, null, attrMask);
 
     typeCache.add(index, rt);
 
     if (setFollowsType) {
-      set = (Set )getData();
+      Set set = (Set )getData();
       try {
         rt.setDefaultSet(set);
       } catch (TypeException te) {
