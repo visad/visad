@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: ArithProg.java,v 1.8.2.2 2001-11-06 15:41:27 steve Exp $
+$Id: ArithProg.java,v 1.8.2.3 2001-11-06 15:56:54 steve Exp $
 */
 
 package visad.data.in;
@@ -188,14 +188,17 @@ public class ArithProg
 	}
 	else if (isConsistent)
 	{
-	    double del = delta(last, value);
-	    if (Math.abs(delta(last + meanDel, value)) > Math.abs(eps*del))
+	    double uncLast = last*eps;
+	    double uncValue = value*eps;
+	    double var = uncLast*uncLast + uncValue*uncValue;
+	    double err = delta(last + meanDel, value);
+	    if (err*err > var)
 	    {
 		isConsistent = false;
 	    }
 	    else
 	    {
-		sumDel += del;
+		sumDel += delta(last, value);
 		meanDel = sumDel / n;
 	    }
 	}
