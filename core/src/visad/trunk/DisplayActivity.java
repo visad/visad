@@ -38,7 +38,7 @@ public class DisplayActivity
 
   /**
    * Manage busy/idle handlers for a Display, using the specified
-   * idle time.
+   * idle time, with the minimum idle time being 100 milliseconds.
    *
    * @param dpy Display to manage.
    * @param milliseconds Number of milliseconds to wait before
@@ -47,7 +47,11 @@ public class DisplayActivity
   public DisplayActivity(DisplayImpl dpy, int milliseconds)
   {
     this.dpy = dpy;
-    this.interval = milliseconds;
+    if (milliseconds < 100) {
+      this.interval = 100;
+    } else {
+      this.interval = milliseconds;
+    }
 
     lastBusyEvt = System.currentTimeMillis() - this.interval;
     isBusy = false;
