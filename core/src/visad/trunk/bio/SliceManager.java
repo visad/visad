@@ -676,7 +676,7 @@ public class SliceManager
       y_map3 = new ScalarMap(dtypes[1], Display.YAxis);
       z_map3a = new ScalarMap(dtypes[2], Display.ZAxis);
       z_map3b = new ScalarMap(Z_TYPE, Display.ZAxis);
-      anim_map3 = new ScalarMap(TIME_TYPE, Display.Animation);
+      if (hasThumbs) anim_map3 = new ScalarMap(TIME_TYPE, Display.Animation);
       r_map3 = new ScalarMap(RED_TYPE, Display.Red);
       g_map3 = new ScalarMap(GREEN_TYPE, Display.Green);
       b_map3 = new ScalarMap(BLUE_TYPE, Display.Blue);
@@ -684,7 +684,7 @@ public class SliceManager
       bio.display3.addMap(y_map3);
       bio.display3.addMap(z_map3a);
       bio.display3.addMap(z_map3b);
-      bio.display3.addMap(anim_map3);
+      if (hasThumbs) bio.display3.addMap(anim_map3);
       bio.display3.addMap(r_map3);
       bio.display3.addMap(g_map3);
       bio.display3.addMap(b_map3);
@@ -767,9 +767,9 @@ public class SliceManager
       anim_control2 = (AnimationControl) anim_map2.getControl();
       bio.toolView.setControl(anim_control2);
       anim_control2.addControlListener(this);
-    }
-    if (bio.display3 != null) {
-      anim_control3 = (AnimationControl) anim_map3.getControl();
+      if (bio.display3 != null) {
+        anim_control3 = (AnimationControl) anim_map3.getControl();
+      }
     }
     value_control2.addControlListener(this);
 
