@@ -25,6 +25,9 @@ setPointSize(display, size)
 setAspectRatio(display, ratio)
   define the aspects of width and height, as a ratio: width/height
 
+makeCube(display)
+  turn off the perspective-type display and just make a cube
+
 setAspects(display, x, y, z)
   define the relative sizes of the axes
 
@@ -41,6 +44,10 @@ x,y,z,disp = getDisplay(display)
 
 makeLine(domainType, points)
   make a 2D or 3D line, return a reference so it can be changed
+
+makeLineStyleMap(style, width)
+  makes constant map for lines, with style ('dash', 'dot','dashdot')
+  and width (pixels)
 
 drawLine(display, points[], color=None, mathtype=None)
   draw a line directly into the display; also return reference
@@ -67,6 +74,11 @@ makeMaps(RealType, name, RealType, name, ....)
 
   Alternatively, you may use the "string" names of
   existing RealTypes.
+
+getDisplayMaps(display, includeShapes=0)
+  returns [x_map,y_map,z_map,display]  or
+  [x_map,y_map,z_map,display,shape_map].  Where "..._map" is
+  the ScalarType mapped to the corresponding display axis.
 
 showDisplay(display, width=300, height=300, title=, bottom=, top=)
   quick display of a Display object in a separate JFrame
