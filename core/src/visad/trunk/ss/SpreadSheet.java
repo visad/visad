@@ -93,8 +93,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   Panel DisplayPanel;
   JPanel ScrollPanel;
   ScrollPane SCPane;
-  ScrollPane HorizLabels;
-  ScrollPane VertLabels;
+  JViewport HorizLabels, VertLabels;
   JPanel[] HorizLabel, VertLabel;
   JPanel[] HorizDrag, VertDrag;
   FancySSCell[] DisplayCells;
@@ -472,7 +471,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         horizPanel.add(HorizDrag[i]);
       }
     }
-    ScrollPane hl = new ScrollPane(ScrollPane.SCROLLBARS_NEVER) {
+    JViewport hl = new JViewport() {
       public Dimension getMinimumSize() {
         return new Dimension(0, LABEL_HEIGHT+4);
       }
@@ -484,7 +483,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
     };
     HorizLabels = hl;
-    HorizLabels.add(horizPanel);
+    HorizLabels.setView(horizPanel);
     horizShell.add(HorizLabels);
     horizShell.add(Box.createRigidArea(new Dimension(6, 0)));
 
@@ -538,7 +537,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         vertPanel.add(VertDrag[i]);
       }
     }
-    ScrollPane vl = new ScrollPane(ScrollPane.SCROLLBARS_NEVER) {
+    JViewport vl = new JViewport() {
       public Dimension getMinimumSize() {
         return new Dimension(LABEL_WIDTH+4, 0);
       }
@@ -550,7 +549,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
     };
     VertLabels = vl;
-    VertLabels.add(vertPanel);
+    VertLabels.setView(vertPanel);
     vertShell.add(VertLabels);
 
     // set up scroll pane's panel
@@ -983,10 +982,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
     int value = a.getValue();
 
     if (a.getOrientation() == Adjustable.HORIZONTAL) {
-      HorizLabels.setScrollPosition(value, 0);
+      HorizLabels.setViewPosition(new Point(value, 0));
     }
     else {  // a.getOrientation() == Adjustable.VERTICAL
-      VertLabels.setScrollPosition(0, value);
+      VertLabels.setViewPosition(new Point(0, value));
     }
   }
 
