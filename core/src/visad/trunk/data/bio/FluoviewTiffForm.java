@@ -172,12 +172,15 @@ public class FluoviewTiffForm extends Form
     row = RealType.getRealType("row");
     column = RealType.getRealType("column");
     domain_tuple = new RealTupleType(row, column);
-    pixel = RealType.getRealType("pixel");
+    pixel = RealType.getRealType("intensity");
     func_rc_p = new FunctionType(domain_tuple, pixel);
     func_t_range = new FunctionType(frame, func_rc_p);
 
     int[] dimensions = getFTIFFDimensions();
-    pixelSet = new Integer2DSet(domain_tuple, dimensions[0], dimensions[1]);
+    int xdim = dimensions[0];
+    int ydim = dimensions[1];
+    pixelSet = new Linear2DSet(domain_tuple,
+      0, xdim - 1, xdim, ydim - 1, 0, ydim);
     timeSet = new Integer1DSet(frame,  dimensions[2]);
     // Create a FlatField
     frame_ff = new FlatField(func_rc_p, pixelSet);
@@ -238,12 +241,15 @@ public class FluoviewTiffForm extends Form
     func_t_range = new FunctionType(frame, func_rc_p);
 
     int[] dimensions = getFTIFFDimensions();
-    pixelSet = new Integer2DSet(domain_tuple, dimensions[0], dimensions[1]);
+    int xdim = dimensions[0];
+    int ydim = dimensions[1];
+    pixelSet = new Linear2DSet(domain_tuple,
+      0, xdim - 1, xdim, ydim - 1, 0, ydim);
     timeSet = new Integer1DSet(frame,  dimensions[2]);
     frame_ff = new FlatField(func_rc_p, pixelSet);
 
     float[][] flat_samples = new float[1][];
-    flat_samples[0] = getFrame(block_number);
+    flat_samples[0] = getFrame(block_number+1);
     frame_ff.setSamples(flat_samples);
     return frame_ff;
   }
@@ -280,24 +286,43 @@ public class FluoviewTiffForm extends Form
    * Returns a Hashtable containing all of the info from the first IFD of
    * the file.
    */
-  private Hashtable getIFDHash() throws IOException {
+  private Hashtable getIFDHash(int framecount) throws IOException {
     byte[] bytearray = new byte[4];
     int nextoffset;
     readin.seek(4);
     readin.read(bytearray); // Gets the offset of the first IFD
-    readin.seek(batoi(bytearray));
-    bytearray = new byte[2];
+//    readin.seek(batoi(bytearray));
+    nextoffset = batoi(bytearray);
+//    bytearray = new byte[2];
     // Gets the number of directory entries in the IFD
-    readin.read(bytearray);
+//    readin.read(bytearray);
     Hashtable IFDentries = new Hashtable();
-    Integer numentries = new Integer(batoi(bytearray));
+//    Integer numentries = new Integer(batoi(bytearray));
     Integer entrytag, entrytype, entrycount, entryoffset;
     int frames = 1;
-    int length, offset;
+    int length, offset, numentries;
     Vector entrydata;
 
+    while (nextoffset != 0 && frames != framecount) {
+      frames++;
+      readin.seek(nextoffset);
+      bytearray = new byte[2];
+      readin.read(bytearray); // Gets number of directory entries in the IFD
+      numentries = batoi(bytearray);
+      readin.skipBytes(12 * numentries);
+      bytearray = new byte[4];
+      readin.read(bytearray);
+      nextoffset = batoi(bytearray);
+    }
+
+    readin.seek(nextoffset);
+    bytearray = new byte[2];
+    readin.read(bytearray); // Gets the number of directory entries in the IFD
+    numentries = batoi(bytearray);
+
+
     // Iterate through the directory entries
-    for (int i = 0; i < numentries.intValue(); i++) {
+    for (int i = 0; i < numentries; i++) {
       bytearray = new byte[2];
       readin.read(bytearray); // Get the entry tag
       entrytag = new Integer(batoi(bytearray));
@@ -342,7 +367,7 @@ public class FluoviewTiffForm extends Form
     int frames = 1;
     Integer width, length;
     Vector entrydata;
-    Hashtable IFDentries = getIFDHash();
+    Hashtable IFDentries = getIFDHash(1);
 
     nextoffset = ((Integer) IFDentries.get(new Integer(424242))).intValue();
 
@@ -382,7 +407,7 @@ public class FluoviewTiffForm extends Form
    * @throws IOException  if a file input or output exception occured
    */
   public float[] getFrame(int framecount) throws IOException {
-    Hashtable IFDentries = getIFDHash();
+    Hashtable IFDentries = getIFDHash(framecount);
     Vector entrydata;
     byte[] bytearray;
     int stripoffsets, stripoffsetcount, stripbytes;
