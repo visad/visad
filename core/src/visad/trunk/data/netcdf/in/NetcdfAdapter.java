@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.17 2000-04-26 15:45:17 dglo Exp $
+ * $Id: NetcdfAdapter.java,v 1.18 2000-06-05 18:46:50 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -70,7 +70,7 @@ NetcdfAdapter
      * @throws RemoteException	Remote data access failure.
      * @throws IOException	Data access I/O failure.
      * @throws BadFormException	netCDF dataset doesn't conform to conventions
-     *				implicit in <code>extractor</code>.
+     *				implicit in <code>view</code>.
      */
     public
     NetcdfAdapter(View view, Consolidator consolidator)
@@ -179,3 +179,5 @@ NetcdfAdapter
 	}
     }
 }
+
+
