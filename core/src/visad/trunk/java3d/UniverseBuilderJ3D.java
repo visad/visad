@@ -13,6 +13,8 @@ import visad.*;
 
 import java.awt.event.*;
 
+import java.lang.reflect.Method;
+
 import javax.media.j3d.*;
 import javax.vecmath.*;
 
@@ -28,6 +30,24 @@ public class UniverseBuilderJ3D extends Object {
     View view;
     private BranchGroup vpRoot;
     private ViewPlatform vp;
+
+    /**
+     * The {@link VirtualUniverse} method that releases all allocated resources.
+     * This method has been available since Java 3D 1.2.
+     */
+    private static final Method  REMOVE_ALL_LOCALES;
+    private static final Class[] NIL_CLASS_ARRAY;
+
+    static {
+      NIL_CLASS_ARRAY = new Class[0];
+      Method method = null;
+      try {
+        method = Class.forName("javax.media.j3d.VirtualUniverse")
+          .getMethod("removeAllLocales", NIL_CLASS_ARRAY);
+      }
+      catch (Exception ex) {      }
+      REMOVE_ALL_LOCALES = method;
+    }
 
     public UniverseBuilderJ3D(Canvas3D c) {
       canvas = c;
@@ -80,7 +100,13 @@ public class UniverseBuilderJ3D extends Object {
       // according to Kelvin Chung, 26 Apr 2000, this should work
       // but it throws a NullPointerException
       // view.attachViewPlatform(null);
-      universe.removeAllLocales();
+      if (REMOVE_ALL_LOCALES != null) {
+        try {
+          REMOVE_ALL_LOCALES.invoke(universe, NIL_CLASS_ARRAY);
+        }
+        catch (Exception ex) {
+            throw new RuntimeException("Assertion failure: " + ex);
+        }
+      }
     }
-
 }
