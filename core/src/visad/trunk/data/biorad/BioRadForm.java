@@ -31,14 +31,59 @@ import visad.data.*;
 import java.io.*;
 import java.rmi.RemoteException;
 import java.net.URL;
+import java.util.Vector;
 import visad.data.DefaultFamily;
 
 /** BioRadForm is the VisAD data format adapter for Bio-Rad .PIC files. */
 public class BioRadForm extends Form implements FormFileInformer {
 
   /** Numerical ID of a valid BioRad .PIC file. */
-  public static int PIC_FILE_ID = 12345;
+  private static final int PIC_FILE_ID = 12345;
 
+
+  // Merge types
+
+  /** Image is not merged. */
+  private static final int MERGE_OFF = 0;
+
+  /** All pixels merged, 16 color (4-bit). */
+  private static final int MERGE_16 = 1;
+
+  /** Alternate pixels merged, 128 color (7-bit). */
+  private static final int MERGE_ALTERNATE = 2;
+
+  /** Alternate columns merged. */
+  private static final int MERGE_COLUMN = 3;
+
+  /** Alternate rows merged. */
+  private static final int MERGE_ROW = 4;
+
+  /** Maximum pixels merged. */
+  private static final int MERGE_MAXIMUM = 5;
+
+  /** 64-color (12-bit) optimized 2-image merge. */
+  private static final int MERGE_OPT12 = 6;
+
+  /**
+   * As above except convert look up table saved after the notes in file,
+   * as opposed to at the end of each image data.
+   */
+  private static final int MERGE_OPT12_V2 = 7;
+
+
+  // Look-up table constants
+
+  /** A red pane appears on the screen. */
+  private static final int RED_LUT = 0x01;
+
+  /** A green pane appears on the screen. */
+  private static final int GREEN_LUT = 0x02;
+
+  /** A blue pane appears on the screen. */
+  private static final int BLUE_LUT = 0x04;
+
+
+  /** Form instantiation counter. */
   private static int num = 0;
 
   /** Constructs a new BioRad file form. */
@@ -46,12 +91,14 @@ public class BioRadForm extends Form implements FormFileInformer {
     super("BioRadForm" + num++);
   }
 
+  /** Converts two bytes to an unsigned short. */
   private int getUnsignedShort(byte b1, byte b2) {
     int i1 = 0x000000ff & b1;
     int i2 = 0x000000ff & b2;
     return (i2 << 8) | i1;
   }
 
+  /** Converts four bytes to a float. */
   private float getFloat(byte b1, byte b2, byte b3, byte b4) {
     int i1 = 0x000000ff & b1;
     int i2 = 0x000000ff & b2;
@@ -88,7 +135,7 @@ public class BioRadForm extends Form implements FormFileInformer {
   /**
    * Adds data to an existing BioRad file.
    *
-   * @exception BadFormException Always thrown (this method is not implemented).
+   * @exception BadFormException Always thrown (this method not implemented).
    */
   public void add(String id, Data data, boolean replace)
     throws BadFormException
@@ -101,7 +148,9 @@ public class BioRadForm extends Form implements FormFileInformer {
    *
    * @return VisAD Data object containing BioRad data.
    */
-  public DataImpl open(String id) throws BadFormException, IOException, VisADException {
+  public DataImpl open(String id)
+    throws BadFormException, IOException, VisADException
+  {
     return open(new FileInputStream(id));
   }
 
@@ -110,7 +159,9 @@ public class BioRadForm extends Form implements FormFileInformer {
    *
    * @return VisAD Data object containing BioRad data.
    */
-  public DataImpl open(URL url) throws BadFormException, VisADException, IOException {
+  public DataImpl open(URL url)
+    throws BadFormException, VisADException, IOException
+  {
     return open(url.openStream());
   }
 
@@ -143,13 +194,6 @@ public class BioRadForm extends Form implements FormFileInformer {
     float mag_factor =
       getFloat(header[66], header[67], header[68], header[69]);
 
-    /* CTR: TODO: compute units: pixel size = scale_factor/lens/mag_factor
-                  But how to determine scale_factor = the scaling number setup
-                  for the system on which the image was collected?
-    float scan_width = (2 * ny) / (512 * mag_factor);
-    Unit micron = CommonUnit.meter.scale(0.000001);
-    */
-
     // check validity of header
     if (file_id != PIC_FILE_ID) {
       throw new BadFormException("Invalid file header: " + file_id);
@@ -170,7 +214,23 @@ public class BioRadForm extends Form implements FormFileInformer {
     }
 
     // read notes
-    // CTR: TODO
+    Vector noteList = new Vector();
+    while (notes) {
+      // read in note
+      byte[] note = new byte[96];
+      fin.read(note, 0, 96);
+
+      // extract note information
+      int level = getUnsignedShort(note[0], note[1]);
+      notes = (note[2] | note[3] | note[4] | note[5]) != 0;
+      int num = getUnsignedShort(note[6], note[7]);
+      int status = getUnsignedShort(note[8], note[9]);
+      int type = getUnsignedShort(note[10], note[11]);
+      int x = getUnsignedShort(note[12], note[13]);
+      int y = getUnsignedShort(note[14], note[15]);
+      String text = new String(note, 16, 80);
+      noteList.add(new BioRadNote(level, num, status, type, x, y, text));
+    }
 
     // read color table
     // CTR: TODO
@@ -238,7 +298,8 @@ public class BioRadForm extends Form implements FormFileInformer {
   {
     if (args == null || args.length < 1 || args.length > 2) {
       System.out.println("To convert a file to BioRad .PIC, run:");
-      System.out.println("  java visad.data.biorad.BioRadForm in_file out_file");
+      System.out.println(
+        "  java visad.data.biorad.BioRadForm in_file out_file");
       System.out.println("To test read a BioRad .PIC file, run:");
       System.out.println("  java visad.data.biorad.BioRadForm in_file");
       System.exit(2);
