@@ -808,7 +808,9 @@ public class RealType extends ScalarType {
         rt = new RealType(name);
       }
       catch (VisADException e)
-      {}
+      {
+        rt = getRealTypeByName(name);
+      }
     }
     return rt;
   }
@@ -860,7 +862,14 @@ public class RealType extends ScalarType {
         rt = new RealType(name, u);
       }
       catch (VisADException e)
-      {}
+      {
+        rt = getRealTypeByName(name);
+        if (rt != null) {
+          if (!Unit.canConvert(u, rt.DefaultUnit)) {
+            rt = null;
+          }
+        }
+      }
     }
     return rt;
   }
@@ -912,7 +921,14 @@ public class RealType extends ScalarType {
         rt = new RealType(name, attrMask);
       }
       catch (VisADException e)
-      {}
+      {
+        rt = getRealTypeByName(name);
+        if (rt != null) {
+          if (attrMask != rt.attrMask) {
+            rt = null;
+          }
+        }
+      }
     }
     return rt;
   }
@@ -967,7 +983,16 @@ public class RealType extends ScalarType {
         rt = new RealType(name, u, set);
       }
       catch (VisADException e)
-      {}
+      {
+        rt = getRealTypeByName(name);
+        if (rt != null) {
+          if (!Unit.canConvert(u, rt.DefaultUnit) ||
+              (set == null ? rt.DefaultSet != null :
+                             !set.equals(rt.DefaultSet))) {
+            rt = null;
+          }
+        }
+      }
     }
     return rt;
   }
@@ -1019,7 +1044,15 @@ public class RealType extends ScalarType {
         rt = new RealType(name, u, null, attrMask);
       }
       catch (VisADException e)
-      {}
+      {
+        rt = getRealTypeByName(name);
+        if (rt != null) {
+          if (!Unit.canConvert(u, rt.DefaultUnit) ||
+              rt.attrMask != attrMask) {
+            rt = null;
+          }
+        }
+      }
     }
     return rt;
   }
@@ -1076,7 +1109,17 @@ public class RealType extends ScalarType {
         rt = new RealType(name, u, set, attrMask);
       }
       catch (VisADException e)
-      {}
+      {
+        rt = getRealTypeByName(name);
+        if (rt != null) {
+          if (!Unit.canConvert(u, rt.DefaultUnit) ||
+              (set == null ? rt.DefaultSet != null :
+                             !set.equals(rt.DefaultSet)) ||
+              rt.attrMask != attrMask) {
+            rt = null;
+          }
+        }
+      }
     }
     return rt;
   }
