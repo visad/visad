@@ -750,6 +750,9 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
     return mbarb;
   }
 
+  public Object clone() {
+    return new SwellManipulationRendererJ3D();
+  }
 
   static final int N = 5;
 

@@ -278,6 +278,10 @@ System.out.println("scene graph sent to client");
     return true;
   }
 
+  public Object clone() throws CloneNotSupportedException {
+    throw new CloneNotSupportedException("NodeRendererJ3D");
+  }
+
   public static void main(String args[])
          throws VisADException, RemoteException {
 

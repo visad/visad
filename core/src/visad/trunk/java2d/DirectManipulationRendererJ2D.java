@@ -194,5 +194,9 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
     return false;
   }
 
+  public Object clone() {
+    return new DirectManipulationRendererJ2D();
+  }
+
 }
 

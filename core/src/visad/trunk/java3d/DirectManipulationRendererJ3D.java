@@ -192,5 +192,9 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     return false;
   }
 
+  public Object clone() {
+    return new DirectManipulationRendererJ3D();
+  }
+
 }
 

@@ -422,6 +422,10 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     return branch;
   }
 
+  public Object clone() {
+    return new ImageRendererJ3D();
+  }
+
   /** run 'java visad.bom.ImageRendererJ3D len step'
       to test animation behavior of ImageRendererJ3D
       renders a loop of len at step ms per frame

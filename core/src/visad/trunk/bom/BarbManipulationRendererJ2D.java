@@ -644,6 +644,10 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
     }
   }
 
+  public Object clone() {
+    return new BarbManipulationRendererJ2D();
+  }
+
   static final int N = 5;
 
   /** test BarbManipulationRendererJ2D */

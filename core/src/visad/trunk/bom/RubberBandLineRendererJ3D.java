@@ -532,6 +532,11 @@ public class RubberBandLineRendererJ3D extends DirectManipulationRendererJ3D {
     }
   }
 
+  public Object clone() {
+    return new RubberBandLineRendererJ3D(x, y, mouseModifiersMask,
+                                         mouseModifiersValue);
+  }
+
   private static final int N = 64;
 
   /** test RubberBandLineRendererJ3D */

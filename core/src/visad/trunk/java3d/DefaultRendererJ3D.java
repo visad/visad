@@ -120,5 +120,9 @@ public class DefaultRendererJ3D extends RendererJ3D {
     return link;
   }
 
+  public Object clone() throws CloneNotSupportedException {
+    return new DefaultRendererJ3D();
+  }
+
 }
 

@@ -944,6 +944,10 @@ System.out.println("barb50 " + x1 + " " + y1 + "" + x2 + " " + y2 +
     return mbarb;
   }
 
+  public Object clone() {
+    return new BarbManipulationRendererJ3D();
+  }
+
   static final int N = 5;
 
   /** test BarbManipulationRendererJ3D */

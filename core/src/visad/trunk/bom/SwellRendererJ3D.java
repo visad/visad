@@ -100,6 +100,10 @@ public class SwellRendererJ3D extends DefaultRendererJ3D
                           numv, tx, ty, tz, numt);
   }
 
+  public Object clone() {
+    return new SwellRendererJ3D();
+  }
+
   static final int N = 5;
 
   /** run 'java visad.bom.SwellRendererJ3D middle_latitude'

@@ -206,6 +206,11 @@ System.out.println("checkClose: distance = " + distance);
     }
   }
 
+  public Object clone() {
+    return new PickManipulationRendererJ3D(mouseModifiersMask,
+                                           mouseModifiersValue);
+  }
+
   private static final int N = 64;
 
   /** test PickManipulationRendererJ3D */

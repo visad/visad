@@ -543,6 +543,10 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
     return new_shadow;
   }
 
+  public Object clone() {
+    return new ClientRendererJ3D(time_out);
+  }
+
   public static void main(String args[])
          throws VisADException, RemoteException {
 

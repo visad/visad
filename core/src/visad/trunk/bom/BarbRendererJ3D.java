@@ -100,6 +100,10 @@ public class BarbRendererJ3D extends DefaultRendererJ3D
                           numv, tx, ty, tz, numt);
   }
 
+  public Object clone() {
+    return new BarbRendererJ3D();
+  }
+
   static final int N = 5;
 
   /** run 'java visad.bom.BarbRendererJ3D middle_latitude'

@@ -124,5 +124,9 @@ public class DefaultRendererJ2D extends RendererJ2D {
     return link;
   }
 
+  public Object clone() {
+    return new DefaultRendererJ2D();
+  }
+
 }
 

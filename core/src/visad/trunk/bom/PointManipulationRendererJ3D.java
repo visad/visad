@@ -368,6 +368,10 @@ public class PointManipulationRendererJ3D extends DirectManipulationRendererJ3D 
     }
   }
 
+  public Object clone() {
+    return new PointManipulationRendererJ3D(x, y, mouseModifiersMask,
+                                            mouseModifiersValue);
+  }
 
   private static final int N = 64;
 

@@ -99,6 +99,10 @@ public class BarbRendererJ2D extends DefaultRendererJ2D
     return knotsConvert;
   }
 
+  public Object clone() {
+    return new BarbRendererJ2D();
+  }
+
   static final int N = 5;
 
   /** run 'java visad.bom.BarbRendererJ2D middle_latitude'

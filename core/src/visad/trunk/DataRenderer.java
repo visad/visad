@@ -38,7 +38,7 @@ import java.rmi.*;
    DataRenderer is not Serializable and should not be copied
    between JVMs.<P>
 */
-public abstract class DataRenderer extends Object {
+public abstract class DataRenderer extends Object implements Cloneable {
 
   private DisplayImpl display;
   /** used to insert output into scene graph */

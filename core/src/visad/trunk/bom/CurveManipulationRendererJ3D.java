@@ -724,6 +724,10 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
     return new_sets;
   }
 
+  public Object clone() {
+    return new CurveManipulationRendererJ3D(mouseModifiersMask,
+                                            mouseModifiersValue, only_one);
+  }
 
   private static final int N = 64;
 

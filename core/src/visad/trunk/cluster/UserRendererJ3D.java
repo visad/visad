@@ -84,15 +84,15 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
 
   private int[] resolutions = null;
 
-  public UserRendererJ3D () {
+  public UserRendererJ3D() {
     this(null, 10000);
   }
 
-  public UserRendererJ3D (RemoteProxyAgent a) {
+  public UserRendererJ3D(RemoteProxyAgent a) {
     this(a, 10000);
   }
 
-  public UserRendererJ3D (RemoteProxyAgent a, long to) {
+  public UserRendererJ3D(RemoteProxyAgent a, long to) {
     agent = a;
     time_out = to;
   }
@@ -500,6 +500,10 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
       }
     }
     return new_shadow;
+  }
+
+  public Object clone() {
+    return new UserRendererJ3D(agent, time_out);
   }
 
   public static void main(String args[])
