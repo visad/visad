@@ -56,6 +56,7 @@ public class AnimationWidget
   implements ActionListener, ChangeListener, ControlListener,
              ScalarMapListener
 {
+  private static final boolean DEBUG = false;
 
   private boolean aDir;
   private boolean aAnim;
@@ -241,8 +242,8 @@ public class AnimationWidget
         if (set != null) {
           max = set.getLength();
         }
-      } catch (VisADException ve) {
       }
+      catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
       cur = control.getCurrent() + 1;
       if (cur < 1) cur = 1;
       else if (cur > max) cur = max;
@@ -296,24 +297,23 @@ public class AnimationWidget
         control.setDirection(true);
         aDir = true;
       }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
+      catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
+      catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
     }
     if (cmd.equals("reverse")) {
       try {
         control.setDirection(false);
         aDir = false;
       }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
+      catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
+      catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
     }
     if (cmd.equals("ms") || (cmd.equals("go") && !aAnim)) {
       int fr = -1;
       try {
         fr = Integer.parseInt(ms.getText());
       }
-      catch (NumberFormatException exc) {
-      }
+      catch (NumberFormatException exc) { }
       if (fr > 0) {
         try {
           control.setStep(fr);
@@ -321,10 +321,8 @@ public class AnimationWidget
           if (aDir) forward.requestFocus();
           else reverse.requestFocus();
         }
-        catch (VisADException exc) {
-        }
-        catch (RemoteException exc) {
-        }
+        catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
+        catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
       }
       fixSpeedUI();
     }
@@ -334,16 +332,16 @@ public class AnimationWidget
         aAnim = !aAnim;
         fixAnimUI();
       }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
+      catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
+      catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
     }
     if (cmd.equals("step")) {
       try {
         // slider will adjust automatically with ControlListener
         control.takeStep();
       }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
+      catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
+      catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
     }
   }
 
@@ -351,14 +349,16 @@ public class AnimationWidget
    * ChangeListener method used with JSlider.
    */
   public void stateChanged(ChangeEvent e) {
-    if (!TimeSlider.getValueIsAdjusting()) {
-      try {
-        /* DRM 1999-05-19 */
-        if (control != null) control.setCurrent(TimeSlider.getValue()-1);
-      }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
+    // CTR 2 June 2000 - There is a bug in JDK 1.2.2+ where
+    // JSlider.getValueIsAdjusting() always seems to return true
+    // on Solaris platforms (but not on Windows platforms).
+    // if (!TimeSlider.getValueIsAdjusting())
+    try {
+      /* DRM 1999-05-19 */
+      if (control != null) control.setCurrent(TimeSlider.getValue()-1);
     }
+    catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
+    catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
   }
 
   /**
