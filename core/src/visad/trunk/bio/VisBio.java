@@ -57,7 +57,7 @@ public class VisBio extends GUIFrame implements ChangeListener {
   private static final String TITLE = "VisBio";
 
   /** Application version. */
-  private static final String VERSION = "v1.0 beta 2";
+  private static final String VERSION = "v1.0 beta 2a";
 
   /** Flag for enabling or disabling Java3D, for debugging. */
   private static final boolean ALLOW_3D = true;
