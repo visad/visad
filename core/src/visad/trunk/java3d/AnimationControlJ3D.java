@@ -41,7 +41,7 @@ import java.util.StringTokenizer;
 public class AnimationControlJ3D extends AVControlJ3D
        implements Runnable, AnimationControl {
 
-  private int current = 0;
+  protected int current = 0;//DML: made protected so subclass can use it.
   private boolean direction; // true = forward
   private long step; // time in milliseconds between animation steps
   private long[] stepValues = {500}; // times in milliseconds between animation steps
@@ -252,7 +252,7 @@ public class AnimationControlJ3D extends AVControlJ3D
     for (int i = 0; i < stepValues.length; i++)
     {
         stepValues[i] =
-	    (i < steps.length) ? steps[i] : steps[steps.length-1];
+          (i < steps.length) ? steps[i] : steps[steps.length-1];
         if (stepValues[i] <= 0)
             throw new DisplayException("AnimationControlJ3D.setSteps: " +
                                  "step " + i + " must be > 0");
@@ -369,6 +369,10 @@ public class AnimationControlJ3D extends AVControlJ3D
     if (animate != null) {
       animate.setOn(!animate.getOn());
     }
+  }
+
+  public RealType getRealType() {
+    return real;
   }
 
   public void subSetTicks() {

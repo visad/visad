@@ -139,6 +139,10 @@ DisplayImpl.printStack("selectSwitches: ss.swit.setWhichChild(Switch.CHILD_NONE)
     }
   }
 
+  public Vector getSwitches() {
+    return switches;
+  }
+
   public boolean equals(Object o)
   {
     if (!super.equals(o)) {
@@ -167,7 +171,7 @@ DisplayImpl.printStack("selectSwitches: ss.swit.setWhichChild(Switch.CHILD_NONE)
 
   /** SwitchSet is an inner class of AVControlJ3D for
       (Switch, Set, DataRenderer) structures */
-  private class SwitchSet extends Object {
+  protected class SwitchSet extends Object {
     Switch swit;
     Set set;
     DataRenderer renderer;
