@@ -949,7 +949,19 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
   }
 
   public boolean badRange() {
-    return (isScaled && (scale != scale || offset != offset));
+    // WLH 15 Feb 2002
+    boolean bad = (isScaled && (scale != scale || offset != offset));
+    if (DisplayScalar.equals(Display.Animation)) {
+      if (control != null) {
+        Set set = ((AnimationControl) control).getSet();
+        bad |= (set == null);
+      }
+      else {
+        bad = true;
+      }
+    }
+    return bad;
+    // return (isScaled && (scale != scale || offset != offset));
   }
 
   /** return an array of display (DisplayRealType) values by
