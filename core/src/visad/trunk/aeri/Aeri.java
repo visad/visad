@@ -164,7 +164,8 @@ public class Aeri
     display.addMap(new ScalarMap(longitude, Display.XAxis));
     display.addMap(new ScalarMap(latitude, Display.YAxis));
     display.addMap(new ScalarMap(altitude, Display.ZAxis));
-    display.addMap(new ScalarMap(wvmr, Display.RGB));
+    // display.addMap(new ScalarMap(wvmr, Display.RGB));
+    display.addMap(new ScalarMap(advAge, Display.RGB)); // actually RH
     ScalarMap map = new ScalarMap(time, Display.Animation);
     display.addMap(map);
     AnimationControl control = (AnimationControl) map.getControl();
@@ -582,8 +583,10 @@ start or end altitudes - but it does nothing if all winds are missing */
           rtvl_vals[2][n_samples] = (float) vals[3][jj];
       /**- TDR, take out for no-transparancy
           rtvl_vals[3][n_samples] = (float) (-age*age); // WLH - quadratic age fade
-       **/
           rtvl_vals[3][n_samples] = (float) age;
+       **/
+          rtvl_vals[3][n_samples] = (float)
+            relativeHumidity(vals[1][jj], vals[2][jj]); // actually relative humidity
 
           n_samples++;
         }
@@ -641,12 +644,15 @@ start or end altitudes - but it does nothing if all winds are missing */
     double temp = t - 273.16;
     double retval;
 
-    if (temp > -50.) {
+    if (temp != temp) {
+      retval = Double.NaN;
+    }
+    else if (temp > -50.) {
 
       retval = ( coef[0] + temp*(coef[1] + temp*(coef[2] + temp*(coef[3] +
       temp*(coef[4] + temp*(coef[5] + temp*(coef[6] + temp*coef[7])))))) );
-
-    } else {
+    }
+    else {
        double tt = (-temp - 50.)/5.;
        int inx = (int) tt;
        if (inx < escold.length) {
