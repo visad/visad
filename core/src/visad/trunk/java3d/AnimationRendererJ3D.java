@@ -125,33 +125,26 @@ public class AnimationRendererJ3D extends DefaultRendererJ3D {
     if (data == null) {
       branch = null;
       addException(
-        new DisplayException("Data is null: DefaultRendererJ3D.doTransform"));
+        new DisplayException("Data is null: AnimationRendererJ3D.doTransform"));
     }
     else {
       animation1D = false;
       MathType mtype = link.getType();
-      if (!(mtype instanceof FunctionType)) { // must be a function
-        throw new BadMappingException("Data with this renderer must be a FunctionType");
-      }
-      FunctionType function = (FunctionType) mtype;
-      RealTupleType functionD = function.getDomain();
-      if (functionD.getDimension() != 1) {
-        throw new BadMappingException("Field domain must be 1D");
-      }
-      Vector scalarMaps = link.getSelectedMapVector();
-      for (int kk = 0; kk < scalarMaps.size(); kk++) {
-        ScalarMap scalar_map = (ScalarMap)scalarMaps.elementAt(kk);
-        String scalar_name = scalar_map.getScalarName();
-        if (scalar_name.equals(((RealType)functionD.getComponent(0)).getName())) {
-          if ((scalar_map.getDisplayScalar()).equals(Display.Animation)) {
-            animation1D = true;
-            nameMappedToAnimation = scalar_name;
+      if (mtype instanceof FunctionType) {
+        FunctionType function = (FunctionType) mtype;
+        RealTupleType functionD = function.getDomain();
+        Vector scalarMaps = link.getSelectedMapVector();
+        for (int kk = 0; kk < scalarMaps.size(); kk++) {
+          ScalarMap scalar_map = (ScalarMap)scalarMaps.elementAt(kk);
+          String scalar_name = scalar_map.getScalarName();
+          if (scalar_name.equals(((RealType)functionD.getComponent(0)).getName())) {
+            if (((scalar_map.getDisplayScalar()).equals(Display.Animation))&&
+                 (functionD.getDimension() == 1)) {
+              animation1D = true;
+              nameMappedToAnimation = scalar_name;
+            }
           }
         }
-      }
-      if (!animation1D) {
-        throw new BadMappingException(
-          "AnimationRenderer: data must be a 1D field mapped to Animation");
       }
      
       link.start_time = System.currentTimeMillis();
@@ -252,7 +245,7 @@ public class AnimationRendererJ3D extends DefaultRendererJ3D {
     ctr_cntrl.setSurfaceValue(24f);
 
     AnimationControl acontrol = (AnimationControl) amap.getControl();
-    acontrol.setOn(true);
+    acontrol.setOn(false);
     acontrol.setStep(1000);
 
     DataReferenceImpl ref = new DataReferenceImpl("field_ref");
@@ -267,7 +260,7 @@ public class AnimationRendererJ3D extends DefaultRendererJ3D {
     }
 
     System.out.println("replace test in 40 sec...");
-    new Delay(40000);
+    new Delay(50000);
 
     Linear1DSet new_set = new Linear1DSet(index, 1, 6, 6);
     FieldImpl new_field = new FieldImpl(field_type, new_set);
@@ -279,7 +272,7 @@ public class AnimationRendererJ3D extends DefaultRendererJ3D {
     if (test.equals("old")) {
       dpys.reAutoScale();
     }
+    System.out.println("replace test start");
     ref.setData(new_field);
-    System.out.println("replace test done");
   }
 }

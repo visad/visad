@@ -72,9 +72,10 @@ public class ShadowAnimationFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     ShadowRealType[] DomainComponents = adaptedShadowType.getDomainComponents();
 
 
-    if (((AnimationRendererJ3D)renderer).animation1D && 
-        domain_set.getDimension() == 1) 
-    {
+    //if (((AnimationRendererJ3D)renderer).animation1D &&
+    //     domain_set.getDimension() == 1) {
+    if (((AnimationRendererJ3D)renderer).animation1D) {
+
       Vector domain_maps = DomainComponents[0].getSelectedMapVector();
       ScalarMap amap = null;
       if (domain_set.getDimension() == 1 && domain_maps.size() == 1) {
@@ -87,6 +88,7 @@ public class ShadowAnimationFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         throw new BadMappingException("time must be mapped to Animation");
       }
       AnimationControlJ3D control = (AnimationControlJ3D) amap.getControl();
+      ((AnimationRendererJ3D)renderer).animation1D = false;
 
       // get any usable frames from the old scene graph
       Switch old_swit = null;
