@@ -35,7 +35,10 @@ import visad.RealType;
 import visad.SetType;
 import visad.VisADException;
 
+import visad.util.Util;
+
 public abstract class BaseTrack
+  implements Comparable
 {
   public static final RealType indexType =
     RealType.getRealType("Track_Index");
@@ -104,6 +107,54 @@ public abstract class BaseTrack
     samples = null;
   }
 
+  private static final int compareFloat(float f0, float f1)
+  {
+    if (Util.isApproximatelyEqual(f0, f1)) {
+      return 0;
+    }
+
+    return (f0 < f1 ? -1 : 1);
+  }
+
+  public int compareTo(Object obj)
+  {
+    if (obj instanceof BaseTrack) {
+      return compareTo((BaseTrack )obj);
+    }
+
+    return getClass().getName().compareTo(obj.getClass().getName());
+  }
+
+  public int compareTo(BaseTrack t)
+  {
+    int cmp = compareFloat(time, t.time);
+    if (cmp == 0) {
+      cmp = compareFloat(xstart, t.xstart);
+      if (cmp == 0) {
+        cmp = compareFloat(ystart, t.ystart);
+        if (cmp == 0) {
+          cmp = compareFloat(zstart, t.zstart);
+          if (cmp == 0) {
+            cmp = compareFloat(zenith, t.zenith);
+            if (cmp == 0) {
+              cmp = compareFloat(azimuth, t.azimuth);
+              if (cmp == 0) {
+                // negate this since we want to prefer higher-energy tracks
+                cmp = -compareFloat(energy, t.energy);
+                if (cmp == 0) {
+                  // negate this since we want to prefer longer tracks
+                  cmp = -compareFloat(length, t.length);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return cmp;
+  }
+
   final void computeSamples(float[] timeSteps)
   {
     final double degrees2radians = Data.DEGREES_TO_RADIANS;
@@ -155,6 +206,8 @@ public abstract class BaseTrack
 
     this.timeSteps = timeSteps;
   }
+
+  public boolean equals(Object obj) { return compareTo(obj) == 0; }
 
   public final float getEnergy() { return energy; }
   public final float getLength() { return length; }
