@@ -506,6 +506,7 @@ public class BaseMapAdapter {
     float maxEle = (float)numEles/2.0f;
 
     try {
+      int inum = 0;
       while (true) {
         st = findNextSegment();
         if (st == 0) break;   // we've read all the segments
@@ -562,9 +563,11 @@ public class BaseMapAdapter {
           gs = new Gridded2DSet(coordMathType,lalo,ll);
           sets.addElement(gs);
         }
-
+        inum += ll;
 
       }
+      //System.out.println("number of points = " + inum);
+      //System.out.println("number of sets = " + sets.size());
 
       /* DRM - 03-Jan-2000
       if (sets.size() > 1)  // need at least two for a UnionSet
