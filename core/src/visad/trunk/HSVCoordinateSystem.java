@@ -65,8 +65,8 @@ public class HSVCoordinateSystem extends CoordinateSystem {
         value[2][i] = v;
       }
       else { // if (s != 0.0)
-        h = Math.floor(h / 60.0f);
-        j = (int) h;
+        h = h / 60.0f;
+        j = (int) Math.floor(h);
         f = h - j;
         p = v * (1.0 - s);
         q = v * (1.0 - s * f);
@@ -166,8 +166,8 @@ public class HSVCoordinateSystem extends CoordinateSystem {
         value[2][i] = v;
       }
       else { // if (s != 0.0f)
-        h = (float) Math.floor(h / 60.0f);
-        j = (int) h;
+        h = h / 60.0f;
+        j = (int) Math.floor(h);
         f = h - j;
         p = v * (1.0f - s);
         q = v * (1.0f - s * f);

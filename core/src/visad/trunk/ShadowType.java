@@ -788,6 +788,7 @@ System.out.println(map.getScalar() + " -> " + map.getDisplayScalar() + " : " +
         int displayScalarIndex = valueToScalar[i];
         DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
         DisplayTupleType tuple = real.getTuple();
+
         if (tuple != null &&
             (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
              (tuple.getCoordinateSystem() != null &&

@@ -54,6 +54,8 @@ public abstract class DisplayRenderer extends Object {
 
   private int[] axisOrdinals = {-1, -1, -1};
 
+  private boolean waitFlag = false;
+
   public DisplayRenderer () {
   }
 
@@ -67,6 +69,14 @@ public abstract class DisplayRenderer extends Object {
 
   public DisplayImpl getDisplay() {
     return display;
+  }
+
+  public void setWaitFlag(boolean b) {
+    waitFlag = b;
+  }
+
+  public boolean getWaitFlag() {
+    return waitFlag;
   }
 
   int getAxisOrdinal(int axis) {

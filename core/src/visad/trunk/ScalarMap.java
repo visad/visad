@@ -116,22 +116,60 @@ public class ScalarMap extends Object implements java.io.Serializable {
   /** set tickFlag according to OldTick and NewTick */
   public synchronized void setTicks() {
     tickFlag = (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
+/*
+System.out.println(Scalar + " -> " + DisplayScalar +
+                   "  set  tickFlag = " + tickFlag);
+*/
     OldTick = NewTick;
     if (control != null) control.setTicks();
   }
  
+  public synchronized boolean peekTicks(DataRenderer r, DataDisplayLink link) {
+    if (control == null) {
+/*
+boolean flag = (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
+if (flag) {
+  System.out.println(Scalar + " -> " + DisplayScalar + "  peek  flag = " + flag);
+}
+*/
+      return (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
+    }
+    else {
+/*
+boolean flag = (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
+boolean cflag = control.peekTicks(r, link);
+if (flag || cflag) {
+  System.out.println(Scalar + " -> " + DisplayScalar + "  peek   flag = " +
+                     flag + " cflag = " + cflag);
+}
+*/
+      return (OldTick < NewTick || (NewTick < 0 && 0 < OldTick)) ||
+             control.peekTicks(r, link);
+    }
+  }
+
   /** return true if application called setRange */
   public synchronized boolean checkTicks(DataRenderer r, DataDisplayLink link) {
     if (control == null) {
+/*
+System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
+                   tickFlag);
+*/
       return tickFlag;
     }
     else {
+/*
+boolean cflag = control.checkTicks(r, link);
+System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " + 
+                   tickFlag + " cflag = " + cflag); 
+*/
       return tickFlag || control.checkTicks(r, link);
     }
   }
 
   /** reset tickFlag */
   synchronized void resetTicks() {
+// System.out.println(Scalar + " -> " + DisplayScalar + "  reset");
     tickFlag = false;
     if (control != null) control.resetTicks();
   }

@@ -40,6 +40,9 @@ public interface AnimationControl extends AVControl {
   public void setCurrent(int c)
          throws VisADException, RemoteException;
  
+  public void setCurrent(float value)
+         throws VisADException, RemoteException;
+ 
   public void setDirection(boolean dir)
          throws VisADException, RemoteException;
 
@@ -69,7 +72,15 @@ public interface AnimationControl extends AVControl {
   public void toggle()
          throws VisADException, RemoteException;
 
-  public boolean subTicks(DataRenderer r, DataDisplayLink link);
+/* WLH 25 Feb 98
+  public void subSetTicks(DataRenderer r, DataDisplayLink link);
+
+  public boolean subCheckTicks(DataRenderer r, DataDisplayLink link);
+
+  public boolean subPeekTicks(DataRenderer r, DataDisplayLink link);
+
+  public void subResetTicks(DataRenderer r, DataDisplayLink link);
+*/
 
 }
 

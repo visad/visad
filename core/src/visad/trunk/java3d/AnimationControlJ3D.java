@@ -43,14 +43,16 @@ public class AnimationControlJ3D extends AVControlJ3D
   private long step; // time in milleseconds between animation steps
   private AnimationSetControl animationSet;
   private ToggleControl animate;
+  private RealType real;
 
   private boolean alive = true;
 
   /** AnimationControlJ3D is Serializable, mark as transient */
   private transient Thread animationThread;
 
-  public AnimationControlJ3D(DisplayImplJ3D d) {
+  public AnimationControlJ3D(DisplayImplJ3D d, RealType r) {
     super(d);
+    real = r;
     current = 0;
     direction = true;
     step = 100;
@@ -65,7 +67,7 @@ public class AnimationControlJ3D extends AVControlJ3D
   }
 
   AnimationControlJ3D() {
-    this(null);
+    this(null, null);
   }
 
   public void stop() {
@@ -101,13 +103,28 @@ public class AnimationControlJ3D extends AVControlJ3D
 
   public void setCurrent(int c)
          throws VisADException, RemoteException {
-    current = c;
-    changeControl(true);
     if (animationSet != null) {
+      current = animationSet.clipCurrent(c);
       init();
     }
+    else {
+      current = 0;
+    }
+    changeControl(true);
   }
  
+  public void setCurrent(float value)
+         throws VisADException, RemoteException {
+    if (animationSet != null) {
+      current = animationSet.getIndex(value);
+      init();
+    }
+    else {
+      current = 0;
+    }
+    changeControl(true);
+  }
+
   public void setDirection(boolean dir)
          throws VisADException, RemoteException {
     direction = dir;
@@ -135,7 +152,10 @@ public class AnimationControlJ3D extends AVControlJ3D
 
   public void init() throws VisADException {
     if (animationSet != null) {
-      selectSwitches((double) animationSet.getValue(current));
+      float value = animationSet.getValue(current);
+      String s = real.getName() + " = " + value;
+      getDisplayRenderer().setAnimationString(s);
+      selectSwitches((double) value);
     }
   }
 
@@ -185,7 +205,16 @@ public class AnimationControlJ3D extends AVControlJ3D
     }
   }
 
-  public boolean subTicks(DataRenderer r, DataDisplayLink link) {
+  public void subSetTicks() {
+    if (animationSet != null) {
+      animationSet.setTicks();
+    }
+    if (animate != null) {
+      animate.setTicks();
+    }
+  }
+
+  public boolean subCheckTicks(DataRenderer r, DataDisplayLink link) {
     boolean flag = false;
     if (animationSet != null) {
       flag |= animationSet.checkTicks(r, link);
@@ -194,6 +223,26 @@ public class AnimationControlJ3D extends AVControlJ3D
       flag |= animate.checkTicks(r, link);
     }
     return flag;
+  }
+
+  public boolean subPeekTicks(DataRenderer r, DataDisplayLink link) {
+    boolean flag = false;
+    if (animationSet != null) {
+      flag |= animationSet.peekTicks(r, link);
+    }
+    if (animate != null) {
+      flag |= animate.peekTicks(r, link);
+    }
+    return flag;
+  }
+
+  public void subResetTicks() {
+    if (animationSet != null) {
+      animationSet.resetTicks();
+    }
+    if (animate != null) {
+      animate.resetTicks();
+    }
   }
 
 }

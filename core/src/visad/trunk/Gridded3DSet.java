@@ -161,7 +161,7 @@ public class Gridded3DSet extends GriddedSet {
                     - (v110[0]-v111[0])*(v010[2]-v110[2]) )
                      *(v100[1]-v110[1])  )
                + (  ( (v110[0]-v111[0])*(v010[1]-v110[1])
-                    - (v110[1]-v111[0])*(v010[0]-v110[0]) )
+                    - (v110[1]-v111[1])*(v010[0]-v110[0]) )
                      *(v100[2]-v110[2])  ) > 0 != Pos)
              || ((  ( (v111[1]-v011[1])*(v110[2]-v111[2])    // test 6
                     - (v111[2]-v011[2])*(v110[1]-v111[1]) )
@@ -170,7 +170,7 @@ public class Gridded3DSet extends GriddedSet {
                     - (v111[0]-v011[0])*(v110[2]-v111[2]) )
                      *(v101[1]-v111[1])  )
                + (  ( (v111[0]-v011[0])*(v110[1]-v111[1])
-                    - (v111[1]-v011[0])*(v110[0]-v111[0]) )
+                    - (v111[1]-v011[1])*(v110[0]-v111[0]) )
                      *(v101[2]-v111[2])  ) > 0 != Pos)
              || ((  ( (v011[1]-v010[1])*(v111[2]-v011[2])    // test 7
                     - (v011[2]-v010[2])*(v111[1]-v011[1]) )
@@ -179,7 +179,7 @@ public class Gridded3DSet extends GriddedSet {
                     - (v011[0]-v010[0])*(v111[2]-v011[2]) )
                      *(v001[1]-v011[1])  )
                + (  ( (v011[0]-v010[0])*(v111[1]-v011[1])
-                    - (v011[1]-v010[0])*(v111[0]-v011[0]) )
+                    - (v011[1]-v010[1])*(v111[0]-v011[0]) )
                      *(v001[2]-v011[2])  ) > 0 != Pos)
              || ((  ( (v010[1]-v110[1])*(v011[2]-v010[2])    // test 8
                     - (v010[2]-v110[2])*(v011[1]-v010[1]) )
@@ -188,7 +188,7 @@ public class Gridded3DSet extends GriddedSet {
                     - (v010[0]-v110[0])*(v011[2]-v010[2]) )
                      *(v000[1]-v010[1])  )
                + (  ( (v010[0]-v110[0])*(v011[1]-v010[1])
-                    - (v010[1]-v110[0])*(v011[0]-v010[0]) )
+                    - (v010[1]-v110[1])*(v011[0]-v010[0]) )
                      *(v000[2]-v010[2])  ) > 0 != Pos)) {
               throw new SetException("Gridded3DSet: samples do not form "
                                      +"a valid grid ("+i+","+j+","+k+")");
@@ -1928,7 +1928,7 @@ public class Gridded3DSet extends GriddedSet {
     // take the garbage out
     pcube = null;
 
-    nvertex_estimate = 4 * npolygons;
+    nvertex_estimate = 4 * npolygons + 100;
     ix = 9 * (nvertex_estimate + 50);
     iy = 7 * npolygons;
 

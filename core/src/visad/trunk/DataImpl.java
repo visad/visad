@@ -544,8 +544,8 @@ public abstract class DataImpl extends Object
     return computeRanges(type, shadow);
   }
 
-  /** used by RealTuple, FieldImpl and FlatField to compute ranges
-      for RealTupleType Reference */
+  /** used by RealTuple and SampledSet (was FieldImpl and FlatField) to
+      compute ranges for RealTupleType Reference */
   DataShadow computeReferenceRanges(
              ShadowRealTupleType shad_type, CoordinateSystem coord_in,
              Unit[] units_in, DataShadow shadow,
@@ -565,7 +565,7 @@ public abstract class DataImpl extends Object
     double[][] vals = new double[n][len];
     for (int j=0; j<len; j++) {
       for (int i=0; i<n; i++) {
-        switch( indices[i]) {
+        switch(indices[i]) {
           case 0:
             vals[i][j] = ranges[0][i];
             break;
@@ -610,11 +610,13 @@ public abstract class DataImpl extends Object
         max = Math.max(max, val);
       }
       int index = ((ShadowRealType) shad_ref.getComponent(i)).getIndex();
-      if (min == min) {
-        shadow.ranges[0][index] = Math.min(shadow.ranges[0][index], min);
-      }
-      if (max == max) {
-        shadow.ranges[1][index] = Math.max(shadow.ranges[1][index], max);
+      if (index >= 0) {
+        if (min == min) {
+          shadow.ranges[0][index] = Math.min(shadow.ranges[0][index], min);
+        }
+        if (max == max) {
+          shadow.ranges[1][index] = Math.max(shadow.ranges[1][index], max);
+        }
       }
     }
     return shadow;

@@ -88,7 +88,10 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     trans.addChild(mouse); // J3D
 
     // create ambient light, directly under root (not transformed)
+/* WLH 27 Jan 98
     Color3f color = new Color3f(0.4f, 0.4f, 0.4f);
+*/
+    Color3f color = new Color3f(0.6f, 0.6f, 0.6f);
     AmbientLight light = new AmbientLight(color);
     light.setInfluencingBounds(bounds);
     root.addChild(light);

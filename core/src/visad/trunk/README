@@ -1,8 +1,276 @@
 
-VisAD 2.0 is not ready for use.
+                           VisAD
 
-This distribution is for those curious about source code.
+1. Introduction
 
-See http://www.ssec.wisc.edu/~billh/visad.html for more
-information about VisAD and its port to Java.
+VisAD is a pure Java system for interactive and collaborative
+visualization and analysis of numerical data.  It is described
+in detail in the:
+
+  VisAD Java Class Library Developers Guide
+
+available from the VisAD web page at:
+
+  http://www.ssec.wisc.edu/~billh/visad.html
+
+
+2. Downloading the VisAD Source Code
+
+To download the VisAD source code, first make sure the current
+directory is a directory in your CLASS_PATH (which we will refer
+to as '/parent_dir' through the rest of this README file).
+Then get:
+
+  ftp://iris.ssec.wisc.edu/pub/visad-2.0/visad_src.2.0.tar.Z
+ 
+or:
+ 
+  ftp://iris.ssec.wisc.edu/pub/visad-2.0/visad_src.2.0.jar
+ 
+Unpack the jar file by running:
+ 
+  jar xvf visad_src.2.0.jar
+ 
+or unpack the compressed tar file by running:
+ 
+  uncompress visad_src.2.0.tar.Z
+  tar -xvf visad_src.2.0.tar
+ 
+Unpacking VisAD will create the following sub-directories:
+
+  visad				// the core VisAD package
+  visad/java3d			// Java3D displays for VisAD
+  visad/util			// VisAD UI utilities
+  visad/data			// VisAD data (file) format adapters
+  visad/data/fits		// VisAD - FITS file adapter
+  visad/data/netcdf		// VisAD - netCDF file adapter
+  visad/data/netcdf/units	// units parser for netCDF adapter
+  visad/data/hdfeos		// VisAD - HDF-EOS file adapter
+  visad/data/hdfeos/hdfeosc	// native interface to HDF-EOS
+  visad/data/vis5d		// VisAD - Vis5D file adapter
+  visad/data/gif		// VisAD - GIF file adapter
+  visad/paoloa			// GoesCollaboration application
+  visad/aune			// ShallowFluid application
+  visad/examples		// small application examples
+  nom/tam/fits			// Java FITS file binding
+  nom/tam/util			// Java FITS file binding
+  nom/tam/test			// Java FITS file binding
+  ucar.jar			// Java netCDF file binding
+
+Note that compiling VisAD will further unpack ucar.jar into:
+
+  ucar/netcdf/*.class
+  ucar/multiarray/*.class
+
+These directories correspond to the packages in distributed with
+VisAD, except that the classes in visad/examples are in the
+default package (i.e., they do not include a package statement).
+ 
+
+3. Building VisAD
+
+VisAD requires JDK 1.2 and Java3D.  More information about
+these is available at:
+
+  http://java.sun.com/
+
+On systems that support Unix make, you can simply run:
+
+  make compile
+
+to compile the Java source code in all the directories unpacked
+from the source distribution.
+
+On systems that do not support Unix make, you must invoke the
+Java compiler on the Java source files in all the directories
+unpacked from the source distribution.  Note that the Java
+source code in the visad/examples directory has no package, so
+you must run 'cd visad/examples' before you compile these Java
+source files.  You must also either add the 'ucar.jar' file to
+your CLASS_PATH, or run:
+
+  jar xvf ucar.jar
+
+to unpack the netCDF Java binding into sub-directories with
+appropriate package names.
+
+If you do not use make, then you must also run the rmic compiler
+on the following classes (after they are compiled by the javac
+compiler):
+
+  visad.RemoteCellImpl
+  visad.RemoteActionImpl
+  visad.RemoteDisplayImpl
+  visad.RemoteDataReferenceImpl
+  visad.RemoteDataImpl
+  visad.RemoteFunctionImpl
+  visad.RemoteFieldImpl
+  visad.RemoteServerImpl
+
+
+4. Building Native Code for the HDF-EOS and Vis5D File Adapters
+
+Although VisAD is a pure Java system, it does require native
+code interfaces in its adapters for HDF-EOS and Vis5D file
+formats.  We believe that the need for these will disappear
+as the organizations supporting these file formats develop
+Java interfaces.
+
+The HDF-EOS and Vis5D file adapters include native interfaces
+(JNI) to file interfaces written in C.  On systems that
+support Unix make, change to the visad/data/vis5d and run
+'make', then change to the visad/data/hdfeos/hdfeosc directory
+and run 'make all'.
+
+Note that the native code in visad/data/hdfeos/hdfeosc does
+not include NASA/Hughes' HDF-EOS C file interface code; it
+only includes our C native code for creating a Java binding
+to their HDF-EOS C file interface.  You must obtain the
+HDF-EOS C file interface code directly from NASA and Hughes.
+
+The native code in visad/data/vis5d does include everything
+you need to read Vis5D files.  Note that if you are compiling
+this native code on a little-endian architecture (e.g., Linux
+or DEC Alpha) you must first edit visad/data/vis5d/Makefile
+to add '-DLITTLE' to CFLAGS.
+
+Before you can run applications that use the HDF-EOS and
+Vis5D file adapters, you must add:
+ 
+  /parent_dir/visad/data/hdfeos/hdfeosNative/libhdfeosLib.so
+  /parent_dir/visad/data/vis5d/libvis5d.so
+ 
+to your LD_LIBRARY_PATH.
+
+
+5. Building Native Code for Applications
+
+Although VisAD is a pure Java system, applications of VisAD
+may include native code.  The reality is that most science
+code is still written in Fortran.
+
+The applications in visad/paoloa and visad/aune also include
+native code in both C and Fortran.
+
+Before you compile the native code in the visad/paoloa
+directory, download the necessary data files from either:
+ 
+  ftp://iris.ssec.wisc.edu/pub/visad-2.0/visad.paoloa.tar.Z
+ 
+or:
+ 
+  ftp://iris.ssec.wisc.edu/pub/visad-2.0/visad.paoloa.jar
+ 
+which include necessary data files.  Unpack these files in
+/parent_dir (i.e., the directory in your CLASS_PATH where
+you unpacked the VisAD source).  They include all necessary
+source code and Makefiles as well as the data files.
+
+Then edit the Makefile in both visad/paoloa and visad/aune
+to change the include paths:
+ 
+  '-I/opt/java/include -I/opt/java/include/solaris'
+ 
+to point to the appopriate directories in your Java
+installation.
+
+On systems that support Unix make, change to the
+visad/paoloa directory and run 'make', then change to
+the visad/aune directory and run 'make'.  This will
+create the shared object files (i.e., file names ending
+in ".so") containing native code.  Before you can run
+these applications, you must add:
+
+  /parent_dir/visad/paoloa/libGoesRetrieval.so
+  /parent_dir/visad/paoloa/libGoesCollaboration.so
+  /parent_dir/visad/aune/libShallowFluid.so
+
+to your LD_LIBRARY_PATH.
+
+
+7. Downloading VisAD Classes in Jar Files
+
+If you want to write applications for VisAD but don't want
+to compile VisAD from source, you can dowload jar files that
+include the VisAD classes.  These files are:
+
+  ftp://iris.ssec.wisc.edu/pub/visad-2.0/visad.jar
+
+or 
+
+  ftp://iris.ssec.wisc.edu/pub/visad-2.0/visad.tar
+
+If you get the tar file you will need to unpack it by running:
+
+  tar -xvf visad.tar
+
+It contains the single file 'visad.jar'.  Once you've got
+visad.jar simply add:
+
+   /parent_dir/visad.jar
+
+to your CLASS_PATH.  Then you can compile and run applications
+that import the VisAD classes.  However, if your application
+uses the HDF-EOS or Vis5D file format adapters, then you will
+need to compile the native code as described in Section 4 of
+this README file.  The visad.jar file includes the classes from
+these packages:
+
+  visad				// the core VisAD package
+  visad.java3d			// Java3D displays for VisAD
+  visad.util			// VisAD UI utilities
+  visad.data			// VisAD data (file) format adapters
+  visad.data.fits		// VisAD - FITS file adapter
+  visad.data.netcdf		// VisAD - netCDF file adapter
+  visad.data.netcdf.units	// units parser for netCDF adapter
+  visad.data.hdfeos		// VisAD - HDF-EOS file adapter
+  visad.data.hdfeos.hdfeosc	// native interface to HDF-EOS
+  visad.data.vis5d		// VisAD - Vis5D file adapter
+  visad.data.gif		// VisAD - GIF file adapter
+  nom.tam.fits			// Java FITS file binding
+  nom.tam.util			// Java FITS file binding
+  nom.tam.test			// Java FITS file binding
+  ucar.netcdf			// Java netCDF file binding
+  ucar.multiarray		// Java netCDF file binding
+
+Other jar and tar files are available from:
+
+  ftp://iris.ssec.wisc.edu/pub/visad-2.0
+
+containing subsets of the VisAD packages, as follows (note there
+is also a .tar file containing each of these .jar files):
+
+  visad_core.jar	// visad
+  visad_java3d.jar	// visad.java3d
+  visad_util.jar	// visad.util
+  visad_netcdf.jar	// visad.data, visad.data.netcdf, ucar.netcdf,
+			// visad.data.netcdf.units, ucar.multiarray
+  visad_fits.jar	// visad.data, visad.data.fits,
+			// nom.tam.fits, nom.tam.util, nom.tam.test
+  visad_hdfeos.jar	// visad.data, visad.data.netcdf,
+			// visad.data.hdfeos.hdfeosc
+  visad_vis5d.jar	// visad.data, visad.data.vis5d
+  visad_gif.jar		// visad.data, visad.data.gif
+
+
+8. Problems
+
+If you have problems, send en email message to the VisAD mailing
+list at:
+
+  visad-list@ssec.wisc.edu
+
+Join the list by sending an email message to:
+
+  majordomo@ssec.wisc.edu
+
+with:
+
+  subscribe visad-list
+
+as the first line of the message body (not the subject line).
+
+Please include any compiler or run time error messages in the text
+of email messages to the mailing list.
+
 

@@ -739,15 +739,8 @@ public class FieldImpl extends FunctionImpl implements Field {
     ShadowRealTupleType domain_type = ((ShadowFunctionType) type).getDomain();
     int n = domain_type.getDimension();
     double[][] ranges = new double[2][n];
+    // DomainSet.computeRanges handles Reference
     shadow = DomainSet.computeRanges(domain_type, shadow, ranges, true);
-
-    ShadowRealTupleType shad_ref = domain_type.getReference();
-    if (shad_ref != null) {
-      // computeRanges for Reference RealTypes
-      shadow = computeReferenceRanges(domain_type, DomainCoordinateSystem,
-                                      DomainUnits, shadow, shad_ref, ranges);
-    }
-
     ShadowType rtype = ((ShadowFunctionType) type).getRange();
     for (int i=0; i<Range.length; i++) {
       synchronized (Range) {

@@ -145,7 +145,9 @@ public abstract class SampledSet extends SimpleSet {
 
   public DataShadow computeRanges(ShadowType type, DataShadow shadow)
          throws VisADException {
-    return computeRanges(type, shadow, null, false);
+    int n = getDimension();
+    double[][] ranges = new double[2][n];
+    return computeRanges(type, shadow, ranges, false);
   }
 
   public DataShadow computeRanges(ShadowType type, DataShadow shadow,
@@ -189,6 +191,24 @@ public abstract class SampledSet extends SimpleSet {
         shadow.ranges[1][k] = Math.max(shadow.ranges[1][k], max);
       }
     }
+
+    /* WLH 1 March 98 - moved from FieldImpl and FlatField computeRanges */
+    ShadowRealTupleType domain_type = null;
+    if (type instanceof ShadowRealTupleType) {
+      domain_type = (ShadowRealTupleType) type;
+    }
+    else if (type instanceof ShadowSetType) {
+      domain_type = ((ShadowSetType) type).getDomain();
+    }
+    if (domain_type != null && ranges != null) {
+      ShadowRealTupleType shad_ref = domain_type.getReference();
+      if (shad_ref != null) {
+        // computeRanges for Reference (relative to domain) RealTypes
+        shadow = computeReferenceRanges(domain_type, DomainCoordinateSystem,
+                                        SetUnits, shadow, shad_ref, ranges);
+      }
+    }
+
     return shadow;
   }
 

@@ -2180,15 +2180,9 @@ for (i=0; i<length; i++) {
     ShadowRealTupleType domain_type = ((ShadowFunctionType) type).getDomain();
     int n = domain_type.getDimension();
     double[][] ranges = new double[2][n];
+    // DomainSet.computeRanges handles Reference
     shadow = DomainSet.computeRanges(domain_type, shadow, ranges, true);
-
-    ShadowRealTupleType shad_ref = domain_type.getReference();
-    if (shad_ref != null) {
-      // computeRanges for Reference (relative to domain) RealTypes
-      shadow = computeReferenceRanges(domain_type, DomainCoordinateSystem,
-                                      DomainUnits, shadow, shad_ref, ranges);
-    }
-
+    ShadowRealTupleType shad_ref;
     // skip range if no range components are mapped
     int[] indices = ((ShadowFunctionType) type).getRangeDisplayIndices();
     boolean any_mapped = false;

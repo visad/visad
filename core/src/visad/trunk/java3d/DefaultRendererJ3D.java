@@ -39,6 +39,12 @@ import java.rmi.*;
 */
 public class DefaultRendererJ3D extends RendererJ3D {
 
+  // System.currentTimeMillis() when doTransform started
+  long start_time;
+  boolean time_flag;
+
+  DataDisplayLink link;
+
   public DefaultRendererJ3D () {
     super();
   }
@@ -56,7 +62,7 @@ public class DefaultRendererJ3D extends RendererJ3D {
   public BranchGroup doTransform() throws VisADException, RemoteException { // J3D
     BranchGroup branch = new BranchGroup();
     branch.setCapability(BranchGroup.ALLOW_DETACH);
-    DataDisplayLink link = getLinks()[0];
+    link = getLinks()[0];
     ShadowTypeJ3D type = (ShadowTypeJ3D) link.getShadow();
 
     // initialize valueArray to missing
@@ -72,6 +78,8 @@ public class DefaultRendererJ3D extends RendererJ3D {
       addException("Data is null");
     }
     else {
+      start_time = System.currentTimeMillis();
+      time_flag = false;
       type.preProcess();
       boolean post_process =
         type.doTransform(branch, data, valueArray,

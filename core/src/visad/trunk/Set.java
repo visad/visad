@@ -228,7 +228,7 @@ public abstract class Set extends DataImpl {
     return computeRanges(type, shadow, null, false);
   }
 
-  /** this default does not set ranges for FloatSet and DoubleSet */
+  /** this default does not set ranges - it is used by FloatSet and DoubleSet */
   public DataShadow computeRanges(ShadowType type, DataShadow shadow,
                                   double[][] ranges, boolean domain)
          throws VisADException {

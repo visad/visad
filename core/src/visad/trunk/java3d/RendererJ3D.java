@@ -164,6 +164,9 @@ public abstract class RendererJ3D extends DataRenderer {
         addException(e.getMessage());
         branch = null;
       }
+      catch (DisplayInterruptException e) {
+        branch = null;
+      }
 
       if (branch != null) {
         int nextIndex = 0;

@@ -104,7 +104,7 @@ System.out.println(s + ":  tickFlag = " + tickFlag + "  OldTick = " + OldTick +
   }
 */
 
-  synchronized boolean peekTicks() {
+  public synchronized boolean peekTicks() {
     return (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
   }
 

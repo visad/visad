@@ -131,7 +131,6 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     else {
       cursor_switch.setWhichChild(0); // set cursor off
       setCursorStringVector(null);
-      // cursorStringVector.removeAllElements();
     }
   }
 
@@ -139,7 +138,6 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     directOn = on;
     if (!on) {
       setCursorStringVector(null);
-      // cursorStringVector.removeAllElements();
     }
   }
 
@@ -349,15 +347,18 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     Point3d position1 = new Point3d();
     Point3d position2 = new Point3d();
     Point3d position3 = new Point3d();
+    Point3d position4 = new Point3d();
     canvas.getPixelLocationInImagePlate(1, 10, position1);
     canvas.getPixelLocationInImagePlate(10, 10, position2);
     canvas.getPixelLocationInImagePlate(1, 1, position3);
+    canvas.getPixelLocationInImagePlate(10, 1, position4);
     Transform3D t = new Transform3D();
     canvas.getImagePlateToVworld(t);
     t.transform(position1);
     t.transform(position2);
     t.transform(position3);
 
+    // draw cursor strings in upper left corner of screen
     double[] start = {(double) position1.x,
                       (double) position1.y,
                       (double) position1.z};
@@ -372,11 +373,6 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
       while(strings.hasMoreElements()) {
         String string = (String) strings.nextElement();
         try {
-/* WLH 20 Feb 98
-          VisADLineArray array =
-            PlotText.render_label(string, start, base, up, false,
-                                  GeometryArray.COORDINATES);
-*/
           VisADLineArray array =
             PlotText.render_label(string, start, base, up, false);
           graphics.draw(((DisplayImplJ3D) getDisplay()).makeGeometry(array));
@@ -386,6 +382,8 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
         }
       }
     }
+
+    // draw Exception strings in lower left corner of screen
     double[] startl = {(double) position3.x,
                        (double) -position3.y,
                        (double) position3.z};
@@ -398,11 +396,6 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
       while (exceptions.hasMoreElements()) {
         String string = (String) exceptions.nextElement();
         try {
-/* WLH 20 Feb 98
-          VisADLineArray array =
-            PlotText.render_label(string, startl, base, up, false,
-                                  GeometryArray.COORDINATES);
-*/
           VisADLineArray array =
             PlotText.render_label(string, startl, base, up, false);
           graphics.draw(((DisplayImplJ3D) getDisplay()).makeGeometry(array));
@@ -410,6 +403,35 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
         }
         catch (VisADException e) {
         }
+      }
+    }
+    if (getWaitFlag()) {
+      try {
+        VisADLineArray array =
+          PlotText.render_label("please wait . . .", startl, base, up, false);
+        graphics.draw(((DisplayImplJ3D) getDisplay()).makeGeometry(array));
+        startl[1] += 1.2 * up[1];
+      }
+      catch (VisADException e) {
+      }
+    }
+
+    // draw Animation string in upper right corner of screen
+    String animation_string = getAnimationString();
+    if (animation_string != null) {
+      int nchars = animation_string.length();
+      if (nchars < 12) nchars = 12;
+      double[] starta = {(double) (-position2.x - nchars *
+                                        (position2.x - position1.x)),
+                         (double) position2.y,
+                         (double) position2.z};
+      try {
+        VisADLineArray array =
+          PlotText.render_label(animation_string, starta, base, up, false);
+        graphics.draw(((DisplayImplJ3D) getDisplay()).makeGeometry(array));
+        starta[1] -= 1.2 * up[1];
+      }
+      catch (VisADException e) {
       }
     }
   }
@@ -495,7 +517,8 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     trans.setTransform(t);
   }
 
-  public Control makeControl(DisplayRealType type) {
+  public Control makeControl(ScalarMap map) {
+    DisplayRealType type = map.getDisplayScalar();
     DisplayImplJ3D display = (DisplayImplJ3D) getDisplay();
     if (type == null) return null;
     if (type.equals(Display.XAxis) ||
@@ -515,9 +538,11 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
       return new ColorAlphaControl(display);
     }
     else if (type.equals(Display.Animation)) {
+      // note only one RealType may be mapped to Animation
+      // so control must be null
       Control control = display.getControl(AnimationControlJ3D.class);
       if (control != null) return control;
-      else return new AnimationControlJ3D(display);
+      else return new AnimationControlJ3D(display, map.getScalar());
     }
     else if (type.equals(Display.SelectValue)) {
       return new ValueControlJ3D(display);

@@ -68,6 +68,17 @@ public class AnimationSetControl extends Control {
     }
   }
 
+  public int getIndex(float value) throws VisADException {
+    if (set == null) {
+      return 0;
+    }
+    else {
+      float[][] values = new float[][] {{value}};
+      int[] indices = set.valueToIndex(values);
+      return ((indices[0] < 0) ? 0 : indices[0]);
+    }
+  }
+
   public void setSet(Set s)
          throws VisADException, RemoteException {
     setSet(s, false);

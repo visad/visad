@@ -81,7 +81,9 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   /** clear AccumulationVector */
   public void preProcess() throws VisADException {
     AccumulationVector.removeAllElements();
-    Range.preProcess();
+    if (this instanceof ShadowFunctionTypeJ3D) {
+      Range.preProcess();
+    }
   }
 
   /** transform data into a Java3D scene graph;
@@ -95,6 +97,47 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
 
     if (data.isMissing()) return false;
 
+    // if transform has taken more than 500 milliseconds and there is
+    // a flag requesting re-transform, throw a DisplayInterruptException
+    boolean time_flag = false;
+    if (renderer instanceof DefaultRendererJ3D) {
+      if (((DefaultRendererJ3D) renderer).time_flag) {
+        time_flag = true;
+      }
+      else {
+        if (500 < System.currentTimeMillis() -
+                  ((DefaultRendererJ3D) renderer).start_time) {
+          ((DefaultRendererJ3D) renderer).time_flag = true;
+          time_flag = true;
+        }
+      }
+    }
+    if (time_flag) {
+      DataDisplayLink link = ((DefaultRendererJ3D) renderer).link;
+      if (link.peekTicks()) {
+        throw new DisplayInterruptException("please wait . . .");
+      }
+      Enumeration maps = link.getSelectedMapVector().elements();
+      while(maps.hasMoreElements()) {
+        ScalarMap map = (ScalarMap) maps.nextElement();
+        if (map.peekTicks(renderer, link)) {
+          throw new DisplayInterruptException("please wait . . .");
+        }
+      }
+    }
+
+    boolean anyContour =
+      ((ShadowFunctionOrSetType) adaptedShadowType).getAnyContour();
+    boolean anyFlow =
+      ((ShadowFunctionOrSetType) adaptedShadowType).getAnyFlow();
+    boolean anyShape =
+      ((ShadowFunctionOrSetType) adaptedShadowType).getAnyShape();
+
+    if (anyShape) {
+      throw new UnimplementedException("ShadowFunctionOrSetTypeJ3D.doTransform" +
+                                       "Shape not yet supported");
+    }
+
     // get some precomputed values useful for transform
     // length of ValueArray
     int valueArrayLength = display.getValueArrayLength();
@@ -103,6 +146,41 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     // mapping from ValueArray to MapVector
     int[] valueToMap = display.getValueToMap();
     Vector MapVector = display.getMapVector();
+
+    // array to hold values for various mappings
+    float[][] display_values = new float[valueArrayLength][];
+ 
+    // get values inherited from parent;
+    // assume these do not include SelectRange, SelectValue
+    // or Animation values - see temporary hack in
+    // DataRenderer.isTransformControl
+    int[] inherited_values =
+      ((ShadowFunctionOrSetType) adaptedShadowType).getInheritedValues();
+    for (int i=0; i<valueArrayLength; i++) {
+      if (inherited_values[i] > 0) {
+        display_values[i] = new float[1];
+        display_values[i][0] = value_array[i];
+      }
+    }
+
+    // check for only contours and only disabled contours
+    if (adaptedShadowType.getIsTerminal() && anyContour && !anyFlow) {
+      boolean any_enabled = false;
+      for (int i=0; i<valueArrayLength; i++) {
+        int displayScalarIndex = valueToScalar[i];
+        DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
+        if (real.equals(Display.IsoContour) && inherited_values[i] == 0) {
+          // non-inherited IsoContour, so generate contours
+          ContourControl control = (ContourControl)
+            ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
+          boolean[] bvalues = new boolean[2];
+          float[] fvalues = new float[5];
+          control.getMainContours(bvalues, fvalues);
+          if (bvalues[0]) any_enabled = true;
+        }
+      }
+      if (!any_enabled) return false;
+    }
 
     Set domain_set = null;
     Unit[] dataUnits = null;
@@ -132,25 +210,9 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     Unit[] domain_units = ((RealTupleType) Domain.getType()).getDefaultUnits();
     int domain_length = domain_set.getLength();
 
-    // array to hold values for various mappings
-    float[][] display_values = new float[valueArrayLength][];
-
     // ShadowRealTypes of Domain
     ShadowRealType[] DomainComponents =
       ((ShadowFunctionOrSetType) adaptedShadowType).getDomainComponents();
-
-    // get values inherited from parent;
-    // assume these do not include SelectRange, SelectValue
-    // or Animation values - see temporary hack in
-    // DataRenderer.isTransformControl
-    int[] inherited_values =
-      ((ShadowFunctionOrSetType) adaptedShadowType).getInheritedValues();
-    for (int i=0; i<valueArrayLength; i++) {
-      if (inherited_values[i] > 0) {
-        display_values[i] = new float[1];
-        display_values[i][0] = value_array[i];
-      }
-    }
 
     int alpha_index = display.getDisplayScalarIndex(Display.Alpha);
 
@@ -341,6 +403,14 @@ for (int i=0; i < 4; i++) {
       // System.out.println("mapped domain_values");
   
       ShadowRealTupleType domain_reference = Domain.getReference();
+
+/*
+      System.out.println("domain_reference = " + domain_reference);
+      if (domain_reference != null) {
+        System.out.println("getMappedDisplayScalar = " +
+                           domain_reference.getMappedDisplayScalar());
+      }
+*/
       if (domain_reference != null && domain_reference.getMappedDisplayScalar()) {
         // apply coordinate transform to domain values
         RealTupleType ref = (RealTupleType) domain_reference.getType();
@@ -350,7 +420,7 @@ for (int i=0; i < 4; i++) {
             ref, null, ref.getDefaultUnits(), null,
             (RealTupleType) Domain.getType(), dataCoordinateSystem,
             domain_units, null, domain_values);
-  
+ 
         //
         // TO_DO
         // adjust any RealVectorTypes in range
@@ -363,6 +433,15 @@ for (int i=0; i < 4; i++) {
           ((ShadowFunctionOrSetType) adaptedShadowType).
                                      getDomainReferenceComponents();
         mapValues(display_values, reference_values, DomainReferenceComponents);
+/*
+for (int i=0; i<DomainReferenceComponents.length; i++) {
+  System.out.println("DomainReferenceComponents[" + i + "] = " +
+                     DomainReferenceComponents[i]);
+  System.out.println("reference_values[" + i + "].length = " +
+                     reference_values[i].length);
+}
+        System.out.println("mapped domain_reference values");
+*/
         // FREE
         reference_values = null;
       }
@@ -510,19 +589,24 @@ for (int i=0; i < 4; i++) {
       // spatialDimensions[1] = spatialManifoldDimension
       int[] spatialDimensions = new int[2];
 
+/* WLH 24 Feb 98
       boolean anyContour =
         ((ShadowFunctionOrSetType) adaptedShadowType).getAnyContour();
       boolean anyFlow =
         ((ShadowFunctionOrSetType) adaptedShadowType).getAnyFlow();
       boolean anyShape =
         ((ShadowFunctionOrSetType) adaptedShadowType).getAnyShape();
-
       if (anyShape) {
         throw new UnimplementedException("ShadowFunctionOrSetTypeJ3D.doTransform" +
                                          "Shape not yet supported");
       }
+*/
 
       // MEM
+/*
+      Set spatial_set = domain_set;
+      spatial_values = new float[][] {{0.0f}, {0.0f}, {0.0f}};
+*/
       Set spatial_set = 
         assembleSpatial(spatial_values, display_values, valueArrayLength,
                         valueToScalar, display, default_values,
@@ -695,10 +779,6 @@ END MISSING TEST */
         }
         boolean anyContourCreated = false;
         if (anyContour) {
-          //
-          // TO_DO
-          // test Contour
-          //
           for (int i=0; i<valueArrayLength; i++) {
             int displayScalarIndex = valueToScalar[i];
             DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
@@ -720,51 +800,63 @@ END MISSING TEST */
                   }
                 }
                 if (spatialManifoldDimension == 3) {
-                  array = spatial_set.makeIsoSurface(fvalues[0],
-                              display_values[i], color_values);
-                  // System.out.println("makeIsoSurface");
-                  // MEM
-                  GeometryArray geometry = display.makeGeometry(array);
-                  //  FREE
-                  array = null;
-                  appearance = makeAppearance(mode, constant_alpha,
-                                              constant_color, geometry);
-                  Shape3D shape = new Shape3D(geometry, appearance);
-                  group.addChild(shape);
+                  if (fvalues[0] == fvalues[0]) {
+                    // System.out.println("makeIsoSurface at " + fvalues[0]);
+                    array = spatial_set.makeIsoSurface(fvalues[0],
+                                display_values[i], color_values);
+                    // System.out.println("makeIsoSurface");
+                    if (array != null) {
+                      // MEM
+                      GeometryArray geometry = display.makeGeometry(array);
+                      //  FREE
+                      array = null;
+                      appearance = makeAppearance(mode, constant_alpha,
+                                                  constant_color, geometry);
+                      Shape3D shape = new Shape3D(geometry, appearance);
+                      group.addChild(shape);
+                    }
+                  }
                   anyContourCreated = true;
                 }
                 else if (spatialManifoldDimension == 2) {
                   VisADGeometryArray[] arrays =
                     spatial_set.makeIsoLines(fvalues[1], fvalues[2], fvalues[3],
                                   fvalues[4], display_values[i], color_values);
-                  // MEM
-                  GeometryArray geometry = display.makeGeometry(arrays[0]);
-                  //  FREE
-                  arrays[0] = null;
-                  appearance = makeAppearance(mode, constant_alpha,
-                                              constant_color, geometry);
-                  Shape3D shape = new Shape3D(geometry, appearance);
-                  group.addChild(shape);
-                  if (bvalues[1]) {
-                    // System.out.println("makeIsoLines with labels");
-                    // draw labels
+                  if (arrays != null && arrays.length != 0 && arrays[0] != null) {
                     // MEM
-                    geometry = display.makeGeometry(arrays[2]);
+                    GeometryArray geometry = display.makeGeometry(arrays[0]);
                     //  FREE
-                    arrays = null;
+                    arrays[0] = null;
+                    appearance = makeAppearance(mode, constant_alpha,
+                                                constant_color, geometry);
+                    Shape3D shape = new Shape3D(geometry, appearance);
+                    group.addChild(shape);
+                    if (bvalues[1] && arrays[2] != null) {
+                      // System.out.println("makeIsoLines with labels");
+                      // draw labels
+                      // MEM
+                      geometry = display.makeGeometry(arrays[2]);
+                      //  FREE
+                      arrays = null;
+                    }
+                    else if ((!bvalues[1]) && arrays[1] != null) {
+                      // System.out.println("makeIsoLines without labels");
+                      // fill in contour lines in place of labels
+                      // MEM
+                      geometry = display.makeGeometry(arrays[1]);
+                      //  FREE
+                      arrays = null;
+                    }
+                    else {
+                      geometry = null;
+                    }
+                    if (geometry != null) {
+                      appearance = makeAppearance(mode, constant_alpha,
+                                                  constant_color, geometry);
+                      shape = new Shape3D(geometry, appearance);
+                      group.addChild(shape);
+                    }
                   }
-                  else {
-                    // System.out.println("makeIsoLines without labels");
-                    // fill in contour lines in place of labels
-                    // MEM
-                    geometry = display.makeGeometry(arrays[1]);
-                    //  FREE
-                    arrays = null;
-                  }
-                  appearance = makeAppearance(mode, constant_alpha,
-                                              constant_color, geometry);
-                  shape = new Shape3D(geometry, appearance);
-                  group.addChild(shape);
                   anyContourCreated = true;
                 } // end if (spatialManifoldDimension == 3 or 2)
               } // end if (bvalues[0])
@@ -1144,19 +1236,21 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
                                        "bad spatialManifoldDimension");
           }
   
-          // MEM
-          GeometryArray geometry = display.makeGeometry(array);
-          // System.out.println("array.makeGeometry");
+          if (array != null) {
+            // MEM
+            GeometryArray geometry = display.makeGeometry(array);
+            // System.out.println("array.makeGeometry");
   
-          //  FREE
-          array = null;
-          appearance = makeAppearance(mode, constant_alpha,
-                                      constant_color, geometry);
-          Shape3D shape = new Shape3D(geometry, appearance);
-          group.addChild(shape);
-          if (renderer instanceof DirectManipulationRendererJ3D) {
-            ((DirectManipulationRendererJ3D) renderer).
-                                 setSpatialValues(spatial_values);
+            //  FREE
+            array = null;
+            appearance = makeAppearance(mode, constant_alpha,
+                                        constant_color, geometry);
+            Shape3D shape = new Shape3D(geometry, appearance);
+            group.addChild(shape);
+            if (renderer instanceof DirectManipulationRendererJ3D) {
+              ((DirectManipulationRendererJ3D) renderer).
+                                   setSpatialValues(spatial_values);
+            }
           }
         } // end if (!anyContourCreated && !anyFlowCreated)
 
@@ -1255,6 +1349,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             swit.addChild(branch);
             post |= Range.doTransform(branch, ((Field) data).getSample(i),
                                       range_value_array, default_values, renderer);
+            // System.out.println("addChild " + i + " of " + domain_length);
           }
           else {
             post |= Range.doTransform(group, ((Field) data).getSample(i),
@@ -1268,6 +1363,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             branch.setCapability(BranchGroup.ALLOW_DETACH);
             swit.addChild(branch);
             branch.addChild(new Shape3D());
+            // System.out.println("addChild " + i + " of " + domain_length +
+            //                    " MISSING");
           }
         }
       }
@@ -1287,7 +1384,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
  
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */
-  public void postProcess(Group group) throws VisADException { // J3D
+  public void postProcess(Group group) throws VisADException {
     if (((ShadowFunctionOrSetType) adaptedShadowType).getFlat()) {
       int LevelOfDifficulty = getLevelOfDifficulty();
       if (LevelOfDifficulty == LEGAL) {
@@ -1305,7 +1402,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       }
     }
     else {
-      Range.postProcess(group);
+      if (this instanceof ShadowFunctionTypeJ3D) {
+        Range.postProcess(group);
+      }
     }
     AccumulationVector.removeAllElements();
   }

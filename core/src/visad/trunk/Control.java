@@ -100,23 +100,59 @@ public abstract class Control extends Object
   /** set tickFlag according to OldTick and NewTick */
   public synchronized void setTicks() {
     tickFlag = (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
+// System.out.println(getClass().getName() + "  set  tickFlag = " + tickFlag);
     OldTick = NewTick;
+    subSetTicks();
+  }
+
+  public synchronized boolean peekTicks(DataRenderer r, DataDisplayLink link) {
+/*
+boolean flag = (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
+System.out.println(getClass().getName() + "  peek  flag = " + flag +
+                   " trans = " + r.isTransformControl(this, link) + " sub = " +
+                   subPeekTicks(r, link));
+*/
+    return ((OldTick < NewTick || (NewTick < 0 && 0 < OldTick)) &&
+            r.isTransformControl(this, link)) || subPeekTicks(r, link);
   }
 
   /** return true if Control changed and requires re-Transform */
   public synchronized boolean checkTicks(DataRenderer r, DataDisplayLink link) {
-    return (tickFlag && r.isTransformControl(this, link)) || subTicks(r, link);
+/*
+System.out.println(getClass().getName() + "  check  tickFlag = " + tickFlag +
+                   " trans = " + r.isTransformControl(this, link) + " sub = " +
+                   subCheckTicks(r, link));
+*/
+    return (tickFlag && r.isTransformControl(this, link)) || subCheckTicks(r, link);
+  }
+
+  /** reset tickFlag */
+  public synchronized void resetTicks() {
+// System.out.println(getClass().getName() + "  reset");
+    tickFlag = false;
+    subResetTicks();
+  }
+
+  /** run setTicks on any sub-Controls;
+      this default for no sub-Controls */
+  public void subSetTicks() {
   }
 
   /** run checkTicks on any sub-Controls;
       this default for no sub-Controls */
-  public boolean subTicks(DataRenderer r, DataDisplayLink link) {
+  public boolean subCheckTicks(DataRenderer r, DataDisplayLink link) {
     return false;
   }
  
-  /** reset tickFlag */
-  synchronized void resetTicks() {
-    tickFlag = false;
+  /** run peekTicks on any sub-Controls;
+      this default for no sub-Controls */
+  public boolean subPeekTicks(DataRenderer r, DataDisplayLink link) {
+    return false;
+  }
+
+  /** run resetTicks on any sub-Controls;
+      this default for no sub-Controls */
+  public void subResetTicks() {
   }
 
   void setIndex(int index) {
