@@ -22,6 +22,7 @@
 default:
 	@echo "Type one of the following:"
 	@echo "	make compile		to compile .java files"
+	@echo "	make debug		to compile .java files for debugging"
 	@echo "	make tar		to make visad_src-2.0.tar.Z"
 	@echo "	make jar		to make visad_src-2.0.jar"
 	@echo "	make save		save files to the backup sub-directory"
@@ -259,6 +260,10 @@ RMIC = \
 	visad.RemoteFunctionImpl \
 	visad.RemoteFieldImpl \
 	visad.RemoteServerImpl
+
+debug:
+	make compile \
+	"JFLAGS = -J-mx32m -g"
 
 compile: clean
 	$(JC) $(JFLAGS) *.java
