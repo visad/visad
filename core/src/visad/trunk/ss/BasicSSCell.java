@@ -128,7 +128,7 @@ public class BasicSSCell extends JPanel {
       }
     }
     Name = name;
-    SSCellVector.addElement(this);
+    SSCellVector.add(this);
     CellImpl ucell = new CellImpl() {
       public void doAction() {
         // redisplay this cell's data when it changes
@@ -346,7 +346,7 @@ public class BasicSSCell extends JPanel {
   private static void parseScalar(ScalarType mathType, Vector v, int[] i) {
     if (mathType instanceof RealType) {
       if (v.contains(mathType)) i[0]++;
-      v.addElement(mathType);
+      v.add(mathType);
     }
   }
 
@@ -607,6 +607,13 @@ public class BasicSSCell extends JPanel {
     RMIAddress = null;
     clearDisplay();
     setData(null);
+  }
+
+  /** clear this cell completely and permanently remove it from the
+      list of created cells */
+  public void destroyCell() throws VisADException, RemoteException {
+    clearCell();
+    SSCellVector.remove(this);
   }
 
   /** set this cell's Data to data */

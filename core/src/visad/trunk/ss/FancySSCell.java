@@ -298,14 +298,28 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     return true;
   }
 
-  /** Clear the cell if no other cell depends it;  otherwise, ask the
-      user "Are you sure?" */
-  public void smartClear() throws VisADException, RemoteException {
+  /** Clear the cell if no other cell depends on it; otherwise, ask the
+      user "Are you sure?"  Return true if the cell was cleared */
+  public boolean smartClear() throws VisADException, RemoteException {
     if (confirmClear()) {
       clearWidgetFrame();
       clearCell();
+      return true;
     }
+    else return false;
   }
+
+  /** Permanently destroy this cell, asking user for confirmation first
+      if other cells depend on it.  Return true if the cell was destroyed */
+  public boolean smartDestroy() throws VisADException, RemoteException {
+    if (confirmClear()) {
+      clearWidgetFrame();
+      destroyCell();
+      return true;
+    }
+    else return false;
+  }
+
 
   /** Let the user create ScalarMaps from the current SSPanel's Data
       to its Display */
