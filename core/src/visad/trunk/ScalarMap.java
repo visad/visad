@@ -863,6 +863,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
                         axisScale.getAxis(),
                         axisScale.getAxisOrdinal(),
                         axisScale.getScaleArray(), 
+                        axisScale.getLabelArray(), 
                         axisScale.getColor().getColorComponents(null));
             }
             scale_flag = false;

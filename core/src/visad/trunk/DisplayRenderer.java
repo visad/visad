@@ -194,12 +194,44 @@ public abstract class DisplayRenderer
    */
   public abstract BufferedImage getImage();
 
+  /**
+   * Set the scale for the appropriate axis.
+   * @param  axis  axis for this scale (0 = XAxis, 1 = YAxis, 2 = ZAxis)
+   * @param  axis_ordinal  position along the axis
+   * @param  array   <CODE>VisADLineArray</CODE> representing the scale plot
+   * @param  scale_color   array (dim 3) representing the red, green and blue
+   *                       color values.
+   * @throws  VisADException  couldn't set the scale
+   */
   public abstract void setScale(int axis, int axis_ordinal,
                   VisADLineArray array, float[] scale_color)
          throws VisADException;
 
+  /**
+   * Set the scale for the appropriate axis.
+   * @param  axis  axis for this scale (0 = XAxis, 1 = YAxis, 2 = ZAxis)
+   * @param  axis_ordinal  position along the axis
+   * @param  array   <CODE>VisADLineArray</CODE> representing the scale plot
+   * @param  labels  <CODE>VisADTriangleArray</CODE> representing the labels
+   *                 created using a font (can be null)
+   * @param  scale_color   array (dim 3) representing the red, green and blue
+   *                       color values.
+   * @throws  VisADException  couldn't set the scale
+   */
+  public abstract void setScale(int axis, int axis_ordinal,
+                  VisADLineArray array, VisADTriangleArray labels, 
+                  float[] scale_color)
+         throws VisADException;
+
+  /**
+   * Remove all the scales being rendered.
+   */
   public abstract void clearScales();
 
+  /**
+   * Allow scales to be displayed if they are set on.
+   * @param  on   true to turn them on, false to set them invisible
+   */
   public abstract void setScaleOn(boolean on);
 
   /**

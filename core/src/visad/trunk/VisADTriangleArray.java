@@ -32,11 +32,28 @@ package visad;
 */
 public class VisADTriangleArray extends VisADGeometryArray {
 
+  /**
+   * Clone this VisADTriangleArray
+   * @return clone of this
+   */
   public Object clone() {
     VisADTriangleArray array = new VisADTriangleArray();
     copy(array);
     return array;
   }
 
+  /**
+   * Merge an array of VisADTriangleArrays into a single VisADTriangleArray.
+   * @param  arrays  array of VisADTriangleArrays (may be null)
+   * @return a single VisADTriangleArray with all the info of arrays.
+   *         returns null if input is null.
+   */
+  public static VisADTriangleArray merge(VisADTriangleArray[] arrays)
+         throws VisADException {
+    if (arrays == null || arrays.length == 0) return null;
+    VisADTriangleArray array = new VisADTriangleArray();
+    merge(arrays, array);
+    return array;
+  }
 }
 

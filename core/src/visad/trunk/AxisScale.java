@@ -29,6 +29,8 @@ package visad;
 import visad.*;
 import java.awt.Color;
 import java.rmi.RemoteException;
+import java.util.*;
+import java.awt.Font;
 
 /**
  * Class which defines the scales displayed along the spatial axes
@@ -47,16 +49,20 @@ public class AxisScale implements java.io.Serializable
   public final static int Z_AXIS = 2;
 
   private VisADLineArray scaleArray;
+  private VisADTriangleArray labelArray;
   private ScalarMap scalarMap;
-  private String label;
   private Color myColor = Color.white;
-  private static final double SCALE = 0.06;
-  private static final double OFFSET = 1.05;
   private double[] dataRange = new double[2];
   private int myAxis = -1;
-  private DisplayImpl display;
   private int axisOrdinal = -1;
   private String myLabel;
+  private Hashtable labelTable;
+  protected double majorTickSpacing = 0.0;
+  protected double minorTickSpacing = 0.0;
+  protected boolean autoComputeTicks = true;
+  protected boolean baseLineVisible = true;
+  protected boolean snapToBox = false;
+  private Font labelFont = null;
 
   /**
    * Construct a new AxisScale for the given ScalarMap
@@ -77,6 +83,7 @@ public class AxisScale implements java.io.Serializable
     myAxis = (displayScalar.equals(Display.XAxis)) ? X_AXIS :
        (displayScalar.equals(Display.YAxis)) ? Y_AXIS : Z_AXIS;
     myLabel = scalarMap.getScalarName();
+    labelTable = new Hashtable();
     boolean ok = makeScale();
   }
 
@@ -107,9 +114,15 @@ public class AxisScale implements java.io.Serializable
    */
   public void setLabel(String label)
   {
+    String oldLabel = myLabel;
     myLabel = label;
-    if (!scalarMap.getScalarName().equals(label))
-      scalarMap.setScalarName(label);
+    if (!myLabel.equals(oldLabel) ) {
+      try {
+        scalarMap.setScalarName(myLabel);
+        scalarMap.makeScale();  // update the display
+      }
+      catch (VisADException ve) {;}
+    }
   }
 
   /**
@@ -140,6 +153,15 @@ public class AxisScale implements java.io.Serializable
   }
 
   /**
+   * Get the labels rendered with a font to pass to the renderer.
+   * @return  VisADTriangleArray representing the labels
+   */
+  public VisADTriangleArray getLabelArray()
+  {
+    return labelArray;
+  }
+
+  /**
    * Create the scale.
    * @return  true if scale was successfully created, otherwise false
    */
@@ -153,7 +175,9 @@ public class AxisScale implements java.io.Serializable
       axisOrdinal = displayRenderer.getAxisOrdinal(myAxis);
     }
     dataRange = scalarMap.getRange();
-    VisADLineArray[] arrays = new VisADLineArray[4];
+    //VisADLineArray[] arrays = new VisADLineArray[4];
+    Vector lineArrayVector = new Vector(4);
+    Vector labelArrayVector = new Vector();
     boolean twoD = displayRenderer.getMode2D();
   
   // now create scale along axis at axisOrdinal position in array
@@ -179,6 +203,14 @@ public class AxisScale implements java.io.Serializable
     double YMIN = -aspect[1];
     double ZMIN = -aspect[2];
 
+    // set scale according to font size (default to old value);
+    double SCALE = (labelFont != null) ? labelFont.getSize()/200. : 0.06;
+    double OFFSET = 1.05;
+
+    if (snapToBox) {
+      OFFSET = 1.0;
+      setAxisOrdinal(0);
+    }
     double line = 2.0 * axisOrdinal * SCALE;
   
     double ONE = 1.0;
@@ -238,69 +270,144 @@ public class AxisScale implements java.io.Serializable
     double range = Math.abs(dataRange[1] - dataRange[0]);
     double min = Math.min(dataRange[0], dataRange[1]);
     double max = Math.max(dataRange[0], dataRange[1]);
-    double tens = 1.0;
-    if (range < tens) {
-      tens /= 10.0;
-      while (range < tens) tens /= 10.0;
+    /*  Change DRM */
+    if (autoComputeTicks || majorTickSpacing <= 0)
+    {
+      double tens = 1.0;
+      if (range < tens) {
+        tens /= 10.0;
+        while (range < tens) tens /= 10.0;
+      }
+      else {
+        while (10.0 * tens <= range) tens *= 10.0;
+      }
+      // now tens <= range < 10.0 * tens;
+      double ratio = range / tens;
+      if (ratio < 2.0) {
+        tens /= 5.0;
+      }
+      else if (ratio < 4.0) {
+        tens /= 2.0;
+      }
+      majorTickSpacing = tens;
     }
-    else {
-      while (10.0 * tens <= range) tens *= 10.0;
-    }
-    // now tens <= range < 10.0 * tens;
-    double ratio = range / tens;
-    if (ratio < 2.0) {
-      tens /= 5.0;
-    }
-    else if (ratio < 4.0) {
-      tens /= 2.0;
-    }
-    // now tens = interval between tick marks
+
+    // now tens = interval between major tick marks
   
+    /* Change DRM
     long bot = (int) Math.ceil(min / tens);
     long top = (int) Math.floor(max / tens);
+    */
+    long bot = (int) Math.ceil(min / majorTickSpacing);
+    long top = (int) Math.floor(max / majorTickSpacing);
+
     if (bot == top) {
       if (bot < 0) top++;
       else bot--;
     }
-    // now bot * tens = value of lowest tick mark, and
-    // top * tens = values of highest tick mark
+    // now bot * majorTickSpacing = value of lowest tick mark, and
+    // top * majorTickSpacing = values of highest tick mark
 
-    arrays[0] = new VisADLineArray();
-    int nticks = (int) (top - bot) + 1;
+    //arrays[0] = new VisADLineArray();
+    // base line for axis
     // coordinates has three entries for (x, y, z) of each point
     // two points determine a line segment,
     // hence 6 coordinates entries per segment
-    float[] coordinates = new float[6 * (nticks + 1)];
-    // draw base line
-    for (int i=0; i<3; i++) { // loop over x, y & z coordinates
-      coordinates[i] = (float) startn[i];
-      coordinates[3 + i] = (float) startp[i];
+    if (baseLineVisible) // draw base line
+    {
+      VisADLineArray baseLineArray = new VisADLineArray();
+      float[] lineCoordinates = new float[6];
+      for (int i=0; i<3; i++) { // loop over x, y & z coordinates
+        lineCoordinates[i] = (float) startn[i];
+        lineCoordinates[3 + i] = (float) startp[i];
+      }
+      baseLineArray.vertexCount = 2;
+      baseLineArray.coordinates = lineCoordinates;
+      lineArrayVector.add(baseLineArray);
     }
-    // now coordinates[0], [1] and [2]
   
-    // draw tick marks
-    int k = 6;
-    for (long j=bot; j<=top; j++) {
-      double val = j * tens;
+    // draw major tick marks
+    VisADLineArray majorTickArray = new VisADLineArray();
+    int nticks = (int) (top - bot) + 1;
+    float[] majorCoordinates = new float[6 * nticks];
+    int k = 0;
+    for (long j=bot; j<=top; j++) { // loop over x, y & z coordinates
+      double val = j * majorTickSpacing;  // DRM
       double a = (val - min) / (max - min);
       for (int i=0; i<3; i++) {
-        if ((k + 3 + i) < coordinates.length) {
+        if ((k + 3 + i) < majorCoordinates.length) {
           // guard against error that cannot happen, but was seen?
-          coordinates[k + i] = (float) ((1.0 - a) * startn[i] + a * startp[i]);
-          coordinates[k + 3 + i] = (float) (coordinates[k + i] - 0.5 * up[i]);
+          majorCoordinates[k + i] = 
+            (float) ((1.0 - a) * startn[i] + a * startp[i]);
+          majorCoordinates[k + 3 + i] = 
+            (float) (majorCoordinates[k + i] - 0.5 * up[i]);
         }
       }
       k += 6;
     }
+    /* change DRM
     arrays[0].vertexCount = 2 * (nticks + 1);
     arrays[0].coordinates = coordinates;
+    */
+    majorTickArray.vertexCount = 2 * (nticks);
+    majorTickArray.coordinates = majorCoordinates;
+    lineArrayVector.add(majorTickArray);
   
+    if (getMinorTickSpacing() > 0)  // create an array for the minor ticks
+    {
+      long lower = (int) Math.ceil(min / minorTickSpacing);
+      long upper = (int) Math.floor(max / minorTickSpacing);
+
+      if (lower == upper) {
+        if (lower < 0) upper++;
+        else lower--;
+      }
+      // now lower * minorTickSpacing = value of lowest tick mark, and
+      // upper * minorTickSpacing = values of highest tick mark
+  
+      VisADLineArray minorTickArray = new VisADLineArray();
+      nticks = (int) (upper - lower) + 1;
+      // coordinates has three entries for (x, y, z) of each point
+      // two points determine a line segment,
+      // hence 6 coordinates entries per segment
+      float[] minorCoordinates = new float[6 * (nticks + 1)];
+      /*
+      // draw base line
+      for (int i=0; i<3; i++) { // loop over x, y & z coordinates
+        minorCoordinates[i] = (float) startn[i];
+        minorCoordinates[3 + i] = (float) startp[i];
+      }
+      */
+      // now minorCoordinates[0], [1] and [2]
+    
+      // draw tick marks
+      k = 0;
+      for (long j=lower; j<=upper; j++) {
+        double val = j * minorTickSpacing;  // DRM
+        double a = (val - min) / (max - min);
+        for (int i=0; i<3; i++) {
+          if ((k + 3 + i) < minorCoordinates.length) {
+            // guard against error that cannot happen, but was seen?
+            minorCoordinates[k + i] = 
+              (float) ((1.0 - a) * startn[i] + a * startp[i]);
+            minorCoordinates[k + 3 + i] = 
+              (float) (minorCoordinates[k + i] - 0.25 * up[i]);
+          }
+        }
+        k += 6;
+      }
+      minorTickArray.vertexCount = 2 * (nticks + 1);
+      minorTickArray.coordinates = minorCoordinates;
+      lineArrayVector.add(minorTickArray);
+    }
+  
+    // labels
     double[] startbot = new double[3];
     double[] starttop = new double[3];
     double[] startlabel = new double[3];
     // compute positions along axis of low and high tick marks
-    double botval = bot * tens;
-    double topval = top * tens;
+    double botval = bot * majorTickSpacing;  // DRM
+    double topval = top * majorTickSpacing;  // DRM
     double abot = (botval - min) / (max - min);
     double atop = (topval - min) / (max - min);
     for (int i=0; i<3; i++) {
@@ -311,9 +418,24 @@ public class AxisScale implements java.io.Serializable
     // all labels rendered with 'true' for centered
   
     // draw RealType name
+    /* Change DRM
     arrays[1] = PlotText.render_label(myLabel, startlabel,
                     base, up, true);
+    */
+    if (labelFont == null)
+    {
+      VisADLineArray plotArray = 
+        PlotText.render_label(myLabel, startlabel, base, up, true);
+      lineArrayVector.add(plotArray);
+    }
+    else
+    {
+      VisADTriangleArray nameArray = 
+        PlotText.render_font(myLabel, labelFont, startlabel, base, up, true);
+      labelArrayVector.add(nameArray);
+    }
   
+    labelTable.clear();
     String botstr = PlotText.shortString(botval);
     String topstr = PlotText.shortString(topval);
     if (RealType.Time.equals(scalarMap.getScalar())) {
@@ -321,12 +443,61 @@ public class AxisScale implements java.io.Serializable
       botstr = new Real(rtype, botval).toValueString();
       topstr = new Real(rtype, topval).toValueString();
     }
+    /* change DRM
     // draw number at bottom tick mark
     arrays[2] = PlotText.render_label(botstr, startbot, base, up, true);
     // draw number at top tick mark
     arrays[3] = PlotText.render_label(topstr, starttop, base, up, true);
+    */
+    labelTable.put(startbot, botstr);
+    labelTable.put(starttop, topstr);
+    for (Enumeration e = labelTable.keys(); e.hasMoreElements();)
+    {
+      double[] val = (double[]) e.nextElement();
+      if (labelFont == null)
+      {
+        VisADLineArray label = 
+            PlotText.render_label(
+              (String) labelTable.get(val), val, base, up, true);
+        lineArrayVector.add(label);
+      }
+      else
+      {
+        VisADTriangleArray label = 
+            PlotText.render_font(
+              (String) labelTable.get(val), labelFont, val, base, up, true);
+        labelArrayVector.add(label);
+      }
+    }
   
+    // merge the line arrays
+    VisADLineArray[] arrays = 
+        (VisADLineArray[]) lineArrayVector.toArray(
+          new VisADLineArray[lineArrayVector.size()]);
     scaleArray = VisADLineArray.merge(arrays);
+
+    // merge the label arrays
+    if ( !(labelArrayVector.isEmpty()) )
+    {
+      VisADTriangleArray[] labelArrays = 
+          (VisADTriangleArray[]) labelArrayVector.toArray(
+            new VisADTriangleArray[labelArrayVector.size()]);
+      labelArray = VisADTriangleArray.merge(labelArrays);
+      // set the color for the label arrays
+      float[] rgb = myColor.getColorComponents(null);
+      byte red = ShadowType.floatToByte(rgb[0]);
+      byte green = ShadowType.floatToByte(rgb[1]);
+      byte blue = ShadowType.floatToByte(rgb[2]);
+      int n = 3 * labelArray.vertexCount;
+      byte[] colors = new byte[n];
+      for (int i=0; i<n; i+=3) {
+        colors[i] = red;
+        colors[i+1] = green;
+        colors[i+2] = blue;
+      }
+      labelArray.colors = colors;
+    }
+
     return true;
   }
   
@@ -378,6 +549,207 @@ public class AxisScale implements java.io.Serializable
     newScale.axisOrdinal = axisOrdinal;
     newScale.myAxis = myAxis;
     newScale.myLabel = myLabel;
+    newScale.labelTable = (Hashtable) labelTable.clone();
+    newScale.majorTickSpacing = majorTickSpacing;
+    newScale.minorTickSpacing = minorTickSpacing;
+    newScale.autoComputeTicks = autoComputeTicks;
+    newScale.baseLineVisible = baseLineVisible;
+    newScale.snapToBox = snapToBox;
+    newScale.labelFont = labelFont;
     return newScale;
+  }
+
+  /**
+   * Set major tick mark spacing. The number that is passed-in represents 
+   * the distance, measured in values, between each major tick mark. If you 
+   * have a ScalarMap with a range from 0 to 50 and the major tick spacing 
+   * is set to 10, you will get major ticks next to the following values: 
+   * 0, 10, 20, 30, 40, 50.  This value will always be used unless
+   * you call <CODE>setAutoComputeTicks</CODE> with a <CODE>true</CODE> value.
+   * @param spacing  spacing between major tick marks (must be > 0)
+   * @see #getMajorTickSpacing
+   * @see #autoComputeTicks
+   */
+  public void setMajorTickSpacing(double spacing)
+  {
+    double oldValue = majorTickSpacing;
+    majorTickSpacing = Math.abs(spacing);
+    autoComputeTicks = false;
+    if (majorTickSpacing != oldValue) {
+      try {
+        scalarMap.makeScale();  // update the display
+      }
+      catch (VisADException ve) {;}
+    }
+  }
+
+  /**
+   * This method returns the major tick spacing.  The number that is returned
+   * represents the distance, measured in values, between each major tick mark.
+   *
+   * @return the number of values between major ticks
+   * @see #setMajorTickSpacing
+   */
+  public double getMajorTickSpacing() {
+    return majorTickSpacing;
+  }
+
+  /**
+   * Set minor tick mark spacing. The number that is passed-in represents 
+   * the distance, measured in values, between each minor tick mark. If you 
+   * have a ScalarMap with a range from 0 to 50 and the minor tick spacing 
+   * is set to 10, you will get minor ticks next to the following values: 
+   * 0, 10, 20, 30, 40, 50.  This value will always be used unless
+   * you call <CODE>setAutoComputeTicks</CODE> with a <CODE>true</CODE> value.
+   * @param spacing  spacing between minor tick marks (must be > 0)
+   * @see #getMinorTickSpacing
+   * @see #autoComputeTicks
+   */
+  public void setMinorTickSpacing(double spacing)
+  {
+    double oldValue = minorTickSpacing;
+    minorTickSpacing = Math.abs(spacing);
+    if (minorTickSpacing != oldValue) {
+      try {
+        scalarMap.makeScale();  // update the display
+      }
+      catch (VisADException ve) {;}
+    }
+  }
+
+  /**
+   * This method returns the minor tick spacing.  The number that is returned
+   * represents the distance, measured in values, between each minor tick mark.
+   *
+   * @return the number of values between minor ticks
+   * @see #setMinorTickSpacing
+   */
+  public double getMinorTickSpacing() {
+    return minorTickSpacing;
+  }
+
+  /**
+   * Allow the AxisScale to automatically compute the desired majorTickSpacing
+   * based on the range of the ScalarMap.
+   * @param true  have majorTickSpacing automatically computed.
+   */
+  public void setAutoComputeTicks(boolean b)
+  {
+    boolean oldValue = autoComputeTicks;
+    autoComputeTicks = b;
+    if (autoComputeTicks != oldValue) {
+      try {
+        scalarMap.makeScale();  // update the display
+      }
+      catch (VisADException ve) {;}
+    }
+  }
+
+  /**
+   * Creates a hashtable that will draw text labels starting at the
+   * starting point specified using the increment field.
+   * If you call createStandardLabels(10.0, 2.0), then it will
+   * make labels for the values 2, 12, 22, 32, etc.
+   * @see #setLabelTable
+  public Hashtable createStandardLabels(double increment, double start)
+  {
+      return labelTable;
+  }
+   */
+
+  /**
+   * Used to specify what label will be drawn at any given value.
+   * The key-value pairs are of this format: 
+   *     <B>{ Double value, java.lang.String}</B>
+   *
+   * @param  labels  map of value/label pairs
+   * @throws VisADException  invalid hashtable
+   * @see #getLabelTable
+   */
+  public void setLabelTable( Hashtable labels ) 
+    throws VisADException
+  {
+      Map oldTable = labelTable;
+      labelTable = labels;
+      if (labels != oldTable) {
+          scalarMap.makeScale();  // update the display
+      }
+  }
+
+  /**
+   * Set the font used for rendering the labels
+   * @param font  new font to use
+   */
+  public void setFont(Font font)
+  {
+    Font oldFont = labelFont;
+    labelFont = font;
+    if ((labelFont == null && oldFont != null) || !labelFont.equals(oldFont)) 
+    {
+      try {
+        scalarMap.makeScale();  // update the display
+      }
+      catch (VisADException ve) {;}
+    }
+  }
+
+  /**
+   * Get the font used for rendering the labels
+   * @return  font use or null if using default text plot
+   */
+  public Font getFont()
+  {
+    return labelFont;
+  }
+
+  /**
+   * Set visibility of base line.
+   * @param  visible   true to display (default), false to turn off
+   */
+  public void setBaseLineVisible(boolean visible)
+  {
+    boolean oldValue = baseLineVisible;
+    baseLineVisible = visible;
+    if (baseLineVisible != oldValue) {
+      try {
+        scalarMap.makeScale();  // update the display
+      }
+      catch (VisADException ve) {;}
+    }
+  }
+
+  /**
+   * Determine whether the base line for the scale should be visible
+   * @return  true if line is visible, otherwise false;
+   */
+  public boolean getBaseLineVisible()
+  {
+    return baseLineVisible;
+  }
+
+  /**
+   * Toggle whether the scale is along the box edge or not
+   * @param b   true to snap to the box
+   */
+  public void setSnapToBox(boolean b)
+  {
+    boolean oldValue = snapToBox;
+    snapToBox = b;
+    if (snapToBox != oldValue) {
+      setAxisOrdinal(-1);
+      try {
+        scalarMap.makeScale();  // update the display
+      }
+      catch (VisADException ve) {;}
+    }
+  }
+
+  /**
+   * Determine whether this property is set.
+   * @return  true if property is set, otherwise false;
+   */
+  public boolean getSnapToBox()
+  {
+    return snapToBox;
   }
 }

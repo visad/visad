@@ -819,14 +819,33 @@ public abstract class DisplayRendererJ3D
 
   /**
    * Set the scale for the appropriate axis.
-   * @param  axis  axis for this scale
+   * @param  axis  axis for this scale (0 = XAxis, 1 = YAxis, 2 = ZAxis)
    * @param  axis_ordinal  position along the axis
    * @param  array   <CODE>VisADLineArray</CODE> representing the scale plot
    * @param  scale_color   array (dim 3) representing the red, green and blue
    *                       color values.
+   * @throws  VisADException  couldn't set the scale
    */
   public void setScale(int axis, int axis_ordinal,
               VisADLineArray array, float[] scale_color)
+         throws VisADException {
+    setScale(axis, axis_ordinal, array, null, scale_color);
+  }
+
+  /**
+   * Set the scale for the appropriate axis.
+   * @param  axis  axis for this scale (0 = XAxis, 1 = YAxis, 2 = ZAxis)
+   * @param  axis_ordinal  position along the axis
+   * @param  array   <CODE>VisADLineArray</CODE> representing the scale plot
+   * @param  labels  <CODE>VisADTriangleArray</CODE> representing the labels
+   *                 created using a font (can be null)
+   * @param  scale_color   array (dim 3) representing the red, green and blue
+   *                       color values.
+   * @throws  VisADException  couldn't set the scale
+   */
+  public void setScale(int axis, int axis_ordinal,
+              VisADLineArray array, VisADTriangleArray labels,
+              float[] scale_color)
          throws VisADException {
     // add array to scale_on
     // replace any existing at axis, axis_ordinal
@@ -842,6 +861,14 @@ public abstract class DisplayRendererJ3D
     group.setCapability(BranchGroup.ALLOW_DETACH);
     group.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
     group.addChild(shape);
+    if (labels != null)
+    {
+        GeometryArray labelGeometry = display.makeGeometry(labels);
+        Appearance labelAppearance =
+          ShadowTypeJ3D.makeAppearance(mode, null, null, labelGeometry, true);
+        Shape3D labelShape = new Shape3D(labelGeometry, labelAppearance);
+        group.addChild(labelShape);
+    }
     // may only add BranchGroup to 'live' scale_on
     int dim = getMode2D() ? 2 : 3;
     synchronized (scale_on) {
@@ -888,8 +915,13 @@ public abstract class DisplayRendererJ3D
   }
 
   /**
-   * Make the appropriate J3D control for the given <CODE>ScalarMap</CODE>
-   * @return  new control
+   * Factory for constructing a subclass of <CODE>Control</CODE>
+   * appropriate for the graphics API and for this
+   * <CODE>DisplayRenderer</CODE>; invoked by <CODE>ScalarMap</CODE>
+   * when it is <CODE>addMap()</CODE>ed to a <CODE>Display</CODE>.
+   * @param map The <CODE>ScalarMap</CODE> for which a <CODE>Control</CODE>
+   *            should be built.
+   * @return The appropriate <CODE>Control</CODE>.
    */
   public Control makeControl(ScalarMap map) {
     DisplayRealType type = map.getDisplayScalar();

@@ -185,7 +185,15 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     return ShadowType.makePointGeometry(spatial_values, color_values);
   }
 
-  /** construct an Appearance object */
+  /** 
+   * Construct an Appearance object from a GeometryArray
+   * @param  mode  GraphicsModeControl
+   * @param  constant_alpha  transparency attributes
+   * @param  constant_color  color to use
+   * @param  geometry   geometry to use for the appearance
+   * @param  no_material  true to not use a Material for illumination, 
+   *                      false to use it for 2-D geometries
+   */
   public static Appearance makeAppearance(GraphicsModeControl mode,
                       TransparencyAttributes constant_alpha,
                       ColoringAttributes constant_color,
