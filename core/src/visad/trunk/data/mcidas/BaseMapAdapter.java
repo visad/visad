@@ -65,11 +65,13 @@ public class BaseMapAdapter {
   private int ylast = 0;
 
 
-  /** Create a VisAD UnionSet from a local McIDAS Base Map file
-    * @param filename name of local file.
-    * @exception IOException if there was a problem reading the file.
-    * @exception VisADException if an unexpected problem occurs.
-    */
+  /** 
+   * Create a VisAD UnionSet from a local McIDAS Base Map file
+   *
+   * @param filename name of local file.
+   * @exception IOException if there was a problem reading the file.
+   * @exception VisADException if an unexpected problem occurs.
+   */
   public BaseMapAdapter(String filename) throws IOException, VisADException {
     din = new DataInputStream ( 
         new BufferedInputStream(new FileInputStream(filename)) );
@@ -80,11 +82,14 @@ public class BaseMapAdapter {
   }
 
 
-  /** Create a VisAD UnionSet from a McIDAS Base Map file on the Web
-    * @param URL & filename name of remote file
-    * @exception IOException if there was a problem reading the file.
-    * @exception VisADException if an unexpected problem occurs.
-    */
+  /** 
+   * Create a VisAD UnionSet from a McIDAS Base Map file on the Web
+   *
+   * @param URL & filename name of remote file
+   *
+   * @exception IOException if there was a problem reading the URL.
+   * @exception VisADException if an unexpected problem occurs.
+   */
   public BaseMapAdapter(URL url) throws IOException, VisADException {
 
     din = new DataInputStream ( url.openStream() );
@@ -169,14 +174,17 @@ public class BaseMapAdapter {
       computeLimits();
   }
 
-  /** define a CoordinateSystem whose fromReference() will
-   *  be used to transform points from latitude/longitude
-   *  into element,line.
+  /** 
+   * Define a CoordinateSystem whose fromReference() will
+   * be used to transform points from latitude/longitude
+   * into element,line.
    *
    * @param CoordinateSystem is that
    * @param numEles is number of elements (x)
    * @param numLines is number of lines (y)
    * @param domain is the desired domain (ordered element, line)
+   *
+   * @exception  VisADException  a necessary VisAD object could not be created
    */
   public void setCoordinateSystem(CoordinateSystem cs, int numEles, 
                           int numLines, RealTupleType domain) 
@@ -192,10 +200,13 @@ public class BaseMapAdapter {
     computeLimits();
   }
 
+  /**
+   * Set the MathType of the UnionSet to be lat/lon.
+   */
   public void doByLatLon() {
     isCoordinateSystem = false;
     try {
-    coordMathType = new RealTupleType(RealType.Latitude, RealType.Longitude);
+      coordMathType = new RealTupleType(RealType.Latitude, RealType.Longitude);
     } catch (Exception ert) {;}
   }
 
@@ -363,8 +374,9 @@ public class BaseMapAdapter {
     * so the UnionSet (a union of Gridded2DSets) will have
     * lat/lon values.  Each Gridded2DSet is a line segment that
     * is supposed to be drawn as a continuous line.
-    * The UnionSet is null if there are no maplines in the domain
-    * of the display.
+    *
+    * @return  UnionSet of maplines or null if there are no maplines 
+    *          in the domain of the display.
     */
   public UnionSet getData() {
 
@@ -441,7 +453,10 @@ public class BaseMapAdapter {
 
       }
 
+      /* DRM - 03-Jan-2000
       if (sets.size() > 1)  // need at least two for a UnionSet
+      */
+      if (!sets.isEmpty())  // need at least one for a UnionSet
       {
         Gridded2DSet[] basemaplines = new Gridded2DSet[sets.size()];
         sets.copyInto(basemaplines);
