@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: MD5Key.java,v 1.2 2001-02-22 18:10:41 steve Exp $
+$Id: MD5Key.java,v 1.3 2001-03-15 15:53:29 steve Exp $
 */
 
 package visad.data.in;
@@ -106,7 +106,7 @@ public class MD5Key
     public boolean equals(Object obj)
     {
 	boolean	equals;
-	if (!(obj instanceof MD5Key))
+	if (!getClass().isInstance(obj))
 	{
 	    equals = false;
 	}

@@ -145,7 +145,7 @@ public final class ScaleUnpacker
     public boolean equals(Object obj)
     {
 	boolean	equals;
-	if (!(obj instanceof ScaleUnpacker))
+	if (!getClass().isInstance(obj))
 	{
 	    equals = false;
 	}

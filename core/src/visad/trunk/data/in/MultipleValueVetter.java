@@ -170,7 +170,7 @@ final class MultipleValueVetter
     public boolean equals(Object obj)
     {
 	boolean	equals;
-	if (!(obj instanceof MultipleValueVetter))
+	if (!getClass().isInstance(obj))
 	{
 	    equals = false;
 	}

@@ -164,7 +164,7 @@ final class DoubleValueVetter
     public boolean equals(Object obj)
     {
 	boolean	equals;
-	if (!(obj instanceof DoubleValueVetter))
+	if (!getClass().isInstance(obj))
 	{
 	    equals = false;
 	}

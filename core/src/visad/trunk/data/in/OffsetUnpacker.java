@@ -135,7 +135,7 @@ public final class OffsetUnpacker
     public boolean equals(Object obj)
     {
 	boolean	equals;
-	if (!(obj instanceof OffsetUnpacker))
+	if (!getClass().isInstance(obj))
 	{
 	    equals = false;
 	}

@@ -145,7 +145,7 @@ final class SingleValueVetter
     public boolean equals(Object obj)
     {
 	boolean	equals;
-	if (!(obj instanceof SingleValueVetter))
+	if (!getClass().isInstance(obj))
 	{
 	    equals = false;
 	}

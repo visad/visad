@@ -221,7 +221,7 @@ public class ValueRanger
     public boolean equals(Object obj)
     {
 	boolean	equals;
-	if (!(obj instanceof ValueRanger))
+	if (!getClass().isInstance(obj))
 	{
 	    equals = false;
 	}

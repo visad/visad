@@ -155,7 +155,7 @@ public final class ScaleAndOffsetUnpacker
     public boolean equals(Object obj)
     {
 	boolean	equals;
-	if (!(obj instanceof ScaleAndOffsetUnpacker))
+	if (!getClass().isInstance(obj))
 	{
 	    equals = false;
 	}
