@@ -36,7 +36,7 @@ import java.util.Date;
  *
  * @author Alex McManus
  * @author Russ Rew
- * @version $Id: RandomAccessFile.java,v 1.1.1.2 2000-08-28 21:44:50 dglo Exp $
+ * @version $Id: RandomAccessFile.java,v 1.1.1.3 2000-08-28 21:45:47 dglo Exp $
  * @see DataInput
  * @see DataOutput
  * @see java.io.RandomAccessFile */
@@ -1513,9 +1513,9 @@ implements DataInput, DataOutput {
     * (which is 4.5 times the size of the buffer).
     *
     * @param argv  Usage: <testFilename> [bufferSize] [test | benchmark]
-    * @see testBytes
-    * @see testBlocks
-    * @see benchmark
+    * @see #testBytes(String filename, int bufferSize)
+    * @see #testBlocks(String filename)
+    * @see #benchmark(String filename, int bufferSize)
     */
    public static void main( String argv[] ) {
 

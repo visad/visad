@@ -29,7 +29,7 @@ import java.lang.reflect.InvocationTargetException;
  * @see ArrayMultiArray
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:06 $
+ * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:45:45 $
  */
 public class
 ScalarMultiArray
@@ -143,7 +143,7 @@ ScalarMultiArray
 	 * were called.
 	 * @see Accessor#getChar
 	 * @see #get
-	 * @see java.lang.Character#charValue
+	 * @see java.lang.Character#charValue()
 	 */
 	public char
 	getChar(int[] index)
@@ -156,7 +156,7 @@ ScalarMultiArray
 	 * were called.
 	 * @see Accessor#getBoolean
 	 * @see #get
-	 * @see java.lang.Boolean#booleanValue
+	 * @see java.lang.Boolean#booleanValue()
 	 */
 	public boolean
 	getBoolean(int[] index)

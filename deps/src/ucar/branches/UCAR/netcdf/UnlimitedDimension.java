@@ -12,7 +12,7 @@ package ucar.netcdf;
  * An UnlimitedDimension may appear as the most slowly varying dimension
  * of a Variable.
  * <p>
- * This class supports construction, retrieval of the name, retrival 
+ * This class supports construction, retrieval of the name, retrieval 
  * of the length value, and increase of the length value.
  * <p>
  * Instances are only distiguished by name.
@@ -21,7 +21,7 @@ package ucar.netcdf;
  * @see Dimension
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:08 $
+ * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:45:47 $
  */
 
 public class

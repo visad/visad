@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1.1.4 2000-08-28 21:44:21 dglo Exp $
+# $Id: Makefile,v 1.1.1.5 2000-08-28 21:45:48 dglo Exp $
 #
 #       Makefile for java ucar/tests
 #		requires ucar.multiarray
@@ -7,7 +7,7 @@
 SHELL = /bin/sh
 ##
 # target directories
-ROOT = /tmp/java
+ROOT = ../../..
 CLASSDIR = $(ROOT)/classes
 PKGDIR = $(CLASSDIR)/ucar/test
 

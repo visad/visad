@@ -1,11 +1,11 @@
-# $Id: Makefile,v 1.1.1.4 2000-08-28 21:44:19 dglo Exp $
+# $Id: Makefile,v 1.1.1.5 2000-08-28 21:45:44 dglo Exp $
 #
 #       Makefile for java package ucar.multiarray
 #
 SHELL = /bin/sh
 ##
 # target directories
-ROOT = /tmp/java
+ROOT = ../../..
 CLASSDIR = $(ROOT)/classes
 
 JC = javac

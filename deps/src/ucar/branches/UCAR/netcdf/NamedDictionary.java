@@ -27,7 +27,7 @@ import java.io.ObjectInputStream;
  * a few more bytes.
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.2 $
+ * @version $Revision: 1.1.1.3 $
  */
 
 class

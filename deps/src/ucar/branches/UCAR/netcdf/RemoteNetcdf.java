@@ -19,7 +19,7 @@ import java.lang.reflect.InvocationTargetException;
  * 
  * @see Netcdf
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:44:50 $
+ * @version $Revision: 1.1.1.4 $ $Date: 2000-08-28 21:45:47 $
  */
 public class
 RemoteNetcdf
@@ -126,7 +126,7 @@ RemoteNetcdf
 	/**
 	 * Ensures that the remote resources associated with this are
 	 * released when there are no more references to it. 
-	 * @see close
+	 * @see #close()
 	 */
 	protected void
 	finalize() throws Throwable

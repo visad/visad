@@ -31,7 +31,7 @@ import java.rmi.registry.LocateRegistry;
  * for a more elaborate directory service,
  * hopefully to be provided later on.
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:44:50 $
+ * @version $Revision: 1.1.1.4 $ $Date: 2000-08-28 21:45:47 $
  */
 
 public class
@@ -264,7 +264,13 @@ NetcdfServer
 		byName_.put(keyval, entry);
 	}
 
+	/**
+	 * @serial
+	 */
 	private Hashtable byName_;
+	/**
+	 * @serial
+	 */
 	private Registry registry_;
 	static /* package */ final RMILogger logger_ = new RMILogger();
 

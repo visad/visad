@@ -3,28 +3,26 @@
 <HEAD>
     <!-- SGI_COMMENT COSMOCREATE -->
     <!-- SGI_COMMENT VERSION NUMBER="1.0.2" -->
-    <!-- $Id: package.html,v 1.1.1.2 2000-08-28 21:43:41 dglo Exp $ -->
+    <!-- $Id: package.html,v 1.1.1.3 2000-08-28 21:45:44 dglo Exp $ -->
     <TITLE>UCAR MultiArray API Overview</TITLE>
 </HEAD>
 <BODY>
-<CENTER><H2 ALIGN="CENTER">
-UCAR MultiArray API Overview</H2>
-</CENTER><P>
-The MultiArray API provides an abstraction for multidimensional array 
-access and some concrete implementations. By use of the MultiArrayProxy 
-and IndexMaps, it also provides techniques by which a MultiArray can be 
-viewed as if it had different structure.</P>
+Provides an abstraction for multidimensional array 
+access, some concrete implementations, and ways to view a MultiArray
+as if it had a different structure. The MultiArrayProxy 
+and IndexMaps provide techniques to make any MultiArray appear as if
+it were transposed, flipped, flattened, clipped, sliced,
+subsampled, or any composition of these.
+</P>
+
 <P>
-This discussion is made somewhat confusing by imprecise usage in our 
-field. When we say &quot;array&quot; or &quot;vector&quot;, it isn't 
-clear whether we are talking about constructs in a given programming 
-language or mathematical abstractions. In the following discussion, we 
-will use the unadorned term &quot;array&quot; to mean the Java language 
-construct, and the term &quot;multidimensional array&quot; for a 
-mathematical abstraction which is modeled by the MultiArray class in 
+In the following, we 
+use the unadorned term &quot;array&quot; to mean the Java language 
+construct, and the term &quot;multidimensional array&quot; for the
+mathematical abstraction modeled by the MultiArray class in 
 this package.</P>
 <P>
-A <I>multidimensional array</I> is a collection of elements which are 
+A <I>multidimensional array</I> is a collection of elements that are 
 accessed by <I>index</I>. The elements may be objects or primitives. 
 The index is a one dimensional array of integers. The number of 
 dimensions of a multidimensional array is called its <I>rank</I>. Each 
@@ -33,27 +31,37 @@ the corresponding index element. A multidimensional array of rank 1 is
 often referred to as a <I>vector</I>. A multidimensional array of rank 
 0 is referred to as a <I>scalar</I>.</P>
 <P>
-The Java language, like C and C++, provides an array primitive which is 
-actually a vector. Also like C and C++, this primitive is used in the 
-language to build up multidimensional arrays as vectors of vectors. 
-Numerical programs in C and C++ rarely use the higher dimensional array 
-construct for several reasons. (TODO: more detail on why?) One purpose 
-of this API is to codify that practice into a clear object framework.</P>
+Like C and C++, the Java programming language provides an array
+primitive which is actually a (fixed length) vector. Also like C and
+C++, this primitive is used in the language to build up
+multidimensional arrays as vectors of vectors. For example, a two
+dimensional M by N array would be constructed as a vector of M
+references to M vectors each of length N. This strategy wastes some
+storage, and the waste increases for higher dimensioned arrays. In
+random access patterns, the added level of indirection for each
+dimension incurs a performance penalty as well. Numerical programs in
+C or C++ often avoid direct use of the language construct for
+multidimensional arrays. The availability of pointers and pointer
+arithmetic can be used to trade off against the costs, but these
+features are not available in Java. This suggests a need for Java
+library classes that abstract the notion of multidimensional array and
+implement commonly used array operations. These are included in this
+ package.</P>
 <P>
 The MultiArray API consists of:</P>
 <UL>
     <LI>
-    <A HREF="ucar.multiarray.MultiArrayInfo.html"><B>MultiArrayInfo</B></A><B>
+    <A HREF="MultiArrayInfo.html"><B>MultiArrayInfo</B></A><B>
      Interface </B>- A reflection or introspection interface for 
     multidimensional arrays. Methods to discover the rank, shape and 
     component type. 
     <LI>
-    <A HREF="ucar.multiarray.Accessor.html"><B>Accessor</B></A><B>
+    <A HREF="Accessor.html"><B>Accessor</B></A><B>
      Interface</B> - Methods to set and get single values of a 
     multidimensional array. Also methods for aggregate copy in and out of 
     the array. 
     <LI>
-    <A HREF="ucar.multiarray.MultiArray.html"><B>MultiArray</B></A><B>
+    <A HREF="MultiArray.html"><B>MultiArray</B></A><B>
      Interface</B> - The union of MultiArrayInfo and Accessor 
     interfaces. This is the interface that client code should use. The 
     artificial factorization into MultiArrayInfo and Accessor interfaces is 
@@ -61,17 +69,17 @@ The MultiArray API consists of:</P>
     ucar.netcdf.Variable. 
     <LI>
     <B>MultiArray Implementations</B>- Wrappers for Java arrays (<A
-     HREF="ucar.multiarray.ArrayMultiArray.html">ArrayMultiArray</A>) 
-    and scalar objects (<A HREF="ucar.multiarray.ScalarMultiArray.html">ScalarMultiArray</A>), 
+     HREF="ArrayMultiArray.html">ArrayMultiArray</A>) 
+    and scalar objects (<A HREF="ScalarMultiArray.html">ScalarMultiArray</A>), 
     as well as a space efficient implementation (<A
-     HREF="ucar.multiarray.MultiArrayImpl.html">MultiArrayImpl</A>). 
+     HREF="MultiArrayImpl.html">MultiArrayImpl</A>). 
     <LI>
-    <A HREF="ucar.multiarray.IndexIterator.html"><B>IndexIterator</B></A><B>
+    <A HREF="IndexIterator.html"><B>IndexIterator</B></A><B>
      utility class</B> - Used to step through the possible index 
     values. 
     <LI>
-    <A HREF="ucar.multiarray.MultiArrayProxy.html"><B>MultiArrayProxy</B></A><B>
-     / <A HREF="ucar.multiarray.IndexMap.html">IndexMap</A> Interface 
+    <A HREF="MultiArrayProxy.html"><B>MultiArrayProxy</B></A><B>
+     / <A HREF="IndexMap.html">IndexMap</A> Interface 
     Framework</B> - MultiArrayProxy uses an IndexMap to provide a 
     different view of some MultiArray. The new view typically has a 
     different structure than the backing MultiArray. For example, we may 
@@ -79,23 +87,23 @@ The MultiArray API consists of:</P>
     at a specific value. 
     <LI>
     <B>Concrete IndexMap classes</B> - Concrete IndexMap primitives 
-    which are used with MultiArrayProxy to <A
-     HREF="ucar.multiarray.SliceMap.html">slice</A>, <A
-     HREF="ucar.multiarray.ClipMap.html">clip</A>, <A
-     HREF="ucar.multiarray.DecimateMap.html">subsample</A>, <A
-     HREF="ucar.multiarray.FlipMap.html">flip</A>, <A
-     HREF="ucar.multiarray.TransposeMap.html">transpose</A>, or <A
-     HREF="ucar.multiarray.FlattenMap.html">flatten</A> a MultiArray. 
+    that are used with MultiArrayProxy to <A
+     HREF="SliceMap.html">slice</A>, <A
+     HREF="ClipMap.html">clip</A>, <A
+     HREF="DecimateMap.html">subsample</A>, <A
+     HREF="FlipMap.html">flip</A>, <A
+     HREF="TransposeMap.html">transpose</A>, or <A
+     HREF="FlattenMap.html">flatten</A> a MultiArray. 
     These may be functionally composed to form complex operations by using 
     nested construction. 
     <LI>
-    <A HREF="ucar.multiarray.AbstractAccessor.html"><B>AbstractAccessor</B></A><B>
+    <A HREF="AbstractAccessor.html"><B>AbstractAccessor</B></A><B>
      abstract class </B>- A partial implementation of the Accessor 
-    Interface which handles primitive type conversions. 
+    Interface that handles primitive type conversions. 
     <LI>
-    <A HREF="ucar.multiarray.StringCharAdapter.html"><B>StringCharAdapter</B></A><B>
+    <A HREF="StringCharAdapter.html"><B>StringCharAdapter</B></A><B>
      class</B> - An adapter for MultiArray of <TT>char</TT> component 
-    type which presents a MultiArray of String interface. 
+    type that presents a MultiArray of String interface. 
 </UL>
 <P>
 The MultiArray methods to get() and set() values operate on single 

@@ -11,9 +11,9 @@ package ucar.multiarray;
  *  extends this by adding data access operations.
  *
  * @see MultiArray
- * @see VariableInfo
+ * @see ucar.netcdf.ProtoVariable
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:42:24 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:45:45 $
  */
 public interface MultiArrayInfo {
     /**

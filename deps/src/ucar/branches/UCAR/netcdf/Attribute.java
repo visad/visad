@@ -24,7 +24,7 @@ import java.lang.reflect.Array;
  * this semantic.
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:07 $
+ * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:45:46 $
  */
 /*
  * Implementation Notes:
@@ -90,8 +90,6 @@ Attribute
 	/**
 	 * Construct an array valued Attribute.
 	 * Not often used.
-	 *
-	 * @see ProtoVariable#checkComponentType
 	 *
 	 * @param name  String which is to be the name of this Attribute
 	 * @param theValue  The value, an array of primitives. The primitive
@@ -315,7 +313,13 @@ Attribute
 	}
 
 
+	/**
+	 * @serial
+	 */
 	private final String name;
+	/**
+	 * @serial
+	 */
 	private final AttrVal value;
 }
 

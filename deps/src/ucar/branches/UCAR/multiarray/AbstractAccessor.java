@@ -20,7 +20,7 @@ import java.io.IOException;
  * @see Accessor
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:05 $
+ * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:45:44 $
  */
 
 public abstract class

@@ -26,7 +26,7 @@ import java.io.IOException;
  * @see ProtoVariable
  * @see MultiArray
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:08 $
+ * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:45:48 $
  */
 
 public class
