@@ -439,8 +439,20 @@ public class DisplayEvent extends VisADEvent {
   }
 
   /**
+   * Get the key code for the pressed or released key.  Only valid
+   * for KEY type events.
+   *
+   * @return  key code for key pressed or released in the
+   *          display component, or -1 if not a key event
+   */
+  public int getKeyCode() {
+    return input_event == null || !(input_event instanceof KeyEvent) ?
+      -1 : ((KeyEvent) input_event).getKeyCode();
+  }
+
+  /**
    * Get the keyboard modifiers (such as whether SHIFT or CTRL was
-   * being held during the event).  Only valid for MOUSE type events.
+   * being held during the event).  Only valid for MOUSE and KEY type events.
    *
    * @return  keyboard modifier bit field, or -1 if not a mouse event
    */
@@ -450,7 +462,7 @@ public class DisplayEvent extends VisADEvent {
 
   /**
    * Get the InputEvent associated with this DisplayEvent.
-   * Only valid for MOUSE type events.
+   * Only valid for MOUSE and KEY type events.
    *
    * @return  associated InputEvent, or null if not a mouse event
    */
