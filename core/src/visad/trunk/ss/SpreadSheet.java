@@ -382,10 +382,17 @@ public class SpreadSheet extends JFrame implements ActionListener,
       ncsa.hdf.hdf5lib.H5.J2C(0); // HDF5 call initializes HDF5 native library
       CanDoHDF5 = true;
     }
-    catch (NoClassDefFoundError err) { }
-    catch (UnsatisfiedLinkError err) { }
-    catch (Exception exc) { }
+    catch (NoClassDefFoundError err) {
+      // err.printStackTrace();
+    }
+    catch (UnsatisfiedLinkError err) {
+      // err.printStackTrace();
+    }
+    catch (Exception exc) {
+      // exc.printStackTrace();
+    }
 
+// 
     // determine information for spreadsheet cloning
     RemoteServer rs = null;
     String[][] cellNames = null;
