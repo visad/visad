@@ -29,7 +29,7 @@ package visad.data.hdfeos;
 import visad.*;
 
 /**
-   LambertAzimuthalEqualArea is the VisAD class for coordinate
+   LambertConformalConic is the VisAD class for coordinate
    systems for ( X_map, Y_map ).<P>
 */
 
