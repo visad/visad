@@ -71,7 +71,8 @@ public class JamaMatrix extends FlatField {
       return c;
     }
     catch (ClassNotFoundException e) {
-      return null;
+      throw new RuntimeException("you need to install Jama from " +
+                                 "http://math.nist.gov/javanumerics/jama/");
     }
   }
 
