@@ -1189,7 +1189,7 @@ public class BioRadForm extends Form
   // -- Main method --
 
   /**
-   * Run 'java visad.data.biorad.BioRadForm in_file out_file' to convert
+   * Run 'java visad.data.bio.BioRadForm in_file out_file' to convert
    * in_file to out_file in Bio-Rad .PIC data format.
    */
   public static void main(String[] args)
@@ -1198,9 +1198,9 @@ public class BioRadForm extends Form
     if (args == null || args.length < 1 || args.length > 2) {
       System.out.println("To convert a file to Bio-Rad .PIC, run:");
       System.out.println(
-        "  java visad.data.biorad.BioRadForm in_file out_file");
+        "  java visad.data.bio.BioRadForm in_file out_file");
       System.out.println("To test read a Bio-Rad .PIC file, run:");
-      System.out.println("  java visad.data.biorad.BioRadForm in_file");
+      System.out.println("  java visad.data.bio.BioRadForm in_file");
       System.exit(2);
     }
 

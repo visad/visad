@@ -30,7 +30,8 @@ import visad.Data;
 import visad.DataImpl;
 import visad.VisADException;
 
-import visad.data.biorad.BioRadForm;
+import visad.data.bio.BioRadForm;
+import visad.data.bio.FluoviewTiffForm;
 import visad.data.dods.DODSForm;
 import visad.data.fits.FitsForm;
 import visad.data.gif.GIFForm;
@@ -98,6 +99,11 @@ public class DefaultFamily
     }
     try {
       list[i] = new GIFForm();
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
+      list[i] = new FluoviewTiffForm();
       i++;
     } catch (Throwable t) {
     }
