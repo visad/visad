@@ -123,7 +123,6 @@ public class VisADSerialForm extends Form implements FormFileInformer {
     catch (IOException e) {
       throw new BadFormException(e.toString());
     }
-    restoreReals(data.getType());
     return data;
   }
 
@@ -145,31 +144,7 @@ public class VisADSerialForm extends Form implements FormFileInformer {
     catch (IOException e) {
       throw new BadFormException(e.toString());
     }
-    restoreReals(data.getType());
     return data;
-  }
-
-  private void restoreReals(MathType type) throws VisADException {
-    if (type instanceof FunctionType) {
-      FunctionType function = (FunctionType) type;
-      restoreReals(function.getDomain());
-      restoreReals(function.getRange());
-    }
-    else if (type instanceof TupleType) {
-      TupleType tuple = (TupleType) type;
-      for (int i=0; i<tuple.getDimension(); i++) {
-        restoreReals(tuple.getComponent(i));
-      }
-    }
-    else if (type instanceof SetType) {
-      SetType set = (SetType) type;
-      restoreReals(set.getDomain());
-    }
-    else if (type instanceof RealType) {
-      RealType real = (RealType) type;
-      RealType.getRealType(real.getName(), real.getDefaultUnit(),
-                           real.getDefaultSet(), real.getAttributeMask());
-    }
   }
 
   public synchronized FormNode getForms(Data data) {
