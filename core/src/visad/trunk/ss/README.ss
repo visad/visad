@@ -328,9 +328,9 @@ The formula toolbar is used for entering file names, URLs, RMI addresses,
 and formulas for the current cell.  If you enter the name of a file in the
 formula text box, the SpreadSheet will attempt to import the data from that
 file.  If you enter a URL, the SpreadSheet will try to download and import the
-data from that URL (however, VisAD only supports loading GIF, JPEG and FITS
-files from URLs right now).  If you enter an RMI address, the SpreadSheet will
-try to import the data from that RMI address (see section 2.4).  If you enter a
+data from that URL (however, VisAD only supports loading GIF and JPEG files
+from URLs right now).  If you enter an RMI address, the SpreadSheet will try to
+import the data from that RMI address (see section 2.4).  If you enter a
 formula, it will attempt to parse and evaluate that formula.  If a formula
 entered is invalid for some reason, the answer cannot be computed, or the file,
 URL, or RMI address entered does not exist, the cell will have an explanation
