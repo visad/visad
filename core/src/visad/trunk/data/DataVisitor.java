@@ -1,6 +1,7 @@
 package visad.data;
 
 
+import java.rmi.RemoteException;
 import visad.FlatField;
 import visad.Tuple;
 import visad.VisADException;
@@ -29,7 +30,7 @@ DataVisitor
      */
     public boolean
     visit(Tuple tuple)
-	throws BadFormException, VisADException
+	throws BadFormException, VisADException, RemoteException
     {
 	return true;
     }
@@ -49,7 +50,7 @@ DataVisitor
      */
     public boolean
     visit(FlatField field)
-	throws BadFormException, VisADException
+	throws BadFormException, VisADException, RemoteException
     {
 	return true;
     }
