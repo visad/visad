@@ -59,8 +59,11 @@ public class DisplayReferenceEvent extends DisplayEvent {
     return new DisplayReferenceEvent(dpy, getId(), link);
   }
 
-  /** get the DataDisplayLink referenced by this DisplayReferenceEvent */
+  /**
+   * @return the DataDisplayLink referenced by this
+   */
   public DataDisplayLink getDataDisplayLink() {
     return link;
   }
+
 }

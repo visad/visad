@@ -30,6 +30,7 @@ import java.util.*;
 
 /**
    DisplayRealType is the class for display real scalar types.
+   ScalarMaps map ScalarTypes to DisplayRealType.
    A fixed set is defined by the system, users may add others.
 */
 public class DisplayRealType extends RealType {
@@ -57,22 +58,54 @@ public class DisplayRealType extends RealType {
   // (within local VM)
   private static Vector DisplayRealTypeVector = new Vector();
 
-  /** trusted constructor for intrinsic DisplayRealType's created by system
-      without range or Unit */
+  /**
+   * trusted constructor for intrinsic DisplayRealType's created by system
+   * without range or Unit
+   * @param name String name for this DisplayRealType
+   * @param single if true, this may occur at most once at a terminal
+   *               node in the ShadowType tree; see
+   *  <a href="http://www.ssec.wisc.edu/~billh/guide.html#Appendix A">Appendix A of the Developer's Guide</a>
+   * @param def default value
+   * @param b dummy argument indicating that this is a trusted constructor
+   *        (does not throw VisADExceptions)
+   */
   DisplayRealType(String name, boolean single, double def, boolean b) {
     this(name, single, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY,
          def, null, b);
   }
 
-  /** trusted constructor for intrinsic DisplayRealType's created by system
-      without Unit */
+  /**
+   * trusted constructor for intrinsic DisplayRealType's created by system
+   * without Unit
+   * @param name String name for this DisplayRealType
+   * @param single if true, this may occur at most once at a terminal
+   *               node in the ShadowType tree; see
+   *  <a href="http://www.ssec.wisc.edu/~billh/guide.html#Appendix A">Appendix A of the Developer's Guide</a>
+   * @param low start of range of values for scaling
+   * @param hi end of range of values for scaling
+   * @param def default value
+   * @param b dummy argument indicating that this is a trusted constructor
+   *        (does not throw VisADExceptions)
+   */
   DisplayRealType(String name, boolean single, double low, double hi,
                   double def, boolean b) {
     this(name, single, low, hi, def, null, b);
   }
 
-  /** trusted constructor for intrinsic DisplayRealType's created by system
-      with Unit */
+  /**
+   * trusted constructor for intrinsic DisplayRealType's created by system
+   * with Unit
+   * @param name String name for this DisplayRealType
+   * @param single if true, this may occur at most once at a terminal
+   *               node in the ShadowType tree; see
+   *  <a href="http://www.ssec.wisc.edu/~billh/guide.html#Appendix A">Appendix A of the Developer's Guide</a>
+   * @param low start of range of values for scaling
+   * @param hi end of range of values for scaling
+   * @param def default value
+   * @param unit Unit for this DisplayRealType
+   * @param b dummy argument indicating that this is a trusted constructor
+   *        (does not throw VisADExceptions)
+   */
   DisplayRealType(String name, boolean single, double low, double hi,
                   double def, Unit unit, boolean b) {
     super("Display" + name, unit, b);
@@ -94,7 +127,15 @@ public class DisplayRealType extends RealType {
     }
   }
 
-  /** trusted constructor for intrinsic text DisplayRealType */
+  /**
+   * trusted constructor for intrinsic text DisplayRealType
+   * @param name String name for this DisplayRealType
+   * @param single if true, this may occur at most once at a terminal
+   *               node in the ShadowType tree; see
+   *  <a href="http://www.ssec.wisc.edu/~billh/guide.html#Appendix A">Appendix A of the Developer's Guide</a>
+   * @param b dummy argument indicating that this is a trusted constructor
+   *        (does not throw VisADExceptions)
+   */
   DisplayRealType(String name, boolean single,  boolean b) {
     super("Display" + name, null, b);
     system = true;
@@ -108,11 +149,18 @@ public class DisplayRealType extends RealType {
     }
   }
 
-  /** construct a DisplayRealType with given name (used only for
-      user interfaces), single flag (if true, this DisplayRealType
-      may only occur once in a path to a terminal node, as defined
-      in Appendix A), (low, hi) range of values, default value = def,
-      and unit */
+  /**
+   * construct a DisplayRealType
+   * @param name String name for this DisplayRealType
+   * @param single if true, this may occur at most once at a terminal
+   *               node in the ShadowType tree; see
+   *  <a href="http://www.ssec.wisc.edu/~billh/guide.html#Appendix A">Appendix A of the Developer's Guide</a>
+   * @param low start of range of values for scaling
+   * @param hi end of range of values for scaling
+   * @param def default value
+   * @param unit Unit for this DisplayRealType
+   * @throws VisADException a VisAD error occurred
+   */
   public DisplayRealType(String name, boolean single, double low, double hi,
                          double def, Unit unit)
          throws VisADException {
@@ -138,11 +186,16 @@ public class DisplayRealType extends RealType {
     }
   }
 
-  /** construct a DisplayRealType with given name (used only for
-      user interfaces), single flag (if true, this DisplayRealType
-      may only occur once in a path to a terminal node, as defined
-      in Appendix A), default value = def, and unit;
-      this DisplayRealType is not scaled (no range of values) */
+  /**
+   * construct a DisplayRealType whose values are not scaled
+   * @param name String name for this DisplayRealType
+   * @param single if true, this may occur at most once at a terminal
+   *               node in the ShadowType tree; see
+   *  <a href="http://www.ssec.wisc.edu/~billh/guide.html#Appendix A">Appendix A of the Developer's Guide</a>
+   * @param def default value
+   * @param unit Unit for this DisplayRealType
+   * @throws VisADException a VisAD error occurred
+   */
   public DisplayRealType(String name, boolean single, double def,
                          Unit unit) throws VisADException {
     this(name, single, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY,
@@ -162,6 +215,11 @@ public class DisplayRealType extends RealType {
     return null;
   }
 
+  /**
+   * get the index of this in DisplayRealTypeVector;
+   * insert this into the Vector if it isn't already
+   * @return the index of this in DisplayRealTypeVector
+   */
   public int getIndex() {
     if (Index <= 0) {
       synchronized (DisplayRealTypeVector) {
@@ -180,29 +238,39 @@ public class DisplayRealType extends RealType {
     return Index;
   }
 
+  /**
+   * @return the number of DisplayRealTypes in DisplayRealTypeVector
+   */
   public static int getCount() {
     return Count;
   }
 
-  /** return the unique DisplayTupleType that this
-      DisplayRealType is a component of, or return null
-      if it is not a component of any DisplayTupleType */
+  /**
+   * @return the unique DisplayTupleType that this DisplayRealType
+   *         is a component of, or return null if it is not a
+   *         component of any DisplayTupleType
+   */
   public DisplayTupleType getTuple() {
     return tuple;
   }
 
-  /** return index of this as component of a
-      DisplayTupleType */
+  /**
+   * @return index of this as component of a DisplayTupleType
+   *         (-1 if it isn't a component of any DisplayTupleType)
+   */
   public int getTupleIndex() {
     return tupleIndex;
   }
 
   /**
    * Sets the DisplayTupleType to which this DisplayRealType will belong.
-   * @param t			The DisplayTupleType of which this
-   *				DisplayRealType will be a component.
-   * @param i			The 0-based component-index for this
-   *				DisplayRealType.
+   * @param t The DisplayTupleType of which this DisplayRealType
+   *          will be a component.
+   * @param i The 0-based index for this as a component of t.
+   * @param c Flag indicating whether t has a CoordinateSystem whose
+   *          toReference() is periodic in this with period 2*pi
+   *          (or equivalent according to unit).
+   * @throws VisADException a VisAD error occurred.
    */
   public void setTuple(DisplayTupleType t, int i, boolean c)
          throws VisADException {
@@ -215,20 +283,28 @@ public class DisplayRealType extends RealType {
     circular = c;
   }
 
-  /** return true if this DisplayRealType is 'single' */
+  /**
+   * @return flag indicating whether this is 'single'
+   */
   public boolean isSingle() {
     return Single;
   }
 
-  /** return default value for this DisplayRealType */
+  /**
+   * @return default value for this DisplayRealType
+   */
   public double getDefaultValue() {
     return DefaultValue;
   }
 
-  /** return true is a range of values is defined for this
-      DisplayRealType, and return the range in range_values[0]
-      and range_values[1]; range_values must be passed in as a
-      double[2] array */
+  /**
+   * get the range of values is defined for this
+   * @param range_values double[2] array used to return low
+   *                     and hi values of the range (if this
+   *                     DisplayRealType has a range)
+   * @return flag indicating whether this has a range (i.e.,
+   *         is scaled)
+   */
   public boolean getRange(double[] range_values) {
     if (range) {
       range_values[0] = LowValue;
@@ -237,10 +313,20 @@ public class DisplayRealType extends RealType {
     return range;
   }
 
+  /**
+   * @return flag indicating whether this DisplayRealType is
+   *         really a text type
+   */
   public boolean getText() {
     return text;
   }
 
+  /**
+   * @return flag indicating whether this has a DisplayTupleType,
+   *         which has a CoordinateSystem whose toReference() is
+   *         periodic in this with period 2*pi (or equivalent
+   *         according to unit)
+   */
   public boolean getCircular() {
     return circular;
   }

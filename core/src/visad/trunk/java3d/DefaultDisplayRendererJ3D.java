@@ -208,7 +208,10 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     return root;
   }
 
-  // WLH 24 Nov 2000
+  /**
+   * set the aspect for the containing box
+   * aspect double[3] array used to scale x, y and z box sizes
+   */
   public void setBoxAspect(double[] aspect) {
     if (not_destroyed == null) return;
     float[] new_verts = new float[box_verts.length];

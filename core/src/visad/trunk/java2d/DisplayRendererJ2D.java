@@ -156,6 +156,7 @@ public abstract class DisplayRendererJ2D
    * <CODE>RendererControl</CODE> with current renderer settings
    * before it is actually connected to the renderer.  This
    * means that changes will not generate <CODE>MonitorEvent</CODE>s.
+   * @param ctl RendererControl to initialize
    */
   public void initControl(RendererControl ctl)
   {

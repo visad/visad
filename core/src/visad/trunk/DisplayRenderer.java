@@ -84,18 +84,29 @@ public abstract class DisplayRenderer
   public DisplayRenderer () {
   }
 
+  /**
+   * @return the distance threshhold for picking in direct manipulation
+   *         (distance in XAxis, YAxis, ZAxis coordinates)
+   */
   public float getPickThreshhold() {
     return pickThreshhold;
   }
 
+  /**
+   * set the distance threshhold for picking in direct manipulation
+   * @param pt distance (in XAxis, YAxis, ZAxis coordinates)
+   */
   public void setPickThreshhold(float pt) {
     pickThreshhold = pt;
   }
 
-  // WLH 24 Nov 2000
+  /**
+   * set the aspect for the containing box
+   * aspect double[3] array used to scale x, y and z box sizes
+   */
   public abstract void setBoxAspect(double[] aspect);
 
-/**
+  /**
    * Specify <CODE>DisplayImpl</CODE> to be rendered.
    * @param d <CODE>Display</CODE> to render.
    * @exception VisADException If a <CODE>DisplayImpl</CODE> has already
@@ -126,6 +137,7 @@ public abstract class DisplayRenderer
    * <CODE>RendererControl</CODE> with current renderer settings
    * before it is actually connected to the renderer.  This
    * means that changes will not generate <CODE>MonitorEvent</CODE>s.
+   * @param ctl RendererControl to initialize
    */
   public abstract void initControl(RendererControl ctl);
 
@@ -178,7 +190,8 @@ public abstract class DisplayRenderer
 
   /**
    * Get a new ordinal number for this axis.
-   * @param axis Axis for which ordinal is returned.
+   * @param axis Axis for which ordinal is returned
+   *        (XAxis=0, YAxis=1, ZAxis=2).
    * @return The new ordinal number.
    */
   int getAxisOrdinal(int axis) {
@@ -189,7 +202,7 @@ public abstract class DisplayRenderer
   }
 
   /**
-   * Reset all the axis ordinals.
+   * Reset all the axis ordinals and remove all scales.
    */
   void clearAxisOrdinals() {
     synchronized (axisOrdinals) {
@@ -207,20 +220,21 @@ public abstract class DisplayRenderer
   public abstract BufferedImage getImage();
 
   /**
-   * Set the scale for the appropriate axis.
-   * @param  axisScale  AxisScale for this scale
+   * Set an axis scale.
+   * @param  axisScale  AxisScale to set (it knows what axis
+   *                    it is for)
    * @throws  VisADException  couldn't set the scale
    */
   public abstract void setScale(AxisScale axisScale)
          throws VisADException;
 
   /**
-   * Set the scale for the appropriate axis.
+   * Set an axis scale.
    * @param  axis  axis for this scale (0 = XAxis, 1 = YAxis, 2 = ZAxis)
    * @param  axis_ordinal  position along the axis
    * @param  array   <CODE>VisADLineArray</CODE> representing the scale plot
-   * @param  scale_color   array (dim 3) representing the red, green and blue
-   *                       color values.
+   * @param  scale_color   float[3] array representing the red, green and
+   *                       blue color values.
    * @throws  VisADException  couldn't set the scale
    */
   public abstract void setScale(int axis, int axis_ordinal,
@@ -228,14 +242,14 @@ public abstract class DisplayRenderer
          throws VisADException;
 
   /**
-   * Set the scale for the appropriate axis.
+   * Set an axis scale.
    * @param  axis  axis for this scale (0 = XAxis, 1 = YAxis, 2 = ZAxis)
    * @param  axis_ordinal  position along the axis
    * @param  array   <CODE>VisADLineArray</CODE> representing the scale plot
    * @param  labels  <CODE>VisADTriangleArray</CODE> representing the labels
    *                 created using a font (can be null)
-   * @param  scale_color   array (dim 3) representing the red, green and blue
-   *                       color values.
+   * @param  scale_color   float[3] array representing the red, green and 
+   *                       blue color values.
    * @throws  VisADException  couldn't set the scale
    */
   public abstract void setScale(int axis, int axis_ordinal,
@@ -255,8 +269,9 @@ public abstract class DisplayRenderer
   public abstract void clearScale(AxisScale axisScale);
 
   /**
-   * Allow scales to be displayed if they are set on.  This should not be
-   * called programmatically, since it does not update collaborative displays.
+   * Enable scales to be displayed if they are set.  This should
+   * not be called programmatically, since it does not update
+   * collaborative displays.
    * Applications should use
    * {@link GraphicsModeControl#setScaleEnable(boolean)
    *  GraphicsModeControl.setScaleEnable}
@@ -498,6 +513,11 @@ public abstract class DisplayRenderer
    */
   public abstract DataRenderer makeDefaultRenderer();
 
+  /**
+   * determine whether a DataRenderer is legal for this DisplayRenderer
+   * @param renderer DisplayRenderer to test for legality
+   * @return true if renderer is legal
+   */
   public abstract boolean legalDataRenderer(DataRenderer renderer);
 
   /**
@@ -532,6 +552,12 @@ public abstract class DisplayRenderer
     }
   }
 
+  /**
+   * Set Array of <CODE>String</CODE>s describing the
+   * animation sequence
+   * @param animation a String[2] array describing the
+   *                  animation sequence
+   */
   public void setAnimationString(String[] animation) {
     animationString[0] = animation[0];
     animationString[1] = animation[1];
@@ -544,23 +570,54 @@ public abstract class DisplayRenderer
    */
   public abstract double[] getCursor();
 
+  /**
+   * set flag indicating whether the cursor should be displayed.
+   * @param on value of flag to set
+   */
   public abstract void setCursorOn(boolean on);
 
+  /**
+   * set a VisADRay along which to drag cursor in depth (in and out
+   * of screen)
+   * @param ray VisADRay to set
+   */
   public abstract void depth_cursor(VisADRay ray);
 
+  /**
+   * drag cursor parallel to plane of screen
+   * @param ray VisADRay that goes through new cursor location
+   * @param first true to indicate this is first call to drag_cursor()
+   *        for this drag
+   */
   public abstract void drag_cursor(VisADRay ray, boolean first);
 
+  /**
+   * set flag indicating whether direct manipulation is active
+   * @param on value of flag to set
+   */
   public abstract void setDirectOn(boolean on);
 
+  /**
+   * drag cursor in depth (in and out of screen)
+   * @param diff amount to move cursor in depth (0.0 corresponds
+   *             to no movement)
+   */
   public abstract void drag_depth(float diff);
 
+  /**
+   * @return flag indicating whether there are any direct manipulation
+   *         DataRenderers linked to Display
+   */
   public abstract boolean anyDirects();
 
+  /**
+   * @return the MouseBehavior for this display
+   */
   public abstract MouseBehavior getMouseBehavior();
 
   /**
    * Returns a direct manipulation renderer if one is close to
-   * the specified ray.
+   * the specified ray (within pick threshold).
    * @param ray The ray used to look for a nearby direct manipulation
    *            renderer.
    * @param mouseModifiers Value of InputEvent.getModifiers().
@@ -568,14 +625,20 @@ public abstract class DisplayRenderer
    */
   public abstract DataRenderer findDirect(VisADRay ray, int mouseModifiers);
 
+  /**
+   * set flag indicating whether the cursor location String
+   * should be displayed.
+   * @param on value of flag to set
+   */
   public void setCursorStringOn(boolean on) {
     cursor_string = on;
   }
 
   /**
    * Return <CODE>Vector</CODE> of <CODE>String</CODE>s describing the
-   * cursor location.
-   * @return The cursor location description.
+   * cursor location, if cursor location display is enabled.
+   * @return The cursor location description as a Vector of Strings
+   *         (an empty Vector if cursor location display is disabled).
    */
   public Vector getCursorStringVector() {
     if (cursor_string) {
@@ -586,16 +649,34 @@ public abstract class DisplayRenderer
     }
   }
 
-  // WLH 31 May 2000
+  /**
+   * Return <CODE>Vector</CODE> of <CODE>String</CODE>s describing the
+   * cursor location, regardless of whether cursor location display is
+   * enabled.
+   * @return The cursor location description as a Vector of Strings.
+   */
   public Vector getCursorStringVectorUnconditional() {
     return (Vector) cursorStringVector.clone();
   }
 
+  /**
+   * get the value of a RealType if it is included in the
+   * cursor location
+   * @param type RealType whose value to get
+   * @return value of type, or NaN if it is not included in
+   *         the cursor location
+   */
   public double getDirectAxisValue(RealType type) {
     return getDirectAxisValue(type.getName());
   }
 
-  // 27 Oct 2000
+  /**
+   * get the value of a named RealType if it is included in
+   * the cursor location
+   * @param name String name of RealType whose value to get
+   * @return value of named RealType, or NaN if it is not
+   *         included in the cursor location
+   */
   public double getDirectAxisValue(String name) { 
     synchronized (cursorStringVector) {
       if (cursorStringVector != null) { 
@@ -704,6 +785,11 @@ public abstract class DisplayRenderer
     render_trigger();
   }
 
+  /**
+   * trigger the graphics API to render the scene graph to the screen;
+   * intended to be over-ridden by graphics-API-specific extensions of
+   * DisplayRenderer
+   */
   public void render_trigger() {
   }
 
@@ -735,6 +821,17 @@ public abstract class DisplayRenderer
     return false;
   }
 
+  /**
+   * prepare for transforming Data into scene graph depictions,
+   * including possible auto-scaling of ScalarMaps
+   * @param temp Vector of DataRenderers
+   * @param tmap Vector of ScalarMaps
+   * @param go flag indicating whether Data transforms are requested
+   * @param initialize flag indicating whether auto-scaling is
+   *        requested
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public void prepareAction(Vector temp, Vector tmap, boolean go,
                             boolean initialize)
          throws VisADException, RemoteException {

@@ -32,7 +32,15 @@ package visad;
 */
 public class DisplayInterruptException extends DisplayException {
 
+  /**
+   * construct a DisplayInterruptException with no message
+   */
   public DisplayInterruptException() { super(); }
+
+  /**
+   * construct a DisplayInterruptException with given message
+   * @param s - message String
+   */
   public DisplayInterruptException(String s) { super(s); }
 
 }

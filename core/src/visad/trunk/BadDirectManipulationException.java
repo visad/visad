@@ -32,7 +32,15 @@ package visad;
 */
 public class BadDirectManipulationException extends BadMappingException {
 
+  /**
+   * construct a BadDirectManipulationException with no message
+   */
   public BadDirectManipulationException() { super(); }
+
+  /**
+   * construct a BadDirectManipulationException with given message
+   * @param s - message String
+   */
   public BadDirectManipulationException(String s) { super(s); }
 
 }

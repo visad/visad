@@ -66,6 +66,7 @@ public class DisplayMapEvent extends DisplayEvent {
    * but which uses the specified source display
    *
    * @param dpy Display to use for the new DisplayMapEvent
+   * @return a clone of this, except with the given source Display
    */
   public DisplayEvent cloneButDisplay(Display dpy)
   {
@@ -76,4 +77,5 @@ public class DisplayMapEvent extends DisplayEvent {
   public ScalarMap getMap() {
     return map;
   }
+
 }

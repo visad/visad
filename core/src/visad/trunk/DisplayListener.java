@@ -35,7 +35,12 @@ import java.rmi.*;
 */
 public interface DisplayListener extends EventListener {
 
-  /** send a DisplayEvent to this DisplayListener */
+  /**
+   * send a DisplayEvent to this DisplayListener
+   * @param e DisplayEvent to send
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   void displayChanged(DisplayEvent e)
          throws VisADException, RemoteException;
 

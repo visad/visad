@@ -32,7 +32,15 @@ package visad;
 */
 public class BadMappingException extends DisplayException {
 
+  /**
+   * construct a BadMappingException with no message
+   */
   public BadMappingException() { super(); }
+
+  /**
+   * construct a BadMappingException with given message
+   * @param s - message String
+   */
   public BadMappingException(String s) { super(s); }
 
 }
