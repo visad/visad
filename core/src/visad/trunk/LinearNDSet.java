@@ -287,6 +287,22 @@ public class LinearNDSet extends GriddedSet
   }
 
   /**
+   * Returns the hash code for this instance.
+   * @return			The hash code for this instance.
+   */
+  public int hashCode()
+  {
+    if (!hashCodeSet)
+    {
+      hashCode = unitAndCSHashCode();
+      for (int i = 0; i < DomainDimension; ++i)
+	hashCode ^= L[i].hashCode();
+      hashCodeSet = true;
+    }
+    return hashCode;
+  }
+
+  /**
    * Get the indexed component.
    *
    * @param i Index of component

@@ -1,5 +1,5 @@
 //
-// Gridded1DSetIface.java
+// Set1DIface.java
 //
 
 /*
@@ -26,11 +26,22 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.io.*;
-
 /**
- * Gridded1DSetIface is the interface to a finite set of samples of R.<P>
+ * Interface to a finite set of samples of R.<P>
  */
-public interface Gridded1DSetIface
-  extends GriddedSetIface, Set1DIface
-{}
+public interface Set1DIface
+{
+  /**
+   * Returns the minimum value in the set.
+   *
+   * @return			The lowest value in the set.
+   */
+  float getLowX();
+
+  /**
+   * Returns the maximum value in the set.
+   *
+   * @return			The highest value in the set.
+   */
+  float getHiX();
+}

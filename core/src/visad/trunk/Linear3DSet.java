@@ -1611,6 +1611,21 @@ for (int j=0; j<nvertex; j++) {
   }
 
   /**
+   * Returns the hash code for this instance.
+   * @return			The hash code for this instance.
+   */
+  public int hashCode()
+  {
+    if (!hashCodeSet)
+    {
+      hashCode =
+	unitAndCSHashCode() ^ X.hashCode() ^ Y.hashCode() ^ Z.hashCode();
+      hashCodeSet = true;
+    }
+    return hashCode;
+  }
+
+  /**
    * Get the indexed component (X is at 0, Y is at 1, and Z is at 2)
    *
    * @param i Index of component

@@ -233,6 +233,24 @@ public class Linear1DSet extends Gridded1DSet
   }
 
   /**
+   * Returns the hash code for this instance.
+   * @return			The hash code for this instance.
+   */
+  public int hashCode()
+  {
+    if (!hashCodeSet)
+    {
+      hashCode =
+	unitAndCSHashCode() ^
+	new Double(First).hashCode() ^
+	new Double(Last).hashCode() ^
+	Length;
+      hashCodeSet = true;
+    }
+    return hashCode;
+  }
+
+  /**
    * Get the indexed component (X is at 0 and is the only valid index)
    *
    * @param i Index of component

@@ -253,6 +253,19 @@ public class SingletonSet extends SampledSet {
   }
 
   /**
+   * Returns the hash code of this instance.
+   * @param		The hash code of this instance.
+   */
+  public int hashCode() {
+    if (!hashCodeSet)
+    {
+      hashCode = unitAndCSHashCode() ^ DomainDimension ^ data.hashCode();
+      hashCodeSet = true;
+    }
+    return hashCode;
+  }
+
+  /**
    * Clone this SingletonSet.
    *
    * @return  clone of this set

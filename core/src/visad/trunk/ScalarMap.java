@@ -462,10 +462,14 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     return isScaled;
   }
 
-  /** 
-   * Get the range of the data.
-   * @return  array containing the data range.  note if overrideUnit != null, 
-   *          dataRange is in overrideUnit.
+  /**
+   * Returns the current range of the {@link RealType} data.  The range is
+   * implicitly set by autoscaling logic or may be explicitly set by the {@link
+   * #setRange(double,double)} method.  Note that if overrideUnit != null,
+   * then dataRange is in overrideUnit.
+   *
+   * @return			The current range of the {@link RealType} data.
+   *				The array is new and may be safely modified.
    */
   public double[] getRange() {
     double[] range = {dataRange[0], dataRange[1]};
@@ -493,18 +497,20 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     }
   }
 
-  /** explicitly set the range of data (RealType) values; used for
-   *  linear map from Scalar to DisplayScalar values;
-   *  if neither this nor setRangeByUnits is invoked, then the
-   *  range will be computed from the initial values of Data
-   *  objects linked to the Display by autoscaling logic;
-   *  if the range of data values is (0.0, 1.0), for example, this
-   *  method may be invoked with low = 1.0 and hi = 0.0 to invert
-   *  the display scale 
-   *  @param  low   lower range value (see notes above)
-   *  @param  hi    upper range value (see notes above)
-   *  @throws  VisADException   VisAD error
-   *  @throws  RemoteException  Java RMI error
+  /**
+   * Explicitly sets the range of {@link RealType} data values that is mapped to
+   * the natural range of {@link DisplayRealType} display values.  This method
+   * is used to define a linear map from Scalar to DisplayScalar values.  If
+   * neither this nor {@link #setRangeByUnits()} is invoked, then the range will
+   * be computed by autoscaling logic from the initial values of Data objects
+   * linked to the Display.  If the range of data values is (0.0, 1.0), for
+   * example, this method may be invoked with low = 1.0 and hi = 0.0 to invert
+   * the display scale.
+   *
+   * @param low			One end of the range of applicable data.
+   * @param hi			The other end of the range of applicable data.
+   * @throws VisADException	VisAD failure.
+   * @throws RemoteException	Java RMI failure.
    */
   public void setRange(double low, double hi)
          throws VisADException, RemoteException {

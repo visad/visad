@@ -805,6 +805,21 @@ System.out.println("set_num[" + j + "] = " + set_num[j] +
   }
 
   /**
+   * Returns the hash code of this instance.
+   * @param		The hash code of this instance.
+   */
+  public int hashCode() {
+    if (!hashCodeSet)
+    {
+      hashCode = DomainDimension ^ ManifoldDimension;
+      for (int i=0; i<Sets.length; i++)
+	hashCode ^= Sets[i].hashCode();
+      hashCodeSet = true;
+    }
+    return hashCode;
+  }
+
+  /**
    * Check to see if any of the sets in this UnionSet has missing data.
    *
    * @return  true if any of the sets has missing data, otherwise false

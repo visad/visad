@@ -34,9 +34,20 @@ public class List1DSet extends SimpleSet {
 
   float[] data;
 
-  /** construct a List1DSet with a non-default CoordinateSystem */
+  /**
+   * Constructs with a non-default CoordinateSystem.
+   *
+   * @param d			The data samples.  Must not be 
+   *				<code>null</code>.
+   * @param type		The type of the set.
+   * @param coord_sys		The coordinate system transformation.  May be
+   *				<code>null</code>.
+   * @param units		The units of the values.  May be 
+   *				<code>null</code>.
+   * @throws VisADException	Couldn't create set.
+   */
   public List1DSet(float[] d, MathType type, CoordinateSystem coord_sys,
-                   Unit[] units) throws VisADException {
+            Unit[] units) throws VisADException {
     super(type, coord_sys, units, null);
     if (DomainDimension != 1) {
       throw new SetException("List1DSet: type must be 1-D");
@@ -89,6 +100,21 @@ public class List1DSet extends SimpleSet {
       if (data[i] != ((List1DSet) set).data[i]) return false;
     }
     return true;
+  }
+
+  /**
+   * Returns the hash code of this instance.
+   * @param		The hash code of this instance.
+   */
+  public int hashCode() {
+    if (!hashCodeSet)
+    {
+      hashCode = unitAndCSHashCode() ^ Length;
+      for (int i=0; i<Length; i++)
+	hashCode ^= Float.floatToIntBits(data[i]);
+      hashCodeSet = true;
+    }
+    return hashCode;
   }
 
   public Object clone() {

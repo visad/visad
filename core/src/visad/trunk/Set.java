@@ -53,6 +53,8 @@ public abstract class Set extends DataImpl implements SetIface {
   int DomainDimension; // this is a subset of R^DomainDimension
   int Length;          // number of samples
   CoordinateSystem DomainCoordinateSystem;
+  boolean hashCodeSet = false;
+  int hashCode = 0;
 
   Unit[] SetUnits;
   ErrorEstimate[] SetErrors;
@@ -609,6 +611,24 @@ public abstract class Set extends DataImpl implements SetIface {
       }
     }
     return true;
+  }
+
+  /**
+   * Returns the hash code of the units and coordinate-system.  This is the
+   * hash code analogue of {@link #equalUnitAndCS(Set)}.
+   * @return			The hash code of the units and coordinate
+   *				system.
+   */
+  public int unitAndCSHashCode()
+  {
+    int	hashCode = 0;
+    if (DomainCoordinateSystem != null)
+      hashCode ^= DomainCoordinateSystem.hashCode();
+    if (SetUnits != null)
+      for (int i=0; i<SetUnits.length; i++)
+        if (SetUnits[i] != null)
+	  hashCode ^= SetUnits[i].hashCode();
+    return hashCode;
   }
 
   /** for JPython */

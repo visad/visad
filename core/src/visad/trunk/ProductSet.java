@@ -131,7 +131,7 @@ public class ProductSet extends SampledSet {
   }
 
   /** construct a ProductSet with an array of SampledSets */
-  ProductSet(SampledSet[] sets) throws VisADException {
+  public ProductSet(SampledSet[] sets) throws VisADException {
     this(makeType(sets), sets, null, null, null, true);
   }
 
@@ -459,6 +459,20 @@ public class ProductSet extends SampledSet {
       if (!Sets[i].equals(pset.Sets[i])) return false;
     }
     return true;
+  }
+
+  /**
+   * Returns the hash code of this instance.
+   * @param		The hash code of this instance.
+   */
+  public int hashCode() {
+    if (!hashCodeSet)
+    {
+      for (int i=0; i<Sets.length; i++)
+	hashCode ^= Sets[i].hashCode();
+      hashCodeSet = true;
+    }
+    return hashCode;
   }
 
   public boolean isMissing() {

@@ -70,10 +70,11 @@ public abstract class ProjectionControl extends Control {
     }
   }
 
-  /** 
-   * Get the matrix that defines the graphics projection 
-   * @return array of the matrix values (16 elements in Java3D case, 
-   *          6 elements in Java2D case) 
+  /**
+   * Returns a copy of the graphics projection matrix.  The matrix has
+   * 6 elements in the 2-D case and 16 elements in the 3-D case.
+   *
+   * @return			A copy of the graphics projection matrix.
    */
   public double[] getMatrix() {
     double[] c = new double[matrix.length];

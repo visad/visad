@@ -872,6 +872,29 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
     }
   }
 
+  /**
+   * Returns the hash code of this instance. {@link Object#hashCode()} should be
+   * overridden whenever {@link Object#equals(Object)} is.
+   * @return			The hash code of this instance (includes the
+   *				values).
+   */
+  public int hashCode()
+  {
+    if (!hashCodeSet)
+    {
+      hashCode = unitAndCSHashCode();
+      hashCode ^= DomainDimension ^ ManifoldDimension ^ Length;
+      for (int j=0; j<ManifoldDimension; j++)
+	hashCode ^= Lengths[j];
+      if (Samples != null)
+	for (int j=0; j<DomainDimension; j++)
+	  for (int i=0; i<Length; i++)
+	    hashCode ^= Float.floatToIntBits(Samples[j][i]);
+      hashCodeSet = true;
+    }
+    return hashCode;
+  }
+
   public Object clone() {
     try {
       return new GriddedSet(Type, Samples, Lengths, DomainCoordinateSystem,
