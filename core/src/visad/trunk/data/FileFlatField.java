@@ -377,7 +377,7 @@ public class FileFlatField extends FlatField {
   }
 
   public Field extract( int component )
-         throws VisADException
+         throws VisADException, RemoteException
   {
     synchronized (adaptedFlatFields)
     {
