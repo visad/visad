@@ -61,11 +61,11 @@ public abstract class ScalarType extends MathType implements Comparable {
   private static final ReferenceQueue queue = new ReferenceQueue();
 
   /**
-   * Create a <CODE>ScalarType</CODE> with the specified name.
+   * Constructs an instance with a specified name.
    *
-   * @param name The name of this <CODE>ScalarType</CODE>
-   *
-   * @exception VisADException If the name is not valid.
+   * @param name           The name for this instance.
+   * @throws TypeException if the name is invalid.
+   * @see #validateName(String)
    */
   public ScalarType(String name) throws VisADException {
     super();
@@ -196,12 +196,17 @@ public abstract class ScalarType extends MathType implements Comparable {
   }
 
   /**
-   * Throw a <CODE>TypeException</CODE> if the name is invalid.
+   * Throws a {@link TypeException} if the name is invalid.  Valid names may not
+   * contain the characters period, space, left or right parenthesis or already
+   * be associated with a previously-created instance (either as a name or
+   * alias).
    *
-   * @param name Name to check.
-   * @param type Type used in exception message.
-   *
-   * @exception TypeException If there is a problem with the name.
+   * @param name           Name to check.
+   * @param type           Type used in exception message (e.g. "name", 
+   *                       "alias").
+   * @throws TypeException if the name is <code>null</code> or, otherwise,
+   *                       illegal.
+   * @see #alias(String)
    */
   public static synchronized void validateName(String name, String type)
     throws TypeException
