@@ -145,9 +145,9 @@ public class ResSwitcher implements ActivityHandler {
             downfield = new FieldImpl(ftype, field.getDomainSet());
             int len = field.getLength();
             for (int i=0; i<len; i++) {
-              Data d = field.getSample(i);
-              if (!(d instanceof FieldImpl)) return;
-              downfield.setSample(i, rescale((FieldImpl) d, scale));
+              Data sample = field.getSample(i);
+              if (!(sample instanceof FieldImpl)) return;
+              downfield.setSample(i, rescale((FieldImpl) sample, scale));
             }
           }
           else downfield = rescale(field, scale);
