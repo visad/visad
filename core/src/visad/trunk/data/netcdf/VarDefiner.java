@@ -94,31 +94,22 @@ VarDefiner
 	    int			totalNvar = field.getRangeDimension();
 	    MathType		domainMathType = ((SetType)set.getType()).
 				    getDomain();
-	    Unit[]		dimUnits = new Unit[rank];
+	    Unit[]		dimUnits = field.getDomainUnits();
 	    String[]		dimNames = new String[rank];
 	    Dimension[]		dims;
 
+
 	    // TODO: handle more cases
 	    if (domainMathType instanceof RealType && rank == 1)
-	    {
-		RealType	realType = (RealType)domainMathType;
-
-		dimNames[0] = realType.getName();
-		dimUnits[0] = realType.getDefaultUnit();
-	    }
+		dimNames[0] = ((RealType)domainMathType).getName();
 	    else
 	    if (domainMathType instanceof RealTupleType)
 	    {
 		RealTupleType	realTupleType = (RealTupleType)domainMathType;
 
 		for (int idim = 0; idim < rank; ++idim)
-		{
-		    RealType	realType = (RealType)realTupleType.
-			getComponent(idim);
-
-		    dimNames[idim] = realType.getName();
-		    dimUnits[idim] = realType.getDefaultUnit();
-		}
+		    dimNames[idim] = 
+			((RealType)realTupleType.getComponent(idim)).getName();
 	    }
 	    else
 		throw new UnimplementedException(
