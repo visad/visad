@@ -46,12 +46,12 @@ public class ValueControlJ3D extends AVControlJ3D
   public void setValue(double value)
          throws VisADException, RemoteException {
     Value = value;
-    selectSwitches(Value);
+    selectSwitches(Value, null);
     changeControl(true);
   }
 
   public void init() throws VisADException {
-    selectSwitches(Value);
+    selectSwitches(Value, null);
   }
 
   public double getValue() {

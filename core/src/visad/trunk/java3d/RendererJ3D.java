@@ -94,8 +94,8 @@ public abstract class RendererJ3D extends DataRenderer {
       sw.addChild(branches[i]);
       // sw.setChild(branches[i], i);
     }
-    sw.setWhichChild(currentIndex);
     currentIndex = 0;
+    sw.setWhichChild(currentIndex);
     actualIndex = 0;
   }
 

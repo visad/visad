@@ -48,7 +48,8 @@ public abstract class AVControlJ2D extends Control implements AVControl {
 
   abstract void init() throws VisADException;
 
-  void selectSwitches(double value) throws VisADException {
+  void selectSwitches(double value, Set animation_set)
+       throws VisADException {
     // check for missing
     if (value != value) return;
     float[][] fvalues = new float[1][1];
@@ -57,19 +58,36 @@ public abstract class AVControlJ2D extends Control implements AVControl {
     while (pairs.hasMoreElements()) {
       SwitchSet ss = (SwitchSet) pairs.nextElement();
       Set set = ss.set;
-      // assume value is in default CoordinateSystem and Unit of
-      // set.getType().getDomain(), convert to CoordinateSystem
-      // and Unit of set
-      RealTupleType type = ((SetType) set.getType()).getDomain();
-      float[][] values = CoordinateSystem.transformCoordinates(
-                             type, set.getCoordinateSystem(),
+      float[][] values = null;
+      RealTupleType out = ((SetType) set.getType()).getDomain();
+      if (animation_set != null) {
+        RealTupleType in =
+          ((SetType) animation_set.getType()).getDomain();
+        values = CoordinateSystem.transformCoordinates(
+                             out, set.getCoordinateSystem(),
                              set.getSetUnits(), null /* errors */,
-                             type, type.getCoordinateSystem(),
-                             type.getDefaultUnits(), null /* errors */,
+                             in, animation_set.getCoordinateSystem(),
+                             animation_set.getSetUnits(),
+                             null /* errors */, fvalues);
+      }
+      else {
+        // use RealType for value Unit and CoordinateSystem
+        // for SelectValue
+        values = CoordinateSystem.transformCoordinates(
+                             out, set.getCoordinateSystem(),
+                             set.getSetUnits(), null /* errors */,
+                             out, out.getCoordinateSystem(),
+                             out.getDefaultUnits(), null /* errors */,
                              fvalues);
+      }
       // compute set index from converted value
       int [] indices = set.valueToIndex(values);
-      ss.swit.setWhichChild(indices[0]); // J2D
+/*
+System.out.println("selectSwitches: value = " + value +
+                   " indices[0] = " + indices[0] +
+                   " values[0][0] = " + values[0][0]);
+*/
+      ss.swit.setWhichChild(indices[0]);
     }
   }
 

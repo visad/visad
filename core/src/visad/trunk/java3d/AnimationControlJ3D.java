@@ -157,11 +157,21 @@ public class AnimationControlJ3D extends AVControlJ3D
   }
 
   public void init() throws VisADException {
-    if (animationSet != null) {
+    if (animationSet != null &&
+        animationSet.getSet() != null) {
       float value = animationSet.getValue(current);
+      Set set = animationSet.getSet();
+
       String s = real.getName() + " = " + value;
+      Unit[] units = set.getSetUnits();
+      Unit unit = null;
+      if (units != null) unit = units[0];
+      if (unit != null) {
+        s = s + " " + unit.toString();
+      }
       getDisplayRenderer().setAnimationString(s);
-      selectSwitches((double) value);
+
+      selectSwitches((double) value, set);
     }
   }
 

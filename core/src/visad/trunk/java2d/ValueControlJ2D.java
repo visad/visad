@@ -51,13 +51,13 @@ public class ValueControlJ2D extends AVControlJ2D
   public void setValue(double value)
          throws VisADException, RemoteException {
     Value = value;
-    selectSwitches(Value);
+    selectSwitches(Value, null);
     canvas.scratchImages();
     changeControl(true);
   }
 
   public void init() throws VisADException {
-    selectSwitches(Value);
+    selectSwitches(Value, null);
   }
 
   public double getValue() {
