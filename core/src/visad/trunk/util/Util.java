@@ -167,4 +167,86 @@ public class Util
     return ints;
   }
 
+  /**
+   * Escape value for an RLE encoded sequence.
+   */
+  private static final int RLE_ESCAPE = Integer.MIN_VALUE;
+
+  /**
+   * Encodes the given array of ints using a run-length scheme.
+   *
+   * @param array The array of ints to RLE-encode
+   *
+   * @return An RLE-encoded array of ints.
+   */
+  public static int[] encodeRLE(int[] array) {
+    int len = array.length;
+    int[] temp = new int[len];
+    int p = 0;
+
+    for (int i=0; i<len;) {
+      int q = array[i];
+      int count = 0;
+      while (i < len && q == array[i]) {
+        count++;
+        i++;
+      }
+
+      if (count < 4) {
+        // no gain from RLE; save values directly
+        for (int z=0; z<count; z++) temp[p++] = q;
+      }
+      else {
+        // compress data using RLE
+        temp[p++] = RLE_ESCAPE;
+        temp[p++] = q;
+        temp[p++] = count;
+      }
+    }
+
+    // trim encoded array
+    int[] encoded = new int[p];
+    System.arraycopy(temp, 0, encoded, 0, p);
+    return encoded;
+  }
+
+  /**
+   * Decodes the given array of ints from a run-length encoding.
+   *
+   * @param array The RLE-encoded array of ints to decode
+   *
+   * @return A decoded array of ints.
+   */
+  public static int[] decodeRLE(int[] array) {
+    // compute size of decoded array
+    int count = 0;
+    int i = 0;
+    while (i < array.length) {
+      if (array[i] == RLE_ESCAPE) {
+        count += array[i + 2];
+        i += 3;
+      }
+      else {
+        count++;
+        i++;
+      }
+    }
+
+    // allocate decoded array
+    int[] decoded = new int[count];
+    int p = 0;
+
+    // decode RLE sequence
+    for (i=0; i<array.length; i++) {
+      int q = array[i];
+      if (q == RLE_ESCAPE) {
+        int val = array[++i];
+        int cnt = array[++i];
+        for (int z=0; z<cnt; z++) decoded[p++] = val;
+      }
+      else decoded[p++] = q;
+    }
+    return decoded;
+  }
+
 }

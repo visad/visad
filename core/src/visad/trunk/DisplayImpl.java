@@ -480,19 +480,23 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
   /** updates all linked slave displays with the given image */
   public void updateSlaves(BufferedImage img) {
-    RemoteSlaveDisplay d;
+    // extract pixels from image
     int width = img.getWidth();
     int height = img.getHeight();
     int type = img.getType();
     int[] pixels = new int[width*height];
     img.getRGB(0, 0, width, height, pixels, 0, width);
+
+    // encode pixels with RLE
+    int[] encoded = Util.encodeRLE(pixels);
+
+    // send encoded pixels to each slave
     for (int i=0; i<Slaves.size(); i++) {
-      d = (RemoteSlaveDisplay) Slaves.elementAt(i);
+      RemoteSlaveDisplay d = (RemoteSlaveDisplay) Slaves.elementAt(i);
       try {
-        d.sendImage(pixels, width, height, type);
+        d.sendImage(encoded, width, height, type);
       }
-      catch (RemoteException e) {
-      }
+      catch (RemoteException e) { }
     }
   }
 

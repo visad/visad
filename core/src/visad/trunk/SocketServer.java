@@ -210,9 +210,10 @@ public class SocketServer implements RemoteSlaveDisplay {
     DataOutputStream out = (DataOutputStream) clientOutputs.elementAt(i);
     if (pix != null) {
       try {
-        // send image width, height and type to the output stream
+        // send image width, height and array length to the output stream
         out.writeInt(w);
         out.writeInt(h);
+        out.writeInt(pix.length);
 
         // send pixel data to the output stream
         out.write(pix);
@@ -232,6 +233,8 @@ public class SocketServer implements RemoteSlaveDisplay {
   public void sendImage(int[] pixels, int width, int height, int type)
     throws RemoteException
   {
+    // Note: The pixels array is RLE-encoded. The client applet decodes it.
+
     // convert pixels to byte array
     pix = Util.intToBytes(pixels);
     w = width;

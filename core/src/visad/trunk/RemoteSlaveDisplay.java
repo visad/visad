@@ -34,7 +34,7 @@ import java.rmi.*;
     rendering themselves.<P> */
 public interface RemoteSlaveDisplay extends Remote {
 
-  /** Update this slave display with the given image */
+  /** Update this slave display with the given RLE-encoded image pixels */
   void sendImage(int[] pixels, int width, int height, int type)
        throws RemoteException;
 }

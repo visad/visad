@@ -32,6 +32,7 @@ import java.awt.image.BufferedImage;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import javax.swing.JComponent;
+import visad.util.Util;
 
 /** RemoteSlaveDisplayImpl is an implementation of a slaved display that
     receives its images from a RemoteDisplay.<P> */
@@ -74,12 +75,18 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
     return component;
   }
 
-  /** Update this slave display with the given image pixels */
+  /** Update this slave display with the given RLE-encoded image pixels */
   public void sendImage(int[] pixels, int width, int height, int type)
-              throws RemoteException {
-    BufferedImage img = new BufferedImage(width, height, type);
-    img.setRGB(0, 0, width, height, pixels, 0, width);
+    throws RemoteException
+  {
+    // decode pixels
+    int[] decoded = Util.decodeRLE(pixels);
 
+    // build image from decoded pixels
+    BufferedImage img = new BufferedImage(width, height, type);
+    img.setRGB(0, 0, width, height, decoded, 0, width);
+
+    // wait for image to finish, just in case
     MediaTracker mt = new MediaTracker(component);
     mt.addImage(image, 0);
     try {
@@ -87,6 +94,8 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
     }
     catch (InterruptedException exc) { }
     image = img;
+
+    // redraw display using new image
     component.repaint();
   }
 

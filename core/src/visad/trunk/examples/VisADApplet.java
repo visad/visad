@@ -92,8 +92,7 @@ public class VisADApplet extends Applet
   }
 
   /** converts an array of bytes to an array of ints */
-  public static int[] bytesToInt(byte[] bytes)
-  {
+  private static int[] bytesToInt(byte[] bytes) {
     int len = bytes.length / 4;
     int[] ints = new int[len];
     for (int i=0; i<len; i++) {
@@ -108,6 +107,42 @@ public class VisADApplet extends Applet
       ints[i] = q3 | q2 | q1 | q0;
     }
     return ints;
+  }
+
+  /** escape value for an RLE encoded sequence */
+  private static final int RLE_ESCAPE = Integer.MIN_VALUE;
+
+  /** decodes the given array of ints from a run-length encoding */
+  private static int[] decodeRLE(int[] array) {
+    // compute size of decoded array
+    int count = 0;
+    int i = 0;
+    while (i < array.length) {
+      if (array[i] == RLE_ESCAPE) {
+        count += array[i + 2];
+        i += 3;
+      }
+      else {
+        count++;
+        i++;
+      }
+    }
+
+    // allocate decoded array
+    int[] decoded = new int[count];
+    int p = 0;
+
+    // decode RLE sequence
+    for (i=0; i<array.length; i++) {
+      int q = array[i];
+      if (q == RLE_ESCAPE) {
+        int val = array[++i];
+        int cnt = array[++i];
+        for (int z=0; z<cnt; z++) decoded[p++] = val;
+      }
+      else decoded[p++] = q;
+    }
+    return decoded;
   }
 
   /** initializes the applet and lays out its GUI */
@@ -167,7 +202,6 @@ public class VisADApplet extends Applet
 
   /** sends the specified mouse event through the socket to the server */
   private void sendEvent(MouseEvent e) {
-    // CTR: send it through the DataOutputStream
     // if e == null, send a dummy mouseevent with id < 0
     int id;
     long when;
@@ -279,14 +313,17 @@ public class VisADApplet extends Applet
             int w = in.readInt();
             if (w == 0) continue;
             int h = in.readInt();
-            int len = 4 * w * h;
+            int len = in.readInt();
             byte[] pixels = new byte[len];
             int p = 0;
             while (p < len) p += in.read(pixels, p, len - p);
             int[] pix = bytesToInt(pixels);
 
+            // decode pixels from RLE
+            int[] decoded = decodeRLE(pix);
+
             // reconstruct the image locally
-            image = createImage(new MemoryImageSource(w, h, pix, 0, w));
+            image = createImage(new MemoryImageSource(w, h, decoded, 0, w));
 
             // redraw the applet's display canvas
             Graphics g = canvas.getGraphics();
