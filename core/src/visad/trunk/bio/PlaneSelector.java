@@ -26,6 +26,7 @@ MA 02111-1307, USA
 package visad.bio;
 
 import java.rmi.RemoteException;
+import java.util.Vector;
 import visad.*;
 import visad.java3d.DirectManipulationRendererJ3D;
 
@@ -41,10 +42,10 @@ public class PlaneSelector {
   private BioVisAD bio;
 
   /** Data references for the endpoints and linked plane. */
-  private DataReferenceImpl[] refs = new DataReferenceImpl[4];
+  private DataReferenceImpl[] refs = new DataReferenceImpl[5];
 
   /** Data renderers for the endpoints and linked plane. */
-  private DataRenderer[] renderers = new DataRenderer[4];
+  private DataRenderer[] renderers = new DataRenderer[5];
 
   /** Computation cell for linking plane with endpoints. */
   private CellImpl cell;
@@ -59,50 +60,59 @@ public class PlaneSelector {
     // set up cell that links plane with endpoints
     cell = new CellImpl() {
       public void doAction() {
-        int len = refs.length - 1;
-        RealTuple[] t = new RealTuple[len];
+        // snap out-of-bounds values (must lie within the box)
+        double lox = bio.sm.min_x;
+        double hix = bio.sm.max_x;
+        double loy = bio.sm.min_y;
+        double hiy = bio.sm.max_y;
+        double loz = bio.sm.min_z;
+        double hiz = bio.sm.max_z;
+        int len = refs.length - 2;
+        RealTuple[] tuple = new RealTuple[len];
         for (int i=0; i<len; i++) {
-          t[i] = (RealTuple) refs[i + 1].getData();
-          if (t[i] == null) {
+          tuple[i] = (RealTuple) refs[i + 2].getData();
+          if (tuple[i] == null) {
             if (bio.sm.dtypes == null) return;
-            double vx = i < 2 ? bio.sm.min_x : bio.sm.max_x;
-            double vy = i < 2 ? bio.sm.min_y : bio.sm.max_y;
-            double vz = i == 0 ? bio.sm.min_z : bio.sm.max_z;
+            double vx = i < 2 ? lox : hix;
+            double vy = i < 2 ? loy : hiy;
+            double vz = i == 0 ? loz : hiz;
             setData(i, vx, vy, vz);
             return;
           }
         }
-        MathType type = t[0].getType();
-        float[][] samples = new float[3][len + 1];
-        for (int j=0; j<len; j++) {
-          double[] values = t[j].getValues();
+
+        // snap values to nearest box edge (must touch two of three axes)
+        RealTupleType type = (RealTupleType) tuple[0].getType();
+        double[] x = new double[len];
+        double[] y = new double[len];
+        double[] z = new double[len];
+        for (int i=0; i<len; i++) {
+          double[] values = tuple[i].getValues();
           double vx = values[0];
           double vy = values[1];
           double vz = values[2];
-          boolean cx1 = vx < bio.sm.min_x;
-          boolean cx2 = vx > bio.sm.max_x;
-          boolean cy1 = vy < bio.sm.min_y;
-          boolean cy2 = vy > bio.sm.max_y;
-          boolean cz1 = vz < bio.sm.min_z;
-          boolean cz2 = vz > bio.sm.max_z;
-          if (cx1) vx = bio.sm.min_x;
-          else if (cx2) vx = bio.sm.max_x;
-          if (cy1) vy = bio.sm.min_y;
-          else if (cy2) vy = bio.sm.max_y;
-          if (cz1) vz = bio.sm.min_z;
-          else if (cz2) vz = bio.sm.max_z;
+          boolean cx1 = vx < lox;
+          boolean cx2 = vx > hix;
+          boolean cy1 = vy < loy;
+          boolean cy2 = vy > hiy;
+          boolean cz1 = vz < loz;
+          boolean cz2 = vz > hiz;
+          if (cx1) vx = lox;
+          else if (cx2) vx = hix;
+          if (cy1) vy = loy;
+          else if (cy2) vy = hiy;
+          if (cz1) vz = loz;
+          else if (cz2) vz = hiz;
           boolean changed = cx1 || cx2 || cy1 || cy2 || cz1 || cz2;
-
-          // snap values to nearest box edge (must touch two of three axes)
-          double rx = Math.abs(bio.sm.max_x - bio.sm.min_x);
-          double ry = Math.abs(bio.sm.max_y - bio.sm.min_y);
-          double rz = Math.abs(bio.sm.max_z - bio.sm.min_z);
-          double dx1 = Math.abs(vx - bio.sm.min_x) / rx;
-          double dx2 = Math.abs(vx - bio.sm.max_x) / rx;
-          double dy1 = Math.abs(vy - bio.sm.min_y) / ry;
-          double dy2 = Math.abs(vy - bio.sm.max_y) / ry;
-          double dz1 = Math.abs(vz - bio.sm.min_z) / rz;
-          double dz2 = Math.abs(vz - bio.sm.max_z) / rz;
+          double rx = Math.abs(hix - lox);
+          double ry = Math.abs(hiy - loy);
+          double rz = Math.abs(hiz - loz);
+          double dx1 = Math.abs(vx - lox) / rx;
+          double dx2 = Math.abs(vx - hix) / rx;
+          double dy1 = Math.abs(vy - loy) / ry;
+          double dy2 = Math.abs(vy - hiy) / ry;
+          double dz1 = Math.abs(vz - loz) / rz;
+          double dz2 = Math.abs(vz - hiz) / rz;
           boolean xm = dx1 == 0 || dx2 == 0;
           boolean ym = dy1 == 0 || dy2 == 0;
           boolean zm = dz1 == 0 || dz2 == 0;
@@ -116,24 +126,190 @@ public class PlaneSelector {
             boolean snapx = distx <= distz || distx <= disty;
             boolean snapy = disty <= distx || disty <= distz;
             boolean snapz = !snapx || !snapy;
-            if (snapx) vx = axisx ? bio.sm.min_x : bio.sm.max_x;
-            if (snapy) vy = axisy ? bio.sm.min_y : bio.sm.max_y;
-            if (snapz) vz = axisz ? bio.sm.min_z : bio.sm.max_z;
+            if (snapx) vx = axisx ? lox : hix;
+            if (snapy) vy = axisy ? loy : hiy;
+            if (snapz) vz = axisz ? loz : hiz;
             changed = true;
           }
           if (changed) {
-            setData(j, vx, vy, vz);
+            setData(i, vx, vy, vz);
             return;
           }
+          x[i] = vx;
+          y[i] = vy;
+          z[i] = vz;
+        }
 
-          for (int i=0; i<3; i++) samples[i][j] = (float) values[i];
+        // solve plane equation for box edge intersections
+        /*
+          x = x1 + s*(x2 - x1) + t*(x3 - x1)
+          y = y1 + s*(y2 - y1) + t*(y3 - y1)
+          z = z1 + s*(z2 - z1) + t*(z3 - z1)
+
+          t = (x - x1 + s*(x1 - x2)) / (x3 - x1)
+          y = y1 + s*(y2 - y1) +
+            [(x - x1 + s*(x1 - x2)) / (x3 - x1)]*(y3 - y1)
+          y = y1 + s*(y2 - y1) + s*(x1 - x2)*(y3 - y1)/(x3 - x1) +
+            (x - x1)*(y3 - y1)/(x3 - x1)
+          y = y1 + s*[(y2 - y1) + (x1 - x2)*(y3 - y1)/(x3 - x1)] +
+            (x - x1)*(y3 - y1)/(x3 - x1)
+
+          s = [y - y1 - (x - x1)*(y3 - y1)/(x3 - x1)] /
+            [(y2 - y1) + (x1 - x2)*(y3 - y1)/(x3 - x1)]
+          t = (x - x1 + s*(x1 - x2)) / (x3 - x1)
+          z = z1 + s*(z2 - z1) + t*(z3 - z1)
+        */
+        double[] px = {lox, lox, hix, hix, lox, lox, hix, hix, 0, 0, 0, 0};
+        double[] py = {loy, hiy, loy, hiy, 0, 0, 0, 0, loy, loy, hiy, hiy};
+        double[] pz = {0, 0, 0, 0, loz, hiz, loz, hiz, loz, hiz, loz, hiz};
+        boolean[] valid = new boolean[12];
+        int vcount = 0;
+        for (int i=0; i<12; i++) {
+          if (i > 7) {
+            // solve for px
+            double s =
+              (pz[i] - z[0] - (py[i] - y[0]) * (z[2] - z[0]) / (y[2] - y[0])) /
+              ((z[1] - z[0]) + (y[0] - y[1]) * (z[2] - z[0]) / (y[2] - y[0]));
+            double t = (py[i] - y[0] + s * (y[0] - y[1])) / (y[2] - y[0]);
+            px[i] = x[0] + s * (x[1] - x[0]) + t * (x[2] - x[0]);
+            valid[i] = px[i] >= lox && px[i] <= hix;
+          }
+          else if (i > 3) {
+            // solve for py
+            double s =
+              (px[i] - x[0] - (pz[i] - z[0]) * (x[2] - x[0]) / (z[2] - z[0])) /
+              ((x[1] - x[0]) + (z[0] - z[1]) * (x[2] - x[0]) / (z[2] - z[0]));
+            double t = (pz[i] - z[0] + s * (z[0] - z[1])) / (z[2] - z[0]);
+            py[i] = y[0] + s * (y[1] - y[0]) + t * (y[2] - y[0]);
+            valid[i] = py[i] >= loy && py[i] <= hiy;
+          }
+          else {
+            // solve for pz
+            double s =
+              (py[i] - y[0] - (px[i] - x[0]) * (y[2] - y[0]) / (x[2] - x[0])) /
+              ((y[1] - y[0]) + (x[0] - x[1]) * (y[2] - y[0]) / (x[2] - x[0]));
+            double t = (px[i] - x[0] + s * (x[0] - x[1])) / (x[2] - x[0]);
+            pz[i] = z[0] + s * (z[1] - z[0]) + t * (z[2] - z[0]);
+            valid[i] = pz[i] >= loz && pz[i] <= hiz;
+          }
+          // invalidate duplicate points
+          if (valid[i]) {
+            for (int j=0; j<i; j++) {
+              if (!valid[j]) continue;
+              if (px[i] == px[j] && py[i] == py[j] && pz[i] == pz[j]) {
+                valid[i] = false;
+                break;
+              }
+            }
+          }
+          if (valid[i]) vcount++;
         }
-        for (int i=0; i<3; i++) {
-          samples[i][len] = samples[i][1] + samples[i][2] - samples[i][0];
-        }
+
+        // analyze px, py, pz for valid box edge intersections
+        // there could be as few as 3 or as many as 6
+        // there are some annoying special cases too:
+        //   - degenerate plane (colinear points)
+        //   - box face identity (plane is one of the box faces)
         try {
-          Gridded3DSet plane = new Gridded3DSet(type, samples, 2, 2);
-          refs[0].setData(plane);
+          Gridded3DSet lines = null, plane = null;
+          if (vcount > 0) {
+            // extract valid box edge intersection points
+            float[] ux = new float[vcount];
+            float[] uy = new float[vcount];
+            float[] uz = new float[vcount];
+            for (int i=0, c=0; i<12; i++) {
+              if (valid[i]) {
+                ux[c] = (float) px[i];
+                uy[c] = (float) py[i];
+                uz[c] = (float) pz[i];
+                c++;
+              }
+            }
+            // sort points in convex hull order
+            boolean[] hull = new boolean[vcount];
+            float[][] samples = new float[3][vcount + 1];
+            samples[0][0] = ux[0];
+            samples[1][0] = uy[0];
+            samples[2][0] = uz[0];
+            hull[0] = true;
+            for (int i=1; i<vcount; i++) {
+              double sx = samples[0][i - 1];
+              double sy = samples[1][i - 1];
+              double sz = samples[2][i - 1];
+              boolean xok = sx == lox || sx == hix;
+              boolean yok = sy == loy || sy == hiy;
+              boolean zok = sz == loz || sz == hiz;
+              for (int j=1; j<vcount; j++) {
+                if (hull[j]) continue;
+                if (xok && sx == ux[j] ||
+                  yok && sy == uy[j] ||
+                  zok && sz == uz[j])
+                {
+                  // found next point in hull
+                  samples[0][i] = ux[j];
+                  samples[1][i] = uy[j];
+                  samples[2][i] = uz[j];
+                  hull[j] = true;
+                  break;
+                }
+              }
+            }
+            samples[0][vcount] = samples[0][0];
+            samples[1][vcount] = samples[1][0];
+            samples[2][vcount] = samples[2][0];
+            lines = new Gridded3DSet(type, samples, vcount + 1);
+
+            if (vcount == 3) {
+              // planar slice is a triangle
+              float[][] samps = new float[3][4];
+              for (int i=0; i<3; i++) {
+                samps[i][0] = samples[i][0];
+                samps[i][1] = (samples[i][0] + samples[i][1]) / 2;
+                samps[i][2] = samples[i][2];
+                samps[i][3] = samples[i][1];
+              }
+              plane = new Gridded3DSet(type, samps, 2, 2);
+            }
+            else if (vcount == 4) {
+              // planar slice is a quadrilateral
+              float[][] samps = new float[3][4];
+              for (int i=0; i<3; i++) {
+                samps[i][0] = samples[i][0];
+                samps[i][1] = samples[i][1];
+                samps[i][2] = samples[i][3];
+                samps[i][3] = samples[i][2];
+              }
+              plane = new Gridded3DSet(type, samps, 2, 2);
+            }
+            else if (vcount == 5) {
+              // planar slice is a pentagon
+              float[][] samps = new float[3][6];
+              for (int i=0; i<3; i++) {
+                samps[i][0] = samples[i][0];
+                samps[i][1] = samples[i][1];
+                samps[i][2] = samples[i][4];
+                samps[i][3] = (samples[i][1] + samples[i][2]) / 2;
+                samps[i][4] = samples[i][3];
+                samps[i][5] = samples[i][2];
+              }
+              plane = new Gridded3DSet(type, samps, 2, 3);
+            }
+            else if (vcount == 6) {
+              // planar slice is a hexagon
+              float[][] samps = new float[3][6];
+              for (int i=0; i<3; i++) {
+                samps[i][0] = samples[i][0];
+                samps[i][1] = samples[i][1];
+                samps[i][2] = samples[i][5];
+                samps[i][3] = samples[i][2];
+                samps[i][4] = samples[i][4];
+                samps[i][5] = samples[i][3];
+              }
+              plane = new Gridded3DSet(type, samps, 2, 3);
+            }
+          }
+          refs[0].setData(lines);
+          refs[1].setData(plane);
         }
         catch (VisADException exc) { exc.printStackTrace(); }
         catch (RemoteException exc) { exc.printStackTrace(); }
@@ -144,11 +320,13 @@ public class PlaneSelector {
     cell.disableAction();
     try {
       for (int i=0; i<refs.length; i++) {
-        if (i > 0) {
+        if (i > 1) {
           refs[i] = new DataReferenceImpl("bio_plane" + i);
           cell.addReference(refs[i]);
         }
-        else refs[i] = new DataReferenceImpl("bio_plane");
+        else {
+          refs[i] = new DataReferenceImpl(i == 0 ? "bio_edges" : "bio_plane");
+        }
       }
     }
     catch (VisADException exc) { exc.printStackTrace(); }
@@ -169,24 +347,35 @@ public class PlaneSelector {
     DisplayRenderer displayRenderer = bio.display3.getDisplayRenderer();
     for (int i=0; i<refs.length; i++) {
       ConstantMap[] maps;
-      if (i > 0) {
+      if (i == 0) {
+        // thick plane outline
+        renderers[i] = displayRenderer.makeDefaultRenderer();
+        maps = new ConstantMap[] {
+          new ConstantMap(0.0f, Display.Red),
+          new ConstantMap(1.0f, Display.Green),
+          new ConstantMap(1.0f, Display.Blue),
+          new ConstantMap(3.0f, Display.LineWidth)
+        };
+      }
+      else if (i == 1) {
+        // semi-transparent plane
+        renderers[i] = displayRenderer.makeDefaultRenderer();
+        maps = new ConstantMap[] {
+          new ConstantMap(1.0f, Display.Red),
+          new ConstantMap(1.0f, Display.Green),
+          new ConstantMap(1.0f, Display.Blue),
+          new ConstantMap(0.75f, Display.Alpha)
+        };
+      }
+      else {
+        // manipulable plane definition points
         renderers[i] = new DirectManipulationRendererJ3D();
         renderers[i].setPickCrawlToCursor(false);
         maps = new ConstantMap[] {
           new ConstantMap(1.0f, Display.Red),
           new ConstantMap(1.0f, Display.Green),
           new ConstantMap(0.0f, Display.Blue),
-          new ConstantMap(15.0f, Display.PointSize)
-        };
-      }
-      else {
-        renderers[i] = displayRenderer.makeDefaultRenderer();
-        maps = new ConstantMap[] {
-          new ConstantMap(1.0f, Display.Red),
-          new ConstantMap(1.0f, Display.Green),
-          new ConstantMap(1.0f, Display.Blue),
-          new ConstantMap(0.5f, Display.Alpha),
-          new ConstantMap(15.0f, Display.PointSize)
+          new ConstantMap(6.0f, Display.PointSize)
         };
       }
       renderers[i].suppressExceptions(true);
@@ -201,7 +390,7 @@ public class PlaneSelector {
   /** Moves the given reference point. */
   private void setData(int i, double x, double y, double z) {
     try {
-      refs[i + 1].setData(new RealTuple(new Real[] {
+      refs[i + 2].setData(new RealTuple(new Real[] {
         new Real(bio.sm.dtypes[0], x),
         new Real(bio.sm.dtypes[1], y),
         new Real(bio.sm.dtypes[2], z)
