@@ -110,8 +110,19 @@ public class VisADApplet extends Applet
   private Component canvas;
 
   /**
-   * Frame for display widgets. */
+   * Frame for display widgets.
+   */
   private Frame frame;
+
+  /**
+   * Layout manager for widget frame.
+   */
+  private GridBagLayout widgetLayout;
+
+  /**
+   * GridBagConstraints object for use in widget layout.
+   */
+  private GridBagConstraints constraints;
 
   /**
    * Thread for communicating with server.
@@ -139,6 +150,40 @@ public class VisADApplet extends Applet
     gbc.weighty = wy;
     layout.setConstraints(c, gbc);
     add(c);
+  }
+
+  /**
+   * Adds a widget to the control panel.
+   */
+  private void addWidget(Widget widget, String hash) {
+    // add widget to hashtable
+    widgets.put(hash, widget);
+
+    // add widget to control panel
+    if (constraints.gridy > 0) {
+      Divider divider = new Divider();
+      widgetLayout.setConstraints(divider, constraints);
+      constraints.gridy++;
+      frame.add(divider);
+    }
+    widgetLayout.setConstraints(widget, constraints);
+    constraints.gridy++;
+    frame.add(widget);
+    frame.pack();
+    frame.setVisible(true);
+  }
+
+  /**
+   * Removes all widgets from the control panel.
+   */
+  private synchronized void removeAllWidgets() {
+    // clear hashtable
+    widgets = new Hashtable();
+
+    // clear control panel
+    constraints.gridy = 0;
+    frame.setVisible(false);
+    frame.removeAll();
   }
 
   /**
@@ -195,6 +240,13 @@ public class VisADApplet extends Applet
 
     // construct widget frame
     frame = new Frame("Controls");
+    widgetLayout = new GridBagLayout();
+    frame.setLayout(widgetLayout);
+    constraints = new GridBagConstraints();
+    constraints.gridx = 0;
+    constraints.gridy = 0;
+    constraints.fill = GridBagConstraints.BOTH;
+    frame.setBackground(Widget.PALE_GRAY);
   }
 
   /**
@@ -203,13 +255,16 @@ public class VisADApplet extends Applet
   public void disconnect() {
     if (connected) {
       connected = false;
-      frame.setVisible(false);
+      // remove all widget listeners
       for (int i=0; i<frame.getComponentCount(); i++) {
-        Widget w = (Widget) frame.getComponent(i);
-        w.removeWidgetListener(this);
+        Component c = frame.getComponent(i);
+        if (c instanceof Widget) {
+          Widget w = (Widget) frame.getComponent(i);
+          w.removeWidgetListener(this);
+        }
       }
-      widgets = new Hashtable();
-      frame.removeAll();
+      // remove all widgets from control panel
+      removeAllWidgets();
       repaint();
     }
   }
@@ -421,15 +476,7 @@ public class VisADApplet extends Applet
                       "restricted " + widgetName + "widget.");
                   }
                 }
-                if (widget != null) {
-                  // add widget to hashtable
-                  widgets.put(widgetHash, widget);
-
-                  // add widget to applet's widget frame
-                  frame.add(widget);
-                  frame.pack();
-                  frame.setVisible(true);
-                }
+                if (widget != null) addWidget(widget, widgetHash);
               }
 
               if (widget != null) {

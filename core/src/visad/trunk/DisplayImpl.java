@@ -38,6 +38,7 @@ import java.net.*;
 import javax.swing.*;
 
 import visad.browser.Convert;
+import visad.browser.Divider;
 import visad.util.*;
 
 import visad.collab.ControlMonitorEvent;
@@ -1458,29 +1459,7 @@ if (initialize) {
 
   /** add a component to the widget panel */
   private void addToWidgetPanel(Component c, boolean divide) {
-    // add a thin, horizontal divider for separating widget panel components
-    if (divide) widgetPanel.add(new JComponent() {
-      public void paint(Graphics g) {
-        int w = getSize().width;
-        g.setColor(Color.white);
-        g.drawRect(0, 0, w-2, 6);
-        g.drawRect(2, 2, w-4, 2);
-        g.setColor(Color.black);
-        g.drawRect(1, 1, w-3, 3);
-      }
-
-      public Dimension getMinimumSize() {
-        return new Dimension(0, 6);
-      }
-
-      public Dimension getPreferredSize() {
-        return new Dimension(0, 6);
-      }
-
-      public Dimension getMaximumSize() {
-        return new Dimension(Integer.MAX_VALUE, 6);
-      }
-    });
+    if (divide) widgetPanel.add(new Divider());
     widgetPanel.add(c);
   }
 

@@ -48,6 +48,11 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
   /** the default port for server/client communication */
   private static final int DEFAULT_PORT = 4567;
 
+  /** list of control classes that support socket-based collaboration */
+  private static final Class[] supportedControls = {
+    ContourControl.class, GraphicsModeControl.class
+  };
+
   /** the port at which the server communicates with clients */
   private int port;
 
@@ -141,8 +146,26 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
               int eventType = in.readInt();
 
               if (eventType == 0) { // 0 = refresh
-                // client has requested a refresh
+                // send latest display image to the client
                 updateClient(socket, in, out);
+
+                // send latest supported control states to the client
+                for (int j=0; j<supportedControls.length; j++) {
+                  Class c = supportedControls[j];
+                  Vector v = display.getControls(c);
+
+                  // CTR: ugly, ugly hack
+                  if (c.equals(GraphicsModeControl.class)) {
+                    v.removeElementAt(1);
+                  }
+
+                  for (int k=0; k<v.size(); k++) {
+                    Control control = (Control) v.elementAt(k);
+                    String message = c.getName() + "\n" +
+                      k + "\n" + control.getSaveString();
+                    updateClient(message, socket, in, out);
+                  }
+                }
               }
               else if (eventType == 1) { // 1 = MouseEvent
                 int id = in.readInt();
