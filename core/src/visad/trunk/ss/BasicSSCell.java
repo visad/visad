@@ -927,6 +927,8 @@ public class BasicSSCell extends JPanel {
     Vector color = new Vector();
     Vector contour = new Vector();
     Vector range = new Vector();
+    Vector anim = new Vector();
+    Vector value = new Vector();
 
     // parse the save string into lines
     StringTokenizer st = new StringTokenizer(save, "\n\r");
@@ -1102,6 +1104,22 @@ public class BasicSSCell extends JPanel {
         range.add(surplus);
       }
 
+      // animation
+      else if (keyword.equalsIgnoreCase("anim") ||
+        keyword.equalsIgnoreCase("animation"))
+      {
+        anim.add(surplus);
+      }
+
+      // value
+      else if (keyword.equalsIgnoreCase("value") ||
+        keyword.equalsIgnoreCase("select value") ||
+        keyword.equalsIgnoreCase("select_value") ||
+        keyword.equalsIgnoreCase("selectvalue"))
+      {
+        value.add(surplus);
+      }
+
       // unknown keyword
       else {
         System.err.println("Warning: keyword " +
@@ -1184,7 +1202,7 @@ public class BasicSSCell extends JPanel {
         "the provided projection matrix will be ignored");
     }
 
-    // set up color control
+    // set up color control(s)
     int len = color.size();
     if (len > 0) {
       for (int i=0; i<len; i++) {
@@ -1197,7 +1215,7 @@ public class BasicSSCell extends JPanel {
       }
     }
 
-    // set up contour control
+    // set up contour control(s)
     len = contour.size();
     if (len > 0) {
       for (int i=0; i<len; i++) {
@@ -1210,7 +1228,7 @@ public class BasicSSCell extends JPanel {
       }
     }
 
-    // set up range control
+    // set up range control(s)
     len = range.size();
     if (len > 0) {
       for (int i=0; i<len; i++) {
@@ -1220,6 +1238,32 @@ public class BasicSSCell extends JPanel {
         if (rc != null) rc.setSaveString(s);
         else System.err.println("Warning: display has no RangeControl #" +
           (i + 1) + "; the provided range will be ignored");
+      }
+    }
+
+    // set up animation control(s)
+    len = anim.size();
+    if (len > 0) {
+      for (int i=0; i<len; i++) {
+        String s = (String) anim.elementAt(i);
+        AnimationControl ac = (AnimationControl)
+          VDisplay.getControl(AnimationControl.class, i);
+        if (ac != null) ac.setSaveString(s);
+        else System.err.println("Warning: display has on AnimationControl #" +
+          (i + 1) + "; the provided animation information will be ignored");
+      }
+    }
+
+    // set up value control(s)
+    len = value.size();
+    if (len > 0) {
+      for (int i=0; i<len; i++) {
+        String s = (String) value.elementAt(i);
+        ValueControl vc = (ValueControl)
+          VDisplay.getControl(ValueControl.class, i);
+        if (vc != null) vc.setSaveString(s);
+        else System.err.println("Warning: display has no ValueControl #" +
+          (i + 1) + "; the provided value will be ignored");
       }
     }
   }
@@ -1303,6 +1347,24 @@ public class BasicSSCell extends JPanel {
           for (int i=0; i<cv.size(); i++) {
             RangeControl rc = (RangeControl) cv.elementAt(i);
             if (rc != null) s = s + "range = " + rc.getSaveString() + "\n";
+          }
+        }
+
+        // add animation control state(s) to save string
+        cv = VDisplay.getControls(AnimationControl.class);
+        if (cv != null) {
+          for (int i=0; i<cv.size(); i++) {
+            AnimationControl ac = (AnimationControl) cv.elementAt(i);
+            if (ac != null) s = s + "anim = " + ac.getSaveString() + "\n";
+          }
+        }
+
+        // add value control state(s) to save string
+        cv = VDisplay.getControls(ValueControl.class);
+        if (cv != null) {
+          for (int i=0; i<cv.size(); i++) {
+            ValueControl vc = (ValueControl) cv.elementAt(i);
+            if (vc != null) s = s + "value = " + vc.getSaveString() + "\n";
           }
         }
       }

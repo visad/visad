@@ -174,7 +174,7 @@ public abstract class BaseColorControl extends Control {
     if (table == null) return null;
     int len = table.length;
     int len0 = table[0].length;
-    StringBuffer sb = new StringBuffer(10 * len * len0);
+    StringBuffer sb = new StringBuffer(15 * len * len0);
     sb.append(len);
     sb.append(" x ");
     sb.append(len0);

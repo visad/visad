@@ -29,6 +29,7 @@ package visad.java3d;
 import visad.*;
 
 import java.rmi.*;
+import java.util.StringTokenizer;
 
 /**
    AnimationControlJ3D is the VisAD class for controlling Animation
@@ -220,8 +221,7 @@ public class AnimationControlJ3D extends AVControlJ3D
    * @throws  RemoteException  Java RMI exception
    */
   public void setSteps(int[] steps) 
-  throws VisADException, RemoteException
-  {
+         throws VisADException, RemoteException {
     // verify that the values are valid
     for (int i = 0; i < stepValues.length; i++)
     {
@@ -379,6 +379,98 @@ public class AnimationControlJ3D extends AVControlJ3D
     if (animate != null) {
       animate.resetTicks();
     }
+  }
+
+  /** get a String that can be used to reconstruct this
+      AnimationControl later */
+  public String getSaveString() {
+    int numSteps;
+    long[] steps;
+    if (stepValues == null) {
+      numSteps = 1;
+      steps = new long[1];
+      steps[0] = 500;
+    }
+    else {
+      numSteps = stepValues.length;
+      steps = stepValues;
+    }
+    StringBuffer sb = new StringBuffer(35 + 12 * numSteps);
+    sb.append(animate != null && animate.getOn());
+    sb.append(' ');
+    sb.append(direction);
+    sb.append(' ');
+    sb.append(current);
+    sb.append(' ');
+    sb.append(numSteps);
+    for (int i=0; i<numSteps; i++) {
+      sb.append(' ');
+      sb.append((int) steps[i]);
+    }
+    return sb.toString();
+  }
+
+  /** reconstruct this AnimationControl using the specified save string */
+  public void setSaveString(String save)
+    throws VisADException, RemoteException
+  {
+    if (save == null) throw new VisADException("Invalid save string");
+    StringTokenizer st = new StringTokenizer(save);
+    int numTokens = st.countTokens();
+    if (numTokens < 4) throw new VisADException("Invalid save string");
+
+    // get animation flag
+    String token = st.nextToken();
+    boolean on = token.equalsIgnoreCase("true") ||
+      token.equalsIgnoreCase("T");
+
+    // get direction flag
+    token = st.nextToken();
+    boolean dir = token.equalsIgnoreCase("true") ||
+      token.equalsIgnoreCase("T");
+
+    // get current step
+    token = st.nextToken();
+    int cur = 0;
+    try {
+      cur = Integer.parseInt(token);
+    }
+    catch (NumberFormatException exc) { }
+
+    // get number of steps in stepValues array
+    token = st.nextToken();
+    int numSteps = -1;
+    try {
+      numSteps = Integer.parseInt(token);
+    }
+    catch (NumberFormatException exc) { }
+    if (numSteps <= 0) {
+      throw new VisADException("Invalid save string: number of steps is " +
+        "not a positive integer");
+    }
+
+    // get values of stepValues array
+    if (numTokens < 4 + numSteps) {
+      throw new VisADException("Invalid save string: not enough step entries");
+    }
+    int[] steps = new int[numSteps];
+    for (int i=0; i<numSteps; i++) {
+      steps[i] = -1;
+      try {
+        steps[i] = Integer.parseInt(st.nextToken());
+      }
+      catch (NumberFormatException exc) { }
+      if (steps[i] <= 0) {
+        throw new VisADException("Invalid save string: step #" + (i + 1) +
+          "is not a positive integer");
+      }
+    }
+
+    // set values
+    setOn(on);
+    setDirection(dir);
+    setSteps(steps);
+    setCurrent(cur);
   }
 
   /** copy the state of a remote control to this control */

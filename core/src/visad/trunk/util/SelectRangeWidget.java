@@ -195,7 +195,7 @@ public class SelectRangeWidget extends RangeSlider
   }
 
 
-  /** ControlListener method for ContourControl. */
+  /** ControlListener method for RangeControl */
   public void controlChanged(ControlEvent e)
     throws VisADException, RemoteException
   {

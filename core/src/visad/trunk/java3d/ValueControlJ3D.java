@@ -59,6 +59,26 @@ public class ValueControlJ3D extends AVControlJ3D
     return Value;
   }
 
+  /** get a String that can be used to reconstruct this ValueControl later */
+  public String getSaveString() {
+    return "" + Value;
+  }
+
+  /** reconstruct this ValueControl using the specified save string */
+  public void setSaveString(String save)
+    throws VisADException, RemoteException
+  {
+    if (save == null) throw new VisADException("Invalid save string");
+    try {
+      double val = Double.parseDouble(save.trim());
+      setValue(val);
+    }
+    catch (NumberFormatException exc) {
+      throw new VisADException("Invalid save string: value is not a " +
+        "double-precision floating point number");
+    }
+  }
+
   /** copy the state of a remote control to this control */
   public void syncControl(Control rmt)
         throws VisADException

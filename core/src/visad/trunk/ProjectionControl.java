@@ -88,7 +88,7 @@ public abstract class ProjectionControl extends Control {
       minor = 1;
     }
 
-    StringBuffer sb = new StringBuffer(20 * len);
+    StringBuffer sb = new StringBuffer(25 * len);
     sb.append(major);
     if (minor > 1) {
       sb.append(" x ");

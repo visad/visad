@@ -26,7 +26,7 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.util.*;
+import java.rmi.RemoteException;
 
 /**
    AVControl is the VisAD interface for AnimationControl
@@ -39,6 +39,11 @@ public interface AVControl {
   void addControlListener(ControlListener listener);
 
   void removeControlListener(ControlListener listener);
+
+  public String getSaveString();
+
+  public void setSaveString(String save)
+    throws VisADException, RemoteException;
 
 }
 

@@ -47,7 +47,8 @@ import visad.*;
     a slider linked to a Real cannot auto-scale, because it has no way to
     detect the bounds.<P> */
 public class VisADSlider extends JPanel implements ChangeListener,
-                                                   ScalarMapListener {
+  ControlListener, ScalarMapListener
+{
 
   /** The default number of ticks the slider should have */
   private static final int D_TICKS = 1000;
@@ -83,19 +84,19 @@ public class VisADSlider extends JPanel implements ChangeListener,
   private String sName;
 
   /** The minimum allowed slider value */
-  private float sMinimum;
+  private double sMinimum;
 
   /** The maximum allowed slider value */
-  private float sMaximum;
+  private double sMaximum;
 
   /** The current slider value */
-  private float sCurrent;
+  private double sCurrent;
 
   /** The number of ticks in the slider */
   private int sTicks;
 
   /** Flags whether this VisADSlider is linked to a Real or a ScalarMap */
-  private boolean smapcontrol;
+  private boolean smapControl;
 
   /** <CODE>true</CODE> if the widget will auto-scale */
   private boolean autoScale;
@@ -183,7 +184,7 @@ public class VisADSlider extends JPanel implements ChangeListener,
         throw new VisADException("VisADSlider: ScalarMap must be from " +
                                  "a RealType!");
       }
-      smapcontrol = true;
+      smapControl = true;
       map = smap;
       control = (ValueControl) smap.getControl();
       if (control == null) {
@@ -200,20 +201,24 @@ public class VisADSlider extends JPanel implements ChangeListener,
         sMaximum = max;
         sCurrent = start;
         initLabel();
-        if (start < min || start > max) start = (min + max) / 2;
         smap.setRange(min, max);
-        control.setValue(start);
+        if (start < min || start > max) {
+          start = (min + max) / 2;
+          control.setValue(start);
+        }
       }
       else {
-        autoScale = true;
         // enable auto-scaling (CASE ONE)
+        autoScale = true;
         initLabel();
       }
+      updateSlider(start);
+      control.addControlListener(this);
       smap.addScalarMapListener(this);
     }
     else {
       // this VisADSlider should link to a Real
-      smapcontrol = false;
+      smapControl = false;
       map = null;
       control = null;
       if (ref == null) {
@@ -231,9 +236,6 @@ public class VisADSlider extends JPanel implements ChangeListener,
           throw new VisADException("VisADSlider: name cannot be null!");
         }
         realType = rt;
-/* WLH 17 Sept 98
-        sName = n;
-*/
         if (min != min || max != max || start != start) {
           throw new VisADException("VisADSlider: min, max, and start " +
                                    "cannot be NaN!");
@@ -251,9 +253,6 @@ public class VisADSlider extends JPanel implements ChangeListener,
         }
         Real real = (Real) data;
         realType = (RealType) real.getType();
-/* WLH 17 Sept 98
-        sName = realType.getName();
-*/
         sCurrent = (float) real.getValue();
         if (min != min || max != max) {
           throw new VisADException("VisADSlider: minimum and maximum " +
@@ -263,12 +262,18 @@ public class VisADSlider extends JPanel implements ChangeListener,
         sMaximum = max;
         if (sCurrent < min || sCurrent > max) sCurrent = (min + max) / 2;
       }
-      /* WLH 17 Sept 98 */
       sName = (n != null) ? n : realType.getName();
       initLabel();
 
       // watch for changes in Real, and update slider when necessary
-      SliderCell cell = new SliderCell();
+      CellImpl cell = new CellImpl() {
+        public void doAction() throws VisADException, RemoteException {
+          // update slider when value of linked Real changes
+          double val = ((Real) sRef.getData()).getValue();
+          if (Math.abs(sCurrent - val) > 0.0001) updateSlider(val);
+        }
+      };
+
       if (ref instanceof RemoteDataReference) {
         RemoteCell remoteCell = new RemoteCellImpl(cell);
         remoteCell.addReference(ref);
@@ -299,20 +304,22 @@ public class VisADSlider extends JPanel implements ChangeListener,
 
   /** called when slider is adjusted */
   public void stateChanged(ChangeEvent e) {
-    double val = slider.getValue();
-    sCurrent = (float) ((sMaximum - sMinimum) * (val / sTicks) + sMinimum);
     synchronized (label) {
+      head = "";
       try {
-        if (smapcontrol) control.setValue(sCurrent);
-        else sRef.setData(new Real(realType, sCurrent));
+        double val = slider.getValue();
+        double cur = (sMaximum - sMinimum) * (val / sTicks) + sMinimum;
+        if (Math.abs(sCurrent - cur) > 0.0001) {
+          if (smapControl) control.setValue(cur);
+          else sRef.setData(new Real(realType, cur));
+        }
       }
       catch (VisADException exc) {
-        System.out.println(exc.toString());
+        exc.printStackTrace();
       }
-      catch (RemoteException exc) { }
-      head = "";
-      label.setText(sName + " = " + PlotText.shortString(sCurrent));
-      label.validate();
+      catch (RemoteException exc) {
+        exc.printStackTrace();
+      }
     }
   }
 
@@ -326,15 +333,13 @@ public class VisADSlider extends JPanel implements ChangeListener,
     if (sCurrent < sMinimum || sCurrent > sMaximum) {
       sCurrent = (sMinimum + sMaximum) / 2;
     }
-    label.setText(sName + " = " + PlotText.shortString(sCurrent));
-    label.validate();
+    updateSlider(sCurrent);
   }
 
   /** 
    * ScalarMapListener method used to detect new control.
    */
-  public void controlChanged(ScalarMapControlEvent evt)
-  {
+  public void controlChanged(ScalarMapControlEvent evt) {
     int id = evt.getId();
     if (id == ScalarMapEvent.CONTROL_REMOVED ||
         id == ScalarMapEvent.CONTROL_REPLACED)
@@ -345,27 +350,30 @@ public class VisADSlider extends JPanel implements ChangeListener,
     if (id == ScalarMapEvent.CONTROL_REPLACED ||
         id == ScalarMapEvent.CONTROL_ADDED)
     {
-      control = (ValueControl )(evt.getScalarMap().getControl());
+      control = (ValueControl) evt.getScalarMap().getControl();
     }
   }
 
-  /** This extension of CellImpl is used to link a Real and a VisADSlider */
-  private class SliderCell extends CellImpl {
+  /** Update slider when value of linked ValueControl changes */
+  public void controlChanged(ControlEvent e)
+    throws VisADException, RemoteException
+  {
+    double cur = control.getValue();
+    if (Math.abs(sCurrent - cur) > 0.0001) updateSlider(control.getValue());
+  }
 
-    /** Update slider when value of linked Real changes */
-    public void doAction() throws VisADException, RemoteException {
-      synchronized (label) {
-        double val = ((Real) sRef.getData()).getValue();
-        int ival = (int) (sTicks * ((val - sMinimum) / (sMaximum - sMinimum)));
-        sCurrent = (float) ((sMaximum - sMinimum)
-                          * (ival / (double) sTicks) + sMinimum);
-        if (slider.getValue() != ival) {
-          slider.setValue(ival);
-          label.setText(sName + " = " + PlotText.shortString(sCurrent) + head);
-        }
+  /** Update the slider's value */
+  private void updateSlider(double value) {
+    synchronized (label) {
+      int ival = (int) (sTicks * ((value - sMinimum) / (sMaximum - sMinimum)));
+      if (Math.abs(slider.getValue() - ival) > 1) {
+        slider.removeChangeListener(this);
+        slider.setValue(ival);
+        slider.addChangeListener(this);
       }
+      sCurrent = value;
+      label.setText(sName + " = " + PlotText.shortString(sCurrent) + head);
     }
-
   }
 
 }
