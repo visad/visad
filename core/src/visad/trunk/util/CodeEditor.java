@@ -94,6 +94,7 @@ public abstract class CodeEditor extends TextEditor {
     String s = text.getText() + "\n";
     for (int i=0; i<line-1; i++) start = s.indexOf("\n", start) + 1;
     int end = s.indexOf("\n", start);
+    text.requestFocus();
     text.setCaretPosition(start);
     text.moveCaretPosition(end);
   }

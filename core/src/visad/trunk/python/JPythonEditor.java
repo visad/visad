@@ -26,10 +26,11 @@ MA 02111-1307, USA
 
 package visad.python;
 
-import java.awt.Cursor;
+import java.awt.*;
+import java.awt.event.*;
 import java.lang.reflect.*;
 import java.io.*;
-import java.util.ArrayList;
+import java.util.*;
 import javax.swing.*;
 import visad.VisADException;
 import visad.formula.FormulaUtil;
@@ -41,6 +42,9 @@ public class JPythonEditor extends CodeEditor {
   /** text to be prepended to all JPython documents */
   private static final String PREPENDED_TEXT =
     "from visad.python.JPythonMethods import *";
+
+  /** monospaced font to use for error message reporting */
+  private static final Font MONO_FONT = new Font("Monospaced", Font.PLAIN, 11);
 
   /** wrapper for PythonInterpreter object */
   protected RunJPython python = null;
@@ -101,20 +105,79 @@ public class JPythonEditor extends CodeEditor {
 
   /** adjusts the line number of the given error to match the displayed text,
       and highlights that line of code to indicate the source of error */
-  private String handleError(String err) {
-    int index = err.indexOf("line ") + 5;
-    if (index < 0) return err; 
-    int comma = err.indexOf(",", index);
-    int lineNum = -1;
-    try {
-      lineNum = Integer.parseInt(err.substring(index, comma));
+  private String handleError(String err, String filename) {
+    // convert eol character sequences to newlines
+    StringTokenizer st = new StringTokenizer(err, "\r\n");
+    StringBuffer sbuf = new StringBuffer(err.length());
+    while (st.hasMoreTokens()) {
+      String line = st.nextToken();
+      // convert tabs to spaces
+      int tab = line.indexOf("\t");
+      while (tab >= 0) {
+        line = line.substring(0, tab) + "        " + line.substring(tab + 1);
+        tab = line.indexOf("\t");
+      }
+      sbuf.append(line + "\n");
     }
-    catch (NumberFormatException exc) {
-      return err;
+    String nerr = sbuf.toString();
+
+    // adjust error's line number to match displayed line numbers
+    String toLine = filename + "\", ";
+    int index = nerr.indexOf(toLine + "line ");
+    if (index >= 0) {
+      index += toLine.length() + 5;
+      int nline = nerr.indexOf("\n", index);
+      int lineNum = -1;
+      try {
+        lineNum = Integer.parseInt(nerr.substring(index, nline));
+      }
+      catch (NumberFormatException exc) { }
+      lineNum--;
+      if (lineNum >= 1) {
+        highlightLine(lineNum);
+        nerr = nerr.substring(0, index) + lineNum + nerr.substring(nline);
+      }
     }
-    lineNum--;
-    highlightLine(lineNum);
-    return err.substring(0, index) + lineNum + err.substring(comma);
+
+    // set up error message dialog
+    Component c = getRootPane().getParent();
+    final JDialog dialog =
+      c instanceof Dialog ?
+        new JDialog((Dialog) c, "JPython script error", true) :
+      c instanceof Frame ?
+        new JDialog((Frame) c, "JPython script error", true) :
+        new JDialog((Frame) null, "JPython script error", true);
+
+    // create dialog components
+    JLabel label = new JLabel("An error in the script occurred:");
+    label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+    JTextArea area = new JTextArea(nerr, 16, 80);
+    area.setEditable(false);
+    area.setFont(MONO_FONT);
+    area.setWrapStyleWord(true);
+    JButton button = new JButton("OK");
+
+    // define dialog actions
+    button.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        // dismiss dialog box
+        dialog.hide();
+      }
+    });
+
+    // do dialog layout
+    JPanel p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+    p.add(label);
+    p.add(area);
+    p.add(button);
+    dialog.setContentPane(p);
+
+    // pop up dialog with error message
+    dialog.pack();
+    dialog.show();
+
+    return nerr;
   }
 
   /** executes a line of JPython code */
@@ -128,7 +191,7 @@ public class JPythonEditor extends CodeEditor {
       python.execfile(filename);
     }
     catch (VisADException exc) {
-      String error = handleError(exc.getMessage());
+      String error = handleError(exc.getMessage(), filename);
       throw new VisADException(error);
     }
   }
@@ -184,7 +247,7 @@ public class JPythonEditor extends CodeEditor {
           }
           catch (VisADException exc) {
             if (DEBUG) exc.printStackTrace();
-            String error = handleError(exc.getMessage());
+            String error = handleError(exc.getMessage(), name);
           }
         }
         else {
