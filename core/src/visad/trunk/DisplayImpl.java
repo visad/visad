@@ -103,6 +103,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   }
 
   public Component getComponent() {
+  /** signature for addReferences without constant_maps */
     return component;
   }
 
@@ -158,6 +159,22 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     notifyAction();
   }
 
+  /** signature for addReferences with one DataReference and
+      without constant_maps */
+  public void addReferences(DataRenderer renderer, DataReference ref)
+         throws VisADException, RemoteException {
+    addReferences(renderer, new DataReference[] {ref}, null);
+  }
+
+  /** signature for addReferences with one DataReference */
+  public void addReferences(DataRenderer renderer, DataReference ref,
+                            ConstantMap[] constant_maps)
+         throws VisADException, RemoteException {
+    addReferences(renderer, new DataReference[] {ref},
+                  new ConstantMap[][] {constant_maps});
+  }
+
+  /** signature for addReferences without constant_maps */
   public void addReferences(DataRenderer renderer, DataReference[] refs)
          throws VisADException, RemoteException {
     addReferences(renderer, refs, null);

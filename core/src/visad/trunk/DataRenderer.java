@@ -73,9 +73,9 @@ public abstract class DataRenderer extends Object {
 
   /** add message from BadMappingException or
       UnimplementedException to exceptionVector */
-  public void addException(String error_string) {
-    exceptionVector.addElement(error_string);
-    // System.out.println(error_string);
+  public void addException(Exception error) {
+    exceptionVector.addElement(error);
+    // System.out.println(error.getMessage());
   }
 
   /** get a clone of exceptionVector to avoid

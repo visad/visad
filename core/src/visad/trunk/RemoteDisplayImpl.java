@@ -66,6 +66,22 @@ public class RemoteDisplayImpl extends RemoteActionImpl
                      constant_maps);
   }
 
+  /** signature for addReferences with one DataReference and
+      without constant_maps */
+  public void addReferences(DataRenderer renderer, DataReference ref)
+         throws VisADException, RemoteException {
+    addReferences(renderer, new DataReference[] {ref}, null);
+  }
+ 
+  /** signature for addReferences with one DataReference */
+  public void addReferences(DataRenderer renderer, DataReference ref,
+                            ConstantMap[] constant_maps)
+         throws VisADException, RemoteException {
+    addReferences(renderer, new DataReference[] {ref},
+                  new ConstantMap[][] {constant_maps});
+  }
+
+  /** signature for addReferences without constant_maps */
   public void addReferences(DataRenderer renderer, DataReference[] refs)
          throws VisADException, RemoteException {
     addReferences(renderer, refs, null);
@@ -75,7 +91,7 @@ public class RemoteDisplayImpl extends RemoteActionImpl
       refs may be a mix of RemoteDataReference & DataReferenceImpl;
       cannot be called through RemoteDisplay interface, since
       renderer implements neither Remote nor Serializable;
-      must be called remotely */
+      must be called locally */
   public void addReferences(DataRenderer renderer, DataReference[] refs,
          ConstantMap[][] constant_maps) throws VisADException, RemoteException {
     if (AdaptedAction == null) {

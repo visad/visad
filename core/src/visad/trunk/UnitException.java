@@ -7,12 +7,10 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitException.java,v 1.1 1997-10-23 20:14:07 dglo Exp $
+ * $Id: UnitException.java,v 1.2 1998-04-09 18:04:06 billh Exp $
  */
 
 package visad;
-
-import java.io.Serializable;
 
 /**
  * A class for exceptions in the units package.
@@ -23,7 +21,6 @@ import java.io.Serializable;
  */
 public final class UnitException 
     extends VisADException    // change by Bill Hibbard for VisAD
-    implements Serializable
 {
     /**
      * Create an exception with no detail message.

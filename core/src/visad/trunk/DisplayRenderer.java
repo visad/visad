@@ -96,7 +96,8 @@ public abstract class DisplayRenderer extends Object {
   }
 
   public abstract void setScale(int axis, int axis_ordinal,
-                  VisADLineArray array) throws VisADException;
+                  VisADLineArray array, float[] scale_color)
+         throws VisADException;
 
   public abstract void clearScales();
 

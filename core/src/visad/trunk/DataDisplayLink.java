@@ -115,7 +115,8 @@ public class DataDisplayLink extends ReferenceActionLink {
 
     data = ((DataReference) ref).getData();
     if (data == null) {
-      renderer.addException("Data is null");
+      renderer.addException(
+        new DisplayException("DataDisplayLink.prepareData: Data is null"));
       return false;
     }
     MathType type = data.getType();
@@ -169,17 +170,17 @@ public class DataDisplayLink extends ReferenceActionLink {
     }
     catch (BadMappingException e) {
       data = null;
-      renderer.addException(e.getMessage());
+      renderer.addException(e);
       return false;
     }
     catch (UnimplementedException e) {
       data = null;
-      renderer.addException(e.getMessage());
+      renderer.addException(e);
       return false;
     }
     catch (RemoteException e) {
       data = null;
-      renderer.addException(e.getMessage());
+      renderer.addException(e);
       return false;
     }
     // can now render data

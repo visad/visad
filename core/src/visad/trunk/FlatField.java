@@ -1883,7 +1883,7 @@ public class FlatField extends FieldImpl {
   /** combine an array of FlatFields;
       they must have the same Domain type;
       this takes the place of 'insert' in the C-based VisAD */
-  public void combine(FlatField[] fields) throws VisADException {
+  public Field combine(FlatField[] fields) throws VisADException {
     throw new UnimplementedException("FlatField.combine");
   }
 

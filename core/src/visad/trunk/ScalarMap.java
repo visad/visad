@@ -78,6 +78,7 @@ public class ScalarMap extends Object implements java.io.Serializable {
   private int axis = -1;
   private int axis_ordinal = -1;
   private boolean scale_flag = false;
+  private float[] scale_color = {1.0f, 1.0f, 1.0f};
 
   public ScalarMap(RealType scalar, DisplayRealType display_scalar)
          throws VisADException {
@@ -483,8 +484,24 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
                                       base, up, true);
 
     VisADLineArray array = VisADLineArray.merge(arrays);
-    displayRenderer.setScale(axis, axis_ordinal, array);
+    displayRenderer.setScale(axis, axis_ordinal, array, scale_color);
     scale_flag = false;
+  }
+
+  public void setScaleColor(float[] color) throws VisADException {
+     throw new DisplayException("ScalarMap.setScaleColor: DisplayScalar " +
+    if (DisplayScalar != Display.XAxis &&
+        DisplayScalar != Display.YAxis &&
+        DisplayScalar != Display.ZAxis) {
+                                "must be XAxis, YAxis or ZAxis");
+    }
+    if (color == null || color.length != 3) {
+     throw new DisplayException("ScalarMap.setScaleColor: color is " +
+                                "null or wrong length");
+    }
+    scale_color[0] = color[0];
+    scale_color[1] = color[1];
+    scale_color[2] = color[2];
   }
 
   boolean badRange() {

@@ -179,12 +179,11 @@ you unpacked the VisAD source).  They include all necessary
 source code and Makefiles as well as the data files.
 
 Then edit the Makefile in both visad/paoloa and visad/aune
-to change the include paths:
+to change the path:
  
-  '-I/opt/java/include -I/opt/java/include/solaris'
+  JAVADIR=/opt/java
  
-to point to the appopriate directories in your Java
-installation.
+to point to the appopriate directory where you installed Java.
 
 On systems that support Unix make, change to the
 visad/paoloa directory and run 'make', then change to

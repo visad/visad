@@ -488,7 +488,7 @@ public class FieldImpl extends FunctionImpl implements Field {
   /** combine an array of Field-s;
       they must have the same Domain type;
       this takes the place of 'insert' in the C-based VisAD */
-  public void combine(Field[] fields)
+  public Field combine(Field[] fields)
          throws VisADException, RemoteException {
     throw new UnimplementedException("FlatField.combine");
   }

@@ -25,11 +25,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.io.Serializable;
+
 /**
    VisADException is the superclass of all exceptions defined within the
    VisAD package.<P>
 */
-public class VisADException extends Exception {
+public class VisADException extends Exception implements Serializable {
 
   public VisADException() { super(); }
   public VisADException(String s) { super(s); }
