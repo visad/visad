@@ -316,11 +316,6 @@ public class UnionSet extends SampledSet {
   public Set makeSpatial(SetType type, float[][] samples) throws VisADException {
     int n = Sets.length;
     int dim = samples.length;
-/* WLH 28 Aug 98
-    if (dim != DomainDimension) {
-      throw new SetException("UnionSet.makeSpatial: samples bad dimension");
-    }
-*/
     SampledSet[] sets = new SampledSet[n];
     int base = 0;
     for (int i=0; i<n; i++) {
@@ -370,12 +365,7 @@ public class UnionSet extends SampledSet {
                              ManifoldDimension);
     }
     int n = Sets.length;
-    int dim = DomainDimension;
-    if (color_values != null && dim != color_values.length) {
-      throw new SetException("UnionSet.make2DGeometry:" +
-                             " color_values dimension should be " + dim +
-                             ", not " + color_values.length);
-    }
+    int dim = (color_values != null) ? color_values.length : 0;
     if (indexed) {
       VisADIndexedTriangleStripArray[] arrays =
         new VisADIndexedTriangleStripArray[n];
@@ -440,14 +430,7 @@ public class UnionSet extends SampledSet {
                              ManifoldDimension);
     }
     int n = Sets.length;
-    int dim = DomainDimension;
-/* WLH 15 Sept 2003 - not needed
-    if (color_values != null && dim != color_values.length) {
-      throw new SetException("UnionSet.make1DGeometry:" +
-                             " color_values dimension should be " + dim +
-                             ", not " + color_values.length);
-    }
-*/
+    int dim = (color_values != null) ? color_values.length : 0;
     VisADLineStripArray[] arrays =
       new VisADLineStripArray[n];
     int base = 0;
@@ -494,11 +477,6 @@ public class UnionSet extends SampledSet {
     }
     int n = Sets.length;
     int dim = color_values.length;
-    if (dim != DomainDimension) {
-      throw new SetException("UnionSet.makeIsoLines:" +
-                             " color_values dimension should be " +
-                             DomainDimension + ", not " + dim);
-    }
     VisADLineArray[][][] arrays = new VisADLineArray[n][][];
     float[][][][] f_arrays = new float[n][1][][];
     int kbase = 0;
@@ -567,11 +545,6 @@ public class UnionSet extends SampledSet {
     }
     int n = Sets.length;
     int dim = color_values.length;
-    if (dim != DomainDimension) {
-      throw new SetException("UnionSet.makeIsoSurface:" +
-                             " color_values dimension should be " +
-                             DomainDimension + ", not " + dim);
-    }
     if (indexed) {
       VisADIndexedTriangleStripArray[] arrays =
         new VisADIndexedTriangleStripArray[n];
