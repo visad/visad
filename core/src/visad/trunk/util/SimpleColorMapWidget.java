@@ -28,6 +28,8 @@ import java.awt.Panel;
 
 import javax.swing.BoxLayout;
 
+import visad.VisADException;
+
 /**
  * A "simple" color widget that allows users to interactively map numeric
  * data to RGB/RGBA color maps.
@@ -43,6 +45,13 @@ public class SimpleColorMapWidget
   /**
    * Construct a <CODE>SimpleColorMapWidget</CODE>.
    *
+   * The initial color table (if non-null)
+   * should be a <CODE>float[resolution][dimension]</CODE>, where
+   * <CODE>dimension</CODE> is either
+   * <CODE>3</CODE> for <CODE>Display.RGB</CODE> or
+   * <CODE>4</CODE> for <CODE>Display.RGB</CODE>) with values
+   * between <CODE>0.0f</CODE> and <CODE>1.0f</CODE>.
+   *
    * @param name Name used for slider label.
    * @param in_table Initial table of color values.
    * @param min Minimum value for slider.
@@ -50,13 +59,19 @@ public class SimpleColorMapWidget
    */
   public SimpleColorMapWidget(String name, float[][] in_table,
                               float min, float max)
+    throws VisADException
   {
     float[][] table = table_reorg(in_table);
 
     if (table == null) {
       colorWidget = new ColorWidget();
+    } else if (table[0] == null || table[0].length < 3 ||
+               table[0].length > 4)
+    {
+      throw new VisADException("Bad initial table");
     } else {
-      colorWidget = new ColorWidget(new BaseRGBMap(table, table.length > 3));
+      BaseRGBMap baseMap = new BaseRGBMap(table, table[0].length > 3);
+      colorWidget = new ColorWidget(baseMap);
     }
 
     // set up user interface
@@ -196,39 +211,46 @@ public class SimpleColorMapWidget
 
   public static void main(String[] args)
   {
-    javax.swing.JFrame f;
+    try {
+      javax.swing.JFrame f;
+      SimpleColorMapWidget simple;
 
-    f = new javax.swing.JFrame("Empty SimpleColorMapWidget");
-    f.addWindowListener(new java.awt.event.WindowAdapter() {
-        public void windowClosing(java.awt.event.WindowEvent e) {
-          System.exit(0);
+      f = new javax.swing.JFrame("Empty SimpleColorMapWidget");
+      f.addWindowListener(new java.awt.event.WindowAdapter() {
+          public void windowClosing(java.awt.event.WindowEvent e) {
+            System.exit(0);
+          }
+        });
+      simple = new SimpleColorMapWidget("Foo", null, 0.0f, 1.0f);
+      f.getContentPane().add(simple);
+      f.pack();
+      f.setVisible(true);
+
+      final int num = 4;
+      final int len = 256;
+      float[][] table = new float[num][len];
+      final float step = 1.0f / (len - 1.0f);
+      float total = 1.0f;
+      for (int j=0; j<len; j++) {
+        table[0][j] = table[1][j] = table[2][j] = total;
+        if (num > 3) {
+          table[3][j] = 1.0f;
         }
-      });
-    f.getContentPane().add(new SimpleColorMapWidget("Foo", null, 0.0f, 1.0f));
-    f.pack();
-    f.setVisible(true);
-
-    final int num = 4;
-    final int len = 256;
-    float[][] table = new float[num][len];
-    final float step = 1.0f / (len - 1.0f);
-    float total = 1.0f;
-    for (int j=0; j<len; j++) {
-      table[0][j] = table[1][j] = table[2][j] = total;
-      if (num > 3) {
-        table[3][j] = 1.0f;
+        total -= step;
       }
-      total -= step;
-    }
 
-    f = new javax.swing.JFrame("Full SimpleColorMapWidget");
-    f.addWindowListener(new java.awt.event.WindowAdapter() {
-        public void windowClosing(java.awt.event.WindowEvent e) {
-          System.exit(0);
-        }
-      });
-    f.getContentPane().add(new SimpleColorMapWidget("Foo", table, 0.0f, 1.0f));
-    f.pack();
-    f.setVisible(true);
+      f = new javax.swing.JFrame("Full SimpleColorMapWidget");
+      f.addWindowListener(new java.awt.event.WindowAdapter() {
+          public void windowClosing(java.awt.event.WindowEvent e) {
+            System.exit(0);
+          }
+        });
+      simple = new SimpleColorMapWidget("Foo", table, 0.0f, 1.0f);
+      f.getContentPane().add(simple);
+      f.pack();
+      f.setVisible(true);
+    } catch (VisADException ve) {
+      ve.printStackTrace();
+    }
   }
 }
