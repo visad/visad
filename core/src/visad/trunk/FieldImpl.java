@@ -2095,6 +2095,8 @@ public class FieldImpl extends FunctionImpl implements Field {
       float[][] samples;
       float[][] new_samples = new float[new_domainDim][new_length];
       float[][] sub_samples = new float[new_domainDim][];
+      Unit[] newUnits = new Unit[new_domainDim];
+      ErrorEstimate[] newErrors = new ErrorEstimate[new_domainDim];
 
       int[][] manifoldLengths = new int[new_domainDim][];
       int[][] manifoldIndexes = new int[new_domainDim][];
@@ -2109,6 +2111,8 @@ public class FieldImpl extends FunctionImpl implements Field {
         domainDim = set.getDimension();
         sub_manifoldDim = set.getManifoldDimension();
         lengths = ((GriddedSet)set).getLengths();
+        Unit[] units = set.getSetUnits();
+        ErrorEstimate[] errors = set.getSetErrors();
         for ( int ii = 0; ii < domainDim; ii++ ) {
           sub_samples[cnt] = samples[ii];
           manifoldLengths[cnt] = lengths;
@@ -2116,6 +2120,8 @@ public class FieldImpl extends FunctionImpl implements Field {
           for ( int jj = 0; jj < sub_manifoldDim; jj++ ) {
             manifoldIndexes[cnt][jj] = jj + manifoldDimension;
           }
+          newUnits[cnt] = units[ii];
+          newErrors[cnt] = errors[ii];
           cnt++;
         }
         for ( int ii = 0; ii < sub_manifoldDim; ii++ ) {
@@ -2154,7 +2160,10 @@ public class FieldImpl extends FunctionImpl implements Field {
 
       // DRM 02-Feb-2003
       //new_set = new GriddedSet(new_domain_type, new_samples, new_lengths );
-      new_set = GriddedSet.create(new_domain_type, new_samples, new_lengths );
+      //new_set = GriddedSet.create(new_domain_type, new_samples, new_lengths );
+      new_set = GriddedSet.create(new_domain_type, new_samples, new_lengths,
+          null,  // CS null, because already defined in new_domain_type
+          newUnits, newErrors);
     }
     Field new_field;
     if ( helper.flat )
