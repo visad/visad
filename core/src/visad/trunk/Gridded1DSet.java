@@ -52,11 +52,27 @@ public class Gridded1DSet extends GriddedSet {
     this(type, samples, lengthX, coord_sys, units, errors, true);
   }
 
-  /** a 1-D sorted sequence with no regular interval; samples array
-      is organized float[1][number_of_samples] where lengthX =
-      number_of_samples; samples must be sorted (either increasing
-      or decreasing); coordinate_system and units must be compatible
-      with defaults for type, or may be null; errors may be null */
+  /**
+   * Constructs a 1-D sorted sequence with no regular interval.
+   *
+   * @param type		The type of the set.  The underlying tuples
+   *				must only have one component.
+   * @param samples             The values in the set.
+   *                            <code>samples[0][i]</code> is the value of
+   *                            the ith sample point.  Must be sorted (either
+   *                            increasing or decreasing).
+   * @param lengthX		The number of samples.
+   * @param coord_sys           The coordinate system for this, particular, set.
+   *                            Must be compatible with the default coordinate
+   *                            system.  May be <code>null</code>.
+   * @param units               The units for the tuple components.  Only
+   *                            <code>units[0]</code> is meaningfull.  Must
+   *                            be compatible with the default unit.  May be
+   *                            <code>null</code>.
+   * @param errors		The error estimates of the tuple components.
+   *				Only <code>errors[0]</code> is meaningful.  May
+   *				be <code>null</code>.
+   */
   Gridded1DSet(MathType type, float[][] samples, int lengthX,
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy)
