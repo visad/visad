@@ -109,12 +109,8 @@ public final class RECTnav extends AREAnav
         if (ipowecc == 0) ipowecc = 6;
         double decc = iparms[8]/Math.pow(10.,ipowecc);
 
-        iwest = iparms[10];
-        if (iwest >= 0) 
-        {
-            iwest = 1;
-            isEastPositive = false;
-        }
+        iwest = (iparms[10] >= 0) ? 1 : -1;
+        if (iwest == 1) isEastPositive = false;
 
         xlin = 1;
         xele = 1;
@@ -184,7 +180,7 @@ public final class RECTnav extends AREAnav
             else
             {
                 latlon[indexLat][point] = xlat;
-                latlon[indexLon][point] = (isEastPositive) ? xlon  : -xlon;
+                latlon[indexLon][point] = (iwest == 1) ? -xlon  : xlon;
             }
 
         } // end point for loop
@@ -218,9 +214,9 @@ public final class RECTnav extends AREAnav
             xlat = latlon[indexLat][point];
 
             // transform to McIDAS (west positive longitude) coordinates
-            xlon = isEastPositive 
-                     ?  -latlon[indexLon][point]
-                     : latlon[indexLon][point];
+            xlon = (iwest == 1) 
+                   ? -latlon[indexLon][point]
+                   : latlon[indexLon][point];
             if (iwest == -1 && xlon < zslon) xlon = xlon +360.;
             linele[indexLine][point] = xrow - (xlat - zslat)/zdlat;
             linele[indexEle][point]  = xcol - (xlon - zslon)/(zdlon*iwest);
