@@ -31,7 +31,9 @@ import java.awt.event.*;
 import java.io.File;
 import java.util.Vector;
 import javax.swing.*;
-import visad.util.Util;
+import visad.VisADException;
+import visad.data.*;
+import visad.util.*;
 
 /** ExportDialog provides a set of options for exporting a 4-D data series. */
 public class ExportDialog extends JPanel implements ActionListener {
@@ -43,6 +45,9 @@ public class ExportDialog extends JPanel implements ActionListener {
 
   /** Return value if cancel is chosen. */
   public static final int CANCEL_OPTION = 2;
+
+  /** Flag indicating whether QuickTime support is available. */
+  private static final boolean CAN_DO_QT = Util.canDoQuickTime();
 
 
   // -- FIELDS --
@@ -91,6 +96,7 @@ public class ExportDialog extends JPanel implements ActionListener {
     JRadioButton picFormat = new JRadioButton("Bio-Rad PIC", true);
     JRadioButton tiffFormat = new JRadioButton("Multi-page TIFF");
     JRadioButton qtFormat = new JRadioButton("QuickTime movie");
+    qtFormat.setEnabled(CAN_DO_QT);
     JRadioButton bmpFormat = new JRadioButton("BMP image");
     ButtonGroup group = new ButtonGroup();
     group.add(picFormat);
@@ -166,6 +172,11 @@ public class ExportDialog extends JPanel implements ActionListener {
     return rval;
   }
 
+  /** Exports the current BioVisAD dataset according to the dialog settings. */
+  public void export(BioVisAD bio) {
+    // CTR - TODO
+  }
+
 
   // -- INTERNAL API METHODS --
 
@@ -180,6 +191,73 @@ public class ExportDialog extends JPanel implements ActionListener {
       rval = CANCEL_OPTION;
       dialog.setVisible(false);
     }
+  }
+
+
+  // -- HELPER METHODS --
+
+  /*
+  public void exportSliceTIFF() {
+    exportData(new TiffForm(), new String[] {"tif", "tiff"},
+      "TIFF stacks", false);
+  };
+
+  public void exportSlicePIC() {
+    exportData(new BioRadForm(), new String[] {"pic"},
+      "Bio-Rad PIC files", false);
+  }
+
+  public void exportSliceQT() {
+    exportData(new QTForm(), new String[] {"mov", "qt"},
+      "QuickTime movies", false);
+  }
+
+  public void exportTimeTIFF() {
+    exportData(new TiffForm(), new String[] {"tif", "tiff"},
+      "TIFF stacks", true);
+  };
+
+  public void exportTimePIC() {
+    exportData(new BioRadForm(), new String[] {"pic"},
+      "Bio-Rad PIC files", true);
+  }
+
+  public void exportTimeQT() {
+    exportData(new QTForm(), new String[] {"mov", "qt"},
+      "QuickTime movies", true);
+  }
+  */
+
+  /**
+   * Exports a slice animation sequence using the given file form.
+   * If stack is true, the current image stack is exported.
+   * If stack is false, the current slice animation sequence is exported.
+   */
+  private void exportData(BioVisAD biovis, Form saver, String[] exts,
+    String desc, boolean stack)
+  {
+    final BioVisAD bio = biovis;
+    final Form fsaver = saver;
+    final String[] fexts = exts;
+    final String fdesc = desc;
+    final boolean fstack = stack;
+    Util.invoke(false, new Runnable() {
+      public void run() {
+        JFileChooser fileBox = new JFileChooser();
+        fileBox.setFileFilter(new ExtensionFileFilter(fexts, fdesc));
+        int rval = fileBox.showSaveDialog(bio);
+        if (rval == JFileChooser.APPROVE_OPTION) {
+          bio.setWaitCursor(true);
+          String file = fileBox.getSelectedFile().getPath();
+          try {
+            if (fstack) bio.sm.exportImageStack(fsaver, file);
+            else bio.sm.exportSliceAnimation(fsaver, file);
+          }
+          catch (VisADException exc) { exc.printStackTrace(); }
+          bio.setWaitCursor(false);
+        }
+      }
+    });
   }
 
 }
