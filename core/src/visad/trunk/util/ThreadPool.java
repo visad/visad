@@ -164,9 +164,14 @@ public class ThreadPool
         if (threads != null && threads.size() < maxThreads) {
 
           // ...spawn a new thread and tell it to deal with this
-          Thread t = new ThreadMinnow(this);
-          threads.addElement(t);
-          threadLock.notify();
+          try {
+            Thread t = new ThreadMinnow(this);
+            threads.addElement(t);
+            threadLock.notify();
+          } catch (SecurityException e) {
+            // can't spawn a thread from this ThreadGroup...
+            // wait until something's queued from the main thread
+          }
         } else {
 
           // try to wake up all waiting threads to deal with the backlog
