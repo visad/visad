@@ -335,6 +335,21 @@ public class LabeledColorWidget
   public ColorPreview getPreview() { return wrappedWidget.preview; }
   public ArrowSlider getSlider() { return wrappedWidget.slider; }
 
+  /**
+   * Use a new table of color values.
+   * If immediate mode is off, changes to the associated color
+   * control are not applied until the Apply button is clicked.
+   *
+   * @param table New color values.
+   */
+  public void setTable(float[][] table) { wrappedWidget.setTableView(table); }
+
+  /**
+   * Gets the widget's current table. If immediate mode is
+   * off, it may not match the linked color control's table.
+   */
+  public float[][] getTable() { return wrappedWidget.getTableView(); }
+
   public static void main(String[] args)
   {
     try {

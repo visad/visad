@@ -256,6 +256,25 @@ public class ColorMapWidget
   }
 
   /**
+   * Use a new table of color values.
+   * If immediate mode is off, changes to the associated color
+   * control are not applied until the Apply button is clicked.
+   *
+   * @param table New color values.
+   */
+  public void setTableView(float[][] table) {
+    try { control.setTable(table); }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+  }
+
+  /**
+   * Gets the widget's current table. If immediate mode is
+   * off, it may not match the linked color control's table.
+   */
+  public float[][] getTableView() { return control.getTable(); }
+
+  /**
    * Build "Apply" and "Undo" button panel.
    *
    * @return JPanel containing the buttons.
