@@ -1652,10 +1652,15 @@ if(DEBUG_MATH)System.err.println("rdQuant: FLD_END (" + FLD_END + ")");
 
     Quantity q;
     try {
-      q = Quantity.getQuantity(name, unitSpec, null);
+      q = Quantity.getQuantity(name, unitSpec);
     } catch (visad.data.units.ParseException pe) {
       throw new VisADException("Couldn't parse Quantity unitSpec \"" +
                                unitSpec + "\"");
+    }
+
+    if (q == null) {
+      throw new VisADException("Couldn't create Quantity named \"" + name +
+                               "\"");
     }
 
     typeCache.add(index, q);
