@@ -126,21 +126,6 @@ public class ShadowFunctionOrSetTypeJ2D extends ShadowTypeJ2D {
     }
   }
 
-  public boolean addToGroup(Object group, VisADGeometryArray array,
-                            GraphicsModeControl mode,
-                            float constant_alpha, float[] constant_color)
-         throws VisADException {
-    if (array != null) {
-      VisADAppearance appearance =
-        makeAppearance(mode, constant_alpha, constant_color, array);
-      ((VisADGroup) group).addChild(appearance);
-      return true;
-    }
-    else {
-      return false;
-    }
-  }
-
   public void textureToGroup(Object group, VisADGeometryArray array,
                             BufferedImage image, GraphicsModeControl mode,
                             float constant_alpha, float[] constant_color,

@@ -158,40 +158,6 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     }
   }
 
-  public boolean addToGroup(Object group, VisADGeometryArray array,
-                            GraphicsModeControl mode,
-                            float constant_alpha, float[] constant_color)
-         throws VisADException {
-    if (array != null && array.vertexCount > 0) {
-      // MEM - for coordinates if mode2d
-      GeometryArray geometry = display.makeGeometry(array);
-      TransparencyAttributes c_alpha = null;
-      if (constant_alpha == 1.0f) {
-        // constant opaque alpha = NONE
-        c_alpha = new TransparencyAttributes(TransparencyAttributes.NONE, 0.0f);
-      }
-      else if (constant_alpha == constant_alpha) {
-        c_alpha = new TransparencyAttributes(mode.getTransparencyMode(),
-                                             constant_alpha);
-      }
-      else {
-        c_alpha = new TransparencyAttributes(mode.getTransparencyMode(), 1.0f);
-      }
-      ColoringAttributes c_color = null;
-      if (constant_color != null && constant_color.length == 3) {
-        c_color = new ColoringAttributes();
-        c_color.setColor(constant_color[0], constant_color[1], constant_color[2]);
-      }
-      Appearance appearance = makeAppearance(mode, c_alpha, c_color, geometry);
-      Shape3D shape = new Shape3D(geometry, appearance);
-      ((Group) group).addChild(shape);
-      return true;
-    }
-    else {
-      return false;
-    }
-  }
-
   public void textureToGroup(Object group, VisADGeometryArray array,
                             BufferedImage image, GraphicsModeControl mode,
                             float constant_alpha, float[] constant_color,

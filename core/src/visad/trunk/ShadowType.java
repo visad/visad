@@ -2383,6 +2383,211 @@ System.out.println("color_values: nummissing = " + nummissing);
     return range_select;
   }
 
+  /** transform data into a (Java3D or Java2D) scene graph;
+      add generated scene graph components as children of group;
+      group is Group (Java3D) or VisADGroup (Java2D);
+      value_array are inherited valueArray values;
+      default_values are defaults for each display.DisplayRealTypeVector;
+      return true if need post-process */
+  public boolean terminalTupleOrScalar(Object group, float[][] display_values,
+                                String text_value, TextControl text_control,
+                                int valueArrayLength, int[] valueToScalar,
+                                float[] default_values, int[] inherited_values,
+                                DataRenderer renderer, ShadowType shadow_api)
+          throws VisADException, RemoteException {
+ 
+    GraphicsModeControl mode = (GraphicsModeControl)
+      display.getGraphicsModeControl().clone();
+    float pointSize = 
+      default_values[display.getDisplayScalarIndex(Display.PointSize)];
+    mode.setPointSize(pointSize, true);
+    float lineWidth =
+      default_values[display.getDisplayScalarIndex(Display.LineWidth)];
+    mode.setLineWidth(lineWidth, true);
+ 
+    float[][] flow1_values = new float[3][];
+    float[][] flow2_values = new float[3][];
+    float[] flowScale = new float[2];
+    boolean[][] range_select = new boolean[1][];
+    assembleFlow(flow1_values, flow2_values, flowScale,
+                 display_values, valueArrayLength, valueToScalar,
+                 display, default_values, range_select);
+ 
+    if (range_select[0] != null && !range_select[0][0]) {
+      // data not selected
+      return false;
+    }
+
+    boolean[] swap = {false, false, false};
+    int[] spatialDimensions = new int[2];
+    float[][] spatial_values = new float[3][];
+    assembleSpatial(spatial_values, display_values, valueArrayLength,
+                    valueToScalar, display, default_values,
+                    inherited_values, null, false, false,
+                    spatialDimensions, range_select,
+                    flow1_values, flow2_values, flowScale, swap);
+
+    if (range_select[0] != null && !range_select[0][0]) {
+      // data not selected
+      return false;
+    }
+ 
+    boolean[] single_missing = {false, false, false, false};
+    byte[][] color_values =
+      assembleColor(display_values, valueArrayLength, valueToScalar,
+                    display, default_values, range_select, single_missing);
+ 
+    if (range_select[0] != null && !range_select[0][0]) {
+      // data not selected
+      return false;
+    }
+ 
+    int LevelOfDifficulty = getLevelOfDifficulty();
+    if (LevelOfDifficulty == SIMPLE_TUPLE) {
+      // only manage Spatial, Color and Alpha here
+      // i.e., the 'dots'
+ 
+      if (single_missing[0] || single_missing[1] ||
+          single_missing[2]) {
+        // System.out.println("single missing alpha");
+        // a single missing color value, so render nothing
+        return false;
+      }
+      // put single color in appearance
+/*
+      ColoringAttributes constant_color = new ColoringAttributes();
+      constant_color.setColor(byteToFloat(color_values[0][0]),
+                              byteToFloat(color_values[1][0]),
+                              byteToFloat(color_values[2][0]));
+*/
+      float[] constant_color = new float[] {byteToFloat(color_values[0][0]),
+                                            byteToFloat(color_values[1][0]),
+                                            byteToFloat(color_values[2][0])};
+      float constant_alpha = Float.NaN;
+
+
+      VisADGeometryArray array;
+
+      boolean anyShapeCreated = false;
+      int[] valueToMap = display.getValueToMap();
+      Vector MapVector = display.getMapVector();
+      VisADGeometryArray[] arrays =
+        assembleShape(display_values, valueArrayLength, valueToMap, MapVector,
+                      valueToScalar, display, default_values, inherited_values,
+                      spatial_values, color_values, range_select, -1);
+      if (arrays != null) {
+        for (int i=0; i<arrays.length; i++) {
+          array = arrays[i];
+          if (array != null) {
+            shadow_api.addToGroup(group, array, mode,
+                                  constant_alpha, constant_color);
+/*
+            geometry = display.makeGeometry(array);
+            appearance = makeAppearance(mode, null, constant_color, geometry);
+            shape = new Shape3D(geometry, appearance);
+            group.addChild(shape);
+*/
+            if (renderer.getIsDirectManipulation()) {
+              renderer.setSpatialValues(spatial_values);
+            }
+          }
+        }
+        anyShapeCreated = true;
+      }
+
+      boolean anyTextCreated = false;
+      if (text_value != null && text_control != null) {
+        String[] text_values = {text_value};
+        array = makeText(text_values, text_control, spatial_values,
+                         color_values, range_select);
+        shadow_api.addToGroup(group, array, mode,
+                              constant_alpha, constant_color);
+/*
+        if (array != null) {
+          if (array.vertexCount > 0) {
+            geometry = display.makeGeometry(array);
+            appearance = makeAppearance(mode, null, constant_color, geometry);
+            shape = new Shape3D(geometry, appearance);
+            group.addChild(shape);
+          }
+        }
+*/
+        anyTextCreated = true;
+      }
+
+      boolean anyFlowCreated = false;
+      // try Flow1
+      arrays = makeFlow(flow1_values, flowScale[0], spatial_values,
+                       color_values, range_select);
+      if (arrays != null) {
+        for (int i=0; i<arrays.length; i++) {
+          if (arrays[i] != null) {
+            shadow_api.addToGroup(group, arrays[i], mode,
+                                  constant_alpha, constant_color);
+/*
+            if (arrays[i].vertexCount > 0) {
+              geometry = display.makeGeometry(arrays[i]);
+              appearance = makeAppearance(mode, null, constant_color, geometry);
+              shape = new Shape3D(geometry, appearance);
+              group.addChild(shape);
+            }
+*/
+          }
+        }
+        anyFlowCreated = true;
+      }
+      // try Flow2
+      arrays = makeFlow(flow2_values, flowScale[1], spatial_values,
+                       color_values, range_select);
+      if (arrays != null) {
+        for (int i=0; i<arrays.length; i++) {
+          if (arrays[i] != null) {
+            shadow_api.addToGroup(group, arrays[i], mode,
+                                  constant_alpha, constant_color);
+/*
+            if (arrays[i].vertexCount > 0) {
+              geometry = display.makeGeometry(arrays[i]);
+              appearance = makeAppearance(mode, null, constant_color, geometry);
+              shape = new Shape3D(geometry, appearance);
+              group.addChild(shape);
+            }
+*/
+          }
+        }
+        anyFlowCreated = true;
+      }
+
+      if (!anyFlowCreated && !anyTextCreated && !anyShapeCreated) {
+        array = makePointGeometry(spatial_values, null);
+        if (array != null && array.vertexCount > 0) {
+          shadow_api.addToGroup(group, array, mode,
+                                constant_alpha, constant_color);
+/*
+          geometry = display.makeGeometry(array);
+          appearance = makeAppearance(mode, null, constant_color, geometry);
+          shape = new Shape3D(geometry, appearance);
+          group.addChild(shape);
+*/
+          if (renderer.getIsDirectManipulation()) {
+            renderer.setSpatialValues(spatial_values);
+          }
+        }
+      }
+      return false;
+    }
+    else { // if (!(LevelOfDifficulty == SIMPLE_TUPLE))
+      // must be LevelOfDifficulty == LEGAL
+      // add values to value_array according to SelectedMapVector-s
+      // of RealType-s in components (including Reference)
+      //
+      // accumulate Vector of value_array-s at this ShadowTypeJ3D,
+ 
+      // to be rendered in a post-process to scanning data
+      throw new UnimplementedException("terminal LEGAL unimplemented: " +
+                                       "ShadowTypeJ3D.terminalTupleOrReal");
+    }
+  }
+
   public int textureWidth(int data_width) {
     return data_width;
   }

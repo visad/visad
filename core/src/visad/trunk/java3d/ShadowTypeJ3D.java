@@ -319,204 +319,18 @@ public abstract class ShadowTypeJ3D extends ShadowType {
            valueArrayLength, valueToScalar, display);
   }
 
-  boolean terminalTupleOrScalar(Group group, float[][] display_values,
+  public boolean terminalTupleOrScalar(Group group, float[][] display_values,
                                 String text_value, TextControl text_control,
                                 int valueArrayLength, int[] valueToScalar,
                                 float[] default_values, int[] inherited_values,
                                 DataRenderer renderer)
           throws VisADException, RemoteException {
- 
-    GraphicsModeControl mode = (GraphicsModeControl)
-      display.getGraphicsModeControl().clone();
-    float pointSize = 
-      default_values[display.getDisplayScalarIndex(Display.PointSize)];
-    mode.setPointSize(pointSize, true);
-    float lineWidth =
-      default_values[display.getDisplayScalarIndex(Display.LineWidth)];
-    mode.setLineWidth(lineWidth, true);
- 
-    float[][] flow1_values = new float[3][];
-    float[][] flow2_values = new float[3][];
-    float[] flowScale = new float[2];
-    boolean[][] range_select = new boolean[1][];
-    assembleFlow(flow1_values, flow2_values, flowScale,
-                 display_values, valueArrayLength, valueToScalar,
-                 display, default_values, range_select);
- 
-    if (range_select[0] != null && !range_select[0][0]) {
-      // data not selected
-      ensureNotEmpty(group);
-      return false;
-    }
 
-    boolean[] swap = {false, false, false};
-    int[] spatialDimensions = new int[2];
-    float[][] spatial_values = new float[3][];
-    assembleSpatial(spatial_values, display_values, valueArrayLength,
-                    valueToScalar, display, default_values,
-                    inherited_values, null, false, false,
-                    spatialDimensions, range_select,
-                    flow1_values, flow2_values, flowScale, swap);
-
-    if (range_select[0] != null && !range_select[0][0]) {
-      // data not selected
-      ensureNotEmpty(group);
-      return false;
-    }
- 
-    boolean[] single_missing = {false, false, false, false};
-    byte[][] color_values =
-      assembleColor(display_values, valueArrayLength, valueToScalar,
-                    display, default_values, range_select, single_missing);
- 
-    if (range_select[0] != null && !range_select[0][0]) {
-      // data not selected
-      ensureNotEmpty(group);
-      return false;
-    }
- 
-    int LevelOfDifficulty = adaptedShadowType.getLevelOfDifficulty();
-    if (LevelOfDifficulty == SIMPLE_TUPLE) {
-      // only manage Spatial, Color and Alpha here
-      // i.e., the 'dots'
- 
-/* MEM_WLH
-      if (color_values[0][0] != color_values[0][0] ||
-          color_values[1][0] != color_values[1][0] ||
-          color_values[2][0] != color_values[2][0]) {
-*/
-      if (single_missing[0] || single_missing[1] ||
-          single_missing[2]) {
-        // System.out.println("single missing alpha");
-        // a single missing color value, so render nothing
-        ensureNotEmpty(group);
-        return false;
-      }
-      // put single color in appearance
-      ColoringAttributes constant_color = new ColoringAttributes();
-      constant_color.setColor(byteToFloat(color_values[0][0]),
-                              byteToFloat(color_values[1][0]),
-                              byteToFloat(color_values[2][0]));
-
-      VisADGeometryArray array;
-      GeometryArray geometry;
-      Appearance appearance;
-      Shape3D shape;
-
-      boolean anyShapeCreated = false;
-      int[] valueToMap = display.getValueToMap();
-      Vector MapVector = display.getMapVector();
-      VisADGeometryArray[] arrays =
-        assembleShape(display_values, valueArrayLength, valueToMap, MapVector,
-                      valueToScalar, display, default_values, inherited_values,
-                      spatial_values, color_values, range_select, -1);
-      if (arrays != null) {
-        for (int i=0; i<arrays.length; i++) {
-          array = arrays[i];
-          if (array != null) {
-            geometry = display.makeGeometry(array);
-            appearance = makeAppearance(mode, null, constant_color, geometry);
-            shape = new Shape3D(geometry, appearance);
-            group.addChild(shape);
-/*
-            if (renderer instanceof DirectManipulationRendererJ3D) {
-              ((DirectManipulationRendererJ3D) renderer).
-                                      setSpatialValues(spatial_values);
-            }
-*/
-            if (renderer.getIsDirectManipulation()) {
-              renderer.setSpatialValues(spatial_values);
-            }
-          }
-        }
-        anyShapeCreated = true;
-      }
-
-      boolean anyTextCreated = false;
-      if (text_value != null && text_control != null) {
-        String[] text_values = {text_value};
-        array = makeText(text_values, text_control, spatial_values,
-                         color_values, range_select);
-        if (array != null) {
-          if (array.vertexCount > 0) {
-            geometry = display.makeGeometry(array);
-            appearance = makeAppearance(mode, null, constant_color, geometry);
-            shape = new Shape3D(geometry, appearance);
-            group.addChild(shape);
-          }
-        }
-        anyTextCreated = true;
-      }
-
-      boolean anyFlowCreated = false;
-      // try Flow1
-      arrays = makeFlow(flow1_values, flowScale[0], spatial_values,
-                       color_values, range_select);
-      if (arrays != null) {
-        for (int i=0; i<arrays.length; i++) {
-          if (arrays[i] != null) {
-            if (arrays[i].vertexCount > 0) {
-              geometry = display.makeGeometry(arrays[i]);
-              appearance = makeAppearance(mode, null, constant_color, geometry);
-              shape = new Shape3D(geometry, appearance);
-              group.addChild(shape);
-            }
-          }
-        }
-        anyFlowCreated = true;
-      }
-      // try Flow2
-      arrays = makeFlow(flow2_values, flowScale[1], spatial_values,
-                       color_values, range_select);
-      if (arrays != null) {
-        for (int i=0; i<arrays.length; i++) {
-          if (arrays[i] != null) {
-            if (arrays[i].vertexCount > 0) {
-              geometry = display.makeGeometry(arrays[i]);
-              appearance = makeAppearance(mode, null, constant_color, geometry);
-              shape = new Shape3D(geometry, appearance);
-              group.addChild(shape);
-            }
-          }
-        }
-        anyFlowCreated = true;
-      }
-
-      if (!anyFlowCreated && !anyTextCreated && !anyShapeCreated) {
-        array = makePointGeometry(spatial_values, null);
-        if (array != null && array.vertexCount > 0) {
-          geometry = display.makeGeometry(array);
-          appearance = makeAppearance(mode, null, constant_color, geometry);
-          shape = new Shape3D(geometry, appearance);
-          group.addChild(shape);
-/*
-          if (renderer instanceof DirectManipulationRendererJ3D) {
-            ((DirectManipulationRendererJ3D) renderer).
-                                    setSpatialValues(spatial_values);
-          }
-*/
-          if (renderer.getIsDirectManipulation()) {
-            renderer.setSpatialValues(spatial_values);
-          }
-        }
-      }
-      ensureNotEmpty(group);
-      return false;
-    }
-    else { // if (!(LevelOfDifficulty == SIMPLE_TUPLE))
-      // must be LevelOfDifficulty == LEGAL
-      // add values to value_array according to SelectedMapVector-s
-      // of RealType-s in components (including Reference)
-      //
-      // accumulate Vector of value_array-s at this ShadowTypeJ3D,
- 
-      // to be rendered in a post-process to scanning data
-/*
-      return true;
-*/
-      throw new UnimplementedException("terminal LEGAL unimplemented: " +
-                                       "ShadowTypeJ3D.terminalTupleOrReal");
-    }
+    boolean post = adaptedShadowType.terminalTupleOrScalar(group, display_values,
+                       text_value, text_control, valueArrayLength, valueToScalar,
+                       default_values, inherited_values, renderer, this);
+    ensureNotEmpty(group);
+    return post;
   }
 
   /** this is a work-around for the NullPointerException at
@@ -539,6 +353,40 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       makeAppearance(display.getGraphicsModeControl(), null, null, geometry);
     Shape3D shape = new Shape3D(geometry, appearance);
     group.addChild(shape);
+  }
+
+  public boolean addToGroup(Object group, VisADGeometryArray array,
+                            GraphicsModeControl mode,
+                            float constant_alpha, float[] constant_color)
+         throws VisADException {
+    if (array != null && array.vertexCount > 0) {
+      // MEM - for coordinates if mode2d
+      GeometryArray geometry = display.makeGeometry(array);
+      TransparencyAttributes c_alpha = null;
+      if (constant_alpha == 1.0f) {
+        // constant opaque alpha = NONE
+        c_alpha = new TransparencyAttributes(TransparencyAttributes.NONE, 0.0f);
+      }
+      else if (constant_alpha == constant_alpha) {
+        c_alpha = new TransparencyAttributes(mode.getTransparencyMode(),
+                                             constant_alpha);
+      }
+      else {
+        c_alpha = new TransparencyAttributes(mode.getTransparencyMode(), 1.0f);
+      }
+      ColoringAttributes c_color = null;
+      if (constant_color != null && constant_color.length == 3) {
+        c_color = new ColoringAttributes();
+        c_color.setColor(constant_color[0], constant_color[1], constant_color[2]);
+      }
+      Appearance appearance = makeAppearance(mode, c_alpha, c_color, geometry);
+      Shape3D shape = new Shape3D(geometry, appearance);
+      ((Group) group).addChild(shape);
+      return true;
+    }
+    else {
+      return false;
+    }
   }
 
   public String toString() {
