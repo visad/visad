@@ -32,7 +32,6 @@ import visad.*;
   {
 
     Vector dataSet;
-    private boolean finished = false;
 
     FileDataSet() 
     {
@@ -41,20 +40,7 @@ import visad.*;
 
     public void add( FileData f_data ) 
     {
-
-       if ( ! finished ) 
-       {
-         dataSet.addElement( f_data );
-       }
-       else
-       {
-         /* throw Exception: finished  */
-       }
-    }
-
-    public void setToFinished() 
-    {
-       finished = true;
+      dataSet.addElement( f_data );
     }
 
     public int getSize() 
@@ -69,12 +55,10 @@ import visad.*;
       return obj;
     }
 
-
     public boolean isEmpty() 
     {
       return dataSet.isEmpty();
     }
-
 
     public Enumeration getEnum()
     {
