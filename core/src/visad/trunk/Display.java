@@ -307,6 +307,14 @@ public interface Display extends Action {
   DisplayRealType ColorMode =
     new DisplayRealType("ColorMode", true, -1.0, true);
 
+  /** Polygon offset - ConstantMap only */
+  DisplayRealType PolygonOffset =
+    new DisplayRealType("PolygonOffset", true, Double.NaN, true);
+
+  /** Polygon offset factor - ConstantMap only */
+  DisplayRealType PolygonOffsetFactor =
+    new DisplayRealType("PolygonOffsetFactor", true, Double.NaN, true);
+
   /** array of system intrinsic DisplayRealTypes */
   DisplayRealType[] DisplayRealArray =
     {XAxis, YAxis, ZAxis, Latitude, Longitude, Radius, List, Red, Green, Blue,
@@ -317,7 +325,8 @@ public interface Display extends Action {
      Flow1Elevation, Flow1Azimuth, Flow1Radial,
      Flow2Elevation, Flow2Azimuth, Flow2Radial, 
      LineStyle, TextureEnable, MissingTransparent, 
-     PolygonMode, CurvedSize, ColorMode};
+     PolygonMode, CurvedSize, ColorMode, 
+     PolygonOffset, PolygonOffsetFactor };
 
   // system intrinsic DisplayTupleType objects
 

@@ -59,6 +59,8 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
 
   private boolean missingTransparent = true;
   private int curvedSize = 10;
+  private float polygonOffset = Float.NaN;
+  private float polygonOffsetFactor = 0;
 
   public GraphicsModeControlJ2D(DisplayImpl d) {
     super(d);
@@ -116,7 +118,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
    *
    * @param width  width to use (>= 1.0)
    */
-  public void setLineWidth(float width, boolean dummy) {
+  public void setLineWidth(float width, boolean noChange) {
     if (width >= 1.0f) {
       lineWidth = width;
     }
@@ -159,7 +161,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
    *
    * @param size  size to use (>= 1.0)
    */
-  public void setPointSize(float size, boolean dummy) {
+  public void setPointSize(float size, boolean noChange) {
     if (size >= 1.0f) {
       pointSize = size;
     }
@@ -204,7 +206,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
    * @param style  style to use (SOLID_STYLE, DASH_STYLE,
    *               DOT_STYLE or DASH_DOT_STYLE)
    */
-  public void setLineStyle(int style, boolean dummy) {
+  public void setLineStyle(int style, boolean noChange) {
     if (style != SOLID_STYLE && style != DASH_STYLE &&
       style != DOT_STYLE && style != DASH_DOT_STYLE)
     {
@@ -397,8 +399,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
    *                           object
    * @throws  RemoteException  can't change mode on remote display
    */
-  public void setPolygonMode(int mode, boolean dummy)
-         throws VisADException, RemoteException {
+  public void setPolygonMode(int mode, boolean noChange) {
     if (mode == 0) {
       polygonMode = mode;
     }
@@ -413,17 +414,91 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     return polygonMode;
   }
 
+  /**
+   * Sets the polygon offset and updates the display.  
+   *
+   * @param  mode   the polygon offset to be used
+   *
+   * @throws  VisADException   bad offset 
+   * @throws  RemoteException  can't change offset on remote display
+   */
   public void setPolygonOffset(float polygonOffset)
          throws VisADException, RemoteException {
-    throw new DisplayException("GraphicsModeControlJ2D." +
-                               "setPolygonOffset not supported");
+    if (polygonOffset == 0 || Float.isNaN(polygonOffset)) {
+      this.polygonOffset = polygonOffset;
+    }
+    else 
+    {
+      throw new DisplayException("GraphicsModeControlJ2D." +
+                                 "setPolygonOffset not supported");
+    }
   }
 
-  public float getPolygonOffset()
-         throws VisADException, RemoteException {
-    throw new DisplayException("GraphicsModeControlJ2D." +
-                               "getPolygonOffset not supported");
+  /**
+   * Sets the polygon offset. 
+   *
+   * @param  mode   the polygon offset to be used
+   * @param  noChange   dummy variable
+   */
+  public void setPolygonOffset(float polygonOffset, boolean noChange) {
+    if (polygonOffset == 0 || Float.isNaN(polygonOffset)) {
+      this.polygonOffset = polygonOffset;
+    }
   }
+
+  /**
+   * Get the current polygon offset.
+   *
+   * @return  offset
+   */
+  public float getPolygonOffset() {
+    return polygonOffset;
+  }
+
+  /**
+   * Sets the polygon offset factor. 
+   *
+   * @param  polygonOffsetFactor   the polygon offset factor to be used
+   *
+   * @throws  VisADException   bad offset factor with change
+   * @throws  RemoteException  can't change mode on remote display
+   */
+  public void setPolygonOffsetFactor(float polygonOffsetFactor)
+         throws VisADException, RemoteException {
+    if (polygonOffsetFactor == 0) {
+      this.polygonOffsetFactor = polygonOffsetFactor;
+    }
+    else 
+    {
+      throw new DisplayException("GraphicsModeControlJ2D." +
+                               "setPolygonOffsetFactor not supported");
+    }
+  }
+
+  /**
+   * Sets the polygon offset factor.  
+   *
+   * @param  mode   the polygon offset factor to be used
+   * @param  noChange   dummy variable
+   *
+   * @throws  VisADException   bad offset factor with change
+   * @throws  RemoteException  can't change offset on remote display
+   */
+  public void setPolygonOffsetFactor(float polygonOffsetFactor, boolean noChange) {
+    if (polygonOffsetFactor == 0) {
+      this.polygonOffsetFactor = polygonOffsetFactor;
+    }
+  }
+
+  /**
+   * Get the current polygon offset factor.
+   *
+   * @return  offset
+   */
+  public float getPolygonOffsetFactor() {
+    return polygonOffsetFactor;
+  }
+
 
   /**
    * See whether missing values are rendered as transparent or not.
@@ -482,6 +557,8 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     mode.missingTransparent = missingTransparent;
     mode.polygonMode = polygonMode;
     mode.curvedSize = curvedSize;
+    mode.polygonOffset = polygonOffset;
+    mode.polygonOffsetFactor = polygonOffsetFactor;
     return mode;
   }
 
@@ -647,6 +724,10 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     buf.append(polygonMode);
     buf.append(",cs ");
     buf.append(curvedSize);
+    buf.append(",po ");
+    buf.append(polygonOffset);
+    buf.append(",pof ");
+    buf.append(polygonOffsetFactor);
 
     buf.append(']');
     return buf.toString();

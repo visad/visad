@@ -77,6 +77,8 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
 
   private float polygonOffset;
 
+  private float polygonOffsetFactor;
+
   /** for rendering missing data as transparent  @serial */
   private boolean missingTransparent = true;
   /** for undersampling of curved texture maps @serial */
@@ -103,6 +105,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     // transparencyMode = TransparencyAttributes.SCREEN_DOOR;
     polygonMode = PolygonAttributes.POLYGON_FILL;
     polygonOffset = Float.NaN;
+    polygonOffsetFactor = 0f;
 
     projectionPolicy = View.PERSPECTIVE_PROJECTION;
     DisplayRendererJ3D displayRenderer =
@@ -165,8 +168,9 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
    * display.
    *
    * @param width  width to use (>= 1.0)
+   * @param noChange dummy variable
    */
-  public void setLineWidth(float width, boolean dummy) {
+  public void setLineWidth(float width, boolean noChange) {
     if (width < 1.0f) width = 1.0f;
     lineWidth = width;
   }
@@ -204,8 +208,9 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
    * the display.
    *
    * @param size  size to use (>= 1.0)
+   * @param noChange dummy variable
    */
-  public void setPointSize(float size, boolean dummy) {
+  public void setPointSize(float size, boolean noChange) {
     if (size < 1.0f) size = 1.0f;
     pointSize = size;
   }
@@ -248,8 +253,9 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
    *
    * @param style  style to use (SOLID_STYLE, DASH_STYLE,
    *               DOT_STYLE or DASH_DOT_STYLE)
+   * @param noChange dummy variable
    */
-  public void setLineStyle(int style, boolean dummy) {
+  public void setLineStyle(int style, boolean noChange) {
     if (style != SOLID_STYLE && style != DASH_STYLE &&
       style != DOT_STYLE && style != DASH_DOT_STYLE)
     {
@@ -497,12 +503,13 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
    * @param  mode   the polygon rasterization mode to be used; one of
    *                DisplayImplJ3D.POLYGON_FILL, DisplayImplJ3D.POLYGON_LINE,
    *                or DisplayImplJ3D.POLYGON_POINT
+   * @param noChange dummy variable
    *
    * @throws  VisADException   bad mode or can't create the necessary VisAD
    *                           object
    * @throws  RemoteException  can't change mode on remote display
    */
-  public void setPolygonMode(int mode, boolean dummy)
+  public void setPolygonMode(int mode, boolean noChange)
          throws VisADException, RemoteException {
     if (mode == polygonMode) return;
     if (mode == PolygonAttributes.POLYGON_FILL ||
@@ -522,12 +529,82 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     return polygonMode;
   }
 
-  public void setPolygonOffset(float polygonOffset) {
+  /**
+   * Sets the polygon offset and updates the display.
+   *
+   * @param  polygonOffset   the polygon offset to be used
+   *
+   * @throws  VisADException   Unable to change offset
+   * @throws  RemoteException  can't change offset on remote display
+   */
+  public void setPolygonOffset(float polygonOffset) 
+         throws VisADException, RemoteException {
+    if (Float.isNaN(polygonOffset)) return;
+    if (Util.isApproximatelyEqual(this.polygonOffset, polygonOffset)) return;
+    this.polygonOffset = polygonOffset;
+    changeControl(true);
+    getDisplay().reDisplayAll();
+  }
+
+  /**
+   * Sets the polygon offset.  Does not update the display.
+   *
+   * @param  polygonOffset   the polygon offset to be used
+   * @param  noChange   dummy variable
+   *
+   * @throws  VisADException   Unable to change offset
+   * @throws  RemoteException  can't change offset on remote display
+   */
+  public void setPolygonOffset(float polygonOffset, boolean noChange) {
     this.polygonOffset = polygonOffset;
   }
 
+  /**
+   * Get the current polygon offset.
+   *
+   * @return  offset 
+   */
   public float getPolygonOffset() {
      return polygonOffset;
+  }
+
+  /**
+   * Sets the polygon offset factor and updates the display.
+   *
+   * @param  polygonOffsetFactor   the polygon offset factor to be used
+   *
+   * @throws  VisADException   Unable to change offset factor
+   * @throws  RemoteException  can't change offset factor on remote display
+   */
+  public void setPolygonOffsetFactor(float polygonOffsetFactor) 
+         throws VisADException, RemoteException {
+    if (Float.isNaN(polygonOffsetFactor)) return;
+    if (Util.isApproximatelyEqual(this.polygonOffsetFactor, polygonOffsetFactor)) return;
+    this.polygonOffsetFactor = polygonOffsetFactor;
+    changeControl(true);
+    getDisplay().reDisplayAll();
+  }
+
+  /**
+   * Sets the polygon offset factor, does not update display.
+   *
+   * @param  polygonOffsetFactor  the polygon offset to be used
+   * @param  noChange   dummy variable
+   *
+   * @throws  VisADException   Unable to change offset factor
+   * @throws  RemoteException  can't change offset factor on remote display
+   */
+  public void setPolygonOffsetFactor(float polygonOffsetFactor, boolean noChange)  {
+    this.polygonOffsetFactor = polygonOffsetFactor;
+  }
+
+  /**
+   * Get the current polygon offset factor.
+   *
+   * @return  offset factor
+   */
+  public float getPolygonOffsetFactor() {
+    return polygonOffsetFactor;
   }
 
 
@@ -581,7 +658,9 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     mode.missingTransparent = missingTransparent;
     mode.polygonMode = polygonMode;
     mode.polygonOffset = polygonOffset;
+    mode.polygonOffsetFactor = polygonOffsetFactor;
     mode.curvedSize = curvedSize;
+    mode.lineStyle = lineStyle;
     mode.anti_alias_flag = anti_alias_flag;
     return mode;
   }
@@ -670,9 +749,29 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
       curvedSize = rmtCtl.curvedSize;
     }
 
+    if (!Util.isApproximatelyEqual(polygonOffset, rmtCtl.polygonOffset)) {
+      changed = true;
+      polygonOffset = rmtCtl.polygonOffset;
+    }
+
+    if (!Util.isApproximatelyEqual(polygonOffsetFactor, rmtCtl.polygonOffsetFactor)) {
+      changed = true;
+      polygonOffsetFactor = rmtCtl.polygonOffsetFactor;
+    }
+
     if (anti_alias_flag != rmtCtl.anti_alias_flag) {
       changed = true;
       anti_alias_flag = rmtCtl.anti_alias_flag;
+    }
+
+    if (colorMode != rmtCtl.colorMode) {
+      changed = true;
+      colorMode = rmtCtl.colorMode;
+    }
+
+    if (lineStyle != rmtCtl.lineStyle) {
+      changed = true;
+      lineStyle = rmtCtl.lineStyle;
     }
 
     if (changed) {
@@ -746,6 +845,22 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
       return false;
     }
 
+    if (colorMode != colorMode) {
+      return false;
+    }
+
+    if (lineStyle != lineStyle) {
+      return false;
+    }
+
+    if (!Util.isApproximatelyEqual(polygonOffset, gmc.polygonOffset)) {
+      return false;
+    }
+
+    if (!Util.isApproximatelyEqual(polygonOffsetFactor, gmc.polygonOffsetFactor)) {
+      return false;
+    }
+
     return true;
   }
 
@@ -774,8 +889,15 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     buf.append(projectionPolicy);
     buf.append(",pm ");
     buf.append(polygonMode);
+    buf.append(",cm ");
+    buf.append(colorMode);
     buf.append(",cs ");
     buf.append(curvedSize);
+    buf.append(",po ");
+    buf.append(polygonOffset);
+    buf.append(",pof ");
+    buf.append(polygonOffsetFactor);
+
 
     buf.append(']');
     return buf.toString();

@@ -1891,7 +1891,9 @@ System.out.println("initialize = " + initialize + " go = " + go +
            Display.MissingTransparent.equals(type) ||
            Display.PolygonMode.equals(type) ||
            Display.CurvedSize.equals(type) ||
-           Display.ColorMode.equals(type)) &&
+           Display.ColorMode.equals(type) ||
+           Display.PolygonOffset.equals(type) ||
+           Display.PolygonOffsetFactor.equals(type)) &&
           !(map instanceof ConstantMap))
       {
         throw new BadMappingException("DisplayImpl.addMap: " +

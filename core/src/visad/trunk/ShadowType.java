@@ -3332,6 +3332,13 @@ System.out.println("range = " + range[0] + " " + range[1] +
     int lineStyle = (int)
       default_values[display.getDisplayScalarIndex(Display.LineStyle)];
     mode.setLineStyle(lineStyle, true);
+    float polygonOffset =
+      default_values[display.getDisplayScalarIndex(Display.PolygonOffset)];
+    mode.setPolygonOffset(polygonOffset, true);
+    float polygonOffsetFactor = 
+      default_values[
+        display.getDisplayScalarIndex(Display.PolygonOffsetFactor)];
+    mode.setPolygonOffsetFactor(polygonOffsetFactor, true);
 
     float[][] flow1_values = new float[3][];
     float[][] flow2_values = new float[3][];

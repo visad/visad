@@ -250,6 +250,17 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     catch (Exception e) {
     }
 
+    //- TDR, use reflection since setPolygonOffsetFactor is not available in
+    //       earlier versions of Java3D.
+    try {
+      polygon.getClass().getMethod("setPolygonOffsetFactor", new Class[] {float.class});
+      float polygonOffsetFactor = mode.getPolygonOffsetFactor();
+      if (polygonOffsetFactor == polygonOffsetFactor) polygon.setPolygonOffsetFactor(polygonOffsetFactor);
+    }
+    catch (Exception e) {
+    }
+
+
     appearance.setPolygonAttributes(polygon);
 
     RenderingAttributes rendering = new RenderingAttributes();

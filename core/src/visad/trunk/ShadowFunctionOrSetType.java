@@ -1680,6 +1680,13 @@ System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
       int polygonMode = (int)
         default_values[display.getDisplayScalarIndex(Display.PolygonMode)];
       mode.setPolygonMode(polygonMode, true);
+      float polygonOffset =
+        default_values[display.getDisplayScalarIndex(Display.PolygonOffset)];
+      mode.setPolygonOffset(polygonOffset, true);
+      float polygonOffsetFactor = 
+        default_values[
+          display.getDisplayScalarIndex(Display.PolygonOffsetFactor)];
+      mode.setPolygonOffsetFactor(polygonOffsetFactor, true);
 
       boolean pointMode = mode.getPointMode();
 

@@ -222,6 +222,15 @@ public class DataDisplayLink extends ReferenceActionLink {
       else if (Display.LineStyle.equals(dreal)) {
         defaultValues[i] = mode.getLineStyle();
       }
+      else if (Display.PolygonMode.equals(dreal)) {
+        defaultValues[i] = mode.getPolygonMode();
+      }
+      else if (Display.PolygonOffset.equals(dreal)) {
+        defaultValues[i] = mode.getPolygonOffset();
+      }
+      else if (Display.PolygonOffsetFactor.equals(dreal)) {
+        defaultValues[i] = mode.getPolygonOffsetFactor();
+      }
 /* WLH 21 Aug 98
       defaultValues[i] = (float) (((DisplayRealType)
         ((DisplayImpl) local_action).getDisplayScalar(i)).getDefaultValue());
@@ -238,6 +247,7 @@ public class DataDisplayLink extends ReferenceActionLink {
     while(maps.hasMoreElements()) {
       ConstantMap map = (ConstantMap) maps.nextElement();
       defaultValues[map.getDisplayScalarIndex()] = (float) map.getConstant();
+
     }
     // highest priority: this.ConstantMapVector
     // WLH 13 July 98
