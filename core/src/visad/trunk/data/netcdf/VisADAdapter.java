@@ -1,6 +1,7 @@
 package visad.data.netcdf;
 
 
+import java.rmi.RemoteException;
 import ucar.multiarray.Accessor;
 import ucar.netcdf.AbstractNetcdf;
 import ucar.netcdf.ProtoVariable;
@@ -21,7 +22,7 @@ VisADAdapter
      * Construct from a VisAD data object.
      */
     VisADAdapter(Data data)
-	throws BadFormException, VisADException
+	throws BadFormException, VisADException, RemoteException
     {
 	/*
 	 * Create a visitor for the VisAD data object.

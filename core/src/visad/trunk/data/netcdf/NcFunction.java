@@ -19,6 +19,8 @@ import visad.MathType;
 import visad.RealTupleType;
 import visad.RealType;
 import visad.Set;
+import visad.TextType;
+import visad.TupleType;
 import visad.UnimplementedException;
 import visad.Unit;
 import visad.VisADException;
@@ -40,6 +42,11 @@ NcFunction
      * The netCDF variables of the function range:
      */
     protected /*final*/ ImportVar[]	vars;
+
+    /**
+     * Whether or not there's a textual component in the range.
+     */
+    protected boolean			hasTextualComponent;
 
 
     /**
@@ -139,19 +146,44 @@ NcFunction
 	int		nvars = vars.length;
 	MathType	type;
 
+	hasTextualComponent = false;
+
 	if (nvars == 0)
 	    type = null;
 	else
 	if (nvars == 1)
+	{
 	    type = vars[0].getMathType();
+	    if (type instanceof TextType)
+		hasTextualComponent = true;
+	}
 	else
 	{
-	    RealType[]	types = new RealType[nvars];
-
 	    for (int i = 0; i < nvars; ++i)
-		types[i] = (RealType)vars[i].getMathType();
+		if (vars[i].getMathType() instanceof TextType)
+		{
+		    hasTextualComponent = true;
+		    break;
+		}
 
-	    type = new RealTupleType(types);
+	    if (hasTextualComponent)
+	    {
+		MathType[]	types = new MathType[nvars];
+
+		for (int i = 0; i < nvars; ++i)
+		    types[i] = vars[i].getMathType();
+
+		type = new TupleType(types);
+	    }
+	    else
+	    {
+		RealType[]	types = new RealType[nvars];
+
+		for (int i = 0; i < nvars; ++i)
+		    types[i] = (RealType)vars[i].getMathType();
+
+		type = new RealTupleType(types);
+	    }
 	}
 
 	return type;
@@ -165,12 +197,23 @@ NcFunction
     getData()
 	throws IOException, VisADException
     {
-	// TODO: Support units
-	FlatField	field =
-	    new FlatField((FunctionType)mathType, getDomainSet(),
-		(CoordinateSystem)null, getRangeSets(), getRangeUnits());
+	FieldImpl	field;
 
-	field.setSamples(getRangeValues());
+	if (hasTextualComponent)
+	{
+	    // TODO
+	    field = null;
+	}
+	else
+	{
+	    FlatField	flatField =
+		new FlatField((FunctionType)mathType, getDomainSet(),
+		    (CoordinateSystem)null, getRangeSets(), getRangeUnits());
+
+	    flatField.setSamples(getRangeDoubles(), /*copy=*/false);
+
+	    field = flatField;
+	}
 
 	return field;
     }
@@ -374,7 +417,7 @@ NcFunction
 
 
     /**
-     * Return the range units of this function.
+     * Return the range Units of this function.
      */
     protected Unit[]
     getRangeUnits()
@@ -382,7 +425,7 @@ NcFunction
 	Unit[]	units = new Unit[vars.length];
 
 	for (int i = 0; i < vars.length; ++i)
-	    units[i] = ((NcNumber)vars[i]).getUnit();
+	    units[i] = vars[i].getUnit();
 
 	return units;
     }
@@ -392,7 +435,7 @@ NcFunction
      * Return the range values of this function as doubles.
      */
     protected double[][]
-    getRangeValues()
+    getRangeDoubles()
 	throws VisADException, IOException
     {
 	int		nvars = vars.length;
@@ -406,68 +449,3 @@ NcFunction
 }
 
 
-/**
- * Class for adapting a netCDF function whose outermost dimension is 
- * separate to a VisAD function.
- */
-class
-NcInnerFunction
-    extends	NcFunction
-{
-    /**
-     * Construct from an array of adapted, netCDF variables.
-     *
-     * @precondition	All variables have the same (ordered) set of
-     *			dimensions and their rank is 2 or greater.
-     * @exception UnimplementedException	Not yet!
-     * @exception VisADException		Couldn't create necessary 
-     *						VisAD object.
-     * @exception IOException			I/O error.
-     */
-    NcInnerFunction(ImportVar[] vars)
-	throws UnimplementedException, VisADException, IOException
-    {
-	NcDim[]	varDims = vars[0].getDimensions();
-	int	rank = varDims.length;
-	NcDim[]	innerDims = new NcDim[rank-1];
-
-	System.arraycopy(dims, 1, innerDims, 0, rank-1);
-
-	initialize(innerDims, vars);
-    }
-
-
-    /**
-     * Return the VisAD data object corresponding to this function at a
-     * given position of the outermost dimension.
-     */
-    protected FlatField
-    getData(int ipt)
-	throws IOException, VisADException
-    {
-	FlatField	field = 
-	    new FlatField((FunctionType)mathType, getDomainSet());
-
-	field.setSamples(getDoubleValues(ipt));
-
-	return field;
-    }
-
-
-    /**
-     * Return the range values of this function -- at a given position of the
-     * outermost dimension -- as doubles.
-     */
-    protected double[][]
-    getDoubleValues(int ipt)
-	throws VisADException, IOException
-    {
-	int		nvars = vars.length;
-	double[][]	values = new double[nvars][];
-
-	for (int ivar = 0; ivar < nvars; ++ivar)
-	    values[ivar] = vars[ivar].getDoubleValues(ipt);
-
-	return values;
-    }
-}

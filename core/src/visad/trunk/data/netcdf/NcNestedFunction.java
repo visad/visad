@@ -68,7 +68,7 @@ NcNestedFunction
 	FieldImpl	field =
 	    new FieldImpl((FunctionType)mathType, getDomainSet());
 
-	field.setSamples(getFlatFieldValues(), /*copy=*/false);
+	field.setSamples(getRangeFlatFields(), /*copy=*/false);
 
 	return field;
     }
@@ -78,7 +78,7 @@ NcNestedFunction
      * Return the range values of this function.
      */
     protected FlatField[]
-    getFlatFieldValues()
+    getRangeFlatFields()
 	throws VisADException, IOException
     {
 	int		npts = dims[0].getLength();
