@@ -2352,7 +2352,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       ((GriddedSet) DomainSet).valueToInterp(vals, indices, coefs);
       for (int i=0; i<length; i++) {
         int len;
-        len = indices[i].length;
+        len = (indices[i] == null) ? 0 : indices[i].length;
         if (len > 0) {
           Data r = null;
           // WLH
