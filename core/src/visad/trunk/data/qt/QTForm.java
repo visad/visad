@@ -116,7 +116,6 @@ public class QTForm extends Form
       r.exec("import quicktime.util.RawEncodedImage");
     }
     catch (VisADException exc) {
-      /* CTR TEMP */ exc.printStackTrace();
       noQT = true;
     }
     finally {
