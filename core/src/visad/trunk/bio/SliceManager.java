@@ -552,6 +552,7 @@ public class SliceManager
   void saveState(PrintWriter fout) throws IOException, VisADException {
     fout.println(files.length);
     for (int i=0; i<files.length; i++) fout.println(files[i].getPath());
+    fout.println(filesAsSlices);
     fout.println(hasThumbs);
     fout.println(thumbSize[0]);
     fout.println(thumbSize[1]);
@@ -565,13 +566,14 @@ public class SliceManager
     int len = Integer.parseInt(fin.readLine().trim());
     File[] files = new File[len];
     for (int i=0; i<len; i++) files[i] = new File(fin.readLine().trim());
+    boolean fas = fin.readLine().trim().equals("true");
     boolean thumbs = fin.readLine().trim().equals("true");
     int thumbX = Integer.parseInt(fin.readLine().trim());
     int thumbY = Integer.parseInt(fin.readLine().trim());
     int sliceX = Integer.parseInt(fin.readLine().trim());
     int sliceY = Integer.parseInt(fin.readLine().trim());
     setThumbnails(thumbs, thumbX, thumbY);
-    setSeries(files);
+    setSeries(files, fas);
     if (ps != null) ps.restoreState(fin);
   }
 
@@ -821,24 +823,32 @@ public class SliceManager
     bio.mm.pool2.init();
 
     // set up 2-D ranges
-    GriddedSet set = (GriddedSet)
-      ((FieldImpl) field.getSample(0)).getDomainSet();
-    float[] lo = set.getLow();
-    float[] hi = set.getHi();
-    int[] lengths = set.getLengths();
-    res_x = lengths[0];
-    res_y = lengths[1];
+    res_x = 0;
+    res_y = 0;
+    min_x = Float.MAX_VALUE;
+    min_y = Float.MAX_VALUE;
+    max_x = Float.MIN_VALUE;
+    max_y = Float.MIN_VALUE;
+    for (int i=0; i<(filesAsSlices ? slices : 1); i++) {
+      GriddedSet set = (GriddedSet)
+        ((FieldImpl) field.getSample(i)).getDomainSet();
+      float[] lo = set.getLow();
+      float[] hi = set.getHi();
+      int[] lengths = set.getLengths();
+      if (res_x < lengths[0]) res_x = lengths[0];
+      if (res_y < lengths[1]) res_y = lengths[1];
+      if (min_x > lo[0]) min_x = lo[0];
+      if (max_x < hi[0]) max_x = hi[0];
+      if (min_y > lo[1]) min_y = lo[1];
+      if (max_y < hi[1]) max_y = hi[1];
+    }
 
     // x-axis range
-    min_x = lo[0];
-    max_x = hi[0];
     if (min_x != min_x) min_x = 0;
     if (max_x != max_x) max_x = 0;
     x_map2.setRange(min_x, max_x);
 
     // y-axis range
-    min_y = lo[1];
-    max_y = hi[1];
     if (min_y != min_y) min_y = 0;
     if (max_y != max_y) max_y = 0;
     y_map2.setRange(min_y, max_y);

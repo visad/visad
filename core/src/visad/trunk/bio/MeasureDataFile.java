@@ -88,6 +88,7 @@ public class MeasureDataFile {
    * and distance between measurement slices.
    */
   public void write(double mx, double my, double sd) throws IOException {
+    if (bio.mm.lists == null) return;
     int numIndices = bio.mm.lists.length;
     int numSlices = bio.sm.getNumberOfSlices();
     int numStd = MeasureToolPanel.maxId;

@@ -340,6 +340,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     blue.setSelectedItem(b);
     ignore = false;
     doColorTable();
+    bio.sm.syncColors();
   }
 
 }
