@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: CoordVar.java,v 1.6 1998-03-12 22:02:54 steve Exp $
+ * $Id: CoordVar.java,v 1.7 1998-03-17 15:50:08 steve Exp $
  */
 
 
@@ -12,7 +12,7 @@ package visad.data.netcdf;
 import java.io.IOException;
 import ucar.netcdf.Attribute;
 import ucar.netcdf.Dimension;
-import visad.Linear1DSet;
+import visad.Gridded1DSet;
 import visad.Unit;
 import visad.data.BadFormException;
 
@@ -24,7 +24,7 @@ import visad.data.BadFormException;
 class CoordVar extends ExportVar
 {
     /** The linear, sampling domain set. */
-    protected final Linear1DSet	set;
+    protected final Gridded1DSet	set;
 
     /** The unit in which the co-ordinate variable is measured. */
     protected final Unit	unit;
@@ -40,7 +40,7 @@ class CoordVar extends ExportVar
      * @exception BadFormException	A coordinate variable could not be
      *					formed from the given information.
      */
-    CoordVar(String name, Dimension dim, Unit unit, Linear1DSet set)
+    CoordVar(String name, Dimension dim, Unit unit, Gridded1DSet set)
 	    throws BadFormException {
 	super(name, Float.TYPE, new Dimension[] {dim}, myAttributes(unit));
 	this.set = set;
