@@ -43,6 +43,56 @@ import java.io.IOException;
 
 /**
    TestSSCluster is the class for testing the visad.cluster package.<P>
+<PRE>
+If you want to run the demo yourself, download the latest VisAD,
+and also download the v5d file:
+
+  ftp://www.ssec.wisc.edu/pub/visad-2.0/QLQ.v5d
+
+Then run the four commands:
+
+  java visad.cluster.TestSSCluster 1 QLQ.v5d
+  java visad.cluster.TestSSCluster 2 QLQ.v5d
+  java visad.cluster.TestSSCluster 3 QLQ.v5d
+  java visad.cluster.TestSSCluster 4 QLQ.v5d
+
+These create the four cluster nodes. Wait for all four to print
+both messages:
+
+  v5d_type = (Time -> (((row, col, Height) -> QL), ((row, col, Height) -> Q)))
+  data ready as (Time -> ((row, col, Height) -> (QL, Q)))
+
+Then run a fifth command for the client:
+
+  java visad.cluster.TestSSCluster 0 QLQ.v5d
+
+As soon as the window pops up, you can click the "Widgets" button
+and when the widgets have initialized, slide the QL (cloud water)
+slider over to any value between 0.5 and 1.0. When the "please
+wait ..." message disappears in the 3-D window, click on the "Go"
+button to animate. Change animation rate by entering a new number
+of milliseonds per frame in the text box.
+
+Click on any combination of the "Res 1", "Res 2", "Res 3" and
+"Res 4" buttons to toggle between high and low resolution in each
+quadrant. Its interesting to click "Res 1", "Res 2" and "Res 4"
+but not "Res 3", which gives a sense of how this will be used
+in practice: looking at data from all but one node at low
+resolution. Of course, with a data set large enough for this to
+be necessary, the low resolution will not look so blocky,
+
+You can also click on the "Maps" button to get the SpreadSheet
+user interface for setting display mappings. After you click
+"Done", you'll need to click "Widgets" again to see the widgets
+that correspond to your new mappings.
+
+The display clearly shows the partition between quadrants. We
+could get rid of these breaks, but at least for the demo its
+nice to see where the spatial paritions are.
+
+Note these five JVMs running on one machine will eat a lot of
+memory and cycles.
+</PRE>
 */
 public class TestSSCluster extends FancySSCell implements ActionListener {
 
@@ -450,6 +500,12 @@ System.out.println("v5d_type = " + v5d_type);
 
     // this is all client code
     for (int k=0; k<number_of_nodes; k++) {
+      // to test on a real cluster, change to something like:
+      // String ipname = "node" + k + ".ncar.ucar.edu";
+      // String url = "//" + ipname + "/TestVis5DCluster" + k;
+      // Then start up the four server commands on machines named
+      // node1.ncar.ucar.edu, node2.ncar.ucar.edu, node3.ncar.ucar.edu
+      // and node1.ncar.ucar.edu (or whatever).
       String url = "///TestVis5DCluster" + k;
       try {
         node_v5ds[k] = (RemoteNodeField) Naming.lookup(url);
