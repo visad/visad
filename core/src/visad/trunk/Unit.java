@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.15 2000-04-21 21:08:14 steve Exp $
+ * $Id: Unit.java,v 1.16 2000-04-24 22:50:06 steve Exp $
  */
 
 package visad;
@@ -322,7 +322,7 @@ public abstract class Unit
      *
      * @param amount	The amount by which to scale this unit.  E.g.
      *			Unit yard = meter.scale(0.9144);
-     * @exception	UnitException	The unit subclass is unknown.
+     * @exception	UnitException	This unit cannot be scaled.
      */
     public Unit scale(double amount)
 	throws UnitException
@@ -337,7 +337,7 @@ public abstract class Unit
 	    return new OffsetUnit(((OffsetUnit)this).offset/amount, 
 		new ScaledUnit(amount, ((OffsetUnit)this).scaledUnit));
 
-	throw new UnitException("Unknown unit subclass");
+	throw new UnitException("Unknown unit subclass: " + this);
     }
 
     /**
@@ -427,57 +427,21 @@ public abstract class Unit
      * @promise		Neither unit has been modified.
      * @exception	UnitException	The units are not convertible.
      */
-    public double[] toThis(double[] values, Unit that)
-           throws UnitException {
-/*
-   added by Bill Hibbard for VisAD
-*/
-        if ((this instanceof PromiscuousUnit) ||
-            (that instanceof PromiscuousUnit)) {
-          return values;
-        }
-/*
-   end of added by Bill Hibbard for VisAD
-*/
-	if (that instanceof BaseUnit)
-	    return toThis(values, (BaseUnit)that);
-	else
-	if (that instanceof DerivedUnit)
-	    return toThis(values, (DerivedUnit)that);
-	else
-	if (that instanceof ScaledUnit)
-	    return toThis(values, (ScaledUnit)that);
-	else
-	if (that instanceof OffsetUnit)
-	    return toThis(values, (OffsetUnit)that);
-	throw new UnitException("Unknown unit subclass " + that);
-    }
+    public abstract double[] toThis(double[] values, Unit that)
+           throws UnitException;
 
-    public float[] toThis(float[] values, Unit that)
-           throws UnitException {
-/*
-   added by Bill Hibbard for VisAD
-*/
-        if ((this instanceof PromiscuousUnit) ||
-            (that instanceof PromiscuousUnit)) {
-          return values;
-        }
-/*
-   end of added by Bill Hibbard for VisAD
-*/
-        if (that instanceof BaseUnit)
-            return toThis(values, (BaseUnit)that);
-        else
-        if (that instanceof DerivedUnit)
-            return toThis(values, (DerivedUnit)that);
-        else
-        if (that instanceof ScaledUnit)
-            return toThis(values, (ScaledUnit)that);
-        else
-        if (that instanceof OffsetUnit)
-            return toThis(values, (OffsetUnit)that);
-        throw new UnitException("Unknown unit subclass");
-    }
+    /**
+     * Convert values to this unit from another unit.
+     *
+     * @param values	Values in units of the other unit.
+     * @param that	The other unit.
+     * @return		Values in this unit.
+     * @require		The units are convertible.
+     * @promise		Neither unit has been modified.
+     * @exception	UnitException	The units are not convertible.
+     */
+    public abstract float[] toThis(float[] values, Unit that)
+           throws UnitException;
 
     /**
      * Convert a value from this unit to another unit.
@@ -505,57 +469,21 @@ public abstract class Unit
      * @promise		Neither unit has been modified.
      * @exception	UnitException	The units are not convertible.
      */
-    public double[] toThat(double[] values, Unit that)
-           throws UnitException {
-/*
-   added by Bill Hibbard for VisAD
-*/
-        if ((this instanceof PromiscuousUnit) ||
-            (that instanceof PromiscuousUnit)) {
-          return values;
-        }
-/*
-   end of added by Bill Hibbard for VisAD
-*/
-	if (that instanceof BaseUnit)
-	    return toThat(values, (BaseUnit)that);
-	else
-	if (that instanceof DerivedUnit)
-	    return toThat(values, (DerivedUnit)that);
-	else
-	if (that instanceof ScaledUnit)
-	    return toThat(values, (ScaledUnit)that);
-	else
-	if (that instanceof OffsetUnit)
-	    return toThat(values, (OffsetUnit)that);
-	throw new UnitException("Unknown unit subclass");
-    }
+    public abstract double[] toThat(double[] values, Unit that)
+           throws UnitException;
 
-    public float[] toThat(float[] values, Unit that)
-           throws UnitException {
-/*
-   added by Bill Hibbard for VisAD
-*/
-        if ((this instanceof PromiscuousUnit) ||
-            (that instanceof PromiscuousUnit)) {
-          return values;
-        }
-/*
-   end of added by Bill Hibbard for VisAD
-*/
-        if (that instanceof BaseUnit)
-            return toThat(values, (BaseUnit)that);
-        else
-        if (that instanceof DerivedUnit)
-            return toThat(values, (DerivedUnit)that);
-        else
-        if (that instanceof ScaledUnit)
-            return toThat(values, (ScaledUnit)that);
-        else
-        if (that instanceof OffsetUnit)
-            return toThat(values, (OffsetUnit)that);
-        throw new UnitException("Unknown unit subclass");
-    }
+    /**
+     * Convert values from this unit to another unit.
+     *
+     * @param values	The values in this unit.
+     * @param that	The other unit.
+     * @return		Values converted to the other unit from this unit.
+     * @require		The units are convertible.
+     * @promise		Neither unit has been modified.
+     * @exception	UnitException	The units are not convertible.
+     */
+    public abstract float[] toThat(float[] values, Unit that)
+           throws UnitException;
 
     /**
      * Returns a string representation of this unit.
@@ -605,41 +533,4 @@ public abstract class Unit
     {
       return this;
     }
-
-    abstract double[] toThis(double[] values, BaseUnit that)
-	throws UnitException;
-    abstract double[] toThis(double[] values, DerivedUnit that)
-	throws UnitException;
-    abstract double[] toThis(double[] values, ScaledUnit that)
-	throws UnitException;
-    abstract double[] toThis(double[] values, OffsetUnit that)
-	throws UnitException;
-
-    abstract float[] toThis(float[] values, BaseUnit that)
-        throws UnitException;
-    abstract float[] toThis(float[] values, DerivedUnit that)
-        throws UnitException;
-    abstract float[] toThis(float[] values, ScaledUnit that)
-        throws UnitException;
-    abstract float[] toThis(float[] values, OffsetUnit that)
-        throws UnitException;
-
-    abstract double[] toThat(double[] values, BaseUnit that)
-	throws UnitException;
-    abstract double[] toThat(double[] values, DerivedUnit that)
-	throws UnitException;
-    abstract double[] toThat(double[] values, ScaledUnit that)
-	throws UnitException;
-    abstract double[] toThat(double[] values, OffsetUnit that)
-	throws UnitException;
-
-    abstract float[] toThat(float[] values, BaseUnit that)
-        throws UnitException;
-    abstract float[] toThat(float[] values, DerivedUnit that)
-        throws UnitException;
-    abstract float[] toThat(float[] values, ScaledUnit that)
-        throws UnitException;
-    abstract float[] toThat(float[] values, OffsetUnit that)
-        throws UnitException;
-
 }

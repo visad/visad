@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ScaledUnit.java,v 1.8 1999-12-14 19:24:27 steve Exp $
+ * $Id: ScaledUnit.java,v 1.9 2000-04-24 22:50:08 steve Exp $
  */
 
 package visad;
@@ -196,7 +196,7 @@ public final class ScaledUnit
     }
 
     /**
-     * Raise a scaled unit to a power.
+     * Raises this unit to a power.
      *
      * @param power	The power to raise this unit by.
      * @return		The unit resulting from raising this unit to 
@@ -210,7 +210,7 @@ public final class ScaledUnit
     }
 
     /**
-     * Raise a scaled unit to a power.
+     * Raises this unit to a power.
      *
      * @param power	The power to raise this unit by.  If this unit is
      *			not dimensionless, then the value must be integral.
@@ -229,7 +229,7 @@ public final class ScaledUnit
     }
 
     /**
-     * Return the definition of this unit.
+     * Returns the definition of this unit.
      *
      * @return          The definition of this unit (e.g. "0.9144 m" for a
      *			yard).
@@ -256,7 +256,7 @@ public final class ScaledUnit
     }
 
     /**
-     * Multiply a scaled unit by another unit.
+     * Multiplies this unit by another unit.
      *
      * @param that	The unit with which to multiply this unit.
      * @return		The product of the two units.
@@ -266,41 +266,11 @@ public final class ScaledUnit
     public Unit multiply(Unit that)
 	throws UnitException
     {
-	return
-	    that instanceof DerivedUnit
-		? multiply((DerivedUnit)that)
-		: that instanceof ScaledUnit
-		    ? multiply((ScaledUnit)that)
-		    : that.multiply(this);
+	return create(amount, derivedUnit.multiply(that));
     }
 
     /**
-     * Multiply a scaled unit by a derived unit.
-     *
-     * @param that	The derived unit with which to multiply this unit.
-     * @return		The product of the two units.
-     * @promise		Neither unit has been modified.
-     */
-    public Unit multiply(DerivedUnit that)
-    {
-	return new ScaledUnit(amount, (DerivedUnit)derivedUnit.multiply(that));
-    }
-
-    /**
-     * Multiply a scaled unit by a scaled unit.
-     *
-     * @param that	The scaled unit with which to multiply this unit.
-     * @return		The product of the two units.
-     * @promise		Neither unit has been modified.
-     */
-    public Unit multiply(ScaledUnit that)
-    {
-	return new ScaledUnit(amount*that.amount,
-		  (DerivedUnit)derivedUnit.multiply(that.derivedUnit));
-    }
-
-    /**
-     * Divide a scaled unit by another unit.
+     * Divides this unit by another unit.
      *
      * @param that      The unit to divide into this unit.
      * @return          The quotient of the two units.
@@ -310,41 +280,11 @@ public final class ScaledUnit
     public Unit divide(Unit that)
 	throws UnitException
     {
-	return
-	    that instanceof DerivedUnit
-		? divide((DerivedUnit)that)
-		: that instanceof ScaledUnit
-		    ? divide((ScaledUnit)that)
-		    : that.divideInto(this);
+	return create(amount, derivedUnit.divide(that));
     }
 
     /**
-     * Divide a scaled unit by a derived unit.
-     *
-     * @param that      The derived unit to divide into this unit.
-     * @return          The quotient of the two units.
-     * @promise		Neither unit has been modified.
-     */
-    public Unit divide(DerivedUnit that)
-    {
-	return new ScaledUnit(amount, (DerivedUnit)derivedUnit.divide(that));
-    }
-
-    /**
-     * Divide a scaled unit by a scaled unit.
-     *
-     * @param that      The scaled unit to divide into this unit.
-     * @return          The quotient of the two units.
-     * @promise		Neither unit has been modified.
-     */
-    public Unit divide(ScaledUnit that)
-    {
-	return new ScaledUnit(amount/that.amount, 
-		      (DerivedUnit)derivedUnit.divide(that.derivedUnit));
-    }
-
-    /**
-     * Divide a scaled unit into another unit.
+     * Divides this unit into another unit.
      *
      * @param that      The unit to be divided by this unit.
      * @return          The quotient of the two units.
@@ -354,29 +294,11 @@ public final class ScaledUnit
     protected Unit divideInto(Unit that)
 	throws UnitException
     {
-	return
-	    that instanceof DerivedUnit
-		? divideInto((DerivedUnit)that)
-		: that instanceof ScaledUnit
-		    ? ((ScaledUnit)that).divide(this)
-		    : that.divide(this);
+	return create(1./amount, derivedUnit.divideInto(that));
     }
 
     /**
-     * Divide a scaled unit into a derived unit.
-     *
-     * @param that      The derived unit to divide into this unit.
-     * @return          The quotient of the two units.
-     * @promise		Neither unit has been modified.
-     */
-    protected Unit divideInto(DerivedUnit that)
-    {
-	return
-	  new ScaledUnit(1.0/amount, (DerivedUnit)that.divide(derivedUnit));
-    }
-
-    /**
-     * Convert values to this unit from a base unit.
+     * Convert values to this unit from another unit.
      *
      * @param values	The values to be converted.
      * @param that      The unit of <code>values</code>.
@@ -385,52 +307,17 @@ public final class ScaledUnit
      * @promise		Neither unit has been modified.
      * @exception	The units are not convertible.
      */
-    double[] toThis(double[] values, BaseUnit that)
+    public double[] toThis(double[] values, Unit that)
 	throws UnitException
     {
-	return toThis(values, new DerivedUnit(that));
-    }
-
-    float[] toThis(float[] values, BaseUnit that)
-        throws UnitException
-    {
-        return toThis(values, new DerivedUnit(that));
-    }
-
-    /**
-     * Convert values to this unit from a derived unit.
-     *
-     * @param values	The values to be converted.
-     * @param that      The unit of <code>values</code>.
-     * @return          The converted values in units of this unit.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    double[] toThis(double[] values, DerivedUnit that)
-	throws UnitException
-    {
-	double[]	newValues = derivedUnit.toThis(values, that);
-
+	double[]	newValues = that.toThat(values, derivedUnit);
 	for (int i = 0; i < newValues.length; ++i)
 	    newValues[i] /= amount;
-
 	return newValues;
     }
 
-    float[] toThis(float[] values, DerivedUnit that)
-        throws UnitException
-    {
-        float[]        newValues = derivedUnit.toThis(values, that);
- 
-        for (int i = 0; i < newValues.length; ++i)
-            newValues[i] /= (float) amount;
- 
-        return newValues;
-    }
-
     /**
-     * Convert values to this unit from a scaled unit.
+     * Convert values to this unit from another unit.
      *
      * @param values	The values to be converted.
      * @param that      The unit of <code>values</code>.
@@ -439,72 +326,17 @@ public final class ScaledUnit
      * @promise		Neither unit has been modified.
      * @exception	The units are not convertible.
      */
-    double[] toThis(double[] values, ScaledUnit that)
-	throws UnitException
+    public float[] toThis(float[] values, Unit that)
+        throws UnitException
     {
-	double[]	newValues = derivedUnit.toThis(values,
-						       that.derivedUnit);
-	double		factor;
-	
-	if (derivedUnit.sameDimensionality(that.derivedUnit))
-	    factor = that.amount/amount;
-	else
-	if (derivedUnit.reciprocalDimensionality(that.derivedUnit))
-	    factor = 1.0/(that.amount*amount);
-	else
-	    throw new UnitException("Internal error");
-
+	float[]	newValues = that.toThat(values, derivedUnit);
 	for (int i = 0; i < newValues.length; ++i)
-	    newValues[i] *= factor;
-
+	    newValues[i] /= amount;
 	return newValues;
     }
 
-    float[] toThis(float[] values, ScaledUnit that)
-        throws UnitException
-    {
-        float[]        newValues = derivedUnit.toThis(values,
-                                                       that.derivedUnit);
-        float          factor;
- 
-        if (derivedUnit.sameDimensionality(that.derivedUnit))
-            factor = (float) (that.amount/amount);
-        else
-        if (derivedUnit.reciprocalDimensionality(that.derivedUnit))
-            factor = (float) (1.0/(that.amount*amount));
-        else
-            throw new UnitException("Internal error");
- 
-        for (int i = 0; i < newValues.length; ++i)
-            newValues[i] *= factor;
- 
-        return newValues;
-    }
-
     /**
-     * Convert values to this unit from a offset unit.
-     *
-     * @param values	The values to be converted.
-     * @param that      The unit of <code>values</code>.
-     * @return          The converted values in units of this unit.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    double[] toThis(double[] values, OffsetUnit that)
-	throws UnitException
-    {
-	return that.toThat(values, this);
-    }
-
-    float[] toThis(float[] values, OffsetUnit that)
-        throws UnitException
-    {
-        return that.toThat(values, this);
-    }
-
-    /**
-     * Convert values from this unit to a base unit.
+     * Convert values from this unit to another unit.
      *
      * @param values	The values to be converted in units of this unit.
      * @param that      The unit to which to convert the values.
@@ -513,70 +345,17 @@ public final class ScaledUnit
      * @promise		Neither unit has been modified.
      * @exception	The units are not convertible.
      */
-    double[] toThat(double values[], BaseUnit that)
+    public double[] toThat(double values[], Unit that)
 	throws UnitException
     {
-	return toThat(values, new DerivedUnit(that));
-    }
-
-    float[] toThat(float values[], BaseUnit that)
-        throws UnitException
-    {
-        return toThat(values, new DerivedUnit(that));
-    }
-
-    /**
-     * Convert values from this unit to a derived unit.
-     *
-     * @param values	The values to be converted in units of this unit.
-     * @param that      The unit to which to convert the values.
-     * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    double[] toThat(double values[], DerivedUnit that)
-	throws UnitException
-    {
-	double[]	newValues = derivedUnit.toThat(values, that);
-	double		factor;
-	
-	if (derivedUnit.sameDimensionality(that))
-	    factor = amount;
-	else
-	if (derivedUnit.reciprocalDimensionality(that))
-	    factor = 1.0/amount;
-	else
-	    throw new UnitException("Internal error");
-
+	double[]	newValues = (double[])values.clone();
 	for (int i = 0; i < newValues.length; ++i)
-	    newValues[i] *= factor;
-
-	return newValues;
-    }
-
-    float[] toThat(float values[], DerivedUnit that)
-        throws UnitException
-    {
-        float[]        newValues = derivedUnit.toThat(values, that);
-        float          factor;
- 
-        if (derivedUnit.sameDimensionality(that))
-            factor = (float) amount;
-        else
-        if (derivedUnit.reciprocalDimensionality(that))
-            factor = (float) (1.0/amount);
-        else
-            throw new UnitException("Internal error");
- 
-        for (int i = 0; i < newValues.length; ++i)
-            newValues[i] *= factor;
- 
-        return newValues;
+	    newValues[i] *= amount;
+	return that.toThis(newValues, derivedUnit);
     }
 
     /**
-     * Convert values from this unit to a scaled unit.
+     * Convert values from this unit to another unit.
      *
      * @param values	The values to be converted in units of this unit.
      * @param that      The unit to which to convert the values.
@@ -585,38 +364,13 @@ public final class ScaledUnit
      * @promise		Neither unit has been modified.
      * @exception	The units are not convertible.
      */
-    double[] toThat(double[] values, ScaledUnit that)
-	throws UnitException
-    {
-	return that.toThis(values, this);
-    }
-
-    float[] toThat(float[] values, ScaledUnit that)
+    public float[] toThat(float values[], Unit that)
         throws UnitException
     {
-        return that.toThis(values, this);
-    }
-
-    /**
-     * Convert values from this unit to a offset unit.
-     *
-     * @param values	The values to be converted in units of this unit.
-     * @param that      The unit to which to convert the values.
-     * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    double[] toThat(double[] values, OffsetUnit that)
-	throws UnitException
-    {
-	return that.toThis(values, this);
-    }
-
-    float[] toThat(float[] values, OffsetUnit that)
-        throws UnitException
-    {
-        return that.toThis(values, this);
+	float[]	newValues = (float[])values.clone();
+	for (int i = 0; i < newValues.length; ++i)
+	    newValues[i] *= amount;
+	return that.toThis(newValues, derivedUnit);
     }
 
     /**

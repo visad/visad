@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: OffsetUnit.java,v 1.8 2000-04-24 21:03:18 steve Exp $
+ * $Id: OffsetUnit.java,v 1.9 2000-04-24 22:50:08 steve Exp $
  */
 
 package visad;
@@ -259,7 +259,7 @@ public final class OffsetUnit
     }
 
     /**
-     * Convert values to this unit from a base unit.
+     * Convert values to this unit from another unit.
      *
      * @param values	The values to be converted.
      * @param that      The unit of <code>values</code>.
@@ -268,30 +268,17 @@ public final class OffsetUnit
      * @promise		Neither unit has been modified.
      * @exception	The units are not convertible.
      */
-    double[] toThis(double[] values, BaseUnit that)
+    public double[] toThis(double[] values, Unit that)
 	throws UnitException
     {
-	double[]	newValues = scaledUnit.toThis(values, that);
-
+	double[]	newValues = that.toThat(values, scaledUnit);
 	for (int i = 0; i < newValues.length; ++i)
 	    newValues[i] -= offset;
-
 	return newValues;
     }
 
-    float[] toThis(float[] values, BaseUnit that)
-        throws UnitException
-    {
-        float[]        newValues = scaledUnit.toThis(values, that);
- 
-        for (int i = 0; i < newValues.length; ++i)
-            newValues[i] -= (float) offset;
- 
-        return newValues;
-    }
-
     /**
-     * Convert values to this unit from a derived unit.
+     * Convert values to this unit from another unit.
      *
      * @param values	The values to be converted.
      * @param that      The unit of <code>values</code>.
@@ -300,282 +287,51 @@ public final class OffsetUnit
      * @promise		Neither unit has been modified.
      * @exception	The units are not convertible.
      */
-    double[] toThis(double[] values, DerivedUnit that)
-	throws UnitException
+    public float[] toThis(float[] values, Unit that)
+        throws UnitException
     {
-	double[]	newValues = scaledUnit.toThis(values, that);
-
+	float[]	newValues = that.toThat(values, scaledUnit);
 	for (int i = 0; i < newValues.length; ++i)
 	    newValues[i] -= offset;
-
 	return newValues;
     }
 
-    float[] toThis(float[] values, DerivedUnit that)
-        throws UnitException
-    {
-        float[]        newValues = scaledUnit.toThis(values, that);
- 
-        for (int i = 0; i < newValues.length; ++i)
-            newValues[i] -= (float) offset;
- 
-        return newValues;
-    }
-
     /**
-     * Convert values to this unit from a scaled unit.
+     * Convert values from this unit to another unit.
      *
-     * @param values	The values to be converted.
-     * @param that      The unit of <code>values</code>.
-     * @return          The converted values in units of this unit.
+     * @param values	The values to be converted in units of this unit.
+     * @param that      The unit to which to convert the values.
+     * @return          The converted values.
      * @require		The units are convertible.
      * @promise		Neither unit has been modified.
      * @exception	The units are not convertible.
      */
-    double[] toThis(double[] values, ScaledUnit that)
+    public double[] toThat(double values[], Unit that)
 	throws UnitException
     {
-	double[]	newValues = scaledUnit.toThis(values, that);
-
+	double[]	newValues = (double[])values.clone();
 	for (int i = 0; i < newValues.length; ++i)
-	    newValues[i] -= offset;
-
-	return newValues;
-    }
-
-    float[] toThis(float[] values, ScaledUnit that)
-        throws UnitException
-    {
-        float[]        newValues = scaledUnit.toThis(values, that);
- 
-        for (int i = 0; i < newValues.length; ++i)
-            newValues[i] -= (float) offset;
- 
-        return newValues;
+	    newValues[i] += offset;
+	return that.toThis(newValues, scaledUnit);
     }
 
     /**
-     * Convert values to this unit from a offset unit.
+     * Convert values from this unit to another unit.
      *
-     * @param values	The values to be converted.
-     * @param that      The unit of <code>values</code>.
-     * @return          The converted values in units of this unit.
+     * @param values	The values to be converted in units of this unit.
+     * @param that      The unit to which to convert the values.
+     * @return          The converted values.
      * @require		The units are convertible.
      * @promise		Neither unit has been modified.
      * @exception	The units are not convertible.
      */
-    double[] toThis(double[] values, OffsetUnit that)
-	throws UnitException
+    public float[] toThat(float values[], Unit that)
+        throws UnitException
     {
-	double[]	newValues = new double[values.length];
-
+	float[]	newValues = (float[])values.clone();
 	for (int i = 0; i < newValues.length; ++i)
-	    newValues[i] = values[i] + that.offset;
-
-	return toThis(newValues, that.scaledUnit);
-    }
-
-    float[] toThis(float[] values, OffsetUnit that)
-        throws UnitException
-    {
-        float[]        newValues = new float[values.length];
- 
-        for (int i = 0; i < newValues.length; ++i)
-            newValues[i] = values[i] + (float) that.offset;
- 
-        return toThis(newValues, that.scaledUnit);
-    }
-
-    /**
-     * Convert values to this unit from a TimeScaleUnit.
-     *
-     * @param values	The values to be converted.
-     * @param that      The unit of <code>values</code>.
-     * @return          The converted values in units of this unit.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    double[] toThis(double[] values, TimeScaleUnit that)
-	throws UnitException
-    {
-	return that.toThat(values, this);
-    }
-
-    /**
-     * Convert values to this unit from a TimeScaleUnit.
-     *
-     * @param values	The values to be converted.
-     * @param that      The unit of <code>values</code>.
-     * @return          The converted values in units of this unit.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    float[] toThis(float[] values, TimeScaleUnit that)
-        throws UnitException
-    {
-	return that.toThat(values, this);
-    }
-
-    /**
-     * Convert values from this unit to a base unit.
-     *
-     * @param values	The values to be converted in units of this unit.
-     * @param that      The unit to which to convert the values.
-     * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    double[] toThat(double values[], BaseUnit that)
-	throws UnitException
-    {
-	double[]	newValues = new double[values.length];
-	
-	for (int i = 0; i < newValues.length; ++i)
-	    newValues[i] = values[i] + offset;
-
-	return scaledUnit.toThat(newValues, that);
-    }
-
-    float[] toThat(float values[], BaseUnit that)
-        throws UnitException
-    {
-        float[]        newValues = new float[values.length];
- 
-        for (int i = 0; i < newValues.length; ++i)
-            newValues[i] = values[i] + (float) offset;
- 
-        return scaledUnit.toThat(newValues, that);
-    }
-
-    /**
-     * Convert values from this unit to a derived unit.
-     *
-     * @param values	The values to be converted in units of this unit.
-     * @param that      The unit to which to convert the values.
-     * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    double[] toThat(double values[], DerivedUnit that)
-	throws UnitException
-    {
-	double[]	newValues = new double[values.length];
-	
-	for (int i = 0; i < newValues.length; ++i)
-	    newValues[i] = values[i] + offset;
-
-	return scaledUnit.toThat(newValues, that);
-    }
-
-    float[] toThat(float values[], DerivedUnit that)
-        throws UnitException
-    {
-        float[]        newValues = new float[values.length];
- 
-        for (int i = 0; i < newValues.length; ++i)
-            newValues[i] = values[i] + (float) offset;
- 
-        return scaledUnit.toThat(newValues, that);
-    }
-
-    /**
-     * Convert values from this unit to a scaled unit.
-     *
-     * @param values	The values to be converted in units of this unit.
-     * @param that      The unit to which to convert the values.
-     * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    double[] toThat(double values[], ScaledUnit that)
-	throws UnitException
-    {
-	double[]	newValues = new double[values.length];
-	
-	for (int i = 0; i < newValues.length; ++i)
-	    newValues[i] = values[i] + offset;
-
-	return scaledUnit.toThat(newValues, that);
-    }
-
-    float[] toThat(float values[], ScaledUnit that)
-        throws UnitException
-    {
-        float[]        newValues = new float[values.length];
- 
-        for (int i = 0; i < newValues.length; ++i)
-            newValues[i] = values[i] + (float) offset;
- 
-        return scaledUnit.toThat(newValues, that);
-    }
-
-    /**
-     * Convert values from this unit to a offset unit.
-     *
-     * @param values	The values to be converted in units of this unit.
-     * @param that      The unit to which to convert the values.
-     * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    double[] toThat(double values[], OffsetUnit that)
-	throws UnitException
-    {
-	return that.toThis(values, this);
-    }
-
-    /**
-     * Convert values from this unit to an offset unit.
-     *
-     * @param values	The values to be converted in units of this unit.
-     * @param that      The unit to which to convert the values.
-     * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    float[] toThat(float values[], OffsetUnit that)
-        throws UnitException
-    {
-        return that.toThis(values, this);
-    }
-
-    /**
-     * Convert values from this unit to a TimeScaleUnit.
-     *
-     * @param values	The values to be converted in units of this unit.
-     * @param that      The unit to which to convert the values.
-     * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    double[] toThat(double values[], TimeScaleUnit that)
-	throws UnitException
-    {
-	return that.toThis(values, this);
-    }
-
-    /**
-     * Convert values from this unit to a TimeScaleUnit.
-     *
-     * @param values	The values to be converted in units of this unit.
-     * @param that      The unit to which to convert the values.
-     * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    float[] toThat(float values[], TimeScaleUnit that)
-        throws UnitException
-    {
-        return that.toThis(values, this);
+	    newValues[i] += offset;
+	return that.toThis(newValues, scaledUnit);
     }
 
     /**

@@ -6,7 +6,7 @@
  * Copyright 2000, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: TimeScaleUnit.java,v 1.2 2000-04-24 21:03:19 steve Exp $
+ * $Id: TimeScaleUnit.java,v 1.3 2000-04-24 22:50:08 steve Exp $
  */
 
 package visad;
@@ -277,102 +277,6 @@ public final class TimeScaleUnit
     }
 
     /**
-     * Converts values to this unit from a BaseUunit.
-     *
-     * @param values	The values to be converted.
-     * @param that      The unit of <code>values</code>.
-     * @return          The converted values in units of this unit.
-     * @throws UnitException	The units are not convertible.
-     */
-    public double[] toThis(double[] values, BaseUnit that)
-	throws UnitException
-    {
-	throw new UnitException(
-	    "Can't convert values to TimeScaleUnit (" + this + 
-	    ") from unit (" + that + ")");
-    }
-
-    /**
-     * Converts values to this unit from a BaseUnit.
-     *
-     * @param values	The values to be converted.
-     * @param that      The unit of <code>values</code>.
-     * @return          The converted values in units of this unit.
-     * @throws UnitException	The units are not convertible.
-     */
-    public float[] toThis(float[] values, BaseUnit that)
-	throws UnitException
-    {
-	throw new UnitException(
-	    "Can't convert values to TimeScaleUnit (" + this + 
-	    ") from unit (" + that + ")");
-    }
-
-    /**
-     * Converts values to this unit from a DerivedUnit.
-     *
-     * @param values	The values to be converted.
-     * @param that      The unit of <code>values</code>.
-     * @return          The converted values in units of this unit.
-     * @throws UnitException	The units are not convertible.
-     */
-    public double[] toThis(double[] values, DerivedUnit that)
-	throws UnitException
-    {
-	throw new UnitException(
-	    "Can't convert values to TimeScaleUnit (" + this + 
-	    ") from unit (" + that + ")");
-    }
-
-    /**
-     * Converts values to this unit from a DerivedUnit.
-     *
-     * @param values	The values to be converted.
-     * @param that      The unit of <code>values</code>.
-     * @return          The converted values in units of this unit.
-     * @throws UnitException	The units are not convertible.
-     */
-    public float[] toThis(float[] values, DerivedUnit that)
-	throws UnitException
-    {
-	throw new UnitException(
-	    "Can't convert values to TimeScaleUnit (" + this + 
-	    ") from unit (" + that + ")");
-    }
-
-    /**
-     * Converts values to this unit from a ScaledUnit.
-     *
-     * @param values	The values to be converted.
-     * @param that      The unit of <code>values</code>.
-     * @return          The converted values in units of this unit.
-     * @throws UnitException	The units are not convertible.
-     */
-    public double[] toThis(double[] values, ScaledUnit that)
-	throws UnitException
-    {
-	throw new UnitException(
-	    "Can't convert values to TimeScaleUnit (" + this + 
-	    ") from unit (" + that + ")");
-    }
-
-    /**
-     * Converts values to this unit from a ScaledUnit.
-     *
-     * @param values	The values to be converted.
-     * @param that      The unit of <code>values</code>.
-     * @return          The converted values in units of this unit.
-     * @throws UnitException	The units are not convertible.
-     */
-    public float[] toThis(float[] values, ScaledUnit that)
-	throws UnitException
-    {
-	throw new UnitException(
-	    "Can't convert values to TimeScaleUnit (" + this + 
-	    ") from unit (" + that + ")");
-    }
-
-    /**
      * Converts values to this unit from another unit
      *
      * @param values	The values to be converted.
@@ -520,114 +424,6 @@ public final class TimeScaleUnit
     }
 
     /**
-     * Converts values from this unit to a BaseUunit.
-     *
-     * @param values	The values to be converted in units of this unit.
-     * @param that      The unit to which to convert the values.
-     * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    public double[] toThat(double values[], BaseUnit that)
-	throws UnitException
-    {
-	  throw new UnitException(
-	      "Can't convert values from TimeScaleUnit (" + this + 
-	      ") to unit (" + that + ")");
-    }
-
-    /**
-     * Converts values from this unit to a BaseUunit.
-     *
-     * @param values	The values to be converted in units of this unit.
-     * @param that      The unit to which to convert the values.
-     * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    public float[] toThat(float values[], BaseUnit that)
-	throws UnitException
-    {
-	  throw new UnitException(
-	      "Can't convert values from TimeScaleUnit (" + this + 
-	      ") to unit (" + that + ")");
-    }
-
-    /**
-     * Converts values from this unit to a DerivedUunit.
-     *
-     * @param values	The values to be converted in units of this unit.
-     * @param that      The unit to which to convert the values.
-     * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    public double[] toThat(double values[], DerivedUnit that)
-	throws UnitException
-    {
-	  throw new UnitException(
-	      "Can't convert values from TimeScaleUnit (" + this + 
-	      ") to unit (" + that + ")");
-    }
-
-    /**
-     * Converts values from this unit to a DerivedUunit.
-     *
-     * @param values	The values to be converted in units of this unit.
-     * @param that      The unit to which to convert the values.
-     * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    public float[] toThat(float values[], DerivedUnit that)
-	throws UnitException
-    {
-	  throw new UnitException(
-	      "Can't convert values from TimeScaleUnit (" + this + 
-	      ") to unit (" + that + ")");
-    }
-
-    /**
-     * Converts values from this unit to a ScaledUunit.
-     *
-     * @param values	The values to be converted in units of this unit.
-     * @param that      The unit to which to convert the values.
-     * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    public double[] toThat(double values[], ScaledUnit that)
-	throws UnitException
-    {
-	  throw new UnitException(
-	      "Can't convert values from TimeScaleUnit (" + this + 
-	      ") to unit (" + that + ")");
-    }
-
-    /**
-     * Converts values from this unit to a ScaledUunit.
-     *
-     * @param values	The values to be converted in units of this unit.
-     * @param that      The unit to which to convert the values.
-     * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    public float[] toThat(float values[], ScaledUnit that)
-	throws UnitException
-    {
-	  throw new UnitException(
-	      "Can't convert values from TimeScaleUnit (" + this + 
-	      ") to unit (" + that + ")");
-    }
-
-    /**
      * Converts values from this unit to another unit.
      *
      * @param values	The values to be converted in units of this unit.
@@ -705,6 +501,16 @@ public final class TimeScaleUnit
 	return toThat(values, instance(that));
     }
 
+    /**
+     * Converts values from this unit to an OffsetUnit.
+     *
+     * @param values	The values to be converted in units of this unit.
+     * @param that      The unit to which to convert the values.
+     * @return          The converted values.
+     * @require		The units are convertible.
+     * @promise		Neither unit has been modified.
+     * @exception	The units are not convertible.
+     */
     float[] toThat(float values[], OffsetUnit that)
         throws UnitException
     {

@@ -95,105 +95,22 @@ public class PromiscuousUnit extends Unit {
   }
 
 
-  double[] toThis(double[] values, BaseUnit that)
+  public double[] toThis(double[] values, Unit that)
            throws UnitException {
     return values;
   }
 
-  double[] toThis(double[] values, DerivedUnit that)
+  public double[] toThat(double[] values, Unit that)
            throws UnitException {
     return values;
   }
 
-  double[] toThis(double[] values, ScaledUnit that)
+  public float[] toThis(float[] values, Unit that)
            throws UnitException {
     return values;
   }
 
-  double[] toThis(double[] values, OffsetUnit that)
-           throws UnitException {
-    return values;
-  }
-
-  double[] toThis(double[] values, PromiscuousUnit that)
-           throws UnitException {
-    return values;
-  }
-
-
-  double[] toThat(double[] values, BaseUnit that)
-           throws UnitException {
-    return values;
-  }
-
-  double[] toThat(double[] values, DerivedUnit that)
-           throws UnitException {
-    return values;
-  }
-
-  double[] toThat(double[] values, ScaledUnit that)
-           throws UnitException {
-    return values;
-  }
-
-  double[] toThat(double[] values, OffsetUnit that)
-           throws UnitException {
-    return values;
-  }
-
-  double[] toThat(double[] values, PromiscuousUnit that)
-           throws UnitException {
-    return values;
-  }
-
-
-  float[] toThis(float[] values, BaseUnit that)
-           throws UnitException {
-    return values;
-  }
-
-  float[] toThis(float[] values, DerivedUnit that)
-           throws UnitException {
-    return values;
-  }
-
-  float[] toThis(float[] values, ScaledUnit that)
-           throws UnitException {
-    return values;
-  }
-
-  float[] toThis(float[] values, OffsetUnit that)
-           throws UnitException {
-    return values;
-  }
-
-  float[] toThis(float[] values, PromiscuousUnit that)
-           throws UnitException {
-    return values;
-  }
-
-
-  float[] toThat(float[] values, BaseUnit that)
-           throws UnitException {
-    return values;
-  }
-
-  float[] toThat(float[] values, DerivedUnit that)
-           throws UnitException {
-    return values;
-  }
-
-  float[] toThat(float[] values, ScaledUnit that)
-           throws UnitException {
-    return values;
-  }
-
-  float[] toThat(float[] values, OffsetUnit that)
-           throws UnitException {
-    return values;
-  }
-
-  float[] toThat(float[] values, PromiscuousUnit that)
+  public float[] toThat(float[] values, Unit that)
            throws UnitException {
     return values;
   }

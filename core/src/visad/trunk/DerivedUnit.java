@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DerivedUnit.java,v 1.11 1999-12-14 19:24:26 steve Exp $
+ * $Id: DerivedUnit.java,v 1.12 2000-04-24 22:50:07 steve Exp $
  */
 
 package visad;
@@ -239,6 +239,32 @@ public final class DerivedUnit
 	    result = pow((int)intVal);
 	}
 	return result;
+    }
+
+    /**
+     * Scale this unit by an amount.
+     *
+     * @param amount	The amount by which to scale this unit.  E.g.
+     *			Unit yard = meter.scale(0.9144);
+     * @exception	UnitException	This unit cannot be scaled.
+     */
+    public Unit scale(double amount)
+	throws UnitException
+    {
+	return new ScaledUnit(amount, this);
+    }
+
+    /**
+     * Shift this unit by an amount.
+     *
+     * @param offset	The amount by which to shift this unit.  E.g.
+     *			Unit celsius = kelvin.shift(273.15);
+     * @exception	UnitException	The unit subclass is unknown.
+     */
+    public Unit shift(double offset)
+	throws UnitException
+    {
+	return new OffsetUnit(offset, this);
     }
 
     /**
@@ -599,7 +625,7 @@ public final class DerivedUnit
     }
 
     /**
-     * Convert values to this unit from a base unit.
+     * Convert values to this unit from another unit.
      *
      * @param values	The values to be converted.
      * @param that      The unit of <code>values</code>.
@@ -608,16 +634,32 @@ public final class DerivedUnit
      * @promise		Neither unit has been modified.
      * @exception	The units are not convertible.
      */
-    double[] toThis(double[] values, BaseUnit that)
+    public double[] toThis(double[] values, Unit that)
 	throws UnitException
     {
-	return toThis(values, new DerivedUnit(that));
+	return
+	    that instanceof DerivedUnit
+		? toThis(values, (DerivedUnit)that)
+		: that.toThat(values, this);
     }
 
-    float[] toThis(float[] values, BaseUnit that)
+    /**
+     * Convert values to this unit from another unit.
+     *
+     * @param values	The values to be converted.
+     * @param that      The unit of <code>values</code>.
+     * @return          The converted values in units of this unit.
+     * @require		The units are convertible.
+     * @promise		Neither unit has been modified.
+     * @exception	The units are not convertible.
+     */
+    public float[] toThis(float[] values, Unit that)
         throws UnitException
     {
-        return toThis(values, new DerivedUnit(that));
+	return
+	    that instanceof DerivedUnit
+		? toThis(values, (DerivedUnit)that)
+		: that.toThat(values, this);
     }
 
     /**
@@ -656,6 +698,16 @@ public final class DerivedUnit
 	return newValues;
     }
 
+    /**
+     * Convert values to this unit from a derived unit.
+     *
+     * @param values	The values to be converted.
+     * @param that      The unit of <code>values</code>.
+     * @return          The converted values in units of this unit.
+     * @require		The units are convertible.
+     * @promise		Neither unit has been modified.
+     * @exception	The units are not convertible.
+     */
     float[] toThis(float[] values, DerivedUnit that)
         throws UnitException
     {
@@ -683,51 +735,7 @@ public final class DerivedUnit
     }
 
     /**
-     * Convert values to this unit from a scaled unit.
-     *
-     * @param values	The values to be converted.
-     * @param that      The unit of <code>values</code>.
-     * @return          The converted values in units of this unit.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    double[] toThis(double[] values, ScaledUnit that)
-	throws UnitException
-    {
-	return that.toThat(values, this);
-    }
-
-    float[] toThis(float[] values, ScaledUnit that)
-        throws UnitException
-    {
-        return that.toThat(values, this);
-    }
-
-    /**
-     * Convert values to this unit from a offset unit.
-     *
-     * @param values	The values to be converted.
-     * @param that      The unit of <code>values</code>.
-     * @return          The converted values in units of this unit.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    double[] toThis(double[] values, OffsetUnit that)
-	throws UnitException
-    {
-	return that.toThat(values, this);
-    }
-
-    float[] toThis(float[] values, OffsetUnit that)
-        throws UnitException
-    {
-        return that.toThat(values, this);
-    }
-
-    /**
-     * Convert values from this unit to a base unit.
+     * Convert values from this unit to another unit.
      *
      * @param values	The values to be converted in units of this unit.
      * @param that      The unit to which to convert the values.
@@ -736,16 +744,32 @@ public final class DerivedUnit
      * @promise		Neither unit has been modified.
      * @exception	The units are not convertible.
      */
-    double[] toThat(double values[], BaseUnit that)
+    public double[] toThat(double values[], Unit that)
 	throws UnitException
     {
-	return new DerivedUnit(that).toThis(values, this);
+	return
+	    that instanceof DerivedUnit
+		? toThat(values, (DerivedUnit)that)
+		: that.toThis(values, this);
     }
 
-    float[] toThat(float values[], BaseUnit that)
+    /**
+     * Convert values from this unit to another unit.
+     *
+     * @param values	The values to be converted in units of this unit.
+     * @param that      The unit to which to convert the values.
+     * @return          The converted values.
+     * @require		The units are convertible.
+     * @promise		Neither unit has been modified.
+     * @exception	The units are not convertible.
+     */
+    public float[] toThat(float values[], Unit that)
         throws UnitException
     {
-        return new DerivedUnit(that).toThis(values, this);
+	return
+	    that instanceof DerivedUnit
+		? toThat(values, (DerivedUnit)that)
+		: that.toThis(values, this);
     }
 
     /**
@@ -764,51 +788,17 @@ public final class DerivedUnit
 	return that.toThis(values, this);
     }
 
+    /**
+     * Convert values from this unit to a derived unit.
+     *
+     * @param values	The values to be converted in units of this unit.
+     * @param that      The unit to which to convert the values.
+     * @return          The converted values.
+     * @require		The units are convertible.
+     * @promise		Neither unit has been modified.
+     * @exception	The units are not convertible.
+     */
     float[] toThat(float values[], DerivedUnit that)
-        throws UnitException
-    {
-        return that.toThis(values, this);
-    }
-
-    /**
-     * Convert values from this unit to a scaled unit.
-     *
-     * @param values	The values to be converted in units of this unit.
-     * @param that      The unit to which to convert the values.
-     * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    double[] toThat(double values[], ScaledUnit that)
-	throws UnitException
-    {
-	return that.toThis(values, this);
-    }
-
-    float[] toThat(float values[], ScaledUnit that)
-        throws UnitException
-    {
-        return that.toThis(values, this);
-    }
-
-    /**
-     * Convert values from this unit to a offset unit.
-     *
-     * @param values	The values to be converted in units of this unit.
-     * @param that      The unit to which to convert the values.
-     * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    double[] toThat(double values[], OffsetUnit that)
-	throws UnitException
-    {
-	return that.toThis(values, this);
-    }
-
-    float[] toThat(float values[], OffsetUnit that)
         throws UnitException
     {
         return that.toThis(values, this);

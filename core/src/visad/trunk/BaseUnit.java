@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: BaseUnit.java,v 1.9 1999-12-14 19:24:25 steve Exp $
+ * $Id: BaseUnit.java,v 1.10 2000-04-24 22:50:07 steve Exp $
  */
 
 package visad;
@@ -345,7 +345,7 @@ public final class BaseUnit
     }
 
     /**
-     * Convert values to this unit from a derived unit.
+     * Convert values to this unit from another unit.
      *
      * @param values	The values to be converted.
      * @param that      The unit of <code>values</code>.
@@ -354,42 +354,14 @@ public final class BaseUnit
      * @promise		Neither unit has been modified.
      * @exception	The units are not convertible.
      */
-    double[] toThis(double[] values, DerivedUnit that)
-	throws UnitException
-    {
-	return derivedUnit.toThis(values, that);
-    }
-
-    float[] toThis(float[] values, DerivedUnit that)
-        throws UnitException
-    {
-        return derivedUnit.toThis(values, that);
-    }
-
-    /**
-     * Convert values to this unit from a scaled unit.
-     *
-     * @param values	The values to be converted.
-     * @param that      The unit of <code>values</code>.
-     * @return          The converted values in units of this unit.
-     * @require		The units are identical.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    double[] toThis(double[] values, ScaledUnit that)
+    public double[] toThis(double[] values, Unit that)
 	throws UnitException
     {
 	return that.toThat(values, derivedUnit);
     }
 
-    float[] toThis(float[] values, ScaledUnit that)
-        throws UnitException
-    {
-        return that.toThat(values, derivedUnit);
-    }
-
     /**
-     * Convert values to this unit from a offset unit.
+     * Convert values to this unit from another unit.
      *
      * @param values	The values to be converted.
      * @param that      The unit of <code>values</code>.
@@ -398,16 +370,10 @@ public final class BaseUnit
      * @promise		Neither unit has been modified.
      * @exception	The units are not convertible.
      */
-    double[] toThis(double[] values, OffsetUnit that)
-	throws UnitException
-    {
-	return that.toThat(values, derivedUnit);
-    }
-
-    float[] toThis(float[] values, OffsetUnit that)
+    public float[] toThis(float[] values, Unit that)
         throws UnitException
     {
-        return that.toThat(values, derivedUnit);
+	return that.toThat(values, derivedUnit);
     }
 
     /**
@@ -437,6 +403,16 @@ public final class BaseUnit
 	    this + "\" to unit \"" + that + "\"");
     }
 
+    /**
+     * Convert values from this unit to a base unit.
+     *
+     * @param values	The values to be converted in units of this unit.
+     * @param that      The unit to which to convert the values.
+     * @return          The converted values.
+     * @require		The units are identical.
+     * @promise		Neither unit has been modified.
+     * @exception	The units are not convertible.
+     */
     float[] toThat(float[] values, BaseUnit that)
         throws UnitException
     {
@@ -455,7 +431,7 @@ public final class BaseUnit
     }
 
     /**
-     * Convert values from this unit to a derived unit.
+     * Convert values from this unit to another unit.
      *
      * @param values	The values to be converted in units of this unit.
      * @param that      The unit to which to convert the values.
@@ -464,42 +440,14 @@ public final class BaseUnit
      * @promise		Neither unit has been modified.
      * @exception	The units are not convertible.
      */
-    double[] toThat(double[] values, DerivedUnit that)
-	throws UnitException
-    {
-	return derivedUnit.toThat(values, that);
-    }
-
-    float[] toThat(float[] values, DerivedUnit that)
-        throws UnitException
-    {
-        return derivedUnit.toThat(values, that);
-    }
-
-    /**
-     * Convert values from this unit to a scaled unit.
-     *
-     * @param values	The values to be converted in units of this unit.
-     * @param that      The unit to which to convert the values.
-     * @return          The converted values.
-     * @require		The units are identical.
-     * @promise		Neither unit has been modified.
-     * @exception	The units are not convertible.
-     */
-    double[] toThat(double[] values, ScaledUnit that)
+    public double[] toThat(double[] values, Unit that)
 	throws UnitException
     {
 	return that.toThis(values, derivedUnit);
     }
 
-    float[] toThat(float[] values, ScaledUnit that)
-        throws UnitException
-    {
-        return that.toThis(values, derivedUnit);
-    }
-
     /**
-     * Convert values from this unit to a offset unit.
+     * Convert values from this unit to another unit.
      *
      * @param values	The values to be converted in units of this unit.
      * @param that      The unit to which to convert the values.
@@ -508,16 +456,10 @@ public final class BaseUnit
      * @promise		Neither unit has been modified.
      * @exception	The units are not convertible.
      */
-    double[] toThat(double[] values, OffsetUnit that)
-	throws UnitException
-    {
-	return that.toThis(values, derivedUnit);
-    }
-
-    float[] toThat(float[] values, OffsetUnit that)
+    public float[] toThat(float[] values, Unit that)
         throws UnitException
     {
-        return that.toThis(values, derivedUnit);
+	return that.toThis(values, derivedUnit);
     }
 
     /**
@@ -577,7 +519,7 @@ public final class BaseUnit
   }
 
     /**
-     * Multiply a base unit by another unit.
+     * Multiply this unit by another unit.
      *
      * @param that	The unit with which to multiply this unit.
      * @return		The product of the two units.
@@ -587,26 +529,11 @@ public final class BaseUnit
     public Unit multiply(Unit that)
 	throws UnitException
     {
-	return
-	    that instanceof DerivedUnit
-	      ? multiply((DerivedUnit)that)
-	      : that.multiply(derivedUnit);
-    }
-
-    /**
-     * Multiply a base unit by a derived unit.
-     *
-     * @param that	The derived unit with which to multiply this unit.
-     * @return		The product of the two units.
-     * @promise		Neither unit has been modified.
-     */
-    public Unit multiply(DerivedUnit that)
-    {
 	return derivedUnit.multiply(that);
     }
 
     /**
-     * Divide a base unit by another unit.
+     * Divide this unit by another unit.
      *
      * @param that      The unit to divide into this unit.
      * @return          The quotient of the two units.
@@ -616,26 +543,11 @@ public final class BaseUnit
     public Unit divide(Unit that)
 	throws UnitException
     {
-	return
-	    that instanceof DerivedUnit
-		? divide((DerivedUnit)that)
-		: that.divideInto(derivedUnit);
-    }
-
-    /**
-     * Divide a base unit by a derived unit.
-     *
-     * @param that      The derived unit to divide into this unit.
-     * @return          The quotient of the two units.
-     * @promise		Neither unit has been modified.
-     */
-    public Unit divide(DerivedUnit that)
-    {
 	return derivedUnit.divide(that);
     }
 
     /**
-     * Divide a base unit into another unit.
+     * Divide this unit into another unit.
      *
      * @param that      The unit to divided this unit.
      * @return          The quotient of the two units.
@@ -645,7 +557,7 @@ public final class BaseUnit
     protected Unit divideInto(Unit that)
 	throws UnitException
     {
-	return that.divide(derivedUnit);
+	return derivedUnit.divideInto(that);
     }
 
     /**
