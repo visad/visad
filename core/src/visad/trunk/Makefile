@@ -1,4 +1,4 @@
-# Makefile for VisAD version 2.0
+## Makefile for VisAD version 2.0
 # For use with Unix-based systems
 # To compile VisAD in a Windows-based system, use the Makefile.WinNT file.
 
@@ -115,7 +115,7 @@ DOCFLAGS = -d $(DOC_DIR) -J-Xmx$(DOC_MEM) -package \
 ############################################################################
 
 # set this if your JDK/JRE is installed somewhere other than /opt/java
-JAVADIR = /usr/java
+#JAVADIR = /usr/java
 
 # to always use IBM's 'jikes' compiler, uncomment the following two lines
 #JC = jikes
@@ -492,7 +492,7 @@ clean:
 	done
 
 recompile:
-	@root="d:\java";						\
+	@root=`cd .. && pwd`;						\
 	for i in $(ALL_PACKAGES); do					\
 	  case $$i in							\
 	  visad)							\
