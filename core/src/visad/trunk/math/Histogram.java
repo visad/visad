@@ -102,7 +102,7 @@ public class Histogram {
     for (int j=0; j<indices.length; j++) hist_values[0][indices[j]]++;
 
     FlatField result = new FlatField(htype, set);
-    result.setSamples(hist_values, false);
+    result.setSamples(hist_values);
     return result;
   }
 
