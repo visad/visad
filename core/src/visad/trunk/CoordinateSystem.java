@@ -299,13 +299,13 @@ public abstract class CoordinateSystem extends Object
     if (errors_out == null) {
       for (int i=0; i<n; i++) {
         value[i] = Unit.transformUnits(units_out[i], sub_errors_out, units_free[i],
-                                       null, value[i]);
+                                       null, value[i], false);
       }
     }
     else {
       for (int i=0; i<n; i++) {
         value[i] = Unit.transformUnits(units_out[i], sub_errors_out, units_free[i],
-                                       errors_out[i], value[i]);
+                                       errors_out[i], value[i], false);
         errors_out[i] = sub_errors_out[0];
       }
     }
@@ -534,13 +534,13 @@ public abstract class CoordinateSystem extends Object
     if (errors_out == null) {
       for (int i=0; i<n; i++) {
         value[i] = Unit.transformUnits(units_out[i], sub_errors_out, units_free[i],
-                                       null, value[i]);
+                                       null, value[i], false);
       }
     }
     else {
       for (int i=0; i<n; i++) {
         value[i] = Unit.transformUnits(units_out[i], sub_errors_out, units_free[i],
-                                       errors_out[i], value[i]);
+                                       errors_out[i], value[i], false);
         errors_out[i] = sub_errors_out[0];
       }
     }
@@ -727,7 +727,7 @@ public abstract class CoordinateSystem extends Object
     if (CoordinateSystemUnits != null) {
       for (int i=0; i<n; i++) {
         if (CoordinateSystemUnits[i] != null) {
-          value[i] = CoordinateSystemUnits[i].toThis(value[i], units[i]);
+          value[i] = CoordinateSystemUnits[i].toThis(value[i], units[i], false);
         }
       }
     }
@@ -760,7 +760,7 @@ public abstract class CoordinateSystem extends Object
     if (CoordinateSystemUnits != null) {
       for (int i=0; i<n; i++) {
         if (CoordinateSystemUnits[i] != null) {
-          value[i] = CoordinateSystemUnits[i].toThis(value[i], units[i]);
+          value[i] = CoordinateSystemUnits[i].toThis(value[i], units[i], false);
         }
       }
     }
@@ -794,7 +794,7 @@ public abstract class CoordinateSystem extends Object
     if (us != null) {
       for (int i=0; i<n; i++) {
         if (us[i] != null) {
-          value[i] = us[i].toThis(value[i], units[i]);
+          value[i] = us[i].toThis(value[i], units[i], false);
         }
       }
     }
@@ -827,7 +827,7 @@ public abstract class CoordinateSystem extends Object
     if (us != null) {
       for (int i=0; i<n; i++) {
         if (us[i] != null) {
-          value[i] = us[i].toThis(value[i], units[i]);
+          value[i] = us[i].toThis(value[i], units[i], false);
         }
       }
     }
