@@ -2,6 +2,7 @@
 
 package visad.data.in;
 
+import java.rmi.RemoteException;
 import visad.*;
 
 public class Selector extends DataFilter
@@ -25,9 +26,9 @@ public class Selector extends DataFilter
     }
 
     public void receive(DataImpl data)
-	throws VisADException
+	throws VisADException, RemoteException
     {
-        if (data.getMathType().equals(targetType))
+        if (data.getType().equals(targetType))
 	    send(data);
     }
 }
