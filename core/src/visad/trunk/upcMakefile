@@ -63,6 +63,8 @@ javadocs:	$(DOCDIR) FORCE
 	    -windowtitle 'VisAD API Specification' \
 	    -package \
 	    -use \
+	    -author \
+	    -version \
 	    visad \
 	    visad.data \
 	    visad.data.fits \
