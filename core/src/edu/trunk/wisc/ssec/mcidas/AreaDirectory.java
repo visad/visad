@@ -102,9 +102,9 @@ public class AreaDirectory
                 "Voyager 2",
                 "Galileo",
                 "Hubble space telescope",
-                "",
-                "",
-                "",
+                "MSG-1",
+                "MSG-2",
+                "MSG-3",
                 "Meteosat-3",
                 "Meteosat-4",
                 "Meteosat-5",
@@ -152,10 +152,26 @@ public class AreaDirectory
                 "", 
                 "",
                 "",
-                "TERRA 1KM", // 101
+                "TERRA L1B", // 101
                 "TERRA CLD",
-                "AQUA",
+                "",
+                "",
+                "",
+                "TERRA TOP",
+                "TERRA ATM",
+                "TERRA GUE",
+                "TERRA RET",
+                "",
+                "AQUA L1B", // 111
                 "AQUA CLD",
+                "",
+                "",
+                "",
+                "AQUA TOP",
+                "AQUA ATM",
+                "AQUA GUE",
+                "AQUA RET",
+                "", // 120
                 ""};
 
   /**
