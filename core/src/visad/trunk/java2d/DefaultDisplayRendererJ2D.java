@@ -50,8 +50,7 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
    * This is the default <CODE>DisplayRenderer</CODE> used by the
    * <CODE>DisplayImplJ2D</CODE> constructor.
    * It draws a 2-D box around the scene and a 2-D cursor.<P>
-   * The left mouse button controls the projection as
-   * follows:
+   * The left mouse button controls the projection as follows:
    * <UL>
    *  <LI>mouse drag or mouse drag with Ctrl translates the scene sideways
    *  <LI>mouse drag with Shift down zooms the scene
@@ -62,10 +61,12 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
    *  <LI>mouse drag translates the cursor sideways
    * </UL>
    * The right mouse button is used for direct manipulation by clicking on
-   * the depiction of a Data object and dragging or re-drawing it.<P>
+   * the depiction of a <CODE>Data</CODE> object and dragging or re-drawing
+   * it.<P>
    * Cursor and direct manipulation locations are displayed in RealType
    * values<P>
-   * BadMappingExceptions and UnimplementedExceptions are displayed<P>
+   * <CODE>BadMappingExceptions</CODE> and
+   * <CODE>UnimplementedExceptions</CODE> are displayed<P>
    * No RealType may be mapped to ZAxis, Latitude or Alpha.
    */
   public DefaultDisplayRendererJ2D () {
