@@ -133,7 +133,8 @@ public class DisplayTest extends Object {
         System.out.println("  2: colored iso-surfaces from irregular grids");
         System.out.println("  3: Animation different time resolutions");
         System.out.println("  4: spherical coordinates");
-        System.out.println("  5: colored 2-D contours from regular grids");
+        System.out.println("  5: colored 2-D contours from regular grids "
+                               +"and ContourWidget");
         System.out.println("  6: colored 2-D contours from irregular grids");
         System.out.println("  7: variable transparency");
         System.out.println("  8: offset");
@@ -152,7 +153,7 @@ public class DisplayTest extends Object {
         System.out.println("  18: Animation different time extents");
         System.out.println("  19: SelectValue");
         System.out.println("  20: 2-D surface and ColorAlphaWidget");
-        System.out.println("  21: SelectRange");
+        System.out.println("  21: SelectRange and SelectRangeWidget");
         System.out.println("  22: Hue & Saturation");
         System.out.println("  23: Cyan & Magenta");
         System.out.println("  24: HSV");
@@ -379,7 +380,7 @@ public class DisplayTest extends Object {
       case 5:
 
         System.out.println(test_case + ": test colored 2-D contours from " +
-                           "regular grids");
+                           "regular grids and ContourWidget");
         size = 64;
         imaget1 = FlatField.makeField(image_tuple, size, false);
 
@@ -392,14 +393,21 @@ public class DisplayTest extends Object {
         display1.addMap(new ConstantMap(0.5, Display.Red));
         map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
         display1.addMap(map1contour);
-        control1contour = (ContourControl) map1contour.getControl();
-        control1contour.enableContours(true);
-        control1contour.enableLabels(true);
-        control1contour.setContourInterval(-3.0f, -10.0f, 50.0f, 15.0f);
+
+        ContourWidget cw = new ContourWidget(map1contour, 3.0f, -10.0f,
+                                                          50.0f, 15.0f);
+        big_panel = new JPanel();
+        big_panel.setLayout(new BorderLayout());
+        big_panel.add("Center", cw);
      
         ref_imaget1 = new DataReferenceImpl("ref_imaget1");
         ref_imaget1.setData(imaget1);
         display1.addReference(ref_imaget1, null);
+
+        jframe = new JFrame("VisAD contour controls");
+        jframe.getContentPane().add(big_panel);
+        jframe.pack();
+        jframe.setVisible(true);
 
         break;
 
@@ -1008,34 +1016,15 @@ public class DisplayTest extends Object {
 
       case 21:
 
-        System.out.println(test_case + ": test select range");
+        System.out.println(test_case + ": test select range "
+                                     + "and SelectRangeWidget");
         size = 64;
         imaget1 = FlatField.makeField(image_tuple, size, false);
  
-        final DataReference value_low_ref = new DataReferenceImpl("value_low");
-        final DataReference value_hi_ref = new DataReferenceImpl("value_hi");
-
-        VisADSlider slider_low =
-          new VisADSlider("value low", 0, 64, 0, 1.0, value_low_ref,
-                          RealType.Generic);
-        VisADSlider slider_hi =
-          new VisADSlider("value hi", 0, 64, 64, 1.0, value_hi_ref,
-                          RealType.Generic);
-
-        jframe = new JFrame("VisAD select slider");
+        jframe = new JFrame("VisAD select range slider");
         jframe.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
-
-        big_panel = new JPanel();
-        big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.Y_AXIS));
-        big_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
-        big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-        big_panel.add(slider_low);
-        big_panel.add(slider_hi);
-        jframe.getContentPane().add(big_panel);
-        jframe.setSize(300, 120);
-        jframe.setVisible(true);
 
         display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
         display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
@@ -1052,24 +1041,17 @@ public class DisplayTest extends Object {
         mode.setPointSize(2.0f);
         mode.setPointMode(false);
 
-        final RangeControl range1control =
-          (RangeControl) range1map.getControl();
-        range1control.setRange(new float[] {0.0f, 100.0f});
+        SelectRangeWidget srw = new SelectRangeWidget(range1map, 0.0f, 64.0f);
+        big_panel = new JPanel();
+        big_panel.setLayout(new BorderLayout());
+        big_panel.add("Center", srw);
+        jframe.getContentPane().add(big_panel);
+        jframe.pack();
+        jframe.setVisible(true);
 
         ref_imaget1 = new DataReferenceImpl("ref_imaget1");
         ref_imaget1.setData(imaget1);
         display1.addReference(ref_imaget1, null);
-
-
-        cell = new CellImpl() {
-          public void doAction() throws VisADException, RemoteException {
-            range1control.setRange(new float[]
-             {(float) ((Real) value_low_ref.getData()).getValue(),
-              (float) ((Real) value_hi_ref.getData()).getValue()});
-          }
-        };
-        cell.addReference(value_low_ref);
-        cell.addReference(value_hi_ref);
 
         break;
 
