@@ -110,13 +110,20 @@ public class GoesCollaboration extends Object {
          throws VisADException, RemoteException {
     // construct GoesCollaboration application
     GoesCollaboration goes = new GoesCollaboration(args);
-    if (goes.server_server != null) {
+
+    if (goes.client_server != null) {
+      goes.setupClient();
+    }
+    else if (goes.server_server != null) {
       // load native method library (only needed for server)
       System.loadLibrary("GoesCollaboration");
       goes.setupServer();
     }
-    else if (goes.client_server != null) {
-      goes.setupClient();
+    else {
+      // stand-alone (neither client nor server)
+      // load native method library
+      System.loadLibrary("GoesCollaboration");
+      goes.setupServer();
     }
   }
 
@@ -226,16 +233,16 @@ public class GoesCollaboration extends Object {
         Naming.rebind("//:/GoesCollaboration", server_server);
       }
       catch (MalformedURLException e) {
-        System.out.println("Cannot set up server");
-        System.exit(0);
+        System.out.println("Cannot set up server - running as stand-alone");
+        server_server = null;
       }
       catch (AccessException e) {
-        System.out.println("Cannot set up server");
-        System.exit(0);
+        System.out.println("Cannot set up server - running as stand-alone");
+        server_server = null;
       }
       catch (RemoteException e) {
-        System.out.println("Cannot set up server");
-        System.exit(0);
+        System.out.println("Cannot set up server - running as stand-alone");
+        server_server = null;
       }
     }
   }
@@ -446,43 +453,45 @@ public class GoesCollaboration extends Object {
     DisplayImpl.delay(500);
 
 
-    // set RemoteDataReferenceImpls in RemoteServer
-    RemoteDataReferenceImpl[] refs =
-      new RemoteDataReferenceImpl[16];
-    refs[0] =
-      new RemoteDataReferenceImpl((DataReferenceImpl) wfna_ref);
-    refs[1] =
-      new RemoteDataReferenceImpl((DataReferenceImpl) tempa_ref);
-    refs[2] =
-      new RemoteDataReferenceImpl((DataReferenceImpl) mixra_ref);
-    refs[3] =
-      new RemoteDataReferenceImpl((DataReferenceImpl) ozonea_ref);
-    refs[4] =
-      new RemoteDataReferenceImpl((DataReferenceImpl) presa_ref);
-    refs[5] =
-      new RemoteDataReferenceImpl((DataReferenceImpl) diff_col_ref);
-    refs[6] =
-      new RemoteDataReferenceImpl((DataReferenceImpl) diff_ref);
-    refs[7] =
-      new RemoteDataReferenceImpl((DataReferenceImpl) zero_line_ref);
-    refs[8] =
-      new RemoteDataReferenceImpl((DataReferenceImpl) smr_ref);
-    refs[9] =
-      new RemoteDataReferenceImpl((DataReferenceImpl) gzen_ref);
-    refs[10] =
-      new RemoteDataReferenceImpl((DataReferenceImpl) tskin_ref);
-    refs[11] =
-      new RemoteDataReferenceImpl((DataReferenceImpl) save_config_ref);
-    refs[12] =
-      new RemoteDataReferenceImpl((DataReferenceImpl) in_dx_ref);
-    refs[13] =
-      new RemoteDataReferenceImpl((DataReferenceImpl) real_tbc_ref);
-    refs[14] =
-      new RemoteDataReferenceImpl((DataReferenceImpl) wfnb_ref);
-    refs[15] =
-      new RemoteDataReferenceImpl((DataReferenceImpl) wfna_old_ref);
-
-    server_server.setDataReferences(refs);
+    if (server_server != null) {
+      // set RemoteDataReferenceImpls in RemoteServer
+      RemoteDataReferenceImpl[] refs =
+        new RemoteDataReferenceImpl[16];
+      refs[0] =
+        new RemoteDataReferenceImpl((DataReferenceImpl) wfna_ref);
+      refs[1] =
+        new RemoteDataReferenceImpl((DataReferenceImpl) tempa_ref);
+      refs[2] =
+        new RemoteDataReferenceImpl((DataReferenceImpl) mixra_ref);
+      refs[3] =
+        new RemoteDataReferenceImpl((DataReferenceImpl) ozonea_ref);
+      refs[4] =
+        new RemoteDataReferenceImpl((DataReferenceImpl) presa_ref);
+      refs[5] =
+        new RemoteDataReferenceImpl((DataReferenceImpl) diff_col_ref);
+      refs[6] =
+        new RemoteDataReferenceImpl((DataReferenceImpl) diff_ref);
+      refs[7] =
+        new RemoteDataReferenceImpl((DataReferenceImpl) zero_line_ref);
+      refs[8] =
+        new RemoteDataReferenceImpl((DataReferenceImpl) smr_ref);
+      refs[9] =
+        new RemoteDataReferenceImpl((DataReferenceImpl) gzen_ref);
+      refs[10] =
+        new RemoteDataReferenceImpl((DataReferenceImpl) tskin_ref);
+      refs[11] =
+        new RemoteDataReferenceImpl((DataReferenceImpl) save_config_ref);
+      refs[12] =
+        new RemoteDataReferenceImpl((DataReferenceImpl) in_dx_ref);
+      refs[13] =
+        new RemoteDataReferenceImpl((DataReferenceImpl) real_tbc_ref);
+      refs[14] =
+        new RemoteDataReferenceImpl((DataReferenceImpl) wfnb_ref);
+      refs[15] =
+        new RemoteDataReferenceImpl((DataReferenceImpl) wfna_old_ref);
+  
+      server_server.setDataReferences(refs);
+    }
 
 
     // make sure Data are initialized (again)

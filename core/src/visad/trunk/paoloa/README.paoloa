@@ -1,29 +1,27 @@
 
-                GoesRetrieval and GoesCollaboration
+                     GoesCollaboration
 
 
 1. Introduction
 
 This is a demonstration of interactive and collaborative GOES
-satellite sounding analysis using VisAD.  The GoesRetrieval
-is a stand-alone (i.e., not collaborative) application and
-GoesCollaboration is a collaborative application that runs in
-both 'server' and 'client' modes.
+satellite sounding analysis using VisAD.  GoesCollaboration is
+a collaborative application that runs in both 'server' and
+'client' modes, as well as stand-alone.
 
-Because of native code, GoesRetrieval and the server mode of
-GoesCollaboration run only on Sparc Solaris.
+Because of native code, the server mode of GoesCollaboration
+runs only on Sparc Solaris.
 
 These applications are based on an application developed
 under VisAD 1.1 by Paolo Antonelli and Bob Aune.
 
 
-2. Downloading GoesRetrieval and GoesCollaboration data files
+2. Downloading GoesCollaboration data files
 
-The source code for the GoesRetrieval and GoesCollaboration
-applications is included in the main VisAD distribution in
-the package visad.paoloa.  However, the applications need two
-data files to run, data_obs_1.dat and goesrtcf.  Download
-these files from:
+The source code for the GoesCollaboration application is
+included in the main VisAD distribution in the package
+visad.paoloa.  However, the applications need two data files to
+run, data_obs_1.dat and goesrtcf.  Download these files from:
 
   ftp://demedici.ssec.wisc.edu/pub/visad-2.0/paoloa.files.tar.Z
 
@@ -33,11 +31,10 @@ Unpack the file by running:
   tar -xvf paoloa.files.tar
 
 
-3. Building GoesRetrieval and GoesCollaboration
+3. Building GoesCollaboration
 
-Running GoesRetrieval or GoesCollaboration requires VisAD,
-JDK 1.2 (at least beta4) and Java3D (at least beta1).  More
-information about these is available at:
+Running GoesCollaboration requires VisAD, JDK 1.2 and Java3D.
+More information about these is available at:
  
   http://java.sun.com/
 
@@ -45,8 +42,8 @@ and
 
   http://www.ssec.wisc.edu/~billh/visad.html
 
-To build GoesRetrieval and the server mode of GoesCollaboration
-first edit java/paoloa/Makefile to change the path:
+To build the server mode of GoesCollaboration first edit
+java/paoloa/Makefile to change the path:
  
   JAVADIR=/opt/java
 
@@ -58,15 +55,15 @@ sufficient to run 'javac GoesCollaboration.java' in the
 visad/paoloa directory.
 
 
-4. Running GoesRetrieval
+4. Running GoesCollaboration in stand-alone mode
 
-Before you run the GoesRetrieval application make sure that
+Before you run the GoesCollaboration application make sure that
 your LD_LIBRARY_PATH includes the visad/paoloa directory (for
 access to native code in the shared object
-libGoesRetrieval.so).  Then run the GoesRetrieval application
-by typing:
+libGoesCollaboration.so).  Then run the GoesCollaboration
+application by typing:
 
-  java visad.paoloa.GoesRetrieval
+  java visad.paoloa.GoesCollaboration
 
 
 5. Running GoesCollaboration in Server Mode
@@ -98,7 +95,7 @@ by typing:
   java visad.paoloa.GoesCollaboration ip.name.of.server
 
 
-7. How to Operate GoesRetrieval and GoesCollaboration
+7. How to Operate GoesCollaboration
 
 The index slider retrieves a new model of a vertical
 column of atmosphere and derives the vertical weighting
