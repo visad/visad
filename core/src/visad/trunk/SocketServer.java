@@ -165,6 +165,10 @@ public class SocketServer implements RemoteSlaveDisplay {
               if (DEBUG) exc.printStackTrace();
             }
           }
+          try {
+            Thread.sleep(500);
+          }
+          catch (InterruptedException exc) { }
         }
       }
     }
