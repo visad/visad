@@ -46,6 +46,7 @@ import visad.data.text.TextForm;
 import visad.data.tiff.TiffForm;
 import visad.data.vis5d.Vis5DFamily;
 import visad.data.visad.VisADForm;
+import visad.data.gis.DemFamily;
 
 /**
   * A container for all the officially supported VisAD datatypes.<br>
@@ -167,6 +168,11 @@ public class DefaultFamily
     }
     try {
       list[i] = new JAIForm();
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
+      list[i] = new DemFamily("Dem Data");
       i++;
     } catch (Throwable t) {
     }
