@@ -44,7 +44,7 @@ import java.io.IOException;
 
 /**
 cd /home1/billh/mead
-java -mx512m visad.cluster.TestROMS NE_Pacific_2.nc roms_his_NEP2.nc
+java -mx128m visad.cluster.TestROMS NE_Pacific_2.nc roms_his_NEP2.nc
 */
 public class TestROMS {
 
@@ -77,9 +77,11 @@ public class TestROMS {
     float[][] rho_latlon = {rho_floats[8], rho_floats[9]};
 
     int n = rho_latlon[1].length;
+/* not needed: adjustLongitude() does this implicitly
     for (int i=0 ;i<n; i++) {
       if (rho_latlon[1][i] < 0.0f) rho_latlon[1][i] += 360.0f;
     }
+*/
 
     int[] rho_lengths = ((GriddedSet) rho_ff.getDomainSet()).getLengths();
     rho_ff = null;
