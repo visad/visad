@@ -2629,6 +2629,25 @@ public abstract class JPythonMethods {
     return MathType.stringToType(ss);
   }
 
+  /** make a MathType with a Coordinate System. This is just
+  * a short-hand for visad.RealTupleType(RealType[], CS, Set)
+  *
+  * @param s is an array of names for (or of) the RealType
+  * @param c is a CoordinateSystem
+  *
+  * @return RealTupleType of the input RealTypes and CoordinateSystem
+  */
+  public static RealTupleType makeType(String[] s, CoordinateSystem c) 
+             throws VisADException, RemoteException {
+    RealType[] rt = new RealType[s.length];
+    for (int i=0; i< s.length; i++) {
+      rt[i] = visad.RealType.getRealType(s[i]);
+    }
+
+    return new visad.RealTupleType(rt, c, null);
+  }
+
+
   /** make or get the RealType corresponding to the name; if
   * none exists, make one and return it.
   *
