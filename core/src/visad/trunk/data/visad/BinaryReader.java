@@ -30,12 +30,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.RandomAccessFile;
 import java.io.Reader;
 
 import visad.*;
-
-import visad.data.FileAccessor;
 
 import visad.data.netcdf.Quantity;
 
@@ -50,6 +47,7 @@ public class BinaryReader
   implements BinaryFile
 {
   private DataInput file;
+  private boolean isRandom;
 
   private int version;
 
@@ -106,6 +104,57 @@ public class BinaryReader
     throws IOException
   {
     file = new DataInputStream(new BufferedInputStream(stream));
+    isRandom = false;
+
+    version = checkMagic(file);
+
+    unitCache = new BinaryObjectCache();
+    errorCache = new BinaryObjectCache();
+    cSysCache = new BinaryObjectCache();
+    typeCache = new BinaryObjectCache();
+  }
+
+  /**
+   * Prepare to read a binary object from the specified stream.
+   * <br><br>
+   * The first few bytes will be read to verify that the stream starts
+   * with the appropriate <tt>MAGIC_STR</tt> characters and that this
+   * class can read the format version used by the file.
+   *
+   * @param raf File to read.
+   *
+   * @exception IOException If the file cannot be opened.
+   */
+  public BinaryReader(java.io.RandomAccessFile raf)
+    throws IOException
+  {
+    file = raf;
+    isRandom = true;
+
+    version = checkMagic(file);
+
+    unitCache = new BinaryObjectCache();
+    errorCache = new BinaryObjectCache();
+    cSysCache = new BinaryObjectCache();
+    typeCache = new BinaryObjectCache();
+  }
+
+  /**
+   * Prepare to read a binary object from the specified stream.
+   * <br><br>
+   * The first few bytes will be read to verify that the stream starts
+   * with the appropriate <tt>MAGIC_STR</tt> characters and that this
+   * class can read the format version used by the file.
+   *
+   * @param raf File to read.
+   *
+   * @exception IOException If the file cannot be opened.
+   */
+  public BinaryReader(ucar.netcdf.RandomAccessFile raf)
+    throws IOException
+  {
+    file = raf;
+    isRandom = true;
 
     version = checkMagic(file);
 
@@ -138,8 +187,10 @@ public class BinaryReader
   {
     if (file instanceof InputStream) {
       ((InputStream )file).close();
-    } else if (file instanceof RandomAccessFile) {
-      ((RandomAccessFile )file).close();
+    } else if (file instanceof java.io.RandomAccessFile) {
+      ((java.io.RandomAccessFile )file).close();
+    } else if (file instanceof ucar.netcdf.RandomAccessFile) {
+      ((ucar.netcdf.RandomAccessFile )file).close();
     } else {
       throw new IOException("Unknown file class \"" +
                             file.getClass().getName() + "\"");
@@ -215,8 +266,25 @@ if(DEBUG_RD_TIME){
     return data;
   }
 
-  public final BinaryObjectCache getCoordinateSystemCache() { return cSysCache; }
+  public final BinaryObjectCache getCoordinateSystemCache()
+  {
+    return cSysCache;
+  }
+
   public final BinaryObjectCache getErrorEstimateCache() { return errorCache; }
+
+  public final long getFilePointer()
+    throws IOException
+  {
+    if (file instanceof java.io.RandomAccessFile) {
+      return ((java.io.RandomAccessFile )file).getFilePointer();
+    } else if (file instanceof ucar.netcdf.RandomAccessFile) {
+      return ((ucar.netcdf.RandomAccessFile )file).getFilePointer();
+    }
+
+    return -1;
+  }
+
   public final DataInput getInput() { return file; }
   public final BinaryObjectCache getTypeCache() { return typeCache; }
   public final BinaryObjectCache getUnitCache() { return unitCache; }
@@ -233,6 +301,8 @@ if(DEBUG_RD_TIME){
       return false;
     }
   }
+
+  public final boolean isRandom() { return isRandom; }
 
   public DataImpl readData()
     throws IOException, VisADException
@@ -270,7 +340,7 @@ if(DEBUG_RD_TIME)fTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_FLAT_FIELD:
 if(DEBUG_RD_DATA)System.err.println("rdData: objLen (" + objLen + ")\nrdData: DATA_FLAT_FIELD (" + dataType + ")");
-      data = BinaryFlatField.read(this);
+      data = BinaryFlatField.read(this, objLen - 6, isRandom());
 if(DEBUG_RD_TIME)ffTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_FLOAT_SET:
@@ -485,6 +555,19 @@ if(DEBUG_RD_TIME){
       return stream.readInt();
     } catch (IOException ioe) {
       return -1;
+    }
+  }
+
+  public final void seek(long pos)
+    throws IOException
+  {
+    if (file instanceof java.io.RandomAccessFile) {
+      ((java.io.RandomAccessFile )file).seek(pos);
+    } else if (file instanceof ucar.netcdf.RandomAccessFile) {
+      ((ucar.netcdf.RandomAccessFile )file).seek(pos);
+    } else {
+      throw new IOException("Seek not supported for " +
+                            file.getClass().getName());
     }
   }
 }
