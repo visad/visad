@@ -405,6 +405,11 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
       else {
         Image aux_copy = null;
         synchronized (images) {
+          if (aux_image == null) {
+            // if we got here before the image buffer was initialized,
+            //  skip this round of drawing
+            return;
+          }
           aux_copy = aux_image;
         }
         Graphics ga = aux_copy.getGraphics();
