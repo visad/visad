@@ -69,6 +69,7 @@ DOCFLAGS = -J-Xmx96m -d $(DOC_DIR)
 JAR_FILES1 = \
 dods\dap\*.java \
 dods\dap\parser\*.java \
+dods\dap\Server\*.java \
 dods\util\*.java \
 edu\wisc\ssec\mcidas\*.java \
 edu\wisc\ssec\mcidas\adde\*.java \
@@ -303,6 +304,7 @@ ucar\tests\test.nc \
 ucar\tests\test.out \
 dods\dap\*.java \
 dods\dap\parser\*.java \
+dods\dap\Server\*.java \
 dods\util\*.java \
 gnu\regexp\*.java \
 visad\data\hdfeos\*.java \
@@ -458,6 +460,8 @@ save:
 		$(DEL) $(BACKUP)\dods\dap\*.java
 	if exist $(BACKUP)\dods\dap\parser\*.java \
 		$(DEL) $(BACKUP)\dods\dap\parser\*.java
+	if exist $(BACKUP)\dods\dap\Server\*.java \
+		$(DEL) $(BACKUP)\dods\dap\Server\*.java
 	if exist $(BACKUP)\dods\util\*.java \
 		$(DEL) $(BACKUP)\dods\util\*.java
 	if exist $(BACKUP)\gnu\regexp\*.java \
@@ -570,6 +574,7 @@ ucar\netcdf\*.class \
 ucar\tests\*.class \
 dods\dap\*.class \
 dods\dap\parser\*.class \
+dods\dap\Server\*.class \
 dods\util\*.class \
 gnu\regexp\*.class \
 visad\data\fits\*.class \
@@ -672,6 +677,7 @@ clear:
 	if exist ..\ucar\tests\*.java $(DEL) ..\ucar\tests\*.java
 	if exist ..\dods\dap\*.java $(DEL) ..\dods\dap\*.java 
 	if exist ..\dods\dap\parser\*.java $(DEL) ..\dods\dap\parser\*.java 
+	if exist ..\dods\dap\Server\*.java $(DEL) ..\dods\dap\Server\*.java 
 	if exist ..\dods\util\*.java $(DEL) ..\dods\util\*.java 
 	if exist ..\gnu\regexp\*.java $(DEL) ..\gnu\regexp\*.java 
 	if exist data\hdfeos\*.java $(DEL) data\hdfeos\*.java
@@ -749,6 +755,7 @@ clean:
 	if exist ..\ucar\tests\*.class $(DEL) ..\ucar\tests\*.class
 	if exist ..\dods\dap\*.class $(DEL) ..\dods\dap\*.class 
 	if exist ..\dods\dap\parser\*.class $(DEL) ..\dods\dap\parser\*.class 
+	if exist ..\dods\dap\Server\*.class $(DEL) ..\dods\dap\Server\*.class 
 	if exist ..\dods\util\*.class $(DEL) ..\dods\util\*.class 
 	if exist ..\gnu\regexp\*.class $(DEL) ..\gnu\regexp\*.class 
 	if exist data\hdfeos\*.class $(DEL) data\hdfeos\*.class
@@ -841,6 +848,7 @@ data\*.class \
 ..\ucar\tests\*.class \
 ..\dods\dap\*.class \
 ..\dods\dap\parser\*.class \
+..\dods\dap\Server\*.class \
 ..\dods\util\*.class \
 ..\gnu\regexp\*.class \
 data\units\*.class \
