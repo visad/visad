@@ -36,16 +36,45 @@ import visad.Tuple;
 import visad.UnimplementedException;
 import visad.VisADException;
 
+import visad.data.BadFormException;
 import visad.data.Form;
 import visad.data.FormNode;
-import visad.data.BadFormException;
+import visad.data.FormFileInformer;
 
 public class FitsForm
 	extends Form
+	implements FormFileInformer
 {
   public FitsForm()
   {
     super("FitsForm");
+  }
+
+  public boolean isThisType(String name)
+  {
+    return name.endsWith(".fits");
+  }
+
+  public boolean isThisType(byte[] block)
+  {
+    String front = new String(block, 0, 9);
+    if (!front.startsWith("SIMPLE  =")) {
+      return false;
+    }
+
+    String back = new String(block, 9, 71);
+    back = back.trim();
+    if (back.length() != 1 || back.charAt(0) != 'T') {
+      return false;
+    }
+
+    return true;
+  }
+
+  public String[] getDefaultSuffixes()
+  {
+    String[] suff = { "fits" };
+    return suff;
   }
 
   public void save(String id, Data data, boolean replace)

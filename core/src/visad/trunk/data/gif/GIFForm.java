@@ -36,16 +36,34 @@ import visad.FlatField;
 import visad.UnimplementedException;
 import visad.VisADException;
 
+import visad.data.BadFormException;
 import visad.data.Form;
 import visad.data.FormNode;
-import visad.data.BadFormException;
+import visad.data.FormFileInformer;
 
 public class GIFForm
 	extends Form
+	implements FormFileInformer
 {
   public GIFForm()
   {
     super("GIFForm");
+  }
+
+  public boolean isThisType(String name)
+  {
+    return (name.endsWith(".gif") || name.endsWith(".GIF"));
+  }
+
+  public boolean isThisType(byte[] block)
+  {
+    return false;
+  }
+
+  public String[] getDefaultSuffixes()
+  {
+    String[] suff = { "gif" };
+    return suff;
   }
 
   public void save(String id, Data data, boolean replace)
