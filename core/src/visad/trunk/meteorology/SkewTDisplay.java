@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTDisplay.java,v 1.4 1998-08-19 17:19:58 steve Exp $
+ * $Id: SkewTDisplay.java,v 1.5 1998-08-19 22:13:34 steve Exp $
  */
 
 package visad.meteorology;
@@ -11,14 +11,17 @@ package visad.meteorology;
 import com.sun.java.swing.JFrame;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeSupport;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import visad.ConstantMap;
 import visad.ContourControl;
+import visad.CoordinateSystem;
 import visad.DataReference;
 import visad.DataReferenceImpl;
 import visad.Display;
+import visad.DisplayRealType;
 import visad.FlatField;
 import visad.FunctionType;
 import visad.Linear2DSet;
@@ -140,28 +143,89 @@ SkewTDisplay
 
 	if (!displayInitialized)
 	{
-	    configureDisplayForSounding(sounding);
-
 	    /*
 	     * Map the X and Y coordinates of the various background fields
 	     * to the display X and Y coordinates.  This is necessary for
 	     * contouring of the various fields -- though it does have the
-	     * unfortunate effect of making XAxis and YAxis middle-mouse-
-	     * button readouts appear.
+	     * unfortunate effect of making XAxis and YAxis value readouts
+	     * appear.
 	     */
 	    ScalarMap	xMap = new ScalarMap(RealType.XAxis, Display.XAxis);
 	    ScalarMap	yMap = new ScalarMap(RealType.YAxis, Display.YAxis);
 	    display.addMap(xMap);
 	    display.addMap(yMap);
 
-	    DataReferenceImpl	temperatureRef = 
-		configureDisplayForTemperature();
-	    DataReferenceImpl	potentialTemperatureRef =
-		configureDisplayForPotentialTemperature();
+	    /*
+	     * Map the sounding types to display types.  NB: Because of this
+	     * mapping, the display will have a value readout for regular
+	     * temperature values.  Consequently, we don't need to create
+	     * one for the regular temperature field.
+	     */
+	    ScalarMap	soundingPressureMap = new ScalarMap(
+		sounding.getPressureType(), displayRenderer.pressure);
+	    soundingPressureMap.setRangeByUnits();
+	    display.addMap(soundingPressureMap);
 
+	    ScalarMap	soundingTemperatureMap = new ScalarMap(
+		sounding.getTemperatureType(), displayRenderer.temperature);
+	    soundingTemperatureMap.setRangeByUnits();
+	    display.addMap(soundingTemperatureMap);
+
+	    /*
+	     * Define the temperature type for the various
+	     * temperature fields which will be contoured.
+	     */
+	    RealType	isothermType = new RealType("isotherm");
+
+	    /*
+	     * Map the temperature parameter of the various temperature
+	     * fields to display contours.
+	     */
+	    ScalarMap	contourMap = new ScalarMap(isothermType,
+		Display.IsoContour);
+	    display.addMap(contourMap);
+	    ContourControl	control =
+		(ContourControl)contourMap.getControl();
+	    Unit	temperatureUnit = skewTCoordSys.getTemperatureUnit();
+	    control.setContourInterval(deltaTemperature,
+		(float)temperatureUnit.toThis(0.f, SI.kelvin),
+		(float)temperatureUnit.toThis(500f, SI.kelvin),
+		0f);
+
+	    /*
+	     * Establish value readouts for the non-sounding temperature
+	     * parameters.
+	     */
+	    RealType	type = new RealType("potential_temperature");
+	    ScalarMap	fieldTemperatureMap = new ScalarMap(type, 
+		displayRenderer.potentialTemperature);
+	    display.addMap(fieldTemperatureMap);
+
+	    /*
+	     * Create the temperature fields.
+	     */
+	    DataReferenceImpl	temperatureRef = 
+		createTemperatureField("temperature", isothermType,
+		    skewTCoordSys.viewport, 2, 2, skewTCoordSys);
+	    DataReferenceImpl	potentialTemperatureRef =
+		createTemperatureField("potential_temperature", isothermType,
+		    potentialTemperatureCoordSys.viewport, 10, 10, 
+		    potentialTemperatureCoordSys);
+	    /*
+	    DataReferenceImpl	equivalentPotentialTemperatureRef = 
+		createTemperatureField("equivalent_potential_temperature",
+		    isothermType,
+		    equivalentPotentialTemperatureCoordSys.viewport, 10, 10, 
+		    equivalentPotentialTemperatureCoordSys);
+	    */
+
+	    /*
+	     * Add the temperature fields to the display.
+	     */
 	    display.addReference(soundingRef);
 	    display.addReference(temperatureRef);
 	    display.addReference(potentialTemperatureRef);
+	    // display.addReference(equivalentPotentialTemperatureRef);
 
 	    displayInitialized = true;
 	}
@@ -169,149 +233,46 @@ SkewTDisplay
 
 
     /**
-     * Configure display for temperature field.
+     * Creates a particular temperature field.
      *
-     * @return	Display data-reference to temperature field.
+     * @param name		The name of the parameter (e.g. 
+     *				"potential_temperature") for the purpose of
+     *				naming the returned DdataReference.
+     * @param rangeType		The RealType of the parameter.
+     * @param viewport		The display viewport.
+     * @param nx		The number of samples in the X dimension.
+     * @param ny		The number of samples in the Y dimension.
+     * @param coordSys		The coordinate system transform.
+     * @return			Data reference to created field.
+     * @exception VisADException	Can't create necessary VisAD object.
+     * @exception RemoteException	Remote access failure.
      */
     protected DataReferenceImpl
-    configureDisplayForTemperature()
+    createTemperatureField(String name, RealType rangeType,
+	    Rectangle2D viewport, int nx, int ny, CoordinateSystem coordSys)
 	throws	VisADException, RemoteException
     {
-	/*
-	 * Define a field of temperature which will result in correct
-	 * isotherm contours.
-	 */
 	MathType	domainType = 
 	    new RealTupleType(new RealType[] {RealType.XAxis, RealType.YAxis});
-	RealType	rangeType = new RealType("temperature_contour");
 	FunctionType	funcType = new FunctionType(domainType, rangeType);
-	Set		set = new Linear2DSet(
-	    domainType,
-	    skewTCoordSys.viewport.getX(), 
-	    skewTCoordSys.viewport.getX() + skewTCoordSys.viewport.getWidth(),
-	    2,
-	    skewTCoordSys.viewport.getY(),
-	    skewTCoordSys.viewport.getY() + skewTCoordSys.viewport.getHeight(),
-	    2);
+	Linear2DSet	set = new Linear2DSet(domainType,
+	    viewport.getX(), viewport.getX() + viewport.getWidth(), nx,
+	    viewport.getY(), viewport.getY() + viewport.getHeight(), ny);
 	FlatField	temperature = new FlatField(funcType, set);
-	float[][]	xyCoords = set.getSamples(/*copy=*/false);
-	float[][]	ptCoords = skewTCoordSys.fromReference(
+	float[][]	xyCoords = set.getSamples();
+	float[][]	ptCoords = coordSys.fromReference(
 	    new float[][] {xyCoords[0], xyCoords[1], null});
 
 	temperature.setSamples(new float[][] {ptCoords[1]}, /*copy=*/false);
 
 	/*
-	 * Establish the isotherm contours.
+	 * Create a data-reference for the temperature field.
 	 */
-	ScalarMap	contourMap = new ScalarMap(rangeType,
-	    Display.IsoContour);
-	display.addMap(contourMap);
+	DataReferenceImpl	temperatureRef =
+	    new DataReferenceImpl(name + "_ref");
+	temperatureRef.setData(temperature);
 
-	ContourControl	control = (ContourControl)contourMap.getControl();
-	control.setContourInterval(deltaTemperature,
-	    (float)skewTCoordSys.getTemperatureUnit().toThis(0.f, SI.kelvin),
-	    500f,
-	    baseIsotherm);
-
-	/*
-	 * Create a data-reference for the contours.
-	 */
-	DataReferenceImpl	isothermRef =
-	    new DataReferenceImpl("isothermRef");
-	isothermRef.setData(temperature);
-
-	return isothermRef;
-    }
-
-
-    /**
-     * Configure display for potential temperature.
-     *
-     * @return	Display data-reference to isotherms.
-     */
-    protected DataReferenceImpl
-    configureDisplayForPotentialTemperature()
-	throws	VisADException, RemoteException
-    {
-	Unit	kelvin = SI.kelvin;
-	Unit	skewTTempUnit = skewTCoordSys.getTemperatureUnit();
-
-	/*
-	 * Define a field of potential temperature which will result in correct
-	 * isotherm contours.
-	 */
-	int		nx = 10;
-	int		ny = 10;
-	MathType	domainType = 
-	    new RealTupleType(new RealType[] {RealType.XAxis, RealType.YAxis});
-	RealType	rangeType =
-	    RealType.getRealTypeByName("temperature_contour");	// prev. defined
-	    // new RealType("potential_temperature", 
-	    // potentialTemperatureCoordSys.getTemperatureUnit(),
-	    // /*(Set)*/null);
-	FunctionType	funcType = new FunctionType(domainType, rangeType);
-	Linear2DSet	set = new Linear2DSet(
-	    domainType,
-	    potentialTemperatureCoordSys.viewport.getX(), 
-	    potentialTemperatureCoordSys.viewport.getX() +
-		potentialTemperatureCoordSys.viewport.getWidth(),
-	    nx,
-	    potentialTemperatureCoordSys.viewport.getY(),
-	    potentialTemperatureCoordSys.viewport.getY() +
-		potentialTemperatureCoordSys.viewport.getHeight(),
-	    ny);
-	FlatField	potentialTemperature = new FlatField(funcType, set);
-	float[][]	xyCoords = set.getSamples();
-	float[][]	ptCoords = potentialTemperatureCoordSys.fromReference(
-	    new float[][] {xyCoords[0], xyCoords[1], null});
-
-	potentialTemperature.setSamples(new float[][] {ptCoords[1]},
-	    /*copy=*/false);
-
-	/*
-	 * Establish middle-mouse-button readout.
-	 */
-	ScalarMap	thetaMap = 
-	    new ScalarMap(new RealType("potential_temperature"),
-		displayRenderer.potentialTemperature);
-	/*
-         * The following statement causes middle-mouse-button readout
-         * of potential temperature to appear.  Unfortunately, it also
-         * causes the potential temperature contours to not be drawn.
-	 */
-	display.addMap(thetaMap);
-
-	/*
-	 * Create a data-reference for the potential temperature.
-	 */
-	DataReferenceImpl	potentialTemperatureRef =
-	    new DataReferenceImpl("potentialTemperatureRef");
-	potentialTemperatureRef.setData(potentialTemperature);
-
-	return potentialTemperatureRef;
-    }
-
-
-    /**
-     * Configure display for soundings.
-     *
-     * @param sounding	The sounding.
-     */
-    protected void
-    configureDisplayForSounding(Sounding sounding)
-	throws	VisADException, RemoteException
-    {
-	ScalarMap	pressureMap = new ScalarMap(sounding.getPressureType(),
-	    displayRenderer.pressure);
-	ScalarMap	temperatureMap =
-	    new ScalarMap(sounding.getTemperatureType(),
-			  displayRenderer.temperature);
-
-	pressureMap.setRangeByUnits();
-	temperatureMap.setRangeByUnits();
-
-	display.addMap(pressureMap);
-	display.addMap(temperatureMap);
+	return temperatureRef;
     }
 
 
