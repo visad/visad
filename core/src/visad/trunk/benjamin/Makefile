@@ -49,9 +49,9 @@ INCLUDE = dimen.h const.h atomic.h galstruct.h
 #
 RM = rm -f
 
-default: Galaxy.class Galaxy.so
+default: Galaxy.class libGalaxy.so
 
-Galaxy.so: GalaxyImp.o $(FORTRANS)
+libGalaxy.so: GalaxyImp.o $(FORTRANS)
 	${SHLD} ${SHLDFLAGS} -o libGalaxy.so \
 		GalaxyImp.o $(FORTRANS) \
 		$(LIBS) -lM77 -lF77 -lsunmath -lm -lc
