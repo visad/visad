@@ -170,13 +170,20 @@ public class AddeURLConnection extends URLConnection
   private final static int PORT = 500;
 
   // ADDE server requests
-  private final static int AGET = 0;
-  private final static int ADIR = 1;
-  private final static int LWPR = 2;
-  private final static int GDIR = 3;
-  private final static int GGET = 4;
-  private final static int MDKS = 5;
-  private final static int TXTG = 6;
+  /** AGET request type */
+  public final static int AGET = 0;
+  /** ADIR request type */
+  public final static int ADIR = 1;
+  /** LWPR request type */
+  public final static int LWPR = 2;
+  /** GDIR request type */
+  public final static int GDIR = 3;
+  /** GGET request type */
+  public final static int GGET = 4;
+  /** MDKS request type */
+  public final static int MDKS = 5;
+  /** TXTG request type */
+  public final static int TXTG = 6;
 
 
   // ADDE data types
@@ -188,6 +195,7 @@ public class AddeURLConnection extends URLConnection
   private int numBytes = 0;
   private int dataType = IMAGE;
   private byte[] binaryData = null;   // byte array to hold extra binary data
+  private int reqType = AGET;
   private boolean debug = false;
 
   /**
@@ -267,7 +275,6 @@ public class AddeURLConnection extends URLConnection
     // service - for area files, it's either AGET (Area GET) or 
     // ADIR (AREA directory)
     byte [] svc = null;
-    int reqType;
     if (request.startsWith("imagedir"))
     {
         svc = (new String("adir")).getBytes();
@@ -307,6 +314,7 @@ public class AddeURLConnection extends URLConnection
     {
       throw new AddeURLException("Invalid ADDE service="+svc.toString() );
     }
+    if (debug) System.out.println("Service = " + svc.toString());
 
     dos.write(svc, 0, svc.length);
 
@@ -466,7 +474,15 @@ public class AddeURLConnection extends URLConnection
   }
 
   /**
-   *
+   * Get the request type 
+   * @return  type of request (ADIR, AGET, etc)
+   */
+  public int getRequestType()
+  {
+      return reqType;
+  }
+
+  /**
    * returns a reference to InputStream established in connect().
    * calls connect() if client has not done so yet.
    *
