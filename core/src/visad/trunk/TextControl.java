@@ -404,9 +404,8 @@ public class TextControl extends Control {
     return true;
   }
 
-  private boolean pfirst = true;
-
   class ProjectionControlListener implements ControlListener {
+    private boolean pfirst = true;
     private MouseBehavior mouse;
     private ProjectionControl pcontrol;
     private TextControl text_control;
