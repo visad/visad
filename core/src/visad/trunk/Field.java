@@ -73,8 +73,10 @@ public interface Field extends Function {
   /** combine an array of Field-s;
       they must have the same Domain type;
       this takes the place of 'insert' in the C-based VisAD */
+  /**
   public abstract Field combine(Field[] fields)
          throws VisADException, RemoteException;
+   **/
 
   /** extract field from this[].component */
   public abstract Field extract(int component)
