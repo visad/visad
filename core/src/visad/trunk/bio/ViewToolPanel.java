@@ -230,14 +230,14 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
     controls.add(pad(p));
 
     // Preview checkbox
-    preview = new JCheckBox("Previous/next preview displays", false);
+    preview = new JCheckBox("Previous/next preview displays", okay3d);
     preview.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         boolean b = preview.isSelected();
         bio.setPreview(b);
       }
     });
-    preview.setEnabled(false);
+    preview.setEnabled(okay3d);
     controls.add(pad(preview));
 
     // spacing

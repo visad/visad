@@ -97,6 +97,9 @@ public class SliceManager
   /** Animation control associated with 3-D animation mapping. */
   AnimationControl anim_control3;
 
+  /** Animation controls associated with preview animation mappings. */
+  AnimationControl anim_control_prev, anim_control_next;
+
   /** Value control associated with 2-D select value mapping. */
   ValueControl value_control2;
 
@@ -136,6 +139,9 @@ public class SliceManager
   /** List of range component mappings for 3-D display. */
   private ScalarMap[] rmaps3;
 
+  /** List of range component mappings for preview displays. */
+  private ScalarMap[][] rmapsP;
+
 
   // -- DATA REFERENCES --
 
@@ -144,6 +150,12 @@ public class SliceManager
 
   /** Reference for image stack data for 3-D display. */
   private DataReferenceImpl ref3;
+
+  /** Reference for data for previous display. */
+  private DataReferenceImpl ref_prev;
+
+  /** Reference for data for next display. */
+  private DataReferenceImpl ref_next;
 
   /** Reference for low-resolution image timestack data for 2-D display. */
   private DataReferenceImpl lowresRef2;
@@ -243,6 +255,8 @@ public class SliceManager
     ref3 = new DataReferenceImpl("bio_ref3");
     lowresRef2 = new DataReferenceImpl("bio_lowresRef2");
     lowresRef3 = new DataReferenceImpl("bio_lowresRef3");
+    ref_prev = new DataReferenceImpl("bio_ref_prev");
+    ref_next = new DataReferenceImpl("bio_ref_next");
     planeRef = new DataReferenceImpl("bio_planeRef");
   }
 
@@ -354,86 +368,6 @@ public class SliceManager
     }
   }
 
-  /** Exports the stack of images at the current timestep. */
-  public void exportImageStack(Form saver, String file)
-    throws VisADException
-  {
-    // CTR - TODO - exportImageStack is obsolete
-    setMode(false);
-    final Form fsaver = saver;
-    final String f = file;
-    final ProgressDialog dialog = new ProgressDialog(bio,
-      "Exporting image stack");
-    Thread t = new Thread(new Runnable() {
-      public void run() {
-        try {
-          // save image stack data to file
-          fsaver.save(f, field, true);
-        }
-        catch (VisADException exc) { dialog.setException(exc); }
-        catch (Exception exc) {
-          dialog.setException(new VisADException(
-            exc.getClass() + ": " + exc.getMessage()));
-        }
-        dialog.setPercent(100);
-        dialog.kill();
-      }
-    });
-    t.start();
-    dialog.show();
-    dialog.checkException();
-  }
-
-  /** Exports an animation of the current slice across all timesteps. */
-  public void exportSliceAnimation(Form saver, String file)
-    throws VisADException
-  {
-    // CTR - TODO - exportSliceAnimation is obsolete
-    final Form fsaver = saver;
-    final String ff = file;
-    final ProgressDialog dialog = new ProgressDialog(bio,
-      "Compiling animation data");
-    Thread t = new Thread(new Runnable() {
-      public void run() {
-        try {
-          // compile high-resolution animation data
-          FieldImpl data = null;
-          for (int i=0; i<timesteps; i++) {
-            FieldImpl image;
-            FieldImpl f = filesAsSlices ? field : loadData(files[i], true);
-            if (i == 0) {
-              FunctionType image_type =
-                (FunctionType) f.getSample(0).getType();
-              FunctionType anim_type = new FunctionType(TIME_TYPE, image_type);
-              Integer1DSet set = new Integer1DSet(TIME_TYPE, timesteps);
-              data = new FieldImpl(anim_type, set);
-            }
-            if (planeSelect) {
-              image = (FieldImpl) ps.extractSlice((FieldImpl)
-                f.domainMultiply(), res_x, res_y, res_x, res_y);
-            }
-            else image = (FieldImpl) f.getSample(slice);
-            data.setSample(i, image, false);
-            dialog.setPercent(100 * (i + 1) / timesteps);
-          }
-
-          // save animation data to file
-          dialog.setText("Exporting animation");
-          fsaver.save(ff, data, true);
-        }
-        catch (VisADException exc) { dialog.setException(exc); }
-        catch (Exception exc) {
-          dialog.setException(new VisADException(
-            exc.getClass() + ": " + exc.getMessage()));
-        }
-        dialog.kill();
-      }
-    });
-    t.start();
-    dialog.show();
-    dialog.checkException();
-  }
-
 
   // -- INTERNAL API METHODS --
 
@@ -447,10 +381,9 @@ public class SliceManager
     if (this.slice != slice) bio.vert.setValue(slice + 1);
   }
 
-  /** DisplayListener method used for detecting mouse activity. */
+  /** DisplayListener method used for mouse activity in 3-D display. */
   public void displayChanged(DisplayEvent e) {
     if (e.getId() != DisplayEvent.MOUSE_RELEASED_RIGHT) return;
-    if (e.getDisplay() != bio.display3) return;
     bio.state.saveState(planeSelect && planeChanged);
     if (planeSelect && planeChanged && !continuous) updateSlice();
     planeChanged = false;
@@ -495,6 +428,19 @@ public class SliceManager
     BaseColorControl[] controls = new BaseColorControl[rmaps3.length];
     for (int i=0; i<rmaps3.length; i++) {
       controls[i] = (BaseColorControl) rmaps3[i].getControl();
+    }
+    return controls;
+  }
+
+  /** Gets the color controls for preview range type color mappings. */
+  BaseColorControl[][] getColorControlsPreview() {
+    if (rmapsP == null) return null;
+    BaseColorControl[][] controls = new BaseColorControl[rmapsP.length][];
+    for (int j=0; j<rmapsP.length; j++) {
+      controls[j] = new BaseColorControl[rmapsP[j].length];
+      for (int i=0; i<rmapsP[j].length; i++) {
+        controls[j][i] = (BaseColorControl) rmapsP[j][i].getControl();
+      }
     }
     return controls;
   }
@@ -674,6 +620,8 @@ public class SliceManager
           if (doThumbs) {
             lowresRef2.setData(lowresField);
             lowresRef3.setData(lowresField);
+            ref_prev.setData(lowresField);
+            ref_next.setData(lowresField);
           }
 
           bio.toolView.guessTypes();
@@ -782,6 +730,10 @@ public class SliceManager
     if (bio.display3 != null) {
       bio.display3.removeAllReferences();
       bio.display3.clearMaps();
+      bio.previous.removeAllReferences();
+      bio.previous.clearMaps();
+      bio.next.removeAllReferences();
+      bio.next.clearMaps();
     }
   }
 
@@ -832,6 +784,39 @@ public class SliceManager
     }
     bio.mm.pool2.init();
 
+    // set up 2-D ranges
+    GriddedSet set = (GriddedSet)
+      ((FieldImpl) field.getSample(0)).getDomainSet();
+    float[] lo = set.getLow();
+    float[] hi = set.getHi();
+    int[] lengths = set.getLengths();
+    res_x = lengths[0];
+    res_y = lengths[1];
+
+    // x-axis range
+    min_x = lo[0];
+    max_x = hi[0];
+    if (min_x != min_x) min_x = 0;
+    if (max_x != max_x) max_x = 0;
+    x_map2.setRange(min_x, max_x);
+
+    // y-axis range
+    min_y = lo[1];
+    max_y = hi[1];
+    if (min_y != min_y) min_y = 0;
+    if (max_y != max_y) max_y = 0;
+    y_map2.setRange(min_y, max_y);
+
+    // select value range
+    min_z = 0;
+    max_z = slices - 1;
+    slice_map2.setRange(min_z, max_z);
+
+    // color ranges
+    r_map2.setRange(0, 255);
+    g_map2.setRange(0, 255);
+    b_map2.setRange(0, 255);
+
     // set up mappings to 3-D display
     ScalarMap x_map3 = null;
     ScalarMap y_map3 = null;
@@ -880,43 +865,7 @@ public class SliceManager
         bio.display3.addReferences(lowresRenderer3, lowresRef3);
       }
       bio.mm.pool3.init();
-    }
 
-    // set up 2-D ranges
-    GriddedSet set = (GriddedSet)
-      ((FieldImpl) field.getSample(0)).getDomainSet();
-    float[] lo = set.getLow();
-    float[] hi = set.getHi();
-    int[] lengths = set.getLengths();
-    res_x = lengths[0];
-    res_y = lengths[1];
-
-    // x-axis range
-    min_x = lo[0];
-    max_x = hi[0];
-    if (min_x != min_x) min_x = 0;
-    if (max_x != max_x) max_x = 0;
-    x_map2.setRange(min_x, max_x);
-
-    // y-axis range
-    min_y = lo[1];
-    max_y = hi[1];
-    if (min_y != min_y) min_y = 0;
-    if (max_y != max_y) max_y = 0;
-    y_map2.setRange(min_y, max_y);
-
-    // select value range
-    min_z = 0;
-    max_z = slices - 1;
-    slice_map2.setRange(min_z, max_z);
-
-    // color ranges
-    r_map2.setRange(0, 255);
-    g_map2.setRange(0, 255);
-    b_map2.setRange(0, 255);
-
-    // set up 3-D ranges
-    if (bio.display3 != null) {
       // x-axis and y-axis ranges
       x_map3.setRange(min_x, max_x);
       y_map3.setRange(min_y, max_y);
@@ -931,7 +880,67 @@ public class SliceManager
       b_map3.setRange(0, 255);
     }
 
-    // set up animation mapping
+    // set up mappings to previous and next displays
+    ScalarMap anim_map_prev = null;
+    ScalarMap anim_map_next = null;
+    if (hasThumbs && bio.previous != null && bio.next != null) {
+      rmapsP = new ScalarMap[2][];
+      for (int j=0; j<2; j++) {
+        ScalarMap x_mapP = new ScalarMap(dtypes[0], Display.XAxis);
+        ScalarMap y_mapP = new ScalarMap(dtypes[1], Display.YAxis);
+        ScalarMap z_mapPa = new ScalarMap(dtypes[2], Display.ZAxis);
+        ScalarMap z_mapPb = new ScalarMap(Z_TYPE, Display.ZAxis);
+        ScalarMap anim_mapP = new ScalarMap(TIME_TYPE, Display.Animation);
+        ScalarMap r_mapP = new ScalarMap(RED_TYPE, Display.Red);
+        ScalarMap g_mapP = new ScalarMap(GREEN_TYPE, Display.Green);
+        ScalarMap b_mapP = new ScalarMap(BLUE_TYPE, Display.Blue);
+        DisplayImpl display;
+        DataReferenceImpl ref;
+        if (j == 0) {
+          display = bio.previous;
+          ref = ref_prev;
+          anim_map_prev = anim_mapP;
+        }
+        else {
+          display = bio.next;
+          ref = ref_next;
+          anim_map_next = anim_mapP;
+        }
+        display.addMap(x_mapP);
+        display.addMap(y_mapP);
+        display.addMap(z_mapPa);
+        display.addMap(z_mapPb);
+        display.addMap(anim_mapP);
+        display.addMap(r_mapP);
+        display.addMap(g_mapP);
+        display.addMap(b_mapP);
+
+        // add color maps for all range components
+        rmapsP[j] = new ScalarMap[rtypes.length];
+        for (int i=0; i<rtypes.length; i++) {
+          rmapsP[j][i] = new ScalarMap(rtypes[i], Display.RGBA);
+          display.addMap(rmapsP[j][i]);
+        }
+
+        // set up preview data reference
+        display.addReference(ref);
+
+        // x-axis and y-axis ranges
+        x_mapP.setRange(min_x, max_x);
+        y_mapP.setRange(min_y, max_y);
+
+        // z-axis range
+        z_mapPa.setRange(min_z, max_z);
+        z_mapPb.setRange(min_z, max_z);
+
+        // color ranges
+        r_mapP.setRange(0, 255);
+        g_mapP.setRange(0, 255);
+        b_mapP.setRange(0, 255);
+      }
+    }
+
+    // set up animation controls
     if (value_control2 != null) value_control2.removeControlListener(this);
     if (anim_control2 != null) anim_control2.removeControlListener(this);
     value_control2 = (ValueControl) slice_map2.getControl();
@@ -941,6 +950,8 @@ public class SliceManager
       anim_control2.addControlListener(this);
       if (bio.display3 != null) {
         anim_control3 = (AnimationControl) anim_map3.getControl();
+        anim_control_prev = (AnimationControl) anim_map_prev.getControl();
+        anim_control_next = (AnimationControl) anim_map_next.getControl();
       }
     }
     value_control2.addControlListener(this);
@@ -958,8 +969,7 @@ public class SliceManager
     // adjust display aspect ratio
     bio.setAspect(res_x, res_y, Double.NaN);
 
-    // set up display listeners
-    bio.display2.addDisplayListener(this);
+    // set up display listener for 3-D display
     bio.display3.addDisplayListener(this);
 
     // set up color table characteristics
@@ -1030,6 +1040,8 @@ public class SliceManager
     try {
       if (anim_control2 != null) anim_control2.setCurrent(index);
       if (anim_control3 != null) anim_control3.setCurrent(index);
+      if (anim_control_prev != null) anim_control_prev.setCurrent(index - 1);
+      if (anim_control_next != null) anim_control_next.setCurrent(index + 1);
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }

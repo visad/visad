@@ -276,6 +276,81 @@ public class ExportDialog extends JPanel
 
     // export data series
     // CTR - TODO - export data series
+    /*
+  // Exports the stack of images at the current timestep.
+  public void exportImageStack(Form saver, String file) {
+    setMode(false);
+    final Form fsaver = saver;
+    final String f = file;
+    final ProgressDialog dialog = new ProgressDialog(bio,
+      "Exporting image stack");
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        try {
+          // save image stack data to file
+          fsaver.save(f, field, true);
+        }
+        catch (VisADException exc) { dialog.setException(exc); }
+        catch (Exception exc) {
+          dialog.setException(new VisADException(
+            exc.getClass() + ": " + exc.getMessage()));
+        }
+        dialog.setPercent(100);
+        dialog.kill();
+      }
+    });
+    t.start();
+    dialog.show();
+    dialog.checkException();
+  }
+
+  // Exports an animation of the current slice across all timesteps.
+  public void exportSliceAnimation(Form saver, String file) {
+    final Form fsaver = saver;
+    final String ff = file;
+    final ProgressDialog dialog = new ProgressDialog(bio,
+      "Compiling animation data");
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        try {
+          // compile high-resolution animation data
+          FieldImpl data = null;
+          for (int i=0; i<timesteps; i++) {
+            FieldImpl image;
+            FieldImpl f = filesAsSlices ? field : loadData(files[i], true);
+            if (i == 0) {
+              FunctionType image_type =
+                (FunctionType) f.getSample(0).getType();
+              FunctionType anim_type = new FunctionType(TIME_TYPE, image_type);
+              Integer1DSet set = new Integer1DSet(TIME_TYPE, timesteps);
+              data = new FieldImpl(anim_type, set);
+            }
+            if (planeSelect) {
+              image = (FieldImpl) ps.extractSlice((FieldImpl)
+                f.domainMultiply(), res_x, res_y, res_x, res_y);
+            }
+            else image = (FieldImpl) f.getSample(slice);
+            data.setSample(i, image, false);
+            dialog.setPercent(100 * (i + 1) / timesteps);
+          }
+
+          // save animation data to file
+          dialog.setText("Exporting animation");
+          fsaver.save(ff, data, true);
+        }
+        catch (VisADException exc) { dialog.setException(exc); }
+        catch (Exception exc) {
+          dialog.setException(new VisADException(
+            exc.getClass() + ": " + exc.getMessage()));
+        }
+        dialog.kill();
+      }
+    });
+    t.start();
+    dialog.show();
+    dialog.checkException();
+  }
+    */
   }
 
 
@@ -395,6 +470,7 @@ public class ExportDialog extends JPanel
   private void exportData(BioVisAD biovis, Form saver, String[] exts,
     String desc, boolean stack)
   {
+    /* CTR - TODO - exportData rewrite
     final BioVisAD bio = biovis;
     final Form fsaver = saver;
     final String[] fexts = exts;
@@ -417,6 +493,7 @@ public class ExportDialog extends JPanel
         }
       }
     });
+    */
   }
 
 }

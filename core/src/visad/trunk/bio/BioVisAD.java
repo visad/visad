@@ -84,6 +84,15 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   /** VisAD 3-D display. */
   DisplayImpl display3;
 
+  /** Previous preview display. */
+  DisplayImpl previous;
+
+  /** Next preview display. */
+  DisplayImpl next;
+
+  /** Previous and last preview displays. */
+  JPanel previewPane;
+
 
   // -- SLIDER WIDGETS --
 
@@ -179,10 +188,18 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     if (Util.canDoJava3D()) {
       display2 = new DisplayImplJ3D("display2", new TwoDDisplayRendererJ3D());
       display3 = new DisplayImplJ3D("display3");
+      previous = new DisplayImplJ3D("previous");
+      next = new DisplayImplJ3D("next");
+      previewPane = new JPanel();
+      previewPane.setPreferredSize(new Dimension(0, 130));
+      previewPane.setLayout(new BoxLayout(previewPane, BoxLayout.X_AXIS));
+      previewPane.add(previous.getComponent());
+      previewPane.add(next.getComponent());
     }
     else {
       display2 = (DisplayImpl) new DisplayImplJ2D("display2");
-      display3 = null;
+      display3 = previous = next = null;
+      previewPane = null;
     }
     display2.getDisplayRenderer().setPickThreshhold(Float.MAX_VALUE);
     display2.enableEvent(DisplayEvent.MOUSE_DRAGGED);
@@ -195,6 +212,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
       renderer.setPickThreshhold(Float.MAX_VALUE);
       display3.enableEvent(DisplayEvent.MOUSE_DRAGGED);
       displayPane.add(display3.getComponent());
+      displayPane.add(previewPane);
     }
 
     // logic managers
@@ -242,7 +260,8 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   /** Toggles the visibility of the preview displays. */
   public void setPreview(boolean preview) {
-    // CTR - TODO - setPreview
+    if (previewPane == null) return;
+    previewPane.setVisible(preview);
   }
 
   /** Zooms a display by the given amount. */
@@ -273,13 +292,21 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     double yasp = y / d;
     double zasp = z == z ? z / d : 1.0;
     ProjectionControl pc2 = display2.getProjectionControl();
-    ProjectionControl pc3 = display3.getProjectionControl();
-    try {
-      pc2.setAspect(new double[] {xasp, yasp, zasp});
-      pc3.setAspect(new double[] {xasp, yasp, zasp});
-    }
+    try { pc2.setAspect(new double[] {xasp, yasp, zasp}); }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
+    if (display3 != null) {
+      ProjectionControl pc3 = display3.getProjectionControl();
+      ProjectionControl pcPp = previous.getProjectionControl();
+      ProjectionControl pcPn = next.getProjectionControl();
+      try {
+        pc3.setAspect(new double[] {xasp, yasp, zasp});
+        pcPp.setAspect(new double[] {xasp, yasp, zasp});
+        pcPn.setAspect(new double[] {xasp, yasp, zasp});
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
+    }
   }
 
   /** Updates image color table to match the given values. */
@@ -303,6 +330,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     BaseColorControl[] cc2 = sm.getColorControls2D();
     if (cc2 == null) return;
     BaseColorControl[] cc3 = sm.getColorControls3D();
+    BaseColorControl[][] ccP = sm.getColorControlsPreview();
 
     // compute center and slope from brightness and contrast
     double mid = COLOR_DETAIL / 2.0;
@@ -368,6 +396,11 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
       try {
         if (cc2[i] != null) cc2[i].setTable(t2);
         if (cc3 != null && cc3[i] != null) cc3[i].setTable(t3);
+        if (ccP != null) {
+          for (int j=0; j<ccP.length; j++) {
+            if (ccP[j] != null && ccP[j][i] != null) ccP[j][i].setTable(t3);
+          }
+        }
       }
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }
