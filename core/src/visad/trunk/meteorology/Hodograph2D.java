@@ -3,6 +3,7 @@
 package visad.meteorology;
 
 import com.sun.java.swing.JFrame;
+import java.rmi.RemoteException;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeSupport;
@@ -28,7 +29,7 @@ Hodograph2D
     /**
      * The velocity profile property.
      */
-    private FlatField				windProfile;
+    private WindProfile				windProfile;
 
     /**
      * Supports property changes.
@@ -90,9 +91,13 @@ Hodograph2D
 
     /**
      * Sets the wind profile property from a sounding.
+     *
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws RemoteException	Java RMI failure.
      */
     public synchronized void
-    setSounding(Sounding sounding)
+    setSounding(SoundingImpl sounding)
+	throws RemoteException, VisADException
     {
 	windProfile = sounding.getWindProfile();
     }

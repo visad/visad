@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DewPointSoundingProxy.java,v 1.1 1998-10-28 17:16:48 steve Exp $
+ * $Id: DewPointSoundingProxy.java,v 1.2 1998-11-03 22:27:34 steve Exp $
  */
 
 package visad.meteorology;
@@ -23,9 +23,15 @@ import visad.VisADException;
  */
 public class
 DewPointSoundingProxy
-    extends	SoundingComponentProxy
+    extends	SingleSoundingProxy
     implements	DewPointSounding
 {
+    /**
+     * The range type.
+     */
+    private static final RealType       rangeType = DEW_POINT_TYPE;
+
+
     /**
      * Constructs from a FlatField and the index of the dew-point component
      * of the field.
@@ -43,6 +49,6 @@ DewPointSoundingProxy
     DewPointSoundingProxy(FlatField field, int index)
 	throws VisADException
     {
-	super(field, new int[] {index});
+	super(rangeType, field, index);
     }
 }

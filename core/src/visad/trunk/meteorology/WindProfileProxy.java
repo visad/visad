@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: WindProfileProxy.java,v 1.1 1998-10-28 17:16:52 steve Exp $
+ * $Id: WindProfileProxy.java,v 1.2 1998-11-03 22:27:37 steve Exp $
  */
 
 package visad.meteorology;
@@ -32,36 +32,13 @@ import visad.VisADException;
  */
 public class
 WindProfileProxy
-    extends	SoundingComponentProxy
+    extends	SingleSoundingProxy
     implements	WindProfile
 {
     /**
-     * The FunctionType for all instances.
+     * The type of the range component.
      */
-    private static final FunctionType	funcType;
-
-
-    static 
-    {
-	FunctionType	ft = null;
-
-	try
-	{
-	    ft = new FunctionType(
-		CommonTypes.PRESSURE,
-		new RealTupleType(CommonTypes.U, CommonTypes.V));
-	}
-	catch (Exception e)
-	{
-	    String	reason = e.getMessage();
-
-	    System.err.println("Couldn't initialize WindProfileProxy class" +
-		(reason == null ? "" : ": " + reason));
-	    e.printStackTrace();
-	}
-
-	funcType = ft;
-    }
+    private static final RealTupleType	rangeType = WIND_TYPE;
 
 
     /**
@@ -79,6 +56,6 @@ WindProfileProxy
     WindProfileProxy(FlatField field, int uIndex, int vIndex)
 	throws VisADException
     {
-	super(field, new int[] {uIndex, vIndex});
+	super(rangeType, field, new int[] {uIndex, vIndex});
     }
 }

@@ -3,16 +3,10 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: WindProfile.java,v 1.1 1998-10-28 17:16:52 steve Exp $
+ * $Id: WindProfile.java,v 1.2 1998-11-03 22:27:37 steve Exp $
  */
 
 package visad.meteorology;
-
-import visad.FlatField;
-import visad.FunctionType;
-import visad.Set;
-import visad.Unit;
-import visad.VisADException;
 
 
 /**

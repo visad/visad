@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SoundingCoordinateSystem.java,v 1.1 1998-10-21 15:27:59 steve Exp $
+ * $Id: SoundingCoordinateSystem.java,v 1.2 1998-11-03 22:27:36 steve Exp $
  */
 
 package visad.meteorology;
@@ -84,10 +84,12 @@ SoundingCoordinateSystem
 
 
     /**
-     * Sets the sounding.
+     * Sets the sounding.  Permit <code>null</code> soundings.
      * @param sounding		The sounding or <code>null</code>.
-     *				Must have 1-D domain and single range value
-     *				with temperature unit.
+     *				If non-<code>null</code>, then it must have
+     *				a 1-D domain and single range value
+     *				with temperature unit.  If <code>null</code>,
+     *				then transformations will return NaN-s.
      * @throws VisADException	Improper sounding.
      */
     public void

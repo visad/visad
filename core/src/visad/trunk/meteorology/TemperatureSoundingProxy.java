@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: TemperatureSoundingProxy.java,v 1.1 1998-10-28 17:16:51 steve Exp $
+ * $Id: TemperatureSoundingProxy.java,v 1.2 1998-11-03 22:27:37 steve Exp $
  */
 
 package visad.meteorology;
@@ -23,9 +23,15 @@ import visad.VisADException;
  */
 public class
 TemperatureSoundingProxy
-    extends	SoundingComponentProxy
+    extends	SingleSoundingProxy
     implements	TemperatureSounding
 {
+    /**
+     * The type of the range component.
+     */
+    private static final RealType	rangeType = TEMPERATURE_TYPE;
+
+
     /**
      * Constructs from a FlatField and the index of the temperature component
      * of the field.
@@ -43,6 +49,6 @@ TemperatureSoundingProxy
     TemperatureSoundingProxy(FlatField field, int index)
 	throws VisADException
     {
-	super(field, new int[] {index});
+	super(rangeType, field, index);
     }
 }

@@ -3,12 +3,14 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SoundingProxy.java,v 1.1 1998-10-28 17:16:51 steve Exp $
+ * $Id: SoundingProxy.java,v 1.2 1998-11-03 22:27:36 steve Exp $
  */
 
 package visad.meteorology;
 
+import java.rmi.RemoteException;
 import visad.FlatField;
+import visad.MathType;
 import visad.VisADException;
 
 
@@ -87,7 +89,7 @@ SoundingProxy
      *
      * @return			The temperature sounding.  NB: Not a copy.
      */
-    public FlatField
+    public TemperatureSounding
     getTemperatureSounding()
     {
 	return temperatureSounding;
@@ -99,7 +101,7 @@ SoundingProxy
      *
      * @return			The dew-point sounding.  NB: Not a copy.
      */
-    public FlatField
+    public DewPointSounding
     getDewPointSounding()
     {
 	return dewPointSounding;
@@ -111,9 +113,30 @@ SoundingProxy
      *
      * @return			The wind profile.  NB: Not a copy.
      */
-    public FlatField
+    public WindProfile
     getWindProfile()
     {
 	return windProfile;
+    }
+
+
+    /**
+     * Gets the single sounding of the given component.
+     *
+     * @param componentType     The type of the component.
+     * @return                  The single sounding of the <code>componentType
+     *                          </code> component or <code>null</code> if no
+     *                          such component.
+     * @throws VisADException   Couldn't create necessary VisAD object.
+     * @throws RemoteException  Java RMI failure.
+     */
+    public SingleSounding
+    getSingleSounding(MathType componentType)
+        throws RemoteException, VisADException
+    {
+        int     index = findComponent(componentType);
+        return index == -1
+                ? null
+                : new SingleSoundingProxy(componentType, this, index);
     }
 }

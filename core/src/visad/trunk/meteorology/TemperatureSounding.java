@@ -1,11 +1,12 @@
-package visad.meteorology;
+/*
+ * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
+ * See file LICENSE for copying and redistribution conditions.
+ *
+ * $Id: TemperatureSounding.java,v 1.2 1998-11-03 22:27:36 steve Exp $
+ */
 
-import visad.FlatField;
-import visad.FunctionType;
-import visad.RealType;
-import visad.Set;
-import visad.Unit;
-import visad.VisADException;
+package visad.meteorology;
 
 
 public interface

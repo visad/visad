@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTDisplay.java,v 1.12 1998-10-28 17:16:48 steve Exp $
+ * $Id: SkewTDisplay.java,v 1.13 1998-11-03 22:27:35 steve Exp $
  */
 
 package visad.meteorology;
@@ -24,7 +24,7 @@ import visad.Display;
 import visad.FlatField;
 import visad.FunctionType;
 import visad.GraphicsModeControl;
-import visad.Linear1DSet;
+import visad.Integer1DSet;
 import visad.Linear2DSet;
 import visad.RealTupleType;
 import visad.RealType;
@@ -50,6 +50,38 @@ public class
 SkewTDisplay
     implements	Serializable
 {
+    /**
+     * Whether or not the temperature sounding has bee modified.
+     */
+    private boolean				temperatureSoundingIsDirty =
+	false;
+
+    /**
+     * Whether or not the dew-point sounding has bee modified.
+     */
+    private boolean				dewPointSoundingIsDirty =
+	false;
+
+    /**
+     * The original Sounding.
+     */
+    private Sounding				originalSounding;
+
+    /**
+     * The edited Sounding.
+     */
+    private Sounding				editedSounding;
+
+    /**
+     * The empty temperature sounding.
+     */
+    private static final FlatField		emptyTemperatureSounding;
+
+    /**
+     * The empty dew-point sounding.
+     */
+    private static final FlatField		emptyDewPointSounding;
+
     /**
      * The VisAD display.
      */
@@ -144,6 +176,30 @@ SkewTDisplay
 	/*#  SoundingException lnkUnnamed4*/
 
 
+    static
+    {
+	FlatField	temperatureSounding = null;
+	FlatField	dewPointSounding = null;
+
+	try
+	{
+	    temperatureSounding = new TemperatureSoundingImpl();
+	    dewPointSounding = new DewPointSoundingImpl();
+	}
+	catch (Exception e)
+	{
+	    String	reason = e.getMessage();
+
+	    System.err.println("Couldn't initialize SkewTDisplay class" +
+		(reason == null ? "" : ": " + reason));
+	    e.printStackTrace();
+	}
+
+	emptyTemperatureSounding = temperatureSounding;
+	emptyDewPointSounding = dewPointSounding;
+    }
+
+
     /**
      * Constructs from nothing.
      *
@@ -179,10 +235,8 @@ SkewTDisplay
 
 	domainType = new RealTupleType(RealType.XAxis, RealType.YAxis);
 
-	temperatureSoundingRef.setData(
-	    createEmptySounding(CommonTypes.PRESSURE, CommonTypes.TEMPERATURE));
-	dewPointSoundingRef.setData(
-	    createEmptySounding(CommonTypes.PRESSURE, CommonTypes.DEW_POINT));
+	temperatureSoundingRef.setData(emptyTemperatureSounding);
+	dewPointSoundingRef.setData(emptyDewPointSounding);
 
 	defineScalarMaps();
 
@@ -395,25 +449,6 @@ SkewTDisplay
     }
 
 
-    /**
-     * Create an empty sounding.
-     *
-     * @param rangeType		The type of the dependent variable.
-     * @return			An empty sounding over the display domain.
-     * @throws VisADException	Couldn't create necessary VisAD object.
-     */
-    protected FlatField
-    createEmptySounding(RealType domainType, RealType rangeType)
-	throws VisADException
-    {
-	FunctionType	funcType = new FunctionType(domainType, rangeType);
-	Linear1DSet	domainSet = new Linear1DSet(
-	    domainType, skewTCoordSys.minP, skewTCoordSys.maxP, 2);
-
-	return new FlatField(funcType, domainSet);
-    }
-
-
     /*
      * Define the data-independent VisAD mappings for this display.
      *
@@ -485,20 +520,28 @@ SkewTDisplay
 
 
     /**
-     * Sets the temperature sounding property.
+     * Sets the temperature sounding.
      *
      * @param sounding		Temperature sounding.  Must be single 
      *				temperature parameter defined over 1-D
      *				pressure domain.
      */
-    public synchronized void
-    setTemperatureSounding(FlatField sounding)
+    protected void
+    setTemperatureSounding(TemperatureSoundingImpl sounding)
     {
 	try
 	{
-	    vetSounding(sounding, CommonTypes.TEMPERATURE);
-	    temperatureSoundingRef.setData(sounding);
-	    displayRenderer.setTemperatureSounding(sounding);
+	    if (sounding == null)
+	    {
+		temperatureSoundingRef.setData(emptyTemperatureSounding);
+		displayRenderer.setTemperatureSounding(
+		    emptyTemperatureSounding);
+	    }
+	    else
+	    {
+		temperatureSoundingRef.setData(sounding);
+		displayRenderer.setTemperatureSounding(sounding);
+	    }
 	}
 	catch (Exception e)
 	{
@@ -512,20 +555,27 @@ SkewTDisplay
 
 
     /**
-     * Sets the dew-point sounding property.
+     * Sets the dew-point sounding.
      *
      * @param sounding		Dew-point sounding.  Must be single 
      *				dew-point parameter defined over 1-D
      *				pressure domain.
      */
-    public synchronized void
-    setDewPointSounding(FlatField sounding)
+    protected void
+    setDewPointSounding(DewPointSoundingImpl sounding)
     {
 	try
 	{
-	    vetSounding(sounding, CommonTypes.DEW_POINT);
-	    dewPointSoundingRef.setData(sounding);
-	    displayRenderer.setDewPointSounding(sounding);
+	    if (sounding == null)
+	    {
+		dewPointSoundingRef.setData(emptyDewPointSounding);
+		displayRenderer.setDewPointSounding(emptyDewPointSounding);
+	    }
+	    else
+	    {
+		dewPointSoundingRef.setData(sounding);
+		displayRenderer.setDewPointSounding(sounding);
+	    }
 	}
 	catch (Exception e)
 	{
@@ -575,19 +625,40 @@ SkewTDisplay
 
     /**
      * Sets the sounding property.
+     *
+     * @param sounding		The atmospheric sounding.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws RemoteException	Java RMI failure.
      */
-    public void
-    setSounding(Sounding sounding)
+    public synchronized void
+    setSounding(SoundingImpl sounding)
+	throws RemoteException, VisADException
     {
-	FlatField	profile;
+	originalSounding = sounding;
+	// TODO: clone original sounding
+	editedSounding = sounding;
 
-	profile = sounding.getTemperatureSounding();
-	if (profile != null)
-	    setTemperatureSounding(profile);
+	setTemperatureSounding(
+	    (TemperatureSoundingImpl)editedSounding.getTemperatureSounding());
+	setDewPointSounding(
+	    (DewPointSoundingImpl)editedSounding.getDewPointSounding());
+    }
 
-	profile = sounding.getDewPointSounding();
-	if (profile != null)
-	    setDewPointSounding(profile);
+
+    /**
+     * Gets the sounding property.
+     *
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws RemoteException	Remote access failure.
+     */
+    public synchronized Sounding
+    getSounding()
+	throws VisADException, RemoteException
+    {
+	return new SoundingImpl(
+	    new SingleSounding[] {
+		(SingleSounding)temperatureSoundingRef.getData(),
+		(SingleSounding)dewPointSoundingRef.getData()});
     }
 
 
@@ -622,8 +693,7 @@ SkewTDisplay
 	    */
 
 	    field = (FlatField)plain.open("sounding.nc");
-	    sounding = new SoundingImpl(field, CommonTypes.PRESSURE,
-		CommonTypes.TEMPERATURE, CommonTypes.DEW_POINT);
+	    sounding = new SoundingImpl(field, 0, 1, -1, -1);
 	    display.setSounding(sounding);
 	    // java.lang.Thread.sleep(5000);
 	}

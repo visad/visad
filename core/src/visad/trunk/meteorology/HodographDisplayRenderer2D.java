@@ -19,14 +19,37 @@ HodographDisplayRenderer2D
     extends DefaultDisplayRendererJ2D
 {
     /**
-     * The default maximum speed.
-     */
-    public static final float		DEFAULT_MAX_SPEED = 100;
-
-    /**
      * The default unit of speed.
      */
-    public static final Unit		DEFAULT_SPEED_UNIT = CommonUnits.KNOT;
+    public static final Unit		DEFAULT_SPEED_UNIT = 
+	CommonTypes.SPEED.getDefaultUnit();
+
+    /**
+     * The default maximum speed.
+     */
+    public static final float		DEFAULT_MAX_SPEED;
+
+
+    static
+    {
+	float	defaultMaxSpeed = 0;
+
+	try
+	{
+	    defaultMaxSpeed =
+		(float)DEFAULT_SPEED_UNIT.toThis(100, CommonUnits.KNOT);
+	}
+	catch (UnitException e)
+	{
+	    String	reason = e.getMessage();
+
+	    System.err.println(
+		"Couldn't initialize class HodographDisplayRenderer2D" +
+		(reason == null ? "" : (": " + reason)));
+	}
+
+	DEFAULT_MAX_SPEED = defaultMaxSpeed;
+    }
 
     /**
      * The U-component of velocity.
