@@ -376,8 +376,24 @@ public class TextAdapter {
         }
       }
 
-      RealType rt = RealType.getRealType(hdrNames[i], u, null, 
-                                                  hdrIsInterval[i]);
+      int parenIndex = hdrNames[i].indexOf("(");
+      String rttemp = hdrNames[i].trim();
+
+      if (parenIndex < 0) parenIndex = rttemp.indexOf("[");
+      if (parenIndex < 0) parenIndex = rttemp.indexOf("{");
+      if (parenIndex < 0) parenIndex = rttemp.indexOf(" ");
+      String rtname = parenIndex < 0 ? rttemp.trim() : rttemp.substring(0,parenIndex);
+
+      RealType rt = RealType.getRealType(rtname, u, null, hdrIsInterval[i]);
+
+      if (rt == null) {  // tried to re-use with different units
+        rt = RealType.getRealType(rtname);
+      }
+
+      // get a compatible unit, if necessary
+
+      if (u == null) u = rt.getDefaultUnit();
+
       hdrUnits[i] = u;
     }
 
@@ -872,7 +888,9 @@ public class TextAdapter {
 
 
     try {
-      ff = new FlatField((FunctionType) mt, domain);
+      ff = new FlatField((FunctionType) mt, domain, 
+                                null, null, null, rangeUnits);
+
     } catch (FieldException fe) {
       field = new FieldImpl((FunctionType) mt, domain);
     }
@@ -1166,7 +1184,7 @@ public class TextAdapter {
     return set;
   }
 
-  /*  uncomment to test
+/* /  uncomment to test
   public static void main(String[] args) throws Exception {
     if (args.length == 0) {
       System.out.println("Must supply a filename");
@@ -1174,6 +1192,8 @@ public class TextAdapter {
     }
     TextAdapter ta = new TextAdapter(args[0]);
     System.out.println(ta.getData().getType());
+    new visad.jmet.DumpType().dumpMathType(ta.getData().getType(),System.out);
+    System.out.println("EOF... ");
   }
   */
 
