@@ -8,6 +8,7 @@ import visad.FieldImpl;
 import visad.FlatField;
 import visad.FieldException;
 import visad.VisADException;
+import visad.FunctionType;
 
 
 public class FileField extends FieldImpl {
@@ -29,8 +30,10 @@ public class FileField extends FieldImpl {
  
   public FileField(FieldImpl field, FileAccessor accessor,
                    int[][] locations)
-    throws FieldException
+    throws FieldException, VisADException
   {
+    super((FunctionType)null, field.getDomainSet());
+
     if (field instanceof FlatField) {
       throw new FieldException("FileField: cannot adapt FlatField");
     }
