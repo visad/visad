@@ -4,7 +4,11 @@
  */
 
 package ucar.netcdf;
+import ucar.util.Logger;
+import ucar.util.RMILogger;
 import java.io.File;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.AccessException;
@@ -13,6 +17,7 @@ import java.rmi.RMISecurityManager;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Hashtable;
 import java.util.Enumeration;
+
 
 import java.rmi.ConnectException;
 import java.rmi.AlreadyBoundException;
@@ -26,28 +31,44 @@ import java.rmi.registry.LocateRegistry;
  * for a more elaborate directory service,
  * hopefully to be provided later on.
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:44:20 $
+ * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:44:50 $
  */
 
 public class
 NetcdfServer
 	extends UnicastRemoteObject implements NetcdfService {
+	
+	public static void
+	setLog(OutputStream out)
+	{
+		if(out != null)
+		{
+			logger_.logUpTo(Logger.DEBUG);
+			logger_.setLog(out);
+		}
+		else
+		{
+			logger_.logUpTo(Logger.NOTICE);
+			logger_.setLog(System.err);
+			UnicastRemoteObject.setLog(out);
+		}
+	}
 
 	public
 	NetcdfServer(String [] exports, Registry registry)
 		throws RemoteException, AlreadyBoundException
 	{
 		super();
-		table = new Hashtable();
+		byName_ = new Hashtable();
 		for(int ii = 0; ii < exports.length; ii++)
 			export(exports[ii]);
-		if(table.size() == 0)
+		if(byName_.size() == 0)
 			throw new IllegalArgumentException("No exports");
 		if(registry != null)
 		{
-			this.registry = registry;
+			registry_ = registry;
 			registry.bind(SVC_NAME, this);
-                        System.out.println(SVC_NAME
+                        logger_.logNotice(SVC_NAME
 				+ " bound in registry");
 		}
 	}
@@ -63,25 +84,28 @@ NetcdfServer
 	lookup(String dataSetName)
 		throws RemoteException
 	{
-		if( !table.containsKey(dataSetName) )
+		final Entry entry = get(dataSetName);
+		if(entry == null)
 			throw new AccessException(dataSetName +
 				" not available");
+		AbstractNetcdf nc = null;
 		try {
-			return new NetcdfRemoteProxyImpl(
-				get(dataSetName).getNetcdfFile());
+			nc = entry.getNetcdfFile();
 		}
 		catch (IOException ioe)
 		{
 			throw new ServerException("lookup", ioe);
 		}
+		return (NetcdfRemoteProxy) exportObject(
+			new NetcdfRemoteProxyImpl(this, dataSetName, nc));
 	}
 
 	public String []
 	list()
 		throws RemoteException
 	{
-		String [] ret = new String [table.size()];
-		Enumeration ee = table.keys();
+		String [] ret = new String [byName_.size()];
+		Enumeration ee = byName_.keys();
 		for(int ii = 0; ee.hasMoreElements(); ii++)
 			ret[ii] = (String) ee.nextElement();
 		return ret;
@@ -95,7 +119,7 @@ NetcdfServer
 				+ " not a File");
 		Entry entry = new Entry(ff);
 		String keyval = entry.keyValue();
-		System.out.println("Exporting " + ff + " as "
+		logger_.logDebug("Exporting " + ff + " as "
 			+ keyval);
 		put(keyval, entry);
 	}
@@ -108,29 +132,26 @@ NetcdfServer
 
 	protected void
 	finalize()
+		throws Throwable
 	{
-		System.out.print("finalize: ");
-		if(registry != null)
+		super.finalize();
+		if(registry_ != null)
 		{
 			try {
-				System.out.print("unbind");
-				registry.unbind(SVC_NAME);
+				registry_.unbind(SVC_NAME);
 			} catch (Exception ee) {
 				// we tried.
-                        	System.out.println( ": " + ee.getMessage());
-                        	ee.printStackTrace();
-				;
+                        	logger_.logError( "unbind: " + ee.getMessage());
 			}
 		}
-		System.out.println("");
-		registry = null;
+		registry_ = null;
 	}
 
 	public static Registry
 	startRegistry()
 			throws RemoteException
 	{
-		System.out.println("No registry, starting one");
+		logger_.logNotice("No registry, starting one");
 		return LocateRegistry.createRegistry(
 			Registry.REGISTRY_PORT);
 	}
@@ -165,7 +186,7 @@ NetcdfServer
 		catch (ConnectException ce) { // ?? any RemoteException
 			// bogus
 			try {
-				System.out.println(
+				logger_.logNotice(
 					"unbinding dead registry entry");
 				regis.unbind(SVC_NAME);
 			} catch (NotBoundException nbe) {
@@ -180,31 +201,45 @@ NetcdfServer
 	main(String args[])
 	{
 		System.setSecurityManager(new RMISecurityManager());
-		// setLog(System.out);
+		// setLog(System.err);
 		
 		Registry regis = (Registry) null;
                 try {
 			regis = checkRegistry(LocateRegistry.getRegistry(), 2);
                 }
                 catch (Exception ee) {
-                        System.out.println(
+			PrintStream ps = getLog();
+			if(ps == null)
+				ps = System.err;
+                        ps.println(
 				"NetcdfServer: error getting registry: "
 				 + ee.getMessage());
-                        ee.printStackTrace();
+                        ee.printStackTrace(ps);
 			System.exit(1);
                 }
 
                 try {
                 	NetcdfServer svc = new NetcdfServer(args, regis);
                 } catch (Throwable ee) {
-                        System.out.println("NetcdfServer err: "
+			PrintStream ps = getLog();
+			if(ps == null)
+				ps = System.err;
+                        ps.println("NetcdfServer err: "
 				 + ee.getMessage());
-                        ee.printStackTrace();
+                        ee.printStackTrace(ps);
 			System.exit(1);
                 }
 	}
 
 /**/
+	/* package */ synchronized void
+	_release(String keyval)
+	{
+		final Entry entry = (Entry) byName_.get(keyval);
+		if(entry != null)
+			entry.releaseNetcdfFile();
+	}
+
 	/**
 	 * Gets the Entry associated with the specified name.
 	 * @param dataSetName the name 
@@ -212,7 +247,7 @@ NetcdfServer
 	 */
 	private Entry
 	get(String dataSetName)
-		{ return (Entry) table.get(dataSetName); }
+		{ return (Entry) byName_.get(dataSetName); }
 
 	/**
 	 * Puts the specified element into the Dictionary, using its
@@ -226,22 +261,24 @@ NetcdfServer
 	synchronized private void
 	put(String keyval, Entry entry)
 	{
-		table.put(keyval, entry);
+		byName_.put(keyval, entry);
 	}
 
-	private Hashtable table;
-	private Registry registry;
-}
+	private Hashtable byName_;
+	private Registry registry_;
+	static /* package */ final RMILogger logger_ = new RMILogger();
 
 class Entry
 {
 	final File dirent;
 	NetcdfFile nc;
+	int refcount;
 	
 	Entry(File ff)
 	{
 		this.dirent = ff;
 		nc = (NetcdfFile) null;
+		refcount = 0;
 	}
 
 	String
@@ -254,7 +291,10 @@ class Entry
 		return name.substring(0, index).intern();
 	}
 
-	NetcdfFile
+	/**
+	 * Open entry.nc.
+	 */
+	synchronized private void
 	open(boolean readonly)
 		throws IOException
 	{
@@ -262,26 +302,56 @@ class Entry
 			throw new IllegalArgumentException("dataSet "
 				+ keyValue() + " already open");
 		nc = new NetcdfFile(dirent, readonly);
-		return nc;
 	}
 
-	/*
-	 * TODO: How to hook this up?
+	/**
+	 * Return entry.nc, opening if necessary.
+	 * Increments reference count.
 	 */
-	void
-	close()
-		throws IOException
-	{
-		nc.close();
-		nc = (NetcdfFile) null;
-	}
-
-	NetcdfFile
+	synchronized NetcdfFile
 	getNetcdfFile()
 		throws IOException
 	{
 		if(nc == null)
-			return open(true); // all access readonly for now
+			open(true); // all access readonly for now
+		refcount++;
+		logger_.logDebug("refcount: " + refcount);
 		return nc;
 	}
+
+	/**
+	 * Close entry.nc and delete any references to it,
+	 * making it available for garbage collection.
+	 */
+	synchronized private void
+	close()
+	{
+		if(nc != null)
+		{
+			logger_.logDebug("closing: " +  nc.getFile());
+			try {
+				nc.close();
+			}
+			catch (IOException ioe) {
+				// TODO: what?
+			}
+			nc = (NetcdfFile) null;
+			refcount = 0;
+		}
+		
+	}
+
+	/**
+	 * Decrement the reference count and close if no
+	 * more references.
+	 */
+	synchronized void
+	releaseNetcdfFile()
+	{
+		if(refcount > 0)
+			refcount--;
+		if(refcount == 0) // assert (refcount >= 0)
+			close();
+	}
+}
 }

@@ -11,9 +11,18 @@
 
 package ucar.netcdf;
 
-import java.io.*;
-import java.util.*;
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.DataOutput;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.UTFDataFormatException;
 
+import java.util.Random; // used in test method
+import java.util.Date;
 
 /** 
  * A buffered drop-in replacement for java.io.RandomAccessFile.
@@ -27,7 +36,7 @@ import java.util.*;
  *
  * @author Alex McManus
  * @author Russ Rew
- * @version $Id: RandomAccessFile.java,v 1.1.1.1 2000-08-28 21:43:43 dglo Exp $
+ * @version $Id: RandomAccessFile.java,v 1.1.1.2 2000-08-28 21:44:50 dglo Exp $
  * @see DataInput
  * @see DataOutput
  * @see java.io.RandomAccessFile */
@@ -311,7 +320,7 @@ implements DataInput, DataOutput {
     * @return the length of the file in bytes.
     * @exception IOException  if an I/O error occurrs.
     */
-   public long getLength( )
+   public long length( )
    throws IOException {
       long fileLength = file.length( );
       if( fileLength < dataEnd )
@@ -319,6 +328,17 @@ implements DataInput, DataOutput {
       else
          return fileLength;
    }
+
+    /** 
+     * Returns the opaque file descriptor object associated with this file.
+     *
+     * @return the file descriptor object associated with this file.
+     * @exception IOException if an I/O error occurs.
+     */
+    public final FileDescriptor getFD()
+	throws IOException {
+	return file.getFD();
+    }
 
    /**
     * Copy the contents of the buffer to the disk.

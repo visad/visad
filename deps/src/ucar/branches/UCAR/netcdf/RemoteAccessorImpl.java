@@ -10,7 +10,8 @@ import java.io.IOException;
 import ucar.multiarray.MultiArray;
 import java.rmi.RemoteException;
 import java.rmi.ServerException;
-import java.rmi.server.UnicastRemoteObject;
+import java.rmi.server.RemoteObject;
+import java.rmi.server.LogStream;
 
 
 /**
@@ -20,26 +21,29 @@ import java.rmi.server.UnicastRemoteObject;
  * adaptee exceptions are wrapped in java.rmi.ServerException.
  * 
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:44:21 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:44:50 $
  */
 
 public class
 RemoteAccessorImpl
-	extends UnicastRemoteObject
+	extends RemoteObject
 	implements RemoteAccessor
 {
         /**
          * Construct a UnicastRemoteObject which acts as
 	 * an Accessor proxy.
+	 * @param svr NetcdfRemoteProxyImpl which owns this.
+	 * 	May be null.
 	 * @param adaptee Accessor to which the Accessor
 	 * methods of this are forwarded.
 	 *
 	 */
 	public
-	RemoteAccessorImpl(Accessor adaptee)
+	RemoteAccessorImpl(NetcdfRemoteProxyImpl svr, Accessor adaptee)
 			throws RemoteException
 	{
-		this.adaptee = adaptee;
+		adaptee_ = adaptee;
+		svr_ = svr;
 	}
 
 	public Object
@@ -47,7 +51,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			return adaptee.get(index);
+			return adaptee_.get(index);
 		}
 		catch (IOException ioe)
 		{
@@ -60,7 +64,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			return adaptee.getBoolean(index);
+			return adaptee_.getBoolean(index);
 		}
 		catch (IOException ioe)
 		{
@@ -73,7 +77,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			return adaptee.getChar(index);
+			return adaptee_.getChar(index);
 		}
 		catch (IOException ioe)
 		{
@@ -86,7 +90,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			return adaptee.getByte(index);
+			return adaptee_.getByte(index);
 		}
 		catch (IOException ioe)
 		{
@@ -99,7 +103,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			return adaptee.getShort(index);
+			return adaptee_.getShort(index);
 		}
 		catch (IOException ioe)
 		{
@@ -112,7 +116,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			return adaptee.getInt(index);
+			return adaptee_.getInt(index);
 		}
 		catch (IOException ioe)
 		{
@@ -125,7 +129,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			return adaptee.getLong(index);
+			return adaptee_.getLong(index);
 		}
 		catch (IOException ioe)
 		{
@@ -138,7 +142,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			return adaptee.getFloat(index);
+			return adaptee_.getFloat(index);
 		}
 		catch (IOException ioe)
 		{
@@ -151,7 +155,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			return adaptee.getDouble(index);
+			return adaptee_.getDouble(index);
 		}
 		catch (IOException ioe)
 		{
@@ -165,7 +169,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			adaptee.set(index, value);
+			adaptee_.set(index, value);
 		}
 		catch (IOException ioe)
 		{
@@ -178,7 +182,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			adaptee.setBoolean(index, value);
+			adaptee_.setBoolean(index, value);
 		}
 		catch (IOException ioe)
 		{
@@ -191,7 +195,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			adaptee.setChar(index, value);
+			adaptee_.setChar(index, value);
 		}
 		catch (IOException ioe)
 		{
@@ -204,7 +208,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			adaptee.setByte(index, value);
+			adaptee_.setByte(index, value);
 		}
 		catch (IOException ioe)
 		{
@@ -217,7 +221,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			adaptee.setShort(index, value);
+			adaptee_.setShort(index, value);
 		}
 		catch (IOException ioe)
 		{
@@ -230,7 +234,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			adaptee.setInt(index, value);
+			adaptee_.setInt(index, value);
 		}
 		catch (IOException ioe)
 		{
@@ -243,7 +247,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			adaptee.setLong(index, value);
+			adaptee_.setLong(index, value);
 		}
 		catch (IOException ioe)
 		{
@@ -256,7 +260,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			adaptee.setFloat(index, value);
+			adaptee_.setFloat(index, value);
 		}
 		catch (IOException ioe)
 		{
@@ -269,7 +273,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			adaptee.setDouble(index, value);
+			adaptee_.setDouble(index, value);
 		}
 		catch (IOException ioe)
 		{
@@ -282,7 +286,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			return adaptee.copyout(origin, shape);
+			return adaptee_.copyout(origin, shape);
 		}
 		catch (IOException ioe)
 		{
@@ -295,7 +299,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			adaptee.copyin(origin, source);
+			adaptee_.copyin(origin, source);
 		}
 		catch (IOException ioe)
 		{
@@ -308,7 +312,7 @@ RemoteAccessorImpl
 			throws RemoteException
 	{
 		try {
-			return adaptee.toArray();
+			return adaptee_.toArray();
 		}
 		catch (IOException ioe)
 		{
@@ -322,7 +326,7 @@ RemoteAccessorImpl
 	{
 		// TODO: Avoid sending big dst over wire
 		try {
-			return adaptee.toArray(dst, origin, shape);
+			return adaptee_.toArray(dst, origin, shape);
 		}
 		catch (IOException ioe)
 		{
@@ -330,5 +334,6 @@ RemoteAccessorImpl
 		}
 	}
 
-	private final Accessor adaptee;
+	private final Accessor adaptee_;
+	private final NetcdfRemoteProxyImpl svr_;
 }
