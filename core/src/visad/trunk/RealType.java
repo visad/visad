@@ -165,7 +165,7 @@ public class RealType extends ScalarType {
   public MathType cloneDerivative( RealType d_partial )
          throws VisADException
   {
-    String newName = "d_"+this.getName()+"_/_"+
+    String newName = "d_"+this.getName()+"_"+
                       "d_"+d_partial.getName();
 
     RealType newType = null;
