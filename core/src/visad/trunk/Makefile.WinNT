@@ -149,6 +149,7 @@ visad\data\visad\*.java \
 visad\data\text\*.java \
 visad\data\text\README.text \
 visad\data\text\example1.txt \
+visad\data\text\example3.txt \
 visad\data\text\example2.csv \
 visad\data\hdf5\*.java \
 visad\data\hdf5\COPYING \
@@ -297,6 +298,7 @@ visad\data\text\*.java \
 visad\data\text\*.java \
 visad\data\text\README.text \
 visad\data\text\example1.txt \
+visad\data\text\example3.txt \
 visad\data\text\example2.csv \
 visad\data\hdf5\*.java \
 visad\data\hdf5\hdf5objects\*.java \

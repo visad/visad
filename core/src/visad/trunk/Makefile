@@ -221,6 +221,7 @@ SAVE_FILES = \
 	visad/data/text/*.java				\
 	visad/data/text/example1.txt			\
 	visad/data/text/example2.csv			\
+	visad/data/text/example3.txt			\
 	visad/data/text/README.text			\
 	ij/*.java					\
 	ij/gui/*.java					\
