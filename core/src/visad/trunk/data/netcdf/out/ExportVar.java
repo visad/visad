@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ExportVar.java,v 1.1 1998-03-20 20:57:19 visad Exp $
+ * $Id: ExportVar.java,v 1.2 1998-06-01 19:22:08 visad Exp $
  */
 
 package visad.data.netcdf.out;
@@ -279,6 +279,25 @@ ExportVar
     public MultiArray
     copyout(int[] origin, int[] shape)
 	throws IOException
+    {
+	throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Convert values to an array.  Not supported.
+     */
+    public Object
+    toArray()
+    {
+	throw new UnsupportedOperationException();
+    }
+
+
+    /**
+     * Convert values to an array.  Not supported.
+     */
+    public Object
+    toArray(Object obj, int[] dummy1, int[] dummy2)
     {
 	throw new UnsupportedOperationException();
     }
