@@ -836,6 +836,10 @@ public class FlatField extends FieldImpl {
     }
   }
 
+  public byte[][] getBytes() {
+    return ByteRange;
+  }
+
   /** unpack an array of doubles from field sample values according to the
       RangeSet-s; returns a copy */
   private double[][] unpackValues() throws VisADException {

@@ -154,7 +154,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       default_values are defaults for each display.DisplayRealTypeVector;
       return true if need post-process;
       this is default (for ShadowTextType) */
-  boolean doTransform(Group group, Data data, float[] value_array,
+  public boolean doTransform(Group group, Data data, float[] value_array,
                       float[] default_values, DataRenderer renderer)
           throws VisADException, RemoteException {
     return false;

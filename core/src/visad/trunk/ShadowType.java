@@ -1356,7 +1356,8 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     // calculate if need to swap rows and cols in contour line labels
     swap[0] = false;
     if (allSpatial && spatialDimensions[1] == 2 && len > 1) {
-      if (spatial_tuple == Display.DisplaySpatialCartesianTuple) {
+      // if (spatial_tuple == Display.DisplaySpatialCartesianTuple) {
+      if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
         float simax = 0.0f;
         float max = -1.0f;
         int imax = -1;
@@ -1403,7 +1404,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
             swap[2] = (simax < 0.0f);
           }
         }
-      } // end if (spatial_tuple == Display.DisplaySpatialCartesianTuple)
+      } // end if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) 
     }
 
     // first equalize lengths of flow*_values and spatial_values

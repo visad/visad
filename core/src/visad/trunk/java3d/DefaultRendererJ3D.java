@@ -58,7 +58,7 @@ public class DefaultRendererJ3D extends RendererJ3D {
   }
 
   /** create a BranchGroup scene graph for Data in links[0] */
-  public BranchGroup doTransform() throws VisADException, RemoteException { // J3D
+  public BranchGroup doTransform() throws VisADException, RemoteException {
     BranchGroup branch = new BranchGroup();
     branch.setCapability(BranchGroup.ALLOW_DETACH);
     link = getLinks()[0];

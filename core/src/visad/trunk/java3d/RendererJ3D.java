@@ -1,3 +1,4 @@
+
 //
 // RendererJ3D.java
 //
@@ -156,6 +157,22 @@ System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
                    " any_transform_control = " + any_transform_control);
 System.out.println(getLinks()[0].getThingReference().getName());
 */
+
+/* WLH 4 Dec 99
+      synchronized (this) {
+        if (!branchNonEmpty[currentIndex]) {
+          BranchGroup branch = new BranchGroup();
+
+          // needed (?) to avoid NullPointerException
+          ShadowTypeJ3D shadow = (ShadowTypeJ3D) getLinks()[0].getShadow();
+          shadow.ensureNotEmpty(branch);
+
+          branches[currentIndex].addChild(branch);
+          branchNonEmpty[currentIndex] = true;
+        }
+      }
+*/
+
       // exceptionVector.removeAllElements();
       clearAVControls();
       try {
@@ -209,43 +226,10 @@ System.out.println(getLinks()[0].getThingReference().getName());
           if (!branchNonEmpty[currentIndex]) {
             /* WLH 18 Nov 98 */
             branches[currentIndex].addChild(branch);
-// System.out.println("branch " + currentIndex + " empty, addChild");
-/* WLH 18 Nov 98
-            synchronized (branches[currentIndex]) {
-              branches[currentIndex].addChild(branch);
-            }
-            sw.setWhichChild(currentIndex);
-            actualIndex = currentIndex;
-*/
             branchNonEmpty[currentIndex] = true;
           }
           else { // if (branchNonEmpty[currentIndex])
-/* WLH 1 April 99 - doesn't help memory
-            clearBranch();
-            branches[currentIndex].addChild(branch);
-*/
-            /* WLH 18 Nov 98 */
             branches[currentIndex].setChild(branch, 0);
-// System.out.println("branch " + currentIndex + " not empty, setChild");
-/* WLH 18 Nov 98
-            nextIndex = (currentIndex + 1) % 3;
-            while (branchNonEmpty[nextIndex]) {
-              try {
-                wait(5000);
-              }
-              catch(InterruptedException e) {
-                // note notify generates a normal return from wait rather
-                // than an Exception - control doesn't normally come here
-              }
-            }
-            synchronized (branches[nextIndex]) {
-              branches[nextIndex].addChild(branch);
-            }
-            doRemove = true;
-            switchFlags[nextIndex] = true;
-            branchNonEmpty[nextIndex] = true;
-            currentIndex = nextIndex;
-*/
           } // end if (branchNonEmpty[currentIndex])
         } // end synchronized (this)
         if (doRemove) {
@@ -268,13 +252,35 @@ System.out.println(getLinks()[0].getThingReference().getName());
         links[i].clearData();
       }
     }
-
-/* WLH 28 Oct 98
-    return all_feasible;
-*/
-    /* WLH 28 Oct 98 */
     return (all_feasible && (any_changed || any_transform_control));
+  }
+ 
+  public BranchGroup getBranch() {
+    synchronized (this) {
+      if (branchNonEmpty[currentIndex]) {
+        return null;
+      }
+      else {
+        return (BranchGroup) branches[currentIndex].getChild(0);
+      }
+    }
+  }
 
+  public void setBranchEarly(BranchGroup branch) {
+    // needed (?) to avoid NullPointerException
+    ShadowTypeJ3D shadow = (ShadowTypeJ3D) (getLinks()[0].getShadow());
+    shadow.ensureNotEmpty(branch);
+
+    synchronized (this) {
+      if (!branchNonEmpty[currentIndex]) {
+        /* WLH 18 Nov 98 */
+        branches[currentIndex].addChild(branch);
+        branchNonEmpty[currentIndex] = true;
+      }
+      else { // if (branchNonEmpty[currentIndex])
+        branches[currentIndex].setChild(branch, 0);
+      } // end if (branchNonEmpty[currentIndex])
+    } // end synchronized (this)
   }
 
   public void clearBranch() {
