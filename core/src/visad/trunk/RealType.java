@@ -213,8 +213,8 @@ public class RealType extends ScalarType {
         case Data.DIVIDE:
         case Data.INV_DIVIDE:
           if ( unit == null || thisUnit == null ) {
-            newUnit = null;
-            newName = getUniqueGenericName( names, "nullUnit");
+            newType = this;
+            break;
           }
           else {
             switch (op) {
@@ -316,7 +316,7 @@ public class RealType extends ScalarType {
       case Data.ASIN_DEGREES:
       case Data.ATAN_DEGREES:
         newUnit = CommonUnit.degree;
-        newName = "Generic_"+newUnit.toString();
+        newName = getUniqueGenericName( names, newUnit.toString() );
         try {
           newType = new RealType( newName, newUnit, null );
         }
