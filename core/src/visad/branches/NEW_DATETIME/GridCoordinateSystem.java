@@ -55,6 +55,13 @@ public class GridCoordinateSystem extends CoordinateSystem {
     dimension = set.getDimension();
   }
 
+  /** Returns the GriddedSet associated with this instance.
+      @return			The GriddedSet associated with this instance.
+   */
+  public GriddedSet getGriddedSet() {
+    return set;
+  }
+
   public double[][] toReference(double[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != dimension) {
       throw new CoordinateSystemException("GridCoordinateSystem." +

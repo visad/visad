@@ -41,6 +41,12 @@ public class RealType extends ScalarType {
   private Set DefaultSet;
   private boolean DefaultSetEverAccessed;
 
+  /*
+   * Whether or not this RealType refers to an interval (e.g. length difference,
+   * delta temperature).
+   * @serial
+   */
+  private final boolean	isInterval;
 
   /** Cartesian spatial coordinate - X axis */
   public final static RealType XAxis = new RealType("XAxis", null, true);
@@ -67,21 +73,74 @@ public class RealType extends ScalarType {
     new RealType("GENERIC_REAL", CommonUnit.promiscuous, true);
 
  
-  /** name of type (two RealTypes are equal if their names are equal);
-      default Unit and Set are null */
+  /**
+   * Constructs from a name (two RealTypes are equal if their names are equal).
+   * Assumes <code>null</code> for the default Unit and default Set and that the
+   * RealType does <em>not</em> refer to an interval.
+   * @param name		The name for the RealType.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   */
   public RealType(String name) throws VisADException {
-    this(name, null, null);
+    this(name, false);
+  }
+ 
+  /**
+   * Constructs from a name (two RealTypes are equal if their names are equal)
+   * and whether or not the RealType refers to an interval (e.g. length
+   * difference, delta temperature).  Assumes <code>null</code> for the default
+   * Unit and default Set.
+   * @param name		The name for the RealType.
+   * @param isInterval		Whether or not the RealType refers to an
+   *				interval.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   */
+  public RealType(String name, boolean isInterval) throws VisADException {
+    this(name, null, null, isInterval);
   }
 
-  /** name of type (two RealTypes are equal if their names are equal);
-      default Unit for values of this type and may be null; default Set
-      used when this type is a FunctionType domain and may be null */
+  /**
+   * Constructs from a name (two RealTypes are equal if their names are equal)
+   * a default Unit, and a default Set.  Assumes that the RealType does
+   * <em>not</em> refer to an interval.
+   * @param name		The name for the RealType.
+   * @param u                   The default unit for the RealType.  May be
+   *                            <code>null</code>.  If non-<code>null</code>
+   *                            and <code>isInterval</code> is
+   *                            <code>true</code>, then the default unit will 
+   *				actually be <code>u.getAbsoluteUnit()</code>.
+   * @param set			The default sampling set for the RealType.
+   *				Used when this type is a FunctionType domain.
+   *				May be <code>null</code>.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   */
   public RealType(String name, Unit u, Set set) throws VisADException {
+    this(name, u, set, false);
+  }
+
+  /**
+   * Constructs from a name (two RealTypes are equal if their names are equal) a
+   * default Unit, a default Set, and whether or not the RealType refers to an
+   * interval (e.g. length difference, delta temperature).  This is the most
+   * general, public constructor.
+   * @param name		The name for the RealType.
+   * @param u                   The default unit for the RealType.  May be
+   *                            <code>null</code>.  If non-<code>null</code>
+   *                            and <code>isInterval</code> is
+   *                            <code>true</code>, then the default unit will
+   *				actually be <code>u.getAbsoluteUnit()</code>.
+   * @param set			The default sampling set for the RealType.
+   *				Used when this type is a FunctionType domain.
+   *				May be <code>null</code>.
+   * @param isInterval		Whether or not the RealType refers to an
+   *				interval.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   */
+  public RealType(String name, Unit u, Set set, boolean isInterval) throws VisADException {
     super(name);
     if (set != null && set.getDimension() != 1) {
       throw new SetException("RealType: default set dimension != 1");
     }
-    DefaultUnit = u;
+    DefaultUnit = u != null && isInterval ? u.getAbsoluteUnit() : u;
     DefaultSet = set;
     DefaultSetEverAccessed = false;
     if (DefaultUnit != null && DefaultSet != null) {
@@ -91,14 +150,31 @@ public class RealType extends ScalarType {
                                 "with Set default Unit");
       }
     }
+    this.isInterval = isInterval;
   }
 
   /** trusted constructor for initializers */
   protected RealType(String name, Unit u, boolean b) {
+    this(name, u, false, b);
+  }
+
+  /** trusted constructor for initializers */
+  protected RealType(String name, Unit u, boolean isInterval, boolean b) {
     super(name, b);
-    DefaultUnit = u;
+    DefaultUnit = u != null && isInterval ? u.getAbsoluteUnit() : u;
     DefaultSet = null;
     DefaultSetEverAccessed = false;
+    this.isInterval = isInterval;
+  }
+
+  /**
+   * Indicates whether or not this RealType refers to an interval (e.g.
+   * length difference, delta temperature).
+   * @return			Whether or not this RealType refers to an 
+   *				interval.
+   */
+  public final boolean isInterval() {
+    return isInterval;
   }
 
   /** get default Unit */
@@ -465,6 +541,19 @@ public class RealType extends ScalarType {
   private static String getUniqueGenericName( Vector names, String ext )
   {
     String name = null;
+
+    /*
+     * Ensure that the name is acceptable as a RealType name.
+     */
+    if (ext.indexOf(".") > -1)
+      ext = ext.replace('.', '_');
+    if (ext.indexOf(" ") > -1)
+      ext = ext.replace(' ', '_');
+    if (ext.indexOf("(") > -1)
+      ext = ext.replace('(', '_');
+    if (ext.indexOf(")") > -1)
+      ext = ext.replace(')', '_');
+
     for ( int ii = 1; ; ii++ )
     {
       name = "Generic_"+ii +"_"+ext;

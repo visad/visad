@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: BaseUnit.java,v 1.5 1998-12-16 16:10:39 steve Exp $
+ * $Id: BaseUnit.java,v 1.5.2.1 1999-05-11 17:02:36 steve Exp $
  */
 
 package visad;
@@ -32,11 +32,6 @@ public final class BaseUnit
     private final String		unitName;
 
     /**
-     * Abbreviation for the unit (e.g. "m" for "meter").
-     */
-    private final String		abbreviation;
-
-    /**
      * Quantity of the unit (e.g. "Length").
      */
     private final String		quantityName;
@@ -53,7 +48,6 @@ public final class BaseUnit
     private static final Vector	baseUnits = new Vector(8);
 
 
-    
     /**
      * Raise a base unit to a power.
      *
@@ -63,6 +57,23 @@ public final class BaseUnit
      * @promise		This unit has not been modified.
      */
     public Unit pow(int power)
+    {
+	return derivedUnit.pow(power);
+    }
+
+    /**
+     * Raise a unit to a power.
+     *
+     * @param power	The power to raise this unit by.  The value must be
+     *			integral.
+     * @return		The unit resulting from raising this unit to 
+     *			<code>power</code>.
+     * @throws IllegalArgumentException
+     *			<code>power</code> has a non-integral value.
+     * @promise		The unit has not been modified.
+     */
+    public Unit pow(double power)
+	throws IllegalArgumentException
     {
 	return derivedUnit.pow(power);
     }
@@ -85,16 +96,6 @@ public final class BaseUnit
     public String quantityName()
     {
 	return quantityName;
-    }
-
-    /**
-     * Return a string representation of this unit.
-     *
-     * @return          A string representation of this unit (e.g. "m").
-     */
-    public String toString()
-    {
-	return abbreviation;
     }
 
     /**
@@ -122,7 +123,7 @@ public final class BaseUnit
 
     /**
      * Create a new base unit from from the name of a quantity, the name of
-     * a unit, and the units' abbreviation.
+     * a unit, and the unit's abbreviation.
      *
      * @param quantityName	The name of the associated quantity (e.g. 
      *				"Length").
@@ -149,14 +150,14 @@ public final class BaseUnit
 	    return new BaseUnit(unitName, abbreviation, quantityName);
 
 	if (baseUnit.unitName.equals(unitName) && 
-	    baseUnit.abbreviation.equals(abbreviation))
+	    baseUnit.getIdentifier().equals(abbreviation))
 	{
 	    return baseUnit;
 	}
 
 	throw new UnitException("Attempt to redefine quantity \"" + 
 	    quantityName + "\" base unit from \"" + 
-	    baseUnit.unitName + "(" + baseUnit.abbreviation + ")" + 
+	    baseUnit.unitName + "(" + baseUnit.getIdentifier() + ")" + 
 	    "\" to \"" + 
 	    unitName + "(" + abbreviation + ")" + "\"");
     }
@@ -517,12 +518,38 @@ public final class BaseUnit
      */
     private BaseUnit(String unitName, String abbreviation, String quantityName)
     {
+	super(abbreviation);
 	this.unitName = unitName;
-	this.abbreviation = abbreviation;
 	this.quantityName = quantityName;
 	baseUnits.addElement(this);
 	derivedUnit = new DerivedUnit(this);
     }
+
+    /**
+     * Returns the definition of this unit.  The definition of a BaseUnit is the
+     * same as the BaseUnit's identifier.
+     *
+     * @return		The definition of this unit.  Won't be <code>null
+     *			</code> but may be empty.
+     */
+    public String getDefinition()
+    {
+      return getIdentifier();
+    }
+
+    /**
+     * Clones this unit, changing the identifier.  This method always throws
+     * an exception because base units may not be cloned.
+     * @param identifier	The name or abbreviation for the cloned unit.
+     *				May be <code>null</code> or empty.
+     * @throws UnitException	Base units may not be cloned.  Always thrown.
+     */
+    public Unit clone(String identifier)
+      throws UnitException
+    {
+      throw new UnitException("Base units may not be cloned");
+    }
+      
 
   /** added by WLH 11 Feb 98 */
   public boolean equals(Unit unit) {

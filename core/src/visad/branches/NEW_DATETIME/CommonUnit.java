@@ -31,7 +31,7 @@ package visad;
 public class CommonUnit extends Object {
 
   /** CommonUnit for plane angle, not temperature */
-  public static Unit degree = SI.radian.scale(Math.PI/180.0, true);
+  public static Unit degree;
   public static Unit radian = SI.radian;
   public static Unit second = SI.second;
   public static Unit meterPerSecond =
@@ -51,6 +51,13 @@ public class CommonUnit extends Object {
       other null Units; not the same as dimensionless, which is not
       compatible with other Units for addition and subtraction */
   public static Unit promiscuous = PromiscuousUnit.promiscuous;
+
+  static {
+    try {
+      degree = SI.radian.scale(Math.PI/180.0, true).clone("deg");
+    }
+    catch (UnitException e) {}		// can't happen
+  }
 
 }
 

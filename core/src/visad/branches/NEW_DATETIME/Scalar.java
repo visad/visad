@@ -28,7 +28,7 @@ package visad;
 /**
    Scalar is the superclass of the VisAD hierarchy of scalar data.<P>
 */
-public abstract class Scalar extends DataImpl {
+public abstract class Scalar extends DataImpl implements Comparable {
 
   public Scalar(ScalarType type) {
     super(type);

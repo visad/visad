@@ -404,6 +404,10 @@ public class FlatField extends FieldImpl {
     return cs;
   }
 
+  /**
+   * Returns the sampling set of each flat component.
+   * @return		The sampling set of each component in the flat range.
+   */
   public Set[] getRangeSets() {
     Set[] sets = new Set[RangeSet.length];
     System.arraycopy(RangeSet, 0, sets, 0, sets.length);

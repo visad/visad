@@ -39,8 +39,20 @@ public class Real extends Scalar {
   private Unit unit;
   private ErrorEstimate Error;
 
-  /** construct a Real object with Unit and ErrorEstimate
-      u and error may be null */
+  /**
+   * Constructs a Real object.  This is the most general constructor.
+   * @param type		The type of the Real.
+   * @param value		The value of the Real.  May be 
+   *				<code>Double.NaN</code>.
+   * @param u			The unit of the Real.  May be <code>null</code>.
+   *				If non-<code>null</code> and 
+   *				<code>type.isInterval()</code> returns true,
+   *				then the unit will actually be
+   *				<code>u.getAbsoluteUnit()</code>.
+   a @param error		Error estimate of the Real.  May be 
+   *				<code>null</code>.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   */
   public Real(RealType type, double value, Unit u, ErrorEstimate error)
          throws VisADException {
     super(type);
@@ -48,42 +60,100 @@ public class Real extends Scalar {
       throw new UnitException("Real: Unit must be convertable with " +
                               "Type default Unit");
     }
-    unit = u;
+    unit = u != null && type.isInterval() ? u.getAbsoluteUnit() : u;
     Value = value;
     Error = Double.isNaN(value) ? null : error;
   }
 
-  /** construct a Real object with Unit and numerical error */
+  /**
+   * Constructs a Real object.  The error estimate will be based on a numeric
+   * value.
+   * @param type		The type of the Real.
+   * @param value		The value of the Real.  May be 
+   *				<code>Double.NaN</code>.
+   * @param u			The unit of the Real.  May be <code>null</code>.
+   *				If non-<code>null</code> and 
+   *				<code>type.isInterval()</code> returns true,
+   *				then the unit will actually be
+   *				<code>u.getAbsoluteUnit()</code>.
+   * @param error		Value for constructing an error estimate for the
+   *				Real.  The value is assumed to be in units of
+   *				<code>u != null && type.isInterval() ?
+   *				u.getAbsoluteUnit() : u</code>.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   */
   public Real(RealType type, double value, Unit u, double error)
          throws VisADException {
-    this(type, value, u, new ErrorEstimate(value, error, u));
+    this(type, value, u,
+      new ErrorEstimate(value, Math.abs(error),
+	u != null && type.isInterval() ? u.getAbsoluteUnit() : u));
   }
 
-  /** construct a Real object with Unit */
+  /**
+   * Constructs a Real object.  The error estimate will be <code>null</code>.
+   * @param type		The type of the Real.
+   * @param value		The value of the Real.  May be 
+   *				<code>Double.NaN</code>.
+   * @param u			The unit of the Real.  May be <code>null</code>.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   */
   public Real(RealType type, double value, Unit u)
          throws VisADException {
     this(type, value, u, null);
   }
 
-  /** construct a Real object with default Unit */
+  /**
+   * Constructs a Real object.  The unit of the Real will be the default unit of
+   * the RealType and the error estimate will be <code>null</code>.
+   * @param type		The type of the Real.
+   * @param value		The value of the Real.  May be 
+   *				<code>Double.NaN</code>.
+   *				The value is assumed to be in units of
+   *				<code>type.getDefaultUnit()</code>.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   */
   public Real(RealType type, double value) {
     this(type, value, type.getDefaultUnit(), null, true);
   }
 
-  /** construct a Real object with missing value and default Unit */
+  /**
+   * Constructs a Real object.  The value will be missing, the unit of the
+   * Real will be the default unit of the RealType, and the error estimate
+   * will be <code>null</code>.
+   * @param type		The type of the Real.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   */
   public Real(RealType type) {
     this(type, Double.NaN, type.getDefaultUnit(), null, true);
   }
 
-  /** construct a Real object with the generic REAL type, and error */
+  /**
+   * Constructs a generic Real object.  The RealType of the Real will be
+   * <code>RealType.Generic</code>, the unit of the Real will be
+   * <code>RealType.Generic.getDefaultUnit()</code>, and the error estimate
+   * will be based on a numeric value.
+   * @param value		The value of the Real.  May be 
+   *				<code>Double.NaN</code>.
+   * @param error		Value for constructing an error estimate for the
+   *				Real.  The value is assumed to be in units of
+   *				<code>RealType.Generic.getDefaultUnit()</code>.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   */
   public Real(double value, double error) {
     this(RealType.Generic, value, RealType.Generic.getDefaultUnit(),
          new ErrorEstimate(value, Math.abs(error), RealType.Generic.getDefaultUnit()),
          true);
   }
 
-  /** construct a Real object with the generic REAL type (RealType.Generic)
-      and ErrorEstimate 0.0 */
+  /**
+   * Constructs a generic Real object.  The RealType of the Real will be 
+   * <code>RealType.Generic</code>, the unit of the Real will be
+   * <code>RealType.Generic.getDefaultUnit()</code>, and the error estimate
+   * will be 0.0.
+   * @param value		The value of the Real.  May be 
+   *				<code>Double.NaN</code>.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   */
   public Real(double value) {
     this(RealType.Generic, value, RealType.Generic.getDefaultUnit(),
          new ErrorEstimate(value, 0.0, RealType.Generic.getDefaultUnit()), true);
@@ -93,7 +163,7 @@ public class Real extends Scalar {
   private Real(RealType type, double value, Unit u, ErrorEstimate error,
                boolean b) {
     super(type);
-    unit = u;
+    unit = u != null && type.isInterval() ? u.getAbsoluteUnit() : u;
     Value = value;
     Error = Double.isNaN(value) ? null : error;
   }
@@ -160,20 +230,22 @@ public class Real extends Scalar {
           else if (data_unit == CommonUnit.promiscuous) {
             u = unit;
           }
-          else if (Unit.canConvert(unit, data_unit)) {
-            value = unit.toThis(value, data_unit);
-            // scale data.ErrorEstimate for Unit.toThis
-            if (error_mode != NO_ERRORS && dError != null) {
-              double error = 0.5 * dError.getErrorValue();
-              double new_error =
-                Math.abs( unit.toThis(value + error, data_unit) -
-                          unit.toThis(value - error, data_unit) );
-              dError = new ErrorEstimate(value, new_error, unit);
-            }
-            u = unit;
-          }
           else {
-            u = null;
+	    try {
+	      value = unit.toThis(value, data_unit);
+	      // scale data.ErrorEstimate for Unit.toThis
+	      if (error_mode != NO_ERRORS && dError != null) {
+		double error = 0.5 * dError.getErrorValue();
+		double new_error =
+		  Math.abs( unit.toThis(value + error, data_unit) -
+			    unit.toThis(value - error, data_unit) );
+		dError = new ErrorEstimate(value, new_error, unit);
+	      }
+	      u = unit;
+	    }
+	    catch (UnitException e) {		// inconvertible units
+	      u = null;
+	    }
           }
           switch (op) {
             case ADD:
@@ -481,16 +553,27 @@ public class Real extends Scalar {
       if (Double.isNaN(Value)) {
         return "missing";
       }
-      else if (Type.equals(RealType.Time)) {
-        return new DateTime(this).toString();
-      }
       else {
-        return Double.toString(Value);
+        return
+	  Type.equals(RealType.Time)
+	    ? new DateTime(this).toString()
+	    : Double.toString(Value);
       }
     }
     catch (VisADException e) {
       return e.toString();
     }
+  }
+
+  /**
+   * Gets a string that represents just the value portion of this Real -- but
+   * with full semantics (e.g. numeric value and unit).
+   * @return			A string representation of just the value
+   *				portion of this Real.
+   */
+  public String toValueString() {
+    Unit u = unit != null ? unit : ((RealType)getType()).getDefaultUnit();
+    return Float.toString((float)Value) + (u == null ? "" : " " + u);
   }
 
   public String longString(String pre) throws VisADException {
@@ -504,6 +587,30 @@ public class Real extends Scalar {
     else {
       return pre + "Real: Value = " + Value +
              "  (TypeName: " + ((RealType) Type).getName() + ")\n";
+    }
+  }
+
+  /**
+   * Compares this Real to another.
+   * @param object		The other Real to compare against.  It shall be
+   *				a Real with a compatible (i.e. convertible)
+   *				unit.
+   * @return                    A negative integer, zero, or a positive integer
+   *                            depending on whether this Real is considered
+   *                            less than, equal to, or greater than the other
+   *                            Real, respectively.
+   */
+  public int compareTo(Object object)
+  {
+    Unit	defaultUnit = ((RealType)getType()).getDefaultUnit();
+    try
+    {
+      return new Double(getValue(defaultUnit)).compareTo(
+	new Double(((Real)object).getValue(defaultUnit)));
+    }
+    catch (VisADException e)
+    {
+      return 1;	// make problem Real-s greater than anything
     }
   }
 

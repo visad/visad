@@ -139,7 +139,12 @@ public class FieldImpl extends FunctionImpl implements Field {
     return Length;
   }
 
-  /** get SetUnits of DomainSet */
+  /**
+   * Returns the units of the values in the domain set.  The units may differ
+   * from the default units of the underlying MathType of the domain, but will
+   * be convertible with them.
+   * @return			The units of the values in the domain set.
+   */
   public Unit[] getDomainUnits() {
     return DomainUnits;
   }

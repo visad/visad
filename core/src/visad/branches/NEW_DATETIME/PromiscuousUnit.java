@@ -31,21 +31,45 @@ package visad;
 */
 public class PromiscuousUnit extends Unit {
 
-  private final String name = "promiscuous";
-
   static final Unit promiscuous = new PromiscuousUnit();
 
   private PromiscuousUnit() {
-    super();
+    super("promiscuous");
   }
 
-  public Unit pow(int power)
-        throws UnitException {
+  /**
+   * Clones this unit, changing the identifier.  This method always throws
+   * an exception because promiscuous units may not be cloned.
+   * @param identifier		The name or abbreviation for the cloned unit.
+   *				May be <code>null</code> or empty.
+   * @throws UnitException	Promiscuous units may not be cloned.  Always 
+   *				thrown.
+   */
+  public Unit clone(String identifier)
+    throws UnitException
+  {
+    throw new UnitException("Promiscuous units may not be cloned");
+  }
+
+  /**
+   * Returns the definition of this unit.  For promiscuous units, this is the
+   * same as the identifier.
+   * @return		The definition of this unit.  Won't be <code>null
+   *			</code> but may be empty.
+   */
+  public String getDefinition()
+  {
+    return getIdentifier();
+  }
+
+  public Unit pow(int power) 
+	throws UnitException {
     return this;
   }
 
-  public String toString() {
-    return name;
+  public Unit pow(double power)
+	throws UnitException {
+    return this;
   }
  
   Unit multiply(BaseUnit that)

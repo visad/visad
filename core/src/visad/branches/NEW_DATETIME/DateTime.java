@@ -259,6 +259,17 @@ DateTime
     }
 
     /**
+     * Gets a string that represents the just the value portion of this
+     * DateTime -- but with full semantics.
+     *
+     * @return	String representing the date/time in the form 
+     *          <nobr>yyyy-MM-dd HH:mm:ssZ</nobr> (ex: 1999-05-04 15:27:08Z)
+     */
+    public String toValueString() {
+	return toString();
+    }
+
+    /**
      * Return a string representation of this DateTime from a user
      * specified format.  The pattern uses the time format syntax
      * of java.text.SimpleDateFormat and the time zone is any of the

@@ -7,11 +7,12 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DerivedUnit.java,v 1.7 1998-12-16 20:29:38 steve Exp $
+ * $Id: DerivedUnit.java,v 1.7.2.1 1999-05-11 17:02:37 steve Exp $
  */
 
 package visad;
 
+import java.text.ChoiceFormat;
 import java.util.Vector;
 import java.io.Serializable;
 
@@ -39,51 +40,153 @@ public final class DerivedUnit
 
 
     /**
-     * Construct a dimensionless derived unit.
+     * Construct a dimensionless derived unit.  The identifier of the unit will
+     * be empty.
      */
     public DerivedUnit()
     {
-	factors = new Factor[0];
+	this(new BaseUnit[] {}, new int[] {}, "");
     }
 
     /**
-     * Construct a derived unit from a base unit.
+     * Construct a dimensionless derived unit with an identifier.
+     * @param identifier	Name or abbreviation for the unit.  May be
+     *				<code>null</code> or empty.
+     */
+    public DerivedUnit(String identifier)
+    {
+	this(new BaseUnit[] {}, new int[] {}, identifier);
+    }
+
+    /**
+     * Construct a derived unit from a base unit.  The identifier of the unit
+     * will be that of the base unit.
      *
      * @param baseUnit	The base unit.
      */
     public DerivedUnit(BaseUnit baseUnit)
     {
-	factors = new Factor[1];
-	factors[0] = new Factor(baseUnit, 1);
+	this(new BaseUnit[] {baseUnit}, new int[] {1},
+	    baseUnit.getIdentifier());
     }
 
     /**
-     * Construct a derived unit from an array base units and powers.
+     * Construct a derived unit from an array base units and powers.  The 
+     * identifier of the unit with be that of the base unit if there's only
+     * one base unit; otherwise, the identifier will be <code>null</code>.
      *
-     * @param baseUnits	The array of base units (e.g. {meter, second}).
+     * @param baseUnits	The array of base units (e.g. {m, s}).
      * @param powers	The array of powers (e.g. {1, -1} to create a
-     *			meter/second unit).
+     *			m/s unit).
      */
     public DerivedUnit(BaseUnit[] baseUnits, int[] powers)
     {
-	factors = new Factor[baseUnits.length];
-
-	for (int i = 0; i < baseUnits.length; ++i)
-	    factors[i] = new Factor(baseUnits[i], powers[i]);
+	this(newFactors(baseUnits, powers), 
+	  baseUnits.length == 1 ? baseUnits[0].getIdentifier() : null);
     }
 
     /**
-     * Construct a derived unit from a derived unit.
+     * Construct a derived unit from an array base units, powers, and an
+     * identifier.
+     *
+     * @param baseUnits		The array of base units (e.g. {m, s}).
+     * @param powers		The array of powers (e.g. {1, -1} to create a
+     *				m/s unit).
+     * @param identifier	Name or abbreviation for the unit.  May be
+     *				<code>null</code> or empty.
+     */
+    public DerivedUnit(BaseUnit[] baseUnits, int[] powers, String identifier)
+    {
+	this(newFactors(baseUnits, powers), identifier);
+    }
+
+    /**
+     * Creates an array of Factor-s from arrays of base units and powers.
+     *
+     * @param baseUnits		The array of base units (e.g. {m, s}).
+     * @param powers		The array of powers (e.g. {1, -1} to create a
+     *				m/s unit).
+     */
+    protected static Factor[]
+    newFactors(BaseUnit[] baseUnits, int[] powers)
+    {
+	Factor[]	factors = new Factor[baseUnits.length];
+	for (int i = 0; i < baseUnits.length; ++i)
+	    factors[i] = new Factor(baseUnits[i], powers[i]);
+	return factors;
+    }
+
+    /**
+     * Construct a derived unit from a derived unit.  The identifier will be
+     * that of the input derived unit.
      *
      * @param that	The derived unit.
      */
     public DerivedUnit(DerivedUnit that)
     {
-	factors = new Factor[that.factors.length];
+	this(that.factors, that.getIdentifier());
+    }
 
-	for (int i = 0; i < that.factors.length; ++i)
-	    factors[i] = new Factor(that.factors[i].baseUnit, 
-				    that.factors[i].power);
+    /**
+     * Construct a derived unit from a derived unit and an identifier.
+     *
+     * @param that		The derived unit.
+     * @param identifier	Name or abbreviation for the unit.  May be
+     *				<code>null</code> or empty.
+     */
+    public DerivedUnit(DerivedUnit that, String identifier)
+    {
+	this(that.factors, identifier);
+    }
+
+    /**
+     * Constructs from an array of factors.  The identifier of the unit will be
+     * <code>null</code>.
+     *
+     * @param facts		The factors for the DerivedUnit.  Every factor
+     *				with a power of zero will be ignored.
+     */
+    private DerivedUnit(Factor[] facts)
+    {
+	this(facts, null);
+    }
+
+    /**
+     * Constructs from an array of factors and an identifier.
+     *
+     * @param facts		The factors for the DerivedUnit.  Every factor
+     *				with a power of zero will be ignored.
+     * @param identifier	Name or abbreviation for the unit.  May be
+     *				<code>null</code> or empty.
+     */
+    private DerivedUnit(Factor[] facts, String identifier)
+    {
+	super(identifier);
+	int	n = 0;
+	for (int i = 0; i < facts.length; ++i)
+	{
+	    Factor	fact = facts[i];
+	    if (fact != null && fact.power != 0)
+		n++;
+	}
+	factors = new Factor[n];
+	n = 0;
+	for (int i = 0; i < facts.length; ++i)
+	{
+	    Factor	fact = facts[i];
+	    if (fact != null && fact.power != 0)
+		factors[n++] = fact;
+	}
+    }
+
+    /**
+     * Clones this unit, changing the identifier.
+     * @param identifier	The name or abbreviation for the cloned unit.
+     *				May be <code>null</code> or empty.
+     */
+    public Unit clone(String identifier)
+    {
+      return new DerivedUnit(this, identifier);
     }
 
     /**
@@ -96,23 +199,65 @@ public final class DerivedUnit
      */
     public Unit pow(int power)
     {
-	DerivedUnit	newUnit = new DerivedUnit(factors.length);
-
-	for (int i = 0; i < factors.length; ++i)
-	    newUnit.factors[i] = new Factor(factors[i].baseUnit,
-					   factors[i].power * power);
-
-	return newUnit;
+	DerivedUnit	result;
+	if (power == 1)
+	{
+	  result = this;
+	}
+	else
+	{
+	  Factor[]	newFactors = new Factor[factors.length];
+	  for (int i = 0; i < factors.length; ++i)
+	  {
+	      Factor	factor = factors[i];
+	      newFactors[i] = new Factor(factor.baseUnit, factor.power*power);
+	  }
+	  result = new DerivedUnit(newFactors);
+	}
+	return result;
     }
 
     /**
-     * Return a string representation of this unit.
+     * Raise a derived unit to a power.
      *
-     * @return          A string representation of this unit (e.g. 
-     *			"m/s").
-     * @promise		The unit has not been modified.
+     * @param power		The power to raise this unit by.  If this unit 
+     *				is not dimensionless, then the value must be
+     *				integral.
+     * @return			The unit resulting from raising this unit to 
+     *				<code>power</code>.
+     * @throws IllegalArgumentException
+     *				This unit is not dimensionless and <code>power
+     *				</code> has a non-integral value.
+     * @promise			The unit has not been modified.
      */
-    public String toString()
+    public Unit pow(double power)
+	throws IllegalArgumentException
+    {
+	Unit	result;
+	if (factors.length == 0)
+	{
+	    result = this;
+	}
+	else
+	{
+	    double	intVal = Math.rint(power);
+	    if (power < ChoiceFormat.previousDouble(intVal) ||
+		power > ChoiceFormat.nextDouble(intVal))
+	    {
+		throw new IllegalArgumentException(this.getClass().getName() +
+		    ".pow(double): non-integral power");
+	    }
+	    result = pow((int)intVal);
+	}
+	return result;
+    }
+
+    /**
+     * Return the definition of this unit.
+     *
+     * @return          The definition of this unit (e.g. "m.s-1").
+     */
+    public String getDefinition()
     {
 	StringBuffer	buf = new StringBuffer(80);
 
@@ -141,13 +286,15 @@ public final class DerivedUnit
     public static void main(String[] args)
 	throws UnitException
     {
-	BaseUnit	meter = BaseUnit.addBaseUnit("Length", "meter");
-	BaseUnit	second = BaseUnit.addBaseUnit("Time", "second");
-	Unit		speed = new DerivedUnit(new BaseUnit[] {meter, second},
+	BaseUnit	meter = SI.meter;
+	BaseUnit	second = SI.second;
+	DerivedUnit	speed = new DerivedUnit(new BaseUnit[] {meter, second},
 						new int[] {1, -1});
 
 	System.out.println("speed=\"" + speed + "\"");
 	System.out.println("speed.pow(2)=\"" + speed.pow(2) + "\"");
+	System.out.println("speed.pow(2.0+ULP)=\"" + 
+	    speed.pow(ChoiceFormat.nextDouble(2.0)) + "\"");
 
 	System.out.println("speed*meter=\"" + speed.multiply(meter) + "\"");
 	System.out.println("meter*speed=\"" + meter.multiply(speed) + "\"");
@@ -172,7 +319,7 @@ public final class DerivedUnit
 	    values[0] + "," + values[1]);
 
 	DerivedUnit	energy = (DerivedUnit)speed.pow(2).multiply(
-			     BaseUnit.addBaseUnit("Mass", "kilogram"));
+			     SI.kilogram);
 
 	System.out.println("energy=\"" + energy + "\"");
 
@@ -187,14 +334,19 @@ public final class DerivedUnit
 	{
 	    System.out.println(e.getMessage());
 	}
-    }
-
-    /**
-     * Construct a derived unit from the number of base units it will contain.
-     */
-    DerivedUnit(int n)
-    {
-	factors = new Factor[n];
+	try
+	{
+	    System.out.println("speed.pow(2+2*ULP)=\"" + 
+		speed.pow(
+		  ChoiceFormat.nextDouble(ChoiceFormat.nextDouble(2.0))) 
+		+ "\"");
+	    System.err.println("ERROR: IllegalArgumentException not thrown!");
+	    System.exit(1);
+	}
+	catch (IllegalArgumentException e)
+	{
+	    System.out.println(e.getMessage());
+	}
     }
 
     /*
@@ -260,23 +412,22 @@ public final class DerivedUnit
 	    int		n0 = comm[0].size();
 	    int		n1 = comm[1].size();
 	    int		n2 = comm[2].size();
-	    DerivedUnit	newUnit	= new DerivedUnit(n0 + n1 + n2);
+	    Factor[]	factors = new Factor[n0+n1+n2];
 	    int		k = 0;
 
 	    for (int i = 0; i < n0; ++i)
-		newUnit.factors[k++] = (Factor)comm[0].elementAt(i);
+		factors[k++] = (Factor)comm[0].elementAt(i);
 
 	    for (int i = 0; i < n1; ++i)
-		newUnit.factors[k++] = op((Factor)comm[1].elementAt(i));
+		factors[k++] = op((Factor)comm[1].elementAt(i));
 
 	    for (int i = 0; i < n2; ++i)
 	    {
-		Factor[]	factors = (Factor[])comm[2].elementAt(i);
-
-		newUnit.factors[k++] = op(factors[0], factors[1]);
+		Factor[]	facts = (Factor[])comm[2].elementAt(i);
+		factors[k++] = op(facts[0], facts[1]);
 	    }
 
-	    return newUnit;
+	    return new DerivedUnit(factors);
 	}
 
 	protected abstract Factor op(Factor factor);
@@ -665,19 +816,27 @@ public final class DerivedUnit
 
   /** added by WLH 11 Feb 98 */
   public boolean equals(Unit unit) {
-    if (!(unit instanceof DerivedUnit)) return false;
+    if (unit == null)
+      return false;
+
+    if (unit instanceof BaseUnit)
+      return equals(new DerivedUnit((BaseUnit)unit));
+
+    if (!(unit instanceof DerivedUnit))
+      return unit.equals(this);
+
     int n = factors.length;
     if (n != ((DerivedUnit) unit).factors.length) return false;
     boolean[] mark = new boolean[n];
     for (int j=0; j<n; j++) mark[j] = false;
     for (int i=0; i<n; i++) {
       for (int j=0; j<n; j++) {
-        if (!mark[j]) {
-          if (factors[i].equals(((DerivedUnit) unit).factors[j])) {
-            mark[j] = true;
-            break;
-          }
-        }
+	if (!mark[j]) {
+	  if (factors[i].equals(((DerivedUnit) unit).factors[j])) {
+	    mark[j] = true;
+	    break;
+	  }
+	}
       }
     }
     for (int j=0; j<n; j++) {

@@ -170,6 +170,11 @@ public abstract class Set extends DataImpl {
     }
   }
 
+  /**
+   * Returns the units of the values in the set.  The units may differ from the
+   * default units of the underlying MathType but will be convertible with them.
+   * @return			The units of the values in the set.
+   */
   public Unit[] getSetUnits() {
     return Unit.copyUnitsArray(SetUnits);
   }
@@ -178,7 +183,16 @@ public abstract class Set extends DataImpl {
     return ErrorEstimate.copyErrorsArray(SetErrors);
   }
 
-  /** get DomainCoordinateSystem */
+  /**
+   * Gets the coordinate system of this domain set (DomainCoordinateSystem).
+   * @return                    The coordinate system of this domain
+   *                            set.  This will be the coordinate
+   *                            system passed to the constructor if
+   *                            non-<code>null</code>; otherwise, the
+   *                            (default) coordinate system of the
+   *                            underlying RealTupleType (which may be
+   *                            <code>null</code>).
+   */
   public CoordinateSystem getCoordinateSystem() {
     return DomainCoordinateSystem;
   }
