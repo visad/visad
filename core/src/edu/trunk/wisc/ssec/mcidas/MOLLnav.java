@@ -75,7 +75,6 @@ public final class MOLLnav extends AREAnav
     public MOLLnav (int[] iparms) 
         throws IllegalArgumentException
     {
-
         double res;
         double x;
         int i;
@@ -247,7 +246,9 @@ public final class MOLLnav extends AREAnav
             xldif = Math.abs(xlin - xrow)/rpix;
             xedif = (xcol - xele)/rpix;
 
-            if (xldif > 1.0)
+            // WLH 8 March 2000
+            // if (xldif > 1.0)
+            if (xlin != xlin || xele != xele || xldif > 1.0)
             {
                 xlat = Double.NaN;
                 xlon = Double.NaN;
@@ -337,43 +338,50 @@ public final class MOLLnav extends AREAnav
                      ? - latlon[indexLon][point]
                      :  latlon[indexLon][point];
 
-            // if in cartesian coords, transform to lat/lon
-            if (itype == 1)
-            {
-                x = xlat;
-                y = xlon;
-                // CALL CARTLL(X,Y,Z,XLAT,XLON)
+            // WLH 8 Macrh 2000
+            if (xlat != xlat || xlon != xlon) {
+              xele = Double.NaN;
+              xlin = Double.NaN;
             }
-
-            int isign = -1;
-            if (xlat < 0.0) isign = 1;
-            int ilat = (int) (Math.abs(xlat));
-            flat = Math.abs(xlat) - ilat;
-            t = lattbl[ilat];
-            if (ilat != 90) t = t + flat*(lattbl[ilat+1] - lattbl[ilat]);
-            t2 = Math.max(0.0, 1.0-t*t);
-            w = Math.sqrt(t2);
+            else {
+              // if in cartesian coords, transform to lat/lon
+              if (itype == 1)
+              {
+                  x = xlat;
+                  y = xlon;
+                  // CALL CARTLL(X,Y,Z,XLAT,XLON)
+              }
+  
+              int isign = -1;
+              if (xlat < 0.0) isign = 1;
+              int ilat = (int) (Math.abs(xlat));
+              flat = Math.abs(xlat) - ilat;
+              t = lattbl[ilat];
+              if (ilat != 90) t = t + flat*(lattbl[ilat+1] - lattbl[ilat]);
+              t2 = Math.max(0.0, 1.0-t*t);
+              w = Math.sqrt(t2);
+         
+              //** Here we need to handle the problem of computing
+              //** angular differences across the dateline.
+  
+              diff_lon = xlon - xqlon;
+  
+              if (diff_lon < -180.0) diff_lon = diff_lon  + 360.;
+              if (diff_lon >  180.0) diff_lon = diff_lon  - 360.;
        
-            //** Here we need to handle the problem of computing
-            //** angular differences across the dateline.
-
-            diff_lon = xlon - xqlon;
-
-            if (diff_lon < -180.0) diff_lon = diff_lon  + 360.;
-            if (diff_lon >  180.0) diff_lon = diff_lon  - 360.;
-     
-            xedif = w * (diff_lon)/90.;
-     
-            if (Math.abs(xedif) > 2.0) 
-            {
-               xele = Double.NaN;
-               xlin = Double.NaN;
-            }
-            else
-            {
-               xele = xcol - xedif*rpix;
-               xlin = isign*t*rpix + xrow;
-            }
+              xedif = w * (diff_lon)/90.;
+       
+              if (Math.abs(xedif) > 2.0) 
+              {
+                 xele = Double.NaN;
+                 xlin = Double.NaN;
+              }
+              else
+              {
+                 xele = xcol - xedif*rpix;
+                 xlin = isign*t*rpix + xrow;
+              }
+            } // end if (xlat == xlat && xlon == xlon)
             linele[indexLine][point] = xlin;
             linele[indexEle][point] = xele;
 
