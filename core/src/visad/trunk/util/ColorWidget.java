@@ -1,5 +1,5 @@
 /*
-@(#) $Id: ColorWidget.java,v 1.12 2000-02-24 16:49:29 dglo Exp $
+@(#) $Id: ColorWidget.java,v 1.13 2000-03-14 16:56:47 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -44,170 +44,169 @@ import visad.VisADException;
  * RGBA tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.12 $, $Date: 2000-02-24 16:49:29 $
+ * @version $Revision: 1.13 $, $Date: 2000-03-14 16:56:47 $
  * @since Visad Utility Library, 0.5
  */
 
 public class ColorWidget extends Applet implements ColorChangeListener {
 
-	/** The visibility of the preview panel at the botom of the widget */
-	private boolean previewVisible;
+  /** The visibility of the preview panel at the botom of the widget */
+  private boolean previewVisible;
 
-	/** The ColorMap associsted with this color widget */
-	private ColorMap map;
+  /** The ColorMap associsted with this color widget */
+  private ColorMap map;
 
-	/** The ColorPreview associated with this color widget */
-	private ColorPreview colorPreview;
+  /** The ColorPreview associated with this color widget */
+  private ColorPreview colorPreview;
 
-        /* / * * The Event Queue for mouse events */
+  /* / * * The Event Queue for mouse events */
 
-	/** Construct a color widget with a ColorPreview and the default ColorMap */
-	public ColorWidget()
-          throws RemoteException, VisADException
-	{
-		this(true);
-	}
+  /** Construct a color widget with a ColorPreview and the default ColorMap */
+  public ColorWidget()
+    throws RemoteException, VisADException
+  {
+    this(true);
+  }
 
-	/** Construct a color widget with the default ColorMap
-	 * @param preview indicates wether or not the preview bar at the
-	 * bottom of the widget should be present
-	 */
-	public ColorWidget(boolean preview)
-          throws RemoteException, VisADException
-	{
-		this(new RGBMap(), preview);
-	}
+  /** Construct a color widget with the default ColorMap
+   * @param preview indicates wether or not the preview bar at the
+   * bottom of the widget should be present
+   */
+  public ColorWidget(boolean preview)
+    throws RemoteException, VisADException
+  {
+    this(new RGBMap(), preview);
+  }
 
-	/** Construct a color widget with a ColorPreview and the specified ColorMap
-	 * @param map the ColorMap for the widget to use
-	 */
-	public ColorWidget(ColorMap map) {
-		this(map, true);
-	}
+  /** Construct a color widget with a ColorPreview and the specified ColorMap
+   * @param map the ColorMap for the widget to use
+   */
+  public ColorWidget(ColorMap map) {
+    this(map, true);
+  }
 
-	/** Construct a color widget with the desired ColorMap and ColorPreview visibility
-	 * @param map the ColorMap for the widget to use
-	 * @param preview indicates wether or not the preview bar at the
-	 * bottom of the widget should be present
-	 */
-	public ColorWidget(ColorMap map, boolean preview) {
-		this.map = map;
+  /** Construct a color widget with the desired ColorMap and ColorPreview visibility
+   * @param map the ColorMap for the widget to use
+   * @param preview indicates wether or not the preview bar at the
+   * bottom of the widget should be present
+   */
+  public ColorWidget(ColorMap map, boolean preview) {
+    this.map = map;
 
-		previewVisible = preview;
-		if (preview) {
-			colorPreview = new ColorPreview(map);
-		}
-		//setLayout(new WidgetLayout(this));
-		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		setColorMap(map);
-	}
+    previewVisible = preview;
+    if (preview) {
+      colorPreview = new ColorPreview(map);
+    }
+    //setLayout(new WidgetLayout(this));
+    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+    setColorMap(map);
+  }
 
-	/** main method for standalone testing */
-	public static void main(String[] argv)
-          throws RemoteException, VisADException
-	{
+  /** main method for standalone testing */
+  public static void main(String[] argv)
+    throws RemoteException, VisADException
+  {
 
-		JFrame frame;
-		frame = new JFrame("VisAD Color Widget");
-		frame.addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent e) {System.exit(0);}
-		});
+    JFrame frame;
+    frame = new JFrame("VisAD Color Widget");
+    frame.addWindowListener(new WindowAdapter() {
+        public void windowClosing(WindowEvent e) {System.exit(0);}
+      });
 
-		ColorWidget w = new ColorWidget(new RGBAMap());
+    ColorWidget w = new ColorWidget(new RGBAMap());
 
-		frame.add(w);
-		frame.setSize(w.getPreferredSize());
-		frame.setVisible(true);
+    frame.add(w);
+    frame.setSize(w.getPreferredSize());
+    frame.setVisible(true);
 
-	}
+  }
 
-	/** The vector containing the ColorChangeListeners */
-	private Vector listeners = new Vector();
+  /** The vector containing the ColorChangeListeners */
+  private Vector listeners = new Vector();
 
-	/** Add a ColorChangeListener to the listeners list */
-	public synchronized void addColorChangeListener(ColorChangeListener c) {
-		if (!listeners.contains(c)) {
-			listeners.addElement(c);
-		}
-	}
+  /** Add a ColorChangeListener to the listeners list */
+  public synchronized void addColorChangeListener(ColorChangeListener c) {
+    if (!listeners.contains(c)) {
+      listeners.addElement(c);
+    }
+  }
 
-	/** Remove a ColorChangeListener from the listeners list */
-	public synchronized void removeColorChangeListener(ColorChangeListener c) {
-		if (listeners.contains(c)) {
-			listeners.removeElement(c);
-		}
-	}
+  /** Remove a ColorChangeListener from the listeners list */
+  public synchronized void removeColorChangeListener(ColorChangeListener c) {
+    if (listeners.contains(c)) {
+      listeners.removeElement(c);
+    }
+  }
 
-	/** Notify the ColorChangeListerers that the color widget has changed */
-	protected synchronized void notifyListeners(ColorChangeEvent e) {
-		for (int i = 0; i < listeners.size(); i++) {
-			ColorChangeListener c = (ColorChangeListener) listeners.elementAt(i);
-			c.colorChanged(e);
-		}
-	}
+  /** Notify the ColorChangeListerers that the color widget has changed */
+  protected synchronized void notifyListeners(ColorChangeEvent e) {
+    for (int i = 0; i < listeners.size(); i++) {
+      ColorChangeListener c = (ColorChangeListener) listeners.elementAt(i);
+      c.colorChanged(e);
+    }
+  }
 
-	/** Listen to the ColorMap and re-dispatch the ColorChangeEvents to
-	 * the ColorChangeListeners listening to the widget
-	 */
-	public void colorChanged(ColorChangeEvent e) {
-		notifyListeners(e);
-	}
+  /** Listen to the ColorMap and re-dispatch the ColorChangeEvents to
+   * the ColorChangeListeners listening to the widget
+   */
+  public void colorChanged(ColorChangeEvent e) {
+    notifyListeners(e);
+  }
 
-	/** Set the ColorWidget to listen to a specific ColorMap */
-	public void setColorMap(ColorMap map) {
-		if (this.map != null) {
-			this.map.removeColorChangeListener(this);
-		}
+  /** Set the ColorWidget to listen to a specific ColorMap */
+  public void setColorMap(ColorMap map) {
+    if (this.map != null) {
+      this.map.removeColorChangeListener(this);
+    }
 
-		this.map = map;
+    this.map = map;
 
-		map.addColorChangeListener(this);
+    map.addColorChangeListener(this);
 
-		removeAll();
-		add(map);
-		if (previewVisible) {
-			if (colorPreview == null) {
-				colorPreview = new ColorPreview(map);
-			}
-			add(colorPreview);
-		}
-		validate();
+    removeAll();
+    add(map);
+    if (previewVisible) {
+      if (colorPreview == null) {
+        colorPreview = new ColorPreview(map);
+      }
+      add(colorPreview);
+    }
+    validate();
 
-		int res = map.getMapResolution();
-		notifyListeners(new ColorChangeEvent(map, 0, res));
-	}
+    int res = map.getMapResolution();
+    notifyListeners(new ColorChangeEvent(map, 0, res));
+  }
 
-	/** Make the preview bar at the bottom of the widget visible */
-	public void showPreview() {
+  /** Make the preview bar at the bottom of the widget visible */
+  public void showPreview() {
 
-		if (previewVisible) return;
-		previewVisible = true;
-		this.setColorMap(map);
-	}
+    if (previewVisible) return;
+    previewVisible = true;
+    this.setColorMap(map);
+  }
 
-	/** Hide the preview bar at the bottom of the widget */
-	public void hidePreview() {
+  /** Hide the preview bar at the bottom of the widget */
+  public void hidePreview() {
 
-		if (!previewVisible) return;
+    if (!previewVisible) return;
 
-		previewVisible = false;
-		this.setColorMap(map);
-	}
+    previewVisible = false;
+    this.setColorMap(map);
+  }
 
-	/** Returns the ColorMap that the color wdget is curently pointing to */
-	public ColorMap getColorMap() {
-		return map;
-	}
+  /** Returns the ColorMap that the color wdget is curently pointing to */
+  public ColorMap getColorMap() {
+    return map;
+  }
 
-	/** Analyses the visible components and determines the preferred size */
-	public Dimension getPreferredSize() {
-		Dimension d = map.getPreferredSize();
-		if (previewVisible) {
-			Dimension p = colorPreview.getPreferredSize();
-			Dimension n = new Dimension(d.width, d.height + p.height);
-			d = n;
-		}
-		return d;
-	}
-
+  /** Analyses the visible components and determines the preferred size */
+  public Dimension getPreferredSize() {
+    Dimension d = map.getPreferredSize();
+    if (previewVisible) {
+      Dimension p = colorPreview.getPreferredSize();
+      Dimension n = new Dimension(d.width, d.height + p.height);
+      d = n;
+    }
+    return d;
+  }
 }

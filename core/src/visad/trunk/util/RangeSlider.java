@@ -45,7 +45,7 @@ import visad.ScalarMap;
 
 /** A slider widget that allows users to select a lower and upper bound.<P> */
 public class RangeSlider extends JComponent implements MouseListener,
-                                                       MouseMotionListener {
+  MouseMotionListener {
 
   /** slider constants */
   public static final int SLIDER_PREF_HEIGHT = 42;
@@ -80,7 +80,7 @@ public class RangeSlider extends JComponent implements MouseListener,
   float maxLimit;
 
   /** location of min gripper */
-  private int minGrip = GRIP_WIDTH; 
+  private int minGrip = GRIP_WIDTH;
 
   /** location of max gripper */
   private int maxGrip = SLIDER_PREF_WIDTH - GRIP_WIDTH;
@@ -117,7 +117,7 @@ public class RangeSlider extends JComponent implements MouseListener,
     catch (Exception exc) { }
     return n;
   }
-  
+
   /** construct a RangeSlider with range of values (min, max) */
   public RangeSlider(String n, float min, float max) {
     name = n;
@@ -253,7 +253,7 @@ public class RangeSlider extends JComponent implements MouseListener,
     textChanged = true;
     repaint();
   }
-  
+
   // unneeded MouseListener methods
   public void mouseClicked(MouseEvent e) { }
   public void mouseEntered(MouseEvent e) { }
@@ -284,7 +284,7 @@ public class RangeSlider extends JComponent implements MouseListener,
         repaint();
       }
     }
-    
+
     // move min gripper if it is held
     else if (minSlide) {
       if (x < GRIP_WIDTH) minGrip = GRIP_WIDTH;
@@ -309,7 +309,7 @@ public class RangeSlider extends JComponent implements MouseListener,
 
     oldX = x;
   }
-  
+
   /** not used */
   public void mouseMoved(MouseEvent e) { }
 
@@ -330,7 +330,7 @@ public class RangeSlider extends JComponent implements MouseListener,
 
   private float gripToValue(int pos, int width)
   {
-    return (((maxLimit - minLimit) * ((float )(pos - GRIP_WIDTH))) / 
+    return (((maxLimit - minLimit) * ((float )(pos - GRIP_WIDTH))) /
             (float )(width - (GRIP_WIDTH*2))) + minLimit;
   }
 
@@ -467,10 +467,10 @@ public class RangeSlider extends JComponent implements MouseListener,
     RangeSlider rs = new RangeSlider("", 0.0f, 100.0f);
     JFrame f = new JFrame("VisAD RangeSlider test");
     f.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {
-        System.exit(0);
-      }
-    });
+        public void windowClosing(WindowEvent e) {
+          System.exit(0);
+        }
+      });
     f.getContentPane().add(rs);
     f.pack();
     f.setVisible(true);
@@ -484,4 +484,3 @@ public class RangeSlider extends JComponent implements MouseListener,
     return new float[] {minValue, maxValue};
   }
 }
-

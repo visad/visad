@@ -1,18 +1,18 @@
 /*
 
-@(#) $Id: ColorChangeListener.java,v 1.5 1999-07-14 21:57:37 dglo Exp $
+@(#) $Id: ColorChangeListener.java,v 1.6 2000-03-14 16:56:47 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
 Copyright (C) 1998 Nick Rasmussen
 VisAD is Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
 Rink and Dave Glowacki.
- 
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 1, or (at your option)
 any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -27,18 +27,17 @@ package visad.util;
 
 import java.util.EventListener;
 
-/** 
+/**
  * The interface that all objects must implement to recieve color change
- * events from the color widget 
+ * events from the color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.5 $, $Date: 1999-07-14 21:57:37 $
+ * @version $Revision: 1.6 $, $Date: 2000-03-14 16:56:47 $
  * @since Visad Utility Library, 0.5
  */
 
 public interface ColorChangeListener extends EventListener {
 
-	/** The function called when the color widget has changed */
-	void colorChanged(ColorChangeEvent e);
-
+  /** The function called when the color widget has changed */
+  void colorChanged(ColorChangeEvent e);
 }

@@ -1,18 +1,18 @@
 /*
 
-@(#) $Id: Slider.java,v 1.5 2000-02-24 16:49:32 dglo Exp $
+@(#) $Id: Slider.java,v 1.6 2000-03-14 16:56:48 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
 Copyright (C) 1998 Nick Rasmussen
 VisAD is Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
 Rink and Dave Glowacki.
- 
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 1, or (at your option)
 any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -37,65 +37,65 @@ import javax.swing.JPanel;
  * orientation will be assumed by several other classes
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.5 $, $Date: 2000-02-24 16:49:32 $
+ * @version $Revision: 1.6 $, $Date: 2000-03-14 16:56:48 $
  * @since Visad Utility Library v0.7.1
  */
- 
- public abstract class Slider extends JPanel {
- 
- 	/** 
-	 * The internal name of the slider, accessed through getName()
-	 * @see #getName
-	 */
- 	protected String name;
-	
-	/** Get the internal name for this slider */
-	public String getName() {
-		return name;
-	}
-	
-	
-	/** Return the minimum value of this slider */
-	public abstract float getMinimum();
-	
-	/** Sets the minimum value for this slider */
-	public abstract void setMinimum(float value);
-	
-	/** Return the maximum value of this slider */
-	public abstract float getMaximum();
-	
-	/** Sets the maximum value of this scrolbar */
-	public abstract void setMaximum(float value);
-	
-	/** Returns the current value of the slider */
-	public abstract float getValue();
-	
-	/** Sets the current value of the slider */
-	public abstract void setValue(float value);
-	
-	
-	/** The vector containing the SliderChangeListeners */
-	protected Vector listeners = new Vector();
-	
-	/** Add a SliderChangeListener to the listeners list */
-	public synchronized void addSliderChangeListener(SliderChangeListener s) {
-		if (!listeners.contains(s)) {
-			listeners.addElement(s);
-		}
-	}
-	
-	/** Remove a SliderChangeListener from the listeners list */
-	public synchronized void removeSliderChangeListener(SliderChangeListener s) {
-		if (listeners.contains(s)) {
-			listeners.removeElement(s);
-		}
-	}
-	
-	/** Notify the ColorChangeListerers that the color widget has changed */
-	protected synchronized void notifyListeners(SliderChangeEvent e) {
-		for (int i = 0; i < listeners.size(); i++) {
-			SliderChangeListener s = (SliderChangeListener) listeners.elementAt(i);
-			s.sliderChanged(e);
-		}
-	}
+
+public abstract class Slider extends JPanel {
+
+  /**
+   * The internal name of the slider, accessed through getName()
+   * @see #getName
+   */
+  protected String name;
+
+  /** Get the internal name for this slider */
+  public String getName() {
+    return name;
+  }
+
+
+  /** Return the minimum value of this slider */
+  public abstract float getMinimum();
+
+  /** Sets the minimum value for this slider */
+  public abstract void setMinimum(float value);
+
+  /** Return the maximum value of this slider */
+  public abstract float getMaximum();
+
+  /** Sets the maximum value of this scrolbar */
+  public abstract void setMaximum(float value);
+
+  /** Returns the current value of the slider */
+  public abstract float getValue();
+
+  /** Sets the current value of the slider */
+  public abstract void setValue(float value);
+
+
+  /** The vector containing the SliderChangeListeners */
+  protected Vector listeners = new Vector();
+
+  /** Add a SliderChangeListener to the listeners list */
+  public synchronized void addSliderChangeListener(SliderChangeListener s) {
+    if (!listeners.contains(s)) {
+      listeners.addElement(s);
+    }
+  }
+
+  /** Remove a SliderChangeListener from the listeners list */
+  public synchronized void removeSliderChangeListener(SliderChangeListener s) {
+    if (listeners.contains(s)) {
+      listeners.removeElement(s);
+    }
+  }
+
+  /** Notify the ColorChangeListerers that the color widget has changed */
+  protected synchronized void notifyListeners(SliderChangeEvent e) {
+    for (int i = 0; i < listeners.size(); i++) {
+      SliderChangeListener s = (SliderChangeListener) listeners.elementAt(i);
+      s.sliderChanged(e);
+    }
+  }
 }
