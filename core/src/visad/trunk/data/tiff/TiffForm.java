@@ -333,7 +333,12 @@ public class TiffForm extends Form
     return cp;
   }
 
-  private void initFile(String id) throws BadFormException, IOException {
+  private void initFile(String id)
+    throws BadFormException, IOException, VisADException
+  {
+    // close any currently open files
+    close();
+
     // determine whether ImageJ can handle the file
     TiffDecoder tdec = new TiffDecoder("", id);
     canUseImageJ = true;

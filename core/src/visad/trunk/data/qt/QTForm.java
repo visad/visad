@@ -426,6 +426,9 @@ public class QTForm extends Form
   {
     if (noQT) throw new BadFormException(noQTmsg);
 
+    // close any currently open files
+    close();
+
     try {
       r.exec("QTSession.open()");
 
