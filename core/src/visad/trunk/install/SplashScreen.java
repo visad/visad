@@ -1,13 +1,11 @@
 package visad.install;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Toolkit;
 
-import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -110,8 +108,6 @@ public class SplashScreen
   private JPanel createSplash()
   {
     JPanel panel = new JPanel();
-
-    panel.setLayout(new BorderLayout());
 
     Dimension d;
     if (image == null) {
