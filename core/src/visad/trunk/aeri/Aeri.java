@@ -120,7 +120,7 @@ public class Aeri
     display.addMap(map);
     AnimationControl control = (AnimationControl) map.getControl();
     control.setStep(100);
-    display.addMap(new ScalarMap(advAge, Display.Alpha));
+    // display.addMap(new ScalarMap(advAge, Display.Alpha));
 
     DataReference advect_ref = new DataReferenceImpl("advect_ref");
     // advect_ref.setData(advect_field);
