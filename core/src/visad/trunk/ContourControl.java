@@ -100,7 +100,7 @@ public class ContourControl extends Control {
   /** set level for iso-surfaces */
   public void setSurfaceValue(float value)
          throws VisADException, RemoteException {
-    boolean change = (surfaceValue != value);
+    boolean change = (Math.abs(surfaceValue - value) > 0.0001);
     surfaceValue = value;
     if (change) {
       changeControl(true);
@@ -114,11 +114,22 @@ public class ContourControl extends Control {
                                  float hi, float ba)
          throws VisADException, RemoteException {
     boolean change = (contourInterval != interval) || (base != ba) ||
-                     (lowLimit != low) || (hiLimit != hi);
+                     (Math.abs(lowLimit - low) > 0.0001) ||
+                     (Math.abs(hiLimit - hi) > 0.0001);
     contourInterval = interval;
     lowLimit = low;
     hiLimit = hi;
     base = ba;
+    if (change) changeControl(true);
+  }
+
+  /** set low and high iso-line levels */
+  public void setContourLimits(float low, float hi)
+         throws VisADException, RemoteException {
+    boolean change = (Math.abs(lowLimit - low) > 0.0001) ||
+                     (Math.abs(hiLimit - hi) > 0.0001);
+    lowLimit = low;
+    hiLimit = hi;
     if (change) changeControl(true);
   }
 
