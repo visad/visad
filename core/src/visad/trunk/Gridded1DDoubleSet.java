@@ -337,7 +337,6 @@ public class Gridded1DDoubleSet extends Gridded1DSet
     for (int i=0; i<length; i++) {
       g = grid0[i];
       index[i] = Double.isNaN(g) ? -1 : ((int) (g + 0.5));
-      if (index[i] == LengthX) index[i]--; // WLH 22 May 2002
     }
     return index;
   }
@@ -420,7 +419,7 @@ public class Gridded1DDoubleSet extends Gridded1DSet
 	}
         // Newton's method
 	double solv = ig + (vals[i] - samps[ig]) / (samps[ig+1] - samps[ig]);
-        if (solv >= -0.5 && solv < LengthX - 0.5) grid[0][i] = solv;
+        if (solv > -0.5 && solv < LengthX - 0.5) grid[0][i] = solv;
         else {
           grid[0][i] = Double.NaN;
           // next guess should be in the middle if previous value was missing

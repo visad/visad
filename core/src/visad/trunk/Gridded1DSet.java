@@ -290,8 +290,7 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
     float g;
     for (int i=0; i<length; i++) {
       g = grid0[i];
-      index[i] = Float.isNaN(g) ? -1 : ((int) (g + 0.5f));
-      if (index[i] == LengthX) index[i]--; // WLH 22 May 2002
+      index[i] = Float.isNaN(g) ? -1 : ((int) (g + 0.5));
     }
     return index;
   }
@@ -374,7 +373,7 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
 	}
         // Newton's method
 	float solv = ig + (vals[i] - samps[ig]) / (samps[ig+1] - samps[ig]);
-        if (solv >= -0.5 && solv < LengthX - 0.5) grid[0][i] = solv;
+        if (solv > -0.5 && solv < LengthX - 0.5) grid[0][i] = solv;
         else {
           grid[0][i] = Float.NaN;
           // next guess should be in the middle if previous value was missing
