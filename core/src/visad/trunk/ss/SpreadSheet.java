@@ -42,6 +42,7 @@ import javax.swing.event.*;
 import visad.*;
 import visad.data.Form;
 import visad.data.netcdf.Plain;
+import visad.data.tiff.TiffForm;
 import visad.data.visad.VisADForm;
 import visad.formula.*;
 import visad.java3d.*;
@@ -303,7 +304,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
   /**
    * Menu items.
    */
-  protected JMenuItem FileSave1, FileSave2, FileSave3, FileSnap,
+  protected JMenuItem FileSave1, FileSave2, FileSave3, FileSave4, FileSnap,
     EditPaste, EditClear, CellDel, CellPrint, CellEdit, CellReset, CellShow,
     LayAddCol, LayDelCol, LayDelRow;
 
@@ -672,6 +673,8 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
       "exportDataSetSerial", 's', false);
     FileSave3 = addMenuItem("File", "Export data to HDF-5...",
       "exportDataSetHDF5", 'h', false);
+    FileSave4 = addMenuItem("File", "Export data to TIFF...",
+      "exportDataSetTIFF", 't', false);
     addMenuSeparator("File");
     FileSnap = addMenuItem("File", "Take JPEG snapshot...",
       "captureImageJPEG", 'j', false);
@@ -1187,6 +1190,13 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
         "VisAD SpreadSheet error");
     }
     if (hdf5form != null) exportDataSet(hdf5form);
+  }
+
+  /**
+   * Exports a data set to TIFF format.
+   */
+  public void exportDataSetTIFF() {
+    exportDataSet(new TiffForm());
   }
 
   /**
@@ -2499,6 +2509,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
         FileSave1.setEnabled(b);
         FileSave2.setEnabled(b);
         FileSave3.setEnabled(b && CanDoHDF5);
+        FileSave4.setEnabled(b);
         FileSnap.setEnabled(b && CanDoJPEG);
         EditClear.setEnabled(b);
         CellPrint.setEnabled(b);
