@@ -149,6 +149,11 @@ public class SelectRangeWidget extends RangeSlider
     float newLo = lo;
     float newHi = hi;
 
+    float widen = 0.001f * (hi - lo);
+    if (Math.abs(widen) < 0.0001f) {
+      return new float[] {lo - widen, hi + widen};
+    }
+
     if( ( hi - lo ) > 0. ) {
       newLo = (float)Math.floor( lo );
       newHi = (float)Math.ceil( hi );
