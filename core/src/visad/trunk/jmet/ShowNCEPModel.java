@@ -56,6 +56,7 @@ import visad.data.netcdf.*;
 import visad.data.mcidas.*;
 import visad.jmet.*;
 
+import java.rmi.RemoteException;
 
 public class ShowNCEPModel 
        extends JFrame implements ActionListener, ChangeListener,
@@ -128,8 +129,18 @@ public class ShowNCEPModel
     //MapFile = "../data/mcidas/OUTLAUST";
     MapFile = "../data/mcidas/OUTLUSAM";
 
-  // define the VisAD mappings for the Data and Display
+    buildData();
 
+    buildUI();
+
+    } catch (Exception e) {e.printStackTrace(System.out); System.exit(1);}
+
+  }
+
+  private void buildData()
+    throws RemoteException, VisADException
+  {
+    // define the VisAD mappings for the Data and Display
     di = new DisplayImplJ3D("display1");
     di.addDisplayListener(this);
     pc = di.getProjectionControl();
@@ -200,11 +211,6 @@ public class ShowNCEPModel
       colorTable[2][i] = .6f;
     }
     ccmap.setTable(colorTable);
-
-    buildUI();
-
-    } catch (Exception e) {e.printStackTrace(System.out); System.exit(1);}
-
   }
 
   private void buildMenuBar()
