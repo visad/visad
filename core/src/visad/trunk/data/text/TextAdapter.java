@@ -956,13 +956,15 @@ public class TextAdapter {
   // munges a pseudo MathType string into something legal
 
   private String makeMT(String s) {
-    String t = "";
+
+    StringBuffer sb = new StringBuffer("");
     for (int i=0; i<s.length(); i++) {
       String r = s.substring(i,i+1);
       if (!r.equals(" ") && !r.equals("\t") && !r.equals("\n")) {
-              t = t + r;
+              sb.append(r);
       }
     }
+    String t = sb.toString();
     int k = t.indexOf("->");
     if (k < 0) {
       System.out.println("Invalid MathType form: -> required:"+k);
