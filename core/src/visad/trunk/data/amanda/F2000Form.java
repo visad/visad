@@ -35,6 +35,7 @@ import java.rmi.RemoteException;
 import visad.Data;
 import visad.DataImpl;
 import visad.RealType;
+import visad.Tuple;
 import visad.VisADException;
 
 import visad.data.BadFormException;
@@ -95,18 +96,32 @@ public class F2000Form
     return false;
   }
 
+  private Tuple makeTuple(AmandaFile file)
+    throws VisADException
+  {
+    Tuple t;
+    try {
+      t = new Tuple(new Data[] {file.makeEventData(), file.makeModuleData()});
+    } catch (RemoteException re) {
+      re.printStackTrace();
+      t = null;
+    }
+
+    return t;
+  }
+
   public synchronized DataImpl open(String id)
     throws BadFormException, IOException, VisADException
   {
     file = new AmandaFile(id);
-    return file.makeData();
+    return makeTuple(file);
   }
 
   public synchronized DataImpl open(URL url)
     throws BadFormException, VisADException, IOException
   {
     file = new AmandaFile(url);
-    return file.makeData();
+    return makeTuple(file);
   }
 
   public synchronized void save(String id, Data data, boolean replace)
