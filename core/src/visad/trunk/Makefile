@@ -154,6 +154,7 @@ SAVE_FILES = \
 	visad/Makefile.WinNT				\
 	visad/README.nexusrmi				\
 	visad/rmic_script				\
+	visad/VisAD.Manifest				\
 	visad/*.java					\
 	visad/examples/*.java				\
 	visad/examples/display_test.c			\
@@ -409,7 +410,7 @@ unjar_split:
 classes:
 	@cd .. ; \
 	date > DATE ; \
-	${JAR} ${JARVERBOSE}cf visad.jar $(CLASS_FILES) ; \
+	${JAR} ${JARVERBOSE}cfm visad.jar visad/VisAD.Manifest $(CLASS_FILES) ; \
 	tar -cvf visad.tar visad.jar
 
 

@@ -76,6 +76,7 @@ visad\Makefile \
 visad\Makefile.WinNT \
 visad\README.nexusrmi \
 visad\rmic_script \
+visad\VisAD.Manifest \
 visad\*.java \
 visad\examples\*.java \
 visad\examples\display_test.c \
@@ -226,6 +227,8 @@ visad\DATE \
 visad\Makefile \
 visad\Makefile.WinNT \
 visad\README.nexusrmi \
+visad\rmic_script \
+visad\VisAD.Manifest \
 visad\*.java \
 visad\examples\*.java \
 visad\examples\display_test.c \
@@ -564,7 +567,7 @@ classes:
 	cd ..
 	date /t > DATE
 	time /t >> DATE
-	$(JAR) $(JARVERBOSE)cf visad.jar $(CLASS_FILES)
+	$(JAR) $(JARVERBOSE)cfm visad.jar visad\VisAD.Manifest $(CLASS_FILES)
 	dir /-w visad.jar
 
 EXAMPLES_TAR_FILES = \
