@@ -36,11 +36,11 @@ import visad.util.ExtensionFileFilter;
 /** A general-purpose editor for reading and writing text files. */
 public class TextEditor extends JScrollPane implements UndoableEditListener {
 
+  /** monospaced font */
+  public static final Font MONO = new Font("monospaced", Font.PLAIN, 12);
+
   /** debugging flag */
   protected static final boolean DEBUG = false;
-
-  /** monospaced font */
-  private static final Font MONO = new Font("monospaced", Font.PLAIN, 12);
 
   /** main text area */
   protected JTextArea text;

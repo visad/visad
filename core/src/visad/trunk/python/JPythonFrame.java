@@ -34,7 +34,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.event.*;
 import visad.VisADException;
 import visad.ss.SpreadSheet;
-import visad.util.TextFrame;
+import visad.util.*;
 
 /** A GUI frame for editing JPython code in Java runtime. */
 public class JPythonFrame extends TextFrame implements UndoableEditListener {
@@ -44,6 +44,9 @@ public class JPythonFrame extends TextFrame implements UndoableEditListener {
 
   /** number of lines of code in the document */
   protected int numLines;
+
+  /** number of digits in lines of code in the document */
+  protected int numDigits;
 
   /** constructs a JPythonFrame */
   public JPythonFrame() throws VisADException {
@@ -78,21 +81,32 @@ public class JPythonFrame extends TextFrame implements UndoableEditListener {
     pane.add(main);
 
     // set up line numbers
-    lineNumbers = new JTextArea("1\n");
+    final int fontWidth = getFontMetrics(TextEditor.MONO).stringWidth(" ");
+    lineNumbers = new JTextArea("1") {
+      public Dimension getPreferredSize() {
+        Dimension d = super.getPreferredSize();
+        d.width = numDigits * fontWidth;
+        return d;
+      }
+    };
     lineNumbers.setEditable(false);
-    Dimension size = lineNumbers.getPreferredSize();
-    size.width = 30;
-    lineNumbers.setPreferredSize(size);
     numLines = 1;
+    numDigits = 1;
     JPanel p = new JPanel() {
       public void paint(Graphics g) {
-        // paint thin gray line down right-hand side of line numbering
+        // paint a thin gray line down right-hand side of line numbering
         super.paint(g);
         Dimension d = getSize();
         int w = d.width - 5;
         int h = d.height - 1;
         g.setColor(Color.gray);
         g.drawLine(w, 0, w, h);
+      }
+
+      public Dimension getPreferredSize() {
+        Dimension d = lineNumbers.getPreferredSize();
+        d.width += 10;
+        return d;
       }
     };
     p.setBackground(Color.white);
@@ -159,48 +173,50 @@ public class JPythonFrame extends TextFrame implements UndoableEditListener {
 
     // update line numbers
     String s = textPane.getText();
-    if (!s.endsWith("\n")) s = s + "\n";
+    //CTR: TEMP: if (!s.endsWith("\n")) s = s + "\n";
     int len = s.length();
     int count = 0;
-    int index = -1;
 
     // count number of lines in document
-    while (index < len - 1) {
-      index = s.indexOf("\n", index + 1);
+    int index = s.indexOf("\n");
+    while (index >= 0) {
       count++;
+      index = s.indexOf("\n", index + 1);
     }
     if (count == numLines) return;
     
     // compute index into line numbers text string
-    String l = lineNumbers.getText();
-    int numDigits = ("" + count).length();
+    String l = lineNumbers.getText() + "\n";
+    int digits = ("" + count).length();
     int spot = 0;
     int nine = 9;
-    for (int i=2; i<=numDigits; i++) {
+    for (int i=2; i<=digits; i++) {
       spot += i * nine;
       nine *= 10;
     }
     int ten = nine / 9;
-    spot += (numDigits + 1) * (count - ten + 1);
+    spot += (digits + 1) * (count - ten + 1);
 
     // update line numbers text string
     int maxSpot = l.length();
     String newL;
     if (spot < maxSpot) {
       // eliminate extra line numbers
-      newL = l.substring(0, spot);
+      newL = l.substring(0, spot - 1);
     }
     else {
       // append additional line numbers
       StringBuffer sb = new StringBuffer(spot);
       sb.append(l);
-      for (int i=numLines+1; i<=count; i++) {
+      for (int i=numLines+1; i<count; i++) {
         sb.append(i);
         sb.append("\n");
       }
+      sb.append(count);
       newL = sb.toString();
     }
     numLines = count;
+    numDigits = digits;
     lineNumbers.setText(newL);
   }
 
