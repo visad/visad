@@ -32,7 +32,7 @@ maximizeBox(display, clip=1)
   a simple method for making the VisAD "box" 95% of the window size,
   and defining if box-edge clipping should be done in 3D
 
-setBoxSize(display, percent=.70, clip=1)
+setBoxSize(display, percent=.70, clip=1, showBox=1)
   a simple method for making the VisAD "box" some % of the window size,
   and defining if box-edge clipping should be done in 3D
 
@@ -106,12 +106,12 @@ from visad import ScalarMap, Display, DataReferenceImpl, RealTupleType,\
 
 from types import StringType
 from visad.ss import BasicSSCell
-from visad.java2d import DisplayImplJ2D
+from visad.java2d import DisplayImplJ2D, DisplayRendererJ2D
 
 # try to get 3D
 __ok3d = 1
 try:
-  from visad.java3d import DisplayImplJ3D, TwoDDisplayRendererJ3D
+  from visad.java3d import DisplayImplJ3D, TwoDDisplayRendererJ3D, DisplayRendererJ3D
 except:
   __ok3d = 0
 
@@ -121,6 +121,7 @@ __py_text_map = ScalarMap(__py_text_type, Display.Text)
 __py_shape_type = RealType.getRealType("py_shape_type")
 __py_shape_map = ScalarMap(__py_shape_type, Display.Shape)
 __py_shapes = None 
+__pcMatrix = None
 
 # create (and return) a VisAD DisplayImplJ3D and add the ScalarMaps, if any
 # the VisAD box is resized to about 95% of the window
@@ -219,34 +220,41 @@ def setAspects(display, x, y, z):
 
 # a simple method for making the VisAD "box" 95% of the window size
 def maximizeBox(display, clip=1):
-  setBoxSize(display, .95,clip)
+  setBoxSize(display, .95, clip)
 
 # a simple method for making the VisAD "box" some % of the window size
-def setBoxSize(display, percent=.70, clip=1):
+def setBoxSize(display, percent=.70, clip=1, showBox=1, snap=0):
+  global __pcMatrix
   pc=display.getProjectionControl()
-  pcMatrix=pc.getMatrix()
-  if len(pcMatrix) > 10:
-    pcMatrix[0]=percent
-    pcMatrix[5]=percent
-    pcMatrix[10]=percent
-  else:
-    pcMatrix[0]=percent/.64
-    pcMatrix[3]=-percent/.64
+  if (not snap) or (__pcMatrix == None): 
+    __pcMatrix=pc.getMatrix()
     
-  pc.setMatrix(pcMatrix)
+  if len(__pcMatrix) > 10:
+    __pcMatrix[0]=percent
+    __pcMatrix[5]=percent
+    __pcMatrix[10]=percent
+  else:
+    __pcMatrix[0]=percent/.64
+    __pcMatrix[3]=-percent/.64
+    
+  pc.setMatrix(__pcMatrix)
+  dr = display.getDisplayRenderer();
+
   if clip & __ok3d:
     try:
-       dr = display.getDisplayRenderer();
        if isinstance(dr, DisplayRendererJ3D):
-         dr.setClip(0, 1,  1.001,  0.0,  0.0, -1.001);
-         dr.setClip(1, 1, -1.001,  0.0,  0.0, -1.001);
-         dr.setClip(2, 1,  0.0,  1.001,  0.0, -1.001);
-         dr.setClip(3, 1,  0.0, -1.001,  0.0, -1.001);
-         dr.setClip(4, 1,  0.0,  0.0,  1.001, -1.001);
-         dr.setClip(5, 1,  0.0,  0.0, -1.001, -1.001);
+         dr.setClip(0, 1,  1.,  0.0,  0.0, -1.);
+         dr.setClip(1, 1, -1.,  0.0,  0.0, -1.);
+         dr.setClip(2, 1,  0.0,  1.,  0.0, -1.);
+         dr.setClip(3, 1,  0.0, -1.,  0.0, -1.);
+         #dr.setClip(4, 1,  0.0,  0.0,  1., -1.);
+         #dr.setClip(5, 1,  0.0,  0.0, -1., -1.);
+       elif isinstance(dr, DisplayRendererJ2D):
+         dr.setClip(-1., 1., -1., 1.)
     except:
        pass
-       
+
+  dr.setBoxOn(showBox)
 
 def makeCube(display):
   display.getGraphicsModeControl().setProjectionPolicy(0)
@@ -520,7 +528,7 @@ class Shapes:
 
   def __init__(self, display, shapemap):
 
-    self.x, self.y, self.z, self.disp, self.shapetype = getDisplayMaps(display,1)
+    self.x, self.y, self.z, self.disp = getDisplayMaps(display)
     self.doing3D = 1
     if self.z == None:
       self.doing3D = 0
@@ -529,6 +537,7 @@ class Shapes:
     self.shapeList = []
     self.shapeRef = []
     self.shapeMap = shapemap
+    self.shapeType = shapemap.getScalar()
 
   # type = type of shape ('cross','triangle','square',
   #  'solid_square','solid_triangle'
@@ -557,7 +566,7 @@ class Shapes:
         self.shape = VisADQuadArray()
         self.shape.coordinates = (scale, scale, 0, scale, -scale, 0,
                                   -scale, -scale, 0, -scale, scale, 0)
-      elif type == "solid_triagle":
+      elif type == "solid_triangle":
         self.shape = VisADTriangleArray()
         self.shape.coordinates = ( -scale, -scale/2, 0,  
                                    scale, -scale/2, 0,  0, scale, 0 )
@@ -586,10 +595,10 @@ class Shapes:
       shape_control.setAutoScale(1)
 
     if self.doing3D:
-      self.shape_coord = RealTupleType(self.x,self.y,self.z,self.shapetype)
+      self.shape_coord = RealTupleType(self.x,self.y,self.z,self.shapeType)
       shapeLoc = RealTuple(self.shape_coord, (0., 0., 0., self.count))
     else:
-      self.shape_coord = RealTupleType(self.x,self.y,self.shapetype)
+      self.shape_coord = RealTupleType(self.x,self.y,self.shapeType)
       shapeLoc = RealTuple(self.shape_coord, (0., 0., self.count))
 
     constmap = makeColorMap(color)
