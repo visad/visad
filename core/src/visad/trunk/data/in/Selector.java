@@ -19,26 +19,27 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: Selector.java,v 1.4 2001-02-22 18:10:41 steve Exp $
+$Id: Selector.java,v 1.5 2001-02-23 17:04:50 steve Exp $
 */
 
 package visad.data.in;
 
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import visad.*;
 
 /**
- * Provides support for selecting a VisAD data object of a particular type from
+ * Provides support for removing unwanted VisAD data objects from
  * a stream of VisAD data objects.
  *
  * <P>Instances are modifiable.</P>
  *
  * @author Steven R. Emmerson
  */
-public class Selector extends DataFilter
-    
+public class Selector
+    extends DataFilter
 {
-    private MathType	targetType;
+    private Condition	condition;
 
     /**
      * Constructs from a downstream data sink.
@@ -51,17 +52,15 @@ public class Selector extends DataFilter
     }
 
     /**
-     * Sets the type of the VisAD object to be selected.  Only VisAD objects
-     * whos {@link MathType} match the given one will be passed on the the 
-     * downstream data sink.
+     * Sets the condition for passing VisAD data objects.  A VisAD object that
+     * satisfies the condition will be passed on to the the downstream data
+     * sink.  All others will be rejected.
      *
-     * @param targetType	The {@link MathType} to pass.  May be
-     *				<code>null</code> -- in which case everything is
-     *				passed.
+     * @param condition		The pass/reject condition.
      */
-    public void setMathType(MathType targetType)
+    public void setCondition(Condition condition)
     {
-	this.targetType = targetType;
+	this.condition = condition;
     }
 
     /**
@@ -74,7 +73,7 @@ public class Selector extends DataFilter
     public void receive(DataImpl data)
 	throws VisADException, RemoteException
     {
-        if (data.getType().equals(targetType))
+        if (condition.isSatisfied(data))
 	    send(data);
     }
 }
