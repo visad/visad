@@ -32,6 +32,7 @@ import java.io.*;
 import java.rmi.RemoteException;
 import java.util.StringTokenizer;
 import javax.swing.*;
+import javax.swing.event.*;
 import visad.*;
 import visad.data.DefaultFamily;
 import visad.java2d.DisplayImplJ2D;
@@ -42,23 +43,26 @@ import visad.util.*;
  * MeasureFrame is a class for measuring the
  * distance between points in a field.
  */
-public class MeasureFrame extends GUIFrame {
+public class MeasureFrame extends GUIFrame implements ChangeListener {
+
+  /** Application title. */
+  private static final String TITLE = "BioVisAD Measurement Tool";
 
   /**
    * File chooser for loading and saving data.
    * Static so that the directory is remembered between each load command.
    */
-  private static JFileChooser fileBox = Util.getVisADFileChooser();
+  private static final JFileChooser fileBox = Util.getVisADFileChooser();
 
   /** Series chooser for loading a series of data files. */
-  private static SeriesChooser seriesBox = new SeriesChooser();
+  private static final SeriesChooser seriesBox = new SeriesChooser();
 
   static {
     MathType.addTimeAlias("index");
   }
 
-  /** Image stack measurement object. */
-  private ImageStackMeasure ism;
+  /** Matrix of measurements. */
+  private MeasureMatrix matrix;
 
   /** VisAD Display. */
   private DisplayImpl display;
@@ -69,18 +73,22 @@ public class MeasureFrame extends GUIFrame {
   /** Widget for stepping through data from the series of files. */
   private FileSeriesWidget horizWidget;
 
+  /** Prefix of current data series. */
+  private String prefix;
+
   /** Synchronization object. */
   private Object lock = new Object();
 
   /** Constructs a measurement object to match the given field. */
   public MeasureFrame() throws VisADException, RemoteException {
     super(true);
-    setTitle("BioVisAD Measurement Tool");
+    setTitle(TITLE);
     addMenuItem("File", "Open...", "fileOpen", 'o');
-    addMenuItem("File", "Open series...", "fileOpenSeries", 's');
+    addMenuSeparator("File");
+    addMenuItem("File", "Restore lines...", "fileRestoreLines", 'r');
+    addMenuItem("File", "Save lines...", "fileSaveLines", 's');
+    addMenuSeparator("File");
     addMenuItem("File", "Exit", "fileExit", 'x');
-    addMenuItem("Measure", "Restore...", "measureRestore", 'r');
-    addMenuItem("Measure", "Save...", "measureSave", 's');
 
     // lay out components
     JPanel pane = new JPanel();
@@ -105,100 +113,27 @@ public class MeasureFrame extends GUIFrame {
     horizWidget = new FileSeriesWidget(true);
     horizWidget.setDisplay(display);
     horizWidget.setWidget(vertWidget);
+    horizWidget.addChangeListener(this);
     pane.add(horizWidget, BorderLayout.SOUTH);
 
     // custom toolbar
-    // CTR: TODO
-    //pane.add(toolbar, BorderLayout.EAST);
-  }
-
-  /** Loads the given dataset. */
-  public void loadFile(File f) {
-    // make sure file exists
-    if (f == null) {
-      JOptionPane.showMessageDialog(this,
-        "Invalid file", "Cannot load file",
-        JOptionPane.ERROR_MESSAGE);
-      return;
-    }
-    if (!f.exists()) {
-      JOptionPane.showMessageDialog(this,
-        f.getName() + " does not exist", "Cannot load file",
-        JOptionPane.ERROR_MESSAGE);
-      return;
-    }
-
-    try {
-      // load data
-      DefaultFamily loader = new DefaultFamily("loader");
-      Data data = loader.open(f.getPath());
-      FieldImpl field = null;
-      if (data instanceof FieldImpl) field = (FieldImpl) data;
-      else if (data instanceof Tuple) {
-        Tuple tuple = (Tuple) data;
-        int len = tuple.getDimension();
-        for (int i=0; i<len; i++) {
-          Data d = tuple.getComponent(i);
-          if (d instanceof FieldImpl) {
-            field = (FieldImpl) d;
-            break;
-          }
-        }
-      }
-      if (field == null) {
-        JOptionPane.showMessageDialog(this,
-          f.getName() + " does not contain an image stack",
-          "Cannot load file", JOptionPane.ERROR_MESSAGE);
-        return;
-      }
-
-      // clear old display
-      display.removeAllReferences();
-      display.clearMaps();
-
-      // set up mappings
-      ScalarMap animMap = null;
-      ScalarMap[] maps = field.getType().guessMaps(false);
-      for (int i=0; i<maps.length; i++) {
-        ScalarMap smap = maps[i];
-        display.addMap(smap);
-        if (Display.Animation.equals(smap.getDisplayScalar())) {
-          animMap = smap;
-        }
-      }
-      DataReferenceImpl ref = new DataReferenceImpl("ref");
-      ref.setData(field);
-      display.addReference(ref);
-      ism = new ImageStackMeasure(field);
-      ism.setDisplay(display);
-      if (animMap != null) vertWidget.setMap(animMap);
-    }
-    catch (Throwable t) { t.printStackTrace(); }
-  }
-
-  /** Loads a dataset specified by the user. */
-  public void fileOpen() {
-    final JFrame frame = this;
-    Thread t = new Thread(new Runnable() {
-      public void run() {
-        synchronized (lock) {
-          setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-          // get file name from file dialog
-          fileBox.setDialogType(JFileChooser.OPEN_DIALOG);
-          if (fileBox.showOpenDialog(frame) != JFileChooser.APPROVE_OPTION) {
-            setCursor(Cursor.getDefaultCursor());
-            return;
-          }
-          loadFile(fileBox.getSelectedFile());
-          setCursor(Cursor.getDefaultCursor());
-        }
+    JPanel toolbar = new JPanel();
+    toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.Y_AXIS));
+    JButton addLine = new JButton("Add line");
+    addLine.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        int index = horizWidget.getValue() - 1;
+        int slice = vertWidget.getValue() - 1;
+        MeasureList list = matrix.getMeasureList(index, slice);
+        list.addMeasurement();
       }
     });
-    t.start();
+    toolbar.add(addLine);
+    pane.add(toolbar, BorderLayout.EAST);
   }
 
   /** Loads a series of datasets specified by the user. */
-  public void fileOpenSeries() {
+  public void fileOpen() {
     final JFrame frame = this;
     Thread t = new Thread(new Runnable() {
       public void run() {
@@ -212,6 +147,7 @@ public class MeasureFrame extends GUIFrame {
 
           // load first file in series
           File[] f = seriesBox.getSeries();
+          prefix = seriesBox.getPrefix();
           if (f == null || f.length < 1) {
             JOptionPane.showMessageDialog(frame,
               "Invalid series", "Cannot load series",
@@ -220,6 +156,7 @@ public class MeasureFrame extends GUIFrame {
             return;
           }
           horizWidget.setSeries(f);
+          matrix = horizWidget.getMatrix();
           setCursor(Cursor.getDefaultCursor());
         }
       }
@@ -227,13 +164,16 @@ public class MeasureFrame extends GUIFrame {
     t.start();
   }
 
-  /** Exits the application. */
-  public void fileExit() {
-    System.exit(0);
-  }
-
   /** Restores a saved set of measurements. */
-  public void measureRestore() {
+  public void fileRestoreLines() {
+    final JFrame frame = this;
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        JOptionPane.showMessageDialog(frame, "Temporarily disabled.",
+          "BioVisAD", JOptionPane.WARNING_MESSAGE);
+      }
+    });
+    /* CTR: TODO
     final JFrame frame = this;
     Thread t = new Thread(new Runnable() {
       public void run() {
@@ -293,10 +233,19 @@ public class MeasureFrame extends GUIFrame {
       }
     });
     t.start();
+    */
   }
 
   /** Saves a set of measurements. */
-  public void measureSave() {
+  public void fileSaveLines() {
+    final JFrame frame = this;
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        JOptionPane.showMessageDialog(frame, "Temporarily disabled.",
+          "BioVisAD", JOptionPane.WARNING_MESSAGE);
+      }
+    });
+    /* CTR: TODO
     final JFrame frame = this;
     Thread t = new Thread(new Runnable() {
       public void run() {
@@ -323,6 +272,19 @@ public class MeasureFrame extends GUIFrame {
       }
     });
     t.start();
+    */
+  }
+
+  /** Exits the application. */
+  public void fileExit() {
+    System.exit(0);
+  }
+
+  /** Listens for file series widget changes. */
+  public void stateChanged(ChangeEvent e) {
+    int max = horizWidget.getMaximum();
+    int cur = horizWidget.getValue();
+    setTitle(TITLE + " - " + prefix + " (" + cur + "/" + max + ")");
   }
 
   /** Launches the MeasureFrame GUI. */

@@ -161,6 +161,9 @@ public class SeriesChooser extends JPanel implements ActionListener {
     return series;
   }
 
+  /** Gets the prefix of the selected file series. */
+  public String getPrefix() { return prefix.getText(); }
+
   /** Handles button press events. */
   public void actionPerformed(ActionEvent e) {
     String command = e.getActionCommand();

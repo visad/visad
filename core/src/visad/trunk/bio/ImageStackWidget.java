@@ -35,11 +35,15 @@ public class ImageStackWidget extends StepWidget
 {
   private ScalarMap smap;
   private AnimationControl control;
+  private MeasureMatrix mm;
 
   /** Constructs a new ImageStackWidget. */
   public ImageStackWidget(boolean horizontal) { super(horizontal); }
 
-  /** Links the ImageStackWidget with the given scalar map. */
+  /** Links the widget with the given measurement matrix. */
+  public void setMatrix(MeasureMatrix mm) { this.mm = mm; }
+
+  /** Links the widget with the given scalar map. */
   public void setMap(ScalarMap smap) throws VisADException, RemoteException {
     // verify scalar map
     if (smap != null && !Display.Animation.equals(smap.getDisplayScalar())) {
@@ -84,6 +88,7 @@ public class ImageStackWidget extends StepWidget
     if (control != null && cur != control.getCurrent() + 1) {
       try {
         control.setCurrent(cur - 1);
+        mm.setSlice(cur - 1);
       }
       catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
       catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }

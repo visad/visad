@@ -38,7 +38,7 @@ import visad.*;
  * StepWidget is a slider GUI component with
  * directional step arrows at either end.
  */
-public class StepWidget extends JPanel
+public abstract class StepWidget extends JPanel
   implements ActionListener, ChangeListener
 {
 
@@ -147,6 +147,15 @@ public class StepWidget extends JPanel
       new Dimension(max.width, Integer.MAX_VALUE);
   }
 
+  /** Gets the current value of the widget. */
+  public int getValue() { return cur; }
+
+  /** Gets the minimum value of the widget. */
+  public int getMinimum() { return min; }
+
+  /** Gets the maximum value of the widget. */
+  public int getMaximum() { return max; }
+
   /** Enables or disables the widget. */
   public void setEnabled(boolean enabled) {
     step.setEnabled(enabled);
@@ -174,6 +183,16 @@ public class StepWidget extends JPanel
     step.setPaintLabels(true);
   }
 
+  /** Adds a ChangeListener to the widget. */
+  public void addChangeListener(ChangeListener l) {
+    step.addChangeListener(l);
+  }
+
+  /** Removes a ChangeListener from the widget. */
+  public void removeChangeListener(ChangeListener l) {
+    step.removeChangeListener(l);
+  }
+
   /** ActionListener method used with JButtons. */
   public void actionPerformed(ActionEvent e) {
     boolean direction = (e.getSource() == back);
@@ -181,14 +200,14 @@ public class StepWidget extends JPanel
       // move back
       cur--;
       if (cur < min) cur = max;
-      updateStep();
     }
     else {
       // move forward
       cur++;
       if (cur > max) cur = min;
-      updateStep();
     }
+    step.setValue(cur);
+    updateStep();
   }
 
   /** ChangeListener method used with JSlider. */
@@ -197,7 +216,7 @@ public class StepWidget extends JPanel
     updateStep();
   }
 
-  /** Override this method for specialized functionality. */
-  protected void updateStep() { }
+  /** Takes action when the slider's current value changes. */
+  protected abstract void updateStep();
 
 }

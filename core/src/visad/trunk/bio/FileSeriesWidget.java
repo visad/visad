@@ -28,7 +28,8 @@ package visad.bio;
 
 import java.io.File;
 import java.rmi.RemoteException;
-import javax.swing.JOptionPane;
+import java.awt.Cursor;
+import javax.swing.*;
 import visad.*;
 import visad.data.DefaultFamily;
 
@@ -45,6 +46,7 @@ public class FileSeriesWidget extends StepWidget {
   private DisplayImpl display;
   private ImageStackWidget isw;
   private ScalarMap animMap;
+  private MeasureMatrix mm;
 
   /** Constructs a new FileSeriesWidget. */
   public FileSeriesWidget(boolean horizontal) {
@@ -55,9 +57,14 @@ public class FileSeriesWidget extends StepWidget {
     catch (VisADException exc) { exc.printStackTrace(); }
   }
 
+  /** Gets the matrix of measurements linked to the widget. */
+  public MeasureMatrix getMatrix() { return mm; }
+
   /** Links the FileSeriesWidget with the given series of files. */
   public void setSeries(File[] files) {
     this.files = files;
+    mm = new MeasureMatrix(files.length, display);
+    isw.setMatrix(mm);
     loadFile(true);
     updateSlider();
   }
@@ -66,12 +73,14 @@ public class FileSeriesWidget extends StepWidget {
   public void setDisplay(DisplayImpl display) { this.display = display; }
 
   /** Links the FileSeriesWidget with the given ImageStackWidget. */
-  public void setWidget(ImageStackWidget widget) { isw = widget; }
+  public void setWidget(ImageStackWidget widget) {
+    isw = widget;
+  }
 
   /** Updates the current file of the image series. */
   public void updateStep() {
-    if (files != null && cur != curFile) {
-      curFile = cur;
+    if (files != null && curFile != cur - 1 && !step.getValueIsAdjusting()) {
+      curFile = cur - 1;
       loadFile(false);
     }
   }
@@ -82,12 +91,16 @@ public class FileSeriesWidget extends StepWidget {
     else {
       setEnabled(true);
       max = files.length;
-      curFile = 1;
+      curFile = 0;
     }
     setBounds(1, max, 1);
   }
 
   private void loadFile(boolean doMaps) {
+    JRootPane pane = getRootPane();
+    if (pane != null) {
+      pane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+    }
     File f = files[curFile];
     Data data = null;
     try {
@@ -95,6 +108,7 @@ public class FileSeriesWidget extends StepWidget {
     }
     catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
     if (data == null) {
+      if (pane != null) pane.setCursor(Cursor.getDefaultCursor());
       JOptionPane.showMessageDialog(this,
         "Cannot import data from " + f.getName(),
         "Cannot load file", JOptionPane.ERROR_MESSAGE);
@@ -118,6 +132,7 @@ public class FileSeriesWidget extends StepWidget {
       }
     }
     if (field == null) {
+      if (pane != null) pane.setCursor(Cursor.getDefaultCursor());
       JOptionPane.showMessageDialog(this,
         f.getName() + " does not contain an image stack",
         "Cannot load file", JOptionPane.ERROR_MESSAGE);
@@ -156,12 +171,12 @@ public class FileSeriesWidget extends StepWidget {
 
     try {
       ref.setData(field);
-      ImageStackMeasure ism = new ImageStackMeasure(field);
-      if (display != null) ism.setDisplay(display);
+      mm.initIndex(curFile, field, false);
       if (isw != null && animMap != null) isw.setMap(animMap);
     }
     catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
     catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
+    if (pane != null) pane.setCursor(Cursor.getDefaultCursor());
   }
 
 }
