@@ -762,7 +762,9 @@ public abstract class DisplayRenderer
             Unit overrideUnit = map.getOverrideUnit();
             Unit rtunit = real.getDefaultUnit();
             // units not part of Time string
-            if (overrideUnit != null && !overrideUnit.equals(rtunit) &&
+            // DRM 2003-08-19: don't check for equality since toString
+            // may be different
+            if (overrideUnit != null && //!overrideUnit.equals(rtunit) &&
                 (!Unit.canConvert(rtunit, CommonUnit.secondsSinceTheEpoch) ||
                  rtunit.getAbsoluteUnit().equals(rtunit))) {
               dval[0] = (float)
