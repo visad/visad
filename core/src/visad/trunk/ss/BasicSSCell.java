@@ -128,6 +128,9 @@ public class BasicSSCell extends JPanel {
   /** whether this display is remote */
   boolean IsRemote;
 
+  /** ID number for this collaborative SpreadSheet */
+  int CollabID = 0;
+
 
   /** remote clone's copy of Filename */
   RemoteDataReference RemoteFilename;
@@ -146,6 +149,9 @@ public class BasicSSCell extends JPanel {
 
   /** remote clone's copy of Maps */
   RemoteDataReference RemoteMaps;
+
+  /** data that is local to a remote clone */
+  RemoteDataReference RemoteLoadedData;
 
 
   /** this BasicSSCell's DisplayListeners */
@@ -226,17 +232,23 @@ public class BasicSSCell extends JPanel {
     DataReferenceImpl drDim = null;
     DataReferenceImpl drErr = null;
     DataReferenceImpl drMap = null;
+    DataReferenceImpl drLoad = null;
 
     if (IsRemote) {
+      // Note: Servers have an ID of zero.
+      // Each client has a random ID number between 1 and Integer.MAX_VALUE.
+      // There really should be a way for clients to ensure that they don't
+      // choose an ID number already taken by another client.
+      CollabID = new Random().nextInt(Integer.MAX_VALUE - 1) + 1;
       RemoteFilename = rs.getDataReference(name + "_Filename");
       RemoteRMIAddress = rs.getDataReference(name + "_RMIAddress");
       RemoteFormula = rs.getDataReference(name + "_Formula");
       RemoteDim = rs.getDataReference(name + "_Dim");
       RemoteErrors = rs.getDataReference(name + "_Errors");
       RemoteMaps = rs.getDataReference(name + "_Maps");
+      RemoteLoadedData = rs.getDataReference(name + "_Loaded");
 
       setDimClone();
-      //setupRemoteDataChangeCell();
 
       VDisplay.addDisplayListener(new DisplayListener() {
         public void displayChanged(DisplayEvent e) {
@@ -321,10 +333,14 @@ public class BasicSSCell extends JPanel {
       drErr = new DataReferenceImpl(Name + "_Errors");
       RemoteErrors = new RemoteDataReferenceImpl(drErr);
       synchErrors();
+
+      // set up objects for sending data from client to server
       drMap = new DataReferenceImpl(Name + "_Maps");
       RemoteMaps = new RemoteDataReferenceImpl(drMap);
-      // Note: We don't ever need to call synchMaps from the server
+      drLoad = new DataReferenceImpl(Name + "_Loaded");
+      RemoteLoadedData = new RemoteDataReferenceImpl(drLoad);
 
+      // default to two dimensions with Java2D
       setDimension(JAVA2D_2D);
     }
 
@@ -333,9 +349,8 @@ public class BasicSSCell extends JPanel {
       public void doAction() {
         try {
           Tuple t = (Tuple) RemoteFilename.getData();
-          Real bit = (Real) t.getComponent(0);
-          boolean b = bit.getValue() == 0;
-          FileIsRemote = (b == IsRemote);
+          Real id = (Real) t.getComponent(0);
+          FileIsRemote = (id.getValue() != CollabID);
           if (FileIsRemote) {
             // act on filename update from remote cell
             Text nFile = (Text) t.getComponent(1);
@@ -372,9 +387,8 @@ public class BasicSSCell extends JPanel {
       public void doAction() {
         try {
           Tuple t = (Tuple) RemoteRMIAddress.getData();
-          Real bit = (Real) t.getComponent(0);
-          boolean b = bit.getValue() == 0;
-          if (b != IsRemote) {
+          Real id = (Real) t.getComponent(0);
+          if (id.getValue() == CollabID) {
             // cells should ignore their own updates
             return;
           }
@@ -410,9 +424,8 @@ public class BasicSSCell extends JPanel {
       public void doAction() {
         try {
           Tuple t = (Tuple) RemoteFormula.getData();
-          Real bit = (Real) t.getComponent(0);
-          boolean b = bit.getValue() == 0;
-          if (b != IsRemote) {
+          Real id = (Real) t.getComponent(0);
+          if (id.getValue() == CollabID) {
             // cells should ignore their own updates
             return;
           }
@@ -442,9 +455,8 @@ public class BasicSSCell extends JPanel {
       public void doAction() {
         try {
           Tuple t = (Tuple) RemoteDim.getData();
-          Real bit = (Real) t.getComponent(0);
-          boolean b = bit.getValue() == 0;
-          if (b != IsRemote) {
+          Real id = (Real) t.getComponent(0);
+          if (id.getValue() == CollabID) {
             // cells should ignore their own updates
             return;
           }
@@ -475,9 +487,8 @@ public class BasicSSCell extends JPanel {
       public void doAction() {
         try {
           Tuple t = (Tuple) RemoteErrors.getData();
-          Real bit = (Real) t.getComponent(0);
-          boolean b = bit.getValue() == 0;
-          if (b != IsRemote) {
+          Real id = (Real) t.getComponent(0);
+          if (id.getValue() == CollabID) {
             // cells should ignore their own updates
             return;
           }
@@ -512,8 +523,8 @@ public class BasicSSCell extends JPanel {
     }
 
     if (!IsRemote) {
-      // only clients remotely update mappings; servers simply set them,
-      // and the clients receive the changes through the RemoteDisplay
+      // server can receive a remote mappings update from any client;
+      // clients simply receive mappings updates through the RemoteDisplay
       CellImpl lMapsCell = new CellImpl() {
         public void doAction() {
           try {
@@ -540,6 +551,30 @@ public class BasicSSCell extends JPanel {
       }
       catch (RemoteException exc) {
         lMapsCell.addReference(drMap);
+      }
+      // server can receive a remote data object update from any client;
+      // clients simply recieve data object updates through the RemoteDisplay
+      CellImpl lLoadedCell = new CellImpl() {
+        public void doAction() {
+          try {
+            Data d = RemoteLoadedData.getData();
+            if (d != null) d = d.local();
+            setData(d);
+          }
+          catch (VisADException exc) {
+            if (DEBUG) exc.printStackTrace();
+          }
+          catch (RemoteException exc) {
+            if (DEBUG) exc.printStackTrace();
+          }
+        }
+      };
+      try {
+        RemoteCellImpl rLoadedCell = new RemoteCellImpl(lLoadedCell);
+        rLoadedCell.addReference(RemoteLoadedData);
+      }
+      catch (RemoteException exc) {
+        lLoadedCell.addReference(drLoad);
       }
     }
 
@@ -585,9 +620,9 @@ public class BasicSSCell extends JPanel {
 
   private void synchFilename() {
     try {
-      Real bit = new Real(IsRemote ? 1 : 0);
+      Real id = new Real(CollabID);
       Text nFile = new Text(Filename == null ? "" : Filename.toString());
-      Tuple t = new Tuple(new Data[] {bit, nFile}, false);
+      Tuple t = new Tuple(new Data[] {id, nFile}, false);
       RemoteFilename.setData(t);
     }
     catch (VisADException exc) {
@@ -600,9 +635,9 @@ public class BasicSSCell extends JPanel {
 
   private void synchRMIAddress() {
     try {
-      Real bit = new Real(IsRemote ? 1 : 0);
+      Real id = new Real(CollabID);
       Text nRMI = new Text(RMIAddress == null ? "" : RMIAddress);
-      Tuple t = new Tuple(new Data[] {bit, nRMI}, false);
+      Tuple t = new Tuple(new Data[] {id, nRMI}, false);
       RemoteRMIAddress.setData(t);
     }
     catch (VisADException exc) {
@@ -615,9 +650,9 @@ public class BasicSSCell extends JPanel {
 
   private void synchFormula() {
     try {
-      Real bit = new Real(IsRemote ? 1 : 0);
+      Real id = new Real(CollabID);
       Text nForm = new Text(Formula);
-      Tuple t = new Tuple(new Data[] {bit, nForm}, false);
+      Tuple t = new Tuple(new Data[] {id, nForm}, false);
       RemoteFormula.setData(t);
     }
     catch (VisADException exc) {
@@ -630,9 +665,9 @@ public class BasicSSCell extends JPanel {
 
   private void synchDim() {
     try {
-      Real bit = new Real(IsRemote ? 1 : 0);
+      Real id = new Real(CollabID);
       Real nDim = new Real(Dim);
-      Tuple t = new Tuple(new Data[] {bit, nDim}, false);
+      Tuple t = new Tuple(new Data[] {id, nDim}, false);
       RemoteDim.setData(t);
     }
     catch (VisADException exc) {
@@ -645,7 +680,7 @@ public class BasicSSCell extends JPanel {
 
   private void synchErrors() {
     try {
-      Real bit = new Real(IsRemote ? 1 : 0);
+      Real id = new Real(CollabID);
       Data nErrors;
       if (Errors != null) {
         int len = Errors.length;
@@ -660,7 +695,7 @@ public class BasicSSCell extends JPanel {
       else {
         nErrors = new Text("");
       }
-      Tuple t = new Tuple(new Data[] {bit, nErrors}, false);
+      Tuple t = new Tuple(new Data[] {id, nErrors}, false);
       RemoteErrors.setData(t);
     }
     catch (VisADException exc) {
@@ -785,6 +820,7 @@ public class BasicSSCell extends JPanel {
         rs.addDataReference((RemoteDataReferenceImpl) RemoteDim);
         rs.addDataReference((RemoteDataReferenceImpl) RemoteErrors);
         rs.addDataReference((RemoteDataReferenceImpl) RemoteMaps);
+        rs.addDataReference((RemoteDataReferenceImpl) RemoteLoadedData);
         Servers.add(rs);
       }
     }
@@ -808,6 +844,7 @@ public class BasicSSCell extends JPanel {
         rs.removeDataReference((RemoteDataReferenceImpl) RemoteDim);
         rs.removeDataReference((RemoteDataReferenceImpl) RemoteErrors);
         rs.removeDataReference((RemoteDataReferenceImpl) RemoteMaps);
+        rs.removeDataReference((RemoteDataReferenceImpl) RemoteLoadedData);
         Servers.remove(rs);
       }
     }
@@ -838,16 +875,6 @@ public class BasicSSCell extends JPanel {
       SSCellListener l = (SSCellListener) list.elementAt(i);
       l.ssCellChanged(e);
     }
-  }
-
-  /** return the BasicSSCell object with the specified display */
-  public static BasicSSCell getSSCellByDisplay(Display d) {
-    Enumeration panels = SSCellVector.elements();
-    while (panels.hasMoreElements()) {
-      BasicSSCell panel = (BasicSSCell) panels.nextElement();
-      if (d == (Display) panel.VDisplay) return panel;
-    }
-    return null;
   }
 
   /** return the BasicSSCell object with the specified name */
@@ -1440,7 +1467,7 @@ public class BasicSSCell extends JPanel {
     }
 
     // set up animation control(s)
-    // CTR - Note: there is a race condition that prevents the AnimationControl
+    // Note: there is a race condition that prevents the AnimationControl
     // from correctly setting the current step and step delays
     len = anim.size();
     if (len > 0) {
@@ -1765,20 +1792,21 @@ public class BasicSSCell extends JPanel {
   /** set this cell's Data to data */
   public void setData(Data data) throws VisADException, RemoteException {
     if (IsRemote) {
-      throw new UnimplementedException("Cannot setData " +
-        "on a cloned cell (yet).");
+      // send local data to server
+      RemoteLoadedData.setData(data);
     }
+    else {
+      fm.setThing(Name, data);
 
-    fm.setThing(Name, data);
-
-    if (data != null) {
-      // add this Data's RealTypes to FormulaManager variable registry
-      Vector v = new Vector();
-      getRealTypes(data, v);
-      int len = v.size();
-      for (int i=0; i<len; i++) {
-        RealType rt = (RealType) v.elementAt(i);
-        fm.setThing(rt.getName(), new VRealType(rt));
+      if (data != null) {
+        // add this Data's RealTypes to FormulaManager variable registry
+        Vector v = new Vector();
+        getRealTypes(data, v);
+        int len = v.size();
+        for (int i=0; i<len; i++) {
+          RealType rt = (RealType) v.elementAt(i);
+          fm.setThing(rt.getName(), new VRealType(rt));
+        }
       }
     }
   }
@@ -2047,11 +2075,6 @@ public class BasicSSCell extends JPanel {
   public synchronized void loadData(URL u)
     throws VisADException, RemoteException
   {
-    if (IsRemote) {
-      throw new UnimplementedException("Cannot loadData " +
-        "on a cloned cell (yet).");
-    }
-
     if (u == null) return;
 
     clearDisplay();

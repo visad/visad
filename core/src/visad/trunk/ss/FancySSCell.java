@@ -388,7 +388,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
       public void run() {
         try {
           cell.loadData(url);
-          if (!cell.hasData()) {
+          if (!cell.hasData() && !IsRemote) {
             JOptionPane.showMessageDialog(Parent, "Unable to import data",
               "Error importing data", JOptionPane.ERROR_MESSAGE);
           }

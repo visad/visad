@@ -282,11 +282,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
               System.out.println(usage);
               System.exit(3);
             }
-            else if (ix < len - 1) {
-              clonename = argv[++ix];
-              System.out.println("Warning: spreadsheet cloning option is " +
-                                 "not fully implemented!");
-            }
+            else if (ix < len - 1) clonename = argv[++ix];
             else {
               System.out.println("You must specify a server after " +
                                  "the '-client' flag!");
@@ -2655,8 +2651,17 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** handle display changes */
   public void displayChanged(DisplayEvent e) {
     if (e.getId() == DisplayEvent.MOUSE_PRESSED) {
-      FancySSCell fcell = (FancySSCell)
-        BasicSSCell.getSSCellByDisplay(e.getDisplay());
+      String name = null;
+      try {
+        name = e.getDisplay().getName();
+      }
+      catch (VisADException exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+      }
+      catch (RemoteException exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+      }
+      FancySSCell fcell = (FancySSCell) BasicSSCell.getSSCellByName(name);
       int ci = -1;
       int cj = -1;
       for (int j=0; j<NumVisY; j++) {
@@ -2666,6 +2671,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
             cj = j;
           }
         }
+      }
+      if (BasicSSCell.DEBUG && (ci < 0 || cj < 0)) {
+        System.err.println("Warning: an unknown display change occurred: " +
+          "display (" + name + ") has changed, but there is no " +
+          "corresponding SSCell with that name!");
       }
       selectCell(ci, cj);
     }
