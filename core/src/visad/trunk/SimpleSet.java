@@ -81,9 +81,6 @@ public abstract class SimpleSet extends Set {
   void setAnimationSampling(ShadowType type, DataShadow shadow, boolean domain)
        throws VisADException {
     if (shadow.isAnimationSampling(domain)) return;
-/* WLH 17 Oct 97
-    if (ManifoldDimension != 1) return;
-*/
     if (DomainDimension != 1) return;
     ShadowRealType real;
     if (type instanceof ShadowRealType) {
