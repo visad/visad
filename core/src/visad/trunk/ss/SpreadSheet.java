@@ -909,7 +909,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       while (true) {
         try {
           rsi = new RemoteServerImpl();
-          Naming.rebind("//:/" + server, rsi);
+          Naming.rebind("///" + server, rsi);
           break;
         }
         catch (java.rmi.ConnectException exc) {

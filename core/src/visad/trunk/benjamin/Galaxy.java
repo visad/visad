@@ -258,7 +258,7 @@ public class Galaxy extends Object implements ActionListener {
       // try to set up a RemoteServer
       server_server = new RemoteServerImpl();
       try {
-        Naming.rebind("//:/Galaxy", server_server);
+        Naming.rebind("///Galaxy", server_server);
       }
       catch (MalformedURLException e) {
         System.out.println("Cannot set up server - running as stand-alone");

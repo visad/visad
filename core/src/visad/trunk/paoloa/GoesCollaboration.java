@@ -214,7 +214,7 @@ public class GoesCollaboration extends Object {
       // try to set up a RemoteServer
       server_server = new RemoteServerImpl();
       try {
-        Naming.rebind("//:/GoesCollaboration", server_server);
+        Naming.rebind("///GoesCollaboration", server_server);
       }
       catch (MalformedURLException e) {
         System.out.println("Cannot set up server - running as stand-alone");

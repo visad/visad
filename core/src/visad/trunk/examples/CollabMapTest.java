@@ -33,7 +33,6 @@ import javax.swing.*;
 import visad.*;
 import visad.data.*;
 import visad.java3d.DisplayImplJ3D;
-import visad.util.ClientServer;
 
 /** A simple test for collaborative ScalarMap editing */
 public class CollabMapTest extends JFrame implements ActionListener {

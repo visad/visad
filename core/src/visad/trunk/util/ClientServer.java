@@ -270,7 +270,7 @@ public class ClientServer
       boolean success = true;
       try {
         server = new RemoteServerImpl();
-        String domain = "//:/" + serviceName;
+        String domain = "///" + serviceName;
         Naming.rebind(domain, server);
         break;
       } catch (java.rmi.ConnectException ce) {
