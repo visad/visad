@@ -1365,7 +1365,7 @@ public class AxisScale implements java.io.Serializable
 
     // how many contour lines are needed.
     int numc = (int) (nhi - nlo) + 1;
-    if (numc < 1) return vals;
+    if (numc < 1) return new double[] {low, high};
 
     vals = new double[numc];
 
