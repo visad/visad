@@ -66,6 +66,8 @@ public class FlexibleTrackManipulation extends Object {
   private DataReferenceImpl track_ref;
   private DataReferenceImpl[] track_refs;
   private DirectManipulationRendererJ3D[] direct_manipulation_renderers;
+// abcd 23 Aug 2001
+  private ConstantMap[][] constant_maps;
   private TrackMonitor[] track_monitors;
 
   private AnimationControl acontrol = null;
@@ -82,39 +84,102 @@ public class FlexibleTrackManipulation extends Object {
   private int shape_index;
   private int lat_index;
   private int lon_index;
+  private float[] shapeColour;	// In RGB order
 
   private int last_time = -1;
 
-  /** constructor with all arguments except size */
+  /**
+   * constructor
+   * Uses default size of 0.1 and default cyclone symbol geometry
+   */
   public FlexibleTrackManipulation(DataReferenceImpl tr, DisplayImplJ3D d,
                                    ScalarMap shape_map1, ScalarMap shape_map2,
                                    boolean need_monitor)
-         throws VisADException, RemoteException {
-    this(tr, d, shape_map1, shape_map2, need_monitor, 0.1f);
+         throws VisADException, RemoteException
+  {
+    final float size = 0.1f;
+
+    // construct symbols
+    int nv = 16;
+    VisADGeometryArray[][] ga = makeStormShapes(nv, size);
+    shapeColour = new float[] {1.0f, 1.0f, 1.0f};
+
+    init(tr, d, shape_map1, shape_map2, need_monitor, size, ga);
   }
 
+
   /**
-     tr.getData() should have MathType:
-       (Time -> tuple))
-     where tuple is flat
-       [e.g., (Latitude, Longitude, shape_index)]
-     and must include RealTypes Latitude and Longitude plus
-     a RealType mapped to Shape in the DisplayImpl d;
-
-     Time may or may not be mapped to Animation
-
-     shape_map1 and shape_map2 must be two ScalarMaps of RealTypes
-       in tr.getData()
-
-     need_monitor true to indicate the need to monitor externally
-       caused changes in tr.getData()
-
-     size = storm symbol size, default = 0.1f
-  */
+   * Constructor - Use default cyclone shape geometry
+   */
   public FlexibleTrackManipulation(DataReferenceImpl tr, DisplayImplJ3D d,
                                    ScalarMap shape_map1, ScalarMap shape_map2,
                                    boolean need_monitor, float size)
-         throws VisADException, RemoteException {
+         throws VisADException, RemoteException
+  {
+    // construct symbols
+    int nv = 16;
+    VisADGeometryArray[][] ga = makeStormShapes(nv, size);
+    shapeColour = new float[] {1.0f, 1.0f, 1.0f};
+
+    init(tr, d, shape_map1, shape_map2, need_monitor, size, ga);
+  }
+
+
+  /**
+   * Construct the FTM stuff
+   *
+   * @author 30/07/2001 modified by abcd
+   *
+   * @param DataReferenceImpl tr - The visad data for the cyclone track
+   *	tr.getData() should have MathType: *    (Time -> tuple))
+   *	where tuple is flat [e.g., (Latitude, Longitude, shape_index)]
+   *	and must include RealTypes Latitude and Longitude plus
+   *	a RealType mapped to Shape in the DisplayImpl d;
+   *	Time may or may not be mapped to Animation
+   *
+   * @param DisplayImplJ3D d - The Display to add the FTM to
+   *
+   * @param ScalarMap shape_map1, shape_map2 - two ScalarMaps of RealTypes
+   *	in tr.getData()
+   *
+   * @param boolean need_monitor - Need to monitor tr to maintain external
+   *	changes to it.
+   *
+   * @param float size - storm symbol size
+   *
+   * @param VisADGeometryArray[][] ga - two arrays of geometry objects
+   *	which represent the cyclone symbols in the order:
+   *	none, low, depresion1, depresion2, s-cyclone1, s-cyclone2,
+   *	n-cyclone1, n-cyclone2.
+   *	There are two arrays so you can combine shapes (ie: circle & lines)
+   *    The geometry can be built with makeStormShapes() or an application
+   *	defined method.
+   *
+   * @param float shapeColour[3] - colour of symbols
+   *
+   * TODO: Have a setCycloneGeometry(VisADGeometryArray[][] ga) method
+   */
+  public FlexibleTrackManipulation(DataReferenceImpl tr, DisplayImplJ3D d,
+                                   ScalarMap shape_map1, ScalarMap shape_map2,
+                                   boolean need_monitor, float size,
+                                   VisADGeometryArray[][] ga,
+                                   float shapeColour[])
+         throws VisADException, RemoteException
+  {
+	this.shapeColour = shapeColour;
+	init(tr, d, shape_map1, shape_map2, need_monitor, size, ga);
+  }
+
+
+  /**
+   * Do the work to construct a FTM
+   */
+  private void init(DataReferenceImpl tr, DisplayImplJ3D d,
+                                   ScalarMap shape_map1, ScalarMap shape_map2,
+                                   boolean need_monitor, float size,
+                                   VisADGeometryArray[][] ga)
+         throws VisADException, RemoteException
+  {
     track_ref = tr;
     storm_track = (FlatField) track_ref.getData();
     display = d;
@@ -188,10 +253,7 @@ public class FlexibleTrackManipulation extends Object {
 
     setupData(storm_track);
 
-    // construct symbols
-    int nv = 16;
-    VisADGeometryArray[][] ga = makeStormShapes(nv, size);
-
+    // Store geometry array in shapes
     shape_control1 = (ShapeControl) shape_map1.getControl();
     shape_control1.setShapeSet(new Integer1DSet(8));
     shape_control1.setShapes(ga[0]);
@@ -213,6 +275,10 @@ public class FlexibleTrackManipulation extends Object {
     }
   }
 
+
+  /**
+   * Class to keep cyclone data in sync with external changes to it
+   */
   class DataMonitor extends CellImpl {
     public void doAction() throws VisADException, RemoteException {
       synchronized (data_lock) {
@@ -246,6 +312,7 @@ public class FlexibleTrackManipulation extends Object {
       } // end synchronized (data_lock)
     }
   }
+
 
   private void setupData(FieldImpl storm_track)
           throws VisADException, RemoteException {
@@ -293,16 +360,28 @@ public class FlexibleTrackManipulation extends Object {
                        storm_track_type);
       }
   
+// abcd 23 August 2001
+      display.disableAction();
       if (acontrol == null) {
         track_refs = new DataReferenceImpl[ntimes];
         direct_manipulation_renderers = new DirectManipulationRendererJ3D[ntimes];
         track_monitors = new TrackMonitor[ntimes];
+        constant_maps = new ConstantMap[ntimes][];
         for (int i=0; i<ntimes; i++) {
           track_refs[i] = new DataReferenceImpl("station_ref" + i);
           track_refs[i].setData(tuples[i]);
           direct_manipulation_renderers[i] =
             new FTMDirectManipulationRendererJ3D(this);
-          display.addReferences(direct_manipulation_renderers[i], track_refs[i]);
+// abcd 23 August 2001
+          ConstantMap[] foo = {
+            new ConstantMap(shapeColour[0], Display.Red),
+            new ConstantMap(shapeColour[1], Display.Green),
+            new ConstantMap(shapeColour[2], Display.Blue)
+          };
+          constant_maps[i] = foo;
+
+          display.addReferences(direct_manipulation_renderers[i],
+		track_refs[i], constant_maps[i]);
           track_monitors[i] = new TrackMonitor(track_refs[i], i);
           track_monitors[i].addReference(track_refs[i]);
         }
@@ -311,14 +390,24 @@ public class FlexibleTrackManipulation extends Object {
         track_refs = new DataReferenceImpl[1];
         direct_manipulation_renderers = new DirectManipulationRendererJ3D[1];
         track_monitors = new TrackMonitor[1];
+        constant_maps = new ConstantMap[1][];
         track_refs[0] = new DataReferenceImpl("station_ref");
         track_refs[0].setData(tuples[0]);
         direct_manipulation_renderers[0] =
           new FTMDirectManipulationRendererJ3D(this);
-        display.addReferences(direct_manipulation_renderers[0], track_refs[0]);
+// abcd 23 August 2001
+        constant_maps[0] = new ConstantMap[] {
+          new ConstantMap(shapeColour[0], Display.Red),
+          new ConstantMap(shapeColour[1], Display.Green),
+          new ConstantMap(shapeColour[2], Display.Blue)
+        };
+        display.addReferences(direct_manipulation_renderers[0],
+		track_refs[0], constant_maps[0]);
         track_monitors[0] = new TrackMonitor(track_refs[0], 0);
         track_monitors[0].addReference(track_refs[0]);
       }
+//abcd
+      display.enableAction();
     } // end synchronized (data_lock)
   }
 
@@ -331,6 +420,16 @@ public class FlexibleTrackManipulation extends Object {
     }
   }
 
+
+  /**
+   * Create the geometry array which contains the shapes for the
+   * cyclone symbols.
+   *
+   * @param int nv - The number of vertices?
+   *
+   * @param float size - The size of all the symbols, apparently relative
+   *	to the size of the window
+   */
   public static VisADGeometryArray[][] makeStormShapes(int nv, float size)
          throws VisADException {
     VisADLineArray circle = new VisADLineArray();
@@ -376,13 +475,15 @@ public class FlexibleTrackManipulation extends Object {
     }
     filled_circle.normals = normals;
 
+    // L symbol for Tropical Low
+    // 30/07/2001 abcd - halved the size
     VisADLineArray ell = new VisADLineArray();
     ell.vertexCount = 2 * 4;
     ell.coordinates = new float[] {
-      -0.5f * size, size, 0.0f,    0.0f, size, 0.0f,
-      -0.25f * size, size, 0.0f,   -0.25f * size, -size, 0.0f,
-      -0.25f * size, -size, 0.0f,  size, -size, 0.0f,
-      size, -size, 0.0f,           size, -0.75f * size, 0.0f
+      -0.25f * size, 0.5f * size, 0.0f,   0.0f, 0.5f * size, 0.0f,
+      -0.12f * size, 0.5f * size, 0.0f,   -0.12f * size, -0.5f * size, 0.0f,
+      -0.12f * size, -0.5f * size, 0.0f,  0.5f * size, -0.5f * size, 0.0f,
+      0.5f * size, -0.5f * size, 0.0f,    0.5f * size, -0.37f * size, 0.0f
     };
 
     VisADLineArray south = new VisADLineArray();
