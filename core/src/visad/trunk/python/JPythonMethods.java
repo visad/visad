@@ -42,6 +42,11 @@ import visad.matrix.*;
 import visad.data.*;
 import visad.data.netcdf.Plain;
 import visad.ss.*;
+import ucar.netcdf.NetcdfFile;
+import visad.data.netcdf.QuantityDBManager;
+import visad.data.netcdf.in.DefaultView;
+import visad.data.netcdf.in.NetcdfAdapter;
+import java.util.TreeSet;
 
 /**
  * A collection of methods for working with VisAD, callable from the
@@ -2143,11 +2148,43 @@ public abstract class JPythonMethods {
       visad.jmet.DumpType.dumpDataType(d);
   }
 
+  /** helper method for dumpMathType() only
+  * This just dumps out the MathType of the Data object.
+  */
+  public static void dumpType(Data d) 
+             throws VisADException, RemoteException {
+      MathType t = d.getType();
+      visad.jmet.DumpType.dumpMathType(t);
+  }
+
   public static 
        visad.data.mcidas.PointDataAdapter getPointDataAdapter(String request) 
              throws VisADException, RemoteException {
        return (new visad.data.mcidas.PointDataAdapter(request));
   }
+
+  /** helper method to read netcdf files with possible factor
+  */
+
+  public static Data getNetcdfData(String filename) 
+             throws VisADException, RemoteException, IOException {
+    return getNetcdfData(filename, null);
+  }
+
+  public static Data getNetcdfData(String filename, String factor) 
+             throws VisADException, RemoteException, IOException {
+
+    NetcdfFile nf = new NetcdfFile(filename, true);
+    DefaultView dv = new DefaultView(nf,QuantityDBManager.instance(),true);
+    if (factor != null) {
+      TreeSet ts = new TreeSet();
+      ts.add(factor);
+      dv.setOuterDimensionNameSet(ts);
+    }
+    NetcdfAdapter na=new NetcdfAdapter(dv);
+    return na.getData();
+  }
+
 
 }
 

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: View.java,v 1.6 2002-10-21 20:07:46 donm Exp $
+ * $Id: View.java,v 1.7 2002-11-15 18:26:08 tomw Exp $
  */
 
 package visad.data.netcdf.in;
@@ -11,6 +11,7 @@ package visad.data.netcdf.in;
 import java.io.IOException;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.Iterator;
 import ucar.netcdf.Attribute;
 import ucar.netcdf.Dimension;
 import ucar.netcdf.DimensionIterator;
@@ -42,7 +43,7 @@ import visad.VisADException;
  * A convention-dependent view of a netCDF dataset.
  *
  * @author Steven R. Emmerson
- * @version $Revision: 1.6 $ $Date: 2002-10-21 20:07:46 $
+ * @version $Revision: 1.7 $ $Date: 2002-11-15 18:26:08 $
  */
 public abstract class View
 {
@@ -81,6 +82,12 @@ public abstract class View
      * Something for creating unique names.
      */
     private static int       nameCount;
+
+    /** Names of outer dimensions to be factored out
+    *
+    */
+
+    private java.util.Set factorNameSet = null;
 
     /**
      * Constructs from a netCDF dataset.
@@ -963,11 +970,44 @@ public abstract class View
         return var;
     }
 
+    /** <p> Defines the names of domain components to factor out. 
+    * This only works if this names correspond to the outermost
+    * dimension.  The list of names may be changed after calling
+    * this.</p>
+    *
+    * <p>The Set should contain only String(s).</p>
+    *
+    * <p>Typically, a TreeSet will be used. For example:</p>
+    * <code>TreeSet ts = new TreeSet();</code>
+    * <code>ts.add("myParameter");</code>
+    * <code>view.setOuterDimensionNameSet(ts);</code>
+    *
+    * @param fn    A Set containing the names (as Strings) of
+    * the dimensions to factor out.
+    *
+    */
+    public void setOuterDimensionNameSet(java.util.Set nameSet) {
+      factorNameSet = nameSet;
+    }
+
+    /** 
+    * <p> Returns the factorName object
+    *
+    * @return     The Set of factorNames.
+    */
+
+    public java.util.Set getOuterDimensionNameSet() { 
+      return factorNameSet;
+    }
+
     /**
      * <p>Indicates if a netCDF dimension represents time.</p>
      *
      * <p>This implementation supports coordinate variables and uses {@link
      * #getRealType(Dimension)}.</p>
+     *
+     * <p>If setOuterDimensionNameSet() has been called, this list
+     * of names will also logically be considered factorable.</p>
      *
      * @param dim               A netCDF dimension.
      * @return                  <code>true</code> if and only if the dimension
@@ -978,7 +1018,14 @@ public abstract class View
     protected boolean isTime(Dimension dim)
         throws VisADException, IOException
     {
-        return isTime(getRealType(dim).getDefaultUnit());
+        RealType rt = getRealType(dim);
+        if (factorNameSet != null) {
+          if (factorNameSet.contains(rt.getName()) ) {
+             return true;
+          }
+        }
+        
+        return (isTime(rt.getDefaultUnit()) );
     }
 
     /**
