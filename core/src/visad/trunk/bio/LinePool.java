@@ -139,6 +139,10 @@ public class LinePool implements DisplayListener {
   public void set(Measurement[] m) {
     int size = m.length;
 
+    // deselect
+    box.select(null);
+    if (toolbar != null) toolbar.select(null);
+
     // set each reference accordingly
     expand(size);
     lnUsed = 0;
