@@ -1,36 +1,33 @@
+//
+// FileFlatField.java
+//
+
 /*
- * VisAD system for interactive analysis and visualization of numerical
- * data.  Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
- * Rink, Dave Glowacki, and Steve Emmerson.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 1, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License in file NOTICE for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * $Id: FileFlatField.java,v 1.3 1998-02-23 14:33:10 steve Exp $
- */
+VisAD system for interactive analysis and visualization of numerical
+data.  Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
+Rink and Dave Glowacki.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 1, or (at your option)
+any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License in file NOTICE for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+*/
 
 package visad.data;
 
-
 import java.rmi.RemoteException;
 
-import visad.Data;
 import visad.FlatField;
-import visad.VisADException;
-import visad.FunctionType;
-import visad.Set;
-
+import visad.*;
 
 public class FileFlatField extends FlatField {
   // note FileFlatField extends FlatField but may not inherit
@@ -38,46 +35,53 @@ public class FileFlatField extends FlatField {
   // through the adapted FlatField
  
   // number of FlatFields in cache
-  private static final int MAX_FILE_FLAT_FIELDS = 100;
+
+       private static final int MAX_FILE_FLAT_FIELDS = 7;
+
   // array of cached FlatFields
-  private static FlatField[] adaptedFlatFields =
-    new FlatField[MAX_FILE_FLAT_FIELDS];
+
+       private static FlatField[] adaptedFlatFields =
+       new FlatField[MAX_FILE_FLAT_FIELDS];
+
   // true if cache entry differs from file contents
-  private static boolean adaptedFlatFieldDirty[] =
-    new boolean[MAX_FILE_FLAT_FIELDS];
+
+       private static boolean adaptedFlatFieldDirty[] =
+       new boolean[MAX_FILE_FLAT_FIELDS];
+
   // the FileFlatField that owns this cache entry
-  private static FileFlatField[] adaptedFlatFieldOwner =
-    new FileFlatField[MAX_FILE_FLAT_FIELDS];
+
+       private static FileFlatField[] adaptedFlatFieldOwner =
+       new FileFlatField[MAX_FILE_FLAT_FIELDS];
  
   // adaptedFlatFieldSizes and adaptedFlatFieldTimes
   // may be useful for cache allocation algorithms
   // approximate sizes of FlatFields in cache
-  private static long[] adaptedFlatFieldSizes =
-    new long[MAX_FILE_FLAT_FIELDS];
+
+       private static long[] adaptedFlatFieldSizes =
+       new long[MAX_FILE_FLAT_FIELDS];
+
   // times of most recent accesses to FlatFields in cache
-  private static long[] adaptedFlatFieldTimes =
-    new long[MAX_FILE_FLAT_FIELDS];
+
+       private static long[] adaptedFlatFieldTimes =
+       new long[MAX_FILE_FLAT_FIELDS];
  
   // index of cache entry owned by this FileFlatField;
   // but only if
   // this == adaptedFlatFieldOwner[adaptedFlatFieldIndex]
-  private int adaptedFlatFieldIndex;
  
-  // this is a template for the adaptedFlatFields entry for this
-  // FileFlatField;
-  // templateFlatField is constructed with all metadata, but it
-  // is 'missing' and its range arrays are not allocated
-  private FlatField templateFlatField;
+       private int adaptedFlatFieldIndex;
+ 
+
   // this is the FileAccessor for reading and writing values from
   // and to the adapted file
-  FileAccessor fileAccessor;
-  // this is the location in the file for this FileFlatField
-  int[] fileLocation;
- 
+
+       FileAccessor fileAccessor;
+
   // this implements a strategy for cache replacement;
   // this separates the cahce strategy algorithm from the logic
   // of FileFlatField
-  private CacheStrategy cacheStrategy;
+
+       private CacheStrategy cacheStrategy;
  
   static {
     // initialize cache of FlatFields
@@ -95,15 +99,14 @@ public class FileFlatField extends FlatField {
   // all methods lock on adaptedFlatFields cache
   // to ensure thread safe access
  
-  public FileFlatField(FlatField template, FileAccessor accessor,
-                       int[] location, CacheStrategy strategy)
-    throws VisADException
+  public FileFlatField( FileAccessor accessor, CacheStrategy strategy )
+    throws VisADException 
   {
-    super((FunctionType)null, (Set)null);
 
-    templateFlatField = template;
+    super( accessor.getFunctionType(), 
+           (accessor.getFunctionType()).getDomain().getDefaultSet() );
+
     fileAccessor = accessor;
-    fileLocation = location;
     cacheStrategy = strategy;
  
     synchronized (adaptedFlatFields) {
@@ -118,41 +121,53 @@ public class FileFlatField extends FlatField {
   {
     // does not lock adaptedFlatFields since it is always
     // invoked from methods that have locked adaptedFlatFields
-    if (this != adaptedFlatFieldOwner[adaptedFlatFieldIndex]) {
+
+    for ( int ii = 0; ii < MAX_FILE_FLAT_FIELDS; ii++ ) 
+    {
+      if (this == adaptedFlatFieldOwner[ii]) {
+
+        // mark time of most recent access
+
+           adaptedFlatFieldTimes[adaptedFlatFieldIndex] =
+           System.currentTimeMillis();
  
-      // this FileFlatField does not own a cache entry, so invoke
-      // CahceStrategy.allocate to allocate one, possibly by taking
-      // one, possibly by taking one from another FileFlatField;
-      // this will be an area for lots of thought and experimentation;
-      adaptedFlatFieldIndex =
-        cacheStrategy.allocate(adaptedFlatFields, adaptedFlatFieldDirty,
+           return adaptedFlatFields[ii];
+      }
+    }
+ 
+        // this FileFlatField does not own a cache entry, so invoke
+        // CahceStrategy.allocate to allocate one, possibly by taking
+        // one, possibly by taking one from another FileFlatField;
+        // this will be an area for lots of thought and experimentation;
+
+        adaptedFlatFieldIndex =
+          cacheStrategy.allocate(adaptedFlatFields, adaptedFlatFieldDirty,
                                adaptedFlatFieldSizes, adaptedFlatFieldTimes);
  
-      // flush cache entry, if dirty
-      if (adaptedFlatFieldDirty[adaptedFlatFieldIndex]) {
-        adaptedFlatFieldOwner[adaptedFlatFieldIndex].flushCache();
-      }
+        // flush cache entry, if dirty
+
+        if (adaptedFlatFieldDirty[adaptedFlatFieldIndex]) {
+          adaptedFlatFieldOwner[adaptedFlatFieldIndex].flushCache();
+        }
  
-      // create a new entry in adaptedFlatFields at adaptedFlatFieldIndex
-      // and read data values from fileAccessor at fileLocation
-      adaptedFlatFields[adaptedFlatFieldIndex] =
-        (FlatField)templateFlatField.clone();
-      adaptedFlatFields[adaptedFlatFieldIndex].
-        setSamples(fileAccessor.readFlatField(templateFlatField, fileLocation));
+        // create a new entry in adaptedFlatFields at adaptedFlatFieldIndex
+        // and read data values from fileAccessor at fileLocation
+
+          adaptedFlatFields[adaptedFlatFieldIndex] = fileAccessor.getFlatField();
  
-      // mark cache entry as belonging to this FileFlatField
-      adaptedFlatFieldOwner[adaptedFlatFieldIndex] = this;
-      // get size of adapted FlatField
-      // (by calling a method that currently does not exist)
-      /*
-      adaptedFlatFieldSizes[adaptedFlatFieldIndex] =
-        adaptedFlatFields[adaptedFlatFieldIndex].getSize();
-      */
-    }
-    // mark time of most recent access
-    adaptedFlatFieldTimes[adaptedFlatFieldIndex] =
-      System.currentTimeMillis();
-    return adaptedFlatFields[adaptedFlatFieldIndex];
+        // mark cache entry as belonging to this FileFlatField
+
+          adaptedFlatFieldOwner[adaptedFlatFieldIndex] = this;
+
+        // get size of adapted FlatField
+        // (by calling a method that currently does not exist)
+
+          /*adaptedFlatFields[adaptedFlatFieldIndex].getSize(); */
+ 
+         adaptedFlatFieldTimes[adaptedFlatFieldIndex] =
+            System.currentTimeMillis();
+
+         return adaptedFlatFields[adaptedFlatFieldIndex];
   }
  
   private void flushCache()
@@ -162,11 +177,9 @@ public class FileFlatField extends FlatField {
     if (this == adaptedFlatFieldOwner[adaptedFlatFieldIndex]) {
       // unpackValues is currently private, would need default protection
       // for access from FileFlatField
-      /*
-      fileAccessor.writeFlatField(
+   /* fileAccessor.writeFlatField(
         adaptedFlatFields[adaptedFlatFieldIndex].unpackValues(),
-        templateFlatField, fileLocation);
-      */
+        templateFlatField, fileLocation); */
     }
   }
  
@@ -177,13 +190,33 @@ public class FileFlatField extends FlatField {
   //
   // most are simple adapters, like this:
   //
+
   public Data getSample(int index)
          throws VisADException, RemoteException {
     synchronized (adaptedFlatFields) {
       return getadaptedFlatField().getSample(index);
     }
   }
+
+  public Set getDomainSet() {
+
+    synchronized ( adaptedFlatFields ) {
+
+      try {
+        return getadaptedFlatField().getDomainSet();
+      }
+      catch( VisADException e1 ) {
+       
+        return null;
+      }
+      catch( RemoteException e2 ) {
+
+        return null;
+      }
+    }
+  }
  
+
   // setSample is typical of methods that involve changing the
   // contents of this Field
   public void setSample(int index, Data range)
