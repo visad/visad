@@ -200,7 +200,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     while (me.hasMoreElements()) {
       ScalarMap sm = (ScalarMap )me.nextElement();
       try {
-        addMap(sm);
+        addMap((ScalarMap )sm.clone());
       } catch (DisplayException de) {
         try {
           addMap(new ScalarMap(sm.getScalar(), sm.getDisplayScalar()));
@@ -228,7 +228,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     while (ce.hasMoreElements()) {
       ConstantMap cm = (ConstantMap )ce.nextElement();
       try {
-        addMap(cm);
+        addMap((ConstantMap )cm.clone());
       } catch (DisplayException de) {
         try {
           addMap(new ConstantMap(cm.getConstant(), cm.getDisplayScalar()));
