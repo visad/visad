@@ -13,6 +13,11 @@ the editor with:
   java visad.python.JPythonFrame
 Then open this file and choose "Command", "Run"
 """
+
+# load a GIF image file
 data = load("../ss/cut.gif")
+
+# plot the GIF image
 clearplot()
 plot(data)
+

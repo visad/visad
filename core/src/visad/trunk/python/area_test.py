@@ -1,8 +1,15 @@
 from visad.python.JPythonMethods import *
-area = load("../examples/AREA0007")
-area2 = load("../examples/AREA0008").extract(0)
+# load two McIDAS area files
+area7 = load("../examples/AREA0007")
+area8 = load("../examples/AREA0008")
 
-area3 = area2 - area
+# extract one band from area8
+area8 = area8.extract(0)
 
+# subtract one area from the other, georeferenced
+difference = area8 - area7
+
+# plot area difference
 clearplot()
-plot(area3)
+plot(difference)
+
