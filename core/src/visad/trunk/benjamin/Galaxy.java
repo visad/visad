@@ -164,6 +164,7 @@ public class Galaxy extends Object implements ActionListener {
   DataReference compute_button_ref;
   DataReference reset_button_ref;
   DataReference density_button_ref;
+  DataReference flat_sphere_button_ref;
 
   /** Displays */
   DisplayImpl display1;
@@ -173,6 +174,18 @@ public class Galaxy extends Object implements ActionListener {
   DisplayImpl display5;  // Spherical Sky Map display
 
   JTextField[] coord_fields = new JTextField[3];
+
+  JPanel center;
+  JButton flat_sphere_button;
+  JPanel panel2;
+  JPanel panel5;
+
+  JPanel widget_panel;
+
+  /** color widgets for sky map images */
+  LabeledRGBWidget lw2;
+  LabeledRGBWidget lw5;
+
   ConstantMap[] cmaps;
 
   ConstantMap[] cmaps_sol;
@@ -183,9 +196,6 @@ public class Galaxy extends Object implements ActionListener {
 
   /** ScalarMap for 'line' in display2 */
   ScalarMap linemap;
-
-  /** color widget for sky map image */
-  LabeledRGBWidget lw;
 
   /** type 'java -mx64m visad.benjamin.Galaxy' to run this application;
       the main thread just exits, since Display, Cell and JFC threads
@@ -348,6 +358,9 @@ public class Galaxy extends Object implements ActionListener {
     sol_ref = new DataReferenceImpl("sol_ref");
     dist_densityRef = new DataReferenceImpl("dist_densityRef");
     dist_emissionRef = new DataReferenceImpl("dist_emissionRef");
+
+    flat_sphere_button_ref = new DataReferenceImpl("flat_sphere_button");
+    flat_sphere_button_ref.setData(new Real(0.0));
 
     RealTuple init_red_cursor = new RealTuple( new Real[] {
                                                new Real( gridx, 0.0 ),
@@ -660,6 +673,8 @@ public class Galaxy extends Object implements ActionListener {
     density_button_ref = refs[25];
     sphrSkyMap_ref = refs[26];
 
+    flat_sphere_button_ref = new DataReferenceImpl("flat_sphere_button");
+    flat_sphere_button_ref.setData(new Real(0.0));
 
     // get grid RealTypes needed for Display ScalarMaps
     grid_type = (FunctionType) grid_ref.getType();
@@ -794,15 +809,15 @@ public class Galaxy extends Object implements ActionListener {
     display2.addMap(new ScalarMap(element, Display.XAxis));
     linemap = new ScalarMap(line, Display.YAxis);
     display2.addMap(linemap);
-    ScalarMap rgbmap = new ScalarMap(radiance, Display.RGB);
-    display2.addMap(rgbmap);
+    ScalarMap rgbmap2 = new ScalarMap(radiance, Display.RGB);
+    display2.addMap(rgbmap2);
     ScalarMap lonmap = new ScalarMap(lon, Display.IsoContour);
     display2.addMap(lonmap);
     ScalarMap latmap = new ScalarMap(lat, Display.IsoContour);
     display2.addMap(latmap);
 
     // color widget for sky map
-    lw = new LabeledRGBWidget(rgbmap);
+    lw2 = new LabeledRGBWidget(rgbmap2);
 
 /* WLH 26 Jan 99
    need DisplayImpl.clearMap(ScalarMap map)
@@ -880,7 +895,12 @@ public class Galaxy extends Object implements ActionListener {
 
     display5.addMap( new ScalarMap(lon, Display.Longitude));
     display5.addMap( new ScalarMap(lat, Display.Latitude));
-    display5.addMap( new ScalarMap(radiance, Display.RGB));
+    ScalarMap rgbmap5 = new ScalarMap(radiance, Display.RGB);
+    display5.addMap(rgbmap5);
+
+    // color widget for sky map
+    lw5 = new LabeledRGBWidget(rgbmap5);
+
     if (client) {
       RemoteDisplayImpl remote_display5 =
         new RemoteDisplayImpl(display5);
@@ -1019,7 +1039,7 @@ public class Galaxy extends Object implements ActionListener {
     slider_panel.add(new JLabel("  "));
 
     // create widget_panel JPanel
-    JPanel widget_panel = new JPanel();
+    widget_panel = new JPanel();
     widget_panel.setName("Color Widget");
     widget_panel.setFont(new Font("Dialog", Font.PLAIN, 12));
     widget_panel.setLayout(new BoxLayout(widget_panel, BoxLayout.Y_AXIS));
@@ -1031,11 +1051,12 @@ public class Galaxy extends Object implements ActionListener {
 
     // color widget for sky map image
     d = new Dimension(300, 170);
-    lw.setMaximumSize(d);
-    widget_panel.add(lw);
+    lw2.setMaximumSize(d);
+    lw5.setMaximumSize(d);
+    widget_panel.add(lw2);
 
     // create center JPanel for Displays
-    JPanel center = new JPanel();
+    center = new JPanel();
     center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
     center.setAlignmentY(JPanel.TOP_ALIGNMENT);
     center.setAlignmentX(JPanel.LEFT_ALIGNMENT);
@@ -1058,10 +1079,10 @@ public class Galaxy extends Object implements ActionListener {
  
     // get Display panels
     JPanel panel1 = (JPanel) displays[0].getComponent();
-    JPanel panel2 = (JPanel) displays[1].getComponent();
+    panel2 = (JPanel) displays[1].getComponent();
     JPanel panel3 = (JPanel) displays[2].getComponent();
     JPanel panel4 = (JPanel) displays[3].getComponent();
-    JPanel panel5 = (JPanel) displays[4].getComponent();
+    panel5 = (JPanel) displays[4].getComponent();
 
     // make borders for Displays and embed in display_panel JPanel
     Border etchedBorder5 =
@@ -1116,6 +1137,10 @@ public class Galaxy extends Object implements ActionListener {
     JLabel display2a_label =
       new JLabel("as seen from Earth");
 
+    flat_sphere_button = new JButton("flat > sphere");
+    flat_sphere_button.addActionListener(this);
+    flat_sphere_button.setActionCommand("flat/sphere");
+
     // add contour_panel, displays and display labels for center panel
     center.add(contour_panel);
     center.add(panel1);
@@ -1123,6 +1148,7 @@ public class Galaxy extends Object implements ActionListener {
     center.add(display1a_label);
     center.add(coord_panel);
     center.add(panel2);
+    center.add(flat_sphere_button);
     center.add(display2_label);
     center.add(display2a_label);
  
@@ -1162,8 +1188,7 @@ public class Galaxy extends Object implements ActionListener {
 */
     right.add(panel3);
     // temporarily use spherical sky map in place of emission graph
-    // right.add(panel4);
-    right.add(panel5);
+    right.add(panel4);
 
 /*
     JFrame frame3 = new JFrame("Spherical Sky Map");
@@ -1219,6 +1244,32 @@ public class Galaxy extends Object implements ActionListener {
     if (cmd.equals("density/emission")) {
       try {
         density_button_ref.setData(new Real(0.0));
+      }
+      catch ( VisADException ex ) {
+      }
+      catch ( RemoteException ex ) {
+      }
+    }
+    if (cmd.equals("flat/sphere")) {
+      try {
+        double val = ((Real) flat_sphere_button_ref.getData()).getValue();
+        if (val < 0.5) {
+          val = 1.0;
+          center.remove(panel2);
+          center.add(panel5, 5);
+          widget_panel.remove(lw2);
+          widget_panel.add(lw5, 0);
+          flat_sphere_button.setText("sphere > flat");
+        }
+        else {
+          val = 0.0;
+          center.remove(panel5);
+          center.add(panel2, 5);
+          widget_panel.remove(lw5);
+          widget_panel.add(lw2, 0);
+          flat_sphere_button.setText("flat > sphere");
+        }
+        flat_sphere_button_ref.setData(new Real(val));
       }
       catch ( VisADException ex ) {
       }
