@@ -55,18 +55,19 @@ public interface BinaryFile
 
   byte FLD_INDEX_UNITS = 40;
   byte FLD_INDEX_ERRORS = 41;
-  byte FLD_INDEX_COORDSYSES = 42;
 
-  byte FLD_DELAUNAY = 50;
-  byte FLD_DELAUNAY_TRI = 51;
-  byte FLD_DELAUNAY_VERTICES = 52;
-  byte FLD_DELAUNAY_WALK = 53;
-  byte FLD_DELAUNAY_EDGES = 54;
-  byte FLD_DELAUNAY_NUM_EDGES = 55;
+  byte FLD_RANGE_COORDSYSES = 50;
 
-  byte FLD_SET_FOLLOWS_TYPE = 60;
+  byte FLD_DELAUNAY = 60;
+  byte FLD_DELAUNAY_TRI = 61;
+  byte FLD_DELAUNAY_VERTICES = 62;
+  byte FLD_DELAUNAY_WALK = 63;
+  byte FLD_DELAUNAY_EDGES = 64;
+  byte FLD_DELAUNAY_NUM_EDGES = 65;
 
-  byte FLD_END = 70;
+  byte FLD_SET_FOLLOWS_TYPE = 70;
+
+  byte FLD_END = 80;
 
   byte MATH_FUNCTION = 1;
   byte MATH_REAL = 2;
@@ -81,7 +82,7 @@ public interface BinaryFile
   // byte MATH_GRID_VECTOR = 11;
   // byte MATH_DISPLAY_REAL = 12;
 
-  byte DATA_SCALAR = 1;
+  // byte DATA_SCALAR = 1;
   byte DATA_TEXT = 2;
   byte DATA_REAL = 3;
 

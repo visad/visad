@@ -660,8 +660,8 @@ if(DEBUG_DATA&&DEBUG_CSYS)System.err.println("rdFlFld: cSys index (" + index + "
         cs = (CoordinateSystem )cSysCache.get(index);
 if(DEBUG_DATA&&!DEBUG_CSYS)System.err.println("rdFlFld: cSys index (" + index + "=" + cs + ")");
         break;
-      case FLD_INDEX_COORDSYSES:
-if(DEBUG_DATA)System.err.println("rdFlFld: FLD_INDEX_COORDSYSES (" + FLD_INDEX_COORDSYSES + ")");
+      case FLD_RANGE_COORDSYSES:
+if(DEBUG_DATA)System.err.println("rdFlFld: FLD_RANGE_COORDSYSES (" + FLD_RANGE_COORDSYSES + ")");
         rangeCS = readCoordinateSystems();
         break;
       case FLD_SET_LIST:

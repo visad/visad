@@ -283,8 +283,8 @@ if(DEBUG_DATA)System.err.println("wrFlFld: coord sys Index (" + csIndex + ")");
       }
 
       if (csList != null) {
-if(DEBUG_DATA)System.err.println("wrFlFld: FLD_INDEX_COORDSYSES (" + FLD_INDEX_COORDSYSES + ")");
-        file.writeByte(FLD_INDEX_COORDSYSES);
+if(DEBUG_DATA)System.err.println("wrFlFld: FLD_RANGE_COORDSYSES (" + FLD_RANGE_COORDSYSES + ")");
+        file.writeByte(FLD_RANGE_COORDSYSES);
         writeIntegerArray(csList);
       }
 
