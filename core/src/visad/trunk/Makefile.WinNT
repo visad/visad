@@ -30,6 +30,7 @@ default:
 	@echo nmake -f Makefile.WinNT save (save files to a backup directory)
 	@echo nmake -f Makefile.WinNT classes (make jar files containing classes)
 	@echo nmake -f Makefile.WinNT clear (clear source files)
+	@echo nmake -f Makefile.WinNT clean (clean class files)
 
 .SUFFIXES : .java .class
 
@@ -55,6 +56,9 @@ visad\examples\*.java \
 visad\java3d\*.java \
 visad\java2d\*.java \
 visad\util\*.java \
+visad\ss\*.java \
+visad\ss\*.gif \
+visad\ss\README.ss \
 visad\data\*.java \
 visad\data\netcdf\*.java \
 visad\data\netcdf\units\*.java \
@@ -123,6 +127,9 @@ visad\examples\*.java \
 visad\java3d\*.java \
 visad\java2d\*.java \
 visad\util\*.java \
+visad\ss\*.java \
+visad\ss\*.gif \
+visad\ss\README.ss \
 visad\data\*.java \
 visad\data\netcdf\*.java \
 visad\data\netcdf\units\*.java \
@@ -177,6 +184,10 @@ save:
                 $(DEL) $(BACKUP)\visad\java2d\*.java
 	if exist $(BACKUP)\visad\util\*.java                       \
 		$(DEL) $(BACKUP)\visad\util\*.java
+	if exist $(BACKUP)\visad\ss\*.java                         \
+		$(DEL) $(BACKUP)\visad\ss\*.java
+	if exist $(BACKUP)\visad\ss\*.gif                          \
+		$(DEL) $(BACKUP)\visad\ss\*.gif 
 	if exist $(BACKUP)\visad\data\*.java                       \
 		$(DEL) $(BACKUP)\visad\data\*.java
 	if exist $(BACKUP)\visad\data\netcdf\*.java                \
@@ -218,6 +229,8 @@ visad\*.class \
 visad\java3d\*.class \
 visad\java2d\*.class \
 visad\util\*.class \
+visad\ss\*.class \
+visad\ss\*.gif \
 visad\data\*.class \
 visad\data\netcdf\*.class \
 visad\data\netcdf\units\*.class \
@@ -247,6 +260,8 @@ clear:
 	if exist java3d\*.java $(DEL) java3d\*.java
         if exist java2d\*.java $(DEL) java2d\*.java
 	if exist util\*.java $(DEL) util\*.java
+	if exist ss\*.java $(DEL) ss\*.java
+	if exist ss\*.gif $(DEL) ss\*.gif
 	if exist data\*.java $(DEL) data\*.java
 	if exist data\netcdf\*.java $(DEL) data\netcdf\*.java
 	if exist data\netcdf\units\*.java $(DEL) data\netcdf\units\*.java
@@ -282,6 +297,7 @@ compile: clean
 	$(JC) $(JFLAGS) java3d\*.java
 	$(JC) $(JFLAGS) java2d\*.java
 	$(JC) $(JFLAGS) util\*.java
+	$(JC) $(JFLAGS) ss\*.java
 	-(cd .. && jar xvf ucar.jar)
 	$(JC) $(JFLAGS) data\*.java
 	$(JC) $(JFLAGS) data\netcdf\units\*.java
@@ -305,6 +321,7 @@ clean:
 	if exist java3d\*.class $(DEL) java3d\*.class
         if exist java2d\*.class $(DEL) java2d\*.class
 	if exist util\*.class $(DEL) util\*.class
+	if exist ss\*.class $(DEL) ss\*.class
 	if exist data\*.class $(DEL) data\*.class
 	if exist data\netcdf\*.class $(DEL) data\netcdf\*.class
 	if exist data\netcdf\units\*.class $(DEL) data\netcdf\units\*.class
