@@ -300,8 +300,13 @@ public class LabeledColorWidget
       ScalarMap visMap = new ScalarMap(vis, visad.Display.RGBA);
       visMap.setRange(0.0f, 1.0f);
 
+      visad.RealType ir = new visad.RealType("ir", null, null);
+      ScalarMap irMap = new ScalarMap(vis, visad.Display.RGB);
+      irMap.setRange(0.0f, 1.0f);
+
       visad.DisplayImpl dpy = new visad.java2d.DisplayImplJ2D("2d");
       dpy.addMap(visMap);
+      dpy.addMap(irMap);
 
       javax.swing.JFrame f;
 
@@ -343,6 +348,29 @@ public class LabeledColorWidget
         });
       ColorMapWidget cmw = new ColorMapWidget(visMap, null, false, false);
       f.getContentPane().add(new LabeledColorWidget(cmw));
+      f.pack();
+      f.setVisible(true);
+
+      final int num = 3;
+      final int len = 256;
+      float[][] table = new float[num][len];
+      final float step = 1.0f / (len - 1.0f);
+      float total = 1.0f;
+      for (int j=0; j<len; j++) {
+        table[0][j] = table[1][j] = table[2][j] = total;
+        if (num > 3) {
+          table[3][j] = 1.0f;
+        }
+        total -= step;
+      }
+
+      f = new javax.swing.JFrame("Table");
+      f.addWindowListener(new java.awt.event.WindowAdapter() {
+          public void windowClosing(java.awt.event.WindowEvent we) {
+            System.exit(0);
+          }
+        });
+      f.getContentPane().add(new ColorMapWidget(irMap, table));
       f.pack();
       f.setVisible(true);
 
