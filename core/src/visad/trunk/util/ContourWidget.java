@@ -72,6 +72,8 @@ public class ContourWidget
   private JCheckBox Dashed;
   private ContourRangeSlider ContourRange;
 
+  private JCheckBox Fill;
+
   /** construct a ContourWidget linked to the Control in the map
       (which must be to Display.IsoContour), with default interval,
       base, min, max, and surface value, and auto-scaling min and max. */
@@ -118,10 +120,12 @@ public class ContourWidget
     control.getMainContours(flags, values);
 
     // initialize flags from control settings
-    boolean contourFlag, labelFlag, dashFlag;
+    boolean contourFlag, labelFlag, dashFlag, fillFlag;
     contourFlag = flags[0];
     labelFlag = flags[1];
     dashFlag = (values[1] < 0.0f);
+
+    fillFlag = control.contourFilled();
 
     // use either parameter value or (if param val is NaN) control value
     boolean setSurface = false;
@@ -174,6 +178,7 @@ public class ContourWidget
     Dashed = new JCheckBox("dashed lines below base", dashFlag);
     JLabel intLabel = new JLabel("interval:");
     Interval = new JTextField("---");
+    Fill  = new JCheckBox("fill", fillFlag);
 
     // WLH 2 Dec 98
     Dimension msize = Interval.getMaximumSize();
@@ -225,6 +230,7 @@ public class ContourWidget
     Surface.addChangeListener(this);
     Labels.addItemListener(this);
     Contours.addItemListener(this);
+    Fill.addItemListener(this);
     Dashed.addItemListener(this);
     control.addControlListener(this);
     smap.addScalarMapListener(this);
@@ -232,6 +238,7 @@ public class ContourWidget
     // set up JComponents' tool tips
     Contours.setToolTipText("Toggle contours");
     Labels.setToolTipText("Toggle iso-contour labels (2-D only)");
+    Fill.setToolTipText("Solid filled contours (2-D only)");
     Dashed.setToolTipText("Toggle dashed lines below base value (2-D only)");
     String s = "Specify the iso-contouring interval (2-D only)";
     intLabel.setToolTipText(s);
@@ -246,6 +253,7 @@ public class ContourWidget
     // lay out JComponents
     top.add(Contours);
     top.add(Labels);
+    top.add(Fill);
     mid.add(intLabel);
     mid.add(Interval);
     mid.add(Box.createRigidArea(new Dimension(10, 0)));
@@ -439,6 +447,13 @@ public class ContourWidget
       cInterval = -cInterval;
       try {
         control.setContourInterval(cInterval, cLo, cHi, cBase);
+      }
+      catch (VisADException exc) { }
+      catch (RemoteException exc) { }
+    }
+    if (o == Fill) {
+      try {
+        control.setContourFill(on);
       }
       catch (VisADException exc) { }
       catch (RemoteException exc) { }

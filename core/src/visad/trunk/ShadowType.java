@@ -3483,11 +3483,29 @@ System.out.println("range = " + range[0] + " " + range[1] +
               float[] lowhibase = new float[3];
               boolean[] dashes = {false};
               float[] levs = control.getLevels(lowhibase, dashes);
+              boolean fill = control.contourFilled();
+              ScalarMap[] smap = new ScalarMap[1];
+              if (fill) {
+                ScalarType sc = ((ScalarMap)MapVector.elementAt(valueToMap[i])).getScalar();
+                for (int kk = 0; kk < MapVector.size(); kk++) {
+                  ScalarMap sm = (ScalarMap)MapVector.elementAt(kk);
+                  if (sm != null) {
+                    if (((sm.getScalar()).equals(sc)) && 
+                        ((sm.getDisplayScalar()).equals(Display.RGB))) {
+                      smap[0] = sm;
+                    }
+                  }
+                }
+                if (smap[0] == null) {
+                  throw new DisplayException("IsoContour color-fill is enabled, so "+
+                      sc+" must also be mapped to Display.RGB");
+                }
+              }
               arrays =
                 spatial_set.makeIsoLines(levs, lowhibase[0], lowhibase[1],
                                          lowhibase[2], display_values[i],
-                                         color_values, swap, dashes[0]);
-
+                                         color_values, swap, dashes[0], 
+                                         fill, smap);
               // WLH 4 May 2001
               if (arrays != null) {
                 for (int j=0; j<arrays.length; j++) {
@@ -3503,6 +3521,13 @@ System.out.println("range = " + range[0] + " " + range[1] +
                   }
                 }
               }
+
+              if (fill) {
+                shadow_api.addToGroup(group, arrays[0], mode,
+                                      constant_alpha, constant_color);
+                arrays[0] = null;
+              }
+              else {
 
 // System.out.println("makeIsoLines");
               if (arrays != null && arrays.length > 0 && arrays[0] != null &&
@@ -3539,6 +3564,8 @@ System.out.println("range = " + range[0] + " " + range[1] +
                   array = null;
                 }
               }
+
+              }// end if fill
             } // end if (spatial_set != null)
             anyContourCreated = true;
           } // end if (spatialManifoldDimension == 2)

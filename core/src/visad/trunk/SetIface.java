@@ -187,7 +187,9 @@ public interface SetIface
       float[] fieldValues,
       byte[][] color_values,
       boolean[] swap,
-      boolean dash)
+      boolean dash,
+      boolean fill,
+      ScalarMap[] smap)
     throws VisADException;
 
   VisADGeometryArray makeIsoSurface(

@@ -33,6 +33,7 @@ import java.rmi.RemoteException;
 import visad.*;
 
 import visad.java2d.DisplayImplJ2D;
+import visad.java3d.DisplayImplJ3D;
 import visad.util.ContourWidget;
 
 public class Test37
@@ -60,17 +61,17 @@ public class Test37
     throws RemoteException, VisADException
   {
     DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = new DisplayImplJ2D("display");
+    dpys[0] = new DisplayImplJ3D("display");
     return dpys;
   }
 
   void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    RealType[] types = {RealType.Latitude, RealType.Longitude};
+    RealType[] types = {RealType.Latitude, RealType.Longitude, RealType.Altitude};
     RealTupleType earth_location = new RealTupleType(types);
-    RealType vis_radiance = RealType.getRealType("vis_radiance");
-    RealType ir_radiance = RealType.getRealType("ir_radiance");
+    RealType vis_radiance = new RealType("vis_radiance", null, null);
+    RealType ir_radiance = new RealType("ir_radiance", null, null);
     RealType[] types2 = {vis_radiance, ir_radiance};
     RealTupleType radiance = new RealTupleType(types2);
     FunctionType image_tuple = new FunctionType(earth_location, radiance);
@@ -87,13 +88,40 @@ public class Test37
       imaget1 = FlatField.makeField(image_tuplexx, size, false);
     }
 
+    double first = 0.0;
+    double last = size - 1.0;
+    double step = 1.0;
+    double half = 0.5 * last;
+
+    int nr = size;
+    int nc = size;
+    double ang = 2*Math.PI/nr;
+    float[][] locs = new float[3][nr*nc];
+    for ( int jj = 0; jj < nc; jj++ ) {
+      for ( int ii = 0; ii < nr; ii++ ) {
+        int idx = jj*nr + ii;
+        locs[0][idx] = ii;
+        locs[1][idx] = jj;
+        locs[2][idx] =
+          2f*((float)Math.sin(2*ang*ii)) + 2f*((float)Math.sin(2*ang*jj));
+      }
+    }
+    Gridded3DSet d_set =
+      new Gridded3DSet(RealTupleType.SpatialCartesian3DTuple, locs, nr, nc);
+    imaget1 = new FlatField(image_tuple, d_set);
+    FlatField.fillField(imaget1, step, half);
+
+
+
     dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
     dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
-    dpys[0].addMap(new ScalarMap(ir_radiance, Display.Green));
-    dpys[0].addMap(new ConstantMap(0.5, Display.Blue));
-    dpys[0].addMap(new ConstantMap(0.5, Display.Red));
+    ScalarMap zmap = new ScalarMap(RealType.Altitude, Display.ZAxis);
+    dpys[0].addMap(zmap);
+    dpys[0].addMap(new ScalarMap(vis_radiance, Display.RGB));
+    zmap.setRange(-20, 20);
     ScalarMap map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
     dpys[0].addMap(map1contour);
+    ContourControl ctr_cntrl = (ContourControl) map1contour.getControl();
 
     GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
     mode.setScaleEnable(true);

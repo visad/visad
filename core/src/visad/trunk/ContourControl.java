@@ -67,6 +67,8 @@ public class ContourControl extends Control {
   private float verticalSliceHi;
   private float verticalSliceStep;
 
+  boolean contourFill;
+
   /**
    * Construct a new ContourControl for the display
    * @param d    Display to associate with this
@@ -90,6 +92,8 @@ public class ContourControl extends Control {
     verticalSliceLow = Float.NaN;
     verticalSliceHi = Float.NaN;
     verticalSliceStep = Float.NaN;
+
+    contourFill = false;
   }
 
   void setMainContours(boolean[] bvalues, float[] fvalues)
@@ -350,6 +354,16 @@ public class ContourControl extends Control {
     fvalues[4] = base;
   }
 
+  public void setContourFill(boolean flag)
+         throws VisADException, RemoteException {
+    contourFill = flag;
+    changeControl(true);
+  }
+
+  public boolean contourFilled() {
+    return contourFill;
+  }
+
   /** get a string that can be used to reconstruct this control later */
   public String getSaveString() {
     return mainContours + " " + labels + " " + surfaceValue + " " +
@@ -489,6 +503,11 @@ public class ContourControl extends Control {
       verticalSliceStep = cc.verticalSliceStep;
     }
 
+    if (contourFill != cc.contourFill) {
+      changed = true;
+      contourFill = cc.contourFill;
+    }
+
     if (changed) {
       try {
         changeControl(true);
@@ -582,6 +601,10 @@ public class ContourControl extends Control {
       return false;
     }
     if (!Util.isApproximatelyEqual(verticalSliceStep, cc.verticalSliceStep)) {
+      return false;
+    }
+
+    if (contourFill != cc.contourFill) {
       return false;
     }
 

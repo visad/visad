@@ -83,7 +83,10 @@ public class Contour2D extends Applet implements MouseListener {
                       float vx3[][], float vy3[][],  int maxv3, int[] numv3,
                       float vx4[][], float vy4[][],  int maxv4, int[] numv4,
                       byte[][] auxValues, byte[][] auxLevels1,
-                      byte[][] auxLevels2, byte[][] auxLevels3, boolean[] swap )
+                      byte[][] auxLevels2, byte[][] auxLevels3, boolean[] swap,
+                      boolean fill, float[][] tri, byte[][] tri_color,
+                      float[][][] grd_normals, float[][] tri_normals,
+                      byte[][] interval_colors)
                           throws VisADException
   {
     boolean[] dashes = {false};
@@ -98,7 +101,10 @@ public class Contour2D extends Applet implements MouseListener {
              vx3, vy3,  maxv3, numv3,
              vx4, vy4,  maxv4, numv4,
              auxValues, auxLevels1,
-             auxLevels2, auxLevels3, swap );
+             auxLevels2, auxLevels3, swap,
+             fill, tri, tri_color,
+             grd_normals, tri_normals,
+             interval_colors);
   }
 
   /**
@@ -204,7 +210,10 @@ public class Contour2D extends Applet implements MouseListener {
                       float vx3[][], float vy3[][],  int maxv3, int[] numv3,
                       float vx4[][], float vy4[][],  int maxv4, int[] numv4,
                       byte[][] auxValues, byte[][] auxLevels1,
-                      byte[][] auxLevels2, byte[][] auxLevels3, boolean[] swap )
+                      byte[][] auxLevels2, byte[][] auxLevels3, boolean[] swap,
+                      boolean fill, float[][] tri, byte[][] tri_color,
+                      float[][][] grd_normals, float[][] tri_normals,
+                      byte[][] interval_colors)
                           throws VisADException {
 /*
 System.out.println("interval = " + values[0] + " lowlimit = " + lowlimit +
@@ -299,8 +308,10 @@ boolean anynotmissing = false;
 
     xdd = ((nr-1)-0.0f)/(nr-1.0f); // = 1.0
     ydd = ((nc-1)-0.0f)/(nc-1.0f); // = 1.0
-    xd = xdd - 0.0001f;
-    yd = ydd - 0.0001f;
+    /*-TDR xd = xdd - 0.0001f;
+           yd = ydd - 0.0001f;  gap too big */
+    xd = xdd - 0.000001f;
+    yd = ydd - 0.000001f;
 
     /*
      * set up mark array
@@ -346,6 +357,13 @@ boolean anynotmissing = false;
       }
     }
     numv = nump = 0;
+
+
+    //- color fill arrays
+    byte[][]   color_bin = interval_colors;
+    byte[][][] o_flags   = new byte[nrm][ncm][];
+    short[][]  n_lines   = new short[nrm][ncm];
+    short[][]  ctrLow    = new short[nrm][ncm];
 
     // compute contours
     for (ir=0; ir<nrm; ir++) {
@@ -454,6 +472,7 @@ else {
         tmp2 = ( (gc) > (gd) ? (gc) : (gd) );
         gx = ( (tmp1) > (tmp2) ? (tmp1) : (tmp2) );
 
+
 /*  remove for new signature, replace with code below
         // compute clow and chi, low and high contour values in the box
         tmp1 = (gn-base) / interval;
@@ -503,10 +522,14 @@ if (!any && numc > 0) {
   any = true;
 }
 */
+        o_flags[ir][ic]  = new byte[2*numc]; //- case flags
+        n_lines[ir][ic]  = 0;  //- number of contour line segments
+        ctrLow[ir][ic]   = (short)low;
 
         for (il=0; il<numc; il++) {
 
           gg = myvals[low+il];
+
 
           // WLH 21 April 2000
           // if (numv+8 >= maxsize || nump+4 >= 2*maxsize) {
@@ -533,6 +556,8 @@ if (!any && numc > 0) {
             }
           }
 
+
+
           float gba, gca, gdb, gdc;
           int ii;
 
@@ -550,6 +575,7 @@ if (!any && numc > 0) {
           if (gg > gd) ii += 8;
           if (ii > 7) ii = 15 - ii;
           if (ii <= 0) continue;
+
 
           // DO LABEL HERE
           if (( mark[ (ic) * nr + (ir) ] )==0) {
@@ -687,6 +713,8 @@ if (!any && numc > 0) {
               }
               vx[numv] = xx;
               numv++;
+              o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
+              n_lines[ir][ic]++;
               break;
 
             case 2:
@@ -728,6 +756,8 @@ if (!any && numc > 0) {
                 vy[numv] = yy+yd*(gg-gb)/gdb;
               vx[numv] = xx+xd;
               numv++;
+              o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
+              n_lines[ir][ic]++;
               break;
 
             case 3:
@@ -769,6 +799,8 @@ if (!any && numc > 0) {
                 vy[numv] = yy+yd*(gg-gb)/gdb;
               vx[numv] = xx+xd;
               numv++;
+              o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
+              n_lines[ir][ic]++;
               break;
 
             case 4:
@@ -810,6 +842,8 @@ if (!any && numc > 0) {
                 vx[numv] = xx+xd*(gg-gc)/gdc;
               vy[numv] = yy+yd;
               numv++;
+              o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
+              n_lines[ir][ic]++;
               break;
 
             case 5:
@@ -851,6 +885,8 @@ if (!any && numc > 0) {
                 vx[numv] = xx+xd*(gg-gc)/gdc;
               vy[numv] = yy+yd;
               numv++;
+              o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
+              n_lines[ir][ic]++;
               break;
 
             case 6:
@@ -936,11 +972,15 @@ if (!any && numc > 0) {
                   vy[numv] = yy+yd*(gg-ga)/gca;
                 vx[numv] = xx;
                 numv++;
+                o_flags[ir][ic][n_lines[ir][ic]] = (byte)1;
+                n_lines[ir][ic]++;
                 if (( (gdb) < 0 ? -(gdb) : (gdb) ) < 0.0000001)
                   vy[numv] = yy;
                 else
                   vy[numv] = yy+yd*(gg-gb)/gdb;
                 vx[numv] = xx+xd;
+                o_flags[ir][ic][n_lines[ir][ic]] = (byte)7;
+                n_lines[ir][ic]++;
                 numv++;
               }
               else {
@@ -950,12 +990,16 @@ if (!any && numc > 0) {
                   vy[numv] = yy+yd*(gg-gb)/gdb;
                 vx[numv] = xx+xd;
                 numv++;
+                o_flags[ir][ic][n_lines[ir][ic]] = (byte)2;
+                n_lines[ir][ic]++;
                 if (( (gca) < 0 ? -(gca) : (gca) ) < 0.0000001)
                   vy[numv] = yy;
                 else
                   vy[numv] = yy+yd*(gg-ga)/gca;
                 vx[numv] = xx;
                 numv++;
+                o_flags[ir][ic][n_lines[ir][ic]] = (byte)4;
+                n_lines[ir][ic]++;
               }
               if (( (gdc) < 0 ? -(gdc) : (gdc) ) < 0.0000001)
                 vx[numv] = xx;
@@ -963,6 +1007,7 @@ if (!any && numc > 0) {
                 vx[numv] = xx+xd*(gg-gc)/gdc;
               vy[numv] = yy+yd;
               numv++;
+              System.out.println("case: 6");
               break;
 
             case 7:
@@ -1004,9 +1049,11 @@ if (!any && numc > 0) {
                 vx[numv] = xx+xd*(gg-gc)/gdc;
               vy[numv] = yy+yd;
               numv++;
+              o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
+              n_lines[ir][ic]++;
               break;
-
           } // switch
+
 
           // If contour level is negative, make dashed line
           if (gg < base && dash) {           /* DRM: 1999-05-19 */
@@ -1030,6 +1077,14 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
         }  // for il       -- NOTE:  gg incremented in for statement
       }  // for ic
     }  // for ir
+
+/**-------------------  Color Fill -------------------------*/
+    if (fill) {
+      fillGridBox(g, n_lines, vx, vy, xd, xdd, yd, ydd, nr, nrm, nc, ncm,
+                  ctrLow, tri, tri_color, o_flags, myvals, color_bin,
+                  grd_normals, tri_normals);
+    }
+
 
     ipnt[nump] = numv;
 
@@ -1114,6 +1169,1064 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     }
   }
 
+  public static void fillGridBox(float[] g, short[][] n_lines,
+                                 float[] vx, float[] vy,
+                                 float xd, float xdd, float yd, float ydd,
+                                 int nr, int nrm, int nc, int ncm,
+                                 short[][] ctrLow,
+                                 float[][] tri, byte[][] tri_color,
+                                 byte[][][] o_flags, float[] values,
+                                 byte[][] color_bin,
+                                 float[][][] grd_normals, float[][] tri_normals)
+  {
+    float xx, yy;
+    int[] numv = new int[1];
+    numv[0] = 0;
+    
+    int n_tri = 0;
+    for (int ir=0; ir<nrm; ir++) {
+      for (int ic=0; ic<ncm; ic++) {
+        if (n_lines[ir][ic] == 0) {
+          n_tri +=2;
+        }
+        else {
+          n_tri += (4 + (n_lines[ir][ic]-1)*2);
+        }
+      }
+    }
+    tri[0] = new float[n_tri*3];
+    tri[1] = new float[n_tri*3];
+
+    tri_color[0] = new byte[n_tri*3];
+    tri_color[1] = new byte[n_tri*3];
+    tri_color[2] = new byte[n_tri*3];
+
+    tri_normals[0]  = new float[3*n_tri*3];
+
+    int[] t_idx = new int[1];
+    t_idx[0] = 0;
+    int[] n_idx = new int[1];
+    n_idx[0] = 0;
+
+    for (int ir=0; ir<nrm; ir++) {
+      xx = xdd*ir+0.0f;
+      for (int ic=0; ic<ncm; ic++) {
+        float ga, gb, gc, gd;
+        yy = ydd*ic+0.0f;
+
+        // get 4 corner values, skip box if any are missing
+        ga = ( g[ (ic) * nr + (ir) ] );
+        // test for missing
+        if (ga != ga) continue;
+        gb = ( g[ (ic) * nr + (ir+1) ] );
+        // test for missing
+        if (gb != gb) continue;
+        gc = ( g[ (ic+1) * nr + (ir) ] );
+        // test for missing
+        if (gc != gc) continue;
+        gd = ( g[ (ic+1) * nr + (ir+1) ] );
+        // test for missing
+        if (gd != gd) continue;
+
+        numv[0] += n_lines[ir][ic]*2;
+
+        fillGridBox(new float[] {ga, gb, gc, gd}, n_lines[ir][ic], vx, vy,
+                    xx, yy, xd, yd, ic, ir, ctrLow[ir][ic],
+                    tri, t_idx, tri_color, numv[0], o_flags[ir][ic],
+                    values, color_bin, grd_normals, n_idx, tri_normals);
+      }
+    }
+  }
+         
+
+  public static void fillGridBox(float[] corners,
+                                 int numc, float[] vx, float[] vy,
+                                 float xx, float yy, float xd, float yd,
+                                 int nc, int nr, short ctrLow,
+                                 float[][] tri, int[] t_idx, byte[][] tri_color,
+                                 int numv, byte[] o_flags,
+                                 float[] values, byte[][] color_bin,
+                                 float[][][] grd_normals, int[] n_idx, 
+                                 float[][] tri_normals_a)
+        {
+          float[] tri_normals = tri_normals_a[0];
+          int n_tri   = 4 + (numc-1)*2;
+          int[] cnt_tri       = new int[1];
+          cnt_tri[0]          = 0;
+          int il              = 0;
+          float[] vec         = new float[2];
+          float[] vec_last    = new float[2];
+          float[] vv1         = new float[2];
+          float[] vv2         = new float[2];
+          float[] vv1_last    = new float[2];
+          float[] vv2_last    = new float[2];
+          float[][] vv        = new float[2][2];
+          float[][] vv_last   = new float[2][2];
+          float[] vv3         = new float[2];
+
+          int dir             = 1;
+          int start           = numv-2;
+          int o_start         = numc-1;
+          int x_min_idx       = 0;
+          int o_idx           = 0;
+          byte o_flag         = o_flags[o_idx];
+          int ydir            = 1;
+
+          int v_idx = start + dir*il*2;
+
+          //-- color level at corners
+          byte[][] crnr_color = new byte[4][3];
+          boolean[] crnr_out = new boolean[] {true, true, true, true};
+          boolean all_out = true;
+          for (int tt = 0; tt < corners.length; tt++) {
+            int cc = 0;
+            int kk = 0;
+            for (kk = 0; kk < (values.length - 1); kk++) {
+              if ((corners[tt] >= values[kk]) &&
+                  (corners[tt] < values[kk+1])) {
+                cc  = kk;
+                all_out = false;
+                crnr_out[tt] = false;
+              }
+            }
+            crnr_color[tt][0] = color_bin[0][cc];
+            crnr_color[tt][1] = color_bin[1][cc];
+            crnr_color[tt][2] = color_bin[2][cc];
+          }
+
+          int tt = t_idx[0];
+
+          if (numc > 1) {
+            //-- determine start contour
+            float x_avg_min = Float.MAX_VALUE;
+            x_min_idx = 0;
+            for ( int kk = 0; kk < numc; kk++ ) {
+              v_idx = (numv - numc*2) + kk*2;
+              float x_avg = (vx[v_idx] + vx[v_idx+1])/2;
+              if ( x_avg < x_avg_min ) {
+                x_avg_min = x_avg;
+                x_min_idx = kk;
+              }
+            }
+            dir     = -1;
+            start   =  numv-1;
+            o_start =  numc-1;
+            if ( x_min_idx == 0 ) {
+              dir = 1;
+              start = numv - numc*2;
+              o_start = 0;
+            }
+            v_idx  = start   + dir*il*2;
+            o_idx  = o_start + dir*il;
+            o_flag = o_flags[o_idx];
+
+            ydir = 1;
+            if ((vy[v_idx] - vy[start+dir*(numc-1)*2]) < 0) ydir = -1;
+          }
+          else if ( numc == 0 )
+          {
+            if (all_out) return;
+            n_tri = 2;
+          
+            tri_normals[n_idx[0]++] = grd_normals[nc][nr][0];
+            tri_normals[n_idx[0]++] = grd_normals[nc][nr][1];
+            tri_normals[n_idx[0]++] = grd_normals[nc][nr][2];
+            tri_color[0][tt]   = crnr_color[0][0];
+            tri_color[1][tt]   = crnr_color[0][1];
+            tri_color[2][tt]   = crnr_color[0][2];
+            tri[0][tt]         = xx;
+            tri[1][tt++]       = yy;
+
+            tri_normals[n_idx[0]++] = grd_normals[nc][nr+1][0];
+            tri_normals[n_idx[0]++] = grd_normals[nc][nr+1][1];
+            tri_normals[n_idx[0]++] = grd_normals[nc][nr+1][2];
+            tri_color[0][tt]   = crnr_color[0][0];
+            tri_color[1][tt]   = crnr_color[0][1];
+            tri_color[2][tt]   = crnr_color[0][2];
+            tri[0][tt]         = xx + xd;
+            tri[1][tt++]       = yy;
+
+            tri_normals[n_idx[0]++] = grd_normals[nc+1][nr+1][0];
+            tri_normals[n_idx[0]++] = grd_normals[nc+1][nr+1][1];
+            tri_normals[n_idx[0]++] = grd_normals[nc+1][nr+1][2];
+            tri_color[0][tt]   = crnr_color[0][0];
+            tri_color[1][tt]   = crnr_color[0][1];
+            tri_color[2][tt]   = crnr_color[0][2];
+            tri[0][tt]         = xx + xd;
+            tri[1][tt++]       = yy + yd;
+
+            t_idx[0] = tt;
+            cnt_tri[0]++;
+
+            tri_normals[n_idx[0]++]  = grd_normals[nc+1][nr+1][0];
+            tri_normals[n_idx[0]++]  = grd_normals[nc+1][nr+1][1];
+            tri_normals[n_idx[0]++]  = grd_normals[nc+1][nr+1][2];
+            tri_color[0][tt]   = crnr_color[0][0];
+            tri_color[1][tt]   = crnr_color[0][1];
+            tri_color[2][tt]   = crnr_color[0][2];
+            tri[0][tt]         = xx + xd;
+            tri[1][tt++]       = yy + yd;
+
+            tri_normals[n_idx[0]++]  = grd_normals[nc][nr][0];
+            tri_normals[n_idx[0]++]  = grd_normals[nc][nr][1];
+            tri_normals[n_idx[0]++]  = grd_normals[nc][nr][2];
+            tri_color[0][tt]   = crnr_color[0][0];
+            tri_color[1][tt]   = crnr_color[0][1];
+            tri_color[2][tt]   = crnr_color[0][2];
+            tri[0][tt]         = xx;
+            tri[1][tt++]       = yy;
+
+            tri_normals[n_idx[0]++]  = grd_normals[nc+1][nr][0];
+            tri_normals[n_idx[0]++]  = grd_normals[nc+1][nr][1];
+            tri_normals[n_idx[0]++]  = grd_normals[nc+1][nr][2];
+            tri_color[0][tt]   = crnr_color[0][0];
+            tri_color[1][tt]   = crnr_color[0][1];
+            tri_color[2][tt]   = crnr_color[0][2];
+            tri[0][tt]         = xx;
+            tri[1][tt++]       = yy + yd;
+            t_idx[0] = tt;
+
+            cnt_tri[0]++;
+            return;
+          }
+
+          //-- start making triangles for color fill
+         
+          if (o_flag == 1 || o_flag == 4)
+          {
+            fillToNearCorner(xx, yy, xd, yd, v_idx, o_flag, cnt_tri, dir,
+                             vx, vy, nc, nr, crnr_color, crnr_out,
+                             tri, t_idx, tri_color,
+                             grd_normals, n_idx, tri_normals);
+          }
+          else if (o_flag == 2 || o_flag == 7)
+          {
+            fillToOppCorner(xx, yy, xd, yd, v_idx, o_flag, cnt_tri, dir,
+                            vx, vy, nc, nr, crnr_color, crnr_out,
+                            tri, t_idx, tri_color,
+                            grd_normals, n_idx, tri_normals);
+          }
+          else if (o_flags[o_idx] == 3)
+          {
+            fillToSide(xx, yy, xd, yd, v_idx, o_flag, ydir, cnt_tri, dir,
+                       vx, vy, nc, nr, crnr_color, crnr_out,
+                       tri, t_idx, tri_color,
+                       grd_normals, n_idx, tri_normals);
+          }
+          else if (o_flags[o_idx] == 5)
+          {
+            fillToSide(xx, yy, xd, yd, v_idx, o_flag, 1, cnt_tri, dir,
+                       vx, vy, nc, nr, crnr_color, crnr_out,
+                       tri, t_idx, tri_color,
+                       grd_normals, n_idx, tri_normals);
+          }
+
+          byte last_o  = o_flags[o_idx];
+          int cc_start = (dir > 0) ? (ctrLow-1) : (ctrLow+(numc-1));
+          
+          il++;
+          for ( il = 1; il < numc; il++ )  //- move to next contour line
+          {
+            v_idx = start + dir*il*2;
+            o_idx = o_start + dir*il;
+            int v_idx_last = v_idx - 2*dir;
+            int cc = cc_start + dir*il;
+
+            if (o_flags[o_idx] != last_o)
+            {
+              byte[] side_s      = new byte[2];
+              byte[] last_side_s = new byte[2];
+              boolean flip;
+
+              for (int kk = 0; kk < 2; kk++) {
+                if (vy[v_idx+kk*dir] == yy)             side_s[kk]   = 0; // a-b
+                if (vy[v_idx+kk*dir] == (yy + yd))      side_s[kk]   = 2; // c-d
+                if (vx[v_idx+kk*dir] == xx)             side_s[kk]   = 3; // a-c
+                if (vx[v_idx+kk*dir] == (xx + xd))      side_s[kk]   = 1; // b-d
+                if (vy[v_idx_last+kk*dir] == yy)        last_side_s[kk] = 0;
+                if (vy[v_idx_last+kk*dir] == (yy + yd)) last_side_s[kk] = 2;
+                if (vx[v_idx_last+kk*dir] == xx)        last_side_s[kk] = 3;
+                if (vx[v_idx_last+kk*dir] == (xx + xd)) last_side_s[kk] = 1;
+              }
+
+              if (side_s[0] == last_side_s[0]) {
+                flip = false;
+              }
+              else if (side_s[0] == last_side_s[1]) {
+                flip = true;
+              }
+              else if (side_s[1] == last_side_s[0]) {
+                flip = true;
+              }
+              else if (side_s[1] == last_side_s[1]) {
+                flip = false;
+              }
+              else {
+                if(((side_s[0]+last_side_s[0]) & 1) == 1) {
+                  flip = false;
+                }
+                else {
+                  flip = true;
+                }
+              }
+              if (!flip) {
+                vv1[0]      = vx[v_idx];
+                vv1[1]      = vy[v_idx];
+                vv2[0]      = vx[v_idx+dir];
+                vv2[1]      = vy[v_idx+dir];
+
+                vv[0][0]    = vx[v_idx];
+                vv[0][1]    = vy[v_idx];
+                vv[1][0]    = vx[v_idx+dir];
+                vv[1][1]    = vy[v_idx+dir];
+              }
+              else {
+                vv1[0]      = vx[v_idx+dir];
+                vv1[1]      = vy[v_idx+dir];
+                vv2[0]      = vx[v_idx];
+                vv2[1]      = vy[v_idx];
+
+                vv[0][0]    = vx[v_idx+dir];
+                vv[0][1]    = vy[v_idx+dir];
+                vv[1][0]    = vx[v_idx];
+                vv[1][1]    = vy[v_idx];
+              }
+              vv1_last[0] = vx[v_idx_last];
+              vv1_last[1] = vy[v_idx_last];
+              vv2_last[0] = vx[v_idx_last+dir];
+              vv2_last[1] = vy[v_idx_last+dir];
+
+              vv_last[0][0] = vx[v_idx_last];
+              vv_last[0][1] = vy[v_idx_last];
+              vv_last[1][0] = vx[v_idx_last+dir];
+              vv_last[1][1] = vy[v_idx_last+dir];
+
+
+              //--- fill between contour lines
+              tt = t_idx[0];
+
+              tri_color[0][tt] = color_bin[0][cc];
+              tri_color[1][tt] = color_bin[1][cc];
+              tri_color[2][tt] = color_bin[2][cc];
+              tri[0][tt]       = vv1[0];
+              tri[1][tt]       = vv1[1];
+              t_idx[0] = tt;
+              interpNormals(tri[0][tt],
+                            tri[1][tt], xx, yy, nc, nr,
+                            xd, yd, grd_normals, n_idx, tri_normals);
+              tt++;
+
+              tri_color[0][tt] = color_bin[0][cc];
+              tri_color[1][tt] = color_bin[1][cc];
+              tri_color[2][tt] = color_bin[2][cc];
+              tri[0][tt]       = vv2[0];
+              tri[1][tt]       = vv2[1];
+              t_idx[0] = tt;
+              interpNormals(tri[0][tt],
+                            tri[1][tt], xx, yy, nc, nr,
+                            xd, yd, grd_normals, n_idx, tri_normals);
+              tt++;
+
+              tri_color[0][tt] = color_bin[0][cc];
+              tri_color[1][tt] = color_bin[1][cc];
+              tri_color[2][tt] = color_bin[2][cc];
+              tri[0][tt]       = vv1_last[0];
+              tri[1][tt]       = vv1_last[1];
+              t_idx[0] = tt;
+              interpNormals(tri[0][tt],
+                            tri[1][tt], xx, yy, nc, nr,
+                            xd, yd, grd_normals, n_idx, tri_normals);
+              tt++;
+              cnt_tri[0]++;
+
+              tri_color[0][tt] = color_bin[0][cc];
+              tri_color[1][tt] = color_bin[1][cc];
+              tri_color[2][tt] = color_bin[2][cc];
+              tri[0][tt] = vv1_last[0];
+              tri[1][tt] = vv1_last[1];
+              t_idx[0]   = tt;
+              interpNormals(tri[0][tt],
+                            tri[1][tt], xx, yy, nc, nr,
+                            xd, yd, grd_normals, n_idx, tri_normals);
+              tt++;
+
+              tri_color[0][tt] = color_bin[0][cc];
+              tri_color[1][tt] = color_bin[1][cc];
+              tri_color[2][tt] = color_bin[2][cc];
+              tri[0][tt] = vv2_last[0];
+              tri[1][tt] = vv2_last[1];
+              t_idx[0]   = tt;
+              interpNormals(tri[0][tt],
+                            tri[1][tt], xx, yy, nc, nr,
+                            xd, yd, grd_normals, n_idx, tri_normals);
+              tt++;
+
+              tri_color[0][tt] = color_bin[0][cc];
+              tri_color[1][tt] = color_bin[1][cc];
+              tri_color[2][tt] = color_bin[2][cc];
+              tri[0][tt] = vv2[0];
+              tri[1][tt] = vv2[1];
+              t_idx[0]   = tt;
+              interpNormals(tri[0][tt],
+                            tri[1][tt], xx, yy, nc, nr,
+                            xd, yd, grd_normals, n_idx, tri_normals);
+              tt++;
+              cnt_tri[0]++;
+
+
+              for (int kk = 0; kk < 2; kk++) { //- close off corners
+                byte side   = 0;
+                byte last_s = 0;
+                if (vv[kk][1] == yy)              side   = 0;
+                if (vv[kk][1] == (yy + yd))       side   = 2;
+                if (vv[kk][0] == xx)              side   = 3;
+                if (vv[kk][0] == (xx + xd))       side   = 1;
+                if (vv_last[kk][1] == yy)         last_s = 0;
+                if (vv_last[kk][1] == (yy + yd))  last_s = 2;
+                if (vv_last[kk][0] == xx)         last_s = 3;
+                if (vv_last[kk][0] == (xx + xd))  last_s = 1;
+
+
+                if ( side != last_s ) {
+                  if ((side == 0 && last_s == 3) ||
+                      (side == 3 && last_s == 0))
+                  {  //- case 1
+                    fillToNearCorner(xx, yy, xd, yd, 0, (byte)1, cnt_tri, 1,
+                      new float[] {vv[kk][0], vv_last[kk][0]},
+                      new float[] {vv[kk][1], vv_last[kk][1]}, nc, nr,
+                      crnr_color, crnr_out, tri, t_idx, tri_color,
+                      grd_normals, n_idx, tri_normals);
+                  }
+                  if ((side == 0 && last_s == 1) ||
+                      (side == 1 && last_s == 0))
+                  {  //- case 2
+                    fillToNearCorner(xx, yy, xd, yd, 0, (byte)2, cnt_tri, 1,
+                      new float[] {vv[kk][0], vv_last[kk][0]},
+                      new float[] {vv[kk][1], vv_last[kk][1]}, nc, nr,
+                      crnr_color, crnr_out, tri, t_idx, tri_color,
+                      grd_normals, n_idx, tri_normals);
+                  }
+                  if ((side == 2 && last_s == 3) ||
+                      (side == 3 && last_s == 2))
+                  {  //- case 4
+                    fillToNearCorner(xx, yy, xd, yd, 0, (byte)4, cnt_tri, 1,
+                      new float[] {vv[kk][0], vv_last[kk][0]},
+                      new float[] {vv[kk][1], vv_last[kk][1]}, nc, nr,
+                      crnr_color, crnr_out, tri, t_idx, tri_color,
+                      grd_normals, n_idx, tri_normals);
+                  }
+                  if ((side == 2 && last_s == 1) ||
+                      (side == 1 && last_s == 2))
+                  {  //- case 7
+                    fillToNearCorner(xx, yy, xd, yd, 0, (byte)7, cnt_tri, 1,
+                      new float[] {vv[kk][0], vv_last[kk][0]},
+                      new float[] {vv[kk][1], vv_last[kk][1]}, nc, nr,
+                      crnr_color, crnr_out, tri, t_idx, tri_color,
+                      grd_normals, n_idx, tri_normals);
+                  }
+                }
+              }
+            }
+            else {
+              tri_color[0][tt] = color_bin[0][cc];
+              tri_color[1][tt] = color_bin[1][cc];
+              tri_color[2][tt] = color_bin[2][cc];
+              tri[0][tt] = vx[v_idx];
+              tri[1][tt] = vy[v_idx];
+              t_idx[0]   = tt;
+              interpNormals(tri[0][tt],
+                            tri[1][tt], xx, yy, nc, nr,
+                            xd, yd, grd_normals, n_idx, tri_normals);
+              tt++;
+
+              tri_color[0][tt] = color_bin[0][cc];
+              tri_color[1][tt] = color_bin[1][cc];
+              tri_color[2][tt] = color_bin[2][cc];
+              tri[0][tt] = vx[v_idx+dir];
+              tri[1][tt] = vy[v_idx+dir];
+              t_idx[0]   = tt;
+              interpNormals(tri[0][tt],
+                            tri[1][tt], xx, yy, nc, nr,
+                            xd, yd, grd_normals, n_idx, tri_normals);
+              tt++;
+
+              tri_color[0][tt] = color_bin[0][cc];
+              tri_color[1][tt] = color_bin[1][cc];
+              tri_color[2][tt] = color_bin[2][cc];
+              tri[0][tt] = vx[v_idx_last];
+              tri[1][tt] = vy[v_idx_last];
+              t_idx[0]   = tt;
+              interpNormals(tri[0][tt],
+                            tri[1][tt], xx, yy, nc, nr,
+                            xd, yd, grd_normals, n_idx, tri_normals);
+              tt++;
+              cnt_tri[0]++;
+
+              tri_color[0][tt] = color_bin[0][cc];
+              tri_color[1][tt] = color_bin[1][cc];
+              tri_color[2][tt] = color_bin[2][cc];
+              tri[0][tt] = vx[v_idx_last];
+              tri[1][tt] = vy[v_idx_last];
+              t_idx[0]   = tt;
+              interpNormals(tri[0][tt],
+                            tri[1][tt], xx, yy, nc, nr,
+                            xd, yd, grd_normals, n_idx, tri_normals);
+              tt++;
+
+              tri_color[0][tt] = color_bin[0][cc];
+              tri_color[1][tt] = color_bin[1][cc];
+              tri_color[2][tt] = color_bin[2][cc];
+              tri[0][tt] = vx[v_idx_last+dir];
+              tri[1][tt] = vy[v_idx_last+dir];
+              t_idx[0]   = tt;
+              interpNormals(tri[0][tt],
+                            tri[1][tt], xx, yy, nc, nr,
+                            xd, yd, grd_normals, n_idx, tri_normals);
+              tt++;
+
+              tri_color[0][tt] = color_bin[0][cc];
+              tri_color[1][tt] = color_bin[1][cc];
+              tri_color[2][tt] = color_bin[2][cc];
+              tri[0][tt] = vx[v_idx+dir];
+              tri[1][tt] = vy[v_idx+dir];
+              t_idx[0]   = tt;
+              interpNormals(tri[0][tt],
+                            tri[1][tt], xx, yy, nc, nr,
+                            xd, yd, grd_normals, n_idx, tri_normals);
+              tt++;
+              cnt_tri[0]++;
+            }
+            last_o = o_flags[o_idx];
+          }//- contour loop
+
+          if (last_o == 1 || last_o == 4) {
+            fillToOppCorner(xx, yy, xd, yd, v_idx, last_o, cnt_tri, dir,
+                            vx, vy, nc, nr, crnr_color, crnr_out,
+                            tri, t_idx, tri_color,
+                            grd_normals, n_idx, tri_normals);
+          }
+          else if (last_o == 2 || last_o == 7) {
+            fillToNearCorner(xx, yy, xd, yd, v_idx, last_o, cnt_tri, dir,
+                             vx, vy, nc, nr, crnr_color, crnr_out,
+                             tri, t_idx, tri_color,
+                             grd_normals, n_idx, tri_normals);
+          }
+          else if (last_o == 3) {
+            fillToSide(xx, yy, xd, yd, v_idx, last_o, -ydir, cnt_tri, dir,
+                       vx, vy, nc, nr, crnr_color, crnr_out,
+                       tri, t_idx, tri_color,
+                       grd_normals, n_idx, tri_normals);
+          }
+          else if (last_o == 5) {
+            fillToSide(xx, yy, xd, yd, v_idx, last_o, -1, cnt_tri, dir,
+                       vx, vy, nc, nr, crnr_color, crnr_out,
+                       tri, t_idx, tri_color,
+                       grd_normals, n_idx, tri_normals);
+          }
+        }
+
+  private static void interpNormals(float vx, float vy, float xx, float yy,
+                                    int nc, int nr, float xd, float yd,
+                                    float[][][] grd_normals, int[] n_idx,
+                                    float[] tri_normals)
+
+  {
+    int side = -1;
+    float[] nn = new float[3];
+
+    if (vy == yy)             side   = 0; // a-b
+    if (vy == (yy + yd))      side   = 2; // c-d
+    if (vx == xx)             side   = 3; // a-c
+    if (vx == (xx + xd))      side   = 1; // b-d
+
+    float dx = vx - xx;
+    float dy = vy - yy;
+
+    switch (side)
+    { 
+      case 0:
+        nn[0] = ((grd_normals[nc][nr+1][0] - grd_normals[nc][nr][0])/xd)*dx +
+                                             grd_normals[nc][nr][0];
+        nn[1] = ((grd_normals[nc][nr+1][1] - grd_normals[nc][nr][1])/xd)*dx +
+                                             grd_normals[nc][nr][1];
+        nn[2] = ((grd_normals[nc][nr+1][2] - grd_normals[nc][nr][2])/xd)*dx +
+                                             grd_normals[nc][nr][2];
+        break;
+      case 3:
+        nn[0] = ((grd_normals[nc+1][nr][0] - grd_normals[nc][nr][0])/yd)*dy +
+                                             grd_normals[nc][nr][0];
+        nn[1] = ((grd_normals[nc+1][nr][1] - grd_normals[nc][nr][1])/yd)*dy +
+                                             grd_normals[nc][nr][1];
+        nn[2] = ((grd_normals[nc+1][nr][2] - grd_normals[nc][nr][2])/yd)*dy +
+                                             grd_normals[nc][nr][2];
+        break;
+      case 1:
+        nn[0] = ((grd_normals[nc+1][nr+1][0] - grd_normals[nc][nr+1][0])/yd)*dy +
+                                               grd_normals[nc][nr+1][0];
+        nn[1] = ((grd_normals[nc+1][nr+1][1] - grd_normals[nc][nr+1][1])/yd)*dy +
+                                               grd_normals[nc][nr+1][1];
+        nn[2] = ((grd_normals[nc+1][nr+1][2] - grd_normals[nc][nr+1][2])/yd)*dy +
+                                               grd_normals[nc][nr+1][2];
+        break;
+      case 2:
+        nn[0] = ((grd_normals[nc+1][nr+1][0] - grd_normals[nc+1][nr][0])/xd)*dx +
+                                               grd_normals[nc+1][nr][0];
+        nn[1] = ((grd_normals[nc+1][nr+1][1] - grd_normals[nc+1][nr][1])/xd)*dx +
+                                               grd_normals[nc+1][nr][1];
+        nn[2] = ((grd_normals[nc+1][nr+1][2] - grd_normals[nc+1][nr][2])/xd)*dx +
+                                               grd_normals[nc+1][nr][2];
+        break;
+      default:
+        System.out.println("interpNormals, bad side: "+side);
+    }
+    //- re-normalize
+    float mag = (float) Math.sqrt(nn[0]*nn[0] + nn[1]*nn[1] + nn[2]*nn[2]);
+    nn[0] /= mag;
+    nn[1] /= mag;
+    nn[2] /= mag;
+    tri_normals[n_idx[0]++] = nn[0];
+    tri_normals[n_idx[0]++] = nn[1];
+    tri_normals[n_idx[0]++] = nn[2];
+  }
+
+  private static void fillToNearCorner(float xx, float yy, float xd, float yd,
+          int v_idx, byte o_flag, int[] cnt, int dir,
+          float[] vx, float[] vy, int nc, int nr,
+          byte[][] crnr_color, boolean[] crnr_out,
+          float[][] tri, int[] t_idx,
+          byte[][] tri_color,
+          float[][][] grd_normals, int[] n_idx,
+          float[] tri_normals)
+  {
+    float cx  = 0;
+    float cy  = 0;
+    int   cc  = 0;
+
+    int cnt_tri = cnt[0];
+    int tt = t_idx[0];
+
+    switch(o_flag) {
+      case 1:
+        cc = 0;
+        if (crnr_out[cc]) return;
+        cx = xx;
+        cy = yy;
+        tri_normals[n_idx[0]++] = grd_normals[nc][nr][0];
+        tri_normals[n_idx[0]++] = grd_normals[nc][nr][1];
+        tri_normals[n_idx[0]++] = grd_normals[nc][nr][2];
+        break;
+      case 4:
+        cc = 2;
+        if (crnr_out[cc]) return;
+        cx = xx;
+        cy = yy + yd;
+        tri_normals[n_idx[0]++] = grd_normals[nc+1][nr][0];
+        tri_normals[n_idx[0]++] = grd_normals[nc+1][nr][1];
+        tri_normals[n_idx[0]++] = grd_normals[nc+1][nr][2];
+        break;
+      case 2:
+        cc = 1;
+        if (crnr_out[cc]) return;
+        cx = xx + xd;
+        cy = yy;
+        tri_normals[n_idx[0]++] = grd_normals[nc][nr+1][0];
+        tri_normals[n_idx[0]++] = grd_normals[nc][nr+1][1];
+        tri_normals[n_idx[0]++] = grd_normals[nc][nr+1][2];
+        break;
+      case 7:
+        cc = 3;
+        if (crnr_out[cc]) return;
+        cx = xx + xd;
+        cy = yy + yd;
+        tri_normals[n_idx[0]++] = grd_normals[nc+1][nr+1][0];
+        tri_normals[n_idx[0]++] = grd_normals[nc+1][nr+1][1];
+        tri_normals[n_idx[0]++] = grd_normals[nc+1][nr+1][2];
+        break;
+    }
+
+    tri_color[0][tt] = crnr_color[cc][0];
+    tri_color[1][tt] = crnr_color[cc][1];
+    tri_color[2][tt] = crnr_color[cc][2];
+    tri[0][tt]       = cx;
+    tri[1][tt]       = cy;
+    tt++;
+
+    tri_color[0][tt] = crnr_color[cc][0];
+    tri_color[1][tt] = crnr_color[cc][1];
+    tri_color[2][tt] = crnr_color[cc][2];
+    tri[0][tt]       = vx[v_idx];
+    tri[1][tt]       = vy[v_idx];
+    t_idx[0] = tt;
+    interpNormals(tri[0][tt], tri[1][tt], xx, yy, nc, nr,
+                  xd, yd, grd_normals, n_idx, tri_normals);
+    tt++;
+
+    tri_color[0][tt] = crnr_color[cc][0];
+    tri_color[1][tt] = crnr_color[cc][1];
+    tri_color[2][tt] = crnr_color[cc][2];
+    tri[0][tt]       = vx[v_idx+dir];
+    tri[1][tt]       = vy[v_idx+dir];
+    t_idx[0] = tt;
+    interpNormals(tri[0][tt], tri[1][tt], xx, yy, nc, nr,
+                  xd, yd, grd_normals, n_idx, tri_normals);
+    tt++;
+
+    cnt_tri++;
+    cnt[0] = cnt_tri;
+    t_idx[0] = tt;
+  }
+
+  private static void fillToOppCorner(float xx, float yy, float xd, float yd,
+         int v_idx, byte o_flag, int[] cnt, int dir,
+         float[] vx, float[] vy, int nc, int nr,
+         byte[][] crnr_color, boolean[] crnr_out,
+         float[][] tri, int[] t_idx, byte[][] tri_color,
+         float[][][] grd_normals, int[] n_idx, float[] tri_normals)
+  {
+    float cx1 = 0;
+    float cx2 = 0;
+    float cx3 = 0;
+    float cy1 = 0;
+    float cy2 = 0;
+    float cy3 = 0;
+    int    cc = 0;
+    int[][] grd = new int[3][2];
+
+    switch (o_flag) {
+      case 1:
+        if (crnr_out[1] || crnr_out[2] || crnr_out[3]) return;
+        cx1 = xx + xd;
+        cy1 = yy;
+        cx2 = xx + xd;
+        cy2 = yy + yd;
+        cx3 = xx;
+        cy3 = yy + yd;
+        cc  = 3;
+        grd[0][0] = 1;
+        grd[0][1] = 0;
+        grd[1][0] = 1;
+        grd[1][1] = 1;
+        grd[2][0] = 0;
+        grd[2][1] = 1;
+        break;
+      case 2:
+        if (crnr_out[0] || crnr_out[2] || crnr_out[3]) return;
+        cx1 = xx;
+        cy1 = yy;
+        cx2 = xx;
+        cy2 = yy + yd;
+        cx3 = xx + xd;
+        cy3 = yy + yd;
+        cc  = 2;
+        grd[0][0] = 0;
+        grd[0][1] = 0;
+        grd[1][0] = 0;
+        grd[1][1] = 1;
+        grd[2][0] = 1;
+        grd[2][1] = 1;
+        break;
+      case 4:
+        if (crnr_out[0] || crnr_out[1] || crnr_out[3]) return;
+        cx1 = xx;
+        cy1 = yy;
+        cx2 = xx + xd;
+        cy2 = yy;
+        cx3 = xx + xd;
+        cy3 = yy + yd;
+        cc  = 1;
+        grd[0][0] = 0;
+        grd[0][1] = 0;
+        grd[1][0] = 1;
+        grd[1][1] = 0;
+        grd[2][0] = 1;
+        grd[2][1] = 1;
+        break;
+      case 7:
+        if (crnr_out[0] || crnr_out[1] || crnr_out[2]) return;
+        cx1 = xx + xd;
+        cy1 = yy;
+        cx2 = xx;
+        cy2 = yy;
+        cx3 = xx;
+        cy3 = yy + yd;
+        cc  = 0;
+        grd[0][0] = 1;
+        grd[0][1] = 0;
+        grd[1][0] = 0;
+        grd[1][1] = 0;
+        grd[2][0] = 0;
+        grd[2][1] = 1;
+        break;
+    }
+
+    int cnt_tri = cnt[0];
+    int tt = t_idx[0];
+
+    tri_color[0][tt] = crnr_color[cc][0];
+    tri_color[1][tt] = crnr_color[cc][1];
+    tri_color[2][tt] = crnr_color[cc][2];
+    tri[0][tt]       = cx1;
+    tri[1][tt]       = cy1;
+    tri_normals[n_idx[0]++] = grd_normals[nc+grd[0][1]][nr+grd[0][0]][0];
+    tri_normals[n_idx[0]++] = grd_normals[nc+grd[0][1]][nr+grd[0][0]][1];
+    tri_normals[n_idx[0]++] = grd_normals[nc+grd[0][1]][nr+grd[0][0]][2];
+    tt++;
+
+    tri_color[0][tt] = crnr_color[cc][0];
+    tri_color[1][tt] = crnr_color[cc][1];
+    tri_color[2][tt] = crnr_color[cc][2];
+    tri[0][tt]       = cx2;
+    tri[1][tt]       = cy2;
+    tri_normals[n_idx[0]++] = grd_normals[nc+grd[1][1]][nr+grd[1][0]][0];
+    tri_normals[n_idx[0]++] = grd_normals[nc+grd[1][1]][nr+grd[1][0]][1];
+    tri_normals[n_idx[0]++] = grd_normals[nc+grd[1][1]][nr+grd[1][0]][2];
+    tt++;
+
+    tri_color[0][tt] = crnr_color[cc][0];
+    tri_color[1][tt] = crnr_color[cc][1];
+    tri_color[2][tt] = crnr_color[cc][2];
+    if (dir > 0) {
+      tri[0][tt] = vx[v_idx];
+      tri[1][tt] = vy[v_idx];
+    }
+    else {
+      tri[0][tt] = vx[v_idx+dir];
+      tri[1][tt] = vy[v_idx+dir];
+    }
+    t_idx[0] = tt;
+    interpNormals(tri[0][tt], tri[1][tt], xx, yy, nc, nr,
+                  xd, yd, grd_normals, n_idx, tri_normals);
+    tt++;
+    cnt_tri++;
+
+    tri_color[0][tt] = crnr_color[cc][0];
+    tri_color[1][tt] = crnr_color[cc][1];
+    tri_color[2][tt] = crnr_color[cc][2];
+    tri[0][tt] = cx3;
+    tri[1][tt] = cy3;
+    tri_normals[n_idx[0]++] = grd_normals[nc+grd[2][1]][nr+grd[2][0]][0];
+    tri_normals[n_idx[0]++] = grd_normals[nc+grd[2][1]][nr+grd[2][0]][1];
+    tri_normals[n_idx[0]++] = grd_normals[nc+grd[2][1]][nr+grd[2][0]][2];
+    tt++;
+
+    tri_color[0][tt] = crnr_color[cc][0];
+    tri_color[1][tt] = crnr_color[cc][1];
+    tri_color[2][tt] = crnr_color[cc][2];
+    tri[0][tt] = cx2;
+    tri[1][tt] = cy2;
+    tri_normals[n_idx[0]++] = grd_normals[nc+grd[1][1]][nr+grd[1][0]][0];
+    tri_normals[n_idx[0]++] = grd_normals[nc+grd[1][1]][nr+grd[1][0]][1];
+    tri_normals[n_idx[0]++] = grd_normals[nc+grd[1][1]][nr+grd[1][0]][2];
+    tt++;
+
+    tri_color[0][tt] = crnr_color[cc][0];
+    tri_color[1][tt] = crnr_color[cc][1];
+    tri_color[2][tt] = crnr_color[cc][2];
+    if (dir > 0) {
+      tri[0][tt]   = vx[v_idx+dir];
+      tri[1][tt]   = vy[v_idx+dir];
+    }
+    else {
+      tri[0][tt]   = vx[v_idx];
+      tri[1][tt]   = vy[v_idx];
+    }
+    t_idx[0] = tt;
+    interpNormals(tri[0][tt], tri[1][tt], xx, yy, nc, nr,
+                  xd, yd, grd_normals, n_idx, tri_normals);
+    tt++;
+    cnt_tri++;
+
+    tri_color[0][tt] = crnr_color[cc][0];
+    tri_color[1][tt] = crnr_color[cc][1];
+    tri_color[2][tt] = crnr_color[cc][2];
+    tri[0][tt] = cx2;
+    tri[1][tt] = cy2;
+    tri_normals[n_idx[0]++] = grd_normals[nc+grd[1][1]][nr+grd[1][0]][0];
+    tri_normals[n_idx[0]++] = grd_normals[nc+grd[1][1]][nr+grd[1][0]][1];
+    tri_normals[n_idx[0]++] = grd_normals[nc+grd[1][1]][nr+grd[1][0]][2];
+    tt++;
+
+    tri_color[0][tt] = crnr_color[cc][0];
+    tri_color[1][tt] = crnr_color[cc][1];
+    tri_color[2][tt] = crnr_color[cc][2];
+    tri[0][tt] = vx[v_idx];
+    tri[1][tt] = vy[v_idx];
+    t_idx[0] = tt;
+    interpNormals(tri[0][tt], tri[1][tt], xx, yy, nc, nr,
+                  xd, yd, grd_normals, n_idx, tri_normals);
+    tt++;
+
+    tri_color[0][tt] = crnr_color[cc][0];
+    tri_color[1][tt] = crnr_color[cc][1];
+    tri_color[2][tt] = crnr_color[cc][2];
+    tri[0][tt]   = vx[v_idx+dir];
+    tri[1][tt]   = vy[v_idx+dir];
+    t_idx[0] = tt;
+    interpNormals(tri[0][tt], tri[1][tt], xx, yy, nc, nr,
+                  xd, yd, grd_normals, n_idx, tri_normals);
+    tt++;
+    cnt_tri++;
+
+    cnt[0] = cnt_tri;
+    t_idx[0] = tt;
+  }
+
+  private static void fillToSide(float xx, float yy, float xd, float yd,
+         int v_idx, byte o_flag, int flag, int[] cnt, int dir,
+         float[] vx, float[] vy, int nc, int nr, 
+         byte[][] crnr_color, boolean[] crnr_out,
+         float[][] tri, int[] t_idx, byte[][] tri_color,
+         float[][][] grd_normals, int[] n_idx, float[] tri_normals)
+  {
+    int cnt_tri = cnt[0];
+    int tt = t_idx[0];
+    float cx1 = 0;
+    float cy1 = 0;
+    float cx2 = 0;
+    float cy2 = 0;
+    int    cc = 0;
+    int[][] grd = new int[2][2];
+
+    switch (o_flag)
+    {
+      case 3:
+        switch (flag) {
+          case  1:
+            if(crnr_out[2] || crnr_out[3]) return;
+            cx1 = xx;
+            cy1 = yy + yd;
+            cx2 = xx + xd;
+            cy2 = yy + yd;
+            cc  = 3;
+            grd[0][0] = 0;
+            grd[0][1] = 1;
+            grd[1][0] = 1;
+            grd[1][1] = 1;
+            break;
+          case -1:
+            if(crnr_out[0] || crnr_out[1]) return;
+            cx1 = xx;
+            cy1 = yy;
+            cx2 = xx + xd;
+            cy2 = yy;
+            cc  = 0;
+            grd[0][0] = 0;
+            grd[0][1] = 0;
+            grd[1][0] = 1;
+            grd[1][1] = 0;
+            break;
+        }
+        break;
+
+      case 5:
+        switch (flag) {
+          case 1:
+            if(crnr_out[0] || crnr_out[2]) return;
+            cx1 = xx;
+            cy1 = yy;
+            cx2 = xx;
+            cy2 = yy + yd;
+            cc  = 0;
+            grd[0][0] = 0;
+            grd[0][1] = 0;
+            grd[1][0] = 0;
+            grd[1][1] = 1;
+            break;
+          case -1:
+            if(crnr_out[1] || crnr_out[3]) return;
+            cx1 = xx + xd;
+            cy1 = yy;
+            cx2 = xx + xd;
+            cy2 = yy + yd;
+            grd[0][0] = 1;
+            grd[0][1] = 0;
+            grd[1][0] = 1;
+            grd[1][1] = 1;
+            cc  = 3;
+            break;
+        }
+        break;
+        
+    }
+
+    tri_color[0][tt] = crnr_color[cc][0];
+    tri_color[1][tt] = crnr_color[cc][1];
+    tri_color[2][tt] = crnr_color[cc][2];
+    tri[0][tt] = cx1;
+    tri[1][tt] = cy1;
+    int i = grd[0][0];
+    int j = grd[0][1];
+    tri_normals[n_idx[0]++] = grd_normals[nc+j][nr+i][0];
+    tri_normals[n_idx[0]++] = grd_normals[nc+j][nr+i][1];
+    tri_normals[n_idx[0]++] = grd_normals[nc+j][nr+i][2];
+    tt++;
+
+    tri_color[0][tt] = crnr_color[cc][0];
+    tri_color[1][tt] = crnr_color[cc][1];
+    tri_color[2][tt] = crnr_color[cc][2];
+    tri[0][tt] = vx[v_idx];
+    tri[1][tt] = vy[v_idx];
+    t_idx[0] = tt;
+    interpNormals(tri[0][tt], tri[1][tt], xx, yy, nc, nr,
+                  xd, yd, grd_normals, n_idx, tri_normals);
+    tt++;
+
+    tri_color[0][tt] = crnr_color[cc][0];
+    tri_color[1][tt] = crnr_color[cc][1];
+    tri_color[2][tt] = crnr_color[cc][2];
+    tri[0][tt] = vx[v_idx+dir];
+    tri[1][tt] = vy[v_idx+dir];
+    t_idx[0] = tt;
+    interpNormals(tri[0][tt], tri[1][tt], xx, yy, nc, nr,
+                  xd, yd, grd_normals, n_idx, tri_normals);
+    tt++;
+    cnt_tri++;
+
+    tri_color[0][tt] = crnr_color[cc][0];
+    tri_color[1][tt] = crnr_color[cc][1];
+    tri_color[2][tt] = crnr_color[cc][2];
+    tri[0][tt] = cx1;
+    tri[1][tt] = cy1;
+    i = grd[0][0];
+    j = grd[0][1];
+    tri_normals[n_idx[0]++] = grd_normals[nc+j][nr+i][0];
+    tri_normals[n_idx[0]++] = grd_normals[nc+j][nr+i][1];
+    tri_normals[n_idx[0]++] = grd_normals[nc+j][nr+i][2];
+    tt++;
+
+    tri_color[0][tt] = crnr_color[cc][0];
+    tri_color[1][tt] = crnr_color[cc][1];
+    tri_color[2][tt] = crnr_color[cc][2];
+    if ( dir > 0 ) {
+      tri[0][tt] = vx[v_idx+dir];
+      tri[1][tt] = vy[v_idx+dir];
+    }
+    else {
+      tri[0][tt] = vx[v_idx];
+      tri[1][tt] = vy[v_idx];
+    }
+    t_idx[0] = tt;
+    interpNormals(tri[0][tt], tri[1][tt], xx, yy, nc, nr,
+                  xd, yd, grd_normals, n_idx, tri_normals);
+    tt++;
+
+    tri_color[0][tt] = crnr_color[cc][0];
+    tri_color[1][tt] = crnr_color[cc][1];
+    tri_color[2][tt] = crnr_color[cc][2];
+    tri[0][tt] = cx2;
+    tri[1][tt] = cy2;
+    i = grd[1][0];
+    j = grd[1][1];
+    tri_normals[n_idx[0]++] = grd_normals[nc+j][nr+i][0];
+    tri_normals[n_idx[0]++] = grd_normals[nc+j][nr+i][1];
+    tri_normals[n_idx[0]++] = grd_normals[nc+j][nr+i][2];
+    tt++;
+    cnt_tri++;
+   
+    cnt[0] = cnt_tri;
+    t_idx[0] = tt;
+  }
+
   // APPLET SECTION
 
   /* run 'appletviewer contour.html' to test the Contour2D class. */
@@ -1167,6 +2280,12 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     con.vy3 = new float[1][mxv3];
     con.vx4 = new float[1][mxv4];
     con.vy4 = new float[1][mxv4];
+
+    float[][] tri = new float[2][];
+    byte[][] tri_color = new byte[3][];
+    float[][][] grd_normals = new float[3][][];
+    float[][] tri_normals = new float[1][];
+    byte[][] interval_colors = new byte[3][];
     try {
       boolean[] swap = {false, false, false};
       float[] intervals = {.25f, .5f, 1.0f, 2.0f, 2.5f, 5.f, 10.f};
@@ -1176,7 +2295,8 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                   con.vx2, con.vy2, mxv2, con.num2,
                   con.vx3, con.vy3, mxv3, con.num3,
                   con.vx4, con.vy4, mxv4, con.num4,
-                  null, null, null, null, swap);
+                  null, null, null, null, swap, false, tri, tri_color,
+                  grd_normals, tri_normals, interval_colors);
     }
     catch (VisADException VE) {
       System.out.println("Contour2D.init: "+VE);

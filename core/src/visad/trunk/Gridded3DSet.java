@@ -1636,7 +1636,8 @@ for (int j=0; j<3; j++) {
   public VisADGeometryArray[] makeIsoLines(float[] intervals,
                   float lowlimit, float highlimit, float base,
                   float[] fieldValues, byte[][] color_values,
-                  boolean[] swap, boolean dash) throws VisADException {
+                  boolean[] swap, boolean dash,
+                  boolean fill, ScalarMap[] smap) throws VisADException {
     if (ManifoldDimension != 2) {
       throw new DisplayException("Gridded3DSet.makeIsoLines: " +
                                  "ManifoldDimension must be 2");
@@ -1687,11 +1688,94 @@ for color_length = 3 this is 148 * Length
     int[] numv3 = new int[1];
     int[] numv4 = new int[1];
 
+    float[][] tri           = new float[2][];
+    float[][] tri_normals   = new float[1][];
+    byte[][]  tri_color     = new byte[3][];
+    float[][][] grd_normals = null;
+    byte[][] interval_colors = new byte[3][intervals.length];
+
+    if (fill) { //- compute normals at grid points
+      float[][] samples = getSamples(false);
+      grd_normals = new float[nr][nc][3];
+      // calculate normals
+      int k = 0;
+      int k3 = 0;
+      int ki, kj;
+      for (int i=0; i<LengthY; i++) {
+        for (int j=0; j<LengthX; j++) {
+          float c0 = samples[0][k3];
+          float c1 = samples[1][k3];
+          float c2 = samples[2][k3];
+          float n0 = 0.0f;
+          float n1 = 0.0f;
+          float n2 = 0.0f;
+          float n, m, m0, m1, m2;
+          for (int ip = -1; ip<=1; ip += 2) {
+            for (int jp = -1; jp<=1; jp += 2) {
+              int ii = i + ip;
+              int jj = j + jp;
+              if (0 <= ii && ii < LengthY && 0 <= jj && jj < LengthX) {
+                ki = k3 + ip * LengthX;
+                kj = k3 + jp;
+                m0 = (samples[2][kj] - c2) * (samples[1][ki] - c1) -
+                     (samples[1][kj] - c1) * (samples[2][ki] - c2);
+                m1 = (samples[0][kj] - c0) * (samples[2][ki] - c2) -
+                     (samples[2][kj] - c2) * (samples[0][ki] - c0);
+                m2 = (samples[1][kj] - c1) * (samples[0][ki] - c0) -
+                     (samples[0][kj] - c0) * (samples[1][ki] - c1);
+                m = (float) Math.sqrt(m0 * m0 + m1 * m1 + m2 * m2);
+                if (ip == jp) {
+                  n0 += m0 / m;
+                  n1 += m1 / m;
+                  n2 += m2 / m;
+                }
+                else {
+                  n0 -= m0 / m;
+                  n1 -= m1 / m;
+                  n2 -= m2 / m;
+                }
+              }
+            }
+          }
+          n = (float) Math.sqrt(n0 * n0 + n1 * n1 + n2 * n2);
+          grd_normals[i][j][0] = n0 / n;
+          grd_normals[i][j][1] = n1 / n;
+          grd_normals[i][j][2] = n2 / n;
+          k += 3;
+          k3++;
+        }
+      }
+      //-- compute color at field contour intervals
+      float[] display_intervals = smap[0].scaleValues(intervals);
+      ColorControl color_control = (ColorControl)smap[0].getControl();
+      float[][] temp = null;
+      try {
+       temp = color_control.lookupValues(display_intervals);
+      }
+      catch (Exception e) {
+      }
+      for (int kk=0; kk<interval_colors[0].length; kk++) {
+        interval_colors[0][kk] = ShadowType.floatToByte(temp[0][kk]);
+        interval_colors[1][kk] = ShadowType.floatToByte(temp[1][kk]);
+        interval_colors[2][kk] = ShadowType.floatToByte(temp[2][kk]);
+      }
+    }
+
     Contour2D.contour( g, nr, nc, intervals, lowlimit, highlimit, base, dash,
                       vx1, vy1,  maxv1, numv1, vx2, vy2,  maxv2, numv2,
                       vx3, vy3,  maxv3, numv3, vx4, vy4,  maxv4, numv4,
                       color_values, color_levels1, color_levels2,
-                      color_levels3, swap );
+                      color_levels3, swap,
+                      fill, tri, tri_color, grd_normals, tri_normals, 
+                      interval_colors);
+
+    if (fill) {
+      VisADGeometryArray[] tri_array = new VisADGeometryArray[1];
+      tri_array[0] = new VisADTriangleArray();
+      tri_array[0].normals = tri_normals[0];
+      setGeometryArray(tri_array[0], gridToValue(tri), 3, tri_color);
+      return tri_array;
+    }
 
     float[][] grid1 = new float[2][numv1[0]];
     System.arraycopy(vx1[0], 0, grid1[0], 0, numv1[0]);
