@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: ArithProg.java,v 1.8.2.1 2001-11-05 23:51:35 steve Exp $
+$Id: ArithProg.java,v 1.8.2.2 2001-11-06 15:41:27 steve Exp $
 */
 
 package visad.data.in;
@@ -35,13 +35,11 @@ import visad.VisADException;
  */
 public class ArithProg
 {
-    private long		n = 0;
+    private long		n;
     private double		first = Double.NaN;
     private double		last = Double.NaN;
-    private double              sumDel;
-    private double              meanDel;
-    private double              sumVarDel;
-    private double              meanVarDel;
+    private double              sumDel = Double.NaN;
+    private double              meanDel = Double.NaN;
     private boolean		isConsistent = true;
     private final double	fEps = 5e-5f;	// 5 * C FLT_EPS
     private final double	dEps = 5e-9;	// 5 * C DBL_EPS
@@ -165,7 +163,7 @@ public class ArithProg
      * consistent with the arithmetic progression so far.
      *
      * @param value		The value to accumulate.
-     * @param epsilon		The relative comparison resolution.
+     * @param eps    		The relative comparison resolution.
      * @return			False if the difference between any current
      *				and previous value normalized by the current
      *				increment differs from unity by more than the
@@ -178,7 +176,7 @@ public class ArithProg
      *				value argument if the function
      *				returns true.
      */
-    protected synchronized final boolean accum(double value, double epsilon)
+    protected synchronized final boolean accum(double value, double eps)
     {
 	if (n == 0)
 	{
@@ -186,31 +184,19 @@ public class ArithProg
 	}
 	else if (n == 1)
 	{
-	    double del = delta(last, value);
-	    sumDel = del;
-	    meanDel = del;
-	    double uncDel = Math.abs(epsilon * (last + del));
-	    double varDel = uncDel * uncDel;
-	    sumVarDel = varDel;
-	    meanVarDel = varDel;
+	    meanDel = sumDel = delta(last, value);
 	}
-	else
+	else if (isConsistent)
 	{
 	    double del = delta(last, value);
-	    double errDel = del - meanDel;
-	    if (errDel*errDel > meanVarDel)
+	    if (Math.abs(delta(last + meanDel, value)) > Math.abs(eps*del))
 	    {
 		isConsistent = false;
-		meanVarDel = Double.NaN;
 	    }
 	    else
 	    {
 		sumDel += del;
 		meanDel = sumDel / n;
-		double uncDel = Math.abs(epsilon * (last + del));
-		double varDel = uncDel * uncDel;
-		sumVarDel += varDel;
-		meanVarDel = sumVarDel / (n - 1);
 	    }
 	}
 	last = value;
