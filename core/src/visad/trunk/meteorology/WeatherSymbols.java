@@ -90,7 +90,7 @@ public class WeatherSymbols {
     // set up WMO symbols
     double[] start = { 0, -.5, 0 };
     double[] base = { 1, 0, 0 };
-    double[] up = { 0, 1, 1 };
+    double[] up = { 0, 1.25, 0 };
     try {
       for (int i = 0; i < numWMOSymbols; i++) {
         wmoSymbols[i] = 
