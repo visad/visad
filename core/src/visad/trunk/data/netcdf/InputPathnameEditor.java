@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: InputPathnameEditor.java,v 1.2 1998-06-26 18:36:19 visad Exp $
+ * $Id: InputPathnameEditor.java,v 1.3 1998-06-29 19:47:13 visad Exp $
  */
 
 package visad.data.netcdf;
@@ -28,17 +28,17 @@ import java.beans.PropertyEditor;
  */
 public abstract class
 InputPathnameEditor
-    extends	Panel
-    implements	PropertyEditor
+    extends	PropertyEditorSupport
 {
-    private FileDialog	fileDialog;
+    private FileDialogPanel	fileDialog;
 
     /**
      * Construct.
      */
     public
-    InputPathnameEditor(String initialPathname)
+    InputPathnameEditor(String filterPattern, String initialPathname)
     {
+	fileDialog = new FileDialogPanel(filterPattern, initialPathname);
     }
 
 
@@ -107,7 +107,7 @@ InputPathnameEditor
     public Component
     getCustomEditor()
     {
-	return this;
+	return fileDialog;
     }
 
 
@@ -119,117 +119,5 @@ InputPathnameEditor
     {
 	if (value instanceof String)
 	    setAsText((String)value);
-    }
-
-
-    /**
-     * Adapter for converting a FileDialog into a non-Window Component.
-     * The custom editor returned by getCustomEditor() will be added to
-     * a Container and, consequently, may not be a Window (which FileDialog
-     * is).
-     */
-    protected class
-    NonWindowFileDialog
-	extends Canvas
-    {
-	/**
-	 * The FileDialog.
-	 */
-	private final FileDialog	fileDialog;
-
-
-	/**
-	 * Construct.
-	 */
-	protected
-	NonWindowFileDialog(Frame parent, String title)
-	{
-	    fileDialog = new FileDialog(parent, title);
-
-	    /*
-	     * The setDirectory() is not needed, except for a bug under Solaris.
-	     */
-	    fileDialog.setDirectory(System.getProperty("user.dir"));
-	}
-
-
-	/**
-	 * Set the pathname.
-	 */
-	public void
-	setFile(String pathname)
-	{
-	    fileDialog.setFile(pathname);
-	}
-
-
-	/**
-	 * Get the pathname.
-	 */
-	public String
-	getFile()
-	{
-	    return fileDialog.getFile();
-	}
-
-
-	/**
-	 * Add a PropertyChangeListener.
-	 */
-	public void
-	addPropertyChangeListener(String name, PropertyChangeListener listener)
-	{
-	    fileDialog.addPropertyChangeListener(name, listener);
-	}
-
-
-	/**
-	 * Remove a PropertyChangeListener.
-	 */
-	public void
-	removePropertyChangeListener(PropertyChangeListener listener)
-	{
-	    fileDialog.removePropertyChangeListener(listener);
-	}
-
-
-	/**
-	 * Paint.
-	 */
-	public void
-	paint(Graphics graphics)
-	{
-	    fileDialog.paint(graphics);
-	}
-
-
-	/**
-	 * Get the size.
-	 */
-	public Dimension
-	getSize()
-	{
-	    return fileDialog.getSize();
-	}
-
-
-	/**
-	 * Get the preferred size.
-	 */
-	public Dimension
-	getPreferredSize()
-	{
-	    return fileDialog.getPreferredSize();
-	}
-
-
-	/**
-	 * Set the bounds.
-	 */
-	public void
-	setBounds(int x, int y, int width, int height)
-	{
-	    fileDialog.setBounds(x, y, width, height);
-	}
     }
 }
