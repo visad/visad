@@ -30,21 +30,19 @@ import visad.*;
 import java.rmi.RemoteException;
 
 /**
- * Tuple implementation of NamedLocation for representing a 
+ * <p>Tuple implementation of NamedLocation for representing a 
  * location on the earth's surface in terms of latitude,  longitude 
  * and altitude above sea level and some sort of identifier.  In
  * this implementation, the Tuple has two components - the identifier
- * and an EarthLocation.
+ * and an {@link EarthLocationTuple}.</p>
+ *
+ * <p>Instances of this class are immutable.</p>
  *
  * @author  Don Murray, Unidata
  */
 public class NamedLocationTuple extends Tuple
     implements NamedLocation
 {
-
-    private EarthLocation location;
-    private Text id;
-
     /** 
      * TextType associated with the identifier that is returned by
      * getIdentifier().
@@ -99,6 +97,7 @@ public class NamedLocationTuple extends Tuple
      *                      (must be of type NamedLocation.IDENTIFIER_TYPE)
      * @param  location     EarthLocation
      *
+     * @throws NullPointerException if the location is <code>null</code>.
      * @throws  VisADException   unable to create necessary VisAD object
      * @throws  RemoteException  unable to create necessary remote object
      */
@@ -115,8 +114,6 @@ public class NamedLocationTuple extends Tuple
                                          location.getLongitude(),
                                          location.getAltitude())}
               );
-        this.id = identifier;
-        this.location = location;
     }
 
     /**
@@ -160,7 +157,7 @@ public class NamedLocationTuple extends Tuple
      */
     public Real getLatitude()
     {
-        return location.getLatitude();
+        return getEarthLocation().getLatitude();
     }
 
     /**
@@ -170,7 +167,7 @@ public class NamedLocationTuple extends Tuple
      */
     public Real getLongitude()
     {
-        return location.getLongitude();
+        return getEarthLocation().getLongitude();
     }
 
     /**
@@ -180,7 +177,7 @@ public class NamedLocationTuple extends Tuple
      */
     public Real getAltitude()
     {
-        return location.getAltitude();
+        return getEarthLocation().getAltitude();
     }
 
     /**
@@ -190,7 +187,7 @@ public class NamedLocationTuple extends Tuple
      */
     public LatLonPoint getLatLonPoint()
     {
-        return location.getLatLonPoint();
+       return getEarthLocation().getLatLonPoint();
     }
 
     /**
@@ -200,7 +197,12 @@ public class NamedLocationTuple extends Tuple
      */
     public EarthLocation getEarthLocation()
     {
-        return location;
+        try {
+            return (EarthLocationTuple)getComponent(1);
+        }
+        catch (Exception ex) {
+            throw new RuntimeException("Assertion failure");
+        }
     }
 
     /**
@@ -215,29 +217,30 @@ public class NamedLocationTuple extends Tuple
      */
     public Text getIdentifier()
     {
-        return id;
+        try {
+            return (Text)getComponent(0);
+        }
+        catch (Exception ex) {
+            throw new RuntimeException("Assertion failure");  // can't happen
+        }
     }
 
-    public Object clone() {
-      NamedLocationTuple nlt;
-      try {
-          nlt = new NamedLocationTuple(id, new EarthLocationTuple(location.getLatitude(), location.getLongitude(), location.getAltitude()));
-      }
-      catch (VisADException e) {
-        throw new VisADError("NamedLocationTuple.clone: VisADException occurred");
-      }
-      catch (RemoteException e) {
-        throw new VisADError("NamedLocationTuple.clone: RemoteException occurred");
-      }
-      return nlt;
+    /**
+     * Clones this instance.  Because instances are immutable, this instance is
+     * returned.
+     *
+     * @return                    A clone of this instance.
+     */
+    public final Object clone() {
+      return this;
     }
 
     public String toString() {
        StringBuffer buf = new StringBuffer();
        buf.append("Name: ");
-       buf.append(id);
+       buf.append(getIdentifier().toString());
        buf.append(" ");
-       buf.append(location.toString());
+       buf.append(getEarthLocation().toString());
        return buf.toString();
     }
 
