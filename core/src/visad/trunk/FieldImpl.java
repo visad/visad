@@ -64,12 +64,21 @@ public class FieldImpl extends FunctionImpl implements Field {
     this(type, null);
   }
 
-  /** construct a FieldImpl from type and domain Set;
-      FieldImpl is the most general sampled function;
-      domain_set defines the domain sampling;
-      if it is null, use the default Set of type.getDomain();
-      domain_set defines the Units and CoordinateSystem
-      of the Field domain */
+  /**
+   * Constructs from the type of function and a set of domain points.
+   *
+   * @param type		The type of function.
+   * @param set 		The set of domain points.  Defines the units
+   *				and any coordinate system transformation
+   *				for the domain of the funciton.  May be
+   *				<code>null</code>, in which case the default
+   *				domain set ({@link FunctionType#getDomain()}) is
+   *				used.  May <em>not</em> be {@link FloatSet} or
+   *				{@link DoubleSet}.  If non-<code>null</code>, 
+   *				then must be compatible with the domain of the
+   *				FunctionType.
+   * @throws VisADException	VisAD failure.
+   */
   public FieldImpl(FunctionType type, Set set) throws VisADException {
     super(type);
     RealTupleType DomainType = type.getDomain();
