@@ -37,7 +37,7 @@ public class HistogramWidget
 
   private DisplayImplJ2D dpy;
   private DataReferenceImpl ref;
-  private ScalarMap xMap, yMap;
+  private ScalarMap xMap, yMap, cMap;
 
   public HistogramWidget()
     throws RemoteException, VisADException
@@ -50,7 +50,7 @@ public class HistogramWidget
     dpy.addMap(xMap);
     dpy.addMap(yMap);
 
-    ScalarMap cMap = new ScalarMap(Hit.leadingEdgeTimeType, Display.RGB);
+    cMap = new ScalarMap(Hit.leadingEdgeTimeType, Display.RGB);
     dpy.addMap(cMap);
     F2000Util.invertColorTable(cMap);
 
@@ -72,7 +72,7 @@ public class HistogramWidget
   public void setEvent(Event evt)
     throws RemoteException, VisADException
   {
-    float[][] histoData = evt.makeHistogram(xMap, yMap);
+    float[][] histoData = evt.makeHistogram(xMap, yMap, cMap);
 
     Gridded2DSet set = new Gridded2DSet(histoType, histoData,
                                         histoData[0].length);

@@ -103,7 +103,8 @@ public class Event
 
   public final int getYear() { return year; }
 
-  public final float[][] makeHistogram(ScalarMap xMap, ScalarMap yMap)
+  public final float[][] makeHistogram(ScalarMap xMap, ScalarMap yMap,
+                                       ScalarMap cMap)
   {
     float[] timeSteps = hits.getTimeSteps();
 
@@ -168,6 +169,8 @@ public class Event
     try {
       xMap.setRange(0.0, (double )binMax);
       yMap.setRange((double )timeSteps[0],
+                    (double )timeSteps[timeSteps.length - 1]);
+      cMap.setRange((double )timeSteps[0],
                     (double )timeSteps[timeSteps.length - 1]);
     } catch (RemoteException re) {
       System.err.println("Couldn't set histogram ScalarMap ranges");
