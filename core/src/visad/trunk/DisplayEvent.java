@@ -129,9 +129,17 @@ public class DisplayEvent extends Event {
 
   private int id = 0;
 
-  private int mouse_x = 0, mouse_y = 0; // MouseEvent position
+  /** MouseEvent x position */
+  private int mouse_x = 0;
+  
+  /** MouseEvent y position */
+  private int mouse_y = 0;
 
-  private Display display; // source of event
+  /** source of event */
+  private Display display;
+
+  /** whether DisplayEvent came from remote source */
+  private boolean remote_source; 
 
   /**
    * Constructs a DisplayEvent object with the specified source display,
@@ -160,6 +168,23 @@ public class DisplayEvent extends Event {
    *            the display component
    */
   public DisplayEvent(Display d, int id_d, int x, int y) {
+    this(d, id_d, x, y, false);
+  }
+
+  /**
+   * Constructs a DisplayEvent object with the specified source display,
+   * type of event, mouse positions where event occurred, and
+   * remote flag indicating whether event came from a remote source.
+   *
+   * @param  d  display that sends the event
+   * @param  id_d  type of DisplayEvent that is sent
+   * @param  x  the horizontal x coordinate for the mouse location in
+   *            the display component
+   * @param  y  the vertical y coordinate for the mouse location in
+   *            the display component
+   * @param  remote  true if this DisplayEvent came from a remote source
+   */
+  public DisplayEvent(Display d, int id_d, int x, int y, boolean remote) {
     // don't pass display as the source, since source
     // is transient inside Event
     super(null, 0, null);
@@ -167,6 +192,7 @@ public class DisplayEvent extends Event {
     id = id_d;
     mouse_x = x;
     mouse_y = y;
+    remote_source = remote;
   }
 
   /**
@@ -175,7 +201,7 @@ public class DisplayEvent extends Event {
    */
   public DisplayEvent cloneButDisplay(Display dpy)
   {
-    return new DisplayEvent(dpy, id, mouse_x, mouse_y);
+    return new DisplayEvent(dpy, id, mouse_x, mouse_y, remote_source);
   }
 
   /** get the DisplayImpl that sent this DisplayEvent (or
@@ -229,6 +255,15 @@ public class DisplayEvent extends Event {
    */
   public int getY() {
     return mouse_y;
+  }
+
+  /**
+   * Get whether the event came from a remote source.
+   *
+   * @return true if remote, false if local
+   */
+  public boolean isRemote() {
+    return remote_source;
   }
 
 }

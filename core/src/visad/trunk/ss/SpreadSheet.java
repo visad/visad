@@ -2978,7 +2978,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** handle display changes */
   public void displayChanged(DisplayEvent e) {
-    if (e.getId() == DisplayEvent.MOUSE_PRESSED) {
+    if (e.getId() == DisplayEvent.MOUSE_PRESSED && !e.isRemote()) {
+      // highlight cell if it is the source of a local mouse click
       String name = null;
       try {
         Display d = e.getDisplay();

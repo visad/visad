@@ -44,9 +44,9 @@ import visad.java2d.*;
 import visad.java3d.*;
 import visad.util.DataUtility;
 
-/** BasicSSCell represents a single spreadsheet display cell.  BasicSSCells
+/** BasicSSCell represents a single spreadsheet display cell. BasicSSCells
     can be added to a VisAD user interface to provide some of the capabilities
-    presented in the VisAD SpreadSheet program.  Other capabilities, like the
+    presented in the VisAD SpreadSheet program. Other capabilities, like the
     file loader and data mapping dialog boxes, are available only with a
     FancySSCell.<P> */
 public class BasicSSCell extends JPanel {
@@ -1683,6 +1683,24 @@ public class BasicSSCell extends JPanel {
     }
   }
 
+  /** re-attach all display listeners after they have been detached */
+  private void attachDisplayListeners() {
+    for (int i=0; i<DListen.size(); i++) {
+      DisplayListener d = (DisplayListener) DListen.elementAt(i);
+      if (IsSlave) RemoteVSlave.addDisplayListener(d);
+      else VDisplay.addDisplayListener(d);
+    }
+  }
+
+  /** temporarily detach all display listeners */
+  private void detachDisplayListeners() {
+    for (int i=0; i<DListen.size(); i++) {
+      DisplayListener d = (DisplayListener) DListen.elementAt(i);
+      if (IsSlave) RemoteVSlave.removeDisplayListener(d);
+      else VDisplay.removeDisplayListener(d);
+    }
+  }
+
   /** map RealTypes to the display according to the specified ScalarMaps */
   public synchronized void setMaps(ScalarMap[] maps)
     throws VisADException, RemoteException
@@ -1866,13 +1884,7 @@ public class BasicSSCell extends JPanel {
     if (!IsRemote) {
       synchronized (DListen) {
         // remove listeners temporarily
-        int dLen = DListen.size();
-        if (dLen > 0) {
-          for (int i=0; i<dLen; i++) {
-            DisplayListener d = (DisplayListener) DListen.elementAt(i);
-            VDisplay.removeDisplayListener(d);
-          }
-        }
+        detachDisplayListeners();
 
         // save current mappings for restoration after dimension switch
         ScalarMap[] maps = null;
@@ -1923,10 +1935,7 @@ public class BasicSSCell extends JPanel {
         if (hasData()) setVDPanel(true);
 
         // put listeners back
-        for (int i=0; i<dLen; i++) {
-          DisplayListener d = (DisplayListener) DListen.elementAt(i);
-          VDisplay.addDisplayListener(d);
-        }
+        attachDisplayListeners();
       }
 
       // broadcast dimension change event
@@ -1945,11 +1954,7 @@ public class BasicSSCell extends JPanel {
   private void setDimClone() throws VisADException, RemoteException {
     synchronized (DListen) {
       // remove listeners temporarily
-      int dLen = DListen.size();
-      for (int i=0; i<dLen; i++) {
-        DisplayListener d = (DisplayListener) DListen.elementAt(i);
-        VDisplay.removeDisplayListener(d);
-      }
+      detachDisplayListeners();
 
       // remove old display panel from cell
       setVDPanel(false);
@@ -1959,14 +1964,7 @@ public class BasicSSCell extends JPanel {
 
       // update remote slave display
       if (IsSlave) {
-        if (RemoteVSlave != null) {
-          RemoteVSlave.unlink();
-          // remove slave display's listeners temporarily
-          for (int i=0; i<dLen; i++) {
-            DisplayListener d = (DisplayListener) DListen.elementAt(i);
-            RemoteVSlave.removeDisplayListener(d);
-          }
-        }
+        if (RemoteVSlave != null) RemoteVSlave.unlink();
         RemoteVSlave = new RemoteSlaveDisplayImpl(RemoteVDisplay);
       }
 
@@ -2018,11 +2016,7 @@ public class BasicSSCell extends JPanel {
       if (success && hasData()) setVDPanel(true);
 
       // put all listeners back
-      for (int i=0; i<dLen; i++) {
-        DisplayListener d = (DisplayListener) DListen.elementAt(i);
-        if (IsSlave) RemoteVSlave.addDisplayListener(d);
-        VDisplay.addDisplayListener(d);
-      }
+      attachDisplayListeners();
     }
 
     // broadcast dimension change event

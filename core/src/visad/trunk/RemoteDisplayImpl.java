@@ -147,7 +147,8 @@ public class RemoteDisplayImpl extends RemoteActionImpl
     boolean popup = e.isPopupTrigger();
     MouseEvent ne = new MouseEvent(c, id, when, mods, x, y, clicks, popup);
 
-    mh.processEvent(ne);
+    // send mouse event with remote source flag set
+    mh.processEvent(ne, true);
   }
 
   /* CTR 21 Sep 1999 - end code for slaved displays */

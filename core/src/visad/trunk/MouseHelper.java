@@ -97,6 +97,12 @@ public class MouseHelper {
   }
 
   public void processEvent(AWTEvent event) {
+    processEvent(event, false);
+  }
+
+  /** process the given event, treating it as coming from a remote source
+      if remote flag is set */
+  public void processEvent(AWTEvent event, boolean remote) {
     if (!(event instanceof MouseEvent)) {
       System.out.println("MouseHelper.processStimulus: non-" +
                          "MouseEvent");
@@ -116,8 +122,9 @@ event_switch:
         if (mouseEntered &&
             !mouseCombo1 && !mouseCombo2 && !mouseCombo3) {
           try {
-            display.notifyListeners(DisplayEvent.MOUSE_PRESSED,
-                                    mouse_x, mouse_y);
+            DisplayEvent e = new DisplayEvent(display,
+              DisplayEvent.MOUSE_PRESSED, mouse_x, mouse_y, remote);
+            display.notifyListeners(e);
           }
           catch (VisADException e) {
           }
@@ -233,8 +240,9 @@ event_switch:
             // WLH 19 July 99
             if (mctrl == 0 && !z1Pressed) {
               try {
-                display.notifyListeners(DisplayEvent.MOUSE_PRESSED_LEFT,
-                                        mouse_x, mouse_y);
+                DisplayEvent e = new DisplayEvent(display,
+                  DisplayEvent.MOUSE_PRESSED_LEFT, mouse_x, mouse_y, remote);
+                display.notifyListeners(e);
               }
               catch (VisADException e) {
               }
@@ -272,8 +280,9 @@ event_switch:
             //- TDR, Oct. 1998
             if (!t2Pressed && !z2Pressed) {
               try {
-                display.notifyListeners(DisplayEvent.MOUSE_PRESSED_CENTER,
-                                        mouse_x, mouse_y);
+                DisplayEvent e = new DisplayEvent(display,
+                  DisplayEvent.MOUSE_PRESSED_CENTER, mouse_x, mouse_y, remote);
+                display.notifyListeners(e);
               }
               catch (VisADException e) {
               }
@@ -294,14 +303,16 @@ event_switch:
                 if (direct_renderer != null) {
                   display_renderer.setDirectOn(true);
                   direct_renderer.setLastMouseModifiers(mouseModifiers);
-                  direct_renderer.drag_direct(direct_ray, true, mouseModifiers);
+                  direct_renderer.drag_direct(direct_ray, true,
+                    mouseModifiers);
                 }
               }
             }
             // WLH 19 July 99
             try {
-              display.notifyListeners(DisplayEvent.MOUSE_PRESSED_RIGHT,
-                                      mouse_x, mouse_y);
+              DisplayEvent e = new DisplayEvent(display,
+                DisplayEvent.MOUSE_PRESSED_RIGHT, mouse_x, mouse_y, remote);
+              display.notifyListeners(e);
             }
             catch (VisADException e) {
             }
@@ -320,8 +331,9 @@ event_switch:
         if (mousePressed1 || mousePressed2 || mousePressed3 ||
             mouseCombo1 || mouseCombo2 || mouseCombo3) {
           try {
-            display.notifyListeners(DisplayEvent.MOUSE_RELEASED,
-                                    mouse_x, mouse_y);
+            DisplayEvent e = new DisplayEvent(display,
+              DisplayEvent.MOUSE_RELEASED, mouse_x, mouse_y, remote);
+            display.notifyListeners(e);
           }
           catch (VisADException e) {
           }
@@ -341,8 +353,9 @@ event_switch:
           t1Pressed = false;
           // DRM add 17 Sep 1999
           try {
-            display.notifyListeners(DisplayEvent.MOUSE_RELEASED_LEFT,
-                                    mouse_x, mouse_y);
+            DisplayEvent e = new DisplayEvent(display,
+              DisplayEvent.MOUSE_RELEASED_LEFT, mouse_x, mouse_y, remote);
+            display.notifyListeners(e);
           }
           catch (VisADException e) {
           }
@@ -355,8 +368,9 @@ event_switch:
           t1Pressed = false;
           // DRM add 17 Sep 1999
           try {
-            display.notifyListeners(DisplayEvent.MOUSE_RELEASED_LEFT,
-                                    mouse_x, mouse_y);
+            DisplayEvent e = new DisplayEvent(display,
+              DisplayEvent.MOUSE_RELEASED_LEFT, mouse_x, mouse_y, remote);
+            display.notifyListeners(e);
           }
           catch (VisADException e) {
           }
@@ -370,8 +384,9 @@ event_switch:
           t2Pressed = false;
           // DRM add 17 Sep 1999
           try {
-            display.notifyListeners(DisplayEvent.MOUSE_RELEASED_CENTER,
-                                    mouse_x, mouse_y);
+            DisplayEvent e = new DisplayEvent(display,
+              DisplayEvent.MOUSE_RELEASED_CENTER, mouse_x, mouse_y, remote);
+            display.notifyListeners(e);
           }
           catch (VisADException e) {
           }
@@ -385,8 +400,9 @@ event_switch:
           t2Pressed = false;
           // DRM add 17 Sep 1999
           try {
-            display.notifyListeners(DisplayEvent.MOUSE_RELEASED_CENTER,
-                                    mouse_x, mouse_y);
+            DisplayEvent e = new DisplayEvent(display,
+              DisplayEvent.MOUSE_RELEASED_CENTER, mouse_x, mouse_y, remote);
+            display.notifyListeners(e);
           }
           catch (VisADException e) {
           }
@@ -399,8 +415,9 @@ event_switch:
           direct_renderer = null;
           // DRM add 17 Sep 1999
           try {
-            display.notifyListeners(DisplayEvent.MOUSE_RELEASED_RIGHT,
-                                    mouse_x, mouse_y);
+            DisplayEvent e = new DisplayEvent(display,
+              DisplayEvent.MOUSE_RELEASED_RIGHT, mouse_x, mouse_y, remote);
+            display.notifyListeners(e);
           }
           catch (VisADException e) {
           }
@@ -413,8 +430,9 @@ event_switch:
           direct_renderer = null;
           // DRM add 17 Sep 1999
           try {
-            display.notifyListeners(DisplayEvent.MOUSE_RELEASED_RIGHT,
-                                    mouse_x, mouse_y);
+            DisplayEvent e = new DisplayEvent(display,
+              DisplayEvent.MOUSE_RELEASED_RIGHT, mouse_x, mouse_y, remote);
+            display.notifyListeners(e);
           }
           catch (VisADException e) {
           }
@@ -456,7 +474,8 @@ event_switch:
                   - (current_x - start_x) * 100.0 / (double) d.width;
                 double anglex =
                   - (current_y - start_y) * 100.0 / (double) d.height;
-                t1 = behavior.make_matrix(anglex, angley, 0.0, 1.0, 0.0, 0.0, 0.0);
+                t1 = behavior.make_matrix(anglex, angley,
+                  0.0, 1.0, 0.0, 0.0, 0.0);
               }
             }
             if (t1 != null) {
@@ -487,8 +506,8 @@ event_switch:
                   - (current_x - start_x) * 100.0 / (double) d.width;
                 double anglex =
                   - (current_y - start_y) * 100.0 / (double) d.height;
-                double[] t1 =
-                  behavior.make_matrix(anglex, angley, 0.0, 1.0, 0.0, 0.0, 0.0);
+                double[] t1 = behavior.make_matrix(anglex, angley,
+                  0.0, 1.0, 0.0, 0.0, 0.0);
                 t1 = behavior.multiply_matrix(t1, tstart);
                 try {
                   proj.setMatrix(t1);
