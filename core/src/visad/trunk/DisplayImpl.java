@@ -2661,6 +2661,10 @@ System.out.println("initialize = " + initialize + " go = " + go +
     return s;
   }
 
+  protected void finalize() throws Throwable {
+    destroy();
+  }
+
   /** Class used to ensure that all linked Data have been
       transformed and rendered, used by getImage() */
   public class Syncher extends Object implements DisplayListener {
