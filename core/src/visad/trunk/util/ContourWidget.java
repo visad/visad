@@ -1,15 +1,18 @@
+
+//
+// ContourWidget.java
+//
+
 /*
-VisAD Utility Library: Widgets for use in building applications with
-the VisAD interactive analysis and visualization library
-Copyright (C) 1998 Nick Rasmussen
-VisAD is Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
+VisAD system for interactive analysis and visualization of numerical
+data.  Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
 Rink and Dave Glowacki.
- 
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 1, or (at your option)
 any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -343,7 +346,7 @@ public class ContourWidget extends JPanel implements ActionListener,
 
     ContourRangeWidget(ScalarMap smap, float min, float max, ContourWidget dad,
                        boolean update) throws VisADException, RemoteException {
-      super(Math.round(100*min)/100, Math.round(100*max)/100);
+      super(smap, Math.round(100*min)/100, Math.round(100*max)/100);
       pappy = dad;
 
       // set auto-scaling enabled (listen for new min and max)

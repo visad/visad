@@ -1,15 +1,18 @@
+
+//
+// RangeSlider.java
+//
+
 /*
-VisAD Utility Library: Widgets for use in building applications with
-the VisAD interactive analysis and visualization library
-Copyright (C) 1998 Nick Rasmussen
-VisAD is Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
+VisAD system for interactive analysis and visualization of numerical
+data.  Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
 Rink and Dave Glowacki.
- 
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 1, or (at your option)
 any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -21,6 +24,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
 package visad.util;
+
+import visad.*;
 
 /* AWT packages */
 import java.awt.*;
@@ -54,13 +59,23 @@ public class RangeSlider extends Canvas implements MouseListener,
   /** Flag whether mouse is currently affecting max gripper. */
   private boolean maxSlide = false;
 
+  /** RealType name of values */
+  private String name;
+
+
   /** construct a RangeSlider with range of values (min, max). */
-  public RangeSlider(float min, float max) {
+  public RangeSlider(ScalarMap smap, float min, float max) {
     addMouseListener(this);
     addMouseMotionListener(this);
     setBackground(Color.black);
     minVal = min;
     maxVal = max;
+    try {
+      name = smap.getScalar().getName() + " = ";
+    }
+    catch (Exception e) {
+      name = "";
+    }
   }
 
   /** sets the slider's bounds to the specified values. */
@@ -268,7 +283,7 @@ public class RangeSlider extends Canvas implements MouseListener,
         if (maxS.endsWith("0")) maxS = maxS.substring(0, maxS.length()-1);
       }
     }
-    String curStr = "("+minS+", "+maxS+")";
+    String curStr = name + "(" + minS + ", " + maxS + ")";
     if (!curStr.equals(lastCurStr) || lastW != w) {
       g.setColor(Color.black);
       int sw = fm.stringWidth(lastCurStr);
@@ -284,7 +299,7 @@ public class RangeSlider extends Canvas implements MouseListener,
 
   /** Main method for testing purposes. */
   public static void main(String[] argv) {
-    RangeSlider rs = new RangeSlider(0.0f, 100.0f);
+    RangeSlider rs = new RangeSlider(null, 0.0f, 100.0f);
     Frame f = new Frame("VisAD RangeSlider test");
     f.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
