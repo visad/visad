@@ -372,7 +372,7 @@ public class FileFlatField extends FlatField {
   {
     synchronized (adaptedFlatFields)
     {
-      getadaptedFlatField().combine( fields );
+      return getadaptedFlatField().combine( fields );
     }
   }
 
