@@ -298,6 +298,15 @@ public class AreaAdapter {
   }
 
   /**
+    * get the AreaDirectory of the image
+    *
+    * @return the AreaDirectory object
+   */
+  public AreaDirectory getAreaDirectory() {
+    return areaDirectory;
+  }
+
+  /**
    * Return a FlatField representing the image.  The field will look
    * like the following:<P>
    * <UL>
