@@ -1144,9 +1144,9 @@ if (initialize) {
   /** this Display's associated panel of Control widgets */
   private JPanel widgetPanel = null;
 
-  /** get a GUI panel containing this Display's Control widgets,
+  /** get a GUI component containing this Display's Control widgets,
       creating the widgets as necessary */
-  public JPanel getWidgetPanel() {
+  public Component getWidgetPanel() {
     if (needWidgetRefresh) {
       synchronized (MapVector) {
         // construct widget panel if needed
