@@ -93,6 +93,14 @@ visad\aune\*.java \
 visad\aune\*.f \
 visad\aune\*.c \
 visad\aune\*.h \
+visad\benjamin\README.benjamin \
+visad\benjamin\Makefile \
+visad\benjamin\*.java \
+visad\benjamin\*.f \
+visad\benjamin\*.c \
+visad\benjamin\*.h \
+visad\benjamin\switch.inp \
+visad\benjamin\*.table \
 ucar.jar \
 visad\Gridded1D.txt \
 visad\Gridded2D.txt \
@@ -163,6 +171,14 @@ visad\aune\*.java \
 visad\aune\*.f \
 visad\aune\*.c \
 visad\aune\*.h \
+visad\benjamin\README.benjamin \
+visad\benjamin\Makefile \
+visad\benjamin\*.java \
+visad\benjamin\*.f \
+visad\benjamin\*.c \
+visad\benjamin\*.h \
+visad\benjamin\switch.inp \
+visad\benjamin\*.table \
 ucar.jar \
 visad\Gridded1D.txt \
 visad\Gridded2D.txt \
@@ -218,6 +234,8 @@ save:
 		$(DEL) $(BACKUP)\visad\paoloa\*.java
 	if exist $(BACKUP)\visad\aune\*.java                       \
 		$(DEL) $(BACKUP)\visad\aune\*.java
+	if exist $(BACKUP)\visad\benjamin\*.java                       \
+		$(DEL) $(BACKUP)\visad\benjamin\*.java
 	jar cvf $(BACKUP)\save.jar $(SAVE_FILES)
 	cd $(BACKUP)
 	jar xvf save.jar
@@ -277,6 +295,7 @@ clear:
 	if exist data\gif\*.java $(DEL) data\gif\*.java
 	if exist paoloa\*.java $(DEL) paoloa\*.java
 	if exist aune\*.java $(DEL) aune\*.java
+	if exist benjamin\*.java $(DEL) benjamin\*.java
 	if exist examples\*.java $(DEL) examples\*.java
 
 RMIC = \
@@ -314,6 +333,7 @@ compile: clean
 	$(JC) $(JFLAGS) ss\*.java
 	-$(JC) $(JFLAGS) paoloa\*.java
 	-$(JC) $(JFLAGS) aune\*.java
+	-$(JC) $(JFLAGS) benjamin\*.java
 	-(cd examples && $(JC) $(JFLAGS) *.java)
 
 clean:
@@ -337,4 +357,5 @@ clean:
 	if exist data\gif\*.class $(DEL) data\gif\*.class
 	if exist paoloa\*.class $(DEL) paoloa\*.class
 	if exist aune\*.class $(DEL) aune\*.class
+	if exist benjamin\*.class $(DEL) benjamin\*.class
 	if exist examples\*.class $(DEL) examples\*.class
