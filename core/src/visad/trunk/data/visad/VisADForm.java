@@ -60,6 +60,17 @@ public class VisADForm extends Form implements FormFileInformer {
 
   private boolean allowBinary = false;
 
+  /**
+   * If <tt>allowBinary</tt> is <tt>true</tt>, read/write a VisAD
+   * Data object in VisAD's
+   * <a href="http://www.ssec.wisc.edu/~dglo/binary_file_format.html">binary file format</a>.<br>
+   * <br>
+   * If <tt>allowBinary</tt> is <tt>false</tt>, read/write a VisAD
+   * Data object using Java serialization.
+   *
+   * @param allowBinary if <tt>true</tt> use VisAD's binary file format,
+   *                    otherwise use Java serialization.
+   */
   public VisADForm(boolean allowBinary)
   {
     this();
@@ -67,6 +78,9 @@ public class VisADForm extends Form implements FormFileInformer {
     this.allowBinary = allowBinary;
   }
 
+  /**
+   * Read/write a VisAD Data object using Java serialization.
+   */
   public VisADForm()
   {
     super("VisADForm" + num++);
