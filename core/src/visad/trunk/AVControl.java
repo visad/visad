@@ -40,9 +40,9 @@ public interface AVControl {
 
   void removeControlListener(ControlListener listener);
 
-  public String getSaveString();
+  String getSaveString();
 
-  public void setSaveString(String save)
+  void setSaveString(String save)
     throws VisADException, RemoteException;
 
 }
