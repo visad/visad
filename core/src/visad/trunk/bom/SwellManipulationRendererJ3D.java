@@ -1,5 +1,5 @@
 //
-// BarbManipulationRendererJ2D.java
+// SwellManipulationRendererJ3D.java
 //
 
 /*
@@ -27,7 +27,7 @@ MA 02111-1307, USA
 package visad.bom;
  
 import visad.*;
-import visad.java2d.*;
+import visad.java3d.*;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -37,47 +37,49 @@ import java.rmi.*;
 
 
 /**
-   BarbManipulationRendererJ2D is the VisAD class for direct
-   manipulation rendering of wind barbs under Java2D
+   SwellManipulationRendererJ3D is the VisAD class for direct
+   manipulation rendering of wind barbs under Java3D
 */
-public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
+public class SwellManipulationRendererJ3D extends DirectManipulationRendererJ3D {
 
   /** this DataRenderer supports direct manipulation for Tuple
       representations of wind barbs; two of the Tuple's Real components
       must be mapped to Flow1X and Flow1Y, or Flow2X and Flow2Y */
-  public BarbManipulationRendererJ2D () {
+  public SwellManipulationRendererJ3D () {
     super();
   }
  
-  public ShadowType makeShadowFunctionType(
-         FunctionType type, DataDisplayLink link, ShadowType parent)
-         throws VisADException, RemoteException {
-    return new ShadowBarbFunctionTypeJ2D(type, link, parent);
-  }
-
   public ShadowType makeShadowRealTupleType(
          RealTupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
-    return new ShadowBarbRealTupleTypeJ2D(type, link, parent);
-  }
-
-  public ShadowType makeShadowRealType(
-         RealType type, DataDisplayLink link, ShadowType parent)
-         throws VisADException, RemoteException {
-    return new ShadowBarbRealTypeJ2D(type, link, parent);
-  }
-
-  public ShadowType makeShadowSetType(
-         SetType type, DataDisplayLink link, ShadowType parent)
-         throws VisADException, RemoteException {
-    return new ShadowBarbSetTypeJ2D(type, link, parent);
+    return new ShadowSwellRealTupleTypeJ3D(type, link, parent);
   }
 
   public ShadowType makeShadowTupleType(
          TupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
-    return new ShadowBarbTupleTypeJ2D(type, link, parent);
+    return new ShadowSwellTupleTypeJ3D(type, link, parent);
   }
+
+/*
+  public ShadowType makeShadowFunctionType(
+         FunctionType type, DataDisplayLink link, ShadowType parent)
+         throws VisADException, RemoteException {
+    return new ShadowSwellFunctionTypeJ3D(type, link, parent);
+  }
+
+  public ShadowType makeShadowRealType(
+         RealType type, DataDisplayLink link, ShadowType parent)
+         throws VisADException, RemoteException {
+    return new ShadowSwellRealTypeJ3D(type, link, parent);
+  }
+
+  public ShadowType makeShadowSetType(
+         SetType type, DataDisplayLink link, ShadowType parent)
+         throws VisADException, RemoteException {
+    return new ShadowSwellSetTypeJ3D(type, link, parent);
+  }
+*/
 
   /** information calculated by checkDirect */
   /** explanation for invalid use of DirectManipulationRenderer */
@@ -89,7 +91,7 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
   private final static String multipleFlowMapping =
     "RealType with multiple flow mappings";
   private final static String noFlow =
-    "must be RealTypes mapped to flow X and flow Y";
+    "must be RealTypes mapped to flow Azimuth and flow Radial";
   private final static String nonCartesian =
     "non-Cartesian spatial mapping";
 
@@ -99,6 +101,8 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
   private transient DataReference ref = null;
   private transient MathType type = null;
   private transient ShadowTupleType shadow = null;
+
+  private CoordinateSystem coord = null;
 
   /** point on direct manifold line or plane */
   private float point_x, point_y, point_z;
@@ -154,7 +158,7 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
     DisplayTupleType[] tuples = {null};
     whyNotDirect = findFlow(shadow, display, tuples, flowToComponent);
     if (whyNotDirect != null) return;
-    if (tuples[0] == null || flowToComponent[0] < 0 || flowToComponent[1] < 0) {
+    if (tuples[0] == null || flowToComponent[1] < 0 || flowToComponent[2] < 0) {
       whyNotDirect = noFlow;
       return;
     }
@@ -186,8 +190,8 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
         ScalarMap map = (ScalarMap) maps.nextElement();
         DisplayRealType dreal = map.getDisplayScalar();
         DisplayTupleType tuple = dreal.getTuple();
-        if (Display.DisplayFlow1Tuple.equals(tuple) ||
-            Display.DisplayFlow2Tuple.equals(tuple)) {
+        if (Display.DisplayFlow1SphericalTuple.equals(tuple) ||
+            Display.DisplayFlow2SphericalTuple.equals(tuple)) {
           if (tuples[0] != null) {
             if (!tuples[0].equals(tuple)) {
               return multipleFlowTuples;
@@ -195,6 +199,7 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
           }
           else {
             tuples[0] = tuple;
+            coord = tuple.getCoordinateSystem();
           }
           num_flow_per_real++;
           if (num_flow_per_real > 1) {
@@ -213,7 +218,7 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
     // may need to do this for performance
   }
 
-  public synchronized void setBarbSpatialValues(float[] mbarb, int which) {
+  public synchronized void setSwellSpatialValues(float[] mbarb, int which) {
     // (barbValues[0], barbValues[1]) = (x, y) barb head location
     // (barbValues[2], barbValues[3]) = (x, y) barb tail location
     barbValues = mbarb;
@@ -324,6 +329,13 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
           int j = flowToComponent[i];
           data_flow[i] = (j >= 0) ? (float) reals[j].getValue() : 0.0f;
         }
+
+        float[][] ds = {{data_flow[0]}, {data_flow[1]}, {data_flow[2]}};
+        ds = coord.toReference(ds);
+        data_flow[0] = ds[0][0];
+        data_flow[1] = ds[1][0];
+        data_flow[2] = ds[2][0];
+
         data_speed = (float) Math.sqrt(data_flow[0] * data_flow[0] +
                                        data_flow[1] * data_flow[1] +
                                        data_flow[2] * data_flow[2]);
@@ -450,6 +462,12 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
         }
       }
 
+      float[][] xs = {{x[0]}, {x[1]}, {x[2]}};
+      xs = coord.fromReference(xs);
+      x[0] = xs[0][0];
+      x[1] = xs[1][0];
+      x[2] = xs[2][0];
+
       // now replace flow values
       Vector vect = new Vector();
       for (int i=0; i<3; i++) {
@@ -505,36 +523,46 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
 
   static final int N = 5;
 
-  /** test BarbManipulationRendererJ2D */
+  /** test SwellManipulationRendererJ3D */
   public static void main(String args[])
          throws VisADException, RemoteException {
-    // construct RealTypes for wind record components
+    // construct RealTypes for swell record components
     RealType lat = RealType.Latitude;
     RealType lon = RealType.Longitude;
-    RealType windx = new RealType("windx");
-    RealType windy = new RealType("windy");
+    RealType swellx = new RealType("swellx");
+    RealType swelly = new RealType("swelly");
     RealType red = new RealType("red");
     RealType green = new RealType("green");
 
     // EarthVectorType extends RealTupleType and says that its
     // components are vectors in m/s with components parallel
     // to Longitude (positive east) and Latitude (positive north)
-    EarthVectorType windxy = new EarthVectorType(windx, windy);
+    EarthVectorType swellxy = new EarthVectorType(swellx, swelly);
 
-    // construct Java2D display and mappings that govern
-    // how wind records are displayed
-    DisplayImpl display = new DisplayImplJ2D("display1");
+    RealType swell_degree = new RealType("swell_degree",
+                          CommonUnit.degree, null);
+    RealType swell_height = new RealType("swell_height",
+                          CommonUnit.meter, null);
+    Unit[] units = {CommonUnit.degree, CommonUnit.meter};
+    RealTupleType swelldh =
+      new RealTupleType(new RealType[] {swell_degree, swell_height},
+      new WindPolarCoordinateSystem(swellxy, units), null);
+
+    // construct Java3D display and mappings that govern
+    // how swell records are displayed
+    DisplayImpl display =
+      new DisplayImplJ3D("display1", new TwoDDisplayRendererJ3D());
     ScalarMap lonmap = new ScalarMap(lon, Display.XAxis);
     display.addMap(lonmap);
     ScalarMap latmap = new ScalarMap(lat, Display.YAxis);
     display.addMap(latmap);
-    ScalarMap windx_map = new ScalarMap(windx, Display.Flow1X);
-    display.addMap(windx_map);
-    windx_map.setRange(-1.0, 1.0); // do this for barb rendering
-    ScalarMap windy_map = new ScalarMap(windy, Display.Flow1Y);
-    display.addMap(windy_map);
-    windy_map.setRange(-1.0, 1.0); // do this for barb rendering
-    FlowControl flow_control = (FlowControl) windy_map.getControl();
+    ScalarMap swella_map = new ScalarMap(swell_degree, Display.Flow1Azimuth);
+    display.addMap(swella_map);
+    swella_map.setRange(0.0, 360.0); // do this for swell rendering
+    ScalarMap swellh_map = new ScalarMap(swell_height, Display.Flow1Radial);
+    display.addMap(swellh_map);
+    swellh_map.setRange(0.0, 1.0); // do this for swell rendering
+    FlowControl flow_control = (FlowControl) swellh_map.getControl();
     flow_control.setFlowScale(0.15f); // this controls size of barbs
     display.addMap(new ScalarMap(red, Display.Red));
     display.addMap(new ScalarMap(green, Display.Green));
@@ -542,32 +570,38 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
 
     DataReferenceImpl[] refs = new DataReferenceImpl[N * N];
     int k = 0;
-    // create an array of N by N winds
+    // create an array of N by N swells
     for (int i=0; i<N; i++) {
       for (int j=0; j<N; j++) {
         double u = 2.0 * i / (N - 1.0) - 1.0;
         double v = 2.0 * j / (N - 1.0) - 1.0;
 
-        // each wind record is a Tuple (lon, lat, (windx, windy), red, green)
-        // set colors by wind components, just for grins
+        double fx = 30.0 * u;
+        double fy = 30.0 * v;
+        double fa = Data.RADIANS_TO_DEGREES * Math.atan2(-fx, -fy);
+        double fh = Math.sqrt(fx * fx + fy * fy);
+
+        // each swell record is a Tuple (lon, lat,
+        //   (swell_degree, swell_height), red, green)
+        // set colors by swell components, just for grins
         Tuple tuple = new Tuple(new Data[]
           {new Real(lon, 10.0 * u), new Real(lat, 10.0 * v - 40.0),
-           new RealTuple(windxy, new double[] {30.0 * u, 30.0 * v}),
+           new RealTuple(swelldh, new double[] {fa, fh}),
            new Real(red, u), new Real(green, v)});
 
-        // construct reference for wind record
+        // construct reference for swell record
         refs[k] = new DataReferenceImpl("ref_" + k);
         refs[k].setData(tuple);
 
-        // link wind record to display via BarbManipulationRendererJ2D
+        // link swell record to display via SwellManipulationRendererJ3D
         // so user can change barb by dragging it
         // drag with right mouse button and shift to change direction
         // drag with right mouse button and no shift to change speed
-        display.addReferences(new BarbManipulationRendererJ2D(), refs[k]);
+        display.addReferences(new SwellManipulationRendererJ3D(), refs[k]);
 
-        // link wind record to a CellImpl that will listen for changes
+        // link swell record to a CellImpl that will listen for changes
         // and print them
-        WindGetterJ2D cell = new WindGetterJ2D(refs[k]);
+        SwellGetterJ3D cell = new SwellGetterJ3D(flow_control, refs[k]);
         cell.addReference(refs[k]);
 
         k++;
@@ -575,12 +609,12 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
     }
 
     // instead of linking the wind record "DataReferenceImpl refs" to
-    // the WindGetterJ2Ds, you can have some user interface event (e.g.,
+    // the SwellGetterJ3Ds, you can have some user interface event (e.g.,
     // the user clicks on "DONE") trigger code that does a getData() on
     // all the refs and stores the records in a file.
 
     // create JFrame (i.e., a window) for display and slider
-    JFrame frame = new JFrame("test BarbManipulationRendererJ2D");
+    JFrame frame = new JFrame("test SwellManipulationRendererJ3D");
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
@@ -601,11 +635,16 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
   }
 }
 
-class WindGetterJ2D extends CellImpl {
+class SwellGetterJ3D extends CellImpl {
   DataReferenceImpl ref;
 
-  public WindGetterJ2D(DataReferenceImpl r) {
+  float scale = 0.15f;
+  int count = 20;
+  FlowControl flow_control;
+
+  public SwellGetterJ3D(FlowControl f, DataReferenceImpl r) {
     ref = r;
+    flow_control = f;
   }
 
   public void doAction() throws VisADException, RemoteException {
@@ -617,6 +656,14 @@ class WindGetterJ2D extends CellImpl {
     float windy = (float) ((Real) wind.getComponent(1)).getValue();
     System.out.println("wind = (" + windx + ", " + windy + ") at (" +
                        + lat + ", " + lon +")");
+/* a testing hack
+    count--;
+    if (count < 0) {
+      count = 20;
+      scale = 0.15f * 0.3f / scale;
+      flow_control.setFlowScale(scale);
+    }
+*/
   }
 
 }

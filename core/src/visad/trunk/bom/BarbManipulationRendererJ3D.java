@@ -108,8 +108,6 @@ public class BarbManipulationRendererJ3D extends DirectManipulationRendererJ3D {
   private float[] f = new float[1];
   private float[] d = new float[1];
 
-  /** DisplayFlow1Tuple or DisplayFlow2Tuple */
-  private DisplayTupleType tuple;
   /** mapping from flow components to Tuple Real components */
   private int[] flowToComponent = {-1, -1, -1};
   /** mapping from flow components to ScalarMaps */
@@ -171,7 +169,6 @@ public class BarbManipulationRendererJ3D extends DirectManipulationRendererJ3D {
       }
     }
 
-    tuple = tuples[0];
     // needs more, will find out when we write drag_direct
     setIsDirectManipulation(true);
   }
