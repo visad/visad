@@ -68,7 +68,8 @@ public abstract class FunctionImpl extends DataImpl implements Function {
 	      (RealType)domain.getType(), domainCoordinateSystem, null),
 	    new Real[] {domain},
 	    (CoordinateSystem)null);
-    return evaluate(domainPoint, NEAREST_NEIGHBOR, NO_ERRORS);
+    return evaluate(domainPoint, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS);
+    // return evaluate(domainPoint, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
   }
 
   /** evaluate this Function with non-default modes for resampling and errors */
@@ -98,6 +99,7 @@ public abstract class FunctionImpl extends DataImpl implements Function {
       return ((FunctionType) getType()).getRange().missingData();
     }
     return evaluate(domain, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS);
+    // return evaluate(domain, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
   }
 
   /** evaluate this Function with non-default modes for resampling and errors */

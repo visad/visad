@@ -3243,18 +3243,30 @@ public class FlatField extends FieldImpl {
       ((SimpleSet) DomainSet).valueToInterp(vals, indices, coefs);
 
 /* DEBUG
-System.out.println("DomainSet = " + DomainSet);
-System.out.println("set = " + set);
+// System.out.println("DomainSet = " + DomainSet);
+// System.out.println("set = " + set);
 
-for (i=0; i<length; i++) {
-  System.out.println("vals[0][" + i + "] = " + vals[0][i] +
-                    " vals[1][" + i + "] = " + vals[1][i]);
-  String s = "indices[" + i + "] = ";
-  for (j=0; j<indices[i].length; j++) s = s + indices[i][j] + " ";
-  System.out.println(s);
-  s = "coefs[" + i + "] = ";
-  for (j=0; j<coefs[i].length; j++) s = s + coefs[i][j] + " ";
-  System.out.println(s);
+// for (i=0; i<length; i++) {
+boolean pr = false;
+int ii = length;
+if (ii > 0) ii = 1;
+if (indices == null) ii = 0;
+for (i=0; i<ii; i++) {
+  if (indices[i] != null && coefs[i] != null) {
+    pr = true;
+    if (i == 0) {
+      System.out.println("DomainSet = " + DomainSet);
+      System.out.println("set = " + set);
+    }
+    System.out.println("vals[0][" + i + "] = " + vals[0][i] +
+                      " vals[1][" + i + "] = " + vals[1][i]);
+    String s = "indices[" + i + "] = ";
+    for (j=0; j<indices[i].length; j++) s = s + indices[i][j] + " ";
+    System.out.println(s);
+    s = "coefs[" + i + "] = ";
+    for (j=0; j<coefs[i].length; j++) s = s + coefs[i][j] + " ";
+    System.out.println(s);
+  }
 }
 */
       // WLH 20 July 2000
@@ -3287,8 +3299,8 @@ for (i=0; i<length; i++) {
               xvals[k] = unpackValues(indices[i][k]);
             }
             for (j=0; j<TupleDimension; j++) {
-              float v = (float) xvals[0][j];
-              for (k=1; k<len; k++) v += (float) xvals[k][j];
+              float v = (float) xvals[0][j] * coefs[i][0];
+              for (k=1; k<len; k++) v += (float) xvals[k][j] * coefs[i][k];
               new_values[j][wedge[i]] = v;
             }
           }         
@@ -3299,6 +3311,9 @@ for (i=0; i<length; i++) {
           }
         }
       }
+/* DEBUG
+if (pr) System.out.println("value = " + new_values[0][0]);
+*/
 
       if (sampling_errors) {
         int[][] error_indices = new int[2 * dim][];
@@ -3333,6 +3348,26 @@ for (i=0; i<length; i++) {
     else { // NEAREST_NEIGHBOR or set is not SimpleSet
       // simple resampling
       int[] indices = DomainSet.valueToIndex(vals);
+/* DEBUG
+// System.out.println("DomainSet = " + DomainSet);
+// System.out.println("set = " + set);
+
+// for (i=0; i<length; i++) {
+boolean pr = false;
+int ii = length;
+if (ii > 0) ii = 1;
+if (indices == null) ii = 0;
+for (i=0; i<ii; i++) {
+  if (indices[i] >= 0) {
+    pr = true;
+    if (i == 0) {
+      System.out.println("DomainSet = " + DomainSet);
+      System.out.println("set = " + set);
+    }
+    System.out.println("NEAREST_NEIGHBOR indices[" + i + "] = " + indices[i]);
+  }
+}
+*/
       // WLH 20 July 2000
       if (values != null) {
         for (j=0; j<TupleDimension; j++) {
@@ -3359,6 +3394,9 @@ for (i=0; i<length; i++) {
           }
         }
       }
+/* DEBUG
+if (pr) System.out.println("value = " + new_values[0][0]);
+*/
 
       if (sampling_errors) {
         int[] error_indices = DomainSet.valueToIndex(error_values);
