@@ -250,6 +250,7 @@ public class AddeURLConnection extends URLConnection
     // verify the service requested is for image, not grid or md data
     // get rid of leading /
     String request = url.getFile().toLowerCase().substring(1);
+    debug = request.indexOf("debug=true") >= 0;
 
     if (!request.startsWith("image") && 
         (!request.startsWith("datasetinfo")) &&
@@ -903,6 +904,7 @@ public class AddeURLConnection extends URLConnection
       String lonString = null;
       String rowString = null;
       String colString = null;
+      String srcString = null;
       String skip = null;
 
       StringTokenizer cmdTokens = new StringTokenizer(uCmd, "&");
@@ -990,6 +992,27 @@ public class AddeURLConnection extends URLConnection
               ensureTwoValues(
                   testString.substring(testString.indexOf("=") + 1));
         
+        // added with great pains for James DRM 2001-07-05 ;-)
+        } else if (testString.startsWith("src")) {
+          buf.append(" ");
+          buf.append(testString);
+
+        } else if (testString.startsWith("gpro")) {
+          buf.append(" ");
+          buf.append(testString);
+
+        } else if (testString.startsWith("trang")) {
+          buf.append(" ");
+          buf.append(testString);
+
+        } else if (testString.startsWith("frang")) {
+          buf.append(" ");
+          buf.append(testString);
+
+        } else if (testString.startsWith("drang")) {
+          buf.append(" ");
+          buf.append(testString);
+
         /*
         } else {
           System.out.println("Unknown token = "+testString);
