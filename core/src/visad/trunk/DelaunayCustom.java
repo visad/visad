@@ -132,7 +132,7 @@ public class DelaunayCustom extends Delaunay {
     next[n-1] = 0;
     for (int i=0; i<n; i++) {
       for (int j=0; j<n; j++) {
-        if (i == j) continue;
+        if (i == j || i == next[j] || next[i] == j) continue;
         float a0 = samples[0][i];
         float a1 = samples[1][i];
         float b0 = samples[0][next[i]];
@@ -145,7 +145,7 @@ public class DelaunayCustom extends Delaunay {
         if (Math.abs(det) < 0.0000001) continue;
         float x = ((b0 - a0) * (c1 - a1) - (b1 - a1) * (c0 - a0)) / det;
         float y = ((c0 - a0) * (c1 - d1) - (c1 - a1) * (c0 - d0)) / det;
-        if (0.0f < x && x < 1.0f && 0.0f < y && y < 1.0f) {
+        if (0.0f <= x && x <= 1.0f && 0.0f <= y && y <= 1.0f) {
           return true;
         }
       }
@@ -164,6 +164,7 @@ public class DelaunayCustom extends Delaunay {
     if (samples.length != 2 || samples[0].length != samples[1].length) {
       throw new VisADException("samples argument bad dimensions");
     }
+    if (samples[0].length < 3) return null;
     int n = samples[0].length;
 
     // build circular boundary list
@@ -172,6 +173,11 @@ public class DelaunayCustom extends Delaunay {
       next[i] = i+1;
     }
     next[n-1] = 0;
+    int[] prev = new int[n];
+    for (int i=1; i<n; i++) {
+      prev[i] = i-1;
+    }
+    prev[0] = n-1;
 
     // compute area of region, to get orientation (positive or negative)
     float area = 0.0f;
@@ -185,6 +191,7 @@ public class DelaunayCustom extends Delaunay {
     int i = 0; // current candidate for triangle
     int t = 0; // next triangle, boundary length = n - t
     int bad = 0;
+    boolean bug = false;
     while ((n - t) > 2) {
       int j = next[i];
       int k = next[j];
@@ -192,15 +199,90 @@ public class DelaunayCustom extends Delaunay {
       float a1 = samples[1][j] - samples[1][i];
       float b0 = samples[0][k] - samples[0][j];
       float b1 = samples[1][k] - samples[1][j];
-      if (((a0 * b1 - b0 * a1) > 0.0) == pos) {
+      boolean in = (((a0 * b1 - b0 * a1) > 0.0) == pos);
+if (bug && !in) System.out.println("bug " + i + " tri orient in = " + in);
+      if (in && i != next[k]) {
+        float ik1 = samples[1][i] - samples[1][k];
+        float ik0 = samples[0][i] - samples[0][k];
+        float ik = samples[1][k] * ik0 - samples[0][k] * ik1;
+
+        float ji1 = samples[1][j] - samples[1][i];
+        float ji0 = samples[0][j] - samples[0][i];
+        float ji = samples[1][i] * ji0 - samples[0][i] * ji1;
+
+        float kj1 = samples[1][k] - samples[1][j];
+        float kj0 = samples[0][k] - samples[0][j];
+        float kj = samples[1][j] * kj0 - samples[0][j] * kj1;
+
+        int kn = next[k];
+        float kn0 = samples[0][kn];
+        float kn1 = samples[1][kn];
+        if (((ik + kn0 * ik1 - kn1 * ik0) > 0.0) != pos &&
+            ((kj + kn0 * kj1 - kn1 * kj0) > 0.0) != pos) {
+          in = false;
+        }
+        int ip = prev[i];
+        float ip0 = samples[0][ip];
+        float ip1 = samples[1][ip];
+        if (((ik + ip0 * ik1 - ip1 * ik0) > 0.0) != pos &&
+            ((ji + ip0 * ji1 - ip1 * ji0) > 0.0) != pos) {
+          in = false;
+        }
+if (bug && !in) System.out.println("bug " + i + " adjacent in = " + in);
+        if (in) {
+          int p = next[k];
+          int q = next[p];
+          a0 = samples[0][i];
+          a1 = samples[1][i];
+          b0 = samples[0][k];
+          b1 = samples[1][k];
+          while (q != i) {
+            float c0 = samples[0][p];
+            float c1 = samples[1][p];
+            float d0 = samples[0][q];
+            float d1 = samples[1][q];
+            float det = (b0 - a0) * (c1 - d1) - (b1 - a1) * (c0 - d0);
+            p = q;
+            q = next[p];
+            // if (Math.abs(det) < 0.0000001) continue;
+            if (Math.abs(det) == 0.0) continue;
+            float x = ((b0 - a0) * (c1 - a1) - (b1 - a1) * (c0 - a0)) / det;
+            float y = ((c0 - a0) * (c1 - d1) - (c1 - a1) * (c0 - d0)) / det;
+            if (0.0f <= x && x <= 1.0f && 0.0f <= y && y <= 1.0f) {
+              in = false;
+              break;
+            }
+          } // end while (q != i)
+if (bug && !in) System.out.println("bug " + i + " intersect in = " + in);
+        } // end if (in)
+      } // end if (in && i != next[k])
+      if (in) {
+// System.out.println("tri " + i + " " + j + " " + k);
         tris[t++] = new int[] {i, j, k}; // add triangle to tris
         next[i] = k; // and remove j from boundary
+        prev[k] = i;
         bad = 0;
       }
       else {
+// System.out.println("bump " + i);
         i = j; // try next point along boundary
-        if (bad++ > n) {
-          throw new VisADException("bad samples");
+        if (bad++ > (n - t)) {
+          if (bug) {
+            // throw new VisADException("bad samples");
+            System.out.println("bad samples t = " + t + " n = " + n);
+            if (t > 0) {
+              int[][] new_tris = new int[t][];
+              System.arraycopy(tris, 0, new_tris, 0, t);
+              return new_tris;
+            }
+            else {
+              return null;
+            }
+          }
+          else {
+            bug = true;
+            bad = 0;
+          }
         }
       }
     }

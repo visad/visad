@@ -746,10 +746,21 @@ System.out.println("checkClose: distance = " + distance);
     // add display to JPanel
     panel.add(display.getComponent());
 
+    JPanel button_panel = new JPanel();
+    button_panel.setLayout(new BoxLayout(button_panel, BoxLayout.X_AXIS));
+    button_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    button_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+
+    CurveDelete cd = new CurveDelete(ref, display);
     JButton del = new JButton("delete last");
-    del.addActionListener(new CurveDelete(ref));
+    del.addActionListener(cd);
     del.setActionCommand("del");
-    panel.add(del);
+    button_panel.add(del);
+    JButton fill = new JButton("fill");
+    fill.addActionListener(cd);
+    fill.setActionCommand("fill");
+    button_panel.add(fill);
+    panel.add(button_panel);
 
     // set size of JFrame and make it visible
     frame.setSize(500, 500);
@@ -760,9 +771,11 @@ System.out.println("checkClose: distance = " + distance);
 class CurveDelete implements ActionListener {
 
   DataReferenceImpl ref;
+  DisplayImpl display;
 
-  CurveDelete(DataReferenceImpl r) {
+  CurveDelete(DataReferenceImpl r, DisplayImpl d) {
     ref = r;
+    display = d;
   }
 
   public void actionPerformed(ActionEvent e) {
@@ -778,6 +791,54 @@ class CurveDelete implements ActionListener {
       catch (VisADException ex) {
       }
       catch (RemoteException ex) {
+      }
+    }
+    else if (cmd.equals("fill")) {
+      try {
+        UnionSet set = (UnionSet) ref.getData();
+        SampledSet[] sets = set.getSets();
+        SampledSet[] new_sets = new SampledSet[sets.length];
+        int k = 0;	
+        for (int i=0; i<sets.length; i++) {
+          float[][] samples = sets[i].getSamples();
+          if (samples == null || samples[0].length < 3) continue;
+          if (DelaunayCustom.checkSelfIntersection(samples)) {
+            System.out.println("path " + i + " self intersects");
+          }
+          else {
+            try {
+              int[][] tris = DelaunayCustom.fill(samples);
+              if (tris == null || tris[0].length == 0) continue;
+              DelaunayCustom delaunay = new DelaunayCustom(samples, tris);
+              if (delaunay == null) continue;
+              new_sets[k++] = new Irregular2DSet(set.getType(), samples,
+                                                 null, null, null, delaunay);
+            }
+            catch (VisADException ex) {
+              System.out.println(ex.getMessage());
+            }
+          }
+        }
+        if (k > 0) {
+          sets = new SampledSet[k];
+          System.arraycopy(new_sets, 0, sets, 0, k);
+          DataReferenceImpl new_ref = new DataReferenceImpl("fill");
+          new_ref.setData(new UnionSet(set.getType(), sets));
+          ConstantMap[] cmaps = new ConstantMap[]
+            {new ConstantMap(1.0, Display.Blue),
+             new ConstantMap(1.0, Display.Red),
+             new ConstantMap(0.0, Display.Green)};
+          display.addReference(new_ref, cmaps);
+        }
+        else {
+          System.out.println("no successful fills");
+        }
+      }
+      catch (VisADException ex) {
+        System.out.println(ex.getMessage());
+      }
+      catch (RemoteException ex) {
+        System.out.println(ex.getMessage());
       }
     }
   }
