@@ -2923,9 +2923,20 @@ public class FlatField extends FieldImpl {
         new SetType(((FunctionType) Type).getFlatRange().getComponent(i));
       sets[i] = new DoubleSet(set_type);
     }
+
+    // WLH 30 April 99
+    MathType range_type = ((FunctionType) Type).getRange();
+    RealTupleType domain_type = ((SetType) set.getType()).getDomain();
+    FunctionType func_type = new FunctionType(domain_type, range_type);
+    FlatField new_field =
+      new FlatField(func_type, set, RangeCoordinateSystem,
+                    RangeCoordinateSystems, sets, RangeUnits);
+/* WLH 30 April 99
     FlatField new_field =
       new FlatField((FunctionType) Type, set, RangeCoordinateSystem,
                     RangeCoordinateSystems, sets, RangeUnits);
+*/
+
     if (isMissing()) return new_field;
 
     float[][] values = Set.doubleToFloat(unpackValues());
