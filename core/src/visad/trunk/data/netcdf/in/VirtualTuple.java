@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VirtualTuple.java,v 1.3 2000-06-08 19:13:46 steve Exp $
+ * $Id: VirtualTuple.java,v 1.4 2001-01-08 17:13:16 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -251,7 +251,8 @@ VirtualTuple
 
 
     /**
-     * Sets the factory used to create VisAD data objects.
+     * Sets the factory used to create the VisAD data object corresponding to
+     * this tuple and contained elements.
      *
      * @param factory		The factory for creating VisAD data objects.
      */
