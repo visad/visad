@@ -114,7 +114,18 @@ public class Gridded1DSet extends GriddedSet {
     }
   }
 
-  /** convert an array of values in R^DomainDimension to an array of 1-D indices */
+  /**
+   * Convert an array of values in R^DomainDimension to an array of
+   * 1-D indices.  This Gridded1DSet must have at least two points in the
+   * set.
+   * @param value	An array of coordinates.  <code>value[i][j]
+   *			<code> contains the <code>i</code>th component of the
+   *			<code>j</code>th point.
+   * @return		Indices of nearest points.  RETURN_VALUE<code>[i]</code>
+   *			will contain the index of the point in the set closest
+   *			to <code>value[][i]</code> or <code>-1</code> if 
+   *			<code>value[][i]</code> lies outside the set.
+   */
   public int[] valueToIndex(float[][] value) throws VisADException {
     if (value.length != DomainDimension) {
       throw new SetException("Gridded1DSet.valueToIndex: bad dimension");
@@ -173,53 +184,31 @@ public class Gridded1DSet extends GriddedSet {
       throw new SetException("Gridded1DSet.valueToGrid: requires all grid " +
                              "dimensions to be > 1");
     }
-    int length = value[0].length;
+    float[] vals = value[0];
+    int length = vals.length;
+    float[] samps = Samples[0];
     float[][] grid = new float[1][length];
-    float gridguess = LengthX/2;
+    int ig = (LengthX - 1)/2;
+    boolean ascending = samps[1] > samps[0];
     for (int i=0; i<length; i++) {
-      float upper = LengthX-1;
-      float lower = 0;
-      // gridguess starts at previous value unless there was no solution
-      if ( (i != 0) && (Float.isNaN(grid[0][i-1])) ) {
-        gridguess = LengthX/2;
+      if (Float.isNaN(vals[i])) {
+	grid[0][i] = Float.NaN;
       }
-      // grid value should default to NaN in case the algorithm fails
-      grid[0][i] = Float.NaN;
-      // don't try to solve missing values
-      if (Float.isNaN(value[0][i])) continue;
-      for (int itnum=0; itnum<LengthX; itnum++) {
-        // calculate closest integer variable
-        int ig;
-        if (gridguess < 0) ig = 0;
-        else if (gridguess > LengthX-2) ig = LengthX - 2;
-        else ig = (int) gridguess;
-        // calculate distance variables
-        float A = gridguess - ig;
-        float B = 1-A;
-        // Linear interpolation algorithm for the value of gridguess
-        float fg = B*Samples[0][ig] + A*Samples[0][ig+1];
-        if (fg == value[0][i]) {
-          // The guess hit it right on the mark
-          grid[0][i] = gridguess;
-          break;
-        }
-        else if (  ( (Samples[0][ig] <= value[0][i])
-                  && (value[0][i] <= Samples[0][ig+1]) )
-                || ( (ig == 0) && (value[0][i] <= Samples[0][1]) )
-                || ( (ig == LengthX-2)
-                  && (value[0][i] >= Samples[0][ig]) )  ) {
-          // Solve with Newton's Method
-          float solv = gridguess - ((fg-value[0][i])
-                       /(Samples[0][ig+1]-Samples[0][ig]));
-          if ( (solv > LengthX-0.5) || (solv < -0.5) ) {
-            solv = Float.NaN;
-          }
-          grid[0][i] = solv;
-          break;
-        }
-        else if (fg < value[0][i]) lower = gridguess;
-        else if (fg > value[0][i]) upper = gridguess;
-        gridguess = (upper+lower)/2;
+      else {
+	int lower = 0;
+	int upper = LengthX-1;
+	while (lower < upper) {
+	  if ((vals[i]-samps[ig])*(vals[i]-samps[ig+1]) <= 0)
+	    break;
+	  if (ascending ? samps[ig+1] < vals[i] : samps[ig+1] > vals[i])
+	    lower = ig+1;
+	  else if (ascending ? samps[ig] > vals[i] : samps[ig] < vals[i])
+	    upper = ig;
+	  if (lower < upper)
+	    ig = (lower + upper) / 2;
+	}
+	float solv = ig + (vals[i] - samps[ig]) / (samps[ig+1] - samps[ig]);
+	grid[0][i] = (solv >= -0.5 && solv <= LengthX-.5) ? solv : Float.NaN;
       }
     }
     return grid;
