@@ -314,11 +314,13 @@ public class PointDataAdapter {
         System.err.println("Using RealType with name " + name);
       }
     }
-    if (RealType.getRealTypeByName(name) == null && useAliases) {
+    if (useAliases) {
+      if (RealType.getRealTypeByName(name) == null) {
         type.alias(name);
-    } else if (!RealType.getRealTypeByName(name).equals(type)) { // alias used
-        throw new VisADException(
-          "getQuanity(): Two different variables can't have the same alias");
+      } else if (!RealType.getRealTypeByName(name).equals(type)) { // alias used
+          throw new VisADException(
+            "getQuanity(): Two different variables can't have the same alias");
+      }
     }
     return type;
   }
