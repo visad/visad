@@ -134,7 +134,7 @@ public class Aeri
          throws VisADException, RemoteException, IOException
   {
     String vadfile = null;
-    String baseDate = "19991226";
+    String baseDate = "20000112";
     for (int i=0; i<args.length; i++) {
       if (args[i] == null) {
       }
@@ -180,7 +180,7 @@ public class Aeri
 
     try {
       String fs = System.getProperty("file.separator");
-      image_seq = Qdiv.init_images("."+fs+"data"+fs+"image"+fs+baseDate);
+      image_seq = init_images("."+fs+"data"+fs+"image"+fs+baseDate);
       band1 = (RealType)
          ((RealTupleType)
           ((FunctionType)
@@ -339,6 +339,36 @@ public class Aeri
     theta = (RealType) rtt.getComponent(4);
     thetaE = (RealType) rtt.getComponent(5);
   }
+
+  public static ImageSequence init_images(String image_directory)
+         throws VisADException, RemoteException, IOException
+  {
+    String fs = System.getProperty("file.separator");
+
+    if ( image_directory == null ) {
+   //-image_directory = "."+fs+"data"+fs+"image"+fs+"vis";
+      image_directory = "."+fs+"data"+fs+"image"+fs+"ir_display";
+   //-image_directory = "."+fs+"data"+fs+"image"+fs+"ir";
+    }
+
+    File file = new File(image_directory);
+    String[] image_files = file.list();
+    int n_images = image_files.length;
+    NavigatedImage[] nav_images = new NavigatedImage[n_images];
+
+    for ( int ii = 0; ii < n_images; ii++ ) {
+      AreaAdapter area = new AreaAdapter(image_directory+fs+image_files[ii]);
+      FlatField image = area.getData();
+      DateTime img_start = area.getImageStartTime();
+      nav_images[ii] = new NavigatedImage(image, img_start, "AREA");
+    }
+
+    ImageSequenceManager img_manager =
+      new ImageSequenceManager(nav_images);
+
+    return img_manager.getImageSequence();
+  }
+
 
   DisplayImpl makeDisplay(JPanel panel)
        throws VisADException, RemoteException, IOException

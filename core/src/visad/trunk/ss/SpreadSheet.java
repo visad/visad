@@ -32,6 +32,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.awt.print.*;
 import java.io.*;
+import java.lang.reflect.*;
 import java.net.*;
 import java.rmi.*;
 import java.rmi.registry.*;
@@ -113,6 +114,19 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
   protected static final String SSFileHeader =
     "# VisAD Visualization SpreadSheet spreadsheet file";
 
+  /**
+   * Argument classes for constructing an SSCell.
+   */
+  protected static final Class[] cellArgs = {
+    String.class, FormulaManager.class, RemoteServer.class,
+    boolean.class, String.class, Frame.class
+  };
+
+
+  /**
+   * Constructor used to create SSCells for SpreadSheets.
+   */
+  protected static Constructor cellConstructor;
 
   /**
    * Whether Java3D is possible on this JVM.
@@ -3428,6 +3442,19 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
   // --- SPREADSHEET API ---
 
   /**
+   * Sets the SpreadSheet cell class to the given class (which must extend
+   * FancySSCell), used for creating SpreadSheet cells.
+   */
+  public static void setSSCellClass(Class c) {
+    try {
+      cellConstructor = c.getConstructor(cellArgs);
+    }
+    catch (NoSuchMethodException exc) {
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+    }
+  }
+
+  /**
    * Selects the specified cell and updates screen info.
    */
   public void selectCell(int x, int y) {
@@ -3751,7 +3778,29 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
   protected FancySSCell createCell(String name, RemoteServer rs)
     throws VisADException, RemoteException
   {
-    return new FancySSCell(name, fm, rs, IsSlave, null, this);
+    Object[] args = {name, fm, rs, new Boolean(IsSlave), null, this};
+    if (cellConstructor == null) setSSCellClass(FancySSCell.class);
+    Object cell = null;
+    try {
+      cell = cellConstructor.newInstance(args);
+    }
+    catch (IllegalAccessException exc) {
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+    }
+    catch (InstantiationException exc) {
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+    }
+    catch (InvocationTargetException exc) {
+      if (BasicSSCell.DEBUG) exc.getTargetException().printStackTrace();
+    }
+    if (!(cell instanceof FancySSCell)) {
+      if (BasicSSCell.DEBUG) {
+        System.err.println("Cell constructor failed to " +
+          "produce a FancySSCell object!");
+      }
+      return null;
+    }
+    return (FancySSCell) cell;
   }
 
   /**
