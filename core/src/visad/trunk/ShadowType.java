@@ -808,19 +808,58 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     }
   }
 
+/* CTR: 13 Oct 1998 - BEGIN CHANGES */
   public static VisADGeometryArray makePointGeometry(float[][] spatial_values,
                 float[][] color_values) throws VisADException {
+    return makePointGeometry(spatial_values, color_values, false);
+  }
+
+  public static VisADGeometryArray makePointGeometry(float[][] spatial_values,
+                float[][] color_values, boolean compress)
+                                        throws VisADException {
     if (spatial_values == null) {
       throw new DisplayException("bad spatial_values: " +
                                  "ShadowType.makePointGeometry: bad");
     }
     VisADPointArray array = new VisADPointArray();
  
+    if (compress) {
+      // redimension arrays to eliminate Float.NaN values
+      int len = spatial_values.length;
+      int clen;
+      if (color_values == null) clen = 0;
+      else clen = color_values.length;
+      float[] f = spatial_values[0];
+      int flen = f.length;
+      int nan = 0;
+      for (int i=0; i<flen; i++) if (f[i] != f[i]) nan++;
+      if (nan > 0) {
+        float[][] new_s_values = new float[len][flen-nan];
+        float[][] new_c_values = color_values;
+        if (clen > 0) new_c_values = new float[len][flen-nan];
+        int c = 0;
+        for (int i=0; i<flen; i++) {
+          if (f[i] == f[i]) {
+            for (int j=0; j<len; j++) {
+              new_s_values[j][c] = spatial_values[j][i];
+            }
+            for (int j=0; j<clen; j++) {
+              new_c_values[j][c] = color_values[j][i];
+            }
+            c++;
+          }
+        }
+        spatial_values = new_s_values;
+        color_values = new_c_values;
+      }
+    }
+
     // set coordinates and colors
     // MEM
     SampledSet.setGeometryArray(array, spatial_values, 3, color_values);
     return array;
   }
+/* CTR: 13 Oct 1998 - END CHANGES */
 
   /** collect and transform Shape DisplayRealType values from display_values;
       offset by spatial_values, colored by color_values and selected by

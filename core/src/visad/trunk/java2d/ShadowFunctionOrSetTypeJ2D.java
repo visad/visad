@@ -1081,7 +1081,8 @@ END MISSING TEST */
               // adding Float.NaN will move the point off the screen
               spatial_values[0][j] += range_select[0][j];
             }
-            array = makePointGeometry(spatial_values, color_values);
+            /* CTR: 14 Oct 1998 - call new makePointGeometry signature */
+            array = makePointGeometry(spatial_values, color_values, true);
             // System.out.println("makePointGeometry for some missing");
           }
           else if (pointMode) {
