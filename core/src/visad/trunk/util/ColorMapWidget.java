@@ -1,11 +1,11 @@
 /*
 
-@(#) $Id: ColorMapWidget.java,v 1.27 1999-11-16 22:19:36 dglo Exp $
+@(#) $Id: ColorMapWidget.java,v 1.28 1999-11-16 22:25:24 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
 Copyright (C) 1998 Nick Rasmussen
-VisAD is Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
+VisAD is Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
 Rink and Dave Glowacki.
 
 This program is free software; you can redistribute it and/or modify
@@ -40,7 +40,7 @@ import javax.swing.*;
  * RGB/RGBA color maps.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.27 $, $Date: 1999-11-16 22:19:36 $
+ * @version $Revision: 1.28 $, $Date: 1999-11-16 22:25:24 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledColorWidget
@@ -216,41 +216,12 @@ public class LabeledColorWidget
     widget = c;
     slider = s;
     label = l;
-    Button reset = new Button("Reset") {
-        public Dimension getMinimumSize() {
-          return new Dimension(0, 18);
-        }
-        public Dimension getPreferredSize() {
-          return new Dimension(0, 18);
-        }
-        public Dimension getMaximumSize() {
-          return new Dimension(Integer.MAX_VALUE, 18);
-        }
-      };
-    reset.setActionCommand("reset");
-    reset.addActionListener(this);
-    Button grey = new Button("Grey Scale") {
-        public Dimension getMinimumSize() {
-          return new Dimension(0, 18);
-        }
-        public Dimension getPreferredSize() {
-          return new Dimension(0, 18);
-        }
-        public Dimension getMaximumSize() {
-          return new Dimension(Integer.MAX_VALUE, 18);
-        }
-      };
-    grey.setActionCommand("grey");
-    grey.addActionListener(this);
-    Panel panel = new Panel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-    panel.add(reset);
-    panel.add(grey);
+
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     add(widget);
     add(slider);
     add(label);
-    add(panel);
+    add(buildButtons());
 
     // enable auto-scaling
     if (update) {
@@ -274,6 +245,49 @@ public class LabeledColorWidget
     ((BaseRGBMap) map).setValues(table);
     widget.addColorChangeListener(this);
     control.addControlListener(this);
+  }
+
+  /**
+   * Build "Reset" and "Grey Scale" button panel.
+   *
+   * @return Panel containing the buttons.
+   */
+  private Panel buildButtons()
+  {
+    Button reset = new Button("Reset") {
+        public Dimension getMinimumSize() {
+          return new Dimension(0, 18);
+        }
+        public Dimension getPreferredSize() {
+          return new Dimension(0, 18);
+        }
+        public Dimension getMaximumSize() {
+          return new Dimension(Integer.MAX_VALUE, 18);
+        }
+      };
+    reset.setActionCommand("reset");
+    reset.addActionListener(this);
+
+    Button grey = new Button("Grey Scale") {
+        public Dimension getMinimumSize() {
+          return new Dimension(0, 18);
+        }
+        public Dimension getPreferredSize() {
+          return new Dimension(0, 18);
+        }
+        public Dimension getMaximumSize() {
+          return new Dimension(Integer.MAX_VALUE, 18);
+        }
+      };
+    grey.setActionCommand("grey");
+    grey.addActionListener(this);
+
+    Panel panel = new Panel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+    panel.add(reset);
+    panel.add(grey);
+
+    return panel;
   }
 
   private Dimension maxSize = null;
@@ -310,46 +324,6 @@ public class LabeledColorWidget
     float val = slider.getValue();
     if (val != val || val <= min || val >= max) val = (min+max)/2;
     slider.setBounds(min, max, val);
-  }
-
-  /**
-   * If the <CODE>ScalarMap</CODE> changes, update the slider with
-   * the new range.
-   *
-   * @param evt Data from the changed <CODE>ScalarMap</CODE>.
-   */
-  public void mapChanged(ScalarMapEvent e)
-  {
-    ScalarMap s = e.getScalarMap();
-    double[] range = s.getRange();
-    updateWidget((float) range[0], (float) range[1]);
-  }
-
-  /**
-   * Forward changes from the <CODE>ColorWidget</CODE> to the
-   * <CODE>Control</CODE> associated with this widget's
-   * <CODE>ScalarMap</CODE>.
-   *
-   * @param evt Data from the changed <CODE>ColorWidget</CODE>.
-   */
-  public void colorChanged(ColorChangeEvent e)
-  {
-    ColorMap map_e = widget.getColorMap();
-    float[][] table_e = new float[components][TABLE_SIZE];
-    for (int i=0; i<TABLE_SIZE; i++) {
-      float[] t = map_e.getTuple(SCALE * i);
-      table_e[0][i] = t[0];
-      table_e[1][i] = t[1];
-      table_e[2][i] = t[2];
-      if (components > 3) {
-        table_e[3][i] = t[3];
-      }
-    }
-    try {
-      control.setTable(table_e);
-    }
-    catch (VisADException f) { }
-    catch (RemoteException f) { }
   }
 
   /**
@@ -392,6 +366,33 @@ public class LabeledColorWidget
   }
 
   /**
+   * Forward changes from the <CODE>ColorWidget</CODE> to the
+   * <CODE>Control</CODE> associated with this widget's
+   * <CODE>ScalarMap</CODE>.
+   *
+   * @param evt Data from the changed <CODE>ColorWidget</CODE>.
+   */
+  public void colorChanged(ColorChangeEvent e)
+  {
+    ColorMap map_e = widget.getColorMap();
+    float[][] table_e = new float[components][TABLE_SIZE];
+    for (int i=0; i<TABLE_SIZE; i++) {
+      float[] t = map_e.getTuple(SCALE * i);
+      table_e[0][i] = t[0];
+      table_e[1][i] = t[1];
+      table_e[2][i] = t[2];
+      if (components > 3) {
+        table_e[3][i] = t[3];
+      }
+    }
+    try {
+      control.setTable(table_e);
+    }
+    catch (VisADException f) { }
+    catch (RemoteException f) { }
+  }
+
+  /**
    * If the color data in the <CODE>Control</CODE> associated with this
    * widget's <CODE>ScalarMap</CODE> has changed, update the data in
    * the <CODE>ColorMap</CODE> associated with this widget's
@@ -420,6 +421,19 @@ public class LabeledColorWidget
     if (!identical) {
       ((BaseRGBMap) map_e).setValues(table_reorg(table));
     }
+  }
+
+  /**
+   * If the <CODE>ScalarMap</CODE> changes, update the slider with
+   * the new range.
+   *
+   * @param evt Data from the changed <CODE>ScalarMap</CODE>.
+   */
+  public void mapChanged(ScalarMapEvent e)
+  {
+    ScalarMap s = e.getScalarMap();
+    double[] range = s.getRange();
+    updateWidget((float) range[0], (float) range[1]);
   }
 
   /**
