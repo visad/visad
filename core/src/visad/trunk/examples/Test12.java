@@ -26,7 +26,9 @@ import java.rmi.RemoteException;
 
 import visad.*;
 
+import visad.util.ColorMapWidget;
 import visad.util.LabeledColorWidget;
+
 import visad.java3d.DisplayImplJ3D;
 
 public class Test12
@@ -92,18 +94,36 @@ public class Test12
     if (dynamic) {
       ScalarMap colorMap = (ScalarMap )dpys[0].getMapVector().lastElement();
       ColorControl control = (ColorControl) colorMap.getControl();
-      boolean forever = true;
-      final int SIZE_INCREMENT = 256;
-      while (forever) {
+
+      final int CEILING = 1024;
+
+      boolean growing = true;
+      while (true) {
         try {
           Thread.sleep(5000);
         }
         catch (InterruptedException e) {
         }
-        System.out.println("\ndelay\n");
-        int size = control.getNumberOfColors() + SIZE_INCREMENT;
+
+        int size;
+        while (true) {
+          if (growing) {
+            size = control.getNumberOfColors() * 2;
+          } else {
+            size = control.getNumberOfColors() / 2;
+          }
+
+          if (size > 4 && size <= CEILING) {
+            break;
+          }
+
+          growing = !growing;
+        }
+
+        System.out.println("\n" + size + " colors\n");
+
         float[][] table = new float[3][size];
-        float scale = 1.0f / (size - 1.0f);
+        final float scale = 1.0f / (size - 1.0f);
         for (int i=0; i<size; i++) {
           table[0][i] = scale * i;
           table[1][i] = scale * i;
@@ -120,7 +140,7 @@ public class Test12
     throws RemoteException, VisADException
   {
     ScalarMap colorMap = (ScalarMap )dpys[0].getMapVector().lastElement();
-    return new LabeledColorWidget(colorMap);
+    return new LabeledColorWidget(new ColorMapWidget(colorMap, false));
   }
 
   public String toString() { return ": 2-D surface and ColorWidget"; }
