@@ -148,9 +148,7 @@ if(DEBUG_WR_CSYS)System.err.println("wrCSys: index (" + index + ")");
 if(DEBUG_WR_CSYS)System.err.println("wrCSys: FLD_COORDSYS_SERIAL (" + FLD_COORDSYS_SERIAL + ")");
     file.writeByte(FLD_COORDSYS_SERIAL);
 if(DEBUG_WR_CSYS)System.err.println("wrCSys: serialObj (" + serialObj.length + " bytes)");
-    for (int i = 0; i < serialObj.length; i++) {
-      file.writeByte(serialObj[i]);
-    }
+    file.write(serialObj);
 
 if(DEBUG_WR_CSYS)System.err.println("wrCSys: FLD_END (" + FLD_END + ")");
     file.writeByte(FLD_END);

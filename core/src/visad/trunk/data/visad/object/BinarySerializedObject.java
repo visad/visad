@@ -90,9 +90,7 @@ public class BinarySerializedObject
 
     file.writeByte(objType);
     file.writeInt(bytes.length + 1);
-    for (int i = 0; i < bytes.length; i++) {
-      file.writeByte(bytes[i]);
-    }
+    file.write(bytes);
     file.writeByte(FLD_END);
   }
 }
