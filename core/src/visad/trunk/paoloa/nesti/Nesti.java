@@ -1798,6 +1798,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         wnum_field.setText(PlotText.shortString(Math.abs(wnum)));
       }
     };
+
     CellImpl setBand_cell = new CellImpl() {
       boolean first = true;
       public void doAction() throws VisADException, RemoteException {
@@ -1810,6 +1811,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         }
       }
     };
+
     CellImpl recenter_cell = new CellImpl() {
       boolean first = true;
       public void doAction() throws VisADException, RemoteException {
@@ -1821,6 +1823,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         }
       }
     };
+
     CellImpl zoom_cell = new CellImpl() {
       boolean first = true;
       public void doAction() throws VisADException, RemoteException {
@@ -1841,6 +1844,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         }
       }
     };
+
     CellImpl diff_button_cell = new CellImpl() {
       boolean first = true;
       int opt;
@@ -1861,6 +1865,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         }
       }
     };
+
     CellImpl obs_sim_button_cell = new CellImpl() {
       boolean first = true;
       int opt;
@@ -1881,6 +1886,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         }
       }
     };
+
     if (!client) {
       wnum_field_cell.addReference(wnum_last_ref);
       setBand_cell.addReference(setBand_ref);
