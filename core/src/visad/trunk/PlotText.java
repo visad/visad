@@ -418,8 +418,10 @@ public class PlotText extends Object {
     double cz = start[2];
     int len = str.length();
 
-    // allow 250 2-point 3-component strokes per character
-    float[] plot = new float[1500 * len];
+
+    // allow 2-point 3-component strokes per character
+    int maxSeg = font.getMaxPoints();
+    float[] plot = new float[maxSeg * 6 * len];
 
     int plot_index = 0;
     int [] charMinX = font.getCharacterMinX();

@@ -182,6 +182,15 @@ public class HersheyFont extends java.lang.Object
       return;
    }
 
+
+   /** get the maximum number of points (segments) allowed
+   *
+   * @return value of max number of segments allowed.
+   *
+   */
+   public int getMaxPoints() {
+     return MAX_POINTS;
+   }
    /** get the minimum X coordinate values for all characters
    *
    * @return array of minimum X coordinates
