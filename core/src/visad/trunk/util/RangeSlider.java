@@ -343,7 +343,7 @@ public class RangeSlider extends JComponent implements MouseListener,
    *  This method does nothing and is meant to be overridden
    *  by classes which extend this class.
    */
-  void valuesUpdated()
+  public void valuesUpdated()
   {
   }
 
