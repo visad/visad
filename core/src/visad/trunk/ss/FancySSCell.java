@@ -163,6 +163,16 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
    */
   protected boolean AutoShowControls = true;
 
+  /**
+   * Lock object for mapping auto-detection notification.
+   */
+  private Object MapLock = new Object();
+
+  /**
+   * Counter for mapping auto-detection notification.
+   */
+  private int MapCount = 0;
+
 
   // --- CONSTRUCTORS ---
 
@@ -373,6 +383,34 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     t.start();
   }
 
+  /**
+   * Blocks until mapping auto-detection is complete.
+   */
+  public void waitForMaps() {
+    synchronized (MapLock) {
+      while (MapCount > 0) {
+        try { MapLock.wait(); }
+        catch (InterruptedException exc) {
+          if (DEBUG && DEBUG_LEVEL >= 3) exc.printStackTrace();
+        }
+      }
+    }
+  }
+
+  /**
+   * Does the work of adding the given DataReference,
+   * from the given source of the specified type.
+   *
+   * @return The newly created SSCellData object.
+   */
+  protected SSCellData addReferenceImpl(int id, DataReferenceImpl ref,
+    ConstantMap[] cmaps, String source, int type, boolean notify,
+    boolean checkErrors) throws VisADException, RemoteException
+  {
+    synchronized (MapLock) { MapCount++; }
+    return super.addReferenceImpl(id, ref, cmaps,
+      source, type, notify, checkErrors);
+  }
 
   // --- DISPLAY MANAGEMENT ---
 
@@ -518,6 +556,12 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
 
       // apply the mappings
       setMapsAuto(maps);
+    }
+
+    // notify waitForMaps() method
+    synchronized (MapLock) {
+      MapCount--;
+      MapLock.notifyAll();
     }
   }
 
