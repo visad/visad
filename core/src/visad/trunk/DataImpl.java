@@ -630,60 +630,96 @@ public abstract class DataImpl extends ThingImpl
   }
 
 
-  /** for JPython */
+  /**
+   * A wrapper around {@link #add(Data) add} for JPython
+   */
   public Data __add__(Data data) throws VisADException, RemoteException {
     return add(data);
   }
 
+  /**
+   * A wrapper around {@link #sub(Data) sub} for JPython
+   */
   public Data __sub__(Data data) throws VisADException, RemoteException {
     return subtract(data);
   }
 
+  /**
+   * A wrapper around {@link #multiply(Data) mul} for JPython
+   */
   public Data __mul__(Data data) throws VisADException, RemoteException {
     return multiply(data);
   }
 
+  /**
+   * A wrapper around {@link #divide(Data) div} for JPython
+   */
   public Data __div__(Data data) throws VisADException, RemoteException {
     return divide(data);
   }
 
+  /**
+   * A wrapper around {@link #pow(Data) pow} for JPython
+   */
   public Data __pow__(Data data) throws VisADException, RemoteException {
     return pow(data);
   }
 
+  /**
+   * A wrapper around {@link #remainder(Data) mod} for JPython
+   */
   public Data __mod__(Data data) throws VisADException, RemoteException {
     return remainder(data);
   }
 
+  /**
+   * A wrapper around {@link #negate(Data) neg} for JPython
+   */
   public Data __neg__() throws VisADException, RemoteException {
     return negate();
   }
 
+  /**
+   * A wrapper around {@link #__add__(Data) __add__} for JPython
+   */
   public Data __add__(double data) throws VisADException, RemoteException {
     return __add__(new Real(data));
   }
 
+  /**
+   * A wrapper around {@link #__sub__(Data) __sub__} for JPython
+   */
   public Data __sub__(double data) throws VisADException, RemoteException {
     return __sub__(new Real(data));
   }
 
+  /**
+   * A wrapper around {@link #__mul__(Data) __mul__} for JPython
+   */
   public Data __mul__(double data) throws VisADException, RemoteException {
     return __mul__(new Real(data));
   }
 
+  /**
+   * A wrapper around {@link #__div__(Data) __div__} for JPython
+   */
   public Data __div__(double data) throws VisADException, RemoteException {
     return __div__(new Real(data));
   }
 
+  /**
+   * A wrapper around {@link #__pow__(Data) __pow__} for JPython
+   */
   public Data __pow__(double data) throws VisADException, RemoteException {
     return __pow__(new Real(data));
   }
 
+  /**
+   * A wrapper around {@link #__mod__(Data) __mod__} for JPython
+   */
   public Data __mod__(double data) throws VisADException, RemoteException {
     return __mod__(new Real(data));
   }
-  /** end of for JPython */
-
 
   /** a VisAD adaptation of clone that works for local or remote Data;
       DataImpl.dataClone returns clone; RemoteDataImpl.dataClone

@@ -617,7 +617,6 @@ public abstract class Set extends DataImpl implements SetIface {
       return new RealTuple(rtt, reals, getCoordinateSystem());
     }
   }
-  /** end of for JPython */
 
   /** test for equality */
   public abstract boolean equals(Object set);

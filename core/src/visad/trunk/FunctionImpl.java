@@ -145,15 +145,19 @@ public abstract class FunctionImpl extends DataImpl implements Function {
                                        int error_mode )
          throws VisADException, RemoteException;
 
-  /** for JPython */
+  /**
+   * A wrapper around {@link #evaluate(Real) evaluate} for JPython.
+   */
   public Data __getitem__(Real domain) throws VisADException, RemoteException {
     return evaluate(domain);
   }
 
+  /**
+   * A wrapper around {@link #evaluate(RealTuple) evaluate} for JPython.
+   */
   public Data __getitem__(RealTuple domain) throws VisADException, RemoteException {
     return evaluate(domain);
   }
-  /** end of for JPython */
 
 }
 

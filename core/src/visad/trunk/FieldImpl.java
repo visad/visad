@@ -2669,16 +2669,24 @@ public class FieldImpl extends FunctionImpl implements Field {
     return false;
   }
 
-  /** for JPython */
+  /**
+   * A wrapper around {@link #getSample(int) getSample} for JPython.
+   */
   public Data __getitem__(int index) throws VisADException, RemoteException {
     return getSample(index);
   }
 
+  /**
+   * A wrapper around {@link #setSample(int, Data) setSample} for JPython.
+   */
   public void __setitem__(int index, Data data)
          throws VisADException, RemoteException {
     setSample(index, data);
   }
 
+  /**
+   * A wrapper around {@link #setSample(int, Data) setSample} for JPython.
+   */
   public void __setitem__(int index, double data)
          throws VisADException, RemoteException {
     RealType real = null;
@@ -2706,7 +2714,6 @@ public class FieldImpl extends FunctionImpl implements Field {
       System.out.println("FieldImpl.__setitem__ bad type");
     }
   }
-  /** end of for JPython */
 
   /** deep copy values but shallow copy Type, Set and CoordinateSystem */
   public Object clone() {
