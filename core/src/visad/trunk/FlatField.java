@@ -517,12 +517,19 @@ public class FlatField extends FieldImpl {
     MissingFlag = true;
   }
 
-  /** return range CoordinateSystem assuming range type is
-      a RealTupleType (throws a TypeException if its not);
-      this may differ from default CoordinateSystem of
-      range RealTupleType, but must be convertable;
-      the index has length = 1 (since all samples
-      have the same Units) */
+  /**
+   * Returns the range CoordinateSystem assuming that the range type is
+   * a RealTupleType (and throws a TypeException if its not).  This may
+   * differ from default CoordinateSystem of range RealTupleType, but must be
+   * convertable; the index has length = 1 (since all samples have the same
+   * Units).
+   *
+   * @return                    The CoordinateSystem of the RealTuple range.
+   *                            Will not be <code>null</code> and will be of
+   *                            length 1.
+   * @throws TypeException	The type of the range is neither RealType nor
+   *				RealTupleType.
+   */
   public CoordinateSystem[] getRangeCoordinateSystem()
          throws VisADException {
     MathType RangeType = ((FunctionType) Type).getRange();
@@ -544,6 +551,19 @@ public class FlatField extends FieldImpl {
     return sets;
   }
 
+  /**
+   * Returns the CoordinateSystem of a component of the range.
+   *
+   * @param i			The index of the component.  The value shall lie
+   *				in the interval from 0 through 
+   *				<code>getDomainDimension()</code>, inclusive.
+   * @return			The CoordinateSystem of the <code>i</code>-th
+   *				component.  Won't be <code>null</code> and will
+   *				be of length 1.  The single element might be
+   *				<code>null</code>.
+   * @throws TypeException	The type of the range is either RealType or 
+   *				RealTupleType.
+   */
   public CoordinateSystem[] getRangeCoordinateSystem(int i)
          throws VisADException {
     if (((FunctionType) Type).getReal()) {

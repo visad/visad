@@ -36,7 +36,7 @@ public class SingletonSet extends SampledSet {
 
   /** construct a SingletonSet with the single sample given by a RealTuple */
   public SingletonSet(RealTuple d) throws VisADException, RemoteException {
-    this(d, d.getType(), null, null, null);
+    this(d, d.getType(), null, d.getTupleUnits(), null);
   }
 
   /** construct a SingletonSet with the single sample given by a RealTuple,

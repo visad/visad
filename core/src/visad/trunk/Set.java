@@ -72,17 +72,20 @@ public abstract class Set extends DataImpl {
   }
 
   /**
-   * Constructs a Set object with a non-default CoordinateSystem and
-   * non-default Unit-s.
+   * Constructs a Set object with a non-default CoordinateSystem.<p>
+   *
    * @param type		The type of the Set.
+   * @param coord_sys		The CoordinateSystem associated with this
+   *				Set.
    */
   public Set(MathType type, CoordinateSystem coord_sys) throws VisADException {
     this(type, coord_sys, null, null);
   }
 
   /**
-   * Constructs a Set object with a non-default CoordinateSystem and
-   * non-default Unit-s.  This is the most general constructor.
+   * Constructs a Set object with a non-default CoordinateSystem, non-default
+   * Unit-s, and non-default errors.  This is the most general constructor.<p>
+   *
    * @param type		The MathType of the set.  May be a RealType,
    *				a RealTupleType, or a SetType.
    * @param coord_sys		Optional coordinate system for the domain of the
@@ -97,6 +100,10 @@ public abstract class Set extends DataImpl {
    *                            corresponding domain component is an interval,
    *                            then the unit that is actually used is <code>
    *                            units[i].getAbsoluteUnit()</code>.
+   * @param errors              Error estimates.  May be <code>null</code>.
+   *                            <code>errors[i]</code> is the error estimate
+   *                            for the <code>i</code>-th component and may be
+   *                            <code>null</code>.
    */
   public Set(MathType type, CoordinateSystem coord_sys, Unit[] units,
              ErrorEstimate[] errors) throws VisADException {

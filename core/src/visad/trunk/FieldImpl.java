@@ -2684,6 +2684,7 @@ class FieldEnumerator implements Enumeration {
   int dimension;
   RealTupleType type;
   RealType[] types;
+  Unit[] units;
 
   FieldEnumerator(Field f) throws VisADException, RemoteException {
     field = f;
@@ -2695,6 +2696,7 @@ class FieldEnumerator implements Enumeration {
     dimension = field.getDomainSet().getDimension();
     type = ((FunctionType) field.getType()).getDomain();
     types = new RealType[dimension];
+    units = field.getDomainUnits();
     for (int j=0; j<dimension; j++) {
       types[j] = (RealType) type.getComponent(j);
     }
@@ -2719,7 +2721,7 @@ class FieldEnumerator implements Enumeration {
         index[0]++;
         Real[] reals = new Real[dimension];
         for (int j=0; j<dimension; j++) {
-          reals[j] = new Real(types[j], (double) vals[j][0]);
+          reals[j] = new Real(types[j], (double) vals[j][0], units[j]);
         }
         return new RealTuple(reals);
       }
