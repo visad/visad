@@ -47,9 +47,12 @@ public class PointDataAdapter {
 
   /**
    * Construct a PointDataAdapter using the adde request passed as a string.
+   * This will take the data returned from the request and turn it into
+   * VisAD Data objects that can be returned by the getData() call.
    *
    * @param  addePointRequest  - string representing the ADDE request
    * @throws VisADException  bad request, no data available, VisAD error
+   * @see #getData()
    */
   public PointDataAdapter(String addePointRequest)
       throws VisADException
@@ -163,9 +166,13 @@ public class PointDataAdapter {
 
     // make the field
     FunctionType functionType = new FunctionType(domainType, rangeType);
+    /*
     field = (noText) 
             ? new FlatField(functionType, domain)
             : new FieldImpl(functionType, domain); 
+            */
+    field = new FieldImpl(functionType, domain);
+
 
     if (debug) System.out.println("filling in data" );
     long millis = System.currentTimeMillis();
@@ -182,17 +189,14 @@ public class PointDataAdapter {
             scalars[j] = 
                 new Text( (TextType) types[j], 
                          McIDASUtil.intBitsToString(data[i][j]));
-                         //McIDASUtil.intBitsToString(data[j][i]));
           }
           catch (VisADException ex) {;} // shouldn't happen
         } 
         else
         {
             double value =
-                //data[j][i] == McIDASUtil.MCMISSING
                 data[i][j] == McIDASUtil.MCMISSING
                   ? Double.NaN
-                  //: data[j][i]/Math.pow(10.0, 
                   : data[i][j]/Math.pow(10.0, 
                       (double) scalingFactors[j] );
             try
@@ -208,8 +212,9 @@ public class PointDataAdapter {
       try
       {
         Data sample = (noText == true)
-                               ? new RealTuple((Real[]) scalars)
-                               : new Tuple(scalars,false);
+                               ? new RealTuple(
+                                   (RealTupleType)rangeType, (Real[]) scalars, null)
+                               : new Tuple(rangeType, scalars, false);
         field.setSample(i, sample, false);  // don't make copy
       }
       catch (VisADException e) {e.printStackTrace();} 
@@ -223,9 +228,10 @@ public class PointDataAdapter {
 
   /**
    * Get the VisAD Data object that represents the output from the
-   * request.
+   * request.  
    *
-   * @return  requested data
+   * @return  requested data.  The format is a FieldImpl of
+   *          (obnum -> (tuple of parameters)
    */
   public DataImpl getData()
   {
