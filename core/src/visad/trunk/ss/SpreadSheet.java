@@ -1063,20 +1063,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
         return;
       }
       len = line.length();
-      if (line.trim().charAt(0) == '#') {
-        // ignore comments
-        eq = -1;
-      }
-      else eq = line.indexOf('[');
-      if (eq >= 0) {
-        boolean success = true;
-        int end = line.indexOf(']', eq);
-        if (end < 0) success = false;
-        else {
-          String sub = line.substring(eq + 1, end).trim();
-          if (!sub.equalsIgnoreCase("global")) success = false;
-        }
-        if (!success) {
+      String trimLine = line.trim();
+      int trimLen = trimLine.length();
+      if (trimLine.charAt(0) == '[' && trimLine.charAt(trimLen - 1) == ']') {
+        String sub = trimLine.substring(1, trimLen - 1).trim();
+        if (!sub.equalsIgnoreCase("global")) {
           displayErrorMessage("The file " + file + " does not contain the " +
             "[Global] tag as its first entry", "VisAD SpreadSheet error");
           // reset auto-switch, auto-detect and auto-show
@@ -1089,7 +1080,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         // parse global information
         int endToken = tokenNum;
         while (tokens[endToken] != null &&
-          tokens[endToken].indexOf('[') < 0)
+          tokens[endToken].trim().indexOf('[') != 0)
         {
           endToken++;
         }
@@ -1283,25 +1274,24 @@ public class SpreadSheet extends JFrame implements ActionListener,
             setAutoShowControls(origShow);
             return;
           }
-          int lbrack;
-          if (line.trim().charAt(0) == '#') {
-            // ignore comments
-            lbrack = -1;
-          }
-          else lbrack = line.indexOf('[');
-          if (lbrack >= 0) {
-            int rbrack = line.indexOf(']', lbrack);
-            if (rbrack >= 0) {
-              // this line identifies a cell name
-              cellNames[i][j] = line.substring(lbrack + 1, rbrack).trim();
-            }
+          String trimLine = line.trim();
+          int trimLen = trimLine.length();
+          if (trimLine.charAt(0) == '[' &&
+            trimLine.charAt(trimLen - 1) == ']')
+          {
+            // this line identifies a cell name
+            cellNames[i][j] = trimLine.substring(1, trimLen - 1).trim();
           }
         }
         while (cellNames[i][j] == null);
 
         // find last line of this cell's save string
         int last = tokenNum + 1;
-        while (tokens[last] != null && tokens[last].indexOf('[') < 0) last++;
+        while (tokens[last] != null &&
+          tokens[last].trim().indexOf('[') != 0)
+        {
+          last++;
+        }
 
         // build this cell's save string
         String s = "";
@@ -1788,7 +1778,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
       DisplayPanel.removeAll();
       for (int j=0; j<NumVisY; j++) {
         for (int i=0; i<CurX; i++) fcells[i][j] = DisplayCells[i][j];
-        for (int i=CurX+1; i<NumVisX; i++) fcells[i - 1][j] = DisplayCells[i][j];
+        for (int i=CurX+1; i<NumVisX; i++) {
+          fcells[i - 1][j] = DisplayCells[i][j];
+        }
         try {
           DisplayCells[CurX][j].destroyCell();
         }
@@ -1846,7 +1838,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
       DisplayPanel.removeAll();
       for (int i=0; i<NumVisX; i++) {
         for (int j=0; j<CurY; j++) fcells[i][j] = DisplayCells[i][j];
-        for (int j=CurY+1; j<NumVisY; j++) fcells[i][j - 1] = DisplayCells[i][j];
+        for (int j=CurY+1; j<NumVisY; j++) {
+          fcells[i][j - 1] = DisplayCells[i][j];
+        }
         try {
           DisplayCells[i][CurY].destroyCell();
         }
