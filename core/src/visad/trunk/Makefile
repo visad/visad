@@ -28,6 +28,7 @@ default:
 	@echo "	make debug		to compile .java files for debugging"
 	@echo "	make tar		to make visad_src-2.0.tar.Z"
 	@echo "	make jar		to make visad_src-2.0.jar"
+	@echo "	make examplesjar	to make visad_examples.jar"
 	@echo "	make save		save files to the backup sub-directory"
 	@echo "	make classes		to make jar and tar files containing classes"
 	@echo "	make clear		to clear source files"
