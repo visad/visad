@@ -116,7 +116,7 @@ public class DefaultNodeRendererAgent extends NodeAgent {
     Thread me = Thread.currentThread();
 // System.out.println("DefaultNodeRendererAgent.run " + me + " " + getAgentThread());
     while (getAgentThread() == me) {
-// System.out.println("DefaultNodeRendererAgent.run in while");
+// System.out.println("DefaultNodeRendererAgent.run before getMessage call");
       Serializable message = getMessage();
 
       Serializable response = null;
@@ -130,8 +130,8 @@ public class DefaultNodeRendererAgent extends NodeAgent {
           nr.enableTransform();
           display.reDisplayAll();
           // NodeRendererJ3D.doTransform() calls
-          // sendToClient(branch) for this, so just return
-          return;
+          // sendToClient(branch) for this, so no response
+          response = "none";
         }
       }
       else if (message instanceof Vector) {
@@ -161,6 +161,7 @@ public class DefaultNodeRendererAgent extends NodeAgent {
           }
         }
         else if (first instanceof ScalarMap) {
+// System.out.println("DefaultNodeRendererAgent.run first is ScalarMap");
           try {
             display.removeReference(ref);
             display.clearMaps();
@@ -188,6 +189,7 @@ public class DefaultNodeRendererAgent extends NodeAgent {
             return;
           }
           response = "normal";
+// System.out.println("DefaultNodeRendererAgent.run ScalarMap response");
         }
         else if (first instanceof String) {
           String sfirst = (String) first;
@@ -222,13 +224,13 @@ public class DefaultNodeRendererAgent extends NodeAgent {
             nr.enableTransform();
             display.reDisplayAll();
             // NodeRendererJ3D.doTransform() calls
-            // sendToClient(branch) for this, so just return
-            return;
+            // sendToClient(branch) for this, so no reponse
+            response = "none";
           }
         }
       }
       if (response == null) response = "error";
-      sendToClient(response);
+      if (!response.equals("none")) sendToClient(response);
     } // end while (getAgentThread() == me)
   }
 

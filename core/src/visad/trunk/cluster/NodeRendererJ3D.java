@@ -97,7 +97,6 @@ public class NodeRendererJ3D extends DefaultRendererJ3D {
   }
 
   public void enableTransform() {
-System.out.println("NodeRendererJ3D.enableTransform");
     enable_transform = true;
   }
 
@@ -134,13 +133,13 @@ while (ds.isThreadRunning()) {
     fake_branch.setCapability(Group.ALLOW_CHILDREN_WRITE);
     fake_branch.setCapability(Group.ALLOW_CHILDREN_EXTEND);
 
-System.out.println("NodeRendererJ3D.doTransform enabled = " + enable_transform);
+// System.out.println("NodeRendererJ3D.doTransform enabled = " + enable_transform);
 
     // don't do work unless requested by the client
     if (!enable_transform) return fake_branch;
     enable_transform = false;
 
-
+/*
 Vector map_vector = getDisplay().getMapVector();
 Enumeration maps = map_vector.elements();
 while (maps.hasMoreElements()) {
@@ -150,6 +149,7 @@ while (maps.hasMoreElements()) {
   System.out.println(map + " " + ((float) range[0]) + " " + ((float) range[1]));
   System.out.println("  " + control);
 }
+*/
 
     VisADGroup branch = new VisADGroup();
 

@@ -84,10 +84,10 @@ public class RemoteClientAgentImpl extends UnicastRemoteObject
     responses = new Serializable[nagents];
     not_all = true;
     for (int i=0; i<nagents; i++) {
-      responses[i] = null;
-      contacts[i].sendToNode(message);
 // System.out.println("RemoteClientAgentImpl.broadcastWithResponses " +
 //                    i + " " + message);
+      responses[i] = null;
+      contacts[i].sendToNode(message);
     }
     while (not_all) {
       synchronized (this) {

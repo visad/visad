@@ -137,8 +137,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
     }
     Serializable[] responses =
       focus_agent.broadcastWithResponses(message, contacts);
-System.out.println("ClientRendererJ3D.prepareAction messages received");
-
+// System.out.println("ClientRendererJ3D.prepareAction messages received");
 
 
     // now do usual prepareAction()
@@ -183,7 +182,7 @@ System.out.println("ClientRendererJ3D.prepareAction messages received");
     // responses are VisADGroups
     Serializable[] responses =
       focus_agent.broadcastWithResponses(message, contacts);
-System.out.println("ClientRendererJ3D.doTransform messages received");
+// System.out.println("ClientRendererJ3D.doTransform messages received");
 
     // responses are VisADGroups
     // need to:
@@ -503,7 +502,7 @@ System.out.println("ClientRendererJ3D.doTransform messages received");
     }
     Serializable[] responses =
       focus_agent.broadcastWithResponses(message, contacts);
-System.out.println("ClientRendererJ3D.computeRanges messages received");
+// System.out.println("ClientRendererJ3D.computeRanges messages received");
     DataShadow new_shadow = (DataShadow) responses[0];
     int n = responses.length;
     for (int i=1; i<n; i++) {
