@@ -379,7 +379,6 @@ public class RealType extends ScalarType {
     String newName;
     if (type instanceof RealType) {
       RealType that = (RealType)type;
-      newName = "RealType_" + Integer.toString(++count);
       Unit unit = ((RealType)type).getDefaultUnit();
       Unit thisUnit = DefaultUnit;
       int newAttrMask = 0;
@@ -435,21 +434,33 @@ public class RealType extends ScalarType {
         case Data.MIN:
           if ( thisUnit == null ) {
             newUnit = null;
+	    newName = Name;
           }
           else if ( unit == null ) {
             newUnit = null;
+	    newName = that.Name;
           }
           else if ( thisUnit.equals( CommonUnit.promiscuous ) ) {
-            newUnit = ((RealType)type).getDefaultUnit().getAbsoluteUnit();
+            newUnit = that.DefaultUnit.getAbsoluteUnit();
+	    newName = that.Name;
           }
           else if ( unit.equals( CommonUnit.promiscuous ) ||
                     Unit.canConvert( thisUnit, unit ) ) {
-            newUnit = getDefaultUnit().getAbsoluteUnit();
+            newUnit = thisUnit.getAbsoluteUnit();
+	    newName = Name;
           }
           else {
             throw new UnitException();
           }
           newType = getRealType(newName, newUnit, newAttrMask);
+	  if (newType == null) {
+	    /*
+	     * The new RealType can't be create -- possibly because the
+	     * attribute mask differs from an extant RealType.  Create a new
+	     * RealType from a new name.
+	     */
+	    newType = getRealType(newName(), newUnit, newAttrMask);
+	  }
           break;
 
         case Data.MULTIPLY:
@@ -477,6 +488,7 @@ public class RealType extends ScalarType {
                 break; // WLH 26 Jan 99
             }
           }
+	  newName = newName();
 
           newType = getRealType(newName, newUnit, newAttrMask);
           break;
@@ -494,6 +506,7 @@ public class RealType extends ScalarType {
             {
               newUnit = null;
             }
+	    newName = newName();
             newType = getRealType(newName, newUnit, newAttrMask);
           }
           break;
@@ -504,6 +517,7 @@ public class RealType extends ScalarType {
             break;
           }
           newUnit = null;
+	  newName = newName();
           newType = getRealType(newName, newUnit, newAttrMask);
           break;
 
@@ -511,6 +525,7 @@ public class RealType extends ScalarType {
           newUnit = CommonUnit.radian;
         case Data.INV_ATAN2:
           newUnit = CommonUnit.radian;
+	  newName = newName();
           newType = getRealType(newName, newUnit, newAttrMask);
           break;
 
@@ -518,6 +533,7 @@ public class RealType extends ScalarType {
           newUnit = CommonUnit.degree;
         case Data.INV_ATAN2_DEGREES:
           newUnit = CommonUnit.degree;
+	  newName = newName();
           newType = getRealType(newName, newUnit, newAttrMask);
           break;
 
@@ -577,6 +593,10 @@ public class RealType extends ScalarType {
 */
 
     return newType;
+  }
+
+  private static String newName() {
+    return "RealType_" + Integer.toString(++count);
   }
 
   private static String newName( String oldName, int attrMask ) {
