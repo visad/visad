@@ -301,9 +301,18 @@ public class DelaunayClarkson extends Delaunay {
     }
     else {
       double sum = 0;
-      for (int i=0; i<dim; i++) {
-        bbt_vecs[v_bn[0]][i+rdim][v[0]] = bbt_vecs[v_bn[0]][i][v[0]]
-          = (double) (site_blocks[i][rp] - site_blocks[i][sbt_neigh_vert[s_bn][0][s]]);
+      int sbt_nv = sbt_neigh_vert[s_bn][0][s];
+      if (sbt_nv == INFINITY) {
+        for (int i=0; i<dim; i++) {
+          bbt_vecs[v_bn[0]][i+rdim][v[0]] = bbt_vecs[v_bn[0]][i][v[0]]
+            = (double) site_blocks[i][rp];
+        }
+      }
+      else {
+        for (int i=0; i<dim; i++) {
+          bbt_vecs[v_bn[0]][i+rdim][v[0]] = bbt_vecs[v_bn[0]][i][v[0]]
+            = (double) (site_blocks[i][rp] - site_blocks[i][sbt_nv]);
+        }
       }
       for (int i=0; i<dim; i++) {
         sum += bbt_vecs[v_bn[0]][i][v[0]] * bbt_vecs[v_bn[0]][i][v[0]];
@@ -497,9 +506,18 @@ public class DelaunayClarkson extends Delaunay {
     }
     else {
       double sum = 0;
-      for (int l=0; l<dim; l++) {
-        bbt_vecs[b_bn][l+rdim][b] = bbt_vecs[b_bn][l][b]
-          = (double) (site_blocks[l][rp] - site_blocks[l][sbt_neigh_vert[s_bn][0][s]]);
+      int sbt_nv = sbt_neigh_vert[s_bn][0][s];
+      if (sbt_nv == INFINITY) {
+        for (int l=0; l<dim; l++) {
+          bbt_vecs[b_bn][l+rdim][b] = bbt_vecs[b_bn][l][b]
+            = (double) site_blocks[l][rp];
+        }
+      }
+      else {
+        for (int l=0; l<dim; l++) {
+          bbt_vecs[b_bn][l+rdim][b] = bbt_vecs[b_bn][l][b]
+            = (double) (site_blocks[l][rp] - site_blocks[l][sbt_nv]);
+        }
       }
       for (int l=0; l<dim; l++) {
         sum += bbt_vecs[b_bn][l][b] * bbt_vecs[b_bn][l][b];
@@ -1012,7 +1030,9 @@ public class DelaunayClarkson extends Delaunay {
 
 /* WLH 29 Jan 98 - scale samples values as discussed in Delaunay.factory
     for (int j=0; j<dim; j++) {
-      for (int kk=0; kk<nrs; kk++) site_blocks[j][kk] = 100.0f * samples[j][kk];
+      for (int kk=0; kk<nrs; kk++) {
+        site_blocks[j][kk] = 100.0f * samples[j][kk];
+      }
     }
 */
 
