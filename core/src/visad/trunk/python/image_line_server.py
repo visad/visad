@@ -1,7 +1,7 @@
 from visad.python.JPythonMethods import *
 import subs
 from visad.java2d import *
-from visad import DataReferenceImpl,CellImpl,Real, AxisScale
+from visad import DataReferenceImpl, CellImpl, AxisScale
 from visad.util import VisADSlider
 from javax.swing import JFrame, JPanel
 from java.awt import BorderLayout, GridLayout, Font
@@ -33,7 +33,7 @@ subs.setBoxSize(d2,.80)
 
 # get the desired format of the Data (line->(element->value))
 byline = domainFactor(image,d[1])
-ref2 = subs.addData("imageline", byline[Real(0)], d2)
+ref2 = subs.addData("imageline", byline[0], d2)
 
 # set up a dummy reference so we can put the line onto the display
 usref = subs.addData("line", None, d1)
@@ -44,7 +44,7 @@ class MyCell(CellImpl):
   line = (LINES-1) - (userline.getData()).getValue()
   pts = subs.makeLine( (d[1], d[0]), ((line,line),(0,NELE)))
   usref.setData(pts)
-  ff = byline[Real(line)]
+  ff = byline[int(line)]
   ref2.setData(ff)
 
 # make a DataReference that we can use to change the value of "line"
