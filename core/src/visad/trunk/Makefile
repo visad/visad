@@ -60,6 +60,7 @@ TAR_FILES = \
 	visad/DATE					\
 	visad/Makefile					\
 	visad/Makefile.WinNT				\
+	visad/README.nexusrmi				\
 	visad/rmic_script				\
 	visad/*.java					\
 	visad/examples/*.java				\
@@ -207,6 +208,7 @@ SAVE_FILES = \
 	visad/DATE					\
 	visad/Makefile					\
 	visad/Makefile.WinNT				\
+	visad/README.nexusrmi				\
 	visad/rmic_script				\
 	visad/*.java					\
 	visad/examples/*.java				\

@@ -61,6 +61,7 @@ visad\LICENSE \
 visad\DATE \
 visad\Makefile \
 visad\Makefile.WinNT \
+visad\README.nexusrmi \
 visad\rmic_script \
 visad\*.java \
 visad\examples\*.java \
@@ -156,6 +157,7 @@ visad\LICENSE \
 visad\DATE \
 visad\Makefile \
 visad\Makefile.WinNT \
+visad\README.nexusrmi \
 visad\rmic_script \
 visad\*.java \
 visad\examples\*.java \

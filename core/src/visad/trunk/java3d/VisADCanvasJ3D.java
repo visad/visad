@@ -60,6 +60,8 @@ public class VisADCanvasJ3D extends Canvas3D { // J3D
 
   public void postSwap() {
     if (captureFlag) {
+      // WLH 18 March 99 - SRP suggests that in some implementations
+      // this may need to be in postRender (invoked before buffer swap)
       captureFlag = false;
 
       int width = getSize().width;
