@@ -28,6 +28,7 @@ package visad;
 
 import java.util.*;
 import java.rmi.*;
+import visad.java2d.DisplayImplJ2D;
 
 /**
 (Fulker)
@@ -478,6 +479,65 @@ public abstract class DataImpl extends ThingImpl
     throw new ArithmeticException("DataImpl.invertOp: illegal operation");
   }
 
+  // WLH 18 March 2000
+  private static DisplayImplJ2D rdisplay = null;
+  private static Object lock = new Object();
+
+  // WLH 18 March 2000
+  public class Syncher extends Object implements DisplayListener {
+    Syncher() {
+      rdisplay.addDisplayListener(this);
+      rdisplay.enableAction();
+      try {
+        synchronized (this) {
+          this.wait();
+        }
+      }
+      catch(InterruptedException e) {
+      }
+      rdisplay.removeDisplayListener(this);
+    }
+
+    public void displayChanged(DisplayEvent e)
+           throws VisADException, RemoteException {
+      if (e.getId() == DisplayEvent.TRANSFORM_DONE) {
+        synchronized (this) {
+          this.notify();
+        }
+      }
+    }
+  }
+
+  // WLH 18 March 2000
+  public double[][] computeRanges(RealType[] reals)
+         throws VisADException, RemoteException {
+    synchronized (lock) {
+      if (rdisplay == null) {
+        // construct offscreen dummy display
+        rdisplay = new DisplayImplJ2D("dummy", 4, 4);
+      }
+      if (reals == null || reals.length == 0) return null;
+      int n = reals.length;
+      ScalarMap[] maps = new ScalarMap[n];
+      for (int i=0; i<n; i++) {
+        maps[i] = new ScalarMap(reals[i], Display.Shape);
+        rdisplay.addMap(maps[i]);
+      }
+      rdisplay.disableAction();
+      DataReference ref = new DataReferenceImpl("dummy");
+      ref.setData(this);
+      rdisplay.addReference(ref);
+      new Syncher(); // wait for TRANSFORM_DONE
+      double[][] ranges = new double[n][];
+      for (int i=0; i<n; i++) {
+        ranges[i] = maps[i].getRange();
+      }
+      rdisplay.removeAllReferences();
+      rdisplay.clearMaps();
+      return ranges;
+    }
+  }
+
   /** compute the ranges of values of each RealType in 'this'
       that is mapped in the Display associated with type;
       this is the top-level definition of computeRanges - it works
@@ -616,6 +676,30 @@ public abstract class DataImpl extends ThingImpl
   public String longString(String pre)
          throws VisADException, RemoteException {
     throw new TypeException("DataImpl.longString");
+  }
+
+  public static void main(String args[])
+         throws VisADException, RemoteException {
+ 
+    RealType[] types3d = {RealType.Latitude, RealType.Longitude, RealType.Radius};
+    RealTupleType earth_location3d = new RealTupleType(types3d);
+    RealType vis_radiance = new RealType("vis_radiance", null, null);
+    RealType ir_radiance = new RealType("ir_radiance", null, null);
+    RealType[] types2 = {vis_radiance, ir_radiance};
+    RealTupleType radiance = new RealTupleType(types2);
+    FunctionType grid_tuple = new FunctionType(earth_location3d, radiance);
+
+    int size3d = 6;
+    float level = 2.5f;
+    FlatField grid3d = FlatField.makeField(grid_tuple, size3d, false);
+
+    RealType[] types = {RealType.Latitude, RealType.Longitude, RealType.Radius,
+                        vis_radiance, ir_radiance, RealType.Time};
+    double[][] ranges = grid3d.computeRanges(types);
+    for (int i=0; i<ranges.length; i++) {
+      System.out.println(types[i] + ": " + ranges[i][0] + " to " + ranges[i][1]);
+    }
+    System.exit(0);
   }
 
 }
