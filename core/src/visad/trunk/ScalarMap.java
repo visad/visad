@@ -641,9 +641,15 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       linear scaling (if applicable) the data_values array
       (RealType values) */
   public float[] scaleValues(double[] values) {
+/* WLH 23 June 99
     if (values == null || badRange()) return null;
+*/
+    if (values == null) return null;
     float[] new_values = new float[values.length];
-    if (isScaled) {
+    if (badRange()) {
+      for (int i=0; i<values.length; i++) new_values[i] = Float.NaN;
+    }
+    else if (isScaled) {
       for (int i=0; i<values.length; i++) {
         new_values[i] = (float) (offset + scale * values[i]);
       }
@@ -653,16 +659,23 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
         new_values[i] = (float) values[i];
       }
     }
-      return new_values;
+    return new_values;
   }
 
   /** return an array of display (DisplayRealType) values by
       linear scaling (if applicable) the data_values array
       (RealType values) */
   public float[] scaleValues(float[] values) {
+/* WLH 23 June 99
     if (values == null || badRange()) return null;
+*/
+    if (values == null) return null;
     float[] new_values = null;
-    if (isScaled) {
+    if (badRange()) {
+      new_values = new float[values.length];
+      for (int i=0; i<values.length; i++) new_values[i] = Float.NaN;
+    }
+    else if (isScaled) {
       new_values = new float[values.length];
       for (int i=0; i<values.length; i++) {
         new_values[i] = (float) (offset + scale * values[i]);
@@ -670,13 +683,8 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     }
     else {
       new_values = values;
-/* MEM_WLH
-      for (int i=0; i<values.length; i++) {
-        new_values[i] = values[i];
-      }
-*/
     }
-      return new_values;
+    return new_values;
   }
 
   /** return an array of data (RealType) values by inverse

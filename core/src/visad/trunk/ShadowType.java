@@ -997,6 +997,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
                 boolean[][] range_select, int index)
          throws VisADException, RemoteException {
 
+    if (spatial_values[0] == null) return null;
     int total_length = 0;
     Vector array_vector = new Vector();
     float x = spatial_values[0][0];
@@ -1934,6 +1935,8 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
                 byte[][] color_values, boolean[][] range_select)
          throws VisADException {
     if (flow_values[0] == null) return null;
+    if (spatial_values[0] == null) return null;
+
     VisADLineArray array = new VisADLineArray();
  
     int len = spatial_values[0].length;
@@ -2089,6 +2092,8 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
          throws VisADException { 
     if (text_values == null || text_values.length == 0 ||
         text_control == null) return null;
+
+    if (spatial_values[0] == null) return null;
 
     byte r = 0;
     byte g = 0;

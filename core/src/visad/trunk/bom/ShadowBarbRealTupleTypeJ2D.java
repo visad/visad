@@ -72,6 +72,7 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
                boolean[][] range_select, DataRenderer renderer, boolean direct)
          throws VisADException {
     if (flow_values[0] == null) return null;
+    if (spatial_values[0] == null) return null;
  
     int len = spatial_values[0].length;
     int flen = flow_values[0].length;
