@@ -1,3 +1,5 @@
+package visad.data.amanda;
+
 import java.rmi.RemoteException;
 
 import java.util.Date;

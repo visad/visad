@@ -33,6 +33,7 @@ import java.net.URL;
 
 import java.rmi.RemoteException;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -53,7 +54,9 @@ import visad.Tuple;
 import visad.VisADException;
 
 import visad.data.amanda.AmandaFile;
+import visad.data.amanda.EventWidget;
 import visad.data.amanda.F2000Util;
+import visad.data.amanda.TrackWidget;
 
 import visad.java3d.DisplayImplJ3D;
 
@@ -228,7 +231,7 @@ public class F2000App
     widgetPanel.add(letWidget);
     // widgetPanel.add(new VisADSlider(eventmap));
     widgetPanel.add(eventWidget);
-    widgetPanel.add(javax.swing.Box.createHorizontalGlue());
+    widgetPanel.add(Box.createHorizontalGlue());
 
     JPanel displayPanel = (JPanel )display.getComponent();
     Dimension dim = new Dimension(800, 800);
