@@ -155,7 +155,8 @@ public class Test61
     DataReferenceImpl ref2 = new DataReferenceImpl("ref2");
     ref2.setData(field2);
 
-    dpys[0].addReference(ref2, null);
+    ConstantMap[] cmaps = {new ConstantMap(0.0, Display.TextureEnable)};
+    dpys[0].addReference(ref2, cmaps);
 
     dpys[0].addReference(ref_grid3d, null);
   }
