@@ -242,8 +242,6 @@ public class TrackManipulationRendererJ3D extends BarbManipulationRendererJ3D {
     // construct RealTypes for track record components
     RealType lat = RealType.Latitude;
     RealType lon = RealType.Longitude;
-    RealType red = new RealType("red");
-    RealType green = new RealType("green");
     RealType track_degree = new RealType("track_degree",
                           CommonUnit.degree, null);
     RealType track_length = new RealType("track_length",
@@ -267,9 +265,6 @@ public class TrackManipulationRendererJ3D extends BarbManipulationRendererJ3D {
     trackh_map.setRange(0.0, 1.0); // do this for track rendering
     FlowControl flow_control = (FlowControl) trackh_map.getControl();
     flow_control.setFlowScale(0.15f); // this controls size of barbs
-    display.addMap(new ScalarMap(red, Display.Red));
-    display.addMap(new ScalarMap(green, Display.Green));
-    display.addMap(new ConstantMap(1.0, Display.Blue));
 
     double u = 0.0;
     double v = 0.0;
@@ -280,13 +275,11 @@ public class TrackManipulationRendererJ3D extends BarbManipulationRendererJ3D {
     double fa = Data.RADIANS_TO_DEGREES * Math.atan2(-fx, -fy);
     double fh = Math.sqrt(fx * fx + fy * fy);
 
-    // track record is a RealTuple (lon, lat,
-    // track_degree, track_length, red, green)
+    // track record is a RealTuple (lon, lat, track_degree, track_length)
     // set colors by track components, just for grins
     RealTuple tuple = new RealTuple(new Real[]
       {new Real(lon, 10.0 * u), new Real(lat, 10.0 * v - 40.0),
-       new Real(track_degree, fa), new Real(track_length, fh),
-       new Real(red, u), new Real(green, v)});
+       new Real(track_degree, fa), new Real(track_length, fh)});
 
     // construct reference for track record
     DataReferenceImpl ref = new DataReferenceImpl("ref");
