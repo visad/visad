@@ -491,6 +491,9 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
     // if transform has taken more than 500 milliseconds and there is
     // a flag requesting re-transform, throw a DisplayInterruptException
     DataDisplayLink link = renderer.getLink();
+
+// System.out.println("start doTransform " + (System.currentTimeMillis() - link.start_time));
+
     if (link != null) {
       boolean time_flag = false;
       if (link.time_flag) {
@@ -701,6 +704,8 @@ System.out.println("doTransform.curvedTexture = " + curvedTexture + " " +
     byte[] colorsZ = null;
 
     int[] volume_tuple_index = null;
+
+// System.out.println("test isTextureMap " + (System.currentTimeMillis() - link.start_time));
 
     if (isTextureMap) {
       Linear1DSet X = null;
@@ -1079,6 +1084,9 @@ for (int i=0; i < 4; i++) {
 */
     }
     else { // !isTextureMap && !isTexture3D
+
+// System.out.println("start domain " + (System.currentTimeMillis() - link.start_time));
+
       // get values from Function Domain
       // NOTE - may defer this until needed, if needed
       if (domain_dimension == 1) {
@@ -1110,6 +1118,9 @@ for (int i=0; i < 4; i++) {
                            domain_reference.getMappedDisplayScalar());
       }
 */
+
+// System.out.println("end domain " + (System.currentTimeMillis() - link.start_time));
+
       if (domain_reference != null && domain_reference.getMappedDisplayScalar()) {
         // apply coordinate transform to domain values
         RealTupleType ref = (RealTupleType) domain_reference.getType();
@@ -1126,6 +1137,9 @@ for (int i=0; i < 4; i++) {
         else {
           // WLH 23 June 99
           if (curvedTexture && domainOnlySpatial) {
+
+// System.out.println("start compute spline " + (System.currentTimeMillis() - link.start_time));
+
             int[] lengths = ((GriddedSet) domain_set).getLengths();
             data_width = lengths[0];
             data_height = lengths[1];
@@ -1137,6 +1151,11 @@ for (int i=0; i < 4; i++) {
 
             int nwidth = 2 + (data_width - 1) / curved_size;
             int nheight = 2 + (data_height - 1) / curved_size;
+/*
+System.out.println("data_width = " + data_width + " data_height = " + data_height +
+     " texture_width = " + texture_width + " texture_height = " + texture_height +
+     " nwidth = " + nwidth + " nheight = " + nheight);
+*/
             int nn = nwidth * nheight;
             int[] is = new int[nwidth];
             int[] js = new int[nheight];
@@ -1175,15 +1194,16 @@ for (int i=0; i < 4; i++) {
                 k++;
               }
             }
+// System.out.println("end compute spline " + (System.currentTimeMillis() - link.start_time));
           }
-          else {
+          else { // if !(curvedTexture && domainOnlySpatial)
             reference_values =
               CoordinateSystem.transformCoordinates(
                 ref, null, ref.getDefaultUnits(), null,
                 (RealTupleType) Domain.getType(), dataCoordinateSystem,
                 domain_units, null, domain_values);
           }
-        }
+        } // end if !(domain_dimension == 1)
 
         if (anyFlow) {
           renderer.setEarthSpatialData(Domain, domain_reference, ref,
@@ -1198,6 +1218,8 @@ for (int i=0; i < 4; i++) {
         // see FlatField.resample and FieldImpl.resample
         //
   
+// System.out.println("start map reference " + (System.currentTimeMillis() - link.start_time));
+
         // map reference_values to appropriate DisplayRealType-s
         ShadowRealType[] DomainReferenceComponents = getDomainReferenceComponents();
         // MEM
@@ -1207,6 +1229,9 @@ for (int i=0; i < 4; i++) {
         else {
           mapValues(display_values, reference_values, DomainReferenceComponents);
         }
+
+// System.out.println("end map reference " + (System.currentTimeMillis() - link.start_time));
+
 /*
 for (int i=0; i<DomainReferenceComponents.length; i++) {
   System.out.println("DomainReferenceComponents[" + i + "] = " +
@@ -1220,7 +1245,8 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
         reference_values = null;
         reference_doubles = null;
       }
-      else {
+      else { // if !(domain_reference != null &&
+             //      domain_reference.getMappedDisplayScalar())
         if (anyFlow) {
 /* WLH 23 May 99
           renderer.setEarthSpatialData(Domain, null, null,
@@ -1243,6 +1269,8 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
     } // end if (!isTextureMap)
 
     if (this instanceof ShadowFunctionType) {
+
+// System.out.println("start range " + (System.currentTimeMillis() - link.start_time));
 
       // get range_values for RealType and RealTupleType
       // components, in defaultUnits for RealType-s
@@ -1346,6 +1374,8 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
           } // end for (int i=0; i<refToComponent.length; i++)
         } // end (refToComponent != null)
 
+// System.out.println("end range " + (System.currentTimeMillis() - link.start_time));
+
         // setEarthSpatialData calls when no CoordinateSystem
         if (Range instanceof ShadowTupleType && anyFlow) {
           if (Range instanceof ShadowRealTupleType) {
@@ -1443,6 +1473,8 @@ System.out.println("Range is ShadowTupleType, text_values[0] = " +
       } // end if (anyText)
     } // end if (this instanceof ShadowFunctionType)
 
+// System.out.println("start assembleSelect " + (System.currentTimeMillis() - link.start_time));
+
     //
     // NOTE -
     // currently assuming SelectRange changes require Transform
@@ -1469,6 +1501,8 @@ if (range_select[0] != null) {
       return false;
     }
 
+// System.out.println("end assembleSelect " + (System.currentTimeMillis() - link.start_time));
+
     // System.out.println("assembleSelect");
  /*
 System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
@@ -1491,6 +1525,7 @@ System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
       boolean pointMode = mode.getPointMode();
       byte missing_transparent = mode.getMissingTransparent() ? 0 : (byte) -1;
 
+// System.out.println("start assembleColor " + (System.currentTimeMillis() - link.start_time));
 
       // MEM_WLH - this moved
       boolean[] single_missing = {false, false, false, false};
@@ -1524,6 +1559,7 @@ if (color_values != null) {
         return false;
       }
 
+// System.out.println("end assembleColor " + (System.currentTimeMillis() - link.start_time));
 
       float[][] flow1_values = new float[3][];
       float[][] flow2_values = new float[3][];
@@ -1558,6 +1594,8 @@ if (range_select[0] != null) {
       int[] spatialDimensions = new int[2];
       // flags for swapping rows and columns in contour labels
       boolean[] swap = {false, false, false};
+
+// System.out.println("start assembleSpatial " + (System.currentTimeMillis() - link.start_time));
 
       // WLH 29 April 99
       boolean[][] spatial_range_select = new boolean[1][];
@@ -1617,6 +1655,8 @@ System.out.println("  isTextureMap = " + isTextureMap);
         return false;
       }
 
+// System.out.println("end assembleSpatial " + (System.currentTimeMillis() - link.start_time));
+
       int spatialDomainDimension = spatialDimensions[0];
       int spatialManifoldDimension = spatialDimensions[1];
 
@@ -1624,35 +1664,14 @@ System.out.println("  isTextureMap = " + isTextureMap);
  
       int spatial_length = Math.min(domain_length, spatial_values[0].length);
 
-/* MEM_WLH - move this up
-      boolean[] single_missing = {false, false, false, false};
-      // assemble an array of RGBA values
-      // MEM
-      byte[][] color_values =
-        assembleColor(display_values, valueArrayLength, valueToScalar,
-                      display, default_values, range_select,
-                      single_missing);
-
-if (color_values != null) {
-  System.out.println("color_values.length = " + color_values.length +
-                     " color_values[0].length = " + color_values[0].length);
-  System.out.println(color_values[0][0] + " " + color_values[1][0] +
-                     " " + color_values[2][0]);
-}
-
-      if (range_select[0] != null && range_select[0].length == 1 &&
-          !range_select[0][0]) {
-        // single missing value in range_select[0], so render nothing
-        return false;
-      }
-*/
-
       int color_length = Math.min(domain_length, color_values[0].length);
       int alpha_length = color_values[3].length;
 /*
       System.out.println("assembleColor, color_length = " + color_length +
                          "  " + color_values.length);
 */
+
+// System.out.println("start missing color " + (System.currentTimeMillis() - link.start_time));
 
       float constant_alpha = Float.NaN;
       float[] constant_color = null;
@@ -1750,6 +1769,8 @@ System.out.println("replicate alpha = " + v + " " + constant_alpha +
           color_values = c;
         }
       } // end if (color_length == 1)
+
+// System.out.println("end missing color " + (System.currentTimeMillis() - link.start_time));
 
       if (range_select[0] != null && range_select[0].length == 1 &&
           !range_select[0][0]) {
@@ -2038,6 +2059,7 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
             return false;
           } // end if (isTextureMap)
           else if (curvedTexture) {
+// System.out.println("start texture " + (System.currentTimeMillis() - link.start_time));
             if (range_select[0] != null) {
               spatial_set.cram_missing(range_select[0]);
               spatial_all_select = false;
@@ -2172,6 +2194,7 @@ if (size < 0.2) {
                                       constant_alpha, constant_color,
                                       texture_width, texture_height);
             // System.out.println("curvedTexture done");
+// System.out.println("end texture " + (System.currentTimeMillis() - link.start_time));
             return false;
           } // end if (curvedTexture)
           else if (isTexture3D) {

@@ -72,6 +72,14 @@ public abstract class AVControlJ3D extends Control implements AVControl {
                              in, animation_set.getCoordinateSystem(),
                              animation_set.getSetUnits(),
                              null /* errors */, fvalues);
+/*
+System.out.println("animation_set = " + animation_set);
+System.out.println("transformCoordinates\n" + out + "\n" +
+set.getCoordinateSystem() + "\n" + set.getSetUnits()[0] + "\n" +
+in + "\n" + animation_set.getCoordinateSystem() + "\n" +
+animation_set.getSetUnits()[0] + "\n" + fvalues[0][0] + "\n" +
+values[0][0]);
+*/
       }
       else {
         // use RealType for value Unit and CoordinateSystem 
@@ -91,6 +99,8 @@ public abstract class AVControlJ3D extends Control implements AVControl {
       else {
         indices = set.doubleToIndex(values);
       }
+// System.out.println("indices = " + indices[0] + " value = " + value);
+// System.out.println("numChildren = " + ss.swit.numChildren());
       if (0 <= indices[0] && indices[0] < ss.swit.numChildren()) {
         ss.swit.setWhichChild(indices[0]);
         // DisplayImpl.printStack("child " + indices[0]);
