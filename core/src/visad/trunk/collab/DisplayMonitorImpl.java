@@ -430,6 +430,19 @@ public class DisplayMonitorImpl
         notifyListeners(mapEvt);
       }
       break;
+    case DisplayEvent.MAP_REMOVED:
+      map = (ScalarMap )((DisplayMapEvent )evt).getMap().clone();
+      try {
+        mapEvt = new MapMonitorEvent(MonitorEvent.MAP_REMOVED,
+                                     evt.getRemoteId(), map);
+      } catch (VisADException ve) {
+        ve.printStackTrace();
+        mapEvt = null;
+      }
+      if (mapEvt != null) {
+        notifyListeners(mapEvt);
+      }
+      break;
     case DisplayEvent.MAPS_CLEARED:
       boolean sendClear;
       try {

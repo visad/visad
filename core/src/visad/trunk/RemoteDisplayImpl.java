@@ -277,6 +277,16 @@ public class RemoteDisplayImpl extends RemoteActionImpl
     ((DisplayImpl) AdaptedAction).addMap(map);
   }
 
+  /** remove a ScalarMap from this Display */
+  public void removeMap(ScalarMap map)
+         throws VisADException, RemoteException {
+    if (AdaptedAction == null) {
+      throw new RemoteVisADException("RemoteDisplayImpl.removeMap: " +
+                                     "AdaptedAction is null");
+    }
+    ((DisplayImpl) AdaptedAction).removeMap(map);
+  }
+
   /** clear set of ScalarMap-s associated with this display */
   public void clearMaps() throws VisADException, RemoteException {
     if (AdaptedAction == null) {

@@ -215,6 +215,12 @@ public class DisplayEvent extends VisADEvent {
    */
   public final static int WAIT_OFF = 23;
 
+  /**
+   * The "map removed" event.  This event occurs when
+   * a ScalarMap is removed from the display.
+   */
+  public final static int MAP_REMOVED = 24;
+
   private final static String[] ids = {
       "?", "MOUSE_PRESSED", "TRANSFORM_DONE", "FRAME_DONE",
       "MOUSE_PRESSED_CENTER", "MOUSE_PRESSED_LEFT",  "MOUSE_PRESSED_RIGHT",
@@ -222,7 +228,7 @@ public class DisplayEvent extends VisADEvent {
       "MOUSE_RELEASED_RIGHT", "MAP_ADDED", "MAPS_CLEARED", "REFERENCE_ADDED",
       "REFERENCE_REMOVED", "DESTROYED", "KEY_PRESSED", "KEY_RELEASED",
       "MOUSE_DRAGGED", "MOUSE_ENTERED", "MOUSE_EXITED", "MOUSE_MOVED",
-      "WAIT_ON", "WAIT_OFF"
+      "WAIT_ON", "WAIT_OFF", "MAP_REMOVED"
     };
 
   /** Dummy AWT component. */
@@ -396,6 +402,7 @@ public class DisplayEvent extends VisADEvent {
    *          <LI>DisplayEvent.MOUSE_MOVED
    *          <LI>DisplayEvent.WAIT_ON
    *          <LI>DisplayEvent.WAIT_OFF
+   *          <LI>DisplayEvent.MAP_REMOVED
    *          </UL>
    */
   public int getId() {

@@ -46,6 +46,11 @@ public abstract class MonitorEvent
    * <CODE>ScalarMap</CODE>s are cleared from a <CODE>Display</CODE>.
    */
   public static final int MAPS_CLEARED = 3;
+  /**
+   * This event occurs whenever a <CODE>ConstantMap</CODE> or
+   * <CODE>ScalarMap</CODE> is removed from a <CODE>Display</CODE>.
+   */
+  public static final int MAP_REMOVED = 4;
 
   /**
    * This event occurs whenever a <CODE>DataReference</CODE> is added to
@@ -140,6 +145,7 @@ public abstract class MonitorEvent
   {
     switch (type) {
     case MAP_ADDED: return "MAP_ADDED";
+    case MAP_REMOVED: return "MAP_REMOVED";
     case MAP_CHANGED: return "MAP_CHANGED";
     case MAPS_CLEARED: return "MAPS_CLEARED";
     case REFERENCE_ADDED: return "REFERENCE_ADDED";

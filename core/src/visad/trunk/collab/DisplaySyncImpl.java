@@ -294,9 +294,11 @@ public class DisplaySyncImpl
 
       // if we haven't already added this map...
       if (findMap(rmtMap) == null) {
+/* WLH 26 Dec 2002
         if (!myDisplay.getRendererVector().isEmpty()) {
           System.err.println("Late addMap: " + rmtMap);
         } else {
+*/
           try {
             myDisplay.addMap(rmtMap, evt.getOriginator());
           } catch (VisADException ve) {
@@ -304,7 +306,24 @@ public class DisplaySyncImpl
             throw new RemoteVisADException("Map " + rmtMap + " not added: " +
                                            ve);
           }
+/*
         }
+*/
+      }
+      break;
+    case MonitorEvent.MAP_REMOVED:
+
+      rmtMap = ((MapMonitorEvent )evt).getMap();
+
+      // if we have already added this map...
+      if (findMap(rmtMap) != null) {
+          try {
+            myDisplay.removeMap(rmtMap, evt.getOriginator());
+          } catch (VisADException ve) {
+            ve.printStackTrace();
+            throw new RemoteVisADException("Map " + rmtMap + " not removed: " +
+                                           ve);
+          }
       }
       break;
     case MonitorEvent.MAP_CHANGED:

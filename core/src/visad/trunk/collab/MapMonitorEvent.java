@@ -42,6 +42,7 @@ public class MapMonitorEvent
    * <CODE>ScalarMap</CODE>.
    *
    * @param type The event type (either <CODE>MonitorEvent.MAP_ADDED</CODE>,
+   * 			<CODE>MonitorEvent.MAP_REMOVED</CODE>, or
    * 			<CODE>MonitorEvent.MAP_CHANGED</CODE>, or
    * 			<CODE>MonitorEvent.MAPS_CLEARED</CODE>.)
    * @param map the <CODE>ScalarMap</CODE> (or <CODE>ConstantMap</CODE>).
@@ -59,6 +60,7 @@ public class MapMonitorEvent
    * <CODE>ScalarMap</CODE>.
    *
    * @param type The event type (either <CODE>MonitorEvent.MAP_ADDED</CODE>,
+   * 			<CODE>MonitorEvent.MAP_REMOVED</CODE>, or
    * 			<CODE>MonitorEvent.MAP_CHANGED</CODE>, or
    * 			<CODE>MonitorEvent.MAPS_CLEARED</CODE>.)
    * @param originator The ID of the connection from which this event came,
@@ -71,7 +73,8 @@ public class MapMonitorEvent
     throws VisADException
   {
     super(type, originator);
-    if (type != MAP_ADDED && type != MAP_CHANGED && type != MAPS_CLEARED) {
+    if (type != MAP_ADDED && type != MAP_CHANGED && type != MAPS_CLEARED &&
+        type != MAP_REMOVED) {
       throw new VisADException("Bad type " + type);
     }
     if (map == null && type != MAPS_CLEARED) {
@@ -96,6 +99,9 @@ public class MapMonitorEvent
       switch (type) {
       case MonitorEvent.MAP_ADDED:
         key = "ADD " + key;
+        break;
+      case MonitorEvent.MAP_REMOVED:
+        key = "RMV " + key;
         break;
       case MonitorEvent.MAP_CHANGED:
         key = "CHG " + key;

@@ -637,7 +637,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     false, // MOUSE_EXITED
     false, // MOUSE_MOVED
     false, // WAIT_ON
-    false  // WAIT_OFF
+    false, // WAIT_OFF
+    true,  // MAP_REMOVED
   };
 
   /**
@@ -668,6 +669,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    *          <LI>DisplayEvent.MOUSE_MOVED
    *          <LI>DisplayEvent.WAIT_ON
    *          <LI>DisplayEvent.WAIT_OFF
+   *          <LI>DisplayEvent.MAP_REMOVED
    *          </UL>
    */
   public void enableEvent(int id) {
@@ -707,6 +709,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    *          <LI>DisplayEvent.MOUSE_MOVED
    *          <LI>DisplayEvent.WAIT_ON
    *          <LI>DisplayEvent.WAIT_OFF
+   *          <LI>DisplayEvent.MAP_REMOVED
    *          </UL>
    */
   public void disableEvent(int id) {
@@ -1756,6 +1759,86 @@ if (initialize) {
       // make sure we monitor all changes to this ScalarMap
       map.addScalarMapListener(displayMonitor);
     }
+  }
+
+// must add to collab/DisplaySyncImpl.java
+//   also remove restriction on addMap()
+// must add to Display.java and RemoteDisplayImpl.java
+
+  public void removeMap(ScalarMap map)
+         throws VisADException, RemoteException {
+    removeMap(map, VisADEvent.LOCAL_SOURCE);
+  }
+
+  public void removeMap(ScalarMap map, int remoteId)
+         throws VisADException, RemoteException {
+    if (displayRenderer == null) return;
+    synchronized (mapslock) {
+      // can have multiple equals() maps to Shape, so test for ==
+      int index = MapVector.indexOf(map);
+      while (index >=0 && map != MapVector.elementAt(index)) {
+        index = MapVector.indexOf(map, index+1);
+      }
+      if (index < 0) {
+        throw new BadMappingException("Display.removeMap: " + map + " not " +
+                                      "in Display " + getName());
+      }
+      MapVector.removeElementAt(index);
+      ScalarType real = map.getScalar();
+      DisplayRealType dreal = map.getDisplayScalar();
+      Enumeration maps = MapVector.elements();
+      boolean any = false;
+      while(maps.hasMoreElements()) {
+        ScalarMap map2 = (ScalarMap) maps.nextElement();
+        if (real.equals(map2.getScalar())) any = true;
+      }
+      if (!any) {
+        // if real is not used by any other ScalarMap, remove it
+        // and adjust ScalarIndex of all other ScalarMaps
+        RealTypeVector.removeElement(real);
+
+        maps = MapVector.elements();
+        while(maps.hasMoreElements()) {
+          ScalarMap map2 = (ScalarMap) maps.nextElement();
+          ScalarType real2 = map2.getScalar();
+          index = RealTypeVector.indexOf(real2);
+          if (index < 0) {
+            throw new BadMappingException("Display.removeMap: impossible 1");
+          }
+          map.setScalarIndex(index);
+        }
+      } // end if (!any)
+
+      // trigger events
+      if (map instanceof ConstantMap) {
+        if (!RendererVector.isEmpty()) {
+          reDisplayAll();
+        }
+      }
+      else { // !(map instanceof ConstantMap)
+        if (!RendererVector.isEmpty()) {
+          ScalarType st = map.getScalar();
+          if (st != null) { // not necessary for !(map instanceof ConstantMap)
+            Vector temp = (Vector) RendererVector.clone();
+            Iterator renderers = temp.iterator();
+            while (renderers.hasNext()) {
+              DataRenderer renderer = (DataRenderer) renderers.next();
+              DataDisplayLink[] links = renderer.getLinks();
+              for (int i=0; i<links.length; i++) {
+                if (MathType.findScalarType(links[i].getType(), st)) {
+                  DataReference ref = links[i].getDataReference();
+                  if (ref != null) ref.incTick();
+                }
+              }
+            }
+          }
+        }
+        needWidgetRefresh = true;
+      } // end !(map instanceof ConstantMap)
+      notifyListeners(new DisplayMapEvent(this, DisplayEvent.MAP_REMOVED, map,
+                                          remoteId));
+      map.nullDisplay(); // ??
+    } // end synchronized (mapslock)
   }
 
   void addDisplayScalar(ScalarMap map) {

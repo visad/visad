@@ -66,7 +66,8 @@ public class HSVDisplay extends Object implements ActionListener {
   ContourControl controlscontour = null;
   ContourControl controlvcontour = null;
 
-  int state = 0; // 0 - clear, 1 - maps, 2 - maps + color maps
+  int state = 0; // number of ScalarMaps added, 0 through 9
+  ScalarMap[] maps = new ScalarMap[9];
 
   public static void main(String args[])
          throws IOException, VisADException, RemoteException {
@@ -135,8 +136,9 @@ public class HSVDisplay extends Object implements ActionListener {
     // construct a Display
     display1 = new DisplayImplJ3D("display1");
 
-    makeMaps();
-    makeColorMaps();
+    // makeMaps();
+    // makeColorMaps();
+    for (int i=0; i<9; i++) addMap();
 
     display1.getGraphicsModeControl().setScaleEnable(true);
 
@@ -176,15 +178,15 @@ public class HSVDisplay extends Object implements ActionListener {
     clear.setActionCommand("clear");
     panel2.add(clear);
 
-    JButton maps = new JButton("Maps");
-    maps.addActionListener(this);
-    maps.setActionCommand("maps");
-    panel2.add(maps);
+    JButton add = new JButton("Add");
+    add.addActionListener(this);
+    add.setActionCommand("add");
+    panel2.add(add);
 
-    JButton color = new JButton("Color");
-    color.addActionListener(this);
-    color.setActionCommand("color");
-    panel2.add(color);
+    JButton remove = new JButton("Remove");
+    remove.addActionListener(this);
+    remove.setActionCommand("remove");
+    panel2.add(remove);
 
     panel.add(panel2);
 
@@ -218,7 +220,14 @@ public class HSVDisplay extends Object implements ActionListener {
         controlscontour = null;
         controlvcontour = null;
         setControls();
+        for (int i=0; i<9; i++) maps[i] = null;
         state = 0;
+      }
+      else if (cmd.equals("add")) {
+        addMap();
+      }
+      else if (cmd.equals("remove")) {
+        removeMap();
       }
       else if (cmd.equals("maps")) {
         makeMaps();
@@ -234,6 +243,82 @@ public class HSVDisplay extends Object implements ActionListener {
     catch (RemoteException ex) {
       System.out.println("call clearMaps ex = " + ex);
     }
+  }
+
+  private void addMap()
+          throws VisADException, RemoteException {
+    switch (state) {
+      case 0:
+        maps[0] = new ScalarMap(red, Display.XAxis);
+        display1.addMap(maps[0]);
+        break;
+      case 1:
+        maps[1] = new ScalarMap(green, Display.YAxis);
+        display1.addMap(maps[1]);
+        break;
+      case 2:
+        maps[2] = new ScalarMap(blue, Display.ZAxis);
+        display1.addMap(maps[2]);
+        break;
+      case 3:
+        maps[3] = new ScalarMap(hue, Display.IsoContour);
+        display1.addMap(maps[3]);
+        controlhcontour = (ContourControl) maps[3].getControl();
+        if (cell_hue != null) cell_hue.setControl(controlhcontour);
+        break;
+      case 4:
+        maps[4] = new ScalarMap(saturation, Display.IsoContour);
+        display1.addMap(maps[4]);
+        controlscontour = (ContourControl) maps[4].getControl();
+        if (cell_saturation != null) cell_saturation.setControl(controlscontour);
+        break;
+      case 5:
+        maps[5] = new ScalarMap(value, Display.IsoContour);
+        display1.addMap(maps[5]);
+        controlvcontour = (ContourControl) maps[5].getControl();
+        if (cell_value != null) cell_value.setControl(controlvcontour);
+        break;
+      case 6:
+        maps[6] = new ScalarMap(hue, Display.Hue);
+        display1.addMap(maps[6]);
+        break;
+      case 7:
+        maps[7] = new ScalarMap(saturation, Display.Saturation);
+        display1.addMap(maps[7]);
+        break;
+      case 8:
+        maps[8] = new ScalarMap(value, Display.Value);
+        display1.addMap(maps[8]);
+        break;
+      case 9:
+        return;
+    }
+    state++;
+  }
+
+  private void removeMap() 
+          throws VisADException, RemoteException {
+    switch (state) {
+      case 0:
+        return;
+      case 4:
+        controlhcontour = null;
+        if (cell_hue != null) cell_hue.setControl(controlhcontour);
+        break;
+      case 5:
+        controlscontour = null;
+        if (cell_saturation != null) cell_saturation.setControl(controlscontour);
+        break;
+      case 6:
+        controlvcontour = null;
+        if (cell_value != null) cell_value.setControl(controlvcontour);
+        break;
+      default:
+        break;
+    }
+    state--;
+    display1.removeMap(maps[state]);
+    maps[state] = null;
   }
 
   private void makeMaps()

@@ -329,9 +329,12 @@ public interface Display extends Action {
                             ConstantMap[] constant_maps)
          throws VisADException, RemoteException;
 
-  /** link map to this Display; this method may not be invoked
-      after any links to DataReferences have been made */
+  /** link map to this Display */
   void addMap(ScalarMap map)
+         throws VisADException, RemoteException;
+
+  /** remove map from this Display */
+  void removeMap(ScalarMap map)
          throws VisADException, RemoteException;
 
   /** clear set of ScalarMap-s associated with this display */
