@@ -283,23 +283,24 @@ public class AREACoordinateSystem
       throw new CoordinateSystemException("AREA O & A data not availble");
     }
 
-    double[][] val = Set.floatToDouble(tuples);
+    //double[][] val = Set.floatToDouble(tuples);
+    float[][] val = tuples;
 
     int[] nums = new int[2];
-    double[] mins = new double[2];
-    double[] maxs = new double[2];
-    double[][] newval = makeSpline(val, mins, maxs, nums);
+    float[] mins = new float[2];
+    float[] maxs = new float[2];
+    float[][] newval = makeSpline(val, mins, maxs, nums);
     if (newval != null) {
 // System.out.println("new 3");
-      double[][] newtrans = anav.toLatLon(newval);
+      float[][] newtrans = anav.toLatLon(newval);
 
       int len = tuples[0].length;
-      double[][] misstrans = new double[2][len];
+      float[][] misstrans = new float[2][len];
       int[][] miss_to_trans = new int[1][len];
       val = applySpline(val, mins, maxs, nums, newtrans,
                         misstrans, miss_to_trans);
       if (miss_to_trans[0] != null) {
-        double[][] newmiss = anav.toLatLon(misstrans);
+        float[][] newmiss = anav.toLatLon(misstrans);
         for (int i=0; i<miss_to_trans[0].length; i++) {
           val[0][miss_to_trans[0][i]] = newmiss[0][i];
           val[1][miss_to_trans[0][i]] = newmiss[1][i];
@@ -309,7 +310,8 @@ public class AREACoordinateSystem
     else {
       val = anav.toLatLon(val);
     }
-    return Set.doubleToFloat(val);
+    //return Set.doubleToFloat(val);
+    return val;
   }
 
   /** convert from latitude,longitude to image element,line
@@ -327,23 +329,24 @@ public class AREACoordinateSystem
       throw new CoordinateSystemException("AREA O & A data not availble");
     }
 
-    double[][] val = Set.floatToDouble(tuples);
+    //double[][] val = Set.floatToDouble(tuples);
+    float[][] val = tuples;
 
     int[] nums = new int[2];
-    double[] mins = new double[2];
-    double[] maxs = new double[2];
-    double[][] newval = makeSpline(val, mins, maxs, nums);
+    float[] mins = new float[2];
+    float[] maxs = new float[2];
+    float[][] newval = makeSpline(val, mins, maxs, nums);
     if (newval != null) {
 // System.out.println("new 4");
-      double[][] newtrans = anav.toLinEle(newval);
+      float[][] newtrans = anav.toLinEle(newval);
 
       int len = tuples[0].length;
-      double[][] misstrans = new double[2][len];
+      float[][] misstrans = new float[2][len];
       int[][] miss_to_trans = new int[1][len];
       val = applySpline(val, mins, maxs, nums, newtrans,
                         misstrans, miss_to_trans);
       if (miss_to_trans[0] != null) {
-        double[][] newmiss = anav.toLinEle(misstrans);
+        float[][] newmiss = anav.toLinEle(misstrans);
         for (int i=0; i<miss_to_trans[0].length; i++) {
           val[0][miss_to_trans[0][i]] = newmiss[0][i];
           val[1][miss_to_trans[0][i]] = newmiss[1][i];
@@ -353,7 +356,8 @@ public class AREACoordinateSystem
     else {
       val = anav.toLinEle(val);
     }
-    return Set.doubleToFloat(val);
+    //return Set.doubleToFloat(val);
+    return val;
 
   }
 
@@ -530,12 +534,185 @@ public class AREACoordinateSystem
     return trans;
   }
 
+  // return reduced array for approximatin by splines
+  private float[][] makeSpline(float[][] val, float[] mins,
+                                float[] maxs, int[] nums)
+         throws VisADException {
+    int len = val[0].length;
+    if (len < 1000) return null;
+    float reduction = 10.0f;
+    if (len < 10000) reduction = 2.0f;
+    else if (len < 100000) reduction = 5.0f;
+
+    // compute ranges
+    mins[0] = Float.MAX_VALUE;
+    maxs[0] = -Float.MAX_VALUE;
+    mins[1] = Float.MAX_VALUE;
+    maxs[1] = -Float.MAX_VALUE;
+    for (int i=0; i<len; i++) {
+      if (val[0][i] == val[0][i]) {
+        if (val[0][i] < mins[0]) mins[0] = val[0][i];
+        if (val[0][i] > maxs[0]) maxs[0] = val[0][i];
+      }
+      if (val[1][i] == val[1][i]) {
+        if (val[1][i] < mins[1]) mins[1] = val[1][i];
+        if (val[1][i] > maxs[1]) maxs[1] = val[1][i];
+      }
+    }
+
+    // compute typical spacing btween points
+    float[] norm = new float[len-1];
+    int k = 0;
+    // WLH 2 March 2000
+    // for (int i=0; k<3 && i<len; i++) {
+    for (int i=0; i<len-1; i++) {
+      float n = (float) Math.sqrt(
+        (val[0][i] - val[0][i+1]) * (val[0][i] - val[0][i+1]) +
+        (val[1][i] - val[1][i+1]) * (val[1][i] - val[1][i+1]) );
+      if (n == n) {
+        norm[k++] = n;
+      }
+    }
+    // WLH 2 March 2000
+    if (k < 3) return null;
+    float[] nnorm = new float[k];
+    System.arraycopy(norm, 0, nnorm, 0, k);
+
+    QuickSort.sort(nnorm);
+    float spacing = reduction * nnorm[k / 4];
+
+    // compute size of spline array
+    nums[0] = (int) ((maxs[0] - mins[0]) / spacing) + 1;
+    nums[1] = (int) ((maxs[1] - mins[1]) / spacing) + 1;
+
+    // test if it will be too coarse
+    if (nums[0] < 20 || nums[1] < 20) return null;
+    // test if its worth it
+    if ((nums[0] * nums[1]) > (len / 4)) return null;
+
+    float spacing0 = (maxs[0] - mins[0]) / (nums[0] - 1);
+    float spacing1 = (maxs[1] - mins[1]) / (nums[1] - 1);
+
+    float[][] newval = new float[2][nums[0] * nums[1]];
+    k = 0;
+    for (int i=0; i<nums[0]; i++) {
+      for (int j=0; j<nums[1]; j++) {
+        newval[0][k] = mins[0] + i * spacing0;
+        newval[1][k] = mins[1] + j * spacing1;
+        k++;
+      }
+    }
+    return newval;
+  }
+
+  // use splines to approximate transform
+  private float[][] applySpline(float[][] val, float[] mins,
+                     float[] maxs, int[] nums, float[][] newtrans,
+                     float[][] misstrans, int[][] miss_to_trans)
+         throws VisADException {
+    int n0 = nums[0];
+    int n1 = nums[1];
+    float spacing0 = (maxs[0] - mins[0]) / (n0 - 1);
+    float spacing1 = (maxs[1] - mins[1]) / (n1 - 1);
+    int len = val[0].length;
+    float[][] trans = new float[2][len];
+
+    boolean[] lon_flags = new boolean[n0 * n1];
+    float[] min_trans = {Float.MAX_VALUE, Float.MAX_VALUE};
+    float[] max_trans = {-Float.MAX_VALUE, -Float.MAX_VALUE};
+    for (int i=0; i<n0*n1; i++) {
+      if (newtrans[0][i] == newtrans[0][i]) {
+        if (newtrans[0][i] < min_trans[0]) min_trans[0] = newtrans[0][i];
+        if (newtrans[0][i] > max_trans[0]) max_trans[0] = newtrans[0][i];
+      }
+      if (newtrans[1][i] == newtrans[1][i]) {
+        if (newtrans[1][i] < min_trans[1]) min_trans[1] = newtrans[1][i];
+        if (newtrans[1][i] > max_trans[1]) max_trans[1] = newtrans[1][i];
+      }
+      lon_flags[i] = false;
+    }
+    float minn0n1 = Math.min(n0, n1);
+    float mean0 = (max_trans[0] - min_trans[0]) / minn0n1;
+    float mean1 = (max_trans[1] - min_trans[1]) / minn0n1;
+
+    for (int i0=0; i0<n0-1; i0++) {
+      for (int i1=0; i1<n1-1; i1++) {
+        int ii = i1 + i0 * n1;
+        if (Math.abs(newtrans[0][ii + n1] - newtrans[0][ii]) > 3.0 * mean0 ||
+            Math.abs(newtrans[0][ii + 1] - newtrans[0][ii]) > 3.0 * mean0 ||
+            Math.abs(newtrans[0][ii + n1 + 1] - newtrans[0][ii + 1]) > 3.0 * mean0 ||
+            Math.abs(newtrans[0][ii + n1 + 1] - newtrans[0][ii + n1]) > 3.0 * mean0 ||
+            Math.abs(newtrans[1][ii + n1] - newtrans[1][ii]) > 3.0 * mean1 ||
+            Math.abs(newtrans[1][ii + 1] - newtrans[1][ii]) > 3.0 * mean1 ||
+            Math.abs(newtrans[1][ii + n1 + 1] - newtrans[1][ii + 1]) > 3.0 * mean1 ||
+            Math.abs(newtrans[1][ii + n1 + 1] - newtrans[1][ii + n1]) > 3.0 * mean1) {
+          lon_flags[ii] = true;
+        }
+      }
+    }
+
+    int nmiss = 0;
+
+    for (int i=0; i<len; i++) {
+      float a0 = (val[0][i] - mins[0]) / spacing0;
+      int i0 = (int) a0;
+      if (i0 < 0) i0 = 0;
+      if (i0 > (n0 - 2)) i0 = n0 - 2;
+      a0 -= i0;
+      float a1 = (val[1][i] - mins[1]) / spacing1;
+      int i1 = (int) a1;
+      if (i1 < 0) i1 = 0;
+      if (i1 > (n1 - 2)) i1 = n1 - 2;
+      a1 -= i1;
+      int ii = i1 + i0 * n1;
+      if (lon_flags[ii]) {
+        misstrans[0][nmiss] = val[0][i];
+        misstrans[1][nmiss] = val[1][i];
+        miss_to_trans[0][nmiss] = i;
+        nmiss++;
+      }
+      else {
+        trans[0][i] =
+          (1.0f - a0) * ((1.0f - a1) * newtrans[0][ii] + a1 * newtrans[0][ii+1]) +
+          a0 * ((1.0f - a1) * newtrans[0][ii+n1] + a1 * newtrans[0][ii+n1+1]);
+        trans[1][i] =
+          (1.0f - a0) * ((1.0f - a1) * newtrans[1][ii] + a1 * newtrans[1][ii+1]) +
+          a0 * ((1.0f - a1) * newtrans[1][ii+n1] + a1 * newtrans[1][ii+n1+1]);
+
+        if (trans[0][i] != trans[0][i] || trans[1][i] != trans[1][i]) {
+          misstrans[0][nmiss] = val[0][i];
+          misstrans[1][nmiss] = val[1][i];
+          miss_to_trans[0][nmiss] = i;
+          nmiss++;
+        }
+      }
+    }
+// System.out.println("len = " + len + " nmiss = " + nmiss);
+    if (nmiss == 0) {
+      miss_to_trans[0] = null;
+      misstrans[0] = null;
+      misstrans[1] = null;
+    }
+    else {
+      float[] xmisstrans = new float[nmiss];
+      System.arraycopy(misstrans[0], 0, xmisstrans, 0, nmiss);
+      misstrans[0] = xmisstrans;
+      xmisstrans = new float[nmiss];
+      System.arraycopy(misstrans[1], 0, xmisstrans, 0, nmiss);
+      misstrans[1] = xmisstrans;
+      int[] xmiss_to_trans = new int[nmiss];
+      System.arraycopy(miss_to_trans[0], 0, xmiss_to_trans, 0, nmiss);
+      miss_to_trans[0] = xmiss_to_trans;
+    }
+    return trans;
+  }
+
   /**
    * Get the bounds for this image
    */
   public Rectangle2D getDefaultMapArea() 
   { 
-      return new Rectangle2D.Double(0.0, 0.0, elements, lines);
+      return new Rectangle2D.Float(0, 0, elements, lines);
   }
 
   /**
