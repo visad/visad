@@ -670,6 +670,8 @@ compile: clean
 	$(RMIC) $(RMIC_FILES)
 	cd $(RMIC_COLLAB_DIR)
 	$(RMIC) $(RMIC_COLLAB_FILES)
+	cd $(RMIC_CLUSTER_DIR)
+	$(RMIC) $(RMIC_CLUSTER_FILES)
 
 debug:
 	@nmake /nologo -f Makefile.WinNT compile \
