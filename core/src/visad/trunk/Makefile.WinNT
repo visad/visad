@@ -26,6 +26,7 @@
 default:
 	@echo Type one of the following:
 	@echo nmake -f Makefile.WinNT compile (compile .java files)
+        @echo nmake -f Makefile.WinNT debug (compile .java files for debugging)
 	@echo nmake -f Makefile.WinNT jar (make visad_src-2.0.jar)
 	@echo nmake -f Makefile.WinNT save (save files to a backup directory)
 	@echo nmake -f Makefile.WinNT classes (make jar files containing classes)
@@ -309,6 +310,10 @@ visad.RemoteDataImpl \
 visad.RemoteFunctionImpl \
 visad.RemoteFieldImpl \
 visad.RemoteServerImpl
+
+debug:
+	nmake -f Makefile.WinNT compile \
+	"JFLAGS = -J-mx32m -g"
 
 compile: clean
 	$(JC) $(JFLAGS) *.java
