@@ -226,6 +226,14 @@ public class DisplayImplJ2D extends DisplayImpl {
     scratch = true;
   }
 
+  public void clearMaps() throws VisADException, RemoteException {
+    super.clearMaps();
+    DisplayRendererJ2D displayRenderer =
+      (DisplayRendererJ2D) getDisplayRenderer();
+    VisADCanvasJ2D canvas = displayRenderer.getCanvas();
+    if (canvas != null) canvas.scratchImages();
+  }
+
   public void doAction() throws VisADException, RemoteException {
     scratch = false;
     super.doAction();

@@ -719,6 +719,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
         }
       }
       displayRenderer.clearAxisOrdinals();
+      displayRenderer.setAnimationString(new String[] {null, null});
     }
   }
 

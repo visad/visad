@@ -244,9 +244,6 @@ System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
           AffineTransform s1 = new AffineTransform();
           int wh = (w < h) ? w : h;
           s1.setToScale(0.33 * wh, 0.33 * wh);
-/* WLH 28 July 98
-          s1.setToScale(0.33 * w, 0.33 * h);
-*/
           tgeometry.concatenate(s1);
           tgeometry.concatenate(trans);
           tsave = new AffineTransform(tgeometry);
