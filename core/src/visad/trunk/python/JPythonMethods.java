@@ -32,6 +32,7 @@ import java.rmi.RemoteException;
 import javax.swing.JFrame;
 import visad.*;
 import visad.java3d.DisplayImplJ3D;
+import visad.java3d.TwoDDisplayRendererJ3D;
 import visad.data.*;
 import visad.ss.MappingDialog;
 import visad.bom.ImageRendererJ3D;
@@ -66,7 +67,6 @@ public abstract class JPythonMethods {
   {
     if (data == null) throw new VisADException("Data cannot be null");
     if (display == null) {
-      display = new DisplayImplJ3D(ID);
       displayFrame = new JFrame("VisAD Display Plot");
       widgetFrame = new JFrame("VisAD Display Widgets");
       WindowListener l = new WindowAdapter() {
@@ -84,6 +84,14 @@ public abstract class JPythonMethods {
       dialog = new MappingDialog(null, data, maps, true, true);
       dialog.display();
       if (dialog.Confirm) maps = dialog.ScalarMaps;
+      boolean d3d = false;
+      for (int i=0; i<maps.length; i++) {
+        if (maps[i].getDisplayScalar().equals(Display.ZAxis) ||
+            maps[i].getDisplayScalar().equals(Display.Latitude) ||
+            maps[i].getDisplayScalar().equals(Display.Alpha)) d3d = true;
+      }
+      display = d3d ? new DisplayImplJ3D(ID) :
+                      new DisplayImplJ3D(ID, new TwoDDisplayRendererJ3D());
       for (int i=0; i<maps.length; i++) display.addMap(maps[i]);
   
       // set up widget panel
@@ -96,6 +104,7 @@ public abstract class JPythonMethods {
       displayFrame.addWindowListener(l);
       displayFrame.getContentPane().add(display.getComponent());
       displayFrame.pack();
+      displayFrame.setSize(512, 512);
       displayFrame.setVisible(true);
       data_references = new Vector();
     }
