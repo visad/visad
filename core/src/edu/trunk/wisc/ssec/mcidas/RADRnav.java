@@ -204,6 +204,120 @@ public final class RADRnav extends AREAnav
         return imageCoordToAreaCoord(linele);
     }
 
+    /** converts from satellite coordinates to latitude/longitude
+     *
+     * @param  linele[][]  array of line/element pairs.  Where 
+     *                     linele[indexLine][] is a 'line' and 
+     *                     linele[indexEle][] is an element. These are in 
+     *                     'file' coordinates (not "image" coordinates.)
+     *
+     * @return latlon[][]  array of lat/long pairs. Output array is 
+     *                     latlon[indexLat][] of latitudes and 
+     *                     latlon[indexLon][] of longitudes.
+     *
+     */
+    public float[][] toLatLon(float[][] linele) 
+    {
+
+        double xldif;
+        double xedif;
+        double xlin;
+        double xele;
+        double xdis;
+        double xangl;
+        double xange;
+        double ylat;
+        double ylon;
+
+        int number = linele[0].length;
+        float[][] latlon = new float[2][number];
+
+        // Convert array to Image coordinates for computations
+        float[][] imglinele = areaCoordToImageCoord(linele);
+
+        for (int point=0; point < number; point++) 
+        {
+           xldif = xrow - imglinele[indexLine][point];
+           xedif = xcol - imglinele[indexEle][point];
+           xdis = Math.sqrt(xldif*xldif + xedif*xedif);
+           if (xdis > 0.001)
+           {
+               xangl = Math.atan2(xldif, xedif) - 90.*DEGREES_TO_RADIANS;
+               xange = Math.atan2(xldif, xedif) + 90.*DEGREES_TO_RADIANS;
+               xldif = xdis*Math.cos(xrot+xangl);
+               xedif = xdis*Math.sin(xrot+xange);
+            }
+            ylat = xlat + xldif/xblat;
+            ylon = xlon + xedif/xblon/Math.cos(ylat* DEGREES_TO_RADIANS);
+
+            // transform from McIDAS coordinates
+            if (isEastPositive) ylon = -ylon;
+            
+            latlon[indexLat][point] = (float) ylat;
+            latlon[indexLon][point] = (float) ylon;
+
+        } // end point for loop
+
+        return latlon;
+
+    }
+
+    /**
+     * toLinEle converts lat/long to satellite line/element
+     *
+     * @param  latlon[][] array of lat/long pairs. Where latlon[indexLat][]
+     *                    are latitudes and latlon[indexLon][] are longitudes.
+     *
+     * @return linele[][] array of line/element pairs.  Where
+     *                    linele[indexLine][] is a line and linele[indexEle][]
+     *                    is an element.  These are in 'file' coordinates
+     *                    (not "image" coordinates);
+     */
+    public float[][] toLinEle(float[][] latlon) 
+    {
+        double zlat;
+        double zlon;
+        double xrlon;
+        double xrlat;
+        double xldif;
+        double xedif;
+        double xdis;
+        double xangl;
+        double xange;
+
+        int number = latlon[0].length;
+        float[][] linele = new float[2][number];
+
+        for (int point=0; point < number; point++) 
+        {
+
+            zlat = latlon[indexLat][point];
+
+            // transform to McIDAS (west positive longitude) coordinates
+            zlon = isEastPositive 
+                     ?  -latlon[indexLon][point]
+                     : latlon[indexLon][point];
+            xrlon = zlon - xlon;
+            xrlat = zlat - xlat;
+            xldif = xblat*xrlat;
+            xedif = xrlon*xblon*Math.cos(zlat*DEGREES_TO_RADIANS);
+            xdis = Math.sqrt(xldif*xldif + xedif*xedif);
+            if (xdis > .001) 
+            {
+                xangl = Math.atan2(xldif, xedif)-90*DEGREES_TO_RADIANS;
+                xange = Math.atan2(xldif, xedif)+90*DEGREES_TO_RADIANS;
+                xldif = xdis*Math.cos(-xrot+xangl);
+                xedif = xdis*Math.sin(-xrot+xange);
+            }
+            linele[indexLine][point] = (float) (xrow - xldif);
+            linele[indexEle][point] = (float) (xcol - xedif);
+
+        } // end point loop
+
+        // Return in 'File' coordinates
+        return imageCoordToAreaCoord(linele);
+    }
+
     public boolean equals(Object o)
     {
         if (!(o instanceof RADRnav)) return false;
