@@ -951,7 +951,8 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         ((ImageRendererJ3D) renderer).setBranchEarly((BranchGroup) group);
       }
       // change animation sampling, but don't trigger re-transform
-      if (((ImageRendererJ3D) renderer).getReUseFrames()) {
+      if (((ImageRendererJ3D) renderer).getReUseFrames() &&
+          ((ImageRendererJ3D) renderer).getSetSetOnReUseFrames()) {
         control.setSet(domain_set, true);
       }
 

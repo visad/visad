@@ -296,6 +296,8 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
   //    sampling.<P>
   private boolean reUseFrames = false;
 
+  private boolean setSetOnReUseFrames = false;
+
   // factory for ShadowFunctionType that defines unique behavior
   // for ImageRendererJ3D
   public ShadowType makeShadowFunctionType(
@@ -330,6 +332,14 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
 
   public boolean getReUseFrames() {
     return reUseFrames;
+  }
+
+  public void setSetSetOnReUseFrames(boolean ss) {
+    setSetOnReUseFrames = ss;
+  }
+
+  public boolean getSetSetOnReUseFrames() {
+    return setSetOnReUseFrames;
   }
 
   // logic to allow ShadowImageFunctionTypeJ3D to 'mark' missing frames
