@@ -126,6 +126,131 @@ public abstract class MathType extends Object implements java.io.Serializable {
 
   public abstract String prettyString(int indent);
 
+  public static MathType stringToType(String s) throws VisADException {
+    int length = s.length();
+    String r = "";
+    for (int i=0; i<length; i++) {
+      String t = s.substring(i, i+1);
+      if (!t.equals(" ") && !t.equals("\t") && !t.equals("\n")) {
+        r = r + t;
+      }
+    }
+    length = r.length();
+    if (length == 0) {
+      throw new TypeException("MathType.stringToType: badly formed string");
+    }
+    int[] len = {length};
+    MathType type = stringToType(r, len);
+    if (length != len[0]) {
+      throw new TypeException("MathType.stringToType: badly formed string");
+    }
+    return type;
+  }
+
+  private static MathType stringToType(String s, int[] len)
+          throws VisADException {
+    MathType ret_type;
+    String s0 = s.substring(0, 1);
+    if (s.startsWith("Set") || s.startsWith("SET") || s.startsWith("set")) {
+      String sr = s.substring(3);
+      int[] lensr = {sr.length()};
+      MathType type0 = stringToType(sr, lensr);
+      if (type0 instanceof RealType) {
+        ret_type = new SetType((RealType) type0);
+      }
+      else if (type0 instanceof RealTupleType) {
+        ret_type = new SetType((RealTupleType) type0);
+      }
+      else {
+        throw new TypeException("MathType.stringToType: badly formed string");
+      }
+      len[0] = 3 + lensr[0];
+      return ret_type;
+    }
+    else if (s0.equals("(")) {
+      String sr = s.substring(1);
+      int[] lensr = {sr.length()};
+      MathType type0 = stringToType(sr, lensr);
+      String t = sr.substring(lensr[0]);
+      if (type0 == null || t == null || t.equals("")) {
+        throw new TypeException("MathType.stringToType: badly formed string");
+      }
+      if (t.startsWith("->")) {
+        if (!(type0 instanceof RealType) &&
+            !(type0 instanceof RealTupleType)) {
+          throw new TypeException("MathType.stringToType: badly formed string");
+        }
+        String tr = t.substring(2);
+        int[] lentr = {tr.length()};
+        MathType type1 = stringToType(tr, lentr);
+        t = tr.substring(lentr[0]);
+        if (!t.startsWith(")") || type1 == null) {
+          throw new TypeException("MathType.stringToType: badly formed string");
+        }
+        len[0] = 1 + lensr[0] + 2 + lentr[0] + 1;
+        ret_type = new FunctionType(type0, type1);
+        return ret_type;
+      }
+      else {
+        Vector v = new Vector();
+        v.addElement(type0);
+        int lentup = 1 + lensr[0];
+        while (t.startsWith(",")) {
+          String tr = t.substring(1);
+          int[] lentr = {tr.length()};
+          MathType type1 = stringToType(tr, lentr);
+          if (type1 == null) {
+            throw new TypeException("MathType.stringToType: badly formed string");
+          }
+          v.addElement(type1);
+          lentup = lentup + 1 + lentr[0];
+          t = tr.substring(lentr[0]);
+        }
+        if (!t.startsWith(")")) {
+          throw new TypeException("MathType.stringToType: badly formed string");
+        }
+        len[0] = lentup + 1;
+        MathType[] types = new MathType[v.size()];
+        boolean all_real = true;
+        for (int i=0; i<v.size(); i++) {
+          types[i] = (MathType) v.elementAt(i);
+          all_real &= (types[i] instanceof RealType);
+        }
+        if (all_real) {
+          RealType[] rtypes = new RealType[v.size()];
+          for (int i=0; i<v.size(); i++) {
+            rtypes[i] = (RealType) types[i];
+          }
+          ret_type = new RealTupleType(rtypes);
+        }
+        else {
+          ret_type = new TupleType(types);
+        }
+        return ret_type;
+      }
+    }
+    else if ((0 <= s0.compareTo("a") && s0.compareTo("z") <= 0) ||
+             (0 <= s0.compareTo("A") && s0.compareTo("Z") <= 0)) {
+      for (int i=1; i<len[0]; i++) {
+        s0 = s.substring(i, i+1);
+        if (!((0 <= s0.compareTo("a") && s0.compareTo("z") <= 0) ||
+              (0 <= s0.compareTo("A") && s0.compareTo("Z") <= 0) ||
+              (0 <= s0.compareTo("0") && s0.compareTo("9") <= 0) ||
+              s0.equals("_"))) {
+          len[0] = i;
+          break;
+        }
+      }
+      String rs = s.substring(0, len[0]);
+      ret_type = RealType.getRealTypeByName(rs);
+      if (ret_type == null) ret_type = new RealType(rs);
+        return ret_type;
+    }
+    else {
+      throw new TypeException("MathType.stringToType: badly formed string");
+    }
+  }
+
   /** Guesses at a set of &quot;default&quot; mappings for this MathType.
       Intuitively, first we look for a FunctionType with domain dimension 3,
       then a nested group of FunctionTypes with 'cumulative' domain
@@ -821,7 +946,6 @@ public abstract class MathType extends Object implements java.io.Serializable {
       and MathType.guessMaps() */
   public static void main(String args[])
          throws VisADException, RemoteException {
-    // construct first MathType
     RealType X = new RealType("Xxxxxx", null, null);
     RealType Y = new RealType("Yyyyyy", null, null);
     RealType Z = new RealType("Zzzzzz", null, null);
@@ -835,6 +959,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
     RealType[] range2d = {A, B};
     RealTupleType Range2d = new RealTupleType(range2d);
  
+    // construct first MathType
     FunctionType Field2d1 = new FunctionType(Domain2d, A);
     FunctionType Field2d2 = new FunctionType(Domain2d, Range2d);
     FunctionType Field2d3 = new FunctionType(Domain2d, B);
@@ -850,7 +975,11 @@ public abstract class MathType extends Object implements java.io.Serializable {
 
     // test prettyString()
     System.out.println("prettyString for first MathType:");
-    System.out.println(big_function.prettyString() + "\n");
+    String s1 = big_function.prettyString();
+    System.out.println(s1 + "\n");
+    MathType t1 = stringToType(s1);
+    System.out.println("stringToType for first MathType:");
+    System.out.println(t1.prettyString() + "\n");
 
     // construct second MathType
     RealType T = new RealType("time");
@@ -861,10 +990,14 @@ public abstract class MathType extends Object implements java.io.Serializable {
     RealTupleType Range3d = new RealTupleType(new RealType[] {Rxx, Gxx, Bxx});
     FunctionType image = new FunctionType(Domain2d, Range3d);
     function = new FunctionType(Domain1d, image);
-
+ 
     // test prettyString() again
     System.out.println("prettyString for second MathType:");
-    System.out.println(function.prettyString() + "\n");
+    String s2 = function.prettyString();
+    System.out.println(s2 + "\n");
+    MathType t2 = stringToType(s2);
+    System.out.println("stringToType for second MathType:");
+    System.out.println(t2.prettyString() + "\n");
 
     // test guessMaps()
     System.out.println("Guessing at some good mappings for this MathType...");
