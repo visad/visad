@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: BaseRGBMap.java,v 1.4 1999-10-15 17:23:22 dglo Exp $
+@(#) $Id: BaseRGBMap.java,v 1.5 1999-11-16 17:58:09 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -35,7 +35,7 @@ import java.awt.*;
  * mouse button to alternate between the color curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.4 $, $Date: 1999-10-15 17:23:22 $
+ * @version $Revision: 1.5 $, $Date: 1999-11-16 17:58:09 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -216,7 +216,7 @@ public class BaseRGBMap
 
   /** Returns the dimension of the map */
   public int getMapDimension() {
-    return 3;
+    return hasAlpha ? 4: 3;
   }
 
   /** Returns a copy of the color map */
