@@ -1,16 +1,18 @@
 package visad.data.dods;
 
 import dods.dap.*;
+import java.rmi.RemoteException;
 import visad.data.BadFormException;
 import visad.data.in.*;
+import visad.*;
 
 public class ValueVetter
     extends	ValueProcessor
 {
-    private double			lower;
-    private double			upper;
-    private double			fill;
-    private double			missing;
+    private double			lower = Double.NEGATIVE_INFINITY;
+    private double			upper = Double.POSITIVE_INFINITY;
+    private double			fill = Double.NaN;
+    private double			missing = Double.NaN;
     private static final ValueVetter	trivialVetter =
 	new ValueVetter()
 	{
@@ -38,8 +40,8 @@ public class ValueVetter
     protected ValueVetter(
 	double lower, double upper, double fill, double missing)
     {
-	this.lower = lower;
-	this.upper = upper;
+	this.lower = lower == lower ? lower : Double.NEGATIVE_INFINITY;
+	this.upper = upper == upper ? upper : Double.POSITIVE_INFINITY;
 	this.fill = fill;
 	this.missing = missing;
     }
@@ -49,8 +51,8 @@ public class ValueVetter
      *				<code>null</code>, in which case a trivial
      *				vetter is returned.
      */
-    public static ValueVetter instance(AttributeTable table)
-	throws BadFormException
+    public static ValueVetter valueVetter(AttributeTable table)
+	throws BadFormException, VisADException, RemoteException
     {
 	ValueVetter	vetter;
 	if (table == null)
@@ -59,19 +61,19 @@ public class ValueVetter
 	}
 	else
 	{
-	    double	fill = DODSUtil.decode("_FillValue", table, 0);
-	    double	missing = DODSUtil.decode("missing_value", table, 0);
+	    double	fill = decode("_FillValue", table, 0);
+	    double	missing = decode("missing_value", table, 0);
 	    double	lower;
 	    double	upper;
 	    if (table.getAttribute("valid_range") == null)
 	    {
-		lower = DODSUtil.decode("valid_min", table, 0);
-		upper = DODSUtil.decode("valid_max", table, 0);
+		lower = decode("valid_min", table, 0);
+		upper = decode("valid_max", table, 0);
 	    }
 	    else
 	    {
-		lower = DODSUtil.decode("valid_range", table, 0);
-		upper = DODSUtil.decode("valid_range", table, 1);
+		lower = decode("valid_range", table, 0);
+		upper = decode("valid_range", table, 1);
 	    }
 	    vetter =
 		lower == lower || upper == upper || 
@@ -80,6 +82,16 @@ public class ValueVetter
 		    : trivialVetter;
 	}
 	return vetter;
+    }
+
+    public double getMin()
+    {
+	return lower;
+    }
+
+    public double getMax()
+    {
+	return upper;;
     }
 
     public float process(float value)

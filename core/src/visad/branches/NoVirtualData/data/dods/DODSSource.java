@@ -1,113 +1,91 @@
 package visad.data.dods;
 
 import dods.dap.*;
+import java.rmi.RemoteException;
 import java.util.Enumeration;
 import visad.data.BadFormException;
 import visad.data.in.*;
-import visad.RealType;
+import visad.*;
 
 public class DODSSource
-    extends VirtualDataSource
+    extends DataSource
 {
-    public DODSSource(VirtualDataSink downstream)
+    private DataFactory	dataFactory;
+
+    public DODSSource(DataSink downstream)
+    {
+	this(downstream, DataFactory.dataFactory());
+    }
+
+    public DODSSource(DataSink downstream, DataFactory factory)
     {
 	super(downstream);
+	dataFactory = factory;
     }
 
     public boolean open(String spec)
     {
-	return false;	// TODO
+	boolean	success;
+	System.gc();
+	try
+	{
+	    DConnect	dConnect = new DConnect(spec);
+	    DAS		das = dConnect.getDAS();
+	    handleGlobalAttributes(das);
+	    handleVariables(dConnect.getData(null), das);
+	    success = true;
+	}
+	catch (Exception e)
+	{
+	    System.err.println(
+		getClass().getName() + ".open(String): " +
+		"Unable to open dataset \"" + spec + "\": " + e);
+	    success = false;
+	}
+	return success;
     }
 
-    /* TODO
-    protected void handleVariable(BaseType baseType, AttributeTable attrTable)
-	throws BadFormException
+    public synchronized void close()
+	throws VisADException, RemoteException
     {
-	if (baseType instanceof DBoolean)
-	    send(DBooleanAdapter.instance((DBoolean)baseType, attrTable)
-		.getVirtualData());
-	else if (baseType instanceof DByte)
-	    send(DByteAdapter.instance((DByte)baseType, attrTable)
-		.getVirtualData());
-	else if (baseType instanceof DInt16)
-	    send(DInt16Adapter.instance((DInt16)baseType, attrTable)
-		.getVirtualData());
-	else if (baseType instanceof DInt32)
-	    send(DInt32Adapter.instance((DInt32)baseType, attrTable)
-		.getVirtualData());
-	else if (baseType instanceof DFloat32)
-	    send(DFloat32Adapter.instance((DFloat32)baseType, attrTable)
-		.getVirtualData());
-	else if (baseType instanceof DFloat64)
-	    send(DFloat64Adapter.instance((DFloat64)baseType, attrTable)
-		.getVirtualData());
-	else if (baseType instanceof DStructure)
-	    send(DStructureAdapter.instance((DStructure)baseType, attrTable)
-		.getVirtualData());
-	else if (baseType instanceof DList)
-	    send(DListAdapter.instance((DList)baseType, attrTable)
-		.getVirtualData());
-	else if (baseType instanceof DSequence)
-	    send(DSequenceAdapter.instance((DSequence)baseType, attrTable)
-		.getVirtualData());
-	else if (baseType instanceof DArray)
-	    send(DArrayAdapter.instance((DArray)baseType, attrTable)
-		.getVirtualData());
-	else if (baseType instanceof DGrid)
-	    send(DGridAdapter.instance((DGrid)baseType, attrTable)
-		.getVirtualData());
-	else
-	    throw new BadFormException(
-		getClass().getName() + 
-		".handleVariable(BaseType, AttributeTable): " +
-		"Unknown DODS type: " + baseType.getTypeName());
+	flush();
+	System.gc();
     }
 
-    protected void handleVariable(DStructure variable, AttributeTable attrTable)
+    protected void handleGlobalAttributes(DAS das)
+	throws BadFormException, VisADException, RemoteException
     {
-	VirtualTuple	tuple = new VirtualTuple();
-	for (Enumeration enum = variable.getVariables();
+	AttributeTable	globalTable = das.getAttributeTable("NC_GLOBAL");
+	if (globalTable == null)
+	    globalTable = das.getAttributeTable("nc_global");
+	if (globalTable != null)
+	{
+	    for (Enumeration enum = globalTable.getNames();
+		enum.hasMoreElements(); )
+	    {
+		String		name = (String)enum.nextElement();
+		DataImpl	data =
+		    dataFactory.data(name, globalTable.getAttribute(name));
+		if (data != null)
+		    send(data);
+	    }
+	}
+    }
+
+    /**
+     * Invokes {@link DataFactory#data(BaseType, AttributeTable)} for each
+     * variable in the DataDDS.
+     */
+    protected void handleVariables(DataDDS dataDDS, DAS das)
+	throws BadFormException, VisADException, RemoteException
+    {
+	for (Enumeration enum = dataDDS.getVariables();
 	    enum.hasMoreElements(); )
 	{
-	    tuple.add((BaseType)enum.nextElement());
+	    BaseType	baseType = (BaseType)enum.nextElement();
+	    send(
+		dataFactory.data(
+		    baseType, das.getAttributeTable(baseType.getName())));
 	}
-	send(tuple);
     }
-
-    protected void handleVariable(DList variable, AttributeTable attrTable)
-    {
-	PrimitiveVector	vector = variable.getPrimitiveVector();
-	if (vector instanceof BooleanPrimitiveVector)
-	    handleVariable((BooleanPrimitiveVector)vector, attrTable);
-	else if (vector instanceof BytePrimitiveVector)
-	    handleVariable((BytePrimitiveVector)vector, attrTable);
-	else if (vector instanceof Int16PrimitiveVector)
-	    handleVariable((Int16PrimitiveVector)vector, attrTable);
-	else if (vector instanceof Int32PrimitiveVector)
-	    handleVariable((Int32PrimitiveVector)vector, attrTable);
-	else if (vector instanceof Float32PrimitiveVector)
-	    handleVariable((Float32PrimitiveVector)vector, attrTable);
-	else if (vector instanceof Float64PrimitiveVector)
-	    handleVariable((Float64PrimitiveVector)vector, attrTable);
-	else if (vector instanceof BaseTypePrimitiveVector)
-	    handleVariable((BaseTypePrimitiveVector)vector, attrTable);
-    }
-
-    protected RealType getRealType(BaseType baseType, AttributeTable attrTable)
-    {
-	Unit	unit;
-	Attribute	unitSpec = attrTable.getAttribute("units");
-	if (unitSpec == null)
-	    unitSpec = attrTable.getAttribute("unit");
-	if (unitSpec == null)
-	    unitSpec = attrTable.getAttribute("UNITS");
-	if (unitSpec == null)
-	    unitSpec = attrTable.getAttribute("UNIT");
-	Unit	unit =
-	    unitSpec == null || unitSpec.getType() != Attribute.String
-		? null
-		: UnitParser.parse(unitSpec);
-	return RealType.getRealType(baseType.getName(), unit);
-    }
-    */
 }
