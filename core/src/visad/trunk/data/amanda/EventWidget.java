@@ -2,8 +2,11 @@ package visad.data.amanda;
 
 import java.rmi.RemoteException;
 
+import java.text.DateFormat;
+
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -31,6 +34,7 @@ public class EventWidget
   private AnimationControl animCtl;
 
   private GregorianCalendar cal;
+  private DateFormat fmt;
 
   private VisADSlider slider;
   private int sliderLength;
@@ -63,6 +67,9 @@ public class EventWidget
     this.histoWidget = histoWidget;
 
     cal = new GregorianCalendar();
+
+    fmt =  DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.FULL);
+    fmt.setTimeZone(TimeZone.getTimeZone("GMT"));
 
     thisEvent = null;
 
@@ -164,8 +171,9 @@ public class EventWidget
 
       animCtl.setSet(hitSeq.getDomainSet());
 
-      dateLabel.setText(getDate(thisEvent.getYear(), thisEvent.getDay(),
-                                thisEvent.getTime()).toGMTString());
+      Date date = getDate(thisEvent.getYear(), thisEvent.getDay(),
+                          thisEvent.getTime());
+      dateLabel.setText(fmt.format(date));
 
     }
 
