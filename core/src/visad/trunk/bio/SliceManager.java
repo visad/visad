@@ -132,14 +132,18 @@ public class SliceManager implements ControlListener {
   /** Maximum memory to use for low-resolution thumbnails, in megabytes. */
   private int thumbSize;
 
-  /** Flag indicating low-resolution slice display. */
+  /** Should low-resolution slices be displayed? */
   private boolean lowres;
 
-  /** Flag indicating whether low-resolution thumbnails should be created. */
+  /** Should low-resolution thumbnails be created? */
   private boolean doThumbs;
 
-  /** Flag indicating whether current data has low-resolution thumbnails. */
+  /** Does current data have low-resolution thumbnails? */
   private boolean hasThumbs;
+
+  /** Automatically switch resolution when certain events occur? */
+  private boolean autoSwitch;
+
 
 
   // -- OTHER FIELDS --
@@ -182,6 +186,7 @@ public class SliceManager implements ControlListener {
     this.thumbSize = thumbSize;
     lowres = false;
     doThumbs = true;
+    autoSwitch = true;
     colorRange = new RealTupleType(
       new RealType[] {RED_TYPE, GREEN_TYPE, BLUE_TYPE});
 
@@ -210,6 +215,7 @@ public class SliceManager implements ControlListener {
 
   /** Sets the display detail (low-resolution or full resolution). */
   public void setMode(boolean lowres) {
+    bio.toolView.setMode(lowres);
     if (this.lowres == lowres) return;
     this.lowres = lowres;
     refresh(mode_slice != slice, mode_index != index);
@@ -219,10 +225,22 @@ public class SliceManager implements ControlListener {
 
   /** Sets the currently displayed timestep index. */
   public void setIndex(int index) {
-    if (this.index == index) return;
-    if (bio.horiz.isBusy() && !lowres) return;
+    if (this.index == index ||
+      bio.horiz.isBusy() && !lowres && !autoSwitch)
+    {
+      return;
+    }
+    boolean refreshed = false;
+    if (autoSwitch && !lowres) {
+      setMode(true);
+      refreshed = true;
+    }
     this.index = index;
-    refresh(false, true);
+    if (autoSwitch && index == mode_index && lowres) {
+      setMode(false);
+      refreshed = true;
+    }
+    if (!refreshed) refresh(false, true);
   }
 
   /** Sets the currently displayed image slice. */
@@ -231,6 +249,9 @@ public class SliceManager implements ControlListener {
     this.slice = slice;
     refresh(true, false);
   }
+
+  /** Sets whether to auto-switch resolutions when certain events occur. */
+  public void setAutoSwitch(boolean value) { autoSwitch = value; }
 
   /** Sets whether to create low-resolution thumbnails of the data. */
   public void setThumbnails(boolean thumbnails) { doThumbs = thumbnails; }
@@ -357,6 +378,7 @@ public class SliceManager implements ControlListener {
             }
           }
           hasThumbs = doThumbs;
+          autoSwitch = hasThumbs;
 
           dialog.setText("Analyzing data");
 

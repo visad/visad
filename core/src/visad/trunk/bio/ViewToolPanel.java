@@ -126,7 +126,6 @@ public class ViewToolPanel extends ToolPanel {
     loRes = new JToggleButton("Lo-res", false);
     loRes.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        setMode(true);
         bio.sm.setMode(true);
       }
     });
@@ -137,8 +136,6 @@ public class ViewToolPanel extends ToolPanel {
     hiRes = new JToggleButton("Hi-res", true);
     hiRes.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        setMode(false);
-
         // don't animate in hi-res mode
         AnimationControl control = anim.getControl();
         try { if (control != null) control.setOn(false); }
@@ -156,7 +153,7 @@ public class ViewToolPanel extends ToolPanel {
     autoSwitch = new JCheckBox("Auto-switch resolutions", true);
     autoSwitch.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
-        // CTR - TODO
+        bio.sm.setAutoSwitch(autoSwitch.isSelected());
       }
     });
     controls.add(pad(autoSwitch));
