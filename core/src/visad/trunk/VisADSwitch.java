@@ -65,7 +65,7 @@ public class VisADSwitch extends VisADGroup {
     set = s;
   }
 
-  public Set GetSet() {
+  public Set getSet() {
     return set;
   }
 
