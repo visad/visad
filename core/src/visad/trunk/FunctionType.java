@@ -26,6 +26,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad;
 
 import java.rmi.*;
+import java.util.Vector;
 
 /**
    FunctionType is the VisAD data type for functions.<P>
@@ -188,19 +189,19 @@ public class FunctionType extends MathType {
   }
 
   /*- TDR July 1998  */
-  public MathType binary( MathType type, int op )
+  public MathType binary( MathType type, int op, Vector names )
          throws VisADException
   {
     MathType m_type = (type instanceof FunctionType) ? 
                       ((FunctionType)type).getRange() : type;
-    return (MathType) new FunctionType( Domain, Range.binary( m_type, op ));
+    return (MathType) new FunctionType( Domain, Range.binary( m_type, op, names ));
   }
 
   /*- TDR July 1998  */
-  public MathType unary( int op )
+  public MathType unary( int op, Vector names )
          throws VisADException
   {
-    return (MathType) new FunctionType( Domain, Range.unary( op ));
+    return (MathType) new FunctionType( Domain, Range.unary( op, names ));
   }
 
 

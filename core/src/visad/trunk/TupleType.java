@@ -26,6 +26,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad;
 
 import java.rmi.*;
+import java.util.Vector;
 
 /**
    TupleType is the general VisAD data type for vectors.<P>
@@ -202,26 +203,26 @@ public class TupleType extends MathType {
   }
 
   /*- TDR July 1998  */
-  public MathType binary( MathType type, int op )
+  public MathType binary( MathType type, int op, Vector names )
          throws VisADException
   {
     int n_comps = tupleComponents.length;
     MathType[] new_types = new MathType[ n_comps ];
     for ( int ii = 0; ii < n_comps; ii++ ) {
-      new_types[ii] = (this.getComponent(ii)).binary( type, op );
+      new_types[ii] = (this.getComponent(ii)).binary( type, op, names );
     }
 
     return new TupleType( new_types );
   }
 
   /*- TDR July 1998  */
-  public MathType unary( int op )
+  public MathType unary( int op, Vector names )
          throws VisADException
   {
     int n_comps = tupleComponents.length;
     MathType[] new_types = new MathType[ n_comps ];
     for ( int ii = 0; ii < n_comps; ii++ ) {
-      new_types[ii] = (this.getComponent(ii)).unary( op );
+      new_types[ii] = (this.getComponent(ii)).unary( op, names );
     }
 
     return new TupleType( new_types );

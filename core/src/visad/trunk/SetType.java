@@ -26,6 +26,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad;
 
 import java.rmi.*;
+import java.util.Vector;
 
 /**
    SetType is the VisAD data type for subsets of R^n for n>0.<P>
@@ -72,14 +73,14 @@ public class SetType extends MathType {
   }
 
   /*- TDR July 1998  */
-  public MathType binary( MathType type, int op )
+  public MathType binary( MathType type, int op, Vector names )
          throws VisADException
   {
     throw new UnimplementedException("binary");
   }
 
   /*- TDR July 1998  */
-  public MathType unary( int op )
+  public MathType unary( int op, Vector names )
          throws VisADException
   {
     throw new UnimplementedException("binary");

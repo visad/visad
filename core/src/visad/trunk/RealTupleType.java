@@ -26,6 +26,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad;
 
 import java.rmi.*;
+import java.util.Vector;
 
 /**
    RealTupleType is the VisAD data type for tuples in R^n, for n>0.<P>
@@ -170,7 +171,7 @@ public class RealTupleType extends TupleType {
     }
   }
 
-  public MathType binary( MathType type, int op )
+  public MathType binary( MathType type, int op, Vector names )
                   throws VisADException
   {
     int n_comps = getDimension();
@@ -180,7 +181,7 @@ public class RealTupleType extends TupleType {
       RealType[] R_types = new RealType[ n_comps ];
       for ( int ii = 0; ii < n_comps; ii++ ) {
         R_types[ii] = (RealType) getComponent(ii).binary(
-                                 ((RealTupleType)type).getComponent(ii), op );
+                                 ((RealTupleType)type).getComponent(ii), op, names );
       }
       new_type = new RealTupleType( R_types, DefaultCoordinateSystem, null );
     }
@@ -188,7 +189,7 @@ public class RealTupleType extends TupleType {
     { 
       RealType[] R_types = new RealType[ n_comps ];
       for ( int ii = 0; ii < n_comps; ii++ ) {
-        R_types[ii] = (RealType) getComponent(ii).binary( type, op );
+        R_types[ii] = (RealType) getComponent(ii).binary( type, op, names );
       }
       new_type = new RealTupleType( R_types, DefaultCoordinateSystem, null );
     }
@@ -198,19 +199,19 @@ public class RealTupleType extends TupleType {
     }
     else if (type instanceof FunctionType ) 
     {
-      new_type = type.binary( this, DataImpl.invertOp(op) );
+      new_type = type.binary( this, DataImpl.invertOp(op), names );
     }
     return new_type;
   }
 
-  public MathType unary( int op )
+  public MathType unary( int op, Vector names )
                   throws VisADException
   {
     int n_comps = getDimension();
     RealType[] R_types = new RealType[ n_comps ];
 
     for ( int ii = 0; ii < n_comps; ii++ ) {
-      R_types[ii] = (RealType) getComponent(ii).unary(op);
+      R_types[ii] = (RealType) getComponent(ii).unary(op, names);
     }
 
     return new RealTupleType( R_types, DefaultCoordinateSystem, null );

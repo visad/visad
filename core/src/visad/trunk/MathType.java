@@ -26,6 +26,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad;
 
 import java.rmi.*;
+import java.util.Vector;
 
 /** 
 (Fulker)
@@ -105,11 +106,11 @@ public abstract class MathType extends Object implements java.io.Serializable {
            throws VisADException;
 
   /* TDR - July 1998  */
-  public abstract MathType binary( MathType type, int op )
+  public abstract MathType binary( MathType type, int op, Vector names )
          throws VisADException;
 
   /* TDR - July 1998 */
-  public abstract MathType unary( int op )
+  public abstract MathType unary( int op, Vector names )
          throws VisADException;
 
   public abstract Data missingData() throws VisADException, RemoteException;

@@ -169,7 +169,7 @@ public class RealType extends ScalarType {
     return new RealType( new_name, u, null );
   }
   /*- TDR July 1998  */
-  public MathType binary( MathType type, int op )
+  public MathType binary( MathType type, int op, Vector names )
          throws VisADException
   {
     Unit newUnit = null;
@@ -214,7 +214,7 @@ public class RealType extends ScalarType {
         case Data.INV_DIVIDE:
           if ( unit == null || thisUnit == null ) {
             newUnit = null;
-            newName = "Generic_nullUnit";
+            newName = getUniqueGenericName( names, "nullUnit");
           }
           else {
             switch (op) {
@@ -225,7 +225,7 @@ public class RealType extends ScalarType {
               case Data.INV_DIVIDE:
                 newUnit = unit.divide( thisUnit );
             }
-            newName = "Generic_"+newUnit.toString();
+            newName = getUniqueGenericName( names, newUnit.toString());
           }
 
           try {
@@ -239,7 +239,7 @@ public class RealType extends ScalarType {
         case Data.POW:
         case Data.INV_POW:
           newUnit = null;
-          newName = "Generic_nullUnit";
+          newName = getUniqueGenericName( names, "nullUnit");
 
           try {
             newType = new RealType( newName, newUnit, null );
@@ -262,10 +262,10 @@ public class RealType extends ScalarType {
           newUnit = unit;
 
           if ( newUnit != null ) {
-            newName = "Generic_"+newUnit.toString();
+            newName = getUniqueGenericName( names, newUnit.toString());
           }
           else {
-            newName = "Generic_nullUnit";
+            newName = getUniqueGenericName( names, "nullUnit" );
           }
 
           try {
@@ -283,16 +283,16 @@ public class RealType extends ScalarType {
       throw new TypeException("RealType.binary: types don't match");
     }
     else if ( type instanceof TupleType ) {
-      return type.binary( this, DataImpl.invertOp(op) );
+      return type.binary( this, DataImpl.invertOp(op), names );
     }
     else if ( type instanceof FunctionType ) {
-      return type.binary( this, DataImpl.invertOp(op) );
+      return type.binary( this, DataImpl.invertOp(op), names );
     }
 
     return newType;
   }
   /*- TDR July 1998 */
-  public MathType unary( int op )
+  public MathType unary( int op, Vector names )
          throws VisADException
   {
     MathType newType;
@@ -335,10 +335,10 @@ public class RealType extends ScalarType {
       case Data.LOG:
         newUnit = CommonUnit.dimensionless.equals( DefaultUnit ) ? DefaultUnit : null;
         if ( newUnit == null ) {
-          newName = "Generic_nullUnit";
+          newName = getUniqueGenericName( names, "nullUnit" );
         }
         else {
-          newName = "Generic_"+newUnit.toString();
+          newName = getUniqueGenericName( names, newUnit.toString() );
         }
 
         try {
@@ -353,6 +353,20 @@ public class RealType extends ScalarType {
     }
 
     return newType;
+  }
+
+  private static String getUniqueGenericName( Vector names, String ext )
+  {
+    String name = null;
+    for ( int ii = 1; ; ii++ )
+    {
+      name = "Generic_"+ii +"_"+ext;
+      if ( !names.contains(name) ) {
+        names.addElement(name);
+        break;
+      }
+    }
+    return name;
   }
 
   public Data missingData() throws VisADException {

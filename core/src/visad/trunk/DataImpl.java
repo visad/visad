@@ -115,7 +115,7 @@ public abstract class DataImpl extends ThingImpl
    /* BINARY - TDR May 1998
     throw new TypeException("DataImpl.binary");
     */
-    MathType new_type = Type.binary( data.getType(), op );
+    MathType new_type = Type.binary( data.getType(), op, new Vector() );
     return binary( data, op, new_type, sampling_mode, error_mode );
   }
   
@@ -226,7 +226,7 @@ public abstract class DataImpl extends ThingImpl
     /*-  TDR June 1998
     throw new TypeException("DataImpl.unary");
     */
-    MathType new_type = Type.unary( op );
+    MathType new_type = Type.unary( op, new Vector() );
     return unary( op, new_type, sampling_mode, error_mode );
   }
   
