@@ -498,7 +498,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
 
   public synchronized DataImpl open(URL url)
          throws BadFormException, VisADException, IOException {
-    throw new UnimplementedException("Vis5DForm.open(URL url)");
+    return open(url.toString());
   }
 
   public synchronized FormNode getForms(Data data) {

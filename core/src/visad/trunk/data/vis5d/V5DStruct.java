@@ -27,7 +27,9 @@ MA 02111-1307, USA
 package visad.data.vis5d;
 
 import visad.data.BadFormException;
-import java.io.*;
+import ucar.netcdf.*;
+import java.io.IOException;
+import java.net.URL;
 
 /** An object representing the structure of a .v5d file.<P> */
 public class V5DStruct {
@@ -125,6 +127,10 @@ public class V5DStruct {
 
   /** File version. This should be updated when the file version changes. */
   private static final String FILE_VERSION = "4.3";
+
+  // TODO: find optimal value of default buffer size
+  private static final int DEFAULT_FILE_BUFFER = 204800;
+  private static final int DEFAULT_HTTP_BUFFER = 204800;
 
   /*
    * New grid file format for VIS-5D:
@@ -708,7 +714,10 @@ public class V5DStruct {
   */
   private static V5DStruct v5dOpenFile(String filename)
           throws IOException, BadFormException {
-    RandomAccessFile fd = new RandomAccessFile(filename, "r");
+    RandomAccessFile fd = 
+      (filename.toLowerCase().startsWith("http"))
+          ? new HTTPRandomAccessFile(new URL(filename), DEFAULT_HTTP_BUFFER )
+          : new RandomAccessFile(filename, "r", DEFAULT_FILE_BUFFER);
 
     if (fd == null) {
       // error
