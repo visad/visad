@@ -90,13 +90,14 @@ public abstract class FunctionImpl extends DataImpl implements Function {
   }
 
   /** evaluate this Function at domain;
-      use default modes for resampling (NEAREST_NEIGHBOR) and errors */
+      use default modes for resampling (WEIGHTED_AVERAGE) and
+      errors (NO_ERRORS) */
   public Data evaluate(RealTuple domain)
          throws VisADException, RemoteException {
     if (domain == null) {
       return ((FunctionType) getType()).getRange().missingData();
     }
-    return evaluate(domain, NEAREST_NEIGHBOR, NO_ERRORS);
+    return evaluate(domain, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS);
   }
 
   /** evaluate this Function with non-default modes for resampling and errors */
@@ -113,7 +114,7 @@ public abstract class FunctionImpl extends DataImpl implements Function {
 
   /** return a Field of Function values at the samples in set
       using default sampling_mode (WEIGHTED_AVERAGE) and
-      error_mode (NO_ERROS);
+      error_mode (NO_ERRORS);
       this combines unit conversions, coordinate transforms,
       resampling and interpolation */
   public Field resample(Set set) throws VisADException, RemoteException {
