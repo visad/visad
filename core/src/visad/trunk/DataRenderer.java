@@ -722,7 +722,10 @@ if (map.badRange()) {
 
     if (display_coordinate_system != null) {
       // transform non-Cartesian spatial DisplayRealTypes to Cartesian
-      spatial_locs = display_coordinate_system.toReference(spatial_locs);
+      if (spatial_locs != null && spatial_locs.length > 0 &&
+          spatial_locs[0] != null && spatial_locs[0].length > 0) {
+        spatial_locs = display_coordinate_system.toReference(spatial_locs);
+      }
     }
     return spatial_locs;
   }
