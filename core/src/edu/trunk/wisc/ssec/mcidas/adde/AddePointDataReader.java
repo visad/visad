@@ -238,6 +238,9 @@ public class AddePointDataReader
             }
             // Convert to in array
             iData = new int[numParams][data.size()];
+            if (debug) {
+              System.out.println("number of data records = " + data.size());
+            }
             for (int i = 0; i < data.size(); i++)
             {
                 int[] values = (int[]) data.get(i);
