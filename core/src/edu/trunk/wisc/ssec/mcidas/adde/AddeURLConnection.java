@@ -496,6 +496,7 @@ public class AddeURLConnection extends URLConnection
 
     // get response from server, byte count coming back
     numBytes = dis.readInt();
+    if (debug) System.out.println("server is sending: " + numBytes + " bytes");
 
     // if server returns zero, there was an error so read trailer and exit
     if (numBytes == 0) {
@@ -504,7 +505,6 @@ public class AddeURLConnection extends URLConnection
       String errMsg = new String(trailer, ERRMSG_OFFS, ERRMSG_SIZE);
       throw new AddeURLException(errMsg);
     }
-    if (debug) System.out.println("server is sending: " + numBytes + " bytes");
 
 
     // if we made it to here, we're getting data
