@@ -254,8 +254,8 @@ MathType.stringToType("((ImageElement, ImageLine) -> ImageRadiance)");
                       domain_set.getCoordinateSystem(),
                       domain_set.getSetUnits(), null);
 
-    RemoteNodePartitionedFieldImpl[] node_images =
-      new RemoteNodePartitionedFieldImpl[number_of_nodes];
+    RemoteNodePartitionedField[] node_images =
+      new RemoteNodePartitionedField[number_of_nodes];
   
     if (!client) {
       Linear2DSet[] subsets = new Linear2DSet[number_of_nodes];
@@ -312,7 +312,7 @@ MathType.stringToType("((ImageElement, ImageLine) -> ImageRadiance)");
         Naming.rebind(url, node_images[kk]);
       }
       catch (Exception e) {
-        System.out.println("lookup " + kk + " " + e);
+        System.out.println("rebind " + kk + " " + e);
         return;
       }
       // just so app doesn't exit
@@ -323,7 +323,7 @@ MathType.stringToType("((ImageElement, ImageLine) -> ImageRadiance)");
     for (int k=0; k<number_of_nodes; k++) {
       String url = "///TestCluster" + k;
       try {
-        node_images[k] = (RemoteNodePartitionedFieldImpl) Naming.lookup(url);
+        node_images[k] = (RemoteNodePartitionedField) Naming.lookup(url);
       }
       catch (Exception e) {
         System.out.println("lookup " + k + " " + e);
