@@ -113,10 +113,20 @@ public abstract class DataRenderer extends Object implements Cloneable {
   public abstract void setLinks(DataDisplayLink[] links, DisplayImpl d)
            throws VisADException;
 
+  /**
+   * Sets the visibility of the data being rendered by this instance.
+   *
+   * @param on                 Whether or not to render the data.
+   */
   public void toggle(boolean on) {
     enabled = on;
   }
 
+  /**
+   * Returns the visibility of the data being rendered by this instance.
+   *
+   * @return                   Whether or not the data is being rendered.
+   */
   public boolean getEnabled() {
     return enabled;
   }
