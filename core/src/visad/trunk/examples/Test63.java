@@ -20,10 +20,12 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-import java.awt.Component;
 import java.rmi.*;
+
 import visad.*;
+
 import visad.java2d.DisplayImplJ2D;
+
 import visad.java3d.DisplayImplJ3D;
 
 public class Test63
@@ -57,8 +59,7 @@ public class Test63
     DisplayImpl[] dpys = new DisplayImpl[1];
     if (twoD) {
       dpys[0] = new DisplayImplJ2D("display1");
-    }
-    else {
+    } else {
       dpys[0] = new DisplayImplJ3D("display1");
     }
     return dpys;
@@ -87,8 +88,7 @@ public class Test63
       ref_histogram1 = new DataReferenceImpl("ref_histogram1");
       ref_histogram1.setData(histogram1);
       display1.addReference(ref_histogram1, null);
-    }
-    else {
+    } else {
       RealType vis_radiance = new RealType("vis_radiance", null, null);
       RealType[] types = {RealType.Latitude, RealType.Longitude};
       RealType[] types2 = {vis_radiance, ir_radiance};
@@ -133,7 +133,7 @@ public class Test63
     }
   }
 
-  String getFrameTitle() { return "Remote slaved display server"; }
+  String getFrameTitle() { return "Remote slave display server"; }
 
   public String toString()
   {

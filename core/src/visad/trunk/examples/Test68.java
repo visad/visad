@@ -26,12 +26,18 @@ import java.rmi.RemoteException;
 
 import visad.*;
 
+import visad.java2d.DisplayImplJ2D;
+
 import visad.java3d.DisplayImplJ3D;
 
 public class Test68
-  extends TestSkeleton
+  extends UISkeleton
 {
   private int port = 0;
+
+  private boolean twoD = false;
+
+  boolean hasClientServerMode() { return false; }
 
   public Test68() { }
 
@@ -41,15 +47,26 @@ public class Test68
     super(args);
   }
 
+  int checkExtraOption(String progName, char ch, String arg)
+  {
+    if (ch != '2') {
+      return 0;
+    }
+
+    twoD = true;
+    return 1;
+  }
+
   int checkExtraKeyword(String testName, int argc, String[] args)
   {
+    String arg = args[argc];
     int d = 0;
     try {
-      d = Integer.parseInt(args[argc]);
+      d = Integer.parseInt(arg);
     }
     catch (NumberFormatException exc) { }
     if (d < 1 || d > 9999) {
-      System.err.println(testName + ": Ignoring parameter \"" + args[argc] +
+      System.err.println(testName + ": Ignoring parameter \"" + arg +
         "\": port must be between 1 and 9999");
     } else {
       port = d;
@@ -62,43 +79,71 @@ public class Test68
     throws RemoteException, VisADException
   {
     DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
+    if (twoD) {
+      dpys[0] = new DisplayImplJ2D("display");
+    } else {
+      dpys[0] = new DisplayImplJ3D("display");
+    }
     return dpys;
   }
 
   void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    RealType[] types = {RealType.Latitude, RealType.Longitude};
-    RealTupleType earth_location = new RealTupleType(types);
-    RealType vis_radiance = new RealType("vis_radiance", null, null);
     RealType ir_radiance = new RealType("ir_radiance", null, null);
-    RealType[] types2 = {vis_radiance, ir_radiance};
-    RealTupleType radiance = new RealTupleType(types2);
-    FunctionType image_tuple = new FunctionType(earth_location, radiance);
+    int size = 64;
+    DisplayImpl display1 = (DisplayImpl) dpys[0];
 
-    int size = 32;
-    FlatField imaget1 = FlatField.makeField(image_tuple, size, false);
+    if (twoD) {
+      RealType count = new RealType("count", null, null);
+      FunctionType ir_histogram = new FunctionType(ir_radiance, count);
+      FlatField histogram1 = FlatField.makeField(ir_histogram, size, false);
 
-    dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
-    dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
-    dpys[0].addMap(new ScalarMap(vis_radiance, Display.ZAxis));
-    dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.Red));
-    dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.Green));
-    dpys[0].addMap(new ScalarMap(vis_radiance, Display.Blue));
+      System.out.print("Creating Java2D display...");
+      display1.addMap(new ScalarMap(count, Display.YAxis));
+      display1.addMap(new ScalarMap(ir_radiance, Display.XAxis));
+      display1.addMap(new ConstantMap(0.0, Display.Red));
+      display1.addMap(new ConstantMap(1.0, Display.Green));
+      display1.addMap(new ConstantMap(0.0, Display.Blue));
 
-    DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
-    ref_imaget1.setData(imaget1);
-    dpys[0].addReference(ref_imaget1, null);
+      DataReferenceImpl ref_histogram1;
+      ref_histogram1 = new DataReferenceImpl("ref_histogram1");
+      ref_histogram1.setData(histogram1);
+      display1.addReference(ref_histogram1, null);
+    } else {
+      RealType vis_radiance = new RealType("vis_radiance", null, null);
+      RealType[] types = {RealType.Latitude, RealType.Longitude};
+      RealType[] types2 = {vis_radiance, ir_radiance};
+      RealTupleType earth_location = new RealTupleType(types);
+      RealTupleType radiance = new RealTupleType(types2);
+      FunctionType image_tuple = new FunctionType(earth_location, radiance);
+      FlatField imaget1 = FlatField.makeField(image_tuple, size, false);
+
+      System.out.print("Creating Java3D display...");
+      display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+      display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+      display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
+      display1.addMap(new ScalarMap(vis_radiance, Display.Green));
+      display1.addMap(new ConstantMap(0.5, Display.Blue));
+      display1.addMap(new ConstantMap(0.5, Display.Red));
+
+      GraphicsModeControl mode = display1.getGraphicsModeControl();
+      mode.setPointSize(2.0f);
+      mode.setPointMode(false);
+      mode.setMissingTransparent(true);
+
+      DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+      ref_imaget1.setData(imaget1);
+      display1.addReference(ref_imaget1, null);
+    }
 
     // create the SocketSlaveDisplay for automatic handling of socket clients
     SocketSlaveDisplay serv = null;
     try {
-      DisplayImpl display = (DisplayImpl) dpys[0];
       if (port > 0) {
-        serv = new SocketSlaveDisplay(display, port);
+        serv = new SocketSlaveDisplay(display1, port);
       } else {
-        serv = new SocketSlaveDisplay(display);
+        serv = new SocketSlaveDisplay(display1);
       }
     }
     catch (IOException exc) {
@@ -117,7 +162,9 @@ public class Test68
     }
   }
 
-  public String toString() { return " port: SocketSlaveDisplay"; }
+  String getFrameTitle() { return "Socket slave display server"; }
+
+  public String toString() { return " [-2d] port: SocketSlaveDisplay"; }
 
   public static void main(String[] args)
     throws RemoteException, VisADException
