@@ -211,7 +211,8 @@ public class Util
       filters.add(f2000);
 
       // Bio-Rad PIC - biorad/BioRadForm
-      FileFilter biorad = new ExtensionFileFilter("pic", "BioRad PIC images");
+      FileFilter biorad = new ExtensionFileFilter("pic",
+        "Bio-Rad PIC datasets");
       dialog.addChoosableFileFilter(biorad);
       filters.add(biorad);
 
@@ -263,7 +264,7 @@ public class Util
       dialog.addChoosableFileFilter(jpeg);
       filters.add(jpeg);
 
-      // LUT - ij/ImageJForm
+      // LUT color tables - ij/ImageJForm
       FileFilter lut = new ExtensionFileFilter("lut", "LUT data");
       dialog.addChoosableFileFilter(lut);
       filters.add(lut);
@@ -283,7 +284,7 @@ public class Util
       dialog.addChoosableFileFilter(netcdf);
       filters.add(netcdf);
 
-      // Openlab - bio/OpenlabForm
+      // Openlab LIFF - bio/OpenlabForm
       FileFilter openlab = new OpenlabFileFilter();
       dialog.addChoosableFileFilter(openlab);
       filters.add(openlab);

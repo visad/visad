@@ -467,4 +467,14 @@ public class OpenlabForm extends Form
     }
   }
 
+
+  // -- Main method --
+
+  public static void main(String[] args) throws VisADException, IOException {
+     OpenlabForm reader = new OpenlabForm();
+     System.out.println("Opening " + args[0] + "...");
+     Data d = reader.open(args[0]);
+     System.out.println(d.getType());
+  }
+
 }

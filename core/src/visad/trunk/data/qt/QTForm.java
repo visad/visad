@@ -576,6 +576,7 @@ public class QTForm extends Form
       R.exec("box = pict.getPictFrame()");
       int width = ((Integer) R.exec("box.getWidth()")).intValue();
       int height = ((Integer) R.exec("box.getHeight()")).intValue();
+      R.exec("QTSession.close()");
       return new Dimension(width, height);
     }
     catch (Exception e) {
@@ -627,6 +628,7 @@ public class QTForm extends Form
       DirectColorModel colorModel = new DirectColorModel(
         bitsPerSample, redMask, greenMask, blueMask, alphaMask);
 
+      R.exec("QTSession.close()");
       return Toolkit.getDefaultToolkit().createImage(new MemoryImageSource(
         width, height, colorModel, pixels, 0, intsPerRow));
     }

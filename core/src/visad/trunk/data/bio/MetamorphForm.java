@@ -799,17 +799,19 @@ public class MetamorphForm extends Form
 
   // -- Main method --
 
-  public static void main(String[] args) throws Exception {
-     MetamorphForm m = new MetamorphForm();
-     Hashtable blah = m.getMetadata(args[0]);
-     String key;
-     Object value;
-     Enumeration e = blah.keys();
+  public static void main(String[] args) throws VisADException, IOException {
+     MetamorphForm reader = new MetamorphForm();
+     System.out.println("Opening " + args[0] + "...");
+     Data d = reader.open(args[0]);
+     System.out.println(d.getType());
+     System.out.println();
+     System.out.println("Reading metadata pairs...");
+     Hashtable metadata = reader.getMetadata(args[0]);
+     Enumeration e = metadata.keys();
      while (e.hasMoreElements()) {
-       key = (String) e.nextElement();
-       value = blah.get(key);
+       String key = (String) e.nextElement();
+       System.out.println(key + " = " + metadata.get(key));
      }
   }
 
 }
-
