@@ -163,11 +163,6 @@ public class DumpHeader
       ps.println(indentStr + "equinox " + equinox);
     }
 
-    double epoch = hdu.getEpoch();
-    if (epoch != -1.0) {
-      ps.println(indentStr + "epoch " + epoch);
-    }
-
     String author = hdu.getAuthor();
     if (author != null) {
       ps.println(indentStr + "author " + author);
