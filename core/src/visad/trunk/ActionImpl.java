@@ -278,7 +278,7 @@ public abstract class ActionImpl
    * @param ref                 The ThingReference to create
    *                            the link to.  Must be a local
    *                            ThingReferenceImpl.  Subsequent invocation
-   *                            of <code>thingChanged(ThingChangedEvent)
+   *                            of <code>thingChanged(ThingChangedEvent)</code>
    *                            causes invocation of
    *                            <code>ref.acknowledgeThingChanged(this)</code>.
    *                            This method invokes <code>
