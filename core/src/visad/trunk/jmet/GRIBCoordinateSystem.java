@@ -29,7 +29,7 @@ import visad.*;
 import visad.data.hdfeos.*;
 import java.awt.geom.Rectangle2D;
 
-public class GRIBCoordinateSystem extends visad.MapProjection {
+public class GRIBCoordinateSystem extends visad.georef.MapProjection {
 
   private static Unit[] coordinate_system_units = {null, null};
   private static CoordinateSystem c;
