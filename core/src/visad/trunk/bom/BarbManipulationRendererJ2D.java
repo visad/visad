@@ -313,7 +313,7 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
       float[] xx = {x[0], x[1], x[2]};
       addPoint(xx);
 */
-      int n = ((RealTuple) data).getDimension();
+      int n = ((TupleType) data.getType()).getNumberOfRealComponents();
       Real[] reals = new Real[n];
       Vector vect = new Vector();
       for (int i=0; i<3; i++) {

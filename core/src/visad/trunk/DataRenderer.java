@@ -1097,9 +1097,6 @@ if (map.badRange()) {
         whyNotDirect = domainSet;
         return;
       }
-/* WLH 3 Aug 98
-      setIsDirectManipulation(true);
-*/
       if (Display.DisplaySpatialCartesianTuple.equals(tuple)) {
         tuple = null;
       }
@@ -1264,9 +1261,6 @@ if (map.badRange()) {
           (tuple != null &&
            tuple.getCoordinateSystem().getReference().equals(
            Display.DisplaySpatialCartesianTuple)) ) {
-/* WLH 3 Aug 98
-      if (Display.DisplaySpatialCartesianTuple.equals(dreal.getTuple())) {
-*/
         int index = dreal.getTupleIndex();
         if (domain) {
           domainAxis = index;
