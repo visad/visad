@@ -66,6 +66,8 @@ public class ShadowNodeFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       image.getRGB(0, 0, appearance.image_width, appearance.image_height, null,
                    0, appearance.image_width);
     ((VisADGroup) group).addChild(appearance);
+    appearance.texture_width = texture_width;
+    appearance.texture_height = texture_height;
   }
 
   public void texture3DToGroup(Object group, VisADGeometryArray arrayX,

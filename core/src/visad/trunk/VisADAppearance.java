@@ -47,6 +47,8 @@ public class VisADAppearance extends VisADSceneGraphObject {
   public int image_width = 0;
   public int image_height = 0;
   public int[] image_pixels = null;
+  public int texture_width = 0;
+  public int texture_height = 0;
 
   public VisADAppearance() {
   }
