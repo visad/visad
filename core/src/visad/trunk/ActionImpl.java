@@ -286,7 +286,7 @@ public abstract class ActionImpl
    * @throws VisADException	VisAD failure.
    * @throws RemoteException	Java RMI failure.
    * @see #thingChanged(ThingChangedEvent)
-   * @see #ThingReference.addThingChangedListener(ThingChangedListener, int)
+   * @see ThingReference#addThingChangedListener(ThingChangedListener, long)
    */
   public void addReference(ThingReference ref)
          throws VisADException, RemoteException {
