@@ -304,9 +304,9 @@ else {
                          " for nodes");
       return;
     }
-    int id = -1;
+    int pid = -1;
     try {
-      id = Integer.parseInt(args[0]);
+      pid = Integer.parseInt(args[0]);
     }
     catch (NumberFormatException e) {
       System.out.println("usage: 'java visad.cluster.TestWRFCluster " +
@@ -315,14 +315,14 @@ else {
                          " for nodes");
       return;
     }
-    if (id < 0 || id > number_of_nodes) {
+    if (pid < 0 || pid > number_of_nodes) {
       System.out.println("usage: 'java visad.cluster.TestWRFCluster " +
                          "n (file)'");
       System.out.println("  where n = 0 for client, 1 - " + number_of_nodes +
                          " for nodes");
       return;
     }
-    if (id > 0 && args.length < 2) {
+    if (pid > 0 && args.length < 2) {
       System.out.println("usage: 'java visad.cluster.TestWRFCluster " +
                          "n (file)'");
       System.out.println("  where n = 0 for client, 1 - " + number_of_nodes +
@@ -331,7 +331,7 @@ else {
     }
 
 
-    boolean client = (id == 0);
+    boolean client = (pid == 0);
 
     if (!client) {
 
@@ -436,11 +436,11 @@ for (int r=0; r<nrows; r++) {
 System.out.println("done with time step " + i);
       } // end for (int i=0; i<time_length; i++)
 
-System.out.println("id = " + id);
+System.out.println("pid = " + pid);
 
       RemoteNodeFieldImpl node_data = new RemoteNodeFieldImpl(nav_wrf);
 
-      int kk = id - 1;
+      int kk = pid - 1;
 System.out.println("kk = " + kk);
       String url = "///TestWRFCluster" + kk;
       try {
@@ -585,34 +585,6 @@ System.out.println("data type = " + nav_wrf_type);
       }
     }
     display.reDisplayAll();
-  }
-
-  private static Gridded3DSet makePS(Gridded3DSet domain_set, int node_divide)
-          throws VisADException {
-    int number_of_nodes = node_divide * node_divide;
-    int x_len = domain_set.getLength(0);
-    int y_len = domain_set.getLength(1);
-    int z_len = domain_set.getLength(2);
-    int len = domain_set.getLength();
-    float[][] samples = domain_set.getSamples(false);
-    float[][] ps_samples = new float[3][number_of_nodes];
-    for (int i=0; i<node_divide; i++) {
-      int ie = i * (x_len - 1) / (node_divide - 1);
-      for (int j=0; j<node_divide; j++) {
-        int je = j * (y_len - 1) / (node_divide - 1);
-        int k = i + node_divide * j;
-        int ke = ie + x_len * (je + y_len * (z_len / 2));
-        ps_samples[0][k] = samples[0][ke];
-        ps_samples[1][k] = samples[1][ke];
-        ps_samples[2][k] = samples[2][ke];
-      }
-    }
-    Gridded3DSet ps =
-      new Gridded3DSet(domain_set.getType(), ps_samples,
-                       node_divide, node_divide, 1,
-                       domain_set.getCoordinateSystem(),
-                       domain_set.getSetUnits(), null);
-    return ps;
   }
 
 }
