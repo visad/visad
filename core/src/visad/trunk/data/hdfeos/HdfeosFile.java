@@ -51,9 +51,12 @@ public class HdfeosFile
     n_structs = 0;
     Structs = new Vector();
 
-    if ( n_swaths > 0 )  {
-
+    if ( n_swaths > 0 )
+    {
       file_id = HdfeosLib.SWopen( filename, HdfeosLib.DFACC_READ );
+      if ( file_id < 0 ) {
+        throw new HdfeosException("SWopen:  "+file_id);
+      }
 
       String struct_name = "Swath";
       int[] hdf_id = new int[1];
@@ -62,7 +65,7 @@ public class HdfeosFile
       int stat = HdfeosLib.EHchkfid( file_id, struct_name, hdf_id, sd_id, access); 
       if ( stat < 0 ) 
       {
-        throw new HdfeosException("--cannot obtain sdInterfaceId--" );
+        throw new HdfeosException("---cannot obtain sdInterfaceId---" );
       }
 
       StringTokenizer swaths = new StringTokenizer( swath_list[0], ",", false );
@@ -78,9 +81,12 @@ public class HdfeosFile
     String[] grid_list = {"empty"};
     int n_grids = HdfeosLib.GDinqgrid( filename, grid_list );
 
-    if ( n_grids > 0 ) {
-
+    if ( n_grids > 0 ) 
+    {
       file_id = HdfeosLib.GDopen( filename, HdfeosLib.DFACC_READ );
+      if ( file_id < 0 ) {
+        throw new HdfeosException("GDopen: "+file_id);
+      }
 
       StringTokenizer grids = new StringTokenizer( grid_list[0], ",", false );
  
@@ -93,7 +99,15 @@ public class HdfeosFile
       }
     }
 
-    openedFiles.addElement( this );
+    if ( n_structs == 0 ) {
+      file_id = HdfeosLib.SWopen( filename, HdfeosLib.DFACC_READ );
+      if ( file_id < 0 ) {
+        throw new HdfeosException("can't open file: "+filename);
+      }
+    }
+    else {
+      openedFiles.addElement( this );
+    }
   }
 
   public int getNumberOfStructs() 
@@ -111,7 +125,7 @@ public class HdfeosFile
     return filename;
   }
 
-  public void closeAll()  
+  public void close()  
         throws HdfeosException 
   {
     int status = HdfeosLib.EHclose( file_id );
@@ -121,7 +135,7 @@ public class HdfeosFile
     }
   }
 
-  public static void close() 
+  public static void closeAll() 
          throws HdfeosException 
   {
     for ( Enumeration e = openedFiles.elements(); e.hasMoreElements(); ) 

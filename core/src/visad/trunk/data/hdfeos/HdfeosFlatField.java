@@ -45,8 +45,11 @@ public class HdfeosFlatField extends HdfeosData
   boolean pointStruct = false;
 
   int[] start = null;
+  int[] inv_start = null;
   int[] stride = null;
+  int[] inv_stride = null;
   int[] edge = null;
+  int[] inv_edge = null;
  
   DimensionSet rangeDimSet = null;
   DimensionSet domainDimSet = null;
@@ -113,8 +116,11 @@ public class HdfeosFlatField extends HdfeosData
       }
 
       start = new int[r_rank];
+      inv_start = new int[r_rank];
       edge = new int[r_rank];
+      inv_edge = new int[r_rank];
       stride = new int[r_rank];
+      inv_stride = new int[r_rank];
 
       for ( int ii = 0; ii < r_rank; ii++ ) {
         NamedDimension n_dim = rangeDimSet.getElement(ii);
@@ -187,12 +193,32 @@ public class HdfeosFlatField extends HdfeosData
         }
       }
 
+      if ( struct instanceof EosSwath ) { 
+        /**- invert dimension order  --*/
+        for ( int ii = 0; ii < r_rank; ii++ )
+        {
+          inv_start[ii] = start[(r_rank-1) - ii];
+          inv_edge[ii] = edge[(r_rank-1) - ii];
+          inv_stride[ii] = stride[(r_rank-1) - ii];
+        }
+      }
+      else {
+        for ( int ii = 0; ii < r_rank; ii++ )
+        {
+          inv_start[ii] = start[ii];
+          inv_edge[ii] = edge[ii];
+          inv_stride[ii] = stride[ii];
+        }
+      }
+
       FlatField f_field = new FlatField( mathtype, set );
       int n_samples = set.getLength();
       float[][] f_array = new float[n_fields][n_samples];
+
+      /**- File I/O   ---*/
       for ( int kk = 0; kk < n_fields; kk++ )
       {
-        struct.readData(name_s[kk], start, stride, edge,
+        struct.readData(name_s[kk], inv_start, inv_stride, inv_edge,
                         num_type[kk], cal[kk], f_array[kk] );
       }
 
