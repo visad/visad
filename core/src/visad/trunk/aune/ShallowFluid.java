@@ -457,6 +457,8 @@ public class ShallowFluid extends Object {
     map2cc.setRange(-40.0, 40.0);
     display2.addMap(map2cc);
  
+    GraphicsModeControl mode = display2.getGraphicsModeControl();
+    mode.setTextureEnable(false);
  
     display2.addMap(new ConstantMap(0.5f, Display.Red));
     display2.addMap(new ConstantMap(0.5f, Display.Blue));
