@@ -82,6 +82,9 @@ import HTTPClient.UncompressInputStream;
  *   compress=                 set to true if you want to use compressed
  *                             transfers.  You need to have the VisAD package
  *                             if you want to support this.
+ *   port=                     Socket port to connect on.  Overridden by
+ *                             a port specified in the host 
+ *                             (e.g., adde.ucar.edu:500)
  *
  * -------for images:
  *
@@ -176,8 +179,8 @@ public class AddeURLConnection extends URLConnection
   private final static int ERRMSG_SIZE = 72;
   private final static int ERRMSG_OFFS = 8;
   private final static int PORT = 500;
-  private final static int COMPRESS_PORT = 503;
-  private final static int GZIP_PORT= 112;
+  private final static int COMPRESS = 503;
+  private final static int GZIP = 112;
   private final static int VERSION_1 = 1;
 
   // ADDE server requests
@@ -419,7 +422,7 @@ public class AddeURLConnection extends URLConnection
     } 
     if (compType.equalsIgnoreCase("gzip")) {
 
-      compressionType = GZIP_PORT;
+      compressionType = GZIP;
 
     } else if (compType.equalsIgnoreCase("compress") ||
                compType.equalsIgnoreCase("true")) {
@@ -427,7 +430,7 @@ public class AddeURLConnection extends URLConnection
       // check to see if we can do uncompression
       try {
           Class c = Class.forName("HTTPClient.UncompressInputStream");
-          compressionType = COMPRESS_PORT;
+          compressionType = COMPRESS;
       } catch (ClassNotFoundException cnfe) {
           System.err.println(
             "Uncompression code not found, turning compression off");
@@ -440,11 +443,41 @@ public class AddeURLConnection extends URLConnection
 // now write this all to the port
 
     // first figure out which port to connect on.  This can either be
-    // one specified by the user.  The default is to use the port
-    // specified by the type of compression (or none) determined above.
+    // one specified by the user.  
+    //
+    // The priority is URL port, port=keyword, compression port (default)
 
-    portToUse = (url.getPort() == -1) 
-                   ? compressionType : url.getPort(); // DRM 03-Mar-2001
+    if (url.getPort() == -1) { // not specified as part of URL
+
+      // see if there is a port=keyword
+
+      // default to the compression type
+      portToUse = compressionType;
+      startIdx = uCmd.indexOf("port=");
+      if (startIdx > 0) {
+        String portStr;
+        endIdx = uCmd.indexOf('&', startIdx);
+        if (endIdx == -1)   // last on line
+           endIdx = uCmd.length();
+        portStr = uCmd.substring(startIdx + 5, endIdx);
+        try {
+          portToUse = Integer.parseInt(portStr);
+        } catch (NumberFormatException e) {
+            throw new AddeURLException("Invalid port number: " + portStr);
+        }
+      } 
+    } else {  // specified 
+      portToUse = url.getPort();
+    }
+
+    if (debug)  {
+      System.out.println("connecting on port " + portToUse + " using " +
+                         (compressionType == GZIP
+                             ? "gzip"
+                             : compressionType == COMPRESS
+                                 ? "compress"
+                                 : "no") + " compression.");
+    }
 
     Socket t;
     try {
@@ -545,15 +578,15 @@ public class AddeURLConnection extends URLConnection
 
     if (numBinaryBytes > 0) dos.write(binaryData, 0, numBinaryBytes);
 
-    is = (compressionType == GZIP_PORT) 
+    is = (compressionType == GZIP) 
         ? new GZIPInputStream(t.getInputStream())
-        : (compressionType == COMPRESS_PORT)
+        : (compressionType == COMPRESS)
             ? new UncompressInputStream(t.getInputStream())
             : t.getInputStream();
     dis = new DataInputStream(is);
-    if (debug && (compressionType != PORT) ) {
+    if (debug && (compressionType != portToUse) ) {
         System.out.println("Compression is turned ON using " +
-                            ((compressionType == GZIP_PORT)?"GZIP":"compress"));
+                            ((compressionType == GZIP)?"GZIP":"compress"));
     }
 
     // get response from server, byte count coming back
