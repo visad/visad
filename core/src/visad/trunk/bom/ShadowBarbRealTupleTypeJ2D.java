@@ -325,7 +325,7 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
       barb = 0.4f * scale;
       x0 = f0 / wnd_spd;
       y0 = f1 / wnd_spd;
- 
+
       //plot the flag pole
       // lengthen to 'd = 3.0f * barb'
       // was 'd = barb' in original BOM code
