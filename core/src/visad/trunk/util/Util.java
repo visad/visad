@@ -347,6 +347,11 @@ public class Util
       dialog.addChoosableFileFilter(zip);
       filters.add(zip);
 
+      // Zeiss ZVI - bio/ZVIForm
+      FileFilter zvi = new ExtensionFileFilter("zvi", "Zeiss ZVI images");
+      dialog.addChoosableFileFilter(zvi);
+      filters.add(zvi);
+
       // DEM files - DEM family
       FileFilter dem = new ExtensionFileFilter(
         "dem", "DEM data");
