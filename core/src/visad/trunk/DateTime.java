@@ -447,8 +447,7 @@ DateTime
      *                have one entry.
      *
      * @return Gridded1DDouble set representing the array
-     * @throws VisADException  array is null or has only one element or
-     *                         couldn't create the GriddedDoubleSet
+     * @throws VisADException  couldn't create the GriddedDoubleSet
      */
     public static Gridded1DDoubleSet makeTimeSet(DateTime[] times)
         throws VisADException
@@ -468,8 +467,7 @@ DateTime
      *                cannot be null or only have one entry.
      *
      * @return set representing the array as a Gridded1DDoubleSet
-     * @throws VisADException  array is null or has only one element or
-     *                         couldn't create the GriddedDoubleSet
+     * @throws VisADException  couldn't create the GriddedDoubleSet
      */
     public static Gridded1DDoubleSet makeTimeSet(double[] times)
         throws VisADException
@@ -481,9 +479,9 @@ DateTime
     }
 
     /**
-     * Create an array of DateTimes from a Gridded1DDoubleSet of times.
+     * Create an array of DateTimes from a Gridded1DSet of times.
      *
-     * @param  timeSet   Gridded1DDoubleSet of times
+     * @param  timeSet   Gridded1DSet of times
      *
      * @throws VisADException  invalid time set or couldn't create DateTimes
      */
