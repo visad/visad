@@ -97,8 +97,8 @@ public class GctpMap
            // error?
         }
 
-     /* coord_sys = new LambertAzimuthalEqualArea( Reference, radius[0], center_long[0],
-                                             center_lat[0], false_easting, false_northing ); */
+        coord_sys = new LambertAzimuthalEqualArea( Reference, radius[0], center_long[0],
+                                             center_lat[0], false_easting, false_northing );
 
       case GctpFunction.PS:
 
@@ -112,11 +112,11 @@ public class GctpMap
         }
 
 
-   /*   coord_sys = new PolarStereographic( Reference, r_major.doubleValue(),
-                                                       r_minor.doubleValue(), 
-                                                       center_long.doubleValue(),
-                                                       lat_1.doubleValue(),
-                                                       false_easting, false_northing );*/
+        coord_sys = new PolarStereographic( Reference, r_major[0],
+                                                       r_minor[0],
+                                                       center_long[0],
+                                                       lat_1[0],
+                                                       false_easting, false_northing );
 
       case GctpFunction.LAMCC:
 
