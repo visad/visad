@@ -235,16 +235,15 @@ public class Util
    * @return true if found, otherwise false
    */
   public static boolean canDoJPEG() {
-    /* DRM 04-APR-2001
-    boolean success = false;
-    try {
-      Class c = Class.forName("com.sun.image.codec.jpeg.JPEGCodec");
-      success = true;
-    }
-    catch (ClassNotFoundException exc) { }
-    return success;
-    */
-    return (canDoClass("com.sun.image.codec.jpeg.JPEGCodec") != null);
+    return canDoClass("com.sun.image.codec.jpeg.JPEGCodec") != null;
+  }
+
+  /**
+   * Test whether Java Advanced Imaging is present in this JVM.
+   * @return true if found, otherwise false
+   */
+  public static boolean canDoJAI() {
+    return canDoClass("javax.media.jai.JAI") != null;
   }
 
   /**
@@ -252,20 +251,19 @@ public class Util
    * @return true if found, otherwise false
    */
   public static boolean canDoPython() {
-    /* DRM 04-APR-2001
-    boolean success = false;
-    try {
-      Class c = Class.forName("org.python.util.PythonInterpreter");
-      success = true;
-    }
-    catch (ClassNotFoundException exc) { }
-    return success;
-    */
-    return (canDoClass("org.python.util.PythonInterpreter") != null);
+    return canDoClass("org.python.util.PythonInterpreter") != null;
   }
 
   /**
-   * Test whether Java 3D is present
+   * Test whether QuickTime for Java is present in this JVM.
+   * @return true if found, otherwise false
+   */
+  public static boolean canDoQuickTime() {
+    return canDoClass("quicktime.QTSession") != null;
+  }
+
+  /**
+   * Test whether Java 3D is present in this JVM.
    * @return true if found, otherwise false
    */
   public static boolean canDoJava3D() {
