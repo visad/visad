@@ -28,6 +28,11 @@ public class ExceptionStack
     vec.addElement(e);
   }
 
+  public int depth()
+  {
+    return vec.size();
+  }
+
   public Enumeration exceptions()
   {
     return vec.elements();
