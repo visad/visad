@@ -132,7 +132,7 @@ public class GridVariableAdapter
     /**
      * Returns the VisAD {@link Set}s that will be used to represent
      * this instances data values in the range of a VisAD {@link
-     * visad.data.FlatField}.
+     * visad.data.FileFlatField}.
      *
      * @param copy		If true, then the array is cloned.
      * @return			The VisAD Sets used to represent the data values
