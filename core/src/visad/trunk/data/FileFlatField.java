@@ -1,4 +1,4 @@
-//
+
 // FileFlatField.java
 //
 
@@ -36,7 +36,7 @@ public class FileFlatField extends FlatField {
  
   // number of FlatFields in cache
 
-       private static final int MAX_FILE_FLAT_FIELDS = 7;
+       private static final int MAX_FILE_FLAT_FIELDS = 10;
 
   // array of cached FlatFields
 
@@ -117,7 +117,6 @@ public class FileFlatField extends FlatField {
   }
  
   private FlatField getadaptedFlatField()
-    throws VisADException, RemoteException
   {
     // does not lock adaptedFlatFields since it is always
     // invoked from methods that have locked adaptedFlatFields
@@ -146,15 +145,33 @@ public class FileFlatField extends FlatField {
  
         // flush cache entry, if dirty
 
-        if (adaptedFlatFieldDirty[adaptedFlatFieldIndex]) {
-          adaptedFlatFieldOwner[adaptedFlatFieldIndex].flushCache();
+        if (adaptedFlatFieldDirty[adaptedFlatFieldIndex]) 
+        {
+          try
+          {
+             adaptedFlatFieldOwner[adaptedFlatFieldIndex].flushCache();
+          }
+          catch ( VisADException e )
+          {
+            System.out.println( e.getMessage() );
+          }
         }
  
         // create a new entry in adaptedFlatFields at adaptedFlatFieldIndex
         // and read data values from fileAccessor at fileLocation
+        try
+        {
+           adaptedFlatFields[adaptedFlatFieldIndex] = fileAccessor.getFlatField();
+        }
+        catch ( VisADException e1 )
+        {
+          System.out.println( e1.getMessage() );
+        }
+        catch ( RemoteException e2 )
+        {
+          System.out.println( e2.getMessage() );
+        }
 
-          adaptedFlatFields[adaptedFlatFieldIndex] = fileAccessor.getFlatField();
- 
         // mark cache entry as belonging to this FileFlatField
 
           adaptedFlatFieldOwner[adaptedFlatFieldIndex] = this;
@@ -192,56 +209,86 @@ public class FileFlatField extends FlatField {
   //
 
   public Data getSample(int index)
-         throws VisADException, RemoteException {
-    synchronized (adaptedFlatFields) {
+         throws VisADException, RemoteException 
+  {
+    synchronized (adaptedFlatFields) 
+    {
       return getadaptedFlatField().getSample(index);
     }
+  }
+
+  public int getLength() 
+  {
+     synchronized (adaptedFlatFields) 
+     {
+       return getadaptedFlatField().getLength();
+     }
+  }
+
+  public Unit[] getDomainUnits()
+  {
+     synchronized (adaptedFlatFields)
+     {
+       return getadaptedFlatField().getDomainUnits();
+     }
+  }
+
+  public CoordinateSystem getDomainCoordinateSystem()
+  {
+     synchronized (adaptedFlatFields)
+     {
+       return getadaptedFlatField().getDomainCoordinateSystem();
+     }
+  }
+
+  public CoordinateSystem[] getRangeCoordinateSystem()
+         throws VisADException
+  {
+     synchronized (adaptedFlatFields)
+     {
+       return getadaptedFlatField().getRangeCoordinateSystem();
+     }
+  }
+
+  public CoordinateSystem[] getRangeCoordinateSystem( int component )
+         throws VisADException
+  { 
+     synchronized (adaptedFlatFields)
+     {
+       return getadaptedFlatField().getRangeCoordinateSystem( component );
+     }
+  }
+
+  public Unit[][] getRangeUnits()
+  {
+     synchronized (adaptedFlatFields)
+     {
+       return getadaptedFlatField().getRangeUnits();
+     }
+  }
+
+  public Unit[] getDefaultRangeUnits()
+  {
+     synchronized (adaptedFlatFields)
+     {
+       return getadaptedFlatField().getDefaultRangeUnits();
+     }
   }
 
   public double[][] getValues()
          throws VisADException
   {
-    double[][] values = null;
-
     synchronized (adaptedFlatFields) 
     {
-      try 
-      {
-        values = getadaptedFlatField().getValues();
-      }
-      catch ( RemoteException e )
-      {
-        System.out.println( e.getMessage() );
-      }
-      finally 
-      {
-        return values;
-      }
+      return getadaptedFlatField().getValues();
     }
   } 
 
   public Set getDomainSet() 
   {
-    Set set = null;
-
     synchronized ( adaptedFlatFields ) 
     {
-      try 
-      {
-        set = getadaptedFlatField().getDomainSet();
-      }
-      catch( VisADException e1 ) 
-      {
-        System.out.println( e1.getMessage() );
-      }
-      catch( RemoteException e2 ) 
-      {
-        System.out.println( e2.getMessage() );
-      }
-      finally
-      {
-        return set;
-      }
+      return getadaptedFlatField().getDomainSet();
     }
   }
  
@@ -252,6 +299,110 @@ public class FileFlatField extends FlatField {
     synchronized (adaptedFlatFields) {
       getadaptedFlatField().setSample(index, range);
       adaptedFlatFieldDirty[adaptedFlatFieldIndex] = true;
+    }
+  }
+
+  public void setSample( RealTuple domain, Data range )
+         throws VisADException, RemoteException 
+  {
+    synchronized (adaptedFlatFields) 
+    {
+      getadaptedFlatField().setSample( domain, range );
+      adaptedFlatFieldDirty[adaptedFlatFieldIndex] = true;
+    }
+  }
+
+  public void setSample( int index, Data range, boolean copy )
+         throws VisADException, RemoteException 
+  {
+    synchronized (adaptedFlatFields)
+    {
+      getadaptedFlatField().setSample( index, range, copy );
+      adaptedFlatFieldDirty[adaptedFlatFieldIndex] = true;
+    }
+  }
+
+  public boolean isMissing()
+  {
+    synchronized (adaptedFlatFields)
+    {
+      return getadaptedFlatField().isMissing();
+    }
+  }
+
+  public Data binary( Data data, int op, int sampling_mode, int error_mode )
+         throws VisADException, RemoteException
+  {
+    synchronized (adaptedFlatFields)
+    {
+      return getadaptedFlatField().binary( data, op, sampling_mode, error_mode);
+    }
+  }
+
+  public Data unary( int op, int sampling_mode, int error_mode )
+         throws VisADException
+  {
+    synchronized (adaptedFlatFields)
+    {
+      return getadaptedFlatField().unary( op, sampling_mode, error_mode );
+    }
+  }
+
+  public void combine( Field[] fields)
+         throws VisADException, RemoteException
+  {
+    synchronized (adaptedFlatFields)
+    {
+      getadaptedFlatField().combine( fields );
+    }
+  }
+
+  public Field extract( int component )
+         throws VisADException
+  {
+    synchronized (adaptedFlatFields)
+    {
+      return getadaptedFlatField().extract( component );
+    }
+  }
+
+  public Field resample( Set set, int sampling_mode, int error_mode )
+         throws VisADException, RemoteException 
+  {
+    synchronized (adaptedFlatFields)
+    {
+      return getadaptedFlatField().resample( set, sampling_mode, error_mode );
+    }
+  }
+
+  public DataShadow computeRanges(ShadowType type, DataShadow shadow)
+         throws VisADException
+  {
+    synchronized (adaptedFlatFields)
+    {
+      return getadaptedFlatField().computeRanges( type, shadow );
+    }
+  }
+
+  public Data adjustSamplingError( Data error, int error_mode )
+         throws VisADException, RemoteException 
+  {
+     synchronized (adaptedFlatFields)
+     {
+       return getadaptedFlatField().adjustSamplingError( error, error_mode );
+     }
+  }
+
+  public boolean isFlatField() 
+  {
+     return true;
+  }
+
+  public Object clone() 
+  {
+    synchronized (adaptedFlatFields )
+    {
+      return getadaptedFlatField().clone();
     }
   }
 }
