@@ -1093,6 +1093,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
     }
 
+    // hack to avoid race condition that sets mappings incorrectly
+    try {
+      Thread.sleep(200);
+    }
+    catch (InterruptedException exc) { }
+
     // re-enable auto-detect and auto-show if necessary
     setAutoDetect(autoD);
     setAutoShowControls(autoSC);

@@ -1003,12 +1003,32 @@ public class BasicSSCell extends JPanel {
     // set up mappings
     int len = dnames.size();
     if (len > 0) {
+      // get Vector of all ScalarTypes in this data object
+      Vector types = new Vector();
+      Data data = getData();
+      if (data != null) getRealTypes(getData(), types);
+      int vLen = types.size();
+
+      // construct ScalarMaps
       ScalarMap[] maps = new ScalarMap[len];
       for (int j=0; j<len; j++) {
-        ScalarType domain = ScalarType.getScalarTypeByName(
-                            (String) dnames.elementAt(j));
+        // find appropriate ScalarType
+        ScalarType domain = null;
+        String name = (String) dnames.elementAt(j);
+        for (int k=0; k<vLen && domain==null; k++) {
+          ScalarType type = (ScalarType) types.elementAt(k);
+          if (name.equals(type.getName())) domain = type;
+        }
+        if (domain == null) {
+          // still haven't found type; look in static Vector for it
+          domain = ScalarType.getScalarTypeByName(name);
+        }
+
+        // find appropriate DisplayRealType
         int q = ((Integer) rnames.elementAt(j)).intValue();
         DisplayRealType range = Display.DisplayRealArray[q];
+
+        // construct mapping
         maps[j] = new ScalarMap(domain, range);
       }
       setMaps(maps);
