@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ArrowSlider.java,v 1.16 2000-04-25 17:51:25 billh Exp $
+@(#) $Id: ArrowSlider.java,v 1.17 2000-10-09 19:12:11 donm Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -39,7 +39,7 @@ import java.awt.event.WindowEvent;
  * A pointer slider for visad .
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.16 $, $Date: 2000-04-25 17:51:25 $
+ * @version $Revision: 1.17 $, $Date: 2000-10-09 19:12:11 $
  * @since Visad Utility Library v0.7.1
  */
 
@@ -111,7 +111,7 @@ public class ArrowSlider extends Slider implements MouseListener, MouseMotionLis
 
     ArrowSlider a = new ArrowSlider();
 
-    frame.add(a);
+    frame.getContentPane().add(a);
 
     frame.setSize(a.getPreferredSize());
     frame.setVisible(true);
