@@ -495,7 +495,7 @@ DateTime
         double[][] values;
         if (!unit.equals(CommonUnit.secondsSinceTheEpoch)) 
             values = Unit.convertTuple(timeSet.getDoubles(), new Unit[] {unit},
-                              new Unit[] {CommonUnit.secondsSinceTheEpoch});
+                              new Unit[] {CommonUnit.secondsSinceTheEpoch}, false);
         else
             values = timeSet.getDoubles();
         DateTime[] times = new DateTime[timeSet.getLength()];
