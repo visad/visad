@@ -120,17 +120,12 @@ public class PlotText extends Object {
   /**
      render_label
      Draw a 3-D text label.
-     Input:  win - the window to render in
-             axis - 0 (x), 1 (y), or 2 (z)
+     Input:  axis - 0 (x), 1 (y), or 2 (z)
              pos - position along label to put label in [-1,1]
              str - the text string to print.
              line - line number (0 = first line)
              c - color
   */
-/* WLH 20 Feb 98
-  public static VisADLineArray render_label(int axis, double pos, String str,
-                                            int line, long c, int COORDINATES) {
-*/
   public static VisADLineArray render_label(int axis, double pos, String str,
                                             int line, long c) {
     double XMIN = -1.0;
@@ -167,18 +162,11 @@ public class PlotText extends Object {
       start[1] = YMIN * (1.1 + 0.07*line);
       start[2] = pos;
     }
-/* WLH 20 Feb 98
-    return render_label(str, start, base, up, true, COORDINATES);
-*/
     return render_label(str, start, base, up, true);
   }
 
   /** plot str in 3-D, at start, x along base and y along up,
       center str at start if center is true */
-/* WLH 20 Feb 98
-  public static VisADLineArray render_label(String str, double[] start,
-         double[] base, double[] up, boolean center, int COORDINATES) {
-*/
   public static VisADLineArray render_label(String str, double[] start,
          double[] base, double[] up, boolean center) {
     double[] temp;
@@ -279,7 +267,6 @@ public class PlotText extends Object {
 */
           plot_index += 3;
         }
-        // polyline( win, plot, v2, c, 0 );
 /*
         for (j=v2; j<verts[k]; j++) {
           double x, y;
@@ -299,7 +286,6 @@ public class PlotText extends Object {
           plot_index += 3;
         }
 */
-        // polyline( win, plot, v2, c, 0 );
       }
       else {
         for (j=0; j<verts[k]; j++) {
@@ -319,7 +305,6 @@ public class PlotText extends Object {
           }
           plot_index += 3;
         }
-        // polyline( win, plot, verts[k], c, 0 );
       }
       /* calculate position for next char */
       cx += width[k] * base[0];
