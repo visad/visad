@@ -1768,15 +1768,16 @@ public class BasicSSCell extends JPanel
           if (DEBUG) warn("data #" + i + " is null; cannot analyze MathType");
         }
         else if (Possible3D) {
-          if (data instanceof FieldImpl &&
-            ((FieldImpl) data).getDomainSet().getManifoldDimension() == 2)
-          {
-            MathType type = data.getType();
-            try {
-              ok = ImageRendererJ3D.isRendererUsable(type, maps);
-            }
-            catch (VisADException exc) {
-              if (DEBUG && DEBUG_LEVEL >= 3) exc.printStackTrace();
+          if (data instanceof FieldImpl) {
+            visad.Set set = ((FieldImpl) data).getDomainSet();
+            if (set instanceof GriddedSet && set.getManifoldDimension() == 2) {
+              MathType type = data.getType();
+              try {
+                ok = ImageRendererJ3D.isRendererUsable(type, maps);
+              }
+              catch (VisADException exc) {
+                if (DEBUG && DEBUG_LEVEL >= 3) exc.printStackTrace();
+              }
             }
           }
         }
