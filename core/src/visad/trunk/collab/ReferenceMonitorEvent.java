@@ -112,6 +112,7 @@ public class ReferenceMonitorEvent
     ReferenceMonitorEvent evt;
     try {
       evt = new ReferenceMonitorEvent(getType(), getOriginator(), link);
+      evt.seqNum = seqNum;
     } catch (VisADException e) {
       evt = null;
     }

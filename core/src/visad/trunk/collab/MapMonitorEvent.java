@@ -121,7 +121,9 @@ public class MapMonitorEvent
     MapMonitorEvent evt;
     try {
       evt = new MapMonitorEvent(getType(), getOriginator(),
-                             (map == null ? null : (ScalarMap )map.clone()));
+                                (map == null ? null :
+                                 (ScalarMap )map.clone()));
+      evt.seqNum = seqNum;
     } catch (VisADException e) {
       evt = null;
     }

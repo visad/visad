@@ -112,6 +112,7 @@ public class ControlMonitorEvent
     try {
       evt = new ControlMonitorEvent(getType(), getOriginator(),
                                     (Control )ctl.clone());
+      evt.seqNum = seqNum;
     } catch (VisADException e) {
       evt = null;
     }
