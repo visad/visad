@@ -115,16 +115,16 @@ public class BaseMapAdapter {
                               float lonmax) {
     latMin = (latmin == Float.NaN) 
                 ? -900000
-                : McIDASUtil.mcDoubleToPackedInteger( (double) latmin);
+                : (int) (latmin * 10000.f);
     latMax = (latmax == Float.NaN) 
                 ? 900000
-                : McIDASUtil.mcDoubleToPackedInteger( (double) latmax);
+                : (int) (latmax * 10000.f);
     lonMin = (lonmin == Float.NaN) 
                 ? -1800000
-                : McIDASUtil.mcDoubleToPackedInteger( (double) lonmin);
+                : (int) (lonmin * 10000.f);
     lonMax = (lonmax == Float.NaN) 
                 ? 1800000
-                : McIDASUtil.mcDoubleToPackedInteger( (double) lonmax);
+                : (int) (lonmax * 10000.f);
     //System.out.println("Lat min/max = "+latMin+" "+latMax);
     //System.out.println("Lon min/max = "+lonMin+" "+lonMax);
     return;
@@ -156,6 +156,7 @@ public class BaseMapAdapter {
       ylast = (int) ((Linear2DSet) domainSet).getY().getLast();
 
       /*
+      System.out.println("ylast="+ylast);
       System.out.println("coordMathType="+coordMathType);
       System.out.println("cs="+cs);
       System.out.println("numEles="+numEles);
@@ -163,7 +164,6 @@ public class BaseMapAdapter {
       System.out.println("xfirst="+xfirst);
       System.out.println("xlast="+xlast);
       System.out.println("yfirst="+yfirst);
-      System.out.println("ylast="+ylast);
       */
 
       computeLimits();
@@ -186,8 +186,8 @@ public class BaseMapAdapter {
     this.numLines = numLines;
     this.cs = cs;
     coordMathType = domain;
-    xlast = numEles;
-    ylast = numLines;
+    xlast = numEles - 1;
+    ylast = numLines - 1;
 
     computeLimits();
   }
@@ -227,12 +227,12 @@ public class BaseMapAdapter {
       if (Float.isNaN(latlon[1][3])) latlon[1][3] = -180.f;
 
 
-    /* 
+      /* 
       for (int i=0; i<4; i++) {
         System.out.println("Point "+i+"  Line/Ele="+linele[0][i]+" "+
           linele[1][i]+" Lat/long="+ latlon[0][i]+" "+latlon[1][i]);
       }
-     */
+      */
 
       setLatLonLimits(
 
@@ -345,8 +345,8 @@ public class BaseMapAdapter {
         lalo[1][i] = (float) lon/10000.f;
         if (isEastPositive) {
           lalo[1][i] = -lalo[1][i];
-          if (lalo[1][i] < 0.0 && lalo[1][i] < dLonMin && lonMax > 1800000) 
-	    lalo[1][i] = 360.f+lalo[1][i];
+          if (lalo[1][i] < 0.0 && lalo[1][i] < dLonMin && lonMax > 1800000)
+              lalo[1][i] = 360.f+lalo[1][i];
         }
       }
     } catch (IOException e) {
@@ -369,7 +369,7 @@ public class BaseMapAdapter {
   public UnionSet getData() {
 
     UnionSet maplines=null;
-    DataReference maplines_ref;
+    //DataReference maplines_ref;
     Gridded2DSet gs;
     RealType x,y;
 
