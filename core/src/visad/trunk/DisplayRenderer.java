@@ -498,7 +498,10 @@ public abstract class DisplayRenderer
             }
             String valueString = r.toValueString();
 
-            String s = real.getName() + " = " + valueString;
+            // WLH 27 Oct 2000
+            String s = map.getScalarName() + " = " + valueString;
+            // String s = real.getName() + " = " + valueString;
+
             cursorStringVector.addElement(s);
           } // end if (tuple != null && ...)
         }
