@@ -107,6 +107,10 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   // WLH 16 March 99
   private MouseBehavior mouse = null;
 
+  // objects which monitor and synchronize with remote displays
+  private DisplayMonitor displayMonitor = null;
+  private DisplaySync displaySync = null;
+
   /** constructor with non-default DisplayRenderer */
   public DisplayImpl(String name, DisplayRenderer renderer)
          throws VisADException, RemoteException {
@@ -122,6 +126,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       displayRenderer = getDefaultDisplayRenderer();
     }
     displayRenderer.setDisplay(this);
+
+    displayMonitor = new DisplayMonitorImpl(this);
+    displaySync = new DisplaySyncImpl(this);
 
     // initialize ScalarMap's, ShadowDisplayReal's and Control's
     clearMaps();
@@ -149,6 +156,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       }
     }
     displayRenderer.setDisplay(this);
+
+    displayMonitor = new DisplayMonitorImpl(this);
+    displaySync = new DisplaySyncImpl(this);
 
     // initialize ScalarMap's, ShadowDisplayReal's and Control's
     clearMaps();
@@ -349,11 +359,19 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
   // suck in any remote data associated with this Display
   protected void syncRemoteData(RemoteDisplay rmtDpy)
+    throws VisADException, RemoteException
   {
     copyScalarMaps(rmtDpy);
     copyConstantMaps(rmtDpy);
     copyGraphicsModeControl(rmtDpy);
     copyRefLinks(rmtDpy);
+
+    notifyAction();
+    waitForTasks();
+
+    // only add remote display as listener *after* we've synced
+    displayMonitor.addRemoteListener(rmtDpy);
+    displayMonitor.syncControls();
   }
 
   /** RemoteDisplayImpl to this for use with
@@ -1035,6 +1053,9 @@ if (initialize) {
       } // end !(map instanceof ConstantMap)
       addDisplayScalar(map);
       notifyListeners(new DisplayMapEvent(this, DisplayEvent.MAP_ADDED, map));
+
+      // make sure we monitor all changes to this ScalarMap
+      map.addScalarMapListener(displayMonitor);
     }
   }
 
@@ -1077,12 +1098,15 @@ if (initialize) {
         throw new DisplayException("DisplayImpl.clearMaps: RendererVector " +
                                    "must be empty");
       }
+
       Enumeration maps;
+
       synchronized (MapVector) {
         maps = MapVector.elements();
         while(maps.hasMoreElements()) {
           ScalarMap map = (ScalarMap) maps.nextElement();
           map.nullDisplay();
+          map.removeScalarMapListener(displayMonitor);
         }
         MapVector.removeAllElements();
         needWidgetRefresh = true;
@@ -1092,6 +1116,7 @@ if (initialize) {
         while(maps.hasMoreElements()) {
           ConstantMap map = (ConstantMap) maps.nextElement();
           map.nullDisplay();
+          map.removeScalarMapListener(displayMonitor);
         }
         ConstantMapVector.removeAllElements();
       }
@@ -1100,6 +1125,11 @@ if (initialize) {
 
       synchronized (ControlVector) {
         // clear Control-s associated with this Display
+        maps = ControlVector.elements();
+        while(maps.hasMoreElements()) {
+          Control ctl = (Control )maps.nextElement();
+          ctl.removeControlListener((ControlListener )displayMonitor);
+        }
         ControlVector.removeAllElements();
         // one each GraphicsModeControl and ProjectionControl always exists
         Control control = (Control) getGraphicsModeControl();
@@ -1135,6 +1165,7 @@ if (initialize) {
     if (control != null && !ControlVector.contains(control)) {
       ControlVector.addElement(control);
       control.setIndex(ControlVector.indexOf(control));
+      control.addControlListener((ControlListener )displayMonitor);
     }
   }
 
@@ -1323,6 +1354,24 @@ if (initialize) {
 	throws VisADException
   {
     throw new VisADException("No API specified");
+  }
+
+  /**
+   * Returns the <CODE>DisplayMonitor</CODE> associated with this
+   * <CODE>Display</CODE>.
+   */
+  public DisplayMonitor getDisplayMonitor()
+  {
+    return displayMonitor;
+  }
+
+  /**
+   * Returns the <CODE>DisplaySync</CODE> associated with this
+   * <CODE>Display</CODE>.
+   */
+  public DisplaySync getDisplaySync()
+  {
+    return displaySync;
   }
 
   public void setMouseBehavior(MouseBehavior m) {

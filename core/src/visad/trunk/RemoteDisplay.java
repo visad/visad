@@ -59,5 +59,10 @@ public interface RemoteDisplay extends Remote, Display {
   void sendMouseEvent(MouseEvent e) throws VisADException, RemoteException;
   /* CTR 5 Oct 1999 - end code for slaved displays */
 
+  RemoteDisplayMonitor getRemoteDisplayMonitor()
+        throws RemoteException;
+  DisplaySync getDisplaySync()
+        throws RemoteException;
+  RemoteDisplaySync getRemoteDisplaySync()
+        throws RemoteException;
 }
-

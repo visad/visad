@@ -342,4 +342,32 @@ public class RemoteDisplayImpl extends RemoteActionImpl
     return links;
   }
 
+  public RemoteDisplayMonitor getRemoteDisplayMonitor()
+        throws RemoteException
+  {
+    DisplayMonitor dpyMon = ((DisplayImpl )AdaptedAction).getDisplayMonitor();
+    return new RemoteDisplayMonitorImpl((DisplayMonitorImpl )dpyMon);
+  }
+
+  /**
+   * Returns a remotely-usable wrapper for the associated Display's
+   * synchronization object.
+   *
+   */
+  public DisplaySync getDisplaySync()
+        throws RemoteException
+  {
+    return ((DisplayImpl )AdaptedAction).getDisplaySync();
+  }
+
+  /**
+   * Returns a remotely-usable wrapper for the associated Display's
+   * synchronization object.
+   */
+  public RemoteDisplaySync getRemoteDisplaySync()
+        throws RemoteException
+  {
+    DisplaySync dpySync = ((DisplayImpl )AdaptedAction).getDisplaySync();
+    return new RemoteDisplaySyncImpl((DisplaySyncImpl )dpySync);
+  }
 }
