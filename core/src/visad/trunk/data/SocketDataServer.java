@@ -90,7 +90,7 @@ public class SocketDataServer {
               outs.add(out);
 
               // send the current data to the client
-              Data data = ref.getData();
+              Data data = SocketDataServer.this.ref.getData();
               out.writeObject(data);
             }
           }
@@ -109,7 +109,7 @@ public class SocketDataServer {
     {
       // send new data to each client using its socket
       synchronized (sockets) {
-        Data data = ref.getData();
+        Data data = SocketDataServer.this.ref.getData();
         int i = 0;
         while (i < sockets.size()) {
           Socket s = (Socket) sockets.elementAt(i);
