@@ -31,5 +31,11 @@ package visad;
 */
 public class VisADQuadArray extends VisADGeometryArray {
 
+  public Object clone() {
+    VisADQuadArray array = new VisADQuadArray();
+    copy(array);
+    return array;
+  }
+
 }
 

@@ -93,5 +93,22 @@ public class VisADIndexedTriangleStripArray extends VisADGeometryArray {
     return string;
   }
 
+  public Object clone() {
+    VisADIndexedTriangleStripArray array =
+      new VisADIndexedTriangleStripArray();
+    copy(array);
+    array.indexCount = indexCount;
+    if (stripVertexCounts != null) {
+      array.stripVertexCounts = new int[stripVertexCounts.length];
+      System.arraycopy(stripVertexCounts, 0, array.stripVertexCounts, 0,
+                       stripVertexCounts.length);
+    }
+    if (indices != null) {
+      array.indices = new int[indices.length];
+      System.arraycopy(indices, 0, array.indices, 0, indices.length);
+    }
+    return array;
+  }
+
 }
 

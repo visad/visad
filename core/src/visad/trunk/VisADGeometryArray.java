@@ -29,7 +29,8 @@ package visad;
    VisADGeometryArray stands in for j3d.GeometryArray
    and is Serializable.<P>
 */
-public class VisADGeometryArray extends VisADSceneGraphObject {
+public abstract class VisADGeometryArray extends VisADSceneGraphObject
+       implements Cloneable {
 
   public int vertexCount;
   public int vertexFormat;
@@ -137,6 +138,33 @@ public class VisADGeometryArray extends VisADSceneGraphObject {
     for (int i=0; i<value.length; i++) string = string + " " + value[i];
     return string;
   }
+
+  public void copy(VisADGeometryArray array) {
+    array.vertexCount = vertexCount;
+    array.vertexFormat = vertexFormat;
+    if (coordinates != null) {
+      array.coordinates = new float[coordinates.length];
+      System.arraycopy(coordinates, 0, array.coordinates, 0,
+                       coordinates.length);
+    }
+    if (normals != null) {
+      array.normals = new float[normals.length];
+      System.arraycopy(normals, 0, array.normals, 0,
+                       normals.length);
+    }
+    if (colors != null) {
+      array.colors = new float[colors.length];
+      System.arraycopy(colors, 0, array.colors, 0,
+                       colors.length);
+    }
+    if (texCoords != null) {
+      array.texCoords = new float[texCoords.length];
+      System.arraycopy(texCoords, 0, array.texCoords, 0,
+                       texCoords.length);
+    }
+  }
+
+  public abstract Object clone();
 
 }
 

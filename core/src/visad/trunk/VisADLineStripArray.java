@@ -60,5 +60,16 @@ public class VisADLineStripArray extends VisADGeometryArray {
     return array;
   }
 
+  public Object clone() {
+    VisADLineStripArray array = new VisADLineStripArray();
+    copy(array);
+    if (stripVertexCounts != null) {
+      array.stripVertexCounts = new int[stripVertexCounts.length];
+      System.arraycopy(stripVertexCounts, 0, array.stripVertexCounts, 0,
+                       stripVertexCounts.length);
+    }
+    return array;
+  }
+
 }
 

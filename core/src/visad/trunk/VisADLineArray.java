@@ -74,5 +74,11 @@ public class VisADLineArray extends VisADGeometryArray {
     return array;
   }
 
+  public Object clone() {
+    VisADLineArray array = new VisADLineArray();
+    copy(array);
+    return array;
+  }
+
 }
 

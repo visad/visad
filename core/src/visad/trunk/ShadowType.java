@@ -83,7 +83,8 @@ public abstract class ShadowType extends Object
   /** possible values for Dtype */
   static final int D0 = 0; // (Unmapped)*
   static final int D1 = 1; // allSpatial + (SpatialOffset, IsoContour, Flow,
-                           // Text, Color, Alpha, Range, Unmapped)*
+                           // Text, Shape, ShapeScale, Color, Alpha, Range,
+                           // Unmapped)*
   static final int D2 = 2; // (SpatialOffset, Spatial, Color, Alpha,
                            //  Range, Unmapped)*
   static final int D3 = 3; // (Color, Alpha, Range, Unmapped)*
@@ -94,10 +95,11 @@ public abstract class ShadowType extends Object
   static final int R1 = 1; // (Color, Alpha, Range, Unmapped)*
   static final int R2 = 2; // (Spatial, SpatialOffset,  Color, Alpha,
                            //  Range, Unmapped)*
-  static final int R3 = 3; // (IsoContour, Flow, Text, Color, Alpha, Range,
-                           //  Unmapped)*
+  static final int R3 = 3; // (IsoContour, Flow, Text, Shape, ShapeScale Color,
+                           //  Alpha, Range, Unmapped)*
   static final int R4 = 4; // (Spatial, SpatialOffset, IsoContour, Flow,
-                           //  Text, Color, Alpha, Range, Unmapped)*
+                           //  Text, Shape, ShapeScale, Color, Alpha, Range,
+                           //  Unmapped)*
   static final int Rbad = 5;
 
   /** spatial DisplayTupleType at terminal nodes */
@@ -329,6 +331,8 @@ public abstract class ShadowType extends Object
           real.equals(Display.Animation) ||
           real.equals(Display.SelectValue) ||
           real.equals(Display.SelectRange) ||
+          real.equals(Display.Shape) ||
+          real.equals(Display.ShapeScale) ||
           real.equals(Display.Text)) continue;
       return false;
     }
@@ -363,6 +367,8 @@ public abstract class ShadowType extends Object
           real.equals(Display.CMY)) continue;  // more Color
       if (real.equals(Display.Alpha) ||
           real.equals(Display.SelectRange) ||
+          real.equals(Display.Shape) ||
+          real.equals(Display.ShapeScale) ||
           real.equals(Display.Text) ||
           real.equals(Display.IsoContour)) continue;
       return false;
@@ -390,6 +396,8 @@ public abstract class ShadowType extends Object
           real.equals(Display.CMY)) continue;  // more Color
       if (real.equals(Display.Alpha) ||
           real.equals(Display.SelectRange) ||
+          real.equals(Display.Shape) ||
+          real.equals(Display.ShapeScale) ||
           real.equals(Display.Text) ||
           real.equals(Display.IsoContour)) continue;
       return false;
@@ -415,6 +423,8 @@ public abstract class ShadowType extends Object
           real.equals(Display.HSV) ||
           real.equals(Display.CMY)) continue;  // more Color
       if (real.equals(Display.Alpha) ||
+          real.equals(Display.Shape) ||
+          real.equals(Display.ShapeScale) ||
           real.equals(Display.Text) ||
           real.equals(Display.SelectRange)) continue;
       return false;
@@ -448,6 +458,8 @@ public abstract class ShadowType extends Object
           real.equals(Display.HSV) ||
           real.equals(Display.CMY)) continue;  // more Color
       if (real.equals(Display.Alpha) ||
+          real.equals(Display.Shape) ||
+          real.equals(Display.ShapeScale) ||
           real.equals(Display.Text) ||
           real.equals(Display.SelectRange)) continue;
       return false;
@@ -821,6 +833,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
                 float[][] range_select)
          throws VisADException, RemoteException {
     float[] values = null;
+    float[] scales = null;
     ShapeControl control = null;
     for (int i=0; i<valueArrayLength; i++) {
       if (display_values[i] != null) {
@@ -832,10 +845,20 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           control = (ShapeControl)
             ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
         }
+        if (real.equals(Display.ShapeScale)) {
+          scales = display_values[i];
+        }
       }
     }
     if (values == null || control == null) return null;
     int len = values.length;
+
+    if (scales == null) {
+      int default_index = display.getDisplayScalarIndex(Display.Shape);
+      float default_scale = default_values[default_index];
+      scales = new float[len];
+      for (int i=0; i<len; i++) scales[i] = default_scale;
+    }
 
     // color ??
     int color_length = 0;
@@ -880,10 +903,11 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
         }
         int npts = array.coordinates.length / 3;
         // offset shape location by spatial values
+        float scale = scales[i];
         for (int j=0; j<array.coordinates.length; j+=3) {
-          array.coordinates[j] += x;
-          array.coordinates[j+1] += y;
-          array.coordinates[j+2] += z;
+          array.coordinates[j] = x + scale * array.coordinates[j];
+          array.coordinates[j+1] = y + scale * array.coordinates[j+1];
+          array.coordinates[j+2] = z + scale * array.coordinates[i+2];
         }
 
         // color ??

@@ -144,15 +144,23 @@ public class VisADForm extends Form {
       convert in_file to out_file in VisAD serialized data format */
   public static void main(String args[])
          throws VisADException, RemoteException, IOException {
-    if (args == null || args.length != 2) {
-      System.out.println("run 'java visad.data.visad.VisADForm in_file out_file'");
+    if (args == null || args.length < 1 || args.length > 2) {
+      System.out.println("to convert a file to serial VisAD, run:");
+      System.out.println("  java visad.data.visad.VisADForm in_file out_file");
+      System.out.println("to test read a serial VisAD file, run:");
+      System.out.println("or  'java visad.data.visad.VisADForm in_file'");
     }
-    DefaultFamily loader = new DefaultFamily("loader");
-    DataImpl data = loader.open(args[0]);
-    loader = null;
-
-    VisADForm form = new VisADForm();
-    form.save(args[1], data, true);
+    else if (args.length == 1) {
+      VisADForm form = new VisADForm();
+      form.open(args[0]);
+    }
+    else if (args.length == 2) {
+      DefaultFamily loader = new DefaultFamily("loader");
+      DataImpl data = loader.open(args[0]);
+      loader = null;
+      VisADForm form = new VisADForm();
+      form.save(args[1], data, true);
+    }
   }
 
 }

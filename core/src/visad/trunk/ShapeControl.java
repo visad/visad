@@ -32,8 +32,8 @@ import java.rmi.*;
 */
 public class ShapeControl extends Control {
 
-  private SimpleSet shapeSet;
-  private VisADGeometryArray[] shapes;
+  private SimpleSet shapeSet = null;
+  private VisADGeometryArray[] shapes = null;
 
   public ShapeControl(DisplayImpl d) {
     super(d);
@@ -41,6 +41,11 @@ public class ShapeControl extends Control {
 
   public void setShapeSet(SimpleSet set)
          throws VisADException, RemoteException {
+    if (set == null) {
+      shapeSet = null;
+      shapes = null;
+      return;
+    }
     if (set.getDimension() != 1) {
       throw new DisplayException("ShapeControl.setShapeSet: domain " +
                                  "dimension must be 1");
@@ -52,26 +57,51 @@ public class ShapeControl extends Control {
 
   public void setShape(int index, VisADGeometryArray shape)
          throws VisADException, RemoteException {
+    if (shapes == null) return;
     if (0 <= index && index < shapes.length) {
       shapes[index] = shape;
     }
     changeControl(true);
   }
  
+  public void setShapes(VisADGeometryArray[] shs)
+         throws VisADException, RemoteException {
+    if (shapeSet == null) return;
+    if (shs != null && shs.length > 0) {
+      int len = Math.max(shs.length, shapes.length);
+      for (int i=0; i<len; i++) {
+        shapes[i] = shs[i];
+      }
+    }
+    changeControl(true);
+  }
+
   public VisADGeometryArray[] getShapes(float[] values)
          throws VisADException {
-    if (values == null) return null;
+    if (values == null || values.length < 1) return null;
     VisADGeometryArray[] sh = new VisADGeometryArray[values.length];
     if (shapeSet == null) return sh;
     float[][] set_values = new float[1][];
     set_values[0] = values;
-    int[] indices = shapeSet.valueToIndex(set_values);
-    for (int i=0; i<indices.length; i++) {
-      if (0 <= indices[i] && indices[i] < shapes.length) {
-        sh[i] = shapes[indices[i]];
-      }
-      else {
-        sh[i] = null;
+    int[] indices = null;
+    if (shapeSet.getLength() < 2) {
+      indices = new int[values.length];
+      for (int i=0; i<indices.length; i++) indices[i] = 0;
+    }
+    else {
+      indices = shapeSet.valueToIndex(set_values);
+    }
+    if (shapes == null) {
+      for (int i=0; i<indices.length; i++) sh[i] = null;
+    }
+    else {
+      for (int i=0; i<indices.length; i++) {
+        if (0 <= indices[i] && indices[i] < shapes.length) {
+          sh[i] = (VisADGeometryArray) shapes[indices[i]].clone();
+        }
+        else {
+          sh[i] = null;
+        }
       }
     }
     return sh;

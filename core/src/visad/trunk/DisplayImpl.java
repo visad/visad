@@ -510,7 +510,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
         map.resetTicks();
       }
       displayRenderer.setWaitFlag(false);
-    }
+    } // end synchronized (mapslock)
   }
 
   public DisplayRenderer getDisplayRenderer() {

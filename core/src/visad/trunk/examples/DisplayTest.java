@@ -188,6 +188,8 @@ public class DisplayTest extends Object {
                            "in Java2D");
         System.out.println("  44: text in Java2D");
         System.out.println("  45: text in Java3D");
+        System.out.println("  46: shape in Java2D");
+        System.out.println("  47: shape in Java3D");
 
         return;
 
@@ -2274,6 +2276,145 @@ public class DisplayTest extends Object {
         display1.addReference(ref_text_field, null);
 
         jframe = new JFrame("text in Java3D");
+        jframe.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+ 
+        jframe.setContentPane((JPanel) display1.getComponent());
+        jframe.setSize(256, 256);
+        jframe.setVisible(true);
+
+        break;
+
+      case 46:
+
+        System.out.println(test_case + ": test shape in Java2D");
+
+        float[][] values = {{0.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f}};
+        size = values[0].length;
+        Integer1DSet ir_set = new Integer1DSet(size);
+        histogram1 = new FlatField(ir_histogram, ir_set);
+        histogram1.setSamples(values);
+
+        float[][] counts = {{0.0f, 1.0f, 2.0f, 3.0f}};
+        Gridded1DSet count_set =
+          new Gridded1DSet(count, counts, counts[0].length);
+
+        VisADLineArray cross = new VisADLineArray();
+        cross.coordinates = new float[]
+          {0.1f,  0.1f, 0.0f,    -0.1f, -0.1f, 0.0f,
+           0.1f, -0.1f, 0.0f,    -0.1f,  0.1f, 0.0f};
+        cross.vertexCount = cross.coordinates.length / 3;
+
+        VisADLineArray box = new VisADLineArray();
+        box.coordinates = new float[]
+          {0.1f,  0.1f, 0.0f,     0.1f, -0.1f, 0.0f,
+           0.1f, -0.1f, 0.0f,    -0.1f, -0.1f, 0.0f,
+          -0.1f, -0.1f, 0.0f,    -0.1f,  0.1f, 0.0f,
+          -0.1f,  0.1f, 0.0f,     0.1f,  0.1f, 0.0f};
+        box.vertexCount = box.coordinates.length / 3;
+        VisADGeometryArray[] shapes = {cross, box, cross, box};
+
+        display1 = new DisplayImplJ2D("display1");
+     
+        display1.addMap(new ScalarMap(ir_radiance, Display.XAxis));
+        display1.addMap(new ScalarMap(ir_radiance, Display.ShapeScale));
+        display1.addMap(new ScalarMap(count, Display.Green));
+        display1.addMap(new ConstantMap(1.0, Display.Blue));
+        display1.addMap(new ConstantMap(1.0, Display.Red));
+        ScalarMap shape_map = new ScalarMap(count, Display.Shape);
+        display1.addMap(shape_map);
+        ShapeControl shape_control = (ShapeControl) shape_map.getControl();
+        shape_control.setShapeSet(count_set);
+        shape_control.setShapes(shapes);
+
+        ref_histogram1 = new DataReferenceImpl("ref_histogram1");
+        ref_histogram1.setData(histogram1);
+        display1.addReference(ref_histogram1, null);
+
+        jframe = new JFrame("shape in Java2D");
+        jframe.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+ 
+        jframe.setContentPane((JPanel) display1.getComponent());
+        jframe.setSize(256, 256);
+        jframe.setVisible(true);
+
+        break;
+
+      case 47:
+
+        System.out.println(test_case + ": test shape in Java3D");
+
+        values = new float[][] {{0.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f}};
+        size = values[0].length;
+        ir_set = new Integer1DSet(size);
+        histogram1 = new FlatField(ir_histogram, ir_set);
+        histogram1.setSamples(values);
+ 
+        counts = new float[][] {{0.0f, 1.0f, 2.0f, 3.0f}};
+        count_set = new Gridded1DSet(count, counts, counts[0].length);
+
+        cross = new VisADLineArray();
+        cross.coordinates = new float[]
+          {0.1f,  0.1f, 0.0f,    -0.1f, -0.1f, 0.0f,
+           0.1f, -0.1f, 0.0f,    -0.1f,  0.1f, 0.0f};
+        cross.vertexCount = cross.coordinates.length / 3;
+
+        VisADQuadArray cube = new VisADQuadArray();
+        cube.coordinates = new float[]
+          {0.1f,  0.1f, -0.1f,     0.1f, -0.1f, -0.1f,
+           0.1f, -0.1f, -0.1f,    -0.1f, -0.1f, -0.1f,
+          -0.1f, -0.1f, -0.1f,    -0.1f,  0.1f, -0.1f,
+          -0.1f,  0.1f, -0.1f,     0.1f,  0.1f, -0.1f,
+
+           0.1f,  0.1f,  0.1f,     0.1f, -0.1f,  0.1f,
+           0.1f, -0.1f,  0.1f,    -0.1f, -0.1f,  0.1f,
+          -0.1f, -0.1f,  0.1f,    -0.1f,  0.1f,  0.1f,
+          -0.1f,  0.1f,  0.1f,     0.1f,  0.1f,  0.1f,
+
+           0.1f,  0.1f,  0.1f,     0.1f,  0.1f, -0.1f,
+           0.1f,  0.1f, -0.1f,     0.1f, -0.1f, -0.1f,
+           0.1f, -0.1f, -0.1f,     0.1f, -0.1f,  0.1f,
+           0.1f, -0.1f,  0.1f,     0.1f,  0.1f,  0.1f,
+
+          -0.1f,  0.1f,  0.1f,    -0.1f,  0.1f, -0.1f,
+          -0.1f,  0.1f, -0.1f,    -0.1f, -0.1f, -0.1f,
+          -0.1f, -0.1f, -0.1f,    -0.1f, -0.1f,  0.1f,
+          -0.1f, -0.1f,  0.1f,    -0.1f,  0.1f,  0.1f,
+
+           0.1f,  0.1f,  0.1f,     0.1f,  0.1f, -0.1f,
+           0.1f,  0.1f, -0.1f,    -0.1f,  0.1f, -0.1f,
+          -0.1f,  0.1f, -0.1f,    -0.1f,  0.1f,  0.1f,
+          -0.1f,  0.1f,  0.1f,     0.1f,  0.1f,  0.1f,
+
+           0.1f, -0.1f,  0.1f,     0.1f, -0.1f, -0.1f,
+           0.1f, -0.1f, -0.1f,    -0.1f, -0.1f, -0.1f,
+          -0.1f, -0.1f, -0.1f,    -0.1f, -0.1f,  0.1f,
+          -0.1f, -0.1f,  0.1f,     0.1f, -0.1f,  0.1f};
+
+        cube.vertexCount = cube.coordinates.length / 3;
+        shapes = new VisADGeometryArray[] {cross, cube, cross, cube};
+
+        display1 = new DisplayImplJ3D("display1");
+     
+        display1.addMap(new ScalarMap(ir_radiance, Display.XAxis));
+        display1.addMap(new ScalarMap(ir_radiance, Display.ShapeScale));
+        display1.addMap(new ScalarMap(count, Display.Green));
+        display1.addMap(new ConstantMap(1.0, Display.Blue));
+        display1.addMap(new ConstantMap(1.0, Display.Red));
+        shape_map = new ScalarMap(count, Display.Shape);
+        display1.addMap(shape_map);
+        shape_control = (ShapeControl) shape_map.getControl();
+        shape_control.setShapeSet(count_set);
+        shape_control.setShapes(shapes);
+
+        ref_histogram1 = new DataReferenceImpl("ref_histogram1");
+        ref_histogram1.setData(histogram1);
+        display1.addReference(ref_histogram1, null);
+
+        jframe = new JFrame("shape in Java3D");
         jframe.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });

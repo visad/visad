@@ -65,7 +65,7 @@ public interface Display extends Action {
     new DisplayRealType("Longitude", true, 0.0, 360.0, 0.0,
                         CommonUnit.degree, true);
   public final static DisplayRealType Radius =
-    new DisplayRealType("Radius", true, 0.1, 2.0, 1.0, true);
+    new DisplayRealType("Radius", true, 0.01, 2.0, 1.0, true);
 
   /** list display scalar (default domain of DisplayField) */
   public final static DisplayRealType List =
@@ -154,6 +154,10 @@ public interface Display extends Action {
       WLH - this should be a DisplayEnumeratedType */
   public final static DisplayRealType Shape =
     new DisplayRealType("Shape", true, 0.0, true);
+
+  /** scale for Shape */
+  public final static DisplayRealType ShapeScale =
+    new DisplayRealType("ShapeScale", true, 0.01, 1.0, 1.0, true);
  
   /** text display scalar
       WLH - this should be a DisplayTextType */
@@ -172,7 +176,7 @@ public interface Display extends Action {
      RGB, RGBA, Hue, Saturation, Value, HSV, Cyan, Magenta, Yellow, CMY, Alpha,
      Animation, SelectValue, SelectRange, IsoContour, Flow1X, Flow1Y, Flow1Z,
      Flow2X, Flow2Y, Flow2Z, XAxisOffset, YAxisOffset, ZAxisOffset, Shape, Text,
-     LineWidth, PointSize};
+     ShapeScale, LineWidth, PointSize};
 
 
   /** system intrinsic DisplayTupleType objects */
