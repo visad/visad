@@ -61,8 +61,10 @@ public class Real
          throws VisADException {
     super(type);
     if (!Unit.canConvert(u, type.getDefaultUnit())) {
-      throw new UnitException("Real: Unit must be convertable with " +
-                              "Type default Unit");
+      throw new UnitException("Real: Unit \"" + u +
+                              "\" must be convertable" +
+                              " with Type default Unit \"" +
+                              type.getDefaultUnit() + "\"");
     }
     unit = u != null && type.isInterval() ? u.getAbsoluteUnit() : u;
     Value = value;
