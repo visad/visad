@@ -44,7 +44,7 @@ public class ReflectedUniverse {
    * specified class for the purposes of reflection.
    */
   protected boolean isInstance(Class c, Object o) {
-    return (c.isInstance(o) ||
+    return (o == null || c.isInstance(o) ||
       (c == byte.class && o instanceof Byte) ||
       (c == short.class && o instanceof Short) ||
       (c == int.class && o instanceof Integer) ||
@@ -109,11 +109,9 @@ public class ReflectedUniverse {
     StringTokenizer st = new StringTokenizer(arglist, "(,)");
     int len = st.countTokens();
     Object[] args = new Object[len];
-    Class[] argClasses = new Class[len];
     for (int i=0; i<len; i++) {
       String arg = st.nextToken().trim();
       args[i] = getVar(arg);
-      argClasses[i] = args[i].getClass();
     }
     command = command.substring(0, leftParen);
 
