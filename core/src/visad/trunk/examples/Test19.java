@@ -149,9 +149,9 @@ public class Test19
 
       CellImpl cell = new CellImpl() {
         public void doAction() throws RemoteException, VisADException {
-            value1control.setValue(((Real) cell_ref.getData()).getValue());
-          }
-        };
+          value1control.setValue(((Real) cell_ref.getData()).getValue());
+        }
+      };
       cell.addReference(cell_ref);
     }
 

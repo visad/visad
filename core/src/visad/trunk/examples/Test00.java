@@ -52,10 +52,10 @@ public class Test00
   {
     GraphicsModeControl mode;
 
-    RealType ir_radiance = new RealType("ir_radiance", null, null);
-    RealType count = new RealType("count", null, null);
+    final RealType ir_radiance = new RealType("ir_radiance", null, null);
+    final RealType count = new RealType("count", CommonUnit.second, null);
     FunctionType ir_histogram = new FunctionType(ir_radiance, count);
-    RealType vis_radiance = new RealType("vis_radiance", null, null);
+    final RealType vis_radiance = new RealType("vis_radiance", null, null);
 
     int size = 64;
     FlatField histogram1 = FlatField.makeField(ir_histogram, size, false);
@@ -93,6 +93,10 @@ public class Test00
     dpys[1].addMap(new ScalarMap(ir_radiance, Display.XAxis));
     dpys[1].addMap(new ScalarMap(count, Display.YAxis));
     dpys[1].addMap(new ScalarMap(count, Display.Green));
+    final DisplayRenderer dr0 = dpys[0].getDisplayRenderer();
+    final DisplayRenderer dr1 = dpys[1].getDisplayRenderer();
+    dr0.setCursorStringOn(true);
+    dr1.setCursorStringOn(false);
 
     mode = dpys[1].getGraphicsModeControl();
     mode.setPointSize(5.0f);
@@ -101,6 +105,20 @@ public class Test00
     dpys[1].addReferences(new DirectManipulationRendererJ3D(), refs1, null);
     dpys[1].addReferences(new DirectManipulationRendererJ3D(), refs2, null);
     dpys[1].addReferences(new DirectManipulationRendererJ3D(), refs3, null);
+
+    CellImpl cell = new CellImpl() {
+      public void doAction() throws RemoteException, VisADException {
+        double vir = dr1.getDirectAxisValue(ir_radiance);
+        double vvis = dr1.getDirectAxisValue(vis_radiance);
+        double vc = dr1.getDirectAxisValue(count);
+        System.out.println("ir_radiance = " + vir + " count = " + vc +
+                           " vis_radiance = " + vvis);
+      }
+    };
+    cell.addReference(ref_direct);
+    cell.addReference(ref_direct_tuple);
+    cell.addReference(ref_histogram1);
+
   }
 
   String getFrameTitle() { return "Java3D direct manipulation"; }

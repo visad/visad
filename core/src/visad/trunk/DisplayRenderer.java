@@ -58,6 +58,8 @@ public abstract class DisplayRenderer extends Object {
 
   private boolean waitFlag = false;
 
+  private boolean cursor_string = true;
+
   public DisplayRenderer () {
   }
 
@@ -162,9 +164,43 @@ public abstract class DisplayRenderer extends Object {
   /** actually returns a direct manipulation renderer */
   public abstract DataRenderer findDirect(VisADRay ray);
 
+  public void setCursorStringOn(boolean on) {
+    cursor_string = on;
+  }
+
   /** return Vector of Strings describing the cursor location */
   public Vector getCursorStringVector() {
-    return (Vector) cursorStringVector.clone();
+    if (cursor_string) {
+      return (Vector) cursorStringVector.clone();
+    }
+    else {
+      return new Vector();
+    }
+  }
+
+  public double getDirectAxisValue(RealType type) {
+    synchronized (cursorStringVector) {
+      if (cursorStringVector != null) {
+        String name = type.getName();
+        Enumeration strings = cursorStringVector.elements();
+        while(strings.hasMoreElements()) {
+          String s = (String) strings.nextElement();
+          if (s.startsWith(name)) {
+            String t = s.substring(s.indexOf("=") + 2);
+            int i = t.indexOf(" ");
+            if (i >= 0) t = t.substring(0, i);
+            try {
+              double v = Double.valueOf(t).doubleValue();
+              return v;
+            }
+            catch (NumberFormatException e) {
+              return Double.NaN;
+            }
+          }
+        }
+      }
+    }
+    return Double.NaN;
   }
 
   /** set vector of Strings describing the cursor location by copy;
