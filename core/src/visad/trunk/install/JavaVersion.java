@@ -13,8 +13,8 @@ import java.io.InputStreamReader;
 public class JavaVersion
 {
   private static final String[] regexpStr = new String[] {
-    "^java version \"(\\d+)\\.(\\d+)\\.",
-    "^java version \"HP-UX Java [A-Z]\\.\\d+\\.(\\d)(\\d+)\\.",
+    "^java version \"(\\d+)\\.(\\d+).*\"",
+    "^java version \"HP-UX Java [A-Z]\\.\\d+\\.(\\d)(\\d+).*\"",
   };
 
   private static RE[] regexp = null;
@@ -31,7 +31,7 @@ public class JavaVersion
     return -1;
   }
 
-  public static final boolean matchMinimum(File java,
+  public static final boolean matchMinimum(JavaFile java,
                                            int major, int minor)
   {
     if (regexp == null) {
@@ -107,6 +107,11 @@ public class JavaVersion
               continue;
             }
           }
+
+          // save the match info to the JavaFile object
+          java.setVersion(line.substring(match.getStartIndex(),
+                                         match.getEndIndex()),
+                          major, minor);
 
           // found a match!
           return true;
