@@ -39,7 +39,7 @@ import java.text.*;
  * @see ScalarMap#getAxisScale()
  * @author Don Murray
  */
-public class AxisScale implements java.io.Serializable 
+public class AxisScale implements java.io.Serializable
 {
   /** X_AXIS identifier */
   public final static int X_AXIS = 0;
@@ -74,6 +74,7 @@ public class AxisScale implements java.io.Serializable
   private boolean snapToBox = false;
   private boolean userLabels = false;
   private boolean visibility = true;
+  private boolean labelAllTicks = false;  // label major ticks
   private Object labelFont = null;
   private int labelSize = 12;
   private int axisSide = PRIMARY;
@@ -134,8 +135,8 @@ public class AxisScale implements java.io.Serializable
     axisOrdinal = ordinalValue;
   }
 
-  /** 
-   * @deprecated  
+  /**
+   * @deprecated
    * Set the label to be used for this axis.  The default is the
    * ScalarName of the ScalarMap.
    * @param  label  label to be used
@@ -147,7 +148,7 @@ public class AxisScale implements java.io.Serializable
   }
 
   /**
-   * @deprecated  
+   * @deprecated
    * Get the label of the AxisScale.
    * @return label
    * @see #getTitle()
@@ -157,7 +158,7 @@ public class AxisScale implements java.io.Serializable
     return getTitle();
   }
 
-  /** 
+  /**
    * Set the title to be used for this axis.  The default is the
    * ScalarName of the ScalarMap.
    * @param  title  title to be used
@@ -169,7 +170,7 @@ public class AxisScale implements java.io.Serializable
     if (!myTitle.equals(oldTitle) ) {
       try {
         // check for case where this was called from scalarmap.setScalarName()
-        if ( !myTitle.equals(scalarMap.getScalarName()) ) 
+        if ( !myTitle.equals(scalarMap.getScalarName()) )
         {
           scalarMap.setScalarName(myTitle);
         }
@@ -289,10 +290,10 @@ public class AxisScale implements java.io.Serializable
     // Snap to the box edge instead of being offset
     if (snapToBox) {
       OFFSET = 1.0;
-    } 
+    }
     else
     {
-      for (Enumeration e = display.getMapVector().elements(); 
+      for (Enumeration e = display.getMapVector().elements();
             e.hasMoreElements();)
       {
         ScalarMap map = (ScalarMap) e.nextElement();
@@ -300,7 +301,7 @@ public class AxisScale implements java.io.Serializable
         {
           if (getSide() == map.getAxisScale().getSide()) // same side
           {
-            if (map.equals(scalarMap)) 
+            if (map.equals(scalarMap))
             {
               myPosition = position;// this is me
               break;
@@ -311,7 +312,7 @@ public class AxisScale implements java.io.Serializable
       }
     }
     /*
-    System.out.println(scalarMap + "is at position " + (myPosition+1) + 
+    System.out.println(scalarMap + "is at position " + (myPosition+1) +
                        " out of " + (position + 1));
     */
     // End Add 16-APR-2001 DRM
@@ -338,10 +339,10 @@ public class AxisScale implements java.io.Serializable
     }
     dataRange = scalarMap.getRange();
     boolean twoD = displayRenderer.getMode2D();
-  
+
   // now create scale along axis at axisOrdinal position in array
   // twoD may help define orientation
-  
+
 // WLH 24 Nov 2000
     ProjectionControl pcontrol = display.getProjectionControl();
     double[] aspect = pcontrol.getAspectCartesian();
@@ -364,10 +365,10 @@ public class AxisScale implements java.io.Serializable
     // Snap to the box edge instead of being offset
     if (snapToBox) {
       OFFSET = 1.0;
-    } 
+    }
     else
     {
-      for (Enumeration e = display.getMapVector().elements(); 
+      for (Enumeration e = display.getMapVector().elements();
             e.hasMoreElements();)
       {
         ScalarMap map = (ScalarMap) e.nextElement();
@@ -375,7 +376,7 @@ public class AxisScale implements java.io.Serializable
         {
           if (getSide() == map.getAxisScale().getSide()) // same side
           {
-            if (map.equals(scalarMap)) 
+            if (map.equals(scalarMap))
             {
               myPosition = position;// this is me
               break;
@@ -386,7 +387,7 @@ public class AxisScale implements java.io.Serializable
       }
     }
     /*
-    System.out.println(scalarMap + "is at position " + (myPosition+1) + 
+    System.out.println(scalarMap + "is at position " + (myPosition+1) +
                        " out of " + (position + 1));
     */
     // End Add 16-APR-2001 DRM
@@ -428,7 +429,7 @@ public class AxisScale implements java.io.Serializable
     double[] up = null; // vector from bottom of character to top
     double[] startn = null; // -1.0 position along axis
     double[] startp = null; // +1.0 position along axis
-  
+
     Vector lineArrayVector = new Vector(4);
     Vector labelArrayVector = new Vector();
 
@@ -473,7 +474,7 @@ public class AxisScale implements java.io.Serializable
         startn = new double[] {XMIN - ((OFFSET - 1.0) + line),
                                ONE * YMIN,
                                ZMIN - ((OFFSET - 1.0) + line)};
-      } 
+      }
       else {
         base = new double[] {0.0, SCALE, 0.0};
         up = new double[] {-SCALE, 0.0, SCALE};
@@ -487,7 +488,7 @@ public class AxisScale implements java.io.Serializable
 
     }
     else if (myAxis == Z_AXIS) {
-      if (getSide() == PRIMARY) 
+      if (getSide() == PRIMARY)
       {
         base = new double[] {0.0, 0.0, -SCALE};
         up = new double[] {SCALE, SCALE, 0.0};
@@ -498,7 +499,7 @@ public class AxisScale implements java.io.Serializable
                                YMIN - ((OFFSET - 1.0) + line),
                                ONE * ZMIN};
       }
-      else 
+      else
       {
         base = new double[] {0.0, 0.0, SCALE};
         up = new double[] {-SCALE, SCALE, 0.0};
@@ -519,7 +520,7 @@ public class AxisScale implements java.io.Serializable
       startn[2] = 0.0;
       startp[2] = 0.0;
     }
-  
+
     // VisADLineArray coordinates have three entries for (x, y, z) of each point
     // two points determine a line segment,
     // hence 6 coordinates entries per segment
@@ -537,7 +538,7 @@ public class AxisScale implements java.io.Serializable
       baseLineArray.coordinates = lineCoordinates;
       lineArrayVector.add(baseLineArray);
     }
-  
+
     double range = Math.abs(dataRange[1] - dataRange[0]);
     double min = Math.min(dataRange[0], dataRange[1]);
     double max = Math.max(dataRange[0], dataRange[1]);
@@ -567,16 +568,7 @@ public class AxisScale implements java.io.Serializable
     }
     // now tens = interval between major tick marks (majorTickSpacing)
     //System.out.println("computed ticks " + majorTickSpacing);
-  
-    /* remove DRM 21-Feb-2001
-    long bot = (long) Math.ceil(min / majorTickSpacing);
-    long top = (long) Math.floor(max / majorTickSpacing);
 
-    if (bot == top) {
-      if (bot < 0) top++;
-      else bot--;
-    }
-    */
     double[] hilo = computeTicks(max, min, tickBase, majorTickSpacing);
     // firstValue is the first Tick mark value
     double firstValue = hilo[0];
@@ -609,57 +601,44 @@ public class AxisScale implements java.io.Serializable
       for (int i=0; i<3; i++) {
         if ((k + 3 + i) < majorCoordinates.length) {
           // guard against error that cannot happen, but was seen?
-          majorCoordinates[k + i] = 
+          majorCoordinates[k + i] =
             (float) ((1.0 - a) * startn[i] + a * startp[i]);
-          majorCoordinates[k + 3 + i] = 
+          majorCoordinates[k + 3 + i] =
             (float) (majorCoordinates[k + i] - TICKSIZE * tickup[i]);
         }
-      } 
+      }
       k += 6;
-    } 
+    }
 
-    /* Change DRM 24-Jan-2001
-    arrays[0].vertexCount = 2 * (nticks + 1);
-    arrays[0].coordinates = coordinates;
-    */
     majorTickArray.vertexCount = 2 * (nticks);
     majorTickArray.coordinates = majorCoordinates;
     lineArrayVector.add(majorTickArray);
-  
+
     if (getMinorTickSpacing() > 0)  // create an array for the minor ticks
     {
-      /* remove DRM 21-Feb-2001
-      long lower = (long) Math.ceil(min / minorTickSpacing);
-      long upper = (long) Math.floor(max / minorTickSpacing);
-
-      if (lower == upper) {
-        if (lower < 0) upper++;
-        else lower--;
-      }
-      */
       hilo = computeTicks(max, min, tickBase, minorTickSpacing);
       // now lower * minorTickSpacing = value of lowest tick mark, and
       // upper * minorTickSpacing = values of highest tick mark
-  
+
       VisADLineArray minorTickArray = new VisADLineArray();
       // Change DRM 21-Feb-2001
-      nticks = (int) ((hilo[hilo.length-1]-hilo[0])/minorTickSpacing) + 1; 
+      nticks = (int) ((hilo[hilo.length-1]-hilo[0])/minorTickSpacing) + 1;
       float[] minorCoordinates = new float[6 * nticks];
-    
+
       // draw tick marks
       k = 0;
       //for (long j=lower; j<=upper; j++) {  // Change DRM 21-Feb-2001
-      for (int j = 0; j < nticks; j++) 
+      for (int j = 0; j < nticks; j++)
       {
         double val = hilo[0] + (j * minorTickSpacing);
         double a = (val - min) / (max - min);
         for (int i=0; i<3; i++) {
           if ((k + 3 + i) < minorCoordinates.length) {
             // guard against error that cannot happen, but was seen?
-            minorCoordinates[k + i] = 
+            minorCoordinates[k + i] =
               (float) ((1.0 - a) * startn[i] + a * startp[i]);
             // minor ticks are half the size of the major ticks
-            minorCoordinates[k + 3 + i] = 
+            minorCoordinates[k + 3 + i] =
               (float) (minorCoordinates[k + i] - TICKSIZE/2 * tickup[i]);
           }
         }
@@ -669,89 +648,62 @@ public class AxisScale implements java.io.Serializable
       minorTickArray.coordinates = minorCoordinates;
       lineArrayVector.add(minorTickArray);
     }
-  
-    // Title and labels 
+
+    // Title and labels
     // by default, all labels rendered centered
-     TextControl.Justification justification = 
+     TextControl.Justification justification =
        TextControl.Justification.CENTER;
 
     // PlotText is controlled by the initial starting point, base (controls
     // direction) and up (which way is up).  We handle 2D and 3D differently.
     // In 2-D, titles are drawn along the positive direction of the axis.
     // Labels are drawn in the Y-positive direction.
- 
 
-    // Title First
-    double[] startlabel = new double[3];
-    double dist = 2.0 + TICKSIZE;   // dist from the line in the up direction;
+
+    // Labels first
     if (twoD) {
       if (myAxis == X_AXIS) {
-         base = new double[] {SCALE, 0.0, 0.0};
          up = new double[] {0.0, SCALE, 0.0};
-         dist = (getSide() == PRIMARY) 
-           ? 2.5 + TICKSIZE 
-           : -(1.5 + TICKSIZE - .05);
       }
       else if (myAxis == Y_AXIS) {
-         base = new double[] {0.0, SCALE, 0.0};
          up = new double[] {-SCALE, 0.0, 0.0};
-         dist = (getSide() == PRIMARY) 
-           ? -(1.5 + TICKSIZE) 
-           : (2.5 + TICKSIZE - .05) ;
       }
     }
-    for (int i=0; i<3; i++) {
-      startlabel[i] = 0.5 * (startn[i] + startp[i]) - dist * up[i];
-    }
-    /*
-    System.out.println("For title, point is (" +
-      startlabel[0] + "," + startlabel[1] + "," + startlabel[2] + ")");
-    */
-  
-    if (labelFont == null)
-    {
-      VisADLineArray plotArray = 
-        PlotText.render_label(myTitle, startlabel, base, up, justification);
-      lineArrayVector.add(plotArray);
-    }
-    else if (labelFont instanceof java.awt.Font)
-    {
-      VisADTriangleArray nameArray = 
-        PlotText.render_font(myTitle, (Font) labelFont, 
-                             startlabel, base, up, justification);
-      labelArrayVector.add(nameArray);
-    } else if (labelFont instanceof visad.util.HersheyFont) {
-      VisADLineArray plotArray = 
-        PlotText.render_font(myTitle, (HersheyFont) labelFont, 
-                             startlabel, base, up, justification);
-      lineArrayVector.add(plotArray);
-    }
-  
+
     // Draw the labels.  If user hasn't defined their own, make defaults.
     if (!userLabels) {
-      createStandardLabels(topval, botval, botval, (topval - botval), false);
+      createStandardLabels(topval, botval, botval, 
+                           (labelAllTicks == false)
+                              ?(topval - botval):majorTickSpacing, 
+                           false);
     }
-        
-    dist = 1.0 + TICKSIZE;   // dist from the line in the up direction;
+
+    double dist = 1.0 + TICKSIZE;   // dist from the line in the up direction;
     double[] updir = (twoD != true) ? up : new double[] {0.0, SCALE, 0.0};
     if (twoD) {
       base = new double[] {SCALE, 0.0, 0.0};
       if (myAxis == X_AXIS) {
-         dist = (getSide() == PRIMARY) 
-           ? (1.0 + TICKSIZE + .15) 
+         dist = (getSide() == PRIMARY)
+           ? (1.0 + TICKSIZE + .15)
            : -(TICKSIZE + .15);
       }
       else if (myAxis == Y_AXIS) {
-         dist = (getSide() == PRIMARY) 
-           ? -(TICKSIZE + .15) 
+         dist = (getSide() == PRIMARY)
+           ? -(TICKSIZE + .15)
            : (TICKSIZE + .15);
-         justification = 
-           (getSide() == PRIMARY) 
+         justification =
+           (getSide() == PRIMARY)
                ? TextControl.Justification.RIGHT
                : TextControl.Justification.LEFT;
       }
     }
 
+    // Added by Luke Catania on 05/07/2002
+    // Added maximumYAxisTickLabelSize & yAxisLabelLength to calculate 
+    // offset for Y-Axis label.
+    //
+    int maximumYAxisTickLabelSize = 1;
+    int yAxisLabelLength=0;
     for (Enumeration e = labelTable.keys(); e.hasMoreElements();)
     {
       Double Value;
@@ -763,6 +715,14 @@ public class AxisScale implements java.io.Serializable
       double test = Value.doubleValue();
       if (test > max || test < min) continue; // don't draw labels beyond range
 
+      // Added by Luke Catania on 05/07/2002 - mods by DRM 28-Oct-2002
+      // For Y-Axis only, calculate offset for axis label, so it does 
+      // not overlap the tick labels.
+      if (myAxis == Y_AXIS) {
+        yAxisLabelLength = ((String) labelTable.get(Value)).length();
+        if (yAxisLabelLength > maximumYAxisTickLabelSize)
+          maximumYAxisTickLabelSize = yAxisLabelLength;
+      }
       double val = (test - min) / (max - min);
       // center label on tick if Y axis and 2D
       if ((myAxis == Y_AXIS) && (twoD == true)) val -= .2 * SCALE; // HACK!!!!!
@@ -770,6 +730,8 @@ public class AxisScale implements java.io.Serializable
       double[] point = new double[3];
       for (int j=0; j < 3; j++) {
         point[j] = (1.0 - val) * startn[j] + val * startp[j] - dist * up[j];
+
+//        if (myAxis == Y_AXIS) System.out.println("Axis & Tick Label Position for " + test + ": " + startn[j] + ":" + startp[j] + ":" + point[j]);
       }
 
       /*
@@ -778,30 +740,78 @@ public class AxisScale implements java.io.Serializable
 
       if (labelFont == null)
       {
-        VisADLineArray label = 
+        VisADLineArray label =
           PlotText.render_label(
             (String) labelTable.get(Value), point, base, updir, justification);
         lineArrayVector.add(label);
       }
       else if (labelFont instanceof Font)
       {
-        VisADTriangleArray label = 
+        VisADTriangleArray label =
           PlotText.render_font(
-              (String) labelTable.get(Value), (Font) labelFont, point, base, 
+              (String) labelTable.get(Value), (Font) labelFont, point, base,
               updir, justification);
         labelArrayVector.add(label);
 
       } else if (labelFont instanceof HersheyFont) {
-        VisADLineArray label = 
+        VisADLineArray label =
           PlotText.render_font(
-              (String) labelTable.get(Value), (HersheyFont) labelFont, 
+              (String) labelTable.get(Value), (HersheyFont) labelFont,
                  point, base, updir, justification);
         lineArrayVector.add(label);
       }
     }
-  
+
+    // Title
+    double[] startlabel = new double[3];
+    dist = 2.0 + TICKSIZE;   // dist from the line in the up direction;
+    justification =
+       TextControl.Justification.CENTER;
+    if (twoD) {
+      if (myAxis == X_AXIS) {
+         base = new double[] {SCALE, 0.0, 0.0};
+         up = new double[] {0.0, SCALE, 0.0};
+         dist = (getSide() == PRIMARY)
+           ? 2.5 + TICKSIZE
+           : -(1.5 + TICKSIZE - .05);
+      }
+      else if (myAxis == Y_AXIS) {
+         base = new double[] {0.0, SCALE, 0.0};
+         up = new double[] {-SCALE, 0.0, 0.0};
+         dist = (getSide() == PRIMARY)
+           ? -(.5 + TICKSIZE + maximumYAxisTickLabelSize)
+           : (.5 + TICKSIZE + maximumYAxisTickLabelSize) ;
+      }
+    }
+    for (int i=0; i<3; i++) {
+      startlabel[i] = 0.5 * (startn[i] + startp[i]) - dist * up[i];
+    }
+    /*
+    System.out.println("For title, point is (" +
+      startlabel[0] + "," + startlabel[1] + "," + startlabel[2] + ")");
+    */
+
+    if (labelFont == null)
+    {
+      VisADLineArray plotArray =
+        PlotText.render_label(myTitle, startlabel, base, up, justification);
+      lineArrayVector.add(plotArray);
+    }
+    else if (labelFont instanceof java.awt.Font)
+    {
+      VisADTriangleArray nameArray =
+        PlotText.render_font(myTitle, (Font) labelFont,
+                             startlabel, base, up, justification);
+      labelArrayVector.add(nameArray);
+    } else if (labelFont instanceof visad.util.HersheyFont) {
+      VisADLineArray plotArray =
+        PlotText.render_font(myTitle, (HersheyFont) labelFont,
+                             startlabel, base, up, justification);
+      lineArrayVector.add(plotArray);
+    }
+
     // merge the line arrays
-    VisADLineArray[] arrays = 
+    VisADLineArray[] arrays =
         (VisADLineArray[]) lineArrayVector.toArray(
           new VisADLineArray[lineArrayVector.size()]);
     scaleArray = VisADLineArray.merge(arrays);
@@ -809,7 +819,7 @@ public class AxisScale implements java.io.Serializable
     // merge the label arrays
     if ( !(labelArrayVector.isEmpty()) )
     {
-      VisADTriangleArray[] labelArrays = 
+      VisADTriangleArray[] labelArrays =
           (VisADTriangleArray[]) labelArrayVector.toArray(
             new VisADTriangleArray[labelArrayVector.size()]);
       labelArray = VisADTriangleArray.merge(labelArrays);
@@ -830,7 +840,7 @@ public class AxisScale implements java.io.Serializable
 
     return true;
   }
-  
+
   /**
    * Get the color of this axis scale.
    *
@@ -845,7 +855,7 @@ public class AxisScale implements java.io.Serializable
    * Set the color of this axis scale.
    * @param  color  Color to use
    */
-  public void setColor(Color color) 
+  public void setColor(Color color)
   {
     Color oldColor = myColor;
     myColor = color;
@@ -856,13 +866,13 @@ public class AxisScale implements java.io.Serializable
       catch (VisADException ve) {;}
     }
   }
-  
-  /** 
+
+  /**
    * Set the color of this axis scale.
-   * @param   color   array of red, green, and blue values in 
+   * @param   color   array of red, green, and blue values in
    *          the range (0.0 - 1.0). color must be float[3].
    */
-  public void setColor(float[] color) 
+  public void setColor(float[] color)
   {
     setColor(new Color(color[0], color[1], color[2]));
   }
@@ -880,7 +890,7 @@ public class AxisScale implements java.io.Serializable
     AxisScale newScale = new AxisScale(map);
     if (!(map.getDisplayScalar().equals(scalarMap.getDisplayScalar())))
       throw new VisADException(
-        "AxisScale: DisplayScalar for map is not" + 
+        "AxisScale: DisplayScalar for map is not" +
           scalarMap.getDisplayScalar());
     newScale.myColor = myColor;
     newScale.axisOrdinal = axisOrdinal;
@@ -897,14 +907,15 @@ public class AxisScale implements java.io.Serializable
     newScale.axisSide = axisSide;
     newScale.tickOrient = tickOrient;
     newScale.userLabels = userLabels;
+    newScale.labelAllTicks = labelAllTicks;
     return newScale;
   }
 
   /**
-   * Set major tick mark spacing. The number that is passed-in represents 
-   * the distance, measured in values, between each major tick mark. If you 
-   * have a ScalarMap with a range from 0 to 50 and the major tick spacing 
-   * is set to 10, you will get major ticks next to the following values: 
+   * Set major tick mark spacing. The number that is passed-in represents
+   * the distance, measured in values, between each major tick mark. If you
+   * have a ScalarMap with a range from 0 to 50 and the major tick spacing
+   * is set to 10, you will get major ticks next to the following values:
    * 0, 10, 20, 30, 40, 50.  This value will always be used unless
    * you call {@link #setAutoComputeTicks(boolean) setAutoComputeTicks}
    * with a <CODE>true</CODE> value.
@@ -937,10 +948,10 @@ public class AxisScale implements java.io.Serializable
   }
 
   /**
-   * Set minor tick mark spacing. The number that is passed-in represents 
-   * the distance, measured in values, between each minor tick mark. If you 
-   * have a ScalarMap with a range from 0 to 50 and the minor tick spacing 
-   * is set to 10, you will get minor ticks next to the following values: 
+   * Set minor tick mark spacing. The number that is passed-in represents
+   * the distance, measured in values, between each minor tick mark. If you
+   * have a ScalarMap with a range from 0 to 50 and the minor tick spacing
+   * is set to 10, you will get minor ticks next to the following values:
    * 0, 10, 20, 30, 40, 50.  This value will always be used unless
    * you call {@link #setAutoComputeTicks(boolean) setAutoComputeTicks}
    * with a <CODE>true</CODE> value.
@@ -993,7 +1004,7 @@ public class AxisScale implements java.io.Serializable
    * starting point specified using the increment field.
    * If you call createStandardLabels(100, 0, 2.0, 10.0), then it will
    * make labels for the values 2, 12, 22, 32, etc.
-   * 
+   *
    * @see #setLabelTable
    * @throws IllegalArgumentException  if min > max, or increment is
    *                                   greater than max-min
@@ -1035,14 +1046,14 @@ public class AxisScale implements java.io.Serializable
 
   /**
    * Used to specify what label will be drawn at any given value.
-   * The key-value pairs are of this format: 
+   * The key-value pairs are of this format:
    *     <B>{ Double value, java.lang.String}</B>
    *
    * @param  labels  map of value/label pairs
    * @throws VisADException  invalid hashtable
    * @see #getLabelTable
    */
-  public void setLabelTable( Hashtable labels ) 
+  public void setLabelTable( Hashtable labels )
     throws VisADException
   {
     Map oldTable = labelTable;
@@ -1069,8 +1080,8 @@ public class AxisScale implements java.io.Serializable
   {
     Object oldFont = labelFont;
     labelFont = font;
-    //if ((labelFont == null && oldFont != null) || !labelFont.equals(oldFont)) 
-    if (labelFont != null && !labelFont.equals(oldFont)) 
+    //if ((labelFont == null && oldFont != null) || !labelFont.equals(oldFont))
+    if (labelFont != null && !labelFont.equals(oldFont))
     {
       if (labelFont instanceof java.awt.Font) labelSize = ((Font) labelFont).getSize();
       try {
@@ -1088,8 +1099,8 @@ public class AxisScale implements java.io.Serializable
   {
     Object oldFont = labelFont;
     labelFont = font;
-    //if ((labelFont == null && oldFont != null) || !labelFont.equals(oldFont)) 
-    if (labelFont != null && !labelFont.equals(oldFont)) 
+    //if ((labelFont == null && oldFont != null) || !labelFont.equals(oldFont))
+    if (labelFont != null && !labelFont.equals(oldFont))
     {
       labelSize = 12;
       try {
@@ -1162,7 +1173,7 @@ public class AxisScale implements java.io.Serializable
    * Sets the size of the labels.  You can use this to change the label
    * size when a <CODE>Font</CODE> is not being used.  If a <CODE>Font</CODE>
    * is being used and you call setLabelSize(), a new <CODE>Font</CODE> is
-   * created using the old <CODE>Font</CODE> name and style, but with the 
+   * created using the old <CODE>Font</CODE> name and style, but with the
    * new size.
    * @param  size  font size to use
    * @see #setFont
@@ -1173,8 +1184,8 @@ public class AxisScale implements java.io.Serializable
     labelSize = size;
     if (labelSize != oldSize) {
       if (labelFont != null) {
-        if (labelFont instanceof java.awt.Font) labelFont = 
-            new Font( ((Font)labelFont).getName(), 
+        if (labelFont instanceof java.awt.Font) labelFont =
+            new Font( ((Font)labelFont).getName(),
                       ((Font)labelFont).getStyle(), labelSize);
       }
       try {
@@ -1187,14 +1198,14 @@ public class AxisScale implements java.io.Serializable
   /**
    * Gets the size of the labels.
    * @return  relative size of labels
-   */ 
+   */
   public int getLabelSize()
   {
     return labelSize;
   }
 
   /**
-   * Sets the base value for tick marks.  This only applies when 
+   * Sets the base value for tick marks.  This only applies when
    * <CODE>setMajorTickSpacing</CODE> or <CODE>setMinorTickSpacing</CODE>
    * have been called.
    * @param  base  base value for drawing tick marks.  For example, if
@@ -1247,7 +1258,7 @@ public class AxisScale implements java.io.Serializable
   public void setTickOrientation(int orient)
   {
     double oldOrient = tickOrient;
-    tickOrient = 
+    tickOrient =
       (orient == SECONDARY) ? SECONDARY : PRIMARY;  // sanity check
     if (tickOrient != oldOrient) {
       try {
@@ -1266,7 +1277,7 @@ public class AxisScale implements java.io.Serializable
     return tickOrient;
   }
 
-  /**  
+  /**
    * Set the formatting for all labels
    * @param format  format string
    */
@@ -1285,7 +1296,7 @@ public class AxisScale implements java.io.Serializable
    * Set the visibility of the AxisScale
    * @param visibile  true to display the AxisScale
    */
-  public void setVisible(boolean visible) { 
+  public void setVisible(boolean visible) {
     boolean oldVisibility = visibility;
     visibility = visible;
     if (!(oldVisibility == visibility) ) {
@@ -1303,16 +1314,48 @@ public class AxisScale implements java.io.Serializable
    * Get the visibility of the AxisScale
    * @return true if AxisScale is being rendered
    */
-  public boolean isVisible() { 
+  public boolean isVisible() {
     return scalarMap.getScaleEnable();
   }
 
 
+  /**
+   * Set whether all major ticks should be labeled.  The default is
+   * to only label the first and last major tick.  This setting is 
+   * ignored if user labels are being used or if user manually
+   * calls {@link #createStandardLabels(double, double, double, double) 
+   * createStandardLabels} or {@link #setLabelTable(Hashtable) 
+   * setLabelTable}
+   * @see #getLabelAllTicks()
+   * @see #createStandardLabels(double, double, double, double)
+   * @see #setLabelTable(Hashtable)
+   *
+   * @param labelAll  true to label all (major) ticks.  Overridden
+   */
+  public void setLabelAllTicks(boolean labelAll) {
+    boolean oldValue = labelAllTicks;
+    labelAllTicks = labelAll;
+    if (labelAllTicks != oldValue) {
+      try {
+        scalarMap.makeScale();  // update the display
+      }
+      catch (VisADException ve) {;}
+    }
+  }
+
+  /**
+   * Return whether all major ticks are to be labeled.
+   * @return true if ticks are to be labeled.
+   */
+  public boolean getLabelAllTicks() {
+     return labelAllTicks;
+  }
+
   /** compute the tick mark values */
-  private double[] computeTicks(double high, double low, 
+  private double[] computeTicks(double high, double low,
                                 double base, double interval)
   {
-    double[] vals = null; 
+    double[] vals = null;
 
     // compute nlo and nhi, for low and high contour values in the box
     long nlo = Math.round((Math.ceil((low - base) / Math.abs(interval))));
@@ -1347,16 +1390,16 @@ public class AxisScale implements java.io.Serializable
       }
       else
       {
-        label = 
-          (labelFormat != null) 
+        label =
+          (labelFormat != null)
             ? labelFormat.format(value)
             : PlotText.shortString(value);
       }
     }
     else
     {
-      label = 
-        (labelFormat != null) 
+      label =
+        (labelFormat != null)
           ? labelFormat.format(value)
           : PlotText.shortString(value);
     }
