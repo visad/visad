@@ -1633,6 +1633,8 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     swap[0] = false;
     if (allSpatial && spatialDimensions[1] == 2 && len > 1) {
 
+      // find the axis most nearly parallel to first grid direction
+      // i.e., vector from first sample (0) to second sample (1)
       float simax = 0.0f;
       float max = -1.0f;
       int imax = -1;
@@ -1646,18 +1648,26 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
         }
       }
 
-      int ll = len;
+      // set ll = number of samples along a side of fastest factor of Gridded2DSet
+      //          i.e., "stride"
+      // WLH 6 April 2001
+      // int ll = len;
+      int ll = len - 1;
       if (domain_set != null && domain_set instanceof Gridded2DSet) {
         ll = ((Gridded2DSet) domain_set).getLength(0);
+        if (ll > (len - 1)) ll = len - 1; // WLH 6 April 2001
       }
 
+      // find the axis most nearly parallel to second grid direction
+      // i.e., vector from first sample (0) to second sample (1)
       float sjmax = 0.0f;
       max = -1.0f;
       int jmax = -1;
       for (int i=0; i<3; i++) {
         if (i != imax) {
-          // float sdiff = spatial_values[i][len-1] - spatial_values[i][0];
-          float sdiff = spatial_values[i][ll-1] - spatial_values[i][0];
+          // WLH 6 April 2001
+          // float sdiff = spatial_values[i][ll-1] - spatial_values[i][0];
+          float sdiff = spatial_values[i][ll] - spatial_values[i][0];
           float diff = Math.abs(sdiff);
           if (diff > max) {
             sjmax = sdiff;
