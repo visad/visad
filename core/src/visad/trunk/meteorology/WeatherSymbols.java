@@ -42,11 +42,10 @@ import java.awt.event.WindowEvent;
 public class WeatherSymbols {
 
   private static HersheyFont wmoFont = new HersheyFont("wmo");
-  private static final int numWMOSymbols = 203;
-  //private static final int numWMOSymbols = 151;
+  private static final int numMetSymbols = 203;
 
-  private static VisADLineArray[] wmoSymbols = 
-      new VisADLineArray[numWMOSymbols];
+  private static VisADLineArray[] metSymbols = 
+      new VisADLineArray[numMetSymbols];
 
 
   /** starting index of present weather symbols in the whole list */
@@ -61,6 +60,12 @@ public class WeatherSymbols {
   private final static int TNDCY_INDEX = 142;
   /** starting index of cloud coverage symbols in the whole list */
   private final static int SKY_INDEX = 131;
+  /** starting index of icing symbols in the whole list */
+  private final static int TURB_INDEX = 151;
+  /** starting index of icing symbols in the whole list */
+  private final static int ICING_INDEX = 160;
+  /** starting index of misc symbols in the whole list */
+  private final static int MISC_INDEX = 171;
 
   /** Number of WMO weather symbols */
   public final static int PRESENTWX_NUM = 104;
@@ -80,6 +85,15 @@ public class WeatherSymbols {
   /** Number of cloud coverage symbols */
   public final static int SKY_NUM = 11;
 
+  /** Number of icing symbols */
+  public final static int ICING_NUM = 9;
+
+  /** Number of turbulence symbols */
+  public final static int TURB_NUM = 11;
+
+  /** Number of miscellaneous symbols */
+  public final static int MISC_NUM = 32;
+
   /** Number of lightning symbols */
   public final static int LIGHTNING_NUM = 2;
 
@@ -93,8 +107,8 @@ public class WeatherSymbols {
     double[] base = { 1, 0, 0 };
     double[] up = { 0, 1., 0 };
     try {
-      for (int i = 0; i < numWMOSymbols; i++) {
-        wmoSymbols[i] = 
+      for (int i = 0; i < numMetSymbols; i++) {
+        metSymbols[i] = 
           PlotText.render_font( 
             new String(new byte[] {(byte) (i+32)}, 0), wmoFont, 
                                       start, base, up, true);
@@ -134,7 +148,7 @@ public class WeatherSymbols {
    * @return the array of shapes
    */
   public static VisADLineArray[] getPresentWeatherSymbols() {
-    return subsetArray(wmoSymbols, PRESENTWX_INDEX, PRESENTWX_NUM);
+    return subsetArray(metSymbols, PRESENTWX_INDEX, PRESENTWX_NUM);
   }
 
   /**
@@ -142,8 +156,8 @@ public class WeatherSymbols {
    * WMO present weather codes, plus the GEMPAK extensions.
    * @return the array of shapes
    */
-  public static VisADLineArray[] getAllWMOSymbols() {
-    return subsetArray(wmoSymbols, 0, numWMOSymbols);
+  public static VisADLineArray[] getAllMetSymbols() {
+    return subsetArray(metSymbols, 0, numMetSymbols);
   }
 
   /**
@@ -156,7 +170,7 @@ public class WeatherSymbols {
     if (wxCode < 0 || wxCode > PRESENTWX_NUM) {
       throw new IllegalArgumentException( "unknown weather symbol: " + wxCode);
     }
-    return getVLAClone(wmoSymbols, PRESENTWX_INDEX+wxCode);
+    return getVLAClone(metSymbols, PRESENTWX_INDEX+wxCode);
   }
 
   /**
@@ -166,7 +180,7 @@ public class WeatherSymbols {
    * @see #getPressureTendencySymbol for the indices
    */
   public static VisADLineArray[] getPressureTendencySymbols() {
-    return subsetArray(wmoSymbols, TNDCY_INDEX, TNDCY_NUM);
+    return subsetArray(metSymbols, TNDCY_INDEX, TNDCY_NUM);
   }
 
   /**
@@ -193,7 +207,7 @@ public class WeatherSymbols {
        throw new IllegalArgumentException(
              "unknown pressure tendency symbol: " + tendencyCode);
     }
-    return getVLAClone(wmoSymbols, TNDCY_INDEX+tendencyCode);
+    return getVLAClone(metSymbols, TNDCY_INDEX+tendencyCode);
   }
 
   /**
@@ -202,7 +216,7 @@ public class WeatherSymbols {
    * @see #getCloudCoverageSymbol(int) for codes
    */
   public static VisADLineArray[] getCloudCoverageSymbols() {
-    return subsetArray(wmoSymbols, SKY_INDEX, SKY_NUM);
+    return subsetArray(metSymbols, SKY_INDEX, SKY_NUM);
   }
 
   /**
@@ -229,7 +243,7 @@ public class WeatherSymbols {
        throw new IllegalArgumentException(
              "unknown cloud coverage symbol: " + ccCode);
     }
-    return getVLAClone(wmoSymbols, SKY_INDEX+ccCode);
+    return getVLAClone(metSymbols, SKY_INDEX+ccCode);
   }
 
   /**
@@ -238,7 +252,7 @@ public class WeatherSymbols {
    * @see #getLowCloudSymbol(int) for codes
    */
   public static VisADLineArray[] getLowCloudSymbols() {
-    return subsetArray(wmoSymbols, LOCLD_INDEX, LOCLD_NUM);
+    return subsetArray(metSymbols, LOCLD_INDEX, LOCLD_NUM);
   }
 
   /**
@@ -268,7 +282,7 @@ public class WeatherSymbols {
        throw new IllegalArgumentException(
            "unknown low cloud symbol: " + lcCode);
     }
-    return getVLAClone(wmoSymbols, LOCLD_INDEX+lcCode-1);
+    return getVLAClone(metSymbols, LOCLD_INDEX+lcCode-1);
   }
 
   /**
@@ -277,7 +291,7 @@ public class WeatherSymbols {
    * @see #getMidCloudSymbol(int) for codes
    */
   public static VisADLineArray[] getMidCloudSymbols() {
-    return subsetArray(wmoSymbols, MIDCLD_INDEX, MIDCLD_NUM);
+    return subsetArray(metSymbols, MIDCLD_INDEX, MIDCLD_NUM);
   }
 
   /**
@@ -308,7 +322,7 @@ public class WeatherSymbols {
        throw new IllegalArgumentException(
            "unknown mid cloud symbol: " + mcCode );
     }
-    return getVLAClone(wmoSymbols, MIDCLD_INDEX+mcCode-1);
+    return getVLAClone(metSymbols, MIDCLD_INDEX+mcCode-1);
   }
 
   /**
@@ -317,7 +331,7 @@ public class WeatherSymbols {
    * @see #getHighCloudSymbol(int) for codes
    */
   public static VisADLineArray[] getHighCloudSymbols() {
-    return subsetArray(wmoSymbols, HICLD_INDEX, HICLD_NUM);
+    return subsetArray(metSymbols, HICLD_INDEX, HICLD_NUM);
   }
 
   /**
@@ -349,7 +363,119 @@ public class WeatherSymbols {
        throw new IllegalArgumentException(
            "unknown high cloud symbol: " + hcCode );
     }
-    return getVLAClone(wmoSymbols, HICLD_INDEX+hcCode-1);
+    return getVLAClone(metSymbols, HICLD_INDEX+hcCode-1);
+  }
+
+  /**
+   * Get the array of shapes corresponding to the icing codes.
+   * @return the array of shapes
+   * @see #getIcingSymbol(int) for codes
+   */
+  public static VisADLineArray[] getIcingSymbols() {
+    return subsetArray(metSymbols, ICING_INDEX, ICING_NUM);
+  }
+
+  /**
+   * Get the shape corresponding to a particular icing symbol code.
+   * Codes are:
+   * <pre>
+   *   0  -  No icing
+   *   1  -  Trace icing
+   *   2  -  Trace to light icing
+   *   3  -  Light icing
+   *   4  -  Light to moderate icing
+   *   5  -  Moderate icing
+   *   6  -  Moderate to heavy icing
+   *   7  -  Heavy or moderate to severe icing
+   *   8  -  Severe icing
+   *   9  -  Light superstructure icing
+   *  10  -  Heavy superstructure icing
+   * </pre>
+   * @param   icingCode     icing code to use
+   * @return  corresponding shape
+   */
+  public static VisADLineArray getIcingSymbol(int icingCode) {
+    if (icingCode < 0 || icingCode >= ICING_NUM) {
+       throw new IllegalArgumentException(
+           "unknown icing symbol: " + icingCode );
+    }
+    return getVLAClone(metSymbols, ICING_INDEX+icingCode);
+  }
+
+  /**
+   * Get the array of shapes corresponding to the turbulence codes.
+   * @return the array of shapes
+   * @see #getTurbulenceSymbol(int) for codes
+   */
+  public static VisADLineArray[] getTurbulenceSymbols() {
+    return subsetArray(metSymbols, TURB_INDEX, TURB_NUM);
+  }
+
+  /**
+   * Get the shape corresponding to a particular turbulence symbol code.
+   * Codes are:
+   * <pre>
+   *   0  -  No turbulence
+   *   1  -  Light turbulence
+   *   2  -  Light turbulence
+   *   3  -  Light to moderate turbulence
+   *   4  -  Moderate turbulence
+   *   5  -  Moderate to severe turbulence
+   *   6  -  Severe turbulence
+   *   7  -  Extreme turbulence
+   *   8  -  Extreme turbulence
+   * </pre>
+   * @param   turbCode     turbulence code to use
+   * @return  corresponding shape
+   */
+  public static VisADLineArray getTurbulenceSymbol(int turbCode) {
+    if (turbCode < 0 || turbCode >= TURB_NUM) {
+       throw new IllegalArgumentException(
+           "unknown turbulence symbol: " + turbCode );
+    }
+    return getVLAClone(metSymbols, TURB_INDEX+turbCode);
+  }
+
+
+  /**
+   * Get the array of shapes corresponding to the miscellaneous codes.
+   * @return the array of shapes
+   * @see #getMiscSymbol(int) for codes
+   */
+  public static VisADLineArray[] getMiscSymbols() {
+    return subsetArray(metSymbols, MISC_INDEX, MISC_NUM);
+  }
+
+  /**
+   * Get the shape corresponding to a particular miscellaneous symbol.
+   * Codes are:
+   * <pre>
+   *   0  -  Square (outline)            16 - Tropical Storm (NH)
+   *   1  -  Square (filled)             17 - Hurricane (NH)
+   *   2  -  Circle (outline)            18 - Tropical Storm (SH)
+   *   3  -  Circle (filled)             19 - Hurricane (SH)
+   *   4  -  Triangle (outline)          20 - Triangle with antenna
+   *   5  -  Triangle (filled)           21 - Sideways "S"
+   *   6  -  Diamond (outline)           22 - Slash
+   *   7  -  Diamond (filled)            23 - Storm Center
+   *   8  -  Star (outline)              24 - Tropical Depression
+   *   9  -  Star (filled)               25 - Tropical Cyclone
+   *  10  - High Pressure (outline)      26 - Flame
+   *  11  - Low Pressure (outline)       27 - "X" Cross
+   *  12  - High Pressure (filled)       28 - Low pressure with X (outline)
+   *  13  - Low Pressure (filled)        29 - Low pressure with X (filled)
+   *  14  - Single "]" bracket           30 - Tropical Storm (NH)
+   *  15  - Bottom half of "]" bracket   31 - Tropical Storm (SH)
+   * </pre>
+   * @param   miscCode     miscellaneous code to use
+   * @return  corresponding shape
+   */
+  public static VisADLineArray getMiscSymbol(int miscCode) {
+    if (miscCode < 0 || miscCode >= MISC_NUM) {
+       throw new IllegalArgumentException(
+           "unknown turbulence symbol: " + miscCode );
+    }
+    return getVLAClone(metSymbols, MISC_INDEX+miscCode);
   }
 
   /**
@@ -395,6 +521,11 @@ public class WeatherSymbols {
   public static void main( String[] args) throws Exception {
 
     DisplayImpl display = new DisplayImplJ2D("display");
+    display.getDisplayRenderer().setBoxOn(false);
+    double[] matrix = display.getProjectionControl().getMatrix();
+    matrix[0] = 1.25;
+    matrix[3] = -1.25;
+    display.getProjectionControl().setMatrix(matrix);
     display.addMap(new ScalarMap(RealType.YAxis, Display.YAxis));
     display.addMap(new ScalarMap(RealType.XAxis, Display.XAxis));
     float[][] values = new float[3][220];
@@ -412,12 +543,12 @@ public class WeatherSymbols {
     display.addMap(shapeMap);
     ShapeControl sc = (ShapeControl) shapeMap.getControl();
     sc.setShapeSet(new Integer1DSet(l));
-    sc.setShapes(WeatherSymbols.getAllWMOSymbols());
+    sc.setShapes(WeatherSymbols.getAllMetSymbols());
     sc.setScale(0.1f);
     DataReference ref = new DataReferenceImpl("ref");
     ref.setData(set);
     display.addReference(ref);
-    JFrame frame = new JFrame("WMO Symbol Plot Test");
+    JFrame frame = new JFrame("Weather Symbol Plot Test");
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
         System.exit(0);
@@ -425,6 +556,7 @@ public class WeatherSymbols {
     });
     frame.getContentPane().add(display.getComponent());
     frame.pack();
+    frame.setSize(500, 500);
     frame.show();
 
   }
