@@ -151,6 +151,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
 
   public float[] setTex3DCoords(int length, int axis, float ratiow,
                                 float ratioh, float ratiod) {
+    // need to flip Y and Z in X and Y views?
     float[] texCoords = new float[12 * length];
     if (axis == 2) {
       for (int i=0; i<length; i++) {
@@ -242,37 +243,39 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       }
     }
     else if (axis == 1) {
+      // WLH 23 Feb 2000 - flip Z
       for (int i=0; i<length; i++) {
         int i8 = i * 8;
         // corner 0
         texCoords[i8] = 0.0f;
-        texCoords[i8 + 1] = 1.0f - ratiod;
+        texCoords[i8 + 1] = 1.0f;
         // corner 1
         texCoords[i8 + 2] = ratiow;
-        texCoords[i8 + 3] = 1.0f - ratiod;
+        texCoords[i8 + 3] = 1.0f;
         // corner 2
         texCoords[i8 + 4] = ratiow;
-        texCoords[i8 + 5] = 1.0f;
+        texCoords[i8 + 5] = 1.0f - ratiod;
         // corner 3
         texCoords[i8 + 6] = 0.0f;
-        texCoords[i8 + 7] = 1.0f;
+        texCoords[i8 + 7] = 1.0f - ratiod;
       }
     }
     else if (axis == 0) {
+      // WLH 23 Feb 2000 - flip Y and Z
       for (int i=0; i<length; i++) {
         int i8 = i * 8;
         // corner 0
-        texCoords[i8] = ratioh;
-        texCoords[i8 + 1] = 1.0f - ratiod;
+        texCoords[i8] = 0.0f;
+        texCoords[i8 + 1] = 1.0f;
         // corner 1
-        texCoords[i8 + 2] = 0.0f;
-        texCoords[i8 + 3] = 1.0f - ratiod;
+        texCoords[i8 + 2] = ratioh;
+        texCoords[i8 + 3] = 1.0f;
         // corner 2
-        texCoords[i8 + 4] = 0.0f;
-        texCoords[i8 + 5] = 1.0f;
+        texCoords[i8 + 4] = ratioh;
+        texCoords[i8 + 5] = 1.0f - ratiod;
         // corner 3
-        texCoords[i8 + 6] = ratioh;
-        texCoords[i8 + 7] = 1.0f;
+        texCoords[i8 + 6] = 0.0f;
+        texCoords[i8 + 7] = 1.0f - ratiod;
       }
     }
     return texCoords;

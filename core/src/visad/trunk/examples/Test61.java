@@ -78,7 +78,8 @@ public class Test61
     float[][] values = new float[1][NX * NY * NZ];
     int k = 0;
     for (int iz=0; iz<NZ; iz++) {
-      double z = Math.PI * (-1.0 + 2.0 * iz / (NZ - 1.0));
+      // double z = Math.PI * (-1.0 + 2.0 * iz / (NZ - 1.0));
+      double z = Math.PI * (-1.0 + 2.0 * iz * iz / ((NZ - 1.0)*(NZ - 1.0)) );
       for (int iy=0; iy<NY; iy++) {
         double y = -1.0 + 2.0 * iy / (NY - 1.0);
         for (int ix=0; ix<NX; ix++) {
@@ -96,6 +97,9 @@ public class Test61
     dpys[0].addMap(new ScalarMap(xr, Display.XAxis));
     dpys[0].addMap(new ScalarMap(yr, Display.YAxis));
     dpys[0].addMap(new ScalarMap(zr, Display.ZAxis));
+
+    GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
+    mode.setScaleEnable(true);
 
     ScalarMap map1color = new ScalarMap(wr, Display.RGBA);
     dpys[0].addMap(map1color);
