@@ -312,7 +312,8 @@ public abstract class JPythonMethods {
     return matrix1.times(matrix2);
   }
 
-  /** solve a linear system using Jama */
+  /** solve data1*X = data2 using Jama; return solution if data1
+      is square, least squares solution otherwise */
   public static JamaMatrix solve(FlatField data1, FlatField data2)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
@@ -329,12 +330,78 @@ public abstract class JPythonMethods {
     return matrix.inverse();
   }
 
+  /** transpose a matrix using Jama */
+  public static JamaMatrix transpose(FlatField data)
+         throws VisADException, RemoteException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    JamaMatrix matrix = JamaMatrix.convertToMatrix(data);
+    return matrix.transpose();
+  }
+
   /** get determinant of a matrix using Jama */
   public static double det(FlatField data)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
     JamaMatrix matrix = JamaMatrix.convertToMatrix(data);
     return matrix.det();
+  }
+
+  /** get one norm (maximum column sum) of a matrix using Jama */
+  public static double norm1(FlatField data)
+         throws VisADException, RemoteException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    JamaMatrix matrix = JamaMatrix.convertToMatrix(data);
+    return matrix.norm1();
+  }
+
+  /** get two norm (maximum singular value) of a matrix using Jama */
+  public static double norm2(FlatField data)
+         throws VisADException, RemoteException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    JamaMatrix matrix = JamaMatrix.convertToMatrix(data);
+    return matrix.norm2();
+  }
+
+  /** get infinity norm (maximum row sum) of a matrix using Jama */
+  public static double normInf(FlatField data)
+         throws VisADException, RemoteException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    JamaMatrix matrix = JamaMatrix.convertToMatrix(data);
+    return matrix.normInf();
+  }
+
+  /** get Frobenius norm (sqrt of sum of squares of all elements)
+      of a matrix using Jama */
+  public static double normF(FlatField data)
+         throws VisADException, RemoteException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    JamaMatrix matrix = JamaMatrix.convertToMatrix(data);
+    return matrix.normF();
+  }
+
+  /** get effective numerical rank (from SVD) of a matrix using Jama */
+  public static double rank(FlatField data)
+         throws VisADException, RemoteException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    JamaMatrix matrix = JamaMatrix.convertToMatrix(data);
+    return matrix.rank();
+  }
+
+  /** get condition (ratio of largest to smallest singular value)
+      of a matrix using Jama */
+  public static double cond(FlatField data)
+         throws VisADException, RemoteException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    JamaMatrix matrix = JamaMatrix.convertToMatrix(data);
+    return matrix.cond();
+  }
+
+  /** get trace (sum of the diagonal elements) of a matrix using Jama */
+  public static double trace(FlatField data)
+         throws VisADException, RemoteException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    JamaMatrix matrix = JamaMatrix.convertToMatrix(data);
+    return matrix.trace();
   }
 
   /** return Cholesky Decomposition using Jama */
