@@ -210,7 +210,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     Menu map = new Menu("Mappings");
     menubar.add(map);
 
-    MenuItem mapEdit = new MenuItem("Edit map...");
+    MenuItem mapEdit = new MenuItem("Edit mappings...");
     mapEdit.addActionListener(this);
     mapEdit.setActionCommand("mapEdit");
     map.add(mapEdit);
@@ -328,7 +328,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       JButton b = new JButton(toolMappingsEdit);
       b.setToolTipText("Edit mappings");
       b.addActionListener(this);
-      b.setActionCommand("mappingsEdit");
+      b.setActionCommand("mapEdit");
       toolbar.add(b);
     }
     toolbar.add(Box.createHorizontalGlue());
@@ -472,7 +472,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else if (cmd.equals("cellImport")) loadDataSet();
 
     // mappings menu commands
-    else if (cmd.equals("mappingsEdit")) createMappings();
+    else if (cmd.equals("mapEdit")) createMappings();
     else if (cmd.equals("mapColorImage")) {
       DisplayCells[CurDisplay].setMappingScheme(FancySSCell.COLOR_IMAGE);
     }
