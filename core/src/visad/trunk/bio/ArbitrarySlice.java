@@ -211,7 +211,7 @@ public class ArbitrarySlice extends PlaneSelector {
         changed = true;
       }
       if (changed) {
-        setData(i, vx, vy, vz);
+        setData(i, new double[] {vx, vy, vz});
         return false;
       }
       x[i] = vx;

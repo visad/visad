@@ -86,9 +86,7 @@ public class AlignmentPlane extends PlaneSelector {
     this.index = index;
 
     // set endpoint values to match those at current index
-    for (int i=0; i<3; i++) {
-      setData(i, pos[index][i][0], pos[index][i][1], pos[index][i][2]);
-    }
+    for (int i=0; i<3; i++) setData(i, descale(pos[index][i]));
   }
 
   /** Sets whether to lock endpoint distances to maintain size and shape. */
@@ -123,7 +121,6 @@ public class AlignmentPlane extends PlaneSelector {
       }
     }
   }
-  boolean temp = false; /* TEMP */
 
 
   // -- HELPER METHODS --
@@ -136,23 +133,16 @@ public class AlignmentPlane extends PlaneSelector {
       if (tuple == null) continue;
       try {
         Real[] r = tuple.getRealComponents();
-        for (int j=0; j<3; j++) pos[index][i][j] = r[j].getValue();
+        double[] vals = new double[3];
+        for (int j=0; j<3; j++) vals[j] = r[j].getValue();
+        setPos(i, vals);
       }
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }
     }
 
     double[] p1 = pos[index][0], p2 = pos[index][1], p3 = pos[index][2];
-    double[] m = bio.mm.getMicronDistances();
-    if (m[0] == m[0] && m[1] == m[1] && m[2] == m[2]) {
-      m[0] /= bio.sm.res_x;
-      m[1] /= bio.sm.res_y;
-    }
-    else {
-      m[0] = 1.0 / bio.sm.res_x;
-      m[1] = 1.0 / bio.sm.res_y;
-      m[2] = 1.0 / bio.sm.getNumberOfSlices();
-    }
+    double[] m = {1, 1, 1};
 
     double[] u = new double[3];
     for (int i=0; i<3; i++) u[i] = p2[i] - p1[i];
@@ -168,7 +158,7 @@ public class AlignmentPlane extends PlaneSelector {
         double lamda = dist12 / d12;
         double[] p = new double[3];
         for (int i=0; i<3; i++) p[i] = p1[i] + lamda * u[i];
-        setData(1, p[0], p[1], p[2]);
+        setData(1, descale(p));
         return false;
       }
 
@@ -176,36 +166,37 @@ public class AlignmentPlane extends PlaneSelector {
       if (!Util.isApproximatelyEqual(dist13, d13) ||
         !Util.isApproximatelyEqual(dist23, d23))
       {
-        if (temp) { /* TEMP */
-        // n = normal to plane
+        // p = 3rd endpoint after tweaking (what we are ultimately computing)
+        // p4 = p's projection onto p2-p1 line
+        // n = normal to p4-p plane
+        // d = distance between p4-p plane and origin
+        // q = p3's projection onto p4-p plane
+
+        // compute n
         double[] n = new double[3];
         double l = Math.sqrt(u[0] * u[0] + u[1] * u[1] + u[2] * u[2]);
         for (int i=0; i<3; i++) n[i] = u[i] / l;
-        double d = n[0] * p3[0] + n[1] * p3[1] + n[2] * p3[2];
 
-        // p4 = desired p3's projection onto p2-p1 line
+        // compute p4 and d
         double[] p4 = new double[3];
         for (int i=0; i<3; i++) p4[i] = p1[i] + d_dist * u[i];
+        double d = n[0] * p4[0] + n[1] * p4[1] + n[2] * p4[2];
 
-        // q = p3 - (n.p3 - n.p4) * n
-        double n_p3 = n[0] * p3[0] + n[1] * p3[1] + n[2] * p3[2];
-        double n_p4 = n[0] * p4[0] + n[1] * p4[1] + n[2] * p4[2];
-        double c = n_p3 - n_p4;
+        // compute q
+        double c = (d - (n[0] * p3[0] + n[1] * p3[1] + n[2] * p3[2])) /
+          (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
         double[] q = new double[3];
-        for (int i=0; i<3; i++) q[i] = p3[i] - c * n[i];
+        for (int i=0; i<3; i++) q[i] = c * n[i] + p3[i];
 
-        // trim q to proper length
+        // compute p
         double d34 = BioUtil.getDistance(q, p4, m);
         double lamda = dist34 / d34;
         double[] p = new double[3];
         for (int i=0; i<3; i++) p[i] = p4[i] + lamda * (q[i] - p4[i]);
 
-        setData(2, p[0], p[1], p[2]);
-        temp = false; /* TEMP */
+        setData(2, descale(p));
         return false;
-      } /* TEMP */
       }
-      temp= true; /* TEMP */
     }
     else {
       dist12 = d12;
@@ -216,24 +207,6 @@ public class AlignmentPlane extends PlaneSelector {
       double[] p4 = new double[3];
       for (int i=0; i<3; i++) p4[i] = p1[i] + d_dist * u[i];
       dist34 = BioUtil.getDistance(p3, p4, m);
-
-      // CTR - START HERE
-      // p4 is a projection of p3 onto the p2-p1 line.
-      // dist14 is the distance between p4 and p1.
-
-      // In 3rd endpoint snapping, we want to project the new p3 onto
-      // the plane perpendicular to the triangle's plane.  This plane
-      // is defined by a normal vector N = p2 - p1 (normalized) and the
-      // new p4 point, computed using dist14 from the new p1.
-
-      // Q = p3 - (N.p3 - N.p4) * N
-
-      // The new point Q lies on the desired plane, but its distance
-      // from point p4 is probably not correct.  We can trim the point
-      // to the correct distance using dist34, as done when snapping
-      // the second endpoint.
-
-      // The resulting point should be the correctly snapped p3.
     }
 
     if (!super.refresh()) return false;
@@ -242,11 +215,38 @@ public class AlignmentPlane extends PlaneSelector {
   }
 
   /** Moves the given reference point. */
-  protected void setData(int i, double x, double y, double z) {
-    super.setData(i, x, y, z);
-    pos[index][i][0] = x;
-    pos[index][i][1] = y;
-    pos[index][i][2] = z;
+  protected void setData(int i, double[] vals) {
+    super.setData(i, vals);
+    setPos(i, vals);
+  }
+
+  /** Updates internal position values. */
+  protected void setPos(int i, double[] vals) {
+    double[] m = getScale();
+    for (int j=0; j<3; j++) pos[index][i][j] = m[j] * vals[j];
+  }
+
+  /** Convert point from scaled to non-scaled. */
+  protected double[] descale(double[] vals) {
+    double[] m = getScale();
+    double[] v = new double[3];
+    for (int i=0; i<3; i++) v[i] = vals[i] / m[i];
+    return v;
+  }
+
+  /** Gets coordinate system scale. */
+  protected double[] getScale() {
+    double[] m = bio.mm.getMicronDistances();
+    if (m[0] == m[0] && m[1] == m[1] && m[2] == m[2]) {
+      m[0] /= bio.sm.res_x;
+      m[1] /= bio.sm.res_y;
+    }
+    else {
+      m[0] = 1.0 / bio.sm.res_x;
+      m[1] = 1.0 / bio.sm.res_y;
+      m[2] = 1.0 / bio.sm.getNumberOfSlices();
+    }
+    return m;
   }
 
 }

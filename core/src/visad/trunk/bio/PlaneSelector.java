@@ -230,7 +230,7 @@ public class PlaneSelector {
         double x = Double.parseDouble(fin.readLine().trim());
         double y = Double.parseDouble(fin.readLine().trim());
         double z = Double.parseDouble(fin.readLine().trim());
-        setData(i, x, y, z);
+        setData(i, new double[] {x, y, z});
       }
       catch (NumberFormatException exc) { }
     }
@@ -251,7 +251,7 @@ public class PlaneSelector {
         double vx = i == 0 ? x1 : (i == 1 ? x2 : x3);
         double vy = i == 0 ? y1 : (i == 1 ? y2 : y3);
         double vz = i == 0 ? z1 : (i == 1 ? z2 : z3);
-        setData(i, vx, vy, vz);
+        setData(i, new double[] {vx, vy, vz});
         return false;
       }
     }
@@ -297,9 +297,9 @@ public class PlaneSelector {
   }
 
   /** Moves the given reference point. */
-  protected void setData(int i, double x, double y, double z) {
+  protected void setData(int i, double[] vals) {
     try {
-      refs[i + 2].setData(new RealTuple(domain, new double[] {x, y, z}));
+      refs[i + 2].setData(new RealTuple(domain, vals));
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
