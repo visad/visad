@@ -66,4 +66,13 @@ public class RenderToolPanel extends ToolPanel {
   /** Enables or disables this tool panel. */
   public void setEnabled(boolean enabled) { }
 
+  /** Adds a widget to the tool panel. */
+  public void addWidget(JComponent c) { controls.add(c); }
+
+  /** Removes all widgets from the tool panel. */
+  public void removeAllWidgets() {
+    int size = controls.getComponentCount();
+    for (int i=controls.getComponentCount(); i>1; i--) controls.remove(1);
+  }
+
 }

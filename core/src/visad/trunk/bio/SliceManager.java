@@ -31,7 +31,7 @@ import java.rmi.RemoteException;
 import javax.swing.JOptionPane;
 import visad.*;
 import visad.data.*;
-import visad.util.DualRes;
+import visad.util.*;
 
 /** SliceManager is the class encapsulating BioVisAD's slice logic. */
 public class SliceManager
@@ -360,7 +360,24 @@ public class SliceManager
   }
 
   /** Sets whether 3-D display should use image stack or volume rendering. */
-  public void setVolumeRender(boolean volume) { this.volume = volume; }
+  public void setVolumeRender(boolean volume) {
+    if (bio.display3 == null) return;
+    if (this.volume == volume) return;
+    this.volume = volume;
+    try {
+      if (volume) {
+        if (collapsedField == null) updateCollapsedField();
+        if (lowres) lowresRef3.setData(collapsedField);
+        else ref3.setData(collapsedField);
+      }
+      else {
+        if (lowres) lowresRef3.setData(lowresField);
+        else ref3.setData(field);
+      }
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+  }
 
   /** Links the data series to the given list of files. */
   public void setSeries(File[] files) { setSeries(files, false); }
@@ -737,6 +754,7 @@ public class SliceManager
       bio.next.removeAllReferences();
       bio.next.clearMaps();
     }
+    bio.toolRender.removeAllWidgets();
   }
 
   /** Configures display mappings and references. */
@@ -852,6 +870,7 @@ public class SliceManager
       for (int i=0; i<rtypes.length; i++) {
         rmaps3[i] = new ScalarMap(rtypes[i], Display.RGBA);
         bio.display3.addMap(rmaps3[i]);
+        bio.toolRender.addWidget(new LabeledColorWidget(rmaps3[i]));
       }
 
       // set up 3-D data references
@@ -1015,6 +1034,9 @@ public class SliceManager
       catch (RemoteException exc) { exc.printStackTrace(); }
     }
 
+    // do volume rendering
+    if (volume) updateCollapsedField();
+
     // switch resolution in 2-D display
     if (planeSelect) {
       collapsedField = null;
@@ -1058,17 +1080,23 @@ public class SliceManager
   private void updateSlice() {
     bio.setWaitCursor(true);
     try {
-      if (collapsedField == null) {
-        FieldImpl f = lowres ?
-          (FieldImpl) lowresField.getSample(index) : field;
-        collapsedField = (FieldImpl) f.domainMultiply();
-      }
+      if (collapsedField == null) updateCollapsedField();
       planeRef.setData(ps.extractSlice(collapsedField,
         sliceRes_x, sliceRes_y, res_x, res_y));
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
     bio.setWaitCursor(false);
+  }
+
+  /** Updates collapsed field to match current data. */
+  private void updateCollapsedField() {
+    try {
+      FieldImpl f = lowres ? (FieldImpl) lowresField.getSample(index) : field;
+      collapsedField = (FieldImpl) f.domainMultiply();
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
   }
 
   /** Updates measurement pools with new measurement list. */

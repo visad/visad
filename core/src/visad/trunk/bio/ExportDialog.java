@@ -232,8 +232,8 @@ public class ExportDialog extends JPanel
     int max_slice = bio.sm.getNumberOfSlices();
     int min_index = 1;
     int max_index = bio.sm.getNumberOfIndices();
-    int resX = bio.sm.res_x;
-    int resY = bio.sm.res_y;
+    final int rx = bio.sm.res_x;
+    final int ry = bio.sm.res_y;
 
     // extract export parameters from GUI
     final boolean colors = doColors.isSelected();
@@ -244,15 +244,16 @@ public class ExportDialog extends JPanel
     if (singleSlice) min_slice = max_slice = bio.sm.getSlice() + 1;
     final File[] series = chooser.getSeries();
     final boolean filesAsSlices = chooser.getFilesAsSlices();
-    if (altRes.isSelected()) {
-      try {
-        int x = Integer.parseInt(altRes.getFirstValue());
-        int y = Integer.parseInt(altRes.getSecondValue());
-        resX = x;
-        resY = y;
-      }
-      catch (NumberFormatException exc) { }
+    boolean doAltRes = altRes.isSelected();
+    int altX = rx;
+    int altY = ry;
+    try {
+      altX = Integer.parseInt(altRes.getFirstValue());
+      altY = Integer.parseInt(altRes.getSecondValue());
     }
+    catch (NumberFormatException exc) { }
+    final int resX = doAltRes ? altX : rx;
+    final int resY = doAltRes ? altY : ry;
     if (exportTimesteps.isSelected()) {
       try {
         int min = Integer.parseInt(exportTimesteps.getFirstValue());
@@ -322,13 +323,11 @@ public class ExportDialog extends JPanel
 
             if (arbSlice) {
               // data to export is arbitrary slice
-              int rx = bio.sm.res_x;
-              int ry = bio.sm.res_y;
               if (sliceSeries) {
                 // loaded dataset is a slice series
                 images = new FlatField[1];
                 images[0] = (FlatField) bio.sm.ps.extractSlice((FieldImpl)
-                  bio.sm.getField().domainMultiply(), rx, ry, rx, ry);
+                  bio.sm.getField().domainMultiply(), resX, resY, rx, ry);
               }
               else {
                 // loaded dataset is a timestep series
@@ -339,7 +338,7 @@ public class ExportDialog extends JPanel
                     File f = infiles[minIndex + j];
                     FieldImpl timestep = SliceManager.loadData(f, true);
                     images[j] = (FlatField) bio.sm.ps.extractSlice((FieldImpl)
-                      timestep.domainMultiply(), rx, ry, rx, ry);
+                      timestep.domainMultiply(), resX, resY, rx, ry);
                     float percent = (float) (j + 1) / numIndices;
                     dialog.setPercent((int) (100 * percent));
                   }
@@ -350,7 +349,7 @@ public class ExportDialog extends JPanel
                   File f = infiles[minIndex + i];
                   FieldImpl timestep = SliceManager.loadData(f, true);
                   images[0] = (FlatField) bio.sm.ps.extractSlice((FieldImpl)
-                    timestep.domainMultiply(), rx, ry, rx, ry);
+                    timestep.domainMultiply(), resX, resY, rx, ry);
                 }
               }
             }
@@ -398,6 +397,16 @@ public class ExportDialog extends JPanel
                     (numSlices * i + (j + 1)) / (series.length * numSlices);
                   dialog.setPercent((int) (100 * percent));
                 }
+              }
+            }
+            for (int j=0; j<images.length; j++) {
+              // resample images to proper size if necessary
+              GriddedSet set = (GriddedSet) images[j].getDomainSet();
+              int[] l = set.getLengths();
+              if (l[0] != resX || l[1] != resY) {
+                Set nset = new Linear2DSet(set.getType(),
+                  0, l[0] - 1, resX, 0, l[1] - 1, resY);
+                images[j] = (FlatField) images[j].resample(nset);
               }
             }
             data = SliceManager.makeStack(images);

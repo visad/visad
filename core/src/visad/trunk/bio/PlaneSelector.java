@@ -440,6 +440,10 @@ public class PlaneSelector implements DisplayListener {
     this.ytype = ytype;
     this.ztype = ztype;
     snap = lox == lox;
+    visible = false;
+    endpointMode = true;
+    numIndices = numTime;
+    pos = new double[numIndices][3][3];
     if (snap) {
       this.lox = lox;
       this.loy = loy;
@@ -447,10 +451,12 @@ public class PlaneSelector implements DisplayListener {
       this.hix = hix;
       this.hiy = hiy;
       this.hiz = hiz;
+      index = -1;
     }
     else {
       this.lox = this.loy = this.loz = 0;
       this.hix = this.hiy = this.hiz = 1;
+      index = 0;
     }
     DisplayRenderer displayRenderer = display.getDisplayRenderer();
     for (int i=0; i<refs.length; i++) {
@@ -458,28 +464,48 @@ public class PlaneSelector implements DisplayListener {
       if (i == 0) {
         // thick plane outline
         renderers[i] = displayRenderer.makeDefaultRenderer();
-        maps = new ConstantMap[] {
-          new ConstantMap(0.0f, Display.Red),
-          new ConstantMap(1.0f, Display.Green),
-          new ConstantMap(1.0f, Display.Blue),
-          new ConstantMap(3.0f, Display.LineWidth)
-        };
+        if (snap) {
+          maps = new ConstantMap[] { // cyan
+            new ConstantMap(0.0f, Display.Red),
+            new ConstantMap(1.0f, Display.Green),
+            new ConstantMap(1.0f, Display.Blue),
+            new ConstantMap(3.0f, Display.LineWidth)
+          };
+        }
+        else {
+          maps = new ConstantMap[] { // red
+            new ConstantMap(1.0f, Display.Red),
+            new ConstantMap(0.0f, Display.Green),
+            new ConstantMap(0.0f, Display.Blue),
+            new ConstantMap(3.0f, Display.LineWidth)
+          };
+        }
       }
       else if (i == 1) {
         // semi-transparent plane
         renderers[i] = displayRenderer.makeDefaultRenderer();
-        maps = new ConstantMap[] {
-          new ConstantMap(1.0f, Display.Red),
-          new ConstantMap(1.0f, Display.Green),
-          new ConstantMap(1.0f, Display.Blue),
-          new ConstantMap(0.75f, Display.Alpha)
-        };
+        if (snap) {
+          maps = new ConstantMap[] { // gray
+            new ConstantMap(1.0f, Display.Red),
+            new ConstantMap(1.0f, Display.Green),
+            new ConstantMap(1.0f, Display.Blue),
+            new ConstantMap(0.75f, Display.Alpha)
+          };
+        }
+        else {
+          maps = new ConstantMap[] { // red
+            new ConstantMap(1.0f, Display.Red),
+            new ConstantMap(0.0f, Display.Green),
+            new ConstantMap(0.0f, Display.Blue),
+            new ConstantMap(0.75f, Display.Alpha)
+          };
+        }
       }
       else {
         // manipulable plane definition points
         renderers[i] = new DirectManipulationRendererJ3D();
         renderers[i].setPickCrawlToCursor(false);
-        maps = new ConstantMap[] {
+        maps = new ConstantMap[] { // yellow
           new ConstantMap(1.0f, Display.Red),
           new ConstantMap(1.0f, Display.Green),
           new ConstantMap(0.0f, Display.Blue),
@@ -490,11 +516,6 @@ public class PlaneSelector implements DisplayListener {
       renderers[i].toggle(false);
       display.addReferences(renderers[i], refs[i], maps);
     }
-    visible = false;
-    endpointMode = true;
-    numIndices = numTime;
-    pos = new double[numIndices][3][3];
-    index = snap ? -1 : 0;
   }
 
   /** Extracts a field using the current plane, at the given resolution. */

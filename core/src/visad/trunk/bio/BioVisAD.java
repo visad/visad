@@ -281,10 +281,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   }
 
   /** Toggles the 3-D display between image stack and volume render modes. */
-  public void setVolume(boolean volume) {
-    if (display3 == null) return;
-    // CTR - TODO - volume rendering
-  }
+  public void setVolume(boolean volume) { sm.setVolumeRender(volume); }
 
   /** Toggles the visibility of the preview displays. */
   public void setPreview(boolean preview) {
