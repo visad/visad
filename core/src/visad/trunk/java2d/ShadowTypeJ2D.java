@@ -387,6 +387,10 @@ public abstract class ShadowTypeJ2D extends ShadowType {
             appearance = makeAppearance(mode, constant_alpha,
                                         constant_color, array);
             group.addChild(appearance);
+            if (renderer instanceof DirectManipulationRendererJ2D) {
+              ((DirectManipulationRendererJ2D) renderer).
+                                      setSpatialValues(spatial_values);
+            }
           }
         }
         anyShapeCreated = true;
@@ -425,14 +429,15 @@ public abstract class ShadowTypeJ2D extends ShadowType {
         anyFlowCreated = true;
       }
 
-      if (!anyFlowCreated && !anyTextCreated) {
+      if (!anyFlowCreated && !anyTextCreated && !anyShapeCreated) {
         array = makePointGeometry(spatial_values, null);
         if (array != null) {
           appearance = makeAppearance(mode, constant_alpha,
                                       constant_color, array);
           group.addChild(appearance);
           if (renderer instanceof DirectManipulationRendererJ2D) {
-            ((DirectManipulationRendererJ2D) renderer).setSpatialValues(spatial_values);
+            ((DirectManipulationRendererJ2D) renderer).
+                                    setSpatialValues(spatial_values);
           }
         }
       }

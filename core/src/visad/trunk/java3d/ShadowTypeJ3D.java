@@ -418,6 +418,11 @@ public abstract class ShadowTypeJ3D extends ShadowType {
             appearance = makeAppearance(mode, null, constant_color, geometry);
             shape = new Shape3D(geometry, appearance);
             group.addChild(shape);
+            if (renderer instanceof DirectManipulationRendererJ3D) {
+              ((DirectManipulationRendererJ3D) renderer).
+                                      setSpatialValues(spatial_values);
+            }
+
           }
         }
         anyShapeCreated = true;
@@ -465,10 +470,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
         anyFlowCreated = true;
       }
 
-/* WLH 25 March 99
       if (!anyFlowCreated && !anyTextCreated && !anyShapeCreated) {
-*/
-      if (!anyFlowCreated && !anyTextCreated) {
         array = makePointGeometry(spatial_values, null);
         if (array != null && array.vertexCount > 0) {
           geometry = display.makeGeometry(array);
@@ -476,7 +478,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
           shape = new Shape3D(geometry, appearance);
           group.addChild(shape);
           if (renderer instanceof DirectManipulationRendererJ3D) {
-            ((DirectManipulationRendererJ3D) renderer).setSpatialValues(spatial_values);
+            ((DirectManipulationRendererJ3D) renderer).
+                                    setSpatialValues(spatial_values);
           }
         }
       }

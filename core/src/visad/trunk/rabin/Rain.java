@@ -149,9 +149,9 @@ public class Rain implements ControlListener {
     cross.coordinates = new float[]
       {0.1f,  0.0f, 0.0f,    -0.1f,  0.0f, 0.0f,
        0.0f, -0.1f, 0.0f,     0.0f,  0.1f, 0.0f};
-    cross.colors = new float[]
-      {1.0f,  1.0f, 1.0f,     1.0f,  1.0f, 1.0f,
-       1.0f,  1.0f, 1.0f,     1.0f,  1.0f, 1.0f};
+    cross.colors = new byte[]
+      {-1,  -1, -1,     -1,  -1, -1,
+       -1,  -1, -1,     -1,  -1, -1};
     cross.vertexCount = cross.coordinates.length / 3;
     VisADGeometryArray[] shapes = {cross};
 
@@ -467,6 +467,11 @@ public class Rain implements ControlListener {
       }
     };
     cells[3][1].addReference(cell_refs[0][1]);
+
+    GraphicsModeControl mode = displays[3][1].getGraphicsModeControl();
+    mode.setTextureEnable(false);
+    mode.setPointMode(true);
+    mode.setPointSize(5.0f);
 
     DisplayImpl.delay(DELAY);
 

@@ -116,17 +116,24 @@ public class ColorControl extends Control {
       colors = new float[3][len];
       float scale = (float) tableLength;
       for (int i=0; i<len; i++) {
-        int j = (int) (scale * values[i]);
-        // note actual table length is tableLength + 1
-        if (j < 0 || tableLength < j) {
+        if (values[i] != values[i]) {
           colors[0][i] = Float.NaN;
           colors[1][i] = Float.NaN;
           colors[2][i] = Float.NaN;
         }
         else {
-          colors[0][i] = table[0][j];
-          colors[1][i] = table[1][j];
-          colors[2][i] = table[2][j];
+          int j = (int) (scale * values[i]);
+          // note actual table length is tableLength + 1
+          if (j < 0 || tableLength < j) {
+            colors[0][i] = Float.NaN;
+            colors[1][i] = Float.NaN;
+            colors[2][i] = Float.NaN;
+          }
+          else {
+            colors[0][i] = table[0][j];
+            colors[1][i] = table[1][j];
+            colors[2][i] = table[2][j];
+          }
         }
       }
     }
