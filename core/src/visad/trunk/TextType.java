@@ -93,6 +93,29 @@ public class TextType extends ScalarType {
     throw new UnimplementedException("TextType: unary");
   }
 
+  /** create a new TextType, or return it if it already exists */
+  public static TextType getTextType(String name) {
+    try {
+      return new TextType(name);
+    }
+    catch (TypeException e) {
+      return getTextTypeByName(name);
+    }
+    catch (VisADException e) {
+      return null;
+    }
+  }
+
+  /** return any TextType constructed in this JVM with name,
+      or null */
+  public static TextType getTextTypeByName(String name) {
+    ScalarType text = ScalarType.getScalarTypeByName(name);
+    if (!(text instanceof TextType)) {
+      return null;
+    }
+    return (TextType) text;
+  }
+
 /* WLH 5 Jan 2000
   public String toString() {
     return getName() + "(Text)";
