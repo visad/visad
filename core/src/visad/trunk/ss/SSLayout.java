@@ -174,24 +174,43 @@ public class SSLayout implements LayoutManager {
       throw new Error("wrong number of components!");
     }
 
-    // get preferred total width
-    int totalW = -ColSpace;
+    // get preferred widths, and smallest preferred width
+    int[] pw = new int[NumCols];
+    int sw = 0;
     for (int i=0; i<NumCols; i++) {
-      totalW += c[i].getPreferredSize().width + ColSpace;
+      pw[i] = c[i].getPreferredSize().width;
+      if ((i % 2 == 0 || !Labels) && pw[i] < pw[sw]) sw = i;
     }
 
-    // get preferred total height
-    int totalH = -RowSpace;
+    // compute preferred total width
+    double scaleW = (double) MinColW / pw[sw];
+    int[] rw = new int[NumCols];
+    int prefW = -ColSpace;
+    for (int i=0; i<NumCols; i++) {
+      prefW += ColSpace;
+      if (i % 2 == 0 || !Labels) prefW += scaleW * pw[i];
+      else prefW += pw[i];
+    }
+
+    // get preferred heights, and smallest preferred height
+    int[] ph = new int[NumRows];
+    int sh = 0;
     for (int i=0; i<NumRows; i++) {
-      totalH += c[NumCols*i].getPreferredSize().height + RowSpace;
+      ph[i] = c[NumCols*i].getPreferredSize().height;
+      if ((i % 2 == 0 || !Labels) && ph[i] < ph[sh]) sh = i;
     }
 
-    // preferred size should be at least minimum size
-    Dimension minSize = minimumLayoutSize(parent);
-    if (totalW < minSize.width) totalW = minSize.width;
-    if (totalH < minSize.height) totalH = minSize.height;
+    // compute preferred total height
+    double scaleH = (double) MinRowH / ph[sh];
+    int[] rh = new int[NumRows];
+    int prefH = -RowSpace;
+    for (int i=0; i<NumRows; i++) {
+      prefH += RowSpace;
+      if (i % 2 == 0 || !Labels) prefH += scaleH * ph[i];
+      else prefH += ph[i];
+    }
 
-    return new Dimension(totalW, totalH);
+    return new Dimension(prefW, prefH);
   }
 
   /** not used by SSLayout */

@@ -65,8 +65,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
   static final int HEIGHT_PERCENT = 75;
 
   // minimum VisAD display size, including display border
-  static final int MIN_VIS_WIDTH = 200;
-  static final int MIN_VIS_HEIGHT = 200;
+  static final int MIN_VIS_WIDTH = 120;
+  static final int MIN_VIS_HEIGHT = 120;
   
   // spreadsheet letter order
   static final String Letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
