@@ -229,10 +229,17 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
   }
 
   /**
-   * Clear link to DisplayImpl.  This will subsequently cause
-   * <code>getDisplay() and <code>getControl()</code> to return
-   * <code>null</code>; consequently, information stored in the Control might
-   * have to be reestablished.
+   * Clear the link to the VisAD display.  This will subsequently
+   * cause @{link getDisplay()} and @{link getControl()} to return
+   * <code>null</code>; consequently, information stored in the Control
+   * might have to be reestablished.  This method invokes the method @{link
+   * ScalarMapListener#controlChanged(ScalarMapControlEvent)} on all registered
+   * @{link ScalarMapListener}s with this instance as the event source, @{link
+   * ScalarMapEvent#CONTROL_REMOVED} as the event ID, and the control as the
+   * event control.
+   *
+   * @throws RemoteException	Java RMI failure
+   * @throws VisADException	VisAD failure
    */
   synchronized void nullDisplay()
     throws RemoteException, VisADException
@@ -272,13 +279,13 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
   }
 
   /**
-   * Gets the Control for the DisplayScalar.  The Control is constructed
-   * when this ScalarMap is linked to a Display via an invocation of the
-   * Display's <code>addMap()</code> method.  Not all ScalarMaps have Controls,
-   * generally depending on the ScalarMap's DisplayRealType.  If a ScalarMap
-   * is removed from a Display (via the <code>Display.clearMaps()</code> method,
-   * then, in general, any information in the ScalarMap's control will be lost
-   * and must be reestablished.
+   * Gets the Control for the DisplayScalar.  The Control is constructed when
+   * this ScalarMap is linked to a Display via an invocation of the @{link
+   * Display#addMap(ScalarMap)} method.  Not all ScalarMaps have Controls,
+   * generally depending on the ScalarMap's DisplayRealType.  If a ScalarMap is
+   * removed from a Display (via the @{link Display#clearMaps()} method, then,
+   * in general, any information in the ScalarMap's control will be lost and
+   * must be reestablished.
    *
    * @return			The Control for the DisplayScalar or <code>
    *				null</code> if one has not yet been set.
@@ -287,7 +294,21 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     return control;
   }
 
-  /** create Control for DisplayScalar */
+  /**
+   * Creates the Control for the associated DisplayScalar.  This method invokes
+   * the method @{link ScalarMapListener#controlChanged(ScalarMapControlEvent)}
+   * on all registered @{link ScalarMapListener}s with this instance as
+   * the event source and @{link ScalarMapEvent#CONTROL_ADDED} or @{link
+   * ScalarMapEvent#CONTROL_REPLACED} as the event ID -- depending on whether
+   * this is the first control or not.	The event control is the previous
+   * control if the event ID is @{link ScalarMapEvent#CONTROL_REPLACED}.  If the
+   * event ID is @{link ScalarMapEvent#CONTROL_ADDED}, then the event control is
+   * the created control or <code>null</code> -- depending on whether or not the
+   * control was successfully created.
+   *
+   * @throws RemoteException	Java RMI failure
+   * @throws VisADException	VisAD failure
+   */
   synchronized void setControl() throws VisADException, RemoteException {
     int evtID;
     Control evtCtl;
