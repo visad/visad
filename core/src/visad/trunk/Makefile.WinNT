@@ -170,7 +170,6 @@ visad\DATE \
 visad\Makefile \
 visad\Makefile.WinNT \
 visad\README.nexusrmi \
-visad\rmic_script \
 visad\*.java \
 visad\examples\*.java \
 visad\java3d\*.java \
@@ -486,8 +485,9 @@ benjamin\*.class \
 rabin\*.class \
 aune\*.class \
 bom\*.class
+	cd ..
 	$(RMIC) $(RMIC_FILES)
-	cd examples
+	cd visad\examples
 	$(JC) $(JFLAGS) *.java
 	cd ..
 
@@ -525,8 +525,9 @@ compile: clean
 	$(JC) $(JFLAGS) rabin\*.java
 	$(JC) $(JFLAGS) aune\*.java
 	$(JC) $(JFLAGS) bom\*.java
+        cd ..
 	$(RMIC) $(RMIC_FILES)
-	cd examples
+	cd visad\examples
 	$(JC) $(JFLAGS) *.java
 	cd ..
 
