@@ -86,6 +86,11 @@ public class DefaultFamily
   private static boolean listInitialized = false;
 
   /**
+   * 'adde' URL needs special handler loaded
+   */
+  private static boolean addeHandlerLoaded = false;
+
+  /**
     * Base class which tries to perform an operation on an object
     * using the first valid VisAD datatype Form.
     */
@@ -517,11 +522,72 @@ public class DefaultFamily
   }
 
   /**
+   * Convert a 'file:' URL into a file path
+   */
+  private static String trimFileURL(String str)
+  {
+    // reject strings which couldn't possibly be file URLs
+    if (str == null || str.length() < 6 ||
+        !str.substring(0, 6).equalsIgnoreCase("file:/"))
+    {
+      return str;
+    }
+
+    // if it's the short form, just strip off the 'file:' part
+    if (str.length() < 7 || str.charAt(6) != '/') {
+      str = str.substring(5);
+    } else {
+      // strip off the 'file://' bit
+      str = str.substring(7);
+
+      // if the host field isn't empty (i.e. 'file:///')
+      if (str.length() > 0 && str.charAt(0) != '/') {
+        int slash = str.indexOf('/');
+
+        // if there's no end-of-host marker...
+        if (slash < 0) {
+          // bad URL; restore 'file://'
+          str = "file://" + str;
+        } else {
+          // break into host part and path part
+          String host = str.substring(0, slash);
+          String path = str.substring(slash);
+
+          // if its empty or 'localhost', just use the path
+          if (host.length() == 0 || host.equalsIgnoreCase("localhost")) {
+            str = path;
+          } else {
+            // remote host; give up
+            str = "file://" + host + path;
+          }
+        }
+      }
+    }
+
+    // hack for NT/Windows
+    if (str.length() >= 2 && str.charAt(2) == ':') {
+      str = str.substring(1);
+    }
+
+    return str;
+  }
+
+  /**
     * Open a local data object using the first appropriate Form.
     */
   public synchronized DataImpl open(String id)
 	throws BadFormException, VisADException
   {
+    // Garbage in, garbage out
+    if (id == null) {
+      return null;
+    }
+
+    // treat 'file:/' URLs as plain files
+    if (id.length() >= 6 && id.substring(0, 6).equalsIgnoreCase("file:/")) {
+      id = trimFileURL(id);
+    }
+
     OpenStringForm o = new OpenStringForm(id);
 
     DataImpl data;
@@ -540,6 +606,15 @@ public class DefaultFamily
     }
 
     if (data == null) {
+      // if this is an 'adde:' URL...
+      if (id.length() >= 5 && id.substring(0, 5).equalsIgnoreCase("adde:")) {
+        // if 'adde:' handler isn't loaded, try to load it
+        if (!addeHandlerLoaded) {
+          addeHandlerLoaded =
+            edu.wisc.ssec.mcidas.AreaFile.isURLHandlerLoaded();
+        }
+      }
+
       URL url;
       try {
         url = new URL(id);
