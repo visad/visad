@@ -25,11 +25,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
-/* JFC is used in main method, for testing */
-import java.awt.swing.*;
-import java.awt.swing.event.*;
-import java.awt.swing.text.*;
-import java.awt.swing.border.*;
+// AWT is used in main method, for testing
 import java.awt.*;
 import java.awt.event.*;
 
@@ -2118,7 +2114,7 @@ public class DelaunayOverlap extends Delaunay {
   /* run 'java visad.DelaunayOverlap' to test the DelaunayOverlap class */
   public static void main(String[] argv) throws VisADException {
 
-    JFrame frame = new JFrame("DelaunayOverlap");
+    Frame frame = new Frame("DelaunayOverlap");
     WindowListener l = new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
         System.exit(0);
@@ -2126,16 +2122,13 @@ public class DelaunayOverlap extends Delaunay {
     };
     frame.addWindowListener(l);
     frame.setSize(500, 600);
-    frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     frame.setLocation(screenSize.width/2 - 250,
                       screenSize.height/2 - 300);
 
-    JPanel big_panel = new JPanel();
-    big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.X_AXIS));
-    big_panel.setAlignmentY(Panel.TOP_ALIGNMENT);
-    big_panel.setAlignmentX(Panel.LEFT_ALIGNMENT);
-    frame.getContentPane().add(big_panel);
+    Panel big_panel = new Panel();
+    big_panel.setLayout(new GridLayout(1, 1));
+    frame.add(big_panel);
 
     Canvas gcan = new Canvas() {
       public void paint(Graphics gr) {

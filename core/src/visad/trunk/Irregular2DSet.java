@@ -223,20 +223,36 @@ public class Irregular2DSet extends IrregularSet {
         float Py = value[1][i];
 
         // tests whether point is contained in current triangle
-        float tval1 = (Bx-Ax)*(Py-Ay) - (By-Ay)*(Px-Ax);
-        float tval2 = (Cx-Bx)*(Py-By) - (Cy-By)*(Px-Bx);
-        float tval3 = (Ax-Cx)*(Py-Cy) - (Ay-Cy)*(Px-Cx);
-        boolean test1 = (tval1 == 0) || ( (tval1 > 0) == (
+        float tval0 = (Bx-Ax)*(Py-Ay) - (By-Ay)*(Px-Ax);
+        float tval1 = (Cx-Bx)*(Py-By) - (Cy-By)*(Px-Bx);
+        float tval2 = (Ax-Cx)*(Py-Cy) - (Ay-Cy)*(Px-Cx);
+        boolean test0 = (tval0 == 0) || ( (tval0 > 0) == (
                         (Bx-Ax)*(Cy-Ay) - (By-Ay)*(Cx-Ax) > 0) );
-        boolean test2 = (tval2 == 0) || ( (tval2 > 0) == ( 
+        boolean test1 = (tval1 == 0) || ( (tval1 > 0) == ( 
                         (Cx-Bx)*(Ay-By) - (Cy-By)*(Ax-Bx) > 0) );
-        boolean test3 = (tval3 == 0) || ( (tval3 > 0) == (
+        boolean test2 = (tval2 == 0) || ( (tval2 > 0) == (
                         (Ax-Cx)*(By-Cy) - (Ay-Cy)*(Bx-Cx) > 0) );
 
         // figure out which triangle to go to next
-        if (!test1) curtri = Delan.Walk[curtri][0];
-        else if (!test2) curtri = Delan.Walk[curtri][1];
-        else if (!test3) curtri = Delan.Walk[curtri][2];
+        if (!test0 && !test1 && !test2) curtri = -1;
+        else if (!test0 && !test1) {
+          int nextri = Delan.Walk[curtri][0];
+          if (nextri >= 0) curtri = nextri;
+          else curtri = Delan.Walk[curtri][1];
+        }
+        else if (!test1 && !test2) {
+          int nextri = Delan.Walk[curtri][1];
+          if (nextri >= 0) curtri = nextri;
+          else curtri = Delan.Walk[curtri][2];
+        }
+        else if (!test2 && !test0) {
+          int nextri = Delan.Walk[curtri][2];
+          if (nextri >= 0) curtri = nextri;
+          else curtri = Delan.Walk[curtri][0];
+        }
+        else if (!test0) curtri = Delan.Walk[curtri][0];
+        else if (!test1) curtri = Delan.Walk[curtri][1];
+        else if (!test2) curtri = Delan.Walk[curtri][2];
         else foundit = true;
 
         // Return -1 if outside of the convex hull
@@ -455,7 +471,7 @@ valueToIndex test:
 445.0, 91.0     --> #4
 
 valueToInterp test:
-164.0, 131.0    --> [0, 3, 7]   weight total: 1.0
+164.0, 131.0    --> [0, 3, 7]   weight total: 0.99999994
 287.0, 323.0    --> [2, 3, 7]   weight total: 1.0
 311.0, 90.0     --> [0, 1, 3]   weight total: 1.0
 417.0, 264.0    --> [2, 3, 4]   weight total: 1.0
