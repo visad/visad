@@ -132,7 +132,7 @@ public class CmdlineParser
     }
 
     for (int c = 0; !usage && c < consumers.length; c++) {
-      usage &= !consumers[c].finalizeArgs(mainName);
+      usage |= !consumers[c].finalizeArgs(mainName);
     }
 
     if (usage) {
