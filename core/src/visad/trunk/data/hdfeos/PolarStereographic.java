@@ -29,12 +29,12 @@ package visad.data.hdfeos;
 import visad.*;
 
 /**
-   LambertAzimuthalEqualArea is the VisAD class for cordinate
+   PolarStereographic is the VisAD class for coordinate
    systems for ( X_map, Y_map ).<P>
 */
 
-public class PolarStereographic extends CoordinateSystem {
-
+public class PolarStereographic extends CoordinateSystem 
+{
   double r_major;                // major axis
   double r_minor;                // minor axis
   double es;                     // eccentricity squared
@@ -53,17 +53,47 @@ public class PolarStereographic extends CoordinateSystem {
   private static Unit[] coordinate_system_units =
     {null, null};
 
+  public PolarStereographic( double lon_center, 
+                             double lat_center 
+                                               )
+         throws VisADException
+  {
+    this(RealTupleType.SpatialEarth2DTuple, 6367470, 6367470,
+         lon_center, lat_center, 0, 0); 
+  }
+
+  public PolarStereographic( double r_major,
+                             double r_minor,
+                             double lon_center,
+                             double lat_center 
+                                               )
+         throws VisADException
+  {
+     this(RealTupleType.SpatialEarth2DTuple, 
+          r_major, r_minor, lon_center, lat_center, 0, 0);
+  }
+
   public PolarStereographic( RealTupleType reference,
                              double r_major,
                              double r_minor,
                              double lon_center,
-                             double lat_center,
-                             double false_easting,
-                             double false_northing
-                                                        )
+                             double lat_center
+                                                     )
+         throws VisADException
+  {
+    this(reference, r_major, r_minor, lon_center, lat_center, 0, 0);
+  }
+
+  public PolarStereographic( RealTupleType reference,   //- Earth Reference
+                             double r_major,            //- Earth major axis
+                             double r_minor,            //- Earth minor axis
+                             double lon_center,         //- Longitude down below pole of map
+                             double lat_center,         //- Latitude of true scale
+                             double false_easting,      //- x_axis offset
+                             double false_northing      //- y_axis offset
+                                                     )
   throws VisADException
   {
-
     super( reference, coordinate_system_units );
 
     this.r_major = r_major;
@@ -77,8 +107,9 @@ public class PolarStereographic extends CoordinateSystem {
     double con1;                            // temporary angle
     double sinphi;                          // sin value
     double cosphi;                          // cos value
-    Double dum_1 = null;
-    Double dum_2 = null;
+    double[] dum_1 = new double[1];
+    double[] dum_2 = new double[1];
+    double[] dum_3 = new double[1];
 
     temp = r_minor / r_major;
     es = 1.0 - temp*temp;
@@ -97,152 +128,158 @@ public class PolarStereographic extends CoordinateSystem {
     {
       ind = 1;
       con1 = fac * center_lat;
-      GctpFunction.sincos(con1, dum_1, dum_2);
-      sinphi = dum_1.doubleValue();
-      cosphi = dum_2.doubleValue();
+      dum_1[0] = con1;
+      GctpFunction.sincos(dum_1, dum_2, dum_3);
+      sinphi = dum_2[0];
+      cosphi = dum_3[0];
       mcs = GctpFunction.msfnz(e,sinphi,cosphi);
       tcs = GctpFunction.tsfnz(e,con1,sinphi);
     }
-
   }
 
-  public double[][] toReference(double[][] tuples) throws VisADException {
+  public double[][] toReference(double[][] tuples) 
+         throws VisADException 
+  {
+    double x;
+    double y;
+    double rh;                      // height above ellipsiod
+    double ts;                      // small value t
+    double temp;                    // temporary variable
+    long   flag;                    // error flag
+    double lon;
+    double lat;
 
-     double x;
-     double y;
-     double rh;                      // height above ellipsiod
-     double ts;                      // small value t
-     double temp;                    // temporary variable
-     long   flag;                    // error flag
-     double lon;
-     double lat;
+    int n_tuples = tuples[0].length;
+    int tuple_dim = tuples.length;
 
-     int n_tuples = tuples[0].length;
-     int tuple_dim = tuples.length;
+    if ( tuple_dim != 2) {
+      throw new VisADException("PolarStereographic: tuple dim != 2");
+    }
 
-     if ( tuple_dim != 2) {
-       throw new VisADException("LambertAzimuthalEqualArea: tuple dim != 2");
-     }
+    double t_tuples[][] = new double[2][n_tuples];
 
-     double t_tuples[][] = new double[2][n_tuples];
+    for ( int ii = 0; ii < n_tuples; ii++ ) 
+    {
+      x = (tuples[0][ii] - false_easting)*fac;
+      y = (tuples[1][ii] - false_northing)*fac;
+      rh = Math.sqrt(x * x + y * y);
 
-     for ( int ii = 0; ii < n_tuples; ii++ ) {
+      if (ind != 0) {
+        ts = rh * tcs/(r_major * mcs);
+      }
+      else {
+        ts = rh * e4 / (r_major * 2.0);
+      }
 
-       x = (tuples[0][ii] - false_easting)*fac;
-       y = (tuples[0][ii] - false_northing)*fac;
-       rh = Math.sqrt(x * x + y * y);
+      lat = GctpFunction.phi2z(e,ts);
+      if ( lat == Double.NaN ) {
+      }
+      else {
+        lat = lat*fac;
+      }
 
-       if (ind != 0) {
-         ts = rh * tcs/(r_major * mcs);
-       }
-       else {
-         ts = rh * e4 / (r_major * 2.0);
-       }
+      if (rh == 0) {
+        lon = fac * center_lon;
+      }
+      else {
+        temp = Math.atan2(x, -y);
+        lon = GctpFunction.adjust_lon(fac *temp + center_lon);
+      }
 
-       lat = GctpFunction.phi2z(e,ts);
-       if ( lat == Double.NaN ) {
-          // exit
-       }
-       else {
-         lat = lat*fac;
-       }
-
-       if (rh == 0) {
-          lon = fac * center_lon;
-       }
-       else {
-          temp = Math.atan2(x, -y);
-          lon = GctpFunction.adjust_lon(fac *temp + center_lon);
-       }
-
-       t_tuples[0][ii] = lat;
-       t_tuples[1][ii] = lon;
-     }
-
-     return t_tuples;
+      t_tuples[0][ii] = lon;
+      t_tuples[1][ii] = lat;
+    }
+    return t_tuples;
   }
 
-  public double[][] fromReference(double[][] tuples) throws VisADException {
+  public double[][] fromReference(double[][] tuples) 
+         throws VisADException 
+  {
+    int n_tuples = tuples[0].length;
+    int tuple_dim = tuples.length;
+    double con1;                    // adjusted longitude
+    double con2;                    // adjusted latitude
+    double rh;                      // height above ellipsoid
+    double sinphi;                  // sin value
+    double ts;                      // value of small t
+    double x;
+    double y;
+    double lat;
+    double lon;
 
-     int n_tuples = tuples[0].length;
-     int tuple_dim = tuples.length;
-     double con1;                    // adjusted longitude
-     double con2;                    // adjusted latitude
-     double rh;                      // height above ellipsoid
-     double sinphi;                  // sin value
-     double ts;                      // value of small t
-     double x;
-     double y;
-     double lat;
-     double lon;
+    if ( tuple_dim != 2) {
+      throw new VisADException("PolarStereographic: tuple dim != 2");
+    }
 
+    double t_tuples[][] = new double[2][n_tuples];
 
-     if ( tuple_dim != 2) {
-        throw new VisADException("LambertAzimuthalEqualArea: tuple dim != 2");
-     }
+    for ( int ii = 0; ii < n_tuples; ii++ ) 
+    {
+      lon = tuples[0][ii];
+      lat = tuples[1][ii];
 
-     double t_tuples[][] = new double[2][n_tuples];
+      con1 = fac * GctpFunction.adjust_lon(lon - center_lon);
+      con2 = fac * lat;
+      sinphi = Math.sin(con2);
+      ts = GctpFunction.tsfnz(e,con2,sinphi);
+      if (ind != 0) {
+        rh = r_major * mcs * ts / tcs;
+      }
+      else {
+        rh = 2.0 * r_major * ts / e4;
+      }
 
-     for ( int ii = 0; ii < n_tuples; ii++ ) {
-
-       lat = tuples[0][ii];
-       lon = tuples[1][ii];
-
-       con1 = fac * GctpFunction.adjust_lon(lon - center_lon);
-       con2 = fac * lat;
-       sinphi = Math.sin(con2);
-       ts = GctpFunction.tsfnz(e,con2,sinphi);
-       if (ind != 0) {
-         rh = r_major * mcs * ts / tcs;
-       }
-       else {
-         rh = 2.0 * r_major * ts / e4;
-       }
-
-       t_tuples[0][ii] = fac * rh * Math.sin(con1) + false_easting;
-       t_tuples[0][ii] = -fac * rh * Math.cos(con1) + false_northing;;
-     }
-
-     return t_tuples;
+      t_tuples[0][ii] = fac * rh * Math.sin(con1) + false_easting;
+      t_tuples[1][ii] = -fac * rh * Math.cos(con1) + false_northing;;
+    }
+    return t_tuples;
   }
 
   public boolean equals(Object cs) {
-    return ( cs instanceof LambertAzimuthalEqualArea );
+    return (cs instanceof PolarStereographic);
   }
 
+  public static void main(String args[]) throws VisADException 
+  {
+    double r_major = 6367470; 
+    double r_minor = 6367470;
+    double center_lat = 40*Data.DEGREES_TO_RADIANS;
+    double center_lon = -100*Data.DEGREES_TO_RADIANS;
+    double false_easting = 0;
+    double false_northing = 0;
 
-  public static void main(String args[]) throws VisADException {
+    double[][] values_in = { {-2.3292989, -1.6580627, -1.6580627, -1.6580627},
+                             { 0.2127555, 0.4363323, 0.6981317, 0.8726646} };
 
+    RealType[] reals = {RealType.Longitude, RealType.Latitude};
+    RealTupleType reference = new RealTupleType(reals);
 
-     CoordinateSystem coord_cs1 = null;
-     RealType real1;
-     RealType real2;
-     double[][] value_in = { {0, .5236, 1.0472, 1.5708}, {1, 1, 1, 1}};
-     double[][] value_out = new double[2][4];
+    CoordinateSystem cs = new PolarStereographic( reference, 
+                                                  r_major,
+                                                  r_minor,
+                                                  center_lon,
+                                                  center_lat, 
+                                                  false_easting,
+                                                  false_northing );
 
-     real1 = new RealType("Theta", SI.radian, null);
-     real2 = new RealType("radius", SI.meter, null);
-     RealType reals[] = {real1, real2};
+    double[][] values = cs.fromReference(values_in);
 
-     RealTupleType Reference = new RealTupleType(reals);
+    for ( int i=0; i<values_in[0].length; i++) {
+       System.out.println(values_in[0][i]+",  "+values_in[1][i]);
+    }
 
-   //  coord_cs1 = new LambertAzimuthalEqualArea( Reference, null );
+    System.out.println("--------------------------\n");
 
-     RealTupleType tuple1 = new RealTupleType( reals, coord_cs1, null);
+    for ( int i=0; i<values[0].length; i++) {
+       System.out.println(values[0][i]+",  "+values[1][i]);
+    }
 
-     value_out = tuple1.getCoordinateSystem().fromReference( value_in );
+    double[][] values_R = cs.toReference(values);
 
-     for ( int i=0; i<value_out[0].length; i++) {
-        System.out.println(value_out[0][i]+",  "+value_out[1][i]);
-     }
+    System.out.println("--------------------------\n");
 
-     value_in = tuple1.getCoordinateSystem().toReference( value_out );
-
-     for ( int i=0; i<value_in[0].length; i++) {
-        System.out.println(value_in[0][i]+",  "+value_in[1][i]);
-     }
-
-     Unit kilometer = new ScaledUnit(1000, SI.meter);
-
+    for ( int i=0; i<values_R[0].length; i++) {
+      System.out.println(values_R[0][i]+",  "+values_R[1][i]);
+    }
   }
 }
