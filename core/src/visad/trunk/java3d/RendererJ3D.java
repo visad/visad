@@ -260,7 +260,8 @@ System.out.println("doAction " + getDisplay().getName() + " " +
 
   public BranchGroup getBranch() {
     synchronized (this) {
-      if (branches != null && branchNonEmpty[currentIndex]) {
+      if (branches != null && branchNonEmpty[currentIndex] &&
+          branches[currentIndex].numChildren() > 0) {
         return (BranchGroup) branches[currentIndex].getChild(0);
       }
       else {
@@ -292,25 +293,17 @@ System.out.println("doAction " + getDisplay().getName() + " " +
 
   public void clearBranch() {
     if (branches == null) return;
-    synchronized (branches[currentIndex]) {
+    synchronized (this) {
       if (branchNonEmpty[currentIndex]) {
-// System.out.println("branch " + currentIndex + " not empty, clearBranch");
-
-/* WLH 1 April 99 - doesn't help memory */
         flush(branches[currentIndex]);
         Enumeration ch = branches[currentIndex].getAllChildren();
         while(ch.hasMoreElements()) {
           BranchGroup b = (BranchGroup) ch.nextElement();
           b.detach();
         }
-/*
-        for (int m=0; m<branches[currentIndex].numChildren(); m++) {
-          branches[currentIndex].removeChild(m);
-        }
-*/
       }
+      branchNonEmpty[currentIndex] = false;
     }
-    branchNonEmpty[currentIndex] = false;
   }
 
   public void flush(Group branch) {
