@@ -92,7 +92,7 @@ public class ProjectionControlJ3D extends ProjectionControl {
     Transform3D mat = new Transform3D();
     // initialize scale
     double scale = 0.5;
-    if (getDisplayRenderer().getMode2D()) scale = 0.65;
+    if (getDisplayRenderer().getMode2D()) scale = ProjectionControl.SCALE2D;
     Transform3D t1 = new Transform3D(
       MouseBehaviorJ3D.static_make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0) );
     mat.mul(t1);

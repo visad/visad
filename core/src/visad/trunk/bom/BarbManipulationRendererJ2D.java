@@ -160,7 +160,7 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
   }
 
   public void addPoint(float[] x) throws VisADException {
-/** is needed
+/* may need to do this for performance
     int count = x.length / 3;
     VisADGeometryArray array = null;
     if (count == 1) {
@@ -194,24 +194,21 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
 */
   }
 
-/* customize the following methods from visad.DataRenderer
-  setSpatialValues
-  checkClose
-  drag_direct
-  release_direct
-*/
-
-  /** set spatialValues from ShadowType.doTransform */
-  public synchronized void setSpatialValues(float[][] spatial_values) {
-    // spatialValues = spatial_values;
-  }
-
   public synchronized void setBarbSpatialValues(float[] mbarb) {
-    // these are X, Y, Z values
+    // (barbValues[0], barbValues[1]) = (x, y) barb head location
+    // (barbValues[2], barbValues[3]) = (x, y) barb tail location
     barbValues = mbarb;
   }
 
-  /** find minimum distance from ray to barbValues */
+// methods customized from DataRenderer:
+
+  /** set spatialValues from ShadowType.doTransform */
+  public synchronized void setSpatialValues(float[][] spatial_values) {
+    // do nothing - manipulate barb values rather than spatial values
+    // spatialValues = spatial_values;
+  }
+
+  /** find minimum distance from ray to barb tail */
   public synchronized float checkClose(double[] origin, double[] direction) {
     if (barbValues == null) return Float.MAX_VALUE;
     float o_x = (float) origin[0];
@@ -236,6 +233,7 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
 
   /** mouse button released, ending direct manipulation */
   public synchronized void release_direct() {
+    // may need to do this for performance
   }
 
   public synchronized void drag_direct(VisADRay ray, boolean first,
@@ -279,7 +277,7 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
       Data newData = null;
       Data data = link.getData();
       // type is a RealTupleType
-/* maybe later, if needed for performance
+/* may need to do this for performance
       float[] xx = {x[0], x[1], x[2]};
       addPoint(xx);
 */

@@ -53,6 +53,9 @@ public abstract class ProjectionControl extends Control {
   public abstract void setAspect(double[] aspect)
          throws VisADException, RemoteException;
 
+  public static final double SCALE2D = 0.65;
+  public static final double INVSCALE2D = 1.0 / SCALE2D;
+
   public static double[] matrix2DTo3D(double[] matrix)
          throws VisADException {
     if (matrix.length != 6) {
@@ -60,12 +63,12 @@ public abstract class ProjectionControl extends Control {
     }
     double[] mat = new double[16];
     for (int i=0; i<16; i++) mat[i] = 0.0;
-    mat[0] = matrix[0];
-    mat[4] = matrix[1];
-    mat[1] = matrix[2];
-    mat[5] = matrix[3];
-    mat[2] = matrix[4];
-    mat[6] = matrix[5];
+    mat[0] = SCALE2D * matrix[0];
+    mat[1] = SCALE2D * matrix[2];
+    mat[3] = matrix[4];
+    mat[4] = SCALE2D * matrix[1];
+    mat[5] = -SCALE2D * matrix[3];
+    mat[7] = -matrix[5];
     mat[10] = 1.0;
     mat[15] = 1.0;
     return mat;
@@ -77,12 +80,12 @@ public abstract class ProjectionControl extends Control {
       throw new DisplayException("matrix3DTo2D: input length must be 6");
     }
     double[] mat = new double[6];
-    mat[0] = matrix[0];
-    mat[1] = matrix[4];
-    mat[2] = matrix[1];
-    mat[3] = matrix[5];
-    mat[4] = matrix[1];
-    mat[5] = matrix[6];
+    mat[0] = INVSCALE2D * matrix[0];
+    mat[1] = INVSCALE2D * matrix[4];
+    mat[2] = INVSCALE2D * matrix[1];
+    mat[3] = -INVSCALE2D * matrix[5];
+    mat[4] = matrix[3];
+    mat[5] = -matrix[7];
     return mat;
   }
 
