@@ -62,10 +62,12 @@ public class Vis5DForm extends Form implements FormFileInformer {
 
   public Vis5DForm() {
     super("Vis5DForm" + num++);
+/*
     if (!loaded) {
       System.loadLibrary("vis5d");
       loaded = true;
     }
+*/
   }
 
   public boolean isThisType(String name) {
@@ -101,7 +103,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
     int[] sizes = new int[5];
     byte[] varnames = new byte[10 * MAXVARS];
     float[] times = new float[MAXTIMES];
-    v5d_open(name, name.length, sizes, varnames, times);
+    V5DStruct v = V5DStruct.v5d_open(name, name.length, sizes, varnames, times);
     if (sizes[0] < 1) {
       throw new BadFormException("Vis5DForm.open: bad file"); 
     }
@@ -150,7 +152,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
       Linear1DSet[] range_sets = new Linear1DSet[nvars];
       for (int j=0; j<nvars; j++) {
         float[] ranges = new float[2];
-        v5d_read(i, j, ranges, data[j]);
+        v.v5d_read(i, j, ranges, data[j]);
         if (ranges[0] >= 0.99E30 && ranges[1] <= -0.99E30) {
           range_sets[j] = new Linear1DSet(0.0, 1.0, 255);
         }
@@ -436,11 +438,15 @@ demedici%
 
   /** native method declarations */
   /** calls v5dOpenFile in v5d.c */
+/*
   private native void v5d_open(byte[] name, int name_length, int[] sizes,
                                byte[] varnames, float[] times);
+*/
 
   /** calls v5dReadGrid in v5d.c */
+/*
   private native void v5d_read(int time, int var, float[] ranges, float[] data);
+*/
 
 }
 
