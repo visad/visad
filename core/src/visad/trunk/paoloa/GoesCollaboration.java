@@ -63,24 +63,6 @@ public class GoesCollaboration extends Object {
   RealType data_real;
   RealType diff;
 
-  RealTupleType nl_nchan;
-
-  FunctionType obs_data;
-  FunctionType wfn_big;
-  FunctionType tbc_array_dif;
-  FunctionType wfn_array;
-  FunctionType temp_array;
-  FunctionType mixr_array;
-  FunctionType ozone_array;
-  FunctionType pres_array;
-
-  /** declare Sets */
-  Set linear18;
-  Set linear19;
-  Set linear40;
- 
-  Set linear40x18;
-
   /** declare DataReferences */
   DataReference wfna_ref;
   DataReference tempa_ref;
@@ -91,13 +73,14 @@ public class GoesCollaboration extends Object {
   DataReference diff_ref;
   DataReference zero_line_ref;
   DataReference smr_ref;
-  DataReference gzen_ref;
-  DataReference tskin_ref;
-  DataReference save_config_ref;
-  DataReference in_dx_ref;
   DataReference real_tbc_ref;
   DataReference wfnb_ref;
   DataReference wfna_old_ref;
+
+  /** slider DataReferences */
+  DataReference gzen_ref;
+  DataReference tskin_ref;
+  DataReference in_dx_ref;
 
   /** the width and height of the UI frame */
   public static int WIDTH = 1200;
@@ -255,12 +238,12 @@ public class GoesCollaboration extends Object {
     //
 
     // construct 1-D Sets
-    linear18 = new Linear1DSet(1.0, 18.0, 18);
-    linear19 = new Linear1DSet(1.0, 19.0, 19);
-    linear40 = new Linear1DSet(1.0, 40.0, 40);
+    Set linear18 = new Linear1DSet(1.0, 18.0, 18);
+    Set linear19 = new Linear1DSet(1.0, 19.0, 19);
+    Set linear40 = new Linear1DSet(1.0, 40.0, 40);
 
     // construct 2-D Set
-    linear40x18 = new Linear2DSet(1.0, 40.0, 40, 1.0, 18.0, 18);
+    Set linear40x18 = new Linear2DSet(1.0, 40.0, 40, 1.0, 18.0, 18);
 
     //
     // construct MathTypes for Data objects
@@ -289,17 +272,18 @@ public class GoesCollaboration extends Object {
 
     // construct RealTupleType used as a Function domain
     // with non-null default Set
-    nl_nchan = new RealTupleType(nl, nchan, null, linear40x18);
+    RealTupleType nl_nchan = new RealTupleType(nl, nchan, null, linear40x18);
 
     // construct FunctionTypes
-    obs_data = new FunctionType(indx, data_real);
-    wfn_big = new FunctionType(nl_nchan, new RealTupleType(wfn, tbc));
-    tbc_array_dif = new FunctionType(nchan, tbc_d);
-    wfn_array = new FunctionType(nl_nchan, wfn);
-    temp_array = new FunctionType(nl, temp);
-    mixr_array = new FunctionType(nl, mixr);
-    ozone_array = new FunctionType(nl, ozone);
-    pres_array = new FunctionType(nl, pressure);
+    FunctionType obs_data = new FunctionType(indx, data_real);
+    FunctionType wfn_big = new FunctionType(nl_nchan,
+                                            new RealTupleType(wfn, tbc));
+    FunctionType tbc_array_dif = new FunctionType(nchan, tbc_d);
+    FunctionType wfn_array = new FunctionType(nl_nchan, wfn);
+    FunctionType temp_array = new FunctionType(nl, temp);
+    FunctionType mixr_array = new FunctionType(nl, mixr);
+    FunctionType ozone_array = new FunctionType(nl, ozone);
+    FunctionType pres_array = new FunctionType(nl, pressure);
 
     //
     // construct Data objects and DataReferences to them
@@ -385,18 +369,19 @@ public class GoesCollaboration extends Object {
     // DataReference for skin temperature
     tskin_ref = new DataReferenceImpl("tskin");
 
-    // DataReference used to trigger copying wfna to wfna_old
-    save_config_ref = new DataReferenceImpl("save_config");
-
     // DataReference for index into model atmospheres
     in_dx_ref = new DataReferenceImpl("in_dx");
 
+    // DataReference used to trigger copying wfna to wfna_old
+    DataReference save_config_ref = new DataReferenceImpl("save_config");
 
 
     // set up Displays for server
     DisplayImpl[] displays = new DisplayImpl[4];
-    setupDisplays(false, displays);
- 
+    setupDisplays(displays);
+    for (int i = 0; i < displays.length; i++) {
+      server_server.addDisplay(new RemoteDisplayImpl(displays[i]));
+    }
 
     // set up user interface
     setupUI(displays, in_dx_ref, save_config_ref, gzen_ref, tskin_ref);
@@ -456,39 +441,15 @@ public class GoesCollaboration extends Object {
     if (server_server != null) {
       // set RemoteDataReferenceImpls in RemoteServer
       RemoteDataReferenceImpl[] refs =
-        new RemoteDataReferenceImpl[16];
+        new RemoteDataReferenceImpl[4];
       refs[0] =
-        new RemoteDataReferenceImpl((DataReferenceImpl) wfna_ref);
-      refs[1] =
-        new RemoteDataReferenceImpl((DataReferenceImpl) tempa_ref);
-      refs[2] =
-        new RemoteDataReferenceImpl((DataReferenceImpl) mixra_ref);
-      refs[3] =
-        new RemoteDataReferenceImpl((DataReferenceImpl) ozonea_ref);
-      refs[4] =
-        new RemoteDataReferenceImpl((DataReferenceImpl) presa_ref);
-      refs[5] =
-        new RemoteDataReferenceImpl((DataReferenceImpl) diff_col_ref);
-      refs[6] =
-        new RemoteDataReferenceImpl((DataReferenceImpl) diff_ref);
-      refs[7] =
-        new RemoteDataReferenceImpl((DataReferenceImpl) zero_line_ref);
-      refs[8] =
-        new RemoteDataReferenceImpl((DataReferenceImpl) smr_ref);
-      refs[9] =
         new RemoteDataReferenceImpl((DataReferenceImpl) gzen_ref);
-      refs[10] =
+      refs[1] =
         new RemoteDataReferenceImpl((DataReferenceImpl) tskin_ref);
-      refs[11] =
-        new RemoteDataReferenceImpl((DataReferenceImpl) save_config_ref);
-      refs[12] =
+      refs[2] =
         new RemoteDataReferenceImpl((DataReferenceImpl) in_dx_ref);
-      refs[13] =
-        new RemoteDataReferenceImpl((DataReferenceImpl) real_tbc_ref);
-      refs[14] =
-        new RemoteDataReferenceImpl((DataReferenceImpl) wfnb_ref);
-      refs[15] =
-        new RemoteDataReferenceImpl((DataReferenceImpl) wfna_old_ref);
+      refs[3] =
+        new RemoteDataReferenceImpl((DataReferenceImpl) save_config_ref);
   
       server_server.setDataReferences(refs);
     }
@@ -514,47 +475,17 @@ public class GoesCollaboration extends Object {
       System.exit(0);
     }
 
-    wfna_ref = refs[0];
-    tempa_ref = refs[1];
-    mixra_ref = refs[2];
-    ozonea_ref = refs[3];
-    presa_ref = refs[4];
-    diff_col_ref = refs[5];
-    diff_ref = refs[6];
-    zero_line_ref = refs[7];
-    smr_ref = refs[8];
-    gzen_ref = refs[9];
-    tskin_ref = refs[10];
-    save_config_ref = refs[11];
-    in_dx_ref = refs[12];
-    real_tbc_ref = refs[13];
-    wfnb_ref = refs[14];
-    wfna_old_ref = refs[15];
-
-
-    //
-    // get RealTypes needed for Display ScalarMaps
-    //
-    wfn_array = (FunctionType) wfna_ref.getType();
-    tbc_array_dif = (FunctionType) diff_ref.getType();
-    temp_array = (FunctionType) tempa_ref.getType();
-    mixr_array = (FunctionType) mixra_ref.getType();
-    ozone_array = (FunctionType) ozonea_ref.getType();
-    pres_array = (FunctionType) presa_ref.getType();
-    nl_nchan = (RealTupleType) wfn_array.getDomain();
-    nchan = (RealType) nl_nchan.getComponent(1);
-    nl = (RealType) nl_nchan.getComponent(0);
-    tbc_d = (RealType) tbc_array_dif.getRange();
-    wfn = (RealType) wfn_array.getRange();
-    temp = (RealType) temp_array.getRange();
-    mixr = (RealType) mixr_array.getRange();
-    ozone = (RealType) ozone_array.getRange();
-    pressure = (RealType) pres_array.getRange();
-
+    gzen_ref = refs[0];
+    tskin_ref = refs[1];
+    in_dx_ref = refs[2];
+    DataReference save_config_ref = refs[3];
 
     // set up Displays for client
     DisplayImpl[] displays = new DisplayImpl[4];
-    setupDisplays(true, displays);
+    displays[0] = new DisplayImplJ3D(client_server.getDisplay("display1"));
+    displays[1] = new DisplayImplJ3D(client_server.getDisplay("display2"));
+    displays[2] = new DisplayImplJ3D(client_server.getDisplay("display3"));
+    displays[3] = new DisplayImplJ3D(client_server.getDisplay("display4"));
  
     // set up user interface
     setupUI(displays, in_dx_ref, save_config_ref, gzen_ref, tskin_ref);
@@ -564,7 +495,7 @@ public class GoesCollaboration extends Object {
 
   /** set up Displays; client is true for client and false for server;
       return constructed Displays in displays array */
-  void setupDisplays(boolean client, DisplayImpl[] displays)
+  void setupDisplays(DisplayImpl[] displays)
        throws VisADException, RemoteException {
 
     //
@@ -593,15 +524,7 @@ public class GoesCollaboration extends Object {
 
     // link weighting function Data object to display1
     // (using default DataRenderer and a null array of ConstantMaps)
-    if (client) {
-      // construct RemoteDisplay for display1
-      RemoteDisplayImpl remote_display1 =
-        new RemoteDisplayImpl(display1);
-      remote_display1.addReference(wfna_ref);
-    }
-    else { // server
-      display1.addReference(wfna_ref);
-    }
+    display1.addReference(wfna_ref);
 
 
     // construct Display 2 and its ScalarMaps (using non-default
@@ -659,27 +582,13 @@ public class GoesCollaboration extends Object {
     // note also that addReference and addReferences may take
     // an array of ConstantMaps that apply only to one Data
     // object
-    if (client) {
-      // construct RemoteDisplay for display2
-      RemoteDisplayImpl remote_display2 =
-        new RemoteDisplayImpl(display2);
-      remote_display2.addReferences(new DirectManipulationRendererJ3D(),
-                                    tempa_ref, tmaps);
-      remote_display2.addReferences(new DirectManipulationRendererJ3D(),
-                                    mixra_ref, mmaps);
-      remote_display2.addReferences(new DirectManipulationRendererJ3D(),
-                                    ozonea_ref, omaps);
-      remote_display2.addReference(presa_ref, pmaps);
-    }
-    else { // server
-      display2.addReferences(new DirectManipulationRendererJ3D(),
-                             tempa_ref, tmaps);
-      display2.addReferences(new DirectManipulationRendererJ3D(),
-                             mixra_ref, mmaps);
-      display2.addReferences(new DirectManipulationRendererJ3D(),
-                             ozonea_ref, omaps);
-      display2.addReference(presa_ref, pmaps);
-    }
+    display2.addReferences(new DirectManipulationRendererJ3D(),
+			   tempa_ref, tmaps);
+    display2.addReferences(new DirectManipulationRendererJ3D(),
+			   mixra_ref, mmaps);
+    display2.addReferences(new DirectManipulationRendererJ3D(),
+			   ozonea_ref, omaps);
+    display2.addReference(presa_ref, pmaps);
 
 
     // construct Display 3 and its ScalarMaps
@@ -699,15 +608,7 @@ public class GoesCollaboration extends Object {
     mode3.setScaleEnable(true);
 
     // link weighting function difference Data object to display3
-    if (client) {
-      // construct RemoteDisplay for display3
-      RemoteDisplayImpl remote_display3 =
-        new RemoteDisplayImpl(display3);
-      remote_display3.addReference(diff_col_ref);
-    }
-    else { // server
-      display3.addReference(diff_col_ref);
-    }
+    display3.addReference(diff_col_ref);
 
 
     // construct Display 4 and its ScalarMaps (using non-default
@@ -729,19 +630,9 @@ public class GoesCollaboration extends Object {
 
     // link brightness temperature error, zero line and brightness
     // temperature error root mean square Data objects to display4
-    if (client) {
-      // construct RemoteDisplay for display4
-      RemoteDisplayImpl remote_display4 =
-        new RemoteDisplayImpl(display4);
-      remote_display4.addReference(diff_ref);
-      remote_display4.addReference(zero_line_ref);
-      remote_display4.addReference(smr_ref);
-    }
-    else { // server
-      display4.addReference(diff_ref);
-      display4.addReference(zero_line_ref);
-      display4.addReference(smr_ref);
-    }
+    display4.addReference(diff_ref);
+    display4.addReference(zero_line_ref);
+    display4.addReference(smr_ref);
 
     // return DisplayImpls
     displays[0] = display1;
