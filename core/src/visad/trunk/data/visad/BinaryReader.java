@@ -260,26 +260,26 @@ if(DEBUG_UNIT)System.err.println("cchU: read " + (endByte == FLD_END ? "FLD_END"
       byte directive = file.readByte();
 
       switch (directive) {
-      case FLD_COORDSYS:
-if(DEBUG_MATH)System.err.println("getData: FLD_COORDSYS (" + FLD_COORDSYS + ")");
+      case OBJ_COORDSYS:
+if(DEBUG_MATH)System.err.println("getData: OBJ_COORDSYS (" + OBJ_COORDSYS + ")");
         cacheCoordinateSystem();
         break;
-      case FLD_DATA:
-if(DEBUG_MATH)System.err.println("getData: FLD_DATA (" + FLD_DATA + ")");
+      case OBJ_DATA:
+if(DEBUG_MATH)System.err.println("getData: OBJ_DATA (" + OBJ_DATA + ")");
         return readData(file.readByte());
-      case FLD_DATA_SERIAL:
-if(DEBUG_MATH)System.err.println("getData: FLD_DATA_SERIAL (" + FLD_DATA_SERIAL + ")");
+      case OBJ_DATA_SERIAL:
+if(DEBUG_MATH)System.err.println("getData: OBJ_DATA_SERIAL (" + OBJ_DATA_SERIAL + ")");
         return (DataImpl )readSerializedObject();
-      case FLD_ERROR:
-if(DEBUG_MATH)System.err.println("getData: FLD_ERROR (" + FLD_ERROR + ")");
+      case OBJ_ERROR:
+if(DEBUG_MATH)System.err.println("getData: OBJ_ERROR (" + OBJ_ERROR + ")");
         cacheErrorEstimate();
         break;
-      case FLD_MATH:
-if(DEBUG_MATH)System.err.println("getData: FLD_MATH (" + FLD_MATH + ")");
+      case OBJ_MATH:
+if(DEBUG_MATH)System.err.println("getData: OBJ_MATH (" + OBJ_MATH + ")");
         cacheMathType();
         break;
-      case FLD_UNIT:
-if(DEBUG_MATH)System.err.println("getData: FLD_UNIT (" + FLD_UNIT + ")");
+      case OBJ_UNIT:
+if(DEBUG_MATH)System.err.println("getData: OBJ_UNIT (" + OBJ_UNIT + ")");
         cacheUnit();
         break;
       default:
@@ -1986,8 +1986,8 @@ if(DEBUG_DATA)System.err.println("rdSplSetS: len (" + len + ")");
     throws IOException, VisADException
   {
     byte serByte = file.readByte();
-if(DEBUG_DATA)System.err.println("rdSet: read " + (serByte == FLD_MATH_SERIAL ? "FLD_MATH_SERIAL" : Integer.toString(serByte) + " (wanted FLD_MATH_SERIAL)"));
-    if (serByte != FLD_MATH_SERIAL) {
+if(DEBUG_DATA)System.err.println("rdSet: read " + (serByte == OBJ_MATH_SERIAL ? "OBJ_MATH_SERIAL" : Integer.toString(serByte) + " (wanted OBJ_MATH_SERIAL)"));
+    if (serByte != OBJ_MATH_SERIAL) {
       throw new VisADException("Invalid Set delimiter " + serByte);
     }
 

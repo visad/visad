@@ -149,8 +149,8 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("wrFldI: type (" + type + ")");
     }
 
     try {
-if(DEBUG_DATA)System.err.println("wrFldI: FLD_DATA (" + FLD_DATA + ")");
-      file.writeByte(FLD_DATA);
+if(DEBUG_DATA)System.err.println("wrFldI: OBJ_DATA (" + OBJ_DATA + ")");
+      file.writeByte(OBJ_DATA);
 if(DEBUG_DATA)System.err.println("wrFldI: " + (dataType == DATA_FIELD ? "DATA_FIELD" : "DATA_???") + " (" + dataType + ")");
       file.writeByte(dataType);
 
@@ -248,8 +248,8 @@ if(DEBUG_DATA&&!DEBUG_UNIT){
     }
 
     try {
-if(DEBUG_DATA)System.err.println("wrFlFld: FLD_DATA (" + FLD_DATA + ")");
-      file.writeByte(FLD_DATA);
+if(DEBUG_DATA)System.err.println("wrFlFld: OBJ_DATA (" + OBJ_DATA + ")");
+      file.writeByte(OBJ_DATA);
 if(DEBUG_DATA)System.err.println("wrFlFld: DATA_FLAT_FIELD (" + DATA_FLAT_FIELD + ")");
       file.writeByte(DATA_FLAT_FIELD);
 
@@ -637,7 +637,7 @@ if(DEBUG_DATA)System.err.println("wrL1DSet: punt "+set.getClass().getName());
     }
 
     try {
-      file.writeByte(FLD_DATA);
+      file.writeByte(OBJ_DATA);
       file.writeByte(DATA_LIST1D_SET);
 
       file.writeInt(typeIndex);
@@ -705,7 +705,7 @@ if(DEBUG_DATA)System.err.println("wrPrSet: punt "+set.getClass().getName());
     }
 
     try {
-      file.writeByte(FLD_DATA);
+      file.writeByte(OBJ_DATA);
       file.writeByte(DATA_PRODUCT_SET);
 
       file.writeInt(typeIndex);
@@ -767,8 +767,8 @@ if(DEBUG_DATA&&!DEBUG_ERR)System.err.println("wrRl: ErrEst (" + error + ")");
         errIndex = writeErrorEstimate(error);
       }
 
-if(DEBUG_DATA)System.err.println("wrRl: FLD_DATA (" + FLD_DATA + ")");
-      file.writeByte(FLD_DATA);
+if(DEBUG_DATA)System.err.println("wrRl: OBJ_DATA (" + OBJ_DATA + ")");
+      file.writeByte(OBJ_DATA);
 if(DEBUG_DATA)System.err.println("wrRl: DATA_REAL (" + DATA_REAL + ")");
       file.writeByte(DATA_REAL);
 
@@ -849,8 +849,8 @@ if(DEBUG_DATA&&!DEBUG_CSYS)System.err.println("wrRlTpl: coordSys (" + cs + ")");
     }
 
     try {
-if(DEBUG_DATA)System.err.println("wrRlTpl: FLD_DATA (" + FLD_DATA + ")");
-      file.writeByte(FLD_DATA);
+if(DEBUG_DATA)System.err.println("wrRlTpl: OBJ_DATA (" + OBJ_DATA + ")");
+      file.writeByte(OBJ_DATA);
 if(DEBUG_DATA)System.err.println("wrRlTpl: DATA_REAL_TUPLE (" + DATA_REAL_TUPLE + ")");
       file.writeByte(DATA_REAL_TUPLE);
 
@@ -960,7 +960,7 @@ if(DEBUG_DATA)System.err.println("wrSglSet: punt "+set.getClass().getName());
     }
 
     try {
-      file.writeByte(FLD_DATA);
+      file.writeByte(OBJ_DATA);
       file.writeByte(DATA_SINGLETON_SET);
 
       file.writeByte(FLD_SAMPLE);
@@ -1007,8 +1007,8 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("wrTxt: MathType (" + type + ")");
     }
 
     try {
-if(DEBUG_DATA)System.err.println("wrTxt: FLD_DATA (" + FLD_DATA + ")");
-      file.writeByte(FLD_DATA);
+if(DEBUG_DATA)System.err.println("wrTxt: OBJ_DATA (" + OBJ_DATA + ")");
+      file.writeByte(OBJ_DATA);
 if(DEBUG_DATA)System.err.println("wrTxt: DATA_TEXT (" + DATA_TEXT + ")");
       file.writeByte(DATA_TEXT);
 
@@ -1051,8 +1051,8 @@ if(DEBUG_DATA)System.err.println("wrTup: punt "+t.getClass().getName());
     }
 
     try {
-if(DEBUG_DATA)System.err.println("wrTup: FLD_DATA (" + FLD_DATA + ")");
-      file.writeByte(FLD_DATA);
+if(DEBUG_DATA)System.err.println("wrTup: OBJ_DATA (" + OBJ_DATA + ")");
+      file.writeByte(OBJ_DATA);
 if(DEBUG_DATA)System.err.println("wrTup: DATA_TUPLE (" + DATA_TUPLE + ")");
       file.writeByte(DATA_TUPLE);
 
@@ -1103,7 +1103,7 @@ if(DEBUG_DATA)System.err.println("wrUSet: punt "+set.getClass().getName());
     }
 
     try {
-      file.writeByte(FLD_DATA);
+      file.writeByte(OBJ_DATA);
       file.writeByte(DATA_UNION_SET);
 
       file.writeInt(typeIndex);
@@ -1126,7 +1126,7 @@ if(DEBUG_DATA)System.err.println("wrUSet: punt "+set.getClass().getName());
     throws VisADException
   {
     try {
-      writeSerializedObject(FLD_DATA_SERIAL, data);
+      writeSerializedObject(OBJ_DATA_SERIAL, data);
     } catch (IOException ioe) {
       throw new VisADException("Couldn't write Data object: " +
                                ioe.getClass().getName() + ": " +
@@ -1182,7 +1182,7 @@ if(DEBUG_DATA)System.err.println("wrUSet: punt "+set.getClass().getName());
     }
 
     try {
-      file.writeByte(FLD_COORDSYS);
+      file.writeByte(OBJ_COORDSYS);
       file.writeInt(index);
 
       writeSerializedObject(FLD_COORDSYS_SERIAL, cSys);
@@ -1268,7 +1268,7 @@ if(DEBUG_DATA)System.err.println("wrUSet: punt "+set.getClass().getName());
       index = cacheMathType(drt);
 
 if(DEBUG_MATH)System.err.println("wrDpyRTy: serialized DisplayRealType");
-      writeSerializedObject(FLD_MATH_SERIAL, drt);
+      writeSerializedObject(OBJ_MATH_SERIAL, drt);
     }
 
     return index;
@@ -1282,7 +1282,7 @@ if(DEBUG_MATH)System.err.println("wrDpyRTy: serialized DisplayRealType");
       index = cacheMathType(dtt);
 
 if(DEBUG_MATH)System.err.println("wrDpyTuTy: serialized DisplayTupleType");
-      writeSerializedObject(FLD_MATH_SERIAL, dtt);
+      writeSerializedObject(OBJ_MATH_SERIAL, dtt);
     }
 
     return index;
@@ -1339,7 +1339,7 @@ if(DEBUG_MATH)System.err.println("wrDpyTuTy: serialized DisplayTupleType");
         uIndex = writeUnit(unit);
       }
 
-      file.writeByte(FLD_ERROR);
+      file.writeByte(OBJ_ERROR);
       file.writeInt(index);
 
       file.writeDouble(errValue);
@@ -1425,8 +1425,8 @@ if(DEBUG_MATH)System.err.println("wrDpyTuTy: serialized DisplayTupleType");
       int dIndex = writeMathType(ft.getDomain());
       int rIndex = writeMathType(ft.getRange());
 
-if(DEBUG_MATH)System.err.println("wrFuTy: FLD_MATH (" + FLD_MATH + ")");
-      file.writeByte(FLD_MATH);
+if(DEBUG_MATH)System.err.println("wrFuTy: OBJ_MATH (" + OBJ_MATH + ")");
+      file.writeByte(OBJ_MATH);
 if(DEBUG_MATH)System.err.println("wrFuTy: index (" + index + ")");
       file.writeInt(index);
 if(DEBUG_MATH)System.err.println("wrFuTy: MATH_FUNCTION (" + MATH_FUNCTION + ")");
@@ -1515,7 +1515,7 @@ if(DEBUG_DATA)System.err.println("wrGrDblSet: punt "+set.getClass().getName());
     }
 
     try {
-      file.writeByte(FLD_DATA);
+      file.writeByte(OBJ_DATA);
       file.writeByte(dataType);
 
       file.writeInt(typeIndex);
@@ -1623,7 +1623,7 @@ if(DEBUG_DATA)System.err.println("wrGrSet: punt "+set.getClass().getName());
     }
 
     try {
-      file.writeByte(FLD_DATA);
+      file.writeByte(OBJ_DATA);
       file.writeByte(dataType);
 
       file.writeInt(typeIndex);
@@ -1769,7 +1769,7 @@ if(DEBUG_DATA)System.err.println("wrIntSet: punt "+set.getClass().getName());
     }
 
     try {
-      file.writeByte(FLD_DATA);
+      file.writeByte(OBJ_DATA);
       file.writeByte(dataType);
 
       file.writeInt(typeIndex);
@@ -1882,7 +1882,7 @@ if(DEBUG_DATA)System.err.println("wrIrrSet: punt "+set.getClass().getName());
     }
 
     try {
-      file.writeByte(FLD_DATA);
+      file.writeByte(OBJ_DATA);
       file.writeByte(dataType);
 
       file.writeInt(typeIndex);
@@ -2024,7 +2024,7 @@ if(DEBUG_DATA)System.err.println("wrLinSet: punt "+set.getClass().getName());
     }
 
     try {
-      file.writeByte(FLD_DATA);
+      file.writeByte(OBJ_DATA);
       file.writeByte(dataType);
 
       file.writeInt(typeIndex);
@@ -2086,7 +2086,7 @@ if(DEBUG_DATA)System.err.println("wrLinSet: punt "+set.getClass().getName());
       index = typeCache.getIndex(mt);
       if (index < 0) {
         index = cacheMathType(mt);
-        writeSerializedObject(FLD_MATH_SERIAL, mt);
+        writeSerializedObject(OBJ_MATH_SERIAL, mt);
       }
     }
 
@@ -2102,7 +2102,7 @@ if(DEBUG_DATA)System.err.println("wrLinSet: punt "+set.getClass().getName());
 
       if (!qt.getClass().equals(Quantity.class)) {
 if(DEBUG_MATH)System.err.println("wrQuant: serialized Quantity (" + qt.getClass().getName() + ")");
-        writeSerializedObject(FLD_MATH_SERIAL, qt);
+        writeSerializedObject(OBJ_MATH_SERIAL, qt);
         return index;
       }
 
@@ -2119,8 +2119,8 @@ if(DEBUG_MATH)System.err.println("wrQuant: serialized Quantity (" + qt.getClass(
         }
       }
 
-if(DEBUG_MATH)System.err.println("wrQuant: FLD_MATH (" + FLD_MATH + ")");
-      file.writeByte(FLD_MATH);
+if(DEBUG_MATH)System.err.println("wrQuant: OBJ_MATH (" + OBJ_MATH + ")");
+      file.writeByte(OBJ_MATH);
 if(DEBUG_MATH)System.err.println("wrQuant: index (" + index + ")");
       file.writeInt(index);
 if(DEBUG_MATH)System.err.println("wrQuant: MATH_QUANTITY (" + MATH_QUANTITY + ")");
@@ -2168,7 +2168,7 @@ if(DEBUG_MATH)System.err.println("wrQuant: FLD_END (" + FLD_END + ")");
 
       if (!rtt.getClass().equals(RealTupleType.class)) {
 if(DEBUG_MATH)System.err.println("wrRlTuTy: serialized RealTupleType (" + rtt.getClass().getName() + ")");
-        writeSerializedObject(FLD_MATH_SERIAL, rtt);
+        writeSerializedObject(OBJ_MATH_SERIAL, rtt);
         return index;
       }
 
@@ -2197,8 +2197,8 @@ if(DEBUG_MATH)System.err.println("wrRlTuTy: coordSys (" + cs + ")");
         csIndex = writeCoordinateSystem(cs);
       }
 
-if(DEBUG_MATH)System.err.println("wrRlTuTy: FLD_MATH (" + FLD_MATH + ")");
-      file.writeByte(FLD_MATH);
+if(DEBUG_MATH)System.err.println("wrRlTuTy: OBJ_MATH (" + OBJ_MATH + ")");
+      file.writeByte(OBJ_MATH);
 if(DEBUG_MATH)System.err.println("wrRlTuTy: index (" + index + ")");
       file.writeInt(index);
 if(DEBUG_MATH)System.err.println("wrRlTuTy: MATH_REAL_TUPLE (" + MATH_REAL_TUPLE + ")");
@@ -2255,7 +2255,7 @@ if(DEBUG_MATH)System.err.println("wrRlTuTy: FLD_END (" + FLD_END + ")");
 
       if (!rt.getClass().equals(RealType.class)) {
 if(DEBUG_MATH)System.err.println("wrRlTy: serialized RealType (" + rt.getClass().getName() + ")");
-        writeSerializedObject(FLD_MATH_SERIAL, rt);
+        writeSerializedObject(OBJ_MATH_SERIAL, rt);
         return index;
       }
 
@@ -2279,8 +2279,8 @@ if(DEBUG_MATH&&!DEBUG_UNIT)System.err.println("wrRlTy: Unit (" + u + ")");
         uIndex = writeUnit(u);
       }
 
-if(DEBUG_MATH)System.err.println("wrRlTy: FLD_MATH (" + FLD_MATH + ")");
-      file.writeByte(FLD_MATH);
+if(DEBUG_MATH)System.err.println("wrRlTy: OBJ_MATH (" + OBJ_MATH + ")");
+      file.writeByte(OBJ_MATH);
 if(DEBUG_MATH)System.err.println("wrRlTy: index (" + index + ")");
       file.writeInt(index);
 if(DEBUG_MATH)System.err.println("wrRlTy: MATH_REAL (" + MATH_REAL + ")");
@@ -2328,7 +2328,7 @@ if(DEBUG_MATH)System.err.println("wrRlTy: FLD_END (" + FLD_END + ")");
       index = cacheMathType(rvt);
 
 if(DEBUG_MATH)System.err.println("wrRlVeTy: serialized RealVectorType (" + rvt.getClass().getName() + ")");
-      writeSerializedObject(FLD_MATH_SERIAL, rvt);
+      writeSerializedObject(OBJ_MATH_SERIAL, rvt);
     }
 
     return index;
@@ -2348,7 +2348,7 @@ if(DEBUG_MATH)System.err.println("wrRlVeTy: serialized RealVectorType (" + rvt.g
       index = cacheMathType(st);
 
 if(DEBUG_MATH)System.err.println("wrScTy: serialized ScalarType (" + st.getClass().getName() + ")");
-      writeSerializedObject(FLD_MATH_SERIAL, st);
+      writeSerializedObject(OBJ_MATH_SERIAL, st);
     }
 
     return index;
@@ -2387,7 +2387,7 @@ if(obj instanceof FloatSet||obj instanceof LinearNDSet)Thread.dumpStack();
   private void writeSet(Set set)
     throws IOException
   {
-    writeSerializedObject(FLD_DATA_SERIAL, set);
+    writeSerializedObject(OBJ_DATA_SERIAL, set);
     // XXX may need to cache Set and reference it later
   }
 
@@ -2400,7 +2400,7 @@ if(obj instanceof FloatSet||obj instanceof LinearNDSet)Thread.dumpStack();
 
       if (!st.getClass().equals(SetType.class)) {
 if(DEBUG_MATH)System.err.println("wrSetTy: serialized SetType (" + st.getClass().getName() + ")");
-        writeSerializedObject(FLD_MATH_SERIAL, st);
+        writeSerializedObject(OBJ_MATH_SERIAL, st);
         return index;
       }
 
@@ -2429,8 +2429,8 @@ if(DEBUG_MATH)System.err.println("wrSetTy: serialized SetType (" + st.getClass()
         dIndex = writeMathType(domain);
       }
 
-if(DEBUG_MATH)System.err.println("wrSetTy: FLD_MATH (" + FLD_MATH + ")");
-      file.writeByte(FLD_MATH);
+if(DEBUG_MATH)System.err.println("wrSetTy: OBJ_MATH (" + OBJ_MATH + ")");
+      file.writeByte(OBJ_MATH);
 if(DEBUG_MATH)System.err.println("wrSetTy: index (" + index + ")");
       file.writeInt(index);
 if(DEBUG_MATH)System.err.println("wrSetTy: MATH_SET (" + MATH_SET + ")");
@@ -2491,8 +2491,8 @@ if(DEBUG_DATA&&!DEBUG_UNIT){
     }
 
     try {
-if(DEBUG_DATA)System.err.println("wrSimSet: FLD_DATA (" + FLD_DATA + ")");
-      file.writeByte(FLD_DATA);
+if(DEBUG_DATA)System.err.println("wrSimSet: OBJ_DATA (" + OBJ_DATA + ")");
+      file.writeByte(OBJ_DATA);
 if(DEBUG_DATA)System.err.println("wrSimSet: dataType (" + dataType + ")");
       file.writeByte(dataType);
 
@@ -2545,12 +2545,12 @@ if(DEBUG_DATA)System.err.println("wrSimSet: FLD_END (" + FLD_END + ")");
 
       if (!tt.getClass().equals(TextType.class)) {
 if(DEBUG_MATH)System.err.println("wrTxTy: serialized TextType (" + tt.getClass().getName() + ")");
-        writeSerializedObject(FLD_MATH_SERIAL, tt);
+        writeSerializedObject(OBJ_MATH_SERIAL, tt);
         return index;
       }
 
-if(DEBUG_MATH)System.err.println("wrTxTy: FLD_MATH (" + FLD_MATH + ")");
-      file.writeByte(FLD_MATH);
+if(DEBUG_MATH)System.err.println("wrTxTy: OBJ_MATH (" + OBJ_MATH + ")");
+      file.writeByte(OBJ_MATH);
 if(DEBUG_MATH)System.err.println("wrTxTy: index (" + index + ")");
       file.writeInt(index);
 if(DEBUG_MATH)System.err.println("wrTxTy: MATH_TEXT (" + MATH_TEXT + ")");
@@ -2586,12 +2586,12 @@ if(DEBUG_MATH)System.err.println("wrTxTy: FLD_END (" + FLD_END + ")");
 
       if (!tt.getClass().equals(TupleType.class)) {
 if(DEBUG_MATH)System.err.println("wrTuTy: serialized TupleType (" + tt.getClass().getName() + ")");
-        writeSerializedObject(FLD_MATH_SERIAL, tt);
+        writeSerializedObject(OBJ_MATH_SERIAL, tt);
         return index;
       }
 
-if(DEBUG_MATH)System.err.println("wrTuTy: FLD_MATH (" + FLD_MATH + ")");
-      file.writeByte(FLD_MATH);
+if(DEBUG_MATH)System.err.println("wrTuTy: OBJ_MATH (" + OBJ_MATH + ")");
+      file.writeByte(OBJ_MATH);
 if(DEBUG_MATH)System.err.println("wrTuTy: index (" + index + ")");
       file.writeInt(index);
 if(DEBUG_MATH)System.err.println("wrTuTy: MATH_TUPLE (" + MATH_TUPLE + ")");
@@ -2635,7 +2635,7 @@ if(DEBUG_MATH)System.err.println("wrTuTy: FLD_END (" + FLD_END + ")");
     }
 
     try {
-      file.writeByte(FLD_UNIT);
+      file.writeByte(OBJ_UNIT);
       file.writeInt(index);
 
       writeString(uId);

@@ -8,8 +8,10 @@ package visad.data.visad;
  * <br>
  * <tt>MAGIC_STR</tt> and <tt>FORMAT_VERSION</tt> are used
  * to mark the file as a VisAD binary file.<br>
- * <tt>FLD_</tt> constants indicate the type of the next
+ * <tt>OBJ_</tt> constants indicate the type of the next
  * object in the file.<br>
+ * <tt>FLD_</tt> constants indicate the type of the next
+ * field for the current object in the file.<br>
  * <tt>MATH_</tt> constants indicate the type of <tt>FLD_MATH</tt>
  * objects.<br>
  * <tt>DATA_</tt> constants indicate the type of <tt>FLD_DATA</tt>
@@ -20,53 +22,51 @@ public interface BinaryFile
   String MAGIC_STR = "VisADBin";
   int FORMAT_VERSION = 1;
 
-  byte FLD_MATH = 1;
-  byte FLD_MATH_SERIAL = 2;
+  byte OBJ_COORDSYS = 1;
+  byte OBJ_DATA = 2;
+  byte OBJ_DATA_SERIAL = 3;
+  byte OBJ_ERROR = 4;
+  byte OBJ_MATH = 5;
+  byte OBJ_MATH_SERIAL = 6;
+  byte OBJ_UNIT = 7;
 
-  byte FLD_DATA = 10;
-  byte FLD_DATA_SERIAL = 11;
+  byte FLD_FIRSTS = 1;
+  byte FLD_LASTS = 2;
+  byte FLD_LENGTHS = 3;
+  byte FLD_FLOAT_LIST = 4;
+  byte FLD_SAMPLE = 5;
+  byte FLD_FLOAT_SAMPLES = 6;
+  byte FLD_DOUBLE_SAMPLES = 7;
+  byte FLD_DATA_SAMPLES = 8;
+  byte FLD_REAL_SAMPLES = 9;
+  byte FLD_TRIVIAL_SAMPLES = 10;
+  byte FLD_SET_SAMPLES = 11;
+  byte FLD_SET = 12;
+  byte FLD_LINEAR_SETS = 13;
+  byte FLD_INTEGER_SETS = 14;
+  byte FLD_SET_LIST = 15;
 
-  byte FLD_FIRSTS = 20;
-  byte FLD_LASTS = 21;
-  byte FLD_LENGTHS = 22;
-  byte FLD_FLOAT_LIST = 23;
-  byte FLD_SAMPLE = 24;
-  byte FLD_FLOAT_SAMPLES = 25;
-  byte FLD_DOUBLE_SAMPLES = 26;
-  byte FLD_DATA_SAMPLES = 27;
-  byte FLD_REAL_SAMPLES = 28;
-  byte FLD_TRIVIAL_SAMPLES = 29;
-  byte FLD_SET_SAMPLES = 30;
-  byte FLD_SET = 31;
-  byte FLD_LINEAR_SETS = 32;
-  byte FLD_INTEGER_SETS = 33;
-  byte FLD_SET_LIST = 34;
+  byte FLD_COORDSYS_SERIAL = 20;
+  byte FLD_DELAUNAY_SERIAL = 21;
 
-  byte FLD_COORDSYS_SERIAL = 40;
-  byte FLD_DELAUNAY_SERIAL = 41;
+  byte FLD_INDEX_UNIT = 30;
+  byte FLD_INDEX_ERROR = 31;
+  byte FLD_INDEX_COORDSYS = 32;
 
-  byte FLD_UNIT = 50;
-  byte FLD_ERROR = 51;
-  byte FLD_COORDSYS = 52;
+  byte FLD_INDEX_UNITS = 40;
+  byte FLD_INDEX_ERRORS = 41;
+  byte FLD_INDEX_COORDSYSES = 42;
 
-  byte FLD_INDEX_UNIT = 60;
-  byte FLD_INDEX_ERROR = 61;
-  byte FLD_INDEX_COORDSYS = 62;
+  byte FLD_DELAUNAY = 50;
+  byte FLD_DELAUNAY_TRI = 51;
+  byte FLD_DELAUNAY_VERTICES = 52;
+  byte FLD_DELAUNAY_WALK = 53;
+  byte FLD_DELAUNAY_EDGES = 54;
+  byte FLD_DELAUNAY_NUM_EDGES = 55;
 
-  byte FLD_INDEX_UNITS = 70;
-  byte FLD_INDEX_ERRORS = 71;
-  byte FLD_INDEX_COORDSYSES = 72;
+  byte FLD_SET_FOLLOWS_TYPE = 60;
 
-  byte FLD_DELAUNAY = 80;
-  byte FLD_DELAUNAY_TRI = 81;
-  byte FLD_DELAUNAY_VERTICES = 82;
-  byte FLD_DELAUNAY_WALK = 83;
-  byte FLD_DELAUNAY_EDGES = 84;
-  byte FLD_DELAUNAY_NUM_EDGES = 85;
-
-  byte FLD_SET_FOLLOWS_TYPE = 90;
-
-  byte FLD_END = 100;
+  byte FLD_END = 70;
 
   byte MATH_FUNCTION = 1;
   byte MATH_REAL = 2;
@@ -75,11 +75,11 @@ public interface BinaryFile
   byte MATH_TEXT = 5;
   byte MATH_TUPLE = 6;
   byte MATH_QUANTITY = 7;
-  // byte  MATH_DISPLAY_TUPLE = 8;
-  // byte  MATH_REAL_VECTOR = 9;
-  // byte  MATH_EARTH_VECTOR = 10;
-  // byte  MATH_GRID_VECTOR = 11;
-  // byte  MATH_DISPLAY_REAL = 12;
+  // byte MATH_DISPLAY_TUPLE = 8;
+  // byte MATH_REAL_VECTOR = 9;
+  // byte MATH_EARTH_VECTOR = 10;
+  // byte MATH_GRID_VECTOR = 11;
+  // byte MATH_DISPLAY_REAL = 12;
 
   byte DATA_SCALAR = 1;
   byte DATA_TEXT = 2;
