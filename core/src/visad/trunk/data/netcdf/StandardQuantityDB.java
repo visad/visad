@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: StandardQuantityDB.java,v 1.12 2001-04-03 18:53:04 steve Exp $
+ * $Id: StandardQuantityDB.java,v 1.13 2001-04-03 18:56:55 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -48,7 +48,8 @@ StandardQuantityDB
 	    if (e instanceof RuntimeException)
 		throw (RuntimeException)e;
 	    throw new VisADError(
-		"visad.data.netcdf.<clinit>: Couldn't initialize class: " + e);
+		"visad.data.netcdf.StandardQuantityDB.<clinit>: " +
+		"Couldn't initialize class: " + e);
 	}
     }
 
