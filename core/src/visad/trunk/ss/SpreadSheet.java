@@ -555,7 +555,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
             catch (Exception exc) {
               if (BasicSSCell.DEBUG) exc.printStackTrace();
               System.out.println("Could not load file " + filename +
-                "into the SpreadSheet");
+                " into the SpreadSheet");
             }
           }
         });
