@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcFunction.java,v 1.4 1998-06-24 14:40:48 visad Exp $
+ * $Id: NcFunction.java,v 1.5 1998-08-04 15:04:14 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -450,6 +450,9 @@ NcFunction
 	    ntotal *= lengths[idim];
 	}
 
+        int step = 1;
+        int laststep = 1;
+
 	for (int idim = 0; idim < rank; ++idim)
 	{
 	    float[]	vals;
@@ -467,9 +470,20 @@ NcFunction
 		for (int ipt = 0; ipt < npts; ++ipt)
 		    vals[ipt] = ipt;
 	    }
-
+/* WLH 4 Aug 98
 	    for (int pos = 0; pos < ntotal/vals.length; pos += vals.length)
 		System.arraycopy(vals, 0, values[idim], pos, vals.length);
+*/
+            step *= lengths[idim];
+            for (int i=0; i<lengths[idim]; i++) {
+              int istep = i * laststep;
+              for (int j=0; j<ntotal; j+=step) {
+                for (int k=0; k<laststep; k++) {
+                  values[idim][istep+j+k] = vals[i];
+                }
+              }
+            }
+            laststep = step;
 	}
 
 	// TODO: add CoordinateSystem argument
