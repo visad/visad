@@ -65,6 +65,30 @@ public abstract class ProjectionControl extends Control {
     System.arraycopy(m, 0, matrix, 0, matrix.length);
   }
 
+  /** get a String that can be used to reconstruct this
+      ProjectionControl later */
+  public String getSaveString() {
+    int len = matrix.length;
+    String s = len + ":";
+    for (int i=0; i<len; i++) s = s + " " + matrix[i];
+    return s;
+  }
+
+  /** reconstruct this ProjectionControl using the specified save string */
+  public void setSaveString(String save)
+    throws VisADException, RemoteException
+  {
+    int i = save.indexOf(':');
+    int len = Integer.parseInt(save.substring(0, i++));
+    double[] m = new double[len];
+    for (int j=0; j<len; j++) {
+      int oi = ++i;
+      i = save.indexOf(' ', i);
+      if (i < 0) i = save.length();
+      m[j] = Double.parseDouble(save.substring(oi, i));
+    }
+    setMatrix(m);
+  }
 
   /** set aspect ratio; 3 elements for Java3D, 2 for Java2D */
   public abstract void setAspect(double[] aspect)

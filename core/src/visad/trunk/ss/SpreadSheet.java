@@ -1050,7 +1050,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
           NumVisY = Integer.parseInt(s.substring(1));
         }
         else buff[count++] = (char) ch;
-      } while (ch != '\n');
+      }
+      while (ch != '\n');
 
       // get cell information
       cellNames = new String[NumVisX][NumVisY];
@@ -1070,7 +1071,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
           count = 0;
 
           // get cell reconstruction string
-          while (lncnt < 5) {
+          while (lncnt < 6) {
             ch = fr.read();
             buff[count++] = (char) ch;
             if (ch == '\n') lncnt++;
@@ -1099,7 +1100,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     for (int i=0; i<NumVisX; i++) {
       for (int j=0; j<NumVisY; j++) {
         try {
-          DisplayCells[i][j].setSSCellString(fileStrings[i][j]);
+          DisplayCells[i][j].setSaveString(fileStrings[i][j]);
         }
         catch (VisADException exc) { }
         catch (RemoteException exc) { }
@@ -1134,7 +1135,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
             s = "[" + DisplayCells[i][j].getName() + "]\n";
             sc = s.toCharArray();
             fw.write(sc, 0, sc.length);
-            s = DisplayCells[i][j].getSSCellString() + "\n";
+            s = DisplayCells[i][j].getSaveString() + "\n";
             sc = s.toCharArray();
             fw.write(sc, 0, sc.length);
           }
@@ -1216,7 +1217,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** copy a cell from the screen to the clipboard */
   void copyCell() {
-    Clipboard = DisplayCells[CurX][CurY].getSSCellString();
+    Clipboard = DisplayCells[CurX][CurY].getSaveString();
     EditPaste.setEnabled(true);
     ToolPaste.setEnabled(true);
   }
@@ -1227,7 +1228,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       try {
         boolean b = DisplayCells[CurX][CurY].getAutoDetect();
         DisplayCells[CurX][CurY].setAutoDetect(false);
-        DisplayCells[CurX][CurY].setSSCellString(Clipboard);
+        DisplayCells[CurX][CurY].setSaveString(Clipboard);
         DisplayCells[CurX][CurY].setAutoDetect(b);
       }
       catch (VisADException exc) {

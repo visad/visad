@@ -176,18 +176,18 @@ public class BasicSSCell extends JPanel {
     this(name, null, rs, null);
   }
 
-  /** construct a new BasicSSCell with the given name and data string, used to
+  /** construct a new BasicSSCell with the given name and save string, used to
       reconstruct the cell's configuration */
-  public BasicSSCell(String name, String info)
+  public BasicSSCell(String name, String save)
     throws VisADException, RemoteException
   {
-    this(name, null, null, info);
+    this(name, null, null, save);
   }
 
   /** construct a new BasicSSCell with the given name, formula manager, and
       remote server */
   public BasicSSCell(String name, FormulaManager fman, RemoteServer rs,
-    String info) throws VisADException, RemoteException
+    String save) throws VisADException, RemoteException
   {
     // set name
     if (name == null) {
@@ -500,8 +500,8 @@ public class BasicSSCell extends JPanel {
       else throw exc;
     }
 
-    // setup info string
-    if (info != null) setSSCellString(info);
+    // setup save string
+    if (save != null) setSaveString(save);
 
     // finish GUI setup
     VDPanel = (JPanel) VDisplay.getComponent();
@@ -906,49 +906,52 @@ public class BasicSSCell extends JPanel {
     return Saving > 0;
   }
 
-  /** reconstruct this BasicSSCell using the specified info string */
-  public void setSSCellString(String info) throws VisADException,
-                                                  RemoteException {
-    // extract filename from info string
-    if (!info.substring(0, 11).equals("filename = ")) {
-      throw new VisADException("Invalid info string!");
+  /** @deprecated use setSaveString(String) instead */
+  public void setSSCellString(String save)
+    throws VisADException, RemoteException
+  {
+    setSaveString(save);
+  }
+
+  /** reconstruct this BasicSSCell using the specified save string */
+  public void setSaveString(String save)
+    throws VisADException, RemoteException
+  {
+    // extract filename from save string
+    if (!save.substring(0, 11).equals("filename = ")) {
+      throw new VisADException("Invalid save string!");
     }
-    int i=10;
-    char c = '*';
-    while (c != '\n') c = info.charAt(++i);
-    String filename = info.substring(11, i++);
+    int i = save.indexOf('\n', 10);
+    String filename = save.substring(11, i++);
     if (filename.equals("null")) filename = null;
 
-    // extract RMI address from info string
-    if (!info.substring(i, i+6).equals("rmi = ")) {
-      throw new VisADException("Invalid info string!");
+    // extract RMI address from save string
+    if (!save.substring(i, i+6).equals("rmi = ")) {
+      throw new VisADException("Invalid save string!");
     }
-    i += 5;
-    int oi = i + 1;
-    c = '*';
-    while (c != '\n') c = info.charAt(++i);
-    String rmi = info.substring(oi, i++);
+    i += 6;
+    int oi = i;
+    i = save.indexOf('\n', i);
+    String rmi = save.substring(oi, i++);
     if (rmi.equals("null")) rmi = null;
 
-    // extract formula from info string
-    if (!info.substring(i, i+10).equals("formula = ")) {
-      throw new VisADException("Invalid info string!");
+    // extract formula from save string
+    if (!save.substring(i, i+10).equals("formula = ")) {
+      throw new VisADException("Invalid save string!");
     }
-    i += 9;
-    oi = i + 1;
-    c = '*';
-    while (c != '\n') c = info.charAt(++i);
-    String formula = info.substring(oi, i++);
+    i += 10;
+    oi = i;
+    i = save.indexOf('\n', i);
+    String formula = save.substring(oi, i++);
 
-    // extract dimension from info string
-    if (!info.substring(i, i+6).equals("dim = ")) {
-      throw new VisADException("Invalid info string!");
+    // extract dimension from save string
+    if (!save.substring(i, i+6).equals("dim = ")) {
+      throw new VisADException("Invalid save string!");
     }
-    i += 5;
-    oi = i + 1;
-    c = '*';
-    while (c != '\n') c = info.charAt(++i);
-    String b = info.substring(oi, i++);
+    i += 6;
+    oi = i;
+    i = save.indexOf('\n', i);
+    String b = save.substring(oi, i++);
     int dim = -1;
     try {
       dim = Integer.parseInt(b);
@@ -957,37 +960,48 @@ public class BasicSSCell extends JPanel {
       if (DEBUG) exc.printStackTrace();
     }
     if (dim != JAVA3D_3D && dim != JAVA2D_2D && dim != JAVA3D_2D) {
-      throw new VisADException("Invalid info string!");
+      throw new VisADException("Invalid save string!");
     }
 
-    // extract mappings from info string
-    if (!info.substring(i, i+7).equals("maps = ")) {
-      throw new VisADException("Invalid info string!");
+    // extract mappings from save string
+    if (!save.substring(i, i+7).equals("maps = ")) {
+      throw new VisADException("Invalid save string!");
     }
     Vector dnames = new Vector();
     Vector rnames = new Vector();
     i += 6;
-    c = '*';
-    while (c != '\n') {
+    char c;
+    do {
       c = '*';
       oi = i + 1;
-      while (c != ' ' && c != '\n') c = info.charAt(++i);
+      while (c != ' ' && c != '\n') c = save.charAt(++i);
       if (c != '\n') {
-        String dname = info.substring(oi, i++);
+        String dname = save.substring(oi, i++);
         dnames.add(dname);
-        c = '*';
         oi = i;
-        while (c != ' ' && c != '\n') c = info.charAt(++i);
+        c = '*';
+        while (c != ' ' && c != '\n') c = save.charAt(++i);
         try {
-          String s = (String) info.substring(oi, i);
+          String s = (String) save.substring(oi, i);
           int q = Integer.parseInt(s);
           rnames.add(new Integer(q));
         }
         catch (NumberFormatException exc) {
-          throw new VisADException("Invalid info string!");
+          throw new VisADException("Invalid save string!");
         }
       }
     }
+    while (c != '\n');
+    i++;
+
+    // extract projection control from save string
+    if (!save.substring(i, i+13).equals("projection = ")) {
+      throw new VisADException("Invalid save string!");
+    }
+    i += 13;
+    oi = i;
+    i = save.indexOf('\n', i);
+    String proj = save.substring(oi, i);
 
     // clear old stuff from cell
     clearCell();
@@ -1046,10 +1060,19 @@ public class BasicSSCell extends JPanel {
       }
       setMaps(maps);
     }
+
+    // set up projection control
+    ProjectionControl pc = VDisplay.getProjectionControl();
+    if (pc != null) pc.setSaveString(proj);
   }
 
-  /** return the data string necessary to reconstruct this cell */
+  /** @deprecated use getSaveString() instead */
   public String getSSCellString() {
+    return getSaveString();
+  }
+
+  /** return the save string necessary to reconstruct this cell */
+  public String getSaveString() {
     if (IsRemote) return null;
     else {
       String s = "filename = " + (Filename == null ?
@@ -1079,6 +1102,12 @@ public class BasicSSCell extends JPanel {
         else s = s + "null\n";
       }
       else s = s + "null\n";
+      s = s + "projection = ";
+      if (VDisplay == null) s = s + "null\n";
+      else {
+        ProjectionControl pc = VDisplay.getProjectionControl();
+        s = s + (pc == null ? "null\n" : pc.getSaveString() + "\n");
+      }
       return s;
     }
   }
