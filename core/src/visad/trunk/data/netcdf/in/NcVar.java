@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcVar.java,v 1.4 1998-08-12 19:00:03 visad Exp $
+ * $Id: NcVar.java,v 1.5 1998-08-12 20:57:12 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -38,7 +38,7 @@ import visad.data.netcdf.units.Parser;
 
 
 /**
- * The NcVar class provides an abstract class for decorating a netCDF
+ * Provides an abstract class for adapting a netCDF
  * variable that's being imported to a VisAD API.
  */
 abstract class
@@ -57,7 +57,7 @@ NcVar
     /**
      * The units of the netCDF variable.
      */
-    private final Unit	unit;
+    private final Unit		unit;
 
     /**
      * The VisAD MathType of the variable's values.
@@ -77,7 +77,33 @@ NcVar
 	mathType = type;
 	this.var = var;
 	this.netcdf = netcdf;
-	unit = getUnit(var);
+
+	Unit	tmpUnit = getUnit(var);
+
+	if (type instanceof RealType)
+	{
+	    /*
+	     * Ensure that the units of this variable are convertible with
+	     * the default units of the RealType to prevent a subsequent
+	     * VisADException.
+	     */
+	    Unit	defaultUnit = ((RealType)type).getDefaultUnit();
+
+	    if (tmpUnit == null)
+	    {
+		tmpUnit = defaultUnit;
+	    }
+	    else if (!Unit.canConvert(tmpUnit, defaultUnit))
+	    {
+		System.err.println("Unit of variable \"" + var.getName() +
+		    "\" (" + tmpUnit + ") not convertible with that" +
+		    " quantity's default unit (" + defaultUnit + ")" +
+		    ".  Setting to default unit.");
+		tmpUnit = defaultUnit;
+	    }
+	}
+
+	unit = tmpUnit;
     }
 
 
@@ -85,9 +111,8 @@ NcVar
      * Determine the units of the given, netCDF variable.
      *
      * @param var	The netCDF variable to have it's units returned.
-     * @return          The units of the variable or <code>null</code>
-     *                  if there was no "unit" attribute or the "unit"
-     *                  attribute couldn't be decoded.
+     * @return          The units of the variable if it has a decodable
+     *			"unit" attribute; otherwise, <code>null</code>.
      */
     protected static Unit
     getUnit(Variable var)
@@ -100,11 +125,19 @@ NcVar
 
 	if (attr != null && attr.isString())
 	{
+	    String	unitSpec = attr.getStringValue();
+
 	    try
 	    {
-		unit = Parser.parse(attr.getStringValue());
+		unit = Parser.parse(unitSpec);
 	    }
-	    catch (ParseException e) { }
+	    catch (ParseException e)
+	    {
+		String	reason = e.getMessage();
+
+		System.err.println("Couldn't decode unit attribute \"" +
+		    unitSpec + "\"" + (reason == null ? "" : (": " + reason)));
+	    }
 	}
 
 	return unit;
