@@ -2267,10 +2267,7 @@ System.out.println("vector earth_locs = " + earth_locs[0][0] + " " +
       flow_values[1][j] = ratio * earth_locs[1][j];
       flow_values[2][j] = ratio * earth_locs[2][j];
     }
-/*
-System.out.println("flow_values = " + flow_values[0][0] + " " +
-                   flow_values[1][0] + " " + flow_values[2][0]);
-*/
+    testFlow("adjust", flow_values);
     return flow_values;
   }
 
@@ -2430,6 +2427,24 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
     }
 
     return arrays;
+  }
+
+  private static void testFlow(String id, float[][] flow_values) {
+    int flen = flow_values[0].length;
+    for (int i=0; i<flen; i++) {
+      if (flow_values[0][i] != flow_values[0][i] ||
+          flow_values[1][i] != flow_values[1][i] ||
+          flow_values[2][i] != flow_values[2][i] ||
+          Float.isInfinite(flow_values[0][i]) ||
+          Float.isInfinite(flow_values[1][i]) ||
+          Float.isInfinite(flow_values[2][i])) {
+        // System.out.println(id + " " + i + " " + flow_values[0][i] + " " +
+        //                    flow_values[1][i] + " " + flow_values[2][i]);
+        flow_values[0][i] = 0.0f;
+        flow_values[1][i] = 0.0f;
+        flow_values[2][i] = 0.0f;
+      }
+    }
   }
 
   private static final float BACK_SCALE = -0.15f;
