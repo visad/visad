@@ -62,7 +62,7 @@ from the visad.ss package.
         java -mx64m visad.ss.SpreadSheet (cols) (rows)
 
     where (cols) is the number of columns, and (rows) is the number of rows.
-    The default is twelve cells (four columns, three rows).
+    The default is four cells (two columns, two rows).
 
     The spreadsheet user interface requires a lot of memory (at least 32 MB),
     especially if you want to work with large data sets.  If you receive an

@@ -92,6 +92,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     }
     lineWidth = width;
     changeControl(true);
+    getDisplay().reDisplayAll();
   }
 
   public float getPointSize() {
@@ -106,6 +107,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     }
     pointSize = size;
     changeControl(true);
+    getDisplay().reDisplayAll();
   }
 
   public boolean getPointMode() {
@@ -116,12 +118,14 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
          throws VisADException, RemoteException {
     pointMode = mode;
     changeControl(true);
+    getDisplay().reDisplayAll();
   }
 
   public void setTextureEnable(boolean enable)
          throws VisADException, RemoteException {
     textureEnable = enable;
     changeControl(true);
+    getDisplay().reDisplayAll();
   }
 
   public boolean getTextureEnable() {
@@ -152,6 +156,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
         mode == TransparencyAttributes.NICEST) {
       transparencyMode = mode;
       changeControl(true);
+      getDisplay().reDisplayAll();
     }
     else {
       throw new DisplayException("GraphicsModeControlJ3D." +
@@ -170,6 +175,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
         displayRenderer.getView().setProjectionPolicy(projectionPolicy);
       }
       changeControl(true);
+      getDisplay().reDisplayAll();
     }
     else {
       throw new DisplayException("GraphicsModeControlJ3D." +

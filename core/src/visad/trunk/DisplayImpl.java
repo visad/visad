@@ -79,6 +79,9 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       every time data are displayed */
   private boolean always_initialize = false;
 
+  /** set to re-display all linked Data */
+  private boolean redisplay_all = false;
+
   /** length of ValueArray of distinct DisplayRealType values;
       one per Single DisplayRealType that occurs in a ScalarMap,
       plus one per ScalarMap per non-Single DisplayRealType;
@@ -160,6 +163,10 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
 
   public void setAlwaysAutoScale(boolean a) {
     always_initialize = a;
+  }
+
+  public void reDisplayAll() {
+    redisplay_all = true;
   }
 
   public void addReference(ThingReference ref)
@@ -455,6 +462,10 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
           DataRenderer renderer = (DataRenderer) renderers.nextElement();
           go = renderer.checkAction(go);
         }
+      }
+      if (redisplay_all) {
+        go = true;
+        redisplay_all = false;
       }
 
       if (!initialize || go) {

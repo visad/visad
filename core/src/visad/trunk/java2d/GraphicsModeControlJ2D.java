@@ -72,6 +72,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     }
     lineWidth = width;
     changeControl(true);
+    getDisplay().reDisplayAll();
   }
 
   public float getPointSize() {
@@ -86,6 +87,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     }
     pointSize = size;
     changeControl(true);
+    getDisplay().reDisplayAll();
   }
 
   public boolean getPointMode() {
@@ -96,12 +98,14 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
          throws VisADException, RemoteException {
     pointMode = mode;
     changeControl(true);
+    getDisplay().reDisplayAll();
   }
 
   public void setTextureEnable(boolean enable)
          throws VisADException, RemoteException {
     textureEnable = enable;
     changeControl(true);
+    getDisplay().reDisplayAll();
   }
 
   public boolean getTextureEnable() {
