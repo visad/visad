@@ -195,7 +195,7 @@ public class Irregular3DSet extends IrregularSet {
 
     for (int i=0; i<length; i++) {
 
-// System.out.println("i = " + i);
+      // System.out.println("\nvalue["+i+"] = ("+value[0][i]+", "+value[1][i]+", "+value[2][i]+")");
 
       // Return -1 if iteration loop fails
       tri[i] = -1;
@@ -243,22 +243,26 @@ public class Irregular3DSet extends IrregularSet {
         BAxCB[0]  =  (By-Ay)*(Cz-Bz)-(Bz-Az)*(Cy-By);
         BAxCB[1]  =  (Bz-Az)*(Cx-Bx)-(Bx-Ax)*(Cz-Bz);
         BAxCB[2]  =  (Bx-Ax)*(Cy-By)-(By-Ay)*(Cx-Bx);
-        sum_BAxCB =  BAxCB[0] + BAxCB[1] + BAxCB[2];
+        sum_BAxCB =  Math.abs(BAxCB[0]) + Math.abs(BAxCB[1]) +
+                     Math.abs(BAxCB[2]);
 
         CBxDC[0]  =  (Cy-By)*(Dz-Cz)-(Cz-Bz)*(Dy-Cy);
         CBxDC[1]  =  (Cz-Bz)*(Dx-Cx)-(Cx-Bx)*(Dz-Cz);
         CBxDC[2]  =  (Cx-Bx)*(Dy-Cy)-(Cy-By)*(Dx-Cx);
-        sum_CBxDC =  CBxDC[0] + CBxDC[1] + CBxDC[2];
+        sum_CBxDC =  Math.abs(CBxDC[0]) + Math.abs(CBxDC[1]) +
+                     Math.abs(CBxDC[2]);
 
         DCxAD[0]  =  (Dy-Cy)*(Az-Dz)-(Dz-Cz)*(Ay-Dy);
         DCxAD[1]  =  (Dz-Cz)*(Ax-Dx)-(Dx-Cx)*(Az-Dz);
         DCxAD[2]  =  (Dx-Cx)*(Ay-Dy)-(Dy-Cy)*(Ax-Dx);
-        sum_DCxAD =  DCxAD[0] + DCxAD[1] + DCxAD[2];
+        sum_DCxAD =  Math.abs(DCxAD[0]) + Math.abs(DCxAD[1]) +
+                     Math.abs(DCxAD[2]);
 
         ADxBA[0]  =  (Ay-Dy)*(Bz-Az)-(Az-Dz)*(By-Ay);
         ADxBA[1]  =  (Az-Dz)*(Bx-Ax)-(Ax-Dx)*(Bz-Az);
         ADxBA[2]  =  (Ax-Dx)*(By-Ay)-(Ay-Dy)*(Bx-Ax);
-        sum_ADxBA =  ADxBA[0] + ADxBA[1] + ADxBA[2];
+        sum_ADxBA =  Math.abs(ADxBA[0]) + Math.abs(ADxBA[1]) +
+                     Math.abs(ADxBA[2]);
 
         // test whether point is contained in current triangle
 
@@ -273,30 +277,29 @@ public class Irregular3DSet extends IrregularSet {
      // System.out.println("Px-Cx: "+(Px-Cx)+" Py-Cy: "+(Py-Cy)+" Pz-Cz: "+(Pz-Cz));
      // System.out.println("Px-Dx: "+(Px-Dx)+" Py-Dy: "+(Py-Dy)+" Pz-Dz: "+(Pz-Dz));
      // System.out.println("sum_BAxCB: "+sum_BAxCB+" sum_CBxDC: "+sum_CBxDC+" sum_DCxAD "+sum_DCxAD+" sum_ADxBA "+sum_ADxBA);
-     // System.out.println("curtri: "+curtri+" tval1: "+tval1+" tval2: "+tval2+" tval2: "+tval3+" tval4: "+tval4);
+     // System.out.println("curtri: "+curtri+" tval1: "+tval1+" tval2: "+tval2+" tval3: "+tval3+" tval4: "+tval4);
 
-        boolean test1 = ((tval1 == 0) || ( (tval1 > 0) == (
-                          BAxCB[0]*(Dx-Ax)
+        boolean test1 = ((tval1 == 0.0f) || ( (tval1 > 0) == (
+                        BAxCB[0]*(Dx-Ax)
                         + BAxCB[1]*(Dy-Ay)
                         + BAxCB[2]*(Dz-Az) > 0) )) && (sum_BAxCB != 0);
 
-        boolean test2 = ((tval2 == 0) || ( (tval2 > 0) == (
-                          CBxDC[0]*(Ax-Bx)
+        boolean test2 = ((tval2 == 0.0f) || ( (tval2 > 0) == (
+                        CBxDC[0]*(Ax-Bx)
                         + CBxDC[1]*(Ay-By)
                         + CBxDC[2]*(Az-Bz) > 0) )) && (sum_CBxDC != 0);
 
-        boolean test3 = ((tval3 == 0) || ( (tval3 > 0) == (
-                          DCxAD[0]*(Bx-Cx)
+        boolean test3 = ((tval3 == 0.0f) || ( (tval3 > 0) == (
+                        DCxAD[0]*(Bx-Cx)
                         + DCxAD[1]*(By-Cy)
                         + DCxAD[2]*(Bz-Cz) > 0) )) && (sum_DCxAD != 0);
 
-        boolean test4 = ((tval4 == 0) || ( (tval4 > 0) == (
-                          ADxBA[0]*(Cx-Dx)
+        boolean test4 = ((tval4 == 0.0f) || ( (tval4 > 0) == (
+                        ADxBA[0]*(Cx-Dx)
                         + ADxBA[1]*(Cy-Dy)
                         + ADxBA[2]*(Cz-Dz) > 0) )) && (sum_ADxBA != 0);
 
-
-     //-System.out.println("curtri: "+curtri+" test1: "+test1+" test2: "+test2+" test2: "+test3+" test4: "+test4);
+        // System.out.println("i: "+i+" curtri: "+curtri+" test1: "+test1+" test2: "+test2+" test3: "+test3+" test4: "+test4);
 
 
         // figure out which triangle to go to next
@@ -359,7 +362,10 @@ public class Irregular3DSet extends IrregularSet {
         }
 
         // Return -1 if outside of the convex hull
-        if (curtri < 0) foundit = true;
+        if (curtri < 0) {
+          // System.out.println("outside of the convex hull " + i);
+          foundit = true;
+        }
         if (foundit) {
           tri[i] = curtri;
         }
