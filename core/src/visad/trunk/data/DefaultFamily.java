@@ -52,6 +52,8 @@ import visad.data.visad.VisADForm;
 
 import visad.data.mcidas.AreaForm;
 
+import visad.data.mcidas.MapForm;
+
 /**
   * A container for all the officially supported VisAD datatypes.<br>
   * <br>
@@ -411,6 +413,11 @@ public class DefaultFamily
     }
     try {
       list[i] = new AreaForm();
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
+      list[i] = new MapForm();
       i++;
     } catch (Throwable t) {
     }

@@ -39,5 +39,5 @@ To execute within the JPython editor, launch the editor with:
 Then open this file and choose "Command", "Run"
 """
 
-data = read("/home/billh/java/visad/ss/cut.gif")
+data = read("../ss/cut.gif")
 plot(data)
