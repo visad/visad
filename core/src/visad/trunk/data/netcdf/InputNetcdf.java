@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: InputNetcdf.java,v 1.2 2002-09-20 18:14:41 steve Exp $
+ * $Id: InputNetcdf.java,v 1.3 2002-09-20 18:16:33 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -78,7 +78,7 @@ InputNetcdf
      * @throws VisADException       if a VisAD failure occurs.
      */
     public void
-    setPathname(QuantityDB db)
+    setQuantityDB(QuantityDB db)
 	throws BadFormException, IOException, VisADException
     {
 	if (db == null)
