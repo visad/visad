@@ -439,7 +439,10 @@ public class F2000Form
     FieldImpl eventsField =
       new FieldImpl(eventsFunctionType, eventsSet);
     if (nevents > 0) {
-      Tuple[] eventTuples = (Tuple[] )events.toArray(new Tuple[nevents]);
+      Tuple[] eventTuples = new Tuple[nevents];
+      for (int e = 0; e < nevents; e++) {
+        eventTuples[e] = ((Event )events.get(e)).makeData();
+      }
       try {
         eventsField.setSamples(eventTuples, false);
       } catch (RemoteException re) {
@@ -818,7 +821,7 @@ public class F2000Form
         if (currentEvent == null) {
           System.err.println("Found EE outside event");
         } else {
-          events.add(currentEvent.makeData());
+          events.add(currentEvent);
           currentEvent = null;
         }
 
