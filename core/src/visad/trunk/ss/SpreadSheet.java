@@ -2982,8 +2982,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
       String name = null;
       try {
         Display d = e.getDisplay();
-        /* CTR: TEMP */ System.out.println("display = " + d.getClass().toString());
-        /* CTR: TEMP */ if (d.getClass().toString().endsWith("RemoteDisplayImpl_Stub")) new Exception().printStackTrace();
         name = d.getName();
       }
       catch (VisADException exc) {
