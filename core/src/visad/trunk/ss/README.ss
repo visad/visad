@@ -1,5 +1,5 @@
                    VisAD Spread Sheet User Interface README file
-                                   25 June 1999
+                                   15 July 1999
  
                                 Table of Contents
 
@@ -212,9 +212,9 @@ only the instructions needed to recreate a spreadsheet.  They do not contain
 any actual data, but rather the file names, URLs, RMI addresses, formulas,
 dimensionality information, and mappings of the cells.
 
-Save - Saves a "spreadsheet file" under the current name.  
+Save - Saves a spreadsheet file under the current name.  
 
-Save as - Saves a "spreadsheet file" under a new name.
+Save as - Saves a spreadsheet file under a new name.
 
 2.2.4 Display Menu
 
@@ -307,8 +307,9 @@ The formula toolbar is used for entering file names, URLs, RMI addresses,
 and formulas for the current cell.  If you enter the name of a file in the
 formula text box, the Spread Sheet will attempt to import the data from that
 file.  If you enter a URL, the Spread Sheet will try to download and import the
-data from that URL.  If you enter an RMI address, the Spread Sheet will try to
-import the data from that RMI address (see section 2.4).  If you enter a
+data from that URL (however, VisAD only supports loading GIF and JPEG files
+from URLs right now).  If you enter an RMI address, the Spread Sheet will try
+to import the data from that RMI address (see section 2.4).  If you enter a
 formula, it will attempt to parse and evaluate that formula.  If a formula
 entered is invalid for some reason, the answer cannot be computed, or the file,
 URL, or RMI address entered does not exist, the cell will have an explanation
