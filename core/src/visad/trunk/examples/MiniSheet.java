@@ -24,9 +24,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
 // import JFC packages
-import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.event.*;
+import com.sun.java.swing.*;
+import com.sun.java.swing.border.*;
+import com.sun.java.swing.event.*;
 
 // import AWT package
 import java.awt.*;

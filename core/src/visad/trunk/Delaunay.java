@@ -29,7 +29,7 @@ import java.io.*;
 import java.util.*;
 
 // packages for main method
-import javax.swing.*;
+import com.sun.java.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 

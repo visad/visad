@@ -26,8 +26,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad.util;
 
 // JFC packages
-import javax.swing.*;
-import javax.swing.event.*;
+import com.sun.java.swing.*;
+import com.sun.java.swing.event.*;
 
 // AWT package
 import java.awt.*;

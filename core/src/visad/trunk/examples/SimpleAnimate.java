@@ -8,7 +8,7 @@ import java.rmi.RemoteException;
 import java.io.IOException;
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.*;
+import com.sun.java.swing.*;
 
 public class SimpleAnimate {
 

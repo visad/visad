@@ -44,10 +44,10 @@ import java.net.URL;
 import visad.data.DefaultFamily;
  
 // JFC packages
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.text.*;
-import javax.swing.border.*;
+import com.sun.java.swing.*;
+import com.sun.java.swing.event.*;
+import com.sun.java.swing.text.*;
+import com.sun.java.swing.border.*;
 
 // AWT packages
 import java.awt.*;

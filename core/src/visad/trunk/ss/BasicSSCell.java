@@ -29,8 +29,8 @@ package visad.ss;
 import java.awt.*;
 
 // JFC packages
-import javax.swing.*;
-import javax.swing.border.*;
+import com.sun.java.swing.*;
+import com.sun.java.swing.border.*;
 
 // I/O package
 import java.io.*;

@@ -40,8 +40,8 @@ import java.rmi.RemoteException;
 import java.io.IOException;
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.border.*;
+import com.sun.java.swing.*;
+import com.sun.java.swing.border.*;
 
 public class Nasti {
 

@@ -22,9 +22,9 @@ extern "C" {
 #undef visad_benjamin_Galaxy_F1
 #define visad_benjamin_Galaxy_F1 0.36D
 #undef visad_benjamin_Galaxy_F2
-#define visad_benjamin_Galaxy_F2 40.0D
+#define visad_benjamin_Galaxy_F2 40D
 #undef visad_benjamin_Galaxy_Fa
-#define visad_benjamin_Galaxy_Fa 6.0D
+#define visad_benjamin_Galaxy_Fa 6D
 /*
  * Class:     visad_benjamin_Galaxy
  * Method:    getcon_c

@@ -47,8 +47,8 @@ import javax.media.j3d.*;
 // import com.sun.j3d.utils.applet.AppletFrame;
 
 // GUI handling
-import javax.swing.*;
-import javax.swing.border.*;
+import com.sun.java.swing.*;
+import com.sun.java.swing.border.*;
 
 // file format adapters
 import visad.data.netcdf.Plain;
