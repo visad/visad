@@ -35,7 +35,7 @@ import java.io.Serializable;
  * A class that represents a unit consisting of zero or more base units.
  * @author Steven R. Emmerson
  *
- * This is part of Steve Emerson's Unit package that has been
+ * This is part of Steve Emmerson's Unit package that has been
  * incorporated into VisAD.
  */
 public final class DerivedUnit
