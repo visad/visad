@@ -479,6 +479,16 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     addReference((DataReference) ref, null);
   }
 
+  /** add a link to a DataReference object */
+  void addLink(DataDisplayLink link)
+        throws VisADException, RemoteException
+  {
+    super.addLink((ReferenceActionLink )link);
+    notifyListeners(new DisplayReferenceEvent(this,
+                                             DisplayEvent.REFERENCE_ADDED,
+                                             link));
+  }
+
   /** link ref to this Display; must be local DataReferenceImpl; this
       method may only be invoked after all links to ScalarMaps have
       been made; the ConstantMap array applies only to rendering ref */
