@@ -531,6 +531,16 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
       else {
         // modify data_flow speed and direction
         float ratio = data_speed / display_speed;
+/*
+System.out.println("data_speed = " + data_speed +
+                   " display_speed = " + display_speed +
+                   " ratio = " + ratio + " EPS = " + EPS);
+System.out.println("x = " + x[0] + " " + x[1] +" " + x[2] +
+                   " x_speed = " + x_speed);
+  data_speed = 21.213203 display_speed = 0.01 ratio = 2121.3203 EPS = 0.2
+  x = 1.6170928E-4 1.6021729E-4 -0.0 x_speed = 0.01
+  wind = (0.3430372, 0.33987218) at (-35.0, 5.0)
+*/
         if (data_speed < EPS) {
           data_flow[0] = 2.0f * EPS;
           x[0] = data_flow[0];
