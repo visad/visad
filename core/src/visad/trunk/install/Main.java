@@ -305,8 +305,13 @@ public class Main
           javaInstallDir = chooseDirectory(null, "Select the directory in which the JDK should be installed");
           if (javaInstallDir == null) {
             step--;
-          } else {
+          } else if (javaInstallDir.canWrite()) {
             step++;
+          } else {
+            JOptionPane.showMessageDialog(null,
+                                          "Cannot write to that directory!",
+                                          "Bad directory?",
+                                          JOptionPane.ERROR_MESSAGE);
           }
         } else {
           jvmToUse = chooseFile(javaList, "Select the java program to use");
@@ -321,8 +326,13 @@ public class Main
         jarInstallDir = chooseDirectory(jarList, "Select the directory where the VisAD jar file should be installed");
         if (jarInstallDir == null) {
           step--;
-        } else {
+        } else if (jarInstallDir.canWrite()) {
           step++;
+        } else {
+          JOptionPane.showMessageDialog(null,
+                                        "Cannot write to that directory!",
+                                        "Bad directory?",
+                                        JOptionPane.ERROR_MESSAGE);
         }
         break;
       case STEP_DOWNLOAD_JAR:
