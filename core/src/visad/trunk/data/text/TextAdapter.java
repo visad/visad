@@ -77,6 +77,7 @@ public class TextAdapter {
   private final String TAB = "\t";
   private final String BLANK = " ";
   private boolean DOQUOTE = true;
+  private boolean GOTTIME = false;
 
 
   String[] hdrNames;
@@ -88,6 +89,7 @@ public class TextAdapter {
   double[] hdrErrorEstimates;
   double[] rangeErrorEstimates;
   Unit[] rangeUnits;
+  Set[] rangeSets;
   double[] domainErrorEstimates;
   Unit[] domainUnits;
   double[] hdrScales;
@@ -435,6 +437,14 @@ public class TextAdapter {
 
         // get a compatible unit, if necessary
 
+        if (rt.equals(visad.RealType.Time)) {
+          GOTTIME = true;
+          if (debug) System.out.println("####  found a visad.RealType.Time component");
+        } else {
+          GOTTIME = false;
+        }
+
+
         if (u == null) u = rt.getDefaultUnit();
         if(debug) System.out.println("####  retrieve units from RealType = "+u);
       }
@@ -475,13 +485,29 @@ public class TextAdapter {
         domainNames[i] = ((RealType)comp).toString().trim();
         if (debug) System.out.println("dom "+i+" = "+domainNames[i]);
       }
+
       rngType = (TupleType) ((FunctionType)mt).getRange();
       numRng = rngType.getDimension();
       rangeNames = new String[numRng];
+      rangeSets = new Set[numRng];
       for (int i=0; i<numRng; i++) {
         MathType comp = rngType.getComponent(i);
         rangeNames[i] = (comp).toString().trim();
         if (debug) System.out.println("range "+i+" = "+rangeNames[i]);
+        if (comp instanceof RealType) {
+          rangeSets[i] = ((RealType) comp).getDefaultSet();
+          if (rangeSets[i] == null) {
+            if (comp.equals(RealType.Time)) {
+              rangeSets[i] = new DoubleSet(new SetType(comp));
+            } else {
+              rangeSets[i] = new FloatSet(new SetType(comp));
+            }
+          }
+        } else {
+          rangeSets[i] = null;  // something else is wrong here...
+        }
+        if (debug) System.out.println("####  rangeSet = "+rangeSets[i]);
+;
       }
 
     } else { 
@@ -504,6 +530,7 @@ public class TextAdapter {
     domainUnits = new Unit[numDom];
     rangeErrorEstimates = new double[numRng];
     rangeUnits = new Unit[numRng];
+
     int countDomain = 0;
 
     for (int i=0; i<numDom; i++) {
@@ -956,8 +983,9 @@ public class TextAdapter {
 
 
     try {
+
       ff = new FlatField((FunctionType) mt, domain, 
-                                null, null, null, rangeUnits);
+                                null, null, rangeSets, rangeUnits);
 
     } catch (FieldException fe) {
       field = new FieldImpl((FunctionType) mt, domain);
@@ -981,7 +1009,7 @@ public class TextAdapter {
     }
 //*************************************************
 
-    float[][]a = new float[numRng][numSamples * numElements];
+    double[][]a = new double[numRng][numSamples * numElements];
     Tuple[] at = new Tuple[numSamples];
     
     // if this is a raster then the samples are in a slightly
@@ -992,7 +1020,7 @@ public class TextAdapter {
       for (int i=0; i<numSamples; i++) {
         double[] rs = (double[])(rangeValues.get(i));
         for (int j=0; j<numElements; j++) {
-          a[0][samPointer] = (float)rs[j];
+          a[0][samPointer] = rs[j];
           samPointer ++;
         }
       }
@@ -1000,7 +1028,7 @@ public class TextAdapter {
       for (int i=0; i<numSamples; i++) {
         double[] rs = (double[])(rangeValues.get(i));
         for (int j=0; j<numRng; j++) {
-          a[j][i] = (float)rs[j];
+          a[j][i] = rs[j];
         }
         if (!tupleValues.isEmpty()) {
           at[i] = (Tuple) tupleValues.get(i); 
@@ -1013,10 +1041,11 @@ public class TextAdapter {
     try {
     if (ff != null) {
       if (debug) System.out.println("####   ff is not null");
-      ff.setSamples(a);
+      ff.setSamples(a, false);
       field = (Field) ff;
+
     } else {
-      if (debug) System.out.println("####   ff is null..");
+      if (debug) System.out.println("####   ff is null..use FieldImpl");
       field.setSamples(at, false);
     }
     } catch (Exception ffe) {ffe.printStackTrace(); }
@@ -1160,8 +1189,9 @@ public class TextAdapter {
       // a format was specified: only support DateTime format 
       // so try to parse as a DateTime
       try{
-        DateTime dt = makeDateTimeFromString(s, hdrFormatStrings[i]);
+        visad.DateTime dt = makeDateTimeFromString(s, hdrFormatStrings[i]);
         return dt.getReal().getValue();
+
       } catch (java.text.ParseException pe) {
         System.out.println("Invalid number/time format for "+s);
       }
@@ -1256,7 +1286,8 @@ public class TextAdapter {
     return set;
   }
 
-/* /  uncomment to test
+//  uncomment to test
+/*
   public static void main(String[] args) throws Exception {
     if (args.length == 0) {
       System.out.println("Must supply a filename");
@@ -1265,8 +1296,10 @@ public class TextAdapter {
     TextAdapter ta = new TextAdapter(args[0]);
     System.out.println(ta.getData().getType());
     new visad.jmet.DumpType().dumpMathType(ta.getData().getType(),System.out);
+    new visad.jmet.DumpType().dumpDataType(ta.getData(),System.out);
+    System.out.println("####  Data = "+ta.getData());
     System.out.println("EOF... ");
   }
-  */
+*/
 
 }
