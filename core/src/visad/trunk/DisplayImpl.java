@@ -343,6 +343,20 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     initialize = true;
   }
 
+  /** remove all DataReferences */
+  public void removeAllReferences()
+         throws VisADException, RemoteException {
+    Enumeration renderers = RendererVector.elements();
+    while (renderers.hasMoreElements()) {
+      DataRenderer renderer = (DataRenderer) renderers.nextElement();
+      renderer.clearScene();
+      DataDisplayLink[] links = renderer.getLinks();
+      RendererVector.removeElement(renderer);
+      removeLinks(links);
+    }
+    initialize = true;
+  }
+
   /** used by Control-s to notify this DisplayImpl that
       they have changed */
   public void controlChanged() {
