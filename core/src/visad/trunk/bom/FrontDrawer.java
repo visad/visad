@@ -765,6 +765,10 @@ public class FrontDrawer extends Object {
     setScale();
   }
 
+  public DefaultRendererJ3D getFrontRenderer() {
+    return front_renderer;
+  }
+
   public static void initColormaps(DisplayImplJ3D display)
          throws VisADException, RemoteException {
     setupTypes();
