@@ -40,7 +40,7 @@ public abstract class MapProjection extends NavigatedCoordinateSystem
     /**
      * Constructs from the type of the reference coordinate system and 
      * units for values in this coordinate system. The reference coordinate
-     * system must contain RealType.Latitude and RealType.Longitude.
+     * system must contain RealType.Latitude and RealType.Longitude only.
      *
      * @param reference  The type of the reference coordinate system. The
      *                   reference must contain RealType.Latitude and
@@ -81,6 +81,22 @@ public abstract class MapProjection extends NavigatedCoordinateSystem
      *
      */
     public abstract java.awt.geom.Rectangle2D getDefaultMapArea();
+
+
+    /**
+     * Determine if the input to the toReference and output from the
+     * fromReference is (x,y) or (y,x).  Subclasses should override
+     * if (y,x).
+     * @return true if (x,y)
+     */
+    public boolean isXYOrder() { return true;}
+
+    /**
+     * Determine if the fromReference and toReference expect the
+     * to get the output and input values to be row/col ordered
+     * or
+     */
+    public boolean isLatLonOrder() { return (getLatitudeIndex() == 0); }
 
     /**
      * Print out a string representation of this MapProjection
