@@ -212,6 +212,16 @@ public class Linear3DSet extends Gridded3DSet {
             Z.equals(((Linear3DSet) set).getZ()));
   }
 
+  public Linear1DSet getLinear1DComponent(int i) {
+    if (i == 0)
+      return getX();
+    if (i == 1)
+      return getY();
+    if (i == 2)
+      return getZ();
+    throw new ArrayIndexOutOfBoundsException("Invalid component index");
+  }
+
   public Object clone() {
     try {
       Linear1DSet[] sets = {(Linear1DSet) X.clone(),

@@ -174,6 +174,12 @@ public class Linear1DSet extends Gridded1DSet {
     return flag;
   }
 
+  public Linear1DSet getLinear1DComponent(int i) {
+    if (i == 0)
+      return this;
+    throw new ArrayIndexOutOfBoundsException("Invalid component index");
+  }
+
   public Object clone() {
     try {
       return new Linear1DSet(Type, First, Last, Length, DomainCoordinateSystem,

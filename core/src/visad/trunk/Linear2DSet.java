@@ -195,6 +195,14 @@ public class Linear2DSet extends Gridded2DSet {
             Y.equals(((Linear2DSet) set).getY()));
   }
 
+  public Linear1DSet getLinear1DComponent(int i) {
+    if (i == 0)
+      return getX();
+    if (i == 1)
+      return getY();
+    throw new ArrayIndexOutOfBoundsException("Invalid component index");
+  }
+
   public Object clone() {
     try {
       Linear1DSet[] sets = {(Linear1DSet) X.clone(),
