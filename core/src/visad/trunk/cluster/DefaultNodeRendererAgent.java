@@ -37,21 +37,24 @@ import java.io.Serializable;
 */
 public class DefaultNodeRendererAgent extends NodeAgent {
 
-  private RemoteNodeDataImpl data = null;
+  /** fields from constructor on client */
+  private RemoteDisplay rmtDpy = null; // display on client
+  private ConstantMap[] cmaps = null; // ConstantMaps for data on client
 
+  /** fields on node */
+  private RemoteNodeDataImpl data = null; // data on node
+
+  /** fields constructed on node */
   private DisplayImplJ3D display = null;
   private NodeDisplayRendererJ3D ndr = null;
   private DataReferenceImpl ref = null;
   private NodeRendererJ3D nr = null;
-  private ConstantMap[] cmaps = null;
-  private ScalarMap[] smaps = null;
-  private String[] controlSaves = null;
-  private String projectionControlSave = null;
-  private String graphicsModeControlSave = null;
-  private String rendererControlSave = null;
 
-  public DefaultNodeRendererAgent(RemoteClientAgent source) {
+  public DefaultNodeRendererAgent(RemoteClientAgent source, RemoteDisplay rd,
+                                  ConstantMap[] cms) {
     super(source);
+    rmtDpy = rd;
+    cmaps = cms;
   }
 
   public void run() {
@@ -63,24 +66,21 @@ public class DefaultNodeRendererAgent extends NodeAgent {
     }
     data = (RemoteNodeDataImpl) o;
 
-    try {
-      ndr = new NodeDisplayRendererJ3D();
-      display = new DisplayImplJ3D("dummy", ndr, DisplayImplJ3D.TRANSFORM_ONLY);
+    if (rmtDpy == null) {
+      System.out.println("DefaultNodeRendererAgent cannot run: " +
+                         "RemoteDisplay is null ");
+      return;
+    }
 
-// must get ConstantMaps, ScalarMaps and Controls from client
-      if (smaps == null || smaps.length == 0 ||
-          controlSaves == null || controlSaves.length != smaps.length) {
-        System.out.println("DefaultNodeRendererAgent cannot run: " +
-                           "ScalarMap[] array is empty");
-        return;
-      }
-      for (int i=0; i<smaps.length; i++) {
-        display.addMap(smaps[i]);
-        smaps[i].getControl().setSaveString(controlSaves[i]);
-      }
-      display.getProjectionControl().setSaveString(projectionControlSave);
-      display.getGraphicsModeControl().setSaveString(graphicsModeControlSave);
-      ndr.getRendererControl().setSaveString(rendererControlSave);
+    try {
+      // construct collaborative display but without links to
+      // data on client
+      ndr = new NodeDisplayRendererJ3D();
+      display = new DisplayImplJ3D(rmtDpy, ndr, null);
+// in DisplayImpl.syncRemoteData(RemoteDisplay rmtDpy, boolean link_to_data)
+// need a displayMonitor.addRemoteListener(rmtDpy) call so rmtDpy does not
+// monitor our changes, if link_to_data == false
+// so rmtDpy does not addaddReferences(ref)
 
       ref = new DataReferenceImpl("dummy");
       ref.setData(data);
