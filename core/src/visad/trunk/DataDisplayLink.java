@@ -112,8 +112,10 @@ public class DataDisplayLink extends ReferenceActionLink {
     int[] display_indices;
     int[] value_indices;
     int levelOfDifficulty;
+
     data = ref.getData();
     MathType type = data.getType();
+
     SelectedMapVector.removeAllElements();
  
     // calculate default values for DisplayRealType-s
@@ -162,10 +164,12 @@ public class DataDisplayLink extends ReferenceActionLink {
       renderer.checkDirect();
     }
     catch (BadMappingException e) {
+      data = null;
       renderer.addException(e.getMessage());
       return false;
     }
     catch (UnimplementedException e) {
+      data = null;
       renderer.addException(e.getMessage());
       return false;
     }
@@ -177,8 +181,24 @@ public class DataDisplayLink extends ReferenceActionLink {
     return shadow;
   }
 
-  public Data getData() {
+  public Data getData()
+         throws VisADException, RemoteException {
+/* WLH 14 Feb 98 */
+    if (data == null) {
+      data = ref.getData();
+    }
     return data;
+  }
+
+/* WLH 14 Feb 98 */
+  public void clearData() {
+    data = null;
+  }
+
+/* WLH 14 Feb 98 */
+  public MathType getType()
+         throws VisADException, RemoteException {
+    return getData().getType();
   }
 
   public float[] getDefaultValues() {

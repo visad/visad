@@ -181,17 +181,6 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
 
     if (Flat || this instanceof ShadowSetType) {
       if (this instanceof ShadowFunctionType) {
-        // test for texture mapping
-        isTextureMap = !getMultipleDisplayScalar() &&
-                       getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD &&
-                       ((FunctionType) getType()).getReal() &&
-                       Domain.getDimension() == 2 &&
-                       Domain.getAllSpatial() &&
-                       !Domain.getSpatialReference() &&
-                       Display.DisplaySpatialCartesianTuple.equals(
-                               Domain.getDisplaySpatialTuple() ) &&
-                       checkColorOrAlpha(Range.getDisplayIndices()) &&
-                       checkAny(Range.getDisplayIndices());
         if (Range instanceof ShadowTupleType) {
           local_indices =
             ((ShadowTupleType) Range).sumIndices(local_indices);
@@ -272,6 +261,36 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
           LevelOfDifficulty = LEGAL;
         }
       }
+
+      if (this instanceof ShadowFunctionType) {
+        // test for texture mapping
+        isTextureMap = !getMultipleDisplayScalar() &&
+                       getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD &&
+                       ((FunctionType) getType()).getReal() &&
+                       Domain.getDimension() == 2 &&
+                       Domain.getAllSpatial() &&
+                       !Domain.getSpatialReference() &&
+                       Display.DisplaySpatialCartesianTuple.equals(
+                               Domain.getDisplaySpatialTuple() ) &&
+                       // checkColorOrAlpha(Range.getDisplayIndices()) &&
+                       checkColor(Range.getDisplayIndices()) &&
+                       checkAny(Range.getDisplayIndices()) &&
+                       display.getGraphicsModeControl().getTextureEnable();
+/*
+System.out.println("isTextureMap = " + isTextureMap + " " +
+                   !getMultipleDisplayScalar() + " " +
+                   (getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD) + " " +
+                   ((FunctionType) getType()).getReal() + " " +
+                   (Domain.getDimension() == 2) + " " +
+                   Domain.getAllSpatial() + " " +
+                   !Domain.getSpatialReference() + " " +
+                   Display.DisplaySpatialCartesianTuple.equals(
+                               Domain.getDisplaySpatialTuple() ) + " " +
+                   // checkColorOrAlpha(Range.getDisplayIndices()) + " " +
+                   checkColor(Range.getDisplayIndices()) + " " +
+                   checkAny(Range.getDisplayIndices()));
+*/
+      }
     }
     else { // !Flat && this instanceof ShadowFunctionType
       if (levelOfDifficulty == NESTED) {
@@ -282,7 +301,10 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
       LevelOfDifficulty = Range.checkIndices(local_indices, local_display_indices,
                                              local_value_indices, isTransform,
                                              levelOfDifficulty);
-    } 
+    }
+
+
+
     return LevelOfDifficulty;
   }
 

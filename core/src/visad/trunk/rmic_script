@@ -1,1 +1,1 @@
-rmic visad.RemoteActionImpl visad.RemoteDisplayImpl visad.RemoteDataReferenceImpl visad.RemoteDataImpl visad.RemoteFunctionImpl visad.RemoteFieldImpl
+rmic visad.RemoteCellImpl visad.RemoteActionImpl visad.RemoteDisplayImpl visad.RemoteDataReferenceImpl visad.RemoteDataImpl visad.RemoteFunctionImpl visad.RemoteFieldImpl visad.RemoteServerImpl

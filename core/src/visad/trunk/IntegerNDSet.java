@@ -32,6 +32,10 @@ package visad;
 public class IntegerNDSet extends LinearNDSet
        implements IntegerSet {
 
+  public IntegerNDSet(int[] lengths) throws VisADException {
+    this(get_generic_type(lengths), lengths, null, null, null);
+  }
+
   public IntegerNDSet(MathType type, int[] lengths) throws VisADException {
     this(type, lengths, null, null, null);
   }
@@ -76,6 +80,17 @@ public class IntegerNDSet extends LinearNDSet
     }
   }
 
+  private static SetType get_generic_type(int[] lengths)
+          throws VisADException {
+    if (lengths == null || lengths.length == 0) {
+      throw new SetException("IntegerNDSet: bad lengths");
+    }
+    int n = lengths.length;
+    RealType[] reals = new RealType[n];
+    for (int i=0; i<n; i++) reals[i] = RealType.Generic;
+    return new SetType(new RealTupleType(reals));
+  }
+    
   private static double[] get_firsts(int[] lengths) {
     double[] firsts = new double[lengths.length];
     for (int j=0; j<lengths.length; j++) firsts[j] = 0.0;
@@ -121,8 +136,9 @@ public class IntegerNDSet extends LinearNDSet
     String s = pre + "IntegerNDSet: Dimension = " +
                DomainDimension + " Length = " + Length + "\n";
     for (int j=0; j<DomainDimension; j++) {
-      s = s + pre + "  Dimension " + j + ":" + " Length = " +
-          L[j].getLength() + "\n";
+      // s = s + pre + "  Dimension " + j + ":" + " Length = " +
+      //     L[j].getLength() + "\n";
+      s = s + pre + "  Dimension " + j + ":" + " Linear1DSet = " + L[j] + "\n";
     }
     return s;
   }

@@ -203,6 +203,10 @@ public class ScalarMap extends Object implements java.io.Serializable {
         offset = Double.NaN;
       }
     }
+/*
+System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
+                   " to " + dataRange[1] + " scale: " + scale + " " + offset);
+*/
     if (DisplayScalar == Display.Animation && shadow != null) {
       Set set = shadow.animationSampling;
       if (set == null) {

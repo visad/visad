@@ -50,7 +50,7 @@ public class DataReferenceImpl extends Object implements DataReference {
   /** Tick increments each time data changes */
   private long Tick;
 
-  /** Vector of DataChangedListeners;
+  /** Vector of DataChangedLinks;
       DataReferenceImpl is not Serializable, but mark as transient anyway */
   transient Vector ListenerVector = new Vector();
 
@@ -64,6 +64,11 @@ public class DataReferenceImpl extends Object implements DataReference {
 
   public synchronized Data getData() {
     return data;
+  }
+
+  public synchronized MathType getType()
+         throws VisADException, RemoteException {
+    return (data == null) ? null : data.getType();
   }
 
   /** set this DataReferenceImpl to refer to d;
@@ -101,79 +106,70 @@ public class DataReferenceImpl extends Object implements DataReference {
 
   /** synchronized because incTick, setData, and adaptedSetData
       share access to data and ref */
-  public long incTick()
+  public synchronized long incTick()
          throws VisADException, RemoteException {
-    return incTick(this);
-  }
-
-  synchronized long incTick(DataReference r)
-               throws VisADException, RemoteException {
-/* WLH 10 Feb 98
-  public synchronized incTick()
-         throws VisADException, RemoteException {
-*/
     Tick += 1;
     if (Tick == Long.MAX_VALUE) Tick = Long.MIN_VALUE + 1;
     if (ListenerVector == null) return Tick;
     synchronized (ListenerVector) {
       Enumeration listeners = ListenerVector.elements();
       while (listeners.hasMoreElements()) {
-        DataChangedListener listener =
-          (DataChangedListener) listeners.nextElement();
-        DataChangedOccurrence e =
-          new DataChangedOccurrence(listener.getId(), Tick);
+        DataChangedLink listener =
+          (DataChangedLink) listeners.nextElement();
+        DataChangedEvent e =
+          new DataChangedEvent(listener.getId(), Tick);
         if (listener.getBall()) {
           Action a = listener.getAction();
           a.dataChanged(e);
           listener.setBall(false);
         }
         else {
-          listener.setDataChangedOccurrence(e);
+          listener.setDataChangedEvent(e);
         }
       }
     }
     return Tick;
   }
 
-  public DataChangedOccurrence acknowledgeDataChanged(Action a)
+  public DataChangedEvent acknowledgeDataChanged(Action a)
          throws VisADException {
     if (!(a instanceof ActionImpl)) {
       throw new RemoteVisADException("DataReferenceImpl.acknowledgeDataChanged:" +
                                      " Action must be local");
     }
     if (ListenerVector == null) return null;
-    DataChangedListener listener = findDataChangedListener(a);
-    DataChangedOccurrence e = listener.getDataChangedOccurrence();
-    listener.setDataChangedOccurrence(null);
+    DataChangedLink listener = findDataChangedLink(a);
+    DataChangedEvent e = listener.getDataChangedEvent();
+    listener.setDataChangedEvent(null);
     if (e == null) {
       listener.setBall(true);
     }
     return e;
   }
 
-  public DataChangedOccurrence adaptedAcknowledgeDataChanged(RemoteAction a)
+  public DataChangedEvent adaptedAcknowledgeDataChanged(RemoteAction a)
          throws VisADException {
     if (ListenerVector == null) return null;
-    DataChangedListener listener = findDataChangedListener(a);
-    DataChangedOccurrence e = listener.getDataChangedOccurrence();
-    listener.setDataChangedOccurrence(null);
+    DataChangedLink listener = findDataChangedLink(a);
+    DataChangedEvent e = listener.getDataChangedEvent();
+    listener.setDataChangedEvent(null);
     if (e == null) listener.setBall(true);
     return e;
   }
 
-  /** find DataChangedListener with action */
-  public DataChangedListener findDataChangedListener(Action a)
+  /** find DataChangedLink with action */
+  public DataChangedLink findDataChangedLink(Action a)
          throws VisADException {
     if (a == null) {
-      throw new ReferenceException("DataReferenceImpl.findDataChangedListener: " +
+      throw new ReferenceException("DataReferenceImpl.findDataChangedLink: " +
                                    "Action cannot be null");
     }
     if (ListenerVector == null) return null;
     synchronized (ListenerVector) {
       Enumeration listeners = ListenerVector.elements();
       while (listeners.hasMoreElements()) {
-        DataChangedListener listener =
-          (DataChangedListener) listeners.nextElement();
+        DataChangedLink listener =
+          (DataChangedLink) listeners.nextElement();
         if (a.equals(listener.getAction())) return listener;
       }
     }
@@ -185,9 +181,9 @@ public class DataReferenceImpl extends Object implements DataReference {
   }
 
   /** addDataChangedListener and removeDataChangedListener provide
-      DataChangedOccurrence source semantics;
+      DataChangedEvent source semantics;
       Action must be local ActionImpl */
-  public void addDataChangedListener(Action a, long id)
+  public void addDataChangedListener(DataChangedListener a, long id)
          throws VisADException {
     if (!(a instanceof ActionImpl)) {
       throw new RemoteVisADException("DataReferenceImpl.addDataChanged" +
@@ -197,11 +193,11 @@ public class DataReferenceImpl extends Object implements DataReference {
       if (ListenerVector == null) ListenerVector = new Vector();
     }
     synchronized(ListenerVector) {
-      if (findDataChangedListener(a) != null) {
+      if (findDataChangedLink((ActionImpl) a) != null) {
         throw new ReferenceException("DataReferenceImpl.addDataChangedListener:" +
                                      " link to Action already exists");
       }
-      ListenerVector.addElement(new DataChangedListener(a, id));
+      ListenerVector.addElement(new DataChangedLink((ActionImpl) a, id));
     }
   }
 
@@ -213,16 +209,16 @@ public class DataReferenceImpl extends Object implements DataReference {
       if (ListenerVector == null) ListenerVector = new Vector();
     }
     synchronized(ListenerVector) {
-      if (findDataChangedListener(a) != null) {
+      if (findDataChangedLink(a) != null) {
         throw new ReferenceException("DataReferenceImpl.addDataChangedListener:" +
                                      " link to Action already exists");
       }
-      ListenerVector.addElement(new DataChangedListener(a, id));
+      ListenerVector.addElement(new DataChangedLink(a, id));
     }
   }
 
   /** DataChangedListener must be local ActionImpl */
-  public void removeDataChangedListener(Action a)
+  public void removeDataChangedListener(DataChangedListener a)
          throws VisADException {
     if (!(a instanceof ActionImpl)) {
       throw new RemoteVisADException("DataReferenceImpl.removeDataChanged" +
@@ -230,7 +226,7 @@ public class DataReferenceImpl extends Object implements DataReference {
     }
     if (ListenerVector != null) {
       synchronized(ListenerVector) {
-        DataChangedListener listener = findDataChangedListener(a);
+        DataChangedLink listener = findDataChangedLink((ActionImpl) a);
         if (listener != null) {
           ListenerVector.removeElement(listener);
         }
@@ -244,7 +240,7 @@ public class DataReferenceImpl extends Object implements DataReference {
        throws VisADException {
     if (ListenerVector != null) {
       synchronized(ListenerVector) {
-        DataChangedListener listener = findDataChangedListener(a);
+        DataChangedLink listener = findDataChangedLink(a);
         if (listener != null) {
           ListenerVector.removeElement(listener);
         }

@@ -1,9 +1,9 @@
-
+ 
 //
-// GraphicsModeControl.java
+// DataChangedEvent.java
 //
-
-/*
+ 
+ /*
 VisAD system for interactive analysis and visualization of numerical
 data.  Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
 Rink and Dave Glowacki.
@@ -24,39 +24,38 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
 package visad;
+ 
+import java.rmi.*;
+import java.awt.Event;
 
 /**
-   GraphicsModeControl is the VisAD interface class for controlling various
-   mode settings for rendering.<P>
-
-   A GraphicsModeControl is not linked to any DisplayRealType or
-   ScalarMap.  It is linked to a DisplayImpl.<P>
+   DataChangedEvent is the VisAD class for changes in Data objects
+   referred to by DataReference objects.  They are sourced by
+   DataReference objects and received by Action objects.<P>
 */
-public interface GraphicsModeControl {
+public class DataChangedEvent extends Event {
 
-  public boolean getMode2D();
+  /** this is the id attached to the target ActionReferenceLink
+      of the target Action */
+  private long id;
 
-  public float getLineWidth();
+  /** this is the Tick value from the DataReference change
+      that generated this DataChangedEvent */
+  private long Tick;
 
-  public void setLineWidth(float width) throws VisADException;
+  public DataChangedEvent(long jd, long tick) {
+    super(null, 0, null);
+    id = jd;
+    Tick = tick;
+  }
 
-  public float getPointSize();
+  public long getId() {
+    return id;
+  }
 
-  public void setPointSize(float size) throws VisADException;
-
-  public boolean getPointMode();
-
-  public void setPointMode(boolean mode);
-
-  public boolean getTextureEnable();
-
-  public void setTextureEnable(boolean enable);
-
-  public int getTransparencyMode();
-
-  public void setTransparencyMode(int mode) throws VisADException;
-
-  public void setProjectionPolicy(int policy) throws VisADException;
+  public long getTick() {
+    return Tick;
+  }
 
 }
 

@@ -47,7 +47,7 @@ public class ReferenceActionLink extends Object {
 
   /** Ball describes state of protocol between this ReferenceActionLink
       and DataReference ref;
-      false when this is waiting for a DataChangedOccurrence;
+      false when this is waiting for a DataChangedEvent;
       true when ref is waiting for an acknowledgement */
   boolean Ball;
 

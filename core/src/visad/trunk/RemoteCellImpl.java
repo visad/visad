@@ -36,7 +36,7 @@ public class RemoteCellImpl extends RemoteActionImpl
        implements RemoteCell {
   // and RemoteActionImpl extends UnicastRemoteObject
 
-  RemoteCellImpl(CellImpl d) throws RemoteException {
+  public RemoteCellImpl(CellImpl d) throws RemoteException {
     super(d);
   }
 

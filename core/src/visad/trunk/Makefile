@@ -36,10 +36,12 @@ TAR_FILES = \
 	visad/docs/DESIGN5				\
 	visad/*.java					\
 	visad/java3d/*.java				\
-	visad/java3d/rmic_script			\
 	visad/util/*.java				\
 	visad/data/*.java				\
 	visad/data/netcdf/*.java			\
+	visad/data/fits/*.java				\
+	visad/data/fits/fits/*.java			\
+	visad/data/fits/util/*.java			\
 	visad/data/hdfeos/*.java			\
 	visad/ucar.jar					\
 	visad/*.txt					\
@@ -90,5 +92,6 @@ save:
 	javac $<
 
 compile:
-	javac *.java java3d/*.java util/*.java
+	javac -J-mx32m *.java java3d/*.java util/*.java ; \
+	rmic_script
 

@@ -45,12 +45,8 @@ import java.util.*;
 public abstract class DisplayRenderer extends Object {
 
   /** DisplayImpl this DisplayRenderer is attached to */
-  public DisplayImpl display;
+  private DisplayImpl display;
 
-//
-// TO_DO
-// make this less public
-//
   /** vector of Strings describing cursor location */
   private Vector cursorStringVector = new Vector();
 

@@ -87,6 +87,14 @@ public class RemoteDataReferenceImpl extends UnicastRemoteObject
     }
   }
 
+  public MathType getType() throws VisADException, RemoteException {
+    if (AdaptedDataReference == null) {
+      throw new RemoteVisADException("RemoteDataReferenceImpl.getType: " +
+                                     "AdaptedDataReference is null");
+    }
+    return AdaptedDataReference.getData().getType();
+  }
+
   public long getTick() throws VisADException, RemoteException {
     if (AdaptedDataReference == null) {
       throw new RemoteVisADException("RemoteDataReferenceImpl.getTick: " +
@@ -100,10 +108,7 @@ public class RemoteDataReferenceImpl extends UnicastRemoteObject
       throw new RemoteVisADException("RemoteDataReferenceImpl.incTick: " +
                                      "AdaptedDataReference is null");
     }
-    return AdaptedDataReference.incTick(this);
-/* WLH 10 Feb 98
     return AdaptedDataReference.incTick();
-*/
   }
 
   public String getName() throws VisADException, RemoteException {
@@ -115,11 +120,11 @@ public class RemoteDataReferenceImpl extends UnicastRemoteObject
   }
 
   /** addDataChangedListener and removeDataChangedListener
-      provide DataChangedOccurrence source semantics;
+      provide DataChangedEvent source semantics;
       Action must be RemoteAction */
-  public void addDataChangedListener(Action a, long id)
+  public void addDataChangedListener(DataChangedListener a, long id)
          throws VisADException, RemoteException {
-    if (a instanceof ActionImpl) {
+    if (!(a instanceof RemoteAction)) {
       throw new RemoteVisADException("RemoteDataReferenceImpl.addDataChanged" +
                                      "Listener: Action must be Remote");
     }
@@ -131,10 +136,10 @@ public class RemoteDataReferenceImpl extends UnicastRemoteObject
     AdaptedDataReference.adaptedAddDataChangedListener(((RemoteAction) a), id);
   }
 
-  /** DataChangedListener must be RemoteActionImpl */
-  public void removeDataChangedListener(Action a)
+  /** DataChangedListener must be RemoteAction */
+  public void removeDataChangedListener(DataChangedListener a)
          throws VisADException, RemoteException {
-    if (a instanceof ActionImpl) {
+    if (!(a instanceof RemoteAction)) {
       throw new RemoteVisADException("RemoteDataReferenceImpl.removeDataChanged" +
                                      "Listener: Action must be Remote");
     }
@@ -146,8 +151,8 @@ public class RemoteDataReferenceImpl extends UnicastRemoteObject
     AdaptedDataReference.adaptedRemoveDataChangedListener(((RemoteAction) a));
   }
 
-  /** DataChangedListener must be RemoteActionImpl */
-  public DataChangedOccurrence acknowledgeDataChanged(Action a)
+  /** Action must be RemoteAction */
+  public DataChangedEvent acknowledgeDataChanged(Action a)
          throws VisADException, RemoteException {
     if (a instanceof ActionImpl) {
       throw new RemoteVisADException("RemoteDataReferenceImpl.acknowledge" +

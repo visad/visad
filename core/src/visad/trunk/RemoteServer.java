@@ -1,6 +1,6 @@
 
 //
-// GraphicsModeControl.java
+// RemoteServer.java
 //
 
 /*
@@ -24,39 +24,29 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
 package visad;
+ 
+import visad.*;
+ 
+import java.rmi.*;
 
 /**
-   GraphicsModeControl is the VisAD interface class for controlling various
-   mode settings for rendering.<P>
-
-   A GraphicsModeControl is not linked to any DisplayRealType or
-   ScalarMap.  It is linked to a DisplayImpl.<P>
+   RemoteServer is the interface for serving RemoteDataReferences.
+   A RemoteServerImpl should be bound to a URL via Naming.rebind,
+   and accessed remotely via this RemoteServer interface.<P>
 */
-public interface GraphicsModeControl {
+public interface RemoteServer extends Remote {
+ 
+  /** get a RemoteDataReference by index */
+  public abstract RemoteDataReference getDataReference(int index)
+         throws RemoteException;
 
-  public boolean getMode2D();
+  /** get a RemoteDataReference by name */
+  public abstract RemoteDataReference getDataReference(String name)
+         throws VisADException, RemoteException;
 
-  public float getLineWidth();
-
-  public void setLineWidth(float width) throws VisADException;
-
-  public float getPointSize();
-
-  public void setPointSize(float size) throws VisADException;
-
-  public boolean getPointMode();
-
-  public void setPointMode(boolean mode);
-
-  public boolean getTextureEnable();
-
-  public void setTextureEnable(boolean enable);
-
-  public int getTransparencyMode();
-
-  public void setTransparencyMode(int mode) throws VisADException;
-
-  public void setProjectionPolicy(int policy) throws VisADException;
+  /** return array of all RemoteDataReferences in this RemoteServer */
+  public abstract RemoteDataReference[] getDataReferences()
+         throws RemoteException;
 
 }
 

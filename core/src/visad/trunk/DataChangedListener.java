@@ -25,54 +25,18 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.util.*;
+import java.rmi.*;
+
 /**
-   DataChangedListener objects are used by DataReference objects to
-   define their connections with Action objects.  That is, a
-   DataReference has a Vector of DataChangedListeners, one for
-   each attached Action.<P>
+   DataChangedListener is the EventListener interface for
+   DataChangedEvents.  DataChangedListener is extended by
+   Action.<P>
 */
-class DataChangedListener extends Object {
+public interface DataChangedListener extends EventListener {
 
-  Action action;  // may be remote or local
-  boolean Ball; // true when Action is waiting for a DataChangedOccurrence
-                // false when this is waiting for an acknowledgement
-  DataChangedOccurrence event; // non-null only when Ball = false;
-
-  /** this id is from the corresponding ReferenceActionLink */
-  private long id;
-
-  DataChangedListener(Action a, long jd) throws VisADException {
-    if (a == null) {
-      throw new ReferenceException("DataChangedListener: Action cannot be null");
-    }
-    action = a;
-    Ball = false;
-    id = jd;
-  }
-
-  long getId() {
-    return id;
-  }
-
-  Action getAction() {
-    return action;
-  }
-
-  boolean getBall() {
-    return Ball;
-  }
-
-  void setBall(boolean b) {
-    Ball = b;
-  }
-
-  DataChangedOccurrence getDataChangedOccurrence() {
-    return event;
-  }
-
-  void setDataChangedOccurrence(DataChangedOccurrence e) {
-    event = e;
-  }
-
+  public abstract void dataChanged(DataChangedEvent e)
+         throws VisADException, RemoteException;
+ 
 }
 

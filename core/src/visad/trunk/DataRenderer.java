@@ -39,32 +39,28 @@ import java.rmi.*;
 */
 public abstract class DataRenderer extends Object {
 
-  //
-  // TO_DO
-  // make these non-public
-  //
-  public DisplayImpl display;
+  private DisplayImpl display;
   /** used to insert output into scene graph */
-  public DisplayRenderer displayRenderer;
+  private DisplayRenderer displayRenderer;
 
   /** links to Data to be renderer by this */
-  public transient DataDisplayLink[] Links;
+  private transient DataDisplayLink[] Links;
   /** flag from DataDisplayLink.prepareData */
-  public boolean[] feasible; // it's a miracle if this is correct
+  private boolean[] feasible; // it's a miracle if this is correct
   /** flag to indicate that DataDisplayLink.prepareData was invoked */
-  public boolean[] changed;
+  private boolean[] changed;
 
-  public boolean any_changed;
-  public boolean all_feasible;
-  public boolean any_transform_control;
+  private boolean any_changed;
+  private boolean all_feasible;
+  private boolean any_transform_control;
 
   /** flag indicating whether DirectManipulationRenderer is valid
       for this ShadowType */
-  public boolean isDirectManipulation;
+  private boolean isDirectManipulation;
 
   /** a Vector of BadMappingException and UnimplementedException
       Strings generated during the last invocation of doAction */
-  public Vector exceptionVector = new Vector();
+  private Vector exceptionVector = new Vector();
 
   public DataRenderer() {
     Links = null;
@@ -88,11 +84,50 @@ public abstract class DataRenderer extends Object {
     return (Vector) exceptionVector.clone();
   }
 
+  public boolean get_all_feasible() {
+    return all_feasible;
+  }
+
+  public boolean get_any_changed() {
+    return any_changed;
+  }
+
+  public boolean get_any_transform_control() {
+    return any_transform_control;
+  }
+
+  public void set_all_feasible(boolean b) {
+    all_feasible = b;
+  }
+
   public abstract void setLinks(DataDisplayLink[] links, DisplayImpl d)
            throws VisADException;
 
+  public void setLinks(DataDisplayLink[] links) {
+    Links = links;
+    feasible = new boolean[Links.length];
+    changed = new boolean[Links.length];
+    for (int i=0; i<Links.length; i++) feasible[i] = false;
+  }
+
   public DataDisplayLink[] getLinks() {
     return Links;
+  }
+
+  public DisplayImpl getDisplay() {
+    return display;
+  }
+
+  public void setDisplay(DisplayImpl d) {
+    display = d;
+  }
+
+  public DisplayRenderer getDisplayRenderer() {
+    return displayRenderer;
+  }
+
+  public void setDisplayRenderer(DisplayRenderer r) {
+    displayRenderer = r;
   }
 
   /** check if re-transform is needed; if initialize is true then
@@ -116,9 +151,6 @@ public abstract class DataRenderer extends Object {
         if (!feasible[i]) all_feasible = false;
         if (initialize && feasible[i]) {
           // compute ranges of RealTypes and Animation sampling
- 
-// WLH ????
- 
           ShadowType type = Links[i].getShadow().getAdaptedShadowType();
           if (shadow == null) {
             shadow =
@@ -150,6 +182,14 @@ public abstract class DataRenderer extends Object {
 
   public void checkDirect() throws VisADException, RemoteException {
     isDirectManipulation = false;
+  }
+
+  public void setIsDirectManipulation(boolean b) {
+    isDirectManipulation = b;
+  }
+
+  public boolean getIsDirectManipulation() {
+    return isDirectManipulation;
   }
 
   public boolean getBadScale() {

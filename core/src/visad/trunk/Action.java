@@ -33,10 +33,10 @@ import java.rmi.*;
    notified when DataReference objects change.  For example, this may
    be used for a Data display or for a spreadsheet cell.<P>
 */
-public interface Action {
+public interface Action extends DataChangedListener {
 
   /** create link to a DataReference;
-      invokes ref.addDataChangedListener(Action a) */
+      invokes ref.addDataChangedListener(DataChangedListener l, long id) */
   public abstract void addReference(DataReference ref)
          throws VisADException, RemoteException;
 
@@ -46,14 +46,6 @@ public interface Action {
 
   /** return name of this Action */
   public abstract String getName()
-         throws VisADException, RemoteException;
-
-  /** this is the 'DataChangedListener' interface;
-      cannot do it properly since Action cannot extend both
-      Remote and EventListener (via DataChangedListener), and
-      since EventObjects cannot be remote (EventObject.Source
-      is transient) */
-  public abstract void dataChanged(DataChangedOccurrence e)
          throws VisADException, RemoteException;
 
 }

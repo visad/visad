@@ -41,7 +41,7 @@ public abstract class RemoteActionImpl extends UnicastRemoteObject
     AdaptedAction = a;
   }
 
-  public void dataChanged(DataChangedOccurrence e)
+  public void dataChanged(DataChangedEvent e)
          throws VisADException, RemoteException {
     if (AdaptedAction == null) {
       throw new RemoteVisADException("RemoteActionImpl.dataChanged: " +

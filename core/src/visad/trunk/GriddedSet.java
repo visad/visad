@@ -209,15 +209,15 @@ public class GriddedSet extends SampledSet {
     float[][] grid = new float[ManifoldDimension][length];
     for (i=0; i<length; i++) {
       if (0 <= index[i] && index[i] < Length) {
-        for (j=0; j<ManifoldDimension; j++) indexI[j] = -1;
-      }
-      else {
         k = index[i];
         for (j=0; j<ManifoldDimension-1; j++) {
           indexI[j] = k % Lengths[j];
           k = k / Lengths[j];
         }
         indexI[ManifoldDimension-1] = k;
+      }
+      else {
+        for (j=0; j<ManifoldDimension; j++) indexI[j] = -1;
       }
       for (j=0; j<ManifoldDimension; j++) grid[j][i] = (float) indexI[j];
     }

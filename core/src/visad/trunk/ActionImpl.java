@@ -153,7 +153,7 @@ if (Name != null && Name.equals("shalstep_cell")) {
             if (link.getBall()) {
               link.setBall(false);
               DataReference ref = link.getDataReference();
-              DataChangedOccurrence e =
+              DataChangedEvent e =
                 ref.acknowledgeDataChanged(link.getAction());
               if (e != null) {
                 dataChanged(e);
@@ -188,7 +188,7 @@ if (Name != null && Name.equals("shalstep_cell")) {
 
   public abstract void doAction() throws VisADException, RemoteException;
 
-  public void dataChanged(DataChangedOccurrence e)
+  public void dataChanged(DataChangedEvent e)
          throws VisADException, RemoteException {
     long id = e.getId();
     ReferenceActionLink link = findLink(id);
@@ -350,7 +350,10 @@ if (Name != null && Name.equals("shalstep_cell")) {
 
   /** return vector of ReferenceActionLink-s */
   public Vector getLinks() {
+/* WLH 14 Feb 98
     return LinkVector;
+*/
+    return (Vector) LinkVector.clone();
   }
 
   /** return name of this Action */

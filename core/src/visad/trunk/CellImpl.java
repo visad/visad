@@ -42,11 +42,11 @@ public abstract class CellImpl extends ActionImpl implements Cell {
       those in ReferenceActionLink-s */
   DataReference[] otherReferences = null;
 
-  public CellImpl() throws VisADException, RemoteException {
+  public CellImpl() {
     this(null);
   }
 
-  public CellImpl(String name) throws VisADException, RemoteException {
+  public CellImpl(String name) {
     super(name);
     otherReferences = null;
   }

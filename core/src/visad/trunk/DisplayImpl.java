@@ -79,13 +79,13 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       one per Single DisplayRealType that occurs in a ScalarMap,
       plus one per ScalarMap per non-Single DisplayRealType;
       ScalarMap.valueIndex is an index into ValueArray */
-  int valueArrayLength;
+  private int valueArrayLength;
 
   /** mapping from ValueArray to DisplayScalar */
-  int[] valueToScalar;
+  private int[] valueToScalar;
 
   /** mapping from ValueArray to MapVector */
-  int[] valueToMap;
+  private int[] valueToMap;
 
 
   /** constructor with non-DefaultDisplayRenderer */
@@ -629,6 +629,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     }
 
     // System.out.println("object.getClass = " + object.getClass());
+    // object.getClass = class sun.awt.image.URLImageSource
 
     if (object == null) {
       System.out.println("object is null");
@@ -637,10 +638,12 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
  
     ImageProducer producer = (ImageProducer) object;
  
+    int width = 100;
+    int height = 100;
     if (component == null) return null;
     Image image = component.createImage(producer);
-    int height = image.getHeight(component);
-    int width = image.getWidth(component);
+    height = image.getHeight(component);
+    width = image.getWidth(component);
     while (height < 0 || width < 0) {
       try { Thread.sleep(1); }
       catch (InterruptedException e) {
@@ -651,7 +654,8 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       width = image.getWidth(component);
     }
 
-    // System.out.println("width = " + width + "  height = " + height);
+    System.out.println("width = " + width + "  height = " + height);
+    // width = 194  height = 225
 
     int[] pix = new int[width * height];
     float[] data0 = new float[width * height];
@@ -662,7 +666,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       new java.awt.image.PixelGrabber(producer, 0, 0, width, height,
                                       pix, 0, width);
  
-    // System.out.println("pg created");
+    System.out.println("pg created");
  
     // pg.setColorModel(cm); // unnecessary
  
@@ -672,21 +676,46 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       return null;
     }
  
-    // System.out.println("grabPixels");
+    System.out.println("grabPixels");
  
-    try { while ((pg.status() & component.ALLBITS) == 0) Thread.sleep(1); }
+    int status = 0;
+    try {
+      while (status == 0) {
+        Thread.sleep(1);
+        status = pg.getStatus();
+        if ((status & component.ABORT) != 0) {
+          System.out.println("ABORT");
+        }
+        if ((status & component.ERROR) != 0) {
+          System.out.println("ABORT");
+        }
+        if ((status & component.SOMEBITS) != 0) {
+          System.out.println("ABORT");
+        }
+        status = status & component.ALLBITS;
+      }
+    }
     catch (InterruptedException e) {
       System.out.println("Bad status");
       return null;
     }
+
+/*
+    try { Thread.sleep(5000); }
+    catch (InterruptedException e) {
+      System.out.println("Bad status");
+      return null;
+    }
+*/
+
  
-    // System.out.println("grabPixels DONE");
+    System.out.println("grabPixels DONE");
  
     for (int i=0; i<width * height; i++) {
       data0[i] = pix[i] & 255;
     }
 
-    // System.out.println("Pixels copied");
+    System.out.println("Pixels copied");
  
     Linear2DSet domain_set =
       new Linear2DSet(image_domain, 0.0, (float) (width - 1.0), width,

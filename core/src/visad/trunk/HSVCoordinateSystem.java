@@ -47,7 +47,7 @@ public class HSVCoordinateSystem extends CoordinateSystem {
 
   public double[][] toReference(double[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 3) {
-      throw new CoordinateSystemException("CMYCoordinateSystem." +
+      throw new CoordinateSystemException("HSVCoordinateSystem." +
              "toReference: tuples wrong dimension");
     }
     int len = tuples[0].length;
@@ -108,7 +108,7 @@ public class HSVCoordinateSystem extends CoordinateSystem {
 
   public double[][] fromReference(double[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 3) {
-      throw new CoordinateSystemException("CMYCoordinateSystem." +
+      throw new CoordinateSystemException("HSVCoordinateSystem." +
              "fromReference: tuples wrong dimension");
     }
     int len = tuples[0].length;
@@ -145,7 +145,7 @@ public class HSVCoordinateSystem extends CoordinateSystem {
 
   public float[][] toReference(float[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 3) {
-      throw new CoordinateSystemException("CMYCoordinateSystem." +
+      throw new CoordinateSystemException("HSVCoordinateSystem." +
              "toReference: tuples wrong dimension");
     }
     int len = tuples[0].length;
@@ -206,7 +206,7 @@ public class HSVCoordinateSystem extends CoordinateSystem {
  
   public float[][] fromReference(float[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 3) {
-      throw new CoordinateSystemException("CMYCoordinateSystem." +
+      throw new CoordinateSystemException("HSVCoordinateSystem." +
              "fromReference: tuples wrong dimension");
     }
     int len = tuples[0].length;

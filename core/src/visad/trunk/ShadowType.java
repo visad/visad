@@ -477,6 +477,25 @@ public abstract class ShadowType extends Object
     return false;
   }
 
+  /** test for display_indices in (Color, Unmapped) */
+  boolean checkColor(int[] display_indices) throws RemoteException {
+    for (int i=0; i<display_indices.length; i++) {
+      if (display_indices[i] == 0) continue;
+      DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
+      DisplayTupleType tuple = real.getTuple();
+      if (tuple != null &&
+          (tuple.equals(Display.DisplayRGBTuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplayRGBTuple)))) continue;  // Color
+      if (real.equals(Display.RGB) ||
+          real.equals(Display.HSV) ||
+          real.equals(Display.CMY)) continue;  // more Color
+      return false;
+    }
+    return true;
+  }
+
   /** test for display_indices in (Color, Alpha, Unmapped) */
   boolean checkColorOrAlpha(int[] display_indices) throws RemoteException {
     for (int i=0; i<display_indices.length; i++) {
@@ -661,8 +680,22 @@ public abstract class ShadowType extends Object
       while (maps.hasMoreElements()) {
         ScalarMap map = (ScalarMap) maps.nextElement();
         int value_index = map.getValueIndex();
+/*
+double[] range = map.getRange();
+System.out.println(map.getScalar() + " -> " + map.getDisplayScalar() + " : " +
+                   range[0] + " " + range[1] + "  value_index = " + value_index);
+*/
         // MEM
         display_values[value_index] = map.scaleValues(values[i]);
+/*
+      int total = 0;
+      int missing = 0;
+      total = display_values[value_index].length;
+      for (int j=0; j<display_values[value_index].length; j++) {
+        if (display_values[value_index][j] != display_values[value_index][j]) missing++;
+      }
+      System.out.println("  total = " + total + " missing = " + missing);
+*/
       }
     }
   }
@@ -680,8 +713,22 @@ public abstract class ShadowType extends Object
       while (maps.hasMoreElements()) {
         ScalarMap map = (ScalarMap) maps.nextElement();
         int value_index = map.getValueIndex();
+/*
+double[] range = map.getRange();
+System.out.println(map.getScalar() + " -> " + map.getDisplayScalar() + " : " +
+                   range[0] + " " + range[1] + "  value_index = " + value_index);
+*/
         // MEM
         display_values[value_index] = map.scaleValues(values[i]);
+/*
+      int total = 0;
+      int missing = 0;
+      total = display_values[value_index].length;
+      for (int j=0; j<display_values[value_index].length; j++) {
+        if (display_values[value_index][j] != display_values[value_index][j]) missing++;
+      }
+      System.out.println("  total = " + total + " missing = " + missing);
+*/
       }
     }
   }

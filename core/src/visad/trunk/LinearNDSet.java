@@ -25,6 +25,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.rmi.*;
+
 /**
    LinearNDSet represents a finite set of samples of R^Dimension
    in a cross product of arithmetic progressions.<P>
@@ -57,6 +59,8 @@ public class LinearNDSet extends GriddedSet
     L = new Linear1DSet[DomainDimension];
     for (int j=0; j<DomainDimension; j++) {
       L[j] = l[j];
+      Low[j] = L[j].getLowX();
+      Hi[j] = L[j].getHiX();
       if (SetErrors[j] != null ) {
         SetErrors[j] =
           new ErrorEstimate(SetErrors[j].getErrorValue(), (Low[j] + Hi[j]) / 2.0,
@@ -259,6 +263,25 @@ public class LinearNDSet extends GriddedSet
               " Range = " + L[j].getFirst() + " to " + L[j].getLast() + "\n";
     }
     return s;
+  }
+
+  /** run 'java visad.LinearNDSet' to test the LinearNDSet class */
+  public static void main(String args[]) throws VisADException {
+    RealTupleType type =
+      new RealTupleType(RealType.Generic, RealType.Generic);
+    double[] firsts = {0.0, 0.0};
+    double[] lasts = {3.0, 3.0};
+    int[] lengths = {4, 4};
+    LinearNDSet set = new LinearNDSet(type, firsts, lasts, lengths);
+    float[][] values = set.getSamples();
+    int n = values.length;
+    int m = values[0].length;
+    for (int j=0; j<m; j++) {
+      for (int i=0; i<n; i++) {
+        System.out.println("values[" + i + "][" + j + "] = " +
+                           values[i][j]);
+      }
+    }
   }
 
 }
