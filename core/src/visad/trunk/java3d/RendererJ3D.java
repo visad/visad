@@ -221,7 +221,6 @@ System.out.println(getLinks()[0].getThingReference().getName());
 
       if (branch != null) {
         int nextIndex = 0;
-        boolean doRemove = false;
         branch.detach();
         synchronized (this) {
           if (!branchNonEmpty[currentIndex] ||
@@ -234,10 +233,6 @@ System.out.println(getLinks()[0].getThingReference().getName());
             branches[currentIndex].setChild(branch, 0);
           } // end if (branchNonEmpty[currentIndex])
         } // end synchronized (this)
-        if (doRemove) {
-          ((DisplayRendererJ3D) getDisplayRenderer()).
-                 switchScene(this, nextIndex);
-        }
       }
       else { // if (branch == null)
 
@@ -306,37 +301,6 @@ System.out.println(getLinks()[0].getThingReference().getName());
       }
     }
     branchNonEmpty[currentIndex] = false;
-  }
-
-  synchronized boolean switchTransition(int index) {
-    // this is the same as (index - 1) % 3 but always positive
-    int i = (index + 2) % 3;
-    if (switchFlags[index]) {
-      if (actualIndex != i) {
-        return true;
-      }
-/*
-System.out.println("switchTransition: sw.setWhichChild(" + index + ")");
-*/
-      sw.setWhichChild(index);
-      actualIndex = index;
-      switchFlags[index] = false;
-      return true;
-    }
-    else {
-      synchronized (branches[i]) {
-        for (int m=0; m<branches[i].numChildren(); m++) {
-          branches[i].removeChild(m);
-/*
-System.out.println("switchTransition: branches[" + i +
-                   "].removeChild(" + m + ")");
-*/
-        }
-      }
-      branchNonEmpty[i] = false;
-      notify();
-      return false;
-    }
   }
 
   public void clearScene() {

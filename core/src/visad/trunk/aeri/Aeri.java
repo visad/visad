@@ -1,14 +1,5 @@
 /*
-Bob Knuteson's comments:
-Bill Smith looks at RH
-look at lowest 3 KM for mixing ratio
-use RH if looking above 3 KM
-might use (T - TD) instead of RH
-
-height changes (errors) are causing RH "changes"
-
-limit to 300 MB (9500 m) or 500 MB (5500 m)
-MR looks interesting up to 10000 m
+RH looks interesting up to 10000 m
 MR better near boundary layer (but tighter color range)
 */
 
@@ -87,6 +78,7 @@ public class Aeri
   double[] x_range, y_range;
 
   float height_limit = 5500; // roughly 500 MB
+  boolean rh = false;
 
   public static void main(String args[])
          throws VisADException, RemoteException, IOException
@@ -112,6 +104,10 @@ public class Aeri
         catch (NumberFormatException e) {
           System.out.println("bad height limit: " + args[i+1]);
         }
+        i++;
+      }
+      else if (args[i].equals("-rh")) {
+        rh = true;
       }
     }
     if (vadfile != null) {
@@ -264,10 +260,16 @@ public class Aeri
     display.addMap(ymap);
     display.addMap(zmap);
     // note RH bonces around because temperature does
-    // ScalarMap cmap = new ScalarMap(RH, Display.RGB);
-    ScalarMap cmap = new ScalarMap(wvmr, Display.RGB);
+    ScalarMap cmap = null;
+    if (rh) {
+      cmap = new ScalarMap(RH, Display.RGB);
+    }
+    else {
+      cmap = new ScalarMap(wvmr, Display.RGB);
+    }
     display.addMap(cmap);
-    LabeledColorWidget cwidget = new LabeledColorWidget(cmap);
+    ColorMapWidget cmw = new ColorMapWidget(cmap, null, false, false);
+    LabeledColorWidget cwidget = new LabeledColorWidget(cmw);
     ScalarMap tmap = new ScalarMap(time, Display.Animation);
     display.addMap(tmap);
     AnimationControl control = (AnimationControl) tmap.getControl();

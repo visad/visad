@@ -70,8 +70,6 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
   /** BranchGroup between trans and all direct manipulation
    *  Data depictions */
   private BranchGroup direct = null;
-  /** Behavior for delayed removal of BranchGroups */
-  RemoveBehaviorJ3D remove = null;
 
   /** TransformGroup for ViewPlatform */
   TransformGroup vpTrans = null;
@@ -338,13 +336,6 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     direct.setCapability(Node.ENABLE_PICK_REPORTING);
     trans.addChild(direct);
 
-    // create removeBehavior
-    remove = new RemoveBehaviorJ3D(this);
-    BoundingSphere bounds =
-      new BoundingSphere(new Point3d(0.0,0.0,0.0), 2000000.0);
-    remove.setSchedulingBounds(bounds);
-    trans.addChild(remove);
-
     cursor_trans = new TransformGroup();
     cursor_trans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
     cursor_trans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
@@ -405,25 +396,8 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
                          DirectManipulationRendererJ3D renderer) {
     direct.addChild(group);
     directs.addElement(renderer);
-
-/* WLH 12 Dec 97 - this didn't help - but might in future
-    if (last == null) {
-      direct.addChild(branch);
-    }
-    else {
-      int n = direct.numChildren();
-      for (int i=0; i<n; i++) {
-        if (last.equals(direct.getChild(i))) {
-          direct.setChild(branch, i);
-        }
-      }
-    }
-*/
   }
 
-  public void switchScene(DataRenderer renderer, int index) {
-    remove.addRemove((RendererJ3D) renderer, index);
-  }
 
   public void clearScene(DataRenderer renderer) {
     directs.removeElement(renderer);
@@ -441,14 +415,6 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     line_x = (float) ray.vector[0];
     line_y = (float) ray.vector[1];
     line_z = (float) ray.vector[2];
-/*
-    Point3d origin = new Point3d();
-    Vector3d direction = new Vector3d();
-    ray.get(origin, direction);
-    line_x = (float) direction.x;
-    line_y = (float) direction.y;
-    line_z = (float) direction.z;
-*/
     point_x = cursorX;
     point_y = cursorY;
     point_z = cursorZ;
@@ -738,20 +704,6 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     }
     if (t != null) {
       trans.setTransform(t);
-/*
-      double[] mat = new double[16];
-      t.get(mat);
-      double[] rot = new double[3];
-      double[] translate = new double[3];
-      double[] scale = new double[1];
-      mouse.unmake_matrix(rot, scale, translate, mat);
-      // System.out.println("scale = " + scale[0]);
-      double new_back = 2.0 + (scale[0] / 0.5) * (back_clip - 2.0);
-      double new_front = 2.0 + (scale[0] / 0.5) * (front_clip - 2.0);
-      view.setBackClipDistance(new_back); // this is pretty broken
-      view.setFrontClipDistance(new_front); // this is very broken
-      // System.out.println("new_back = " + new_back + " new_front = " + new_front);
-*/
     }
   }
 

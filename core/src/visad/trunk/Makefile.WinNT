@@ -146,6 +146,7 @@ visad\benjamin\switch.inp \
 visad\benjamin\*.table \
 visad\rabin\*.java \
 visad\bom\*.java \
+visad\aeri\*.java \
 visad\Gridded1D.txt \
 visad\Gridded2D.txt \
 visad\Gridded3D.txt \
@@ -244,6 +245,7 @@ visad\benjamin\switch.inp \
 visad\benjamin\*.table \
 visad\rabin\*.java \
 visad\bom\*.java \
+visad\aeri\*.java \
 visad\Gridded1D.txt \
 visad\Gridded2D.txt \
 visad\Gridded3D.txt \
@@ -323,6 +325,8 @@ save:
 		$(DEL) $(BACKUP)\visad\rabin\*.java
 	if exist $(BACKUP)\visad\bom\*.java \
 		$(DEL) $(BACKUP)\visad\bom\*.java
+	if exist $(BACKUP)\visad\aeri\*.java \
+		$(DEL) $(BACKUP)\visad\aeri\*.java
 	jar cvf $(BACKUP)\save.jar $(SAVE_FILES)
 	cd $(BACKUP)
 	jar xvf save.jar
@@ -400,6 +404,7 @@ clear:
 	if exist benjamin\*.java $(DEL) benjamin\*.java
 	if exist rabin\*.java $(DEL) rabin\*.java
 	if exist bom\*.java $(DEL) bom\*.java
+	if exist aeri\*.java $(DEL) aeri\*.java
 	if exist examples\*.java $(DEL) examples\*.java
 
 clean:
@@ -436,6 +441,7 @@ clean:
 	if exist benjamin\*.class $(DEL) benjamin\*.class
 	if exist rabin\*.class $(DEL) rabin\*.class
 	if exist bom\*.class $(DEL) bom\*.class
+	if exist aeri\*.class $(DEL) aeri\*.class
 	if exist examples\*.class $(DEL) examples\*.class
 
 RMIC_FILES = \
@@ -487,7 +493,8 @@ paoloa\spline\*.class \
 benjamin\*.class \
 rabin\*.class \
 aune\*.class \
-bom\*.class
+bom\*.class \
+aeri\*.class
 	cd examples
 	$(JC) $(JFLAGS) *.java
 	cd ..
@@ -528,6 +535,7 @@ compile: clean
 	$(JC) $(JFLAGS) rabin\*.java
 	$(JC) $(JFLAGS) aune\*.java
 	$(JC) $(JFLAGS) bom\*.java
+	$(JC) $(JFLAGS) aeri\*.java
 	cd examples
 	$(JC) $(JFLAGS) *.java
 	cd ..
@@ -571,7 +579,8 @@ visad.paoloa.spline \
 visad.aune \
 visad.benjamin \
 visad.rabin \
-visad.bom
+visad.bom \
+visad.aeri
 
 docs:
 	if not exist $(DOC_DIR) mkdir $(DOC_DIR)
