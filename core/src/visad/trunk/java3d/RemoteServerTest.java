@@ -31,7 +31,8 @@ import java.rmi.*;
 
 public interface RemoteServerTest extends Remote {
  
-  public abstract RemoteDataReference getDataReference() throws RemoteException;
+  public abstract RemoteDataReference getDataReference(int i)
+         throws RemoteException;
  
 }
 

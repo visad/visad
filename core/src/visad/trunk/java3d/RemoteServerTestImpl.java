@@ -33,34 +33,65 @@ import java.rmi.server.UnicastRemoteObject;
 public class RemoteServerTestImpl extends UnicastRemoteObject
        implements RemoteServerTest
 {
-  private RemoteDataReferenceImpl ref;
+  private RemoteDataReferenceImpl[] refs;
  
-  public RemoteServerTestImpl(RemoteDataReferenceImpl r) throws RemoteException {
+  public RemoteServerTestImpl(RemoteDataReferenceImpl[] r) throws RemoteException {
     super();
-    ref = r;
+    refs = r;
   }
  
-  public RemoteDataReference getDataReference() throws RemoteException {
+  public RemoteDataReference getDataReference(int i) throws RemoteException {
     System.out.println("getDataReference called (" +
                        System.getProperty("os.name") + ")");
-    return ref;
+    if (0 <= i && i < refs.length) return refs[i];
+    else return null;
   }
  
   public static void main(String args[]) {
 
-    DataReferenceImpl data_ref;
-    RemoteDataReferenceImpl rem_data_ref;
+    DataReferenceImpl[] data_refs;
+    RemoteDataReferenceImpl[] rem_data_refs;
 
     // Create and install a security manager
     System.setSecurityManager(new RMISecurityManager());
  
     try {
-      // create rem_data_ref
-      data_ref = new DataReferenceImpl("DataReference_A_(" +
-                                       System.getProperty("os.name") + ")");
-      rem_data_ref = new RemoteDataReferenceImpl(data_ref);
 
-      RemoteServerTestImpl obj = new RemoteServerTestImpl(rem_data_ref);
+      RealType vis_radiance = new RealType("vis_radiance", null, null);
+      RealType ir_radiance = new RealType("ir_radiance", null, null);
+      RealType count = new RealType("count", null, null);
+   
+      RealType[] types = {RealType.Latitude, RealType.Longitude};
+      RealTupleType earth_location = new RealTupleType(types);
+   
+      RealType[] types2 = {vis_radiance, ir_radiance};
+      RealTupleType radiance = new RealTupleType(types2);
+   
+      FunctionType image_tuple = new FunctionType(earth_location, radiance);
+      FunctionType ir_histogram = new FunctionType(ir_radiance, count);
+  
+      System.out.println(image_tuple);
+      System.out.println(ir_histogram);
+  
+      int size = 64;
+      FlatField histogram = FlatField.makeField(ir_histogram, size, false);
+      FlatField imaget = FlatField.makeField(image_tuple, size, false);
+      Real real = new Real(ir_radiance, 1.0);
+
+      // create rem_data_ref
+      data_refs = new DataReferenceImpl[3];
+      rem_data_refs = new RemoteDataReferenceImpl[3];
+      data_refs[0] = new DataReferenceImpl("DataReference_0");
+      data_refs[1] = new DataReferenceImpl("DataReference_1");
+      data_refs[2] = new DataReferenceImpl("DataReference_2");
+      rem_data_refs[0] = new RemoteDataReferenceImpl(data_refs[0]);
+      rem_data_refs[1] = new RemoteDataReferenceImpl(data_refs[1]);
+      rem_data_refs[2] = new RemoteDataReferenceImpl(data_refs[2]);
+      data_refs[0].setData(histogram);
+      data_refs[1].setData(imaget);
+      data_refs[2].setData(real);
+
+      RemoteServerTestImpl obj = new RemoteServerTestImpl(rem_data_refs);
       Naming.rebind("//demedici.ssec.wisc.edu/RemoteServerTest", obj);
       System.out.println("RemoteServerTest bound in registry");
     }

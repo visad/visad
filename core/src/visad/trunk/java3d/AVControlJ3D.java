@@ -29,7 +29,8 @@ import visad.*;
 
 import javax.media.j3d.*;
 
-import java.util.*;
+import java.util.Vector;
+import java.util.Enumeration;
 
 /**
    AVControlJ3D is the VisAD abstract superclass for AnimationControlJ3D

@@ -34,32 +34,17 @@ import java.rmi.server.UnicastRemoteObject;
    How to run this test:
 
 BE SURE TO FIRST RUN:  rmic_script
+IN BOTH visad and visad/java3d
 
-on demedici, in ~/java/visad:
+on demedici, in ~/java/visad/java3d:
  
   rmiregistry &
 
-  java visad.RemoteServerTestImpl
+  java visad.java3d.RemoteServerTestImpl
  
-on demedici, in ~/java/visad:
+on demedici, in ~/java/visad/java3d:
  
-  java visad.RemoteClientTestImpl
-
-
-OR(?):
-
-on demedici, in ~/java/visad:
-
-  rmiregistry &
-
-  java_g -debug -l1 visad.RemoteServerTestImpl
-or
-  java_g -debug visad.RemoteServerTestImpl
-  jdb -password ######
- 
-on demedici, in ~/java/visad:
- 
-  java_g -debug visad.RemoteClientTestImpl
+  java visad.java3d.RemoteClientTestImpl
 
 */
 public class RemoteClientTestImpl extends UnicastRemoteObject
@@ -74,26 +59,24 @@ public class RemoteClientTestImpl extends UnicastRemoteObject
 
     try {
 
-      // create local objects
+      System.out.println("RemoteClientTestImpl.main: begin remote activity");
 
-      RealType[] types = {RealType.Latitude, RealType.Longitude};
-      RealTupleType earth_location = new RealTupleType(types);
-   
-      RealType vis_radiance = new RealType("vis_radiance", null, null);
-      RealType ir_radiance = new RealType("ir_radiance", null, null);
-      RealType[] types2 = {vis_radiance, ir_radiance};
-      RealTupleType radiance = new RealTupleType(types2);
-   
-      FunctionType image_tuple = new FunctionType(earth_location, radiance);
-   
-      System.out.println(image_tuple);
-   
-      Integer2DSet Domain2dSet = new Integer2DSet(earth_location, 4, 4);
-   
-      FlatField image = new FlatField(image_tuple, Domain2dSet);
-   
-      System.out.println(image);
-   
+      RemoteServerTest remote_obj =
+        (RemoteServerTest) Naming.lookup("//demedici.ssec.wisc.edu/RemoteServerTest");
+ 
+      RemoteDataReference histogram_ref = remote_obj.getDataReference(0);
+      RemoteDataReference image_ref = remote_obj.getDataReference(1);
+      RemoteDataReference real_ref = remote_obj.getDataReference(2);
+ 
+      Data real = real_ref.getData();
+      Data image = image_ref.getData();
+      Data histogram = histogram_ref.getData();
+
+      System.out.println("real type = " + real.getType());
+      System.out.println("image type = " + image.getType());
+      System.out.println("histogram type = " + histogram.getType());
+
+/*
       DisplayImpl display =
         new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME_JAVA3D);
       display.addMap(new ScalarMap(RealType.Latitude, Display.XAxis));
@@ -103,36 +86,28 @@ public class RemoteClientTestImpl extends UnicastRemoteObject
       display.addMap(new ConstantMap(0.5, Display.Alpha));
       System.out.println(display);
 
-      System.out.println("RemoteClientTestImpl.main: begin remote activity");
-
-      RemoteField remote_image = new RemoteFieldImpl(image);
-
-      RemoteServerTest remote_obj =
-        (RemoteServerTest) Naming.lookup("//demedici.ssec.wisc.edu/RemoteServerTest");
-
-      RemoteDataReference remote_ref = remote_obj.getDataReference();
-
-      remote_ref.setData(remote_image);
 
       RemoteDisplay remote_display = new RemoteDisplayImpl(display);
   
       remote_display.addReference(remote_ref, null);
+*/
 
       delay(1000);
       System.out.println("\ndelay\n");
    
-      remote_ref.incTick();
+      real_ref.incTick();
 
       delay(1000);
       System.out.println("\ndelay\n");
    
-      remote_ref.incTick();
+      real_ref.incTick();
    
       delay(1000);
    
+/*
       remote_display.removeReference(remote_ref);
-  
       display.stop();
+*/
 
     }
     catch (Exception e) {

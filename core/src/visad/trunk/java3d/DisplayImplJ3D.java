@@ -27,7 +27,8 @@ package visad.java3d;
 
 import visad.*;
 
-import java.util.*;
+import java.util.Vector;
+import java.util.Enumeration;
 import java.rmi.*;
 import java.io.*;
 
@@ -124,6 +125,7 @@ public class DisplayImplJ3D extends DisplayImpl {
 
   public GeometryArray makeGeometry(VisADGeometryArray vga)
          throws VisADException {
+    if (vga == null) return null;
     if (vga instanceof VisADIndexedTriangleStripArray) {
       /* this is the 'normal' makeGeometry */
       VisADIndexedTriangleStripArray vgb = (VisADIndexedTriangleStripArray) vga;
@@ -268,6 +270,12 @@ public class DisplayImplJ3D extends DisplayImpl {
       basicGeometry(vga, array);
       return array;
     }
+    else if (vga instanceof VisADTriangleArray) {
+      if (vga.vertexCount == 0) return null;
+      TriangleArray array = new TriangleArray(vga.vertexCount, makeFormat(vga));
+      basicGeometry(vga, array);
+      return array;
+    }
     else {
       throw new DisplayException("DisplayImplJ3D.makeGeometry");
     }
@@ -328,6 +336,7 @@ public class DisplayImplJ3D extends DisplayImpl {
 
     FunctionType ir_histogram = new FunctionType(ir_radiance, count);
 
+    // FunctionType grid_tuple = new FunctionType(earth_location, radiance);
     FunctionType grid_tuple = new FunctionType(earth_location3d, radiance);
 
     RealType[] time = {RealType.Time};
@@ -339,16 +348,17 @@ public class DisplayImplJ3D extends DisplayImpl {
     System.out.println(image_tuple);
     System.out.println(ir_histogram);
 
-    FlatField imagev1 = FlatField.makeField(image_vis, 4);
-    FlatField imager1 = FlatField.makeField(image_ir, 4);
+    FlatField imagev1 = FlatField.makeField(image_vis, 4, false);
+    FlatField imager1 = FlatField.makeField(image_ir, 4, false);
 
     // use 'java visad.DisplayImplJ3D' for size = 256 (implicit -mx16m)
     // use 'java -mx40m visad.DisplayImplJ3D' for size = 512
     int size = 64;
-    int size3d = 16;
-    FlatField histogram1 = FlatField.makeField(ir_histogram, size);
-    FlatField imaget1 = FlatField.makeField(image_tuple, size);
-    FlatField grid1 = FlatField.makeField(grid_tuple, size3d);
+    int size3d = 2;
+    float level = 0.5f;
+    FlatField histogram1 = FlatField.makeField(ir_histogram, size, false);
+    FlatField imaget1 = FlatField.makeField(image_tuple, size, false);
+    FlatField grid3d = FlatField.makeField(grid_tuple, size3d, true);
 
     int ntimes = 4;
     Set time_set =
@@ -368,9 +378,20 @@ public class DisplayImplJ3D extends DisplayImpl {
 
 
     DisplayImpl display1 = new DisplayImplJ3D("display1", APPLETFRAME_JAVA3D);
+/*
     display1.addMap(new ScalarMap(vis_radiance, Display.XAxis));
     display1.addMap(new ScalarMap(ir_radiance, Display.YAxis));
     display1.addMap(new ScalarMap(count, Display.ZAxis));
+*/
+
+    display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+    display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+    display1.addMap(new ScalarMap(RealType.Radius, Display.ZAxis));
+    ScalarMap map1contour = new ScalarMap(ir_radiance, Display.IsoContour);
+    display1.addMap(map1contour);
+    ContourControl control1contour = (ContourControl) map1contour.getControl();
+    control1contour.setSurfaceValue(2.0f);
+
 /*
     display1.addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
     display1.addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
@@ -461,6 +482,7 @@ java.lang.RuntimeException: PARALLEL_PROJECTION is not yet implemented
     display1.addReferences(new DirectManipulationRendererJ3D(), refs, null);
 */
 
+/*
     DataReferenceImpl ref_direct = new DataReferenceImpl("ref_direct");
     ref_direct.setData(direct);
     DataReference[] refs2 = {ref_direct};
@@ -470,24 +492,26 @@ java.lang.RuntimeException: PARALLEL_PROJECTION is not yet implemented
     ref_histogram1.setData(histogram1);
     DataReference[] refs3 = {ref_histogram1};
     display1.addReferences(new DirectManipulationRendererJ3D(), refs3, null);
+*/
 
 /*
     DataReferenceImpl ref_netcdf = new DataReferenceImpl("ref_netcdf");
     ref_netcdf.setData(netcdf_data);
     display1.addReference(ref_netcdf, null);
 */
+
 /*
     DataReferenceImpl ref_image_sequence =
       new DataReferenceImpl("ref_image_sequence");
     ref_image_sequence.setData(image_sequence);
     display1.addReference(ref_image_sequence, null);
 */
-/*
-    DataReferenceImpl ref_grid1 = new DataReferenceImpl("ref_grid1");
-    ref_grid1.setData(grid1);
-    display1.addReference(ref_grid1, null);
-*/
 
+    DataReferenceImpl ref_grid3d = new DataReferenceImpl("ref_grid3d");
+    ref_grid3d.setData(grid3d);
+    display1.addReference(ref_grid3d, null);
+
+/*
     DisplayImpl display2 = new DisplayImplJ3D("display2", APPLETFRAME_JAVA3D);
     display2.addMap(new ScalarMap(vis_radiance, Display.XAxis));
     display2.addMap(new ScalarMap(ir_radiance, Display.YAxis));
@@ -499,6 +523,7 @@ java.lang.RuntimeException: PARALLEL_PROJECTION is not yet implemented
 
     display2.addReferences(new DirectManipulationRendererJ3D(), refs2, null);
     display2.addReferences(new DirectManipulationRendererJ3D(), refs3, null);
+*/
 
 /*
     DisplayImpl display5 = new DisplayImplJ3D("display5", APPLETFRAME_JAVA3D);
@@ -563,8 +588,13 @@ java.lang.RuntimeException: PARALLEL_PROJECTION is not yet implemented
     display4.stop();
 */
 
+    boolean first = true;
     while (true) {
       delay(5000);
+      if (first) {
+        control1contour.setSurfaceValue(level);
+        first = false;
+      }
       System.out.println("\ndelay\n");
     }
 

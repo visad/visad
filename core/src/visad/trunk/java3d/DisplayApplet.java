@@ -37,7 +37,7 @@ import java.util.*;
 import java.awt.*;
 import java.awt.image.*;
 import java.net.*;
-import java.applet.*;
+import java.applet.Applet;
 
 public class DisplayApplet extends Applet {
 
@@ -93,7 +93,7 @@ public class DisplayApplet extends Applet {
  
     // System.out.println("pg created");
  
-    pg.setColorModel(cm); /* unnecessary */
+    pg.setColorModel(cm); // unnecessary
  
     try { pg.grabPixels(); }
     catch (InterruptedException e) {
