@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VariableFilter.java,v 1.1 2001-08-28 17:20:47 steve Exp $
+ * $Id: VariableFilter.java,v 1.2 2001-08-29 19:57:42 dglo Exp $
  */
 
 package visad.data.netcdf;
@@ -18,15 +18,16 @@ import ucar.netcdf.VariableIterator;
 
 /**
  * Wrapper class for restricting the {@link Netcdf#iterator()} and {@link
- * Netcdf.size()} methods to only those variables that are also in a
+ * Netcdf#size()} methods to only those variables that are also in a
  * client-specified list.  All other methods of the {@link Netcdf} API
  * are those of {@link NetcdfWrapper}.  Thus, it is possible to bypass
  * the variable-filtering provided by this class by directly invoking
- * the single-variable methods (e.g. {@link Netcdf#get(String)}, {@link
- * Netcdf.contains(Object)}}.
+ * the single-variable methods
+ * (e.g. {@link Netcdf#get(String) Netcdf.get(String)},
+ * {@link Netcdf#contains(Object) Netcdf.contains(Object)}).
  *
  * @author Steven R. Emmerson
- * @version $Revision: 1.1 $ $Date: 2001-08-28 17:20:47 $
+ * @version $Revision: 1.2 $ $Date: 2001-08-29 19:57:42 $
  */
 final class VariableFilter
     extends NetcdfWrapper

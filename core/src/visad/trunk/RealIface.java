@@ -38,9 +38,9 @@ public interface RealIface
   extends ScalarIface
 {
   /**
-   * Returns the numeric value in the unit of {@link getUnit()}.
+   * Returns the numeric value in the unit of {@link #getUnit()}.
    *
-   * @return		The numeric value in the unit of {@link getUnit()}.
+   * @return		The numeric value in the unit of {@link #getUnit()}.
    */
   double getValue();
 
@@ -48,7 +48,7 @@ public interface RealIface
    * Returns the numeric value in a particular unit.
    *
    * @param unit	The desired unit for the numeric value.  Must be
-   *			convertible with {@link getUnit()}.
+   *			convertible with {@link #getUnit()}.
    * @return		The numeric value in the given unit.
    */
   double getValue(Unit unit_out)

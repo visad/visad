@@ -169,7 +169,7 @@ public class ContourControl extends Control {
 
   /**
    * Sets the parameters for contour iso-lines.  This method invokes the
-   * {@link ControlListener.controlChanged(ControlEvent)} method of all
+   * {@link ControlListener#controlChanged(ControlEvent)} method of all
    * registered listeners;
    *
    * @param interval            The contour interval.  Must be non-zero.  If

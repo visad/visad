@@ -38,7 +38,7 @@ import visad.VisADException;
 
 /**
  * <CODE>RemoteDisplayMonitorImpl</CODE> is the implementation of the VisAD
- * <CODE>RemoteDisplayMonitor</CODE> class.
+ * {@link RemoteDisplayMonitor RemoteDisplayMonitor} class.
  */
 public class RemoteDisplayMonitorImpl
   extends UnicastRemoteObject
@@ -48,7 +48,7 @@ public class RemoteDisplayMonitorImpl
 
   /**
    * Creates a remotely-accessible wrapper for the specified
-   * <CODE>DisplayMonitor</CODE>.
+   * {@link DisplayMonitor DisplayMonitor}
    *
    * @param dpyMonitor The local DisplayMonitor object to adapt.
    *
@@ -61,9 +61,9 @@ public class RemoteDisplayMonitorImpl
   }
 
   /**
-   * Forwards the event to the adapted remote <CODE>DisplayMonitor</CODE>.
+   * Forwards the event to the adapted remote {@link DisplayMonitor DisplayMonitor}.
    *
-   * @param e The <CODE>DisplayEvent</CODE> to forward.
+   * @param e The {@link visad.DisplayEvent DisplayEvent} to forward.
    *
    * @exception RemoteException If there was an RMI-related problem.
    * @exception RemoteVisADException If there was an internal problem.
@@ -78,11 +78,9 @@ public class RemoteDisplayMonitorImpl
   }
 
   /**
-   * Forwards the event to the adapted remote <CODE>DisplayMonitor</CODE>.
+   * Forwards the event to the adapted remote {@link DisplayMonitor DisplayMonitor}.
    *
-   *  @param e The <CODE>ScalarMapEvent</CODE> to forward.
-   *
-   * @exception RemoteVisADException If there was an internal problem.
+   * @param e The {@link visad.ScalarMapEvent ScalarMapEvent} to forward.
    */
   public void mapChanged(ScalarMapEvent e)
   {
@@ -92,11 +90,9 @@ public class RemoteDisplayMonitorImpl
   }
 
   /**
-   * Forwards the event to the adapted remote <CODE>DisplayMonitor</CODE>.
+   * Forwards the event to the adapted remote {@link DisplayMonitor DisplayMonitor}.
    *
-   *  @param e The <CODE>ScalarMapEvent</CODE> to forward.
-   *
-   * @exception RemoteVisADException If there was an internal problem.
+   * @param e The {@link visad.ScalarMapEvent ScalarMapEvent} to forward.
    */
   public void controlChanged(ScalarMapControlEvent e)
   {
@@ -106,7 +102,7 @@ public class RemoteDisplayMonitorImpl
   }
 
   /**
-   * Forwards the event to the adapted remote <CODE>DisplayMonitor</CODE>.
+   * Forwards the event to the adapted remote {@link DisplayMonitor DisplayMonitor}.
    *
    * @param e ControlEvent to forward
    *
@@ -122,7 +118,7 @@ public class RemoteDisplayMonitorImpl
   }
 
   /**
-   * Asks remote <CODE>DisplayMonitor</CODE> to check this ID for uniqueness.
+   * Asks remote {@link DisplayMonitor DisplayMonitor} to check this ID for uniqueness.
    *
    * @param id The identifier to check for uniqueness.
    *
@@ -145,10 +141,10 @@ public class RemoteDisplayMonitorImpl
   }
 
   /**
-   * Adds this listener to the remote <CODE>DisplayMonitor</CODE>.
+   * Adds this listener to the remote {@link DisplayMonitor DisplayMonitor}.
    *
    * @param l The listener to add
-   * @param id The unique identifer (determined with <CODE>checkID</CODE>.)
+   * @param id The unique identifer (determined with <tt>checkID</tt>.)
    *
    * @exception RemoteException If there was an RMI-related problem.
    * @exception RemoteVisADException If there was an internal problem.
@@ -167,10 +163,10 @@ public class RemoteDisplayMonitorImpl
   }
 
   /**
-   * Adds this remote display to the remote <CODE>DisplayMonitor</CODE>.
+   * Adds this remote display to the remote {@link DisplayMonitor DisplayMonitor}.
    *
    * @param rd The remote display to add
-   * @param id The unique identifer (determined with <CODE>checkID</CODE>.)
+   * @param id The unique identifer (determined with <tt>checkID</tt>.)
    *
    * @exception RemoteException If there was an RMI-related problem.
    * @exception RemoteVisADException If there was an internal problem.
@@ -218,7 +214,7 @@ public class RemoteDisplayMonitorImpl
   }
 
   /**
-   * Forwards the event to the remote <CODE>DisplayMonitor</CODE>.
+   * Forwards the event to the remote {@link DisplayMonitor DisplayMonitor}.
    *
    * @param evt The event to forward.
    *
@@ -290,7 +286,7 @@ public class RemoteDisplayMonitorImpl
   }
 
   /**
-   * Returns a <CODE>String</CODE> representation of this object.
+   * Returns a string representation of this object.
    */
   public String toString()
   {

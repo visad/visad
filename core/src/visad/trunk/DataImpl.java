@@ -641,7 +641,7 @@ public abstract class DataImpl extends ThingImpl
   }
 
   /**
-   * A wrapper around {@link #sub(Data) sub} for JPython
+   * A wrapper around {@link #subtract(Data) sub} for JPython
    */
   public Data __sub__(Data data) throws VisADException, RemoteException {
     return subtract(data);
@@ -676,7 +676,7 @@ public abstract class DataImpl extends ThingImpl
   }
 
   /**
-   * A wrapper around {@link #negate(Data) neg} for JPython
+   * A wrapper around {@link #negate() neg} for JPython
    */
   public Data __neg__() throws VisADException, RemoteException {
     return negate();

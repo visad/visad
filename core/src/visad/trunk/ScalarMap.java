@@ -324,7 +324,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
 
   /**
    * Clear the link to the VisAD display.  This will subsequently
-   * cause {@link getDisplay()} and {@link getControl()} to return
+   * cause {@link #getDisplay()} and {@link #getControl()} to return
    * <code>null</code>; consequently, information stored in the Control
    * might have to be reestablished.  This method invokes the method {@link
    * ScalarMapListener#controlChanged(ScalarMapControlEvent)} on all registered

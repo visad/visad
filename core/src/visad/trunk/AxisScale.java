@@ -894,10 +894,11 @@ public class AxisScale implements java.io.Serializable
    * have a ScalarMap with a range from 0 to 50 and the major tick spacing 
    * is set to 10, you will get major ticks next to the following values: 
    * 0, 10, 20, 30, 40, 50.  This value will always be used unless
-   * you call <CODE>setAutoComputeTicks</CODE> with a <CODE>true</CODE> value.
+   * you call {@link #setAutoComputeTicks(boolean) setAutoComputeTicks}
+   * with a <CODE>true</CODE> value.
    * @param spacing  spacing between major tick marks (must be > 0)
    * @see #getMajorTickSpacing
-   * @see #autoComputeTicks
+   * @see #setAutoComputeTicks
    */
   public void setMajorTickSpacing(double spacing)
   {
@@ -929,10 +930,11 @@ public class AxisScale implements java.io.Serializable
    * have a ScalarMap with a range from 0 to 50 and the minor tick spacing 
    * is set to 10, you will get minor ticks next to the following values: 
    * 0, 10, 20, 30, 40, 50.  This value will always be used unless
-   * you call <CODE>setAutoComputeTicks</CODE> with a <CODE>true</CODE> value.
+   * you call {@link #setAutoComputeTicks(boolean) setAutoComputeTicks}
+   * with a <CODE>true</CODE> value.
    * @param spacing  spacing between minor tick marks (must be > 0)
    * @see #getMinorTickSpacing
-   * @see #autoComputeTicks
+   * @see #setAutoComputeTicks
    */
   public void setMinorTickSpacing(double spacing)
   {

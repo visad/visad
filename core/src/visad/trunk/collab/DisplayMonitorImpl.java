@@ -134,9 +134,9 @@ import visad.ScalarMapEvent;
 import visad.VisADException;
 
 /**
- * <TT>DisplayMonitorImpl</TT> is the <TT>Display</TT> monitor
+ * <tt>DisplayMonitorImpl</tt> is the {@link visad.Display Display} monitor
  * implementation.<P>
- * <TT>DisplayMonitorImpl</TT> is not <TT>Serializable</TT> and
+ * <tt>DisplayMonitorImpl</tt> is not {@link java.io.Serializable Serializable} and
  * should not be copied between JVMs.<P>
  */
 public class DisplayMonitorImpl
@@ -150,13 +150,13 @@ public class DisplayMonitorImpl
   private String Name;
 
   /**
-   * The <TT>Display</TT> being monitored.
+   * The {@link visad.Display Display} being monitored.
    */
   private DisplayImpl myDisplay;
 
   /**
    * The list of objects interested in changes to the monitored
-   * <TT>Display</TT>.
+   * {@link visad.Display Display}.
    */
   private ArrayList listeners;
 
@@ -169,13 +169,9 @@ public class DisplayMonitorImpl
   private boolean cluster = false; // WLH 7 Dec 2000
 
   /**
-   * Creates a monitor for the specified <TT>Display</TT>.
+   * Creates a monitor for the specified {@link visad.Display Display}.
    *
-   * @param dpy The <TT>Display</TT> to monitor.
-   *
-   * @exception VisADException If the <TT>Display</TT> encountered
-   * 				problems adding this new object as a
-   * 				<TT>DisplayListener</TT>.
+   * @param dpy The {@link visad.Display Display} to monitor.
    */
   public DisplayMonitorImpl(DisplayImpl dpy)
   {
@@ -197,13 +193,13 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Adds the specified listener to receive <TT>MonitorEvent</TT>s
-   * when the monitored <TT>Display</TT>'s state changes.
+   * Adds the specified listener to receive {@link MonitorEvent MonitorEvents}
+   * when the monitored {@link visad.Display Display's} state changes.
    *
    * @param listener The listener to add.
    * @param id The unique listener identifier.
    *
-   * @exception VisADException If the listener <TT>Vector</TT>
+   * @exception VisADException If the listener {@link java.util.Vector Vector}
    * 				is uninitialized.
    */
   public void addListener(MonitorCallback listener, int id)
@@ -216,13 +212,13 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Adds the specified remote display to receive <TT>MonitorEvent</TT>s
-   * when the monitored <TT>Display</TT>'s state changes.
+   * Adds the specified remote display to receive {@link MonitorEvent MonitorEvents}
+   * when the monitored {@link visad.Display Display's} state changes.
    *
    * @param rmtDpy The remote display to add.
    * @param id The unique listener identifier.
    *
-   * @exception VisADException If the listener <TT>Vector</TT>
+   * @exception VisADException If the listener {@link java.util.Vector Vector}
    * 				is uninitialized.
    */
   public void addListener(RemoteDisplay rmtDpy, int id)
@@ -235,13 +231,13 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Initializes links so that <TT>MonitorEvent</TT>s will be
-   * exchanged with the specified remote <TT>Display</TT>.
+   * Initializes links so that {@link MonitorEvent MonitorEvents} will be
+   * exchanged with the specified remote {@link visad.Display Display}.
    *
-   * @param rd The remote <TT>Display</TT> to synchronize.
+   * @param rd The remote {@link visad.Display Display} to synchronize.
    *
    * @exception RemoteException If there was an RMI-related problem.
-   * @exception RemoteVisADException If the inter-<TT>Display</TT>
+   * @exception RemoteVisADException If the inter-{@link visad.Display Display}
    * 					links could not be made.
    */
   public void addRemoteListener(RemoteDisplay rd)
@@ -302,11 +298,11 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Handles <TT>Control</TT> changes.<BR><BR>
-   * If the <TT>ControlEvent</TT> is not ignored, a
-   * <TT>ControlMonitorEvent</TT> will be sent to all listeners.
+   * Handles {@link visad.Control Control} changes.<BR><BR>
+   * If the {@link visad.ControlEvent ControlEvent} is not ignored, a
+   * {@link ControlMonitorEvent ControlMonitorEvent} will be sent to all listeners.
    *
-   * @param evt The details of the <TT>Control</TT> change.
+   * @param evt The details of the {@link visad.Control Control} change.
    */
   public void controlChanged(ControlEvent evt)
   {
@@ -358,7 +354,7 @@ public class DisplayMonitorImpl
    * Handles ScalarMap control changes.<BR>
    * <FONT SIZE="-1">This is just a stub which ignores the event.</FONT>
    *
-   * @param evt The details of the <TT>ScalarMap</TT> change.
+   * @param evt The details of the {@link visad.ScalarMap ScalarMap} change.
    */
   public void controlChanged(ScalarMapControlEvent evt)
   {
@@ -392,12 +388,12 @@ public class DisplayMonitorImpl
 
   /**
    * Handles notification of objects being added to or removed from
-   * the <TT>Display</TT>.<BR><BR>
-   * If the <TT>DisplayEvent</TT> is not ignored, a
-   * <TT>MapMonitorEvent</TT> or <TT>ReferenceMonitorEvent</TT>
+   * the {@link visad.Display Display}.<BR><BR>
+   * If the {@link visad.DisplayEvent DisplayEvent} is not ignored, a
+   * {@link MapMonitorEvent MapMonitorEvent} or {@link ReferenceMonitorEvent ReferenceMonitorEvent}
    * will be sent to all listeners.
    *
-   * @param evt The details of the <TT>Display</TT> change.
+   * @param evt The details of the {@link visad.Display Display} change.
    */
   public void displayChanged(DisplayEvent evt)
   {
@@ -540,11 +536,11 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Returns <TT>true</TT> if there is a <TT>MonitorEvent</TT>
-   * for the specified <TT>Control</TT> waiting to be delivered to
+   * Returns <tt>true</tt> if there is a {@link MonitorEvent MonitorEvent}
+   * for the specified {@link visad.Control Control} waiting to be delivered to
    * any listener.
    *
-   * @param ctl The <TT>Control</TT> being found.
+   * @param ctl The {@link visad.Control Control} being found.
    */
   public boolean hasEventQueued(Control ctl)
   {
@@ -552,12 +548,12 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Returns <TT>true</TT> if there is a <TT>MonitorEvent</TT>
-   * for the specified <TT>Control</TT> waiting to be delivered to the
+   * Returns <tt>true</tt> if there is a {@link MonitorEvent MonitorEvent}
+   * for the specified {@link visad.Control Control} waiting to be delivered to the
    * listener with the specified id.
    *
    * @param listenerID The identifier for the listener.
-   * @param ctl The <TT>Control</TT> being found.
+   * @param ctl The {@link visad.Control Control} being found.
    */
   public boolean hasEventQueued(int listenerID, Control ctl)
   {
@@ -566,14 +562,14 @@ public class DisplayMonitorImpl
 
 
   /**
-   * Returns <TT>true</TT> if there is a <TT>MonitorEvent</TT>
-   * for the specified <TT>Control</TT> waiting to be delivered to the
+   * Returns <tt>true</tt> if there is a {@link MonitorEvent MonitorEvent}
+   * for the specified {@link visad.Control Control} waiting to be delivered to the
    * listener with the specified id.
    *
    * @param listenerID The identifier for the listener.
-   * @param ctl The <TT>Control</TT> being found.
-   * @param anyListener return <TT>true</TT> if there is a
-   *                    <TT>MonitorEvent</TT> queued for any
+   * @param ctl The {@link visad.Control Control} being found.
+   * @param anyListener return <tt>true</tt> if there is a
+   *                    {@link MonitorEvent MonitorEvent} queued for any
    *                    listener.
    */
   private boolean hasEventQueued(int listenerID, Control ctl,
@@ -612,7 +608,7 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Returns <TT>true</TT> if there are listeners for this display.
+   * Returns <tt>true</tt> if there are listeners for this display.
    */
   private boolean hasListeners()
   {
@@ -621,10 +617,10 @@ public class DisplayMonitorImpl
 
   /**
    * Handles ScalarMap data changes.<BR><BR>
-   * If the <TT>ScalarMapEvent</TT> is not ignored, a
-   * <TT>MapMonitorEvent</TT> will be sent to all listeners.
+   * If the {@link visad.ScalarMapEvent ScalarMapEvent} is not ignored, a
+   * {@link MapMonitorEvent MapMonitorEvent} will be sent to all listeners.
    *
-   * @param evt The details of the <TT>ScalarMap</TT> change.
+   * @param evt The details of the {@link visad.ScalarMap ScalarMap} change.
    */
   public void mapChanged(ScalarMapEvent evt)
   {
@@ -659,9 +655,9 @@ public class DisplayMonitorImpl
 
   /**
    * Negotiates a listener identifier which is unique for both this
-   * <TT>DisplayMonitor</TT> and the remote <TT>DisplayMonitor</TT>.
+   * {@link DisplayMonitor DisplayMonitor} and the remote {@link DisplayMonitor DisplayMonitor}.
    *
-   * @param rdm The remote <TT>DisplayMonitor</TT> to negotiate with.
+   * @param rdm The remote {@link DisplayMonitor DisplayMonitor} to negotiate with.
    *
    * @exception RemoteException If there was an RMI-related problem.
    * @exception RemoteVisADException If negotiations failed to converge
@@ -694,8 +690,8 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Forwards the <TT>MonitorEvent</TT> to all the listeners
-   * associated with this <TT>DisplayMonitor</TT>.
+   * Forwards the {@link MonitorEvent MonitorEvent} to all the listeners
+   * associated with this {@link DisplayMonitor DisplayMonitor}.
    *
    * @param evt The event to forward.
    */
@@ -757,7 +753,7 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Stops forwarding <TT>MonitorEvent</TT>s to the specified listener.
+   * Stops forwarding {@link MonitorEvent MonitorEvent}s to the specified listener.
    *
    * @param l Listener to remove.
    */
@@ -786,7 +782,7 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Returns the name of this <TT>DisplayMonitor</TT>.
+   * Returns the name of this {@link DisplayMonitor DisplayMonitor}.
    */
   public String toString()
   {
