@@ -606,26 +606,29 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     canvas.getPixelLocationInImagePlate(10, 10, position2);
     canvas.getPixelLocationInImagePlate(1, 1, position3);
 
-// hack to move text closer to eye
-    if (getDisplay().getGraphicsModeControl().getProjectionPolicy() ==
-        View.PERSPECTIVE_PROJECTION) {
-      Point3d left_eye = new Point3d();
-      Point3d right_eye = new Point3d();
-      canvas.getLeftEyeInImagePlate(left_eye);
-      canvas.getRightEyeInImagePlate(right_eye);
-      Point3d eye = new Point3d((left_eye.x + right_eye.x)/2.0,
-                                (left_eye.y + right_eye.y)/2.0,
-                                (left_eye.z + right_eye.z)/2.0);
-      double alpha = 0.3;
-      position1.x = alpha * position1.x + (1.0 - alpha) * eye.x;
-      position1.y = alpha * position1.y + (1.0 - alpha) * eye.y;
-      position1.z = alpha * position1.z + (1.0 - alpha) * eye.z;
-      position2.x = alpha * position2.x + (1.0 - alpha) * eye.x;
-      position2.y = alpha * position2.y + (1.0 - alpha) * eye.y;
-      position2.z = alpha * position2.z + (1.0 - alpha) * eye.z;
-      position3.x = alpha * position3.x + (1.0 - alpha) * eye.x;
-      position3.y = alpha * position3.y + (1.0 - alpha) * eye.y;
-      position3.z = alpha * position3.z + (1.0 - alpha) * eye.z;
+    DisplayImpl display = getDisplay();
+    if (display != null || display.getGraphicsModeControl() != null) {
+      // hack to move text closer to eye
+      if (getDisplay().getGraphicsModeControl().getProjectionPolicy() ==
+          View.PERSPECTIVE_PROJECTION) {
+        Point3d left_eye = new Point3d();
+        Point3d right_eye = new Point3d();
+        canvas.getLeftEyeInImagePlate(left_eye);
+        canvas.getRightEyeInImagePlate(right_eye);
+        Point3d eye = new Point3d((left_eye.x + right_eye.x)/2.0,
+                                  (left_eye.y + right_eye.y)/2.0,
+                                  (left_eye.z + right_eye.z)/2.0);
+        double alpha = 0.3;
+        position1.x = alpha * position1.x + (1.0 - alpha) * eye.x;
+        position1.y = alpha * position1.y + (1.0 - alpha) * eye.y;
+        position1.z = alpha * position1.z + (1.0 - alpha) * eye.z;
+        position2.x = alpha * position2.x + (1.0 - alpha) * eye.x;
+        position2.y = alpha * position2.y + (1.0 - alpha) * eye.y;
+        position2.z = alpha * position2.z + (1.0 - alpha) * eye.z;
+        position3.x = alpha * position3.x + (1.0 - alpha) * eye.x;
+        position3.y = alpha * position3.y + (1.0 - alpha) * eye.y;
+        position3.z = alpha * position3.z + (1.0 - alpha) * eye.z;
+      }
     }
 // end of hack to move text closer to eye
 
