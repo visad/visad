@@ -178,7 +178,7 @@ public final class MSGTnav extends AREAnav
       double xlat, xlon;
 
       if (first) {
-       System.out.println("####   first time...");
+       //System.out.println("####   first time...");
        first = false;
       }
 
