@@ -165,6 +165,9 @@ public class VisBio extends GUIFrame implements ChangeListener {
   /** Panel containing all components. */
   private JPanel pane;
 
+  /** Label containing memory usage information. */
+  private JLabel memoryLabel;
+
   /** Panel containing VisAD displays. */
   private JPanel displayPane;
 
@@ -217,6 +220,7 @@ public class VisBio extends GUIFrame implements ChangeListener {
   public VisBio() throws VisADException, RemoteException {
     super(true);
     setTitle(TITLE);
+    setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     JPopupMenu.setDefaultLightWeightPopupEnabled(false);
     importer = new ImportDialog();
     exporter = new ExportDialog(this);
@@ -261,6 +265,33 @@ public class VisBio extends GUIFrame implements ChangeListener {
     pane = new JPanel();
     pane.setLayout(new BorderLayout());
     setContentPane(pane);
+
+    // memory usage label
+    JPanel memoryPane = new JPanel();
+    pane.add(memoryPane, BorderLayout.NORTH);
+    memoryLabel = new JLabel("Memory: total xxxx MB; used xxxx MB; xxx%");
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        while (true) {
+          double total = (double) Runtime.getRuntime().totalMemory();
+          double free = (double) Runtime.getRuntime().freeMemory();
+          double used = total - free;
+          final int percent = (int) (100.0 * (used / total));
+          final int t = (int) (total / 1000000);
+          final int u = (int) (used / 1000000);
+          Util.invoke(false, new Runnable() {
+            public void run() {
+              memoryLabel.setText("Memory: total " + t + " MB; " +
+                "used " + u + " MB; " + percent + "%");
+            }
+          });
+          try { Thread.sleep(500); }
+          catch (InterruptedException exc) { }
+        }
+      }
+    });
+    t.start();
+    memoryPane.add(memoryLabel);
 
     // display panel
     displayPane = new JPanel();
@@ -704,7 +735,7 @@ public class VisBio extends GUIFrame implements ChangeListener {
 
   /** Exits the application. */
   public void fileExit() {
-    state.checkSave();
+    if (!state.checkSave()) return;
     state.destroy();
     System.exit(0);
   }

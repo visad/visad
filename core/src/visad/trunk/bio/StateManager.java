@@ -154,13 +154,14 @@ public class StateManager {
    * Checks whether the program state has been saved,
    * and if not, prompts the user to save.
    */
-  public void checkSave() {
-    if (saved) return;
+  public boolean checkSave() {
+    if (saved) return true;
     int ans = JOptionPane.showConfirmDialog(bio,
       "Program state has been changed. Save before exiting?", "VisBio",
-      JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-    if (ans != JOptionPane.YES_OPTION) return;
-    bio.fileSave();
+      JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+    if (ans == JOptionPane.CANCEL_OPTION) return false;
+    if (ans == JOptionPane.YES_OPTION) bio.fileSave();
+    return true;
   }
 
   /** Deletes state-related temp files. */
