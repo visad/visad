@@ -66,6 +66,7 @@ public class Hit
 
   private Module mod;
   private float amplitude, leadEdgeTime, timeOverThreshold;
+  private RealTuple data;
 
   Hit(Module mod, float amplitude, float leadEdgeTime,
       float timeOverThreshold)
@@ -74,6 +75,8 @@ public class Hit
     this.amplitude = amplitude;
     this.leadEdgeTime = leadEdgeTime;
     this.timeOverThreshold = timeOverThreshold;
+
+    this.data = null;
   }
 
   public int compareTo(Object obj)
@@ -123,19 +126,25 @@ public class Hit
 
   final RealTuple makeData()
   {
-    // construct Tuple for hit
-    try {
-      return new RealTuple(tupleType, new double[] {
-        mod.getNumber(), mod.getX(), mod.getY(), mod.getZ(),
-          amplitude, leadEdgeTime, timeOverThreshold
-          });
-    } catch (RemoteException re) {
-      re.printStackTrace();
-      return missing;
-    } catch (VisADException ve) {
-      ve.printStackTrace();
-      return missing;
+    if (data == null) {
+      // construct Tuple for hit
+      try {
+        data = new RealTuple(tupleType,
+                             new double[] {
+                               mod.getNumber(),
+                               mod.getX(), mod.getY(), mod.getZ(),
+                               amplitude, leadEdgeTime, timeOverThreshold
+                             });
+      } catch (RemoteException re) {
+        re.printStackTrace();
+        data = missing;
+      } catch (VisADException ve) {
+        ve.printStackTrace();
+        data = missing;
+      }
     }
+
+    return data;
   }
 
   public String toString()
