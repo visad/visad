@@ -121,6 +121,9 @@ public class SliceManager
   /** Has arbitrary plane moved since last right mouse button press? */
   private boolean planeChanged;
 
+  /** Is volume rendering display mode on? */
+  private boolean volume;
+
 
   // -- DISPLAY MAPPING INFORMATION --
 
@@ -130,8 +133,11 @@ public class SliceManager
   /** Low-resolution field for all timesteps. */
   private FieldImpl lowresField;
 
-  /** Collapsed field for current timestep, used with arbitrary slicing. */
-  private FieldImpl collapsedField;
+  /**
+   * Collapsed field for current timestep, used
+   * with arbitrary slicing and volume rendering.
+   */
+  private FieldImpl flatField;
 
   /** List of range component mappings for 2-D display. */
   private ScalarMap[] rmaps2;
@@ -304,6 +310,7 @@ public class SliceManager
 
   /** Sets whether to do arbitrary plane selection. */
   public void setPlaneSelect(boolean value) {
+    if (bio.display3 == null) return;
     planeSelect = value;
     ps.toggle(value);
     planeRenderer2.toggle(value);
@@ -314,6 +321,9 @@ public class SliceManager
   public void setPlaneUpdate(boolean continuous) {
     this.continuous = continuous;
   }
+
+  /** Sets whether 3-D display should use image stack or volume rendering. */
+  public void setVolumeRender(boolean volume) { this.volume = volume; }
 
   /** Links the data series to the given list of files. */
   public void setSeries(File[] files) {
@@ -352,9 +362,8 @@ public class SliceManager
               data = new FieldImpl(anim_type, set);
             }
             if (planeSelect) {
-              FieldImpl collapsedField = (FieldImpl) field.domainMultiply();
-              image = (FieldImpl) ps.extractSlice(
-                collapsedField, res_x, res_y, res_x, res_y);
+              image = (FieldImpl) ps.extractSlice((FieldImpl)
+                field.domainMultiply(), res_x, res_y, res_x, res_y);
             }
             else image = (FieldImpl) field.getSample(slice);
             data.setSample(i, image, false);
@@ -423,21 +432,21 @@ public class SliceManager
   }
 
   /** Gets the color controls for 2-D range type color mappings. */
-  ColorControl[] getColorControls2D() {
+  BaseColorControl[] getColorControls2D() {
     if (rmaps2 == null) return null;
-    ColorControl[] controls = new ColorControl[rmaps2.length];
+    BaseColorControl[] controls = new BaseColorControl[rmaps2.length];
     for (int i=0; i<rmaps2.length; i++) {
-      controls[i] = (ColorControl) rmaps2[i].getControl();
+      controls[i] = (BaseColorControl) rmaps2[i].getControl();
     }
     return controls;
   }
 
   /** Gets the color controls for 3-D range type color mappings. */
-  ColorControl[] getColorControls3D() {
+  BaseColorControl[] getColorControls3D() {
     if (rmaps3 == null) return null;
-    ColorControl[] controls = new ColorControl[rmaps3.length];
+    BaseColorControl[] controls = new BaseColorControl[rmaps3.length];
     for (int i=0; i<rmaps3.length; i++) {
-      controls[i] = (ColorControl) rmaps3[i].getControl();
+      controls[i] = (BaseColorControl) rmaps3[i].getControl();
     }
     return controls;
   }
@@ -467,7 +476,7 @@ public class SliceManager
 
           // create low-resolution thumbnails for timestep animation
           field = null;
-          collapsedField = null;
+          flatField = null;
           FieldImpl[][] thumbs = null;
           timesteps = f.length;
           double scale = Double.NaN;
@@ -643,7 +652,7 @@ public class SliceManager
       if (initialize) init(files, 0);
       else {
         field = loadData(files[index]);
-        collapsedField = null;
+        flatField = null;
         if (field != null) ref.setData(field);
         else {
           bio.setWaitCursor(false);
@@ -746,7 +755,7 @@ public class SliceManager
       // add color maps for all range components
       rmaps3 = new ScalarMap[rtypes.length];
       for (int i=0; i<rtypes.length; i++) {
-        rmaps3[i] = new ScalarMap(rtypes[i], Display.RGB);
+        rmaps3[i] = new ScalarMap(rtypes[i], Display.RGBA);
         bio.display3.addMap(rmaps3[i]);
       }
 
@@ -871,7 +880,7 @@ public class SliceManager
 
     // switch resolution in 2-D display
     if (planeSelect) {
-      collapsedField = null;
+      flatField = null;
       updateSlice();
     }
     else if (lowres) {
@@ -910,12 +919,12 @@ public class SliceManager
   private void updateSlice() {
     bio.setWaitCursor(true);
     try {
-      if (collapsedField == null) {
+      if (flatField == null) {
         FieldImpl f = lowres ?
           (FieldImpl) lowresField.getSample(index) : field;
-        collapsedField = (FieldImpl) f.domainMultiply();
+        flatField = (FieldImpl) f.domainMultiply();
       }
-      planeRef.setData(ps.extractSlice(collapsedField,
+      planeRef.setData(ps.extractSlice(flatField,
         sliceRes_x, sliceRes_y, res_x, res_y));
     }
     catch (VisADException exc) { exc.printStackTrace(); }

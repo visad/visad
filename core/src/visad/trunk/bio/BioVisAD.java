@@ -225,9 +225,9 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     RealType red, RealType green, RealType blue)
   {
     // get color controls
-    ColorControl[] cc2 = sm.getColorControls2D();
+    BaseColorControl[] cc2 = sm.getColorControls2D();
     if (cc2 == null) return;
-    ColorControl[] cc3 = sm.getColorControls3D();
+    BaseColorControl[] cc3 = sm.getColorControls3D();
 
     // verify that image color information has changed
     if (this.brightness == brightness && this.contrast == contrast &&
@@ -260,15 +260,23 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     for (int i=0; i<cc2.length; i++) {
       if (i >= sm.rtypes.length) break;
       RealType rt = sm.rtypes[i];
-      float[][] t = new float[3][COLOR_DETAIL];
-      if (rt.equals(red)) System.arraycopy(vals, 0, t[0], 0, COLOR_DETAIL);
-      if (rt.equals(green)) System.arraycopy(vals, 0, t[1], 0, COLOR_DETAIL);
-      if (rt.equals(blue)) System.arraycopy(vals, 0, t[2], 0, COLOR_DETAIL);
 
-      // set color table
+      // color table without alpha
+      float[][] t2 = new float[3][COLOR_DETAIL];
+      if (rt.equals(red)) System.arraycopy(vals, 0, t2[0], 0, COLOR_DETAIL);
+      if (rt.equals(green)) System.arraycopy(vals, 0, t2[1], 0, COLOR_DETAIL);
+      if (rt.equals(blue)) System.arraycopy(vals, 0, t2[2], 0, COLOR_DETAIL);
+
+      // color table with alpha
+      float[][] t3 = new float[4][];
+      System.arraycopy(t2, 0, t3, 0, 3);
+      t3[3] = new float[COLOR_DETAIL];
+      for (int j=0; j<COLOR_DETAIL; j++) t3[3][j] = 1.0f; // alpha
+
+      // set color tables
       try {
-        if (cc2[i] != null) cc2[i].setTable(t);
-        if (cc3 != null && cc3[i] != null) cc3[i].setTable(t);
+        if (cc2[i] != null) cc2[i].setTable(t2);
+        if (cc3 != null && cc3[i] != null) cc3[i].setTable(t3);
       }
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }

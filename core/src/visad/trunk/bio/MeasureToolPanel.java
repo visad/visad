@@ -51,9 +51,12 @@ public class MeasureToolPanel extends ToolPanel {
     Color.cyan, Color.blue, Color.magenta, Color.pink
   };
 
-  /** Placeholder for measurement information label. */
-  private static final String INFO_LABEL =
-    " (0000.000, 0000.000)-(0000.000, 0000.000): distance=0000.000 pix";
+  /** Placeholder for measurement coordinates label. */
+  private static final String COORD_LABEL =
+    " (0000.000, 0000.000)-(0000.000, 0000.000)";
+
+  /** Placeholder for measurement distance label. */
+  private static final String DIST_LABEL = "distance = 0000.000 pix";
 
 
   // -- GLOBAL VARIABLES --
@@ -87,7 +90,10 @@ public class MeasureToolPanel extends ToolPanel {
 
 
   // -- FILE IO FUNCTIONS --
-  
+
+  /** Label for measurement-related controls. */
+  private JLabel measureLabel;
+
   /** Button for saving measurements to a file. */
   private JButton saveLines;
 
@@ -127,8 +133,11 @@ public class MeasureToolPanel extends ToolPanel {
 
   // -- LINE FUNCTIONS --
 
-  /** Label for displaying measurement information. */
-  private JLabel measureInfo;
+  /** Label for displaying measurement coordinates. */
+  private JLabel measureCoord;
+
+  /** Label for displaying measurement distance. */
+  private JLabel measureDist;
 
   /** Button for distributing measurement object through all focal planes. */
   private JCheckBox setStandard;
@@ -164,10 +173,16 @@ public class MeasureToolPanel extends ToolPanel {
   public MeasureToolPanel(BioVisAD biovis) {
     super(biovis);
 
+    // measurements label
+    measureLabel = new JLabel("Measurements:");
+    measureLabel.setEnabled(false);
+    controls.add(pad(measureLabel));
+    controls.add(Box.createVerticalStrut(5));
+
     // save measurements button
     JPanel p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    saveLines = new JButton("Save measurements");
+    saveLines = new JButton("Save");
     saveLines.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         saveMeasurements(useMicrons.isSelected());
@@ -178,7 +193,7 @@ public class MeasureToolPanel extends ToolPanel {
     p.add(Box.createHorizontalStrut(5));
 
     // restore measurements button
-    restoreLines = new JButton("Restore measurements");
+    restoreLines = new JButton("Restore");
     restoreLines.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         restoreMeasurements(useMicrons.isSelected());
@@ -233,10 +248,8 @@ public class MeasureToolPanel extends ToolPanel {
     p.add(sliceDistance);
     controls.add(pad(p));
 
-    // divider between file IO functions and other functions
-    controls.add(Box.createVerticalStrut(10));
-    controls.add(new Divider());
-    controls.add(Box.createVerticalStrut(10));
+    // spacing
+    controls.add(Box.createVerticalStrut(15));
 
     // add line button
     p = new JPanel();
@@ -276,22 +289,36 @@ public class MeasureToolPanel extends ToolPanel {
     clearAll.setEnabled(false);
     p.add(clearAll);
     controls.add(pad(p));
-    controls.add(Box.createVerticalStrut(5));
+
+    // divider between global functions and measurement-specific functions
+    controls.add(Box.createVerticalStrut(10));
+    controls.add(new Divider());
+    controls.add(Box.createVerticalStrut(10));
 
     // measurement information label
-    measureInfo = new JLabel(" ") {
+    measureCoord = new JLabel(" ") {
       public Dimension getPreferredSize() {
         FontMetrics fm = getFontMetrics(getFont());
-        int width = fm.stringWidth("    " + INFO_LABEL);
+        int width = fm.stringWidth("    " + COORD_LABEL);
         Dimension d = super.getPreferredSize();
         return new Dimension(width, d.height);
       }
     };
+    controls.add(pad(measureCoord));
+    measureDist = new JLabel(" ") {
+      public Dimension getPreferredSize() {
+        FontMetrics fm = getFontMetrics(getFont());
+        int width = fm.stringWidth("    " + DIST_LABEL);
+        Dimension d = super.getPreferredSize();
+        return new Dimension(width, d.height);
+      }
+    };
+    controls.add(pad(measureDist));
+    controls.add(Box.createVerticalStrut(10));
+
     cell = new CellImpl() {
       public void doAction() { updateMeasureInfo(); }
     };
-    controls.add(pad(measureInfo));
-    controls.add(Box.createVerticalStrut(10));
 
     // set standard button
     p = new JPanel();
@@ -418,7 +445,7 @@ public class MeasureToolPanel extends ToolPanel {
     controls.add(p);
 
     // description label
-    descriptionLabel = new JLabel("Group description");
+    descriptionLabel = new JLabel("Group description:");
     descriptionLabel.setAlignmentX(SwingConstants.LEFT);
     descriptionLabel.setEnabled(false);
     controls.add(pad(descriptionLabel));
@@ -448,11 +475,13 @@ public class MeasureToolPanel extends ToolPanel {
   public void setEnabled(boolean enabled) {
     if (enabled) {
       useMicrons.setEnabled(true);
+      measureLabel.setEnabled(true);
       restoreLines.setEnabled(true);
       updateFileButtons();
     }
     else {
       useMicrons.setEnabled(false);
+      measureLabel.setEnabled(false);
       saveLines.setEnabled(false);
       restoreLines.setEnabled(false);
       mPixLabel.setEnabled(false);
@@ -631,7 +660,8 @@ public class MeasureToolPanel extends ToolPanel {
 
   /** Updates the text in the measurement information box. */
   private void updateMeasureInfo() {
-    String text = " ";
+    String coord = "";
+    String dist = "";
     if (thing != null) {
       Measurement m = thing.getMeasurement();
       double[][] vals = m.doubleValues();
@@ -649,15 +679,25 @@ public class MeasureToolPanel extends ToolPanel {
       if (thing.getLength() == 2) {
         String v2x = Convert.shortString(mpp * vals[0][1]);
         String v2y = Convert.shortString(mpp * vals[1][1]);
-        String dist = Convert.shortString(m.getDistance(mpp, sd));
-        text = "(" + vx + ", " + vy + ")-(" + v2x + ", " + v2y + "): " +
-          "distance=" + dist + " " + unit;
+        String d = Convert.shortString(m.getDistance(mpp, sd));
+        coord = "(" + vx + ", " + vy + ")-(" + v2x + ", " + v2y + ")";
+        dist = "distance = " + d + " " + unit;
       }
-      else text = "(" + vx + ", " + vy + ")";
-      int space = (INFO_LABEL.length() - text.length()) / 2;
-      for (int i=0; i<space; i++) text = " " + text + " ";
+      else coord = "(" + vx + ", " + vy + ")";
     }
-    measureInfo.setText("   " + text);
+
+    StringBuffer sb = new StringBuffer();
+    int space = (COORD_LABEL.length() - coord.length()) / 2;
+    for (int i=0; i<space; i++) sb.append(" ");
+    String coordSpace = sb.toString();
+
+    sb = new StringBuffer();
+    space = (DIST_LABEL.length() - dist.length()) / 2;
+    for (int i=0; i<space; i++) sb.append(" ");
+    String distSpace = sb.toString();
+
+    measureCoord.setText(coordSpace + coord + coordSpace);
+    measureDist.setText(distSpace + dist + distSpace);
   }
 
 }

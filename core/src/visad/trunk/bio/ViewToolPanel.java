@@ -168,10 +168,8 @@ public class ViewToolPanel extends ToolPanel {
     autoSwitch.setEnabled(false);
     controls.add(pad(autoSwitch));
 
-    // divider between resolution functions and animation functions
-    controls.add(Box.createVerticalStrut(10));
-    controls.add(new Divider());
-    controls.add(Box.createVerticalStrut(10));
+    // spacing
+    controls.add(Box.createVerticalStrut(5));
 
     // animation widget
     p = new JPanel();
@@ -181,7 +179,7 @@ public class ViewToolPanel extends ToolPanel {
     p.add(anim);
     controls.add(pad(p));
 
-    // divider between animation functions and color functions
+    // divider between resolution functions and color functions
     controls.add(Box.createVerticalStrut(10));
     controls.add(new Divider());
     controls.add(Box.createVerticalStrut(10));
@@ -243,12 +241,14 @@ public class ViewToolPanel extends ToolPanel {
     });
     controls.add(pad(blue));
 
-    // divider between color functions and slice functions
+    // divider between color functions and misc functions
     controls.add(Box.createVerticalStrut(10));
     controls.add(new Divider());
     controls.add(Box.createVerticalStrut(10));
 
     // plane selector checkbox
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     planeSelect = new JCheckBox("Arbitrary data slice", false);
     planeSelect.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
@@ -263,7 +263,19 @@ public class ViewToolPanel extends ToolPanel {
       }
     });
     planeSelect.setEnabled(false);
-    controls.add(pad(planeSelect));
+    p.add(planeSelect);
+
+    // continuous update checkbox
+    sliceUpdate = new JCheckBox("Update continuously", false);
+    sliceUpdate.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        bio.sm.setPlaneUpdate(sliceUpdate.isSelected());
+      }
+    });
+    sliceUpdate.setEnabled(false);
+    p.add(Box.createHorizontalStrut(10));
+    p.add(sliceUpdate);
+    controls.add(p);
 
     // arbitrary slice resolution
     p = new JPanel();
@@ -298,16 +310,6 @@ public class ViewToolPanel extends ToolPanel {
     p.add(sliceResLabel2);
     p.add(sliceResY);
     controls.add(p);
-
-    // continuous update checkbox
-    sliceUpdate = new JCheckBox("Update slice continuously", false);
-    sliceUpdate.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
-        bio.sm.setPlaneUpdate(sliceUpdate.isSelected());
-      }
-    });
-    sliceUpdate.setEnabled(false);
-    controls.add(pad(sliceUpdate));
   }
 
 
