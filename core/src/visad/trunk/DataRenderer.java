@@ -1769,14 +1769,9 @@ System.out.println("checkClose: distance = " + distance);
             // RealType rtype = (RealType) data.getType();
             RealType rtype = (RealType) type;
             newData = new Real(rtype, (double) d[0], rtype.getDefaultUnit(), null);
+
             // create location string
             Vector vect = new Vector();
-/* WLH 26 July 99
-            float g = d[0];
-            vect.addElement(rtype.getName() + " = " + g);
-*/
-
-            // WLH 31 Aug 2000
             Real r = new Real(rtype, d[0]);
             Unit overrideUnit = getDirectMap(i).getOverrideUnit();
             Unit rtunit = rtype.getDefaultUnit();
@@ -1795,7 +1790,7 @@ System.out.println("checkClose: distance = " + distance);
           }
         }
         ref.setData(newData);
-        link.clearData(); // WLH 27 July 99
+        link.clearData();
       }
       else if (type instanceof RealTupleType) {
         addPoint(xx);
@@ -1810,13 +1805,8 @@ System.out.println("checkClose: distance = " + distance);
             Real c = (Real) ((RealTuple) data).getComponent(j);
             RealType rtype = (RealType) c.getType();
             reals[j] = new Real(rtype, (double) d[0], rtype.getDefaultUnit(), null);
-            // create location string
-/* WLH 26 July 99
-            float g = d[0];
-            vect.addElement(rtype.getName() + " = " + g);
-*/
 
-            // WLH 31 Aug 2000
+            // create location string
             Real r = new Real(rtype, d[0]);
             Unit overrideUnit = getDirectMap(i).getOverrideUnit();
             Unit rtunit = rtype.getDefaultUnit();
@@ -1841,7 +1831,7 @@ System.out.println("checkClose: distance = " + distance);
         newData = new RealTuple((RealTupleType) type, reals,
                                 ((RealTuple) data).getCoordinateSystem());
         ref.setData(newData);
-        link.clearData(); // WLH 27 July 99
+        link.clearData();
       }
       else if (type instanceof FunctionType) {
         Vector vect = new Vector();
@@ -1851,7 +1841,6 @@ System.out.println("checkClose: distance = " + distance);
         d = getDirectMap(k).inverseScaleValues(f);
         RealType rtype = (RealType) getDirectMap(k).getScalar();
 
-        // WLH 31 Aug 2000
         // first, save value in default Unit
         double dsave = d[0];
 
@@ -1862,7 +1851,7 @@ System.out.println("checkClose: distance = " + distance);
           d[0] = (float) us[0].toThis((double) d[0], rtype.getDefaultUnit());
         }
 
-        // WLH 31 Aug 2000
+        // create location string
         Real r = new Real(rtype, dsave);
         Unit overrideUnit = getDirectMap(k).getOverrideUnit();
         Unit rtunit = rtype.getDefaultUnit();
@@ -1876,11 +1865,6 @@ System.out.println("checkClose: distance = " + distance);
         String valueString = r.toValueString();
         vect.addElement(rtype.getName() + " = " + valueString);
 
-/*
-        // create location string
-        float g = d[0];
-        vect.addElement(rtype.getName() + " = " + g);
-*/
         // convert domain value to domain index
         Gridded1DSet set = (Gridded1DSet) ((Field) data).getDomainSet();
         value[0][0] = (float) d[0];
@@ -1925,12 +1909,7 @@ System.out.println("checkClose: distance = " + distance);
             d = getDirectMap(i).inverseScaleValues(f);
             // create location string
             rtype = (RealType) getDirectMap(i).getScalar();
-/* WLH 26 July 99
-            g = (float) d[0];
-            vect.addElement(rtype.getName() + " = " + g);
-*/
 
-            // WLH 31 Aug 2000
             r = new Real(rtype, d[0]);
             overrideUnit = getDirectMap(i).getOverrideUnit();
             rtunit = rtype.getDefaultUnit();
