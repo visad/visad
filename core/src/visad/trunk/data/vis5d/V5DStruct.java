@@ -1223,10 +1223,18 @@ public class V5DStruct {
       int date1 = v5dYYDDDtoDays(DateStamp[i]);
       int time0 = v5dHHMMSStoSeconds(TimeStamp[i - 1]);
       int time1 = v5dHHMMSStoSeconds(TimeStamp[i]);
-      if (time1 <= time0 && date1 <= date0) {
-        System.err.println("Timestamp for step " + i +
-          " must be later than step " + (i - 1));
-        valid = false;
+      // WLH 19 Sept 2001
+      // hack dates and times if out of order, in order to accept
+      // 'invalid' files that Vis5D will accept
+      if (date1 < date0 || (date1 == date0 && time1 <= time0)) {
+        time1 = time0 + 1;
+        date1 = date0;
+        if (time1 >= 86400) {
+          time1 = 0;
+          date1++;
+        }
+        DateStamp[i] = v5dDaysToYYDDD(date1);
+        TimeStamp[i] = v5dSecondsToHHMMSS(time1);
       }
     }
 
