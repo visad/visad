@@ -77,7 +77,7 @@ public class Contour2D extends Applet implements MouseListener {
                       float vx3[], float vy3[],  int maxv3, int[] numv3,
                       float vx4[], float vy4[],  int maxv4, int[] numv4,
                       float[][] auxValues, float[][] auxLevels1,
-                      float[][] auxLevels2 )
+                      float[][] auxLevels2, boolean swap )
                           throws VisADException {
     PlotDigits plot = new PlotDigits();
     int ir, ic;
@@ -155,8 +155,14 @@ public class Contour2D extends Applet implements MouseListener {
      * lr and lc give label size in grid boxes
      * lrr and lcc give unavailable radius
      */
-    lr = 1+(nr-2)/50;
-    lc = 1+(nc-2)/10;
+    if (swap) {
+      lr = 1+(nr-2)/10;
+      lc = 1+(nc-2)/50;
+    }
+    else {
+      lr = 1+(nr-2)/50;
+      lc = 1+(nc-2)/10;
+    }
     lc2 = lc/2;
     lr2 = lr/2;
     lrr = 1+(nr-2)/8;
@@ -331,7 +337,7 @@ public class Contour2D extends Applet implements MouseListener {
 
             if (numv3[0] < maxv3 || numv4[0] < maxv4) {
               // if there's room in either array, plot the labels
-              plot.plotdigits( value, xk, yk, xm, ym, maxsize);
+              plot.plotdigits( value, xk, yk, xm, ym, maxsize, swap);
             }
             if (numv3[0] < maxv3) {
               // if there's room in the array, store the label
@@ -709,7 +715,7 @@ public class Contour2D extends Applet implements MouseListener {
                   con.vx2, con.vy2, mxv2, con.num2,
                   con.vx3, con.vy3, mxv3, con.num3,
                   con.vx4, con.vy4, mxv4, con.num4,
-                  null, null, null);
+                  null, null, null, false);
     }
     catch (VisADException VE) {
       System.out.println("Contour2D.init: "+VE);

@@ -264,7 +264,8 @@ public class UnionSet extends SampledSet {
       and labels in array[2] */
   public VisADGeometryArray[] makeIsoLines(float interval, float low,
                       float hi, float base, float[] fieldValues,
-                      float[][] color_values) throws VisADException {
+                      float[][] color_values, boolean swap)
+         throws VisADException {
     if (DomainDimension != 3) {
       throw new SetException("UnionSet.makeIsoLines: " +
                              "DomainDimension must be 3");
@@ -290,7 +291,8 @@ public class UnionSet extends SampledSet {
       }
       for (int k=0; k<len; k++) f[k] = fieldValues[kbase + k];
       arrays[i] =
-        (VisADLineArray[]) Sets[i].makeIsoLines(interval, low, hi, base, f, c);
+        (VisADLineArray[]) Sets[i].makeIsoLines(interval, low, hi, base,
+                                                f, c, swap);
       kbase += len;
     }
     VisADLineArray[] arrays2 = new VisADLineArray[3];

@@ -786,7 +786,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
                 Set domain_set, boolean allSpatial, boolean set_for_shape,
                 int[] spatialDimensions, float[][] range_select,
                 float[][] flow1_values, float[][] flow2_values,
-                float[] flowScale)
+                float[] flowScale, boolean[] swap)
          throws VisADException, RemoteException {
     DisplayTupleType spatial_tuple = null;
     // number of spatial samples, default is 1
@@ -916,6 +916,36 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
         }
       }
     } // end for (int i=0; i<3; i++)
+
+    // calculate if need to swap rows and cols in contour line labels
+    swap[0] = false;
+    if (allSpatial && spatialDimensions[1] == 2 && len > 1) {
+      if (spatial_tuple == Display.DisplaySpatialCartesianTuple) {
+        float max = -1.0f;
+        int imax = -1;
+        for (int i=0; i<3; i++) {
+          float diff =
+            Math.abs(spatial_values[i][1] - spatial_values[i][0]);
+          if (diff > max) {
+            max = diff;
+            imax = i;
+          }
+        }
+        max = -1.0f;
+        int jmax = -1;
+        for (int i=0; i<3; i++) {
+          if (i != imax) {
+            float diff =
+              Math.abs(spatial_values[i][len-1] - spatial_values[i][0]);
+            if (diff > max) {
+              max = diff;
+              jmax = i;
+            }
+          }
+        } // end for (int i=0; i<3; i++)
+        swap[0] = (imax == 0 || (imax == 2 && jmax == 1));
+      } // end if (spatial_tuple == Display.DisplaySpatialCartesianTuple)
+    }
 
     if (!spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
       // transform tuple_values to DisplaySpatialCartesianTuple

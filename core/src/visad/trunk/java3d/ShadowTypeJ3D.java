@@ -241,13 +241,13 @@ public abstract class ShadowTypeJ3D extends ShadowType {
                 Set domain_set, boolean allSpatial, boolean set_for_shape,
                 int[] spatialDimensions, float[][] range_select,
                 float[][] flow1_values, float[][] flow2_values,
-                float[] flowScale)
+                float[] flowScale, boolean[] swap)
          throws VisADException, RemoteException {
     return ShadowType.assembleSpatial(spatial_values, display_values,
            valueArrayLength, valueToScalar, display, default_values,
            inherited_values, domain_set, allSpatial, set_for_shape,
            spatialDimensions, range_select, flow1_values, flow2_values,
-           flowScale);
+           flowScale, swap);
   }
 
   /** assemble Flow components;
@@ -313,13 +313,14 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       return false;
     }
 
+    boolean[] swap = {false};
     int[] spatialDimensions = new int[2];
     float[][] spatial_values = new float[3][];
     assembleSpatial(spatial_values, display_values, valueArrayLength,
                     valueToScalar, display, default_values,
                     inherited_values, null, false, false,
                     spatialDimensions, range_select,
-                    flow1_values, flow2_values, flowScale);
+                    flow1_values, flow2_values, flowScale, swap);
 
     if (range_select[0] != null && range_select[0][0] != range_select[0][0]) {
       // data not selected

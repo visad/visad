@@ -611,6 +611,8 @@ for (int j=0; j<mm; j++) System.out.println("range_values[0]["+j+"] = " +
       // spatialDimensions[0] = spatialDomainDimension and
       // spatialDimensions[1] = spatialManifoldDimension
       int[] spatialDimensions = new int[2];
+      // flag for swapping rows and columns in contour labels
+      boolean[] swap = {false};
 
       // MEM
       Set spatial_set = 
@@ -619,7 +621,7 @@ for (int j=0; j<mm; j++) System.out.println("range_values[0]["+j+"] = " +
                         inherited_values, domain_set,
           ((ShadowRealTupleType) Domain.adaptedShadowType).getAllSpatial(),
                         anyContour, spatialDimensions, range_select,
-                        flow1_values, flow2_values, flowScale);
+                        flow1_values, flow2_values, flowScale, swap);
 
       if (range_select[0] != null && range_select[0].length == 1 &&
           range_select[0][0] != range_select[0][0]) {
@@ -806,7 +808,8 @@ END MISSING TEST */
                 else if (spatialManifoldDimension == 2) {
                   VisADGeometryArray[] arrays =
                     spatial_set.makeIsoLines(fvalues[1], fvalues[2], fvalues[3],
-                                  fvalues[4], display_values[i], color_values);
+                                             fvalues[4], display_values[i],
+                                             color_values, swap[0]);
                   if (arrays != null && arrays.length != 0 && arrays[0] != null) {
                     appearance = makeAppearance(mode, constant_alpha,
                                                 constant_color, arrays[0]);
