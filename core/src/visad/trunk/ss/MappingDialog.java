@@ -42,11 +42,11 @@ import java.util.Vector;
 // VisAD packages
 import visad.*;
 
-/** MappingDialog is a dialog that lets the user create ScalarMaps. */
+/** MappingDialog is a dialog that lets the user create ScalarMaps */
 public class MappingDialog extends JDialog implements ActionListener,
                                                       ListSelectionListener,
                                                       MouseListener {
-  /** Flag whether user hit Done or Cancel button. */
+  /** Flag whether user hit Done or Cancel button */
   public boolean Confirm = false;
 
   /** ScalarMaps selected by the user */
@@ -56,14 +56,16 @@ public class MappingDialog extends JDialog implements ActionListener,
   JComponent MathCanvas;
   JScrollPane MathCanvasView;
   JList MathList;
-  Canvas DisplayCanvas;
+  JComponent DisplayCanvas;
   DefaultListModel CurMaps;
   JList CurrentMaps;
   JScrollPane CurrentMapsView;
+  Vector MathVector;
+  int DuplCount = 0;
   String[] Scalars;
   RealType[] MathTypes;
-  int[] ScX;
-  int[] ScY;
+  int[][] ScX;
+  int[][] ScY;
   int[] ScW;
   int ScH;
   int StrWidth = 0;
@@ -112,13 +114,13 @@ public class MappingDialog extends JDialog implements ActionListener,
   static boolean Inited = false;
 
   /** Pre-loads the display.gif file, so it's ready when
-      mapping dialog is requested. */
+      mapping dialog is requested */
   static void initDialog() {
     if (DRT == null) DRT = Toolkit.getDefaultToolkit().getImage("display.gif");
     Inited = true;
   }
 
-  /** Constructor for MappingDialog. */
+  /** Constructor for MappingDialog */
   public MappingDialog(Frame parent, Data data, ScalarMap[] startMaps) {
     super(parent, "Set up data mappings", true);
 
@@ -130,15 +132,8 @@ public class MappingDialog extends JDialog implements ActionListener,
     contentPane.add(Box.createRigidArea(new Dimension(0, 5)));
 
     // parse MathType
-    Vector mathVector = new Vector();
-    parseMathType(data, mathVector);
-    int num = mathVector.size();
-    Scalars = new String[num];
-    MathTypes = new RealType[num];
-    for (int i=0; i<num; i++) {
-      MathTypes[i] = (RealType) mathVector.elementAt(i);
-      Scalars[i] = MathTypes[i].getName();
-    }
+    MathVector = new Vector();
+    parseMathType(data);
     String mt = null;
     try {
       mt = data.getType().prettyString();
@@ -146,6 +141,9 @@ public class MappingDialog extends JDialog implements ActionListener,
     catch (VisADException exc) { }
     catch (RemoteException exc) { }
     final String[] mtype = extraPretty(mt);
+
+    // alphabetize Scalars list
+    sort(0, Scalars.length-1);
 
     // set up "MathType" label
     JLabel l0 = new JLabel("MathType:");
@@ -172,17 +170,19 @@ public class MappingDialog extends JDialog implements ActionListener,
     MathCanvas = new JComponent() {
       public void paint(Graphics g) {
         // draw "pretty-print" MathType using image
-        g.setFont(Mono);
         g.drawImage(img, 0, 0, this);
         int ind = MathList.getSelectedIndex();
         if (ind >= 0) {
-          g.setColor(Color.blue);
-          int x = ScX[ind]+5;
-          int y = (ScH+2)*ScY[ind];
+          g.setFont(Mono);
           String s = (String) Scalars[ind];
-          g.fillRect(x, y+6, ScW[ind], ScH);
-          g.setColor(Color.white);
-          g.drawString(s, x, y+ScH+2);
+          for (int i=0; i<ScX[ind].length; i++) {
+            int x = ScX[ind][i]+5;
+            int y = (ScH+2)*ScY[ind][i];
+            g.setColor(Color.blue);
+            g.fillRect(x, y+6, ScW[ind], ScH);
+            g.setColor(Color.white);
+            g.drawString(s, x, y+ScH+2);
+          }
         }
       }
     };
@@ -203,7 +203,11 @@ public class MappingDialog extends JDialog implements ActionListener,
     verti.setBlockIncrement(5*ScH+10);
     verti.setUnitIncrement(ScH+2);
     topPanel.add(Box.createRigidArea(new Dimension(5, 0)));
-    topPanel.add(MathCanvasView);
+    JPanel whitePanel = new JPanel();
+    whitePanel.setBackground(Color.white);
+    whitePanel.setLayout(new BoxLayout(whitePanel, BoxLayout.X_AXIS));
+    whitePanel.add(MathCanvasView);
+    topPanel.add(whitePanel);
     topPanel.add(Box.createRigidArea(new Dimension(5, 0)));
 
     // set up lower panel
@@ -220,6 +224,7 @@ public class MappingDialog extends JDialog implements ActionListener,
 
     // begin set up "current mappings" list
     CurMaps = new DefaultListModel();
+    int num = MathTypes.length;
     CurMaps.ensureCapacity(num*35);
     CurrentMaps = new JList(CurMaps);
 
@@ -273,7 +278,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     centerPanel.add(l2);
 
     // set up "map to" canvas
-    DisplayCanvas = new Canvas() {
+    DisplayCanvas = new JComponent() {
       public void paint(Graphics g) {
         if (DRT == null) {
           if (!Inited) {
@@ -392,10 +397,11 @@ public class MappingDialog extends JDialog implements ActionListener,
     rsPanel.add(CurrentMapsView);
   }
 
-  /** Parses a prettyString() to find out some information. */
+  /** Parses a prettyString to find out some information,
+      then eliminates duplicate RealTypes */
   String[] extraPretty(String pStr) {
     // extract number of lines from prettyString
-    int numLines=1;
+    int numLines = 1;
     int len = pStr.length();
     for (int i=0; i<len; i++) {
       if (pStr.charAt(i) == '\n') numLines++;
@@ -405,52 +411,97 @@ public class MappingDialog extends JDialog implements ActionListener,
     String[] retStr = new String[numLines];
     int lineNum = 0;
     int lastLine = 0;
-    String scalar = (String) Scalars[0];
+    String scalar = ((RealType) MathVector.elementAt(0)).getName();
     int scalarNum = 0;
     int scalarLen = scalar.length();
-    int numScalars = Scalars.length;
-    ScX = new int[numScalars];
-    ScY = new int[numScalars];
-    ScW = new int[numScalars];
+    int numScalars = MathVector.size();
+    int[] x = new int[numScalars];
+    int[] y = new int[numScalars];
+    int[] w = new int[numScalars];
     FontMetrics fm = getFontMetrics(Mono);
     ScH = fm.getHeight();
     StrWidth = 0;
     StrHeight = (ScH+2)*numLines+10;
 
     // extract info from prettyString
-    int i = 0;
-    while (i <= len) {
+    int q = 0;
+    while (q <= len) {
       // fill in array of strings
-      if (i == len || pStr.charAt(i) == '\n') {
-        String lnStr = pStr.substring(lastLine, i);
+      if (q == len || pStr.charAt(q) == '\n') {
+        String lnStr = pStr.substring(lastLine, q);
         lnStr = lnStr+" ";  // stupid FontMetrics bug work-around
         int lnStrLen = fm.stringWidth(lnStr);
         if (lnStrLen > StrWidth) StrWidth = lnStrLen;
         retStr[lineNum++] = lnStr;
-        lastLine = i+1;
+        lastLine = q+1;
       }
 
       // fill in scalar info
-      if (i+scalarLen <= len &&
-          pStr.substring(i, i+scalarLen).equals(scalar)) {
-        ScX[scalarNum] = fm.stringWidth(pStr.substring(lastLine, i));
-        ScY[scalarNum] = lineNum;
-        ScW[scalarNum] = fm.stringWidth(scalar);
+      if (q+scalarLen <= len &&
+          pStr.substring(q, q+scalarLen).equals(scalar)) {
+        x[scalarNum] = fm.stringWidth(pStr.substring(lastLine, q));
+        y[scalarNum] = lineNum;
+        w[scalarNum] = fm.stringWidth(scalar);
         scalarNum++;
-        i += scalarLen;
+        q += scalarLen;
         if (scalarNum < numScalars) {
-          scalar = (String) Scalars[scalarNum];
+          scalar = ((RealType) MathVector.elementAt(scalarNum)).getName();
           scalarLen = scalar.length();
         }
       }
-      else i++;
+      else q++;
     }
+
+    // remove duplicates from all data structures
+    int num = numScalars - DuplCount;
+    Scalars = new String[num];
+    MathTypes = new RealType[num];
+    ScX = new int[num][];
+    ScY = new int[num][];
+    ScW = new int[num];
+    int[] trans = new int[numScalars];
+    int[] numXY = new int[numScalars];
+    for (int i=0; i<numScalars; i++) numXY[i] = 0;
+    int modifier = 0;
+    for (int i=0; i<numScalars; i++) {
+      // NOTE: This implementation assumes that Vector.indexOf(Object)
+      //       returns the FIRST index in the Vector occupied by that
+      //       Object (i.e., the closest to 0).
+      int ind = MathVector.indexOf(MathVector.elementAt(i));
+      if (i == ind) trans[i] = ind - modifier;
+      else {
+        trans[i] = trans[ind];
+        modifier++;
+      }
+      numXY[ind]++;
+    }
+    int[] j = new int[num];
+    for (int i=0; i<numScalars; i++) {
+      int t = trans[i];
+      if (numXY[i] > 0) {
+        MathTypes[t] = (RealType) MathVector.elementAt(i);
+        Scalars[t] = MathTypes[t].getName();
+        int u = numXY[i];
+        ScX[t] = new int[u];
+        ScY[t] = new int[u];
+        ScX[t][u-1] = x[i];
+        ScY[t][u-1] = y[i];
+        ScW[t] = w[i];
+        j[t] = u - 2;
+      }
+      else {
+        int jt = j[t]--;
+        ScX[t][jt] = x[i];
+        ScY[t][jt] = y[i];
+      }
+    }
+    MathVector = null;
 
     return retStr;
   }
 
-  /** Returns a Vector of Strings containing the ScalarType names. */
-  void parseMathType(Data data, Vector objs) {
+  /** Returns a Vector of Strings containing the ScalarType names */
+  void parseMathType(Data data) {
     MathType dataType;
     try {
       dataType = data.getType();
@@ -463,50 +514,50 @@ public class MappingDialog extends JDialog implements ActionListener,
     }
 
     if (dataType instanceof FunctionType) {
-      parseFunction((FunctionType) dataType, objs);
+      parseFunction((FunctionType) dataType);
     }
     else if (dataType instanceof SetType) {
-      parseSet((SetType) dataType, objs);
+      parseSet((SetType) dataType);
     }
     else if (dataType instanceof TupleType) {
-      parseTuple((TupleType) dataType, objs);
+      parseTuple((TupleType) dataType);
     }
-    else parseScalar((ScalarType) dataType, objs);
+    else parseScalar((ScalarType) dataType);
   }
 
-  /** Used by parseMathType. */
-  void parseFunction(FunctionType mathType, Vector objs) {
+  /** Used by parseMathType */
+  void parseFunction(FunctionType mathType) {
     // extract domain
     RealTupleType domain = mathType.getDomain();
-    parseTuple((TupleType) domain, objs);
+    parseTuple((TupleType) domain);
 
     // extract range
     MathType range = mathType.getRange();
     if (range instanceof FunctionType) {
-      parseFunction((FunctionType) range, objs);
+      parseFunction((FunctionType) range);
     }
     else if (range instanceof SetType) {
-      parseSet((SetType) range, objs);
+      parseSet((SetType) range);
     }
     else if (range instanceof TupleType) {
-      parseTuple((TupleType) range, objs);
+      parseTuple((TupleType) range);
     }
-    else parseScalar((ScalarType) range, objs);
+    else parseScalar((ScalarType) range);
 
     return;
   }
 
-  /** Used by parseMathType. */
-  void parseSet(SetType mathType, Vector objs) {
+  /** Used by parseMathType */
+  void parseSet(SetType mathType) {
     // extract domain
     RealTupleType domain = mathType.getDomain();
-    parseTuple((TupleType) domain, objs);
+    parseTuple((TupleType) domain);
 
     return;
   }
 
-  /** Used by parseMathType. */
-  void parseTuple(TupleType mathType, Vector objs) {
+  /** Used by parseMathType */
+  void parseTuple(TupleType mathType) {
     // extract components
     for (int i=0; i<mathType.getDimension(); i++) {
       MathType cType = null;
@@ -517,28 +568,61 @@ public class MappingDialog extends JDialog implements ActionListener,
 
       if (cType != null) {
         if (cType instanceof FunctionType) {
-          parseFunction((FunctionType) cType, objs);
+          parseFunction((FunctionType) cType);
         }
         else if (cType instanceof SetType) {
-          parseSet((SetType) cType, objs);
+          parseSet((SetType) cType);
         }
         else if (cType instanceof TupleType) {
-          parseTuple((TupleType) cType, objs);
+          parseTuple((TupleType) cType);
         }
-        else parseScalar((ScalarType) cType, objs);
+        else parseScalar((ScalarType) cType);
       }
     }
     return;
   }
 
-  /** Used by parseMathType. */
-  void parseScalar(ScalarType mathType, Vector objs) {
-    if (mathType instanceof RealType && !objs.contains(mathType)) {
-      objs.addElement(mathType);
+  /** Used by parseMathType */
+  void parseScalar(ScalarType mathType) {
+    if (mathType instanceof RealType) {
+      if (MathVector.contains(mathType)) DuplCount++;
+      MathVector.addElement(mathType);
     }
   }
 
-  /** Highlights a box in the "map to" canvas. */
+  /** Recursive quick-sort routine used to alphabetize scalars */
+  private void sort(int lo0, int hi0) {
+    int lo = lo0;
+    int hi = hi0;
+    String mid = Scalars[(lo0+hi0)/2].toLowerCase();
+    while (lo <= hi) {
+      while (lo < hi0 && Scalars[lo].toLowerCase().compareTo(mid) < 0) ++lo;
+      while (hi > lo0 && Scalars[hi].toLowerCase().compareTo(mid) > 0) --hi;
+      if (lo <= hi) {
+        String s = Scalars[lo];
+        Scalars[lo] = Scalars[hi];
+        Scalars[hi] = s;
+        RealType r = MathTypes[lo];
+        MathTypes[lo] = MathTypes[hi];
+        MathTypes[hi] = r;
+        int[] ia = ScX[lo];
+        ScX[lo] = ScX[hi];
+        ScX[hi] = ia;
+        ia = ScY[lo];
+        ScY[lo] = ScY[hi];
+        ScY[hi] = ia;
+        int i = ScW[lo];
+        ScW[lo] = ScW[hi];
+        ScW[hi] = i;
+        lo++;
+        hi--;
+      }
+    }
+    if (lo0 < hi) sort(lo0, hi);
+    if (lo < hi0) sort(lo, hi0);
+  }
+
+  /** Highlights a box in the "map to" canvas */
   void highlightBox(int col, int row, Graphics g) {
     int x = 40*col;
     int y = 40*row;
@@ -556,7 +640,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     g.drawLine(x, y+n2, x+n1, y+40);
   }
 
-  /** Handles button press events. */
+  /** Handles button press events */
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
 
@@ -636,13 +720,14 @@ public class MappingDialog extends JDialog implements ActionListener,
     else if (cmd.equals("cancel")) setVisible(false);
   }
 
-  /** Handles list selection change events. */
+  /** Handles list selection change events */
   public void valueChanged(ListSelectionEvent e) {
     if (!e.getValueIsAdjusting()) {
       if ((JList) e.getSource() == MathList) {
         DisplayCanvas.paint(DisplayCanvas.getGraphics());
         int i = MathList.getSelectedIndex();
-        Rectangle r = new Rectangle(ScX[i]+5, (ScH+2)*ScY[i]+6, ScW[i], ScH);
+        Rectangle r = new Rectangle(ScX[i][0]+5, (ScH+2)*ScY[i][0]+6,
+                                    ScW[i], ScH);
         MathList.ensureIndexIsVisible(i);
         MathCanvas.scrollRectToVisible(r);
         MathCanvas.repaint();
@@ -650,18 +735,21 @@ public class MappingDialog extends JDialog implements ActionListener,
     }
   }
 
-  /** Handles mouse clicks in the "map to" canvas. */
+  /** Handles mouse clicks in the "map to" canvas */
   public void mousePressed(MouseEvent e) {
     Component c = e.getComponent();
     if (c == MathCanvas) {
       Point p = e.getPoint();
-      for (int i=0; i<ScX.length; i++) {
-        Rectangle r = new Rectangle(ScX[i]+5, (ScH+2)*ScY[i]+6, ScW[i], ScH);
-        if (r.contains(p)) {
-          MathList.setSelectedIndex(i);
-          MathList.ensureIndexIsVisible(i);
-          MathCanvas.scrollRectToVisible(r);
-          break;
+      for (int i=0; i<Scalars.length; i++) {
+        for (int j=0; j<ScX[i].length; j++) {
+          Rectangle r = new Rectangle(ScX[i][j]+5, (ScH+2)*ScY[i][j]+6,
+                                      ScW[i], ScH);
+          if (r.contains(p)) {
+            MathList.setSelectedIndex(i);
+            MathList.ensureIndexIsVisible(i);
+            MathCanvas.scrollRectToVisible(r);
+            return;
+          }
         }
       }
     }
