@@ -341,14 +341,15 @@ public class AlignToolPanel extends ToolPanel {
       sliceDistance.setEnabled(false);
       zAspect.setEnabled(false);
     }
-    drift.setEnabled(enabled);
-    legend.setEnabled(enabled);
-    redBar.setEnabled(enabled);
-    redLabel.setEnabled(enabled);
-    yellowBar.setEnabled(enabled);
-    yellowLabel.setEnabled(enabled);
-    blueBar.setEnabled(enabled);
-    blueLabel.setEnabled(enabled);
+    boolean b = enabled && bio.display3 != null;
+    drift.setEnabled(b);
+    legend.setEnabled(b);
+    redBar.setEnabled(b);
+    redLabel.setEnabled(b);
+    yellowBar.setEnabled(b);
+    yellowLabel.setEnabled(b);
+    blueBar.setEnabled(b);
+    blueLabel.setEnabled(b);
   }
 
   /** Gets whether microns should be used instead of pixels. */

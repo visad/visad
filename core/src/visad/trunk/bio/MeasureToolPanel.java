@@ -647,7 +647,8 @@ public class MeasureToolPanel extends ToolPanel {
   /** Updates the "snap to slices" checkbox. */
   void updateSnapToSlice() {
     /*
-    boolean b = bio.sm.align.getMode() == AlignmentPlane.OFF_MODE;
+    boolean b = bio.sm.align != null &&
+      bio.sm.align.getMode() == AlignmentPlane.OFF_MODE;
     if (!b) snap.setSelected(false);
     snap.setEnabled(b);
     */
@@ -760,7 +761,8 @@ public class MeasureToolPanel extends ToolPanel {
       else id = bio.mm.maxSID++; // thing.stdType == MeasureThing.STD_SINGLE
       thing.setStandard(MeasureThing.STD_2D, id);
       int numSlices = bio.sm.getNumberOfSlices();
-      boolean trans = bio.sm.align.getMode() == AlignmentPlane.APPLY_MODE;
+      boolean trans = bio.sm.align != null &&
+        bio.sm.align.getMode() == AlignmentPlane.APPLY_MODE;
       for (int j=0; j<bio.mm.lists.length; j++) {
         MeasureList list = bio.mm.lists[j];
         boolean update = j == index;
@@ -806,7 +808,8 @@ public class MeasureToolPanel extends ToolPanel {
       }
       else id = bio.mm.maxSID++; // thing.stdType == MeasureThing.STD_SINGLE
       thing.setStandard(MeasureThing.STD_3D, id);
-      boolean trans = bio.sm.align.getMode() == AlignmentPlane.APPLY_MODE;
+      boolean trans = bio.sm.align != null &&
+        bio.sm.align.getMode() == AlignmentPlane.APPLY_MODE;
       for (int j=0; j<bio.mm.lists.length; j++) {
         if (j == index) continue;
         MeasureList list = bio.mm.lists[j];

@@ -339,7 +339,7 @@ public class SliceManager implements ControlListener,
       if (volume) doVolumeMode();
       updateStuff();
     }
-    align.setIndex(index);
+    if (align != null) align.setIndex(index);
   }
 
   /** Sets the currently displayed image slice. */
@@ -654,8 +654,8 @@ public class SliceManager implements ControlListener,
         }
       }
     }
-    arb.saveState(fout);
-    align.saveState(fout);
+    if (arb != null) arb.saveState(fout);
+    if (align != null) align.saveState(fout);
   }
 
   /** Restores the current program state from the given input stream. */
@@ -722,8 +722,8 @@ public class SliceManager implements ControlListener,
         }
       }
     }
-    arb.restoreState(fin);
-    align.restoreState(fin);
+    if (arb != null) arb.restoreState(fin);
+    if (align != null) align.restoreState(fin);
   }
 
 
