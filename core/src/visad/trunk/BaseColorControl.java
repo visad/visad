@@ -98,6 +98,10 @@ public abstract class BaseColorControl extends Control {
     }
   }
 
+  public void initGreyWedge() {
+    initTableGreyWedge(table, components);
+  }
+
   /** Get the number of components of the range */
   public int getNumberOfComponents() { return components; }
 

@@ -131,8 +131,10 @@ public class SatDisplay {
     // run 'java -mx64m SatDisplay X 2D' for flat display
     public static void main (String[] args) {
 
-        String mapFile = "ftp://www.ssec.wisc.edu/pub/visad-2.0/OUTLSUPW";
-        String areaFile = "ftp://www.ssec.wisc.edu/pub/visad-2.0/AREA2001";
+        // String mapFile = "ftp://www.ssec.wisc.edu/pub/visad-2.0/OUTLSUPW";
+        // String areaFile = "ftp://www.ssec.wisc.edu/pub/visad-2.0/AREA2001";
+        String mapFile = "OUTLSUPW";
+        String areaFile = "AREA2001";
         boolean threeD = true;
         boolean remap = false;
 
