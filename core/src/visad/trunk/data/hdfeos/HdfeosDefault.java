@@ -39,7 +39,9 @@ public class HdfeosDefault extends Hdfeos {
      super("Default");
   }
      
-  public DataImpl open( String file_path ) throws VisADException, RemoteException {
+  public DataImpl open( String file_path ) 
+    throws VisADException, RemoteException 
+  {
 
     DataImpl data = null;
 
@@ -51,8 +53,9 @@ public class HdfeosDefault extends Hdfeos {
 
   }
 
-  public DataImpl open( URL url ) throws VisADException {
-
+  public DataImpl open( URL url ) 
+    throws VisADException 
+  {
     throw new UnimplementedException( "HdfeosDefault.open( URL url )" );
   }
 
@@ -62,14 +65,14 @@ public class HdfeosDefault extends Hdfeos {
     throw new BadFormException( "HdfeosDefault.add" );
   }
 
-  public void save( String id, Data data, boolean replace ) throws
-     BadFormException, RemoteException, VisADException {
-
+  public void save( String id, Data data, boolean replace )
+    throws BadFormException, RemoteException, VisADException 
+  {
     throw new UnimplementedException( "HdfeosDefault.save" );
   }
 
-  public FormNode getForms( Data data ) {
-
+  public FormNode getForms( Data data ) 
+  {
     return this;
   }
 
@@ -78,124 +81,95 @@ public class HdfeosDefault extends Hdfeos {
   {
 
     MathType M_type = null;
+    FileDataSet f_data = null;
 
-    int n_grids = file.getNumberOfGrids();
-    int n_swaths = file.getNumberOfSwaths();
-
-    MathType[] types = new MathType[ n_grids + n_swaths ];
- 
-    for ( int ii = 0; ii < n_grids; ii++ ) {
-
-      FileDataSet f_data = getGridData( null );
-
-        try {
-
-          M_type = f_data.getVisADMathType();
-        }
-        catch ( VisADException e ) {
-
-          System.out.println( e.getMessage() );
-        }
-        finally {
-
-          return M_type;
-        }
+    int n_structs = file.getNumberOfStructs();
+    if ( n_structs == 0 )
+    {
+       throw new HdfeosException("no HDF-EOS data structures in file: "+file.getFileName());
     }
 
-    for ( int ii = 0; ii < n_swaths; ii++ ) {
+    MathType[] types = new MathType[ n_structs ];
+ 
+    for ( int ii = 0; ii < n_structs; ii++ ) 
+    {
+      EosStruct obj = file.getStruct(ii);
 
-      FileDataSet f_data = getSwathData( null );
+      if ( obj instanceof EosGrid )
+      {
+        f_data = getGridData( (EosGrid)obj );
+      }
+      else if ( obj instanceof EosSwath )
+      {
+        f_data = getSwathData( (EosSwath)obj );
+      }
 
-        try {
-
-          M_type = f_data.getVisADMathType();
-        }
-        catch ( VisADException e ) {
-
-          System.out.println( e.getMessage() );
-        }
-        finally {
-
-          return M_type;
-        }
+      try
+      {
+        M_type = f_data.getVisADMathType();
+      }
+      catch ( VisADException e ) 
+      {
+        System.out.println( e.getMessage() );
+      }
+      finally 
+      {
+        types[ii] = M_type; 
+      }
     }
 
      TupleType t_type = new TupleType( types );
      return (MathType) t_type;
   }
 
-  DataImpl getDataObject( HdfeosFile file ) throws VisADException, RemoteException 
+  DataImpl getDataObject( HdfeosFile file ) 
+    throws VisADException, RemoteException 
   {
 
     DataImpl data = null;
+    FileDataSet f_data = null;
 
-    int n_grids = file.getNumberOfGrids();
-    int n_swaths = file.getNumberOfSwaths();
+    int n_structs = file.getNumberOfStructs();
+    if ( n_structs == 0 ) 
+    {
+      throw new HdfeosException("no EOS data structures in file: "+file.getFileName());
+    }
 
-    DataImpl[] datas = new DataImpl[ n_grids + n_swaths ];
-    MathType[] types = new MathType[ n_grids + n_swaths ];
+    DataImpl[] datas = new DataImpl[ n_structs ];
+    MathType[] types = new MathType[ n_structs ];
  
-    if ( n_grids > 0 ) 
+    for ( int ii = 0; ii < n_structs; ii++ ) 
     {
-      for ( int ii = 0; ii < n_grids; ii++ ) 
+      EosStruct obj = file.getStruct(ii);
+
+      if ( obj instanceof EosGrid )
       {
-        EosGrid grid = file.getGrid(ii);
+        f_data = getGridData( (EosGrid)obj );
+      }
+      else if ( obj instanceof EosSwath )
+      {
+        f_data = getSwathData( (EosSwath)obj );
+      }
 
-        FileDataSet f_data = getGridData( grid );
-
-        try 
-        {
-          data = f_data.getVisADDataObject();
-        }
-        catch ( VisADException e ) 
-        {
-          System.out.println( e.getMessage() );
-        }
-        catch ( RemoteException e ) 
-        {
-          System.out.println( e.getMessage() );
-        }
-        finally 
-        {
-          types[ii] = data.getType();
-          datas[ii] = data;
-        }
+      try 
+      {
+        data = f_data.getVisADDataObject();
+      }
+      catch ( VisADException e ) 
+      {
+        System.out.println( e.getMessage() );
+      }
+      catch ( RemoteException e ) 
+      {
+        System.out.println( e.getMessage() );
+      }
+      finally 
+      {
+        types[ii] = data.getType();
+        datas[ii] = data;
       }
     }
 
-    if ( n_swaths > 0 ) 
-    {
-      for ( int ii = 0; ii < n_swaths; ii++ )
-      {
-        EosSwath swath = file.getSwath(ii);
-
-        FileDataSet f_data = getSwathData( swath );
-
-        try
-        {
-          data = f_data.getVisADDataObject();
-        }
-        catch ( VisADException e )
-        {
-          System.out.println( e.getMessage() );
-        }
-        catch ( RemoteException e )
-        {
-          System.out.println( e.getMessage() );
-        }
-        finally
-        {
-          types[ n_grids + ii] = data.getType();
-          datas[ n_grids + ii] = data;
-        }
-      }
-    }
-
-    if (( n_swaths + n_grids ) == 0 ) 
-    {
-       throw new HdfeosException( " no Swath or Grid structures in file: "+file.getFileName() );
-    }
-     
     TupleType t_type = new TupleType( types );
     Tuple tuple = new Tuple( t_type, datas, false );
 

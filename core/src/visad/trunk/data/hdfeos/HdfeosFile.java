@@ -32,12 +32,9 @@ import visad.data.hdfeos.hdfeosc.HdfeosLib;
 
     String filename;
     int  file_id;
-    int  n_grids;
-    int  n_swaths;
+    int  n_structs;
 
-    Vector allSwaths;
-    Vector allGrids;
-    Vector allPoints;
+    Vector Structs;
 
     static Vector openedFiles = new Vector();          // all opened file objects
 
@@ -52,14 +49,11 @@ import visad.data.hdfeos.hdfeosc.HdfeosLib;
       this.filename = filename;
 
       String[] swath_list = {"empty"};
-      n_swaths = Library.Lib.SWinqswath( filename, swath_list );
-
-           System.out.println( "n_swaths: "+n_swaths);
-           System.out.println( "name_list: "+swath_list[0]);
+      int n_swaths = Library.Lib.SWinqswath( filename, swath_list );
+      n_structs = 0;
+      Structs = new Vector();
 
       if ( n_swaths > 0 )  {
-
-         allSwaths = new Vector();
 
          file_id = Library.Lib.SWopen( filename, DFACC_READ );
 
@@ -70,21 +64,15 @@ import visad.data.hdfeos.hdfeosc.HdfeosLib;
          {
            String swath = (String) swaths.nextElement();
            EosSwath obj = new EosSwath( file_id, swath );
-           allSwaths.addElement( obj );
+           Structs.addElement( (EosStruct)obj );
+           n_structs++;
          }
       } 
 
-
       String[] grid_list = {"empty"};
-      n_grids = Library.Lib.GDinqgrid( filename, grid_list );
-
-           System.out.println( "n_grids: "+n_grids);
-           System.out.println( "name_list: "+grid_list[0]);
-
+      int n_grids = Library.Lib.GDinqgrid( filename, grid_list );
 
       if ( n_grids > 0 ) {
-
-         allGrids = new Vector();
 
          file_id = Library.Lib.GDopen( filename, DFACC_READ );
 
@@ -96,38 +84,28 @@ import visad.data.hdfeos.hdfeosc.HdfeosLib;
          {
            String grid = (String) grids.nextElement();
            EosGrid g_obj = new EosGrid( file_id, grid );
-           allGrids.addElement( g_obj );
+           Structs.addElement( (EosStruct)g_obj );
+           n_structs++;
          }
 
       }
 
       openedFiles.addElement( this );
-
     }
 
-    public int getNumberOfGrids() {
+    public int getNumberOfStructs() {
 
-       return n_grids; 
+      return n_structs; 
     }
 
-    public EosGrid getGrid( int ii ) {
+    public EosStruct getStruct( int ii ) {
 
-       return (EosGrid) allGrids.elementAt(ii);
-    }
-
-    public int getNumberOfSwaths() {
-
-       return n_swaths;
-    }
-
-    public EosSwath getSwath( int ii ) {
-
-       return (EosSwath) allSwaths.elementAt(ii);
+      return (EosStruct) Structs.elementAt(ii);
     }
 
     public String getFileName()
     {
-     return filename;
+      return filename;
     }
 
     public static void close() throws HdfeosException {

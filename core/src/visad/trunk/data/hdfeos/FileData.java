@@ -32,7 +32,8 @@ import visad.data.FileFlatField;
 import visad.data.FileAccessor;
 import visad.*;
 
-abstract class FileData  {
+abstract class FileData 
+{
 
   static CacheStrategy c_strategy = new CacheStrategy();
 
@@ -45,42 +46,39 @@ abstract class FileData  {
 
   public abstract MathType getVisADMathType() throws VisADException;
 
-  public DataImpl getAdaptedVisADDataObject( IndexSet i_set ) throws VisADException,
-     RemoteException
+  public DataImpl getAdaptedVisADDataObject( IndexSet i_set ) 
+     throws VisADException, RemoteException
   {
 
-        if ( this instanceof MetaField ) {
-
-          return getVisADDataObject( i_set );
-        }
-        else if ( this instanceof MetaFlatFieldSimple ) {
-
-          HdfeosAccessor accessor = new HdfeosAccessor( this, i_set );
+     if ( this instanceof MetaField ) 
+     {
+        return getVisADDataObject( i_set );
+     }
+     else if ( this instanceof MetaFlatFieldSimple ) 
+     {
+        HdfeosAccessor accessor = new HdfeosAccessor( this, i_set );
         
-          FileFlatField FF_field = new FileFlatField( (FileAccessor)accessor, c_strategy ); 
+        FileFlatField FF_field = new FileFlatField( (FileAccessor)accessor, c_strategy ); 
 
-          return FF_field;
-        }
-        else if ( this instanceof MetaFlatField ) {
+        return FF_field;
+     }
+     else if ( this instanceof MetaFlatField ) 
+     {
+        FileFlatField[] FF_field = new FileFlatField[ ((MetaFlatField)this).getSize() ];
 
-          FileFlatField[] FF_field = new FileFlatField[ ((MetaFlatField)this).getSize() ];
-
-          for ( int ii = 0; ii < ((MetaFlatField)this).getSize(); ii++ ) {
-
+        for ( int ii = 0; ii < ((MetaFlatField)this).getSize(); ii++ ) 
+        {
             HdfeosAccessor accessor = 
                 new HdfeosAccessor( ((MetaFlatField)this).getElement(ii), i_set );
  
             FF_field[ii] = new FileFlatField( (FileAccessor)accessor, c_strategy );
-          }
-
-
-           Tuple tuple = new Tuple( (TupleType)this.getVisADMathType(), FF_field, false );
-  
-           return tuple;
-
         }
+
+        Tuple tuple = new Tuple( (TupleType)this.getVisADMathType(), FF_field, false );
+  
+        return tuple;
+     }
  
     return null;
   }
-
 }

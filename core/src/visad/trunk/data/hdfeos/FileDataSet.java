@@ -36,7 +36,6 @@ import visad.*;
 
     FileDataSet() 
     {
-    
        dataSet = new Vector();
     }
 
@@ -51,12 +50,10 @@ import visad.*;
        {
          /* throw Exception: finished  */
        }
-
     }
 
     public void setToFinished() 
     {
-
        finished = true;
     }
 
@@ -73,22 +70,20 @@ import visad.*;
     }
 
 
-    public boolean isEmpty() {
-
+    public boolean isEmpty() 
+    {
       return dataSet.isEmpty();
     }
 
 
     public Enumeration getEnum()
     {
-
       Enumeration e = dataSet.elements();
       return e;
     }
 
     public MathType getVisADMathType() throws VisADException 
     {
-
       FileData f_data = null;
       MathType[] M_type =  new MathType[ getSize() ];
 
@@ -101,12 +96,10 @@ import visad.*;
       TupleType T_type = new TupleType( M_type );
 
       return T_type;
-
     }
 
     public DataImpl getVisADDataObject() throws VisADException, RemoteException 
     {
-
        FileData f_data = null;
        DataImpl[] data = new DataImpl[ getSize() ];
        IndexSet i_set = null;
@@ -125,7 +118,6 @@ import visad.*;
 
     public String toString() 
     {
-
       String str = "dataSet: \n";
 
       for ( int ii = 0; ii < this.getSize(); ii++ )

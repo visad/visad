@@ -28,7 +28,7 @@ import java.util.*;
 import java.lang.*;
 import java.rmi.*;
 
-public class EosGrid {
+public class EosGrid extends EosStruct {
 
   int grid_id;
   int file_id;
@@ -47,7 +47,7 @@ public class EosGrid {
   EosGrid ( int file_id, String name ) 
   throws HdfeosException 
   {
-
+     super();
      this.file_id = file_id;
      grid_name = name;
      grid_id = Library.Lib.GDattach( file_id, name );

@@ -29,7 +29,7 @@ import java.lang.*;
 import visad.*;
 import java.rmi.*;
 
-public class EosSwath {
+public class EosSwath extends EosStruct {
 
   int swath_id;
   private String swath_name;
@@ -52,6 +52,7 @@ public class EosSwath {
   EosSwath ( int file_id, String name ) 
   throws HdfeosException 
   {
+     super();
      swath_name = name;
      swath_id = Library.Lib.SWattach( file_id, name );
 

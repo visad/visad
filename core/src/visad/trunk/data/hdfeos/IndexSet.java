@@ -63,9 +63,7 @@ import java.util.*;
          
          this.D_Set.add( dim );
          indices.addElement( i_array );
-
        }
- 
 
     }
 
