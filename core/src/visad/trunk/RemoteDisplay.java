@@ -53,8 +53,8 @@ public interface RemoteDisplay extends Remote, Display {
   void removeSlave(RemoteSlaveDisplay display)
         throws VisADException, RemoteException;
   void removeAllSlaves() throws VisADException, RemoteException;
-  public boolean hasSlaves() throws VisADException, RemoteException;
-  public MouseBehavior getMouseBehavior()
+  boolean hasSlaves() throws VisADException, RemoteException;
+  MouseBehavior getMouseBehavior()
         throws VisADException, RemoteException;
   /* CTR 5 Oct 1999 - end code for slaved displays */
 
