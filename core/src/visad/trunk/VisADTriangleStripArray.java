@@ -1002,11 +1002,18 @@ System.out.println("any_split " + lons[i3] + " " + lons[i3 + 1] + " " +
           else { // (!last_split || lon_axis < 0) && accum > 0 && !this_split
             // just add the next point (i+3)
 
-            /*- TDR, initializie these ??  */
-            earlycoord = new float[]
-              {coordinates[i], coordinates[i+1], coordinates[i+2]};
-            lastcoord = new float[]
-              {coordinates[i+3], coordinates[i+4], coordinates[i+5]};
+            if (earlycoord == null) {
+              earlycoord = new float[3];
+              if (normals != null) {
+                earlyno = new float[3];
+              }
+              if (color_length > 0) {
+                earlycol = new byte[color_length];
+              }
+              if (texCoords != null) {
+                earlytex = new float[2];
+              }
+            }
 
             coord = new float[]
               {coordinates[i+3], coordinates[i+4], coordinates[i+5]};
