@@ -116,6 +116,7 @@ public class SelectionBox {
    * are supported.
    */
   public void select(MeasureThing thing) {
+    if (renderer == null) return;
     synchronized (cell) {
       try {
         cell.disableAction();

@@ -26,9 +26,12 @@ MA 02111-1307, USA
 
 package visad.bio;
 
+import java.io.*;
 import java.rmi.RemoteException;
 import java.util.Vector;
+import javax.swing.*;
 import visad.VisADException;
+import visad.util.Util;
 
 /** MeasureManager is the class encapsulating BioVisAD's measurement logic. */
 public class MeasureManager {
@@ -50,11 +53,17 @@ public class MeasureManager {
   /** Measurement group list. */
   Vector groups = new Vector();
 
+  /** Whether measurements have changed since last save. */
+  boolean changed = false;
+
 
   // -- OTHER FIELDS --
 
   /** BioVisAD frame. */
   private BioVisAD bio;
+
+  /** File chooser for loading and saving data. */
+  private JFileChooser fileBox = Util.getVisADFileChooser();
 
 
   // -- CONSTRUCTORS --
@@ -89,5 +98,71 @@ public class MeasureManager {
 
   /** Gets measurement list for current index. */
   public MeasureList getList() { return lists[bio.sm.getIndex()]; }
+
+  /**
+   * Checks whether measurements have been saved,
+   * and if not, prompts the user to save them.
+   */
+  public void checkSave() {
+    if (!changed) return;
+    int ans = JOptionPane.showConfirmDialog(bio,
+      "Save measurements?", "BioVisAD",
+      JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+    if (ans != JOptionPane.YES_OPTION) return;
+    saveMeasurements();
+  }
+
+  /** Restores a saved set of measurements. */
+  public void restoreMeasurements() {
+    bio.setWaitCursor(true);
+    // get file name from file dialog
+    fileBox.setDialogType(JFileChooser.OPEN_DIALOG);
+    if (fileBox.showOpenDialog(bio) != JFileChooser.APPROVE_OPTION) {
+      bio.setWaitCursor(false);
+      return;
+    }
+
+    // make sure file exists
+    File f = fileBox.getSelectedFile();
+    if (!f.exists()) {
+      JOptionPane.showMessageDialog(bio,
+        f.getName() + " does not exist", "Cannot load file",
+        JOptionPane.ERROR_MESSAGE);
+      bio.setWaitCursor(false);
+      return;
+    }
+
+    // restore measurements
+    try { new MeasureDataFile(bio, f).read(); }
+    catch (IOException exc) { exc.printStackTrace(); }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    bio.setWaitCursor(false);
+  }
+
+  /** Saves a set of measurements. */
+  public void saveMeasurements() {
+    bio.setWaitCursor(true);
+    // get file name from file dialog
+    fileBox.setDialogType(JFileChooser.SAVE_DIALOG);
+    if (fileBox.showSaveDialog(bio) != JFileChooser.APPROVE_OPTION) {
+      bio.setWaitCursor(false);
+      return;
+    }
+
+    // save measurements
+    File f = fileBox.getSelectedFile();
+    try {
+      MeasureDataFile mdf = new MeasureDataFile(bio, f);
+      if (bio.toolMeasure.getUseMicrons()) {
+        double mpp = bio.toolMeasure.getMicronsPerPixel();
+        double sd = bio.toolMeasure.getSliceDistance();
+        mdf.write(mpp, sd);
+      }
+      else mdf.write();
+    }
+    catch (IOException exc) { exc.printStackTrace(); }
+    changed = false;
+    bio.setWaitCursor(false);
+  }
 
 }

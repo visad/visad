@@ -62,11 +62,11 @@ public class SeriesChooser extends JPanel implements ActionListener {
   /** Toggle for creation of low-resolution thumbnails. */
   private JCheckBox thumbs;
 
-  /** Text field for number of megabytes to use for thumbnails. */
-  private JTextField thumbSize;
-
-  /** Label for thumbnail megabyte size. */
+  /** Label for thumbnail resolution. */
   private JLabel thumbLabel;
+
+  /** Text fields for thumbnail resolution. */
+  private JTextField thumbResX, thumbResY;
 
   /** Ok button. */
   private JButton ok;
@@ -105,7 +105,7 @@ public class SeriesChooser extends JPanel implements ActionListener {
     JLabel l1 = new JLabel("File prefix");
     JLabel l2 = new JLabel("Count");
     JLabel l3 = new JLabel("Type");
-    thumbLabel = new JLabel(" MB");
+    thumbLabel = new JLabel(" by ");
     l1.setForeground(Color.black);
     l2.setForeground(Color.black);
     l3.setForeground(Color.black);
@@ -114,7 +114,8 @@ public class SeriesChooser extends JPanel implements ActionListener {
     // create text fields
     prefix = new JTextField();
     count = new JTextField();
-    thumbSize = new JTextField("  32");
+    thumbResX = new JTextField("64");
+    thumbResY = new JTextField("64");
     Vector items = new Vector(types.length);
     for (int i=0; i<types.length; i++) items.add(types[i]);
     type = new JComboBox(items);
@@ -122,7 +123,8 @@ public class SeriesChooser extends JPanel implements ActionListener {
     count.setAlignmentX(JLabel.LEFT_ALIGNMENT);
     type.setAlignmentX(JLabel.LEFT_ALIGNMENT);
     Util.adjustTextField(prefix);
-    Util.adjustTextField(thumbSize);
+    Util.adjustTextField(thumbResX);
+    Util.adjustTextField(thumbResY);
     type.setEditable(true);
 
     // create check box
@@ -130,8 +132,9 @@ public class SeriesChooser extends JPanel implements ActionListener {
     thumbs.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         boolean enabled = thumbs.isSelected();
-        thumbSize.setEnabled(enabled);
         thumbLabel.setEnabled(enabled);
+        thumbResX.setEnabled(enabled);
+        thumbResY.setEnabled(enabled);
       }
     });
 
@@ -161,8 +164,9 @@ public class SeriesChooser extends JPanel implements ActionListener {
     mid1.add(mid1Left);
     mid1.add(mid1Right);
     mid2.add(thumbs);
-    mid2.add(thumbSize);
+    mid2.add(thumbResX);
     mid2.add(thumbLabel);
+    mid2.add(thumbResY);
     bottom.add(Box.createHorizontalGlue());
     bottom.add(select);
     bottom.add(ok);
@@ -185,7 +189,16 @@ public class SeriesChooser extends JPanel implements ActionListener {
     count.setText("");
     type.setSelectedItem(types[0]);
     dialog.setContentPane(this);
+
+    // hack so that thumbnail resolution text fields are wide enough
+    String xres = thumbResX.getText();
+    String yres = thumbResY.getText();
+    thumbResX.setText("9999");
+    thumbResY.setText("9999");
     dialog.pack();
+    thumbResX.setText(xres);
+    thumbResY.setText(yres);
+
     Util.centerWindow(dialog);
     dialog.setVisible(true);
     return rval;
@@ -226,10 +239,18 @@ public class SeriesChooser extends JPanel implements ActionListener {
   /** Gets whether to make low-resolution thumbnails. */
   public boolean getThumbs() { return thumbs.isSelected(); }
 
-  /** Gets number of megabytes to use for low-resolution thumbnails. */
-  public int getThumbSize() {
+  /** Gets X resolution for thumbnails. */
+  public int getThumbResX() {
     int size = -1;
-    try { size = Integer.parseInt(thumbSize.getText().trim()); }
+    try { size = Integer.parseInt(thumbResX.getText().trim()); }
+    catch (NumberFormatException exc) { }
+    return size;
+  }
+
+  /** Gets Y resolution for thumbnails. */
+  public int getThumbResY() {
+    int size = -1;
+    try { size = Integer.parseInt(thumbResY.getText().trim()); }
     catch (NumberFormatException exc) { }
     return size;
   }
@@ -277,7 +298,7 @@ public class SeriesChooser extends JPanel implements ActionListener {
         int guess = maxFiles / 2;
         int max = maxFiles;
         String end = (ext.equals("") ? "" : ".") + ext;
-        while (min != max) {
+        for (int j=0; min!=max && j<maxFiles; j++) {
           File top = new File(prefix + guess + end);
           File top1 = new File(prefix + (guess + 1) + end);
           boolean exists = top.exists();
@@ -288,7 +309,7 @@ public class SeriesChooser extends JPanel implements ActionListener {
           }
           else if (exists1) {
             // guess is too low
-            min = guess;
+            min = guess + 1;
           }
           else break;
           guess = (min + max) / 2;

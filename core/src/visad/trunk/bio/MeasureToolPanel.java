@@ -28,13 +28,11 @@ package visad.bio;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.io.*;
 import java.rmi.RemoteException;
 import javax.swing.*;
 import javax.swing.event.*;
 import visad.*;
 import visad.browser.*;
-import visad.util.Util;
 
 /**
  * MeasureToolPanel is the tool panel for
@@ -66,9 +64,6 @@ public class MeasureToolPanel extends ToolPanel {
 
 
   // -- FIELDS --
-
-  /** File chooser for loading and saving data. */
-  private JFileChooser fileBox = Util.getVisADFileChooser();
 
   /** New group dialog box. */
   private GroupDialog groupBox = new GroupDialog();
@@ -185,7 +180,7 @@ public class MeasureToolPanel extends ToolPanel {
     saveLines = new JButton("Save");
     saveLines.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        saveMeasurements(useMicrons.isSelected());
+        bio.mm.saveMeasurements();
       }
     });
     saveLines.setEnabled(false);
@@ -196,7 +191,7 @@ public class MeasureToolPanel extends ToolPanel {
     restoreLines = new JButton("Restore");
     restoreLines.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        restoreMeasurements(useMicrons.isSelected());
+        bio.mm.restoreMeasurements();
       }
     });
     restoreLines.setEnabled(false);
@@ -280,7 +275,7 @@ public class MeasureToolPanel extends ToolPanel {
     clearAll.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         int ans = JOptionPane.showConfirmDialog(tool,
-          "Are you sure?", "Clear all measurements",
+          "Really clear all measurements?", "BioVisAD",
           JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (ans != JOptionPane.YES_OPTION) return;
         bio.mm.clear();
@@ -537,6 +532,9 @@ public class MeasureToolPanel extends ToolPanel {
     }
   }
 
+  /** Gets whether microns should be used instead of pixels. */
+  public boolean getUseMicrons() { return useMicrons.isSelected(); }
+
   /** Gets the micron distance between pixels entered by the user. */
   public double getMicronsPerPixel() {
     double d;
@@ -553,70 +551,6 @@ public class MeasureToolPanel extends ToolPanel {
     catch (NumberFormatException exc) { d = Double.NaN; }
     if (d <= 0) d = Double.NaN;
     return d;
-  }
-
-  /** Restores a saved set of measurements. */
-  public void restoreMeasurements(boolean microns) {
-    final MeasureToolPanel measureTools = this;
-    final boolean fmicrons = microns;
-    Util.invoke(false, new Runnable() {
-      public void run() {
-        bio.setWaitCursor(true);
-        // get file name from file dialog
-        fileBox.setDialogType(JFileChooser.OPEN_DIALOG);
-        if (fileBox.showOpenDialog(bio) != JFileChooser.APPROVE_OPTION) {
-          bio.setWaitCursor(false);
-          return;
-        }
-      
-        // make sure file exists
-        File f = fileBox.getSelectedFile();
-        if (!f.exists()) {
-          JOptionPane.showMessageDialog(bio,
-            f.getName() + " does not exist", "Cannot load file",
-            JOptionPane.ERROR_MESSAGE);
-          bio.setWaitCursor(false);
-          return;
-        }
-      
-        // restore measurements
-        try { new MeasureDataFile(bio, f).read(); }
-        catch (IOException exc) { exc.printStackTrace(); }
-        catch (VisADException exc) { exc.printStackTrace(); }
-        bio.setWaitCursor(false);
-      }
-    });
-  }
-
-  /** Saves a set of measurements. */
-  public void saveMeasurements(boolean microns) {
-    final MeasureToolPanel measureTools = this;
-    final boolean fmicrons = microns;
-    Util.invoke(false, new Runnable() {
-      public void run() {
-        bio.setWaitCursor(true);
-        // get file name from file dialog
-        fileBox.setDialogType(JFileChooser.SAVE_DIALOG);
-        if (fileBox.showSaveDialog(bio) != JFileChooser.APPROVE_OPTION) {
-          bio.setWaitCursor(false);
-          return;
-        }
-    
-        // save measurements
-        File f = fileBox.getSelectedFile();
-        try {
-          MeasureDataFile mdf = new MeasureDataFile(bio, f);
-          if (fmicrons) {
-            double mpp = measureTools.getMicronsPerPixel();
-            double sd = measureTools.getSliceDistance();
-            mdf.write(mpp, sd);
-          }
-          else mdf.write();
-        }
-        catch (IOException exc) { exc.printStackTrace(); }
-        bio.setWaitCursor(false);
-      }
-    });
   }
 
 

@@ -118,6 +118,8 @@ public class MeasureThing {
           m.setValues(values, t);
         }
         mpool.valuesChanged(thing);
+        bio.mm.changed = true;
+        bio.state.saveState(false, true);
       }
     };
     cell.disableAction();
@@ -133,10 +135,18 @@ public class MeasureThing {
   // -- API METHODS --
 
   /** Sets the color. */
-  public void setColor(Color color) { m.setColor(color); }
+  public void setColor(Color color) {
+    m.setColor(color);
+    bio.mm.changed = true;
+    bio.state.saveState(false, true);
+  }
 
   /** Sets the group. */
-  public void setGroup(MeasureGroup group) { m.setGroup(group); }
+  public void setGroup(MeasureGroup group) {
+    m.setGroup(group);
+    bio.mm.changed = true;
+    bio.state.saveState(false, true);
+  }
 
   /** Prepares this measurement object to cease being used. */
   public void destroy() {

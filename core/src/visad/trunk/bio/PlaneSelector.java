@@ -25,6 +25,7 @@ MA 02111-1307, USA
 
 package visad.bio;
 
+import java.io.*;
 import java.rmi.RemoteException;
 import java.util.Vector;
 import visad.*;
@@ -525,6 +526,28 @@ public class PlaneSelector {
 
   /** Removes a PlaneListener. */
   public void removeListener(PlaneListener l) { listeners.remove(l); }
+
+
+  // -- INTERNAL API METHODS --
+
+  /** Writes the current program state to the given output stream. */
+  void saveState(PrintWriter fout) throws IOException, VisADException {
+    for (int i=2; i<refs.length; i++) {
+      RealTuple tuple = (RealTuple) refs[i].getData();
+      Real[] r = tuple.getRealComponents();
+      for (int j=0; j<3; j++) fout.println(r[j].getValue());
+    }
+  }
+
+  /** Restores the current program state from the given input stream. */
+  void restoreState(BufferedReader fin) throws IOException, VisADException {
+    for (int i=0; i<refs.length-2; i++) {
+      double x = Double.parseDouble(fin.readLine().trim());
+      double y = Double.parseDouble(fin.readLine().trim());
+      double z = Double.parseDouble(fin.readLine().trim());
+      setData(i, x, y, z);
+    }
+  }
 
 
   // -- HELPER METHODS --

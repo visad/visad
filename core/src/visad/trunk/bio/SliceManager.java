@@ -26,7 +26,7 @@ MA 02111-1307, USA
 
 package visad.bio;
 
-import java.io.File;
+import java.io.*;
 import java.rmi.RemoteException;
 import javax.swing.JOptionPane;
 import visad.*;
@@ -137,7 +137,7 @@ public class SliceManager
    * Collapsed field for current timestep, used
    * with arbitrary slicing and volume rendering.
    */
-  private FieldImpl flatField;
+  private FieldImpl collapsedField;
 
   /** List of range component mappings for 2-D display. */
   private ScalarMap[] rmaps2;
@@ -148,8 +148,20 @@ public class SliceManager
 
   // -- DATA REFERENCES --
 
-  /** Reference for image stack data. */
-  private DataReferenceImpl ref;
+  /** Reference for image stack data for 2-D display. */
+  private DataReferenceImpl ref2;
+
+  /** Reference for image stack data for 3-D display. */
+  private DataReferenceImpl ref3;
+
+  /** Reference for low-resolution image timestack data for 2-D display. */
+  private DataReferenceImpl lowresRef2;
+
+  /** Reference for low-resolution image timestack data for 3-D display. */
+  private DataReferenceImpl lowresRef3;
+
+  /** Reference for arbitrary plane data. */
+  private DataReferenceImpl planeRef;
 
   /** Data renderer for 2-D image stack data. */
   private DataRenderer renderer2;
@@ -157,14 +169,8 @@ public class SliceManager
   /** Data renderer for 3-D image stack data. */
   private DataRenderer renderer3;
 
-  /** Reference for arbitrary plane data. */
-  private DataReferenceImpl planeRef;
-
   /** Data renderer for arbitrary plane data in 2-D. */
   private DataRenderer planeRenderer2;
-
-  /** Reference for low-resolution image timestack data. */
-  private DataReferenceImpl lowresRef;
 
   /** Data renderer for low-resolution image timestack data in 2-D. */
   private DataRenderer lowresRenderer2;
@@ -175,8 +181,8 @@ public class SliceManager
 
   // -- THUMBNAIL-RELATED FIELDS --
 
-  /** Maximum memory to use for low-resolution thumbnails, in megabytes. */
-  private int thumbSize;
+  /** Resolution of thumbnails. */
+  private int[] thumbSize;
 
   /** Should low-resolution slices be displayed? */
   private boolean lowres;
@@ -232,14 +238,17 @@ public class SliceManager
     autoSwitch = true;
     planeSelect = false;
     continuous = false;
+    planeChanged = false;
     colorRange = new RealTupleType(
       new RealType[] {RED_TYPE, GREEN_TYPE, BLUE_TYPE});
 
     loader = new DefaultFamily("bio_loader");
 
     // data references
-    ref = new DataReferenceImpl("bio_ref");
-    lowresRef = new DataReferenceImpl("bio_lowresRef");
+    ref2 = new DataReferenceImpl("bio_ref2");
+    ref3 = new DataReferenceImpl("bio_ref3");
+    lowresRef2 = new DataReferenceImpl("bio_lowresRef2");
+    lowresRef3 = new DataReferenceImpl("bio_lowresRef3");
     planeRef = new DataReferenceImpl("bio_planeRef");
   }
 
@@ -303,9 +312,9 @@ public class SliceManager
   public void setAutoSwitch(boolean value) { autoSwitch = value; }
 
   /** Sets whether to create low-resolution thumbnails of the data. */
-  public void setThumbnails(boolean thumbnails, int size) {
+  public void setThumbnails(boolean thumbnails, int xres, int yres) {
     doThumbs = thumbnails;
-    thumbSize = size;
+    thumbSize = new int[] {xres, yres};
   }
 
   /** Sets whether to do arbitrary plane selection. */
@@ -332,13 +341,10 @@ public class SliceManager
     setFile(true);
     bio.horiz.updateSlider(timesteps);
     bio.vert.updateSlider(slices);
+    bio.state.saveState(true, false);
   }
 
-  /**
-   * Exports an animation of the given 
-   * Constructs a high-resolution data object of the animation
-   * across all timesteps, at the current slice.
-   */
+  /** Exports an animation of the current slice across all timesteps. */
   public void exportAnimationStack(Form saver, String file)
     throws VisADException
   {
@@ -404,7 +410,7 @@ public class SliceManager
   public void displayChanged(DisplayEvent e) {
     int id = e.getId();
     if (id == DisplayEvent.MOUSE_RELEASED_RIGHT) {
-      if (planeChanged && !continuous) updateSlice();
+      if (planeSelect && planeChanged && !continuous) updateSlice();
       planeChanged = false;
     }
   }
@@ -413,6 +419,7 @@ public class SliceManager
   public void planeChanged() {
     planeChanged = true;
     if (continuous) updateSlice();
+    bio.state.saveState(true, false);
   }
 
   /** Ensures slices are set up properly for animation. */
@@ -429,6 +436,7 @@ public class SliceManager
   void setSliceRange(int x, int y) {
     sliceRes_x = x;
     sliceRes_y = y;
+    bio.state.saveState(true, false);
   }
 
   /** Gets the color controls for 2-D range type color mappings. */
@@ -449,6 +457,34 @@ public class SliceManager
       controls[i] = (BaseColorControl) rmaps3[i].getControl();
     }
     return controls;
+  }
+
+  /** Writes the current program state to the given output stream. */
+  void saveState(PrintWriter fout) throws IOException, VisADException {
+    fout.println(files.length);
+    for (int i=0; i<files.length; i++) fout.println(files[i].getPath());
+    fout.println(hasThumbs);
+    fout.println(thumbSize[0]);
+    fout.println(thumbSize[1]);
+    fout.println(sliceRes_x);
+    fout.println(sliceRes_y);
+    ps.saveState(fout);
+  }
+
+  /** Restores the current program state from the given input stream. */
+  void restoreState(BufferedReader fin) throws IOException, VisADException {
+    int len = Integer.parseInt(fin.readLine().trim());
+    File[] files = new File[len];
+    for (int i=0; i<len; i++) files[i] = new File(fin.readLine().trim());
+    boolean thumbs = fin.readLine().trim().equals("true");
+    int thumbX = Integer.parseInt(fin.readLine().trim());
+    int thumbY = Integer.parseInt(fin.readLine().trim());
+    int sliceX = Integer.parseInt(fin.readLine().trim());
+    int sliceY = Integer.parseInt(fin.readLine().trim());
+    bio.toolView.setSliceRange(sliceX, sliceY);
+    setThumbnails(thumbs, thumbX, thumbY);
+    setSeries(files);
+    ps.restoreState(fin);
   }
 
 
@@ -476,7 +512,7 @@ public class SliceManager
 
           // create low-resolution thumbnails for timestep animation
           field = null;
-          flatField = null;
+          collapsedField = null;
           FieldImpl[][] thumbs = null;
           timesteps = f.length;
           double scale = Double.NaN;
@@ -505,17 +541,7 @@ public class SliceManager
             if (thumbs == null) thumbs = new FieldImpl[timesteps][slices];
             for (int j=0; j<slices; j++) {
               FieldImpl image = (FieldImpl) field.getSample(j);
-              if (scale != scale) {
-                // compute scale-down factor
-                GriddedSet set = (GriddedSet) image.getDomainSet();
-                int[] len = set.getLengths();
-                long freeBytes = MEGA * thumbSize;
-                long fullBytes = BYTES_PER_PIXEL *
-                  slices * timesteps * len[0] * len[1];
-                scale = Math.sqrt((double) freeBytes / fullBytes);
-                if (scale > 0.5) scale = 0.5;
-              }
-              thumbs[ndx][j] = DualRes.rescale(image, scale);
+              thumbs[ndx][j] = DualRes.rescale(image, thumbSize);
               dialog.setPercent(
                 100 * (slices * i + j + 1) / (timesteps * slices));
             }
@@ -581,8 +607,12 @@ public class SliceManager
           dialog.setText("Configuring displays");
 
           // set new data
-          ref.setData(field);
-          if (doThumbs) lowresRef.setData(lowresField);
+          ref2.setData(field);
+          ref3.setData(field);
+          if (doThumbs) {
+            lowresRef2.setData(lowresField);
+            lowresRef3.setData(lowresField);
+          }
 
           bio.toolView.guessTypes();
           configureDisplays();
@@ -652,8 +682,11 @@ public class SliceManager
       if (initialize) init(files, 0);
       else {
         field = loadData(files[index]);
-        flatField = null;
-        if (field != null) ref.setData(field);
+        collapsedField = null;
+        if (field != null) {
+          ref2.setData(field);
+          ref3.setData(field);
+        }
         else {
           bio.setWaitCursor(false);
           JOptionPane.showMessageDialog(bio,
@@ -711,7 +744,7 @@ public class SliceManager
     boolean on = renderer2 == null ? true : renderer2.getEnabled();
     renderer2 = dr.makeDefaultRenderer();
     renderer2.toggle(on);
-    bio.display2.addReferences(renderer2, ref);
+    bio.display2.addReferences(renderer2, ref2);
     on = planeRenderer2 == null ? false : planeRenderer2.getEnabled();
     planeRenderer2 = dr.makeDefaultRenderer();
     planeRenderer2.suppressExceptions(true);
@@ -721,7 +754,7 @@ public class SliceManager
       on = lowresRenderer2 == null ? false : lowresRenderer2.getEnabled();
       lowresRenderer2 = dr.makeDefaultRenderer();
       lowresRenderer2.toggle(on);
-      bio.display2.addReferences(lowresRenderer2, lowresRef);
+      bio.display2.addReferences(lowresRenderer2, lowresRef2);
     }
     bio.mm.pool2.init();
 
@@ -763,12 +796,12 @@ public class SliceManager
       on = renderer3 == null ? true : renderer3.getEnabled();
       renderer3 = bio.display3.getDisplayRenderer().makeDefaultRenderer();
       renderer3.toggle(on);
-      bio.display3.addReferences(renderer3, ref);
+      bio.display3.addReferences(renderer3, ref3);
       if (hasThumbs) {
         on = lowresRenderer3 == null ? false : lowresRenderer3.getEnabled();
         lowresRenderer3 = dr.makeDefaultRenderer();
         lowresRenderer3.toggle(on);
-        bio.display3.addReferences(lowresRenderer3, lowresRef);
+        bio.display3.addReferences(lowresRenderer3, lowresRef3);
       }
       bio.mm.pool3.init();
     }
@@ -880,7 +913,7 @@ public class SliceManager
 
     // switch resolution in 2-D display
     if (planeSelect) {
-      flatField = null;
+      collapsedField = null;
       updateSlice();
     }
     else if (lowres) {
@@ -919,12 +952,12 @@ public class SliceManager
   private void updateSlice() {
     bio.setWaitCursor(true);
     try {
-      if (flatField == null) {
+      if (collapsedField == null) {
         FieldImpl f = lowres ?
           (FieldImpl) lowresField.getSample(index) : field;
-        flatField = (FieldImpl) f.domainMultiply();
+        collapsedField = (FieldImpl) f.domainMultiply();
       }
-      planeRef.setData(ps.extractSlice(flatField,
+      planeRef.setData(ps.extractSlice(collapsedField,
         sliceRes_x, sliceRes_y, res_x, res_y));
     }
     catch (VisADException exc) { exc.printStackTrace(); }

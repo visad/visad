@@ -44,9 +44,9 @@ import visad.util.*;
 /**
  * BioVisAD is a multi-purpose biological analysis tool.
  *
- * It provides multi-dimensional visualization of biological data,
- * and supports distance measurement between points in a field or
- * stack of fields.
+ * It provides multi-dimensional visualization of an image or stack
+ * of images across time, arbitrary slicing of the data, and
+ * measurement tools for computing distances between data points.
  */
 public class BioVisAD extends GUIFrame implements ChangeListener {
 
@@ -99,6 +99,9 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   /** Object for handling slice logic. */
   SliceManager sm;
+
+  /** Object for handling state logic in case of a program crash. */
+  StateManager state;
 
 
   // -- GUI COMPONENTS --
@@ -182,6 +185,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     // logic managers
     mm = new MeasureManager(this);
     sm = new SliceManager(this);
+    state = new StateManager(this);
 
     // vertical slider
     vert = new ImageStackWidget(this);
@@ -224,11 +228,6 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   public void setImageColors(int brightness, int contrast,
     RealType red, RealType green, RealType blue)
   {
-    // get color controls
-    BaseColorControl[] cc2 = sm.getColorControls2D();
-    if (cc2 == null) return;
-    BaseColorControl[] cc3 = sm.getColorControls3D();
-
     // verify that image color information has changed
     if (this.brightness == brightness && this.contrast == contrast &&
       this.red == red && this.green == green && this.blue == blue)
@@ -240,6 +239,11 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     this.red = red;
     this.green = green;
     this.blue = blue;
+
+    // get color controls
+    BaseColorControl[] cc2 = sm.getColorControls2D();
+    if (cc2 == null) return;
+    BaseColorControl[] cc3 = sm.getColorControls3D();
 
     // compute center and slope from brightness and contrast
     double mid = COLOR_DETAIL / 2.0;
@@ -281,6 +285,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }
     }
+    state.saveState(true, false);
   }
 
 
@@ -299,7 +304,8 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
         // load first file in series
         File[] f = seriesBox.getSeries();
         prefix = seriesBox.getPrefix();
-        sm.setThumbnails(seriesBox.getThumbs(), seriesBox.getThumbSize());
+        sm.setThumbnails(seriesBox.getThumbs(),
+          seriesBox.getThumbResX(), seriesBox.getThumbResY());
         if (f == null || f.length < 1) {
           JOptionPane.showMessageDialog(frame,
             "Invalid series", "Cannot load series",
@@ -324,7 +330,11 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   }
 
   /** Exits the application. */
-  public void fileExit() { System.exit(0); }
+  public void fileExit() {
+    mm.checkSave();
+    state.destroy();
+    System.exit(0);
+  }
 
 
   // -- INTERNAL API METHODS --
@@ -340,6 +350,32 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   void setWaitCursor(boolean wait) {
     setCursor(wait ? Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) :
       Cursor.getDefaultCursor());
+  }
+
+  /** Writes the current program state to the given output stream. */
+  void saveState(PrintWriter fout) throws IOException, VisADException {
+    fout.println(brightness);
+    fout.println(contrast);
+    fout.println(red == null ? "null" : red.getName());
+    fout.println(green == null ? "null" : green.getName());
+    fout.println(blue == null ? "null" : blue.getName());
+    sm.saveState(fout);
+  }
+
+  /** Restores the current program state from the given input stream. */
+  void restoreState(BufferedReader fin)
+    throws IOException, VisADException
+  {
+    int bright = Integer.parseInt(fin.readLine().trim());
+    int cont = Integer.parseInt(fin.readLine().trim());
+    String r = fin.readLine().trim();
+    String g = fin.readLine().trim();
+    String b = fin.readLine().trim();
+    RealType red = r.equals("null") ? null : RealType.getRealType(r);
+    RealType green = g.equals("null") ? null : RealType.getRealType(g);
+    RealType blue = b.equals("null") ? null : RealType.getRealType(b);
+    toolView.setColors(bright, cont, red, green, blue);
+    sm.restoreState(fin);
   }
 
 
@@ -429,13 +465,14 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   /** Launches the BioVisAD GUI. */
   public static void main(String[] args) throws Exception {
-    BioVisAD bio = new BioVisAD();
+    final BioVisAD bio = new BioVisAD();
     bio.pack();
     bio.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) { System.exit(0); }
+      public void windowClosing(WindowEvent e) { bio.fileExit(); }
     });
     Util.centerWindow(bio);
     bio.show();
+    bio.state.checkState();
   }
 
 }

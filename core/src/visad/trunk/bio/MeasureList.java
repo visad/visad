@@ -110,6 +110,8 @@ public class MeasureList {
       bio.mm.pool2.add(m);
       if (bio.mm.pool3 != null) bio.mm.pool3.add(m);
     }
+    bio.mm.changed = true;
+    bio.state.saveState(false, true);
   }
 
   /** Removes a measurement from the measurement list. */
@@ -119,6 +121,8 @@ public class MeasureList {
     m.kill();
     bio.mm.pool2.refresh();
     if (bio.mm.pool3 != null) bio.mm.pool3.refresh();
+    bio.mm.changed = true;
+    bio.state.saveState(false, true);
   }
 
   /** Removes all measurements, notifying the measurement pool if specified. */
@@ -132,6 +136,8 @@ public class MeasureList {
       bio.mm.pool2.set(mm);
       if (bio.mm.pool3 != null) bio.mm.pool3.set(mm);
     }
+    bio.mm.changed = true;
+    bio.state.saveState(false, true);
   }
 
   /** Gets the list of measurements in array form. */

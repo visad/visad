@@ -90,6 +90,12 @@ public class BioColorWidget extends JPanel {
     return o instanceof RealType ? (RealType) o : null;
   }
 
+  /** Sets the currently selected RealType. */
+  public void setSelectedItem(RealType rt) {
+    if (rt == null) scalars.setSelectedIndex(0);
+    else scalars.setSelectedItem(rt);
+  }
+
   /** Adds an item listener to this widget. */
   public void addItemListener(ItemListener l) { scalars.addItemListener(l); }
 

@@ -100,6 +100,12 @@ public class ViewToolPanel extends ToolPanel {
   private JCheckBox sliceUpdate;
 
 
+  // -- OTHER FIELDS --
+
+  /** Should changes to the color components be ignored? */
+  private boolean ignore = false;
+
+
   // -- CONSTRUCTOR --
 
   /** Constructs a tool panel for adjusting viewing parameters. */
@@ -345,6 +351,7 @@ public class ViewToolPanel extends ToolPanel {
 
   /** Updates image color table, for brightness and color adjustments. */
   void doColorTable() {
+    if (ignore) return;
     bio.setImageColors(brightness.getValue(), contrast.getValue(),
       red.getSelectedItem(), green.getSelectedItem(), blue.getSelectedItem());
   }
@@ -363,6 +370,18 @@ public class ViewToolPanel extends ToolPanel {
   void setSliceRange(int x, int y) {
     sliceResX.setText("" + x);
     sliceResY.setText("" + y);
+  }
+
+  /** Updates color components to match those specified. */
+  void setColors(int bright, int cont, RealType r, RealType g, RealType b) {
+    ignore = true;
+    brightness.setValue(bright);
+    contrast.setValue(cont);
+    red.setSelectedItem(r);
+    green.setSelectedItem(g);
+    blue.setSelectedItem(b);
+    ignore = false;
+    doColorTable();
   }
 
 }

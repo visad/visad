@@ -65,7 +65,7 @@ public class MeasureDataFile {
   /** BioVisAD frame. */
   private BioVisAD bio;
 
-  /** Filename containing the measurement data. */
+  /** File containing the measurement data. */
   private File file;
 
 
@@ -328,7 +328,6 @@ public class MeasureDataFile {
     }
 
     // refresh GUI components
-    //
     bio.toolMeasure.updateInfo(microns, mpp, sd);
   }
 
