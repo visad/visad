@@ -94,24 +94,38 @@ public class ShowNCEPModel
   private RealType enableMap;
   private ScalarMap mapMap, xAxis, yAxis;
   private JCheckBox showMap;
-  static String argument;
   private String directory;
   private String MapFile;
 
   public static void main(String args[]) {
 
-    argument = "-1";
+    String argument = "-1";
     if (args != null && args.length > 0) {
       argument = args[0].trim();
     }
 
-    ShowNCEPModel ss = new ShowNCEPModel();
+    int num=1;
+    try {
+      num =  - (Integer.parseInt(argument));
+      if (num < 1 || num > 9) {
+        System.out.println("invalid number of tabs (1-9) = "+num);
+        System.exit(1);
+      }
+    } catch (Exception nex) {System.exit(1);}
+
+    try {
+      new ShowNCEPModel(num);
+    } catch (Exception e) {
+      e.printStackTrace(System.out);
+      System.exit(1);
+    }
   }
 
-  public ShowNCEPModel ( ) {
+  public ShowNCEPModel(int numPanels)
+    throws RemoteException, VisADException
+  {
 
     super("Show NCEP Model Data");
-    try {
 
     addWindowListener( new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0); }
@@ -129,15 +143,12 @@ public class ShowNCEPModel
     //MapFile = "../data/mcidas/OUTLAUST";
     MapFile = "../data/mcidas/OUTLUSAM";
 
-    buildData();
+    buildData(numPanels);
 
     buildUI();
-
-    } catch (Exception e) {e.printStackTrace(System.out); System.exit(1);}
-
   }
 
-  private void buildData()
+  private void buildData(int numPanels)
     throws RemoteException, VisADException
   {
     // define the VisAD mappings for the Data and Display
@@ -181,16 +192,7 @@ public class ShowNCEPModel
 
     tabby = new JTabbedPane();
 
-    int num=1;
-    try {
-      num =  - (Integer.parseInt(argument));
-      if (num < 1 || num > 9) {
-        System.out.println("invalid number of tabs (1-9) = "+num);
-        System.exit(1);
-      }
-    } catch (Exception nex) {System.exit(1);}
-
-    ncp = new NCEPPanel[num+1];
+    ncp = new NCEPPanel[numPanels+1];
 
     ncp[0] = new NCEPPanel(1, di, statLabel, tabby,  "Single-level Data");
     for (int i=1; i<ncp.length; i++) {
