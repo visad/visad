@@ -173,7 +173,8 @@ public class GridVariableAdapter
 	    if (rank == 1)
 	    {
 		domain =
-		    (SampledSet)domainAdapters[0].data((DArray)grid.getVar(1));
+		    (SampledSet)domainAdapters[0].data(
+			(DArray)grid.getVar(1), copy);
 	    }
 	    else
 	    {
@@ -185,7 +186,8 @@ public class GridVariableAdapter
 		for (int i = 0; i < rank; ++i)
 		{
 		    domainSets[i] = (SampledSet)
-			domainAdapters[i].data((DArray)grid.getVar(rank-i));
+			domainAdapters[i].data(
+			    (DArray)grid.getVar(rank-i), copy);
 		    isLinear &= domainSets[i] instanceof Linear1DSet;
 		}
 		if (!isLinear)
