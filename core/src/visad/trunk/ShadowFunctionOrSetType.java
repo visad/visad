@@ -1053,13 +1053,39 @@ if (range_select[0] != null) {
       // flags for swapping rows and columns in contour labels
       boolean[] swap = {false, false, false};
 
+      // WLH 29 April 99
+      boolean[][] spatial_range_select = new boolean[1][];
+
       // MEM - but not if isTextureMap
       Set spatial_set = 
         assembleSpatial(spatial_values, display_values, valueArrayLength,
                         valueToScalar, display, default_values,
                         inherited_values, domain_set, Domain.getAllSpatial(),
-                        anyContour, spatialDimensions, range_select,
+                        anyContour, spatialDimensions, spatial_range_select,
                         flow1_values, flow2_values, flowScale, swap);
+
+      // WLH 29 April 99
+      boolean spatial_all_select = true;
+      if (spatial_range_select[0] != null) {
+        spatial_all_select = false;
+        if (range_select[0] == null) {
+          range_select[0] = spatial_range_select[0];
+        }
+        else if (spatial_range_select[0].length == 1) {
+          for (int j=0; j<range_select[0].length; j++) {
+            range_select[0][j] =
+              range_select[0][j] && spatial_range_select[0][0];
+          }
+        }
+        else {
+          for (int j=0; j<range_select[0].length; j++) {
+            range_select[0][j] =
+              range_select[0][j] && spatial_range_select[0][j];
+          }
+        }
+      }
+      spatial_range_select = null;
+
 /*
 if (range_select[0] != null) {
   int numforced = 0;
@@ -1573,20 +1599,53 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
             return false;
           } // end if (isTextureMap)
           else if (range_select[0] != null) {
-            int len = range_select[0].length;
-            if (len == 1 || spatial_values[0].length == 1) {
-              return false;
-            }
-            for (int j=0; j<len; j++) {
-              // range_select[0][j] is either 0.0f or Float.NaN -
-              // setting to Float.NaN will move points off the screen
-              if (!range_select[0][j]) {
-                spatial_values[0][j] = Float.NaN;
+            // WLH 29 April 99
+            if (!pointMode && spatial_set != null && spatial_all_select &&
+                (spatialManifoldDimension == 2 || spatialManifoldDimension == 1)) {
+              int len = range_select[0].length;
+              for (int i=0; i<color_values.length; i++) {
+                if (color_values[i] == null) {
+                  color_values[i] = new byte[len];
+                  for (int j=0; j<len; j++) {
+                    color_values[i][j] = range_select[0][j] ? (byte) -1 : 0;
+                  }
+                }
+                else if (color_values[i].length == 1) {
+                  byte c = color_values[i][0];
+                  color_values[i] = new byte[len];
+                  for (int j=0; j<len; j++) {
+                    color_values[i][j] = range_select[0][j] ? c : 0;
+                  }
+                }
+                else {
+                  for (int j=0; j<len; j++) {
+                    if (!range_select[0][j]) color_values[i][j] = 0;
+                  }
+                }
+              }
+              if (spatialManifoldDimension == 2) {
+                array = spatial_set.make2DGeometry(color_values, indexed);
+              }
+              else {
+                array = spatial_set.make1DGeometry(color_values);
               }
             }
-            /* CTR: 13 Oct 1998 - call new makePointGeometry signature */
-            array = makePointGeometry(spatial_values, color_values, true);
-            // System.out.println("makePointGeometry for some missing");
+            else {
+              int len = range_select[0].length;
+              if (len == 1 || spatial_values[0].length == 1) {
+                return false;
+              }
+              for (int j=0; j<len; j++) {
+                // range_select[0][j] is either 0.0f or Float.NaN -
+                // setting to Float.NaN will move points off the screen
+                if (!range_select[0][j]) {
+                  spatial_values[0][j] = Float.NaN;
+                }
+              }
+              /* CTR: 13 Oct 1998 - call new makePointGeometry signature */
+              array = makePointGeometry(spatial_values, color_values, true);
+              // System.out.println("makePointGeometry for some missing");
+            }
           }
           else if (pointMode) {
             array = makePointGeometry(spatial_values, color_values);

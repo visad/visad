@@ -557,8 +557,10 @@ public abstract class DataImpl extends ThingImpl
       double max = -Double.MAX_VALUE; // init maximum
       for (int j=0; j<len; j++) {
         double val = vals[i][j];
-        min = Math.min(min, val);
-        max = Math.max(max, val);
+        if (val == val) {
+          min = Math.min(min, val);
+          max = Math.max(max, val);
+        }
       }
       int index = ((ShadowRealType) shad_ref.getComponent(i)).getIndex();
       if (index >= 0) {
