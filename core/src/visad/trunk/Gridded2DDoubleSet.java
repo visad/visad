@@ -858,9 +858,20 @@ public class Gridded2DDoubleSet extends Gridded2DSet
   }
 
   public Object cloneButType(MathType type) throws VisADException {
+    if (ManifoldDimension == 2) {
+      return new Gridded2DDoubleSet(type, Samples, LengthX, LengthY,
+                              DomainCoordinateSystem, SetUnits, SetErrors);
+    }
+    else {
+      return new Gridded2DDoubleSet(type, Samples, LengthX,
+                              DomainCoordinateSystem, SetUnits, SetErrors);
+    }
+  }
+/* WLH 3 April 2003
+  public Object cloneButType(MathType type) throws VisADException {
     return new Gridded2DDoubleSet(type, Samples, Length,
       DomainCoordinateSystem, SetUnits, SetErrors);
   }
-
+*/
 }
 

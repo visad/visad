@@ -1,3 +1,4 @@
+
 //
 // GridEdit.java
 //
@@ -549,7 +550,7 @@ public class GridEdit extends Object implements ActionListener {
 
     float[][] samplesb = xyset.indexToValue(indicesb); // locations of grid border points
 
-    // add circular inner boundary, if move points are all well inside
+    // check if all move "to" points are inside 0.8 radius of circle
     float[][] set_locs = new float[2][np];
     for (int i=0; i<np; i++) {
       set_locs[0][i] = set_samples[i][0][1];
@@ -573,24 +574,22 @@ public class GridEdit extends Object implements ActionListener {
       }
     }
 
-// CHANGE ELLIPSE INTO CIRCLE !!!!
-
     if (all_in) {
-      int ne = 64; // weird bug for ne proportional to nx and ny
-      // int ne = 8; // weird bug for ne proportional to nx and ny
+      // all move "to" points inside 0.8 radius, so add circle boundary points
+      int ne = 32; // weird bug for ne proportional to nx and ny
       int new_nb = nb + ne;
       float[][] new_samplesb = new float[2][new_nb];
       System.arraycopy(samplesb[0], 0, new_samplesb[0], 0, nb);
       System.arraycopy(samplesb[1], 0, new_samplesb[1], 0, nb);
-      float[][] ellipse_grid = new float[2][ne];
+      float[][] circle_grid = new float[2][ne];
       for (int i=0; i<ne; i++) {
         double ang = 2.0 * Math.PI * i / (ne);
-        ellipse_grid[0][i] = nx2 + nm2 * 0.90f * ((float) Math.sin(ang) );
-        ellipse_grid[1][i] = ny2 + nm2 * 0.90f * ((float) Math.cos(ang) );
+        circle_grid[0][i] = nx2 + nm2 * 0.90f * ((float) Math.sin(ang) );
+        circle_grid[1][i] = ny2 + nm2 * 0.90f * ((float) Math.cos(ang) );
       }
-      float[][] ellipse_locs = xyset.gridToValue(ellipse_grid);
-      System.arraycopy(ellipse_locs[0], 0, new_samplesb[0], nb, ne);
-      System.arraycopy(ellipse_locs[1], 0, new_samplesb[1], nb, ne);
+      float[][] circle_locs = xyset.gridToValue(circle_grid);
+      System.arraycopy(circle_locs[0], 0, new_samplesb[0], nb, ne);
+      System.arraycopy(circle_locs[1], 0, new_samplesb[1], nb, ne);
       samplesb = new_samplesb;
       nb = new_nb;
     }
@@ -794,9 +793,6 @@ a nice idea, but this accentuates corner effects
   private static final int NX = 64;
   private static final int NY = 64;
   private static final int NTIMES = 4;
-  // private static final int NX = 512;
-  // private static final int NY = 512;
-  // private static final int NTIMES = 1;
 
   public static void main(String args[])
          throws VisADException, RemoteException {

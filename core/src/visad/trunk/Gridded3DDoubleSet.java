@@ -1907,9 +1907,24 @@ public class Gridded3DDoubleSet extends Gridded3DSet
   }
 
   public Object cloneButType(MathType type) throws VisADException {
+    if (ManifoldDimension == 3) {
+      return new Gridded3DDoubleSet(type, Samples, LengthX, LengthY, LengthZ,
+                              DomainCoordinateSystem, SetUnits, SetErrors);
+    }
+    else if (ManifoldDimension == 2) {
+      return new Gridded3DDoubleSet(type, Samples, LengthX, LengthY,
+                              DomainCoordinateSystem, SetUnits, SetErrors);
+    }
+    else {
+      return new Gridded3DDoubleSet(type, Samples, LengthX,
+                              DomainCoordinateSystem, SetUnits, SetErrors);
+    }
+  }
+/* WLH 3 April 2003
+  public Object cloneButType(MathType type) throws VisADException {
     return new Gridded3DDoubleSet(type, Samples, Length,
       DomainCoordinateSystem, SetUnits, SetErrors);
   }
-
+*/
 }
 

@@ -819,9 +819,19 @@ public class FieldImpl extends FunctionImpl implements Field {
 /* WLH 17 Jan 2000
     Field new_field = new FieldImpl((FunctionType) Type, DomainSet);
 */
-
-
+/* WLH 3 April 2003
     Field new_field = new FieldImpl((FunctionType) new_type, DomainSet);
+*/
+    RealTupleType d_type = ((FunctionType)new_type).getDomain();
+    Set new_set = null;
+    if (!d_type.equals( ((FunctionType) getType()).getDomain() )) {
+      new_set = (Set) DomainSet.cloneButType(d_type);
+    }
+    else {
+      new_set = DomainSet;
+    }
+    Field new_field = new FieldImpl((FunctionType) new_type, new_set);
+
     if (isMissing()) return new_field;
     Data[] range = new Data[Length];
 

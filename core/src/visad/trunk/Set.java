@@ -734,6 +734,17 @@ public abstract class Set extends DataImpl implements SetIface {
     }
   }
 
+  // WLH 3 April 2003
+  public Data unary( int op, MathType new_type, int sampling_mode, int error_mode )
+              throws VisADException, RemoteException {
+    if (op == Data.NOP) {
+      return (Set) cloneButType(new_type);
+    }
+    else {
+      throw new TypeException("Set: unary");
+    }
+  }
+
   /** copy this Set, but give it a new MathType;
       this is safe, since constructor checks consistency of
       DomainCoordinateSystem and SetUnits with Type */

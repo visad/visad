@@ -4920,12 +4920,29 @@ if (pr) System.out.println("value = " + new_values[0][0]);
         new SetType(((FunctionType) N_type).getFlatRange().getComponent(i));
       sets[i] = new DoubleSet(set_type);
     }
+/* WLH 3 April 2003
     FlatField field =
       new FlatField((FunctionType) N_type, 
                     DomainSet, 
                     RangeCoordinateSystem,
                     RangeCoordinateSystems, 
                     sets, 
+                    units);
+*/
+    RealTupleType d_type = ((FunctionType)N_type).getDomain();
+    Set new_set = null;
+    if (!d_type.equals( ((FunctionType) getType()).getDomain() )) {
+      new_set = (Set) DomainSet.cloneButType(d_type);
+    }
+    else {
+      new_set = DomainSet;
+    }
+    FlatField field =
+      new FlatField((FunctionType) N_type,
+                    new_set,
+                    RangeCoordinateSystem,
+                    RangeCoordinateSystems,
+                    sets,
                     units);
 
     if (newValues == null)
@@ -4966,8 +4983,21 @@ if (pr) System.out.println("value = " + new_values[0][0]);
         new SetType(((FunctionType) N_type).getFlatRange().getComponent(i));
       sets[i] = new FloatSet(set_type);
     }
+/* WLH 3 April 2003
     FlatField field =
       new FlatField((FunctionType) N_type, DomainSet, RangeCoordinateSystem,
+                    RangeCoordinateSystems, sets, units);
+*/
+    RealTupleType d_type = ((FunctionType)N_type).getDomain();
+    Set new_set = null;
+    if (!d_type.equals( ((FunctionType) getType()).getDomain() )) {
+      new_set = (Set) DomainSet.cloneButType(d_type);
+    }
+    else {
+      new_set = DomainSet;
+    }
+    FlatField field = 
+      new FlatField((FunctionType) N_type, new_set, RangeCoordinateSystem,
                     RangeCoordinateSystems, sets, units);
 
     if (newValues == null) {

@@ -85,7 +85,7 @@ public class SetType extends MathType {
   public MathType unary( int op, Vector names )
          throws VisADException
   {
-    throw new UnimplementedException("binary");
+    return this; // WLH 3 April 2003
   }
 
 /* WLH 5 Jan 2000
