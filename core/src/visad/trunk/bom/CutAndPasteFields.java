@@ -53,8 +53,8 @@ sequence of operation
 6. method (may be called by JButton) to stop process
 
 constructor input:
-1. FieldImpl: (Time -> ((x, y) -> value)) or
-   FlatField: ((x, y) -> value)
+1. FieldImpl: (Time -> ((x, y) -> range)) or
+   FlatField: ((x, y) -> range)
 2. DisplayImpl (check ScalarMaps)
 */
 
@@ -62,20 +62,29 @@ constructor input:
    CutAndPasteFields is the VisAD class for cutting and pasting
    regions of fields.<p>
 */
-public class CutAndPasteFields extends Object {
-
-  private DataImpl grids = null;
-  private DisplayImpl display = null;
-
-  private boolean anim = false;
+public class CutAndPasteFields extends Object implements ActionListener {
 
   private boolean debug = true;
 
-  private double xlow, xhi, ylow, yhi; // rect boundaries
+  private Field grids = null;
+  private DisplayImpl display = null;
 
+  private RealType t = null; // non-null if animation
   private RealType x = null;
   private RealType y = null;
   private RealTupleType xy = null;
+  private MathType range = null; // RealType or RealTupleType
+  private int rangedim = 0;
+  private int nts = 0;
+
+  Set tset = null; // t domain Set
+  Set xyset = null; // (x, y) domain Set
+
+  ScalarMap tmap = null;
+  ScalarMap xmap = null;
+  ScalarMap ymap = null;
+
+  private double xlow, xhi, ylow, yhi; // rect boundaries
 
   private CellImpl cell_rbb = null;
   private CellImpl cell_xlyl = null;
@@ -93,17 +102,107 @@ public class CutAndPasteFields extends Object {
   private CutAndPasteFields thiscp = null;
 
   /**
-     gs has MathType (Time -> ((x, y) -> value)) or ((x, y) -> value)
+     gs has MathType (t -> ((x, y) -> v)) or ((x, y) -> v)
      conditions:
      1. x and y mapped to XAxis, YAxis, ZAxis
      2. (x, y) domain LinearSet
      3. if Time, it is mapped to Animation
   */
-  public CutAndPasteFields(DataImpl gs, DisplayImplJ3D d)
+  public CutAndPasteFields(Field gs, DisplayImplJ3D d)
          throws VisADException, RemoteException {
     grids = gs;
     display = d;
     thiscp = this;
+
+    FunctionType gstype = (FunctionType) gs.getType();
+    RealTupleType domain = gstype.getDomain();
+    int domdim = domain.getDimension();
+    if (domdim == 1) {
+      t = (RealType) domain.getComponent(0);
+      tset = gs.getDomainSet();
+      FunctionType gridtype = (FunctionType) gstype.getRange();
+      xy = gridtype.getDomain();
+      int dim = xy.getDimension();
+      if (dim != 2) {
+        throw new VisADException("bad grid Field domain dimension: " + dim);
+      }
+      range = gridtype.getRange();
+      nts = tset.getLength();
+      for (int i=0; i<nts; i++) {
+        FlatField ff = (FlatField) gs.getSample(i);
+        Set s = ff.getDomainSet();
+        if (xyset == null) {
+          xyset = s;
+        }
+        else {
+          if (!xyset.equals(s)) {
+            throw new VisADException("grid sets must match in animation");
+          }
+        }
+      }
+    }
+    else if (domdim == 2) {
+      t = null;
+      tset = null;
+      xy = domain;
+      range = gstype.getRange();
+      xyset = gs.getDomainSet();
+    }
+    else {
+      throw new VisADException("bad grid Field domain dimension: " + domdim);
+    }
+    x = (RealType) xy.getComponent(0);
+    y = (RealType) xy.getComponent(1);
+    if (!(xyset instanceof LinearSet)) {
+      throw new VisADException("grid set must be LinearSet");
+    }
+
+    if (range instanceof RealType) {
+      rangedim = 1;
+    }
+    else if (range instanceof RealTupleType) {
+      rangedim = ((RealTupleType) range).getDimension();
+    }
+    else {
+      throw new VisADException("bad grid Field range type: " + range);
+    }
+
+    Vector scalar_map_vector = display.getMapVector();
+    Enumeration enum = scalar_map_vector.elements();
+    while (enum.hasMoreElements()) {
+      ScalarMap map = (ScalarMap) enum.nextElement();
+      ScalarType scalar = map.getScalar();
+      DisplayRealType dreal = map.getDisplayScalar();
+      if (scalar.equals(t)) {
+        if (Display.Animation.equals(dreal)) tmap = map;
+      }
+      else if (scalar.equals(x)) {
+        if (Display.XAxis.equals(dreal) ||
+            Display.YAxis.equals(dreal) ||
+            Display.ZAxis.equals(dreal)) {
+          xmap = map;
+        }
+      }
+      else if (scalar.equals(y)) {
+        if (Display.XAxis.equals(dreal) ||
+            Display.YAxis.equals(dreal) ||
+            Display.ZAxis.equals(dreal)) {
+          ymap = map;
+        }
+      }
+    }
+    if (xmap == null || ymap == null) {
+      throw new VisADException("grid domain RealType must be mapped to " +
+                               "XAxis, YAxis or ZAxis");
+    }
+    if (t != null && tmap == null) {
+      throw new VisADException("grid sequence must be mapped to Animation");
+    }
+
+
+
+
+
 
     ref_rbb = new DataReferenceImpl("rbb");
     ref_xlyl = new DataReferenceImpl("xlyl");
@@ -119,6 +218,8 @@ public class CutAndPasteFields extends Object {
         double yl = ((Real) rt.getComponent(1)).getValue();
         if (!Util.isApproximatelyEqual(xl, xlow) ||
             !Util.isApproximatelyEqual(yl, ylow)) {
+          xhi += (xl - xlow);
+          yhi += (yl - ylow);
           xlow = xl;
           ylow = yl;
           drag();
@@ -133,6 +234,8 @@ public class CutAndPasteFields extends Object {
         double yh = ((Real) rt.getComponent(1)).getValue();
         if (!Util.isApproximatelyEqual(xl, xlow) ||
             !Util.isApproximatelyEqual(yh, yhi)) {
+          xhi += (xl - xlow);
+          ylow += (yh - yhi);
           xlow = xl;
           yhi = yh;
           drag();
@@ -147,6 +250,8 @@ public class CutAndPasteFields extends Object {
         double yl = ((Real) rt.getComponent(1)).getValue();
         if (!Util.isApproximatelyEqual(xh, xhi) ||
             !Util.isApproximatelyEqual(yl, ylow)) {
+          xlow += (xh - xhi);
+          yhi += (yl - ylow);
           xhi = xh;
           ylow = yl;
           drag();
@@ -161,6 +266,8 @@ public class CutAndPasteFields extends Object {
         double yh = ((Real) rt.getComponent(1)).getValue();
         if (!Util.isApproximatelyEqual(xh, xhi) ||
             !Util.isApproximatelyEqual(yh, yhi)) {
+          xlow += (xh - xhi);
+          ylow += (yh - yhi);
           xhi = xh;
           yhi = yh;
           drag();
@@ -172,27 +279,28 @@ public class CutAndPasteFields extends Object {
     cell_rbb = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         Set set = (Set) ref_rbb.getData();
+        if (set == null) return;
         float[][] samples = set.getSamples();
-        if (samples != null) {
-          cell_rbb.removeReference(ref_rbb);
-          xlow = samples[0][0];
-          ylow = samples[1][0];
-          xhi = samples[0][1];
-          yhi = samples[1][1];
-          drag();
-          cell_xlyl.addReference(ref_xlyl);
-          cell_xlyh.addReference(ref_xlyh);
-          cell_xhyl.addReference(ref_xhyl);
-          cell_xhyh.addReference(ref_xhyh);
+        if (samples == null) return;
+        cell_rbb.removeReference(ref_rbb);
+        xlow = samples[0][0];
+        ylow = samples[1][0];
+        xhi = samples[0][1];
+        yhi = samples[1][1];
+        drag();
+        cell_xlyl.addReference(ref_xlyl);
+        cell_xlyh.addReference(ref_xlyh);
+        cell_xhyl.addReference(ref_xhyl);
+        cell_xhyh.addReference(ref_xhyh);
 
-          display.disableAction();
-          display.addReferences(new BoxDragRendererJ3D(thiscp), ref_xlyl);
-          display.addReferences(new BoxDragRendererJ3D(thiscp), ref_xlyh);
-          display.addReferences(new BoxDragRendererJ3D(thiscp), ref_xhyl);
-          display.addReferences(new BoxDragRendererJ3D(thiscp), ref_xhyh);
-          display.removeReference(ref_rbb);
-          display.enableAction();
-        }
+        display.disableAction();
+        display.addReferences(new BoxDragRendererJ3D(thiscp), ref_xlyl);
+        display.addReferences(new BoxDragRendererJ3D(thiscp), ref_xlyh);
+        display.addReferences(new BoxDragRendererJ3D(thiscp), ref_xhyl);
+        display.addReferences(new BoxDragRendererJ3D(thiscp), ref_xhyh);
+        display.addReference(ref_rect);
+        display.removeReference(ref_rbb);
+        display.enableAction();
       }
     };
 
@@ -212,9 +320,10 @@ public class CutAndPasteFields extends Object {
     ref_xlyh.setData(new RealTuple(xy, new double[] {xlow, yhi}));
     ref_xhyl.setData(new RealTuple(xy, new double[] {xhi, ylow}));
     ref_xhyh.setData(new RealTuple(xy, new double[] {xhi, yhi}));
-    float[][] samples = {{(float) xlow, (float) xlow, (float) xhi, (float) xhi},
-                         {(float) ylow, (float) ylow, (float) yhi, (float) yhi}};
-    ref_rect.setData(new Gridded2DSet(xy, samples, 4));
+    float[][] samples =
+      {{(float) xlow, (float) xlow, (float) xhi, (float) xhi, (float) xlow},
+       {(float) ylow, (float) yhi, (float) yhi, (float) ylow, (float) ylow}};
+    ref_rect.setData(new Gridded2DSet(xy, samples, 5));
     display.enableAction();
   }
 
@@ -254,6 +363,169 @@ public class CutAndPasteFields extends Object {
     catch (ReferenceException e) { }
     try { cell_xhyh.removeReference(ref_xhyh); }
     catch (ReferenceException e) { }
+  }
+
+
+  private static final int NSTAS = 32; // actually NSTAS * NSTAS
+  private static final int NTIMES = 10;
+
+  public static void main(String args[])
+         throws VisADException, RemoteException {
+
+    // construct RealTypes for wind record components
+    RealType x = new RealType("x");
+    RealType y = new RealType("y");
+    RealType lat = RealType.Latitude;
+    RealType lon = RealType.Longitude;
+    RealTupleType xy = new RealTupleType(x, y);
+    RealType windx = new RealType("windx",
+                          CommonUnit.meterPerSecond, null);     
+    RealType windy = new RealType("windy",
+                          CommonUnit.meterPerSecond, null);     
+    RealType red = new RealType("red");
+    RealType green = new RealType("green");
+
+    // EarthVectorType extends RealTupleType and says that its
+    // components are vectors in m/s with components parallel
+    // to Longitude (positive east) and Latitude (positive north)
+    EarthVectorType windxy = new EarthVectorType(windx, windy);
+
+    RealType time = RealType.Time;
+    double startt = new DateTime(1999, 122, 57060).getValue();
+    Linear1DSet time_set = new Linear1DSet(time, startt, startt + 2700.0, NTIMES);
+
+    Linear2DSet grid_set = new Integer2DSet(xy, NSTAS, NSTAS);
+
+    RealTupleType tuple_type = new RealTupleType(new RealType[]
+             {lon, lat, windx, windy, red, green});
+
+    FunctionType field_type = new FunctionType(xy, tuple_type);
+    FunctionType seq_type = new FunctionType(time, field_type);
+
+    // construct first Java3D display and mappings that govern
+    // how wind records are displayed
+    DisplayImplJ3D display1 =
+      new DisplayImplJ3D("display1", new TwoDDisplayRendererJ3D());
+    ScalarMap ymap = new ScalarMap(y, Display.YAxis);
+    display1.addMap(ymap);
+    ScalarMap xmap = new ScalarMap(x, Display.XAxis);
+    display1.addMap(xmap);
+
+    ScalarMap cmap = new ScalarMap(windy, Display.RGB);
+    display1.addMap(cmap);
+
+    ScalarMap amap = new ScalarMap(time, Display.Animation);
+    display1.addMap(amap);
+    AnimationControl acontrol = (AnimationControl) amap.getControl();
+    acontrol.setStep(500);
+
+    // create an array of NSTAS by NSTAS winds
+    FieldImpl field = new FieldImpl(seq_type, time_set);
+    double[][] values = new double[6][NSTAS * NSTAS];
+    for (int k=0; k<NTIMES; k++) {
+      FlatField ff = new FlatField(field_type, grid_set);
+      int m = 0;
+      for (int i=0; i<NSTAS; i++) {
+        for (int j=0; j<NSTAS; j++) {
+
+          double u = 2.0 * i / (NSTAS - 1.0) - 1.0;
+          double v = 2.0 * j / (NSTAS - 1.0) - 1.0;
+  
+          // each wind record is a Tuple (lon, lat, (windx, windy), red, green)
+          // set colors by wind components, just for grins
+          values[0][m] = 10.0 * u;
+          values[1][m] = 10.0 * v - 40.0;
+          double fx = k + 30.0 * u;
+          double fy = 30.0 * v;
+          double fd =
+            Data.RADIANS_TO_DEGREES * Math.atan2(-fx, -fy) + k * 15.0;
+          double fs = Math.sqrt(fx * fx + fy * fy);
+          values[2][m] = fd;
+          values[3][m] = fs;
+          values[4][m] = u;
+          values[5][m] = v;
+          m++;
+        }
+      }
+      ff.setSamples(values);
+      field.setSample(k, ff);
+    }
+
+    DataReferenceImpl seq_ref = new DataReferenceImpl("seq");
+    seq_ref.setData(field);
+    display1.addReference(seq_ref);
+
+    CutAndPasteFields cp = new CutAndPasteFields(field, display1);
+
+    // create JFrame (i.e., a window) for display and slider
+    JFrame frame = new JFrame("test CollectiveBarbManipulation");
+    frame.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {System.exit(0);}
+    });
+
+    // create JPanel in JFrame
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+
+    JPanel panel1 = new JPanel();
+    panel1.setLayout(new BoxLayout(panel1, BoxLayout.Y_AXIS));
+    JPanel panel2 = new JPanel();
+    panel2.setLayout(new BoxLayout(panel2, BoxLayout.Y_AXIS));
+
+
+    panel1.add(display1.getComponent());
+    panel1.setMaximumSize(new Dimension(400, 600));
+
+    JPanel panel3 = new JPanel();
+    panel3.setLayout(new BoxLayout(panel3, BoxLayout.X_AXIS));
+    final JButton start = new JButton("start");
+    start.addActionListener(cp);
+    start.setActionCommand("start");
+    final JButton stop = new JButton("stop");
+    stop.addActionListener(cp);
+    stop.setActionCommand("stop");
+    panel3.add(start);
+    panel3.add(stop);
+
+    panel2.add(new AnimationWidget(amap));
+    panel2.add(new LabeledColorWidget(cmap));
+    panel2.add(new JLabel(" "));
+    panel2.add(panel3);
+    panel2.setMaximumSize(new Dimension(400, 600));
+
+    panel.add(panel1);
+    panel.add(panel2);
+    frame.getContentPane().add(panel);
+
+    // set size of JFrame and make it visible
+    frame.setSize(800, 600);
+    frame.setVisible(true);
+  }
+
+  public void actionPerformed(ActionEvent e) {
+    String cmd = e.getActionCommand();
+    if (cmd.equals("start")) {
+      try {
+        start();
+      }
+      catch (VisADException ex) {
+        ex.printStackTrace();
+      }
+      catch (RemoteException ex) {
+        ex.printStackTrace();
+      }
+    }
+    else if (cmd.equals("stop")) {
+      try {
+        stop();
+      }
+      catch (VisADException ex) {
+        ex.printStackTrace();
+      }
+      catch (RemoteException ex) {
+        ex.printStackTrace();
+      }
+    }
   }
 
 }
