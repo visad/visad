@@ -198,6 +198,15 @@ public class DisplayEvent extends VisADEvent {
    */
   public final static int MOUSE_MOVED = 21;
 
+  private final static String[] ids = {
+      "?", "MOUSE_PRESSED", "TRANSFORM_DONE", "FRAME_DONE",
+      "MOUSE_PRESSED_CENTER", "MOUSE_PRESSED_LEFT",  "MOUSE_PRESSED_RIGHT",
+      "MOUSE_RELEASED", "MOUSE_RELEASED_CENTER", "MOUSE_RELEASED_LEFT",
+      "MOUSE_RELEASED_RIGHT", "MAP_ADDED", "MAPS_CLEARED", "REFERENCE_ADDED",
+      "REFERENCE_REMOVED", "DESTROYED", "KEY_PRESSED", "KEY_RELEASED",
+      "MOUSE_DRAGGED", "MOUSE_ENTERED", "MOUSE_EXITED", "MOUSE_MOVED"
+    };
+
   /** Dummy AWT component. */
   private static final Component DUMMY = new JPanel();
 
@@ -411,7 +420,7 @@ public class DisplayEvent extends VisADEvent {
       buf.append(", ");
     } catch (Exception ve) { }
     buf.append("Id=");
-    buf.append(getId());
+    buf.append(ids[getId()]);
     buf.append(", X=");
     buf.append(getX());
     buf.append(", Y=");
