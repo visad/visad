@@ -97,7 +97,7 @@ public class GoesRetrieval extends Object {
   public static void main(String args[])
          throws VisADException, RemoteException {
     // load native method library
-    //System.loadLibrary("GoesRetrieval");
+    System.loadLibrary("GoesRetrieval");
     // construct GoesRetrieval application
     GoesRetrieval goes = new GoesRetrieval();
   }
