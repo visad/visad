@@ -70,5 +70,17 @@ public class ProjectionControlJ2D extends ProjectionControl {
     changeControl(true);
   }
 
+  public void setAspect(double[] aspect)
+         throws VisADException, RemoteException {
+    if (aspect == null || aspect.length != 2) {
+      throw new DisplayException("aspect array must be length = 2");
+    }
+    AffineTransform transform = new AffineTransform();
+    transform.setToScale(aspect[0], aspect[1]);
+    double[] mult = new double[6];
+    transform.getMatrix(mult);
+    setMatrix(getDisplay().multiply_matrix(mult, matrix));
+  }
+
 }
 

@@ -72,6 +72,10 @@ public class Test58
     jframe.setVisible(true);
  
     control = dpys[0].getProjectionControl();
+
+    /* change aspect ratio */
+    control.setAspect(new double[] {1.0, 0.5});
+
     dpys[0].addDisplayListener(this);
     rotate(dpys[0]);
   }
@@ -90,7 +94,7 @@ public class Test58
     control.setMatrix(display.multiply_matrix(mult, matrix));
   }
 
-  public String toString() { return ": scripted fly-through in Java2D"; }
+  public String toString() {return ": scripted fly-through & aspect ratio in Java2D";}
 
   public static void main(String args[])
          throws VisADException, RemoteException

@@ -360,7 +360,10 @@ public class Gridded3DSet extends GriddedSet {
                || Float.isNaN(g2)) ? -1 :
 */
       // test for missing
+/* WLH 2 April 99
       index[i] = (g0 != g0 || g1 != g1 || g2 != g2) ? 1 :
+*/
+      index[i] = (g0 != g0 || g1 != g1 || g2 != g2) ? -1 :
                  ((int) (g0 + 0.5)) + LengthX*( ((int) (g1 + 0.5)) +
                   LengthY*((int) (g2 + 0.5)));
     }
@@ -2268,8 +2271,9 @@ for (int j=0; j<nvertex; j++) {
             {   bcase = pol_edges[ptFLAG[cb]][0];
                 if (bcase == 0x06 || bcase == 0x16 ||
                     bcase == 0x19 || bcase == 0x1E ||
-                    bcase == 0x3C || bcase == 0x69)
+                    bcase == 0x3C || bcase == 0x69) {
                     ptFLAG[ii] = sp_cases[ptFLAG[ii]];
+                }
             }
         }
         else if (bcase == 0xE9) {
@@ -2314,7 +2318,8 @@ for (int j=0; j<nvertex; j++) {
                     if (bcase == 0x06 || bcase == 0x16 ||
                         bcase == 0x19 || bcase == 0x1E ||
                         bcase == 0x3C || bcase == 0x69)
-                    {   ptFLAG[ii] = sp_cases[ptFLAG[ii]] +
+                    {
+                        ptFLAG[ii] = sp_cases[ptFLAG[ii]] +
                                      case_E9[jj+SF+3];
                         break;
                     }
@@ -2331,6 +2336,13 @@ for (int j=0; j<nvertex; j++) {
 
     return npolygons;
   }
+
+void debug(float[][] VX, float[][] VY, float[][] VZ, int nvet, int c) {
+  if (VX[0][nvet] < -2.0 || VY[0][nvet] < -2.0 || VY[0][nvet] < -2.0) {
+    System.out.println("nvet = " + nvet + "  VX = " + VX[0][nvet] +
+      "  VY = " + VY[0][nvet] + "  VZ = " + VZ[0][nvet] + " case = " + c);
+  }
+}
 
   private int isosurf( float isovalue, int[] ptFLAG, int nvertex_estimate,
                        int npolygons, float[] ptGRID, int xdim, int ydim,
@@ -2465,6 +2477,16 @@ for (int j=0; j<nvertex; j++) {
                           System.arraycopy(it, 0, Pol_f_Vert[0], 0, it.length);
                         }
 
+           /* WLH 2 April 99 */
+           vnode0 = ptGRID[pt];
+           vnode1 = ptGRID[pt + ydim];
+           vnode2 = ptGRID[pt + 1];
+           vnode3 = ptGRID[pt + ydim + 1];
+           vnode4 = ptGRID[pt + xdim_x_ydim];
+           vnode5 = ptGRID[pt + ydim + xdim_x_ydim];
+           vnode6 = ptGRID[pt + 1 + xdim_x_ydim];
+           vnode7 = ptGRID[pt + 1 + ydim + xdim_x_ydim];
+
                         if ( (ptFLAG[ncube] < MAX_FLAG_NUM) ) {
                         /*  fill_Vert_f_Pol(ncube); */
 
@@ -2491,7 +2513,7 @@ for (int j=0; j<nvertex; j++) {
                         /* */
 
          /* find_vertex(); */
-
+/* WLH 2 April 99
            vnode0 = ptGRID[pt];
            vnode1 = ptGRID[pt + ydim];
            vnode2 = ptGRID[pt + 1];
@@ -2500,7 +2522,7 @@ for (int j=0; j<nvertex; j++) {
            vnode5 = ptGRID[pt + ydim + xdim_x_ydim];
            vnode6 = ptGRID[pt + 1 + xdim_x_ydim];
            vnode7 = ptGRID[pt + 1 + ydim + xdim_x_ydim];
-
+*/
 
 
    if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0002) != 0) ) {  /* cube vertex 0-1 */

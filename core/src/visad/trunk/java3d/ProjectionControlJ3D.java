@@ -66,5 +66,17 @@ public class ProjectionControlJ3D extends ProjectionControl {
     changeControl(true);
   }
 
+  public void setAspect(double[] aspect)
+         throws VisADException, RemoteException {
+    if (aspect == null || aspect.length != 3) {
+      throw new DisplayException("aspect array must be length = 2");
+    }
+    Transform3D transform = new Transform3D();
+    transform.setScale(new javax.vecmath.Vector3d(aspect[0], aspect[1], aspect[2]));
+    double[] mult = new double[16];
+    transform.get(mult);
+    setMatrix(getDisplay().multiply_matrix(mult, matrix));
+  }
+
 }
 

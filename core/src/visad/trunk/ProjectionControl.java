@@ -49,5 +49,9 @@ public abstract class ProjectionControl extends Control {
   public abstract void setMatrix(double[] m)
          throws VisADException, RemoteException;
 
+  /** set aspect ratio; 3 elements for Java3D, 2 for Java2D */
+  public abstract void setAspect(double[] aspect)
+         throws VisADException, RemoteException;
+
 }
 
