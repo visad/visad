@@ -85,7 +85,8 @@ public class RemoteServerTestImpl extends UnicastRemoteObject
   
       // create local DataImpls
       int size = 4;
-      FlatField histogram = FlatField.makeField(ir_histogram, size, false);
+      int hist_size = 64;
+      FlatField histogram = FlatField.makeField(ir_histogram, hist_size, false);
       Real real = new Real(ir_radiance, 1.0);
       FlatField imaget = FlatField.makeField(image_tuple, size, false);
 
