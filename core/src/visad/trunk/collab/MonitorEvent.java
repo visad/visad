@@ -107,6 +107,13 @@ public abstract class MonitorEvent
   }
 
   /**
+   * Get the key used to uniquely identify this event.
+   *
+   * @return The unique key.
+   */
+  public abstract String getKey();
+
+  /**
    * Gets the originator of this <CODE>MonitorEvent</CODE>.
    */
   public int getOriginator()

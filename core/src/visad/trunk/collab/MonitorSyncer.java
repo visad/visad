@@ -92,7 +92,7 @@ class MonitorSyncer
 
   public void addEvent(MonitorEvent evt)
   {
-    String key = getKey(evt);
+    String key = evt.getKey();
     synchronized (cacheLock) {
       MonitorEvent oldEvt = (MonitorEvent )eventCache.put(key, evt);
 
@@ -131,88 +131,6 @@ class MonitorSyncer
    */
   public int getID() { return id; }
 
-  /**
-   * Get a key for the specified <TT>MonitorEvent</TT>
-   *
-   * @param evt The event.
-   */
-  public String getKey(MonitorEvent evt)
-  {
-    String key = null;
-
-    if (evt instanceof ControlMonitorEvent) {
-      key = getKey((ControlMonitorEvent )evt);
-    } else if (evt instanceof MapMonitorEvent) {
-      key = getKey((MapMonitorEvent )evt);
-    } else if (evt instanceof ReferenceMonitorEvent) {
-      key = getKey((ReferenceMonitorEvent )evt);
-    }
-
-    return key;
-  }
-
-  /**
-   * Get a key for the specified <TT>Control</TT>
-   *
-   * @param ctl The control.
-   */
-  private String getKey(Control ctl)
-  {
-    return ctl.getClass().getName() + "#" + ctl.getInstanceNumber();
-  }
-
-  /**
-   * Get a key for the specified <TT>ControlMonitorEvent</TT>
-   *
-   * @param evt The event.
-   */
-  private String getKey(ControlMonitorEvent evt)
-  {
-    return getKey(evt.getControl());
-  }
-
-  /**
-   * Get a key for the specified <TT>MapMonitorEvent</TT>
-   *
-   * @param evt The event.
-   */
-  private String getKey(MapMonitorEvent evt)
-  {
-    String key;
-
-    ScalarMap map = evt.getMap();
-    if (map != null) {
-      key = map.toString();
-      switch (evt.getType()) {
-      case MonitorEvent.MAP_ADDED:
-        key = "ADD " + key;
-        break;
-      case MonitorEvent.MAP_CHANGED:
-        key = "CHG " + key;
-        break;
-      }
-    } else {
-      if (evt.getType() != MonitorEvent.MAPS_CLEARED) {
-        System.err.println("Got null map for " + evt);
-        return null;
-      }
-
-      key = "MAPS_CLEARED";
-    }
-
-    return key;
-  }
-
-  /**
-   * Get a key for the specified <TT>ReferenceMonitorEvent</TT>
-   *
-   * @param evt The event.
-   */
-  private String getKey(ReferenceMonitorEvent evt)
-  {
-    return evt.getLink().toString();
-  }
-
   public MonitorCallback getListener() { return callback; }
 
   public String getName() { return Name; }
@@ -223,7 +141,7 @@ class MonitorSyncer
       return false;
     }
 
-    return eventCache.containsKey(getKey(ctl));
+    return eventCache.containsKey(ControlMonitorEvent.getControlKey(ctl));
   }
 
   /**

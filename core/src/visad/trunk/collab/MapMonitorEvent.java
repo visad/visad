@@ -72,9 +72,42 @@ public class MapMonitorEvent
   {
     super(type, originator);
     if (type != MAP_ADDED && type != MAP_CHANGED && type != MAPS_CLEARED) {
-      throw new VisADException("Bad type for MapMonitorEvent");
+      throw new VisADException("Bad type " + type);
+    }
+    if (map == null && type != MAPS_CLEARED) {
+      throw new VisADException("Null map");
     }
     this.map = map;
+  }
+
+  /**
+   * Get the key used to uniquely identify this event.
+   *
+   * @return The unique key.
+   */
+  public String getKey()
+  {
+    String key;
+
+    if (type == MonitorEvent.MAPS_CLEARED) {
+      key = "MAPS_CLEARED";
+    } else {
+      key = map.toString();
+      switch (type) {
+      case MonitorEvent.MAP_ADDED:
+        key = "ADD " + key;
+        break;
+      case MonitorEvent.MAP_CHANGED:
+        key = "CHG " + key;
+        break;
+      default:
+        System.err.println("MapMonitorEvent type " + type +
+                           " not handled by getKey()");
+        break;
+      }
+    }
+
+    return key;
   }
 
   /**

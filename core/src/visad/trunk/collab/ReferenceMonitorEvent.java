@@ -81,6 +81,16 @@ public class ReferenceMonitorEvent
   }
 
   /**
+   * Get the key used to uniquely identify this event.
+   *
+   * @return The unique key.
+   */
+  public String getKey()
+  {
+    return link.toString();
+  }
+
+  /**
    * Gets the <CODE>RemoteReferenceLink</CODE> to which this event refers.
    */
   public RemoteReferenceLink getLink()

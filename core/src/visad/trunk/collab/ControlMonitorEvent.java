@@ -85,6 +85,26 @@ public class ControlMonitorEvent
   }
 
   /**
+   * Get the key used to uniquely identify this control.
+   *
+   * @return The unique key.
+   */
+  public static String getControlKey(Control ctl)
+  {
+    return ctl.getClass().getName() + "#" + ctl.getInstanceNumber();
+  }
+
+  /**
+   * Get the key used to uniquely identify this event.
+   *
+   * @return The unique key.
+   */
+  public String getKey()
+  {
+    return getControlKey(ctl);
+  }
+
+  /**
    * Returns <CODE>true</CODE> if the specified object matches this object.
    *
    * @param o The object to compare.

@@ -121,6 +121,17 @@ public class MessageMonitorEvent
   }
 
   /**
+   * Get the key used to uniquely identify this event.
+   *
+   * @return The unique key.
+   */
+  public String getKey()
+  {
+    return Integer.toString(id) + str +
+      (data == null ? "null" : data.toString());
+  }
+
+  /**
    * Gets the <CODE>ScalarMap</CODE> to which this event refers.
    */
   public MessageEvent getMessage()
