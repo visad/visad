@@ -450,7 +450,12 @@ public class FlexibleTrackManipulation extends Object {
       float diff_lat = new_lat - old_lats[time_index];
       float diff_lon = new_lon - old_lons[time_index];
 
-      for (int j=time_index; j<ntimes; j++) {
+      int mouseModifiers =
+        direct_manipulation_renderers[this_time].getLastMouseModifiers();
+      int mctrl = mouseModifiers & InputEvent.CTRL_MASK;
+      int high_time = (mctrl != 0) ? ntimes : time_index + 1;
+
+      for (int j=time_index; j<high_time; j++) {
 
         double lat = old_lats[j] + diff_lat;
         double lon = old_lons[j] + diff_lon;

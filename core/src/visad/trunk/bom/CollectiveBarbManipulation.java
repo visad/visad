@@ -75,7 +75,8 @@ public class CollectiveBarbManipulation extends Object
 
   private AnimationControl control = null;
 
-  private DisplayImplJ3D display;
+  private DisplayImplJ3D display1;
+  private DisplayImplJ3D display2;
   private FieldImpl wind_field;
   private boolean absolute;
   private float inner_distance;
@@ -85,6 +86,8 @@ public class CollectiveBarbManipulation extends Object
 
   private int azimuth_index;
   private int radial_index;
+  private int azimuth_index2;
+  private int radial_index2;
   private int lat_index;
   private int lon_index;
 
@@ -111,7 +114,7 @@ two displays share Tupe[][] tuples, etc.
        [e.g., (Latitude, Longitude, (flow_dir, flow_speed))]
      and must include RealTypes Latitude and Longitude plus
      RealTypes mapped to Flow1Azimuth and Flow1Radial in the
-     DisplayImpl d;
+     DisplayImplJ3D d1;
 
      absolute indicates absolute or relative value adjustment
      id and od are inner and outer distances in meters
@@ -123,42 +126,28 @@ two displays share Tupe[][] tuples, etc.
      manipulate a wind barb, the "reference" values for all
      wind barbs are set - thus repeatedly adjusting the same
      barb will magnify its influence over its neighbors
+
+     need_monitor is true if wf might be changed externally
+     during manipulation
   */
   public CollectiveBarbManipulation(FieldImpl wf,
-                 DisplayImplJ3D d, boolean abs,
-                 float id, float od, float it, float ot)
+                 DisplayImplJ3D d1, DisplayImplJ3D d2,
+                 boolean abs, float id, float od, float it, float ot,
+                 boolean need_monitor)
          throws VisADException, RemoteException {
     wind_field = wf;
-    display = d;
+    display1 = d1;
+    display2 = d2;
     absolute = abs;
     inner_distance = id;
     outer_distance = od;
     inner_time = it;
     outer_time = ot;
-    if (inner_time < 0.0 ||
-        outer_time < inner_time) {
-      throw new CollectiveBarbException("outer_time must be " +
-                                   "greater than inner_time");
-    }
-    if (inner_distance < 0.0 ||
-        outer_distance < inner_distance) {
-      throw new CollectiveBarbException("outer_distance must be " +
-                                   "greater than distance_time");
-    }
-
-    control = (AnimationControl) display.getControl(AnimationControl.class);
-    if (control == null) {
-      throw new CollectiveBarbException("display must include " +
-                     "ScalarMap to Animation");
-    }
-    // use a ControlListener on Display.Animation to fake
-    // animation of manipulable barbs
-    control.addControlListener(this);
 
     FunctionType wind_field_type = (FunctionType) wind_field.getType();
     TupleType wind_type = null;
     RealType station_index = null;
-
+  
     try {
       station_index =
         (RealType) wind_field_type.getDomain().getComponent(0);
@@ -184,12 +173,9 @@ two displays share Tupe[][] tuples, etc.
       throw new CollectiveBarbException("wind_field bad MathType: " +
                      wind_field_type);
     }
-
-    azimuth_index = -1;
-    radial_index = -1;
+ 
     lat_index = -1;
     lon_index = -1;
-    Vector scalar_map_vector = display.getMapVector();
     int tuple_dim = wind_type.getDimension();
     RealType[] real_types = wind_type.getRealComponents();
     for (int i=0; i<tuple_dim; i++) {
@@ -200,28 +186,11 @@ two displays share Tupe[][] tuples, etc.
       else if (RealType.Longitude.equals(real)) {
         lon_index = i;
       }
-      else {
-        Enumeration enum = scalar_map_vector.elements();
-        while (enum.hasMoreElements()) {
-          ScalarMap map = (ScalarMap) enum.nextElement();
-          if (real.equals(map.getScalar())) {
-            DisplayRealType dreal = map.getDisplayScalar();
-            if (Display.Flow1Azimuth.equals(dreal)) {
-              azimuth_index = i;
-            }
-            else if (Display.Flow1Radial.equals(dreal)) {
-              radial_index = i;
-            }
-          }
-        }
-      }
-    } // for (int i=0; i<n; i++) {
-    if (lat_index < 0 || lon_index < 0 ||
-        azimuth_index < 0 || radial_index < 0) {
+    }
+
+    if (lat_index < 0 || lon_index < 0) {
       throw new CollectiveBarbException("wind data must include Latitude " +
-               "and Longitude and two RealTypes mapped to Flow1Azimuth " +
-               "and Flow1Radial " + lat_index + " " + lon_index +
-               " " + azimuth_index + " " + radial_index);
+               "and Longitude " + lat_index + " " + lon_index);
     }
 
     try {
@@ -247,10 +216,6 @@ two displays share Tupe[][] tuples, etc.
         for (int j=0; j<ntimes[i]; j++) {
           tuples[i][j] = (Tuple) wind_stations[i].getSample(j);
           Real[] reals = tuples[i][j].getRealComponents();
-          azimuths[i][j] = (float) reals[azimuth_index].getValue();
-          radials[i][j] = (float) reals[radial_index].getValue();
-          old_azimuths[i][j] = azimuths[i][j];
-          old_radials[i][j] = radials[i][j];
         }
       }
     }
@@ -258,7 +223,7 @@ two displays share Tupe[][] tuples, etc.
       throw new CollectiveBarbException("wind_field bad MathType: " +
                      wind_field_type);
     }
-
+ 
     lats = new float[nindex];
     lons = new float[nindex];
     for (int i=0; i<nindex; i++) {
@@ -267,37 +232,142 @@ two displays share Tupe[][] tuples, etc.
       lons[i] = values[lon_index][0];
     }
 
-    stations_ref = new DataReferenceImpl("stations_ref");
-    stations_ref.setData(wind_field);
-    barb_renderer = new BarbRendererJ3D();
-    display.addReferences(barb_renderer, stations_ref);
-    which_time = -1;
-    station_refs = new DataReferenceImpl[nindex];
-    barb_manipulation_renderers = new BarbManipulationRendererJ3D[nindex];
-    barb_monitors = new BarbMonitor[nindex];
-    for (int i=0; i<nindex; i++) {
-      station_refs[i] = new DataReferenceImpl("station_ref" + i);
-      station_refs[i].setData(tuples[i][0]);
-      which_times[i] = -1;
-      barb_manipulation_renderers[i] = new BarbManipulationRendererJ3D();
-      display.addReferences(barb_manipulation_renderers[i], station_refs[i]);
-      barb_monitors[i] = new BarbMonitor(station_refs[i], i);
-      barb_monitors[i].addReference(station_refs[i]);
+    azimuth_index = -1;
+    radial_index = -1;
+    if (display1 != null) {
+      Vector scalar_map_vector = display1.getMapVector();
+      for (int i=0; i<tuple_dim; i++) {
+        RealType real = real_types[i];
+        Enumeration enum = scalar_map_vector.elements();
+        while (enum.hasMoreElements()) {
+          ScalarMap map = (ScalarMap) enum.nextElement();
+          if (real.equals(map.getScalar())) {
+            DisplayRealType dreal = map.getDisplayScalar();
+            if (Display.Flow1Azimuth.equals(dreal)) {
+              azimuth_index = i;
+            }
+            else if (Display.Flow1Radial.equals(dreal)) {
+              radial_index = i;
+            }
+          }
+        }
+      } // for (int i=0; i<n; i++) {
+      if (azimuth_index < 0 || radial_index < 0) {
+        throw new CollectiveBarbException("wind data must include two " +
+                 "RealTypes mapped to Flow1Azimuth and Flow1Radial in " +
+                 "display1 " + azimuth_index + " " + radial_index);
+      }
     }
 
-    wind_monitor = new WindMonitor();
-    wind_monitor.addReference(stations_ref);
+    azimuth_index2 = -1;
+    radial_index2 = -1;
+    if (display2 != null) {
+      Vector scalar_map_vector = display2.getMapVector();
+      for (int i=0; i<tuple_dim; i++) {
+        RealType real = real_types[i];
+        Enumeration enum = scalar_map_vector.elements();
+        while (enum.hasMoreElements()) {
+          ScalarMap map = (ScalarMap) enum.nextElement();
+          if (real.equals(map.getScalar())) {
+            DisplayRealType dreal = map.getDisplayScalar();
+            if (Display.Flow1Azimuth.equals(dreal)) {
+              azimuth_index2 = i;
+            }
+            else if (Display.Flow1Radial.equals(dreal)) {
+              radial_index2 = i;
+            }
+          }
+        }
+      } // for (int i=0; i<n; i++) {
+      if (azimuth_index2 < 0 || radial_index2 < 0) {
+        throw new CollectiveBarbException("wind data must include two " +
+                 "RealTypes mapped to Flow1Azimuth and Flow1Radial in " +
+                 "display2 " + azimuth_index2 + " " + radial_index2);
+      }
+      if (display1 != null) {
+        if (azimuth_index2 != azimuth_index) {
+          throw new CollectiveBarbException("same RealTypes must be mapped " +
+                   "to Flow1Azimuth in display1 and display2 " +
+                   real_types[azimuth_index] + " " + real_types[azimuth_index2]);
+        }
+        if (radial_index2 != radial_index) {
+          throw new CollectiveBarbException("same RealTypes must be mapped " +
+                   "to Flow1Radial in display1 and display2 " +
+                   real_types[radial_index] + " " + real_types[radial_index2]);
+        }
+      }
+      else {
+        azimuth_index = azimuth_index2;
+        radial_index = radial_index2;
+      }
+    }
 
-    control.setCurrent(0);
+    for (int i=0; i<nindex; i++) {
+      for (int j=0; j<ntimes[i]; j++) {
+        tuples[i][j] = (Tuple) wind_stations[i].getSample(j);
+        Real[] reals = tuples[i][j].getRealComponents();
+        azimuths[i][j] = (float) reals[azimuth_index].getValue();
+        radials[i][j] = (float) reals[radial_index].getValue();
+        old_azimuths[i][j] = azimuths[i][j];
+        old_radials[i][j] = radials[i][j];
+      }
+    }
+ 
+    if (display1 != null) {
+      if (inner_time < 0.0 ||
+          outer_time < inner_time) {
+        throw new CollectiveBarbException("outer_time must be " +
+                                     "greater than inner_time");
+      }
+      if (inner_distance < 0.0 ||
+          outer_distance < inner_distance) {
+        throw new CollectiveBarbException("outer_distance must be " +
+                                     "greater than distance_time");
+      }
+
+      control = (AnimationControl) display1.getControl(AnimationControl.class);
+      if (control == null) {
+        throw new CollectiveBarbException("display must include " +
+                       "ScalarMap to Animation");
+      }
+      // use a ControlListener on Display.Animation to fake
+      // animation of manipulable barbs
+      control.addControlListener(this);
+
+      stations_ref = new DataReferenceImpl("stations_ref");
+      stations_ref.setData(wind_field);
+      barb_renderer = new BarbRendererJ3D();
+      display1.addReferences(barb_renderer, stations_ref);
+      which_time = -1;
+      station_refs = new DataReferenceImpl[nindex];
+      barb_manipulation_renderers = new BarbManipulationRendererJ3D[nindex];
+      barb_monitors = new BarbMonitor[nindex];
+      for (int i=0; i<nindex; i++) {
+        station_refs[i] = new DataReferenceImpl("station_ref" + i);
+        station_refs[i].setData(tuples[i][0]);
+        which_times[i] = -1;
+        barb_manipulation_renderers[i] = new BarbManipulationRendererJ3D();
+        display1.addReferences(barb_manipulation_renderers[i], station_refs[i]);
+        barb_monitors[i] = new BarbMonitor(station_refs[i], i);
+        barb_monitors[i].addReference(station_refs[i]);
+      }
+
+      if (need_monitor) {
+        wind_monitor = new WindMonitor();
+        wind_monitor.addReference(stations_ref);
+      }
+  
+      control.setCurrent(0);
+    } // end if (display1 != null)
   }
 
   public void endManipulation()
          throws VisADException, RemoteException {
     for (int i=0; i<nindex; i++) {
-      display.removeReference(station_refs[i]);
+      display1.removeReference(station_refs[i]);
     }
     barb_renderer = new BarbRendererJ3D();
-    display.addReferences(barb_renderer, stations_ref);
+    display1.addReferences(barb_renderer, stations_ref);
   }
 
   private boolean first = true;
@@ -370,7 +440,7 @@ two displays share Tupe[][] tuples, etc.
 
     if (first) {
       first = false;
-      display.removeReference(stations_ref);
+      display1.removeReference(stations_ref);
     }
   }
 
@@ -436,7 +506,7 @@ System.out.println("new " + new_azimuth + " " + new_radial +
           visad.util.Util.isApproximatelyEqual(new_radial,
                  radials[sta_index][time_index], MPS_EPS)) return;
 
-      wind_monitor.disableAction();
+      if (wind_monitor != null) wind_monitor.disableAction();
 
       if (last_sta != sta_index || last_time != time_index) {
         last_sta = sta_index;
@@ -554,7 +624,7 @@ System.out.println("this " + sta_index + " " + time_index + " that " +
         } // end for (int j=0; j<ntimes[i]; j++)
       } // end for (int i=0; i<nindex; i++)
 
-      wind_monitor.enableAction();
+      if (wind_monitor != null) wind_monitor.enableAction();
     }
   }
 
@@ -603,31 +673,31 @@ System.out.println("this " + sta_index + " " + time_index + " that " +
 
     // construct Java3D display and mappings that govern
     // how wind records are displayed
-    DisplayImplJ3D display =
+    DisplayImplJ3D display1 =
       new DisplayImplJ3D("display1", new TwoDDisplayRendererJ3D());
     ScalarMap lonmap = new ScalarMap(lon, Display.XAxis);
-    display.addMap(lonmap);
+    display1.addMap(lonmap);
     lonmap.setRange(-10.0, 10.0);
     ScalarMap latmap = new ScalarMap(lat, Display.YAxis);
-    display.addMap(latmap);
+    display1.addMap(latmap);
     latmap.setRange(-50.0, -30.0);
 
     FlowControl flow_control;
     ScalarMap winds_map = new ScalarMap(wind_speed, Display.Flow1Radial);
-    display.addMap(winds_map);
+    display1.addMap(winds_map);
     winds_map.setRange(0.0, 1.0); // do this for barb rendering
     ScalarMap windd_map = new ScalarMap(wind_dir, Display.Flow1Azimuth);
-    display.addMap(windd_map);
+    display1.addMap(windd_map);
     windd_map.setRange(0.0, 360.0); // do this for barb rendering
     flow_control = (FlowControl) windd_map.getControl();
     flow_control.setFlowScale(0.15f); // this controls size of barbs
 
-    display.addMap(new ScalarMap(red, Display.Red));
-    display.addMap(new ScalarMap(green, Display.Green));
-    display.addMap(new ConstantMap(1.0, Display.Blue));
+    display1.addMap(new ScalarMap(red, Display.Red));
+    display1.addMap(new ScalarMap(green, Display.Green));
+    display1.addMap(new ConstantMap(1.0, Display.Blue));
 
     ScalarMap amap = new ScalarMap(time, Display.Animation);
-    display.addMap(amap);
+    display1.addMap(amap);
     AnimationControl acontrol = (AnimationControl) amap.getControl();
     acontrol.setStep(2000);
 
@@ -662,6 +732,8 @@ System.out.println("this " + sta_index + " " + time_index + " that " +
       }
     }
 
+    DisplayImplJ3D display2 = null;
+
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test CollectiveBarbManipulation");
     frame.addWindowListener(new WindowAdapter() {
@@ -675,13 +747,14 @@ System.out.println("this " + sta_index + " " + time_index + " that " +
     panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     frame.getContentPane().add(panel);
 
-    // add display to JPanel
-    panel.add(display.getComponent());
+    // add display1 to JPanel
+    panel.add(display1.getComponent());
     panel.add(new AnimationWidget(amap));
 
     CollectiveBarbManipulation cbm =
-      new CollectiveBarbManipulation(field, display, false,
-                                     0.0f, 1000000.0f, 0.0f, 1000.0f);
+      new CollectiveBarbManipulation(field, display1, display2, false,
+                                     0.0f, 1000000.0f, 0.0f, 1000.0f,
+                                     false);
 
     JButton end = new JButton("end manip");
     end.addActionListener(new EndManipCBM(cbm));

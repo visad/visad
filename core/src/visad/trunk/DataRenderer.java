@@ -1179,6 +1179,8 @@ if (map.badRange()) {
 
   private boolean stop = false;
 
+  private int LastMouseModifiers = 0;
+
   public synchronized void realCheckDirect()
          throws VisADException, RemoteException {
     setIsDirectManipulation(false);
@@ -1502,6 +1504,10 @@ System.out.println("checkClose: distance = " + distance);
     stop = true;
   }
 
+  public int getLastMouseModifiers() {
+    return LastMouseModifiers;
+  }
+
   public synchronized void drag_direct(VisADRay ray, boolean first,
                                        int mouseModifiers) {
     // System.out.println("drag_direct " + first + " " + type);
@@ -1513,6 +1519,8 @@ System.out.println("checkClose: distance = " + distance);
     else {
       if (stop) return;
     }
+
+    LastMouseModifiers = mouseModifiers;
 
     float o_x = (float) ray.position[0];
     float o_y = (float) ray.position[1];
