@@ -308,7 +308,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
 
   public boolean equals(Object o)
   {
-    if (o == null || !(o instanceof GraphicsModeControlJ2D)) {
+    if (!super.equals(o)) {
       return false;
     }
 

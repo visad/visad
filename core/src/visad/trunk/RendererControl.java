@@ -237,7 +237,7 @@ public class RendererControl
    */
   public boolean equals(Object o)
   {
-    if (o == null || !(o instanceof RendererControl)) {
+    if (!super.equals(o)) {
       return false;
     }
 

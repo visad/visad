@@ -117,7 +117,7 @@ public class RangeControl extends Control {
 
   public boolean equals(Object o)
   {
-    if (o == null || !(o instanceof RangeControl)) {
+    if (!super.equals(o)) {
       return false;
     }
 

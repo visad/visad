@@ -135,7 +135,7 @@ public class AnimationSetControl extends Control {
 
   public boolean equals(Object o)
   {
-    if (o == null || !(o instanceof AnimationSetControl)) {
+    if (!super.equals(o)) {
       return false;
     }
 

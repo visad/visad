@@ -111,7 +111,7 @@ System.out.println("selectSwitches: value = " + value +
 
   public boolean equals(Object o)
   {
-    if (o == null || !(o instanceof AVControlJ2D)) {
+    if (!super.equals(o)) {
       return false;
     }
 
@@ -132,7 +132,7 @@ System.out.println("selectSwitches: value = " + value +
       }
     }
 
-    return super.equals(o);
+    return true;
   }
 
   /** SwitchSet is an inner class of AVControlJ2D for

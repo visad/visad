@@ -173,13 +173,17 @@ public abstract class ProjectionControl extends Control {
 
   public boolean equals(Object o)
   {
-    if (o == null || !(o instanceof ProjectionControl)) {
+    if (!super.equals(o)) {
       return false;
     }
 
     ProjectionControl pc = (ProjectionControl )o;
 
-    return matrixEquals(pc.matrix);
+    if (!matrixEquals(pc.matrix)) {
+      return false;
+    }
+
+    return true;
   }
 
 }

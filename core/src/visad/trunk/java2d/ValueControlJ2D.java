@@ -96,7 +96,7 @@ public class ValueControlJ2D extends AVControlJ2D
 
   public boolean equals(Object o)
   {
-    if (o == null || !(o instanceof ValueControlJ2D)) {
+    if (!super.equals(o)) {
       return false;
     }
 
@@ -108,6 +108,6 @@ public class ValueControlJ2D extends AVControlJ2D
       return false;
     }
 
-    return super.equals(o);
+    return true;
   }
 }

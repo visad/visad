@@ -346,7 +346,7 @@ public abstract class BaseColorControl extends Control {
 
   public boolean equals(Object o)
   {
-    if (o == null || !(o instanceof BaseColorControl)) {
+    if (!super.equals(o)) {
       return false;
     }
 

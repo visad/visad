@@ -194,7 +194,7 @@ public abstract class FlowControl extends Control {
 
   public boolean equals(Object o)
   {
-    if (o == null || !(o instanceof FlowControl)) {
+    if (!super.equals(o)) {
       return false;
     }
 

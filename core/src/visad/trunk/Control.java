@@ -208,10 +208,11 @@ if (tickFlag) {
 
   public boolean equals(Object o)
   {
-    if (o == null || !(o instanceof Control)) {
+    if (o == null || !getClass().isInstance(o)) {
       return false;
     }
-    return super.equals(o);
+
+    return true;
   }
 
   public String toString()

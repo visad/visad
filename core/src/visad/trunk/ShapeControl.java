@@ -215,13 +215,17 @@ public class ShapeControl extends Control {
 
   public boolean equals(Object o)
   {
-    if (o == null || !(o instanceof ShapeControl)) {
+    if (!super.equals(o)) {
       return false;
     }
 
     ShapeControl sc = (ShapeControl )o;
 
-    return shapeSetEquals(sc.shapeSet) && shapesEquals(sc.shapes);
+    if (!shapeSetEquals(sc.shapeSet) || !shapesEquals(sc.shapes)) {
+      return false;
+    }
+
+    return true;
   }
 
 }

@@ -414,7 +414,7 @@ public class ContourControl extends Control {
 
   public boolean equals(Object o)
   {
-    if (o == null || !(o instanceof ContourControl)) {
+    if (!super.equals(o)) {
       return false;
     }
 

@@ -140,7 +140,7 @@ DisplayImpl.printStack("selectSwitches: ss.swit.setWhichChild(Switch.CHILD_NONE)
 
   public boolean equals(Object o)
   {
-    if (o == null || !(o instanceof AVControlJ3D)) {
+    if (!super.equals(o)) {
       return false;
     }
 
@@ -161,7 +161,7 @@ DisplayImpl.printStack("selectSwitches: ss.swit.setWhichChild(Switch.CHILD_NONE)
       }
     }
 
-    return super.equals(o);
+    return true;
   }
 
   /** SwitchSet is an inner class of AVControlJ3D for

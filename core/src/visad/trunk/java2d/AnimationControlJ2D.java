@@ -456,7 +456,7 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
 
   public boolean equals(Object o)
   {
-    if (o == null || !(o instanceof AnimationControlJ2D)) {
+    if (!super.equals(o)) {
       return false;
     }
 

@@ -438,7 +438,7 @@ public class AnimationControlJ3D extends AVControlJ3D
 
   public boolean equals(Object o)
   {
-    if (o == null || !(o instanceof AnimationControlJ3D)) {
+    if (!super.equals(o)) {
       return false;
     }
 

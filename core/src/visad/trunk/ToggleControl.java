@@ -112,7 +112,7 @@ public class ToggleControl extends Control {
 
   public boolean equals(Object o)
   {
-    if (o == null || !(o instanceof ToggleControl)) {
+    if (!super.equals(o)) {
       return false;
     }
 

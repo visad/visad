@@ -90,7 +90,7 @@ public class ValueControlJ3D extends AVControlJ3D
 
   public boolean equals(Object o)
   {
-    if (o == null || !(o instanceof ValueControlJ3D)) {
+    if (!super.equals(o)) {
       return false;
     }
 
@@ -102,6 +102,6 @@ public class ValueControlJ3D extends AVControlJ3D
       return false;
     }
 
-    return super.equals(o);
+    return true;
   }
 }
