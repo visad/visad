@@ -35,9 +35,9 @@ import java.lang.reflect.InvocationTargetException;
  * 
  * @see Netcdf
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:43:42 $
+ * @version $Revision: 1.1.1.4 $ $Date: 2000-08-28 21:44:20 $
  */
-public final class
+public class
 NetcdfFile
 	extends AbstractNetcdf
 {
@@ -61,7 +61,7 @@ NetcdfFile
 			Schema template)
 		throws IOException
     {
-	super(template, true);
+	super(new Schema(template), true);
 	if(!clobber && file.exists())
 	{
 		// TODO: netcdf exception?
@@ -150,7 +150,7 @@ NetcdfFile
      * Useful for identifying this instance among others.
      * @return File object this was opened or created as.
      */
-    public File
+    public final File
     getFile()
     {
 	return file;
@@ -176,7 +176,7 @@ NetcdfFile
      * @return true iff we are prefilling new storage
      * with the appropriate fill value.
      */
-    public boolean
+    public final boolean
     getFill()
     {
 	return doFill;
@@ -191,7 +191,7 @@ NetcdfFile
      * @deprecated
      * @return UnlimitedDimension the unlimited dimension
      */
-    public UnlimitedDimension
+    public final UnlimitedDimension
     unlimitedDimension()
     {
 	return recDim;
@@ -859,7 +859,7 @@ NetcdfFile
 		final int product = MultiArrayImpl.numberOfElements(shp);
 		dst = MultiArrayImpl.fixDest(dst, product,
 			meta.getComponentType());
-		final int contig = iocount(origin, shape);
+		final int contig = iocount(origin, shp);
 		
 		// convert dimensions to limits
 		final int [] limits = (int []) shp.clone();

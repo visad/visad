@@ -4,7 +4,7 @@
  */
 
 package ucar.netcdf;
-import ucar.multiarray.Accessor;
+import ucar.multiarray.RemoteAccessor;
 import java.rmi.RemoteException;
 import java.rmi.Remote;
 
@@ -18,7 +18,7 @@ import java.rmi.Remote;
  * It could be considered package or implementation private.
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:43:07 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:44:20 $
  */
 
 public interface
@@ -42,7 +42,7 @@ NetcdfRemoteProxy
 	 * Netcdf this represents.
 	 * @return a (Remote)Accessor for the Variable.
 	 */
-	public Accessor
+	public RemoteAccessor
 	getAccessor(String varName)
 		throws  RemoteException;
 }

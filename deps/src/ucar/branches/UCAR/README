@@ -1,4 +1,4 @@
-$Id: README,v 1.1.1.3 2000-08-28 21:43:41 dglo Exp $
+$Id: README,v 1.1.1.4 2000-08-28 21:44:18 dglo Exp $
 
 This the java source for a netcdf implementation.
 It is composed of two packages, ucar.multiarray and
@@ -6,7 +6,22 @@ ucar.netcdf. Sources may be found in multiarray and
 netcdf respectively. There is also a test in the
 unamed package whose source is in tests/TestNetcdf.java.
 
-This release (September 1998) includes a drop in replacement
+Although the code only references jdk1.1.x classes,
+and can be run in jre1.1.x environments, you will
+need the 'rmic' compiler in jkd1.1.7 or jdk1.2 to
+create the remote stubs.
+
+This release (October 1998) includes fixes to the
+RemoteNetcdf implementation. Some visible changes
+to the class hierarchy were necessary to accomplish this.
+A subinterface ucar.multiarray.RemoteAccessor was added,
+and the class ucar.netcdf.RemoteAccessor was renamed
+to ucar.netcdf.RemoteAccessorImpl.  Thanks to Michael McCarrick
+for his testing of the RemoteNetcdf code.
+
+We alse dropped the 'final' designation on class ucar.netcdf.NetcdfFile.
+
+Since September 1998 we have included a drop in replacement
 for RandomAccessFile which is buffered, speeding up the NetcdfFile
 implementation. There is improved string support in MultiArray,
 and rmi classes in ucar.netcdf.

@@ -20,6 +20,7 @@ multiarray/MultiArrayImpl.java
 multiarray/MultiArrayInfo.java
 multiarray/MultiArrayProxy.java
 multiarray/OffsetIndexIterator.java
+multiarray/RemoteAccessor.java
 multiarray/ScalarMultiArray.java
 multiarray/SliceMap.java
 multiarray/StringCharAdapter.java
@@ -46,7 +47,7 @@ netcdf/NetcdfService.java
 netcdf/ProtoVariable.java
 netcdf/ProtoVariableIterator.java
 netcdf/RandomAccessFile.java
-netcdf/RemoteAccessor.java
+netcdf/RemoteAccessorImpl.java
 netcdf/RemoteNetcdf.java
 netcdf/Schema.java
 netcdf/UnlimitedDimension.java

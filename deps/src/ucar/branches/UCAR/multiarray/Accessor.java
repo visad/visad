@@ -5,8 +5,6 @@
 
 package ucar.multiarray;
 import java.io.IOException;
-import java.rmi.Remote;
-import java.rmi.RemoteException;
 
 /**
  *  Interface for multidimensional array data access.
@@ -36,23 +34,17 @@ import java.rmi.RemoteException;
  *	IllegalArgumentException, or ? for conversions to primitive
  *  which don't make sense.
  *  <p>
- *  Since the implementations may be file based or remote,
- *  the operations may throw java.io.IOException.
- *  As of this writing (jdk1.1),
- *  the rmi compiler <code>rmic</code> is braindead in the
- *  sense that it doesn't recognize that java.rmi.RemoteException isa
- *  java.io.IOException. Hence, we add the extraneous RemoteException
- *  to each <code>throws</code> clause to make it happy.
- *  Ann Wollrath @ JavaSoft says this will be fixed in jdk1.2.
+ *  The implementations may be file based or remote,
+ *  so the methods throw java.io.IOException.
  *
  * @see AbstractAccessor
  * @see MultiArray
+ * @see RemoteAccessor
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:05 $
+ * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:44:19 $
  */
 public interface
 Accessor
-	extends Remote
 {
 	/**
 	 * Get (read) the array element at index.
@@ -72,7 +64,7 @@ Accessor
 	 */
 	public Object
 	get(int [] index)
-		throws IOException, RemoteException;
+		throws IOException;
 
 	/**
 	 * Get the array element at index, as a boolean.
@@ -80,7 +72,7 @@ Accessor
 	 */
 	public boolean
 	getBoolean(int [] index)
-		throws IOException, RemoteException;
+		throws IOException;
 
 	/**
 	 * Get the array element at index, as a char.
@@ -88,7 +80,7 @@ Accessor
 	 */
 	public char
 	getChar(int [] index)
-		throws IOException, RemoteException;
+		throws IOException;
 
 	/**
 	 * Get the array element at index, as a byte.
@@ -96,7 +88,7 @@ Accessor
 	 */
 	public byte
 	getByte(int [] index)
-		throws IOException, RemoteException;
+		throws IOException;
 
 	/**
 	 * Get the array element at index, as a short.
@@ -104,7 +96,7 @@ Accessor
 	 */
 	public short
 	getShort(int [] index)
-		throws IOException, RemoteException;
+		throws IOException;
 
 	/**
 	 * Get the array element at index, as an int.
@@ -112,7 +104,7 @@ Accessor
 	 */
 	public int
 	getInt(int [] index)
-		throws IOException, RemoteException;
+		throws IOException;
 
 	/**
 	 * Get the array element at index, as a long.
@@ -120,7 +112,7 @@ Accessor
 	 */
 	public long
 	getLong(int [] index)
-		throws IOException, RemoteException;
+		throws IOException;
 
 	/**
 	 * Get the array element at index, as a float.
@@ -128,7 +120,7 @@ Accessor
 	 */
 	public float
 	getFloat(int [] index)
-		throws IOException, RemoteException;
+		throws IOException;
 
 	/**
 	 * Get the array element at index, as a double.
@@ -136,7 +128,7 @@ Accessor
 	 */
 	public double
 	getDouble(int [] index)
-		throws IOException, RemoteException;
+		throws IOException;
 
 	/**
 	 * Set (modify, write) the array element at index
@@ -158,7 +150,7 @@ Accessor
 	 */
 	public void
 	set(int [] index, Object value)
-		throws IOException, RemoteException;
+		throws IOException;
 
 	/**
 	 * Set the array element at index to the specified boolean value.
@@ -166,7 +158,7 @@ Accessor
 	 */
 	public void
 	setBoolean(int [] index, boolean value)
-		throws IOException, RemoteException;
+		throws IOException;
 
 	/**
 	 * Set the array element at index to the specified char value.
@@ -174,7 +166,7 @@ Accessor
 	 */
 	public void
 	setChar(int [] index, char value)
-		throws IOException, RemoteException;
+		throws IOException;
 
 	/**
 	 * Set the array element at index to the specified byte value.
@@ -182,7 +174,7 @@ Accessor
 	 */
 	public void
 	setByte(int [] index, byte value)
-		throws IOException, RemoteException;
+		throws IOException;
 
 	/**
 	 * Set the array element at index to the specified short value.
@@ -190,7 +182,7 @@ Accessor
 	 */
 	public void
 	setShort(int [] index, short value)
-		throws IOException, RemoteException;
+		throws IOException;
 
 	/**
 	 * Set the array element at index to the specified int value.
@@ -198,7 +190,7 @@ Accessor
 	 */
 	public void
 	setInt(int [] index, int value)
-		throws IOException, RemoteException;
+		throws IOException;
 
 	/**
 	 * Set the array element at index to the specified long value.
@@ -206,7 +198,7 @@ Accessor
 	 */
 	public void
 	setLong(int [] index, long value)
-		throws IOException, RemoteException;
+		throws IOException;
 
 	/**
 	 * Set the array element at index to the specified float value.
@@ -214,7 +206,7 @@ Accessor
 	 */
 	public void
 	setFloat(int [] index, float value)
-		throws IOException, RemoteException;
+		throws IOException;
 
 	/**
 	 * Set the array element at index to the specified double value.
@@ -222,7 +214,7 @@ Accessor
 	 */
 	public void
 	setDouble(int [] index, double value)
-		throws IOException, RemoteException;
+		throws IOException;
 
 	/**
 	 * Aggregate read access.
@@ -244,7 +236,7 @@ Accessor
 	 */
 	public MultiArray
 	copyout(int [] origin, int [] shape)
-			throws IOException, RemoteException;
+			throws IOException;
 
 	/**
 	 * Aggregate write access.
@@ -263,7 +255,7 @@ Accessor
 	 */
 	public void
 	copyin(int [] origin, MultiArray source)
-		throws IOException, RemoteException;
+		throws IOException;
 
 	/**
 	 * Returns a new array containing all of the elements in this
@@ -286,7 +278,7 @@ Accessor
 	 */
 	public Object
 	toArray()
-		throws IOException, RemoteException;
+		throws IOException;
 	
 
 	/**
@@ -317,6 +309,6 @@ Accessor
 	 */
 	public Object
 	toArray(Object anArray, int [] origin, int [] shape)
-		throws IOException, RemoteException;
+		throws IOException;
 
 }

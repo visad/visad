@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1.1.3 2000-08-28 21:43:42 dglo Exp $
+# $Id: Makefile,v 1.1.1.4 2000-08-28 21:44:19 dglo Exp $
 #
 #       Makefile for java package ucar.netcdf
 #       requires ucar.multiarray
@@ -11,7 +11,7 @@ CLASSDIR = $(ROOT)/classes
 
 JC = javac
 JCFLAGS = -g
-RMIC = rmic
+RMIC = rmic  # -keepgenerated
 
 JSRCS = \
 	AbstractNetcdf.java \
@@ -34,7 +34,7 @@ JSRCS = \
 	ProtoVariable.java \
 	ProtoVariableIterator.java \
 	RandomAccessFile.java \
-	RemoteAccessor.java \
+	RemoteAccessorImpl.java \
 	RemoteNetcdf.java \
 	Schema.java \
 	UnlimitedDimension.java \
@@ -48,7 +48,7 @@ PACKING_LIST = \
 	$(JSRCS)
 
 RMICLASSES = \
-	ucar.netcdf.RemoteAccessor \
+	ucar.netcdf.RemoteAccessorImpl \
 	ucar.netcdf.NetcdfRemoteProxyImpl \
 	ucar.netcdf.NetcdfServer
 
