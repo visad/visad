@@ -64,10 +64,16 @@ public class Test00
     int size = 64;
     FlatField histogram1 = FlatField.makeField(ir_histogram, size, false);
     Real direct = new Real(specific_ir_radiance, 2.0);
-    Real[] reals3 = {new Real(count, 1.0), new Real(specific_ir_radiance, 2.0),
-                     new Real(specific_vis_radiance, 1.0)};
+    Real[] reals3 = {new Real(count, 1.0), new Real(specific_ir_radiance, 2.0)};
+//    Real[] reals3 = {new Real(count, 1.0), new Real(specific_ir_radiance, 2.0),
+//                     new Real(specific_vis_radiance, 1.0)};
     RealTuple direct_tuple = new RealTuple(reals3);
 
+    // MathTypes:
+    // (specific_ir_radiance -> count)
+    // (count, specific_ir_radiance)
+    // specific_ir_radiance
+dpys[0].addMap(new ScalarMap(specific_ir_radiance, Display.ZAxis));
     dpys[0].addMap(new ScalarMap(abstract_vis_radiance, Display.ZAxis));
     ScalarMap irmap = new ScalarMap(abstract_ir_radiance, Display.XAxis);
     dpys[0].addMap(irmap);
@@ -84,18 +90,25 @@ public class Test00
     ref_direct.setData(direct);
     DataReference[] refs1 = {ref_direct};
     dpys[0].addReferences(new DirectManipulationRendererJ3D(), refs1, null);
+    // dpys[0].addReference(ref_direct);
 
     DataReferenceImpl ref_direct_tuple =
       new DataReferenceImpl("ref_direct_tuple");
     ref_direct_tuple.setData(direct_tuple);
     DataReference[] refs2 = {ref_direct_tuple};
     dpys[0].addReferences(new DirectManipulationRendererJ3D(), refs2, null);
+    // dpys[0].addReference(ref_direct_tuple);
 
     DataReferenceImpl ref_histogram1 = new DataReferenceImpl("ref_histogram1");
     ref_histogram1.setData(histogram1);
     DataReference[] refs3 = {ref_histogram1};
     dpys[0].addReferences(new DirectManipulationRendererJ3D(), refs3, null);
+    // dpys[0].addReference(ref_histogram1);
 
+    // MathTypes:
+    // (specific_ir_radiance -> count)
+    // (count, specific_ir_radiance)
+    // specific_ir_radiance
     dpys[1].addMap(new ScalarMap(abstract_vis_radiance, Display.ZAxis));
     dpys[1].addMap(new ScalarMap(abstract_ir_radiance, Display.XAxis));
     dpys[1].addMap(new ScalarMap(count, Display.YAxis));
