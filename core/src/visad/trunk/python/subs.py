@@ -171,3 +171,14 @@ def makeMaps(*a):
       print "While making mappings, cannot match: ",a[i+1]
 
   return maps
+
+# quick display of a Display object in a separate JFrame
+# you can set the size and title, if you want...
+def showDisplay(display, xsize=300, ysize=300, title="VisAD Display"):
+  from javax.swing import JFrame
+
+  frame = JFrame(title)
+  pane = frame.getContentPane()
+  pane.add(display.getComponent())
+  frame.setSize(xsize, ysize)
+  frame.setVisible(1)
