@@ -685,7 +685,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     JPanel horizShell = new JPanel();
     horizShell.setBackground(Color.white);
     horizShell.setLayout(new BoxLayout(horizShell, BoxLayout.X_AXIS));
-    horizShell.add(Box.createRigidArea(new Dimension(LABEL_WIDTH+10, 0)));
+    horizShell.add(Box.createRigidArea(new Dimension(LABEL_WIDTH+6, 0)));
     pane.add(horizShell);
 
     HorizPanel = new JPanel() {
@@ -694,16 +694,17 @@ public class SpreadSheet extends JFrame implements ActionListener,
         return new Dimension(d.width, LABEL_HEIGHT);
       }
     };
+    HorizPanel.setBackground(Color.white);
     constructHorizontalLabels();
     JViewport hl = new JViewport() {
       public Dimension getMinimumSize() {
-        return new Dimension(0, LABEL_HEIGHT+4);
+        return new Dimension(0, LABEL_HEIGHT);
       }
       public Dimension getPreferredSize() {
-        return new Dimension(0, LABEL_HEIGHT+4);
+        return new Dimension(0, LABEL_HEIGHT);
       }
       public Dimension getMaximumSize() {
-        return new Dimension(Integer.MAX_VALUE, LABEL_HEIGHT+4);
+        return new Dimension(Integer.MAX_VALUE, LABEL_HEIGHT);
       }
     };
     HorizLabels = hl;
@@ -741,16 +742,17 @@ public class SpreadSheet extends JFrame implements ActionListener,
         return new Dimension(LABEL_WIDTH, d.height);
       }
     };
+    VertPanel.setBackground(Color.white);
     constructVerticalLabels();
     JViewport vl = new JViewport() {
       public Dimension getMinimumSize() {
-        return new Dimension(LABEL_WIDTH+4, 0);
+        return new Dimension(LABEL_WIDTH, 0);
       }
       public Dimension getPreferredSize() {
-        return new Dimension(LABEL_WIDTH+4, 0);
+        return new Dimension(LABEL_WIDTH, 0);
       }
       public Dimension getMaximumSize() {
-        return new Dimension(LABEL_WIDTH+4, Integer.MAX_VALUE);
+        return new Dimension(LABEL_WIDTH, Integer.MAX_VALUE);
       }
     };
     VertLabels = vl;
