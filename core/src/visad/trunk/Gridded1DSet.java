@@ -197,7 +197,9 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
    */
   public int[] valueToIndex(float[][] value) throws VisADException {
     if (value.length != DomainDimension) {
-      throw new SetException("Gridded1DSet.valueToIndex: bad dimension");
+      throw new SetException("Gridded1DSet.valueToIndex: value dimension " +
+                             value.length + " not equal to Domain dimension " +
+                             DomainDimension);
     }
     int length = value[0].length;
     int[] index = new int[length];
@@ -216,7 +218,9 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
       of values in R^DomainDimension */
   public float[][] gridToValue(float[][] grid) throws VisADException {
     if (grid.length < DomainDimension) {
-      throw new SetException("Gridded1DSet.gridToValue: bad dimension");
+      throw new SetException("Gridded1DSet.gridToValue: grid dimension " +
+                             grid.length + " not equal to Domain dimension " +
+                             DomainDimension);
     }
     if (Lengths[0] < 2) {
       throw new SetException("Gridded1DSet.gridToValue: requires all grid " +
@@ -247,7 +251,9 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
       of non-integer grid coordinates */
   public float[][] valueToGrid(float[][] value) throws VisADException {
     if (value.length < DomainDimension) {
-      throw new SetException("Gridded1DSet.valueToGrid: bad dimension");
+      throw new SetException("Gridded1DSet.valueToGrid: value dimension " +
+                             value.length + " not equal to Domain dimension " +
+                             DomainDimension);
     }
     if (Lengths[0] < 2) {
       throw new SetException("Gridded1DSet.valueToGrid: requires all grid " +

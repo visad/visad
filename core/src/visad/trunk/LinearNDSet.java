@@ -136,7 +136,7 @@ public class LinearNDSet extends GriddedSet
     type = Set.adjustType(type);
     int len = lengths.length;
     if (len != firsts.length || len != lasts.length) {
-      throw new SetException("LinearNDSet: dimensions don't match");
+      throw new SetException("LinearNDSet: array dimensions don't match");
     }
     Linear1DSet[] l = new Linear1DSet[len];
     for (int j=0; j<len; j++) {
@@ -202,7 +202,9 @@ public class LinearNDSet extends GriddedSet
   public float[][] gridToValue(float[][] grid) throws VisADException {
     int j;
     if (grid.length != DomainDimension) {
-      throw new SetException("LinearNDSet.gridToValue: bad dimension");
+      throw new SetException("LinearNDSet.gridToValue: grid dimension " +
+                             grid.length + " not equal to Domain dimension " +
+                             DomainDimension);
     }
     for (j=0; j<DomainDimension; j++) {
       if (Lengths[j] < 2) {
@@ -227,7 +229,9 @@ public class LinearNDSet extends GriddedSet
   public float[][] valueToGrid(float[][] value) throws VisADException {
     int j;
     if (value.length != DomainDimension) {
-      throw new SetException("LinearNDSet.valueToGrid: bad dimension");
+      throw new SetException("LinearNDSet.valueToGrid: value dimension " +
+                             value.length + " not equal to Domain dimension " +
+                             DomainDimension);
     }
     for (j=0; j<DomainDimension; j++) {
       if (Lengths[j] < 2) {

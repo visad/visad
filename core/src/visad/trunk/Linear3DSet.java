@@ -72,10 +72,12 @@ public class Linear3DSet extends Gridded3DSet
     super(type, (float[][]) null, sets[0].getLength(), sets[1].getLength(),
           sets[2].getLength(), coord_sys, units, errors);
     if (DomainDimension != 3) {
-      throw new SetException("Linear3DSet: DomainDimension must be 3");
+      throw new SetException("Linear3DSet: DomainDimension must be 3, not " +
+                             DomainDimension);
     }
     if (sets.length != 3) {
-      throw new SetException("Linear3DSet: ManifoldDimension must be 3");
+      throw new SetException("Linear3DSet: ManifoldDimension must be 3, not " +
+                             sets.length);
     }
     X = sets[0];
     Y = sets[1];
@@ -153,11 +155,14 @@ public class Linear3DSet extends Gridded3DSet
       of values in R^3 */
   public float[][] gridToValue(float[][] grid) throws VisADException {
     if (grid.length != ManifoldDimension) {
-      throw new SetException("Linear3DSet.gridToValue: bad dimension");
+      throw new SetException("Linear3DSet.gridToValue: grid dimension " +
+                             grid.length +
+                             " not equal to Manifold dimension " +
+                             ManifoldDimension);
     }
     if (ManifoldDimension != 3) {
       throw new SetException("Linear3DSet.gridToValue: ManifoldDimension " +
-                             "must be 3");
+                             "must be 3, not " + ManifoldDimension);
     }
     if (Lengths[0] < 2 || Lengths[1] < 2 || Lengths[2] < 2) {
       throw new SetException("Linear3DSet.gridToValue: requires all grid " +
@@ -184,7 +189,8 @@ public class Linear3DSet extends Gridded3DSet
       of non-integer grid coordinates */
   public float[][] valueToGrid(float[][] value) throws VisADException {
     if (value.length != 3) {
-      throw new SetException("Linear3DSet.valueToGrid: bad dimension");
+      throw new SetException("Linear3DSet.valueToGrid: value dimension" +
+                             " must be 3, not " + value.length);
     }
     if (Lengths[0] < 2 || Lengths[1] < 2 || Lengths[2] < 2) {
       throw new SetException("Linear3DSet.valueToGrid: requires all grid " +
@@ -240,7 +246,8 @@ public class Linear3DSet extends Gridded3DSet
          throws VisADException {
     if (ManifoldDimension != 3) {
       throw new SetException("Linear3DSet.make3DGeometry: " +
-                             "ManifoldDimension must be 3");
+                             "ManifoldDimension must be 3, not " +
+                             ManifoldDimension);
     }
     int lengthX = X.getLength();
     int lengthY = Y.getLength();
@@ -300,8 +307,9 @@ public class Linear3DSet extends Gridded3DSet
     int nvertex_estimate;
 
     if (ManifoldDimension != 3) {
-      throw new DisplayException("Gridded3DSet.makeIsoSurface: " +
-                                 "ManifoldDimension must be 3");
+      throw new DisplayException("Linear3DSet.makeLinearIsoSurface: " +
+                                 "ManifoldDimension must be 3, not " +
+                                 ManifoldDimension);
     }
 
     /* adapt isosurf algorithm to Gridded3DSet variables */
@@ -599,19 +607,21 @@ for (int j=0; j<nvertex; j++) {
     int naux = (auxValues != null) ? auxValues.length : 0;
     if (naux > 0) {
       if (auxLevels == null || auxLevels.length != naux) {
-        throw new SetException("Gridded3DSet.isosurf: "
-                              +"auxLevels length doesn't match");
+        throw new SetException("Linear3DSet.isosurf: "
+                              +"auxLevels length " + auxLevels.length +
+                               " doesn't match expected " + naux);
       }
       for (int i=0; i<naux; i++) {
         if (auxValues[i].length != Length) {
-          throw new SetException("Gridded3DSet.isosurf: "
-                                +"auxValues lengths don't match");
+          throw new SetException("Linear3DSet.isosurf: expected auxValues " +
+                                " length#" + i + " to be " + Length +
+                                 ", not " + auxValues[i].length);
         }
       }
     }
     else {
       if (auxLevels != null) {
-        throw new SetException("Gridded3DSet.isosurf: "
+        throw new SetException("Linear3DSet.isosurf: "
                               +"auxValues null but auxLevels not null");
       }
     }

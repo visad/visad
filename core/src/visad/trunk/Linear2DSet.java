@@ -83,10 +83,12 @@ public class Linear2DSet extends Gridded2DSet
     super(type, (float[][]) null, sets[0].getLength(), sets[1].getLength(),
           coord_sys, units, errors);
     if (DomainDimension != 2) {
-      throw new SetException("Linear2DSet: DomainDimension must be 2");
+      throw new SetException("Linear2DSet: DomainDimension must be 2, not " +
+                             DomainDimension);
     }
     if (sets.length != 2) {
-      throw new SetException("Linear2DSet: ManifoldDimension must be 2");
+      throw new SetException("Linear2DSet: ManifoldDimension must be 2" +
+                             ", not " + sets.length);
     }
     X = sets[0];
     Y = sets[1];
@@ -148,11 +150,14 @@ public class Linear2DSet extends Gridded2DSet
       of values in R^2 */
   public float[][] gridToValue(float[][] grid) throws VisADException {
     if (grid.length != ManifoldDimension) {
-      throw new SetException("Linear2DSet.gridToValue: bad dimension");
+      throw new SetException("Linear2DSet.gridToValue: grid dimension " +
+                             grid.length +
+                             " not equal to Manifold dimension " +
+                             ManifoldDimension);
     }
     if (ManifoldDimension != 2) {
-      throw new SetException("Linear2DSet.gridToValue: ManifoldDimension " +
-                             "must be 2");
+      throw new SetException("Linear2DSet.gridToValue: Manifold dimension " +
+                             "must be 2, not " + ManifoldDimension);
     }
     if (Lengths[0] < 2 || Lengths[1] < 2) {
       throw new SetException("Linear2DSet.gridToValue: requires all grid " +
@@ -175,7 +180,8 @@ public class Linear2DSet extends Gridded2DSet
       of non-integer grid coordinates */
   public float[][] valueToGrid(float[][] value) throws VisADException {
     if (value.length != 2) {
-      throw new SetException("Linear2DSet.valueToGrid: bad dimension");
+      throw new SetException("Linear2DSet.valueToGrid: value dimension" +
+                             " must be 2, not " + value.length);
     }
     if (Lengths[0] < 2 || Lengths[1] < 2) {
       throw new SetException("Linear2DSet.valueToGrid: requires all grid " +
@@ -225,7 +231,12 @@ public class Linear2DSet extends Gridded2DSet
   public Linear1DSet getLinear1DComponent(int i) {
     if (i == 0) return getX();
     else if (i == 1) return getY();
-    else throw new ArrayIndexOutOfBoundsException("Invalid component index");
+    else if (i < 0) {
+      throw new ArrayIndexOutOfBoundsException("Negative component index " + i);
+    } else {
+      throw new ArrayIndexOutOfBoundsException("Component index " + i +
+                                               " must be less than 2");
+    }
   }
 
   public Object clone() {

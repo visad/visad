@@ -84,7 +84,9 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
     Length = 1;
     for (int j=0; j<ManifoldDimension; j++) {
       if (lengths[j] < 1) {
-        throw new SetException("GriddedSet: each grid length must be at least 1");
+        throw new SetException("GriddedSet: each grid length must be" +
+                               " at least 1 (length#" + j + " is " +
+                               lengths[j]);
       }
       Lengths[j] = lengths[j];
       Length = Length * lengths[j];
@@ -120,8 +122,9 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
     int domain_dimension = samples.length;
     int manifold_dimension = lengths.length;
     if (manifold_dimension > domain_dimension) {
-      throw new SetException("GriddedSet.create: manifold_dimension greater " +
-                             "than domain_dimension");
+      throw new SetException("GriddedSet.create: manifold_dimension " +
+                             manifold_dimension + " is greater than" +
+                             " domain_dimension " + domain_dimension);
     }
 
     switch (domain_dimension) {
@@ -239,7 +242,9 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
   public int[] valueToIndex(float[][] value) throws VisADException {
     int i, j, k;
     if (value.length != DomainDimension) {
-      throw new SetException("GriddedSet.valueToIndex: bad dimension");
+      throw new SetException("GriddedSet.valueToIndex: value dimension " +
+                             value.length + " not equal to Domain dimension " +
+                             DomainDimension);
     }
     int length = value[0].length;
     int[] index = new int[length];
@@ -294,11 +299,22 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
   public void valueToInterp(float[][] value, int[][] indices, float[][] weights)
               throws VisADException {
     if (value.length != DomainDimension) {
-      throw new SetException("GriddedSet.valueToInterp: bad dimension");
+      throw new SetException("GriddedSet.valueToInterp: value dimension " +
+                             value.length + " not equal to Domain dimension " +
+                             DomainDimension);
     }
     int length = value[0].length; // number of values
-    if (indices.length != length || weights.length != length) {
-      throw new SetException("GriddedSet.valueToInterp: lengths don't match");
+    if (indices.length != length) {
+      throw new SetException("GriddedSet.valueToInterp: indices length " +
+                             indices.length +
+                             " doesn't match value[0] length " +
+                             value[0].length);
+    }
+    if (weights.length != length) {
+      throw new SetException("GriddedSet.valueToInterp: weights length " +
+                             weights.length +
+                             " doesn't match value[0] length " +
+                             value[0].length);
     }
     float[][] grid = valueToGrid(value); // convert value array to grid coord array
 

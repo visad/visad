@@ -349,13 +349,18 @@ public class FlatField extends FieldImpl {
       if (range_coord_sys != null) {
         if (!(RangeType instanceof RealTupleType)) {
           throw new CoordinateSystemException("FlatField: " +
-                    "range_coord_sys but RangeType is not RealTupleType");
+                    "range_coord_sys supplied, but RangeType is not RealTupleType");
         }
         if (RangeCoordinateSystem == null ||
             !RangeCoordinateSystem.getReference().equals(
              range_coord_sys.getReference())) {
-          throw new CoordinateSystemException("FlatField: " +
-            "range_coord_sys must match Range DefaultCoordinateSystem");
+          throw new CoordinateSystemException("FlatField: range_coord_sys " +
+                                            (range_coord_sys == null ? null :
+                                             range_coord_sys.getReference()) +
+                                            " must match" +
+                                            " default range CoordinateSystem " +
+                                            (RangeCoordinateSystem == null ? null :
+                                             RangeCoordinateSystem.getReference()));
         }
         RangeCoordinateSystem = range_coord_sys;
       }

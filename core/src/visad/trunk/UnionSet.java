@@ -115,14 +115,25 @@ public class UnionSet extends SampledSet {
       if (sets[i] == null) {
         throw new SetException("UnionSet: Sets cannot be missing");
       }
-      if (sets[i].DomainDimension != dim
-       || sets[i].ManifoldDimension != mdim) {
-        throw new SetException("UnionSet: dimensions do not match!");
+      if (sets[i].DomainDimension != dim) {
+        throw new SetException("UnionSet: set #" + i +
+                               " Domain dimension is " +
+                               sets[i].DomainDimension + ", not " + dim);
+      }
+      if (sets[i].ManifoldDimension != mdim) {
+        throw new SetException("UnionSet: set #" + i +
+                               " Manifold dimension is " +
+                               sets[i].ManifoldDimension + ", not " + mdim);
       }
       CoordinateSystem cs = sets[i].getCoordinateSystem();
       if (cs0 != null || cs != null) {
         if (cs0 == null || cs == null || !cs0.equals(cs)) {
-          throw new SetException("UnionSet: CoordinateSystems do not match!");
+          throw new CoordinateSystemException("UnionSet: Coordinate system #" +
+                                              i + " (" + (cs == null ? null :
+                                                          cs.getReference()) +
+                                              " must match #0 " +
+                                              (cs0 == null ? null :
+                                               cs0.getReference()));
         }
       }
       Unit[] units = sets[i].getSetUnits();
@@ -135,7 +146,9 @@ public class UnionSet extends SampledSet {
           if (units0[j] != null || units[j] != null) {
             if (units0[j] == null || units[j] == null ||
                 !units0[j].equals(units[j])) {
-              throw new SetException("UnionSet: Units do not match!");
+              throw new SetException("UnionSet: Expected set " + i +
+                                     ", element " + j + " units to be " +
+                                     units0[j] + " not " + units[j]);
             }
           }
         }
@@ -186,7 +199,7 @@ public class UnionSet extends SampledSet {
         sets[i] = ((UnionSet) Sets[i]).product();
       }
       else {
-        throw new UnimplementedException("ProductSet.product: " +
+        throw new UnimplementedException("UnionSet.product: " +
                                          Sets[i].getClass());
       }
       if (sets[i] instanceof UnionSet) {
@@ -334,16 +347,20 @@ public class UnionSet extends SampledSet {
          boolean indexed) throws VisADException {
     if (DomainDimension != 3) {
       throw new SetException("UnionSet.make2DGeometry: " +
-                              "DomainDimension must be 3");
+                              "DomainDimension must be 3, not " +
+                             DomainDimension);
     }
     if (ManifoldDimension != 2) {
       throw new SetException("UnionSet.make2DGeometry: " +
-                              "ManifoldDimension must be 2");
+                              "ManifoldDimension must be 2, not " +
+                             ManifoldDimension);
     }
     int n = Sets.length;
     int dim = DomainDimension;
     if (color_values != null && dim != color_values.length) {
-      throw new SetException("UnionSet.make2DGeometry: color_values bad dimension");
+      throw new SetException("UnionSet.make2DGeometry:" +
+                             " color_values dimension should be " + dim +
+                             ", not " + color_values.length);
     }
     if (indexed) {
       VisADIndexedTriangleStripArray[] arrays =
@@ -400,16 +417,20 @@ public class UnionSet extends SampledSet {
          throws VisADException {
     if (DomainDimension != 3) {
       throw new SetException("UnionSet.make1DGeometry: " +
-                              "DomainDimension must be 3");
+                              "DomainDimension must be 3, not " +
+                             DomainDimension);
     }
     if (ManifoldDimension != 1) {
       throw new SetException("UnionSet.make1DGeometry: " +
-                              "ManifoldDimension must be 1");
+                             "ManifoldDimension must be 1, not " +
+                             ManifoldDimension);
     }
     int n = Sets.length;
     int dim = DomainDimension;
     if (color_values != null && dim != color_values.length) {
-      throw new SetException("UnionSet.make1DGeometry: color_values bad dimension");
+      throw new SetException("UnionSet.make1DGeometry:" +
+                             " color_values dimension should be " + dim +
+                             ", not " + color_values.length);
     }
     VisADLineStripArray[] arrays =
       new VisADLineStripArray[n];
@@ -445,17 +466,20 @@ public class UnionSet extends SampledSet {
          throws VisADException {
     if (DomainDimension != 3) {
       throw new DisplayException("UnionSet.makeIsoLines: " +
-                                 "DomainDimension must be 3");
+                                 "DomainDimension must be 3, not " +
+                                 DomainDimension);
     }
     if (ManifoldDimension != 2) {
       throw new DisplayException("UnionSet.makeIsoLines: " +
-                                 "ManifoldDimension must be 2");
+                                 "ManifoldDimension must be 2, not " +
+                                 ManifoldDimension);
     }
     int n = Sets.length;
     int dim = color_values.length;
     if (dim != DomainDimension) {
-      throw new DisplayException("UnionSet.makeIsoLines: " +
-                                 "color_values bad dimension");
+      throw new SetException("UnionSet.makeIsoLines:" +
+                             " color_values dimension should be " +
+                             DomainDimension + ", not " + dim);
     }
     VisADLineArray[][] arrays = new VisADLineArray[n][];
     int kbase = 0;
@@ -488,17 +512,20 @@ public class UnionSet extends SampledSet {
          throws VisADException {
     if (DomainDimension != 3) {
       throw new DisplayException("UnionSet.makeIsoSurface: " +
-                                 "DomainDimension must be 3");
+                                 "DomainDimension must be 3, not " +
+                                 DomainDimension);
     }
     if (ManifoldDimension != 3) {
       throw new DisplayException("UnionSet.makeIsoSurface: " +
-                                 "ManifoldDimension must be 3");
+                                 "ManifoldDimension must be 3, not " +
+                                 ManifoldDimension);
     }
     int n = Sets.length;
     int dim = color_values.length;
     if (dim != DomainDimension) {
-      throw new DisplayException("UnionSet.makeIsoSurface: " +
-                                 "color_values bad dimension");
+      throw new SetException("UnionSet.makeIsoSurface:" +
+                             " color_values dimension should be " +
+                             DomainDimension + ", not " + dim);
     }
     if (indexed) {
       VisADIndexedTriangleStripArray[] arrays =

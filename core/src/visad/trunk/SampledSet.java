@@ -67,7 +67,9 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
        throws VisADException {
     if (samples.length != DomainDimension) {
       throw new SetException("SampledSet.init_samples: " +
-                             "dimensions don't match");
+                             "sample dimension " + samples.length +
+                             " doesn't match expected length " +
+                             DomainDimension);
     }
     if (Length == 0) {
       // Length set in init_lengths, but not called for IrregularSet
@@ -76,7 +78,8 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
     else {
       if (Length != samples[0].length) {
         throw new SetException("SampledSet.init_samples: " +
-                               "lengths don't match");
+                               "sample#0 length " + samples[0].length +
+                               " doesn't match expected length " + Length);
       }
     }
     // MEM
@@ -88,7 +91,10 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
     }
     for (int j=0; j<DomainDimension; j++) {
       if (samples[j].length != Length) {
-        throw new SetException("SampledSet.init_samples: lengths don't match");
+        throw new SetException("SampledSet.init_samples: " +
+                               "sample#" + j + " length " +
+                               samples[j].length +
+                               " doesn't match expected length " + Length);
       }
       float[] samplesJ = samples[j];
       float[] SamplesJ = Samples[j];
@@ -211,7 +217,8 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
         real = (ShadowRealType) ((ShadowRealTupleType) type).getComponent(i);
       }
       else {
-        throw new TypeException("SampledSet.computeRanges: bad ShadowType");
+        throw new TypeException("SampledSet.computeRanges: bad ShadowType " +
+                                type.getClass().getName());
       }
       indices[i] = real.getIndex();
     }
@@ -263,11 +270,13 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
          throws VisADException {
     if (DomainDimension != 3) {
       throw new SetException("SampledSet.make1DGeometry: " +
-                             "DomainDimension must be 3");
+                             "DomainDimension must be 3, not " +
+                             DomainDimension);
     }
     if (ManifoldDimension != 1) {
       throw new SetException("SampledSet.make1DGeometry: " +
-                             "ManifoldDimension must be 1");
+                             "ManifoldDimension must be 1, not " +
+                             ManifoldDimension);
     }
     VisADGeometryArray array = null;
     if (Length == 0) {
@@ -297,7 +306,8 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
          throws VisADException {
     if (ManifoldDimension != 3) {
       throw new SetException("SampledSet.make3DGeometry: " +
-                             "ManifoldDimension must be 3");
+                             "ManifoldDimension must be 3, not " +
+                             ManifoldDimension);
     }
     VisADGeometryArray array = makePointGeometry(color_values);
     return new VisADGeometryArray[] {array, array, array};
@@ -309,7 +319,8 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
          throws VisADException {
     if (DomainDimension != 3) {
       throw new SetException("SampledSet.makePointGeometry: " +
-                             "DomainDimension must be 3");
+                             "DomainDimension must be 3, not " +
+                             DomainDimension);
     }
     VisADPointArray array = new VisADPointArray();
     // set coordinates and colors
@@ -329,9 +340,13 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
   public static void setGeometryArray(VisADGeometryArray array, float[][] samples,
                                int color_length, byte[][] color_values)
        throws VisADException {
-    if (samples == null || samples.length != 3) {
+    if (samples == null) {
       throw new SetException("SampledSet.setGeometryArray: " +
-                             "bad samples array");
+                             "Null samples array");
+    } else if (samples.length != 3) {
+      throw new SetException("SampledSet.setGeometryArray: " +
+                             "Expected 3 dimensions in samples array, not " +
+                             samples.length);
     }
     int len = samples[0].length;
     array.vertexCount = len;
@@ -368,7 +383,8 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
       }
       else {
         throw new SetException("SampledSet.setGeometryArray: " +
-                                "color_length must be 3 or 4");
+                               "color_length must be 3 or 4, not " +
+                               color_length);
       }
       array.colors = colors;
     }

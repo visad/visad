@@ -121,7 +121,9 @@ public abstract class Set extends DataImpl implements SetIface {
     else {
       if (cs == null || !cs.getReference().equals(coord_sys.getReference())) {
         throw new CoordinateSystemException(
-          "Set: coord_sys must match Type.DefaultCoordinateSystem");
+          "Set: coord_sys " + coord_sys.getReference() +
+          " must match Type.DefaultCoordinateSystem " +
+          (cs == null ? null : cs.getReference()));
       }
       DomainCoordinateSystem = coord_sys;
     }
@@ -139,7 +141,9 @@ public abstract class Set extends DataImpl implements SetIface {
     }
     else {
       if (units.length != DomainDimension) {
-        throw new UnitException("Set: units dimension does not match");
+        throw new UnitException("Set: units dimension " + units.length +
+                                " does not match Domain dimension " +
+                                DomainDimension);
       }
       SetUnits = new Unit[DomainDimension];
       Unit[] dunits = DomainType.getDefaultUnits();
@@ -156,15 +160,19 @@ public abstract class Set extends DataImpl implements SetIface {
       }
     }
     if(!Unit.canConvertArray(SetUnits, DomainType.getDefaultUnits())) {
-      throw new UnitException("Set: Units must be convertable with " +
-                              "DomainType default Units");
+      throw new UnitException("Set: Units " + SetUnits +
+                              " must be convertable with DomainType" +
+                              " default Units " +
+                              DomainType.getDefaultUnits());
     }
     if (SetUnits == null) SetUnits = new Unit[DomainDimension];
 
     SetErrors = new ErrorEstimate[DomainDimension];
     if (errors != null) {
       if (errors.length != DomainDimension) {
-        throw new SetException("Set: errors dimension does not match");
+        throw new SetException("Set: errors dimension " + errors.length +
+                               " does not match Domain dimension " +
+                               DomainDimension);
       }
       for (int i=0; i<DomainDimension; i++) SetErrors[i] = errors[i];
     }
@@ -182,7 +190,8 @@ public abstract class Set extends DataImpl implements SetIface {
       return 1;
     }
     else {
-      throw new TypeException("Set: Type must be SetType or RealTupleType");
+      throw new TypeException("Set: Type must be SetType or RealTupleType," +
+                              " not " + type.getClass().getName());
     }
   }
 
@@ -198,7 +207,8 @@ public abstract class Set extends DataImpl implements SetIface {
     }
     else {
       throw new TypeException("Set: Type must be SetType, RealTupleType" +
-                              " or RealType");
+                              " or RealType, not " +
+                              type.getClass().getName());
     }
   }
 

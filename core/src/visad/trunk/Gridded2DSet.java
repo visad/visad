@@ -82,7 +82,7 @@ public class Gridded2DSet extends GriddedSet {
       for (int i=0; i<Length; i++) {
         if (Samples[0][i] != Samples[0][i]) {
           throw new SetException(
-           "Gridded2DSet: samples values may not be missing");
+           "Gridded2DSet: samples value #" + i + " may not be missing");
         }
       }
       if (test) {
@@ -120,6 +120,10 @@ System.out.println("Samples[1][1] = " + Samples[1][1] +
                    " Samples[1][0] = " + Samples[1][0] +
                    " Samples[0][LengthX+1] = " + Samples[0][LengthX+1] +
                    " Samples[0][1] = " + Samples[0][1]);
+System.out.println("v00[]=Samples[]["+(j*LengthX+i)+"] " +
+                   "v10[]=Samples[]["+(j*LengthX+i+1)+"] " +
+                   "v01[]=Samples[]["+((j+1)*LengthX+i)+"] " +
+                   "v11[]=Samples[]["+((j+1)*LengthX+i+1)+"]");
 System.out.println("Pos = " + Pos);
 System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
                               - (v10[1]-v00[1])*(v11[0]-v10[0]) ) +
@@ -163,6 +167,12 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
                throws VisADException {
     super(type, samples, Gridded1DSet.make_lengths(lengthX),
           coord_sys, units, errors, copy);
+
+    if (DomainDimension != 2) {
+      throw new SetException("Gridded2DSet Domain dimension" +
+                             " should be 2, not " + DomainDimension);
+    }
+
     LowX = Low[0];
     HiX = Hi[0];
     LengthX = Lengths[0];
@@ -220,7 +230,9 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
   /** convert an array of values in R^DomainDimension to an array of 1-D indices */
   public int[] valueToIndex(float[][] value) throws VisADException {
     if (value.length != DomainDimension) {
-      throw new SetException("Gridded2DSet.valueToIndex: bad dimension");
+      throw new SetException("Gridded2DSet.valueToIndex: value dimension " +
+                             value.length + " not equal to Domain dimension " +
+                             DomainDimension);
     }
     int length = value[0].length;
     int[] index = new int[length];
@@ -246,11 +258,14 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
       of values in R^DomainDimension */
   public float[][] gridToValue(float[][] grid) throws VisADException {
     if (grid.length != ManifoldDimension) {
-      throw new SetException("Gridded2DSet.gridToValue: bad dimension");
+      throw new SetException("Gridded2DSet.gridToValue: grid dimension " +
+                             grid.length +
+                             " not equal to Manifold dimension " +
+                             ManifoldDimension);
     }
     if (ManifoldDimension < 2) {
-      throw new SetException("Gridded2DSet.gridToValue: ManifoldDimension " +
-                             "must be 2");
+      throw new SetException("Gridded2DSet.gridToValue: Manifold dimension " +
+                             "must be 2, not " + ManifoldDimension);
     }
     if (Lengths[0] < 2 || Lengths[1] < 2) {
       throw new SetException("Gridded2DSet.gridToValue: requires all grid " +
@@ -305,11 +320,13 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
       of non-integer grid coordinates */
   public float[][] valueToGrid(float[][] value) throws VisADException {
     if (value.length < DomainDimension) {
-      throw new SetException("Gridded2DSet.valueToGrid: bad dimension");
+      throw new SetException("Gridded2DSet.valueToGrid: value dimension " +
+                             value.length + " not equal to Domain dimension " +
+                             DomainDimension);
     }
     if (ManifoldDimension < 2) {
-      throw new SetException("Gridded2DSet.valueToGrid: ManifoldDimension " +
-                             "must be 2");
+      throw new SetException("Gridded2DSet.valueToGrid: Manifold dimension " +
+                             "must be 2, not " + ManifoldDimension);
     }
     if (Lengths[0] < 2 || Lengths[1] < 2) {
       throw new SetException("Gridded2DSet.valueToGrid: requires all grid " +

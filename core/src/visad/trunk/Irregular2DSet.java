@@ -145,7 +145,7 @@ public class Irregular2DSet extends IrregularSet {
                  throws VisADException {
     super(type, samples, 1, coord_sys, units, errors, null, copy);
     if (Length != new2old.length || Length != old2new.length) {
-      throw new SetException("Irregular2DSet: sort length not match");
+      throw new SetException("Irregular2DSet: sort lengths do not match");
     }
     newToOld = new int[Length];
     oldToNew = new int[Length];
@@ -213,7 +213,8 @@ public class Irregular2DSet extends IrregularSet {
   private int[] valueToTri(float[][] value) throws VisADException {
     if (ManifoldDimension != 2) {
       throw new SetException("Irregular2DSet.valueToTri: " +
-                             "ManifoldDimension must be 2");
+                             "ManifoldDimension must be 2, not " +
+                             ManifoldDimension);
     }
     int length = value[0].length;
     if (length != value[1].length) {
@@ -285,7 +286,9 @@ public class Irregular2DSet extends IrregularSet {
   /** convert an array of values in R^DomainDimension to an array of 1-D indices */
   public int[] valueToIndex(float[][] value) throws VisADException {
     if (value.length < DomainDimension) {
-      throw new SetException("Irregular2DSet.valueToIndex: bad dimension");
+      throw new SetException("Irregular2DDSet.valueToIndex: value dimension " +
+                             value.length + " not equal to Domain dimension " +
+                             DomainDimension);
     }
     int[] tri = valueToTri(value);
     int[] index = new int[tri.length];
@@ -334,7 +337,9 @@ public class Irregular2DSet extends IrregularSet {
   public void valueToInterp(float[][] value, int[][] indices,
                             float[][] weights) throws VisADException {
     if (value.length < DomainDimension) {
-      throw new SetException("Irregular2DSet.valueToInterp: bad dimension");
+      throw new SetException("Irregular2DDSet.valueToInterp: value dimension " +
+                             value.length + " not equal to Domain dimension " +
+                             DomainDimension);
     }
     int length = value[0].length; // number of values
     if ( (indices.length < length) || (weights.length < length) ) {

@@ -56,12 +56,14 @@ public class Linear1DSet extends Gridded1DSet
                      ErrorEstimate[] errors) throws VisADException {
     super(type, (float[][]) null, length, coord_sys, units, errors);
     if (DomainDimension != 1) {
-      throw new SetException("Linear1DSet: DomainDimension must be 1");
+      throw new SetException("Linear1DSet: DomainDimension must be 1, not " +
+                             DomainDimension);
     }
     First = first;
     Last = last;
     Length = length;
-    if (Length < 1) throw new SetException("Linear1DSet: bad # samples");
+    if (Length < 1) throw new SetException("Linear1DSet: number of samples (" +
+                                           Length + " must be greater than 1");
     Step = (Length < 2) ? 1.0 : (Last - First) / (Length - 1);
     Invstep = 1.0 / Step;
     LowX = (float) Math.min(First, First + Step * (Length - 1));
@@ -106,7 +108,9 @@ public class Linear1DSet extends Gridded1DSet
 
   public int[] doubleToIndex(double[][] value) throws VisADException {
     if (value.length != DomainDimension) {
-      throw new SetException("Gridded1DDoubleSet.valueToIndex: bad dimension");
+      throw new SetException("Linear1DSet.doubleToIndex: value dimension " +
+                             value.length + " not equal to Domain dimension " +
+                             DomainDimension);
     }
     int length = value[0].length;
     int[] index = new int[length];
@@ -123,7 +127,8 @@ public class Linear1DSet extends Gridded1DSet
       of values in R */
   public float[][] gridToValue(float[][] grid) throws VisADException {
     if (grid.length != 1) {
-      throw new SetException("Linear1DSet.gridToValue: bad dimension");
+      throw new SetException("Linear1DSet.gridToValue: grid dimension" +
+                             " should be 1, not " + grid.length);
     }
     if (Lengths[0] < 2) {
       throw new SetException("Linear1DSet.gridToValue: requires all grid " +
@@ -148,7 +153,8 @@ public class Linear1DSet extends Gridded1DSet
       of non-integer grid coordinates */
   public float[][] valueToGrid(float[][] value) throws VisADException {
     if (value.length != 1) {
-      throw new SetException("Linear1DSet.valueToGrid: bad dimension");
+      throw new SetException("Linear1DSet.valueToGrid: value dimension" +
+                             " should be 1, not " + value.length);
     }
     if (Lengths[0] < 2) {
       throw new SetException("Linear1DSet.valueToGrid: requires all grid " +
@@ -228,7 +234,8 @@ public class Linear1DSet extends Gridded1DSet
 
   public Linear1DSet getLinear1DComponent(int i) {
     if (i == 0) return this;
-    else throw new ArrayIndexOutOfBoundsException("Invalid component index");
+    else throw new ArrayIndexOutOfBoundsException("Invalid component index " +
+                                                  i);
   }
 
   public Object clone() {

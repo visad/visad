@@ -84,8 +84,12 @@ public class RealTuple
     }
     else {
       if (cs == null || !cs.getReference().equals(coord_sys.getReference())) {
-        throw new CoordinateSystemException(
-          "RealTuple: coord_sys must match Type.DefaultCoordinateSystem");
+        throw new CoordinateSystemException("RealTuple: coord_sys " +
+                                            coord_sys.getReference() +
+                                            " must match" +
+                                            " Type.DefaultCoordinateSystem " +
+                                            (cs == null ? null :
+                                             cs.getReference()));
       }
       TupleCoordinateSystem = coord_sys;
     }

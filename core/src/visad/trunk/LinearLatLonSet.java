@@ -132,7 +132,8 @@ public class LinearLatLonSet extends Linear2DSet {
       of values in (Latitude, Longitude) */
   public float[][] gridToValue(float[][] grid) throws VisADException {
     if (grid.length != 2) {
-      throw new SetException("LinearLatLonSet.gridToValue: bad dimension");
+      throw new SetException("LinearLatLonSet.gridToValue: grid dimension" +
+                             " should be 2, not " + grid.length);
     }
     if (Lengths[0] < 2 || Lengths[1] < 2) {
       throw new SetException("LinearLatLonSet.gridToValue: requires all grid " +
@@ -170,7 +171,8 @@ public class LinearLatLonSet extends Linear2DSet {
       to an array of non-integer grid coordinates */
   public float[][] valueToGrid(float[][] value) throws VisADException {
     if (value.length != 2) {
-      throw new SetException("LinearLatLonSet.valueToGrid: bad dimension");
+      throw new SetException("LinearLatLonSet.valueToGrid: value dimension" +
+                             " should be 2, not " + value.length);
     }
     if (Lengths[0] < 2 || Lengths[1] < 2) {
       throw new SetException("LinearLatLonSet.valueToGrid: requires all grid " +
@@ -231,11 +233,21 @@ public class LinearLatLonSet extends Linear2DSet {
   public void valueToInterp(float[][] value, int[][] indices, float weights[][])
               throws VisADException {
     if (value.length != DomainDimension) {
-      throw new SetException("LinearLatLonSet.valueToInterp: bad dimension");
+      throw new SetException("LinearLatLonSet Domain dimension" +
+                             " should be 2, not " + DomainDimension);
     }
     int length = value[0].length; // number of values
-    if (indices.length != length || weights.length != length) {
-      throw new SetException("LinearLatLonSet.valueToInterp: lengths don't match");
+    if (indices.length != length) {
+      throw new SetException("LinearLatLonSet.valueToInterp: indices length " +
+                             indices.length +
+                             " doesn't match value[0] length " +
+                             value[0].length);
+    }
+    if (weights.length != length) {
+      throw new SetException("LinearLatLonSet.valueToInterp: weights length " +
+                             weights.length +
+                             " doesn't match value[0] length " +
+                             value[0].length);
     }
     float[][] grid = valueToGrid(value); // convert value array to grid coord array
     /* if LongitudeWrap, grid[lonI][i] should be between -0.5 and lon.Length-0.5 */

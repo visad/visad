@@ -508,7 +508,9 @@ public class Gridded3DDoubleSet extends Gridded3DSet
   /** convert an array of values in R^DomainDimension to an array of 1-D indices */
   public int[] doubleToIndex(double[][] value) throws VisADException {
     if (value.length != DomainDimension) {
-      throw new SetException("Gridded3DDoubleSet.doubleToIndex: bad dimension");
+      throw new SetException("Gridded3DDoubleSet.doubleToIndex: value dimension " +
+                             value.length + " not equal to Domain dimension " +
+                             DomainDimension);
     }
     int length = value[0].length;
     int[] index = new int[length];
@@ -534,7 +536,10 @@ public class Gridded3DDoubleSet extends Gridded3DSet
       of values in R^DomainDimension */
   public double[][] gridToDouble(double[][] grid) throws VisADException {
     if (grid.length != ManifoldDimension) {
-      throw new SetException("Gridded3DDoubleSet.gridToDouble: bad dimension");
+      throw new SetException("Gridded3DDoubleSet.gridToDouble: grid dimension " +
+                             grid.length +
+                             " not equal to Manifold dimension " +
+                             ManifoldDimension);
     }
     if (ManifoldDimension == 3) {
       return gridToDouble3D(grid);
@@ -807,7 +812,9 @@ public class Gridded3DDoubleSet extends Gridded3DSet
       of non-integer grid coordinates */
   public double[][] doubleToGrid(double[][] value) throws VisADException {
     if (value.length < DomainDimension) {
-      throw new SetException("Gridded3DDoubleSet.doubleToGrid: bad dimension");
+      throw new SetException("Gridded3DDoubleSet.doubleToGrid: value dimension " +
+                             value.length + " not equal to Domain dimension " +
+                             DomainDimension);
     }
     if (ManifoldDimension < 3) {
       throw new SetException("Gridded3DDoubleSet.doubleToGrid: ManifoldDimension " +
@@ -1607,13 +1614,22 @@ public class Gridded3DDoubleSet extends Gridded3DSet
     double[][] weights) throws VisADException
   {
     if (value.length != DomainDimension) {
-      throw new SetException("Gridded3DDoubleSet.doubleToInterp: " +
-        "bad dimension");
+      throw new SetException("Gridded3DDoubleSet.doubleToInterp: value dimension " +
+                             value.length + " not equal to Domain dimension " +
+                             DomainDimension);
     }
     int length = value[0].length; // number of values
-    if (indices.length != length || weights.length != length) {
-      throw new SetException("Gridded3DDoubleSet.doubleToInterp: " +
-        "lengths don't match");
+    if (indices.length != length) {
+      throw new SetException("Gridded3DDoubleSet.doubleToInterp: indices length " +
+                             indices.length +
+                             " doesn't match value[0] length " +
+                             value[0].length);
+    }
+    if (weights.length != length) {
+      throw new SetException("Gridded3DDoubleSet.doubleToInterp: weights length " +
+                             weights.length +
+                             " doesn't match value[0] length " +
+                             value[0].length);
     }
     // convert value array to grid coord array
     double[][] grid = doubleToGrid(value);
@@ -1727,8 +1743,10 @@ public class Gridded3DDoubleSet extends Gridded3DSet
   void init_doubles(double[][] samples, boolean copy)
        throws VisADException {
     if (samples.length != DomainDimension) {
-      throw new SetException("SampledSet.init_doubles: " +
-                             "dimensions don't match");
+      throw new SetException("Gridded3DDoubleSet.init_doubles: samples dimension " +
+                             samples.length +
+                             " not equal to Domain dimension " +
+                             DomainDimension);
     }
     if (Length == 0) {
       // Length set in init_lengths, but not called for IrregularSet
@@ -1736,8 +1754,9 @@ public class Gridded3DDoubleSet extends Gridded3DSet
     }
     else {
       if (Length != samples[0].length) {
-        throw new SetException("SampledSet.init_doubles: " +
-                               "lengths don't match");
+        throw new SetException("Gridded3DDoubleSet.init_doubles: " +
+                               "samples[0] length " + samples[0].length +
+                               " doesn't match expected length " + Length);
       }
     }
     // MEM
@@ -1749,7 +1768,10 @@ public class Gridded3DDoubleSet extends Gridded3DSet
     }
     for (int j=0; j<DomainDimension; j++) {
       if (samples[j].length != Length) {
-        throw new SetException("SampledSet.init_doubles: lengths don't match");
+        throw new SetException("Gridded3DDoubleSet.init_doubles: " +
+                               "samples[" + j + "] length " +
+                               samples[0].length +
+                               " doesn't match expected length " + Length);
       }
       double[] samplesJ = samples[j];
       double[] SamplesJ = Samples[j];

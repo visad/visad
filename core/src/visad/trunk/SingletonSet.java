@@ -161,7 +161,9 @@ public class SingletonSet extends SampledSet {
    */
   public int[] doubleToIndex(double[][] value) throws VisADException {
     if (value.length != DomainDimension) {
-      throw new SetException("SingletonSet.valueToIndex: bad dimension");
+      throw new SetException("SingletonSet.doubleToIndex: value dimension " +
+                             value.length + " not equal to Domain dimension " +
+                             DomainDimension);
     }
     int length = value[0].length;
     int[] index = new int[length];

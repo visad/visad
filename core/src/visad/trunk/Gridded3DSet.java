@@ -358,7 +358,9 @@ public class Gridded3DSet extends GriddedSet {
   /** convert an array of values in R^DomainDimension to an array of 1-D indices */
   public int[] valueToIndex(float[][] value) throws VisADException {
     if (value.length != DomainDimension) {
-      throw new SetException("Gridded3DSet.valueToIndex: bad dimension");
+      throw new SetException("Gridded3DSet.valueToIndex: value dimension " +
+                             value.length + " not equal to Domain dimension " +
+                             DomainDimension);
     }
     int length = value[0].length;
     int[] index = new int[length];
@@ -392,7 +394,9 @@ public class Gridded3DSet extends GriddedSet {
       of values in R^DomainDimension */
   public float[][] gridToValue(float[][] grid) throws VisADException {
     if (grid.length != ManifoldDimension) {
-      throw new SetException("Gridded3DSet.gridToValue: bad dimension");
+      throw new SetException("Gridded3DSet.gridToValue: grid dimension " +
+                             grid.length + " not equal to Manifold dimension " +
+                             ManifoldDimension);
     }
     if (ManifoldDimension == 3) {
       return gridToValue3D(grid);
@@ -674,7 +678,9 @@ for (int j=0; j<3; j++) {
       of non-integer grid coordinates */
   public float[][] valueToGrid(float[][] value) throws VisADException {
     if (value.length < DomainDimension) {
-      throw new SetException("Gridded3DSet.valueToGrid: bad dimension");
+      throw new SetException("Gridded3DSet.valueToGrid: value dimension " +
+                             value.length + " not equal to Domain dimension " +
+                             DomainDimension);
     }
     if (ManifoldDimension < 3) {
       throw new SetException("Gridded3DSet.valueToGrid: ManifoldDimension " +
@@ -2611,12 +2617,14 @@ for (int j=0; j<nvertex; j++) {
     if (naux > 0) {
       if (auxLevels == null || auxLevels.length != naux) {
         throw new SetException("Gridded3DSet.isosurf: "
-                              +"auxLevels length doesn't match");
+                              +"auxLevels length " + auxLevels.length +
+                               " doesn't match expected " + naux);
       }
       for (int i=0; i<naux; i++) {
         if (auxValues[i].length != Length) {
-          throw new SetException("Gridded3DSet.isosurf: "
-                                +"auxValues lengths don't match");
+          throw new SetException("Gridded3DSet.isosurf: expected auxValues " +
+                                " length#" + i + " to be " + Length +
+                                 ", not " + auxValues[i].length);
         }
       }
     }

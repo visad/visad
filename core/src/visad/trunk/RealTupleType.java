@@ -192,8 +192,13 @@ public class RealTupleType extends TupleType {
       CoordinateSystem cs = DefaultSet.getCoordinateSystem();
       if (cs != null &&
           !cs.getReference().equals(DefaultCoordinateSystem.getReference())) {
-        throw new CoordinateSystemException("RealTupleType: DefaultSet " +
-                        "CoordinateSystem must match DefaultCoordinateSystem");
+        throw new CoordinateSystemException("RealTupleType: Default coordinate system " +
+                                            (coord_sys == null ? null :
+                                             coord_sys.getReference()) +
+                                            " must match" +
+                                            " default set CoordinateSystem " +
+                                            (cs == null ? null :
+                                             cs.getReference()));
       }
       if (!Unit.canConvertArray(DefaultCoordinateSystem.getCoordinateSystemUnits(),
                                 DefaultSet.getSetUnits())) {
@@ -412,8 +417,12 @@ public class RealTupleType extends TupleType {
       CoordinateSystem cs = DefaultSet.getCoordinateSystem();
       if (cs != null &&
           !cs.getReference().equals(DefaultCoordinateSystem.getReference())) {
-        throw new CoordinateSystemException("RealTupleType: DefaultSet " +
-                        "CoordinateSystem must match DefaultCoordinateSystem");
+        throw new CoordinateSystemException("RealTupleType: Default coordinate system " +
+                                            DefaultCoordinateSystem.getReference() +
+                                            " must match" +
+                                            " default set CoordinateSystem " +
+                                            (cs == null ? null :
+                                             cs.getReference()));
       }
       if (!Unit.canConvertArray(DefaultCoordinateSystem.getCoordinateSystemUnits(),
                                 DefaultSet.getSetUnits())) {
