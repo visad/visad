@@ -126,6 +126,11 @@ public class TupleType extends MathType {
     return tupleComponents.length;
   }
 
+  /** get array of components */
+  public MathType[] getComponents() {
+    return tupleComponents;
+  }
+
   public RealType[] getRealComponents() {
     return realComponents;
   }

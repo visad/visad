@@ -151,6 +151,11 @@ public class Tuple extends DataImpl implements TupleIface {
     return realComponents;
   }
 
+  /** return array of components */
+  public Data[] getComponents() {
+    return tupleComponents;
+  }
+
   /** return number of components */
   public int getDimension() {
     if (tupleComponents != null) {
