@@ -315,7 +315,6 @@ public class FormulaVar extends ActionImpl {
   /** set the Thing for this variable directly */
   void setThing(Thing t) throws VisADException, RemoteException {
     synchronized (Lock) {
-      if (tref.getThing() == t) return;
       formula = null;
       postfix = null;
       clearDependencies();
