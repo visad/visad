@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Plain.java,v 1.26 2001-12-19 21:08:19 steve Exp $
+ * $Id: Plain.java,v 1.27 2002-03-07 22:10:20 tomw Exp $
  */
 
 package visad.data.netcdf;
@@ -222,7 +222,11 @@ Plain
      * netCDF variable names; the returned VisAD data object will contain only
      * those variables in the netCDF dataset that are also named in the list
      * (i.e. the intersection is returned).  Consequently, if the list is empty,
-     * then <code>null</code> is returned.
+     * then <code>null</code> is returned.  For example, this form:
+     * <code> open(new URL("file://myfile.nc?var_one,var_two")); </code>
+     * will return a VisAD data object consisting only of the
+     * netCDF variables <code>var_one</code> and <code>var_two</code>
+     * assuming they are in the file.
      *
      * @param url	      The URL of the netCDF dataset.
      * @return		      A VisAD object corresponding to the netCDF datset
