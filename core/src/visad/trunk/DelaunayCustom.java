@@ -117,8 +117,10 @@ public class DelaunayCustom extends Delaunay {
 
   /** assume that float[2][number_of_points] samples describes the
       boundary of a simply connected plane region; return a decomposition
-      of that region into triangles whose vertices are all boindary
-      points from samples */
+      of that region into triangles whose vertices are all boundary
+      points from samples;
+      the trick is that the region may not be convex, but the triangles
+      must all lie inside the region */
   public static int[][] fill(float[][] samples) throws VisADException {
     if (samples == null) return null;
     if (samples.length != 2 || samples[0].length != samples[1].length) {
