@@ -1675,8 +1675,8 @@ public class BasicSSCell extends JPanel
           VDisplay.addReference(dr[i], cmaps[i]);
         }
       }
-      VDisplay.enableAction();
       setPartialSaveString(save, true);
+      VDisplay.enableAction();
     }
     HasMappings = true;
     if (vexc != null) throw vexc;
