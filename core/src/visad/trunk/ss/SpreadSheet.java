@@ -1133,7 +1133,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
           DisplayCells[i][j] = new FancySSCell(l[i][j], rs, this);
           DisplayCells[i][j].addSSCellChangeListener(this);
           DisplayCells[i][j].addMouseListener(this);
-          DisplayCells[i][j].setAutoSwitch(CanDo3D);
+          DisplayCells[i][j].setAutoSwitch(AutoSwitch);
+          DisplayCells[i][j].setAutoDetect(AutoDetect);
+          DisplayCells[i][j].setAutoShowControls(AutoShowControls);
           DisplayCells[i][j].setDimension(!CanDo3D, !CanDo3D);
           DisplayCells[i][j].setDisplayListener(this);
           DisplayCells[i][j].setPreferredSize(new Dimension(MIN_VIS_WIDTH,

@@ -202,11 +202,11 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
           AnimationWidget aw = new AnimationWidget(maps[i]);
           addToFrame(aw, true);
         }
-
-        // show widget frame
-        WidgetFrame.pack();
-        if (AutoShowControls) showWidgetFrame();
       }
+
+      // show widget frame
+      WidgetFrame.pack();
+      if (AutoShowControls) showWidgetFrame();
     }
   }
 
