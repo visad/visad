@@ -168,7 +168,21 @@ public class ScalarMap extends Object
 
   // WLH 22 August 2001
   public boolean doInitialize() {
-    return isScaled && !isManual;
+    if (DisplayScalar.equals(Display.IsoContour)) {
+      if (control != null) {
+        float[] lowhibase = new float[3];
+        boolean[] dashes = new boolean[1];
+        float[] levs =
+          ((ContourControl) control).getLevels(lowhibase, dashes);
+        return (levs == null);
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return isScaled && !isManual;
+    }
   }
 
   // WLH 31 Aug 2000

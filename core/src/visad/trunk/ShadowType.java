@@ -3403,6 +3403,12 @@ System.out.println("range = " + range[0] + " " + range[1] +
     // WLH 4 May 2001
     DataRenderer renderer = getLink().getRenderer();
 
+/*
+try {
+  System.out.println("makeContour " + getLink().getThingReference().getName());
+} catch (RemoteException e) { }
+*/
+
     boolean isLinearContour3D = getIsLinearContour3D() &&
                                 spatial_set instanceof Linear3DSet;
     ScalarMap[] spatial_maps = {null, null, null};
@@ -3528,6 +3534,10 @@ System.out.println("range = " + range[0] + " " + range[1] +
                                          lowhibase[2], display_values[i],
                                          color_values, swap, dashes[0], 
                                          fill, smap);
+/*
+System.out.println("makeIsoLines " + lowhibase[0] + " " + lowhibase[1] + " " +
+                   lowhibase[2] + " " + fill);
+*/
               // WLH 4 May 2001
               if (arrays != null) {
                 for (int j=0; j<arrays.length; j++) {
