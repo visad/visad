@@ -500,68 +500,6 @@ public class PCS {
       }
       System.out.println("mag eigen[" + j + "] = " + mag);
     }
-/*
-    // check eigen_values
-    for (int k=0; k<3; k++) {
-      for (int j=0; j<npcs; j++) {
-        for (int m=0; m<=j; m++) {
-          double prod = 0.0;
-          for (int i=0; i<nbands; i++) {
-            prod += eigen_values[k][j][i] * eigen_values[k][m][i];
-          }
-          System.out.println("prod eigen[" + k + "][" + j + "] * " +
-                             "eigen[" + k + "][" + m + "] = " + prod);
-          if (j == m) System.out.println(" ");
-        }
-      }
-    }
-*/
-/*
-prod eigen[0][0] * eigen[0][0] = 0.9999999560595673
- 
-prod eigen[0][1] * eigen[0][0] = 0.19882527929023297
-prod eigen[0][1] * eigen[0][1] = 1.0000000626459866
- 
-prod eigen[0][2] * eigen[0][0] = 0.0021955152578811976
-prod eigen[0][2] * eigen[0][1] = -0.030535468893837958
-prod eigen[0][2] * eigen[0][2] = 1.000000052295805
- 
-prod eigen[0][3] * eigen[0][0] = -0.20132624975516422
-prod eigen[0][3] * eigen[0][1] = 0.5474228612534144
-prod eigen[0][3] * eigen[0][2] = 0.064208084475597
-prod eigen[0][3] * eigen[0][3] = 1.0000000120401011
- 
-prod eigen[0][4] * eigen[0][0] = 0.16223683932582844
-prod eigen[0][4] * eigen[0][1] = 0.3466228910989315
-prod eigen[0][4] * eigen[0][2] = -0.027376087387581016
-prod eigen[0][4] * eigen[0][3] = -0.17307449659401453
-prod eigen[0][4] * eigen[0][4] = 1.0000000577602433
- 
-prod eigen[0][5] * eigen[0][0] = 0.28221250142280496
-prod eigen[0][5] * eigen[0][1] = -0.11071700812757967
-prod eigen[0][5] * eigen[0][2] = 0.3587724183558443
-prod eigen[0][5] * eigen[0][3] = -0.27945801810879445
-prod eigen[0][5] * eigen[0][4] = -0.37916833070957523
-prod eigen[0][5] * eigen[0][5] = 0.9999999806760207
- 
-prod eigen[0][6] * eigen[0][0] = 0.03857246844661688
-prod eigen[0][6] * eigen[0][1] = -0.1677977306336942
-prod eigen[0][6] * eigen[0][2] = 0.0788494048715016
-prod eigen[0][6] * eigen[0][3] = 0.1889157010351341
-prod eigen[0][6] * eigen[0][4] = -0.4630708597875781
-prod eigen[0][6] * eigen[0][5] = 0.0754880668845388
-prod eigen[0][6] * eigen[0][6] = 0.9999999547743312
- 
-prod eigen[0][7] * eigen[0][0] = 0.4077837791738421
-prod eigen[0][7] * eigen[0][1] = 0.25097394743932
-prod eigen[0][7] * eigen[0][2] = -0.14986964546002923
-prod eigen[0][7] * eigen[0][3] = 0.22386371621167456
-prod eigen[0][7] * eigen[0][4] = -0.13924359809601583
-prod eigen[0][7] * eigen[0][5] = 0.13492794341728143
-prod eigen[0][7] * eigen[0][6] = 0.5652102443367826
-prod eigen[0][7] * eigen[0][7] = 1.000000008945133
-. . .
-*/
 
     // compute pressureSet
     values = pressures.getFloats(false);
