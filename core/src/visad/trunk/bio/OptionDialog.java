@@ -186,6 +186,7 @@ public class OptionDialog extends JPanel implements ActionListener {
           if (qtjava != null) break;
         }
       }
+      /* CTR - disable this logic for now
       if (qtjava == null) {
         final ProgressDialog searching =
           new ProgressDialog(dialog, "Searching");
@@ -204,6 +205,7 @@ public class OptionDialog extends JPanel implements ActionListener {
         t.start();
         searching.show();
       }
+      */
     }
     else if (ans == 1) { // Locate it myself
       JFileChooser fileBox = new JFileChooser();
@@ -212,8 +214,14 @@ public class OptionDialog extends JPanel implements ActionListener {
         int returnVal = fileBox.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
           File file = fileBox.getSelectedFile();
-          if (file != null && !file.getAbsolutePath().equals(ignore) &&
-            !file.isDirectory() && file.getName().equals("QTJava.zip"))
+          if (file.getAbsolutePath().equals(ignore)) {
+            JOptionPane.showMessageDialog(this,
+              "This QTJava.zip is only a placeholder, and cannot be used " +
+              "to enable QuickTime. Please locate QTJava.zip in another " +
+              "location.", "VisBio", JOptionPane.INFORMATION_MESSAGE);
+          }
+          else if (file != null && !file.isDirectory() &&
+            file.getName().equals("QTJava.zip"))
           {
             qtjava = file;
             break;
