@@ -81,9 +81,9 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
     addComponent(scale, gridbag, 0, 0, 1, 1, 0.0, 0.0);
     addComponent(point, gridbag, 1, 0, 1, 1, 0.0, 0.0);
     addComponent(texture, gridbag, 2, 0, 2, 1, 0.0, 0.0);
-    addComponent(new Label("Line width:"), gridbag, 2, 1, 1, 1, 0.0, 0.0);
+    addComponent(new Label("Line width:"), gridbag, 0, 1, 1, 1, 0.0, 0.0);
     addComponent(lineWidth, gridbag, 1, 1, 1, 1, 1.0, 0.0);
-    addComponent(new Label("Point size:"), gridbag, 0, 1, 1, 1, 0.0, 0.0);
+    addComponent(new Label("Point size:"), gridbag, 2, 1, 1, 1, 0.0, 0.0);
     addComponent(pointSize, gridbag, 3, 1, 1, 1, 1.0, 0.0);
   }
 
@@ -329,6 +329,11 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
    * Handles Checkbox changes.
    */
   public void itemStateChanged(ItemEvent e) {
+    Object source = e.getItemSelectable();
+    boolean on = (e.getStateChange() == ItemEvent.SELECTED);
+    if (source == scale) gmcScaleEnable = on;
+    else if (source == point) gmcPointMode = on;
+    else if (source == texture) gmcTextureEnable = on;
     notifyListeners(new WidgetEvent(this));
   }
 

@@ -38,8 +38,8 @@ import visad.browser.Convert;
 /** A SocketSlaveDisplay server wraps around a VisAD display, providing support
     for stand-alone remote displays (i.e., not dependent on the VisAD packages)
     that communicate with the server using sockets. For an example, see
-    examples/Test68.java together with the stand-alone VisAD applet at
-    examples/VisADApplet.java, usable from witin a web browser. */
+    examples/Test68.java together with the stand-alone VisAD applet
+    visad.browser.VisADApplet, usable from within a web browser. */
 public class SocketSlaveDisplay implements RemoteSlaveDisplay {
 
   /** debugging flag */
@@ -95,8 +95,8 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
           // wait for a new socket to connect
           Socket socket = serverSocket.accept();
           if (!alive) break;
-          synchronized (clientSockets) {
-            if (socket != null) {
+          if (socket != null) {
+            synchronized (clientSockets) {
               // add client to the list
               clientSockets.add(socket);
 
@@ -122,89 +122,93 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
     public void run() {
       while (alive) {
         boolean silence = true;
+        Object[] sockets, inputs, outputs;
         synchronized (clientSockets) {
-          for (int i=0; i<clientInputs.size(); i++) {
-            DataInputStream in = (DataInputStream) clientInputs.elementAt(i);
+          sockets = clientSockets.toArray();
+          inputs = clientInputs.toArray();
+          outputs = clientOutputs.toArray();
+        }
+        for (int i=0; i<sockets.length; i++) {
+          Socket socket = (Socket) sockets[i];
+          DataInputStream in = (DataInputStream) inputs[i];
+          DataOutputStream out = (DataOutputStream) outputs[i];
 
-            // check for client requests in the form of MouseEvent data
-            try {
-              if (in.available() > 0) {
-                silence = false;
-                // receive the client data
-                int eventType = in.readInt();
+          // check for client requests in the form of MouseEvent data
+          try {
+            if (in.available() > 0) {
+              silence = false;
+              // receive the client data
+              int eventType = in.readInt();
 
-                if (eventType == 0) { // 0 = MouseEvent
-                  int id = in.readInt();
-                  long when = in.readLong();
-                  int mods = in.readInt();
-                  int x = in.readInt();
-                  int y = in.readInt();
-                  int clicks = in.readInt();
-                  boolean popup = in.readBoolean();
+              if (eventType == 0) { // 0 = refresh
+                // client has requested a refresh
+                updateClient(socket, in, out);
+              }
+              else if (eventType == 1) { // 1 = MouseEvent
+                int id = in.readInt();
+                long when = in.readLong();
+                int mods = in.readInt();
+                int x = in.readInt();
+                int y = in.readInt();
+                int clicks = in.readInt();
+                boolean popup = in.readBoolean();
 
-                  if (id >= 0) {
-                    // construct resulting MouseEvent and process it
-                    Component c = display.getComponent();
-                    MouseEvent me =
-                      new MouseEvent(c, id, when, mods, x, y, clicks, popup);
-                    MouseBehavior mb = display.getMouseBehavior();
-                    MouseHelper mh = mb.getMouseHelper();
-                    mh.processEvent(me);
+                // construct resulting MouseEvent and process it
+                Component c = display.getComponent();
+                MouseEvent me =
+                  new MouseEvent(c, id, when, mods, x, y, clicks, popup);
+                MouseBehavior mb = display.getMouseBehavior();
+                MouseHelper mh = mb.getMouseHelper();
+                mh.processEvent(me, VisADEvent.UNKNOWN_REMOTE_SOURCE);
+              }
+              else if (eventType == 2) { // 2 = message
+                int len = in.readInt();
+                char[] c = new char[len];
+                for (int j=0; j<len; j++) c[j] = in.readChar();
+                String message = new String(c);
+                StringTokenizer st = new StringTokenizer(message, "\n");
+                String controlClass = st.nextToken();
+                int index = Convert.getInt(st.nextToken());
+                String save = st.nextToken();
+                Class cls = null;
+                try {
+                  cls = Class.forName(controlClass);
+                }
+                catch (ClassNotFoundException exc) {
+                  if (DEBUG) exc.printStackTrace();
+                }
+                if (cls != null) {
+                  Control control = display.getControl(cls, index);
+                  if (control != null) {
+                    try {
+                      control.setSaveString(save);
+                    }
+                    catch (VisADException exc) {
+                      if (DEBUG) exc.printStackTrace();
+                    }
+                    catch (RemoteException exc) {
+                      if (DEBUG) exc.printStackTrace();
+                    }
                   }
                   else {
-                    // client has requested a refresh
-                    updateClient(i);
+                    if (DEBUG) System.err.println("Warning: " +
+                      "ignoring change to unknown control from client");
                   }
-                }
-                else if (eventType == 1) { // 1 = message
-                  int len = in.readInt();
-                  char[] c = new char[len];
-                  for (int j=0; j<len; j++) c[j] = in.readChar();
-                  String message = new String(c);
-                  StringTokenizer st = new StringTokenizer(message, "\n");
-                  String controlClass = st.nextToken();
-                  int index = Convert.getInt(st.nextToken());
-                  String save = st.nextToken();
-                  Class cls = null;
-                  try {
-                    cls = Class.forName(controlClass);
-                  }
-                  catch (ClassNotFoundException exc) {
-                    if (DEBUG) exc.printStackTrace();
-                  }
-                  if (cls != null) {
-                    Control control = display.getControl(cls, index);
-                    if (control != null) {
-                      try {
-                        control.setSaveString(save);
-                      }
-                      catch (VisADException exc) {
-                        if (DEBUG) exc.printStackTrace();
-                      }
-                      catch (RemoteException exc) {
-                        if (DEBUG) exc.printStackTrace();
-                      }
-                    }
-                    else {
-                      if (DEBUG) System.err.println("Warning: " +
-                        "ignoring change to unknown control from client");
-                    }
-                  }
-                }
-                else { // Unknown
-                  if (DEBUG) System.err.println("Warning: " +
-                    "ignoring unknown event type from client");
                 }
               }
+              else { // Unknown
+                if (DEBUG) System.err.println("Warning: " +
+                  "ignoring unknown event type from client");
+              }
             }
-            catch (SocketException exc) {
-              // there is a problem with this socket, so kill it
-              killSocket(i);
-              break;
-            }
-            catch (IOException exc) {
-              if (DEBUG) exc.printStackTrace();
-            }
+          }
+          catch (SocketException exc) {
+            // there is a problem with this socket, so kill it
+            killSocket(socket, in, out);
+            break;
+          }
+          catch (IOException exc) {
+            if (DEBUG) exc.printStackTrace();
           }
         }
         if (silence) {
@@ -232,14 +236,16 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
     serverSocket = new ServerSocket(port);
 
     // create a thread that listens for connecting clients
-    connectThread = new Thread(connect);
+    connectThread = new Thread(connect,
+      "SocketSlaveDisplay-Connect-" + display.getName());
     connectThread.start();
 
     // create a thread for client/server communication
-    commThread = new Thread(comm);
+    commThread = new Thread(comm,
+      "SocketSlaveDisplay-Comm-" + display.getName());
     commThread.start();
 
-    // register socket server as a "slaved display"
+    // register socket server as a slaved display
     display.addSlave(this);
   }
 
@@ -248,9 +254,10 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
     return port;
   }
 
-  /** send the latest display image to the given client */
-  private void updateClient(int i) {
-    DataOutputStream out = (DataOutputStream) clientOutputs.elementAt(i);
+  /** send the latest display image to the given socket */
+  private void updateClient(Socket socket, DataInputStream in,
+    DataOutputStream out)
+  {
     if (pix != null) {
       try {
         // send image width, height and array length to the output stream
@@ -263,7 +270,7 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
       }
       catch (SocketException exc) {
         // there is a problem with this socket, so kill it
-        killSocket(i);
+        killSocket(socket, in, out);
       }
       catch (IOException exc) {
         if (DEBUG) exc.printStackTrace();
@@ -273,8 +280,9 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
   }
 
   /** send a message to the given client */
-  private void updateClient(int i, String message) {
-    DataOutputStream out = (DataOutputStream) clientOutputs.elementAt(i);
+  private void updateClient(String message, Socket socket,
+    DataInputStream in, DataOutputStream out)
+  {
     try {
       // send message to the output stream
       out.writeInt(-1); // special code of width -1 indicates message
@@ -283,7 +291,7 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
     }
     catch (SocketException exc) {
       // there is a problem with this socket, so kill it
-      killSocket(i);
+      killSocket(socket, in, out);
     }
     catch (IOException exc) {
       if (DEBUG) exc.printStackTrace();
@@ -294,64 +302,94 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
   public synchronized void sendImage(int[] pixels, int width, int height,
     int type) throws RemoteException
   {
-    // Note: The pixels array is RLE-encoded. The client applet decodes it.
-
     // convert pixels to byte array
     pix = Convert.intToBytes(pixels);
     w = width;
     h = height;
 
     // update all clients with the new image
+    int numSockets;
+    Object[] sockets, inputs, outputs;
     synchronized (clientSockets) {
-      for (int i=0; i<clientSockets.size(); i++) updateClient(i);
+      sockets = clientSockets.toArray();
+      inputs = clientInputs.toArray();
+      outputs = clientOutputs.toArray();
+    }
+    for (int i=0; i<sockets.length; i++) {
+      updateClient((Socket) sockets[i], (DataInputStream) inputs[i],
+        (DataOutputStream) outputs[i]);
     }
   }
 
-  /** Send the given message to this slave display */
+  /** send the given message to this slave display */
   public synchronized void sendMessage(String message) throws RemoteException {
+    Object[] sockets, inputs, outputs;
     synchronized (clientSockets) {
-      for (int i=0; i<clientSockets.size(); i++) updateClient(i, message);
+      sockets = clientSockets.toArray();
+      inputs = clientInputs.toArray();
+      outputs = clientOutputs.toArray();
+    }
+    for (int i=0; i<sockets.length; i++) {
+      updateClient(message, (Socket) sockets[i],
+        (DataInputStream) inputs[i], (DataOutputStream) outputs[i]);
     }
   }
 
-  /** shuts down the given socket, and removes it from the socket vector */
-  private void killSocket(int i) {
-    DataInputStream in = (DataInputStream) clientInputs.elementAt(i);
-    DataOutputStream out = (DataOutputStream) clientOutputs.elementAt(i);
-    Socket socket = (Socket) clientSockets.elementAt(i);
-
+  /** shut down the given socket */
+  private void killSocket(Socket socket, DataInputStream in,
+    DataOutputStream out)
+  {
     // shut down socket input stream
     try {
       in.close();
     }
-    catch (IOException exc) { }
+    catch (IOException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
 
     // shut down socket output stream
     try {
       out.close();
     }
-    catch (IOException exc) { }
+    catch (IOException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
 
     // shut down socket itself
     try {
       socket.close();
     }
-    catch (IOException exc) { }
+    catch (IOException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
 
     // remove socket from socket vectors
-    clientSockets.remove(i);
-    clientInputs.remove(i);
-    clientOutputs.remove(i);
+    synchronized (clientSockets) {
+      clientSockets.remove(socket);
+      clientInputs.remove(in);
+      clientOutputs.remove(out);
+    }
   }
 
-  /** destroys this server and kills all associated threads */
+  /** destroy this server and kills all associated threads */
   public void killServer() {
     // set flag to cause server's threads to stop running
     alive = false;
 
     // shut down all client sockets
-    synchronized (clientSockets) {
-      while (clientSockets.size() > 0) killSocket(0);
+    while (true) {
+      Socket socket = null;
+      DataInputStream in = null;
+      DataOutputStream out = null;
+      synchronized (clientSockets) {
+        if (clientSockets.size() > 0) {
+          socket = (Socket) clientSockets.elementAt(0);
+          in = (DataInputStream) clientInputs.elementAt(0);
+          out = (DataOutputStream) clientOutputs.elementAt(0);
+        }
+      }
+      if (socket == null) break;
+      else killSocket(socket, in, out);
     }
 
     // shut down server socket

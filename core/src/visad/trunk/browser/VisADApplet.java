@@ -198,45 +198,55 @@ public class VisADApplet extends Applet
   }
 
   /**
+   * Close the current server connection
+   */
+  public void disconnect() {
+    if (connected) {
+      connected = false;
+      frame.setVisible(false);
+      for (int i=0; i<frame.getComponentCount(); i++) {
+        Widget w = (Widget) frame.getComponent(i);
+        w.removeWidgetListener(this);
+      }
+      widgets = new Hashtable();
+      frame.removeAll();
+      repaint();
+    }
+  }
+
+  /**
    * Requests a refresh from the server.
    */
   private void requestRefresh() {
-    sendEvent(null);
+    if (out != null) {
+      try {
+        out.writeInt(0); // 0 = refresh
+      }
+      catch (SocketException exc) {
+        // problem communicating with the server; it has probably disconnected
+        disconnect();
+      }
+      catch (IOException exc) {
+        // problem communicating with server; it has probably disconnected
+        disconnect();
+      }
+    }
   }
 
   /**
    * Sends the specified mouse event through the socket to the server.
    */
   private void sendEvent(MouseEvent e) {
-    // if e == null, send a dummy mouseevent with id < 0
-    int id;
-    long when;
-    int mods;
-    int x;
-    int y;
-    int clicks;
-    boolean popup;
-    if (e == null) {
-      id = -1;
-      when = 0;
-      mods = 0;
-      x = 0;
-      y = 0;
-      clicks = 0;
-      popup = false;
-    }
-    else {
-      id = e.getID();
-      when = e.getWhen();
-      mods = e.getModifiers();
-      x = e.getX();
-      y = e.getY();
-      clicks = e.getClickCount();
-      popup = e.isPopupTrigger();
-    }
+    int id = e.getID();
+    long when = e.getWhen();
+    int mods = e.getModifiers();
+    int x = e.getX();
+    int y = e.getY();
+    int clicks = e.getClickCount();
+    boolean popup = e.isPopupTrigger();
     if (out != null) {
       try {
-        out.writeInt(0); // 0 = MouseEvent
+        out.writeInt(1); // 1 = MouseEvent
         out.writeInt(id);
         out.writeLong(when);
         out.writeInt(mods);
@@ -247,10 +257,33 @@ public class VisADApplet extends Applet
       }
       catch (SocketException exc) {
         // problem communicating with server; it has probably disconnected
-        connected = false;
-        repaint();
+        disconnect();
       }
-      catch (IOException exc) { }
+      catch (IOException exc) {
+        // problem communicating with server; it has probably disconnected
+        disconnect();
+      }
+    }
+  }
+
+  /**
+   * Sends the specified message through the socket to the server.
+   */
+  private void sendMessage(String message) {
+    if (out != null) {
+      try {
+        out.writeInt(2); // 2 = message
+        out.writeInt(message.length());
+        out.writeChars(message);
+      }
+      catch (SocketException exc) {
+        // problem communicating with server; it has probably disconnected
+        disconnect();
+      }
+      catch (IOException exc) {
+        // problem communicating with server; it has probably disconnected
+        disconnect();
+      }
     }
   }
 
@@ -267,8 +300,7 @@ public class VisADApplet extends Applet
     try {
       port = Integer.parseInt(portField.getText());
     }
-    catch (NumberFormatException exc) {
-    }
+    catch (NumberFormatException exc) { }
     portField.setText("" + port);
 
     // connect to the new IP address and port
@@ -279,7 +311,9 @@ public class VisADApplet extends Applet
     catch (UnknownHostException exc) {
       addressField.setText("" + this.address);
     }
-    catch (IOException exc) { }
+    catch (IOException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
     if (sock == null) return;
 
     if (connected) {
@@ -287,15 +321,19 @@ public class VisADApplet extends Applet
       try {
         socket.close();
       }
-      catch (IOException exc) { }
+      catch (IOException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
 
       // wait for old communication thread to die
-      connected = false;
+      disconnect();
       while (commThread.isAlive()) {
         try {
           Thread.sleep(100);
         }
-        catch (InterruptedException exc) { }
+        catch (InterruptedException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
       }
     }
 
@@ -365,25 +403,22 @@ public class VisADApplet extends Applet
                 catch (ClassNotFoundException exc) {
                   if (DEBUG) {
                     // widget class does not exist
-                    System.err.println("Warning: received event from control " +
-                      "of type " + controlClass + " but no widget " +
-                      "of type " + widgetClass + " exists.");
+                    System.err.println("Warning: ignoring status of " +
+                      "unknown " + widgetName + " widget.");
                   }
                 }
                 catch (InstantiationException exc) {
                   if (DEBUG) {
                     // widget class cannot be instantiated
-                    System.err.println("Warning: received event from control " +
-                      "of type " + controlClass + " but could not instantiate " +
-                      "widget of type " + widgetClass + ".");
+                    System.err.println("Warning: ignoring status of " +
+                      "invalid " + widgetName + "widget.");
                   }
                 }
                 catch (IllegalAccessException exc) {
                   if (DEBUG) {
                     // widget class constructor cannot be accessed
-                    System.err.println("Warning: received event from control " +
-                      "of type " + controlClass + " but cannot access " +
-                      "constructor for widget of type " + widgetClass + ".");
+                    System.err.println("Warning: ignoring status of " +
+                      "restricted " + widgetName + "widget.");
                   }
                 }
                 if (widget != null) {
@@ -428,10 +463,12 @@ public class VisADApplet extends Applet
         }
         catch (SocketException exc) {
           // problem communicating with server; it has probably disconnected
-          connected = false;
-          applet.repaint();
+          applet.disconnect();
         }
-        catch (IOException exc) { }
+        catch (IOException exc) {
+          // problem communicating with server; it has probably disconnected
+          applet.disconnect();
+        }
       }
     });
     commThread.start();
@@ -498,19 +535,7 @@ public class VisADApplet extends Applet
 
     // send message to server
     String message = controlClass + "\n" + index + "\n" + save;
-    if (out != null) {
-      try {
-        out.writeInt(1); // 1 = message
-        out.writeInt(message.length());
-        out.writeChars(message);
-      }
-      catch (SocketException exc) {
-        // problem communicating with server; it has probably disconnected
-        connected = false;
-        repaint();
-      }
-      catch (IOException exc) { }
-    }
+    sendMessage(message);
   }
 
 }
