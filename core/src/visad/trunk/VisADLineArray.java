@@ -83,7 +83,8 @@ public class VisADLineArray extends VisADGeometryArray {
 
   private final static int TEST = 1;
   private final static float LIMIT = 4.0f; // constant for TEST = 0
-  private final static float ALPHA = 0.1f; // constant for TEST = 1
+  // private final static float ALPHA = 0.1f; // constant for TEST = 1
+  private final static float ALPHA = 0.01f; // constant for TEST = 1
 
   public VisADGeometryArray adjustSeam(DataRenderer renderer)
          throws VisADException {
@@ -113,6 +114,7 @@ public class VisADLineArray extends VisADGeometryArray {
     boolean[] test = new boolean[len];
     int last_i;
 
+    boolean any_split = false;
     if (TEST == 0) {
       float[] ratios = new float[len];
       for (int i=0; i<len;  i++) ratios[i] = 0.0f;
@@ -144,36 +146,58 @@ public class VisADLineArray extends VisADGeometryArray {
       if (max_ratio < limit_ratio) return this;
       for (int i=0; i<len; i+=2) {
         test[i] = (ratios[i] > limit_ratio);
+        if (test[i]) any_split = true;
       }
     }
     else if (TEST == 1) {
       if (len < 2) return this;
-      float[][] bs = new float[3][len-1];
+      float[][] bs = new float[3][len/2];
       float ALPHA1 = 1.0f + ALPHA;
-      for (int i=0; i<len-1; i++) {
-        bs[0][i] = ALPHA1 * rs[0][i] - ALPHA * rs[0][i+1];
-        bs[1][i] = ALPHA1 * rs[1][i] - ALPHA * rs[1][i+1];
-        bs[2][i] = ALPHA1 * rs[2][i] - ALPHA * rs[2][i+1];
+      for (int i=0; i<len/2; i++) {
+        // BS = point ALPHA * opposite direction
+        bs[0][i] = ALPHA1 * rs[0][2*i] - ALPHA * rs[0][2*i+1];
+        bs[1][i] = ALPHA1 * rs[1][2*i] - ALPHA * rs[1][2*i+1];
+        bs[2][i] = ALPHA1 * rs[2][2*i] - ALPHA * rs[2][2*i+1];
       }
       float[][] ds = coord_sys.toReference(bs);
       float IALPHA = 1.0f / ALPHA;
       for (int i=0; i<len; i+=2) {
+        // A = original line segment
         float a0 = cs[0][i+1] - cs[0][i];
         float a1 = cs[1][i+1] - cs[1][i];
         float a2 = cs[2][i+1] - cs[2][i];
-        float b0 = IALPHA * (cs[0][i] - ds[0][i]);
-        float b1 = IALPHA * (cs[1][i] - ds[1][i]);
-        float b2 = IALPHA * (cs[2][i] - ds[2][i]);
+        // B = estimate of vector using ALPHA * opposite direction
+        float b0 = IALPHA * (cs[0][i] - ds[0][i/2]);
+        float b1 = IALPHA * (cs[1][i] - ds[1][i/2]);
+        float b2 = IALPHA * (cs[2][i] - ds[2][i/2]);
         float aa = (a0 * a0 + a1 * a1 + a2 * a2);
+        float aminusb =
+          (b0 - a0) * (b0 - a0) +
+          (b1 - a1) * (b1 - a1) +
+          (b2 - a2) * (b2 - a2);
+        float ratio = aminusb / aa;
+        test[i] = 0.01f < ratio; // true for bad segment
+        if (test[i]) any_split = true;
+/*
         float bb = (b0 * b0 + b1 * b1 + b2 * b2);
         float ab = (b0 * a0 + b1 * a1 + b2 * a2);
+        // float acrossb =
+        //   (a1 * b2 - a2 * b1) * (a1 * b2 - a2 * b1) +
+        //   (a2 * b0 - a0 * b2) * (a2 * b0 - a0 * b2) +
+        //   (a0 * b1 - a1 * b0) * (a0 * b1 - a1 * b0);
         // b = A projected onto B, as a signed fraction of B
         float b = ab / bb;
         // c = (norm(A projected onto B) / norm(A)) ^ 2
         float c = (ab * ab) / (aa * bb);
         test[i] = !(0.5f < b && b < 2.0f && 0.5f < c);
+*/
       } // end for (int i=0; i<len; i+=2)
     } // end TEST == 1
+
+    if (!any_split) {
+      return this;
+    }
+
     cs = null;
     rs = null;
 
@@ -193,9 +217,7 @@ public class VisADLineArray extends VisADGeometryArray {
     int ki = 0;
     int kj = 0;
     j = 0;
-    boolean any_split = false;
-    int accum = 0; // strip counter
-    for (int i=0; i<len; i+=6) {
+    for (int i=0; i<3*len; i+=6) {
       if (!test[i/3]) {
         coords[ki] = coordinates[i];
         coords[ki+1] = coordinates[i+1];
@@ -228,11 +250,11 @@ public class VisADLineArray extends VisADGeometryArray {
       else {
         any_split = true;
       }
-      j += color_length;
+      j += 2 * color_length;
     }
 
-// System.out.println("VisADLineArray.adjustSeam any_split = " + any_split);
 // always coming out false
+System.out.println("VisADLineArray.adjustSeam any_split = " + any_split);
 
     if (!any_split) {
       return this;
