@@ -206,11 +206,11 @@ public class ScalarMap extends Object
   /**
    * Set the name being used on the axis scale.
    * @param new name for the scalar.
-   * @see  AxisScale#setLabel(String name)
+   * @see  AxisScale#setTitle(String name)
    */
   public void setScalarName(String name) {
     scalarName = name;
-    if (axisScale != null) axisScale.setLabel(scalarName);
+    if (axisScale != null) axisScale.setTitle(scalarName);
   }
 
   /** invoke incTick on every application call to setRange */
@@ -851,7 +851,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
         scalarName = scalarName.replace('_', ' ');
       }
       // set the label on the scale as well.  DRM 17-Nov-2000
-      if (axisScale != null) axisScale.setLabel(scalarName);
+      if (axisScale != null) axisScale.setTitle(scalarName);
     }
   }
 

@@ -151,7 +151,11 @@ public class AxisScale implements java.io.Serializable
     myTitle = title;
     if (!myTitle.equals(oldTitle) ) {
       try {
-        scalarMap.setScalarName(myTitle);
+        // check for case where this was called from scalarmap.setScalarName()
+        if ( !myTitle.equals(scalarMap.getScalarName()) ) 
+        {
+          scalarMap.setScalarName(myTitle);
+        }
         scalarMap.makeScale();  // update the display
       }
       catch (VisADException ve) {;}
