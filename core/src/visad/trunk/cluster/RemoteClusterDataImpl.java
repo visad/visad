@@ -27,8 +27,6 @@ MA 02111-1307, USA
 
 /* Cluster Design Ideas
 
-change to test CVS
-
 Everything is via RMI - no 'local' Impl
 
 a Data object is partitioned if any Field in it has a
@@ -101,11 +99,19 @@ client and nodes
 every object in data tree on client connects to objects
 in data trees on nodes
 
+may use DisplayImplJ2D on for graphics nodes, modified as follows:
+1. extend DefaultDisplayRendererJ2D and override legalDisplayScalar
+   to make ZAxis, Latitude and Alpha legal
+2. not render: perhaps somehow extend VisADCanvasJ2D?
+send 'VisADGroup root' back to client?
+
+may also need way for client to signal implicit resolution
+reduction to nodes - custom DataRenderers with custon ShadowTypes
+whose doTransforms resample down, then call super.doTransform()
+with downsampled data
 
 
 
-use java.net.URLClassLoader (?) to load classes onto nodes
-from client for data search criteria, see java.lang.ClassLoader
 
 cluster design should include a native VisAD Data Model on
 binary files, via serialization, for an implementation of
@@ -292,8 +298,10 @@ END MUST OVER-RIDE */
          throws RemoteException, VisADException {
     RemoteClusterData cd = new RemoteClusterDataImpl();
     RemoteClusterData cd2 = new RemoteClusterDataImpl();
-    System.out.println(cd.equals(cd));
-    System.out.println(cd.equals(cd2));
+    System.out.println(cd.equals(cd)); // true
+    System.out.println(cd.equals(cd2)); // false
+    System.out.println(cd.clusterDataEquals(cd)); // true
+    System.out.println(cd.clusterDataEquals(cd2)); // false
     System.exit(0);
   }
 
