@@ -157,7 +157,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       byte[][] bytes = null;
       Set[] rsets = null;
       if (data instanceof FlatField) {
-        bytes = ((FlatField) data).getBytes();
+        bytes = ((FlatField) data).grabBytes();
         rsets = ((FlatField) data). getRangeSets();
       }
       int[] color_ints = new int[domain_length];
@@ -195,9 +195,27 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           // combine scales and offsets for Set, ScalarMap and color table
           float mult = (float) (table_scale * scale * step);
           float add = (float) (table_scale * (offset + scale * first));
+
+          // build even faster table
+          int[] fast_table = new int[256];
+          for (int j=0; j<256; j++) {
+            int index = j - 1;
+            if (index < 0) {
+              fast_table[j] = 0; // missing
+            }
+            else {
+              int k = (int) (add + mult * index);
+              // clip to table
+              fast_table[j] =
+                (k < 0) ? itable[0] : ((k > tblEnd) ? itable[tblEnd] : itable[k]);
+            }
+          }
+
           // now do fast lookup from byte values to color ints
           byte[] bytes0 = bytes[0];
           for (int i=0; i<domain_length; i++) {
+            color_ints[i] = fast_table[((int) bytes0[i]) - MISSING1];
+/*
             int index = ((int) bytes0[i]) - MISSING1 - 1;
             if (index < 0) {
               color_ints[i] = 0; // missing
@@ -208,13 +226,14 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
               color_ints[i] =
                 (j < 0) ? itable[0] : ((j > tblEnd) ? itable[tblEnd] : itable[j]);
             }
+*/
           }
           bytes = null; // take out the garbage
         }
         else {
           // medium speed way to build texture colors
           bytes = null; // take out the garbage
-          float[][] values = ((Field) data).getFloats();
+          float[][] values = ((Field) data).getFloats(false);
           values[0] = cmap.scaleValues(values[0]);
 
           // now do fast lookup from byte values to color ints
@@ -236,7 +255,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       else {
         // slower, more general way to build texture colors
         bytes = null; // take out the garbage
-        float[][] values = ((Field) data).getFloats();
+        float[][] values = ((Field) data).getFloats(false);
         values[0] = cmap.scaleValues(values[0]);
         float[][] color_values = control.lookupValues(values[0]);
         // combine color RGB components into ints

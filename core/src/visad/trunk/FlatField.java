@@ -836,7 +836,7 @@ public class FlatField extends FieldImpl {
     }
   }
 
-  public byte[][] getBytes() {
+  public byte[][] grabBytes() {
     return ByteRange;
   }
 
