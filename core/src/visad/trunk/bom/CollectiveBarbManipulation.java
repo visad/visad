@@ -90,6 +90,7 @@ public class CollectiveBarbManipulation extends Object
   private DataReference curve_ref = null;
 
   private boolean barbs;
+  private boolean force_station;
 
   private ConstantMap[] cmaps;
 
@@ -151,11 +152,14 @@ public class CollectiveBarbManipulation extends Object
 
      brbs is true to indicate Barb*RendererJ3D, false to
      indicate Swell*RendererJ3D
+
+     fs is true to indicate that d2 should switch to whatever
+     station is being manipulated
   */
   public CollectiveBarbManipulation(FieldImpl wf,
                  DisplayImplJ3D d1, DisplayImplJ3D d2, ConstantMap[] cms,
                  boolean abs, float id, float od, float it, float ot,
-                 int sta, boolean need_monitor, boolean brbs)
+                 int sta, boolean need_monitor, boolean brbs, boolean fs)
          throws VisADException, RemoteException {
     wind_field = wf;
     display1 = d1;
@@ -168,6 +172,7 @@ public class CollectiveBarbManipulation extends Object
     outer_time = ot;
     curve_ref = null;
     barbs = brbs;
+    force_station = fs;
 
     station = sta;
 
@@ -799,6 +804,8 @@ public class CollectiveBarbManipulation extends Object
     boolean curve = (curve_ref != null);
     if (last_sta != sta_index || last_time != time_index ||
         last_display != display_index || last_curve != curve) {
+      if (force_station && sta_index != station) setStation(sta_index);
+
       last_sta = sta_index;
       last_time = time_index;
       last_display = display_index;
@@ -1065,7 +1072,7 @@ public class CollectiveBarbManipulation extends Object
     final CollectiveBarbManipulation cbm =
       new CollectiveBarbManipulation(field, display1, display2, cmaps, false,
                                      0.0f, 1000000.0f, 0.0f, 1000.0f,
-                                     0, false, (args.length == 0));
+                                     0, false, (args.length == 0), true);
 
     // construct invisible starter set
     Gridded2DSet set1 =
