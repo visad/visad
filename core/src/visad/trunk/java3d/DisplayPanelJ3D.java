@@ -63,5 +63,11 @@ public class DisplayPanelJ3D extends JPanel {
     setMinimumSize(new java.awt.Dimension(0, 0));
   }
 
+  // WLH 17 Dec 2001
+  public void destroy() {
+    display = null;
+    renderer = null;
+  }
+
 }
 

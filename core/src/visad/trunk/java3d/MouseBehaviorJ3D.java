@@ -103,6 +103,13 @@ public class MouseBehaviorJ3D extends Behavior
     wakeup = new WakeupOr(conditions);
   }
 
+  // WLH 17 Dec 2001
+  public void destroy() {
+    helper = null;
+    display = null;
+    display_renderer = null;
+  }
+
   /**
    * Get the helper class used by this MouseBehavior.  
    * The <CODE>MouseHelper</CODE> defines the actions taken based

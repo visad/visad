@@ -242,6 +242,10 @@ public class VisADCanvasJ3D extends Canvas3D {
     stopRenderer();
     display = null;
     displayRenderer = null;
+    if (component instanceof DisplayPanelJ3D) {
+      ((DisplayPanelJ3D) component).destroy();
+    }
+    component = null; // WLH 17 Dec 2001
   }
 
 }

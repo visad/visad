@@ -1253,6 +1253,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     VisADException thrownVE = null;
     RemoteException thrownRE = null;
 
+    // WLH 17 Dec 2001
+    stop();
+
     if (displayActivity != null) {
       displayActivity.destroy();
     }

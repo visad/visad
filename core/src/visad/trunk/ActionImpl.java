@@ -124,6 +124,13 @@ public abstract class ActionImpl
       }
       LinkVector.removeAllElements();
     }
+
+    // WLH 17 Dec 2001
+    if (pool != null) {
+      pool.queue(this);
+    }
+    run_links = null;
+
   }
 
   synchronized long getLinkId() {
@@ -216,6 +223,8 @@ public abstract class ActionImpl
     LinkVector.removeElement(link);
   }
 
+  Enumeration run_links = null; // WLH 17 Dec 2001 - get it off Thread stack
+
   /** code executed by a thread to manage updates to the corresponding Thing */
   public void run() {
     currentActionThread = Thread.currentThread();
@@ -228,13 +237,13 @@ public abstract class ActionImpl
 // if (getName() != null) System.out.println("RUN " + getName());
             doAction();
           }
-          Enumeration links;
+          // Enumeration run_links; // WLH 17 Dec 2001 - get it off Thread stack
           synchronized (LinkVector) {
-            links = ((Vector) LinkVector.clone()).elements();
+            run_links = ((Vector) LinkVector.clone()).elements();
           }
-          while (links.hasMoreElements()) {
+          while (run_links.hasMoreElements()) {
             ReferenceActionLink link =
-              (ReferenceActionLink) links.nextElement();
+              (ReferenceActionLink) run_links.nextElement();
 
             ThingChangedEvent e;
             try {
@@ -254,6 +263,7 @@ public abstract class ActionImpl
               // requeue = true;  **** WLH 20 Feb 2001 ****
             }
           }
+          run_links = null; // WLH 17 Dec 2001
           resetTicks();
         }
         catch(VisADException v) {

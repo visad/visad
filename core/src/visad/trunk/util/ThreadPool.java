@@ -196,6 +196,14 @@ waiting for other ActionImpls to run
     }
   }
 
+  // WLH 17 Dec 2001
+  public void remove(Runnable r) {
+    synchronized (tasks) {
+      tasks.removeElement(r);
+      busy_tasks.removeElement(r);
+    }
+  }
+
   /** Add a task to the queue; tasks are executed as soon as a thread
    *  is available, in the order in which they are submitted
    */

@@ -145,6 +145,12 @@ public abstract class DisplayRendererJ3D
     super();
   }
 
+  // WLH 17 Dec 2001
+  public void destroy() {
+    if (canvas != null) canvas.stop();
+    if (mouse != null) mouse.destroy();
+  }
+
   /**
    * Specify <CODE>DisplayImpl</CODE> to be rendered.
    * @param dpy <CODE>Display</CODE> to render.
