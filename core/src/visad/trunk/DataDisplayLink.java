@@ -116,6 +116,7 @@ public class DataDisplayLink extends ReferenceActionLink {
 
     data = ((DataReference) ref).getData();
     if (data == null) {
+      renderer.clearExceptions();
       renderer.addException(
         new DisplayException("DataDisplayLink.prepareData: Data is null"));
       return false;
