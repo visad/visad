@@ -491,13 +491,13 @@ public class MappingDialog extends JDialog
             MDTuple tuple = (MDTuple) ScP[ndx].elementAt(i);
             if (!tuple.b) {
               g2.setFont(Mono);
-              String s = Scalars[ndx];
+              String ss = Scalars[ndx];
               int x = tuple.x;
               int y = tuple.y;
               g2.setColor(Color.blue);
               g2.fillRect(tuple.x, tuple.y, ScW[ndx], ScH);
               g2.setColor(Color.white);
-              g2.drawString(s, tuple.x, tuple.y + ScH - 4);
+              g2.drawString(ss, tuple.x, tuple.y + ScH - 4);
             }
           }
         }
@@ -578,13 +578,13 @@ public class MappingDialog extends JDialog
               MDTuple tuple = (MDTuple) ScP[ndx].elementAt(i);
               if (tuple.b) {
                 g2.setFont(Mono);
-                String s = Scalars[ndx];
+                String ss = Scalars[ndx];
                 int x = tuple.x;
                 int y = tuple.y;
                 g2.setColor(Color.blue);
                 g2.fillRect(tuple.x, tuple.y, ScW[ndx], ScH);
                 g2.setColor(Color.white);
-                g2.drawString(s, tuple.x, tuple.y + ScH - 4);
+                g2.drawString(ss, tuple.x, tuple.y + ScH - 4);
               }
             }
           }
