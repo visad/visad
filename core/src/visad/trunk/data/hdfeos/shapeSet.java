@@ -92,26 +92,6 @@ public class shapeSet {
     }
 
 
-/*
-    public shape getElement( namedDimension dim ) {
-
-      int size = this.getSize();
-      shape s_obj;
-      dimensionSet D_set;
-    
-      for ( int ii=0; ii < size; ii++ ) {
-
-        s_obj = this.getElement(ii);
-
-
-
-
-
-      }
-
-    }
-
-*/
     public shape getCoordVar( namedDimension dim ) {
 
       return null;

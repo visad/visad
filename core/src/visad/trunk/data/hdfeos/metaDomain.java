@@ -26,8 +26,9 @@ package visad.data.hdfeos;
 
 import java.util.*;
 import java.lang.*;
-import experiment.*;
-import visad.*;
+import visad.Set;
+import visad.MathType;
+import visad.VisADException;
 
   abstract class metaDomain {
 

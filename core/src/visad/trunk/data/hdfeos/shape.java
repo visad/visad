@@ -48,14 +48,6 @@ import java.util.*;
        varSet.add( var );
     }
 
-/**
-    public Enumeration getDimEnum() 
-    {
-       Enumeration e = dimSet.getEnum();
-       return e;
-    }
-**/
-
     public dimensionSet getShape() 
     {
        return dimSet;
@@ -70,25 +62,6 @@ import java.util.*;
 
        return varSet.getSize();
     }
-
-/**
-    public shape getSubsetOfThis( shapeSet s_set ) 
-    {
-
-      for ( Enumeration e = s_set.getEnum(); e.hasMoreElements; ) 
-      {
- 
-        shape obj = (shape)e.nextElement();
-
-          if (this.dimSet.isSubsetOfthis( obj.dimSet )) 
-          {
-             return obj;
-          }
-      }
-
-      return null;
-    }
-**/
 
     public boolean memberOf( variable var ) 
     {
@@ -118,18 +91,4 @@ import java.util.*;
        
       return str;
     }
-
-/**
-
-    public boolean equals( shape obj ) {
-
-    }
-
-   
-    public boolean sameObject ( shape obj ) {
-       return ( this == obj );
-    }
-
-**/
-
-  }
+ }

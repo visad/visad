@@ -27,7 +27,6 @@ package visad.data.hdfeos;
 import java.util.*;
 import java.lang.*;
 import java.rmi.*;
-import experiment.*;
 import visad.*;
 
 abstract class fileData  {

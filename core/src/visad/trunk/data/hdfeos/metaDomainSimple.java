@@ -26,16 +26,20 @@ package visad.data.hdfeos;
 
 import java.util.*;
 import java.lang.*;
-import experiment.*;
-import visad.*;
+import visad.Set;
+import visad.MathType;
+import visad.RealType;
+import visad.GriddedSet;
+import visad.Gridded1DSet;
+import visad.IntegerNDSet;
+import visad.TypeException;
+import visad.VisADException;
+import visad.RealTupleType;
+
 
   class metaDomainSimple {
 
     private int struct_id;
-
-    final static int FLOAT = 5;
-    final static int DOUBLE = 6;
-    final static int INT = 24;
 
     private MathType M_type = null;
 
@@ -44,23 +48,24 @@ import visad.*;
     - - - - - - - - - - - - - - - - - -  */
     private dimensionSet dimSet;  
 
-    public metaDomainSimple( int struct_id ) {
-
+    public metaDomainSimple( int struct_id ) 
+    {
       this.struct_id = struct_id;
       dimSet = new dimensionSet();
     }
 
-    public dimensionSet getDimSet() {
-  
+    public dimensionSet getDimSet() 
+    {
       return dimSet;
     }
 
-    public void addDim( namedDimension dim ) {
- 
+    public void addDim( namedDimension dim ) 
+    {
        dimSet.add( dim );
     }
 
-    Set getVisADSet( indexSet i_set ) throws VisADException {
+    Set getVisADSet( indexSet i_set ) throws VisADException 
+    {
 
       Set VisADset = null;
       MathType M_type = null;
@@ -96,7 +101,7 @@ import visad.*;
         lengths[ii] = dimSet.getElement(ii).getLength();
       }
 
-      VisADset = (Set) new IntegerSet( M_type, lengths );
+      VisADset = (Set) new IntegerNDSet( M_type, lengths, null, null, null );
 
       return VisADset;
     }
@@ -104,6 +109,7 @@ import visad.*;
     public MathType getVisADMathType() throws VisADException {
 
       MathType M_type = null;
+      RealType R_type = null;
 
       if ( this.M_type != null ) 
       { 
@@ -117,7 +123,24 @@ import visad.*;
         for ( int ii = 0; ii < rank; ii++ ) 
         {
           String name = dimSet.getElement(ii).getName();
-          R_types[ii] = new RealType( name, null, null );
+
+          try
+          {
+            R_type = new RealType( name, null, null );
+          }
+          catch ( VisADException e )
+          {
+            if ( e instanceof TypeException )
+            {
+              R_type = RealType.getRealTypeByName( name );
+            }
+            else
+            {
+              throw e;
+            }
+          }
+
+          R_types[ii] = R_type;
         }
      
         M_type = (MathType) new RealTupleType( R_types );

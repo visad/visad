@@ -26,9 +26,21 @@ package visad.data.hdfeos;
 
 import java.util.*;
 import java.lang.*;
-import experiment.*;
 import java.rmi.*;
-import visad.*;
+import visad.Set;
+import visad.MathType;
+import visad.RealType;
+import visad.FunctionType;
+import visad.FieldImpl;
+import visad.TupleType;
+import visad.Tuple;
+import visad.DataImpl;
+import visad.GriddedSet;
+import visad.Gridded1DSet;
+import visad.TypeException;
+import visad.VisADException;
+import visad.RealTupleType;
+
 
 class metaField extends fileData  {
 
@@ -222,15 +234,15 @@ class metaField extends fileData  {
 
          indexSet idx = new indexSet( n_dim, ii, i_set );
 
-         for ( int jj = 0; jj < n_next; jj++ ) {
-
+         for ( int jj = 0; jj < n_next; jj++ ) 
+         {
            range[jj] = getVisADDataObject( idx, R_type.getComponent(jj),
                                              link.getNext(jj) );
          }
 
          Tuple r_tuple = new Tuple( R_type, range, false );
 
-         F_func.setSample( ii, r_tuple, false );
+         F_func.setSample( ii, r_tuple );
 
        }
 

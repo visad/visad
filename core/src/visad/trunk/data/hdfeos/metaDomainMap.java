@@ -26,8 +26,11 @@ package visad.data.hdfeos;
 
 import java.util.*;
 import java.lang.*;
-import experiment.*;
-import visad.*;
+import visad.Set;
+import visad.MathType;
+import visad.Gridded1DSet;
+import visad.RealTupleType;
+import visad.VisADException;
 
   class metaDomainMap extends metaDomain {
 
@@ -39,46 +42,20 @@ import visad.*;
 
     private MathType M_type = null;
 
-  /*
-    The dimensions of the sample domain
-    - - - - - - - - - - - - - - - - - -  */
-    private dimensionSet dimSet;  
+    gctpMap gridMap;
 
-    public metaDomainMap( int struct_id ) {
+    public metaDomainMap( int struct_id, gctpMap gridMap  ) {
 
       super();
 
       this.struct_id = struct_id;
-      dimSet = new dimensionSet();
-    }
-
-    public dimensionSet getDimSet() {
-  
-      return dimSet;
-    }
-
-    public void addDim( namedDimension dim ) {
- 
-       dimSet.add( dim );
+      this.gridMap = gridMap;
     }
 
     public Set getVisADSet( indexSet i_set ) throws VisADException {
 
       Set VisADset = null;
       MathType M_type = null;
-      variable var;
-      String R_name;
-      dimensionSet varDimSet;
-      namedDimension v_dim;
-      namedDimension dim;
-      int subDims;
-      int len;
-      int idx;
-      int v_idx;
-      int jj;
-      int ii;
-      int op;
-      int n_dims;
        
       if ( this.M_type != null ) {
      
@@ -86,23 +63,14 @@ import visad.*;
       }
       else {
 
-        M_type = getVisADMathType();
+        M_type = gridMap.getVisADMathType();
         this.M_type = M_type;
       }
 
-      int rank = dimSet.getSize();
-      int[] lengths = new int[ rank ];   
-
-      for( ii = 0; ii < rank; ii++ ) 
-      {
-        lengths[ii] = dimSet.getElement(ii).getLength();
-      }
-
-      VisADset = (Set) new IntegerSet( M_type, lengths );
+      VisADset = gridMap.getVisADSet();
 
       return VisADset;
     }
-
 
     public MathType getVisADMathType() throws VisADException {
 
@@ -114,26 +82,16 @@ import visad.*;
       }
       else 
       {
-        int rank = dimSet.getSize();
-        RealType[] R_types = new RealType[ rank ];
 
-        for ( int ii = 0; ii < rank; ii++ ) 
-        {
-          String name = dimSet.getElement(ii).getName();
-          R_types[ii] = new RealType( name, null, null );
-        }
-     
-        M_type = (MathType) new RealTupleType( R_types );
+        M_type =  this.gridMap.getVisADMathType();
 
         Gridded1DSet defaultSet = new Gridded1DSet(M_type, null, 1);
 
         ((RealTupleType)M_type).setDefaultSet( (Set)defaultSet );
-
 
         this.M_type = M_type;
 
       }
         return M_type;
     }
-
  }

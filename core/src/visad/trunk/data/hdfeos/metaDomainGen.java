@@ -26,8 +26,14 @@ package visad.data.hdfeos;
 
 import java.util.*;
 import java.lang.*;
-import experiment.*;
-import visad.*;
+import visad.Set;
+import visad.MathType;
+import visad.RealType;
+import visad.GriddedSet;
+import visad.Gridded1DSet;
+import visad.TypeException;
+import visad.VisADException;
+import visad.RealTupleType;
 
   class metaDomainGen extends metaDomain {
 
@@ -38,11 +44,6 @@ import visad.*;
     final static int UNFACTORED = 2;     // non-aligned with R^N
     final static int SINGLE = 3;         // just one dim/var
     final static int UNDEF = 4;
-
-    final static int FLOAT = 5;
-    final static int DOUBLE = 6;
-    final static int INT = 24;
-    final static int SHORT = 22;
 
   /*
     The dimensions of the sample domain
@@ -283,6 +284,7 @@ import visad.*;
     public MathType getVisADMathType() throws VisADException {
 
       MathType M_type = null;
+      RealType R_type = null;
       String name = null;
 
       if ( this.M_type != null ) 
@@ -298,15 +300,24 @@ import visad.*;
 
            variable var = varSet.getElement(ii);
            name = var.getName();
-           if ( name.equals("Latitude")) {
-             R_types[ii] = RealType.Latitude; 
+
+           try
+           {
+             R_type = new RealType( name, null, null );
            }
-           else if ( name.equals("Longitude") ) {
-             R_types[ii] = RealType.Longitude;
+           catch ( VisADException e )
+           {
+             if ( e instanceof TypeException )
+             {
+               R_type = RealType.getRealTypeByName( name );
+             }
+             else
+             {
+               throw e;
+             }
            }
-           else {
-             R_types[ii] = new RealType( name, null, null );
-           }
+
+           R_types[ii] = R_type;
          }
 
          M_type = (MathType) new RealTupleType( R_types);

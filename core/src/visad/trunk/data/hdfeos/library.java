@@ -26,7 +26,7 @@ package visad.data.hdfeos;
 
 import java.util.*;
 import java.lang.*;
-import experiment.*;
+import visad.data.hdfeos.hdfeosNative.*;
 import visad.*;
 
 public class library

@@ -38,6 +38,8 @@ public class gctpMap
    double[] uprLeft;
    double[] lwrRight;
 
+   static RealType[] map_coords = { RealType.XAxis, RealType.YAxis };
+   
 
   public gctpMap(  int projcode,
                    int zonecode,
@@ -65,19 +67,27 @@ public class gctpMap
     CoordinateSystem coord_sys = null;
     RealTupleType Reference = null;  
 
-    Double r_major = null;
-    Double r_minor = null;
-    Double radius = null;
-    Double center_long = null;
-    Double center_lat = null;
-    Double lat_1 = null;
+    double[] r_major = new double[1];
+    double[] r_minor = new double[1];
+    double[] radius =  new double[1];
+    double[] center_long = new double[1];
+    double[] center_lat = new double[1];
+    double[] lat_1 = new double[1];
     int stat;
 
     double false_easting = projparms[6];
     double false_northing = projparms[7];
 
+    RealType r_lat = RealType.Latitude;
+    RealType r_lon = RealType.Longitude;
+    RealType[] components = { r_lat, r_lon };
+    Reference = new RealTupleType( components );
+
     gctpFunction.sphdz( sphrcode, projparms, r_major, r_minor, radius );
 
+    System.out.println( "projcode= "+projcode);
+    System.out.println( "sphrcode= "+sphrcode);
+    System.out.println( "radius= "+radius[0]);
 
     switch  ( projcode ) { 
 
@@ -91,10 +101,8 @@ public class gctpMap
            // error?
         }
 
-        coord_sys = new LambertAzimuthalEqualArea( Reference, radius.doubleValue(),
-                                                              center_long.doubleValue(),
-                                                              center_lat.doubleValue(),
-                                                              false_easting, false_northing );
+     /* coord_sys = new LambertAzimuthalEqualArea( Reference, radius[0], center_long[0],
+                                             center_lat[0], false_easting, false_northing ); */
 
       case gctpFunction.PS:
 
@@ -108,16 +116,15 @@ public class gctpMap
         }
 
 
-        coord_sys = new PolarStereographic( Reference, r_major.doubleValue(),
+   /*   coord_sys = new PolarStereographic( Reference, r_major.doubleValue(),
                                                        r_minor.doubleValue(), 
                                                        center_long.doubleValue(),
                                                        lat_1.doubleValue(),
-                                                       false_easting, false_northing );
+                                                       false_easting, false_northing );*/
 
       case gctpFunction.LAMCC:
 
       default:
-        // not allowed
 
     }
 
@@ -141,14 +148,9 @@ public class gctpMap
  public MathType getVisADMathType() throws VisADException
  {
 
-   RealType[] R_types = new RealType[ 2 ];
-
-   R_types[0] = new RealType( "XDim", null, null );
-   R_types[1] = new RealType( "YDim", null, null );
-
    CoordinateSystem coord_sys = getVisADCoordinateSystem();
 
-   MathType M_type = (MathType) new RealTupleType( R_types, coord_sys, null );
+   MathType M_type = (MathType) new RealTupleType( map_coords, coord_sys, null );
 
    return M_type;
 

@@ -27,8 +27,18 @@ package visad.data.hdfeos;
 import java.util.*;
 import java.lang.*;
 import java.rmi.*;
-import experiment.*;
-import visad.*;
+import visad.Set;
+import visad.MathType;
+import visad.RealType;
+import visad.FunctionType;
+import visad.FlatField;
+import visad.DataImpl;
+import visad.GriddedSet;
+import visad.Gridded1DSet;
+import visad.TypeException;
+import visad.VisADException;
+import visad.RealTupleType;
+
 
 class metaFlatFieldTuple extends fileData  {
 
@@ -110,8 +120,8 @@ class metaFlatFieldTuple extends fileData  {
           edge[ii] = 1;
         }
         else {
-                // Exception
 
+           throw new hdfeosException(" named dimension incompatible " );
         }
       }
 
@@ -128,11 +138,10 @@ class metaFlatFieldTuple extends fileData  {
 
     float[][] data = new float[ n_fields ][ samples ];
  
-    stat = -1;
 
     for ( ii = 0; ii < n_fields; ii++ ) {
 
-      stat = eos.SWreadfield( struct_id, F_name[ii], start, stride, edge, num_type[ii], data[ii] );
+      eos.SWreadfield( struct_id, F_name[ii], start, stride, edge, num_type[ii], data[ii] );
     }
 
     F_field.setSamples( data );
@@ -145,6 +154,7 @@ class metaFlatFieldTuple extends fileData  {
   {
 
     MathType M_type = null;
+    RealType R_type = null;
 
     if ( this.M_type != null ) 
     {
@@ -155,15 +165,32 @@ class metaFlatFieldTuple extends fileData  {
 
       MathType D_type = domainSet.getVisADMathType();
 
-      RealType[] R_type = new RealType[ n_fields ];
+      RealType[] R_types = new RealType[ n_fields ];
 
       for ( int ii = 0; ii < n_fields; ii++ ) {
 
         String name = F_name[ii];
-        R_type[ii]  = new RealType( name, null, null );
+
+        try
+        {
+          R_type = new RealType( name, null, null );
+        }
+        catch ( VisADException e )
+        {
+          if ( e instanceof TypeException )
+          {
+            R_type = RealType.getRealTypeByName( name );
+          }
+          else
+          {
+            throw e;
+          }
+        }
+
+        R_types[ii]  =  R_type;
       }
 
-      RealTupleType T_type = new RealTupleType( R_type, null, null );
+      RealTupleType T_type = new RealTupleType( R_types, null, null );
 
       FunctionType F_type = new FunctionType( D_type, T_type );
 

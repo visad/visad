@@ -27,8 +27,17 @@ package visad.data.hdfeos;
 import java.util.*;
 import java.lang.*;
 import java.rmi.*;
-import experiment.*;
-import visad.*;
+import visad.Set;
+import visad.MathType;
+import visad.RealType;
+import visad.FunctionType;
+import visad.TupleType;
+import visad.Tuple;
+import visad.DataImpl;
+import visad.FlatField;
+import visad.VisADException;
+import visad.TypeException;
+
 
 class metaFlatFieldSimple extends fileData {
 
@@ -104,8 +113,8 @@ class metaFlatFieldSimple extends fileData {
           edge[ii] = 1;
         }
         else {
-                // Exception
 
+          throw new hdfeosException(" named dimension incompatible ");
         }
       }
 
@@ -119,7 +128,7 @@ class metaFlatFieldSimple extends fileData {
 
     float[][] data = new float[ 1 ][ samples ];
 
-    stat = eos.SWreadfield( struct_id, F_name, start, stride, edge, num_type, data[0] );
+    eos.SWreadfield( struct_id, F_name, start, stride, edge, num_type, data[0] );
 
     F_field.setSamples( data );
 
@@ -131,6 +140,7 @@ class metaFlatFieldSimple extends fileData {
   {
 
     MathType M_type = null;
+    RealType R_type = null;
 
     if ( this.M_type != null ) 
     {
@@ -138,12 +148,26 @@ class metaFlatFieldSimple extends fileData {
     }
     else
     {
-
       MathType D_type = domainSet.getVisADMathType();
 
       String name = range_var.getName();
-      RealType R_type = new RealType( name, null, null );
 
+      try 
+      {
+        R_type = new RealType( name, null, null );
+      }
+      catch ( VisADException e )  
+      {
+        if ( e instanceof TypeException ) 
+        {
+           R_type = RealType.getRealTypeByName( name );
+        }
+        else 
+        {
+           throw e;
+        }
+      }
+        
       FunctionType F_type = new FunctionType( D_type, R_type );
 
       this.M_type = (MathType) F_type;

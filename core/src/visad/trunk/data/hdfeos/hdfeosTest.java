@@ -61,33 +61,19 @@ public class hdfeosTest {
   {
 
 
-  /*String filename = "/usr6/rink/HDF-EOS/data/MOP02_partday.hdf"; */
-  /*String filename = "/usr6/rink/HDF-EOS/data/MOD07.V2.hdf"; */
-    String filename = "/usr6/rink/HDF-EOS/data/NISE_SSMIF11_19911227.HDFEOS";
-
-      hdfeosFileDefault file = new hdfeosFileDefault( filename );
-
-   /* eosSwath swath1 = (eosSwath)file.allSwaths.elementAt(0);*/
-
-      eosGrid grid1 = (eosGrid)file.allGrids.elementAt(0);
-
-   /* String out = swath1.DV_Set.toString();*/
-      String out = grid1.DV_Set.toString();
-      System.out.println(out);
-
-    /*out = swath1.DV_shapeSet.toString();*/
-      out = grid1.DV_shapeSet.toString();
-      System.out.println(out);
+  //String filename = "/usr6/rink/HDF-EOS/data/MOP02_partday.hdf";
+    String filename = "/usr6/rink/HDF-EOS/data/MOD07.V2.hdf";
+  //String filename = "/usr6/rink/HDF-EOS/data/NISE_SSMIF11_19911227.HDFEOS";
+  //String filename = "/usr6/rink/HDF-EOS/data/DAS.flk.asm.tsyn2d_mis_x.AM100.1997080100.1997080121";
 
 
-   /* MathType M_type = swath1.getVisADMathType(); */
+      hdfeosDefault default_form = new hdfeosDefault();
 
-    /*DataImpl data = swath1.getVisADDataObject();*/
-      DataImpl data = grid1.getVisADDataObject();
- 
+      DataImpl data = default_form.open( filename );
+
       MathType M_type = data.getType();
       System.out.println( M_type.toString() );
-
+      hdfeosFile.close();
 
 /*
       for ( int ii = 0; ii < 15; ii++ ) {

@@ -137,6 +137,11 @@ PURPOSE:        This function assigns values to the semimajor axis, semiminor
                 16: Hough                       17: Mercury 1960
                 18: Modified Mercury 1968       19: Sphere of Radius
                                                     6370997 meters
+
+PROGRAMMER              DATE
+----------              ----
+T. Mittan             MARCH, 1993
+
 ALGORITHM REFERENCES
 
 1.  Snyder, John P., "Map Projections--A Working Manual", U.S. Geological
@@ -168,9 +173,9 @@ static double minor_data[] = {6356583.8, 6356514.86955, 6356078.96284, 6356772.2
 
 public static int sphdz( long isph,        // spheroid code number
                          double[] parm,    // projection parameters
-                         Double major,     // major axis
-                         Double minor,     // minor axis
-                         Double radius  )  // radius
+                         double[] major,     // major axis
+                         double[] minor,     // minor axis
+                         double[] radius  )  // radius
 {
 
 double r_radius;
@@ -236,9 +241,9 @@ else            /* isph >= 0 */
   r_radius = major_data[DATMCT - 1];
   }
 
-  major = new Double( r_major );
-  minor = new Double( r_minor );
-  radius = new Double( r_radius ); 
+  major[0] = r_major;
+  minor[0] = r_minor;
+  radius[0] = r_radius; 
 
 return(0);
 }
@@ -276,6 +281,10 @@ PURPOSE:        This function converts a packed DMS angle to seconds.  The
                 6.  The sign of sec is set to that of the input angle.
 
 
+PROGRAMMER              DATE
+----------              ----
+T. Mittan             MARCH, 1993
+
 ALGORITHM REFERENCES
 
 1.  Snyder, John P., "Map Projections--A Working Manual", U.S. Geological
@@ -291,7 +300,7 @@ ALGORITHM REFERENCES
 ----------------------------------*/
 
 static int paksz( double ang,        // angle in DMS
-                  Double Ddeg        // fractional degrees
+                  double[] Ddeg        // fractional degrees
                               )
 {
 
@@ -346,7 +355,7 @@ else
   sec = fac * (deg * 3600.0 + min * 60.0 + sec);
 deg = sec / 3600.0;
 
-Ddeg = new Double(deg);
+Ddeg[0] = deg;
 return(0);
 }
 

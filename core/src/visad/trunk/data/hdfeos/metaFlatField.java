@@ -27,8 +27,14 @@ package visad.data.hdfeos;
 import java.util.*;
 import java.lang.*;
 import java.rmi.*;
-import experiment.*;
-import visad.*;
+import visad.Set;
+import visad.MathType;
+import visad.FunctionType;
+import visad.TupleType;
+import visad.Tuple;
+import visad.DataImpl;
+import visad.FlatField;
+import visad.VisADException;
 
 class metaFlatField extends fileData  {
 
