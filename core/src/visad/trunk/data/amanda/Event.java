@@ -34,6 +34,7 @@ import visad.MathType;
 import visad.RealTuple;
 import visad.RealType;
 import visad.Tuple;
+import visad.ScalarMap;
 import visad.TupleType;
 import visad.VisADException;
 
@@ -86,8 +87,12 @@ public class Event
   }
 
   public final int getDay() { return day; }
+
+  public final Hit getHit(int idx) { return hits.get(idx); }
+
   public final int getNumber() { return number; }
 
+  public final int getNumberOfHits() { return hits.size(); }
   public final int getNumberOfTracks() { return tracks.size(); }
 
   public final int getRun() { return run; }
@@ -97,6 +102,84 @@ public class Event
   public final BaseTrack getTrack(int idx) { return tracks.get(idx); }
 
   public final int getYear() { return year; }
+
+  public final float[][] makeHistogram(ScalarMap xMap, ScalarMap yMap)
+  {
+    float[] timeSteps = hits.getTimeSteps();
+
+    // create bins
+    int[] bin = new int[timeSteps.length - 1];
+    for (int i = 0; i < bin.length; i++) {
+      bin[i] = 0;
+    }
+
+    // fill bins with count of hits in that bin
+    final int hitsLen = hits.size();
+    for (int i = 0; i < hitsLen; i++) {
+      final float time = hits.get(i).getLeadingEdgeTime();
+
+      // look for the proper bin, and increment its count
+      boolean found = false;
+      for (int j = 0; !found && j < bin.length; j++) {
+        if (time < timeSteps[j]) {
+          bin[j]++;
+          found = true;
+        }
+      }
+
+      // if it wasn't found, toss it in the last bin
+      if (!found) {
+        bin[bin.length - 1]++;
+      }
+    }
+
+    // calculate maximum bin value
+    float binMax = bin[0];
+    for (int i = 1; i < bin.length; i++) {
+      final int val = bin[i];
+      if (val > binMax) {
+        binMax = val;
+      }
+    }
+
+    // build list of point data
+    float[] x = new float[bin.length * 4];
+    float[] y = new float[bin.length * 4];
+    int idx = 0;
+    for (int i = 0; i < bin.length; i++) {
+      x[idx] = timeSteps[i];
+      y[idx] = 0;
+      idx++;
+
+      x[idx] = timeSteps[i];
+      y[idx] = bin[i];
+      idx++;
+
+      x[idx] = timeSteps[i + 1];
+      y[idx] = bin[i];
+      idx++;
+
+      x[idx] = timeSteps[i + 1];
+      y[idx] = 0;
+      idx++;
+    }
+
+    // set the scalarmap ranges
+    try {
+      xMap.setRange(0.0, (double )binMax);
+      yMap.setRange((double )timeSteps[0],
+                    (double )timeSteps[timeSteps.length - 1]);
+    } catch (RemoteException re) {
+      System.err.println("Couldn't set histogram ScalarMap ranges");
+      re.printStackTrace();
+    } catch (VisADException ve) {
+      System.err.println("Couldn't set histogram ScalarMap ranges");
+      ve.printStackTrace();
+    }
+
+    // return the new data
+    return new float[][] { x, y };
+  }
 
   public final FieldImpl makeHitSequence()
   {

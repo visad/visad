@@ -38,19 +38,21 @@ public class EventWidget
   private JLabel dateLabel;
 
   private TrackWidget trackWidget;
+  private HistogramWidget histoWidget;
 
   private Event thisEvent;
 
   public EventWidget(AmandaFile fileData, DataReferenceImpl eventRef,
-                     DataReferenceImpl trackRef, AnimationControl animCtl)
+                     DataReferenceImpl trackRef, AnimationControl animCtl,
+                     HistogramWidget histoWidget)
     throws RemoteException, VisADException
   {
-    this(fileData, eventRef, trackRef, animCtl, null);
+    this(fileData, eventRef, trackRef, animCtl, null, histoWidget);
   }
 
   public EventWidget(AmandaFile fileData, DataReferenceImpl eventRef,
                      DataReferenceImpl trackRef, AnimationControl animCtl,
-                     ScalarMap trackMap)
+                     ScalarMap trackMap, HistogramWidget histoWidget)
     throws RemoteException, VisADException
   {
     super();
@@ -58,6 +60,7 @@ public class EventWidget
     this.fileData = fileData;
     this.eventRef = eventRef;
     this.animCtl = animCtl;
+    this.histoWidget = histoWidget;
 
     cal = new GregorianCalendar();
 
@@ -75,6 +78,7 @@ public class EventWidget
 
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
+    add(histoWidget);
     add(slider);
     add(dateLabel);
     if (trackWidget != null) add(trackWidget);
@@ -164,6 +168,8 @@ public class EventWidget
                                 thisEvent.getTime()).toGMTString());
 
     }
+
+    histoWidget.setEvent(thisEvent);
 
     if (trackWidget != null) trackWidget.setEvent(thisEvent);
     this.invalidate();

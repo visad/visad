@@ -47,13 +47,18 @@ import visad.Display;
 import visad.DisplayImpl;
 import visad.DisplayRenderer;
 import visad.FieldImpl;
+import visad.FunctionType;
+import visad.FlatField;
 import visad.GraphicsModeControl;
 import visad.Integer1DSet;
 import visad.ScalarType;
+import visad.RealTupleType;
 import visad.RealType;
 import visad.ScalarMap;
 import visad.ShapeControl;
 import visad.VisADException;
+
+import visad.java2d.DisplayImplJ2D;
 
 import visad.java3d.DisplayImplJ3D;
 
@@ -72,7 +77,7 @@ public class NuView
 {
   private String fileName;
 
-  private DisplayImpl display;
+  private DisplayImpl display, display2;
 
   public NuView(String[] args)
     throws RemoteException, VisADException
@@ -91,9 +96,11 @@ public class NuView
     widgetPanel.setLayout(new BoxLayout(widgetPanel, BoxLayout.Y_AXIS));
     widgetPanel.setMaximumSize(new Dimension(400, 600));
 
-    buildMainDisplay(display, file, widgetPanel);
+    HistogramWidget histoWidget = new HistogramWidget();
 
-    widgetPanel.add(Box.createHorizontalGlue());
+    buildMainDisplay(display, file, widgetPanel, histoWidget);
+
+//    widgetPanel.add(Box.createHorizontalGlue());
 
     JPanel displayPanel = (JPanel )display.getComponent();
     Dimension dim = new Dimension(800, 800);
@@ -129,7 +136,8 @@ public class NuView
   }
 
   private static final void buildMainDisplay(DisplayImpl dpy, AmandaFile file,
-                                             JPanel widgetPanel)
+                                             JPanel widgetPanel,
+                                             HistogramWidget histoWidget)
     throws RemoteException, VisADException
   {
     final double halfRange = getMaxRange(file) / 2.0;
@@ -186,15 +194,17 @@ public class NuView
     modulesRef.setData(file.makeModuleData());
     dpy.addReference(modulesRef);
 
+/*
     LabeledColorWidget colorWidget = new LabeledColorWidget(colorMap);
     // align along left side, to match VisADSlider alignment
     //   (if we don't left-align, BoxLayout hoses everything)
     colorWidget.setAlignmentX(Component.LEFT_ALIGNMENT);
+*/
 
     AnimationControl animCtl = (AnimationControl )animMap.getControl();
 
     EventWidget eventWidget = new EventWidget(file, eventRef, trackRef,
-                                              animCtl, trackMap);
+                                              animCtl, trackMap, histoWidget);
 
     AnimationWidget animWidget;
     try {
@@ -204,7 +214,7 @@ public class NuView
       animWidget = null;
     }
 
-    widgetPanel.add(colorWidget);
+//    widgetPanel.add(colorWidget);
     widgetPanel.add(eventWidget);
     if (animWidget != null) {
       widgetPanel.add(animWidget);
@@ -290,6 +300,7 @@ public class NuView
   public void windowClosing(WindowEvent evt)
   {
     try { display.destroy(); } catch (Exception e) { }
+    try { display2.destroy(); } catch (Exception e) { }
     System.exit(0);
   }
 
