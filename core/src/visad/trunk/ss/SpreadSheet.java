@@ -85,7 +85,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   JViewport HorizLabels, VertLabels;
   JPanel[] HorizLabel, VertLabel;
   JPanel[] HorizDrag, VertDrag;
-  FancySSCell[] DisplayCells;
+  FancySSCell[][] DisplayCells;
   JTextField FormulaField;
   MenuItem EditPaste;
   MenuItem FileSave1, FileSave2, DispEdit;
@@ -93,7 +93,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
   JButton ToolSave, ToolMap;
   JButton FormulaOk;
   CheckboxMenuItem CellDim3D3D, CellDim2D2D, CellDim2D3D;
-  int CurDisplay = 0;
+  int CurX = 0;
+  int CurY = 0;
 
   String Clipboard = null;
   File CurrentFile = null;
@@ -635,30 +636,32 @@ public class SpreadSheet extends JFrame implements ActionListener,
     SCPane.add(DisplayPanel);
 
     // set up display panel's individual VisAD displays
-    DisplayCells = new FancySSCell[NumVisDisplays];
+    DisplayCells = new FancySSCell[NumVisX][NumVisY];
 
-    for (int i=0; i<NumVisDisplays; i++) {
-      String name = String.valueOf(Letters.charAt(i % NumVisX)) +
-                    String.valueOf(i / NumVisX + 1);
-      try {
-        DisplayCells[i] = new FancySSCell(name, this);
-        DisplayCells[i].addSSCellChangeListener(this);
-        DisplayCells[i].addMouseListener(this);
-        DisplayCells[i].setAutoSwitch(CanDo3D);
-        DisplayCells[i].setDimension(!CanDo3D, !CanDo3D);
-        DisplayCells[i].setDisplayListener(this);
-        DisplayCells[i].setPreferredSize(new Dimension(MIN_VIS_WIDTH,
-                                                       MIN_VIS_HEIGHT));
-        if (i == 0) DisplayCells[i].setSelected(true);
-        DisplayPanel.add(DisplayCells[i]);
-      }
-      catch (VisADException exc) {
-        JOptionPane.showMessageDialog(this, "Cannot create displays.",
-                 "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
-      }
-      catch (RemoteException exc) {
-        JOptionPane.showMessageDialog(this, "Cannot create displays.",
-                 "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
+    for (int j=0; j<NumVisY; j++) {
+      for (int i=0; i<NumVisX; i++) {
+        String name = String.valueOf(Letters.charAt(i)) +
+                      String.valueOf(j + 1);
+        try {
+          DisplayCells[i][j] = new FancySSCell(name, this);
+          DisplayCells[i][j].addSSCellChangeListener(this);
+          DisplayCells[i][j].addMouseListener(this);
+          DisplayCells[i][j].setAutoSwitch(CanDo3D);
+          DisplayCells[i][j].setDimension(!CanDo3D, !CanDo3D);
+          DisplayCells[i][j].setDisplayListener(this);
+          DisplayCells[i][j].setPreferredSize(new Dimension(MIN_VIS_WIDTH,
+                                                            MIN_VIS_HEIGHT));
+          if (i == 0 && j == 0) DisplayCells[i][j].setSelected(true);
+          DisplayPanel.add(DisplayCells[i][j]);
+        }
+        catch (VisADException exc) {
+          JOptionPane.showMessageDialog(this, "Cannot create displays.",
+                   "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
+        }
+        catch (RemoteException exc) {
+          JOptionPane.showMessageDialog(this, "Cannot create displays.",
+                   "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
+        }
       }
     }
 
@@ -668,7 +671,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
           new RemoteDataReferenceImpl[NumVisDisplays];
       boolean success = true;
       for (int i=0; i<NumVisDisplays; i++) {
-        rdri[i] = DisplayCells[i].getRemoteDataRef();
+        rdri[i] = DisplayCells[i%NumVisX][i/NumVisX].getRemoteDataRef();
       }
       try {
         RemoteServerImpl rsi = new RemoteServerImpl(rdri);
@@ -726,7 +729,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else if (cmd.equals("fileSaveNetcdf")) exportDataSetNetcdf();
     else if (cmd.equals("fileSaveSerial")) exportDataSetSerial();
     else if (cmd.equals("fileExit")) {
-      DisplayCells[CurDisplay].hideWidgetFrame();
+      DisplayCells[CurX][CurY].hideWidgetFrame();
       setVisible(false);
       quitProgram();
     }
@@ -748,7 +751,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
     // window menu commands
     else if (cmd.equals("optWidget")) {
-      DisplayCells[CurDisplay].showWidgetFrame();
+      DisplayCells[CurX][CurY].showWidgetFrame();
     }
 
     // formula bar commands
@@ -770,23 +773,28 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
 
     // clear all cells (in smart order to prevent error dialogs)
-    int len = DisplayCells.length;
-    boolean[] b = new boolean[len];
-    for (int i=0; i<len; i++) b[i] = false;
+    boolean[][] b = new boolean[NumVisX][NumVisY];
+    for (int j=0; j<NumVisY; j++) {
+      for (int i=0; i<NumVisX; i++) b[i][j] = false;
+    }
     boolean w = true;
     while (w) {
-      for (int i=0; i<len; i++) {
-        if (!DisplayCells[i].othersDepend()) {
-          try {
-            DisplayCells[i].clearCell();
-            b[i] = true;
+      for (int j=0; j<NumVisY; j++) {
+        for (int i=0; i<NumVisX; i++) {
+          if (!DisplayCells[i][j].othersDepend()) {
+            try {
+              DisplayCells[i][j].clearCell();
+              b[i][j] = true;
+            }
+            catch (VisADException exc) { }
+            catch (RemoteException exc) { }
           }
-          catch (VisADException exc) { }
-          catch (RemoteException exc) { }
         }
       }
       w = false;
-      for (int i=0; i<len; i++) if (!b[i]) w = true;
+      for (int j=0; j<NumVisY; j++) {
+        for (int i=0; i<NumVisX; i++) if (!b[i][j]) w = true;
+      }
     }
     CurrentFile = null;
     setTitle(bTitle);
@@ -815,21 +823,22 @@ public class SpreadSheet extends JFrame implements ActionListener,
     newFile(false);
 
     // load file
-    String[] fileStrings = new String[DisplayCells.length];
+    String[][] fileStrings = new String[NumVisX][NumVisY];
     try {
       FileReader fr = new FileReader(f);
-      int i = 0;
       char[] buff = new char[8192];
       boolean done = false;
-      while (i < DisplayCells.length) {
-        int count = 0;
-        int lncnt = 0;
-        while (lncnt < 5) {
-          int ch = fr.read();
-          buff[count++] = (char) ch;
-          if (ch == '\n') lncnt++;
+      for (int j=0; j<NumVisY; j++) {
+        for (int i=0; i<NumVisX; i++) {
+          int count = 0;
+          int lncnt = 0;
+          while (lncnt < 5) {
+            int ch = fr.read();
+            buff[count++] = (char) ch;
+            if (ch == '\n') lncnt++;
+          }
+          fileStrings[i][j] = new String(buff, 0, count);
         }
-        fileStrings[i++] = new String(buff, 0, count);
       }
       fr.close();
     }
@@ -841,27 +850,47 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
 
     // reconstruct cells
-    boolean sfe = DisplayCells[0].getShowFormulaErrors();
+    boolean sfe = DisplayCells[0][0].getShowFormulaErrors();
     int len = DisplayCells.length;
-    for (int j=0; j<len; j++) DisplayCells[j].setShowFormulaErrors(false);
-    for (int i=0; i<len; i++) {
-      try {
-        boolean b = DisplayCells[i].getAutoDetect();
-        DisplayCells[i].setAutoDetect(false);
-        DisplayCells[i].setSSCellString(fileStrings[i]);
-        DisplayCells[i].setAutoDetect(b);
+    if (sfe) {
+      for (int j=0; j<NumVisY; j++) {
+        for (int i=0; i<NumVisX; i++) {
+          DisplayCells[i][j].setShowFormulaErrors(false);
+        }
       }
-      catch (VisADException exc) {
-        JOptionPane.showMessageDialog(this,
-            "Could not reconstruct spreadsheet",
-            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
-        newFile(false);
-        for (int j=0; j<len; j++) DisplayCells[j].setShowFormulaErrors(sfe);
-        return;
-      }
-      catch (RemoteException exc) { }
     }
-    for (int j=0; j<len; j++) DisplayCells[j].setShowFormulaErrors(sfe);
+    for (int j=0; j<NumVisY; j++) {
+      for (int i=0; i<NumVisX; i++) {
+        try {
+          boolean b = DisplayCells[i][j].getAutoDetect();
+          DisplayCells[i][j].setAutoDetect(false);
+          DisplayCells[i][j].setSSCellString(fileStrings[i][j]);
+          DisplayCells[i][j].setAutoDetect(b);
+        }
+        catch (VisADException exc) {
+          JOptionPane.showMessageDialog(this,
+              "Could not reconstruct spreadsheet",
+              "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
+          newFile(false);
+          if (sfe) {
+            for (int j2=0; j2<NumVisY; j2++) {
+              for (int i2=0; i2<NumVisX; i2++) {
+                DisplayCells[i2][j2].setShowFormulaErrors(true);
+              }
+            }
+          }
+          return;
+        }
+        catch (RemoteException exc) { }
+      }
+    }
+    if (sfe) {
+      for (int j=0; j<NumVisY; j++) {
+        for (int i=0; i<NumVisX; i++) {
+          DisplayCells[i][j].setShowFormulaErrors(true);
+        }
+      }
+    }
 
     CurrentFile = f;
     setTitle(bTitle + " - " + f.getPath());
@@ -873,16 +902,18 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else {
       try {
         FileWriter fw = new FileWriter(CurrentFile);
-        for (int i=0; i<DisplayCells.length; i++) {
-          String s = DisplayCells[i].getSSCellString();
-          char[] sc = s.toCharArray();
-          fw.write(sc, 0, sc.length);
+        for (int j=0; j<NumVisY; j++) {
+          for (int i=0; i<NumVisX; i++) {
+            String s = DisplayCells[i][j].getSSCellString();
+            char[] sc = s.toCharArray();
+            fw.write(sc, 0, sc.length);
+          }
         }
         fw.close();
       }
       catch (IOException exc) {
         JOptionPane.showMessageDialog(this,
-            "Could not save file "+CurrentFile.getName(),
+            "Could not save file " + CurrentFile.getName(),
             "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       }
     }
@@ -950,7 +981,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** Moves a cell from the screen to the clipboard */
   void cutCell() {
-    if (DisplayCells[CurDisplay].confirmClear()) {
+    if (DisplayCells[CurX][CurY].confirmClear()) {
       copyCell();
       clearCell(false);
     }
@@ -958,7 +989,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** Copies a cell from the screen to the clipboard */
   void copyCell() {
-    Clipboard = DisplayCells[CurDisplay].getSSCellString();
+    Clipboard = DisplayCells[CurX][CurY].getSSCellString();
     EditPaste.setEnabled(true);
     ToolPaste.setEnabled(true);
   }
@@ -967,10 +998,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
   void pasteCell() {
     if (Clipboard != null) {
       try {
-        boolean b = DisplayCells[CurDisplay].getAutoDetect();
-        DisplayCells[CurDisplay].setAutoDetect(false);
-        DisplayCells[CurDisplay].setSSCellString(Clipboard);
-        DisplayCells[CurDisplay].setAutoDetect(b);
+        boolean b = DisplayCells[CurX][CurY].getAutoDetect();
+        DisplayCells[CurX][CurY].setAutoDetect(false);
+        DisplayCells[CurX][CurY].setSSCellString(Clipboard);
+        DisplayCells[CurX][CurY].setAutoDetect(b);
       }
       catch (VisADException exc) {
         JOptionPane.showMessageDialog(this,
@@ -984,8 +1015,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** Clears the mappings and formula of the current cell */
   void clearCell(boolean checkSafe) {
     try {
-      if (checkSafe) DisplayCells[CurDisplay].smartClear();
-      else DisplayCells[CurDisplay].clearCell();
+      if (checkSafe) DisplayCells[CurX][CurY].smartClear();
+      else DisplayCells[CurX][CurY].clearCell();
     }
     catch (VisADException exc) {
       JOptionPane.showMessageDialog(this,
@@ -999,28 +1030,28 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** Allows the user to specify mappings from Data to Display */
   void createMappings() {
-    DisplayCells[CurDisplay].addMapDialog();
+    DisplayCells[CurX][CurY].addMapDialog();
   }
 
   /** Allows the user to import a data set */
   void loadDataSet() {
-    DisplayCells[CurDisplay].loadDataDialog();
+    DisplayCells[CurX][CurY].loadDataDialog();
   }
 
   /** Allows the user to export a data set to netCDF format */
   void exportDataSetNetcdf() {
-    DisplayCells[CurDisplay].saveDataDialog(true);
+    DisplayCells[CurX][CurY].saveDataDialog(true);
   }
 
   /** Allow the user to export a data set to serialized data format */
   void exportDataSetSerial() {
-    DisplayCells[CurDisplay].saveDataDialog(false);
+    DisplayCells[CurX][CurY].saveDataDialog(false);
   }
 
   /** Make sure the Edit Mappings menu item and toolbar button are
       grayed-out or enabled depending whether this cell has data */
   void refreshMenuCommands() {
-    if (DisplayCells[CurDisplay].hasData()) {
+    if (DisplayCells[CurX][CurY].hasData()) {
       DispEdit.setEnabled(true);
       ToolMap.setEnabled(true);
       FileSave1.setEnabled(true);
@@ -1038,12 +1069,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** Make sure the formula bar is displaying up-to-date info */
   void refreshFormulaBar() {
-    if (DisplayCells[CurDisplay].hasFormula()) {
-      FormulaField.setText(DisplayCells[CurDisplay].getFormula());
+    if (DisplayCells[CurX][CurY].hasFormula()) {
+      FormulaField.setText(DisplayCells[CurX][CurY].getFormula());
     }
     else {
-      URL u = DisplayCells[CurDisplay].getFilename();
-      String s = DisplayCells[CurDisplay].getRMIAddress();
+      URL u = DisplayCells[CurX][CurY].getFilename();
+      String s = DisplayCells[CurX][CurY].getRMIAddress();
       String f = (u == null ? (s == null ? "" : s) : u.toString());
       FormulaField.setText(f);
     }
@@ -1071,23 +1102,23 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     if (u != null) {
       // try to load the data from the URL
-      DisplayCells[CurDisplay].loadDataURL(u);
+      DisplayCells[CurX][CurY].loadDataURL(u);
     }
     else if (newFormula.startsWith("rmi://")) {
       // try to load the data from a server using RMI
-      DisplayCells[CurDisplay].loadDataRMI(newFormula);
+      DisplayCells[CurX][CurY].loadDataRMI(newFormula);
     }
     else {
       // check if formula has changed from last entry
       String oldFormula = "";
-      if (DisplayCells[CurDisplay].hasFormula()) {
-        oldFormula = DisplayCells[CurDisplay].getFormula();
+      if (DisplayCells[CurX][CurY].hasFormula()) {
+        oldFormula = DisplayCells[CurX][CurY].getFormula();
       }
       if (oldFormula.equalsIgnoreCase(newFormula)) return;
 
       // try to set the formula
       try {
-        DisplayCells[CurDisplay].setFormula(newFormula);
+        DisplayCells[CurX][CurY].setFormula(newFormula);
       }
       catch (VisADException exc) {
         JOptionPane.showMessageDialog(this, exc.toString(),
@@ -1103,7 +1134,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** Update dimension checkbox menu items in Cell menu */
   void refreshDisplayMenuItems() {
     // update dimension check marks
-    int dim = DisplayCells[CurDisplay].getDimension();
+    int dim = DisplayCells[CurX][CurY].getDimension();
     if (dim == BasicSSCell.JAVA3D_3D) CellDim3D3D.setState(true);
     else CellDim3D3D.setState(false);
     if (dim == BasicSSCell.JAVA2D_2D) CellDim2D2D.setState(true);
@@ -1116,33 +1147,41 @@ public class SpreadSheet extends JFrame implements ActionListener,
   public void itemStateChanged(ItemEvent e) {
     String item = (String) e.getItem();
     if (item.equals("Show formula and RMI error messages")) {
-      for (int i=0; i<DisplayCells.length; i++) {
-        DisplayCells[i].setShowFormulaErrors(e.getStateChange()
-                                          == ItemEvent.SELECTED);
+      for (int j=0; j<NumVisY; j++) {
+        for (int i=0; i<NumVisX; i++) {
+          DisplayCells[i][j].setShowFormulaErrors(e.getStateChange()
+                                               == ItemEvent.SELECTED);
+        }
       }
     }
     try {
       if (item.equals("3-D (Java3D)")) {
-        DisplayCells[CurDisplay].setDimension(false, false);
+        DisplayCells[CurX][CurY].setDimension(false, false);
       }
       else if (item.equals("2-D (Java2D)")) {
-        DisplayCells[CurDisplay].setDimension(true, true);
+        DisplayCells[CurX][CurY].setDimension(true, true);
       }
       else if (item.equals("2-D (Java3D)")) {
-        DisplayCells[CurDisplay].setDimension(true, false);
+        DisplayCells[CurX][CurY].setDimension(true, false);
       }
       else if (item.equals("Auto-switch to 3-D")) {
         boolean b = e.getStateChange() == ItemEvent.SELECTED;
-        for (int i=0; i<NumVisDisplays; i++) DisplayCells[i].setAutoSwitch(b);
+        for (int j=0; j<NumVisY; j++) {
+          for (int i=0; i<NumVisX; i++) DisplayCells[i][j].setAutoSwitch(b);
+        }
       }
       else if (item.equals("Auto-detect mappings")) {
         boolean b = e.getStateChange() == ItemEvent.SELECTED;
-        for (int i=0; i<NumVisDisplays; i++) DisplayCells[i].setAutoDetect(b);
+        for (int j=0; j<NumVisY; j++) {
+          for (int i=0; i<NumVisX; i++) DisplayCells[i][j].setAutoDetect(b);
+        }
       }
       else if (item.equals("Auto-display controls")) {
         boolean b = e.getStateChange() == ItemEvent.SELECTED;
-        for (int i=0; i<NumVisDisplays; i++) {
-          DisplayCells[i].setAutoShowControls(b);
+        for (int j=0; j<NumVisY; j++) {
+          for (int i=0; i<NumVisX; i++) {
+            DisplayCells[i][j].setAutoShowControls(b);
+          }
         }
       }
       refreshDisplayMenuItems();
@@ -1172,22 +1211,30 @@ public class SpreadSheet extends JFrame implements ActionListener,
     if (e.getId() == DisplayEvent.MOUSE_PRESSED) {
       FancySSCell fcell = (FancySSCell)
                           BasicSSCell.getSSCellByDisplay(e.getDisplay());
-      int c = -1;
-      for (int i=0; i<NumVisDisplays; i++) {
-        if (fcell == DisplayCells[i]) c = i;
+      int ci = -1;
+      int cj = -1;
+      for (int j=0; j<NumVisY; j++) {
+        for (int i=0; i<NumVisX; i++) {
+          if (fcell == DisplayCells[i][j]) {
+            ci = i;
+            cj = j;
+          }
+        }
       }
-      selectCell(c);
+      selectCell(ci, cj);
     }
   }
 
   /** Selects the specified cell, updating screen info */
-  void selectCell(int cell) {
-    if (cell < 0 || cell >= NumVisDisplays || cell == CurDisplay) return;
+  void selectCell(int x, int y) {
+    if (x < 0 || x >= NumVisX || y < 0 || y >= NumVisY
+                              || (x == CurX && y == CurY)) return;
 
     // update blue border on screen
-    DisplayCells[CurDisplay].setSelected(false);
-    DisplayCells[cell].setSelected(true);
-    CurDisplay = cell;
+    DisplayCells[CurX][CurY].setSelected(false);
+    DisplayCells[x][y].setSelected(true);
+    CurX = x;
+    CurY = y;
 
     // update spreadsheet info
     refreshFormulaBar();
@@ -1199,19 +1246,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
   public void keyPressed(KeyEvent e) {
     int key = e.getKeyCode();
 
-    if (key == KeyEvent.VK_RIGHT || key == KeyEvent.VK_LEFT
-     || key == KeyEvent.VK_DOWN  || key == KeyEvent.VK_UP) {
-      int c = CurDisplay;
-      if (key == KeyEvent.VK_RIGHT && (CurDisplay+1) % NumVisX != 0) {
-        c = CurDisplay + 1;
-      }
-      if (key == KeyEvent.VK_LEFT && CurDisplay % NumVisX != 0) {
-        c = CurDisplay - 1;
-      }
-      if (key == KeyEvent.VK_DOWN) c = CurDisplay + NumVisX;
-      if (key == KeyEvent.VK_UP) c = CurDisplay - NumVisX;
-      selectCell(c);
-    }
+    int ci = CurX;
+    int cj = CurY;
+    if (key == KeyEvent.VK_RIGHT && ci < NumVisX - 1) ci++;
+    if (key == KeyEvent.VK_LEFT && ci > 0) ci--;
+    if (key == KeyEvent.VK_UP && cj > 0) cj--;
+    if (key == KeyEvent.VK_DOWN && cj < NumVisY - 1) cj++;
+    selectCell(ci, cj);
   }
 
   public void keyReleased(KeyEvent e) { }
@@ -1225,8 +1266,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** Handles mouse presses and cell resizing */
   public void mousePressed(MouseEvent e) {
     Component c = e.getComponent();
-    for (int i=0; i<DisplayCells.length; i++) {
-      if (c == DisplayCells[i]) selectCell(i);
+    for (int j=0; j<NumVisY; j++) {
+      for (int i=0; i<NumVisX; i++) {
+        if (c == DisplayCells[i][j]) selectCell(i, j);
+      }
     }
     oldX = e.getX();
     oldY = e.getY();
@@ -1252,25 +1295,23 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     if (change) {
       // redisplay spreadsheet cells
-      int h = VertLabel[0].getSize().height;
+      Dimension d = new Dimension();
+      d.height = VertLabel[0].getSize().height;
       for (int i=0; i<NumVisX; i++) {
-        Dimension d = new Dimension();
         d.width = HorizLabel[i].getSize().width;
-        d.height = h;
-        DisplayCells[i].setPreferredSize(d);
+        DisplayCells[i][0].setPreferredSize(d);
       }
-      int w = HorizLabel[0].getSize().width;
-      for (int i=0; i<NumVisY; i++) {
-        Dimension d = new Dimension();
-        d.width = w;
-        d.height = VertLabel[i].getSize().height;
-        DisplayCells[NumVisX*i].setPreferredSize(d);
+      d.width = HorizLabel[0].getSize().width;
+      for (int j=0; j<NumVisY; j++) {
+        d.height = VertLabel[j].getSize().height;
+        DisplayCells[0][j].setPreferredSize(d);
       }
-      for (int i=0; i<NumVisX*NumVisY; i++) {
-        Dimension d = new Dimension();
-        d.width = DisplayCells[i%NumVisX].getPreferredSize().width;
-        d.height = DisplayCells[i/NumVisX].getPreferredSize().height;
-        DisplayCells[i].setSize(d);
+      for (int j=0; j<NumVisY; j++) {
+        d.height = DisplayCells[0][j].getPreferredSize().height;
+        for (int i=0; i<NumVisX; i++) {
+          d.width = DisplayCells[i][0].getPreferredSize().width;
+          DisplayCells[i][j].setSize(d);
+        }
       }
       SCPane.invalidate();
       SCPane.validate();
@@ -1343,7 +1384,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** Handles changes in a cell's data */
   public void ssCellChanged(SSCellChangeEvent e) {
     FancySSCell f = (FancySSCell) e.getSSCell();
-    if (DisplayCells[CurDisplay] == f) {
+    if (DisplayCells[CurX][CurY] == f) {
       if (e.getChangeType() == SSCellChangeEvent.DATA_CHANGE) {
         refreshFormulaBar();
         refreshMenuCommands();
