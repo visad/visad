@@ -43,7 +43,7 @@ To run VisAD Python scripts, you nee to install:
 
   VisAD from http://www.ssec.wisc.edu/~billh/visad.html
 
-  JPython from http://www.jpython.org/
+  Jython from http://jython.sourceforge.net/
 
   Java 2 and Java3D (see the Prerequisites section of the VisAD web page)
 
@@ -74,10 +74,10 @@ but allows you to run your scripts from any JPython interpreter.
 
 4. The VisAD Python Language
 
-VisAD uses the great JPython interpreter, written in Java, as the basis
+VisAD uses the great Jython interpreter, written in Java, as the basis
 for its Python language.  See:
 
-  http://www.jpython.org/
+  http://jython.sourceforge.net/
   
 for more information about it.  And see:
 
@@ -227,6 +227,22 @@ and you can get the samples by:
 
   for i in range(number_of_samples):
 	sample = field_data[i]
+
+You can get the number of components in the domain by:
+
+  n_domain = domainDimension(field_data);
+
+and the name of a component by (#1 in this case):
+
+  domainName_1 = domainType(field_data, 1);
+
+Similarly, for the range components, the number of components is:
+
+  n_range = rangeDimension(field_data);
+
+and the name of a component by (#0 in this case):
+
+  rangeName_0 = rangeType(field_data, domainType0);
 
 You can also get the Set of sample locations of the Field by:
 
@@ -451,6 +467,19 @@ radians.  If they do then data units are used.
   trace(data) - return matrix trace of data (sum of the diagonal elements)
   
   transpose(data) - return matrix transpose of data
+
+
+5.8 Misc. Field functions
+
+  makeUnit(name) - makes a Unit object from name (like "degC")
+
+  rangeType(data, component) - returns String name of component
+
+  domainType(data, component) - returns String name of component
+
+  domainDimension(data) - returns integer number of domain components
+
+  rangeDimension(data) - returns integer number of rangecomponents
 
 
 6. Example VisAD Python Scripts
