@@ -97,6 +97,18 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     return reUseFrames;
   }
 
+  // logic to allow ShadowImageFunctionTypeJ3D to 'mark' missing frames
+  private VisADBranchGroup vbranch = null;
+
+  void setVisADBranch(VisADBranchGroup branch) {
+    vbranch = branch;
+  }
+
+  void markMissingVisADBranch() {
+    if (vbranch != null) vbranch.scratchTime();
+  }
+  // end of logic to allow ShadowImageFunctionTypeJ3D to 'mark' missing frames
+
   public BranchGroup doTransform() throws VisADException, RemoteException { 
     BranchGroup branch = getBranch();
     if (branch == null) {
@@ -138,6 +150,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       }
       link.start_time = System.currentTimeMillis();
       link.time_flag = false;
+      vbranch = null;
       // transform data into a depiction under branch
       type.doTransform(branch, data, valueArray,
                        link.getDefaultValues(), this);

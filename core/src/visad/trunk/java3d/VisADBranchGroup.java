@@ -40,5 +40,9 @@ public class VisADBranchGroup extends BranchGroup {
     return time;
   }
 
+  public void scratchTime() {
+    time = Double.NaN;
+  }
+
 }
 

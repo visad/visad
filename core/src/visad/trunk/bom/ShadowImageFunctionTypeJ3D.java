@@ -73,7 +73,10 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 // System.out.println("start doTransform " + (System.currentTimeMillis() - link.start_time));
 
     // return if data is missing or no ScalarMaps
-    if (data.isMissing()) return false;
+    if (data.isMissing()) {
+      ((ImageRendererJ3D) renderer).markMissingVisADBranch();
+      return false;
+    }
     if (getLevelOfDifficulty() == NOTHING_MAPPED) return false;
 
     ShadowFunctionOrSetType adaptedShadowType =
@@ -854,8 +857,10 @@ if (i == (len / 2)) {
           // not necessary, but perhaps if this is modified
           // int[] lat_lon_indices = renderer.getLatLonIndices();
           BranchGroup branch = (BranchGroup) makeBranch();
+          ((ImageRendererJ3D) renderer).setVisADBranch(nodes[i]);
           recurseRange(branch, ((Field) data).getSample(i),
                        value_array, default_values, renderer);
+          ((ImageRendererJ3D) renderer).setVisADBranch(null);
           nodes[i].addChild(branch);
           // not necessary, but perhaps if this is modified
           // renderer.setLatLonIndices(lat_lon_indices);
