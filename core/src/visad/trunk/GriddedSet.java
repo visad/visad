@@ -854,7 +854,9 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
       if (Samples != null) {
         for (j=0; j<DomainDimension; j++) {
           for (i=0; i<Length; i++) {
-            if (Samples[j][i] != samples[j][i]) {
+            if (Samples[j][i] == Samples[j][i]
+                  ? Samples[j][i] != samples[j][i]
+                  : samples[j][i] == samples[j][i]) {
               addNotEqualsCache((Set) set);
               return false;
             }
@@ -865,7 +867,9 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
         float[][] this_samples = getSamples(false);
         for (j=0; j<DomainDimension; j++) {
           for (i=0; i<Length; i++) {
-            if (this_samples[j][i] != samples[j][i]) {
+            if (this_samples[j][i] == this_samples[j][i]
+                  ? this_samples[j][i] != samples[j][i]
+                  : samples[j][i] == samples[j][i]) {
               addNotEqualsCache((Set) set);
               return false;
             }
