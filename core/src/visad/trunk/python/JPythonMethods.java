@@ -76,6 +76,20 @@ public abstract class JPythonMethods {
   }
 
   /**
+   * Displays the given data onscreen.
+   *
+   * @param   data            VisAD data object to plot
+   * @param   maps            ScalarMaps for the display
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
+  public static void plot(DataImpl data, ScalarMap[] maps)
+    throws VisADException, RemoteException {
+    plot(null, data, false, 1.0, 1.0, 1.0, maps);
+  }
+
+  /**
    * Displays the given data onscreen,
    * displaying the edit mappings dialog if specified.
    *
@@ -104,6 +118,22 @@ public abstract class JPythonMethods {
     throws VisADException, RemoteException
   {
     plot(name, data, false, 1.0, 1.0, 1.0);
+  }
+
+  /**
+   * Displays the given data onscreen.
+   *
+   * @param   name            name of display in which to plot data
+   * @param   data            VisAD data object to plot
+   * @param   maps            ScalarMaps for display
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
+  public static void plot(String name, DataImpl data, ScalarMap[] maps)
+    throws VisADException, RemoteException
+  {
+    plot(name, data, false, 1.0, 1.0, 1.0, maps);
   }
 
   /**
@@ -161,8 +191,15 @@ public abstract class JPythonMethods {
    */
   public static void plot(String namxe, DataImpl data,
     boolean editMaps, double red, double green, double blue)
+    throws VisADException, RemoteException {
+       plot(namxe, data, editMaps,red, green, blue, null);
+  }
+
+  public static void plot(String namxe, DataImpl data,
+    boolean editMaps, double red, double green, double blue, ScalarMap[] maps)
     throws VisADException, RemoteException
   {
+
     if (data == null) throw new VisADException("Data cannot be null");
     if (namxe == null) namxe = DEFAULT_NAME;
     final String name = namxe;
@@ -183,22 +220,27 @@ public abstract class JPythonMethods {
         pane.add(display);
 
         // add buttons to cell layout
-        JButton maps = new JButton("Mappings");
+        JButton mapping = new JButton("Mappings");
         JButton controls = new JButton("Controls");
         JButton clear = new JButton("Clear");
         JButton close = new JButton("Close");
         JPanel buttons = new JPanel();
         buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
-        buttons.add(maps);
+        buttons.add(mapping);
         buttons.add(controls);
         buttons.add(clear);
         buttons.add(close);
         pane.add(buttons);
         final FancySSCell fdisp = (FancySSCell) display;
         fdisp.setAutoShowControls(false);
-        fdisp.setAutoDetect(!editMaps);
+        if (maps != null) {
+          display.setMaps(maps);
+          fdisp.setAutoDetect(false);
+        } else {
+          fdisp.setAutoDetect(!editMaps);
+        }
 
-        maps.addActionListener(new ActionListener() {
+        mapping.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent e) {
             fdisp.addMapDialog();
           }
@@ -266,6 +308,7 @@ public abstract class JPythonMethods {
     if (display != null) {
       JFrame frame = (JFrame) frames.get(name);
       display.clearCell();
+      display.clearMaps();
       frame.setVisible(false);
       frame.dispose();
       frame = null;
