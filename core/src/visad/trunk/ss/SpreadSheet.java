@@ -627,7 +627,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
     IsSlave = slave;
 
     // test whether HDF-5 native library is present
-    CanDoHDF5 = false;
+    CanDoHDF5 = Util.canDoHDF5();
     if (!CanDoHDF5 && BasicSSCell.DEBUG) {
       System.err.println("Warning: HDF-5 library not found");
     }
