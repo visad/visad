@@ -127,7 +127,7 @@ public class MiniSheet extends JFrame implements ActionListener {
     createLabel(left, "  ");
     createLabel(left, "Type a formula into a cell's Formula text field");
     createLabel(left, "to compute the cell using that formula.");
-    createLabel(left, "For example, try typing \"sqrt(CELL1d1) / 3\"");
+    createLabel(left, "For example, try typing \"sqrt(CELL1) / 3\"");
     createLabel(left, "into the second cell's Formula text field");
     createLabel(left, "after loading data into the first cell.");
 
