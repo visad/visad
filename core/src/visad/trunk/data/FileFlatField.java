@@ -198,25 +198,53 @@ public class FileFlatField extends FlatField {
     }
   }
 
-  public Set getDomainSet() {
+  public double[][] getValues()
+         throws VisADException
+  {
+    double[][] values = null;
 
-    synchronized ( adaptedFlatFields ) {
-
-      try {
-        return getadaptedFlatField().getDomainSet();
+    synchronized (adaptedFlatFields) 
+    {
+      try 
+      {
+        values = getadaptedFlatField().getValues();
       }
-      catch( VisADException e1 ) {
-       
-        return null;
+      catch ( RemoteException e )
+      {
+        System.out.println( e.getMessage() );
       }
-      catch( RemoteException e2 ) {
+      finally 
+      {
+        return values;
+      }
+    }
+  } 
 
-        return null;
+  public Set getDomainSet() 
+  {
+    Set set = null;
+
+    synchronized ( adaptedFlatFields ) 
+    {
+      try 
+      {
+        set = getadaptedFlatField().getDomainSet();
+      }
+      catch( VisADException e1 ) 
+      {
+        System.out.println( e1.getMessage() );
+      }
+      catch( RemoteException e2 ) 
+      {
+        System.out.println( e2.getMessage() );
+      }
+      finally
+      {
+        return set;
       }
     }
   }
  
-
   // setSample is typical of methods that involve changing the
   // contents of this Field
   public void setSample(int index, Data range)
