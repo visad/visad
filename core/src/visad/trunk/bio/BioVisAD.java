@@ -90,7 +90,10 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   // -- GUI COMPONENTS --
 
   /** Series chooser for loading a series of data files. */
-  private SeriesChooser seriesBox = new SeriesChooser();
+  private SeriesChooser seriesBox;
+
+  /** Panel containing VisAD displays. */
+  private JPanel displayPane;
 
 
   // -- OTHER FIELDS --
@@ -101,13 +104,11 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   // -- CONSTRUCTORS --
 
-  /** Constructs a new instance of BioVisAD (2-D only). */
-  public BioVisAD() throws VisADException, RemoteException { this(false); }
-  
   /** Constructs a new instance of BioVisAD. */
-  public BioVisAD(boolean threeD) throws VisADException, RemoteException {
+  public BioVisAD() throws VisADException, RemoteException {
     super(true);
     setTitle(TITLE);
+    seriesBox = new SeriesChooser();
 
     // menu bar
     addMenuItem("File", "Open...", "fileOpen", 'o');
@@ -119,15 +120,21 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     pane.setLayout(new BorderLayout());
     setContentPane(pane);
 
-    // main display
-    display2 = null;
-    try {
-      display2 = new DisplayImplJ3D("display2",
-        new TwoDDisplayRendererJ3D());
+    // display panel
+    displayPane = new JPanel();
+    displayPane.setLayout(new BoxLayout(displayPane, BoxLayout.Y_AXIS));
+    pane.add(displayPane, BorderLayout.CENTER);
+
+    // 2-D and 3-D displays
+    if (Util.canDoJava3D()) {
+      display2 = new DisplayImplJ3D("display2", new TwoDDisplayRendererJ3D());
+      display3 = new DisplayImplJ3D("display3");
     }
-    catch (Throwable t) { threeD = false; }
-    if (display2 == null) display2 = new DisplayImplJ2D("display2");
-    pane.add(display2.getComponent(), BorderLayout.CENTER);
+    else {
+      display2 = (DisplayImpl) new DisplayImplJ2D("display2");
+      display3 = null;
+    }
+    displayPane.add(display2.getComponent());
 
     // vertical slider
     vert = new ImageStackWidget(this, false);
@@ -154,21 +161,38 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     // rendering tool panel
     toolRender = new RenderToolPanel(this);
     tabs.addTab("Render", toolRender);
-
-    // 3-D display frame
-    if (threeD) {
-      JFrame frame = new JFrame("BioVisAD - Image stack");
-      JPanel fpane = new JPanel();
-      fpane.setLayout(new BorderLayout());
-      frame.setContentPane(fpane);
-
-      // main 3-D display
-      display3 = new DisplayImplJ3D("display3");
-      fpane.add(display3.getComponent(), BorderLayout.CENTER);
-      frame.pack();
-      frame.show();
-    }
   }
+
+
+  // -- API METHODS --
+
+  /** Helper method for set2D and set3D. */
+  private void setComponent(boolean on, Component c) {
+    if (on) {
+      if (displayPane.isAncestorOf(c)) return;
+      displayPane.add(c);
+    }
+    else {
+      if (!displayPane.isAncestorOf(c)) return;
+      displayPane.remove(c);
+    }
+    displayPane.validate();
+    displayPane.repaint();
+  }
+
+  /** Toggles the visibility of the 2-D display. */
+  public void set2D(boolean twoD) {
+    setComponent(twoD, display2.getComponent());
+  }
+
+  /** Toggles the visibility of the 3-D display. */
+  public void set3D(boolean threeD) {
+    if (display3 == null) return;
+    setComponent(threeD, display3.getComponent());
+  }
+
+
+  // -- MENU COMMANDS --
 
   /** Loads a series of datasets specified by the user. */
   public void fileOpen() {
@@ -201,6 +225,9 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   /** Exits the application. */
   public void fileExit() { System.exit(0); }
 
+
+  // -- GUI COMPONENT HANDLING --
+
   /** Listens for file series widget changes. */
   public void stateChanged(ChangeEvent e) {
     int max = horiz.getMaximum();
@@ -208,10 +235,12 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     setTitle(TITLE + " - " + prefix + " (" + cur + "/" + max + ")");
   }
 
+
+  // -- MAIN --
+
   /** Launches the BioVisAD GUI. */
   public static void main(String[] args) throws Exception {
-    boolean threeD = args.length > 0 && args[0].equalsIgnoreCase("-3d");
-    BioVisAD mf = new BioVisAD(threeD);
+    BioVisAD mf = new BioVisAD();
     mf.pack();
     mf.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) { System.exit(0); }

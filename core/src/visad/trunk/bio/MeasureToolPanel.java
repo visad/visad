@@ -156,10 +156,20 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     JPanel p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     saveLines = new JButton("Save measurements");
+    saveLines.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        saveMeasurements(useMicrons.isSelected());
+      }
+    });
     p.add(saveLines);
 
     // restore measurements button
     restoreLines = new JButton("Restore measurements");
+    restoreLines.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        restoreMeasurements(useMicrons.isSelected());
+      }
+    });
     p.add(restoreLines);
     controls.add(pad(p));
 
@@ -169,11 +179,11 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     useMicrons.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         boolean microns = useMicrons.isSelected();
-	mPixLabel.setEnabled(microns);
-	micronsPerPixel.setEnabled(microns);
-	sliceDistLabel.setEnabled(microns);
+        mPixLabel.setEnabled(microns);
+        micronsPerPixel.setEnabled(microns);
+        sliceDistLabel.setEnabled(microns);
         sliceDistance.setEnabled(microns);
-	tool.updateFileButtons();
+        tool.updateFileButtons();
       }
     });
     controls.add(pad(useMicrons));
@@ -314,7 +324,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
         else {
           // unset standard
           int ans = JOptionPane.showConfirmDialog(tool,
-	    "Are you sure?", "Unset standard", JOptionPane.YES_NO_OPTION,
+            "Are you sure?", "Unset standard", JOptionPane.YES_NO_OPTION,
             JOptionPane.QUESTION_MESSAGE);
           if (ans != JOptionPane.YES_OPTION) {
             ignoreNextStandard = true;
@@ -453,7 +463,9 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
   }
 
   /** Updates the tool panel's contents. */
-  public void update() { /* CTR: TODO */ }
+  public void update() {
+    // CTR: TODO: MeasureToolPanel.update()
+  }
 
   /** Selects the given measurement object. */
   public void select(MeasureThing thing) {
@@ -509,7 +521,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
   }
 
   /** Restores a saved set of measurements. */
-  public void fileRestore(boolean microns) {
+  public void restoreMeasurements(boolean microns) {
     final MeasureToolPanel measureTools = this;
     final boolean fmicrons = microns;
     SwingUtilities.invokeLater(new Runnable() {
@@ -550,7 +562,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
   }
 
   /** Saves a set of measurements. */
-  public void fileSave(boolean microns) {
+  public void saveMeasurements(boolean microns) {
     final MeasureToolPanel measureTools = this;
     final boolean fmicrons = microns;
     SwingUtilities.invokeLater(new Runnable() {

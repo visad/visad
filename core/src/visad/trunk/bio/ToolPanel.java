@@ -47,7 +47,7 @@ public abstract class ToolPanel extends JPanel implements SwingConstants {
   public ToolPanel(BioVisAD biovis) {
     bio = biovis;
 
-    /* CTR: TODO: fix scroll bar problem */
+    // CTR: TODO: fix scroll bar problem
 
     // outer pane with vertical scroll bar
     JPanel outerPane = new JPanel();
