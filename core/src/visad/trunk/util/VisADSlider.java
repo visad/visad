@@ -393,6 +393,26 @@ public class VisADSlider extends JPanel implements ChangeListener,
     label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
   }
 
+  /**
+   * Hardcode the preferred size of the slider after increasing
+   * the current width by the specified percentage (or decreasing
+   * it if <tt>percent</tt> is negative.)<br>
+   * <br>
+   * This method is primarily useful to keep changes in the
+   * label (of a VisADSlider with <tt>dynamicLabelWidth</tt>
+   * set to <tt>true</t>)
+   * from causing the rest of the window to be redrawn.
+   *
+   * @param percent percentage to increase current size
+   *                before it is set.
+   */
+  public void hardcodeSize(int percent)
+  {
+    Dimension d = getPreferredSize();
+    int newWidth = d.width + (d.width * percent) / 100;
+    setPreferredSize(new Dimension(newWidth, d.height));
+  }
+
   /** called when slider is adjusted */
   public synchronized void stateChanged(ChangeEvent e) {
     try {
