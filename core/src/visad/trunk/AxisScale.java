@@ -979,14 +979,23 @@ public class AxisScale implements java.io.Serializable
   /**
    * Creates a hashtable that will draw text labels starting at the
    * starting point specified using the increment field.
-   * If you call createStandardLabels(0, 100, 2.0, 10.0), then it will
+   * If you call createStandardLabels(100, 0, 2.0, 10.0), then it will
    * make labels for the values 2, 12, 22, 32, etc.
    * 
    * @see #setLabelTable
+   * @throws IllegalArgumentException  if min > max, or increment is
+   *                                   greater than max-min
    */
   public void createStandardLabels(
     double max, double min, double base, double increment)
   {
+    if (min > max) {
+      throw new IllegalArgumentException("max must be greater than min");
+    }
+    if (increment > (max-min)) {
+      throw new IllegalArgumentException(
+        "increment must be less than or equal to range (max-min)");
+    }
     createStandardLabels(max, min, base, increment, true);
   }
 
