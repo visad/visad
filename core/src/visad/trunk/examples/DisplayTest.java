@@ -683,13 +683,6 @@ public class DisplayTest extends Object {
         display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
         display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
  
-        display1.addMap(new ConstantMap(0.0, Display.Red));
-        display1.addMap(new ConstantMap(0.1, Display.Green));
-        display1.addMap(new ConstantMap(0.0, Display.Blue));
-
-        LabeledRGBWidget lw;
-        ScalarMap color1map;
-/*
         ScalarMap color1map = new ScalarMap(ir_radiance, Display.RGB);
         display1.addMap(color1map);
 
@@ -706,7 +699,6 @@ public class DisplayTest extends Object {
         jframe.setContentPane(big_panel);
         jframe.pack();
         jframe.setVisible(true);
-*/
 
         ref_imaget1 = new DataReferenceImpl("ref_imaget1");
         ref_imaget1.setData(imaget1);

@@ -1,3 +1,4 @@
+
 //
 // Galaxy.java
 //
@@ -526,6 +527,9 @@ public class Galaxy extends Object implements ActionListener {
         coord_fields[0].setText(PlotText.shortString(lbd[0]));
         coord_fields[1].setText(PlotText.shortString(lbd[1]));
         coord_fields[2].setText(PlotText.shortString(lbd[2]));
+
+        // trigger computeDensityEmission_cell
+        density_button_ref.setData(new Real(0.0));
       }
     };
     // link red_cursor to red_cursor_cell
@@ -536,7 +540,8 @@ public class Galaxy extends Object implements ActionListener {
       public void doAction() throws VisADException, RemoteException {
         i_type = 1;
         profile_c(i_type, n_profpts, last_x, last_y, last_z, xprof, yprof); 
-        distDomain = new Linear1DSet( distance, (double)xprof[0], (double)xprof[n_profpts-1], n_profpts );
+        distDomain = new Linear1DSet( distance, (double)xprof[0],
+                                      (double)xprof[n_profpts-1], n_profpts );
         field_D = new FlatField(dist_density, distDomain);
         yprof_a[0] = yprof;
         field_D.setSamples( yprof_a );
@@ -901,7 +906,7 @@ public class Galaxy extends Object implements ActionListener {
     });
  
     // size of JFrame
-    int WIDTH = 800;
+    int WIDTH = 1200;
     int HEIGHT = 950;
     frame.setSize(WIDTH, HEIGHT);
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -1015,10 +1020,12 @@ public class Galaxy extends Object implements ActionListener {
     widget_panel.setLayout(new BoxLayout(widget_panel, BoxLayout.Y_AXIS));
     widget_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
     widget_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    Dimension d = new Dimension(400,950);
+    left.setMaximumSize(d);
     left.add(widget_panel);
 
     // color widget for sky map image
-    Dimension d = new Dimension(300, 170);
+    d = new Dimension(300, 170);
     lw.setMaximumSize(d);
     widget_panel.add(lw);
 
@@ -1027,6 +1034,8 @@ public class Galaxy extends Object implements ActionListener {
     center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
     center.setAlignmentY(JPanel.TOP_ALIGNMENT);
     center.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    d = new Dimension(400,950);
+    center.setMaximumSize(d);
     big_panel.add(center);
 
      // create panel for contour slider and button
@@ -1112,7 +1121,7 @@ public class Galaxy extends Object implements ActionListener {
     center.add(display2_label);
     center.add(display2a_label);
  
-/*---*/
+/*
     JFrame frame2 = new JFrame("Density/Emission Plots");
     WIDTH = 400;
     HEIGHT = 800;
@@ -1120,15 +1129,19 @@ public class Galaxy extends Object implements ActionListener {
     frame2.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
+*/
 
 /* WLH - not yet */
-    JPanel big_panel2 = new JPanel();
-    big_panel2.setLayout(new BoxLayout(big_panel2, BoxLayout.Y_AXIS));
-    big_panel2.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    big_panel2.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-    frame2.getContentPane().add(big_panel2);
+    JPanel right = new JPanel();
+    right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
+    right.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    right.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+/*
+    frame2.getContentPane().add(right);
+*/
+    big_panel.add(right);
  
-/*--*/
+/*
     JPanel panelA = new JPanel();
     panelA.setLayout(new BoxLayout(panelA, BoxLayout.X_AXIS));
     panelA.setAlignmentY(JPanel.TOP_ALIGNMENT);
@@ -1140,10 +1153,14 @@ public class Galaxy extends Object implements ActionListener {
     buttonA_0.setActionCommand("density/emission");
     panelA.add(buttonA_0);
 
-    big_panel2.add(panelA);
-    big_panel2.add(panel3);
-    big_panel2.add(panel4);
+    right.add(panelA);
+*/
+    right.add(panel3);
+    // temporarily use spherical sky map in place of emission graph
+    // right.add(panel4);
+    right.add(panel5);
 
+/*
     JFrame frame3 = new JFrame("Spherical Sky Map");
     WIDTH = 500;
     HEIGHT = 500;
@@ -1152,11 +1169,14 @@ public class Galaxy extends Object implements ActionListener {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
     frame3.getContentPane().add(panel5);
+    frame3.setVisible(true);
+*/
  
     // make the JFrame visible
     frame.setVisible(true);
+/*
     frame2.setVisible(true);
-    frame3.setVisible(true);
+*/
   }
 
   /** Handles button press events. */
