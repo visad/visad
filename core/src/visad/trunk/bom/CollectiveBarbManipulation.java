@@ -95,15 +95,22 @@ public class CollectiveBarbManipulation extends Object
   /**
      wf should have MathType:
        (station_index -> (Time -> tuple))
-     where tuple is flat and includes RealTypes mapped to:
-       Flow1Azimuth
-       Flow1Radial
-       Latitude
-       Longitude
-     in the DisplayImpl d;
+     where tuple is flat
+       [e.g., (Latitude, Longitude, (flow_dir, flow_speed))]
+     and must include RealTypes Latitude and Longitude plus
+     RealTypes mapped to Flow1Azimuth and Flow1Radial in the
+     DisplayImpl d;
+
      absolute indicates absolute or relative value adjustment
-     influence is 1.0 inside inner_*, 0.0 outside outer_*,
-     and linear between
+     id and od are inner and outer distances in meters
+     it and ot are inner and outer times in seconds
+     influence is 1.0 inside inner, 0.0 outside outer and linear between
+     distance and time influences multiply;
+
+     each time the user clicks the right mouse button to
+     manipulate a wind barb, the "reference" values for all
+     wind barbs are set - thus repeatedly adjusting the same
+     barb will magnify its influence over its neighbors
   */
   public CollectiveBarbManipulation(FieldImpl wf,
                  DisplayImplJ3D d, boolean abs,
@@ -366,10 +373,14 @@ public class CollectiveBarbManipulation extends Object
       Real[] reals = wind.getRealComponents();
       float new_azimuth = (float) reals[azimuth_index].getValue();
       float new_radial = (float) reals[radial_index].getValue();
-
+/*
+System.out.println("new " + new_azimuth + " " + new_radial +
+                   "  old " + azimuths[sta_index][time_index] +
+                   " " + radials[sta_index][time_index]);
+*/
       // filter out barb changes due to other doAction calls
       if (visad.util.Util.isApproximatelyEqual(new_azimuth,
-                 azimuths[sta_index][time_index], DEGREE_EPS) ||
+                 azimuths[sta_index][time_index], DEGREE_EPS) &&
           visad.util.Util.isApproximatelyEqual(new_radial,
                  radials[sta_index][time_index], MPS_EPS)) return;
 
