@@ -81,6 +81,9 @@ public class VisADSlider extends JPanel implements ChangeListener,
   /** The current slider value */
   private float sCurrent;
 
+  /** The number of ticks in the slider */
+  private int sTicks;
+
   /** Flags whether this VisADSlider is linked to a Real or a ScalarMap */
   private boolean smapcontrol;
 
@@ -132,9 +135,22 @@ public class VisADSlider extends JPanel implements ChangeListener,
                       float start, int sliderTicks, RealType rt, String n)
                       throws VisADException, RemoteException {
     // set up UI components
+    setAlignmentX(LEFT_ALIGNMENT);   // VisADSliders default to LEFT_ALIGNMENT
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-    slider = new JSlider(0, D_TICKS, D_TICKS / 2);
-    label = new JLabel("--------");
+    sTicks = sliderTicks;
+    slider = new JSlider(0, sTicks, sTicks / 2) {
+      public Dimension getPreferredSize() {
+        Dimension d = super.getPreferredSize();
+        return new Dimension(450, d.height);
+      }
+    };
+    label = new JLabel() {
+      public Dimension getPreferredSize() {
+        Dimension d = super.getPreferredSize();
+        return new Dimension(150, d.height);
+      }
+    };
+    label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
     add(slider);
     add(label);
 
@@ -241,7 +257,7 @@ public class VisADSlider extends JPanel implements ChangeListener,
   /** called when slider is adjusted */
   public void stateChanged(ChangeEvent e) {
     double val = slider.getValue();
-    sCurrent = (float) ((sMaximum - sMinimum) * (val / D_TICKS) + sMinimum);
+    sCurrent = (float) ((sMaximum - sMinimum) * (val / sTicks) + sMinimum);
     synchronized (label) {
       try {
         if (smapcontrol) control.setValue(sCurrent);
@@ -252,7 +268,7 @@ public class VisADSlider extends JPanel implements ChangeListener,
       }
       catch (RemoteException exc) { }
       label.setText(sName + " = " + PlotText.shortString(sCurrent));
-      label.validate();
+      validate();
     }
   }
 
@@ -266,7 +282,7 @@ public class VisADSlider extends JPanel implements ChangeListener,
       sCurrent = (sMinimum + sMaximum) / 2;
     }
     label.setText(sName + " = " + PlotText.shortString(sCurrent));
-    label.validate();
+    validate();
   }
 
   /** This extension of CellImpl is used to link a Real and a VisADSlider */
@@ -276,12 +292,12 @@ public class VisADSlider extends JPanel implements ChangeListener,
     public void doAction() throws VisADException, RemoteException {
       synchronized (label) {
         double val = ((Real) sRef.getData()).getValue();
-        int ival = (int) (D_TICKS * (val - sMinimum / sMaximum - sMinimum));
+        int ival = (int) (sTicks * ((val - sMinimum) / (sMaximum - sMinimum)));
         sCurrent = (float) ((sMaximum - sMinimum)
-                          * (ival / (double) D_TICKS) + sMinimum);
+                          * (ival / (double) sTicks) + sMinimum);
         if (slider.getValue() != ival) {
           slider.setValue(ival);
-          label.setText(PlotText.shortString(sCurrent));
+          label.setText(sName + " = " + PlotText.shortString(sCurrent));
         }
       }
     }
