@@ -34,7 +34,7 @@ import visad.data.DefaultFamily;
 import visad.util.DualRes;
 
 /** SliceManager is the class encapsulating BioVisAD's slice logic. */
-public class SliceManager implements ControlListener, ScalarMapListener {
+public class SliceManager implements ControlListener {
 
   // -- DATA TYPE CONSTANTS --
 
@@ -86,8 +86,11 @@ public class SliceManager implements ControlListener, ScalarMapListener {
   /** Reference for image stack data. */
   private DataReferenceImpl ref;
 
-  /** Data renderer for image stack data. */
-  private DataRenderer renderer;
+  /** Data renderer for 2-D image stack data. */
+  private DataRenderer renderer2;
+
+  /** Data renderer for 3-D image stack data. */
+  private DataRenderer renderer3;
 
   /** References for low-resolution image timestack data. */
   private DataReferenceImpl[] lowresRefs;
@@ -112,6 +115,9 @@ public class SliceManager implements ControlListener, ScalarMapListener {
 
   /** Flag indicating whether current data has low-resolution thumbnails. */
   private boolean hasThumbs;
+
+  /** Timestep and slice number of data at last resolution switch. */
+  private int old_index, old_slice;
 
   /** Loader for opening data series. */
   private final DefaultFamily loader = new DefaultFamily("bio_loader");
@@ -163,31 +169,23 @@ public class SliceManager implements ControlListener, ScalarMapListener {
 
   /** Sets the display detail (low-resolution or full resolution). */
   public void setMode(boolean lowres) {
+    if (this.lowres == lowres) return;
     this.lowres = lowres;
-    refreshSlice();
+    int index = getIndex();
+    int slice = getIndex();
+    refresh(old_index != index, old_slice != slice);
+    old_index = index;
+    old_slice = slice;
   }
 
   /** Sets the currently displayed timestep index. */
   public void setIndex(int index) {
-    if (files == null) return;
-    setFile(index, false);
-    Measurement[] m = bio.mm.lists[index].getMeasurements();
-    bio.mm.pool2.set(m);
-    bio.mm.pool3.set(m);
+    if (bio.horiz.isBusy() && !lowres) return;
+    refresh(false, true);
   }
 
   /** Sets the currently displayed image slice. */
-  public void setSlice(int slice) {
-    int cur = getSlice();
-    if (anim_control != null && getSlice() != anim_control.getCurrent()) {
-      try {
-        anim_control.setCurrent(cur);
-        bio.mm.pool2.setSlice(cur);
-      }
-      catch (VisADException exc) { exc.printStackTrace(); }
-      catch (RemoteException exc) { exc.printStackTrace(); }
-    }
-  }
+  public void setSlice(int slice) { refresh(true, false); }
 
   /** Sets whether to create low-resolution thumbnails of the data. */
   public void setThumbnails(boolean thumbnails) { doThumbs = thumbnails; }
@@ -202,34 +200,26 @@ public class SliceManager implements ControlListener, ScalarMapListener {
 
   // -- INTERNAL API METHODS --
 
-  /** ControlListener method used for programmatically moving slider. */
+  /** ControlListener method used for programmatically updating GUI. */
   public void controlChanged(ControlEvent e) {
     if (anim_control != null) {
       int val = anim_control.getCurrent() + 1;
-      if (bio.vert.getValue() != val) bio.vert.setValue(val);
+      if (lowres) {
+        if (bio.horiz.getValue() != val) bio.horiz.setValue(val);
+      }
+      else {
+        if (bio.vert.getValue() != val) bio.vert.setValue(val);
+      }
     }
   }
 
-  /** ScalarMapListener method used to recompute slider bounds. */
-  public void mapChanged(ScalarMapEvent e) {
-    bio.vert.updateSlider((int) anim_map.getRange()[1] + 1);
-  }
-
-  /** ScalarMapListener method used to detect new AnimationControl. */
-  public void controlChanged(ScalarMapControlEvent evt) {
-    int id = evt.getId();
-    if (id == ScalarMapEvent.CONTROL_REMOVED ||
-      id == ScalarMapEvent.CONTROL_REPLACED)
-    {
-      evt.getControl().removeControlListener(this);
-      if (id == ScalarMapEvent.CONTROL_REMOVED) anim_control = null;
-    }
-
-    if (id == ScalarMapEvent.CONTROL_REPLACED ||
-      id == ScalarMapEvent.CONTROL_ADDED)
-    {
-      anim_control = (AnimationControl) evt.getScalarMap().getControl();
-      if (anim_control != null) anim_control.addControlListener(this);
+  /** Ensures slices are set up properly for animation. */
+  void startAnimation() {
+    // switch to low resolution
+    if (!lowres) {
+      lowres = true;
+      bio.toolView.setMode(true);
+      setMode(true);
     }
   }
 
@@ -287,15 +277,16 @@ public class SliceManager implements ControlListener, ScalarMapListener {
               throw new VisADException(f[ndx].getName() +
                 " does not contain valid image stack data");
             }
+            if (thumbs == null) {
+              slices = field.getLength();
+              old_index = old_slice = 0;
+            }
             if (!doThumbs) {
               // no need to create thumbnails; done loading
               dialog.setPercent(100);
               break;
             }
-            if (thumbs == null) {
-              slices = field.getLength();
-              thumbs = new FieldImpl[slices][timesteps];
-            }
+            if (thumbs == null) thumbs = new FieldImpl[slices][timesteps];
             for (int j=0; j<slices; j++) {
               FieldImpl image = (FieldImpl) field.getSample(j);
               if (scale != scale) {
@@ -304,15 +295,14 @@ public class SliceManager implements ControlListener, ScalarMapListener {
                 int[] len = set.getLengths();
                 long tsBytes = BYTES_PER_PIXEL * slices * len[0] * len[1];
                 long freeBytes = MEGA * (heapSize - RESERVED) - tsBytes;
-                freeBytes /= 4; // use quarter available, for safety
-                /* CTR: TEMP */ System.out.println("freeBytes=" + freeBytes + ", timesteps=" + timesteps + ", tsBytes=" + tsBytes);
+                freeBytes /= 4; // use quarter available, for safety (TEMP?)
+                // CTR - FIXME - scale computation is messed up somehow
                 if (freeBytes < BYTES_PER_PIXEL * timesteps * slices) {
                   throw new VisADException("Insufficient memory " +
                     "to compute image slice thumbnails");
                 }
                 scale = Math.sqrt((double) freeBytes / (timesteps * tsBytes));
                 if (scale > 0.5) scale = 0.5;
-                /* CTR - TEMP */ System.out.println("scale=" + scale);
               }
               thumbs[j][ndx] = DualRes.rescale(image, scale);
               dialog.setPercent(
@@ -361,24 +351,31 @@ public class SliceManager implements ControlListener, ScalarMapListener {
             new RealType[] {(RealType) range};
 
           // convert thumbnails into animation stacks
-          Set lowres_set = new Integer1DSet(time_slice, timesteps);
-          FieldImpl[] lowres_fields = new FieldImpl[slices];
-          lowresRefs = new DataReferenceImpl[slices];
-          lowresRenderers = new DataRenderer[slices];
-          DisplayRenderer dr = bio.display2.getDisplayRenderer();
-          for (int j=0; j<slices; j++) {
-            lowres_fields[j] = new FieldImpl(time_function, lowres_set);
-            lowres_fields[j].setSamples(thumbs[j], false);
-            lowresRefs[j] = new DataReferenceImpl("bio_lowres" + j);
-            lowresRenderers[j] = dr.makeDefaultRenderer();
-            lowresRenderers[j].toggle(false);
+          FieldImpl[] lowres_fields = null;
+          if (doThumbs) {
+            Set lowres_set = new Integer1DSet(time_slice, timesteps);
+            lowres_fields = new FieldImpl[slices];
+            lowresRefs = new DataReferenceImpl[slices];
+            lowresRenderers = new DataRenderer[slices];
+            DisplayRenderer dr = bio.display2.getDisplayRenderer();
+            for (int j=0; j<slices; j++) {
+              lowres_fields[j] = new FieldImpl(time_function, lowres_set);
+              lowres_fields[j].setSamples(thumbs[j], false);
+              lowresRefs[j] = new DataReferenceImpl("bio_lowres" + j);
+              lowresRenderers[j] = dr.makeDefaultRenderer();
+              lowresRenderers[j].toggle(false);
+            }
           }
 
           dialog.setText("Configuring displays");
 
           // set new data
           ref.setData(field);
-          for (int j=0; j<slices; j++) lowresRefs[j].setData(lowres_fields[j]);
+          if (doThumbs) {
+            for (int j=0; j<slices; j++) {
+              lowresRefs[j].setData(lowres_fields[j]);
+            }
+          }
 
           // set up mappings to 2-D display
           ScalarMap x_map2 = new ScalarMap(dtypes[0], Display.XAxis);
@@ -398,10 +395,12 @@ public class SliceManager implements ControlListener, ScalarMapListener {
           bio.display2.addMap(new ScalarMap(rtypes[0], Display.RGB));
 
           // set up 2-D data references
-          renderer = bio.display2.getDisplayRenderer().makeDefaultRenderer();
-          bio.display2.addReferences(renderer, ref);
-          for (int j=0; j<slices; j++) {
-            bio.display2.addReferences(lowresRenderers[j], lowresRefs[j]);
+          renderer2 = bio.display2.getDisplayRenderer().makeDefaultRenderer();
+          bio.display2.addReferences(renderer2, ref);
+          if (doThumbs) {
+            for (int j=0; j<slices; j++) {
+              bio.display2.addReferences(lowresRenderers[j], lowresRefs[j]);
+            }
           }
           bio.mm.pool2.init();
 
@@ -429,7 +428,9 @@ public class SliceManager implements ControlListener, ScalarMapListener {
             bio.display3.addMap(new ScalarMap(rtypes[0], Display.RGB));
 
             // set up 3-D data references
-            bio.display3.addReference(ref);
+            renderer3 =
+              bio.display3.getDisplayRenderer().makeDefaultRenderer();
+            bio.display3.addReferences(renderer3, ref);
             bio.mm.pool3.init();
           }
 
@@ -561,32 +562,54 @@ public class SliceManager implements ControlListener, ScalarMapListener {
     }
 
     // remove old listeners
-    if (anim_map != null) anim_map.removeScalarMapListener(this);
     if (anim_control != null) anim_control.removeControlListener(this);
 
     // get control values
     anim_map = smap;
     anim_control = (AnimationControl) anim_map.getControl();
     bio.vert.updateSlider((int) anim_map.getRange()[1] + 1);
+    bio.toolView.setControl(anim_control);
 
     // add listeners
     if (anim_control != null) anim_control.addControlListener(this);
-    if (anim_map != null) anim_map.addScalarMapListener(this);
   }
 
   /** Refreshes the current image slice shown onscreen. */
-  private void refreshSlice() {
+  private void refresh(boolean new_slice, boolean new_index) {
+    if (files == null || anim_control == null) return;
+    int index = getIndex();
+    int slice = getSlice();
+
+    // switch index values
+    if (new_index) {
+      if (!lowres) setFile(index, false);
+      Measurement[] m = bio.mm.lists[index].getMeasurements();
+      bio.mm.pool2.set(m);
+      bio.mm.pool3.set(m);
+    }
+
+    // switch slice values
+    if (new_slice) bio.mm.pool2.setSlice(slice);
+
+    // update animation control
+    int cur = lowres ? index : slice;
+    try { anim_control.setCurrent(lowres ? index : slice); }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+
+    // switch resolution
     if (lowres) {
-      int slice = getSlice();
       lowresRenderers[slice].toggle(true);
       for (int i=0; i<lowresRenderers.length; i++) {
         if (i == slice) continue;
         lowresRenderers[i].toggle(false);
       }
-      renderer.toggle(false);
+      renderer2.toggle(false);
+      if (bio.display3 != null) renderer3.toggle(false);
     }
     else {
-      renderer.toggle(true);
+      renderer2.toggle(true);
+      if (bio.display3 != null) renderer3.toggle(true);
       for (int i=0; i<lowresRenderers.length; i++) {
         lowresRenderers[i].toggle(false);
       }

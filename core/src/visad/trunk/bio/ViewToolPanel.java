@@ -27,8 +27,10 @@ MA 02111-1307, USA
 package visad.bio;
 
 import java.awt.event.*;
+import java.rmi.RemoteException;
 import javax.swing.*;
 import javax.swing.event.*;
+import visad.*;
 import visad.browser.Divider;
 
 /**
@@ -102,9 +104,8 @@ public class ViewToolPanel extends ToolPanel {
     loRes = new JToggleButton("Lo-res", false);
     loRes.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        loRes.setSelected(true);
-        hiRes.setSelected(false);
-        // CTR: TODO: implement lo res toggle
+        setMode(true);
+        bio.sm.setMode(true);
       }
     });
     loRes.setEnabled(false);
@@ -114,9 +115,15 @@ public class ViewToolPanel extends ToolPanel {
     hiRes = new JToggleButton("Hi-res", true);
     hiRes.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        loRes.setSelected(false);
-        hiRes.setSelected(true);
-        // CTR: TODO: implement hi res toggle
+        setMode(false);
+
+        // don't animate in hi-res mode
+        AnimationControl control = anim.getControl();
+        try { if (control != null) control.setOn(false); }
+        catch (VisADException exc) { exc.printStackTrace(); }
+        catch (RemoteException exc) { exc.printStackTrace(); }
+
+        bio.sm.setMode(false);
       }
     });
     p.add(hiRes);
@@ -140,7 +147,7 @@ public class ViewToolPanel extends ToolPanel {
     // animation widget
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    anim = new BioAnimWidget();
+    anim = new BioAnimWidget(bio);
     anim.setEnabled(false);
     p.add(anim);
     controls.add(pad(p));
@@ -185,6 +192,12 @@ public class ViewToolPanel extends ToolPanel {
     brightness.setEnabled(enabled);
   }
 
+  /** Switches between lo-res and hi-res mode. */
+  public void setMode(boolean lowres) {
+    loRes.setSelected(lowres);
+    hiRes.setSelected(!lowres);
+  }
+
 
   // -- INTERNAL API METHODS --
 
@@ -192,5 +205,8 @@ public class ViewToolPanel extends ToolPanel {
   void doColorTable() {
     bio.setImageColors(grayscale.isSelected(), brightness.getValue());
   }
+
+  /** Sets the animation widget's animation control. */
+  void setControl(AnimationControl control) { anim.setControl(control); }
 
 }

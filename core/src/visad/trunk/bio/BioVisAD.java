@@ -361,6 +361,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
       try { heap = Integer.parseInt(args[0]); }
       catch (NumberFormatException exc) { }
     }
+    heap /= 2; // CTR - FIXME - a temporary hack
     final BioVisAD bio = new BioVisAD(heap);
     bio.pack();
     bio.addWindowListener(new WindowAdapter() {

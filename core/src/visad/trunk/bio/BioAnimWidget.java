@@ -45,22 +45,25 @@ public class BioAnimWidget extends JPanel implements ControlListener {
   // -- OTHER FIELDS --
 
   private AnimationControl control;
-  private int numsteps;
 
 
   // -- CONSTRUCTOR --
 
   /** Constructs a new animation widget. */
-  public BioAnimWidget() {
+  public BioAnimWidget(BioVisAD biovis) {
     go = new JButton("Animate");
+    go.setPreferredSize(go.getPreferredSize());
     fps = new JLabel("FPS:");
     spin = new BioSpinWidget(1, 999, 10);
+    final BioVisAD bio = biovis;
     go.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         if (control != null) {
+          bio.sm.startAnimation();
           try { control.toggle(); }
           catch (VisADException exc) { exc.printStackTrace(); }
           catch (RemoteException exc) { exc.printStackTrace(); }
+          updateWidget();
         }
       }
     });
@@ -87,12 +90,17 @@ public class BioAnimWidget extends JPanel implements ControlListener {
 
   // -- API METHODS --
 
+  /** Gets the currently linked animation control. */
+  public AnimationControl getControl() { return control; }
+
   /** Links the animation widget with the given animation control. */
-  public void setControl(AnimationControl control, int numsteps) {
+  public void setControl(AnimationControl control) {
     if (this.control != null) this.control.removeControlListener(this);
     this.control = control;
-    this.numsteps = numsteps;
     if (control != null) {
+      try { control.setStep((int) (1000.0 / spin.getValue())); }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
       control.addControlListener(this);
       updateWidget();
     }

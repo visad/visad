@@ -41,9 +41,10 @@ public class FileSeriesWidget extends BioStepWidget {
   // -- API METHODS --
 
   /** Updates the current file of the image series. */
-  public void updateStep() {
-    if (!step.getValueIsAdjusting()) bio.sm.setIndex(cur - 1);
-  }
+  public void updateStep() { bio.sm.setIndex(cur - 1); }
+
+  /** Gets whether the slider is busy (being adjusted). */
+  public boolean isBusy() { return step.getValueIsAdjusting(); }
 
 
   // -- INTERNAL API METHODS --
