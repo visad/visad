@@ -23,7 +23,7 @@ MA 02111-1307, USA
 package visad.data.visad.object;
 
 import java.io.DataInput;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 
 import visad.BaseUnit;
@@ -182,7 +182,7 @@ if(DEBUG_RD_UNIT)System.err.println("rdUnits:    === #"+i+" Unit ("+units[i]+")"
 
     final int objLen = computeBytes(u);
 
-    DataOutputStream file = writer.getOutputStream();
+    DataOutput file = writer.getOutput();
 
 if(DEBUG_WR_UNIT)System.err.println("wrU: OBJ_UNIT (" + OBJ_UNIT + ")");
     file.writeByte(OBJ_UNIT);

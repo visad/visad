@@ -23,7 +23,7 @@ MA 02111-1307, USA
 package visad.data.visad.object;
 
 import java.io.DataInput;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 
 import visad.data.visad.BinaryWriter;
@@ -70,7 +70,7 @@ if(DEBUG_RD_DATA_DETAIL)System.err.println("rdIntMtx: #" + i + "," + j +" (" + m
 
   private static final boolean fasterButUglier = true;
 
-  static final void write(DataOutputStream file, int[][] matrix)
+  static final void write(DataOutput file, int[][] matrix)
     throws IOException
   {
     if (matrix == null) {
@@ -129,7 +129,7 @@ if(DEBUG_WR_DATA_DETAIL)System.err.println("wrIntMtx: #" + i + "," + j + " (" + 
                                  Object token)
     throws IOException
   {
-    DataOutputStream file = writer.getOutputStream();
+    DataOutput file = writer.getOutput();
 
     write(file, matrix);
   }

@@ -23,7 +23,7 @@ MA 02111-1307, USA
 package visad.data.visad.object;
 
 import java.io.DataInput;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.EOFException;
 import java.io.IOException;
 
@@ -295,7 +295,7 @@ if(DEBUG_WR_DATA)System.err.println("wrIrrSet: punt "+set.getClass().getName());
 
     final int objLen = computeBytes(samples, cs, units, errors, delaunay);
 
-    DataOutputStream file = writer.getOutputStream();
+    DataOutput file = writer.getOutput();
 
 if(DEBUG_WR_DATA)System.err.println("wrIrrSet: OBJ_DATA (" + OBJ_DATA + ")");
     file.writeByte(OBJ_DATA);

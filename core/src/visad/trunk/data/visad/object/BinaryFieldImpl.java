@@ -23,7 +23,7 @@ MA 02111-1307, USA
 package visad.data.visad.object;
 
 import java.io.DataInput;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.EOFException;
 import java.io.IOException;
 
@@ -215,7 +215,7 @@ if(DEBUG_WR_DATA)System.err.println("wrFldI: punt "+fld.getClass().getName());
       throw new IOException("FunctionType " + ft + " not cached");
     }
 
-    DataOutputStream file = writer.getOutputStream();
+    DataOutput file = writer.getOutput();
 
 if(DEBUG_WR_DATA)System.err.println("wrFldI: OBJ_DATA (" + OBJ_DATA + ")");
     file.writeByte(OBJ_DATA);
@@ -244,7 +244,7 @@ if(DEBUG_WR_DATA)System.err.println("wrFldI: numSamples (" + numSamples + ")");
         try {
           sample = (DataImpl )fld.getSample(i);
         } catch (VisADException ve) {
-          writer.getOutputStream().writeByte(DATA_NONE);
+          writer.getOutput().writeByte(DATA_NONE);
           continue;
         }
 

@@ -23,7 +23,7 @@ MA 02111-1307, USA
 package visad.data.visad.object;
 
 import java.io.DataInput;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 
 import visad.data.visad.BinaryReader;
@@ -61,7 +61,7 @@ if(DEBUG_RD_STR)System.err.println("rdStr: str (" + new String(buf) + ")");
                                  Object token)
     throws IOException
   {
-    DataOutputStream file = writer.getOutputStream();
+    DataOutput file = writer.getOutput();
 
     if (str == null) {
       file.writeInt(-1);

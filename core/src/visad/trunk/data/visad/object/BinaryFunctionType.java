@@ -23,7 +23,7 @@ MA 02111-1307, USA
 package visad.data.visad.object;
 
 import java.io.DataInput;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 
 import visad.FunctionType;
@@ -86,7 +86,7 @@ if(DEBUG_RD_MATH)System.err.println("rdFuTy: read " + (endByte == FLD_END ? "FLD
       // total number of bytes written for this object
       final int objLen = computeBytes(ft);
 
-      DataOutputStream file = writer.getOutputStream();
+      DataOutput file = writer.getOutput();
 
 if(DEBUG_WR_MATH)System.err.println("wrFuTy: OBJ_MATH (" + OBJ_MATH + ")");
       file.writeByte(OBJ_MATH);

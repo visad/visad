@@ -23,7 +23,7 @@ MA 02111-1307, USA
 package visad.data.visad.object;
 
 import java.io.DataInput;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 
 import visad.Data;
@@ -98,7 +98,7 @@ if(DEBUG_RD_TIME)System.err.println("rdDataRA: "+len+" elements "+(System.curren
       return;
     }
 
-    DataOutputStream file = writer.getOutputStream();
+    DataOutput file = writer.getOutput();
 
 if(DEBUG_WR_DATA)System.err.println("wrDataRA: len (" + array.length + ")");
     file.writeInt(array.length);

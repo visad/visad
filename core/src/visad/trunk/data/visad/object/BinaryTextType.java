@@ -23,7 +23,7 @@ MA 02111-1307, USA
 package visad.data.visad.object;
 
 import java.io.DataInput;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 
 import visad.TextType;
@@ -93,7 +93,7 @@ if(DEBUG_WR_MATH)System.err.println("wrTxTy: serialized TextType (" + tt.getClas
 
       final int objLen = computeBytes(tt);
 
-      DataOutputStream file = writer.getOutputStream();
+      DataOutput file = writer.getOutput();
 
 if(DEBUG_WR_MATH)System.err.println("wrTxTy: OBJ_MATH (" + OBJ_MATH + ")");
       file.writeByte(OBJ_MATH);

@@ -23,7 +23,7 @@ MA 02111-1307, USA
 package visad.data.visad.object;
 
 import java.io.DataInput;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 
 import visad.CoordinateSystem;
@@ -153,7 +153,7 @@ if(DEBUG_RD_CSYS)System.err.println("rdCSysS: === #"+i+": "+cSys[i]+")");
       throw new IOException("Couldn't cache CoordinateSystem " + cSys);
     }
 
-    DataOutputStream file = writer.getOutputStream();
+    DataOutput file = writer.getOutput();
 
     byte[] serialObj = BinarySerializedObject.getBytes(cSys);
 

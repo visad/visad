@@ -23,7 +23,7 @@ MA 02111-1307, USA
 package visad.data.visad.object;
 
 import java.io.DataInput;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.EOFException;
 import java.io.IOException;
 
@@ -121,7 +121,7 @@ if(DEBUG_RD_DATA)System.err.println("rdSimSet: FLD_END (" + FLD_END + ")");
                                               Object token)
     throws IOException
   {
-    DataOutputStream file = writer.getOutputStream();
+    DataOutput file = writer.getOutput();
 
     if (!set.getClass().equals(canonicalClass) &&
         !(set instanceof SimpleSet && set instanceof Saveable))
@@ -190,7 +190,7 @@ if(DEBUG_WR_DATA)System.err.println("wrSimSet: punt "+set.getClass().getName());
 
     final int objLen = computeBytes(cs, units);
 
-    DataOutputStream file = writer.getOutputStream();
+    DataOutput file = writer.getOutput();
 
 if(DEBUG_WR_DATA)System.err.println("wrSimSet: OBJ_DATA (" + OBJ_DATA + ")");
     file.writeByte(OBJ_DATA);

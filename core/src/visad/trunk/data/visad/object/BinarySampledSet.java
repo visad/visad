@@ -23,7 +23,7 @@ MA 02111-1307, USA
 package visad.data.visad.object;
 
 import java.io.DataInput;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 
 import visad.SampledSet;
@@ -78,7 +78,7 @@ if(DEBUG_RD_DATA)System.err.println("rdSplSetS: len (" + len + ")");
       return;
     }
 
-    DataOutputStream file = writer.getOutputStream();
+    DataOutput file = writer.getOutput();
 
 if(DEBUG_WR_DATA)System.err.println("wrSampSet: FLD_SET_SAMPLES (" + FLD_SET_SAMPLES + ")");
     file.writeByte(FLD_SET_SAMPLES);

@@ -23,7 +23,7 @@ MA 02111-1307, USA
 package visad.data.visad.object;
 
 import java.io.DataInput;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 
 import visad.MathType;
@@ -110,7 +110,7 @@ if(DEBUG_WR_MATH)System.err.println("wrTuTy: serialized TupleType (" + tt.getCla
 
       final int objLen = computeBytes(tt);
 
-      DataOutputStream file = writer.getOutputStream();
+      DataOutput file = writer.getOutput();
 
 if(DEBUG_WR_MATH)System.err.println("wrTuTy: OBJ_MATH (" + OBJ_MATH + ")");
       file.writeByte(OBJ_MATH);

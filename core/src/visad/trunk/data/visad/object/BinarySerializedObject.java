@@ -23,7 +23,7 @@ MA 02111-1307, USA
 package visad.data.visad.object;
 
 import java.io.DataInput;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 
 import visad.data.visad.BinaryWriter;
@@ -107,7 +107,7 @@ public class BinarySerializedObject
   {
     byte[] bytes = getBytes(obj);
 
-    DataOutputStream file = writer.getOutputStream();
+    DataOutput file = writer.getOutput();
 
     file.writeByte(objType);
     file.writeInt(bytes.length + 1);

@@ -23,7 +23,7 @@ MA 02111-1307, USA
 package visad.data.visad.object;
 
 import java.io.DataInput;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.io.EOFException;
 
@@ -147,7 +147,7 @@ if(DEBUG_WR_DATA)System.err.println("wrTup: punt "+t.getClass().getName());
 
     final int objLen = computeBytes(components);
 
-    DataOutputStream file = writer.getOutputStream();
+    DataOutput file = writer.getOutput();
 
 if(DEBUG_WR_DATA)System.err.println("wrTup: OBJ_DATA (" + OBJ_DATA + ")");
     file.writeByte(OBJ_DATA);

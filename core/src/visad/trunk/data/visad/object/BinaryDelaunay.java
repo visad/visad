@@ -23,7 +23,7 @@ MA 02111-1307, USA
 package visad.data.visad.object;
 
 import java.io.DataInput;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.EOFException;
 import java.io.IOException;
 
@@ -128,7 +128,7 @@ if(DEBUG_RD_DATA)System.err.println("rdDel: FLD_END (" + FLD_END + ")");
       return;
     }
 
-    DataOutputStream file = writer.getOutputStream();
+    DataOutput file = writer.getOutput();
 
     file.writeByte(FLD_DELAUNAY);
 

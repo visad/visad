@@ -23,7 +23,7 @@ MA 02111-1307, USA
 package visad.data.visad.object;
 
 import java.io.DataInput;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.EOFException;
 import java.io.IOException;
 
@@ -138,7 +138,7 @@ if(DEBUG_WR_MATH)System.err.println("wrQuant: serialized Quantity (" + qt.getCla
         return index;
       }
 
-      DataOutputStream file = writer.getOutputStream();
+      DataOutput file = writer.getOutput();
 
       String nameStr = qt.getName();
       String unitStr = qt.getDefaultUnitString();

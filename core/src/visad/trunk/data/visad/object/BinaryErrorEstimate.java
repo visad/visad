@@ -23,7 +23,7 @@ MA 02111-1307, USA
 package visad.data.visad.object;
 
 import java.io.DataInput;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 
 import visad.ErrorEstimate;
@@ -183,7 +183,7 @@ if(DEBUG_RD_ERRE)System.err.println("rdErrEstS:    === #"+i+" ErrorEstimate ("+e
 
     final int objLen = computeBytes(uIndex);
 
-    DataOutputStream file = writer.getOutputStream();
+    DataOutput file = writer.getOutput();
 
 if(DEBUG_WR_ERRE)System.err.println("wrErrEst: OBJ_ERROR (" + OBJ_ERROR + ")");
     file.writeByte(OBJ_ERROR);

@@ -23,6 +23,7 @@ MA 02111-1307, USA
 package visad.data.visad;
 
 import java.io.BufferedOutputStream;
+import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -92,7 +93,7 @@ public class BinaryWriter
 
   public final BinaryObjectCache getCoordinateSystemCache() { return cSysCache; }
   public final BinaryObjectCache getErrorEstimateCache() { return errorCache; }
-  public final DataOutputStream getOutputStream() { return file; }
+  public final DataOutput getOutput() { return file; }
   public final BinaryObjectCache getTypeCache() { return typeCache; }
   public final BinaryObjectCache getUnitCache() { return unitCache; }
 

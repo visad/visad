@@ -23,7 +23,7 @@ MA 02111-1307, USA
 package visad.data.visad.object;
 
 import java.io.DataInput;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.EOFException;
 import java.io.IOException;
 
@@ -174,7 +174,7 @@ if(DEBUG_WR_MATH)System.err.println("wrRlTuTy: coordSys (" + cs + ")");
 
       final int objLen = computeBytes(rtt);
 
-      DataOutputStream file = writer.getOutputStream();
+      DataOutput file = writer.getOutput();
 
 if(DEBUG_WR_MATH)System.err.println("wrRlTuTy: OBJ_MATH (" + OBJ_MATH + ")");
       file.writeByte(OBJ_MATH);
