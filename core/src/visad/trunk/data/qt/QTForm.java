@@ -50,8 +50,6 @@ public class QTForm extends Form
 
   // -- Constants --
 
-  public static final int FRAME_RATE = 60; // 60/600 = 1/10 of a second
-
   private static final String[] suffixes = { "mov" };
 
   private static final String noQTmsg = "You need to install " +
@@ -146,8 +144,8 @@ public class QTForm extends Form
   /** Flag indicating QuickTime frame needs to be redrawn. */
   private boolean needsRedrawing;
 
-  /** Flag indicating whether ImageJ supports the current TIFF stack. */
-  private boolean canUseImageJ;
+  /** Time between each frame, in 600ths of a second. */
+  private int frameRate;
 
   /** Percent complete with current operation. */
   private double percent;
@@ -156,7 +154,10 @@ public class QTForm extends Form
   // -- Constructor --
 
   /** Constructs a new QuickTime movie file form. */
-  public QTForm() { super("QTForm" + num++); }
+  public QTForm() {
+    super("QTForm" + num++);
+    setFrameRate(10); // default to 10 fps
+  }
 
 
   // -- FormFileInformer methods --
@@ -187,6 +188,12 @@ public class QTForm extends Form
 
   /** Whether QuickTime is available to this JVM. */
   public boolean canDoQT() { return !noQT; }
+
+  /** Sets the frame rate of output movies in frames per second. */
+  public void setFrameRate(int fps) { frameRate = 600 / fps; }
+
+  /** Gets teh frame rate of output movies in frames per second. */
+  public int getFrameRate() { return 600 / frameRate; }
 
 
   // -- Form API methods --
@@ -290,7 +297,7 @@ public class QTForm extends Form
         }
         r.exec("dataSize = info.getDataSize()");
         r.setVar("one", 1);
-        r.setVar("frameRate", FRAME_RATE);
+        r.setVar("frameRate", frameRate);
         r.exec("vidMedia.addSample(imageHandle, zero, dataSize, " +
           "frameRate, desc, one, keyFrame)");
       }
