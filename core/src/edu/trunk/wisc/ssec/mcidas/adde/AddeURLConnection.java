@@ -185,7 +185,7 @@ public class AddeURLConnection extends URLConnection
   private int numBytes = 0;
   private int dataType = IMAGE;
   private byte[] binaryData = null;   // byte array to hold extra binary data
-  private boolean debug = true;
+  private boolean debug = false;
 
   /**
    *
