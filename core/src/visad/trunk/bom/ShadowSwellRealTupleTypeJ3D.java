@@ -149,10 +149,17 @@ public class ShadowSwellRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
           }
         }
         int oldnv = numv[0];
+
+        // dummies
+        boolean south = true;
+        float[] tx = null, ty = null, tz = null;
+        int[] numt = {0};
+
         float mbarb[] =
-          makeSwell(spatial_values[0][j], spatial_values[1][j],
+          ((SwellManipulationRendererJ3D) renderer).makeVector(south,
+                   spatial_values[0][j], spatial_values[1][j],
                    spatial_values[2][j], scale, pt_size, f0, f1, vx, vy, vz,
-                   numv);
+                   numv, tx, ty, tz, numt);
         if (direct) {
           ((SwellManipulationRendererJ3D) renderer).
             setSwellSpatialValues(mbarb, which);
@@ -207,185 +214,6 @@ public class ShadowSwellRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
     }
     arrays = new VisADGeometryArray[] {array};
     return arrays;
-  }
-
-
-  /** draw swell, f0 and f1 in meters */
-  static float[] makeSwell(float x, float y, float z,
-                          float scale, float pt_size, float f0, float f1,
-                          float[] vx, float[] vy, float[] vz, int[] numv) {
-
-    float d, xd, yd;
-    float x0, y0, x1, y1, x2, y2, x3, y3, x4, y4;
-    float sscale = 0.75f * scale;
-
-    float[] mbarb = new float[4];
-    mbarb[0] = x;
-    mbarb[1] = y;
-
-    float swell_height = (float) Math.sqrt(f0 * f0 + f1 * f1);
-
-    int lenv = vx.length;
-    int nv = numv[0];
-
-    //determine the initial (minimum) length of the flag pole
-    if (swell_height >= 0.1f) {
-      // normalize direction
-      x0 = -f0 / swell_height;
-      y0 = -f1 / swell_height;
-
-      float start_arrow = 0.9f * sscale;
-      float end_arrow = 1.9f * sscale;
-      float arrow_head = 0.3f * sscale;
-      x1 = (x + x0 * start_arrow);
-      y1 = (y + y0 * start_arrow);
-      x2 = (x + x0 * end_arrow);
-      y2 = (y + y0 * end_arrow);
-
-      // draw arrow shaft
-      vx[nv] = x1;
-      vy[nv] = y1;
-      vz[nv] = z;
-      nv++;
-      vx[nv] = x2;
-      vy[nv] = y2;
-      vz[nv] = z;
-      nv++;
-
-      mbarb[2] = x2;
-      mbarb[3] = y2;
-
-      xd = x2 - x1;
-      yd = y2 - y1;
-
-      x3 = x2 - 0.3f * (xd - yd);
-      y3 = y2 - 0.3f * (yd + xd);
-      x4 = x2 - 0.3f * (xd + yd);
-      y4 = y2 - 0.3f * (yd - xd);
-
-      // draw arrow head
-      vx[nv] = x2;
-      vy[nv] = y2;
-      vz[nv] = z;
-      nv++;
-      vx[nv] = x3;
-      vy[nv] = y3;
-      vz[nv] = z;
-      nv++;
-
-      vx[nv] = x2;
-      vy[nv] = y2;
-      vz[nv] = z;
-      nv++;
-      vx[nv] = x4;
-      vy[nv] = y4;
-      vz[nv] = z;
-      nv++;
-
-      int shi = (int) (10.0f * (swell_height + 0.5f));
-      float shf = 0.1f * shi;
-      String sh_string = Float.toString(shf);
-      int point = sh_string.indexOf('.');
-      sh_string = sh_string.substring(0, point + 2);
-      double[] start = {x, y - 0.25 * sscale, 0.0};
-      double[] base = {0.5 * sscale, 0.0, 0.0};
-      double[] up = {0.0, 0.5 * sscale, 0.0};
-      VisADLineArray array =
-        PlotText.render_label(sh_string, start, base, up, true);
-      int nl = array.vertexCount;
-      int k = 0;
-      for (int i=0; i<nl; i++) {
-        vx[nv] = array.coordinates[k++];
-        vy[nv] = array.coordinates[k++];
-        vz[nv] = array.coordinates[k++];
-        nv++;
-      }
-    }
-    else { // if (swell_height < 0.1)
-
-      // wind < 2.5 kts.  Plot a circle
-      float rad = (0.7f * pt_size);
-
-      // draw 8 segment circle, center = (x, y), radius = rad
-      // 1st segment
-      vx[nv] = x - rad;
-      vy[nv] = y;
-      vz[nv] = z;
-      nv++;
-      vx[nv] = x - 0.7f * rad;
-      vy[nv] = y + 0.7f * rad;
-      vz[nv] = z;
-      nv++;
-      // 2nd segment
-      vx[nv] = x - 0.7f * rad;
-      vy[nv] = y + 0.7f * rad;
-      vz[nv] = z;
-      nv++;
-      vx[nv] = x;
-      vy[nv] = y + rad;
-      vz[nv] = z;
-      nv++;
-      // 3rd segment
-      vx[nv] = x;
-      vy[nv] = y + rad;
-      vz[nv] = z;
-      nv++;
-      vx[nv] = x + 0.7f * rad;
-      vy[nv] = y + 0.7f * rad;
-      vz[nv] = z;
-      nv++;
-      // 4th segment
-      vx[nv] = x + 0.7f * rad;
-      vy[nv] = y + 0.7f * rad;
-      vz[nv] = z;
-      nv++;
-      vx[nv] = x + rad;
-      vy[nv] = y;
-      vz[nv] = z;
-      nv++;
-      // 5th segment
-      vx[nv] = x + rad;
-      vy[nv] = y;
-      vz[nv] = z;
-      nv++;
-      vx[nv] = x + 0.7f * rad;
-      vy[nv] = y - 0.7f * rad;
-      vz[nv] = z;
-      nv++;
-      // 6th segment
-      vx[nv] = x + 0.7f * rad;
-      vy[nv] = y - 0.7f * rad;
-      vz[nv] = z;
-      nv++;
-      vx[nv] = x;
-      vy[nv] = y - rad;
-      vz[nv] = z;
-      nv++;
-      // 7th segment
-      vx[nv] = x;
-      vy[nv] = y - rad;
-      vz[nv] = z;
-      nv++;
-      vx[nv] = x - 0.7f * rad;
-      vy[nv] = y - 0.7f * rad;
-      vz[nv] = z;
-      nv++;
-      // 8th segment
-      vx[nv] = x - 0.7f * rad;
-      vy[nv] = y - 0.7f * rad;
-      vz[nv] = z;
-      nv++;
-      vx[nv] = x - rad;
-      vy[nv] = y;
-      vz[nv] = z;
-      nv++;
-// System.out.println("circle " + x + " " + y + "" + rad);
-      mbarb[2] = x;
-      mbarb[3] = y;
-    }
-
-    numv[0] = nv;
-    return mbarb;
   }
 
 }
