@@ -839,64 +839,68 @@ END MISSING TEST */
                 }
                 if (spatialManifoldDimension == 3) {
                   if (fvalues[0] == fvalues[0]) {
-                    // System.out.println("makeIsoSurface at " + fvalues[0]);
-                    array = spatial_set.makeIsoSurface(fvalues[0],
-                                display_values[i], color_values);
-                    // System.out.println("makeIsoSurface " + array.vertexCount);
-                    if (array != null && array.vertexCount > 0) {
-                      // MEM
-                      GeometryArray geometry = display.makeGeometry(array);
-                      //  FREE
-                      array = null;
-                      appearance = makeAppearance(mode, constant_alpha,
-                                                  constant_color, geometry);
-                      Shape3D shape = new Shape3D(geometry, appearance);
-                      group.addChild(shape);
+                    if (spatial_set != null) {
+                      // System.out.println("makeIsoSurface at " + fvalues[0]);
+                      array = spatial_set.makeIsoSurface(fvalues[0],
+                                  display_values[i], color_values);
+                      // System.out.println("makeIsoSurface " + array.vertexCount);
+                      if (array != null && array.vertexCount > 0) {
+                        // MEM
+                        GeometryArray geometry = display.makeGeometry(array);
+                        //  FREE
+                        array = null;
+                        appearance = makeAppearance(mode, constant_alpha,
+                                                    constant_color, geometry);
+                        Shape3D shape = new Shape3D(geometry, appearance);
+                        group.addChild(shape);
+                      }
                     }
                   }
                   anyContourCreated = true;
                 }
                 else if (spatialManifoldDimension == 2) {
-                  VisADGeometryArray[] arrays =
-                    spatial_set.makeIsoLines(fvalues[1], fvalues[2], fvalues[3],
-                                             fvalues[4], display_values[i],
-                                             color_values, swap[0]);
-                  if (arrays != null && arrays.length > 0 && arrays[0] != null &&
-                      arrays[0].vertexCount > 0) {
-                    // MEM
-                    GeometryArray geometry = display.makeGeometry(arrays[0]);
-                    //  FREE
-                    arrays[0] = null;
-                    appearance = makeAppearance(mode, constant_alpha,
-                                                constant_color, geometry);
-                    Shape3D shape = new Shape3D(geometry, appearance);
-                    group.addChild(shape);
-                    if (bvalues[1] && arrays[2] != null) {
-                      // System.out.println("makeIsoLines with labels");
-                      // draw labels
+                  if (spatial_set != null) {
+                    VisADGeometryArray[] arrays =
+                      spatial_set.makeIsoLines(fvalues[1], fvalues[2], fvalues[3],
+                                               fvalues[4], display_values[i],
+                                               color_values, swap[0]);
+                    if (arrays != null && arrays.length > 0 && arrays[0] != null &&
+                        arrays[0].vertexCount > 0) {
                       // MEM
-                      geometry = display.makeGeometry(arrays[2]);
+                      GeometryArray geometry = display.makeGeometry(arrays[0]);
                       //  FREE
-                      arrays = null;
-                    }
-                    else if ((!bvalues[1]) && arrays[1] != null) {
-                      // System.out.println("makeIsoLines without labels");
-                      // fill in contour lines in place of labels
-                      // MEM
-                      geometry = display.makeGeometry(arrays[1]);
-                      //  FREE
-                      arrays = null;
-                    }
-                    else {
-                      geometry = null;
-                    }
-                    if (geometry != null) {
+                      arrays[0] = null;
                       appearance = makeAppearance(mode, constant_alpha,
                                                   constant_color, geometry);
-                      shape = new Shape3D(geometry, appearance);
+                      Shape3D shape = new Shape3D(geometry, appearance);
                       group.addChild(shape);
+                      if (bvalues[1] && arrays[2] != null) {
+                        // System.out.println("makeIsoLines with labels");
+                        // draw labels
+                        // MEM
+                        geometry = display.makeGeometry(arrays[2]);
+                        //  FREE
+                        arrays = null;
+                      }
+                      else if ((!bvalues[1]) && arrays[1] != null) {
+                        // System.out.println("makeIsoLines without labels");
+                        // fill in contour lines in place of labels
+                        // MEM
+                        geometry = display.makeGeometry(arrays[1]);
+                        //  FREE
+                        arrays = null;
+                      }
+                      else {
+                        geometry = null;
+                      }
+                      if (geometry != null) {
+                        appearance = makeAppearance(mode, constant_alpha,
+                                                    constant_color, geometry);
+                        shape = new Shape3D(geometry, appearance);
+                        group.addChild(shape);
+                      }
                     }
-                  }
+                  } // end if (spatial_set != null)
                   anyContourCreated = true;
                 } // end if (spatialManifoldDimension == 3 or 2)
               } // end if (bvalues[0])

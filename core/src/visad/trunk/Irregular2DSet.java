@@ -154,6 +154,7 @@ public class Irregular2DSet extends IrregularSet {
                                   null, null, null, false);
       }
       else {
+        if (Delan.Tri == null || Delan.Tri.length == 0) return null;
         return new Irregular3DSet(type, samples, null, null, null,
                                   Delan, false);
       }
@@ -164,8 +165,9 @@ public class Irregular2DSet extends IrregularSet {
                                   null, null, null, false);
       }
       else {
+        if (Delan.Tri == null || Delan.Tri.length == 0) return null;
         return new Irregular2DSet(type, samples, null, null, null,
-                                  this.Delan, false);
+                                  Delan, false);
       }
     }
     else {

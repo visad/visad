@@ -798,52 +798,56 @@ END MISSING TEST */
                 }
                 if (spatialManifoldDimension == 3) {
                   if (fvalues[0] == fvalues[0]) {
-                    // System.out.println("makeIsoSurface at " + fvalues[0]);
-                    array = spatial_set.makeIsoSurface(fvalues[0],
-                                display_values[i], color_values);
-                    // System.out.println("makeIsoSurface " + array.vertexCount);
-                    if (array != null) {
-                      appearance = makeAppearance(mode, constant_alpha,
-                                                  constant_color, array);
-                      group.addChild(appearance);
+                    if (spatial_set != null) {
+                      // System.out.println("makeIsoSurface at " + fvalues[0]);
+                      array = spatial_set.makeIsoSurface(fvalues[0],
+                                  display_values[i], color_values);
+                      // System.out.println("makeIsoSurface " + array.vertexCount);
+                      if (array != null) {
+                        appearance = makeAppearance(mode, constant_alpha,
+                                                    constant_color, array);
+                        group.addChild(appearance);
+                      }
                     }
                   }
                   anyContourCreated = true;
                 }
                 else if (spatialManifoldDimension == 2) {
-                  VisADGeometryArray[] arrays =
-                    spatial_set.makeIsoLines(fvalues[1], fvalues[2], fvalues[3],
-                                             fvalues[4], display_values[i],
-                                             color_values, swap[0]);
-                  if (arrays != null && arrays.length != 0 && arrays[0] != null) {
-                    appearance = makeAppearance(mode, constant_alpha,
-                                                constant_color, arrays[0]);
-                    group.addChild(appearance);
-                    if (bvalues[1] && arrays[2] != null) {
-                      // System.out.println("makeIsoLines with labels");
-                      // draw labels
-                      // MEM
-                      array = arrays[2];
-                      //  FREE
-                      arrays = null;
-                    }
-                    else if ((!bvalues[1]) && arrays[1] != null) {
-                      // System.out.println("makeIsoLines without labels");
-                      // fill in contour lines in place of labels
-                      // MEM
-                      array = arrays[1];
-                      //  FREE
-                      arrays = null;
-                    }
-                    else {
-                      array = null;
-                    }
-                    if (array != null) {
+                  if (spatial_set != null) {
+                    VisADGeometryArray[] arrays =
+                      spatial_set.makeIsoLines(fvalues[1], fvalues[2], fvalues[3],
+                                               fvalues[4], display_values[i],
+                                               color_values, swap[0]);
+                    if (arrays != null && arrays.length != 0 && arrays[0] != null) {
                       appearance = makeAppearance(mode, constant_alpha,
-                                                  constant_color, array);
+                                                  constant_color, arrays[0]);
                       group.addChild(appearance);
+                      if (bvalues[1] && arrays[2] != null) {
+                        // System.out.println("makeIsoLines with labels");
+                        // draw labels
+                        // MEM
+                        array = arrays[2];
+                        //  FREE
+                        arrays = null;
+                      }
+                      else if ((!bvalues[1]) && arrays[1] != null) {
+                        // System.out.println("makeIsoLines without labels");
+                        // fill in contour lines in place of labels
+                        // MEM
+                        array = arrays[1];
+                        //  FREE
+                        arrays = null;
+                      }
+                      else {
+                        array = null;
+                      }
+                      if (array != null) {
+                        appearance = makeAppearance(mode, constant_alpha,
+                                                    constant_color, array);
+                        group.addChild(appearance);
+                      }
                     }
-                  }
+                  } // end if (spatial_set != null)
                   anyContourCreated = true;
                 } // end if (spatialManifoldDimension == 3 or 2)
               } // end if (bvalues[0])

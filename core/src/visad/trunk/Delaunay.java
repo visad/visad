@@ -116,20 +116,24 @@ public abstract class Delaunay implements java.io.Serializable {
       }
     }
 
-    if (choice == FAST) {
-      // triangulate with the Fast method
-      DelaunayFast delan = new DelaunayFast(samples);
-      return (Delaunay) delan;
+    try {
+      if (choice == FAST) {
+        // triangulate with the Fast method
+        DelaunayFast delan = new DelaunayFast(samples);
+        return (Delaunay) delan;
+      }
+      if (choice == CLARKSON) {
+        // triangulate with the Clarkson method
+        DelaunayClarkson delan = new DelaunayClarkson(samples);
+        return (Delaunay) delan;
+      }
+      if (choice == WATSON) {
+        // triangulate with the Watson method
+        DelaunayWatson delan = new DelaunayWatson(samples);
+        return (Delaunay) delan;
+      }
     }
-    if (choice == CLARKSON) {
-      // triangulate with the Clarkson method
-      DelaunayClarkson delan = new DelaunayClarkson(samples);
-      return (Delaunay) delan;
-    }
-    if (choice == WATSON) {
-      // triangulate with the Watson method
-      DelaunayWatson delan = new DelaunayWatson(samples);
-      return (Delaunay) delan;
+    catch (Exception e) {
     }
 
     return null;

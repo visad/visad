@@ -165,6 +165,7 @@ public class Irregular3DSet extends IrregularSet {
                                   null, null, null, false);
       }
       else {
+        if (Delan.Tri == null || Delan.Tri.length == 0) return null;
         return new Irregular3DSet(type, samples, null, null, null,
 	                          Delan, false);
       }
