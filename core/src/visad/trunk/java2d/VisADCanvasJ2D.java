@@ -232,6 +232,7 @@ System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
         }
         catch (VisADException e) {
         }
+        g2.dispose();
         synchronized (images) {
           if (0 <= current_image && current_image < length) {
             valid_images[current_image] = true;
