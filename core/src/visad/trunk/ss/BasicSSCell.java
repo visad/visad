@@ -924,7 +924,9 @@ public class BasicSSCell extends JPanel {
     Vector rnames = null;
     Vector dnames = null;
     String proj = null;
-    String color = null;
+    Vector color = new Vector();
+    Vector contour = new Vector();
+    Vector range = new Vector();
 
     // parse the save string into lines
     StringTokenizer st = new StringTokenizer(save, "\n\r");
@@ -1014,7 +1016,9 @@ public class BasicSSCell extends JPanel {
         try {
           d = Integer.parseInt(surplus);
         }
-        catch (NumberFormatException exc) { }
+        catch (NumberFormatException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
         if (d > 0 && d < 4) dim = d;
         else {
           // invalid dimension value
@@ -1043,7 +1047,9 @@ public class BasicSSCell extends JPanel {
           try {
             i = new Integer(Integer.parseInt(si));
           }
-          catch (NumberFormatException exc) { }
+          catch (NumberFormatException exc) {
+            if (DEBUG) exc.printStackTrace();
+          }
           if (i == null) {
             System.err.println("Warning: maps value " + si + " is not a " +
               "valid integer and the maps pair (" + s + ", " + si + ") " +
@@ -1069,7 +1075,31 @@ public class BasicSSCell extends JPanel {
         keyword.equalsIgnoreCase("color_table") ||
         keyword.equalsIgnoreCase("colortable"))
       {
-        color = surplus;
+        color.add(surplus);
+      }
+
+      // contour data
+      else if (keyword.equalsIgnoreCase("contour") ||
+        keyword.equalsIgnoreCase("contours") ||
+        keyword.equalsIgnoreCase("iso contour") ||
+        keyword.equalsIgnoreCase("iso_contour") ||
+        keyword.equalsIgnoreCase("iso-contour") ||
+        keyword.equalsIgnoreCase("isocontour") ||
+        keyword.equalsIgnoreCase("iso contours") ||
+        keyword.equalsIgnoreCase("iso_contours") ||
+        keyword.equalsIgnoreCase("iso-contours") ||
+        keyword.equalsIgnoreCase("isocontours"))
+      {
+        contour.add(surplus);
+      }
+
+      // range
+      else if (keyword.equalsIgnoreCase("range") ||
+        keyword.equalsIgnoreCase("select range") ||
+        keyword.equalsIgnoreCase("select_range") ||
+        keyword.equalsIgnoreCase("select-range"))
+      {
+        range.add(surplus);
       }
 
       // unknown keyword
@@ -1118,29 +1148,29 @@ public class BasicSSCell extends JPanel {
         ScalarMap[] maps = new ScalarMap[len];
         for (int j=0; j<len; j++) {
           // find appropriate ScalarType
-          ScalarType domain = null;
+          ScalarType mapDomain = null;
           String name = (String) dnames.elementAt(j);
-          for (int k=0; k<vLen && domain==null; k++) {
+          for (int k=0; k<vLen && mapDomain==null; k++) {
             ScalarType type = (ScalarType) types.elementAt(k);
-            if (name.equals(type.getName())) domain = type;
+            if (name.equals(type.getName())) mapDomain = type;
           }
-          if (domain == null) {
+          if (mapDomain == null) {
             // still haven't found type; look in static Vector for it
-            domain = ScalarType.getScalarTypeByName(name);
+            mapDomain = ScalarType.getScalarTypeByName(name);
           }
 
           // find appropriate DisplayRealType
           int q = ((Integer) rnames.elementAt(j)).intValue();
-          DisplayRealType range = null;
-          if (q >= 0 && q < dLen) range = Display.DisplayRealArray[q];
+          DisplayRealType mapRange = null;
+          if (q >= 0 && q < dLen) mapRange = Display.DisplayRealArray[q];
 
           // construct mapping
-          if (domain == null || range == null) {
+          if (mapDomain == null || mapRange == null) {
             System.err.println("Warning: maps pair (" + name + ", " +
               q + ") is not a valid ScalarMap and will be ignored");
             maps[j] = null;
           }
-          else maps[j] = new ScalarMap(domain, range);
+          else maps[j] = new ScalarMap(mapDomain, mapRange);
         }
         setMaps(maps);
       }
@@ -1155,12 +1185,42 @@ public class BasicSSCell extends JPanel {
     }
 
     // set up color control
-    if (color != null) {
-      ColorControl cc = (ColorControl)
-        VDisplay.getControl(ColorControl.class);
-      if (cc != null) cc.setSaveString(color);
-      else System.err.println("Warning: display has no ColorControl; " +
-        "the provided color table will be ignored");
+    int len = color.size();
+    if (len > 0) {
+      for (int i=0; i<len; i++) {
+        String s = (String) color.elementAt(i);
+        ColorControl cc = (ColorControl)
+          VDisplay.getControl(ColorControl.class, i);
+        if (cc != null) cc.setSaveString(s);
+        else System.err.println("Warning: display has no ColorControl #" +
+          (i + 1) + "; the provided color table will be ignored");
+      }
+    }
+
+    // set up contour control
+    len = contour.size();
+    if (len > 0) {
+      for (int i=0; i<len; i++) {
+        String s = (String) contour.elementAt(i);
+        ContourControl cc = (ContourControl)
+          VDisplay.getControl(ContourControl.class, i);
+        if (cc != null) cc.setSaveString(s);
+        else System.err.println("Warning: display has no ContourControl #" +
+          (i + 1) + "; the provided contour information will be ignored");
+      }
+    }
+
+    // set up range control
+    len = range.size();
+    if (len > 0) {
+      for (int i=0; i<len; i++) {
+        String s = (String) range.elementAt(i);
+        RangeControl rc = (RangeControl)
+          VDisplay.getControl(RangeControl.class, i);
+        if (rc != null) rc.setSaveString(s);
+        else System.err.println("Warning: display has no RangeControl #" +
+          (i + 1) + "; the provided range will be ignored");
+      }
     }
   }
 
@@ -1174,11 +1234,27 @@ public class BasicSSCell extends JPanel {
     if (IsRemote) return null;
     else {
       String s = "";
-      if (Filename != null) s = s + "filename = " + Filename.toString() + "\n";
-      if (RMIAddress != null) s = s + "rmi = " + RMIAddress + "\n";
-      if (!Formula.equals("")) s = s + "formula = " + Formula + "\n";
+
+      if (Filename != null) {
+        // add filename to save string
+        s = s + "filename = " + Filename.toString() + "\n";
+      }
+
+      if (RMIAddress != null) {
+        // add rmi address to save string
+        s = s + "rmi = " + RMIAddress + "\n";
+      }
+
+      if (!Formula.equals("")) {
+        // add formula to save string
+        s = s + "formula = " + Formula + "\n";
+      }
+
+      // add dimension to save string
       s = s + "dim = " + Dim + "\n";
+
       if (hasMappings()) {
+        // add mappings to save string
         Vector mapVector = VDisplay.getMapVector();
         int mvs = mapVector.size();
         if (mvs > 0) {
@@ -1197,12 +1273,38 @@ public class BasicSSCell extends JPanel {
           s = s + "\n";
         }
       }
+
       if (hasDisplay()) {
+        // add projection control state to save string
         ProjectionControl pc = VDisplay.getProjectionControl();
         if (pc != null) s = s + "projection = " + pc.getSaveString();
-        ColorControl cc = (ColorControl)
-          VDisplay.getControl(ColorControl.class);
-        if (cc != null) s = s + "color = " + cc.getSaveString();
+
+        // add color control state(s) to save string
+        Vector cv = VDisplay.getControls(ColorControl.class);
+        if (cv != null) {
+          for (int i=0; i<cv.size(); i++) {
+            ColorControl cc = (ColorControl) cv.elementAt(i);
+            if (cc != null) s = s + "color = " + cc.getSaveString();
+          }
+        }
+
+        // add contour control state(s) to save string
+        cv = VDisplay.getControls(ContourControl.class);
+        if (cv != null) {
+          for (int i=0; i<cv.size(); i++) {
+            ContourControl cc = (ContourControl) cv.elementAt(i);
+            if (cc != null) s = s + "contour = " + cc.getSaveString() + "\n";
+          }
+        }
+
+        // add range control state(s) to save string
+        cv = VDisplay.getControls(RangeControl.class);
+        if (cv != null) {
+          for (int i=0; i<cv.size(); i++) {
+            RangeControl rc = (RangeControl) cv.elementAt(i);
+            if (rc != null) s = s + "range = " + rc.getSaveString() + "\n";
+          }
+        }
       }
       return s;
     }

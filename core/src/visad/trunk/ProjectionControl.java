@@ -70,47 +70,112 @@ public abstract class ProjectionControl extends Control {
       ProjectionControl later */
   public String getSaveString() {
     int len = matrix.length;
-    String s;
+    StringBuffer sb = new StringBuffer(20 * len);
     if (len == 6) {
-      s = "3 x 2\n";
+      sb.append("3 x 2\n");
       for (int j=0; j<2; j++) {
-        for (int i=0; i<2; i++) s = s + matrix[3 * j + i] + " ";
-        s = s + matrix[3 * j + 2] + "\n";
+        for (int i=0; i<2; i++) {
+          sb.append(matrix[3 * j + i]);
+          sb.append(' ');
+        }
+        sb.append(matrix[3 * j + 2]);
+        sb.append('\n');
       }
     }
     else if (len == 16) {
-      s = "4 x 4\n";
+      sb.append("4 x 4\n");
       for (int j=0; j<4; j++) {
-        for (int i=0; i<3; i++) s = s + matrix[4 * j + i] + " ";
-        s = s + matrix[4 * j + 3] + "\n";
+        for (int i=0; i<3; i++) {
+          sb.append(matrix[4 * j + i]);
+          sb.append(' ');
+        }
+        sb.append(matrix[4 * j + 3]);
+        sb.append('\n');
       }
     }
     else {
-      s = len + "\n";
-      for (int i=0; i<len; i++) s = s + " " + matrix[i];
+      sb.append(len);
+      sb.append('\n');
+      for (int i=0; i<len; i++) {
+        sb.append(' ');
+        sb.append(matrix[i]);
+      }
     }
-    return s;
+    return sb.toString();
   }
 
   /** reconstruct this ProjectionControl using the specified save string */
   public void setSaveString(String save)
     throws VisADException, RemoteException
   {
+    if (save == null) throw new VisADException("Invalid save string");
     int eol = save.indexOf('\n');
-    String size = save.substring(0, eol);
-    int len = -1;
-    if (size.equals("3 x 2")) len = 6;
-    else if (size.equals("4 x 4")) len = 16;
-    else {
+    if (eol < 0) throw new VisADException("Invalid save string");
+    StringTokenizer st = new StringTokenizer(save.substring(0, eol));
+    int numTokens = st.countTokens();
+
+    // determine matrix size
+    int size = -1;
+    if (numTokens == 3) {
+      int len = -1;
       try {
-        len = Integer.parseInt(size);
+        len = Integer.parseInt(st.nextToken());
       }
       catch (NumberFormatException exc) { }
+      if (len < 1) {
+        throw new VisADException("Invalid save string: first dimension " +
+          "is not a positive integer");
+      }
+      if (!st.nextToken().equalsIgnoreCase("x")) {
+        throw new VisADException("Invalid save string");
+      }
+      int len0 = -1;
+      try {
+        len0 = Integer.parseInt(st.nextToken());
+      }
+      catch (NumberFormatException exc) { }
+      if (len0 < 1) {
+        throw new VisADException("Invalid save string: second dimension " +
+          "is not a positive integer");
+      }
+      size = len * len0;
     }
-    StringTokenizer st = new StringTokenizer(save.substring(eol));
-    if (len < 0) len = st.countTokens();
-    double[] m = new double[len];
-    for (int i=0; i<len; i++) m[i] = Double.parseDouble(st.nextToken());
+    else if (numTokens == 1) {
+      try {
+        size = Integer.parseInt(st.nextToken());
+      }
+      catch (NumberFormatException exc) { }
+      if (size < 1) {
+        throw new VisADException("Invalid save string: matrix size is " +
+          "not a positive integer");
+      }
+    }
+    else {
+      throw new VisADException("Invalid save string: " +
+        "cannot determine matrix size");
+    }
+
+    // get matrix entries
+    st = new StringTokenizer(save.substring(eol + 1));
+    numTokens = st.countTokens();
+    if (numTokens < size) {
+      throw new VisADException("Invalid save string: not enough " +
+        "matrix entries");
+    }
+    double[] m = new double[size];
+    for (int i=0; i<size; i++) {
+      String token = st.nextToken();
+      if (token.equalsIgnoreCase("NaN")) m[i] = Double.NaN;
+      else {
+        try {
+          m[i] = Double.parseDouble(token);
+        }
+        catch (NumberFormatException exc) {
+          throw new VisADException("Invalid save string: matrix entry #" +
+            i + " is not a floating-point number");
+        }
+      }
+    }
     setMatrix(m);
   }
 

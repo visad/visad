@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad;
 
 import java.rmi.*;
+import java.util.StringTokenizer;
 
 /**
    ContourControl is the VisAD class for controlling IsoContour display scalars.<P>
@@ -280,6 +281,40 @@ public class ContourControl extends Control {
     fvalues[2] = lowLimit;
     fvalues[3] = hiLimit;
     fvalues[4] = base;
+  }
+
+  /** get a String that can be used to reconstruct this ContourControl later */
+  public String getSaveString() {
+    return mainContours + " " + labels + " " + surfaceValue + " " +
+      contourInterval + " " + lowLimit + " " + hiLimit + " " + base;
+  }
+
+  /** reconstruct this ContourControl using the specified save string */
+  public void setSaveString(String save)
+    throws VisADException, RemoteException
+  {
+    if (save == null) throw new VisADException("Invalid save string");
+    StringTokenizer st = new StringTokenizer(save);
+    if (st.countTokens() < 7) throw new VisADException("Invalid save string");
+    boolean[] b = new boolean[2];
+    float[] f = new float[5];
+    String token = st.nextToken();
+    b[0] = token.equalsIgnoreCase("true") || token.equalsIgnoreCase("T");
+    token = st.nextToken();
+    b[1] = token.equalsIgnoreCase("true") || token.equalsIgnoreCase("T");
+    for (int i=0; i<5; i++) {
+      token = st.nextToken();
+      if (token.equalsIgnoreCase("NaN")) f[i] = Float.NaN;
+      else {
+        try {
+          f[i] = Float.parseFloat(token);
+        }
+        catch (NumberFormatException exc) {
+          throw new VisADException("Invalid save string");
+        }
+      }
+    }
+    setMainContours(b, f, false);
   }
 
   /** copy the state of a remote control to this control */

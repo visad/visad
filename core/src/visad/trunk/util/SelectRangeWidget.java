@@ -45,26 +45,26 @@ public class SelectRangeWidget extends RangeSlider
   /** This SelectRangeWidget's associated Control. */
   private RangeControl rangeControl;
 
-  /** this will be labeled with the name of smap's RealType;
+  /** this will be labeled with the name of smap's RealType, and
       the range of RealType values defining the bounds of the
-      selectable range is taken from smap.getRange() - this allows
+      selectable range is taken from smap.getRange(). This allows
       a SelectRangeWidget to be used with a range of values defined
-      by auto-scaling from displayed Data; if smap's range values
+      by auto-scaling from displayed Data. If smap's range values
       are not available at the time this constructor is invoked,
       the SelectRangeWidget becomes a ScalarMapListener and sets
-      its range when smap's range is set;
-      the DisplayRealType of smap must be Display.SelectRange and
-      should already be added to a Display */
+      its range when smap's range is set.
+      The DisplayRealType of smap must be Display.SelectRange and
+      should already be added to a Display. */
   public SelectRangeWidget(ScalarMap smap) throws VisADException,
                                                   RemoteException {
     this(smap, true);
   }
 
-  /** this will be labeled with the name of smap's RealType;
-      the range of RealType values (min, max) is defines the
-      bounds of the selectable range;
-      the DisplayRealType of smap must be Display.SelectRange and
-      should already be added to a Display
+  /** this will be labeled with the name of smap's RealType, and
+      the range of RealType values (min, max) defines the
+      bounds of the selectable range.
+      The DisplayRealType of smap must be Display.SelectRange and
+      should already be added to a Display.
       @deprecated - set range in map instead
   */
   public SelectRangeWidget(ScalarMap smap, float min, float max)
@@ -90,16 +90,16 @@ public class SelectRangeWidget extends RangeSlider
     }
   }
 
-  /** this will be labeled with the name of smap's RealType;
+  /** this will be labeled with the name of smap's RealType, and
       the range of RealType values defining the bounds of the
-      selectable range is taken from smap.getRange() - this allows
+      selectable range is taken from smap.getRange(). This allows
       a SelectRangeWidget to be used with a range of values defined
-      by auto-scaling from displayed Data; if smap's range values
+      by auto-scaling from displayed Data. If smap's range values
       are not available at the time this constructor is invoked,
       the SelectRangeWidget becomes a ScalarMapListener and sets
-      its range when smap's range is set;
-      the DisplayRealType of smap must be Display.SelectRange and
-      should already be added to a Display */
+      its range when smap's range is set.
+      The DisplayRealType of smap must be Display.SelectRange and
+      should already be added to a Display. */
   public SelectRangeWidget(ScalarMap smap, boolean update)
     throws VisADException, RemoteException {
     super(RangeSlider.nameOf(smap), 0.0f, 1.0f);
@@ -114,21 +114,32 @@ public class SelectRangeWidget extends RangeSlider
     double[] smapRange = smap.getRange();
     resetValues((float )smapRange[0], (float )smapRange[1]);
 
+    // get range control
     rangeControl = (RangeControl) smap.getControl();
-    rangeControl.initializeRange(new float[] {minLimit, maxLimit});
 
     // enable auto-scaling
-    if (update) {
-      smap.addScalarMapListener(this);
-    } else {
-      updateWidget(minLimit, maxLimit);
-    }
+    if (update) smap.addScalarMapListener(this);
+    else setBounds(minLimit, maxLimit);
 
+    // listen for changes to the control
     rangeControl.addControlListener(this);
+
+    // set slider values to match control's values
+    float[] range = rangeControl.getRange();
+    if (range == null) {
+      range = new float[2];
+      range[0] = minLimit;
+      range[1] = maxLimit;
+    }
+    if (range[0] != range[0] || range[1] != range[1]) {
+      range[0] = minLimit;
+      range[1] = maxLimit;
+    }
+    setValues(range[0], range[1]);
   }
 
   /** Update control and graphical widget components. */
-  void updateWidget(float min, float max) throws VisADException,
+  private void updateWidget(float min, float max) throws VisADException,
                                                  RemoteException {
     rangeControl.setRange(new float[] {min, max});
     setBounds(min, max);

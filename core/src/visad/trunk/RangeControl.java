@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad;
 
 import java.rmi.*;
+import java.util.StringTokenizer;
 
 /**
    RangeControl is the VisAD class for controlling SelectRange display scalars.<P>
@@ -75,6 +76,34 @@ public class RangeControl extends Control {
     range[0] = RangeLow;
     range[1] = RangeHi;
     return range;
+  }
+
+  /** get a String that can be used to reconstruct this RangeControl later */
+  public String getSaveString() {
+    return RangeLow + " " + RangeHi;
+  }
+
+  /** reconstruct this RangeControl using the specified save string */
+  public void setSaveString(String save)
+    throws VisADException, RemoteException
+  {
+    if (save == null) throw new VisADException("Invalid save string");
+    StringTokenizer st = new StringTokenizer(save);
+    if (st.countTokens() < 2) throw new VisADException("Invalid save string");
+    float[] r = new float[2];
+    for (int i=0; i<2; i++) {
+      String token = st.nextToken();
+      if (token.equalsIgnoreCase("NaN")) r[i] = Float.NaN;
+      else {
+        try {
+          r[i] = Float.parseFloat(token);
+        }
+        catch (NumberFormatException exc) {
+          throw new VisADException("Invalid save string");
+        }
+      }
+    }
+    initializeRange(r);
   }
 
   /** copy the state of a remote control to this control */

@@ -193,6 +193,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** Cell 2-D (Java3D) menu item */
   CheckboxMenuItem CellDim2D3D;
 
+  /** Auto-switch dimension menu item */
+  CheckboxMenuItem AutoSwitchBox;
+
+  /** Auto-detect mappings menu item */
+  CheckboxMenuItem AutoDetectBox;
+
+  /** Auto-display controls menu item */
+  CheckboxMenuItem AutoShowBox;
+
   /** column of currently selected cell */
   int CurX = 0;
 
@@ -495,21 +504,19 @@ public class SpreadSheet extends JFrame implements ActionListener,
     menubar.add(options);
 
     if (!CanDo3D) AutoSwitch = false;
-    CheckboxMenuItem optSwitch = new CheckboxMenuItem(
-                     "Auto-switch to 3-D", AutoSwitch);
-    optSwitch.addItemListener(this);
-    optSwitch.setEnabled(CanDo3D);
-    options.add(optSwitch);
+    AutoSwitchBox = new CheckboxMenuItem("Auto-switch to 3-D", AutoSwitch);
+    AutoSwitchBox.addItemListener(this);
+    AutoSwitchBox.setEnabled(CanDo3D);
+    options.add(AutoSwitchBox);
 
-    CheckboxMenuItem optAuto = new CheckboxMenuItem(
-                     "Auto-detect mappings", AutoDetect);
-    optAuto.addItemListener(this);
-    options.add(optAuto);
+    AutoDetectBox = new CheckboxMenuItem("Auto-detect mappings", AutoDetect);
+    AutoDetectBox.addItemListener(this);
+    options.add(AutoDetectBox);
 
-    CheckboxMenuItem optASC = new CheckboxMenuItem(
-                     "Auto-display controls", AutoShowControls);
-    optASC.addItemListener(this);
-    options.add(optASC);
+    AutoShowBox = new CheckboxMenuItem("Auto-display controls",
+      AutoShowControls);
+    AutoShowBox.addItemListener(this);
+    options.add(AutoShowBox);
     options.addSeparator();
 
     OptWidget = new MenuItem("Show controls");
@@ -941,13 +948,19 @@ public class SpreadSheet extends JFrame implements ActionListener,
         RemoteCellImpl rColRowCell = new RemoteCellImpl(lColRowCell);
         rColRowCell.addReference(RemoteColRow);
       }
-      catch (VisADException exc) { }
+      catch (VisADException exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+      }
       catch (RemoteException exc) {
         try {
           lColRowCell.addReference(lColRow);
         }
-        catch (VisADException exc2) { }
-        catch (RemoteException exc2) { }
+        catch (VisADException exc2) {
+          if (BasicSSCell.DEBUG) exc2.printStackTrace();
+        }
+        catch (RemoteException exc2) {
+          if (BasicSSCell.DEBUG) exc2.printStackTrace();
+        }
       }
     }
 
@@ -985,8 +998,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
               DisplayCells[i][j].clearCell();
               b[i][j] = true;
             }
-            catch (VisADException exc) { }
-            catch (RemoteException exc) { }
+            catch (VisADException exc) {
+              if (BasicSSCell.DEBUG) exc.printStackTrace();
+            }
+            catch (RemoteException exc) {
+              if (BasicSSCell.DEBUG) exc.printStackTrace();
+            }
           }
         }
       }
@@ -1118,7 +1135,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
                 dimX = Integer.parseInt(sX);
                 dimY = Integer.parseInt(sY);
               }
-              catch (NumberFormatException exc) { }
+              catch (NumberFormatException exc) {
+                if (BasicSSCell.DEBUG) exc.printStackTrace();
+              }
             }
           }
 
@@ -1136,7 +1155,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
                 sizeX = Integer.parseInt(sX);
                 sizeY = Integer.parseInt(sY);
               }
-              catch (NumberFormatException exc) { }
+              catch (NumberFormatException exc) {
+                if (BasicSSCell.DEBUG) exc.printStackTrace();
+              }
             }
           }
 
@@ -1242,8 +1263,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
     NumVisY = dimY;
     reconstructSpreadsheet(cellNames, null);
     synchColRow();
-    validate();
-    repaint();
 
     // set each cell's string
     for (int j=0; j<NumVisY; j++) {
@@ -1251,8 +1270,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
         try {
           DisplayCells[i][j].setSaveString(fileStrings[i][j]);
         }
-        catch (VisADException exc) { }
-        catch (RemoteException exc) { }
+        catch (VisADException exc) {
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
+        }
       }
     }
 
@@ -1260,7 +1283,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     try {
       Thread.sleep(200);
     }
-    catch (InterruptedException exc) { }
+    catch (InterruptedException exc) {
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+    }
 
     // set auto-switch, auto-detect and auto-show
     setAutoSwitch(autoSwitch);
@@ -1270,6 +1295,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
     // update current file and title
     CurrentFile = f;
     setTitle(bTitle + " - " + f.getPath());
+
+    // refresh GUI components
+    refreshDisplayMenuItems();
+    refreshFormulaBar();
+    refreshMenuCommands();
+    refreshOptions();
+    validate();
+    repaint();
   }
 
   /** save a spreadsheet file under its current name */
@@ -1384,7 +1417,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
           try {
             sleep(200);
           }
-          catch (InterruptedException exc) { }
+          catch (InterruptedException exc) {
+            if (BasicSSCell.DEBUG) exc.printStackTrace();
+          }
         }
         if (b) {
           f.setCursor(Cursor.getDefaultCursor());
@@ -1677,8 +1712,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
         try {
           DisplayCells[CurX][j].destroyCell();
         }
-        catch (VisADException exc) { }
-        catch (RemoteException exc) { }
+        catch (VisADException exc) {
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
+        }
         DisplayCells[CurX][j] = null;
       }
       NumVisX--;
@@ -1733,8 +1772,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
         try {
           DisplayCells[i][CurY].destroyCell();
         }
-        catch (VisADException exc) { }
-        catch (RemoteException exc) { }
+        catch (VisADException exc) {
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
+        }
         DisplayCells[i][CurY] = null;
       }
       NumVisY--;
@@ -1779,14 +1822,18 @@ public class SpreadSheet extends JFrame implements ActionListener,
       try {
         u = new URL("file:/" + f.getAbsolutePath());
       }
-      catch (MalformedURLException exc) { }
+      catch (MalformedURLException exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+      }
     }
     else {
       // check if new entry is a URL
       try {
         u = new URL(newFormula);
       }
-      catch (MalformedURLException exc) { }
+      catch (MalformedURLException exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+      }
     }
     if (u != null) {
       // try to load the data from the URL
@@ -1833,6 +1880,17 @@ public class SpreadSheet extends JFrame implements ActionListener,
     });
   }
 
+  /** refresh check box items in the Options menu */
+  private void refreshOptions() {
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        AutoSwitchBox.setState(AutoSwitch);
+        AutoDetectBox.setState(AutoDetect);
+        AutoShowBox.setState(AutoShowControls);
+      }
+    });
+  }
+
   /** enable or disable certain menu items depending on whether
       this cell has data */
   private void refreshMenuCommands() {
@@ -1874,12 +1932,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
       public void run() {
         // update dimension check marks
         int dim = DisplayCells[CurX][CurY].getDimension();
-        if (dim == BasicSSCell.JAVA3D_3D) CellDim3D3D.setState(true);
-        else CellDim3D3D.setState(false);
-        if (dim == BasicSSCell.JAVA2D_2D) CellDim2D2D.setState(true);
-        else CellDim2D2D.setState(false);
-        if (dim == BasicSSCell.JAVA3D_2D) CellDim2D3D.setState(true);
-        else CellDim2D3D.setState(false);
+        CellDim3D3D.setState(dim == BasicSSCell.JAVA3D_3D);
+        CellDim2D2D.setState(dim == BasicSSCell.JAVA2D_2D);
+        CellDim2D3D.setState(dim == BasicSSCell.JAVA3D_2D);
       }
     });
   }
@@ -1896,9 +1951,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
       bit = (Real) t.getComponent(0);
       return (bit.getValue() == 0);
     }
-    catch (NullPointerException exc) { }
-    catch (VisADException exc) { }
-    catch (RemoteException exc) { }
+    catch (NullPointerException exc) {
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+    }
+    catch (VisADException exc) {
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+    }
     return true;
   }
 
@@ -1913,9 +1974,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
       tc = (Tuple) t.getComponent(1);
       tr = (RealTuple) t.getComponent(2);
     }
-    catch (NullPointerException exc) { }
-    catch (VisADException exc) { }
-    catch (RemoteException exc) { }
+    catch (NullPointerException exc) {
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+    }
+    catch (VisADException exc) {
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+    }
     if (tc == null || tr == null) return null;
     int collen = tc.getDimension();
     int rowlen = tr.getDimension();
@@ -1928,8 +1995,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
       try {
         txt = (Text) tc.getComponent(i);
       }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
+      catch (VisADException exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+      }
+      catch (RemoteException exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+      }
       if (txt == null) return null;
       colNames[i] = txt.getValue();
     }
@@ -1938,8 +2009,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
       try {
         r = (Real) tr.getComponent(j);
       }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
+      catch (VisADException exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+      }
+      catch (RemoteException exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+      }
       if (r == null) return null;
       rowNames[j] = (int) r.getValue();
     }
@@ -1984,8 +2059,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
           Tuple t = new Tuple(new TupleType(m), new Data[] {bit, tc, tr});
           RemoteColRow.setData(t);
         }
-        catch (VisADException exc) { }
-        catch (RemoteException exc) { }
+        catch (VisADException exc) {
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
+        }
       }
     }
   }
@@ -2176,8 +2255,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
             }
             if (kill) DisplayCells[i][j].destroyCell();
           }
-          catch (VisADException exc) { }
-          catch (RemoteException exc) { }
+          catch (VisADException exc) {
+            if (BasicSSCell.DEBUG) exc.printStackTrace();
+          }
+          catch (RemoteException exc) {
+            if (BasicSSCell.DEBUG) exc.printStackTrace();
+          }
           DisplayCells[i][j] = null;
         }
       }

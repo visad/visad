@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad;
 
 import java.rmi.*;
+import java.util.StringTokenizer;
 
 /**
    BaseColorControl is the VisAD class for controlling N-component Color
@@ -173,35 +174,74 @@ public abstract class BaseColorControl extends Control {
     if (table == null) return null;
     int len = table.length;
     int len0 = table[0].length;
-    String s = len + " x " + len0 + "\n";
+    StringBuffer sb = new StringBuffer(10 * len * len0);
+    sb.append(len);
+    sb.append(" x ");
+    sb.append(len0);
+    sb.append('\n');
     for (int i=0; i<len; i++) {
-      s = s + table[i][0];
-      for (int j=1; j<len0; j++) s = s + " " + table[i][j];
-      s = s + "\n";
+      sb.append(table[i][0]);
+      for (int j=1; j<len0; j++) {
+        sb.append(' ');
+        sb.append(table[i][j]);
+      }
+      sb.append('\n');
     }
-    return s;
+    return sb.toString();
   }
 
   /** reconstruct this BaseColorControl using the specified save string */
   public void setSaveString(String save)
     throws VisADException, RemoteException
   {
-    int e1 = save.indexOf(' ');
-    int s2 = save.indexOf('x') + 2;
-    int e2 = save.indexOf('\n');
-    int len = Integer.parseInt(save.substring(0, e1));
-    int len0 = Integer.parseInt(save.substring(s2, e2));
+    if (save == null) throw new VisADException("Invalid save string");
+    StringTokenizer st = new StringTokenizer(save);
+    int numTokens = st.countTokens();
+    if (numTokens < 3) throw new VisADException("Invalid save string");
+
+    // get table size
+    int len = -1;
+    try {
+      len = Integer.parseInt(st.nextToken());
+    }
+    catch (NumberFormatException exc) { }
+    if (len < 1) {
+      throw new VisADException("Invalid save string: first dimension " +
+        "is not a positive integer");
+    }
+    if (!st.nextToken().equalsIgnoreCase("x")) {
+      throw new VisADException("Invalid save string");
+    }
+    int len0 = -1;
+    try {
+      len0 = Integer.parseInt(st.nextToken());
+    }
+    catch (NumberFormatException exc) { }
+    if (len0 < 1) {
+      throw new VisADException("Invalid save string: second dimension " +
+        "is not a positive integer");
+    }
+    if (numTokens < 3 + len * len0) {
+      throw new VisADException("Invalid save string: not enough " +
+        "table entries");
+    }
+
+    // get table entries
     float[][] t = new float[len][len0];
-    int x = e2 + 1;
     for (int i=0; i<len; i++) {
-      for (int j=0; j<len0-1; j++) {
-        int ox = x;
-        x = save.indexOf(' ', x + 1);
-        t[i][j] = Float.parseFloat(save.substring(ox, x));
+      for (int j=0; j<len0; j++) {
+        String token = st.nextToken();
+        if (token.equalsIgnoreCase("NaN")) t[i][j] = Float.NaN;
+        else {
+          try {
+            t[i][j] = Float.parseFloat(token);
+          }
+          catch (NumberFormatException exc) {
+            throw new VisADException("Invalid save string: table entry (" +
+              i + ", " + j + ") is not a floating-point number");
+          }
+        }
       }
-      int ox = x;
-      x = save.indexOf('\n', x + 1);
-      t[i][len0 - 1] = Float.parseFloat(save.substring(ox, x));
     }
     setTable(t);
   }
