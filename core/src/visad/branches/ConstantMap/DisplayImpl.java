@@ -1579,7 +1579,9 @@ if (initialize) {
           }
           ConstantMapVector.addElement(map);
         }
-        reDisplayAll(); // WLH 1 March 2002
+        if (!RendererVector.isEmpty()) {
+          reDisplayAll(); // WLH 1 March 2002
+        }
       }
       else { // !(map instanceof ConstantMap)
         // add to RealTypeVector and set ScalarIndex
