@@ -25,7 +25,7 @@ package visad.data.dods;
 import dods.dap.*;
 import java.rmi.RemoteException;
 import visad.data.BadFormException;
-import visad.data.in.ValueProcessor;
+import visad.data.in.*;
 import visad.*;
 
 /**
@@ -39,7 +39,6 @@ import visad.*;
  * @author Steven R. Emmerson
  */
 public abstract class Valuator
-    extends	ValueProcessor
 {
     protected final ValueVetter		vetter;
     protected final ValueUnpacker	unpacker;
@@ -56,9 +55,9 @@ public abstract class Valuator
     protected Valuator(AttributeTable table)
 	throws BadFormException, VisADException, RemoteException
     {
-	vetter = ValueVetter.valueVetter(table);
-	unpacker = ValueUnpacker.valueUnpacker(table);
-	ranger = ValueRanger.valueRanger(table);
+	vetter = valueVetter(table);
+	unpacker = valueUnpacker(table);
+	ranger = valueRanger(table);
     }
 
     /**
@@ -80,7 +79,7 @@ public abstract class Valuator
 	{
 	    case Attribute.BYTE:
 		valuator = 
-		    ValueRanger.valueRanger(table).getMin() >= 0
+		    valueRanger(table).getMin() >= 0
 			? UByteValuator.valuator(table)
 			: ByteValuator.valuator(table);
 		break;
@@ -161,5 +160,148 @@ public abstract class Valuator
     public double[] process(double[] values)
     {
 	return ranger.process(unpacker.process(vetter.process(values)));
+    }
+
+    /**
+     * Decodes an attribute for a DODS variable.
+     *
+     * @param name		The name of the attribute.
+     * @param table		The attribute table of the DODS variable.
+     * @param index		The index of the attribute element to be 
+     *				decoded.
+     * @throws BadFormException	The DODS information is corrupt.
+     * @throws VisADException	VisAD failure.
+     * @throws RemoteException	Java RMI failure.
+     */
+    protected static double decode(String name, AttributeTable table, int index)
+	throws BadFormException, VisADException, RemoteException
+    {
+	double		value = Double.NaN;	// default value
+	Attribute	attr = table.getAttribute(name);
+	if (attr != null)
+	{
+	    DataImpl	data =
+		AttributeAdapterFactory.attributeAdapterFactory()
+		    .attributeAdapter(name, attr).data();
+	    if (data instanceof Real && index == 0)
+		value = ((Real)data).getValue();
+	    else if (data instanceof Gridded1DDoubleSet)
+		value =
+		    ((Gridded1DSet)data).indexToDouble(new int[] {index})[0][0];
+	    else if (data instanceof Gridded1DSet)
+		value =
+		    ((Gridded1DSet)data).indexToValue(new int[] {index})[0][0];
+	    else
+		System.err.println(
+		    "ValueProcessor.decode(String,AttributeTable,int): " +
+		    "Attribute \"" + name + "\" has non-numeric type: " +
+		    attr.getTypeString());
+	}
+	return value;
+    }
+
+    /**
+     * Returns an instance of a value vetter corresponding to the attributes 
+     * of a DODS variable.
+     *
+     * @param table		The DODS attribute table.  May be 
+     *				<code>null</code>, in which case a trivial
+     *				vetter is returned.
+     * @return			A value vetter.
+     * @throws BadFormException	The attribute table is corrupt.
+     * @throws VisADException	VisAD failure.
+     * @throws RemoteException	Java RMI failure.
+     */
+    public static ValueVetter valueVetter(AttributeTable table)
+	throws BadFormException, VisADException, RemoteException
+    {
+	double	fill = Double.NaN;	// default
+	double	missing = Double.NaN;	// default
+	if (table != null)
+	{
+	    fill = decode("_FillValue", table, 0);
+	    missing = decode("missing_value", table, 0);
+	}
+	return ValueVetter.valueVetter(new double[] {fill, missing});
+    }
+
+    /**
+     * Returns an instance of a value unpacker corresponding to the attributes 
+     * of a DODS variable.
+     *
+     * @param table		A DODS attribute table.  May be 
+     *				<code>null</code>, in which case a trivial
+     *				unpacker is returned.
+     * @return			A value unpacker.
+     * @throws BadFormException	The attribute table is corrupt.
+     * @throws VisADException	VisAD failure.
+     * @throws RemoteException	Java RMI exception.
+     */
+    public static ValueUnpacker valueUnpacker(
+	    AttributeTable table)
+	throws BadFormException, VisADException, RemoteException
+    {
+	ValueUnpacker	unpacker;
+	if (table == null)
+	{
+	    unpacker = ValueUnpacker.valueUnpacker();
+	}
+	else
+	{
+	    double	scale = decode("scale_factor", table, 0);
+	    double	offset = decode("add_offset", table, 0);
+	    if (scale == scale && scale != 1 &&
+		offset == offset && offset != 0)
+	    {
+		unpacker = ScaleAndOffsetUnpacker.scaleAndOffsetUnpacker(
+		    scale, offset);
+	    }
+	    else if (scale == scale && scale != 1)
+	    {
+		unpacker = ScaleUnpacker.scaleUnpacker(scale);
+	    }
+	    else if (offset == offset && offset != 0)
+	    {
+		unpacker = OffsetUnpacker.offsetUnpacker(offset);
+	    }
+	    else
+	    {
+		unpacker = ValueUnpacker.valueUnpacker();
+	    }
+	}
+	return unpacker;
+    }
+
+    /**
+     * Returns an instance of a value ranger corresponding to the attributes of
+     * a DODS variable.
+     *
+     * @param table		A DODS attribute table.  May be 
+     *				<code>null</code>, in which case a trivial
+     *				ranger is returned.
+     * @return			A value ranger.
+     * @throws BadFormException	The attribute table is corrupt.
+     * @throws VisADException	VisAD failure.
+     * @throws RemoteException	Java RMI exception.
+     */
+    public static ValueRanger valueRanger(AttributeTable table)
+	throws BadFormException, VisADException, RemoteException
+    {
+	double	lower = Double.NEGATIVE_INFINITY;
+	double	upper = Double.POSITIVE_INFINITY;
+	if (table != null)
+	{
+	    if (table.getAttribute("valid_range") == null)
+	    {
+		lower = decode("valid_min", table, 0);
+		upper = decode("valid_max", table, 0);
+	    }
+	    else
+	    {
+		lower = decode("valid_range", table, 0);
+		upper = decode("valid_range", table, 1);
+	    }
+	}
+	return ValueRanger.valueRanger(lower, upper);
     }
 }
