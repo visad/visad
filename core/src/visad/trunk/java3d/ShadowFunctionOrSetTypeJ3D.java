@@ -837,7 +837,7 @@ END MISSING TEST */
                     array = spatial_set.makeIsoSurface(fvalues[0],
                                 display_values[i], color_values);
                     // System.out.println("makeIsoSurface " + array.vertexCount);
-                    if (array != null) {
+                    if (array != null && array.vertexCount > 0) {
                       // MEM
                       GeometryArray geometry = display.makeGeometry(array);
                       //  FREE
@@ -855,7 +855,8 @@ END MISSING TEST */
                     spatial_set.makeIsoLines(fvalues[1], fvalues[2], fvalues[3],
                                              fvalues[4], display_values[i],
                                              color_values, swap[0]);
-                  if (arrays != null && arrays.length != 0 && arrays[0] != null) {
+                  if (arrays != null && arrays.length > 0 && arrays[0] != null &&
+                      arrays[0].vertexCount > 0) {
                     // MEM
                     GeometryArray geometry = display.makeGeometry(arrays[0]);
                     //  FREE
