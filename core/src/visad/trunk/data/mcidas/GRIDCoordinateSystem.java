@@ -53,7 +53,16 @@ public class GRIDCoordinateSystem
   public GRIDCoordinateSystem(GridDirectory gridDirectory)
         throws VisADException
   {
-    this(gridDirectory.getDirBlock());
+    super(RealTupleType.LatitudeLongitudeTuple, coordinate_system_units);
+    rows = gridDirectory.getRows();
+    columns = gridDirectory.getColumns();
+    gnav = gridDirectory.getNavigation();
+    if (gnav != null) {
+      gnav.setStart(0,0);
+      gnav.setFlipRowCoordinates(rows);
+    } else {
+      throw new VisADException( "Grid cannot be navigated");
+    }
   }
 
   /** 
@@ -76,7 +85,7 @@ public class GRIDCoordinateSystem
     }
     catch (McIDASException excp)
     {
-      throw new VisADException( "Unknown navigation passed to GRIDnav module");
+      throw new VisADException( "Grid cannot be navigated");
     }
   }
 
