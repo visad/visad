@@ -1,7 +1,8 @@
 JAVAC		= javac -g
 JAVA		= java
 JAVA_G		= java_g
-JAVACC		= javacc
+JAVACC		= javacc	# javacc is available from 
+				# <http://www.suntest.com/JavaCC/>
 JAVADOC		= javadoc
 PACKAGE		= visad.data.netcdf.units
 PACKAGE_PREFIX	= $(PACKAGE).
