@@ -567,11 +567,10 @@ public abstract class Set extends DataImpl implements SetIface {
    * @throws ArrayIndexOutOfBoundsException
    *                                 if <code>neighbors.length < getLength()
    *                                 </code>.
-   * @throws UnimplementedException  if this method can't yet handle this 
-   *                                 instance.
+   * @throws VisADException          if a VisAD failure occurs.
    */
   public void getNeighbors( int[][] neighbors )
-              throws UnimplementedException
+              throws VisADException
   {
     throw new UnimplementedException("Set: getNeighbors()");
   }
@@ -599,12 +598,11 @@ public abstract class Set extends DataImpl implements SetIface {
    *                                if <code>manifoldIndex < 0 || 
    *                                manifoldIndex >= getManifoldDimension()
    *                                </code>.
-   * @throws UnimplementedException if this method can't yet handle this
-   *                                instance.
+   * @throws VisADException         if a VisAD failure occurs.
    * @see #getManifoldDimension()
    */
   public int[][] getNeighbors( int dimension )
-                 throws UnimplementedException
+                 throws VisADException
   {
     throw new UnimplementedException("Set: getNeighbors()");
   }

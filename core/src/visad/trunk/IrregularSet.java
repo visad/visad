@@ -147,11 +147,10 @@ public class IrregularSet extends SampledSet {
    *				<code>neighbors[i][j]</code> will be the index
    *				of the <code>j</code>th neighboring sample of
    *				sample <code>i</code>.
-   * @throws UnimplementedException	if this method can't yet handle the
-   *                                    manifold dimension of this instance.
+   * @throws VisADException     if a VisAD failure occurs.
    */
   public void getNeighbors( int[][] neighbors )
-         throws UnimplementedException
+         throws VisADException
   {
     if ( ManifoldDimension == 1 )
     {

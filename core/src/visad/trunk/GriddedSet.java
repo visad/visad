@@ -445,12 +445,10 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
    * @throws ArrayIndexOutOfBoundsException
    *                                 if <code>neighbors.length < getLength()
    *                                 </code>.
-   * @throws UnimplementedException  if this method doesn't yet handle instances
-   *                                 with the manifold dimension of this 
-   *                                 instance.
+   * @throws VisADException          if a VisAD failure occurs.
    */
   public void getNeighbors( int[][] neighbors )
-              throws UnimplementedException
+              throws VisADException
   {
     int ii, ix, iy, iz, ii_R, ii_L, ii_U, ii_D, ii_F, ii_B;
     int LengthX;
