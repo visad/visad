@@ -66,6 +66,8 @@ public abstract class Data {
                  pad -= len;
              }
          //    i.skipBytes(getPadding());
+         } catch (EOFException e) {
+	   // ignore EOF messages while reading padded data
          } catch (IOException e) {
              throw new FitsException("Error skipping padding:"+e);
          }
