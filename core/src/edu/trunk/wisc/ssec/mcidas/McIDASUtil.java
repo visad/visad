@@ -31,9 +31,13 @@ import java.util.Date;
 import java.util.TimeZone;
 
 /**
- * Class for static McIDAS utility functions
+ * Class for static McIDAS utility methods.  In many cases, these
+ * methods are the Java equivalents of  McIDAS library functions.
+ * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
+ *      McIDAS Programmer's Manual</A>
  *
- * @author Don Murray
+ * @author Don Murray, Unidata
+ * @author Tom Whittaker, SSEC
  */
 public final class McIDASUtil 
 {
@@ -45,8 +49,6 @@ public final class McIDASUtil
      * Converts a packed integer (SIGN DDD MM SS) latitude/longitude to double.
      * Java version of McIDAS <code>flalo</code> function except returns a 
      * double instead of a float.
-     * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
-     *      McIDAS Programmer's Manual</A>
      *
      * @param value  integer containing the packed data
      * @return  double representation of value
@@ -59,8 +61,6 @@ public final class McIDASUtil
     /**
      * Converts a double latitude/longitude to a packed integer (SIGN DDD MM SS)
      * Java version of McIDAS <code>ilalo</code> function.
-     * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
-     *      McIDAS Programmer's Manual</A>
      *
      * @param value  double value of lat/lon
      * @return  packed integer representation of value
@@ -75,8 +75,6 @@ public final class McIDASUtil
      * or time (hours) to double. 
      * Java replacements of McIDAS <code>flalo</code> and <code>ftime</code> 
      * functions except returns a double instead of a float.
-     * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
-     *      McIDAS Programmer's Manual</A>
      *
      * @param value  integer containing the packed data
      * @return  double representation of value
@@ -94,8 +92,6 @@ public final class McIDASUtil
      * Converts a double latitude/longitude or time (hours) to a 
      * packed integer (SIGN DDD/HH MM SS). Java replacements of McIDAS 
      * <code>ilalo</code> and <code>m0itime</code> functions.
-     * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
-     *      McIDAS Programmer's Manual</A>
      *
      * @param value  double value of lat/lon or time
      * @return  packed integer representation of value
@@ -111,8 +107,6 @@ public final class McIDASUtil
     /**
      * Calculate difference in minutes between two dates/times.  Java
      * version of timdif.for
-     * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
-     *      McIDAS Programmer's Manual</A>
      *
      * @param     yrday1   Year/day of first time (yyddd or yyyyddd)
      * @param     hms1     Hours/minutes/seconds of first time (hhmmss).
@@ -132,10 +126,8 @@ public final class McIDASUtil
 
     /**
      * Convert day (yyddd or yyyyddd) and time (hhmmss) to seconds since
-     * the epoch (January 1, 1970, 00:00GMT).  Java version of mcdaytimetosecs
+     * the epoch (January 1, 1970, 00:00GMT).  Java version of 'mcdaytimetosecs'
      * except it returns a long instead of an int.
-     * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
-     *      McIDAS Programmer's Manual</A>
      *
      * @param    yearday    year/day in either yyddd or yyyyddd format.  
      *                      Only works for years > 1900.
@@ -171,7 +163,7 @@ public final class McIDASUtil
     }
 
     /**
-     * flip the bytes of an integer array
+     * Flip the bytes of an integer array.  Java version of 'm0swbyt4'.
      *
      * @param array[] array of integers to be flipped
      * @param first starting element of the array
@@ -191,7 +183,7 @@ public final class McIDASUtil
 
     /**
      * convert four consequtive bytes into a (signed) int. This
-     * is useful in dealing with McIDAS data files
+     * is useful in dealing with McIDAS data files.
      *
      * @param byte[] array of 4 bytes
      * @param off is the offset into the byte array
@@ -199,12 +191,46 @@ public final class McIDASUtil
      */
     public static int bytesToInteger(byte[] b, int off) {
 
-     int k = ( b[off] << 24) +
+      int k = ( b[off] << 24) +
          ((b[off+1] << 16)&0xff0000) +
          ((b[off+2] << 8)&0xff00) +
          ((b[off+3] << 0)&0xff);
 
-     return k;
-  }
+       return k;
+    }
+
+    /**
+     * convert signed int to a String representation.  This is useful
+     * in dealing with McIDAS data files. Java version of 'clit'.
+     *
+     * @param value  - integer representation of a string
+     *
+     * @return  String representation of the int
+     */
+    public static String intBitsToString(int value)
+    {
+        byte[] bval = new byte[4];
+        bval[0] = (byte) ((value & 0xff000000) >>> 24);
+        bval[1] = (byte) ((value & 0x00ff0000) >>> 16);
+        bval[2] = (byte) ((value & 0x0000ff00) >>> 8);
+        bval[3] = (byte) ((value & 0x000000ff) >>> 0);
+        return new String(bval);
+    }
+
+    /**
+     * convert signed int array to a String representation.  This is useful
+     * in dealing with McIDAS data files.  Java version of 'movwc'. 
+     *
+     * @param values  - integer array representation of a string
+     *
+     * @return  String representation of the int array
+     */
+    public static String intBitsToString(int[] values)
+    {
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < values.length; i++)
+            sb.append(intBitsToString(values[i]));
+        return sb.toString();
+    }
 
 }
