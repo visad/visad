@@ -1,5 +1,5 @@
 //
-// ArrowManipulationRendererJ3D.java
+// TrackManipulationRendererJ3D.java
 //
 
 /*
@@ -37,16 +37,16 @@ import java.rmi.*;
 
 
 /**
-   ArrowManipulationRendererJ3D is the VisAD class for direct
-   manipulation rendering of wind barbs under Java3D
+   TrackManipulationRendererJ3D is the VisAD class for direct
+   manipulation rendering of storm tracks under Java3D
 */
-// public class ArrowManipulationRendererJ3D extends DirectManipulationRendererJ3D {
-public class ArrowManipulationRendererJ3D extends BarbManipulationRendererJ3D {
+// public class TrackManipulationRendererJ3D extends DirectManipulationRendererJ3D {
+public class TrackManipulationRendererJ3D extends BarbManipulationRendererJ3D {
 
   /** this DataRenderer supports direct manipulation for Tuple
-      representations of wind barbs; two of the Tuple's Real components
+      representations of storm tracks; two of the Tuple's Real components
       must be mapped to Flow1X and Flow1Y, or Flow2X and Flow2Y */
-  public ArrowManipulationRendererJ3D () {
+  public TrackManipulationRendererJ3D () {
     super();
   }
 
@@ -82,7 +82,7 @@ public class ArrowManipulationRendererJ3D extends BarbManipulationRendererJ3D {
 
   private static final float EPS = 0.00001f;
 
-  /** draw swell, f0 and f1 in meters */
+  /** draw track, f0 and f1 in meters */
   float[] makeVector(boolean south, float x, float y, float z,
                           float scale, float pt_size, float f0, float f1,
                           float[] vx, float[] vy, float[] vz, int[] numv,
@@ -96,15 +96,15 @@ public class ArrowManipulationRendererJ3D extends BarbManipulationRendererJ3D {
     mbarb[0] = x;
     mbarb[1] = y;
 
-    float swell_height = (float) Math.sqrt(f0 * f0 + f1 * f1);
-    if (swell_height < EPS) swell_height = EPS;
+    float track_height = (float) Math.sqrt(f0 * f0 + f1 * f1);
+    if (track_height < EPS) track_height = EPS;
 
     int lenv = vx.length;
     int nv = numv[0];
 
     // normalize direction
-    x0 = -f0 / swell_height;
-    y0 = -f1 / swell_height;
+    x0 = -f0 / track_height;
+    y0 = -f1 / track_height;
 
     float start_arrow = 0.9f * sscale;
     float end_arrow = 1.9f * sscale;
@@ -114,7 +114,7 @@ public class ArrowManipulationRendererJ3D extends BarbManipulationRendererJ3D {
     x2 = (x + x0 * end_arrow);
     y2 = (y + y0 * end_arrow);
 
-    float real_end = swell_height * sscale;
+    float real_end = track_height * sscale;
     x5 = (x + x0 * real_end);
     y5 = (y + y0 * real_end);
 
@@ -163,93 +163,75 @@ public class ArrowManipulationRendererJ3D extends BarbManipulationRendererJ3D {
   }
 
 
-  static final int N = 5;
-
-  /** test ArrowManipulationRendererJ3D */
+  /** test TrackManipulationRendererJ3D */
   public static void main(String args[])
          throws VisADException, RemoteException {
-    // construct RealTypes for swell record components
+    // construct RealTypes for track record components
     RealType lat = RealType.Latitude;
     RealType lon = RealType.Longitude;
     RealType red = new RealType("red");
     RealType green = new RealType("green");
-    RealType swell_degree = new RealType("swell_degree",
+    RealType track_degree = new RealType("track_degree",
                           CommonUnit.degree, null);
-    RealType swell_height = new RealType("swell_height",
+    RealType track_height = new RealType("track_height",
                           CommonUnit.meter, null);
 
     // construct Java3D display and mappings that govern
-    // how swell records are displayed
+    // how track records are displayed
     DisplayImpl display =
       new DisplayImplJ3D("display1", new TwoDDisplayRendererJ3D());
     ScalarMap lonmap = new ScalarMap(lon, Display.XAxis);
     display.addMap(lonmap);
+    lonmap.setRange(-10.0, 10.0);
     ScalarMap latmap = new ScalarMap(lat, Display.YAxis);
     display.addMap(latmap);
-    ScalarMap swella_map = new ScalarMap(swell_degree, Display.Flow1Azimuth);
-    display.addMap(swella_map);
-    swella_map.setRange(0.0, 360.0); // do this for swell rendering
-    ScalarMap swellh_map = new ScalarMap(swell_height, Display.Flow1Radial);
-    display.addMap(swellh_map);
-    swellh_map.setRange(0.0, 1.0); // do this for swell rendering
-    FlowControl flow_control = (FlowControl) swellh_map.getControl();
+    latmap.setRange(-50.0, -30.0);
+    ScalarMap tracka_map = new ScalarMap(track_degree, Display.Flow1Azimuth);
+    display.addMap(tracka_map);
+    tracka_map.setRange(0.0, 360.0); // do this for track rendering
+    ScalarMap trackh_map = new ScalarMap(track_height, Display.Flow1Radial);
+    display.addMap(trackh_map);
+    trackh_map.setRange(0.0, 1.0); // do this for track rendering
+    FlowControl flow_control = (FlowControl) trackh_map.getControl();
     flow_control.setFlowScale(0.15f); // this controls size of barbs
     display.addMap(new ScalarMap(red, Display.Red));
     display.addMap(new ScalarMap(green, Display.Green));
     display.addMap(new ConstantMap(1.0, Display.Blue));
 
-    DataReferenceImpl[] refs = new DataReferenceImpl[N * N];
-    int k = 0;
-    // create an array of N by N swells
-    for (int i=0; i<N; i++) {
-      for (int j=0; j<N; j++) {
-        double u = 2.0 * i / (N - 1.0) - 1.0;
-        double v = 2.0 * j / (N - 1.0) - 1.0;
+    double u = 0.0;
+    double v = 0.0;
 
-        if (u == 0.0 && v == 0.0) {
-          u = 0.00001f;
-          v = 0.00001f;
-        }
 
-        double fx = 3.0 * u;
-        double fy = 3.0 * v;
-        double fa = Data.RADIANS_TO_DEGREES * Math.atan2(-fx, -fy);
-        double fh = Math.sqrt(fx * fx + fy * fy);
+    double fx = -3.0;
+    double fy = -3.0;
+    double fa = Data.RADIANS_TO_DEGREES * Math.atan2(-fx, -fy);
+    double fh = Math.sqrt(fx * fx + fy * fy);
 
-        // each swell record is a RealTuple (lon, lat,
-        //   swell_degree, swell_height, red, green)
-        // set colors by swell components, just for grins
-        RealTuple tuple = new RealTuple(new Real[]
-          {new Real(lon, 10.0 * u), new Real(lat, 10.0 * v - 40.0),
-           new Real(swell_degree, fa), new Real(swell_height, fh),
-           new Real(red, u), new Real(green, v)});
+    // track record is a RealTuple (lon, lat,
+    // track_degree, track_height, red, green)
+    // set colors by track components, just for grins
+    RealTuple tuple = new RealTuple(new Real[]
+      {new Real(lon, 10.0 * u), new Real(lat, 10.0 * v - 40.0),
+       new Real(track_degree, fa), new Real(track_height, fh),
+       new Real(red, u), new Real(green, v)});
 
-        // construct reference for swell record
-        refs[k] = new DataReferenceImpl("ref_" + k);
-        refs[k].setData(tuple);
+    // construct reference for track record
+    DataReferenceImpl ref = new DataReferenceImpl("ref");
+    ref.setData(tuple);
 
-        // link swell record to display via ArrowManipulationRendererJ3D
-        // so user can change barb by dragging it
-        // drag with right mouse button and shift to change direction
-        // drag with right mouse button and no shift to change speed
-        display.addReferences(new ArrowManipulationRendererJ3D(), refs[k]);
+    // link track record to display via TrackManipulationRendererJ3D
+    // so user can change barb by dragging it
+    // drag with right mouse button and shift to change direction
+    // drag with right mouse button and no shift to change speed
+    display.addReferences(new TrackManipulationRendererJ3D(), ref);
 
-        // link swell record to a CellImpl that will listen for changes
-        // and print them
-        ArrowGetterJ3D cell = new ArrowGetterJ3D(flow_control, refs[k]);
-        cell.addReference(refs[k]);
-
-        k++;
-      }
-    }
-
-    // instead of linking the wind record "DataReferenceImpl refs" to
-    // the ArrowGetterJ3Ds, you can have some user interface event (e.g.,
-    // the user clicks on "DONE") trigger code that does a getData() on
-    // all the refs and stores the records in a file.
+    // link track record to a CellImpl that will listen for changes
+    // and print them
+    TrackGetterJ3D cell = new TrackGetterJ3D(flow_control, ref);
+    cell.addReference(ref);
 
     // create JFrame (i.e., a window) for display and slider
-    JFrame frame = new JFrame("test ArrowManipulationRendererJ3D");
+    JFrame frame = new JFrame("test TrackManipulationRendererJ3D");
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
@@ -270,14 +252,14 @@ public class ArrowManipulationRendererJ3D extends BarbManipulationRendererJ3D {
   }
 }
 
-class ArrowGetterJ3D extends CellImpl {
+class TrackGetterJ3D extends CellImpl {
   DataReferenceImpl ref;
 
   float scale = 0.15f;
   int count = 20;
   FlowControl flow_control;
 
-  public ArrowGetterJ3D(FlowControl f, DataReferenceImpl r) {
+  public TrackGetterJ3D(FlowControl f, DataReferenceImpl r) {
     ref = r;
     flow_control = f;
   }
@@ -288,7 +270,7 @@ class ArrowGetterJ3D extends CellImpl {
     float lat = (float) ((Real) tuple.getComponent(1)).getValue();
     float dir = (float) ((Real) tuple.getComponent(2)).getValue();
     float height = (float) ((Real) tuple.getComponent(3)).getValue();
-    System.out.println("swell = (" + dir + ", " + height + ") at (" +
+    System.out.println("track = (" + dir + ", " + height + ") at (" +
                        + lat + ", " + lon +")");
   }
 
