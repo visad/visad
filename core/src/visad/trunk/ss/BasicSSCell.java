@@ -1715,7 +1715,7 @@ public class BasicSSCell extends JPanel
         if (data == null) {
           if (DEBUG) warn("data #" + i + " is null; cannot analyze MathType");
         }
-        else {
+        else if (Possible3D) {
           MathType type = data.getType();
           try {
             ok = ImageRendererJ3D.isRendererUsable(type, maps);
