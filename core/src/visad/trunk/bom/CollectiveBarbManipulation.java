@@ -376,18 +376,18 @@ public class CollectiveBarbManipulation extends Object
       }
     }
  
-    if (display1 != null) {
-      if (inner_time < 0.0 ||
-          outer_time < inner_time) {
-        throw new CollectiveBarbException("outer_time must be " +
-                                     "greater than inner_time");
-      }
-      if (inner_distance < 0.0 ||
-          outer_distance < inner_distance) {
-        throw new CollectiveBarbException("outer_distance must be " +
-                                     "greater than distance_time");
-      }
+    if (inner_time < 0.0 ||
+        outer_time < inner_time) {
+      throw new CollectiveBarbException("outer_time must be " +
+                                   "greater than inner_time");
+    }
+    if (inner_distance < 0.0 ||
+        outer_distance < inner_distance) {
+      throw new CollectiveBarbException("outer_distance must be " +
+                                   "greater than distance_time");
+    }
 
+    if (display1 != null) {
       control = (AnimationControl) display1.getControl(AnimationControl.class);
       if (control == null) {
         throw new CollectiveBarbException("display must include " +
@@ -426,6 +426,30 @@ public class CollectiveBarbManipulation extends Object
     if (display2 != null) {
       setStation(sta);
     }
+  }
+
+  /** set values that govern collective barb adjustment;
+     abs indicates absolute or relative value adjustment
+     id and od are inner and outer distances in meters
+     it and ot are inner and outer times in seconds
+     influence is 1.0 inside inner, 0.0 outside outer and
+     linear between distance and time influences multiply */
+  public void setCollectiveParameters(boolean abs, float id, float od,
+                                      float it, float ot)
+         throws VisADException, RemoteException {
+    absolute = abs;
+    if (it < 0.0 || ot < it) {
+      throw new CollectiveBarbException("outer_time must be " +
+                                   "greater than inner_time");
+    }
+    if (id < 0.0 || od < id) {
+      throw new CollectiveBarbException("outer_distance must be " +
+                                   "greater than distance_time");
+    }
+    inner_distance = id;
+    outer_distance = od;
+    inner_time = it;
+    outer_time = ot;
   }
 
   /** called by the application to select which station is selected
