@@ -399,6 +399,8 @@ public class AxisScale implements java.io.Serializable
     double range = Math.abs(dataRange[1] - dataRange[0]);
     double min = Math.min(dataRange[0], dataRange[1]);
     double max = Math.max(dataRange[0], dataRange[1]);
+    //System.out.println(
+    //  "range = " + range + " min = " + min + " max = " + max);
 
     // compute tick mark values
     double tens = 1.0;
@@ -422,6 +424,7 @@ public class AxisScale implements java.io.Serializable
       majorTickSpacing = tens;
     }
     // now tens = interval between major tick marks (majorTickSpacing)
+    //System.out.println("computed ticks " + majorTickSpacing);
   
     /* remove DRM 21-Feb-2001
     long bot = (long) Math.ceil(min / majorTickSpacing);
@@ -455,7 +458,6 @@ public class AxisScale implements java.io.Serializable
         tickup = new double[] {-up[0], -up[1], up[2]};
       }
     }
-    // initialize some stuff
     // initialize some stuff
     int k = 0;
     for (int j = 0; j< nticks; j++) //Change DRM 21-Feb-2001
@@ -1081,17 +1083,15 @@ public class AxisScale implements java.io.Serializable
   {
     double[] vals = new double[2];
     double start = (low - base) / interval;
-    double clow = 
-      //base + interval * ((int) (start + (start >= 0 ? 0.5 : -0.5)) - 1);
-      base + interval * ((int) Math.round(start)); // DRM 29-Mar-2001
+    double clow =  // DRM 24-May-2001
+      base + interval * ((long) (start + (start >= 0 ? 0.5 : -0.5)) - 1);
     while (clow<low) {
       clow += interval;
     }
 
     start = (high - base) / interval;
-    double chi = 
-      //base + interval * ((int) (start + (start >= 0 ? 0.5 : -0.5)) + 1);
-      base + interval * ((int) Math.round(start)); // DRM 29-Mar-2001
+    double chi =  // DRM 24-MAY-2001
+      base + interval * ((long) (start + (start >= 0 ? 0.5 : -0.5)) + 1);
     while (chi>high) {
       chi -= interval;
     }
@@ -1109,23 +1109,6 @@ public class AxisScale implements java.io.Serializable
     double[] vals = computeTickRange(high, low, base, interval);
     double clow = vals[0];
     double chi = vals[1];
-    /*
-    double start = (low - base) / interval;
-    double clow = 
-      //base + interval * ((int) (start + (start >= 0 ? 0.5 : -0.5)) - 1);
-      base + interval * ((int) Math.round(start)); // DRM 29-Mar-2001
-    while (clow<low) {
-      clow += interval;
-    }
-
-    start = (high - base) / interval;
-    double chi = 
-      //base + interval * ((int) (start + (start >= 0 ? 0.5 : -0.5)) + 1);
-      base + interval * ((int) Math.round(start)); // DRM 29-Mar-2001
-    while (chi>high) {
-      chi -= interval;
-    }
-    */
 
     // how many contour lines are needed.
     double tmp1 = (chi-clow) / interval;
@@ -1150,14 +1133,6 @@ public class AxisScale implements java.io.Serializable
   private String createLabelString(double value)
   {
     String label = PlotText.shortString(value);
-    //try {
-      if (RealType.Time.equals(scalarMap.getScalar())) {
-        RealType rtype = (RealType) scalarMap.getScalar();
-        label = new Real(rtype, value).toValueString();
-      }
-    //} 
-    //catch (VisADException ve) {;}
-    //catch (RemoteException re) {;}
     return label;
   }
 }
