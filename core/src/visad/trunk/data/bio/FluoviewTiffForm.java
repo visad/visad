@@ -85,10 +85,25 @@ public class FluoviewTiffForm extends Form
 
   // -- FormFileInformer methods --
 
-/** Checks if the given string is a valid filename for a Fluoview .tif file.*/
+  /** Checks if the given string is a valid filename for a Fluoview file. */
   public boolean isThisType(String name) {
-    return (name.toLowerCase().endsWith(".tif")
-            || name.toLowerCase().endsWith(".tiff")); // 1 or 2 fs
+    // 1 or 2 fs
+    if (!(name.toLowerCase().endsWith(".tif")
+       || name.toLowerCase().endsWith(".tiff"))) { return false; }
+    long len = new File(name).length();
+    int num = len <16384 ? (int) len : 16384;
+    byte[] buf = new byte[num];
+    try {
+      FileInputStream fin = new FileInputStream(name);
+      int r = 0;
+      while(r < num) {
+        r += fin.read(buf, r, num-r);
+      }
+      fin.close();
+      return isThisType(buf);
+    } catch (IOException e) {
+      return false;
+    }
   }
 
   /**
