@@ -1,5 +1,5 @@
                    VisAD Spread Sheet User Interface README file
-                                 16 October 1998
+                                 22 January 1999
  
                                 Table of Contents
 
@@ -34,8 +34,8 @@
 1. The visad.ss Package
 
 1.1 Description
-    This README file explains what the visad.ss package is, what it does (and
-what it will do), and how to use it.
+    This README file explains what the visad.ss package is, what it does,
+and how to use it.
     The visad.ss package is a "generic" spreadsheet user interface for VisAD.
 It is intended to be poweful and flexible, and it can be used to visualize
 many types of data, without any programming.  It supports many features of a
@@ -139,7 +139,7 @@ Import data
     Brings up a dialog box that allows the user to select a file for the
 Spread Sheet to import to the current cell.  Currently, VisAD supports the
 following file types:
-       GIF, JPEG, netCDF, HDF-EOS, FITS, Vis5D, and serialized data.
+       GIF, JPEG, netCDF, HDF-EOS, FITS, Vis5D, McIDAS, and serialized data.
 -------------------------------------------------------------------------------
 Note: You must have the HDF-EOS and Vis5D file adapter native C code compiled
       in order to import data sets of those types.  See the Spread Sheet web
@@ -388,9 +388,7 @@ with a detailed description of how to recreate the problem.
       3) Direct manipulation support
       4) Distributed Cells, Data, etc.
       5) Remote Spread Sheet cloning with collaboration
-      6) Formula enhancements, including composition of multiple Data objects
-         (such as creating an animation from multiple spreadsheet cells), and
-         dynamic linkage of Java code into formulas
+      6) Dynamic linkage of Java code into formulas
       7) Misc. user interface enhancements
       8) And of course, bug fixes
 
