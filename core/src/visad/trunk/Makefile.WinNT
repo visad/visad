@@ -118,8 +118,8 @@ visad\data\visad\*.java \
 visad\data\hdf5\*.java \
 visad\data\hdf5\COPYING \
 visad\data\hdf5\hdf5objects\*.java \
-visad\$(NCSA)\*.java
-visad\$(NCSA)\exceptions\*.java
+visad\$(NCSA)\*.java \
+visad\$(NCSA)\exceptions\*.java \
 visad\jmet\*.java
 
 JAR_FILES2 = \
