@@ -298,8 +298,28 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     return new ShadowImageFunctionTypeJ3D(type, link, parent);
   }
 
+  /**
+   * Toggle the re-using of frames when a new image or set of images
+   * is set in the datareference.<P>
+   * <B>WARNING</B> - when reUseFrames is true during doTransform()
+   * ImageRendererJ3D makes these assumptions:
+   * <OL>
+   * <LI>That the images in a new time sequence are identical to
+   *     any images at the same time in a previous sequence.
+   * <LI>That the image sequence defines the entire animation
+   *     sampling.<P>
+   * </OL>
+   */
   public void setReUseFrames(boolean reuse) {
     reUseFrames = reuse;
+  }
+
+  /**
+   * Turn on the reusing of frames
+   * @deprecated - use setReUseFrames(boolean reuse)
+   */
+  public void setReUseFrames() {
+    setReUseFrames(true);
   }
 
   public boolean getReUseFrames() {
