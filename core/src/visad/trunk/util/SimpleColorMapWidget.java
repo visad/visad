@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: SimpleColorMapWidget.java,v 1.29 1999-11-16 22:49:43 dglo Exp $
+@(#) $Id: SimpleColorMapWidget.java,v 1.30 1999-11-16 22:54:36 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -51,7 +51,7 @@ import visad.VisADException;
  * RGB/RGBA color maps.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.29 $, $Date: 1999-11-16 22:49:43 $
+ * @version $Revision: 1.30 $, $Date: 1999-11-16 22:54:36 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledColorWidget
@@ -531,34 +531,54 @@ public class LabeledColorWidget
   }
 
   public static void main(String[] args)
-    throws RemoteException, VisADException
   {
-    visad.RealType vis = new visad.RealType("vis", null, null);
-    ScalarMap map = new ScalarMap(vis, visad.Display.RGBA);
+    try {
+      visad.RealType vis = new visad.RealType("vis", null, null);
+      ScalarMap map = new ScalarMap(vis, visad.Display.RGBA);
+      map.setRange(0.0f, 1.0f);
 
-    visad.DisplayImpl dpy = new visad.java2d.DisplayImplJ2D("2d");
-    dpy.addMap(map);
+      visad.DisplayImpl dpy = new visad.java2d.DisplayImplJ2D("2d");
+      dpy.addMap(map);
 
-    javax.swing.JFrame f;
+      javax.swing.JFrame f;
 
-    f = new javax.swing.JFrame("VisAD LabeledColorWidget 0");
-    f.addWindowListener(new java.awt.event.WindowAdapter() {
-        public void windowClosing(java.awt.event.WindowEvent e) {
-          System.exit(0);
-        }
-      });
-    f.getContentPane().add(new LabeledColorWidget(map));
-    f.pack();
-    f.setVisible(true);
+      f = new javax.swing.JFrame("0");
+      f.addWindowListener(new java.awt.event.WindowAdapter() {
+          public void windowClosing(java.awt.event.WindowEvent we) {
+            System.exit(0);
+          }
+        });
+      f.getContentPane().add(new LabeledColorWidget(map));
+      f.pack();
+      f.setVisible(true);
 
-    f = new javax.swing.JFrame("VisAD LabeledColorWidget 1");
-    f.addWindowListener(new java.awt.event.WindowAdapter() {
-        public void windowClosing(java.awt.event.WindowEvent e) {
-          System.exit(0);
-        }
-      });
-    f.getContentPane().add(new LabeledColorWidget(map));
-    f.pack();
-    f.setVisible(true);
+      f = new javax.swing.JFrame("1");
+      f.addWindowListener(new java.awt.event.WindowAdapter() {
+          public void windowClosing(java.awt.event.WindowEvent we) {
+            System.exit(0);
+          }
+        });
+      f.getContentPane().add(new LabeledColorWidget(map, null));
+      f.pack();
+      f.setVisible(true);
+
+      f = new javax.swing.JFrame("!Updated");
+      f.addWindowListener(new java.awt.event.WindowAdapter() {
+          public void windowClosing(java.awt.event.WindowEvent we) {
+            System.exit(0);
+          }
+        });
+      f.getContentPane().add(new LabeledColorWidget(map, null, false));
+      f.pack();
+      f.setVisible(true);
+
+      try { Thread.sleep(5000); } catch (InterruptedException ie) { }
+
+      map.setRange(-10.0f, 10.0f);
+    } catch (RemoteException re) {
+      re.printStackTrace();
+    } catch (VisADException ve) {
+      ve.printStackTrace();
+    }
   }
 }
