@@ -3553,7 +3553,7 @@ try {
                     }
                   }
                 }
-                if (array_s[2] != null) {
+                if (array_s.length > 2 && array_s[2] != null) {
                   for (int k=0; k<(array_s[2].length)/2; k++) { //-labels, label anchor points
                     try {
                       array_s[2][k*2] = array_s[2][k*2].adjustLongitude(renderer);
@@ -3566,7 +3566,7 @@ try {
                     }
                   }
                 }
-                if (array_s[3] != null) {
+                if (array_s.length > 3 && array_s[3] != null) {
                   for (int k=0; k<(array_s[3].length)/4; k++) { //- left/right expanding segments
                     try {
                       array_s[3][k*4] = array_s[3][k*4].adjustLongitude(renderer);
