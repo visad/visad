@@ -316,6 +316,8 @@ public class AddeURLConnection extends URLConnection
     startIdx = uCmd.indexOf("user=");
     if (startIdx > 0) {
       endIdx = uCmd.indexOf('&', startIdx);
+      if (endIdx == -1)   // last on line
+         endIdx = uCmd.length() - 1;
       userStr = uCmd.substring(startIdx + 5, endIdx);
     } else {
       userStr = "XXXX";
@@ -339,6 +341,8 @@ public class AddeURLConnection extends URLConnection
     int proj;
     if (startIdx > 0) {
       endIdx = uCmd.indexOf('&', startIdx);
+      if (endIdx == -1)   // last on line
+         endIdx = uCmd.length() - 1;
       projStr = uCmd.substring(startIdx + 5, endIdx);
     } else {
       projStr = "0";
