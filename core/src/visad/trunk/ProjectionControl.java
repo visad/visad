@@ -33,6 +33,11 @@ import java.rmi.*;
    from 3-D to 2-D.<P>
 */
 public abstract class ProjectionControl extends Control {
+  /** matrix[] shouldn't be used by non-ProjectionControl classes */
+  protected double[] matrix = null;
+
+  public static final int MATRIX2D_LENGTH = 6;
+  public static final int MATRIX3D_LENGTH = 16;
 
   public ProjectionControl(DisplayImpl d) throws VisADException {
     super(d);
@@ -43,12 +48,23 @@ public abstract class ProjectionControl extends Control {
 
   /** get matrix (16 elements in Java3D case, 6 elements in
       Java2D case) that defines the graphics projection */
-  public abstract double[] getMatrix();
+  public double[] getMatrix() {
+    double[] c = new double[matrix.length];
+    System.arraycopy(matrix, 0, c, 0, matrix.length);
+    return c;
+  }
 
   /** set matrix (16 elements in Java3D case, 6 elements in
       Java2D case) that defines the graphics projection */
-  public abstract void setMatrix(double[] m)
-         throws VisADException, RemoteException;
+  public void setMatrix(double[] m)
+         throws VisADException, RemoteException {
+    if (m.length != matrix.length) {
+      throw new DisplayException("setMatrix: input length must be " +
+                                 matrix.length);
+    }
+    System.arraycopy(m, 0, matrix, 0, matrix.length);
+  }
+
 
   /** set aspect ratio; 3 elements for Java3D, 2 for Java2D */
   public abstract void setAspect(double[] aspect)
@@ -59,11 +75,12 @@ public abstract class ProjectionControl extends Control {
 
   public static double[] matrix2DTo3D(double[] matrix)
          throws VisADException {
-    if (matrix.length != 6) {
-      throw new DisplayException("matrix2DTo3D: input length must be 6");
+    if (matrix.length != MATRIX2D_LENGTH) {
+      throw new DisplayException("matrix2DTo3D: input length must be " +
+                                 MATRIX2D_LENGTH);
     }
-    double[] mat = new double[16];
-    for (int i=0; i<16; i++) mat[i] = 0.0;
+    double[] mat = new double[MATRIX3D_LENGTH];
+    for (int i=0; i<MATRIX3D_LENGTH; i++) mat[i] = 0.0;
     mat[0] = SCALE2D * matrix[0];
     mat[1] = SCALE2D * matrix[2];
     mat[3] = matrix[4];
@@ -77,10 +94,11 @@ public abstract class ProjectionControl extends Control {
 
   public static double[] matrix3DTo2D(double[] matrix) 
          throws VisADException {
-    if (matrix.length != 16) {
-      throw new DisplayException("matrix3DTo2D: input length must be 6");
+    if (matrix.length != MATRIX3D_LENGTH) {
+      throw new DisplayException("matrix3DTo2D: input length must be " +
+                                 MATRIX3D_LENGTH);
     }
-    double[] mat = new double[6];
+    double[] mat = new double[MATRIX2D_LENGTH];
     mat[0] = INVSCALE2D * matrix[0];
     mat[1] = INVSCALE2D * matrix[4];
     mat[2] = INVSCALE2D * matrix[1];
@@ -90,8 +108,19 @@ public abstract class ProjectionControl extends Control {
     return mat;
   }
 
-  public void clearSwitches(DataRenderer re) {
+  public static double[] matrixDConvert(double[] matrix) 
+         throws VisADException {
+    if (matrix.length == MATRIX3D_LENGTH) {
+      return matrix3DTo2D(matrix);
+    }
+    if (matrix.length == MATRIX2D_LENGTH) {
+      return matrix2DTo3D(matrix);
+    }
+    throw new DisplayException("matrixDConvert: input length must be " +
+                               MATRIX3D_LENGTH + " or " + MATRIX2D_LENGTH);
   }
 
+  public void clearSwitches(DataRenderer re) {
+  }
 }
 

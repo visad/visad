@@ -40,7 +40,6 @@ import java.rmi.*;
 public class ProjectionControlJ2D extends ProjectionControl {
 
   private transient AffineTransform Matrix;
-  private double[] matrix;
 
   private transient VisADCanvasJ2D canvas;
 
@@ -50,21 +49,15 @@ public class ProjectionControlJ2D extends ProjectionControl {
     Matrix = new AffineTransform();
 */
     Matrix = init();
-    matrix = new double[6];
+    matrix = new double[MATRIX2D_LENGTH];
     Matrix.getMatrix(matrix);
     ((DisplayRendererJ2D) getDisplayRenderer()).setTransform2D(Matrix);
     canvas = null;
   }
  
-  public double[] getMatrix() {
-    double[] c = new double[6];
-    System.arraycopy(matrix, 0, c, 0, 6);
-    return c;
-  }
-
   public void setMatrix(double[] m)
          throws VisADException, RemoteException {
-    System.arraycopy(m, 0, matrix, 0, 6);
+    super.setMatrix(m);
     Matrix = new AffineTransform(matrix);
     DisplayRendererJ2D dr = (DisplayRendererJ2D) getDisplayRenderer();
     dr.setTransform2D(Matrix);
@@ -82,10 +75,10 @@ public class ProjectionControlJ2D extends ProjectionControl {
     }
     AffineTransform transform = new AffineTransform();
     transform.setToScale(aspect[0], aspect[1]);
-    double[] mult = new double[6];
+    double[] mult = new double[MATRIX2D_LENGTH];
     transform.getMatrix(mult);
     AffineTransform mat = init();
-    double[] m = new double[6];
+    double[] m = new double[MATRIX2D_LENGTH];
     mat.getMatrix(m);
     setMatrix(getDisplay().multiply_matrix(mult, m));
   }

@@ -48,7 +48,6 @@ public class ProjectionControlJ3D extends Control
 public class ProjectionControlJ3D extends ProjectionControl {
 
   private transient Transform3D Matrix;
-  private double[] matrix;
 
   // Vector of Switch nodes for volume rendering
   transient Vector switches = new Vector();
@@ -58,25 +57,19 @@ public class ProjectionControlJ3D extends ProjectionControl {
     super(d);
     // WLH 8 April 99
     Matrix = new Transform3D();
-    matrix = new double[16];
+    matrix = new double[MATRIX3D_LENGTH];
     Matrix.get(matrix);
 /* WLH 8 April 99
     Matrix = init();
-    matrix = new double[16];
+    matrix = new double[MATRIX3D_LENGTH];
     Matrix.get(matrix);
     ((DisplayRendererJ3D) getDisplayRenderer()).setTransform3D(Matrix);
 */
   }
  
-  public double[] getMatrix() {
-    double[] c = new double[16];
-    System.arraycopy(matrix, 0, c, 0, 16);
-    return c;
-  }
-
   public void setMatrix(double[] m)
          throws VisADException, RemoteException {
-    System.arraycopy(m, 0, matrix, 0, 16);
+    super.setMatrix(m);
     Matrix = new Transform3D(matrix);
     ((DisplayRendererJ3D) getDisplayRenderer()).setTransform3D(Matrix);
     if (!switches.isEmpty()) selectSwitches();
@@ -86,14 +79,14 @@ public class ProjectionControlJ3D extends ProjectionControl {
   public void setAspect(double[] aspect)
          throws VisADException, RemoteException {
     if (aspect == null || aspect.length != 3) {
-      throw new DisplayException("aspect array must be length = 2");
+      throw new DisplayException("aspect array must be length = 3");
     }
     Transform3D transform = new Transform3D();
     transform.setScale(new javax.vecmath.Vector3d(aspect[0], aspect[1], aspect[2]));
-    double[] mult = new double[16];
+    double[] mult = new double[MATRIX3D_LENGTH];
     transform.get(mult);
     Transform3D mat = init();
-    double[] m = new double[16];
+    double[] m = new double[MATRIX3D_LENGTH];
     mat.get(m);
     setMatrix(getDisplay().multiply_matrix(mult, m));
   }
