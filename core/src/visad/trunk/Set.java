@@ -320,7 +320,7 @@ public abstract class Set extends DataImpl {
   }
 
   /** merge 1D sets; used for default animation set */
-  Set merge1DSets(Set set) throws VisADException {
+  public Set merge1DSets(Set set) throws VisADException {
     if (DomainDimension != 1 || set.getDimension() != 1 ||
         equals(set)) return this;
     int length = getLength();
