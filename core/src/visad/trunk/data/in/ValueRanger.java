@@ -142,7 +142,7 @@ public class ValueRanger
      */
     public double getMax()
     {
-	return doubleUpper;;
+	return doubleUpper;
     }
 
     /**
