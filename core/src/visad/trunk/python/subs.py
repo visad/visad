@@ -78,9 +78,8 @@ Shapes(display)
   addShape(type, scale=.1, color=None, index=None)
     type is a string that names a pre-defined type of shape 
     ("cross", "triangle", "square", "solid_square", "solid_triangle")
-    or None if the shape=keyword is used.  This will add a shape for
-    the display.  If the shape= is given, it should be a 
-    VisADGeometryArray.  If 'index=' is given, it is assumed you
+    or a VisADGeometryArray.  This will add  the shape for
+    the display.  If 'index=' is given, it is assumed you
     are simply replacing that shape with a different one.
 
     Returns the shape index (see next method).
@@ -288,6 +287,38 @@ def makeLine(domainType, points):
   return Gridded2DSet(RealTupleType(domainType), points, len(points[0]))
 
 
+# make ConstantMaps for line style and width
+def makeLineStyleMap(style, width):
+
+  constmap = None
+  constyle = None
+  if style is not None:
+    from visad import GraphicsModeControl
+
+    if style == "dash":
+      constyle = ConstantMap(GraphicsModeControl.DASH_STYLE,Display.LineStyle)
+    elif style == "dot":
+      constyle = ConstantMap(GraphicsModeControl.DOT_STYLE,Display.LineStyle)
+    elif style == "dashdot":
+      constyle = ConstantMap(GraphicsModeControl.DASH_DOT_STYLE,Display.LineStyle)
+    else:
+      constyle = ConstantMap(GraphicsModeControl.SOLID_STYLE, Display.LineStyle)
+
+    constmap = constyle
+
+  if width is not None:
+    constwid = ConstantMap(width, Display.LineWidth)
+    if constyle is not None:
+      constmap = [constyle, constwid]
+    else:
+      constmap = constwid
+
+
+
+    
+  return constmap
+
+# make ConstantMap list for color
 def makeColorMap(color):
 
   # see if color should be handled
@@ -308,8 +339,8 @@ def makeColorMap(color):
     green=1.0
     blue=1.0
 
-  constmap = ( ConstantMap(red,Display.Red), ConstantMap(green,Display.Green),
-         ConstantMap(blue,Display.Blue) )
+  constmap = [ ConstantMap(red,Display.Red), ConstantMap(green,Display.Green),
+         ConstantMap(blue,Display.Blue) ] 
 
   return constmap
 
@@ -317,10 +348,13 @@ def makeColorMap(color):
 # drawLine(display, domainType, points[], color=Color, mathtype=domainType)
 # drawLine(name|display, points[], color=Color)
 # "Color" is java.awt.Color
-def drawLine(display, points, color=None, mathtype=None):
+def drawLine(display, points, color=None, mathtype=None, style=None, width=None):
 
   constmap = makeColorMap(color)
-
+  constyle = makeLineStyleMap(style, width)
+  if constyle is not None:
+    constmap.append(constyle)
+    
   # drawLine(display, domainType, points[])
   maps = None
   if mathtype is not None:
@@ -373,7 +407,8 @@ def makeMaps(*a):
   "shape","text","shapescale","linewidth","pointsize",
   "cylradius","cylazimuth","cylzaxis",
   "flow1elev","flow1azimuth","flow1radial",
-  "flow2elev","flow2azimuth","flow2radial")
+  "flow2elev","flow2azimuth","flow2radial","linestyle")
+
 # note this list is in the same order as Display.DisplayRealArray! 
 
   maps=[]
@@ -402,8 +437,12 @@ def showDisplay(display, width=300, height=300,
                 title="VisAD Display", bottom=None, top=None,
                 panel=None):
   myf = myFrame(display, width, height, title, bottom, top, panel)
+  return myf
 
 class myFrame:
+
+  def destroy(self, event):
+    self.desty(event)
 
   def desty(self, event):
     self.display.destroy()
@@ -454,6 +493,15 @@ def textShape(string, center=0, font="futural",
 
     return (PlotText.render_font(string, HersheyFont(font), 
                                           start, base, up, center))
+
+# local shadow methods for addShape and moveShape
+def addShape(type, scale=.1, color=None, index=None):
+  return (py_shapes.addShape(type, scale, color, index))
+
+
+def moveShape(index, coord):
+  py_shapes.moveShape(index, coord)
+
 
 # defines Shapes for a display
 # note that when a Display is created (makeDisplay) a new Shapes object
