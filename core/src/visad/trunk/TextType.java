@@ -46,7 +46,8 @@ public class TextType extends ScalarType {
 
   public boolean equals(Object type) {
     if (!(type instanceof TextType)) return false;
-    return (this == type);
+//    return (this == type);
+return getName().equals(((TextType )type).getName());
   }
 
   public boolean equalsExceptName(MathType type) {
