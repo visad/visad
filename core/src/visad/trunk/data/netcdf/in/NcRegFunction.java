@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcRegFunction.java,v 1.3 1998-04-03 20:35:19 visad Exp $
+ * $Id: NcRegFunction.java,v 1.4 1998-04-13 16:55:52 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -15,21 +15,6 @@ import visad.DataImpl;
 import visad.FieldImpl;
 import visad.FlatField;
 import visad.FunctionType;
-import visad.GriddedSet;
-import visad.IntegerNDSet;
-import visad.Linear1DSet;
-import visad.Linear2DSet;
-import visad.Linear3DSet;
-import visad.LinearNDSet;
-import visad.LinearSet;
-import visad.MathType;
-import visad.RealTupleType;
-import visad.RealType;
-import visad.Set;
-import visad.TextType;
-import visad.TupleType;
-import visad.UnimplementedException;
-import visad.Unit;
 import visad.VisADException;
 import visad.data.CacheStrategy;
 import visad.data.FileAccessor;
@@ -53,10 +38,8 @@ NcRegFunction
      *			domain and that constitude the range of the function.
      * @precondition	All variables have the same (ordered) set of dimensions.
      * @precondition	The variables aren't scalars.
-     * @exception UnimplementedException	Not yet!
      * @exception VisADException		Couldn't create necessary 
      *						VisAD object.
-     * @exception IOException			I/O error.
      */
     NcRegFunction(NcVar[] vars)
 	throws VisADException
