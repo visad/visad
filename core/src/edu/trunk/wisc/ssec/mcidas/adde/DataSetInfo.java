@@ -91,7 +91,7 @@ public class DataSetInfo
     private URLConnection urlc;           // URL connection
     private char[] data;                  // data returned from server
     private Hashtable descriptorTable;
-    private boolean debug = false;         // debug
+    private boolean debug = false;        // debug
     
     /**
      * creates a DataSetInfo object that allows reading
@@ -128,6 +128,7 @@ public class DataSetInfo
             throw new AddeURLException("Error opening connection: " + e);
         }
         int numBytes = ((AddeURLConnection) urlc).getInitialRecordSize();
+        if (debug) System.out.println("DataSetInfo: numBytes = " + numBytes);
         if (numBytes == 0)
         {
             status = -1;
@@ -138,7 +139,14 @@ public class DataSetInfo
             data = new char[numBytes];
             try
             {
-                inputStream.read(data, 0, numBytes);
+                int start = 0;
+                while (start < numBytes)
+                {
+                    int numRead = 
+                        inputStream.read(data, start, (numBytes - start));
+                    if (debug) System.out.println("bytes read = " + numRead);
+                    start += numRead;
+                }
             }
             catch (IOException e) 
             {
