@@ -98,8 +98,8 @@ public class ZeissForm extends Form
     dimensions = TiffTools.getTIFFDimensions(r);
     // System.out.println(dimensions[0] + " x " +
     //   dimensions[1] + " x " + dimensions[2]);
-    pixelSet = new Linear2DSet(domainTuple,
-      0, dimensions[0] - 1, dimensions[0], dimensions[1] - 1, 0, dimensions[1]);
+    pixelSet = new Linear2DSet(domainTuple, 0, dimensions[0] - 1,
+      dimensions[0], dimensions[1] - 1, 0, dimensions[1]);
     timeSet = new Integer1DSet(frame,  dimensions[2]);
     frameField = new FlatField(funcRowColPix, pixelSet);
     timeField = new FieldImpl(funcTimeRange, timeSet);
@@ -145,18 +145,26 @@ public class ZeissForm extends Form
     if (block[1] != 73) { return false; }
     if (block[2] != 42) { return false; } // denotes tiff
     if (block.length < 8) { return true; } // we have no way of verifying
-    int ifdlocation = batoi(new byte[] { block[4], block[5], block[6], block[7] });
+    int ifdlocation = batoi(new byte[] {
+      block[4], block[5], block[6], block[7]
+    });
     if (ifdlocation + 1 > block.length) {
-      return true; // we have no way of verifying this is a Zeiss file. It is at least a tiff.
+      // no way of verifying this is a Zeiss file; it is at least a tiff
+      return true;
     }
     else {
-      int ifdnumber = batoi(new byte[] { block[ifdlocation], block[ifdlocation + 1] });
+      int ifdnumber = batoi(new byte[] {
+        block[ifdlocation], block[ifdlocation + 1]
+      });
       for (int i = 0; i < ifdnumber; i++) {
         if (ifdlocation + 3 + (i * 12) > block.length) {
           return true;
         }
         else {
-          int ifdtag = batoi(new byte[] { block[ifdlocation + 2 + (i * 12)], block[ifdlocation + 3 + (i * 12)] });
+          int ifdtag = batoi(new byte[] {
+            block[ifdlocation + 2 + (i * 12)],
+            block[ifdlocation + 3 + (i * 12)]
+          });
           if (ifdtag == 33412) { // 33412 appears to be the Zeiss tag.
             return true; // absolutely a valid file
           }
@@ -329,7 +337,8 @@ public class ZeissForm extends Form
          TiffTools.getIFDArray(r, (Vector) ifdEntries.get(new Integer(258)));
       BitBuffer bb = new BitBuffer(new ByteArrayInputStream(imagedata));
 
-      float[][] flatsamples = new float[bitspersample.length][dimensions[0] * dimensions[1]];
+      float[][] flatsamples =
+        new float[bitspersample.length][dimensions[0] * dimensions[1]];
       if (TiffTools.getIFDValue(ifdEntries, 317) == 2) { // use differencing
         int currentval, currentbyte = 0;
         for (int c = 0; c < bitspersample.length; c++) {
@@ -356,7 +365,8 @@ public class ZeissForm extends Form
         for (int c = 0; c < bitspersample.length; c++) {
           for (int y = 0; y < dimensions[1]; y++) {
             for (int x = 0; x < dimensions[0]; x++) {
-              flatsamples[c][x + y*dimensions[0]] = bb.getBits(bitspersample[c]);
+              flatsamples[c][x + y*dimensions[0]] =
+                bb.getBits(bitspersample[c]);
             }
           }
         }
@@ -461,7 +471,23 @@ public class ZeissForm extends Form
 
   }
 
+
+  // -- Main method --
+
   public static void main(String[] args) throws Exception {
+    ZeissForm reader = new ZeissForm();
+    System.out.println("Opening " + args[0] + "...");
+    Data d = reader.open(args[0]);
+    System.out.println(d.getType());
+    System.out.println();
+    System.out.println("Reading metadata pairs...");
+    Hashtable metadata = reader.getMetadata(args[0]);
+    Enumeration e = metadata.keys();
+    while (e.hasMoreElements()) {
+      String key = (String) e.nextElement();
+      System.out.println(key + " = " + metadata.get(key));
+    }
+    /*
     RandomAccessFile raf = new RandomAccessFile(args[0], "r");
     int blah[] = TiffTools.getTIFFDimensions(raf);
     for (int i = 0; i < blah.length; i++) {
@@ -469,6 +495,7 @@ public class ZeissForm extends Form
     }
     //System.out.println("photo interp: " +
     //  TiffTools.getPhotometricInterpretation(raf));
+    */
   }
 
 }

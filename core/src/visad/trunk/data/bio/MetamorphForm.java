@@ -234,18 +234,17 @@ public class MetamorphForm extends Form
   // -- FormBlockReader API methods --
 
   /**
-   * Opens the FluoviewTiff file with the file name specified
+   * Opens the Metamorph file with the file name specified
    * by id, retrieving only the frame number given.
    * @return a DataImpl containing the specified frame
    */
   public DataImpl open(String id, int block_number)
     throws BadFormException, IOException, VisADException
   {
-    int[] bitsperpixel = new int[3];
-
     if (id != currentId) {
       initFile(id);
     }
+    int[] bitsperpixel = new int[3];
     int photointerp = TiffTools.getPhotometricInterpretation(r);
     Vector v = (Vector) ifdHash.get(new Integer(BITS_PER_SAMPLE_FIELD)); // bpp
     if (v == null) {
