@@ -499,7 +499,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       }
       catch (java.rmi.ConnectException exc) {
         // remote slave client has died; remove it from list
-        Slaves.remove(i);
+        Slaves.remove(i--);
       }
       catch (RemoteException e) { }
     }
