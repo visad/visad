@@ -34,20 +34,23 @@ import com.sun.java.swing.*;
 import com.sun.java.swing.border.*;
 import com.sun.java.swing.event.*;
 
-// I/O packages
+// I/O package
 import java.io.*;
 
-// RMI classes
+// Net class
+import java.net.URL;
+
+// RMI class
 import java.rmi.RemoteException;
 
-// Utility classes
+// Utility class
 import java.util.Vector;
 
 // VisAD packages
 import visad.*;
 import visad.java3d.*;
 
-// VisAD classes
+// VisAD class
 import visad.data.BadFormException;
 
 /** SpreadSheet is a user interface for VisAD that supports
@@ -261,6 +264,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     window.add(WinFormula);
 
     // set up toolbar
+    URL url;
     JToolBar toolbar = new JToolBar();
     toolbar.setBackground(Color.lightGray);
     toolbar.setBorder(new EtchedBorder());
@@ -268,17 +272,21 @@ public class SpreadSheet extends JFrame implements ActionListener,
     pane.add(toolbar);
 
     // file menu toolbar icons
-    ImageIcon toolFileOpen = new ImageIcon("open.gif");
+    url = SpreadSheet.class.getResource("open.gif");
+    ImageIcon toolFileOpen = new ImageIcon(url);
     if (toolFileOpen != null) {
       JButton b = new JButton(toolFileOpen);
+      b.setAlignmentY(JButton.CENTER_ALIGNMENT);
       b.setToolTipText("Import data");
       b.addActionListener(this);
       b.setActionCommand("fileOpen");
       toolbar.add(b);
     }
-    ImageIcon toolFileSave = new ImageIcon("save.gif");
+    url = SpreadSheet.class.getResource("save.gif");
+    ImageIcon toolFileSave = new ImageIcon(url);
     if (toolFileSave != null) {
       JButton b = new JButton(toolFileSave);
+      b.setAlignmentY(JButton.CENTER_ALIGNMENT);
       b.setToolTipText("Export data to netCDF");
       b.addActionListener(this);
       b.setActionCommand("fileSave");
@@ -287,25 +295,31 @@ public class SpreadSheet extends JFrame implements ActionListener,
     toolbar.addSeparator();
 
     // edit menu toolbar icons
-    ImageIcon toolEditCut = new ImageIcon("cut.gif");
+    url = SpreadSheet.class.getResource("cut.gif");
+    ImageIcon toolEditCut = new ImageIcon(url);
     if (toolEditCut != null) {
       JButton b = new JButton(toolEditCut);
+      b.setAlignmentY(JButton.CENTER_ALIGNMENT);
       b.setToolTipText("Cut");
       b.addActionListener(this);
       b.setActionCommand("editCut");
       toolbar.add(b);
     }
-    ImageIcon toolEditCopy = new ImageIcon("copy.gif");
+    url = SpreadSheet.class.getResource("copy.gif");
+    ImageIcon toolEditCopy = new ImageIcon(url);
     if (toolEditCopy != null) {
       JButton b = new JButton(toolEditCopy);
+      b.setAlignmentY(JButton.CENTER_ALIGNMENT);
       b.setToolTipText("Copy");
       b.addActionListener(this);
       b.setActionCommand("editCopy");
       toolbar.add(b);
     }
-    ImageIcon toolEditPaste = new ImageIcon("paste.gif");
+    url = SpreadSheet.class.getResource("paste.gif");
+    ImageIcon toolEditPaste = new ImageIcon(url);
     if (toolEditPaste != null) {
       ToolPaste = new JButton(toolEditPaste);
+      ToolPaste.setAlignmentY(JButton.CENTER_ALIGNMENT);
       ToolPaste.setToolTipText("Paste");
       ToolPaste.addActionListener(this);
       ToolPaste.setActionCommand("editPaste");
@@ -315,12 +329,26 @@ public class SpreadSheet extends JFrame implements ActionListener,
     toolbar.addSeparator();
 
     // mappings menu toolbar icons
-    ImageIcon toolMappingsEdit = new ImageIcon("mappings.gif");
+    url = SpreadSheet.class.getResource("mappings.gif");
+    ImageIcon toolMappingsEdit = new ImageIcon(url);
     if (toolMappingsEdit != null) {
       JButton b = new JButton(toolMappingsEdit);
+      b.setAlignmentY(JButton.CENTER_ALIGNMENT);
       b.setToolTipText("Edit mappings");
       b.addActionListener(this);
       b.setActionCommand("dispEdit");
+      toolbar.add(b);
+    }
+
+    // window menu toolbar icons
+    url = SpreadSheet.class.getResource("show.gif");
+    ImageIcon winShowControls = new ImageIcon(url);
+    if (winShowControls != null) {
+      JButton b = new JButton(winShowControls);
+      b.setAlignmentY(JButton.CENTER_ALIGNMENT);
+      b.setToolTipText("Show VisAD controls");
+      b.addActionListener(this);
+      b.setActionCommand("winWidget");
       toolbar.add(b);
     }
     toolbar.add(Box.createHorizontalGlue());
@@ -333,7 +361,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
     pane.add(formulaPanel);
     pane.add(Box.createRigidArea(new Dimension(0, 6)));
 
-    ImageIcon cancelIcon = new ImageIcon("cancel.gif");
+    url = SpreadSheet.class.getResource("cancel.gif");
+    ImageIcon cancelIcon = new ImageIcon(url);
     JButton formulaCancel = new JButton(cancelIcon);
     formulaCancel.setAlignmentY(JButton.CENTER_ALIGNMENT);
     formulaCancel.setToolTipText("Cancel formula entry");
@@ -344,7 +373,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
     formulaCancel.setPreferredSize(size);
     formulaPanel.add(formulaCancel);
 
-    ImageIcon okIcon = new ImageIcon("ok.gif");
+    url = SpreadSheet.class.getResource("ok.gif");
+    ImageIcon okIcon = new ImageIcon(url);
     FormulaOk = new JButton(okIcon);
     FormulaOk.setAlignmentY(JButton.CENTER_ALIGNMENT);
     FormulaOk.setToolTipText("Confirm formula entry");
@@ -360,7 +390,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
     FormulaField.setActionCommand("formulaChange");
     formulaPanel.add(FormulaField);
 
-    ImageIcon importIcon = new ImageIcon("import.gif");
+    url = SpreadSheet.class.getResource("import.gif");
+    ImageIcon importIcon = new ImageIcon(url);
     JButton formulaImport = new JButton(importIcon);
     formulaImport.setAlignmentY(JButton.CENTER_ALIGNMENT);
     formulaImport.setToolTipText("Import data");

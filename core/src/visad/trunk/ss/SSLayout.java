@@ -77,6 +77,12 @@ public class SSLayout implements LayoutManager {
     int curW = parent.getSize().width - (NumCols - 1) * ColSpace;
     int curH = parent.getSize().height - (NumRows - 1) * RowSpace;
 
+    // work-around for ScrollPane bug
+    if (!Labels) {
+      curW--;
+      curH--;
+    }
+
     // get parent's components
     Component[] c = parent.getComponents();
     if (c.length != NumCols*NumRows) {

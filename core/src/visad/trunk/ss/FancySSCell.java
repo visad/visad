@@ -40,6 +40,8 @@ public class FancySSCell extends BasicSSCell {
   static final int LATLONIMAGE = 2;
   static final int SURFACE3D = 3;
 
+  static final int DEFAULT_MAPPING_TYPE = SURFACE3D;
+
   /** unselected border */
   static final Border NORM = new LineBorder(Color.gray, 3);
 
@@ -53,7 +55,7 @@ public class FancySSCell extends BasicSSCell {
   JFrame WidgetFrame = null;
 
   /** default mapping type */
-  int MappingType = SURFACE3D;
+  int MappingType = DEFAULT_MAPPING_TYPE;
 
   /** Specifies whether this cell is selected */
   boolean Selected = false;
@@ -84,6 +86,7 @@ public class FancySSCell extends BasicSSCell {
     super.setMaps(maps);
     hideWidgetFrame();
     WidgetFrame = null;
+    if (maps == null) return;
 
     // create GraphicsModeControl widget
     initWidgetFrame();
@@ -164,7 +167,7 @@ public class FancySSCell extends BasicSSCell {
   public void setDimension(boolean twoD, boolean java2d)
                               throws VisADException, RemoteException {
     super.setDimension(twoD, java2d);
-    //if (MappingType != CUSTOM) setMappingScheme(MappingType);
+    if (MappingType != CUSTOM) setMappingScheme(MappingType);
   }
 
   /** Gets this cell's mapping scheme */
@@ -368,6 +371,11 @@ public class FancySSCell extends BasicSSCell {
       if (ans != JOptionPane.YES_OPTION) return false;
     }
     return true;
+  }
+
+  public void clearCell() throws VisADException, RemoteException {
+    super.clearCell();
+    MappingType = DEFAULT_MAPPING_TYPE;
   }
 
   /** Clears the cell if no other cell depends it;  otherwise, asks the

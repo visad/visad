@@ -198,7 +198,11 @@ public class MappingDialog extends JDialog implements ActionListener,
     // set up MathCanvas's ScrollPane
     MathCanvasView = new JScrollPane(MathCanvas);
     MathCanvasView.setMinimumSize(new Dimension(0, 0));
-    MathCanvasView.setPreferredSize(new Dimension(0, 70));
+    int prefMCHeight = StrHeight + 10;
+    if (prefMCHeight < 70) prefMCHeight = 70;
+    int maxMCHeight = Toolkit.getDefaultToolkit().getScreenSize().height / 2;
+    if (prefMCHeight > maxMCHeight) prefMCHeight = maxMCHeight;
+    MathCanvasView.setPreferredSize(new Dimension(0, prefMCHeight));
     MathCanvasView.setBackground(Color.white);
     JScrollBar horiz = MathCanvasView.getHorizontalScrollBar();
     JScrollBar verti = MathCanvasView.getVerticalScrollBar();

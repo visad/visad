@@ -1,20 +1,20 @@
  
                    VisAD SpreadSheet User Interface README file
-                                10 September 1998
+                                15 September 1998
                                         
                                 Table of Contents
 
 1. The visad.ss Package
-  1.1 Overview
-  1.2 Description
-  1.3 Compiling and Running
-  1.4 Source Files
-    1.4.1 BasicSSCell
-    1.4.2 FancySSCell
-    1.4.3 Formula
-    1.4.4 FormulaCell
-    1.4.5 MappingDialog
-    1.4.6 SpreadSheet
+  1.1 Description
+  1.2 Compiling and Running
+  1.3 Source Files
+    1.3.1 BasicSSCell
+    1.3.2 FancySSCell
+    1.3.3 Formula
+    1.3.4 FormulaCell
+    1.3.5 MappingDialog
+    1.3.6 SpreadSheet
+    1.3.7 SSLayout
 2. Features of the SpreadSheet User Interface
   2.1 Basic Commands
   2.2 Menu Commands
@@ -35,21 +35,17 @@
 
 1. The visad.ss Package
 
-1.1 Overview
+1.1 Description
     This README file explains what the visad.ss package is, what it does (and
-what it will do), and how to use it.  It is currently being included in the
-VisAD distribution ONLY to provide examples of VisAD functionality.  The
-package is not in a finished state and any of the code is subject to change.
-
-1.2 Description
+what it will do), and how to use it.
     The visad.ss package is a "generic" spreadsheet user interface for VisAD.
 It is intended to be poweful and flexible, and it can be used to visualize
-many types of data.  It supports many features of a traditional spreadsheet,
-such as formulas.  The package also provides a class structure such that
-developers can easily create their own user interface using spreadsheet cells
-from the visad.ss package.
+many types of data, without any programming.  It supports many features of a
+traditional spreadsheet, such as formulas.  The package also provides a class
+structure such that developers can easily create their own user interfaces
+using spreadsheet cells from the visad.ss package.
 
-1.3 Compiling and Running
+1.2 Compiling and Running
     To compile the package, type the following from the visad/ss directory:
 
         javac -J-mx32m *.java
@@ -70,7 +66,7 @@ from the visad.ss package.
     OutOfMemoryError, you should increase the amount of memory allocated to
     the program (increase the ### in "-mx###m").
 
-1.4 Source Files
+1.3 Source Files
     The following source files are part of the visad.ss package:
       - BasicSSCell.java
       - FancySSCell.java
@@ -78,6 +74,7 @@ from the visad.ss package.
       - FormulaCell.java
       - MappingDialog.java
       - SpreadSheet.java
+      - SSLayout.java
 
     The following included GIF files are needed by the package:
       - cancel.gif
@@ -90,33 +87,36 @@ from the visad.ss package.
       - open.gif
       - paste.gif
 
-1.4.1 BasicSSCell
+1.3.1 BasicSSCell
     This class can be instantiated and added to a JFC user interface.  It
 represents a single spreadsheet cell with some basic capabilities.  It is
 designed to be "quiet" (i.e., it throws exceptions rather than displaying
 errors in error message dialog boxes).
 
-1.4.2 FancySSCell
+1.3.2 FancySSCell
     This class is an extension of BasicSSCell that can be instantiated and
 added to a JFC user interface to provide all of the capabilities of a
 BasicSSCell, plus some additional, "fancy" capabilities.  It is designed to
 be "loud" (i.e., it displays errors in error message dialog boxes rather
 than throwing exceptions).
 
-1.4.3 Formula
+1.3.3 Formula
     This class is designed to convert formulas to postfix notation for
 evaluation on a stack.  It is used by FormulaCell.
 
-1.4.4 FormulaCell
+1.3.4 FormulaCell
     This class is used internally by BasicSSCell to evaluate formulas.
 
-1.4.5 MappingDialog
+1.3.5 MappingDialog
     This class is a dialog box allowing the user to specify ScalarMaps for
     the current data set.
 
-1.4.6 SpreadSheet
+1.3.6 SpreadSheet
     This is the main spreadsheet user interface class.  It manages
     multiple FancySSCells.
+
+1.3.7 SSLayout
+    This is the layout manager for the spreadsheet cells and their labels.
 
 2. Features of the SpreadSheet User Interface
 
@@ -217,7 +217,8 @@ by dragging the yellow block between cell labels.
 
 2.3.1 Main Toolbar
     The main toolbar provides shortcuts to the following menu items:
-        File Import, Edit Cut, Edit Copy, Edit Paste, and Display Edit.
+        File Import, Edit Cut, Edit Copy, Edit Paste,
+        Display Edit Mappings, and Window Show VisAD Controls.
 The main toolbar has tool tips so each button can be easily identified.
 
 2.3.2 Formula Toolbar
@@ -308,16 +309,15 @@ to the File menu's Import Data menu item.
          must be used to select it.
       2) The spreadsheet will not import certain data sets correctly, due to
          incomplete implementations in VisAD file adapter forms.
-      3) Sometimes the spreadsheet crashes with an "Invalid instruction"
-         error in Windows NT (and possibly other operating systems).  This
-         problem is probably due to bugs in OpenGL, Windows NT, Java3D, or
-         JDK 1.2beta4 rather than VisAD or SpreadSheet.
-      4) Error messages are displayed when the user clicks on a button that
+      3) Error messages are displayed when the user clicks on a button that
          doesn't make sense (such as trying to set up mappings for an empty
          cell).  These buttons should just be grayed out.
-      5) There is no way to change the number of spreadsheet rows and columns
+      4) There is no way to change the number of spreadsheet rows and columns
          while the spreadsheet is running;  you must quit the spreadsheet and
          specify a new setting on the command line.
+      5) When resizing cells, if a cell is made to be as small as it can be
+         in one or more dimensions, some extra space or a scroll bar will
+         appear in the bottom or right-hand corners of the spreadsheet window.
 
     If you find a bug in the spreadsheet user interface not listed above,
 please send e-mail to curtis@ssec.wisc.edu describing the problem, preferably

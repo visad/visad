@@ -62,12 +62,6 @@ public class BasicSSCell extends JPanel {
   /** A list of SSCells on this machine */
   static Vector SSCellVector = new Vector();
 
-  /** VisAD object for loading data files */
-  static DefaultFamily Loader = new DefaultFamily("Loader");
-
-  /** VisAD object for saving data files */
-  static Plain Saver = new Plain();
-
   /** Name of this BasicSSCell */
   String Name;
 
@@ -465,16 +459,21 @@ public class BasicSSCell extends JPanel {
     pleaseWait.add(Box.createHorizontalGlue());
     add(pleaseWait);
 
+    // big hammer for redrawing cell
     validate();
     Graphics g = getGraphics();
     if (g != null) {
       paint(g);
       g.dispose();
     }
+    repaint();
+
     boolean error = false;
     Data data = null;
     try {
-      data = (Data) BasicSSCell.Loader.open(filename);
+      DefaultFamily loader = new DefaultFamily("loader");
+      data = loader.open(filename);
+      loader = null;
     }
     finally {
       remove(pleaseWait);
@@ -492,7 +491,9 @@ public class BasicSSCell extends JPanel {
                                       VisADException, RemoteException {
     if (f == null || !HasData) return;
     Saving++;
-    Saver.save(f.getPath(), DataRef.getData(), true);
+    Plain saver = new Plain();
+    saver.save(f.getPath(), DataRef.getData(), true);
+    saver = null;
     Saving--;
   }
 
