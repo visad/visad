@@ -1539,10 +1539,6 @@ if (initialize) {
     synchronized (mapslock) {
       int index;
       if (!RendererVector.isEmpty()) {
-/* WLH 26 Oct 2001
-        throw new DisplayException("DisplayImpl.addMap: RendererVector " +
-                                   "must be empty");
-*/
         ScalarType st = map.getScalar();
         if (st != null) {
           Vector temp = (Vector) RendererVector.clone();
@@ -1583,6 +1579,7 @@ if (initialize) {
           }
           ConstantMapVector.addElement(map);
         }
+        reDisplayAll(); // WLH 1 March 2002
       }
       else { // !(map instanceof ConstantMap)
         // add to RealTypeVector and set ScalarIndex
