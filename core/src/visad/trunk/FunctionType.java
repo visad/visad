@@ -221,6 +221,17 @@ public class FunctionType extends MathType {
             Range.equals(((FunctionType) type).getRange()));
   }
 
+  /**
+   * Returns the hash code of this instance.  If {@link #equals(Object type)},
+   * then <code>{@link #hashCode()} == type.hashCode()</code>.
+   *
+   * @return			The hash code of this instance.
+   */
+  public int hashCode()
+  {
+    return Domain.hashCode() ^ Range.hashCode();
+  }
+
   public boolean equalsExceptName(MathType type) {
     if (!(type instanceof FunctionType)) return false;
     return (Domain.equalsExceptName(((FunctionType) type).getDomain()) &&
