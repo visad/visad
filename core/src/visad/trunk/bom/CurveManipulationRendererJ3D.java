@@ -498,16 +498,41 @@ System.out.println("checkClose: distance = " + distance);
           else {
             float v0 = value[0] - samples[0][which_point];
             float v1 = value[1] - samples[1][which_point];
-            float vp0 = samples[0][which_point + 1] - samples[0][which_point];
-            float vp1 = samples[1][which_point + 1] - samples[1][which_point];
-            float vm0 = samples[0][which_point - 1] - samples[0][which_point];
-            float vm1 = samples[1][which_point - 1] - samples[1][which_point];
-            float v = (float) Math.sqrt(v0 * v0 + v1 + v1);
-            float vp = (float) Math.sqrt(vp0 * vp0 + vp1 + vp1);
-            float vm = (float) Math.sqrt(vm0 * vm0 + vm1 + vm1);
-            float pp = (v0 * vp0 + v1 * vp1) / v * vp;
-            float mm = (v0 * vm0 + v1 * vm1) / v * vm;
-            dir = (pp > mm) ? 1 : -1;
+            float v = (float) Math.sqrt(v0 * v0 + v1 * v1);
+            int NPTS = 5;
+            int wp = which_point + NPTS;
+            if (wp > len - 2) wp = len - 2;
+            float pplus = 0;
+            float psum = 0.0f;
+            for (int i=which_point; i<wp; i++) {
+              float vp0 = samples[0][i + 1] - samples[0][i];
+              float vp1 = samples[1][i + 1] - samples[1][i];
+              float vp = (float) Math.sqrt(vp0 * vp0 + vp1 * vp1);
+              float pp = (v0 * vp0 + v1 * vp1) / v * vp;
+              if (pp > 0.0) pplus += 1;
+              psum += pp;
+            }
+            float pdiv = (wp - which_point) > 0 ? (wp - which_point) : 1.0f;
+            pplus = pplus / pdiv;
+            psum = psum / pdiv;
+
+            int wm = which_point - NPTS;
+            if (wm < 1) wm = 1;
+            float mplus = 0;
+            float msum = 0.0f;
+            for (int i=which_point; i>wm; i--) {
+              float vm0 = samples[0][i - 1] - samples[0][i];
+              float vm1 = samples[1][i - 1] - samples[1][i];
+              float vm = (float) Math.sqrt(vm0 * vm0 + vm1 * vm1);
+              float mm = (v0 * vm0 + v1 * vm1) / v * vm;
+              if (mm > 0.0) mplus += 1;
+              msum += mm;
+            }
+            float mdiv = (which_point - wm) > 0 ? (which_point - wm) : 1.0f;
+            mplus = mplus / mdiv;
+            msum = msum / mdiv;
+            dir = (pplus > mplus) ? 1 : -1;
+            if (pplus == mplus) dir = (psum > msum) ? 1 : -1;
           }
 
           float distance = Float.MAX_VALUE; // actually distance squared
