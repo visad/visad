@@ -178,6 +178,33 @@ public abstract class ActionImpl
     }
   }
 
+  /**
+   * Set the "enabled" state of this action.  This may be used in code like the
+   * following to ensure that the action has the same "enabled" state on leaving
+   * the code as it did on entering it:
+   * <BLOCKQUOTE>
+   * <PRE><CODE>
+   * ActionImpl action = ...;
+   * boolean wasEnabled = action.setEnabled(false);
+   * ...
+   * action.setEnabled(wasEnabled);
+   * </CODE></PRE>
+   * </BLOCKQUOTE>
+   * @param enable		The new "enabled" state for this action.
+   * @return			The previous "enabled" state of this action.
+   */
+  public boolean setEnabled(boolean enable) {
+    boolean	wasEnabled;
+    synchronized (lockEnabled) {
+      wasEnabled = enabled;
+      if (enable)
+	enableAction();
+      else
+	disableAction();
+    }
+    return wasEnabled;
+  }
+
   public Thread getCurrentActionThread() {
     return currentActionThread;
   }
