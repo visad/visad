@@ -918,6 +918,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       if (RendererVector == null || displayRenderer == null) {
         return;
       }
+// System.out.println("DisplayImpl call setWaitFlag(true)");
       displayRenderer.setWaitFlag(true);
       // set tickFlag-s in changed Control-s
       // clone MapVector to avoid need for synchronized access
@@ -1062,6 +1063,7 @@ i++;
         ScalarMap map = (ScalarMap) maps.nextElement();
         map.resetTicks();
       }
+// System.out.println("DisplayImpl call setWaitFlag(false)");
       displayRenderer.setWaitFlag(false);
     } // end synchronized (mapslock)
   }
