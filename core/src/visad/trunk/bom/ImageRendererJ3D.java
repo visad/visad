@@ -45,7 +45,7 @@ import javax.swing.*;
    and image sequences under Java3D.
 
    WARNING - when reUseFrames is true during doTransform()
-   this DataREnderer makes these assumptions:
+   ImageRendererJ3D makes these assumptions:
    1. That the images in a new time sequence are identical to
    any images at the same time in a previous sequence.
    2. That the image sequence defines the entire animation
@@ -147,16 +147,27 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     return branch;
   }
 
-  /** render three image frames for times = 0, 1, 2, wait
-      ten seconds, then change to times = 1, 2, 3
-      type 'java visad.bom.ImageRendererJ3D' to run this test */
+  /** run 'java visad.bom.ImageRendererJ3D len step'
+      to test animation behavior of ImageRendererJ3D
+      renders a loop of len at step ms per frame
+      then updates loop by deleting first time and adding a new last time */
   public static void main(String args[])
          throws VisADException, RemoteException, IOException {
 
     int step = 1000;
+    int len = 3;
     if (args.length > 0) {
       try {
-        step = Integer.parseInt(args[0]);
+        len = Integer.parseInt(args[0]);
+      }
+      catch(NumberFormatException e) {
+        len = 3;
+      }
+    }
+    if (len < 1) len = 1;
+    if (args.length > 1) {
+      try {
+        step = Integer.parseInt(args[1]);
       }
       catch(NumberFormatException e) {
         step = 1000;
@@ -171,6 +182,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     // it to a Field Data object
     Field raw_image_sequence = null;
     try {
+      // raw_image_sequence = (Field) plain.open("images256x256.nc");
       raw_image_sequence = (Field) plain.open("images.nc");
     }
     catch (IOException exc) {
@@ -191,14 +203,17 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     if (raw_len != 4) {
       throw new VisADException("wrong number of images in sequence");
     }
-    int len = 3;
+    float raw_span = (4.0f / 3.0f) * (raw_times[0][3] - raw_times[0][0]);
+
     double[][] times = new double[1][len];
-    for (int i=0; i<len; i++) times[0][i] = raw_times[0][i];
+    for (int i=0; i<len; i++) {
+      times[0][i] = raw_times[0][i % raw_len] + raw_span * (i / raw_len);
+    }
     Gridded1DDoubleSet set =
       new Gridded1DDoubleSet(raw_set.getType(), times, len);
     Field image_sequence = new FieldImpl(image_sequence_type, set);
     for (int i=0; i<len; i++) {
-      image_sequence.setSample(i, raw_image_sequence.getSample(i));
+      image_sequence.setSample(i, raw_image_sequence.getSample(i % raw_len));
     }
 
     // create a DataReference for image sequence
@@ -229,10 +244,12 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       (AnimationControl) animation_map.getControl();
     animation_control.setStep(step);
 
+/*
     // link the Display to image_ref
     ImageRendererJ3D renderer = new ImageRendererJ3D();
     display.addReferences(renderer, image_ref);
     // display.addReference(image_ref);
+*/
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("ImageRendererJ3D test");
@@ -254,21 +271,30 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     frame.setSize(500, 500);
     frame.setVisible(true);
 
-    // wait 10 seconds
-    new Delay(10000);
+    System.out.println("first animation sequence");
+    // link the Display to image_ref
+    ImageRendererJ3D renderer = new ImageRendererJ3D();
+    display.addReferences(renderer, image_ref);
+    // display.addReference(image_ref);
+
+    // wait len seconds
+    new Delay(len * 1000);
+
+    // substitute a new image sequence for the old one
+    for (int i=0; i<len; i++) {
+      times[0][i] = raw_times[0][(i + 1) % raw_len] + raw_span * ((i + 1) / raw_len);
+    }
+    set = new Gridded1DDoubleSet(raw_set.getType(), times, len);
+    FieldImpl new_image_sequence = new FieldImpl(image_sequence_type, set);
+    for (int i=0; i<len; i++) {
+      new_image_sequence.setSample(i, raw_image_sequence.getSample((i + 1) % raw_len));
+    }
+
+    System.out.println("second animation sequence");
 
     // tell renderer to resue frames in its scene graph
     renderer.setReUseFrames();
-
-    // substitute a new image sequence for the old one
-    for (int i=0; i<len; i++) times[0][i] = raw_times[0][i + 1];
-    set = new Gridded1DDoubleSet(raw_set.getType(), times, len);
-    image_sequence = new FieldImpl(image_sequence_type, set);
-    for (int i=0; i<len; i++) {
-      image_sequence.setSample(i, raw_image_sequence.getSample(i + 1));
-    }
-
-    image_ref.setData(image_sequence);
+    image_ref.setData(new_image_sequence);
   }
 
 }

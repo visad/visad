@@ -30,7 +30,7 @@ import visad.*;
 import visad.java3d.*;
 import visad.data.mcidas.BaseMapAdapter;
 import visad.data.mcidas.AreaAdapter;
-
+import visad.util.Delay;
 
 import javax.media.j3d.*;
 
@@ -160,10 +160,26 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       ColorControl control = (ColorControl) cmap.getControl();
       float[][] table = control.getTable();
       byte[][] bytes = null;
-      Set[] rsets = null;
+      Set rset = null;
+      boolean is_default_unit = false;
       if (data instanceof FlatField) {
+        // for fast byte color lookup, need:
+        // 1. range data values are packed in bytes
         bytes = ((FlatField) data).grabBytes();
-        rsets = ((FlatField) data). getRangeSets();
+        // 2. range set is Linear1DSet
+        Set[] rsets = ((FlatField) data). getRangeSets();
+        if (rsets != null) rset = rsets[0];
+        // 3. data Unit equals default Unit
+        RealType rtype = (RealType) RangeComponents[0].getType();
+        Unit def_unit = rtype.getDefaultUnit();
+        if (def_unit == null) {
+          is_default_unit = true;
+        }
+        else {
+          Unit[][] data_units = ((FlatField) data).getRangeUnits();
+          Unit data_unit = (data_units == null) ? null : data_units[0][0];
+          is_default_unit = def_unit.equals(data_unit);
+        }
       }
       int[] color_ints = new int[domain_length];
       if (table != null) {
@@ -184,12 +200,13 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         // get scale for color table
         double table_scale = (double) table[0].length;
 
-        if (bytes != null && bytes[0] != null && rsets != null &&
-            rsets[0] != null && rsets[0] instanceof Linear1DSet) {
-          // fast since FlatField with bytes and range set is Linear1DSet
+        if (bytes != null && bytes[0] != null && is_default_unit &&
+            rset != null && rset instanceof Linear1DSet) {
+          // fast since FlatField with bytes, data Unit equals default
+          // Unit and range set is Linear1DSet
           // get "scale and offset" for Linear1DSet
-          double first = ((Linear1DSet) rsets[0]).getFirst();
-          double step = ((Linear1DSet) rsets[0]).getStep();
+          double first = ((Linear1DSet) rset).getFirst();
+          double step = ((Linear1DSet) rset).getStep();
           // get scale and offset for ScalarMap
           double[] so = new double[2];
           double[] da = new double[2];
@@ -826,6 +843,13 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
       // render new frames
       for (int i=0; i<len; i++) {
+/*
+// this is to test setBranchEarly()
+if (i == (len / 2)) {
+  System.out.println("doTransform delay");
+  new Delay(5000);
+}
+*/
         if (!mark[i]) {
           // not necessary, but perhaps if this is modified
           // int[] lat_lon_indices = renderer.getLatLonIndices();
