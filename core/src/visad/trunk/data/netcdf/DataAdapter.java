@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DataAdapter.java,v 1.5 1998-03-12 23:25:46 steve Exp $
+ * $Id: DataAdapter.java,v 1.6 1998-03-17 15:52:01 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -18,6 +18,7 @@ import ucar.netcdf.ProtoVariable;
 import visad.Data;
 import visad.Field;
 import visad.FunctionType;
+import visad.Gridded1DSet;
 import visad.GriddedSet;
 import visad.Linear1DSet;
 import visad.LinearSet;
@@ -299,7 +300,7 @@ DataAdapter
 		        linear1DSet.getStep() != 1.0)
 		    {
 			/*
-			 * The domain sampling has associated co-ordinate 
+			 * The domain sampling has associated coordinate 
 			 * values; therefore, we define a corresponding
 			 * netCDF coordinate-variable.
 			 */
@@ -318,9 +319,44 @@ DataAdapter
 		}			// sample-domain dimension loop
 	    }				// the sample-domain is linear
 	    else
+	    if (rank == 1)
 	    {
 		/*
-                 * The (GriddedSet) domain set is not a simple
+                 * The domain set is 1-dimensional but not an arithmetic
+                 * progression.  The way to handle this in the standard
+                 * netCDF data model is to associate a coordinate
+                 * variable with the sample points.
+		 */
+
+		/*
+		 * Create the domain dimension.
+		 */
+		Dimension	dim = 
+		    new Dimension(dimNames[0], set.getLength());
+
+		dims = new Dimension[] { dim };
+
+		/*
+		 * Define the coordinate variable.
+		 */
+		{
+		    CoordVar var = new CoordVar(dimNames[0], dim, dimUnits[0],
+			(Gridded1DSet)set);
+
+		    try
+		    {
+			add(var, var);
+		    }
+		    catch (Exception e)
+		    {
+			throw new BadFormException(e.getMessage());
+		    }
+		}
+	    }
+	    else
+	    {
+		/*
+                 * The domain set is multi-dimensional and not a
                  * cross-product of arithmetic progressions.  The
                  * simplest way to handle this in the standard netCDF
                  * data model is to represent *both* the independent and
@@ -328,10 +364,31 @@ DataAdapter
                  * variables of an artificial "index" dimension.
 		 */
 
+		Dimension	dim;
+
 		/*
 		 * Create the index dimension.
 		 */
-		Dimension	dim = new Dimension("index", set.getLength());
+		{
+		    int		len = dimNames[0].length();
+
+		    for (int idim = 1; idim < rank; ++idim)
+			len += 1 + dimNames[idim].length();
+		    len += 4;
+
+		    StringBuffer	dimName = new StringBuffer(len);
+
+		    dimName.append(dimNames[0]);
+
+		    for (int idim = 1; idim < rank; ++idim)
+		    {
+			dimName.append("_");
+			dimName.append(dimNames[idim]);
+		    }
+		    dimName.append("_ndx");
+
+		    dim = new Dimension(dimName.toString(), set.getLength());
+		}
 
 		dims = new Dimension[] { dim };
 
@@ -358,10 +415,12 @@ DataAdapter
 	    /*
 	     * Continue the definition process on the inner, VisAD data 
 	     * objects by visiting the first sample.  The dimension array
-	     * is converted to netCDF order (outmost dimension first).
+	     * is converted to netCDF order (outermost dimension first).
 	     */
-	    visit(field.getSample(0), new FieldAccessor(reverse(dims), 
-		outerAccessor));
+	    System.out.println("visit(Field,...): RangeType: " +
+		field.getSample(0).getType());
+	    visit(field.getSample(0),
+		new FieldAccessor(reverse(dims), outerAccessor));
 	}				// domain set is a GriddedSet
     }
 
