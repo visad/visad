@@ -932,7 +932,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
     // wait for frame to lay itself out, then tile cells
     try {
-      Thread.sleep(100);
+      Thread.sleep(500);
     }
     catch (InterruptedException exc) {
       if (BasicSSCell.DEBUG) exc.printStackTrace();
