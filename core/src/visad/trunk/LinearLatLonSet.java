@@ -320,8 +320,12 @@ public class LinearLatLonSet extends Linear2DSet {
         lis = 1;
 
         // unroll loop over dimension = 0, 1
-        if (WrapThis || !((l[latI] == 0 && c[latI] <= 0.0) ||
+        // WLH 31 Oct 2001
+        if (!((l[latI] == 0 && c[latI] <= 0.0) ||
               (l[latI] == Lengths[latI] - 1 && c[latI] >= 0.0)) ) {
+        // if (WrapThis || !((l[latI] == 0 && c[latI] <= 0.0) ||
+        //       (l[latI] == Lengths[latI] - 1 && c[latI] >= 0.0)) ) {
+
           // interp along Latitude (dim latI) if between two valid grid coords
           if (c[latI] >= 0.0) {
             // grid coord above base
