@@ -329,11 +329,14 @@ should be available soon.
   
   atanDegrees(data) - return pointwise arctan value of data, in degrees
   
-  atan2(data1, data2) - return pointwise tan value of data1 / data2, in radians
+  atan2(data1, data2) - return pointwise tan value of data1 / data2,
+                        in radians
   
-  atan2Degrees(data1, data2) - return pointwise tan value of data1 / data2, in degrees
+  atan2Degrees(data1, data2) - return pointwise tan value of
+                               data1 / data2, in degrees
   
-  ceil(data) - return pointwise ceil value of data (smallest integer not less than)
+  ceil(data) - return pointwise ceil value of data (smallest integer not
+               less than)
   
   cos(data) - return pointwise cos value of data
   
@@ -405,7 +408,8 @@ radians.  If they do then data units are used.
 
   hist(field, int[] ranges) - return histogram of field values
   
-  hist(field, int[] ranges, int[] sizes) - return histogram of field values
+  hist(field, int[] ranges, int[] sizes) - return histogram of field
+                                           values
   
   hist(field, set) - return histogram of field values
   
