@@ -70,17 +70,19 @@ public class ThingReferenceImpl extends Object implements ThingReference {
       must be local ThingImpl */
   public synchronized void setThing(Thing t)
          throws VisADException, RemoteException {
+/* WLH 9 July 98
     if (t == null) {
       throw new ReferenceException("ThingReferenceImpl: thing cannot be null");
     }
-    if (!(t instanceof ThingImpl)) {
-      throw new RemoteVisADException("ThingReferenceImpl.setThing: must use " +
-                                     "ThingImpl");
+*/
+    if (t instanceof RemoteThing) {
+      throw new RemoteVisADException("ThingReferenceImpl.setThing: cannot use " +
+                                     "RemoteThing");
     }
     if (thing != null) thing.removeReference(ref);
     ref = this;
     thing = t;
-    t.addReference(ref);
+    if (t != null) t.addReference(ref);
     incTick();
   }
 
