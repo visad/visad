@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VirtualScalar.java,v 1.2 2000-04-26 15:45:21 dglo Exp $
+ * $Id: VirtualScalar.java,v 1.2.2.1 2000-06-08 19:05:26 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -11,15 +11,7 @@ package visad.data.netcdf.in;
 
 import java.io.IOException;
 import ucar.netcdf.Variable;
-import visad.DataImpl;
-import visad.MathType;
-import visad.Real;
-import visad.RealType;
-import visad.Scalar;
-import visad.ScalarType;
-import visad.SimpleSet;
-import visad.Unit;
-import visad.VisADException;
+import visad.*;
 
 
 /**
@@ -29,6 +21,11 @@ public class
 VirtualScalar
     extends	VirtualData
 {
+    /**
+     * The factory for creating VisAD data objects.
+     */
+    private DataFactory		dataFactory = DataFactory.instance();
+
     /**
      * The VisAD MathType of the scalar.
      */
@@ -170,12 +167,7 @@ VirtualScalar
     getData(Context context)
 	throws IOException, VisADException, InvalidContextException
     {
-	double[]	values = getDoubles(context);
-
-	if (values.length != 1)
-	    throw new InvalidContextException(context);
-
-	return new Real((RealType)getType(), values[0], getUnit());
+	return getDataFactory().newData(context, this);
     }
 
 
@@ -217,5 +209,38 @@ VirtualScalar
 	vetter.vet(values);
 
 	return values;
+    }
+
+
+    /**
+     * Clones this instance.
+     *
+     * @return			A (deep) clone of this instance.
+     */
+    public Object clone()
+    {
+	return new VirtualScalar(type, var, rangeSet, unit, vetter);
+    }
+
+
+    /**
+     * Sets the factory used to create VisAD data objects.
+     *
+     * @param factory		The factory for creating VisAD data objects.
+     */
+    public void setDataFactory(DataFactory factory)
+    {
+	dataFactory = factory;
+    }
+
+
+    /**
+     * Returns the factory used to create VisAD data objects.
+     *
+     * @param factory		The factory for creating VisAD data objects.
+     */
+    public DataFactory getDataFactory()
+    {
+	return dataFactory;
     }
 }

@@ -3,21 +3,14 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VirtualField.java,v 1.2 2000-04-26 15:45:21 dglo Exp $
+ * $Id: VirtualField.java,v 1.2.2.1 2000-06-08 19:05:25 steve Exp $
  */
 
 package visad.data.netcdf.in;
 
 import java.io.IOException;
 import java.rmi.RemoteException;
-import visad.DataImpl;
-import visad.FieldImpl;
-import visad.FunctionType;
-import visad.MathType;
-import visad.RealType;
-import visad.RealTupleType;
-import visad.SampledSet;
-import visad.VisADException;
+import visad.*;
 
 
 /**
@@ -57,6 +50,28 @@ VirtualField
 	this.functionType = funcType;
 	this.domainSet = domainSet;
 	this.rangeTuple = rangeTuple;
+    }
+
+
+    /**
+     * Factory method for creating a new instance.
+     *
+     * @param domainSet		The domain sampling set of the field.
+     * @param rangeTuple	The range of the field.
+     * @return			The corresponding VirtualField.
+     * @throws VisADException	Couldn't created necessary VisAD object.
+     */
+    public static VirtualField
+    newVirtualField(SampledSet domainSet, VirtualTuple rangeTuple)
+	throws VisADException
+    {
+	return
+	    newVirtualField(
+		new FunctionType(
+		    ((SetType)domainSet.getType()).getDomain(),
+		    rangeTuple.getType()),
+		domainSet,
+		rangeTuple);
     }
 
 
@@ -145,17 +160,41 @@ VirtualField
     getData(Context context)
 	throws VisADException, RemoteException, IOException
     {
-	FieldImpl	field = new FieldImpl(functionType, domainSet);
-	int		n = domainSet.getLength();
+	return getDataFactory().newData(context, this);
+    }
 
-	context = context.newSubContext();
 
-	for (int i = 0; i < n; ++i)
-	{
-	    context.setSubContext(i);
-	    field.setSample(i, rangeTuple.getData(context), /*copy=*/false);
-	}
+    /**
+     * Clones this instance.
+     *
+     * @return			A (deep) clone of this instance.
+     */
+    public Object clone()
+    {
+	return
+	    new VirtualField(
+		functionType, domainSet, (VirtualTuple)rangeTuple.clone());
+    }
 
-	return field;
+
+    /**
+     * Sets the factory used to create VisAD data objects.
+     *
+     * @param factory		The factory for creating VisAD data objects.
+     */
+    public void setDataFactory(DataFactory factory)
+    {
+	rangeTuple.setDataFactory(factory);
+    }
+
+
+    /**
+     * Returns the factory used to create VisAD data objects.
+     *
+     * @param factory		The factory for creating VisAD data objects.
+     */
+    public DataFactory getDataFactory()
+    {
+	return rangeTuple.getDataFactory();
     }
 }

@@ -3,16 +3,14 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VirtualData.java,v 1.2 2000-04-26 15:45:20 dglo Exp $
+ * $Id: VirtualData.java,v 1.2.2.1 2000-06-08 19:05:25 steve Exp $
  */
 
 package visad.data.netcdf.in;
 
 import java.io.IOException;
 import java.rmi.RemoteException;
-import visad.DataImpl;
-import visad.MathType;
-import visad.VisADException;
+import visad.*;
 
 
 /**
@@ -87,4 +85,28 @@ VirtualData
     public abstract DataImpl
     getData(Context context)
 	throws VisADException, RemoteException, IOException;
+
+
+    /**
+     * Sets the factory used to create VisAD data objects.
+     *
+     * @param factory		The factory for creating VisAD data objects.
+     */
+    public abstract void setDataFactory(DataFactory factory);
+
+
+    /**
+     * Returns the factory used to create VisAD data objects.
+     *
+     * @return			The factory for creating VisAD data objects.
+     */
+    public abstract DataFactory getDataFactory();
+
+
+    /**
+     * Clones this instance.
+     *
+     * @return			A (deep) clone of this instance.
+     */
+    public abstract Object clone();
 }

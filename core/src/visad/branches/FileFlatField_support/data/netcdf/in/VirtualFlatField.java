@@ -3,23 +3,13 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VirtualFlatField.java,v 1.2 2000-04-26 15:45:21 dglo Exp $
+ * $Id: VirtualFlatField.java,v 1.2.2.1 2000-06-08 19:05:26 steve Exp $
  */
 
 package visad.data.netcdf.in;
 
 import java.io.IOException;
-import visad.CoordinateSystem;
-import visad.DataImpl;
-import visad.FieldImpl;
-import visad.FlatField;
-import visad.FunctionType;
-import visad.MathType;
-import visad.RealTupleType;
-import visad.SampledSet;
-import visad.Set;
-import visad.Unit;
-import visad.VisADException;
+import visad.*;
 
 
 /**
@@ -61,39 +51,21 @@ VirtualFlatField
     getData(Context context)
 	throws VisADException, IOException
     {
-	VirtualTuple	rangeTuple = getRangeTuple();
-	int		componentCount = rangeTuple.size();
-	Set[]		rangeSets = new Set[componentCount];
-	Unit[]		rangeUnits = new Unit[componentCount];
+	return getDataFactory().newData(context, this);
+    }
 
-	for (int i = 0; i < componentCount; ++i)
-	{
-	    VirtualScalar	component =
-		(VirtualScalar)rangeTuple.get(i);
 
-	    rangeSets[i] = component.getRangeSet();
-	    rangeUnits[i] = component.getUnit();
-	}
-
-	FlatField	field = new FlatField(
-	    getFunctionType(),
-	    getDomainSet(),
-	    (CoordinateSystem)null,
-	    rangeSets,
-	    rangeUnits);
-
-	double[][]	values = new double[componentCount][];
-
-	for (int i = 0; i < componentCount; ++i)
-	{
-	    VirtualScalar	component =
-		(VirtualScalar)rangeTuple.get(i);
-
-	    values[i] = component.getDoubles(context);
-	}
-
-	field.setSamples(values, /*copy=*/false);
-
-	return field;
+    /**
+     * Clones this instance.
+     *
+     * @return			A (deep) clone of this instance.
+     */
+    public Object clone()
+    {
+	return
+	    new VirtualFlatField(
+		getFunctionType(),
+		getDomainSet(),
+		(VirtualTuple)getRangeTuple().clone());
     }
 }

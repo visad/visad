@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VirtualTuple.java,v 1.2 2000-04-26 15:45:21 dglo Exp $
+ * $Id: VirtualTuple.java,v 1.2.2.1 2000-06-08 19:05:26 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -11,17 +11,7 @@ package visad.data.netcdf.in;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.Vector;
-import visad.Data;
-import visad.DataImpl;
-import visad.MathType;
-import visad.Real;
-import visad.RealTuple;
-import visad.RealTupleType;
-import visad.RealType;
-import visad.ScalarType;
-import visad.Tuple;
-import visad.TupleType;
-import visad.VisADException;
+import visad.*;
 
 
 /**
@@ -34,12 +24,17 @@ VirtualTuple
     extends	VirtualData
 {
     /**
-     * The components that constitute this virtual tuple.
+     * The factory for creating VisAD data objects.
      */
-    private final Vector	components = new Vector();
+    private DataFactory		dataFactory = DataFactory.instance();
 
     /**
-     * The VisAD MathType of the consolidated data items.
+     * The components that constitute this virtual tuple.
+     */
+    private final Vector	components;
+
+    /**
+     * The VisAD MathType of the merged data items.
      */
     private MathType		mathType = null;
 
@@ -55,18 +50,44 @@ VirtualTuple
     public
     VirtualTuple()
     {
+	this(0);
     }
 
 
     /**
-     * Construct from a virtual data object.
+     * Constructs from an estimate of the number of elements to contain.
+     */
+    private
+    VirtualTuple(int n)
+    {
+	components = new Vector(n);
+    }
+
+
+    /**
+     * Constructs from a virtual data object.
      *
      * @param data		A virtual data object.
      */
     public
     VirtualTuple(VirtualData data)
     {
+	this(1);
 	add(data);
+    }
+
+
+    /**
+     * Constructs from a 1-D array of virtual data objects.  Order is preserved.
+     *
+     * @param datas		A 1-D array of virtual data objects.
+     */
+    public
+    VirtualTuple(VirtualData[] datas)
+    {
+	this(datas.length);
+	for (int i = 0; i < datas.length; ++i)
+	    add(datas[i]);
     }
 
 
@@ -87,7 +108,7 @@ VirtualTuple
      *
      * @param data		The component to be added.
      */
-    public void
+    public synchronized void
     add(VirtualData data)
     {
 	components.add(data);
@@ -98,8 +119,9 @@ VirtualTuple
     /**
      * Gets the VisAD MathType of this virtual tuple.
      *
-     * @return			The VisAD MathType of the consolidated data
+     * @return			The VisAD MathType of the merged data
      *				items or <code>null</code> if no data items.
+     * @throws VisADException	VisAD failure.
      */
     public MathType
     getType()
@@ -173,7 +195,7 @@ VirtualTuple
      * @param data		The new component.
      * @throws java.lang.ArrayIndexOutOfBoundsException
      */
-    public void
+    public synchronized void
     replace(int index, VirtualData data)
 	throws ArrayIndexOutOfBoundsException
     {
@@ -196,41 +218,56 @@ VirtualTuple
     getData(Context context)
 	throws VisADException, RemoteException, IOException
     {
-	DataImpl	data = null;
-	int		size = size();
+	return getDataFactory().newData(context, this);
+    }
 
-	if (size() == 1)
-	{
-	    data = ((VirtualData)components.get(0)).getData(context);
-	}
-	else if (size > 1)
-	{
-	    MathType	type = getType();
 
-	    if (type instanceof RealTupleType)
-	    {
-		int		n = size();
-		Real[]	reals = new Real[n];
+    /**
+     * Clears this instance.
+     */
+    public synchronized void clear()
+    {
+	components.clear();
+	mathType = null;
+	isDirty = true;
+    }
 
-		for (int i = 0; i < n; ++i)
-		    reals[i] = (Real)((VirtualData)components.get(i)).
-			getData(context);
 
-		data = new RealTuple((RealTupleType)type, reals,
-				     /*(CoordinateSystem)*/null);
-	    }
-	    else if (type instanceof TupleType)
-	    {
-		Data[]	datas = new DataImpl[size()];
+    /**
+     * Clones this instance.
+     *
+     * @return			A (deep) clone of this instance.
+     */
+    public synchronized Object clone()
+    {
+	int		n = size();
+	VirtualTuple	clone = new VirtualTuple(n);
 
-		for (int i = 0; i < datas.length; ++i)
-		    datas[i] =
-			((VirtualData)components.get(i)).getData(context);
+	for (int i = 0; i < n; ++i)
+	    clone.add((VirtualData)get(i).clone());
 
-		data = new Tuple((TupleType)type, datas, /*copy=*/false);
-	    }
-	}
+	return clone;
+    }
 
-	return data;
+
+    /**
+     * Sets the factory used to create VisAD data objects.
+     *
+     * @param factory		The factory for creating VisAD data objects.
+     */
+    public void setDataFactory(DataFactory factory)
+    {
+	dataFactory = factory;
+    }
+
+
+    /**
+     * Returns the factory used to create VisAD data objects.
+     *
+     * @param factory		The factory for creating VisAD data objects.
+     */
+    public DataFactory getDataFactory()
+    {
+	return dataFactory;
     }
 }
