@@ -111,7 +111,7 @@ public class ContourControl extends Control {
          throws VisADException, RemoteException {
     if (fvalues == null || fvalues.length != 5 ||
         bvalues == null || bvalues.length != 2) {
-      throw new DisplayException("ContourControl.getMainContours: " +
+      throw new DisplayException("ContourControl.setMainContours: " +
                                  "bad array length");
     }
     mainContours = bvalues[0];
@@ -155,8 +155,8 @@ public class ContourControl extends Control {
   /** 
    * Set level for iso-surfaces 
    * @param value   value of the iso-surface to display
-   * @throws VisADException	VisAD error
-   * @throws RemoteException	Java RMI failure.
+   * @throws VisADException     VisAD error
+   * @throws RemoteException    Java RMI failure.
    */
   public void setSurfaceValue(float value)
          throws VisADException, RemoteException {
@@ -172,19 +172,19 @@ public class ContourControl extends Control {
    * {@link ControlListener.controlChanged(ControlEvent)} method of all
    * registered listeners;
    *
-   * @param interval		The contour interval.  Must be non-zero.  If
-   *				negative, then contour lines below the base will
-   *				be dashed.  Must not be NaN.
-   * @param low			The minimum contour value.  No contour line less
-   *				than this value will be drawn.  Must not be NaN.
-   * @param hi			The maximum contour value.  No contour line
-   *				greater than this value will be drawn.  Must not
-   *				be NaN.
-   * @param ba			The base contour value.  The contour lines will
-   *				be integer multiples of the interval away from
-   *				this value.  Must not be NaN.
-   * @throws VisADException	The interval is zero or too small.
-   * @throws RemoteException	Java RMI failure.
+   * @param interval            The contour interval.  Must be non-zero.  If
+   *                            negative, then contour lines below the base will
+   *                            be dashed.  Must not be NaN.
+   * @param low                 The minimum contour value.  No contour line less
+   *                            than this value will be drawn.  Must not be NaN.
+   * @param hi                  The maximum contour value.  No contour line
+   *                            greater than this value will be drawn.  Must not
+   *                            be NaN.
+   * @param ba                  The base contour value.  The contour lines will
+   *                            be integer multiples of the interval away from
+   *                            this value.  Must not be NaN.
+   * @throws VisADException     The interval is zero or too small.
+   * @throws RemoteException    Java RMI failure.
    */
   public void setContourInterval(float interval, float low,
                                  float hi, float ba)
@@ -212,13 +212,13 @@ public class ContourControl extends Control {
 
   /** 
    * Set low and high iso-line levels 
-   * @param low			The minimum contour value.  No contour line less
-   *				than this value will be drawn.  Must not be NaN.
-   * @param hi			The maximum contour value.  No contour line
-   *				greater than this value will be drawn.  Must not
-   *				be NaN.
-   * @throws VisADException	VisAD error
-   * @throws RemoteException	Java RMI failure.
+   * @param low                 The minimum contour value.  No contour line less
+   *                            than this value will be drawn.  Must not be NaN.
+   * @param hi                  The maximum contour value.  No contour line
+   *                            greater than this value will be drawn.  Must not
+   *                            be NaN.
+   * @throws VisADException     VisAD error
+   * @throws RemoteException    Java RMI failure.
    */
   public void setContourLimits(float low, float hi)
          throws VisADException, RemoteException {
@@ -262,9 +262,9 @@ public class ContourControl extends Control {
   /** 
    * Set unevenly spaced levels for 2-D contour lines;
    * levels below base are dashed if dash == true 
-   * @param levels      	An array of contour values to display.
-   * @param base      		The base contour value for dashing.  Levels
-   *        			below base are dashed if dash is true
+   * @param levels              An array of contour values to display.
+   * @param base                The base contour value for dashing.  Levels
+   *                            below base are dashed if dash is true
    * @param dash                flag for making dashed contours below the
    *                            base contour value.
    * @throws VisADException     VisAD error
@@ -291,8 +291,8 @@ public class ContourControl extends Control {
     dash = da;
     base = ba;
     if (by_user) {
-      lowLimit = min - 0.1f;
-      hiLimit = max + 0.1f;
+      lowLimit = min - Math.abs(.01f * min);  // DRM 25-APR-2001
+      hiLimit  = max + Math.abs(.01f * max);  // DRM 25-APR-2001
       arithmeticProgression = false;
       changeControl(true);
     }
