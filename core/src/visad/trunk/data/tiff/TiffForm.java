@@ -54,7 +54,7 @@ import visad.util.*;
  * <td>read only (with JAI)</td>
  * </tr></table><p>
  *
- * This form requires ImageJ, avialable from the
+ * This form requires ImageJ, available from the
  * <a href="http://rsb.info.nih.gov/ij/download.html">ImageJ</a> web site.
  *
  * Note that features marked with &quot;(with JAI)&quot; also require
@@ -80,7 +80,7 @@ public class TiffForm extends Form
 
   /** Message produced when attempting to use ImageJ without it installed. */
   private static final String NO_IJ = "This feature requires ImageJ, " +
-    "avialable online at http://rsb.info.nih.gov/ij/download.html";
+    "available online at http://rsb.info.nih.gov/ij/download.html";
 
   /** Message produced when attempting to use JAI without it installed. */
   private static final String NO_JAI = "This feature requires JAI, " +
@@ -328,9 +328,6 @@ public class TiffForm extends Form
 
     if (canUseImageJ) {
       if (noImageJ) throw new BadFormException(NO_IJ);
-      r.exec("opener = new Opener()");
-      r.setVar("id", id);
-      r.exec("image = opener.openImage(id)");
       r.exec("stack = image.getStack()");
       r.setVar("bn1", block_number + 1);
       r.exec("ip = stack.getProcessor(bn1)");
