@@ -66,9 +66,15 @@ public class DisplayImplJ3D extends DisplayImpl {
   /** distance behind for surfaces in 2-D mode */
   public static final float BACK2D = -2.0f;
 
-  /** a Java3D constant */
+  /** a Java3D constants */
   public static final int PARALLEL_PROJECTION =
     javax.media.j3d.View.PARALLEL_PROJECTION;
+  public static final int POLYGON_FILL =
+    javax.media.j3d.PolygonAttributes.POLYGON_FILL;
+  public static final int POLYGON_LINE =
+    javax.media.j3d.PolygonAttributes.POLYGON_LINE;
+  public static final int POLYGON_POINT =
+    javax.media.j3d.PolygonAttributes.POLYGON_POINT;
 
   /** legal values for api */
   public static final int UNKNOWN = 0;

@@ -46,6 +46,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
 
   private int transparencyMode = 0;
   private int projectionPolicy = 0;
+  private int polygonMode = 0;
 
   private boolean missingTransparent = false;
   private int curvedSize = 10;
@@ -168,6 +169,21 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     return projectionPolicy;
   }
 
+  public void setPolygonMode(int mode)
+         throws VisADException, RemoteException {
+    if (mode == 0) {
+      polygonMode = mode;
+    }
+    else {
+      throw new DisplayException("GraphicsModeControlJ2D." +
+                                 "setPolygonMode: bad mode");
+    }
+  }
+
+  public int getPolygonMode() {
+    return polygonMode;
+  }
+
   public boolean getMissingTransparent() {
     return missingTransparent;
   }
@@ -202,6 +218,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     mode.transparencyMode = transparencyMode;
     mode.projectionPolicy = projectionPolicy;
     mode.missingTransparent = missingTransparent;
+    mode.polygonMode = polygonMode;
     mode.curvedSize = curvedSize;
     return mode;
   }

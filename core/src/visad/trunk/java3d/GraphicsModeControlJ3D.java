@@ -51,6 +51,9 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   private int transparencyMode;
   /** View.PARALLEL_PROJECTION or View.PERSPECTIVE_PROJECTION */
   private int projectionPolicy;
+  /** PolygonAttributes.POLYGON_FILL, PolygonAttributes.POLYGON_LINE
+      or PolygonAttributes.POLYGON_POINT */
+  private int polygonMode;
 
   private boolean missingTransparent = false;
   private int curvedSize = 10;
@@ -68,6 +71,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     transparencyMode = TransparencyAttributes.FASTEST;
     // transparencyMode = TransparencyAttributes.BLENDED;
     // transparencyMode = TransparencyAttributes.SCREEN_DOOR;
+    polygonMode = PolygonAttributes.POLYGON_FILL;
 
     projectionPolicy = View.PERSPECTIVE_PROJECTION;
     DisplayRendererJ3D displayRenderer =
@@ -197,6 +201,25 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     return projectionPolicy;
   }
 
+  public void setPolygonMode(int mode)
+         throws VisADException, RemoteException {
+    if (mode == PolygonAttributes.POLYGON_FILL ||
+        mode == PolygonAttributes.POLYGON_LINE ||
+        mode == PolygonAttributes.POLYGON_POINT) {
+      polygonMode = mode;
+      changeControl(true);
+      getDisplay().reDisplayAll();
+    }
+    else {
+      throw new DisplayException("GraphicsModeControlJ3D." +
+                                 "setPolygonMode: bad mode");
+    }
+  }
+
+  public int getPolygonMode() {
+    return polygonMode;
+  }
+
   public boolean getMissingTransparent() {
     return missingTransparent;
   }
@@ -224,6 +247,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     mode.transparencyMode = transparencyMode;
     mode.projectionPolicy = projectionPolicy;
     mode.missingTransparent = missingTransparent;
+    mode.polygonMode = polygonMode;
     mode.curvedSize = curvedSize;
     return mode;
   }

@@ -102,6 +102,11 @@ public class RemoteGraphicsModeControlImpl extends RemoteControlImpl
     return ((GraphicsModeControl )Control).getProjectionPolicy();
   }
 
+  public int getPolygonMode()
+         throws VisADException, RemoteException {
+    return ((GraphicsModeControl )Control).getPolygonMode();
+  }
+
   public boolean getMissingTransparent()
          throws VisADException, RemoteException {
     return ((GraphicsModeControl )Control).getMissingTransparent();

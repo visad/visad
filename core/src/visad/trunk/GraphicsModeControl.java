@@ -96,6 +96,11 @@ public abstract class GraphicsModeControl extends Control
 
   public abstract int getProjectionPolicy();
 
+  public abstract void setPolygonMode(int mode)
+         throws VisADException, RemoteException;
+
+  public abstract int getPolygonMode();
+
   public abstract void setMissingTransparent(boolean missing)
          throws VisADException, RemoteException;
 

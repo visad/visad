@@ -60,6 +60,8 @@ public interface RemoteGraphicsModeControl extends RemoteControl
       (e.g., PARALLEL_PROJECTION, PERSPECTIVE_PROJECTION) */
   public abstract int getProjectionPolicy() throws VisADException, RemoteException;
 
+  public abstract int getPolygonMode() throws VisADException, RemoteException;
+
   public abstract boolean getMissingTransparent()
          throws VisADException, RemoteException;
 
