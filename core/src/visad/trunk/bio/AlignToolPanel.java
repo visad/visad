@@ -185,7 +185,7 @@ public class AlignToolPanel extends ToolPanel {
       }
     });
     shape.setMnemonic('s');
-    shape.setToolTipText("Allows free placement of alignment plane");
+    shape.setToolTipText("Allows free placement of alignment triangle");
     alignGroup.add(shape);
     shape.setAlignmentX(JRadioButton.LEFT_ALIGNMENT);
     shape.setEnabled(false);
@@ -200,7 +200,7 @@ public class AlignToolPanel extends ToolPanel {
     });
     orient.setMnemonic('o');
     orient.setToolTipText(
-      "Allows reorienting of plane's location, but not its shape");
+      "Allows reorienting of triangle's location, but not its shape");
     alignGroup.add(orient);
     orient.setAlignmentX(JRadioButton.LEFT_ALIGNMENT);
     orient.setEnabled(false);
@@ -214,7 +214,7 @@ public class AlignToolPanel extends ToolPanel {
       }
     });
     apply.setMnemonic('a');
-    apply.setToolTipText("Hides the plane and applies alignment settings");
+    apply.setToolTipText("Hides the triangle and applies alignment settings");
     alignGroup.add(apply);
     apply.setAlignmentX(JRadioButton.LEFT_ALIGNMENT);
     apply.setEnabled(false);

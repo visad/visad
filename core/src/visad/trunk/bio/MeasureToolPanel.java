@@ -616,13 +616,15 @@ public class MeasureToolPanel extends ToolPanel {
 
   /** Updates GUI to match internal information. */
   void updateInfo(boolean microns, double mw, double mh, double sd) {
+    // update micron information
+    bio.toolAlign.updateInfo(microns, mw, mh, sd);
+
     // update groups
     groupList.removeAllItems();
     for (int i=0; i<bio.mm.groups.size(); i++) {
       groupList.addItem(bio.mm.groups.elementAt(i));
     }
     descriptionBox.setText("");
-    // CTR - TODO - update microns, mw, mh and sd information in GUI
   }
 
   /** Sets the merge toggle button's status. */
