@@ -60,7 +60,7 @@ public class Irregular3DSet extends IrregularSet {
     this(type, samples, coord_sys, units, errors, delan, true);
   }
 
-  Irregular3DSet(MathType type, float[][] samples,
+  public Irregular3DSet(MathType type, float[][] samples,
                  CoordinateSystem coord_sys, Unit[] units,
                  ErrorEstimate[] errors, Delaunay delan,
 		 boolean copy) throws VisADException {
@@ -69,12 +69,6 @@ public class Irregular3DSet extends IrregularSet {
     super(type, samples, (delan == null) ? samples.length
                                          : delan.Tri[0].length-1,
           coord_sys, units, errors, delan, copy);
-/* CTR: 1-12-98
-    if (samples.length != 3) {
-      throw new SetException("Irregular3DSet: ManifoldDimension " +
-                             "must be 3 for this constructor");
-    }
-*/
     LowX = Low[0];
     HiX = Hi[0];
     LowY = Low[1];
@@ -84,52 +78,6 @@ public class Irregular3DSet extends IrregularSet {
     oldToNew = null;
     newToOld = null;
   }
-
-  /** construct Irregular3DSet using Delaunay from existing
-      IrregularSet (must have ManifoldDimension = 2 or 3) */
-/* CTR: 1-12-98
-  public Irregular3DSet(MathType type, float[][] samples,
-                 IrregularSet delaunay_set) throws VisADException {
-    this(type, samples, delaunay_set, null, null, null, true);
-  }
-*/
-
-  /** construct Irregular3DSet using Delaunay from existing
-      IrregularSet (must have ManifoldDimension = 2 or 3) */
-/* CTR: 1-12-98
-  public Irregular3DSet(MathType type, float[][] samples,
-                        IrregularSet delaunay_set,
-                        CoordinateSystem coord_sys, Unit[] units,
-                        ErrorEstimate[] errors) throws VisADException {
-    this(type, samples, delaunay_set, coord_sys, units, errors, true);
-  }
-
-  Irregular3DSet(MathType type, float[][] samples,
-                 IrregularSet delaunay_set,
-                 CoordinateSystem coord_sys, Unit[] units,
-                 ErrorEstimate[] errors, boolean copy)
-                 throws VisADException {
-    super(type, samples, delaunay_set.getManifoldDimension(),
-          coord_sys, units, errors, copy);
-    int dim = delaunay_set.getManifoldDimension();
-    if (dim != 2 && dim != 3) {
-      throw new SetException("Irregular3DSet: delaunay_set ManifoldDimension " +
-                             "must be 2 or 3");
-    }
-    if (Length != delaunay_set.Length) {
-      throw new SetException("Irregular3DSet: delaunay_set length not match");
-    }
-    Delan = delaunay_set.Delan;
-    LowX = Low[0];
-    HiX = Hi[0];
-    LowY = Low[1];
-    HiY = Hi[1];
-    LowZ = Low[2];
-    HiZ = Hi[2];
-    oldToNew = null;
-    newToOld = null;
-  }
-*/
 
   /** construct Irregular3DSet using sort from existing
       Irregular1DSet */
@@ -147,7 +95,7 @@ public class Irregular3DSet extends IrregularSet {
     this(type, samples, new2old, old2new, coord_sys, units, errors, true);
   }
 
-  Irregular3DSet(MathType type, float[][] samples,
+  public Irregular3DSet(MathType type, float[][] samples,
                  int[] new2old, int[] old2new,
                  CoordinateSystem coord_sys, Unit[] units,
                  ErrorEstimate[] errors, boolean copy)
@@ -186,7 +134,8 @@ public class Irregular3DSet extends IrregularSet {
     }
   }
 
-  /** convert an array of 1-D indices to an array of values in R^DomainDimension */
+  /** convert an array of 1-D indices to an array of values in
+      R^DomainDimension */
   public float[][] indexToValue(int[] index) throws VisADException {
     float[][] value = new float[3][index.length];
     for (int i=0; i<index.length; i++) {
@@ -202,7 +151,7 @@ public class Irregular3DSet extends IrregularSet {
     return value;
   }
 
-  /* valueToTri returns an array of containing triangles given
+  /** valueToTri returns an array of containing triangles given
      an array of points in R^DomainDimension */
   public int[] valueToTri(float[][] value) throws VisADException {
     if (ManifoldDimension != 3) {
@@ -429,7 +378,8 @@ public class Irregular3DSet extends IrregularSet {
     return tri;
   }
 
-  /** convert an array of values in R^DomainDimension to an array of 1-D indices */
+  /** convert an array of values in R^DomainDimension to an array of
+      1-D indices */
   public int[] valueToIndex(float[][] value) throws VisADException {
     if (value.length < DomainDimension) {
       throw new SetException("Irregular3DSet.valueToIndex: value dimension " +
@@ -642,17 +592,6 @@ public class Irregular3DSet extends IrregularSet {
           auxa[i] = color_values[i][va];
           auxb[i] = color_values[i][vb];
           auxc[i] = color_values[i][vc];
-/* MEM_WLH
-          int k = color_values[i][va];
-          if (k < 0) k += 256;
-          auxa[i] = (k / 255.0f);
-          k = color_values[i][vb];
-          if (k < 0) k += 256;
-          auxb[i] = (k / 255.0f);
-          k = color_values[i][vc];
-          if (k < 0) k += 256;
-          auxc[i] = (k / 255.0f);
-*/
         }
       }
 
@@ -662,31 +601,6 @@ public class Irregular3DSet extends IrregularSet {
       float gx = ga > gb ? ga : gb;
       gx = gc > gx ? gc : gx;
 
-/* WLH 21 May 99
-      // compute clow and chi, low and high contour values in the box
-      float tmp1 = (gn-base) / interval;
-      float clow = base + interval * (( (tmp1) >= 0 ? (int) ((tmp1) + 0.5)
-                                              : (int) ((tmp1)-0.5) )-1);
-      while (clow<gn) {
-        clow += interval;
-      }
-
-      tmp1 = (gx-base) / interval;
-      float chi = base + interval * (( (tmp1) >= 0 ? (int) ((tmp1) + 0.5)
-                                             : (int) ((tmp1)-0.5) )+1);
-      while (chi>gx) {
-        chi -= interval;
-      }
-
-      // how many contour lines in the box:
-      tmp1 = (chi-clow) / interval;
-      int numc = 1+( (tmp1) >= 0 ? (int) ((tmp1) + 0.5) : (int) ((tmp1)-0.5) );
-
-      // gg is current contour line value
-      float gg = clow;
-
-      for (int il=0; il<numc; il++, gg += interval) {
-*/
       for (int il=0; il<intervals.length; il++) {
         float gg = intervals[il];
 
