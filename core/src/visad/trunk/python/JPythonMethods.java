@@ -1927,6 +1927,19 @@ public abstract class JPythonMethods {
     return data.getValues();
   }
 
+  /** combines fields
+  *
+  * @param fields[] array of fields
+  *
+  * @return the new Field
+  */
+
+  public static Field combine(Field[] fields)
+             throws VisADException, RemoteException {
+    return (FieldImpl.combine(fields) );
+
+  }
+
   /** extracts a component of the Field
   *
   * @param data the field with multiple range componenents

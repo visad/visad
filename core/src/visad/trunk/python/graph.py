@@ -33,6 +33,22 @@ def image(data, panel=None, colortable=None, width=400, height=400, title="VisAD
   subs.showDisplay(disp,width,height,title,None,None,panel)
   return disp
 
+def colorimage(red_data, green_data, blue_data, panel=None, colortable=None, width=400, height=400, title="VisAD Color Image"):
+
+  _comb_image = FieldImpl.combine( [red_data, green_data, blue_data])
+  dom_1 = RealType.getRealType(domainType(_comb_image,0))
+  dom_2 = RealType.getRealType(domainType(_comb_image,1))
+  rng = rangeType(_comb_image)
+  maps = subs.makeMaps(dom_1,'x', dom_2, 'y', rng[0], 'red',
+     rng[1], 'green', rng[2], 'blue')
+
+  disp = subs.makeDisplay(maps)
+  subs.addData('comb',_comb_image,disp)
+  subs.setBoxSize(disp, .80)
+  subs.setAspectRatio(disp, float(width)/float(height))
+  subs.showDisplay(disp,width,height,title,None,None,panel)
+  return disp
+
 #----------------------------------------------------------------------
 # mapimage displays a navigatedimage with a basemap on top
 def mapimage(imagedata, mapfile="outlsupw", panel=None, colortable=None, width=400, height=400, lat=None, lon=None, title="VisAD Image and Map"):
