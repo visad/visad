@@ -163,7 +163,8 @@ public class UnionSet extends SampledSet {
   }
 
   public SampledSet[] getSets() {
-    return Sets;
+    return (SampledSet[]) Sets.clone();
+    // return Sets; WLH 28 Nov 2000
   }
 
   /**
@@ -602,6 +603,29 @@ public class UnionSet extends SampledSet {
           float[][] sub_vals = Sets[j].indexToValue(sub_inds);
           for (int m=0; m<DomainDimension; m++) {
             System.arraycopy(sub_vals[m], 0, value[m], k, sub_length);
+/*
+try {
+            System.arraycopy(sub_vals[m], 0, value[m], k, sub_length);
+}
+catch (ArrayIndexOutOfBoundsException e) {
+  System.out.println("m = " + m + " k = " + k + " sub_length = " + sub_length +
+                     " sub_vals[m].length = " + sub_vals[m].length +
+                     " value[m].length = " + value[m].length);
+  System.out.println("npts = " + npts + " getLength = " + getLength() +
+                     " nsets = " + nsets + " j = " + j);
+  for (int i=0; i<nsets; i++) System.out.print(Sets[i].getLength() + " ");
+  System.out.print("\n");
+
+m = 0 k = 1 sub_length = 2 sub_vals[m].length = 2 value[m].length = 2
+npts = 2 getLength = 2 nsets = 2 j = 1
+1 2 
+m = 1 k = 1 sub_length = 2 sub_vals[m].length = 2 value[m].length = 2
+npts = 2 getLength = 2 nsets = 2 j = 1
+1 2 
+java.lang.ArrayIndexOutOfBoundsException
+        at visad.UnionSet.makeSpatial(UnionSet.java:321)
+}
+*/
 /*
             for (int i=0; i<sub_length; i++) {
               value[m][k+i] = sub_vals[m][i];
