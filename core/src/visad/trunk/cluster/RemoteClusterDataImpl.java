@@ -1,3 +1,4 @@
+
 //
 // RemoteClusterDataImpl.java
 //
@@ -39,8 +40,7 @@ interfaces:
         RemoteClusterData
           RemoteClientData
             RemoteClientTuple (extends RemoteTupleIface)
-            RemoteClientFunction (extends RemoteFunction)
-              RemoteClientField (extends RemoteField)
+            RemoteClientField (extends RemoteField)
             RemoteClientPartitionedField (extends RemoteField)
           RemoteNodeData
             RemoteNodeTuple (extends RemoteTupleIface)
@@ -55,8 +55,7 @@ classes:
           RemoteClientDataImpl
             RemoteClientTupleImpl
             RemoteClientFieldImpl
-            RemoteClientPartitionedFunctionImpl
-              RemoteClientPartitionedFieldImpl
+            RemoteClientPartitionedFieldImpl
           RemoteNodeDataImpl
             RemoteNodeTupleImpl
             RemoteNodeFieldImpl
@@ -184,7 +183,7 @@ public class RemoteClusterDataImpl extends RemoteDataImpl
   }
 
   /** return RemoteClusterData for JVM where data resides;
-      may be RemoteClusterData for cleint for non-partitioned data;
+      may be RemoteClusterData for client for non-partitioned data;
       may be null for partitioned data outside partitoning */
   public RemoteClusterData getClusterData(RealTuple domain)
          throws RemoteException, VisADException {
@@ -195,11 +194,14 @@ public class RemoteClusterDataImpl extends RemoteDataImpl
       // return client (last entry) for non-partitoned data
       return jvmTable[jvmTable.length - 1];
     }
+
+    // "eval" partitionSet at domain
+    // first extract values from domain
     double[][] vals = new double[dimension][1];
     for (int i=0; i<dimension; i++) {
       vals[i][0] = ((Real) domain.getComponent(i)).getValue();
     }
-
+    // test whether domain and partitionSet CoordinateSystems match
     RealTupleType out = ((SetType) partitionSet.getType()).getDomain();
     CoordinateSystem coord_out = partitionSet.getCoordinateSystem();
     RealTupleType in = (RealTupleType) domain.getType();
@@ -208,7 +210,7 @@ public class RemoteClusterDataImpl extends RemoteDataImpl
       // return client (last entry) for non-partitoned data
       return jvmTable[jvmTable.length - 1];
     }
-
+    // transform coordinates and convert units
     vals = CoordinateSystem.transformCoordinates(
                      ((SetType) partitionSet.getType()).getDomain(),
                      partitionSet.getCoordinateSystem(),
@@ -216,7 +218,9 @@ public class RemoteClusterDataImpl extends RemoteDataImpl
                      (RealTupleType) domain.getType(),
                      domain.getCoordinateSystem(),
                      domain.getTupleUnits(), null, vals);
+    // convert transformed values to a partitionSet index
     int[] indices = partitionSet.doubleToIndex(vals);
+    // return jvmTable entry
     return (indices[0] < 0) ? null : jvmTable[indices[0]];
   }
 
@@ -258,6 +262,7 @@ public class RemoteClusterDataImpl extends RemoteDataImpl
       are for notifyReferences(), which currently does nothing
       for RemoteThingImpl */
   private ThingImpl adaptedThingImpl = null;
+  // adaptedRemoteThingImpl constructed from adaptedThingImpl
   private RemoteThingImpl adaptedRemoteThingImpl = null;
   public void addReference(ThingReference r) throws VisADException {
     adaptedRemoteThingImpl.addReference(r);
