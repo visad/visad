@@ -11,10 +11,10 @@ with runtime load modules to provide for the desired
 transformations.  
 
 In the VisAD implementation, we intend to support navigation by
-provided particular CoordinateSystem classes.  At this time, only
-the GVARCoordinateSystem class has been coded.  It provides
-a reference coordinate system of Latitude and Longitude, and will
-transform to/from that from image pixel locations.
+provided particular CoordinateSystem classes.  At this time, the
+AREACoordinateSystem only supports GVAR, MSAT and MOLL navigations.  
+It provides a reference coordinate system of Latitude and Longitude, 
+and will transform to/from that from image pixel locations.
 
 The McIDAS base map file format (OUTL) provides latitude and
 longitude data needed to construct basemap overlays for images

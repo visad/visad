@@ -69,7 +69,7 @@ import visad.data.mcidas.BaseMapAdapter;
  *  along with a McIDAS "OUTL" format map file.  You may
  *  get these from ftp://allegro.ssec.wisc.edu/visad/
  *  
- *  At this poing, only GVAR navigation is supported, and no
+ *  At this point, only GVAR, MSAT and MOLL navigation is supported, and no
  *  work has been done on calibration yet.
  *
  *  There is quite a bit of extra printout that is usually
@@ -96,56 +96,56 @@ public class TestArea {
     for (int i = 0; i < args.length; i++) {
       if (args[i].charAt(0) == '-') {
 
-	// handle options
-	switch (args[i].charAt(1)) {
-	case '2':
-	  use2D = true;
-	  break;
-	case '3':
-	  use2D = false;
-	  break;
-	case 'f':
-	  i++;
-	  imageSource = args[i];
-	  defaultFile = false;
-	  break;
-	case 'b':
-	  i++;
-	  band = args[i];
-	  defaultBand = false;
-	  break;
-	case 'm':
-	  i++;
-	  mapfile = args[i];
-	  defaultMap = false;
-	  break;
-	default:
-	  System.err.println("Unknown option \"" + args[i] + "\"");
-	  gotValidOptions = true;
-	  break;
-	}
+    // handle options
+    switch (args[i].charAt(1)) {
+    case '2':
+      use2D = true;
+      break;
+    case '3':
+      use2D = false;
+      break;
+    case 'f':
+      i++;
+      imageSource = args[i];
+      defaultFile = false;
+      break;
+    case 'b':
+      i++;
+      band = args[i];
+      defaultBand = false;
+      break;
+    case 'm':
+      i++;
+      mapfile = args[i];
+      defaultMap = false;
+      break;
+    default:
+      System.err.println("Unknown option \"" + args[i] + "\"");
+      gotValidOptions = true;
+      break;
+    }
       } else {
 
-	// handle keywords (AKA positional parameters)
-	switch (keyNum) {
-	case 0:
-	  imageSource = args[i];
-	  defaultFile = false;
-	  break;
-	case 1:
-	  band = args[i];
-	  defaultBand = false;
-	  break;
-	case 2:
-	  mapfile = args[i];
-	  defaultMap = false;
-	  break;
-	default:
-	  System.err.println("Unknown keyword \"" + args[i] + "\"");
-	  gotValidOptions = true;
-	  break;
-	}
-	keyNum++;
+    // handle keywords (AKA positional parameters)
+    switch (keyNum) {
+    case 0:
+      imageSource = args[i];
+      defaultFile = false;
+      break;
+    case 1:
+      band = args[i];
+      defaultBand = false;
+      break;
+    case 2:
+      mapfile = args[i];
+      defaultMap = false;
+          break;
+        default:
+          System.err.println("Unknown keyword \"" + args[i] + "\"");
+          gotValidOptions = true;
+          break;
+        }
+        keyNum++;
       }
     }
 
@@ -171,13 +171,13 @@ public class TestArea {
 
       System.out.print("Using default");
       if (defaultFile) {
-	System.out.print((needComma ? "," : "") + " file " + imageSource);
+        System.out.print((needComma ? "," : "") + " file " + imageSource);
       }
       if (defaultBand) {
-	System.out.print((needComma ? "," : "") + " band " + band);
+        System.out.print((needComma ? "," : "") + " band " + band);
       }
       if (defaultMap) {
-	System.out.print((needComma ? "," : "") + " map " + mapfile);
+        System.out.print((needComma ? "," : "") + " map " + mapfile);
       }
 
       System.out.println("");
@@ -200,17 +200,18 @@ public class TestArea {
       AreaAdapter aa = null;
 
       try {
-	aa = new AreaAdapter(imageSource);
+        aa = new AreaAdapter(imageSource);
       } catch (Exception e) {
-	System.err.println("Caught IOException for \"" + imageSource + "\": " +
-			   e.getMessage());
+        System.err.println("Caught IOException for \"" + imageSource + "\": " +
+                           e.getMessage());
+        System.exit(1);
       }
 
       imaget = aa.getData();
       if (imaget == null) {
-	System.out.println("\tNULL FlatField!");
+        System.out.println("\tNULL FlatField!");
       } else {
-	System.out.println("\t" + imaget.getType());
+        System.out.println("\t" + imaget.getType());
       }
 
       int bandNumber = Integer.parseInt(band.trim());
@@ -222,20 +223,20 @@ public class TestArea {
     System.out.println("imaget.getDomainSet()="+imaget.getDomainSet() );
     System.out.println("imaget.getDomain.getType="+imaget.getDomainSet().getType() );
     System.out.println("imaget.getDomainSet.getDimension="+
-	 imaget.getDomainSet().getDimension() );
+         imaget.getDomainSet().getDimension() );
     System.out.println("imaget.getDomainSet.getCoordinateSystem="+
-	 imaget.getDomainSet().getCoordinateSystem() );
+         imaget.getDomainSet().getCoordinateSystem() );
     System.out.println("imaget.getDomainSet.getLength="+
-	 imaget.getDomainSet().getLength() );
+         imaget.getDomainSet().getLength() );
     System.out.println("imaget.getDomainSet.getX.getFirst="+
-	( (Linear2DSet)imaget.getDomainSet()).getX().getFirst() );
+        ( (Linear2DSet)imaget.getDomainSet()).getX().getFirst() );
     System.out.println("imaget.getDomainSet.getX.getLast="+
-	( (Linear2DSet)imaget.getDomainSet()).getX().getLast() );
+        ( (Linear2DSet)imaget.getDomainSet()).getX().getLast() );
 
     System.out.println("imaget.getDomainSet.getY.getFirst="+
-	( (Linear2DSet)imaget.getDomainSet()).getY().getFirst() );
+        ( (Linear2DSet)imaget.getDomainSet()).getY().getFirst() );
     System.out.println("imaget.getDomainSet.getY.getLast="+
-	( (Linear2DSet)imaget.getDomainSet()).getY().getLast() );
+        ( (Linear2DSet)imaget.getDomainSet()).getY().getLast() );
     FunctionType ft = (FunctionType) imaget.getType();
     System.out.println("ft="+ft);
     RealTupleType idom = ft.getDomain();
@@ -280,7 +281,7 @@ public class TestArea {
       if (use2D) {
         display = new DisplayImplJ2D("display1");
       } else {
-	display = new DisplayImplJ3D("display1"); 
+        display = new DisplayImplJ3D("display1"); 
       }
 
 
@@ -290,10 +291,10 @@ public class TestArea {
       RealTupleType rtype = (RealTupleType)ftype.getRange();
 
       ScalarMap xaxis = new ScalarMap( (RealType) dtype.getComponent(0), 
-	      Display.XAxis);
+              Display.XAxis);
       xaxis.setRange( 0.d, (double) numEles);
       ScalarMap yaxis = new ScalarMap( (RealType) dtype.getComponent(1), 
-	      Display.YAxis);
+              Display.YAxis);
       yaxis.setRange( 0.d, (double) numLines);
 
       display.addMap(xaxis);
@@ -301,7 +302,7 @@ public class TestArea {
 
       // select which band to show...
       display.addMap(new ScalarMap( (RealType) rtype.getComponent(bandNumber-1),
-	      Display.RGB) );
+              Display.RGB) );
 
       DataReferenceImpl ref_image = new DataReferenceImpl("ref_image");
       ref_image.setData(imaget);
@@ -312,14 +313,14 @@ public class TestArea {
       ConstantMap[] redMap;
       if (use2D) {
 
-	redMap = new ConstantMap[3];
-	redMap[0] = new ConstantMap(0., Display.Blue);
+        redMap = new ConstantMap[3];
+        redMap[0] = new ConstantMap(0., Display.Blue);
         redMap[1] = new ConstantMap(1., Display.Red);
         redMap[2] = new ConstantMap(0., Display.Green);
 
       } else {
-	redMap = new ConstantMap[4];
-	redMap[0] = new ConstantMap(0., Display.Blue);
+        redMap = new ConstantMap[4];
+        redMap[0] = new ConstantMap(0., Display.Blue);
         redMap[1] = new ConstantMap(1., Display.Red);
         redMap[2] = new ConstantMap(0., Display.Green);
         redMap[3] = new ConstantMap(.01, Display.ZAxis);
@@ -327,18 +328,18 @@ public class TestArea {
 
       DataRenderer drend;
       if (use2D) {
-	drend = new DefaultRendererJ2D();
+        drend = new DefaultRendererJ2D();
       } else {
-	drend = new DefaultRendererJ3D();
+        drend = new DefaultRendererJ3D();
       }
 
       display.addReferences( drend, maplines_ref, redMap);
 
       JFrame jframe = new JFrame("McIDAS AREA in Java 3D");
       jframe.addWindowListener(
-	new WindowAdapter() {
-	  public void windowClosing(WindowEvent e) {System.exit(0);}
-	}
+        new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        }
       );
 
       jframe.setContentPane( (JPanel) display.getComponent() );
@@ -348,7 +349,7 @@ public class TestArea {
 
     while (true) {
       try { 
-	Thread.sleep(5000);
+        Thread.sleep(5000);
       } catch (Exception e) {System.exit(0);}
     }
 

@@ -343,13 +343,15 @@ public class BaseMapAdapter {
     return lalo;
   }
 
-  /** getData creates a VisAD UnionSet type with the MathType
+  /** 
+    * getData creates a VisAD UnionSet type with the MathType
     * specified thru one of the other methods.  By default,
     * the MathType is a RealTupleType of Latitude,Longitude,
     * so the UnionSet (a union of Gridded2DSets) will have
     * lat/lon values.  Each Gridded2DSet is a line segment that
     * is supposed to be drawn as a continuous line.
-    *
+    * The UnionSet is null if there are no maplines in the domain
+    * of the display.
     */
   public UnionSet getData() {
 
@@ -426,10 +428,13 @@ public class BaseMapAdapter {
 
       }
 
-    Gridded2DSet[] basemaplines = new Gridded2DSet[sets.size()];
-    sets.copyInto(basemaplines);
+      if (sets.size() > 0)  // make sure we have something to do
+      {
+        Gridded2DSet[] basemaplines = new Gridded2DSet[sets.size()];
+        sets.copyInto(basemaplines);
 
-    maplines = new UnionSet(coordMathType,basemaplines);
+        maplines = new UnionSet(coordMathType,basemaplines);
+      }
 
     } catch (Exception em) {em.printStackTrace(); return null;}
 

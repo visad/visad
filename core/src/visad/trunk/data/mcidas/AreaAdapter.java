@@ -42,19 +42,19 @@ import visad.RealTupleType;
 import visad.RealType;
 import visad.TypeException;
 import visad.VisADException;
-import visad.data.mcidas.*;
 import visad.Unit;
 import visad.CoordinateSystem;
 import visad.CommonUnit;
+import visad.DateTime;
 
 /** this is an adapter for McIDAS AREA images */
 
 public class AreaAdapter {
 
   private FlatField field = null;
-  private GVARCoordinateSystem cs;
+  private AREACoordinateSystem cs;
   private int numLines, numEles, numBands;
-  final int GVAR =  1196835154;    
+  private int nomDay, nomTime, startDay, startTime;
 
   /** Create a VisAD FlatField from a local McIDAS AREA file or a URL.
     * @param imageSource name of local file or a URL to locate file.
@@ -84,12 +84,18 @@ public class AreaAdapter {
       dir = af.getDir();
       nav = af.getNav();
     } catch (Exception rmd) {
-	throw new VisADException("Problem getting Area file directory"); 
+        throw new VisADException("Problem getting Area file directory"); 
     }
 
     // extract the size of each dimension from the directory
     numLines = dir[8];
     numEles = dir[9];
+
+    // extract the date and time
+    nomDay = dir[3];
+    nomTime = dir[4];
+    startDay = dir[45];
+    startDay = dir[46];
 
     // make the VisAD RealTypes for the dimension variables
     RealType line;
@@ -116,16 +122,16 @@ public class AreaAdapter {
     int bcount = 0;
     for (int i=1; i<33; i++) {
       if ( (bmap & 1) != 0) {
-	bcount = bcount + 1;
-	if (bcount > numBands) {
-	  throw new VisADException("Invalid Area file bandmap");
+        bcount = bcount + 1;
+        if (bcount > numBands) {
+          throw new VisADException("Invalid Area file bandmap");
         }
-	RealType band=null;
-	try {
-	  band = new RealType("Band"+i);
-	} catch (TypeException e) {
-	  band= RealType.getRealTypeByName("Band"+i);
-	}
+        RealType band=null;
+        try {
+          band = new RealType("Band"+i);
+        } catch (TypeException e) {
+          band= RealType.getRealTypeByName("Band"+i);
+        }
         bands[bcount-1] = band;
       }
       bmap = bmap >>> 1;
@@ -143,26 +149,30 @@ public class AreaAdapter {
     // the domain of the FlatField
 
     RealTupleType ref = new RealTupleType
-		  (RealType.Latitude, RealType.Longitude);
-    cs = null;
-    if (nav[0] == GVAR) {
-      cs = new GVARCoordinateSystem(ref, dir, nav);
-    } else {
-      System.out.println("AreaAdapter: unsupported navigation type = "+nav[0]);
+                  (RealType.Latitude, RealType.Longitude);
+
+    try
+    {
+        cs = new AREACoordinateSystem(ref, dir, nav);
+    }
+    catch (VisADException e)
+    {
+      System.out.println(e);
+      cs = null;
     }
 
     RealTupleType image_domain = 
-		new RealTupleType(domain_components, cs, null);
+                new RealTupleType(domain_components, cs, null);
 
     // Image numbering is usually the first line is at the "top"
     //  whereas in VisAD, it is at the bottom.  So define the
     //  domain set of the FlatField to map the Y axis accordingly
 
     Linear2DSet domain_set = new Linear2DSet(image_domain,
-				0.0, (float) (numEles - 1), numEles,
-				(float) (numLines - 1),0.0, numLines );
+                                0.0, (float) (numEles - 1), numEles,
+                                (float) (numLines - 1),0.0, numLines );
     FunctionType image_type =
-			new FunctionType(image_domain, radiance);
+                        new FunctionType(image_domain, radiance);
     field = new FlatField(image_type,domain_set);
 
     // get the data
@@ -172,7 +182,7 @@ public class AreaAdapter {
       int_samples = af.getData();
 
     } catch (AreaFileException samp) {
-	throw new VisADException("Problem reading AREA file: "+samp);
+        throw new VisADException("Problem reading AREA file: "+samp);
     }
       
     // for each band, create a sample array for the FlatField
@@ -181,12 +191,12 @@ public class AreaAdapter {
       float[][] samples = new float[numBands][numEles*numLines];
 
       for (int b=0; b<numBands; b++) {
-	for (int i=0; i<numLines; i++) {
-	  for (int j=0; j<numEles; j++) {
+        for (int i=0; i<numLines; i++) {
+          for (int j=0; j<numEles; j++) {
 
-	    samples[b][j + (numEles * i) ] = (float)int_samples[b][i][j];
-	  }
-	}
+            samples[b][j + (numEles * i) ] = (float)int_samples[b][i][j];
+          }
+        }
       }
 
       field.setSamples( samples, false);
@@ -226,4 +236,53 @@ public class AreaAdapter {
   public FlatField getData() {
     return field;
   }
+
+  /**
+   * Retrieves the "nominal" time of the image as a VisAD DateTime.  This
+   * may or may not be the start of the image scan.  Values are derived from
+   * the 4th and 5th words in the AREA file directory.
+   * @see <a href="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
+   * McIDAS Programmer's Manual</a> 
+   * @see #getImageStartTime()
+   *
+   * @ returns  nominal image time
+   */
+  public DateTime getNominalTime() 
+      throws VisADException 
+  {
+      return makeDateTime(nomDay, nomTime);
+  }
+
+  /**
+   * Retrieves the time of the start of the image scan as a VisAD DateTime.  
+   * Values are derived from the 46th and 47th words in the AREA file directory.
+   * @see <a href="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
+   * McIDAS Programmer's Manual</a> 
+   * @see #getNominalTime()
+   *
+   * @ returns  time of the start of the image scan
+   */
+  public DateTime getImageStartTime() 
+      throws VisADException 
+  {
+      return makeDateTime(startDay, startTime);
+  }
+
+  private DateTime makeDateTime(int date, int time)
+      throws VisADException
+  {
+    int year;
+    int day;
+    double secs;
+
+    year = date/1000;
+    if (year < 1900) year = 1900 + year;
+    day = date%1000;
+    secs =  (time/10000)*3600 + 
+            ((time%10000)/100)*60 +
+            time%100;
+
+    return new DateTime(year, day, secs);
+  }
+
 }
