@@ -80,7 +80,7 @@ public class PlotText extends Object {
 	{100f,8f,5f,8f,3f,0f}, // 7
 	{101f,8f,0f,7f,0f,5f,1f,4f,4f,4f,5f,5f,5f,7f,4f,8f,1f,8f,101f,4f,0f,3f,0f,1f,1f,0f,4f,0f,5f,1f,5f,3f,4f,4f}, // 8
 	{101f,0f,1f,0f,4f,0f,5f,1f,5f,7f,4f,8f,1f,8f,0f,7f,0f,5f,1f,4f,5f,4f}, // 9
-	{100f,7f,0f,5f,1f,5f,1f,7f,0f,7f,100f,3f,0f,1f,1f,1f,1f,3f,0f,3f}, // :
+	{102f,7f,2f,5f,3f,5f,3f,7f,2f,7f,102f,3f,2f,1f,3f,1f,3f,3f,2f,3f}, // :
 	{100f,7f,0f,5f,1f,5f,1f,7f,0f,7f,100f,0f,1f,1f,1f,3f,0f,3f,0f,1f,1f,1f}, // ;
 	{105f,7f,0f,4f,5f,1f}, // <
 	{100f,5f,5f,5f,100f,3f,5f,3f}, // =
