@@ -31,22 +31,15 @@ import visad.DataImpl;
 import visad.VisADException;
 
 import visad.data.fits.FitsForm;
-
 import visad.data.gif.GIFForm;
-
 import visad.data.hdfeos.HdfeosAdaptedForm;
-
 import visad.data.netcdf.Plain;
-
 import visad.data.vis5d.Vis5DForm;
-
 import visad.data.visad.VisADForm;
-
 import visad.data.mcidas.AreaForm;
-
 import visad.data.mcidas.MapForm;
-
 import visad.data.biorad.BioRadForm;
+import visad.data.jai.JAIForm;
 
 /**
   * A container for all the officially supported VisAD datatypes.<br>
@@ -136,6 +129,12 @@ public class DefaultFamily
       i++;
     } catch (Throwable t) {
     }
+    try {
+      list[i] = new JAIForm();
+      i++;
+    } catch (Throwable t) {
+    }
+
     // added to support HDF5 adapter (visad.data.hdf5.HDF5Form)
     try {
       Object hdf5form = null;

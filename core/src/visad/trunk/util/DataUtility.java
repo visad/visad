@@ -27,6 +27,10 @@ MA 02111-1307, USA
 package visad.util;
 
 // General Java
+import java.awt.Image;
+import java.awt.image.ColorModel;
+import java.awt.image.PixelGrabber;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.TreeSet;
@@ -145,6 +149,74 @@ public class DataUtility {
       base += num_elements;
     }
     return values;
+  }
+
+  /** create a VisAD Data object from the given Image */
+  public static FlatField makeField(Image image)
+    throws IOException, VisADException
+  {
+    ImageHelper ih = new ImageHelper();
+
+    // determine image height and width
+    int width = -1;
+    int height = -1;
+    do {
+      if (width < 0) width = image.getWidth(ih);
+      if (height < 0) height = image.getHeight(ih);
+      if (ih.badImage || (width >= 0 && height >= 0)) break;
+      try { Thread.sleep(100); } catch (InterruptedException e) { }
+    }
+    while (true);
+    if (ih.badImage) throw new IOException("Not an image");
+
+    // extract image pixels
+    int numPixels = width * height;
+    int[] words = new int[numPixels];
+    float[] red_pix = new float[numPixels];
+    float[] green_pix = new float[numPixels];
+    float[] blue_pix = new float[numPixels];
+
+    PixelGrabber grabber = new PixelGrabber(
+      image.getSource(), 0, 0, width, height, words, 0, width);
+
+    try { grabber.grabPixels(); }
+    catch (InterruptedException e) { }
+
+    ColorModel cm = grabber.getColorModel();
+    for (int i=0; i<numPixels; i++) {
+      red_pix[i] = cm.getRed(words[i]);
+      green_pix[i] = cm.getGreen(words[i]);
+      blue_pix[i] = cm.getBlue(words[i]);
+    }
+
+    // build FlatField
+    RealType line = RealType.getRealType("ImageLine");
+    RealType element = RealType.getRealType("ImageElement");
+    RealType c_red = RealType.getRealType("Red");
+    RealType c_green = RealType.getRealType("Green");
+    RealType c_blue = RealType.getRealType("Blue");
+
+    RealType[] c_all = {c_red, c_green, c_blue};
+    RealTupleType radiance = new RealTupleType(c_all);
+
+    RealType[] domain_components = {element, line};
+    RealTupleType image_domain = new RealTupleType(domain_components);
+    Linear2DSet domain_set = new Linear2DSet(image_domain, 0.0,
+      (float) (width - 1.0), width, (float) (height - 1.0), 0.0, height);
+    FunctionType image_type = new FunctionType(image_domain, radiance);
+
+    FlatField field = new FlatField(image_type, domain_set);
+
+    float[][] samples = new float[3][];
+    samples[0] = red_pix;
+    samples[1] = green_pix;
+    samples[2] = blue_pix;
+    try { field.setSamples(samples, false); }
+    catch (RemoteException e) {
+      throw new VisADException("Couldn't finish image initialization");
+    }
+
+    return field;
   }
 
   public static DisplayImpl makeSimpleDisplay(DataImpl data)

@@ -143,6 +143,13 @@ public class BioRadForm extends Form implements FormFileInformer {
     float mag_factor =
       getFloat(header[66], header[67], header[68], header[69]);
 
+    /* CTR: TODO: compute units: pixel size = scale_factor/lens/mag_factor
+                  But how to determine scale_factor = the scaling number setup
+                  for the system on which the image was collected?
+    float scan_width = (2 * ny) / (512 * mag_factor);
+    Unit micron = CommonUnit.meter.scale(0.000001);
+    */
+
     // check validity of header
     if (file_id != PIC_FILE_ID) {
       throw new BadFormException("Invalid file header: " + file_id);

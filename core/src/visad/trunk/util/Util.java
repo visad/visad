@@ -131,8 +131,12 @@ public class Util
     // construct file filters
     FileFilter biorad = new ExtensionFileFilter(
       "pic", "BioRad PIC images");
+    FileFilter bmp = new ExtensionFileFilter(
+      "bmp", "BMP images");
     FileFilter fits = new ExtensionFileFilter(
       "fits", "FITS datasets");
+    FileFilter flashpix = new ExtensionFileFilter(
+      "flashpix", "FlashPix images");
     FileFilter gif = new ExtensionFileFilter(
       "gif", "GIF images");
     FileFilter hdf5 = new ExtensionFileFilter(
@@ -140,24 +144,30 @@ public class Util
     FileFilter hdfeos = new ExtensionFileFilter(
       new String[] {"hdf", "hdfeos"}, "HDF-EOS datasets");
     FileFilter jpeg = new ExtensionFileFilter(
-      new String[] {"jpg", "jpeg"}, "JPEG images");
+      new String[] {"jpg", "jpeg", "jpe"}, "JPEG images");
     FileFilter mcidas = new McIDASFileFilter();
     FileFilter netcdf = new ExtensionFileFilter(
       new String[] {"nc", "ncf", "netcdf"}, "netCDF datasets");
     FileFilter png = new ExtensionFileFilter(
       "png", "PNG images");
+    FileFilter pnm = new ExtensionFileFilter(
+      "pnm", "PNM images");
     FileFilter serial = new ExtensionFileFilter(
       new String[] {"svd", "vad", "visad"}, "Serialized VisAD data");
+    FileFilter tiff = new ExtensionFileFilter(
+      new String[] {"tiff", "tif"}, "TIFF images");
     FileFilter vis5d = new ExtensionFileFilter(
       "v5d", "Vis5D datasets");
-    FileFilter combo = new ComboFileFilter(
-      new FileFilter[] {biorad, fits, gif, hdf5, hdfeos, jpeg, mcidas,
-      netcdf, png, serial, vis5d}, "All VisAD file types");
+    FileFilter combo = new ComboFileFilter(new FileFilter[] {
+      biorad, bmp, fits, flashpix, gif, hdf5, hdfeos, jpeg, mcidas, netcdf,
+      png, pnm, serial, tiff, vis5d}, "All VisAD file types");
 
     // construct and configure file chooser
     JFileChooser dialog = new JFileChooser(System.getProperty("user.dir"));
     dialog.addChoosableFileFilter(biorad);
+    dialog.addChoosableFileFilter(bmp);
     dialog.addChoosableFileFilter(fits);
+    dialog.addChoosableFileFilter(flashpix);
     dialog.addChoosableFileFilter(gif);
     dialog.addChoosableFileFilter(hdf5);
     dialog.addChoosableFileFilter(hdfeos);
@@ -165,7 +175,9 @@ public class Util
     dialog.addChoosableFileFilter(mcidas);
     dialog.addChoosableFileFilter(netcdf);
     dialog.addChoosableFileFilter(png);
+    dialog.addChoosableFileFilter(pnm);
     dialog.addChoosableFileFilter(serial);
+    dialog.addChoosableFileFilter(tiff);
     dialog.addChoosableFileFilter(vis5d);
     dialog.addChoosableFileFilter(combo);
     return dialog;
