@@ -367,11 +367,11 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
       mapDialog.display();
 
       // make sure user did not cancel the operation
-      if (!mapDialog.Confirm) return;
+      if (!mapDialog.okPressed()) return;
 
       // set up new mappings
       try {
-        setMapsAuto(mapDialog.ScalarMaps);
+        setMapsAuto(mapDialog.getMaps());
       }
       catch (VisADException exc) {
         if (DEBUG) exc.printStackTrace();
