@@ -53,7 +53,9 @@ public class VisADCanvasJ3D extends Canvas3D {
   private static GraphicsConfiguration makeConfig() {
     GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
     GraphicsDevice d = e.getDefaultScreenDevice();
-    GraphicsConfiguration c = d.getDefaultConfiguration();
+    // GraphicsConfiguration c = d.getDefaultConfiguration();
+    GraphicsConfigTemplate3D gct3d = new GraphicsConfigTemplate3D();
+    GraphicsConfiguration c = gct3d.getBestConfiguration(d.getConfigurations());
     return c;
   }
 
@@ -64,6 +66,7 @@ public class VisADCanvasJ3D extends Canvas3D {
   VisADCanvasJ3D(DisplayRendererJ3D renderer, Component c,
                  GraphicsConfiguration config) {
     super(config == null ? defaultConfig : config);
+    // super(config == null ? null : config);
     displayRenderer = renderer;
     display = (DisplayImplJ3D) renderer.getDisplay();
     component = c;
