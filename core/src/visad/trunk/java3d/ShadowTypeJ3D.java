@@ -233,6 +233,18 @@ public abstract class ShadowTypeJ3D extends ShadowType {
         // no lighting in 2-D mode
         if (!mode.getMode2D()) material.setLightingEnable(true);
         appearance.setMaterial(material);
+/*
+        int format = geometry.getVertexFormat();
+        if (constant_color != null && (format & GeometryArray.COLOR_3  ) {
+          float[] fc = new float[];
+          Color3f c = new Color3f();
+          constant_color.getColor(c);
+          c.x;
+          c.y;
+          c.z;
+          geometry.setColors(0, fc);
+        }
+*/
       }
       if (constant_alpha != null) {
         appearance.setTransparencyAttributes(constant_alpha);
@@ -400,8 +412,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
                             float constant_alpha, float[] constant_color)
          throws VisADException {
     if (array != null && array.vertexCount > 0) {
-      // MEM - for coordinates if mode2d
-      GeometryArray geometry = display.makeGeometry(array);
+      float af = 0.0f;
       TransparencyAttributes c_alpha = null;
       if (constant_alpha == 1.0f) {
         // constant opaque alpha = NONE
@@ -410,6 +421,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       else if (constant_alpha == constant_alpha) {
         c_alpha = new TransparencyAttributes(mode.getTransparencyMode(),
                                              constant_alpha);
+        af = constant_alpha;
       }
       else {
         // WLH - 18 Aug 99 - how could this have gone undetected for so long?
@@ -420,7 +432,44 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       if (constant_color != null && constant_color.length == 3) {
         c_color = new ColoringAttributes();
         c_color.setColor(constant_color[0], constant_color[1], constant_color[2]);
+
+        // WLH 16 Oct 2001
+        if (!(array instanceof VisADLineArray ||
+              array instanceof VisADPointArray ||
+              array instanceof VisADLineStripArray) &&
+            array.colors == null) {
+          int color_len = 3;
+          if (af != 0.0f) {
+            color_len = 4;
+          }
+          byte r = ShadowType.floatToByte(constant_color[0]);
+          byte g = ShadowType.floatToByte(constant_color[1]);
+          byte b = ShadowType.floatToByte(constant_color[2]);
+          int len = array.vertexCount * color_len;
+          byte[] colors = new byte[len];
+          int k = 0;
+          if (color_len == 3) {
+            for (int i=0; i<len; i+=3) {
+              colors[i] = r;
+              colors[i+1] = g;
+              colors[i+2] = b;
+            }
+          }
+          else {
+            byte a = ShadowType.floatToByte(af);
+            for (int i=0; i<len; i+=4) {
+              colors[i] = r;
+              colors[i+1] = g;
+              colors[i+2] = b;
+              colors[i+3] = a;
+            }
+          }
+          array.colors = colors;
+        }
+
       }
+      // MEM - for coordinates if mode2d
+      GeometryArray geometry = display.makeGeometry(array);
       Appearance appearance =
         makeAppearance(mode, c_alpha, c_color, geometry, false);
       Shape3D shape = new Shape3D(geometry, appearance);
