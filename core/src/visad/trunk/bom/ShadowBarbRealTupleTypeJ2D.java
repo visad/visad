@@ -72,7 +72,6 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
       ScalarMap map = (ScalarMap) maps.nextElement();
       if (map.getScalar().equals(RealType.Latitude)) {
         double[] range = map.getRange();
-System.out.println("range[0] = " + range[0] + " range[1] = " + range[1]);
         if ((range[0] + range[1]) > 0.0) south = false;
       }
     }

@@ -107,7 +107,7 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
     RealTupleType flowxy = new RealTupleType(flowx, flowy);
     TupleType range = null;
     if (args.length > 1) {
-System.out.println("polar");
+// System.out.println("polar");
       RealType flow_degree = new RealType("flow_degree",
                             CommonUnit.degree, null);
       RealType flow_speed = new RealType("flow_speed",
@@ -119,7 +119,7 @@ System.out.println("polar");
         RealType.Latitude, flowds, red, green});
     }
     else {
-System.out.println("Cartesian");
+// System.out.println("Cartesian");
       range = new RealTupleType(new RealType[] {RealType.Longitude,
         RealType.Latitude, flowx, flowy, red, green});
     }
