@@ -1007,7 +1007,6 @@ if (!any && numc > 0) {
                 vx[numv] = xx+xd*(gg-gc)/gdc;
               vy[numv] = yy+yd;
               numv++;
-              System.out.println("case: 6");
               break;
 
             case 7:
@@ -1196,11 +1195,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     }
     tri[0] = new float[n_tri*3];
     tri[1] = new float[n_tri*3];
-
-    tri_color[0] = new byte[n_tri*3];
-    tri_color[1] = new byte[n_tri*3];
-    tri_color[2] = new byte[n_tri*3];
-
+    for (int kk=0; kk<color_bin.length; kk++) {
+      tri_color[kk] = new byte[n_tri*3];
+    }
     tri_normals[0]  = new float[3*n_tri*3];
 
     int[] t_idx = new int[1];
@@ -1250,10 +1247,11 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                                  float[][] tri_normals_a)
         {
           float[] tri_normals = tri_normals_a[0];
-          int n_tri   = 4 + (numc-1)*2;
+          int n_tri           = 4 + (numc-1)*2;
           int[] cnt_tri       = new int[1];
           cnt_tri[0]          = 0;
           int il              = 0;
+          int color_length    = color_bin.length;
           float[] vec         = new float[2];
           float[] vec_last    = new float[2];
           float[] vv1         = new float[2];
@@ -1275,7 +1273,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
           int v_idx = start + dir*il*2;
 
           //-- color level at corners
-          byte[][] crnr_color = new byte[4][3];
+          byte[][] crnr_color = new byte[4][color_length];
           boolean[] crnr_out = new boolean[] {true, true, true, true};
           boolean all_out = true;
           for (int tt = 0; tt < corners.length; tt++) {
@@ -1289,9 +1287,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                 crnr_out[tt] = false;
               }
             }
-            crnr_color[tt][0] = color_bin[0][cc];
-            crnr_color[tt][1] = color_bin[1][cc];
-            crnr_color[tt][2] = color_bin[2][cc];
+            for (int ii=0; ii<color_length; ii++) {
+              crnr_color[tt][ii] = color_bin[ii][cc];
+            }
           }
 
           int tt = t_idx[0];
@@ -1331,59 +1329,59 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
             tri_normals[n_idx[0]++] = grd_normals[nc][nr][0];
             tri_normals[n_idx[0]++] = grd_normals[nc][nr][1];
             tri_normals[n_idx[0]++] = grd_normals[nc][nr][2];
-            tri_color[0][tt]   = crnr_color[0][0];
-            tri_color[1][tt]   = crnr_color[0][1];
-            tri_color[2][tt]   = crnr_color[0][2];
-            tri[0][tt]         = xx;
-            tri[1][tt++]       = yy;
+            for (int ii=0; ii<color_length; ii++) {
+              tri_color[ii][tt] = crnr_color[0][ii];
+            }
+            tri[0][tt]   = xx;
+            tri[1][tt++] = yy;
 
             tri_normals[n_idx[0]++] = grd_normals[nc][nr+1][0];
             tri_normals[n_idx[0]++] = grd_normals[nc][nr+1][1];
             tri_normals[n_idx[0]++] = grd_normals[nc][nr+1][2];
-            tri_color[0][tt]   = crnr_color[0][0];
-            tri_color[1][tt]   = crnr_color[0][1];
-            tri_color[2][tt]   = crnr_color[0][2];
-            tri[0][tt]         = xx + xd;
-            tri[1][tt++]       = yy;
+            for (int ii=0; ii<color_length; ii++) {
+              tri_color[ii][tt] = crnr_color[0][ii];
+            }
+            tri[0][tt]   = xx + xd;
+            tri[1][tt++] = yy;
 
             tri_normals[n_idx[0]++] = grd_normals[nc+1][nr+1][0];
             tri_normals[n_idx[0]++] = grd_normals[nc+1][nr+1][1];
             tri_normals[n_idx[0]++] = grd_normals[nc+1][nr+1][2];
-            tri_color[0][tt]   = crnr_color[0][0];
-            tri_color[1][tt]   = crnr_color[0][1];
-            tri_color[2][tt]   = crnr_color[0][2];
-            tri[0][tt]         = xx + xd;
-            tri[1][tt++]       = yy + yd;
+            for (int ii=0; ii<color_length; ii++) {
+              tri_color[ii][tt] = crnr_color[0][ii];
+            }
+            tri[0][tt]   = xx + xd;
+            tri[1][tt++] = yy + yd;
 
             t_idx[0] = tt;
             cnt_tri[0]++;
 
-            tri_normals[n_idx[0]++]  = grd_normals[nc+1][nr+1][0];
-            tri_normals[n_idx[0]++]  = grd_normals[nc+1][nr+1][1];
-            tri_normals[n_idx[0]++]  = grd_normals[nc+1][nr+1][2];
-            tri_color[0][tt]   = crnr_color[0][0];
-            tri_color[1][tt]   = crnr_color[0][1];
-            tri_color[2][tt]   = crnr_color[0][2];
-            tri[0][tt]         = xx + xd;
-            tri[1][tt++]       = yy + yd;
+            tri_normals[n_idx[0]++] = grd_normals[nc+1][nr+1][0];
+            tri_normals[n_idx[0]++] = grd_normals[nc+1][nr+1][1];
+            tri_normals[n_idx[0]++] = grd_normals[nc+1][nr+1][2];
+            for (int ii=0; ii<color_length; ii++) {
+              tri_color[ii][tt] = crnr_color[0][ii];
+            }
+            tri[0][tt]   = xx + xd;
+            tri[1][tt++] = yy + yd;
 
-            tri_normals[n_idx[0]++]  = grd_normals[nc][nr][0];
-            tri_normals[n_idx[0]++]  = grd_normals[nc][nr][1];
-            tri_normals[n_idx[0]++]  = grd_normals[nc][nr][2];
-            tri_color[0][tt]   = crnr_color[0][0];
-            tri_color[1][tt]   = crnr_color[0][1];
-            tri_color[2][tt]   = crnr_color[0][2];
-            tri[0][tt]         = xx;
-            tri[1][tt++]       = yy;
+            tri_normals[n_idx[0]++] = grd_normals[nc][nr][0];
+            tri_normals[n_idx[0]++] = grd_normals[nc][nr][1];
+            tri_normals[n_idx[0]++] = grd_normals[nc][nr][2];
+            for (int ii=0; ii<color_length; ii++) {
+              tri_color[ii][tt] = crnr_color[0][ii];
+            }
+            tri[0][tt]   = xx;
+            tri[1][tt++] = yy;
 
-            tri_normals[n_idx[0]++]  = grd_normals[nc+1][nr][0];
-            tri_normals[n_idx[0]++]  = grd_normals[nc+1][nr][1];
-            tri_normals[n_idx[0]++]  = grd_normals[nc+1][nr][2];
-            tri_color[0][tt]   = crnr_color[0][0];
-            tri_color[1][tt]   = crnr_color[0][1];
-            tri_color[2][tt]   = crnr_color[0][2];
-            tri[0][tt]         = xx;
-            tri[1][tt++]       = yy + yd;
+            tri_normals[n_idx[0]++] = grd_normals[nc+1][nr][0];
+            tri_normals[n_idx[0]++] = grd_normals[nc+1][nr][1];
+            tri_normals[n_idx[0]++] = grd_normals[nc+1][nr][2];
+            for (int ii=0; ii<color_length; ii++) {
+              tri_color[ii][tt] = crnr_color[0][ii];
+            }
+            tri[0][tt]   = xx;
+            tri[1][tt++] = yy + yd;
             t_idx[0] = tt;
 
             cnt_tri[0]++;
@@ -1505,9 +1503,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
               //--- fill between contour lines
               tt = t_idx[0];
 
-              tri_color[0][tt] = color_bin[0][cc];
-              tri_color[1][tt] = color_bin[1][cc];
-              tri_color[2][tt] = color_bin[2][cc];
+              for (int ii=0; ii<color_length; ii++) {
+                tri_color[ii][tt] = color_bin[ii][cc];
+              }
               tri[0][tt]       = vv1[0];
               tri[1][tt]       = vv1[1];
               interpNormals(tri[0][tt],
@@ -1515,9 +1513,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                             xd, yd, grd_normals, n_idx, tri_normals);
               tt++;
 
-              tri_color[0][tt] = color_bin[0][cc];
-              tri_color[1][tt] = color_bin[1][cc];
-              tri_color[2][tt] = color_bin[2][cc];
+              for (int ii=0; ii<color_length; ii++) {
+                tri_color[ii][tt] = color_bin[ii][cc];
+              }
               tri[0][tt]       = vv2[0];
               tri[1][tt]       = vv2[1];
               interpNormals(tri[0][tt],
@@ -1525,9 +1523,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                             xd, yd, grd_normals, n_idx, tri_normals);
               tt++;
 
-              tri_color[0][tt] = color_bin[0][cc];
-              tri_color[1][tt] = color_bin[1][cc];
-              tri_color[2][tt] = color_bin[2][cc];
+              for (int ii=0; ii<color_length; ii++) {
+                tri_color[ii][tt] = color_bin[ii][cc];
+              }
               tri[0][tt]       = vv1_last[0];
               tri[1][tt]       = vv1_last[1];
               interpNormals(tri[0][tt],
@@ -1536,9 +1534,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
               tt++;
               cnt_tri[0]++;
 
-              tri_color[0][tt] = color_bin[0][cc];
-              tri_color[1][tt] = color_bin[1][cc];
-              tri_color[2][tt] = color_bin[2][cc];
+              for (int ii=0; ii<color_length; ii++) {
+                tri_color[ii][tt] = color_bin[ii][cc];
+              }
               tri[0][tt] = vv1_last[0];
               tri[1][tt] = vv1_last[1];
               interpNormals(tri[0][tt],
@@ -1546,9 +1544,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                             xd, yd, grd_normals, n_idx, tri_normals);
               tt++;
 
-              tri_color[0][tt] = color_bin[0][cc];
-              tri_color[1][tt] = color_bin[1][cc];
-              tri_color[2][tt] = color_bin[2][cc];
+              for (int ii=0; ii<color_length; ii++) {
+                tri_color[ii][tt] = color_bin[ii][cc];
+              }
               tri[0][tt] = vv2_last[0];
               tri[1][tt] = vv2_last[1];
               interpNormals(tri[0][tt],
@@ -1556,9 +1554,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                             xd, yd, grd_normals, n_idx, tri_normals);
               tt++;
 
-              tri_color[0][tt] = color_bin[0][cc];
-              tri_color[1][tt] = color_bin[1][cc];
-              tri_color[2][tt] = color_bin[2][cc];
+              for (int ii=0; ii<color_length; ii++) {
+                tri_color[ii][tt] = color_bin[ii][cc];
+              }
               tri[0][tt] = vv2[0];
               tri[1][tt] = vv2[1];
               interpNormals(tri[0][tt],
@@ -1624,9 +1622,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
             }
             else {
               tt = t_idx[0];
-              tri_color[0][tt] = color_bin[0][cc];
-              tri_color[1][tt] = color_bin[1][cc];
-              tri_color[2][tt] = color_bin[2][cc];
+              for (int ii=0; ii<color_length; ii++) {
+                tri_color[ii][tt] = color_bin[ii][cc];
+              }
               tri[0][tt] = vx[v_idx];
               tri[1][tt] = vy[v_idx];
               interpNormals(tri[0][tt],
@@ -1634,9 +1632,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                             xd, yd, grd_normals, n_idx, tri_normals);
               tt++;
 
-              tri_color[0][tt] = color_bin[0][cc];
-              tri_color[1][tt] = color_bin[1][cc];
-              tri_color[2][tt] = color_bin[2][cc];
+              for (int ii=0; ii<color_length; ii++) {
+                tri_color[ii][tt] = color_bin[ii][cc];
+              }
               tri[0][tt] = vx[v_idx+dir];
               tri[1][tt] = vy[v_idx+dir];
               interpNormals(tri[0][tt],
@@ -1644,9 +1642,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                             xd, yd, grd_normals, n_idx, tri_normals);
               tt++;
 
-              tri_color[0][tt] = color_bin[0][cc];
-              tri_color[1][tt] = color_bin[1][cc];
-              tri_color[2][tt] = color_bin[2][cc];
+              for (int ii=0; ii<color_length; ii++) {
+                tri_color[ii][tt] = color_bin[ii][cc];
+              }
               tri[0][tt] = vx[v_idx_last];
               tri[1][tt] = vy[v_idx_last];
               interpNormals(tri[0][tt],
@@ -1655,9 +1653,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
               tt++;
               cnt_tri[0]++;
 
-              tri_color[0][tt] = color_bin[0][cc];
-              tri_color[1][tt] = color_bin[1][cc];
-              tri_color[2][tt] = color_bin[2][cc];
+              for (int ii=0; ii<color_length; ii++) {
+                tri_color[ii][tt] = color_bin[ii][cc];
+              }
               tri[0][tt] = vx[v_idx_last];
               tri[1][tt] = vy[v_idx_last];
               interpNormals(tri[0][tt],
@@ -1665,9 +1663,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                             xd, yd, grd_normals, n_idx, tri_normals);
               tt++;
 
-              tri_color[0][tt] = color_bin[0][cc];
-              tri_color[1][tt] = color_bin[1][cc];
-              tri_color[2][tt] = color_bin[2][cc];
+              for (int ii=0; ii<color_length; ii++) {
+                tri_color[ii][tt] = color_bin[ii][cc];
+              }
               tri[0][tt] = vx[v_idx_last+dir];
               tri[1][tt] = vy[v_idx_last+dir];
               interpNormals(tri[0][tt],
@@ -1675,9 +1673,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                             xd, yd, grd_normals, n_idx, tri_normals);
               tt++;
 
-              tri_color[0][tt] = color_bin[0][cc];
-              tri_color[1][tt] = color_bin[1][cc];
-              tri_color[2][tt] = color_bin[2][cc];
+              for (int ii=0; ii<color_length; ii++) {
+                tri_color[ii][tt] = color_bin[ii][cc];
+              }
               tri[0][tt] = vx[v_idx+dir];
               tri[1][tt] = vy[v_idx+dir];
               interpNormals(tri[0][tt],
@@ -1793,6 +1791,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     float cy  = 0;
     int   cc  = 0;
 
+    int color_length = crnr_color[0].length;
     int cnt_tri = cnt[0];
     int tt = t_idx[0];
 
@@ -1835,16 +1834,16 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
         break;
     }
 
-    tri_color[0][tt] = crnr_color[cc][0];
-    tri_color[1][tt] = crnr_color[cc][1];
-    tri_color[2][tt] = crnr_color[cc][2];
+    for (int ii=0; ii<color_length; ii++) {
+      tri_color[ii][tt] = crnr_color[cc][ii];
+    }
     tri[0][tt]       = cx;
     tri[1][tt]       = cy;
     tt++;
 
-    tri_color[0][tt] = crnr_color[cc][0];
-    tri_color[1][tt] = crnr_color[cc][1];
-    tri_color[2][tt] = crnr_color[cc][2];
+    for (int ii=0; ii<color_length; ii++) {
+      tri_color[ii][tt] = crnr_color[cc][ii];
+    }
     tri[0][tt]       = vx[v_idx];
     tri[1][tt]       = vy[v_idx];
     t_idx[0] = tt;
@@ -1852,9 +1851,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                   xd, yd, grd_normals, n_idx, tri_normals);
     tt++;
 
-    tri_color[0][tt] = crnr_color[cc][0];
-    tri_color[1][tt] = crnr_color[cc][1];
-    tri_color[2][tt] = crnr_color[cc][2];
+    for (int ii=0; ii<color_length; ii++) {
+      tri_color[ii][tt] = crnr_color[cc][ii];
+    }
     tri[0][tt]       = vx[v_idx+dir];
     tri[1][tt]       = vy[v_idx+dir];
     t_idx[0] = tt;
@@ -1882,6 +1881,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     float cy3 = 0;
     int    cc = 0;
     int[][] grd = new int[3][2];
+    int color_length = crnr_color[0].length;
 
     switch (o_flag) {
       case 1:
@@ -1953,9 +1953,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     int cnt_tri = cnt[0];
     int tt = t_idx[0];
 
-    tri_color[0][tt] = crnr_color[cc][0];
-    tri_color[1][tt] = crnr_color[cc][1];
-    tri_color[2][tt] = crnr_color[cc][2];
+    for (int ii=0; ii<color_length; ii++) {
+      tri_color[ii][tt] = crnr_color[cc][ii];
+    }
     tri[0][tt]       = cx1;
     tri[1][tt]       = cy1;
     tri_normals[n_idx[0]++] = grd_normals[nc+grd[0][1]][nr+grd[0][0]][0];
@@ -1963,9 +1963,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     tri_normals[n_idx[0]++] = grd_normals[nc+grd[0][1]][nr+grd[0][0]][2];
     tt++;
 
-    tri_color[0][tt] = crnr_color[cc][0];
-    tri_color[1][tt] = crnr_color[cc][1];
-    tri_color[2][tt] = crnr_color[cc][2];
+    for (int ii=0; ii<color_length; ii++) {
+      tri_color[ii][tt] = crnr_color[cc][ii];
+    }
     tri[0][tt]       = cx2;
     tri[1][tt]       = cy2;
     tri_normals[n_idx[0]++] = grd_normals[nc+grd[1][1]][nr+grd[1][0]][0];
@@ -1973,9 +1973,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     tri_normals[n_idx[0]++] = grd_normals[nc+grd[1][1]][nr+grd[1][0]][2];
     tt++;
 
-    tri_color[0][tt] = crnr_color[cc][0];
-    tri_color[1][tt] = crnr_color[cc][1];
-    tri_color[2][tt] = crnr_color[cc][2];
+    for (int ii=0; ii<color_length; ii++) {
+      tri_color[ii][tt] = crnr_color[cc][ii];
+    }
     if (dir > 0) {
       tri[0][tt] = vx[v_idx];
       tri[1][tt] = vy[v_idx];
@@ -1990,9 +1990,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     tt++;
     cnt_tri++;
 
-    tri_color[0][tt] = crnr_color[cc][0];
-    tri_color[1][tt] = crnr_color[cc][1];
-    tri_color[2][tt] = crnr_color[cc][2];
+    for (int ii=0; ii<color_length; ii++) {
+      tri_color[ii][tt] = crnr_color[cc][ii];
+    }
     tri[0][tt] = cx3;
     tri[1][tt] = cy3;
     tri_normals[n_idx[0]++] = grd_normals[nc+grd[2][1]][nr+grd[2][0]][0];
@@ -2000,9 +2000,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     tri_normals[n_idx[0]++] = grd_normals[nc+grd[2][1]][nr+grd[2][0]][2];
     tt++;
 
-    tri_color[0][tt] = crnr_color[cc][0];
-    tri_color[1][tt] = crnr_color[cc][1];
-    tri_color[2][tt] = crnr_color[cc][2];
+    for (int ii=0; ii<color_length; ii++) {
+      tri_color[ii][tt] = crnr_color[cc][ii];
+    }
     tri[0][tt] = cx2;
     tri[1][tt] = cy2;
     tri_normals[n_idx[0]++] = grd_normals[nc+grd[1][1]][nr+grd[1][0]][0];
@@ -2010,9 +2010,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     tri_normals[n_idx[0]++] = grd_normals[nc+grd[1][1]][nr+grd[1][0]][2];
     tt++;
 
-    tri_color[0][tt] = crnr_color[cc][0];
-    tri_color[1][tt] = crnr_color[cc][1];
-    tri_color[2][tt] = crnr_color[cc][2];
+    for (int ii=0; ii<color_length; ii++) {
+      tri_color[ii][tt] = crnr_color[cc][ii];
+    }
     if (dir > 0) {
       tri[0][tt]   = vx[v_idx+dir];
       tri[1][tt]   = vy[v_idx+dir];
@@ -2027,9 +2027,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     tt++;
     cnt_tri++;
 
-    tri_color[0][tt] = crnr_color[cc][0];
-    tri_color[1][tt] = crnr_color[cc][1];
-    tri_color[2][tt] = crnr_color[cc][2];
+    for (int ii=0; ii<color_length; ii++) {
+      tri_color[ii][tt] = crnr_color[cc][ii];
+    }
     tri[0][tt] = cx2;
     tri[1][tt] = cy2;
     tri_normals[n_idx[0]++] = grd_normals[nc+grd[1][1]][nr+grd[1][0]][0];
@@ -2037,9 +2037,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     tri_normals[n_idx[0]++] = grd_normals[nc+grd[1][1]][nr+grd[1][0]][2];
     tt++;
 
-    tri_color[0][tt] = crnr_color[cc][0];
-    tri_color[1][tt] = crnr_color[cc][1];
-    tri_color[2][tt] = crnr_color[cc][2];
+    for (int ii=0; ii<color_length; ii++) {
+      tri_color[ii][tt] = crnr_color[cc][ii];
+    }
     tri[0][tt] = vx[v_idx];
     tri[1][tt] = vy[v_idx];
     t_idx[0] = tt;
@@ -2047,9 +2047,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                   xd, yd, grd_normals, n_idx, tri_normals);
     tt++;
 
-    tri_color[0][tt] = crnr_color[cc][0];
-    tri_color[1][tt] = crnr_color[cc][1];
-    tri_color[2][tt] = crnr_color[cc][2];
+    for (int ii=0; ii<color_length; ii++) {
+      tri_color[ii][tt] = crnr_color[cc][ii];
+    }
     tri[0][tt]   = vx[v_idx+dir];
     tri[1][tt]   = vy[v_idx+dir];
     t_idx[0] = tt;
@@ -2077,6 +2077,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     float cy2 = 0;
     int    cc = 0;
     int[][] grd = new int[2][2];
+    int color_length = crnr_color[0].length;
 
     switch (o_flag)
     {
@@ -2140,9 +2141,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
         
     }
 
-    tri_color[0][tt] = crnr_color[cc][0];
-    tri_color[1][tt] = crnr_color[cc][1];
-    tri_color[2][tt] = crnr_color[cc][2];
+    for (int ii=0; ii<color_length; ii++) {
+      tri_color[ii][tt] = crnr_color[cc][ii];
+    }
     tri[0][tt] = cx1;
     tri[1][tt] = cy1;
     int i = grd[0][0];
@@ -2152,9 +2153,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     tri_normals[n_idx[0]++] = grd_normals[nc+j][nr+i][2];
     tt++;
 
-    tri_color[0][tt] = crnr_color[cc][0];
-    tri_color[1][tt] = crnr_color[cc][1];
-    tri_color[2][tt] = crnr_color[cc][2];
+    for (int ii=0; ii<color_length; ii++) {
+      tri_color[ii][tt] = crnr_color[cc][ii];
+    }
     tri[0][tt] = vx[v_idx];
     tri[1][tt] = vy[v_idx];
     t_idx[0] = tt;
@@ -2162,9 +2163,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                   xd, yd, grd_normals, n_idx, tri_normals);
     tt++;
 
-    tri_color[0][tt] = crnr_color[cc][0];
-    tri_color[1][tt] = crnr_color[cc][1];
-    tri_color[2][tt] = crnr_color[cc][2];
+    for (int ii=0; ii<color_length; ii++) {
+      tri_color[ii][tt] = crnr_color[cc][ii];
+    }
     tri[0][tt] = vx[v_idx+dir];
     tri[1][tt] = vy[v_idx+dir];
     t_idx[0] = tt;
@@ -2173,9 +2174,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     tt++;
     cnt_tri++;
 
-    tri_color[0][tt] = crnr_color[cc][0];
-    tri_color[1][tt] = crnr_color[cc][1];
-    tri_color[2][tt] = crnr_color[cc][2];
+    for (int ii=0; ii<color_length; ii++) {
+      tri_color[ii][tt] = crnr_color[cc][ii];
+    }
     tri[0][tt] = cx1;
     tri[1][tt] = cy1;
     i = grd[0][0];
@@ -2185,9 +2186,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     tri_normals[n_idx[0]++] = grd_normals[nc+j][nr+i][2];
     tt++;
 
-    tri_color[0][tt] = crnr_color[cc][0];
-    tri_color[1][tt] = crnr_color[cc][1];
-    tri_color[2][tt] = crnr_color[cc][2];
+    for (int ii=0; ii<color_length; ii++) {
+      tri_color[ii][tt] = crnr_color[cc][ii];
+    }
     if ( dir > 0 ) {
       tri[0][tt] = vx[v_idx+dir];
       tri[1][tt] = vy[v_idx+dir];
@@ -2201,9 +2202,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                   xd, yd, grd_normals, n_idx, tri_normals);
     tt++;
 
-    tri_color[0][tt] = crnr_color[cc][0];
-    tri_color[1][tt] = crnr_color[cc][1];
-    tri_color[2][tt] = crnr_color[cc][2];
+    for (int ii=0; ii<color_length; ii++) {
+      tri_color[ii][tt] = crnr_color[cc][ii];
+    }
     tri[0][tt] = cx2;
     tri[1][tt] = cy2;
     i = grd[1][0];
