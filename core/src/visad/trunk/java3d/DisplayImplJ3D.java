@@ -53,9 +53,9 @@ import com.sun.java.swing.border.*;
 public class DisplayImplJ3D extends DisplayImpl {
 
   /** legal values for api */
-  public static final int JPANEL_JAVA3D = 1;
-  public static final int APPLETFRAME_JAVA3D = 2;
-  /** this is used for APPLETFRAME_JAVA3D */
+  public static final int JPANEL = 1;
+  public static final int APPLETFRAME = 2;
+  /** this is used for APPLETFRAME */
   private DisplayApplet applet;
 
   private ProjectionControlJ3D projection = null;
@@ -69,13 +69,13 @@ public class DisplayImplJ3D extends DisplayImpl {
   /** constructor with DefaultDisplayRendererJ3D */
   public DisplayImplJ3D(String name)
          throws VisADException, RemoteException {
-    this(name, new DefaultDisplayRendererJ3D(), JPANEL_JAVA3D);
+    this(name, new DefaultDisplayRendererJ3D(), JPANEL);
   }
 
   /** constructor with non-DefaultDisplayRenderer */
   public DisplayImplJ3D(String name, DisplayRendererJ3D renderer)
          throws VisADException, RemoteException {
-    this(name, renderer, JPANEL_JAVA3D);
+    this(name, renderer, JPANEL);
   }
 
   /** constructor with DefaultDisplayRenderer */
@@ -96,13 +96,13 @@ public class DisplayImplJ3D extends DisplayImpl {
     projection = new ProjectionControlJ3D(this);
     addControl(projection);
 
-    if (api == APPLETFRAME_JAVA3D) {
+    if (api == APPLETFRAME) {
       applet = new DisplayApplet(this);
       Component component = new AppletFrame(applet, 256, 256);
       setComponent(component);
       // component.setTitle(name);
     }
-    else if (api == JPANEL_JAVA3D) {
+    else if (api == JPANEL) {
       Component component = new DisplayPanel(this);
       setComponent(component);
     }
@@ -325,21 +325,26 @@ public class DisplayImplJ3D extends DisplayImpl {
 
     RealType[] types2 = {vis_radiance, ir_radiance};
     RealTupleType radiance = new RealTupleType(types2);
+    RealType[] types4 = {ir_radiance, vis_radiance};
+    RealTupleType ecnaidar = new RealTupleType(types4);
 
+    FunctionType image_bumble = new FunctionType(earth_location, ecnaidar);
     FunctionType image_tuple = new FunctionType(earth_location, radiance);
     FunctionType image_vis = new FunctionType(earth_location, vis_radiance);
     FunctionType image_ir = new FunctionType(earth_location, ir_radiance);
 
     FunctionType ir_histogram = new FunctionType(ir_radiance, count);
 
-    // FunctionType grid_tuple = new FunctionType(earth_location, radiance);
     FunctionType grid_tuple = new FunctionType(earth_location3d, radiance);
 
     RealType[] time = {RealType.Time};
     RealTupleType time_type = new RealTupleType(time);
     FunctionType time_images = new FunctionType(time_type, image_tuple);
+    FunctionType[] tb = {image_tuple, image_bumble};
+    FunctionType time_bee = new FunctionType(time_type, new TupleType(tb));
 
     System.out.println(time_images);
+    System.out.println(time_bee);
     System.out.println(grid_tuple);
     System.out.println(image_tuple);
     System.out.println(ir_histogram);
@@ -350,24 +355,31 @@ public class DisplayImplJ3D extends DisplayImpl {
     // use 'java visad.DisplayImplJ3D' for size = 256 (implicit -mx16m)
     // use 'java -mx40m visad.DisplayImplJ3D' for size = 512
     int size = 64;
-    // int size3d = 2;
-    // float level = 0.5f;
-    int size3d = 6;
-    float level = 2.0f;
+    int size3d = 3;
+    float level = 1.0f;
     FlatField histogram1 = FlatField.makeField(ir_histogram, size, false);
     FlatField imaget1 = FlatField.makeField(image_tuple, size, false);
+    FlatField wasp = FlatField.makeField(image_bumble, size, false);
     FlatField grid3d = FlatField.makeField(grid_tuple, size3d, true);
 
     int ntimes = 4;
     Set time_set =
       new Linear1DSet(time_type, 0.0, (double) (ntimes - 1.0), ntimes);
+    Set time_hornet =
+      new Linear1DSet(time_type, 0.0, (double) ntimes, ntimes + 1);
     FieldImpl image_sequence = new FieldImpl(time_images, time_set);
+    FieldImpl image_stinger = new FieldImpl(time_bee, time_hornet);
     FlatField temp = imaget1;
-    Real[] reals = {new Real(vis_radiance, 1.0), new Real(ir_radiance, 2.0)};
+    FlatField tempw = wasp;
+    Real[] reals = {new Real(vis_radiance, (float) size / 4.0f),
+                    new Real(ir_radiance, (float) size / 8.0f)};
     RealTuple val = new RealTuple(reals);
-    for (int i=0; i<ntimes; i++) {
-      image_sequence.setSample(i, imaget1);
+    for (int i=0; i<ntimes+1; i++) {
+      if (i < ntimes) image_sequence.setSample(i, temp);
+      FlatField[] ffs = {temp, tempw};
+      image_stinger.setSample(i, new Tuple(ffs));
       temp = (FlatField) temp.add(val);
+      tempw = (FlatField) tempw.add(val);
     }
     Real[] reals2 = {new Real(count, 1.0), new Real(ir_radiance, 2.0),
                      new Real(vis_radiance, 1.0)};
@@ -375,7 +387,7 @@ public class DisplayImplJ3D extends DisplayImpl {
     Real direct = new Real(ir_radiance, 2.0);
 
 
-    DisplayImpl display1 = new DisplayImplJ3D("display1", APPLETFRAME_JAVA3D);
+    DisplayImpl display1 = new DisplayImplJ3D("display1", APPLETFRAME);
 /*
     display1.addMap(new ScalarMap(vis_radiance, Display.XAxis));
     display1.addMap(new ScalarMap(ir_radiance, Display.YAxis));
@@ -384,12 +396,23 @@ public class DisplayImplJ3D extends DisplayImpl {
 
     display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
     display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+    display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
+    display1.addMap(new ScalarMap(ir_radiance, Display.Green));
+    display1.addMap(new ConstantMap(0.5, Display.Blue));
+    display1.addMap(new ConstantMap(0.5, Display.Red));
+    ScalarMap map1animation = new ScalarMap(RealType.Time, Display.Animation);
+    display1.addMap(map1animation);
+    AnimationControl animation1control =
+      (AnimationControl) map1animation.getControl();
+    animation1control.setOn(true);
+    animation1control.setStep(3000);
+/*
     display1.addMap(new ScalarMap(RealType.Radius, Display.ZAxis));
     ScalarMap map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
     display1.addMap(map1contour);
     ContourControl control1contour = (ContourControl) map1contour.getControl();
     control1contour.setSurfaceValue(level);
-
+*/
 /*
     display1.addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
     display1.addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
@@ -499,18 +522,30 @@ java.lang.RuntimeException: PARALLEL_PROJECTION is not yet implemented
 */
 
 /*
+    DataReferenceImpl ref_temp = new DataReferenceImpl("ref_temp");
+    ref_temp.setData(temp);
+    display1.addReference(ref_temp, null);
+*/
+
+/*
     DataReferenceImpl ref_image_sequence =
       new DataReferenceImpl("ref_image_sequence");
     ref_image_sequence.setData(image_sequence);
     display1.addReference(ref_image_sequence, null);
 */
 
+    DataReferenceImpl ref_image_stinger =
+      new DataReferenceImpl("ref_image_stinger");
+    ref_image_stinger.setData(image_stinger);
+    display1.addReference(ref_image_stinger, null);
+
+/*
     DataReferenceImpl ref_grid3d = new DataReferenceImpl("ref_grid3d");
     ref_grid3d.setData(grid3d);
     display1.addReference(ref_grid3d, null);
-
+*/
 /*
-    DisplayImpl display2 = new DisplayImplJ3D("display2", APPLETFRAME_JAVA3D);
+    DisplayImpl display2 = new DisplayImplJ3D("display2", APPLETFRAME);
     display2.addMap(new ScalarMap(vis_radiance, Display.XAxis));
     display2.addMap(new ScalarMap(ir_radiance, Display.YAxis));
     display2.addMap(new ScalarMap(count, Display.ZAxis));
@@ -524,7 +559,7 @@ java.lang.RuntimeException: PARALLEL_PROJECTION is not yet implemented
 */
 
 /*
-    DisplayImpl display5 = new DisplayImplJ3D("display5", APPLETFRAME_JAVA3D);
+    DisplayImpl display5 = new DisplayImplJ3D("display5", APPLETFRAME);
     display5.addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
     display5.addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
     display5.addMap(new ScalarMap(ir_radiance, Display.Radius));
@@ -532,7 +567,7 @@ java.lang.RuntimeException: PARALLEL_PROJECTION is not yet implemented
     System.out.println(display5);
     display5.addReference(ref_imaget1, null);
 
-    DisplayImpl display3 = new DisplayImplJ3D("display3", APPLETFRAME_JAVA3D);
+    DisplayImpl display3 = new DisplayImplJ3D("display3", APPLETFRAME);
     display3.addMap(new ScalarMap(RealType.Latitude, Display.XAxis));
     display3.addMap(new ScalarMap(RealType.Longitude, Display.YAxis));
     display3.addMap(new ScalarMap(ir_radiance, Display.Radius));
@@ -540,7 +575,7 @@ java.lang.RuntimeException: PARALLEL_PROJECTION is not yet implemented
     System.out.println(display3);
     display3.addReference(ref_imaget1, null);
 
-    DisplayImpl display4 = new DisplayImplJ3D("display4", APPLETFRAME_JAVA3D);
+    DisplayImpl display4 = new DisplayImplJ3D("display4", APPLETFRAME);
     display4.addMap(new ScalarMap(RealType.Latitude, Display.XAxis));
     display4.addMap(new ScalarMap(RealType.Longitude, Display.Radius));
     display4.addMap(new ScalarMap(ir_radiance, Display.YAxis));

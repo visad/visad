@@ -723,7 +723,8 @@ END MISSING TEST */
         range_value_array[j] = Float.NaN;
       }
       for (int i=0; i<domain_length; i++) {
-        if (range_select[0][i] == range_select[0][i]) {
+        if (range_select[0] == null || range_select[0].length == 1 ||
+            range_select[0][i] == range_select[0][i]) {
           for (int j=0; j<valueArrayLength; j++) {
             if (display_values[j] != null) {
               if (display_values[j].length == 1) {
