@@ -3491,9 +3491,9 @@ System.out.println("range = " + range[0] + " " + range[1] +
                 for (int kk = 0; kk < MapVector.size(); kk++) {
                   ScalarMap sm = (ScalarMap)MapVector.elementAt(kk);
                   if (sm != null) {
-                    if (((sm.getScalar()).equals(sc)) && 
-                        ((sm.getDisplayScalar()).equals(Display.RGB)) ||
-                         (sm.getDisplayScalar()).equals(Display.RGBA)) {
+                    if ( sm.getScalar().equals(sc) && 
+                        (sm.getDisplayScalar().equals(Display.RGB) ||
+                         sm.getDisplayScalar().equals(Display.RGBA))) {
                       smap[0] = sm;
                     }
                   }
