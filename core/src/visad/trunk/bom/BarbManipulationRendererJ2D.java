@@ -45,6 +45,12 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
     super();
   }
  
+  public ShadowType makeShadowRealTupleType(
+         RealTupleType type, DataDisplayLink link, ShadowType parent)
+         throws VisADException, RemoteException {
+    return new ShadowBarbRealTupleTypeJ2D(type, link, parent);
+  }
+
   /** information calculated by checkDirect */
   /** explanation for invalid use of DirectManipulationRenderer */
   private String whyNotDirect = null;
