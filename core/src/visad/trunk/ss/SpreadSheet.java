@@ -28,6 +28,7 @@ package visad.ss;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.print.*;
 import java.io.*;
 import java.net.*;
 import java.rmi.*;
@@ -125,6 +126,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
   protected boolean AutoShowControls = true;
 
 
+  /** Panel that contains everything that should get printed */
+  protected JPanel PrintPanel;
+
   /** panel that contains actual VisAD displays */
   protected Panel DisplayPanel;
 
@@ -176,6 +180,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** File Export HDF5 menu item */
   protected MenuItem FileSave3;
+
+  /** Cell Print cell menu item */
+  protected MenuItem CellPrint;
 
   /** Cell Edit mappings menu item */
   protected MenuItem CellEdit;
@@ -408,19 +415,23 @@ public class SpreadSheet extends JFrame implements ActionListener,
         rs = (RemoteServer) Naming.lookup("//" + clone);
       }
       catch (NotBoundException exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
         displayErrorMessage("Unable to clone the spreadsheet at " + clone +
-          ". The server could not be found.", "Failed to clone spreadsheet");
-        success = false;
-      }
-      catch (RemoteException exc) {
-        displayErrorMessage("Unable to clone the spreadsheet at " + clone +
-          ". A remote error occurred: " + exc.getMessage(),
+          ". The server could not be found", null,
           "Failed to clone spreadsheet");
         success = false;
       }
-      catch (MalformedURLException exc) {
+      catch (RemoteException exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
         displayErrorMessage("Unable to clone the spreadsheet at " + clone +
-          ". The server name is not valid.", "Failed to clone spreadsheet");
+          ". A remote error occurred", exc, "Failed to clone spreadsheet");
+        success = false;
+      }
+      catch (MalformedURLException exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+        displayErrorMessage("Unable to clone the spreadsheet at " + clone +
+          ". The server name is not valid", null,
+          "Failed to clone spreadsheet");
         success = false;
       }
 
@@ -440,20 +451,22 @@ public class SpreadSheet extends JFrame implements ActionListener,
           cellNames = getNewCellNames();
           if (cellNames == null) {
             displayErrorMessage("Unable to clone the spreadsheet at " + clone +
-              ". Could not obtain the server's cell names.",
+              ". Could not obtain the server's cell names", null,
               "Failed to clone spreadsheet");
             success = false;
           }
         }
         catch (VisADException exc) {
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
           displayErrorMessage("Unable to clone the spreadsheet at " + clone +
-            ". An error occurred while downloading the necessary data: " +
-            exc.getMessage(), "Failed to clone spreadsheet");
+            ". An error occurred while downloading the necessary data", exc,
+            "Failed to clone spreadsheet");
           success = false;
         }
         catch (RemoteException exc) {
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
           displayErrorMessage("Unable to clone the spreadsheet at " + clone +
-            ". Could not download the necessary data: " + exc.getMessage(),
+            ". Could not download the necessary data", exc,
             "Failed to clone spreadsheet");
           success = false;
         }
@@ -574,6 +587,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
     CellDim2D3D.addItemListener(this);
     CellDim2D3D.setEnabled(CanDo3D);
     cell.add(CellDim2D3D);
+
+    cell.addSeparator();
+
+    CellPrint = new MenuItem("Print cell...");
+    CellPrint.addActionListener(this);
+    CellPrint.setActionCommand("cellPrint");
+    CellPrint.setEnabled(false);
+    cell.add(CellPrint);
+
     cell.addSeparator();
 
     CellEdit = new MenuItem("Edit mappings...");
@@ -617,6 +639,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     layDelRow.addActionListener(this);
     layDelRow.setActionCommand("layDelRow");
     lay.add(layDelRow);
+
     lay.addSeparator();
 
     MenuItem layTile = new MenuItem("Tile cells");
@@ -714,12 +737,19 @@ public class SpreadSheet extends JFrame implements ActionListener,
     addToolbarButton("import.gif", "Import data",
       "fileOpen", true, formulaPanel);
 
+    // set up display panel below all the toolbars
+    PrintPanel = new JPanel();
+    PrintPanel.setBackground(Color.white);
+    PrintPanel.setLayout(new BoxLayout(PrintPanel, BoxLayout.Y_AXIS));
+    pane.add(PrintPanel);
+    pane.add(Box.createRigidArea(new Dimension(0, 6)));
+
     // set up horizontal spreadsheet cell labels
     JPanel horizShell = new JPanel();
     horizShell.setBackground(Color.white);
     horizShell.setLayout(new BoxLayout(horizShell, BoxLayout.X_AXIS));
     horizShell.add(Box.createRigidArea(new Dimension(LABEL_WIDTH+6, 0)));
-    pane.add(horizShell);
+    PrintPanel.add(horizShell);
 
     HorizPanel = new JPanel() {
       public Dimension getPreferredSize() {
@@ -759,8 +789,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     JPanel mainPanel = new JPanel();
     mainPanel.setBackground(Color.white);
     mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.X_AXIS));
-    pane.add(mainPanel);
-    pane.add(Box.createRigidArea(new Dimension(0, 6)));
+    PrintPanel.add(mainPanel);
 
     // set up vertical spreadsheet cell labels
     JPanel vertShell = new JPanel();
@@ -849,9 +878,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
               registryStarted = true;
             }
             catch (RemoteException rexc) {
+              if (BasicSSCell.DEBUG) exc.printStackTrace();
               displayErrorMessage("Unable to autostart rmiregistry. " +
                 "Please start rmiregistry before launching the " +
-                "SpreadSheet in server mode.",
+                "SpreadSheet in server mode", null,
                 "Failed to initialize RemoteServer");
               success = false;
             }
@@ -859,20 +889,22 @@ public class SpreadSheet extends JFrame implements ActionListener,
           else {
             displayErrorMessage("Unable to export cells as RMI addresses. " +
               "Make sure you are running rmiregistry before launching the " +
-              "SpreadSheet in server mode.",
+              "SpreadSheet in server mode", null,
               "Failed to initialize RemoteServer");
             success = false;
           }
         }
         catch (MalformedURLException exc) {
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
           displayErrorMessage("Unable to export cells as RMI addresses. " +
-            "The name \"" + server + "\" is not valid.",
+            "The name \"" + server + "\" is not valid", null,
             "Failed to initialize RemoteServer");
           success = false;
         }
         catch (RemoteException exc) {
-          displayErrorMessage("Unable to export cells as RMI addresses: " +
-            exc.getMessage(), "Failed to initialize RemoteServer");
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
+          displayErrorMessage("Unable to export cells as RMI addresses", exc,
+            "Failed to initialize RemoteServer");
           success = false;
         }
 
@@ -893,15 +925,17 @@ public class SpreadSheet extends JFrame implements ActionListener,
         
       }
       catch (VisADException exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
         displayErrorMessage("Unable to export cells as RMI addresses. " +
-          "An error occurred setting up the necessary data: " +
-          exc.getMessage(), "Failed to initialize RemoteServer");
+          "An error occurred setting up the necessary data", exc,
+          "Failed to initialize RemoteServer");
         success = false;
       }
       catch (RemoteException exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
         displayErrorMessage("Unable to export cells as RMI addresses. " +
-          "A remote error occurred setting up the necessary data: " +
-          exc.getMessage(), "Failed to initialize RemoteServer");
+          "A remote error occurred setting up the necessary data", exc,
+          "Failed to initialize RemoteServer");
         success = false;
       }
 
@@ -992,6 +1026,23 @@ public class SpreadSheet extends JFrame implements ActionListener,
     DisplayCells[CurX][CurY].loadDataDialog();
   }
 
+  /** export a data set to netCDF format */
+  void exportDataSetNetcdf() {
+    try {
+      DisplayCells[CurX][CurY].saveDataDialog(new Plain());
+    }
+    catch (VisADException exc) {
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+      displayErrorMessage("Cannot export data to netCDF format", exc,
+        "VisAD SpreadSheet error");
+    }
+  }
+
+  /** export a data set to serialized data format */
+  void exportDataSetSerial() {
+    DisplayCells[CurX][CurY].saveDataDialog(new VisADForm());
+  }
+
   /** export a data set to HDF5 format */
   void exportDataSetHDF5() {
     Form hdf5form = null;
@@ -1001,28 +1052,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
       hdf5form = (Form) hdf5form_class.newInstance();
     }
     catch (Exception exc) {
-      displayErrorMessage("Cannot export data to HDF5 format: " +
-        exc.getMessage(), "VisAD SpreadSheet error");
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+      displayErrorMessage("Cannot export data to HDF5 format", exc,
+        "VisAD SpreadSheet error");
     }
     if (hdf5form != null) {
       DisplayCells[CurX][CurY].saveDataDialog(hdf5form);
     }
-  }
-
-  /** export a data set to netCDF format */
-  void exportDataSetNetcdf() {
-    try {
-      DisplayCells[CurX][CurY].saveDataDialog(new Plain());
-    }
-    catch (VisADException exc) {
-      displayErrorMessage("Cannot export data to netCDF format: " +
-        exc.getMessage(), "VisAD SpreadSheet error");
-    }
-  }
-
-  /** export a data set to serialized data format */
-  void exportDataSetSerial() {
-    DisplayCells[CurX][CurY].saveDataDialog(new VisADForm());
   }
 
   /** do any necessary clean-up, then quit the program */
@@ -1121,11 +1157,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
         DisplayCells[CurX][CurY].setAutoDetect(b);
       }
       catch (VisADException exc) {
-        displayErrorMessage("Cannot paste cell: " + exc.getMessage(),
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+        displayErrorMessage("Cannot paste cell", exc,
           "VisAD SpreadSheet error");
       }
       catch (RemoteException exc) {
-        displayErrorMessage("Cannot paste cell: " + exc.getMessage(),
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+        displayErrorMessage("Cannot paste cell: ", exc,
           "VisAD SpreadSheet error");
       }
     }
@@ -1138,11 +1176,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
       else DisplayCells[CurX][CurY].clearCell();
     }
     catch (VisADException exc) {
-      displayErrorMessage("Cannot clear display mappings: " + exc.getMessage(),
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+      displayErrorMessage("Cannot clear display mappings: ", exc,
         "VisAD SpreadSheet error");
     }
     catch (RemoteException exc) {
-      displayErrorMessage("Cannot clear display mappings: " + exc.getMessage(),
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+      displayErrorMessage("Cannot clear display mappings: ", exc,
         "VisAD SpreadSheet error");
     }
     refreshFormulaBar();
@@ -1207,7 +1247,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     if (dir == null) return;
     File f = new File(dir, file);
     if (!f.exists()) {
-      displayErrorMessage("The file " + file + " does not exist",
+      displayErrorMessage("The file " + file + " does not exist", null,
         "VisAD SpreadSheet error");
       return;
     }
@@ -1232,8 +1272,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
       fr.close();
     }
     catch (IOException exc) {
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
       displayErrorMessage("Unable to read the file " + file + " from disk",
-        "VisAD SpreadSheet error");
+        null, "VisAD SpreadSheet error");
       // reset auto-switch, auto-detect and auto-show
       setAutoSwitch(origSwitch);
       setAutoDetect(origDetect);
@@ -1263,7 +1304,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       line = tokens[tokenNum++];
       if (line == null) {
         displayErrorMessage("The file " + file + " does not contain " +
-          "the required [Global] tag", "VisAD SpreadSheet error");
+          "the required [Global] tag", null, "VisAD SpreadSheet error");
         // reset auto-switch, auto-detect and auto-show
         setAutoSwitch(origSwitch);
         setAutoDetect(origDetect);
@@ -1277,7 +1318,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
         String sub = trimLine.substring(1, trimLen - 1).trim();
         if (!sub.equalsIgnoreCase("global")) {
           displayErrorMessage("The file " + file + " does not contain the " +
-            "[Global] tag as its first entry", "VisAD SpreadSheet error");
+            "[Global] tag as its first entry", null,
+            "VisAD SpreadSheet error");
           // reset auto-switch, auto-detect and auto-show
           setAutoSwitch(origSwitch);
           setAutoDetect(origDetect);
@@ -1442,7 +1484,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     // make sure cell dimensions are valid
     if (dimX < 1 || dimY < 1) {
       displayErrorMessage("The file " + file + " has an invalid " +
-        "global dimension entry", "VisAD SpreadSheet error");
+        "global dimension entry", null, "VisAD SpreadSheet error");
       // reset auto-switch, auto-detect and auto-show
       setAutoSwitch(origSwitch);
       setAutoDetect(origDetect);
@@ -1474,7 +1516,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         do {
           line = tokens[tokenNum++];
           if (line == null) {
-            displayErrorMessage("The file " + file + " is incomplete",
+            displayErrorMessage("The file " + file + " is incomplete", null,
               "VisAD SpreadSheet error");
             // reset auto-switch, auto-detect and auto-show
             setAutoSwitch(origSwitch);
@@ -1645,8 +1687,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
         fw.close();
       }
       catch (IOException exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
         displayErrorMessage("Could not save file " + CurrentFile.getName() +
-          ". Make sure there is enough disk space.",
+          ". Make sure there is enough disk space", null,
           "VisAD SpreadSheet error");
       }
     }
@@ -1678,14 +1721,39 @@ public class SpreadSheet extends JFrame implements ActionListener,
       DisplayCells[CurX][CurY].setDimension(threeD, java3D);
     }
     catch (VisADException exc) {
-      displayErrorMessage("Cannot alter display dimension: " +
-        exc.getMessage(), "VisAD SpreadSheet error");
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+      displayErrorMessage("Cannot alter display dimension", exc,
+        "VisAD SpreadSheet error");
     }
     catch (RemoteException exc) {
-      displayErrorMessage("Cannot alter display dimension: " +
-        exc.getMessage(), "VisAD SpreadSheet error");
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+      displayErrorMessage("Cannot alter display dimension", exc,
+        "VisAD SpreadSheet error");
     }
     refreshDisplayMenuItems();
+  }
+
+  /** create a hardcopy of the current spreadsheet cell */
+  void printCurrentCell() {
+    if (!DisplayCells[CurX][CurY].hasData()) {
+      displayErrorMessage("The current cell contains no data to be printed",
+        null, "VisAD SpreadSheet error");
+      return;
+    }
+    PrinterJob printJob = PrinterJob.getPrinterJob();
+    DisplayImpl display = DisplayCells[CurX][CurY].getDisplay();
+    Printable p = display.getPrintable();
+    printJob.setPrintable(p);
+    if (printJob.printDialog()) {
+      try {
+        printJob.print();  
+      }
+      catch (Exception exc) {
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+        displayErrorMessage("Cannot print the current cell", exc,
+          "VisAD SpreadSheet error");
+      }
+    }
   }
 
   /** specify mappings from Data to Display */
@@ -1803,12 +1871,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
             }
           }
           catch (VisADException exc) {
+            if (BasicSSCell.DEBUG) exc.printStackTrace();
             displayErrorMessage("Cannot add the column. Unable to create " +
-              "new displays: " + exc.getMessage(), "VisAD SpreadSheet error");
+              "new displays", exc, "VisAD SpreadSheet error");
           }
           catch (RemoteException exc) {
+            if (BasicSSCell.DEBUG) exc.printStackTrace();
             displayErrorMessage("Cannot add the column. A remote error " +
-              "occurred: " + exc.getMessage(), "VisAD SpreadSheet error");
+              "occurred", exc, "VisAD SpreadSheet error");
           }
         }
 
@@ -1881,12 +1951,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
           }
         }
         catch (VisADException exc) {
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
           displayErrorMessage("Cannot add the row. Unable to create new " +
-            "displays: " + exc.getMessage(), "VisAD SpreadSheet error");
+            "displays", exc, "VisAD SpreadSheet error");
         }
         catch (RemoteException exc) {
-          displayErrorMessage("Cannot add the row. A remote error occurred: " +
-            exc.getMessage(), "VisAD SpreadSheet error");
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
+          displayErrorMessage("Cannot add the row. A remote error occurred",
+            exc, "VisAD SpreadSheet error");
         }
       }
 
@@ -1900,7 +1972,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
     // make sure at least one column will be left
     if (NumVisX == 1) {
-      displayErrorMessage("This is the last column!",
+      displayErrorMessage("This is the last column", null,
         "Cannot delete column");
       return false;
     }
@@ -1909,7 +1981,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       if (DisplayCells[CurX][j].othersDepend()) {
         displayErrorMessage("Other cells depend on cells from this column. " +
           "Make sure that no cells depend on this column before attempting " +
-          "to delete it.", "Cannot delete column");
+          "to delete it", null, "Cannot delete column");
         return false;
       }
     }
@@ -1960,7 +2032,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   synchronized boolean deleteRow() {
     // make sure at least one row will be left
     if (NumVisY == 1) {
-      displayErrorMessage("This is the last row!", "Cannot delete row");
+      displayErrorMessage("This is the last row", null, "Cannot delete row");
       return false;
     }
     
@@ -1969,7 +2041,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       if (DisplayCells[i][CurY].othersDepend()) {
         displayErrorMessage("Other cells depend on cells from this row. " +
           "Make sure that no cells depend on this row before attempting " +
-          "to delete it.", "Cannot delete row");
+          "to delete it", null, "Cannot delete row");
         return false;
       }
     }
@@ -2113,12 +2185,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
         DisplayCells[CurX][CurY].setFormula(newFormula);
       }
       catch (VisADException exc) {
-        displayErrorMessage("Unable to assign the new formula: " +
-          exc.getMessage(), "VisAD SpreadSheet error");
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+        displayErrorMessage("Unable to assign the new formula", exc,
+          "VisAD SpreadSheet error");
       }
       catch (RemoteException exc) {
-        displayErrorMessage("Unable to assign the new formula: " +
-          exc.getMessage(), "VisAD SpreadSheet error");
+        if (BasicSSCell.DEBUG) exc.printStackTrace();
+        displayErrorMessage("Unable to assign the new formula", exc,
+          "VisAD SpreadSheet error");
       }
     }
   }
@@ -2154,6 +2228,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
         boolean b = DisplayCells[CurX][CurY].hasData();
+        CellPrint.setEnabled(b);
         CellEdit.setEnabled(b);
         ToolMap.setEnabled(b);
         FileSave1.setEnabled(b);
@@ -2397,14 +2472,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
             DisplayPanel.add(DisplayCells[i][j]);
           }
           catch (VisADException exc) {
+            if (BasicSSCell.DEBUG) exc.printStackTrace();
             displayErrorMessage("Cannot construct spreadsheet cells. " +
-              "An error occurred: " + exc.getMessage(),
-              "VisAD SpreadSheet error");
+              "An error occurred", exc, "VisAD SpreadSheet error");
           }
           catch (RemoteException exc) {
+            if (BasicSSCell.DEBUG) exc.printStackTrace();
             displayErrorMessage("Cannot construct spreadsheet cells. " +
-              "A remote error occurred: " + exc.getMessage(),
-              "VisAD SpreadSheet error");
+              "A remote error occurred", exc, "VisAD SpreadSheet error");
           }
         }
       }
@@ -2673,10 +2748,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else if (cmd.equals("setupSaveas")) saveasFile();
 
     // cell menu commands
-    else if (cmd.equals("cellEdit")) createMappings();
     else if (cmd.equals("cell3D")) setDim(false, false);
     else if (cmd.equals("cellJ2D")) setDim(true, true);
     else if (cmd.equals("cell2D")) setDim(true, false);
+    else if (cmd.equals("cellPrint")) printCurrentCell();
+    else if (cmd.equals("cellEdit")) createMappings();
     else if (cmd.equals("cellShow")) {
       DisplayCells[CurX][CurY].showWidgetFrame();
     }
@@ -2925,9 +3001,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   /** display an error in a message dialog */
-  private void displayErrorMessage(String msg, String title) {
+  private void displayErrorMessage(String msg, Exception exc, String title) {
+    String s = (exc == null ? null : exc.getMessage());
     final SpreadSheet ss = this;
-    final String m = msg;
+    final String m = msg + (s == null ? "." : (": " + s));
     final String t = title;
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
