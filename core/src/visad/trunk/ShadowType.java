@@ -1046,15 +1046,9 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     else if (domain_set == null) {
       spatialDimensions[1] = spatialDimension; // spatialManifoldDimension
     }
-/* WLH 24 Sept 98
-    else if (!allSpatial || domain_set == null) {
-      spatialDimensions[1] = spatialDimension; // spatialManifoldDimension
-      if (domain_set != null &&
-          (set_for_shape || spatialDimensions[0] < 2)) {
-*/
     else if (!allSpatial) {
       spatialDimensions[1] = spatialDimension; // spatialManifoldDimension
-      if (set_for_shape || spatialDimensions[0] < 2) {
+      if (set_for_shape) {
         // cannot inherit Set topology from Field domain, so
         // construct IrregularSet topology of appropriate dimension
         RealType[] reals = new RealType[spatialDimension];
@@ -1088,8 +1082,8 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           domain_set = null;
         }
         // System.out.println("IrregularSet done");
-      } // end if (set_for_shape || spatialDimensions[0] < 2)
-      else { /* WLH 24 Sept 98 */
+      }
+      else { // !set_for_shape
         domain_set = null;
       }
     }
