@@ -24,6 +24,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package edu.wisc.ssec.mcidas;
 
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.Date;
+import java.util.TimeZone;
+
 /**
  * Class for static McIDAS utility functions
  *
@@ -37,17 +42,131 @@ public final class McIDASUtil
 
     /**
      * Converts a packed integer (SIGN DDD MM SS) latitude/longitude to double.
+     * Java version of McIDAS <code>flalo</code> function except returns a 
+     * double instead of a float.
+     * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
+     *      McIDAS Programmer's Manual</A>
      *
      * @param value  integer containing the packed data
      * @return  double representation of value
      */
     public static double integerLatLonToDouble(int value)
     {
+        return mcPackedIntegerToDouble(value);
+    }
+   
+    /**
+     * Converts a double latitude/longitude to a packed integer (SIGN DDD MM SS)
+     * Java version of McIDAS <code>ilalo</code> function.
+     * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
+     *      McIDAS Programmer's Manual</A>
+     *
+     * @param value  double value of lat/lon
+     * @return  packed integer representation of value
+     */
+    public static int doubleLatLonToInteger(double dvalue)
+    {
+        return mcDoubleToPackedInteger(dvalue);
+    }
+   
+    /**
+     * Converts a packed integer (SIGN DDD/HH MM SS) latitude/longitude 
+     * or time (hours) to double. 
+     * Java replacements of McIDAS <code>flalo</code> and <code>ftime</code> 
+     * functions except returns a double instead of a float.
+     * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
+     *      McIDAS Programmer's Manual</A>
+     *
+     * @param value  integer containing the packed data
+     * @return  double representation of value
+     */
+    public static double mcPackedIntegerToDouble(int value)
+    {
         int val = value < 0 ? -value : value;
-        double dvalue  = ((double) (value/10000) + 
-                          ((double) ((value/100)%100))/60.0 +
-                          (double) (value%100)/3600.0);
+        double dvalue  = ((double) (val/10000) + 
+                          ((double) ((val/100)%100))/60.0 +
+                          (double) (val%100)/3600.0);
         return (value < 0) ? -dvalue : dvalue;
     }
    
+    /**
+     * Converts a double latitude/longitude or time (hours) to a 
+     * packed integer (SIGN DDD/HH MM SS). Java replacements of McIDAS 
+     * <code>ilalo</code> and <code>m0itime</code> functions.
+     * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
+     *      McIDAS Programmer's Manual</A>
+     *
+     * @param value  double value of lat/lon or time
+     * @return  packed integer representation of value
+     */
+    public static int mcDoubleToPackedInteger(double dvalue)
+    {
+        double dval = dvalue < 0 ? -dvalue : dvalue;
+        int j = (int) (3600.0*dval + 0.5);
+        int value  = 10000*(j/3600) + 100*((j/60)%60) + j%60;
+        return (dvalue < 0.0) ? -value : value;
+    }
+
+    /**
+     * Calculate difference in minutes between two dates/times.  Java
+     * version of timdif.for
+     * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
+     *      McIDAS Programmer's Manual</A>
+     *
+     * @param     yrday1   Year/day of first time (yyddd or yyyyddd)
+     * @param     hms1     Hours/minutes/seconds of first time (hhmmss).
+     * @param     yrday2   Year/day of second time (yyddd).
+     * @param     hms2     Hours/minutes/seconds of second time (hhmmss).
+     *
+     * @return  The difference between the two times (time2 - time1), 
+     *          in minutes. If the first time is greater than the second, 
+     *          the result will be negative.  
+     */
+    public static double timdif(int yrday1, int hms1, int yrday2, int hms2)
+    {
+        long secs1 = mcDayTimeToSecs(yrday1, hms1);
+        long secs2 = mcDayTimeToSecs(yrday2, hms2);
+        return (double) (secs2 - secs1)/60.;
+    }
+
+    /**
+     * Convert day (yyddd or yyyyddd) and time (hhmmss) to seconds since
+     * the epoch (January 1, 1970, 00:00GMT).  Java version of mcdaytimetosecs
+     * except it returns a long instead of an int.
+     * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
+     *      McIDAS Programmer's Manual</A>
+     *
+     * @param    yearday    year/day in either yyddd or yyyyddd format.  
+     *                      Only works for years > 1900.
+     * @param    time       time in packed integer format (hhmmss)
+     *
+     * @return  seconds since the epoch
+     *
+     */
+    public static long mcDayTimeToSecs(int yearday, int time)
+    {
+        int year = ((yearday/1000)%1900) + 1900;  // convert to yyyyddd first
+        int day =  yearday%1000;
+        double seconds = mcPackedIntegerToDouble(time)*3600.;
+
+        GregorianCalendar cal = new GregorianCalendar();
+        cal.clear();
+        cal.setTimeZone(TimeZone.getTimeZone("GMT"));
+        cal.set(Calendar.ERA, GregorianCalendar.AD);
+        cal.set(Calendar.YEAR, year);
+        /* 
+           allow us to specify # of days since the year began without having
+           worry about leap years and seconds since the day began, instead
+           of in the minute.  Saves on some calculations.
+        */
+        cal.setLenient(true);         
+
+        cal.set(Calendar.DAY_OF_YEAR, day);
+        int secs = ((int) Math.round(seconds * 1000))/1000;
+        cal.set(Calendar.SECOND, secs);
+        cal.set(Calendar.MILLISECOND, 0);
+        //System.out.println("Date = " + cal.getTime());
+        return cal.getTime().getTime()/1000;
+    }
+
 }

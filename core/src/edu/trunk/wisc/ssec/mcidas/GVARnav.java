@@ -696,13 +696,13 @@ public class GVARnav extends AREAnav
     double[][] latlon = new double[2][number];
 
     //  transform line/pixel to geographic coordinates:
-    linele = areaCoordToImageCoord(linele); 
+    double imglinele[][] = areaCoordToImageCoord(linele); 
 
     for (int point=0; point<number; point++) {
 
       //  set input line/pixel numbers
-      rl = linele[indexLine][point];
-      rp = linele[indexEle][point];
+      rl = imglinele[indexLine][point];
+      rp = imglinele[indexEle][point];
 
       //  if doing sounder nav, have to trick routines into thinking image is
       //  at res 1, because nav routines take sounder res into account
