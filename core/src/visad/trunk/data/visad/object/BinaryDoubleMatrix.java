@@ -71,6 +71,8 @@ if(DEBUG_RD_DATA_DETAIL)System.err.println("rdDblMtx: #" + i + "," + j +" (" + m
     return matrix;
   }
 
+  private static final boolean fasterButUglier = true;
+
   public static final void write(BinaryWriter writer, double[][] matrix,
                                  Object token)
     throws IOException
@@ -81,15 +83,54 @@ if(DEBUG_RD_DATA_DETAIL)System.err.println("rdDblMtx: #" + i + "," + j +" (" + m
 if(DEBUG_WR_DATA)System.err.println("wrDblMtx: null (" + -1 + ")");
       file.writeInt(-1);
     } else {
+      if (fasterButUglier) {
+        byte[] buf = new byte[computeBytes(matrix)];
+        int bufIdx = 0;
+
 if(DEBUG_WR_DATA)System.err.println("wrDblMtx: row len (" + matrix.length + ")");
-      file.writeInt(matrix.length);
-      for (int i = 0; i < matrix.length; i++) {
-        final int len = matrix[i].length;
+        for (int b = 3, l = matrix.length; b >= 0; b--) {
+          buf[bufIdx + b] = (byte )(l & 0xff);
+          l >>= 8;
+        }
+        bufIdx += 4;
+
+        for (int i = 0; i < matrix.length; i++) {
+          final int len = matrix[i].length;
 if(DEBUG_WR_DATA)System.err.println("wrDblMtx: #" + i + " len (" + matrix[i].length + ")");
-        file.writeInt(len);
-        for (int j = 0; j < len; j++) {
+          for (int b = 3, l = len; b >= 0; b--) {
+            buf[bufIdx + b] = (byte )(l & 0xff);
+            l >>= 8;
+          }
+          bufIdx += 4;
+
+          for (int j = 0; j < len; j++) {
 if(DEBUG_WR_DATA_DETAIL)System.err.println("wrDblMtx: #" + i + "," + j + " (" + matrix[i][j] + ")");
-          file.writeDouble(matrix[i][j]);
+            long x = Double.doubleToLongBits(matrix[i][j]);
+            for (int b = 7; b >= 0; b--) {
+              buf[bufIdx + b] = (byte )(x & 0xff);
+              x >>= 8;
+            }
+            bufIdx += 8;
+          }
+        }
+
+        if (bufIdx < buf.length) {
+          System.err.println("BinaryDoubleMatrix: Missing " +
+                             (buf.length - bufIdx) + " bytes");
+        }
+
+        file.write(buf);
+      } else { // !fasterButUglier
+if(DEBUG_WR_DATA)System.err.println("wrDblMtx: row len (" + matrix.length + ")");
+        file.writeInt(matrix.length);
+        for (int i = 0; i < matrix.length; i++) {
+          final int len = matrix[i].length;
+if(DEBUG_WR_DATA)System.err.println("wrDblMtx: #" + i + " len (" + matrix[i].length + ")");
+          file.writeInt(len);
+          for (int j = 0; j < len; j++) {
+if(DEBUG_WR_DATA_DETAIL)System.err.println("wrDblMtx: #" + i + "," + j + " (" + matrix[i][j] + ")");
+            file.writeDouble(matrix[i][j]);
+          }
         }
       }
     }

@@ -71,6 +71,8 @@ if(DEBUG_RD_DATA_DETAIL)System.err.println("rdFltMtx: #" + i + "," + j +" (" + m
     return matrix;
   }
 
+  private static final boolean fasterButUglier = true;
+
   public static final void write(BinaryWriter writer, float[][] matrix,
                                  Object token)
     throws IOException
@@ -81,15 +83,49 @@ if(DEBUG_RD_DATA_DETAIL)System.err.println("rdFltMtx: #" + i + "," + j +" (" + m
 if(DEBUG_WR_DATA)System.err.println("wrFltMtx: null (" + -1 + ")");
       file.writeInt(-1);
     } else {
+      if (fasterButUglier) {
+        byte[] buf = new byte[4+matrix.length*(4+4*matrix[0].length)];
+        int bufIdx = 0;
+
 if(DEBUG_WR_DATA)System.err.println("wrFltMtx: row len (" + matrix.length + ")");
-      file.writeInt(matrix.length);
-      for (int i = 0; i < matrix.length; i++) {
-        final int len = matrix[i].length;
+        for (int b = 3, l = matrix.length; b >= 0; b--) {
+          buf[bufIdx + b] = (byte )(l & 0xff);
+          l >>= 8;
+        }
+        bufIdx += 4;
+
+        for (int i = 0; i < matrix.length; i++) {
+          final int len = matrix[i].length;
 if(DEBUG_WR_DATA)System.err.println("wrFltMtx: #" + i + " len (" + matrix[i].length + ")");
-        file.writeInt(len);
-        for (int j = 0; j < len; j++) {
+          for (int b = 3, l = len; b >= 0; b--) {
+            buf[bufIdx + b] = (byte )(l & 0xff);
+            l >>= 8;
+          }
+          bufIdx += 4;
+
+          for (int j = 0; j < len; j++) {
 if(DEBUG_WR_DATA_DETAIL)System.err.println("wrFltMtx: #" + i + "," + j + " (" + matrix[i][j] + ")");
-          file.writeFloat(matrix[i][j]);
+            int x = Float.floatToIntBits(matrix[i][j]);
+            for (int b = 3; b >= 0; b--) {
+              buf[bufIdx + b] = (byte )(x & 0xff);
+              x >>= 8;
+            }
+            bufIdx += 4;
+          }
+        }
+
+        file.write(buf);
+      } else { // !fasterButUglier
+if(DEBUG_WR_DATA)System.err.println("wrFltMtx: row len (" + matrix.length + ")");
+        file.writeInt(matrix.length);
+        for (int i = 0; i < matrix.length; i++) {
+          final int len = matrix[i].length;
+if(DEBUG_WR_DATA)System.err.println("wrFltMtx: #" + i + " len (" + matrix[i].length + ")");
+          file.writeInt(len);
+          for (int j = 0; j < len; j++) {
+if(DEBUG_WR_DATA_DETAIL)System.err.println("wrFltMtx: #" + i + "," + j + " (" + matrix[i][j] + ")");
+            file.writeFloat(matrix[i][j]);
+          }
         }
       }
     }

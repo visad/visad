@@ -58,17 +58,48 @@ if(DEBUG_RD_DATA_DETAIL)System.err.println("rdDblRA: #" + i +" (" + array[i] + "
     return array;
   }
 
+  private static final boolean fasterButUglier = true;
+
   public static final void write(BinaryWriter writer, double[] array,
                                  Object token)
     throws IOException
   {
     DataOutputStream file = writer.getOutputStream();
 
+    if (fasterButUglier) {
+      byte[] buf = new byte[computeBytes(array)];
+      int bufIdx = 0;
+
 if(DEBUG_WR_DATA)System.err.println("wrDblRA: len (" + array.length + ")");
-    file.writeInt(array.length);
-    for (int i = 0; i < array.length; i++) {
+      for (int b = 3, l = array.length; b >= 0; b--) {
+        buf[bufIdx + b] = (byte )(l & 0xff);
+        l >>= 8;
+      }
+      bufIdx += 4;
+
+      for (int i = 0; i < array.length; i++) {
 if(DEBUG_WR_DATA_DETAIL)System.err.println("wrDblRA: #" + i + " (" + array[i] + ")");
-      file.writeDouble(array[i]);
+        long x = Double.doubleToLongBits(array[i]);
+        for (int b = 7; b >= 0; b--) {
+          buf[bufIdx + b] = (byte )(x & 0xff);
+          x >>= 8;
+        }
+        bufIdx += 8;
+      }
+
+      if (bufIdx < buf.length) {
+        System.err.println("BinaryDoubleArray: Missing " +
+                           (buf.length - bufIdx) + " bytes");
+      }
+
+      file.write(buf);
+    } else { // !fasterButUglier
+if(DEBUG_WR_DATA)System.err.println("wrDblRA: len (" + array.length + ")");
+      file.writeInt(array.length);
+      for (int i = 0; i < array.length; i++) {
+if(DEBUG_WR_DATA_DETAIL)System.err.println("wrDblRA: #" + i + " (" + array[i] + ")");
+        file.writeDouble(array[i]);
+      }
     }
   }
 }
