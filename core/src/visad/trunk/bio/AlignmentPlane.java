@@ -115,6 +115,15 @@ public class AlignmentPlane extends PlaneSelector {
     toggle(mode == SET_MODE || mode == ADJUST_MODE);
   }
 
+  /**
+   * Transforms a point from its location at the initial index
+   * to its location at the given destination index.
+   */
+  public double[] transform(double[] pt, int ndx1, int ndx2) {
+    double[] v = new double[3];
+    // CTR START HERE
+  }
+
 
   // -- INTERNAL API METHODS --
 
@@ -155,11 +164,12 @@ public class AlignmentPlane extends PlaneSelector {
     double[] v = pos[index][0];
     double[] t = new double[3];
     for (int i=0; i<3; i++) t[i] = old_v[i] - v[i];
-    // CTR - ?
+    // CTR - double-check this logic later
     t[0] /= bio.sm.res_x;
     t[1] /= bio.sm.res_y;
     t[2] /= bio.sm.getNumberOfSlices();
 
+    /*
     ProjectionControl control = display.getProjectionControl();
     double[] matrix = control.getMatrix();
     double[] mult = display.make_matrix(0.0, 0.0, 0.0, 1.0, t[0], t[1], t[2]);
@@ -168,6 +178,7 @@ public class AlignmentPlane extends PlaneSelector {
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
+    */
   }
 
   /** Refreshes the plane data from its endpoint locations. */

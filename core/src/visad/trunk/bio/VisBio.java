@@ -631,13 +631,13 @@ public class VisBio extends GUIFrame implements ChangeListener {
     setWaitCursor(true);
 
     // determine file type
-    String file = snapBox.getSelectedFile().getPath();
+    final String file = snapBox.getSelectedFile().getPath();
     String ext = "";
     int dot = file.indexOf(".");
     if (dot >= 0) ext = file.substring(dot + 1).toLowerCase();
-    boolean tiff = ext.equals("tif") || ext.equals("tiff");
-    boolean jpeg = ext.equals("jpg") || ext.equals("jpeg");
-    boolean raw = ext.equals("raw");
+    final boolean tiff = ext.equals("tif") || ext.equals("tiff");
+    final boolean jpeg = ext.equals("jpg") || ext.equals("jpeg");
+    final boolean raw = ext.equals("raw");
     if (!tiff && !jpeg && !raw) {
       setWaitCursor(false);
       JOptionPane.showMessageDialog(this, "Invalid filename (" +
@@ -647,8 +647,8 @@ public class VisBio extends GUIFrame implements ChangeListener {
     }
 
     // construct output image
-    boolean has2 = display2.getComponent().isVisible();
-    boolean has3 = display3 != null &&
+    final boolean has2 = display2.getComponent().isVisible();
+    final boolean has3 = display3 != null &&
       display3.getComponent().isVisible();
     if (!has2 && !has3) {
       setWaitCursor(false);
@@ -657,33 +657,39 @@ public class VisBio extends GUIFrame implements ChangeListener {
       return;
     }
 
-    BufferedImage image2 = has2 ? display2.getImage() : null;
-    BufferedImage image3 = has3 ? display3.getImage() : null;
-    int w2 = 0, h2 = 0, w3 = 0, h3 = 0;
-    int type = BufferedImage.TYPE_INT_RGB;
-    if (has2) {
-      w2 = image2.getWidth();
-      h2 = image2.getHeight();
-      type = image2.getType();
-    }
-    if (has3) {
-      w3 = image3.getWidth();
-      h3 = image3.getHeight();
-      type = image3.getType();
-    }
-    BufferedImage img = new BufferedImage(
-      w2 > w3 ? w2 : w3, h2 + h3, type);
-    Graphics g = img.createGraphics();
-    if (has2) g.drawImage(image2, 0, 0, null);
-    if (has3) g.drawImage(image3, 0, h2, null);
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        BufferedImage image2 = has2 ? display2.getImage() : null;
+        BufferedImage image3 = has3 ? display3.getImage() : null;
+        int w2 = 0, h2 = 0, w3 = 0, h3 = 0;
+        int type = BufferedImage.TYPE_INT_RGB;
+        if (has2) {
+          w2 = image2.getWidth();
+          h2 = image2.getHeight();
+          type = image2.getType();
+        }
+        if (has3) {
+          w3 = image3.getWidth();
+          h3 = image3.getHeight();
+          type = image3.getType();
+        }
+        BufferedImage img = new BufferedImage(
+          w2 > w3 ? w2 : w3, h2 + h3, type);
+        Graphics g = img.createGraphics();
+        if (has2) g.drawImage(image2, 0, 0, null);
+        if (has3) g.drawImage(image3, 0, h2, null);
+        g.dispose();
 
-    // save image to disk
-    FileSaver saver = new FileSaver(new ImagePlus("null", img));
-    if (tiff) saver.saveAsTiff(file);
-    else if (jpeg) saver.saveAsJpeg(file);
-    else if (raw) saver.saveAsRaw(file);
+        // save image to disk
+        FileSaver saver = new FileSaver(new ImagePlus("null", img));
+        if (tiff) saver.saveAsTiff(file);
+        else if (jpeg) saver.saveAsJpeg(file);
+        else if (raw) saver.saveAsRaw(file);
 
-    setWaitCursor(false);
+        setWaitCursor(false);
+      }
+    });
+    t.start();
   }
 
   /** Displays the VisBio options dialog box. */
