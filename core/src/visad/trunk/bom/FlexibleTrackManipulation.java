@@ -576,7 +576,7 @@ public class FlexibleTrackManipulation extends Object {
   private boolean pfirst = true;
 
   class ProjectionControlListener implements ControlListener {
-    private double base_scale = 1.0;
+    private double base_scale = 0.65;
     private float last_cscale = 1.0f;
 
     public void controlChanged(ControlEvent e)
@@ -587,12 +587,15 @@ public class FlexibleTrackManipulation extends Object {
       double[] trans = new double[3];
       MouseBehaviorJ3D.unmake_matrix(rot, scale, trans, matrix);
 
+/* WLH 10 Sept 2001
       if (pfirst) {
         pfirst = false;
         base_scale = scale[0];
+// System.out.println("base_scale = " + base_scale);
         last_cscale = 1.0f;
       }
       else {
+*/
         float cscale = (float) (base_scale / scale[0]);
         float ratio = cscale / last_cscale;
         if (ratio < 0.95f || 1.05f < ratio) {
@@ -600,7 +603,9 @@ public class FlexibleTrackManipulation extends Object {
           shape_control1.setScale(cscale);
           shape_control2.setScale(cscale);
         }
+/* WLH 10 Sept 2001
       }
+*/
     }
   }
 
