@@ -601,5 +601,10 @@ public class DisplayImplJ3D extends DisplayImpl {
     return format;
   }
 
+  public void destroy() throws VisADException, RemoteException {
+    ((DisplayRendererJ3D) getDisplayRenderer()).getCanvas().stop();
+    super.destroy();
+  }
+
 }
 

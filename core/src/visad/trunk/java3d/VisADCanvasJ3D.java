@@ -238,5 +238,12 @@ public class VisADCanvasJ3D extends Canvas3D {
     }
 
   }
+
+  public void stop() {
+    stopRenderer();
+    display = null;
+    displayRenderer = null;
+  }
+
 }
 
