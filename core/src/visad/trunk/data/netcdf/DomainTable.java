@@ -1,8 +1,9 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DomainTable.java,v 1.6 1998-02-23 15:58:17 steve Exp $
+ * $Id: DomainTable.java,v 1.7 1998-03-12 22:03:00 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -19,7 +20,7 @@ import visad.VisADException;
 
 
 /**
- * Class for managing the correspondence between VisAD domains and
+ * The DomainTable class manages the correspondence between VisAD domains and
  * netCDF variables.
  */
 class
@@ -27,9 +28,8 @@ DomainTable
 {
     /**
      * The hashtable.
-     * Effectively "final".
      */
-    protected Hashtable		table;
+    protected final Hashtable		table;
 
 
     /**
@@ -42,9 +42,9 @@ DomainTable
 
 
     /**
-     * Add a variable entry.
-     * NB: Variables with the same domain accumulate.
+     * Add a variable entry.  Variables with the same domain accumulate.
      *
+     * @param var			A netCDF variable that's to be imported.
      * @exception BadFormException	netCDF couldn't handle VisAD object.
      * @exception VisADException	Couldn't create necessary VisAD object.
      */
@@ -78,7 +78,9 @@ DomainTable
     /**
      * Return the domains of the table.
      *
-     * @exception UnimplementedException	Not yet!
+     * @return				The Domains in the table.
+     * @exception UnimplementedException
+     *					Not yet!
      * @exception VisADException	Couldn't create necessary VisAD object.
      * @exception IOException		I/O error.
      */
@@ -98,6 +100,8 @@ DomainTable
 
     /**
      * Return an enumeration of the domains in the table.
+     *
+     * @return	An enumeration of the domains in the table.
      */
     Enumeration
     getEnumeration()
@@ -131,6 +135,8 @@ DomainTable
 
     /**
      * Convert to a string.
+     *
+     * @return	The table represented as a string.
      */
     public String
     toString()

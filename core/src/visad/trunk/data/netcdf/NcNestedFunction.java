@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNestedFunction.java,v 1.5 1998-02-23 15:58:24 steve Exp $
+ * $Id: NcNestedFunction.java,v 1.6 1998-03-12 22:03:09 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import java.io.IOException;
 import visad.DataImpl;
@@ -19,8 +19,8 @@ import visad.VisADException;
 
 
 /**
- * Class for adapting a netCDF function that has an outermost dimension
- * that is to be kept separate, to a VisAD function.
+ * The NcNestedFunction class adapts a netCDF function to a VisAD Field
+ * of FlatFields.
  */
 class
 NcNestedFunction
@@ -37,6 +37,9 @@ NcNestedFunction
      * Construct from netCDF dimensions and an array of adapted, netCDF
      * variables.
      *
+     * @param vars	The netCDF variables whose dimensions contitute the
+     *			domain of the function and whose values contitute the
+     *			range of the function.
      * @precondition	All variables have the same (ordered) set of dimensions.
      * @precondition	The dimensional rank is 2 or greater.
      * @exception UnimplementedException	Not yet!
@@ -55,7 +58,9 @@ NcNestedFunction
     /**
      * Return the VisAD MathType of the range.
      *
-     * @exception VisADException	Couldn't create necessary VisAD object.
+     * @return		The VisAD MathType of the FlatFields.
+     * @exception VisADException
+     *			Couldn't create necessary VisAD object.
      */
     protected MathType
     getRangeMathType()
@@ -67,6 +72,13 @@ NcNestedFunction
 
     /**
      * Return the VisAD data object corresponding to this function.
+     *
+     * @return		The VisAD MathType of the function.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
      */
     DataImpl
     getData()
@@ -83,6 +95,13 @@ NcNestedFunction
 
     /**
      * Return the range values of this function.
+     *
+     * @return		The FlatFields constituting the range of the function.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
      */
     protected FlatField[]
     getRangeFlatFields()

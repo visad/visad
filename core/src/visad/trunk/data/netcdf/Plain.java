@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Plain.java,v 1.6 1998-03-10 19:49:37 steve Exp $
+ * $Id: Plain.java,v 1.7 1998-03-12 22:03:14 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import java.io.IOException;
 import java.net.URL;
@@ -44,11 +44,16 @@ Plain
     /**
      * Save a VisAD data object in this form.
      *
+     * @param path			The pathname of the netCDF file to
+     *					be created.
+     * @param data			The data to be saved.
+     * @param replace			Whether to replace an existing file.
      * @exception BadFormException	netCDF can't handle data object
      * @exception VisADException	Couldn't create necessary VisAD object
-     * @exception IOException		I/O error
+     * @exception IOException		I/O error.  File might already exist.
      * @exception RemoteException	Remote execution error
-     * @exception UnimplementedException	Not yet!
+     * @exception UnimplementedException
+     *					Not yet!
      */
     public void
     save(String path, Data data, boolean replace)
@@ -87,7 +92,13 @@ Plain
     /**
      * Add data to an existing data object.
      *
-     * @exception BadFormException	netCDF can't handle data object
+     * @param id	Pathname of the existing netCDF file.
+     * @param data	Data to be saved.
+     * @param replace	Whether or not to replace duplicate, existing data.
+     * @exception BadFormException
+     *			netCDF can't handle data object.
+     * @exception UnimplementedException
+     *			Not implemented yet.  Always thrown.
      */
     public void
     add(String id, Data data, boolean replace)
@@ -98,6 +109,16 @@ Plain
 
     /**
      * Open an existing netCDF file and return a VisAD data object.
+     *
+     * @param path	Pathname of the existing netCDF file.
+     * @return		A VisAD object corresponding to the netCDF dataset.
+     * @exception BadFormException
+     *			The netCDF variable cannot be adapted to a VisAD API.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
      */
     public DataImpl
     open(String path)
@@ -121,6 +142,11 @@ Plain
 
     /**
      * Open a URL.
+     *
+     * @param url	The URL of the netCDF dataset.
+     * @return		A VisAD object corresponding to the netCDF datset.
+     * @exception UnimplementedException
+     *			Not implemented yet.  Always thrown.
      */
     public DataImpl
     open (URL url)
@@ -132,17 +158,23 @@ Plain
 
     /**
      * Return the data forms that are compatible with a data object.
+     *
+     * @param data	The VisAD data object to be examined.
+     * @return		The data forms compatible with <code>data</data>.
+     * @exception UnimplementedException
+     *			Not implemented yet.  Always thrown.
      */
     public FormNode
     getForms(Data data)
     {
-	return this;		// TODO
+	return this;	// TODO
     }
 
 
     /**
      * Test this class.
      *
+     * @param args		Runtime arguments.  Ignored.
      * @exception Exception	Something went wrong.
      */
     public static void main(String[] args)

@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: TextAccessor.java,v 1.1 1998-03-11 16:21:54 steve Exp $
+ * $Id: TextAccessor.java,v 1.2 1998-03-12 22:03:16 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import java.io.IOException;
 import ucar.netcdf.Dimension;
@@ -14,8 +14,9 @@ import visad.Text;
 
 
 /**
- * Class for accessing data in a VisAD Text that's been adapted to a 
- * netCDF API.
+ * The TextAccessor class accesses character data in a VisAD Text that's 
+ * being adapted to a netCDF API.  It's useful for exporting data to a netCDF
+ * dataset.
  */
 class
 TextAccessor
@@ -29,6 +30,11 @@ TextAccessor
 
     /**
      * Construct from a netCDF Dimension and an outer VisADAccessor.
+     *
+     * @param charDim		The netCDF character dimension (i.e. innermost
+     *				netCDF dimension).
+     * @param outerAccessor	The DataAccessor for the encompasing VisAD
+     *				data object.  Returns Text objects.
      */
     protected
     TextAccessor(Dimension charDim, VisADAccessor outerAccessor)
@@ -39,6 +45,15 @@ TextAccessor
 
     /**
      * Return a datum given the split, netCDF indexes.
+     *
+     * @return		The datum at the position given by
+     *			<code>localIndexes</code> and 
+     *			<code>outerIndexes</code>.
+     * @exception IOException
+     *			Data access I/O failure.
+     * @exception StringIndexOutOfBoundsException
+     *			The character position given by 
+     *			<code>localIndexes</code> was out-of-bounds.
      */
     protected Object
     get()

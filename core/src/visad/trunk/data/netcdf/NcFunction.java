@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcFunction.java,v 1.7 1998-02-23 15:58:22 steve Exp $
+ * $Id: NcFunction.java,v 1.8 1998-03-12 22:03:07 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import java.io.IOException;
 import visad.CoordinateSystem;
@@ -34,7 +34,7 @@ import visad.VisADException;
 
 
 /**
- * Class for adapting a netCDF function to a VisAD function.
+ * The NcFunction class adapts an imported netCDF function to a VisAD function.
  */
 class
 NcFunction
@@ -68,6 +68,8 @@ NcFunction
     /**
      * Construct from an array of adapted, netCDF variables.
      *
+     * @param vars	The netCDF variables that are defined over the same
+     *			domain and that constitude the range of the function.
      * @precondition	All variables have the same (ordered) set of dimensions.
      * @exception UnimplementedException	Not yet!
      * @exception VisADException		Couldn't create necessary 
@@ -84,6 +86,10 @@ NcFunction
     /**
      * Protected initializer for derived classes.
      *
+     * @param varDims	The netCDF dimensions comprising the domain of the
+     *			function.
+     * @param vars	The netCDF variables comprising the range of the
+     *			function.
      * @precondition	All variables have the same (ordered) set of dimensions.
      * @exception UnimplementedException	Not yet!
      * @exception VisADException		Couldn't create necessary 
@@ -116,7 +122,9 @@ NcFunction
     /**
      * Return the VisAD MathType of the domain.
      *
-     * @exception VisADException	Couldn't create necessary VisAD object.
+     * @return	The VisAD MathType of the domain of the function.
+     * @exception VisADException
+     *		Couldn't create a necessary VisAD object.
      */
     protected MathType
     getDomainMathType()
@@ -144,7 +152,9 @@ NcFunction
     /**
      * Return the VisAD MathType of the range.
      *
-     * @exception VisADException	Couldn't create necessary VisAD object.
+     * @return		The VisAD MathType of the range of the function.
+     * @exception VisADException
+     *			Couldn't create a necessary VisAD object.
      */
     protected MathType
     getRangeMathType()
@@ -199,6 +209,13 @@ NcFunction
 
     /**
      * Return the VisAD data object corresponding to this function.
+     *
+     * @return		The VisAD data object corresponding to the function.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
      */
     DataImpl
     getData()
@@ -228,6 +245,13 @@ NcFunction
 
     /**
      * Return the domain-set of this function.
+     *
+     * @return		The sampling domain-set of the function.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
      */
     protected Set
     getDomainSet()
@@ -297,7 +321,8 @@ NcFunction
     /**
      * Return the IntegerSet of this function.
      *
-     * @precondition	The domain-set of this function is (logically)
+     * @return		The IntegerSet of the domain of the function.
+     * @precondition	The sampling domain-set of the function is (logically)
      *			an IntegerSet.
      */
     protected GriddedSet
@@ -319,7 +344,8 @@ NcFunction
     /**
      * Return the LinearSet of this function.
      *
-     * @precondition	The domain-set of this function is (logically)
+     * @return		The LinearSet of the domain of the function.
+     * @precondition	The sampling domain-set of this function is (logically)
      *			a LinearSet.
      */
     protected LinearSet
@@ -363,7 +389,9 @@ NcFunction
     /**
      * Return the GriddedSet of this function.
      *
-     * @precondition	The domain-set of this function is a GriddedSet.
+     * @return		The GriddedSet of the domain of the function.
+     * @precondition	The sampling domain-set of this function is a 
+     *			GriddedSet.
      */
     protected GriddedSet
     getGriddedSet(ImportVar[] coordVars)
@@ -410,6 +438,8 @@ NcFunction
 
     /**
      * Return the range Sets of this function.
+     *
+     * @return	The range Sets of the function.
      */
     protected Set[]
     getRangeSets()
@@ -425,6 +455,8 @@ NcFunction
 
     /**
      * Return the range Units of this function.
+     *
+     * @return	The range units of the function.
      */
     protected Unit[]
     getRangeUnits()
@@ -440,6 +472,13 @@ NcFunction
 
     /**
      * Return the range values of this function as doubles.
+     *
+     * @return		The range values of the function.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
      */
     protected double[][]
     getRangeDoubles()

@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DependentVar.java,v 1.2 1998-03-11 16:21:50 steve Exp $
+ * $Id: DependentVar.java,v 1.3 1998-03-12 22:02:58 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import java.io.IOException;
 import ucar.netcdf.Attribute;
@@ -24,8 +24,9 @@ import visad.data.BadFormException;
 
 
 /**
- * Class for creating the dependent, netCDF variables that reside in an
- * adapted VisAD data object.
+ * The DependentVar class provides an abstract class for adapting data in
+ * a VisAD data object to a netCDF, dependent-variable API for the purpose
+ * of exporting the data.
  */
 abstract class 
 DependentVar
@@ -39,6 +40,14 @@ DependentVar
 
     /**
      * Construct.
+     *
+     * @param name	The name of the netCDF, dependent variable.
+     * @param type	The Java class of the type of the variable (i.e.
+     *			Double, Byte, Character, etc.).
+     * @param dims	The netCDF dimensions of the variable.
+     * @param attrs	The netCDF attributes of the variable.
+     * @exception BadFormException
+     *			The VisAD data object cannot be adapted to a netCDF API.
      */
     protected
     DependentVar(String name, Class type, Dimension[] dims, Attribute[] attrs,
@@ -53,6 +62,14 @@ DependentVar
 
     /**
      * Return a netCDF datum identified by position.
+     *
+     * @param indexes	The netCDF indexes of the desired datum.  Includes all
+     *			adapted dimensions -- including those of all enclosing
+     *			VisAD data objects.
+     * @return		An Object that contains the data value or the
+     *			appropriate netCDF fill-value if the data is missing.
+     * @exception IOException
+     *			Data access failure.
      */
     public abstract Object
     get(int[] indexes)

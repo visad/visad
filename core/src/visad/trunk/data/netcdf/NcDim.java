@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcDim.java,v 1.4 1998-02-23 15:58:21 steve Exp $
+ * $Id: NcDim.java,v 1.5 1998-03-12 22:03:06 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import ucar.netcdf.Dimension;
 import ucar.netcdf.Netcdf;
@@ -16,7 +16,8 @@ import visad.VisADException;
 
 
 /**
- * Decorator class for a netCDF dimension.
+ * The NcDim class decorates a netCDF dimension.  It's useful when importing
+ * a netCDF dataset.
  */
 class
 NcDim
@@ -24,6 +25,12 @@ NcDim
 {
     /**
      * Factory method for constructing the right type of dimension decorator.
+     *
+     * @param dim	The netCDF dimension to be decorated.
+     * @param netcdf	The netCDF dataset that contains <code>dim</code>.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
      */
     static NcDim
     create(Dimension dim, Netcdf netcdf)
@@ -42,7 +49,7 @@ NcDim
      * Construct from a netCDF dimension.  Protected to ensure use of
      * the NcDim factory method.
      *
-     * @precondition	The given dimension is non-null.
+     * @param dim	The netCDF dimension to be decorated.
      */
     protected
     NcDim(Dimension dim)
@@ -53,6 +60,11 @@ NcDim
 
     /**
      * Return the VisAD MathType for this dimension.
+     *
+     * @return		The VisAD MathType for the dimension.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
      */
     RealType
     getMathType()
@@ -70,6 +82,10 @@ NcDim
 
     /**
      * Indicate whether or not this dimension is the same as another.
+     *
+     * @param that	The other, decorated, netCDF dimension.
+     * @return		<code>true</code> if and only if the dimension and
+     *			the other dimension are semantically identical.
      */
     boolean
     equals(NcDim that)
@@ -80,6 +96,9 @@ NcDim
 
     /**
      * Indicate whether or not this dimension is temporal in nature.
+     *
+     * @return	<code>true</code> if and only if the dimension represents
+     *		time.
      */
     boolean
     isTime()
@@ -94,6 +113,8 @@ NcDim
 
     /**
      * Return the hash code of this dimension.
+     *
+     * @return	The hash code of the dimension.
      */
     public int
     hashCode()
@@ -105,6 +126,7 @@ NcDim
     /**
      * Convert this dimension to a string.
      *
+     * @return	The dimension represented as a string.
      * @deprecated
      */
     public String
@@ -116,6 +138,9 @@ NcDim
 
     /**
      * Return the co-ordinate variable associated with this dimension.
+     *
+     * @return	The netCDF coordinate variable associated with the dimension
+     *		or <code>null</code> if there isn't one.
      */
     ImportVar
     getCoordVar()
@@ -126,7 +151,8 @@ NcDim
 
 
 /**
- * Decorator class for a netCDF dimension that has a co-ordinate variable.
+ * The NcCoordDim class decorates a netCDF dimension that has a netCDF
+ * coordinate variable.
  */
 class
 NcCoordDim
@@ -142,8 +168,11 @@ NcCoordDim
      * Construct from a netCDF dimension and dataset.  Protected to ensure
      * use of the NcDim factory method.
      *
-     * @precondition	The dimension has a co-ordinate variable in the
-     *			dataset.
+     * @param dim	The netCDF dimension that has a coordinate variable.
+     * @param netcdf	The netCDF dataset that contains <code>dim</code>.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
      */
     protected
     NcCoordDim(Dimension dim, Netcdf netcdf)
@@ -156,6 +185,9 @@ NcCoordDim
 
     /**
      * Indicate whether or not this dimension is temporal in nature.
+     *
+     * @return	<code>true</code> if and only if the dimension represents
+     *		time.
      */
     boolean
     isTime()
@@ -166,6 +198,8 @@ NcCoordDim
 
     /**
      * Return the co-ordinate variable associated with this dimension.
+     *
+     * @return	The coordinate variable associated with the dimension.
      */
     ImportVar
     getCoordVar()

@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Vetter.java,v 1.2 1998-02-23 15:58:32 steve Exp $
+ * $Id: Vetter.java,v 1.3 1998-03-12 22:03:19 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import ucar.netcdf.Attribute;
 import ucar.netcdf.Variable;
@@ -14,7 +14,8 @@ import visad.data.BadFormException;
 
 
 /**
- * A class for vetting values.
+ * The Vetter class vets netCDF values, replacing invalid values with their
+ * VisAD equivalents.
  */
 final class
 Vetter
@@ -62,6 +63,12 @@ Vetter
 
     /**
      * Construct from a netCDF variable type.
+     *
+     * @param type	The Java type of the netCDF variable (i.e. Float.TYPE,
+     *			Character.TYPE, etc.)
+     *			Something that should be implemented isn't yet.
+     * @exception BadFormException
+     *			Invalid <code>type</code>.
      */
     Vetter(Class type)
 	throws BadFormException
@@ -78,6 +85,10 @@ Vetter
 
     /**
      * Construct from a netCDF variable.
+     *
+     * @param var	The netCDF variable to be examined.
+     * @exception BadFormException
+     *			Invalid <code>var</code>.
      */
     Vetter(Variable var)
 	throws BadFormException
@@ -136,6 +147,8 @@ Vetter
 
     /**
      * Return the minimum, valid, netCDF value.
+     *
+     * @return	The minimum, valid, value for the variable.
      */
     double
     minValid()
@@ -146,6 +159,8 @@ Vetter
 
     /**
      * Return the maximum, valid, netCDF value.
+     *
+     * @return	The maximum, valid, value for the variable.
      */
     double
     maxValid()
@@ -156,6 +171,9 @@ Vetter
 
     /**
      * Indicate if trivial vetting will occur (i.e. all values are valid).
+     *
+     * @return		<code>true</code> if and only if all possible values
+     *			are valid.
      */
     private boolean
     isTrivial()
@@ -170,8 +188,9 @@ Vetter
     /**
      * Indicate whether or not the given value is valid.
      *
-     * @precondition	The value comes from a netCDF variable of the type
-     *			used in the constructor.
+     * @param value	The value to be vetted.
+     * @return		<code>true</code> if and only if <code>value</code> is
+     *			valid.
      */
     private boolean
     isInvalid(double value)
@@ -190,8 +209,9 @@ Vetter
     /**
      * Vet the given float values.
      *
-     * @precondition	The values come from a netCDF variable of the type
-     *			used in the constructor.
+     * @param values	The values to be vetted.
+     * @postcondition	All invalid values in <code>values</code> have been
+     *			replaced with NaN's.
      */
     void
     vet(float[] values)
@@ -208,8 +228,9 @@ Vetter
     /**
      * Vet the given double values.
      *
-     * @precondition	The values come from a netCDF variable of the type
-     *			used in the constructor.
+     * @param values	The values to be vetted.
+     * @postcondition	All invalid values in <code>values</code> have been
+     *			replaced with NaN's.
      */
     void
     vet(double[] values)

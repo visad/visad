@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcTuple.java,v 1.2 1998-02-23 15:58:25 steve Exp $
+ * $Id: NcTuple.java,v 1.3 1998-03-12 22:03:11 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import java.io.IOException;
 import visad.DataImpl;
@@ -17,7 +17,7 @@ import visad.VisADException;
 
 
 /**
- * Class for adapting a tuple of netCDF data objects to a VisAD Tuple.
+ * The NcTuple class adapts a tuple of netCDF data objects to a VisAD Tuple.
  */
 class
 NcTuple
@@ -31,6 +31,11 @@ NcTuple
 
     /**
      * Construct from an array of netCDF data objects.
+     *
+     * @param ncDatas	The netCDF data objects constituting the tuple.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
      */
     NcTuple(NcData[] ncDatas)
 	throws VisADException
@@ -49,6 +54,14 @@ NcTuple
 
     /**
      * Return the VisAD data object corresponding to this netCDF data object.
+     *
+     * @return		The VisAD data object corresponding to the netCDF
+     *			data object.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
      */
     DataImpl
     getData()

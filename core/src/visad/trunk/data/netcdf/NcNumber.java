@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNumber.java,v 1.6 1998-02-23 15:58:24 steve Exp $
+ * $Id: NcNumber.java,v 1.7 1998-03-12 22:03:10 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import java.io.IOException;
 import ucar.multiarray.IndexIterator;
@@ -23,7 +23,8 @@ import visad.data.BadFormException;
 
 
 /**
- * Abstract adaptor/decorator class for netCDF arithmetic variables.
+ * The NcNumber class decorators netCDF arithmetic variables.  It is useful
+ * for importing netCDF variables
  */
 abstract class
 NcNumber
@@ -58,6 +59,14 @@ NcNumber
 
     /**
      * Construct.
+     *
+     * @param var	The netCDF variable to be decorated.
+     * @param netcdf	The netCDF dataset that contains <code>var</code>.
+     * @exception BadFormException
+     *			The netCDF variable cannot be adapted to a VisAD API.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
      */
     NcNumber(Variable var, Netcdf netcdf)
 	throws BadFormException, VisADException
@@ -73,6 +82,9 @@ NcNumber
 
     /**
      * Set whether or not the variable is a co-ordinate variable.
+     *
+     * @return	<code>true</code> if and only if the variable is a netCDF
+     *		coordinate variable.
      */
     private boolean
     setIsCoordVar()
@@ -93,6 +105,9 @@ NcNumber
 
     /**
      * Set whether or not this variable is longitude.
+     *
+     * @return	<code>true</code> if and only if the netCDF variable represents
+     *		longitude.
      */
     private boolean
     setIsLongitude()
@@ -108,6 +123,9 @@ NcNumber
 
     /**
      * Set whether or not this variable is temporal in nature.
+     *
+     * @return	<code>true</code> if and only if the netCDF variable represents
+     *		time.
      */
     private boolean
     setIsTime()
@@ -119,6 +137,9 @@ NcNumber
 
     /**
      * Indicate whether or not the variable is a co-ordinate variable.
+     *
+     * @return	<code>true</code> if and only if the variable is a netCDF
+     *		coordinate variable.
      */
     boolean
     isCoordinateVariable()
@@ -129,6 +150,9 @@ NcNumber
 
     /**
      * Indicate whether or not this variable is longitude.
+     *
+     * @return	<code>true</code> if and only if the netCDF variable represents
+     *		longitude.
      */
     boolean
     isLongitude()
@@ -139,6 +163,9 @@ NcNumber
 
     /**
      * Indicate whether or not the variable is temporal in nature.
+     *
+     * @return	<code>true</code> if and only if the netCDF variable represents
+     *		time.
      */
     boolean
     isTime()
@@ -150,7 +177,8 @@ NcNumber
     /**
      * Return the values of this variable as a packed array of floats.
      *
-     * @exception IOException		I/O error.
+     * @return			The values of the variable.
+     * @exception IOException	I/O error.
      */
     float[]
     getFloatValues()
@@ -179,6 +207,9 @@ NcNumber
 
     /**
      * Compute the number of points in a shape vector.
+     *
+     * @param shape	The dimensional lengths.
+     * @return		The total number of points.
      */
     protected static int
     product(int[] shape)
@@ -195,7 +226,8 @@ NcNumber
     /**
      * Return all the values of this variable as a packed array of doubles.
      *
-     * @exception IOException		I/O error.
+     * @return			The values of the variable.
+     * @exception IOException	I/O error.
      */
     double[]
     getDoubleValues()
@@ -209,9 +241,10 @@ NcNumber
      * Return the values of this variable -- at a given point of the outermost
      * dimension -- as a packed array of doubles.
      *
+     * @param ipt	The position in the outermost dimension.
      * @precondition	The variable is rank 2 or greater.
      * @precondition	<code>ipt</code> lies within the outermost dimension.
-     *
+     * @return		The values of the variable at the given position.
      * @exception IOException		I/O error.
      */
     double[]
@@ -234,6 +267,12 @@ NcNumber
     /**
      * Return a selected subset of the double values of this variable as a
      * packed array of doubles.
+     *
+     * @param ma	The MultiArray accessor for the values.
+     * @precondition	<code>ma</code> accesses double values.
+     * @return		The values.  Invalid values are replaced with NaN's.
+     * @exception IOException
+     *			Data access I/O failure.
      */
     protected double[]
     getDoubleValues(MultiArray ma)

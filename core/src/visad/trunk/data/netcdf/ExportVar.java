@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ExportVar.java,v 1.5 1998-03-10 19:49:33 steve Exp $
+ * $Id: ExportVar.java,v 1.6 1998-03-12 22:03:01 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import java.io.IOException;
 import java.rmi.RemoteException;
@@ -33,7 +33,8 @@ import visad.data.BadFormException;
 
 
 /*
- * Superclass for adapting VisAD data to a netCDF Variable.
+ * The ExportVar class provides an abstract class for adapting VisAD data to
+ * a netCDF Variable.
  */
 abstract class
 ExportVar
@@ -42,6 +43,14 @@ ExportVar
 {
     /**
      * Construct from broken-out information.
+     *
+     * @param name	The name of the netCDF variable.
+     * @param type	The type of the netCDF variable (i.e. Double.TYPE,
+     *			Byte.TYPE, Character.TYPE, etc.).
+     * @param dims	The dimensions of the netCDF variable.
+     * @param attrs	The attributes of the netCDF variable.
+     * @exception BadFormException
+     *			The VisAD data object cannot be adapted to a netCDF API.
      */
     protected
     ExportVar(String name, Class type, Dimension[] dims, Attribute[] attrs)
@@ -49,6 +58,20 @@ ExportVar
     {
 	super(name, type, dims, attrs);
     }
+
+
+    /**
+     * Return an array element identified by position.  This is the only
+     * method that needs to be implemented to support the saving of
+     * VisAD data in a netCDF dataset.
+     *
+     * @param indexes		The position of the array element as netCDF 
+     *				indexes.
+     * @exception IOException	Data access I/O failure.
+     */
+     public abstract Object
+     get(int[] indexes)
+	throws IOException;
 
 
     /**
@@ -163,18 +186,7 @@ ExportVar
 
 
     /**
-     * Return an array element identified by position.
-     *
-     * This is the only method that needs to be implemented to support
-     * the saving of VisAD data in a netCDF dataset.
-     */
-     public abstract Object
-     get(int[] indexes)
-	throws IOException;
-
-
-    /**
-     * Return an array element identified by position.
+     * Return an array element identified by position.  Not supported.
      */
      public boolean
      getBoolean(int[] indexes)
@@ -185,7 +197,7 @@ ExportVar
 
 
     /**
-     * Return an array element identified by position.
+     * Return an array element identified by position.  Not supported.
      */
      public char
      getChar(int[] indexes)
@@ -196,7 +208,7 @@ ExportVar
 
 
     /**
-     * Return an array element identified by position.
+     * Return an array element identified by position.  Not supported.
      */
      public byte
      getByte(int[] indexes)
@@ -207,7 +219,7 @@ ExportVar
 
 
     /**
-     * Return an array element identified by position.
+     * Return an array element identified by position.  Not supported.
      */
      public short
      getShort(int[] indexes)
@@ -218,7 +230,7 @@ ExportVar
 
 
     /**
-     * Return an array element identified by position.
+     * Return an array element identified by position.  Not supported.
      */
      public int
      getInt(int[] indexes)
@@ -229,7 +241,7 @@ ExportVar
 
 
     /**
-     * Return an array element identified by position.
+     * Return an array element identified by position.  Not supported.
      */
      public long
      getLong(int[] indexes)
@@ -240,7 +252,7 @@ ExportVar
 
 
     /**
-     * Return an array element identified by position.
+     * Return an array element identified by position.  Not supported.
      */
      public float
      getFloat(int[] indexes)
@@ -251,7 +263,7 @@ ExportVar
 
 
     /**
-     * Return an array element identified by position.
+     * Return an array element identified by position.  Not supported.
      */
      public double
      getDouble(int[] indexes)
@@ -262,7 +274,7 @@ ExportVar
 
 
     /**
-     * Return a MultiArray into a slice of the data.
+     * Return a MultiArray into a slice of the data.  Not supported.
      */
     public MultiArray
     copyout(int[] origin, int[] shape)

@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: TrivialAccessor.java,v 1.1 1998-03-11 16:21:55 steve Exp $
+ * $Id: TrivialAccessor.java,v 1.2 1998-03-12 22:03:16 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import java.io.IOException;
 import ucar.netcdf.Dimension;
@@ -14,8 +14,8 @@ import visad.Data;
 
 
 /**
- * The trivial VisADAccessor.  It is used to terminate the linked-list of
- * data accessors at the outermost, VisAD data object.
+ * The TrivialAccessor class terminates the linked-list of
+ * DataAccessors at the outermost, VisAD data object.
  */
 class
 TrivialAccessor
@@ -29,6 +29,8 @@ TrivialAccessor
 
     /**
      * Construct from a VisAD data object.
+     *
+     * @param data	The outermost VisAD data object.
      */
     protected
     TrivialAccessor(Data data)
@@ -39,6 +41,8 @@ TrivialAccessor
 
     /**
      * Return the number of netCDF dimensions at the current level.
+     *
+     * @return		The rank of the data object.
      */
     public int
     getRank()
@@ -50,6 +54,8 @@ TrivialAccessor
     /**
      * Return the netCDF dimensions at the level of the data object.
      * Include all dimensions in more outer data objects.
+     *
+     * @return		The netCDF dimensions of the data object.
      */
     public Dimension[]
     getDimensions()
@@ -60,6 +66,8 @@ TrivialAccessor
 
     /**
      * Return the netCDF dimensional lengths.
+     *
+     * @return		The dimensional lengths of the data object.
      */
     public int[]
     getLengths()
@@ -70,6 +78,12 @@ TrivialAccessor
 
     /**
      * Return a datum given its location as netCDF indexes.
+     *
+     * @return		The data object at the position given by
+     *			<code>localIndexes</code> and 
+     *			<code>outerIndexes</code>.
+     * @exception IOException
+     *			Data access I/O failure.
      */
     public Object
     get(int[] indexes)

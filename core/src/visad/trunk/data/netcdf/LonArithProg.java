@@ -1,16 +1,17 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: LonArithProg.java,v 1.4 1998-02-23 15:58:20 steve Exp $
+ * $Id: LonArithProg.java,v 1.5 1998-03-12 22:03:05 steve Exp $
  */
 
 package visad.data.netcdf;
 
 
 /**
- * Arithmetic progression in longitude class.  Useful for determining if
- * a sequence of longitudes corresponds to an arithmetic progression and 
+ * The LonArithProg class provides a way to determine if a sequence of
+ * values is an arithmetic progression of longitude values and, if so, just
  * what that progression is.
  */
 class
@@ -61,10 +62,10 @@ LonArithProg
      *			current and previous values normalized by the current
      *			increment differs from unity by more than the
      *			nearness threshold; otherwise, true.
-     * @require		isConsistent() is true.
-     * @promise		A subsequent getNumber() will return one more than 
+     * @precondition	isConsistent() is true.
+     * @postcondition	A subsequent getNumber() will return one more than 
      *			previously if the function returns true.
-     * @promise		A subsequent getLast() will return the transformed
+     * @postcondition	A subsequent getLast() will return the transformed
      *			value argument if the function returns true.
      */
     boolean
@@ -109,6 +110,11 @@ LonArithProg
 
     /**
      * Compute the delta from a previous value.
+     *
+     * @param value	The current value.
+     * @param last	The previous value.
+     * @return		The minimum magnitude difference between the current
+     *			and previous values.
      */
     protected static double
     getDelta(double value, double last)
@@ -129,6 +135,8 @@ LonArithProg
      * Return the (transformed) "last" value.  This value is equivalent
      * to the last value given to accumulate() after adding up all
      * the increments.  It is only meaningfull if isConsistent is true.
+     *
+     * @return	The last value.
      */
     double
     getLast()
@@ -140,6 +148,7 @@ LonArithProg
     /**
      * Test this class.
      *
+     * @param args		Runtime arguments.  Ignored.
      * @exception Exception	Something went wrong.
      */
     public static void main(String[] args)

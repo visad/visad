@@ -1,62 +1,49 @@
 /*
- * Copyright 1998, University Corporation for Atmospheric Research
+ * Copyright 1998, University Corporation for Atmospheric Research.
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ArithProg.java,v 1.4 1998-02-23 15:58:14 steve Exp $
+ * $Id: ArithProg.java,v 1.5 1998-03-12 22:02:53 steve Exp $
  */
+
 
 package visad.data.netcdf;
 
 
-
-
 /**
- * Arithmetic progression class.  Useful for determining if a sequence
- * corresponds to an arithmetic progression and what that progression is.
+ * The arithmetic progression class is useful for determining if a sequence
+ * of numeric values corresponds to an arithmetic progression and, if so,
+ * just what that progression is.
  */
-class
-ArithProg
-{
-    /**
-     * Number of values accumulated.
-     */
+class ArithProg {
+    /** Number of values accumulated. */
     protected int		n = 0;
 
-    /**
-     * First value;
-     */
+    /** First value. */
     protected double		first = Double.NaN;
 
-    /**
-     * Current last value;
-     */
+    /** Current last value. */
     protected double		last = Double.NaN;
 
-    /**
-     * Current increment.
-     */
+    /** Current increment. */
     protected double 		increment = Double.NaN;
 
     /**
-     * Whether the arithmetic progression is consistent or not.
+     * Whether the sequence is consistent with an arithmetic progression 
+     * or not.
      */
     protected boolean		consistent = true;
 
-    /**
-     * The difference threshold.
-     */
+    /** The difference threshold. */
     protected final double	epsilon;
-
 
     /**
      * Construct with a default nearness threshold.  The default value
      * is 2e-9 (twice the C DBL_EPSILON).
      */
-    ArithProg()
-    {
+    ArithProg() {
 	this.epsilon = 2e-9;	// twice the C DBL_EPSILON
     }
-
 
     /**
      * Construct with a caller-supplied nearness threshold.
@@ -65,14 +52,13 @@ ArithProg
      * @exception IllegalArgumentException
      *			The given nearness threshold is negative.
      */
-    ArithProg(double epsilon)
-    {
-	if (epsilon < 0)
+    ArithProg(double epsilon) {
+	if (epsilon < 0) {
 	    throw new IllegalArgumentException("epsilon < 0");
+	}
 
 	this.epsilon = epsilon;
     }
-
 
     /**
      * Accumulate another double value.  Indicate whether or not the value is
@@ -89,26 +75,20 @@ ArithProg
      * @promise		A subsequent getLast() will return the value argument
      *			if the function returns true.
      */
-    boolean
-    accumulate(double value)
-    {
-	if (consistent)
-	{
-	    if (n == 0)
+    boolean accumulate(double value) {
+	if (consistent) {
+	    if (n == 0) {
 		first = value;
-	    else
-	    if (n == 1)
+	    } else if (n == 1) {
 		increment = value - first;
-	    else
-	    {
+	    } else {
 		double	delta = increment == 0
 					? value - last
 					: 1.0 - (value - last) / increment;
 
-		if (Math.abs(delta) <= epsilon)
+		if (Math.abs(delta) <= epsilon) {
 		    increment = (value - first) / n;
-		else
-		{
+		} else {
 		    consistent = false;
 		    increment = Double.NaN;
 		}
@@ -120,7 +100,6 @@ ArithProg
 
 	return consistent;
     }
-
 
     /**
      * Accumulate a bunch of double values.  Indicate whether or not the 
@@ -136,15 +115,11 @@ ArithProg
      * @promise		A subsequent getLast() will return the last value of
      *			the vector providing the function returns true.
      */
-    boolean
-    accumulate(double[] values)
-    {
-	for (int i = 0; i < values.length && accumulate(values[i]); ++i)
-	    ;
+    boolean accumulate(double[] values) {
+	for (int i = 0; (i < values.length) && accumulate(values[i]); ++i) ;
 
 	return consistent;
     }
-
 
     /**
      * Accumulate a bunch of float values.  Indicate whether or not the 
@@ -160,15 +135,11 @@ ArithProg
      * @promise		A subsequent getLast() will return the last value of
      *			the vector providing the function returns true.
      */
-    boolean
-    accumulate(float[] values)
-    {
-	for (int i = 0; i < values.length && accumulate(values[i]); ++i)
-	    ;
+    boolean accumulate(float[] values) {
+	for (int i = 0; i < values.length && accumulate(values[i]); ++i) ;
 
 	return consistent;
     }
-
 
     /**
      * Indicate whether or not the sequence so far is consistent with an
@@ -177,12 +148,9 @@ ArithProg
      * @return	True if and only if the sequence of values seen so far is
      *		consistent with an arithmetic progression.
      */
-    boolean
-    isConsistent()
-    {
+    boolean isConsistent() {
 	return consistent;
     }
-
 
     /**
      * Get the number of values.
@@ -190,12 +158,9 @@ ArithProg
      * @return	The number of values accumulated so far.
      * @require	isConsistent() is true.
      */
-    int
-    getNumber()
-    {
+    int getNumber() {
 	return n;
     }
-
 
     /**
      * Get the first value.
@@ -203,12 +168,9 @@ ArithProg
      * @return	The first accumulated value.
      * @require	isConsistent() is true.
      */
-    double
-    getFirst()
-    {
+    double getFirst() {
 	return first;
     }
-
 
     /**
      * Get the last value.
@@ -216,12 +178,9 @@ ArithProg
      * @return	The most recently accumulated value.
      * @require	isConsistent() is true.
      */
-    double
-    getLast()
-    {
+    double getLast() {
 	return last;
     }
-
 
     /**
      * Get the current increment.
@@ -229,9 +188,7 @@ ArithProg
      * @return	The computed increment so far.
      * @require	isConsistent() is true.
      */
-    double
-    getIncrement()
-    {
+    double getIncrement() {
 	return increment;
     }
 }

@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: FieldAccessor.java,v 1.1 1998-03-11 16:21:51 steve Exp $
+ * $Id: FieldAccessor.java,v 1.2 1998-03-12 22:03:02 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import java.io.IOException;
 import ucar.netcdf.Dimension;
@@ -14,8 +14,8 @@ import visad.Field;
 
 
 /**
- * Class for accessing data in a VisAD Field that's been adapted to a
- * netCDF API.
+ * The FieldAccessor class accesses data in a VisAD Field that's being
+ * adapted to a netCDF API.
  */
 class
 FieldAccessor
@@ -30,6 +30,12 @@ FieldAccessor
 
     /**
      * Construct from netCDF Dimensions, and an outer VisADAccessor.
+     *
+     * @param localDims		The netCDF dimensions of the Field in netCDF.
+     *				order (outermost dimension first).
+     * @param outerAccessor	The DataAccessor for accessing the 
+     *				<code>Field</code>s object of the enclosing,
+     *				VisAD data object.
      */
     protected
     FieldAccessor(Dimension[] localDims, VisADAccessor outerAccessor)
@@ -38,12 +44,15 @@ FieldAccessor
 
 	shape = new int[localRank];
 	for (int idim = 0; idim < localRank; ++idim)
-	    shape[idim] = localDims[localRank-1-idim].getLength();
+	    shape[idim] = localDims[idim].getLength();
     }
 
 
     /**
      * Return a datum given the split, netCDF indexes.
+     *
+     * @return	The Object at the position specified by
+     *		<code>localIndexes</code> and <code>outerIndexes</code>.
      */
     protected Object
     get()

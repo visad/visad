@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: RealAccessor.java,v 1.1 1998-03-11 16:21:53 steve Exp $
+ * $Id: RealAccessor.java,v 1.2 1998-03-12 22:03:15 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import java.io.IOException;
 import ucar.netcdf.Dimension;
@@ -14,8 +14,8 @@ import visad.Real;
 
 
 /**
- * Class for accessing data in a VisAD Real that's been adapted to a
- * netCDF API.
+ * The RealAccessor class accesses data in a VisAD Real that's been adapted 
+ * to a netCDF API.  It's useful for exporting data to a netCDF dataset.
  */
 class
 RealAccessor
@@ -23,6 +23,9 @@ RealAccessor
 {
     /**
      * Construct from an outer accessor.
+     *
+     * @param outerAccessor	The DataAccessor for the encompassing VisAD
+     *				data object.  Returns VisAD Reals.
      */
     protected
     RealAccessor(VisADAccessor outerAccessor)
@@ -33,6 +36,12 @@ RealAccessor
 
     /**
      * Return a datum given the split, netCDF indexes.
+     *
+     * @return		The datum at the position given by 
+     *			<code>localIndexes</code> and 
+     *			<code>outerIndexes</code>.
+     * @exception IOException
+     *			Data access I/O failure.
      */
     protected Object
     get()

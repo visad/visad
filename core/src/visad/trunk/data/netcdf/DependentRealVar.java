@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DependentRealVar.java,v 1.1 1998-03-11 16:21:49 steve Exp $
+ * $Id: DependentRealVar.java,v 1.2 1998-03-12 22:02:57 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import java.io.IOException;
 import ucar.netcdf.Attribute;
@@ -22,8 +22,8 @@ import visad.data.BadFormException;
 
 
 /**
- * Class for creating the dependent, netCDF, real variables that reside 
- * in an adapted VisAD data object.
+ * The DependentRealVar class adapts numeric data in a VisAD data object to
+ * a netCDF, dependent-variable, API for the purpose of exporting the data.
  */
 class
 DependentRealVar
@@ -37,6 +37,15 @@ DependentRealVar
 
     /**
      * Construct.
+     *
+     * @param real		The VisAD Real object to be adapted.
+     * @param accessor		The means for accessing the individual VisAD
+     *				<code>Real</code> objects of the enclosing
+     *				VisAD data object.
+     * @exception BadFormException		The VisAD data object cannot be
+     *		adapted to a netCDF API
+     * @exception VisADException		Problem in core VisAD.
+     *		Probably some VisAD object couldn't be created.
      */
     protected
     DependentRealVar(Real real, VisADAccessor accessor)
@@ -55,6 +64,14 @@ DependentRealVar
 
     /**
      * Get the netCDF attributes for a DependentRealVar.
+     *
+     * @param real	The VisAD data object for which netCDF Attribute
+     *			must be created.
+     * @return		An array of netCDF Attributes for <code>real</code>.
+     * @exception BadFormException		The VisAD data object cannot be
+     *		adapted to a netCDF API
+     * @exception VisADException		Problem in core VisAD.
+     *		Probably some VisAD object couldn't be created.
      */
     protected static Attribute[]
     myAttributes(Real real)
@@ -86,7 +103,15 @@ DependentRealVar
      * Get the class of the Java primitive type that can contain the
      * VisAD Set of a VisAD range value.
      *
-     * @precondition	The set is that of a range value.
+     * @param set	The VisAD Set describing the range of the variable
+     *			data.
+     * @precondition	The set is that of a range value (i.e. DoubleSet,
+     *			FloatSet, Linear1DSet, etc.).
+     * @return		The Java class corresponding to the variable data
+     *			(i.e. Double, Float, Integer, etc.).
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
      */
     protected static Class
     getJavaClass(Set set)
@@ -115,7 +140,8 @@ DependentRealVar
      *			<code>Float.TYPE</code>).
      * @return		The default fill-value object for the given netCDF
      *			type.
-     * @exception BadFormException	Unknown netCDF type.
+     * @exception BadFormException
+     *			Unknown netCDF type.
      */
     protected static Number
     getFillValue(Class type)
@@ -146,6 +172,14 @@ DependentRealVar
 
     /**
      * Return a netCDF datum identified by position.
+     *
+     * @param indexes	The netCDF indexes of the desired datum.  Includes all
+     *			adapted dimensions -- including those of all enclosing
+     *			VisAD data objects.
+     * @return		A Java Double that contains the data value or NaN if
+     *			the data is missing.
+     * @exception IOException
+     *			Data access failure.
      */
     public Object
     get(int[] indexes)

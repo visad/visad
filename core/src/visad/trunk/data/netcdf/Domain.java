@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Domain.java,v 1.6 1998-02-23 15:58:16 steve Exp $
+ * $Id: Domain.java,v 1.7 1998-03-12 22:02:59 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import java.io.IOException;
 import visad.data.BadFormException;
@@ -23,7 +23,7 @@ import visad.VisADException;
 
 
 /**
- * Class for associating a VisAD domain with netCDF variables.
+ * The Domain class associates a VisAD domain with netCDF variables.
  */
 class
 Domain
@@ -59,7 +59,10 @@ Domain
     /**
      * Construct from an array of adapted, netCDF variables.
      *
-     * @exception UnimplementedException	Not yet!
+     * @param vars			netCDF variables defined over a
+     *					common domain.
+     * @exception UnimplementedException
+     *					Not yet!
      * @exception VisADException	Couldn't create necessary VisAD object.
      * @exception IOException		I/O error.
      */
@@ -83,6 +86,7 @@ Domain
     /**
      * Set the VisAD math type of the domain.
      *
+     * @param dims			The netCDF dimensions of the domain.
      * @exception VisADException	Couldn't create necessary VisAD object.
      */
     protected void
@@ -105,6 +109,9 @@ Domain
 
     /**
      * Convert a netCDF dimension index to a VisAD one.
+     *
+     * @param netcdfIdim	The netCDF dimension index to be converted.
+     * @return			The VisAD dimension index.
      */
     protected int
     visadIdim(int netcdfIdim)
@@ -115,6 +122,9 @@ Domain
 
     /**
      * Return the variables associated with this domain.
+     *
+     * @return	The array of adapted, netCDF variables defined over this
+     *		domain.
      */
     ImportVar[]
     getVariables()
@@ -125,6 +135,8 @@ Domain
 
     /**
      * Return the dimensions associated with this domain.
+     *
+     * @return	The netCDF dimensions associated with the domain.
      */
     NcDim[]
     getDimensions()
@@ -135,6 +147,8 @@ Domain
 
     /**
      * Return the rank of this domain.
+     *
+     * @return	The dimensionality of the domain (i.e. number of dimensions).
      */
     int
     getRank()
@@ -145,6 +159,8 @@ Domain
 
     /**
      * Return the VisAD MathType of the domain.
+     *
+     * @return	The VisAD MathType of the domain.
      */
     MathType
     getMathType()
@@ -155,6 +171,10 @@ Domain
 
     /**
      * Indicate whether or not the domain is the same as another.
+     *
+     * @param that	The other Domain.
+     * @return		<code>true</code> if and only if the Domain and 
+     *			another are semantically identical.
      */
     public boolean
     equals(Domain that)
@@ -172,6 +192,8 @@ Domain
 
     /**
      * Return the hash code of the domain.
+     *
+     * @return	The hash code of the domain.
      */
     public int
     hashCode()

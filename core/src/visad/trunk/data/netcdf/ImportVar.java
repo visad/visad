@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ImportVar.java,v 1.5 1998-03-10 19:49:34 steve Exp $
+ * $Id: ImportVar.java,v 1.6 1998-03-12 22:03:03 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import java.io.IOException;
 import ucar.multiarray.IndexIterator;
@@ -33,7 +33,8 @@ import visad.data.netcdf.units.Parser;
 
 
 /**
- * Adapter class for importing a netCDF variable.
+ * The ImportVar class provides an abstract class for adapting a netCDF
+ * variable that's being imported to a VisAD API.
  */
 abstract class
 ImportVar
@@ -66,6 +67,9 @@ ImportVar
 
     /**
      * Construct from a netCDF variable and dataset.
+     *
+     * @param var	The netCDF variable to be adapted.
+     * @param netcdf	The netCDF dataset that contains <code>var</code>.
      */
     ImportVar(Variable var, Netcdf netcdf)
     {
@@ -107,6 +111,13 @@ ImportVar
 
     /**
      * Factory method for creating an instance of the correct subtype.
+     *
+     * @param var	The netCDF variable to be adapted.
+     * @param netcdf	The netCDF dataset that contains <code>var</code>.
+     * @return		The ImportVar for <code>var</code>.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
      */
     static ImportVar
     create(Variable var, Netcdf netcdf)
@@ -143,7 +154,11 @@ ImportVar
      * Indicate whether or not a netCDF variable of the given type has
      * a default fill-value.
      *
-     * @precondition	<code>type</code> is a valid netCDF type.
+     * @param type	The Java class of the netCDF variable (i.e.
+     *			<code>Double.TYPE</code>, <code>Byte.TYPE</code>,
+     *			<code>Character.TYPE</code>, etc.).
+     * @return		<code>true</code> if and only if <code>type</code>
+     *			has a default, netCDF fill-value.
      */
     static boolean
     hasDefaultFillValue(Class type)
@@ -159,7 +174,8 @@ ImportVar
      * @param type	netCDF type (e.g. <code>Character.TYPE</code>, 
      *			<code>Float.TYPE</code>).
      * @return		The default fill-value value for the given netCDF type.
-     * @exception BadFormException	Unknown netCDF type.
+     * @exception BadFormException
+     *			Unknown netCDF type.
      */
     static double
     getDefaultFillValue(Class type)
@@ -195,7 +211,8 @@ ImportVar
      * @param type	netCDF type (e.g. <code>Character.TYPE</code>, 
      *			<code>Float.TYPE</code>).
      * @return		The minimum valid value for the given netCDF type.
-     * @exception BadFormException	Unknown netCDF type
+     * @exception BadFormException
+     *			Unknown netCDF type.
      */
     static double
     getMinValid(Class type)
@@ -234,7 +251,8 @@ ImportVar
      * @param type	netCDF type (e.g. <code>Character.TYPE</code>, 
      *			<code>Float.TYPE</code>).
      * @return		The maximum valid value for the given netCDF type.
-     * @exception BadFormException	Unknown netCDF type
+     * @exception BadFormException
+     *			Unknown netCDF type
      */
     static double
     getMaxValid(Class type)
@@ -268,6 +286,8 @@ ImportVar
 
     /**
      * Return the rank of this variable.
+     *
+     * @return	The rank (i.e. number of netCDF dimensions) of the variable.
      */
     int
     getRank()
@@ -278,6 +298,9 @@ ImportVar
 
     /**
      * Return the shape of this variable.
+     *
+     * @return		The length of each netCDF dimension of the variable.
+     * @postcondition	<code>getRank() == getLengths().length</code>.
      */
     int[]
     getLengths()
@@ -288,6 +311,9 @@ ImportVar
 
     /**
      * Return the dimensions of this variable.
+     *
+     * @return		The dimensions of the variable.
+     * @postcondition	<code>getRank() == getDimensions().length</code>.
      */
     NcDim[]
     getDimensions()
@@ -331,6 +357,9 @@ ImportVar
 
     /**
      * Indicate if the values of this variable are textual.
+     *
+     * @return	<code>true</code> if and only if the values of the variable
+     *		are textual.
      */
     boolean
     isText()
@@ -341,6 +370,9 @@ ImportVar
 
     /**
      * Indicate if the values of this variable are byte.
+     *
+     * @return	<code>true</code> if and only if the values of the variable
+     *		are byte-valued.
      */
     boolean
     isByte()
@@ -351,6 +383,9 @@ ImportVar
 
     /**
      * Indicate if the values of this variable are short.
+     *
+     * @return	<code>true</code> if and only if the values of the variable
+     *		are short-valued.
      */
     boolean
     isShort()
@@ -361,6 +396,9 @@ ImportVar
 
     /**
      * Indicate if the values of this variable are 32-bit *netCDF* integers.
+     *
+     * @return	<code>true</code> if and only if the values of the variable
+     *		are int-valued.
      */
     boolean
     isInt()
@@ -371,6 +409,9 @@ ImportVar
 
     /**
      * Indicate if the values of this variable are float.
+     *
+     * @return	<code>true</code> if and only if the values of the variable
+     *		are float-valued.
      */
     boolean
     isFloat()
@@ -381,6 +422,9 @@ ImportVar
 
     /**
      * Indicate if the values of this variable are double.
+     *
+     * @return	<code>true</code> if and only if the values of the variable
+     *		are double-valued.
      */
     boolean
     isDouble()
@@ -391,6 +435,8 @@ ImportVar
 
     /**
      * Return the VisAD math type of this variable.
+     *
+     * @return	The VisAD MathType of the variable.
      */
     MathType
     getMathType()
@@ -401,6 +447,9 @@ ImportVar
 
     /**
      * Indicate whether or not this variable is the same as another.
+     *
+     * @return	<code>true</code> if and only if the variable and another
+     *		object are semantically identical.
      */
     public boolean
     equals(Object that)
@@ -411,6 +460,9 @@ ImportVar
 
     /**
      * Indicate whether or not this variable is the same as another.
+     *
+     * @return	<code>true</code> if and only if the variable and another
+     *		ImportVar are semantically identical.
      */
     boolean
     equals(ImportVar that)
@@ -421,6 +473,8 @@ ImportVar
 
     /**
      * Return the hash code of this variable information.
+     *
+     * @return	The hash code of the variable.
      */
     public int
     hashCode()
@@ -431,6 +485,8 @@ ImportVar
 
     /**
      * Return the name of the variable.
+     *
+     * @return	The name of the variable.
      */
     String
     getName()
@@ -441,6 +497,8 @@ ImportVar
 
     /**
      * Convert this variable to a string.
+     *
+     * @return	The variable represented as a string.
      */
     public String
     toString()
@@ -451,6 +509,9 @@ ImportVar
 
     /**
      * Indicate whether or not the variable is a co-ordinate variable.
+     *
+     * @return	<code>true</code> if and only if the variable is a coordinate
+     *		variable.
      */
     abstract boolean
     isCoordinateVariable();
@@ -458,6 +519,9 @@ ImportVar
 
     /**
      * Indicate whether or not the variable is longitude.
+     *
+     * @return	<code>true</code> if and only if the variable represents
+     *		longitude.
      */
     abstract boolean
     isLongitude();
@@ -465,6 +529,9 @@ ImportVar
 
     /**
      * Indicate whether or not the variable is temporal in nature.
+     *
+     * @return	<code>true</code> if and only if the variable represents
+     *		time.
      */
     abstract boolean
     isTime();
@@ -473,7 +540,8 @@ ImportVar
     /**
      * Return the values of this variable as a packed array of floats.
      *
-     * @exception IOException		I/O error.
+     * @return			The variable's values.
+     * @exception IOException	I/O error.
      */
     abstract float[]
     getFloatValues()
@@ -483,7 +551,8 @@ ImportVar
     /**
      * Return the values of this variable as a packed array of doubles.
      *
-     * @exception IOException		I/O error.
+     * @return			The variable's values.
+     * @exception IOException	I/O error.
      */
     abstract double[]
     getDoubleValues()
@@ -494,7 +563,8 @@ ImportVar
      * Return the values of this variable -- at a given point of the outermost
      * dimension -- as a packed array of doubles.
      *
-     * @exception IOException		I/O error.
+     * @return			The variable's values.
+     * @exception IOException	I/O error.
      */
     abstract double[]
     getDoubleValues(int ipt)
@@ -503,7 +573,8 @@ ImportVar
 
 
 /**
- * Adaptor/decorator class for netCDF textual variables.
+ * The NcText class adapts a netCDF character variable that's being
+ * imported to a VisAD API.
  */
 final class
 NcText
@@ -512,6 +583,10 @@ NcText
     /**
      * Indicate whether or not a netCDF variable can be represented as 
      * an NcText.
+     *
+     * @param var	The netCDF variable to be examined.
+     * @return		<code>true</code> if and only if <code>var</code> can
+     *			be represented as an NcText object.
      */
     static boolean
     isRepresentable(Variable var)
@@ -522,6 +597,13 @@ NcText
 
     /**
      * Construct.
+     *
+     * @param var	The netCDF character variable to be adapted.
+     * @param netcdf	The netCDF dataset that contains <code>var</code>.
+     * @precondition	<code>isRepresentable(var).
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
      */
     NcText(Variable var, Netcdf netcdf)
 	throws VisADException
@@ -534,6 +616,8 @@ NcText
 
     /**
      * Indicate if this variable is textual.
+     *
+     * @return	<code>true</code> always.
      */
     boolean
     isText()
@@ -543,6 +627,8 @@ NcText
 
     /**
      * Indicate if this variable is longitude.
+     *
+     * @return	<code>false</code> always.
      */
     boolean
     isLongitude()
@@ -553,6 +639,8 @@ NcText
 
     /**
      * Indicate whether or not the variable is temporal in nature.
+     *
+     * @return	<code>false</code> always.
      */
     boolean
     isTime()
@@ -563,6 +651,8 @@ NcText
 
     /**
      * Indicate whether or not the variable is a co-ordinate variable.
+     *
+     * @return	<code>false</code> always.
      */
     boolean
     isCoordinateVariable()
@@ -574,7 +664,7 @@ NcText
     /**
      * Return the values of this variable as a packed array of floats.
      *
-     * @exception IOException		I/O error.
+     * @exception IOException		I/O error always.
      */
     float[]
     getFloatValues()
@@ -586,7 +676,7 @@ NcText
     /**
      * Return the values of this variable as a packed array of doubles.
      *
-     * @exception IOException		I/O error.
+     * @exception IOException		I/O error always.
      */
     double[]
     getDoubleValues()
@@ -599,7 +689,7 @@ NcText
      * Return the values of this variable -- at a given point of the outermost
      * dimension -- as a packed array of doubles.
      *
-     * @exception IOException		I/O error.
+     * @exception IOException		I/O error always.
      */
     double[]
     getDoubleValues(int ipt)
@@ -610,7 +700,8 @@ NcText
 
 
 /**
- * Abstract adaptor/decorator class for netCDF integer variables.
+ * The NcInteger class provides an abstract class for adapting an integral
+ * netCDF variable that's being imported to a VisAD API.
  */
 abstract class
 NcInteger
@@ -618,6 +709,15 @@ NcInteger
 {
     /**
      * Construct.
+     *
+     * @param var	The netCDF integer variable to be adapted.
+     * @param netcdf	The netCDF dataset that contains <code>var</code>.
+     * @precondition	<code>isRepresentable(var).
+     * @exception BadFormException
+     *			The netCDF variable cannot be adapted to a VisAD API.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
      */
     NcInteger(Variable var, Netcdf netcdf)
 	throws BadFormException, VisADException
@@ -629,6 +729,14 @@ NcInteger
     /**
      * Indicate whether or not a netCDF variable can be represented as
      * an integer in the given VisAD range.
+     *
+     * @param var	The netCDF variable to be examined.
+     * @param visadMin	The minimum representable VisAD value.
+     * @param visadMax	The maximum representable VisAD value.
+     * @return		<code>true</code> if and only if the netCDF variable
+     *			can be represented within the given range.
+     * @exception BadFormException
+     *			The netCDF variable cannot be adapted to a VisAD API.
      */
     protected static boolean
     isRepresentable(Variable var, int visadMin, int visadMax)
@@ -651,7 +759,8 @@ NcInteger
 
 
 /**
- * Adaptor/decorator class for netCDF byte variables.
+ * The NcByte class adapts a netCDF byte variable that's being
+ * imported to a VisAD API.
  */
 final class
 NcByte
@@ -662,6 +771,12 @@ NcByte
      * an NcByte.  This is only possible if the netCDF variable doesn't
      * use the value -128 because that's used by VisAD to indicate a
      * "missing" byte range-value.
+     *
+     * @param var	The netCDF variable to be examined.
+     * @return		<code>true</code> if and only if <code>var</code> can
+     *			be represented as bytes.
+     * @exception BadFormException
+     *			The netCDF variable cannot be adapted to a VisAD API.
      */
     static boolean
     isRepresentable(Variable var)
@@ -673,6 +788,13 @@ NcByte
 
     /**
      * Construct.
+     *
+     * @param var	The netCDF byte variable to be adapted.
+     * @param netcdf	The netCDF dataset that contains <code>var</code>.
+     * @precondition	<code>isRepresentable(var).
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
      */
     NcByte(Variable var, Netcdf netcdf)
 	throws VisADException
@@ -701,6 +823,8 @@ NcByte
 
     /**
      * Indicate if this variable is byte.
+     *
+     * @return	<code>true</code> always.
      */
     boolean
     isByte()
@@ -711,7 +835,8 @@ NcByte
 
 
 /**
- * Adaptor/decorator class for netCDF short variables.
+ * The NcShort class adapts a netCDF short variable that's being
+ * imported to a VisAD API.
  */
 final class
 NcShort
@@ -720,6 +845,12 @@ NcShort
     /**
      * Indicate whether or not a netCDF variable can be represented as 
      * an NcShort.
+     *
+     * @param var	The netCDF variable to be examined.
+     * @return		<code>true</code> if and only if <code>var</code> can 
+     *			be represented as short values.
+     * @exception BadFormException
+     *			The netCDF variable cannot be adapted to a VisAD API.
      */
     static boolean
     isRepresentable(Variable var)
@@ -731,6 +862,13 @@ NcShort
 
     /**
      * Construct.
+     *
+     * @param var	The netCDF short variable to be adapted.
+     * @param netcdf	The netCDF dataset that contains <code>var</code>.
+     * @precondition	<code>isRepresentable(var).
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
      */
     NcShort(Variable var, Netcdf netcdf)
 	throws VisADException
@@ -759,6 +897,8 @@ NcShort
 
     /**
      * Indicate if this variable is short.
+     *
+     * @return	<code>true</code> always.
      */
     boolean
     isShort()
@@ -769,7 +909,8 @@ NcShort
 
 
 /**
- * Adaptor/decorator class for 32-bit netCDF integers.
+ * The NcInt class adapts a 32-bit netCDF variable that's being
+ * imported to a VisAD API.
  */
 final class
 NcInt
@@ -778,6 +919,12 @@ NcInt
     /**
      * Indicate whether or not a netCDF variable can be represented as 
      * an NcInt.
+     *
+     * @param var	The netCDF variable to be examined.
+     * @return		<code>true</code> if and only if <code>var</code> can
+     *			be represented in 32-bit values.
+     * @exception BadFormException
+     *			The netCDF variable cannot be adapted to a VisAD API.
      */
     static boolean
     isRepresentable(Variable var)
@@ -789,6 +936,13 @@ NcInt
 
     /**
      * Construct.
+     *
+     * @param var	The 32-bit netCDF variable to be adapted.
+     * @param netcdf	The netCDF dataset that contains <code>var</code>.
+     * @precondition	<code>isRepresentable(var).
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
      */
     NcInt(Variable var, Netcdf netcdf)
 	throws VisADException
@@ -815,8 +969,8 @@ NcInt
 	 */
 	{
 	    Vetter	vetter = new Vetter(var);
-	    int		minValid = (int)vetter.minValid();
-	    int		maxValid = (int)vetter.maxValid();
+	    long	minValid = (long)vetter.minValid();
+	    long	maxValid = (long)vetter.maxValid();
 	    long	length	= maxValid - minValid + 1;
 	    set = length <= Integer.MAX_VALUE
 		    ? (Set)(new Linear1DSet(realType, minValid, maxValid, 
@@ -835,6 +989,8 @@ NcInt
 
     /**
      * Indicate if this variable is a 32-bit netCDF integer.
+     *
+     * @return	<code>true</code> always.
      */
     boolean
     isInt()
@@ -845,7 +1001,8 @@ NcInt
 
 
 /**
- * Abstract adaptor/decorator class for netCDF floating-point variables.
+ * The NcReal class provides an abstract class for adapting a floating-point
+ * netCDF variable that's being imported to a VisAD API.
  */
 abstract class
 NcReal
@@ -853,6 +1010,14 @@ NcReal
 {
     /**
      * Construct.
+     *
+     * @param var	The netCDF variable that's being adapted.
+     * @parm netcdf	The netCDF dataset that contains <code>var</code>.
+     * @exception BadFormException
+     *			The netCDF variable cannot be adapted to a VisAD API.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
      */
     NcReal(Variable var, Netcdf netcdf)
 	throws BadFormException, VisADException
@@ -863,7 +1028,8 @@ NcReal
 
 
 /**
- * Adaptor/decorator class for netCDF float variables.
+ * The NcFloat class adapts a netCDF float variable that's being
+ * imported to a VisAD API.
  */
 final class
 NcFloat
@@ -872,6 +1038,10 @@ NcFloat
     /**
      * Indicate whether or not a netCDF variable can be represented as 
      * an NcFloat.
+     *
+     * @param var	The netCDF variable to be examined.
+     * @return		<code>true</code> if and only if <code>var</code> can
+     *			be represented as Java Float's.
      */
     static boolean
     isRepresentable(Variable var)
@@ -891,6 +1061,13 @@ NcFloat
 
     /**
      * Construct.
+     *
+     * @param var	The netCDF variable to be adapted.
+     * @param netcdf	The netCDF dataset that contains <code>var</code>.
+     * @precondition	<code>isRepresentable(var).
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
      */
     NcFloat(Variable var, Netcdf netcdf)
 	throws VisADException
@@ -929,7 +1106,8 @@ NcFloat
 
 
 /**
- * Adaptor/decorator class for netCDF double variables.
+ * The NcDouble class adapts a netCDF double variable that's being
+ * imported to a VisAD API.
  */
 final class
 NcDouble
@@ -938,6 +1116,10 @@ NcDouble
     /**
      * Indicate whether or not a netCDF variable can be represented as 
      * an NcDouble.
+     *
+     * @param var	The netCDF variable to be examined.
+     * @return		<code>true</code> if and only if <code>var</code> is
+     *			representable as doubles.
      */
     static boolean
     isRepresentable(Variable var)
@@ -954,6 +1136,13 @@ NcDouble
 
     /**
      * Construct.
+     *
+     * @param var	The netCDF variable to be adapted.
+     * @param netcdf	The netCDF dataset that contains <code>var</code>.
+     * @precondition	<code>isRepresentable(var).
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
      */
     NcDouble(Variable var, Netcdf netcdf)
 	throws VisADException
@@ -982,6 +1171,8 @@ NcDouble
 
     /**
      * Indicate if this variable is double.
+     *
+     * @return	<code>true</code> always.
      */
     boolean
     isDouble()

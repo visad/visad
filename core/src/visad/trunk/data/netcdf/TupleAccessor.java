@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: TupleAccessor.java,v 1.1 1998-03-11 16:21:56 steve Exp $
+ * $Id: TupleAccessor.java,v 1.2 1998-03-12 22:03:17 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import java.io.IOException;
 import ucar.netcdf.Dimension;
@@ -14,8 +14,9 @@ import visad.Tuple;
 
 
 /**
- * Class for accessing data in a VisAD Tuple that's been adapted to a
- * netCDF API.
+ * The TupleAccessor class accesses data in a VisAD Tuple that's being
+ * adapted to a netCDF API.  It's useful for exporting VisAD data to a
+ * netCDF dataset.
  */
 class
 TupleAccessor
@@ -29,6 +30,10 @@ TupleAccessor
 
     /**
      * Construct from a component index and an outer VisADAccessor.
+     *
+     * @param index		The index of the Tuple component.
+     * @param outerAccessor	The DataAccessor of the enclosing VisAD data
+     *				object.  Returns a Tuple.
      */
     protected
     TupleAccessor(int index, VisADAccessor outerAccessor)
@@ -40,6 +45,12 @@ TupleAccessor
 
     /**
      * Return a datum given the split, netCDF indexes.
+     *
+     * @return		The data object at the position given by
+     *			<code>localIndexes</code> and 
+     *			<code>outerIndexes</code>.
+     * @exception IOException
+     *			Data access I/O failure.
      */
     protected Object
     get()

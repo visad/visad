@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DataAdapter.java,v 1.3 1998-03-10 19:49:31 steve Exp $
+ * $Id: DataAdapter.java,v 1.4 1998-03-12 22:02:56 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import java.io.IOException;
 import java.rmi.RemoteException;
@@ -36,7 +36,7 @@ import visad.data.BadFormException;
 
 
 /**
- * Class for adapting a VisAD data object to a netCDF API.
+ * The DataAdapter class adapts a VisAD data object to the AbstractNetcdf API.
  */
 public class
 DataAdapter
@@ -44,6 +44,17 @@ DataAdapter
 {
     /**
      * Construct from a generic VisAD data object.
+     *
+     * @param data	The VisAD data object to be adapted to a netCDF
+     *			API
+     * @exception UnimplementedException	Something that should be
+     *			implemented isn't yet.
+     * @exception BadFormException	The VisAD data object cannot be
+     *			adapted to a netCDF API
+     * @exception VisADException	Problem in core VisAD.  Some VisAD
+     *			object probably couldn't be created.
+     * @exception RemoteException	Remote data access failue.
+     * @exception IOException		Data access failure.
      */
     public
     DataAdapter(Data data)
@@ -56,6 +67,19 @@ DataAdapter
 
     /**
      * Visit a VisAD data object.
+     *
+     * @param data		The VisAD data object to be visited.
+     * @param outerAccessor	The means for accessing the individual VisAD
+     *				<code>data</code> objects of the enclosing
+     *				VisAD data object.
+     * @exception UnimplementedException	Something that should be
+     *		implemented isn't yet.
+     * @exception BadFormException		The VisAD data object cannot be
+     *		adapted to a netCDF API
+     * @exception VisADException		Problem in core VisAD.
+     *		Probably some VisAD object couldn't be created.
+     * @exception RemoteException		Remote data access failue.
+     * @exception IOException			Data access failure.
      */
     protected void
     visit(Data data, VisADAccessor outerAccessor)
@@ -86,6 +110,14 @@ DataAdapter
 
     /**
      * Visit a VisAD Text object.
+     *
+     * @param text		The VisAD Text object to be visited.
+     * @param outerAccessor	The means for accessing the individual VisAD
+     *				<code>Text</code> objects of the enclosing
+     *				VisAD data object.
+     * @exception BadFormException		The VisAD data object cannot be
+     *		adapted to a netCDF API
+     * @exception IOException			Data access failure.
      */
     protected void
     visit(Text text, VisADAccessor outerAccessor)
@@ -134,6 +166,15 @@ DataAdapter
 
     /**
      * Visit a VisAD Real object.
+     *
+     * @param real		The VisAD Real object to be visited.
+     * @param outerAccessor	The means for accessing the individual VisAD
+     *				<code>Real</code> objects of the enclosing
+     *				VisAD data object.
+     * @exception BadFormException		The VisAD data object cannot be
+     *		adapted to a netCDF API
+     * @exception VisADException		Problem in core VisAD.
+     *		Probably some VisAD object couldn't be created.
      */
     protected void
     visit(Real real, VisADAccessor outerAccessor)
@@ -155,6 +196,15 @@ DataAdapter
 
     /**
      * Visit a VisAD Tuple object.
+     *
+     * @param tuple		The VisAD Tuple object to be visited.
+     * @param outerAccessor	The means for accessing the individual VisAD
+     *				<code>Tuple</code> objects of the enclosing
+     *				VisAD data object.
+     * @exception VisADException		Problem in core VisAD.
+     *		Probably some VisAD object couldn't be created.
+     * @exception RemoteException		Remote data access failue.
+     * @exception IOException			Data access failure.
      */
     protected void
     visit(Tuple tuple, VisADAccessor outerAccessor)
@@ -169,6 +219,19 @@ DataAdapter
 
     /**
      * Visit a VisAD Field object.
+     *
+     * @param field		The VisAD Field to be visited
+     * @param outerAccessor	The means for accessing the individual VisAD
+     *				<code>Field</code> objects of the enclosing
+     *				VisAD data object.
+     * @exception UnimplementedException	Something that should be
+     *		implemented isn't yet.
+     * @exception BadFormException		The VisAD data object cannot be
+     *		adapted to a netCDF API
+     * @exception VisADException		Problem in core VisAD.
+     *		Probably some VisAD object couldn't be created.
+     * @exception RemoteException		Remote data access failue.
+     * @exception IOException			Data access failure.
      */
     protected void
     visit(Field field, VisADAccessor outerAccessor)
@@ -294,18 +357,35 @@ DataAdapter
 
 	    /*
 	     * Continue the definition process on the inner, VisAD data 
-	     * objects by visiting the first sample.
+	     * objects by visiting the first sample.  The dimension array
+	     * is converted to netCDF order (outmost dimension first).
 	     */
-	    visit(field.getSample(0), new FieldAccessor(dims, 
+	    visit(field.getSample(0), new FieldAccessor(reverse(dims), 
 		outerAccessor));
 	}				// domain set is a GriddedSet
     }
 
 
     /**
+     * Reverse the dimensions in a 1-D array.
+     */
+    protected Dimension[]
+    reverse(Dimension[] inDims)
+    {
+	Dimension[]	outDims = new Dimension[inDims.length];
+
+	for (int i = 0; i < inDims.length; ++i)
+	    outDims[i] = inDims[inDims.length - 1 - i];
+    
+	return outDims;
+    }
+
+
+    /**
      * Return a MultiArray Accessor for a variable.
      *
-     * This method should never be called -- so it always throws an error.
+     * This method is part of the AbstractNetcdf class and should never
+     * be called -- so it always throws an error.
      */
     public Accessor
     ioFactory(ProtoVariable protoVar)

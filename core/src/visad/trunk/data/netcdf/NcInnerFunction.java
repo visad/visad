@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcInnerFunction.java,v 1.3 1998-02-23 15:58:23 steve Exp $
+ * $Id: NcInnerFunction.java,v 1.4 1998-03-12 22:03:08 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import java.io.IOException;
 import visad.FlatField;
@@ -16,8 +16,8 @@ import visad.VisADException;
 
 
 /**
- * Class for adapting a netCDF function whose outermost dimension is 
- * separate to a VisAD function.
+ * The NcInnerFunction class adapts to a VisAD function a netCDF function
+ * with a separate outermost dimension.
  */
 class
 NcInnerFunction
@@ -26,6 +26,9 @@ NcInnerFunction
     /**
      * Construct from an array of adapted, netCDF variables.
      *
+     * @param vars	The netCDF variables whose dimensions contitute the
+     *			domain of the function and whose values contitute the
+     *			range of the function.
      * @precondition	All variables have the same (ordered) set of
      *			dimensions and their rank is 2 or greater.
      * @exception UnimplementedException	Not yet!
@@ -49,6 +52,14 @@ NcInnerFunction
     /**
      * Return the VisAD data object corresponding to this function at a
      * given position of the outermost dimension.
+     *
+     * @param ipt	The position in the outermost dimension.
+     * @return		The FlatField corresponding to the given position.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
      */
     protected FlatField
     getData(int ipt)
@@ -66,6 +77,14 @@ NcInnerFunction
     /**
      * Return the range values of this function -- at a given position of the
      * outermost dimension -- as doubles.
+     *
+     * @param ipt	The position in the outermost dimension.
+     * @return		The range values of the function at the given position.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
      */
     protected double[][]
     getDoubleValues(int ipt)

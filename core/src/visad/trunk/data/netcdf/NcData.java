@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcData.java,v 1.2 1998-02-23 15:58:21 steve Exp $
+ * $Id: NcData.java,v 1.3 1998-03-12 22:03:05 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import java.io.IOException;
 import visad.DataImpl;
@@ -15,8 +15,8 @@ import visad.VisADException;
 
 
 /**
- * Abstract class for adapting an existing netCDF data object to a
- * VisAD data object.
+ * The NcData class provides an abstract class for adapting an existing
+ * netCDF data object to a VisAD data object.
  */
 abstract class
 NcData
@@ -29,6 +29,8 @@ NcData
 
     /**
      * Protected initializer.
+     *
+     * @param mathType	The VisAD MathType of the adapted netCDF data object.
      */
     protected void
     initialize(MathType mathType)
@@ -39,6 +41,8 @@ NcData
 
     /**
      * Return the VisAD MathType of this data object.
+     *
+     * @return	The VisAD MathType of the adapted netCDF data object.
      */
     protected MathType
     getMathType()
@@ -49,6 +53,14 @@ NcData
 
     /**
      * Return the VisAD data object corresponding to this netCDF data object.
+     *
+     * @return		The VisAD data object corresponding to the netCDF data
+     *			object.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
      */
     abstract DataImpl
     getData()

@@ -1,12 +1,12 @@
 /*
  * Copyright 1998, University Corporation for Atmospheric Research
+ * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.5 1998-02-23 15:58:26 steve Exp $
+ * $Id: NetcdfAdapter.java,v 1.6 1998-03-12 22:03:13 steve Exp $
  */
 
 package visad.data.netcdf;
-
 
 import java.io.IOException;
 import java.rmi.RemoteException;
@@ -24,7 +24,8 @@ import visad.data.BadFormException;
 
 
 /**
- * Class for adapting a netCDF dataset to a VisAD API.
+ * The NetcdfAdapter class adapts a netCDF dataset to a VisAD API.  It is 
+ * useful for importing a netCDF dataset.
  */
 public class
 NetcdfAdapter
@@ -47,6 +48,15 @@ NetcdfAdapter
 
     /**
      * Construct from a netCDF dataset.
+     *
+     * @param netcdf	The netCDF dataset to be adapted.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception RemoteException
+     *			Remote data access failue.
+     * @exception IOException
+     *			Data access I/O failure.
      */
     NetcdfAdapter(Netcdf netcdf)
 	throws VisADException, RemoteException, IOException
@@ -61,6 +71,16 @@ NetcdfAdapter
 
     /**
      * Set the VisAD data objects in the netCDF dataset.
+     *
+     * @param netcdf	The netCDF dataset to be adapted.
+     * @return		A hashtable of functions in the netCDF dataset.
+     * @exception BadFormException
+     *			The netCDF variable cannot be adapted to a VisAD API.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
      */
     protected static Hashtable
     setFunctionSet(Netcdf netcdf)
@@ -101,6 +121,14 @@ NetcdfAdapter
 
     /**
      * Set the outermost, netCDF data object.
+     *
+     * @param functionSet	The set of functions in a netCDF dataset.
+     * @return			The outermost data object of netCDF dataset.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception RemoteException
+     *			Remote data access failue.
      */
     protected static NcData
     setOutermost(Dictionary functionSet)
@@ -135,6 +163,13 @@ NetcdfAdapter
 
     /**
      * Return the outermost, VisAD data object.
+     *
+     * @return		The top-level, VisAD data object in the netCDF dataset.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
      */
     DataImpl
     getData()
@@ -147,8 +182,15 @@ NetcdfAdapter
     /**
      * Return the VisAD data object corresponding to the given MathType.
      *
+     * @param type	The MathType of the data object to be returned.
      * @prerequisite	<code>type</code> is a node in 
      *			<code>getMathType()</code>'s return-value.
+     * @return		The data object corresponding to <code>type</code>.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
      */
     protected DataImpl
     getData(MathType type)
@@ -169,6 +211,7 @@ NetcdfAdapter
     /**
      * Test this class.
      *
+     * @param args	Runtime arguments.  Ignored.
      * @exception Exception	Something went wrong.
      */
     public static void
