@@ -1496,8 +1496,12 @@ public abstract class DataImpl extends ThingImpl
 
   /**
    * A wrapper around {@link #__pow__(Data) __pow__} for JPython
+   * For low powers, do the multiply directly to preserve units.
    */
   public Data __pow__(double data) throws VisADException, RemoteException {
+    if(data == 2.0) return multiply(this);
+    if(data == 3.0) return multiply( multiply(this) );
+    if(data == 4.0) return multiply( multiply( multiply(this) ) );
     return pow(new Real(data));
   }
   
