@@ -37,6 +37,7 @@ public class GRIBCoordinateSystem extends CoordinateSystem {
   private boolean isLatLon=false;
   private double La1, Lo1, LoMax, Di, Dj;
   private double aspectRatio = 1.0;
+  private double Nx, Ny;
 
 
   /** constructor for a Lambert conformal (GRIB type code = 3)
@@ -89,10 +90,14 @@ public class GRIBCoordinateSystem extends CoordinateSystem {
     if (gridNumber == 211) {
       
       doLambert(ref, 12.190, -133.459, 81.2705, 25.0, 25.0, -95.0);
+      Nx = 93.;
+      Ny = 65.;
 
     } else if (gridNumber == 236) {
 
       doLambert(ref, 16.281, 233.862, 40.635, 25.0, 25.0, 265.0);
+      Nx = 151.;
+      Ny = 113.;
       
     } else {
         System.out.println("GRIB Grid type unknown = "+gridNumber);
@@ -113,6 +118,8 @@ public class GRIBCoordinateSystem extends CoordinateSystem {
      this.Dj = Dj;
      LoMax = Lo1 + Di*(Ni - 1);
      aspectRatio = (Di/Dj);
+     Nx = (double) Ni;
+     Ny = (double) Nj;
 
      //System.out.println("la1, lo1, ,LoMax, di, dj ="+La1+" "+Lo1+" "+LoMax+" "+ Di+" "+Dj);
 
@@ -253,6 +260,26 @@ public class GRIBCoordinateSystem extends CoordinateSystem {
   */
   public boolean equals(Object cs) {
     return (cs instanceof GRIBCoordinateSystem);
+  }
+
+  /** return the dimension of the grid as a range
+  *
+  */
+  public double[] getXRange() {
+    double[] xr = new double[2];
+    xr[0] = 0.;
+    xr[1] = Nx - 1;
+    return (xr);
+  }
+
+  /** return the dimension of the grid as a range
+  *
+  */
+  public double[] getYRange() {
+    double[] yr = new double[2];
+    yr[0] = 0.;
+    yr[1] = Ny - 1;
+    return (yr);
   }
 
   public double getAspectRatio() {
