@@ -24,6 +24,7 @@ c     itype=2.
          stop
       end if
 
+
       do is=1,NPROF_PT
 	 xprof(is)=0.
 	 yprof(is)=0.
@@ -90,6 +91,14 @@ c     line-of-sight velocity (sV)
          print *, 'bad itype in profile'
          stop
       end if
+
+c      print *, '--------------------------------'
+c      write(6,6000) itype
+c      write(6,6001) xprof(1),xprof(NPROF_PT),xprof(2)-xprof(1)
+c      write(6,6002) yprof(1),yprof(NPROF_PT)
+c6000  format('Profile type: ', i3)
+c6001  format('X: ',3f8.3)
+c6002  format('Y: ',2f8.3)
 
       return
       end

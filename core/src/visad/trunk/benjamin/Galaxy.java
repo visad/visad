@@ -846,7 +846,9 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
     display2 = new DisplayImplJ2D("display2");
     display2.setAlwaysAutoScale(true);
     GraphicsModeControl mode2 = display2.getGraphicsModeControl();
-    mode2.setScaleEnable(true);
+    mode2.setScaleEnable(false);
+    DisplayRenderer displayRenderer = display2.getDisplayRenderer();
+    displayRenderer.setBoxOn(false);
  
     // map grid_domain to the Display spatial coordinates;
     display2.addMap(new ScalarMap(element, Display.XAxis));
