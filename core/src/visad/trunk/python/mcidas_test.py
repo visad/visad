@@ -20,3 +20,4 @@ for j in range(map.length/200):
 clearplot()
 plot(area)
 plot(map)
+
