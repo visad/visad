@@ -191,15 +191,10 @@ public abstract class ActionImpl
           while (links.hasMoreElements()) {
             ReferenceActionLink link =
               (ReferenceActionLink) links.nextElement();
-            if (link.getBall()) {
-              link.setBall(false);
-              ThingReference ref = link.getThingReference();
-              ThingChangedEvent e =
-                ref.acknowledgeThingChanged(link.getAction());
-              if (e != null) {
-                thingChanged(e);
-                requeue = true;
-              }
+            ThingChangedEvent e = link.getThingChangedEvent();
+            if (e != null) {
+              thingChanged(e);
+              requeue = true;
             }
           }
           resetTicks();
@@ -234,8 +229,7 @@ public abstract class ActionImpl
 
     boolean changed = true;
     if (link != null) {
-      link.incTick(e.getTick());
-      link.setBall(true);
+      link.acknowledgeThingChangedEvent(e.getTick());
       notifyAction();
       changed = false;
     }

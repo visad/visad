@@ -31,7 +31,7 @@ import java.rmi.RemoteException;
    ReferenceActionLink objects are used by Action objects to
    define their connections with ThingReference objects.<P>
 */
-public class ReferenceActionLink extends Object {
+public class ReferenceActionLink {
 
   ThingReference ref;
   ActionImpl local_action;
@@ -51,7 +51,7 @@ public class ReferenceActionLink extends Object {
       and ThingReference ref;
       false when this is waiting for a ThingChangedEvent;
       true when ref is waiting for an acknowledgement */
-  boolean Ball;
+  private boolean Ball;
 
   public ReferenceActionLink(ThingReference r, ActionImpl local_a, Action a,
                              long jd)
@@ -86,12 +86,12 @@ public class ReferenceActionLink extends Object {
     return action;
   }
 
-  /** set value of NewTick; presumably ncreases value */
+  /** set value of NewTick; presumably increases value */
   synchronized void incTick(long t) {
     NewTick = t;
   }
 
-  /** set tickFlag according to OldTick and NewTick */
+  /** sync consumer's tick count with producer's tick count */
   public synchronized void setTicks() {
     tickFlag = (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
     OldTick = NewTick;
@@ -104,6 +104,7 @@ System.out.println(s + ":  tickFlag = " + tickFlag + "  OldTick = " + OldTick +
   }
 */
 
+  /** returns true if there is an action pending */
   public synchronized boolean peekTicks() {
     return (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
   }
@@ -113,17 +114,33 @@ System.out.println(s + ":  tickFlag = " + tickFlag + "  OldTick = " + OldTick +
     return tickFlag;
   }
 
-  /** reset tickFlag */
+  /** clear internal state */
   synchronized void resetTicks() {
     tickFlag = false;
   }
 
-  boolean getBall() {
-    return Ball;
+  /** return any waiting event */
+  ThingChangedEvent getThingChangedEvent()
+        throws RemoteException, VisADException
+  {
+    ThingChangedEvent event = null;
+
+    // if the reference has an event waiting...
+    if (Ball) {
+
+      // get the event
+      event = ref.acknowledgeThingChanged(action);
+
+      // remember that we picked up the event
+      Ball = false;
+    }
+
+    return event;
   }
- 
-  void setBall(boolean b) {
-    Ball = b;
+
+  void acknowledgeThingChangedEvent(long actionTick) {
+    NewTick = actionTick;
+    Ball = true;
   }
 
 }
