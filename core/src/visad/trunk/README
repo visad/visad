@@ -42,6 +42,12 @@ Unpacking VisAD will create the following sub-directories:
   visad/java3d			// Java3D displays for VisAD
   visad/java2d			// Java2D displays for VisAD
   visad/util			// VisAD UI utilities
+  visad/collab                  // collaboration support
+  visad/cluster                 // data and displays distributed on clusters
+  visad/python                  // python scripts for VisAD
+  visad/browser                 // connecting applets to VisAD servers
+  visad/math                    // math (fft, histogram) operations
+  visad/matrix                  // JAMA (matlab) matrix operations
   visad/data			// VisAD data (file) format adapters
   visad/data/fits		// VisAD - FITS file adapter
   visad/data/netcdf		// VisAD - netCDF file adapter
@@ -53,9 +59,13 @@ Unpacking VisAD will create the following sub-directories:
   visad/data/vis5d		// VisAD - Vis5D file adapter
   visad/data/mcidas		// VisAD - McIDAS file adapter
   visad/data/gif		// VisAD - GIF file adapter
+  visad/data/tiff		// VisAD - TIFF file adapter
+  visad/data/jai		// VisAD file adapter for various image formats
+  visad/data/biorad             // VisAD - Biorad file adapter
   visad/data/visad		// VisAD serialized object file adapter
   visad/data/hdf5 		// VisAD - HDF-5 file adapter
   visad/data/hdf5/hdf5objects	// VisAD - HDF-5 file adapter
+  visad/data/amanda             // VisAD - F2000 file adapter (neutrino events)
   visad/paoloa			// GoesCollaboration application
   visad/paoloa/spline		// spline fitting application
   visad/aune			// ShallowFluid application
@@ -63,6 +73,9 @@ Unpacking VisAD will create the following sub-directories:
   visad/rabin                   // Rainfall estimation spread sheet
   visad/bom                     // wind barb rendering for ABOM
   visad/jmet                    // JMet - Java Meteorology package
+  visad/aeri                    // Aeri data visualization
+  visad/georef                  // specialized earth coordinates
+  visad/meteorology             // meteorology
   visad/examples		// small application examples
   nom/tam/fits			// Java FITS file binding
   nom/tam/util			// Java FITS file binding
@@ -75,6 +88,16 @@ Unpacking VisAD will create the following sub-directories:
   edu/wisc/ssec/mcidas/adde     // Java McIDAS file binding
   ncsa/hdf/hdf5lib              // Java HDF-5 file binding
   ncsa/hdf/hdf5lib/exceptions   // Java HDF-5 file binding
+  ij                            // ImageJ
+  ij/gui                        // ImageJ
+  ij/io                         // ImageJ
+  ij/measure                    // ImageJ
+  ij/plugin                     // ImageJ
+  ij/plugin/filter              // ImageJ
+  ij/plugin/frame               // ImageJ
+  ij/process                    // ImageJ
+  ij/text                       // ImageJ
+  ij/util                       // ImageJ
 
 These directories correspond to the packages in distributed with
 VisAD, except that the classes in visad/examples are in the
@@ -139,8 +162,6 @@ compiler):
   visad.RemoteDataImpl
   visad.RemoteDataReferenceImpl
   visad.RemoteDisplayImpl
-  visad.RemoteDisplayMonitorImpl
-  visad.RemoteDisplaySyncImpl
   visad.RemoteFieldImpl
   visad.RemoteFunctionImpl
   visad.RemoteReferenceLinkImpl
@@ -148,6 +169,19 @@ compiler):
   visad.RemoteSlaveDisplayImpl
   visad.RemoteThingImpl
   visad.RemoteThingReferenceImpl
+  visad.collab.RemoteDisplayMonitorImpl
+  visad.collab.RemoteDisplaySyncImpl
+  visad.collab.RemoteEventProviderImpl
+  visad.cluster.RemoteAgentContactImpl
+  visad.cluster.RemoteClientAgentImpl
+  visad.cluster.RemoteClientDataImpl
+  visad.cluster.RemoteClientFieldImpl
+  visad.cluster.RemoteClientTupleImpl
+  visad.cluster.RemoteClusterDataImpl
+  visad.cluster.RemoteNodeDataImpl
+  visad.cluster.RemoteNodeFieldImpl
+  visad.cluster.RemoteNodePartitionedFieldImpl
+  visad.cluster.RemoteNodeTupleImpl
 
 
 4. Building Native Code for the HDF-EOS and HDF-5 File Adapters
@@ -272,6 +306,12 @@ these packages:
   visad/java3d			// Java3D displays for VisAD
   visad/java2d			// Java2D displays for VisAD
   visad/util			// VisAD UI utilities
+  visad/collab                  // collaboration support
+  visad/cluster                 // data and displays distributed on clusters
+  visad/python                  // python scripts for VisAD
+  visad/browser                 // connecting applets to VisAD servers
+  visad/math                    // math (fft, histogram) operations
+  visad/matrix                  // JAMA (matlab) matrix operations
   visad/data			// VisAD data (file) format adapters
   visad/data/fits		// VisAD - FITS file adapter
   visad/data/netcdf		// VisAD - netCDF file adapter
@@ -283,9 +323,13 @@ these packages:
   visad/data/vis5d		// VisAD - Vis5D file adapter
   visad/data/mcidas		// VisAD - McIDAS file adapter
   visad/data/gif		// VisAD - GIF file adapter
+  visad/data/tiff		// VisAD - TIFF file adapter
+  visad/data/jai		// VisAD file adapter for various image formats
+  visad/data/biorad             // VisAD - Biorad file adapter
   visad/data/visad		// VisAD serialized object file adapter
   visad/data/hdf5 		// VisAD - HDF-5 file adapter
   visad/data/hdf5/hdf5objects	// VisAD - HDF-5 file adapter
+  visad/data/amanda             // VisAD - F2000 file adapter (neutrino events)
   visad/paoloa			// GoesCollaboration application
   visad/paoloa/spline		// spline fitting application
   visad/aune			// ShallowFluid application
@@ -293,6 +337,9 @@ these packages:
   visad/rabin                   // Rainfall estimation spread sheet
   visad/bom                     // wind barb rendering for ABOM
   visad/jmet                    // JMet - Java Meteorology package
+  visad/aeri                    // Aeri data visualization
+  visad/georef                  // specialized earth coordinates
+  visad/meteorology             // meteorology
   visad/examples		// small application examples
   nom/tam/fits			// Java FITS file binding
   nom/tam/util			// Java FITS file binding
@@ -305,6 +352,16 @@ these packages:
   edu/wisc/ssec/mcidas/adde     // Java McIDAS file binding
   ncsa/hdf/hdf5lib              // Java HDF-5 file binding
   ncsa/hdf/hdf5lib/exceptions   // Java HDF-5 file binding
+  ij                            // ImageJ
+  ij/gui                        // ImageJ
+  ij/io                         // ImageJ
+  ij/measure                    // ImageJ
+  ij/plugin                     // ImageJ
+  ij/plugin/filter              // ImageJ
+  ij/plugin/frame               // ImageJ
+  ij/process                    // ImageJ
+  ij/text                       // ImageJ
+  ij/util                       // ImageJ
 
 In order to run the examples with visad.jar, download:
 
