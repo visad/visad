@@ -1638,17 +1638,19 @@ System.out.println("checkClose: distance = " + distance);
     float d_y = (float) ray.vector[1];
     float d_z = (float) ray.vector[2];
 
-    if (first) {
-      offset_count = OFFSET_COUNT_INIT;
-    }
-    else {
-      if (offset_count > 0) offset_count--;
-    }
-    if (offset_count > 0) {
-      float mult = ((float) offset_count) / ((float) OFFSET_COUNT_INIT);
-      o_x += mult * offsetx;
-      o_y += mult * offsety;
-      o_z += mult * offsetz;
+    if (pickCrawlToCursor) {
+      if (first) {
+        offset_count = OFFSET_COUNT_INIT;
+      }
+      else {
+        if (offset_count > 0) offset_count--;
+      }
+      if (offset_count > 0) {
+        float mult = ((float) offset_count) / ((float) OFFSET_COUNT_INIT);
+        o_x += mult * offsetx;
+        o_y += mult * offsety;
+        o_z += mult * offsetz;
+      }
     }
 
     if (first) {
@@ -2029,6 +2031,22 @@ System.out.println("checkClose: distance = " + distance);
 
   public boolean getIsDirectManipulation() {
     return isDirectManipulation;
+  }
+
+  /** flag indicating whether points affected by direct manipulation should
+      "crawl" toward the cursor instead of jumping to it immediately. */
+  private boolean pickCrawlToCursor = true;
+
+  /** sets whether points affected by direct manipulation should
+      "crawl" toward the cursor instead of jumping to it immediately. */
+  public void setPickCrawlToCursor(boolean b) {
+    pickCrawlToCursor = b;
+  }
+
+  /** gets whether points affected by direct manipulation should
+      "crawl" toward the cursor instead of jumping to it immediately. */
+  public boolean getPickCrawlToCursor() {
+    return pickCrawlToCursor;
   }
 
   private float ray_pos; // save last ray_pos as first guess for next
