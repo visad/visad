@@ -32,6 +32,8 @@ import visad.java3d.DisplayImplJ3D;
 public class Test19
   extends UISkeleton
 {
+  private DataReference value_ref;
+
   public Test19() { }
 
   public Test19(String[] args)
@@ -110,6 +112,23 @@ public class Test19
     return dpys;
   }
 
+  void getClientDataReferences(RemoteServer client)
+    throws RemoteException, VisADException
+  {
+    value_ref = (DataReference )client.getDataReference(0);
+  }
+
+  void setServerDataReferences(RemoteServerImpl server)
+    throws RemoteException, VisADException
+  {
+    DataReferenceImpl dref = new DataReferenceImpl("value");
+    RemoteDataReferenceImpl ref = new RemoteDataReferenceImpl(dref);
+    if (server != null) {
+      server.addDataReference(ref);
+    }
+    value_ref = dref;
+  }
+
   String getFrameTitle() { return "VisAD select slider"; }
 
   Component getSpecialComponent(DisplayImpl[] dpys)
@@ -119,19 +138,20 @@ public class Test19
 
     final ValueControl value1control =
       (ValueControl) map1value.getControl();
-    value1control.setValue(0.0);
-
-    final DataReference value_ref = new DataReferenceImpl("value");
 
     VisADSlider slider =
       new VisADSlider("value", 0, 100, 0, 0.01, value_ref, RealType.Generic);
 
-    CellImpl cell = new CellImpl() {
-      public void doAction() throws RemoteException, VisADException {
-        value1control.setValue(((Real) value_ref.getData()).getValue());
-      }
-    };
-    cell.addReference(value_ref);
+    if (value_ref instanceof ThingReferenceImpl) {
+      final DataReference cell_ref = value_ref;
+
+      CellImpl cell = new CellImpl() {
+        public void doAction() throws RemoteException, VisADException {
+            value1control.setValue(((Real) cell_ref.getData()).getValue());
+          }
+        };
+      cell.addReference(cell_ref);
+    }
 
     return slider;
   }
@@ -142,6 +162,6 @@ public class Test19
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test19 t = new Test19(args);
+    new Test19(args);
   }
 }

@@ -43,7 +43,6 @@ public abstract class TestSkeleton
 {
   boolean startServer = false;
   String hostName = null;
-  RemoteServer client = null;
 
   private static final int maximumWaitTime = 60;
 
@@ -150,7 +149,6 @@ public abstract class TestSkeleton
       System.err.println("Usage: " + getClass().getName() +
                          (hasClientServerMode() ?
                           " [-c(lient) hostname]" : "") +
-                         " [-d(ump display)]" +
                          (hasClientServerMode() ?
                           " [-s(erver)]" : "") +
                          extraOptionUsage() + extraKeywordUsage());
@@ -179,22 +177,23 @@ public abstract class TestSkeleton
     }
   }
 
-  void getClientDataReferences()
-    throws RemoteException
+  void getClientDataReferences(RemoteServer client)
+    throws RemoteException, VisADException
   {
   }
 
-  RemoteDisplay[] getClientDisplays()
+  RemoteServer getClientServer()
     throws RemoteException, VisADException
   {
+    RemoteServer client = null;
+    String domain = "//" + hostName + "/" + getClass().getName();
+
     int loops = 0;
-    RemoteDisplay[] rmtDpy = null;
-    while (rmtDpy == null && loops < maximumWaitTime) {
+    while (client == null && loops < maximumWaitTime) {
 
       // try to reconnect to the server after the first loop
       if (loops > 0) {
         try {
-          String domain = "//" + hostName + "/" + getClass().getName();
           client = (RemoteServer )Naming.lookup(domain);
         } catch (NotBoundException nbe) {
           client = null;
@@ -206,17 +205,18 @@ public abstract class TestSkeleton
         }
       }
 
-      // try to get displays from remote server
+      // try to get first display from remote server
+      RemoteDisplay rmtDpy;
       try {
         if (client != null) {
-          rmtDpy = client.getDisplays();
+          rmtDpy = client.getDisplay(0);
         }
       } catch (java.rmi.ConnectException ce) {
-        rmtDpy = null;
+        client = null;
       }
 
-      // if we didn't get any displays, print a message and wait a bit
-      if (rmtDpy == null) {
+      // if we didn't get the display, print a message and wait a bit
+      if (client == null) {
         if (loops == 0) {
           System.err.print("Client waiting for server ");
         } else {
@@ -236,13 +236,29 @@ public abstract class TestSkeleton
       System.err.println(" connected");
     }
 
+    return client;
+  }
+
+  RemoteDisplay[] getClientDisplays(RemoteServer client)
+    throws RemoteException, VisADException
+  {
+    // try to get displays from remote server
+    RemoteDisplay[] rmtDpy = null;
+    try {
+      if (client != null) {
+        rmtDpy = client.getDisplays();
+      }
+    } catch (java.rmi.ConnectException ce) {
+    }
+
     return rmtDpy;
   }
 
   DisplayImpl[] setupClientData()
     throws RemoteException, VisADException
   {
-    RemoteDisplay[] rmtDpy = getClientDisplays();
+    RemoteServer client = getClientServer();
+    RemoteDisplay[] rmtDpy = getClientDisplays(client);
     if (rmtDpy == null) {
       throw new VisADException("No RemoteDisplays found!");
     }
@@ -282,14 +298,14 @@ public abstract class TestSkeleton
       }
     }
 
-    // add any data references to server
-    getClientDataReferences();
+    // fetch any data references from server
+    getClientDataReferences(client);
 
     return dpys;
   }
 
   void setServerDataReferences(RemoteServerImpl server)
-    throws RemoteException
+    throws RemoteException, VisADException
   {
   }
 
