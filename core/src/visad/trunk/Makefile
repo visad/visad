@@ -264,7 +264,7 @@ save:
 compile:
 	/bin/rm -f *.class java3d/*.class util/*.class data/*.class data/netcdf/*.class data/netcdf/units/*.class data/fits/*.class ../nom/tam/fits/*.class ../nom/tam/util/*.class ../nom/tam/test/*.class data/hdfeos/*.class data/hdfeos/hdfeosNative/*.class data/vis5d/*.class data/gif/*.class paoloa/*.class aune/*.class examples/*.class ; \
 	javac -J-mx32m *.java ; \
-	rmic visad.RemoteCellImpl visad.RemoteActionImpl visad.RemoteDisplayImpl visad.RemoteDataReferenceImpl visad.RemoteDataImpl visad.RemoteFunctionImpl visad.RemoteFieldImpl visad.RemoteServerImpl ; \
+	rmic visad.RemoteCellImpl visad.RemoteActionImpl visad.RemoteDisplayImpl visad.RemoteThingReferenceImpl visad.RemoteDataReferenceImpl visad.RemoteThingImpl visad.RemoteDataImpl visad.RemoteFunctionImpl visad.RemoteFieldImpl visad.RemoteServerImpl ; \
 	javac java3d/*.java ; \
 	javac util/*.java ; \
 	javac data/*.java ; \

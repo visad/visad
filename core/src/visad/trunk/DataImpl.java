@@ -61,14 +61,11 @@ import java.rmi.*;
    the Java arithmetical operations are defined for Data objects, to
    the extent that they make sense for the types involved.<P>
 */
-public abstract class DataImpl extends Object
-       implements Data, Cloneable, java.io.Serializable {
+public abstract class DataImpl extends ThingImpl
+       implements Data, Cloneable {
 
   /** each VisAD data object has a VisAD mathematical type */
   MathType Type;
-
-  /** vector of DataReference that reference this Data object */
-  private transient Vector references = new Vector();
 
   /** parent is used to propogate notifyReferences;
       parent DataImpl object if parent is local;
@@ -101,87 +98,13 @@ public abstract class DataImpl extends Object
     return Type;
   }
 
-  /** add a DataReference to this DataImpl;
-      must be local DataReferenceImpl;
-      called by DataReference.setData;
-      would like 'default' visibility here, but must be declared
-      'public' because it is defined in the Data interface */
-  public void addReference(DataReference r) throws VisADException {
-    if (!(r instanceof DataReferenceImpl)) {
-      throw new RemoteVisADException("DataImpl.addReference: must use " +
-                                     "RemoteDataImpl for RemoteDataReferenceImpl");
-    }
-    synchronized (this) {
-      if (references == null) references = new Vector();
-    }
-    references.addElement(r);
-/* DEBUG
-    System.out.println("DataImpl " + " addReference " +
-                       "(" + System.getProperty("os.name") + ")");
-*/
-  }
-
-  /** method for use by RemoteDataImpl that adapts this DataImpl */
-  void adaptedAddReference(ReferenceDataPair p) throws VisADException {
-    synchronized (this) {
-      if (references == null) references = new Vector();
-    }
-    references.addElement(p);
-/* DEBUG
-    System.out.println("DataImpl.adaptedAddReference " +
-                       "(" + System.getProperty("os.name") + ")");
-*/
-  }
-
-  /** remove a DataReference to this DataImpl;
-      must be local DataReferenceImpl;
-      called by DataReference.setData;
-      would like 'default' visibility here, but must be declared
-      'public' because it is defined in the Data interface */
-  public void removeReference(DataReference r)
-         throws VisADException {
-    if (!(r instanceof DataReferenceImpl)) {
-      throw new RemoteVisADException("DataImpl.removeReference: must use " +
-                                     "RemoteData for RemoteDataReference");
-    }
-    if (references == null || !references.removeElement(r)) {
-      throw new ReferenceException("DataImpl.removeReference: already clear");
-    }
-  }
-
-  /** method for use by RemoteDataImpl that adapts this DataImpl */
-  void adaptedRemoveReference(ReferenceDataPair p)
-       throws VisADException {
-    if (references == null || !references.removeElement(p)) {
-      throw new ReferenceException("DataImpl.removeReference: already clear");
-    }
-  }
-
   /** notify local DataReferenceImpl-s that this DataImpl has changed; 
       incTick in RemoteDataImpl for RemoteDataReferenceImpl-s;
       would like 'default' visibility here, but must be declared
       'public' because it is defined in the Data interface */
   public void notifyReferences()
          throws VisADException, RemoteException {
-    if (references != null) {
-      // lock references for iterating through it
-      synchronized (references) {
-        Enumeration refs = references.elements();
-        while (refs.hasMoreElements()) {
-          Object r = refs.nextElement();
-          if (r instanceof DataReferenceImpl) {
-            // notify local DataReferenceImpl
-            ((DataReferenceImpl) r).incTick();
-          }
-          else { // r instanceof ReferenceDataPair
-            // RemoteDataReference, so only incTick in
-            // local RemoteDataImpl
-            RemoteData d = ((ReferenceDataPair) r).data;
-            d.incTick();
-          }
-        }
-      }
-    }
+    super.notifyReferences();
     // recursively propogate data change to parent
     if (parent != null) parent.notifyReferences();
   }

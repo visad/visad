@@ -40,18 +40,22 @@ public class RemoteDisplayImpl extends RemoteActionImpl
     super(d);
   }
 
-  public void addReference(DataReference ref)
+  public void addReference(ThingReference ref)
          throws VisADException, RemoteException {
-    addReference(ref, null);
+    if (!(ref instanceof DataReference)) {
+      throw new ReferenceException("RemoteDisplayImpl.addReference: ref " +
+                                   "must be DataReference");
+    }
+    addReference((DataReference) ref, null);
   }
 
   /** create link to DataReference;
       must be RemoteDataReference */
   public void addReference(DataReference ref,
          ConstantMap[] constant_maps) throws VisADException, RemoteException {
-    if (ref instanceof DataReferenceImpl) {
+    if (!(ref instanceof RemoteDataReference)) {
       throw new RemoteVisADException("RemoteDisplayImpl.addReference: requires " +
-                                     "RemoteDataReferenceImpl");
+                                     "RemoteDataReference");
     }
     if (AdaptedAction == null) {
       throw new RemoteVisADException("RemoteDisplayImpl.addReference: " +
@@ -85,13 +89,17 @@ public class RemoteDisplayImpl extends RemoteActionImpl
   /** remove link to a DataReference;
       because DataReference array input to adaptedAddReferences may be a
       mix of local and remote, we tolerate either here */
-  public void removeReference(DataReference ref)
+  public void removeReference(ThingReference ref)
          throws VisADException, RemoteException {
+    if (!(ref instanceof DataReference)) {
+      throw new ReferenceException("RemoteDisplayImpl.addReference: ref " +
+                                   "must be DataReference");
+    }
     if (AdaptedAction == null) {
       throw new RemoteVisADException("RemoteDisplayImpl.removeReference: " +
                                      "AdaptedAction is null");
     }
-    ((DisplayImpl) AdaptedAction).adaptedDisplayRemoveReference(ref);
+    ((DisplayImpl) AdaptedAction).adaptedDisplayRemoveReference((DataReference) ref);
   }
 
   /** add a ScalarMap to this Display */

@@ -27,11 +27,11 @@ package visad;
 
 /**
    ReferenceActionLink objects are used by Action objects to
-   define their connections with DataReference objects.<P>
+   define their connections with ThingReference objects.<P>
 */
 public class ReferenceActionLink extends Object {
 
-  DataReference ref;
+  ThingReference ref;
   ActionImpl local_action;
   Action action;  // may be remote or local
 
@@ -46,15 +46,15 @@ public class ReferenceActionLink extends Object {
   private boolean tickFlag;
 
   /** Ball describes state of protocol between this ReferenceActionLink
-      and DataReference ref;
-      false when this is waiting for a DataChangedEvent;
+      and ThingReference ref;
+      false when this is waiting for a ThingChangedEvent;
       true when ref is waiting for an acknowledgement */
   boolean Ball;
 
-  public ReferenceActionLink(DataReference r, ActionImpl local_a, Action a,
+  public ReferenceActionLink(ThingReference r, ActionImpl local_a, Action a,
                              long jd) throws VisADException {
     if (r == null || a == null) {
-      throw new ReferenceException("ReferenceActionLink: DataReference and " +
+      throw new ReferenceException("ReferenceActionLink: ThingReference and " +
                                    "Action cannot be null");
     }
     ref = r;
@@ -68,7 +68,7 @@ public class ReferenceActionLink extends Object {
     return id;
   }
 
-  public DataReference getDataReference() {
+  public ThingReference getThingReference() {
     return ref;
   }
 

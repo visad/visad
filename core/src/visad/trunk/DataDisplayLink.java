@@ -113,7 +113,7 @@ public class DataDisplayLink extends ReferenceActionLink {
     int[] value_indices;
     int levelOfDifficulty;
 
-    data = ref.getData();
+    data = ((DataReference) ref).getData();
     if (data == null) {
       renderer.addException("Data is null");
       return false;
@@ -194,7 +194,7 @@ public class DataDisplayLink extends ReferenceActionLink {
          throws VisADException, RemoteException {
 /* WLH 14 Feb 98 */
     if (data == null) {
-      data = ref.getData();
+      data = ((DataReference) ref).getData();
     }
     return data;
   }
@@ -212,6 +212,10 @@ public class DataDisplayLink extends ReferenceActionLink {
 
   public float[] getDefaultValues() {
     return defaultValues;
+  }
+
+  public DataReference getDataReference() {
+    return (DataReference) getThingReference();
   }
 
 }

@@ -1,6 +1,6 @@
 
 //
-// ReferenceDataPair.java
+// ThingChangedListener.java
 //
 
 /*
@@ -25,31 +25,18 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.util.EventListener;
+import java.rmi.*;
+
 /**
-   ReferenceDataPair is the VisAD class for a
-   (RemoteDataReference, RemoteData) pair
-   on the references Vector of DataImpl
+   ThingChangedListener is the EventListener interface for
+   ThingChangedEvents.  ThingChangedListener is extended by
+   Action.<P>
 */
-class ReferenceDataPair extends Object {
+public interface ThingChangedListener extends EventListener {
 
-  /** an alternate policy option would be to propogate Data
-      changes to ref; but currently not used */
-  RemoteDataReference ref;
-
-  /** Data changes noted by data.incTick();
-      later polled by data.getTick() from a RemoteAction */
-  RemoteData data;
- 
-  ReferenceDataPair(RemoteDataReference r, RemoteData d) {
-    ref = r;
-    data = d;
-  }
- 
-  public boolean equals(Object pair) {
-    if (!(pair instanceof ReferenceDataPair)) return false;
-    return (ref.equals(((ReferenceDataPair) pair).ref) &&
-            data.equals(((ReferenceDataPair) pair).data));
-  }
+  public abstract void thingChanged(ThingChangedEvent e)
+         throws VisADException, RemoteException;
  
 }
 

@@ -32,13 +32,11 @@ import java.rmi.server.UnicastRemoteObject;
 /**
    RemoteDataReferenceImpl is VisAD remote adapter for DataReferenceImpl.<P>
 */
-public class RemoteDataReferenceImpl extends UnicastRemoteObject
+public class RemoteDataReferenceImpl extends RemoteThingReferenceImpl
        implements RemoteDataReference {
 
-  final transient DataReferenceImpl AdaptedDataReference;
-
   public RemoteDataReferenceImpl(DataReferenceImpl ref) throws RemoteException {
-    AdaptedDataReference = ref;
+    super(ref);
   }
 
   /** set this RemoteDataReferenceImpl to refer to d;
@@ -49,26 +47,26 @@ public class RemoteDataReferenceImpl extends UnicastRemoteObject
       throw new ReferenceException("RemoteDataReferenceImpl: data " +
                                    "cannot be null");
     }
-    if (AdaptedDataReference == null) {
+    if (AdaptedThingReference == null) {
       throw new RemoteVisADException("RemoteDataReferenceImpl.setData: " +
-                                     "AdaptedDataReference is null");
+                                     "AdaptedThingReference is null");
     }
     if (d instanceof DataImpl) {
       // allow Data object passed by copy from remote JVM
-      AdaptedDataReference.setData(d);
+      ((DataReferenceImpl) AdaptedThingReference).setData(d);
     }
     else {
-      AdaptedDataReference.adaptedSetData((RemoteData) d,
+      ((DataReferenceImpl) AdaptedThingReference).adaptedSetData((RemoteData) d,
                                           (RemoteDataReference) this);
     }
   }
 
   public Data getData() throws VisADException, RemoteException {
-    if (AdaptedDataReference == null) {
+    if (AdaptedThingReference == null) {
       throw new RemoteVisADException("RemoteDataReferenceImpl.getData: " +
-                                     "AdaptedDataReference is null");
+                                     "AdaptedThingReference is null");
     }
-    Data data = AdaptedDataReference.getData();
+    Data data = ((DataReferenceImpl) AdaptedThingReference).getData();
     if (data instanceof FieldImpl) {
       // decide here whether to return copy of remote reference
       boolean return_copy = false;
@@ -85,82 +83,11 @@ public class RemoteDataReferenceImpl extends UnicastRemoteObject
   }
 
   public MathType getType() throws VisADException, RemoteException {
-    if (AdaptedDataReference == null) {
+    if (AdaptedThingReference == null) {
       throw new RemoteVisADException("RemoteDataReferenceImpl.getType: " +
-                                     "AdaptedDataReference is null");
+                                     "AdaptedThingReference is null");
     }
-    return AdaptedDataReference.getData().getType();
-  }
-
-  public long getTick() throws VisADException, RemoteException {
-    if (AdaptedDataReference == null) {
-      throw new RemoteVisADException("RemoteDataReferenceImpl.getTick: " +
-                                     "AdaptedDataReference is null");
-    }
-    return AdaptedDataReference.getTick();
-  }
-
-  public long incTick() throws VisADException, RemoteException {
-    if (AdaptedDataReference == null) {
-      throw new RemoteVisADException("RemoteDataReferenceImpl.incTick: " +
-                                     "AdaptedDataReference is null");
-    }
-    return AdaptedDataReference.incTick();
-  }
-
-  public String getName() throws VisADException, RemoteException {
-    if (AdaptedDataReference == null) {
-      throw new RemoteVisADException("RemoteDataReferenceImpl.getName: " +
-                                     "AdaptedDataReference is null");
-    }
-    return AdaptedDataReference.getName();
-  }
-
-  /** addDataChangedListener and removeDataChangedListener
-      provide DataChangedEvent source semantics;
-      Action must be RemoteAction */
-  public void addDataChangedListener(DataChangedListener a, long id)
-         throws VisADException, RemoteException {
-    if (!(a instanceof RemoteAction)) {
-      throw new RemoteVisADException("RemoteDataReferenceImpl.addDataChanged" +
-                                     "Listener: Action must be Remote");
-    }
-    if (AdaptedDataReference == null) {
-      throw new RemoteVisADException("RemoteDataReferenceImpl." +
-                                     "addDataChangedListener: " +
-                                     "AdaptedDataReference is null");
-    }
-    AdaptedDataReference.adaptedAddDataChangedListener(((RemoteAction) a), id);
-  }
-
-  /** DataChangedListener must be RemoteAction */
-  public void removeDataChangedListener(DataChangedListener a)
-         throws VisADException, RemoteException {
-    if (!(a instanceof RemoteAction)) {
-      throw new RemoteVisADException("RemoteDataReferenceImpl.removeDataChanged" +
-                                     "Listener: Action must be Remote");
-    }
-    if (AdaptedDataReference == null) {
-      throw new RemoteVisADException("RemoteDataReferenceImpl." +
-                                     "removeDataChangedListener: " +
-                                     "AdaptedDataReference is null");
-    }
-    AdaptedDataReference.adaptedRemoveDataChangedListener(((RemoteAction) a));
-  }
-
-  /** Action must be RemoteAction */
-  public DataChangedEvent acknowledgeDataChanged(Action a)
-         throws VisADException, RemoteException {
-    if (a instanceof ActionImpl) {
-      throw new RemoteVisADException("RemoteDataReferenceImpl.acknowledge" +
-                                     "DataChanged: Action must be Remote");
-    }
-    if (AdaptedDataReference == null) {
-      throw new RemoteVisADException("RemoteDataReferenceImpl." +
-                                     "acknowledgeDataChanged: " +
-                                     "AdaptedDataReference is null");
-    }
-    return AdaptedDataReference.adaptedAcknowledgeDataChanged(((RemoteAction) a));
+    return ((DataReferenceImpl) AdaptedThingReference).getData().getType();
   }
 
 }

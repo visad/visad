@@ -41,45 +41,45 @@ public abstract class RemoteActionImpl extends UnicastRemoteObject
     AdaptedAction = a;
   }
 
-  public void dataChanged(DataChangedEvent e)
+  public void thingChanged(ThingChangedEvent e)
          throws VisADException, RemoteException {
     if (AdaptedAction == null) {
-      throw new RemoteVisADException("RemoteActionImpl.dataChanged: " +
+      throw new RemoteVisADException("RemoteActionImpl.thingChanged: " +
                                      "AdaptedAction is null");
     }
-    AdaptedAction.dataChanged(e);
+    AdaptedAction.thingChanged(e);
   }
 
-  /** create link to DataReference;
-      must be RemoteDataReferenceImpl */
-  public void addReference(DataReference ref)
+  /** create link to ThingReference;
+      must be RemoteThingReferenceImpl */
+  public void addReference(ThingReference ref)
          throws VisADException, RemoteException {
-    if (!(ref instanceof RemoteDataReference)) {
+    if (!(ref instanceof RemoteThingReference)) {
       throw new RemoteVisADException("RemoteActionImpl.addReference: requires " +
-                                     "RemoteDataReferenceImpl");
+                                     "RemoteThingReferenceImpl");
     }
     if (AdaptedAction == null) {
       throw new RemoteVisADException("RemoteActionImpl.addReference " +
                                      "AdaptedAction is null");
     }
-    // WLH - will 'this' be passed to RemoteDataReference ref as a RemoteAction?
-    AdaptedAction.adaptedAddReference((RemoteDataReference) ref,
+    // WLH - will 'this' be passed to RemoteThingReference ref as a RemoteAction?
+    AdaptedAction.adaptedAddReference((RemoteThingReference) ref,
                                       (RemoteAction) this);
   }
 
-  /** delete link to a DataReference
-      must be RemoteDataReferenceImpl */
-  public void removeReference(DataReference ref)
+  /** delete link to a ThingReference
+      must be RemoteThingReferenceImpl */
+  public void removeReference(ThingReference ref)
          throws VisADException, RemoteException {
-    if (!(ref instanceof RemoteDataReference)) {
+    if (!(ref instanceof RemoteThingReference)) {
       throw new RemoteVisADException("RemoteActionImpl.removeReference: requires " +
-                                     "RemoteDataReferenceImpl");
+                                     "RemoteThingReferenceImpl");
     }
     if (AdaptedAction == null) {
       throw new RemoteVisADException("RemoteActionImpl.removeReference: " +
                                      "AdaptedAction is null");
     }
-    AdaptedAction.adaptedRemoveReference((RemoteDataReference) ref);
+    AdaptedAction.adaptedRemoveReference((RemoteThingReference) ref);
   }
 
   /** return name of this Action */

@@ -110,9 +110,13 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     component = c;
   }
 
-  public void addReference(DataReference ref)
+  public void addReference(ThingReference ref)
          throws VisADException, RemoteException {
-    addReference(ref, null);
+    if (!(ref instanceof DataReference)) {
+      throw new ReferenceException("DisplayImpl.addReference: ref " +
+                                   "must be DataReference");
+    }
+    addReference((DataReference) ref, null);
   }
 
   /** create link to DataReference with DefaultRenderer;
@@ -247,13 +251,13 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
 
   /** remove link to a DataReference;
       must be local DataReferenceImpl */
-  public void removeReference(DataReference ref)
+  public void removeReference(ThingReference ref)
          throws VisADException, RemoteException {
     if (!(ref instanceof DataReferenceImpl)) {
       throw new RemoteVisADException("ActionImpl.removeReference: requires " +
                                      "DataReferenceImpl");
     }
-    adaptedDisplayRemoveReference(ref);
+    adaptedDisplayRemoveReference((DataReference) ref);
   }
 
   /** remove link to a DataReference;

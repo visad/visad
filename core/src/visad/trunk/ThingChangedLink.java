@@ -1,6 +1,6 @@
 
 //
-// DataChangedLink.java
+// ThingChangedLink.java
 //
 
 /*
@@ -26,27 +26,27 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad;
 
 /**
-   DataChangedLink objects are used by DataReference objects to
+   ThingChangedLink objects are used by ThingReference objects to
    define their connections with Action objects.  That is, a
-   DataReference has a Vector of DataChangedLinks, one for
+   ThingReference has a Vector of ThingChangedLinks, one for
    each attached Action.<P>
 
    And Action has a Vector of RefernceActionLinks, one for
-   each attached DataReference.<P>
+   each attached ThingReference.<P>
 */
-class DataChangedLink extends Object {
+class ThingChangedLink extends Object {
 
   Action action;  // may be remote or local
-  boolean Ball; // true when Action is waiting for a DataChangedEvent
+  boolean Ball; // true when Action is waiting for a ThingChangedEvent
                 // false when this is waiting for an acknowledgement
-  DataChangedEvent event; // non-null only when Ball = false;
+  ThingChangedEvent event; // non-null only when Ball = false;
 
   /** this id is from the corresponding ReferenceActionLink */
   private long id;
 
-  DataChangedLink(Action a, long jd) throws VisADException {
+  ThingChangedLink(Action a, long jd) throws VisADException {
     if (a == null) {
-      throw new ReferenceException("DataChangedLink: Action cannot be null");
+      throw new ReferenceException("ThingChangedLink: Action cannot be null");
     }
     action = a;
     Ball = false;
@@ -69,11 +69,11 @@ class DataChangedLink extends Object {
     Ball = b;
   }
 
-  DataChangedEvent getDataChangedEvent() {
+  ThingChangedEvent getThingChangedEvent() {
     return event;
   }
 
-  void setDataChangedEvent(DataChangedEvent e) {
+  void setThingChangedEvent(ThingChangedEvent e) {
     event = e;
   }
 

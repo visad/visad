@@ -32,7 +32,7 @@ import java.rmi.server.UnicastRemoteObject;
 /**
    RemoteDataImpl is the VisAD remote adapter for DataImpl.<P>
 */
-public abstract class RemoteDataImpl extends UnicastRemoteObject
+public abstract class RemoteDataImpl extends RemoteThingImpl
        implements RemoteData {
 
   /** 'this' is the Remote adaptor for AdaptedData (which is local);
@@ -42,27 +42,9 @@ public abstract class RemoteDataImpl extends UnicastRemoteObject
       the methods of RemoteDataImpl text for null AdaptedData */
   final transient DataImpl AdaptedData;
 
-  /** Tick increments each time data changes;
-      used in place of propogating notifyReferences
-      to Remote parents */
-  private long Tick;
-
   public RemoteDataImpl(DataImpl data) throws RemoteException {
+    super(data);
     AdaptedData = data;
-    Tick = Long.MIN_VALUE + 1;
-  }
-
-  /** Tick is incremented in a RemoteData object, rather than
-      propogating Data changes to RemoteDataReference-s */
-  public long incTick() {
-    Tick += 1;
-    if (Tick == Long.MAX_VALUE) Tick = Long.MIN_VALUE + 1;
-    return Tick;
-  }
-
-  /** RemoteDataReference-s can (but don't currently) poll getTick() */
-  public long getTick() {
-    return Tick;
   }
 
   /** methods adapted from Data;
@@ -92,42 +74,6 @@ public abstract class RemoteDataImpl extends UnicastRemoteObject
                                      "AdaptedData is null");
     }
     return AdaptedData.isMissing();
-  }
-
-  /** add a DataReference to this RemoteDataImpl;
-      must be RemoteDataReference;
-      called by DataReference.setData */
-  public void addReference(DataReference r) throws VisADException {
-    if (r instanceof DataReferenceImpl) {
-      throw new RemoteVisADException("RemoteDataImpl.addReference: must use " +
-                                     "DataImpl for DataReferenceImpl");
-    }
-    if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.addReference " +
-                                     "AdaptedData is null");
-    }
-    // RemoteDataReference recorded by a ReferenceDataPair
-    // (RemoteDataReference, RemoteDataImpl)
-    AdaptedData.adaptedAddReference(
-      new ReferenceDataPair((RemoteDataReference) r, (RemoteData) this));
-  }
-
-  /** remove a DataReference to this RemoteDataImpl;
-      must be RemoteDataReferenceImpl;
-      called by DataReference.setData */
-  public void removeReference(DataReference r) throws VisADException {
-    if (r instanceof DataReferenceImpl) {
-      throw new RemoteVisADException("RemoteDataImpl.addReference: must use " +
-                                     "DataImpl for DataReferenceImpl");
-    }
-    if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.removeReference " +
-                                     "AdaptedData is null");
-    }
-    // RemoteDataReference recorded by a ReferenceDataPair
-    // (RemoteDataReference, RemoteDataImpl)
-    AdaptedData.adaptedRemoveReference(
-      new ReferenceDataPair((RemoteDataReference) r, (RemoteData) this));
   }
 
   /** binary operations adapted to AdaptedData */

@@ -1,6 +1,6 @@
 
 //
-// RemoteDataReference.java
+// Thing.java
 //
 
 /*
@@ -25,13 +25,21 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.util.*;
 import java.rmi.*;
 
 /**
-   RemoteDataReference is the interface for Remote DataReference-s.<P>
+   Thing is the top-level interface for objects that send
+   ThingChangedEvents to Actions.<p>
 */
-public interface RemoteDataReference
-       extends Remote, DataReference, RemoteThingReference {
+public interface Thing {
 
+  /** add a ThingReference to this Thing object */
+  public void addReference(ThingReference r)
+         throws VisADException, RemoteException;
+
+  /** remove a ThingReference from this Thing object */
+  public void removeReference(ThingReference r)
+         throws VisADException, RemoteException;
 }
 

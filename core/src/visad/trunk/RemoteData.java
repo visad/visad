@@ -30,14 +30,7 @@ import java.rmi.*;
 /**
    RemoteData is the interface for Remote VisAD data objects.<P>
 */
-public interface RemoteData extends Remote, Data {
-
-  /** Tick is incremented in a RemoteData object, rather than
-      propogating Data changes to RemoteDataReference-s */
-  public abstract long incTick() throws RemoteException;
-
-  /** RemoteDataReference-s poll getTick() */
-  public abstract long getTick() throws RemoteException;
+public interface RemoteData extends Remote, Data, RemoteThing {
 
 }
 

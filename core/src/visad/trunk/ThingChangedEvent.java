@@ -1,6 +1,6 @@
  
 //
-// DataChangedEvent.java
+// ThingChangedEvent.java
 //
  
  /*
@@ -29,21 +29,22 @@ import java.rmi.*;
 import java.awt.Event;
 
 /**
-   DataChangedEvent is the VisAD class for changes in Data objects
-   referred to by DataReference objects.  They are sourced by
-   DataReference objects and received by Action objects.<P>
+   ThingChangedEvent is the VisAD class for changes in objects
+   (usually Data objects) referred to by ThingReference objects.
+   They are sourced by ThingReference objects and received by
+   Action objects.<P>
 */
-public class DataChangedEvent extends Event {
+public class ThingChangedEvent extends Event {
 
   /** this is the id attached to the target ActionReferenceLink
       of the target Action */
   private long id;
 
-  /** this is the Tick value from the DataReference change
-      that generated this DataChangedEvent */
+  /** this is the Tick value from the ThingReference change
+      that generated this ThingChangedEvent */
   private long Tick;
 
-  public DataChangedEvent(long jd, long tick) {
+  public ThingChangedEvent(long jd, long tick) {
     super(null, 0, null);
     id = jd;
     Tick = tick;

@@ -1,6 +1,6 @@
 
 //
-// RemoteDataReference.java
+// ReferenceThingPair.java
 //
 
 /*
@@ -25,13 +25,32 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
-import java.rmi.*;
-
 /**
-   RemoteDataReference is the interface for Remote DataReference-s.<P>
+   ReferenceThingPair is the VisAD class for a
+   (RemoteThingReference, RemoteThing) pair on the
+   references Vector of ThingImpl;
+   used by ThingImpl and RemoteThingImpl
 */
-public interface RemoteDataReference
-       extends Remote, DataReference, RemoteThingReference {
+class ReferenceThingPair extends Object {
 
+  /** an alternate policy option would be to propogate Thing
+      changes to ref; but currently not used */
+  RemoteThingReference ref;
+
+  /** Thing changes noted by data.incTick();
+      later polled by data.getTick() from a RemoteAction */
+  RemoteThing data;
+ 
+  ReferenceThingPair(RemoteThingReference r, RemoteThing d) {
+    ref = r;
+    data = d;
+  }
+ 
+  public boolean equals(Object pair) {
+    if (!(pair instanceof ReferenceThingPair)) return false;
+    return (ref.equals(((ReferenceThingPair) pair).ref) &&
+            data.equals(((ReferenceThingPair) pair).data));
+  }
+ 
 }
 

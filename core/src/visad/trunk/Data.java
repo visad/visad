@@ -32,7 +32,7 @@ import java.rmi.*;
    Data is the top-level interface of the VisAD data hierarchy.
    See the DataImpl class for more information.<P>
 */
-public interface Data {
+public interface Data extends Thing {
 
   /** NEAREST_NEIGHBOR resampling mode */
   public static final int NEAREST_NEIGHBOR = 100;
@@ -96,14 +96,6 @@ public interface Data {
   public abstract DataImpl local() throws VisADException, RemoteException;
 
   public abstract MathType getType() throws VisADException, RemoteException;
-
-  /** add a DataReference to this Data object */
-  public void addReference(DataReference r)
-         throws VisADException, RemoteException;
-
-  /** remove a DataReference from this Data object */
-  public void removeReference(DataReference r)
-         throws VisADException, RemoteException;
 
   /** a method to tell whether data object has a missing value */
   public abstract boolean isMissing()

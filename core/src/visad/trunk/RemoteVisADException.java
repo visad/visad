@@ -26,7 +26,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad;
 
 /**
-   RemoteVisADException is an exception for an error with a VisAD DataReference.<P>
+   RemoteVisADException is an exception for an error with a
+   VisAD Remote class.<P>
 */
 public class RemoteVisADException extends VisADException {
 

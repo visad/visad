@@ -30,18 +30,18 @@ import java.rmi.*;
 
 /**
    Action is the VisAD interface for runnable threads that need to be
-   notified when DataReference objects change.  For example, this may
+   notified when ThingReference objects change.  For example, this may
    be used for a Data display or for a spreadsheet cell.<P>
 */
-public interface Action extends DataChangedListener {
+public interface Action extends ThingChangedListener {
 
-  /** create link to a DataReference;
-      invokes ref.addDataChangedListener(DataChangedListener l, long id) */
-  public abstract void addReference(DataReference ref)
+  /** create link to a ThingReference;
+      invokes ref.addThingChangedListener(ThingChangedListener l, long id) */
+  public abstract void addReference(ThingReference ref)
          throws VisADException, RemoteException;
 
-  /** delete link to a DataReference */
-  public abstract void removeReference(DataReference ref)
+  /** delete link to a ThingReference */
+  public abstract void removeReference(ThingReference ref)
          throws VisADException, RemoteException;
 
   /** return name of this Action */

@@ -37,13 +37,13 @@ import java.rmi.*;
    may change.  DataReference objects are passed to Display objects, so
    that a display may depict the changing values of named variables.<P>
 
-   DataReference is a source of DataChangedEvent-s, and thus defines
-   addDataChangedListener and removeDataChangedListener.<P>
+   DataReference is a source of ThingChangedEvent-s, and thus defines
+   addThingChangedListener and removeThingChangedListener.<P>
 
    DataReference objects may be local (DataReferenceImpl) or
    remote (RemoteDataReferenceImpl).<P>
 */
-public interface DataReference {
+public interface DataReference extends ThingReference {
 
   /** invokes d.addReference((DataReference r) */
   public abstract void setData(Data d) throws VisADException, RemoteException;
@@ -51,20 +51,5 @@ public interface DataReference {
   public abstract Data getData() throws VisADException, RemoteException;
 
   public abstract MathType getType() throws VisADException, RemoteException;
-
-  public abstract long getTick() throws VisADException, RemoteException;
-
-  public abstract long incTick() throws VisADException, RemoteException;
-
-  public abstract String getName() throws VisADException, RemoteException;
-
-  public abstract void addDataChangedListener(DataChangedListener l, long id)
-         throws VisADException, RemoteException;
-
-  public abstract void removeDataChangedListener(DataChangedListener l)
-         throws VisADException, RemoteException;
-
-  public DataChangedEvent acknowledgeDataChanged(Action a)
-         throws VisADException, RemoteException;
 }
 

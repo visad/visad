@@ -222,7 +222,7 @@ public interface Display extends Action {
 
 
   /** create link to DataReference;
-      invokes ref.addDataChangedListener(DataChangedListener l, long id) */
+      invokes ref.addThingChangedListener(ThingChangedListener l, long id) */
   public abstract void addReference(DataReference ref,
          ConstantMap[] constant_maps) throws VisADException, RemoteException;
 

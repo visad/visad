@@ -30,7 +30,7 @@ import java.rmi.*;
 
 /**
    ActionImpl is the abstract superclass for runnable threads that
-   need to be notified when DataReference objects change.  For example,
+   need to be notified when ThingReference objects change.  For example,
    this may be used for a Data display or for a spreadsheet cell.<P>
 
    ActionImpl is not Serializable and should not be copied
@@ -70,7 +70,7 @@ public abstract class ActionImpl extends Object
       while (links.hasMoreElements()) {
         ReferenceActionLink link = (ReferenceActionLink) links.nextElement();
         try {
-          link.getDataReference().removeDataChangedListener(link.getAction());
+          link.getThingReference().removeThingChangedListener(link.getAction());
         }
         catch (RemoteException e) {
         }
@@ -156,11 +156,11 @@ public abstract class ActionImpl extends Object
               (ReferenceActionLink) links.nextElement();
             if (link.getBall()) {
               link.setBall(false);
-              DataReference ref = link.getDataReference();
-              DataChangedEvent e =
-                ref.acknowledgeDataChanged(link.getAction());
+              ThingReference ref = link.getThingReference();
+              ThingChangedEvent e =
+                ref.acknowledgeThingChanged(link.getAction());
               if (e != null) {
-                dataChanged(e);
+                thingChanged(e);
                 dontSleep = true;
               }
             }
@@ -194,7 +194,7 @@ public abstract class ActionImpl extends Object
 
   public abstract void doAction() throws VisADException, RemoteException;
 
-  public void dataChanged(DataChangedEvent e)
+  public void thingChanged(ThingChangedEvent e)
          throws VisADException, RemoteException {
     long id = e.getId();
     ReferenceActionLink link = findLink(id);
@@ -211,17 +211,17 @@ public abstract class ActionImpl extends Object
   /** add a ReferenceActionLink */
   void addLink(ReferenceActionLink link)
        throws VisADException, RemoteException {
-    DataReference ref = link.getDataReference();
+    ThingReference ref = link.getThingReference();
     if (findReference(ref) != null) {
       throw new ReferenceException("Action.addLink: link to " +
-                                   "DataReference already exists");
+                                   "ThingReference already exists");
     }
     link.initTicks(ref.getTick());
     if (LinkVector == null) LinkVector = new Vector();
     synchronized (LinkVector) {
       LinkVector.addElement(link);
     }
-    ref.addDataChangedListener(link.getAction(), link.getId());
+    ref.addThingChangedListener(link.getAction(), link.getId());
   }
 
   void notifyAction() {
@@ -230,13 +230,13 @@ public abstract class ActionImpl extends Object
     }
   }
 
-  /** create link to a DataReference;
-      must be local DataReferenceImpl */
-  public void addReference(DataReference ref)
+  /** create link to a ThingReference;
+      must be local ThingReferenceImpl */
+  public void addReference(ThingReference ref)
          throws VisADException, RemoteException {
-    if (!(ref instanceof DataReferenceImpl)) {
+    if (!(ref instanceof ThingReferenceImpl)) {
       throw new RemoteVisADException("ActionImpl.addReference: requires " +
-                                     "DataReferenceImpl");
+                                     "ThingReferenceImpl");
     }
     if (findReference(ref) != null) {
       throw new TypeException("ActionImpl.addReference: link already exists");
@@ -246,7 +246,7 @@ public abstract class ActionImpl extends Object
   }
 
   /** method for use by RemoteActionImpl that adapts this ActionImpl */
-  void adaptedAddReference(RemoteDataReference ref, Action action)
+  void adaptedAddReference(RemoteThingReference ref, Action action)
        throws VisADException, RemoteException {
     if (findReference(ref) != null) {
       throw new ReferenceException("ActionImpl.adaptedAddReference: " +
@@ -256,33 +256,33 @@ public abstract class ActionImpl extends Object
     notifyAction();
   }
 
-  /** remove link to a DataReference;
-      must be local DataReferenceImpl */
-  public void removeReference(DataReference ref)
+  /** remove link to a ThingReference;
+      must be local ThingReferenceImpl */
+  public void removeReference(ThingReference ref)
          throws VisADException, RemoteException {
     ReferenceActionLink link = null;
-    if (!(ref instanceof DataReferenceImpl)) {
+    if (!(ref instanceof ThingReferenceImpl)) {
       throw new RemoteVisADException("ActionImpl.removeReference: requires " +
-                                     "DataReferenceImpl");
+                                     "ThingReferenceImpl");
     }
     if (LinkVector != null) {
       synchronized (LinkVector) {
         link = findReference(ref);
         if (link == null) {
           throw new ReferenceException("ActionImpl.removeReference: " +
-                                       "DataReference not linked");
+                                       "ThingReference not linked");
         }
         LinkVector.removeElement(link);
       }
     }
-    if (link != null) ref.removeDataChangedListener(link.getAction());
+    if (link != null) ref.removeThingChangedListener(link.getAction());
     synchronized (this) {
       notify();
     }
   }
 
   /** method for use by RemoteActionImpl that adapts this ActionImpl */
-  void adaptedRemoveReference(RemoteDataReference ref)
+  void adaptedRemoveReference(RemoteThingReference ref)
        throws VisADException, RemoteException {
     ReferenceActionLink link = null;
     if (LinkVector != null) {
@@ -290,12 +290,12 @@ public abstract class ActionImpl extends Object
         link = findReference(ref);
         if (link == null) {
           throw new ReferenceException("ActionImpl.adaptedRemoveReference: " +
-                                       "DataReference not linked");
+                                       "ThingReference not linked");
         }
         LinkVector.removeElement(link);
       }
     }
-    if (link != null) ref.removeDataChangedListener(link.getAction());
+    if (link != null) ref.removeThingChangedListener(link.getAction());
     synchronized (this) {
       notify();
     }
@@ -314,8 +314,8 @@ public abstract class ActionImpl extends Object
     }
     for (int i=0; i<links.length; i++) {
       if (links[i] != null) {
-        DataReference ref = links[i].getDataReference();
-        ref.removeDataChangedListener(links[i].getAction());
+        ThingReference ref = links[i].getThingReference();
+        ref.removeThingChangedListener(links[i].getAction());
       }
     }
     synchronized (this) {
@@ -336,19 +336,19 @@ public abstract class ActionImpl extends Object
   }
 
 
-  /** find link to a DataReference */
-  public ReferenceActionLink findReference(DataReference ref)
+  /** find link to a ThingReference */
+  public ReferenceActionLink findReference(ThingReference ref)
          throws VisADException {
     if (ref == null) {
       throw new ReferenceException("ActionImpl.findReference: " +
-                                   "DataReference cannot be null");
+                                   "ThingReference cannot be null");
     }
     if (LinkVector == null) return null;
     synchronized (LinkVector) {
       Enumeration links = LinkVector.elements();
       while (links.hasMoreElements()) {
         ReferenceActionLink link = (ReferenceActionLink) links.nextElement();
-        if (ref.equals(link.getDataReference())) return link;
+        if (ref.equals(link.getThingReference())) return link;
       }
     }
     return null;

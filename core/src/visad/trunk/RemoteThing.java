@@ -1,6 +1,6 @@
 
 //
-// DataChangedListener.java
+// RemoteThing.java
 //
 
 /*
@@ -25,18 +25,19 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
-import java.util.EventListener;
 import java.rmi.*;
 
 /**
-   DataChangedListener is the EventListener interface for
-   DataChangedEvents.  DataChangedListener is extended by
-   Action.<P>
+   RemoteThing is the interface for Remote VisAD Thing objects.<P>
 */
-public interface DataChangedListener extends EventListener {
+public interface RemoteThing extends Remote, Thing {
 
-  public abstract void dataChanged(DataChangedEvent e)
-         throws VisADException, RemoteException;
- 
+  /** Tick is incremented in a RemoteThing object, rather than
+      propogating Thing changes to RemoteThingReference-s */
+  public abstract long incTick() throws RemoteException;
+
+  /** RemoteThingReference-s poll getTick() */
+  public abstract long getTick() throws RemoteException;
+
 }
 

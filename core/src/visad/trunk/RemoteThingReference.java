@@ -1,6 +1,6 @@
 
 //
-// RemoteDataReference.java
+// RemoteThingReference.java
 //
 
 /*
@@ -28,10 +28,9 @@ package visad;
 import java.rmi.*;
 
 /**
-   RemoteDataReference is the interface for Remote DataReference-s.<P>
+   RemoteThingReference is the interface for Remote ThingReference-s.<P>
 */
-public interface RemoteDataReference
-       extends Remote, DataReference, RemoteThingReference {
+public interface RemoteThingReference extends Remote, ThingReference {
 
 }
 
