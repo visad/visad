@@ -57,12 +57,25 @@ import java.awt.event.*;
    VisADForm is the VisAD data format adapter for
    serialized visad.Data objects.<P>
 */
-public class VisADForm extends Form {
+public class VisADForm extends Form implements FormFileInformer {
  
   private static int num = 0;
 
   public VisADForm() {
     super("VisADForm" + num++);
+  }
+
+  public boolean isThisType(String name) {
+    return name.endsWith(".vad");
+  }
+ 
+  public boolean isThisType(byte[] block) {
+    return false;
+  }
+ 
+  public String[] getDefaultSuffixes() {
+    String[] suff = { "vad" };
+    return suff;
   }
 
   public synchronized void save(String id, Data data, boolean replace)
@@ -82,7 +95,8 @@ public class VisADForm extends Form {
     ObjectOutputStream objectStream = new ObjectOutputStream(bufferedStream);
     DataImpl local_data = data.local();
     objectStream.writeObject(local_data);
-    objectStream.close();
+    objectStream.flush();
+    fileStream.close();
   }
 
   public synchronized void add(String id, Data data, boolean replace)
@@ -100,15 +114,13 @@ public class VisADForm extends Form {
       data = (DataImpl) objectStream.readObject();
     }
     catch (OptionalDataException e) {
-      throw new BadFormException("VisADForm.open(" + id + "): " +
-                                 "OptionalDataException");
+      throw new BadFormException(e.toString());
     }
     catch (ClassNotFoundException e) {
-      throw new BadFormException("VisADForm.open(" + id + "): " +
-                                 "ClassNotFoundException");
+      throw new BadFormException(e.toString());
     }
     catch (IOException e) {
-      throw new BadFormException("VisADForm.open(" + id + "): IOException");
+      throw new BadFormException(e.toString());
     }
     return data;
   }
@@ -123,15 +135,13 @@ public class VisADForm extends Form {
       data = (DataImpl) objectStream.readObject();
     }
     catch (OptionalDataException e) {
-      throw new BadFormException("VisADForm.open(URL): " +
-                                 "OptionalDataException");
+      throw new BadFormException(e.toString());
     }
     catch (ClassNotFoundException e) {
-      throw new BadFormException("VisADForm.open(URL): " +
-                                 "ClassNotFoundException");
+      throw new BadFormException(e.toString());
     }
     catch (IOException e) {
-      throw new BadFormException("VisADForm.open(URL): IOException");
+      throw new BadFormException(e.toString());
     }
     return data;
   }
@@ -152,7 +162,14 @@ public class VisADForm extends Form {
     }
     else if (args.length == 1) {
       VisADForm form = new VisADForm();
-      form.open(args[0]);
+      if (args[0].startsWith("http://")) {
+        // with "ftp://" this throws "sun.net.ftp.FtpProtocolException: RETR ..."
+        URL url = new URL(args[0]);
+        form.open(url);
+      }
+      else {
+        form.open(args[0]);
+      }
     }
     else if (args.length == 2) {
       DefaultFamily loader = new DefaultFamily("loader");
@@ -161,6 +178,7 @@ public class VisADForm extends Form {
       VisADForm form = new VisADForm();
       form.save(args[1], data, true);
     }
+    System.exit(0);
   }
 
 }

@@ -46,7 +46,7 @@ import java.awt.event.*;
 /**
    Vis5DForm is the VisAD data format adapter for Vis5D files.<P>
 */
-public class Vis5DForm extends Form {
+public class Vis5DForm extends Form implements FormFileInformer {
  
   /** from vis5d-4.3/src/v5d.h */
   private final int MAXVARS = 30;
@@ -65,6 +65,19 @@ public class Vis5DForm extends Form {
       System.loadLibrary("vis5d");
       loaded = true;
     }
+  }
+
+  public boolean isThisType(String name) {
+    return name.endsWith(".v5d");
+  }
+ 
+  public boolean isThisType(byte[] block) {
+    return false;
+  }
+ 
+  public String[] getDefaultSuffixes() {
+    String[] suff = { "v5d" };
+    return suff;
   }
 
   public synchronized void save(String id, Data data, boolean replace)

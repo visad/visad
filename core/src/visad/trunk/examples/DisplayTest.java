@@ -2313,7 +2313,23 @@ public class DisplayTest extends Object {
           -0.1f, -0.1f, 0.0f,    -0.1f,  0.1f, 0.0f,
           -0.1f,  0.1f, 0.0f,     0.1f,  0.1f, 0.0f};
         box.vertexCount = box.coordinates.length / 3;
-        VisADGeometryArray[] shapes = {cross, box, cross, box};
+
+        VisADTriangleArray tri = new VisADTriangleArray();
+        tri.coordinates = new float[]
+          {-0.1f, -0.05f, 0.0f,    0.1f, -0.05f, 0.0f,
+            0.0f,  0.1f,  0.0f};
+        tri.vertexCount = tri.coordinates.length / 3;
+        // explicitly set colors in tri to override any color ScalarMaps
+        tri.colors = new float[]
+          {1.0f, 1.0f, 0.0f,  1.0f, 1.0f, 0.0f,  1.0f, 1.0f, 0.0f};
+
+        VisADQuadArray square = new VisADQuadArray();
+        square.coordinates = new float[]
+          {0.1f,  0.1f, 0.0f,     0.1f, -0.1f, 0.0f,
+          -0.1f, -0.1f, 0.0f,    -0.1f,  0.1f, 0.0f};
+        square.vertexCount = square.coordinates.length / 3;
+
+        VisADGeometryArray[] shapes = {cross, box, tri, square};
 
         display1 = new DisplayImplJ2D("display1");
      
@@ -2395,6 +2411,33 @@ public class DisplayTest extends Object {
           -0.1f, -0.1f,  0.1f,     0.1f, -0.1f,  0.1f};
 
         cube.vertexCount = cube.coordinates.length / 3;
+        cube.normals = new float[144];
+        for (int i=0; i<24; i+=3) {
+          cube.normals[i]     =  0.0f;
+          cube.normals[i+1]   =  0.0f;
+          cube.normals[i+2]   = -1.0f;
+
+          cube.normals[i+24]  =  0.0f;
+          cube.normals[i+25]  =  0.0f;
+          cube.normals[i+26]  =  1.0f;
+
+          cube.normals[i+48]  =  1.0f;
+          cube.normals[i+49]  =  0.0f;
+          cube.normals[i+50]  =  0.0f;
+
+          cube.normals[i+72]  = -1.0f;
+          cube.normals[i+73]  =  0.0f;
+          cube.normals[i+74]  =  0.0f;
+
+          cube.normals[i+96]  =  0.0f;
+          cube.normals[i+97]  =  1.0f;
+          cube.normals[i+98]  =  0.0f;
+
+          cube.normals[i+120] =  0.0f;
+          cube.normals[i+121] = -1.0f;
+          cube.normals[i+122] =  0.0f;
+        }
+
         shapes = new VisADGeometryArray[] {cross, cube, cross, cube};
 
         display1 = new DisplayImplJ3D("display1");

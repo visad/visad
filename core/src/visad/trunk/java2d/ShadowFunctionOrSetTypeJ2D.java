@@ -806,7 +806,7 @@ END MISSING TEST */
         VisADGeometryArray[] arrays =
           assembleShape(display_values, valueArrayLength, valueToMap, MapVector,
                         valueToScalar, display, default_values, inherited_values,
-                        spatial_values, color_values, range_select);
+                        spatial_values, color_values, range_select, -1);
         if (arrays != null) {
           for (int i=0; i<arrays.length; i++) {
             array = arrays[i];
@@ -1196,7 +1196,7 @@ END MISSING TEST */
             VisADGeometryArray[] arrays =
               assembleShape(display_values, valueArrayLength, valueToMap, MapVector,
                             valueToScalar, display, default_values, inherited_values,
-                            sp, co, ra);
+                            sp, co, ra, i);
             if (arrays != null) {
               for (int j=0; j<arrays.length; j++) {
                 array = arrays[j];

@@ -56,11 +56,13 @@ public abstract class CoordinateSystem extends Object
     }
     Reference = reference;
     DomainDimension = Reference.getDimension();
-    if (DomainDimension != units.length) {
+    if (units != null && DomainDimension != units.length) {
       throw new UnitException("CoordinateSystem: units dimension does not match");
     }
     CoordinateSystemUnits = new Unit[DomainDimension];
-    for (int i=0; i<DomainDimension; i++) CoordinateSystemUnits[i] = units[i];
+    if (units != null) {
+      for (int i=0; i<DomainDimension; i++) CoordinateSystemUnits[i] = units[i];
+    }
   }
 
   /** trusted constructor for initializers */
@@ -68,7 +70,9 @@ public abstract class CoordinateSystem extends Object
     Reference = reference;
     DomainDimension = Reference.getDimension();
     CoordinateSystemUnits = new Unit[DomainDimension];
-    for (int i=0; i<DomainDimension; i++) CoordinateSystemUnits[i] = units[i];
+    if (units != null) {
+      for (int i=0; i<DomainDimension; i++) CoordinateSystemUnits[i] = units[i];
+    }
   }
 
   public RealTupleType getReference() {

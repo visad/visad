@@ -830,44 +830,20 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
                 int[] valueToScalar, DisplayImpl display,
                 float[] default_values, int[] inherited_values,
                 float[][] spatial_values, float[][] color_values,
-                float[][] range_select)
+                float[][] range_select, int index)
          throws VisADException, RemoteException {
-    float[] values = null;
-    float[] scales = null;
-    ShapeControl control = null;
-    for (int i=0; i<valueArrayLength; i++) {
-      if (display_values[i] != null) {
-        int displayScalarIndex = valueToScalar[i];
-        DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
 
-        if (real.equals(Display.Shape)) {
-          values = display_values[i];
-          control = (ShapeControl)
-            ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
-        }
-        if (real.equals(Display.ShapeScale)) {
-          scales = display_values[i];
-        }
-      }
-    }
-    if (values == null || control == null) return null;
-    int len = values.length;
-
-    if (scales == null) {
-      int default_index = display.getDisplayScalarIndex(Display.Shape);
-      float default_scale = default_values[default_index];
-      scales = new float[len];
-      for (int i=0; i<len; i++) scales[i] = default_scale;
-    }
-
-    // color ??
-    int color_length = 0;
+    int total_length = 0;
+    Vector array_vector = new Vector();
+    float x = spatial_values[0][0];
+    float y = spatial_values[1][0];
+    float z = spatial_values[2][0];
     float r = 0.0f;
     float g = 0.0f;
     float b = 0.0f;
     float a = 0.0f;
+    int color_length = 0;
     if (color_values != null) {
-      if (color_values[0].length > len) len = color_values[0].length;
       color_length = color_values.length;
       r = color_values[0][0];
       g = color_values[1][0];
@@ -875,61 +851,131 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       if (color_length > 3) a = color_values[3][0];
     }
 
-    if (spatial_values[0].length > len) len = spatial_values[0].length;
-    if (values.length < len) {
-      float[] new_values = new float[len];
-      for (int i=0; i<len; i++) new_values[i] = values[0];
-      values = new_values;
+    float[] scales = null;
+    for (int i=0; i<valueArrayLength; i++) {
+      if (display_values[i] != null) {
+        int displayScalarIndex = valueToScalar[i];
+        DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
+        if (real.equals(Display.ShapeScale)) {
+          if (index < 0) {
+            scales = display_values[i];
+          }
+          else {
+            if (display_values[i].length == 1) {
+              scales = new float[] {display_values[i][0]};
+            }
+            else {
+              scales = new float[] {display_values[i][index]};
+            }
+          }
+        }
+      }
     }
-    VisADGeometryArray[] arrays = control.getShapes(values);
-    float x = spatial_values[0][0];
-    float y = spatial_values[1][0];
-    float z = spatial_values[2][0];
-    for (int i=0; i<arrays.length; i++) {
-      VisADGeometryArray array = arrays[i];
-      if (range_select[0] != null) {
-        if (range_select[0].length == 1) {
-          if (range_select[0][0] != range_select[0][0]) array = null;
-        }
-        else {
-          if (range_select[0][i] != range_select[0][i]) array = null;
-        }
-      }
-      if (array != null) {
-        if (spatial_values[0].length > 1) {
-          x = spatial_values[0][i];
-          y = spatial_values[1][i];
-          z = spatial_values[2][i];
-        }
-        int npts = array.coordinates.length / 3;
-        // offset shape location by spatial values
-        float scale = scales[i];
-        for (int j=0; j<array.coordinates.length; j+=3) {
-          array.coordinates[j] = x + scale * array.coordinates[j];
-          array.coordinates[j+1] = y + scale * array.coordinates[j+1];
-          array.coordinates[j+2] = z + scale * array.coordinates[i+2];
-        }
+    if (scales == null) {
+      int default_index = display.getDisplayScalarIndex(Display.Shape);
+      float default_scale = default_values[default_index];
+      scales = new float[] {default_scale};
+    }
 
-        // color ??
-        if (array.colors == null && color_values != null) {
-          array.colors = new float[color_length * npts];
-          if (color_values[0].length > 1) {
-            r = color_values[0][i];
-            g = color_values[1][i];
-            b = color_values[2][i];
-            if (color_length > 3) a = color_values[3][i];
-          }
-          for (int j=0; j<array.coordinates.length; j+=color_length) {
-            array.colors[j] = r;
-            array.colors[j+1] = g;
-            array.colors[j+2] = b;
-            if (color_length > 3) array.colors[j+3] = a;
-          }
-        }
+    float[] values = null;
+    ShapeControl control = null;
+    for (int j=0; j<valueArrayLength; j++) {
+      if (display_values[j] != null) {
+        int displayScalarIndex = valueToScalar[j];
+        DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
 
-      }
-    } // end for (int i=0; i<arrays.length; i++)
-    return arrays;
+        if (real.equals(Display.Shape)) {
+          if (index < 0) {
+            values = display_values[j];
+          }
+          else {
+            if (display_values[j].length == 1) {
+              values = new float[] {display_values[j][0]};
+            }
+            else {
+              values = new float[] {display_values[j][index]};
+            }
+          }
+          control = (ShapeControl)
+            ((ScalarMap) MapVector.elementAt(valueToMap[j])).getControl();
+          if (values == null || control == null) continue;
+
+          // make len maximum of lengths of color_values,
+          // spatial_values & scales
+          int len = values.length;
+          if (color_values != null) {
+            if (color_values[0].length > len) len = color_values[0].length;
+          }
+          if (spatial_values[0].length > len) len = spatial_values[0].length;
+          if (scales.length > len) len = scales.length;
+          // expand values if necessary
+          if (values.length < len) {
+            float[] new_values = new float[len];
+            for (int i=0; i<len; i++) new_values[i] = values[0];
+            values = new_values;
+          }
+          VisADGeometryArray[] arrays = control.getShapes(values);
+          for (int i=0; i<arrays.length; i++) {
+            VisADGeometryArray array = arrays[i];
+            if (range_select[0] != null) {
+              if (range_select[0].length == 1) {
+                if (range_select[0][0] != range_select[0][0]) array = null;
+              }
+              else {
+                if (range_select[0][i] != range_select[0][i]) array = null;
+              }
+            }
+            if (array != null) {
+              if (spatial_values[0].length > 1) {
+                x = spatial_values[0][i];
+                y = spatial_values[1][i];
+                z = spatial_values[2][i];
+              }
+              int npts = array.coordinates.length / 3;
+              // offset shape location by spatial values
+              float scale = (scales.length == 1) ? scales[0] : scales[i];
+              for (int k=0; k<array.coordinates.length; k+=3) {
+                array.coordinates[k] = x + scale * array.coordinates[k];
+                array.coordinates[k+1] = y + scale * array.coordinates[k+1];
+                array.coordinates[k+2] = z + scale * array.coordinates[k+2];
+              }
+      
+              if (array.colors == null && color_values != null) {
+                array.colors = new float[color_length * npts];
+                if (color_values[0].length > 1) {
+                  r = color_values[0][i];
+                  g = color_values[1][i];
+                  b = color_values[2][i];
+                  if (color_length > 3) a = color_values[3][i];
+                }
+                for (int k=0; k<array.coordinates.length; k+=color_length) {
+                  array.colors[k] = r;
+                  array.colors[k+1] = g;
+                  array.colors[k+2] = b;
+                  if (color_length > 3) array.colors[k+3] = a;
+                }
+              }
+      
+            }
+          } // end for (int i=0; i<arrays.length; i++)
+          total_length += arrays.length;
+          array_vector.addElement(arrays);
+        } // end if (real.equals(Display.Shape))
+      } // end if (display_values[i] != null)
+    } // end for (int j=0; j<valueArrayLength; j++)
+
+    if (total_length == 0) return null;
+    VisADGeometryArray[] total_arrays =
+      new VisADGeometryArray[total_length];
+    Enumeration arrayses = array_vector.elements();
+    int k = 0;
+    while (arrayses.hasMoreElements()) {
+      VisADGeometryArray[] arrays =
+        (VisADGeometryArray[]) arrayses.nextElement();
+      System.arraycopy(arrays, 0, total_arrays, k, arrays.length);
+      k += arrays.length;
+    }
+    return total_arrays;
   }
 
   /** collect and transform spatial DisplayRealType values from display_values;

@@ -237,11 +237,11 @@ public abstract class ShadowTypeJ3D extends ShadowType {
                 int[] valueToScalar, DisplayImpl display,
                 float[] default_values, int[] inherited_values,
                 float[][] spatial_values, float[][] color_values,
-                float[][] range_select)
+                float[][] range_select, int index)
          throws VisADException, RemoteException {
     return ShadowType.assembleShape(display_values, valueArrayLength,
            valueToMap, MapVector, valueToScalar, display, default_values,
-           inherited_values, spatial_values, color_values, range_select);
+           inherited_values, spatial_values, color_values, range_select, index);
   }
 
   /** collect and transform spatial DisplayRealType values from display_values;
@@ -401,7 +401,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       VisADGeometryArray[] arrays =
         assembleShape(display_values, valueArrayLength, valueToMap, MapVector,
                       valueToScalar, display, default_values, inherited_values,
-                      spatial_values, color_values, range_select);
+                      spatial_values, color_values, range_select, -1);
       if (arrays != null) {
         for (int i=0; i<arrays.length; i++) {
           array = arrays[i];
