@@ -2755,7 +2755,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     double[] means = new double[dim];
 
     Data[]Range = getRange ();
-    if (sampling_mode == WEIGHTED_AVERAGE && DomainSet instanceof SimpleSet) {
+    if (sampling_mode == WEIGHTED_AVERAGE && DomainSet instanceof GriddedSet) {
       // resample by interpolation
       int[][] indices = new int[length][];
       float[][] coefs = new float[length][];
