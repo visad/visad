@@ -149,8 +149,8 @@ public class SelectRangeWidget extends RangeSlider
       float r0 = (float) range[0];
       float r1 = (float) range[1];
 
-      if (minValue != minValue || Math.abs(r0 - minValue) > 0.0001 ||
-          maxValue != maxValue || Math.abs(r1 - maxValue) > 0.0001)
+      if (minValue != minValue || !Util.isApproximatelyEqual(r0, minValue) ||
+          maxValue != maxValue || !Util.isApproximatelyEqual(r1, maxValue))
       {
         updateWidget(r0, r1);
       }

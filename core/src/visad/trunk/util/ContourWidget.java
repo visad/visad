@@ -272,7 +272,9 @@ public class ContourWidget
 
   void setMinMax(float min, float max) throws VisADException,
                                               RemoteException {
-    if (Math.abs(cLo - min) > 0.0001 || Math.abs(cHi - max) > 0.0001) {
+    if (!Util.isApproximatelyEqual(cLo, min) ||
+        !Util.isApproximatelyEqual(cHi, max))
+    {
       cLo = min;
       cHi = max;
       control.setContourLimits(cLo, cHi);
@@ -442,22 +444,22 @@ public class ContourWidget
     } else {
       cInt = cInterval;
     }
-    if (Math.abs(interval - cInt) > 0.0001) {
+    if (!Util.isApproximatelyEqual(interval, cInt)) {
       if (interval < 0.0f) interval = -interval;
       Interval.setText(PlotText.shortString(interval));
       cInterval = fvals[1];
     }
-    if (Math.abs(fvals[4] - cBase) > 0.0001) {
+    if (!Util.isApproximatelyEqual(fvals[4], cBase)) {
       Base.setText(PlotText.shortString(fvals[4]));
       cBase = fvals[4];
     }
 
-    if (Math.abs(fvals[0] - cSurface) > 0.0001) {
+    if (!Util.isApproximatelyEqual(fvals[0], cSurface)) {
       cSurface = fvals[0];
       updateWidgetSurface();
     }
-    if (Math.abs(fvals[2] - cLo) > 0.0001 ||
-        Math.abs(fvals[3] - cHi) > 0.0001) {
+    if (!Util.isApproximatelyEqual(fvals[2], cLo) ||
+        !Util.isApproximatelyEqual(fvals[3], cHi)) {
       cLo = fvals[2];
       cHi = fvals[3];
       updateWidgetRange();
@@ -526,8 +528,8 @@ public class ContourWidget
         minLimit = (float) range[0];
         maxLimit = (float) range[1];
 
-        if (Math.abs(cLo - minLimit) > 0.0001 ||
-            Math.abs(cHi - maxLimit) > 0.0001)
+        if (!Util.isApproximatelyEqual(cLo, minLimit) ||
+            !Util.isApproximatelyEqual(cHi, maxLimit))
         {
           cLo = minLimit;
           cHi = maxLimit;

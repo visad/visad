@@ -223,12 +223,12 @@ public class GMCWidget extends JPanel implements ActionListener,
     float val;
 
     val = control.getLineWidth();
-    if (Math.abs(val - gmcLineWidth) > 0.0001) {
+    if (!Util.isApproximatelyEqual(val, gmcLineWidth)) {
       lineWidth.setText(PlotText.shortString(val));
       gmcLineWidth = val;
     }
     val = control.getPointSize();
-    if (Math.abs(val - gmcPointSize) > 0.0001) {
+    if (!Util.isApproximatelyEqual(val, gmcPointSize)) {
       pointSize.setText(PlotText.shortString(val));
       gmcPointSize = val;
     }

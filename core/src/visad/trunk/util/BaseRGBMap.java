@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: BaseRGBMap.java,v 1.18 2000-03-14 17:18:39 dglo Exp $
+@(#) $Id: BaseRGBMap.java,v 1.19 2000-03-27 17:30:12 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -50,7 +50,7 @@ import visad.VisADException;
  * mouse button to alternate between the color curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.18 $, $Date: 2000-03-14 17:18:39 $
+ * @version $Revision: 1.19 $, $Date: 2000-03-27 17:30:12 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -367,8 +367,8 @@ public class BaseRGBMap
    * @return The array of 3 or 4 element arrays.
    */
   public float[][] getTuples(float firstVal, float lastVal, int num) {
-    if (num <= 0 || num == 1 && Math.abs(firstVal - lastVal) > 0.0001 ||
-        firstVal > lastVal)
+    if (num <= 0 || firstVal > lastVal ||
+        (num == 1 && !Util.isApproximatelyEqual(firstVal, lastVal)))
     {
       return null;
     }

@@ -269,7 +269,7 @@ public class VisADSlider extends JPanel implements ChangeListener,
         public void doAction() throws VisADException, RemoteException {
           // update slider when value of linked Real changes
           double val = ((Real) sRef.getData()).getValue();
-          if (Math.abs(sCurrent - val) > 0.0001) updateSlider(val);
+          if (!Util.isApproximatelyEqual(sCurrent, val)) updateSlider(val);
         }
       };
 
@@ -310,7 +310,7 @@ public class VisADSlider extends JPanel implements ChangeListener,
     try {
       double val = slider.getValue();
       double cur = (sMaximum - sMinimum) * (val / sTicks) + sMinimum;
-      if (Math.abs(sCurrent - cur) > 0.0001) {
+      if (!Util.isApproximatelyEqual(sCurrent, cur)) {
         if (smapControl) control.setValue(cur);
         else sRef.setData(new Real(realType, cur));
       }
@@ -359,7 +359,9 @@ public class VisADSlider extends JPanel implements ChangeListener,
     throws VisADException, RemoteException
   {
     double cur = control.getValue();
-    if (Math.abs(sCurrent - cur) > 0.0001) updateSlider(control.getValue());
+    if (!Util.isApproximatelyEqual(sCurrent, cur)) {
+      updateSlider(control.getValue());
+    }
   }
 
   /** Update the slider's value */
