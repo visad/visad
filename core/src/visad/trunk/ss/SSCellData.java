@@ -70,6 +70,11 @@ public class SSCellData {
   private int type;
 
   /**
+   * The name of the Data object's associated spreadsheet cell.
+   */
+  private String cellName;
+
+  /**
    * The variable name of the Data object.
    */
   private String varName;
@@ -111,13 +116,18 @@ public class SSCellData {
     this.remoteRef = new RemoteDataReferenceImpl(ref);
     this.source = source;
     this.type = type;
-    this.varName = ssCell.getName() + "d" + id;
+    this.cellName = ssCell.getName();
+    this.varName = cellName + "d" + id;
     this.errors = new String[0];
     this.othersDepend = false;
     this.fm = ssCell.getFormulaManager();
 
     // set variable name's reference in formula manager database
     fm.setReference(varName, ref);
+    if (this.id == 1) {
+      // make CELL default to CELLd1
+      fm.setReference(cellName, ref);
+    }
 
     // detect changes to the data
     this.cell = new SSCellImpl(this, ref, varName, checkErrors);
@@ -282,6 +292,7 @@ public class SSCellData {
     // set data's variable to null in formula manager database
     try {
       fm.setThing(varName, null);
+      if (id == 1) fm.setThing(cellName, null);
     }
     catch (VisADException exc) {
       if (BasicSSCell.DEBUG) exc.printStackTrace();
