@@ -525,6 +525,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
                           TextureAttributes.NICEST);
 
     OrderedGroup branchX = new OrderedGroup();
+    branchX.setCapability(Group.ALLOW_CHILDREN_READ);
     int data_depth = geometryX.length;
     Shape3D[] shapeX = new Shape3D[data_depth];
     for (int i=0; i<data_depth; i++) {
@@ -550,6 +551,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       branchX.addChild(shapeX[i]);
     }
     OrderedGroup branchXrev = new OrderedGroup();
+    branchXrev.setCapability(Group.ALLOW_CHILDREN_READ);
     for (int i=data_depth-1; i>=0; i--) {
       int width = imagesX[i].getWidth();
       int height = imagesX[i].getHeight();
@@ -575,6 +577,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     shapeX = null;
 
     OrderedGroup branchY = new OrderedGroup();
+    branchY.setCapability(Group.ALLOW_CHILDREN_READ);
     int data_height = geometryY.length;
     Shape3D[] shapeY = new Shape3D[data_height];
     for (int i=0; i<data_height; i++) {
@@ -601,6 +604,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       branchY.addChild(shapeY[i]);
     }
     OrderedGroup branchYrev = new OrderedGroup();
+    branchYrev.setCapability(Group.ALLOW_CHILDREN_READ);
     for (int i=data_height-1; i>=0; i--) {
       int width = imagesY[i].getWidth();
       int height = imagesY[i].getHeight();
@@ -627,6 +631,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     shapeY = null;
 
     OrderedGroup branchZ = new OrderedGroup();
+    branchZ.setCapability(Group.ALLOW_CHILDREN_READ);
     int data_width = geometryZ.length;
     Shape3D[] shapeZ = new Shape3D[data_width];
     for (int i=0; i<data_width; i++) {
@@ -652,6 +657,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       branchZ.addChild(shapeZ[i]);
     }
     OrderedGroup branchZrev = new OrderedGroup();
+    branchZrev.setCapability(Group.ALLOW_CHILDREN_READ);
     for (int i=data_width-1; i>=0; i--) {
       int width = imagesZ[i].getWidth();
       int height = imagesZ[i].getHeight();
