@@ -68,8 +68,13 @@ public class VisADCanvasJ3D extends Canvas3D {
     GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
     GraphicsDevice d = e.getDefaultScreenDevice();
     // GraphicsConfiguration c = d.getDefaultConfiguration();
+/* fix suggested by John Brecht from http://www.j3d.org/faq/running.html#flicker
     GraphicsConfigTemplate3D gct3d = new GraphicsConfigTemplate3D();
     GraphicsConfiguration c = gct3d.getBestConfiguration(d.getConfigurations());
+*/
+    GraphicsConfigTemplate3D template = new GraphicsConfigTemplate3D();
+    GraphicsConfiguration c = d.getBestConfiguration(template);
+
     return c;
   }
 
