@@ -2,6 +2,12 @@ package visad.data;
 
 import visad.*;
 
+/**
+ * A do-nothing DataProcessor implementation.
+ *
+ * All methods throw
+ * {@link visad.UnimplementedException UnimplementedException}
+ */
 public class EmptyDataProcessor
   extends BaseDataProcessor
 {
@@ -11,14 +17,12 @@ public class EmptyDataProcessor
                                Unit[] units, DoubleSet set)
     throws VisADException
   {
-    System.out.println("processDoubleSet");
     throw new UnimplementedException();
   }
 
   public void processFieldImpl(FunctionType type, Set set, FieldImpl fld)
     throws VisADException
   {
-    System.out.println("processFieldImpl");
     throw new UnimplementedException();
   }
 
@@ -28,7 +32,6 @@ public class EmptyDataProcessor
                                Unit[] units, FlatField fld)
     throws VisADException
   {
-    System.out.println("processFlatField");
     throw new UnimplementedException();
   }
 
@@ -36,7 +39,6 @@ public class EmptyDataProcessor
                               Unit[] units, FloatSet set)
     throws VisADException
   {
-    System.out.println("processFloatSet");
     throw new UnimplementedException();
   }
 
@@ -46,7 +48,6 @@ public class EmptyDataProcessor
                                         Gridded1DDoubleSet set)
     throws VisADException
   {
-    System.out.println("processGridded1DDoubleSet");
     throw new UnimplementedException();
   }
 
@@ -56,7 +57,6 @@ public class EmptyDataProcessor
                                         Gridded2DDoubleSet set)
     throws VisADException
   {
-    System.out.println("processGridded2DDoubleSet");
     throw new UnimplementedException();
   }
 
@@ -66,7 +66,6 @@ public class EmptyDataProcessor
                                         Gridded3DDoubleSet set)
     throws VisADException
   {
-    System.out.println("processGridded3DDoubleSet");
     throw new UnimplementedException();
   }
 
@@ -76,7 +75,6 @@ public class EmptyDataProcessor
                                   Gridded1DSet set)
     throws VisADException
   {
-    System.out.println("processGridded1DSet");
     throw new UnimplementedException();
   }
 
@@ -86,7 +84,6 @@ public class EmptyDataProcessor
                                   Gridded2DSet set)
     throws VisADException
   {
-    System.out.println("processGridded2DSet");
     throw new UnimplementedException();
   }
 
@@ -96,7 +93,6 @@ public class EmptyDataProcessor
                                   Gridded3DSet set)
     throws VisADException
   {
-    System.out.println("processGridded3DSet");
     throw new UnimplementedException();
   }
 
@@ -106,7 +102,6 @@ public class EmptyDataProcessor
                                 GriddedSet set)
     throws VisADException
   {
-    System.out.println("processGriddedSet");
     throw new UnimplementedException();
   }
 
@@ -115,7 +110,6 @@ public class EmptyDataProcessor
                                   ErrorEstimate[] errors, Integer1DSet set)
     throws VisADException
   {
-    System.out.println("processInteger1DSet");
     throw new UnimplementedException();
   }
 
@@ -124,7 +118,6 @@ public class EmptyDataProcessor
                                   ErrorEstimate[] errors, Integer2DSet set)
     throws VisADException
   {
-    System.out.println("processInteger2DSet");
     throw new UnimplementedException();
   }
 
@@ -133,7 +126,6 @@ public class EmptyDataProcessor
                                   ErrorEstimate[] errors, Integer3DSet set)
     throws VisADException
   {
-    System.out.println("processInteger3DSet");
     throw new UnimplementedException();
   }
 
@@ -142,7 +134,6 @@ public class EmptyDataProcessor
                                   ErrorEstimate[] errors, IntegerNDSet set)
     throws VisADException
   {
-    System.out.println("processIntegerNDSet");
     throw new UnimplementedException();
   }
 
@@ -151,7 +142,6 @@ public class EmptyDataProcessor
                                     ErrorEstimate[] errors, Irregular1DSet set)
     throws VisADException
   {
-    System.out.println("processIrregular1DSet");
     throw new UnimplementedException();
   }
 
@@ -161,7 +151,6 @@ public class EmptyDataProcessor
                                     Irregular2DSet set)
     throws VisADException
   {
-    System.out.println("processIrregular2DSet");
     throw new UnimplementedException();
   }
 
@@ -171,7 +160,6 @@ public class EmptyDataProcessor
                                     Irregular3DSet set)
     throws VisADException
   {
-    System.out.println("processIrregular3DSet");
     throw new UnimplementedException();
   }
 
@@ -181,7 +169,6 @@ public class EmptyDataProcessor
                                   IrregularSet set)
     throws VisADException
   {
-    System.out.println("processIrregularSet");
     throw new UnimplementedException();
   }
 
@@ -191,7 +178,6 @@ public class EmptyDataProcessor
                                  ErrorEstimate[] errors, Linear1DSet set)
     throws VisADException
   {
-    System.out.println("processLinear1DSet");
     throw new UnimplementedException();
   }
 
@@ -201,7 +187,6 @@ public class EmptyDataProcessor
                                  ErrorEstimate[] errors, Linear2DSet set)
     throws VisADException
   {
-    System.out.println("processLinear2DSet");
     throw new UnimplementedException();
   }
 
@@ -211,7 +196,6 @@ public class EmptyDataProcessor
                                  ErrorEstimate[] errors, Linear3DSet set)
     throws VisADException
   {
-    System.out.println("processLinear3DSet");
     throw new UnimplementedException();
   }
 
@@ -222,7 +206,6 @@ public class EmptyDataProcessor
                                      LinearLatLonSet set)
     throws VisADException
   {
-    System.out.println("processLinearLatLonSet");
     throw new UnimplementedException();
   }
 
@@ -232,7 +215,6 @@ public class EmptyDataProcessor
                                  ErrorEstimate[] errors, LinearNDSet set)
     throws VisADException
   {
-    System.out.println("processLinearNDSet");
     throw new UnimplementedException();
   }
 
@@ -241,7 +223,6 @@ public class EmptyDataProcessor
                                List1DSet set)
     throws VisADException
   {
-    System.out.println("processList1DSet");
     throw new UnimplementedException();
   }
 
@@ -250,7 +231,6 @@ public class EmptyDataProcessor
                                 ErrorEstimate[] errors, ProductSet set)
     throws VisADException
   {
-    System.out.println("processProductSet");
     throw new UnimplementedException();
   }
 
@@ -258,7 +238,6 @@ public class EmptyDataProcessor
                           ErrorEstimate error, Real real)
     throws VisADException
   {
-    System.out.println("processReal");
     throw new UnimplementedException();
   }
 
@@ -266,7 +245,6 @@ public class EmptyDataProcessor
                                CoordinateSystem cs, RealTuple rt)
     throws VisADException
   {
-    System.out.println("processRealTuple");
     throw new UnimplementedException();
   }
 
@@ -275,7 +253,6 @@ public class EmptyDataProcessor
                                 ErrorEstimate[] errors, SampledSet set)
     throws VisADException
   {
-    System.out.println("processSampledSet");
     throw new UnimplementedException();
   }
 
@@ -284,7 +261,6 @@ public class EmptyDataProcessor
                                ErrorEstimate[] errors, SimpleSet set)
     throws VisADException
   {
-    System.out.println("processSimpleSet");
     throw new UnimplementedException();
   }
 
@@ -293,7 +269,6 @@ public class EmptyDataProcessor
                                   SingletonSet set)
     throws VisADException
   {
-    System.out.println("processSingletonSet");
     throw new UnimplementedException();
   }
 
@@ -301,28 +276,24 @@ public class EmptyDataProcessor
                           Text text)
     throws VisADException
   {
-    System.out.println("processText");
     throw new UnimplementedException();
   }
 
   public void processTuple(TupleType type, Data[] components, Tuple t)
     throws VisADException
   {
-    System.out.println("processTuple");
     throw new UnimplementedException();
   }
 
   public void processUnionSet(SetType type, SampledSet[] sets, UnionSet set)
     throws VisADException
   {
-    System.out.println("processUnionSet");
     throw new UnimplementedException();
   }
 
   public void processUnknownData(DataImpl data)
     throws VisADException
   {
-    System.out.println("processUnknownData");
     throw new UnimplementedException();
   }
 }
