@@ -469,5 +469,8 @@ public class RangeSlider extends JComponent implements MouseListener,
     rs.setValues(22.2222f, 76.5432f);
   }
 
+  public float[] getMinMaxValues() {
+    return new float[] {minValue, maxValue};
+  }
 }
 
