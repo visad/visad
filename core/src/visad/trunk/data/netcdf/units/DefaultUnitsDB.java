@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultUnitsDB.java,v 1.4 1998-02-23 15:58:56 steve Exp $
+ * $Id: DefaultUnitsDB.java,v 1.5 1998-03-10 22:24:18 steve Exp $
  */
 
 package visad.data.netcdf.units;
@@ -106,10 +106,9 @@ DefaultUnitsDB
     /**
      * Construct a units database.
      *
-     * @exception ucar.unidata.units.UnitException	Something went
-     *				wrong in generating a unit
-     *				for the database.  This should not occur and
-     *				indicates an internal inconsistancy.
+     * @exception	UnitException	Something went wrong in generating
+     *			a unit for the database.  This should not occur and
+     *			indicates an internal inconsistancy.
      */
     protected
     DefaultUnitsDB()
@@ -1021,10 +1020,10 @@ DefaultUnitsDB
      *
      * This is the only way to obtain an instance of this class.
      *
-     * @exception ucar.unidata.units.UnitException	Something went wrong
-     * in generating the 
-     * singleton instance of the database.  This should not occur and 
-     * indicates an internal inconsistancy.
+     * @exception	UnitException	Something went wrong
+     *			in generating the singleton instance of the database.
+     *			This should not occur and indicates an internal
+     *			inconsistancy.
      */
     public static UnitsDB
     instance()
