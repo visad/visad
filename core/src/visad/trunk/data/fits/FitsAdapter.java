@@ -35,6 +35,8 @@ import java.io.IOException;
 
 import java.lang.reflect.Array;
 
+import java.net.URL;
+
 import java.rmi.RemoteException;
 
 import java.util.Vector;
@@ -64,6 +66,20 @@ public class FitsAdapter
   {
     try {
       fits = new Fits(filename);
+    } catch (FitsException e) {
+      throw new VisADException(e.getClass().getName() + "(" + e.getMessage() +
+			       ")");
+    }
+
+    data = null;
+    stack = null;
+  }
+
+  public FitsAdapter(URL url)
+	throws VisADException
+  {
+    try {
+      fits = new Fits(url);
     } catch (FitsException e) {
       throw new VisADException(e.getClass().getName() + "(" + e.getMessage() +
 			       ")");
