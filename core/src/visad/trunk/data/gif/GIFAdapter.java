@@ -27,6 +27,7 @@ package visad.data.gif;
 import java.awt.Image;
 import java.awt.Toolkit;
 
+import java.awt.image.ColorModel;
 import java.awt.image.ImageObserver;
 import java.awt.image.ImageProducer;
 import java.awt.image.PixelGrabber;
@@ -107,9 +108,8 @@ public class GIFAdapter
     * @param height image height.
     * @exception VisADException if an unexpected problem occurs.
     */
-  private void buildFlatField(float[] pixels, int width, int height)
-	throws VisADException
-  {
+  private void buildFlatField(float[] red_pix, float[] green_pix, float[] blue_pix,
+                              int width, int height) throws VisADException {
     RealType line;
     try {
       line = new RealType("ImageLine");
@@ -124,12 +124,24 @@ public class GIFAdapter
       element =  RealType.getRealTypeByName("ImageElement");
     }
 
-    RealType radiance;
+    RealType c_red, c_green, c_blue;
     try {
-      radiance = new RealType("ImageRadiance");
+      c_red = new RealType("Red");
     } catch (TypeException e) {
-      radiance =  RealType.getRealTypeByName("ImageRadiance");
+      c_red = RealType.getRealTypeByName("Red");
     }
+    try {
+      c_green = new RealType("Green");
+    } catch (TypeException e) {
+      c_green = RealType.getRealTypeByName("Green");
+    }
+    try {
+      c_blue = new RealType("Blue");
+    } catch (TypeException e) {
+      c_blue = RealType.getRealTypeByName("Blue");
+    }
+    RealType[] c_all = {c_red, c_green, c_blue};
+    RealTupleType radiance = new RealTupleType(c_all);
 
     RealType[] domain_components = {line, element};
     RealTupleType image_domain =
@@ -143,8 +155,10 @@ public class GIFAdapter
 
     field = new FlatField(image_type, domain_set);
 
-    float[][] samples = new float[1][];
-    samples[0] = pixels;
+    float[][] samples = new float[3][];
+    samples[0] = red_pix;
+    samples[1] = green_pix;
+    samples[2] = blue_pix;
     try {
       field.setSamples(samples, false);
     } catch (RemoteException e) {
@@ -181,7 +195,9 @@ public class GIFAdapter
     int numPixels = width * height;
 
     int[] words = new int[numPixels];
-    float[] pixels = new float[numPixels];
+    float[] red_pix = new float[numPixels];
+    float[] green_pix = new float[numPixels];
+    float[] blue_pix = new float[numPixels];
 
     PixelGrabber grabber;
     grabber = new PixelGrabber(producer, 0, 0, width, height, words, 0, width);
@@ -191,11 +207,14 @@ public class GIFAdapter
     } catch (InterruptedException e) {
     }
 
-    for (int i = 0; i < numPixels; i++) {
-      pixels[i] = words[i] & 0xff;
+    ColorModel cm = grabber.getColorModel();
+    for (int i=0; i<numPixels; i++) {
+      red_pix[i] = cm.getRed(words[i]);
+      green_pix[i] = cm.getGreen(words[i]);
+      blue_pix[i] = cm.getBlue(words[i]);
     }
 
-    buildFlatField(pixels, width, height);
+    buildFlatField(red_pix, green_pix, blue_pix, width, height);
   }
 
   public FlatField getData()
