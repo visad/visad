@@ -218,7 +218,7 @@ New - Clears all spreadsheet cells;  starts from scratch.
 
 Open - Opens a "spreadsheet file."  Spreadsheet files are small, containing
 only the instructions needed to recreate a spreadsheet.  They do not contain
-any actual data, but rather the file names, URLs, RMI address, formulas,
+any actual data, but rather the file names, URLs, RMI addresses, formulas,
 dimensionality information, and mappings of the cells.
 
 Save - Saves a "spreadsheet file" under the current name.  
@@ -487,8 +487,9 @@ The following bugs have been discovered and have not yet been fixed:
    appear in the bottom or right-hand corners of the Spread Sheet window.
 
 If you find a bug in the Spread Sheet user interface not listed above,
-please send e-mail to curtis@ssec.wisc.edu describing the problem, preferably
-with a detailed description of how to recreate the problem.
+please send e-mail to curtis@ssec.wisc.edu and whibbard@macc.wisc.edu
+describing the problem, preferably with a detailed description of how to
+recreate the problem.
 
 4. Future Plans
 
@@ -507,4 +508,5 @@ Here's what's coming in the future:
 6) And of course, bug fixes
 
 If you have any suggestions for features that you would find useful,
-please send e-mail to curtis@ssec.wisc.edu describing the feature.
+please send e-mail to curtis@ssec.wisc.edu and whibbard@macc.wisc.edu
+describing the feature.
