@@ -170,7 +170,7 @@ visad\benjamin\*.table \
 visad\rabin\*.java \
 visad\bom\*.java \
 visad\aeri\*.java \
-visad\amanda\*.java \
+visad\data\amanda\*.java \
 visad\georef\*.java \
 visad\meteorology\*.java \
 visad\Gridded1D.txt \
@@ -287,7 +287,7 @@ visad\benjamin\*.table \
 visad\rabin\*.java \
 visad\bom\*.java \
 visad\aeri\*.java \
-visad\amanda\*.java \
+visad\data\amanda\*.java \
 visad\georef\*.java \
 visad\meteorology\*.java \
 visad\Gridded1D.txt \
@@ -393,8 +393,8 @@ save:
 		$(DEL) $(BACKUP)\visad\bom\*.java
 	if exist $(BACKUP)\visad\aeri\*.java \
 		$(DEL) $(BACKUP)\visad\aeri\*.java
-	if exist $(BACKUP)\visad\amanda\*.java \
-		$(DEL) $(BACKUP)\visad\amanda\*.java
+	if exist $(BACKUP)\visad\data\amanda\*.java \
+		$(DEL) $(BACKUP)\visad\data\amanda\*.java
 	if exist $(BACKUP)\visad\georef\*.java \
 		$(DEL) $(BACKUP)\visad\georef\*.java
 	if exist $(BACKUP)\visad\meteorology\*.java \
@@ -453,7 +453,7 @@ visad\benjamin\*.class \
 visad\rabin\*.class \
 visad\bom\*.class \
 visad\aeri\*.class \
-visad\amanda\*.class \
+visad\data\amanda\*.class \
 visad\georef\*.class \
 visad\meteorology\*.class \
 visad\examples\*.class
@@ -522,7 +522,7 @@ clear:
 	if exist rabin\*.java $(DEL) rabin\*.java
 	if exist bom\*.java $(DEL) bom\*.java
 	if exist aeri\*.java $(DEL) aeri\*.java
-	if exist amanda\*.java $(DEL) amanda\*.java
+	if exist data\amanda\*.java $(DEL) data\amanda\*.java
 	if exist georef\*.java $(DEL) georef\*.java
 	if exist meteorology\*.java $(DEL) meteorology\*.java
 	if exist examples\*.java $(DEL) examples\*.java
@@ -573,7 +573,7 @@ clean:
 	if exist rabin\*.class $(DEL) rabin\*.class
 	if exist bom\*.class $(DEL) bom\*.class
 	if exist aeri\*.class $(DEL) aeri\*.class
-	if exist amanda\*.class $(DEL) amanda\*.class
+	if exist data\amanda\*.class $(DEL) data\amanda\*.class
 	if exist georef\*.class $(DEL) georef\*.class
 	if exist meteorology\*.class $(DEL) meteorology\*.class
 	if exist examples\*.class $(DEL) examples\*.class
@@ -647,7 +647,7 @@ rabin\*.class \
 aune\*.class \
 bom\*.class \
 aeri\*.class \
-amanda\*.class \
+data\amanda\*.class \
 georef\*.class \
 meteorology\*.class
 	cd examples
@@ -706,7 +706,7 @@ compile: clean
 	$(JC) $(JFLAGS) aune\*.java
 	$(JC) $(JFLAGS) bom\*.java
 	$(JC) $(JFLAGS) aeri\*.java
-	$(JC) $(JFLAGS) amanda\*.java
+	$(JC) $(JFLAGS) data\amanda\*.java
 	$(JC) $(JFLAGS) georef\*.java
 	$(JC) $(JFLAGS) meteorology\*.java
 	cd examples
@@ -769,7 +769,7 @@ visad.benjamin \
 visad.rabin \
 visad.bom \
 visad.aeri \
-visad.amanda \
+visad.data.amanda \
 visad.georef \
 visad.meteorology
 
