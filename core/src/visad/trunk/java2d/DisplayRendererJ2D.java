@@ -179,6 +179,12 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     render_trigger();
   }
 
+  /**
+   * Turns the outline box on or off.  May be invoked only <em>after</em> this
+   * DisplayRendererJ2D has been given to a Display.
+   *
+   * @param on			Whether to turn the outline box on or not.
+   */
   public void setBoxOn(boolean on) {
     boxOn = on;
     if (on) {
@@ -301,6 +307,12 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     directs.removeElement(renderer);
   }
 
+  /**
+   * Returns the location of the last unmodified, middle mouse button press.
+   * @return			The location of the last unmodified, middle
+   *				mouse button press as (Display.XAxis,
+   *				Display.YAxis, 0.0).
+   */
   public double[] getCursor() {
     double[] cursor = new double[3];
     cursor[0] = cursorX;
