@@ -267,11 +267,11 @@ public class JamaMatrix extends FlatField {
   // Static methods
 
   /**
-   * Attempt to convert the given VisAD Data object to a VisAD JamaMatrix
+   * Attempt to convert the given VisAD FlatField to a VisAD JamaMatrix
    * Data object.
    * @return The converted object, or null if it could not be converted
    */
-  public static JamaMatrix convertToMatrix(Data data)
+  public static JamaMatrix convertToMatrix(FlatField field)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
     if (classMatrix == null) {
@@ -279,12 +279,8 @@ public class JamaMatrix extends FlatField {
                                "http://math.nist.gov/javanumerics/jama/");
     }
 
-    // if data is already a JamaMatrix the task is trivial
-    if (data instanceof JamaMatrix) return (JamaMatrix) data;
-
-    // data must be a flat field
-    if (!(data instanceof FlatField)) return null;
-    FlatField field = (FlatField) data;
+    // if field is already a JamaMatrix the task is trivial
+    if (field instanceof JamaMatrix) return (JamaMatrix) field;
 
     // get domain set (must be 2-D ordered samples)
     Set set = field.getDomainSet();
@@ -366,7 +362,7 @@ public class JamaMatrix extends FlatField {
       System.out.println("getMatrix2 = " + getMatrix2);
       JamaMatrix m1 = new JamaMatrix(e1);
       JamaMatrix m2 = new JamaMatrix(e2);
-      JamaMatrix m3 = convertToMatrix(m1.add(m2));
+      JamaMatrix m3 = convertToMatrix((FlatField) m1.add(m2));
       JamaMatrix m4 = m1.plus(m2);
       System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
       System.out.println("m1:");
@@ -1355,7 +1351,7 @@ public class JamaMatrix extends FlatField {
   }
 
   public JamaCholeskyDecomposition chol()
-         throws IOException, VisADException, IllegalAccessException,
+         throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
     if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
@@ -1366,7 +1362,7 @@ public class JamaMatrix extends FlatField {
   }
 
   public JamaEigenvalueDecomposition eig()
-         throws IOException, VisADException, IllegalAccessException,
+         throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
     if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
@@ -1377,7 +1373,7 @@ public class JamaMatrix extends FlatField {
   }
 
   public JamaLUDecomposition lu()
-         throws IOException, VisADException, IllegalAccessException,
+         throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
     if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
@@ -1388,7 +1384,7 @@ public class JamaMatrix extends FlatField {
   }
 
   public JamaQRDecomposition qr()
-         throws IOException, VisADException, IllegalAccessException,
+         throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
     if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
@@ -1399,7 +1395,7 @@ public class JamaMatrix extends FlatField {
   }
 
   public JamaSingularValueDecomposition svd()
-         throws IOException, VisADException, IllegalAccessException,
+         throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
     if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +

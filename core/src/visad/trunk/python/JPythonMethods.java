@@ -30,8 +30,11 @@ import java.util.Vector;
 import java.awt.event.*;
 import java.rmi.RemoteException;
 import javax.swing.JFrame;
+import java.lang.reflect.InvocationTargetException;
+
 import visad.*;
 import visad.math.*;
+import visad.matrix.*;
 import visad.java3d.DisplayImplJ3D;
 import visad.java3d.TwoDDisplayRendererJ3D;
 import visad.data.*;
@@ -137,16 +140,209 @@ public abstract class JPythonMethods {
     }
   }
 
-  /** does 1-D and 2-D (i.e., Matlab fft and fft2) */
+  /** binary and unary methods from Data.java */
+  public static Data abs(Data data) throws VisADException, RemoteException {
+    return data.abs();
+  }
+
+  public static Data acos(Data data) throws VisADException, RemoteException {
+    return data.acos();
+  }
+
+  public static Data acosDegrees(Data data) throws VisADException, RemoteException {
+    return data.acosDegrees();
+  }
+
+  public static Data asin(Data data) throws VisADException, RemoteException {
+    return data.asin();
+  }
+
+  public static Data asinDegrees(Data data) throws VisADException, RemoteException {
+    return data.asinDegrees();
+  }
+
+  public static Data ceil(Data data) throws VisADException, RemoteException {
+    return data.ceil();
+  }
+
+  public static Data cos(Data data) throws VisADException, RemoteException {
+    return data.cos();
+  }
+
+  public static Data cosDegrees(Data data) throws VisADException, RemoteException {
+    return data.cosDegrees();
+  }
+
+  public static Data exp(Data data) throws VisADException, RemoteException {
+    return data.exp();
+  }
+
+  public static Data floor(Data data) throws VisADException, RemoteException {
+    return data.floor();
+  }
+
+  public static Data log(Data data) throws VisADException, RemoteException {
+    return data.log();
+  }
+
+  public static Data rint(Data data) throws VisADException, RemoteException {
+    return data.rint();
+  }
+
+  public static Data round(Data data) throws VisADException, RemoteException {
+    return data.round();
+  }
+
+  public static Data sin(Data data) throws VisADException, RemoteException {
+    return data.sin();
+  }
+
+  public static Data sinDegrees(Data data) throws VisADException, RemoteException {
+    return data.sinDegrees();
+  }
+
+  public static Data sqrt(Data data) throws VisADException, RemoteException {
+    return data.sqrt();
+  }
+
+  public static Data tan(Data data) throws VisADException, RemoteException {
+    return data.tan();
+  }
+
+  public static Data tanDegrees(Data data) throws VisADException, RemoteException {
+    return data.tanDegrees();
+  }
+
+  public static Data max(Data data1, Data data2)
+         throws VisADException, RemoteException {
+    return data1.max(data2);
+  }
+
+  public static Data min(Data data1, Data data2)
+         throws VisADException, RemoteException {
+    return data1.min(data2);
+  }
+
+  public static Data atan2(Data data1, Data data2)
+         throws VisADException, RemoteException {
+    return data1.atan2(data2);
+  }
+
+  public static Data atan2Degrees(Data data1, Data data2)
+         throws VisADException, RemoteException {
+    return data1.atan2Degrees(data2);
+  }
+
+  public static Data max(Data data1, double data2) 
+         throws VisADException, RemoteException {
+    return data1.max(new Real(data2));
+  }
+
+  public static Data min(Data data1, double data2) 
+         throws VisADException, RemoteException {
+    return data1.min(new Real(data2));
+  }
+
+  public static Data atan2(Data data1, double data2) 
+         throws VisADException, RemoteException {
+    return data1.atan2(new Real(data2));
+  }
+
+  public static Data atan2Degrees(Data data1, double data2) 
+         throws VisADException, RemoteException {
+    return data1.atan2Degrees(new Real(data2));
+  }
+
+  public static Data max(double data1, Data data2) 
+         throws VisADException, RemoteException {
+    return new Real(data1).max(data2);
+  }
+
+  public static Data min(double data1, Data data2) 
+         throws VisADException, RemoteException {
+    return new Real(data1).min(data2);
+  }
+
+  public static Data atan2(double data1, Data data2) 
+         throws VisADException, RemoteException {
+    return new Real(data1).atan2(data2);
+  }
+
+  public static Data atan2Degrees(double data1, Data data2)
+         throws VisADException, RemoteException {
+    return new Real(data1).atan2Degrees(data2);
+  }
+  /* end of binary and unary methods from Data.java */
+
+  /** 1-D and 2-D forward Fourier transform, uses fft when possible */
   public static FlatField fft(Field field)
-    throws VisADException, RemoteException {
+         throws VisADException, RemoteException {
     return FFT.fourierTransform(field, true);
   }
 
-  /** does 1-D and 2-D (i.e., Matlab fft and fft2) */
-  public static FlatField ifft(Field field) 
-    throws VisADException, RemoteException {
+  /** 1-D and 2-D backward Fourier transform, uses fft when possible */
+  public static FlatField ifft(Field field)
+         throws VisADException, RemoteException {
     return FFT.fourierTransform(field, false);
   }
 
+  /** multiply matrices using Jama */
+  public static JamaMatrix matrixMultiply(FlatField data1, FlatField data2)
+         throws VisADException, RemoteException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    JamaMatrix matrix1 = JamaMatrix.convertToMatrix(data1);
+    JamaMatrix matrix2 = JamaMatrix.convertToMatrix(data2);
+    return matrix1.times(matrix2);
+  }
+
+  /** solve a linear system using Jama */
+  public static JamaMatrix solve(FlatField data1, FlatField data2)
+         throws VisADException, RemoteException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    JamaMatrix matrix1 = JamaMatrix.convertToMatrix(data1);
+    JamaMatrix matrix2 = JamaMatrix.convertToMatrix(data2);
+    return matrix1.solve(matrix2);
+  }
+
+  /** return Cholesky Decomposition using Jama */
+  public static JamaCholeskyDecomposition chol(FlatField data)
+         throws VisADException, RemoteException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    JamaMatrix matrix = JamaMatrix.convertToMatrix(data);
+    return matrix.chol();
+  }
+
+  /** return Eigenvalue Decomposition using Jama */
+  public static JamaEigenvalueDecomposition eig(FlatField data)
+         throws VisADException, RemoteException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    JamaMatrix matrix = JamaMatrix.convertToMatrix(data);
+    return matrix.eig();
+  }
+
+  /** return LU Decomposition using Jama */
+  public static JamaLUDecomposition lu(FlatField data)
+         throws VisADException, RemoteException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    JamaMatrix matrix = JamaMatrix.convertToMatrix(data);
+    return matrix.lu();
+  }
+
+  /** return QR Decomposition using Jama */
+  public static JamaQRDecomposition qr(FlatField data)
+         throws VisADException, RemoteException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    JamaMatrix matrix = JamaMatrix.convertToMatrix(data);
+    return matrix.qr();
+  }
+
+  /** return Singular Value Decomposition using Jama */
+  public static JamaSingularValueDecomposition svd(FlatField data)
+         throws VisADException, RemoteException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    JamaMatrix matrix = JamaMatrix.convertToMatrix(data);
+    return matrix.svd();
+  }
+
 }
+
