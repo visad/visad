@@ -223,7 +223,19 @@ public class AlignmentPlane extends PlaneSelector {
   /** Updates internal position values. */
   protected void setPos(int i, double[] vals) {
     double[] m = getScale();
-    for (int j=0; j<3; j++) pos[index][i][j] = m[j] * vals[j];
+    double[] v = new double[3];
+    boolean equal = true;
+    for (int j=0; j<3; j++) {
+      v[j] = m[j] * vals[j];
+      if (!Util.isApproximatelyEqual(pos[index][i][j], v[j], 0.0001)) {
+        equal = false;
+      }
+    }
+    if (equal) return;
+    int startIndex = locked ? index : 0;
+    for (int ndx=startIndex; ndx<numIndices; ndx++) {
+      for (int j=0; j<3; j++) pos[ndx][i][j] = v[j];
+    }
   }
 
   /** Convert point from scaled to non-scaled. */

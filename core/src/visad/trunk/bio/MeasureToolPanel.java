@@ -84,15 +84,6 @@ public class MeasureToolPanel extends ToolPanel {
   private boolean stdEnabled = true;
 
 
-  // -- EXPORT FUNCTIONS --
-
-  /** Button for exporting measurements to Excel-friendly text format. */
-  private JButton export;
-
-  /** File chooser for exporting measurements. */
-  private JFileChooser exportBox;
-
-
   // -- GLOBAL FUNCTIONS --
 
   /** Button for adding lines. */
@@ -106,6 +97,12 @@ public class MeasureToolPanel extends ToolPanel {
 
   /** Button for clearing all measurements. */
   private JButton clearAll;
+
+  /** Button for exporting measurements to Excel-friendly text format. */
+  private JButton export;
+
+  /** File chooser for exporting measurements. */
+  private JFileChooser exportBox;
 
 
   // -- LINE FUNCTIONS --
@@ -149,34 +146,6 @@ public class MeasureToolPanel extends ToolPanel {
   /** Constructs a tool panel for performing measurement operations. */
   public MeasureToolPanel(VisBio biovis) {
     super(biovis);
-
-    // export measurements button
-    export = new JButton("Export measurements");
-    final Component panel = this;
-    export.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        int rval = exportBox.showSaveDialog(panel);
-        if (rval != JFileChooser.APPROVE_OPTION) return;
-        File file = exportBox.getSelectedFile();
-        if (file.getName().indexOf(".") < 0) {
-          file = new File(file.getAbsolutePath() + ".txt");
-        }
-        bio.mm.export(file);
-      }
-    });
-    export.setMnemonic('x');
-    export.setToolTipText(
-      "Exports measurements to Excel-friendly text format");
-    export.setEnabled(false);
-    controls.add(pad(export));
-
-    // export measurements file chooser
-    exportBox = new JFileChooser();
-    exportBox.addChoosableFileFilter(new ExtensionFileFilter(
-      "txt", "VisBio measurements"));
-
-    // spacing
-    controls.add(Box.createVerticalStrut(5));
 
     // add line button
     JPanel p = new JPanel();
@@ -239,6 +208,34 @@ public class MeasureToolPanel extends ToolPanel {
     clearAll.setEnabled(false);
     p.add(clearAll);
     controls.add(pad(p));
+
+    // spacing
+    controls.add(Box.createVerticalStrut(5));
+
+    // export measurements button
+    export = new JButton("Export measurements");
+    final Component panel = this;
+    export.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        int rval = exportBox.showSaveDialog(panel);
+        if (rval != JFileChooser.APPROVE_OPTION) return;
+        File file = exportBox.getSelectedFile();
+        if (file.getName().indexOf(".") < 0) {
+          file = new File(file.getAbsolutePath() + ".txt");
+        }
+        bio.mm.export(file);
+      }
+    });
+    export.setMnemonic('x');
+    export.setToolTipText(
+      "Exports measurements to Excel-friendly text format");
+    export.setEnabled(false);
+    controls.add(pad(export));
+
+    // export measurements file chooser
+    exportBox = new JFileChooser();
+    exportBox.addChoosableFileFilter(new ExtensionFileFilter(
+      "txt", "VisBio measurements"));
 
     // divider between global functions and measurement-specific functions
     controls.add(Box.createVerticalStrut(10));

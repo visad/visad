@@ -219,6 +219,12 @@ public class VisBio extends GUIFrame implements ChangeListener {
     addMenuItem("Edit", "Undo", "editUndo", 'u');
     addMenuItem("Help", "Overview", "helpOverview", 'o');
     addMenuItem("Help", "QuickTime", "helpQuickTime", 'q');
+    addMenuSeparator("Help");
+    addMenuItem("Help", "View", "helpView", 'v');
+    addMenuItem("Help", "Color", "helpColor", 'c');
+    addMenuItem("Help", "Align", "helpAlign", 'a');
+    addMenuItem("Help", "Measure", "helpMeasure", 'm');
+    addMenuSeparator("Help");
     addMenuItem("Help", "About", "helpAbout", 'a');
 
     // lay out components
@@ -647,8 +653,20 @@ public class VisBio extends GUIFrame implements ChangeListener {
   /** Brings up the help window on the QuickTime tab. */
   public void helpQuickTime() { doHelp(1); }
 
+  /** Brings up the help window on the View tab. */
+  public void helpView() { doHelp(2); }
+
+  /** Brings up the help window on the Color tab. */
+  public void helpColor() { doHelp(3); }
+
+  /** Brings up the help window on the Align tab. */
+  public void helpAlign() { doHelp(4); }
+
+  /** Brings up the help window on the Measure tab. */
+  public void helpMeasure() { doHelp(5); }
+
   /** Brings up the help window on the About tab. */
-  public void helpAbout() { doHelp(2); }
+  public void helpAbout() { doHelp(6); }
 
 
   // -- INTERNAL API METHODS --

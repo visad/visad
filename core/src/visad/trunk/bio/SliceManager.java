@@ -251,6 +251,7 @@ public class SliceManager
   /** Constructs a slice manager. */
   public SliceManager(VisBio biovis) throws VisADException, RemoteException {
     bio = biovis;
+    thumbSize = new int[2];
     lowres = false;
     doThumbs = true;
     autoSwitch = true;
@@ -329,7 +330,8 @@ public class SliceManager
   /** Sets whether to create low-resolution thumbnails of the data. */
   public void setThumbnails(boolean thumbnails, int xres, int yres) {
     doThumbs = thumbnails;
-    thumbSize = new int[] {xres, yres};
+    thumbSize[0] = xres;
+    thumbSize[1] = yres;
   }
 
   /** Sets whether to do arbitrary plane selection. */

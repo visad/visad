@@ -63,6 +63,10 @@ public class BioHelpWindow extends JPanel implements ActionListener {
 
     addTab("Overview", "overview.html");
     addTab("QuickTime", "quicktime.html");
+    addTab("View", "view.html");
+    addTab("Color", "color.html");
+    addTab("Align", "align.html");
+    addTab("Measure", "measure.html");
     addTab("About", "about.html");
 
     ok = new JButton("Close");
