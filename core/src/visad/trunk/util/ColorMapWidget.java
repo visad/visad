@@ -50,9 +50,11 @@ import visad.VisADException;
  */
 public class ColorMapWidget
   extends SimpleColorMapWidget
-  implements ColorChangeListener, ControlListener, ScalarMapListener
+  implements ActionListener, ColorChangeListener, ControlListener,
+             ScalarMapListener
 {
   private Panel buttonPanel = null;
+  private float[][] undoTable = null;
 
   BaseColorControl control;
 
@@ -77,7 +79,33 @@ public class ColorMapWidget
   public ColorMapWidget(ScalarMap smap)
     throws VisADException, RemoteException
   {
-    this(smap, null, true);
+    this(smap, null, true, true);
+  }
+
+  /**
+   * Construct a <CODE>LabeledColorWidget</CODE> linked to the
+   * color control in the <CODE>ScalarMap</CODE> (which must be to either
+   * <CODE>Display.RGB</CODE> or </CODE>Display.RGBA</CODE> and already
+   * have been added to a <CODE>Display</CODE>).
+   * It will be labeled with the name of the <CODE>ScalarMap</CODE>'s
+   * RealType and linked to the <CODE>ScalarMap</CODE>'s color control.
+   * The range of <CODE>RealType</CODE> values mapped to color is taken
+   * from the <CODE>ScalarMap's</CODE> range - this allows a color widget
+   * to be used with a range of values defined by auto-scaling from
+   * displayed data.
+   *
+   * @param smap <CODE>ScalarMap</CODE> to which this widget is bound.
+   * @param immediate <CODE>true</CODE> if changes are immediately
+   *                  propagated to the associated <CODE>Control</CODE>.
+   *
+   * @exception RemoteException If there is an RMI-related problem.
+   * @exception VisADException If there is a problem initializing the
+   *                           widget.
+   */
+  public ColorMapWidget(ScalarMap smap, boolean immediate)
+    throws VisADException, RemoteException
+  {
+    this(smap, null, true, immediate);
   }
 
   /**
@@ -109,7 +137,7 @@ public class ColorMapWidget
   public ColorMapWidget(ScalarMap smap, float[][] table)
     throws VisADException, RemoteException
   {
-    this(smap, table, true);
+    this(smap, table, true, true);
   }
 
   /**
@@ -143,6 +171,43 @@ public class ColorMapWidget
   public ColorMapWidget(ScalarMap smap, float[][] table, boolean update)
     throws VisADException, RemoteException
   {
+    this(smap, table, update, true);
+  }
+
+  /**
+   * Construct a <CODE>LabeledColorWidget</CODE> linked to the
+   * color control in the <CODE>ScalarMap</CODE> (which must be to either
+   * <CODE>Display.RGB</CODE> or </CODE>Display.RGBA</CODE> and already
+   * have been added to a <CODE>Display</CODE>).
+   * It will be labeled with the name of the <CODE>ScalarMap</CODE>'s
+   * RealType and linked to the <CODE>ScalarMap</CODE>'s color control.
+   * The range of <CODE>RealType</CODE> values mapped to color is taken
+   * from the <CODE>ScalarMap's</CODE> range - this allows a color widget
+   * to be used with a range of values defined by auto-scaling from
+   * displayed data.
+   *
+   * The initial color table (if non-null)
+   * should be a <CODE>float[resolution][dimension]</CODE>, where
+   * <CODE>dimension</CODE> is either
+   * <CODE>3</CODE> for <CODE>Display.RGB</CODE> or
+   * <CODE>4</CODE> for <CODE>Display.RGB</CODE>) with values
+   * between <CODE>0.0f</CODE> and <CODE>1.0f</CODE>.
+   *
+   * @param smap <CODE>ScalarMap</CODE> to which this widget is bound.
+   * @param table Initial color lookup table.
+   * @param update <CODE>true</CODE> if the slider should follow the
+   *               <CODE>ScalarMap</CODE>'s range.
+   * @param immediate <CODE>true</CODE> if changes are immediately
+   *                  propagated to the associated <CODE>Control</CODE>.
+   *
+   * @exception RemoteException If there is an RMI-related problem.
+   * @exception VisADException If there is a problem initializing the
+   *                           widget.
+   */
+  public ColorMapWidget(ScalarMap smap, float[][] table, boolean update,
+                        boolean immediate)
+    throws VisADException, RemoteException
+  {
     super(smap.getScalar().getName(), table,
           (float )smap.getRange()[0], (float )smap.getRange()[1] + 1.0f);
 
@@ -166,11 +231,89 @@ public class ColorMapWidget
       ((BaseRGBMap )colorWidget.getColorMap()).setValues(table);
     }
 
+    // if not in immediate mode, build "Do It" and "Undo" buttons
+    if (!immediate) {
+      buttonPanel = buildButtons();
+      add(buttonPanel);
+    }
+
     // listen for changes
     control.addControlListener(this);
-    colorWidget.addColorChangeListener(this);
+    if (immediate) {
+      colorWidget.addColorChangeListener(this);
+    }
     if (update) {
       smap.addScalarMapListener(this);
+    }
+  }
+
+  /**
+   * Build "Apply" and "Undo" button panel.
+   *
+   * @return Panel containing the buttons.
+   */
+  private Panel buildButtons()
+  {
+    Button apply = new Button("Apply") {
+        public Dimension getMinimumSize() {
+          return new Dimension(0, 18);
+        }
+        public Dimension getPreferredSize() {
+          return new Dimension(0, 18);
+        }
+        public Dimension getMaximumSize() {
+          return new Dimension(Integer.MAX_VALUE, 18);
+        }
+      };
+    apply.setActionCommand("apply");
+    apply.addActionListener(this);
+
+    Button undo = new Button("Undo") {
+        public Dimension getMinimumSize() {
+          return new Dimension(0, 18);
+        }
+        public Dimension getPreferredSize() {
+          return new Dimension(0, 18);
+        }
+        public Dimension getMaximumSize() {
+          return new Dimension(Integer.MAX_VALUE, 18);
+        }
+      };
+    undo.setActionCommand("undo");
+    undo.addActionListener(this);
+
+    Panel panel = new Panel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+    panel.add(apply);
+    panel.add(undo);
+
+    // save initial table in case they immediately hit "undo"
+    undoTable = control.getTable();
+
+    return panel;
+  }
+
+  /**
+   * Return the panel in which the buttons are stored.
+   */
+  public Panel getButtonPanel() { return buttonPanel; }
+
+  /**
+   * Handle button presses.
+   *
+   * @param evt Data from the changed <CODE>Button</CODE>.
+   */
+  public void actionPerformed(ActionEvent evt)
+  {
+    if (evt.getActionCommand().equals("apply")) {
+      undoTable = control.getTable();
+      updateControlFromColorMap();
+    } else if (evt.getActionCommand().equals("undo")) {
+      try {
+        control.setTable(undoTable);
+      } catch (VisADException ve) {
+      } catch (RemoteException re) {
+      }
     }
   }
 
@@ -324,7 +467,7 @@ public class ColorMapWidget
             System.exit(0);
           }
         });
-      f.getContentPane().add(new ColorMapWidget(map, null));
+      f.getContentPane().add(new ColorMapWidget(map, false));
       f.pack();
       f.setVisible(true);
 
@@ -334,7 +477,7 @@ public class ColorMapWidget
             System.exit(0);
           }
         });
-      f.getContentPane().add(new ColorMapWidget(map, null, false));
+      f.getContentPane().add(new ColorMapWidget(map, null, false, true));
       f.pack();
       f.setVisible(true);
 
