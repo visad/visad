@@ -23,7 +23,7 @@ d1 = subs.makeDisplay(m)
 subs.setBoxSize(d1,.80)
 
 # add the image to the display
-subs.addData("image", image, d1)
+refimg = subs.addData("image", image, d1)
 
 # now the second panel
 m2 = subs.makeMaps(d[0],"x",r[0],"y")
@@ -42,8 +42,9 @@ usref = subs.addData("line", None, d1)
 # define an inner-type CellImpl class to handle changes
 class MyCell(CellImpl):
  def doAction(this):
-  line = (LINES-1) - (userline.getData()).getValue()
-  pts = subs.makeLine( (d[1], d[0]), ((line,line),(0,NELE)))
+  line = (userline.getData()).getValue()
+  iline = (LINES-1) - line
+  pts = subs.makeLine( (d[1], d[0]), ((iline,iline),(0,NELE)))
   usref.setData(pts)
   ff = byline[int(line)]
   ref2.setData(ff)
@@ -76,6 +77,6 @@ from visad.util import ClientServer
 server = ClientServer.startServer("Jython")
 server.addDisplay(d1)
 server.addDisplay(d2)
-server.addDataReference(refimg)
 server.addDataReference(userline)
+server.addDataReference(refimg)
 
