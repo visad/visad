@@ -38,13 +38,13 @@ public abstract class BaseColorControl extends Control {
   private float[][] table;
   private int tableLength; // = table[0].length - 1
   private Function function;
-  private RealTupleType functionDomainType;
-  private CoordinateSystem functionCoordinateSystem;
-  private Unit[] functionUnits;
+  private transient RealTupleType functionDomainType;
+  private transient CoordinateSystem functionCoordinateSystem;
+  private transient Unit[] functionUnits;
 
   private final static int DEFAULT_TABLE_LENGTH = 256;
 
-  private Object lock = new Object();
+  private transient Object lock = new Object();
 
   private final int components;
 
