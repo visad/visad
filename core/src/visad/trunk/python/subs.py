@@ -249,8 +249,45 @@ class _vdisp:
     perspective (no 'vanishing point'.  Useful for aligning
     vertically-stacked data.  
     """
-
     self.getGraphicsModeControl().setProjectionPolicy(0)
+
+  def setBackgroundColor(self,c):
+    """
+    Set the background color to 'color' (which may be a
+    java.awt.Color, or a string with the name in it (like 'green')
+    """
+    r,g,b = _color2rgb(c)
+    self.getDisplayRenderer().getRendererControl().setBackgroundColor(r,g,b)
+
+  def setForegroundColor(self,c):
+    """
+    Set the foreground color to 'color' (which may be a
+    java.awt.Color, or a string with the name in it (like 'green')
+    """
+    r,g,b = _color2rgb(c)
+    self.getDisplayRenderer().getRendererControl().setForegroundColor(r,g,b)
+
+  def setBoxOn(self,on):
+    """
+    Turn the wire frame box on or off.
+    """
+    self.getDisplayRenderer().getRendererControl().setBoxOn(on)
+     
+  def setCursorColor(self,c):
+    """
+    Set the cursor color to 'color' (which may be a
+    java.awt.Color, or a string with the name in it (like 'green')
+    """
+    r,g,b = _color2rgb(c)
+    self.getDisplayRenderer().getRendererControl().setCursorColor(r,g,b)
+
+  def setBoxColor(self,c):
+    """
+    Set the box color to 'color' (which may be a
+    java.awt.Color, or a string with the name in it (like 'green')
+    """
+    r,g,b = _color2rgb(c)
+    self.getDisplayRenderer().getRendererControl().setBoxColor(r,g,b)
 
   def zoomBox(self, factor):
     """
@@ -529,6 +566,40 @@ def makeCube(display):
   """
   display.makeCube()
 
+def setBackgroundColor(display,color):
+  """
+  Set the background color to 'color' (which may be a
+  java.awt.Color, or a string with the name in it (like 'green')
+  """
+  display.setBackgroundColor(color)
+
+def setForegroundColor(display,color):
+  """
+  Set the foreground color to 'color' (which may be a
+  java.awt.Color, or a string with the name in it (like 'green')
+  """
+  display.setForegroundColor(color)
+
+def setBoxOn(display,on):
+  """
+  Turn the wire frame box on or off.
+  """
+  display.setBoxOn(on)
+   
+def setCursorColor(display,color):
+  """
+  Set the cursor color to 'color' (which may be a
+  java.awt.Color, or a string with the name in it (like 'green')
+  """
+  display.setCursorColor(color)
+
+def setBoxColor(display,color):
+  """
+  Set the box color to 'color' (which may be a
+  java.awt.Color, or a string with the name in it (like 'green')
+  """
+  display.setBoxColor(color)
+
 def zoomBox(display, factor):
   """
   Zoom the display by 'factor' (1.0 does nothing...). Related:
@@ -719,13 +790,12 @@ def makeLineStyleMap(style, width):
   return constmap
 
 
-def makeColorMap(color):
+def _color2rgb(color):
   """
-  Return a ConstantMap of <color>, given by name (e.g., "red")
-  or a java.awt.Color object.  Default is white. Used by numerous methods.
+  Return a triplet of Red,Green,Blue values (0-1)
+  for the given color or color name
   """
-
-  # see if color should be handled
+  # if it's a real color or a name
   if color is not None:
     from java.awt import Color
     if isinstance(color,Color):
@@ -743,6 +813,16 @@ def makeColorMap(color):
     green=1.0
     blue=1.0
 
+  return red,green,blue
+
+  
+def makeColorMap(color):
+  """
+  Return a ConstantMap of <color>, given by name (e.g., "red")
+  or a java.awt.Color object.  Default is white. Used by numerous methods.
+  """
+
+  red,green,blue = _color2rgb(color)
   constmap = [ ConstantMap(red,Display.Red), ConstantMap(green,Display.Green),
          ConstantMap(blue,Display.Blue) ] 
 
