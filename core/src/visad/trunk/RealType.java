@@ -502,6 +502,10 @@ public class RealType extends ScalarType {
     m_type = RGBtuple.binary( real_A, Data.ATAN2_DEGREES, new Vector() );  
       System.out.println( m_type.toString() );
 
+    // and finally, force an Exception
+    System.out.println("force a TypeException:");
+    RealType r = new RealType("a.b");
+
   }
 
 }
