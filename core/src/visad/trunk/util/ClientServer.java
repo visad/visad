@@ -147,6 +147,9 @@ public class ClientServer
       Throwable t = ite.getTargetException();
       if (t instanceof VisADException) {
         throw (VisADException )t;
+      } else if (t instanceof ConnectException) {
+        throw new VisADException("Couldn't create local shadow for " +
+                                 rmtDpy + ": Connection refused");
       } else {
         throw new VisADException("Couldn't create local shadow for " +
                                  rmtDpy + ": " + t.getClass().getName() +
