@@ -266,6 +266,93 @@ public class FieldImpl extends FunctionImpl implements Field {
     return values;
   }
  
+  /** set range array as range values of this FieldImpl;
+      this must have a Flat range; the array is dimensioned
+      float[number_of_range_components][number_of_range_samples];
+      the order of range values must be the same as the order of domain
+      indices in the DomainSet */
+  public void setSamples(double[][] range)
+         throws VisADException, RemoteException {
+    RealType[] realComponents = ((FunctionType) Type).getRealComponents();
+    if (!((FunctionType) Type).getFlat()) {
+      throw new FieldException("FieldImpl.setSamples: not Flat range");
+    }
+    if (realComponents == null) {
+      throw new FieldException("FieldImpl.setSamples: no Real components");
+    }
+    int n = realComponents.length;
+    int len = getLength();
+    if (range == null || range.length != n) {
+      throw new FieldException("FieldImpl.setSamples: bad tuple length");
+    }
+    if (range[0] == null || range[0].length != len) {
+      throw new FieldException("FieldImpl.setSamples: bad array length");
+    }
+    Unit[] units = getDefaultRangeUnits();
+
+    MathType RangeType = ((FunctionType) Type).getRange();
+
+    synchronized (Range) {
+      if (RangeType instanceof RealType) {
+        for (int i=0; i<len; i++) {
+          Range[i] = new Real((RealType) RangeType, range[0][i], units[0]);
+        }
+      }
+      else if (RangeType instanceof RealTupleType) {
+        int ntup = ((RealTupleType) RangeType).getDimension();
+        Real[] reals = new Real[ntup];
+        for (int i=0; i<len; i++) {
+          for (int j=0; j<ntup; j++) {
+            RealType type = (RealType)
+              ((RealTupleType) RangeType).getComponent(j);
+            reals[j] = new Real(type, range[j][i], units[j]);
+          }
+          Range[i] = new RealTuple(reals);
+        }
+      }
+      else if (RangeType instanceof TupleType) {
+        int ntup = ((TupleType) RangeType).getDimension();
+        Data[] data = new Real[ntup];
+        MathType[] types = new MathType[ntup];
+        for (int j=0; j<ntup; j++) {
+          types[j] = ((TupleType) RangeType).getComponent(j);
+        }
+        for (int i=0; i<len; i++) {
+          int k = 0;
+          for (int j=0; j<ntup; j++) {
+            if (types[j] instanceof RealType) {
+              data[j] = new Real((RealType) types[j], range[k][i], units[k]);
+              k++;
+            }
+            else { // types[j] instanceof RealTupleType
+              int mtup = ((RealTupleType) types[j]).getDimension();
+              Real[] reals = new Real[mtup];
+              for (int m=0; m<mtup; m++) {
+                RealType type = (RealType)
+                  ((RealTupleType) types[j]).getComponent(m);
+                reals[m] = new Real(type, range[k][i], units[k]);
+                k++;
+              }
+              data[j] = new RealTuple(reals);
+            }
+          } // end for (int j=0; j<ntup; j++)
+          Range[i] = new Tuple(data);
+        } // end for (int i=0; i<len; i++)
+      }
+    }
+    return;
+  }
+
+  /** set range array as range values of this FieldImpl;
+      this must have a Flat range; the array is dimensioned
+      float[number_of_range_components][number_of_range_samples];
+      the order of range values must be the same as the order of domain
+      indices in the DomainSet */
+  public void setSamples(float[][] range)
+         throws VisADException, RemoteException {
+    setSamples(Set.floatToDouble(range));
+  }
+
   /** return array of Units associated with each RealType
       component of range; these may differ from default
       Units of range RealTypes, but must be convertable;

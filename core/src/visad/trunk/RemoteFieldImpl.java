@@ -51,6 +51,24 @@ public class RemoteFieldImpl extends RemoteFunctionImpl
     ((FieldImpl) AdaptedData).setSamples(range, copy);
   }
 
+  public void setSamples(double[][] range)
+         throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFieldImpl.setSamples: " +
+                                     "AdaptedData is null");
+    }
+    ((FieldImpl) AdaptedData).setSamples(range);
+  }
+
+  public void setSamples(float[][] range)
+         throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFieldImpl.setSamples: " +
+                                     "AdaptedData is null");
+    }
+    ((FieldImpl) AdaptedData).setSamples(range);
+  }
+
   public Set getDomainSet() throws VisADException, RemoteException {
     if (AdaptedData == null) {
       throw new RemoteVisADException("RemoteFieldImpl.getDomainSet: " +

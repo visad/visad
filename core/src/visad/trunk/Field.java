@@ -45,6 +45,22 @@ public interface Field extends Function {
   public abstract void setSamples(Data[] range, boolean copy)
          throws VisADException, RemoteException;
 
+  /** set range array as range values of this Field;
+      this must have a Flat range; the array is dimensioned
+      float[number_of_range_components][number_of_range_samples];
+      the order of range values must be the same as the order of domain
+      indices in the DomainSet */
+  public void setSamples(double[][] range)
+         throws VisADException, RemoteException;
+
+  /** set range array as range values of this Field;
+      this must have a Flat range; the array is dimensioned
+      float[number_of_range_components][number_of_range_samples];
+      the order of range values must be the same as the order of domain
+      indices in the DomainSet */
+  public void setSamples(float[][] range)
+         throws VisADException, RemoteException;
+
   /** get the domain Set */
   public abstract Set getDomainSet() throws VisADException, RemoteException;
 

@@ -359,7 +359,7 @@ public class Rain implements ActionListener, ControlListener {
             displays[i][j] = new DisplayImplJ3D("display_" + i + "_" + j,
                                                 new TwoDDisplayRendererJ3D());
           }
-          catch (Exception e) {
+          catch (UnsatisfiedLinkError e) {
             twod = true;
           }
         }
@@ -985,6 +985,8 @@ public class Rain implements ActionListener, ControlListener {
   private void setSamples(Field field, float[][] table)
           throws VisADException, RemoteException {
     if (field == null) return;
+    field.setSamples(table);
+/*
     if (field instanceof FlatField) {
       ((FlatField) field).setSamples(table);
     }
@@ -996,6 +998,7 @@ public class Rain implements ActionListener, ControlListener {
            new Real((double) table[2][i])}));
       }
     }
+*/
   }
 
 }

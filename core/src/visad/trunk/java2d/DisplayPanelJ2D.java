@@ -41,8 +41,10 @@ public class DisplayPanelJ2D extends JPanel {
     display = d;
     renderer = (DisplayRendererJ2D) display.getDisplayRenderer();
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+/* WLH 19 April 99
     setAlignmentY(TOP_ALIGNMENT);
     setAlignmentX(LEFT_ALIGNMENT);
+*/
     VisADCanvasJ2D canvas = new VisADCanvasJ2D(renderer, this);
     add(canvas);
     VisADGroup scene = renderer.createSceneGraph(canvas);
