@@ -2625,10 +2625,59 @@ public class FieldImpl extends FunctionImpl implements Field {
       return getSample(index);
     }
     catch (VisADException e) {
+      System.out.println(e.getMessage());
       return null;
     }
     catch (RemoteException e) {
+      System.out.println(e.getMessage());
       return null;
+    }
+  }
+
+  public void __setitem__(int index, Data data) {
+    try {
+      setSample(index, data);
+    }
+    catch (VisADException e) {
+      System.out.println(e.getMessage());
+    }
+    catch (RemoteException e) {
+      System.out.println(e.getMessage());
+    }
+  }
+
+  public void __setitem__(int index, double data) {
+    RealType real = null;
+    boolean tuple = false;
+    try {
+      MathType range = ((FunctionType) getType()).getRange();
+      if (range instanceof RealType) {
+        real = (RealType) range;
+      }
+      else if (range instanceof RealTupleType) {
+        if (((RealTupleType) range).getDimension() == 1) {
+          real = (RealType) ((RealTupleType) range).getComponent(0);
+          tuple = true;
+        }
+      }
+      if (real != null) {
+        Real r = new Real(real, data);
+        if (tuple) {
+          __setitem__(index, new RealTuple(new Real[] {r}));
+        }
+        else {
+          __setitem__(index, r);
+        }
+      }
+      else {
+        System.out.println("FieldImpl.__setitem__ bad type");
+      }
+    }
+    catch (VisADException e) {
+      System.out.println(e.getMessage());
+    }
+    catch (RemoteException e) {
+      System.out.println(e.getMessage());
     }
   }
   /** end of for JPython */
