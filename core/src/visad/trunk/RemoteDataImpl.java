@@ -664,6 +664,15 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
     return AdaptedData.negate(sampling_mode, error_mode);
   }
 
+  public double[][] computeRanges(RealType[] reals)
+         throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteDataImpl.computeRanges " +
+                                     "AdaptedData is null");
+    }
+    return AdaptedData.computeRanges(reals);
+  }
+ 
   public DataShadow computeRanges(ShadowType type, int n)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {

@@ -532,7 +532,7 @@ public abstract class DataImpl extends ThingImpl
       for (int i=0; i<n; i++) {
         ranges[i] = maps[i].getRange();
       }
-      rdisplay.removeAllReferences();
+      rdisplay.removeReference(ref);
       rdisplay.clearMaps();
       return ranges;
     }
@@ -696,6 +696,16 @@ public abstract class DataImpl extends ThingImpl
     RealType[] types = {RealType.Latitude, RealType.Longitude, RealType.Radius,
                         vis_radiance, ir_radiance, RealType.Time};
     double[][] ranges = grid3d.computeRanges(types);
+    for (int i=0; i<ranges.length; i++) {
+      System.out.println(types[i] + ": " + ranges[i][0] + " to " + ranges[i][1]);
+    }
+    System.out.println(" ");
+
+    FunctionType func = new FunctionType(radiance, RealType.Time);
+    Integer2DSet fset = new Integer2DSet(2, 2);
+    FlatField ff = new FlatField(func, fset);
+    ff.setSamples(new float[][] {{0.0f, -1.0f, 1.0f, 2.0f}});
+    ranges = ff.computeRanges(types);
     for (int i=0; i<ranges.length; i++) {
       System.out.println(types[i] + ": " + ranges[i][0] + " to " + ranges[i][1]);
     }
