@@ -221,6 +221,17 @@ System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
         }
       }
       else { // if (branch == null)
+
+        // WLH 29 March 99
+        synchronized (branches[currentIndex]) {
+          if (branchNonEmpty[currentIndex]) {
+            for (int m=0; m<branches[currentIndex].numChildren(); m++) {
+              branches[currentIndex].removeChild(m);
+            }
+          }
+        }
+        branchNonEmpty[currentIndex] = false;
+
         all_feasible = false;
         set_all_feasible(all_feasible);
       }

@@ -27,6 +27,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 /*
 MEM - memory use reduction strategy:
 
+check out Java WorkShop http://www.sun.com/workshop/
+check out http://www.optimizeit.com/
+
 changes marked by MEM_WLH
 
 1. if (isTexture) no assembleSpatial  NOT NEEDED
