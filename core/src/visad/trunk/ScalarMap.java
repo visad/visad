@@ -206,6 +206,11 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
 
   /** clear link to DisplayImpl */
   synchronized void nullDisplay() {
+    // CTR: 6 October 1998 -- stop animation before killing control
+    if (control instanceof AnimationControl) {
+      ((AnimationControl) control).stop();
+    }
+
     display = null;
     control = null;
     ScalarIndex = -1;
