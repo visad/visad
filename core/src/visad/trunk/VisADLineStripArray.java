@@ -32,8 +32,7 @@ package visad;
 public class VisADLineStripArray extends VisADGeometryArray {
   public int[] stripVertexCounts;
 
-  public static VisADLineStripArray
-                merge(VisADLineStripArray[] arrays)
+  public static VisADLineStripArray merge(VisADLineStripArray[] arrays)
          throws VisADException {
     if (arrays == null || arrays.length == 0) return null;
     VisADLineStripArray array = new VisADLineStripArray();
@@ -60,11 +59,10 @@ public class VisADLineStripArray extends VisADGeometryArray {
     return array;
   }
 
-
-
   public VisADGeometryArray adjustLongitude(DataRenderer renderer)
          throws VisADException {
     float[] lons = getLongitudes(renderer);
+    if (lons == null) return this;
     int[] axis = new int[1];
     float[] lon_coords = new float[2];
     float[] lon_range = getLongitudeRange(lons, axis, lon_coords);
@@ -77,6 +75,8 @@ public class VisADLineStripArray extends VisADGeometryArray {
     int lon_axis = axis[0];
     float coord_bottom = lon_coords[0];
     float coord_top = lon_coords[1];
+    float[] lastcoord = null;
+    byte[] lastcol = null;
 
     VisADLineStripArray array = new VisADLineStripArray();
     // worst case splits every line
@@ -93,14 +93,13 @@ public class VisADLineStripArray extends VisADGeometryArray {
     int svc_index = 0;
     int last_i = 0; // start i for each vertex strip
  
-    int lon_k = 0;
-    int lon_m = 0;
+    int[] km = {0, 0};
     int j = 0;
     boolean any_split = false;
     for (int i_svc=0; i_svc<stripVertexCounts.length; i_svc++) {
       int accum = 0; // strip counter
       j = color_length * last_i / 3;
-      for (int i=last_i; i<last_i+stripVertexCounts[i_svc]*3-3; i+=3) {
+      for (int i=last_i; i<last_i+stripVertexCounts[i_svc]*3; i+=3) {
         // first, add point at "i"
         float coord[] =
           new float[] {coordinates[i], coordinates[i+1], coordinates[i+2]};
@@ -112,7 +111,15 @@ public class VisADLineStripArray extends VisADGeometryArray {
           col = new byte[] {colors[j], colors[j+1], colors[j+2], colors[j+3]};
         }
         accum++;
-        nextPoint(accum, color_length, coords, cols, coord, col);
+        if (accum == 1) {
+          lastcoord = coord;
+          lastcol = col;
+        }
+        else {
+          nextPoint(accum, color_length, coords, cols, coord, col,
+                    lastcoord, lastcol, km);
+        }
+        if (i == last_i+stripVertexCounts[i_svc]*3-3) continue; // last point
         int i3 = i / 3;
         if ((lons[i3] < low && hi < lons[i3 + 1]) ||
             (lons[i3 + 1] < low && hi < lons[i3])) {
@@ -180,7 +187,14 @@ public class VisADLineStripArray extends VisADGeometryArray {
                   beta * ShadowType.byteToFloat(colors[j+7]))};
             }
             accum++;
-            nextPoint(accum, color_length, coords, cols, coord, col);
+            if (accum == 1) {
+              lastcoord = coord;
+              lastcol = col;
+            }
+            else {
+              nextPoint(accum, color_length, coords, cols, coord, col,
+                        lastcoord, lastcol, km);
+            }
             // break strip between first and second points
             if (accum >= 2) {
               svcs[svc_index] = accum;
@@ -191,12 +205,19 @@ public class VisADLineStripArray extends VisADGeometryArray {
             // create second point of split, identical to first except:
             coord[lon_axis] = coord_second;
             accum++;
-            nextPoint(accum, color_length, coords, cols, coord, col);
+            if (accum == 1) {
+              lastcoord = coord;
+              lastcol = col;
+            }
+            else {
+              nextPoint(accum, color_length, coords, cols, coord, col,
+                        lastcoord, lastcol, km);
+            }
 
           } // end if (lon_axis >= 0)
         } // end if split
         j += color_length;
-      } // end for (int i=last_i; i<last_i+stripVertexCounts[i_svc]*3-3; i+=3)
+      } // end for (int i=last_i; i<last_i+stripVertexCounts[i_svc]*3; i+=3)
       if (accum >= 2) {
         svcs[svc_index] = accum;
         svc_index++;
@@ -208,12 +229,12 @@ public class VisADLineStripArray extends VisADGeometryArray {
       return this;
     }
     else {
-      array.vertexCount = lon_k / 3;
-      array.coordinates = new float[lon_k];
-      System.arraycopy(coords, 0, array.coordinates, 0, lon_k);
+      array.vertexCount = km[0] / 3;
+      array.coordinates = new float[km[0]];
+      System.arraycopy(coords, 0, array.coordinates, 0, km[0]);
       if (colors != null) {
-        array.colors = new byte[lon_m];
-        System.arraycopy(cols, 0, array.colors, 0, lon_m);
+        array.colors = new byte[km[1]];
+        System.arraycopy(cols, 0, array.colors, 0, km[1]);
       }
       array.stripVertexCounts = new int[svc_index];
       System.arraycopy(svcs, 0, array.stripVertexCounts, 0, svc_index);
@@ -222,47 +243,37 @@ public class VisADLineStripArray extends VisADGeometryArray {
 
   }
 
-  static float[] lastcoord;
-  static byte[] lastcol;
-  static int lon_k = 0;
-  static int lon_m = 0;
-
   private void nextPoint(int accum, int color_length, float[] coords,
-                         byte[] cols, float[] coord, byte[] col) {
-    if (accum == 1) {
-      lastcoord = coord;
-      lastcol = col;
-    }
-    else { // accum >= 2
-      if (accum == 2) {
-        coords[lon_k] = lastcoord[0];
-        coords[lon_k+1] = lastcoord[1];
-        coords[lon_k+2] = lastcoord[2];
-        lon_k += 3;
-        if (colors != null) {
-          cols[lon_m] = lastcol[0];
-          cols[lon_m+1] = lastcol[1];
-          cols[lon_m+2] = lastcol[2];
-          lon_m += 3;
-          if (color_length == 4) {
-            cols[lon_m++] = lastcol[3];
-          }
-        }
-      }
-      coords[lon_k] = coord[0];
-      coords[lon_k+1] = coord[1];
-      coords[lon_k+2] = coord[2];
-      lon_k += 3;
+                         byte[] cols, float[] coord, byte[] col,
+                         float[] lastcoord, byte[] lastcol, int[] km) {
+    if (accum == 2) {
+      coords[km[0]] = lastcoord[0];
+      coords[km[0]+1] = lastcoord[1];
+      coords[km[0]+2] = lastcoord[2];
+      km[0] += 3;
       if (colors != null) {
-        cols[lon_m] = col[0];
-        cols[lon_m+1] = col[1];
-        cols[lon_m+2] = col[2];
-        lon_m += 3;
+        cols[km[1]] = lastcol[0];
+        cols[km[1]+1] = lastcol[1];
+        cols[km[1]+2] = lastcol[2];
+        km[1] += 3;
         if (color_length == 4) {
-          cols[lon_m++] = col[3];
+          cols[km[1]++] = lastcol[3];
         }
       }
-    } // end if (accum >= 2)
+    } // end if (accum == 2)
+    coords[km[0]] = coord[0];
+    coords[km[0]+1] = coord[1];
+    coords[km[0]+2] = coord[2];
+    km[0] += 3;
+    if (colors != null) {
+      cols[km[1]] = col[0];
+      cols[km[1]+1] = col[1];
+      cols[km[1]+2] = col[2];
+      km[1] += 3;
+      if (color_length == 4) {
+        cols[km[1]++] = col[3];
+      }
+    }
   }
 
   public VisADGeometryArray removeMissing() {

@@ -40,6 +40,8 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
   public float[] normals;
   public byte[] colors;
   public float[] texCoords;
+
+  // stuff for longitude
   boolean any_longitude_rotate = false;
   int longitude_axis = -1;
   ScalarMap longitude_map = null;
@@ -53,10 +55,26 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
     texCoords = null;
   }
 
+  /** default case: rotate if necessary, then return points */
+  public VisADGeometryArray adjustLongitude(DataRenderer renderer)
+         throws VisADException {
+    float[] lons = getLongitudes(renderer);
+    if (any_longitude_rotate) {
+      // some coordinates changed, so return VisADPointArray
+      VisADPointArray array = new VisADPointArray();
+      array.vertexCount = vertexCount;
+      array.coordinates = coordinates;
+      array.colors = colors;
+      return array;
+    }
+    else {
+      return this;
+    }
+  }
+
   void rotateLongitudes(float[] lons, float base, int axis,
                         ScalarMap map) {
     // so rotate longitudes to base
-    any_longitude_rotate = false;
     for (int i=0; i<vertexCount; i++) {
       if (lons[i] == lons[i]) {
         float x = (lons[i] - base) % 360.0f;
@@ -77,6 +95,7 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
 
   float[] getLongitudes(DataRenderer renderer)
           throws VisADException {
+    any_longitude_rotate = false;
     longitude_map = null;
     longitude_axis = -1;
     Vector mapVector = renderer.getDisplay().getMapVector();
@@ -85,8 +104,9 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
       ScalarMap map = (ScalarMap) maps.nextElement();
       DisplayRealType dreal = map.getDisplayScalar();
       DisplayTupleType tuple = dreal.getTuple();
-      if (RealType.Longitude.equals(map.getScalar()) &&
-          Display.DisplaySpatialCartesianTuple.equals(tuple)) {
+      if (!RealType.Longitude.equals(map.getScalar())) continue;
+      if (Display.Longitude.equals(dreal)) return null; // do nothing!
+      if (Display.DisplaySpatialCartesianTuple.equals(tuple)) {
         // have found a map from Longitude to a Cartesian spatial axis
         double[] map_range = map.getRange();
         float map_min = (float) map_range[0];
@@ -144,22 +164,11 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
       locs[2][i] = coordinates[k++];
     }
     float[][] latlons = renderer.earthToSpatial(locs, null);
-    float[] lons = latlons[1];
-    // get range of Longitude values
-    float lon_min = Float.MAX_VALUE;
-    float lon_max = Float.MIN_VALUE;
-    for (int i=0; i<vertexCount; i++) {
-      if (lons[i] == lons[i]) {
-        if (lons[i] < lon_min) lon_min = lons[i];
-        if (lons[i] > lon_max) lon_max = lons[i];
-      }
-    }
-    if (lon_min == Float.MAX_VALUE) return lons;
-    return lons;
+    return latlons[1];
   }
 
-  public float[] getLongitudeRange(float[] lons, int[] axis,
-                                   float[] coords) {
+  float[] getLongitudeRange(float[] lons, int[] axis,
+                            float[] coords) {
     float[] lon_range = {Float.NaN, Float.NaN};
     axis[0] = -1;
     coords[0] = Float.NaN;
@@ -189,23 +198,6 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
       coords = longitude_map.scaleValues(lon_range);
     }
     return lon_range;
-  }
-
-  /** default case simply return points */
-  public VisADGeometryArray adjustLongitude(DataRenderer renderer)
-         throws VisADException {
-    float[] lons = getLongitudes(renderer);
-    if (any_longitude_rotate) {
-      // some coordinates changed, so return VisADPointArray
-      VisADPointArray array = new VisADPointArray();
-      array.vertexCount = vertexCount;
-      array.coordinates = coordinates;
-      array.colors = colors;
-      return array;
-    }
-    else {
-      return this;
-    }
   }
 
   public VisADGeometryArray removeMissing() {
