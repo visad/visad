@@ -107,7 +107,7 @@ public abstract class ActionImpl extends Object
     }
   }
 
-  private boolean checkTicks() {
+  public boolean checkTicks() {
     boolean doIt = false;
     synchronized (LinkVector) {
       Enumeration links = LinkVector.elements();
