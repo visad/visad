@@ -349,13 +349,13 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
           dataRange[1] = data_unit.toThis(displayRange[1], display_unit);
         }
         else {
-          if (i < 0) return;
+          if (i < 0 || i >= shadow.ranges[0].length) return;
           dataRange[0] = shadow.ranges[0][i];
           dataRange[1] = shadow.ranges[1][i];
         }
       }
       else {
-        if (i < 0) return;
+        if (i < 0 || i >= shadow.ranges[0].length) return;
         dataRange[0] = shadow.ranges[0][i];
         dataRange[1] = shadow.ranges[1][i];
       }

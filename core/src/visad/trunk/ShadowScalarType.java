@@ -135,7 +135,7 @@ System.out.println("Type = " + ((ScalarType) Type).getName() +
   void incrementIndices(int[] indices) {
     // this test allows multiple occurences of a Scalar
     // as long as it is not mapped
-    if (MappedDisplayScalar) indices[Index]++;
+    if (MappedDisplayScalar && Index < indices.length) indices[Index]++;
   }
 
   /** increment indices for ShadowScalarType

@@ -241,7 +241,7 @@ public abstract class SampledSet extends SimpleSet {
         ranges[0][i] = min;
         ranges[1][i] = max;
       }
-      if (k >= 0) {
+      if (k >= 0 && k < shadow.ranges[0].length) {
         shadow.ranges[0][k] = Math.min(shadow.ranges[0][k], min);
         shadow.ranges[1][k] = Math.max(shadow.ranges[1][k], max);
       }
