@@ -718,6 +718,10 @@ any = true;
               numv++;
               o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
               n_lines[ir][ic]++;
+              if (vx[numv-2]==vx[numv-1] || vy[numv-2]==vy[numv-1]) {
+                vx[numv-2] += 0.00001f;
+                vy[numv-1] += 0.00001f;
+              }
               break;
 
             case 2:
@@ -761,6 +765,10 @@ any = true;
               numv++;
               o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
               n_lines[ir][ic]++;
+              if (vx[numv-2]==vx[numv-1] || vy[numv-2]==vy[numv-1]) {
+                vx[numv-2] -= 0.00001f;
+                vy[numv-1] += 0.00001f;
+              }
               break;
 
             case 3:
@@ -847,6 +855,10 @@ any = true;
               numv++;
               o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
               n_lines[ir][ic]++;
+              if (vx[numv-2]==vx[numv-1] || vy[numv-2]==vy[numv-1]) {
+                vx[numv-1] += 0.00001f;
+                vy[numv-2] -= 0.00001f;
+              }
               break;
 
             case 5:
@@ -1053,6 +1065,10 @@ any = true;
               numv++;
               o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
               n_lines[ir][ic]++;
+              if (vx[numv-2]==vx[numv-1] || vy[numv-2]==vy[numv-1]) {
+                vx[numv-1] -= 0.00001f;
+                vy[numv-2] -= 0.00001f;
+              }
               break;
           } // switch
 
@@ -1319,7 +1335,12 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
           right   = false;
           float[] x_avg = new float[2];
           float[] y_avg = new float[2];
-
+          boolean dbug = false;
+ 
+          if (nc == 22 && nr == 17) {
+            dbug = true;
+          }
+          
 
           if (numc > 1)
           { //-- first/next ctr line midpoints
@@ -1545,6 +1566,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                   flip = true;
                 }
               }
+
               if (!flip) {
                 vv1[0]      = vx[v_idx];
                 vv1[1]      = vy[v_idx];
