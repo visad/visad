@@ -532,7 +532,7 @@ public class BaseColorControl
                                       functionCoordinateSystem,
                                       functionUnits);
         Field field =
-          function.resample(set, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
+          function.resample(set, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS);
         colors = Set.doubleToFloat(field.getValues());
       }
     }
