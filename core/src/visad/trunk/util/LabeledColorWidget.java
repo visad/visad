@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: LabeledColorWidget.java,v 1.3 1999-09-20 17:02:21 dglo Exp $
+@(#) $Id: LabeledColorWidget.java,v 1.4 1999-09-20 17:27:57 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -40,7 +40,7 @@ import javax.swing.*;
  * RGB/RGBA tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.3 $, $Date: 1999-09-20 17:02:21 $
+ * @version $Revision: 1.4 $, $Date: 1999-09-20 17:27:57 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledColorWidget
@@ -90,6 +90,25 @@ public class LabeledColorWidget
     throws VisADException, RemoteException
   {
     this(smap, min, max, null, true);
+  }
+
+  /** this will be labeled with the name of smap's RealType and
+      linked to the color control in smap;
+      the range of RealType values mapped to color is taken from
+      smap.getRange() - this allows a color widget to be used with
+      a range of values defined by auto-scaling from displayed Data;
+      if smap's range values are not available at the time this
+      constructor is invoked, the LabeledColorWidget becomes a
+      ScalarMapListener and sets its range when smap's range is set;
+      table initializes
+      the color lookup table, organized as float[TABLE_SIZE][n]
+      with values between 0.0f and 1.0f;
+      the DisplayRealType of smap must be Display.RGB or Display.RGBA
+      and should already be added to a Display */
+  public LabeledColorWidget(ScalarMap smap, float[][] table)
+    throws VisADException, RemoteException
+  {
+    this(smap, Float.NaN, Float.NaN, table, true);
   }
 
   /** this will be labeled with the name of smap's RealType and
