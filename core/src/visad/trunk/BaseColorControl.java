@@ -171,6 +171,9 @@ public abstract class BaseColorControl extends Control {
 
   public float[][] lookupValues(float[] values)
          throws VisADException, RemoteException {
+    if (values == null) {
+      return null;
+    }
     int len = values.length;
     float[][] colors = null;
     synchronized (lock) {
@@ -189,17 +192,6 @@ public abstract class BaseColorControl extends Control {
           else {
             int j = (int) (scale * values[i]);
             // note actual table length is tableLength + 1
-  /* WLH 27 April 99
-            if (j < 0 || tableLength < j) {
-              colors[0][i] = Float.NaN;
-              colors[1][i] = Float.NaN;
-              colors[2][i] = Float.NaN;
-              if (components > 3) {
-                colors[3][i] = Float.NaN;
-              }
-            }
-  */
-            // WLH 27 April 99
             // extend first and last table entries to 'infinity'
             if (j < 0) {
               colors[0][i] = table[0][0];
@@ -316,6 +308,11 @@ public abstract class BaseColorControl extends Control {
 
         table = null;
       } else {
+        if (bcc.table.length != components) {
+          throw new VisADException("Table must be float[" + components +
+                                   "][], not float[" + bcc.table.length +
+                                   "][]");
+        }
         synchronized (lock) {
           table = bcc.table;
           tableLength = table[0].length - 1;
