@@ -4053,23 +4053,35 @@ if (pr) System.out.println("value = " + new_values[0][0]);
                          RangeCoordinateSystems, RangeSet, RangeUnits);
   }
 
-  /** deep copy values but shallow copy Type, Set-s, CoordinateSystem-s,
-      Unit-s and ErrorEstimate-s (they are all immutable) */
-  public Object clone() {
-    FlatField field;
-    try {
-      field =
-        new FlatField((FunctionType) Type, DomainSet, RangeCoordinateSystem,
-                      RangeCoordinateSystems, RangeSet, RangeUnits);
-      if (isMissing()) return field;
-      double[][] values = unpackValues();
-      field.packValues(values, true);
-      field.setRangeErrors(RangeErrors);
+  /**
+   * Clones this instance.  Immutable fields are shallow copied.  Range
+   * values, however, are deep copied.
+   *
+   * <p> Note that it is possible to simultaneously modify the domain-set of
+   * both this instance and the clone by modifying the values in the array
+   * returned by invoking <code>getSamples(false)</code> on the domain-set of
+   * either this instance or the clone.  Don't do this unless you enjoy 
+   * debugging.</p>
+   *
+   * @return                            A clone of this instance.
+   * @throws CloneNotSupportedException if cloning isn't supported
+   */
+  public Object clone() throws CloneNotSupportedException {
+    FlatField clone = (FlatField)super.clone();
+
+    synchronized(DoubleRange) {
+      if (!MissingFlag) {
+        try {
+	  clone.packValues(unpackValues(true), false);
+	  clone.setRangeErrors(RangeErrors);
+        }
+        catch (VisADException ex) {
+          throw new RuntimeException(ex.toString());
+        }
+      }
     }
-    catch (VisADException e) {
-      throw new VisADError("FlatField.clone: VisADException occurred");
-    }
-    return field;
+
+    return clone;
   }
 
   String valuesString() throws VisADException {

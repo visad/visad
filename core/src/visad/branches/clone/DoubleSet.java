@@ -78,13 +78,14 @@ public class DoubleSet extends SimpleSet {
     return false;
   }
 
-  public Object clone() {
-    try {
-      return new DoubleSet(Type, DomainCoordinateSystem, SetUnits);
-    }
-    catch (VisADException e) {
-      throw new VisADError("DoubleSet.clone: " + e.toString());
-    }
+  /**
+   * Clones this instance.  Because instances of this class are immutable, this
+   * implementation simply returns this instance.
+   *
+   * @return                      A clone of this instance.
+   */
+  public final Object clone() {
+      return this;
   }
 
   public Object cloneButType(MathType type) throws VisADException {

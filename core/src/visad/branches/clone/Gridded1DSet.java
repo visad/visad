@@ -401,16 +401,6 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
     return Ascending;
   }
 
-  public Object clone() {
-    try {
-      return new Gridded1DSet(Type, Samples, Length, DomainCoordinateSystem,
-                              SetUnits, SetErrors);
-    }
-    catch (VisADException e) {
-      throw new VisADError("Gridded1DSet.clone: " + e.toString());
-    }
-  }
-
   public Object cloneButType(MathType type) throws VisADException {
     return new Gridded1DSet(type, Samples, Length, DomainCoordinateSystem,
                              SetUnits, SetErrors);

@@ -495,22 +495,6 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
     return grid;
   }
 
-  public Object clone() {
-    try {
-      if (ManifoldDimension == 2) {
-        return new Gridded2DSet(Type, Samples, LengthX, LengthY,
-                                DomainCoordinateSystem, SetUnits, SetErrors);
-      }
-      else {
-        return new Gridded2DSet(Type, Samples, LengthX,
-                                DomainCoordinateSystem, SetUnits, SetErrors);
-      }
-    }
-    catch (VisADException e) {
-      throw new VisADError("Gridded2DSet.clone: " + e.toString());
-    }
-  }
-
   public Object cloneButType(MathType type) throws VisADException {
     if (ManifoldDimension == 2) {
       return new Gridded2DSet(type, Samples, LengthX, LengthY,

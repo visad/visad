@@ -162,6 +162,14 @@ public class UnionSet extends SampledSet {
     return mdim;
   }
 
+  /**
+   * Returns the {@link SampledSet}s that constitute this instance.  The
+   * returned array may be modified without affecting the behavior of this
+   * instance.
+   *
+   * @return                        The {@link SampledSet}s that constitute this
+   *                                instance.
+   */
   public SampledSet[] getSets() {
     return (SampledSet[]) Sets.clone();
     // return Sets; WLH 28 Nov 2000
@@ -777,18 +785,25 @@ System.out.println("set_num[" + j + "] = " + set_num[j] +
   }
 
   /**
-   * Returns a clone of this object
+   * Clones this instance.
    *
-   * @return clone
+   * @return                        A clone of this instance.
    */
   public Object clone() {
-    try {
-      return new UnionSet(Type, Sets, DomainCoordinateSystem,
-                          SetUnits, SetErrors);
+    ProductSet clone = (ProductSet)super.clone();
+    
+    /*
+     * The array of sampled sets is cloned because getSamples(false) allows
+     * clients to modify the values and the clone() general contract forbids
+     * cross-clone effects.
+     */
+    if (Sets != null) {
+        clone.Sets = new SampledSet[Sets.length];
+        for (int i = 0; i < Sets.length; i++)
+            clone.Sets[i] = (SampledSet)Sets[i].clone();
     }
-    catch (VisADException e) {
-      throw new VisADError("UnionSet.clone: "+e.toString());
-    }
+    
+    return clone;
   }
 
   /**

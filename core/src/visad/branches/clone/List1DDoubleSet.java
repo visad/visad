@@ -135,7 +135,14 @@ public class List1DDoubleSet extends SimpleSet {
     if (!equalUnitAndCS((Set) set)) return false;
     if (Length != ((Set) set).Length) return false;
     for (int i=0; i<Length; i++) {
-      if (data[i] != ((List1DDoubleSet) set).data[i]) return false;
+      /*
+       * Use of Double.doubleToLongBits(...) in the following accomodates
+       * Double.NaN values and matches the use of Double.hashCode() in the
+       * hashCode() method.
+       */
+      if (Double.doubleToLongBits(data[i]) != 
+            Double.doubleToLongBits(((List1DDoubleSet) set).data[i]))
+          return false;
     }
     return true;
   }
@@ -153,16 +160,6 @@ public class List1DDoubleSet extends SimpleSet {
       hashCodeSet = true;
     }
     return hashCode;
-  }
-
-  public Object clone() {
-    try {
-      return new List1DDoubleSet(data, getType(), DomainCoordinateSystem,
-                           SetUnits);
-    }
-    catch (VisADException e) {
-      throw new VisADError("List1DDoubleSet.clone: " + e.toString());
-    }
   }
 
   public Object cloneButType(MathType type) throws VisADException {

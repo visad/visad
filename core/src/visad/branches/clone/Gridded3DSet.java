@@ -4381,26 +4381,6 @@ if (size < 0.2) nsmall++;
     } // end if (!indexed)
   }
 
-  public Object clone() {
-    try {
-      if (ManifoldDimension == 3) {
-        return new Gridded3DSet(Type, Samples, LengthX, LengthY, LengthZ,
-                                DomainCoordinateSystem, SetUnits, SetErrors);
-      }
-      else if (ManifoldDimension == 2) {
-        return new Gridded3DSet(Type, Samples, LengthX, LengthY,
-                                DomainCoordinateSystem, SetUnits, SetErrors);
-      }
-      else {
-        return new Gridded3DSet(Type, Samples, LengthX,
-                                DomainCoordinateSystem, SetUnits, SetErrors);
-      }
-    }
-    catch (VisADException e) {
-      throw new VisADError("Gridded3DSet.clone: " + e.toString());
-    }
-  }
-
   public Object cloneButType(MathType type) throws VisADException {
     if (ManifoldDimension == 3) {
       return new Gridded3DSet(type, Samples, LengthX, LengthY, LengthZ,

@@ -27,9 +27,10 @@ MA 02111-1307, USA
 package visad;
 
 /**
-   SampledSet is the abstract superclass of GriddedSets, PolyCells and MultiCells.
-   SampledSet objects are immutable.<P>
-*/
+ * SampledSet is the abstract superclass of GriddedSets, PolyCells and MultiCells.
+ * SampledSet objects are intended to be immutable (but see {@link 
+ * #getSamples(boolean)} for an exception).
+ */
 public abstract class SampledSet extends SimpleSet implements SampledSetIface {
 
   float[][] Samples;
@@ -186,10 +187,32 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
     return (Samples == null);
   }
 
+  /**
+   * <p>Returns a copy of the samples of this instance.  Element <code>[i][j]
+   * </code> of the returned array is the <code>j</code>-th value of the
+   * <code>i</code>-th component.</p>
+   *
+   * <p>This method is equivalent to <code>getSamples(true)</code>.</p>
+   *
+   * @return                     A copy of the sample array.
+   * @see #getSamples(boolean)
+   */
   public float[][] getSamples() throws VisADException {
     return getSamples(true);
   }
 
+  /**
+   * <p>Returns the samples of this instance or a copy of the samples.</p>
+   *
+   * <p>Note that, if the actual sample array is returned, then it is possible 
+   * to modify the values of this instance -- breaking the immutability aspect 
+   * of this class.  Don't do this unless you enjoy debugging.</p>
+   *
+   * @param copy                 Whether or not a copy of the sample array 
+   *                             should be returned.
+   * @return                     The sample array is <code>copy</code> is <code>
+   *                             false; otherwise, a copy of the sample array.
+   */
   public float[][] getSamples(boolean copy) throws VisADException {
     return copy ? Set.copyFloats(Samples) : Samples;
   }
@@ -405,6 +428,27 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
     for (int i=0; i<Hi.length; i++) hi[i] = Hi[i];
     return hi;
   }
+  
+  /**
+   * Clones this instance.
+   *
+   * @return                    A clone of this instance.
+   */
+  public Object clone() {
+    SampledSet clone = (SampledSet)super.clone();
+    
+    /*
+     * The array of sample values is cloned because getSamples(false) allows
+     * clients to modify the values and the clone() general contract forbids
+     * cross-clone effects.
+     */
+    if (clone.Samples != null) {
+        clone.Samples = (float[][])Samples.clone();
+        for (int i = 0; i < Samples.length; i++)
+            clone.Samples[i] = (float[])Samples[i].clone();
+    }
 
+    return clone;
+  }
 }
 

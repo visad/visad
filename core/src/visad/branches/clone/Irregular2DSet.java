@@ -399,22 +399,6 @@ public class Irregular2DSet extends IrregularSet {
     }
   }
 
-  public Object clone() {
-    try {
-      if (ManifoldDimension == 1) {
-        return new Irregular2DSet(Type, Samples, newToOld, oldToNew,
-                              DomainCoordinateSystem, SetUnits, SetErrors);
-      }
-      else {
-        return new Irregular2DSet(Type, Samples, DomainCoordinateSystem,
-                                  SetUnits, SetErrors, Delan);
-      }
-    }
-    catch (VisADException e) {
-      throw new VisADError("Irregular2DSet.clone: " + e.toString());
-    }
-  }
-
   public Object cloneButType(MathType type) throws VisADException {
     if (ManifoldDimension == 1) {
       return new Irregular2DSet(type, Samples, newToOld, oldToNew,

@@ -1884,14 +1884,26 @@ public class Gridded3DDoubleSet extends Gridded3DSet
     }
   }
 
+  /**
+   * Clones this instance.
+   *
+   * @return                    A clone of this instance.
+   */
   public Object clone() {
-    try {
-      return new Gridded3DDoubleSet(Type, Samples, Length,
-        DomainCoordinateSystem, SetUnits, SetErrors);
+    Gridded2DDoubleSet clone = (Gridded2DDoubleSet)super.clone();
+    
+    if (Samples != null) {
+      /*
+       * The Samples array is cloned because getDoubles(false) allows clients
+       * to manipulate the array and the general clone() contract forbids
+       * cross-clone contamination.
+       */
+      clone.Samples = (double[][])Samples.clone();
+      for (int i = 0; i < Samples.length; i++)
+        clone.Samples[i] = (double[])Samples[i].clone();
     }
-    catch (VisADException e) {
-      throw new VisADError("Gridded3DDoubleSet.clone: " + e.toString());
-    }
+    
+    return clone;
   }
 
   public Object cloneButType(MathType type) throws VisADException {

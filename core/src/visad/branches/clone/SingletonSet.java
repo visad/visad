@@ -336,24 +336,6 @@ public class SingletonSet extends SampledSet {
   }
 
   /**
-   * Clone this SingletonSet.
-   *
-   * @return  clone of this set
-   */
-  public Object clone() {
-    try {
-      return new SingletonSet(data, DomainCoordinateSystem,
-                              SetUnits, SetErrors);
-    }
-    catch (VisADException e) {
-      throw new VisADError("SingletonSet.clone: " + e.toString());
-    }
-    catch (RemoteException e) {
-      throw new VisADError("SingletonSet.clone: " + e.toString());
-    }
-  }
-
-  /**
    * Clone this SingletonSet, but change the MathType
    *
    * @param  type  new MathType

@@ -45,5 +45,15 @@ public abstract class Scalar
    *				is semantically identical to the object.
    */
   public abstract boolean equals(Object obj);
+
+  /**
+   * Clones this instance.  Because instances of this class are immutable, this
+   * implementation simply returns this instance.
+   *
+   * @return                      A clone of this instance.
+   */
+  public final Object clone() {
+      return this;
+  }
 }
 

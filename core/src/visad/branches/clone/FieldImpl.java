@@ -53,7 +53,7 @@ public class FieldImpl extends FunctionImpl implements Field {
   int Length;
 
   /** the array of function values */
-  private Data[] Range;
+  private Data[] Range;  // won't be null though elements might be
 
   private boolean MissingFlag;
 
@@ -166,6 +166,18 @@ public class FieldImpl extends FunctionImpl implements Field {
     notifyReferences();
   }
 
+  /**
+   * <p>Returns the domain-set of this instance.  The actual set is returned:
+   * it is not a copy or a clone.</p>
+   *
+   * <p> Note that it is possible to simultaneously modify the domain-set of
+   * both this instance and of a clone by modifying the values in the array
+   * returned by invoking <code>getSamples(false)</code> on the domain-set of
+   * either this instance or the clone.  Don't do this unless you enjoy 
+   * debugging.</p>
+   *
+   * @return                      The actual domain-set of this instance.
+   */
   public Set getDomainSet() {
     return DomainSet;
   }
@@ -2822,23 +2834,34 @@ public class FieldImpl extends FunctionImpl implements Field {
     }
   }
 
-  /** deep copy values but shallow copy Type, Set and CoordinateSystem */
-  public Object clone() {
-    Field field;
-    try {
-      field = new FieldImpl((FunctionType) Type, DomainSet);
-      if (isMissing()) return field;
-      synchronized (Range) {
-        field.setSamples(Range, true);
+  /**
+   * <p>Clones this instance.  The {@link MathType}, domain {@link Set), and
+   * {@link CoordinateSystem} are shallow copied.  Each range value, however,
+   * has its <code>clone()</code> method invoked.</p>
+   *
+   * <p> Note that it is possible to simultaneously modify the domain-set of
+   * both this instance and the clone by modifying the values in the array
+   * returned by invoking <code>getSamples(false)</code> on the domain-set of
+   * either this instance or the clone.  Don't do this unless you enjoy 
+   * debugging.</p>
+   *
+   * @return                            A clone of this instance.
+   * @throws CloneNotSupportedException if cloning isn't supported by a 
+   *                                    range-value.
+   */
+  public Object clone() throws CloneNotSupportedException {
+    FieldImpl clone = (FieldImpl)super.clone();
+
+    synchronized(Range) {
+      clone.Range = new Data[Range.length];
+
+      for (int i = 0; i < Range.length; i++) {
+        if (Range[i] != null)
+	  clone.Range[i] = (Data)Range[i].clone();
       }
     }
-    catch (VisADException e) {
-      throw new VisADError("FieldImpl.clone: VisADException occured");
-    }
-    catch (RemoteException e) {
-      throw new VisADError("FieldImpl.clone: RemoteException occured");
-    }
-    return field;
+
+    return clone;
   }
 
   public String longString(String pre)

@@ -29,9 +29,10 @@ package visad;
 import java.util.*;
 
 /**
-   SimpleSet is the abstract superclass of Sets with a unique ManifoldDimension.
-   SimpleSet objects are immutable.<P>
-*/
+ * SimpleSet is the abstract superclass of Sets with a unique ManifoldDimension.
+ * For the most part, SimpleSet objects are immutable (but see {@link 
+ * SampledSet#getSamples(boolean)}).
+ */
 public abstract class SimpleSet extends Set implements SimpleSetIface {
 
   /** dimension of subspace that set is embedded in */

@@ -314,20 +314,6 @@ public class LinearNDSet extends GriddedSet
     return L[i];
   }
 
-  public Object clone() {
-    try {
-      Linear1DSet[] l = new Linear1DSet[DomainDimension];
-      for (int j=0; j<DomainDimension; j++) {
-        l[j] = (Linear1DSet) L[j].clone();
-      }
-      return new LinearNDSet(Type, l, DomainCoordinateSystem,
-                           SetUnits, SetErrors);
-    }
-    catch (VisADException e) {
-      throw new VisADError("LinearNDSet.clone: " + e.toString());
-    }
-  }
-
   public Object cloneButType(MathType type) throws VisADException {
     Linear1DSet[] l = new Linear1DSet[DomainDimension];
     for (int j=0; j<DomainDimension; j++) {

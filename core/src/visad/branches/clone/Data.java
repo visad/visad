@@ -363,5 +363,13 @@ public interface Data extends Thing {
       UnicastRemoteObject */
   Object dataClone() throws RemoteException;
 
+  /**
+   * Clones this object.
+   *
+   * @return                            A clone of this object.
+   * @throws CloneNotSupportedException if cloning isn't supported.
+   */
+  Object clone() throws CloneNotSupportedException;
+
 }
 

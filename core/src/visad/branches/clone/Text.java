@@ -88,10 +88,6 @@ public class Text extends Scalar {
     return shadow;
   }
 
-  public Object clone() {
-    return new Text((TextType) Type, Value, true);
-  }
-
   public String toString() {
     return Value;
   }

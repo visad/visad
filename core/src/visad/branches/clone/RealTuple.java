@@ -39,7 +39,11 @@ public class RealTuple
 
   private CoordinateSystem TupleCoordinateSystem;
 
-  private Unit[] TupleUnits; // simply copies of Unit-s from Real tupleComponents
+  /*
+   * Simply copies of Unit-s from Real tupleComponents.
+   * Will be null if RealTuple(RealTupleType) constructor is used.
+   */
+  private Unit[] TupleUnits;
 
   /** construct a RealTuple object with the missing value */
   public RealTuple(RealTupleType type) {
@@ -301,22 +305,14 @@ public class RealTuple
                                   shadow, shad_ref, ranges);
   }
 
-  public Object clone() {
-    RealTuple tuple;
-    try {
-      Real[] comps = new Real[tupleComponents.length];
-      for (int i=0; i<tupleComponents.length; i++) {
-        comps[i] = (Real) tupleComponents[i];
-      }
-      tuple = new RealTuple((RealTupleType) Type, comps, TupleCoordinateSystem);
-    }
-    catch (VisADException e) {
-      throw new VisADError("RealTuple.clone: VisADException occurred");
-    }
-    catch (RemoteException e) {
-      throw new VisADError("RealTuple.clone: RemoteException occurred");
-    }
-    return tuple;
+  /**
+   * Clones this instance.  Because instances are immutable, this instance is
+   * returned.
+   *
+   * @return                    A clone of this instance.
+   */
+  public final Object clone() {
+    return this;
   }
 
   /**

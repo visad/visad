@@ -72,9 +72,9 @@ public class ProductSet extends SampledSet {
     if (copy) {
       Sets = new SampledSet[sets.length];
       for (int i=0; i<sets.length; i++) {
-      	Sets[i] = (SampledSet) sets[i].clone();
+       	Sets[i] = (SampledSet) sets[i].clone();
       }
-    }
+   }
     else Sets = sets;
     Length = 1;
     for (int i=0; i<sets.length; i++) {
@@ -95,8 +95,15 @@ public class ProductSet extends SampledSet {
     }
   }
 
+  /**
+   * Returns the {@link SampledSet}s that constitute this instance.  The
+   * returned array may be modified without affecting this instance.
+   *
+   * @return                         The {@link SampledSet}s that constitute
+   *                                 this instance.
+   */
   public SampledSet[] getSets() {
-    return Sets;
+    return (SampledSet[])Sets.clone();  // return defensive copy
   }
 
   private static int find_manifold_dim(SampledSet[] sets, Unit[] units)
@@ -435,14 +442,26 @@ public class ProductSet extends SampledSet {
     }
   }
 
+  /**
+   * Clones this instance.
+   *
+   * @return                        A clone of this instance.
+   */
   public Object clone() {
-    try {
-      return new ProductSet(Type, Sets, DomainCoordinateSystem,
-                            SetUnits, SetErrors);
+    ProductSet clone = (ProductSet)super.clone();
+    
+    /*
+     * The array of sampled sets is cloned because getSamples(false) allows
+     * clients to modify the values and the clone() general contract forbids
+     * cross-clone effects.
+     */
+    if (Sets != null) {
+        clone.Sets = new SampledSet[Sets.length];
+        for (int i = 0; i < Sets.length; i++)
+            clone.Sets[i] = (SampledSet)Sets[i].clone();
     }
-    catch (VisADException e) {
-      throw new VisADError("ProductSet.clone: "+e.toString());
-    }
+    
+    return clone;
   }
 
   public Object cloneButType(MathType type) throws VisADException {

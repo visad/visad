@@ -50,16 +50,6 @@ public class Integer1DSet extends Linear1DSet
     super(type, 0.0, (double) (length - 1), length, coord_sys, units, errors);
   }
 
-  public Object clone() {
-    try {
-      return new Integer1DSet(Type, Length, DomainCoordinateSystem,
-                              SetUnits, SetErrors);
-    }
-    catch (VisADException e) {
-      throw new VisADError("Integer1DSet.clone: " + e.toString());
-    }
-  }
-
   public Object cloneButType(MathType type) throws VisADException {
     return new Integer1DSet(type, Length, DomainCoordinateSystem,
                             SetUnits, SetErrors);

@@ -50,7 +50,7 @@ import visad.java2d.DisplayImplJ2D;
    to the extent that they make sense for the types involved.<p>
 */
 public abstract class DataImpl extends ThingImpl
-       implements Data, Cloneable {
+       implements Data {
 
   /** each VisAD data object has a VisAD mathematical type */
   MathType Type;
@@ -729,11 +729,34 @@ public abstract class DataImpl extends ThingImpl
       DataImpl.dataClone returns clone; RemoteDataImpl.dataClone
       returns clone inherited from UnicastRemoteObject */
   public Object dataClone() {
-    return clone();
+    try {
+      return clone();
+    }
+    catch (CloneNotSupportedException ex) {
+      throw new RuntimeException(ex.toString());
+    }
   }
 
-  /** a method to copy any data object */
-  public abstract Object clone();
+  /**
+   * <p>Clones this instance.  Information on the parent object of this instance
+   * is not cloned, so -- following the general contract of the <code>clone()
+   * </code> method -- subclasses should not test for equality of the parent
+   * object in any <code>equals(Object)</code> method.</p>
+   *
+   * <p>This implementation never throws {@link CloneNotSupportedException}.</p>
+   *
+   * @return                            A clone of this instance.
+   * @throws CloneNotSupportedException if cloning isn't supported.
+   */
+  public Object clone() throws CloneNotSupportedException {
+    DataImpl clone = (DataImpl)super.clone();
+
+    clone.parent = null;
+    clone.rdisplay = null;
+    clone.lock = new Object();
+
+    return clone;
+  }
 
   public String toString() {
     try {

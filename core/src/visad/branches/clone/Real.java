@@ -607,10 +607,6 @@ public class Real
     return new Real((RealType) Type, Value, u, Error);
   }
 
-  public Object clone() {
-    return new Real((RealType) Type, Value, unit, Error, true);
-  }
-
   public String toString() {
     try {
       if (Double.isNaN(Value)) {
