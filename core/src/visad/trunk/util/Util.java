@@ -336,6 +336,12 @@ public class Util
       dialog.addChoosableFileFilter(zip);
       filters.add(zip);
   
+      // DEM files - DEM family
+      FileFilter dem = new ExtensionFileFilter(
+        "dem", "DEM data");
+      dialog.addChoosableFileFilter(dem);
+      filters.add(dem);
+  
       // combination filter
       FileFilter[] ff = new FileFilter[filters.size()];
       filters.copyInto(ff);
