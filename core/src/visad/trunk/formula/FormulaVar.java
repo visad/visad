@@ -318,7 +318,7 @@ public class FormulaVar extends ActionImpl {
       formula = null;
       postfix = null;
       clearDependencies();
-      tref.setThing(t);
+      if (t == null || t != tref.getThing()) tref.setThing(t);
     }
   }
 
