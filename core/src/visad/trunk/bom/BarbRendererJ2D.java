@@ -154,7 +154,7 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
         double fy = 30.0 * v;
         if (args.length > 1) {
           values[2][m] =
-            Data.RADIANS_TO_DEGREES * Math.atan2(fx, fy);
+            Data.RADIANS_TO_DEGREES * Math.atan2(-fx, -fy);
           values[3][m] = Math.sqrt(fx * fx + fy * fy);
         }
         else {
