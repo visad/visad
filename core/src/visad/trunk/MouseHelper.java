@@ -174,6 +174,7 @@ event_switch:
       case MouseEvent.MOUSE_PRESSED:
         if (mouseEntered &&
             !mouseCombo1 && !mouseCombo2 && !mouseCombo3) {
+          display.updateBusyStatus();
           try {
             DisplayEvent e = new DisplayEvent(display,
               DisplayEvent.MOUSE_PRESSED, mouse_x, mouse_y, remoteId);
@@ -437,6 +438,7 @@ event_switch:
         // DRM add 17 Sep 1999
         if (mousePressed1 || mousePressed2 || mousePressed3 ||
             mouseCombo1 || mouseCombo2 || mouseCombo3) {
+          display.updateBusyStatus();
           try {
             DisplayEvent e = new DisplayEvent(display,
               DisplayEvent.MOUSE_RELEASED, mouse_x, mouse_y, remoteId);
@@ -551,6 +553,8 @@ event_switch:
       case MouseEvent.MOUSE_DRAGGED:
         if (mousePressed1 || mousePressed2 || mousePressed3 ||
             mouseCombo1 || mouseCombo2 || mouseCombo3) {
+          display.updateBusyStatus();
+
           Dimension d = ((MouseEvent) event).getComponent().getSize();
           int current_x = ((MouseEvent) event).getX();
           int current_y = ((MouseEvent) event).getY();

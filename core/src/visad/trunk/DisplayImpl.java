@@ -135,6 +135,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   private transient DisplayMonitor displayMonitor = null;
   private transient DisplaySync displaySync = null;
 
+  // activity monitor
+  private transient DisplayActivity displayActivity = null;
+
   // Support for printing
   private Printable printer;
 
@@ -1249,6 +1252,10 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   public void destroy() throws VisADException, RemoteException {
     VisADException thrownVE = null;
     RemoteException thrownRE = null;
+
+    if (displayActivity != null) {
+      displayActivity.destroy();
+    }
 
     // tell everybody we're going away
     notifyListeners(new DisplayEvent(this, DisplayEvent.DESTROYED));
@@ -2368,4 +2375,27 @@ if (initialize) {
     } // end synchronized (mapslock)
   }
 
+  /**
+   * Add a busy/idle activity handler.
+   *
+   * @param ah Activity handler.
+   *
+   * @throws VisADException If the handler couldn't be added.
+   */
+  public void addActivityHandler(ActivityHandler ah)
+    throws VisADException
+  {
+    if (displayActivity == null) {
+      displayActivity = new DisplayActivity(this);
+    }
+
+    displayActivity.addHandler(ah);
+  }
+
+  public void updateBusyStatus()
+  {
+    if (displayActivity != null) {
+      displayActivity.updateBusyStatus();
+    }
+  }
 }
