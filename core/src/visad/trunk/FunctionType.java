@@ -211,6 +211,13 @@ public class FunctionType extends MathType {
              " -> " + Range.toString();
   }
 
+  public String prettyString(int indent) {
+    String ds = "(" + Domain.prettyString(indent) + " -> ";
+    int n = ds.length();
+    String rs = Range.prettyString(indent + n) + ")";
+    return ds + rs;
+  }
+
   public Data missingData() throws VisADException, RemoteException {
     int n = Domain.getDimension();
     double[] values = new double[n];

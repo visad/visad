@@ -241,6 +241,38 @@ public class TupleType extends MathType {
     return t + ")";
   }
 
+  public String prettyString(int indent) {
+    int n = tupleComponents.length;
+    String[] cs = new String[n];
+    int[] lens = new int[n];
+    int maxlen = 0;
+    int sumlen = 0;
+    for (int i=0; i<n; i++) {
+      cs[i] = tupleComponents[i].prettyString(indent+1);
+      lens[i] = cs[i].length();
+      if (lens[i] > maxlen) maxlen = lens[i];
+      sumlen += lens[i];
+    }
+    if (sumlen + indent <= 72) {
+      String s = "(" + cs[0];
+      for (int i=1; i<n; i++) {
+        s = s + ", " + cs[i];
+      }
+      return s + ")";
+    }
+    else {
+      String blanks = "";
+      for (int j=0; j<indent+1; j++) blanks = blanks + " ";
+      String s = "(" + cs[0];
+      if (1 < n) s = s + ",";
+      for (int i=1; i<n; i++) {
+        s = s + "\n" + blanks + cs[i];
+        if (i+1 < n) s = s + ",";
+      }
+      return s + ")";
+    }
+  }
+
   public Data missingData() {
     return new Tuple(this);
   }

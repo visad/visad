@@ -84,6 +84,10 @@ public class TextType extends ScalarType {
     return getName() + "(Text)";
   }
 
+  public String prettyString(int indent) {
+    return toString();
+  }
+
   public Data missingData() throws VisADException {
     return new Text(this);
   }

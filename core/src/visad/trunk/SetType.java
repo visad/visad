@@ -87,7 +87,11 @@ public class SetType extends MathType {
   }
 
   public String toString() {
-    return "SetType: " + Domain.toString();
+    return "Set" + Domain.toString();
+  }
+
+  public String prettyString(int indent) {
+    return toString();
   }
 
   public Data missingData() throws VisADException {

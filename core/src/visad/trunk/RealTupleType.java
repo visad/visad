@@ -293,6 +293,10 @@ public class RealTupleType extends TupleType {
     return DefaultSet;
   }
 
+  public String prettyString(int indent) {
+    return toString();
+  }
+
   public Data missingData() {
     return new RealTuple(this);
   }

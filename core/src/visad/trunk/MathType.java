@@ -120,5 +120,43 @@ public abstract class MathType extends Object implements java.io.Serializable {
 
   public abstract String toString();
 
+  public String prettyString() {
+    return prettyString(0);
+  }
+
+  public abstract String prettyString(int indent);
+
+  /** run 'java visad.MathType' to test MathType.prettyString() */
+  public static void main(String args[])
+         throws VisADException, RemoteException {
+    RealType X = new RealType("Xxxxxx", null, null);
+    RealType Y = new RealType("Yyyyyy", null, null);
+    RealType Z = new RealType("Zzzzzz", null, null);
+ 
+    RealType A = new RealType("Aaaaaa", null, null);
+    RealType B = new RealType("Bbbbbb", null, null);
+ 
+    RealType[] domain2d = {X, Y};
+    RealTupleType Domain2d = new RealTupleType(domain2d);
+ 
+    RealType[] range2d = {A, B};
+    RealTupleType Range2d = new RealTupleType(range2d);
+ 
+    FunctionType Field2d1 = new FunctionType(Domain2d, A);
+    FunctionType Field2d2 = new FunctionType(Domain2d, Range2d);
+    FunctionType Field2d3 = new FunctionType(Domain2d, B);
+    FunctionType function = new FunctionType(X, Field2d2);
+    MathType[] littles = {Range2d, Field2d1, function};
+    TupleType little = new TupleType(littles);
+    FunctionType little_function = new FunctionType(X, little);
+    SetType set = new SetType(Domain2d);
+    MathType[] types = {Range2d, little_function, Field2d1, Field2d2,
+                        function, set, Field2d3};
+    TupleType tuple = new TupleType(types);
+    FunctionType big_function = new FunctionType(Range2d, tuple);
+
+    System.out.println(big_function.prettyString());
+  }
+
 }
 

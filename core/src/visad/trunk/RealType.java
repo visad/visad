@@ -445,6 +445,10 @@ public class RealType extends ScalarType {
     return getName();
   }
 
+  public String prettyString(int indent) {
+    return toString();
+  }
+
   public static void main( String[] args ) 
          throws VisADException 
   {
