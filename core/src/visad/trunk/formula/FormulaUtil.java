@@ -28,7 +28,7 @@ package visad.formula;
 
 import java.lang.reflect.*;
 import java.rmi.RemoteException;
-import java.util.StringTokenizer;
+import java.util.*;
 import visad.*;
 
 /** Contains a variety of useful methods related to the
@@ -275,28 +275,74 @@ public class FormulaUtil {
         int e2 = i-1;
         // check for correct syntax
         if (i >= len || l.charAt(i) != ')') return s;
-        String[] strs = new String[1];
-        strs[0] = s.substring(s1, e1) + "(";
+        String prestr = s.substring(s1, e1) + "(";
+        String str = prestr;
 
         // parse method's arguments; determine if they are Data or RealType
         String sub = s.substring(s2, e2);
         StringTokenizer st = new StringTokenizer(sub, ",", false);
         boolean first = true;
+        Vector v = new Vector();
         while (st.hasMoreTokens()) {
           String token = st.nextToken();
           if (first) first = false;
-          else strs[0] = strs[0] + ",";
+          else str = str + ",";
           RealType rt = RealType.getRealTypeByName(token);
-          strs[0] = strs[0] + (rt == null ? "visad.Data"
-                                          : "visad.RealType");
+          String sv = (rt == null ? "visad.Data" : "visad.RealType");
+          v.add(sv);
+          str = str + sv;
         }
-        strs[0] = strs[0] + ")";
+        str = str + ")";
 
-        // obtain Method object and store it in a link variable
-        Method[] meths = FormulaUtil.stringsToMethods(strs);
+        // obtain Method object
+        Method[] meths = FormulaUtil.stringsToMethods(new String[] {str});
+
+        if (meths[0] == null) {
+          // attempt to identify any matching methods by compressing
+          // some or all of the arguments into array form
+          int vlen = v.size();
+          Vector vstrs = new Vector();
+          for (int iv=0; iv<vlen; iv++) {
+            String si = (String) v.elementAt(iv);
+            int lv = iv;
+            String sl;
+            while (lv < vlen) {
+              sl = (String) v.elementAt(lv++);
+              if (!sl.equals(si)) {
+                break;
+              }
+              str = prestr;
+              first = true;
+              for (int j=0; j<vlen; j++) {
+                if (first) first = false;
+                else str = str + ",";
+                String sj = (String) v.elementAt(j);
+                str = str + sj;
+                if (iv == j) {
+                  str = str + "[]";
+                  j = lv - 1;
+                }
+              }
+              str = str + ")";
+              vstrs.add(str);
+            }
+          }
+          String[] strlist = new String[vstrs.size()];
+          vstrs.toArray(strlist);
+          meths = FormulaUtil.stringsToMethods(strlist);
+          int found = -1;
+          for (int j=0; j<meths.length && found < 0; j++) {
+            if (meths[j] != null) found = j;
+          }
+          if (found >= 0) meths[0] = meths[found];
+          else {
+            // could not find a matching method
+            return s;
+          }
+        }
+
+        // store method object in a link variable
         String link = "link" + (++linkNum);
-        // make sure linked method actually exists
-        if (meths[0] == null) return s;
         try {
           fm.setThing(link, new VMethod(meths[0]));
         }

@@ -228,7 +228,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
         if (argv[ix].charAt(0) == '-') {
           if (argv[ix].equals("-no3d")) CanDo3D = false;
           else if (argv[ix].equals("-server")) {
-            if (ix < len - 1) servname = argv[++ix];
+            if (clonename != null) {
+              System.out.println("A spreadsheet cannot be both a server " +
+                                 "and a clone!");
+              System.out.println(usage);
+              System.exit(3);
+            }
+            else if (ix < len - 1) servname = argv[++ix];
             else {
               System.out.println("You must specify a server name after " +
                                  "the '-server' flag!");
