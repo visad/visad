@@ -138,17 +138,13 @@ public class MeasurePool implements DisplayListener {
   public void release(MeasureThing thing) {
     if (!things.contains(thing)) return;
     select(null);
-    PoolPoint[] pts = thing.getPoints();
-    for (int i=0; i<pts.length; i++) {
-      pts[i].toggle(false);
-      free.add(pts[i]);
-    }
-    things.remove(thing);
+    purge(thing);
   }
 
   /** Returns all pool points to the measurement pool. */
   public void releaseAll() {
-    while (!things.isEmpty()) release((MeasureThing) things.lastElement());
+    select(null);
+    while (!things.isEmpty()) purge((MeasureThing) things.lastElement());
   }
 
   /** Creates measurement pool objects to match the given measurements. */
@@ -159,7 +155,6 @@ public class MeasurePool implements DisplayListener {
     // register new leases
     expand(m.length, true);
     for (int i=0; i<m.length; i++) new MeasureThing(this, m[i]);
-    select(null);
     refresh();
   }
 
@@ -422,6 +417,17 @@ public class MeasurePool implements DisplayListener {
     }
     display.enableAction();
     cell.enableAction();
+  }
+
+  /** Purges a measurement object from the pool. */
+  private void purge(MeasureThing thing) {
+    thing.destroy();
+    PoolPoint[] pts = thing.getPoints();
+    for (int i=0; i<pts.length; i++) {
+      pts[i].toggle(false);
+      free.add(pts[i]);
+    }
+    things.remove(thing);
   }
 
   /** Deselects any selected measurements. */

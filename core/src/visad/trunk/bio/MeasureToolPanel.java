@@ -321,7 +321,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
           for (int j=0; j<bio.lists.length; j++) {
             for (int i=0; i<numSlices; i++) {
               if (j == index && i == slice) continue;
-              bio.lists[j].addMeasurement(new Measurement(m, i), true);
+              bio.lists[j].addMeasurement(new Measurement(m, i), j == index);
             }
           }
         }

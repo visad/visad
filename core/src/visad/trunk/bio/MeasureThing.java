@@ -120,6 +120,14 @@ public class MeasureThing {
   /** Sets the group. */
   public void setGroup(MeasureGroup group) { m.setGroup(group); }
 
+  /** Prepares this measurement object to cease being used. */
+  public void destroy() {
+    try { cell.removeAllReferences(); }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+    m.removeThing(this);
+  }
+
   /**
    * Terminates this measurement object's measurement, causing all linked
    * measurement objects to return their points to the measurement pool.
