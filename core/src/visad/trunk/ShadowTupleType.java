@@ -409,15 +409,31 @@ public class ShadowTupleType extends ShadowType {
     TextControl text_control = getParentTextControl();
     boolean anyText = getAnyText();
     if (anyText && text_value == null) {
-      for (int i=0; i<tuple.getDimension(); i++) {
-        Data component = tuple.getComponent(i);
-        if (component instanceof Text) {
-          ShadowTextType type = (ShadowTextType) tupleComponents[i];
-          Vector maps = type.getSelectedMapVector();
-          if (!maps.isEmpty()) {
-            text_value = ((Text) component).getValue();
-            ScalarMap map = (ScalarMap) maps.firstElement();
+      for (int i=0; i<valueArrayLength; i++) {
+        if (display_values[i] != null) {
+          int displayScalarIndex = valueToScalar[i];
+          ScalarType real = display.getScalar(displayScalarIndex);
+          DisplayRealType dreal = display.getDisplayScalar(displayScalarIndex);
+          if (dreal.equals(Display.Text) && real instanceof RealType) {
+            ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
             text_control = (TextControl) map.getControl();
+            text_value = PlotText.shortString(display_values[i][0]);
+            break;
+          }
+        }
+      }
+
+      if (text_value == null) {
+        for (int i=0; i<tuple.getDimension(); i++) {
+          Data component = tuple.getComponent(i);
+          if (component instanceof Text) {
+            ShadowTextType type = (ShadowTextType) tupleComponents[i];
+            Vector maps = type.getSelectedMapVector();
+            if (!maps.isEmpty()) {
+              text_value = ((Text) component).getValue();
+              ScalarMap map = (ScalarMap) maps.firstElement();
+              text_control = (TextControl) map.getControl();
+            }
           }
         }
       }

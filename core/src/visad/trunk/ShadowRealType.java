@@ -96,6 +96,20 @@ public class ShadowRealType extends ShadowScalarType {
     String text_value = getParentText();
     TextControl text_control = getParentTextControl();
 
+    if (getAnyText() && text_value == null) {
+      // get any text String and TextControl from this
+      Enumeration maps = getSelectedMapVector().elements();
+      while(maps.hasMoreElements()) {
+        ScalarMap map = (ScalarMap) maps.nextElement();
+        DisplayRealType dreal = map.getDisplayScalar();
+        if (dreal.equals(Display.Text)) {
+          text_value = PlotText.shortString(value[0][0]);
+          text_control = (TextControl) map.getControl();
+          break;
+        }
+      }
+    }
+
     boolean[][] range_select =
       shadow_api.assembleSelect(display_values, 1, valueArrayLength,
                      valueToScalar, display, shadow_api);

@@ -109,10 +109,12 @@ public class ScalarMap extends Object
     }
     boolean text = display_scalar.getText();
     if (scalar != null) {
+/* WLH 15 June 2000
       if (text && !(scalar instanceof TextType)) {
         throw new DisplayException("ScalarMap: RealType scalar cannot be " +
                                    "used with TextType display_scalar");
       }
+*/
       if (!text && !(scalar instanceof RealType)) {
         throw new DisplayException("ScalarMap: TextType scalar cannot be " +
                                    "used with RealType display_scalar");

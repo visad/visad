@@ -1474,38 +1474,65 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
       } // end if (range_values != null)
 
       if (anyText && text_values == null) {
-        String[][] string_values = ((Field) data).getStringValues();
-        if (string_values != null) {
-          int[] textIndices = ((FunctionType) getType()).getTextIndices();
-          int n = string_values.length;
-          if (Range instanceof ShadowTextType) {
-            Vector maps = shadow_api.getTextMaps(-1, textIndices);
-            if (!maps.isEmpty()) {
-              text_values = string_values[0];
-              ScalarMap map = (ScalarMap) maps.firstElement();
+        for (int i=0; i<valueArrayLength; i++) {
+          if (display_values[i] != null) {
+            int displayScalarIndex = valueToScalar[i];
+            ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
+            ScalarType real = map.getScalar();
+            DisplayRealType dreal = display.getDisplayScalar(displayScalarIndex);
+            if (dreal.equals(Display.Text) && real instanceof RealType) {
               text_control = (TextControl) map.getControl();
-/*
-System.out.println("Range is ShadowTextType, text_values[0] = " +
-                   text_values[0] + " n = " + n);
-*/
+              text_values = new String[domain_length];
+              if (display_values[i].length == 1) {
+                String text = PlotText.shortString(display_values[i][0]);
+                for (int j=0; j<domain_length; j++) {
+                  text_values[j] = text;
+                }
+              }
+              else {
+                for (int j=0; j<domain_length; j++) {
+                  text_values[j] = PlotText.shortString(display_values[i][j]);
+                }
+              }
+              break;
             }
           }
-          else if (Range instanceof ShadowTupleType) {
-            for (int i=0; i<n; i++) {
-              Vector maps = shadow_api.getTextMaps(i, textIndices);
+        }
+
+        if (text_values == null) {
+          String[][] string_values = ((Field) data).getStringValues();
+          if (string_values != null) {
+            int[] textIndices = ((FunctionType) getType()).getTextIndices();
+            int n = string_values.length;
+            if (Range instanceof ShadowTextType) {
+              Vector maps = shadow_api.getTextMaps(-1, textIndices);
               if (!maps.isEmpty()) {
-                text_values = string_values[i];
+                text_values = string_values[0];
                 ScalarMap map = (ScalarMap) maps.firstElement();
                 text_control = (TextControl) map.getControl();
-/*
-System.out.println("Range is ShadowTupleType, text_values[0] = " +
-                   text_values[0] + " n = " + n + " i = " + i);
-*/
+  /*
+  System.out.println("Range is ShadowTextType, text_values[0] = " +
+                     text_values[0] + " n = " + n);
+  */
               }
             }
-          } // end if (Range instanceof ShadowTupleType)
-        } // end if (string_values != null)
-      } // end if (anyText)
+            else if (Range instanceof ShadowTupleType) {
+              for (int i=0; i<n; i++) {
+                Vector maps = shadow_api.getTextMaps(i, textIndices);
+                if (!maps.isEmpty()) {
+                  text_values = string_values[i];
+                  ScalarMap map = (ScalarMap) maps.firstElement();
+                  text_control = (TextControl) map.getControl();
+  /*
+  System.out.println("Range is ShadowTupleType, text_values[0] = " +
+                     text_values[0] + " n = " + n + " i = " + i);
+  */
+                }
+              }
+            } // end if (Range instanceof ShadowTupleType)
+          } // end if (string_values != null)
+        } // end if (text_values == null)
+      } // end if (anyText && text_values == null)
     } // end if (this instanceof ShadowFunctionType)
 
 // System.out.println("start assembleSelect " + (System.currentTimeMillis() - link.start_time));
