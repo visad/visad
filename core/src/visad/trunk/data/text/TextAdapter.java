@@ -398,10 +398,18 @@ public class TextAdapter {
       if (hdrUnitString != null && 
                 !hdrUnitString.trim().equalsIgnoreCase("null") ) {
         try {
-          u = visad.data.units.Parser.parse(hdrUnitString.trim().replace(' ','_'));
+
+          u = visad.data.units.Parser.parse(hdrUnitString.trim());
+
         } catch (Exception ue) {
-          System.out.println("Unit name problem:"+ue+" with: "+hdrUnitString);
-          u = null;
+
+          try {
+            u = visad.data.units.Parser.parse(
+                           hdrUnitString.trim().replace(' ','_'));
+          } catch (Exception ue2) {
+            System.out.println("Unit name problem:"+ue+" with: "+hdrUnitString);
+            u = null;
+          }
         }
       }
 
