@@ -182,7 +182,13 @@ public class QTForm extends Form
   }
 
 
-  // -- API methods --
+  // -- New API methods --
+
+  /** Whether QuickTime is available to this JVM. */
+  public boolean canDoQT() { return !noQT; }
+
+
+  // -- Form API methods --
 
   /** Saves a VisAD Data object to a QuickTime movie at the given location. */
   public void save(String id, Data data, boolean replace)
