@@ -479,7 +479,21 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
         ggg.dispose();
       } // end if (!valid)
       if (tsave == null || !displayRenderer.anyCursorStringVector()) {
-        if (g != null) g.drawImage(image, 0, 0, this);
+        if (g != null) {
+          // g.drawImage(image, 0, 0, this);
+          boolean done = false;
+          while (!done) {
+            done = g.drawImage(image, 0, 0, this);
+            if (!done) {
+              try {
+                Thread.sleep(100);
+              }
+              catch (InterruptedException e) {
+              }
+            }
+          }
+
+        }
         if (captureFlag || display.hasSlaves()) {
 // System.out.println("image capture " + width + " " + height);
           captureFlag = false;
@@ -493,8 +507,21 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
           // CTR 2 June 2000 - captureImage can be null
           if (captureImage != null) {
             Graphics gc = captureImage.getGraphics();
-            gc.drawImage(image, 0, 0, this);
+
+            boolean done = false;
+            while (!done) {
+              done = gc.drawImage(image, 0, 0, this);
+              if (!done) {
+                try {
+                  Thread.sleep(100);
+                }
+                catch (InterruptedException e) {
+                }
+              }
+            }
+
             gc.dispose();
+            captureImage.flush();
             displayRenderer.notifyCapture();
 // System.out.println("image capture end");
 
@@ -514,7 +541,19 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
           aux_copy = aux_image;
         }
         Graphics ga = aux_copy.getGraphics();
-        ga.drawImage(image, 0, 0, this);
+        // ga.drawImage(image, 0, 0, this);
+        boolean done = false;
+        while (!done) {
+          done = ga.drawImage(image, 0, 0, this);
+          if (!done) {
+            try {
+              Thread.sleep(100);
+            }
+            catch (InterruptedException e) {
+            }
+          }
+        }
+
         displayRenderer.drawCursorStringVector(ga, tsave, w, h);
         ga.dispose();
         if (g != null) g.drawImage(aux_copy, 0, 0, this);
@@ -530,8 +569,21 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
               new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
           }
           Graphics gc = captureImage.getGraphics();
-          gc.drawImage(aux_copy, 0, 0, this);
+          // gc.drawImage(aux_copy, 0, 0, this);
+          done = false;
+          while (!done) {
+            done = gc.drawImage(aux_copy, 0, 0, this);
+            if (!done) {
+              try {
+                Thread.sleep(100);
+              }
+              catch (InterruptedException e) {
+              }
+            }
+          }
+
           gc.dispose();
+          captureImage.flush();
           displayRenderer.notifyCapture();
 // System.out.println("aux_copy capture end");
           // WLH 14 Oct 99 - send BufferedImage to any attached slaved displays
@@ -556,6 +608,7 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
                       VisADSceneGraphObject scene, int pass,
                       Rectangle2D.Float clip)
           throws VisADException {
+    if (scene == null) return;
     if (scene instanceof VisADSwitch) {
       VisADSceneGraphObject child =
         ((VisADSwitch) scene).getSelectedChild();
@@ -625,7 +678,19 @@ so:
         AffineTransform timage = new AffineTransform(m00, m10, m01, m11, m02, m12);
         g2.transform(timage); // concatenate timage onto tg
         try {
-          g2.drawImage(image, 0, 0, this);
+          // g2.drawImage(image, 0, 0, this);
+          boolean done = false;
+          while (!done) {
+            done = g2.drawImage(image, 0, 0, this);
+            if (!done) {
+              try {
+                Thread.sleep(100);
+              }
+              catch (InterruptedException e) {
+              }
+            }
+          }
+
         } catch (java.awt.image.ImagingOpException e) { }
         g2.setTransform(tg); // restore tg
       }
