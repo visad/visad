@@ -45,30 +45,23 @@ public class Event
 
   public static FunctionType eventsFunctionType;
 
-  private static FunctionType tracksFunctionType;
-  private static FunctionType hitsFunctionType;
-
   static {
     try {
-      tracksFunctionType =
-        new FunctionType(BaseTrack.indexType, BaseTrack.functionType);
-      hitsFunctionType =
-        new FunctionType(Hit.indexType, Hit.tupleType);
       eventsFunctionType =
         new FunctionType(indexType,
                          new TupleType(new MathType[] {
-                           Event.tracksFunctionType, Event.hitsFunctionType
+                           Tracks.functionType, Hits.functionType
                          }));
     } catch (VisADException ve) {
       ve.printStackTrace();
-      tracksFunctionType = null;
-      hitsFunctionType = null;
+      eventsFunctionType = null;
     }
   }
 
   private int number, run, year, day;
   private double time, timeShift;
-  private ArrayList tracks, hits;
+  private Hits hits;
+  private Tracks tracks;
 
   Event(int number, int run, int year, int day, double time, double timeShift)
   {
@@ -79,8 +72,8 @@ public class Event
     this.time = time;
     this.timeShift = timeShift;
 
-    this.tracks = new ArrayList();
-    this.hits = new ArrayList();
+    this.hits = new Hits();
+    this.tracks = new Tracks();
   }
 
   final void add(Hit hit) { hits.add(hit); }
@@ -90,16 +83,8 @@ public class Event
   final void dump(java.io.PrintStream out)
   {
     out.println(this);
-
-    final int nHits = hits.size();
-    for (int i = 0; i < nHits; i++) {
-      out.println("  " + hits.get(i));
-    }
-
-    final int nTracks = tracks.size();
-    for (int i = 0; i < nTracks; i++) {
-      out.println("  " + tracks.get(i));
-    }
+    hits.dump(out);
+    tracks.dump(out);
   }
 
   public final int getDay() { return day; }
@@ -108,68 +93,23 @@ public class Event
   public final double getTime() { return time; }
   public final double getTimeShift() { return timeShift; }
 
-  public final BaseTrack getTrack(int idx)
-  {
-    if (tracks != null && idx >= 0 && idx < tracks.size()) {
-      return (BaseTrack )tracks.get(idx);
-    }
-
-    return null;
-  }
+  public final BaseTrack getTrack(int idx) { return tracks.get(idx); }
 
   public final int getYear() { return year; }
 
   final Tuple makeData()
     throws VisADException
   {
-    // finish EM event
-    final int ntracks = tracks.size();
-    final int nhits = hits.size();
-
-    // if no tracks or hits were found, we're done
-    if (ntracks == 0 && nhits == 0) {
-      return null;
-    }
-
-    // construct parent Field for all tracks
-    Integer1DSet tracksSet =
-      new Integer1DSet(BaseTrack.indexType,
-                       (ntracks == 0 ? 1 : ntracks));
-    FieldImpl tracksField =
-      new FieldImpl(tracksFunctionType, tracksSet);
-    if (ntracks > 0) {
-      FlatField[] trackFields = new FlatField[ntracks];
-      for (int t = 0; t < ntracks; t++) {
-        trackFields[t] = ((BaseTrack )tracks.get(t)).makeData();
-      }
-      try {
-        tracksField.setSamples(trackFields, false);
-      } catch (RemoteException re) {
-        re.printStackTrace();
-      }
-    }
-
-    // construct parent Field for all hits
-    Integer1DSet hitsSet =
-      new Integer1DSet(Hit.indexType, (nhits == 0 ? 1 : nhits));
-    FlatField hitsField =
-      new FlatField(hitsFunctionType, hitsSet);
-    if (nhits > 0) {
-      RealTuple[] hitTuples = new RealTuple[nhits];
-      for (int h = 0; h < nhits; h++) {
-        hitTuples[h] = ((Hit )hits.get(h)).makeData();
-      }
-      try {
-        hitsField.setSamples(hitTuples, true);
-      } catch (RemoteException re) {
-        re.printStackTrace();
-      }
-    }
-
     // construct Tuple of all tracks and hits
     Tuple t;
     try {
-      t = new Tuple(new Data[] {tracksField, hitsField});
+      Data tData = tracks.makeData();
+      Data hData = hits.makeData();
+      if (tData == null && hData == null) {
+        t = null;
+      } else {
+        t = new Tuple(new Data[] {tData, hData});
+      }
     } catch (RemoteException re) {
       re.printStackTrace();
       t = null;
@@ -181,6 +121,6 @@ public class Event
   public String toString()
   {
     return "Event#" + number + "[Y" + year + "D" + day +
-      " H" + hits.size() + " T" + tracks.size() + "]";
+      " H" + hits + " T" + tracks + "]";
   }
 }
