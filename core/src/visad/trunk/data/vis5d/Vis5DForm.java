@@ -33,8 +33,6 @@ import java.io.IOException;
 import java.rmi.RemoteException;
 import java.net.URL;
  
-// import java.util.*;
- 
 // JFC packages
 import java.awt.swing.*;
 import java.awt.swing.event.*;
@@ -295,6 +293,16 @@ public class Vis5DForm extends Form {
       contour_controls[i] = (ContourControl) contour_maps[i].getControl();
       range_refs[i] = new DataReferenceImpl(range_types[i].getName() + "_ref");
     }
+
+/* WLH - uncomment these for color demo images from the QLQ.v5d data set
+
+    ScalarMap color_map = new ScalarMap(range_types[1], Display.Green);
+    display.addMap(color_map);
+    color_map.setRange(23.5, 0.0);
+    display.addMap(new ConstantMap(0.5, Display.Red));
+    display.addMap(new ConstantMap(0.5, Display.Blue));
+*/
+
     // now Display vis5d data
     display.addReference(vis5d_ref);
 
