@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: BaseRGBMap.java,v 1.11 2000-02-18 20:44:01 dglo Exp $
+@(#) $Id: BaseRGBMap.java,v 1.12 2000-02-24 16:00:51 donm Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -42,7 +42,7 @@ import visad.VisADException;
  * mouse button to alternate between the color curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.11 $, $Date: 2000-02-18 20:44:01 $
+ * @version $Revision: 1.12 $, $Date: 2000-02-24 16:00:51 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -684,7 +684,7 @@ public class BaseRGBMap
   }
 
   /**
-   * Repaints the entire Panel
+   * Repaints the entire JPanel
    *
    * @param g The <TT>Graphics</TT> to update.
    */
@@ -699,14 +699,14 @@ public class BaseRGBMap
     update(g);
   }
 
-  /** The left bound for updating the Panel */
+  /** The left bound for updating the JPanel */
   private float updateLeft = 0;
 
-  /** The right bound for updating the Panel */
+  /** The right bound for updating the JPanel */
   private float updateRight = 1;
 
   /**
-   * Repaints the modified areas of the Panel
+   * Repaints the modified areas of the JPanel
    *
    * @param g The <TT>Graphics</TT> to update.
    */

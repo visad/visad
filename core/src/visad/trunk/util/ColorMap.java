@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ColorMap.java,v 1.6 1999-04-28 11:14:48 billh Exp $
+@(#) $Id: ColorMap.java,v 1.7 2000-02-24 16:00:52 donm Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -27,17 +27,18 @@ package visad.util;
 
 import java.awt.*;
 import java.util.Vector;
+import javax.swing.JPanel;
 
 /** 
  * The abstract class that all color-mapping widgets must extend.  This 
  * class manages all of the listener notification for the ColorMaps.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision 1.7 $, $Date: 1999-04-28 11:14:48 $
+ * @version $Revision 1.7 $, $Date: 2000-02-24 16:00:52 $
  * @since Visad Utility Library, 0.5
  */
 
-public abstract class ColorMap extends Panel {
+public abstract class ColorMap extends JPanel {
 
 	/** Maps a floating point value (in the range 0 to 1) onto a Color, 
 	 * returns Color.black if the number is out of range

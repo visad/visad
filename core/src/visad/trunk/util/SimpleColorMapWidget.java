@@ -29,6 +29,7 @@ import java.awt.Panel;
 import java.rmi.RemoteException;
 
 import javax.swing.BoxLayout;
+import javax.swing.JPanel;
 
 import visad.BaseColorControl;
 import visad.Control;
@@ -40,7 +41,7 @@ import visad.VisADException;
  * data to RGB/RGBA color maps.
  */
 public class SimpleColorMapWidget
-  extends Panel
+  extends JPanel
 {
   BaseRGBMap baseMap;
   ColorPreview preview;

@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: Slider.java,v 1.3 1998-07-30 20:30:05 curtis Exp $
+@(#) $Id: Slider.java,v 1.4 2000-02-24 16:00:53 donm Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -27,6 +27,7 @@ package visad.util;
 
 import java.awt.Panel;
 import java.util.Vector;
+import javax.swing.JPanel;
 
 /**
  * An abstract class which is very similar to java.awt.ScrollBar, except using
@@ -36,11 +37,11 @@ import java.util.Vector;
  * orientation will be assumed by several other classes
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.3 $, $Date: 1998-07-30 20:30:05 $
+ * @version $Revision: 1.4 $, $Date: 2000-02-24 16:00:53 $
  * @since Visad Utility Library v0.7.1
  */
  
- public abstract class Slider extends Panel {
+ public abstract class Slider extends JPanel {
  
  	/** 
 	 * The internal name of the slider, accessed through getName()

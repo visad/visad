@@ -31,6 +31,9 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.JButton;
+import javax.swing.JPanel;
+
 import java.rmi.RemoteException;
 
 import visad.BaseColorControl;
@@ -52,7 +55,7 @@ public class ColorMapWidget
   extends SimpleColorMapWidget
   implements ActionListener, ControlListener, ScalarMapListener
 {
-  private Panel buttonPanel = null;
+  private JPanel buttonPanel = null;
   private float[][] undoTable = null;
 
   BaseColorControl control, realControl;
@@ -256,19 +259,19 @@ public class ColorMapWidget
   /**
    * Build "Apply" and "Undo" button panel.
    *
-   * @return Panel containing the buttons.
+   * @return JPanel containing the buttons.
    */
-  private Panel buildButtons()
+  private JPanel buildButtons()
   {
-    Button apply = new Button("Apply");
+    JButton apply = new JButton("Apply");
     apply.setActionCommand("apply");
     apply.addActionListener(this);
 
-    Button undo = new Button("Undo");
+    JButton undo = new JButton("Undo");
     undo.setActionCommand("undo");
     undo.addActionListener(this);
 
-    Panel panel = new Panel();
+    JPanel panel = new JPanel();
     panel.setLayout(new FlowLayout(FlowLayout.CENTER,5,5));
     panel.add(apply);
     panel.add(undo);
@@ -282,12 +285,12 @@ public class ColorMapWidget
   /**
    * Return the panel in which the buttons are stored.
    */
-  public Panel getButtonPanel() { return buttonPanel; }
+  public JPanel getButtonPanel() { return buttonPanel; }
 
   /**
    * Handle button presses.
    *
-   * @param evt Data from the changed <CODE>Button</CODE>.
+   * @param evt Data from the changed <CODE>JButton</CODE>.
    */
   public void actionPerformed(ActionEvent evt)
   {

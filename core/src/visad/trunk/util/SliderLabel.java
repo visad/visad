@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: SliderLabel.java,v 1.8 1999-05-21 16:50:28 curtis Exp $
+@(#) $Id: SliderLabel.java,v 1.9 2000-02-24 16:00:53 donm Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -27,17 +27,18 @@ package visad.util;
 
 import java.awt.*;
 import java.awt.event.*;
+import javax.swing.JPanel;
 
 /**
  * A label that can be attached to any slider showing the current value,
  * and optionally, the bounds.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.8 $, $Date: 1999-05-21 16:50:28 $
+ * @version $Revision: 1.9 $, $Date: 2000-02-24 16:00:53 $
  * @since Visad Utility Library v0.7.1
  */
 
-public class SliderLabel extends Panel implements SliderChangeListener {
+public class SliderLabel extends JPanel implements SliderChangeListener {
 
 	/** The slider to which the label is attached */
 	private Slider slider;

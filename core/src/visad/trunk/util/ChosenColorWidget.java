@@ -34,6 +34,7 @@ import java.rmi.RemoteException;
 
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
+import javax.swing.JPanel;
 
 import visad.ScalarMap;
 import visad.VisADException;
@@ -44,7 +45,7 @@ import visad.VisADException;
  * a drop-down list of canned colormap combinations.
  */
 public class ChosenColorWidget
-  extends Panel
+  extends JPanel
   implements ActionListener
 {
   ColorMapWidget wrappedWidget;
@@ -125,7 +126,7 @@ public class ChosenColorWidget
   /**
    * Build color choice box.
    *
-   * @return Panel containing the choices or <CODE>null</CODE> if
+   * @return JPanel containing the choices or <CODE>null</CODE> if
    *         the wrapped widget's button panel was used.
    */
   private Component buildChoices()
@@ -135,7 +136,7 @@ public class ChosenColorWidget
     choice.addActionListener(this);
 
     boolean usedPanel = false;
-    Panel panel = wrappedWidget.getButtonPanel();
+    JPanel panel = wrappedWidget.getButtonPanel();
     if (panel != null) {
       panel.add(choice);
       usedPanel = true;

@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ColorPreview.java,v 1.8 2000-02-18 20:44:02 dglo Exp $
+@(#) $Id: ColorPreview.java,v 1.9 2000-02-24 16:00:53 donm Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -26,16 +26,17 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad.util;
 
 import java.awt.*;
+import javax.swing.JPanel;
 
 /** 
  * A small preview bar generated for a color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.8 $, $Date: 2000-02-18 20:44:02 $
+ * @version $Revision: 1.9 $, $Date: 2000-02-24 16:00:53 $
  * @since Visad Utility Library, 0.5
  */
 
-public class ColorPreview extends Panel implements ColorChangeListener {
+public class ColorPreview extends JPanel implements ColorChangeListener {
 
 	/** The ColorWidget that this is attached to */
 	private ColorMap map;

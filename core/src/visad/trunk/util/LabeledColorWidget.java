@@ -29,6 +29,8 @@ import java.awt.Panel;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 
+import javax.swing.JButton;
+import javax.swing.JPanel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -42,7 +44,7 @@ import visad.VisADException;
  * RGB/RGBA tuples in a <CODE>ScalarMap</CODE>.
  */
 public class LabeledColorWidget
-  extends Panel
+  extends JPanel
   implements ActionListener
 {
   ColorMapWidget wrappedWidget;
@@ -194,7 +196,7 @@ public class LabeledColorWidget
     setLayout( new BorderLayout(5,5));
     add("Center",wrappedWidget);
 
-    Panel buttons = buildButtons();
+    JPanel buttons = buildButtons();
     if (buttons != null) {
       add("South",buttons);
     }
@@ -203,23 +205,23 @@ public class LabeledColorWidget
   /**
    * Build "Reset" and "Grey Scale" button panel.
    *
-   * @return Panel containing the buttons or <CODE>null</CODE> if
+   * @return JPanel containing the buttons or <CODE>null</CODE> if
    *         the wrapped widget's button panel was used.
    */
-  private Panel buildButtons()
+  private JPanel buildButtons()
   {
-    Button reset = new Button("Reset");
+    JButton reset = new JButton("Reset");
     reset.setActionCommand("reset");
     reset.addActionListener(this);
 
-    Button grey = new Button("Grey Scale");
+    JButton grey = new JButton("Grey Scale");
     grey.setActionCommand("grey");
     grey.addActionListener(this);
 
     boolean newPanel = false;
-    Panel panel = wrappedWidget.getButtonPanel();
+    JPanel panel = wrappedWidget.getButtonPanel();
     if (panel == null) {
-      panel = new Panel();
+      panel = new JPanel();
       panel.setLayout(new FlowLayout(FlowLayout.CENTER,5,5));
       newPanel = true;
     }
@@ -233,7 +235,7 @@ public class LabeledColorWidget
   /**
    * Handle button presses.
    *
-   * @param evt Data from the changed <CODE>Button</CODE>.
+   * @param evt Data from the changed <CODE>JButton</CODE>.
    */
   public void actionPerformed(ActionEvent evt)
   {
