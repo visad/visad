@@ -104,7 +104,7 @@ public abstract class DisplayRenderer extends Object {
     // first child of trans
     trans.addChild(box);
  
-    // create the Bahevior for mouse interactions
+    // create the Behavior for mouse interactions
     ProjectionControl proj = (ProjectionControl)
       display.getControl(ProjectionControl.prototype.getClass());
     mouse = new MouseBehavior(proj);
@@ -113,6 +113,25 @@ public abstract class DisplayRenderer extends Object {
     mouse.setSchedulingBounds(bounds);
     // second child of trnas
     trans.addChild(mouse);
+
+    // create ambient light
+    Color3f color = new Color3f(0.1f, 0.1f, 0.1f);
+    AmbientLight light = new AmbientLight(color);
+    light.setInfluencingBounds(bounds);
+    root.addChild(light);
+
+    // create directional lights
+    Color3f dcolor = new Color3f(0.3f, 0.3f, 0.3f);
+    Vector3f direction1 = new Vector3f(0.0f, 0.0f, 1.0f);
+    Vector3f direction2 = new Vector3f(0.0f, 0.0f, -1.0f);
+    DirectionalLight light1 =
+      new DirectionalLight(true, dcolor, direction1);
+    light1.setInfluencingBounds(bounds);
+    DirectionalLight light2 =
+      new DirectionalLight(true, dcolor, direction2);
+    light2.setInfluencingBounds(bounds);
+    root.addChild(light1);
+    root.addChild(light2);
  
     return root;
   }

@@ -30,17 +30,25 @@ package visad;
 */
 public class ContourControl extends Control {
 
-  private boolean HorizontalContourSlice;
-  private boolean VerticalContourSlice;
-  private boolean ContourSuface;
+  private boolean mainContours;
+  // for 3-D mainContours
+  private float surfaceValue;
+  // for 2-D mainContours
+  private float contourInterval;
+  private float lowLimit;
+  private float hiLimit;
+  private float base;
+  private boolean labels;
 
-  private double SurfaceValue;
-  private double HorizontalSliceLow;
-  private double HorizontalSliceHi;
-  private double HorizontalSliceStep;
-  private double VerticalSliceLow;
-  private double VerticalSliceHi;
-  private double VerticalSliceStep;
+  private boolean horizontalContourSlice;
+  private boolean verticalContourSlice;
+
+  private float horizontalSliceLow;
+  private float horizontalSliceHi;
+  private float horizontalSliceStep;
+  private float verticalSliceLow;
+  private float verticalSliceHi;
+  private float verticalSliceStep;
 
   static final ContourControl prototype = new ContourControl();
 
@@ -52,19 +60,57 @@ public class ContourControl extends Control {
     this(null);
   }
 
+  public void setMainContours(boolean[] bvalues, float[] fvalues)
+         throws VisADException {
+    if (fvalues == null || fvalues.length != 5 ||
+        bvalues == null || bvalues.length != 2) {
+      throw new DisplayException("ContourControl.getMainContours: " +
+                                 "bad array length");
+    }
+    mainContours = bvalues[0];
+    labels = bvalues[1];
+    surfaceValue = fvalues[0];
+    contourInterval = fvalues[1];
+    lowLimit = fvalues[2];
+    hiLimit = fvalues[3];
+    base = fvalues[4];
+    changeControl();
+  }
+
+  public void getMainContours(boolean[] bvalues, float[] fvalues)
+         throws VisADException {
+    if (fvalues == null || fvalues.length != 5 ||
+        bvalues == null || bvalues.length != 2) {
+      throw new DisplayException("ContourControl.getMainContours: " +
+                                 "bad array length");
+    }
+    bvalues[0] = mainContours;
+    bvalues[1] = labels;
+    fvalues[0] = surfaceValue;
+    fvalues[1] = contourInterval;
+    fvalues[2] = lowLimit;
+    fvalues[3] = hiLimit;
+    fvalues[4] = base;
+  }
+
   public Control cloneButContents(DisplayImpl d) {
     ContourControl control = new ContourControl(d);
-    control.HorizontalContourSlice = false;
-    control.VerticalContourSlice = false;
-    control.ContourSuface = false;
+    control.mainContours = true;
+    control.surfaceValue = 0.0f;
+    control.contourInterval = 0.0f;
+    control.lowLimit = 0.0f;
+    control.hiLimit = 0.0f;
+    control.base = 0.0f;
 
-    control.SurfaceValue = 0.0;
-    control.HorizontalSliceLow = 0.0;
-    control.HorizontalSliceHi = 0.0;
-    control.HorizontalSliceStep = 1.0;
-    control.VerticalSliceLow = 0.0;
-    control.VerticalSliceHi = 0.0;
-    control.VerticalSliceStep = 1.0;
+    control.horizontalContourSlice = false;
+    control.verticalContourSlice = false;
+
+    control.horizontalSliceLow = 0.0f;
+    control.horizontalSliceHi = 0.0f;
+    control.horizontalSliceStep = 1.0f;
+    control.verticalSliceLow = 0.0f;
+    control.verticalSliceHi = 0.0f;
+    control.verticalSliceStep = 1.0f;
 
     return control;
   }

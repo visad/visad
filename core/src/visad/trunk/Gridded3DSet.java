@@ -354,10 +354,69 @@ public class Gridded3DSet extends GriddedSet {
     if (grid.length != ManifoldDimension) {
       throw new SetException("Gridded3DSet.gridToValue: bad dimension");
     }
-    if (ManifoldDimension < 3) {
-      throw new SetException("Gridded3DSet.gridToValue: ManifoldDimension " +
-                             "must be 3");
+    if (ManifoldDimension == 3) {
+      return gridToValue3D(grid);
     }
+    else if (ManifoldDimension == 2) {
+      return gridToValue2D(grid);
+    }
+    else {
+      throw new SetException("Gridded3DSet.gridToValue: ManifoldDimension " +
+                             "must be 2 or 3");
+    }
+  }
+
+  private float[][] gridToValue2D(float[][] grid) throws VisADException {
+    if (Lengths[0] < 2 || Lengths[1] < 2) {
+      throw new SetException("Gridded3DSet.gridToValue: requires all grid " +
+                             "dimensions to be > 1");
+    }
+    // avoid any ArrayOutOfBounds exceptions by taking the shortest length
+    int length = Math.min(grid[0].length, grid[1].length);
+    float[][] value = new float[3][length];
+    for (int i=0; i<length; i++) {
+      // let gx and gy by the current grid values
+      float gx = grid[0][i];
+      float gy = grid[1][i];
+      if ( (gx < -0.5)        || (gy < -0.5) ||
+           (gx > LengthX-0.5) || (gy > LengthY-0.5) ) {
+        value[0][i] = value[1][i] = value[2][i] = Float.NaN;
+        continue;
+      }
+      // calculate closest integer variables
+      int igx = (int) gx;
+      int igy = (int) gy;
+      if (igx < 0) igx = 0;
+      if (igx > LengthX-2) igx = LengthX-2;
+      if (igy < 0) igy = 0;
+      if (igy > LengthY-2) igy = LengthY-2;
+ 
+      // set up conversion to 1D Samples array
+      int[][] s = { {LengthX*igy+igx,           // (0, 0)
+                     LengthX*(igy+1)+igx},      // (0, 1)
+                    {LengthX*igy+igx+1,         // (1, 0)
+                     LengthX*(igy+1)+igx+1} };  // (1, 1)
+      if (gx+gy-igx-igy-1 <= 0) {
+        // point is in LOWER triangle
+        for (int j=0; j<3; j++) {
+          value[j][i] = Samples[j][s[0][0]]
+            + (gx-igx)*(Samples[j][s[1][0]]-Samples[j][s[0][0]])
+            + (gy-igy)*(Samples[j][s[0][1]]-Samples[j][s[0][0]]);
+        }
+      }
+      else {
+        // point is in UPPER triangle
+        for (int j=0; j<3; j++) {
+          value[j][i] = Samples[j][s[1][1]]
+            + (1+igx-gx)*(Samples[j][s[0][1]]-Samples[j][s[1][1]])
+            + (1+igy-gy)*(Samples[j][s[1][0]]-Samples[j][s[1][1]]);
+        }
+      }
+    }
+    return value;
+  }
+
+  private float[][] gridToValue3D(float[][] grid) throws VisADException {
     if (Lengths[0] < 2 || Lengths[1] < 2 || Lengths[2] < 2) {
       throw new SetException("Gridded3DSet.gridToValue: requires all grid " +
                              "dimensions to be > 1");
@@ -1301,6 +1360,122 @@ public class Gridded3DSet extends GriddedSet {
     return grid;
   }
 
+  public VisADGeometryArray[] makeIsoLines(float interval,
+                  float lowlimit, float highlimit, float base,
+                  float[] fieldValues, float[][] color_values)
+         throws VisADException {
+    if (ManifoldDimension != 2) {
+      throw new SetException("Gridded3DSet.makeIsoLines: " +
+                             "ManifoldDimension must be 2");
+    }
+
+    int nr = LengthX;
+    int nc = LengthY;
+    float[] g = fieldValues;
+
+    // these are just estimates
+    int maxv1 = 2 * 2 * Length;
+    int maxv2 = Length;
+    // maxv3 and maxv4 should be equal
+    int maxv3 = Length;
+    int maxv4 = maxv3;
+
+    int color_length = (color_values != null) ? color_values.length : 0;
+    float[][] color_levels1 = null;
+    float[][] color_levels2 = null;
+    if (color_length > 0) {
+      color_levels1 = new float[color_length][maxv1];
+      color_levels2 = new float[color_length][maxv2];
+    }
+    float[] vx1 = new float[maxv1];
+    float[] vy1 = new float[maxv1];
+    float[] vx2 = new float[maxv2];
+    float[] vy2 = new float[maxv2];
+    float[] vx3 = new float[maxv3];
+    float[] vy3 = new float[maxv3];
+    float[] vx4 = new float[maxv4];
+    float[] vy4 = new float[maxv4];
+    int[] numv1 = new int[1];
+    int[] numv2 = new int[1];
+    int[] numv3 = new int[1];
+    int[] numv4 = new int[1];
+
+    Contour2D.contour( g, nr, nc, interval, lowlimit, highlimit, base,
+                      vx1, vy1,  maxv1, numv1, vx2, vy2,  maxv2, numv2,
+                      vx3, vy3,  maxv3, numv3, vx4, vy4,  maxv4, numv4,
+                      color_values, color_levels1, color_levels2 );
+    float[][] grid1 = new float[2][numv1[0]];
+    System.arraycopy(vx1, 0, grid1[0], 0, numv1[0]);
+    vx1 = null;
+    System.arraycopy(vy1, 0, grid1[1], 0, numv1[0]);
+    vy1 = null;
+    if (color_length > 0) {
+      float[][] a = new float[color_length][numv1[0]];
+      for (int i=0; i<color_length; i++) {
+        System.arraycopy(color_levels1[i], 0, a[i], 0, numv1[0]);
+      }
+      color_levels1 = a;
+    }
+
+    float[][] grid2 = new float[2][numv2[0]];
+    System.arraycopy(vx2, 0, grid2[0], 0, numv2[0]);
+    vx2 = null;
+    System.arraycopy(vy2, 0, grid2[1], 0, numv2[0]);
+    vy2 = null;
+    if (color_length > 0) {
+      float[][] a = new float[color_length][numv2[0]];
+      for (int i=0; i<color_length; i++) {
+        System.arraycopy(color_levels2[i], 0, a[i], 0, numv2[0]);
+      }
+      color_levels2 = a;
+    }
+
+    // temporary label orientation hack
+    // TO_DO - eventually return all 4 label orientations
+    // and have ProjectionControl switch among them
+    boolean backwards = false;
+    boolean upsidedown = false;
+    float[] vx = null;
+    float[] vy = null;
+    if (backwards) {
+      vy = vy4;
+    }
+    else {
+      vy = vy3;
+    }
+    vy3 = null;
+    vy4 = null;
+    if (upsidedown) {
+      vx = vx4;
+    }
+    else {
+      vx = vx3;
+    }
+    vx3 = null;
+    vx4 = null;
+
+    float[][] grid_label = new float[2][numv3[0]];
+    System.arraycopy(vx, 0, grid_label[0], 0, numv3[0]);
+    System.arraycopy(vy, 0, grid_label[1], 0, numv3[0]);
+
+    VisADGeometryArray[] arrays = new VisADGeometryArray[3];
+    arrays[0] = new VisADLineArray();
+    setGeometryArray(arrays[0], gridToValue(grid1), 3, color_levels1);
+    grid1 = null;
+    color_levels1 = null;
+
+    arrays[1] = new VisADLineArray();
+    setGeometryArray(arrays[1], gridToValue(grid2), 3, color_levels2);
+    grid2 = null;
+    color_levels2 = null;
+
+    arrays[2] = new VisADLineArray();
+    setGeometryArray(arrays[2], gridToValue(grid_label), 0, null);
+    grid_label = null;
+
+    return arrays;
+  }
+
   /** constants for isosurface, etc */
   static final int BIG_NEG = (int) -2e+9;
   static final float EPS_0 = (float) 1.0e-5;
@@ -1711,13 +1886,6 @@ public class Gridded3DSet extends GriddedSet {
   public VisADGeometryArray makeIsoSurface(float isolevel,
                             float[] fieldValues, float[][] color_values)
          throws VisADException {
-/* WLH 1 Nov 97
-  public void main_isosurf(float isolevel, float[] fieldValues,
-                           float[][] auxValues, float[][] fieldVertices,
-                           float[][] auxLevels, int[][] Tri_Stripe)
-         throws VisADException {
-*/
-
     boolean debug = false;
 
     int      i, NVT, cnt;
@@ -1728,7 +1896,7 @@ public class Gridded3DSet extends GriddedSet {
     int nvertex_estimate;
 
     if (ManifoldDimension != 3) {
-      throw new SetException("Gridded3DSet.main_isosurf: " +
+      throw new SetException("Gridded3DSet.makeIsoSurface: " +
                              "ManifoldDimension must be 3");
     }
 
@@ -1764,7 +1932,10 @@ public class Gridded3DSet extends GriddedSet {
     float[] VY = new float[nvertex_estimate];
     float[] VZ = new float[nvertex_estimate];
 
-    float[][] color_temps = new float[color_values.length][nvertex_estimate];
+    float[][] color_temps = null;
+    if (color_values != null) {
+      color_temps = new float[color_values.length][nvertex_estimate];
+    }
 
     int[] Pol_f_Vert = new int[ix];
     int[] Vert_f_Pol = new int[iy];
@@ -1787,12 +1958,15 @@ public class Gridded3DSet extends GriddedSet {
     VY = null;
     VZ = null;
 
-    float[][] color_levels = new float[color_values.length][nvertex];
-    System.arraycopy(color_temps[0], 0, color_levels[0], 0, nvertex);
-    System.arraycopy(color_temps[1], 0, color_levels[1], 0, nvertex);
-    System.arraycopy(color_temps[2], 0, color_levels[2], 0, nvertex);
-    // take the garbage out
-    color_temps = null;
+    float[][] color_levels = null;
+    if (color_values != null) {
+      color_levels = new float[color_values.length][nvertex];
+      System.arraycopy(color_temps[0], 0, color_levels[0], 0, nvertex);
+      System.arraycopy(color_temps[1], 0, color_levels[1], 0, nvertex);
+      System.arraycopy(color_temps[2], 0, color_levels[2], 0, nvertex);
+      // take the garbage out
+      color_temps = null;
+    }
 
     if (debug) System.out.println("nvertex= "+nvertex);
 
@@ -1857,7 +2031,7 @@ public class Gridded3DSet extends GriddedSet {
     fieldVertices = null;
     color_levels = null;
 
-    array.VertexFormat |= GeometryArray.NORMALS;
+    array.vertexFormat |= GeometryArray.NORMALS;
     array.normals = normals;
 
     if (debug) {
@@ -3211,19 +3385,74 @@ public class Gridded3DSet extends GriddedSet {
     array.indexCount = (LengthY - 1) * (2 * LengthX);
     int[] indices = new int[array.indexCount];
     array.stripVertexCounts = new int[LengthY - 1];
-    int j = 0;
+    int k = 0;
     for (int i=0; i<LengthY-1; i++) {
       int m = i * LengthX;
       array.stripVertexCounts[i] = 2 * LengthX;
-      for (int k=0; k<LengthX; k++) {
-        indices[j++] = m;
-        indices[j++] = m + LengthX;
+      for (int j=0; j<LengthX; j++) {
+        indices[k++] = m;
+        indices[k++] = m + LengthX;
         m++;
       }
     }
     array.indices = indices;
+    // take the garbage out
+    indices = null;
+
     // set coordinates and colors
     setGeometryArray(array, 4, color_values);
+
+    // calculate normals
+    float[] coordinates = array.coordinates;
+    float[] normals = new float[3 * Length];
+    k = 0;
+    int ki, kj;
+    int LengthX3 = 3 * LengthX;
+    for (int i=0; i<LengthY; i++) {
+      for (int j=0; j<LengthX; j++) {
+        float c0 = coordinates[k];
+        float c1 = coordinates[k+1];
+        float c2 = coordinates[k+2];
+        float n0 = 0.0f;
+        float n1 = 0.0f;
+        float n2 = 0.0f;
+        float n, m, m0, m1, m2;
+        for (int ip = -1; ip<=1; ip += 2) {
+          for (int jp = -1; jp<=1; jp += 2) {
+            int ii = i + ip;
+            int jj = j + jp;
+            if (0 <= ii && ii < LengthY && 0 <= jj && jj < LengthX) {
+              ki = k + ip * LengthX3;
+              kj = k + jp * 3;
+              m0 = (coordinates[kj+2] - c2) * (coordinates[ki+1] - c1) -
+                   (coordinates[kj+1] - c1) * (coordinates[ki+2] - c2);
+              m1 = (coordinates[kj] - c0) * (coordinates[ki+2] - c2) -
+                   (coordinates[kj+2] - c2) * (coordinates[ki] - c0);
+              m2 = (coordinates[kj+1] - c1) * (coordinates[ki] - c0) -
+                   (coordinates[kj] - c0) * (coordinates[ki+1] - c1);
+              m = (float) Math.sqrt(m0 * m0 + m1 * m1 + m2 * m2);
+              if (ip == jp) {
+                n0 += m0 / m;
+                n1 += m1 / m;
+                n2 += m2 / m;
+              }
+              else {
+                n0 -= m0 / m;
+                n1 -= m1 / m;
+                n2 -= m2 / m;
+              }
+            }
+          }
+        }
+        n = (float) Math.sqrt(n0 * n0 + n1 * n1 + n2 * n2);
+        normals[k] = n0 / n;
+        normals[k+1] = n1 / n;
+        normals[k+2] = n2 / n;
+        k += 3;
+      } // end for (int j=0; j<LengthX; j++)
+    } // end for (int i=0; i<LengthY; i++)
+    array.vertexFormat |= GeometryArray.NORMALS;
+    array.normals = normals;
     return array;
   }
 

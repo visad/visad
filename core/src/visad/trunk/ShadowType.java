@@ -562,12 +562,23 @@ public abstract class ShadowType extends Object
   /** construct a default Appearance object according to mode */
   public static Appearance makeDefaultAppearance(GraphicsModeControl mode) {
     Appearance appearance = new Appearance();
+
     LineAttributes line = new LineAttributes();
     line.setLineWidth(mode.getLineWidth());
     appearance.setLineAttributes(line);
+
     PointAttributes point = new PointAttributes();
     point.setPointSize(mode.getPointSize());
     appearance.setPointAttributes(point);
+
+    PolygonAttributes polygon = new PolygonAttributes();
+    polygon.setCullFace(PolygonAttributes.CULL_NONE);
+    appearance.setPolygonAttributes(polygon);
+
+    Material material = new Material();
+    material.setLightingEnable(true);
+    appearance.setMaterial(material);
+
     return appearance;
   }
 
@@ -578,16 +589,19 @@ public abstract class ShadowType extends Object
                 float[][] display_values, int valueArrayLength,
                 int[] valueToScalar, DisplayImpl display,
                 float[] default_values, int[] inherited_values,
-                Set domain_set, boolean allSpatial, boolean set_needed)
+                Set domain_set, boolean allSpatial, boolean contour_or_flow,
+                boolean pointMode, int[] spatialDimensions)
          throws VisADException, RemoteException {
     Set spatial_set = null;
-    DisplayTupleType spatial_tuple = null;
+    DisplayTupleType spatialTuple = null;
     // number of spatial samples, default is 1
     int len = 1;
     // number of non-inherited spatial dimensions
     int spatialDimension = 0;
     // temporary holder non-inherited for tuple_index values
     int[] tuple_indices = new int[3];
+    spatialDimensions[0] = 0;
+    spatialDimensions[1] = 0;
 
     for (int i=0; i<valueArrayLength; i++) {
       if (display_values[i] != null) {
@@ -599,14 +613,15 @@ public abstract class ShadowType extends Object
              (tuple.getCoordinateSystem() != null &&
               tuple.getCoordinateSystem().getReference().equals(
               Display.DisplaySpatialCartesianTuple)))) {
-          if (spatial_tuple != null && !spatial_tuple.equals(tuple)) {
+          if (spatialTuple != null && !spatialTuple.equals(tuple)) {
             throw new DisplayException("ShadowFunctionType.assembleSpatial: " +
                                        "multiple spatial display tuples");
           }
-          spatial_tuple = tuple;
+          spatialTuple = tuple;
           int tuple_index = real.getTupleIndex();
           spatial_values[tuple_index] = display_values[i];
           len = Math.max(len, display_values[i].length);
+          spatialDimensions[0]++;
           if (inherited_values[i] == 0) {
             // don't count inherited spatial dimensions
             tuple_indices[spatialDimension] = tuple_index;
@@ -615,46 +630,60 @@ public abstract class ShadowType extends Object
         }
       } // end if (display_values[i] != null)
     } // end for (int i=0; i<valueArrayLength; i++)
-    if (spatialDimension == 0) { // i.e., (spatial_tuple == null)
+    if (spatialDimension == 0) {
       // len = 1 in this case
-      spatial_tuple = Display.DisplaySpatialCartesianTuple;
+      spatialTuple = Display.DisplaySpatialCartesianTuple;
+      spatialDimensions[1] = 0;
     }
-    else if (!allSpatial && set_needed) {
-      // cannot inherit Set topology from Field domain, so
-      // construct IrregularSet topology of appropriate dimension
-      RealType[] reals = new RealType[spatialDimension];
-      float[][] samples = new float[spatialDimension][];
-      for (int i=0; i<spatialDimension; i++) {
-        reals[i] = RealType.Generic;
-        samples[i] = spatial_values[tuple_indices[i]];
-      }
-      RealTupleType tuple_type = new RealTupleType(reals);
-System.out.println("make IrregularSet, dimension = " + spatialDimension +
-                   " # samples = " + len);
-      // MEM
-      switch (spatialDimension) {
-        case 1:
-          domain_set =
-            new Irregular1DSet(tuple_type, samples, null, null, null, false);
-          break;
-        case 2:
-          domain_set =
-            new Irregular2DSet(tuple_type, samples, null, null, null, false);
-          break;
-        case 3:
-          domain_set =
-            new Irregular3DSet(tuple_type, samples, null, null, null, false);
-          break;
-      }
-System.out.println("IrregularSet done");
+    else if (!allSpatial) {
+      spatialDimensions[1] = spatialDimension;
+      if (contour_or_flow || spatialDimensions[0] < 3) {
+        // cannot inherit Set topology from Field domain, so
+        // construct IrregularSet topology of appropriate dimension
+        RealType[] reals = new RealType[spatialDimension];
+        float[][] samples = new float[spatialDimension][];
+        for (int i=0; i<spatialDimension; i++) {
+          reals[i] = RealType.Generic;
+          samples[i] = spatial_values[tuple_indices[i]];
+        }
+        RealTupleType tuple_type = new RealTupleType(reals);
+        System.out.println("make IrregularSet, dimension = " + spatialDimension +
+                           " # samples = " + len);
+        // MEM
+        switch (spatialDimension) {
+          case 1:
+            domain_set =
+              new Irregular1DSet(tuple_type, samples, null, null, null, false);
+            break;
+          case 2:
+            domain_set =
+              new Irregular2DSet(tuple_type, samples, null, null, null, false);
+            break;
+          case 3:
+            domain_set =
+              new Irregular3DSet(tuple_type, samples, null, null, null, false);
+            break;
+        }
+        System.out.println("IrregularSet done");
+      } // end if (contour_or_flow)
     }
+    else {
+      spatialDimensions[1] = domain_set.getManifoldDimension();
+    }
+    //
+    // need a spatial Set for contour, flow
+    // or spatial ManifoldDimension < 3
+    // NOTE - 3-D volume rendering may eventually need a spatial Set
+    //
+    boolean set_needed = (contour_or_flow || spatialDimensions[1] < 3);
+
     for (int i=0; i<3; i++) {
       if (spatial_values[i] == null) {
         // fill any null spatial value arrays with default values
         // MEM
         spatial_values[i] = new float[len];
         int default_index = display.getDisplayScalarIndex(
-          ((DisplayRealType) spatial_tuple.getComponent(i)) );
+          ((DisplayRealType) spatialTuple.getComponent(i)) );
         float default_value = default_values[default_index];
         for (int j=0; j<len; j++) spatial_values[i][j] = (float) default_value;
       }
@@ -666,9 +695,9 @@ System.out.println("IrregularSet done");
         for (int j=0; j<len; j++) spatial_values[i][j] = v;
       }
     } // end (int i=0; i<3; i++)
-    if (!spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
+    if (!spatialTuple.equals(Display.DisplaySpatialCartesianTuple)) {
       // transform tuple_values to DisplaySpatialCartesianTuple
-      CoordinateSystem coord = spatial_tuple.getCoordinateSystem();
+      CoordinateSystem coord = spatialTuple.getCoordinateSystem();
       spatial_values = coord.toReference(spatial_values);
     }
     if (set_needed) {
@@ -770,7 +799,7 @@ System.out.println("IrregularSet done");
         if (!color_tuple.equals(Display.DisplayRGBTuple)) {
           // equalize all rgba_values[index] to same length
           // and fill with default values
-          equalizeAndDefault(rgba_values, display, color_tuple, default_values);
+          equalizeAndDefault(tuple_values, display, color_tuple, default_values);
           // transform tuple_values to DisplayRGBTuple
           CoordinateSystem coord = color_tuple.getCoordinateSystem();
           tuple_values = coord.toReference(tuple_values);
@@ -897,11 +926,10 @@ System.out.println("IrregularSet done");
   static void equalizeAndDefault(float[][] tuple_values, DisplayImpl display,
                                  DisplayTupleType tuple, float[] default_values)
          throws VisADException {
-    int len = 1;
     int nindex = tuple_values.length;
+    // fill any empty tuple_values[index] with default values
     for (int index=0; index<nindex; index++) {
       if (tuple_values[index] == null) {
-        // fill tuple_values[index] with default values
         tuple_values[index] = new float[1];
         int default_index = (index < 3) ?
                             display.getDisplayScalarIndex(
@@ -911,10 +939,13 @@ System.out.println("IrregularSet done");
 System.out.println("default color " + index + " is " + default_values[default_index]);
       }
     }
+    // compute maximum length of tuple_values[index]
+    int len = 1;
     for (int index=0; index<nindex; index++) {
       len = Math.max(len, tuple_values[index].length);
     }
-    for (int index=0; index<nindex; index++) {
+    // entend any tuple_values[index], except Alpha, to maximum length
+    for (int index=0; index<3; index++) {
       int t_len = tuple_values[index].length;
       if (len > t_len) {
         if (t_len != 1) {

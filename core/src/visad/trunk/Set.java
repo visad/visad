@@ -56,12 +56,15 @@ public abstract class Set extends DataImpl {
 
   /** caches of Set-s that return false and true to equals();
       useful for GriddedSet and other Set subclasses which have
-      expensive equals tests */
+      expensive equals tests;
+      WLH 6 Nov 97 - don't use these. they hinder garbage collection
+      and won't accomplish much practical
   private static final int CACHE_LENGTH = 10;
   private Set[] NotEqualsCache;
   private int LastNotEquals;
   private Set[] EqualsCache;
   private int LastEquals;
+*/
 
   /** construct a Set object */
   public Set(MathType type) throws VisADException {
@@ -79,6 +82,7 @@ public abstract class Set extends DataImpl {
   public Set(MathType type, CoordinateSystem coord_sys, Unit[] units,
              ErrorEstimate[] errors) throws VisADException {
     super(adjustType(type));
+    Length = 0;
     DomainDimension = getDimension(type);
     RealTupleType DomainType = ((SetType) Type).getDomain();
     CoordinateSystem cs = DomainType.getCoordinateSystem();
@@ -173,6 +177,11 @@ public abstract class Set extends DataImpl {
 
   /** get DomainDimension (i.e., this is a subset of R^DomainDimension) */
   public int getDimension() {
+    return DomainDimension;
+  }
+
+  /** for non-SimpleSet, ManifoldDimension = DomainDimension */
+  public int getManifoldDimension() {
     return DomainDimension;
   }
 
@@ -323,6 +332,12 @@ public abstract class Set extends DataImpl {
     throw new SetException("Set.makeIsoSurface: not valid for this Set");
   }
 
+  public VisADGeometryArray[] makeIsoLines(float interval, float low,
+                      float hi, float base, float[] fieldValues,
+                      float[][] color_values) throws VisADException {
+    throw new SetException("Set.makeIsoLines: not valid for this Set");
+  }
+
   public static double[][] floatToDouble(float[][] value) {
     if (value == null) return null;
     double[][] val = new double[value.length][];
@@ -359,15 +374,18 @@ public abstract class Set extends DataImpl {
 
   /** test set against a cache of Set-s not equal to this */
   public boolean testNotEqualsCache(Set set) {
+/* WLH 6 Nov 97
     if (NotEqualsCache == null || set == null) return false;
     for (int i=0; i<CACHE_LENGTH; i++) {
       if (set == NotEqualsCache[i]) return true;
     }
+*/
     return false;
   }
 
   /** add set to a cache of Set-s not equal to this */
   public void addNotEqualsCache(Set set) {
+/* WLH 6 Nov 97
     if (NotEqualsCache == null) {
       NotEqualsCache = new Set[CACHE_LENGTH];
       for (int i=0; i<CACHE_LENGTH; i++) NotEqualsCache[i] = null;
@@ -375,19 +393,23 @@ public abstract class Set extends DataImpl {
     }
     NotEqualsCache[LastNotEquals] = set;
     LastNotEquals = (LastNotEquals + 1) % CACHE_LENGTH;
+*/
   }
 
   /** test set against a cache of Set-s equal to this */
   public boolean testEqualsCache(Set set) {
+/* WLH 6 Nov 97
     if (EqualsCache == null || set == null) return false;
     for (int i=0; i<CACHE_LENGTH; i++) {
       if (set == EqualsCache[i]) return true;
     }
+*/
     return false;
   }
 
   /** add set to a cache of Set-s equal to this */
   public void addEqualsCache(Set set) {
+/* WLH 6 Nov 97
     if (EqualsCache == null) {
       EqualsCache = new Set[CACHE_LENGTH];
       for (int i=0; i<CACHE_LENGTH; i++) EqualsCache[i] = null;
@@ -395,6 +417,7 @@ public abstract class Set extends DataImpl {
     }
     EqualsCache[LastEquals] = set;
     LastEquals = (LastEquals + 1) % CACHE_LENGTH;
+*/
   }
 
   /** test equality of SetUnits and DomainCoordinateSystem

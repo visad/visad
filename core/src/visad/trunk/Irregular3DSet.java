@@ -490,7 +490,7 @@ public class Irregular3DSet extends IrregularSet {
     fieldVertices = null;
     color_levels = null;
  
-    array.VertexFormat |= GeometryArray.NORMALS;
+    array.vertexFormat |= GeometryArray.NORMALS;
     array.normals = normals;
 
     return array;
@@ -1741,9 +1741,45 @@ public class Irregular3DSet extends IrregularSet {
     int nvertex = Delan.Vertices.length;
     if (npolygons < 1 || nvertex < 3) return null;
 
+    float[][] samples = getSamples(false);
+    float[] NxA = new float[npolygons];
+    float[] NxB = new float[npolygons];
+    float[] NyA = new float[npolygons];
+    float[] NyB = new float[npolygons];
+    float[] NzA = new float[npolygons];
+    float[] NzB = new float[npolygons];
+    float[] Pnx = new float[npolygons];
+    float[] Pny = new float[npolygons];
+    float[] Pnz = new float[npolygons];
+    float[] NX = new float[nvertex];
+    float[] NY = new float[nvertex];
+    float[] NZ = new float[nvertex];
+
+    make_normals(samples[0], samples[1], samples[2],
+                 NX, NY, NZ, nvertex, npolygons, Pnx, Pny, Pnz,
+                 NxA, NxB, NyA, NyB, NzA, NzB, Delan.Vertices, Delan.Tri);
+
+    // take the garbage out
+    NxA = NxB = NyA = NyB = NzA = NzB = Pnx = Pny = Pnz = null;
+ 
+    float[] normals = new float[3 * nvertex];
+    int j = 0;
+    for (int i=0; i<nvertex; i++) {
+      normals[j++] = (float) NX[i];
+      normals[j++] = (float) NY[i];
+      normals[j++] = (float) NZ[i];
+    }
+    // take the garbage out
+    NX = NY = NZ = null;
+
     VisADIndexedTriangleStripArray array =
       new VisADIndexedTriangleStripArray();
  
+    array.vertexFormat |= GeometryArray.NORMALS;
+    array.normals = normals;
+    // take the garbage out
+    normals = null;
+
     // temporary array to hold maximum possible polytriangle strip
     int[] stripe = new int[6 * npolygons];
     int size_stripe =
@@ -1756,9 +1792,14 @@ public class Irregular3DSet extends IrregularSet {
     System.arraycopy(stripe, 0, array.indices, 0, size_stripe);
     array.stripVertexCounts = new int[1];
     array.stripVertexCounts[0] = size_stripe;
+    // take the garbage out
+    stripe = null;
 
     // set coordinates and colors
-    setGeometryArray(array, 4, color_values);
+    setGeometryArray(array, samples, 4, color_values);
+    // take the garbage out
+    samples = null;
+
     return array;
   }
 

@@ -40,6 +40,7 @@ public class GraphicsModeControl extends Control {
   private float lineWidth;
   private float pointSize;
   private boolean pointMode;
+  private int transparencyMode;
 
   static final GraphicsModeControl prototype = new GraphicsModeControl();
 
@@ -48,6 +49,7 @@ public class GraphicsModeControl extends Control {
     lineWidth = 1.0f;
     pointSize = 1.0f;
     pointMode = false;
+    transparencyMode = TransparencyAttributes.SCREEN_DOOR;
   }
  
   GraphicsModeControl() {
@@ -79,6 +81,25 @@ public class GraphicsModeControl extends Control {
   public void setPointMode(boolean mode) {
     pointMode = mode;
     changeControl();
+  }
+
+  public int getTransparencyMode() {
+    return transparencyMode;
+  }
+
+  public void setTransparencyMode(int mode) throws VisADException {
+    if (mode == TransparencyAttributes.SCREEN_DOOR ||
+        mode == TransparencyAttributes.BLENDED ||
+        mode == TransparencyAttributes.NONE ||
+        mode == TransparencyAttributes.FASTEST ||
+        mode == TransparencyAttributes.NICEST) {
+      transparencyMode = mode;
+      changeControl();
+    }
+    else {
+      throw new DisplayException("GraphicsModeControl." +
+                                 "setTransparencyMode: bad mode");
+    }
   }
 
   public Control cloneButContents(DisplayImpl d) {

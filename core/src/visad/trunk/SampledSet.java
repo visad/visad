@@ -46,15 +46,19 @@ public abstract class SampledSet extends SimpleSet {
                    ErrorEstimate[] errors)
          throws VisADException {
     super(type, manifold_dimension, coord_sys, units, errors);
+    Low = new float[DomainDimension];
+    Hi = new float[DomainDimension];
   }
 
   public SampledSet(MathType type) throws VisADException {
-    super(type);
+    this(type, null, null, null);
   }
 
   public SampledSet(MathType type, CoordinateSystem coord_sys, Unit[] units,
                    ErrorEstimate[] errors) throws VisADException {
     super(type, coord_sys, units, errors);
+    Low = new float[DomainDimension];
+    Hi = new float[DomainDimension];
   }
 
   void init_samples(float[][] samples) throws VisADException {
@@ -67,7 +71,7 @@ public abstract class SampledSet extends SimpleSet {
       throw new SetException("GriddedSet.init_samples: " +
                              "dimensions don't match");
     }
-    if (this instanceof IrregularSet) {
+    if (Length == 0) {
       // Length set in init_lengths, but not called for IrregularSet
       Length = samples[0].length;
     }
@@ -241,12 +245,15 @@ public abstract class SampledSet extends SimpleSet {
     return array;
   }
 
+  /** copy and transpose Samples (from this Set( and color_values
+      into array; if color_length == 3 don't use color_values[3] */
   void setGeometryArray(VisADGeometryArray array, int color_length,
                         float[][] color_values) throws VisADException {
-    float[][] samples = (Samples == null) ? getSamples() : Samples;
-    setGeometryArray(array, samples, color_length, color_values);
+    setGeometryArray(array, getSamples(false), color_length, color_values);
   }
 
+  /** copy and transpose samples and color_values into array;
+      if color_length == 3 don't use color_values[3] */
   static void setGeometryArray(VisADGeometryArray array, float[][] samples,
                                int color_length, float[][] color_values)
        throws VisADException {
@@ -265,8 +272,9 @@ public abstract class SampledSet extends SimpleSet {
       coordinates[j++] = (float) samples[2][i];
     }
     array.coordinates = coordinates;
-    array.VertexFormat = GeometryArray.COORDINATES;
+    array.vertexFormat |= GeometryArray.COORDINATES;
     if (color_values != null) {
+      color_length = Math.min(color_length, color_values.length);
       // MEM
       float[] colors = new float[color_length * len];
       j = 0;
@@ -275,9 +283,9 @@ public abstract class SampledSet extends SimpleSet {
           colors[j++] = (float) color_values[0][i];
           colors[j++] = (float) color_values[1][i];
           colors[j++] = (float) color_values[2][i];
-          colors[j++] = (float) color_values[4][i];
+          colors[j++] = (float) color_values[3][i];
         }
-        array.VertexFormat |= GeometryArray.COLOR_4;
+        array.vertexFormat |= GeometryArray.COLOR_4;
       }
       else if (color_length == 3) {
         for (int i=0; i<len; i++) {
@@ -285,7 +293,7 @@ public abstract class SampledSet extends SimpleSet {
           colors[j++] = (float) color_values[1][i];
           colors[j++] = (float) color_values[2][i];
         }
-        array.VertexFormat |= GeometryArray.COLOR_3;
+        array.vertexFormat |= GeometryArray.COLOR_3;
       }
       else {
         throw new SetException("SampledSet.setGeometryArray: " +

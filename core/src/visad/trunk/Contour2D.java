@@ -40,7 +40,7 @@ public class Contour2D extends Applet implements MouseListener {
   protected boolean showgrid;
   protected int rows, cols, scale;
   protected int[] num1, num2, num3, num4;
-  protected double[] vx1, vy1, vx2, vy2, vx3, vy3, vx4, vy4;
+  protected float[] vx1, vy1, vx2, vy2, vx3, vy3, vx4, vy4;
 
   /*
    * Compute contour lines for a 2-D array.  If the interval is negative,
@@ -69,30 +69,53 @@ public class Contour2D extends Applet implements MouseListener {
    *                    ** see note for VxB and VyB in PlotDigits.java **
    *         maxv4 - size of vx4, vy4 arrays
    *         numv4 - pointer to int to return number of vertices in vx4,vy4
-   * Return:  1 = ok
-   *          0 = error  (interval==0.0)
    */
-  public int contour( double g[], int nr, int nc, double interval,
-                      double lowlimit, double highlimit, double base,
-                      double vx1[], double vy1[],  int maxv1, int[] numv1,
-                      double vx2[], double vy2[],  int maxv2, int[] numv2,
-                      double vx3[], double vy3[],  int maxv3, int[] numv3,
-                      double vx4[], double vy4[],  int maxv4, int[] numv4 )
+  public static void contour( float g[], int nr, int nc, float interval,
+                      float lowlimit, float highlimit, float base,
+                      float vx1[], float vy1[],  int maxv1, int[] numv1,
+                      float vx2[], float vy2[],  int maxv2, int[] numv2,
+                      float vx3[], float vy3[],  int maxv3, int[] numv3,
+                      float vx4[], float vy4[],  int maxv4, int[] numv4,
+                      float[][] auxValues, float[][] auxLevels1,
+                      float[][] auxLevels2 )
                           throws VisADException {
     PlotDigits plot = new PlotDigits();
     int ir, ic;
     int nrm, ncm, idash;
     int numc, il;
     int lr, lc, lc2, lrr, lr2, lcc;
-    double xd, yd ,xx, yy;
-    double clow, chi;
-    double gg;
+    float xd, yd ,xx, yy;
+    float clow, chi;
+    float gg;
     int maxsize = maxv1+maxv2;
-    double[] vx = new double[maxsize];
-    double[] vy = new double[maxsize];
+    float[] vx = new float[maxsize];
+    float[] vy = new float[maxsize];
     int[] ipnt = new int[2*maxsize];
     int nump, ip;
     int numv;
+
+    float[][] auxLevels = null;
+    int naux = (auxValues != null) ? auxValues.length : 0;
+    if (naux > 0) {
+      if (auxLevels == null || auxLevels1.length != naux ||
+          auxLevels2.length != naux) {
+        throw new SetException("Contour2D.contour: "
+                              +"auxLevels length doesn't match");
+      }
+      for (int i=0; i<naux; i++) {
+        if (auxValues[i].length != g.length) {
+          throw new SetException("Contour2D.contour: "
+                                +"auxValues lengths don't match");
+        }
+      }
+      auxLevels = new float[naux][maxsize];
+    }
+    else {
+      if (auxLevels1 != null || auxLevels2 != null) {
+        throw new SetException("Contour2D.contour: "
+                              +"auxValues null but auxLevels not null");
+      }
+    }
 
     // initialize vertex counts
     numv1[0] = 0;
@@ -105,7 +128,9 @@ public class Contour2D extends Applet implements MouseListener {
     maxv4 -= 100;
 
     // check for bad contour interval
-    if (interval==0.0) return 0;
+    if (interval==0.0) {
+      throw new DisplayException("Contour2D.contour: interval cannot be 0");
+    }
     if (interval<0.0) {
       // draw negative contour lines as dashed lines
       interval = -interval;
@@ -118,8 +143,8 @@ public class Contour2D extends Applet implements MouseListener {
     nrm = nr-1;
     ncm = nc-1;
   
-    xd = ((nr-1)-0.0)/(nr-1);
-    yd = ((nc-1)-0.0)/(nc-1);
+    xd = ((nr-1)-0.0f)/(nr-1.0f); // = 1.0
+    yd = ((nc-1)-0.0f)/(nc-1.0f); // = 1.0
   
     /*
      * set up mark array
@@ -162,45 +187,50 @@ public class Contour2D extends Applet implements MouseListener {
 
     // compute contours
     for (ir=0; ir<nrm && numv<maxsize-8 && nump<2*maxsize; ir++) {
-      xx = xd*ir+0.0;
+      xx = xd*ir+0.0f; // = ir
       for (ic=0; ic<ncm && numv<maxsize-8 && nump<2*maxsize; ic++) {
-        double ga, gb, gc, gd;
-        double gv, gn, gx;
-        double tmp1, tmp2;
+        float ga, gb, gc, gd;
+        float gv, gn, gx;
+        float tmp1, tmp2;
 
         // save index of first vertex in this grid box
         ipnt[nump++] = numv;
 
-        yy = yd*ic+0.0;
+        yy = yd*ic+0.0f; // = ic
 
         // get 4 corner values, skip box if any are missing
         ga = ( g[ (ic) * nr + (ir) ] );
-/* WLH 24 Oct 97
-        if (Double.isNaN(ga)) continue;
-*/
         // test for missing
         if (ga != ga) continue;
         gb = ( g[ (ic) * nr + (ir+1) ] );
-/* WLH 24 Oct 97
-        if (Double.isNaN(gb)) continue;
-*/
         // test for missing
         if (gb != gb) continue;
         gc = ( g[ (ic+1) * nr + (ir) ] );
-/* WLH 24 Oct 97
-        if (Double.isNaN(gc)) continue;
-*/
         // test for missing
         if (gc != gc) continue;
         gd = ( g[ (ic+1) * nr + (ir+1) ] );
-/* WLH 24 Oct 97
-        if (Double.isNaN(gd)) continue;
-*/
         // test for missing
         if (gd != gd) continue;
 
+        float[] auxa = null;
+        float[] auxb = null;
+        float[] auxc = null;
+        float[] auxd = null;
+        if (naux > 0) {
+          auxa = new float[naux];
+          auxb = new float[naux];
+          auxc = new float[naux];
+          auxd = new float[naux];
+          for (int i=0; i<naux; i++) {
+            auxa[i] = auxValues[i][(ic) * nr + (ir)];
+            auxb[i] = auxValues[i][(ic) * nr + (ir+1)];
+            auxc[i] = auxValues[i][(ic+1) * nr + (ir)];
+            auxd[i] = auxValues[i][(ic+1) * nr + (ir+1)];
+          }
+        }
+
         // find average, min, and max of 4 corner values
-        gv = (ga+gb+gc+gd)/4.0;
+        gv = (ga+gb+gc+gd)/4.0f;
 
         // gn = MIN4(ga,gb,gc,gd);
         tmp1 = ( (ga) < (gb) ? (ga) : (gb) );
@@ -235,7 +265,7 @@ public class Contour2D extends Applet implements MouseListener {
         gg = clow;
 
         for (il=0; il<numc && numv+8<maxsize; il++, gg += interval) {
-          double gba, gca, gdb, gdc;
+          float gba, gca, gdb, gdc;
           int ii;
 
           // make sure gg is within contouring limits
@@ -256,7 +286,7 @@ public class Contour2D extends Applet implements MouseListener {
           // DO LABEL HERE
           if (( mark[ (ic) * nr + (ir) ] )==0) {
             int kc, kr, mc, mr, jc, jr;
-            double xk, yk, xm, ym, value;
+            float xk, yk, xm, ym, value;
 
             // Insert a label
   
@@ -293,10 +323,10 @@ public class Contour2D extends Applet implements MouseListener {
               }
             }
 
-            xk = xd*kr+0.0;
-            yk = yd*kc+0.0;
-            xm = xd*(mr+1.0)+0.0;
-            ym = yd*(mc+1.0)+0.0;
+            xk = xd*kr+0.0f;
+            yk = yd*kc+0.0f;
+            xm = xd*(mr+1.0f)+0.0f;
+            ym = yd*(mc+1.0f)+0.0f;
             value = gg;
 
             if (numv3[0] < maxv3 || numv4[0] < maxv4) {
@@ -321,6 +351,16 @@ public class Contour2D extends Applet implements MouseListener {
             case 1:
               gba = gb-ga;
               gca = gc-ga;
+
+              if (naux > 0) {
+                float ratioba = (gg-ga)/gba;
+                float ratioca = (gg-ga)/gca;
+                for (int i=0; i<naux; i++) {
+                  auxLevels[i][numv] = auxa[i] + (auxb[i]-auxa[i]) * ratioba;
+                  auxLevels[i][numv+1] = auxa[i] + (auxc[i]-auxa[i]) * ratioca;
+                }
+              }
+
               if (( (gba) < 0 ? -(gba) : (gba) ) < 0.0000001) {
                 vx[numv] = xx;
               }
@@ -342,6 +382,16 @@ public class Contour2D extends Applet implements MouseListener {
             case 2:
               gba = gb-ga;
               gdb = gd-gb;
+ 
+              if (naux > 0) {
+                float ratioba = (gg-ga)/gba;
+                float ratiodb = (gg-gb)/gdb;
+                for (int i=0; i<naux; i++) {
+                  auxLevels[i][numv] = auxa[i] + (auxb[i]-auxa[i]) * ratioba;
+                  auxLevels[i][numv+1] = auxb[i] + (auxd[i]-auxb[i]) * ratiodb;
+                }
+              }
+
               if (( (gba) < 0 ? -(gba) : (gba) ) < 0.0000001)
                 vx[numv] = xx;
               else
@@ -359,6 +409,16 @@ public class Contour2D extends Applet implements MouseListener {
             case 3:
               gca = gc-ga;
               gdb = gd-gb;
+ 
+              if (naux > 0) {
+                float ratioca = (gg-ga)/gca;
+                float ratiodb = (gg-gb)/gdb;
+                for (int i=0; i<naux; i++) {
+                  auxLevels[i][numv] = auxa[i] + (auxc[i]-auxa[i]) * ratioca;
+                  auxLevels[i][numv+1] = auxb[i] + (auxd[i]-auxb[i]) * ratiodb;
+                }
+              }
+
               if (( (gca) < 0 ? -(gca) : (gca) ) < 0.0000001)
                 vy[numv] = yy;
               else
@@ -376,6 +436,16 @@ public class Contour2D extends Applet implements MouseListener {
             case 4:
               gca = gc-ga;
               gdc = gd-gc;
+
+              if (naux > 0) {
+                float ratioca = (gg-ga)/gca;
+                float ratiodc = (gg-gc)/gdc;
+                for (int i=0; i<naux; i++) {
+                  auxLevels[i][numv] = auxa[i] + (auxc[i]-auxa[i]) * ratioca;
+                  auxLevels[i][numv+1] = auxc[i] + (auxd[i]-auxc[i]) * ratiodc;
+                }
+              }
+
               if (( (gca) < 0 ? -(gca) : (gca) ) < 0.0000001)
                 vy[numv] = yy;
               else
@@ -393,6 +463,16 @@ public class Contour2D extends Applet implements MouseListener {
             case 5:
               gba = gb-ga;
               gdc = gd-gc;
+ 
+              if (naux > 0) {
+                float ratioba = (gg-ga)/gba;
+                float ratiodc = (gg-gc)/gdc;
+                for (int i=0; i<naux; i++) {
+                  auxLevels[i][numv] = auxa[i] + (auxb[i]-auxa[i]) * ratioba;
+                  auxLevels[i][numv+1] = auxc[i] + (auxd[i]-auxc[i]) * ratiodc;
+                }
+              }
+
               if (( (gba) < 0 ? -(gba) : (gba) ) < 0.0000001)
                 vx[numv] = xx;
               else
@@ -412,6 +492,26 @@ public class Contour2D extends Applet implements MouseListener {
               gdc = gd-gc;
               gca = gc-ga;
               gdb = gd-gb;
+
+              if (naux > 0) {
+                float ratioba = (gg-ga)/gba;
+                float ratiodc = (gg-gc)/gdc;
+                float ratioca = (gg-ga)/gca;
+                float ratiodb = (gg-gb)/gdb;
+                for (int i=0; i<naux; i++) {
+                  auxLevels[i][numv] = auxa[i] + (auxb[i]-auxa[i]) * ratioba;
+                  if ( (gg>gv) ^ (ga<gb) ) {
+                    auxLevels[i][numv+1] = auxa[i] + (auxc[i]-auxa[i]) * ratioca;
+                    auxLevels[i][numv+2] = auxb[i] + (auxd[i]-auxb[i]) * ratiodb;
+                  }
+                  else {
+                    auxLevels[i][numv+1] = auxb[i] + (auxd[i]-auxb[i]) * ratiodb;
+                    auxLevels[i][numv+2] = auxa[i] + (auxc[i]-auxa[i]) * ratioca;
+                  }
+                  auxLevels[i][numv+3] = auxc[i] + (auxd[i]-auxc[i]) * ratiodc;
+                }
+              }
+
               if (( (gba) < 0 ? -(gba) : (gba) ) < 0.0000001)
                 vx[numv] = xx;
               else
@@ -458,6 +558,16 @@ public class Contour2D extends Applet implements MouseListener {
             case 7:
               gdb = gd-gb;
               gdc = gd-gc;
+ 
+              if (naux > 0) {
+                float ratiodb = (gg-gb)/gdb;
+                float ratiodc = (gg-gc)/gdc;
+                for (int i=0; i<naux; i++) {
+                  auxLevels[i][numv] = auxb[i] + (auxb[i]-auxb[i]) * ratiodb;
+                  auxLevels[i][numv+1] = auxc[i] + (auxd[i]-auxc[i]) * ratiodc;
+                }
+              }
+
               if (( (gdb) < 0 ? -(gdb) : (gdb) ) < 0.0000001)
                 vy[numv] = yy;
               else
@@ -476,15 +586,15 @@ public class Contour2D extends Applet implements MouseListener {
 
           // If contour level is negative, make dashed line
           if (gg < 0.0 && idash==1) {
-            double vxa, vya, vxb, vyb;
+            float vxa, vya, vxb, vyb;
             vxa = vx[numv-2];
             vya = vy[numv-2];
             vxb = vx[numv-1];
             vyb = vy[numv-1];
-            vx[numv-2] = (3.0*vxa+vxb) * 0.25;
-            vy[numv-2] = (3.0*vya+vyb) * 0.25;
-            vx[numv-1] = (vxa+3.0*vxb) * 0.25;
-            vy[numv-1] = (vya+3.0*vyb) * 0.25;
+            vx[numv-2] = (3.0f*vxa+vxb) * 0.25f;
+            vy[numv-2] = (3.0f*vya+vyb) * 0.25f;
+            vx[numv-1] = (vxa+3.0f*vxb) * 0.25f;
+            vy[numv-1] = (vya+3.0f*vyb) * 0.25f;
           }
 
         }  // for il       -- NOTE:  gg incremented in for statement
@@ -507,6 +617,13 @@ public class Contour2D extends Applet implements MouseListener {
                  vx2[numv2[0]+il] = vx[start+il];
                  vy2[numv2[0]+il] = vy[start+il];
                }
+               if (naux > 0) {
+                 for (int i=0; i<naux; i++) {
+                   for (il=0;il<len;il++) {
+                     auxLevels2[i][numv2[0]+il] = auxLevels[i][start+il];
+                   }
+                 }
+               }
                numv2[0] += len;
              }
            }
@@ -516,6 +633,13 @@ public class Contour2D extends Applet implements MouseListener {
                  vx1[numv1[0]+il] = vx[start+il];
                  vy1[numv1[0]+il] = vy[start+il];
                }
+               if (naux > 0) {
+                 for (int i=0; i<naux; i++) {
+                   for (il=0;il<len;il++) {
+                     auxLevels1[i][numv1[0]+il] = auxLevels[i][start+il];
+                   }
+                 }
+               }
                numv1[0] += len;
              }
            }
@@ -524,8 +648,6 @@ public class Contour2D extends Applet implements MouseListener {
          ip++;
        }
      }
-  
-     return 1;
   }
 
   // APPLET SECTION
@@ -537,7 +659,7 @@ public class Contour2D extends Applet implements MouseListener {
     con.rows = 0;
     con.cols = 0;
     con.scale = 0;
-    double intv = 0;
+    float intv = 0;
     int mxv1 = 0;
     int mxv2 = 0;
     int mxv3 = 0;
@@ -548,7 +670,7 @@ public class Contour2D extends Applet implements MouseListener {
       con.rows = Integer.parseInt(getParameter("rows"));
       con.cols = Integer.parseInt(getParameter("columns"));
       con.scale = Integer.parseInt(getParameter("scale"));
-      intv = Double.valueOf(getParameter("interval")).doubleValue();
+      intv = Double.valueOf(getParameter("interval")).floatValue();
       mxv1 = Integer.parseInt(getParameter("capacity1"));
       mxv2 = Integer.parseInt(getParameter("capacity2"));
       mxv3 = Integer.parseInt(getParameter("capacity3"));
@@ -558,35 +680,36 @@ public class Contour2D extends Applet implements MouseListener {
       System.out.println("Contour2D.paint: applet parameter error: "+e);
       System.exit(1);
     }
-    double[] g = new double[con.rows*con.cols];
-    double mr = con.rows/2;
-    double mc = con.cols/2;
+    float[] g = new float[con.rows*con.cols];
+    float mr = con.rows/2;
+    float mc = con.cols/2;
     for (int i=0; i<con.rows; i++) {
       for (int j=0; j<con.cols; j++) {
-        g[con.rows*j+i] = Math.sqrt((i-mr)*(i-mr) + (j-mc)*(j-mc));
+        g[con.rows*j+i] = (float) Math.sqrt((i-mr)*(i-mr) + (j-mc)*(j-mc));
       }
     }
-    double low = 0;
-    double high = 100;
-    double base = 1;
+    float low = 0;
+    float high = 100;
+    float base = 1;
     con.num1 = new int[1];
     con.num2 = new int[1];
     con.num3 = new int[1];
     con.num4 = new int[1];
-    con.vx1 = new double[mxv1];
-    con.vy1 = new double[mxv1];
-    con.vx2 = new double[mxv2];
-    con.vy2 = new double[mxv2];
-    con.vx3 = new double[mxv3];
-    con.vy3 = new double[mxv3];
-    con.vx4 = new double[mxv4];
-    con.vy4 = new double[mxv4];
+    con.vx1 = new float[mxv1];
+    con.vy1 = new float[mxv1];
+    con.vx2 = new float[mxv2];
+    con.vy2 = new float[mxv2];
+    con.vx3 = new float[mxv3];
+    con.vy3 = new float[mxv3];
+    con.vx4 = new float[mxv4];
+    con.vy4 = new float[mxv4];
     try {
       con.contour(g, con.rows, con.cols, intv, low, high, base,
                   con.vx1, con.vy1, mxv1, con.num1,
                   con.vx2, con.vy2, mxv2, con.num2,
                   con.vx3, con.vy3, mxv3, con.num3,
-                  con.vx4, con.vy4, mxv4, con.num4);
+                  con.vx4, con.vy4, mxv4, con.num4,
+                  null, null, null);
     }
     catch (VisADException VE) {
       System.out.println("Contour2D.init: "+VE);

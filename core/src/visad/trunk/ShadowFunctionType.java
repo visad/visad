@@ -328,8 +328,18 @@ public class ShadowFunctionType extends ShadowType {
   void checkDirect() {
     if (!((FunctionType) Type).getFlat()) return; // OR should this be !Real ??
     if (LevelOfDifficulty == SIMPLE_FIELD && !MultipleDisplayScalar) {
-      if (Display.DisplaySpatialCartesianTuple.equals(
+      if (Range instanceof ShadowRealTupleType &&
+          Display.DisplaySpatialCartesianTuple.equals(
           ((ShadowRealTupleType) Range).getDisplaySpatialTuple() )) {
+        // at least one RealType in Range is mapped to a spatial
+        // DisplayRealType (i.e., DisplaySpatialTuple != null)
+        // and is not mapped through any (Display) CoordinateSystem
+        // (i.e., DisplaySpatialTuple.equals(DisplaySpatialCartesianTuple) )
+        isDirectManipulation = true;
+      }
+      else if (Range instanceof ShadowRealType &&
+          Display.DisplaySpatialCartesianTuple.equals(
+          ((ShadowRealType) Range).getDisplaySpatialTuple() )) {
         // at least one RealType in Range is mapped to a spatial
         // DisplayRealType (i.e., DisplaySpatialTuple != null)
         // and is not mapped through any (Display) CoordinateSystem
@@ -367,6 +377,9 @@ public class ShadowFunctionType extends ShadowType {
     int valueArrayLength = display.getValueArrayLength();
     // mapping from ValueArray to DisplayScalar
     int[] valueToScalar = display.getValueToScalar();
+    int[] valueToMap = display.getValueToMap();
+    Vector MapVector = display.getMapVector();
+
 
     if (!(data instanceof Field)) {
       throw new UnimplementedException("ShadowFunctionType.doTransform: " +
@@ -525,17 +538,30 @@ public class ShadowFunctionType extends ShadowType {
 
       System.out.println("assembleSelect");
  
+      if (anyFlow) {
+        throw new UnimplementedException("ShadowFunctionType.doTransform: " +
+                                         "Flow rendering");
+      }
+
       // assemble an array of Display.DisplaySpatialCartesianTuple values
       // and possibly spatial_set
       float[][] spatial_values = new float[3][];
-      // boolean needed = false;
-      boolean set_needed = true;
+
+      GraphicsModeControl mode = display.getGraphicsModeControl();
+      boolean pointMode = mode.getPointMode();
+
+      // spatialDomainDimension and spatialManifoldDimension
+      int[] spatialDimensions = new int[2];
+
       // MEM
       Set spatial_set = 
         assembleSpatial(spatial_values, display_values, valueArrayLength,
                         valueToScalar, display, default_values,
                         inherited_values, domain_set, Domain.getAllSpatial(),
-                        set_needed);
+                        (anyContour || anyFlow), pointMode, spatialDimensions);
+
+      int spatialDomainDimension = spatialDimensions[0];
+      int spatialManifoldDimension = spatialDimensions[1];
 
       // got here with 'java -mx24m visad.DisplayImpl'
       System.out.println("assembleSpatial");
@@ -548,6 +574,7 @@ public class ShadowFunctionType extends ShadowType {
         assembleColor(display_values, valueArrayLength, valueToScalar,
                       display, default_values);
       int color_length = Math.min(domain_length, color_values[0].length);
+      int alpha_length = color_values[3].length;
 
       System.out.println("assembleColor, color_length = " + color_length);
 
@@ -558,11 +585,46 @@ public class ShadowFunctionType extends ShadowType {
         // Flow will be tricky - FlowControl must contain trajectory
         // start points
 
-        GraphicsModeControl mode = display.getGraphicsModeControl();
         Appearance appearance = makeDefaultAppearance(mode);
-        boolean pointMode = mode.getPointMode();
 
-        if (color_length == 1 && spatial_length > 1) {
+        // note alpha_length <= color_length
+        if (alpha_length == 1) {
+          if (color_values[3][0] != color_values[3][0]) {
+            // a single missing alpha value, so render nothing
+            System.out.println("single missing alpha");
+            return false;
+          }
+          System.out.println("single alpha " + color_values[3][0]);
+          // constant alpha, so put it in appearance
+          TransparencyAttributes constant_alpha = null;
+          if (color_values[3][0] > 0.999999f) {
+            constant_alpha =
+              new TransparencyAttributes(TransparencyAttributes.NONE, 0.0f);
+          }
+          else {
+            // note transparency 0.0 = opaque, 1.0 = clear
+            constant_alpha =
+              new TransparencyAttributes(mode.getTransparencyMode(),
+                                         1.0f - color_values[3][0]);
+          }
+          appearance.setTransparencyAttributes(constant_alpha);
+          // remove alpha from color_values
+          float[][] c = new float[3][];
+          c[0] = color_values[0];
+          c[1] = color_values[1];
+          c[2] = color_values[2];
+          color_values = c;
+        }
+        if (color_length == 1) {
+          if (color_values[0][0] != color_values[0][0] ||
+              color_values[1][0] != color_values[1][0] ||
+              color_values[2][0] != color_values[2][0]) {
+            System.out.println("single missing alpha");
+            // a single missing color value, so render nothing
+            return false;
+          }
+          System.out.println("single color " + color_values[0][0] + " " +
+                             color_values[1][0] + " " + color_values[2][0]);
           // constant color, so put it in appearance
           ColoringAttributes constant_color = new ColoringAttributes();
           constant_color.setColor(color_values[0][0], color_values[1][0],
@@ -571,39 +633,133 @@ public class ShadowFunctionType extends ShadowType {
           color_values = null;
         }
 
-        // NaN color component values are rendered as 1.0
-        // NaN spatial component values of points are NOT rendered
-        // NaN spatial component values of lines and triangles?
-
 /* MISSING TEST
         for (int i=0; i<color_length; i+=3) {
           spatial_values[0][i] = Float.NaN;
         }
 END MISSING TEST*/
 
+        //
+        // TO_DO
+        // Contour
+        //
+        // TO_DO
+        // missing color_values and select_values
+        //
+        // NaN color component values are rendered as 1.0
+        // NaN spatial component values of points are NOT rendered
+        //   for PointArray - how about LineArray and TriangleArray ????
+        //
 
-/* this 'makePointGeometry' doesn't need spatial_set
-        VisADGeometryArray array =
-          makePointGeometry(spatial_values, color_values);
-*/
-        // MEM
-        VisADGeometryArray array =
-          spatial_set.makePointGeometry(color_values);
+        System.out.println("spatialDomainDimension = " +
+                           spatialDomainDimension +
+                           " spatialManifoldDimension = " +
+                           spatialManifoldDimension +
+                           " anyContour = " + anyContour +
+                           " pointMode = " + pointMode);
 
-        // got here with 'java -mx32m visad.DisplayImpl'
-        System.out.println("spatial_set.makePointGeometry");
-
-        // MEM
-        GeometryArray geometry = array.makeGeometry();
-
-        System.out.println("array.makeGeometry");
-
-        //  FREE
-        array = null;
-        if (geometry != null) {
+        VisADGeometryArray array;
+        boolean anyContourCreated = false;
+        if (anyContour) {
+          for (int i=0; i<valueArrayLength; i++) {
+            int displayScalarIndex = valueToScalar[i];
+            DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
+            if (real.equals(Display.IsoContour) && inherited_values[i] == 0) {
+              // non-inherited IsoContour, so generate contours
+              array = null;
+              ContourControl control = (ContourControl)
+                ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
+              boolean[] bvalues = new boolean[2];
+              float[] fvalues = new float[5];
+              control.getMainContours(bvalues, fvalues);
+              if (bvalues[0]) {
+                if (spatialManifoldDimension == 3) {
+                  array = spatial_set.makeIsoSurface(fvalues[0],
+                                             display_values[i], color_values);
+                  System.out.println("makeIsoSurface");
+                  // MEM
+                  GeometryArray geometry = array.makeGeometry();
+                  //  FREE
+                  array = null;
+                  Shape3D shape = new Shape3D(geometry, appearance);
+                  group.addChild(shape);
+                  anyContourCreated = true;
+                }
+                else if (spatialManifoldDimension == 2) {
+                  VisADGeometryArray[] arrays =
+                    spatial_set.makeIsoLines(fvalues[1], fvalues[2], fvalues[3],
+                                  fvalues[4], display_values[i], color_values);
+                  // MEM
+                  GeometryArray geometry = arrays[0].makeGeometry();
+                  //  FREE
+                  arrays[0] = null;
+                  Shape3D shape = new Shape3D(geometry, appearance);
+                  group.addChild(shape);
+                  if (bvalues[1]) {
+                    System.out.println("makeIsoLines with labels");
+                    // draw labels
+                    // MEM
+                    geometry = arrays[2].makeGeometry();
+                    //  FREE
+                    arrays = null;
+                  }
+                  else {
+                    System.out.println("makeIsoLines without labels");
+                    // fill in contour lines in place of labels
+                    // MEM
+                    geometry = arrays[1].makeGeometry();
+                    //  FREE
+                    arrays = null;
+                  }
+                  shape = new Shape3D(geometry, appearance);
+                  group.addChild(shape);
+                  anyContourCreated = true;
+                }
+              }
+            }
+          } // end for (int i=0; i<valueArrayLength; i++)
+        } // end if (anyContour)
+        if (!anyContourCreated) {
+          // MEM
+          if (pointMode) {
+            array = makePointGeometry(spatial_values, color_values);
+            System.out.println("makePointGeometry  for pointMode");
+          }
+          else if (spatialManifoldDimension == 1) {
+            array = spatial_set.make1DGeometry(color_values);
+            System.out.println("make1DGeometry");
+          }
+          else if (spatialManifoldDimension == 2) {
+            array = spatial_set.make2DGeometry(color_values);
+            System.out.println("make2DGeometry");
+          }
+          else if (spatialManifoldDimension == 3) {
+            array = makePointGeometry(spatial_values, color_values);
+            System.out.println("makePointGeometry  for 3D");
+            //
+            // when make3DGeometry is implemented:
+            // array = spatial_set.make3DGeometry(color_values);
+            //
+          }
+          else if (spatialManifoldDimension == 0) {
+            array = spatial_set.makePointGeometry(color_values);
+            System.out.println("makePointGeometry  for 0D");
+          }
+          else {
+            throw new DisplayException("ShadowFunctionType.doTransform: " +
+                                       "bad spatialManifoldDimension");
+          }
+          // got here with 'java -mx32m visad.DisplayImpl'
+  
+          // MEM
+          GeometryArray geometry = array.makeGeometry();
+          System.out.println("array.makeGeometry");
+  
+          //  FREE
+          array = null;
           Shape3D shape = new Shape3D(geometry, appearance);
           group.addChild(shape);
-        }
+        } // end if (!anyContour)
 
         // got to here with 'java -mx40m visad.DisplayImpl'
         return false;
@@ -614,11 +770,6 @@ END MISSING TEST*/
         else {
           // render 1-D, 2-D or 3-D depending on
           // spatial_set.ManifoldDimension
-        }
-
-        if (anyFlow) {
-          throw new UnimplementedException("ShadowFunctionType.doTransform: " +
-                                           "Flow rendering");
         }
 */
 /*
@@ -651,7 +802,9 @@ END MISSING TEST*/
       //
       // TO_DO
       // SelectRange, SelectValue, Animation
-      // isTransform?
+      // Renderer.isTransformControl temporary hack:
+      // SelectRange.isTransform,
+      // !SelectValue.isTransform, !Animation.isTransform
       //
 
       // get array that composites SelectRange components

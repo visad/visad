@@ -32,6 +32,9 @@ import javax.media.j3d.*;
 import java.vecmath.*;
 
 import java.awt.*;
+import java.awt.image.*;
+import java.net.*;
+import java.applet.*;
 
 public class DisplayApplet extends Applet {
 
@@ -48,6 +51,65 @@ public class DisplayApplet extends Applet {
     BranchGroup scene = renderer.createSceneGraph();
     UniverseBuilder universe = new UniverseBuilder(canvas);
     universe.addBranchGraph(scene);
+  }
+
+  /** get values from an image at URL spec'ed by string */
+  double[] getValues(String string, int size) {
+ 
+    URL url = null;
+    try {
+      url = new URL(string);
+    }
+    catch (MalformedURLException e) {
+      System.out.println("MalformedURLException");
+      return null;
+    }
+    // System.out.println("url = " + url);
+    Object object = null;
+    try {
+      object = url.getContent();
+    }
+    catch (java.io.IOException e) {
+      System.out.println("IOException = " + e);
+      return null;
+    }
+    // System.out.println("object.getClass = " + object.getClass());
+    if (object == null) {
+      System.out.println("object is null");
+    }
+ 
+    ImageProducer producer = (ImageProducer) object;
+ 
+    int[] pix = new int[size * size];
+    double[] data = new double[size * size];
+ 
+    java.awt.image.ColorModel cm = java.awt.image.ColorModel.getRGBdefault();
+ 
+    java.awt.image.PixelGrabber pg =
+      new java.awt.image.PixelGrabber(producer, 0, 0, size, size, pix, 0, size);
+ 
+    // System.out.println("pg created");
+ 
+    pg.setColorModel(cm); /* unnecessary */
+ 
+    try { pg.grabPixels(); }
+    catch (InterruptedException e) {
+      System.out.println("Bad grabPixels");
+      return null;
+    }
+ 
+    // System.out.println("grabPixels");
+ 
+    try { while ((pg.status() & this.ALLBITS) == 0) Thread.sleep(1); }
+    catch (InterruptedException e) {
+      System.out.println("Bad status");
+      return null;
+    }
+ 
+    for (int i=0; i<size*size; i++) {
+      data[i] = pix[i] & 255;
+    }
+    return data;
   }
 
 }

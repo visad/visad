@@ -28,7 +28,7 @@ package visad;
 /**
    SingletonSet is the class for Set-s containing one member.<P>
 */
-public class SingletonSet extends SimpleSet {
+public class SingletonSet extends SampledSet {
 
   private RealTuple data;
 
@@ -49,7 +49,13 @@ public class SingletonSet extends SimpleSet {
   private SingletonSet(RealTuple d, MathType type, CoordinateSystem coord_sys,
                        Unit[] units, ErrorEstimate[] errors)
           throws VisADException {
-    super(type, coord_sys, units, errors);
+    super(type, 0, coord_sys, units, errors);
+    int dim = d.getDimension();
+    float[][] samples = new float[dim][1];
+    for (int k=0; k<dim; k++) {
+      samples[k][0] = (float) (((Real) d.getComponent(k)).getValue());
+    }
+    init_samples(samples);
     data = d;
     Length = 1;
     for (int j=0; j<DomainDimension; j++) {

@@ -128,8 +128,12 @@ public class Linear2DSet extends Gridded2DSet {
   /** transform an array of non-integer grid coordinates to an array
       of values in R^2 */
   public float[][] gridToValue(float[][] grid) throws VisADException {
-    if (grid.length != 2) {
+    if (grid.length != ManifoldDimension) {
       throw new SetException("Linear2DSet.gridToValue: bad dimension");
+    }
+    if (ManifoldDimension != 2) {
+      throw new SetException("Linear2DSet.gridToValue: ManifoldDimension " +
+                             "must be 2");
     }
     if (Lengths[0] < 2 || Lengths[1] < 2) {
       throw new SetException("Linear2DSet.gridToValue: requires all grid " +

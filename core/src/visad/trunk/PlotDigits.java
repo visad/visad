@@ -45,17 +45,17 @@ public class PlotDigits extends Applet implements MouseListener {
   protected int width, height;
 
   // these variables are filled in by the plotdigits method
-  public double[] Vx;   // x coordinates of label's digits
-  public double[] Vy;   // y coordinates of label's digits
-  public double[] VxB;  // x coordinates of label's digits in reverse display
-  public double[] VyB;  // y coordinates of label's digits in reverse display
+  public float[] Vx;   // x coordinates of label's digits
+  public float[] Vy;   // y coordinates of label's digits
+  public float[] VxB;  // x coordinates of label's digits in reverse display
+  public float[] VyB;  // y coordinates of label's digits in reverse display
   /*
    * VxB and VyB can be combined with Vx and Vy to make any combination of
    * normal writing, backwards writing, upside-down writing, and
    * backwards and upside-down writing, for use in 3D rotation.
    */
   public int NumVerts;  // number of vertices put into Vx, Vy
-  public double Number; // number to plot
+  public float Number; // number to plot
 
   /*
    * Plot the digits for a contour label in a vector font format.
@@ -65,8 +65,8 @@ public class PlotDigits extends Applet implements MouseListener {
    * Output:  Vx, Vy, VxB, VyB - the vertices of the label's digits.
    * Return:  number of vertices put into vx,vy.
    */
-  public void plotdigits(double gg, double xk, double yk,
-                         double xm, double ym, int max)
+  public void plotdigits(float gg, float xk, float yk,
+                         float xm, float ym, int max)
                                           throws VisADException {
     int[] lb = { 0,   // 91 elements
       105,102,80,20,02,05,27,87,105,85,103,3,1,5,87,105,102,80,
@@ -76,17 +76,17 @@ public class PlotDigits extends Applet implements MouseListener {
       27, 5,2,20,80,102,105,87,77,55,50 };
     int[] lt = { 0,   // 12 elements
       1,10,15,22,35,40,49,60,63,80,91 };
-    double xmk, ymk, hgt, h, dig;
-    double row, col, hl, he;
-    double rs, cs;
+    float xmk, ymk, hgt, h, dig;
+    float row, col, hl, he;
+    float rs, cs;
     int jg, j1, j2, j3, isign;
     int ib, ie, llin, llel, m;
     int i;
     NumVerts = 0;
   
     // extract digits from gg:
-    // jg - integer to left of decimal of double gg
-    // j1, j2, j3 - integers to right of decimal of double gg
+    // jg - integer to left of decimal of float gg
+    // j1, j2, j3 - integers to right of decimal of float gg
     // dig - number of digits to plot
     // isign - sign of gg
     jg = (int) gg;
@@ -94,11 +94,11 @@ public class PlotDigits extends Applet implements MouseListener {
       jg = -jg;
       gg = -gg;
       isign = -1;
-      dig = 0.5;
+      dig = 0.5f;
     }
     else {
       isign = 1;
-      dig = 0.0;
+      dig = 0.0f;
     }
 
     j1 = ( (int) (gg * 10.0) ) % 10;
@@ -115,7 +115,7 @@ public class PlotDigits extends Applet implements MouseListener {
       dig += 4.5;
       if (j2==0) {
         dig -= 1.0;
-        if (j1==0) dig -= 1.0;
+        if (j1==0) dig -= 1.0f;
       }
     }
     else {
@@ -124,11 +124,11 @@ public class PlotDigits extends Applet implements MouseListener {
         dig -= 1.0;
         if (j2==0) {
           dig -= 1.0;
-          if (j1==0) dig -= 1.0;
+          if (j1==0) dig -= 1.0f;
         }
       }
     }
-    if (dig<2.0) dig = 2.0;
+    if (dig<2.0) dig = 2.0f;
     // end extract digits routine
 
     xmk = xm-xk;
@@ -136,17 +136,17 @@ public class PlotDigits extends Applet implements MouseListener {
     ymk = ym-yk;
     if (ymk < 0) ymk = -ymk;
   
-    hgt = xmk/1.2;
-    h = ymk/(dig+0.2);
+    hgt = xmk/1.2f;
+    h = ymk/(dig+0.2f);
     if (h < hgt) hgt=h;
-    row = (xm > xk ? xm : xk)-0.5*(xmk-hgt);
-    col = (ym > yk ? ym : yk)-0.5*(ymk-dig*hgt);
-    h = hgt/10.0;
+    row = (xm > xk ? xm : xk)-0.5f*(xmk-hgt);
+    col = (ym > yk ? ym : yk)-0.5f*(ymk-dig*hgt);
+    h = hgt/10.0f;
 
-    rs = cs = 0.0;
+    rs = cs = 0.0f;
 
-    Vx = new double[max];
-    Vy = new double[max];
+    Vx = new float[max];
+    Vy = new float[max];
 
     // PLOT 1000THS
     if (j3 != 0) {
@@ -220,20 +220,20 @@ public class PlotDigits extends Applet implements MouseListener {
       // space for column of digit
       col = col-hgt;
       // plot decimal cross
-      Vx[NumVerts] = row-0.1*hgt;
-      Vy[NumVerts] = col-0.2*hgt;
+      Vx[NumVerts] = row-0.1f*hgt;
+      Vy[NumVerts] = col-0.2f*hgt;
       NumVerts++;
-      Vx[NumVerts] = row-0.2*hgt;
-      Vy[NumVerts] = col-0.3*hgt;
+      Vx[NumVerts] = row-0.2f*hgt;
+      Vy[NumVerts] = col-0.3f*hgt;
       NumVerts++;
-      Vx[NumVerts] = row-0.2*hgt;
-      Vy[NumVerts] = col-0.2*hgt;
+      Vx[NumVerts] = row-0.2f*hgt;
+      Vy[NumVerts] = col-0.2f*hgt;
       NumVerts++;
-      Vx[NumVerts] = row-0.1*hgt;
-      Vy[NumVerts] = col-0.3*hgt;
+      Vx[NumVerts] = row-0.1f*hgt;
+      Vy[NumVerts] = col-0.3f*hgt;
       NumVerts++;
       // half space for column of decimal cross
-      col = col-0.5*hgt;
+      col = col-0.5f*hgt;
     }
   
     // PLOT DIGITS LEFT OF DECIMAL
@@ -266,15 +266,15 @@ public class PlotDigits extends Applet implements MouseListener {
   
     if (isign < 0) {
       // PLOT MINUS SIGN
-      Vx[NumVerts] = row-0.5*hgt;
-      Vy[NumVerts] = col-0.4*hgt;
+      Vx[NumVerts] = row-0.5f*hgt;
+      Vy[NumVerts] = col-0.4f*hgt;
       NumVerts++;
-      Vx[NumVerts] = row-0.5*hgt;
+      Vx[NumVerts] = row-0.5f*hgt;
       Vy[NumVerts] = col;
       NumVerts++;
     }
-    VxB = new double[max];
-    VyB = new double[max];
+    VxB = new float[max];
+    VyB = new float[max];
     for (int r=0; r<NumVerts; r++) {
       VxB[r] = (xm+xk)-Vx[r];
       VyB[r] = (ym+yk)-Vy[r];
@@ -287,7 +287,7 @@ public class PlotDigits extends Applet implements MouseListener {
   public void init() {
     this.addMouseListener(this);
     plot = new PlotDigits();
-    plot.Number = Double.valueOf(getParameter("number")).doubleValue();
+    plot.Number = Double.valueOf(getParameter("number")).floatValue();
     try {
       width = Integer.parseInt(getParameter("width"));
       height = Integer.parseInt(getParameter("height"));

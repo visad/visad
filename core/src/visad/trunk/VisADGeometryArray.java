@@ -35,7 +35,7 @@ import java.vecmath.*;
 public class VisADGeometryArray extends Object
        implements java.io.Serializable {
   int vertexCount;
-  int VertexFormat;
+  int vertexFormat;
   float[] coordinates;
   float[] normals;
   float[] colors; // should this be bytes ????
@@ -43,7 +43,7 @@ public class VisADGeometryArray extends Object
 
   public VisADGeometryArray() {
     vertexCount = 0;
-    VertexFormat = 0;
+    vertexFormat = 0;
     coordinates = null;
     normals = null;
     colors = null;
@@ -59,6 +59,31 @@ public class VisADGeometryArray extends Object
     if (colors != null) array.setColors(0, colors);
     if (normals != null) array.setNormals(0, normals);
     if (texCoords != null) array.setTextureCoordinates(0, texCoords);
+  }
+
+  public String toString() {
+    String string = "GeometryArray, vertexCount = " + vertexCount +
+                    " vertexFormat = " + vertexFormat;
+    if (coordinates != null) {
+      string = string + "\n coordinates = " + floatArrayString(coordinates);
+    }
+    if (colors != null) {
+      string = string + "\n colores = " + floatArrayString(colors);
+    }
+    if (normals != null) {
+      string = string + "\n normals = " + floatArrayString(normals);
+    }
+    if (texCoords != null) {
+      string = string + "\n texCoords = " + floatArrayString(texCoords);
+    }
+
+    return string;
+  }
+
+  static String floatArrayString(float[] value) {
+    String string = "";
+    for (int i=0; i<value.length; i++) string = string + " " + value[i];
+    return string;
   }
 
 }

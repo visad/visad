@@ -38,7 +38,7 @@ public class VisADLineStripArray extends VisADGeometryArray {
   public GeometryArray makeGeometry() throws VisADException {
     if (vertexCount == 0) return null;
     LineStripArray array =
-      new LineStripArray(vertexCount, VertexFormat, stripVertexCounts);
+      new LineStripArray(vertexCount, vertexFormat, stripVertexCounts);
     basicGeometry(array);
     return array;
   }

@@ -1,6 +1,6 @@
  
 //
-// VisADPointArray.java
+// VisADLineArray.java
 //
  
 /*
@@ -29,14 +29,14 @@ import javax.media.j3d.*;
 import java.vecmath.*;
 
 /**
-   VisADPointArray stands in for j3d.PointArray
+   VisADLineArray stands in for j3d.LineArray
    and is Serializable.<P>
 */
-public class VisADPointArray extends VisADGeometryArray {
+public class VisADLineArray extends VisADGeometryArray {
 
   public GeometryArray makeGeometry() throws VisADException {
     if (vertexCount == 0) return null;
-    PointArray array = new PointArray(vertexCount, vertexFormat);
+    LineArray array = new LineArray(vertexCount, vertexFormat);
     basicGeometry(array);
     return array;
   }

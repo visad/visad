@@ -72,8 +72,6 @@ public class IrregularSet extends SampledSet {
                Unit[] units, ErrorEstimate[] errors, boolean copy)
          throws VisADException {
     super(type, manifold_dimension, coord_sys, units, errors);
-    Low = new float[DomainDimension];
-    Hi = new float[DomainDimension];
     if (samples == null ) {
       throw new SetException("IrregularSet: samples cannot be null");
     }

@@ -88,8 +88,6 @@ public class GriddedSet extends SampledSet {
       Lengths[j] = lengths[j];
       Length = Length * lengths[j];
     }
-    Low = new float[DomainDimension];
-    Hi = new float[DomainDimension];
   }
 
   /**

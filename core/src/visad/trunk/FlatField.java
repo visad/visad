@@ -407,14 +407,35 @@ public class FlatField extends FieldImpl {
       must be the same as the order of domain indices in the DomainSet */
   public void setSamples(double[][] range)
          throws VisADException, RemoteException {
-    setSamples(range, null);
+    setSamples(range, null, true);
+  }
+ 
+  /** set the range values of the function; the order of range values
+      must be the same as the order of domain indices in the DomainSet */
+  public void setSamples(float[][] range)
+         throws VisADException, RemoteException {
+    setSamples(range, null, true);
+  }
+
+  /** set the range values of the function; the order of range values
+      must be the same as the order of domain indices in the DomainSet */
+  public void setSamples(double[][] range, boolean copy)
+         throws VisADException, RemoteException {
+    setSamples(range, null, copy);
+  }
+
+  /** set the range values of the function; the order of range values
+      must be the same as the order of domain indices in the DomainSet */
+  public void setSamples(float[][] range, boolean copy)
+         throws VisADException, RemoteException {
+    setSamples(range, null, copy);
   }
 
   /** set the range values of the function including ErrorEstimate-s;
       the order of range values must be the same as the order of
       domain indices in the DomainSet */
-  public void setSamples(double[][] range, ErrorEstimate[] errors)
-         throws VisADException, RemoteException {
+  public void setSamples(double[][] range, ErrorEstimate[] errors,
+              boolean copy) throws VisADException, RemoteException {
     if(range.length != TupleDimension ||
        (errors != null && errors.length != TupleDimension)) {
       throw new FieldException("FlatField.setSamples: bad tuple length");
@@ -425,14 +446,35 @@ public class FlatField extends FieldImpl {
         throw new FieldException("setSamples: bad array length");
       }
     }
-    packValues(range);
+    packValues(range, copy);
+    setRangeErrors(errors);
+    notifyReferences();
+  }
+
+  /** set the range values of the function including ErrorEstimate-s;
+      the order of range values must be the same as the order of
+      domain indices in the DomainSet */
+  public void setSamples(float[][] range, ErrorEstimate[] errors, 
+              boolean copy) throws VisADException, RemoteException {
+    if(range.length != TupleDimension ||
+       (errors != null && errors.length != TupleDimension)) {
+      throw new FieldException("FlatField.setSamples: bad tuple length");
+    }
+ 
+    for (int i=0; i<TupleDimension; i++) {
+      if (range[i].length != Length) {
+        throw new FieldException("setSamples: bad array length");
+      }
+    }
+    packValues(range, copy);
     setRangeErrors(errors);
     notifyReferences();
   }
 
   /** pack an array of doubles into field sample values according to the
       RangeSet-s; copies data */
-  private void packValues(double[][] range) throws VisADException {
+  private void packValues(double[][] range, boolean copy)
+          throws VisADException {
     // NOTE INVERTED ORDER OF range ARRAY INDICES !!!
     int[] index;
     nullRanges();
@@ -442,10 +484,15 @@ public class FlatField extends FieldImpl {
       range1[0] = rangeI;
       switch (RangeMode[i]) {
         case DOUBLE:
-          DoubleRange[i] = new double[Length];
-          double[] DoubleRangeI = DoubleRange[i];
-          System.arraycopy(rangeI, 0, DoubleRangeI, 0, Length);
-          // for (int j=0; j<Length; j++) DoubleRangeI[j] = rangeI[j];
+          if (copy) {
+            DoubleRange[i] = new double[Length];
+            double[] DoubleRangeI = DoubleRange[i];
+            System.arraycopy(rangeI, 0, DoubleRangeI, 0, Length);
+            // for (int j=0; j<Length; j++) DoubleRangeI[j] = rangeI[j];
+          }
+          else {
+            DoubleRange[i] = rangeI;
+          }
           break;
         case FLOAT:
           FloatRange[i] = new float[Length];
@@ -477,7 +524,65 @@ public class FlatField extends FieldImpl {
           }
           break;
         default:
-          throw new SetException("FlatField.unpackValues: bad RangeMode");
+          throw new SetException("FlatField.packValues: bad RangeMode");
+      }
+    }
+    clearMissing();
+  }
+
+  /** pack an array of floats into field sample values according to the
+      RangeSet-s; copies data */
+  private void packValues(float[][] range, boolean copy)
+          throws VisADException {
+    // NOTE INVERTED ORDER OF range ARRAY INDICES !!!
+    int[] index;
+    nullRanges();
+    for (int i=0; i<TupleDimension; i++) {
+      float[] rangeI = range[i];
+      float[][] range1 = new float[1][];
+      range1[0] = rangeI;
+      switch (RangeMode[i]) {
+        case DOUBLE:
+          DoubleRange[i] = new double[Length];
+          double[] DoubleRangeI = DoubleRange[i];
+          for (int j=0; j<Length; j++) DoubleRangeI[j] = rangeI[j];
+          break;
+        case FLOAT:
+          if (copy) {
+            FloatRange[i] = new float[Length];
+            float[] FloatRangeI = FloatRange[i];
+            System.arraycopy(rangeI, 0, FloatRangeI, 0, Length);
+            // for (int j=0; j<Length; j++) FloatRangeI[j] = (float) rangeI[j];
+          }
+          else {
+          }
+          break;
+        case BYTE:
+          index = RangeSet[i].valueToIndex(range1);
+          ByteRange[i] = new byte[Length];
+          byte[] ByteRangeI = ByteRange[i];
+          for (int j=0; j<Length; j++) {
+            ByteRangeI[j] = (byte) (index[j] + MISSING1 + 1);
+          }
+          break;
+        case SHORT:
+          index = RangeSet[i].valueToIndex(range1);
+          ShortRange[i] = new short[Length];
+          short[] ShortRangeI = ShortRange[i];
+          for (int j=0; j<Length; j++) {
+            ShortRangeI[j] = (short) (index[j] + MISSING2 + 1);
+          }
+          break;
+        case INT:
+          index = RangeSet[i].valueToIndex(range1);
+          IntRange[i] = new int[Length];
+          int[] IntRangeI = IntRange[i];
+          for (int j=0; j<Length; j++) {
+            IntRangeI[j] = index[j] + MISSING4 + 1;
+          }
+          break;
+        default:
+          throw new SetException("FlatField.packValues: bad RangeMode");
       }
     }
     clearMissing();
@@ -2091,7 +2196,7 @@ for (i=0; i<length; i++) {
     FlatField new_error = (FlatField)
       ((FlatField) error).resample(DomainSet, NEAREST_NEIGHBOR, NO_ERRORS);
     double[][] values = unpackValues();
-    field.packValues(values);
+    field.packValues(values, false);
 
     ErrorEstimate[] errors = new ErrorEstimate[TupleDimension];
     double[][] error_values = new_error.unpackValues();
@@ -2152,7 +2257,7 @@ for (i=0; i<length; i++) {
                       RangeCoordinateSystems, RangeSet, RangeUnits);
       if (isMissing()) return field;
       double[][] values = unpackValues();
-      field.packValues(values);
+      field.packValues(values, true);
       field.setRangeErrors(RangeErrors); 
     }
     catch (VisADException e) {
@@ -2273,6 +2378,104 @@ for (i=0; i<length; i++) {
   public int getRangeDimension() {
      return TupleDimension;
   }
+
+  static FlatField makeField(FunctionType type, int length)
+         throws VisADException, RemoteException {
+    double first = 0.0;
+    double last = length - 1.0;
+    double step = 1.0;
+    RealTupleType dtype = type.getDomain();
+    RealTupleType rtype = type.getFlatRange();
+    int domain_dim = dtype.getDimension();
+    int range_dim = rtype.getDimension();
+    Set domain_set = null;
+    int dsize = 0;
+    if (domain_dim == 1) {
+      domain_set = new Linear1DSet(dtype, first, last, length);
+      dsize = length;
+    }
+    else if (domain_dim == 2) {
+      domain_set = new Linear2DSet(dtype, first, last, length,
+                                          first, last, length);
+      dsize = length * length;
+    }
+    else if (domain_dim == 3) {
+      domain_set = new Linear3DSet(dtype, first, last, length,
+                                          first, last, length,
+                                          first, last, length);
+      dsize = length * length * length;
+    }
+    else {
+      throw new FieldException("FlatField.makeField: bad domain dimension");
+    }
+    FlatField image = new FlatField(type, domain_set);
+    double[][] data = new double[range_dim][dsize];
+    Random random = new Random();
+    for (int k=0; k<range_dim; k++) {
+      if (domain_dim == 1) {
+        for (int i=0; i<length; i++) {
+          if (k == 0) {
+            data[0][i] = (float) Math.abs(step * (i - 0.5 * length));
+          }
+          else if (k == 1) {
+            data[k][i] = first + step * i;
+          }
+          else {
+            data[k][i] = random.nextDouble();
+          }
+        }
+      }
+      else if (domain_dim == 2) {
+        for (int i=0; i<length; i++) {
+          for (int j=0; j<length; j++) {
+            if (k == 0) {
+              data[k][i + length * j] = (float) (step * Math.sqrt(
+                (i - 0.5 * length) * (i - 0.5 * length) +
+                (j - 0.5 * length) * (j - 0.5 * length)));
+            }
+            else if (k == 1) {
+              data[k][i + length * j] = first + step * i;
+            }
+            else if (k == 2) {
+              data[k][i + length * j] = first + step * j;
+            }
+            else {
+              data[k][i + length * j] = random.nextDouble();
+            }
+          }
+        }
+      }
+      else if (domain_dim == 3) {
+        for (int i=0; i<length; i++) {
+          for (int j=0; j<length; j++) {
+            for (int m=0; m<length; m++) {
+              if (k == 0) {
+                data[k][i + length * (j + length * m)] = (float) (step * Math.sqrt(
+                  (i - 0.5 * length) * (i - 0.5 * length) +
+                  (j - 0.5 * length) * (j - 0.5 * length) +
+                  (m - 0.5 * length) * (m - 0.5 * length)));
+              }
+              else if (k == 1) {
+                data[k][i + length * (j + length * m)] = first + step * i;
+              }
+              else if (k == 2) {
+                data[k][i + length * (j + length * m)] = first + step * j;
+              }
+              else if (k == 3) {
+                data[k][i + length * (j + length * m)] = first + step * m;
+              }
+              else {
+                data[k][i + length * j] = random.nextDouble();
+              }
+            }
+          }
+        }
+      }
+    }
+    image.setSamples(data);
+    return image;
+  }
+
 
   /** construct a FlatField with a 2-D domain and a 1-D range;
       used for testing */

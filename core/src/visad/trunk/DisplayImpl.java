@@ -593,52 +593,38 @@ public class DisplayImpl extends ActionImpl implements Display {
     System.out.println(image_tuple);
     System.out.println(ir_histogram);
 
-    Integer2DSet Domain2dSet = new Integer2DSet(earth_location, 4, 4);
-    Integer1DSet Domain1dSet = new Integer1DSet(ir_radiance, 4);
-
-/*
-    FlatField imaget1 = new FlatField(image_tuple, Domain2dSet);
-    FlatField imagev1 = new FlatField(image_vis, Domain2dSet);
-    FlatField imager1 = new FlatField(image_ir, Domain2dSet);
-*/
-    FlatField imagev1 =
-      FlatField.makeField1(image_vis, 0.0, 3.0, 4, 0.0, 3.0, 4);
-    FlatField imager1 =
-      FlatField.makeField1(image_ir, 0.0, 3.0, 4, 0.0, 3.0, 4);
-
-    FlatField histogram1 = new FlatField(ir_histogram, Domain1dSet);
-
-    System.out.println(histogram1);
+    FlatField imagev1 = FlatField.makeField(image_vis, 4);
+    FlatField imager1 = FlatField.makeField(image_ir, 4);
 
     // use 'java visad.DisplayImpl' for size = 256 (implicit -mx16m)
     // use 'java -mx40m visad.DisplayImpl' for size = 512
-    int size = 32;
-/*
-    FlatField imaget1 =
-      FlatField.makeRandomField2(image_tuple, 0.0, (double) size-1, size,
-                                        0.0, (double) size-1, size);
-*/
-    FlatField imaget1 =
-      FlatField.makeField2(image_tuple, 0.0, (double) size-1, size,
-                                        0.0, (double) size-1, size);
+    int size = 256;
+    FlatField histogram1 = FlatField.makeField(ir_histogram, size);
+    FlatField imaget1 = FlatField.makeField(image_tuple, size);
 
     DisplayImpl display1 = new DisplayImpl("display1");
     display1.addMap(new ScalarMap(RealType.Latitude, Display.XAxis));
     display1.addMap(new ScalarMap(RealType.Longitude, Display.YAxis));
-    display1.addMap(new ScalarMap(ir_radiance, Display.Green));
-    display1.addMap(new ScalarMap(vis_radiance, Display.Blue));
+    display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
+    display1.addMap(new ScalarMap(ir_radiance, Display.RGB));
+    // display1.addMap(new ScalarMap(count, Display.XAxis));
 
-    // display1.addMap(new ScalarMap(vis_radiance, Display.Green));
-    // display1.addMap(new ConstantMap(0.5, Display.Red));
-    // display1.addMap(new ConstantMap(0.5, Display.Blue));
-    // display1.addMap(new ConstantMap(0.5, Display.Alpha));
+
+/* code to load a GIF image into imaget1 */
+    double[][] data = imaget1.getValues();
+    data[1] = display1.applet.getValues("file:/home/billh/java/visad/billh.gif", size);
+    imaget1.setSamples(data);
+
 
     GraphicsModeControl mode = display1.getGraphicsModeControl();
     mode.setPointSize(3.0f);
+    mode.setPointMode(false);
+
     System.out.println(display1);
-    DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ImageT1");
-    ref_imaget1.setData(imaget1);
-    display1.addReference(ref_imaget1, null);
+    DataReferenceImpl ref_data = new DataReferenceImpl("Test");
+    ref_data.setData(imaget1);
+    // ref_data.setData(histogram1);
+    display1.addReference(ref_data, null);
 
 /*
     DisplayImpl display2 = new DisplayImpl("display2");
@@ -647,7 +633,7 @@ public class DisplayImpl extends ActionImpl implements Display {
     display2.addMap(new ScalarMap(ir_radiance, Display.Radius));
     display2.addMap(new ScalarMap(vis_radiance, Display.RGB));
     System.out.println(display2);
-    display2.addReference(ref_imaget1, null);
+    display2.addReference(ref_data, null);
 
     DisplayImpl display3 = new DisplayImpl("display3");
     display3.addMap(new ScalarMap(RealType.Latitude, Display.XAxis));
@@ -655,7 +641,7 @@ public class DisplayImpl extends ActionImpl implements Display {
     display3.addMap(new ScalarMap(ir_radiance, Display.Radius));
     display3.addMap(new ScalarMap(vis_radiance, Display.RGB));
     System.out.println(display3);
-    display3.addReference(ref_imaget1, null);
+    display3.addReference(ref_data, null);
 
     DisplayImpl display4 = new DisplayImpl("display4");
     display4.addMap(new ScalarMap(RealType.Latitude, Display.XAxis));
@@ -663,38 +649,38 @@ public class DisplayImpl extends ActionImpl implements Display {
     display4.addMap(new ScalarMap(ir_radiance, Display.YAxis));
     display4.addMap(new ScalarMap(vis_radiance, Display.RGB));
     System.out.println(display4);
-    display4.addReference(ref_imaget1, null);
+    display4.addReference(ref_data, null);
 
     delay(1000);
     System.out.println("\ndelay\n");
 
-    ref_imaget1.incTick();
+    ref_data.incTick();
 
     delay(1000);
     System.out.println("\ndelay\n");
 
-    ref_imaget1.incTick();
+    ref_data.incTick();
 
     delay(1000);
     System.out.println("\ndelay\n");
 
-    ref_imaget1.incTick();
+    ref_data.incTick();
  
     System.out.println("\nno delay\n");
  
-    ref_imaget1.incTick();
+    ref_data.incTick();
  
     System.out.println("\nno delay\n");
  
-    ref_imaget1.incTick();
+    ref_data.incTick();
  
     delay(2000);
     System.out.println("\ndelay\n");
 
-    display1.removeReference(ref_imaget1);
-    display2.removeReference(ref_imaget1);
-    display3.removeReference(ref_imaget1);
-    display4.removeReference(ref_imaget1);
+    display1.removeReference(ref_data);
+    display2.removeReference(ref_data);
+    display3.removeReference(ref_data);
+    display4.removeReference(ref_data);
 
     display1.stop();
     display2.stop();

@@ -132,8 +132,12 @@ public class Linear3DSet extends Gridded3DSet {
   /** transform an array of non-integer grid coordinates to an array
       of values in R^3 */
   public float[][] gridToValue(float[][] grid) throws VisADException {
-    if (grid.length != 3) {
+    if (grid.length != ManifoldDimension) {
       throw new SetException("Linear3DSet.gridToValue: bad dimension");
+    }
+    if (ManifoldDimension != 3) {
+      throw new SetException("Linear3DSet.gridToValue: ManifoldDimension " +
+                             "must be 3");
     }
     if (Lengths[0] < 2 || Lengths[1] < 2 || Lengths[2] < 2) {
       throw new SetException("Linear3DSet.gridToValue: requires all grid " +

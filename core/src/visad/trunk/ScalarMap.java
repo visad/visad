@@ -162,6 +162,18 @@ public class ScalarMap extends Object implements java.io.Serializable {
       }
       ((AnimationControl) control).setSet(set);
     }
+    else if (DisplayScalar == Display.IsoContour) {
+      boolean[] bvalues = new boolean[2];
+      bvalues[0] = true; // mainContours
+      bvalues[1] = true; // labels
+      float[] values = new float[5];
+      values[0] = (float) dataRange[0]; // surfaceValue
+      values[1] = (float) (dataRange[1] - dataRange[0]) / 10.0f; // contourInterval
+      values[2] = (float) dataRange[0]; // lowLimit
+      values[3] = (float) dataRange[1]; // hiLimit
+      values[4] = (float) dataRange[0]; // base
+      ((ContourControl) control).setMainContours(bvalues, values);
+    }
   }
 
   /** apply linear map to Scalar values */
