@@ -65,7 +65,7 @@ public abstract class ValueUnpacker
 
     /**
      * Returns the trivial value unpacker.  The trivial value unpacker does
-     * nothing to the value during processing and its {@link getIncrement()}
+     * nothing to the value during processing and its {@link #getIncrement()}
      * method returns NaN.
      *
      * @return			The trivial value unpacker.

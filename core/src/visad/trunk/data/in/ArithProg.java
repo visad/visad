@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: ArithProg.java,v 1.1 2001-03-15 15:53:29 steve Exp $
+$Id: ArithProg.java,v 1.2 2001-03-28 16:25:15 steve Exp $
 */
 
 package visad.data.in;
@@ -217,7 +217,7 @@ public class ArithProg
     }
 
     /**
-     * Gets the number of values.  Only meaningfull if {@link isConsistent()}
+     * Gets the number of values.  Only meaningfull if {@link #isConsistent()}
      * is true.
      *
      * @return			The number of values accumulated so far.
@@ -253,7 +253,7 @@ public class ArithProg
 
     /**
      * Returns the "last" value accumulated.  It is only meaningfull if
-     * {@link isConsistent} is true.
+     * {@link #isConsistent} is true.
      *
      * @return			The last accumulated value.
      * @throws VisADException	The sequence isn't an arithmetic progression.
@@ -270,7 +270,7 @@ public class ArithProg
 
     /**
      * Gets the current common difference.  Only meaningfull if {@link 
-     * isConsistent()} is true.
+     * #isConsistent()} is true.
      *
      * @return			The computed common difference so far.
      * @throws VisADException	The sequence isn't an arithmetic progression.
