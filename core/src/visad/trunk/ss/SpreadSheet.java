@@ -1018,9 +1018,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
       return;
     }
 
-    // temporarily disable auto-detect and auto-show
-    boolean autoD = AutoDetect;
-    boolean autoSC = AutoShowControls;
+    // disable auto-switch, auto-detect and auto-show
+    setAutoSwitch(false);
     setAutoDetect(false);
     setAutoShowControls(false);
 
@@ -1049,41 +1048,158 @@ public class SpreadSheet extends JFrame implements ActionListener,
     tokens[numTokens] = null;
     st = null;
 
-    // get spreadsheet dimensions
-    int i1 = -1, i2 = -1;
+    // get global information
+    int dimX = -1, dimY = -1;
+    int sizeX = -1, sizeY = -1;
+    boolean autoSwitch = true, autoDetect = true, autoShow = true;
     int tokenNum = 0;
     String line;
     int len;
     int eq;
-    do {
+    boolean gotGlobal = false;
+    while (!gotGlobal) {
       line = tokens[tokenNum++];
       if (line == null) {
         displayErrorMessage("The file " + file + " does not contain " +
-          "spreadsheet dimension information of the form \"rows x columns\"",
-          "VisAD SpreadSheet error");
+          "the required [Global] tag", "VisAD SpreadSheet error");
         return;
       }
       len = line.length();
-      eq = line.indexOf('x');
+      if (line.trim().charAt(0) == '#') {
+        // ignore comments
+        eq = -1;
+      }
+      else eq = line.indexOf('[');
       if (eq >= 0) {
-        String n1 = line.substring(0, eq).trim();
-        String n2 = line.substring(eq + 1, len).trim();
-        i1 = -1;
-        i2 = -1;
-        try {
-          i1 = Integer.parseInt(n1);
-          i2 = Integer.parseInt(n2);
+        boolean success = true;
+        int end = line.indexOf(']', eq);
+        /* CTR: TEMP */ if (end < 0) System.out.println("FUCK");
+        if (end < 0) success = false;
+        else {
+          String sub = line.substring(eq + 1, end).trim();
+          if (!sub.equalsIgnoreCase("global")) success = false;
+          /* CTR: TEMP */ if (!success) System.out.println("DAMMIT");
         }
-        catch (NumberFormatException exc) { }
+        if (!success) {
+          displayErrorMessage("The file " + file + " does not contain the " +
+            "[Global] tag as its first entry", "VisAD SpreadSheet error");
+          return;
+        }
+
+        // parse global information
+        int endToken = tokenNum;
+        while (tokens[endToken] != null &&
+          tokens[endToken].indexOf('[') < 0)
+        {
+          endToken++;
+        }
+        for (int i=tokenNum; i<endToken; i++) {
+          line = tokens[i].trim();
+          if (line == null) continue;
+          if (line.charAt(0) == '#') {
+            // ignore comments
+            continue;
+          }
+          eq = line.indexOf('=');
+          if (eq < 0) {
+            // ignore worthless lines
+            continue;
+          }
+          String keyword = line.substring(0, eq).trim();
+
+          // cell dimension
+          if (keyword.equalsIgnoreCase("dimension") ||
+            keyword.equalsIgnoreCase("dimensions") ||
+            keyword.equalsIgnoreCase("dim"))
+          {
+            int x = line.indexOf('x', eq);
+            if (x >= 0) {
+              String sX = line.substring(eq + 1, x).trim();
+              String sY = line.substring(x + 1).trim();
+              try {
+                dimX = Integer.parseInt(sX);
+                dimY = Integer.parseInt(sY);
+              }
+              catch (NumberFormatException exc) { }
+            }
+          }
+
+          // sheet size
+          if (keyword.equalsIgnoreCase("sheet size") ||
+            keyword.equalsIgnoreCase("sheet_size") ||
+            keyword.equalsIgnoreCase("sheetsize") ||
+            keyword.equalsIgnoreCase("size"))
+          {
+            int x = line.indexOf('x', eq);
+            if (x >= 0) {
+              String sX = line.substring(eq + 1, x).trim();
+              String sY = line.substring(x + 1).trim();
+              try {
+                sizeX = Integer.parseInt(sX);
+                sizeY = Integer.parseInt(sY);
+              }
+              catch (NumberFormatException exc) { }
+            }
+          }
+
+          // auto switch
+          if (keyword.equalsIgnoreCase("auto switch") ||
+            keyword.equalsIgnoreCase("auto_switch") ||
+            keyword.equalsIgnoreCase("auto-switch") ||
+            keyword.equalsIgnoreCase("autoswitch"))
+          {
+            String val = line.substring(eq + 1).trim();
+            if (val.equalsIgnoreCase("false") ||
+              val.equalsIgnoreCase("F"))
+            {
+              autoSwitch = false;
+            }
+          }
+
+          // auto detect
+          if (keyword.equalsIgnoreCase("auto detect") ||
+            keyword.equalsIgnoreCase("auto_detect") ||
+            keyword.equalsIgnoreCase("auto-detect") ||
+            keyword.equalsIgnoreCase("autodetect"))
+          {
+            String val = line.substring(eq + 1).trim();
+            if (val.equalsIgnoreCase("false") ||
+              val.equalsIgnoreCase("F"))
+            {
+              autoDetect = false;
+            }
+          }
+
+          // auto show
+          if (keyword.equalsIgnoreCase("auto show") ||
+            keyword.equalsIgnoreCase("auto_show") ||
+            keyword.equalsIgnoreCase("auto-show") ||
+            keyword.equalsIgnoreCase("autoshow"))
+          {
+            String val = line.substring(eq + 1).trim();
+            if (val.equalsIgnoreCase("false") ||
+              val.equalsIgnoreCase("F"))
+            {
+              autoShow = false;
+            }
+          }
+        }
+        gotGlobal = true;
       }
     }
-    while (i2 < 0);
+
+    // make sure cell dimensions are valid
+    if (dimX < 1 || dimY < 1) {
+      displayErrorMessage("The file " + file + " has an invalid " +
+        "global dimension entry", "VisAD SpreadSheet error");
+      return;
+    }
 
     // examine each cell entry
-    String[][] cellNames = new String[i1][i2];
-    String[][] fileStrings = new String[i1][i2];
-    for (int j=0; j<i2; j++) {
-      for (int i=0; i<i1; i++) {
+    String[][] cellNames = new String[dimX][dimY];
+    String[][] fileStrings = new String[dimX][dimY];
+    for (int j=0; j<dimY; j++) {
+      for (int i=0; i<dimX; i++) {
         // find next cell name
         cellNames[i][j] = null;
         do {
@@ -1093,7 +1209,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
               "VisAD SpreadSheet error");
             return;
           }
-          int lbrack = line.indexOf('[');
+          int lbrack;
+          if (line.trim().charAt(0) == '#') {
+            // ignore comments
+            lbrack = -1;
+          }
+          else lbrack = line.indexOf('[');
           if (lbrack >= 0) {
             int rbrack = line.indexOf(']', lbrack);
             if (rbrack >= 0) {
@@ -1115,11 +1236,16 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
     }
 
+    // resize the sheet to the correct size
+    if (sizeX > 0 && sizeY > 0) setSize(sizeX, sizeY);
+
     // reconstruct spreadsheet cells and labels
-    NumVisX = i1;
-    NumVisY = i2;
+    NumVisX = dimX;
+    NumVisY = dimY;
     reconstructSpreadsheet(cellNames, null);
     synchColRow();
+    validate();
+    repaint();
 
     // set each cell's string
     for (int j=0; j<NumVisY; j++) {
@@ -1138,10 +1264,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     catch (InterruptedException exc) { }
 
-    // re-enable auto-detect and auto-show if necessary
-    setAutoDetect(autoD);
-    setAutoShowControls(autoSC);
+    // set auto-switch, auto-detect and auto-show
+    setAutoSwitch(autoSwitch);
+    setAutoDetect(autoDetect);
+    setAutoShowControls(autoShow);
 
+    // update current file and title
     CurrentFile = f;
     setTitle(bTitle + " - " + f.getPath());
   }
@@ -1150,16 +1278,58 @@ public class SpreadSheet extends JFrame implements ActionListener,
   void saveFile() {
     if (CurrentFile == null) saveasFile();
     else {
-      try {
-        FileWriter fw = new FileWriter(CurrentFile);
-        String s = NumVisX + " x " + NumVisY + "\n\n";
-        for (int j=0; j<NumVisY; j++) {
-          for (int i=0; i<NumVisX; i++) {
-            s = s + "[" + DisplayCells[i][j].getName() + "]\n"
-              + DisplayCells[i][j].getSaveString() + "\n";
-          }
+      // construct file header
+      String header = "# VisAD Visualization Spread Sheet spreadsheet file\n";
+      Calendar cal = Calendar.getInstance();
+      int year = cal.get(Calendar.YEAR);
+      int month = cal.get(Calendar.MONTH);
+      int day = cal.get(Calendar.DAY_OF_MONTH);
+      int hour = cal.get(Calendar.HOUR_OF_DAY);
+      int min = cal.get(Calendar.MINUTE);
+      int sec = cal.get(Calendar.SECOND);
+      int milli = cal.get(Calendar.MILLISECOND);
+      String sYear = "" + year;
+      String sMonth = "" + (month + 1);
+      if (month < 10) sMonth = "0" + sMonth;
+      String sDay = "" + day;
+      if (day < 10) sDay = "0" + sDay;
+      String date = sYear + "/" + sMonth + "/" + sDay;
+      String sHour = "" + hour;
+      if (hour < 10) sHour = "0" + sHour;
+      String sMin = "" + min;
+      if (min < 10) sMin = "0" + sMin;
+      String sSec = "" + sec;
+      if (sec < 10) sSec = "0" + sSec;
+      String sMilli = "" + milli;
+      if (milli < 100) sMilli = "0" + sMilli;
+      if (milli < 10) sMilli = "0" + sMilli;
+      String time = sHour + ":" + sMin + ":" + sSec + "." + sMilli;
+      header = header + "# File " + CurrentFile.getName() +
+        " written at " + date + ", " + time + "\n";
+
+      // compile global information
+      String global = "[Global]\n" + 
+        "dimension = " + NumVisX + " x " + NumVisY + "\n" +
+        "sheet size = " + getWidth() + " x " + getHeight() + "\n" +
+        "auto switch = " + AutoSwitch + "\n" +
+        "auto detect = " + AutoDetect + "\n" +
+        "auto show = " + AutoShowControls + "\n";
+
+      // compile cell information
+      String cellInfo = "";
+      for (int j=0; j<NumVisY; j++) {
+        for (int i=0; i<NumVisX; i++) {
+          cellInfo = cellInfo + "[" + DisplayCells[i][j].getName() + "]\n" +
+            DisplayCells[i][j].getSaveString() + "\n";
         }
-        char[] sc = s.toCharArray();
+      }
+
+      // convert information to a character array
+      char[] sc = (header + "\n" + global + "\n" + cellInfo).toCharArray();
+
+      try {
+        // write file to disk
+        FileWriter fw = new FileWriter(CurrentFile);
         fw.write(sc, 0, sc.length);
         fw.close();
       }

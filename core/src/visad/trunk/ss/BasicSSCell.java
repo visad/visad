@@ -967,14 +967,12 @@ public class BasicSSCell extends JPanel {
       String keyword = line.substring(0, eq).trim();
 
       // get remainder of information after the equals sign
-      String surplus = line.substring(eq + 1, len).trim();
+      String surplus = line.substring(eq + 1).trim();
       String nextLine = tokens[tokenNum];
-      boolean first = true;
+      if (nextLine != null && nextLine.indexOf('=') < 0) {
+        surplus = surplus + "\n";
+      }
       while (nextLine != null && nextLine.indexOf('=') < 0) {
-        if (first) {
-          surplus = surplus + "\n";
-          first = false;
-        }
         if (nextLine.length() > 0) surplus = surplus + nextLine + "\n";
         nextLine = tokens[++tokenNum];
       }
@@ -1201,7 +1199,7 @@ public class BasicSSCell extends JPanel {
       }
       if (VDisplay != null) {
         ProjectionControl pc = VDisplay.getProjectionControl();
-        if (pc != null) s = s + "projection = " + pc.getSaveString() + "\n";
+        if (pc != null) s = s + "projection = " + pc.getSaveString();
         ColorControl cc = (ColorControl)
           VDisplay.getControl(ColorControl.class);
         if (cc != null) s = s + "color = " + cc.getSaveString();
@@ -1725,7 +1723,7 @@ public class BasicSSCell extends JPanel {
         int end = s.lastIndexOf("/");
         if (end < 6) end = len;
         String server = s.substring(4, end);
-        String object = (end < len - 1) ? s.substring(end + 1, len) : "";
+        String object = (end < len - 1) ? s.substring(end + 1) : "";
         RemoteServer rs = null;
         rs = (RemoteServer) Naming.lookup(server);
         RemoteDataReference ref = rs.getDataReference(object);
