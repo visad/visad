@@ -95,7 +95,7 @@ public interface SetIface
    * Returns the 1-D indices corresponding to an array of points.
    * The set must have at least two samples.
    *
-   * @param value               An array of points. <code>value[i][j]<code> is
+   * @param value               An array of points. <code>value[i][j]</code> is
    *                            the i-th coordinate of the j-th point.
    * @return                    Indices of the nearest samples in the set.
    *                            If the j-th point lies within the set, then

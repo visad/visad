@@ -37,7 +37,7 @@ public interface SimpleSetIface
   /**
    * Returns the interpolation parameters for an array of points.
    *
-   * @param values              An array of points. <code>value[i][j]<code> is
+   * @param values              An array of points. <code>value[i][j]</code> is
    *                            the i-th coordinate of the j-th points.
    * @return indices            Indices of the neighboring samples in the set.
    *                            If the j-th points lies within the set, then
