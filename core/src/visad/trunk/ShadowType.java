@@ -1840,7 +1840,9 @@ System.out.println("spatial_values = " + spatial_values[0][0] + " " +
                    spatial_values[1][0] + " " + spatial_values[2][0]);
 */
     // convert spatial DisplayRealType values to earth coordinates
-    float[][] earth_locs = renderer.spatialToEarth(spatial_values);
+    float[][] base_spatial_locs = new float[3][]; // WLH 9 Dec 99
+    float[][] earth_locs =
+      renderer.spatialToEarth(spatial_values, base_spatial_locs);
     if (earth_locs == null) return flow_values;
     int elen = earth_locs.length; // 2 or 3
 /*
@@ -1917,7 +1919,8 @@ System.out.println("degree earth_locs = " + earth_locs[0][0] +
 */
     // convert earth coordinates to spatial DisplayRealType values
     if (elen == 3) {
-      earth_locs = renderer.earthToSpatial(earth_locs, null);
+      earth_locs =
+        renderer.earthToSpatial(earth_locs, null, base_spatial_locs);
     }
     else {
       // apply vertical flow in earthToSpatial

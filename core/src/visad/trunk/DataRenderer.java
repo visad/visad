@@ -499,6 +499,12 @@ if (map.badRange()) {
       display (x, y, z) */
   public float[][] earthToSpatial(float[][] locs, float[] vert)
          throws VisADException {
+    return earthToSpatial(locs, vert, null);
+  }
+
+  public float[][] earthToSpatial(float[][] locs, float[] vert,
+                                  float[][] base_spatial_locs)
+         throws VisADException {
     int lat = lat_index;
     int lon = lon_index;
     int other = other_index;
@@ -630,16 +636,20 @@ if (map.badRange()) {
       return null;
     }
 
-/* WLH 28 July 99
+    // WLH 9 Dec 99
     // fill any empty spatial DisplayRealTypes with default values
     for (int i=0; i<3; i++) {
       if (spatial_locs[i] == null) {
-        spatial_locs[i] = new float[size];
-        float def = default_spatial_in[i]; // may be non-Cartesian
-        for (int j=0; j<size; j++) spatial_locs[i][j] = def;
+        if (base_spatial_locs != null &&  base_spatial_locs[i] != null) {
+          spatial_locs[i] = base_spatial_locs[i]; // copy not necessary
+        }
+        else {
+          spatial_locs[i] = new float[size];
+          float def = default_spatial_in[i]; // may be non-Cartesian
+          for (int j=0; j<size; j++) spatial_locs[i][j] = def;
+        }
       }
     }
-*/
 
     // adjust non-lat/lon spatial_locs by vertical flow component
 /* WLH 28 July 99
@@ -663,6 +673,13 @@ if (map.badRange()) {
   /** convert display (x, y, z) to (lat, lon) or (lat, lon, other)
       values */
   public float[][] spatialToEarth(float[][] spatial_locs)
+         throws VisADException {
+    float[][] base_spatial_locs = new float[3][];
+    return spatialToEarth(spatial_locs, base_spatial_locs);
+  }
+
+  public float[][] spatialToEarth(float[][] spatial_locs,
+                                  float[][] base_spatial_locs)
          throws VisADException {
     int lat = lat_index;
     int lon = lon_index;
@@ -690,6 +707,9 @@ if (map.badRange()) {
       // transform Cartesian spatial DisplayRealTypes to non-Cartesian
       spatial_locs = display_coordinate_system.fromReference(spatial_locs);
     }
+    base_spatial_locs[0] = spatial_locs[0];
+    base_spatial_locs[1] = spatial_locs[1];
+    base_spatial_locs[2] = spatial_locs[2];
 
     float[][] tuple_locs = new float[lat_lon_dimension][];
 
