@@ -28,10 +28,9 @@ class GetAreaFile {
    "a","i","y","c","e","h"};
 
   String[] paramValues;
-
   String paramFile, outputFile;
-
   Properties params;
+  boolean verbose;
 
   /** AD_DATAOFFSET - byte offset to start of data block */
   public static final int AD_DATAOFFSET = 33;
@@ -51,6 +50,7 @@ class GetAreaFile {
   public GetAreaFile(String args[]) {
 
     paramFile = "params.properties";
+    verbose = false;
 
     // if no arguments, emit a "help" message
     if (args == null || args.length < 1) {
@@ -60,6 +60,8 @@ class GetAreaFile {
         System.out.println("    -"+flags[i]+" = "+paramNames[i]);
       }
       System.out.println("    -f = parameter save filename (def=params.properties)");
+      System.out.println("    -v  (verbose text output)");
+      System.out.println(" Note: for multi-argument options (like -s), you need to enclose the values in quotes. e.g., -s \"200 200\"");
       System.exit(0);
     }
 
@@ -76,87 +78,88 @@ class GetAreaFile {
 
     String request = makeADDEString();
 
-    System.out.println("Request: "+request);
+    System.out.println("Request sent: "+request);
 
     try {
       af = new AreaFile(request);
     } catch (AreaFileException e) {
-      System.out.println("Getting af:"+e);
+      if (verbose) System.out.println("While getting AreaFile:"+e);
       return;
     }
     int[] dir;
     try { dir=af.getDir();
     } catch (AreaFileException e){
-      System.out.println("Getting dir:"+e);
+      if (verbose) System.out.println("Getting dir:"+e);
       return;
     }
-    System.out.println("Length of directory = "+dir.length);
+    if (verbose) System.out.println("Length of directory = "+dir.length);
 
     for (int i=0; i<dir.length; i++) {
-     System.out.println(" index "+i+" = "+dir[i]);
+     if (verbose) System.out.println(" index "+i+" = "+dir[i]);
     }
 
     int[] nav=null;
     try { nav=af.getNav();
-          System.out.println("Length of nav block = "+nav.length);
+          if (verbose) System.out.println("Length of nav block = "+nav.length);
     } catch (AreaFileException e){
-      System.out.println("Getting nav:"+e);
+      if (verbose) System.out.println("Getting nav:"+e);
       return;
     }
 
     int[] cal=null;
     try { cal=af.getCal();
-          System.out.println("Length of cal block = "+cal.length);
+          if (verbose) System.out.println("Length of cal block = "+cal.length);
     } catch (AreaFileException e){
-      System.out.println("Getting cal:"+e);
+      if (verbose) System.out.println("Getting cal:"+e);
     }
 
     int[] aux=null;
     try { aux=af.getAux();
-          System.out.println("Length of aux block = "+aux.length);
+          if (verbose) System.out.println("Length of aux block = "+aux.length);
     } catch (AreaFileException e){
-      System.out.println("Getting aux:"+e);
+      if (verbose) System.out.println("Getting aux:"+e);
     }
 
     int NL=dir[8];
     int NE=dir[9];
 
-    System.out.println("Start reading data, num points="+(NL*NE));
+    if (verbose) System.out.println("Start reading data, num points="+(NL*NE));
 
     int[][]data;
 
     try { data = af.getData(0,0,NL,NE); }
     catch (AreaFileException e) {System.out.println(e);return;}
-    System.out.println("Finished reading data");
+
+    if (verbose) System.out.println("Finished reading data");
 
 
     try {
       RandomAccessFile raf = new RandomAccessFile(outputFile,"rw");
 
-    System.out.println("Dir to word 0");
+    if (verbose) System.out.println("Dir to word 0");
       raf.seek(0);
       dir[0] = 0; // make sure this is zero!!
       for (int i=0; i<dir.length; i++) raf.writeInt(dir[i]);
 
-    System.out.println("Nav to word "+dir[AD_NAVOFFSET]);
+    if (verbose) System.out.println("Nav to word "+dir[AD_NAVOFFSET]);
       if (nav != null && dir[AD_NAVOFFSET] > 0) {
         raf.seek(dir[AD_NAVOFFSET]);
         for (int i=0; i<nav.length; i++) raf.writeInt(nav[i]);
       }
 
-    System.out.println("Cal to word "+dir[AD_CALOFFSET]);
+    if (verbose) System.out.println("Cal to word "+dir[AD_CALOFFSET]);
       if (cal != null && dir[AD_NAVOFFSET] > 0) {
         raf.seek(dir[AD_CALOFFSET]);
         for (int i=0; i<cal.length; i++) raf.writeInt(cal[i]);
       }
 
-    System.out.println("Aux to word "+dir[AD_AUXOFFSET]);
+    if (verbose) System.out.println("Aux to word "+dir[AD_AUXOFFSET]);
       if (aux != null && dir[AD_NAVOFFSET] > 0) {
         raf.seek(dir[AD_AUXOFFSET]);
         for (int i=0; i<aux.length; i++) raf.writeInt(aux[i]);
       }
 
-    System.out.println("Data to word "+dir[AD_DATAOFFSET]);
+    if (verbose) System.out.println("Data to word "+dir[AD_DATAOFFSET]);
       if (dir[AD_NAVOFFSET] > 0) {
         raf.seek(dir[AD_DATAOFFSET]);
         for (int i=0; i<data.length; i++) {
@@ -175,7 +178,7 @@ class GetAreaFile {
       raf.close();
     } catch (Exception we) {System.out.println(we);}
 
-    System.out.println("Conversion done; saving parameters to: "+paramFile);
+    System.out.println("Completed. Data saved to: "+outputFile+"   Saving parameters to: "+paramFile);
     writeParams(paramFile,params);
   }
 
@@ -213,12 +216,16 @@ class GetAreaFile {
       String s = arg[k];
       if ((s.length()) > 1 && s.startsWith("-")) {
         String r = s.substring(1,2);
-          if (r.equals("f")) {
-            if (s.length() == 2) {
-              paramFile = arg[++k];
-            } else {
-              paramFile = s.substring(2);
-            }
+        if (r.equals("f")) {
+          if (s.length() == 2) {
+            paramFile = arg[++k];
+          } else {
+            paramFile = s.substring(2);
+          }
+
+        } else if (r.equals("v")) {
+          verbose = true;
+
         } else {
           for (int i=0; i<paramNames.length; i++) {
             if (r.equals(flags[i])) {
@@ -285,9 +292,8 @@ class GetAreaFile {
  *-m   mag=<lmag> <emag>         image magnification, postitive for blowup,
  *                               negative for blowdown (default = 1, emag=lmag)
  *                               (imagedata only)
- *-l   latlon=<lat> <lon>        lat/lon point to center image on 
- *-n   linele=<lin> <ele> <type> line/element to center image on 
- *-c   place=<placement>         placement of lat/lon or linele points (center
+ *-l   linele=<lin> <ele> <type> line/element to center image on 
+ *-n   place=<placement>         placement of lat/lon or linele points (center
  *                               or upperleft (def=center)) 
  *-p   pos=<position>            request an absolute or relative ADDE position
  *                               number
@@ -296,8 +302,9 @@ class GetAreaFile {
  *                               default
  *-z   spac=<bytes>              number of bytes per data point, 1, 2, or 4
  *                               (imagedata only)
- *-c   doc=<yes/no>              specify yes to include line documentation
+ *-o   doc=<yes/no>              specify yes to include line documentation
  *                               with image (def=no)
+ *-r   latlon=<lat> <lon>        lat/lon point to center image on 
  *-a   aux=<yes/no>              specify yes to include auxilliary information
  *                               with image
  *-i   time=<time1> <time2>      specify the time range of images to select
@@ -306,7 +313,8 @@ class GetAreaFile {
  *                               (def=latest image if pos not specified)
  *-c   cal=<cal type>            request a specific calibration on the image
  *                               (imagedata only)
- *-f   id=<stn id>               radar station id
+ *-i   id=<stn id>               radar station id
+ *-h   host=                     ADDE server hostname or IP address
  *
 */
 
