@@ -23,6 +23,7 @@ MA 02111-1307, USA
 package visad.data.dods;
 
 import java.lang.reflect.*;
+import java.io.IOException;
 import java.net.*;
 import java.rmi.RemoteException;
 import visad.*;
@@ -87,9 +88,8 @@ public class DODSForm
      * @param replace		Whether or not to replace an existing object.
      * @throws UnimplementedException	Always.
      */
-    public void
-    save(String id, Data data, boolean replace)
-	throws UnimplementedException
+    public void save(String id, Data data, boolean replace) 
+        throws BadFormException, IOException, RemoteException, VisADException
     {
 	throw new UnimplementedException(
 	    getClass().getName() + ".save(String,Data,boolean): " +
@@ -124,8 +124,8 @@ public class DODSForm
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public DataImpl open(String id)
-	throws BadFormException, RemoteException, VisADException
+    public DataImpl open(String id) 
+        throws BadFormException, IOException, VisADException
     {
 	String		header = getClass().getName() + ".open(String): ";
 	DataImpl	data;
@@ -167,7 +167,7 @@ public class DODSForm
 	}
 	catch (InvocationTargetException e)
 	{
-	    throw new VisADException(header + e + contactMessage);
+	    throw new VisADException(e.getTargetException().getMessage());
 	}
 	return data;
     }
@@ -184,7 +184,7 @@ public class DODSForm
      * @throws RemoteException	Java RMI failure.
      */
     public DataImpl open(URL url)
-	throws BadFormException, VisADException, RemoteException
+        throws BadFormException, VisADException, IOException
     {
 	return open(url.toString());
     }
