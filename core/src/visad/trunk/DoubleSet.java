@@ -35,38 +35,83 @@ package visad;
 */
 public class DoubleSet extends SimpleSet {
 
-  /** construct a DoubleSet object with null CoordinateSystem and Units */
+  /**
+   * construct a DoubleSet with null CoordinateSystem and Units
+   * @param type MathType for this DoubleSet, must be SetType,
+   *             RealTupleType or RealType
+   * @throws VisADException a VisAD error occurred
+   */
   public DoubleSet(MathType type) throws VisADException {
     this(type, null, null);
   }
 
-  /** the set of values representable by N doubles;
-      type must be a RealType, a RealTupleType or a SetType;
-      coordinate_system and units must be compatible with defaults
-      for type, or may be null;
-      a DoubleSet may not be used as a Field domain */
+  /** 
+   * construct a DoubleSet with null CoordinateSystem and Units 
+   * @param type MathType for this DoubleSet, must be SetType,
+   *             RealTupleType or RealType
+   * @param coord_sys CoordinateSystem for Set domain, must be
+   *                  compatible with default for type
+   * @param units array of Units for Real values in Set domain,
+   *              must be compatible with defaults for type
+   * @throws VisADException a VisAD error occurred
+   */
   public DoubleSet(MathType type, CoordinateSystem coord_sys, Unit[] units)
          throws VisADException {
     super(type, coord_sys, units, null); // no ErrorEstimate for DoubleSet
   }
 
+  /**
+   * for DoubleSet, this always throws a SetException
+   * @param index array of integer indices
+   * @return float[domain_dimension][indices.length] array of
+   *         Set values (but always throws SetException instead)
+   * @throws VisADException a VisAD error occurred
+   */
   public float[][] indexToValue(int[] index) throws VisADException {
     throw new SetException("DoubleSet.indexToValue");
   }
 
+  /**
+   * for DoubleSet, this always throws a SetException
+   * @param value float[domain_dimension][number_of_values] array of
+   *        Set values
+   * @return array of integer indices (but always throws SetException
+   *         instead)
+   * @throws VisADException a VisAD error occurred
+   */
   public int[] valueToIndex(float[][] value) throws VisADException {
     throw new SetException("DoubleSet.valueToIndex");
   }
 
-  public void valueToInterp(float[][] value, int[][] indices, float weights[][])
-              throws VisADException {
+  /**
+   * for DoubleSet, this always throws a SetException
+   * @param value float[domain_dimension][number_of_values] array of
+   *        Set values
+   * @param indices int[number_of_values][] array for returning Set
+   *                indices
+   * @param weights float[number_of_values][] array for returning
+   *                weights
+   * @throws VisADException a VisAD error occurred
+   */
+  public void valueToInterp(float[][] value, int[][] indices,
+                            float weights[][]) throws VisADException {
     throw new SetException("DoubleSet.valueToInterp");
   }
 
+  /**
+   * for DoubleSet, this always throws a SetException
+   * @return length of Set (but always throws SetException instead)
+   * @throws VisADException a VisAD error occurred
+   */
   public int getLength() throws VisADException {
     throw new SetException("DoubleSet.getLength");
   }
 
+  /**
+   * Indicates whether or not this instance is equal to an object
+   * @param set the object in question.
+   * @return <code>true</code> if and only if this instance equals set.
+   */
   public boolean equals(Object set) {
     if (!(set instanceof DoubleSet) || set == null) return false;
     if (this == set) return true;
@@ -74,6 +119,9 @@ public class DoubleSet extends SimpleSet {
     return (DomainDimension == ((DoubleSet) set).getDimension());
   }
 
+  /**
+   * @return false (a DoubleSet is never missing)
+   */
   public boolean isMissing() {
     return false;
   }
@@ -92,10 +140,21 @@ public class DoubleSet extends SimpleSet {
       return super.clone();
   }
 
+  /**
+   * Clones this instance with a different MathType.
+   *
+   * @param type MathType for returned DoubleSet
+   * @return                      A clone of this instance.
+   */
   public Object cloneButType(MathType type) throws VisADException {
     return new DoubleSet(type, DomainCoordinateSystem, SetUnits);
   }
 
+  /**
+   * @param pre String added to start of each line
+   * @return a longer String than returned by toString(),
+   *         indented by pre (a string of blanks)
+   */
   public String longString(String pre) throws VisADException {
     return pre + "DoubleSet: Dimension = " + DomainDimension + "\n";
   }

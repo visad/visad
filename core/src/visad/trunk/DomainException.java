@@ -27,9 +27,21 @@ MA 02111-1307, USA
 package visad;
 
 /**
- * Supports exceptions for bad or invalid or inappropriate domains of Fields.<P>
+ * Supports exceptions for bad or invalid or inappropriate domains
+ * of Fields.<P>
  */
 public class DomainException extends FieldException {
+
+  /**
+   * construct a DomainException with null message String
+   */
   public DomainException() { super(); }
+
+  /**
+   * construct a DomainException with given message String
+   * @param s message String
+   */
   public DomainException(String s) { super(s); }
+
 }
+

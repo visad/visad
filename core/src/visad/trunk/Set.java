@@ -309,18 +309,23 @@ public abstract class Set extends DataImpl implements SetIface {
   public void cram_missing(boolean[] range_select) {
   }
 
-  //
-  // must eventually move indexToValue and valueToIndex to SimpleSet
-  // and add logic for UnionSet to Field and FlatField
-  //
-  /** convert an array of indices to an array of sample values;
-      the return array is organized as
-      float[domain_dimension][indices.length] */
+  /**
+   * return Set values corresponding to Set indices
+   * @param index array of integer indices
+   * @return float[domain_dimension][indices.length] array of
+   *         Set values
+   * @throws VisADException a VisAD error occurred
+   */
   public abstract float[][] indexToValue(int[] index) throws VisADException;
 
-  /** convert an array of values to an array of indices of the nearest
-      samples; the values array is organized as
-      float[domain_dimension][number_of_values] */
+  /**
+   * return Set indices of Set values closest to value elements
+   *        (return -1 for any value outside Set range)
+   * @param value float[domain_dimension][number_of_values] array of
+   *        Set values
+   * @return array of integer indices
+   * @throws VisADException a VisAD error occurred
+   */
   public abstract int[] valueToIndex(float[][] value) throws VisADException;
 
   public DataShadow computeRanges(ShadowType type, DataShadow shadow)
@@ -328,7 +333,10 @@ public abstract class Set extends DataImpl implements SetIface {
     return computeRanges(type, shadow, null, false);
   }
 
-  /** this default does not set ranges - it is used by FloatSet and DoubleSet */
+  /**
+   * this default does not set ranges - it is used by FloatSet and
+   * DoubleSet
+   */
   public DataShadow computeRanges(ShadowType type, DataShadow shadow,
                                   double[][] ranges, boolean domain)
          throws VisADException {

@@ -29,18 +29,28 @@ package visad;
 /**
    DisplayTupleType is the class for tuples of DisplayRealType's.<P>
 */
-
 public class DisplayTupleType extends RealTupleType {
 
-  /** null CoordinateSystem; a DisplayrealType may
-      not be a component of more than one DisplayTupleType */
+  /**
+   * construct a DisplayTupleType with null CoordinateSystem
+   * @param types array of DisplayRealType to be components
+   *              note a DisplayRealType may not be a component
+   *              of more than one DisplayTupleType
+   * @throws VisADException a VisAD error occurred
+   */
   public DisplayTupleType(DisplayRealType[] types) throws VisADException {
     this(types, null);
   }
 
-  /** if coord_sys is not null then coord_sys.Reference
-      must be another DisplayTupleType; a DisplayrealType may
-      not be a component of more than one DisplayTupleType */
+  /** 
+   * construct a DisplayTupleType
+   * @param types array of DisplayRealType to be components
+   *              note a DisplayRealType may not be a component
+   *              of more than one DisplayTupleType
+   * @param coord_sys CoordinateSystem; if non-null, its reference
+   *                  must be another DisplayTupleType
+   * @throws VisADException a VisAD error occurred
+   */
   public DisplayTupleType(DisplayRealType[] types, CoordinateSystem coord_sys)
          throws VisADException {
     super(types, coord_sys, null);
@@ -52,18 +62,8 @@ public class DisplayTupleType extends RealTupleType {
       }
       else if (Display.DisplaySpatialOffsetTuple.equals(ref)) {
         throw new CoordinateSystemException("DisplayTupleType: " +
-               "CoordinateSystem.Reference cannot be DisplaySpatialOffsetTuple");
+         "CoordinateSystem.Reference cannot be DisplaySpatialOffsetTuple");
       }
-/*
-      else if (Display.DisplayFlow1Tuple.equals(ref)) {
-        throw new CoordinateSystemException("DisplayTupleType: " +
-               "CoordinateSystem.Reference cannot be DisplayFlow1Tuple");
-      }
-      else if (Display.DisplayFlow2Tuple.equals(ref)) {
-        throw new CoordinateSystemException("DisplayTupleType: " +
-               "CoordinateSystem.Reference cannot be DisplayFlow2Tuple");
-      }
-*/
       Unit[] default_units = getDefaultUnits();
       Unit[] coord_sys_units = coord_sys.getCoordinateSystemUnits();
       int n = default_units.length;
@@ -77,19 +77,35 @@ public class DisplayTupleType extends RealTupleType {
         }
       }
       if (!match) {
-        throw new UnitException("RealTupleType: CoordinateSystem Units must " +
-                                "equal default Units");
+        throw new UnitException("RealTupleType: CoordinateSystem Units " +
+                                "must equal default Units");
       }
     } // end if (coord_sys != null)
     setTuples(types, coord_sys);
   }
 
-  /** trusted constructor for initializers */
+  /**
+   * construct a DisplayTupleType with null CoordinateSystem
+   * @param types array of DisplayRealType to be components
+   *              note a DisplayRealType may not be a component
+   *              of more than one DisplayTupleType
+   * @param b argument indicating this is a trusted constructor
+   *          for initializers
+   */
   DisplayTupleType(DisplayRealType[] types, boolean b) {
     this(types, null, b);
   }
 
-  /** trusted constructor for initializers */
+  /**
+   * construct a DisplayTupleType
+   * @param types array of DisplayRealType to be components
+   *              note a DisplayRealType may not be a component
+   *              of more than one DisplayTupleType
+   * @param coord_sys CoordinateSystem; if non-null, its reference
+   *                  must be another DisplayTupleType
+   * @param b argument indicating this is a trusted constructor
+   *          for initializers
+   */
   DisplayTupleType(DisplayRealType[] types, CoordinateSystem coord_sys,
                    boolean b) {
     super(types, coord_sys, b);
@@ -177,5 +193,6 @@ public class DisplayTupleType extends RealTupleType {
       types[i].setTuple(this, i, circulars[i]);
     }
   }
+
 }
 
