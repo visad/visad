@@ -300,27 +300,9 @@ NcFunction
 	}
 
 	// TODO: add CoordinateSystem argument
-	switch (rank)
-	{
-	    case 1:
-		return new Linear1DSet(((FunctionType)mathType).getDomain(),
-			firsts[0], lasts[0], lengths[0], null, null, null);
-	    case 2:
-		return new Linear2DSet(((FunctionType)mathType).getDomain(),
-			firsts[0], lasts[0], lengths[0],
-			firsts[1], lasts[1], lengths[1],
-			null, null, null);
-	    case 3:
-		return new Linear3DSet(((FunctionType)mathType).getDomain(),
-			firsts[0], lasts[0], lengths[0],
-			firsts[1], lasts[1], lengths[1],
-			firsts[2], lasts[2], lengths[2],
-			null, null, null);
-	    default:
-		return new LinearNDSet(((FunctionType)mathType).getDomain(),
-			firsts, lasts, lengths,
-			null, null, null);
-	}
+	return LinearNDSet.create(((FunctionType)mathType).getDomain(),
+				    firsts, lasts, lengths,
+				    null, null, null);
     }
 
 
