@@ -35,10 +35,10 @@ import visad.*;
 public class BioRadNote {
 
   /** Distance unit. */
-  public static final Unit micron = SI.meter.pow(-6);
+  public static final Unit MICRON = SI.meter.pow(-6);
 
   /** Time unit. */
-  public static final Unit second = SI.second;
+  public static final Unit SECOND = SI.second;
 
 
   // Return types for analyze()
@@ -62,46 +62,46 @@ public class BioRadNote {
   // Note types
 
   /** Information about live collection. */
-  static final int NOTE_TYPE_LIVE = 1;
+  public static final int NOTE_TYPE_LIVE = 1;
 
   /** Note from image #1. */
-  static final int NOTE_TYPE_FILE1 = 2;
+  public static final int NOTE_TYPE_FILE1 = 2;
 
   /** Number in multiple image file. */
-  static final int NOTE_TYPE_NUMBER = 3;
+  public static final int NOTE_TYPE_NUMBER = 3;
 
   /** User notes generated notes. */
-  static final int NOTE_TYPE_USER = 4;
+  public static final int NOTE_TYPE_USER = 4;
 
   /** Line mode info. */
-  static final int NOTE_TYPE_LINE = 5;
+  public static final int NOTE_TYPE_LINE = 5;
 
   /** Collect mode info. */
-  static final int NOTE_TYPE_COLLECT = 6;
+  public static final int NOTE_TYPE_COLLECT = 6;
 
   /** Note from image #2. */
-  static final int NOTE_TYPE_FILE2 = 7;
+  public static final int NOTE_TYPE_FILE2 = 7;
 
   /** Scale bar info. */
-  static final int NOTE_TYPE_SCALEBAR = 8;
+  public static final int NOTE_TYPE_SCALEBAR = 8;
 
   /** Merge info. */
-  static final int NOTE_TYPE_MERGE = 9;
+  public static final int NOTE_TYPE_MERGE = 9;
 
   /** Thruview info. */
-  static final int NOTE_TYPE_THRUVIEW = 10;
+  public static final int NOTE_TYPE_THRUVIEW = 10;
 
   /** Arrow info. */
-  static final int NOTE_TYPE_ARROW = 11;
+  public static final int NOTE_TYPE_ARROW = 11;
 
   /** Internal variable. */
-  static final int NOTE_TYPE_VARIABLE = 20;
+  public static final int NOTE_TYPE_VARIABLE = 20;
 
   /** Again internal variable, except held as a structure. */
-  static final int NOTE_TYPE_STRUCTURE = 21;
+  public static final int NOTE_TYPE_STRUCTURE = 21;
 
   /** List of note types. */
-  static final String[] noteNames = {
+  public static final String[] NOTE_NAMES = {
     "0", "LIVE", "FILE1", "NUMBER", "USER", "LINE", "COLLECT", "FILE2",
     "SCALEBAR", "MERGE", "THRUVIEW", "ARROW", "12", "13", "14", "15",
     "16", "17", "18", "19", "VARIABLE", "STRUCTURE"
@@ -111,115 +111,115 @@ public class BioRadNote {
   // Note status types
 
   /** Whether note is displayed on all images. */
-  static final int NOTE_STATUS_ALL = 0x0100;
+  public static final int NOTE_STATUS_ALL = 0x0100;
 
   /** Note is currently displayed. */
-  static final int NOTE_STATUS_DISPLAY = 0x0200;
+  public static final int NOTE_STATUS_DISPLAY = 0x0200;
 
   /** Note has been positioned by the user. */
-  static final int NOTE_STATUS_POSITION = 0x0400;
+  public static final int NOTE_STATUS_POSITION = 0x0400;
 
 
   // Note axis types
 
   /** Distance im microns. */
-  private static final int axt_D = 1;
+  public static final int AXT_D = 1;
 
   /** Time in sec. */
-  private static final int axt_T = 2;
+  public static final int AXT_T = 2;
 
   /** Angle in degrees. */
-  private static final int axt_A = 3;
+  public static final int AXT_A = 3;
 
   /** Intensity in grey levels. */
-  private static final int axt_I = 4;
+  public static final int AXT_I = 4;
 
   /** 4-bit merged image. */
-  private static final int axt_M4 = 5;
+  public static final int AXT_M4 = 5;
 
   /** Ratio. */
-  private static final int axt_R = 6;
+  public static final int AXT_R = 6;
 
   /** Log Ratio. */
-  private static final int axt_LR = 7;
+  public static final int AXT_LR = 7;
 
   /** Product. */
-  private static final int axt_P = 8;
+  public static final int AXT_P = 8;
 
   /** Calibrated concentration/pH. */
-  private static final int axt_C = 9;
+  public static final int AXT_C = 9;
 
   /** Intensity in photons/sec. */
-  private static final int axt_PHOTON = 10;
+  public static final int AXT_PHOTON = 10;
 
   /** RGB type (mixer/channel/colour). */
-  private static final int axt_RGB = 11;
+  public static final int AXT_RGB = 11;
 
   /** SEQ type (eg "experiments" of a "method". */
-  private static final int axt_SEQ = 12;
+  public static final int AXT_SEQ = 12;
 
   /** 6th level of axis "nesting", on top of RGB &amp; SEQ. */
-  private static final int axt_6D = 13;
+  public static final int AXT_6D = 13;
 
   /** Time Course axis */
-  private static final int axt_TC = 14;
+  public static final int AXT_TC = 14;
 
   /** Intensity sigmoid calibrated concentration/pH. */
-  private static final int axt_S = 15;
+  public static final int AXT_S = 15;
 
   /** Intensity log sigmoid calibrated concentration/pH. */
-  private static final int axt_LS = 16;
+  public static final int AXT_LS = 16;
 
   /** Mask for axis TYPE. */
-  private static final int axt_MASK = 0xFF;
+  public static final int AXT_MASK = 0xFF;
 
   /** Axis is XY, needs updating by LENS etc. */
-  private static final int axt_XY = 0x100;
+  public static final int AXT_XY = 0x100;
 
   /** Axis is word, only corresponds to axis[0]. */
-  private static final int axt_WORD = 0x200;
+  public static final int AXT_WORD = 0x200;
 
 
   // MathTypes
 
   /** RealType for level note element. */
-  private static final RealType rt_level =
+  public static final RealType RT_LEVEL =
     RealType.getRealType("biorad_level");
 
   /** RealType for num note element. */
-  private static final RealType rt_num = RealType.getRealType("biorad_num");
+  public static final RealType RT_NUM = RealType.getRealType("biorad_num");
 
   /** RealType for status note element. */
-  private static final RealType rt_status =
+  public static final RealType RT_STATUS =
     RealType.getRealType("biorad_status");
 
   /** RealType for type note element. */
-  private static final RealType rt_type = RealType.getRealType("biorad_type");
+  public static final RealType RT_TYPE = RealType.getRealType("biorad_type");
 
   /** RealType for x note element. */
-  private static final RealType rt_x = RealType.getRealType("biorad_x");
+  public static final RealType RT_X = RealType.getRealType("biorad_x");
 
   /** RealType for y note element. */
-  private static final RealType rt_y = RealType.getRealType("biorad_y");
+  public static final RealType RT_Y = RealType.getRealType("biorad_y");
 
   /** TextType for text note element. */
-  private static final TextType tt_text = TextType.getTextType("biorad_text");
+  public static final TextType TT_TEXT = TextType.getTextType("biorad_text");
 
   /** MathType of a BioRad note. */
-  static final TupleType noteTuple = makeNoteTuple();
-  
+  public static final TupleType NOTE_TUPLE = makeNoteTuple();
+
   /** Creates BioRad note MathType. */
-  private static TupleType makeNoteTuple() {
+  protected static TupleType makeNoteTuple() {
     try {
-      if (rt_level == null) System.out.println("level is null");
-      if (rt_num == null) System.out.println("num is null");
-      if (rt_status == null) System.out.println("status is null");
-      if (rt_type == null) System.out.println("type is null");
-      if (rt_x == null) System.out.println("x is null");
-      if (rt_y == null) System.out.println("y is null");
-      if (tt_text == null) System.out.println("text is null");
+      if (RT_LEVEL == null) System.out.println("level is null");
+      if (RT_NUM == null) System.out.println("num is null");
+      if (RT_STATUS == null) System.out.println("status is null");
+      if (RT_TYPE == null) System.out.println("type is null");
+      if (RT_X == null) System.out.println("x is null");
+      if (RT_Y == null) System.out.println("y is null");
+      if (TT_TEXT == null) System.out.println("text is null");
       return new TupleType(new MathType[] {
-        rt_level, rt_num, rt_status, rt_type, rt_x, rt_y, tt_text
+        RT_LEVEL, RT_NUM, RT_STATUS, RT_TYPE, RT_X, RT_Y, TT_TEXT
       });
     }
     catch (VisADException exc) {
@@ -232,37 +232,37 @@ public class BioRadNote {
   // Fields
 
   /** Level of this note. */
-  int level;
+  protected int level;
 
   /** Image number for the display of this note. */
-  int num;
+  protected int num;
 
   /** Status flag for this note. */
-  int status;
+  protected int status;
 
   /** Type code for this note. */
-  int type;
+  protected int type;
 
   /** X coordinate for the note. */
-  int x;
+  protected int x;
 
   /** Y coordinate for the note. */
-  int y;
+  protected int y;
 
   /** 80 characters of information. */
-  String text;
+  protected String text;
 
   /** Metadata object constructed from this note, if any. */
-  Data metadata;
+  protected Data metadata;
 
   /** The origin (starting location) of the data (in microns or seconds). */
-  double origin;
+  protected double origin;
 
   /** The step size between samples (in microns or seconds). */
-  double step;
+  protected double step;
 
   /** True if seconds, false if microns. */
-  boolean time;
+  protected boolean time;
 
 
   /** Constructs a new Bio-Rad note object. */
@@ -285,11 +285,11 @@ public class BioRadNote {
   public DataImpl getNoteData() {
     try {
       DataImpl[] d = new DataImpl[] {
-        new Real(rt_level, level), new Real(rt_num, num),
-        new Real(rt_status, status), new Real(rt_type, type),
-        new Real(rt_x, x), new Real(rt_y, y), new Text(tt_text, text)
+        new Real(RT_LEVEL, level), new Real(RT_NUM, num),
+        new Real(RT_STATUS, status), new Real(RT_TYPE, type),
+        new Real(RT_X, x), new Real(RT_Y, y), new Text(TT_TEXT, text)
       };
-      return new Tuple(noteTuple, d, false);
+      return new Tuple(NOTE_TUPLE, d, false);
     }
     catch (VisADException exc) {
       if (BioRadForm.DEBUG) exc.printStackTrace();
@@ -340,14 +340,14 @@ public class BioRadNote {
         warn();
         return INVALID_NOTE;
       }
-      // CTR: TODO
+      // CTR TODO - Handle SCALEBAR note
       if (BioRadForm.DEBUG && BioRadForm.DEBUG_LEVEL >= 1) {
         System.err.println("Warning: ignoring SCALEBAR information");
       }
       return NO_INFORMATION;
     }
     else if (type == NOTE_TYPE_THRUVIEW) {
-      // ignore (Reserved for Bio-Rad Image Processing Software ThruView)
+      // ignore (reserved for Bio-Rad Image Processing Software ThruView)
       return INVALID_NOTE;
     }
     else if (type == NOTE_TYPE_ARROW) {
@@ -370,15 +370,15 @@ public class BioRadNote {
       catch (NumberFormatException exc) {
         if (BioRadForm.DEBUG) exc.printStackTrace();
       }
-      String fill_type = st.nextToken(); // either "Fill" or "Outline"
+      String fillType = st.nextToken(); // either "Fill" or "Outline"
       if (!v.equals("ARROW") || !eq.equals("=") ||
         lx < 0 || ly < 0 || angle < 0 ||
-        !(fill_type.equals("Fill") || fill_type.equals("Outline")))
+        !(fillType.equals("Fill") || fillType.equals("Outline")))
       {
         warn(v);
         return INVALID_NOTE;
       }
-      // CTR: TODO
+      // CTR TODO - Handle ARROW note
       if (BioRadForm.DEBUG && BioRadForm.DEBUG_LEVEL >= 1) {
         System.err.println("Warning: ignoring ARROW information");
       }
@@ -433,7 +433,7 @@ public class BioRadNote {
         // image4 information
         v.equals("AXIS_7") ||
         // image5 information
-        v.equals("AXIS_8") || 
+        v.equals("AXIS_8") ||
         // mixer information for z-series
         v.equals("AXIS_9") ||
         // calibrated intensity information
@@ -457,18 +457,18 @@ public class BioRadNote {
           warn(v);
           return INVALID_NOTE;
         }
-        int type = -1; // axt_D for distance in *m
-        int origin = -1; // position of left hand edge of image in *m
+        int ntype = -1; // AXT_D for distance in *m
+        int norigin = -1; // position of left hand edge of image in *m
         int inc = -1; // pixel step size (increment) in *m
         try {
-          type = Integer.parseInt(st.nextToken());
-          origin = Integer.parseInt(st.nextToken());
+          ntype = Integer.parseInt(st.nextToken());
+          norigin = Integer.parseInt(st.nextToken());
           inc = Integer.parseInt(st.nextToken());
         }
         catch (NumberFormatException exc) {
           if (BioRadForm.DEBUG) exc.printStackTrace();
         }
-        if (type < 0 || origin < 0 || inc < 0) {
+        if (ntype < 0 || norigin < 0 || inc < 0) {
           warn(v);
           return INVALID_NOTE;
         }
@@ -476,13 +476,13 @@ public class BioRadNote {
         String label = st.nextToken();
 
         // compute axis unit
-        if (type != axt_D) {
+        if (ntype != AXT_D) {
           warn(v);
           return INVALID_NOTE;
         }
-        this.origin = origin;
-        this.step = inc;
-        this.time = false;
+        origin = norigin;
+        step = inc;
+        time = false;
         return HORIZ_UNIT;
       }
       else if (v.equals("AXIS_3")) {
@@ -492,18 +492,18 @@ public class BioRadNote {
           warn(v);
           return INVALID_NOTE;
         }
-        int type = -1; // axt_D for distance in *m (or axt_T for time in s)
-        int origin = -1; // position of bottom edge of image in *m (or s)
+        int ntype = -1; // AXT_D for distance in *m (or AXT_T for time in s)
+        int norigin = -1; // position of bottom edge of image in *m (or s)
         int inc = -1; // pixel step size (increment) in *m (or s)
         try {
-          type = Integer.parseInt(st.nextToken());
-          origin = Integer.parseInt(st.nextToken());
+          ntype = Integer.parseInt(st.nextToken());
+          norigin = Integer.parseInt(st.nextToken());
           inc = Integer.parseInt(st.nextToken());
         }
         catch (NumberFormatException exc) {
           if (BioRadForm.DEBUG) exc.printStackTrace();
         }
-        if (type < 0 || origin < 0 || inc < 0) {
+        if (ntype < 0 || norigin < 0 || inc < 0) {
           warn(v);
           return INVALID_NOTE;
         }
@@ -511,16 +511,16 @@ public class BioRadNote {
         String label = st.nextToken();
 
         // compute axis unit
-        if (type == axt_D) {
-          this.origin = origin;
-          this.step = inc;
-          this.time = false;
+        if (type == AXT_D) {
+          origin = norigin;
+          step = inc;
+          time = false;
           return VERT_UNIT;
         }
-        else if (type == axt_T) {
-          this.origin = origin;
-          this.step = inc;
-          this.time = true;
+        else if (type == AXT_T) {
+          origin = norigin;
+          step = inc;
+          time = true;
           return VERT_UNIT;
         }
         warn();
@@ -532,7 +532,7 @@ public class BioRadNote {
       }
     }
     else if (type == NOTE_TYPE_STRUCTURE) {
-      // CTR: TODO
+      // CTR TODO - Handle STRUCTURE note
       if (BioRadForm.DEBUG && BioRadForm.DEBUG_LEVEL >= 1) {
         System.err.println("Warning: ignoring STRUCTURE information");
       }
@@ -540,14 +540,35 @@ public class BioRadNote {
     }
     else {
       // One of LIVE, FILE1, FILE2, NUMBER, USER, LINE, COLLECT, or MERGE
-      // CTR: TODO
+      // CTR TODO Handle other note types
       if (BioRadForm.DEBUG && BioRadForm.DEBUG_LEVEL >= 1) {
         System.err.println("Warning: ignoring " +
-          noteNames[type] + " information");
+          NOTE_NAMES[type] + " information");
       }
       return NO_INFORMATION;
     }
   }
+
+  /** Gets metadata object computed by analyze method. */
+  public Data getMetadata() { return metadata; }
+
+  /**
+   * Gets origin value computed by analyze method.
+   * Origin (starting location) of the data (in microns or seconds).
+   */
+  public double getOrigin() { return origin; }
+
+  /**
+   * Gets step size value computed by analyze method.
+   * Step size between samples (in microns or seconds).
+   */
+  public double getStep() { return step; }
+
+  /**
+   * Gets time flag value computed by analyze method.
+   * True if seconds, false if microns.
+   */
+  public boolean getTime() { return time; }
 
   /**
    * Outputs this note to the given output stream.
@@ -574,7 +595,7 @@ public class BioRadNote {
   /** Prints a warning about this note to the standard error stream. */
   private void warn(String subType) {
     if (BioRadForm.DEBUG && BioRadForm.DEBUG_LEVEL >= 1) {
-      System.err.print("Warning: invalid " + noteNames[type] + " ");
+      System.err.print("Warning: invalid " + NOTE_NAMES[type] + " ");
       if (subType != null) System.err.print("(" + subType + ") ");
       System.err.println("note: \"" + text + "\"");
     }
@@ -583,21 +604,22 @@ public class BioRadNote {
   /** Gets a human-readable string representation of this note. */
   public String toString() {
     StringBuffer sb = new StringBuffer(100);
-    boolean a = (status & NOTE_STATUS_ALL) != 0;
-    boolean d = (status & NOTE_STATUS_DISPLAY) != 0;
-    boolean p = (status & NOTE_STATUS_POSITION) != 0;
-    sb.append("Note: level=" + level + ", num=" + num + ", status=");
+    sb.append("level=");
+    sb.append(level);
+    sb.append("; num=");
+    sb.append(num);
+    sb.append("; status=");
     boolean first = true;
-    if (a) {
+    if ((status & NOTE_STATUS_ALL) != 0) {
       sb.append("NOTE_STATUS_ALL");
       first = false;
     }
-    if (d) {
+    if ((status & NOTE_STATUS_DISPLAY) != 0) {
       if (!first) sb.append("|");
       sb.append("NOTE_STATUS_DISPLAY");
       first = false;
     }
-    if (p) {
+    if ((status & NOTE_STATUS_POSITION) != 0) {
       if (!first) sb.append("|");
       sb.append("NOTE_STATUS_POSITION");
       first = false;
@@ -605,23 +627,31 @@ public class BioRadNote {
     if (first) {
       sb.append("NONE");
     }
-    sb.append(", type=" + noteNames[type] + ", x=" + x + ", y=" + y +
-      ", text=" + (text == null ? "null" : text.trim()));
+    sb.append("; type=");
+    sb.append(NOTE_NAMES[type]);
+    sb.append("; x=");
+    sb.append(x);
+    sb.append("; y=");
+    sb.append(y);
+    sb.append("; text=");
+    sb.append(text == null ? "null" : text.trim());
     return sb.toString();
   }
 
   /** Converts a VisAD Unit and Linear1DSet to a BioRad note. */
-  public static BioRadNote getUnitNote(Unit u, Linear1DSet set, boolean xAxis) {
+  public static BioRadNote getUnitNote(Unit u,
+    Linear1DSet set, boolean xAxis)
+  {
     if (u == null || set == null) return null;
-    boolean time = u.isConvertible(second);
-    if (!time && !u.isConvertible(micron)) return null;
+    boolean ntime = u.isConvertible(SECOND);
+    if (!ntime && !u.isConvertible(MICRON)) return null;
 
     // extract info from Unit and Set
-    int axis_type = time ? axt_T : axt_D;
-    double origin, inc;
+    int axisType = ntime ? AXT_T : AXT_D;
+    double norigin, ninc;
     try {
-      origin = u.toThat(set.getFirst(), time ? second : micron);
-      inc = u.toThat(set.getStep(), time ? second : micron);
+      norigin = u.toThat(set.getFirst(), ntime ? SECOND : MICRON);
+      ninc = u.toThat(set.getStep(), ntime ? SECOND : MICRON);
     }
     catch (UnitException exc) {
       if (BioRadForm.DEBUG) exc.printStackTrace();
@@ -630,16 +660,16 @@ public class BioRadNote {
     String label = "Calibration unknown";
 
     // fill in note fields
-    int level = 1;
-    int num = 0;
-    int status = NOTE_STATUS_ALL | NOTE_STATUS_POSITION;
-    int type = NOTE_TYPE_VARIABLE;
-    int x = 0;
-    int y = 0;
-    String text = "AXIS_" + (xAxis ? "2" : "3") + " " +
-      axis_type + " " + origin + " " + inc + " " + label;
+    int nlevel = 1;
+    int nnum = 0;
+    int nstatus = NOTE_STATUS_ALL | NOTE_STATUS_POSITION;
+    int ntype = NOTE_TYPE_VARIABLE;
+    int nx = 0;
+    int ny = 0;
+    String ntext = "AXIS_" + (xAxis ? "2" : "3") + " " +
+      axisType + " " + norigin + " " + ninc + " " + label;
 
-    return new BioRadNote(level, num, status, type, x, y, text);
+    return new BioRadNote(nlevel, nnum, nstatus, ntype, nx, ny, ntext);
   }
 
 }
