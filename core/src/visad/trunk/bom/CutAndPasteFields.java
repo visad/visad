@@ -478,6 +478,11 @@ public class CutAndPasteFields extends Object implements ActionListener {
     if (b >= 0) blend = b;
   }
 
+  /**
+   set ixlow, iylow, ixhi, iyhi from xlow, ylow, xhi, yhi
+   if (rubber) set rx, ry
+   else make sure ixlow, iylow, ixhi, iyhi are consistent with rx, ry
+   */
   private boolean getIndices(boolean rubber) throws VisADException {
     float[][] samples = {{(float) xlow, (float) xhi},
                          {(float) ylow, (float) yhi}};
