@@ -2142,12 +2142,12 @@ public class FlatField extends FieldImpl {
                                          rangeSet_out, units_out );
     new_field.setRangeErrors( errors_out );
 
-    double[][] values = unpackValues();
     double[][] new_values = new double[ compSize ][ n_samples ];
 
     for ( ii = 0; ii < compSize; ii++ )
     {
-      System.arraycopy( values[ flat_indeces[ii] ], 0, new_values[ii], 0, n_samples );
+      double[] values = unpackValues( flat_indeces[ii] );
+      System.arraycopy( values, 0, new_values[ii], 0, n_samples );
     }
     new_field.setSamples( new_values );
     
