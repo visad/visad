@@ -743,31 +743,34 @@ public class AddeURLConnection extends URLConnection
      *   group=&lt;groupname&gt;         ADDE group name
      *   descr=&lt;descriptor&gt;        ADDE descriptor name
      *   band=&lt;band&gt;               spectral band or channel number 
-     *   mag=&lt;lmag&gt; &lt;emag&gt;         image magnification, postitive for blowup, 
-     *                               negative for blowdown (default = 1, 
-     *                                  emag=lmag) 
-     *   latlon=&lt;lat&gt; &lt;lon&gt;        lat/lon point to center image on 
+     *   mag=&lt;lmag&gt; &lt;emag&gt;   image magnification, postitive for blowup, 
+     *                                   negative for blowdown (default = 1, 
+     *                                   emag=lmag) 
+     *   latlon=&lt;lat&gt; &lt;lon&gt;  lat/lon point to center image on 
+     *
      *   linele=&lt;lin&gt; &lt;ele&gt; &lt;type&gt; line/element to center image on 
+     *                                   type = i(image, default), e(earth), a(area)
      *   place=&lt;placement&gt;         placement of lat/lon or linele points 
-     *                               (center or upperleft (def=center)) 
+     *                                   c(center, default) or u(upperleft)  
      *   pos=&lt;position&gt;            request an absolute or relative ADDE position
-     *                               number
+     *                                   number
+     *
      *   size=&lt;lines&gt; &lt;elements&gt;   size of image to be returned
      *   unit=&lt;unit&gt;               to specify calibration units other than the 
-     *                               default 
+     *                                   default 
      *   spac=&lt;bytes&gt;              number of bytes per data point, 1, 2, or 4 
      *   doc=&lt;yes/no&gt;              specify yes to include line documentation 
-     *                               with image (def=no) 
+     *                                   with image (def=no) 
      *   aux=&lt;yes/no&gt;              specify yes to include auxilliary information
-     *                               with image 
+     *                                   with image 
      *   time=&lt;time1&gt; &lt;time2&gt;      specify the time range of images to select
-     *                               (def=latest image if pos not specified)
+     *                                   (def=latest image if pos not specified)
      *   day=&lt;day&gt;                 specify the day of the images to select
-     *                               (def=latest image if pos not specified)
+     *                                   (def=latest image if pos not specified)
      *   cal=&lt;cal type&gt;            request a specific calibration on the image 
      *   id=&lt;stn id&gt;               radar station id
      *   trace=&lt;0/1&gt;               setting to 1 tells server to write debug 
-     *                               trace file (imagedata, imagedirectory)
+     *                                   trace file (imagedata, imagedirectory)
      *
      * the following keywords are required:
      *
