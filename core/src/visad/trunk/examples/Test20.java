@@ -10,8 +10,6 @@ import visad.java3d.DisplayImplJ3D;
 public class Test20
 	extends UISkeleton
 {
-  LabeledRGBAWidget lwa;
-
   public Test20() { }
 
   public Test20(String args[])
@@ -45,8 +43,6 @@ public class Test20
     ScalarMap color1map = new ScalarMap(ir_radiance, Display.RGBA);
     display1.addMap(color1map);
 
-    lwa = new LabeledRGBAWidget(color1map, 0.0f, 32.0f);
-
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
     display1.addReference(ref_imaget1, null);
@@ -59,7 +55,12 @@ public class Test20
 
   String getFrameTitle0() { return "VisAD Color Alpha Widget"; }
 
-  Component getSpecialComponent() { return lwa; }
+  Component getSpecialComponent(DisplayImpl[] dpys)
+	throws VisADException, RemoteException
+  {
+    ScalarMap color1map = (ScalarMap )dpys[0].getMapVector().lastElement();
+    return new LabeledRGBAWidget(color1map, 0.0f, 32.0f);
+  }
 
   public String toString() { return ": 2-D surface and ColorAlphaWidget"; }
 

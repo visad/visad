@@ -1,17 +1,25 @@
+import java.rmi.Naming;
 import java.rmi.RemoteException;
 
 import visad.DisplayImpl;
+import visad.RemoteDisplay;
+import visad.RemoteDisplayImpl;
+import visad.RemoteServer;
+import visad.RemoteServerImpl;
 import visad.VisADException;
+
+import visad.java2d.DisplayImplJ2D;
+
+import visad.java3d.DisplayImplJ3D;
 
 public abstract class TestSkeleton
 	extends Thread
 {
   boolean dumpDpy = false;
+  boolean startServer = false;
   String hostName = null;
 
-  public TestSkeleton()
-  {
-  }
+  public TestSkeleton() { }
 
   public TestSkeleton(String args[])
   throws VisADException, RemoteException
@@ -52,8 +60,30 @@ public abstract class TestSkeleton
 	  String str, result;
 
 	  switch (ch) {
+	  case 'c':
+	    if (startServer) {
+	      System.err.println("Cannot specify both '-c' and '-s'!");
+	      usage = true;
+	    } else {
+	      ++argc;
+	      if (argc >= args.length) {
+		System.err.println("Missing hostname for '-c'");
+		usage = true;
+	      } else {
+		hostName = args[argc];
+	      }
+	    }
+	    break;
 	  case 'd':
 	    dumpDpy = true;
+	    break;
+	  case 's':
+	    if (hostName != null) {
+	      System.err.println("Cannot specify both '-c' and '-s'!");
+	      usage = true;
+	    } else {
+	      startServer = true;
+	    }
 	    break;
 	  default:
 	    int handled = checkExtraOption(ch, argc+1, args);
@@ -81,7 +111,9 @@ public abstract class TestSkeleton
 
     if (usage) {
       System.err.println("Usage: " + getClass().getName() +
+			 " [-c(lient) hostname]" +
 			 " [-d(ump display)]" +
+			 " [-s(erver)]" +
 			 extraOptionUsage() + extraKeywordUsage());
     }
 
@@ -89,7 +121,7 @@ public abstract class TestSkeleton
   }
 
   public void startThreads()
-  throws VisADException, RemoteException
+	throws VisADException, RemoteException
   {
     start(dumpDpy);
   }
@@ -160,6 +192,77 @@ public abstract class TestSkeleton
     }
   }
 
+  String getClientServerTitle()
+  {
+    if (startServer) {
+      if (hostName == null) {
+	return " server";
+      } else {
+	return " server+client";
+      }
+    } else {
+      if (hostName == null) {
+	return " standalone";
+      } else {
+	return " client";
+      }
+    }
+  }
+
+  DisplayImpl[] setupClientData()
+	throws VisADException, RemoteException
+  {
+    RemoteServer client;
+    try {
+      String domain = "//" + hostName + "/" + getClass().getName();
+      client = (RemoteServer )Naming.lookup(domain);
+    } catch (Exception e) {
+      throw new VisADException ("Cannot connect to server on \"" +
+				hostName + "\"");
+    }
+
+    RemoteDisplay[] rmtDpy = client.getDisplays();
+    if (rmtDpy == null) {
+      throw new VisADException("No RemoteDisplays found!");
+    }
+
+    DisplayImpl[] dpys = new DisplayImpl[rmtDpy.length];
+    for (int i = 0; i < dpys.length; i++) {
+      String dpyClass = rmtDpy[i].getDisplayClassName();
+      if (dpyClass.endsWith(".DisplayImplJ3D")) {
+	dpys[i] = new DisplayImplJ3D(rmtDpy[i]);
+      } else {
+	dpys[i] = new DisplayImplJ2D(rmtDpy[i]);
+      }
+    }
+
+    return dpys;
+  }
+
+  RemoteServerImpl setupServer(DisplayImpl[] dpys)
+	throws VisADException, RemoteException
+  {
+    // create new server
+    RemoteServerImpl server;
+    try {
+      server = new RemoteServerImpl();
+      String domain = "//:/" + getClass().getName();
+      Naming.rebind(domain, server);
+    } catch (Exception e) {
+      throw new VisADException("Cannot set up server" + 
+			       " (rmiregistry may not be running)");
+    }
+
+    // add all displays to server
+    if (dpys != null) {
+      for (int i = 0; i < dpys.length; i++) {
+	server.addDisplay(new RemoteDisplayImpl(dpys[i]));
+      }
+    }
+
+    return server;
+  }
+
   void setupUI(DisplayImpl[] dpys)
 	throws VisADException, RemoteException
   {
@@ -168,11 +271,21 @@ public abstract class TestSkeleton
   void start(boolean dumpDpy)
 	throws VisADException, RemoteException
   {
-    DisplayImpl[] displays = setupData();
+    DisplayImpl[] displays;
+    if (hostName != null) {
+      displays = setupClientData();
+    } else {
+      displays = setupData();
+    }
+
     if (dumpDpy) {
       for (int i = 0; i < displays.length; i++) {
 	dumpDisplayImpl(displays[i], "Display#" + i);
       }
+    }
+
+    if (startServer) {
+      setupServer(displays);
     }
 
     setupUI(displays);

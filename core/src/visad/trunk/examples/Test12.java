@@ -10,8 +10,6 @@ import visad.java3d.DisplayImplJ3D;
 public class Test12
 	extends UISkeleton
 {
-  LabeledRGBWidget lw;
-
   public Test12() { }
 
   public Test12(String args[])
@@ -43,8 +41,6 @@ public class Test12
     ScalarMap color1map = new ScalarMap(ir_radiance, Display.RGB);
     display1.addMap(color1map);
 
-    lw = new LabeledRGBWidget(color1map, 0.0f, 32.0f);
-
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
     display1.addReference(ref_imaget1, null);
@@ -57,7 +53,12 @@ public class Test12
 
   String getFrameTitle() { return "VisAD Color Widget"; }
 
-  Component getSpecialComponent() { return lw; }
+  Component getSpecialComponent(DisplayImpl[] dpys)
+	throws VisADException, RemoteException
+  {
+    ScalarMap color1map = (ScalarMap )dpys[0].getMapVector().lastElement();
+    return new LabeledRGBWidget(color1map, 0.0f, 32.0f);
+  }
 
   public String toString() { return ": 2-D surface and ColorWidget"; }
 

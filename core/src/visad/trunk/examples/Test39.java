@@ -20,8 +20,6 @@ import visad.java2d.DisplayImplJ2D;
 public class Test39
 	extends TestSkeleton
 {
-  LabeledRGBWidget lw;
-
   public Test39() { }
 
   public Test39(String args[])
@@ -51,8 +49,6 @@ public class Test39
     ScalarMap color1map = new ScalarMap(vis_radiance, Display.RGB);
     display1.addMap(color1map);
 
-    lw = new LabeledRGBWidget(color1map, 0.0f, 32.0f);
-
     ((DisplayRendererJ2D) display1.getDisplayRenderer()).getCanvas().
       setPreferredSize(new Dimension(256, 256));
 
@@ -71,7 +67,7 @@ public class Test39
   void setupUI(DisplayImpl[] dpys)
 	throws VisADException, RemoteException
   {
-    JFrame jframe  = new JFrame(getFrameTitle());
+    JFrame jframe  = new JFrame(getFrameTitle() + getClientServerTitle());
     jframe.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
@@ -81,6 +77,9 @@ public class Test39
     lil_panel.setLayout(new BorderLayout());
     lil_panel.add("Center", dpys[0].getComponent());
 
+    ScalarMap color1map = (ScalarMap )dpys[0].getMapVector().lastElement();
+    LabeledRGBWidget lw = new LabeledRGBWidget(color1map, 0.0f, 32.0f);
+
     JPanel big_panel = new JPanel();
     big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.Y_AXIS));
     big_panel.add(lw);
@@ -89,7 +88,6 @@ public class Test39
     jframe.setContentPane(big_panel);
     jframe.setSize(400, 600);
     jframe.setVisible(true);
-
   }
 
   public String toString()

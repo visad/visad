@@ -10,8 +10,6 @@ import visad.java3d.DisplayImplJ3D;
 public class Test33
 	extends UISkeleton
 {
-  LabeledRGBWidget lw;
-
   public Test33() { }
 
   public Test33(String args[])
@@ -43,16 +41,6 @@ public class Test33
     ScalarMap color1map = new ScalarMap(ir_radiance, Display.RGB);
     display1.addMap(color1map);
 
-    float[][] table = new float[3][256];
-    for (int i=0; i<256; i++) {
-      float a = ((float) i) / 256.0f;
-      table[0][i] = a;
-      table[1][i] = 1.0f - a;
-      table[2][i] = 0.5f;
-    }
-
-    lw = new LabeledRGBWidget(color1map, 0.0f, 32.0f, table);
-
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
     display1.addReference(ref_imaget1, null);
@@ -65,7 +53,21 @@ public class Test33
 
   String getFrameTitle() { return "VisAD Color Widget"; }
 
-  Component getSpecialComponent() { return lw; }
+  Component getSpecialComponent(DisplayImpl[] dpys)
+	throws VisADException, RemoteException
+  {
+    ScalarMap color1map = (ScalarMap )dpys[0].getMapVector().lastElement();
+
+    float[][] table = new float[3][256];
+    for (int i=0; i<256; i++) {
+      float a = ((float) i) / 256.0f;
+      table[0][i] = a;
+      table[1][i] = 1.0f - a;
+      table[2][i] = 0.5f;
+    }
+
+    return new LabeledRGBWidget(color1map, 0.0f, 32.0f, table);
+  }
 
   public String toString() { return ": ColorWidget with non-default table"; }
 

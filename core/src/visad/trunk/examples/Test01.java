@@ -10,8 +10,6 @@ import visad.util.ContourWidget;
 public class Test01
 	extends UISkeleton
 {
-  ContourWidget cw = null;
-
   public Test01() { }
 
   public Test01(String args[])
@@ -47,7 +45,6 @@ public class Test01
     ScalarMap map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
     display1.addMap(map1contour);
 
-    cw = new ContourWidget(map1contour);
     DataReferenceImpl ref_grid3d = new DataReferenceImpl("ref_grid3d");
     ref_grid3d.setData(grid3d);
     display1.addReference(ref_grid3d, null);
@@ -60,7 +57,12 @@ public class Test01
 
   String getFrameTitle() { return "VisAD iso-level controls"; }
 
-  Component getSpecialComponent() { return cw; }
+  Component getSpecialComponent(DisplayImpl[] dpys)
+	throws VisADException, RemoteException
+  {
+    ScalarMap map1contour = (ScalarMap )dpys[0].getMapVector().lastElement();
+    return new ContourWidget(map1contour);
+  }
 
   public String toString()
   {

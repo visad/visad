@@ -11,8 +11,6 @@ import visad.util.SelectRangeWidget;
 public class Test21
 	extends UISkeleton
 {
-  SelectRangeWidget srw;
-
   public Test21() { }
 
   public Test21(String args[])
@@ -51,7 +49,6 @@ public class Test21
     mode.setPointSize(2.0f);
     mode.setPointMode(false);
 
-    srw = new SelectRangeWidget(range1map, 0.0f, 64.0f);
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
     display1.addReference(ref_imaget1, null);
@@ -64,7 +61,12 @@ public class Test21
 
   String getFrameTitle() { return "VisAD select range slider"; }
 
-  Component getSpecialComponent() { return srw; }
+  Component getSpecialComponent(DisplayImpl[] dpys)
+	throws VisADException, RemoteException
+  {
+    ScalarMap range1map = (ScalarMap )dpys[0].getMapVector().lastElement();
+    return new SelectRangeWidget(range1map, 0.0f, 64.0f);
+  }
 
   public String toString() { return ": SelectRange and SelectRangeWidget"; }
 

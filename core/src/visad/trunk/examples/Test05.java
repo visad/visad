@@ -10,8 +10,6 @@ import visad.util.ContourWidget;
 public class Test05
 	extends UISkeleton
 {
-  ContourWidget cw;
-
   public Test05() { }
 
   public Test05(String args[])
@@ -46,7 +44,6 @@ public class Test05
     map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
     display1.addMap(map1contour);
 
-    cw = new ContourWidget(map1contour);
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
     display1.addReference(ref_imaget1, null);
@@ -59,7 +56,12 @@ public class Test05
 
   String getFrameTitle() { return "VisAD contour controls"; }
 
-  Component getSpecialComponent() { return cw; }
+  Component getSpecialComponent(DisplayImpl[] dpys)
+	throws VisADException, RemoteException
+  {
+    ScalarMap map1contour = (ScalarMap )dpys[0].getMapVector().lastElement();
+    return new ContourWidget(map1contour);
+  }
 
   public String toString()
   {

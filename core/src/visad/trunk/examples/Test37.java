@@ -17,8 +17,6 @@ import visad.util.ContourWidget;
 public class Test37
 	extends TestSkeleton
 {
-  ContourWidget cw;
-
   private boolean reverse = false;
 
   public Test37() { }
@@ -64,10 +62,8 @@ public class Test37
     display1.addMap(new ScalarMap(ir_radiance, Display.Green));
     display1.addMap(new ConstantMap(0.5, Display.Blue));
     display1.addMap(new ConstantMap(0.5, Display.Red));
-    ScalarMap map1contour;
-    map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
+    ScalarMap map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
     display1.addMap(map1contour);
-    cw = new ContourWidget(map1contour);
 
     GraphicsModeControl mode = display1.getGraphicsModeControl();
     mode.setScaleEnable(true);
@@ -89,7 +85,7 @@ public class Test37
   void setupUI(DisplayImpl[] dpys)
 	throws VisADException, RemoteException
   {
-    JFrame jframe  = new JFrame(getFrameTitle0());
+    JFrame jframe  = new JFrame(getFrameTitle0() + getClientServerTitle());
     jframe.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
@@ -97,6 +93,9 @@ public class Test37
     jframe.setContentPane((JPanel) dpys[0].getComponent());
     jframe.pack();
     jframe.setVisible(true);
+
+    ScalarMap map1contour = (ScalarMap )dpys[0].getMapVector().lastElement();
+    ContourWidget cw = new ContourWidget(map1contour);
 
     JPanel big_panel = new JPanel();
     big_panel.setLayout(new BorderLayout());

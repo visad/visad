@@ -1,3 +1,5 @@
+import java.awt.Component;
+
 import java.rmi.RemoteException;
 
 import visad.*;
@@ -50,9 +52,6 @@ public class Test44
     display1.addMap(new ConstantMap(0.5, Display.Red));
     ScalarMap text_map = new ScalarMap(text, Display.Text);
     display1.addMap(text_map);
-    TextControl text_control = (TextControl) text_map.getControl();
-    text_control.setSize(0.75);
-    text_control.setCenter(true);
 
     DataReferenceImpl ref_text_field =
       new DataReferenceImpl("ref_text_field");
@@ -66,6 +65,18 @@ public class Test44
   }
 
   String getFrameTitle() { return "text in Java2D"; }
+
+  Component getSpecialComponent(DisplayImpl[] dpys)
+	throws VisADException, RemoteException
+  {
+    ScalarMap text_map = (ScalarMap )dpys[0].getMapVector().lastElement();
+
+    TextControl text_control = (TextControl) text_map.getControl();
+    text_control.setSize(0.75);
+    text_control.setCenter(true);
+
+    return null;
+  }
 
   public String toString() { return ": text in Java2D"; }
 

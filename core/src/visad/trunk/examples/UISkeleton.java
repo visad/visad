@@ -25,7 +25,11 @@ public abstract class UISkeleton
     super(args);
   }
 
-  Component getSpecialComponent() { return null; }
+  Component getSpecialComponent(DisplayImpl[] dpys)
+	throws VisADException, RemoteException
+  {
+    return null;
+  }
 
   String getFrameTitle() { return "VisAD generic user interface"; }
 
@@ -34,7 +38,7 @@ public abstract class UISkeleton
   {
     JPanel big_panel = new JPanel();
 
-    Component special = getSpecialComponent();
+    Component special = getSpecialComponent(dpys);
     if (special != null) {
       big_panel.setLayout(new BorderLayout());
       big_panel.add("Center", special);
@@ -44,11 +48,12 @@ public abstract class UISkeleton
       big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
       for (int i = 0; i < dpys.length; i++) {
-	big_panel.add(dpys[i].getComponent());
+	Component comp = dpys[i].getComponent();
+	big_panel.add(comp);
       }
     }
 
-    JFrame jframe = new JFrame(getFrameTitle());
+    JFrame jframe = new JFrame(getFrameTitle() + getClientServerTitle());
     jframe.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });

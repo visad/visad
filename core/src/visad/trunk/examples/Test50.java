@@ -61,7 +61,7 @@ public class Test50
   void setupUI(DisplayImpl[] dpys)
 	throws VisADException, RemoteException
   {
-    JFrame jframe  = new JFrame(getFrameTitle());
+    JFrame jframe  = new JFrame(getFrameTitle() + getClientServerTitle());
     jframe.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
