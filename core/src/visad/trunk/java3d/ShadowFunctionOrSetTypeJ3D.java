@@ -586,6 +586,15 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     GeometryArray[] geometryZrev = makeGeometrys(arrayZrev);
 */
 
+    int nx = arrayX.coordinates.length;
+    boolean flipX = (arrayX.coordinates[0] > arrayX.coordinates[nx-3]);
+    int ny = arrayY.coordinates.length;
+    boolean flipY = (arrayY.coordinates[1] > arrayY.coordinates[ny-2]);
+    int nz = arrayZ.coordinates.length;
+    boolean flipZ = (arrayZ.coordinates[2] > arrayZ.coordinates[nz-1]);
+    // System.out.println("flipX = " + flipX + " flipY = " + flipY +
+    //                    " flipZ = " + flipZ);
+
     // create Attributes for Appearances
     TransparencyAttributes c_alpha = null;
     if (constant_alpha == 1.0f) {
@@ -621,7 +630,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     branchX.setCapability(Group.ALLOW_CHILDREN_READ);
     int data_depth = geometryX.length;
     Shape3D[] shapeX = new Shape3D[data_depth];
-    for (int i=0; i<data_depth; i++) {
+    for (int ii=0; ii<data_depth; ii++) {
+      int i = flipX ? data_depth-1-ii : ii;
       int width = imagesX[i].getWidth();
       int height = imagesX[i].getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
@@ -654,7 +664,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     }
     OrderedGroup branchXrev = new OrderedGroup();
     branchXrev.setCapability(Group.ALLOW_CHILDREN_READ);
-    for (int i=data_depth-1; i>=0; i--) {
+    for (int ii=data_depth-1; ii>=0; ii--) {
+      int i = flipX ? data_depth-1-ii : ii;
       int width = imagesX[i].getWidth();
       int height = imagesX[i].getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
@@ -691,7 +702,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     branchY.setCapability(Group.ALLOW_CHILDREN_READ);
     int data_height = geometryY.length;
     Shape3D[] shapeY = new Shape3D[data_height];
-    for (int i=0; i<data_height; i++) {
+    for (int ii=0; ii<data_height; ii++) {
+      int i = flipY ? data_height-1-ii : ii;
       int width = imagesY[i].getWidth();
       int height = imagesY[i].getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
@@ -725,7 +737,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     }
     OrderedGroup branchYrev = new OrderedGroup();
     branchYrev.setCapability(Group.ALLOW_CHILDREN_READ);
-    for (int i=data_height-1; i>=0; i--) {
+    for (int ii=data_height-1; ii>=0; ii--) {
+      int i = flipY ? data_height-1-ii : ii;
       int width = imagesY[i].getWidth();
       int height = imagesY[i].getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
@@ -763,7 +776,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     branchZ.setCapability(Group.ALLOW_CHILDREN_READ);
     int data_width = geometryZ.length;
     Shape3D[] shapeZ = new Shape3D[data_width];
-    for (int i=0; i<data_width; i++) {
+    for (int ii=0; ii<data_width; ii++) {
+      int i = flipZ ? data_width-1-ii : ii;
       int width = imagesZ[i].getWidth();
       int height = imagesZ[i].getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
@@ -796,7 +810,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     }
     OrderedGroup branchZrev = new OrderedGroup();
     branchZrev.setCapability(Group.ALLOW_CHILDREN_READ);
-    for (int i=data_width-1; i>=0; i--) {
+    for (int ii=data_width-1; ii>=0; ii--) {
+      int i = flipZ ? data_width-1-ii : ii;
       int width = imagesZ[i].getWidth();
       int height = imagesZ[i].getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
