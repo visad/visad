@@ -264,7 +264,7 @@ public class ContourControl extends Control {
   }
 
   /** 
-   * Set unevenly spaced levels for 2-D contour lines;
+   * Set arbitrary levels for 2-D contour lines;
    * levels below base are dashed if dash == true 
    * @param levels              An array of contour values to display.
    * @param base                The base contour value for dashing.  Levels
