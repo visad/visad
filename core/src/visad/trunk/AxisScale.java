@@ -59,6 +59,7 @@ public class AxisScale implements java.io.Serializable
   private Hashtable labelTable;
   protected double majorTickSpacing = 0.0;
   protected double minorTickSpacing = 0.0;
+  protected double tickBase = 0.0;
   protected boolean autoComputeTicks = true;
   protected boolean baseLineVisible = true;
   protected boolean snapToBox = false;
@@ -267,52 +268,11 @@ public class AxisScale implements java.io.Serializable
       if (myAxis == 2) return false;
     }
   
-    // compute tick mark values
-    double range = Math.abs(dataRange[1] - dataRange[0]);
-    double min = Math.min(dataRange[0], dataRange[1]);
-    double max = Math.max(dataRange[0], dataRange[1]);
-    /*  Change DRM 24-Jan-2001 */
-    if (autoComputeTicks || majorTickSpacing <= 0)
-    {
-      double tens = 1.0;
-      if (range < tens) {
-        tens /= 10.0;
-        while (range < tens) tens /= 10.0;
-      }
-      else {
-        while (10.0 * tens <= range) tens *= 10.0;
-      }
-      // now tens <= range < 10.0 * tens;
-      double ratio = range / tens;
-      if (ratio < 2.0) {
-        tens /= 5.0;
-      }
-      else if (ratio < 4.0) {
-        tens /= 2.0;
-      }
-      majorTickSpacing = tens;
-    }
-
-    // now tens = interval between major tick marks (majorTickSpacing)
-  
-    /* Change DRM 24-Jan-2001
-    long bot = (int) Math.ceil(min / tens);
-    long top = (int) Math.floor(max / tens);
-    */
-    long bot = (int) Math.ceil(min / majorTickSpacing);
-    long top = (int) Math.floor(max / majorTickSpacing);
-
-    if (bot == top) {
-      if (bot < 0) top++;
-      else bot--;
-    }
-    // now bot * majorTickSpacing = value of lowest tick mark, and
-    // top * majorTickSpacing = values of highest tick mark
-
-    // base line for axis
-    // coordinates has three entries for (x, y, z) of each point
+    // VisADLineArray coordinates have three entries for (x, y, z) of each point
     // two points determine a line segment,
     // hence 6 coordinates entries per segment
+
+    // base line for axis
     if (baseLineVisible) // draw base line
     {
       VisADLineArray baseLineArray = new VisADLineArray();
@@ -326,14 +286,68 @@ public class AxisScale implements java.io.Serializable
       lineArrayVector.add(baseLineArray);
     }
   
+    double range = Math.abs(dataRange[1] - dataRange[0]);
+    double min = Math.min(dataRange[0], dataRange[1]);
+    double max = Math.max(dataRange[0], dataRange[1]);
+    /*
+    System.out.println(myAxis + ": range = " + range);
+    System.out.println(myAxis + ": min = " + min);
+    System.out.println(myAxis + ": max = " + max);
+    */
+
+    // compute tick mark values
+    double tens = 1.0;
+    if (range < tens) {
+      tens /= 10.0;
+      while (range < tens) tens /= 10.0;
+    }
+    else {
+      while (10.0 * tens <= range) tens *= 10.0;
+    }
+    // now tens <= range < 10.0 * tens;
+    if (autoComputeTicks || majorTickSpacing <= 0)
+    {
+      double ratio = range / tens;
+      if (ratio < 2.0) {
+        tens = tens/5.0;
+      }
+      else if (ratio < 4.0) {
+        tens = tens/2.0;
+      }
+      majorTickSpacing = tens;
+    }
+    // now tens = interval between major tick marks (majorTickSpacing)
+    //System.out.println(myAxis + " majorTickSpacing = " + majorTickSpacing);
+  
+    /* Change DRM 24-Jan-2001
+    long bot = (int) Math.ceil(min / tens);
+    long top = (int) Math.floor(max / tens);
+    */
+    /* remove DRM 21-Feb-2001
+    long bot = (long) Math.ceil(min / majorTickSpacing);
+    long top = (long) Math.floor(max / majorTickSpacing);
+
+    if (bot == top) {
+      if (bot < 0) top++;
+      else bot--;
+    }
+    */
+    double[] hilo = computeTickRange(max, min, tickBase, majorTickSpacing);
+    // firstValue is the first Tick mark value
+    double firstValue = hilo[0];
+    double botval = hilo[0];
+    double topval = hilo[1];
+
     // draw major tick marks
     VisADLineArray majorTickArray = new VisADLineArray();
-    int nticks = (int) (top - bot) + 1;
+    int nticks = (int) ((hilo[1]-hilo[0])/majorTickSpacing) + 1;
     float[] majorCoordinates = new float[6 * nticks];
+    // initialize some stuff
     int k = 0;
-    for (long j=bot; j<=top; j++) { // loop over x, y & z coordinates
-      double val = j * majorTickSpacing;  // DRM 24-Jan-2001
-      double a = (val - min) / (max - min);
+    for (int j = 0; j< nticks; j++) //Change DRM 21-Feb-2001
+    {
+      double value = firstValue + (j * majorTickSpacing);
+      double a = (value - min) / (max - min);
       for (int i=0; i<3; i++) {
         if ((k + 3 + i) < majorCoordinates.length) {
           // guard against error that cannot happen, but was seen?
@@ -342,9 +356,10 @@ public class AxisScale implements java.io.Serializable
           majorCoordinates[k + 3 + i] = 
             (float) (majorCoordinates[k + i] - 0.5 * up[i]);
         }
-      }
+      } 
       k += 6;
-    }
+    } 
+
     /* Change DRM 24-Jan-2001
     arrays[0].vertexCount = 2 * (nticks + 1);
     arrays[0].coordinates = coordinates;
@@ -355,35 +370,31 @@ public class AxisScale implements java.io.Serializable
   
     if (getMinorTickSpacing() > 0)  // create an array for the minor ticks
     {
-      long lower = (int) Math.ceil(min / minorTickSpacing);
-      long upper = (int) Math.floor(max / minorTickSpacing);
+      /* remove DRM 21-Feb-2001
+      long lower = (long) Math.ceil(min / minorTickSpacing);
+      long upper = (long) Math.floor(max / minorTickSpacing);
 
       if (lower == upper) {
         if (lower < 0) upper++;
         else lower--;
       }
+      */
+      hilo = computeTickRange(max, min, tickBase, minorTickSpacing);
       // now lower * minorTickSpacing = value of lowest tick mark, and
       // upper * minorTickSpacing = values of highest tick mark
   
       VisADLineArray minorTickArray = new VisADLineArray();
-      nticks = (int) (upper - lower) + 1;
-      // coordinates has three entries for (x, y, z) of each point
-      // two points determine a line segment,
-      // hence 6 coordinates entries per segment
+      // Change DRM 21-Feb-2001
+      nticks = (int) ((hilo[1]-hilo[0])/minorTickSpacing) + 1; 
       float[] minorCoordinates = new float[6 * nticks];
-      /*
-      // draw base line
-      for (int i=0; i<3; i++) { // loop over x, y & z coordinates
-        minorCoordinates[i] = (float) startn[i];
-        minorCoordinates[3 + i] = (float) startp[i];
-      }
-      */
-      // now minorCoordinates[0], [1] and [2]
     
       // draw tick marks
       k = 0;
-      for (long j=lower; j<=upper; j++) {
-        double val = j * minorTickSpacing;  // DRM 24-Jan-2001
+      //for (long j=lower; j<=upper; j++) {  // Change DRM 21-Feb-2001
+      for (int j = 0; j < nticks; j++) 
+      {
+        //double val = j * minorTickSpacing;  // DRM 24-Jan-2001
+        double val = hilo[0] + (j * minorTickSpacing);
         double a = (val - min) / (max - min);
         for (int i=0; i<3; i++) {
           if ((k + 3 + i) < minorCoordinates.length) {
@@ -406,8 +417,6 @@ public class AxisScale implements java.io.Serializable
     double[] starttop = new double[3];
     double[] startlabel = new double[3];
     // compute positions along axis of low and high tick marks
-    double botval = bot * majorTickSpacing;  // DRM 24-Jan-2001
-    double topval = top * majorTickSpacing;  // DRM 24-Jan-2001
     double abot = (botval - min) / (max - min);
     double atop = (topval - min) / (max - min);
     for (int i=0; i<3; i++) {
@@ -792,5 +801,51 @@ public class AxisScale implements java.io.Serializable
   public int getLabelSize()
   {
     return labelSize;
+  }
+
+  /**
+   * Sets the base value for tick marks.  This only applies when 
+   * <CODE>setMajorTickSpacing</CODE> or <CODE>setMinorTickSpacing</CODE>
+   * have been called.
+   * @param  base  base value for drawing tick marks.  For example, if
+   *               your scale ranges from -4 to 18 and you set the
+   *               major tick spacing to 5, you will get ticks at
+   *               -4, 1, 6, 11, and 16 by default.  If you set the tick
+   *               base value to 0, you will get ticks at 0, 5, 10, 15.
+   */
+  public void setTickBase(double base)
+  {
+    double oldBase = tickBase;
+    tickBase = base;
+    if (tickBase != oldBase) {
+      try {
+        scalarMap.makeScale();  // update the display
+      }
+      catch (VisADException ve) {;}
+    }
+  }
+
+  private double[] computeTickRange(double high, double low, 
+                                    double base, double interval)
+  {
+    double[] vals = new double[2];
+    double start = (low - base) / interval;
+    double clow = 
+      base + interval * ((int) (start + (start >= 0 ? 0.5 : -0.5)) - 1);
+    while (clow<low) {
+      clow += interval;
+    }
+
+    start = (high - base) / interval;
+    double chi = 
+      base + interval * ((int) (start + (start >= 0 ? 0.5 : -0.5)) + 1);
+    while (chi>high) {
+      chi -= interval;
+    }
+
+    vals[0] = clow;
+    vals[1] = chi;
+    return vals;
+
   }
 }
