@@ -198,12 +198,12 @@ class Postfix {
         while (!op.equals("(")) {
           pcode[pfixlen] = opcode;
           pfix[pfixlen++] = "" + op;
+          opPt--;
           if (opPt < 1) {
             throw new FormulaException("Unable to convert to postfix " +
                                        "notation: operator stack " +
                                        "unexpectedly empty");
           }
-          opPt--;
           opcode = opCodes[opPt-1];
           op = opStack[opPt-1];
         }
