@@ -108,6 +108,11 @@ public class RangeSlider extends JComponent implements MouseListener,
   private float lastMaxLimit = 0.0f;
   private String lastCurStr = "";
 
+  /** widget sizes */
+  Dimension minSize = null;
+  Dimension prefSize = null;
+  Dimension maxSize = null;
+
   /** obtains the name of the specified ScalarMap */
   static String nameOf(ScalarMap smap) {
     String n = "value = ";
@@ -313,20 +318,38 @@ public class RangeSlider extends JComponent implements MouseListener,
   /** not used */
   public void mouseMoved(MouseEvent e) { }
 
-  /** return minimum size of widget */
+  /** return minimum size of range slider */
   public Dimension getMinimumSize() {
-    return new Dimension(0, SLIDER_PREF_HEIGHT);
+    if (minSize == null) {
+      minSize = new Dimension(0, SLIDER_PREF_HEIGHT);
+    }
+    return minSize;
   }
 
-  /** return preferred size of widget */
+  /** set minimum size of range slider */
+  public void setMinimumSize(Dimension dim) { minSize = dim; }
+
+  /** return preferred size of range slider */
   public Dimension getPreferredSize() {
-    return new Dimension(SLIDER_PREF_WIDTH, SLIDER_PREF_HEIGHT);
+    if (prefSize == null) {
+      prefSize = new Dimension(SLIDER_PREF_WIDTH, SLIDER_PREF_HEIGHT);
+    }
+    return prefSize;
   }
 
-  /** return maximum size of widget */
+  /** set preferred size of range slider */
+  public void setPreferredSize(Dimension dim) { prefSize = dim; }
+
+  /** return maximum size of range slider */
   public Dimension getMaximumSize() {
-    return new Dimension(Integer.MAX_VALUE, SLIDER_PREF_HEIGHT);
+    if (maxSize == null) {
+      maxSize = new Dimension(Integer.MAX_VALUE, SLIDER_PREF_HEIGHT);
+    }
+    return maxSize;
   }
+
+  /** set preferred size of range slider */
+  public void setMaximumSize(Dimension dim) { maxSize = dim; }
 
   private float gripToValue(int pos, int width)
   {

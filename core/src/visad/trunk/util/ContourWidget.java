@@ -465,10 +465,18 @@ public class ContourWidget
     }
   }
 
+  private Dimension prefSize = null;
+
   /** Make ContourWidget appear decent-sized */
   public Dimension getPreferredSize() {
-    return new Dimension(300, super.getPreferredSize().height);
+    if (prefSize == null) {
+      prefSize = new Dimension(300, super.getPreferredSize().height);
+    }
+    return prefSize;
   }
+
+  /** Set ContourWidget size */
+  public void setPreferredSize(Dimension dim) { prefSize = dim; }
 
   /** Do-nothing method; <CODE>ContourRangeSlider</CODE> handles map data */
   public void mapChanged(ScalarMapEvent e) { }

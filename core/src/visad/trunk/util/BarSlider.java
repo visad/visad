@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: BarSlider.java,v 1.7 2000-03-14 16:56:47 dglo Exp $
+@(#) $Id: BarSlider.java,v 1.8 2000-03-14 17:18:38 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -39,7 +39,7 @@ import java.awt.event.WindowEvent;
  * The visad utillity sliding bar
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.7 $, $Date: 2000-03-14 16:56:47 $
+ * @version $Revision: 1.8 $, $Date: 2000-03-14 17:18:38 $
  * @since Visad Utility Library v0.7.1
  */
 
@@ -53,6 +53,11 @@ public class BarSlider extends Slider implements MouseListener, MouseMotionListe
 
   /** The current value */
   private float val;
+
+  /** widget sizes */
+  Dimension minSize = null;
+  Dimension prefSize = null;
+  Dimension maxSize = null;
 
   /** Construct a new bar slider with the default values */
   public BarSlider() {
@@ -162,18 +167,36 @@ public class BarSlider extends Slider implements MouseListener, MouseMotionListe
 
   /** Return the preferred sise of the bar slider */
   public Dimension getPreferredSize() {
-    return new Dimension(256, 16);
+    if (prefSize == null) {
+      prefSize = new Dimension(256, 16);
+    }
+    return prefSize;
   }
+
+  /** Set the preferred size of the bar slider */
+  public void setPreferredSize(Dimension dim) { prefSize = dim; }
 
   /** Return the maximum size of the bar slider */
   public Dimension getMaximumSize() {
-    return new Dimension(Integer.MAX_VALUE, 16);
+    if (maxSize == null) {
+      maxSize = new Dimension(Integer.MAX_VALUE, 16);
+    }
+    return maxSize;
   }
+
+  /** Set the preferred size of the bar slider */
+  public void setMaximumSize(Dimension dim) { maxSize = dim; }
 
   /** Return the minimum size of the bar slider */
   public Dimension getMinimumSize() {
-    return new Dimension(40, 16);
+    if (minSize == null) {
+      minSize = new Dimension(40, 16);
+    }
+    return minSize;
   }
+
+  /** Set the preferred size of the bar slider */
+  public void setMinimumSize(Dimension dim) { minSize = dim; }
 
   /** Present to implement MouseListener, currently ignored */
   public void mouseClicked(MouseEvent e) {

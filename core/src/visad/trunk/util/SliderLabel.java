@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: SliderLabel.java,v 1.11 2000-03-14 16:56:48 dglo Exp $
+@(#) $Id: SliderLabel.java,v 1.12 2000-03-14 17:18:40 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -41,7 +41,7 @@ import javax.swing.JPanel;
  * and optionally, the bounds.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.11 $, $Date: 2000-03-14 16:56:48 $
+ * @version $Revision: 1.12 $, $Date: 2000-03-14 17:18:40 $
  * @since Visad Utility Library v0.7.1
  */
 
@@ -62,6 +62,10 @@ public class SliderLabel extends JPanel implements SliderChangeListener {
   /** The text color of the panel */
   private Color text;
 
+  /** widget sizes */
+  Dimension minSize = null;
+  Dimension prefSize = null;
+  Dimension maxSize = null;
 
   /** Construct a SliderLabel from the given slider */
   public SliderLabel(Slider slider) {
@@ -187,20 +191,38 @@ public class SliderLabel extends JPanel implements SliderChangeListener {
     drawval = val;
   }
 
-  /** Return the preferred Size of the SliderLabel */
+  /** Return the preferred sise of the SliderLabel */
   public Dimension getPreferredSize() {
-    return new Dimension(256, 18);
+    if (prefSize == null) {
+      prefSize = new Dimension(256, 18);
+    }
+    return prefSize;
   }
 
-  /** Return the minimum Size of the SliderLabel */
-  public Dimension getMinimumSize() {
-    return new Dimension(100, 18);
-  }
+  /** Set the preferred size of the SliderLabel */
+  public void setPreferredSize(Dimension dim) { prefSize = dim; }
 
-  /** Return the maximum Size of the SliderLabel */
+  /** Return the maximum size of the SliderLabel */
   public Dimension getMaximumSize() {
-    return new Dimension(Integer.MAX_VALUE, 18);
+    if (maxSize == null) {
+      maxSize = new Dimension(Integer.MAX_VALUE, 18);
+    }
+    return maxSize;
   }
+
+  /** Set the preferred size of the SliderLabel */
+  public void setMaximumSize(Dimension dim) { maxSize = dim; }
+
+  /** Return the minimum size of the SliderLabel */
+  public Dimension getMinimumSize() {
+    if (minSize == null) {
+      minSize = new Dimension(100, 18);
+    }
+    return minSize;
+  }
+
+  /** Set the preferred size of the SliderLabel */
+  public void setMinimumSize(Dimension dim) { minSize = dim; }
 
   /** for debugging purposes */
   public static void main(String[] argc) {
