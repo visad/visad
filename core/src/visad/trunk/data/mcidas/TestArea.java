@@ -301,8 +301,12 @@ public class TestArea {
       display.addMap(yaxis);
 
       // select which band to show...
-      display.addMap(new ScalarMap( (RealType) rtype.getComponent(bandNumber-1),
-              Display.RGB) );
+      ScalarMap rgbMap = 
+          new ScalarMap( (RealType) rtype.getComponent(bandNumber-1),
+              Display.RGB);
+      display.addMap(rgbMap);
+      ColorControl cc = (ColorControl) rgbMap.getControl();
+      cc.initGreyWedge();
 
       DataReferenceImpl ref_image = new DataReferenceImpl("ref_image");
       ref_image.setData(imaget);
