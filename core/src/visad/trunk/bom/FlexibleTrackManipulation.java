@@ -350,7 +350,7 @@ public class FlexibleTrackManipulation extends Object
     }
   }
 
-  private static final int NTIMES = 6;
+  private static final int NTIMES = 8;
 
   public static void main(String args[])
          throws VisADException, RemoteException {
@@ -380,30 +380,126 @@ public class FlexibleTrackManipulation extends Object
     display.addMap(latmap);
     latmap.setRange(-50.0, -30.0);
 
-    VisADLineArray circle = new VisADLineArray();
-    int nv = 8;
+    // construct symbols
+    int nv = 16;
     float size = 0.1f;
+
+    VisADLineArray circle = new VisADLineArray();
     circle.vertexCount = 2 * nv;
     float[] coordinates = new float[3 * circle.vertexCount];
     int m = 0;
     for (int i=0; i<nv; i++) {
       double b = 2.0 * Math.PI * i / nv;
-      coordinates[m++] = size * ((float) Math.cos(b));
-      coordinates[m++] = size * ((float) Math.sin(b));
+      coordinates[m++] = 0.5f * size * ((float) Math.cos(b));
+      coordinates[m++] = 0.5f * size * ((float) Math.sin(b));
       coordinates[m++] = 0.0f;
       double c = 2.0 * Math.PI * (i + 1) / nv;
-      coordinates[m++] = size * ((float) Math.cos(c));
-      coordinates[m++] = size * ((float) Math.sin(c));
+      coordinates[m++] = 0.5f * size * ((float) Math.cos(c));
+      coordinates[m++] = 0.5f * size * ((float) Math.sin(c));
       coordinates[m++] = 0.0f;
     }
     circle.coordinates = coordinates;
 
-    ShapeControl shape_control;
-    ScalarMap shape_map = new ScalarMap(shape, Display.Shape);
-    display.addMap(shape_map);
-    shape_control = (ShapeControl) shape_map.getControl();
-    shape_control.setShapeSet(new Integer1DSet(6));
-    shape_control.setShape(0, circle);
+    VisADTriangleArray filled_circle = new VisADTriangleArray();
+    filled_circle.vertexCount = 3 * nv;
+    coordinates = new float[3 * filled_circle.vertexCount];
+    m = 0;
+    for (int i=0; i<nv; i++) {
+      coordinates[m++] = 0.0f;
+      coordinates[m++] = 0.0f;
+      coordinates[m++] = 0.0f;
+      double b = 2.0 * Math.PI * i / nv;
+      coordinates[m++] = 0.5f * size * ((float) Math.cos(b));
+      coordinates[m++] = 0.5f * size * ((float) Math.sin(b));
+      coordinates[m++] = 0.0f;
+      double c = 2.0 * Math.PI * (i + 1) / nv;
+      coordinates[m++] = 0.5f * size * ((float) Math.cos(c));
+      coordinates[m++] = 0.5f * size * ((float) Math.sin(c));
+      coordinates[m++] = 0.0f;
+    }
+    filled_circle.coordinates = coordinates;
+    float[] normals = new float[3 * filled_circle.vertexCount];
+    m = 0;
+    for (int i=0; i<3*nv; i++) {
+      normals[m++] = 0.0f;
+      normals[m++] = 0.0f;
+      normals[m++] = 1.0f;
+    }
+    filled_circle.normals = normals;
+
+    VisADLineArray ell = new VisADLineArray();
+    ell.vertexCount = 2 * 4;
+    ell.coordinates = new float[] {
+      -0.5f * size, size, 0.0f,    0.0f, size, 0.0f,
+      -0.25f * size, size, 0.0f,   -0.25f * size, -size, 0.0f,
+      -0.25f * size, -size, 0.0f,  size, -size, 0.0f,
+      size, -size, 0.0f,           size, -0.75f * size, 0.0f
+    };
+
+    VisADLineArray south = new VisADLineArray();
+    south.vertexCount = 2 * nv;
+    coordinates = new float[3 * south.vertexCount];
+    m = 0;
+    for (int i=0; i<nv/2; i++) {
+      double b = Math.PI * i / nv;
+      coordinates[m++] = 0.5f * size * ((float) Math.cos(b));
+      coordinates[m++] = size * ((float) Math.sin(b));
+      coordinates[m++] = 0.0f;
+      double c = Math.PI * (i + 1) / nv;
+      coordinates[m++] = 0.5f * size * ((float) Math.cos(c));
+      coordinates[m++] = size * ((float) Math.sin(c));
+      coordinates[m++] = 0.0f;
+      coordinates[m++] = -0.5f * size * ((float) Math.cos(b));
+      coordinates[m++] = -size * ((float) Math.sin(b));
+      coordinates[m++] = 0.0f;
+      coordinates[m++] = -0.5f * size * ((float) Math.cos(c));
+      coordinates[m++] = -size * ((float) Math.sin(c));
+      coordinates[m++] = 0.0f;
+    }
+    south.coordinates = coordinates;
+
+    VisADLineArray north = new VisADLineArray();
+    north.vertexCount = 2 * nv;
+    coordinates = new float[3 * north.vertexCount];
+    m = 0;
+    for (int i=0; i<nv/2; i++) {
+      double b = Math.PI * i / nv;
+      coordinates[m++] = -0.5f * size * ((float) Math.cos(b));
+      coordinates[m++] = size * ((float) Math.sin(b));
+      coordinates[m++] = 0.0f;
+      double c = Math.PI * (i + 1) / nv;
+      coordinates[m++] = -0.5f * size * ((float) Math.cos(c));
+      coordinates[m++] = size * ((float) Math.sin(c));
+      coordinates[m++] = 0.0f;
+      coordinates[m++] = 0.5f * size * ((float) Math.cos(b));
+      coordinates[m++] = -size * ((float) Math.sin(b));
+      coordinates[m++] = 0.0f;
+      coordinates[m++] = 0.5f * size * ((float) Math.cos(c));
+      coordinates[m++] = -size * ((float) Math.sin(c));
+      coordinates[m++] = 0.0f;
+    }
+    north.coordinates = coordinates;
+
+    VisADLineArray south_circle =
+      VisADLineArray.merge(new VisADLineArray[] {circle, south});
+    VisADLineArray north_circle =
+      VisADLineArray.merge(new VisADLineArray[] {circle, north});
+
+    ScalarMap shape_map1 = new ScalarMap(shape, Display.Shape);
+    display.addMap(shape_map1);
+    ShapeControl shape_control1 = (ShapeControl) shape_map1.getControl();
+    shape_control1.setShapeSet(new Integer1DSet(8));
+    VisADLineArray[] line_shapes =
+      {null, ell, circle, null, south_circle, south, north_circle, north};
+    shape_control1.setShapes(line_shapes);
+
+    ScalarMap shape_map2 = new ScalarMap(shape, Display.Shape);
+    display.addMap(shape_map2);
+    ShapeControl shape_control2 = (ShapeControl) shape_map2.getControl();
+    shape_control2.setShapeSet(new Integer1DSet(8));
+    VisADTriangleArray[] triangle_shapes =
+      {null, null, null, filled_circle, null, filled_circle, null, filled_circle};
+    shape_control2.setShapes(triangle_shapes);
 
     ScalarMap amap = null;
     if (args.length > 0) {
@@ -419,7 +515,7 @@ public class FlexibleTrackManipulation extends Object
       // each track record is a Tuple (lon, lat, shape)
       values[0][k] = 2.0 * k - 8.0;
       values[1][k] = 2.0 * k - 48.0;
-      values[2][k] = 0.0;
+      values[2][k] = k % 8;
     }
     ff.setSamples(values);
 
