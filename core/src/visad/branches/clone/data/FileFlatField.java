@@ -536,13 +536,12 @@ public class FileFlatField extends FlatField {
    * instance.  As such, this method should probably not be invoked.
    *
    * @return                            A clone of this instance.
-   * @throws CloneNotSupportedException if cloning isn't supported.
    */
-  public Object clone() throws CloneNotSupportedException
+  public Object clone()
   {
     /*
      * This implementation should probably just throw a 
-     * CloneNotSupportedException.
+     * CloneNotSupportedException but can't because FlatField.clone() doesn't.
      */
       
     FlatField fld = getAdaptedFlatField();
