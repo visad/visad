@@ -248,6 +248,8 @@ public class ColorMapWidget
     // listen for changes
     if (realControl != null) {
       realControl.addControlListener(this);
+    } else {
+      control.addControlListener(this);
     }
     if (update) {
       smap.addScalarMapListener(this);
@@ -317,7 +319,9 @@ public class ColorMapWidget
   public void controlChanged(ControlEvent evt)
     throws RemoteException, VisADException
   {
-    control.syncControl(realControl);
+    if (realControl == evt.getControl()) {
+      control.syncControl(realControl);
+    }
   }
 
   /**
