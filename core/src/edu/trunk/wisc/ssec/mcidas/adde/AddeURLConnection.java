@@ -49,37 +49,50 @@ import java.util.StringTokenizer;
  * <pre>
  *
  * URLs must all have the following format   
- *   adde://host/image?keyword_1=value_1&keyword_2=value_2
+ *   adde://host/request?keyword_1=value_1&keyword_2=value_2
  *
- * there can be any valid combination of the following supported keywords:
- *   group - ADDE group name   
- *   descr - ADDE descriptor name   
- *   band - spectral band or channel number
+ * where request can be one of the following:
+ *   imagedata - request for data in AreaFile format (AGET)
+ *   imagedirectory - request for image directory information (ADIR)
+ *   datasetinfo - request for data set information (LWPR)
+ *
+ * there can be any valid combination of the following supported keywords
+ * (valid request types in parentheses):
+ *   group - ADDE group name    (all)
+ *   descr - ADDE descriptor name   (imagedata, imagedirectory)
+ *   band - spectral band or channel number (imagedata, imagedirectory)
  *   mag - image magnification, postitive for blowup, negative for blowdown
- *   lmag - like mag keyword, but line direction only
- *   emag - like mag keyword, but element direction only
- *   user - ADDE user identification
- *   proj - a valid ADDE project number
- *   lat - latitude to center image on
- *   lon - longitude to center image on
+ *          (imagedata)
+ *   lmag - like mag keyword, but line direction only (imagedata)
+ *   emag - like mag keyword, but element direction only (imagedata)
+ *   user - ADDE user identification (all)
+ *   proj - a valid ADDE project number (all)
+ *   lat - latitude to center image on (imagedata)
+ *   lon - longitude to center image on (imagedata)
  *   pos - when requesting an absolute or relative ADDE position number
- *   lines - number of lines to include in image
- *   elems - number of elements to include in image
+ *         (imagedata, imagedirectory)
+ *   lines - number of lines to include in image (imagedata)
+ *   elems - number of elements to include in image (imagedata)
  *   unit - to specify calibration units other than the default
- *   spac - number of bytes per data point, 1, 2, or 4
+ *          (imagedata, imagedirectory)
+ *   spac - number of bytes per data point, 1, 2, or 4 (imagedata)
  *   doc - specify yes to include line documentation with image
+ *          (imagedata, imagedirectory)
  *   aux - specify yes to include auxilliary information with image
- *   time - to specify an image start time
- *   cal - to request a specific calibration on the image
+ *          (imagedata, imagedirectory)
+ *   time - to specify an image start time (imagedata, imagedirectory)
+ *   cal - to request a specific calibration on the image (imagedata)
  *   trace - setting non zero tells server to write debug trace file
- *   version - ADDE version number, currently 1
+ *          (imagedata, imagedirectory)
+ *   version - ADDE version number, currently 1 (all)
  *
  * the following keywords are required:
  *
- *   group, descr 
+ *   group - all requests
+ *   descr - imagedata and imagedirectory requests
  *
  * an example URL might look like:
- *   adde://viper/image?group=gvar&band=1&user=tjj&proj=6999&version=1
+ *   adde://viper/imagedata?group=gvar&band=1&user=tjj&proj=6999&version=1
  *   
  * </pre>
  *
@@ -102,12 +115,21 @@ public class AddeURLConnection extends URLConnection
   private final static int REQUEST_SIZE = 120;
   private final static int ERRMSG_SIZE = 72;
   private final static int ERRMSG_OFFS = 8;
+  private final static int PORT = 500;
+
+  // ADDE server requests
   private final static int AGET = 0;
   private final static int ADIR = 1;
   private final static int LWPR = 2;
-  private final static int PORT = 500;
+
+  // ADDE data types
+  private final static int IMAGE = 100;
+  private final static int GRID  = 101;
+  private final static int POINT = 102;
+  private final static int TEXT  = 103;
 
   private int numBytes = 0;
+  private int dataType = IMAGE;
 
   /**
    *
@@ -159,7 +181,7 @@ public class AddeURLConnection extends URLConnection
     // verify the service requested is for image, not grid or md data
     // get rid of leading /
     String request = url.getFile().toLowerCase().substring(1);
-    if (!request.startsWith("image")) 
+    if (!request.startsWith("image") && (!request.startsWith("datasetinfo")) )
     {
         throw new AddeURLException("Request for non-image data");
     }
@@ -187,7 +209,7 @@ public class AddeURLConnection extends URLConnection
         svc = (new String("adir")).getBytes();
         reqType = ADIR;
     }
-    else if (request.startsWith("imageinfo"))
+    else if (request.startsWith("datasetinfo"))
     {
         svc = (new String("lwpr")).getBytes();
         reqType = LWPR;
@@ -698,12 +720,32 @@ public class AddeURLConnection extends URLConnection
         return buf;
     }
 
+    /**
+     * Decode the ADDE request for data set information.
+     *
+     * <pre>
+     * there can be any valid combination of the following supported keywords:
+     *   group - ADDE group name   
+     *   type  - ADDE data type.  Must be one of the following:
+     *               IMAGE, POINT, GRID, TEXT, NAV
+     *           the default is the IMAGE type.
+     *
+     * the following keywords are required:
+     *
+     *   group
+     *
+     * an example URL might look like:
+     *   adde://viper/datasetinfo?group=gvar&type=image
+     *   
+     * </pre>
+     */
     public StringBuffer decodeLWPRString(String uCmd)
     {
         StringBuffer buf = new StringBuffer();
         String testString;
         String tempString;
         String groupString = null;
+        String typeString = "ala.";
 
         StringTokenizer cmdTokens = new StringTokenizer(uCmd, "&");
         while (cmdTokens.hasMoreTokens())
@@ -715,8 +757,26 @@ public class AddeURLConnection extends URLConnection
                 groupString = 
                     testString.substring(testString.indexOf("=") + 1);
             }
+            if (testString.startsWith("type"))
+            {
+                tempString = 
+                    testString.substring(testString.indexOf("=") + 1);
+                if (tempString.startsWith("i")) 
+                    typeString = "ala.";
+                if (tempString.startsWith("g")) 
+                    typeString = "alg.";
+                else if (tempString.startsWith("p"))
+                    typeString = "alm.";
+                else if (tempString.startsWith("t")) 
+                    typeString = "alt.";
+                else if (tempString.startsWith("n")) 
+                    typeString = "aln.";
+                else if (tempString.startsWith("s")) 
+                    typeString = "aln.";
+            }
+
         }
-        buf.append("ala.");
+        buf.append(typeString);
         buf.append(groupString);
         return buf;
     }
