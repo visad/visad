@@ -172,6 +172,13 @@ public class Main
     return 0;
   }
 
+  /**
+   * Push installed files out to cluster.
+   *
+   * @param mon progress monitor (ignored if <tt>null</tt>.)
+   * @param source source file/directory
+   * @param target directory on cluster machine where source is installed.
+   */
   private final void clusterPush(ProgressMonitor mon, String source,
                                  String target)
   {
@@ -189,10 +196,11 @@ public class Main
     in = new BufferedReader(new InputStreamReader(p.getInputStream()));
     err = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 
-    /*
-     * This loop will hang if too much output is sent to 'err' 
-     * without anything being sent to 'in'
-     */
+    // !! WARNING !!
+    //
+    // This loop will hang if too much output is sent to 'err' 
+    // without anything being sent to 'in'
+    //
     boolean looping = true;
     while (looping) {
       if (in != null) {
@@ -299,6 +307,13 @@ public class Main
     }
   }
 
+  /**
+   * Pop up directory chooser dialog and process user's response.
+   *
+   * @param chooser previously created directory chooser window
+   * @param list list of directory choices
+   * @param title directory chooser window title
+   */
   private final static File chooseDirectory(ChooserList chooser,
                                             ArrayList list, String title)
   {
@@ -356,6 +371,13 @@ public class Main
     return new File(choice.getParent());
   }
 
+  /**
+   * Pop up file chooser dialog and process user's response.
+   *
+   * @param chooser previously created file chooser window
+   * @param list list of file choices
+   * @param title file chooser window title
+   */
   private static final File chooseFile(ChooserList chooser,
                                        ArrayList list, String title)
   {
@@ -376,6 +398,9 @@ public class Main
     return chooser.getSelectedFile();
   }
 
+  /**
+   * Dump post-initialization state for debugging
+   */
   private final void dumpInitialState()
   {
     if (distDir != null && distDir.exists()) {
@@ -421,6 +446,9 @@ public class Main
     }
   }
 
+  /**
+   * Dump pre-installation state for debugging.
+   */
   private final void dumpInstallState()
   {
     if (useSuppliedJava) {
@@ -634,6 +662,7 @@ public class Main
     if (useSuppliedJava) {
       mon.setPhase("Copying JVM");
       if (installerJavaDir != null) {
+        // install unpacked JVM
         if (javaInstallDir.exists()) {
           javaInstallDir = new File(javaInstallDir,
                                     installerJavaDir.getName());
@@ -641,6 +670,7 @@ public class Main
 
         Util.copyDirectory(mon, installerJavaDir, javaInstallDir);
       } else {
+        // install JVM from jar file
         String jarTop = getJarTopDir(installerJavaJar);
         if (jarTop == null && archStr != null) {
           jarTop = "jdk-" + archStr;
@@ -669,6 +699,15 @@ public class Main
     try { Thread.sleep(2000); } catch (InterruptedException ie) { }
   }
 
+  /**
+   * Return the top directory contained in the specified jar file
+   *
+   * @param source jar file to examine
+   *
+   * @return either the sole top-level directory in the jar file
+   *         or <tt>null</tt> if the jar file contains multiple
+   *         top-level files/directories.
+   */
   private String getJarTopDir(File source)
   {
     // try to open the jar file
@@ -692,8 +731,8 @@ public class Main
         continue;
       }
 
+      // get the top directory for this entry
       String dirName;
-
       int dirIdx = entryName.indexOf(File.separatorChar);
       if (dirIdx < 0) {
         dirName = entryName;
@@ -702,8 +741,10 @@ public class Main
       }
 
       if (topDir == null) {
+        // if we haven't seen a top-level directory, save this
         topDir = dirName;
       } else if (!topDir.equals(dirName)) {
+        // we already have a different to-level dir, so give up
         topDir = null;
         break;
       }
@@ -796,6 +837,11 @@ public class Main
     }
   }
 
+  /**
+   * Ask user if they want to cancel the install.
+   *
+   * @return <tt>true</tt> if user wants to cancel.
+   */
   private final boolean queryUserCancelInstall()
   {
     String canMsg = "Do you want to cancel this install?";
@@ -807,6 +853,8 @@ public class Main
   }
 
   /**
+   * Ask user if they want to install everything on the cluster.
+   *
    * @return false if [Cancel] button was pressed,
    *         true if another choice was made.
    */
@@ -831,6 +879,8 @@ public class Main
   }
 
   /**
+   * Ask user if they want to download the latest visad.jar
+   *
    * @return false if [Cancel] button was pressed,
    *         true if another choice was made.
    */
@@ -851,6 +901,9 @@ public class Main
   }
 
   /**
+   * Ask user to specify the directory in which the visad.jar file
+   * should be installed.
+   *
    * @return -1 if [Cancel] button was pressed,
    *          0 if a bad directory was selected,
    *          1 if a valid choice was made.
@@ -876,6 +929,9 @@ public class Main
   }
 
   /**
+   * Ask user to specify the directory in which the supplied
+   * JDK should be installed.
+   *
    * @return -1 if [Cancel] button was pressed,
    *          0 if a bad directory was selected,
    *          1 if a valid choice was made.
@@ -910,6 +966,8 @@ public class Main
   }
 
   /**
+   * Ask user if they'd like to have the supplied JDK installed.
+   *
    * @return false if [Cancel] button was pressed,
    *         true if another choice was made.
    */

@@ -20,6 +20,9 @@ import javax.swing.event.ListSelectionListener;
 
 import javax.swing.filechooser.FileFilter;
 
+/**
+ * An auxiliary widget which displays a pre-built list of file selections.
+ */
 class FileListAccessory
   extends JPanel
 {
@@ -55,6 +58,9 @@ class FileListAccessory
   }
 }
 
+/**
+ * A JFileChooser widget which includes a pre-built list of choices.
+ */
 public class ChooserList
   extends JFileChooser
   implements ListSelectionListener
@@ -66,6 +72,11 @@ public class ChooserList
     accessory = null;
   }
 
+  /**
+   * Set the list of choices.
+   *
+   * @param list list of File objects
+   */
   public void setList(File[] list)
   {
     if (list == null) {
@@ -86,6 +97,9 @@ public class ChooserList
     } 
   }
 
+  /**
+   * Update widget to point to the selected file.
+   */
   private final void updateSelectedFile(File file)
   {
     if (file != null) {

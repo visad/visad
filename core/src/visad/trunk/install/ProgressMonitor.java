@@ -16,16 +16,22 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+/**
+ * Widget showing general and detailed progress.
+ */
 public class ProgressMonitor
   extends JFrame
 {
+  /**
+   * Label used to track and display detailed progress information.
+   */
   class DetailLabel
     extends JLabel
   {
     private String text;
     private boolean show;
 
-    public DetailLabel(String text, boolean show)
+    DetailLabel(String text, boolean show)
     {
       super(text);
 
@@ -33,8 +39,18 @@ public class ProgressMonitor
       this.show = show;
     }
 
-    public final boolean isShown() { return show; }
+    /**
+     * Indicate whether detailed progress is shown.
+     *
+     * @return true if detailed progress is shown.
+     */
+    final boolean isShown() { return show; }
 
+    /**
+     * Set new detailed progress text.
+     *
+     * @param text detailed progress text
+     */
     public final void setText(String text)
     {
       this.text = text;
@@ -44,6 +60,9 @@ public class ProgressMonitor
       }
     }
 
+    /**
+     * Toggle visibility of detailed progress text.
+     */
     final void toggleShown()
     {
       show = !show;
@@ -56,27 +75,50 @@ public class ProgressMonitor
     }
   }
 
+  // font used to draw text
   private Font labelFont;
 
+  // internal widgets
   private JLabel phaseLabel;
   private DetailLabel detailLabel;
   private JCheckBox detailBox;
 
+  /**
+   * Create a progress monitor which uses a 12 pt Sans Serif font and
+   * initially displays the detailed progress text.
+   */
   public ProgressMonitor()
   {
     this(true);
   }
 
+  /**
+   * Create a progress monitor which uses a 12 pt Sans Serif font.
+   *
+   * @param showDetails <tt>true</tt> if details are initially displayed.
+   */
   public ProgressMonitor(boolean showDetails)
   {
     this(new Font("sansserif", Font.PLAIN, 12), showDetails);
   }
 
+  /**
+   * Create a progress monitor which
+   * initially displays the detailed progress text.
+   *
+   * @param labelFont the font used to draw all text
+   */
   public ProgressMonitor(Font labelFont)
   {
     this(labelFont, true);
   }
 
+  /**
+   * Create a progress monitor.
+   *
+   * @param showDetails <tt>true</tt> if details are initially displayed.
+   * @param labelFont the font used to draw all text
+   */
   public ProgressMonitor(Font labelFont, boolean showDetails)
   {
     super("Installation Progress Monitor");
@@ -144,21 +186,31 @@ public class ProgressMonitor
     pack();
   }
 
+  /**
+   * Indicate whether detailed progress is shown.
+   *
+   * @return true if detailed progress is shown.
+   */
   public final boolean isDetailShown() { return detailLabel.isShown(); }
 
+  /**
+   * Set new detailed progress text.
+   *
+   * @param detail detailed progress text
+   */
   public final void setDetail(String detail)
   {
     detailLabel.setText(detail);
   }
 
+  /**
+   * Set new progress phase text.
+   *
+   * @param detail progress phase text
+   */
   public final void setPhase(String phase)
   {
     phaseLabel.setText(phase);
     detailLabel.setText("");
-  }
-
-  private final void toggleShowDetails()
-  {
-    detailLabel.toggleShown();
   }
 }

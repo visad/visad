@@ -69,6 +69,7 @@ public class Download
       }
     }
 
+    // open URL for reading
     BufferedInputStream in;
     try {
       InputStream uIn = url.openStream();
@@ -78,6 +79,7 @@ public class Download
       return;
     }
 
+    // open file for writing
     BufferedOutputStream out;
     try {
       FileOutputStream fOut = new FileOutputStream(target);
@@ -87,6 +89,7 @@ public class Download
       return;
     }
 
+    // copy URL to file
     byte[] block = new byte[1024];
     while (true) {
       int len;
@@ -109,6 +112,7 @@ public class Download
       }
     }
 
+    // close up shop
     try { out.close(); } catch (IOException ioe) { }
     try { in.close(); } catch (IOException ioe) { }
   }
