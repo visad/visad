@@ -49,6 +49,9 @@ public class ThreadPool
   // generic lock object
   private Object threadLock = new Object();
 
+  // object used to signal task completion
+  private Object doneLock = new Object();
+
   // 'true' if all threads should exit
   private boolean terminateThread = false;
 
@@ -79,7 +82,14 @@ public class ThreadPool
         // try to find something to do...
         Runnable r = parent.getTask();
         if (r != null) {
-          r.run();
+          try {
+            r.run();
+          } catch (Throwable t) {
+            t.printStackTrace();
+          }
+          synchronized (doneLock) {
+            doneLock.notifyAll();
+          }
         } else {
 
           // if we're supposed to stop, break out of the infinite loop
@@ -231,6 +241,29 @@ public class ThreadPool
     }
 
     return thisTask;
+  }
+
+  /** wait for currently-running tasks to finish */
+  public boolean waitForTasks()
+  {
+    // give all the current tasks a chance to finish
+    int timeout = tasks.size();
+
+    while (tasks.size() > 0) {
+      try {
+        synchronized (doneLock) {
+          doneLock.wait();
+        }
+      } catch (InterruptedException e) {
+        // ignore interrupts ...
+      }
+
+      if (timeout-- == 0) {
+        break;
+      }
+    }
+
+    return (timeout > 0);
   }
 
   /** increase the maximum number of pooled threads */
