@@ -165,6 +165,9 @@ public class DelaunayCustom extends Delaunay {
       throw new VisADException("samples argument bad dimensions");
     }
     if (samples[0].length < 3) return null;
+    if (checkSelfIntersection(samples)) {
+      throw new VisADException("path self intersects");
+    }
     int n = samples[0].length;
 
     // build circular boundary list

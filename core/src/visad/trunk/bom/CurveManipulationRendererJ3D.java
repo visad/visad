@@ -802,21 +802,16 @@ class CurveDelete implements ActionListener {
         for (int i=0; i<sets.length; i++) {
           float[][] samples = sets[i].getSamples();
           if (samples == null || samples[0].length < 3) continue;
-          if (DelaunayCustom.checkSelfIntersection(samples)) {
-            System.out.println("path " + i + " self intersects");
+          try {
+            int[][] tris = DelaunayCustom.fill(samples);
+            if (tris == null || tris[0].length == 0) continue;
+            DelaunayCustom delaunay = new DelaunayCustom(samples, tris);
+            if (delaunay == null) continue;
+            new_sets[k++] = new Irregular2DSet(set.getType(), samples,
+                                               null, null, null, delaunay);
           }
-          else {
-            try {
-              int[][] tris = DelaunayCustom.fill(samples);
-              if (tris == null || tris[0].length == 0) continue;
-              DelaunayCustom delaunay = new DelaunayCustom(samples, tris);
-              if (delaunay == null) continue;
-              new_sets[k++] = new Irregular2DSet(set.getType(), samples,
-                                                 null, null, null, delaunay);
-            }
-            catch (VisADException ex) {
-              System.out.println(ex.getMessage());
-            }
+          catch (VisADException ex) {
+            System.out.println(ex.getMessage());
           }
         }
         if (k > 0) {
