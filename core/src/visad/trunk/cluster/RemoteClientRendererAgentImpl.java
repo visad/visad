@@ -31,21 +31,15 @@ import java.rmi.*;
 import java.io.Serializable;
 
 /**
-   RemoteClientRendererAgentImpl is the class for agents on
-   the client that communicates with DefaultNodeRendererAgents
-   on the nodes.<P> 
+   RemoteClientRendererAgentImpl is the class for agents of
+   ClientRendererJ3Ds on the client; it communicates with
+   DefaultNodeRendererAgents on the nodes.<P> 
 */
 public class RemoteClientRendererAgentImpl extends RemoteClientAgentImpl {
 
-  ClientRendererJ3D renderer = null;
-
-  public RemoteClientRendererAgentImpl(ClientRendererJ3D r)
-         throws RemoteException {
-    renderer = r;
-  }
-
-  public void sendToClient(Serializable message) throws RemoteException {
-
+  public RemoteClientRendererAgentImpl(RemoteClientAgentImpl focus_agent,
+                                       int index) throws RemoteException {
+    super(focus_agent, index);
   }
 
 }

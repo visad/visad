@@ -32,8 +32,8 @@ import java.rmi.server.UnicastRemoteObject;
 import java.io.Serializable;
 
 /**
-   RemoteAgentContactImpl is the class for RemoteClientAgent 
-   to communicate to NodeAgent.<P> 
+   RemoteAgentContactImpl is the class on nodes for
+   RemoteClientAgent to communicate to NodeAgent.<P> 
 */
 public class RemoteAgentContactImpl extends UnicastRemoteObject
        implements RemoteAgentContact {

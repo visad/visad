@@ -32,13 +32,76 @@ import java.rmi.server.UnicastRemoteObject;
 import java.io.Serializable;
 
 /**
-   RemoteClientAgentImpl is the abstract super-class for agents on
-   the client, which typically send NodeAgents to each node.<P> 
+   RemoteClientAgentImpl is the class for agents on the
+   client, which typically send NodeAgents to each node.<P> 
 */
-public abstract class RemoteClientAgentImpl extends UnicastRemoteObject
+public class RemoteClientAgentImpl extends UnicastRemoteObject
        implements RemoteClientAgent {
 
-  public RemoteClientAgentImpl() throws RemoteException {
+  // null indicates this is the focus_agent
+  private RemoteClientAgentImpl focus_agent;
+
+  private int index = -1;
+
+  private boolean not_all;
+  Serializable[] responses = null;
+
+  public RemoteClientAgentImpl(RemoteClientAgentImpl fa, int ind)
+         throws RemoteException {
+    focus_agent = fa;
+    index = ind;
+  }
+
+  public void sendToClient(Serializable message) throws RemoteException {
+    if (focus_agent != null) {
+      focus_agent.sendToClient(index, message);
+    }
+  }
+
+  // should be called only for focus_agent
+  public void sendToClient(int ind, Serializable message)
+         throws RemoteException {
+    if (0 <= ind && ind < responses.length) {
+      responses[ind] = message;
+      boolean all = true;
+      for (int i=0; i<responses.length; i++) {
+        if (responses[i] == null) all = false;
+      }
+      if (all) {
+        synchronized (this) {
+          not_all = false;
+          notify();
+        }
+      }
+    }
+  }
+
+  public Serializable[] broadcastWithResponses(Serializable message,
+                                               RemoteAgentContact[] contacts)
+         throws VisADException, RemoteException {
+    int nagents = contacts.length;
+    responses = new Serializable[nagents];
+    for (int i=0; i<nagents; i++) {
+      responses[i] = null;
+      contacts[i].sendToNode(message);
+    }
+    not_all = true;
+    while (not_all) {
+      synchronized (this) {
+        try {
+          wait();
+        }
+        catch (InterruptedException e) {
+        }
+      }
+    }
+    for (int i=0; i<responses.length; i++) {
+      if (responses[i] instanceof String &&
+          ((String) responses[i]).equals("error")) {
+        throw new ClusterException("error from node " + i);
+      }
+    }
+    return responses;
   }
 
 }

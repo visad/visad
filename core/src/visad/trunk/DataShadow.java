@@ -35,7 +35,7 @@ import java.rmi.*;
 */
 public class DataShadow extends Object implements java.io.Serializable {
 
-  double[][] ranges;
+  double[][] ranges; // [2][num_RealTypes] - 0=min, 1=max
 
   /** default Set for Animation sampling;
       order of precedence is:
@@ -78,6 +78,16 @@ public class DataShadow extends Object implements java.io.Serializable {
         animationRangeSampling = set;
       }
     }
+  }
+
+  public void merge(DataShadow shadow)
+         throws VisADException {
+    int n = ranges[0].length;
+    for (int i=0; i<n; i++) {
+      if (shadow.ranges[0][i] < ranges[0][i]) ranges[0][i] = shadow.ranges[0][i];
+      if (shadow.ranges[1][i] > ranges[1][i]) ranges[1][i] = shadow.ranges[1][i];
+    }
+    setAnimationSampling(shadow.animationSampling, true);
   }
 
 }

@@ -29,6 +29,7 @@ package visad.cluster;
 import visad.*;
 import visad.java3d.*;
 import java.rmi.*;
+import java.util.Vector;
 import java.io.Serializable;
 
 /**
@@ -56,10 +57,6 @@ public class DefaultNodeRendererAgent extends NodeAgent {
     super(source);
     rmtDpy = rd;
     cmaps = cms;
-  }
-
-  public void sendToNode(Serializable me) {
-    message = me;
   }
 
   public void run() {
@@ -102,10 +99,36 @@ public class DefaultNodeRendererAgent extends NodeAgent {
     Thread me = Thread.currentThread();
     while (getAgentThread() == me) {
       Serializable message = getMessage();
+
       if (message instanceof String &&
           ((String) message).equals("stop")) return;
 
-
+      Serializable response = null;
+      if (message instanceof Vector) {
+        Vector vmessage = (Vector) message;
+        Object first = vmessage.elementAt(0);
+        if (first instanceof ShadowType) {
+          // if first element is ShadowType must be computeRanges message
+          ShadowType type = (ShadowType) first;
+          Object second = vmessage.elementAt(1);
+          try {
+            if (second instanceof DataShadow) {
+              DataShadow shadow = (DataShadow) second;
+              response = data.computeRanges(type, shadow);
+            }
+            else if (second instanceof Integer) {
+              int scalar_count = ((Integer) second).intValue();
+              response = data.computeRanges(type, scalar_count);
+            }
+          }
+          catch (VisADException e) {
+          }
+          catch (RemoteException e) {
+          }
+        }
+      }
+      if (response == null) response = "error";
+      sendToClient(response);
     }
   }
 

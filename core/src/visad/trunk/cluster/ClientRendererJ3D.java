@@ -44,17 +44,18 @@ import java.io.Serializable;
 */
 public class ClientRendererJ3D extends DefaultRendererJ3D {
 
-  DisplayImpl display = null;
-  RemoteDisplay rdisplay = null;
-  ConstantMap[] cmaps = null;
+  private DisplayImpl display = null;
+  private RemoteDisplay rdisplay = null;
+  private ConstantMap[] cmaps = null;
 
-  DataDisplayLink link = null;
-  Data data = null;
-  ClientDisplayRendererJ3D cdr = null;
-  boolean cluster = true;
+  private DataDisplayLink link = null;
+  private Data data = null;
+  private ClientDisplayRendererJ3D cdr = null;
+  private boolean cluster = true;
 
-  RemoteClientRendererAgentImpl[] agents = null;
-  RemoteAgentContact[] contacts = null;
+  private RemoteClientRendererAgentImpl[] agents = null;
+  private RemoteClientAgentImpl focus_agent = null;
+  private RemoteAgentContact[] contacts = null;
 
   public ClientRendererJ3D () {
   }
@@ -103,13 +104,15 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
       cluster = (data instanceof RemoteClientDataImpl);
 
       if (cluster && data != old_data) {
+        RemoteClientDataImpl rcdi = (RemoteClientDataImpl) data;
         // send agents to nodes if data changed
-        RemoteClusterData[] jvmTable = ((RemoteClientDataImpl) data).getTable();
+        focus_agent = new RemoteClientAgentImpl(null, -1);
+        RemoteClusterData[] jvmTable = rcdi.getTable();
         int nagents = jvmTable.length - 1;
         agents = new RemoteClientRendererAgentImpl[nagents];
         contacts = new RemoteAgentContact[nagents];
         for (int i=0; i<nagents; i++) {
-          agents[i] = new RemoteClientRendererAgentImpl(this);
+          agents[i] = new RemoteClientRendererAgentImpl(focus_agent, i);
           DefaultNodeRendererAgent node_agent =
             new DefaultNodeRendererAgent(agents[i], rdisplay, cmaps);
           contacts[i] = ((RemoteNodeData) jvmTable[i]).sendAgent(node_agent);
@@ -178,21 +181,27 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
     if (!cluster) {
       return super.computeRanges(data, type, shadow);
     }
-    int nagents = agents.length;
-    for (int i=0; i<nagents; i++) {
-      // note ShadowType and DataShadow are both Serializable
-      // message should really be (computeRanges, type, shadow)
-      contacts[i].sendToNode(null);
-    }
 
+    DataShadow[] shadows = null;
+    Vector message = new Vector();
+    message.addElement(type);
     if (shadow == null) {
+      message.addElement(new Integer(getDisplay().getScalarCount()));
       shadow =
         data.computeRanges(type, getDisplay().getScalarCount());
     }
     else {
+      message.addElement(shadow);
       shadow = data.computeRanges(type, shadow);
     }
-    return shadow;
+    Serializable[] responses =
+      focus_agent.broadcastWithResponses(message, contacts);
+    DataShadow new_shadow = (DataShadow) responses[0];
+    int n = responses.length;
+    for (int i=1; i<n; i++) {
+      new_shadow.merge((DataShadow) responses[i]);
+    }
+    return new_shadow;
   }
 
   public static void main(String args[])
