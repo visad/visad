@@ -162,6 +162,27 @@ public class ImageStackMeasure {
     return stack[slice].getValues();
   }
 
+  /** Gets the distances between endpoints as a string. */
+  public String getDistanceString() {
+    StringBuffer sb = new StringBuffer();
+    for (int i=0; i<stack.length; i++) {
+      double[][] vals = stack[i].getValues();
+      double dist = stack[i].getDistance();
+      for (int j=0; j<2; j++) {
+        int klen = vals.length - 1;
+        for (int k=0; k<klen; k++) {
+          sb.append(vals[k][j]);
+          sb.append(" ");
+        }
+        sb.append(vals[klen][j]);
+        sb.append("\t");
+      }
+      sb.append(dist);
+      sb.append("\n");
+    }
+    return sb.toString();
+  }
+
   /** Tests the ImageStackMeasure class. */
   public static void main(String[] args) throws Exception {
     if (args.length < 1) {

@@ -28,7 +28,7 @@ package visad.bio;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.io.File;
+import java.io.*;
 import java.rmi.RemoteException;
 import javax.swing.*;
 import visad.*;
@@ -45,7 +45,7 @@ public class MeasureFrame extends GUIFrame {
 
   /**
    * File chooser for loading and saving data. This variable is static so
-   * that the directory is remembered between each load or save command.
+   * that the directory is remembered between each load command.
    */
   private static JFileChooser fileBox = Util.getVisADFileChooser();
 
@@ -151,7 +151,24 @@ public class MeasureFrame extends GUIFrame {
 
   /** Saves a set of measurements. */
   public void measureSave() {
-    // CTR
+    // get file name from file dialog
+    fileBox.setDialogType(JFileChooser.SAVE_DIALOG);
+    if (fileBox.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+
+    // CTR: start here. There's a bug in the FieldMeasure stuff where
+    //      it grabs the current ref values instead of the last saved
+    //      values. This causes the saved measurement files to store
+    //      the same values for each entry.
+
+    // save measurements
+    File f = fileBox.getSelectedFile();
+    String save = ism.getDistanceString();
+    try {
+      FileWriter fout = new FileWriter(f);
+      fout.write(save, 0, save.length());
+      fout.close();
+    }
+    catch (IOException exc) { exc.printStackTrace(); }
   }
 
   /** Redisplays the step controls. */
